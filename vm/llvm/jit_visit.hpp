@@ -1001,7 +1001,7 @@ namespace rubinius {
       allow_private_ = true;
     }
 
-    void visit_set_call_flags(opcode flag) {
+    void novisit_set_call_flags(opcode flag) {
       call_flags_ = flag;
     }
 
@@ -1915,6 +1915,7 @@ namespace rubinius {
       sig << VMTy;
       sig << CallFrameTy;
       sig << Type::Int32Ty;
+      sig << ObjType;
 
       Value* call_args[] = {
         vm_,

@@ -101,7 +101,9 @@ extern "C" {
     Arguments out_args(recv, args[count+2], count, args+1);
     Dispatch dis(name);
 
-    out_args.append(state, as<Array>(args[count+1]));
+    if(Array* ary = try_as<Array>(args[count+1])) {
+      out_args.append(state, ary);
+    }
 
     return dis.send(state, call_frame, out_args);
   }
@@ -113,7 +115,9 @@ extern "C" {
     LookupData lookup(recv, recv->lookup_begin(state), true);
     Dispatch dis(name);
 
-    out_args.append(state, as<Array>(args[count+1]));
+    if(Array* ary = try_as<Array>(args[count+1])) {
+      out_args.append(state, ary);
+    }
 
     return dis.send(state, call_frame, lookup, out_args);
   }
@@ -183,6 +187,20 @@ extern "C" {
     VMMethod* vmm = cm->backend_method_;
 
     scope->prepare(args.recv(), msg.module, args.block(), cm, vmm->number_of_locals);
+  }
+
+  Object* rbx_construct_splat(STATE, CallFrame* call_frame, Arguments& args, size_t total) {
+    if(args.total() > total) {
+      size_t splat_size = args.total() - total;
+      Array* ary = Array::create(state, splat_size);
+
+      for(size_t i = 0, n = total; i < splat_size; i++, n++) {
+        ary->set(state, i, args.get_argument(n));
+      }
+      return ary;
+    } else {
+      return Array::create(state, 0);
+    }
   }
 
   Object* rbx_cast_array(STATE, CallFrame* call_frame, Object* top) {

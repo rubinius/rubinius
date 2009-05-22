@@ -93,7 +93,7 @@ namespace rubinius {
 
         // Ok, compiled, generated machine code, now update MachineMethod
         {
-          GlobalLock::UnlockGuard lock(ls_->global_lock());
+          GlobalLock::LockGuard lock(ls_->global_lock());
 
           MachineMethod* mm = req->machine_method();
           mm->update(req->vmmethod(), jit);
@@ -228,13 +228,40 @@ namespace rubinius {
         total_idx + 2, "total_pos", block);
     Value* total = new LoadInst(total_offset, "arg.total", block);
 
-    Value* cmp = new ICmpInst(ICmpInst::ICMP_SLT, total,
-        ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
-
-    BasicBlock* arg_error = BasicBlock::Create("arg_error", func);
     BasicBlock* cont = BasicBlock::Create("method_body", func);
+    BasicBlock* arg_error = BasicBlock::Create("arg_error", func);
 
-    BranchInst::Create(arg_error, cont, cmp, block);
+    // Check arguments
+    //
+    // if there is a splat..
+    if(vmm->splat_position >= 0) {
+      if(vmm->required_args > 0) {
+        // Make sure we got at least the required args
+        Value* cmp = new ICmpInst(ICmpInst::ICMP_SLT, total,
+            ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
+        BranchInst::Create(arg_error, cont, cmp, block);
+      } else {
+        // Only splat or optionals, no handling!
+        BranchInst::Create(cont, block);
+      }
+
+    // No splat, a precise number of args
+    } else if(vmm->required_args == vmm->total_args) {
+      // Make sure we got the exact number of arguments
+      Value* cmp = new ICmpInst(ICmpInst::ICMP_NE, total,
+          ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
+      BranchInst::Create(arg_error, cont, cmp, block);
+
+    // No splat, with optionals
+    } else {
+      Value* c1 = new ICmpInst(ICmpInst::ICMP_SLT, total,
+          ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
+      Value* c2 = new ICmpInst(ICmpInst::ICMP_SGT, total,
+          ConstantInt::get(Type::Int32Ty, vmm->total_args), "arg_cmp", block);
+
+      Value* cmp = BinaryOperator::CreateOr(c1, c2, "arg_combine", block);
+      BranchInst::Create(arg_error, cont, cmp, block);
+    }
 
     // Call our arg_error helper
     Signature sig(ls, "Object");
@@ -288,25 +315,98 @@ namespace rubinius {
 
     Value* arg_ary = new LoadInst(offset, "arg_ary", block);
 
-    for(int i = 0; i < vmm->required_args; i++) {
-      Value* int_pos = ConstantInt::get(Type::Int32Ty, i);
+    // If there are a precise number of args, easy.
+    if(vmm->required_args == vmm->total_args) {
+      for(int i = 0; i < vmm->required_args; i++) {
+        Value* int_pos = ConstantInt::get(Type::Int32Ty, i);
+
+        Value* arg_val_offset =
+          GetElementPtrInst::Create(arg_ary, int_pos, "arg_val_offset", block);
+
+        Value* arg_val = new LoadInst(arg_val_offset, "arg_val", block);
+
+        Value* idx2[] = {
+          ConstantInt::get(Type::Int32Ty, 0),
+          ConstantInt::get(Type::Int32Ty, 8),
+          int_pos
+        };
+
+        Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "var_pos", block);
+
+        new StoreInst(arg_val, pos, false, block);
+      }
+
+    // Otherwise, we must loop in the generate code because we don't know
+    // how many they've actually passed in.
+    } else {
+      Value* loop_i = new AllocaInst(Type::Int32Ty, 0, "loop_i", block);
+
+      BasicBlock* top = BasicBlock::Create("arg_loop_top", func);
+      BasicBlock* body = BasicBlock::Create("arg_loop_body", func);
+      BasicBlock* after = BasicBlock::Create("arg_loop_cont", func);
+
+      new StoreInst(ConstantInt::get(Type::Int32Ty, 0), loop_i, false, block);
+      BranchInst::Create(top, block);
+
+      // now at the top of block, check if we should continue...
+      Value* loop_val = new LoadInst(loop_i, "loop_val", top);
+      Value* cmp = new ICmpInst(ICmpInst::ICMP_SLT, loop_val, total,
+                                    "loop_test", top);
+
+      BranchInst::Create(body, after, cmp, top);
+
+      // Now, the body
 
       Value* arg_val_offset =
-        GetElementPtrInst::Create(arg_ary, int_pos, "arg_val_offset", block);
+        GetElementPtrInst::Create(arg_ary, loop_val, "arg_val_offset", body);
 
-      Value* arg_val = new LoadInst(arg_val_offset, "arg_val", block);
+      Value* arg_val = new LoadInst(arg_val_offset, "arg_val", body);
 
       Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, 0),
         ConstantInt::get(Type::Int32Ty, 8),
-        int_pos
+        loop_val
       };
 
-      Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "var_pos", block);
+      Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "var_pos", body);
 
-      new StoreInst(arg_val, pos, false, block);
+      new StoreInst(arg_val, pos, false, body);
+
+      Value* plus_one = BinaryOperator::CreateAdd(loop_val,
+          ConstantInt::get(Type::Int32Ty, 1), "add", body);
+      new StoreInst(plus_one, loop_i, false, body);
+
+      BranchInst::Create(top, body);
+
+      block = after;
     }
 
+    // Setup the splat.
+    if(vmm->splat_position >= 0) {
+      Signature sig(ls, "Object");
+      sig << "VM";
+      sig << "CallFrame";
+      sig << "Arguments";
+      sig << Type::Int32Ty;
+
+      Value* call_args[] = {
+        vm_obj,
+        call_frame,
+        arg_obj,
+        ConstantInt::get(Type::Int32Ty, vmm->total_args)
+      };
+
+      Value* splat_val = sig.call("rbx_construct_splat", call_args, 4, "splat_val", block);
+
+      Value* idx3[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 8),
+        ConstantInt::get(Type::Int32Ty, vmm->splat_position)
+      };
+
+      Value* pos = GetElementPtrInst::Create(vars, idx3, idx3+3, "splat_pos", block);
+      new StoreInst(splat_val, pos, false, block);
+    }
   }
 
   void LLVMCompiler::initialize_call_frame(Function* func,
