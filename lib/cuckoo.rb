@@ -48,6 +48,7 @@ module Rubinius
 
     def find_entry(key)
       key_hash = key.hash
+
       entry = @entries[key_index1(key_hash)]
       return entry if entry and entry.match? key, key_hash
 
@@ -67,44 +68,29 @@ module Rubinius
       i = to_iter
 
       # TODO: grow smaller too
-      setup @maximum
+      setup @capacity * 2
       @max_loop += MAX_LOOP_INCR
 
       while entry = i.next
-        insert entry.key, entry.value, false
+        insert entry
       end
 
       self
     end
 
-    def insert(key, value, updating)
+    def insert(new_entry)
       rehash unless @size < @capacity
 
-      key_hash = key.hash
-      index = key_index1 key_hash
-      unless entry = @entries[index]
-        @entries[index] = Entry.new key, key_hash, value
-        @size += 1
-        return
-      end
-
-      if updating
-        if entry.match? key, key_hash
-          entry.value = value
-          return
-        end
-
-        index2 = key_index2 key_hash
-        if entry2 = @entries[index2] and entry2.match? key, key_hash
-          entry2.value = value
-          return
-        end
-      end
-
-      new_entry = Entry.new key, key_hash, value
-
-      i = 1
+      i = 0
       while i < @max_loop
+        # If there is no entry for this key, set the entry.
+        index = key_index1 new_entry.key_hash
+        unless entry = @entries[index]
+          @entries[index] = new_entry
+          @size += 1
+          return
+        end
+
         # Boot the found entry from the nest and take it over.
         @entries[index] = new_entry
         new_entry = entry
@@ -117,31 +103,68 @@ module Rubinius
           return
         end
 
+        # Boot and take over.
         @entries[index] = new_entry
         new_entry = entry
 
-        # If there is no entry for this key, set the entry.
-        index = key_index1 new_entry.key_hash
-        unless entry = @entries[index]
-          @entries[index] = new_entry
-          @size += 1
-          return
-        end
-
+        # Rinse and repeat.
         i += 1
       end
 
       rehash
 
-      insert new_entry.key, new_entry.value, false
+      insert new_entry
     end
+    private :insert
 
-    def []=(key, value)
+    def new_entry(index, key, key_hash, value)
       if key.kind_of? String
         key = key.dup
         key.freeze
       end
-      insert key, value, true
+
+      @entries[index] = Entry.new key, key_hash, value
+    end
+    private :new_entry
+
+    def []=(key, value)
+      key_hash = key.hash
+
+      # Check for an existing entry.
+      index = key_index1 key_hash
+      if entry = @entries[index] and entry.match? key, key_hash
+        return entry.value = value
+      end
+
+      index2 = key_index2 key_hash
+      if entry2 = @entries[index2] and entry2.match? key, key_hash
+        return entry2.value = value
+      end
+
+      # Insert a new entry in the first table.
+      unless entry
+        new_entry index, key, key_hash, value
+        @size += 1
+        return value
+      end
+
+      # First table index is occupied, boot and take over
+      new_entry index, key, key_hash, value
+
+      # And insert the nestless entry.
+      index = key_index2 entry.key_hash
+      unless entry2 = @entries[index]
+        @entries[index] = entry
+        @size += 1
+        return value
+      end
+
+      # That was occupied. Take over the nest.
+      @entries[index] = entry
+
+      # We completed one cycle, so call #insert to place the
+      # nestless entry.
+      insert entry2
 
       value
     end
@@ -206,10 +229,10 @@ module Rubinius
     #
     # where epsilon > 0 and n is our +capacity+.
     #
-    # The following base and increment are based on epsilon = 0.5 and
+    # The following base and increment are based on epsilon = 2 and
     # a value of n = 8.
-    MAX_LOOP_BASE = 19
-    MAX_LOOP_INCR = 5
+    MAX_LOOP_BASE = 9
+    MAX_LOOP_INCR = 2
     MIN_SIZE      = 8
 
     def self.allocate
