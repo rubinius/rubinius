@@ -17,26 +17,18 @@ module Rubinius
     end
 
     class Iterator
-      def initialize(capacity, entries1, entries2)
-        @capacity = capacity
-        @entries1 = entries1
-        @entries2 = entries2
-        @entries  = @entries1
+      def initialize(maximum, entries)
+        @maximum = maximum
+        @entries  = entries
         @index    = -1
       end
 
       # Returns the next object or +nil+.
       def next
-        while (@index += 1) < @capacity
+        while (@index += 1) < @maximum
           entry = @entries[@index]
           return entry if entry
         end
-
-        return if @entries.equal? @entries2
-
-        @index = -1
-        @entries = @entries2
-        self.next
       end
     end
 
@@ -50,16 +42,16 @@ module Rubinius
     private :key_index1
 
     def key_index2(key_hash)
-      (key_hash.hash) & @mask
+      (key_hash.hash & @mask) + @capacity
     end
     private :key_index2
 
     def find_entry(key)
       key_hash = key.hash
-      entry = @entries1[key_index1(key_hash)]
+      entry = @entries[key_index1(key_hash)]
       return entry if entry and entry.match? key, key_hash
 
-      entry = @entries2[key_index2(key_hash)]
+      entry = @entries[key_index2(key_hash)]
       return entry if entry and entry.match? key, key_hash
     end
 
@@ -75,7 +67,7 @@ module Rubinius
       i = to_iter
 
       # TODO: grow smaller too
-      setup @capacity * 2
+      setup @maximum
       @max_loop += MAX_LOOP_INCR
 
       while entry = i.next
@@ -90,8 +82,8 @@ module Rubinius
 
       key_hash = key.hash
       index = key_index1 key_hash
-      unless entry = @entries1[index]
-        @entries1[index] = Entry.new key, key_hash, value
+      unless entry = @entries[index]
+        @entries[index] = Entry.new key, key_hash, value
         @size += 1
         return
       end
@@ -103,7 +95,7 @@ module Rubinius
         end
 
         index2 = key_index2 key_hash
-        if entry2 = @entries2[index2] and entry2.match? key, key_hash
+        if entry2 = @entries[index2] and entry2.match? key, key_hash
           entry2.value = value
           return
         end
@@ -114,24 +106,24 @@ module Rubinius
       i = 1
       while i < @max_loop
         # Boot the found entry from the nest and take it over.
-        @entries1[index] = new_entry
+        @entries[index] = new_entry
         new_entry = entry
 
         # Repeat with the booted entry as the new_entry
         index = key_index2 new_entry.key_hash
-        unless entry = @entries2[index]
-          @entries2[index] = new_entry
+        unless entry = @entries[index]
+          @entries[index] = new_entry
           @size += 1
           return
         end
 
-        @entries2[index] = new_entry
+        @entries[index] = new_entry
         new_entry = entry
 
         # If there is no entry for this key, set the entry.
         index = key_index1 new_entry.key_hash
-        unless entry = @entries1[index]
-          @entries1[index] = new_entry
+        unless entry = @entries[index]
+          @entries[index] = new_entry
           @size += 1
           return
         end
@@ -160,48 +152,20 @@ module Rubinius
       key_hash = key.hash
 
       index = key_index1 key_hash
-      if entry = @entries1[index] and entry.match? key, key_hash
-        @entries1[index] = nil
+      if entry = @entries[index] and entry.match? key, key_hash
+        @entries[index] = nil
         @size -= 1
         return entry.value
       end
 
       index = key_index2 key_hash
-      if entry = @entries2[index] and entry.match? key, key_hash
-        @entries2[index] = nil
+      if entry = @entries[index] and entry.match? key, key_hash
+        @entries[index] = nil
         @size -= 1
         return entry.value
       end
 
       return yield(key) if block_given?
-    end
-
-    # TODO: remove when merged
-    def print
-      puts "Size: #{@capacity}, Used: #{@size}, Entries: #{@entries}"
-
-      found = 0
-      puts "Table 1:"
-      @table1.entries.each_with_index do |ent, idx|
-        if ent
-          found += 1
-          puts "#{idx}: #{ent.key.inspect} => #{ent.value.inspect}"
-        else
-          puts "#{idx}:"
-        end
-      end
-
-      puts "Table 2:"
-      @table2.entries.each_with_index do |ent, idx|
-        if ent
-          found += 1
-          puts "#{idx}: #{ent.key.inspect} => #{ent.value.inspect}"
-        else
-          puts "#{idx}:"
-        end
-      end
-
-      puts "Found: #{found}"
     end
 
     #-------------------------------------------------------------------------
@@ -258,11 +222,11 @@ module Rubinius
     # other than MIN_SIZE, you must set @max_loop correctly.
     def setup(capacity = MIN_SIZE)
       @capacity = capacity
+      @maximum = capacity * 2
       @mask = capacity - 1
       @size = 0
       @max_loop = MAX_LOOP_BASE if capacity == MIN_SIZE
-      @entries1 = Rubinius::Tuple.new capacity
-      @entries2 = Rubinius::Tuple.new capacity
+      @entries = Rubinius::Tuple.new @maximum
     end
     private :setup
 
@@ -272,7 +236,7 @@ module Rubinius
     end
 
     def to_iter
-      Iterator.new @capacity, @entries1, @entries2
+      Iterator.new @maximum, @entries
     end
 
     def key?(key)
@@ -299,15 +263,9 @@ module Rubinius
       return default(nil) if empty?
 
       i = 0
-      while i < @capacity
-        if entry = @entries1[i]
-          @entries1[i] = nil
-          @size -= 1
-          return entry.key, entry.value
-        end
-
-        if entry = @entries2[i]
-          @entries2[i] = nil
+      while i < @maximum
+        if entry = @entries[i]
+          @entries[i] = nil
           @size -= 1
           return entry.key, entry.value
         end
