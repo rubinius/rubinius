@@ -68,6 +68,48 @@ extern "C" {
     env->current_ep()->return_to(env);
   }
 
+  VALUE rb_rescue2(VALUE (*func)(ANYARGS), VALUE arg1, VALUE (*raise_func)(ANYARGS), VALUE arg2, ...) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    VALUE ret = Qnil;
+    ExceptionPoint ep(env);
+    va_list exc_classes;
+
+    PLACE_EXCEPTION_POINT(ep);
+    if(unlikely(ep.jumped_to())) {
+      ep.pop(env);
+      if(env->state()->thread_state()->raise_reason() != cException) {
+        //Something bad happened, we shouldn't be here.
+        return Qnil;
+      }
+      VALUE exc_handle = env->get_handle(env->state()->thread_state()->as_object(env->state()));
+      va_start(exc_classes, arg2);
+      bool handle_exc = false;
+      while(VALUE eclass = va_arg(exc_classes, VALUE)) {
+        if(rb_obj_is_kind_of(exc_handle, eclass) == Qtrue) {
+          handle_exc = true;
+          break;
+        }
+      }
+      va_end(exc_classes);
+      if(handle_exc) {
+        ret = (*raise_func)(arg2);
+        env->state()->thread_state()->clear_exception();
+      } else {
+        env->current_ep()->return_to(env);
+      }
+    } else {
+      ret = (*func)(arg1);
+      ep.pop(env);
+    }
+
+    return ret;
+  }
+
+  VALUE rb_rescue(VALUE (*func)(ANYARGS), VALUE arg1, VALUE (*raise_func)(ANYARGS), VALUE arg2) {
+    // Sending 0 as the last argument is an ugly hack, but we have to mimic MRI, so...
+    return rb_rescue2(func, arg1, raise_func, arg2, rb_eStandardError,  0);
+  }
+
   /* @note  It is of dubious correctness that any C extension uses
    * rb_bug, but some do. We basically mimic MRI behavior here.
    */

@@ -23,6 +23,36 @@ static VALUE kernel_spec_rb_yield(VALUE self, VALUE obj) {
   return rb_yield(obj);
 }
 
+VALUE rb_rescue_func(VALUE arg_array) {
+  VALUE arg = rb_ary_pop(arg_array);
+  VALUE proc = rb_ary_pop(arg_array);
+  return rb_funcall(proc, rb_intern("call"), 1, arg);
+}
+
+VALUE kernel_spec_rb_rescue(VALUE self, VALUE main_proc, VALUE arg, VALUE raise_proc, VALUE arg2) {
+  VALUE main_array = rb_ary_new();
+  rb_ary_push(main_array, main_proc);
+  rb_ary_push(main_array, arg);
+
+  VALUE raise_array = rb_ary_new();
+  rb_ary_push(raise_array, raise_proc);
+  rb_ary_push(raise_array, arg2);
+
+  return rb_rescue(rb_rescue_func, main_array, rb_rescue_func, raise_array);
+}
+
+VALUE kernel_spec_rb_rescue2(int argc, VALUE *args, VALUE self) {
+  VALUE main_array = rb_ary_new();
+  rb_ary_push(main_array, args[0]);
+  rb_ary_push(main_array, args[1]);
+
+  VALUE raise_array = rb_ary_new();
+  rb_ary_push(raise_array, args[2]);
+  rb_ary_push(raise_array, args[3]);
+
+  return rb_rescue2(rb_rescue_func, main_array, rb_rescue_func, raise_array, args[4], args[5], 0);
+}
+
 void Init_kernel_spec() {
   VALUE cls;
   cls = rb_define_class("CApiKernelSpecs", rb_cObject);
@@ -30,4 +60,6 @@ void Init_kernel_spec() {
   rb_define_method(cls, "rb_warn", kernel_spec_rb_warn, 1);
   rb_define_method(cls, "rb_sys_fail", kernel_spec_rb_sys_fail, 1);
   rb_define_method(cls, "rb_yield", kernel_spec_rb_yield, 1);
+  rb_define_method(cls, "rb_rescue", kernel_spec_rb_rescue, 4);
+  rb_define_method(cls, "rb_rescue2", kernel_spec_rb_rescue2, -1);
 }

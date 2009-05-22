@@ -68,4 +68,49 @@ describe "C-API Kernel function" do
       lambda { @s.rb_yield(1) }.should raise_error(LocalJumpError)
     end
   end
+
+  describe "rb_rescue" do
+    before :each do
+      @proc = lambda { |x| x }
+      @arg_error_proc = lambda { raise ArgumentError, '' }
+      @std_error_proc = lambda { raise StandardError, '' }
+      @exc_error_proc = lambda { raise Exception, '' }
+    end
+
+    it "executes passed function" do
+      @s.rb_rescue(@proc, :no_exc, @proc, :exc).should == :no_exc
+    end
+
+    it "executes passed 'raise function' if a StardardError exception is raised" do
+      @s.rb_rescue(@arg_error_proc, nil, @proc, :exc).should == :exc
+      @s.rb_rescue(@std_error_proc, nil, @proc, :exc).should == :exc
+    end
+
+    it "raises an exception if passed function raises an exception other than StardardError" do
+      lambda { @s.rb_rescue(@exc_error_proc, nil, @proc, nil) }.should raise_error(Exception)
+    end
+
+    it "raises an exception if any exception is raised inside 'raise function'" do
+      lambda { @s.rb_rescue(@std_error_proc, nil, @std_error_proc, nil) }.should raise_error(StandardError)
+    end
+
+    it "makes $! available only during 'raise function' execution" do
+      @s.rb_rescue(@std_error_proc, nil, lambda { $! }, nil).class.should == StandardError
+      $!.should == nil
+    end
+  end
+
+  describe "rb_rescue2" do
+    it "only rescues if one of the passed exceptions is raised" do
+      proc = lambda { |x| x }
+      arg_error_proc = lambda { raise ArgumentError, '' }
+      run_error_proc = lambda { raise RuntimeError, '' }
+      type_error_proc = lambda { raise TypeError, '' }
+      @s.rb_rescue2(arg_error_proc, :no_exc, proc, :exc, ArgumentError, RuntimeError).should == :exc
+      @s.rb_rescue2(run_error_proc, :no_exc, proc, :exc, ArgumentError, RuntimeError).should == :exc
+      lambda {
+        @s.rb_rescue2(type_error_proc, :no_exc, proc, :exc, ArgumentError, RuntimeError)
+      }.should raise_error(TypeError)
+    end
+  end
 end

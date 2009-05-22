@@ -169,7 +169,7 @@ typedef void (*RUBY_DATA_FUNC)(void*);
 #undef NIL_P
 #undef RTEST
 
-
+#define RUBY_METHOD_FUNC(func) ((VALUE (*)(ANYARGS))func)
 
 /** Global class/object etc. types. */
 #ifdef __cplusplus
@@ -996,6 +996,22 @@ double rb_num2dbl(VALUE);
    *  @todo Implement for real. --rue
    */
   void    rb_raise(VALUE error_handle, const char* format_string, ...);
+
+  /**
+   * Calls the function 'func', with arg1 as the argument.  If an exception
+   * occurs during 'func', it calls 'raise_func' with arg2 as the argument.  The
+   * return value of rb_rescue() is the return value from 'func' if no
+   * exception occurs, from 'raise_func' otherwise.
+   */
+  VALUE rb_rescue(VALUE (*func)(ANYARGS), VALUE arg1, VALUE (*raise_func)(ANYARGS), VALUE arg2);
+
+  /**
+   * Same as rb_rescue() except that it also receives a list of exceptions classes.
+   * It will only call 'raise_func' if the exception occurred during 'func' is a
+   * kind_of? one of the passed exception classes.
+   * The last argument MUST always be 0!
+   */
+  VALUE rb_rescue2(VALUE (*func)(ANYARGS), VALUE arg1, VALUE (*raise_func)(ANYARGS), VALUE arg2, ...);
 
   /**
    *  Require a Ruby file.
