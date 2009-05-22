@@ -558,8 +558,8 @@ double rb_num2dbl(VALUE);
 
 /* Secret extra stuff */
 
-  typedef VALUE (*CApiAllocFunction)();
-  typedef VALUE (*CApiGenericFunction)();
+  typedef VALUE (*CApiAllocFunction)(ANYARGS);
+  typedef VALUE (*CApiGenericFunction)(ANYARGS);
 
 
   /**
