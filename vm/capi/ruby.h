@@ -917,6 +917,9 @@ double rb_num2dbl(VALUE);
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);
 
+  /** Manually runs the garbage collector. */
+  VALUE   rb_gc_start();
+
   /** Mark variable global. Will not be GC'd. */
   void    rb_global_variable(VALUE* handle_address);
 
