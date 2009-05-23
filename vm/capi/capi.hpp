@@ -112,6 +112,9 @@ namespace rubinius {
     /** Raise a TypeError (convenience method). */
     void capi_raise_type_error(object_type type, Object* object);
 
+    /** Raise backend */
+    void capi_raise_backend(Exception* exception);
+
     /** Update contents of Array objects for which RARRAY was called. */
     void capi_rarray_flush(NativeMethodEnvironment* env,
         CApiStructs& arrays, bool release_memory);

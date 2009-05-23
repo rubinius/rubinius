@@ -24,4 +24,11 @@ describe "C-API Exception function" do
       @s.rb_exc_new3('foo').to_s.should == 'foo'
     end
   end
+
+  describe "rb_exc_raise" do
+    it "raises passed exception" do
+      runtime_error = RuntimeError.new '42'
+      lambda { @s.rb_exc_raise(runtime_error) }.should raise_error(RuntimeError, '42')
+    end
+  end
 end

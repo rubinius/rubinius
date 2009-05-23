@@ -1,5 +1,9 @@
+#include "builtin/exception.hpp"
+
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
+
+using namespace rubinius;
 
 extern "C" {
   VALUE rb_exc_new(VALUE etype, const char *ptr, long len) {
@@ -13,5 +17,11 @@ extern "C" {
   VALUE rb_exc_new3(VALUE etype, VALUE str) {
     StringValue(str);
     return rb_funcall(etype, rb_intern("new"), 1, str);
+  }
+
+  void rb_exc_raise(VALUE exc_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Exception *exc = capi::c_as<Exception>(env->get_object(exc_handle));
+    capi::capi_raise_backend(exc);
   }
 }

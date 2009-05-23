@@ -865,6 +865,9 @@ double rb_num2dbl(VALUE);
   /** Create an Exception from a class and Ruby string. */
   VALUE   rb_exc_new3(VALUE etype, VALUE str);
 
+  /** Raises passed exception handle */
+  void    rb_exc_raise(VALUE exc_handle);
+
   /** Remove a previously declared global variable. */
   void    rb_free_global(VALUE global_handle);
 
