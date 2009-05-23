@@ -1020,6 +1020,13 @@ double rb_num2dbl(VALUE);
   VALUE rb_rescue2(VALUE (*func)(ANYARGS), VALUE arg1, VALUE (*raise_func)(ANYARGS), VALUE arg2, ...);
 
   /**
+   * Calls the function func(), with arg1 as the argument, then call ensure_func()
+   * with arg2, even if func() raised an exception. The return value from rb_ensure()
+   * is the return of func().
+   */
+  VALUE rb_ensure(VALUE (*func)(ANYARGS), VALUE arg1, VALUE (*ensure_func)(ANYARGS), VALUE arg2);
+
+  /**
    *  Require a Ruby file.
    *
    *  Returns true on first load, false if already loaded or raises.

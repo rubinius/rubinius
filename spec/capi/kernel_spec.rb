@@ -113,4 +113,33 @@ describe "C-API Kernel function" do
       }.should raise_error(TypeError)
     end
   end
+
+  describe "rb_ensure" do
+    it "executes passed function and returns its value" do
+      proc = lambda { |x| x }
+      @s.rb_ensure(proc, :proc, proc, :ensure_proc).should == :proc
+    end
+
+    it "executes passed 'ensure function' when no exception is raised" do
+      foo = nil
+      proc = lambda { }
+      ensure_proc = lambda { |x| foo = x }
+      @s.rb_ensure(proc, nil, ensure_proc, :foo)
+      foo.should == :foo
+    end
+
+    it "executes passed 'ensure function' when an exception is raised" do
+      foo = nil
+      raise_proc = lambda { raise '' }
+      ensure_proc = lambda { |x| foo = x }
+      @s.rb_ensure(raise_proc, nil, ensure_proc, :foo) rescue nil
+      foo.should == :foo
+    end
+
+    it "raises the same exception raised inside passed function" do
+      raise_proc = lambda { raise RuntimeError, 'foo' }
+      proc = lambda { }
+      lambda { @s.rb_ensure(raise_proc, nil, proc, nil) }.should raise_error(RuntimeError, 'foo')
+    end
+  end
 end

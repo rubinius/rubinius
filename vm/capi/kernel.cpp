@@ -101,6 +101,27 @@ extern "C" {
     return rb_rescue2(func, arg1, raise_func, arg2, rb_eStandardError,  0);
   }
 
+  VALUE rb_ensure(VALUE (*func)(ANYARGS), VALUE arg1, VALUE (*ensure_func)(ANYARGS), VALUE arg2) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    VALUE ret = Qnil;
+    ExceptionPoint ep(env);
+
+    bool exc_raised = false;
+    PLACE_EXCEPTION_POINT(ep);
+    if(unlikely(ep.jumped_to())) {
+      exc_raised = true;
+    } else {
+      ret = (*func)(arg1);
+    }
+    ep.pop(env);
+    (*ensure_func)(arg2);
+    if(exc_raised) {
+      env->current_ep()->return_to(env);
+    }
+
+    return ret;
+  }
+
   /* @note  It is of dubious correctness that any C extension uses
    * rb_bug, but some do. We basically mimic MRI behavior here.
    */
