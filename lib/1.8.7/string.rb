@@ -104,6 +104,15 @@ class String
   end
   alias_method :each_line, :each
 
+  def end_with?(*suffixes)
+    suffixes.each do |suffix|
+      next unless suffix.respond_to? :to_str
+      suffix = suffix.to_str
+      return true if self[-suffix.length, suffix.length] == suffix
+    end
+    false
+  end
+
   # Returns a copy of <i>self</i> with <em>all</em> occurrences of <i>pattern</i>
   # replaced with either <i>replacement</i> or the value of the block. The
   # <i>pattern</i> will typically be a <code>Regexp</code>; if it is a
@@ -190,4 +199,12 @@ class String
     return ret
   end
 
+  def start_with?(*prefixes)
+    prefixes.each do |prefix|
+      next unless prefix.respond_to? :to_str
+      prefix = prefix.to_str
+      return true if self[0, prefix.length] == prefix
+    end
+    false
+  end
 end
