@@ -1,4 +1,5 @@
 #include <math.h>
+#include <cmath>
 
 #include "builtin/bignum.hpp"
 #include "builtin/object.hpp"
@@ -67,7 +68,7 @@ extern "C" {
 
     Bignum* big = c_as<Bignum>(env->get_object(obj));
     double d = big->to_double(env->state());
-    if(isinf(d)) {
+    if(std::isinf(d)) {
       rb_warn("Bignum out of Float range");
       d = HUGE_VAL;
     }
