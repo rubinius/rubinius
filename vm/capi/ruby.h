@@ -1225,6 +1225,8 @@ double rb_num2dbl(VALUE);
   /** Print a warning if $VERBOSE is true. */
   void    rb_warning(const char *fmt, ...);
 
+  /** Creates a Range object from begin to end */
+  VALUE   rb_range_new(VALUE begin, VALUE end, int exclude_end);
 #ifdef __cplusplus
 }
 #endif
