@@ -92,6 +92,10 @@ static VALUE constants_spec_rb_cTrueClass(VALUE self) {
   return rb_cTrueClass;
 }
 
+static VALUE constants_spec_rb_cProc(VALUE self) {
+  return rb_cProc;
+}
+
 static VALUE constants_spec_rb_mComparable(VALUE self) {
   return rb_mComparable;
 }
@@ -243,6 +247,7 @@ void Init_constants_spec() {
   rb_define_method(cls, "rb_cSymbol", constants_spec_rb_cSymbol, 0);
   rb_define_method(cls, "rb_cThread", constants_spec_rb_cThread, 0);
   rb_define_method(cls, "rb_cTrueClass", constants_spec_rb_cTrueClass, 0);
+  rb_define_method(cls, "rb_cProc", constants_spec_rb_cProc, 0);
 
   rb_define_method(cls, "rb_mComparable", constants_spec_rb_mComparable, 0);
   rb_define_method(cls, "rb_mEnumerable", constants_spec_rb_mEnumerable, 0);

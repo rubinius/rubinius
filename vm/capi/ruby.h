@@ -210,6 +210,7 @@ extern "C" {
     cCApiThread,
     cCApiTime,
     cCApiTrue,
+    cCApiProc,
 
     cCApiArgumentError,
     cCApiEOFError,
@@ -378,6 +379,7 @@ struct RData {
 #define rb_cThread            (capi_get_constant(cCApiThread))
 #define rb_cTime              (capi_get_constant(cCApiTime))
 #define rb_cTrueClass         (capi_get_constant(cCApiTrue))
+#define rb_cProc              (capi_get_constant(cCApiProc))
 
 /* Global Module objects. */
 

@@ -110,6 +110,10 @@ describe "C-API constant" do
   specify "rb_cTrueClass references the TrueClass class" do
     @s.rb_cTrueClass.should == TrueClass
   end
+
+  specify "rb_cProc references the Proc class" do
+    @s.rb_cProc.should == Proc
+  end
 end
 
 describe "C-API exception constant" do
