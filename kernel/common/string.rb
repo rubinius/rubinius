@@ -28,8 +28,8 @@ class String
     raise PrimitiveFailure, "String.from_bytearray primitive failed"
   end
 
-  def initialize(arg=nil)
-    replace StringValue(arg) unless arg.nil?
+  def initialize(arg = Undefined)
+    replace StringValue(arg) unless arg == Undefined
 
     self
   end
@@ -773,13 +773,12 @@ class String
   #   "hello".gsub(/[aeiou]/, '*')              #=> "h*ll*"
   #   "hello".gsub(/([aeiou])/, '<\1>')         #=> "h<e>ll<o>"
   #   "hello".gsub(/./) {|s| s[0].to_s + ' '}   #=> "104 101 108 108 111 "
-  def gsub(pattern, replacement=nil, &prc)
-    raise ArgumentError, "wrong number of arguments (1 for 2)" unless replacement || block_given?
-    raise ArgumentError, "wrong number of arguments (0 for 2)" unless pattern
+  def gsub(pattern, replacement = Undefined, &prc)
+    raise ArgumentError, "wrong number of arguments (1 for 2)" unless replacement != Undefined || block_given?
 
     tainted = false
 
-    if replacement
+    unless replacement == Undefined
       tainted = replacement.tainted?
       replacement = StringValue(replacement)
       tainted ||= replacement.tainted?
@@ -800,7 +799,7 @@ class String
     while match do
       ret << (match.pre_match_from(last_end) || "")
 
-      if replacement
+      unless replacement == Undefined
         ret << replacement.to_sub_replacement(match)
       else
         # We do this so that we always manipulate $~ in the context
@@ -838,7 +837,7 @@ class String
 
   # Performs the substitutions of <code>String#gsub</code> in place, returning
   # <i>self</i>, or <code>nil</code> if no substitutions were performed.
-  def gsub!(pattern, replacement = nil, &block)
+  def gsub!(pattern, replacement = Undefined, &block)
     str = gsub(pattern, replacement, &block)
 
     if lm = $~
@@ -1306,15 +1305,15 @@ class String
   #   "1,2,,3,4,,".split(',')         #=> ["1", "2", "", "3", "4"]
   #   "1,2,,3,4,,".split(',', 4)      #=> ["1", "2", "", "3,4,,"]
   #   "1,2,,3,4,,".split(',', -4)     #=> ["1", "2", "", "3", "4", "", ""]
-  def split(pattern = nil, limit = nil)
+  def split(pattern = nil, limit = Undefined)
 
     # Odd edge case
     return [] if empty?
 
-    if limit
-      if !limit.kind_of?(Integer) and limit.respond_to?(:to_int)
-        limit = limit.to_int
-      end
+    if limit == Undefined
+      limited = false
+    else
+      limit = Type.coerce_to limit, Fixnum, :to_int
 
       if limit > 0
         return [self.dup] if limit == 1
@@ -1322,8 +1321,6 @@ class String
       else
         limited = false
       end
-    else
-      limited = false
     end
 
     pattern ||= ($; || " ")
@@ -1373,7 +1370,7 @@ class String
     end
 
     # Trim from end
-    if !ret.empty? and (limit == 0 || limit.nil?)
+    if !ret.empty? and (limit == Undefined || limit == 0)
       while s = ret.last and s.empty?
         ret.pop
       end
@@ -1466,8 +1463,8 @@ class String
   #   "hello".sub(/[aeiou]/, '*')               #=> "h*llo"
   #   "hello".sub(/([aeiou])/, '<\1>')          #=> "h<e>llo"
   #   "hello".sub(/./) {|s| s[0].to_s + ' ' }   #=> "104 ello"
-  def sub(pattern, replacement = nil, &prc)
-    raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
+  def sub(pattern, replacement = Undefined, &prc)
+    raise ArgumentError, "wrong number of arguments (1 for 2)" if replacement == Undefined && !block_given?
     raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
 
     if match = get_pattern(pattern, true).match_from(self, 0)
@@ -1475,7 +1472,7 @@ class String
 
       Rubinius::VariableScope.of_sender.last_match = match
 
-      if replacement
+      unless replacement == Undefined
         out.taint if replacement.tainted?
         replacement = StringValue(replacement).to_sub_replacement(match)
       else
@@ -1509,7 +1506,7 @@ class String
   # Performs the substitutions of <code>String#sub</code> in place,
   # returning <i>self</i>, or <code>nil</code> if no substitutions were
   # performed.
-  def sub!(pattern, replacement = nil, &prc)
+  def sub!(pattern, replacement = Undefined, &prc)
     if block_given?
       orig = self.dup
       str = sub(pattern, replacement, &prc)
