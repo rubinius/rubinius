@@ -12,6 +12,7 @@
 struct RArray;
 struct RString;
 struct RData;
+struct RFloat;
 
 namespace rubinius {
   class NativeMethodEnvironment;
@@ -22,7 +23,8 @@ namespace rubinius {
       cUnknown,
       cRArray,
       cRString,
-      cRData
+      cRData,
+      cRFloat
     };
 
     class Handle : public LinkedList::Node {
@@ -34,6 +36,7 @@ namespace rubinius {
         RArray* rarray;
         RString* rstring;
         RData* rdata;
+        RFloat* rfloat;
       } as_;
 
     public:
@@ -89,9 +92,14 @@ namespace rubinius {
         return type_ == cRString;
       }
 
+      bool is_rfloat() {
+        return type_ == cRFloat;
+      }
+
       RArray* as_rarray(NativeMethodEnvironment* env);
       RData*  as_rdata(NativeMethodEnvironment* env);
       RString* as_rstring(NativeMethodEnvironment* env);
+      RFloat* as_rfloat();
 
       void free_data();
     };

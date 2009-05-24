@@ -25,6 +25,9 @@ namespace rubinius {
         }
 
         as_.rstring = 0;
+      case cRFloat:
+        if(as_.rfloat) delete as_.rfloat;
+        as_.rfloat = 0;
       default:
         break;
       }

@@ -150,6 +150,10 @@ namespace rubinius {
     /** Flush data from an RData back into the Data* */
     void capi_rdata_flush_handle(NativeMethodEnvironment* env, Handle* handle);
 
+    /** Get a Float object for a handle ensuring that RFLOAT data has
+     *  been flushed. */
+    Float* capi_get_float(VALUE float_handle);
+
     /** Converts a native type (int, uint, long) to a suitable Integer. */
     template<typename NativeType>
       VALUE capi_native2num(NativeType number) {

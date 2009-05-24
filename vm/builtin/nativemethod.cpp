@@ -95,6 +95,8 @@ namespace rubinius {
         capi::capi_get_string(env, handle->as_value());
       } else if(handle->is_rdata()) {
         capi::capi_rdata_flush_handle(env, handle);
+      } else if(handle->is_rfloat()) {
+        capi::capi_get_float(handle->as_value());
       }
 
       if(release_memory) handle->free_data();

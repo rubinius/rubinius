@@ -326,6 +326,12 @@ struct RData {
 
 #define RDATA(d)        capi_rdata_struct(d)
 
+struct RFloat {
+  double value;
+};
+
+#define RFLOAT(d)       capi_rfloat_struct(d)
+
 /*
  * The immediates.
  */
@@ -619,6 +625,7 @@ double rb_num2dbl(VALUE);
   struct RArray* capi_rarray_struct(VALUE ary_handle);
   struct RData* capi_rdata_struct(VALUE data_handle);
   struct RString* capi_rstring_struct(VALUE str_handle);
+  struct RFloat* capi_rfloat_struct(VALUE data_handle);
 
 /* Real API */
 
