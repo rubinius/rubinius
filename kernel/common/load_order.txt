@@ -62,6 +62,7 @@ native_method.rbc
 nil.rbc
 objectspace.rbc
 string.rbc
+string_186.rbc
 range.rbc
 range_186.rbc
 pack.rbc

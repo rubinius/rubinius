@@ -1,20 +1,5 @@
+# These methods are overriden by lib/1.8.7/... or lib/1.9/...
 class String
-  alias_method :bytesize, :length
-
-  def each_char(&block)
-    return to_enum :each_char unless block_given?
-    return scan(/./u, &block) if $KCODE == "UTF-8"
-    i = 0
-    while i < @num_bytes do
-      yield @data.get_byte(i).chr
-      i += 1
-    end
-
-    self
-  end
-
-  alias_method :chars, :each_char
-
   # Passes each byte in <i>self</i> to the given block.
   #
   #   "hello".each_byte {|c| print c, ' ' }
@@ -22,8 +7,7 @@ class String
   # <em>produces:</em>
   #
   #   104 101 108 108 111
-  def each_byte
-    return to_enum :each_byte unless block_given?
+  def each_byte()
     i = 0
     while i < @num_bytes do
       yield @data.get_byte(i)
@@ -59,13 +43,13 @@ class String
   #   "hello\n\n\n"
   #   "world"
   def each(sep = $/)
-    return to_enum :each, sep unless block_given?
     if sep.nil?
       yield self
       return self
     end
 
     sep = StringValue sep
+    raise LocalJumpError, "no block given" unless block_given?
 
     id = @data.object_id
     size = @num_bytes
@@ -129,7 +113,7 @@ class String
   #   "hello".gsub(/([aeiou])/, '<\1>')         #=> "h<e>ll<o>"
   #   "hello".gsub(/./) {|s| s[0].to_s + ' '}   #=> "104 101 108 108 111 "
   def gsub(pattern, replacement = Undefined, &prc)
-    return to_enum :gsub, pattern, replacement unless block_given? || replacement != Undefined
+    raise ArgumentError, "wrong number of arguments (1 for 2)" unless replacement != Undefined || block_given?
 
     tainted = false
 
