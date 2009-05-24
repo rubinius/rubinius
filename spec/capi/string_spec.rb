@@ -247,4 +247,67 @@ describe "C-API String function" do
       lambda { @s.rb_str_intern("no\0no") }.should raise_error(ArgumentError)
     end
   end
+
+  describe "rb_str2cstr" do
+    it "returns a pointer to the string's content and its length" do
+      str, len = @s.rb_str2cstr('any str', true)
+      str.should == 'any str'
+      len.should == 7
+    end
+
+    it "allows changing the characters in the string" do
+      str = 'any str'
+      # Hardcoded to set "foo\0"
+      @s.rb_str2cstr_replace(str)
+      str.should == "foo\0str"
+    end
+
+    it "issues a warning iff passed string contains a NULL character, $VERBOSE = true and len parameter is NULL" do
+      verbose, $VERBOSE = $VERBOSE, false
+      stderr, $stderr = $stderr, IOStub.new
+
+      @s.rb_str2cstr('any str', true)
+      $stderr.should == ''
+
+      @s.rb_str2cstr('any str', false)
+      $stderr.should == ''
+
+      $VERBOSE = true
+      @s.rb_str2cstr('any str', true)
+      $stderr.should == ''
+
+      @s.rb_str2cstr('any str', false)
+      $stderr.should == ''
+
+      $VERBOSE = false
+      @s.rb_str2cstr("any\0str", true)
+      $stderr.should == ''
+
+      @s.rb_str2cstr("any\0str", false)
+      $stderr.should == ''
+
+      $VERBOSE = true
+      @s.rb_str2cstr("any\0str", true)
+      $stderr.should == ''
+
+      @s.rb_str2cstr("any\0str", false)
+      $stderr.should =~ /string contains \\0 character/
+
+      $stderr = stderr
+      $VERBOSE = verbose
+    end
+  end
+
+  describe "STR2CSTR" do
+    it "returns a pointer to the string's content" do
+      @s.STR2CSTR('any str').should == 'any str'
+    end
+
+    it "allows changing the characters in the string" do
+      str = 'any str'
+      # Hardcoded to set "foo\0"
+      @s.STR2CSTR_replace(str)
+      str.should == "foo\0str"
+    end
+  end
 end

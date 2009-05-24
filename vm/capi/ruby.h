@@ -351,6 +351,8 @@ struct RData {
 /** The undef object. NEVER EXPOSE THIS TO USER CODE. EVER. */
 #define Qundef ((VALUE)cCApiQundef)
 
+#define ruby_verbose (rb_gv_get("$VERBOSE"))
+#define ruby_debug   (rb_gv_get("$DEBUG"))
 
 /* Global Class objects */
 
@@ -541,7 +543,7 @@ double rb_num2dbl(VALUE);
 #define StringValue(v)        rb_string_value(&(v))
 #define StringValuePtr(v)     rb_string_value_ptr(&(v))
 #define StringValueCStr(str)  rb_string_value_cstr(&(str))
-#define STR2CSTR(str)         rb_string_value_cstr(&(str))
+#define STR2CSTR(str)         rb_str2cstr((VALUE)(str), 0)
 
 /** Retrieve the ID given a Symbol handle. */
 #define SYM2ID(sym)       (sym)
@@ -1171,6 +1173,12 @@ double rb_num2dbl(VALUE);
    *  You must free the string.
    */
   char*   rb_string_value_cstr(VALUE* object_variable);
+
+  /**
+   * Returns an editable pointer to the String, the length is returned
+   * in len parameter, which can be NULL.
+   */
+  char*   rb_str2cstr(VALUE str_handle, long *len);
 
   /** Raises an exception from the value of errno. */
   void rb_sys_fail(const char* mesg);

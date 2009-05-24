@@ -316,4 +316,18 @@ extern "C" {
 
     return env->get_handle(str);
   }
+
+  char* rb_str2cstr(VALUE str_handle, long* len) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    StringValue(str_handle);
+    String* string = capi_get_string(env, str_handle);
+    char *ptr = RSTRING_PTR(str_handle);
+    if(len) {
+      *len = string->size();
+    } else if(RTEST(ruby_verbose) && string->size() != strlen(ptr)) {
+      rb_warn("string contains \\0 character");
+    }
+    return ptr;
+  }
 }

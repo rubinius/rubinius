@@ -152,6 +152,35 @@ VALUE string_spec_rb_str_intern(VALUE self, VALUE str) {
   return rb_str_intern(str);
 }
 
+VALUE string_spec_rb_str2cstr(VALUE self, VALUE str, VALUE return_length) {
+  if(return_length == Qtrue) {
+    long len = 0;
+    char* ptr = rb_str2cstr(str, &len);
+    VALUE ary = rb_ary_new();
+    rb_ary_push(ary, rb_str_new2(ptr));
+    rb_ary_push(ary, INT2FIX(len));
+    return ary;
+  } else {
+    return rb_str_new2(rb_str2cstr(str, NULL));
+  }
+}
+
+VALUE string_spec_rb_str2cstr_replace(VALUE self, VALUE str) {
+  char* ptr = rb_str2cstr(str, NULL);
+  ptr[0] = 'f'; ptr[1] = 'o'; ptr[2] = 'o'; ptr[3] = 0;
+  return Qnil;
+}
+
+VALUE string_spec_STR2CSTR(VALUE self, VALUE str) {
+  return rb_str_new2(STR2CSTR(str));
+}
+
+VALUE string_spec_STR2CSTR_replace(VALUE self, VALUE str) {
+  char* ptr = STR2CSTR(str);
+  ptr[0] = 'f'; ptr[1] = 'o'; ptr[2] = 'o'; ptr[3] = 0;
+  return Qnil;
+}
+
 void Init_string_spec() {
   VALUE cls;
   cls = rb_define_class("CApiStringSpecs", rb_cObject);
@@ -183,4 +212,8 @@ void Init_string_spec() {
   rb_define_method(cls, "RSTRING_len", string_spec_RSTRING_len, 1);
   rb_define_method(cls, "StringValue", string_spec_StringValue, 1);
   rb_define_method(cls, "rb_str_intern", string_spec_rb_str_intern, 1);
+  rb_define_method(cls, "rb_str2cstr", string_spec_rb_str2cstr, 2);
+  rb_define_method(cls, "rb_str2cstr_replace", string_spec_rb_str2cstr_replace, 1);
+  rb_define_method(cls, "STR2CSTR", string_spec_STR2CSTR, 1);
+  rb_define_method(cls, "STR2CSTR_replace", string_spec_STR2CSTR_replace, 1);
 }
