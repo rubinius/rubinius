@@ -43,4 +43,29 @@ describe "CApiBignumSpecs" do
       lambda { @s.rb_big2ulong(ensure_bignum(@min_long)) }.should raise_error(RangeError)
     end
   end
+
+  describe "rb_big2dbl" do
+    it "converts a Bignum to a double value" do
+      @s.rb_big2dbl(ensure_bignum(1)).eql?(1.0).should == true
+      @s.rb_big2dbl(ensure_bignum(Float::MAX.to_i)).eql?(Float::MAX).should == true
+    end
+
+    it "returns Infinity if the number is too big for a double" do
+      huge_bignum = ensure_bignum(Float::MAX.to_i * 2)
+      infinity = 1.0 / 0.0
+      @s.rb_big2dbl(huge_bignum).should == infinity
+      @s.rb_big2dbl(-huge_bignum).should == infinity
+    end
+
+    it "prints a warning to $stderr if Bignum is too big for a double" do
+      verbose, $VERBOSE = $VERBOSE, true
+      stderr, $stderr = $stderr, IOStub.new
+
+      @s.rb_big2dbl(ensure_bignum(Float::MAX.to_i * 2))
+      $stderr.should =~ /Bignum out of Float range/
+
+      $stderr = stderr
+      $VERBOSE = verbose
+    end
+  end
 end

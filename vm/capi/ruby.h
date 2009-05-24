@@ -717,6 +717,8 @@ double rb_num2dbl(VALUE);
 
   unsigned long rb_big2ulong(VALUE obj);
 
+  double  rb_big2dbl(VALUE obj);
+
   /** Calls this method in a superclass. */
   VALUE rb_call_super(int argc, const VALUE *argv);
 

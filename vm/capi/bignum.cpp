@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "builtin/bignum.hpp"
 #include "builtin/object.hpp"
 
@@ -58,5 +60,17 @@ extern "C" {
     rb_raise(rb_eArgError, "parameter is not a Bignum");
 
     return 0;
+  }
+
+  double rb_big2dbl(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Bignum* big = c_as<Bignum>(env->get_object(obj));
+    double d = big->to_double(env->state());
+    if(isinf(d)) {
+      rb_warn("Bignum out of Float range");
+      d = HUGE_VAL;
+    }
+    return d;
   }
 }
