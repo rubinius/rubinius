@@ -1,4 +1,8 @@
 class IO
+  def bytes
+    to_enum :each_byte
+  end
+  
   ##
   # Executes the block for every line in ios, where
   # lines are separated by sep_string. ios must be
