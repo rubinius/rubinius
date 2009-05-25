@@ -6,6 +6,11 @@ module Kernel
       self
     end.send(:define_method, *args, &block)
   end
+
+  def StringValue(obj)
+    return obj.to_s if obj.is_a? Symbol # 1.9 treats symbols as string-like
+    Type.coerce_to(obj, String, :to_str)
+  end
 end
 
 module Rubinius
