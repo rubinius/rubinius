@@ -28,8 +28,15 @@ class IO
 
   def each_byte
     return to_enum :each_byte unless block_given?
-    yield getc until eof?
+    yield getbyte until eof?
 
     self
   end
+
+  def getbyte
+    char = read 1
+    return nil if char.nil?
+    char[0]
+  end
+
 end
