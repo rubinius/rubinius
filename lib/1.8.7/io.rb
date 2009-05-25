@@ -3,6 +3,10 @@ class IO
     to_enum :each_byte
   end
 
+  def chars
+    to_enum :each_char
+  end
+
   ##
   # Executes the block for every line in ios, where
   # lines are separated by sep_string. ios must be
@@ -71,4 +75,13 @@ class IO
     char[0]
   end
 
+  def readbyte
+    byte = getbyte
+    raise EOFError, "end of file" unless bytes
+    byte
+  end
+  
+  def lines(*args)
+    to_enum :each_line, *args
+  end
 end
