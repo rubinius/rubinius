@@ -405,11 +405,11 @@ namespace rubinius {
     }
 
     void visit_swap_stack() {
-      Value* one = stack_pop();
-      Value* two = stack_pop();
+      Value* top = stack_pop();
+      Value* bottom = stack_pop();
 
-      stack_push(two);
-      stack_push(one);
+      stack_push(top);
+      stack_push(bottom);
     }
 
     void visit_dup_top() {
