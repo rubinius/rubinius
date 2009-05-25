@@ -45,6 +45,16 @@ describe "CApiBignumSpecs" do
   end
 
   describe "rb_big2dbl" do
+    before :each do
+      @verbose = $VERBOSE
+      @stderr, $stderr = $stderr, IOStub.new
+    end
+
+    after :each do
+      $stderr = @stderr
+      $VERBOSE = @verbose
+    end
+
     it "converts a Bignum to a double value" do
       @s.rb_big2dbl(ensure_bignum(1)).eql?(1.0).should == true
       @s.rb_big2dbl(ensure_bignum(Float::MAX.to_i)).eql?(Float::MAX).should == true
@@ -58,14 +68,9 @@ describe "CApiBignumSpecs" do
     end
 
     it "prints a warning to $stderr if Bignum is too big for a double" do
-      verbose, $VERBOSE = $VERBOSE, true
-      stderr, $stderr = $stderr, IOStub.new
-
+      $VERBOSE = true
       @s.rb_big2dbl(ensure_bignum(Float::MAX.to_i * 2))
       $stderr.should =~ /Bignum out of Float range/
-
-      $stderr = stderr
-      $VERBOSE = verbose
     end
   end
 end

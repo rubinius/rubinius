@@ -249,6 +249,16 @@ describe "C-API String function" do
   end
 
   describe "rb_str2cstr" do
+    before :each do
+      @verbose = $VERBOSE
+      @stderr, $stderr = $stderr, IOStub.new
+    end
+
+    after :each do
+      $stderr = @stderr
+      $VERBOSE = @verbose
+    end
+
     it "returns a pointer to the string's content and its length" do
       str, len = @s.rb_str2cstr('any str', true)
       str.should == 'any str'
@@ -263,9 +273,7 @@ describe "C-API String function" do
     end
 
     it "issues a warning iff passed string contains a NULL character, $VERBOSE = true and len parameter is NULL" do
-      verbose, $VERBOSE = $VERBOSE, false
-      stderr, $stderr = $stderr, IOStub.new
-
+      $VERBOSE = false
       @s.rb_str2cstr('any str', true)
       $stderr.should == ''
 
@@ -292,9 +300,6 @@ describe "C-API String function" do
 
       @s.rb_str2cstr("any\0str", false)
       $stderr.should =~ /string contains \\0 character/
-
-      $stderr = stderr
-      $VERBOSE = verbose
     end
   end
 
