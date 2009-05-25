@@ -22,6 +22,7 @@ array_186.rbc
 backtrace.rbc
 comparable.rbc
 numeric.rbc
+numeric_186.rbc
 ctype.rbc
 precision.rbc
 integer.rbc
