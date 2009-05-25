@@ -730,15 +730,21 @@ namespace rubinius {
 
       Value* i = CastInst::Create(
           Instruction::PtrToInt,
-          obj, type, "as_int", block);
+          obj, Type::Int32Ty, "as_int", block);
 
-      return BinaryOperator::CreateLShr(i, ConstantInt::get(type, 1), "lshr", block);
+      Value* more = BinaryOperator::CreateLShr(
+          i, ConstantInt::get(Type::Int32Ty, 1),
+          "lshr", block);
+      return CastInst::CreateIntegerCast(
+          more, type, true, "stripped", block);
     }
 
     Value* fixnum_tag(Value* obj, BasicBlock* block = NULL) {
       if(!block) block = block_;
-      Value* one = ConstantInt::get(Int31Ty, 1);
-      Value* more = BinaryOperator::CreateShl(obj, one, "shl", block);
+      Value* obj32 = CastInst::CreateZExtOrBitCast(
+          obj, Type::Int32Ty, "as_32bit", block);
+      Value* one = ConstantInt::get(Type::Int32Ty, 1);
+      Value* more = BinaryOperator::CreateShl(obj32, one, "shl", block);
       Value* tagged = BinaryOperator::CreateOr(more, one, "or", block);
 
       return CastInst::Create(
@@ -1103,6 +1109,15 @@ namespace rubinius {
       };
 
       stack_push(CallInst::Create(func, call_args, call_args+3, "create_block", block_));
+
+      // top_scope
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 7)
+      };
+      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "ts_gep", block_);
+      vars_ = new LoadInst(gep, "top_scope", block_);
+
     }
 
     void visit_send_stack_with_block(opcode which, opcode args) {
@@ -1324,7 +1339,7 @@ namespace rubinius {
       };
 
       Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "scope_pos", block_);
-      std::cout << *gep << "\n";
+      // std::cout << *gep << "\n";
       stack_push(new LoadInst(gep, "scope", block_));
     }
 
@@ -1808,6 +1823,7 @@ namespace rubinius {
       };
 
       Value* val = sig.call("rbx_make_array", call_args, 4, "constant", block_);
+      stack_remove(count);
       stack_push(val);
     }
 
@@ -1823,10 +1839,11 @@ namespace rubinius {
         vm_,
         call_frame_,
         ConstantInt::get(Type::Int32Ty, count),
-        stack_objects(count)
+        stack_objects(count + 1)
       };
 
       Value* val = sig.call("rbx_meta_send_call", call_args, 4, "constant", block_);
+      stack_remove(count+1);
       stack_push(val);
     }
 
