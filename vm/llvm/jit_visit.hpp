@@ -1532,6 +1532,30 @@ namespace rubinius {
       check_for_exception(ret);
     }
 
+    void visit_check_serial(opcode index, opcode serial) {
+        std::vector<const Type*> types;
+
+        types.push_back(VMTy);
+        types.push_back(CallFrameTy);
+        types.push_back(Type::Int32Ty);
+        types.push_back(Type::Int32Ty);
+        types.push_back(ObjType);
+
+        FunctionType* ft = FunctionType::get(ObjType, types, false);
+        Function* func = cast<Function>(
+            module_->getOrInsertFunction("rbx_check_serial", ft));
+
+        Value* call_args[] = {
+          vm_,
+          call_frame_,
+          ConstantInt::get(Type::Int32Ty, index),
+          ConstantInt::get(Type::Int32Ty, serial),
+          stack_pop()
+        };
+
+        stack_push(CallInst::Create(func, call_args, call_args+5, "cs", block_));
+    }
+
     void visit_push_my_offset(opcode offset) {
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
