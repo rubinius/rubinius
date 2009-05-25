@@ -67,6 +67,7 @@ range.rbc
 range_186.rbc
 pack.rbc
 struct.rbc
+struct_186.rbc
 process.rbc
 regexp.rbc
 selector.rbc

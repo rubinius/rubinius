@@ -21,5 +21,6 @@ require '1.8.7/proc'
 require '1.8.7/range'
 require '1.8.7/regexp'
 require '1.8.7/string'
+require '1.8.7/struct'
 
 $:.unshift File.dirname(__FILE__) + '/1.8.7' # take precedence for libraries, e.g. require 'stringio'
