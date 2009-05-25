@@ -224,18 +224,16 @@ class Numeric
 
   def step(limit, step=1, &block)
     raise ArgumentError, "step cannot be 0" if step == 0
-    limit,step = step.coerce(limit)
-    # FIXME: why is this not covered by the block parameter above?
-    raise LocalJumpError, "no block given" unless block_given?
-    idx,step = step.coerce(self)
-    cmp = step > 0 ? :<= : :>=
-    while (idx.send(cmp,limit))
+    idx = self
+    if idx.is_a?(Float) || limit.is_a?(Float) || step.is_a?(Float)
+      idx, limit, step = FloatValue(idx), FloatValue(limit), FloatValue(step)
+    end
+    cmp = step > 0 ? :> : :<
+    until (idx.send(cmp,limit))
       yield(idx)
       idx += step
     end
     return self
-  rescue TypeError => e
-    raise ArgumentError, e.message
   end
 end
 
