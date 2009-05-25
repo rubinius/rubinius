@@ -162,6 +162,9 @@ class Dir
 
       if glob[-1] == ?/
         last = DirectoriesOnly.new nil, file
+        if parts.empty?
+          last = RecursiveDirectories.new last
+        end
       else
         last = EntryMatch.new nil, file
       end
