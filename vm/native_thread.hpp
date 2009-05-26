@@ -7,8 +7,6 @@
 #include "builtin/array.hpp"
 
 namespace rubinius {
-  typedef thread::Mutex GlobalLock;
-
   class NativeThread : public thread::Thread {
     VM* vm_;
 
@@ -30,9 +28,24 @@ namespace rubinius {
   };
 
   class Waiter {
+    bool used_;
+
   public:
+    Waiter()
+      : used_(false)
+    {}
+
     virtual ~Waiter() { }
     virtual void wakeup() = 0;
+
+    void run() {
+      used_ = true;
+      wakeup();
+    }
+
+    bool used() {
+      return used_;
+    }
   };
 
   class WaitingOnCondition : public Waiter {

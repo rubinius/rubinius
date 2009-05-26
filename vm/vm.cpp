@@ -24,6 +24,7 @@
 #include "native_thread.hpp"
 #include "call_frame.hpp"
 #include "signal.hpp"
+#include "configuration.hpp"
 
 #include <iostream>
 #include <signal.h>
@@ -36,6 +37,7 @@
 
 namespace rubinius {
 
+  bool GlobalLock::debug_locking = false;
   int VM::cStackDepthMax = 655300;
 
   VM::VM(SharedState& shared)
@@ -113,6 +115,8 @@ namespace rubinius {
     // sets them to true.
     interrupts.use_preempt = false;
     interrupts.enable_preempt = false;
+
+    GlobalLock::debug_locking = shared.config.gil_debug;
   }
 
   // HACK so not thread safe or anything!
