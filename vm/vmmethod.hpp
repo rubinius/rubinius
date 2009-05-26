@@ -55,6 +55,9 @@ namespace rubinius {
 
     native_int call_count;
 
+  private:
+    bool jitted_;
+
   public: // Methods
     static void init(STATE);
 
@@ -63,6 +66,14 @@ namespace rubinius {
 
     MachineMethod* machine_method() {
       return machine_method_.get();
+    }
+
+    bool jitted() {
+      return jitted_;
+    }
+
+    void set_jitted() {
+      jitted_ = true;
     }
 
     void set_machine_method(MachineMethod* mm);

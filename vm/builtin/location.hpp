@@ -11,6 +11,7 @@ namespace rubinius {
     Object* method_; // slot
     Object* is_block_; // slot
     Fixnum* ip_; // slot
+    Object* is_jit_; // slot
 
   public:
     const static object_type type = LocationType;
@@ -21,6 +22,7 @@ namespace rubinius {
     attr_accessor(method, Object);
     attr_accessor(is_block, Object);
     attr_accessor(ip, Fixnum);
+    attr_accessor(is_jit, Object);
 
     static void init(STATE);
     static Location* create(STATE, CallFrame* call_frame);

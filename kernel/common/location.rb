@@ -1,6 +1,7 @@
 module Rubinius
   class Location
 
+    attr_accessor :is_jit
     attr_accessor :is_block
     attr_accessor :method
     attr_accessor :name

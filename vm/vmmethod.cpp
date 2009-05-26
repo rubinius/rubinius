@@ -83,6 +83,7 @@ namespace rubinius {
     , run(standard_interpreter)
     , original(state, meth)
     , type(NULL)
+    , jitted_(false)
   {
     meth->set_executor(&VMMethod::execute);
 

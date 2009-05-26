@@ -118,6 +118,10 @@ class Backtrace
         str << " (#{rec_times} times)"
       end
 
+      if location.is_jit and $DEBUG
+        str << " (jit)"
+      end
+
       str << sep
     end
 

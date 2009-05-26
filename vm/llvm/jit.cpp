@@ -98,6 +98,8 @@ namespace rubinius {
         // sure the GC doesn't run.
         ls_->shared().gc_dependent();
 
+        req->vmmethod()->set_jitted();
+
         MachineMethod* mm = req->machine_method();
         mm->update(req->vmmethod(), jit);
         mm->activate();
