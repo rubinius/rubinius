@@ -123,7 +123,12 @@ class Dir
 
     class EntryMatch < Match
       def call(env, path)
-        dir = Dir.new(path ? path : ".")
+        begin
+          dir = Dir.new(path ? path : ".")
+        rescue Errno::EACCES
+          return
+        end
+
         while ent = dir.read
           if match? ent
             env.matches << path_join(path, ent)
