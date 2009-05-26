@@ -673,7 +673,7 @@ namespace rubinius {
 
     import_args(ls, func, bb, vmm, vars, cf);
 
-    JITVisit visitor(ls, vmm, mod, func, bb, stk, cf, vars, stack_top);
+    JITVisit visitor(ls, vmm, mod, func, bb, stk, cf, stack_top);
 
     // Pass 1, detect BasicBlock boundaries
     BlockFinder finder(visitor.block_map(), func);

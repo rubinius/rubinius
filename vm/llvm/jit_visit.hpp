@@ -74,7 +74,6 @@ namespace rubinius {
 
     llvm::Value* stack_;
     llvm::Value* call_frame_;
-    llvm::Value* vars_;
     llvm::Module* module_;
     llvm::BasicBlock* block_;
     llvm::Function* function_;
@@ -121,13 +120,12 @@ namespace rubinius {
 
     JITVisit(LLVMState* ls, VMMethod* vmm,
              llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* start,
-             llvm::Value* stack, llvm::Value* call_frame, llvm::Value* vars,
+             llvm::Value* stack, llvm::Value* call_frame,
              llvm::Value* stack_top)
       : f(ls)
       , vmm_(vmm)
       , stack_(stack)
       , call_frame_(call_frame)
-      , vars_(vars)
       , module_(mod)
       , block_(start)
       , function_(func)
@@ -181,6 +179,26 @@ namespace rubinius {
 
 
       ip_pos_ = GetElementPtrInst::Create(call_frame_, idx, idx+2, "ip_pos", block_);
+    }
+
+    Value* scope() {
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 8)
+      };
+
+      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "scope_pos", block_);
+      return new LoadInst(gep, "scope", block_);
+    }
+
+    Value* top_scope() {
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 7)
+      };
+
+      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "top_scope_pos", block_);
+      return new LoadInst(gep, "top_scope", block_);
     }
 
     BasicBlock* block(const char* name = "continue") {
@@ -987,7 +1005,7 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, which)
       };
 
-      Value* pos = GetElementPtrInst::Create(vars_, idx2, idx2+3, "local_pos", block_);
+      Value* pos = GetElementPtrInst::Create(scope(), idx2, idx2+3, "local_pos", block_);
 
       stack_push(new LoadInst(pos, "local", block_));
     }
@@ -999,7 +1017,7 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, which)
       };
 
-      Value* pos = GetElementPtrInst::Create(vars_, idx2, idx2+3, "local_pos", block_);
+      Value* pos = GetElementPtrInst::Create(scope(), idx2, idx2+3, "local_pos", block_);
 
       new StoreInst(stack_top(), pos, false, block_);
     }
@@ -1010,7 +1028,7 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, 6)
       };
 
-      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "self_pos", block_);
+      Value* pos = GetElementPtrInst::Create(scope(), idx, idx + 2, "self_pos", block_);
 
       stack_push(new LoadInst(pos, "self", block_));
     }
@@ -1121,15 +1139,6 @@ namespace rubinius {
       };
 
       stack_push(CallInst::Create(func, call_args, call_args+3, "create_block", block_));
-
-      // top_scope
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 7)
-      };
-      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "ts_gep", block_);
-      vars_ = new LoadInst(gep, "top_scope", block_);
-
     }
 
     void visit_send_stack_with_block(opcode which, opcode args) {
@@ -1588,7 +1597,7 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, 6)
       };
 
-      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "self_pos", block_);
+      Value* pos = GetElementPtrInst::Create(scope(), idx, idx + 2, "self_pos", block_);
 
       Value* self = new LoadInst(pos, "self", block_);
 
