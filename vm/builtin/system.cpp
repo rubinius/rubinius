@@ -155,7 +155,14 @@ namespace rubinius {
 
   Fixnum* System::vm_fork(VM* state)
   {
-    int result = ::fork();
+    int result = 0;
+
+    // Unlock the lock and relock, that way both the parent and
+    // child relock independently, and correctly hold the lock.
+    {
+      GlobalLock::UnlockGuard guard(state->global_lock());
+      result = ::fork();
+    }
 
     if ( -1 == result ) {
       Exception::errno_error(state, "fork() failed!");
