@@ -269,7 +269,10 @@ namespace thread {
 
   public:
     Mutex() {
-      assert(pthread_mutex_init(&native_, NULL) == 0);
+      pthread_mutexattr_t attr;
+      pthread_mutexattr_init(&attr);
+      pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+      assert(pthread_mutex_init(&native_, &attr) == 0);
     }
 
     ~Mutex() {
