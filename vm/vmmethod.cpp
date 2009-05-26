@@ -27,7 +27,10 @@
 
 #include "assembler/jit.hpp"
 #include "configuration.hpp"
+
+#ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
+#endif
 
 #define USE_SPECIALIZED_EXECUTE
 
@@ -416,6 +419,7 @@ namespace rubinius {
       VMMethod* vmm = cm->backend_method_;
 
 #ifdef USE_USAGE_JIT
+#ifdef ENABLE_LLVM
     // A negative call_count means we've disabled usage based JIT
     // for this method.
     if(vmm->call_count >= 0) {
@@ -436,6 +440,7 @@ namespace rubinius {
         vmm->call_count++;
       }
     }
+#endif
 #endif
 
       VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
