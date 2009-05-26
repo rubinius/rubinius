@@ -148,8 +148,9 @@ readline_attempted_completion_function(text, start, end)
     if (matches == 0) return NULL;
     result = ALLOC_N(char *, matches + 2);
     for (i = 0; i < matches; i++) {
-      temp = rb_obj_as_string(rb_ary_entry(ary, i)); 
-      result[i + 1] = RSTRING_PTR(temp);
+      temp = rb_obj_as_string(rb_ary_entry(ary, i));
+      result[i + 1] = ALLOC_N(char, RSTRING_LEN(temp) + 1);
+      strcpy(result[i + 1], RSTRING_PTR(temp));
     }
     result[matches + 1] = NULL;
 
