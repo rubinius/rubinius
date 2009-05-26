@@ -1,6 +1,8 @@
 #ifndef RBX_UTIL_THREAD_HPP
 #define RBX_UTIL_THREAD_HPP
 
+// #define DEBUG_LOCKGUARD
+
 #define USE_PTHREADS
 
 #ifdef USE_PTHREADS
@@ -338,12 +340,9 @@ namespace thread {
 
   class Condition {
     pthread_cond_t native_;
-    bool ready_;
 
   public:
-    Condition()
-      : ready_(false)
-    {
+    Condition() {
       assert(pthread_cond_init(&native_, NULL) == 0);
     }
 
@@ -351,17 +350,11 @@ namespace thread {
       assert(pthread_cond_destroy(&native_) == 0);
     }
 
-    void reset() {
-      ready_ = false;
-    }
-
     void signal() {
-      ready_ = true;
       assert(pthread_cond_signal(&native_) == 0);
     }
 
     void broadcast() {
-      ready_ = true;
       assert(pthread_cond_broadcast(&native_) == 0);
     }
 
@@ -369,9 +362,8 @@ namespace thread {
       if(cDebugLockGuard) {
         std::cout << "[[ " << pthread_self() << "   CUnlocking " << mutex.describe() << " ]]\n";
       }
-      while(!ready_) {
-        assert(pthread_cond_wait(&native_, mutex.native()) == 0);
-      }
+
+      assert(pthread_cond_wait(&native_, mutex.native()) == 0);
 
       if(cDebugLockGuard) {
         std::cout << "[[ " << pthread_self() << "   CLocked " << mutex.describe() << " ]]\n";
@@ -383,35 +375,31 @@ namespace thread {
         std::cout << "[[ " << pthread_self() << "   CUnlocking " << mutex.describe() << " ]]\n";
       }
 
-      while(!ready_) {
-        int err = pthread_cond_timedwait(&native_, mutex.native(), ts);
-        if(cDebugLockGuard) {
-          std::cout << "[[ " << pthread_self() << "   CLocked " << mutex.describe() << " ]]\n";
-        }
-
-        if(err != 0) {
-          if(err == ETIMEDOUT) {
-            if(ready_) return cReady;
-            return cTimedOut;
-          }
-
-          switch(err) {
-          case EINVAL:
-            // This is not really correct, but it works for us:
-            // We treat this error as ONLY ts being invalid, ie, it's for
-            // a time in the past. Thus we can just say everything is ready.
-            //
-            // EINVAL can mean that both native_ and mutex.native() are invalid
-            // too, but we've got no recourse if that is true.
-            return cReady;
-          default:
-            std::cout << "Unknown failure from pthread_cond_timedwait!\n";
-          }
-
-          assert(0);
-        }
+      int err = pthread_cond_timedwait(&native_, mutex.native(), ts);
+      if(cDebugLockGuard) {
+        std::cout << "[[ " << pthread_self() << "   CLocked " << mutex.describe() << " ]]\n";
       }
 
+      if(err != 0) {
+        if(err == ETIMEDOUT) {
+          return cTimedOut;
+        }
+
+        switch(err) {
+        case EINVAL:
+          // This is not really correct, but it works for us:
+          // We treat this error as ONLY ts being invalid, ie, it's for
+          // a time in the past. Thus we can just say everything is ready.
+          //
+          // EINVAL can mean that both native_ and mutex.native() are invalid
+          // too, but we've got no recourse if that is true.
+          return cReady;
+        default:
+          std::cout << "Unknown failure from pthread_cond_timedwait!\n";
+        }
+
+        assert(0);
+      }
       return cReady;
     }
   };

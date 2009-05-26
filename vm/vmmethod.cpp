@@ -27,9 +27,7 @@
 
 #include "assembler/jit.hpp"
 #include "configuration.hpp"
-
-#define CALLS_TIL_JIT 50
-#define JIT_MAX_METHOD_SIZE 2048
+#include "llvm/jit.hpp"
 
 #define USE_SPECIALIZED_EXECUTE
 
@@ -108,7 +106,8 @@ namespace rubinius {
 
 #ifdef USE_USAGE_JIT
     // Disable JIT for large methods
-    if(state->shared.config.jit_enabled && total < JIT_MAX_METHOD_SIZE) {
+    if(state->shared.config.jit_enabled &&
+       total < (size_t)state->shared.config.jit_max_method_size) {
       call_count = 0;
     } else {
       call_count = -1;
@@ -420,13 +419,19 @@ namespace rubinius {
     // A negative call_count means we've disabled usage based JIT
     // for this method.
     if(vmm->call_count >= 0) {
-      if(vmm->call_count >= CALLS_TIL_JIT) {
+      if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
+        vmm->call_count = -1; // So we don't try and jit twice at the same time
         state->stats.jitted_methods++;
-        uint64_t start = get_current_time();
-        MachineMethod* mm = cm->make_machine_method(state);
-        mm->activate();
-        vmm->call_count = -1;
-        state->stats.jit_timing += (get_current_time() - start);
+
+        LLVMState* ls = LLVMState::get(state);
+
+        ls->compile_soon(state, vmm);
+
+        if(state->shared.config.jit_show_compiling) {
+          std::cout << "[[[ JIT Queued method "
+                    << ls->queued_methods() << "/"
+                    << ls->jitted_methods() << " ]]]\n";
+        }
       } else {
         vmm->call_count++;
       }

@@ -108,18 +108,29 @@ namespace rubinius {
     waiters_++;
     state->thread->sleep(state, Qtrue);
 
+    struct timeval tv = {0,0};
     if(use_timed_wait) {
-      struct timeval tv;
       gettimeofday(&tv, 0);
       uint64_t nano = ts.tv_nsec + tv.tv_usec * 1000;
       ts.tv_sec  += tv.tv_sec + nano / NANOSECONDS;
       ts.tv_nsec  = nano % NANOSECONDS;
-      condition_.wait_until(state->global_lock(), &ts);
-    } else {
-      condition_.wait(state->global_lock());
     }
 
-    condition_.reset();
+    for(;;) {
+      if(use_timed_wait) {
+        if(condition_.wait_until(state->global_lock(), &ts) == thread::cTimedOut) break;
+      } else {
+        condition_.wait(state->global_lock());
+      }
+
+      // Stop waiting if...
+      // we've been asked explicitely to wakeup..
+      if(waiter.used()) break;
+
+      // or there are values available.
+      if(!value_->empty_p()) break;
+    }
+
     self->unpin();
     self->waiters_--;
 

@@ -45,6 +45,11 @@ namespace rubinius {
     GlobalLock& global_lock_;
     SymbolTable& symbols_;
 
+    int jitted_methods_;
+    int queued_methods_;
+
+    SharedState& shared_;
+
   public:
     static LLVMState* get(STATE);
 
@@ -66,6 +71,20 @@ namespace rubinius {
     llvm::ExecutionEngine* engine() { return engine_; }
     llvm::FunctionPassManager* passes() { return passes_; }
     const llvm::Type* object() { return object_; }
+
+    int jitted_methods() {
+      return jitted_methods_;
+    }
+
+    int queued_methods() {
+      return queued_methods_;
+    }
+
+    int add_jitted_method() {
+      return ++jitted_methods_;
+    }
+
+    SharedState& shared() { return shared_; }
 
     const llvm::Type* ptr_type(std::string name);
 

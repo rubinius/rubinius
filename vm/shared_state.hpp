@@ -27,6 +27,7 @@ namespace rubinius {
   class VM;
   class Configuration;
   class LLVMState;
+  class WorldState;
 
   struct Interrupts {
     bool check;
@@ -61,6 +62,7 @@ namespace rubinius {
     bool profiling_;
     profiler::ProfilerCollection* profiler_collection_;
     int global_serial_;
+    WorldState& world_;
 
   public:
     Globals globals;
@@ -123,12 +125,15 @@ namespace rubinius {
     }
 
     void enable_profiling(VM* vm);
-
     LookupTable* disable_profiling(VM* vm);
-
     void add_profiler(VM* vm, profiler::Profiler* profiler);
-
     void remove_profiler(VM* vm, profiler::Profiler* profiler);
+
+    void stop_the_world();
+    void restart_world();
+    void checkpoint();
+    void gc_dependent();
+    void gc_independent();
   };
 }
 

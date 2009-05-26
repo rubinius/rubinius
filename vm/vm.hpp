@@ -334,6 +334,21 @@ namespace rubinius {
 
     void remove_profiler();
   };
+
+  class StopTheWorld {
+    VM* vm_;
+
+  public:
+    StopTheWorld(STATE) :
+      vm_(state)
+    {
+      vm_->shared.stop_the_world();
+    }
+
+    ~StopTheWorld() {
+      vm_->shared.restart_world();
+    }
+  };
 };
 
 #endif

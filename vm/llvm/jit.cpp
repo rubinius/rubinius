@@ -71,9 +71,10 @@ namespace rubinius {
         {
           thread::Mutex::LockGuard guard(list_mutex_);
 
-          // unlock and wait...
-          condition_.wait(list_mutex_);
-          condition_.reset();
+          while(pending_requests_.size() == 0) {
+            // unlock and wait...
+            condition_.wait(list_mutex_);
+          }
 
           // now locked again, shift a request
           req = pending_requests_.front();
@@ -92,19 +93,26 @@ namespace rubinius {
         }
 
         // Ok, compiled, generated machine code, now update MachineMethod
-        {
-          GlobalLock::LockGuard lock(ls_->global_lock());
 
-          MachineMethod* mm = req->machine_method();
-          mm->update(req->vmmethod(), jit);
-          mm->activate();
+        // Ok, now we are manipulating managed memory, so make
+        // sure the GC doesn't run.
+        ls_->shared().gc_dependent();
 
-          if(ls_->config().jit_show_compiling) {
-            std::cout << "[[[ JIT finished background compiling of one method ]]]\n";
-          }
+        MachineMethod* mm = req->machine_method();
+        mm->update(req->vmmethod(), jit);
+        mm->activate();
+
+        if(ls_->config().jit_show_compiling) {
+          std::cout << "[[[ JIT finished background compiling "
+                    << ls_->add_jitted_method()
+                    << " ]]]\n";
         }
 
         delete req;
+
+        // We don't depend on the GC here, so let it run independent
+        // of us.
+        ls_->shared().gc_independent();
       }
     }
   };
@@ -145,6 +153,7 @@ namespace rubinius {
     : config_(state->shared.config)
     , global_lock_(state->global_lock())
     , symbols_(state->symbols)
+    , shared_(state->shared)
   {
     bool fast_code_passes = false;
 
@@ -196,6 +205,8 @@ namespace rubinius {
     MachineMethod* mm = state->new_struct<MachineMethod>(G(machine_method));
 
     BackgroundCompileRequest* req = new BackgroundCompileRequest(state, vmm, mm);
+
+    queued_methods_++;
 
     background_thread_->add(req);
   }

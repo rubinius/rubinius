@@ -87,6 +87,13 @@ namespace rubinius {
 //    this->boot();
 
     shared.set_initialized();
+
+    // This seems like we should do this in VM(), ie, for every VM and
+    // therefore every Thread object in the process. But in fact, because
+    // we're using the GIL atm, we only do it once. When the GIL goes
+    // away, this needs to be moved to VM().
+
+    shared.gc_dependent();
   }
 
   void VM::boot() {
@@ -245,6 +252,10 @@ namespace rubinius {
 
   void VM::collect_maybe(CallFrame* call_frame) {
     this->set_call_frame(call_frame);
+
+    // Stops all other threads, so we're only here by ourselves.
+    StopTheWorld guard(this);
+
     GCData gc_data(this);
 
     if(om->collect_young_now) {
@@ -342,7 +353,7 @@ namespace rubinius {
 
   bool VM::wakeup() {
     if(waiter_) {
-      waiter_->wakeup();
+      waiter_->run();
       waiter_ = NULL;
       return true;
     }
