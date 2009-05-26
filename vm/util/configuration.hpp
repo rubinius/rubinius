@@ -20,16 +20,18 @@ namespace config {
     }
 
     bool import(const char* key, const char* val);
-    void print();
+    void print(bool desc=false);
   };
 
   class ConfigItem {
   public:
     const char* name_;
+    const char* description_;
     bool set_;
 
     ConfigItem(Configuration* config, const char* name)
       : name_(name)
+      , description_(0)
     {
       config->add_item(this);
     }
@@ -53,6 +55,14 @@ namespace config {
 
     bool set_p() {
       return set_;
+    }
+
+    const char* description() {
+      return description_;
+    }
+
+    void set_description(const char* str) {
+      description_ = str;
     }
   };
 
@@ -148,7 +158,7 @@ namespace config {
     return false;
   }
 
-  inline void Configuration::print() {
+  inline void Configuration::print(bool desc) {
     for(Items::iterator i = items_.begin();
         i != items_.end();
         i++) {
@@ -156,6 +166,12 @@ namespace config {
       std::cout << item->name() << ": ";
       item->print_value();
       std::cout << "\n";
+      if(desc) {
+        if(const char* desc = item->description()) {
+          std::cout << "  " << desc << "\n";
+        }
+        std::cout << "\n";
+      }
     }
   }
 }

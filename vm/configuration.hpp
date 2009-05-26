@@ -19,7 +19,7 @@ namespace rubinius {
     config::Integer jit_max_method_size;
 
     // Debug
-    config::Bool    print_config;
+    config::Integer print_config;
     config::Bool    jit_show_compiling;
     config::Bool    gil_debug;
     config::Bool    gc_show;
@@ -47,7 +47,30 @@ namespace rubinius {
       , jit_show_compiling(this, "jit.show")
       , gil_debug(this,       "vm.gil.debug")
       , gc_show(this,         "gc.show")
-    {}
+    {
+      gc_bytes.set_description(
+          "The number of bytes the young generation of the GC should use");
+      gc_large_object.set_description(
+          "The size (in bytes) of the large object threshold");
+      gc_lifetime.set_description(
+          "How many young GC cycles an object lives before promoption");
+      jit_enabled.set_description(
+          "Whether or not to use the dynamic JIT");
+      jit_dump_code.set_description(
+          "1 == show simple IR, 2 == show optimized IR, 4 == show machine code");
+      jit_call_til_compile.set_description(
+          "How many times a method is called before the JIT is run on it");
+      jit_max_method_size.set_description(
+          "The max size of a method that will be JIT");
+      print_config.set_description(
+          "blank or 1 == names and values, 2 == description as well");
+      jit_show_compiling.set_description(
+          "Print out a status message when the JIT is operating");
+      gil_debug.set_description(
+          "Print out debugging when the GIL is locked/unlocked");
+      gc_show.set_description(
+          "Print out whenever the GC runs");
+    }
   };
 }
 

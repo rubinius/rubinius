@@ -37,7 +37,13 @@ namespace rubinius {
     state = shared->new_vm();
     state->initialize();
 
-    if(config.print_config) config.print();
+    if(config.print_config > 1) {
+      std::cout << "========= Configuration =========\n";
+      config.print(true);
+      std::cout << "=================================\n";
+    } else if(config.print_config) {
+      config.print();
+    }
   }
 
   Environment::~Environment() {
