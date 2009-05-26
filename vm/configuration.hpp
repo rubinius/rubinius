@@ -22,6 +22,7 @@ namespace rubinius {
     config::Bool    print_config;
     config::Bool    jit_show_compiling;
     config::Bool    gil_debug;
+    config::Bool    gc_show;
 
     // defaults
     static const int default_gc_bytes = 1048576 * 3;
@@ -45,6 +46,7 @@ namespace rubinius {
       , print_config(this,    "config.print")
       , jit_show_compiling(this, "jit.show")
       , gil_debug(this,       "vm.gil.debug")
+      , gc_show(this,         "gc.show")
     {}
   };
 }
