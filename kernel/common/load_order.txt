@@ -42,6 +42,7 @@ dir_186.rbc
 dir_glob.rbc
 dtrace.rbc
 env.rbc
+env_186.rbc
 errno.rbc
 eval.rbc
 false.rbc

@@ -61,42 +61,12 @@ module Rubinius
       to_hash.inspect
     end
 
-    def each
-      to_hash.each { |k, v| yield k, v }
-      self
-    end
-    alias_method :each_pair, :each
-
-    def reject!
-      rejected = false
-      each do |k, v|
-        if yield k, v
-          delete k
-          rejected = true
-        end
-      end
-      rejected ? self : nil
-    end
-
     def reject(&block)
       to_hash.reject(&block)
     end
 
     def clear
       reject! { true }
-    end
-
-    def delete_if(&block)
-      reject!(&block)
-      self
-    end
-
-    def each_key
-      each { |k, v| yield k }
-    end
-
-    def each_value
-      each { |k, v| yield v }
     end
 
     def has_value?(value)
