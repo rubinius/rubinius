@@ -142,11 +142,18 @@ namespace rubinius {
       msg << "exception detected at toplevel: ";
       if(!exc->message()->nil_p()) {
         msg << exc->message()->c_str();
+      } else if(Exception::argument_error_p(state, exc)) {
+        msg << "given "
+            << as<Fixnum>(exc->get_ivar(state, state->symbol("@given")))->to_native()
+            << ", expected "
+            << as<Fixnum>(exc->get_ivar(state, state->symbol("@expected")))->to_native();
       }
       msg << " (" << exc->klass()->name()->c_str(state) << ")";
       std::cout << msg.str() << "\n";
       exc->print_locations(state);
       Assertion::raise(msg.str().c_str());
+    } else if(state->thread_state()->raise_reason() == cExit) {
+      exit(as<Fixnum>(state->thread_state()->raise_value())->to_native());
     }
 
     delete cf;
