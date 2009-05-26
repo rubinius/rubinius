@@ -137,7 +137,8 @@ namespace rubinius {
         i++) {
       if(!config.import(i->first.c_str(), i->second->value.c_str())) {
         if(i->second->in_section("vm.") ||
-           i->second->in_section("jit.")) {
+           i->second->in_section("jit.") ||
+           i->second->in_section("gc.")) {
           std::cout << "Warning: Unrecognized VM option '" << i->first << "'\n";
         }
       }
