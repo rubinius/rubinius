@@ -135,7 +135,12 @@ namespace rubinius {
     for(ConfigParser::ConfigMap::iterator i = variables.begin();
         i != variables.end();
         i++) {
-      config.import(i->first.c_str(), i->second->value.c_str());
+      if(!config.import(i->first.c_str(), i->second->value.c_str())) {
+        if(i->second->in_section("vm.") ||
+           i->second->in_section("jit.")) {
+          std::cout << "Warning: Unrecognized VM option '" << i->first << "'\n";
+        }
+      }
     }
   }
 }

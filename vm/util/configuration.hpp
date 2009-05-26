@@ -19,7 +19,7 @@ namespace config {
       items_.push_back(item);
     }
 
-    void import(const char* key, const char* val);
+    bool import(const char* key, const char* val);
     void print();
   };
 
@@ -137,13 +137,15 @@ namespace config {
     }
   };
 
-  inline void Configuration::import(const char* key, const char* val) {
+  inline bool Configuration::import(const char* key, const char* val) {
     for(Items::iterator i = items_.begin();
         i != items_.end();
         i++) {
       ConfigItem* item = *i;
-      if(item->set_maybe(key, val)) return;
+      if(item->set_maybe(key, val)) return true;
     }
+
+    return false;
   }
 
   inline void Configuration::print() {
