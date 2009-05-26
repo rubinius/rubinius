@@ -109,8 +109,9 @@ namespace rubinius {
 
 #ifdef USE_USAGE_JIT
     // Disable JIT for large methods
-    if(state->shared.config.jit_enabled &&
-       total < (size_t)state->shared.config.jit_max_method_size) {
+    if(meth->primitive()->nil_p() &&
+        state->shared.config.jit_enabled &&
+        total < (size_t)state->shared.config.jit_max_method_size) {
       call_count = 0;
     } else {
       call_count = -1;
