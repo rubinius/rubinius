@@ -84,7 +84,7 @@ module Kernel
     Rubinius::VM.write_error "Fatal error loading runtime kernel:\n  "
     Rubinius::VM.write_error str
     Rubinius::VM.write_error "\n"
-    Rubinius::VM.show_backtrace nil
+    Rubinius::VM.show_backtrace
     Process.exit 1
   end
 
