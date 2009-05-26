@@ -107,6 +107,8 @@ namespace rubinius {
 
     LLVMState* ls_;
 
+    Value* ip_pos_;
+
   public:
 
     const llvm::Type* ptr_type(std::string name) {
@@ -171,6 +173,14 @@ namespace rubinius {
 
       Value* crv = f.clear_raise_value.call(&vm_, 1, "crv", ret_raise_val);
       ReturnInst::Create(crv, ret_raise_val);
+
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 6)
+      };
+
+
+      ip_pos_ = GetElementPtrInst::Create(call_frame_, idx, idx+2, "ip_pos", block_);
     }
 
     BasicBlock* block(const char* name = "continue") {
@@ -356,6 +366,8 @@ namespace rubinius {
 
         block_ = next;
       }
+
+      new StoreInst(ConstantInt::get(Type::Int32Ty, ip), ip_pos_, false, block_);
     }
 
     // visitors.
@@ -1339,7 +1351,6 @@ namespace rubinius {
       };
 
       Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "scope_pos", block_);
-      // std::cout << *gep << "\n";
       stack_push(new LoadInst(gep, "scope", block_));
     }
 
