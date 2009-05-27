@@ -1892,6 +1892,7 @@ namespace rubinius {
 
       Value* val = sig.call("rbx_meta_send_call", call_args, 4, "constant", block_);
       stack_remove(count+1);
+      check_for_exception(val);
       stack_push(val);
     }
 
