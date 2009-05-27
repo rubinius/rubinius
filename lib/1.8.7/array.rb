@@ -20,7 +20,7 @@ class Array
       picks[move...num] = (new_index...(new_index+num-move)).to_a
     end
   end unless method_defined? :combination
-  
+
   # Calls block for each element repeatedly n times or forever if none
   # or nil is given. If a non-positive number is given or the array is empty,
   # does nothing. Returns nil if the loop has finished without getting interrupted.
@@ -87,25 +87,21 @@ class Array
 
   # Recursively flatten any contained Arrays into an one-dimensional result.
   # The optional level argument determines the level of recursion to flatten
-  def flatten(level=Undefined)
+  def flatten(level=-1)
     dup.flatten!(level) || self
   end
 
   # Flattens self in place as #flatten. If no changes are
   # made, returns nil, otherwise self.
   # The optional level argument determines the level of recursion to flatten
-  def flatten!(level=Undefined)
-    if level.equal? Undefined
-      level = -1
-    else
-      level = Type.coerce_to(level, Integer, :to_int)
-    end
+  def flatten!(level=-1)
+    level = Type.coerce_to(level, Integer, :to_int)
     ret, out = nil, []
     ret = recursively_flatten(self, out, level)
     replace(out) if ret
     ret
   end
-  
+
   # Returns the index of the first element in the Array
   # for which elem == obj is true or nil. If a block is
   # given instead of an argument, returns first object
@@ -202,7 +198,7 @@ class Array
     i = @total - 1
     while i >= 0 do
       yield(at(i))
-      i = @total if @total < i      
+      i = @total if @total < i
       i -= 1
     end
     self
@@ -227,7 +223,7 @@ class Array
     end
     nil
   end
-  
+
   # Choose a random element, or the random n elements, from the array.
   # If the array is empty, the first form returns nil, and the second
   # form returns an empty array.
@@ -262,12 +258,12 @@ class Array
     end
   end
 
-  # Returns a new array with elements of this array shuffled. 
+  # Returns a new array with elements of this array shuffled.
   def shuffle
     dup.shuffle!
   end
 
-  # Shuffles elements in self in place. 
+  # Shuffles elements in self in place.
   def shuffle!
     size.times do |i|
       r = i + rand(size - i)
@@ -296,5 +292,5 @@ class Array
     self[*args] = []
     out
   end
-  
+
 end

@@ -56,7 +56,7 @@ module Enumerable
   #   enum.drop(n)   => an_array
   #
   # Drops first n elements from enum, and returns rest elements in an array.
-  
+
   def drop(n)
     n = Type.coerce_to(n, Fixnum, :to_int)
     raise ArgumentError, "attempt to drop negative size" if n < 0
@@ -70,7 +70,7 @@ module Enumerable
   #
   # Drops elements up to, but not including, the first element for which the block
   # returns nil or false and returns an array containing the remaining elements.
-  
+
   def drop_while
     return to_enum :drop_while unless block_given?
     ary = []
@@ -121,7 +121,7 @@ module Enumerable
   #   %w[cat dog wombat].each_with_index { |item, index|
   #     hash[item] = index
   #   }
-  #   
+  #
   #   p hash   #=> {"cat"=>0, "wombat"=>2, "dog"=>1}
 
   def each_with_index(*arg)
@@ -245,17 +245,17 @@ module Enumerable
   #
   # Combines all elements of enum by applying a binary operation,
   # specified by a block or a symbol that names a method or operator.
-  # 
+  #
   # If you specify a block, then for each element in enum<i> the block
   # is passed an accumulator value (<i>memo) and the element.
   # If you specify a symbol instead, then each element in the collection
   # will be passed to the named method of memo. In either case,
   # the result becomes the new value for memo. At the end of the
   # iteration, the final value of memo is the return value fo the method.
-  # 
+  #
   # If you do not explicitly specify an initial value for memo,
   # then uses the first element of collection is used as the initial value of memo.
-    
+
   def inject(initial= Undefined, sym = Undefined, &block)
     unless block_given? && sym.equal?(Undefined)
       initial, sym = Undefined, initial if sym.equal?(Undefined)
@@ -284,7 +284,7 @@ module Enumerable
   #
   #   a = %w[albatross dog horse]
   #   a.max_by { |x| x.length }   #=> "albatross"
-  
+
   def max_by(&block)
     return to_enum(:max_by) unless block_given?
     max_object, max_result = nil, Rubinius::FakeComparator.new(-1)
@@ -294,7 +294,7 @@ module Enumerable
     end
     max_object
   end
-  
+
   ##
   # :call-seq:
   #   enum.min_by { |obj| block }   => obj
@@ -307,7 +307,7 @@ module Enumerable
   #
   #   a = %w[albatross dog horse]
   #   a.min_by { |x| x.length }   #=> "dog"
-  
+
   def min_by
     return to_enum(:min_by) unless block_given?
     min_object, min_result = nil, Rubinius::FakeComparator.new(1)
@@ -317,11 +317,11 @@ module Enumerable
     end
     min_object
   end
-  
+
   # Returns two elements array which contains the minimum and the maximum value
   # in the enumerable. The first form assumes all objects implement Comparable;
   # the second uses the block to return a <=> b.
-  
+
   def minmax(&block)
     block = Proc.new{|a,b| a <=> b} unless block_given?
     first_time = true
@@ -337,10 +337,10 @@ module Enumerable
     end
     [min, max]
   end
-  
+
   # Returns two elements array array containing the objects in enum that
-  # gives the minimum and maximum values respectively from the given block. 
-  
+  # gives the minimum and maximum values respectively from the given block.
+
   def minmax_by(&block)
     return to_enum(:minmax_by) unless block_given?
     min_object, min_result = nil, Rubinius::FakeComparator.new(1)
@@ -447,6 +447,13 @@ module Enumerable
     ary
   end
 
+  def reverse_each(&block)
+    return to_enum(:reverse_each) unless block_given?
+    # There is no other way then to convert to an array first... see 1.9's source.
+    to_a.reverse_each(&block)
+    self
+  end
+
   ##
   # :call-seq:
   #   enum.take(n)                => array
@@ -466,7 +473,7 @@ module Enumerable
 
   # Passes elements to the block until the block returns nil or false,
   # then stops iterating and returns an array of all prior elements.
-  
+
   def take_while
     return to_enum :take_while unless block_given?
     array = []
@@ -483,7 +490,7 @@ module Rubinius
     def initialize(comparison_result)
       @comparison_result = comparison_result
     end
-    
+
     def <=>(whatever)
       @comparison_result
     end
