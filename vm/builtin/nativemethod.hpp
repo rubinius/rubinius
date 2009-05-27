@@ -42,7 +42,11 @@ namespace rubinius {
 
   public:   /* Class Interface */
     NativeMethodEnvironment(STATE)
-      : current_block_(state)
+      : state_(state)
+      , current_call_frame_(0)
+      , current_native_frame_(0)
+      , current_ep_(0)
+      , current_block_(state)
     {
       current_block_.set(Qnil);
     }

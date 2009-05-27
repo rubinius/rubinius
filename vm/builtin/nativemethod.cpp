@@ -219,7 +219,6 @@ namespace rubinius {
 
   void NativeMethod::init_thread(STATE) {
     NativeMethodEnvironment* env = new NativeMethodEnvironment(state);
-    env->set_state(state);
     native_method_environment.set(env);
   }
 
