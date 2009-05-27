@@ -61,6 +61,7 @@ module Enumerable
     n = Type.coerce_to(n, Fixnum, :to_int)
     raise ArgumentError, "attempt to drop negative size" if n < 0
     ary = to_a
+    return [] if n > ary.size
     ary[n...ary.size]
   end
 
