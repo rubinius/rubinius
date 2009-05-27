@@ -1,5 +1,7 @@
 #ifdef ENABLE_LLVM
 
+#include "vm.hpp"
+#include "objectmemory.hpp"
 #include "llvm/jit.hpp"
 #include "call_frame.hpp"
 #include "builtin/object.hpp"
@@ -25,6 +27,12 @@
 using namespace rubinius;
 
 extern "C" {
+  Object* rbx_write_barrier(STATE, Object* obj, Object* val) {
+    if(obj->zone == UnspecifiedZone) return val;
+    state->om->write_barrier(obj, val);
+    return val;
+  }
+
   Object* rbx_inline_cache_send(STATE, CallFrame* call_frame, Symbol* name,
                           SendSite::Internal* cache, int count, Object** args) {
     Object* recv = args[0];

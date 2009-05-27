@@ -286,6 +286,28 @@ namespace rubinius {
       block_ = check_for_exception(val, block_);
     }
 
+    void write_barrier(Value* obj, Value* val) {
+      Signature wb(ls_, ObjType);
+      wb << VMTy;
+      wb << ObjType;
+      wb << ObjType;
+
+      if(obj->getType() != ObjType) {
+        obj = CastInst::Create(
+          Instruction::BitCast,
+          obj,
+          ObjType, "casted", block_);
+      }
+
+      Value* call_args[] = {
+        vm_,
+        obj,
+        val
+      };
+
+      wb.call("rbx_write_barrier", call_args, 3, "", block_);
+    }
+
     Value* stack_ptr(BasicBlock* block = NULL) {
       if(!block) block = block_;
       return new LoadInst(stack_top_, "stack_ptr", block);
@@ -1017,9 +1039,15 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, which)
       };
 
-      Value* pos = GetElementPtrInst::Create(scope(), idx2, idx2+3, "local_pos", block_);
+      Value* s = scope();
 
-      new StoreInst(stack_top(), pos, false, block_);
+      Value* pos = GetElementPtrInst::Create(s, idx2, idx2+3, "local_pos", block_);
+
+      Value* val = stack_top();
+
+      new StoreInst(val, pos, false, block_);
+
+      write_barrier(s, val);
     }
 
     void visit_push_self() {
