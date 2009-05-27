@@ -32,7 +32,9 @@ namespace rubinius {
      *  Initialize scope for methods.
      */
     void prepare(Object* self, Module* mod, Object* block, CompiledMethod* method, int num) {
-      obj_type_ = InvalidType;
+      init_header(UnspecifiedZone,0);
+      klass_ = 0;
+      ivars_ = 0;
 
       parent_ = (VariableScope*)Qnil;
       self_ = self;
