@@ -483,6 +483,15 @@ module Enumerable
     end
     array
   end
+  
+  def to_a(*arg)
+    ary = []
+    each(*arg) { |o| ary << o }
+    ary
+  end
+
+  alias_method :entries, :to_a
+
 end
 
 module Rubinius

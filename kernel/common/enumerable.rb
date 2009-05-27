@@ -84,24 +84,6 @@ module Enumerable
 
   ##
   # :call-seq:
-  #   enum.to_a      =>    array
-  #   enum.entries   =>    array
-  #
-  # Returns an array containing the items in +enum+.
-  #
-  #   (1..7).to_a                       #=> [1, 2, 3, 4, 5, 6, 7]
-  #   { 'a'=>1, 'b'=>2, 'c'=>3 }.to_a   #=> [["a", 1], ["b", 2], ["c", 3]]
-
-  def to_a
-    ary = []
-    each { |o| ary << o }
-    ary
-  end
-
-  alias_method :entries, :to_a
-
-  ##
-  # :call-seq:
   #   enum.grep(pattern)                   => array
   #   enum.grep(pattern) { | obj | block } => array
   #
