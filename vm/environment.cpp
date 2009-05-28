@@ -14,6 +14,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
 #include "builtin/taskprobe.hpp"
+#include "llvm/jit.hpp"
 
 #include "signal.hpp"
 #include "object_utils.hpp"
@@ -158,11 +159,17 @@ namespace rubinius {
       std::cout << msg.str() << "\n";
       exc->print_locations(state);
       Assertion::raise(msg.str().c_str());
-    } else if(state->thread_state()->raise_reason() == cExit) {
-      exit(as<Fixnum>(state->thread_state()->raise_value())->to_native());
     }
 
     delete cf;
+  }
+
+  void Environment::halt() {
+#ifdef ENABLE_LLVM
+    LLVMState::shutdown(state);
+#endif
+
+    state->shared.stop_the_world();
   }
 
   int Environment::exit_code() {

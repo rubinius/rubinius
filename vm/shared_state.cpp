@@ -23,6 +23,16 @@ namespace rubinius {
       , should_stop_(false)
     {}
 
+    // Called after a fork(), when we know we're alone again, to get
+    // everything back in the proper order.
+    void reinit() {
+      mutex_.init();
+      waiting_to_stop_.init();
+      waiting_to_run_.init();
+      pending_threads_ = 1;
+      should_stop_ = false;
+    }
+
     // If called when the GC is waiting to run,
     //   wait until the GC tells us it's ok to continue.
     // always increments pending_threads_ at the end.
@@ -159,6 +169,10 @@ namespace rubinius {
     if(profiler_collection_) {
       profiler_collection_->remove_profiler(vm, profiler);
     }
+  }
+
+  void SharedState::reinit() {
+    world_.reinit();
   }
 
   void SharedState::stop_the_world() {

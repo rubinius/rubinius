@@ -35,6 +35,26 @@ namespace rubinius {
     return state->shared.llvm_state;
   }
 
+  void LLVMState::shutdown(STATE) {
+    if(!state->shared.llvm_state) return;
+    state->shared.llvm_state->shutdown_i();
+  }
+
+  void LLVMState::on_fork(STATE) {
+    if(!state->shared.llvm_state) return;
+    state->shared.llvm_state->on_fork_i();
+  }
+
+  void LLVMState::pause(STATE) {
+    if(!state->shared.llvm_state) return;
+    state->shared.llvm_state->pause_i();
+  }
+
+  void LLVMState::unpause(STATE) {
+    if(!state->shared.llvm_state) return;
+    state->shared.llvm_state->unpause_i();
+  }
+
   const llvm::Type* LLVMState::ptr_type(std::string name) {
     std::string full_name = std::string("struct.rubinius::") + name;
     return PointerType::getUnqual(
@@ -42,24 +62,91 @@ namespace rubinius {
   }
 
   class BackgroundCompilerThread : public thread::Thread {
-    thread::Mutex list_mutex_;
+    enum State {
+      cUnknown,
+      cRunning,
+      cPaused,
+      cIdle
+    };
+
+    thread::Mutex mutex_;
     std::list<BackgroundCompileRequest*> pending_requests_;
     thread::Condition condition_;
+    thread::Condition pause_condition_;
 
     LLVMState* ls_;
     bool show_machine_code_;
 
+    State state;
+    bool stop_;
+    bool pause_;
+    bool paused_;
+
   public:
     BackgroundCompilerThread(LLVMState* ls)
       : ls_(ls)
+      , state(cUnknown)
+      , stop_(false)
+      , pause_(false)
+      , paused_(false)
     {
       show_machine_code_ = ls->jit_dump_code() & cMachineCode;
     }
 
     void add(BackgroundCompileRequest* req) {
-      thread::Mutex::LockGuard guard(list_mutex_);
+      thread::Mutex::LockGuard guard(mutex_);
       pending_requests_.push_back(req);
       condition_.signal();
+    }
+
+    void stop() {
+      {
+        thread::Mutex::LockGuard guard(mutex_);
+        stop_ = true;
+
+        if(state == cIdle) {
+          condition_.signal();
+        }
+      }
+
+      join();
+    }
+
+    void pause() {
+      thread::Mutex::LockGuard guard(mutex_);
+
+      // it's idle, ie paused.
+      if(state == cIdle || state == cPaused) return;
+
+      pause_ = true;
+
+      while(!paused_) {
+        pause_condition_.wait(mutex_);
+      }
+    }
+
+    void unpause() {
+      thread::Mutex::LockGuard guard(mutex_);
+
+      // idle, just waiting for more work, ok, thats fine.
+      if(state != cPaused) return;
+
+      pause_ = false;
+
+      condition_.signal();
+    }
+
+    void restart() {
+      mutex_.init();
+      condition_.init();
+      pause_condition_.init();
+
+      state = cUnknown;
+      stop_ = false;
+      pause_ = false;
+      paused_ = false;
+
+      run();
     }
 
     virtual void perform() {
@@ -69,16 +156,39 @@ namespace rubinius {
 
         // Lock, wait, get a request, unlock
         {
-          thread::Mutex::LockGuard guard(list_mutex_);
+          thread::Mutex::LockGuard guard(mutex_);
+
+          // If we've been asked to stop, do so now.
+          if(stop_) return;
+
+          if(pause_) {
+            state = cPaused;
+
+            paused_ = true;
+            pause_condition_.signal();
+
+            while(pause_) {
+              condition_.wait(mutex_);
+            }
+
+            state = cUnknown;
+            paused_ = false;
+          }
 
           while(pending_requests_.size() == 0) {
+            state = cIdle;
+
             // unlock and wait...
-            condition_.wait(list_mutex_);
+            condition_.wait(mutex_);
+
+            if(stop_) return;
           }
 
           // now locked again, shift a request
           req = pending_requests_.front();
           pending_requests_.pop_front();
+
+          state = cRunning;
         }
 
         // mutex now unlock, allowing others to push more requests
@@ -197,6 +307,22 @@ namespace rubinius {
 
     background_thread_ = new BackgroundCompilerThread(this);
     background_thread_->run();
+  }
+
+  void LLVMState::shutdown_i() {
+    background_thread_->stop();
+  }
+
+  void LLVMState::on_fork_i() {
+    background_thread_->restart();
+  }
+
+  void LLVMState::pause_i() {
+    background_thread_->pause();
+  }
+
+  void LLVMState::unpause_i() {
+    background_thread_->unpause();
   }
 
   Symbol* LLVMState::symbol(const char* sym) {

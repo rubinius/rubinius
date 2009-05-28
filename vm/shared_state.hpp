@@ -129,6 +129,7 @@ namespace rubinius {
     void add_profiler(VM* vm, profiler::Profiler* profiler);
     void remove_profiler(VM* vm, profiler::Profiler* profiler);
 
+    void reinit();
     void stop_the_world();
     void restart_world();
     void checkpoint();

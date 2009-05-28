@@ -46,6 +46,8 @@
 
 #include "configuration.hpp"
 
+#include "llvm/jit.hpp"
+
 namespace rubinius {
 
 
@@ -85,8 +87,20 @@ namespace rubinius {
   }
 
   /* @todo Improve error messages */
-  Object* System::vm_exec(VM* state, String* path, Array* args)
-  {
+  Object* System::vm_exec(STATE, String* path, Array* args) {
+
+    // Some system (darwin) don't let execvp work if there is more
+    // than one thread running. So we kill off any background LLVM
+    // thread here.
+
+#ifdef ENABLE_LLVM
+    LLVMState::shutdown(state);
+#endif
+
+    // TODO Need to stop and kill off any ruby threads!
+    // We haven't run into this because exec is almost always called
+    // after fork(), which pulls over just one thread anyway.
+
     std::size_t argc = args->size();
 
     /* execvp() requires a NULL as last element */
@@ -100,9 +114,8 @@ namespace rubinius {
     (void) ::execvp(path->c_str(), &argv[0]); /* std::vector is contiguous. --rue */
 
     /* execvp() returning means it failed. */
-    Exception::errno_error(state, "execvp() failed!");
-
-    return Qnil;
+    Exception::errno_error(state, "execvp(2) failed");
+    return NULL;
   }
 
   Object* System::vm_wait_pid(STATE, Fixnum* pid_obj, Object* no_hang) {
@@ -157,6 +170,10 @@ namespace rubinius {
   {
     int result = 0;
 
+#ifdef ENABLE_LLVM
+    LLVMState::pause(state);
+#endif
+
     // Unlock the lock and relock, that way both the parent and
     // child relock independently, and correctly hold the lock.
     {
@@ -164,13 +181,26 @@ namespace rubinius {
       result = ::fork();
     }
 
-    if ( -1 == result ) {
-      Exception::errno_error(state, "fork() failed!");
+    // We're in the child...
+    if(result == 0) {
+      /*  @todo any other re-initialisation needed? */
+
+      state->shared.reinit();
+
+      // Re-initialize LLVM
+#ifdef ENABLE_LLVM
+      LLVMState::on_fork(state);
+#endif
+    } else {
+#ifdef ENABLE_LLVM
+      LLVMState::unpause(state);
+#endif
     }
 
-    /*  @todo EVFLAG_FORKCHECK should remove need for any maintenance
-     *        here, but is there any other re-initialisation needed?
-     */
+    if(result == -1) {
+      Exception::errno_error(state, "fork(2) failed");
+      return NULL;
+    }
 
     return Fixnum::from(result);
   }

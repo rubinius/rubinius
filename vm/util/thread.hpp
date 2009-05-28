@@ -135,9 +135,11 @@ namespace thread {
       if(err != 0) {
         if(err == EDEADLK) {
           std::cout << "Thread deadlock!\n";
+          assert(0);
         }
 
-        assert(0);
+        // Ignore the other errors, since they mean there is no thread
+        // so we can consider us already joined to it.
       }
     }
 
@@ -270,11 +272,15 @@ namespace thread {
     pthread_mutex_t native_;
 
   public:
-    Mutex() {
+    void init() {
       pthread_mutexattr_t attr;
       pthread_mutexattr_init(&attr);
       pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
       assert(pthread_mutex_init(&native_, &attr) == 0);
+    }
+
+    Mutex() {
+      init();
     }
 
     ~Mutex() {
@@ -342,8 +348,12 @@ namespace thread {
     pthread_cond_t native_;
 
   public:
-    Condition() {
+    void init() {
       assert(pthread_cond_init(&native_, NULL) == 0);
+    }
+
+    Condition() {
+      init();
     }
 
     ~Condition() {

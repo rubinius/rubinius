@@ -30,6 +30,7 @@ namespace rubinius {
     void run_file(std::string path);
     void enable_preemption();
     void boot_vm();
+    void halt();
     int exit_code();
     void start_signals();
   };

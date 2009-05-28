@@ -243,6 +243,9 @@ namespace rubinius {
   void VM::collect(CallFrame* call_frame) {
     this->set_call_frame(call_frame);
 
+    // Stops all other threads, so we're only here by ourselves.
+    StopTheWorld guard(this);
+
     GCData gc_data(this);
 
     om->collect_young(gc_data);

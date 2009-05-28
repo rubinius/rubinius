@@ -91,7 +91,6 @@ int main(int argc, char** argv) {
     env.enable_preemption();
     env.start_signals();
     env.run_file(loader);
-    return env.exit_code();
 
   } catch(Assertion *e) {
     std::cout << "VM Assertion:" << std::endl;
@@ -143,4 +142,7 @@ int main(int argc, char** argv) {
   } catch(...) {
     std::cout << "Unknown exception detected." << std::endl;
   }
+
+  env.halt();
+  return env.exit_code();
 }

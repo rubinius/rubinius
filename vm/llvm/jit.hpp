@@ -52,6 +52,10 @@ namespace rubinius {
 
   public:
     static LLVMState* get(STATE);
+    static void shutdown(STATE);
+    static void on_fork(STATE);
+    static void pause(STATE);
+    static void unpause(STATE);
 
     LLVMState(STATE);
 
@@ -91,6 +95,11 @@ namespace rubinius {
     void compile_soon(STATE, VMMethod* vmm);
 
     Symbol* symbol(const char* sym);
+
+    void shutdown_i();
+    void on_fork_i();
+    void pause_i();
+    void unpause_i();
   };
 
   class LLVMCompiler {
