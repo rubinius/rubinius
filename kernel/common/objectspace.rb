@@ -1,5 +1,9 @@
 module ObjectSpace
 
+  def self._id2ref(id)
+    raise NotImplementedError
+  end
+
   # @todo rewrite each_object
 
   # Tryes to handle as much as it can.
