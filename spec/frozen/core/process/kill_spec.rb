@@ -31,6 +31,10 @@ describe "Process.kill" do
           Process.exit!
         end
       }
+
+      # Give the child enough time to setup the HUP trap.
+      sleep(0.5)
+
       Process.kill(0, pid).should == 1
       Process.kill(1, pid).should == 1
       Process.waitpid(pid)
