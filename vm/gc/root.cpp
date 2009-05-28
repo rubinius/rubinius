@@ -9,6 +9,16 @@ namespace rubinius {
     return static_cast<Root*>(head());
   }
 
+  void Roots::add(Root* node) {
+    thread::SpinLock::LockGuard guard(lock_);
+    this->LinkedList::add(node);
+  }
+
+  void Roots::remove(Root* node) {
+    thread::SpinLock::LockGuard guard(lock_);
+    this->LinkedList::remove(node);
+  }
+
 /* Root */
 
   Root::Root(STATE)

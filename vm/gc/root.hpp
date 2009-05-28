@@ -4,9 +4,11 @@
 
 #include <stdexcept>
 
-#include "vm/linkedlist.hpp"
-#include "vm/oop.hpp"
-#include "vm/prelude.hpp"
+#include "linkedlist.hpp"
+#include "oop.hpp"
+#include "prelude.hpp"
+
+#include "util/thread.hpp"
 
 namespace rubinius {
   class Root;
@@ -18,6 +20,8 @@ namespace rubinius {
    *  @todo Document methods. --rue
    */
   class Roots : public LinkedList {
+    thread::SpinLock lock_;
+
   public:   /* Ctors */
     Roots()
       : LinkedList()
@@ -27,6 +31,9 @@ namespace rubinius {
     Root* front();
 
     typedef LinkedList::Iterator<Roots, Root> Iterator;
+
+    void add(Root*);
+    void remove(Root*);
   };
 
   /**
