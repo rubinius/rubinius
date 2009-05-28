@@ -67,7 +67,7 @@ namespace rubinius {
         std::cout << "detected " << obj << " during baker allocation.\n";
       }
 
-      obj->init_header(YoungObjectZone, bytes);
+      obj->init_header(YoungObjectZone, InvalidType);
 
 #ifdef RBX_GC_STATS
       stats::GCStats::get()->allocate_young.stop();

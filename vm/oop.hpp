@@ -190,8 +190,9 @@ const int cUndef = 0x22L;
 
     /* Initialize the objects data with the most basic info. This is done
      * right after an object is created. */
-    void init_header(gc_zone loc, size_t bytes) {
+    void init_header(gc_zone loc, object_type type) {
       all_flags = 0;
+      obj_type_ = type;
       zone = loc;
     }
 

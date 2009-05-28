@@ -15,7 +15,13 @@ namespace rubinius {
     /* Even though we dup it, we have to be careful to maintain
      * the zone. */
 
-    obj_type_    = other->obj_type_;
+    // DO NOT, EVER, CHANGE obj_type_.
+    // obj_type_ indicates the shape of the object in memory. There are
+    // fucked up cases where this is called where other is another type
+    // (that, btw, is likely a bug in itself), but we should never,
+    // MUST never change obj_type_ to make them match. This causes the GC
+    // to get confused about the memory shape of the object!
+    assert(obj_type_ == other->obj_type_);
     age          = new_age;
     klass_       = other->klass_;
     ivars_       = other->ivars_;

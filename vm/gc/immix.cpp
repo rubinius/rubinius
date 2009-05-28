@@ -65,7 +65,7 @@ namespace rubinius {
 #endif
 
     Object* obj = allocator_.allocate(bytes).as<Object>();
-    obj->init_header(MatureObjectZone, bytes);
+    obj->init_header(MatureObjectZone, InvalidType);
     obj->set_in_immix();
 
 #ifdef RBX_GC_STATS

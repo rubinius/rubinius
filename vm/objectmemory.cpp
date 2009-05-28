@@ -91,10 +91,10 @@ namespace rubinius {
 #endif
 
     Object* copy = immix_.allocate(obj->size_in_bytes(state));
+
+    copy->obj_type_ = obj->type_id();
     copy->initialize_copy(obj, 0);
     copy->copy_body(state, obj);
-
-    copy->zone = MatureObjectZone;
 
     if(watched_p(obj)) {
       std::cout << "detected object " << obj << " during promotion.\n";

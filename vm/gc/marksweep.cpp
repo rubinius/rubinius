@@ -55,7 +55,7 @@ namespace rubinius {
       next_collection_bytes = MS_COLLECTION_BYTES;
     }
 
-    obj->init_header(MatureObjectZone, bytes);
+    obj->init_header(MatureObjectZone, InvalidType);
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->allocate_mature.stop();

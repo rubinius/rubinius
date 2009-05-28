@@ -65,8 +65,6 @@ namespace rubinius {
 
     void store_object(Object* target, size_t index, Object* val);
     void set_class(Object* target, Object* obj);
-    Object* allocate_object(size_t bytes);
-    Object* allocate_object_mature(size_t bytes);
 
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
@@ -114,6 +112,15 @@ namespace rubinius {
 
       remember_object(target);
     }
+
+    // This only has one use! Don't use it!
+    Object* allocate_object_raw(size_t bytes) {
+      return allocate_object(bytes);
+    }
+
+  private:
+    Object* allocate_object(size_t bytes);
+    Object* allocate_object_mature(size_t bytes);
   };
 
 #define FREE(obj) free(obj)

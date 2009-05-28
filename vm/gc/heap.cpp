@@ -34,7 +34,7 @@ namespace rubinius {
   Object* Heap::copy_object(STATE, Object* orig) {
     size_t bytes = orig->size_in_bytes(state);
     Object* tmp = (Object*)allocate(bytes);
-    tmp->init_header(YoungObjectZone, bytes);
+    tmp->init_header(YoungObjectZone, orig->type_id());
 
     tmp->initialize_copy(orig, orig->age);
     tmp->copy_body(state, orig);

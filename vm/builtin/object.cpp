@@ -16,6 +16,9 @@
 #include "builtin/selector.hpp"
 #include "builtin/sendsite.hpp"
 #include "builtin/float.hpp"
+#include "builtin/staticscope.hpp"
+#include "builtin/system.hpp"
+
 #include "objectmemory.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"
@@ -52,8 +55,10 @@ namespace rubinius {
   }
 
   Object* Object::duplicate(STATE) {
-    Object* other = state->om->allocate_object(this->total_size(state));
+    if(!reference_p()) return this;
 
+    Object* other = state->new_object_typed(
+        class_object(state), this->total_size(state), obj_type_);
     return other->copy_object(state, this);
   }
 
@@ -71,6 +76,19 @@ namespace rubinius {
     }
 
     return this;
+  }
+
+  Object* Object::copy_object_prim(STATE, Object* other, CallFrame* call_frame) {
+    if(type_id() != other->type_id() ||
+        class_object(state) != other->class_object(state)) {
+      Exception* exc =
+        Exception::make_type_error(state, type_id(), other);
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      state->thread_state()->raise_exception(exc);
+      return NULL;
+    }
+
+    return copy_object(state, other);
   }
 
   Object* Object::copy_object(STATE, Object* other) {

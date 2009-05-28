@@ -117,12 +117,15 @@ namespace rubinius {
      */
     Object* duplicate(STATE);
 
+    Object* copy_object(STATE, Object* other);
+
     /**
      *  Copies the object including any instance variables. Called by
      *  Kernel#dup.
      */
+
     // Ruby.primitive :object_copy_object
-    Object* copy_object(STATE, Object* other);
+    Object* copy_object_prim(STATE, Object* other, CallFrame* calling_environment);
 
     /**
      * Copies this Object's MetaClass to the other Object. Called

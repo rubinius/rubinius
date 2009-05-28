@@ -32,7 +32,7 @@ namespace rubinius {
      *  Initialize scope for methods.
      */
     void prepare(Object* self, Module* mod, Object* block, CompiledMethod* method, int num) {
-      init_header(UnspecifiedZone,0);
+      init_header(UnspecifiedZone, InvalidType);
       klass_ = 0;
       ivars_ = 0;
 
@@ -75,7 +75,7 @@ namespace rubinius {
     }
 
     bool stack_allocated_p() {
-      return obj_type_ == 0;
+      return obj_type_ == InvalidType;
     }
 
     void set_local(STATE, int pos, Object* val) {

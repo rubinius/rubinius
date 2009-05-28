@@ -34,7 +34,7 @@ namespace rubinius {
   }
 
   void VariableScope::setup_as_block(VariableScope* top, VariableScope* parent, CompiledMethod* cm, int num, Object* self) {
-    init_header(UnspecifiedZone, 0);
+    init_header(UnspecifiedZone, InvalidType);
 
     parent_ = parent;
     if(self) {

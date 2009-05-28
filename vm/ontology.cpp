@@ -61,7 +61,7 @@ namespace rubinius {
   void VM::bootstrap_class() {
     /* Class is created first by hand, and twiddle to setup the internal
        recursion. */
-    Class *cls = (Class*)om->allocate_object(sizeof(Class));
+    Class *cls = (Class*)om->allocate_object_raw(sizeof(Class));
 
     /* We create these 8 classes in a particular way and in a particular
      * order. We need all 8 to create fully initialized Classes and
