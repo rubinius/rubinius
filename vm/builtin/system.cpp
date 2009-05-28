@@ -46,7 +46,9 @@
 
 #include "configuration.hpp"
 
+#ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
+#endif
 
 namespace rubinius {
 

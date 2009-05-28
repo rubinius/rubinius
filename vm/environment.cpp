@@ -14,7 +14,10 @@
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
 #include "builtin/taskprobe.hpp"
+
+#ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
+#endif
 
 #include "signal.hpp"
 #include "object_utils.hpp"
