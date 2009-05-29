@@ -233,6 +233,18 @@ namespace rubinius {
 
   hashval Object::hash(STATE) {
     if(!reference_p()) {
+#ifdef _LP64
+      uintptr_t key = reinterpret_cast<uintptr_t>(this);
+      key = (~key) + (key << 21); // key = (key << 21) - key - 1;
+      key = key ^ (key >>> 24);
+      key = (key + (key << 3)) + (key << 8); // key * 265
+      key = key ^ (key >>> 14);
+      key = (key + (key << 2)) + (key << 4); // key * 21
+      key = key ^ (key >>> 28);
+      key = key + (key << 31);
+      return key & FIXNUM_MAX;
+    }
+#else
       // See http://burtleburtle.net/bob/hash/integer.html
       uint32_t a = (uint32_t)this;
       a = (a+0x7ed55d16) + (a<<12);
@@ -242,6 +254,7 @@ namespace rubinius {
       a = (a+0xfd7046c5) + (a<<3);
       a = (a^0xb55a4f09) ^ (a>>16);
       return a & FIXNUM_MAX;
+#endif
     } else {
       if(String* string = try_as<String>(this)) {
         return string->hash_string(state);
