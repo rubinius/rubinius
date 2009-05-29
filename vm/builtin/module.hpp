@@ -14,7 +14,7 @@ namespace rubinius {
 
   private:
     LookupTable* method_table_; // slot
-    Symbol* name_;               // slot
+    Symbol* module_name_;       // slot
     LookupTable* constants_;    // slot
     Module* superclass_;        // slot
 
@@ -22,9 +22,14 @@ namespace rubinius {
     /* accessors */
 
     attr_accessor(method_table, LookupTable);
-    attr_accessor(name, Symbol);
+    attr_accessor(module_name, Symbol);
     attr_accessor(constants, LookupTable);
     attr_accessor(superclass, Module);
+
+    Symbol* name() { return module_name_; }
+    void name(STATE, Symbol* sym) {
+      module_name(state, sym);
+    }
 
     /* interface */
     static Module* create(STATE);

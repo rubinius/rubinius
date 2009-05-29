@@ -33,7 +33,7 @@ public:
     Dispatch dis(state->symbol("blah"), G(object), av);
     Arguments args(G(object), 0, 0);
 
-    av->name(state, state->symbol("@name"));
+    av->name(state, state->symbol("@module_name"));
 
     Object* ret = av->access_execute(state, &cf, dis, args);
     TS_ASSERT(try_as<Symbol>(ret));
@@ -50,7 +50,7 @@ public:
     Object* ary[1] = {val};
     Arguments args(G(object), 1, ary);
 
-    av->name(state, state->symbol("@name"));
+    av->name(state, state->symbol("@module_name"));
     av->write(state, Qtrue);
 
     Object* ret = av->access_execute(state, &cf, dis, args);

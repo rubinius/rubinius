@@ -120,11 +120,11 @@ class Module
   end
 
   def name
-    @name ? @name.to_s : ""
+    @module_name ? @module_name.to_s : ""
   end
 
   def to_s
-    @name ? @name.to_s : super
+    @module_name ? @module_name.to_s : super
   end
 
   alias_method :inspect, :to_s
@@ -598,11 +598,11 @@ class Module
   end
 
   def set_name_if_necessary(name, mod)
-    return unless @name.nil?
+    return unless @module_name.nil?
     if mod == Object
-      @name = name.to_sym
+      @module_name = name.to_sym
     else
-      @name = "#{mod.name}::#{name}".to_sym
+      @module_name = "#{mod.name}::#{name}".to_sym
     end
   end
 

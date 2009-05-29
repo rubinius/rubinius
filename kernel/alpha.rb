@@ -225,7 +225,7 @@ class Module
   def method_table   ; @method_table ; end
   def constant_table ; @constants    ; end
   def encloser       ; @encloser     ; end
-  def name           ; @name.to_s    ; end
+  def name           ; @module_name.to_s    ; end
 
   def self.allocate
     Ruby.primitive :module_allocate
