@@ -348,265 +348,6 @@ namespace rubinius {
     return gep;
   }
 
-  void LLVMCompiler::import_args(LLVMState* ls,
-      Function* func, BasicBlock*& block, VMMethod* vmm,
-      Value* vars, Value* call_frame) {
-    Function::arg_iterator args = func->arg_begin();
-    Value* vm_obj = args++;
-    args++;
-    Value* dis_obj = args++;
-    Value* arg_obj = args++;
-
-    // Check the argument count
-    Value* total_idx[] = {
-      ConstantInt::get(Type::Int32Ty, 0),
-      ConstantInt::get(Type::Int32Ty, 2),
-    };
-
-    Value* total_offset = GetElementPtrInst::Create(arg_obj, total_idx,
-        total_idx + 2, "total_pos", block);
-    Value* total = new LoadInst(total_offset, "arg.total", block);
-
-    BasicBlock* cont = BasicBlock::Create("method_body", func);
-    BasicBlock* arg_error = BasicBlock::Create("arg_error", func);
-
-    // Check arguments
-    //
-    // if there is a splat..
-    if(vmm->splat_position >= 0) {
-      if(vmm->required_args > 0) {
-        // Make sure we got at least the required args
-        Value* cmp = new ICmpInst(ICmpInst::ICMP_SLT, total,
-            ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
-        BranchInst::Create(arg_error, cont, cmp, block);
-      } else {
-        // Only splat or optionals, no handling!
-        BranchInst::Create(cont, block);
-      }
-
-    // No splat, a precise number of args
-    } else if(vmm->required_args == vmm->total_args) {
-      // Make sure we got the exact number of arguments
-      Value* cmp = new ICmpInst(ICmpInst::ICMP_NE, total,
-          ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
-      BranchInst::Create(arg_error, cont, cmp, block);
-
-    // No splat, with optionals
-    } else {
-      Value* c1 = new ICmpInst(ICmpInst::ICMP_SLT, total,
-          ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
-      Value* c2 = new ICmpInst(ICmpInst::ICMP_SGT, total,
-          ConstantInt::get(Type::Int32Ty, vmm->total_args), "arg_cmp", block);
-
-      Value* cmp = BinaryOperator::CreateOr(c1, c2, "arg_combine", block);
-      BranchInst::Create(arg_error, cont, cmp, block);
-    }
-
-    // Call our arg_error helper
-    Signature sig(ls, "Object");
-
-    sig << "VM";
-    sig << "CallFrame";
-    sig << "Dispatch";
-    sig << "Arguments";
-    sig << Type::Int32Ty;
-
-    Value* call_args[] = {
-      vm_obj,
-      call_frame,
-      dis_obj,
-      arg_obj,
-      ConstantInt::get(Type::Int32Ty, vmm->required_args)
-    };
-
-    Value* val = sig.call("rbx_arg_error", call_args, 5, "ret", arg_error);
-    ReturnInst::Create(val, arg_error);
-
-    // Switch to using continuation
-    block = cont;
-
-    // Prepare the scope
-    Signature sig2(ls, "Object");
-
-    sig2 << "VM";
-    sig2 << "VariableScope";
-    sig2 << "CallFrame";
-    sig2 << "Dispatch";
-    sig2 << "Arguments";
-
-    Value* call_args2[] = {
-      vm_obj,
-      vars,
-      call_frame,
-      dis_obj,
-      arg_obj
-    };
-
-    sig2.call("rbx_setup_scope", call_args2, 5, "", block);
-
-    // Import the arguments
-    Value* idx1[] = {
-      ConstantInt::get(Type::Int32Ty, 0),
-      ConstantInt::get(Type::Int32Ty, 3),
-    };
-
-    Value* offset = GetElementPtrInst::Create(arg_obj, idx1, idx1+2, "arg_ary_pos", block);
-
-    Value* arg_ary = new LoadInst(offset, "arg_ary", block);
-
-    // If there are a precise number of args, easy.
-    if(vmm->required_args == vmm->total_args) {
-      for(int i = 0; i < vmm->required_args; i++) {
-        Value* int_pos = ConstantInt::get(Type::Int32Ty, i);
-
-        Value* arg_val_offset =
-          GetElementPtrInst::Create(arg_ary, int_pos, "arg_val_offset", block);
-
-        Value* arg_val = new LoadInst(arg_val_offset, "arg_val", block);
-
-        Value* idx2[] = {
-          ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, 8),
-          int_pos
-        };
-
-        Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "var_pos", block);
-
-        new StoreInst(arg_val, pos, false, block);
-      }
-
-    // Otherwise, we must loop in the generate code because we don't know
-    // how many they've actually passed in.
-    } else {
-      Value* loop_i = new AllocaInst(Type::Int32Ty, 0, "loop_i", block);
-
-      BasicBlock* top = BasicBlock::Create("arg_loop_top", func);
-      BasicBlock* body = BasicBlock::Create("arg_loop_body", func);
-      BasicBlock* after = BasicBlock::Create("arg_loop_cont", func);
-
-      new StoreInst(ConstantInt::get(Type::Int32Ty, 0), loop_i, false, block);
-      BranchInst::Create(top, block);
-
-      // now at the top of block, check if we should continue...
-      Value* loop_val = new LoadInst(loop_i, "loop_val", top);
-      Value* cmp = new ICmpInst(ICmpInst::ICMP_SLT, loop_val, total,
-                                    "loop_test", top);
-
-      BranchInst::Create(body, after, cmp, top);
-
-      // Now, the body
-
-      Value* arg_val_offset =
-        GetElementPtrInst::Create(arg_ary, loop_val, "arg_val_offset", body);
-
-      Value* arg_val = new LoadInst(arg_val_offset, "arg_val", body);
-
-      Value* idx2[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 8),
-        loop_val
-      };
-
-      Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "var_pos", body);
-
-      new StoreInst(arg_val, pos, false, body);
-
-      Value* plus_one = BinaryOperator::CreateAdd(loop_val,
-          ConstantInt::get(Type::Int32Ty, 1), "add", body);
-      new StoreInst(plus_one, loop_i, false, body);
-
-      BranchInst::Create(top, body);
-
-      block = after;
-    }
-
-    // Setup the splat.
-    if(vmm->splat_position >= 0) {
-      Signature sig(ls, "Object");
-      sig << "VM";
-      sig << "CallFrame";
-      sig << "Arguments";
-      sig << Type::Int32Ty;
-
-      Value* call_args[] = {
-        vm_obj,
-        call_frame,
-        arg_obj,
-        ConstantInt::get(Type::Int32Ty, vmm->total_args)
-      };
-
-      Value* splat_val = sig.call("rbx_construct_splat", call_args, 4, "splat_val", block);
-
-      Value* idx3[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 8),
-        ConstantInt::get(Type::Int32Ty, vmm->splat_position)
-      };
-
-      Value* pos = GetElementPtrInst::Create(vars, idx3, idx3+3, "splat_pos", block);
-      new StoreInst(splat_val, pos, false, block);
-    }
-  }
-
-  void LLVMCompiler::initialize_call_frame(Function* func,
-      BasicBlock* block, Value* call_frame,
-      int stack_size, Value* stack, Value* vars) {
-
-    Function::arg_iterator ai = func->arg_begin();
-    ai++; // state
-    Value* prev = ai++;
-    Value* msg =  ai++;
-    Value* args = ai++;
-
-    Value* exec = new LoadInst(get_field(block, msg, 2), "msg.exec", block);
-    Value* cm_gep = get_field(block, call_frame, 3);
-    Value* meth = CastInst::Create(
-        Instruction::BitCast,
-        exec,
-        cast<PointerType>(cm_gep->getType())->getElementType(),
-        "cm", block);
-
-    // previous
-    new StoreInst(prev, get_field(block, call_frame, 0), false, block);
-
-    // static_scope
-    Value* ss = new LoadInst(get_field(block, meth, 12), "cm.scope", block);
-    new StoreInst(ss, get_field(block, call_frame, 1), false, block);
-
-    // name
-    Value* name = new LoadInst(get_field(block, msg, 0), "msg.name", block);
-    new StoreInst(name, get_field(block, call_frame, 2), false, block);
-
-    // cm
-    new StoreInst(meth, cm_gep, false, block);
-
-    // flags
-    new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
-                  get_field(block, call_frame, 4), false, block);
-
-    // args
-    Value* total = new LoadInst(get_field(block, args, 2), "args.total", block);
-    new StoreInst(total, get_field(block, call_frame, 5), false, block);
-
-    // ip
-    new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
-                  get_field(block, call_frame, 6), false, block);
-
-    // top_scope
-    new StoreInst(vars, get_field(block, call_frame, 7), false, block);
-
-    // scope
-    new StoreInst(vars, get_field(block, call_frame, 8), false, block);
-
-    // stack_size
-    new StoreInst(ConstantInt::get(Type::Int32Ty, stack_size),
-                  get_field(block, call_frame, 9), false, block);
-
-    // stk
-    new StoreInst(stack, get_field(block, call_frame, 10), false, block);
-
-  }
-
   class BlockFinder : public VisitInstructions<BlockFinder> {
     BlockMap& map_;
     Function* function_;
@@ -689,49 +430,6 @@ namespace rubinius {
     }
   };
 
-  BasicBlock* nil_stack(Value* stack, int size, Value* nil,
-                        Function* function, BasicBlock* block) {
-    if(size == 0) return block;
-    // Stack size 5 or less, do 5 stores in a row rather than
-    // the loop.
-    if(size <= 5) {
-      for(int i = 0; i < size; i++) {
-        Value* idx[] = {
-          ConstantInt::get(Type::Int32Ty, i)
-        };
-
-        Value* gep = GetElementPtrInst::Create(stack, idx, idx+1, "stack_pos", block);
-        new StoreInst(nil, gep, block);
-      }
-      return block;
-    }
-
-    Value* max = ConstantInt::get(Type::Int32Ty, size);
-    Value* one = ConstantInt::get(Type::Int32Ty, 1);
-
-
-    BasicBlock* top = BasicBlock::Create("stack_nil", function);
-    BasicBlock* cont = BasicBlock::Create("bottom", function);
-
-    Value* counter = new AllocaInst(Type::Int32Ty, 0, "counter_alloca", block);
-    new StoreInst(ConstantInt::get(Type::Int32Ty, 0), counter, block);
-
-    BranchInst::Create(top, block);
-
-    Value* cur = new LoadInst(counter, "counter", top);
-    Value* idx[] = { cur };
-
-    Value* gep = GetElementPtrInst::Create(stack, idx, idx+1, "stack_pos", top);
-    new StoreInst(nil, gep, top);
-
-    Value* added = BinaryOperator::CreateAdd(cur, one, "added", top);
-    new StoreInst(added, counter, top);
-
-    Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, added, max, "loop_check", top);
-    BranchInst::Create(cont, top, cmp, top);
-
-    return cont;
-  }
 
   Value* constant(Object* obj, const Type* obj_type, BasicBlock* block) {
     return CastInst::Create(
@@ -740,66 +438,445 @@ namespace rubinius {
         obj_type, "cast_to_obj", block);
   }
 
+  class LLVMWorkHorse {
+  public:
+    LLVMState* ls_;
+    const Type* cf_type;
+    const Type* vars_type;
+    const Type* obj_type;
+    const Type* obj_ary_type;
+    Function* func;
+
+    Value* vm;
+    Value* prev;
+    Value* msg;
+    Value* args;
+
+    BasicBlock* block;
+
+    Value* call_frame;
+    Value* stk;
+    Value* vars;
+
+    Value* stack_top;
+    Value* method_entry_;
+
+  public:
+    LLVMWorkHorse(LLVMState* ls)
+      : ls_(ls)
+    {
+      llvm::Module* mod = ls->module();
+      cf_type = mod->getTypeByName("struct.rubinius::CallFrame");
+      vars_type = mod->getTypeByName("struct.rubinius::VariableScope");
+      obj_type = ls->ptr_type("Object");
+      obj_ary_type = PointerType::getUnqual(obj_type);
+    }
+
+    void return_value(Value* ret) {
+      /*
+      Value* profiling = new LoadInst(ls_->profiling(), "profiling", block);
+      Value* test = new ICmpInst(ICmpInst::ICMP_EQ, profiling,
+          ConstantInt::get(Type::Int1Ty, 1), "is_profiling", block);
+
+      BasicBlock* end_profiling = BasicBlock::Create("end_profiling", func);
+      BasicBlock* cont = BasicBlock::Create("continue", func);
+
+      block = end_profiling;
+
+      Signature sig(ls_, obj_type);
+      sig << PointerType::getUnqual(Type::Int8Ty);
+
+      Value* call_args[] = {
+        method_entry_
+      };
+
+      sig.call("rbx_end_profiling", call_args, 1, "", block);
+
+      block = cont;
+      */
+    }
+
+    void initialize_call_frame(int stack_size) {
+      Value* exec = new LoadInst(get_field(block, msg, 2), "msg.exec", block);
+      Value* cm_gep = get_field(block, call_frame, 3);
+      Value* meth = CastInst::Create(
+          Instruction::BitCast,
+          exec,
+          cast<PointerType>(cm_gep->getType())->getElementType(),
+          "cm", block);
+
+      // previous
+      new StoreInst(prev, get_field(block, call_frame, 0), false, block);
+
+      // static_scope
+      Value* ss = new LoadInst(get_field(block, meth, 12), "cm.scope", block);
+      new StoreInst(ss, get_field(block, call_frame, 1), false, block);
+
+      // name
+      Value* name = new LoadInst(get_field(block, msg, 0), "msg.name", block);
+      new StoreInst(name, get_field(block, call_frame, 2), false, block);
+
+      // cm
+      new StoreInst(meth, cm_gep, false, block);
+
+      // flags
+      new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
+          get_field(block, call_frame, 4), false, block);
+
+      // args
+      Value* total = new LoadInst(get_field(block, args, 2), "args.total", block);
+      new StoreInst(total, get_field(block, call_frame, 5), false, block);
+
+      // ip
+      new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
+          get_field(block, call_frame, 6), false, block);
+
+      // top_scope
+      new StoreInst(vars, get_field(block, call_frame, 7), false, block);
+
+      // scope
+      new StoreInst(vars, get_field(block, call_frame, 8), false, block);
+
+      // stack_size
+      new StoreInst(ConstantInt::get(Type::Int32Ty, stack_size),
+          get_field(block, call_frame, 9), false, block);
+
+      // stk
+      new StoreInst(stk, get_field(block, call_frame, 10), false, block);
+
+      /*
+      Value* profiling = new LoadInst(ls->profiling(), "profiling", block);
+      Value* test = new ICmpInst(ICmpInst::ICMP_EQ, profiling,
+          ConstantInt::get(Type::Int1Ty, 1), "is_profiling", block);
+
+      BasicBlock* setup_profiling = BasicBlock::Create("setup_profiling", func);
+      BasicBlock* cont = BasicBlock::Create("continue", func);
+
+      BranchInst::Create(setup_profiling, cont, test, block);
+
+      block = setup_profiling;
+
+      method_entry_ = new AllocaInst(Type::Int8Ty, sizeof(profiler::MethodEntry),
+          "method_entry", block);
+
+      Signature sig(ls_, ObjType);
+      sig << "VM";
+      sig << PointerType::getUnqual(Type::Int8Ty);
+      sig << "Dispatch";
+      sig << "Arguments";
+      sig << "CompiledMethod";
+
+      Value* call_args[] = {
+        vm,
+        method_entry_,
+        msg,
+        args,
+        meth
+      };
+
+      sig.call("rbx_begin_profiler", call_args, 5, "", block);
+
+      block = cont;
+      */
+    }
+
+    void nil_stack(int size, Value* nil) {
+      if(size == 0) return;
+      // Stack size 5 or less, do 5 stores in a row rather than
+      // the loop.
+      if(size <= 5) {
+        for(int i = 0; i < size; i++) {
+          Value* idx[] = {
+            ConstantInt::get(Type::Int32Ty, i)
+          };
+
+          Value* gep = GetElementPtrInst::Create(stk, idx, idx+1, "stack_pos", block);
+          new StoreInst(nil, gep, block);
+        }
+        return;
+      }
+
+      Value* max = ConstantInt::get(Type::Int32Ty, size);
+      Value* one = ConstantInt::get(Type::Int32Ty, 1);
+
+      BasicBlock* top = BasicBlock::Create("stack_nil", func);
+      BasicBlock* cont = BasicBlock::Create("bottom", func);
+
+      Value* counter = new AllocaInst(Type::Int32Ty, 0, "counter_alloca", block);
+      new StoreInst(ConstantInt::get(Type::Int32Ty, 0), counter, block);
+
+      BranchInst::Create(top, block);
+
+      Value* cur = new LoadInst(counter, "counter", top);
+      Value* idx[] = { cur };
+
+      Value* gep = GetElementPtrInst::Create(stk, idx, idx+1, "stack_pos", top);
+      new StoreInst(nil, gep, top);
+
+      Value* added = BinaryOperator::CreateAdd(cur, one, "added", top);
+      new StoreInst(added, counter, top);
+
+      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, added, max, "loop_check", top);
+      BranchInst::Create(cont, top, cmp, top);
+
+      block = cont;
+    }
+
+    void import_args(VMMethod* vmm) {
+      Value* vm_obj = vm;
+      Value* dis_obj = msg;
+      Value* arg_obj = args;
+
+      // Check the argument count
+      Value* total_idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 2),
+      };
+
+      Value* total_offset = GetElementPtrInst::Create(arg_obj, total_idx,
+          total_idx + 2, "total_pos", block);
+      Value* total = new LoadInst(total_offset, "arg.total", block);
+
+      BasicBlock* arg_error = BasicBlock::Create("arg_error", func);
+      BasicBlock* cont = BasicBlock::Create("method_body", func);
+
+      // Check arguments
+      //
+      // if there is a splat..
+      if(vmm->splat_position >= 0) {
+        if(vmm->required_args > 0) {
+          // Make sure we got at least the required args
+          Value* cmp = new ICmpInst(ICmpInst::ICMP_SLT, total,
+              ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
+          BranchInst::Create(arg_error, cont, cmp, block);
+        } else {
+          // Only splat or optionals, no handling!
+          BranchInst::Create(cont, block);
+        }
+
+        // No splat, a precise number of args
+      } else if(vmm->required_args == vmm->total_args) {
+        // Make sure we got the exact number of arguments
+        Value* cmp = new ICmpInst(ICmpInst::ICMP_NE, total,
+            ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
+        BranchInst::Create(arg_error, cont, cmp, block);
+
+        // No splat, with optionals
+      } else {
+        Value* c1 = new ICmpInst(ICmpInst::ICMP_SLT, total,
+            ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
+        Value* c2 = new ICmpInst(ICmpInst::ICMP_SGT, total,
+            ConstantInt::get(Type::Int32Ty, vmm->total_args), "arg_cmp", block);
+
+        Value* cmp = BinaryOperator::CreateOr(c1, c2, "arg_combine", block);
+        BranchInst::Create(arg_error, cont, cmp, block);
+      }
+
+      // Call our arg_error helper
+      Signature sig(ls_, "Object");
+
+      sig << "VM";
+      sig << "CallFrame";
+      sig << "Dispatch";
+      sig << "Arguments";
+      sig << Type::Int32Ty;
+
+      Value* call_args[] = {
+        vm_obj,
+        call_frame,
+        dis_obj,
+        arg_obj,
+        ConstantInt::get(Type::Int32Ty, vmm->required_args)
+      };
+
+      Value* val = sig.call("rbx_arg_error", call_args, 5, "ret", arg_error);
+      ReturnInst::Create(val, arg_error);
+
+      // Switch to using continuation
+      block = cont;
+
+      // Prepare the scope
+      Signature sig2(ls_, "Object");
+
+      sig2 << "VM";
+      sig2 << "VariableScope";
+      sig2 << "CallFrame";
+      sig2 << "Dispatch";
+      sig2 << "Arguments";
+
+      Value* call_args2[] = {
+        vm_obj,
+        vars,
+        call_frame,
+        dis_obj,
+        arg_obj
+      };
+
+      sig2.call("rbx_setup_scope", call_args2, 5, "", block);
+
+      // Import the arguments
+      Value* idx1[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 3),
+      };
+
+      Value* offset = GetElementPtrInst::Create(arg_obj, idx1, idx1+2, "arg_ary_pos", block);
+
+      Value* arg_ary = new LoadInst(offset, "arg_ary", block);
+
+      // If there are a precise number of args, easy.
+      if(vmm->required_args == vmm->total_args) {
+        for(int i = 0; i < vmm->required_args; i++) {
+          Value* int_pos = ConstantInt::get(Type::Int32Ty, i);
+
+          Value* arg_val_offset =
+            GetElementPtrInst::Create(arg_ary, int_pos, "arg_val_offset", block);
+
+          Value* arg_val = new LoadInst(arg_val_offset, "arg_val", block);
+
+          Value* idx2[] = {
+            ConstantInt::get(Type::Int32Ty, 0),
+            ConstantInt::get(Type::Int32Ty, 8),
+            int_pos
+          };
+
+          Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "var_pos", block);
+
+          new StoreInst(arg_val, pos, false, block);
+        }
+
+        // Otherwise, we must loop in the generate code because we don't know
+        // how many they've actually passed in.
+      } else {
+        Value* loop_i = new AllocaInst(Type::Int32Ty, 0, "loop_i", block);
+
+        BasicBlock* top = BasicBlock::Create("arg_loop_top", func);
+        BasicBlock* body = BasicBlock::Create("arg_loop_body", func);
+        BasicBlock* after = BasicBlock::Create("arg_loop_cont", func);
+
+        new StoreInst(ConstantInt::get(Type::Int32Ty, 0), loop_i, false, block);
+        BranchInst::Create(top, block);
+
+        // now at the top of block, check if we should continue...
+        Value* loop_val = new LoadInst(loop_i, "loop_val", top);
+        Value* cmp = new ICmpInst(ICmpInst::ICMP_SLT, loop_val, total,
+            "loop_test", top);
+
+        BranchInst::Create(body, after, cmp, top);
+
+        // Now, the body
+
+        Value* arg_val_offset =
+          GetElementPtrInst::Create(arg_ary, loop_val, "arg_val_offset", body);
+
+        Value* arg_val = new LoadInst(arg_val_offset, "arg_val", body);
+
+        Value* idx2[] = {
+          ConstantInt::get(Type::Int32Ty, 0),
+          ConstantInt::get(Type::Int32Ty, 8),
+          loop_val
+        };
+
+        Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "var_pos", body);
+
+        new StoreInst(arg_val, pos, false, body);
+
+        Value* plus_one = BinaryOperator::CreateAdd(loop_val,
+            ConstantInt::get(Type::Int32Ty, 1), "add", body);
+        new StoreInst(plus_one, loop_i, false, body);
+
+        BranchInst::Create(top, body);
+
+        block = after;
+      }
+
+      // Setup the splat.
+      if(vmm->splat_position >= 0) {
+        Signature sig(ls_, "Object");
+        sig << "VM";
+        sig << "CallFrame";
+        sig << "Arguments";
+        sig << Type::Int32Ty;
+
+        Value* call_args[] = {
+          vm_obj,
+          call_frame,
+          arg_obj,
+          ConstantInt::get(Type::Int32Ty, vmm->total_args)
+        };
+
+        Value* splat_val = sig.call("rbx_construct_splat", call_args, 4, "splat_val", block);
+
+        Value* idx3[] = {
+          ConstantInt::get(Type::Int32Ty, 0),
+          ConstantInt::get(Type::Int32Ty, 8),
+          ConstantInt::get(Type::Int32Ty, vmm->splat_position)
+        };
+
+        Value* pos = GetElementPtrInst::Create(vars, idx3, idx3+3, "splat_pos", block);
+        new StoreInst(splat_val, pos, false, block);
+      }
+    }
+
+    void setup(VMMethod* vmm) {
+      Signature sig(ls_, "Object");
+      sig << "VM";
+      sig << "CallFrame";
+      sig << "Dispatch";
+      sig << "Arguments";
+
+      func = sig.function("");
+
+      Function::arg_iterator ai = func->arg_begin();
+      vm =   ai++; vm->setName("state");
+      prev = ai++; prev->setName("previous");
+      msg =  ai++; msg->setName("msg");
+      args = ai++; args->setName("args");
+
+      block = BasicBlock::Create("entry", func);
+
+      call_frame = new AllocaInst(cf_type, 0, "call_frame", block);
+      stk = new AllocaInst(obj_type,
+          ConstantInt::get(Type::Int32Ty, vmm->stack_size),
+          "stack", block);
+
+      Value* var_mem = new AllocaInst(obj_type,
+          ConstantInt::get(Type::Int32Ty,
+            (sizeof(VariableScope) / sizeof(Object*)) + vmm->number_of_locals),
+          "var_mem", block);
+
+      vars = CastInst::Create(
+          Instruction::BitCast,
+          var_mem,
+          PointerType::getUnqual(vars_type), "vars", block);
+
+      initialize_call_frame(vmm->stack_size);
+
+      stack_top = new AllocaInst(obj_ary_type, NULL, "stack_top", block);
+
+      Value* stk_idx[] = {
+        ConstantInt::get(Type::Int32Ty, (uint64_t)-1),
+      };
+
+      Value* stk_back_one = GetElementPtrInst::Create(stk, stk_idx,
+          stk_idx+1, "stk_back_one", block);
+      new StoreInst(stk_back_one, stack_top, false, block);
+
+      nil_stack(vmm->stack_size, constant(Qnil, obj_type, block));
+
+      import_args(vmm);
+    }
+  };
+
   void LLVMCompiler::compile(LLVMState* ls, VMMethod* vmm) {
-    llvm::Module* mod = ls->module();
+    LLVMWorkHorse work(ls);
 
-    const Type* cf_type =
-      mod->getTypeByName("struct.rubinius::CallFrame");
+    work.setup(vmm);
 
-    const Type* vars_type =
-      mod->getTypeByName("struct.rubinius::VariableScope");
+    llvm::Function* func = work.func;
 
-    const Type* obj_type = ls->ptr_type("Object");
-    const Type* obj_ary_type = PointerType::getUnqual(obj_type);
-
-    Signature sig(ls, "Object");
-    sig << "VM";
-    sig << "CallFrame";
-    sig << "Dispatch";
-    sig << "Arguments";
-
-    Function* func = sig.function("");
-
-    Function::arg_iterator ai = func->arg_begin();
-    (ai++)->setName("state");
-    (ai++)->setName("previous");
-    (ai++)->setName("msg");
-    (ai++)->setName("args");
-
-    BasicBlock* bb = BasicBlock::Create("entry", func);
-
-    Value* cf =  new AllocaInst(cf_type, 0, "call_frame", bb);
-    Value* stk = new AllocaInst(obj_type,
-        ConstantInt::get(Type::Int32Ty, vmm->stack_size),
-        "stack", bb);
-
-    Value* var_mem = new AllocaInst(obj_type,
-        ConstantInt::get(Type::Int32Ty,
-          (sizeof(VariableScope) / sizeof(Object*)) + vmm->number_of_locals),
-        "var_mem", bb);
-
-    Value* vars = CastInst::Create(
-        Instruction::BitCast,
-        var_mem,
-        PointerType::getUnqual(vars_type), "vars", bb);
-
-    initialize_call_frame(func, bb, cf, vmm->stack_size, stk, vars);
-
-    Value* stack_top = new AllocaInst(obj_ary_type, NULL, "stack_top", bb);
-
-    Value* stk_idx[] = {
-      ConstantInt::get(Type::Int32Ty, (uint64_t)-1),
-    };
-
-    Value* stk_back_one = GetElementPtrInst::Create(stk, stk_idx,
-        stk_idx+1, "stk_back_one", bb);
-    new StoreInst(stk_back_one, stack_top, false, bb);
-
-    bb = nil_stack(stk, vmm->stack_size, constant(Qnil, obj_type, bb), func, bb);
-
-    import_args(ls, func, bb, vmm, vars, cf);
-
-    JITVisit visitor(ls, vmm, mod, func, bb, stk, cf, stack_top);
+    JITVisit visitor(ls, vmm, ls->module(), func,
+                     work.block, work.stk, work.call_frame, work.stack_top);
 
     // Pass 1, detect BasicBlock boundaries
     BlockFinder finder(visitor.block_map(), func);
