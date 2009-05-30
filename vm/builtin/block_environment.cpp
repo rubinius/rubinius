@@ -119,7 +119,7 @@ namespace rubinius {
 
     Object* recv = args.shift(state);
 
-    BlockInvocation invocation(recv, method_->scope(), 0);
+    BlockInvocation invocation(recv, method_->scope(), flags);
     return (*execute)(state, call_frame, this, args, invocation);
   }
 
