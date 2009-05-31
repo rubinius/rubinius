@@ -479,8 +479,9 @@ module Kernel
   end
 
   def remove_instance_variable(sym)
-    # HACK
-    instance_variable_set(sym, nil)
+    sym = instance_variable_validate(sym)
+    vars = get_instance_variables
+    vars.delete sym
   end
   private :remove_instance_variable
 
@@ -885,5 +886,5 @@ module Rubinius
   def self.convert_to_names(list)
     list.map{|x| x.to_s}
   end
-end  
-  
+end
+
