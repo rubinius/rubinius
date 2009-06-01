@@ -19,6 +19,7 @@ namespace rubinius {
     config::Integer jit_call_til_compile;
     config::Integer jit_max_method_size;
     config::Bool    jit_show_compiling;
+    config::Bool    jit_profile;
 
     // Debug
     config::Bool    gil_debug;
@@ -45,6 +46,7 @@ namespace rubinius {
       , jit_max_method_size(this, "jit.max_method_size",
                             default_jit_max_method_size)
       , jit_show_compiling(this, "jit.show")
+      , jit_profile(this,     "jit.profile")
       , gil_debug(this,       "vm.gil.debug")
       , print_config(this,    "config.print")
     {
@@ -69,11 +71,14 @@ namespace rubinius {
       jit_max_method_size.set_description(
           "The max size of a method that will be JIT");
 
-      print_config.set_description(
-          "blank or 1 == names and values, 2 == description as well");
-
       jit_show_compiling.set_description(
           "Print out a status message when the JIT is operating");
+
+      jit_profile.set_description(
+          "The JIT will emit code to be sure JITd methods can be profile");
+
+      print_config.set_description(
+          "blank or 1 == names and values, 2 == description as well");
 
       gil_debug.set_description(
           "Print out debugging when the GIL is locked/unlocked");
