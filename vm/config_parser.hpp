@@ -29,6 +29,7 @@ namespace rubinius {
 
     virtual ~ConfigParser();
 
+    bool   load_file(std::string path);
     void   process_argv(int argc, char** argv);
     Entry* parse_line(const char* line);
     void   import_line(const char* line);
@@ -38,6 +39,9 @@ namespace rubinius {
     EntryList* get_section(std::string prefix);
 
     void   update_configuration(Configuration&);
+
+  private:
+    bool   process_internal(std::string key, std::string val);
   };
 }
 

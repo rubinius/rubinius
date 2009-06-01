@@ -1,6 +1,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <string>
+#include <fstream>
 
 #include "config_parser.hpp"
 #include "configuration.hpp"
@@ -50,25 +51,56 @@ namespace rubinius {
     }
   }
 
+  bool ConfigParser::load_file(std::string path) {
+    std::ifstream stream(path.c_str());
+    if(!stream) return false;
+
+    import_stream(stream);
+
+    return true;
+  }
+
+  bool ConfigParser::process_internal(std::string key, std::string val) {
+    if(key == "include") {
+      if(!load_file(val)) {
+        std::cerr << "WARNING: Unable to include '" << val << "'.\n";
+      }
+    } else if(key == "include_maybe") {
+      load_file(val);
+    } else {
+      return false;
+    }
+
+    return true;
+  }
+
   ConfigParser::Entry* ConfigParser::parse_line(const char* line) {
     char* var = strdup(line);
     char* equals = strchr(var, '=');
-
-    Entry* entry = new ConfigParser::Entry();
 
     if(equals) {
       /* Split the string. */
       *equals++ = 0;
     }
 
-    entry->variable = std::string(trim_str(var));
+    std::string variable = std::string(trim_str(var));
 
+    std::string value;
     // Just the variable name means true, as in enable
     if(equals) {
-      entry->value = std::string(trim_str(equals));
+      value = std::string(trim_str(equals));
     } else {
-      entry->value = std::string("true");
+      value = std::string("true");
     }
+
+    if(process_internal(variable, value)) {
+      free(var);
+      return NULL;
+    }
+
+    Entry* entry = new ConfigParser::Entry();
+    entry->variable = variable;
+    entry->value = value;
 
     free(var);
 
