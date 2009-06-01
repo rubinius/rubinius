@@ -15,6 +15,7 @@
 #include "builtin/sendsite.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/global_cache_entry.hpp"
+#include "instruments/profiler.hpp"
 
 #include "helpers.hpp"
 
@@ -31,6 +32,18 @@ extern "C" {
     if(obj->zone == UnspecifiedZone) return val;
     state->om->write_barrier(obj, val);
     return val;
+  }
+
+  void rbx_begin_profiling(STATE, void* data, Dispatch& msg, Arguments& args,
+                           CompiledMethod* cm)
+  {
+    // Use placement new to stick the class into data, which is on the callers
+    // stack.
+    new(data) profiler::MethodEntry(state, msg, args, cm);
+  }
+
+  void rbx_end_profiling(profiler::MethodEntry* entry) {
+    entry->~MethodEntry();
   }
 
   Object* rbx_inline_cache_send(STATE, CallFrame* call_frame, Symbol* name,

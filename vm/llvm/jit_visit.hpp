@@ -106,6 +106,8 @@ namespace rubinius {
 
     LLVMState* ls_;
 
+    Value* method_entry_;
+
     Value* ip_pos_;
 
   public:
@@ -121,7 +123,7 @@ namespace rubinius {
     JITVisit(LLVMState* ls, VMMethod* vmm,
              llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* start,
              llvm::Value* stack, llvm::Value* call_frame,
-             llvm::Value* stack_top)
+             llvm::Value* stack_top, llvm::Value* me)
       : f(ls)
       , vmm_(vmm)
       , stack_(stack)
@@ -135,6 +137,7 @@ namespace rubinius {
       , rbx_simple_send_(0)
       , rbx_simple_send_private_(0)
       , ls_(ls)
+      , method_entry_(me)
     {
 #if __LP64__
       IntPtrTy = llvm::Type::Int64Ty;
@@ -453,6 +456,29 @@ namespace rubinius {
     }
 
     void visit_ret() {
+      if(ls_->include_profiling()) {
+        Value* test = new LoadInst(ls_->profiling(), "profiling", block_);
+        BasicBlock* end_profiling = BasicBlock::Create("end_profiling", function_);
+        BasicBlock* cont = BasicBlock::Create("continue", function_);
+
+        BranchInst::Create(end_profiling, cont, test, block_);
+
+        block_ = end_profiling;
+
+        Signature sig(ls_, Type::VoidTy);
+        sig << PointerType::getUnqual(Type::Int8Ty);
+
+        Value* call_args[] = {
+          method_entry_
+        };
+
+        sig.call("rbx_end_profiling", call_args, 1, "", block_);
+
+        BranchInst::Create(cont, block_);
+
+        block_ = cont;
+      }
+
       ReturnInst::Create(stack_top(), block_);
     }
 

@@ -50,6 +50,9 @@ namespace rubinius {
 
     SharedState& shared_;
 
+    bool include_profiling_;
+    llvm::GlobalVariable* profiling_;
+
   public:
     static LLVMState* get(STATE);
     static void shutdown(STATE);
@@ -69,6 +72,14 @@ namespace rubinius {
 
     GlobalLock& global_lock() {
       return global_lock_;
+    }
+
+    llvm::GlobalVariable* profiling() {
+      return profiling_;
+    }
+
+    bool include_profiling() {
+      return include_profiling_;
     }
 
     llvm::Module* module() { return module_; }

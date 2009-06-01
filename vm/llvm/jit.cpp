@@ -10,6 +10,8 @@
 #include "assembler/jit.hpp"
 #include "configuration.hpp"
 
+#include "instruments/profiler.hpp"
+
 #include <llvm/Target/TargetData.h>
 // #include <llvm/LinkAllPasses.h>
 #include <llvm/Analysis/Verifier.h>
@@ -305,6 +307,15 @@ namespace rubinius {
 
     object_ = ptr_type("Object");
 
+    profiling_ = new GlobalVariable(
+        Type::Int1Ty,
+        false,
+        GlobalVariable::ExternalLinkage,
+        0, "profiling_flag", module_);
+
+    engine_->addGlobalMapping(profiling_,
+        reinterpret_cast<void*>(state->shared.profiling_address()));
+
     background_thread_ = new BackgroundCompilerThread(this);
     background_thread_->run();
   }
@@ -472,28 +483,33 @@ namespace rubinius {
       obj_ary_type = PointerType::getUnqual(obj_type);
     }
 
-    void return_value(Value* ret) {
-      /*
-      Value* profiling = new LoadInst(ls_->profiling(), "profiling", block);
-      Value* test = new ICmpInst(ICmpInst::ICMP_EQ, profiling,
-          ConstantInt::get(Type::Int1Ty, 1), "is_profiling", block);
+    void return_value(Value* ret, BasicBlock* cont = 0) {
+      if(ls_->include_profiling()) {
+        Value* test = new LoadInst(ls_->profiling(), "profiling", block);
+        BasicBlock* end_profiling = BasicBlock::Create("end_profiling", func);
+        if(!cont) {
+          cont = BasicBlock::Create("continue", func);
+        }
 
-      BasicBlock* end_profiling = BasicBlock::Create("end_profiling", func);
-      BasicBlock* cont = BasicBlock::Create("continue", func);
+        BranchInst::Create(end_profiling, cont, test, block);
 
-      block = end_profiling;
+        block = end_profiling;
 
-      Signature sig(ls_, obj_type);
-      sig << PointerType::getUnqual(Type::Int8Ty);
+        Signature sig(ls_, Type::VoidTy);
+        sig << PointerType::getUnqual(Type::Int8Ty);
 
-      Value* call_args[] = {
-        method_entry_
-      };
+        Value* call_args[] = {
+          method_entry_
+        };
 
-      sig.call("rbx_end_profiling", call_args, 1, "", block);
+        sig.call("rbx_end_profiling", call_args, 1, "", block);
 
-      block = cont;
-      */
+        BranchInst::Create(cont, block);
+
+        block = cont;
+      }
+
+      ReturnInst::Create(ret, block);
     }
 
     void initialize_call_frame(int stack_size) {
@@ -544,40 +560,41 @@ namespace rubinius {
       // stk
       new StoreInst(stk, get_field(block, call_frame, 10), false, block);
 
-      /*
-      Value* profiling = new LoadInst(ls->profiling(), "profiling", block);
-      Value* test = new ICmpInst(ICmpInst::ICMP_EQ, profiling,
-          ConstantInt::get(Type::Int1Ty, 1), "is_profiling", block);
+      if(ls_->include_profiling()) {
+        method_entry_ = new AllocaInst(Type::Int8Ty,
+            ConstantInt::get(Type::Int32Ty, sizeof(profiler::MethodEntry)),
+            "method_entry", block);
 
-      BasicBlock* setup_profiling = BasicBlock::Create("setup_profiling", func);
-      BasicBlock* cont = BasicBlock::Create("continue", func);
+        Value* test = new LoadInst(ls_->profiling(), "profiling", block);
 
-      BranchInst::Create(setup_profiling, cont, test, block);
+        BasicBlock* setup_profiling = BasicBlock::Create("setup_profiling", func);
+        BasicBlock* cont = BasicBlock::Create("continue", func);
 
-      block = setup_profiling;
+        BranchInst::Create(setup_profiling, cont, test, block);
 
-      method_entry_ = new AllocaInst(Type::Int8Ty, sizeof(profiler::MethodEntry),
-          "method_entry", block);
+        block = setup_profiling;
 
-      Signature sig(ls_, ObjType);
-      sig << "VM";
-      sig << PointerType::getUnqual(Type::Int8Ty);
-      sig << "Dispatch";
-      sig << "Arguments";
-      sig << "CompiledMethod";
+        Signature sig(ls_, Type::VoidTy);
+        sig << "VM";
+        sig << PointerType::getUnqual(Type::Int8Ty);
+        sig << "Dispatch";
+        sig << "Arguments";
+        sig << "CompiledMethod";
 
-      Value* call_args[] = {
-        vm,
-        method_entry_,
-        msg,
-        args,
-        meth
-      };
+        Value* call_args[] = {
+          vm,
+          method_entry_,
+          msg,
+          args,
+          meth
+        };
 
-      sig.call("rbx_begin_profiler", call_args, 5, "", block);
+        sig.call("rbx_begin_profiling", call_args, 5, "", block);
 
-      block = cont;
-      */
+        BranchInst::Create(cont, block);
+
+        block = cont;
+      }
     }
 
     void nil_stack(int size, Value* nil) {
@@ -672,6 +689,8 @@ namespace rubinius {
         BranchInst::Create(arg_error, cont, cmp, block);
       }
 
+      block = arg_error;
+
       // Call our arg_error helper
       Signature sig(ls_, "Object");
 
@@ -689,8 +708,8 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, vmm->required_args)
       };
 
-      Value* val = sig.call("rbx_arg_error", call_args, 5, "ret", arg_error);
-      ReturnInst::Create(val, arg_error);
+      Value* val = sig.call("rbx_arg_error", call_args, 5, "ret", block);
+      return_value(val);
 
       // Switch to using continuation
       block = cont;
@@ -876,7 +895,8 @@ namespace rubinius {
     llvm::Function* func = work.func;
 
     JITVisit visitor(ls, vmm, ls->module(), func,
-                     work.block, work.stk, work.call_frame, work.stack_top);
+                     work.block, work.stk, work.call_frame, work.stack_top,
+                     work.method_entry_);
 
     // Pass 1, detect BasicBlock boundaries
     BlockFinder finder(visitor.block_map(), func);
@@ -894,6 +914,11 @@ namespace rubinius {
       return;
     }
 
+    if(ls->jit_dump_code() & cSimple) {
+      std::cout << "[[[ LLVM Simple IR ]]]\n";
+      std::cout << *func << "\n";
+    }
+
     if(llvm::verifyFunction(*func, PrintMessageAction)) {
       std::cout << "ERROR: complication error detected.\n";
       std::cout << "ERROR: Please report the above message and the\n";
@@ -901,11 +926,6 @@ namespace rubinius {
       std::cout << *func << "\n";
       function_ = NULL;
       return;
-    }
-
-    if(ls->jit_dump_code() & cSimple) {
-      std::cout << "[[[ LLVM Simple IR ]]]\n";
-      std::cout << *func << "\n";
     }
 
     ls->passes()->run(*func);

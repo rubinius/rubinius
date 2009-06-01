@@ -116,6 +116,10 @@ namespace rubinius {
       return profiling_;
     }
 
+    bool* profiling_address() {
+      return &profiling_;
+    }
+
     int global_serial() {
       return global_serial_;
     }
