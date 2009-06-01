@@ -33,7 +33,9 @@ namespace rubinius {
 
   Environment::Environment(int argc, char** argv) {
     config_parser.process_argv(argc, argv);
-
+    if(const char* var = getenv("RBX_OPTIONS")) {
+      config_parser.import_many(var);
+    }
     config_parser.update_configuration(config);
 
     shared = new SharedState(config, config_parser);

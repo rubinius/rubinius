@@ -32,6 +32,7 @@ namespace rubinius {
     void   process_argv(int argc, char** argv);
     Entry* parse_line(const char* line);
     void   import_line(const char* line);
+    void   import_many(std::string string);
     void   import_stream(std::istream&);
     Entry* find(std::string variable);
     EntryList* get_section(std::string prefix);

@@ -93,6 +93,19 @@ namespace rubinius {
     }
   }
 
+  void ConfigParser::import_many(std::string string) {
+    size_t start = 0;
+    size_t end = 0;
+    while((end = string.find(";", start)) != std::string::npos) {
+      std::string sub = string.substr(start, end-start);
+      import_line(sub.c_str());
+      start = end + 1;
+    }
+
+    std::string sub = string.substr(start);
+    import_line(sub.c_str());
+  }
+
   ConfigParser::Entry* ConfigParser::find(std::string name) {
     ConfigParser::ConfigMap::iterator i = variables.find(name);
 
