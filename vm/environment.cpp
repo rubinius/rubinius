@@ -31,17 +31,21 @@
 
 namespace rubinius {
 
-  Environment::Environment(int argc, char** argv) {
-    config_parser.process_argv(argc, argv);
-    if(const char* var = getenv("RBX_OPTIONS")) {
-      config_parser.import_many(var);
-    }
-    config_parser.update_configuration(config);
-
+  Environment::Environment() {
     shared = new SharedState(config, config_parser);
 
     state = shared->new_vm();
     state->initialize();
+  }
+
+  Environment::~Environment() {
+    VM::discard(state);
+    SharedState::discard(shared);
+  }
+
+  void Environment::load_config_argv(int argc, char** argv) {
+    config_parser.process_argv(argc, argv);
+    config_parser.update_configuration(config);
 
     if(config.print_config > 1) {
       std::cout << "========= Configuration =========\n";
@@ -50,11 +54,6 @@ namespace rubinius {
     } else if(config.print_config) {
       config.print();
     }
-  }
-
-  Environment::~Environment() {
-    VM::discard(state);
-    SharedState::discard(shared);
   }
 
   void Environment::enable_preemption() {
@@ -123,6 +122,20 @@ namespace rubinius {
     }
 
     config_parser.import_stream(stream);
+  }
+
+  void Environment::load_conf(std::string path) {
+    std::ifstream stream(path.c_str());
+    if(!stream) {
+      std::string error = "Unable to load " + path + ", it is missing";
+      throw std::runtime_error(error);
+    }
+
+    config_parser.import_stream(stream);
+  }
+
+  void Environment::load_string(std::string str) {
+    config_parser.import_many(str);
   }
 
   void Environment::boot_vm() {

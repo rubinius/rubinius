@@ -20,13 +20,15 @@ namespace rubinius {
     ConfigParser  config_parser;
     Configuration config;
 
-    Environment(int argc, char** argv);
+    Environment();
     ~Environment();
 
     void load_config_argv(int argc, char** argv);
     void load_argv(int argc, char** argv);
     void load_directory(std::string dir);
     void load_platform_conf(std::string dir);
+    void load_conf(std::string path);
+    void load_string(std::string str);
     void run_file(std::string path);
     void enable_preemption();
     void boot_vm();

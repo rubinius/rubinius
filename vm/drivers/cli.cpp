@@ -60,11 +60,21 @@ static void load_runtime_kernel(Environment& env, std::string root) {
  *       function does not deal with that subject.
  */
 int main(int argc, char** argv) {
-  Environment env(argc, argv);
+  Environment env;
   env.state->init_stack_size();
   env.state->set_stack_start(&env);
 
   try {
+    if(const char* var = getenv("RBX_OPTIONS")) {
+      env.load_string(var);
+    }
+
+    if(const char* path = getenv("RBX_OPTFILE")) {
+      env.load_conf(path);
+    }
+
+    env.load_config_argv(argc, argv);
+
     const char* runtime = getenv("RBX_RUNTIME");
 
     if(!runtime) {
