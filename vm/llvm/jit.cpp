@@ -268,6 +268,7 @@ namespace rubinius {
     , global_lock_(state->global_lock())
     , symbols_(state->symbols)
     , shared_(state->shared)
+    , include_profiling_(state->shared.profiling())
   {
     bool fast_code_passes = false;
 
