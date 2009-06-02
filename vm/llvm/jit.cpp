@@ -561,9 +561,6 @@ namespace rubinius {
       new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
           get_field(block, call_frame, offset::cf_flags), false, block);
 
-      // args
-      // new StoreInst(args, get_field(block, call_frame, 5), false, block);
-
       // ip
       new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
           get_field(block, call_frame, offset::cf_ip), false, block);
