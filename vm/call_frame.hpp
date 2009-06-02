@@ -5,6 +5,7 @@
 #include "unwind_info.hpp"
 #include "jit_state.h"
 #include "builtin/variable_scope.hpp"
+#include "dispatch.hpp"
 
 namespace rubinius {
   class Object;
@@ -21,7 +22,7 @@ namespace rubinius {
     CallFrame* previous;
     StaticScope* static_scope;
 
-    Symbol* name_;
+    Dispatch* msg;
     CompiledMethod* cm;
 
     int flags;
@@ -38,7 +39,8 @@ namespace rubinius {
     // ACCESS
 
     Symbol* name() {
-      return name_;
+      if(msg) return msg->name;
+      return reinterpret_cast<Symbol*>(Qnil);
     }
 
     bool is_block_p(STATE) {

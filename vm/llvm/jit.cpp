@@ -531,9 +531,8 @@ namespace rubinius {
       Value* ss = new LoadInst(get_field(block, meth, 12), "cm.scope", block);
       new StoreInst(ss, get_field(block, call_frame, 1), false, block);
 
-      // name
-      Value* name = new LoadInst(get_field(block, msg, 0), "msg.name", block);
-      new StoreInst(name, get_field(block, call_frame, 2), false, block);
+      // msg
+      new StoreInst(msg, get_field(block, call_frame, 2), false, block);
 
       // cm
       new StoreInst(meth, cm_gep, false, block);

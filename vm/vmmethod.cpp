@@ -456,7 +456,7 @@ namespace rubinius {
 
       frame.previous = previous;
       frame.static_scope = cm->scope();
-      frame.name_ =     msg.name;
+      frame.msg =      &msg;
       frame.cm =       cm;
       frame.args =     args.total();
       frame.scope =    frame.top_scope = scope;

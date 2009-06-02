@@ -69,7 +69,7 @@ namespace rubinius {
     frame.previous = previous;
     frame.static_scope = invocation.static_scope;
 
-    frame.name_ =     reinterpret_cast<Symbol*>(Qnil);
+    frame.msg =      NULL;
     frame.cm =       env->method_;
     frame.args =     args.total();
     frame.scope =    scope;
