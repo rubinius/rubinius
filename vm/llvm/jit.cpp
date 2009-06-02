@@ -527,10 +527,6 @@ namespace rubinius {
       // previous
       new StoreInst(prev, get_field(block, call_frame, 0), false, block);
 
-      // static_scope
-      Value* ss = new LoadInst(get_field(block, meth, 12), "cm.scope", block);
-      new StoreInst(ss, get_field(block, call_frame, 1), false, block);
-
       // msg
       new StoreInst(msg, get_field(block, call_frame, 2), false, block);
 

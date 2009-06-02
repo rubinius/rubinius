@@ -1408,12 +1408,22 @@ namespace rubinius {
     }
 
     void visit_push_scope() {
-      Value* idx[] = {
+      Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 1)
+        ConstantInt::get(Type::Int32Ty, 3)
       };
 
-      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "scope_pos", block_);
+      Value* gep2 = GetElementPtrInst::Create(call_frame_,
+          idx2, idx2+2, "cm_pos", block_);
+
+      Value* cm = new LoadInst(gep2, "cm", block_);
+
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 12)
+      };
+
+      Value* gep = GetElementPtrInst::Create(cm, idx, idx+2, "scope_pos", block_);
       stack_push(new LoadInst(gep, "scope", block_));
     }
 

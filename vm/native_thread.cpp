@@ -30,7 +30,7 @@ namespace rubinius {
 
     CallFrame cf;
     cf.previous = NULL;
-    cf.static_scope = NULL;
+    cf.static_scope_ = NULL;
     cf.msg = NULL;
     cf.cm = NULL;
     cf.top_scope = NULL;

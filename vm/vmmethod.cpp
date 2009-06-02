@@ -455,7 +455,9 @@ namespace rubinius {
       frame.prepare(vmm->stack_size);
 
       frame.previous = previous;
-      frame.static_scope = cm->scope();
+      frame.flags =    0;
+      // frame.static_scope_ = 0;
+      // frame.static_scope_ = cm->scope();
       frame.msg =      &msg;
       frame.cm =       cm;
       frame.args =     args.total();

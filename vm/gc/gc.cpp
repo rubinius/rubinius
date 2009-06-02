@@ -102,9 +102,11 @@ namespace rubinius {
   void GarbageCollector::walk_call_frame(CallFrame* top_call_frame) {
     CallFrame* call_frame = top_call_frame;
     while(call_frame) {
-      if(call_frame->static_scope && call_frame->static_scope->reference_p()) {
-        call_frame->static_scope =
-          (StaticScope*)mark_object(call_frame->static_scope);
+      if(call_frame->custom_static_scope_p() &&
+          call_frame->static_scope_ &&
+          call_frame->static_scope_->reference_p()) {
+        call_frame->static_scope_ =
+          (StaticScope*)mark_object(call_frame->static_scope_);
       }
 
       if(call_frame->cm && call_frame->cm->reference_p()) {
@@ -166,9 +168,11 @@ namespace rubinius {
   void GarbageCollector::visit_call_frame(CallFrame* top_call_frame, ObjectVisitor& visit) {
     CallFrame* call_frame = top_call_frame;
     while(call_frame) {
-      if(call_frame->static_scope && call_frame->static_scope->reference_p()) {
-        call_frame->static_scope =
-          (StaticScope*)visit.call(call_frame->static_scope);
+      if(call_frame->custom_static_scope_p() &&
+          call_frame->static_scope_ &&
+          call_frame->static_scope_->reference_p()) {
+        call_frame->static_scope_ =
+          (StaticScope*)visit.call(call_frame->static_scope_);
       }
 
       if(call_frame->cm && call_frame->cm->reference_p()) {

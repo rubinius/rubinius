@@ -16,11 +16,12 @@ namespace rubinius {
 
   struct CallFrame {
     enum Flags {
-      cIsLambda = 1
+      cIsLambda = 1,
+      cCustomStaticScope = 2
     };
 
     CallFrame* previous;
-    StaticScope* static_scope;
+    StaticScope* static_scope_;
 
     Dispatch* msg;
     CompiledMethod* cm;
@@ -41,6 +42,15 @@ namespace rubinius {
     Symbol* name() {
       if(msg) return msg->name;
       return reinterpret_cast<Symbol*>(Qnil);
+    }
+
+    bool custom_static_scope_p() {
+      return flags & cCustomStaticScope;
+    }
+
+    StaticScope* static_scope() {
+      if(custom_static_scope_p()) return static_scope_;
+      return cm->scope();
     }
 
     bool is_block_p(STATE) {

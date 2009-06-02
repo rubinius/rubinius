@@ -67,14 +67,14 @@ namespace rubinius {
     frame.prepare(vmm->stack_size);
 
     frame.previous = previous;
-    frame.static_scope = invocation.static_scope;
+    frame.static_scope_ = invocation.static_scope;
 
     frame.msg =      NULL;
     frame.cm =       env->method_;
     frame.args =     args.total();
     frame.scope =    scope;
     frame.top_scope = env->top_scope_;
-    frame.flags =    invocation.flags;
+    frame.flags =    invocation.flags | CallFrame::cCustomStaticScope;
 
     Object* ret;
 

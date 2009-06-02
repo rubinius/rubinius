@@ -26,7 +26,7 @@
 namespace rubinius {
   namespace Helpers {
     void add_method(STATE, CallFrame* call_frame, Module* mod, Symbol* name, CompiledMethod* method) {
-      method->scope(state, call_frame->static_scope);
+      method->scope(state, call_frame->static_scope());
       method->serial(state, Fixnum::from(0));
       mod->method_table()->store(state, name, method);
       state->global_cache->clear(mod, name);
@@ -50,7 +50,7 @@ namespace rubinius {
         method->scope(state, ss);
       } else {
         /* Push the current scope down. */
-        method->scope(state, call_frame->static_scope);
+        method->scope(state, call_frame->static_scope());
       }
 
       add_method(state, call_frame, recv->metaclass(state), name, method);
@@ -109,7 +109,7 @@ namespace rubinius {
       //
       // So, in this case, foo would print "1", not "2".
       //
-      cur = call_frame->static_scope;
+      cur = call_frame->static_scope();
       while(!cur->nil_p()) {
         // Detect the toplevel scope (the default) and get outta dodge.
         if(cur->top_level_p(state)) break;
@@ -121,7 +121,7 @@ namespace rubinius {
       }
 
       // Now look up the superclass chain.
-      Module* mod = call_frame->static_scope->module();
+      Module* mod = call_frame->static_scope()->module();
       while(!mod->nil_p()) {
         result = mod->get_const(state, name, found);
         if(*found) return result;
@@ -165,10 +165,10 @@ namespace rubinius {
     Class* open_class(STATE, CallFrame* call_frame, Object* super, Symbol* name, bool* created) {
       Module* under;
 
-      if(call_frame->static_scope->nil_p()) {
+      if(call_frame->static_scope()->nil_p()) {
         under = G(object);
       } else {
-        under = call_frame->static_scope->module();
+        under = call_frame->static_scope()->module();
       }
 
       return open_class(state, call_frame, under, super, name, created);
@@ -233,8 +233,8 @@ namespace rubinius {
     Module* open_module(STATE, CallFrame* call_frame, Symbol* name) {
       Module* under = G(object);
 
-      if(!call_frame->static_scope->nil_p()) {
-        under = call_frame->static_scope->module();
+      if(!call_frame->static_scope()->nil_p()) {
+        under = call_frame->static_scope()->module();
       }
 
       return open_module(state, call_frame, under, name);

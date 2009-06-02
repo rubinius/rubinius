@@ -195,7 +195,7 @@ extern "C" {
     call_frame->promote_scope(state);
 
     // TODO: We don't need to be doing this everytime.
-    cm->scope(state, call_frame->static_scope);
+    cm->scope(state, call_frame->static_scope());
 
     VMMethod* vmm = call_frame->cm->backend_method_;
     return BlockEnvironment::under_call_frame(state, cm, vmm,
@@ -243,9 +243,9 @@ extern "C" {
     Module* mod = as<Module>(top);
     StaticScope* scope = StaticScope::create(state);
     scope->module(state, mod);
-    scope->parent(state, call_frame->static_scope);
+    scope->parent(state, call_frame->static_scope());
     call_frame->cm->scope(state, scope);
-    call_frame->static_scope = scope;
+    // call_frame->static_scope_ = scope;
 
     return Qnil;
   }
@@ -469,7 +469,7 @@ extern "C" {
 
     if(!found) {
       Module* under;
-      StaticScope* scope = call_frame->static_scope;
+      StaticScope* scope = call_frame->static_scope();
       if(scope->nil_p()) {
         under = G(object);
       } else {
@@ -506,7 +506,7 @@ extern "C" {
         call_frame->cm->literals()->put(state, association_index, cache);
       } else {
         Module* under;
-        StaticScope* scope = call_frame->static_scope;
+        StaticScope* scope = call_frame->static_scope();
         if(scope->nil_p()) {
           under = G(object);
         } else {
@@ -646,7 +646,7 @@ extern "C" {
   }
 
   Object* rbx_set_const(STATE, CallFrame* call_frame, Symbol* name, Object* val) {
-    call_frame->static_scope->module()->set_const(state, name, val);
+    call_frame->static_scope()->module()->set_const(state, name, val);
     return val;
   }
 
