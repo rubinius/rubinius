@@ -114,7 +114,8 @@ namespace rubinius {
       }
 
       if(call_frame->stk) {
-        for(int i = 0; i < call_frame->stack_size; i++) {
+        native_int stack_size = call_frame->cm->stack_size()->to_native();
+        for(native_int i = 0; i < stack_size; i++) {
           Object* obj = call_frame->stk[i];
           if(obj && obj->reference_p()) {
             call_frame->stk[i] = mark_object(obj);
@@ -181,7 +182,8 @@ namespace rubinius {
       }
 
       if(call_frame->stk) {
-        for(int i = 0; i < call_frame->stack_size; i++) {
+        native_int stack_size = call_frame->cm->stack_size()->to_native();
+        for(native_int i = 0; i < stack_size; i++) {
           Object* obj = call_frame->stk[i];
           if(obj && obj->reference_p()) {
             call_frame->stk[i] = visit.call(obj);

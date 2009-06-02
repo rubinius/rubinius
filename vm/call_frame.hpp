@@ -35,7 +35,6 @@ namespace rubinius {
     VariableScope* scope;
 
     // Stack
-    int stack_size;
     Object** stk;
 
     // ACCESS
@@ -102,7 +101,6 @@ namespace rubinius {
     void prepare(int stack) {
       ip = 0;
       current_unwind = 0;
-      stack_size = stack;
 
       for(int i = 0; i < stack; i++) {
         stk[i] = Qnil;

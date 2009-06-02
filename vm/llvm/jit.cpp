@@ -545,18 +545,11 @@ namespace rubinius {
       new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
           get_field(block, call_frame, 6), false, block);
 
-      // top_scope
-      // new StoreInst(vars, get_field(block, call_frame, 7), false, block);
-
       // scope
       new StoreInst(vars, get_field(block, call_frame, 8), false, block);
 
-      // stack_size
-      new StoreInst(ConstantInt::get(Type::Int32Ty, stack_size),
-          get_field(block, call_frame, 9), false, block);
-
       // stk
-      new StoreInst(stk, get_field(block, call_frame, 10), false, block);
+      new StoreInst(stk, get_field(block, call_frame, 9), false, block);
 
       if(ls_->include_profiling()) {
         method_entry_ = new AllocaInst(Type::Int8Ty,

@@ -205,7 +205,6 @@ PointerTy_22 = cast<PointerType>(PointerTy_22_fwd.get());
 
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_22);
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_22);
-StructTy_struct_rubinius__CallFrame_fields.push_back(IntegerType::get(32));
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_0);
 StructType* StructTy_struct_rubinius__CallFrame = StructType::get(StructTy_struct_rubinius__CallFrame_fields, /*isPacked=*/false);
 mod->addTypeName("struct.rubinius::CallFrame", StructTy_struct_rubinius__CallFrame);
