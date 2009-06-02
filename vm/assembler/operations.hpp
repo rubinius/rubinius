@@ -280,7 +280,7 @@ namespace operations {
       AssemblerX86 &a = s.assembler();
       int base =   FIELD_OFFSET(rubinius::VariableScope, locals_);
       int offset = which * sizeof(void*);
-      a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::CallFrame, top_scope)));
+      //a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::CallFrame, top_scope)));
       a.mov(a.address(eax, base + offset), val);
     }
 
@@ -288,7 +288,7 @@ namespace operations {
       load_call_frame(eax);
       AssemblerX86 &a = s.assembler();
       int base =   FIELD_OFFSET(rubinius::VariableScope, locals_);
-      a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::CallFrame, top_scope)));
+      // a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::CallFrame, top_scope)));
       a.mov_to_table(eax, which, sizeof(void*), base, val);
     }
 
@@ -297,7 +297,7 @@ namespace operations {
       AssemblerX86 &a = s.assembler();
       int base =   FIELD_OFFSET(rubinius::VariableScope, locals_);
       int offset = which * sizeof(void*);
-      a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::CallFrame, top_scope)));
+      // a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::CallFrame, top_scope)));
       a.mov(val, a.address(eax, base + offset));
     }
 
@@ -305,7 +305,7 @@ namespace operations {
       load_call_frame(eax);
       AssemblerX86 &a = s.assembler();
       int base =   FIELD_OFFSET(rubinius::VariableScope, locals_);
-      a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::CallFrame, top_scope)));
+      // a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::CallFrame, top_scope)));
       a.mov_from_table(val, eax, which, sizeof(void*), base);
     }
 

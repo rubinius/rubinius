@@ -14,7 +14,7 @@ namespace rubinius {
     if(scope->obj_type_ != InvalidType) return;
     VariableScope* new_scope = scope->promote(state);
 
-    if(scope == top_scope) top_scope = new_scope;
+    if(scope == top_scope()) top_scope_ = new_scope;
     scope = new_scope;
   }
 

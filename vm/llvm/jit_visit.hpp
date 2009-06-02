@@ -1233,13 +1233,15 @@ namespace rubinius {
     }
 
     void visit_push_block() {
+      // We only JIT normal methods right now, which only use scope, never
+      // top_scope
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 7)
+        ConstantInt::get(Type::Int32Ty, 8)
       };
 
-      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "top_scope_pos", block_);
-      Value* ts =  new LoadInst(gep, "top_scope", block_);
+      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "scope_pos", block_);
+      Value* ts =  new LoadInst(gep, "scope", block_);
 
       idx[1] = ConstantInt::get(Type::Int32Ty, 1);
       gep = GetElementPtrInst::Create(ts, idx, idx+2, "block_pos", block_);

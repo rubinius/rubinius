@@ -1070,7 +1070,7 @@ class Instructions
 
   def yield_stack(count)
     <<-CODE
-    Object* t1 = call_frame->top_scope->block();
+    Object* t1 = call_frame->top_scope()->block();
     Object* ret;
     Arguments args(t1, count, call_frame->stack_back_position(count));
 
@@ -1098,7 +1098,7 @@ class Instructions
   def yield_splat(count)
     <<-CODE
     Object* ary = stack_pop();
-    Object* t1 = call_frame->top_scope->block();
+    Object* t1 = call_frame->top_scope()->block();
 
     Arguments args(t1, count, call_frame->stack_back_position(count));
 
@@ -1673,7 +1673,7 @@ class Instructions
 
   def push_block
     <<-CODE
-    stack_push(call_frame->top_scope->block());
+    stack_push(call_frame->top_scope()->block());
     CODE
   end
 
@@ -2088,7 +2088,7 @@ class Instructions
 
   def push_local(index)
     <<-CODE
-    stack_push(call_frame->top_scope->get_local(index));
+    stack_push(call_frame->top_scope()->get_local(index));
     CODE
   end
 
@@ -3264,7 +3264,7 @@ class Instructions
 
   def set_local(index)
     <<-CODE
-    call_frame->top_scope->set_local(state, index, stack_top());
+    call_frame->top_scope()->set_local(state, index, stack_top());
     CODE
   end
 
@@ -3694,7 +3694,7 @@ class Instructions
       exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
       state->thread_state()->raise_exception(exc);
     } else {
-      state->thread_state()->raise_return(stack_top(), call_frame->top_scope);
+      state->thread_state()->raise_return(stack_top(), call_frame->top_scope());
     }
     RUN_EXCEPTION();
     CODE

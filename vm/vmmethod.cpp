@@ -25,7 +25,6 @@
 
 #include "raise_reason.hpp"
 
-#include "assembler/jit.hpp"
 #include "configuration.hpp"
 
 #ifdef ENABLE_LLVM
@@ -461,7 +460,7 @@ namespace rubinius {
       frame.msg =      &msg;
       frame.cm =       cm;
       frame.args =     args.total();
-      frame.scope =    frame.top_scope = scope;
+      frame.scope =    scope;
 
       // If argument handling fails..
       ArgumentHandler arghandler;

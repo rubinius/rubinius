@@ -362,7 +362,7 @@ extern "C" {
   }
 
   Object* rbx_yield_stack(STATE, CallFrame* call_frame, int count, Object** args) {
-    Object* t1 = call_frame->top_scope->block();
+    Object* t1 = call_frame->top_scope()->block();
 
     Arguments out_args(t1, count, args);
 
@@ -384,7 +384,7 @@ extern "C" {
 
   Object* rbx_yield_splat(STATE, CallFrame* call_frame, int count, Object** stk) {
     Object* ary = stk[count];
-    Object* t1 = call_frame->top_scope->block();
+    Object* t1 = call_frame->top_scope()->block();
 
     Arguments args(t1, count, stk);
 
@@ -690,7 +690,7 @@ extern "C" {
       exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
       state->thread_state()->raise_exception(exc);
     } else {
-      state->thread_state()->raise_return(top, call_frame->top_scope);
+      state->thread_state()->raise_return(top, call_frame->top_scope());
     }
 
     return Qnil;

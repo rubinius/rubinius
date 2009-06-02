@@ -16,8 +16,9 @@ namespace rubinius {
 
   struct CallFrame {
     enum Flags {
-      cIsLambda = 1,
-      cCustomStaticScope = 2
+      cIsLambda =           1 << 0,
+      cCustomStaticScope =  1 << 1,
+      cMultipleScopes =     1 << 2
     };
 
     CallFrame* previous;
@@ -30,7 +31,7 @@ namespace rubinius {
     int args;
     int ip;
 
-    VariableScope* top_scope;
+    VariableScope* top_scope_;
     VariableScope* scope;
 
     // Stack
@@ -61,8 +62,17 @@ namespace rubinius {
       return scope->self();
     }
 
+    bool multiple_scopes_p() {
+      return flags & cMultipleScopes;
+    }
+
+    VariableScope* top_scope() {
+      if(multiple_scopes_p()) return top_scope_;
+      return scope;
+    }
+
     Module* module() {
-      return top_scope->module();
+      return top_scope()->module();
     }
 
     void set_ip(int new_ip) {

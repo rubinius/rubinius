@@ -122,11 +122,12 @@ namespace rubinius {
         }
       }
 
-      if(call_frame->top_scope) {
-        if(call_frame->top_scope->stack_allocated_p()) {
-          saw_variable_scope(call_frame->top_scope);
+      if(call_frame->multiple_scopes_p() &&
+          call_frame->top_scope_) {
+        if(call_frame->top_scope_->stack_allocated_p()) {
+          saw_variable_scope(call_frame->top_scope_);
         } else {
-          call_frame->top_scope = (VariableScope*)mark_object(call_frame->top_scope);
+          call_frame->top_scope_ = (VariableScope*)mark_object(call_frame->top_scope_);
         }
       }
 
@@ -188,11 +189,12 @@ namespace rubinius {
         }
       }
 
-      if(call_frame->top_scope) {
-        if(call_frame->top_scope->stack_allocated_p()) {
-          visit_variable_scope(call_frame->top_scope, visit);
+      if(call_frame->multiple_scopes_p() &&
+          call_frame->top_scope_) {
+        if(call_frame->top_scope_->stack_allocated_p()) {
+          visit_variable_scope(call_frame->top_scope_, visit);
         } else {
-          call_frame->top_scope = (VariableScope*)visit.call(call_frame->top_scope);
+          call_frame->top_scope_ = (VariableScope*)visit.call(call_frame->top_scope_);
         }
       }
 

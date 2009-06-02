@@ -73,8 +73,9 @@ namespace rubinius {
     frame.cm =       env->method_;
     frame.args =     args.total();
     frame.scope =    scope;
-    frame.top_scope = env->top_scope_;
-    frame.flags =    invocation.flags | CallFrame::cCustomStaticScope;
+    frame.top_scope_ = env->top_scope_;
+    frame.flags =    invocation.flags | CallFrame::cCustomStaticScope
+                     | CallFrame::cMultipleScopes;
 
     Object* ret;
 
@@ -158,7 +159,7 @@ namespace rubinius {
     }
 
     be->scope(state, call_frame->scope);
-    be->top_scope(state, call_frame->top_scope);
+    be->top_scope(state, call_frame->top_scope());
     be->method(state, cm);
     be->local_count(state, cm->local_count());
     be->vmm = vmm;

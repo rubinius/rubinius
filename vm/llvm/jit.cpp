@@ -546,7 +546,7 @@ namespace rubinius {
           get_field(block, call_frame, 6), false, block);
 
       // top_scope
-      new StoreInst(vars, get_field(block, call_frame, 7), false, block);
+      // new StoreInst(vars, get_field(block, call_frame, 7), false, block);
 
       // scope
       new StoreInst(vars, get_field(block, call_frame, 8), false, block);

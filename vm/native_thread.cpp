@@ -33,7 +33,7 @@ namespace rubinius {
     cf.static_scope_ = NULL;
     cf.msg = NULL;
     cf.cm = NULL;
-    cf.top_scope = NULL;
+    cf.top_scope_ = NULL;
     cf.scope = NULL;
     cf.ip = 0;
     cf.stack_size = 0;
