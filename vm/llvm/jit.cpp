@@ -365,6 +365,7 @@ namespace rubinius {
     Function* function_;
     int current_ip_;
     int force_break_;
+    bool creates_blocks_;
 
   public:
 
@@ -373,6 +374,7 @@ namespace rubinius {
       , function_(func)
       , current_ip_(0)
       , force_break_(false)
+      , creates_blocks_(false)
     {}
 
     void at_ip(int ip) {

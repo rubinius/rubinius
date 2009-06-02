@@ -21,7 +21,7 @@ namespace rubinius {
     CallFrame* previous;
     StaticScope* static_scope;
 
-    Symbol* name;
+    Symbol* name_;
     CompiledMethod* cm;
 
     int flags;
@@ -34,6 +34,12 @@ namespace rubinius {
     // Stack
     int stack_size;
     Object** stk;
+
+    // ACCESS
+
+    Symbol* name() {
+      return name_;
+    }
 
     bool is_block_p(STATE) {
       return cm->name() == state->symbol("__block__");

@@ -50,7 +50,7 @@ namespace rubinius {
           std::cout << mod_name << "#";
         }
 
-        Symbol* name = try_as<Symbol>(cf->name);
+        Symbol* name = try_as<Symbol>(cf->name());
         if(name) {
           std::cout << name->c_str(state);
         } else {

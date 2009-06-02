@@ -23,7 +23,7 @@ namespace rubinius {
       loc->name(state, call_frame->top_scope->method()->name());
       loc->is_block(state, Qtrue);
     } else {
-      loc->name(state, call_frame->name);
+      loc->name(state, call_frame->name());
       loc->is_block(state, Qfalse);
     }
 

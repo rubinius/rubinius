@@ -44,7 +44,7 @@ namespace rubinius {
     CallFrame cf;
     cf.previous = NULL;
     cf.static_scope = NULL;
-    cf.name = NULL;
+    cf.name_ = NULL;
     cf.cm = NULL;
     cf.top_scope = NULL;
     cf.scope = NULL;

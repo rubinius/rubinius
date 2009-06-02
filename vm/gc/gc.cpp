@@ -107,8 +107,8 @@ namespace rubinius {
           (StaticScope*)mark_object(call_frame->static_scope);
       }
 
-      if(call_frame->name && call_frame->name->reference_p()) {
-        call_frame->name = (Symbol*)mark_object(call_frame->name);
+      if(call_frame->name() && call_frame->name()->reference_p()) {
+        call_frame->name_ = (Symbol*)mark_object(call_frame->name());
       }
 
       if(call_frame->cm && call_frame->cm->reference_p()) {
@@ -175,8 +175,8 @@ namespace rubinius {
           (StaticScope*)visit.call(call_frame->static_scope);
       }
 
-      if(call_frame->name && call_frame->name->reference_p()) {
-        call_frame->name = (Symbol*)visit.call(call_frame->name);
+      if(call_frame->name() && call_frame->name()->reference_p()) {
+        call_frame->name_ = (Symbol*)visit.call(call_frame->name());
       }
 
       if(call_frame->cm && call_frame->cm->reference_p()) {
