@@ -455,11 +455,8 @@ namespace rubinius {
 
       frame.previous = previous;
       frame.flags =    0;
-      // frame.static_scope_ = 0;
-      // frame.static_scope_ = cm->scope();
       frame.msg =      &msg;
       frame.cm =       cm;
-      frame.args =     args.total();
       frame.scope =    scope;
 
       // If argument handling fails..

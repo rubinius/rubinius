@@ -107,6 +107,7 @@ namespace rubinius {
     LLVMState* ls_;
 
     Value* method_entry_;
+    Value* args_;
 
     Value* ip_pos_;
 
@@ -123,7 +124,7 @@ namespace rubinius {
     JITVisit(LLVMState* ls, VMMethod* vmm,
              llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* start,
              llvm::Value* stack, llvm::Value* call_frame,
-             llvm::Value* stack_top, llvm::Value* me)
+             llvm::Value* stack_top, llvm::Value* me, llvm::Value* args)
       : f(ls)
       , vmm_(vmm)
       , stack_(stack)
@@ -138,6 +139,7 @@ namespace rubinius {
       , rbx_simple_send_private_(0)
       , ls_(ls)
       , method_entry_(me)
+      , args_(args)
     {
 #if __LP64__
       IntPtrTy = llvm::Type::Int64Ty;
@@ -177,7 +179,7 @@ namespace rubinius {
 
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 6)
+        ConstantInt::get(Type::Int32Ty, offset::cf_ip)
       };
 
 
@@ -187,7 +189,7 @@ namespace rubinius {
     Value* scope() {
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 8)
+        ConstantInt::get(Type::Int32Ty, offset::cf_scope)
       };
 
       Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "scope_pos", block_);
@@ -197,7 +199,7 @@ namespace rubinius {
     Value* top_scope() {
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 7)
+        ConstantInt::get(Type::Int32Ty, offset::cf_top_scope)
       };
 
       Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "top_scope_pos", block_);
@@ -1005,7 +1007,7 @@ namespace rubinius {
       } else {
         Value* idx[] = {
           ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, 3)
+          ConstantInt::get(Type::Int32Ty, offset::cf_cm)
         };
 
         Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "cm_pos", block_);
@@ -1017,7 +1019,7 @@ namespace rubinius {
 
         Value* idx2[] = {
           ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, 2),
+          ConstantInt::get(Type::Int32Ty, offset::tuple_field),
           ConstantInt::get(Type::Int32Ty, which)
         };
 
@@ -1049,7 +1051,7 @@ namespace rubinius {
     void visit_push_local(opcode which) {
       Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 8),
+        ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
         ConstantInt::get(Type::Int32Ty, which)
       };
 
@@ -1061,7 +1063,7 @@ namespace rubinius {
     void visit_set_local(opcode which) {
       Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 8),
+        ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
         ConstantInt::get(Type::Int32Ty, which)
       };
 
@@ -1079,7 +1081,7 @@ namespace rubinius {
     void visit_push_self() {
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 6)
+        ConstantInt::get(Type::Int32Ty, offset::vars_self)
       };
 
       Value* pos = GetElementPtrInst::Create(scope(), idx, idx + 2, "self_pos", block_);
@@ -1136,7 +1138,7 @@ namespace rubinius {
 
         Value* idx[] = {
           ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, 2),
+          ConstantInt::get(Type::Int32Ty, offset::tuple_field),
           index
         };
 
@@ -1237,7 +1239,7 @@ namespace rubinius {
       // top_scope
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 8)
+        ConstantInt::get(Type::Int32Ty, offset::cf_scope)
       };
 
       Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "scope_pos", block_);
@@ -1402,7 +1404,7 @@ namespace rubinius {
     void visit_push_variables() {
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 8)
+        ConstantInt::get(Type::Int32Ty, offset::cf_scope)
       };
 
       Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "vars_pos", block_);
@@ -1412,7 +1414,7 @@ namespace rubinius {
     void visit_push_scope() {
       Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 3)
+        ConstantInt::get(Type::Int32Ty, offset::cf_cm)
       };
 
       Value* gep2 = GetElementPtrInst::Create(call_frame_,
@@ -1422,7 +1424,7 @@ namespace rubinius {
 
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 12)
+        ConstantInt::get(Type::Int32Ty, offset::cm_static_scope)
       };
 
       Value* gep = GetElementPtrInst::Create(cm, idx, idx+2, "scope_pos", block_);
@@ -1657,17 +1659,17 @@ namespace rubinius {
         stack_push(CallInst::Create(func, call_args, call_args+5, "cs", block_));
     }
 
-    void visit_push_my_offset(opcode offset) {
+    void visit_push_my_offset(opcode i) {
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 6)
+        ConstantInt::get(Type::Int32Ty, offset::vars_self)
       };
 
       Value* pos = GetElementPtrInst::Create(scope(), idx, idx + 2, "self_pos", block_);
 
       Value* self = new LoadInst(pos, "self", block_);
 
-      assert(offset % sizeof(Object*) == 0);
+      assert(i % sizeof(Object*) == 0);
 
       Value* cst = CastInst::Create(
           Instruction::BitCast,
@@ -1675,7 +1677,7 @@ namespace rubinius {
           PointerType::getUnqual(ObjType), "obj_array", block_);
 
       Value* idx2[] = {
-        ConstantInt::get(Type::Int32Ty, offset / sizeof(Object*))
+        ConstantInt::get(Type::Int32Ty, i / sizeof(Object*))
       };
 
       pos = GetElementPtrInst::Create(cst, idx2, idx2+1, "val_pos", block_);
@@ -1938,12 +1940,12 @@ namespace rubinius {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
-      sig << CallFrameTy;
+      sig << "Arguments";
       sig << Type::Int32Ty;
 
       Value* call_args[] = {
         vm_,
-        call_frame_,
+        args_,
         ConstantInt::get(Type::Int32Ty, count)
       };
 
@@ -1955,12 +1957,12 @@ namespace rubinius {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
-      sig << CallFrameTy;
+      sig << "Arguments";
       sig << Type::Int32Ty;
 
       Value* call_args[] = {
         vm_,
-        call_frame_,
+        args_,
         ConstantInt::get(Type::Int32Ty, count)
       };
 

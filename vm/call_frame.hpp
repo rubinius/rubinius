@@ -28,7 +28,6 @@ namespace rubinius {
     CompiledMethod* cm;
 
     int flags;
-    int args;
     int ip;
 
     VariableScope* top_scope_;

@@ -21,6 +21,28 @@
 
 using namespace llvm;
 
+namespace offset {
+  const static int cf_previous = 0;
+  const static int cf_static_scope = 1;
+  const static int cf_msg = 2;
+  const static int cf_cm = 3;
+  const static int cf_flags = 4;
+  const static int cf_ip = 5;
+  const static int cf_top_scope = 6;
+  const static int cf_scope = 7;
+  const static int cf_stk = 8;
+
+  const static int args_total = 2;
+  const static int args_ary = 3;
+
+  const static int vars_self = 6;
+  const static int vars_tuple = 8;
+
+  const static int tuple_field = 2;
+
+  const static int cm_static_scope = 12;
+};
+
 #include "llvm/jit_visit.hpp"
 
 namespace autogen_types {
@@ -517,7 +539,7 @@ namespace rubinius {
 
     void initialize_call_frame(int stack_size) {
       Value* exec = new LoadInst(get_field(block, msg, 2), "msg.exec", block);
-      Value* cm_gep = get_field(block, call_frame, 3);
+      Value* cm_gep = get_field(block, call_frame, offset::cf_cm);
       Value* meth = CastInst::Create(
           Instruction::BitCast,
           exec,
@@ -525,31 +547,34 @@ namespace rubinius {
           "cm", block);
 
       // previous
-      new StoreInst(prev, get_field(block, call_frame, 0), false, block);
+      new StoreInst(prev, get_field(block, call_frame, offset::cf_previous),
+                    false, block);
 
       // msg
-      new StoreInst(msg, get_field(block, call_frame, 2), false, block);
+      new StoreInst(msg, get_field(block, call_frame, offset::cf_msg),
+                    false, block);
 
       // cm
       new StoreInst(meth, cm_gep, false, block);
 
       // flags
       new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
-          get_field(block, call_frame, 4), false, block);
+          get_field(block, call_frame, offset::cf_flags), false, block);
 
       // args
-      Value* total = new LoadInst(get_field(block, args, 2), "args.total", block);
-      new StoreInst(total, get_field(block, call_frame, 5), false, block);
+      // new StoreInst(args, get_field(block, call_frame, 5), false, block);
 
       // ip
       new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
-          get_field(block, call_frame, 6), false, block);
+          get_field(block, call_frame, offset::cf_ip), false, block);
 
       // scope
-      new StoreInst(vars, get_field(block, call_frame, 8), false, block);
+      new StoreInst(vars, get_field(block, call_frame, offset::cf_scope),
+                    false, block);
 
       // stk
-      new StoreInst(stk, get_field(block, call_frame, 9), false, block);
+      new StoreInst(stk, get_field(block, call_frame, offset::cf_stk),
+                    false, block);
 
       if(ls_->include_profiling()) {
         method_entry_ = new AllocaInst(Type::Int8Ty,
@@ -638,7 +663,7 @@ namespace rubinius {
       // Check the argument count
       Value* total_idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 2),
+        ConstantInt::get(Type::Int32Ty, offset::args_total),
       };
 
       Value* total_offset = GetElementPtrInst::Create(arg_obj, total_idx,
@@ -727,7 +752,7 @@ namespace rubinius {
       // Import the arguments
       Value* idx1[] = {
         ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 3),
+        ConstantInt::get(Type::Int32Ty, offset::args_ary),
       };
 
       Value* offset = GetElementPtrInst::Create(arg_obj, idx1, idx1+2, "arg_ary_pos", block);
@@ -746,7 +771,7 @@ namespace rubinius {
 
           Value* idx2[] = {
             ConstantInt::get(Type::Int32Ty, 0),
-            ConstantInt::get(Type::Int32Ty, 8),
+            ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
             int_pos
           };
 
@@ -783,7 +808,7 @@ namespace rubinius {
 
         Value* idx2[] = {
           ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, 8),
+          ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
           loop_val
         };
 
@@ -819,7 +844,7 @@ namespace rubinius {
 
         Value* idx3[] = {
           ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, 8),
+          ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
           ConstantInt::get(Type::Int32Ty, vmm->splat_position)
         };
 
@@ -887,7 +912,7 @@ namespace rubinius {
 
     JITVisit visitor(ls, vmm, ls->module(), func,
                      work.block, work.stk, work.call_frame, work.stack_top,
-                     work.method_entry_);
+                     work.method_entry_, work.args);
 
     // Pass 1, detect BasicBlock boundaries
     BlockFinder finder(visitor.block_map(), func);

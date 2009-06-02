@@ -1519,7 +1519,7 @@ class Instructions
 
   def passed_arg(index)
     <<-CODE
-    if(index < call_frame->args) {
+    if(index < (int)args.total()) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
@@ -1560,7 +1560,7 @@ class Instructions
 
   def passed_blockarg(count)
     <<-CODE
-    if(count == call_frame->args) {
+    if(count == (int)args.total()) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);

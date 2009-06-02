@@ -71,7 +71,6 @@ namespace rubinius {
 
     frame.msg =      NULL;
     frame.cm =       env->method_;
-    frame.args =     args.total();
     frame.scope =    scope;
     frame.top_scope_ = env->top_scope_;
     frame.flags =    invocation.flags | CallFrame::cCustomStaticScope

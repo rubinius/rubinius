@@ -454,13 +454,13 @@ extern "C" {
     return rbx_simple_send(state, call_frame, G(sym_tequal), 1, stk);
   }
 
-  Object* rbx_passed_arg(STATE, CallFrame* call_frame, int index) {
-    return (index < call_frame->args) ? Qtrue : Qfalse;
+  Object* rbx_passed_arg(STATE, Arguments& args, int index) {
+    return (index < (int)args.total()) ? Qtrue : Qfalse;
   }
 
   // TODO remove this and use passed_arg
-  Object* rbx_passed_blockarg(STATE, CallFrame* call_frame, int index) {
-    return (index == call_frame->args) ? Qtrue : Qfalse;
+  Object* rbx_passed_blockarg(STATE, Arguments& args, int index) {
+    return (index == (int)args.total()) ? Qtrue : Qfalse;
   }
 
   Object* rbx_push_const(STATE, CallFrame* call_frame, Symbol* sym) {
