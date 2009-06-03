@@ -1707,9 +1707,9 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, i / sizeof(Object*))
       };
 
-      pos = GetElementPtrInst::Create(cst, idx2, idx2+1, "val_pos", block_);
+      pos = GetElementPtrInst::Create(cst, idx2, idx2+1, "field_pos", block_);
 
-      stack_push(new LoadInst(pos, "val", block_));
+      stack_push(new LoadInst(pos, "field", block_));
     }
 
     void visit_setup_unwind(opcode where, opcode type) {
