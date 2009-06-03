@@ -169,7 +169,7 @@ extern "C" {
                         int required) {
     Exception* exc =
         Exception::make_argument_error(state, required, args.total(), msg.name);
-    exc->locations(state, System::vm_backtrace(state, Fixnum::from(1), call_frame));
+    exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
     state->thread_state()->raise_exception(exc);
 
     return NULL;
@@ -202,7 +202,7 @@ extern "C" {
                                               call_frame, index);
   }
 
-  void rbx_setup_scope(STATE, VariableScope* scope, CallFrame* call_frame,
+  void rbx_setup_scope(VariableScope* scope,
                        Dispatch& msg, Arguments& args) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
     VMMethod* vmm = cm->backend_method_;
@@ -628,12 +628,12 @@ extern "C" {
     }
   }
 
-  Object* rbx_push_ivar(STATE, CallFrame* call_frame, Symbol* name) {
-    return call_frame->self()->get_ivar(state, name);
+  Object* rbx_push_ivar(STATE, Object* self, Symbol* name) {
+    return self->get_ivar(state, name);
   }
 
-  Object* rbx_set_ivar(STATE, CallFrame* call_frame, Symbol* name, Object* val) {
-    return call_frame->self()->set_ivar(state, name, val);
+  Object* rbx_set_ivar(STATE, Object* self, Symbol* name, Object* val) {
+    return self->set_ivar(state, name, val);
   }
 
   Object* rbx_push_my_field(STATE, CallFrame* call_frame, int which) {

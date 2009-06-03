@@ -111,6 +111,9 @@ namespace rubinius {
 
     Value* ip_pos_;
 
+    Value* vars_;
+    bool creates_blocks_;
+
   public:
 
     const llvm::Type* ptr_type(std::string name) {
@@ -124,7 +127,8 @@ namespace rubinius {
     JITVisit(LLVMState* ls, VMMethod* vmm,
              llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* start,
              llvm::Value* stack, llvm::Value* call_frame,
-             llvm::Value* stack_top, llvm::Value* me, llvm::Value* args)
+             llvm::Value* stack_top, llvm::Value* me, llvm::Value* args,
+             llvm::Value* vars)
       : f(ls)
       , vmm_(vmm)
       , stack_(stack)
@@ -140,6 +144,8 @@ namespace rubinius {
       , ls_(ls)
       , method_entry_(me)
       , args_(args)
+      , vars_(vars)
+      , creates_blocks_(true)
     {
 #if __LP64__
       IntPtrTy = llvm::Type::Int64Ty;
@@ -170,6 +176,8 @@ namespace rubinius {
       BasicBlock* ret_raise_val = block("ret_raise_val");
       bail_out_fast_ = block("ret_null");
 
+      block_->moveAfter(bail_out_fast_);
+
       BranchInst::Create(ret_raise_val, bail_out_fast_, isit, bail_out_);
 
       ReturnInst::Create(Constant::getNullValue(ObjType), bail_out_fast_);
@@ -184,6 +192,10 @@ namespace rubinius {
 
 
       ip_pos_ = GetElementPtrInst::Create(call_frame_, idx, idx+2, "ip_pos", block_);
+    }
+
+    void set_creates_blocks(bool val) {
+      creates_blocks_ = val;
     }
 
     Value* scope() {
@@ -1055,7 +1067,14 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, which)
       };
 
-      Value* pos = GetElementPtrInst::Create(scope(), idx2, idx2+3, "local_pos", block_);
+      Value* vars;
+      if(creates_blocks_) {
+        vars = scope();
+      } else {
+        vars = vars_;
+      }
+
+      Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "local_pos", block_);
 
       stack_push(new LoadInst(pos, "local", block_));
     }
@@ -1067,15 +1086,23 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, which)
       };
 
-      Value* s = scope();
+      bool use_wb;
+      Value* vars;
+      if(creates_blocks_) {
+        vars = scope();
+        use_wb = true;
+      } else {
+        vars = vars_;
+        use_wb = false;
+      }
 
-      Value* pos = GetElementPtrInst::Create(s, idx2, idx2+3, "local_pos", block_);
+      Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "local_pos", block_);
 
       Value* val = stack_top();
 
       new StoreInst(val, pos, false, block_);
 
-      write_barrier(s, val);
+      if(use_wb) write_barrier(vars, val);
     }
 
     void visit_push_self() {
@@ -1989,17 +2016,27 @@ namespace rubinius {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
-      sig << CallFrameTy;
       sig << ObjType;
+      sig << ObjType;
+
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, offset::vars_self)
+      };
+
+      Value* pos = GetElementPtrInst::Create(scope(), idx, idx + 2, "self_pos", block_);
+
+      Value* self = new LoadInst(pos, "self", block_);
 
       Value* call_args[] = {
         vm_,
-        call_frame_,
+        self,
         constant(as<Symbol>(literal(which)))
       };
 
       Value* val = sig.call("rbx_push_ivar", call_args, 3, "ivar", block_);
-      check_for_exception(val);
+      // TODO: why would rbx_push_ivar raise an exception?
+      // check_for_exception(val);
       stack_push(val);
     }
 
@@ -2007,13 +2044,22 @@ namespace rubinius {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
-      sig << CallFrameTy;
+      sig << ObjType;
       sig << ObjType;
       sig << ObjType;
 
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, offset::vars_self)
+      };
+
+      Value* pos = GetElementPtrInst::Create(scope(), idx, idx + 2, "self_pos", block_);
+
+      Value* self = new LoadInst(pos, "self", block_);
+
       Value* call_args[] = {
         vm_,
-        call_frame_,
+        self,
         constant(as<Symbol>(literal(which))),
         stack_top()
       };

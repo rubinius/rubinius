@@ -18,10 +18,14 @@ namespace rubinius {
         G(variable_scope), number_of_locals_ * sizeof(Object*));
 
     scope->block(state, block_);
-    scope->exitted_ = exitted_;
+    scope->exitted_ = Qfalse;
     scope->method(state, method_);
     scope->module(state, module_);
-    scope->parent(state, parent_);
+    if(parent_) {
+      scope->parent(state, parent_);
+    } else {
+      scope->parent(state, (VariableScope*)Qnil);
+    }
     scope->self(state, self_);
 
     scope->number_of_locals_ = number_of_locals_;

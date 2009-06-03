@@ -61,6 +61,7 @@ namespace rubinius {
     static void unpause(STATE);
 
     LLVMState(STATE);
+    void add_internal_functions();
 
     int jit_dump_code() {
       return config_.jit_dump_code;
@@ -187,7 +188,7 @@ namespace rubinius {
       return llvm::cast<llvm::Function>(ls_->module()->getOrInsertFunction(name, type()));
     }
 
-    llvm::Value* call(const char* name, llvm::Value** start, int size,
+    llvm::CallInst* call(const char* name, llvm::Value** start, int size,
                       const char* inst_name, llvm::BasicBlock* block) {
       return llvm::CallInst::Create(function(name), start, start+size, inst_name, block);
     }

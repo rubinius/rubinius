@@ -16,6 +16,7 @@
 // #include <llvm/LinkAllPasses.h>
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Transforms/Scalar.h>
+#include <llvm/CallingConv.h>
 
 #include <sstream>
 
@@ -32,15 +33,28 @@ namespace offset {
   const static int cf_scope = 7;
   const static int cf_stk = 8;
 
+  const static int args_recv = 0;
+  const static int args_block = 1;
   const static int args_total = 2;
   const static int args_ary = 3;
 
+  const static int vars_block = 1;
+  const static int vars_exitted = 2;
+  const static int vars_method = 3;
+  const static int vars_module = 4;
+  const static int vars_parent = 5;
   const static int vars_self = 6;
+  const static int vars_num_locals = 7;
   const static int vars_tuple = 8;
 
   const static int tuple_field = 2;
 
   const static int cm_static_scope = 12;
+
+  const static int msg_name = 0;
+  const static int msg_module = 1;
+  const static int msg_method = 2;
+  const static int msg_method_missing = 3;
 };
 
 #include "llvm/jit_visit.hpp"
@@ -285,6 +299,9 @@ namespace rubinius {
     }
   }
 
+  void LLVMState::add_internal_functions() {
+  }
+
   LLVMState::LLVMState(STATE)
     : config_(state->shared.config)
     , global_lock_(state->global_lock())
@@ -326,6 +343,7 @@ namespace rubinius {
       // passes_->add(createCFGSimplificationPass());
       passes_->add(createDeadStoreEliminationPass());
       // passes_->add(createVerifierPass());
+      passes_->add(createScalarReplAggregatesPass());
     }
 
     object_ = ptr_type("Object");
@@ -338,6 +356,8 @@ namespace rubinius {
 
     engine_->addGlobalMapping(profiling_,
         reinterpret_cast<void*>(state->shared.profiling_address()));
+
+    add_internal_functions();
 
     background_thread_ = new BackgroundCompilerThread(this);
     background_thread_->run();
@@ -385,9 +405,11 @@ namespace rubinius {
   class BlockFinder : public VisitInstructions<BlockFinder> {
     BlockMap& map_;
     Function* function_;
-    int current_ip_;
+    opcode current_ip_;
     int force_break_;
     bool creates_blocks_;
+    int number_of_sends_;
+    bool loops_;
 
   public:
 
@@ -397,7 +419,21 @@ namespace rubinius {
       , current_ip_(0)
       , force_break_(false)
       , creates_blocks_(false)
+      , number_of_sends_(0)
+      , loops_(false)
     {}
+
+    bool creates_blocks() {
+      return creates_blocks_;
+    }
+
+    int number_of_sends() {
+      return number_of_sends_;
+    }
+
+    bool loops_p() {
+      return loops_;
+    }
 
     void at_ip(int ip) {
       current_ip_ = ip;
@@ -421,23 +457,33 @@ namespace rubinius {
     }
 
     void visit_goto(opcode which) {
+      if(current_ip_ < which) loops_ = true;
+
       break_at(which);
       next_ip_too();
     }
 
     void visit_goto_if_true(opcode which) {
+      if(current_ip_ < which) loops_ = true;
+
       break_at(which);
     }
 
     void visit_goto_if_false(opcode which) {
+      if(current_ip_ < which) loops_ = true;
+
       break_at(which);
     }
 
     void visit_goto_if_defined(opcode which) {
+      if(current_ip_ < which) loops_ = true;
+
       break_at(which);
     }
 
     void visit_setup_unwind(opcode which, opcode type) {
+      if(current_ip_ < which) loops_ = true;
+
       break_at(which);
     }
 
@@ -463,6 +509,34 @@ namespace rubinius {
 
     void visit_raise_exc() {
       next_ip_too();
+    }
+
+    void visit_create_block(opcode which) {
+      creates_blocks_ = true;
+    }
+
+    void visit_send_stack(opcode which, opcode args) {
+      number_of_sends_++;
+    }
+
+    void visit_send_method(opcode which) {
+      number_of_sends_++;
+    }
+
+    void visit_send_stack_with_block(opcode which, opcode args) {
+      number_of_sends_++;
+    }
+
+    void visit_send_stack_with_splat(opcode which, opcode args) {
+      number_of_sends_++;
+    }
+
+    void visit_send_super_stack_with_block(opcode which, opcode args) {
+      number_of_sends_++;
+    }
+
+    void visit_send_super_stack_with_splat(opcode which, opcode args) {
+      number_of_sends_++;
     }
   };
 
@@ -496,6 +570,7 @@ namespace rubinius {
 
     Value* stack_top;
     Value* method_entry_;
+    Value* method;
 
   public:
     LLVMWorkHorse(LLVMState* ls)
@@ -540,7 +615,7 @@ namespace rubinius {
     void initialize_call_frame(int stack_size) {
       Value* exec = new LoadInst(get_field(block, msg, 2), "msg.exec", block);
       Value* cm_gep = get_field(block, call_frame, offset::cf_cm);
-      Value* meth = CastInst::Create(
+      method = CastInst::Create(
           Instruction::BitCast,
           exec,
           cast<PointerType>(cm_gep->getType())->getElementType(),
@@ -555,7 +630,7 @@ namespace rubinius {
                     false, block);
 
       // cm
-      new StoreInst(meth, cm_gep, false, block);
+      new StoreInst(method, cm_gep, false, block);
 
       // flags
       new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
@@ -599,7 +674,7 @@ namespace rubinius {
           method_entry_,
           msg,
           args,
-          meth
+          method
         };
 
         sig.call("rbx_begin_profiling", call_args, 5, "", block);
@@ -650,6 +725,94 @@ namespace rubinius {
       BranchInst::Create(cont, top, cmp, top);
 
       block = cont;
+    }
+
+    void nil_locals(VMMethod* vmm) {
+      Value* nil = constant(Qnil, obj_type, block);
+      int size = vmm->number_of_locals;
+
+      if(size == 0) return;
+      // Stack size 5 or less, do 5 stores in a row rather than
+      // the loop.
+      if(size <= 5) {
+        for(int i = 0; i < size; i++) {
+          Value* idx[] = {
+            ConstantInt::get(Type::Int32Ty, 0),
+            ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
+            ConstantInt::get(Type::Int32Ty, i)
+          };
+
+          Value* gep = GetElementPtrInst::Create(vars, idx, idx+3, "stack_pos", block);
+          new StoreInst(nil, gep, block);
+        }
+        return;
+      }
+
+      Value* max = ConstantInt::get(Type::Int32Ty, size);
+      Value* one = ConstantInt::get(Type::Int32Ty, 1);
+
+      BasicBlock* top = BasicBlock::Create("locals_nil", func);
+      BasicBlock* cont = BasicBlock::Create("bottom", func);
+
+      Value* counter = new AllocaInst(Type::Int32Ty, 0, "counter_alloca", block);
+      new StoreInst(ConstantInt::get(Type::Int32Ty, 0), counter, block);
+
+      BranchInst::Create(top, block);
+
+      Value* cur = new LoadInst(counter, "counter", top);
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
+        cur
+      };
+
+      Value* gep = GetElementPtrInst::Create(vars, idx, idx+3, "stack_pos", top);
+      new StoreInst(nil, gep, top);
+
+      Value* added = BinaryOperator::CreateAdd(cur, one, "added", top);
+      new StoreInst(added, counter, top);
+
+      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, added, max, "loop_check", top);
+      BranchInst::Create(cont, top, cmp, top);
+
+      block = cont;
+    }
+
+    void setup_scope(VMMethod* vmm) {
+      Value* flag_idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 0)
+      };
+
+      Value* flag_pos = GetElementPtrInst::Create(vars, flag_idx, flag_idx+5,
+          "flag_pos", block);
+
+      new StoreInst(ConstantInt::get(Type::Int32Ty, 0), flag_pos, false, block);
+
+      Value* self = new LoadInst(get_field(block, args, offset::args_recv),
+                                 "args.recv", block);
+      new StoreInst(self, get_field(block, vars, offset::vars_self), false, block);
+      new StoreInst(method, get_field(block, vars, offset::vars_method),
+                    false, block);
+      Value* mod = new LoadInst(get_field(block, msg, offset::msg_module),
+                                "msg.module", block);
+      new StoreInst(mod, get_field(block, vars, offset::vars_module), false, block);
+
+      Value* blk = new LoadInst(get_field(block, args, offset::args_block),
+                                "args.block", block);
+      new StoreInst(blk, get_field(block, vars, offset::vars_block), false, block);
+
+      Value* locals = ConstantInt::get(Type::Int32Ty, vmm->number_of_locals);
+      new StoreInst(locals, get_field(block, vars, offset::vars_num_locals),
+                    false, block);
+
+      new StoreInst(Constant::getNullValue(vars->getType()),
+                    get_field(block, vars, offset::vars_parent), false, block);
+
+      nil_locals(vmm);
     }
 
     void import_args(VMMethod* vmm) {
@@ -715,7 +878,7 @@ namespace rubinius {
 
       Value* call_args[] = {
         vm_obj,
-        call_frame,
+        prev,
         dis_obj,
         arg_obj,
         ConstantInt::get(Type::Int32Ty, vmm->required_args)
@@ -727,24 +890,7 @@ namespace rubinius {
       // Switch to using continuation
       block = cont;
 
-      // Prepare the scope
-      Signature sig2(ls_, "Object");
-
-      sig2 << "VM";
-      sig2 << "VariableScope";
-      sig2 << "CallFrame";
-      sig2 << "Dispatch";
-      sig2 << "Arguments";
-
-      Value* call_args2[] = {
-        vm_obj,
-        vars,
-        call_frame,
-        dis_obj,
-        arg_obj
-      };
-
-      sig2.call("rbx_setup_scope", call_args2, 5, "", block);
+      setup_scope(vmm);
 
       // Import the arguments
       Value* idx1[] = {
@@ -909,14 +1055,20 @@ namespace rubinius {
 
     JITVisit visitor(ls, vmm, ls->module(), func,
                      work.block, work.stk, work.call_frame, work.stack_top,
-                     work.method_entry_, work.args);
+                     work.method_entry_, work.args,
+                     work.vars);
 
     // Pass 1, detect BasicBlock boundaries
     BlockFinder finder(visitor.block_map(), func);
     finder.drive(vmm);
 
-    // Check for interrupts at the top of every method...
-    visitor.visit_check_interrupts();
+    // DISABLED: This still has problems.
+    // visitor.set_creates_blocks(finder.creates_blocks());
+
+    if(finder.number_of_sends() > 0 || finder.loops_p()) {
+      // Check for interrupts at the top
+      visitor.visit_check_interrupts();
+    }
 
     // Pass 2, compile!
     try {
