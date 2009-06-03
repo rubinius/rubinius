@@ -146,6 +146,9 @@ module IRB
           rescue Exception
             candidates = []
           end
+
+          # Someone might override #methods to do something else!
+          candidates = [] unless candidates.kind_of? Array
         else
           # func1.func2
           candidates = []
