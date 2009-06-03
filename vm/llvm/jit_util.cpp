@@ -202,14 +202,6 @@ extern "C" {
                                               call_frame, index);
   }
 
-  void rbx_setup_scope(VariableScope* scope,
-                       Dispatch& msg, Arguments& args) {
-    CompiledMethod* cm = as<CompiledMethod>(msg.method);
-    VMMethod* vmm = cm->backend_method_;
-
-    scope->prepare(args.recv(), msg.module, args.block(), cm, vmm->number_of_locals);
-  }
-
   Object* rbx_construct_splat(STATE, CallFrame* call_frame, Arguments& args, size_t total) {
     if(args.total() > total) {
       size_t splat_size = args.total() - total;
