@@ -1124,67 +1124,86 @@ namespace rubinius {
       call_flags_ = flag;
     }
 
-    void visit_send_stack(opcode which, opcode args) {
-      SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
-      if(cache->execute == Primitives::tuple_at && args == 1) {
-        Value* recv = stack_back(1);
+    void call_tuple_at(SendSite::Internal* cache, opcode args) {
+      Value* recv = stack_back(1);
 
-        Value* flag_idx[] = {
-          ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, 0)
-        };
+      Value* flag_idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 0)
+      };
 
-        Value* gep = GetElementPtrInst::Create(recv, flag_idx, flag_idx+4, "flag_pos", block_);
-        Value* flags = new LoadInst(gep, "flags", block_);
+      Value* gep = GetElementPtrInst::Create(recv, flag_idx, flag_idx+4, "flag_pos", block_);
+      Value* flags = new LoadInst(gep, "flags", block_);
 
-        Value* mask = ConstantInt::get(Type::Int32Ty, (1 << 8) - 1);
-        Value* obj_type = BinaryOperator::CreateAnd(flags, mask, "mask", block_);
+      Value* mask = ConstantInt::get(Type::Int32Ty, (1 << 8) - 1);
+      Value* obj_type = BinaryOperator::CreateAnd(flags, mask, "mask", block_);
 
-        Value* tag = ConstantInt::get(Type::Int32Ty, rubinius::Tuple::type);
-        Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, obj_type, tag, "is_tuple", block_);
+      Value* tag = ConstantInt::get(Type::Int32Ty, rubinius::Tuple::type);
+      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, obj_type, tag, "is_tuple", block_);
 
-        BasicBlock* is_tuple = block("is_tuple");
-        BasicBlock* is_other = block("is_other");
-        BasicBlock* cont =     block("continue");
+      BasicBlock* is_tuple = block("is_tuple");
+      BasicBlock* access =   block("access");
+      BasicBlock* is_other = block("is_other");
+      BasicBlock* cont =     block("continue");
 
-        BranchInst::Create(is_tuple, is_other, cmp, block_);
+      BranchInst::Create(is_tuple, is_other, cmp, block_);
 
-        block_ = is_tuple;
+      block_ = is_tuple;
 
-        Value* index = tag_strip(stack_pop(), block_, Type::Int32Ty);
-        stack_remove(1);
+      Value* index_val = stack_pop();
 
-        const Type* tuple_type = ptr_type("Tuple");
+      Value* fix_mask = ConstantInt::get(IntPtrTy, TAG_FIXNUM_MASK);
+      Value* fix_tag  = ConstantInt::get(IntPtrTy, TAG_FIXNUM);
 
-        Value* tup = CastInst::Create(
+      Value* lint = cast_int(index_val);
+      Value* masked = BinaryOperator::CreateAnd(lint, fix_mask, "masked", block_);
+
+      Value* fix_cmp = new ICmpInst(ICmpInst::ICMP_EQ, masked, fix_tag, "is_fixnum", block_);
+
+      BranchInst::Create(access, is_other, fix_cmp, block_);
+
+      block_ = access;
+
+      Value* index = tag_strip(index_val, block_, Type::Int32Ty);
+      stack_remove(1);
+
+      const Type* tuple_type = ptr_type("Tuple");
+
+      Value* tup = CastInst::Create(
           Instruction::BitCast,
           recv,
           tuple_type, "as_tuple", block_);
 
-        Value* idx[] = {
-          ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, offset::tuple_field),
-          index
-        };
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, offset::tuple_field),
+        index
+      };
 
-        gep = GetElementPtrInst::Create(tup, idx, idx+3, "field_pos", block_);
+      gep = GetElementPtrInst::Create(tup, idx, idx+3, "field_pos", block_);
 
-        stack_push(new LoadInst(gep, "tuple_at", block_));
+      stack_push(new LoadInst(gep, "tuple_at", block_));
 
-        BranchInst::Create(cont, block_);
+      BranchInst::Create(cont, block_);
 
-        block_ = is_other;
+      block_ = is_other;
 
-        Value* ret = inline_cache_send(cache->name, args, cache, block_, allow_private_);
-        stack_remove(args + 1);
-        check_for_exception(ret);
+      Value* ret = inline_cache_send(cache->name, args, cache, block_, allow_private_);
+      stack_remove(args + 1);
+      check_for_exception(ret);
 
-        stack_push(ret);
+      stack_push(ret);
 
-        BranchInst::Create(cont, block_);
-        block_ = cont;
+      BranchInst::Create(cont, block_);
+      block_ = cont;
+    }
+
+    void visit_send_stack(opcode which, opcode args) {
+      SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
+      if(cache->execute == Primitives::tuple_at && args == 1) {
+        call_tuple_at(cache, args);
       } else {
         Value* ret = inline_cache_send(cache->name, args, cache, block_, allow_private_);
         stack_remove(args + 1);
