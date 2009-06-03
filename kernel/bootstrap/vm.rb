@@ -9,9 +9,37 @@ class Rubinius::VM
     raise PrimitiveFailure, "Rubinius::VM.stats primitive failed"
   end
 
-  def self.jit_info
+  def self.__jit_info__
     Ruby.primitive :vm_jit_info
     raise PrimitiveFailure, "Rubinius::VM.jit_info primitive failed"
+  end
+
+  class JITInfo
+    def initialize(methods, bytes, nanoseconds)
+      @jitted_methods = methods
+      @code_bytes = bytes
+      @nanoseconds = nanoseconds
+    end
+
+    attr_reader :jitted_methods
+    attr_reader :code_bytes
+    attr_reader :nanoseconds
+
+    def milliseconds
+      @nanoseconds / 1_000_000
+    end
+
+    def seconds
+      @nanoseconds.to_f / 1_000_000_000
+    end
+
+    def bytes_per_method
+      @code_bytes.to_f / @jitted_methods
+    end
+  end
+
+  def self.jit_info
+    JITInfo.new *__jit_info__
   end
 
   def self.load_library(path, name)

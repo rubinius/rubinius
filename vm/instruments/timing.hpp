@@ -50,4 +50,22 @@ static inline uint64_t get_current_time() {
 
 #endif
 
+namespace timer {
+  class Running {
+    uint64_t& result_;
+    uint64_t start_;
+
+  public:
+    Running(uint64_t& result)
+      : result_(result)
+    {
+      start_ = get_current_time();
+    }
+
+    ~Running() {
+      result_ += (get_current_time() - start_);
+    }
+  };
+}
+
 #endif

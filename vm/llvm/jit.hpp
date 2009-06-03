@@ -22,6 +22,8 @@
 
 #include "builtin/machine_method.hpp"
 
+#include "instruments/timing.hpp"
+
 namespace rubinius {
 
   enum JitDebug {
@@ -53,7 +55,12 @@ namespace rubinius {
     bool include_profiling_;
     llvm::GlobalVariable* profiling_;
 
+    int code_bytes_;
+
   public:
+
+    uint64_t time_spent;
+
     static LLVMState* get(STATE);
     static void shutdown(STATE);
     static void on_fork(STATE);
@@ -100,6 +107,14 @@ namespace rubinius {
       return ++jitted_methods_;
     }
 
+    int code_bytes() {
+      return code_bytes_;
+    }
+
+    void add_code_bytes(int bytes) {
+      code_bytes_ += bytes;
+    }
+
     SharedState& shared() { return shared_; }
 
     const llvm::Type* ptr_type(std::string name);
@@ -126,6 +141,10 @@ namespace rubinius {
 
     ~LLVMCompiler() {
       delete mci_;
+    }
+
+    int code_bytes() {
+      return mci_->size();
     }
 
     void initialize_call_frame(llvm::Function* func,

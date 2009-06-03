@@ -85,8 +85,11 @@ namespace rubinius {
 
   MachineMethod* MachineMethod::create(STATE, VMMethod* vmm) {
 #ifdef ENABLE_LLVM
+    LLVMState* ls = LLVMState::get(state);
+    timer::Running timer(ls->time_spent);
+
     LLVMCompiler* jit = new LLVMCompiler();
-    jit->compile(LLVMState::get(state), vmm);
+    jit->compile(ls, vmm);
 
     MachineMethod* mm = state->new_struct<MachineMethod>(G(machine_method));
 

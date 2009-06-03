@@ -268,6 +268,7 @@ namespace rubinius {
     G(object)->set_const(this, "MAIN", main); // HACK test hooking up MAIN
 
     GO(vm).set(new_class_under("VM", G(rubinius)));
+    G(vm)->name(state, state->symbol("Rubinius::VM"));
 
     Class::bootstrap_methods(this);
 

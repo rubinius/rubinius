@@ -313,9 +313,12 @@ namespace rubinius {
       return Qnil;
     }
 
-    Array* ary = Array::create(state, 2);
-    ary->set(state, 0, Integer::from(state, state->stats.jit_timing));
-    ary->set(state, 1, Integer::from(state, state->stats.jitted_methods));
+    LLVMState* ls = LLVMState::get(state);
+
+    Array* ary = Array::create(state, 3);
+    ary->set(state, 0, Integer::from(state, ls->jitted_methods()));
+    ary->set(state, 1, Integer::from(state, ls->code_bytes()));
+    ary->set(state, 2, Integer::from(state, ls->time_spent));
 
     return ary;
   }

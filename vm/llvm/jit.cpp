@@ -232,9 +232,14 @@ namespace rubinius {
         // mutex now unlock, allowing others to push more requests
         //
 
+
         LLVMCompiler* jit = new LLVMCompiler();
-        jit->compile(ls_, req->vmmethod());
-        jit->generate_function(ls_);
+
+        {
+          timer::Running timer(ls_->time_spent);
+          jit->compile(ls_, req->vmmethod());
+          jit->generate_function(ls_);
+        }
 
         if(show_machine_code_) {
           jit->show_machine_code();
@@ -252,9 +257,10 @@ namespace rubinius {
         mm->update(req->vmmethod(), jit);
         mm->activate();
 
+        int which = ls_->add_jitted_method();
         if(ls_->config().jit_show_compiling) {
           std::cout << "[[[ JIT finished background compiling "
-                    << ls_->add_jitted_method()
+                    << which
                     << " ]]]\n";
         }
 
@@ -308,6 +314,8 @@ namespace rubinius {
     , symbols_(state->symbols)
     , shared_(state->shared)
     , include_profiling_(state->shared.config.jit_profile)
+    , code_bytes_(0)
+    , time_spent(0)
   {
     bool fast_code_passes = false;
 
@@ -1107,12 +1115,15 @@ namespace rubinius {
     if(!mci_) {
       if(!function_) return NULL;
       mci_ = new llvm::MachineCodeInfo();
-      LLVMState::get(state)->engine()->runJITOnFunction(function_, mci_);
+      LLVMState* ls = LLVMState::get(state);
+      ls->engine()->runJITOnFunction(function_, mci_);
 
       if(state->shared.config.jit_dump_code & cMachineCode) {
         std::cout << "[[[ JIT Machine Code ]]]\n";
         assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
       }
+
+      ls->add_code_bytes(mci_->size());
     }
 
     return mci_->address();
@@ -1133,6 +1144,7 @@ namespace rubinius {
       if(!function_) return NULL;
       mci_ = new llvm::MachineCodeInfo();
       ls->engine()->runJITOnFunction(function_, mci_);
+      ls->add_code_bytes(mci_->size());
     }
 
     return mci_->address();
