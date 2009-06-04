@@ -313,6 +313,7 @@ namespace rubinius {
       return Qnil;
     }
 
+#ifdef ENABLE_LLVM
     LLVMState* ls = LLVMState::get(state);
 
     Array* ary = Array::create(state, 3);
@@ -321,6 +322,9 @@ namespace rubinius {
     ary->set(state, 2, Integer::from(state, ls->time_spent));
 
     return ary;
+#else
+    return Qnil;
+#endif
   }
 
   Object* System::vm_stats_gc_clear(STATE) {
