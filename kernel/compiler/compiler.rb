@@ -230,6 +230,7 @@ class Compiler
     # TODO - Implement the opt_* primitives it requires and reactivate
     # activate_default :auto_primitive
     activate_default :privately
+    activate :fast_coerce if Config['rbx-kernel']
   end
 
   def activate_default(name)

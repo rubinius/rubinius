@@ -421,7 +421,7 @@ class Compiler
         !@arguments.grep(Splat).empty?
       end
 
-      def bytecode(g)
+      def bytecode(g, try_plugin=true)
         g.set_line @line, @file
 
         # HACK deal with locals being inject for eval
@@ -430,7 +430,7 @@ class Compiler
           return
         end
 
-        return if use_plugin(g, :call)
+        return if try_plugin and use_plugin(g, :call)
 
         # @block might be BlockPass, and we don't generate the
         # LongReturnException detection code for that.

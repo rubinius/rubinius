@@ -464,6 +464,41 @@ class Compiler
     end
 
     ##
+    # Speeds up certain forms of Type.coerce_to
+    #
+    class FasterCoerceTo < Plugin
+      plugin :fast_coerce
+
+      def handle(g, call)
+        return false unless call_match(call, :Type, :coerce_to)
+        return false unless call.argcount == 3
+
+        args = call.arguments
+
+        if args[1].kind_of? Node::ConstFind and
+           args[0].kind_of? Node::LocalAccess
+          if args[1].name == :Fixnum
+            done = g.new_label
+
+            args[0].bytecode(g)
+            g.dup
+            g.send :__fixnum__, 0
+            g.git done
+
+            g.pop # remove the dup
+            call.bytecode(g, false)
+
+            done.set!
+
+            return true
+          end
+        end
+
+        return false
+      end
+    end
+
+    ##
     # Detects common simple expressions and simplifies them
 
     class AutoPrimitiveDetection < Plugin

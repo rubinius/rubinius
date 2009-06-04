@@ -401,7 +401,17 @@ class Array
   def at(idx)
     Ruby.primitive :array_aref
     idx = Type.coerce_to idx, Fixnum, :to_int
-    at idx
+
+    total = @start + @total
+
+    if idx < 0
+      idx += total
+    else
+      idx += @start
+    end
+
+    return nil if idx >= total or idx < @start
+    return @tuple.at(idx)
   end
 
   # Removes all elements in the Array and leaves it empty

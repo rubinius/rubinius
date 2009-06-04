@@ -14,7 +14,7 @@ class Array
   # THIS MUST NOT BE REMOVED. the kernel requires a simple
   # Array#[] to work while parts of the kernel boot.
   def [](idx)
-    Ruby.primitive :array_aref
+    at(idx)
   end
 
   def []=(idx, ent)
@@ -36,8 +36,9 @@ class Array
   # Array. If the index is out of range, nil is
   # returned. Slightly faster than +Array#[]+
   def at(idx)
-    Ruby.primitive :array_aref
-    raise PrimitiveFailure, "array_aref failed"
+    idx = @total - idx if idx < 0
+    return nil if idx > @total
+    @tuple[@start + idx]
   end
 
   # Runtime method to support case when *foo syntax

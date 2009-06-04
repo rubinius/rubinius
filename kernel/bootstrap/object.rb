@@ -21,4 +21,9 @@ class Object
     raise PrimitiveFailure, "Object#set_instance_variable primitive failed"
   end
   private :set_instance_variable
+
+  def __fixnum__
+    Ruby.primitive :object_is_fixnum
+    kind_of? Fixnum
+  end
 end

@@ -1294,12 +1294,34 @@ namespace rubinius {
       allow_private_ = false;
     }
 
+    /*
+     * This is causing a minor slowdown, shows up on
+     * running an empty times loop, so it's not used atm. */
+    void call_is_fixnum() {
+      Value* index_val = stack_pop();
+
+      Value* fix_mask = ConstantInt::get(IntPtrTy, TAG_FIXNUM_MASK);
+      Value* fix_tag  = ConstantInt::get(IntPtrTy, TAG_FIXNUM);
+
+      Value* lint = cast_int(index_val);
+      Value* masked = BinaryOperator::CreateAnd(lint, fix_mask, "masked", block_);
+
+      Value* fix_cmp = new ICmpInst(ICmpInst::ICMP_EQ, masked, fix_tag, "is_fixnum", block_);
+      Value* imm_value = SelectInst::Create(fix_cmp, constant(Qtrue),
+          constant(Qfalse), "select_bool", block_);
+      stack_push(imm_value);
+    }
+
     void visit_send_method(opcode which) {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
-      Value* ret = inline_cache_send(cache->name, 0, cache, block_, allow_private_);
-      stack_remove(1);
-      check_for_exception(ret);
-      stack_push(ret);
+      if(false && cache->execute == Primitives::object_is_fixnum) {
+        call_is_fixnum();
+      } else {
+        Value* ret = inline_cache_send(cache->name, 0, cache, block_, allow_private_);
+        stack_remove(1);
+        check_for_exception(ret);
+        stack_push(ret);
+      }
 
       allow_private_ = false;
     }
