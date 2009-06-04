@@ -39,8 +39,6 @@ module Type
   
   def self.coerce_to_comparison(a, b, cmp = (a <=> b))
     raise ArgumentError, "comparison of #{a} with #{b} failed" if cmp.nil?
-    return 1 if cmp > 0
-    return -1 if cmp < 0
-    0
+    cmp
   end
 end
