@@ -199,9 +199,9 @@ class Array
       end
 
       newtotal = (index > @total) ? index : @total
-      if(replacement.size > ins_length)
+      if replacement.size > ins_length
         newtotal += replacement.size - ins_length
-      elsif(replacement.size < ins_length)
+      elsif replacement.size < ins_length
         newtotal -= ins_length - replacement.size
       end
 
@@ -300,7 +300,7 @@ class Array
       out.taint if self.tainted? && val > 0
 
       i = 0
-      while(i < new_size)
+      while i < new_size
         nt.copy_from(@tuple,@start,@total, i)
         i += sz
       end
@@ -368,7 +368,7 @@ class Array
 
     Thread.detect_recursion self, other do
       i = 0
-      while(i < size)
+      while i < size
         return false unless at(i) == other.at(i)
         i += 1
       end
@@ -383,7 +383,7 @@ class Array
   # Array that matches (the first 'associated' Array) or nil.
   def assoc(obj)
     i = 0
-    while(i < @total)
+    while i < @total
       elem = at(i)
       if elem.kind_of? Array and elem.first == obj
         return elem
@@ -423,14 +423,14 @@ class Array
   end
 
   # Returns a copy of self with all nil elements removed
-  def compact()
+  def compact
     out = dup
     out.compact! || out
   end
 
   # Removes all nil elements from self, returns nil if no changes
-  def compact!()
-    if((deleted = @tuple.delete(@start,@total,nil)) > 0)
+  def compact!
+    if (deleted = @tuple.delete(@start,@total,nil)) > 0
       @total -= deleted
       reallocate_shrink()
       return self
@@ -460,14 +460,14 @@ class Array
     key = Undefined
     i = @start
     tot = @start + @total
-    while(i < tot)
-      if(@tuple.at(i) == obj)
+    while i < tot
+      if @tuple.at(i) == obj
         @tuple.put(i, key)
       end
       i+=1
     end
 
-    if((deleted = @tuple.delete(@start,@total,key)) > 0)
+    if (deleted = @tuple.delete(@start,@total,key)) > 0
       @total -= deleted
       reallocate_shrink()
       return obj
@@ -509,7 +509,7 @@ class Array
 
     Thread.detect_recursion self, other do
       i = 0
-      while(i < @total)
+      while i < @total
         curr = at(i)
         other_curr = other.at(i)
         return false unless curr.eql?(other_curr)
@@ -639,7 +639,7 @@ class Array
   end
 
   # Recursively flatten any contained Arrays into an one-dimensional result.
-  def flatten()
+  def flatten
     dup.flatten! || self
   end
 
@@ -656,7 +656,7 @@ class Array
   # Computes a Fixnum hash code for this Array. Any two
   # Arrays with the same content will have the same hash
   # code (similar to #eql?)
-  def hash()
+  def hash
     # IMPROVE: This is a really really poor implementation of hash for an array, but
     # it does work. It should be replaced with something much better, but I'm not sure
     # what level it belongs at.
@@ -676,7 +676,7 @@ class Array
   # Presence is determined by calling elem == obj until found.
   def include?(obj)
     i = 0
-    while i < @total do
+    while i < @total
       return true if at(i) == obj
       i += 1
     end
@@ -687,7 +687,7 @@ class Array
   # for which elem == obj is true or nil.
   def index(obj)
     i = 0
-    while i < @total do
+    while i < @total
       return i if at(i) == obj
       i += 1
     end
@@ -749,7 +749,7 @@ class Array
   # the Array to strings, inserting a separator between
   # each. The separator defaults to $,. Detects recursive
   # Arrays.
-  def join(sep = nil, method = :to_s)
+  def join(sep=nil, method=:to_s)
     return "" if @total == 0
     out = ""
     return "[...]" if Thread.detect_recursion self do
@@ -778,7 +778,7 @@ class Array
   # Returns the last element or n elements of self. If
   # the Array is empty, without a count nil is returned,
   # otherwise an empty Array. Always returns an Array.
-  def last(n = Undefined)
+  def last(n=Undefined)
     if @total < 1
       return if n.equal? Undefined
       return []
@@ -878,7 +878,7 @@ class Array
   end
 
   # Removes and returns the last element from the Array.
-  def pop()
+  def pop
     return nil if empty?
 
     @total -= 1
@@ -926,7 +926,7 @@ class Array
 
   # Returns a new Array or subclass populated from self
   # but in reverse order.
-  def reverse()
+  def reverse
     dup.reverse!
   end
 
@@ -937,7 +937,7 @@ class Array
 
     i = @start
     j = @start + @total - 1
-    while(i < (@start+@total/2)) do
+    while i < (@start+@total/2)
       @tuple.swap(i,j)
       i += 1
       j -= 1
@@ -959,11 +959,11 @@ class Array
   # Removes and returns the first element in the
   # Array or nil if empty. All other elements are
   # moved down one index.
-  def shift()
+  def shift
     return nil if @total == 0
 
-    obj = @tuple.at(@start)
-    @tuple.put(@start,nil)
+    obj = @tuple.at @start
+    @tuple.put @start, nil
     @start += 1
     @total -= 1
 
@@ -1026,7 +1026,7 @@ class Array
 
   # Returns self except on subclasses which are converted
   # or 'upcast' to Arrays.
-  def to_a()
+  def to_a
     if self.class == Array
       self
     else
@@ -1035,13 +1035,13 @@ class Array
   end
 
   # Returns self
-  def to_ary()
+  def to_ary
     self
   end
 
   # Produces a string by joining all elements without a
   # separator. See #join
-  def to_s()
+  def to_s
     self.join
   end
 
@@ -1049,7 +1049,7 @@ class Array
   # transposes their rows and columns so that the first contained
   # Array in the result includes the first elements of all the
   # Arrays and so on.
-  def transpose()
+  def transpose
     return [] if empty?
 
     out, max = [], nil
@@ -1069,11 +1069,11 @@ class Array
 
   # Returns a new Array by removing duplicate entries
   # from self. Equality is determined by using a Hash
-  def uniq()
+  def uniq
     seen, out = {}, self.class.new
 
     i = 0
-    while(i < @total)
+    while i < @total
       elem = at(i)
       unless seen[elem]
         out << elem
@@ -1085,7 +1085,7 @@ class Array
   end
 
   # Removes duplicates from the Array in place as #uniq
-  def uniq!()
+  def uniq!
     ary = uniq
     replace(ary) if size != ary.size
   end
@@ -1100,10 +1100,8 @@ class Array
     args.each { |elem|
       # Cannot use #[] because of subtly different errors
       if elem.kind_of? Range
-        finish = elem.last
-        start = elem.first
-
-        start, finish = Type.coerce_to(start, Fixnum, :to_int), Type.coerce_to(finish, Fixnum, :to_int)
+        finish = Type.coerce_to elem.last, Fixnum, :to_int
+        start = Type.coerce_to elem.first, Fixnum, :to_int
 
         start += @total if start < 0
         next if start < 0
@@ -1163,7 +1161,7 @@ class Array
   end
 
   def unshift(*values)
-    if(@start > values.size)
+    if @start > values.size
       # fit the new values in between 0 and @start if possible
       @start -= values.size
       @tuple.copy_from(values.tuple,0,values.size,@start)
@@ -1205,14 +1203,14 @@ class Array
 
   private :reallocate
 
-  def reallocate_shrink()
+  def reallocate_shrink
     new_size = @tuple.size
-    return if(@total > (new_size / 3))
+    return if @total > (new_size / 3)
 
     # halve the tuple size until the total > 1/3 the size of the total
     begin
       new_size /= 2
-    end while(@total < (new_size / 6))
+    end while @total < (new_size / 6)
 
     tuple = Rubinius::Tuple.new(new_size)
     # position values in the middle somewhere
@@ -1255,7 +1253,7 @@ class Array
   MEDIAN_THRESHOLD  = 11
 
   # In-place non-recursive sort between the given indexes.
-  def qsort!()
+  def qsort!
     # Stack stores the indexes that still need sorting
     stack = []
     left_end, right_end = @start, (@total - 1)

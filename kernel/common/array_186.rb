@@ -5,14 +5,14 @@ class Array
     key = Undefined
     i = @start
     tot = @start + @total
-    while(i < tot)
-      if(yield(@tuple.at(i)))
+    while i < tot
+      if yield(@tuple.at(i))
         @tuple.put(i, key)
       end
       i+=1
     end
 
-    if((deleted = @tuple.delete(@start,@total,key)) > 0)
+    if (deleted = @tuple.delete(@start,@total,key)) > 0
       @total -= deleted
       reallocate_shrink()
     end
@@ -22,7 +22,7 @@ class Array
   # Passes each index of the Array to the given block
   # and returns self.  We re-evaluate @total each time
   # through the loop in case the array has changed.
-  def each_index()
+  def each_index
     i = 0
     while i < @total
       yield i
@@ -49,11 +49,11 @@ class Array
 
   # Goes through the Array back to front and yields
   # each element to the supplied block. Returns self.
-  def reverse_each()
+  def reverse_each
     i = @total - 1
     while i >= 0 do
-      yield(at(i))
-      i = @total if @total < i      
+      yield at(i)
+      i = @total if @total < i
       i -= 1
     end
     self
