@@ -14,11 +14,17 @@ module Kernel
   module_function :Float
 
   def Integer(obj)
-    if obj.is_a?(String)
+    if obj.is_a? String
       if obj == ''
         raise ArgumentError, "invalid value for Integer: (empty string)"
       else
         return obj.to_inum(0, true)
+      end
+    elsif obj.is_a? Float
+      if obj.nan? or obj.infinite?
+        raise FloatDomainError, "unable to coerce #{obj} to Integer"
+      else
+        return obj.to_int
       end
     end
     method = obj.respond_to?(:to_int) ? :to_int : :to_i
