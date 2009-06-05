@@ -63,7 +63,7 @@ namespace :bench do
 
       File.open name, "r" do |file|
         YAML.load_documents file do |doc|
-          bench_name = doc["name"][(BASEDIR.size+1)..-1]
+          bench_name = File.basename(doc["name"], ".rb")
           status[bench_name][system] ||= doc["status"]
 
           next unless doc.key? field
