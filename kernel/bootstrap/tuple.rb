@@ -42,7 +42,43 @@ module Rubinius
 
     def copy_from(other, start, length, dest)
       Ruby.primitive :tuple_copy_from
-      raise PrimitiveFailure, "Tuple#copy_from primitive failed"
+
+      unless other.kind_of? Rubinius::Tuple
+        raise TypeError, "Tuple#copy_from was expecting a Tuple, not a #{other.class}"
+      end
+      start = Type.coerce_to start, Fixnum, :to_i
+      length = Type.coerce_to length, Fixnum, :to_i
+      dest = Type.coerce_to dest, Fixnum, :to_i
+
+      if start < 0 || start > other.fields
+        raise IndexError, "Start %d is out of bounds %d" % [start, other.fields]
+      end
+
+      if dest < 0 || dest > self.fields
+        raise IndexError, "Destination %d is out of bounds %d" % [dest, self.fields]
+      end
+
+      if length < 0
+        raise IndexError, "length %d must be positive" % [length]
+      end
+
+      if (start + length) > other.fields
+        raise IndexError, "end index %d can not exceed size of source %d" % [start+length, other.fields]
+      end
+
+      if length > (self.fields - dest)
+        raise IndexError, "length %d can not exceed space %d in destination" % [length, self.fields - dest]
+      end
+
+      src = start
+      dst = dest
+      while src < (start + length)
+        put dst, other.at(src)
+        src += 1
+        dst += 1
+      end
+
+      self
     end
 
     def dup
