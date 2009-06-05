@@ -183,6 +183,28 @@ class Float
   end
 end
 
+module Unmarshalable
+  def to_marshal(ms)
+    raise TypeError, "marshaling is undefined for class #{self.class}"
+  end
+end
+
+class Method
+  include Unmarshalable
+end
+
+class Proc
+  include Unmarshalable
+end
+
+class IO
+  include Unmarshalable
+end
+
+class MatchData
+  include Unmarshalable
+end
+
 module Marshal
 
   MAJOR_VERSION = 4
