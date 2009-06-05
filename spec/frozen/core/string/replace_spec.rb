@@ -23,15 +23,29 @@ describe "String#replace" do
 
   it "raises a TypeError if other can't be converted to string" do
     lambda { "hello".replace(123)       }.should raise_error(TypeError)
-    lambda { "hello".replace(:test)     }.should raise_error(TypeError)
+    lambda { "hello".replace([])     }.should raise_error(TypeError)
     lambda { "hello".replace(mock('x')) }.should raise_error(TypeError)
   end
 
-  it "raises a TypeError if self is frozen" do
-    a = "hello".freeze
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError if self is frozen" do
+      a = "hello".freeze
 
-    a.replace(a) # ok, no change
-    lambda { a.replace("")      }.should raise_error(TypeError)
-    lambda { a.replace("world") }.should raise_error(TypeError)
+      a.replace(a) # ok, no change
+      lambda { a.replace("")      }.should raise_error(TypeError)
+      lambda { a.replace("world") }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    ruby_bug "[ruby-core:23666]", "1.9.2" do
+      it "raises a RuntimeError if self is frozen" do
+        a = "hello".freeze
+
+        lambda { a.replace(a)       }.should raise_error(RuntimeError)
+        lambda { a.replace("")      }.should raise_error(RuntimeError)
+        lambda { a.replace("world") }.should raise_error(RuntimeError)
+      end
+    end
   end
 end

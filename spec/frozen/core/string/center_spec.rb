@@ -79,7 +79,7 @@ describe "String#center with length, padding" do
   
   it "raises a TypeError when padstr can't be converted to a string" do
     lambda { "hello".center(20, 100)       }.should raise_error(TypeError)
-    lambda { "hello".center(20, :llo)      }.should raise_error(TypeError)
+    lambda { "hello".center(20, [])      }.should raise_error(TypeError)
     lambda { "hello".center(20, mock('x')) }.should raise_error(TypeError)
   end
   

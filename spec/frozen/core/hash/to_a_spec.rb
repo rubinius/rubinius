@@ -6,8 +6,8 @@ describe "Hash#to_a" do
     h = new_hash(:a => 1, 1 => :a, 3 => :b, :b => 5)
     pairs = []
 
-    h.each_pair do |*pair|
-      pairs << pair
+    h.each_pair do |key, value|
+      pairs << [key, value]
     end
 
     h.to_a.class.should == Array

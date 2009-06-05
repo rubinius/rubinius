@@ -222,7 +222,11 @@ describe "String#unpack with 'DdEeFfGg' directives" do
       res[0].should be_close(96.0057601928711, @precision_small)
       res[1].should be_close(2.23645357166299e-38, @precision_small)
 
-      "\xFF\x80\x00\x00".unpack('g').to_s.should == "-Infinity"
+      # We expect -Infinity to be the result, i.e. a Float object named
+      # -Infinity. There doesn't seem to be any way to declare this
+      # explicitly, so we generate it by summing the maximum Float value and
+      # inverting the result...
+      "\xFF\x80\x00\x00".unpack('g')[0].should == -(Float::MAX + Float::MAX)
       "\x01\x62\xEE\x42".unpack('e-7e')[0].should  be_close(
           119.191413879395, @precision_small)
       "\x00\x00\x00\x00".unpack('f5').should == [0.0, nil, nil, nil, nil]

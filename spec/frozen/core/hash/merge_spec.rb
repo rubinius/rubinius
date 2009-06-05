@@ -48,21 +48,27 @@ describe "Hash#merge" do
     h = new_hash(1 => 2, 3 => 4, 5 => 6, "x" => nil, nil => 5, [] => [])
     merge_pairs = []
     each_pairs = []
-    h.each_pair { |*pair| each_pairs << pair }
+    h.each_pair { |k, v| each_pairs << [k, v] }
     h.merge(h) { |k, v1, v2| merge_pairs << [k, v1] }
     merge_pairs.should == each_pairs
   end
 
-  it_behaves_like(:hash_iteration_method, :merge)
-  it_behaves_like(:hash_iteration_modifying, :merge)
 end
 
 describe "Hash#merge!" do
   it_behaves_like(:hash_update, :merge!)
 
-  it_behaves_like(:hash_iteration_method, :merge!)
-
-  compliant_on :rubinius do
-    it_behaves_like(:hash_iteration_modifying, :merge!)
+  # This bug is far too odd to explain in a comment; see
+  # http://redmine.ruby-lang.org/issues/show/1535 for the closest I've got to
+  # an explanation.
+  ruby_bug "#1535", "1.8.7.167" do
+    it "shouldn't raise spurious RuntimeErrors" do
+      hash = {1 => 2, 3 => 4, 5 => 6}
+      big_hash = {}
+      64.times { |k| big_hash[k.to_s] = k }
+      lambda{
+        hash.each { hash.merge!(big_hash) }
+      }.should_not raise_error(RuntimeError)
+    end
   end
 end

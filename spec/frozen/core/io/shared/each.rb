@@ -1,14 +1,15 @@
+# encoding: utf-8
 require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe :io_each, :shared => true do
   before(:each) do
     @io = File.open(IOSpecs.gets_fixtures)
   end
-  
+
   after(:each) do
     @io.close
   end
-  
+
   it "yields each line to the passed block" do
     seen = []
     @io.send(@method) {|s| seen << s }
@@ -21,7 +22,7 @@ describe :io_each, :shared => true do
       "Est\303\241 aqui a linha cinco.\n",
       "Here is line six.\n"]
   end
-  
+
   it "yields each line starting from the current position" do
     seen = []
     @io.pos = 40
@@ -52,7 +53,7 @@ describe :io_each, :shared => true do
   it "returns self" do
     @io.send(@method) {|l| l }.should equal(@io)
   end
-  
+
   it "raises an IOError when self is not readable" do
     # method must have a block in order to raise the IOError.
     # MRI 1.8.7 returns enumerator if block is not provided.
@@ -70,7 +71,7 @@ describe :io_each, :shared => true do
     it "returns an Enumerator when passed no block" do
       enum = @io.send(@method)
       enum.instance_of?(enumerator_class).should be_true
-      
+
       seen = []
       enum.each { |b| seen << b }
       seen.should == ["Voici la ligne une.\n",
@@ -89,7 +90,7 @@ describe :io_each_separator, :shared => true do
   before(:each) do
     @io = File.open(IOSpecs.gets_fixtures)
   end
-  
+
   after(:each) do
     @io.close
   end
@@ -102,7 +103,7 @@ describe :io_each_separator, :shared => true do
       "tres.\nIst ", "hier ", "Linie ", "vier.\n\nEst\303\241 ", "aqui ", "a ",
       "linha ", "cinco.\nHere ", "is ", "line ", "six.\n"]
   end
-  
+
   it "does not change $_" do
     $_ = "test"
     @io.send(@method, " ") { |s| s}
@@ -116,7 +117,7 @@ describe :io_each_separator, :shared => true do
   it "tries to convert the passed separator to a String using #to_str" do
     obj = mock("to_str")
     obj.stub!(:to_str).and_return(" ")
-    
+
     seen = []
     @io.send(@method, obj) { |l| seen << l }
     seen.should == ["Voici ", "la ", "ligne ", "une.\nQui ", "\303\250 ", "la ",
@@ -131,7 +132,7 @@ describe :io_each_separator, :shared => true do
     @io.send(@method, nil) {|s| seen << s}
     seen.should == ["qui a linha cinco.\nHere is line six.\n"]
   end
-  
+
   it "yields each paragraph when passed an empty String as separator" do
     seen = []
     para_file = File.dirname(__FILE__) + '/../fixtures/paragraphs.txt'

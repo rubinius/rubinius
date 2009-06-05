@@ -2,8 +2,16 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
 describe "String#initialize" do
-  it "is a private method" do
-    "".private_methods.should include("initialize")
+  ruby_version_is ""..."1.9" do
+    it "is a private method" do
+      "".private_methods.should include("initialize")
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "is a private method" do
+      "".private_methods.should include(:initialize)
+    end
   end
 
   it "replaces contents of self with the passed string" do
@@ -50,16 +58,26 @@ describe "String#initialize" do
     String.new obj
   end
 
-  # Rubinius String makes a String of 5 NULs.  This behavior may need to be
-  # removed from many places.
   it "raises TypeError on inconvertible object" do
     lambda { String.new 5 }.should raise_error(TypeError)
+    lambda { String.new nil }.should raise_error(TypeError)
   end
 
-  it "raises a TypeError if self is frozen" do
-    a = "hello".freeze
+  ruby_version_is ""..."1.9" do 
+    it "raises a TypeError if self is frozen" do
+      a = "hello".freeze
 
-    a.send :initialize, a
-    lambda { a.send :initialize, "world" }.should raise_error(TypeError)
+      a.send :initialize, a
+      lambda { a.send :initialize, "world" }.should raise_error(TypeError)
+    end
   end
+
+  ruby_version_is "1.9" do   
+    it "raises a RuntimeError if self is frozen" do
+      a = "hello".freeze
+
+      a.send :initialize, a
+      lambda { a.send :initialize, "world" }.should raise_error(RuntimeError)
+    end
+  end  
 end

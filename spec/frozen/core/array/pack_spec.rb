@@ -174,7 +174,7 @@ describe "Array#pack with ASCII-string format", :shared => true do
 
   it "raises a TypeError if array item is not String with ('A<count>')" do
     lambda { [123].pack(format(5)) }.should raise_error(TypeError)
-    lambda { [:hello].pack(format(5)) }.should raise_error(TypeError)
+    lambda { [[]].pack(format(5)) }.should raise_error(TypeError)
     lambda { [mock('not string')].pack(format(5)) }.should raise_error(TypeError)
   end
 
@@ -309,7 +309,7 @@ describe "Array#pack with format 'B'" do
 
   it "raises a TypeError if corresponding array item is not String" do
     lambda { [123].pack('B8') }.should raise_error(TypeError)
-    lambda { [:data].pack('B8') }.should raise_error(TypeError)
+    lambda { [[]].pack('B8') }.should raise_error(TypeError)
     lambda { [mock('not string')].pack('B8') }.should raise_error(TypeError)
   end
 
@@ -394,7 +394,7 @@ describe "Array#pack with format 'b'" do
 
   it "raises a TypeError if corresponding array item is not String" do
     lambda { [123].pack('b8') }.should raise_error(TypeError)
-    lambda { [:data].pack('b8') }.should raise_error(TypeError)
+    lambda { [[]].pack('b8') }.should raise_error(TypeError)
     lambda { [mock('not string')].pack('b8') }.should raise_error(TypeError)
   end
 
@@ -1551,14 +1551,18 @@ describe "Array#pack with float format", :shared => true do
   end
 
   it "tries to convert the pack argument to a Float using #to_f" do
-    obj = mock('to_f')
-    obj.should_receive(:to_f).and_return(1.5)
-    lambda{ [obj].pack(format) }.should_not raise_error
+    # 1.9 requires that the object actually be Numeric before calling #to_f on
+    # it; 1.8 doesn't care.
+    num = mock_numeric('number')
+    num.should_receive(:to_f).and_return(1.5)
+    lambda{ [num].pack(format) }.should_not raise_error
   end
 
-  it "accepts a string representation of real number as the pack argument" do
-    lambda{ ["1.3333"].pack(format) }.should_not raise_error(TypeError)
-    lambda{ ["-1.3333"].pack(format) }.should_not raise_error(TypeError)
+  ruby_version_is ""..."1.9" do
+    it "accepts a string representation of real number as the pack argument" do
+      lambda{ ["1.3333"].pack(format) }.should_not raise_error(TypeError)
+      lambda{ ["-1.3333"].pack(format) }.should_not raise_error(TypeError)
+    end
   end
 
   it "accepts an integer as the pack argument" do
@@ -2035,7 +2039,7 @@ describe "Array#pack with format 'm'" do
 
   it "raises a TypeError if corresponding array item is not string" do
     lambda { [123].pack('m') }.should raise_error(TypeError)
-    lambda { [:hello].pack('m') }.should raise_error(TypeError)
+    lambda { [[]].pack('m') }.should raise_error(TypeError)
     lambda { [mock('not string')].pack('m') }.should raise_error(TypeError)
   end
 
@@ -2195,7 +2199,7 @@ describe "Array#pack with format 'u'" do
 
   it "raises a TypeError if corresponding array item is not string" do
     lambda { [123].pack('u') }.should raise_error(TypeError)
-    lambda { [:hello].pack('u') }.should raise_error(TypeError)
+    lambda { [[]].pack('u') }.should raise_error(TypeError)
     lambda { [mock('not string')].pack('u') }.should raise_error(TypeError)
   end
 

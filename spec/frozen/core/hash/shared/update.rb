@@ -34,8 +34,20 @@ describe :hash_update, :shared => true do
     merge_bang_pairs.should == merge_pairs
   end
 
-  it "raises a TypeError if called on a non-empty, frozen instance" do
-    HashSpecs.frozen_hash.send(@method, HashSpecs.empty_frozen_hash) # ok, empty
-    lambda { HashSpecs.frozen_hash.send(@method, 1 => 2) }.should raise_error(TypeError)
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError if called on a non-empty, frozen instance" do
+      HashSpecs.frozen_hash.send(@method, HashSpecs.empty_frozen_hash) # ok, empty
+      lambda { HashSpecs.frozen_hash.send(@method, 1 => 2) }.should raise_error(TypeError)
+    end
+  end
+  ruby_version_is "1.9" do
+    ruby_bug "#1571", "1.9.2" do
+      it "raises a RuntimeError if called on a frozen instance" do
+        lambda { HashSpecs.frozen_hash.send(@method, HashSpecs.empty_frozen_hash) }.
+          should raise_error(RuntimeError)
+        lambda { HashSpecs.frozen_hash.send(@method, 1 => 2) }.
+          should raise_error(RuntimeError)
+      end
+    end
   end
 end

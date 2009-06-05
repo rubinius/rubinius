@@ -11,13 +11,26 @@ describe "IO#readchar" do
     @file.close unless @file.closed?
   end
 
-  it "returns the next byte from the stream" do
-    @file.readchar.should == 86
-    @file.readchar.should == 111
-    @file.readchar.should == 105
-    # read the rest of line
-    @file.readline.should == "ci la ligne une.\n"
-    @file.readchar.should == 81
+  ruby_version_is "" ... "1.9" do
+    it "returns the next byte from the stream" do
+      @file.readchar.should == 86
+      @file.readchar.should == 111
+      @file.readchar.should == 105
+      # read the rest of line
+      @file.readline.should == "ci la ligne une.\n"
+      @file.readchar.should == 81
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns the next string from the stream" do
+      @file.readchar.should == 'V'
+      @file.readchar.should == 'o'
+      @file.readchar.should == 'i'
+      # read the rest of line
+      @file.readline.should == "ci la ligne une.\n"
+      @file.readchar.should == 'Q'
+    end
   end
 
   it "raises EOFError when invoked at the end of the stream" do

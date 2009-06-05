@@ -29,6 +29,6 @@ describe "Set#divide when passed a block with an arity of 2" do
   it "yields each two Object to the block" do
     ret = []
     Set[1, 2].divide { |x, y| ret << [x, y] }
-    ret.should == [[1, 1], [1, 2], [2, 1], [2, 2]]
+    ret.sort.should == [[1, 1], [1, 2], [2, 1], [2, 2]]
   end
 end

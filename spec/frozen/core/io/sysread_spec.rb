@@ -50,9 +50,18 @@ describe "IO#sysread on a file" do
     @file.sysread(5).should == "56789"
   end
   
-  it "throws IOError when called immediately after a buffered IO#read" do
-    @file.read(15)
-    lambda { @file.sysread(5) }.should raise_error(IOError)
+  ruby_version_is "" ... "1.9" do
+    it "throws IOError when called immediately after a buffered IO#read" do
+      @file.read(15)
+      lambda { @file.sysread(5) }.should raise_error(IOError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "reads normally even when called immediately after a buffered IO#read" do
+      @file.read(15)
+      @file.sysread(5).should == "56789"
+    end
   end
   
   it "does not raise error if called after IO#read followed by IO#write" do

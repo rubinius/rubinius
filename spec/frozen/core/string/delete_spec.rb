@@ -69,7 +69,7 @@ describe "String#delete" do
 
   it "raises a TypeError when one set arg can't be converted to a string" do
     lambda { "hello world".delete(100)       }.should raise_error(TypeError)
-    lambda { "hello world".delete(:o)        }.should raise_error(TypeError)
+    lambda { "hello world".delete([])        }.should raise_error(TypeError)
     lambda { "hello world".delete(mock('x')) }.should raise_error(TypeError)
   end
 
@@ -91,11 +91,23 @@ describe "String#delete!" do
     a.should == "hello"
   end
 
-  it "raises a TypeError when self is frozen" do
-    a = "hello"
-    a.freeze
+  ruby_version_is ""..."1.9" do 
+    it "raises a TypeError when self is frozen" do
+      a = "hello"
+      a.freeze
 
-    lambda { a.delete!("")            }.should raise_error(TypeError)
-    lambda { a.delete!("aeiou", "^e") }.should raise_error(TypeError)
+      lambda { a.delete!("")            }.should raise_error(TypeError)
+      lambda { a.delete!("aeiou", "^e") }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is "1.9" do 
+    it "raises a RuntimeError when self is frozen" do
+      a = "hello"
+      a.freeze
+
+      lambda { a.delete!("")            }.should raise_error(RuntimeError)
+      lambda { a.delete!("aeiou", "^e") }.should raise_error(RuntimeError)
+    end
   end
 end

@@ -15,7 +15,7 @@ describe "Resolv#getaddress" do
     }.should_not raise_error(Resolv::ResolvError)
 
     lambda {
-      address = Resolv.getaddress("should.raise.error")
+      address = Resolv.getaddress("should.raise.error.")
     }.should raise_error(Resolv::ResolvError)
   end
 

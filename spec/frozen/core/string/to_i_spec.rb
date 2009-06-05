@@ -2,23 +2,32 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
 describe "String#to_i" do
-  it "ignores leading whitespaces" do
-    [ " 123", "     123", "\r\n\r\n123", "\t\t123",
-      "\r\n\t\n123", " \t\n\r\t 123"].each do |str|
-      str.to_i.should == 123
+  # Ruby 1.9 doesn't allow underscores and spaces as part of a number
+  ruby_version_is ""..."1.9" do
+    it "ignores leading whitespaces" do
+      [ " 123", "     123", "\r\n\r\n123", "\t\t123",
+        "\r\n\t\n123", " \t\n\r\t 123"].each do |str|
+        str.to_i.should == 123
+      end
+    end
+    
+    it "ignores leading underscores" do
+      "_123".to_i.should == 123
+      "__123".to_i.should == 123
+      "___123".to_i.should == 123
+    end
+    
+    it "ignores underscores in between the digits" do
+      "1_2_3asdf".to_i.should == 123
+    end
+    
+    it "ignores a leading mix of whitespaces and underscores" do
+      [ "_ _123", "_\t_123", "_\r\n_123" ].each do |str|
+        str.to_i.should == 123
+      end
     end
   end
-  
-  it "ignores leading underscores" do
-    "_123".to_i.should == 123
-    "__123".to_i.should == 123
-    "___123".to_i.should == 123
-  end
-  
-  it "ignores underscores in between the digits" do
-    "1_2_3asdf".to_i.should == 123
-  end
-  
+
   it "ignores subsequent invalid characters" do
     "123asdf".to_i.should == 123
     "123#123".to_i.should == 123
@@ -31,12 +40,6 @@ describe "String#to_i" do
     end
   end
   
-  it "ignores a leading mix of whitespaces and underscores" do
-    [ "_ _123", "_\t_123", "_\r\n_123" ].each do |str|
-      str.to_i.should == 123
-    end
-  end
-
   it "interprets leading characters as a number in the given base" do
     "100110010010".to_i(2).should == 0b100110010010
     "100110201001".to_i(3).should == 186409

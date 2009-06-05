@@ -8,7 +8,9 @@ describe "Method#arity" do
 
   it "returns n, where n is the number of required arguments, when there are zero or more required arguments only" do
     @m.method(:zero).arity.should    == 0
+    @m.method(:attr).arity.should    == 0
     @m.method(:one_req).arity.should == 1
+    @m.method(:attr=).arity.should   == 1
     @m.method(:two_req).arity.should == 2
   end
 

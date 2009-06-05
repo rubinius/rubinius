@@ -2,21 +2,40 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
 describe "String#chop" do
-  it "returns a new string with the last character removed" do
-    "hello\n".chop.should == "hello"
-    "hello\x00".chop.should == "hello"
-    "hello".chop.should == "hell"
-    
-    ori_str = ""
-    256.times { |i| ori_str << i }
-    
-    str = ori_str
-    256.times do |i|
-      str = str.chop
-      str.should == ori_str[0, 255 - i]
+  ruby_version_is "".."1.9" do
+    it "returns a new string with the last character removed" do
+      "hello\n".chop.should == "hello"
+      "hello\x00".chop.should == "hello"
+      "hello".chop.should == "hell"
+      
+      ori_str = ""
+      256.times { |i| ori_str << i }
+      
+      str = ori_str
+      256.times do |i|
+        str = str.chop
+        str.should == ori_str[0, 255 - i]
+      end
     end
   end
-  
+
+  ruby_version_is "1.9" do
+    it "returns a new string with the last character removed" do
+      "hello\n".chop.should == "hello"
+      "hello\x00".chop.should == "hello"
+      "hello".chop.should == "hell"
+      
+      ori_str = ""
+      256.times { |i| ori_str.encode('UTF-8') << i }
+      
+      str = ori_str
+      256.times do |i|
+        str = str.chop
+        str.should == ori_str[0, 255 - i]
+      end
+    end
+  end
+
   it "removes both characters if the string ends with \\r\\n" do
     "hello\r\n".chop.should == "hello"
     "hello\r\n\r\n".chop.should == "hello\r\n"
@@ -63,13 +82,29 @@ describe "String#chop!" do
     "".chop!.should == nil
   end
   
-  it "raises a TypeError when self is frozen" do
-    a = "string\n\r"
-    a.freeze
-    lambda { a.chop! }.should raise_error(TypeError)
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError when self is frozen" do
+      a = "string\n\r"
+      a.freeze
+      lambda { a.chop! }.should raise_error(TypeError)
 
-    a = ""
-    a.freeze
-    a.chop! # ok, no change
+      a = ""
+      a.freeze
+      a.chop! # ok, no change
+    end
+  end
+
+  ruby_version_is "1.9" do
+    ruby_bug "[ruby-core:23666]", "1.9.2" do
+      it "raises a RuntimeError when self is frozen" do
+        a = "string\n\r"
+        a.freeze
+        lambda { a.chop! }.should raise_error(RuntimeError)
+
+        a = ""
+        a.freeze
+        lambda { a.chop! }.should raise_error(RuntimeError)
+      end
+    end
   end
 end

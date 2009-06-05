@@ -189,3 +189,10 @@ describe "Numeric#step with [stop, -step] when self, stop or step is a Float" do
     result.should == []
   end
 end
+
+describe "Numeric#step" do
+  it "doesn't catch errors" do
+    lambda{ 1.step(2) { raise ArgumentError, "oups" }}.should raise_error(ArgumentError, "oups")
+    lambda{ 1.step(2) { raise TypeError, "oups" }    }.should raise_error(TypeError, "oups")
+  end
+end

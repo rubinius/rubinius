@@ -78,8 +78,8 @@ describe "String#chomp with separator" do
   end
   
   it "raises a TypeError if separator can't be converted to a string" do
-    lambda { "hello".chomp(?o)        }.should raise_error(TypeError)
-    lambda { "hello".chomp(:llo)      }.should raise_error(TypeError)
+    lambda { "hello".chomp(30.3)      }.should raise_error(TypeError)
+    lambda { "hello".chomp([])        }.should raise_error(TypeError)
     lambda { "hello".chomp(mock('x')) }.should raise_error(TypeError)
   end
   
@@ -134,13 +134,28 @@ describe "String#chomp! with separator" do
     "hello".chomp!(nil).should == nil
   end
 
-  it "raises a TypeError when self is frozen" do
-    a = "string\n\r"
-    a.freeze
+  ruby_version_is ""..."1.9" do 
+    it "raises a TypeError when self is frozen" do
+      a = "string\n\r"
+      a.freeze
 
-    lambda { a.chomp! }.should raise_error(TypeError)
+      lambda { a.chomp! }.should raise_error(TypeError)
 
-    a.chomp!(nil) # ok, no change
-    a.chomp!("x") # ok, no change
+      a.chomp!(nil) # ok, no change
+      a.chomp!("x") # ok, no change
+    end
   end
+
+  ruby_version_is "1.9" do 
+    ruby_bug "[ruby-core:23666]", "1.9.2" do
+      it "raises a RuntimeError when self is frozen" do
+        a = "string\n\r"
+        a.freeze
+
+        lambda { a.chomp! }.should raise_error(RuntimeError)
+        lambda { a.chomp!(nil) }.should raise_error(RuntimeError)
+        lambda { a.chomp!("x") }.should raise_error(RuntimeError)
+      end
+    end
+  end  
 end

@@ -66,8 +66,8 @@ describe "String#squeeze" do
   end
 
   it "raises a TypeError when one set arg can't be converted to a string" do
-    lambda { "hello world".squeeze(?o)        }.should raise_error(TypeError)
-    lambda { "hello world".squeeze(:o)        }.should raise_error(TypeError)
+    lambda { "hello world".squeeze([])        }.should raise_error(TypeError)
+    lambda { "hello world".squeeze(Object.new)}.should raise_error(TypeError)
     lambda { "hello world".squeeze(mock('x')) }.should raise_error(TypeError)
   end
 
@@ -90,11 +90,23 @@ describe "String#squeeze!" do
     a.should == "squeeze"
   end
 
-  it "raises a TypeError when self is frozen" do
-    a = "yellow moon"
-    a.freeze
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError when self is frozen" do
+      a = "yellow moon"
+      a.freeze
 
-    lambda { a.squeeze!("") }.should raise_error(TypeError)
-    lambda { a.squeeze!     }.should raise_error(TypeError)
+      lambda { a.squeeze!("") }.should raise_error(TypeError)
+      lambda { a.squeeze!     }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError when self is frozen" do
+      a = "yellow moon"
+      a.freeze
+
+      lambda { a.squeeze!("") }.should raise_error(RuntimeError)
+      lambda { a.squeeze!     }.should raise_error(RuntimeError)
+    end
   end
 end

@@ -7,8 +7,10 @@ describe :string_to_sym, :shared => true do
     "abc=".send(@method).should == :abc=
   end
 
-  it "raises an ArgumentError when self can't be converted to symbol" do
-    lambda { "".send(@method)           }.should raise_error(ArgumentError)
-    lambda { "foo\x00bar".send(@method) }.should raise_error(ArgumentError)
+  ruby_version_is ""..."1.9" do
+    it "raises an ArgumentError when self can't be converted to symbol" do
+      lambda { "".send(@method)           }.should raise_error(ArgumentError)
+      lambda { "foo\x00bar".send(@method) }.should raise_error(ArgumentError)
+    end
   end
 end

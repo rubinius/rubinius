@@ -12,3 +12,7 @@ module NoMethodErrorSpecs
 
   class NoMethodErrorD; end
 end
+
+module ExceptionSpecs
+  class Exceptional < Exception; end
+end  

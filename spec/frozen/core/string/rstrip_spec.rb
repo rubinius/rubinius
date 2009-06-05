@@ -30,10 +30,22 @@ describe "String#rstrip!" do
     a.should == "hello"
   end
 
-  it "raises a TypeError if self is frozen" do
-    "hello".freeze.rstrip! # ok, nothing changed
-    "".freeze.rstrip! # ok, nothing changed
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError if self is frozen" do
+      "hello".freeze.rstrip! # ok, nothing changed
+      "".freeze.rstrip! # ok, nothing changed
 
-    lambda { "  hello  ".freeze.rstrip! }.should raise_error(TypeError)
+      lambda { "  hello  ".freeze.rstrip! }.should raise_error(TypeError)
+    end
   end
+  
+  ruby_version_is "1.9" do
+    ruby_bug "[ruby-core:23666]", "1.9.2" do
+      it "raises a RuntimeError if self is frozen" do
+        lambda { "hello".freeze.rstrip!     }.should raise_error(RuntimeError)
+        lambda { "".freeze.rstrip!          }.should raise_error(RuntimeError)
+        lambda { "  hello  ".freeze.rstrip! }.should raise_error(RuntimeError)
+      end
+    end
+  end  
 end

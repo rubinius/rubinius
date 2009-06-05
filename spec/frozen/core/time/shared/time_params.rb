@@ -25,42 +25,71 @@ describe :time_params, :shared => true do
     Time.send(@method, 1.0, 15.0, 20.0, 1.0, 1.0, 2000.0, :ignored, :ignored, :ignored, :ignored).should == Time.send(@method, 1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored)
   end
 
-  it "should accept various year ranges" do
-    Time.send(@method, 1901, 12, 31, 23, 59, 59, 0).wday.should == 2
-    Time.send(@method, 2037, 12, 31, 23, 59, 59, 0).wday.should == 4
+  ruby_version_is ""..."1.9.1" do
+    it "should accept various year ranges" do
+      Time.send(@method, 1901, 12, 31, 23, 59, 59, 0).wday.should == 2
+      Time.send(@method, 2037, 12, 31, 23, 59, 59, 0).wday.should == 4
 
-    platform_is :wordsize => 32 do
-      lambda { Time.send(@method, 1900, 12, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
-      lambda { Time.send(@method, 2038, 12, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
-    end
+      platform_is :wordsize => 32 do
+        lambda { Time.send(@method, 1900, 12, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
+        lambda { Time.send(@method, 2038, 12, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
+      end
 
-    platform_is :wordsize => 64 do
-      Time.send(@method, 1900, 12, 31, 23, 59, 59, 0).wday.should == 1
-      Time.send(@method, 2038, 12, 31, 23, 59, 59, 0).wday.should == 5
+      platform_is :wordsize => 64 do
+        Time.send(@method, 1900, 12, 31, 23, 59, 59, 0).wday.should == 1
+        Time.send(@method, 2038, 12, 31, 23, 59, 59, 0).wday.should == 5
+      end
+    end   
+
+    it "raises an ArgumentError for out of range values" do
+      # year-based Time.local(year (, month, day, hour, min, sec, usec))
+      # Year range only fails on 32 bit archs
+      platform_is :wordsize => 32 do
+        lambda { Time.send(@method, 1111, 12, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # year
+      end
+      lambda { Time.send(@method, 2008, 13, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
+      lambda { Time.send(@method, 2008, 12, 32, 23, 59, 59, 0) }.should raise_error(ArgumentError) # day
+      lambda { Time.send(@method, 2008, 12, 31, 25, 59, 59, 0) }.should raise_error(ArgumentError) # hour
+      lambda { Time.send(@method, 2008, 12, 31, 23, 61, 59, 0) }.should raise_error(ArgumentError) # min
+      lambda { Time.send(@method, 2008, 12, 31, 23, 59, 61, 0) }.should raise_error(ArgumentError) # sec
+
+      # second based Time.local(sec, min, hour, day, month, year, wday, yday, isdst, tz)
+      lambda { Time.send(@method, 61, 59, 23, 31, 12, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # sec
+      lambda { Time.send(@method, 59, 61, 23, 31, 12, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # min
+      lambda { Time.send(@method, 59, 59, 25, 31, 12, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # hour
+      lambda { Time.send(@method, 59, 59, 23, 32, 12, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # day
+      lambda { Time.send(@method, 59, 59, 23, 31, 13, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # month
+      # Year range only fails on 32 bit archs
+      platform_is :wordsize => 32 do
+        lambda { Time.send(@method, 59, 59, 23, 31, 12, 1111, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # year
+      end
     end
   end
 
-  it "throws ArgumentError for out of range values" do
-    # year-based Time.local(year (, month, day, hour, min, sec, usec))
-    # Year range only fails on 32 bit archs
-    platform_is :wordsize => 32 do
-      lambda { Time.send(@method, 1111, 12, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # year
-    end
-    lambda { Time.send(@method, 2008, 13, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
-    lambda { Time.send(@method, 2008, 12, 32, 23, 59, 59, 0) }.should raise_error(ArgumentError) # day
-    lambda { Time.send(@method, 2008, 12, 31, 25, 59, 59, 0) }.should raise_error(ArgumentError) # hour
-    lambda { Time.send(@method, 2008, 12, 31, 23, 61, 59, 0) }.should raise_error(ArgumentError) # min
-    lambda { Time.send(@method, 2008, 12, 31, 23, 59, 61, 0) }.should raise_error(ArgumentError) # sec
+  # MRI 1.9.2 relaxes 1.8's restriction's on allowed years.
+  ruby_version_is "1.9.2" do
+    it "should accept various year ranges" do
+      Time.send(@method, 1801, 12, 31, 23, 59, 59, 0).wday.should == 4
+      Time.send(@method, 3000, 12, 31, 23, 59, 59, 0).wday.should == 3
+    end  
 
-    # second based Time.local(sec, min, hour, day, month, year, wday, yday, isdst, tz)
-    lambda { Time.send(@method, 61, 59, 23, 31, 12, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # sec
-    lambda { Time.send(@method, 59, 61, 23, 31, 12, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # min
-    lambda { Time.send(@method, 59, 59, 25, 31, 12, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # hour
-    lambda { Time.send(@method, 59, 59, 23, 32, 12, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # day
-    lambda { Time.send(@method, 59, 59, 23, 31, 13, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # month
-    # Year range only fails on 32 bit archs
-    platform_is :wordsize => 32 do
-      lambda { Time.send(@method, 59, 59, 23, 31, 12, 1111, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # year
+    it "raises an ArgumentError for out of range values" do
+      # year-based Time.local(year (, month, day, hour, min, sec, usec))
+      # Year range only fails on 32 bit archs
+      platform_is :wordsize => 32 do
+      end
+      lambda { Time.send(@method, 2008, 13, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
+      lambda { Time.send(@method, 2008, 12, 32, 23, 59, 59, 0) }.should raise_error(ArgumentError) # day
+      lambda { Time.send(@method, 2008, 12, 31, 25, 59, 59, 0) }.should raise_error(ArgumentError) # hour
+      lambda { Time.send(@method, 2008, 12, 31, 23, 61, 59, 0) }.should raise_error(ArgumentError) # min
+      lambda { Time.send(@method, 2008, 12, 31, 23, 59, 61, 0) }.should raise_error(ArgumentError) # sec
+
+      # second based Time.local(sec, min, hour, day, month, year, wday, yday, isdst, tz)
+      lambda { Time.send(@method, 61, 59, 23, 31, 12, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # sec
+      lambda { Time.send(@method, 59, 61, 23, 31, 12, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # min
+      lambda { Time.send(@method, 59, 59, 25, 31, 12, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # hour
+      lambda { Time.send(@method, 59, 59, 23, 32, 12, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # day
+      lambda { Time.send(@method, 59, 59, 23, 31, 13, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # month
     end
   end
 

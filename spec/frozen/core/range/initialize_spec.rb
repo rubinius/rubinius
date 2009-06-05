@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "Array#initialize" do
+describe "Range#initialize" do
   it "is private" do
     Range.should have_private_instance_method("initialize")
   end

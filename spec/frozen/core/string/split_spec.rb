@@ -245,6 +245,11 @@ describe "String#split with Regexp" do
 
     "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
   end
+
+  it "returns a type error if limit can't be converted to an integer" do
+    lambda {"1.2.3.4".split(".", "three")}.should raise_error(TypeError)
+    lambda {"1.2.3.4".split(".", nil)    }.should raise_error(TypeError)
+  end
   
   it "doesn't set $~" do
     $~ = nil

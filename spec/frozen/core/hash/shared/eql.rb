@@ -1,10 +1,9 @@
 describe :hash_eql, :shared => true do
-
   it "does not compare values when keys don't match" do
     value = mock('x')
     value.should_not_receive(:==)
     value.should_not_receive(:eql?)
-    new_hash(1 => value).send(@method, new_hash(2 => value)).should == false
+    new_hash(1 => value).send(@method, new_hash(2 => value)).should be_false
   end
 
   it "returns false when the numbers of keys differ without comparing any elements" do
@@ -14,8 +13,8 @@ describe :hash_eql, :shared => true do
     obj.should_not_receive(:==)
     obj.should_not_receive(:eql?)
 
-    new_hash.send(@method, h).should == false
-    h.send(@method, new_hash).should == false
+    new_hash.send(@method, h).should be_false
+    h.send(@method, new_hash).should be_false
   end
 
   it "first compares keys via hash" do
@@ -25,7 +24,7 @@ describe :hash_eql, :shared => true do
     y = mock('y')
     def y.hash() 0 end
 
-    new_hash(x => 1).send(@method, new_hash(y => 1)).should == false
+    new_hash(x => 1).send(@method, new_hash(y => 1)).should be_false
   end
 
   it "does not compare keys with different hash codes via eql?" do
@@ -46,61 +45,61 @@ describe :hash_eql, :shared => true do
     def x.hash() 0 end
     def y.hash() 1 end
 
-    new_hash(x => 1).send(@method, new_hash(y => 1)).should == false
+    new_hash(x => 1).send(@method, new_hash(y => 1)).should be_false
   end
 
   it "computes equality for recursive hashes" do
     h = new_hash
     h[:a] = h
-    h.send(@method, h[:a]).should == true
-    (h == h[:a]).should == true
+    h.send(@method, h[:a]).should be_true
+    (h == h[:a]).should be_true
   end
-  
+
   it "doesn't call to_hash on objects" do
     mock_hash = mock("fake hash")
     def mock_hash.to_hash() new_hash end
     new_hash.send(@method, mock_hash).should be_false
   end
-    
+
   ruby_bug "redmine #2448", "1.9.1" do
     it "computes equality for complex recursive hashes" do
       a, b = {}, {}
       a.merge! :self => a, :other => b
       b.merge! :self => b, :other => a
-      a.send(@method, b).should == true # they both have the same structure!
+      a.send(@method, b).should be_true # they both have the same structure!
 
       c = {}
       c.merge! :other => c, :self => c
-      c.send(@method, a).should == true # subtle, but they both have the same structure!
+      c.send(@method, a).should be_true # subtle, but they both have the same structure!
       a[:delta] = c[:delta] = a
-      c.send(@method, a).should == false # not quite the same structure, as a[:other][:delta] = nil
+      c.send(@method, a).should be_false # not quite the same structure, as a[:other][:delta] = nil
       c[:delta] = 42
-      c.send(@method, a).should == false
+      c.send(@method, a).should be_false
       a[:delta] = 42
-      c.send(@method, a).should == false
+      c.send(@method, a).should be_false
       b[:delta] = 42
-      c.send(@method, a).should == true   
+      c.send(@method, a).should be_true   
     end
-  
+
     it "computes equality for recursive hashes & arrays" do
       x, y, z = [], [], []
       a, b, c = {:foo => x, :bar => 42}, {:foo => y, :bar => 42}, {:foo => z, :bar => 42}
       x << a
       y << c
       z << b
-      b.send(@method, c).should == true # they clearly have the same structure!
-      y.send(@method, z).should == true
-      a.send(@method, b).should == true # subtle, but they both have the same structure!
-      x.send(@method, y).should == true
+      b.send(@method, c).should be_true # they clearly have the same structure!
+      y.send(@method, z).should be_true
+      a.send(@method, b).should be_true # subtle, but they both have the same structure!
+      x.send(@method, y).should be_true
       y << x
-      y.send(@method, z).should == false
+      y.send(@method, z).should be_false
       z << x
-      y.send(@method, z).should == true
-    
+      y.send(@method, z).should be_true
+
       a[:foo], a[:bar] = a[:bar], a[:foo]
-      a.send(@method, b).should == false
+      a.send(@method, b).should be_false
       b[:bar] = b[:foo]
-      b.send(@method, c).should == false
+      b.send(@method, c).should be_false
     end
   end # ruby_bug
 end
@@ -114,7 +113,7 @@ describe :hash_eql_additional, :shared => true do
     def y.==(o) false end
     def x.eql?(o) false end
     def y.eql?(o) false end
-    new_hash(1 => x).send(@method, new_hash(1 => y)).should == false
+    new_hash(1 => x).send(@method, new_hash(1 => y)).should be_false
 
     x = mock('x')
     y = mock('y')
@@ -122,47 +121,37 @@ describe :hash_eql_additional, :shared => true do
     def y.==(o) true end
     def x.eql?(o) true end
     def y.eql?(o) true end
-    new_hash(1 => x).send(@method, new_hash(1 => y)).should == true
+    new_hash(1 => x).send(@method, new_hash(1 => y)).should be_true
   end
-  
-  it "compares keys with eql? semantics" do
-    new_hash(1.0 => "x").send(@method, new_hash(1.0 => "x")).should == true
-    new_hash(1.0 => "x").send(@method, new_hash(1.0 => "x")).should == true
-    new_hash(1 => "x").send(@method, new_hash(1.0 => "x")).should == false
-    new_hash(1.0 => "x").send(@method, new_hash(1 => "x")).should == false
-  end
-    
-  it "returns true if other Hash has the same number of keys and each key-value pair matches" do
-    new_hash(5).send(@method, new_hash(1)).should == true
-    new_hash {|h, k| 1}.send(@method, new_hash {}).should == true
-    new_hash {|h, k| 1}.send(@method, new_hash(2)).should == true
 
+  it "compares keys with eql? semantics" do
+    new_hash(1.0 => "x").send(@method, new_hash(1.0 => "x")).should be_true
+    new_hash(1.0 => "x").send(@method, new_hash(1.0 => "x")).should be_true
+    new_hash(1 => "x").send(@method, new_hash(1.0 => "x")).should be_false
+    new_hash(1.0 => "x").send(@method, new_hash(1 => "x")).should be_false
+  end
+
+  it "returns true iff other Hash has the same number of keys and each key-value pair matches" do
     a = new_hash(:a => 5)
     b = new_hash
-    a.send(@method, b).should == false
+    a.send(@method, b).should be_false
 
     b[:a] = 5
-    a.send(@method, b).should == true
+    a.send(@method, b).should be_true
 
     c = new_hash("a" => 5)
-    a.send(@method, c).should == false
-
-    d = new_hash {|h, k| 1}
-    e = new_hash {}
-    d[1] = 2
-    e[1] = 2
-    d.send(@method, e).should == true
+    a.send(@method, c).should be_false
   end
-  
+
   it "does not call to_hash on hash subclasses" do
-    new_hash(5 => 6).send(@method, ToHashHash[5 => 6]).should == true
+    new_hash(5 => 6).send(@method, ToHashHash[5 => 6]).should be_true
   end
 
   it "ignores hash class differences" do
     h = new_hash(1 => 2, 3 => 4)
-    MyHash[h].send(@method, h).should == true
-    MyHash[h].send(@method, MyHash[h]).should == true
-    h.send(@method, MyHash[h]).should == true
+    MyHash[h].send(@method, h).should be_true
+    MyHash[h].send(@method, MyHash[h]).should be_true
+    h.send(@method, MyHash[h]).should be_true
   end
 
   # Why isn't this true of eql? too ?
@@ -186,9 +175,9 @@ describe :hash_eql_additional, :shared => true do
       obj
     end
 
-    new_hash(a[0] => 1).send(@method, new_hash(a[1] => 1)).should == false
-    a[0].tainted?.should == true
-    a[1].tainted?.should == true
+    new_hash(a[0] => 1).send(@method, new_hash(a[1] => 1)).should be_false
+    a[0].tainted?.should be_true
+    a[1].tainted?.should be_true
 
     a = Array.new(2) do
       obj = mock('0')
@@ -203,8 +192,22 @@ describe :hash_eql_additional, :shared => true do
       obj
     end
 
-    new_hash(a[0] => 1).send(@method, new_hash(a[1] => 1)).should == true
-    a[0].tainted?.should == true
-    a[1].tainted?.should == true
+    new_hash(a[0] => 1).send(@method, new_hash(a[1] => 1)).should be_true
+    a[0].tainted?.should be_true
+    a[1].tainted?.should be_true
+  end
+end
+
+describe :hash_eql_additional_more, :shared => true do
+  it "returns true if other Hash has the same number of keys and each key-value pair matches, even though the default-value are not same" do
+    new_hash(5).send(@method, new_hash(1)).should be_true
+    new_hash {|h, k| 1}.send(@method, new_hash {}).should be_true
+    new_hash {|h, k| 1}.send(@method, new_hash(2)).should be_true
+
+    d = new_hash {|h, k| 1}
+    e = new_hash {}
+    d[1] = 2
+    e[1] = 2
+    d.send(@method, e).should be_true
   end
 end

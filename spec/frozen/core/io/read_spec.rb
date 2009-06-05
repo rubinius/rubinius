@@ -1,3 +1,4 @@
+# encoding: utf-8
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
@@ -99,7 +100,7 @@ describe "IO#read" do
   end
 
   it "can read lots of data" do
-    data = "\xaa" * (8096 * 2 + 1024) # HACK IO::BufferSize
+    data = "*" * (8096 * 2 + 1024) # HACK IO::BufferSize
 
     File.open @fname, 'w' do |io| io.write data end
 
@@ -110,12 +111,12 @@ describe "IO#read" do
     end
 
     actual.length.should == data.length
-    actual.split('').all? { |c| c == "\xaa" }.should == true
+    actual.split('').all? { |c| c == "*" }.should == true
   end
 
   it "can read lots of data with length" do
     read_length = 8096 * 2 + 1024 # HACK IO::BufferSize
-    data = "\xaa" * (read_length + 8096) # HACK same
+    data = "*" * (read_length + 8096) # HACK same
 
     File.open @fname, 'w' do |io| io.write data end
 
@@ -126,7 +127,7 @@ describe "IO#read" do
     end
 
     actual.length.should == read_length
-    actual.split('').all? { |c| c == "\xaa" }.should == true
+    actual.split('').all? { |c| c == "*" }.should == true
   end
 
   it "consumes zero bytes when reading zero bytes" do
@@ -226,5 +227,17 @@ describe "IO#read" do
   it "raises IOError on closed stream" do
     lambda { IOSpecs.closed_file.read }.should raise_error(IOError)
   end
-end
 
+  it "ignores unicode encoding" do
+    begin
+      old = $KCODE
+      $KCODE = "UTF-8"
+      File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r') do |io|
+        io.readline.should == "Voici la ligne une.\n"
+        io.read(5).should == "Qui " + [195].pack("C")
+      end
+    ensure
+      $KCODE = old
+    end
+  end
+end

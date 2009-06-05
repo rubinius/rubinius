@@ -121,17 +121,21 @@ describe "Array#uniq!" do
       dup_ary.freeze
       lambda { dup_ary.uniq! }.should raise_error(TypeError)
     end
-  end
 
-  ruby_version_is "1.9" do
-    it "raises a RuntimeError on a frozen array if modification would take place" do
-      dup_ary = [1, 1, 2]
-      dup_ary.freeze
-      lambda { dup_ary.uniq! }.should raise_error(RuntimeError)
+    it "does not raise an exception on a frozen array if no modification takes place" do
+      ArraySpecs.frozen_array.uniq!.should be_nil
     end
   end
 
-  it "does not raise an exception on a frozen array if no modification takes place" do
-    ArraySpecs.frozen_array.uniq!.should be_nil
+  ruby_version_is "1.9" do
+    ruby_bug "[ruby-core:23666]", "1.9.2" do
+      it "raises a RuntimeError on a frozen array" do
+        dup_ary = [1, 1, 2]
+        dup_ary.freeze
+        lambda { dup_ary.uniq! }.should raise_error(RuntimeError)
+        lambda { ArraySpecs.frozen_array.uniq!}.should raise_error(RuntimeError)
+      end
+    end
   end
+
 end

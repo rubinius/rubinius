@@ -1,3 +1,9 @@
+# Configuration file for Ruby 1.9-compatible Ruby implementations.
+#
+# Unless you passed to --config (or -B) to MSpec, MSpec will automatically
+# use this config file if the Ruby interpreter with which MSpec advertises
+# itself with RUBY_VERSION =~ /1.9/
+
 class MSpecScript
   # Language features specs
   set :language, [ 'language' ]
@@ -53,6 +59,8 @@ class MSpecScript
   # TODO: this needs to be more sophisticated since the
   # executable is not consistently named.
   set :target, 'ruby1.9'
+
+  set :backtrace_filter, /mspec\//
 
   set :tags_patterns, [
                         [%r(language/),     'tags/1.9/language/'],

@@ -44,6 +44,18 @@ describe "Kernel.Integer" do
     lambda { Integer(mock('x')) }.should raise_error(TypeError)
   end
 
+  ruby_version_is ""..."1.9" do
+    it "returns 0 when passed nil" do
+      Integer(nil).should == 0
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a TypeError when passed nil" do
+      lambda { Integer(nil) }.should raise_error(TypeError)
+    end
+  end
+
   it "raises a TypeError if to_i doesn't return an Integer" do
     (obj = mock('ha!')).should_receive(:to_i).and_return("ha!")
     lambda { Integer(obj) }.should raise_error(TypeError)

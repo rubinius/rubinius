@@ -65,6 +65,10 @@ describe "A Symbol literal" do
       a.should equal(b)
     }
   end
+
+  it "does not contain null in the string" do
+    lambda { eval ':"\0" ' }.should raise_error(SyntaxError)
+  end
 end
 
 language_version __FILE__, 'symbol'

@@ -33,16 +33,16 @@ describe "BigDecimal#precs" do
     BigDecimal("3.14159").precs[0].should >= 6
     BigDecimal('1').precs[0].should == BigDecimal('1' + '0' * 100).precs[0]
     [@infinity, @infinity_neg, @nan, @zero, @zero_neg].each do |value|
-      value.precs[0].size.should <= @precision
+      value.precs[0].should <= @precision
     end
   end
 
   it "returns the maximum number of significant digits as the second value" do
     BigDecimal("3.14159").precs[1].should >= 6
-    BigDecimal('1').precs[1].size.should <= @precision
+    BigDecimal('1').precs[1].should >= 1
     BigDecimal('1' + '0' * 100).precs[1] >= 101
     [@infinity, @infinity_neg, @nan, @zero, @zero_neg].each do |value|
-      value.precs[1].size.should <= @precision
+      value.precs[1].should >= 1
     end
   end
 end

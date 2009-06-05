@@ -20,7 +20,9 @@ def with_timezone(name, offset = nil, daylight_saving_zone = "")
   end
 end
 
-def localtime(seconds)
+# Returns the given time in the same format as returned by
+# Time.at(seconds).inspect on MRI 1.8
+def localtime_18(seconds)
   platform_is :os => [:darwin, :bsd] do
     return `LC_ALL=C date -r #{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
   end
@@ -30,4 +32,18 @@ def localtime(seconds)
   end
 
   return `LC_ALL=C date -j -f "%s" #{seconds} "+%a %b %d %H:%M:%S %z %Y"`.chomp
+end
+
+# Returns the given time in the same format as returned by
+# Time.at(seconds).inspect on MRI 1.9
+def localtime_19(seconds)
+  platform_is :os => [:darwin, :bsd] do
+    return `LC_ALL=C date -r #{seconds} +'%F %H:%M:%S %z'`.chomp
+  end
+
+  platform_is :os => :linux do
+    return `LC_ALL=C date -d @#{seconds} +'%F %H:%M:%S %z'`.chomp
+  end
+
+  return `LC_ALL=C date -j -f "%s" #{seconds} "+%F %H:%M:%S %z"`.chomp
 end

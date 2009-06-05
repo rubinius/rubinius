@@ -1,3 +1,4 @@
+# encoding: utf-8
 module IOSpecs
   def self.lines
     [ "Voici la ligne une.\n",

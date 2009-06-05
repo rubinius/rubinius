@@ -21,8 +21,8 @@ describe "Hash#delete_if" do
     each_pairs = []
     delete_pairs = []
 
-    h.each_pair { |*pair| each_pairs << pair }
-    h.delete_if { |*pair| delete_pairs << pair }
+    h.each_pair { |k,v| each_pairs << [k, v] }
+    h.delete_if { |k,v| delete_pairs << [k,v] }
 
     each_pairs.should == delete_pairs
   end
@@ -42,6 +42,5 @@ describe "Hash#delete_if" do
   end
 
 
-  it_behaves_like(:hash_iteration_method, :delete_if)
   it_behaves_like(:hash_iteration_no_block, :delete_if)
 end

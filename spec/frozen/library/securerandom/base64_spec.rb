@@ -9,6 +9,7 @@ ruby_version_is "1.8.7" do
         base64 = SecureRandom.base64(idx)
         base64.class.should == String
         base64.length.should < 2 * idx
+        base64.should =~ /^[A-Za-z0-9\+\/]+={0,2}$/
       end
       
       base64 = SecureRandom.base64(16.5)

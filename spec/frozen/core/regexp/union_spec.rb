@@ -10,4 +10,18 @@ describe "Regexp.union" do
     Regexp.union("skiing", "sledding").should == /skiing|sledding/
     Regexp.union(/dogs/, /cats/i).should == /(?-mix:dogs)|(?i-mx:cats)/
   end
+
+  it "uses to_str to convert arguments (if not Regexp)" do
+    obj = mock('pattern')
+    obj.should_receive(:to_str).and_return('foo')
+    Regexp.union(obj, "bar").should == /foo|bar/
+  end
+
+  ruby_version_is '1.8.7' do
+    it "accepts a single array of patterns as arguments" do
+      Regexp.union(["skiing", "sledding"]).should == /skiing|sledding/
+      Regexp.union([/dogs/, /cats/i]).should == /(?-mix:dogs)|(?i-mx:cats)/
+      lambda{Regexp.union(["skiing", "sledding"], [/dogs/, /cats/i])}.should raise_error(TypeError)
+    end
+  end
 end

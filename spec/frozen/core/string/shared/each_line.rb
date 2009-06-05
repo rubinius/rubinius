@@ -1,4 +1,4 @@
-describe :string_each, :shared => true do
+describe :string_each_line, :shared => true do
   it "splits self using the supplied record separator and passes each substring to the block" do
     a = []
     "one\ntwo\r\nthree".send(@method, "\n") { |s| a << s }
@@ -74,15 +74,46 @@ describe :string_each, :shared => true do
     a.should == [ "hel", "l", "o\nworl", "d" ]
   end
 
-  it "raises a RuntimeError if the string is modified while substituting" do
-    str = "hello\nworld"
-    lambda { str.send(@method) { str[0] = 'x' } }.should raise_error(RuntimeError)
+  ruby_version_is ''...'1.9' do
+    it "raises a RuntimeError if the string is modified while substituting" do
+      str = "hello\nworld"
+      lambda { str.send(@method) { str[0] = 'x' } }.should raise_error(RuntimeError)
+    end
+  end
+
+  ruby_version_is '1.9' do
+    it "not care if the string is modified while substituting" do
+      str = "hello\nworld."
+      out = []
+      str.send(@method){|x| out << x; str[-1] = '!' }.should == "hello\nworld!"
+      out.should == ["hello\n", "world."]
+    end
   end
 
   it "raises a TypeError when the separator can't be converted to a string" do
     lambda { "hello world".send(@method, false) {}     }.should raise_error(TypeError)
-    lambda { "hello world".send(@method, ?o) {}        }.should raise_error(TypeError)
-    lambda { "hello world".send(@method, :o) {}        }.should raise_error(TypeError)
     lambda { "hello world".send(@method, mock('x')) {} }.should raise_error(TypeError)
+  end
+
+  ruby_version_is ''...'1.9' do
+    it "raises a TypeError when the separator is a character or a symbol" do
+      lambda { "hello world".send(@method, ?o) {}        }.should raise_error(TypeError)
+      lambda { "hello world".send(@method, :o) {}        }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is '1.9' do
+    it "accept string-like separator" do
+      "hello world".send(@method, ?o).to_a.should == ["hello", " wo", "rld"]
+      "hello world".send(@method, :o).to_a.should == ["hello", " wo", "rld"]
+    end
+  end
+
+  ruby_version_is "1.8.7" do
+    it "returns an enumerator when no block given" do
+      enum = "hello world".send(@method, ' ')
+      enum.should be_kind_of(enumerator_class)
+      enum.to_a.should == ["hello ", "world"]
+    end
   end
 end

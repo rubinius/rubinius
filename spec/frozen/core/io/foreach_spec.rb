@@ -1,3 +1,4 @@
+# encoding: utf-8
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "IO::foreach" do
@@ -100,13 +101,26 @@ describe "IO::foreach" do
     lines.should == @content
   end
 
-  it "converts second parameter to string and uses as separator" do
-    (obj = mock('r')).should_receive(:to_str).and_return('r')
-    lines = []
-    IO::foreach(@file, obj) do |line|
-      lines << line
+  ruby_version_is "" ... "1.9" do
+    it "converts second parameter to string and uses as separator, with a to_str calling for the IO" do
+      (obj = mock('r')).should_receive(:to_str).once.and_return('r')
+      lines = []
+      IO::foreach(@file, obj) do |line|
+        lines << line
+      end
+      lines.should == @content_with_r
     end
-    lines.should == @content_with_r
+  end
+
+  ruby_version_is "1.9" do
+    it "converts second parameter to string and uses as separator, with each to_str calling for each lines of the IOs" do
+      num_lines = 6 # File.read(@file).lines.to_a.size #=> 6
+      (obj = mock('r')).should_receive(:to_str).exactly(num_lines).times.and_return('r')
+      lines = []
+      IO::foreach(@file, obj) do |line|
+        lines << line
+      end
+      lines.should == @content_with_r
+    end
   end
 end
-

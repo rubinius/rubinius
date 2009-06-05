@@ -23,8 +23,7 @@ describe "Module#define_method when given an UnboundMethod" do
       end
       define_method(:another_test_method, instance_method(:test_method))
     end
-    
-    klass.new.methods.should include("another_test_method")
+    klass.new.should have_method(:another_test_method)
   end
 end
 

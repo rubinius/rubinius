@@ -89,7 +89,7 @@ describe "String#count" do
 
   it "raises a TypeError when a set arg can't be converted to a string" do
     lambda { "hello world".count(100)       }.should raise_error(TypeError)
-    lambda { "hello world".count(:o)        }.should raise_error(TypeError)
+    lambda { "hello world".count([])        }.should raise_error(TypeError)
     lambda { "hello world".count(mock('x')) }.should raise_error(TypeError)
   end
 end

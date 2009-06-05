@@ -1,5 +1,15 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
+ruby_version_is "1.9" do
+  class IO
+    alias getc_orig getc
+    def getc
+      s = getc_orig
+      s ? s.ord : s
+    end
+  end
+end
+
 describe "IO#ungetc" do
   before :each do
     @file_name = File.dirname(__FILE__) + '/fixtures/readlines.txt'
@@ -93,8 +103,16 @@ describe "IO#ungetc" do
     lambda { @file.sysread(1) }.should raise_error(IOError)
   end
 
-  it "raises IOError when invoked on stream that was not yet read" do
-    lambda { @file.ungetc(100) }.should raise_error(IOError)
+  ruby_version_is "" ... "1.9" do
+    it "raises IOError when invoked on stream that was not yet read" do
+      lambda { @file.ungetc(100) }.should raise_error(IOError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns nil when invoked on stream that was not yet read" do
+      @file.ungetc(100).should be_nil
+    end
   end
 
   it "raises IOError on closed stream" do

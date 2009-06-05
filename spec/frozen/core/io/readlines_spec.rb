@@ -1,3 +1,4 @@
+# encoding: utf-8
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
@@ -5,7 +6,7 @@ describe "IO#readlines when passed no arguments" do
   before(:each) do
     @io = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt')
   end
-  
+
   after(:each) do
     @io.close
   end
@@ -26,7 +27,7 @@ describe "IO#readlines when passed no arguments" do
     @io.readlines
     @io.pos.should eql(134)
   end
-  
+
   it "updates self's lineno based on the number of lines read" do
     @io.readlines
     @io.lineno.should eql(6)
@@ -48,11 +49,11 @@ describe "IO#readlines when passed [separator]" do
   before(:each) do
     @io = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt')
   end
-  
+
   after(:each) do
     @io.close
   end
-  
+
   it "returns an Array containing lines based on the passed separator" do
     @io.readlines('r').should == [
       "Voici la ligne une.\nQui \303\250 la linea due.\nAqu\303\255 est\303\241 la l\303\255nea tr",
@@ -95,7 +96,7 @@ describe "IO#readlines when passed [separator]" do
       "Aqu\303\255 est\303\241 la l\303\255nea tres.\n" +
       "Ist hier Linie vier.\nEst\303\241 aqui a linha cinco.\nHere is line six.\n"]
   end
-  
+
   it "tries to convert the passed separator to a String using #to_str" do
     obj = mock('to_str')
     obj.stub!(:to_str).and_return("r")
@@ -166,7 +167,7 @@ describe "IO#readlines when passed [file_name, separator]" do
   before(:each) do
     @file = File.dirname(__FILE__) + '/fixtures/readlines.txt'
   end
-  
+
   it "returns an Array containing lines of file_name based on the passed separator" do
     IO.readlines(@file, 'r').should == [
       "Voici la ligne une.\nQui \303\250 la linea due.\nAqu\303\255 est\303\241 la l\303\255nea tr",
@@ -186,7 +187,7 @@ describe "IO#readlines when passed [file_name, separator]" do
     para_file = File.dirname(__FILE__) + '/fixtures/paragraphs.txt'
     IO.readlines(para_file, "").should == ["This is\n\n", "an example\n\n", "of paragraphs."]
   end
-  
+
   it "tries to convert the passed separator to a String using #to_str" do
     obj = mock('to_str')
     obj.stub!(:to_str).and_return("r")

@@ -71,15 +71,18 @@ describe "Array#insert" do
     it "raises a TypeError on frozen arrays if modification takes place" do
       lambda { ArraySpecs.frozen_array.insert(0, 'x') }.should raise_error(TypeError)
     end
-  end
 
-  ruby_version_is '1.9' do
-    it "raises a RuntimeError on frozen arrays if modification takes place" do
-      lambda { ArraySpecs.frozen_array.insert(0, 'x') }.should raise_error(RuntimeError)
+    it "does not raise on frozen arrays if no modification takes place" do
+      ArraySpecs.frozen_array.insert(0).should == [1, 2, 3]
     end
   end
 
-  it "does not raise on frozen arrays if no modification takes place" do
-    ArraySpecs.frozen_array.insert(0).should == [1, 2, 3]
+  ruby_version_is '1.9' do
+    ruby_bug "[ruby-core:23666]", "1.9.2" do
+      it "raises a RuntimeError on frozen arrays" do
+        lambda { ArraySpecs.frozen_array.insert(0, 'x') }.should raise_error(RuntimeError)
+        lambda { ArraySpecs.frozen_array.insert(0)      }.should raise_error(RuntimeError)
+      end
+    end
   end
 end

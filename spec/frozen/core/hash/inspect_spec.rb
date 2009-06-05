@@ -1,28 +1,13 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/shared/to_s'
 
 describe "Hash#inspect" do
-  it "returns a string representation with same order as each()" do
-    h = new_hash(:a => [1, 2], :b => -2, :d => -6, nil => nil)
-    
-    pairs = []
-    h.each do |key, value|
-      pairs << key.inspect + "=>" + value.inspect
-    end
-    
-    str = '{' + pairs.join(', ') + '}'
-    h.inspect.should == str
-  end
-
-  it "calls inspect on keys and values" do
-    key = mock('key')
-    val = mock('val')
-    key.should_receive(:inspect).and_return('key')
-    val.should_receive(:inspect).and_return('val')
-    
-    new_hash(key => val).inspect.should == '{key=>val}'
-  end
-
+  it_behaves_like :to_s, :inspect
+ 
+  # FIXME: When http://redmine.ruby-lang.org/issues/show/1533 is fixed, this
+  # block can be removed, as the behaviour will then be shared with to_s
+  # completely. 
   it "handles recursive hashes" do
     x = new_hash
     x[0] = x

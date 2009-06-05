@@ -8,7 +8,9 @@ describe "Queue#num_waiting" do
 
     5.times do |i|
       q.num_waiting.should == i
-      threads << Thread.new { q.deq }
+      t = Thread.new { q.deq }
+      Thread.pass until t.status == 'sleep'
+      threads << t
     end
 
     threads.each { q.enq Object.new }

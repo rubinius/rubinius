@@ -37,4 +37,8 @@ describe "Module#extended" do
       $extended_object = nil
     end
   end
+
+  it "is private in its default implementation" do
+    Module.new.private_methods.should include("extended")
+  end
 end

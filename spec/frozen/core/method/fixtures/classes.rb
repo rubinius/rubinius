@@ -5,6 +5,8 @@ module MethodSpecs
     end
     alias bar foo
 
+    attr_accessor :attr
+
     def zero; end
     def one_req(a); end
     def two_req(a, b); end

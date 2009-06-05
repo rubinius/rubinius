@@ -190,17 +190,20 @@ describe "Array#flatten!" do
       nested_ary.freeze
       lambda { nested_ary.flatten! }.should raise_error(TypeError)
     end
-  end
-
-  ruby_version_is '1.9' do
-    it "raises a RuntimeError on frozen arrays when modification would take place" do
-      nested_ary = [1, 2, []]
-      nested_ary.freeze
-      lambda { nested_ary.flatten! }.should raise_error(RuntimeError)
+  
+    it "does not raise on frozen arrays when no modification would take place" do
+      ArraySpecs.frozen_array.flatten!.should be_nil
     end
   end
 
-  it "does not raise on frozen arrays when no modification would take place" do
-    ArraySpecs.frozen_array.flatten!.should be_nil
+  ruby_version_is '1.9' do
+    ruby_bug "[ruby-core:23663]", "1.9.2" do
+      it "raises a RuntimeError on frozen arrays" do
+        nested_ary = [1, 2, []]
+        nested_ary.freeze
+        lambda { nested_ary.flatten! }.should raise_error(RuntimeError)
+        lambda { ArraySpecs.frozen_array.flatten! }.should raise_error(RuntimeError)
+      end
+    end
   end
 end

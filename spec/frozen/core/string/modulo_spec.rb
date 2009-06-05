@@ -216,7 +216,7 @@ describe "String#%" do
     end
   end
 
-  it "supports binary formats using %b" do
+  it "supports binary formats using %b for positive numbers" do
     ("%b" % 10).should == "1010"
     ("% b" % 10).should == " 1010"
     ("%1$b" % [10, 20]).should == "1010"
@@ -226,17 +226,36 @@ describe "String#%" do
     ("%05b" % 10).should == "01010"
     ("%*b" % [10, 6]).should == "       110"
     ("%*b" % [-10, 6]).should == "110       "
-
-    ("%b" % -5).should == "..1011"
-    ("%0b" % -5).should == "1011"
     ("%.4b" % 2).should == "0010"
-    ("%.1b" % -5).should == "1011"
-    ("%.7b" % -5).should == "1111011"
-    ("%.10b" % -5).should == "1111111011"
-    ("% b" % -5).should == "-101"
-    ("%+b" % -5).should == "-101"
-    ("%b" % -(2 ** 64 + 5)).should ==
-    "..101111111111111111111111111111111111111111111111111111111111111011"
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "supports binary formats using %b for negative numbers" do
+      ("%b" % -5).should == "..1011"
+      ("%0b" % -5).should == "1011"
+      ("%.4b" % 2).should == "0010"
+      ("%.1b" % -5).should == "1011"
+      ("%.7b" % -5).should == "1111011"
+      ("%.10b" % -5).should == "1111111011"
+      ("% b" % -5).should == "-101"
+      ("%+b" % -5).should == "-101"
+      ("%b" % -(2 ** 64 + 5)).should ==
+      "..101111111111111111111111111111111111111111111111111111111111111011"
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "supports binary formats using %b for negative numbers" do
+      ("%b" % -5).should == "..1011"
+      ("%0b" % -5).should == "..1011"
+      ("%.1b" % -5).should == "..1011"
+      ("%.7b" % -5).should == "..11011"
+      ("%.10b" % -5).should == "..11111011"
+      ("% b" % -5).should == "-101"
+      ("%+b" % -5).should == "-101"
+      ("%b" % -(2 ** 64 + 5)).should ==
+      "..101111111111111111111111111111111111111111111111111111111111111011"
+    end
   end
 
   it "supports binary formats using %B with same behaviour as %b except for using 0B instead of 0b for #" do
@@ -261,19 +280,33 @@ describe "String#%" do
     ("%#B" % 10).should == "0B1010"
   end
 
-  it "supports character formats using %c" do
-    ("%c" % 10).should == "\n"
-    ("%2$c" % [10, 11, 14]).should == "\v"
-    ("%-4c" % 10).should == "\n   "
-    ("%*c" % [10, 3]).should == "         \003"
-    ("%c" % (256 + 42)).should == "*"
+  ruby_version_is ""..."1.9" do
+    it "supports character formats using %c" do
+      ("%c" % 10).should == "\n"
+      ("%2$c" % [10, 11, 14]).should == "\v"
+      ("%-4c" % 10).should == "\n   "
+      ("%*c" % [10, 3]).should == "         \003"
+      ("%c" % (256 + 42)).should == "*"
 
-    lambda { "%c" % Object }.should raise_error(TypeError)
+      lambda { "%c" % Object }.should raise_error(TypeError)
+    end
+
+    it "uses argument % 256" do
+      ("%c" % [256 * 3 + 64]).should == ("%c" % 64)
+      ("%c" % -200).should == ("%c" % 56)
+    end
   end
 
-  it "uses argument % 256" do
-    ("%c" % [256 * 3 + 64]).should == ("%c" % 64)
-    ("%c" % -200).should == ("%c" % 56)
+  ruby_version_is "1.9" do
+    it "supports character formats using %c" do
+      ("%c" % 10).should == "\n"
+      ("%2$c" % [10, 11, 14]).should == "\v"
+      ("%-4c" % 10).should == "\n   "
+      ("%*c" % [10, 3]).should == "         \003"
+      ("%c" % 42).should == "*"
+
+      lambda { "%c" % Object }.should raise_error(TypeError)
+    end
   end
 
   ruby_version_is "1.8.6.278" do
@@ -316,12 +349,17 @@ describe "String#%" do
     ("%*e" % [10, 9]).should == "9.000000e+00"
   end
 
-  not_compliant_on :rubinius, :jruby do
-    it "supports float formats using %e, and downcases -Inf, Inf, and NaN" do
-      ("%e" % 1e1020).should == "inf"
-      ("%e" % -1e1020).should == "-inf"
-      ("%e" % (0.0/0)).should == "nan"
-      ("%e" % (-0e0/0)).should == "nan"
+  # TODO: If http://redmine.ruby-lang.org/issues/show/1566 is confirmed, we
+  # can guard the behaviour of capitalising Inf and NaN as a bug, and
+  # removed the compliance guards.
+  ruby_version_is ""..."1.9" do
+    not_compliant_on :rubinius, :jruby do
+      it "supports float formats using %e, and downcases -Inf, Inf, and NaN" do
+        ("%e" % 1e1020).should == "inf"
+        ("%e" % -1e1020).should == "-inf"
+        ("%e" % (0.0/0)).should == "nan"
+        ("%e" % (-0e0/0)).should == "nan"
+      end
     end
   end
 
@@ -329,6 +367,10 @@ describe "String#%" do
   # that cannot be expressed with any value in the set of real numbers. Upcasing
   # or downcasing these identifiers for %e or %E, which refers to the case of the
   # of the exponent identifier, is silly.
+
+  # TODO: If http://redmine.ruby-lang.org/issues/show/1566 is confirmed, we
+  # can guard the behaviour of capitalising Inf and NaN as a bug, and
+  # removed the compliance guards.
   deviates_on :rubinius, :jruby do
     it "supports float formats using %e, but Inf, -Inf, and NaN are not floats" do
       ("%e" % 1e1020).should == "Inf"
@@ -360,30 +402,58 @@ describe "String#%" do
     ("%*E" % [10, 9]).should == "9.000000E+00"
   end
 
+  # TODO: If http://redmine.ruby-lang.org/issues/show/1566 is confirmed, we
+  # can guard the behaviour of capitalising Inf and NaN as a bug, and
+  # removed the compliance guards.
   not_compliant_on :rubinius, :jruby do
-    it "supports float formats using %E, and upcases Inf, -Inf, and NaN" do
-      ("%E" % 1e1020).should == "INF"
-      ("%E" % -1e1020).should == "-INF"
-      ("%-10E" % 1e1020).should == "INF       "
-      ("%+E" % 1e1020).should == "+INF"
-      ("% E" % 1e1020).should == " INF"
-      ("%E" % (0.0/0)).should == "NAN"
-      ("%E" % (-0e0/0)).should == "NAN"
-    end
-
-    platform_is :darwin do
-      it "pads with zeros using %E with Inf, -Inf, and NaN" do
-        ("%010E" % -1e1020).should == "-000000INF"
-        ("%010E" % 1e1020).should == "0000000INF"
-        ("%010E" % (0.0/0)).should == "0000000NAN"
+    ruby_version_is ""..."1.9" do
+      it "supports float formats using %E, and upcases Inf, -Inf, and NaN" do
+        ("%E" % 1e1020).should == "INF"
+        ("%E" % -1e1020).should == "-INF"
+        ("%-10E" % 1e1020).should == "INF       "
+        ("%+E" % 1e1020).should == "+INF"
+        ("% E" % 1e1020).should == " INF"
+        ("%E" % (0.0/0)).should == "NAN"
+        ("%E" % (-0e0/0)).should == "NAN"
       end
     end
+    
+    # TODO: If http://redmine.ruby-lang.org/issues/show/1566 is confirmed, we
+    # can guard the behaviour of capitalising Inf and NaN as a bug, and
+    # removed the compliance guards.
+    ruby_version_is ""..."1.9" do
+      platform_is :darwin do
+        it "pads with zeros using %E with Inf, -Inf, and NaN" do
+          ("%010E" % -1e1020).should == "-000000INF"
+          ("%010E" % 1e1020).should == "0000000INF"
+          ("%010E" % (0.0/0)).should == "0000000NAN"
+        end
+      end
 
-    platform_is_not :darwin do
-      it "pads with spaces for %E with Inf, -Inf, and NaN" do
-        ("%010E" % -1e1020).should == "      -INF"
-        ("%010E" % 1e1020).should == "       INF"
-        ("%010E" % (0.0/0)).should == "       NAN"
+      platform_is_not :darwin do
+        it "pads with spaces for %E with Inf, -Inf, and NaN" do
+          ("%010E" % -1e1020).should == "      -INF"
+          ("%010E" % 1e1020).should == "       INF"
+          ("%010E" % (0.0/0)).should == "       NAN"
+        end
+      end
+    end
+    
+    ruby_version_is "1.9" do
+      platform_is :darwin do
+        it "pads with zeros using %E with Inf, -Inf, and NaN" do
+          ("%010E" % -1e1020).should == "-000000Inf"
+          ("%010E" % 1e1020).should == "0000000Inf"
+          ("%010E" % (0.0/0)).should == "0000000NaN"
+        end
+      end
+
+      platform_is_not :darwin do
+        it "pads with spaces for %E with Inf, -Inf, and NaN" do
+          ("%010E" % -1e1020).should == "      -Inf"
+          ("%010E" % 1e1020).should == "       Inf"
+          ("%010E" % (0.0/0)).should == "       NaN"
+        end
       end
     end
   end
@@ -421,7 +491,7 @@ describe "String#%" do
     ("%*G" % [10, 9]).should == "         9"
   end
 
-  it "supports octal formats using %o" do
+  it "supports octal formats using %o for positive numbers" do
     ("%o" % 10).should == "12"
     ("% o" % 10).should == " 12"
     ("%1$o" % [10, 20]).should == "12"
@@ -430,18 +500,38 @@ describe "String#%" do
     ("%-9o" % 10).should == "12       "
     ("%05o" % 10).should == "00012"
     ("%*o" % [10, 6]).should == "         6"
+  end
 
-    # These are incredibly wrong. -05 == -5, not 7177777...whatever
-    ("%o" % -5).should == "..73"
-    ("%0o" % -5).should == "73"
-    ("%.4o" % 20).should == "0024"
-    ("%.1o" % -5).should == "73"
-    ("%.7o" % -5).should == "7777773"
-    ("%.10o" % -5).should == "7777777773"
+  ruby_version_is ""..."1.9" do
+    it "supports octal formats using %o for negative numbers" do
+      # These are incredibly wrong. -05 == -5, not 7177777...whatever
+      ("%o" % -5).should == "..73"
+      ("%0o" % -5).should == "73"
+      ("%.4o" % 20).should == "0024"
+      ("%.1o" % -5).should == "73"
+      ("%.7o" % -5).should == "7777773"
+      ("%.10o" % -5).should == "7777777773"
 
-    ("% o" % -26).should == "-32"
-    ("%+o" % -26).should == "-32"
-    ("%o" % -(2 ** 64 + 5)).should == "..75777777777777777777773"
+      ("% o" % -26).should == "-32"
+      ("%+o" % -26).should == "-32"
+      ("%o" % -(2 ** 64 + 5)).should == "..75777777777777777777773"
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "supports octal formats using %o for negative numbers" do
+      # These are incredibly wrong. -05 == -5, not 7177777...whatever
+      ("%o" % -5).should == "..73"
+      ("%0o" % -5).should == "..73"
+      ("%.4o" % 20).should == "0024"
+      ("%.1o" % -5).should == "..73"
+      ("%.7o" % -5).should == "..77773"
+      ("%.10o" % -5).should == "..77777773"
+
+      ("% o" % -26).should == "-32"
+      ("%+o" % -26).should == "-32"
+      ("%o" % -(2 ** 64 + 5)).should == "..75777777777777777777773"
+    end
   end
 
   it "supports inspect formats using %p" do
@@ -549,23 +639,32 @@ describe "String#%" do
     ("%+u" % -26).should == "-26"
   end
 
-  not_compliant_on :rubinius do
-    # This is the proper, compliant behavior of both JRuby, and
-    # MRI 1.8.6 with patchlevel greater than 114.
-    ruby_bug "http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/8418", "1.8.6.114" do
-      it "supports negative bignums by prefixing the value with dots" do
-        ("%u" % -(2 ** 64 + 5)).should == "..79228162495817593519834398715"
+  ruby_version_is ""..."1.9" do
+    not_compliant_on :rubinius do
+      # This is the proper, compliant behavior of both JRuby, and
+      # MRI 1.8.6 with patchlevel greater than 114.
+      ruby_bug "http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/8418", "1.8.6.114" do
+        it "supports negative bignums by prefixing the value with dots" do
+          ("%u" % -(2 ** 64 + 5)).should == "..79228162495817593519834398715"
+        end
+      end
+    end
+
+    deviates_on :rubinius do
+      it "does not support negative bignums" do
+        lambda { ("%u" % -(2 ** 64 + 5)) }.should raise_error(ArgumentError)
       end
     end
   end
 
-  deviates_on :rubinius do
-    it "does not support negative bignums" do
-      lambda { ("%u" % -(2 ** 64 + 5)) }.should raise_error(ArgumentError)
+  ruby_version_is "1.9" do
+    it "supports negative bignums with %u or %d" do
+      ("%u" % -(2 ** 64 + 5)).should == "-18446744073709551621"
+      ("%d" % -(2 ** 64 + 5)).should == "-18446744073709551621"
     end
   end
-
-  it "supports hex formats using %x" do
+  
+  it "supports hex formats using %x for positive numbers" do
     ("%x" % 10).should == "a"
     ("% x" % 10).should == " a"
     ("%1$x" % [10, 20]).should == "a"
@@ -574,20 +673,39 @@ describe "String#%" do
     ("%-9x" % 10).should == "a        "
     ("%05x" % 10).should == "0000a"
     ("%*x" % [10, 6]).should == "         6"
-
-    ("%x" % -5).should == "..fb"
-    ("%0x" % -5).should == "fb"
     ("%.4x" % 20).should == "0014"
-    ("%.1x" % -5).should == "fb"
-    ("%.7x" % -5).should == "ffffffb"
-    ("%.10x" % -5).should == "fffffffffb"
-    ("% x" % -26).should == "-1a"
-    ("%+x" % -26).should == "-1a"
     ("%x" % 0xFFFFFFFF).should == "ffffffff"
-    ("%x" % -(2 ** 64 + 5)).should == "..fefffffffffffffffb"
   end
 
-  it "supports hex formats using %X" do
+  ruby_version_is ""..."1.9" do
+    it "supports hex formats using %x for negative numbers" do
+      ("%x" % -5).should == "..fb"
+      ("%0x" % -5).should == "fb"
+      ("%.4x" % 20).should == "0014"
+      ("%.1x" % -5).should == "fb"
+      ("%.7x" % -5).should == "ffffffb"
+      ("%.10x" % -5).should == "fffffffffb"
+      ("% x" % -26).should == "-1a"
+      ("%+x" % -26).should == "-1a"
+      ("%x" % 0xFFFFFFFF).should == "ffffffff"
+      ("%x" % -(2 ** 64 + 5)).should == "..fefffffffffffffffb"
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "supports hex formats using %x for negative numbers" do
+      ("%x" % -5).should == "..fb"
+      ("%0x" % -5).should == "..fb"
+      ("%.1x" % -5).should == "..fb"
+      ("%.7x" % -5).should == "..ffffb"
+      ("%.10x" % -5).should == "..fffffffb"
+      ("% x" % -26).should == "-1a"
+      ("%+x" % -26).should == "-1a"
+      ("%x" % -(2 ** 64 + 5)).should == "..fefffffffffffffffb"
+    end
+  end
+
+  it "supports hex formats using %X for positive numbers" do
     ("%X" % 10).should == "A"
     ("% X" % 10).should == " A"
     ("%1$X" % [10, 20]).should == "A"
@@ -596,16 +714,34 @@ describe "String#%" do
     ("%-9X" % 10).should == "A        "
     ("%05X" % 10).should == "0000A"
     ("%*X" % [10, 6]).should == "         6"
-
-    ("%X" % -5).should == "..FB"
-    ("%0X" % -5).should == "FB"
-    ("%.1X" % -5).should == "FB"
-    ("%.7X" % -5).should == "FFFFFFB"
-    ("%.10X" % -5).should == "FFFFFFFFFB"
-    ("% X" % -26).should == "-1A"
-    ("%+X" % -26).should == "-1A"
     ("%X" % 0xFFFFFFFF).should == "FFFFFFFF"
-    ("%X" % -(2 ** 64 + 5)).should == "..FEFFFFFFFFFFFFFFFB"
+  end
+
+  ruby_version_is "" ... "1.9" do
+    it "supports hex formats using %X for negative numbers" do
+      ("%X" % -5).should == "..FB"
+      ("%0X" % -5).should == "FB"
+      ("%.1X" % -5).should == "FB"
+      ("%.7X" % -5).should == "FFFFFFB"
+      ("%.10X" % -5).should == "FFFFFFFFFB"
+      ("% X" % -26).should == "-1A"
+      ("%+X" % -26).should == "-1A"
+      ("%X" % 0xFFFFFFFF).should == "FFFFFFFF"
+      ("%X" % -(2 ** 64 + 5)).should == "..FEFFFFFFFFFFFFFFFB"
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "supports hex formats using %X for negative numbers" do
+      ("%X" % -5).should == "..FB"
+      ("%0X" % -5).should == "..FB"
+      ("%.1X" % -5).should == "..FB"
+      ("%.7X" % -5).should == "..FFFFB"
+      ("%.10X" % -5).should == "..FFFFFFFB"
+      ("% X" % -26).should == "-1A"
+      ("%+X" % -26).should == "-1A"
+      ("%X" % -(2 ** 64 + 5)).should == "..FEFFFFFFFFFFFFFFFB"
+    end
   end
 
   ruby_version_is "1.9" do
@@ -633,7 +769,6 @@ describe "String#%" do
 
     it "behaves as if calling Kernel#Integer for #{format} argument, if it does not respond to #to_ary" do
       (format % "10").should == (format % Kernel.Integer("10"))
-      (format % nil).should == (format % Kernel.Integer(nil))
       (format % "0x42").should == (format % Kernel.Integer("0x42"))
       (format % "0b1101").should == (format % Kernel.Integer("0b1101"))
       (format % "0b1101_0000").should == (format % Kernel.Integer("0b1101_0000"))
@@ -660,6 +795,17 @@ describe "String#%" do
       obj.stub!(:to_i).and_return(5)
       obj.should_receive(:to_int).and_return(6)
       (format % obj).should == (format % 6)
+    end
+    
+    # 1.9 raises a TypeError for Kernel.Integer(nil), so we version guard this
+    # case
+    ruby_version_is ""..."1.9" do
+      it "behaves as if calling Kernel#Integer(nil) for format argument, if it does not respond to #to_ary" do
+        %w(b d i o u x X).each do |f|
+          format = "%" + f
+          (format % nil).should == (format % Kernel.Integer(nil))
+        end
+      end   
     end
 
     it "doesn't taint the result for #{format} when argument is tainted" do

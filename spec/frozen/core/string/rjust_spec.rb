@@ -62,8 +62,8 @@ describe "String#rjust with length, padding" do
   end
 
   it "raises a TypeError when padstr can't be converted" do
-    lambda { "hello".rjust(20, :sym)      }.should raise_error(TypeError)
-    lambda { "hello".rjust(20, ?c)        }.should raise_error(TypeError)
+    lambda { "hello".rjust(20, [])        }.should raise_error(TypeError)
+    lambda { "hello".rjust(20, Object.new)}.should raise_error(TypeError)
     lambda { "hello".rjust(20, mock('x')) }.should raise_error(TypeError)
   end
   

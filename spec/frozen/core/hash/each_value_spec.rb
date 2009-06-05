@@ -17,7 +17,5 @@ describe "Hash#each_value" do
     values.should == h.values
   end
 
-  it_behaves_like(:hash_iteration_method, :each_value)
-  it_behaves_like(:hash_iteration_modifying, :each_value)
   it_behaves_like(:hash_iteration_no_block, :each_value)
 end

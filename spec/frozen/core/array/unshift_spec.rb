@@ -46,12 +46,17 @@ describe "Array#unshift" do
   end
 
   ruby_version_is "1.9" do
-    it "raises a RuntimeError on a frozen array" do
-      lambda { ArraySpecs.frozen_array.unshift(1) }.should raise_error(RuntimeError)
+    ruby_bug "[ruby-core:23666]", "1.9.2" do
+      it "raises a RuntimeError on a frozen array" do
+        lambda { ArraySpecs.frozen_array.unshift(1) }.should raise_error(RuntimeError)
+        lambda { ArraySpecs.frozen_array.unshift    }.should raise_error(RuntimeError)
+      end
     end
   end
 
-  it "does not raise an exception on a frozen array if no modification takes place" do
-    ArraySpecs.frozen_array.unshift.should == [1, 2, 3]
+  ruby_version_is ""..."1.9" do
+    it "does not raise an exception on a frozen array if no modification takes place" do
+      ArraySpecs.frozen_array.unshift.should == [1, 2, 3]
+    end
   end
 end

@@ -82,10 +82,21 @@ describe "String#tr!" do
     s.should == "hello"
   end
 
-  it "raises a TypeError if self is frozen" do
-    s = "abcdefghijklmnopqR".freeze
-    lambda { s.tr!("cdefg", "12") }.should raise_error(TypeError)
-    lambda { s.tr!("R", "S")      }.should raise_error(TypeError)
-    lambda { s.tr!("", "")        }.should raise_error(TypeError)
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError if self is frozen" do
+      s = "abcdefghijklmnopqR".freeze
+      lambda { s.tr!("cdefg", "12") }.should raise_error(TypeError)
+      lambda { s.tr!("R", "S")      }.should raise_error(TypeError)
+      lambda { s.tr!("", "")        }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError if self is frozen" do
+      s = "abcdefghijklmnopqR".freeze
+      lambda { s.tr!("cdefg", "12") }.should raise_error(RuntimeError)
+      lambda { s.tr!("R", "S")      }.should raise_error(RuntimeError)
+      lambda { s.tr!("", "")        }.should raise_error(RuntimeError)
+    end
   end
 end

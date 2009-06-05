@@ -23,5 +23,13 @@ describe "Array.try_convert" do
         Array.try_convert(ArraySpecs::ArrayNotReallyConvertable.new)
       }.should raise_error
     end
+    
+    it "checks the result of the conversion" do
+      obj = mock('crazy to_ary')
+      obj.should_receive(:to_ary).and_return(:confused)
+      lambda{
+        Array.try_convert(obj)
+      }.should raise_error(TypeError)
+    end
   end
 end

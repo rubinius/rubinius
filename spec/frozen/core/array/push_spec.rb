@@ -36,12 +36,9 @@ describe "Array#push" do
   end
 
   ruby_version_is "1.9" do
-    it "raises a RuntimeError on a frozen array if modification takes place" do
+    it "raises a RuntimeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.push(1) }.should raise_error(RuntimeError)
-    end
-
-    it "Raise a RuntimeError on a frozen array if no modification is made too" do
       lambda { ArraySpecs.frozen_array.push }.should raise_error(RuntimeError)
-    end
+    end  
   end
 end

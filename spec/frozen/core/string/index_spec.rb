@@ -19,77 +19,79 @@ describe "String#index with object" do
   end
 end
 
-describe "String#index with Fixnum" do
-  it "returns the index of the first occurrence of the given character" do
-    "hello".index(?e).should == 1
-    "hello".index(?l).should == 2
-  end
-  
-  it "character values over 255 (256th ASCII character) always result in nil" do
-    # A naive implementation could try to use % 256
-    "hello".index(?e + 256 * 3).should == nil
-  end
-
-  it "negative character values always result in nil" do
-    # A naive implementation could try to use % 256
-    "hello".index(-(256 - ?e)).should == nil
-  end
-  
-  it "starts the search at the given offset" do
-    "blablabla".index(?b, 0).should == 0
-    "blablabla".index(?b, 1).should == 3
-    "blablabla".index(?b, 2).should == 3
-    "blablabla".index(?b, 3).should == 3
-    "blablabla".index(?b, 4).should == 6
-    "blablabla".index(?b, 5).should == 6
-    "blablabla".index(?b, 6).should == 6
-
-    "blablabla".index(?a, 0).should == 2
-    "blablabla".index(?a, 2).should == 2
-    "blablabla".index(?a, 3).should == 5
-    "blablabla".index(?a, 4).should == 5
-    "blablabla".index(?a, 5).should == 5
-    "blablabla".index(?a, 6).should == 8
-    "blablabla".index(?a, 7).should == 8
-    "blablabla".index(?a, 8).should == 8
-  end
-  
-  it "starts the search at offset + self.length if offset is negative" do
-    str = "blablabla"
+ruby_version_is ""..."1.9" do
+  describe "String#index with Fixnum" do
+    it "returns the index of the first occurrence of the given character" do
+      "hello".index(?e).should == 1
+      "hello".index(?l).should == 2
+    end
     
-    [?a, ?b].each do |needle|
-      (-str.length .. -1).each do |offset|
-        str.index(needle, offset).should ==
-        str.index(needle, offset + str.length)
-      end
+    it "character values over 255 (256th ASCII character) always result in nil" do
+      # A naive implementation could try to use % 256
+      "hello".index(?e + 256 * 3).should == nil
     end
 
-    "blablabla".index(?b, -9).should == 0
-  end
-  
-  it "returns nil if offset + self.length is < 0 for negative offsets" do
-    "blablabla".index(?b, -10).should == nil
-    "blablabla".index(?b, -20).should == nil
-  end
-  
-  it "returns nil if the character isn't found" do
-    "hello".index(0).should == nil
+    it "negative character values always result in nil" do
+      # A naive implementation could try to use % 256
+      "hello".index(-(256 - ?e)).should == nil
+    end
     
-    "hello".index(?H).should == nil
-    "hello".index(?z).should == nil
-    "hello".index(?e, 2).should == nil
+    it "starts the search at the given offset" do
+      "blablabla".index(?b, 0).should == 0
+      "blablabla".index(?b, 1).should == 3
+      "blablabla".index(?b, 2).should == 3
+      "blablabla".index(?b, 3).should == 3
+      "blablabla".index(?b, 4).should == 6
+      "blablabla".index(?b, 5).should == 6
+      "blablabla".index(?b, 6).should == 6
 
-    "blablabla".index(?b, 7).should == nil
-    "blablabla".index(?b, 10).should == nil
+      "blablabla".index(?a, 0).should == 2
+      "blablabla".index(?a, 2).should == 2
+      "blablabla".index(?a, 3).should == 5
+      "blablabla".index(?a, 4).should == 5
+      "blablabla".index(?a, 5).should == 5
+      "blablabla".index(?a, 6).should == 8
+      "blablabla".index(?a, 7).should == 8
+      "blablabla".index(?a, 8).should == 8
+    end
+    
+    it "starts the search at offset + self.length if offset is negative" do
+      str = "blablabla"
+      
+      [?a, ?b].each do |needle|
+        (-str.length .. -1).each do |offset|
+          str.index(needle, offset).should ==
+          str.index(needle, offset + str.length)
+        end
+      end
 
-    "blablabla".index(?a, 9).should == nil
-    "blablabla".index(?a, 20).should == nil
-  end
-  
-  it "converts start_offset to an integer via to_int" do
-    obj = mock('1')
-    obj.should_receive(:to_int).and_return(1)
-    "ROAR".index(?R, obj).should == 3
+      "blablabla".index(?b, -9).should == 0
+    end
+    
+    it "returns nil if offset + self.length is < 0 for negative offsets" do
+      "blablabla".index(?b, -10).should == nil
+      "blablabla".index(?b, -20).should == nil
+    end
+    
+    it "returns nil if the character isn't found" do
+      "hello".index(0).should == nil
+      
+      "hello".index(?H).should == nil
+      "hello".index(?z).should == nil
+      "hello".index(?e, 2).should == nil
+
+      "blablabla".index(?b, 7).should == nil
+      "blablabla".index(?b, 10).should == nil
+
+      "blablabla".index(?a, 9).should == nil
+      "blablabla".index(?a, 20).should == nil
+    end
+    
+    it "converts start_offset to an integer via to_int" do
+      obj = mock('1')
+      obj.should_receive(:to_int).and_return(1)
+      "ROAR".index(?R, obj).should == 3
+    end
   end
 end
 
@@ -210,23 +212,27 @@ describe "String#index with String" do
 end
 
 describe "String#index with Regexp" do
-  it "behaves the same as String#index(string) for escaped string regexps" do
-    ["blablabla", "hello cruel world...!"].each do |str|
-      ["", "b", "bla", "lab", "o c", "d."].each do |needle|
-        regexp = Regexp.new(Regexp.escape(needle))
-        str.index(regexp).should == str.index(needle)
-        
-        0.upto(str.size + 1) do |start|
-          str.index(regexp, start).should == str.index(needle, start)
-        end
-        
-        (-str.size - 1).upto(-1) do |start|
-          str.index(regexp, start).should == str.index(needle, start)
+  # This test fails on 1.9.2 because it handles empty regexps wrongly, i.e.
+  # when the regexp is //, the expectation isn't met.
+  ruby_bug "#1553", "1.9.2" do
+    it "behaves the same as String#index(string) for escaped string regexps" do
+      ["blablabla", "hello cruel world...!"].each do |str|
+        ["", "b", "bla", "lab", "o c", "d."].each do |needle|
+          regexp = Regexp.new(Regexp.escape(needle))
+          str.index(regexp).should == str.index(needle)
+          
+          0.upto(str.size + 1) do |start|
+            str.index(regexp, start).should == str.index(needle, start)
+          end
+          
+          (-str.size - 1).upto(-1) do |start|
+            str.index(regexp, start).should == str.index(needle, start)
+          end
         end
       end
     end
   end
-  
+
   it "returns the index of the first match of regexp" do
     "blablabla".index(/bla/).should == 0
     "blablabla".index(/BLA/i).should == 0
@@ -304,6 +310,12 @@ describe "String#index with Regexp" do
     "blablabla".index(/.{10}/).should == nil
     "blaxbla".index(/.x/, 3).should == nil
     "blaxbla".index(/..x/, 2).should == nil
+  end
+
+  ruby_bug "#1553", "1.9.2" do
+    it "returns nil if the Regexp matches the empty string and the offset is out of range" do
+      "ruby".index(//,12).should be_nil
+    end
   end
 
   it "supports \\G which matches at the given start offset" do

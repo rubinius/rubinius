@@ -157,8 +157,9 @@ describe "String#sub with pattern, replacement" do
   end
 
   it "raises a TypeError when pattern can't be converted to a string" do
-    lambda { "hello".sub(:woot, "x") }.should raise_error(TypeError)
-    lambda { "hello".sub(?e, "x")    }.should raise_error(TypeError)
+    lambda { "hello".sub(:woot, "x")     }.should raise_error(TypeError)
+    lambda { "hello".sub([], "x")        }.should raise_error(TypeError)
+    lambda { "hello".sub(Object.new, nil)}.should raise_error(TypeError)
   end
 
   it "tries to convert replacement to a string using to_str" do
@@ -169,8 +170,8 @@ describe "String#sub with pattern, replacement" do
   end
 
   it "raises a TypeError when replacement can't be converted to a string" do
-    lambda { "hello".sub(/[aeiou]/, :woot) }.should raise_error(TypeError)
-    lambda { "hello".sub(/[aeiou]/, ?f)    }.should raise_error(TypeError)
+    lambda { "hello".sub(/[aeiou]/, []) }.should raise_error(TypeError)
+    lambda { "hello".sub(/[aeiou]/, 99) }.should raise_error(TypeError)
   end
 
   it "returns subclass instances when called on a subclass" do
@@ -210,7 +211,7 @@ end
 
 describe "String#sub with pattern and block" do
   it "returns a copy of self with the first occurrences of pattern replaced with the block's return value" do
-    "hi".sub(/./) { |s| s[0].to_s + ' ' }.should == "104 i"
+    "hi".sub(/./) { |s| s + ' ' }.should == "h i"
     "hi!".sub(/(.)(.)/) { |*a| a.inspect }.should == '["hi"]!'
   end
 
@@ -323,14 +324,29 @@ describe "String#sub! with pattern, replacement" do
     a.should == "hello"
   end
 
-  it "raises a TypeError when self is frozen" do
-    s = "hello"
-    s.freeze
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError when self is frozen" do
+      s = "hello"
+      s.freeze
 
-    s.sub!(/ROAR/, "x") # ok
-    lambda { s.sub!(/e/, "e")       }.should raise_error(TypeError)
-    lambda { s.sub!(/[aeiou]/, '*') }.should raise_error(TypeError)
+      s.sub!(/ROAR/, "x") # ok
+      lambda { s.sub!(/e/, "e")       }.should raise_error(TypeError)
+      lambda { s.sub!(/[aeiou]/, '*') }.should raise_error(TypeError)
+    end
   end
+
+  ruby_version_is "1.9" do    
+    ruby_bug "[ruby-core:23666]", "1.9.2" do
+      it "raises a RuntimeError when self is frozen" do
+        s = "hello"
+        s.freeze
+
+        lambda { s.sub!(/ROAR/, "x")    }.should raise_error(RuntimeError)
+        lambda { s.sub!(/e/, "e")       }.should raise_error(RuntimeError)
+        lambda { s.sub!(/[aeiou]/, '*') }.should raise_error(RuntimeError)
+      end
+    end
+  end    
 end
 
 describe "String#sub! with pattern and block" do

@@ -17,12 +17,14 @@ describe "Hash.[]" do
 
   ruby_version_is '1.8.7' do
     # Not officially documented yet, see http://redmine.ruby-lang.org/issues/show/1385
-    it "creates a Hash; values can be provided as a list of value-pairs in an array" do
-      hash_class[[[:a, 1], [:b, 2]]].should == new_hash(:a => 1, :b => 2)
-      hash_class[[[:a, 1], [:b], 42, [:d, 2], [:e, 2, 3], []]].should == new_hash(:a => 1, :b => nil, :d => 2)
-      obj = mock('x')
-      def obj.to_ary() [:b, 2] end
-      hash_class[[[:a, 1], obj]].should == new_hash(:a => 1, :b => 2)
+    ruby_bug "[ruby-core:21249]", "1.8.7.167" do
+      it "creates a Hash; values can be provided as a list of value-pairs in an array" do
+        hash_class[[[:a, 1], [:b, 2]]].should == new_hash(:a => 1, :b => 2)
+        hash_class[[[:a, 1], [:b], 42, [:d, 2], [:e, 2, 3], []]].should == new_hash(:a => 1, :b => nil, :d => 2)
+        obj = mock('x')
+        def obj.to_ary() [:b, 2] end
+        hash_class[[[:a, 1], obj]].should == new_hash(:a => 1, :b => 2)
+      end
     end
   end
   

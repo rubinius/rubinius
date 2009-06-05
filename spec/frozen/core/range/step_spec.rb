@@ -13,7 +13,7 @@ describe "Range#step" do
     a = []
     ("A"..."G").step(2) { |x| a << x }
     a.should == ["A", "C", "E"]
-    
+
     a = []
     (0.5..2.4).step(0.5) { |x| a << x }
     a.should == [0.5, 1, 1.5, 2]
@@ -28,7 +28,7 @@ describe "Range#step" do
   it "raises a TypeError if the first element does not respond to #succ" do
     b = mock('x')
     (a = mock('1')).should_receive(:method_missing).with(:<=>, b).and_return(1)
-    
+
     lambda { (a..b).step(1) { |i| i } }.should raise_error(TypeError)
   end
 
@@ -41,10 +41,19 @@ describe "Range#step" do
     lambda { (1..10).step(obj) {} }.should raise_error(TypeError)
   end
 
-  it "coerces the argument to intger by invoking to_int" do
+  it "coerces the argument to integer by invoking to_int" do
     (obj = mock("2")).should_receive(:to_int).and_return(2)
     res = []
     (1..10).step(obj) {|x| res << x}
     res.should == [1, 3, 5, 7, 9]
   end
+
+  ruby_version_is "1.8.7" do
+    it "returns an enumerator when no block given" do
+      enum = (1..10).step(4)
+      enum.should be_kind_of(enumerator_class)
+      enum.to_a.should == [1, 5, 9]
+    end
+  end
+
 end

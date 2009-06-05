@@ -32,4 +32,8 @@ describe "Module#included" do
     c = Class.new{ include(m) }
     c.test.should == :passed
   end
+
+  it "is private in its default implementation" do
+    Module.new.private_methods.should include("included")
+  end
 end

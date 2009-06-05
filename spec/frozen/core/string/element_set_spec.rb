@@ -7,78 +7,81 @@ require File.dirname(__FILE__) + '/fixtures/classes.rb'
 #   String#[re, idx] = obj
 #   String#[str] = obj
 
-describe "String#[]= with index" do
-  it "sets the code of the character at idx to char modulo 256" do
-    a = "hello"
-    a[0] = ?b
-    a.should == "bello"
-    a[-1] = ?a
-    a.should == "bella"
-    a[-1] = 0
-    a.should == "bell\x00"
-    a[-5] = 0
-    a.should == "\x00ell\x00"
+ruby_version_is ""..."1.9" do
+  describe "String#[]= with index" do
+    it "sets the code of the character at idx to char modulo 256" do
+      a = "hello"
+      a[0] = ?b
+      a.should == "bello"
+      a[-1] = ?a
+      a.should == "bella"
+      a[-1] = 0
+      a.should == "bell\x00"
+      a[-5] = 0
+      a.should == "\x00ell\x00"
 
-    a = "x"
-    a[0] = ?y
-    a.should == "y"
-    a[-1] = ?z
-    a.should == "z"
+      a = "x"
+      a[0] = ?y
+      a.should == "y"
+      a[-1] = ?z
+      a.should == "z"
 
-    a[0] = 255
-    a[0].should == 255
-    a[0] = 256
-    a[0].should == 0
-    a[0] = 256 * 3 + 42
-    a[0].should == 42
-    a[0] = -214
-    a[0].should == 42
-  end
+      a[0] = 255
+      a[0].should == 255
+      a[0] = 256
+      a[0].should == 0
+      a[0] = 256 * 3 + 42
+      a[0].should == 42
+      a[0] = -214
+      a[0].should == 42
+    end
+      
+    it "sets the code to char % 256" do
+      str = "Hello"
 
-  it "raises an IndexError without changing self if idx is outside of self" do
-    a = "hello"
+      str[0] = ?a + 256 * 3
+      str[0].should == ?a
+      str[0] = -200
+      str[0].should == 56
+    end
 
-    lambda { a[20] = ?a }.should raise_error(IndexError)
-    a.should == "hello"
+    it "raises an IndexError without changing self if idx is outside of self" do
+      a = "hello"
 
-    lambda { a[-20] = ?a }.should raise_error(IndexError)
-    a.should == "hello"
+      lambda { a[20] = ?a }.should raise_error(IndexError)
+      a.should == "hello"
 
-    lambda { ""[0] = ?a  }.should raise_error(IndexError)
-    lambda { ""[-1] = ?a }.should raise_error(IndexError)
-  end
+      lambda { a[-20] = ?a }.should raise_error(IndexError)
+      a.should == "hello"
 
-  it "calls to_int on index" do
-    str = "hello"
-    str[0.5] = ?c
-    str.should == "cello"
+      lambda { ""[0] = ?a  }.should raise_error(IndexError)
+      lambda { ""[-1] = ?a }.should raise_error(IndexError)
+    end
 
-    obj = mock('-1')
-    obj.should_receive(:to_int).and_return(-1)
-    str[obj] = ?y
-    str.should == "celly"
-  end
+    it "calls to_int on index" do
+      str = "hello"
+      str[0.5] = ?c
+      str.should == "cello"
 
-  it "sets the code to char % 256" do
-    str = "Hello"
+      obj = mock('-1')
+      obj.should_receive(:to_int).and_return(-1)
+      str[obj] = ?y
+      str.should == "celly"
+    end
 
-    str[0] = ?a + 256 * 3
-    str[0].should == ?a
-    str[0] = -200
-    str[0].should == 56
-  end
+    it "doesn't call to_int on char" do
+      obj = mock('x')
+      obj.should_not_receive(:to_int)
+      lambda { "hi"[0] = obj }.should raise_error(TypeError)
+    end
 
-  it "doesn't call to_int on char" do
-    obj = mock('x')
-    obj.should_not_receive(:to_int)
-    lambda { "hi"[0] = obj }.should raise_error(TypeError)
-  end
+    it "raises a TypeError when self is frozen" do
+      a = "hello"
+      a.freeze
 
-  it "raises a TypeError when self is frozen" do
-    a = "hello"
-    a.freeze
+      lambda { a[0] = ?b }.should raise_error(TypeError)
+    end
 
-    lambda { a[0] = ?b }.should raise_error(TypeError)
   end
 end
 
@@ -126,11 +129,22 @@ describe "String#[]= with String" do
     str.should == "hello"
   end
 
-  it "raises a TypeError when self is frozen" do
-    a = "hello"
-    a.freeze
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError when self is frozen" do
+      a = "hello"
+      a.freeze
 
-    lambda { a[0] = "bam" }.should raise_error(TypeError)
+      lambda { a[0] = "bam" }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError when self is frozen" do
+      a = "hello"
+      a.freeze
+
+      lambda { a[0] = "bam" }.should raise_error(RuntimeError)
+    end
   end
 
   it "calls to_int on index" do
@@ -154,7 +168,7 @@ describe "String#[]= with String" do
   end
 
   it "raises a TypeError if other_str can't be converted to a String" do
-    lambda { "test"[1] = :test     }.should raise_error(TypeError)
+    lambda { "test"[1] = []        }.should raise_error(TypeError)
     lambda { "test"[1] = mock('x') }.should raise_error(TypeError)
     lambda { "test"[1] = nil       }.should raise_error(TypeError)
   end
@@ -231,7 +245,7 @@ describe "String#[]= with index, count" do
 
   it "raises a TypeError if other_str is a type other than String" do
     lambda { "hello"[0, 2] = nil  }.should raise_error(TypeError)
-    lambda { "hello"[0, 2] = :bob }.should raise_error(TypeError)
+    lambda { "hello"[0, 2] = []   }.should raise_error(TypeError)
     lambda { "hello"[0, 2] = 33   }.should raise_error(TypeError)
   end
 end
