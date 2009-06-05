@@ -90,7 +90,49 @@ module Rubinius
 
     def delete(start,length,object)
       Ruby.primitive :tuple_delete_inplace
-      raise PrimitiveFailure, "Tuple#delete primitive failed"
+
+      start = Type.coerce_to start, Fixnum, :to_i
+      length = Type.coerce_to length, Fixnum, :to_i
+
+      lend = start
+      rend = lend + length
+
+      return 0 if self.fields == 0
+      if lend < 0 || lend >= self.fields
+        raise IndexError, "Index %d is not within Tuple of length %d" % [lend, self.fields]
+      end
+
+      if rend < 0 || rend > self.fields
+        raise IndexError, "Index %d is not within Tuple of length %d" % [rend, self.fields]
+      end
+
+      i = lend
+      while i < rend
+        if at(i) == object
+          j = i
+          i += 1
+          while i < rend
+            val = at(i)
+            if val != object
+              put j, val
+              j += 1
+            end
+            i += 1
+          end
+
+          # cleanup all the remaining bins in the tuple
+          i = j
+          while i < rend
+            put i, nil
+            i += 1
+          end
+
+          return rend - j
+        end
+        i += 1
+      end
+
+      return 0
     end
 
     def self.create_weakref(object)
