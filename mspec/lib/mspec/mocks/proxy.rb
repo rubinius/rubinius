@@ -9,6 +9,20 @@ class MockObject
   end
 end
 
+class NumericMockObject < Numeric 
+  def initialize(name, options={})
+    @name = name
+    @null = options[:null_object]
+  end
+
+  def method_missing(sym, *args, &block)
+    @null ? self : super
+  end
+
+  def singleton_method_added(val)
+  end  
+end
+
 class MockProxy
   def initialize(type=nil)
     @multiple_returns = nil
@@ -88,7 +102,7 @@ class MockProxy
   def with(*args)
     raise ArgumentError, "you must specify the expected arguments" if args.empty?
     @arguments = *args
-    if RUBY_VERSION >= '1.9'
+    if (behaves_like_ruby_1_9 = *[])
       @arguments = @arguments.first if @arguments.length <= 1
     end
     self

@@ -4,6 +4,6 @@ class Object
   # depending of the version.
   #
   def enumerator_class
-    SpecVersion.new(RUBY_VERSION) < "1.8.7" ? Enumerable::Enumerator : Enumerator
+    SpecVersion.new(RUBY_VERSION) < "1.9" ? Enumerable::Enumerator : Enumerator
   end
 end

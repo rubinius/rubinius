@@ -1,4 +1,5 @@
 require 'mspec/matchers/base'
+require 'mspec/matchers/be_an_instance_of'
 require 'mspec/matchers/be_ancestor_of'
 require 'mspec/matchers/be_close'
 require 'mspec/matchers/be_empty'
