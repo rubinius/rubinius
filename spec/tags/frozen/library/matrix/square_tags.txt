@@ -1,1 +1,2 @@
 incomplete:Matrix#square? needs to be reviewed for spec completeness
+fails:"Matrix#square? returns false when the Matrix is not square\n    and the first row has the same number of columns as the matrix has rows."
