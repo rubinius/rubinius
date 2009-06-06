@@ -198,6 +198,10 @@ class Time
     Time.allocate.at_gmt(secs_or_time, msecs, false)
   end
 
+  def self.times
+    Process.times
+  end
+
   def strftime(format)
     build_tm
 
