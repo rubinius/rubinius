@@ -266,7 +266,7 @@ class Module
 
   def include(mod)
     mod.append_features(self)
-    mod.included(self)
+    mod.__send__ :included, self
     self
   end
 

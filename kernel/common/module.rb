@@ -15,6 +15,8 @@ class Module
   def constants_table() ; @constants ; end
   attr_writer :method_table
 
+  private :included
+
   def self.nesting
     # TODO: this is not totally correct but better specs need to
     # be written. Until then, this gets the specs running without
