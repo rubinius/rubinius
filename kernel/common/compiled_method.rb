@@ -139,10 +139,6 @@ module Rubinius
       ss.script = script
       @scope = ss
 
-      activate_as_script
-    end
-
-    def activate_as_script
       mc = MAIN.metaclass
       mc.method_table[:__script__] = self
       compile
