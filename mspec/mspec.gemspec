@@ -1,12 +1,12 @@
 Gem::Specification.new do |s|
   s.name                      = %q{mspec}
-  s.version                   = "1.5.11"
+  s.version                   = "1.5.12"
 
   s.specification_version     = 2 if s.respond_to? :specification_version=
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors                   = ["Brian Ford"]
-  s.date                      = %q{2009-3-30}
+  s.date                      = %q{2009-6-8}
   s.email                     = %q{bford@engineyard.com}
   s.has_rdoc                  = true
   s.extra_rdoc_files          = %w[ README LICENSE ]

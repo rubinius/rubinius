@@ -1,8 +1,13 @@
 require 'mspec/expectations/expectations'
+require 'mspec/helpers/metaclass'
 
 module Mock
   def self.reset
-    @mocks = @stubs = nil
+    @mocks = @stubs = @objects = nil
+  end
+
+  def self.objects
+    @objects ||= {}
   end
 
   def self.mocks
@@ -14,23 +19,38 @@ module Mock
   end
 
   def self.replaced_name(obj, sym)
-    :"__ms_#{obj.__id__}_#{sym}__"
+    :"__mspec_#{obj.__id__}_#{sym}__"
   end
 
   def self.replaced_key(obj, sym)
-    [replaced_name(obj, sym), obj, sym]
+    [replaced_name(obj, sym), sym]
   end
 
-  def self.replaced?(key)
-    !!(mocks.keys + stubs.keys).find { |k| k.first == key.first }
+  def self.has_key?(keys, sym)
+    !!keys.find { |k| k.first == sym }
+  end
+
+  def self.replaced?(sym)
+    has_key?(mocks.keys, sym) or has_key?(stubs.keys, sym)
+  end
+
+  def self.mock_respond_to?(obj, sym)
+    name = replaced_name(obj, :respond_to?)
+    if replaced? name
+      obj.__send__ name, sym
+    else
+      obj.respond_to? sym
+    end
   end
 
   def self.install_method(obj, sym, type=nil)
-    meta = class << obj; self; end
+    meta = obj.metaclass
 
     key = replaced_key obj, sym
-    if (sym.to_sym == :respond_to? or obj.respond_to?(sym)) and !replaced?(key)
-      meta.__send__ :alias_method, key.first, sym.to_sym
+    sym = sym.to_sym
+
+    if (sym == :respond_to? or mock_respond_to?(obj, sym)) and !replaced?(key.first)
+      meta.__send__ :alias_method, key.first, sym
     end
 
     meta.class_eval <<-END
@@ -51,6 +71,7 @@ module Mock
     else
       mocks[key] << proxy
     end
+    objects[key] = obj
 
     proxy
   end
@@ -61,7 +82,7 @@ module Mock
 
   def self.verify_count
     mocks.each do |key, proxies|
-      replaced, obj, sym = *key
+      obj = objects[key]
       proxies.each do |proxy|
         qualifier, count = proxy.count
         pass = case qualifier
@@ -78,7 +99,7 @@ module Mock
         end
         unless pass
           SpecExpectation.fail_with(
-            "Mock '#{name_or_inspect obj}' expected to receive '#{sym}' " \
+            "Mock '#{name_or_inspect obj}' expected to receive '#{key.last}' " \
             "#{qualifier.to_s.sub('_', ' ')} #{count} times",
             "but received it #{proxy.calls} times")
         end
@@ -93,45 +114,46 @@ module Mock
     end
 
     key = replaced_key obj, sym
-    proxies = mocks[key] + stubs[key]
-    proxies.each do |proxy|
-      pass = case proxy.arguments
-      when :any_args
-        true
-      when :no_args
-        compare.nil?
-      else
-        proxy.arguments == compare
-      end
-
-      if proxy.yielding?
-        if block
-          proxy.yielding.each do |args_to_yield|
-            if block.arity == -1 || block.arity == args_to_yield.size
-              block.call(*args_to_yield)
-            else
-              SpecExpectation.fail_with(
-                "Mock '#{name_or_inspect obj}' asked to yield " \
-                "|#{proxy.yielding.join(', ')}| on #{sym}\n",
-                "but a block with arity #{block.arity} was passed")
-            end
-          end
+    [mocks, stubs].each do |proxies|
+      proxies[key].each do |proxy|
+        pass = case proxy.arguments
+        when :any_args
+          true
+        when :no_args
+          compare.nil?
         else
-          SpecExpectation.fail_with(
-            "Mock '#{name_or_inspect obj}' asked to yield " \
-            "|[#{proxy.yielding.join('], [')}]| on #{sym}\n",
-            "but no block was passed")
+          proxy.arguments == compare
         end
-      end
 
-      if pass
-        proxy.called
-        return proxy.returning
+        if proxy.yielding?
+          if block
+            proxy.yielding.each do |args_to_yield|
+              if block.arity == -1 || block.arity == args_to_yield.size
+                block.call(*args_to_yield)
+              else
+                SpecExpectation.fail_with(
+                  "Mock '#{name_or_inspect obj}' asked to yield " \
+                  "|#{proxy.yielding.join(', ')}| on #{sym}\n",
+                  "but a block with arity #{block.arity} was passed")
+              end
+            end
+          else
+            SpecExpectation.fail_with(
+              "Mock '#{name_or_inspect obj}' asked to yield " \
+              "|[#{proxy.yielding.join('], [')}]| on #{sym}\n",
+              "but no block was passed")
+          end
+        end
+
+        if pass
+          proxy.called
+          return proxy.returning
+        end
       end
     end
 
     if sym.to_sym == :respond_to?
-      return obj.__send__(replaced_name(obj, sym), compare)
+      mock_respond_to? obj, compare
     else
       SpecExpectation.fail_with("Mock '#{name_or_inspect obj}': method #{sym}\n",
                             "called with unexpected arguments (#{Array(compare).join(' ')})")
@@ -139,15 +161,16 @@ module Mock
   end
 
   def self.cleanup
-    symbols = mocks.keys + stubs.keys
-    symbols.uniq.each do |replaced, obj, sym|
-      meta = class << obj; self; end
+    objects.each do |key, obj|
+      replaced = key.first
+      sym = key.last
+      meta = obj.metaclass
 
-      if meta.instance_methods.map { |x| x.to_sym }.include?(replaced.to_sym)
-        meta.__send__ :alias_method, sym.to_sym, replaced
+      if meta.instance_methods.map { |x| x.to_sym }.include?(replaced)
+        meta.__send__ :alias_method, sym, replaced
         meta.__send__ :remove_method, replaced
       else
-        meta.__send__ :remove_method, sym.to_sym
+        meta.__send__ :remove_method, sym
       end
     end
     reset

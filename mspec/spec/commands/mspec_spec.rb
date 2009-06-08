@@ -239,7 +239,7 @@ describe MSpecMain, "#run" do
   end
 
   it "uses exec to invoke the runner script" do
-    @script.should_receive(:exec).with("ruby", "-v", %r"mspec/bin/mspec-run$")
+    @script.should_receive(:exec).with("ruby", "-v", %r"#{MSPEC_HOME}/bin/mspec-run$")
     @script.options []
     @script.run
   end
@@ -248,7 +248,7 @@ describe MSpecMain, "#run" do
     @script.should_receive(:multi_exec).and_return do |arg|
       arg.length.should == 3
       arg[0].should == "-v"
-      arg[1].should =~ %r"mspec/bin/mspec-ci$"
+      arg[1].should =~ %r"#{MSPEC_HOME}/bin/mspec-ci$"
       arg[2].should == "-fy"
     end
     @script.options ["ci", "-j"]

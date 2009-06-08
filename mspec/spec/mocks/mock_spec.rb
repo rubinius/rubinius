@@ -23,7 +23,7 @@ describe Mock, ".replaced_name" do
   it "returns the name for a method that is being replaced by a mock method" do
     m = mock('a fake id')
     m.stub!(:__id__).and_return(42)
-    Mock.replaced_name(m, :method_call).should == :__ms_42_method_call__
+    Mock.replaced_name(m, :method_call).should == :__mspec_42_method_call__
   end
 end
 
@@ -31,7 +31,7 @@ describe Mock, ".replaced_key" do
   it "returns a key used internally by Mock" do
     m = mock('a fake id')
     m.stub!(:__id__).and_return(42)
-    Mock.replaced_key(m, :method_call).should == [:__ms_42_method_call__, m, :method_call]
+    Mock.replaced_key(m, :method_call).should == [:__mspec_42_method_call__, :method_call]
   end
 end
 
@@ -44,16 +44,16 @@ describe Mock, ".replaced?" do
 
   it "returns true if a method has been stubbed on an object" do
     Mock.install_method @mock, :method_call
-    Mock.replaced?(Mock.replaced_key(@mock, :method_call)).should be_true
+    Mock.replaced?(Mock.replaced_name(@mock, :method_call)).should be_true
   end
 
   it "returns true if a method has been mocked on an object" do
     Mock.install_method @mock, :method_call, :stub
-    Mock.replaced?(Mock.replaced_key(@mock, :method_call)).should be_true
+    Mock.replaced?(Mock.replaced_name(@mock, :method_call)).should be_true
   end
 
   it "returns false if a method has not been stubbed or mocked" do
-    Mock.replaced?(Mock.replaced_key(@mock, :method_call)).should be_false
+    Mock.replaced?(Mock.replaced_name(@mock, :method_call)).should be_false
   end
 end
 

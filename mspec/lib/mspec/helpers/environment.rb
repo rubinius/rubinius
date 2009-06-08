@@ -11,13 +11,22 @@ class Object
     env
   end
 
+  def windows_env_echo(var)
+    `cmd.exe /C ECHO %#{var}%`.strip
+  end  
+
   def username
     user = ""
     if SpecGuard.windows?
-      user = `cmd.exe /C ECHO %USERNAME%`.strip
+      user = windows_env_echo('USERNAME')
     else
       user = `whoami`.strip
     end
     user
   end
+
+  def home_directory
+    return ENV['HOME'] unless SpecGuard.windows?
+    windows_env_echo('HOMEDRIVE') + windows_env_echo('HOMEPATH')
+  end  
 end
