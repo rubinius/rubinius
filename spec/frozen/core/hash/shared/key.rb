@@ -23,12 +23,11 @@ describe :hash_key_p, :shared => true do
   end
 
   it "returns false for objects with the same hash" do
-    o1 = Object.new
-    def o1.hash() 0 end
+    x = mock('x')
+    y = mock('y')
+    x.should_receive(:hash).and_return(0)
+    y.should_receive(:hash).and_return(0)
 
-    o2 = Object.new
-    def o2.hash() 0 end
-
-    new_hash(o1 => nil).send(@method, o2).should == false
+    new_hash(x => nil).send(@method, y).should == false
   end
 end

@@ -72,29 +72,26 @@ describe "Hash#[]" do
   end
 
   it "compares key via hash" do
-    # Can't use should_receive because it uses hash internally
     x = mock('0')
-    def x.hash() 0 end
+    x.should_receive(:hash).and_return(0)
 
     new_hash[x].should == nil
   end
 
   it "does not compare key with unknown hash codes via eql?" do
-    # Can't use should_receive because it uses hash and eql? internally
     x = mock('x')
     y = mock('y')
     def x.eql?(o) raise("Shouldn't receive eql?") end
 
-    def x.hash() 0 end
-    def y.hash() 1 end
+    x.should_receive(:hash).and_return(0)
+    y.should_receive(:hash).and_return(1)
 
     new_hash(y => 1)[x].should == nil
   end
 
   it "compares key with found hash code via eql?" do
-    # Can't use should_receive because it uses hash and eql? internally
     y = mock('0')
-    def y.hash() 0 end
+    y.should_receive(:hash).twice.and_return(0)
 
     x = mock('0')
     def x.hash()

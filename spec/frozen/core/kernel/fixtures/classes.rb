@@ -138,6 +138,60 @@ module KernelSpecs
     def self.accept_block_as_argument(&block)
       block_given?
     end
+
+    class << self
+      define_method(:defined_block) do
+        block_given?
+      end
+    end
+  end
+
+  module KernelBlockGiven
+    def self.accept_block
+      Kernel.block_given?
+    end
+
+    def self.accept_block_as_argument(&block)
+      Kernel.block_given?
+    end
+
+    class << self
+      define_method(:defined_block) do
+        Kernel.block_given?
+      end
+    end
+  end
+
+  module SelfBlockGiven
+    def self.accept_block
+      self.send(:block_given?)
+    end
+
+    def self.accept_block_as_argument(&block)
+      self.send(:block_given?)
+    end
+
+    class << self
+      define_method(:defined_block) do
+        self.send(:block_given?)
+      end
+    end
+  end
+
+  module KernelBlockGiven
+    def self.accept_block
+      Kernel.block_given?
+    end
+
+    def self.accept_block_as_argument(&block)
+      Kernel.block_given?
+    end
+
+    class << self
+      define_method(:defined_block) do
+        Kernel.block_given?
+      end
+    end
   end
 
   def self.before_and_after

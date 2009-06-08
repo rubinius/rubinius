@@ -19,8 +19,8 @@ describe :hash_store, :shared => true do
     k1 = ["x"]
     k2 = ["y"]
     # So they end up in the same bucket
-    def k1.hash() 0 end
-    def k2.hash() 0 end
+    k1.should_receive(:hash).and_return(0)
+    k2.should_receive(:hash).and_return(0)
 
     h[k1] = 1
     h[k2] = 2

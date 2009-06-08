@@ -17,6 +17,12 @@ describe "BigDecimal.new" do
     }
   end
 
+  ruby_bug "1589", "1.8.6.368" do
+    it "doesn't segfault when using a very large string to build the number" do
+      BigDecimal.new("1" + "0"*10000000)._dump.should == "10000008:0.1E10000001"
+    end
+  end
+
   it "Number of significant digits >= given precision" do
     pi_string = "3.1415923"
     BigDecimal.new("3.1415923", 10).precs[1].should >= 10

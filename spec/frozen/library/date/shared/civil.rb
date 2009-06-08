@@ -63,4 +63,14 @@ describe :date_civil, :shared => true do
 
     lambda { Date.send(@method, 2000, 2, 2, r.jd) }.should raise_error(ArgumentError)
   end
+
+  ruby_bug "1589", "1.8.6.368" do
+    require 'bigdecimal'
+    require 'bigdecimal/util'
+    it "doesn't blow up (illegal instruction and segfault, respectively) when fed huge numbers" do
+      ["9E69999999","1"*10000000].each do |dv|
+        lambda { Date.new(2002,10,dv.to_d) }.should raise_error(BigDecimal::FloatDomainError)
+      end
+    end
+  end
 end

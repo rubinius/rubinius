@@ -40,8 +40,6 @@ describe "Kernel#dup" do
     end
 
     dup = @obj.dup
-    class << dup
-      lambda { CLONE }.should raise_error(NameError)
-    end
+    lambda { class << dup; CLONE; end }.should raise_error(NameError)
   end
 end

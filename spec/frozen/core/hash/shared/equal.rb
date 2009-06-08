@@ -18,29 +18,22 @@ describe :hash_equal, :shared => true do
   end
 
   it "first compares keys via hash" do
-    # Can't use should_receive because it uses hash internally
     x = mock('x')
-    def x.hash() 0 end
+    x.should_receive(:hash).and_return(0)
     y = mock('y')
-    def y.hash() 0 end
+    y.should_receive(:hash).and_return(0)
 
     new_hash(x => 1).send(@method, new_hash(y => 1)).should be_false
   end
 
   it "does not compare keys with different hash codes via eql?" do
-    # Can't use should_receive because it uses hash and eql? internally
     x = mock('x')
     y = mock('y')
-    x.instance_variable_set(:@other, y)
-    y.instance_variable_set(:@other, x)
-    def x.eql?(o)
-      raise("x Shouldn't receive eql?") if o == @other
-      self == o
-    end
-    def y.eql?(o)
-      raise("y Shouldn't receive eql?") if o == @other
-      self == o
-    end
+    x.should_not_receive(:eql?)
+    y.should_not_receive(:eql?)
+
+    x.should_receive(:hash).and_return(0)
+    y.should_receive(:hash).and_return(1)
 
     def x.hash() 0 end
     def y.hash() 1 end

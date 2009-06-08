@@ -12,6 +12,14 @@ unless ENV['MSPEC_RUNNER']
     require 'mspec/matchers/equal_element'
     require 'mspec/matchers/equal_utf16'
     require 'mspec/matchers/match_yaml'
+    require 'mspec/matchers/have_class_variable'
+    require 'mspec/matchers/have_constant'
+    require 'mspec/matchers/have_instance_method'
+    require 'mspec/matchers/have_instance_variable'
+    require 'mspec/matchers/have_method'
+    require 'mspec/matchers/have_private_instance_method'
+    require 'mspec/matchers/have_protected_instance_method'
+    require 'mspec/matchers/have_public_instance_method'
 
     # Code to setup HOME directory correctly on Windows
     # This duplicates Ruby 1.9 semantics for defining HOME
@@ -40,7 +48,7 @@ unless ENV['MSPEC_RUNNER']
   end
 end
 
-minimum_version = "1.5.10"
+minimum_version = "1.5.12"
 unless MSpec::VERSION >= minimum_version
   puts "Please install MSpec version >= #{minimum_version} to run the specs"
   exit 1

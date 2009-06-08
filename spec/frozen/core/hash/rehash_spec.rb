@@ -22,14 +22,13 @@ describe "Hash#rehash" do
     v1 = mock('v1')
     v2 = mock('v2')
 
-    # Can't use should_receive here because it uses hash() internally
-    def v1.hash() raise("values shouldn't be rehashed"); end
-    def v2.hash() raise("values shouldn't be rehashed"); end
+    v1.should_not_receive(:hash)
+    v2.should_not_receive(:hash)
 
     h = new_hash(k1 => v1, k2 => v2)
 
-    def k1.hash() 0 end
-    def k2.hash() 0 end
+    k1.should_receive(:hash).twice.and_return(0)
+    k2.should_receive(:hash).twice.and_return(0)
 
     h.rehash
     h[k1].should == v1
