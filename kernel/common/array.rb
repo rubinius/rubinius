@@ -975,22 +975,29 @@ class Array
   # Deletes the element(s) given by an index (optionally with a length)
   # or by a range. Returns the deleted object, subarray, or nil if the
   # index is out of range. Equivalent to:
-  def slice!(*args)
-    out = self[*args]
-    if !(Range === args[0])
-      # make sure that negative values are not passed through to the
-      # []= assignment
-      args[0] = Type.coerce_to args[0], Integer, :to_int
-      args[0] = args[0] + self.length if args[0] < 0
-      # This is to match the MRI behaviour of not extending the array
-      # with nil when specifying an index greater than the length
-      # of the array.
-      if args.size == 1
-        return out unless args[0] >= 0 && args[0] < self.length
-        args << 1
+  def slice!(start, length=Undefined)
+    if length.equal? Undefined
+      out = self[start]
+
+      if start.kind_of? Range
+        self[start] = []
+      else
+        # make sure that negative values are not passed through to the
+        # []= assignment
+        start = Type.coerce_to start, Integer, :to_int
+        start = start + self.length if start < 0
+
+        # This is to match the MRI behaviour of not extending the array
+        # with nil when specifying an index greater than the length
+        # of the array.
+        return out unless start >= 0 and start < self.length
+        self[start, 1] = []
       end
+    else
+      out = self[start,length]
+      self[start,length] = []
     end
-    self[*args] = []
+
     out
   end
 
