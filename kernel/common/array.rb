@@ -140,26 +140,27 @@ class Array
 
   alias_method :slice, :[]
 
-  def set_index(index, ent, *args)
+  def set_index(index, ent, fin=Undefined)
     Ruby.primitive :array_aset
 
     ins_length = nil
-    if args.size != 0
-      ins_length = Type.coerce_to ent, Integer, :to_int
-      ent = args[0]             # 2nd arg (ins_length) is the optional one!
+    unless fin.equal? Undefined
+      ins_length = Type.coerce_to ent, Fixnum, :to_int
+      ent = fin             # 2nd arg (ins_length) is the optional one!
     end
 
     # Normalise Ranges
-    if index.is_a?(Range)
+    if index.kind_of? Range
       if ins_length
         raise ArgumentError, "Second argument invalid with a range"
       end
 
-      last = Type.coerce_to index.last, Integer, :to_int
+      last = Type.coerce_to index.last, Fixnum, :to_int
       last += @total if last < 0
       last += 1 unless index.exclude_end?
 
-      index = Type.coerce_to index.first, Integer, :to_int
+      index = Type.coerce_to index.first, Fixnum, :to_int
+
       if index < 0
         index += @total
         raise RangeError, "Range begin #{index-@total} out of bounds" if index < 0
@@ -170,7 +171,7 @@ class Array
 
       ins_length = last - index
     else
-      index = Type.coerce_to index, Integer, :to_int
+      index = Type.coerce_to index, Fixnum, :to_int
 
       if index < 0
         index += @total
@@ -189,10 +190,22 @@ class Array
       end
 
       if ent.nil?
+        # optimize for fast removal..
+        reg_start = index + ins_length
+        reg_length = @total - reg_start
+
+        if reg_start <= @total
+          @tuple.copy_from @tuple, reg_start, reg_length, index
+          @total -= ins_length
+
+          return ent
+        end
+
+        # This is actually an addition! silly, I know.
         replacement = []
-      elsif ent.is_a?(Array)
+      elsif ent.kind_of? Array
         replacement = ent
-      elsif ent.respond_to?(:to_ary)
+      elsif ent.respond_to? :to_ary
         replacement = ent.to_ary
       else
         replacement = [ent]
@@ -980,7 +993,7 @@ class Array
       out = self[start]
 
       if start.kind_of? Range
-        self[start] = []
+        self[start] = nil
       else
         # make sure that negative values are not passed through to the
         # []= assignment
@@ -991,11 +1004,11 @@ class Array
         # with nil when specifying an index greater than the length
         # of the array.
         return out unless start >= 0 and start < self.length
-        self[start, 1] = []
+        self[start, 1] = nil
       end
     else
       out = self[start,length]
-      self[start,length] = []
+      self[start,length] = nil
     end
 
     out
