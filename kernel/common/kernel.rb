@@ -4,7 +4,7 @@ module Kernel
     raise TypeError, "can't convert nil into Float" if obj.nil?
 
     if obj.is_a?(String)
-      if obj !~ /^(\+|\-)?\d+$/ && obj !~ /^(\+|\-)?(\d_?)*\.(\d_?)+$/ && obj !~ /^[-+]?\d*\.?\d*e[-+]\d*\.?\d*/
+      if obj !~ /^\s*[+-]?((\d+_?)*\d+(\.(\d+_?)*\d+)?|\.(\d+_?)*\d+)(\s*|([eE][+-]?(\d+_?)*\d+)\s*)$/
         raise ArgumentError, "invalid value for Float(): #{obj.inspect}"
       end
     end
