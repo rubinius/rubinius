@@ -36,7 +36,7 @@ class Proc
   attr_accessor :block
 
   def binding
-    bind = Binding.setup @block.home_block
+    bind = Binding.setup @block.top_scope, @block.method, @block.method.scope
     bind.proc_environment = @block
     bind
   end
