@@ -1,0 +1,1 @@
+fails:Hash#include? returns false for objects with the same hash
