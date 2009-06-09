@@ -239,6 +239,7 @@ extern "C" {
       string->characters(env->state(), Fixnum::from(len));
       string->hash_value(env->state(), reinterpret_cast<Integer*>(RBX_Qnil));
     }
+    capi_update_string(env, self_handle);
 
     return self_handle;
   }

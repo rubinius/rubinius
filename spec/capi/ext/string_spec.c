@@ -148,6 +148,11 @@ VALUE string_spec_rb_str_resize(VALUE self, VALUE str, VALUE size) {
   return rb_str_resize(str, FIX2INT(size));
 }
 
+VALUE string_spec_rb_str_resize_RSTRING_LEN(VALUE self, VALUE str, VALUE size) {
+  VALUE modified = rb_str_resize(str, FIX2INT(size));
+  return INT2FIX(RSTRING_LEN(modified));
+}
+
 VALUE string_spec_rb_str_intern(VALUE self, VALUE str) {
   return rb_str_intern(str);
 }
@@ -201,6 +206,8 @@ void Init_string_spec() {
   rb_define_method(cls, "rb_str_substr", string_spec_rb_str_substr, 3);
   rb_define_method(cls, "rb_str_to_str", string_spec_rb_str_to_str, 1);
   rb_define_method(cls, "rb_str_resize", string_spec_rb_str_resize, 2);
+  rb_define_method(cls, "rb_str_resize_RSTRING_LEN",
+      string_spec_rb_str_resize_RSTRING_LEN, 2);
   rb_define_method(cls, "RSTRING_PTR_iterate", string_spec_RSTRING_PTR_iterate, 1);
   rb_define_method(cls, "RSTRING_PTR_assign", string_spec_RSTRING_PTR_assign, 2);
   rb_define_method(cls, "RSTRING_LEN", string_spec_RSTRING_LEN, 1);

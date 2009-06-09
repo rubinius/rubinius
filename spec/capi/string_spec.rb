@@ -224,12 +224,18 @@ describe "C-API String function" do
     it "reduces the size of the string" do
       str = @s.rb_str_resize("test", 2)
       str.size.should == 2
+      @s.RSTRING_LEN(str).should == 2
       str.should == "te"
+    end
+
+    it "updates the string's attributes visible in C code" do
+      @s.rb_str_resize_RSTRING_LEN("test", 2).should == 2
     end
 
     it "increases the size of the string" do
       str = @s.rb_str_resize("test", 12)
       str.size.should == 12
+      @s.RSTRING_LEN(str).should == 12
       str[0, 5].should == "test\x00"
     end
   end
