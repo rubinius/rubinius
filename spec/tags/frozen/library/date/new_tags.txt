@@ -1,2 +1,1 @@
-unstable:Date#civil doesn't blow up (illegal instruction and segfault, respectively) when fed huge numbers
 unstable:Date#new doesn't blow up (illegal instruction and segfault, respectively) when fed huge numbers
