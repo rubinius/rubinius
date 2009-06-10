@@ -22,8 +22,8 @@ module Rubinius
       def initialize(options = {})
         @options = { :sort => :percent }
         set_options options
-        set_options :full_report => true if RUBY_CONFIG["rbx.profiler.full_report"]
-        set_options :graph => true if RUBY_CONFIG["rbx.profiler.graph"]
+        set_options :full_report => true if RUBY_CONFIG["profiler.full_report"]
+        set_options :graph => true if RUBY_CONFIG["profiler.graph"]
       end
 
       # Set options for profiler output. Presently, the only option
