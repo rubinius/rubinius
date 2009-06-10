@@ -328,7 +328,7 @@ namespace :build do
   # -Wuninitialized requires -O, so it is not here.
   task :debug_flags => "build:normal_flags" do
     FLAGS.delete "-O2"
-    FLAGS.concat %w[ -O0 -fno-inline ]
+    FLAGS.concat %w[ -O0 -fno-inline -DRBX_DEBUG ]
   end
 
   task :stats_flags do

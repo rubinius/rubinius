@@ -9,17 +9,15 @@ namespace rubinius {
   ObjectMark::ObjectMark(GarbageCollector* gc) : gc(gc) { }
 
   Object* ObjectMark::call(Object* obj) {
-    if(obj->reference_p()) {
+    if(!obj->reference_p()) return NULL;
+#ifdef RBX_DEBUG
       if(unlikely(obj->zone == UnspecifiedZone)) {
         std::cout << "USZ!\n";
         char* bad = (char*)0;
         if(*bad) exit(11);
       }
-      sassert(obj->zone != UnspecifiedZone);
-      return gc->saw_object(obj);
-    }
-
-    return NULL;
+#endif
+    return gc->saw_object(obj);
   }
 
   void ObjectMark::set(Object* target, Object** pos, Object* val) {
