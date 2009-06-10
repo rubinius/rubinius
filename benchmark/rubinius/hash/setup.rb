@@ -1,3 +1,16 @@
+unless Kernel.method_defined? :const_lookup
+  module Kernel
+    # Implements rb_path2name. Based on code from wycats
+    def const_lookup(name)
+      names = name.split '::'
+      names.shift if names.first.empty?
+      names.inject(Object) do |m, n|
+        m.const_defined?(n) ? m.const_get(n) : m.const_missing(n)
+      end
+    end
+  end
+end
+
 MAX_KEYS = (ENV['MAX_KEY'] || 20_000).to_i
 HALF_MAX_KEYS = MAX_KEYS / 2
 
