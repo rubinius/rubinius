@@ -18,4 +18,9 @@ module Rubinius
     Ruby.primitive :vm_inc_global_serial
     raise PrimitiveFailure, "Rubinius.vm_inc_global_serial failed"
   end
+
+  def self.jit_block(be, show)
+    Ruby.primitive :vm_jit_block
+    raise PrimitiveFailure, "Rubinius.vm_jit_block failed"
+  end
 end

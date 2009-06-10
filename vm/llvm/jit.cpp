@@ -55,6 +55,17 @@ namespace offset {
   const static int msg_module = 1;
   const static int msg_method = 2;
   const static int msg_method_missing = 3;
+
+  const static int blockinv_flags = 0;
+  const static int blockinv_self = 1;
+  const static int blockinv_static_scope = 2;
+
+  const static int blockenv_scope = 1;
+  const static int blockenv_top_scope = 2;
+  const static int blockenv_local_count = 3;
+  const static int blockenv_method = 4;
+  const static int blockenv_vmm = 5;
+  const static int blockenv_execute = 6;
 };
 
 #include "llvm/jit_visit.hpp"
@@ -237,7 +248,7 @@ namespace rubinius {
 
         {
           timer::Running timer(ls_->time_spent);
-          jit->compile(ls_, req->vmmethod());
+          jit->compile(ls_, req->vmmethod(), req->is_block());
           jit->generate_function(ls_);
         }
 
@@ -253,14 +264,28 @@ namespace rubinius {
 
         req->vmmethod()->set_jitted();
 
-        MachineMethod* mm = req->machine_method();
-        mm->update(req->vmmethod(), jit);
-        mm->activate();
+        if(req->is_block()) {
+          BlockEnvironment* be = req->block_env();
+          if(!be) {
+            std::cout << "Fatal error in JIT. Expected a BlockEnvironment.\n";
+          } else {
+            be->set_native_function(jit->function_pointer());
+          }
+        } else {
+          MachineMethod* mm = req->machine_method();
+          if(!mm) {
+            std::cout << "Fatal error in JIT. Expected a MachineMethod.\n";
+          } else {
+            mm->update(req->vmmethod(), jit);
+            mm->activate();
+          }
+        }
 
         int which = ls_->add_jitted_method();
         if(ls_->config().jit_show_compiling) {
           std::cout << "[[[ JIT finished background compiling "
                     << which
+                    << (req->is_block() ? " (block)" : " (method)")
                     << " ]]]\n";
         }
 
@@ -391,10 +416,19 @@ namespace rubinius {
     return symbols_.lookup(sym);
   }
 
-  void LLVMState::compile_soon(STATE, VMMethod* vmm) {
-    MachineMethod* mm = state->new_struct<MachineMethod>(G(machine_method));
+  void LLVMState::compile_soon(STATE, VMMethod* vmm, BlockEnvironment* block) {
+    Object* placement;
+    bool is_block = false;
 
-    BackgroundCompileRequest* req = new BackgroundCompileRequest(state, vmm, mm);
+    if(block) {
+      is_block = true;
+      placement = block;
+    } else {
+      placement = state->new_struct<MachineMethod>(G(machine_method));
+    }
+
+    BackgroundCompileRequest* req =
+      new BackgroundCompileRequest(state, vmm, placement, is_block);
 
     queued_methods_++;
 
@@ -569,6 +603,9 @@ namespace rubinius {
     Value* prev;
     Value* msg;
     Value* args;
+    Value* block_env;
+    Value* block_inv;
+    Value* top_scope;
 
     BasicBlock* block;
 
@@ -650,6 +687,100 @@ namespace rubinius {
 
       // scope
       new StoreInst(vars, get_field(block, call_frame, offset::cf_scope),
+                    false, block);
+
+      // stk
+      new StoreInst(stk, get_field(block, call_frame, offset::cf_stk),
+                    false, block);
+
+      if(ls_->include_profiling()) {
+        method_entry_ = new AllocaInst(Type::Int8Ty,
+            ConstantInt::get(Type::Int32Ty, sizeof(profiler::MethodEntry)),
+            "method_entry", block);
+
+        Value* test = new LoadInst(ls_->profiling(), "profiling", block);
+
+        BasicBlock* setup_profiling = BasicBlock::Create("setup_profiling", func);
+        BasicBlock* cont = BasicBlock::Create("continue", func);
+
+        BranchInst::Create(setup_profiling, cont, test, block);
+
+        block = setup_profiling;
+
+        Signature sig(ls_, Type::VoidTy);
+        sig << "VM";
+        sig << PointerType::getUnqual(Type::Int8Ty);
+        sig << "Dispatch";
+        sig << "Arguments";
+        sig << "CompiledMethod";
+
+        Value* call_args[] = {
+          vm,
+          method_entry_,
+          msg,
+          args,
+          method
+        };
+
+        sig.call("rbx_begin_profiling", call_args, 5, "", block);
+
+        BranchInst::Create(cont, block);
+
+        block = cont;
+      }
+    }
+
+    void initialize_block_frame(int stack_size) {
+      Value* cm_gep = get_field(block, call_frame, offset::cf_cm);
+
+      method = new LoadInst(get_field(block, block_env, offset::blockenv_method),
+          "env.method", block);
+
+      // previous
+      new StoreInst(prev, get_field(block, call_frame, offset::cf_previous),
+                    false, block);
+
+      // static_scope
+      Value* ss = new LoadInst(get_field(block, block_inv, offset::blockinv_static_scope),
+          "invocation.static_scope", block);
+
+      new StoreInst(ss, get_field(block, call_frame, offset::cf_static_scope),
+          false, block);
+
+      // msg
+      new StoreInst(Constant::getNullValue(ls_->ptr_type("Dispatch")),
+          get_field(block, call_frame, offset::cf_msg), false, block);
+
+      // cm
+      new StoreInst(method, cm_gep, false, block);
+
+      // flags
+      Value* inv_flags = new LoadInst(get_field(block, block_inv, offset::blockinv_flags),
+          "invocation.flags", block);
+
+      int block_flags = CallFrame::cCustomStaticScope |
+                        CallFrame::cMultipleScopes;
+
+      Value* flags = BinaryOperator::CreateOr(inv_flags,
+          ConstantInt::get(Type::Int32Ty, block_flags), "flags", block);
+
+      new StoreInst(flags,
+          get_field(block, call_frame, offset::cf_flags), false, block);
+
+      // ip
+      new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
+          get_field(block, call_frame, offset::cf_ip), false, block);
+
+      // scope
+      new StoreInst(vars, get_field(block, call_frame, offset::cf_scope),
+                    false, block);
+
+      // top_scope
+      top_scope = new LoadInst(
+          get_field(block, block_env, offset::blockenv_top_scope),
+          "env.top_scope", block);
+
+      new StoreInst(top_scope, get_field(block, call_frame, offset::cf_top_scope),
                     false, block);
 
       // stk
@@ -818,6 +949,53 @@ namespace rubinius {
                     false, block);
 
       new StoreInst(Constant::getNullValue(vars->getType()),
+                    get_field(block, vars, offset::vars_parent), false, block);
+
+      nil_locals(vmm);
+    }
+
+    void setup_block_scope(VMMethod* vmm) {
+      Value* flag_idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 0)
+      };
+
+      Value* flag_pos = GetElementPtrInst::Create(vars, flag_idx, flag_idx+5,
+          "flag_pos", block);
+
+      new StoreInst(ConstantInt::get(Type::Int32Ty, 0), flag_pos, false, block);
+
+      Value* self = new LoadInst(
+          get_field(block, block_inv, offset::blockinv_self),
+          "invocation.self", block);
+
+      new StoreInst(self, get_field(block, vars, offset::vars_self), false, block);
+      new StoreInst(method, get_field(block, vars, offset::vars_method),
+                    false, block);
+
+      Value* mod = new LoadInst(get_field(block, top_scope, offset::vars_module),
+                                "top_scope.module", block);
+      new StoreInst(mod, get_field(block, vars, offset::vars_module), false, block);
+
+      Value* blk = new LoadInst(get_field(block, top_scope, offset::vars_block),
+                                "args.block", block);
+      new StoreInst(blk, get_field(block, vars, offset::vars_block), false, block);
+
+      Value* locals = ConstantInt::get(Type::Int32Ty, vmm->number_of_locals);
+      new StoreInst(locals, get_field(block, vars, offset::vars_num_locals),
+                    false, block);
+
+      // We don't use top_scope here because of nested blocks. Parent MUST be
+      // the scope the block was created in, not the top scope for depth
+      // variables to work.
+      Value* be_scope = new LoadInst(
+          get_field(block, block_env, offset::blockenv_scope),
+          "env.scope", block);
+
+      new StoreInst(be_scope,
                     get_field(block, vars, offset::vars_parent), false, block);
 
       nil_locals(vmm);
@@ -1004,6 +1182,61 @@ namespace rubinius {
       }
     }
 
+    void setup_block(VMMethod* vmm) {
+      Signature sig(ls_, "Object");
+      sig << "VM";
+      sig << "CallFrame";
+      sig << "BlockEnvironment";
+      sig << "Arguments";
+      sig << "BlockInvocation";
+
+      func = sig.function("");
+
+      Function::arg_iterator ai = func->arg_begin();
+      vm =   ai++; vm->setName("state");
+      prev = ai++; prev->setName("previous");
+      block_env = ai++; block_env->setName("env");
+      args = ai++; args->setName("args");
+      block_inv = ai++; block_inv->setName("invocation");
+
+      block = BasicBlock::Create("entry", func);
+
+      call_frame = new AllocaInst(cf_type, 0, "call_frame", block);
+      stk = new AllocaInst(obj_type,
+          ConstantInt::get(Type::Int32Ty, vmm->stack_size),
+          "stack", block);
+
+      Value* var_mem = new AllocaInst(obj_type,
+          ConstantInt::get(Type::Int32Ty,
+            (sizeof(VariableScope) / sizeof(Object*)) + vmm->number_of_locals),
+          "var_mem", block);
+
+      vars = CastInst::Create(
+          Instruction::BitCast,
+          var_mem,
+          PointerType::getUnqual(vars_type), "vars", block);
+
+      initialize_block_frame(vmm->stack_size);
+
+      stack_top = new AllocaInst(obj_ary_type, NULL, "stack_top", block);
+
+      Value* stk_idx[] = {
+        ConstantInt::get(Type::Int32Ty, (uint64_t)-1),
+      };
+
+      Value* stk_back_one = GetElementPtrInst::Create(stk, stk_idx,
+          stk_idx+1, "stk_back_one", block);
+      new StoreInst(stk_back_one, stack_top, false, block);
+
+      nil_stack(vmm->stack_size, constant(Qnil, obj_type, block));
+
+      setup_block_scope(vmm);
+
+      BasicBlock* body = BasicBlock::Create("block_body", func);
+      BranchInst::Create(body, block);
+      block = body;
+    }
+
     void setup(VMMethod* vmm) {
       Signature sig(ls_, "Object");
       sig << "VM";
@@ -1054,17 +1287,21 @@ namespace rubinius {
     }
   };
 
-  void LLVMCompiler::compile(LLVMState* ls, VMMethod* vmm) {
+  void LLVMCompiler::compile(LLVMState* ls, VMMethod* vmm, bool is_block) {
     LLVMWorkHorse work(ls);
 
-    work.setup(vmm);
+    if(is_block) {
+      work.setup_block(vmm);
+    } else {
+      work.setup(vmm);
+    }
 
     llvm::Function* func = work.func;
 
     JITVisit visitor(ls, vmm, ls->module(), func,
                      work.block, work.stk, work.call_frame, work.stack_top,
                      work.method_entry_, work.args,
-                     work.vars);
+                     work.vars, is_block);
 
     // Pass 1, detect BasicBlock boundaries
     BlockFinder finder(visitor.block_map(), func);

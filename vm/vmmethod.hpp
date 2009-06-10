@@ -54,6 +54,7 @@ namespace rubinius {
     native_int number_of_locals;
 
     native_int call_count;
+    void* native_function;
 
   private:
     bool jitted_;

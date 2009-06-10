@@ -242,53 +242,43 @@ extern "C" {
     return Qnil;
   }
 
-  Object* rbx_cast_for_splat_block_arg(STATE, CallFrame* call_frame, Object* top) {
-    if(top->nil_p()){
-      return Array::create(state, 0);
-    } else if(Tuple* tup = try_as<Tuple>(top)) {
-      return Array::from_tuple(state, tup);
-    } else if(kind_of<Array>(top)) {
-      return top;
+  Object* rbx_cast_for_splat_block_arg(STATE, Arguments& args) {
+    Array* ary = Array::create(state, args.total());
+    for(size_t i = 0; i < args.total(); i++) {
+      ary->set(state, i, args.get_argument(i));
     }
 
-    // Wrap
-    Array* ary = Array::create(state, 1);
-    ary->set(state, 0, top);
     return ary;
   }
 
-  Object* rbx_cast_for_multi_block_arg(STATE, CallFrame* call_frame, Object* top) {
-    if(Tuple* tup = try_as<Tuple>(top)) {
-      /* If there is only one thing in the tuple... */
-      if(tup->num_fields() == 1) {
-        /* and that thing is an array... */
-        if(Array* ary = try_as<Array>(tup->at(state, 0))) {
-          /* make a tuple out of the array contents... */
-          int j = ary->size();
-          Tuple* out = Tuple::create(state, j);
-
-          for(int k = 0; k < j; k++) {
-            out->put(state, k, ary->get(state, k));
-          }
-
-          return out;
-        }
-      }
+  Object* rbx_cast_for_multi_block_arg(STATE, Arguments& args) {
+    /* If there is only one argument and that thing is an array... */
+    if(args.total() == 1 && kind_of<Array>(args.get_argument(0))) {
+      return args.get_argument(0);
     }
 
-    return top;
+    Array* ary = Array::create(state, args.total());
+    for(size_t i = 0; i < args.total(); i++) {
+      ary->set(state, i, args.get_argument(i));
+    }
+
+    return ary;
   }
 
-  Object* rbx_cast_for_single_block_arg(STATE, CallFrame* call_frame, Object* top) {
-    Tuple* tup = as<Tuple>(top);
-    int k = tup->num_fields();
+  Object* rbx_cast_for_single_block_arg(STATE, Arguments& args) {
+    int k = args.total();
     if(k == 0) {
       return Qnil;
     } else if(k == 1) {
-      return tup->at(state, 0);
+      return args.get_argument(0);
     }
 
-    return Array::from_tuple(state, tup);
+    Array* ary = Array::create(state, k);
+    for(int i = 0; i < k; i++) {
+      ary->set(state, i, args.get_argument(i));
+    }
+
+    return ary;
   }
 
   Object* rbx_check_serial(STATE, CallFrame* call_frame, int index, int serial, Object* top) {

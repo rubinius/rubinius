@@ -41,11 +41,7 @@ namespace rubinius {
     init_header(UnspecifiedZone, InvalidType);
 
     parent_ = parent;
-    if(self) {
-      self_ = self;
-    } else {
-      self_ = parent->self();
-    }
+    self_ = self;
 
     method_ = cm;
     module_ = top->module();

@@ -19,10 +19,16 @@ namespace :jit do
                  rubinius::InstructionSequence
                  rubinius::SendSite
                  rubinius::SendSite::Internal
+                 rubinius::BlockEnvironment
+                 rubinius::BlockInvocation
                  jit_state!
     require 'tempfile'
 
-    files = %w!vm/call_frame.hpp vm/arguments.hpp vm/dispatch.hpp vm/builtin/sendsite.hpp!
+    files = %w!vm/call_frame.hpp
+               vm/arguments.hpp
+               vm/dispatch.hpp
+               vm/builtin/sendsite.hpp
+               vm/builtin/block_environment.hpp!
     path = "llvm-type-temp.cpp"
 
     File.open(path, "w+") do |f|

@@ -114,6 +114,8 @@ namespace rubinius {
     Value* vars_;
     bool creates_blocks_;
 
+    bool is_block_;
+
   public:
 
     const llvm::Type* ptr_type(std::string name) {
@@ -128,7 +130,7 @@ namespace rubinius {
              llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* start,
              llvm::Value* stack, llvm::Value* call_frame,
              llvm::Value* stack_top, llvm::Value* me, llvm::Value* args,
-             llvm::Value* vars)
+             llvm::Value* vars, bool is_block)
       : f(ls)
       , vmm_(vmm)
       , stack_(stack)
@@ -146,6 +148,7 @@ namespace rubinius {
       , args_(args)
       , vars_(vars)
       , creates_blocks_(true)
+      , is_block_(is_block)
     {
 #if __LP64__
       IntPtrTy = llvm::Type::Int64Ty;
@@ -1060,35 +1063,55 @@ namespace rubinius {
       stack_push(CallInst::Create(func, call_args, call_args+3, "string_dup", block_));
     }
 
-    void visit_push_local(opcode which) {
+    void push_local(Value* scope, opcode which) {
       Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, 0),
         ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
         ConstantInt::get(Type::Int32Ty, which)
       };
 
+      Value* pos = GetElementPtrInst::Create(scope, idx2, idx2+3, "local_pos", block_);
+
+      stack_push(new LoadInst(pos, "local", block_));
+    }
+
+    void visit_push_local(opcode which) {
       Value* vars;
-      if(creates_blocks_) {
+      if(is_block_) {
+        vars = top_scope();
+      } else if(creates_blocks_) {
         vars = scope();
       } else {
         vars = vars_;
       }
 
-      Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "local_pos", block_);
-
-      stack_push(new LoadInst(pos, "local", block_));
+      push_local(vars, which);
     }
 
-    void visit_set_local(opcode which) {
+    void set_local(Value* scope, opcode which, bool use_wb=true) {
       Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, 0),
         ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
         ConstantInt::get(Type::Int32Ty, which)
       };
 
+      Value* pos = GetElementPtrInst::Create(scope, idx2, idx2+3, "local_pos", block_);
+
+      Value* val = stack_top();
+
+      new StoreInst(val, pos, false, block_);
+
+      if(use_wb) write_barrier(scope, val);
+    }
+
+    void visit_set_local(opcode which) {
       bool use_wb;
       Value* vars;
-      if(creates_blocks_) {
+
+      if(is_block_) {
+        vars = top_scope();
+        use_wb = true;
+      } else if(creates_blocks_) {
         vars = scope();
         use_wb = true;
       } else {
@@ -1096,13 +1119,7 @@ namespace rubinius {
         use_wb = false;
       }
 
-      Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "local_pos", block_);
-
-      Value* val = stack_top();
-
-      new StoreInst(val, pos, false, block_);
-
-      if(use_wb) write_barrier(vars, val);
+      set_local(vars, which, use_wb);
     }
 
     void visit_push_self() {
@@ -1384,12 +1401,15 @@ namespace rubinius {
     }
 
     void visit_push_block() {
-      // We only JIT normal methods right now, which only use scope, never
-      // top_scope
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
         ConstantInt::get(Type::Int32Ty, offset::cf_scope)
       };
+
+      // We're JITing a block, use top_scope
+      if(is_block_) {
+        idx[1] = ConstantInt::get(Type::Int32Ty, offset::cf_top_scope);
+      }
 
       Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "scope_pos", block_);
       Value* ts =  new LoadInst(gep, "scope", block_);
@@ -1584,8 +1604,7 @@ namespace rubinius {
       std::vector<const Type*> types;
 
       types.push_back(VMTy);
-      types.push_back(CallFrameTy);
-      types.push_back(ObjType);
+      types.push_back(ptr_type("Arguments"));
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
@@ -1593,26 +1612,23 @@ namespace rubinius {
 
       Value* call_args[] = {
         vm_,
-        call_frame_,
-        stack_pop()
+        args_
       };
 
-      stack_push(CallInst::Create(func, call_args, call_args+3, "cfsba", block_));
+      stack_push(CallInst::Create(func, call_args, call_args+2, "cfsba", block_));
     }
 
     void visit_cast_for_multi_block_arg() {
       Signature sig(ls_, ObjType);
       sig << VMTy;
-      sig << CallFrameTy;
-      sig << ObjType;
+      sig << ptr_type("Arguments");
 
       Value* call_args[] = {
         vm_,
-        call_frame_,
-        stack_pop()
+        args_
       };
 
-      Value* val = sig.call("rbx_cast_for_multi_block_arg", call_args, 3,
+      Value* val = sig.call("rbx_cast_for_multi_block_arg", call_args, 2,
                             "cfmba", block_);
       stack_push(val);
     }
@@ -1620,21 +1636,37 @@ namespace rubinius {
     void visit_cast_for_splat_block_arg() {
       Signature sig(ls_, ObjType);
       sig << VMTy;
-      sig << CallFrameTy;
-      sig << ObjType;
+      sig << ptr_type("Arguments");
 
       Value* call_args[] = {
         vm_,
-        call_frame_,
-        stack_pop()
+        args_
       };
 
-      Value* val = sig.call("rbx_cast_for_splat_block_arg", call_args, 3,
+      Value* val = sig.call("rbx_cast_for_splat_block_arg", call_args, 2,
                             "cfmba", block_);
       stack_push(val);
     }
 
     void visit_set_local_depth(opcode depth, opcode index) {
+      if(depth == 0) {
+        set_local(scope(), index);
+        return;
+      } else if(depth == 1) {
+        Value* idx[] = {
+          ConstantInt::get(Type::Int32Ty, 0),
+          ConstantInt::get(Type::Int32Ty, offset::vars_parent)
+        };
+
+        Value* gep = GetElementPtrInst::Create(scope(), idx, idx+2, "parent_pos", block_);
+
+        Value* parent = new LoadInst(gep, "scope.parent", block_);
+        set_local(parent, index);
+        return;
+      }
+
+      // Handle depth > 1
+
       std::vector<const Type*> types;
 
       types.push_back(VMTy);
@@ -1659,6 +1691,23 @@ namespace rubinius {
     }
 
     void visit_push_local_depth(opcode depth, opcode index) {
+      if(depth == 0) {
+        push_local(scope(), index);
+        return;
+      } else if(depth == 1) {
+        Value* idx[] = {
+          ConstantInt::get(Type::Int32Ty, 0),
+          ConstantInt::get(Type::Int32Ty, offset::vars_parent)
+        };
+
+        Value* gep = GetElementPtrInst::Create(scope(), idx, idx+2, "parent_pos", block_);
+
+        Value* parent = new LoadInst(gep, "scope.parent", block_);
+        push_local(parent, index);
+        return;
+      }
+
+      // Handle depth > 1
       std::vector<const Type*> types;
 
       types.push_back(VMTy);

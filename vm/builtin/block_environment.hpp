@@ -53,9 +53,12 @@ namespace rubinius {
     attr_accessor(local_count, Object);
     attr_accessor(method, CompiledMethod);
 
+    void set_native_function(void*);
+
     /* interface */
 
     static void init(STATE);
+    VMMethod* vmmethod(STATE);
 
     // Ruby.primitive :blockenvironment_allocate
     static BlockEnvironment* allocate(STATE);

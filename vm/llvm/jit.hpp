@@ -21,8 +21,10 @@
 #include "configuration.hpp"
 
 #include "builtin/machine_method.hpp"
+#include "builtin/block_environment.hpp"
 
 #include "instruments/timing.hpp"
+#include "object_utils.hpp"
 
 namespace rubinius {
 
@@ -31,6 +33,8 @@ namespace rubinius {
     cOptimized = 2,
     cMachineCode = 4
   };
+
+  class BlockEnvironment;
 
   class BackgroundCompilerThread;
 
@@ -119,7 +123,7 @@ namespace rubinius {
 
     const llvm::Type* ptr_type(std::string name);
 
-    void compile_soon(STATE, VMMethod* vmm);
+    void compile_soon(STATE, VMMethod* vmm, BlockEnvironment* block=0);
 
     Symbol* symbol(const char* sym);
 
@@ -151,7 +155,7 @@ namespace rubinius {
       llvm::BasicBlock* block, llvm::Value* call_frame,
       int stack_size, llvm::Value* stack, llvm::Value* vars);
 
-    void compile(LLVMState*, VMMethod* vmm);
+    void compile(LLVMState*, VMMethod* vmm, bool is_block=false);
     void* function_pointer(STATE);
     void* function_pointer();
     llvm::Function* llvm_function(STATE);
@@ -216,12 +220,14 @@ namespace rubinius {
 
   class BackgroundCompileRequest {
     VMMethod* vmm_;
-    TypedRoot<MachineMethod*> mm_;
+    TypedRoot<Object*> mm_;
+    bool is_block_;
 
   public:
-    BackgroundCompileRequest(STATE, VMMethod* vmm, MachineMethod* mm)
+    BackgroundCompileRequest(STATE, VMMethod* vmm, Object* mm, bool is_block=false)
       : vmm_(vmm)
       , mm_(state)
+      , is_block_(is_block)
     {
       mm_.set(mm);
     }
@@ -231,7 +237,15 @@ namespace rubinius {
     }
 
     MachineMethod* machine_method() {
-      return mm_.get();
+      return try_as<MachineMethod>(mm_.get());
+    }
+
+    BlockEnvironment* block_env() {
+      return try_as<BlockEnvironment>(mm_.get());
+    }
+
+    bool is_block() {
+      return is_block_;
     }
   };
 

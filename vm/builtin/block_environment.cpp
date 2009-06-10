@@ -20,6 +20,11 @@
 #include "builtin/staticscope.hpp"
 
 #include "instruments/profiler.hpp"
+#include "configuration.hpp"
+
+#ifdef ENABLE_LLVM
+#include "llvm/jit.hpp"
+#endif
 
 #include <iostream>
 
@@ -38,6 +43,15 @@ namespace rubinius {
     return env;
   }
 
+  VMMethod* BlockEnvironment::vmmethod(STATE) {
+    if(!this->vmm) {
+      this->method_->formalize(state, false);
+      this->vmm = this->method_->backend_method_;
+    }
+
+    return this->vmm;
+  }
+
   // Installed by default in BlockEnvironment::execute, it runs the bytecodes
   // for the block in the interpreter.
   //
@@ -50,9 +64,34 @@ namespace rubinius {
     if(!env->vmm) {
       env->method_->formalize(state, false);
       env->vmm = env->method_->backend_method_;
+
+      // Not sure why we hit this case currenly, so just disable the JIT
+      // for them all together.
+      env->vmm->call_count = -1;
     }
 
     VMMethod* const vmm = env->vmm;
+
+#ifdef ENABLE_LLVM
+    if(vmm->call_count >= 0) {
+      if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
+        vmm->call_count = -1; // So we don't try and jit twice at the same time
+        state->stats.jitted_methods++;
+
+        LLVMState* ls = LLVMState::get(state);
+
+        ls->compile_soon(state, vmm, env);
+
+        if(state->shared.config.jit_show_compiling) {
+          std::cout << "[[[ JIT Queued method "
+                    << ls->queued_methods() << "/"
+                    << ls->jitted_methods() << " ]]]\n";
+        }
+      } else {
+        vmm->call_count++;
+      }
+    }
+#endif
 
     VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
                                (vmm->number_of_locals * sizeof(Object*)));
@@ -93,6 +132,11 @@ namespace rubinius {
     frame.scope->exit();
 
     return ret;
+  }
+
+  void BlockEnvironment::set_native_function(void* func) {
+    vmm->native_function = func;
+    execute = reinterpret_cast<BlockExecutor>(func);
   }
 
   Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Arguments& args, int flags) {
@@ -146,7 +190,6 @@ namespace rubinius {
       VMMethod* caller, CallFrame* call_frame, size_t index)
   {
     BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
-    be->execute = &BlockEnvironment::execute_interpreter;
 
     VMMethod* vmm;
     if((vmm = caller->blocks[index]) == NULL) {
@@ -162,7 +205,12 @@ namespace rubinius {
     be->method(state, cm);
     be->local_count(state, cm->local_count());
     be->vmm = vmm;
-
+    BlockExecutor native = reinterpret_cast<BlockExecutor>(vmm->native_function);
+    if(native) {
+      be->execute = native;
+    } else {
+      be->execute = &BlockEnvironment::execute_interpreter;
+    }
     return be;
   }
 

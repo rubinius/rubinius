@@ -36,6 +36,7 @@
 #include "builtin/float.hpp"
 
 #include "builtin/staticscope.hpp"
+#include "builtin/block_environment.hpp"
 
 #include "builtin/system.hpp"
 #include "signal.hpp"
@@ -515,5 +516,25 @@ namespace rubinius {
 
   Object* System::vm_inc_global_serial(STATE) {
     return Fixnum::from(state->shared.inc_global_serial());
+  }
+
+  Object* System::vm_jit_block(STATE, BlockEnvironment* env, Object* show) {
+#ifdef ENABLE_LLVM
+    LLVMState* ls = LLVMState::get(state);
+    timer::Running timer(ls->time_spent);
+
+    VMMethod* vmm = env->vmmethod(state);
+
+    LLVMCompiler* jit = new LLVMCompiler();
+    jit->compile(ls, vmm, true);
+
+    if(show->true_p()) {
+      jit->show_assembly(state);
+    }
+
+    env->set_native_function(jit->function_pointer(state));
+#endif
+
+    return show;
   }
 }

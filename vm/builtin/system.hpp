@@ -11,6 +11,7 @@ namespace rubinius {
   class Array;
   class Fixnum;
   class String;
+  class BlockEnvironment;
 
   class CallFrame;
 
@@ -194,6 +195,10 @@ namespace rubinius {
     // Print out the current backtrace of ruby code
     // Ruby.primitive :vm_show_backtrace
     static Object* vm_show_backtrace(STATE, CallFrame* calling_environment);
+
+    // Compile a block with the JIT
+    // Ruby.primitive :vm_jit_block
+    static Object* vm_jit_block(STATE, BlockEnvironment* env, Object* show);
 
   public:   /* Type info */
 
