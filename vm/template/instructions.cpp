@@ -35,7 +35,7 @@
 using namespace rubinius;
 
 // HACK: sassert is stack protection
-#ifdef RBX_DEBUG
+#ifdef RBX_STACK_DEBUG
 
 #define stack_push(val) ({ Object* _v = (val); sassert(_v && (int)_v != 0x10 && call_frame->js.stack < call_frame->js.stack_top); *++call_frame->js.stack = _v; })
 #define stack_pop() ({ assert(call_frame->js.stack >= call_frame->stk); *call_frame->js.stack--; })
