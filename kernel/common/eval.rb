@@ -2,7 +2,7 @@ module Kernel
 
   # Names of local variables at point of call (including evaled)
   #
-  def local_variables()
+  def local_variables
     locals = []
 
     scope = Rubinius::VariableScope.of_sender
@@ -10,14 +10,16 @@ module Kernel
     # Ascend up through all applicable blocks to get all vars.
     while scope
       if scope.method.local_names
-        scope.method.local_names.each {|name|
+        scope.method.local_names.each do |name|
           name = name.to_s
           locals << name unless name =~ /\A(@{1,2}|\$)/   # @todo Weed out "constants"? --rue
-        }
+        end
       end
 
       # Should not have any special cases here
-      scope.dynamic_locals.keys.each {|name| locals << name.to_s } if scope.dynamic_locals
+      if dyn = scope.dynamic_locals
+        dyn.keys.each {|name| locals << name.to_s }
+      end
 
       scope = scope.parent
     end
@@ -33,7 +35,6 @@ module Kernel
       Rubinius::VariableScope.of_sender,
       Rubinius::CompiledMethod.of_sender,
       Rubinius::StaticScope.of_sender)
-
   end
   module_function :binding
 
@@ -45,6 +46,7 @@ module Kernel
                               Rubinius::CompiledMethod.of_sender,
                               Rubinius::StaticScope.of_sender)
 
+      # TODO why using __kind_of__ here?
     elsif binding.__kind_of__ Proc
       binding = binding.binding
     elsif !binding.__kind_of__ Binding
@@ -75,7 +77,7 @@ module Kernel
     # This indicates the "declaration trace" to the stack trace
     # mechanisms, which can be different from the "call trace"
     # in the case of, say: eval("caller", a_proc_instance)
-    if binding.from_proc? then
+    if binding.from_proc?
       be.proc_environment = binding.proc_environment
     end
 
@@ -118,14 +120,10 @@ module Kernel
     elsif string
       string = StringValue(string)
 
+      # TODO refactor this common code with #eval
       binding = Binding.setup(Rubinius::VariableScope.of_sender,
                               Rubinius::CompiledMethod.of_sender,
                               Rubinius::StaticScope.of_sender)
-
-      # p string
-      # p binding.code.local_names
-      # p binding.variables
-      # p binding.variables.parent
 
       context = Compiler::Context.new binding.variables, binding.code
 
@@ -133,8 +131,6 @@ module Kernel
       compiled_method.scope = binding.static_scope.using_current_as(metaclass)
       compiled_method.name = :__instance_eval__
       compiled_method.compile
-
-      # puts compiled_method.decode
 
       # This has to be setup so __FILE__ works in eval.
       script = Rubinius::CompiledMethod::Script.new
@@ -175,20 +171,6 @@ module Kernel
     static_scope = Rubinius::StaticScope.of_sender.using_current_as(__metaclass__)
     return env.call_under(self, static_scope, self)
   end
-
-  def __scope_info__
-    variables = Rubinius::VariableScope.of_sender
-    method = Rubinius::CompiledMethod.of_sender
-
-    puts "CM / Scope / CM for defn"
-    p method
-    scope = Rubinius::StaticScope.of_sender
-    p scope
-    p scope.for_method_definition
-
-    p method.scope
-    p method.scope.for_method_definition
-  end
 end
 
 class Module
@@ -214,6 +196,8 @@ class Module
     elsif string.equal?(Undefined)
       raise ArgumentError, 'block not supplied'
     end
+
+    # TODO refactor this common code with #eval
 
     variables = Rubinius::VariableScope.of_sender
     method = Rubinius::CompiledMethod.of_sender
@@ -242,5 +226,6 @@ class Module
     be.under_context variables, compiled_method
     be.call_under self, ss, self
   end
+
   alias_method :class_eval, :module_eval
 end
