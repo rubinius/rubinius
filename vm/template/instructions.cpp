@@ -58,11 +58,9 @@ using namespace rubinius;
 #define stack_back(count) *(call_frame->js.stack - count)
 #define stack_clear(count) call_frame->clear_stack(count)
 
-#define SHOW(obj) (((NormalObject*)(obj))->show(state))
+#define next_int ((opcode)(stream[call_frame->ip++]))
 
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
-
-#define cache_ip()
 
 extern "C" {
   Object* send_slowly(STATE, VMMethod* vmm, InterpreterCallFrame* const call_frame, Symbol* name, size_t args);
@@ -70,15 +68,11 @@ extern "C" {
 #define HANDLE_EXCEPTION(val) if(val == NULL) return NULL;
 #define RUN_EXCEPTION() return NULL
 
-#define RETURN(val) return val
-
 #define SET_CALL_FLAGS(val) is.call_flags = (val)
 #define CALL_FLAGS() is.call_flags
 
 #define SET_ALLOW_PRIVATE(val) is.allow_private = (val)
 #define ALLOW_PRIVATE() is.allow_private
-
-#define DISPATCH return NULL
 
 #ruby <<CODE
 require 'stringio'
@@ -97,22 +91,6 @@ CODE
   }
 }
 
-/* A simple interface to the instructions by directly
- * executing an opcode stream. This is used primarly to
- * debug instructions. */
-
-#define next_op() *stream++
-#define next_int (opcode)(next_op())
-
-#undef RETURN
-#define RETURN(val) (void)val; return;
-
-/* Use a simplier next_int */
-#undef next_int
-#define next_int ((opcode)(stream[call_frame->ip++]))
-
-#undef RETURN
-#define RETURN(val) (void)val; DISPATCH;
 
 Object* VMMethod::interpreter(STATE, VMMethod* const vmm,
                               InterpreterCallFrame* const call_frame,
