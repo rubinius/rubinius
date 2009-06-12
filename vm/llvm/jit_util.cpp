@@ -306,21 +306,17 @@ extern "C" {
     return res;
   }
 
-  Object* rbx_instance_of(STATE, CallFrame* call_frame, Object* top, Object* b1) {
+  Object* rbx_instance_of(STATE, Object* top, Object* b1) {
     Class* cls = as<Class>(b1);
     if(top->class_object(state) == cls) return Qtrue;
     return Qfalse;
   }
 
-  Object* rbx_in_nil(STATE, CallFrame* call_frame, Object* top) {
-    return top->nil_p() ? Qtrue : Qfalse;
-  }
-
-  Object* rbx_kind_of(STATE, CallFrame* call_frame, Object* top, Object* b1) {
+  Object* rbx_kind_of(STATE, Object* top, Object* b1) {
     return top->kind_of_p(state, b1) ? Qtrue : Qfalse;
   }
 
-  Object* rbx_make_array(STATE, CallFrame* call_frame, int count, Object** args) {
+  Object* rbx_make_array(STATE, int count, Object** args) {
     Array* ary = Array::create(state, count);
     for(int i = 0; i < count; i++) {
       ary->set(state, i, args[i]);
@@ -618,12 +614,12 @@ extern "C" {
     return self->set_ivar(state, name, val);
   }
 
-  Object* rbx_push_my_field(STATE, CallFrame* call_frame, int which) {
-    return call_frame->self()->get_field(state, which);
+  Object* rbx_push_my_field(STATE, Object* self, int which) {
+    return self->get_field(state, which);
   }
 
-  Object* rbx_set_my_field(STATE, CallFrame* call_frame, int which, Object* val) {
-    call_frame->self()->set_field(state, which, val);
+  Object* rbx_set_my_field(STATE, Object* self, int which, Object* val) {
+    self->set_field(state, which, val);
     return val;
   }
 
@@ -632,7 +628,7 @@ extern "C" {
     return val;
   }
 
-  Object* rbx_set_const_at(STATE, CallFrame* call_frame, Symbol* name, Object* mod, Object* val) {
+  Object* rbx_set_const_at(STATE, Symbol* name, Object* mod, Object* val) {
     // TODO if the as<> fails, the process will abort().
     as<Module>(mod)->set_const(state, name, val);
     return val;
@@ -643,7 +639,7 @@ extern "C" {
     return Qnil;
   }
 
-  Object* rbx_shift_array(STATE, CallFrame* call_frame, Object** loc) {
+  Object* rbx_shift_array(STATE, Object** loc) {
     Array* array = as<Array>(*loc);
     size_t size = (size_t)array->size();
 
@@ -661,7 +657,7 @@ extern "C" {
     return shifted_value;
   }
 
-  Object* rbx_string_append(STATE, CallFrame* call_frame, Object* left, Object* right) {
+  Object* rbx_string_append(STATE, Object* left, Object* right) {
     return as<String>(left)->append(state, as<String>(right));
   }
 

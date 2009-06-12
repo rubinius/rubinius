@@ -1122,6 +1122,17 @@ namespace rubinius {
       set_local(vars, which, use_wb);
     }
 
+    Value* get_self() {
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, offset::vars_self)
+      };
+
+      Value* pos = GetElementPtrInst::Create(scope(), idx, idx + 2, "self_pos", block_);
+
+      return new LoadInst(pos, "self", block_);
+    }
+
     void visit_push_self() {
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
@@ -1545,7 +1556,6 @@ namespace rubinius {
       std::vector<const Type*> types;
 
       types.push_back(VMTy);
-      types.push_back(CallFrameTy);
       types.push_back(ObjType);
       types.push_back(ObjType);
 
@@ -1556,13 +1566,12 @@ namespace rubinius {
       Value* val = stack_pop();
       Value* call_args[] = {
         vm_,
-        call_frame_,
         constant(as<Symbol>(literal(name))),
         stack_top(),
         val
       };
 
-      CallInst::Create(func, call_args, call_args+5, "set_const", block_);
+      CallInst::Create(func, call_args, call_args+4, "set_const", block_);
 
       stack_push(val);
     }
@@ -2068,19 +2077,17 @@ namespace rubinius {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
-      sig << CallFrameTy;
       sig << ObjType;
       sig << ObjType;
 
       Value* top = stack_pop();
       Value* call_args[] = {
         vm_,
-        call_frame_,
         top,
         stack_pop()
       };
 
-      Value* val = sig.call("rbx_instance_of", call_args, 4, "constant", block_);
+      Value* val = sig.call("rbx_instance_of", call_args, 3, "constant", block_);
       stack_push(val);
     }
 
@@ -2088,19 +2095,17 @@ namespace rubinius {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
-      sig << CallFrameTy;
       sig << ObjType;
       sig << ObjType;
 
       Value* top = stack_pop();
       Value* call_args[] = {
         vm_,
-        call_frame_,
         top,
         stack_pop()
       };
 
-      Value* val = sig.call("rbx_kind_of", call_args, 4, "constant", block_);
+      Value* val = sig.call("rbx_kind_of", call_args, 3, "constant", block_);
       stack_push(val);
     }
 
@@ -2116,18 +2121,16 @@ namespace rubinius {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
-      sig << CallFrameTy;
       sig << Type::Int32Ty;
       sig << ObjArrayTy;
 
       Value* call_args[] = {
         vm_,
-        call_frame_,
         ConstantInt::get(Type::Int32Ty, count),
         stack_objects(count)
       };
 
-      Value* val = sig.call("rbx_make_array", call_args, 4, "constant", block_);
+      Value* val = sig.call("rbx_make_array", call_args, 3, "constant", block_);
       stack_remove(count);
       stack_push(val);
     }
@@ -2261,12 +2264,14 @@ namespace rubinius {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
-      sig << CallFrameTy;
+      sig << ObjType;
       sig << Type::Int32Ty;
+
+      Value* self = get_self();
 
       Value* call_args[] = {
         vm_,
-        call_frame_,
+        self,
         ConstantInt::get(Type::Int32Ty, which)
       };
 
@@ -2279,13 +2284,15 @@ namespace rubinius {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
-      sig << CallFrameTy;
+      sig << ObjType;
       sig << Type::Int32Ty;
       sig << ObjType;
 
+      Value* self = get_self();
+
       Value* call_args[] = {
         vm_,
-        call_frame_,
+        self,
         ConstantInt::get(Type::Int32Ty, which),
         stack_top()
       };
@@ -2297,16 +2304,14 @@ namespace rubinius {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
-      sig << CallFrameTy;
       sig << ObjArrayTy;
 
       Value* call_args[] = {
         vm_,
-        call_frame_,
         stack_back_position(0)
       };
 
-      Value* val = sig.call("rbx_shift_array", call_args, 3, "field", block_);
+      Value* val = sig.call("rbx_shift_array", call_args, 2, "field", block_);
       stack_push(val);
     }
 
@@ -2314,7 +2319,6 @@ namespace rubinius {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
-      sig << CallFrameTy;
       sig << ObjType;
       sig << ObjType;
 
@@ -2322,12 +2326,11 @@ namespace rubinius {
 
       Value* call_args[] = {
         vm_,
-        call_frame_,
         val,
         stack_pop()
       };
 
-      Value* str = sig.call("rbx_string_append", call_args, 4, "string", block_);
+      Value* str = sig.call("rbx_string_append", call_args, 3, "string", block_);
       stack_push(str);
     }
   };
