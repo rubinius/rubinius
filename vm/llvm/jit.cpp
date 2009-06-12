@@ -156,6 +156,10 @@ namespace rubinius {
 
         if(state == cIdle) {
           condition_.signal();
+        } else if(state == cPaused) {
+          // TODO refactor common from unpause
+          pause_ = false;
+          condition_.signal();
         }
       }
 
@@ -208,9 +212,6 @@ namespace rubinius {
         {
           thread::Mutex::LockGuard guard(mutex_);
 
-          // If we've been asked to stop, do so now.
-          if(stop_) return;
-
           if(pause_) {
             state = cPaused;
 
@@ -224,6 +225,9 @@ namespace rubinius {
             state = cUnknown;
             paused_ = false;
           }
+
+          // If we've been asked to stop, do so now.
+          if(stop_) return;
 
           while(pending_requests_.size() == 0) {
             state = cIdle;
