@@ -1163,18 +1163,23 @@ namespace rubinius {
       if(vmm->splat_position >= 0) {
         Signature sig(ls_, "Object");
         sig << "VM";
-        sig << "CallFrame";
         sig << "Arguments";
         sig << Type::Int32Ty;
 
         Value* call_args[] = {
           vm_obj,
-          call_frame,
           arg_obj,
           ConstantInt::get(Type::Int32Ty, vmm->total_args)
         };
 
-        Value* splat_val = sig.call("rbx_construct_splat", call_args, 4, "splat_val", block);
+        Function* func = sig.function("rbx_construct_splat");
+        func->setOnlyReadsMemory(true);
+        func->setDoesNotThrow(true);
+
+        CallInst* splat_val = sig.call("rbx_construct_splat", call_args, 3, "splat_val", block);
+
+        splat_val->setOnlyReadsMemory(true);
+        splat_val->setDoesNotThrow(true);
 
         Value* idx3[] = {
           ConstantInt::get(Type::Int32Ty, 0),

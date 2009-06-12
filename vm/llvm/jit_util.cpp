@@ -202,7 +202,7 @@ extern "C" {
                                               call_frame, index);
   }
 
-  Object* rbx_construct_splat(STATE, CallFrame* call_frame, Arguments& args, size_t total) {
+  Object* rbx_construct_splat(STATE, Arguments& args, size_t total) {
     if(args.total() > total) {
       size_t splat_size = args.total() - total;
       Array* ary = Array::create(state, splat_size);
