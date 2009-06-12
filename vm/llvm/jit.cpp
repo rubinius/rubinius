@@ -47,6 +47,7 @@ namespace offset {
   const static int vars_num_locals = 7;
   const static int vars_tuple = 8;
 
+  const static int tuple_full_size = 1;
   const static int tuple_field = 2;
 
   const static int cm_static_scope = 12;

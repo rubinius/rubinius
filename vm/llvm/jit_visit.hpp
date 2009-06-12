@@ -1144,6 +1144,8 @@ namespace rubinius {
     void call_tuple_at(SendSite::Internal* cache, opcode args) {
       Value* recv = stack_back(1);
 
+      // bool is_tuple = recv->flags & mask;
+
       Value* flag_idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
         ConstantInt::get(Type::Int32Ty, 0),
@@ -1179,19 +1181,36 @@ namespace rubinius {
 
       Value* fix_cmp = new ICmpInst(ICmpInst::ICMP_EQ, masked, fix_tag, "is_fixnum", block_);
 
-      BranchInst::Create(access, is_other, fix_cmp, block_);
-
-      block_ = access;
-
-      Value* index = tag_strip(index_val, block_, Type::Int32Ty);
-      stack_remove(1);
-
+      // Check that index is not over the end of the Tuple
       const Type* tuple_type = ptr_type("Tuple");
 
       Value* tup = CastInst::Create(
           Instruction::BitCast,
           recv,
           tuple_type, "as_tuple", block_);
+
+      Value* index = tag_strip(index_val, block_, Type::Int32Ty);
+
+      Value* tuple_size_idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, offset::tuple_full_size)
+      };
+
+      Value* table_size_pos = GetElementPtrInst::Create(tup,
+          tuple_size_idx, tuple_size_idx+2, "table_size_pos", block_);
+
+      Value* full_size = new LoadInst(table_size_pos, "table_size", block_);
+
+      Value* size_cmp = new ICmpInst(ICmpInst::ICMP_SLT, index, full_size, "is_in_bounds", block_);
+
+      // Combine fix_cmp and size_cmp to validate entry into access code
+      Value* access_cmp = BinaryOperator::CreateAnd(fix_cmp, size_cmp, "access_cmp", block_);
+
+      BranchInst::Create(access, is_other, access_cmp, block_);
+
+      block_ = access;
+
+      stack_remove(1);
 
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
