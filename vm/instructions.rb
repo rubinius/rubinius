@@ -3653,7 +3653,11 @@ class Instructions
 
   def setup_unwind(ip, type)
     <<-CODE
-    call_frame->push_unwind(ip, (UnwindType)(type), stack_calculate_sp());
+    assert(current_unwind < kMaxUnwindInfos);
+    UnwindInfo& info = unwinds[current_unwind++];
+    info.target_ip = ip;
+    info.stack_depth = stack_calculate_sp();
+    info.type = (UnwindType)type;
     CODE
   end
 
@@ -3673,7 +3677,8 @@ class Instructions
 
   def pop_unwind
     <<-CODE
-    call_frame->pop_unwind();
+    assert(current_unwind > 0);
+    --current_unwind;
     CODE
   end
 

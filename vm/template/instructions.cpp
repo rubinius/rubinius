@@ -109,6 +109,9 @@ Object* VMMethod::interpreter(STATE, VMMethod* const vmm,
   Object* return_value;
   static int tick = 0;
 
+  int current_unwind = 0;
+  UnwindInfo unwinds[kMaxUnwindInfos];
+
   for(;;) {
 continue_to_run:
     if(unlikely(++tick > 0xff)) {
@@ -157,10 +160,10 @@ exception:
     //
     switch(th->raise_reason()) {
     case cException:
-      if(call_frame->has_unwinds_p()) {
-        UnwindInfo& info = call_frame->pop_unwind();
-        stack_position(info.stack_depth);
-        call_frame->set_ip(info.target_ip);
+      if(current_unwind > 0) {
+        UnwindInfo* info = &unwinds[--current_unwind];
+        stack_position(info->stack_depth);
+        call_frame->set_ip(info->target_ip);
       } else {
         call_frame->scope->exit();
         return NULL;
@@ -171,11 +174,11 @@ exception:
     case cBreak:
       // Otherwise, we're doing a long return/break unwind through
       // here. We need to run ensure blocks.
-      while(call_frame->has_unwinds_p()) {
-        UnwindInfo& info = call_frame->pop_unwind();
-        if(info.for_ensure()) {
-          stack_position(info.stack_depth);
-          call_frame->set_ip(info.target_ip);
+      while(current_unwind > 0) {
+        UnwindInfo* info = &unwinds[--current_unwind];
+        if(info->for_ensure()) {
+          stack_position(info->stack_depth);
+          call_frame->set_ip(info->target_ip);
 
           // Don't reset ep here, we're still handling the return/break.
           goto continue_to_run;
@@ -231,6 +234,9 @@ Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm,
                                        Arguments& args) {
   opcode* stream = vmm->opcodes;
   InterpreterState is;
+
+  int current_unwind = 0;
+  UnwindInfo unwinds[kMaxUnwindInfos];
 
   opcode op;
 
@@ -299,10 +305,10 @@ exception:
     //
     switch(th->raise_reason()) {
     case cException:
-      if(call_frame->has_unwinds_p()) {
-        UnwindInfo& info = call_frame->pop_unwind();
-        stack_position(info.stack_depth);
-        call_frame->set_ip(info.target_ip);
+      if(current_unwind > 0) {
+        UnwindInfo* info = &unwinds[--current_unwind];
+        stack_position(info->stack_depth);
+        call_frame->set_ip(info->target_ip);
       } else {
         call_frame->scope->exit();
         return NULL;
@@ -313,11 +319,13 @@ exception:
     case cBreak:
       // Otherwise, we're doing a long return/break unwind through
       // here. We need to run ensure blocks.
-      while(call_frame->has_unwinds_p()) {
-        UnwindInfo& info = call_frame->pop_unwind();
-        if(info.for_ensure()) {
-          stack_position(info.stack_depth);
-          call_frame->set_ip(info.target_ip);
+      while(current_unwind > 0) {
+        UnwindInfo* info = &unwinds[--current_unwind];
+        stack_position(info->stack_depth);
+
+        if(info->for_ensure()) {
+          stack_position(info->stack_depth);
+          call_frame->set_ip(info->target_ip);
 
           // Don't reset ep here, we're still handling the return/break.
           goto continue_to_run;

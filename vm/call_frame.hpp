@@ -87,9 +87,6 @@ namespace rubinius {
 
   class InterpreterCallFrame : public CallFrame {
   public:
-    int current_unwind;
-    UnwindInfo unwinds[kMaxUnwindInfos];
-
     // Methods
 
     /**
@@ -97,31 +94,10 @@ namespace rubinius {
      */
     void prepare(int stack) {
       ip = 0;
-      current_unwind = 0;
 
       for(int i = 0; i < stack; i++) {
         stk[i] = Qnil;
       }
-    }
-
-    /* Stack manipulation functions */
-
-    // Manage the dynamic Unwind stack for this context
-    void push_unwind(int target_ip, UnwindType type, int sp) {
-      assert(current_unwind < kMaxUnwindInfos);
-      UnwindInfo& info = unwinds[current_unwind++];
-      info.target_ip = target_ip;
-      info.stack_depth = sp;
-      info.type = type;
-    }
-
-    UnwindInfo& pop_unwind() {
-      assert(current_unwind > 0);
-      return unwinds[--current_unwind];
-    }
-
-    bool has_unwinds_p() {
-      return current_unwind > 0;
     }
   };
 };
