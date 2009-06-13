@@ -149,10 +149,7 @@ CODE
       return_value = 0;
     }
 
-    if(return_value) {
-      call_frame->scope->exit();
-      return return_value;
-    }
+    if(return_value) return return_value;
 
 exception:
     ThreadState* th = state->thread_state();
@@ -165,7 +162,6 @@ exception:
         stack_position(info->stack_depth);
         call_frame->set_ip(info->target_ip);
       } else {
-        call_frame->scope->exit();
         return NULL;
       }
       break;
@@ -193,7 +189,6 @@ exception:
           th->clear_exception(true);
           return val;
         } else {
-          call_frame->scope->exit();
           // Give control of this exception to the caller.
           return NULL;
         }
@@ -206,14 +201,12 @@ exception:
           // Don't return here, because we want to loop back to the top
           // and keep running this method.
         } else {
-          call_frame->scope->exit();
           // Give control of this exception to the caller.
           return NULL;
         }
       }
       break;
     case cExit:
-      call_frame->scope->exit();
       return NULL;
     default:
       std::cout << "bug!\n";
@@ -294,10 +287,7 @@ CODE
       return_value = 0;
     }
 
-    if(return_value) {
-      call_frame->scope->exit();
-      return return_value;
-    }
+    if(return_value) return return_value;
 
 exception:
     ThreadState* th = state->thread_state();
@@ -310,7 +300,6 @@ exception:
         stack_position(info->stack_depth);
         call_frame->set_ip(info->target_ip);
       } else {
-        call_frame->scope->exit();
         return NULL;
       }
       break;
@@ -340,7 +329,6 @@ exception:
           th->clear_exception(true);
           return val;
         } else {
-          call_frame->scope->exit();
           // Give control of this exception to the caller.
           return NULL;
         }
@@ -353,14 +341,12 @@ exception:
           // Don't return here, because we want to loop back to the top
           // and keep running this method.
         } else {
-          call_frame->scope->exit();
           // Give control of this exception to the caller.
           return NULL;
         }
       }
       break;
     case cExit:
-      call_frame->scope->exit();
       return NULL;
     default:
       std::cout << "bug!\n";

@@ -663,7 +663,7 @@ extern "C" {
 
   Object* rbx_raise_return(STATE, CallFrame* call_frame, Object* top) {
     if(!(call_frame->flags & CallFrame::cIsLambda) &&
-       call_frame->scope->parent()->exitted_p()) {
+       !call_frame->scope_still_valid(call_frame->scope->parent())) {
       Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
       exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
       state->thread_state()->raise_exception(exc);

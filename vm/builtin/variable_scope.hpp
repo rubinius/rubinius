@@ -18,9 +18,22 @@ namespace rubinius {
   public:
     const static object_type type = VariableScopeType;
 
+  private:    /* Instance variables */
+    /** Block given to method (only on CM scopes) */
+    Object*         block_;   // slot
+    /** Method this scope is for. */
+    CompiledMethod* method_;  // slot
+    Module*         module_;  // slot
+    VariableScope*  parent_;  // slot
+
   public:
+    Object*         self_;    // slot
+
+    int             number_of_locals_;
+    Object*         locals_[];
+
+  public: /* Accessors */
     attr_accessor(block, Object);
-    attr_accessor(exitted, Object);
     attr_accessor(method, CompiledMethod);
     attr_accessor(module, Module);
     attr_accessor(parent, VariableScope);
@@ -42,7 +55,6 @@ namespace rubinius {
       module_ = mod;
       block_ = block;
       number_of_locals_ = num;
-      exitted_ = Qnil;
 
       for(int i = 0; i < num; i++) {
         locals_[i] = Qnil;
@@ -53,14 +65,6 @@ namespace rubinius {
      *  Initialize scope for blocks.
      */
     void setup_as_block(VariableScope* top, VariableScope* parent, CompiledMethod* method, int num, Object* self = 0);
-
-    void exit() {
-      exitted_ = Qtrue;
-    }
-
-    bool exitted_p() {
-      return exitted_ == Qtrue;
-    }
 
     void update(Object* self, Object* cm, Object* mod, Object* block) {
       self_ = self;
@@ -112,24 +116,6 @@ namespace rubinius {
 
     // Ruby.primitive :variable_scope_locals
     Tuple* locals(STATE);
-
-
-  private:    /* Instance variables */
-
-    /** Block given to method (only on CM scopes) */
-    Object*         block_;   // slot
-    /** This scope already exited? */
-    Object*         exitted_; // slot
-    /** Method this scope is for. */
-    CompiledMethod* method_;  // slot
-    Module*         module_;  // slot
-    VariableScope*  parent_;  // slot
-
-  public:
-    Object*         self_;    // slot
-
-    int             number_of_locals_;
-    Object*         locals_[];
 
 
   public: // Rubinius Type stuff

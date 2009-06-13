@@ -39,13 +39,12 @@ namespace offset {
   const static int args_ary = 3;
 
   const static int vars_block = 1;
-  const static int vars_exitted = 2;
-  const static int vars_method = 3;
-  const static int vars_module = 4;
-  const static int vars_parent = 5;
-  const static int vars_self = 6;
-  const static int vars_num_locals = 7;
-  const static int vars_tuple = 8;
+  const static int vars_method = 2;
+  const static int vars_module = 3;
+  const static int vars_parent = 4;
+  const static int vars_self = 5;
+  const static int vars_num_locals = 6;
+  const static int vars_tuple = 7;
 
   const static int tuple_full_size = 1;
   const static int tuple_field = 2;

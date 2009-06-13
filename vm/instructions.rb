@@ -2376,7 +2376,6 @@ class Instructions
 
   def ret
     <<-CODE
-    call_frame->scope->exit();
     return stack_top();
     CODE
   end
@@ -3702,7 +3701,7 @@ class Instructions
   def raise_return
     <<-CODE
     if(!(call_frame->flags & CallFrame::cIsLambda) &&
-       call_frame->scope->parent()->exitted_p()) {
+       !call_frame->scope_still_valid(call_frame->scope->parent())) {
       Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
       exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
       state->thread_state()->raise_exception(exc);
@@ -3746,7 +3745,6 @@ class Instructions
       }
     }
     if(!state->check_async(call_frame)) {
-      call_frame->scope->exit();
       return NULL;
     }
     CODE

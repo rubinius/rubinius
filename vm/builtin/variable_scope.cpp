@@ -18,7 +18,6 @@ namespace rubinius {
         G(variable_scope), number_of_locals_ * sizeof(Object*));
 
     scope->block(state, block_);
-    scope->exitted_ = Qfalse;
     scope->method(state, method_);
     scope->module(state, module_);
     if(parent_) {
@@ -47,7 +46,6 @@ namespace rubinius {
     module_ = top->module();
     block_ =  top->block();
     number_of_locals_ = num;
-    exitted_ = Qnil;
 
     for(int i = 0; i < num; i++) {
       locals_[i] = Qnil;
