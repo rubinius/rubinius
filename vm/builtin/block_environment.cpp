@@ -115,23 +115,17 @@ namespace rubinius {
     frame.flags =    invocation.flags | CallFrame::cCustomStaticScope
                      | CallFrame::cMultipleScopes;
 
-    Object* ret;
-
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
       profiler::MethodEntry method(state,
           env->top_scope_->method()->name(), scope->module(), env->method_);
-      ret = VMMethod::run_interpreter(state, vmm, &frame, args);
+      return (*vmm->run)(state, vmm, &frame, args);
     } else {
-      ret = VMMethod::run_interpreter(state, vmm, &frame, args);
+      return (*vmm->run)(state, vmm, &frame, args);
     }
 #else
-    ret = VMMethod::run_interpreter(state, vmm, &frame, args);
+    return (*vmm->run)(state, vmm, &frame, args);
 #endif
-
-    frame.scope->exit();
-
-    return ret;
   }
 
   void BlockEnvironment::set_native_function(void* func) {

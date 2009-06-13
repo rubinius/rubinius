@@ -451,6 +451,18 @@ namespace rubinius {
       scope->prepare(args.recv(), msg.module, args.block(), cm, vmm->number_of_locals);
 
       InterpreterCallFrame frame;
+
+      // If argument handling fails..
+      ArgumentHandler arghandler;
+      if(arghandler.call(state, vmm, scope, args) == false) {
+        Exception* exc =
+          Exception::make_argument_error(state, vmm->required_args, args.total(), msg.name);
+        exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), previous));
+        state->thread_state()->raise_exception(exc);
+
+        return NULL;
+      }
+
       frame.stk = (Object**)alloca(vmm->stack_size * sizeof(Object*));
       frame.prepare(vmm->stack_size);
 
@@ -460,33 +472,17 @@ namespace rubinius {
       frame.cm =       cm;
       frame.scope =    scope;
 
-      // If argument handling fails..
-      ArgumentHandler arghandler;
-      if(arghandler.call(state, vmm, scope, args) == false) {
-        Exception* exc =
-          Exception::make_argument_error(state, vmm->required_args, args.total(), msg.name);
-        exc->locations(state, System::vm_backtrace(state, Fixnum::from(1), &frame));
-        state->thread_state()->raise_exception(exc);
-
-        return NULL;
-      }
-
-      Object* ret;
 
 #ifdef RBX_PROFILER
       if(unlikely(state->shared.profiling())) {
         profiler::MethodEntry method(state, msg, args, cm);
-        ret = run_interpreter(state, vmm, &frame, args);
+        return (*vmm->run)(state, vmm, &frame, args);
       } else {
-        ret = run_interpreter(state, vmm, &frame, args);
+        return (*vmm->run)(state, vmm, &frame, args);
       }
 #else
-      ret = run_interpreter(state, vmm, &frame, args);
+      return (*vmm->run)(state, vmm, &frame, args);
 #endif
-
-      frame.scope->exit();
-
-      return ret;
     }
 
   /** @todo Is this redundant after having gone through set_argument_handler? --rue */
@@ -632,115 +628,5 @@ namespace rubinius {
     }
 
     return false;
-
-  }
-
-  Object* VMMethod::run_interpreter(STATE, VMMethod* const vmm,
-                                    InterpreterCallFrame* const call_frame,
-                                    Arguments& args) {
-    Object* return_value;
-    static int tick = 0;
-
-    for(;;) {
-    continue_to_run:
-      if(unlikely(++tick > 0xff)) {
-        tick = 0;
-        if(!state->check_stack(call_frame, &state)) return NULL;
-      }
-
-      if(unlikely(state->interrupts.check)) {
-        state->interrupts.check = false;
-        state->collect_maybe(call_frame);
-      }
-
-      if(unlikely(state->check_local_interrupts)) {
-        if(!state->process_async(call_frame)) return NULL;
-      }
-
-      try {
-        return_value = (*vmm->run)(state, vmm, call_frame, args);
-      } catch(TypeError& e) {
-        Exception* exc =
-          Exception::make_type_error(state, e.type, e.object, e.reason);
-        exc->locations(state, System::vm_backtrace(state, 0, call_frame));
-
-        state->thread_state()->raise_exception(exc);
-        return_value = 0;
-      }
-
-      if(return_value) return return_value;
-
-      ThreadState* th = state->thread_state();
-      // if return_value is NULL, then there is an exception outstanding
-      //
-      switch(th->raise_reason()) {
-      case cException:
-        if(call_frame->has_unwinds_p()) {
-          UnwindInfo& info = call_frame->pop_unwind();
-          call_frame->position_stack(info.stack_depth);
-          call_frame->set_ip(info.target_ip);
-          /*
-          if(vmm->machine_method_.get()) {
-            call_frame->set_native_ip(vmm->machine_method_->resolve_virtual_ip(info.target_ip));
-          }
-          */
-        } else {
-          return NULL;
-        }
-        break;
-
-      case cReturn:
-      case cBreak:
-        // Otherwise, we're doing a long return/break unwind through
-        // here. We need to run ensure blocks.
-        while(call_frame->has_unwinds_p()) {
-          UnwindInfo& info = call_frame->pop_unwind();
-          if(info.for_ensure()) {
-            call_frame->position_stack(info.stack_depth);
-            call_frame->set_ip(info.target_ip);
-            /*
-            if(vmm->machine_method_.get()) {
-              call_frame->set_native_ip(vmm->machine_method_->resolve_virtual_ip(info.target_ip));
-            }
-            */
-
-            // Don't reset ep here, we're still handling the return/break.
-            goto continue_to_run;
-          }
-        }
-
-        // Ok, no ensures to run.
-        if(th->raise_reason() == cReturn) {
-          // If we're trying to return to here, we're done!
-          if(th->destination_scope() == call_frame->scope) {
-            Object* val = th->raise_value();
-            th->clear_exception(true);
-            return val;
-          } else {
-            // Give control of this exception to the caller.
-            return NULL;
-          }
-
-        } else { // It's cBreak
-          // If we're trying to break to here, we're done!
-          if(th->destination_scope() == call_frame->scope) {
-            call_frame->push(th->raise_value());
-            th->clear_exception(true);
-            // Don't return here, because we want to loop back to the top
-            // and keep running this method.
-          } else {
-            // Give control of this exception to the caller.
-            return NULL;
-          }
-        }
-        break;
-      case cExit:
-        return NULL;
-      default:
-        std::cout << "bug!\n";
-        call_frame->print_backtrace(state);
-        abort();
-      } // switch
-    } // for(;;)
   }
 }

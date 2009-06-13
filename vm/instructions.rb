@@ -1051,14 +1051,15 @@ class Instructions
     Object* t1 = stack_back(count);
     Object* ret;
 
-    Arguments out_args(Qnil, count, call_frame->stack_back_position(count));
+    Arguments out_args(Qnil, count, stack_back_position(count));
 
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
       ret = env->call(state, call_frame, out_args);
     } else if(Proc* proc = try_as<Proc>(t1)) {
       ret = proc->call(state, call_frame, out_args);
     } else {
-      ret = send_slowly(state, vmm, call_frame, G(sym_call), count);
+      ret = send_slowly(state, vmm, call_frame, G(sym_call),
+        stack_back_position(count + 1), count);
     }
 
     stack_clear(count + 1);
@@ -1072,7 +1073,7 @@ class Instructions
     <<-CODE
     Object* t1 = call_frame->top_scope()->block();
     Object* ret;
-    Arguments args(t1, count, call_frame->stack_back_position(count));
+    Arguments args(t1, count, stack_back_position(count));
 
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
       ret = env->call(state, call_frame, args);
@@ -1100,7 +1101,7 @@ class Instructions
     Object* ary = stack_pop();
     Object* t1 = call_frame->top_scope()->block();
 
-    Arguments args(t1, count, call_frame->stack_back_position(count));
+    Arguments args(t1, count, stack_back_position(count));
 
     if(!ary->nil_p()) {
       args.append(state, as<Array>(ary));
@@ -1194,7 +1195,8 @@ class Instructions
       stack_pop();
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
-      Object* ret = send_slowly(state, vmm, call_frame, G(sym_equal), 1);
+      Object* ret = send_slowly(state, vmm, call_frame, G(sym_equal),
+        stack_back_position(2), 1);
       stack_clear(2);
 
       HANDLE_EXCEPTION(ret);
@@ -1245,7 +1247,8 @@ class Instructions
       stack_pop();
       stack_set_top((j > k) ? Qtrue : Qfalse);
     } else {
-      Object* ret = send_slowly(state, vmm, call_frame, G(sym_gt), 1);
+      Object* ret = send_slowly(state, vmm, call_frame, G(sym_gt),
+        stack_back_position(2), 1);
       stack_clear(2);
 
       HANDLE_EXCEPTION(ret);
@@ -1296,7 +1299,8 @@ class Instructions
       stack_pop();
       stack_set_top((j < k) ? Qtrue : Qfalse);
     } else {
-      Object* ret = send_slowly(state, vmm, call_frame, G(sym_lt), 1);
+      Object* ret = send_slowly(state, vmm, call_frame, G(sym_lt),
+        stack_back_position(2), 1);
       stack_clear(2);
 
       HANDLE_EXCEPTION(ret);
@@ -1346,7 +1350,8 @@ class Instructions
       stack_pop();
       stack_set_top(((Fixnum*)(left))->sub(state, (Fixnum*)(right)));
     } else {
-      Object* ret = send_slowly(state, vmm, call_frame, G(sym_minus), 1);
+      Object* ret = send_slowly(state, vmm, call_frame, G(sym_minus),
+        stack_back_position(2), 1);
       stack_clear(2);
 
       HANDLE_EXCEPTION(ret);
@@ -1398,7 +1403,8 @@ class Instructions
       Object* res = ((Fixnum*)(left))->add(state, (Fixnum*)(right));
       stack_push(res);
     } else {
-      Object* ret = send_slowly(state, vmm, call_frame, G(sym_plus), 1);
+      Object* ret = send_slowly(state, vmm, call_frame, G(sym_plus),
+        stack_back_position(2), 1);
       stack_clear(2);
 
       HANDLE_EXCEPTION(ret);
@@ -1450,7 +1456,8 @@ class Instructions
       stack_pop();
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
-      Object* ret = send_slowly(state, vmm, call_frame, G(sym_tequal), 1);
+      Object* ret = send_slowly(state, vmm, call_frame, G(sym_tequal),
+        stack_back_position(2), 1);
       stack_clear(2);
 
       HANDLE_EXCEPTION(ret);
@@ -2369,6 +2376,7 @@ class Instructions
 
   def ret
     <<-CODE
+    call_frame->scope->exit();
     return stack_top();
     CODE
   end
@@ -2408,9 +2416,9 @@ class Instructions
 
     for(i = 0; i < diff; i++) {
       int offset = count - i - 1;
-      tmp = call_frame->js.stack[-offset];
-      call_frame->js.stack[-offset] = call_frame->js.stack[-i];
-      call_frame->js.stack[-i] = tmp;
+      tmp = STACK_PTR[-offset];
+      STACK_PTR[-offset] = STACK_PTR[-i];
+      STACK_PTR[-i] = tmp;
     }
 
     CODE
@@ -2541,7 +2549,7 @@ class Instructions
     Class* const klass = recv->lookup_begin(state);
 
     Arguments args(recv, Qnil, count,
-                   call_frame->stack_back_position(count));
+                   stack_back_position(count));
 
     if(unlikely(cache->recv_class != klass)) {
       if(SendSite::fill(state, klass, call_frame, cache, ALLOW_PRIVATE())) {
@@ -2553,7 +2561,7 @@ class Instructions
 
     Object* ret = cache->method->execute(state, call_frame, *cache, args);
 
-    call_frame->clear_stack(count + 1);
+    stack_clear(count + 1);
 
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
@@ -2630,7 +2638,7 @@ class Instructions
     Class* const klass = recv->lookup_begin(state);
 
     Arguments args(recv, block, count,
-                   call_frame->stack_back_position(count));
+                   stack_back_position(count));
 
     if(unlikely(cache->recv_class != klass)) {
       if(SendSite::fill(state, klass, call_frame, cache, ALLOW_PRIVATE())) {
@@ -2642,7 +2650,7 @@ class Instructions
 
     Object* ret = cache->method->execute(state, call_frame, *cache, args);
 
-    call_frame->clear_stack(count + 1);
+    stack_clear(count + 1);
 
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
@@ -2727,7 +2735,7 @@ class Instructions
     Class* const klass = recv->lookup_begin(state);
 
     Arguments args(recv, block, count,
-                   call_frame->stack_back_position(count));
+                   stack_back_position(count));
 
     if(unlikely(cache->recv_class != klass)) {
       if(SendSite::fill(state, klass, call_frame, cache, ALLOW_PRIVATE())) {
@@ -2748,7 +2756,7 @@ class Instructions
 
     Object* ret = cache->method->execute(state, call_frame, *cache, args);
 
-    call_frame->clear_stack(count + 1);
+    stack_clear(count + 1);
 
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
@@ -2828,7 +2836,7 @@ class Instructions
     Class* const klass = recv->lookup_begin(state);
 
     Arguments args(recv, block, count,
-                   call_frame->stack_back_position(count));
+                   stack_back_position(count));
 
     if(unlikely(cache->recv_class != klass)) {
       if(SendSite::fill(state, klass, call_frame, cache, true,
@@ -2841,7 +2849,7 @@ class Instructions
 
     Object* ret = cache->method->execute(state, call_frame, *cache, args);
 
-    call_frame->clear_stack(count);
+    stack_clear(count);
 
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
@@ -2969,7 +2977,7 @@ class Instructions
     Class* const klass = recv->lookup_begin(state);
 
     Arguments args(recv, block, count,
-                   call_frame->stack_back_position(count));
+                   stack_back_position(count));
 
     if(unlikely(cache->recv_class != klass)) {
       if(SendSite::fill(state, klass, call_frame, cache, true,
@@ -2991,7 +2999,7 @@ class Instructions
 
     Object* ret = cache->method->execute(state, call_frame, *cache, args);
 
-    call_frame->clear_stack(count);
+    stack_clear(count);
 
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
@@ -3564,9 +3572,9 @@ class Instructions
     for(int i = 0; i < positions; i++) {
       int target = -i;
       int current = target - 1;
-      call_frame->js.stack[target] = call_frame->js.stack[current];
+      STACK_PTR[target] = STACK_PTR[current];
     }
-    call_frame->js.stack[-positions] = val;
+    STACK_PTR[-positions] = val;
     CODE
   end
 
@@ -3645,7 +3653,7 @@ class Instructions
 
   def setup_unwind(ip, type)
     <<-CODE
-    call_frame->push_unwind(ip, (UnwindType)(type));
+    call_frame->push_unwind(ip, (UnwindType)(type), stack_calculate_sp());
     CODE
   end
 
@@ -3732,7 +3740,10 @@ class Instructions
         // and relock automatically!
       }
     }
-    if(!state->check_async(call_frame)) return NULL;
+    if(!state->check_async(call_frame)) {
+      call_frame->scope->exit();
+      return NULL;
+    }
     CODE
   end
 

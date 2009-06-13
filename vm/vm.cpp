@@ -263,7 +263,7 @@ namespace rubinius {
 
     if(om->collect_young_now) {
       if(shared.config.gc_show) {
-        std::cout << "[GC] Running young gen\n";
+        std::cout << get_current_time() << " [GC] Running young gen\n";
       }
       om->collect_young_now = false;
 
@@ -274,7 +274,7 @@ namespace rubinius {
 
     if(om->collect_mature_now) {
       if(shared.config.gc_show) {
-        std::cout << "[GC] Running mature gen\n";
+        std::cout << get_current_time() << " [GC] Running mature gen\n";
       }
       om->collect_mature_now = false;
 

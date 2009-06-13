@@ -34,6 +34,8 @@
 
 using namespace rubinius;
 
+#define STACK_PTR stack_ptr
+
 // HACK: sassert is stack protection
 #ifdef RBX_STACK_DEBUG
 
@@ -46,27 +48,30 @@ using namespace rubinius;
 /** We have to use the local here we need to evaluate val before we alter
  * the stack. The reason is evaluating val might throw an exception. The
  * old code used an undefined behavior, this forces the order. */
-#define stack_push(val) ({ Object* __stack_v = (val); *++call_frame->js.stack = __stack_v; })
-#define stack_pop() *call_frame->js.stack--
-#define stack_set_top(val) *call_frame->js.stack = (val)
+#define stack_push(val) ({ Object* __stack_v = (val); *++STACK_PTR = __stack_v; })
+#define stack_pop() *STACK_PTR--
+#define stack_set_top(val) *STACK_PTR = (val)
 
 #define USE_JUMP_TABLE
 
 #endif
 
-#define stack_top() *call_frame->js.stack
-#define stack_back(count) *(call_frame->js.stack - count)
-#define stack_clear(count) call_frame->clear_stack(count)
+#define stack_top() *STACK_PTR
+#define stack_back(count) *(STACK_PTR - count)
+#define stack_clear(count) STACK_PTR -= count
+
+#define stack_position(where) (STACK_PTR = call_frame->stk + where)
+#define stack_calculate_sp() (STACK_PTR - call_frame->stk)
 
 #define next_int ((opcode)(stream[call_frame->ip++]))
 
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
 
 extern "C" {
-  Object* send_slowly(STATE, VMMethod* vmm, InterpreterCallFrame* const call_frame, Symbol* name, size_t args);
+  Object* send_slowly(STATE, VMMethod* vmm, InterpreterCallFrame* const call_frame, Symbol* name, Object** stk_pos, size_t args);
 
-#define HANDLE_EXCEPTION(val) if(val == NULL) return NULL;
-#define RUN_EXCEPTION() return NULL
+#define HANDLE_EXCEPTION(val) if(val == NULL) goto exception
+#define RUN_EXCEPTION() goto exception
 
 #define SET_CALL_FLAGS(val) is.call_flags = (val)
 #define CALL_FLAGS() is.call_flags
@@ -74,57 +79,145 @@ extern "C" {
 #define SET_ALLOW_PRIVATE(val) is.allow_private = (val)
 #define ALLOW_PRIVATE() is.allow_private
 
+#define stack_back_position(count) (STACK_PTR - (count - 1))
+
 #ruby <<CODE
-require 'stringio'
-require 'vm/instructions.rb'
-si = Instructions.new
-impl = si.decode_methods
-nil
+  require 'stringio'
+    require 'vm/instructions.rb'
+    si = Instructions.new
+    impl = si.decode_methods
+    nil
 CODE
 
-  Object* send_slowly(STATE, VMMethod* vmm, InterpreterCallFrame* const call_frame, Symbol* name, size_t count) {
-    Object* recv = stack_back(count);
-    Arguments args(recv, count, call_frame->stack_back_position(count));
-    Dispatch dis(name);
+    Object* send_slowly(STATE, VMMethod* vmm, InterpreterCallFrame* const call_frame, Symbol* name, Object** stk_pos, size_t count) {
+      Object* recv = stk_pos[0];
+      Arguments args(recv, count, stk_pos+1);
+      Dispatch dis(name);
 
-    return dis.send(state, call_frame, args);
-  }
+      return dis.send(state, call_frame, args);
+    }
 }
 
 
 Object* VMMethod::interpreter(STATE, VMMethod* const vmm,
-                              InterpreterCallFrame* const call_frame,
-                              Arguments& args) {
+    InterpreterCallFrame* const call_frame, Arguments& args)
+{
   opcode* stream = vmm->opcodes;
   InterpreterState is;
-#ifdef USE_JUMP_TABLE
+
+  Object** stack_ptr = call_frame->stk - 1;
+  Object* return_value;
+  static int tick = 0;
+
+  for(;;) {
+continue_to_run:
+    if(unlikely(++tick > 0xff)) {
+      tick = 0;
+      if(!state->check_stack(call_frame, &state)) return NULL;
+    }
+
+    if(unlikely(state->interrupts.check)) {
+      state->interrupts.check = false;
+      state->collect_maybe(call_frame);
+    }
+
+    if(unlikely(state->check_local_interrupts)) {
+      if(!state->process_async(call_frame)) return NULL;
+    }
+
+    try {
 
 #undef DISPATCH
 #define DISPATCH goto *insn_locations[stream[call_frame->ip++]];
 
 #ruby <<CODE
-io = StringIO.new
-impl2 = si.decode_methods
-si.inject_superops impl2
-si.generate_jump_implementations impl2, io, true
-puts io.string
+      io = StringIO.new
+      impl2 = si.decode_methods
+      si.inject_superops impl2
+      si.generate_jump_implementations impl2, io, true
+      puts io.string
 CODE
+    } catch(TypeError& e) {
+      Exception* exc =
+        Exception::make_type_error(state, e.type, e.object, e.reason);
+      exc->locations(state, System::vm_backtrace(state, 0, call_frame));
 
-#else
-  opcode op;
+      state->thread_state()->raise_exception(exc);
+      return_value = 0;
+    }
 
-#undef DISPATCH
-#define DISPATCH continue;
-  for(;;) {
-    op = stream[call_frame->ip++];
+    if(return_value) {
+      call_frame->scope->exit();
+      return return_value;
+    }
 
-#ruby <<CODE
-io = StringIO.new
-si.generate_decoder_switch impl, io, true
-puts io.string
-CODE
-  }
-#endif // USE_JUMP_TABLE
+exception:
+    ThreadState* th = state->thread_state();
+    // if return_value is NULL, then there is an exception outstanding
+    //
+    switch(th->raise_reason()) {
+    case cException:
+      if(call_frame->has_unwinds_p()) {
+        UnwindInfo& info = call_frame->pop_unwind();
+        stack_position(info.stack_depth);
+        call_frame->set_ip(info.target_ip);
+      } else {
+        call_frame->scope->exit();
+        return NULL;
+      }
+      break;
+
+    case cReturn:
+    case cBreak:
+      // Otherwise, we're doing a long return/break unwind through
+      // here. We need to run ensure blocks.
+      while(call_frame->has_unwinds_p()) {
+        UnwindInfo& info = call_frame->pop_unwind();
+        if(info.for_ensure()) {
+          stack_position(info.stack_depth);
+          call_frame->set_ip(info.target_ip);
+
+          // Don't reset ep here, we're still handling the return/break.
+          goto continue_to_run;
+        }
+      }
+
+      // Ok, no ensures to run.
+      if(th->raise_reason() == cReturn) {
+        // If we're trying to return to here, we're done!
+        if(th->destination_scope() == call_frame->scope) {
+          Object* val = th->raise_value();
+          th->clear_exception(true);
+          return val;
+        } else {
+          call_frame->scope->exit();
+          // Give control of this exception to the caller.
+          return NULL;
+        }
+
+      } else { // It's cBreak
+        // If we're trying to break to here, we're done!
+        if(th->destination_scope() == call_frame->scope) {
+          stack_push(th->raise_value());
+          th->clear_exception(true);
+          // Don't return here, because we want to loop back to the top
+          // and keep running this method.
+        } else {
+          call_frame->scope->exit();
+          // Give control of this exception to the caller.
+          return NULL;
+        }
+      }
+      break;
+    case cExit:
+      call_frame->scope->exit();
+      return NULL;
+    default:
+      std::cout << "bug!\n";
+      call_frame->print_backtrace(state);
+      abort();
+    } // switch
+  } // for(;;)
 }
 
 
@@ -140,7 +233,34 @@ Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm,
   InterpreterState is;
 
   opcode op;
-#ifdef USE_JUMP_TABLE
+
+  // TODO: ug, cut and paste of the whole interpreter above. Needs to be fast,
+  // maybe could use a function template?
+  //
+  // The only thing different is the DISPATCH macro, to check for debugging
+  // instructions.
+
+  Object** stack_ptr = call_frame->stk - 1;
+  Object* return_value;
+  static int tick = 0;
+
+  for(;;) {
+continue_to_run:
+    if(unlikely(++tick > 0xff)) {
+      tick = 0;
+      if(!state->check_stack(call_frame, &state)) return NULL;
+    }
+
+    if(unlikely(state->interrupts.check)) {
+      state->interrupts.check = false;
+      state->collect_maybe(call_frame);
+    }
+
+    if(unlikely(state->check_local_interrupts)) {
+      if(!state->process_async(call_frame)) return NULL;
+    }
+
+    try {
 
 #undef DISPATCH
 #define DISPATCH op = stream[call_frame->ip++]; \
@@ -153,24 +273,91 @@ Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm,
   goto *insn_locations[op];
 
 #ruby <<CODE
-io = StringIO.new
-impl2 = si.decode_methods
-si.inject_superops impl2
-si.generate_jump_implementations impl2, io, true
-puts io.string
+      io = StringIO.new
+      impl2 = si.decode_methods
+      si.inject_superops impl2
+      si.generate_jump_implementations impl2, io, true
+      puts io.string
 CODE
+    } catch(TypeError& e) {
+      Exception* exc =
+        Exception::make_type_error(state, e.type, e.object, e.reason);
+      exc->locations(state, System::vm_backtrace(state, 0, call_frame));
 
-#else
-#error "not supported"
+      state->thread_state()->raise_exception(exc);
+      return_value = 0;
+    }
 
-  for(;;) {
-    op = stream[call_frame->ip++];
+    if(return_value) {
+      call_frame->scope->exit();
+      return return_value;
+    }
 
-#ruby <<CODE
-io = StringIO.new
-si.generate_decoder_switch impl, io, true
-puts io.string
-CODE
-  }
-#endif // USE_JUMP_TABLE
+exception:
+    ThreadState* th = state->thread_state();
+    // if return_value is NULL, then there is an exception outstanding
+    //
+    switch(th->raise_reason()) {
+    case cException:
+      if(call_frame->has_unwinds_p()) {
+        UnwindInfo& info = call_frame->pop_unwind();
+        stack_position(info.stack_depth);
+        call_frame->set_ip(info.target_ip);
+      } else {
+        call_frame->scope->exit();
+        return NULL;
+      }
+      break;
+
+    case cReturn:
+    case cBreak:
+      // Otherwise, we're doing a long return/break unwind through
+      // here. We need to run ensure blocks.
+      while(call_frame->has_unwinds_p()) {
+        UnwindInfo& info = call_frame->pop_unwind();
+        if(info.for_ensure()) {
+          stack_position(info.stack_depth);
+          call_frame->set_ip(info.target_ip);
+
+          // Don't reset ep here, we're still handling the return/break.
+          goto continue_to_run;
+        }
+      }
+
+      // Ok, no ensures to run.
+      if(th->raise_reason() == cReturn) {
+        // If we're trying to return to here, we're done!
+        if(th->destination_scope() == call_frame->scope) {
+          Object* val = th->raise_value();
+          th->clear_exception(true);
+          return val;
+        } else {
+          call_frame->scope->exit();
+          // Give control of this exception to the caller.
+          return NULL;
+        }
+
+      } else { // It's cBreak
+        // If we're trying to break to here, we're done!
+        if(th->destination_scope() == call_frame->scope) {
+          stack_push(th->raise_value());
+          th->clear_exception(true);
+          // Don't return here, because we want to loop back to the top
+          // and keep running this method.
+        } else {
+          call_frame->scope->exit();
+          // Give control of this exception to the caller.
+          return NULL;
+        }
+      }
+      break;
+    case cExit:
+      call_frame->scope->exit();
+      return NULL;
+    default:
+      std::cout << "bug!\n";
+      call_frame->print_backtrace(state);
+      abort();
+    } // switch
+  } // for(;;)
 }

@@ -51,6 +51,11 @@ static inline uint64_t get_current_time() {
 #endif
 
 namespace timer {
+
+  static inline double time_as_double() {
+    return (double)get_current_time() * 1000000000;
+  }
+
   class Running {
     uint64_t& result_;
     uint64_t start_;

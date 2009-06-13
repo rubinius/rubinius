@@ -108,18 +108,22 @@ namespace operations {
       load_mc();
 
       // Pull jit_state.stack into the stack pointer
+      /*
       s.assembler().mov(s.stack_pointer(), s.assembler().address(esi,
         FIELD_OFFSET(rubinius::InterpreterCallFrame, js.stack)));
+      */
     }
 
     void save_stack_pointer() {
       load_mc();
 
       // Mov the stack pointer into  jit_state.stack
+      /*
       s.assembler().mov(
           s.assembler().address(esi,
             FIELD_OFFSET(rubinius::InterpreterCallFrame, js.stack)),
           s.stack_pointer());
+      */
     }
 
     void prologue() {
