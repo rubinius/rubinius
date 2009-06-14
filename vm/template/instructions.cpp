@@ -105,7 +105,7 @@ Object* VMMethod::interpreter(STATE, VMMethod* const vmm,
   opcode* stream = vmm->opcodes;
   InterpreterState is;
 
-  Object** stack_ptr = call_frame->stk - 1;
+  register Object** stack_ptr = call_frame->stk - 1;
   Object* return_value;
   static int tick = 0;
 
