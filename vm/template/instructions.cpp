@@ -63,7 +63,7 @@ using namespace rubinius;
 #define stack_position(where) (STACK_PTR = call_frame->stk + where)
 #define stack_calculate_sp() (STACK_PTR - call_frame->stk)
 
-#define next_int ((opcode)(stream[call_frame->ip++]))
+#define next_int ((opcode)(stream[call_frame->inc_ip()]))
 
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
 
@@ -131,7 +131,7 @@ continue_to_run:
     try {
 
 #undef DISPATCH
-#define DISPATCH goto *insn_locations[stream[call_frame->ip++]];
+#define DISPATCH goto *insn_locations[stream[call_frame->inc_ip()]];
 
 #ruby <<CODE
       io = StringIO.new
@@ -262,11 +262,11 @@ continue_to_run:
     try {
 
 #undef DISPATCH
-#define DISPATCH op = stream[call_frame->ip++]; \
+#define DISPATCH op = stream[call_frame->inc_ip()]; \
   if(unlikely(op & cBreakpoint)) { \
-    call_frame->ip--; \
+    call_frame->dec_ip(); \
     Helpers::yield_debugger(state, call_frame); \
-    call_frame->ip++; \
+    call_frame->inc_ip(); \
     op &= 0x00ffffff; \
   } \
   goto *insn_locations[op];

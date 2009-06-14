@@ -17,7 +17,7 @@ namespace rubinius {
     loc->method_module(state, call_frame->module());
     loc->receiver(state, call_frame->self());
     loc->method(state, call_frame->cm);
-    loc->ip(state, Fixnum::from(call_frame->ip - 1));
+    loc->ip(state, Fixnum::from(call_frame->ip() - 1));
 
     if(call_frame->is_block_p(state)) {
       loc->name(state, call_frame->top_scope()->method()->name());

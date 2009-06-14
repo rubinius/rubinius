@@ -219,7 +219,7 @@ namespace operations {
     }
 
     void store_virtual_ip(Register& reg) {
-      store_mc_field(reg, FIELD_OFFSET(rubinius::CallFrame, ip));
+      store_mc_field(reg, FIELD_OFFSET(rubinius::CallFrame, ip_));
     }
 
     void store_native_ip(Register& reg) {
@@ -233,15 +233,15 @@ namespace operations {
     void store_ip(Register& virtual_ip, Register& native_ip) {
       load_mc();
       AssemblerX86 &a = s.assembler();
-      a.mov(a.address(esi, FIELD_OFFSET(rubinius::CallFrame, ip)), virtual_ip);
+      a.mov(a.address(esi, FIELD_OFFSET(rubinius::CallFrame, ip_)), virtual_ip);
       // a.mov(a.address(esi, FIELD_OFFSET(rubinius::CallFrame, native_ip)), native_ip);
     }
 
     void load_and_increment_ip(Register& reg) {
       load_mc();
       AssemblerX86 &a = s.assembler();
-      a.mov(reg, a.address(esi, FIELD_OFFSET(rubinius::CallFrame, ip)));
-      a.add(a.address(esi, FIELD_OFFSET(rubinius::CallFrame, ip)), 1);
+      a.mov(reg, a.address(esi, FIELD_OFFSET(rubinius::CallFrame, ip_)));
+      a.add(a.address(esi, FIELD_OFFSET(rubinius::CallFrame, ip_)), 1);
     }
 
     void load_opcodes(Register& reg) {

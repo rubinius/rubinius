@@ -65,7 +65,7 @@ namespace rubinius {
         std::cout << "<unknown>";
       }
 
-      std::cout << " (+" << cf->ip << ")";
+      std::cout << " (+" << cf->ip() << ")";
 
       std::cout << std::endl;
       cf = static_cast<CallFrame*>(cf->previous);
@@ -75,7 +75,7 @@ namespace rubinius {
 
   int CallFrame::line(STATE) {
     if(!cm) return -2;        // trampoline context
-    return cm->line(state, ip);
+    return cm->line(state, ip());
   }
 
   // Walks the CallFrame list to see if +scope+ is still running

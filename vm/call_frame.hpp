@@ -28,7 +28,7 @@ namespace rubinius {
     CompiledMethod* cm;
 
     int flags;
-    int ip;
+    int ip_;
 
     VariableScope* top_scope_;
     VariableScope* scope;
@@ -37,6 +37,10 @@ namespace rubinius {
     Object* stk[];
 
     // ACCESS
+
+    int ip() {
+      return ip_;
+    }
 
     Symbol* name() {
       if(msg) return msg->name;
@@ -74,7 +78,15 @@ namespace rubinius {
     }
 
     void set_ip(int new_ip) {
-      ip = new_ip;
+      ip_ = new_ip;
+    }
+
+    int dec_ip() {
+      return ip_--;
+    }
+
+    int inc_ip() {
+      return ip_++;
     }
 
     void promote_scope(STATE);
@@ -93,7 +105,7 @@ namespace rubinius {
      *  Initialize frame for the given stack size.
      */
     void prepare(int stack) {
-      ip = 0;
+      ip_ = 0;
 
       for(int i = 0; i < stack; i++) {
         stk[i] = Qnil;

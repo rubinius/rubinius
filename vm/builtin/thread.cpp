@@ -119,7 +119,7 @@ namespace rubinius {
 
     cf->promote_scope(state);
 
-    return Tuple::from(state, 3, Fixnum::from(cf->ip), cf->cm, cf->scope);
+    return Tuple::from(state, 3, Fixnum::from(cf->ip()), cf->cm, cf->scope);
   }
 
 }
