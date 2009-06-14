@@ -41,15 +41,6 @@ namespace rubinius {
 
     state->thread_state()->clear_exception(true);
 
-    CallFrame cf;
-    cf.previous = NULL;
-    cf.static_scope_ = NULL;
-    cf.msg = NULL;
-    cf.cm = NULL;
-    cf.top_scope_ = NULL;
-    cf.scope = NULL;
-    cf.ip = 0;
-
     GlobalLock::LockGuard lock(state->global_lock());
 
     Dispatch msg(cm->name(), G(object), cm.get());
@@ -58,7 +49,7 @@ namespace rubinius {
     cm.get()->scope(state, StaticScope::create(state));
     cm.get()->scope()->module(state, G(object));
 
-    cm->execute(state, &cf, msg, args);
+    cm->execute(state, NULL, msg, args);
 
     return true;
   }

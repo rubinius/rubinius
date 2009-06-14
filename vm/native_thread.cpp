@@ -28,18 +28,9 @@ namespace rubinius {
     // run delete on this object to free up the memory.
     set_delete_on_exit();
 
-    CallFrame cf;
-    cf.previous = NULL;
-    cf.static_scope_ = NULL;
-    cf.msg = NULL;
-    cf.cm = NULL;
-    cf.top_scope_ = NULL;
-    cf.scope = NULL;
-    cf.ip = 0;
+    vm_->set_stack_start(&x);
 
-    vm_->set_stack_start(&cf);
-
-    Object* ret = vm_->thread.get()->send(vm_, &cf, vm_->symbol("__run__"));
+    Object* ret = vm_->thread.get()->send(vm_, NULL, vm_->symbol("__run__"));
 
     if(!ret) {
       if(Exception* exc = try_as<Exception>(vm_->thread_state()->raise_value())) {
