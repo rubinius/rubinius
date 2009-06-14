@@ -36,7 +36,6 @@ namespace rubinius {
     cf.top_scope_ = NULL;
     cf.scope = NULL;
     cf.ip = 0;
-    cf.stk = NULL;
 
     vm_->set_stack_start(&cf);
 

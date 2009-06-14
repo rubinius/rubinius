@@ -49,7 +49,6 @@ namespace rubinius {
     cf.top_scope_ = NULL;
     cf.scope = NULL;
     cf.ip = 0;
-    cf.stk = NULL;
 
     GlobalLock::LockGuard lock(state->global_lock());
 

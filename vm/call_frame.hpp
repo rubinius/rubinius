@@ -34,7 +34,7 @@ namespace rubinius {
     VariableScope* scope;
 
     // Stack
-    Object** stk;
+    Object* stk[];
 
     // ACCESS
 
@@ -100,6 +100,9 @@ namespace rubinius {
       }
     }
   };
+
+#define ALLOCA_CALLFRAME(stack_size) \
+  (InterpreterCallFrame*)alloca(sizeof(InterpreterCallFrame) + (sizeof(Object*) * stack_size))
 };
 
 #endif

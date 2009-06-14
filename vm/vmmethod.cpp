@@ -450,7 +450,7 @@ namespace rubinius {
 
       scope->prepare(args.recv(), msg.module, args.block(), cm, vmm->number_of_locals);
 
-      InterpreterCallFrame frame;
+      InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
 
       // If argument handling fails..
       ArgumentHandler arghandler;
@@ -463,25 +463,24 @@ namespace rubinius {
         return NULL;
       }
 
-      frame.stk = (Object**)alloca(vmm->stack_size * sizeof(Object*));
-      frame.prepare(vmm->stack_size);
+      frame->prepare(vmm->stack_size);
 
-      frame.previous = previous;
-      frame.flags =    0;
-      frame.msg =      &msg;
-      frame.cm =       cm;
-      frame.scope =    scope;
+      frame->previous = previous;
+      frame->flags =    0;
+      frame->msg =      &msg;
+      frame->cm =       cm;
+      frame->scope =    scope;
 
 
 #ifdef RBX_PROFILER
       if(unlikely(state->shared.profiling())) {
         profiler::MethodEntry method(state, msg, args, cm);
-        return (*vmm->run)(state, vmm, &frame, args);
+        return (*vmm->run)(state, vmm, frame, args);
       } else {
-        return (*vmm->run)(state, vmm, &frame, args);
+        return (*vmm->run)(state, vmm, frame, args);
       }
 #else
-      return (*vmm->run)(state, vmm, &frame, args);
+      return (*vmm->run)(state, vmm, frame, args);
 #endif
     }
 

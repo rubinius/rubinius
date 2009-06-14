@@ -100,31 +100,29 @@ namespace rubinius {
                           env->method_, vmm->number_of_locals,
                           invocation.self);
 
-    InterpreterCallFrame frame;
-    frame.stk = (Object**)alloca(vmm->stack_size * sizeof(Object*));
+    InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
+    frame->prepare(vmm->stack_size);
 
-    frame.prepare(vmm->stack_size);
+    frame->previous = previous;
+    frame->static_scope_ = invocation.static_scope;
 
-    frame.previous = previous;
-    frame.static_scope_ = invocation.static_scope;
-
-    frame.msg =      NULL;
-    frame.cm =       env->method_;
-    frame.scope =    scope;
-    frame.top_scope_ = env->top_scope_;
-    frame.flags =    invocation.flags | CallFrame::cCustomStaticScope
+    frame->msg =      NULL;
+    frame->cm =       env->method_;
+    frame->scope =    scope;
+    frame->top_scope_ = env->top_scope_;
+    frame->flags =    invocation.flags | CallFrame::cCustomStaticScope
                      | CallFrame::cMultipleScopes;
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
       profiler::MethodEntry method(state,
           env->top_scope_->method()->name(), scope->module(), env->method_);
-      return (*vmm->run)(state, vmm, &frame, args);
+      return (*vmm->run)(state, vmm, frame, args);
     } else {
-      return (*vmm->run)(state, vmm, &frame, args);
+      return (*vmm->run)(state, vmm, frame, args);
     }
 #else
-    return (*vmm->run)(state, vmm, &frame, args);
+    return (*vmm->run)(state, vmm, frame, args);
 #endif
   }
 

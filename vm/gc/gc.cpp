@@ -113,7 +113,7 @@ namespace rubinius {
         call_frame->cm = (CompiledMethod*)mark_object(call_frame->cm);
       }
 
-      if(call_frame->stk) {
+      if(call_frame->cm && call_frame->stk) {
         native_int stack_size = call_frame->cm->stack_size()->to_native();
         for(native_int i = 0; i < stack_size; i++) {
           Object* obj = call_frame->stk[i];
@@ -181,7 +181,7 @@ namespace rubinius {
         call_frame->cm = (CompiledMethod*)visit.call(call_frame->cm);
       }
 
-      if(call_frame->stk) {
+      if(call_frame->cm && call_frame->stk) {
         native_int stack_size = call_frame->cm->stack_size()->to_native();
         for(native_int i = 0; i < stack_size; i++) {
           Object* obj = call_frame->stk[i];

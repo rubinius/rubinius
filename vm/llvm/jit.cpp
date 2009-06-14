@@ -693,10 +693,6 @@ namespace rubinius {
       new StoreInst(vars, get_field(block, call_frame, offset::cf_scope),
                     false, block);
 
-      // stk
-      new StoreInst(stk, get_field(block, call_frame, offset::cf_stk),
-                    false, block);
-
       if(ls_->include_profiling()) {
         method_entry_ = new AllocaInst(Type::Int8Ty,
             ConstantInt::get(Type::Int32Ty, sizeof(profiler::MethodEntry)),
@@ -785,10 +781,6 @@ namespace rubinius {
           "env.top_scope", block);
 
       new StoreInst(top_scope, get_field(block, call_frame, offset::cf_top_scope),
-                    false, block);
-
-      // stk
-      new StoreInst(stk, get_field(block, call_frame, offset::cf_stk),
                     false, block);
 
       if(ls_->include_profiling()) {
@@ -1210,10 +1202,21 @@ namespace rubinius {
 
       block = BasicBlock::Create("entry", func);
 
-      call_frame = new AllocaInst(cf_type, 0, "call_frame", block);
-      stk = new AllocaInst(obj_type,
-          ConstantInt::get(Type::Int32Ty, vmm->stack_size),
-          "stack", block);
+      Value* cfstk = new AllocaInst(obj_type,
+          ConstantInt::get(Type::Int32Ty,
+            (sizeof(CallFrame) / sizeof(Object*)) + vmm->stack_size),
+          "cfstk", block);
+
+      call_frame = CastInst::Create(
+          Instruction::BitCast,
+          cfstk,
+          PointerType::getUnqual(cf_type), "call_frame", block);
+
+      Value* cfstk_idx[] = {
+        ConstantInt::get(Type::Int32Ty, sizeof(CallFrame) / sizeof(Object*))
+      };
+
+      stk = GetElementPtrInst::Create(cfstk, cfstk_idx, cfstk_idx+1, "stack", block);
 
       Value* var_mem = new AllocaInst(obj_type,
           ConstantInt::get(Type::Int32Ty,
@@ -1263,10 +1266,21 @@ namespace rubinius {
 
       block = BasicBlock::Create("entry", func);
 
-      call_frame = new AllocaInst(cf_type, 0, "call_frame", block);
-      stk = new AllocaInst(obj_type,
-          ConstantInt::get(Type::Int32Ty, vmm->stack_size),
-          "stack", block);
+      Value* cfstk = new AllocaInst(obj_type,
+          ConstantInt::get(Type::Int32Ty,
+            (sizeof(CallFrame) / sizeof(Object*)) + vmm->stack_size),
+          "cfstk", block);
+
+      call_frame = CastInst::Create(
+          Instruction::BitCast,
+          cfstk,
+          PointerType::getUnqual(cf_type), "call_frame", block);
+
+      Value* cfstk_idx[] = {
+        ConstantInt::get(Type::Int32Ty, sizeof(CallFrame) / sizeof(Object*))
+      };
+
+      stk = GetElementPtrInst::Create(cfstk, cfstk_idx, cfstk_idx+1, "stack", block);
 
       Value* var_mem = new AllocaInst(obj_type,
           ConstantInt::get(Type::Int32Ty,
