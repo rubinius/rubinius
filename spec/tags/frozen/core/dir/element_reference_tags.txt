@@ -1,1 +1,0 @@
-fails:Dir.[] converts patterns with to_str
