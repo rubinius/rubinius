@@ -93,7 +93,7 @@ class Compiler
     # Unqualified
     else
       $LOAD_PATH.each do |dir|
-        if rbc and dir.suffix? '.rba' and File.file? dir and !options[:recompile]
+        if rbc and File.file?(dir) and dir.suffix?('.rba') and !options[:recompile]
           begin
             _, _, _, _, _, data = Ar.new(dir).extract rbc
           rescue Ar::Error
