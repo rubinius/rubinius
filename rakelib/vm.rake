@@ -179,8 +179,11 @@ BASIC_FLAGS     = %W[ -pipe -Wall -Wno-deprecated
 
 FLAGS = BASIC_FLAGS.dup
 
-if RUBY_PLATFORM =~ /darwin/i && `sw_vers` =~ /10\.4/
-  FLAGS.concat %w(-DHAVE_STRLCAT -DHAVE_STRLCPY)
+if RUBY_PLATFORM =~ /darwin/i
+  if `sw_vers` =~ /10\.4/
+    FLAGS.concat %w(-DHAVE_STRLCAT -DHAVE_STRLCPY)
+  end
+  FLAGS << "-mdynamic-no-pic"
 end
 
 if LLVM_ENABLE
@@ -200,7 +203,7 @@ end
 CC          = ENV['CC'] || "gcc"
 CXX         = ENV["CXX"] || "g++"
 
-def compile_c(obj, src)
+def compile_c(obj, src, output_kind="c")
   flags = INCLUDES + FLAGS
 
   if CONFIG.compile_with_llvm
@@ -221,10 +224,10 @@ def compile_c(obj, src)
   flags = flags.join(" ")
 
   if $verbose
-    sh "#{CC} #{flags} -c -o #{obj} #{src} 2>&1"
+    sh "#{CC} #{flags} -#{output_kind} -o #{obj} #{src} 2>&1"
   else
     puts "CC #{src}"
-    sh "#{CC} #{flags} -c -o #{obj} #{src} 2>&1", :verbose => false
+    sh "#{CC} #{flags} -#{output_kind} -o #{obj} #{src} 2>&1", :verbose => false
   end
 end
 
@@ -426,6 +429,13 @@ rule '.o' do |t|
   compile_c obj, src
 end
 
+rule '.S' do |t|
+  obj = t.name
+  src   = t.prerequisites.find { |f| f =~ /#{File.basename obj, '.o'}\.((c(pp)?)|S)$/}
+
+  compile_c obj, src, "S"
+end
+
 def files(targets, dependencies=nil, &block)
   targets.each do |target|
     if dependencies then
@@ -545,6 +555,10 @@ end
 
 file "vm/instructions.o" => "vm/gen/instructions.cpp" do
   compile_c "vm/instructions.o", "vm/gen/instructions.cpp"
+end
+
+file "vm/instructions.S" => "vm/gen/instructions.cpp" do
+  compile_c "vm/instructions.S", "vm/gen/instructions.cpp", "S"
 end
 
 file "vm/gen/instructions.cpp" => %w[vm/template/instructions.cpp vm/instructions.rb] + hdrs do
