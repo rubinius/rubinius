@@ -37,7 +37,11 @@ class RaiseErrorMatcher
   end
 
   def negative_failure_message
-    ["Expected to not get #{@exception}#{%[ (#{@message})] if @message}", ""]
+    if @exception == Exception
+      ["Expect to get no exception, but got #{@actual.class} (#{@actual.message})",""]
+    else
+      ["Expected to not get #{@exception}#{%[ (#{@message})] if @message}", ""]
+    end
   end
 end
 
