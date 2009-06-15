@@ -5,7 +5,7 @@ class Dir
   GLOB_RECURSIVE = -2
 
   def self.[](pattern)
-    glob(pattern, 0)
+    glob(StringValue(pattern), 0)
   end
 
   def self.old_glob(pattern, flags = 0)
