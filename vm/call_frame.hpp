@@ -89,6 +89,10 @@ namespace rubinius {
       return ip_++;
     }
 
+    void calculate_ip(void** pos) {
+      ip_ = pos - cm->backend_method_->addresses;
+    }
+
     void promote_scope(STATE);
 
     void print_backtrace(STATE);

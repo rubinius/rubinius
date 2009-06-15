@@ -190,6 +190,7 @@ namespace rubinius {
         vmm->specialize(state, caller->type);
       }
       caller->blocks[index] = vmm;
+      cm->backend_method_ = vmm;
     }
 
     be->scope(state, call_frame->scope);

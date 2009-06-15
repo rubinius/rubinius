@@ -19,6 +19,8 @@ namespace rubinius {
   const bpflags cBreakpoint = 1 << 24;
   const bpflags cBreakAfterSend = 1 << 25;
 
+  const unsigned int cBreakpointMask = 0x00ffffff;
+
   class CompiledMethod;
   class MethodContext;
   class Opcode;
@@ -37,10 +39,12 @@ namespace rubinius {
     TypedRoot<MachineMethod*> machine_method_;
 
   public:
-    static instlocation* instructions;
+    static void** instructions;
     InterpreterRunner run;
 
     opcode* opcodes;
+    void** addresses;
+
     std::size_t total;
     TypedRoot<CompiledMethod*> original;
     TypeInfo* type;
@@ -75,6 +79,17 @@ namespace rubinius {
 
     void set_jitted() {
       jitted_ = true;
+    }
+
+    void update_addresses(int index, int operands=0) {
+      addresses[index] = instructions[opcodes[index] & cBreakpointMask];
+      switch(operands) {
+      case 2:
+        addresses[index + 2] = reinterpret_cast<void*>(opcodes[index + 2]);
+        // fall through
+      case 1:
+        addresses[index + 1] = reinterpret_cast<void*>(opcodes[index + 1]);
+      }
     }
 
     void set_machine_method(MachineMethod* mm);

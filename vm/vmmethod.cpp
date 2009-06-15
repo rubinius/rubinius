@@ -45,8 +45,13 @@ namespace rubinius {
   /** System-wide dynamic interpreter method pointer. */
   static InterpreterRunner dynamic_interpreter = 0;
 
+  void** VMMethod::instructions = 0;
 
   void VMMethod::init(STATE) {
+    // Seed the instructions table
+    Arguments args;
+    interpreter(0, 0, 0, args);
+
 #ifdef USE_DYNAMIC_INTERPRETER
     if(!state->shared.config.dynamic_interpreter_enabled) {
       dynamic_interpreter = NULL;
@@ -93,6 +98,7 @@ namespace rubinius {
     }
 
     opcodes = new opcode[total];
+    addresses = new void*[total];
 
     fill_opcodes(state);
     stack_size =    meth->stack_size()->to_native();
@@ -137,6 +143,7 @@ namespace rubinius {
         opcodes[index++] = 0;
       } else {
         opcodes[index] = as<Fixnum>(val)->to_native();
+
         size_t width = InstructionSequence::instruction_width(opcodes[index]);
 
         switch(width) {
@@ -148,6 +155,8 @@ namespace rubinius {
           opcodes[index + 2] = as<Fixnum>(ops->at(state, index + 2))->to_native();
           break;
         }
+
+        update_addresses(index, width - 1);
 
         switch(opcodes[index]) {
         case InstructionSequence::insn_send_method:
@@ -162,6 +171,8 @@ namespace rubinius {
           ss->inner_cache_ = cache;
           cache->name = ss->name();
           opcodes[index + 1] = reinterpret_cast<intptr_t>(cache);
+
+          update_addresses(index, 1);
           break;
         }
         }
@@ -334,6 +345,8 @@ namespace rubinius {
         if(it != ti->slots.end()) {
           opcodes[i] = InstructionSequence::insn_push_my_offset;
           opcodes[i + 1] = ti->slot_locations[it->second];
+
+          update_addresses(i, 1);
         }
       } else if(op == InstructionSequence::insn_set_ivar) {
         native_int idx = opcodes[i + 1];
@@ -343,6 +356,8 @@ namespace rubinius {
         if(it != ti->slots.end()) {
           opcodes[i] = InstructionSequence::insn_store_my_field;
           opcodes[i + 1] = it->second;
+
+          update_addresses(i, 1);
         }
       }
 
@@ -566,8 +581,8 @@ namespace rubinius {
    */
   void VMMethod::set_breakpoint_flags(STATE, size_t ip, bpflags flags) {
     if(validate_ip(state, ip)) {
-      opcodes[ip] &= 0x00ffffff;    // Clear the high byte
-      opcodes[ip] |= flags & 0xff000000;
+      opcodes[ip] &= cBreakpointMask;    // Clear the high byte
+      opcodes[ip] |= flags & ~cBreakpointMask;
     }
   }
 
@@ -576,7 +591,7 @@ namespace rubinius {
    */
   bpflags VMMethod::get_breakpoint_flags(STATE, size_t ip) {
     if(validate_ip(state, ip)) {
-      return opcodes[ip] & 0xff000000;
+      return opcodes[ip] & ~cBreakpointMask;
     }
     return 0;
   }

@@ -241,8 +241,7 @@ class Instructions
   # the code for each instruction. This uses an indirect threaded
   # goto to jump between instructions.
   #
-  def generate_jump_implementations(methods, io, flow=false)
-    io.puts generate_jump_table(methods)
+  def generate_jump_implementations(methods, io)
     io.puts "DISPATCH;"
 
     methods.each do |impl|
@@ -393,12 +392,16 @@ void #{meth}() {
 CODE
   end
 
-  def generate_jump_table(methods)
+  def generate_jump_table(methods, in_vmmethod=false)
     str = "static const void* insn_locations[] = {\n"
     methods.each do |impl|
       str << "  &&op_impl_#{impl.name.opcode},\n"
     end
     str << "  NULL\n};\n"
+
+    if in_vmmethod
+      str << "if(unlikely(state == 0)) { VMMethod::instructions = const_cast<void**>(insn_locations); return NULL; }\n"
+    end
 
     return str
   end

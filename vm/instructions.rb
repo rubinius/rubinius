@@ -524,8 +524,10 @@ class Instructions
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
     Object* res = Helpers::const_get(state, under, sym, &found);
     if(!found) {
+      flush_ip();
       res = Helpers::const_missing(state, under, sym, call_frame);
     } else if(Autoload* autoload = try_as<Autoload>(res)) {
+      flush_ip();
       res = autoload->resolve(state, call_frame);
     }
 
@@ -570,6 +572,7 @@ class Instructions
   def goto(location)
     <<-CODE
     call_frame->set_ip(location);
+    cache_ip(location);
     DISPATCH;
     CODE
   end
@@ -606,6 +609,7 @@ class Instructions
     Object* t1 = stack_pop();
     if(t1 != Qundef) {
       call_frame->set_ip(location);
+      cache_ip(location);
     }
     CODE
   end
@@ -648,6 +652,7 @@ class Instructions
     Object* t1 = stack_pop();
     if(!RTEST(t1)) {
       call_frame->set_ip(location);
+      cache_ip(location);
       DISPATCH;
     }
     CODE
@@ -691,6 +696,7 @@ class Instructions
     Object* t1 = stack_pop();
     if(RTEST(t1)) {
       call_frame->set_ip(location);
+      cache_ip(location);
       DISPATCH;
     }
     CODE
@@ -1048,6 +1054,7 @@ class Instructions
 
   def meta_send_call(count)
     <<-CODE
+    flush_ip();
     Object* t1 = stack_back(count);
     Object* ret;
 
@@ -1071,6 +1078,7 @@ class Instructions
 
   def yield_stack(count)
     <<-CODE
+    flush_ip();
     Object* t1 = call_frame->top_scope()->block();
     Object* ret;
     Arguments args(t1, count, stack_back_position(count));
@@ -1098,6 +1106,7 @@ class Instructions
 
   def yield_splat(count)
     <<-CODE
+    flush_ip();
     Object* ary = stack_pop();
     Object* t1 = call_frame->top_scope()->block();
 
@@ -1195,6 +1204,7 @@ class Instructions
       stack_pop();
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
+      flush_ip();
       Object* ret = send_slowly(state, vmm, call_frame, G(sym_equal),
         stack_back_position(2), 1);
       stack_clear(2);
@@ -1247,6 +1257,7 @@ class Instructions
       stack_pop();
       stack_set_top((j > k) ? Qtrue : Qfalse);
     } else {
+      flush_ip();
       Object* ret = send_slowly(state, vmm, call_frame, G(sym_gt),
         stack_back_position(2), 1);
       stack_clear(2);
@@ -1299,6 +1310,7 @@ class Instructions
       stack_pop();
       stack_set_top((j < k) ? Qtrue : Qfalse);
     } else {
+      flush_ip();
       Object* ret = send_slowly(state, vmm, call_frame, G(sym_lt),
         stack_back_position(2), 1);
       stack_clear(2);
@@ -1350,6 +1362,7 @@ class Instructions
       stack_pop();
       stack_set_top(((Fixnum*)(left))->sub(state, (Fixnum*)(right)));
     } else {
+      flush_ip();
       Object* ret = send_slowly(state, vmm, call_frame, G(sym_minus),
         stack_back_position(2), 1);
       stack_clear(2);
@@ -1403,6 +1416,7 @@ class Instructions
       Object* res = ((Fixnum*)(left))->add(state, (Fixnum*)(right));
       stack_push(res);
     } else {
+      flush_ip();
       Object* ret = send_slowly(state, vmm, call_frame, G(sym_plus),
         stack_back_position(2), 1);
       stack_clear(2);
@@ -1456,6 +1470,7 @@ class Instructions
       stack_pop();
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
+      flush_ip();
       Object* ret = send_slowly(state, vmm, call_frame, G(sym_tequal),
         stack_back_position(2), 1);
       stack_clear(2);
@@ -1727,8 +1742,10 @@ class Instructions
       } else {
         under = scope->module();
       }
+      flush_ip();
       res = Helpers::const_missing(state, under, sym, call_frame);
     } else if(Autoload* autoload = try_as<Autoload>(res)) {
+      flush_ip();
       res = autoload->resolve(state, call_frame);
     }
 
@@ -1804,12 +1821,14 @@ class Instructions
         res = cache->value();
       } else {
         Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, symbol_index));
+        flush_ip();
         res = Helpers::const_get(state, call_frame, sym, &found);
         if(found) {
           cache->update(state, res);
         }
       }
     } else {
+      flush_ip();
       Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, symbol_index));
       res = Helpers::const_get(state, call_frame, sym, &found);
       if(found) {
@@ -1830,6 +1849,7 @@ class Instructions
     HANDLE_EXCEPTION(res);
 
     if(Autoload* autoload = try_as<Autoload>(res)) {
+      flush_ip();
       res = autoload->resolve(state, call_frame);
       if(cache && res) {
         cache->update(state, res);
@@ -2340,6 +2360,7 @@ class Instructions
 
   def raise_exc
     <<-CODE
+    flush_ip();
     Object* t1 = stack_pop();
     state->thread_state()->raise_exception(as<Exception>(t1));
     RUN_EXCEPTION();
@@ -2461,6 +2482,7 @@ class Instructions
 
   def send_method(index)
     <<-CODE
+    flush_ip();
     Object* recv = stack_top();
     SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
     Class* const klass = recv->lookup_begin(state);
@@ -2543,6 +2565,7 @@ class Instructions
 
   def send_stack(index, count)
     <<-CODE
+    flush_ip();
     Object* recv = stack_back(count);
     SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
     Class* const klass = recv->lookup_begin(state);
@@ -2631,6 +2654,7 @@ class Instructions
 
   def send_stack_with_block(index, count)
     <<-CODE
+    flush_ip();
     Object* block = stack_pop();
     Object* recv = stack_back(count);
     SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
@@ -2727,6 +2751,7 @@ class Instructions
 
   def send_stack_with_splat(index, count)
     <<-CODE
+    flush_ip();
     Object* block = stack_pop();
     Object* ary   = stack_pop();
     Object* recv =  stack_back(count);
@@ -2829,6 +2854,7 @@ class Instructions
 
   def send_super_stack_with_block(index, count)
     <<-CODE
+    flush_ip();
     Object* block = stack_pop();
     SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
     Object* const recv = call_frame->self();
@@ -2969,6 +2995,7 @@ class Instructions
 
   def send_super_stack_with_splat(index, count)
     <<-CODE
+    flush_ip();
     Object* block = stack_pop();
     Object* ary   = stack_pop();
     Object* const recv = call_frame->self();
@@ -3470,6 +3497,7 @@ class Instructions
 
   def string_append
     <<-CODE
+    flush_ip();
     String* s1 = as<String>(stack_pop());
     String* s2 = as<String>(stack_pop());
     s1->append(state, s2);
@@ -3507,6 +3535,7 @@ class Instructions
 
   def string_dup
     <<-CODE
+    flush_ip();
     String *s1 = as<String>(stack_pop());
     stack_push(s1->string_dup(state));
     CODE
@@ -3645,6 +3674,7 @@ class Instructions
 
   def yield_debugger
     <<-CODE
+    flush_ip();
     Helpers::yield_debugger(state, call_frame);
     CODE
   end
@@ -3700,6 +3730,7 @@ class Instructions
 
   def raise_return
     <<-CODE
+    flush_ip();
     if(!(call_frame->flags & CallFrame::cIsLambda) &&
        !call_frame->scope_still_valid(call_frame->scope->parent())) {
       Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
@@ -3714,6 +3745,7 @@ class Instructions
 
   def ensure_return
     <<-CODE
+    flush_ip();
     state->thread_state()->raise_return(stack_top(), call_frame->scope);
     RUN_EXCEPTION();
     CODE
@@ -3721,6 +3753,7 @@ class Instructions
 
   def raise_break
     <<-CODE
+    flush_ip();
     state->thread_state()->raise_break(stack_top(), call_frame->scope->parent());
     RUN_EXCEPTION();
     CODE
@@ -3735,6 +3768,7 @@ class Instructions
 
   def check_interrupts
     <<-CODE
+    flush_ip();
     if(unlikely(state->interrupts.timer)) {
       {
         state->interrupts.timer = false;

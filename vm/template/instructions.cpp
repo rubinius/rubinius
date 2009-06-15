@@ -102,10 +102,20 @@ CODE
 Object* VMMethod::interpreter(STATE, VMMethod* const vmm,
     InterpreterCallFrame* const call_frame, Arguments& args)
 {
-  opcode* stream = vmm->opcodes;
+#ruby <<CODE
+  impl2 = si.decode_methods
+  si.generate_jump_table impl2, true
+CODE
+
   InterpreterState is;
 
-  register Object** stack_ptr = call_frame->stk - 1;
+#ifdef __i386__
+  register void** ip_ptr asm ("esi") = vmm->addresses;
+#else
+  register void** ip_ptr = vmm->addresses;
+#endif
+
+  Object** stack_ptr = call_frame->stk - 1;
   Object* return_value;
   static int tick = 0;
 
@@ -131,13 +141,18 @@ continue_to_run:
     try {
 
 #undef DISPATCH
-#define DISPATCH goto *insn_locations[stream[call_frame->inc_ip()]];
+#define DISPATCH goto **ip_ptr++
+// #define DISPATCH goto *insn_locations[stream[call_frame->inc_ip()]];
+
+#undef next_int
+#define next_int ((opcode)(*ip_ptr++))
+
+#define cache_ip(which) ip_ptr = vmm->addresses + which
+#define flush_ip() call_frame->calculate_ip(ip_ptr)
 
 #ruby <<CODE
       io = StringIO.new
-      impl2 = si.decode_methods
-      si.inject_superops impl2
-      si.generate_jump_implementations impl2, io, true
+      si.generate_jump_implementations impl2, io
       puts io.string
 CODE
     } catch(TypeError& e) {
@@ -161,6 +176,7 @@ exception:
         UnwindInfo* info = &unwinds[--current_unwind];
         stack_position(info->stack_depth);
         call_frame->set_ip(info->target_ip);
+        cache_ip(info->target_ip);
       } else {
         return NULL;
       }
@@ -175,6 +191,7 @@ exception:
         if(info->for_ensure()) {
           stack_position(info->stack_depth);
           call_frame->set_ip(info->target_ip);
+          cache_ip(info->target_ip);
 
           // Don't reset ep here, we're still handling the return/break.
           goto continue_to_run;
@@ -225,6 +242,11 @@ exception:
 Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm,
                                        InterpreterCallFrame* const call_frame,
                                        Arguments& args) {
+#ruby <<CODE
+    impl2 = si.decode_methods
+    si.generate_jump_table impl2
+CODE
+
   opcode* stream = vmm->opcodes;
   InterpreterState is;
 
@@ -271,11 +293,17 @@ continue_to_run:
   } \
   goto *insn_locations[op];
 
+#undef next_int
+#undef cache_ip
+#undef flush_ip
+
+#define next_int ((opcode)(stream[call_frame->inc_ip()]))
+#define cache_ip(which)
+#define flush_ip()
+
 #ruby <<CODE
       io = StringIO.new
-      impl2 = si.decode_methods
-      si.inject_superops impl2
-      si.generate_jump_implementations impl2, io, true
+      si.generate_jump_implementations impl2, io
       puts io.string
 CODE
     } catch(TypeError& e) {
@@ -299,6 +327,7 @@ exception:
         UnwindInfo* info = &unwinds[--current_unwind];
         stack_position(info->stack_depth);
         call_frame->set_ip(info->target_ip);
+        cache_ip(info->target_ip);
       } else {
         return NULL;
       }
@@ -315,6 +344,7 @@ exception:
         if(info->for_ensure()) {
           stack_position(info->stack_depth);
           call_frame->set_ip(info->target_ip);
+          cache_ip(info->target_ip);
 
           // Don't reset ep here, we're still handling the return/break.
           goto continue_to_run;
