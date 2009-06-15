@@ -1,4 +1,2 @@
 fails:String#gsub! with pattern and replacement raises a TypeError when self is frozen
 fails:String#gsub! with pattern and block raises a RuntimeError when self is frozen
-fails:String#gsub with pattern and block sets $~ for access from the block
-fails:String#gsub with pattern and block restores $~ after leaving the block

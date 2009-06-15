@@ -1,2 +1,1 @@
 fails:Array#insert raises a TypeError on frozen arrays if modification takes place
-fails:Array#insert does not raise on frozen arrays if no modification takes place

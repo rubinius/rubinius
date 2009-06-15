@@ -1,3 +1,0 @@
-fails:Hash#== doesn't call to_hash on objects
-fails:Hash#== computes equality for complex recursive hashes
-fails:Hash#== computes equality for recursive hashes & arrays

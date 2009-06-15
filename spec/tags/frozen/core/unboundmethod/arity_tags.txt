@@ -1,2 +1,0 @@
-fails:UnboundMethod#arity if optional arguments returns the negative number of mandatory arguments, using Method#unbind
-fails:UnboundMethod#arity if optional arguments returns the negative number of mandatory arguments, using Module#instance_method

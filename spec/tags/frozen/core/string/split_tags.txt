@@ -1,2 +1,0 @@
-fails:String#split with String doesn't set $~
-fails:String#split with Regexp doesn't set $~

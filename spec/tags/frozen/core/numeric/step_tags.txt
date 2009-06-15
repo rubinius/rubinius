@@ -1,4 +1,0 @@
-fails:Numeric#step with [stop, step] raises no LocalJumpError when passed no block and self > stop
-fails:Numeric#step with [stop, step] raises a LocalJumpError when passed no block and self < stop
-fails:Numeric#step with [stop, step] increments self (using #+) until self > stop when step > 0
-fails:Numeric#step with [stop, step] decrements self (using #-) until self < stop when step < 0

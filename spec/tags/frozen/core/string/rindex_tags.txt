@@ -1,1 +1,0 @@
-fails:String#rindex with String doesn't set $~

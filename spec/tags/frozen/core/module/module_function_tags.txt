@@ -1,5 +1,2 @@
 fails:Module#module_function as a toggle (no arguments) in a Module body affects evaled method definitions also even when outside the eval itself
 fails:Module#module_function as a toggle (no arguments) in a Module body affects definitions when inside an eval even if the definitions are outside of it
-fails:Module#module_function with specific method names makes the instance methods private
-fails:Module#module_function with specific method names returns the current module
-fails:Module#module_function as a toggle (no arguments) in a Module body returns the current module

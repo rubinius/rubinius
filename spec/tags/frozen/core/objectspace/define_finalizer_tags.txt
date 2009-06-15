@@ -1,2 +1,0 @@
-fails:ObjectSpace.define_finalizer accepts an object and a proc
-fails:ObjectSpace.define_finalizer accepts an object and a callable

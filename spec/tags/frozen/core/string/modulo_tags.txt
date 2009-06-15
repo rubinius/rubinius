@@ -1,4 +1,1 @@
-fails:String#% tries to convert the argument to Array by calling #to_ary
-fails:String#% calls #to_ary on argument for %c formats
-fails:String#% tries to convert the passed argument to an Array using #to_ary
 fails:String#% formats negative values with a leading sign using %u

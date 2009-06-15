@@ -1,14 +1,4 @@
 fails:Module#autoload doesn't call 'require' nor 'load' dynamically
 fails:Module#autoload uses dup copies for autoloaded constants
 fails:Module#autoload autoloaded constants are removed on the first access
-fails:Module#autoload loads the registered constant when it is opened as a class
-fails:Module#autoload loads the registered constant when it is opened as a module
 fails:Module#autoload loads the registered constand when it is included
-fails:Module#autoload loads the file when opening a module that is the autoloaded constant
-fails:Module#autoload raises a NameError when the autoload file did not define the constant and a module is opened with the same name
-fails:Module#autoload loads the registered constant into a dynamically created module
-fails:Module#autoload removes the constant from the constant table if load fails
-fails:Module#autoload loads the registered constant when it is inherited from
-fails:Module#autoload allows multiple autoload constants for a single file
-fails:Module#autoload shares the autoload request across dup'ed copies of modules
-fails:Module#autoload loads the registered constant into a dynamically created class

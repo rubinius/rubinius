@@ -1,1 +1,0 @@
-fails:Module#public_method_defined? returns false if method is not a public method

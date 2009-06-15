@@ -1,2 +1,1 @@
 fails:Array#unshift raises a TypeError on a frozen array
-fails:Array#unshift does not raise an exception on a frozen array if no modification takes place
