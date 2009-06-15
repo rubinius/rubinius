@@ -141,6 +141,11 @@ class File < IO
   #  File.chmod(0644, "testfile", "out")   #=> 2
   def self.chmod(mode, *paths)
     mode = Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
+    # Bug-to-bug compability: MRI cast mode into a mode_t, which gives you
+    # pretty much a garbage value if it's greater than 2**16. If mode is greater
+    # than 2**16, make mode 0.
+    mode = 0 if mode.abs > 2**16
+
     paths.each do |path|
       path = Type.coerce_to(path, String, :to_str) unless path.is_a? String
       POSIX.chmod(path, mode)
@@ -909,6 +914,11 @@ class File < IO
 
   def chmod(mode)
     mode = Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
+
+    # Bug-to-bug compability: MRI cast mode into a mode_t, which gives you
+    # pretty much a garbage value if it's greater than 2**16. If mode is greater
+    # than 2**16, make mode 0.
+    mode = 0 if mode.abs > 2**16
     POSIX.fchmod(@descriptor, mode)
   end
 
