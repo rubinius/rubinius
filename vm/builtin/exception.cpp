@@ -109,7 +109,10 @@ namespace rubinius {
 
   void Exception::type_error(STATE, object_type type, Object* object,
                                    const char* reason) {
-    RubyException::raise(make_type_error(state, type, object, reason));
+    // We code for TypeError being raised defensively, so it's ok, to raise it
+    // since someone close by will catch it and propogate it back to ruby
+    // properly.
+    throw TypeError(type, object, reason);
   }
 
   void Exception::float_domain_error(STATE, const char* reason) {

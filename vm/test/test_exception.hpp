@@ -52,18 +52,6 @@ public:
           Exception::make_type_error(state, type, obj)));
   }
 
-  void test_ruby_exception_type_error() {
-    object_type type = ClassType;
-    Object* obj = G(object);
-
-    TS_ASSERT_THROWS_ASSERT(Exception::type_error(state, type, obj),
-        const RubyException &e,
-        TS_ASSERT(Exception::type_error_p(state, e.exception)));
-    TS_ASSERT_THROWS_ASSERT(Exception::type_error(state, "failed"),
-        const RubyException &e,
-        TS_ASSERT(Exception::type_error_p(state, e.exception)));
-  }
-
   void test_ruby_exception_float_domain_error() {
     TS_ASSERT_THROWS_ASSERT(Exception::float_domain_error(state, "failed"),
         const RubyException &e,

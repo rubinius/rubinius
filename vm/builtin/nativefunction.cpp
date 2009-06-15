@@ -20,6 +20,7 @@
 #include "builtin/nativefunction.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/system.hpp"
 
 #include "ffi_util.hpp"
 #include "arguments.hpp"
@@ -46,20 +47,27 @@ namespace rubinius {
 
     state->set_call_frame(call_frame);
 
-    Object* ret;
+    try {
 
 #ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling())) {
-      profiler::MethodEntry method(state, msg, args);
-      ret = nfunc->call(state, args);
-    } else {
-      ret = nfunc->call(state, args);
-    }
+      if(unlikely(state->shared.profiling())) {
+        profiler::MethodEntry method(state, msg, args);
+        return nfunc->call(state, args);
+      } else {
+        return nfunc->call(state, args);
+      }
 #else
-    ret = nfunc->call(state, args);
+      return nfunc->call(state, args);
 #endif
 
-    return ret;
+    } catch(TypeError &e) {
+      Exception* exc =
+        Exception::make_type_error(state, e.type, e.object, e.reason);
+      exc->locations(state, System::vm_backtrace(state, 0, call_frame));
+
+      state->thread_state()->raise_exception(exc);
+      return NULL;
+    }
   }
 
   size_t NativeFunction::type_size(size_t type) {
@@ -315,7 +323,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_UCHAR: {
         unsigned char *tmp = ALLOCA(unsigned char);
         obj = args.get_argument(i);
-        type_assert(state, obj, FixnumType, "converting to char");
+        type_assert(state, obj, FixnumType, "converting to uchar");
         *tmp = (unsigned char)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
         break;
@@ -323,7 +331,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_SHORT: {
         short *tmp = ALLOCA(short);
         obj = args.get_argument(i);
-        type_assert(state, obj, FixnumType, "converting to char");
+        type_assert(state, obj, FixnumType, "converting to short");
         *tmp = (short)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
         break;
@@ -331,7 +339,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_USHORT: {
         unsigned short *tmp = ALLOCA(unsigned short);
         obj = args.get_argument(i);
-        type_assert(state, obj, FixnumType, "converting to char");
+        type_assert(state, obj, FixnumType, "converting to ushort");
         *tmp = (unsigned short)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
         break;
