@@ -156,6 +156,7 @@ continue_to_run:
       puts io.string
 CODE
     } catch(TypeError& e) {
+      flush_ip();
       Exception* exc =
         Exception::make_type_error(state, e.type, e.object, e.reason);
       exc->locations(state, System::vm_backtrace(state, 0, call_frame));
@@ -307,6 +308,7 @@ continue_to_run:
       puts io.string
 CODE
     } catch(TypeError& e) {
+      flush_ip();
       Exception* exc =
         Exception::make_type_error(state, e.type, e.object, e.reason);
       exc->locations(state, System::vm_backtrace(state, 0, call_frame));
