@@ -88,7 +88,10 @@ class Mutex
   def unlock
     @lock.receive
     begin
-      raise ThreadError, "Not owner" unless @owner == Thread.current
+      if @owner != Thread.current
+        raise ThreadError, "Not owner, #{@owner.inspect} is"
+      end
+
       @owner = nil
       @waiters.shift << nil unless @waiters.empty?
       self
@@ -107,7 +110,7 @@ class Mutex
   end
 end
 
-# 
+#
 # ConditionVariable objects augment class Mutex. Using condition variables,
 # it is possible to suspend while in the middle of a critical section until a
 # resource becomes available.
@@ -151,24 +154,22 @@ class ConditionVariable
     @lock.receive
     begin
       wchan = Rubinius::Channel.new
-      mutex.unlock
-      @waiters.push wchan
-      @lock << nil
-      if timeout
-        timeout_ms = (timeout*1000000).to_i
-        timeout_id = Rubinius::Scheduler.send_in_microseconds(wchan, timeout_ms, nil)
-      else
-        timeout_id = nil
+
+      begin
+        mutex.unlock
+        @waiters.push wchan
+        @lock << nil
+        signaled = wchan.receive_timeout timeout
+      ensure
+        mutex.lock
+        @lock.receive
+        unless signaled or @waiters.delete wchan
+          # we timed out, but got signaled afterwards (e.g. while waiting to
+          # acquire @lock), so pass that signal on to the next waiter
+          @waiters.shift << true unless @waiters.empty?
+        end
       end
-      signaled = wchan.receive
-      Rubinius::Scheduler.cancel(timeout_id) if timeout
-      mutex.lock
-      @lock.receive
-      unless signaled or @waiters.delete wchan
-        # we timed out, but got signaled afterwards (e.g. while waiting to
-        # acquire @lock), so pass that signal on to the next waiter
-        @waiters.shift << true unless @waiters.empty?
-      end
+
       if timeout
         !!signaled
       else
@@ -178,7 +179,7 @@ class ConditionVariable
       @lock << nil
     end
   end
-  
+
   #
   # Wakes up the first thread in line waiting for this lock.
   #
@@ -373,16 +374,16 @@ class SizedQueue < Queue
   # until space becomes available.
   #
   def push(obj)
-    while(true)
+    while true
       @size_mutex.synchronize do
         @queue_wait.delete(Thread.current)
         if(@que.size >= @max)
           @queue_wait.push Thread.current
-          @sem.wait(@size_mutex)          
+          @sem.wait(@size_mutex)
         else
           return super(obj)
         end
-      end      
+      end
     end
   end
 
