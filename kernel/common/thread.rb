@@ -61,7 +61,9 @@ class Thread
     rescue Die
       @exception = nil
     rescue Exception => e
-      @exception = e
+      # I don't really get this, but this is MRI's behavior. If we're dying
+      # by request, ignore any raised exception.
+      @exception = e unless @dying
     ensure
       @alive = false
       @lock.send nil
@@ -79,9 +81,10 @@ class Thread
   def setup(prime_lock)
     @group = nil
     @alive = true
-    @result = nil
+    @result = false
     @exception = nil
     @critical = false
+    @dying = false
     @locals = Rubinius::LookupTable.new
     @lock = Rubinius::Channel.new
     @lock.send nil if prime_lock
@@ -100,6 +103,7 @@ class Thread
   end
 
   def kill
+    @dying = true
     self.raise Die
   end
 
