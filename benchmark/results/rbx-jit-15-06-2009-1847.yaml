@@ -1,0 +1,110 @@
+---
+name: benchmark/app/bm_gem_install_local.rb
+parameters:
+- 1
+---
+name: benchmark/app/bm_gem_install_local.rb
+parameter: 1
+iterations: 5
+max: 7.739749
+min: 7.527081
+median: 7.673063
+mean: 7.6607956
+standard_deviation: 0.0770685651237909
+times:
+- 7.527081
+- 7.739749
+- 7.634444
+- 7.673063
+- 7.729641
+---
+name: benchmark/app/bm_gem_install_local.rb
+status: success
+---
+name: benchmark/app/bm_gem_install_remote.rb
+parameters:
+- 1
+---
+name: benchmark/app/bm_gem_install_remote.rb
+parameter: 1
+iterations: 5
+max: 7.166319
+min: 7.004345
+median: 7.077113
+mean: 7.0766564
+standard_deviation: 0.0532269830879038
+times:
+- 7.086968
+- 7.166319
+- 7.048537
+- 7.077113
+- 7.004345
+---
+name: benchmark/app/bm_gem_install_remote.rb
+status: success
+---
+name: benchmark/app/bm_mspec-ci.rb
+parameters:
+- 1
+---
+name: benchmark/app/bm_mspec-ci.rb
+parameter: 1
+iterations: 5
+max: 22.666441
+min: 22.247452
+median: 22.431216
+mean: 22.4306248
+standard_deviation: 0.145668786154618
+times:
+- 22.431216
+- 22.666441
+- 22.315922
+- 22.247452
+- 22.492093
+---
+name: benchmark/app/bm_mspec-ci.rb
+status: success
+---
+name: benchmark/app/bm_rails-h.rb
+parameters:
+- 1
+---
+name: benchmark/app/bm_rails-h.rb
+parameter: 1
+iterations: 5
+max: 8.636411
+min: 8.459518
+median: 8.617275
+mean: 8.5631794
+standard_deviation: 0.0781117739975223
+times:
+- 8.476539
+- 8.617275
+- 8.626154
+- 8.459518
+- 8.636411
+---
+name: benchmark/app/bm_rails-h.rb
+status: success
+---
+name: benchmark/app/bm_rdoc.rb
+parameters:
+- 1
+---
+name: benchmark/app/bm_rdoc.rb
+parameter: 1
+iterations: 5
+max: 17.854924
+min: 17.73044
+median: 17.801324
+mean: 17.7983958
+standard_deviation: 0.0418322415579176
+times:
+- 17.823759
+- 17.73044
+- 17.854924
+- 17.801324
+- 17.781532
+---
+name: benchmark/app/bm_rdoc.rb
+status: success

@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Benchmark Graphs</title>
+    <link href="layout.css" rel="stylesheet" type="text/css"></link>
+    <!--[if IE]><script language="javascript" type="text/javascript" src="../excanvas.pack.js"></script><![endif]-->
+    <script language="javascript" type="text/javascript" src="javascript/jquery.js"></script>
+    <script language="javascript" type="text/javascript" src="javascript/jquery.flot.js"></script>
+ </head>
+    <body>
+    <h1>Benchmark Graphs</h1>
+
+    <p>All graphs are using the <em>median</em> value of multiple runs.</p>
+
+    
+      <h2>ruby baseline</h2>
+      <div id="ruby_baseline" style="width:600px;height:300px;"></div>
+    
+      <h2>rbx no jit</h2>
+      <div id="rbx_no_jit" style="width:600px;height:300px;"></div>
+    
+      <h2>rbx jit</h2>
+      <div id="rbx_jit" style="width:600px;height:300px;"></div>
+    
+
+<script id="source" language="javascript" type="text/javascript">
+$(function () {
+  
+    $.plot($("#ruby_baseline"), [ { label: "rails-h (1)", data: [[1245049200, 0.397859], [1245135600, 0.397859]] }, { label: "rdoc (1)", data: [[1245049200, 11.839085], [1245135600, 11.839085]] }, { label: "mspec-ci (1)", data: [[1245049200, 4.982705], [1245135600, 4.982705]] }, { label: "gem install remote (1)", data: [[1245049200, 0.296982], [1245135600, 0.296982]] }, { label: "gem install local (1)", data: [[1245049200, 0.314132], [1245135600, 0.314132]] } ],
+        {
+          lines:  { show: true },
+          points: { show: true },
+          xaxis:  { mode: "time" }
+        }
+    );
+  
+    $.plot($("#rbx_no_jit"), [ { label: "rails-h (1)", data: [[1245049200, 9.511818], [1245135600, 9.511818]] }, { label: "rdoc (1)", data: [[1245049200, 76.405085], [1245135600, 76.405085]] }, { label: "mspec-ci (1)", data: [[1245049200, 20.821563], [1245135600, 20.821563]] }, { label: "gem install remote (1)", data: [[1245049200, 7.871544], [1245135600, 7.871544]] }, { label: "gem install local (1)", data: [[1245049200, 7.821537], [1245135600, 7.821537]] } ],
+        {
+          lines:  { show: true },
+          points: { show: true },
+          xaxis:  { mode: "time" }
+        }
+    );
+  
+    $.plot($("#rbx_jit"), [ { label: "rails-h (1)", data: [[1245049200, 8.617275], [1245135600, 8.617275]] }, { label: "rdoc (1)", data: [[1245049200, 17.801324], [1245135600, 17.801324]] }, { label: "mspec-ci (1)", data: [[1245049200, 22.431216], [1245135600, 22.431216]] }, { label: "gem install remote (1)", data: [[1245049200, 7.077113], [1245135600, 7.077113]] }, { label: "gem install local (1)", data: [[1245049200, 7.673063], [1245135600, 7.673063]] } ],
+        {
+          lines:  { show: true },
+          points: { show: true },
+          xaxis:  { mode: "time" }
+        }
+    );
+  
+});
+</script>
+
+ </body>
+</html>
