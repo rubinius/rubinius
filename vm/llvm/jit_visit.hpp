@@ -1599,13 +1599,16 @@ namespace rubinius {
     }
 
     void visit_push_variables() {
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::cf_scope)
+      Signature sig(ls_, ObjType);
+      sig << "VM";
+      sig << "CallFrame";
+
+      Value* args[] = {
+        vm_,
+        call_frame_
       };
 
-      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "vars_pos", block_);
-      stack_push(new LoadInst(gep, "vars", block_));
+      stack_push(sig.call("rbx_promote_variables", args, 2, "promo_vars", block_));
     }
 
     void visit_push_scope() {

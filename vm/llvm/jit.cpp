@@ -1343,7 +1343,8 @@ namespace rubinius {
       visitor.drive(vmm->opcodes, vmm->total);
     } catch(JITVisit::Unsupported &e) {
       function_ = NULL;
-      std::cout << "not supported yet.\n";
+      // This is too noisy to report
+      // std::cout << "not supported yet.\n";
       return;
     }
 
