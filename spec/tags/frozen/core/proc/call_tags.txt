@@ -1,1 +1,0 @@
-fails:Proc#call sets self's single parameter to an Array of all given values
