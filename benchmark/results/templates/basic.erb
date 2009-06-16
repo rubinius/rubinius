@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Benchmark Graphs</title>
+    <link href="layout.css" rel="stylesheet" type="text/css"></link>
+    <!--[if IE]><script language="javascript" type="text/javascript" src="../excanvas.pack.js"></script><![endif]-->
+    <script language="javascript" type="text/javascript" src="javascript/jquery.js"></script>
+    <script language="javascript" type="text/javascript" src="javascript/jquery.flot.js"></script>
+ </head>
+    <body>
+    <h1>Benchmark Graphs</h1>
+
+    <p>All graphs are using the <em><%= @field %></em> value of multiple runs.</p>
+
+    <% @graphs.each_value do |graph| %>
+      <h2><%= graph.title %></h2>
+      <div id="<%= graph.id %>" style="width:600px;height:300px;"></div>
+    <% end %>
+
+<script id="source" language="javascript" type="text/javascript">
+$(function () {
+  <% @graphs.each_value do |graph| %>
+    $.plot($("#<%= graph.id %>"), [ <%= graph.data %> ],
+        {
+          lines:  { show: true },
+          points: { show: true },
+          xaxis:  { mode: "time" }
+        }
+    );
+  <% end %>
+});
+</script>
+
+ </body>
+</html>

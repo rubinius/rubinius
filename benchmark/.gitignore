@@ -2,4 +2,6 @@
 stat
 
 # Results files for benchmarking
-results/rbs
+results/*.yaml
+results/*.csv
+results/web/*.html
