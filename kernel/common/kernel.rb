@@ -542,8 +542,26 @@ module Kernel
   end
 
   def methods(all=true)
-    names = singleton_methods(all)
-    names |= self.class.instance_methods(true) if all
+    mt = metaclass.method_table
+    if all
+      keys = mt.keys
+    else
+      keys = mt.public_names + mt.protected_names
+    end
+
+    names = Rubinius.convert_to_names(keys)
+
+    if all
+      names |= self.class.instance_methods(true)
+    end
+
+    mt.each do |name, val|
+      # undefs show up as false here.
+      if val == false
+        names.delete name.to_s
+      end
+    end
+
     return names
   end
 
