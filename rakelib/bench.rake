@@ -19,6 +19,8 @@ ITERATIONS      = (ENV['ITERATIONS'] || 5).to_i
 TIMEOUT         = (ENV['TIMEOUT'] || 300).to_i
 VM              = ENV['VM'] || "#{BASEDIR}/bin/rbx"
 
+ENV['VM']       = VM
+
 def command(name)
   "ruby #{MONITOR} #{TIMEOUT} '#{VM}' #{RUNNER} #{name} #{ITERATIONS} #{report}"
 end
