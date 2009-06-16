@@ -81,6 +81,17 @@ module Rubinius
 
     mod = static_scope.for_method_definition
 
+    if mod.kind_of? MetaClass
+      if mod.attached_instance.kind_of? Numeric
+
+        # Such a weird protocol. If :singleton_method_added exists, allow this.
+        # le sigh.
+        unless mod.attached_instance.respond_to? :singleton_method_added
+          raise TypeError, "Unable to define singleton methods on Numerics"
+        end
+      end
+    end
+
     add_method name, executable, mod, vis
   end
 
