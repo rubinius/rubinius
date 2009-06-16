@@ -91,7 +91,9 @@ namespace rubinius {
       flags = CallFrame::cIsLambda;
       int required = block_->method()->required_args()->to_native();
 
-      if(required >= 0 && (size_t)required != args.total()) {
+      // Bug-to-bug compatibility: when required is 0 or 1, we accept any number of
+      // args. Why? No fucking clue. So thats why we test for 2 here.
+      if(required >= 2 && (size_t)required != args.total()) {
         Exception* exc =
           Exception::make_argument_error(state, required, args.total(), state->symbol("__block__"));
         exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
