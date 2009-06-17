@@ -191,6 +191,8 @@ if LLVM_ENABLE
   llvm_flags = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
   llvm_flags.delete_if { |e| e.index("-O") == 0 }
   FLAGS.concat llvm_flags
+  FLAGS << '-D__STDC_LIMIT_MACROS' unless FLAGS.include? '-D__STDC_LIMIT_MACROS'
+  FLAGS << '-D__STDC_CONSTANT_MACROS' unless FLAGS.include? '-D__STDC_CONSTANT_MACROS'
 end
 
 BUILD_PRETASKS = []
