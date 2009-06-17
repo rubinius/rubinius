@@ -1,4 +1,4 @@
-#/usr/bin/sh
+#!/usr/bin/env bash
 #
 # Example script to run from a cron job. Expects the
 # following environment variables to be set:
