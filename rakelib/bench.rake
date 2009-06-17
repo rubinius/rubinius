@@ -20,6 +20,9 @@ VM              = ENV['VM'] || "#{BASEDIR}/bin/rbx"
 ENV['VM']       = VM
 
 BASELINE        = ENV['BASELINE'] ? File.expand_path(ENV['BASELINE']) : nil
+BASELINE_ID     = ENV['BASELINE_ID'] || "no baseline id"
+BASELINE_MIN    = (ENV['BASELINE_MIN'] || 0).to_i
+BASELINE_MAX    = (ENV['BASELINE_MAX'] || 7).to_i
 GROUP_NAME      = ENV['GROUP'] || File.basename(VM.split.first)
 RESULTS_DIR     = ENV['RESULTS'] || RESULTS_BASEDIR
 TEMPLATE        = ENV['TEMPLATE'] || RESULTS_BASEDIR + "/templates/basic.erb"
@@ -55,6 +58,11 @@ def parse_date(text)
     t = Time.now
     Time.local(t.year, t.mon, t.day).to_i * 1000
   end
+end
+
+def group_id(name)
+  /([^\d]+)-\d+/ =~ File.basename(name, ".*").split("/").last
+  $1
 end
 
 class Graph
@@ -143,7 +151,8 @@ class Graph
 end
 
 class GraphEnvironment
-  attr_accessor :graphs, :field, :min_date, :max_date, :width, :height
+  attr_accessor :graphs, :field, :min_date, :max_date, :width, :height,
+                :baseline_id, :baseline_min, :baseline_max
 
   def initialize
     @min_date = Time.now.to_i * 1000
@@ -172,8 +181,7 @@ namespace :bench do
     Dir[RESULTS_DIR + "/**/*.yaml"].sort.each do |name|
       next if BASELINE == name
 
-      /([^\d]+)-\d+/ =~ File.basename(name, ".*").split("/").last
-      graph = env.graphs[$1]
+      graph = env.graphs[group_id(name)]
       date  = parse_date name
 
       env.min_date = date if date < env.min_date
@@ -196,6 +204,10 @@ namespace :bench do
     end
 
     if BASELINE
+      env.baseline_id  = BASELINE_ID
+      env.baseline_min = BASELINE_MIN
+      env.baseline_max = BASELINE_MAX
+
       File.open BASELINE, "r" do |file|
         YAML.load_documents file do |doc|
           next unless doc.key? env.field

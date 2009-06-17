@@ -1,19 +1,47 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
- <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Benchmark Graphs</title>
-    <link href="layout.css" rel="stylesheet" type="text/css"></link>
-    <!--[if IE]><script language="javascript" type="text/javascript" src="../excanvas.pack.js"></script><![endif]-->
-    <script language="javascript" type="text/javascript" src="javascript/jquery.js"></script>
-    <script language="javascript" type="text/javascript" src="javascript/jquery.flot.js"></script>
- </head>
-    <body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang='en-us' xmlns='http://www.w3.org/1999/xhtml'>
+<head>
+<title>Rubinius - Benchmarks</title>
+<link href="http://rubini.us/screen.css" media="screen" rel="stylesheet" type="text/css" />
+<!--[if IE]><script language="javascript" type="text/javascript" src="../excanvas.pack.js"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="javascript/jquery.js"></script>
+<script language="javascript" type="text/javascript" src="javascript/jquery.flot.js"></script>
+</head>
+
+<body>
+<div id="container">
+
+  <div id="header">
+    <div id="nav">
+      <div id="nav-items">
+        <a href="index.html">Home</a><span class="separator">
+        | </span><a href="roadmap.html">Roadmap</a><span class="separator">
+        | </span><strong>Benchmarks</strong><span class="separator">
+        | </span><a href="community.html">Community</a><span class="separator">
+        | </span><a href="contribute.html">Contribute</a><span class="separator">
+        | </span><a href="documentation.html">Documentation</a><span class="separator">
+        | </span><a href="download.html">Download</a><span class="separator">
+      </div>
+    </div>
+    <div id="branding">
+      <div id="site-title">Rubinius</div>
+
+<div id="site-subtitle">Ruby, the Way It Was Meant To Be</div>
+
+<div id="site-download"><a href="http://github.com/evanphx/rubinius/tree/master"><img src="http://74.217.48.135/assets/2/down_24.png" alt="download git" /> Download with git</a></div>
+    </div>
+  </div>
+
+  <div id="content">
     <h1>Benchmark Graphs</h1>
+
+    <p>The graphs below show results over time for several real-world benchmarks.
+    The first set show the recorded times for the benchmarks. The second set show
+    the times relative to MRI 1.8.7p72.</p>
 
     <p>All graphs are using the <em>median</em> value of multiple runs.</p>
 
-    <h2>Actual recorded times</h2>
+    <h2>Recorded times</h2>
     <div>
     
       <div id="rbx_no_jit" style="width:1000px;height:400px;"></div>
@@ -26,7 +54,7 @@
     
     </div>
 
-    <h2>Delta relative to baseline</h2>
+    <h2>Relative to MRI baseline</h2>
     <div>
     
       <div id="rbx_no_jit_baseline" style="width:1000px;height:400px;"></div>
@@ -73,13 +101,15 @@ $(function () {
               min: 1245006000000,
               max: 1245178800000 },
     yaxis:  { ticks: [0, [0.5, "0.5"], [1, "Baseline"], [2, "2"], [4, "4"], [6, "6"]],
-              min: 0.0,
-              max: 7.0 },
+              min: 0,
+              max: 2 },
     selection: { mode: "xy" }
   }
 
   
-    var data0 = [ { label: "rails-h (1)", data: [[1245049200000, 0.04182786087791],[1245135600000, 0.04182786087791]] }, { label: "rdoc (1)", data: [[1245049200000, 0.154951532348927],[1245135600000, 0.154951532348927]] }, { label: "mspec-ci (1)", data: [[1245049200000, 0.239305041605186],[1245135600000, 0.239305041605186]] }, { label: "gem install remote (1)", data: [[1245049200000, 0.0377285574469253],[1245135600000, 0.0377285574469253]] }, { label: "gem install local (1)", data: [[1245049200000, 0.0401624386613526],[1245135600000, 0.0401624386613526]] } ];
+      var data0 = [ { label: "rails-h (1)", data: [[1245049200000, 0.04182786087791],[1245135600000, 0.04182786087791]] }, { label: "rdoc (1)", data: [[1245049200000, 0.154951532348927],[1245135600000, 0.154951532348927]] }, { label: "mspec-ci (1)", data: [[1245049200000, 0.239305041605186],[1245135600000, 0.239305041605186]] }, { label: "gem install remote (1)", data: [[1245049200000, 0.0377285574469253],[1245135600000, 0.0377285574469253]] }, { label: "gem install local (1)", data: [[1245049200000, 0.0401624386613526],[1245135600000, 0.0401624386613526]] }, 
+        { label: "Baseline", data: [[1244615200000, 1.0],
+          [1245569600000, 1.0]] } ];
 
     $.plot($("#rbx_no_jit_baseline"), data0, options);
 
@@ -91,7 +121,9 @@ $(function () {
              }));
     });
   
-    var data1 = [ { label: "rails-h (1)", data: [[1245049200000, 0.0461699319100296],[1245135600000, 0.0461699319100296]] }, { label: "rdoc (1)", data: [[1245049200000, 0.665067665753401],[1245135600000, 0.665067665753401]] }, { label: "mspec-ci (1)", data: [[1245049200000, 0.222132629813738],[1245135600000, 0.222132629813738]] }, { label: "gem install remote (1)", data: [[1245049200000, 0.0419637216475136],[1245135600000, 0.0419637216475136]] }, { label: "gem install local (1)", data: [[1245049200000, 0.0409395830582911],[1245135600000, 0.0409395830582911]] } ];
+      var data1 = [ { label: "rails-h (1)", data: [[1245049200000, 0.0461699319100296],[1245135600000, 0.0461699319100296]] }, { label: "rdoc (1)", data: [[1245049200000, 0.665067665753401],[1245135600000, 0.665067665753401]] }, { label: "mspec-ci (1)", data: [[1245049200000, 0.222132629813738],[1245135600000, 0.222132629813738]] }, { label: "gem install remote (1)", data: [[1245049200000, 0.0419637216475136],[1245135600000, 0.0419637216475136]] }, { label: "gem install local (1)", data: [[1245049200000, 0.0409395830582911],[1245135600000, 0.0409395830582911]] }, 
+        { label: "Baseline", data: [[1244615200000, 1.0],
+          [1245569600000, 1.0]] } ];
 
     $.plot($("#rbx_jit_baseline"), data1, options);
 
@@ -105,6 +137,16 @@ $(function () {
   
 });
 </script>
+  </div>
 
- </body>
+  <div id="footer">
+    <ul>
+  <li>Copyright © 2007-2008 <a href="http://blog.fallingsnow.net/">Evan Phoenix</a>.</li>
+  <li>Distributed under the <a href="http://en.wikipedia.org/wiki/BSD_license#Terms">BSD license</a>.</li>
+  <li class="align-right"><a href="http://www.engineyard.com"><img src="http://rubini.us/assets/4/engineyardproject_logo.png"  alt='Engine Yard Project' /></a></li>
+</ul>
+  </div>
+
+</div>
+</body>
 </html>

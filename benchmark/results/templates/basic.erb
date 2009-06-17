@@ -60,7 +60,9 @@ $(function () {
   }
 
   <% @graphs.values.each_with_index do |graph, index| %>
-    var data<%= index %> = [ <%= graph.data(true) %> ];
+    var data<%= index %> = [ <%= graph.data(true) %>, 
+      { label: "Baseline", data: [[<%= @min_date - 434000000 %>, 1.0],
+        [<%= @max_date + 434000000 %>, 1.0]] } ];
 
     $.plot($("#<%= graph.id %>_baseline"), data<%= index %>, options);
 
