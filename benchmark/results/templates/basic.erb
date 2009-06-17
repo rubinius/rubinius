@@ -13,10 +13,23 @@
 
     <p>All graphs are using the <em><%= @field %></em> value of multiple runs.</p>
 
-    <% @graphs.each_value do |graph| %>
-      <h2><%= graph.title %></h2>
-      <div id="<%= graph.id %>" style="width:600px;height:300px;"></div>
+    <h2>Actual recorded times</h2>
+    <div>
+    <% @graphs.values.each_with_index do |graph, index| %>
+      <div id="<%= graph.id %>" style="width:<%= @width %>px;height:<%= @height %>px;"></div>
+      <p style="text-align:center;font-weight:bold;width:<%= @width %>px;">
+        Graph <%= index + 1 %>: <%= graph.title %></p>
     <% end %>
+    </div>
+
+    <h2>Delta relative to baseline</h2>
+    <div>
+    <% @graphs.values.each_with_index do |graph, index| %>
+      <div id="<%= graph.id %>_baseline" style="width:<%= @width %>px;height:<%= @height %>px;"></div>
+      <p style="text-align:center;font-weight:bold;width:<%= @width %>px;">
+        Graph <%= index + 1 %>: <%= graph.title %></p>
+    <% end %>
+    </div>
 
 <script id="source" language="javascript" type="text/javascript">
 $(function () {
@@ -25,9 +38,39 @@ $(function () {
         {
           lines:  { show: true },
           points: { show: true },
-          xaxis:  { mode: "time" }
+          xaxis:  { mode: "time",
+                    minTickSize: [1, "day"],
+                    min: <%= @min_date - 43200000 %>,
+                    max: <%= @max_date + 43200000 %> }
         }
     );
+  <% end %>
+
+  var options = {
+    lines:  { show: true },
+    points: { show: true },
+    xaxis:  { mode: "time",
+              minTickSize: [1, "day"],
+              min: <%= @min_date - 43200000 %>,
+              max: <%= @max_date + 43200000 %> },
+    yaxis:  { ticks: [0, [0.5, "0.5"], [1, "Baseline"], [2, "2"], [4, "4"], [6, "6"]],
+              min: 0.0,
+              max: 7.0 },
+    selection: { mode: "xy" }
+  }
+
+  <% @graphs.values.each_with_index do |graph, index| %>
+    var data<%= index %> = [ <%= graph.data(true) %> ];
+
+    $.plot($("#<%= graph.id %>_baseline"), data<%= index %>, options);
+
+    $("#<%= graph.id %>_baseline").bind("plotselected", function (event, ranges) {
+      $.plot($("#<%= graph.id %>_baseline"), data<%= index %>,
+             $.extend(true, {}, options, {
+               xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+               yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
+             }));
+    });
   <% end %>
 });
 </script>

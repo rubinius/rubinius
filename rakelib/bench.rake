@@ -19,6 +19,7 @@ TIMEOUT         = (ENV['TIMEOUT'] || 300).to_i
 VM              = ENV['VM'] || "#{BASEDIR}/bin/rbx"
 ENV['VM']       = VM
 
+BASELINE        = ENV['BASELINE'] ? File.expand_path(ENV['BASELINE']) : nil
 GROUP_NAME      = ENV['GROUP'] || File.basename(VM.split.first)
 RESULTS_DIR     = ENV['RESULTS'] || RESULTS_BASEDIR
 TEMPLATE        = ENV['TEMPLATE'] || RESULTS_BASEDIR + "/templates/basic.erb"
@@ -49,21 +50,22 @@ end
 
 def parse_date(text)
   if /-(\d+)-(\d+)-(\d+)-(\d+).yaml/ =~ text
-    Time.local($3, $2, $1).to_i
+    Time.local($3, $2, $1).to_i * 1000
   else
     t = Time.now
-    Time.local(t.year, t.mon, t.day).to_i
+    Time.local(t.year, t.mon, t.day).to_i * 1000
   end
 end
 
 class Graph
   class Point
-    attr_accessor :x, :y
+    attr_accessor :x, :y, :baseline
 
     def initialize(x, y=0.0)
       @x = x
       @y = y
       @valid = true
+      @baseline = 0.0
     end
 
     def valid?
@@ -74,11 +76,10 @@ class Graph
       @valid = false
     end
 
-    def to_s
-      @valid ? [x, y].inspect : "null"
+    def data(delta=false)
+      return "null" unless valid?
+      (delta ? [x, @baseline.to_f / y] : [x, y]).inspect
     end
-
-    alias_method :inspect, :to_s
   end
 
   class Line
@@ -96,13 +97,18 @@ class Graph
       @points[x].y = y
     end
 
+    def set_baseline(baseline)
+      @points.each_value { |p| p.baseline = baseline }
+    end
+
     def invalid(date)
       @points[date].invalid
     end
 
-    def data
-      points = @points.values.sort { |a, b| a.x <=> b.x }.inspect
-      %[{ label: "#{label}", data: #{points} }]
+    def data(delta=false)
+      points = @points.values.sort { |a, b| a.x <=> b.x }
+      str = points.map { |p| p.data(delta) }.join(",")
+      %[{ label: "#{label}", data: [#{str}] }]
     end
   end
 
@@ -118,8 +124,8 @@ class Graph
       @lines.each_value { |line| line.invalid date }
     end
 
-    def data
-      @lines.values.map { |line| line.data }.join(", ")
+    def data(delta=false)
+      @lines.values.map { |line| line.data(delta) }.join(", ")
     end
   end
 
@@ -131,13 +137,20 @@ class Graph
     @linesets = Hash.new { |h,k| h[k] = LineSet.new(k) }
   end
 
-  def data
-    @linesets.values.map { |lineset| lineset.data }.join(", ")
+  def data(delta=false)
+    @linesets.values.map { |lineset| lineset.data(delta) }.join(", ")
   end
 end
 
 class GraphEnvironment
-  attr_accessor :graphs, :field
+  attr_accessor :graphs, :field, :min_date, :max_date, :width, :height
+
+  def initialize
+    @min_date = Time.now.to_i * 1000
+    @max_date = 0
+    @width = 1000
+    @height = 400
+  end
 
   def get_binding
     binding
@@ -152,13 +165,19 @@ namespace :bench do
   task :results => :setup do
     require 'yaml'
 
-    field  = field_name
-    graphs = Hash.new { |h,k| h[k] = Graph.new(k) }
+    env = GraphEnvironment.new
+    env.field  = field_name
+    env.graphs = Hash.new { |h,k| h[k] = Graph.new(k) }
 
     Dir[RESULTS_DIR + "/**/*.yaml"].sort.each do |name|
+      next if BASELINE == name
+
       /([^\d]+)-\d+/ =~ File.basename(name, ".*").split("/").last
-      graph = graphs[$1]
+      graph = env.graphs[$1]
       date  = parse_date name
+
+      env.min_date = date if date < env.min_date
+      env.max_date = date if date > env.max_date
 
       File.open name, "r" do |file|
         YAML.load_documents file do |doc|
@@ -168,17 +187,27 @@ namespace :bench do
             lineset.invalid date
           end
 
-          next unless doc.key? field
+          next unless doc.key? env.field
 
           line = lineset.lines["#{doc["name"]}-#{doc["parameter"]}"]
-          line.set_point date, doc[field]
+          line.set_point date, doc[env.field]
         end
       end
     end
 
-    env = GraphEnvironment.new
-    env.graphs = graphs
-    env.field  = field
+    if BASELINE
+      File.open BASELINE, "r" do |file|
+        YAML.load_documents file do |doc|
+          next unless doc.key? env.field
+
+          env.graphs.each_value do |graph|
+            lineset = graph.linesets[doc["name"]]
+            line = lineset.lines["#{doc["name"]}-#{doc["parameter"]}"]
+            line.set_baseline doc[env.field]
+          end
+        end
+      end
+    end
 
     require 'erb'
     rhtml = ERB.new(IO.read(TEMPLATE))
@@ -186,8 +215,6 @@ namespace :bench do
     File.open HTMLOUT, "w" do |f|
       f.puts rhtml.result(env.get_binding)
     end
-
-    #graphs.each { |key, graph| graph.to_s }
   end
 
   desc "Generate a CSV file of results"
