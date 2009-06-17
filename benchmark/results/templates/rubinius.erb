@@ -98,7 +98,7 @@ $(function () {
       $.plot($("#<%= graph.id %>_baseline"), data<%= index %>,
              $.extend(true, {}, options, {
                xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
-               yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
+               yaxis: { ticks: 4, min: ranges.yaxis.from, max: ranges.yaxis.to }
              }));
     });
   <% end %>
