@@ -1519,39 +1519,43 @@ namespace rubinius {
     void visit_push_const_fast(opcode name, opcode cache) {
       AccessManagedMemory memguard(ls_);
 
+      BasicBlock* cont = 0;
+
       GlobalCacheEntry* entry = try_as<GlobalCacheEntry>(current_literal(cache));
-      assert(entry->pin());
+      if(entry) {
+        assert(entry->pin());
 
-      Value* global_serial = new LoadInst(global_serial_pos, "global_serial", block_);
+        Value* global_serial = new LoadInst(global_serial_pos, "global_serial", block_);
 
-      Value* current_serial_pos = CastInst::Create(
-          Instruction::IntToPtr,
-          ConstantInt::get(IntPtrTy, (intptr_t)entry->serial_location()),
-          PointerType::getUnqual(IntPtrTy), "cast_to_intptr", block_);
+        Value* current_serial_pos = CastInst::Create(
+            Instruction::IntToPtr,
+            ConstantInt::get(IntPtrTy, (intptr_t)entry->serial_location()),
+            PointerType::getUnqual(IntPtrTy), "cast_to_intptr", block_);
 
-      Value* current_serial = new LoadInst(current_serial_pos, "serial", block_);
+        Value* current_serial = new LoadInst(current_serial_pos, "serial", block_);
 
-      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, global_serial,
-          current_serial, "use_cache", block_);
+        Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, global_serial,
+            current_serial, "use_cache", block_);
 
-      BasicBlock* use_cache = BasicBlock::Create("use_cache", function_);
-      BasicBlock* use_call  = BasicBlock::Create("use_call", function_);
-      BasicBlock* cont =      BasicBlock::Create("continue", function_);
+        BasicBlock* use_cache = BasicBlock::Create("use_cache", function_);
+        BasicBlock* use_call  = BasicBlock::Create("use_call", function_);
+        cont =      BasicBlock::Create("continue", function_);
 
-      BranchInst::Create(use_cache, use_call, cmp, block_);
+        BranchInst::Create(use_cache, use_call, cmp, block_);
 
-      block_ = use_cache;
+        block_ = use_cache;
 
-      Value* value_pos = CastInst::Create(
-          Instruction::IntToPtr,
-          ConstantInt::get(IntPtrTy, (intptr_t)entry->value_location()),
-          PointerType::getUnqual(ObjType), "cast_to_objptr", block_);
+        Value* value_pos = CastInst::Create(
+            Instruction::IntToPtr,
+            ConstantInt::get(IntPtrTy, (intptr_t)entry->value_location()),
+            PointerType::getUnqual(ObjType), "cast_to_objptr", block_);
 
-      stack_push(new LoadInst(value_pos, "cached_value", block_));
+        stack_push(new LoadInst(value_pos, "cached_value", block_));
 
-      BranchInst::Create(cont, block_);
+        BranchInst::Create(cont, block_);
 
-      block_ = use_call;
+        block_ = use_call;
+      }
 
       std::vector<const Type*> types;
 
@@ -1575,9 +1579,11 @@ namespace rubinius {
       check_for_exception(ret);
       stack_push(ret);
 
-      BranchInst::Create(cont, block_);
+      if(entry) {
+        BranchInst::Create(cont, block_);
 
-      block_ = cont;
+        block_ = cont;
+      }
     }
 
     void visit_push_const(opcode name) {
