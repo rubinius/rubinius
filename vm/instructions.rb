@@ -367,10 +367,11 @@ class Instructions
   def check_serial(index, serial)
     <<-CODE
     Object* recv = stack_pop();
-    SendSite* ss = as<SendSite>(call_frame->cm->literals()->at(state, index));
+    SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
 
-    if(ss->check_serial(state, call_frame, recv, serial)) {
-      stack_push(Qtrue);
+    if(cache->recv_class == recv->lookup_begin(state) &&
+         cache->method->serial()->to_native() == serial) {
+       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
     }

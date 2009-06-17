@@ -164,10 +164,19 @@ namespace rubinius {
         case InstructionSequence::insn_send_stack_with_block:
         case InstructionSequence::insn_send_stack_with_splat:
         case InstructionSequence::insn_send_super_stack_with_block:
-        case InstructionSequence::insn_send_super_stack_with_splat: {
+        case InstructionSequence::insn_send_super_stack_with_splat:
+        case InstructionSequence::insn_check_serial:
+        {
           native_int which = opcodes[index + 1];
-          SendSite::Internal* cache = new SendSite::Internal(which);
           SendSite* ss = as<SendSite>(original->literals()->at(state, which));
+          SendSite::Internal* cache;
+
+          if(ss->inner_cache_) {
+            cache = ss->inner_cache_;
+          } else {
+            ss->inner_cache_ = cache = new SendSite::Internal(which);
+          }
+
           ss->inner_cache_ = cache;
           cache->name = ss->name();
           opcodes[index + 1] = reinterpret_cast<intptr_t>(cache);

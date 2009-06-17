@@ -287,12 +287,6 @@ extern "C" {
   }
 
   Object* rbx_check_serial(STATE, CallFrame* call_frame, int index, int serial, Object* top) {
-    SendSite* ss = as<SendSite>(call_frame->cm->literals()->at(state, index));
-
-    if(ss->check_serial(state, call_frame, top, serial)) {
-      return Qtrue;
-    }
-
     return Qfalse;
   }
 
