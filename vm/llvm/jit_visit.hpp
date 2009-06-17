@@ -3,12 +3,29 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/sendsite.hpp"
+#include "builtin/global_cache_entry.hpp"
 
 #include <llvm/DerivedTypes.h>
 
 #include <list>
 
 namespace rubinius {
+
+  class AccessManagedMemory {
+    LLVMState* ls_;
+
+  public:
+    AccessManagedMemory(LLVMState* ls)
+      : ls_(ls)
+    {
+      ls_->shared().gc_dependent();
+    }
+
+    ~AccessManagedMemory() {
+      ls_->shared().gc_independent();
+    }
+  };
+
   typedef std::map<int, llvm::BasicBlock*> BlockMap;
 
   class ExceptionHandler {
@@ -116,6 +133,8 @@ namespace rubinius {
 
     bool is_block_;
 
+    Value* global_serial_pos;
+
   public:
 
     const llvm::Type* ptr_type(std::string name) {
@@ -195,6 +214,11 @@ namespace rubinius {
 
 
       ip_pos_ = GetElementPtrInst::Create(call_frame_, idx, idx+2, "ip_pos", block_);
+
+      global_serial_pos = CastInst::Create(
+          Instruction::IntToPtr,
+          ConstantInt::get(IntPtrTy, (intptr_t)ls_->shared().global_serial_address()),
+          PointerType::getUnqual(IntPtrTy), "cast_to_intptr", block_);
     }
 
     void set_creates_blocks(bool val) {
@@ -1015,31 +1039,35 @@ namespace rubinius {
       return vmm_->original.get()->literals()->at(which);
     }
 
+    Value* get_literal(opcode which) {
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, offset::cf_cm)
+      };
+
+      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "cm_pos", block_);
+      Value* cm =  new LoadInst(gep, "cm", block_);
+
+      idx[1] = ConstantInt::get(Type::Int32Ty, 13);
+      gep = GetElementPtrInst::Create(cm, idx, idx+2, "literals_pos", block_);
+      Value* lits = new LoadInst(gep, "literals", block_);
+
+      Value* idx2[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, offset::tuple_field),
+        ConstantInt::get(Type::Int32Ty, which)
+      };
+
+      gep = GetElementPtrInst::Create(lits, idx2, idx2+3, "literal_pos", block_);
+      return new LoadInst(gep, "literal", block_);
+    }
+
     void visit_push_literal(opcode which) {
       Object* lit = literal(which);
       if(Symbol* sym = try_as<Symbol>(lit)) {
         stack_push(constant(sym));
       } else {
-        Value* idx[] = {
-          ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, offset::cf_cm)
-        };
-
-        Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "cm_pos", block_);
-        Value* cm =  new LoadInst(gep, "cm", block_);
-
-        idx[1] = ConstantInt::get(Type::Int32Ty, 13);
-        gep = GetElementPtrInst::Create(cm, idx, idx+2, "literals_pos", block_);
-        Value* lits = new LoadInst(gep, "literals", block_);
-
-        Value* idx2[] = {
-          ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, offset::tuple_field),
-          ConstantInt::get(Type::Int32Ty, which)
-        };
-
-        gep = GetElementPtrInst::Create(lits, idx2, idx2+3, "literal_pos", block_);
-        stack_push(new LoadInst(gep, "literal", block_));
+        stack_push(get_literal(which));
       }
     }
 
@@ -1484,7 +1512,47 @@ namespace rubinius {
       CallInst::Create(func, call_args, call_args+3, "add_array", block_);
     }
 
+    Object* current_literal(opcode which) {
+      return vmm_->original.get()->literals()->at(which);
+    }
+
     void visit_push_const_fast(opcode name, opcode cache) {
+      AccessManagedMemory memguard(ls_);
+
+      GlobalCacheEntry* entry = try_as<GlobalCacheEntry>(current_literal(cache));
+      assert(entry->pin());
+
+      Value* global_serial = new LoadInst(global_serial_pos, "global_serial", block_);
+
+      Value* current_serial_pos = CastInst::Create(
+          Instruction::IntToPtr,
+          ConstantInt::get(IntPtrTy, (intptr_t)entry->serial_location()),
+          PointerType::getUnqual(IntPtrTy), "cast_to_intptr", block_);
+
+      Value* current_serial = new LoadInst(current_serial_pos, "serial", block_);
+
+      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, global_serial,
+          current_serial, "use_cache", block_);
+
+      BasicBlock* use_cache = BasicBlock::Create("use_cache", function_);
+      BasicBlock* use_call  = BasicBlock::Create("use_call", function_);
+      BasicBlock* cont =      BasicBlock::Create("continue", function_);
+
+      BranchInst::Create(use_cache, use_call, cmp, block_);
+
+      block_ = use_cache;
+
+      Value* value_pos = CastInst::Create(
+          Instruction::IntToPtr,
+          ConstantInt::get(IntPtrTy, (intptr_t)entry->value_location()),
+          PointerType::getUnqual(ObjType), "cast_to_objptr", block_);
+
+      stack_push(new LoadInst(value_pos, "cached_value", block_));
+
+      BranchInst::Create(cont, block_);
+
+      block_ = use_call;
+
       std::vector<const Type*> types;
 
       types.push_back(VMTy);
@@ -1506,6 +1574,10 @@ namespace rubinius {
       Value* ret = CallInst::Create(func, call_args, call_args+4, "push_const_fast", block_);
       check_for_exception(ret);
       stack_push(ret);
+
+      BranchInst::Create(cont, block_);
+
+      block_ = cont;
     }
 
     void visit_push_const(opcode name) {

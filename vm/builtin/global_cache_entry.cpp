@@ -9,19 +9,19 @@ namespace rubinius {
 
   GlobalCacheEntry* GlobalCacheEntry::create(STATE, Object *value) {
     GlobalCacheEntry *entry =
-      state->new_object<GlobalCacheEntry>(G(global_cache_entry));
+      state->new_object_mature<GlobalCacheEntry>(G(global_cache_entry));
 
     entry->update(state, value);
     return entry;
   }
 
   bool GlobalCacheEntry::valid_p(STATE) {
-    return serial_->to_native() == state->shared.global_serial();
+    return serial_ == state->shared.global_serial();
   }
 
   void GlobalCacheEntry::update(STATE, Object* val) {
     value(state, val);
-    serial(state, Fixnum::from(state->shared.global_serial()));
+    serial_ = state->shared.global_serial();
   }
 }
 

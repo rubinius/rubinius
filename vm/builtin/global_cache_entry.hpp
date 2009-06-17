@@ -11,11 +11,20 @@ namespace rubinius {
 
   private:
     Object* value_;  // slot
-    Fixnum* serial_; // slot
+    int serial_;
 
   public:
     attr_accessor(value, Object);
-    attr_accessor(serial, Fixnum);
+
+    int serial() { return serial_; }
+
+    int* serial_location() {
+      return &serial_;
+    }
+
+    Object** value_location() {
+      return &value_;
+    }
 
     static void init(STATE);
     static GlobalCacheEntry* create(STATE, Object* value);

@@ -128,6 +128,10 @@ namespace rubinius {
       return ++global_serial_;
     }
 
+    int* global_serial_address() {
+      return &global_serial_;
+    }
+
     void enable_profiling(VM* vm);
     LookupTable* disable_profiling(VM* vm);
     void add_profiler(VM* vm, profiler::Profiler* profiler);

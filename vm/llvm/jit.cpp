@@ -1013,7 +1013,7 @@ namespace rubinius {
       Value* total = new LoadInst(total_offset, "arg.total", block);
 
       BasicBlock* arg_error = BasicBlock::Create("arg_error", func);
-      BasicBlock* cont = BasicBlock::Create("method_body", func);
+      BasicBlock* cont = BasicBlock::Create("import_args", func);
 
       // Check arguments
       //
@@ -1307,6 +1307,10 @@ namespace rubinius {
       nil_stack(vmm->stack_size, constant(Qnil, obj_type, block));
 
       import_args(vmm);
+
+      BasicBlock* body = BasicBlock::Create("method_body", func);
+      BranchInst::Create(body, block);
+      block = body;
     }
   };
 
