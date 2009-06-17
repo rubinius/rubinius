@@ -77,7 +77,7 @@ main(void)
 		unsigned short u[5];
 		long double D;
 #endif
-		} U;
+	} U;
 	U a, b, c;
 	int i;
 
@@ -107,4 +107,5 @@ main(void)
 #endif
 #endif /* HAVE_IEEE */
 	return 0;
-	}
+}
+
