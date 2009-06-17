@@ -97,6 +97,9 @@ module FFI
   # Converts an unsigned long
   add_typedef TYPE_ULONG,   :ulong
 
+  # Converts a size_t
+  add_typedef TYPE_ULONG,   :size_t
+
   # Converts a long long
   add_typedef TYPE_LL,      :long_long
 

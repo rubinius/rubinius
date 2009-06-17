@@ -17,7 +17,7 @@ OSVER=$(shell uname -r)
 WARNINGS = -Wall
 DEBUG = -g -ggdb3
 
-CFLAGS = $(WARNINGS) $(DEBUG)
+CFLAGS = $(WARNINGS) $(DEBUG) -fno-strict-aliasing
 NAME=libgdtoa
 VERSION = 1
 COMP=$(CC)

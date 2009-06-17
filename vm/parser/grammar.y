@@ -195,12 +195,6 @@ static int  syd_local_id(rb_parse_state*,ID);
 static ID  *syd_local_tbl(rb_parse_state *st);
 static ID   convert_op(ID id);
 
-quark id_to_quark(ID id) {
-  quark qrk;
-
-  qrk = (quark)((id >> ID_SCOPE_SHIFT) - tLAST_TOKEN);
-  return qrk;
-}
 
 
 static void tokadd(char c, rb_parse_state *parse_state);
@@ -5834,7 +5828,7 @@ scan_hex(const char *start, int len, int *retlen)
     static const char hexdigit[] = "0123456789abcdef0123456789ABCDEF";
     register const char *s = start;
     register unsigned long retval = 0;
-    char *tmp;
+    const char *tmp;
 
     while (len-- && *s && (tmp = strchr(hexdigit, *s))) {
         retval <<= 4;
@@ -5855,6 +5849,12 @@ const char *op_to_name(ID id) {
     }
   }
   return NULL;
+}
+quark id_to_quark(ID id) {
+  quark qrk;
+
+  qrk = (quark)((id >> ID_SCOPE_SHIFT) - tLAST_TOKEN);
+  return qrk;
 }
 
   }; // namespace parser
