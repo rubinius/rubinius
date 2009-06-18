@@ -278,7 +278,7 @@ class Array::Packer
                    item += 2 ** (8 * bytes) if item < 0
                    (0...bytes).map { |b| ((item >> (b * 8)) & 0xFF).chr }
                  else # ugly
-                   (0...bytes).map {n=(item % 256).chr;item /= 256; n}.reverse
+                   (0...bytes).map {n=(item & 0xFF).chr;item >>= 8; n}.reverse
                  end.join
     end
   end
