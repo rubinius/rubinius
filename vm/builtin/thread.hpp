@@ -201,9 +201,7 @@ namespace rubinius {
      *  @see  Thread::fork()
      *  @see  NativeThread::perform()
      */
-    void detach_native_thread() {
-      native_thread_ = NULL;
-    }
+    void detach_native_thread();
 
   public:   /* TypeInfo */
 

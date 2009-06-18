@@ -121,5 +121,8 @@ namespace rubinius {
 
     return Tuple::from(state, 3, Fixnum::from(cf->ip()), cf->cm, cf->scope);
   }
-
+  void Thread::detach_native_thread() {
+    native_thread_->detach();
+    native_thread_ = NULL;
+  }
 }
