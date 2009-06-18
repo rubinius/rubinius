@@ -139,8 +139,6 @@ field_extract_headers = %w[
   vm/builtin/global_cache_entry.hpp
 ]
 
-BC          = "vm/instructions.bc"
-
 EXTERNALS   = %W[ vm/external_libs/libmpa/libptr_array.a
                   vm/external_libs/libcchash/libcchash.a
                   vm/external_libs/libmquark/libmquark.a

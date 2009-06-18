@@ -23,6 +23,7 @@ namespace rubinius {
     , call_frames_(state->shared.call_frame_locations())
     , variable_buffers_(*state->variable_buffers())
     , handles_(state->shared.global_handles())
+    , global_cache_(state->shared.global_cache)
   {}
 
   GarbageCollector::GarbageCollector(ObjectMemory *om)

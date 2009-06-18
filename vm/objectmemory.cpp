@@ -13,6 +13,8 @@
 #include "capi/handle.hpp"
 #include "configuration.hpp"
 
+#include "global_cache.hpp"
+
 namespace rubinius {
 
   Object* object_watch = 0;
@@ -108,6 +110,8 @@ namespace rubinius {
     young.collect(data);
     prune_handles(true);
     collect_times++;
+
+    data.global_cache()->prune_young();
   }
 
   void ObjectMemory::collect_mature(GCData& data) {
@@ -122,6 +126,8 @@ namespace rubinius {
 
     immix_.clean_weakrefs();
     prune_handles(false);
+
+    data.global_cache()->prune_unmarked();
 
     immix_.unmark_all(data);
 

@@ -24,7 +24,8 @@ public:
   void setUp() {
     create();
     roots = &state->globals.roots;
-    gc_data = new GCData(*roots, call_frames, variable_buffers, &handles);
+    gc_data = new GCData(*roots, call_frames, variable_buffers,
+                         &handles, state->global_cache);
   }
 
   void tearDown() {

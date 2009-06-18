@@ -1,6 +1,7 @@
 #ifndef RBX_VM_GLOBAL_CACHE_HPP
 #define RBX_VM_GLOBAL_CACHE_HPP
 
+#include "vm/oop.hpp"
 #include "vm/object_utils.hpp"
 
 #include "builtin/compiledmethod.hpp"
@@ -73,6 +74,71 @@ namespace rubinius {
         entry->module = NULL;
         entry->method = NULL;
         entry->method_missing = false;
+      }
+    }
+
+    void prune_young() {
+      cache_entry* entry;
+      for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
+        entry = &entries[i];
+        bool clear = false;
+
+        Object* klass = reinterpret_cast<Object*>(entry->klass);
+        if(!klass) continue;
+
+        if(klass->young_object_p()) {
+          if(klass->forwarded_p()) {
+            entry->klass = (Module*)klass->forward();
+          } else {
+            clear = true;
+          }
+        }
+
+        Object* mod = reinterpret_cast<Object*>(entry->module);
+        if(mod->young_object_p()) {
+          if(mod->forwarded_p()) {
+            entry->module = (Module*)mod->forward();
+          } else {
+            clear = true;
+          }
+        }
+
+        Object* exec = reinterpret_cast<Object*>(entry->method);
+        if(exec->young_object_p()) {
+          if(exec->forwarded_p()) {
+            entry->method = (Executable*)exec->forward();
+          } else {
+            clear = true;
+          }
+        }
+
+        if(clear) {
+          entry->klass = 0;
+          entry->name = 0;
+          entry->module = 0;
+          entry->is_public = true;
+          entry->method_missing = false;
+        }
+      }
+    }
+
+    void prune_unmarked() {
+      cache_entry* entry;
+      for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
+        entry = &entries[i];
+        Object* klass = reinterpret_cast<Object*>(entry->klass);
+        if(!klass) continue;
+
+        Object* mod = reinterpret_cast<Object*>(entry->module);
+        Object* exec = reinterpret_cast<Object*>(entry->method);
+
+        if(!klass->marked_p() || !mod->marked_p() || !exec->marked_p()) {
+          entry->klass = 0;
+          entry->name = 0;
+          entry->module = 0;
+          entry->is_public = true;
+          entry->method_missing = false;
+        }
       }
     }
 

@@ -250,7 +250,6 @@ namespace rubinius {
 
     om->collect_young(gc_data);
     om->collect_mature(gc_data);
-    global_cache->clear();
   }
 
   void VM::collect_maybe(CallFrame* call_frame) {
@@ -265,22 +264,19 @@ namespace rubinius {
       if(shared.config.gc_show) {
         std::cout << get_current_time() << " [GC] Running young gen\n";
       }
+
       om->collect_young_now = false;
-
       om->collect_young(gc_data);
-
-      global_cache->clear();
     }
 
     if(om->collect_mature_now) {
       if(shared.config.gc_show) {
         std::cout << get_current_time() << " [GC] Running mature gen\n";
       }
-      om->collect_mature_now = false;
 
+      om->collect_mature_now = false;
       om->collect_mature(gc_data);
 
-      global_cache->clear();
     }
   }
 
