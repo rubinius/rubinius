@@ -936,6 +936,12 @@ double rb_num2dbl(VALUE);
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);
 
+  /**
+   * Marks an object if it is in the heap. Equivalent to rb_gc_mark in
+   * Rubinius since that function checks if a handle is a GC object.
+   */
+  void    rb_gc_mark_maybe(VALUE ptr);
+
   /** Manually runs the garbage collector. */
   VALUE   rb_gc_start();
 

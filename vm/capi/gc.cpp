@@ -22,4 +22,17 @@ extern "C" {
       }
     }
   }
+
+  /* In MRI, this function marks an object if it can be determined
+   * to be in the heap.
+   */
+  void rb_gc_mark_maybe(VALUE ptr) {
+    Handle* handle = Handle::from(ptr);
+    if(handle->object()->reference_p()) {
+      Object* res = VM::current_state()->current_mark.call(handle->object());
+      if(res) {
+        handle->set_object(res);
+      }
+    }
+  }
 }
