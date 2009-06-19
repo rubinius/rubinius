@@ -11,7 +11,6 @@ namespace rubinius {
   class InlineCache;
   class CallFrame;
   class Arguments;
-  class CompiledMethod::Info;
 
   class InlineCache : public Dispatch {
     Module* klass_;
