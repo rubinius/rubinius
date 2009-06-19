@@ -99,6 +99,6 @@ public:
     String* expected = String::create(state, "Sunday, 18 October 1973 12:10:08 PM");
     Time* t = Time::create(state);
     String* actual = t->strftime(state, ary, format);
-    TS_ASSERT(actual->equal(state, expected));
+    TS_ASSERT_EQUALS(actual->equal(state, expected), Qtrue);
   }
 };
