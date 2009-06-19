@@ -157,7 +157,7 @@ class GraphEnvironment
   def initialize
     @min_date = Time.now.to_i * 1000
     @max_date = 0
-    @width = 1000
+    @width = 800
     @height = 400
   end
 

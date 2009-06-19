@@ -36,10 +36,38 @@
     <h1>Benchmark Graphs</h1>
 
     <p>The graphs below show results over time for several real-world benchmarks.
-    The first set show the recorded times for the benchmarks. The second set show
-    the times relative to <%= @baseline_id %>.</p>
+    The first set show the recorded times for the benchmarks. A downward trend
+    on these graphs is the goal. The second set show the times relative to
+    <%= @baseline_id %>. A value of 0.5, for example, means that benchmark ran half
+    as fast as the baseline. An upward trend on the baseline graphs is the goal.
+    All graphs are using the <em><%= @field %></em> value of multiple runs.
+    Select a rectangle on a graph to zoom in.</p>
 
-    <p>All graphs are using the <em><%= @field %></em> value of multiple runs.</p>
+    <p>The benchmarks were chosen to exercise a range of Ruby features. The gem
+    installs involves file system reads and writes and network reads. Generating
+    RDoc for the rdoc source is more computationally intensive and involves
+    string processing. Generating the rails command help involves loading much
+    of the Rails framework. Running the specs is computationally intensive,
+    requires many file system reads, and uses many block calls. The commands
+    run by the benchmarks are listed below (see also benchmark/app/bm_*.rb).</p>
+
+    <ol>
+      <li>
+        <p><strong>mspec ci spec/frozen/core</strong></p>
+      </li>
+      <li>
+        <p><strong>gem install --local --install-dir #{dir} --bindir #{dir} --no-rdoc --no-ri --ignore-dependencies rdoc-2.4.3.gem</strong></p>
+      </li>
+      <li>
+        <p><strong>gem install --remote --install-dir #{dir} --bindir #{dir} --no-rdoc --no-ri --ignore-dependencies rdoc --version '=2.4.3'</strong></p>
+      </li>
+      <li>
+        <p><strong>rdoc --all --force-update --threads=1 --output rdoc-output rdoc-2.4.3/lib</strong></p>
+      </li>
+      <li>
+        <p><strong>rails -h</strong></p>
+      </li>
+    </ol>
 
     <h2>Recorded times</h2>
     <div>
@@ -61,42 +89,59 @@
 
 <script id="source" language="javascript" type="text/javascript">
 $(function () {
-  <% @graphs.each_value do |graph| %>
-    $.plot($("#<%= graph.id %>"), [ <%= graph.data %> ],
-        {
-          lines:  { show: true },
-          points: { show: true },
-          xaxis:  { mode: "time",
-                    minTickSize: [1, "day"],
-                    min: <%= @min_date - 43200000 %>,
-                    max: <%= @max_date + 43200000 %> }
-        }
-    );
-  <% end %>
+
+  var min_date = <%= @min_date - 43200000 %>;
+  var max_date = <%= @max_date + 129600000 %>;
 
   var options = {
     lines:  { show: true },
     points: { show: true },
     xaxis:  { mode: "time",
               minTickSize: [1, "day"],
-              min: <%= @min_date - 43200000 %>,
-              max: <%= @max_date + 43200000 %> },
-    yaxis:  { ticks: [0, [0.5, "0.5"], [1, "Baseline"], [2, "2"], [4, "4"], [6, "6"]],
-              min: <%= @baseline_min %>,
-              max: <%= @baseline_max %> },
+              min: min_date,
+              max: max_date },
     selection: { mode: "xy" }
-  }
+  };
 
   <% @graphs.values.each_with_index do |graph, index| %>
-      var data<%= index %> = [ <%= graph.data(true) %>,
-        { label: "Baseline", data: [[<%= @min_date - 434000000 %>, 1.0],
-          [<%= @max_date + 434000000 %>, 1.0]] } ];
+    var data<%= index %> = [ <%= graph.data %> ];
+    var graph<%= index %> = $("#<%= graph.id %>");
 
-    $.plot($("#<%= graph.id %>_baseline"), data<%= index %>, options);
+    $.plot(graph<%= index %>, data<%= index %>, options);
 
-    $("#<%= graph.id %>_baseline").bind("plotselected", function (event, ranges) {
-      $.plot($("#<%= graph.id %>_baseline"), data<%= index %>,
+    graph<%= index %>.bind("plotselected", function (event, ranges) {
+      $.plot(graph<%= index %>, data<%= index %>,
              $.extend(true, {}, options, {
+               xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+               yaxis: { ticks: 4, min: ranges.yaxis.from, max: ranges.yaxis.to }
+             }));
+    });
+  <% end %>
+
+  var baseline_options = {
+    lines:  { show: true },
+    points: { show: true },
+    xaxis:  { mode: "time",
+              minTickSize: [1, "day"],
+              min: min_date,
+              max: max_date },
+    yaxis:  { min: <%= @baseline_min %>,
+              max: <%= @baseline_max %> },
+    selection: { mode: "xy" }
+  };
+
+  <% @graphs.values.each_with_index do |graph, index| %>
+    var baseline_data<%= index %> = [ <%= graph.data(true) %>,
+      { label: "Baseline", data: [[<%= @min_date - 434000000 %>, 1.0],
+        [<%= @max_date + 434000000 %>, 1.0]] } ];
+
+    var graph_baseline<%= index %> = $("#<%= graph.id %>_baseline");
+
+    $.plot(graph_baseline<%= index %>, baseline_data<%= index %>, baseline_options);
+
+    graph_baseline<%= index %>.bind("plotselected", function (event, ranges) {
+      $.plot(graph_baseline<%= index %>, baseline_data<%= index %>,
+             $.extend(true, {}, baseline_options, {
                xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
                yaxis: { ticks: 4, min: ranges.yaxis.from, max: ranges.yaxis.to }
              }));
