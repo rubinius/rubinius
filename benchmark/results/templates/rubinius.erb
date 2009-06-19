@@ -40,8 +40,8 @@
     on these graphs is the goal. The second set show the times relative to
     <%= @baseline_id %>. A value of 0.5, for example, means that benchmark ran half
     as fast as the baseline. An upward trend on the baseline graphs is the goal.
-    All graphs are using the <em><%= @field %></em> value of multiple runs.
-    Select a rectangle on a graph to zoom in.</p>
+    All graphs are using the <em><%= @field %></em> value of multiple runs. Select
+    a rectangle on a graph to zoom in. Hover over a data point to see its value</p>
 
     <p>The benchmarks were chosen to exercise a range of Ruby features. The gem
     installs involves file system reads and writes and network reads. Generating
@@ -100,8 +100,24 @@ $(function () {
               minTickSize: [1, "day"],
               min: min_date,
               max: max_date },
-    selection: { mode: "xy" }
+    selection: { mode: "xy" },
+    grid: { hoverable: true }
   };
+
+  var previousPoint = null;
+
+  function showTooltip(x, y, contents) {
+    $('<div id="datapoint">' + contents + '</div>').css( {
+        position: 'absolute',
+        display: 'none',
+        top: y + 5,
+        left: x + 5,
+        border: '1px solid #fdd',
+        padding: '2px',
+        'background-color': '#fee',
+        opacity: 0.80
+    }).appendTo("body").fadeIn(200);
+  }
 
   <% @graphs.values.each_with_index do |graph, index| %>
     var data<%= index %> = [ <%= graph.data %> ];
@@ -116,6 +132,25 @@ $(function () {
                yaxis: { ticks: 4, min: ranges.yaxis.from, max: ranges.yaxis.to }
              }));
     });
+
+    graph<%= index %>.bind("plothover", function (event, pos, item) {
+      if (item) {
+        if (previousPoint != item.datapoint) {
+          previousPoint = item.datapoint;
+
+          $("#datapoint").remove();
+          var x = item.datapoint[0].toFixed(2),
+              y = item.datapoint[1].toFixed(2);
+
+          showTooltip(item.pageX, item.pageY,
+                      item.series.label + ": " + y + " sec");
+        }
+      }
+      else {
+        $("#datapoint").remove();
+        previousPoint = null;
+      }
+    });
   <% end %>
 
   var baseline_options = {
@@ -127,7 +162,8 @@ $(function () {
               max: max_date },
     yaxis:  { min: <%= @baseline_min %>,
               max: <%= @baseline_max %> },
-    selection: { mode: "xy" }
+    selection: { mode: "xy" },
+    grid: { hoverable: true }
   };
 
   <% @graphs.values.each_with_index do |graph, index| %>
@@ -145,6 +181,26 @@ $(function () {
                xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
                yaxis: { ticks: 4, min: ranges.yaxis.from, max: ranges.yaxis.to }
              }));
+    });
+
+    graph_baseline<%= index %>.bind("plothover", function (event, pos, item) {
+      if (item) {
+        if (previousPoint != item.datapoint) {
+          previousPoint = item.datapoint;
+
+          $("#datapoint").remove();
+          var x = item.datapoint[0].toFixed(2),
+              y = item.datapoint[1].toFixed(2);
+
+          percent = parseFloat(y).toFixed(2) * 100;
+          showTooltip(item.pageX, item.pageY,
+                      item.series.label + ": " + percent + "%");
+        }
+      }
+      else {
+        $("#datapoint").remove();
+        previousPoint = null;
+      }
     });
   <% end %>
 });
