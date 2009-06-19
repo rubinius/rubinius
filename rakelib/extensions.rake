@@ -3,6 +3,7 @@ task :extensions => %w[
   extension:readline
   extension:digest
   extension:bigdecimal
+  extension:syck
 ]
 
 #  lib/etc.rb
@@ -102,5 +103,29 @@ namespace :extension do
     digest_task "sha1"
     digest_task "sha2"
     digest_task "bubblebabble"
+  end
+
+  desc "Build the syck extension"
+  task :syck => %W[kernel:build lib/ext/syck/syck.#{$dlext}]
+  file "lib/ext/syck/syck.#{$dlext}" => FileList[
+    "lib/ext/syck/build.rb",
+    "lib/ext/syck/bytecode.c",
+    "lib/ext/syck/emitter.c",
+    "lib/ext/syck/gram.c",
+    "lib/ext/syck/gram.h",
+    "lib/ext/syck/handler.c",
+    "lib/ext/syck/implicit.c",
+    "lib/ext/syck/node.c",
+    "lib/ext/syck/rubyext.c",
+    "lib/ext/syck/syck.h",
+    "lib/ext/syck/syck.c",
+    "lib/ext/syck/token.c",
+    "lib/ext/syck/yaml2byte.c",
+    "lib/ext/syck/yamlbyte.h",
+    "lib/ext/syck/st.h",
+    "lib/ext/syck/st.c",
+    "vm/capi/ruby.h"
+  ] do
+    compile_extension 'lib/ext/syck'
   end
 end
