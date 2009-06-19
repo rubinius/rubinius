@@ -24,6 +24,7 @@
 #include "config.h"
 
 #include "raise_reason.hpp"
+#include "inline_cache.hpp"
 
 #include "configuration.hpp"
 
@@ -137,6 +138,9 @@ namespace rubinius {
   void VMMethod::fill_opcodes(STATE) {
     Tuple* ops = original->iseq()->opcodes();
     Object* val;
+
+    int sends = 0;
+
     for(size_t index = 0; index < total;) {
       val = ops->at(state, index);
       if(val->nil_p()) {
@@ -165,29 +169,55 @@ namespace rubinius {
         case InstructionSequence::insn_send_stack_with_splat:
         case InstructionSequence::insn_send_super_stack_with_block:
         case InstructionSequence::insn_send_super_stack_with_splat:
-        case InstructionSequence::insn_check_serial:
-        {
-          native_int which = opcodes[index + 1];
-          SendSite* ss = as<SendSite>(original->literals()->at(state, which));
-          SendSite::Internal* cache;
-
-          if(ss->inner_cache_) {
-            cache = ss->inner_cache_;
-          } else {
-            ss->inner_cache_ = cache = new SendSite::Internal(which);
-          }
-
-          ss->inner_cache_ = cache;
-          cache->name = ss->name();
-          opcodes[index + 1] = reinterpret_cast<intptr_t>(cache);
-
-          update_addresses(index, 1);
-          break;
-        }
+          sends++;
         }
 
         index += width;
       }
+    }
+
+    initialize_caches(state, sends);
+  }
+
+  void VMMethod::initialize_caches(STATE, int sends) {
+    number_of_caches_ = sends;
+    caches = new InlineCache[sends];
+
+    int which = 0;
+    bool allow_private = false;
+    bool is_super = false;
+
+    for(size_t ip = 0; ip < total;) {
+      opcode op = opcodes[ip];
+      switch(op) {
+      case InstructionSequence::insn_allow_private:
+        allow_private = true;
+        break;
+      case InstructionSequence::insn_send_super_stack_with_block:
+      case InstructionSequence::insn_send_super_stack_with_splat:
+        is_super = true;
+        // fall through
+      case InstructionSequence::insn_send_method:
+      case InstructionSequence::insn_send_stack:
+      case InstructionSequence::insn_send_stack_with_block:
+      case InstructionSequence::insn_send_stack_with_splat: {
+        InlineCache* cache = &caches[which++];
+        Symbol* name = as<Symbol>(original->literals()->at(opcodes[ip + 1]));
+        cache->set_name(name);
+        if(allow_private) cache->set_is_private();
+        if(is_super) cache->set_is_super();
+
+        state->shared.ic_registry()->add_cache(name, cache);
+
+        opcodes[ip + 1] = reinterpret_cast<intptr_t>(cache);
+        update_addresses(ip, 1);
+
+        is_super = false;
+        allow_private = false;
+      }
+      }
+
+      ip += InstructionSequence::instruction_width(op);
     }
   }
 

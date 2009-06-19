@@ -2485,20 +2485,13 @@ class Instructions
     <<-CODE
     flush_ip();
     Object* recv = stack_top();
-    SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
-    Class* const klass = recv->lookup_begin(state);
-
-    Arguments args(recv, Qnil, 0, 0);
-
-    if(unlikely(cache->recv_class != klass)) {
-      if(SendSite::fill(state, klass, call_frame, cache, ALLOW_PRIVATE())) {
-        args.unshift(state, cache->name);
-      }
-    }
-
-    Object* ret = cache->method->execute(state, call_frame, *cache, args);
+    InlineCache* cache = reinterpret_cast<InlineCache*>(index);
 
     SET_ALLOW_PRIVATE(false);
+
+    Arguments args(recv, Qnil, 0, 0);
+    Object* ret = cache->execute(state, call_frame, args);
+
     stack_pop();
 
     HANDLE_EXCEPTION(ret);
@@ -2568,21 +2561,14 @@ class Instructions
     <<-CODE
     flush_ip();
     Object* recv = stack_back(count);
-    SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
-    Class* const klass = recv->lookup_begin(state);
+    InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+
+    SET_ALLOW_PRIVATE(false);
 
     Arguments args(recv, Qnil, count,
                    stack_back_position(count));
 
-    if(unlikely(cache->recv_class != klass)) {
-      if(SendSite::fill(state, klass, call_frame, cache, ALLOW_PRIVATE())) {
-        args.unshift(state, cache->name);
-      }
-    }
-
-    SET_ALLOW_PRIVATE(false);
-
-    Object* ret = cache->method->execute(state, call_frame, *cache, args);
+    Object* ret = cache->execute(state, call_frame, args);
 
     stack_clear(count + 1);
 
@@ -2658,21 +2644,14 @@ class Instructions
     flush_ip();
     Object* block = stack_pop();
     Object* recv = stack_back(count);
-    SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
-    Class* const klass = recv->lookup_begin(state);
+    InlineCache* cache = reinterpret_cast<InlineCache*>(index);
 
     Arguments args(recv, block, count,
                    stack_back_position(count));
 
-    if(unlikely(cache->recv_class != klass)) {
-      if(SendSite::fill(state, klass, call_frame, cache, ALLOW_PRIVATE())) {
-        args.unshift(state, cache->name);
-      }
-    }
-
     SET_ALLOW_PRIVATE(false);
 
-    Object* ret = cache->method->execute(state, call_frame, *cache, args);
+    Object* ret = cache->execute(state, call_frame, args);
 
     stack_clear(count + 1);
 
@@ -2756,17 +2735,10 @@ class Instructions
     Object* block = stack_pop();
     Object* ary   = stack_pop();
     Object* recv =  stack_back(count);
-    SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
-    Class* const klass = recv->lookup_begin(state);
+    InlineCache* cache = reinterpret_cast<InlineCache*>(index);
 
     Arguments args(recv, block, count,
                    stack_back_position(count));
-
-    if(unlikely(cache->recv_class != klass)) {
-      if(SendSite::fill(state, klass, call_frame, cache, ALLOW_PRIVATE())) {
-        args.unshift(state, cache->name);
-      }
-    }
 
     if(!ary->nil_p()) {
       if(CALL_FLAGS() & #{CALL_FLAG_CONCAT}) {
@@ -2779,7 +2751,7 @@ class Instructions
     SET_CALL_FLAGS(0);
     SET_ALLOW_PRIVATE(false);
 
-    Object* ret = cache->method->execute(state, call_frame, *cache, args);
+    Object* ret = cache->execute(state, call_frame, args);
 
     stack_clear(count + 1);
 
@@ -2857,23 +2829,15 @@ class Instructions
     <<-CODE
     flush_ip();
     Object* block = stack_pop();
-    SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
+    InlineCache* cache = reinterpret_cast<InlineCache*>(index);
     Object* const recv = call_frame->self();
-    Class* const klass = recv->lookup_begin(state);
 
     Arguments args(recv, block, count,
                    stack_back_position(count));
 
-    if(unlikely(cache->recv_class != klass)) {
-      if(SendSite::fill(state, klass, call_frame, cache, true,
-                     call_frame->module()->superclass())) {
-        args.unshift(state, cache->name);
-      }
-    }
-
     SET_ALLOW_PRIVATE(false);
 
-    Object* ret = cache->method->execute(state, call_frame, *cache, args);
+    Object* ret = cache->execute(state, call_frame, args);
 
     stack_clear(count);
 
@@ -3000,18 +2964,10 @@ class Instructions
     Object* block = stack_pop();
     Object* ary   = stack_pop();
     Object* const recv = call_frame->self();
-    SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
-    Class* const klass = recv->lookup_begin(state);
+    InlineCache* cache = reinterpret_cast<InlineCache*>(index);
 
     Arguments args(recv, block, count,
                    stack_back_position(count));
-
-    if(unlikely(cache->recv_class != klass)) {
-      if(SendSite::fill(state, klass, call_frame, cache, true,
-                        call_frame->module()->superclass())) {
-        args.unshift(state, cache->name);
-      }
-    }
 
     if(!ary->nil_p()) {
       if(CALL_FLAGS() & #{CALL_FLAG_CONCAT}) {
@@ -3024,7 +2980,7 @@ class Instructions
     SET_CALL_FLAGS(0);
     SET_ALLOW_PRIVATE(false);
 
-    Object* ret = cache->method->execute(state, call_frame, *cache, args);
+    Object* ret = cache->execute(state, call_frame, args);
 
     stack_clear(count);
 

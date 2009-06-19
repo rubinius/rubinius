@@ -587,8 +587,7 @@ class Compiler
         raise Error, "count must be a number"
       end
 
-      ss = Rubinius::SendSite.new meth
-      idx = add_literal(ss)
+      idx = add_literal(meth)
 
       if count == 0
         add :send_method, idx
@@ -604,8 +603,7 @@ class Compiler
         raise Error, "count must be a number"
       end
 
-      ss = Rubinius::SendSite.new meth
-      idx = add_literal(ss)
+      idx = add_literal(meth)
 
       add :send_stack_with_block, idx, count
     end
@@ -617,14 +615,12 @@ class Compiler
 
       add :allow_private if priv
 
-      ss = Rubinius::SendSite.new meth
-      idx = add_literal(ss)
+      idx = add_literal(meth)
       add :send_stack_with_splat, idx, args
     end
 
     def send_super(meth, args, splat=false)
-      ss = Rubinius::SendSite.new meth
-      idx = add_literal(ss)
+      idx = add_literal(meth)
 
       if splat
         add :send_super_stack_with_splat, idx, args

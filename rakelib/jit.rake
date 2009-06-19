@@ -17,8 +17,7 @@ namespace :jit do
                  rubinius::Module
                  rubinius::StaticScope
                  rubinius::InstructionSequence
-                 rubinius::SendSite
-                 rubinius::SendSite::Internal
+                 rubinius::InlineCache
                  rubinius::BlockEnvironment
                  rubinius::BlockInvocation
                  jit_state!
@@ -27,7 +26,7 @@ namespace :jit do
     files = %w!vm/call_frame.hpp
                vm/arguments.hpp
                vm/dispatch.hpp
-               vm/builtin/sendsite.hpp
+               vm/inline_cache.hpp
                vm/builtin/block_environment.hpp!
     path = "llvm-type-temp.cpp"
 
@@ -58,7 +57,7 @@ namespace :jit do
       end
     end
 
-    opaque = %w!VM TypeInfo VMMethod Fixnum Symbol Selector!
+    opaque = %w!VM TypeInfo VMMethod Fixnum Symbol Selector LookupTable!
 
     File.open("vm/gen/types.ll","w+") do |f|
       opaque.each do |o|

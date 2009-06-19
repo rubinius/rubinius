@@ -28,6 +28,7 @@ namespace rubinius {
   class Configuration;
   class LLVMState;
   class WorldState;
+  class InlineCacheRegistry;
 
   struct Interrupts {
     bool check;
@@ -63,6 +64,7 @@ namespace rubinius {
     profiler::ProfilerCollection* profiler_collection_;
     int global_serial_;
     WorldState& world_;
+    InlineCacheRegistry* ic_registry_;
 
   public:
     Globals globals;
@@ -130,6 +132,10 @@ namespace rubinius {
 
     int* global_serial_address() {
       return &global_serial_;
+    }
+
+    InlineCacheRegistry* ic_registry() {
+      return ic_registry_;
     }
 
     void enable_profiling(VM* vm);

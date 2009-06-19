@@ -47,6 +47,8 @@
 
 #include "configuration.hpp"
 
+#include "inline_cache.hpp"
+
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
 #endif
@@ -249,8 +251,8 @@ namespace rubinius {
   Object* System::vm_reset_method_cache(STATE, Symbol* name) {
     // 1. clear the global cache
     state->global_cache->clear(name);
-    // 2. clear the send site caches
-    Selector::clear_by_name(state, name);
+
+    state->shared.ic_registry()->clear(name);
     return name;
   }
 

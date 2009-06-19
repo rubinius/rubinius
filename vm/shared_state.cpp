@@ -7,6 +7,7 @@
 #include "capi/handle.hpp"
 
 #include "util/thread.hpp"
+#include "inline_cache.hpp"
 
 namespace rubinius {
 
@@ -107,6 +108,7 @@ namespace rubinius {
     , profiler_collection_(0)
     , global_serial_(0)
     , world_(*new WorldState)
+    , ic_registry_(new InlineCacheRegistry)
     , om(0)
     , global_cache(0)
     , config(config)
@@ -119,6 +121,7 @@ namespace rubinius {
   SharedState::~SharedState() {
     if(!initialized_) return;
 
+    delete ic_registry_;
     delete om;
     delete global_cache;
     delete global_handles_;

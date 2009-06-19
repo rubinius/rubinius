@@ -12,7 +12,6 @@
 #include "builtin/block_environment.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/proc.hpp"
-#include "builtin/sendsite.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/global_cache_entry.hpp"
 #include "instruments/profiler.hpp"
@@ -22,6 +21,7 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "lookup_data.hpp"
+#include "inline_cache.hpp"
 
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
 
@@ -44,38 +44,6 @@ extern "C" {
 
   void rbx_end_profiling(profiler::MethodEntry* entry) {
     entry->~MethodEntry();
-  }
-
-  Object* rbx_inline_cache_send(STATE, CallFrame* call_frame, Symbol* name,
-                          SendSite::Internal* cache, int count, Object** args) {
-    Object* recv = args[0];
-    Class* const klass = recv->lookup_begin(state);
-
-    Arguments out_args(recv, Qnil, count, args+1);
-
-    if(unlikely(cache->recv_class != klass)) {
-      if(SendSite::fill(state, klass, call_frame, cache, false)) {
-        out_args.unshift(state, cache->name);
-      }
-    }
-
-    return cache->method->execute(state, call_frame, *cache, out_args);
-  }
-
-  Object* rbx_inline_cache_send_private(STATE, CallFrame* call_frame, Symbol* name,
-                          SendSite::Internal* cache, int count, Object** args) {
-    Object* recv = args[0];
-    Class* const klass = recv->lookup_begin(state);
-
-    Arguments out_args(recv, Qnil, count, args+1);
-
-    if(unlikely(cache->recv_class != klass)) {
-      if(SendSite::fill(state, klass, call_frame, cache, true)) {
-        out_args.unshift(state, cache->name);
-      }
-    }
-
-    return cache->method->execute(state, call_frame, *cache, out_args);
   }
 
   Object* rbx_simple_send(STATE, CallFrame* call_frame, Symbol* name,

@@ -431,7 +431,7 @@ end
 
 rule '.S' do |t|
   obj = t.name
-  src   = t.prerequisites.find { |f| f =~ /#{File.basename obj, '.o'}\.((c(pp)?)|S)$/}
+  src   = t.prerequisites.find { |f| f =~ /#{File.basename obj, '.S'}\.((c(pp)?)|S)$/}
 
   compile_c obj, src, "S"
 end
@@ -455,6 +455,10 @@ files jit_objs, jit_srcs
 
 objs.zip(srcs).each do |obj, src|
   file obj => src
+end
+
+objs.zip(srcs).each do |obj, src|
+  file "#{File.basename obj, '.o'}.S" => src
 end
 
 objs += ["vm/instructions.o"] # NOTE: BC isn't added due to llvm-g++ requirement

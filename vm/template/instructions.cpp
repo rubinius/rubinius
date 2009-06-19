@@ -31,6 +31,7 @@
 #include "instruments/profiler.hpp"
 
 #include "helpers.hpp"
+#include "inline_cache.hpp"
 
 using namespace rubinius;
 

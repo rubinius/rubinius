@@ -28,6 +28,7 @@ namespace rubinius {
   class VMMethod;
   class MachineMethod;
   class InterpreterCallFrame;
+  class InlineCache;
 
   typedef Object* (*Runner)(STATE, VMMethod* const vmm, CallFrame* const call_frame);
   typedef Object* (*InterpreterRunner)(STATE, VMMethod* const vmm,
@@ -60,6 +61,9 @@ namespace rubinius {
     native_int call_count;
     void* native_function;
 
+    size_t number_of_caches_;
+    InlineCache* caches;
+
   private:
     bool jitted_;
 
@@ -90,6 +94,10 @@ namespace rubinius {
       case 1:
         addresses[index + 1] = reinterpret_cast<void*>(opcodes[index + 1]);
       }
+    }
+
+    size_t inline_cache_count() {
+      return number_of_caches_;
     }
 
     void set_machine_method(MachineMethod* mm);
@@ -140,6 +148,7 @@ namespace rubinius {
     bpflags get_breakpoint_flags(STATE, size_t ip);
 
     void fill_opcodes(STATE);
+    void initialize_caches(STATE, int sends);
     void find_super_instructions();
 
     /*

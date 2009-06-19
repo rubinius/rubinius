@@ -22,6 +22,8 @@
 #include "assembler/jit.hpp"
 #include "configuration.hpp"
 
+#include "inline_cache.hpp"
+
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
 #endif
@@ -232,6 +234,69 @@ namespace rubinius {
     }
 
     return (CompiledMethod*)Qnil;
+  }
+
+  void CompiledMethod::Info::mark(Object* obj, ObjectMark& mark) {
+    auto_mark(obj, mark);
+
+    CompiledMethod* cm = as<CompiledMethod>(obj);
+    if(!cm->backend_method_) return;
+
+    VMMethod* vmm = cm->backend_method_;
+    Object* tmp;
+
+    for(size_t i = 0; i < vmm->inline_cache_count(); i++) {
+      InlineCache* cache = &vmm->caches[i];
+
+      if(cache->module) {
+        tmp = mark.call(cache->module);
+        if(tmp) {
+          cache->module = (Module*)tmp;
+          mark.just_set(obj, tmp);
+        }
+      }
+
+      if(cache->method) {
+        tmp = mark.call(cache->method);
+        if(tmp) {
+          cache->method = (Executable*)tmp;
+          mark.just_set(obj, tmp);
+        }
+      }
+
+      if(cache->klass_) {
+        tmp = mark.call(cache->klass_);
+        if(tmp) {
+          cache->klass_ = (Module*)tmp;
+          mark.just_set(obj, tmp);
+        }
+      }
+    }
+  }
+
+  void CompiledMethod::Info::visit(Object* obj, ObjectVisitor& visit) {
+    auto_visit(obj, visit);
+
+    CompiledMethod* cm = as<CompiledMethod>(obj);
+    if(!cm->backend_method_) return;
+
+    VMMethod* vmm = cm->backend_method_;
+
+    for(size_t i = 0; i < vmm->inline_cache_count(); i++) {
+      InlineCache* cache = &vmm->caches[i];
+
+      if(cache->module) {
+        visit.call(cache->module);
+      }
+
+      if(cache->method) {
+        visit.call(cache->method);
+      }
+
+      if(cache->klass_) {
+        visit.call(cache->klass_);
+      }
+    }
   }
 
   void CompiledMethod::Info::show(STATE, Object* self, int level) {

@@ -4,6 +4,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/sendsite.hpp"
 #include "builtin/global_cache_entry.hpp"
+#include "inline_cache.hpp"
 
 #include <llvm/DerivedTypes.h>
 
@@ -135,6 +136,15 @@ namespace rubinius {
 
     Value* global_serial_pos;
 
+    // The single Arguments object on the stack, plus positions into it
+    // that we store the call info
+    Value* out_args_;
+    Value* out_args_recv_;
+    Value* out_args_block_;
+    Value* out_args_total_;
+    Value* out_args_arguments_;
+    Value* out_args_array_;
+
   public:
 
     const llvm::Type* ptr_type(std::string name) {
@@ -143,7 +153,32 @@ namespace rubinius {
           module_->getTypeByName(full_name.c_str()));
     }
 
+    const llvm::Type* type(std::string name) {
+      std::string full_name = std::string("struct.rubinius::") + name;
+      return module_->getTypeByName(full_name.c_str());
+    }
+
+    Value* ptr_gep(Value* ptr, int which, const char* name, BasicBlock* block) {
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, which)
+      };
+
+      return GetElementPtrInst::Create(ptr, idx, idx+2, name, block);
+    }
+
+
     class Unsupported {};
+
+    void init_out_args(BasicBlock* block) {
+      out_args_ = new AllocaInst(type("Arguments"), 0, "out_args", block);
+
+      out_args_recv_ = ptr_gep(out_args_, 0, "out_args_recv", block);
+      out_args_block_= ptr_gep(out_args_, 1, "out_args_block", block);
+      out_args_total_= ptr_gep(out_args_, 2, "out_args_total", block);
+      out_args_arguments_ = ptr_gep(out_args_, 3, "out_args_arguments", block);
+      out_args_array_ = ptr_gep(out_args_, 4, "out_args_array", block);
+    }
 
     JITVisit(LLVMState* ls, VMMethod* vmm,
              llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* start,
@@ -219,6 +254,8 @@ namespace rubinius {
           Instruction::IntToPtr,
           ConstantInt::get(IntPtrTy, (intptr_t)ls_->shared().global_serial_address()),
           PointerType::getUnqual(IntPtrTy), "cast_to_intptr", block_);
+
+      init_out_args(block_);
     }
 
     void set_creates_blocks(bool val) {
@@ -663,41 +700,45 @@ namespace rubinius {
       return CallInst::Create(func, call_args, call_args+5, "simple_send", block);
     }
 
+    void setup_out_args(int args, BasicBlock* block) {
+      new StoreInst(stack_back(args), out_args_recv_, false, block);
+      new StoreInst(constant(Qnil), out_args_block_, false, block);
+      new StoreInst(ConstantInt::get(Type::Int32Ty, args),
+                    out_args_total_, false, block);
+      new StoreInst(stack_objects(args), out_args_arguments_, false, block);
+      new StoreInst(Constant::getNullValue(ptr_type("Array")),
+                    out_args_array_, false, block);
+    }
 
-    Value* inline_cache_send(Symbol* name, int args, SendSite::Internal* cache,
+    Value* inline_cache_send(Symbol* name, int args, InlineCache* cache,
                        BasicBlock* block=NULL, bool priv=false) {
       if(!block) block = block_;
 
-      Signature sig(ls_, ObjType);
-      sig << VMTy;
-      sig << CallFrameTy;
-      sig << ObjType;
-      sig << "SendSite::Internal";
-      sig << IntPtrTy;
-      sig << ObjArrayTy;
-
-      const char* func_name;
-      if(priv) {
-        func_name = "rbx_inline_cache_send_private";
-      } else {
-        func_name = "rbx_inline_cache_send";
-      }
-
       Value* cache_const = CastInst::Create(
           Instruction::IntToPtr,
-          ConstantInt::get(IntPtrTy, (intptr_t)cache),
-          ptr_type("SendSite::Internal"), "cast_to_ptr", block);
+          ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(cache)),
+          ptr_type("InlineCache"), "cast_to_ptr", block);
+
+      Value* execute_pos_idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 3),
+      };
+
+      Value* execute_pos = GetElementPtrInst::Create(cache_const,
+          execute_pos_idx, execute_pos_idx+2, "execute_pos", block);
+
+      Value* execute = new LoadInst(execute_pos, "execute", block);
+
+      setup_out_args(args, block);
 
       Value* call_args[] = {
         vm_,
-        call_frame_,
-        constant(name, block),
         cache_const,
-        ConstantInt::get(IntPtrTy, args),
-        stack_objects(args + 1, block)
+        call_frame_,
+        out_args_
       };
 
-      return sig.call(func_name, call_args, 6, "ic_send", block);
+      return CallInst::Create(execute, call_args, call_args+4, "ic_send", block);
     }
 
     Value* block_send(Symbol* name, int args, BasicBlock* block=NULL, bool priv=false) {
@@ -1180,7 +1221,7 @@ namespace rubinius {
       call_flags_ = flag;
     }
 
-    void call_tuple_at(SendSite::Internal* cache, opcode args) {
+    void call_tuple_at(InlineCache* cache, opcode args) {
       Value* recv = stack_back(1);
 
       // bool is_tuple = recv->flags & mask;
@@ -1275,7 +1316,7 @@ namespace rubinius {
       block_ = cont;
     }
 
-    void call_tuple_put(SendSite::Internal* cache, opcode args) {
+    void call_tuple_put(InlineCache* cache, opcode args) {
       Value* recv = stack_back(2);
 
       Value* flag_idx[] = {
@@ -1355,10 +1396,13 @@ namespace rubinius {
     }
 
     void visit_send_stack(opcode which, opcode args) {
-      SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
-      if(cache->execute == Primitives::tuple_at && args == 1) {
+      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
+      executor callee = 0;
+      if(cache->method) callee = cache->method->execute;
+
+      if(callee == Primitives::tuple_at && args == 1) {
         call_tuple_at(cache, args);
-      } else if(cache->execute == Primitives::tuple_put && args == 2) {
+      } else if(callee == Primitives::tuple_put && args == 2) {
         call_tuple_put(cache, args);
       } else {
         Value* ret = inline_cache_send(cache->name, args, cache, block_, allow_private_);
@@ -1388,8 +1432,8 @@ namespace rubinius {
     }
 
     void visit_send_method(opcode which) {
-      SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
-      if(false && cache->execute == Primitives::object_is_fixnum) {
+      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
+      if(false && cache->method->execute == Primitives::object_is_fixnum) {
         call_is_fixnum();
       } else {
         Value* ret = inline_cache_send(cache->name, 0, cache, block_, allow_private_);
@@ -1422,7 +1466,7 @@ namespace rubinius {
     }
 
     void visit_send_stack_with_block(opcode which, opcode args) {
-      SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
+      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       Value* ret = block_send(cache->name, args, block_, allow_private_);
       stack_remove(args + 2);
       check_for_return(ret);
@@ -1430,7 +1474,7 @@ namespace rubinius {
     }
 
     void visit_send_stack_with_splat(opcode which, opcode args) {
-      SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
+      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       Value* ret = splat_send(cache->name, args, block_, allow_private_);
       stack_remove(args + 3);
       check_for_exception(ret);
@@ -1478,14 +1522,14 @@ namespace rubinius {
     }
 
     void visit_send_super_stack_with_block(opcode which, opcode args) {
-      SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
+      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       Value* ret = super_send(cache->name, args);
       stack_remove(args + 1);
       check_for_return(ret);
     }
 
     void visit_send_super_stack_with_splat(opcode which, opcode args) {
-      SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
+      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       Value* ret = super_send(cache->name, args, block_, true);
       stack_remove(args + 2);
       check_for_exception(ret);
