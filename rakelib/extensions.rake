@@ -20,6 +20,11 @@ def compile_extension(path, flags = "-p -I#{Dir.pwd}/vm/capi")
 
   cflags.each {|flag| flags << " -C,#{flag}" }
 
+  # @todo: this is a hack because the change from FLAGS above to
+  # BASIC_FLAGS means the debug flags don't come through. this
+  # all needs to be sorted out with a build system rewrite.
+  flags << " -C,-ggdb3"
+
   verbose = $verbose ? "-d" : ""
 
   command = "./bin/rbx compile #{verbose} #{flags} #{path}"
