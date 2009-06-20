@@ -16,7 +16,7 @@ extern "C" {
    *        deref'd at GC time to mark the object. */
   void rb_global_variable(VALUE* address) {
     capi::Handle* handle = capi::Handle::from(*address);
-    handle->ref();
+    if(handle) handle->ref();
   }
 
   void rb_gc_register_address(VALUE* address) {
@@ -25,7 +25,7 @@ extern "C" {
 
   void rb_gc_unregister_address(VALUE* address) {
     capi::Handle* handle = capi::Handle::from(*address);
-    handle->deref();
+    if(handle) handle->deref();
   }
 
   VALUE rb_gv_get(const char* name) {
