@@ -3730,9 +3730,7 @@ class Instructions
       {
         state->interrupts.timer = false;
         state->set_call_frame(call_frame);
-        // unlock..
-        GlobalLock::UnlockGuard lock(state->global_lock());
-        // and relock automatically!
+        state->global_lock().yield();
       }
     }
     if(!state->check_async(call_frame)) {

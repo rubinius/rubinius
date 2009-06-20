@@ -9,6 +9,8 @@ namespace rubinius {
 
     static bool debug_locking;
 
+    void yield();
+
     class LockGuard : public thread::LockGuardTemplate<GlobalLock> {
     public:
       LockGuard(GlobalLock& in_lock)
