@@ -65,25 +65,6 @@ extern "C" {
     return dis.send(state, call_frame, lookup, out_args);
   }
 
-  Object* rbx_block_send(STATE, CallFrame* call_frame, Symbol* name,
-                          int count, Object** args) {
-    Object* recv = args[0];
-    Arguments out_args(recv, args[count+1], count, args+1);
-    Dispatch dis(name);
-
-    return dis.send(state, call_frame, out_args);
-  }
-
-  Object* rbx_block_send_private(STATE, CallFrame* call_frame, Symbol* name,
-                                  int count, Object** args) {
-    Object* recv = args[0];
-    Arguments out_args(recv, args[count+1], count, args+1);
-    LookupData lookup(recv, recv->lookup_begin(state), true);
-    Dispatch dis(name);
-
-    return dis.send(state, call_frame, lookup, out_args);
-  }
-
   Object* rbx_splat_send(STATE, CallFrame* call_frame, Symbol* name,
                           int count, Object** args) {
     Object* recv = args[0];

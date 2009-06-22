@@ -454,8 +454,9 @@ namespace rubinius {
       return new LoadInst(stack_back_position(back, block), "stack_load", block);
     }
 
-    llvm::Value* stack_top() {
-      return stack_back(0);
+    llvm::Value* stack_top(BasicBlock* block = NULL) {
+      if(!block) block = block_;
+      return stack_back(0, block);
     }
 
     llvm::Value* stack_pop(BasicBlock* block = NULL) {
@@ -701,17 +702,28 @@ namespace rubinius {
     }
 
     void setup_out_args(int args, BasicBlock* block) {
-      new StoreInst(stack_back(args), out_args_recv_, false, block);
-      new StoreInst(constant(Qnil), out_args_block_, false, block);
+      new StoreInst(stack_back(args, block), out_args_recv_, false, block);
+      new StoreInst(constant(Qnil, block), out_args_block_, false, block);
       new StoreInst(ConstantInt::get(Type::Int32Ty, args),
                     out_args_total_, false, block);
-      new StoreInst(stack_objects(args), out_args_arguments_, false, block);
+      new StoreInst(stack_objects(args, block), out_args_arguments_, false, block);
+      new StoreInst(Constant::getNullValue(ptr_type("Array")),
+                    out_args_array_, false, block);
+    }
+
+    void setup_out_args_with_block(int args, BasicBlock* block) {
+      new StoreInst(stack_back(args + 1, block), out_args_recv_, false, block);
+      new StoreInst(stack_top(block), out_args_block_, false, block);
+      new StoreInst(ConstantInt::get(Type::Int32Ty, args),
+                    out_args_total_, false, block);
+      new StoreInst(stack_objects(args + 1, block), out_args_arguments_, false, block);
       new StoreInst(Constant::getNullValue(ptr_type("Array")),
                     out_args_array_, false, block);
     }
 
     Value* inline_cache_send(Symbol* name, int args, InlineCache* cache,
-                       BasicBlock* block=NULL, bool priv=false) {
+                       BasicBlock* block=NULL, bool priv=false)
+    {
       if(!block) block = block_;
 
       Value* cache_const = CastInst::Create(
@@ -741,28 +753,36 @@ namespace rubinius {
       return CallInst::Create(execute, call_args, call_args+4, "ic_send", block);
     }
 
-    Value* block_send(Symbol* name, int args, BasicBlock* block=NULL, bool priv=false) {
+    Value* block_send(InlineCache* cache, int args,
+                      BasicBlock* block=NULL, bool priv=false)
+    {
       if(!block) block = block_;
 
-      Signature sig(ls_, ObjType);
-      add_send_args(sig);
+      Value* cache_const = CastInst::Create(
+          Instruction::IntToPtr,
+          ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(cache)),
+          ptr_type("InlineCache"), "cast_to_ptr", block);
 
-      const char* func_name;
-      if(priv) {
-        func_name = "rbx_block_send_private";
-      } else {
-        func_name = "rbx_block_send";
-      }
+      Value* execute_pos_idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 3),
+      };
+
+      Value* execute_pos = GetElementPtrInst::Create(cache_const,
+          execute_pos_idx, execute_pos_idx+2, "execute_pos", block);
+
+      Value* execute = new LoadInst(execute_pos, "execute", block);
+
+      setup_out_args_with_block(args, block);
 
       Value* call_args[] = {
         vm_,
+        cache_const,
         call_frame_,
-        constant(name, block),
-        ConstantInt::get(IntPtrTy, args),
-        stack_objects(args + 2, block),   // 2 == recv + block
+        out_args_
       };
 
-      return sig.call(func_name, call_args, 5, "block_send", block);
+      return CallInst::Create(execute, call_args, call_args+4, "ic_send", block);
     }
 
     Value* splat_send(Symbol* name, int args, BasicBlock* block=NULL, bool priv=false) {
@@ -1467,7 +1487,7 @@ namespace rubinius {
 
     void visit_send_stack_with_block(opcode which, opcode args) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      Value* ret = block_send(cache->name, args, block_, allow_private_);
+      Value* ret = block_send(cache, args, block_, allow_private_);
       stack_remove(args + 2);
       check_for_return(ret);
       allow_private_ = false;
