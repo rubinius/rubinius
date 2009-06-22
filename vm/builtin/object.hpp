@@ -283,24 +283,18 @@ namespace rubinius {
 
     /**
      *  Set tainted flag on this object.
-     *
-     *  Rubinius DOES NOT currently support tainting.
      */
     // Ruby.primitive :object_taint
     Object*   taint(STATE);
 
     /**
      *  Returns true if this object's tainted flag is set.
-     *
-     *  Rubinius DOES NOT currently support tainting.
      */
     // Ruby.primitive :object_tainted_p
     Object*   tainted_p(STATE);
 
     /**
      *  Clears the tainted flag on this object.
-     *
-     *  Rubinius DOES NOT currently support tainting.
      */
     // Ruby.primitive :object_untaint
     Object*   untaint(STATE);

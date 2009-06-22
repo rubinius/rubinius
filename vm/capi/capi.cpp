@@ -261,6 +261,20 @@ extern "C" {
     return string->byte_address();
   }
 
+  void capi_taint(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    env->get_object(obj)->taint(env->state());
+  }
+
+  int capi_tainted_p(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object* tainted = env->get_object(obj)->tainted_p(env->state());
+
+    return tainted->true_p() ? 1 : 0;
+  }
+
   void capi_define_method(const char* file, VALUE target,
       const char* name, CApiGenericFunction fptr, int arity, CApiMethodKind kind) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();

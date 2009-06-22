@@ -119,6 +119,15 @@ VALUE object_spec_rb_extend_object(VALUE self, VALUE obj, VALUE mod) {
   return obj;
 }
 
+VALUE object_spec_OBJ_TAINT(VALUE self, VALUE obj) {
+  OBJ_TAINT(obj);
+  return Qnil;
+}
+
+VALUE object_spec_OBJ_TAINTED(VALUE self, VALUE obj) {
+  return OBJ_TAINTED(obj) ? Qtrue : Qfalse;
+}
+
 void Init_object_spec() {
   VALUE cls;
   cls = rb_define_class("CApiObjectSpecs", rb_cObject);
@@ -146,4 +155,6 @@ void Init_object_spec() {
   rb_define_method(cls, "RTEST", object_spec_RTEST, 1);
   rb_define_method(cls, "rb_special_const_p", object_spec_rb_special_const_p, 1);
   rb_define_method(cls, "rb_extend_object", object_spec_rb_extend_object, 2);
+  rb_define_method(cls, "OBJ_TAINT", object_spec_OBJ_TAINT, 1);
+  rb_define_method(cls, "OBJ_TAINTED", object_spec_OBJ_TAINTED, 1);
 }

@@ -34,6 +34,7 @@
 #include <string.h>
 
 #define RUBY
+#define RUBINIUS
 
 #ifdef __cplusplus
 # ifndef  HAVE_PROTOTYPES
@@ -481,6 +482,12 @@ struct RFloat {
 /** Infect o2 if o1 is tainted */
 #define OBJ_INFECT(o1, o2) capi_infect((o1), (o2))
 
+/** Taints the object */
+#define OBJ_TAINT(obj)    capi_taint((obj))
+
+/** Returns 1 if the object is tainted, 0 otherwise. */
+#define OBJ_TAINTED(obj)  capi_tainted_p((obj))
+
 /** Convert int to a Ruby Integer. */
 #define INT2FIX(i)        ((VALUE)(((long)(i))<<1 | FIXNUM_FLAG))
 
@@ -613,6 +620,12 @@ double rb_num2dbl(VALUE);
 
   /** Pointer to string data in string_handle. @internal. */
   char*   capi_rstring_ptr(VALUE string_handle);
+
+  /** Taints obj. @internal. */
+  void    capi_taint(VALUE obj);
+
+  /** Returns 1 if obj is tainted, 0 otherwise. @internal. */
+  int     capi_tainted_p(VALUE obj);
 
   /** Returns the superclass of klass or NULL. This is not the same as
    * rb_class_superclass. See MRI's rb_class_s_alloc which returns a

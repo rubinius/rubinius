@@ -219,4 +219,25 @@ describe "CApiObject" do
       obj.reach.should == :extended
     end
   end
+
+  describe "OBJ_TAINT" do
+    it "taints the object" do
+      obj = mock("tainted")
+      @o.OBJ_TAINT(obj)
+      obj.tainted?.should be_true
+    end
+  end
+
+  describe "OBJ_TAINTED" do
+    it "returns C true if the object is tainted" do
+      obj = mock("tainted")
+      obj.taint
+      @o.OBJ_TAINTED(obj).should be_true
+    end
+
+    it "returns C false if the object is not tainted" do
+      obj = mock("untainted")
+      @o.OBJ_TAINTED(obj).should be_false
+    end
+  end
 end
