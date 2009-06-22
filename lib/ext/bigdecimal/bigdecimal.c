@@ -1655,7 +1655,7 @@ BigDecimal_inspect(VALUE self)
 
     obj = rb_str_new(0, nc+256);
     psz = RSTRING_PTR(obj);
-    sprintf(psz,"#<BigDecimal:%lx,'",self);
+    sprintf(psz,"#<BigDecimal:%lx,'",(long unsigned int)self);
     tmp = psz + strlen(psz);
     VpToString(vp, tmp, 10, 0);
     tmp += strlen(tmp);
