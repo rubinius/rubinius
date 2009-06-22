@@ -41,4 +41,18 @@ describe "C-API Hash function" do
       hsh.should == {}
     end
   end
+
+  # rb_hash_size is a static symbol in MRI
+  extended_on :rubinius do
+    describe "rb_hash_size" do
+      it "returns the size of the hash" do
+        hsh = {:fast => 'car', :good => 'music'}
+        @s.rb_hash_size(hsh).should == 2
+      end
+
+      it "returns zero for an empty hash" do
+        @s.rb_hash_size({}).should == 0
+      end
+    end
+  end
 end

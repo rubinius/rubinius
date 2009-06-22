@@ -21,6 +21,13 @@ VALUE hash_spec_rb_hash_delete(VALUE self, VALUE hash, VALUE key) {
   return rb_hash_delete(hash, key);
 }
 
+#ifdef RUBINIUS
+// rb_hash_size is a static symbol in MRI
+VALUE hash_spec_rb_hash_size(VALUE self, VALUE hash) {
+  return rb_hash_size(hash);
+}
+#endif
+
 void Init_hash_spec() {
   VALUE cls;
   cls = rb_define_class("CApiHashSpecs", rb_cObject);
@@ -29,4 +36,8 @@ void Init_hash_spec() {
   rb_define_method(cls, "rb_hash_aref_nil", hash_spec_rb_hash_aref_nil, 2);
   rb_define_method(cls, "rb_hash_aset", hash_spec_rb_hash_aset, 3);
   rb_define_method(cls, "rb_hash_delete", hash_spec_rb_hash_delete, 2);
+
+#ifdef RUBINIUS
+  rb_define_method(cls, "rb_hash_size", hash_spec_rb_hash_size, 1);
+#endif
 }

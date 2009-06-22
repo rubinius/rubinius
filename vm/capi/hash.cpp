@@ -21,4 +21,8 @@ extern "C" {
   VALUE rb_hash_delete(VALUE self, VALUE key) {
     return rb_funcall(self, rb_intern("delete"), 1, key);
   }
+
+  VALUE rb_hash_size(VALUE self) {
+    return rb_funcall(self, rb_intern("size"), 0);
+  }
 }

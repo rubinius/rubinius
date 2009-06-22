@@ -930,6 +930,9 @@ double rb_num2dbl(VALUE);
   /** Remove the key and return the associated value. */
   VALUE   rb_hash_delete(VALUE self, VALUE key);
 
+  /** Returns the number of entries as a Fixnum. */
+  VALUE   rb_hash_size(VALUE self);
+
   /** Send #write to io passing str. */
   VALUE   rb_io_write(VALUE io, VALUE str);
 
