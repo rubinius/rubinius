@@ -15,7 +15,7 @@ describe "A Call node using FastMath plugin" do
     compile :fastmath do |g|
       g.push 1
       g.push 1
-      g.meta_send_op_plus
+      g.meta_send_op_plus :+
     end
   end
 
@@ -33,7 +33,7 @@ describe "A Call node using FastMath plugin" do
     compile :fastmath do |g|
       g.push 1
       g.push 1
-      g.meta_send_op_minus
+      g.meta_send_op_minus :-
     end
   end
 
@@ -51,7 +51,7 @@ describe "A Call node using FastMath plugin" do
     compile :fastmath do |g|
       g.push 1
       g.push 1
-      g.meta_send_op_equal
+      g.meta_send_op_equal :==
     end
   end
 
@@ -69,7 +69,7 @@ describe "A Call node using FastMath plugin" do
     compile :fastmath do |g|
       g.push 1
       g.push 1
-      g.meta_send_op_tequal
+      g.meta_send_op_tequal :===
     end
   end
 
@@ -87,7 +87,7 @@ describe "A Call node using FastMath plugin" do
     compile :fastmath do |g|
       g.push 1
       g.push 1
-      g.meta_send_op_lt
+      g.meta_send_op_lt :<
     end
   end
 
@@ -105,7 +105,7 @@ describe "A Call node using FastMath plugin" do
     compile :fastmath do |g|
       g.push 1
       g.push 1
-      g.meta_send_op_gt
+      g.meta_send_op_gt :>
     end
   end
 end

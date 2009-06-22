@@ -169,6 +169,13 @@ namespace rubinius {
         case InstructionSequence::insn_send_stack_with_splat:
         case InstructionSequence::insn_send_super_stack_with_block:
         case InstructionSequence::insn_send_super_stack_with_splat:
+        case InstructionSequence::insn_meta_send_call:
+        case InstructionSequence::insn_meta_send_op_plus:
+        case InstructionSequence::insn_meta_send_op_minus:
+        case InstructionSequence::insn_meta_send_op_equal:
+        case InstructionSequence::insn_meta_send_op_tequal:
+        case InstructionSequence::insn_meta_send_op_lt:
+        case InstructionSequence::insn_meta_send_op_gt:
           sends++;
         }
 
@@ -200,7 +207,14 @@ namespace rubinius {
       case InstructionSequence::insn_send_method:
       case InstructionSequence::insn_send_stack:
       case InstructionSequence::insn_send_stack_with_block:
-      case InstructionSequence::insn_send_stack_with_splat: {
+      case InstructionSequence::insn_send_stack_with_splat:
+      case InstructionSequence::insn_meta_send_call:
+      case InstructionSequence::insn_meta_send_op_plus:
+      case InstructionSequence::insn_meta_send_op_minus:
+      case InstructionSequence::insn_meta_send_op_equal:
+      case InstructionSequence::insn_meta_send_op_tequal:
+      case InstructionSequence::insn_meta_send_op_lt:
+      case InstructionSequence::insn_meta_send_op_gt: {
         InlineCache* cache = &caches[which++];
         Symbol* name = as<Symbol>(original->literals()->at(opcodes[ip + 1]));
         cache->set_name(name);

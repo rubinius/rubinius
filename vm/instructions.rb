@@ -1053,21 +1053,21 @@ class Instructions
   # [Description]
   #   Simplified call instruction used for yields and basic calls
 
-  def meta_send_call(count)
+  def meta_send_call(name, count)
     <<-CODE
     flush_ip();
     Object* t1 = stack_back(count);
     Object* ret;
 
-    Arguments out_args(Qnil, count, stack_back_position(count));
+    Arguments out_args(t1, count, stack_back_position(count));
 
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
       ret = env->call(state, call_frame, out_args);
     } else if(Proc* proc = try_as<Proc>(t1)) {
       ret = proc->call(state, call_frame, out_args);
     } else {
-      ret = send_slowly(state, vmm, call_frame, G(sym_call),
-        stack_back_position(count + 1), count);
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      ret = cache->execute(state, call_frame, out_args);
     }
 
     stack_clear(count + 1);
@@ -1196,7 +1196,7 @@ class Instructions
   #   both symbols, the comparison is done directly; otherwise, the == method
   #   is called on +value1+, passing +value2+ as the argument.
 
-  def meta_send_op_equal
+  def meta_send_op_equal(name)
     <<-CODE
     Object* t1 = stack_back(1);
     Object* t2 = stack_back(0);
@@ -1206,8 +1206,10 @@ class Instructions
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
       flush_ip();
-      Object* ret = send_slowly(state, vmm, call_frame, G(sym_equal),
-        stack_back_position(2), 1);
+
+      Arguments out_args(t1, 1, stack_back_position(1));
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      Object* ret = cache->execute(state, call_frame, out_args);
       stack_clear(2);
 
       HANDLE_EXCEPTION(ret);
@@ -1248,7 +1250,7 @@ class Instructions
   #   comparison is done directly; otherwise, the > method is called on
   #   +value1+, passing +value2+ as the argument.
 
-  def meta_send_op_gt
+  def meta_send_op_gt(name)
     <<-CODE
     Object* t1 = stack_back(1);
     Object* t2 = stack_back(0);
@@ -1259,8 +1261,9 @@ class Instructions
       stack_set_top((j > k) ? Qtrue : Qfalse);
     } else {
       flush_ip();
-      Object* ret = send_slowly(state, vmm, call_frame, G(sym_gt),
-        stack_back_position(2), 1);
+      Arguments out_args(t1, 1, stack_back_position(1));
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      Object* ret = cache->execute(state, call_frame, out_args);
       stack_clear(2);
 
       HANDLE_EXCEPTION(ret);
@@ -1301,7 +1304,7 @@ class Instructions
   #   comparison is done directly; otherwise, the < method is called on
   #   +value1+, passing +value2+ as the argument.
 
-  def meta_send_op_lt
+  def meta_send_op_lt(name)
     <<-CODE
     Object* t1 = stack_back(1);
     Object* t2 = stack_back(0);
@@ -1312,8 +1315,9 @@ class Instructions
       stack_set_top((j < k) ? Qtrue : Qfalse);
     } else {
       flush_ip();
-      Object* ret = send_slowly(state, vmm, call_frame, G(sym_lt),
-        stack_back_position(2), 1);
+      Arguments out_args(t1, 1, stack_back_position(1));
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      Object* ret = cache->execute(state, call_frame, out_args);
       stack_clear(2);
 
       HANDLE_EXCEPTION(ret);
@@ -1354,7 +1358,7 @@ class Instructions
   #   subtraction is done directly via the fixnum_sub primitive; otherwise,
   #   the - method is called on +value1+, passing +value2+ as the argument.
 
-  def meta_send_op_minus
+  def meta_send_op_minus(name)
     <<-CODE
     Object* left =  stack_back(1);
     Object* right = stack_back(0);
@@ -1364,8 +1368,9 @@ class Instructions
       stack_set_top(((Fixnum*)(left))->sub(state, (Fixnum*)(right)));
     } else {
       flush_ip();
-      Object* ret = send_slowly(state, vmm, call_frame, G(sym_minus),
-        stack_back_position(2), 1);
+      Arguments out_args(left, 1, stack_back_position(1));
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      Object* ret = cache->execute(state, call_frame, out_args);
       stack_clear(2);
 
       HANDLE_EXCEPTION(ret);
@@ -1406,7 +1411,7 @@ class Instructions
   #   addition is done directly via the fixnum_add primitive; otherwise, the +
   #   method is called on +value1+, passing +value2+ as the argument.
 
-  def meta_send_op_plus
+  def meta_send_op_plus(name)
     <<-CODE
     Object* left =  stack_back(1);
     Object* right = stack_back(0);
@@ -1418,8 +1423,9 @@ class Instructions
       stack_push(res);
     } else {
       flush_ip();
-      Object* ret = send_slowly(state, vmm, call_frame, G(sym_plus),
-        stack_back_position(2), 1);
+      Arguments out_args(left, 1, stack_back_position(1));
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      Object* ret = cache->execute(state, call_frame, out_args);
       stack_clear(2);
 
       HANDLE_EXCEPTION(ret);
@@ -1462,7 +1468,7 @@ class Instructions
   # [Notes]
   #   Exactly like equal, except calls === if it can't handle it directly.
 
-  def meta_send_op_tequal
+  def meta_send_op_tequal(name)
     <<-CODE
     Object* t1 = stack_back(1);
     Object* t2 = stack_back(0);
@@ -1472,8 +1478,9 @@ class Instructions
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
       flush_ip();
-      Object* ret = send_slowly(state, vmm, call_frame, G(sym_tequal),
-        stack_back_position(2), 1);
+      Arguments out_args(t1, 1, stack_back_position(1));
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      Object* ret = cache->execute(state, call_frame, out_args);
       stack_clear(2);
 
       HANDLE_EXCEPTION(ret);

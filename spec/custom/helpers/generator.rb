@@ -82,6 +82,7 @@ class TestGenerator
   attr_accessor :stream, :ip, :redo, :break, :next, :retry
   attr_reader :g, :file, :line
 
+
   def initialize
     @stream = []
     @ip     = 0
@@ -167,6 +168,10 @@ class TestGenerator
   # Hack to provide expected semantics
   def ===(other)
     equal? other
+  end
+
+  def find_literal(lit)
+    lit
   end
 
   def goto x

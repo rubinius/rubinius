@@ -165,7 +165,7 @@ class Compiler
         if name and call.argcount == 1
           call.receiver_bytecode(g)
           call.emit_args(g)
-          g.add name
+          g.add name, g.find_literal(call.method)
           return true
         end
 
@@ -193,7 +193,7 @@ class Compiler
         if name = Methods[call.method]
           call.receiver_bytecode(g)
           call.emit_args(g)
-          g.add name, call.argcount
+          g.add name, g.find_literal(call.method), call.argcount
           return true
         end
 
