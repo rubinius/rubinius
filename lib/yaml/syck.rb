@@ -15,5 +15,30 @@ module YAML
             include YAML::BaseNode
         end
 
+        #--
+        # For Rubinius, replaces the rb_iterate call to syck_set_ivars.
+        #++
+        def self.set_ivars(hsh, obj)
+          hsh.each do |key, value|
+            obj.instance_variable_set :"@#{key}", value
+          end
+        end
+
+        #--
+        # For Rubinius, replaces the rb_iterate call to syck_merge_i.
+        #++
+        def self.merge_i(ary, hsh)
+          ary.each do |entry|
+            begin
+              entry = Type.coerce_to entry, Hash, :to_hash
+              hsh.update entry
+            rescue
+              # ignore coercion errors
+            end
+          end
+
+          nil
+        end
+
     end
 end

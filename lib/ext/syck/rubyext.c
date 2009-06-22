@@ -13,29 +13,6 @@
 #include <sys/types.h>
 #include <time.h>
 
-struct RBasic {
-    unsigned long flags;
-    VALUE klass;
-};
-
-struct RObject {
-    struct RBasic basic;
-    struct st_table *iv_tbl;
-};
-
-struct RHash {
-    struct RBasic basic;
-    struct st_table *tbl;
-    int iter_lev;
-    VALUE ifnone;
-};
-
-#define R_CAST(st)   (struct st*)
-#define RHASH(obj)   (R_CAST(RHash)(obj))
-
-#define OBJ_TAINT(o)
-#define OBJ_TAINTED(o) 0
-
 typedef struct RVALUE {
     union {
 #if 0
@@ -76,12 +53,13 @@ typedef struct {
  * symbols and constants
  */
 static ID s_new, s_utc, s_at, s_to_f, s_to_i, s_read, s_binmode, s_call, s_cmp, s_transfer, s_update, s_dup, s_haskey, s_match, s_keys, s_unpack, s_tr_bang, s_default_set, s_tag_read_class, s_tag_subclasses, s_resolver, s_push, s_emitter, s_level, s_detect_implicit, s_node_import, s_out, s_input, s_intern, s_transform, s_yaml_new, s_yaml_initialize, s_node_export, s_to_yaml, s_write, s_set_resolver;
-static ID s_tags, s_domain, s_kind, s_name, s_options, s_type_id, s_type_id_set, s_style, s_style_set, s_value, s_value_set;
+static ID s_tags, s_kind, s_name, s_options, s_type_id, s_type_id_set, s_style, s_style_set, s_value, s_value_set;
 static VALUE sym_model, sym_generic, sym_input, sym_bytecode;
 static VALUE sym_scalar, sym_seq, sym_map;
 static VALUE sym_1quote, sym_2quote, sym_fold, sym_literal, sym_plain, sym_inline;
 static VALUE cDate, cNode, cMap, cSeq, cScalar, cOut, cParser, cResolver, cPrivateType, cDomainType, cYObject, cBadAlias, cDefaultKey, cMergeKey, cEmitter;
 static VALUE oDefaultResolver, oGenericResolver;
+static VALUE rb_syck;
 
 /*
  * my private collection of numerical oddities.
@@ -597,7 +575,7 @@ yaml_org_handler( n, ref )
                             VALUE dup = rb_funcall( tmph, s_dup, 0 );
                             tmp = rb_ary_reverse( tmp );
                             rb_ary_push( tmp, obj );
-                            // rb_iterate( rb_each, tmp, syck_merge_i, dup );
+                            rb_funcall( rb_syck, rb_intern("merge_i"), tmp, dup );
                             obj = dup;
                             skip_aset = 1;
                         }
@@ -658,7 +636,7 @@ rb_syck_load_handler(p, n)
     if ( bonus->taint)      OBJ_TAINT( obj );
     if ( bonus->proc != 0 ) rb_funcall(bonus->proc, s_call, 1, obj);
 
-    rb_hash_aset(bonus->data, INT2FIX(RHASH(bonus->data)->tbl->num_entries), obj);
+    rb_hash_aset(bonus->data, rb_hash_size(bonus->data), obj);
     return obj;
 }
 
@@ -939,7 +917,6 @@ static VALUE
 syck_resolver_initialize( self )
     VALUE self;
 {
-    VALUE tags = rb_hash_new();
     rb_ivar_set(self, s_tags, rb_hash_new());
     return self;
 }
@@ -974,7 +951,6 @@ VALUE
 syck_resolver_detect_implicit( self, val )
     VALUE self, val;
 {
-    char *type_id;
     return rb_str_new2( "" );
 }
 
@@ -1032,7 +1008,7 @@ syck_resolver_node_import( self, node )
                             VALUE dup = rb_funcall( end, s_dup, 0 );
                             v = rb_ary_reverse( v );
                             rb_ary_push( v, obj );
-                            // rb_iterate( rb_each, v, syck_merge_i, dup );
+                            rb_funcall( rb_syck, rb_intern("merge_i"), v, dup );
                             obj = dup;
                             skip_aset = 1;
                         }
@@ -1201,7 +1177,7 @@ syck_resolver_transfer( self, type, val )
                 }
                 else if ( !NIL_P( obj ) && rb_obj_is_instance_of( val, rb_cHash ) )
                 {
-                    // rb_iterate( rb_each, val, syck_set_ivars, obj );
+                    rb_funcall( rb_syck, rb_intern("set_ivars"), 2, val, obj );
                 }
             }
             else 
@@ -1446,6 +1422,9 @@ syck_node_mark( n )
                 rb_gc_mark( syck_map_read( n, map_key, i ) );
                 rb_gc_mark( syck_map_read( n, map_value, i ) );
             }
+        case syck_str_kind:
+        default:
+            /* nothing */
         break;
     }
 #if 0 /* maybe needed */
@@ -2050,7 +2029,6 @@ syck_emitter_emit( argc, argv, self )
     VALUE self;
 {
     VALUE oid, proc;
-    char *anchor_name;
     SyckEmitter *emitter;
     struct emitter_xtra *bonus;
     SYMID symple;
@@ -2181,7 +2159,7 @@ void
 Init_syck()
 {
     VALUE rb_yaml = rb_define_module( "YAML" );
-    VALUE rb_syck = rb_define_module_under( rb_yaml, "Syck" );
+    rb_syck = rb_define_module_under( rb_yaml, "Syck" );
     rb_define_const( rb_syck, "VERSION", rb_str_new2( SYCK_VERSION ) );
     rb_define_module_function( rb_syck, "compile", rb_syck_compile, 1 );
 
@@ -2262,13 +2240,13 @@ Init_syck()
     rb_define_method( cResolver, "node_import", syck_resolver_node_import, 1 );
     rb_define_method( cResolver, "tagurize", syck_resolver_tagurize, 1 );
 
-    rb_global_variable( &oDefaultResolver );
     oDefaultResolver = rb_funcall( cResolver, rb_intern( "new" ), 0 );
+    rb_global_variable( &oDefaultResolver );
     rb_define_singleton_method( oDefaultResolver, "node_import", syck_defaultresolver_node_import, 1 );
     rb_define_singleton_method( oDefaultResolver, "detect_implicit", syck_defaultresolver_detect_implicit, 1 );
     rb_define_const( rb_syck, "DefaultResolver", oDefaultResolver );
-    rb_global_variable( &oGenericResolver );
     oGenericResolver = rb_funcall( cResolver, rb_intern( "new" ), 0 );
+    rb_global_variable( &oGenericResolver );
     rb_define_singleton_method( oGenericResolver, "node_import", syck_genericresolver_node_import, 1 );
     rb_define_const( rb_syck, "GenericResolver", oGenericResolver );
 
