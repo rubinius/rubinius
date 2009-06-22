@@ -138,7 +138,13 @@ namespace rubinius {
 
   Object* NativeMethodEnvironment::get_object(VALUE val) {
     if(CAPI_REFERENCE_P(val)) {
-      return capi::Handle::from(val)->object();
+      capi::Handle* handle = capi::Handle::from(val);
+      if(!handle->valid_p()) {
+        std::cerr << "Invalid handle usage detected!\n";
+        rubinius::abort();
+      }
+
+      return handle->object();
       /*
       if(CAPI_GLOBAL_HANDLE_P(handle)) {
         Handles& global_handles = state_->shared.global_handles();

@@ -31,6 +31,7 @@ namespace rubinius {
       Object* object_;
       HandleType type_;
       int references_;
+      unsigned int checksum_;
 
       union {
         RArray* rarray;
@@ -45,11 +46,20 @@ namespace rubinius {
         , object_(obj)
         , type_(cUnknown)
         , references_(0)
+        , checksum_(0xffff)
       {
         as_.rarray = 0;
       }
 
       ~Handle();
+
+      bool valid_p() {
+        return checksum_ == 0xffff;
+      }
+
+      void invalidate() {
+        checksum_ = 0;
+      }
 
       Object* object() {
         return object_;

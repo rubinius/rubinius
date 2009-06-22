@@ -36,6 +36,7 @@ namespace rubinius {
     }
 
     Handle::~Handle() {
+      invalidate();
     }
   }
 }
