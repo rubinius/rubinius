@@ -844,7 +844,7 @@ namespace rubinius {
       return sig.call(func_name, call_args, 5, "super_send", block);
     }
 
-    void visit_meta_send_op_equal() {
+    void visit_meta_send_op_equal(opcode name) {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
@@ -874,7 +874,7 @@ namespace rubinius {
       stack_push(phi);
     }
 
-    void visit_meta_send_op_tequal() {
+    void visit_meta_send_op_tequal(opcode name) {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
@@ -931,7 +931,7 @@ namespace rubinius {
           Instruction::IntToPtr, tagged, ObjType, "as_obj", block);
     }
 
-    void visit_meta_send_op_lt() {
+    void visit_meta_send_op_lt(opcode name) {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
@@ -961,7 +961,7 @@ namespace rubinius {
       stack_push(phi);
     }
 
-    void visit_meta_send_op_gt() {
+    void visit_meta_send_op_gt(opcode name) {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
@@ -991,7 +991,7 @@ namespace rubinius {
       stack_push(phi);
     }
 
-    void visit_meta_send_op_plus() {
+    void visit_meta_send_op_plus(opcode name) {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
@@ -1043,7 +1043,7 @@ namespace rubinius {
       stack_push(phi);
     }
 
-    void visit_meta_send_op_minus() {
+    void visit_meta_send_op_minus(opcode name) {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
@@ -2280,7 +2280,7 @@ namespace rubinius {
       stack_push(val);
     }
 
-    void visit_meta_send_call(opcode count) {
+    void visit_meta_send_call(opcode name, opcode count) {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
