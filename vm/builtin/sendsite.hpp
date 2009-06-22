@@ -118,7 +118,7 @@ namespace rubinius {
    */
   class HierarchyResolver {
   public:
-    static bool resolve(STATE, Dispatch& msg, LookupData& lookup);
+    static bool resolve(STATE, Dispatch& msg, LookupData& lookup, bool* was_private);
   };
 
   /**

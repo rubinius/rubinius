@@ -142,7 +142,8 @@ namespace rubinius {
       }
     }
 
-    void retain(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth, bool missing) {
+    void retain(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
+                bool missing, bool was_private = false) {
       struct cache_entry* entry;
 
       entry = entries + CPU_CACHE_HASH(cls, name);
@@ -157,7 +158,7 @@ namespace rubinius {
         entry->method = vis->method();
       } else {
         entry->method = meth;
-        entry->is_public = true;
+        entry->is_public = !was_private;
       }
     }
   };

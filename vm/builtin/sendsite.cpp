@@ -243,10 +243,13 @@ keep_looking:
    * and in method tables. Returns true if lookup was successful
    * and +msg+ is now filled in. */
 
-  bool HierarchyResolver::resolve(STATE, Dispatch& msg, LookupData& lookup) {
+  bool HierarchyResolver::resolve(STATE, Dispatch& msg, LookupData& lookup,
+                                  bool* was_private)
+  {
     Module* module = lookup.from;
     Object* entry;
     MethodVisibility* vis;
+    bool skip_vis_check = false;
 
     do {
       entry = module->method_table()->fetch(state, msg.name);
@@ -262,11 +265,15 @@ keep_looking:
 
       /* If this was a private send, then we can handle use
        * any method seen. */
-      if(lookup.priv) {
-        /* nil means that the actual method object is 'up' from here */
-        if(vis && vis->method()->nil_p()) goto keep_looking;
-
-        msg.method = as<Executable>(vis ? vis->method() : entry);
+      if(lookup.priv || skip_vis_check) {
+        if(vis) {
+          /* nil means that the actual method object is 'up' from here */
+          if(vis->method()->nil_p()) goto keep_looking;
+          *was_private = !vis->public_p(state);
+          msg.method = as<Executable>(vis->method());
+        } else {
+          msg.method = as<Executable>(entry);
+        }
         msg.module = module;
         break;
       } else if(vis) {
@@ -285,7 +292,7 @@ keep_looking:
          * for the implementation, so make the invocation bypass all further
          * visibility checks */
         if(vis->method()->nil_p()) {
-          lookup.priv = true;
+          skip_vis_check = true;
           goto keep_looking;
         }
 
@@ -324,9 +331,10 @@ keep_looking:
       }
     }
 
-    if(HierarchyResolver::resolve(state, msg, lookup)) {
+    bool was_private = false;
+    if(HierarchyResolver::resolve(state, msg, lookup, &was_private)) {
       state->global_cache->retain(state, lookup.from, msg.name,
-          msg.module, msg.method, msg.method_missing);
+          msg.module, msg.method, msg.method_missing, was_private);
       return true;
     }
 
