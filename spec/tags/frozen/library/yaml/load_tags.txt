@@ -1,4 +1,0 @@
-fails:YAML.load does not escape symbols
-fails:YAML.load loads a symbol key that contains spaces
-fails:YAML.load fails on invalid keys
-fails:YAML.load works on complex keys

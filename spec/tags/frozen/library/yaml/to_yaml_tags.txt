@@ -1,6 +1,2 @@
-fails:Object#to_yaml returns the YAML representation of an Array object
 fails:Object#to_yaml returns the YAML representation of a Struct object
-fails:Object#to_yaml returns the YAML represenation of a RegExp object
 fails:Object#to_yaml returns the YAML representation of a Error object
-fails:Object#to_yaml returns the YAML representation for Range objects
-fails:Object#to_yaml returns the YAML representation of numeric constants
