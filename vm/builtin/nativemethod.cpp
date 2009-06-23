@@ -140,34 +140,11 @@ namespace rubinius {
     if(CAPI_REFERENCE_P(val)) {
       capi::Handle* handle = capi::Handle::from(val);
       if(!handle->valid_p()) {
-        std::cerr << "Invalid handle usage detected!\n";
+        handle->debug_print();
         rubinius::abort();
       }
 
       return handle->object();
-      /*
-      if(CAPI_GLOBAL_HANDLE_P(handle)) {
-        Handles& global_handles = state_->shared.global_handles();
-        size_t index = CAPI_STRIP_GLOBAL_TAG(handle);
-        if(unlikely(index >= global_handles.size())) {
-          capi_raise_runtime_error("requested Object for invalid NativeMethod global handle");
-        }
-
-        RootHandle* root = global_handles[index];
-
-        if(unlikely(!root)) {
-          capi_raise_runtime_error("Attempted to use deleted NativeMethod global handle");
-        }
-
-        Object* obj = root->get();
-        if(unlikely(!obj)) {
-          capi_raise_runtime_error("NativeMethod global handle refers to NULL object");
-        }
-        return obj;
-      } else {
-        return current_native_frame_->get_object(handle);
-      }
-      */
     } else if(FIXNUM_P(val) || SYMBOL_P(val)) {
       return reinterpret_cast<Object*>(val);
     } else if(CAPI_FALSE_P(val)) {

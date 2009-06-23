@@ -35,6 +35,15 @@ namespace rubinius {
       type_ = cUnknown;
     }
 
+    void Handle::debug_print() {
+      std::cerr << std::endl << "Invalid handle usage detected!" << std::endl;
+      std::cerr << "  handle:     " << this << std::endl;
+      std::cerr << "  checksum:   0x" << std::hex << checksum_ << std::endl;
+      std::cerr << "  references: " << references_ << std::endl;
+      std::cerr << "  type:       " << type_ << std::endl;
+      std::cerr << "  object:     " << object_ << std::endl;
+    }
+
     Handle::~Handle() {
       invalidate();
     }

@@ -15,8 +15,8 @@ extern "C" {
 
   void rb_gc_mark(VALUE ptr) {
     Handle* handle = Handle::from(ptr);
-    if(handle->object()->reference_p()) {
-      Object* res = VM::current_state()->current_mark.call(handle->object());
+    if(CAPI_REFERENCE_P(handle) && handle->object()->reference_p()) {
+      Object* res = VM::current_state()->current_mark->call(handle->object());
       if(res) {
         handle->set_object(res);
       }
@@ -27,12 +27,6 @@ extern "C" {
    * to be in the heap.
    */
   void rb_gc_mark_maybe(VALUE ptr) {
-    Handle* handle = Handle::from(ptr);
-    if(handle->object()->reference_p()) {
-      Object* res = VM::current_state()->current_mark.call(handle->object());
-      if(res) {
-        handle->set_object(res);
-      }
-    }
+    rb_gc_mark(ptr);
   }
 }

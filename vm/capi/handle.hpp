@@ -58,6 +58,7 @@ namespace rubinius {
       }
 
       void invalidate() {
+        assert(references_ <= 0);
         checksum_ = 0;
       }
 
@@ -80,6 +81,8 @@ namespace rubinius {
       void deref() {
         references_--;
       }
+
+      void debug_print();
 
       // Explict conversion functions, to keep the code clean.
       VALUE as_value() {
