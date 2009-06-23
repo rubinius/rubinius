@@ -12,6 +12,7 @@ kernel.rbc
 math.rbc
 numeric.rbc
 objectspace.rbc
+options.rbc
 stats.rbc
 profiler.rbc
 signal.rbc
