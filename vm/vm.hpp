@@ -111,7 +111,7 @@ namespace rubinius {
     Stats stats;
 
     // Temporary holder for rb_gc_mark() in subtend
-    ObjectMark current_mark;
+    ObjectMark* current_mark;
 
     bool reuse_llvm;
 

@@ -140,38 +140,45 @@ namespace rubinius {
   void ObjectMemory::prune_handles(bool check_forwards) {
     capi::Handles* handles = state->shared.global_handles();
     capi::Handle* handle = handles->front();
+    capi::Handle* current;
 
     int total = 0;
     int count = 0;
 
     while(handle) {
-      Object* obj = handle->object();
+      current = handle;
+      handle = static_cast<capi::Handle*>(handle->next());
+
+      Object* obj = current->object();
       total++;
 
       // Strong references will already have been updated.
-      if(!handle->weak_p()) {
+      if(!current->weak_p()) {
         if(check_forwards) assert(!obj->forwarded_p());
-        handle = static_cast<capi::Handle*>(handle->next());
+      } else if(check_forwards) {
+        if(obj->young_object_p()) {
 
-      // A weakref pointing to a dead object
-      } else if(check_forwards ?
-                  (obj->young_object_p() && !obj->forwarded_p()) :
-                   !obj->marked_p()) {
-        count++;
+          // A weakref pointing to a valid young object
+          if(young.validate_object(obj) == cValid) {
+            continue;
 
-        capi::Handle* tmp = handle;
-        handle = static_cast<capi::Handle*>(tmp->next());
+          // A weakref pointing to a forwarded young object
+          } else if(obj->forwarded_p()) {
+            current->set_object(obj->forward());
 
-        handles->remove(tmp);
-        delete tmp;
-
-      // A weakref pointing to a live object
-      } else {
-        if(check_forwards && obj->young_object_p()) {
-          assert(obj->forwarded_p());
-          handle->set_object(obj->forward());
+          // A weakref pointing to a dead young object
+          } else {
+            count++;
+            handles->remove(current);
+            delete current;
+          }
         }
-        handle = static_cast<capi::Handle*>(handle->next());
+
+      // A weakref pointing to a dead mature object
+      } else if(!obj->marked_p()) {
+        count++;
+        handles->remove(current);
+        delete current;
       }
     }
 
