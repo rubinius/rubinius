@@ -118,7 +118,7 @@ namespace rubinius {
    */
   class HierarchyResolver {
   public:
-    static bool resolve(STATE, Dispatch& msg, LookupData& lookup, bool* was_private);
+    static bool resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup, bool* was_private);
   };
 
   /**
@@ -141,7 +141,7 @@ namespace rubinius {
    */
   class GlobalCacheResolver {
   public:
-    static bool resolve(STATE, Dispatch& msg, LookupData& lookup);
+    static bool resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup);
   };
 };
 

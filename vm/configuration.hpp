@@ -24,6 +24,7 @@ namespace rubinius {
     // Debug
     config::Bool    gil_debug;
     config::Integer print_config;
+    config::Bool    ic_stats;
 
     // defaults
     static const int default_gc_bytes = 1048576 * 3;
@@ -49,6 +50,7 @@ namespace rubinius {
       , jit_profile(this,     "jit.profile")
       , gil_debug(this,       "vm.gil.debug")
       , print_config(this,    "config.print")
+      , ic_stats(this,        "ic.stats")
     {
       gc_bytes.set_description(
           "The number of bytes the young generation of the GC should use");
@@ -85,6 +87,9 @@ namespace rubinius {
 
       gc_show.set_description(
           "Print out whenever the GC runs");
+
+      ic_stats.set_description(
+          "Print out stats about the InlineCaches before exiting");
     }
   };
 }

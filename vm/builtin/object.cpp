@@ -543,7 +543,7 @@ namespace rubinius {
 
     Dispatch dis(name);
 
-    if(!GlobalCacheResolver::resolve(state, dis, lookup)) {
+    if(!GlobalCacheResolver::resolve(state, name, dis, lookup)) {
       return Qfalse;
     }
 

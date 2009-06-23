@@ -215,7 +215,10 @@ namespace rubinius {
       case InstructionSequence::insn_meta_send_op_tequal:
       case InstructionSequence::insn_meta_send_op_lt:
       case InstructionSequence::insn_meta_send_op_gt: {
+        assert(which < sends);
         InlineCache* cache = &caches[which++];
+        cache->set_location(ip, this);
+
         Symbol* name = as<Symbol>(original->literals()->at(opcodes[ip + 1]));
         cache->set_name(name);
         if(allow_private) cache->set_is_private();

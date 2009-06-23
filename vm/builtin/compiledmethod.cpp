@@ -271,6 +271,17 @@ namespace rubinius {
           mark.just_set(obj, tmp);
         }
       }
+
+      for(int i = 0; i < cTrackedICHits; i++) {
+        Module* mod = cache->seen_classes_[i].module();
+        if(mod) {
+          tmp = mark.call(mod);
+          if(tmp) {
+            cache->seen_classes_[i].set_module((Module*)tmp);
+            mark.just_set(obj, tmp);
+          }
+        }
+      }
     }
   }
 
@@ -295,6 +306,11 @@ namespace rubinius {
 
       if(cache->klass_) {
         visit.call(cache->klass_);
+      }
+
+      for(int i = 0; i < cTrackedICHits; i++) {
+        Module* mod = cache->seen_classes_[i].module();
+        if(mod) visit.call(mod);
       }
     }
   }

@@ -23,6 +23,7 @@
 #include "object_utils.hpp"
 
 #include "native_thread.hpp"
+#include "inline_cache.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -183,6 +184,10 @@ namespace rubinius {
   }
 
   void Environment::halt() {
+    if(state->shared.config.ic_stats) {
+      state->shared.ic_registry()->print_stats(state);
+    }
+
 #ifdef ENABLE_LLVM
     LLVMState::shutdown(state);
 #endif

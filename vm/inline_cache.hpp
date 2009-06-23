@@ -7,6 +7,8 @@
 #include <vector>
 #include <tr1/unordered_map>
 
+// #define TRACK_IC_LOCATION
+
 namespace rubinius {
   class InlineCache;
   class CallFrame;
@@ -16,25 +18,39 @@ namespace rubinius {
   const static int cTrackedICHits = 3;
 
   class InlineCacheHit {
-    Module* module_;
+    Module* seen_module_;
     int hits_;
 
   public:
 
     InlineCacheHit()
-      : module_(0)
+      : seen_module_(0)
       , hits_(0)
     {}
 
+    int* assign(Module* mod) {
+      seen_module_ = mod;
+      return &hits_;
+    }
+
     Module* module() {
-      return module_;
+      return seen_module_;
+    }
+
+    void set_module(Module* mod) {
+      seen_module_ = mod;
     }
 
     int hits() {
       return hits_;
     }
 
+    int* hits_address() {
+      return &hits_;
+    }
+
     friend class InlineCache;
+    friend class CompiledMethod::Info;
   };
 
   class InlineCache : public Dispatch {
@@ -44,6 +60,11 @@ namespace rubinius {
 
     CacheExecutor initial_backend_;
     CacheExecutor execute_backend_;
+
+#ifdef TRACK_IC_LOCATION
+    int ip_;
+    VMMethod* vmm_;
+#endif
 
     int* hits_;
     int seen_classes_overflow_;
@@ -70,6 +91,10 @@ namespace rubinius {
 
     static Object* disabled_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                   Arguments& args);
+    static Object* disabled_cache_private(STATE, InlineCache* cache, CallFrame* call_frame,
+                                  Arguments& args);
+    static Object* disabled_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
+                                  Arguments& args);
 
     bool fill_public(STATE, Object* self, Symbol* name);
     bool fill_private(STATE, Symbol* name, Module* start);
@@ -85,6 +110,26 @@ namespace rubinius {
       , hits_(0)
       , seen_classes_overflow_(0)
     {}
+
+#ifdef TRACK_IC_LOCATION
+    void set_location(int ip, VMMethod* vmm) {
+      ip_ = ip;
+      vmm_ = vmm;
+    }
+
+    int ip() {
+      return ip_;
+    }
+
+    VMMethod* vmmethod() {
+      return vmm_;
+    }
+#else
+    void set_location(int ip, VMMethod* vmm) { }
+#endif
+
+    void print_location(STATE, std::ostream& stream);
+    void print(STATE, std::ostream& stream);
 
     void set_name(Symbol* sym) {
       name = sym;
@@ -124,24 +169,7 @@ namespace rubinius {
       klass_ = 0;
     }
 
-    void update_seen_classes() {
-      for(int i = 0; i < cTrackedICHits; i++) {
-        Module* mod = seen_classes_[i].module_;
-        if(mod == klass_) {
-          hits_ = &seen_classes_[i].hits_;
-          return;
-        } else if(!mod) {
-          // An empty space, record it.
-          seen_classes_[i].module_ = mod;
-          hits_ = &seen_classes_[i].hits_;
-          return;
-        }
-      }
-
-      // Hmmm, what do we do when this is full? Just ignore them?
-      // For now, just keep track of how many times we overflow.
-      seen_classes_overflow_++;
-    }
+    void update_seen_classes();
 
     int seen_classes_overflow() {
       return seen_classes_overflow_;
@@ -151,6 +179,29 @@ namespace rubinius {
       return *hits_;
     }
 
+    void inc_hits() {
+      *hits_ = *hits_ + 1;
+    }
+
+    int classes_seen() {
+      int seen = 0;
+      for(int i = 0; i < cTrackedICHits; i++) {
+        if(seen_classes_[i].module()) seen++;
+      }
+
+      return seen;
+    }
+
+    int total_hits() {
+      int hits = 0;
+      for(int i = 0; i < cTrackedICHits; i++) {
+        if(seen_classes_[i].module()) {
+          hits += seen_classes_[i].hits();
+        }
+      }
+
+      return hits;
+    }
   };
 
   // Registry, used to clear ICs by method name
@@ -163,5 +214,7 @@ namespace rubinius {
   public:
     void add_cache(Symbol* sym, InlineCache* cache);
     void clear(Symbol* sym);
+
+    void print_stats(STATE);
   };
 }

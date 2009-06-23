@@ -149,7 +149,7 @@ namespace rubinius {
 
       Dispatch dis(name);
 
-      if(!GlobalCacheResolver::resolve(state, dis, lookup)) {
+      if(!GlobalCacheResolver::resolve(state, dis.name, dis, lookup)) {
         return (Tuple*)Qnil;
       }
 

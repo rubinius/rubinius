@@ -158,12 +158,12 @@ keep_looking:
       LookupData lookup(args.recv(), args.recv()->lookup_begin(state));
       bool method_missing = false;
 
-      if(!GlobalCacheResolver::resolve(state, msg, lookup)) {
+      if(!GlobalCacheResolver::resolve(state, msg.name, msg, lookup)) {
         Dispatch dis(G(sym_method_missing));
         method_missing = true;
         lookup.priv = true; // lets us look for method_missing anywhere
 
-        if(GlobalCacheResolver::resolve(state, dis, lookup)) {
+        if(GlobalCacheResolver::resolve(state, dis.name, dis, lookup)) {
           msg.method = dis.method;
           msg.module = dis.module;
         } else {
@@ -243,7 +243,7 @@ keep_looking:
    * and in method tables. Returns true if lookup was successful
    * and +msg+ is now filled in. */
 
-  bool HierarchyResolver::resolve(STATE, Dispatch& msg, LookupData& lookup,
+  bool HierarchyResolver::resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup,
                                   bool* was_private)
   {
     Module* module = lookup.from;
@@ -252,7 +252,7 @@ keep_looking:
     bool skip_vis_check = false;
 
     do {
-      entry = module->method_table()->fetch(state, msg.name);
+      entry = module->method_table()->fetch(state, name);
 
       /* Nothing, there? Ok, keep looking. */
       if(entry->nil_p()) goto keep_looking;
@@ -315,12 +315,12 @@ keep_looking:
     return true;
   }
 
-  bool GlobalCacheResolver::resolve(STATE, Dispatch& msg, LookupData& lookup) {
+  bool GlobalCacheResolver::resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup) {
     struct GlobalCache::cache_entry* entry;
 
     Module* klass = lookup.from;
 
-    entry = state->global_cache->lookup(klass, msg.name);
+    entry = state->global_cache->lookup(klass, name);
     if(entry) {
       if(lookup.priv || entry->is_public) {
         msg.method = entry->method;
@@ -332,8 +332,8 @@ keep_looking:
     }
 
     bool was_private = false;
-    if(HierarchyResolver::resolve(state, msg, lookup, &was_private)) {
-      state->global_cache->retain(state, lookup.from, msg.name,
+    if(HierarchyResolver::resolve(state, name, msg, lookup, &was_private)) {
+      state->global_cache->retain(state, lookup.from, name,
           msg.module, msg.method, msg.method_missing, was_private);
       return true;
     }

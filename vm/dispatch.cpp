@@ -19,11 +19,10 @@ namespace rubinius {
                          Arguments& args) {
     Symbol* original_name = name;
 
-    if(!GlobalCacheResolver::resolve(state, *this, lookup)) {
+    if(!GlobalCacheResolver::resolve(state, name, *this, lookup)) {
       method_missing = true;
-      name = G(sym_method_missing);
       lookup.priv = true;
-      assert(GlobalCacheResolver::resolve(state, *this, lookup));
+      assert(GlobalCacheResolver::resolve(state, G(sym_method_missing), *this, lookup));
     }
 
     if(method_missing) {
