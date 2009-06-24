@@ -111,7 +111,8 @@ $(function () {
               min: min_date,
               max: max_date },
     selection: { mode: "xy" },
-    grid: { hoverable: true }
+    grid: { hoverable: true },
+    legend: { position: "nw" }
   };
 
   var previousPoint = null;
@@ -173,7 +174,8 @@ $(function () {
     yaxis:  { min: <%= @baseline_min %>,
               max: <%= @baseline_max %> },
     selection: { mode: "xy" },
-    grid: { hoverable: true }
+    grid: { hoverable: true },
+    legend: { position: "nw" }
   };
 
   <% @graphs.values.each_with_index do |graph, index| %>
