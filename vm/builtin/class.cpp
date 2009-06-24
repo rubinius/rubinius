@@ -85,7 +85,7 @@ namespace rubinius {
     return state->new_object_from_type(this, ti);
   }
 
-  Class* Class::direct_superclass(STATE) {
+  Class* Class::true_superclass(STATE) {
     Module* super = superclass();
 
     while(kind_of<IncludedModule>(super)) {
