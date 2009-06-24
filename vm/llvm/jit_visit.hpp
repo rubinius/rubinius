@@ -6,6 +6,9 @@
 #include "builtin/global_cache_entry.hpp"
 #include "inline_cache.hpp"
 
+#include "llvm/jit_operations.hpp"
+#include "llvm/inline.hpp"
+
 #include <llvm/DerivedTypes.h>
 
 #include <list>
@@ -29,20 +32,7 @@ namespace rubinius {
 
   typedef std::map<int, llvm::BasicBlock*> BlockMap;
 
-  class ExceptionHandler {
-    BasicBlock* code_;
-
-  public:
-    ExceptionHandler(BasicBlock* code)
-      : code_(code)
-    {}
-
-    BasicBlock* code() {
-      return code_;
-    }
-  };
-
-  typedef std::list<ExceptionHandler*> EHandlers;
+  typedef std::list<llvm::BasicBlock*> EHandlers;
 
   class JITFunction : public Signature {
     llvm::Function* func_;
@@ -85,29 +75,16 @@ namespace rubinius {
     }
   };
 
-  class JITVisit : public VisitInstructions<JITVisit> {
+  class JITVisit : public VisitInstructions<JITVisit>, public JITOperations {
     JITFunctions f;
     VMMethod* vmm_;
     BlockMap block_map_;
 
     llvm::Value* stack_;
     llvm::Value* call_frame_;
-    llvm::Module* module_;
-    llvm::BasicBlock* block_;
     llvm::Function* function_;
 
     llvm::Value* stack_top_;
-
-    const llvm::Type* IntPtrTy;
-    const llvm::Type* ObjType;
-    const llvm::Type* ObjArrayTy;
-    const llvm::Type* Int31Ty;
-
-    // Frequently used types
-    const llvm::Type* VMTy;
-    const llvm::Type* CallFrameTy;
-
-    llvm::Value* vm_;
 
     bool allow_private_;
     opcode call_flags_;
@@ -121,8 +98,6 @@ namespace rubinius {
     llvm::BasicBlock* bail_out_fast_;
 
     EHandlers exception_handlers_;
-
-    LLVMState* ls_;
 
     Value* method_entry_;
     Value* args_;
@@ -147,27 +122,6 @@ namespace rubinius {
 
   public:
 
-    const llvm::Type* ptr_type(std::string name) {
-      std::string full_name = std::string("struct.rubinius::") + name;
-      return PointerType::getUnqual(
-          module_->getTypeByName(full_name.c_str()));
-    }
-
-    const llvm::Type* type(std::string name) {
-      std::string full_name = std::string("struct.rubinius::") + name;
-      return module_->getTypeByName(full_name.c_str());
-    }
-
-    Value* ptr_gep(Value* ptr, int which, const char* name, BasicBlock* block) {
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, which)
-      };
-
-      return GetElementPtrInst::Create(ptr, idx, idx+2, name, block);
-    }
-
-
     class Unsupported {};
 
     void init_out_args(BasicBlock* block) {
@@ -185,43 +139,24 @@ namespace rubinius {
              llvm::Value* stack, llvm::Value* call_frame,
              llvm::Value* stack_top, llvm::Value* me, llvm::Value* args,
              llvm::Value* vars, bool is_block)
-      : f(ls)
+      : JITOperations(ls, mod, stack_top, start, func)
+      , f(ls)
       , vmm_(vmm)
       , stack_(stack)
       , call_frame_(call_frame)
-      , module_(mod)
-      , block_(start)
       , function_(func)
       , stack_top_(stack_top)
       , allow_private_(false)
       , call_flags_(0)
       , rbx_simple_send_(0)
       , rbx_simple_send_private_(0)
-      , ls_(ls)
       , method_entry_(me)
       , args_(args)
       , vars_(vars)
       , creates_blocks_(true)
       , is_block_(is_block)
     {
-#if __LP64__
-      IntPtrTy = llvm::Type::Int64Ty;
-#else
-      IntPtrTy = llvm::Type::Int32Ty;
-#endif
-
-      ObjType = ptr_type("Object");
-      ObjArrayTy = PointerType::getUnqual(ObjType);
-
-      Int31Ty = llvm::IntegerType::get(31);
-
-      VMTy = ptr_type("VM");
-      CallFrameTy = ptr_type("CallFrame");
-
-      Function::arg_iterator input = function_->arg_begin();
-      vm_ = input++;
-
-      bail_out_ = block("bail_out");
+      bail_out_ = new_block("bail_out");
 
       Value* call_args[] = {
         vm_,
@@ -230,8 +165,8 @@ namespace rubinius {
 
       Value* isit = f.return_to_here.call(call_args, 2, "rth", bail_out_);
 
-      BasicBlock* ret_raise_val = block("ret_raise_val");
-      bail_out_fast_ = block("ret_null");
+      BasicBlock* ret_raise_val = new_block("ret_raise_val");
+      bail_out_fast_ = new_block("ret_null");
 
       block_->moveAfter(bail_out_fast_);
 
@@ -282,22 +217,18 @@ namespace rubinius {
       return new LoadInst(gep, "top_scope", block_);
     }
 
-    BasicBlock* block(const char* name = "continue") {
-      return BasicBlock::Create(name, function_);
-    }
-
     BlockMap& block_map() {
       return block_map_;
     }
 
     void check_for_return(Value* val) {
-      BasicBlock* cont = block();
-      BasicBlock* push_val = block("push_val");
+      BasicBlock* cont = new_block();
+      BasicBlock* push_val = new_block("push_val");
 
       Value* null = Constant::getNullValue(ObjType);
 
       Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, val, null, "null_check", block_);
-      BasicBlock* is_break = block("is_break");
+      BasicBlock* is_break = new_block("is_break");
       BranchInst::Create(is_break, push_val, cmp, block_);
 
       /////
@@ -312,13 +243,12 @@ namespace rubinius {
 
       Value* isit = brk.call("rbx_break_to_here", call_args, 2, "bth", is_break);
 
-      BasicBlock* push_break_val = block("push_break_val");
+      BasicBlock* push_break_val = new_block("push_break_val");
       BasicBlock* next = 0;
 
       // If there are handlers...
       if(exception_handlers_.size() > 0) {
-        ExceptionHandler* handler = exception_handlers_.back();
-        next = handler->code();
+        next = exception_handlers_.back();
       } else {
         next = bail_out_;
       }
@@ -349,15 +279,15 @@ namespace rubinius {
 
       // If there are handlers...
       if(exception_handlers_.size() > 0) {
-        ExceptionHandler* handler = exception_handlers_.back();
-        BranchInst::Create(handler->code(), cont, cmp, block);
+        BasicBlock* handler = exception_handlers_.back();
+        BranchInst::Create(handler, cont, cmp, block);
       } else {
         BranchInst::Create(bail_out_fast_, cont, cmp, block);
       }
     }
 
     BasicBlock* check_for_exception(Value* val, BasicBlock* els) {
-      BasicBlock* cont = block();
+      BasicBlock* cont = new_block();
       check_for_exception_then(val, cont, els);
 
       return cont;
@@ -365,115 +295,6 @@ namespace rubinius {
 
     void check_for_exception(Value* val) {
       block_ = check_for_exception(val, block_);
-    }
-
-    void write_barrier(Value* obj, Value* val) {
-      Signature wb(ls_, ObjType);
-      wb << VMTy;
-      wb << ObjType;
-      wb << ObjType;
-
-      if(obj->getType() != ObjType) {
-        obj = CastInst::Create(
-          Instruction::BitCast,
-          obj,
-          ObjType, "casted", block_);
-      }
-
-      Value* call_args[] = {
-        vm_,
-        obj,
-        val
-      };
-
-      wb.call("rbx_write_barrier", call_args, 3, "", block_);
-    }
-
-    Value* stack_ptr(BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      return new LoadInst(stack_top_, "stack_ptr", block);
-    }
-
-    void set_stack_ptr(Value* pos, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      new StoreInst(pos, stack_top_, false, block);
-    }
-
-    Value* stack_position(int amount, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-
-      if(amount == 0) return stack_ptr(block);
-
-      Value* idx = ConstantInt::get(Type::Int32Ty, amount);
-
-      Value* stack_pos = GetElementPtrInst::Create(stack_ptr(block),
-                           &idx, &idx+1, "stack_pos", block);
-
-      return stack_pos;
-    }
-
-    Value* stack_back_position(int back, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      return stack_position(-back, block);
-    }
-
-    Value* stack_objects(int count, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      return stack_position(-(count - 1), block);
-    }
-
-    Value* stack_ptr_adjust(int amount, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-
-      Value* pos = stack_position(amount, block);
-      set_stack_ptr(pos, block);
-
-      return pos;
-    }
-
-    void stack_remove(int count=1) {
-      stack_ptr_adjust(-count);
-    }
-
-    void stack_push(Value* val, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      Value* stack_pos = stack_ptr_adjust(1, block);
-      if(val->getType() == cast<PointerType>(stack_pos->getType())->getElementType()) {
-        new StoreInst(val, stack_pos, false, block);
-      } else {
-        Value* cst = CastInst::Create(
-          Instruction::BitCast,
-          val,
-          ObjType, "casted", block);
-        new StoreInst(cst, stack_pos, false, block);
-      }
-    }
-
-    llvm::Value* stack_back(int back, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      return new LoadInst(stack_back_position(back, block), "stack_load", block);
-    }
-
-    llvm::Value* stack_top(BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      return stack_back(0, block);
-    }
-
-    llvm::Value* stack_pop(BasicBlock* block = NULL) {
-      if(!block) block = block_;
-
-      Value* val = stack_back(0, block);
-
-      stack_ptr_adjust(-1, block);
-      return val;
-    }
-
-    Value* constant(Object* obj, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      return CastInst::Create(
-          Instruction::IntToPtr,
-          ConstantInt::get(IntPtrTy, (intptr_t)obj),
-          ObjType, "cast_to_obj", block);
     }
 
     void at_ip(int ip) {
@@ -537,8 +358,8 @@ namespace rubinius {
     void visit_ret() {
       if(ls_->include_profiling()) {
         Value* test = new LoadInst(ls_->profiling(), "profiling", block_);
-        BasicBlock* end_profiling = BasicBlock::Create("end_profiling", function_);
-        BasicBlock* cont = BasicBlock::Create("continue", function_);
+        BasicBlock* end_profiling = new_block("end_profiling");
+        BasicBlock* cont = new_block("continue");
 
         BranchInst::Create(end_profiling, cont, test, block_);
 
@@ -606,15 +427,6 @@ namespace rubinius {
       new StoreInst(val, stack_back_position(positions), false, block_);
     }
 
-    Value* cast_int(Value* obj, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-
-      return CastInst::Create(
-          Instruction::PtrToInt,
-          obj,
-          IntPtrTy, "cast", block);
-    }
-
     void check_fixnums(Value* left, Value* right, BasicBlock* if_true,
                        BasicBlock* if_false) {
       Value* mask = ConstantInt::get(IntPtrTy, TAG_FIXNUM_MASK);
@@ -639,7 +451,7 @@ namespace rubinius {
       lint = BinaryOperator::CreateAnd(lint, mask, "mask", block_);
       Value* lcmp = new ICmpInst(ICmpInst::ICMP_NE, lint, zero, "check_mask", block_);
 
-      BasicBlock* right_check = block("ref_check");
+      BasicBlock* right_check = new_block("ref_check");
       right_check->moveAfter(block_);
       BranchInst::Create(right_check, if_false, lcmp, block_);
 
@@ -721,8 +533,8 @@ namespace rubinius {
                     out_args_array_, false, block);
     }
 
-    Value* inline_cache_send(Symbol* name, int args, InlineCache* cache,
-                       BasicBlock* block=NULL, bool priv=false)
+    Value* inline_cache_send(int args, InlineCache* cache,
+                             BasicBlock* block=NULL)
     {
       if(!block) block = block_;
 
@@ -848,9 +660,9 @@ namespace rubinius {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
-      BasicBlock* fast = block("fast");
-      BasicBlock* dispatch = block("dispatch");
-      BasicBlock* cont = block();
+      BasicBlock* fast = new_block("fast");
+      BasicBlock* dispatch = new_block("dispatch");
+      BasicBlock* cont = new_block();
 
       check_both_not_references(recv, arg, fast, dispatch);
 
@@ -878,9 +690,9 @@ namespace rubinius {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
-      BasicBlock* fast = block("fast");
-      BasicBlock* dispatch = block("dispatch");
-      BasicBlock* cont = block();
+      BasicBlock* fast = new_block("fast");
+      BasicBlock* dispatch = new_block("dispatch");
+      BasicBlock* cont = new_block();
 
       check_fixnums(recv, arg, fast, dispatch);
 
@@ -904,40 +716,13 @@ namespace rubinius {
       stack_push(phi);
     }
 
-    Value* tag_strip(Value* obj, BasicBlock* block = NULL, const Type* type = NULL) {
-      if(!block) block = block_;
-      if(!type) type = Int31Ty;
-
-      Value* i = CastInst::Create(
-          Instruction::PtrToInt,
-          obj, Type::Int32Ty, "as_int", block);
-
-      Value* more = BinaryOperator::CreateLShr(
-          i, ConstantInt::get(Type::Int32Ty, 1),
-          "lshr", block);
-      return CastInst::CreateIntegerCast(
-          more, type, true, "stripped", block);
-    }
-
-    Value* fixnum_tag(Value* obj, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      Value* obj32 = CastInst::CreateZExtOrBitCast(
-          obj, Type::Int32Ty, "as_32bit", block);
-      Value* one = ConstantInt::get(Type::Int32Ty, 1);
-      Value* more = BinaryOperator::CreateShl(obj32, one, "shl", block);
-      Value* tagged = BinaryOperator::CreateOr(more, one, "or", block);
-
-      return CastInst::Create(
-          Instruction::IntToPtr, tagged, ObjType, "as_obj", block);
-    }
-
     void visit_meta_send_op_lt(opcode name) {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
-      BasicBlock* fast = block("fast");
-      BasicBlock* dispatch = block("dispatch");
-      BasicBlock* cont = block("cont");
+      BasicBlock* fast = new_block("fast");
+      BasicBlock* dispatch = new_block("dispatch");
+      BasicBlock* cont = new_block("cont");
 
       check_fixnums(recv, arg, fast, dispatch);
 
@@ -965,9 +750,9 @@ namespace rubinius {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
-      BasicBlock* fast = block("fast");
-      BasicBlock* dispatch = block("dispatch");
-      BasicBlock* cont = block("cont");
+      BasicBlock* fast = new_block("fast");
+      BasicBlock* dispatch = new_block("dispatch");
+      BasicBlock* cont = new_block("cont");
 
       check_fixnums(recv, arg, fast, dispatch);
 
@@ -995,10 +780,10 @@ namespace rubinius {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
-      BasicBlock* fast = block("fast");
-      BasicBlock* dispatch = block("dispatch");
-      BasicBlock* tagnow = block("tagnow");
-      BasicBlock* cont = block("cont");
+      BasicBlock* fast = new_block("fast");
+      BasicBlock* dispatch = new_block("dispatch");
+      BasicBlock* tagnow = new_block("tagnow");
+      BasicBlock* cont = new_block("cont");
 
       check_fixnums(recv, arg, fast, dispatch);
 
@@ -1047,9 +832,9 @@ namespace rubinius {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
-      BasicBlock* fast = block("fast");
-      BasicBlock* dispatch = block("dispatch");
-      BasicBlock* cont = block("cont");
+      BasicBlock* fast = new_block("fast");
+      BasicBlock* dispatch = new_block("dispatch");
+      BasicBlock* cont = new_block("cont");
 
       check_fixnums(recv, arg, fast, dispatch);
 
@@ -1078,7 +863,7 @@ namespace rubinius {
       Value* sum = ExtractValueInst::Create(res, 0, "sub", fast);
       Value* dof = ExtractValueInst::Create(res, 1, "did_overflow", fast);
 
-      BasicBlock* tagnow = block("tagnow");
+      BasicBlock* tagnow = new_block("tagnow");
       BranchInst::Create(dispatch, tagnow, dof, fast);
 
       Value* imm_value = fixnum_tag(sum, tagnow);
@@ -1241,195 +1026,23 @@ namespace rubinius {
       call_flags_ = flag;
     }
 
-    void call_tuple_at(InlineCache* cache, opcode args) {
-      Value* recv = stack_back(1);
-
-      // bool is_tuple = recv->flags & mask;
-
-      Value* flag_idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0)
-      };
-
-      Value* gep = GetElementPtrInst::Create(recv, flag_idx, flag_idx+4, "flag_pos", block_);
-      Value* flags = new LoadInst(gep, "flags", block_);
-
-      Value* mask = ConstantInt::get(Type::Int32Ty, (1 << 8) - 1);
-      Value* obj_type = BinaryOperator::CreateAnd(flags, mask, "mask", block_);
-
-      Value* tag = ConstantInt::get(Type::Int32Ty, rubinius::Tuple::type);
-      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, obj_type, tag, "is_tuple", block_);
-
-      BasicBlock* is_tuple = block("is_tuple");
-      BasicBlock* access =   block("tuple_at");
-      BasicBlock* is_other = block("is_other");
-      BasicBlock* cont =     block("continue");
-
-      BranchInst::Create(is_tuple, is_other, cmp, block_);
-
-      block_ = is_tuple;
-
-      Value* index_val = stack_pop();
-
-      Value* fix_mask = ConstantInt::get(IntPtrTy, TAG_FIXNUM_MASK);
-      Value* fix_tag  = ConstantInt::get(IntPtrTy, TAG_FIXNUM);
-
-      Value* lint = cast_int(index_val);
-      Value* masked = BinaryOperator::CreateAnd(lint, fix_mask, "masked", block_);
-
-      Value* fix_cmp = new ICmpInst(ICmpInst::ICMP_EQ, masked, fix_tag, "is_fixnum", block_);
-
-      // Check that index is not over the end of the Tuple
-      const Type* tuple_type = ptr_type("Tuple");
-
-      Value* tup = CastInst::Create(
-          Instruction::BitCast,
-          recv,
-          tuple_type, "as_tuple", block_);
-
-      Value* index = tag_strip(index_val, block_, Type::Int32Ty);
-
-      Value* tuple_size_idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::tuple_full_size)
-      };
-
-      Value* table_size_pos = GetElementPtrInst::Create(tup,
-          tuple_size_idx, tuple_size_idx+2, "table_size_pos", block_);
-
-      Value* full_size = new LoadInst(table_size_pos, "table_size", block_);
-
-      Value* size_cmp = new ICmpInst(ICmpInst::ICMP_SLT, index, full_size, "is_in_bounds", block_);
-
-      // Combine fix_cmp and size_cmp to validate entry into access code
-      Value* access_cmp = BinaryOperator::CreateAnd(fix_cmp, size_cmp, "access_cmp", block_);
-
-      BranchInst::Create(access, is_other, access_cmp, block_);
-
-      block_ = access;
-
-      stack_remove(1);
-
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::tuple_field),
-        index
-      };
-
-      gep = GetElementPtrInst::Create(tup, idx, idx+3, "field_pos", block_);
-
-      stack_push(new LoadInst(gep, "tuple_at", block_));
-
-      BranchInst::Create(cont, block_);
-
-      block_ = is_other;
-
-      Value* ret = inline_cache_send(cache->name, args, cache, block_, allow_private_);
-      stack_remove(args + 1);
-      check_for_exception(ret);
-
-      stack_push(ret);
-
-      BranchInst::Create(cont, block_);
-      block_ = cont;
-    }
-
-    void call_tuple_put(InlineCache* cache, opcode args) {
-      Value* recv = stack_back(2);
-
-      Value* flag_idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0)
-      };
-
-      Value* gep = GetElementPtrInst::Create(recv, flag_idx, flag_idx+4, "flag_pos", block_);
-      Value* flags = new LoadInst(gep, "flags", block_);
-
-      Value* mask = ConstantInt::get(Type::Int32Ty, (1 << 8) - 1);
-      Value* obj_type = BinaryOperator::CreateAnd(flags, mask, "mask", block_);
-
-      Value* tag = ConstantInt::get(Type::Int32Ty, rubinius::Tuple::type);
-      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, obj_type, tag, "is_tuple", block_);
-
-      BasicBlock* is_tuple = block("is_tuple");
-      BasicBlock* access =   block("tuple_put");
-      BasicBlock* is_other = block("is_other");
-      BasicBlock* cont =     block("continue");
-
-      BranchInst::Create(is_tuple, is_other, cmp, block_);
-
-      block_ = is_tuple;
-
-      Value* index_val = stack_back(1);
-
-      Value* fix_mask = ConstantInt::get(IntPtrTy, TAG_FIXNUM_MASK);
-      Value* fix_tag  = ConstantInt::get(IntPtrTy, TAG_FIXNUM);
-
-      Value* lint = cast_int(index_val);
-      Value* masked = BinaryOperator::CreateAnd(lint, fix_mask, "masked", block_);
-
-      Value* fix_cmp = new ICmpInst(ICmpInst::ICMP_EQ, masked, fix_tag, "is_fixnum", block_);
-
-      BranchInst::Create(access, is_other, fix_cmp, block_);
-
-      block_ = access;
-
-      Value* index = tag_strip(index_val, block_, Type::Int32Ty);
-      Value* value = stack_top();
-      stack_remove(3);
-
-      const Type* tuple_type = ptr_type("Tuple");
-
-      Value* tup = CastInst::Create(
-          Instruction::BitCast,
-          recv,
-          tuple_type, "as_tuple", block_);
-
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::tuple_field),
-        index
-      };
-
-      gep = GetElementPtrInst::Create(tup, idx, idx+3, "field_pos", block_);
-
-      new StoreInst(value, gep, false, block_);
-      write_barrier(tup, value);
-      stack_push(value);
-
-      BranchInst::Create(cont, block_);
-
-      block_ = is_other;
-
-      Value* ret = inline_cache_send(cache->name, args, cache, block_, allow_private_);
-      stack_remove(args + 1);
-      check_for_exception(ret);
-
-      stack_push(ret);
-
-      BranchInst::Create(cont, block_);
-      block_ = cont;
-    }
-
     void visit_send_stack(opcode which, opcode args) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      executor callee = 0;
-      if(cache->method) callee = cache->method->execute;
+      BasicBlock* after = new_block("after_send");
 
-      if(callee == Primitives::tuple_at && args == 1) {
-        call_tuple_at(cache, args);
-      } else if(callee == Primitives::tuple_put && args == 2) {
-        call_tuple_put(cache, args);
-      } else {
-        Value* ret = inline_cache_send(cache->name, args, cache, block_, allow_private_);
-        stack_remove(args + 1);
-        check_for_exception(ret);
-        stack_push(ret);
+      if(cache->method) {
+        Inliner inl(*this, cache, args, after);
+        inl.consider();
       }
+
+      Value* ret = inline_cache_send(args, cache, block_);
+      stack_remove(args + 1);
+      check_for_exception(ret);
+      stack_push(ret);
+
+      BranchInst::Create(after, block_);
+      block_ = after;
+
       allow_private_ = false;
     }
 
@@ -1456,7 +1069,7 @@ namespace rubinius {
       if(false && cache->method->execute == Primitives::object_is_fixnum) {
         call_is_fixnum();
       } else {
-        Value* ret = inline_cache_send(cache->name, 0, cache, block_, allow_private_);
+        Value* ret = inline_cache_send(0, cache, block_);
         stack_remove(1);
         check_for_exception(ret);
         stack_push(ret);
@@ -1601,9 +1214,9 @@ namespace rubinius {
         Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, global_serial,
             current_serial, "use_cache", block_);
 
-        BasicBlock* use_cache = BasicBlock::Create("use_cache", function_);
-        BasicBlock* use_call  = BasicBlock::Create("use_call", function_);
-        cont =      BasicBlock::Create("continue", function_);
+        BasicBlock* use_cache = new_block("use_cache");
+        BasicBlock* use_call  = new_block("use_call");
+        cont =      new_block("continue");
 
         BranchInst::Create(use_cache, use_call, cmp, block_);
 
@@ -1904,7 +1517,7 @@ namespace rubinius {
 
     void visit_goto(opcode ip) {
       BranchInst::Create(block_map_[ip], block_);
-      block_ = block("continue");
+      block_ = new_block("continue");
     }
 
     void visit_goto_if_true(opcode ip) {
@@ -1919,7 +1532,7 @@ namespace rubinius {
       Value* cmp = new ICmpInst(ICmpInst::ICMP_NE, anded,
           ConstantInt::get(Type::Int32Ty, cFalse), "is_true", block_);
 
-      BasicBlock* cont = block("continue");
+      BasicBlock* cont = new_block("continue");
       BranchInst::Create(block_map_[ip], cont, cmp, block_);
 
       block_ = cont;
@@ -1937,7 +1550,7 @@ namespace rubinius {
       Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, anded,
           ConstantInt::get(Type::Int32Ty, cFalse), "is_true", block_);
 
-      BasicBlock* cont = block("continue");
+      BasicBlock* cont = new_block("continue");
       BranchInst::Create(block_map_[ip], cont, cmp, block_);
 
       block_ = cont;
@@ -2059,7 +1672,7 @@ namespace rubinius {
     void visit_setup_unwind(opcode where, opcode type) {
       BasicBlock* code;
       if(type == cRescue) {
-        code = block("is_exception");
+        code = new_block("is_exception");
         std::vector<const Type*> types;
         types.push_back(VMTy);
 
@@ -2074,7 +1687,7 @@ namespace rubinius {
         if(exception_handlers_.size() == 0) {
           next = bail_out_;
         } else {
-          next = exception_handlers_.back()->code();
+          next = exception_handlers_.back();
         }
 
         BranchInst::Create(block_map_[where], next, isit, code);
@@ -2085,24 +1698,20 @@ namespace rubinius {
       // Reset the stack pointer within the handler to the current value
       set_stack_ptr(stack_ptr(), block_map_[where]);
 
-      ExceptionHandler* handler = new ExceptionHandler(code);
-      exception_handlers_.push_back(handler);
+      exception_handlers_.push_back(code);
     }
 
     void visit_pop_unwind() {
-      ExceptionHandler* handler = exception_handlers_.back();
       exception_handlers_.pop_back();
-
-      delete handler;
     }
 
     void visit_reraise() {
       if(exception_handlers_.size() > 0) {
-        BranchInst::Create(exception_handlers_.back()->code(), block_);
+        BranchInst::Create(exception_handlers_.back(), block_);
       } else {
         BranchInst::Create(bail_out_, block_);
       }
-      block_ = block("continue");
+      block_ = new_block("continue");
     }
 
     void visit_raise_return() {
