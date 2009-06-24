@@ -18,6 +18,7 @@ namespace :jit do
                  rubinius::StaticScope
                  rubinius::InstructionSequence
                  rubinius::InlineCache
+                 rubinius::InlineCacheHit
                  rubinius::BlockEnvironment
                  rubinius::BlockInvocation
                  jit_state!

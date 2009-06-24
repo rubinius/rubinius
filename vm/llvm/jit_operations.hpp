@@ -14,6 +14,9 @@ namespace rubinius {
 
     llvm::Value* vm_;
 
+    llvm::Value* zero_;
+    llvm::Value* one_;
+
   public:
     const llvm::Type* IntPtrTy;
     const llvm::Type* ObjType;
@@ -33,6 +36,9 @@ namespace rubinius {
       , module_(mod)
       , function_(func)
     {
+      zero_ = ConstantInt::get(Type::Int32Ty, 0);
+      one_ =  ConstantInt::get(Type::Int32Ty, 1);
+
 #if __LP64__
       IntPtrTy = llvm::Type::Int64Ty;
 #else
@@ -57,6 +63,10 @@ namespace rubinius {
 
     Value* vm() {
       return vm_;
+    }
+
+    static Value* cint(int num) {
+      return ConstantInt::get(Type::Int32Ty, num);
     }
 
     // Type resolution and manipulation
@@ -106,6 +116,62 @@ namespace rubinius {
 
       Value* tag = ConstantInt::get(Type::Int32Ty, type);
       return new ICmpInst(ICmpInst::ICMP_EQ, obj_type, tag, "is_tuple", block_);
+    }
+
+    Value* check_class(Value* obj, int class_id) {
+      Signature sig(ls_, Type::Int1Ty);
+      sig << "VM";
+      sig << "Object";
+      sig << Type::Int32Ty;
+
+      Value* call_args[] = {
+        vm_,
+        obj,
+        ConstantInt::get(Type::Int32Ty, class_id)
+      };
+
+      return sig.call("rbx_check_class", call_args, 3, "checked_class", block_);
+    }
+
+    Value* check_is_reference(Value* obj) {
+      Value* mask = ConstantInt::get(IntPtrTy, TAG_REF_MASK);
+      Value* zero = ConstantInt::get(IntPtrTy, TAG_REF);
+
+      Value* lint = create_and(cast_int(obj), mask, "masked");
+      return create_equal(lint, zero, "is_reference");
+    }
+
+    Value* reference_class(Value* obj) {
+      Value* idx[] = { zero_, zero_, one_ };
+      Value* gep = create_gep(obj, idx, 3, "class_pos");
+      return create_load(gep, "ref_class");
+    }
+
+    Value* get_class_id(Value* cls) {
+      Value* idx[] = { zero_, cint(3) };
+      Value* gep = create_gep(cls, idx, 2, "class_id_pos");
+      return create_load(gep, "class_id");
+    }
+
+    void check_reference_class(Value* obj, int needed_id, BasicBlock* failure) {
+      Value* is_ref = check_is_reference(obj);
+      BasicBlock* cont = new_block("check_class_id");
+      BasicBlock* body = new_block("correct_class");
+
+      create_conditional_branch(cont, failure, is_ref);
+
+      set_block(cont);
+
+      Value* klass = reference_class(obj);
+      Value* class_id = get_class_id(klass);
+
+      Value* cmp = create_equal(class_id, cint(needed_id), "check_class_id");
+
+      create_conditional_branch(body, failure, cmp);
+
+      set_block(body);
+
+      failure->moveAfter(body);
     }
 
     // BasicBlock management
@@ -311,7 +377,7 @@ namespace rubinius {
     }
 
     LoadInst* create_load(Value* ptr, const char* name = 0) {
-      return new LoadInst(ptr, "flags", block_);
+      return new LoadInst(ptr, name, block_);
     }
 
     void create_store(Value* val, Value* ptr) {

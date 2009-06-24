@@ -52,26 +52,10 @@ namespace rubinius {
 
       ops_.state()->add_accessor_inlined();
 
-      Signature sig(ops_.state(), Type::Int1Ty);
-      sig << "VM";
-      sig << "Object";
-      sig << Type::Int32Ty;
+      Value* self = ops_.stack_top();
 
-      Value* call_args[] = {
-        ops_.vm(),
-        ops_.stack_top(),
-        ConstantInt::get(Type::Int32Ty, klass->class_id())
-      };
-
-      Value* cmp = sig.call("rbx_check_class", call_args, 3, "checked_class",
-                            ops_.current_block());
-
-      BasicBlock* acc_inline = ops_.new_block("access_inline");
-      BasicBlock* send = ops_.new_block("use_send");
-
-      ops_.create_conditional_branch(acc_inline, send, cmp);
-
-      ops_.set_block(acc_inline);
+      BasicBlock* use_send = ops_.new_block("use_send");
+      ops_.check_reference_class(self, klass->class_id(), use_send);
 
       // Figure out if we should use the table ivar lookup or
       // the slot ivar lookup.
@@ -104,7 +88,9 @@ namespace rubinius {
       ops_.stack_push(ivar);
 
       ops_.create_branch(after_);
-      ops_.set_block(send);
+      ops_.set_block(use_send);
+
+      after_->moveAfter(use_send);
     }
 
     void call_tuple_at() {
