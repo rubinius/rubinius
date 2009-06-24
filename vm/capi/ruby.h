@@ -36,6 +36,8 @@
 #define RUBY
 #define RUBINIUS
 
+#define RUBY_COMPAT_LEVEL 2
+
 #ifdef __cplusplus
 # ifndef  HAVE_PROTOTYPES
 #  define HAVE_PROTOTYPES 1
@@ -332,6 +334,9 @@ struct RFloat {
 };
 
 #define RFLOAT(d)       capi_rfloat_struct(d)
+
+// To provide nicer error reporting
+#define RHASH(obj) assert(???? && "RHASH() is not supported")
 
 /*
  * The immediates.
@@ -945,6 +950,9 @@ double rb_num2dbl(VALUE);
 
   /** Returns the number of entries as a Fixnum. */
   VALUE   rb_hash_size(VALUE self);
+
+  // A macro to access the size "directly"
+#define RHASH_SIZE(obj) FIX2INT(rb_hash_size(obj))
 
   /** Send #write to io passing str. */
   VALUE   rb_io_write(VALUE io, VALUE str);
