@@ -65,6 +65,7 @@ namespace rubinius {
     int global_serial_;
     WorldState& world_;
     InlineCacheRegistry* ic_registry_;
+    unsigned int class_count_;
 
   public:
     Globals globals;
@@ -136,6 +137,10 @@ namespace rubinius {
 
     InlineCacheRegistry* ic_registry() {
       return ic_registry_;
+    }
+
+    unsigned int inc_class_count() {
+      return ++class_count_;
     }
 
     void enable_profiling(VM* vm);

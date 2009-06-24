@@ -156,6 +156,8 @@ namespace rubinius {
 
   Class* VM::new_basic_class(Class* sup) {
     Class *cls = new_object<Class>(G(klass));
+    cls->set_class_id(shared.inc_class_count());
+
     if(sup->nil_p()) {
       cls->instance_type(this, Fixnum::from(ObjectType));
       cls->set_type_info(find_type(ObjectType));

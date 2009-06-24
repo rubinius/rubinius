@@ -109,6 +109,7 @@ namespace rubinius {
     , global_serial_(0)
     , world_(*new WorldState)
     , ic_registry_(new InlineCacheRegistry)
+    , class_count_(0)
     , om(0)
     , global_cache(0)
     , config(config)

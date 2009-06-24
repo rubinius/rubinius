@@ -15,15 +15,17 @@ class Rubinius::VM
   end
 
   class JITInfo
-    def initialize(methods, bytes, nanoseconds)
+    def initialize(methods, bytes, nanoseconds, accessors_inlined)
       @jitted_methods = methods
       @code_bytes = bytes
       @nanoseconds = nanoseconds
+      @accessors_inlined = accessors_inlined
     end
 
     attr_reader :jitted_methods
     attr_reader :code_bytes
     attr_reader :nanoseconds
+    attr_reader :accessors_inlined
 
     def milliseconds
       @nanoseconds / 1_000_000

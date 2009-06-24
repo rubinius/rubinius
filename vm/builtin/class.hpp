@@ -18,6 +18,8 @@ namespace rubinius {
 
     TypeInfo* type_info_;
 
+    int class_id_;
+
   public:
     /* accessors */
 
@@ -29,6 +31,14 @@ namespace rubinius {
 
     void set_type_info(TypeInfo* ti) {
       type_info_ = ti;
+    }
+
+    int class_id() {
+      return class_id_;
+    }
+
+    void set_class_id(int id) {
+      class_id_ = id;
     }
 
     /* static */

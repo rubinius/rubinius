@@ -377,7 +377,7 @@ namespace rubinius {
 
   void InlineCache::update_seen_classes() {
     for(int i = 0; i < cTrackedICHits; i++) {
-      Module* mod = seen_classes_[i].module();
+      Module* mod = seen_classes_[i].klass();
       if(mod == klass_) {
         hits_ = seen_classes_[i].hits_address();
         return;
@@ -413,7 +413,7 @@ namespace rubinius {
            << "classes:\n";
 
     for(int i = 0; i < cTrackedICHits; i++) {
-      Module* mod = seen_classes_[i].module();
+      Module* mod = seen_classes_[i].klass();
       if(mod) {
         if(MetaClass* mc = try_as<MetaClass>(mod)) {
           if(Module* inner = try_as<Module>(mc->attached_instance())) {

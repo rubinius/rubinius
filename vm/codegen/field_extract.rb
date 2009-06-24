@@ -569,7 +569,7 @@ class CPPParser
   end
 
   def parse_stream(f)
-    class_pattern = /class ([^\s]+)\s*:\s*public\s+([^\s]+)/
+    class_pattern = /class\s+([^\s]+)\s*:\s*public\s+([^\s]+)/
     slot_pattern = %r!^\s*(\w+)\*?\s+\*?(\w+)_\s*;\s*//\s*slot(.*)!
     primitive_pattern = %r%^\s*//\s+Ruby.primitive([?!])?\s+:(.*)\s*$%
     prototype_pattern = %r!\s*(static\s+)?([\w\*]+)\s+([\w]+)\((.*)\)!
@@ -603,7 +603,7 @@ class CPPParser
       # Otherwise, keep scanning to look for fields and primitives
       idx = 0
       while l = f.gets
-        break if /^\s*class/.match(l)
+        break if /^\s*class\s+/.match(l)
 
         # Field declarations marked with a "// slot" comment
         if m = slot_pattern.match(l)

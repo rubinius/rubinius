@@ -55,6 +55,10 @@ namespace rubinius {
       return ls_;
     }
 
+    Value* vm() {
+      return vm_;
+    }
+
     // Type resolution and manipulation
     //
     const llvm::Type* ptr_type(std::string name) {
@@ -279,6 +283,24 @@ namespace rubinius {
       Value* pos = create_gep(tup, idx, 2, "table_size_pos");
 
       return create_load(pos, "table_size");
+    }
+
+    // Object access
+    Value* get_object_slot(Value* obj, int offset) {
+      assert(offset % sizeof(Object*) == 0);
+
+      Value* cst = CastInst::Create(
+          Instruction::BitCast,
+          obj,
+          PointerType::getUnqual(ObjType), "obj_array", block_);
+
+      Value* idx2[] = {
+        ConstantInt::get(Type::Int32Ty, offset / sizeof(Object*))
+      };
+
+      Value* pos = create_gep(cst, idx2, 1, "field_pos");
+
+      return create_load(pos, "field");
     }
 
     // Utilities for creating instructions

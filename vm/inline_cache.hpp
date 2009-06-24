@@ -18,27 +18,27 @@ namespace rubinius {
   const static int cTrackedICHits = 3;
 
   class InlineCacheHit {
-    Module* seen_module_;
+    Class* seen_class_;
     int hits_;
 
   public:
 
     InlineCacheHit()
-      : seen_module_(0)
+      : seen_class_(0)
       , hits_(0)
     {}
 
-    int* assign(Module* mod) {
-      seen_module_ = mod;
+    int* assign(Class* mod) {
+      seen_class_ = mod;
       return &hits_;
     }
 
-    Module* module() {
-      return seen_module_;
+    Class* klass() {
+      return seen_class_;
     }
 
-    void set_module(Module* mod) {
-      seen_module_ = mod;
+    void set_klass(Class* mod) {
+      seen_class_ = mod;
     }
 
     int hits() {
@@ -54,7 +54,7 @@ namespace rubinius {
   };
 
   class InlineCache : public Dispatch {
-    Module* klass_;
+    Class* klass_;
 
     typedef Object* (*CacheExecutor)(STATE, InlineCache*, CallFrame*, Arguments& args);
 
@@ -135,11 +135,11 @@ namespace rubinius {
       name = sym;
     }
 
-    Module* klass() {
+    Class* klass() {
       return klass_;
     }
 
-    void set_klass(Module* klass) {
+    void set_klass(Class* klass) {
       klass_ = klass;
     }
 
@@ -186,16 +186,21 @@ namespace rubinius {
     int classes_seen() {
       int seen = 0;
       for(int i = 0; i < cTrackedICHits; i++) {
-        if(seen_classes_[i].module()) seen++;
+        if(seen_classes_[i].klass()) seen++;
       }
 
       return seen;
     }
 
+    Class* tracked_class(int which) {
+      assert(which < cTrackedICHits);
+      return seen_classes_[which].klass();
+    }
+
     int total_hits() {
       int hits = 0;
       for(int i = 0; i < cTrackedICHits; i++) {
-        if(seen_classes_[i].module()) {
+        if(seen_classes_[i].klass()) {
           hits += seen_classes_[i].hits();
         }
       }

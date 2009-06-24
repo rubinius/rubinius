@@ -632,6 +632,14 @@ extern "C" {
     return Qnil;
   }
 
+  bool rbx_check_class(STATE, Object* obj, int id) {
+    return obj->lookup_begin(state)->class_id() == id;
+  }
+
+  Object* rbx_get_ivar(STATE, Object* self, Symbol* name) {
+    return self->get_table_ivar(state, name);
+  }
+
 }
 
 #endif

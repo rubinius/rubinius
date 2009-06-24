@@ -6,6 +6,7 @@
 #include "builtin/global_cache_entry.hpp"
 #include "inline_cache.hpp"
 
+#include "llvm/access_memory.hpp"
 #include "llvm/jit_operations.hpp"
 #include "llvm/inline.hpp"
 
@@ -14,21 +15,6 @@
 #include <list>
 
 namespace rubinius {
-
-  class AccessManagedMemory {
-    LLVMState* ls_;
-
-  public:
-    AccessManagedMemory(LLVMState* ls)
-      : ls_(ls)
-    {
-      ls_->shared().gc_dependent();
-    }
-
-    ~AccessManagedMemory() {
-      ls_->shared().gc_independent();
-    }
-  };
 
   typedef std::map<int, llvm::BasicBlock*> BlockMap;
 
@@ -1066,14 +1052,20 @@ namespace rubinius {
 
     void visit_send_method(opcode which) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      if(false && cache->method->execute == Primitives::object_is_fixnum) {
-        call_is_fixnum();
-      } else {
-        Value* ret = inline_cache_send(0, cache, block_);
-        stack_remove(1);
-        check_for_exception(ret);
-        stack_push(ret);
+      BasicBlock* after = new_block("after_send");
+
+      if(cache->method) {
+        Inliner inl(*this, cache, 0, after);
+        inl.consider();
       }
+
+      Value* ret = inline_cache_send(0, cache, block_);
+      stack_remove(1);
+      check_for_exception(ret);
+      stack_push(ret);
+
+      BranchInst::Create(after, block_);
+      block_ = after;
 
       allow_private_ = false;
     }

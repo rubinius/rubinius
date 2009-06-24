@@ -53,6 +53,7 @@ namespace rubinius {
 
     int jitted_methods_;
     int queued_methods_;
+    int accessors_inlined_;
 
     SharedState& shared_;
 
@@ -117,6 +118,14 @@ namespace rubinius {
 
     void add_code_bytes(int bytes) {
       code_bytes_ += bytes;
+    }
+
+    void add_accessor_inlined() {
+      accessors_inlined_++;
+    }
+
+    int accessors_inlined() {
+      return accessors_inlined_;
     }
 
     SharedState& shared() { return shared_; }

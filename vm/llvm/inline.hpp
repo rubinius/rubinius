@@ -1,4 +1,7 @@
 #include "llvm/jit_operations.hpp"
+#include "llvm/access_memory.hpp"
+
+#include "builtin/access_variable.hpp"
 
 namespace rubinius {
   class Inliner {
@@ -31,7 +34,77 @@ namespace rubinius {
         call_tuple_at();
       } else if(callee == Primitives::tuple_put && count_ == 2) {
         call_tuple_put();
+
+      // If the cache has only ever had one class, inline!
+      } else if(cache_->classes_seen() == 1) {
+        AccessManagedMemory memguard(ops_.state());
+        Executable* meth = cache_->method;
+
+        if(AccessVariable* acc = try_as<AccessVariable>(meth)) {
+          inline_ivar_access(cache_->tracked_class(0), acc);
+        }
       }
+    }
+
+    void inline_ivar_access(Class* klass, AccessVariable* acc) {
+      if(acc->write()->true_p()) return;
+      if(count_ != 0) return;
+
+      ops_.state()->add_accessor_inlined();
+
+      Signature sig(ops_.state(), Type::Int1Ty);
+      sig << "VM";
+      sig << "Object";
+      sig << Type::Int32Ty;
+
+      Value* call_args[] = {
+        ops_.vm(),
+        ops_.stack_top(),
+        ConstantInt::get(Type::Int32Ty, klass->class_id())
+      };
+
+      Value* cmp = sig.call("rbx_check_class", call_args, 3, "checked_class",
+                            ops_.current_block());
+
+      BasicBlock* acc_inline = ops_.new_block("access_inline");
+      BasicBlock* send = ops_.new_block("use_send");
+
+      ops_.create_conditional_branch(acc_inline, send, cmp);
+
+      ops_.set_block(acc_inline);
+
+      // Figure out if we should use the table ivar lookup or
+      // the slot ivar lookup.
+
+      TypeInfo* ti = klass->type_info();
+      TypeInfo::Slots::iterator it = ti->slots.find(acc->name()->index());
+
+      Value* ivar = 0;
+
+      if(it != ti->slots.end()) {
+        int offset = ti->slot_locations[it->second];
+        ivar = ops_.get_object_slot(ops_.stack_top(), offset);
+      } else {
+        Signature sig2(ops_.state(), "Object");
+        sig2 << "VM";
+        sig2 << "Object";
+        sig2 << "Object";
+
+        Value* call_args2[] = {
+          ops_.vm(),
+          ops_.stack_top(),
+          ops_.constant(acc->name())
+        };
+
+        ivar = sig2.call("rbx_get_ivar", call_args2, 3, "ivar",
+            ops_.current_block());
+      }
+
+      ops_.stack_pop();
+      ops_.stack_push(ivar);
+
+      ops_.create_branch(after_);
+      ops_.set_block(send);
     }
 
     void call_tuple_at() {

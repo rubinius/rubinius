@@ -267,17 +267,17 @@ namespace rubinius {
       if(cache->klass_) {
         tmp = mark.call(cache->klass_);
         if(tmp) {
-          cache->klass_ = (Module*)tmp;
+          cache->klass_ = (Class*)tmp;
           mark.just_set(obj, tmp);
         }
       }
 
       for(int i = 0; i < cTrackedICHits; i++) {
-        Module* mod = cache->seen_classes_[i].module();
+        Module* mod = cache->seen_classes_[i].klass();
         if(mod) {
           tmp = mark.call(mod);
           if(tmp) {
-            cache->seen_classes_[i].set_module((Module*)tmp);
+            cache->seen_classes_[i].set_klass((Class*)tmp);
             mark.just_set(obj, tmp);
           }
         }
@@ -309,7 +309,7 @@ namespace rubinius {
       }
 
       for(int i = 0; i < cTrackedICHits; i++) {
-        Module* mod = cache->seen_classes_[i].module();
+        Module* mod = cache->seen_classes_[i].klass();
         if(mod) visit.call(mod);
       }
     }

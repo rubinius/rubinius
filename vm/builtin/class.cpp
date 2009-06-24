@@ -58,6 +58,7 @@ namespace rubinius {
 
   Class* Class::create(STATE, Class* super) {
     Class* cls = state->new_object<Class>(G(klass));
+    cls->class_id_ = state->shared.inc_class_count();
 
     cls->name(state, (Symbol*)Qnil);
     cls->instance_type(state, super->instance_type());
@@ -73,6 +74,8 @@ namespace rubinius {
 
   Class* Class::s_allocate(STATE) {
     Class* cls = as<Class>(state->new_object<Class>(G(klass)));
+    cls->class_id_ = state->shared.inc_class_count();
+
     cls->set_type_info(state->om->type_info[ObjectType]);
     return cls;
   }
@@ -109,6 +112,8 @@ namespace rubinius {
     MetaClass *meta;
 
     meta = state->new_object<MetaClass>(G(metaclass));
+    meta->set_class_id(state->shared.inc_class_count());
+
     if(!sup) { sup = obj->klass(); }
     meta->attached_instance(state, obj);
     meta->setup(state);
