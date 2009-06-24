@@ -73,21 +73,32 @@ namespace rubinius {
 
     // Ruby.primitive :lookuptable_duplicate
     LookupTable* duplicate(STATE);
+
     void   redistribute(STATE, size_t size);
+
     LookupTableBucket* find_entry(STATE, Object* key);
     Object* find(STATE, Object* key);
+
     // Ruby.primitive :lookuptable_delete
     Object* remove(STATE, Object* key);
+
     // Ruby.primitive :lookuptable_has_key
     Object* has_key(STATE, Object* key);
-    static Array* collect(STATE, LookupTable* tbl, Object* (*action)(STATE, LookupTableBucket*));
+
+    static Array* collect(STATE, LookupTable* tbl,
+                          Object* (*action)(STATE, LookupTableBucket*));
     static Object* get_key(STATE, LookupTableBucket* entry);
+
     // Ruby.primitive :lookuptable_keys
     Array* all_keys(STATE);
+
     static Object* get_value(STATE, LookupTableBucket* entry);
+
     // Ruby.primitive :lookuptable_values
     Array* all_values(STATE);
+
     static Object* get_entry(STATE, LookupTableBucket* entry);
+
     // Ruby.primitive :lookuptable_entries
     Array* all_entries(STATE);
 

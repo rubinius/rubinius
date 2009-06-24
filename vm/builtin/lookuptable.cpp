@@ -235,7 +235,9 @@ namespace rubinius {
     return Qtrue;
   }
 
-  Array* LookupTable::collect(STATE, LookupTable* tbl, Object* (*action)(STATE, LookupTableBucket*)) {
+  Array* LookupTable::collect(STATE, LookupTable* tbl,
+                              Object* (*action)(STATE, LookupTableBucket*))
+  {
     size_t i, j;
     Tuple* values;
     LookupTableBucket* entry;
