@@ -7,13 +7,14 @@
 
 namespace rubinius {
   class LookupTable;
+  class MethodTable;
 
   class Module : public Object {
   public:
     const static object_type type = ModuleType;
 
   private:
-    LookupTable* method_table_; // slot
+    MethodTable* method_table_; // slot
     Symbol* module_name_;       // slot
     LookupTable* constants_;    // slot
     Module* superclass_;        // slot
@@ -21,7 +22,7 @@ namespace rubinius {
   public:
     /* accessors */
 
-    attr_accessor(method_table, LookupTable);
+    attr_accessor(method_table, MethodTable);
     attr_accessor(module_name, Symbol);
     attr_accessor(constants, LookupTable);
     attr_accessor(superclass, Module);
@@ -47,6 +48,8 @@ namespace rubinius {
     Object* get_const(STATE, const char* sym);
 
     void set_name(STATE, Module* under, Symbol* name);
+
+    void add_method(STATE, Symbol* name, Executable* exec, Symbol* vis = 0);
 
     class Info : public TypeInfo {
     public:

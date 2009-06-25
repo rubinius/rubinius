@@ -12,7 +12,6 @@
 #include "call_frame.hpp"
 #include "objectmemory.hpp"
 #include "object_utils.hpp"
-#include "builtin/sendsite.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/class.hpp"

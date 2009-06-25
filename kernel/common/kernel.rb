@@ -544,7 +544,7 @@ module Kernel
   def methods(all=true)
     mt = metaclass.method_table
     if all
-      keys = mt.keys
+      keys = mt.names
     else
       keys = mt.public_names + mt.protected_names
     end
@@ -593,7 +593,7 @@ module Kernel
 
   def singleton_methods(all=true)
     mt = metaclass.method_table
-    Rubinius.convert_to_names(all ? mt.keys : mt.public_names + mt.protected_names)
+    Rubinius.convert_to_names(all ? mt.names : mt.public_names + mt.protected_names)
   end
 
   alias_method :send, :__send__

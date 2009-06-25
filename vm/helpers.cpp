@@ -11,11 +11,12 @@
 #include "global_cache.hpp"
 #include "objectmemory.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/sendsite.hpp"
 #include "builtin/system.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/global_cache_entry.hpp"
+#include "builtin/methodtable.hpp"
+#include "builtin/sendsite.hpp"
 
 #include "vm.hpp"
 #include "object_utils.hpp"
@@ -28,7 +29,7 @@ namespace rubinius {
     void add_method(STATE, CallFrame* call_frame, Module* mod, Symbol* name, CompiledMethod* method) {
       method->scope(state, call_frame->static_scope());
       method->serial(state, Fixnum::from(0));
-      mod->method_table()->store(state, name, method);
+      mod->method_table()->store(state, name, method, G(sym_public));
       state->global_cache->clear(mod, name);
 
       if(Class* cls = try_as<Class>(mod)) {
@@ -151,12 +152,6 @@ namespace rubinius {
 
       if(!GlobalCacheResolver::resolve(state, dis.name, dis, lookup)) {
         return (Tuple*)Qnil;
-      }
-
-      MethodVisibility* vis = try_as<MethodVisibility>(dis.method);
-
-      if(vis) {
-        return Tuple::from(state, 2, vis->method(), dis.module);
       }
 
       return Tuple::from(state, 2, dis.method, dis.module);

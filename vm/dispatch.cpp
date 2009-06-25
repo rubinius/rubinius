@@ -2,9 +2,9 @@
 #include "arguments.hpp"
 #include "lookup_data.hpp"
 
+#include "builtin/sendsite.hpp"
 #include "builtin/module.hpp"
 #include "builtin/class.hpp"
-#include "builtin/sendsite.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/executable.hpp"
 

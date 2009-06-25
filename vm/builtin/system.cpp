@@ -471,12 +471,6 @@ namespace rubinius {
       return (Tuple*)Qnil;
     }
 
-    MethodVisibility* vis = try_as<MethodVisibility>(dis.method);
-
-    if(vis) {
-      return Tuple::from(state, 2, vis->method(), dis.module);
-    }
-
     return Tuple::from(state, 2, dis.method, dis.module);
   }
 
@@ -486,8 +480,7 @@ namespace rubinius {
 
     method->scope(state, scope);
     method->serial(state, Fixnum::from(0));
-    mod->method_table()->store(state, name, method);
-    state->global_cache->clear(mod, name);
+    mod->add_method(state, name, method);
 
     if(Class* cls = try_as<Class>(mod)) {
       method->formalize(state, false);
@@ -508,8 +501,7 @@ namespace rubinius {
 
     method->scope(state, scope);
     method->serial(state, Fixnum::from(0));
-    mod->method_table()->store(state, name, method);
-    state->global_cache->clear(mod, name);
+    mod->add_method(state, name, method);
 
     return method;
   }

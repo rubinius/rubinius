@@ -459,13 +459,6 @@ public:
     TS_ASSERT(!Qfalse->nil_p());
   }
 
-  void test_undef_p() {
-    TS_ASSERT(!Qnil->undef_p());
-    TS_ASSERT(Qundef->undef_p());
-    TS_ASSERT(!Qtrue->undef_p());
-    TS_ASSERT(!Qfalse->undef_p());
-  }
-
   void test_true_p() {
     TS_ASSERT(!Qnil->true_p());
     TS_ASSERT(!Qundef->true_p());

@@ -128,7 +128,7 @@ namespace rubinius {
       return cCApiHandleQfalse;
     } else if(obj->true_p()) {
       return cCApiHandleQtrue;
-    } else if(obj->undef_p()) {
+    } else if(obj == Qundef) {
       return cCApiHandleQundef;
     }
 

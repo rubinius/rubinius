@@ -131,16 +131,6 @@ module Kernel
 end
 
 module Rubinius
-  class CompiledMethod < Executable
-    class Visibility
-      # Create a MethodVisibility for +method+ with +visibility+
-      def initialize(method, visibility)
-        @method = method
-        @visibility = visibility
-      end
-    end
-  end
-
   class AccessVariable
     def self.allocate
       Ruby.primitive :accessvariable_allocate
@@ -172,6 +162,18 @@ module Rubinius
     def []=(key, val)
       Ruby.primitive :lookuptable_store
       raise PrimitiveFailure, "LookupTable#[]= primitive failed"
+    end
+  end
+
+  class MethodTable
+    def lookup(name)
+      Ruby.primitive :methodtable_lookup
+      raise PrimitiveFailure, "MethodTable#lookup primitive failed"
+    end
+
+    def store(name, exec, visibility)
+      Ruby.primitive :methodtable_store
+      raise PrimitiveFailure, "MethodTable#store primitive failed"
     end
   end
 end
@@ -272,13 +274,13 @@ class Module
 
   def attr_reader(name)
     meth = Rubinius::AccessVariable.get_ivar name
-    @method_table[name] = meth
+    @method_table.store name, meth, :public
     return nil
   end
 
   def attr_writer(name)
     meth = Rubinius::AccessVariable.set_ivar name
-    @method_table["#{name}=".to_sym] = meth
+    @method_table.store "#{name}=".to_sym, meth, :public
     return nil
   end
 
@@ -289,56 +291,61 @@ class Module
   end
 
   def private(name)
-    if entry = @method_table[name]
-      unless entry.kind_of? Rubinius::Executable
-        entry.visibility = :private
-      else
-        cmv = Rubinius::CompiledMethod::Visibility.new entry, :private
-        @method_table[name] = cmv
-      end
+    if entry = @method_table.lookup(name)
+      entry.visibility = :private
     end
   end
 
   def protected(name)
-    if entry = @method_table[name]
-      unless entry.kind_of? Rubinius::Executable
-        entry.visibility = :protected
-      else
-        cmv = Rubinius::CompiledMethod::Visibility.new entry, :protected
-        @method_table[name] = cmv
-      end
+    if entry = @method_table.lookup(name)
+      entry.visibility = :protected
     end
   end
 
   def alias_method(new_name, current_name)
-    unless meth = @method_table[current_name]
+    unless entry = @method_table.lookup(current_name)
       mod = direct_superclass()
-      while !meth and mod
-        meth = mod.method_table[current_name]
+      while !entry and mod
+        entry = mod.method_table.lookup(current_name)
         mod = mod.direct_superclass
       end
     end
 
-    unless meth
+    unless entry
       raise NoMethodError, "No method '#{current_name}' to alias to '#{new_name}'"
     end
-    @method_table[new_name] = meth
+
+    @method_table.store new_name, entry.method, entry.visibility
     Rubinius::VM.reset_method_cache(new_name)
   end
 
   def module_function(name)
-    if cm = @method_table[name]
-      if cm.kind_of? Rubinius::Tuple
-        cm = cm[1]
-      end
+    if entry = @method_table.lookup(name)
       meta = class << self; self; end
-      meta.method_table[name] = cm
+      meta.method_table.store name, entry.method, :public
       private name
     end
   end
 end
 
 module Rubinius
+  class MethodTable::Bucket
+    attr_accessor :visibility
+    attr_accessor :method
+
+    def public?
+      @visibility == :public
+    end
+
+    def private?
+      @visibility == :private
+    end
+
+    def protected?
+      @visibility == :protected
+    end
+  end
+
   class IncludedModule < Module
     attr_reader :superclass
     attr_reader :module

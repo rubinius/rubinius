@@ -92,7 +92,7 @@ module FFI
         lib = setup_ld_library_path lib if lib
 
         if func = create_backend(lib, cname, args, ret)
-          metaclass.method_table[mname] = func
+          metaclass.method_table.store mname, func, :public
           return func
         end
       end

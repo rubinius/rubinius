@@ -30,32 +30,5 @@ module Rubinius
       Ruby.primitive :compiledmethod_of_sender
       raise PrimitiveFailure, "CompiledMethod.of_sender failed"
     end
-
-    ##
-    # An instance of Visibility is stored in a class's or module's
-    # method table and records a method's visibility. The Visibility
-    # instance contains a reference to the actual compiled method.
-
-    class Visibility
-      attr_accessor :method
-      attr_accessor :visibility
-
-      # Is this method private?
-      def private?
-        @visibility == :private
-      end
-
-      ##
-      # Is this method protected?
-      def protected?
-        @visibility == :protected
-      end
-
-      ##
-      # Is this method public?
-      def public?
-        @visibility == :public
-      end
-    end
   end
 end

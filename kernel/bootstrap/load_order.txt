@@ -20,6 +20,7 @@ kernel.rbc
 lookuptable.rbc
 machine_method.rbc
 metaclass.rbc
+methodtable.rbc
 nil.rbc
 object.rbc
 proc.rbc

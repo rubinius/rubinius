@@ -135,8 +135,8 @@ class Module
     mod = self
 
     while mod
-      if method = mod.method_table[sym.to_sym]
-        return method
+      if entry = mod.method_table.lookup(sym.to_sym)
+        return entry
       end
 
       mod = mod.direct_superclass
@@ -183,22 +183,17 @@ class Module
   end
 
   def remote_alias(new_name, mod, current_name)
-    cm = mod.find_method_in_hierarchy(current_name)
-    unless cm
+    entry = mod.find_method_in_hierarchy(current_name)
+    unless entry
       raise NameError, "Unable to find method '#{current_name}' under #{mod}"
     end
 
-    if cm.kind_of? Rubinius::Tuple
-      meth = cm[1]
-    else
-      meth = cm
-    end
-
+    meth = entry.method
     if meth.primitive and meth.primitive > 0
       raise NameError, "Unable to remote alias primitive method '#{current_name}'"
     end
 
-    method_table[new_name] = cm
+    @method_table.store new_name, entry.method, entry.visibility
     Rubinius::VM.reset_method_cache(new_name)
 
     return new_name
@@ -209,7 +204,7 @@ class Module
       name = Type.coerce_to_symbol(name)
       # Will raise a NameError if the method doesn't exist.
       instance_method(name)
-      method_table[name] = false
+      @method_table.store name, nil, :undef
       Rubinius::VM.reset_method_cache(name)
 
       method_undefined(name) if respond_to? :method_undefined
@@ -223,10 +218,10 @@ class Module
       name = Type.coerce_to_symbol(name)
       # Will raise a NameError if the method doesn't exist.
       instance_method(name)
-      unless self.method_table[name]
+      unless @method_table.lookup(name)
         raise NameError, "method `#{name}' not defined in #{self.name}"
       end
-      method_table.delete name
+      @method_table.delete name
       Rubinius::VM.reset_method_cache(name)
 
       method_removed(name) if respond_to? :method_removed
@@ -273,14 +268,14 @@ class Module
 
     mod = self
     while mod
-      if cm = mod.method_table[name]
-        cm = cm.method if cm.kind_of? Rubinius::CompiledMethod::Visibility
+      if entry = mod.method_table.lookup(name)
+        break if entry.visibility == :undef
+
+        cm = entry.method
         if cm
           mod = mod.module if mod.class == Rubinius::IncludedModule
           return UnboundMethod.new(mod, cm, self, name)
         end
-      else
-        break if cm == false
       end
 
       mod = mod.direct_superclass
@@ -307,7 +302,7 @@ class Module
 
   def filter_methods(filter, all)
     names = method_table.__send__(filter)
-    unless all or self.is_a?(MetaClass) or self.is_a?(Rubinius::IncludedModule)
+    unless all or kind_of?(MetaClass) or kind_of?(Rubinius::IncludedModule)
       return Rubinius.convert_to_names names
     end
 
@@ -347,7 +342,7 @@ class Module
       raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
     end
 
-    self.method_table[name.to_sym] = cm
+    @method_table.store name.to_sym, cm, :public
     Rubinius::VM.reset_method_cache(name.to_sym)
     meth
   end
@@ -382,17 +377,10 @@ class Module
     name = Type.coerce_to_symbol(meth)
     vis = vis.to_sym
 
-    if entry = method_table[name] then
-      if entry.kind_of? Rubinius::Executable then
-        entry = Rubinius::CompiledMethod::Visibility.new entry.dup, vis
-      else
-        entry = entry.dup
-        entry.visibility = vis
-      end
-
-      method_table[name] = entry
-    elsif find_method_in_hierarchy(name) then
-      method_table[name] = Rubinius::CompiledMethod::Visibility.new nil, vis
+    if entry = @method_table.lookup(name)
+      entry.visibility = vis
+    elsif find_method_in_hierarchy(name)
+      @method_table.store name, nil, vis
     else
       raise NoMethodError, "Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})"
     end

@@ -18,6 +18,7 @@
 #include "builtin/float.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/system.hpp"
+#include "builtin/methodtable.hpp"
 
 #include "objectmemory.hpp"
 #include "arguments.hpp"
@@ -64,7 +65,7 @@ namespace rubinius {
 
   Object* Object::copy_metaclass(STATE, Object* other) {
     if(MetaClass* mc = try_as<MetaClass>(other->klass())) {
-      LookupTable* source_methods = mc->method_table()->duplicate(state);
+      MethodTable* source_methods = mc->method_table()->duplicate(state);
       LookupTable* source_constants = mc->constants()->duplicate(state);
 
       metaclass(state)->method_table(state, source_methods);

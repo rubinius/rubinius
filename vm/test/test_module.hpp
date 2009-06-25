@@ -18,6 +18,6 @@ public:
     TS_ASSERT_EQUALS(m->name(), Qnil);
     TS_ASSERT_EQUALS(m->superclass(), Qnil);
     TS_ASSERT(kind_of<LookupTable>(m->constants()));
-    TS_ASSERT(kind_of<LookupTable>(m->method_table()));
+    TS_ASSERT(kind_of<MethodTable>(m->method_table()));
   }
 };

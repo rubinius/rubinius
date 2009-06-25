@@ -76,7 +76,7 @@ namespace rubinius {
     TypedRoot<Object*> config;
     TypedRoot<Symbol*> sym_send;
     TypedRoot<Symbol*> sym_public, sym_private, sym_protected, sym_const_missing;
-    TypedRoot<Symbol*> sym_object_id, sym_call;
+    TypedRoot<Symbol*> sym_object_id, sym_call, sym_undef;
     TypedRoot<Object*> top_scope, on_gc_channel;
 
     TypedRoot<Module*> vm;
@@ -85,6 +85,7 @@ namespace rubinius {
     TypedRoot<Class*> dir;
     TypedRoot<Class*> compactlookuptable;
     TypedRoot<Class*> lookuptablebucket;
+    TypedRoot<Class*> methtblbucket;
     TypedRoot<Class*> access_variable;
     TypedRoot<Module*> rubinius;
     TypedRoot<Class*> time_class;
@@ -189,6 +190,7 @@ namespace rubinius {
       sym_const_missing(&roots),
       sym_object_id(&roots),
       sym_call(&roots),
+      sym_undef(&roots),
       top_scope(&roots),
       on_gc_channel(&roots),
       vm(&roots),
@@ -197,6 +199,7 @@ namespace rubinius {
       dir(&roots),
       compactlookuptable(&roots),
       lookuptablebucket(&roots),
+      methtblbucket(&roots),
       access_variable(&roots),
       rubinius(&roots),
       time_class(&roots),

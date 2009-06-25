@@ -5,6 +5,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
 #include "builtin/executable.hpp"
+#include "builtin/methodtable.hpp"
 
 #include "arguments.hpp"
 #include "dispatch.hpp"
@@ -18,35 +19,32 @@
 namespace rubinius {
   static bool find_method(STATE, Module* module, Symbol* name, bool priv, Object* self,
                           Executable** found_method, Module** found_module) {
-    Object* entry;
-    MethodVisibility* vis;
+    MethodTableBucket* entry;
 
     do {
-      entry = module->method_table()->fetch(state, name);
+      entry = module->method_table()->find_entry(state, name);
 
       /* Nothing, there? Ok, keep looking. */
-      if(entry->nil_p()) goto keep_looking;
+      if(!entry) goto keep_looking;
 
       /* A 'false' method means to terminate method lookup.
        * (eg. undef_method) */
-      if(entry == Qfalse) return false;
-
-      vis = try_as<MethodVisibility>(entry);
+      if(entry->undef_p(state)) return false;
 
       /* If this was a private send, then we can handle use
        * any method seen. */
       if(priv) {
         /* nil means that the actual method object is 'up' from here */
-        if(vis && vis->method()->nil_p()) goto keep_looking;
+        if(entry->method()->nil_p()) goto keep_looking;
 
-        *found_method = as<Executable>(vis ? vis->method() : entry);
+        *found_method = as<Executable>(entry->method());
         *found_module = module;
         break;
-      } else if(vis) {
+      } else {
         /* The method is private, but this wasn't a private send. */
-        if(vis->private_p(state)) {
+        if(entry->private_p(state)) {
           return false;
-        } else if(vis->protected_p(state)) {
+        } else if(entry->protected_p(state)) {
           /* The method is protected, but it's not being called from
            * the same module */
           if(!self->kind_of_p(state, module)) {
@@ -57,16 +55,12 @@ namespace rubinius {
         /* The method was callable, but we need to keep looking
          * for the implementation, so make the invocation bypass all further
          * visibility checks */
-        if(vis->method()->nil_p()) {
+        if(entry->method()->nil_p()) {
           priv = true;
           goto keep_looking;
         }
 
-        *found_method = as<Executable>(vis->method());
-        *found_module = module;
-        break;
-      } else {
-        *found_method = as<Executable>(entry);
+        *found_method = as<Executable>(entry->method());
         *found_module = module;
         break;
       }
@@ -247,40 +241,33 @@ keep_looking:
                                   bool* was_private)
   {
     Module* module = lookup.from;
-    Object* entry;
-    MethodVisibility* vis;
+    MethodTableBucket* entry;
     bool skip_vis_check = false;
 
     do {
-      entry = module->method_table()->fetch(state, name);
+      entry = module->method_table()->find_entry(state, name);
 
       /* Nothing, there? Ok, keep looking. */
-      if(entry->nil_p()) goto keep_looking;
+      if(!entry) goto keep_looking;
 
       /* A 'false' method means to terminate method lookup.
        * (eg. undef_method) */
-      if(entry == Qfalse) return false;
-
-      vis = try_as<MethodVisibility>(entry);
+      if(entry->undef_p(state)) return false;
 
       /* If this was a private send, then we can handle use
        * any method seen. */
       if(lookup.priv || skip_vis_check) {
-        if(vis) {
-          /* nil means that the actual method object is 'up' from here */
-          if(vis->method()->nil_p()) goto keep_looking;
-          *was_private = !vis->public_p(state);
-          msg.method = as<Executable>(vis->method());
-        } else {
-          msg.method = as<Executable>(entry);
-        }
+        /* nil means that the actual method object is 'up' from here */
+        if(entry->method()->nil_p()) goto keep_looking;
+        *was_private = entry->private_p(state);
+        msg.method = entry->method();
         msg.module = module;
         break;
-      } else if(vis) {
+      } else {
         /* The method is private, but this wasn't a private send. */
-        if(vis->private_p(state)) {
+        if(entry->private_p(state)) {
           return false;
-        } else if(vis->protected_p(state)) {
+        } else if(entry->protected_p(state)) {
           /* The method is protected, but it's not being called from
            * the same module */
           if(!lookup.recv->kind_of_p(state, module)) {
@@ -291,16 +278,12 @@ keep_looking:
         /* The method was callable, but we need to keep looking
          * for the implementation, so make the invocation bypass all further
          * visibility checks */
-        if(vis->method()->nil_p()) {
+        if(entry->method()->nil_p()) {
           skip_vis_check = true;
           goto keep_looking;
         }
 
-        msg.method = as<Executable>(vis->method());
-        msg.module = module;
-        break;
-      } else {
-        msg.method = as<Executable>(entry);
+        msg.method = entry->method();
         msg.module = module;
         break;
       }

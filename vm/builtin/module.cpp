@@ -10,6 +10,8 @@
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
 
+#include "global_cache.hpp"
+
 namespace rubinius {
 
   Module* Module::create(STATE) {
@@ -81,6 +83,12 @@ namespace rubinius {
 
   Object* Module::get_const(STATE, const char* sym) {
     return get_const(state, state->symbol(sym));
+  }
+
+  void Module::add_method(STATE, Symbol* name, Executable* exec, Symbol* vis) {
+    if(!vis) vis = G(sym_public);
+    method_table_->store(state, name, exec, vis);
+    state->global_cache->clear(this, name);
   }
 
   void Module::Info::show(STATE, Object* self, int level) {

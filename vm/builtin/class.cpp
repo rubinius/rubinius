@@ -17,13 +17,13 @@
 namespace rubinius {
 
   static void hookup_prim(STATE, Symbol* meth, Symbol* prim) {
-    LookupTable* tbl = G(rubinius)->metaclass(state)->method_table();
+    MethodTable* tbl = G(rubinius)->metaclass(state)->method_table();
 
     Executable* oc = Executable::allocate(state, Qnil);
     oc->primitive(state, prim);
     assert(oc->resolve_primitive(state));
 
-    tbl->store(state, meth, oc);
+    tbl->store(state, meth, oc, G(sym_public));
   }
 
   void Class::bootstrap_methods(STATE) {

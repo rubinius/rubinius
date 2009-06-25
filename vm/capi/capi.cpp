@@ -299,25 +299,23 @@ extern "C" {
                                   fptr,
                                   Fixnum::from(arity));
 
-    MethodVisibility* visibility = MethodVisibility::create(state);
-    visibility->method(state, method);
+    Symbol* visibility;
 
     switch(kind) {
     case cCApiPrivateMethod:
-      visibility->visibility(state, state->symbol("private"));
+      visibility = state->symbol("private");
       break;
 
     case cCApiProtectedMethod:
-      visibility->visibility(state, state->symbol("protected"));
+      visibility = state->symbol("protected");
       break;
 
     default:  /* Also catches singletons for now. @todo Verify OK. --rue */
-      visibility->visibility(state, state->symbol("public"));
+      visibility = state->symbol("public");
       break;
     }
 
-    module->method_table()->store(state, method_name, visibility);
-    state->global_cache->clear(module, method_name);
+    module->add_method(state, method_name, method, visibility);
   }
 
   VALUE capi_class_superclass(VALUE class_handle) {

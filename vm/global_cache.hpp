@@ -5,7 +5,6 @@
 #include "vm/object_utils.hpp"
 
 #include "builtin/compiledmethod.hpp"
-#include "builtin/methodvisibility.hpp"
 
 namespace rubinius {
   #define CPU_CACHE_SIZE 0x1000
@@ -152,14 +151,8 @@ namespace rubinius {
       entry->module = mod;
       entry->method_missing = missing;
 
-      if(kind_of<MethodVisibility>(meth)) {
-        MethodVisibility* vis = as<MethodVisibility>(meth);
-        entry->is_public = vis->public_p(state);
-        entry->method = vis->method();
-      } else {
-        entry->method = meth;
-        entry->is_public = !was_private;
-      }
+      entry->method = meth;
+      entry->is_public = !was_private;
     }
   };
 };

@@ -17,15 +17,15 @@ class Module
   def alias_method(new_name, current_name)
     new_name = Type.coerce_to_symbol(new_name)
     current_name = Type.coerce_to_symbol(current_name)
-    meth = find_method_in_hierarchy(current_name)
-    if meth
-      method_table[new_name] = meth
+    entry = find_method_in_hierarchy(current_name)
+    if entry
+      @method_table.store new_name, entry.method, entry.visibility
       Rubinius::VM.reset_method_cache(new_name)
     else
-      if self.kind_of? MetaClass
+      if kind_of? MetaClass
         raise NameError, "Unable to find '#{current_name}' for object #{self.attached_instance.inspect}"
       else
-        thing = self.kind_of?(Class) ? "class" : "module"
+        thing = kind_of?(Class) ? "class" : "module"
         raise NameError, "undefined method `#{current_name}' for #{thing} `#{self.name}'"
       end
     end
@@ -43,8 +43,7 @@ class Module
       args.each do |meth|
         method_name = Type.coerce_to_symbol meth
         method = find_method_in_hierarchy(method_name)
-        mc.method_table[method_name] = method.dup
-        mc.set_visibility method_name, :public
+        mc.method_table.store method_name, method.method, :public
         set_visibility method_name, :private
       end
     end

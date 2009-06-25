@@ -6,13 +6,12 @@
 #include "builtin/symbol.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/executable.hpp"
-#include "builtin/methodvisibility.hpp"
+#include "builtin/methodtable.hpp"
 
 namespace rubinius {
 
   bool InlineCache::fill_public(STATE, Object* self, Symbol* name) {
-    Object* entry;
-    MethodVisibility* vis;
+    MethodTableBucket* entry;
 
     Module* module = klass_;
 
@@ -32,31 +31,19 @@ namespace rubinius {
     bool skip_vis_check = false;
 
     do {
-      entry = module->method_table()->fetch(state, name);
+      entry = module->method_table()->find_entry(state, name);
 
       /* Nothing, there? Ok, keep looking. */
-      if(!entry->nil_p()) {
-
+      if(entry) {
         /* A 'false' method means to terminate method lookup.
          * (eg. undef_method) */
-        if(entry == Qfalse) return false;
-
-        vis = try_as<MethodVisibility>(entry);
-
-        if(!vis) {
-          this->method = as<Executable>(entry);
-          this->module = module;
-
-          state->global_cache->retain(state, klass_, name, this->module,
-                                      this->method, false, false);
-          return true;
-        }
+        if(entry->undef_p(state)) return false;
 
         if(!skip_vis_check) {
           /* The method is private, but this wasn't a private send. */
-          if(vis->private_p(state)) {
+          if(entry->private_p(state)) {
             return false;
-          } else if(vis->protected_p(state)) {
+          } else if(entry->protected_p(state)) {
             /* The method is protected, but it's not being called from
              * the same module */
             if(!self->kind_of_p(state, module)) {
@@ -72,15 +59,15 @@ namespace rubinius {
          * This is pretty much always where a subclass marks a superclass
          * method as public. We don't move the method, we just put this
          * marker into the method table. */
-        if(vis->method()->nil_p()) {
+        if(entry->method()->nil_p()) {
           skip_vis_check = true;
         } else {
-          this->method = as<Executable>(vis->method());
+          this->method = entry->method();
           this->module = module;
 
           state->global_cache->retain(state, klass_, name, this->module,
                                       this->method, false,
-                                      !vis->public_p(state));
+                                      !entry->public_p(state));
           return true;
         }
       }
@@ -96,8 +83,7 @@ namespace rubinius {
   }
 
   bool InlineCache::fill_private(STATE, Symbol* name, Module* start) {
-    Object* entry;
-    MethodVisibility* vis;
+    MethodTableBucket* entry;
 
     Module* module = start;
 
@@ -113,40 +99,28 @@ namespace rubinius {
     }
 
     do {
-      entry = module->method_table()->fetch(state, name);
+      entry = module->method_table()->find_entry(state, name);
 
       /* Nothing, there? Ok, keep looking. */
-      if(!entry->nil_p()) {
+      if(entry) {
 
         /* A 'false' method means to terminate method lookup.
          * (eg. undef_method) */
-        if(entry == Qfalse) return false;
+        if(entry->undef_p(state)) return false;
 
-        vis = try_as<MethodVisibility>(entry);
-
-        if(vis) {
-          /* The method was callable, but we need to keep looking
-           * for the implementation, so make the invocation bypass all further
-           * visibility checks.
-           *
-           * This is pretty much always where a subclass marks a superclass
-           * method as public. We don't move the method, we just put this
-           * marker into the method table. */
-          if(!vis->method()->nil_p()) {
-            this->method = as<Executable>(vis->method());
-            this->module = module;
-            state->global_cache->retain(state, start, name, this->module,
-                                        this->method, false,
-                                        !vis->public_p(state));
-
-            return true;
-          }
-        } else {
-          this->method = as<Executable>(entry);
+        /* The method was callable, but we need to keep looking
+         * for the implementation, so make the invocation bypass all further
+         * visibility checks.
+         *
+         * This is pretty much always where a subclass marks a superclass
+         * method as public. We don't move the method, we just put this
+         * marker into the method table. */
+        if(!entry->method()->nil_p()) {
+          this->method = entry->method();
           this->module = module;
-
           state->global_cache->retain(state, start, name, this->module,
-                                      this->method, false, false);
+              this->method, false,
+              !entry->public_p(state));
 
           return true;
         }
@@ -163,39 +137,29 @@ namespace rubinius {
   }
 
   bool InlineCache::fill_method_missing(STATE, Module* module) {
-    Object* entry;
-    MethodVisibility* vis;
+    MethodTableBucket* entry;
 
     Symbol* name = G(sym_method_missing);
 
     do {
-      entry = module->method_table()->fetch(state, name);
+      entry = module->method_table()->find_entry(state, name);
 
       /* Nothing, there? Ok, keep looking. */
-      if(!entry->nil_p()) {
+      if(entry) {
 
         /* A 'false' method means to terminate method lookup.
          * (eg. undef_method) */
-        if(entry == Qfalse) return false;
+        if(entry->undef_p(state)) return false;
 
-        vis = try_as<MethodVisibility>(entry);
-
-        if(vis) {
-          /* The method was callable, but we need to keep looking
-           * for the implementation, so make the invocation bypass all further
-           * visibility checks.
-           *
-           * This is pretty much always where a subclass marks a superclass
-           * method as public. We don't move the method, we just put this
-           * marker into the method table. */
-          if(!vis->method()->nil_p()) {
-            this->method = as<Executable>(vis->method());
-            this->module = module;
-
-            return true;
-          }
-        } else {
-          this->method = as<Executable>(entry);
+        /* The method was callable, but we need to keep looking
+         * for the implementation, so make the invocation bypass all further
+         * visibility checks.
+         *
+         * This is pretty much always where a subclass marks a superclass
+         * method as public. We don't move the method, we just put this
+         * marker into the method table. */
+        if(!entry->method()->nil_p()) {
+          this->method = entry->method();
           this->module = module;
 
           return true;

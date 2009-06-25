@@ -1,5 +1,4 @@
 #include "builtin/compiledmethod.hpp"
-#include "builtin/methodvisibility.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
@@ -34,10 +33,6 @@ namespace rubinius {
     GO(cmethod).set(state->new_class("CompiledMethod", G(executable), G(rubinius)));
     G(cmethod)->set_object_type(state, CompiledMethodType);
     G(cmethod)->name(state, state->symbol("Rubinius::CompiledMethod"));
-
-    GO(cmethod_vis).set(state->new_class("Visibility", G(object), G(cmethod)));
-    G(cmethod_vis)->set_object_type(state, MethodVisibilityType);
-    G(cmethod_vis)->name(state, state->symbol("Rubinius::CompiledMethod::Visibility"));
   }
 
   CompiledMethod* CompiledMethod::create(STATE) {

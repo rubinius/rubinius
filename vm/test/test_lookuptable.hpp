@@ -130,7 +130,7 @@ public:
     TS_ASSERT_EQUALS(out, Qtrue);
 
     out = tbl->find(state, Fixnum::from(40));
-    TS_ASSERT(out->undef_p());
+    TS_ASSERT(out == Qundef);
   }
 
   void test_remove() {

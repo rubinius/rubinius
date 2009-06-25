@@ -103,16 +103,12 @@ module Rubinius
     else
       visibility = vis
     end
-    cm_vis = CompiledMethod::Visibility.new executable, visibility
 
-    if old_meth = mod.method_table[name]
-      if old_meth.kind_of? CompiledMethod::Visibility
-        old_meth = old_meth.method
-      end
-      Rubinius.deoptimize_inliners old_meth
+    if entry = mod.method_table.lookup(name)
+      Rubinius.deoptimize_inliners entry.method if entry.method
     end
 
-    mod.method_table[name] = cm_vis
+    mod.method_table.store name, executable, visibility
     Rubinius::VM.reset_method_cache(name)
 
     mod.module_function name if vis == :module

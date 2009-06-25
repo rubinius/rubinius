@@ -63,8 +63,8 @@ namespace rubinius {
        recursion. */
     Class *cls = (Class*)om->allocate_object_raw(sizeof(Class));
 
-    /* We create these 8 classes in a particular way and in a particular
-     * order. We need all 8 to create fully initialized Classes and
+    /* We create these 9 classes in a particular way and in a particular
+     * order. We need all 9 to create fully initialized Classes and
      * Modules, so we just create them all uninitialized, then initialize
      * them all at once */
 
@@ -108,8 +108,12 @@ namespace rubinius {
     G(lookuptablebucket)->set_object_type(state, LookupTableBucketType);
 
     /* Create MethodTable */
-    GO(methtbl).set(new_basic_class(G(lookuptable)));
+    GO(methtbl).set(new_basic_class(G(object)));
     G(methtbl)->set_object_type(state, MethodTableType);
+
+    /* Create MethodTableBucket */
+    GO(methtblbucket).set(new_basic_class(object));
+    G(methtblbucket)->set_object_type(state, LookupTableBucketType);
 
     /* Now, we have:
      *  Class
@@ -120,8 +124,9 @@ namespace rubinius {
      *  LookupTable
      *  LookupTableBucket
      *  MethodTable
+     *  MethodTableBucket
      *
-     *  With these 8 in place, we can now create fully initialized classes
+     *  With these 9 in place, we can now create fully initialized classes
      *  and modules. */
 
     /* Hook up the MetaClass protocols.
@@ -137,6 +142,7 @@ namespace rubinius {
     MetaClass::attach(this, G(lookuptable), G(object)->metaclass(this));
     MetaClass::attach(this, G(lookuptablebucket), G(object)->metaclass(this));
     MetaClass::attach(this, G(methtbl), G(lookuptable)->metaclass(this));
+    MetaClass::attach(this, G(methtblbucket), G(object)->metaclass(this));
 
     // Now, finish initializing the basic Class/Module
     G(object)->setup(this, "Object");
@@ -150,12 +156,16 @@ namespace rubinius {
     // Finish initializing the rest of the special 9
     G(tuple)->setup(this, "Tuple", G(rubinius));
     G(tuple)->name(this, symbol("Rubinius::Tuple"));
+
     G(lookuptable)->setup(this, "LookupTable", G(rubinius));
     G(lookuptable)->name(this, symbol("Rubinius::LookupTable"));
-    G(methtbl)->setup(this, "MethodTable", G(rubinius));
-    G(methtbl)->name(this, symbol("Rubinius::MethodTable"));
     G(lookuptablebucket)->setup(this, "Bucket", G(lookuptable));
     G(lookuptablebucket)->name(state, symbol("Rubinius::LookupTable::Bucket"));
+
+    G(methtbl)->setup(this, "MethodTable", G(rubinius));
+    G(methtbl)->name(this, symbol("Rubinius::MethodTable"));
+    G(methtblbucket)->setup(this, "Bucket", G(methtbl));
+    G(methtblbucket)->name(state, symbol("Rubinius::MethodTable::Bucket"));
   }
 
   void VM::initialize_builtin_classes() {
@@ -433,6 +443,7 @@ namespace rubinius {
     add_sym(public);
     add_sym(private);
     add_sym(protected);
+    add_sym(undef);
     add_sym(const_missing);
     add_sym(object_id);
     add_sym(call);

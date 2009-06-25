@@ -36,7 +36,7 @@ public:
     cls = (Class*)G(klass);
     meta = (MetaClass*)cls->klass();
     TS_ASSERT(kind_of<MetaClass>(G(object)->klass()));
-    TS_ASSERT(kind_of<LookupTable>(meta->method_table()));
+    TS_ASSERT(kind_of<MethodTable>(meta->method_table()));
     TS_ASSERT(kind_of<LookupTable>(meta->constants()));
   }
 
@@ -88,7 +88,7 @@ public:
     cls = G(methtbl);
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(cls->superclass(), G(lookuptable));
+    TS_ASSERT_EQUALS(cls->superclass(), G(object));
 
     TS_ASSERT_EQUALS((object_type)cls->instance_type()->to_native(), MethodTableType);
     TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "MethodTable"), G(methtbl));

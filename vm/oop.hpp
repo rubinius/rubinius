@@ -337,10 +337,6 @@ const int cUndef = 0x22L;
       return this == reinterpret_cast<ObjectHeader*>(Qnil);
     }
 
-    bool undef_p() const {
-      return this == reinterpret_cast<ObjectHeader*>(Qundef);
-    }
-
     bool true_p() const {
       return this == reinterpret_cast<ObjectHeader*>(Qtrue);
     }

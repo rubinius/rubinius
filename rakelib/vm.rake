@@ -118,15 +118,14 @@ field_extract_headers = %w[
   vm/builtin/nativefunction.hpp
   vm/builtin/regexp.hpp
   vm/builtin/selector.hpp
-  vm/builtin/sendsite.hpp
   vm/builtin/staticscope.hpp
+  vm/builtin/sendsite.hpp
   vm/builtin/string.hpp
   vm/builtin/symbol.hpp
   vm/builtin/thread.hpp
   vm/builtin/tuple.hpp
   vm/builtin/compactlookuptable.hpp
   vm/builtin/time.hpp
-  vm/builtin/methodvisibility.hpp
   vm/builtin/taskprobe.hpp
   vm/builtin/nativemethod.hpp
   vm/builtin/system.hpp

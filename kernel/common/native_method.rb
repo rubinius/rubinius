@@ -25,7 +25,7 @@ module Rubinius
 
       entry_point = load_entry_point library, symbol
 
-      Rubinius.metaclass.method_table[symbol.to_sym] = entry_point
+      Rubinius.metaclass.method_table.store symbol.to_sym, entry_point, :public
       Rubinius.send symbol.to_sym
 
       true
