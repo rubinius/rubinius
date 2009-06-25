@@ -19,6 +19,10 @@ module Rubinius
         @arg != nil
       end
 
+      def optional?
+        @arg[0] == ?[ and @arg[-1] == ?]
+      end
+
       def match?(opt)
         opt == @short or opt == @long
       end
@@ -33,18 +37,42 @@ module Rubinius
     attr_accessor :config, :banner, :width, :options
 
     def initialize(banner="", width=30, config=nil)
+      @parse    = true
       @banner   = banner
       @config   = config
       @width    = width
       @options  = []
       @doc      = []
       @extra    = []
+      @align    = true
       @on_extra = lambda { |x|
         raise ParseError, "Unrecognized option: #{x}" if x[0] == ?-
         @extra << x
       }
 
       yield self if block_given?
+    end
+
+    # Documentation for options is left aligned. For example,
+    #
+    #  -a ARG       Some description
+    #  --big        Another bit of info
+    #  -c, --class  Yet more info
+    #
+    # See +option_align+.
+    def left_align
+      @align = nil
+    end
+
+    # Documentation for options is aligned by option type. For example,
+    #
+    #  -a ARG       Some description
+    #      --big    Another bit of info
+    #  -c, --class  Yet more info
+    #
+    # See +left_align+
+    def option_align
+      @align = true
     end
 
     # Registers an option. Acceptable formats for arguments are:
@@ -80,8 +108,9 @@ module Rubinius
     # Adds documentation text for an option and adds an +Option+
     # instance to the list of registered options.
     def add(short, long, arg, description, block)
-      s = short ? short.dup : "  "
-      s << (short ? ", " : "  ") if long
+      pad = @align ? "  " : ""
+      s = short ? short.dup : pad
+      s << (short ? ", " : pad) if long
       doc "   #{s}#{long} #{arg}".ljust(@width-1) + " #{description}"
       @options << Option.new(short, long, arg, description, block)
     end
@@ -101,7 +130,9 @@ module Rubinius
       else
         if option.arg?
           arg = argv.shift if arg.nil?
-          raise ParseError, "No argument provided for #{opt}" unless arg
+          unless arg or option.optional?
+            raise ParseError, "No argument provided for #{opt}"
+          end
           option.block[arg] if option.block
         else
           option.block[] if option.block
@@ -122,9 +153,9 @@ module Rubinius
     # Parses an array of command line entries, calling blocks for
     # registered options.
     def parse(argv=ARGV)
-      argv = Array(argv).dup
+      argv = Array(argv)
 
-      while entry = argv.shift
+      while @parse and entry = argv.shift
         # collect everything that is not an option
         if entry[0] != ?- #or entry.size < 2
           @on_extra[entry]
@@ -159,6 +190,10 @@ module Rubinius
       puts self
       puts e
       exit 1
+    end
+
+    def stop_parsing
+      @parse = false
     end
 
     # Adds a string of documentation text inline in the text generated
