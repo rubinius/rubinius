@@ -172,4 +172,8 @@ module Rubinius
     end
   end
 
+  def self.version
+    "rubinius #{RBX_VERSION} (ruby #{RUBY_VERSION}) (#{BUILDREV[0..8]} #{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
+  end
+
 end
