@@ -50,10 +50,42 @@ describe "Rubinius::Options#parse" do
     ScratchPad.recorded.should == [:parsed, "ARG"]
   end
 
+  it "parses a short option group with optional argument missing" do
+    ScratchPad.record []
+    @opt.on("-a", "[ARG]", "desc") { |o| ScratchPad << [:a, o] }
+    @opt.on("-b", "desc") { |o| ScratchPad << :b }
+    @opt.parse ["-ab"]
+    ScratchPad.recorded.should == [[:a, "b"]]
+  end
+
+  it "parses a short option group with optional argument" do
+    ScratchPad.record []
+    @opt.on("-a", "[ARG]", "desc") { |o| ScratchPad << [:a, o] }
+    @opt.on("-b", "desc") { |o| ScratchPad << :b }
+    @opt.parse ["-ba", "ARG"]
+    ScratchPad.recorded.should == [:b, [:a, "ARG"]]
+  end
+
+  it "parses a short option group with attached optional argument" do
+    ScratchPad.record []
+    @opt.on("-a", "[ARG]", "desc") { |o| ScratchPad << [:a, o] }
+    @opt.on("-b", "desc") { |o| ScratchPad << :b }
+    @opt.parse ["-baARG"]
+    ScratchPad.recorded.should == [:b, [:a, "ARG"]]
+  end
+
   it "parses a short option with an optional argument missing" do
     @opt.on "-a", "[ARG]", "desc", &@arg_prc
     @opt.parse ["-a"]
     ScratchPad.recorded.should == [:parsed, nil]
+  end
+
+  it "parses a short option with optional argument followed by an option" do
+    ScratchPad.record []
+    @opt.on("-a", "[ARG]", "desc") { |o| ScratchPad << [:a, o] }
+    @opt.on("-b", "desc") { |o| ScratchPad << :b }
+    @opt.parse ["-a", "-b"]
+    ScratchPad.recorded.should == [[:a, nil], :b]
   end
 
   it "parses a short option with an optional argument" do

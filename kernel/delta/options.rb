@@ -82,6 +82,12 @@ module Rubinius
     #  on "-a", "ARG", "description"
     #  on "--abdc", "ARG", "description"
     #  on "-a", "--abdc", "ARG", "description"
+    #  on "-a", "[ARG]", "description"
+    #
+    # The [ARG] form specifies an optional argument. When parsing,
+    # if an option having an optional argument is followed by a
+    # registered option, +nil+ will be passed to the option having
+    # an optional argument.
     #
     # If an block is passed, it will be invoked when the option is
     # matched. Not passing a block is permitted, but nonsensical.
@@ -129,10 +135,23 @@ module Rubinius
         @on_extra[entry]
       else
         if option.arg?
-          arg = argv.shift if arg.nil?
+          if arg.nil?
+            if option.optional?
+              arg = argv.first
+              if arg and arg[0] == ?-
+                arg = match?(arg) ? nil : argv.shift
+              else
+                arg = argv.shift
+              end
+            else
+              arg = argv.shift
+            end
+          end
+
           unless arg or option.optional?
             raise ParseError, "No argument provided for #{opt}"
           end
+
           option.block[arg] if option.block
         else
           option.block[] if option.block
@@ -157,7 +176,7 @@ module Rubinius
 
       while @parse and entry = argv.shift
         # collect everything that is not an option
-        if entry[0] != ?- #or entry.size < 2
+        if entry[0] != ?-
           @on_extra[entry]
           next
         end

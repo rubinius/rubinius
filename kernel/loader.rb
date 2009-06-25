@@ -234,13 +234,12 @@ module Rubinius
         at_exit { stats.show }
       end
 
-      options.on "-P", "Run the profiler" do
+      options.on("-P", "[COLUMN]",
+                 "Run the profiler, optionally sort output by COLUMN") do |columns|
         require 'profile'
-      end
-
-      options.on "--P", "COLUMN", "Run the profiler and sort output by COLUMN" do |columns|
-        require 'profile'
-        Profiler__.options :sort => columns[2..-1].split(/,/).map {|x| x.to_sym }
+        if columns
+          Profiler__.options :sort => columns.split(/,/).map {|x| x.to_sym }
+        end
       end
 
       options.on "--ruby_parser", "Use RubyParser" do
