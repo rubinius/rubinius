@@ -164,6 +164,7 @@ module Rubinius
 
       options.on("-S", "SCRIPT",
                  "Run SCRIPT using PATH environment variable to find it") do |script|
+        options.stop_parsing
         @run_irb = false
 
         search = ENV['PATH'].split(File::PATH_SEPARATOR).unshift(BIN_PATH)
@@ -178,7 +179,6 @@ module Rubinius
 
         # if missing, let it die a natural death
         @script = file ? file : script
-        p @script
       end
 
       options.on "-v", "Display the version and set $VERBOSE to true" do
