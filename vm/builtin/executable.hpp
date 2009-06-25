@@ -7,10 +7,15 @@
 #include "type_info.hpp"
 #include "executor.hpp"
 
+#include <list>
+
 namespace rubinius {
   class MemoryPointer;
   class Dispatch;
   class Arguments;
+
+  class VMMethod;
+  typedef std::list<VMMethod*> Inliners;
 
   class Executable : public Object {
   public:
@@ -24,24 +29,31 @@ namespace rubinius {
     // This one is public so it can be directly invoked.
     executor execute;
 
+  protected:
+    Inliners* inliners_;
+
+  public:
     /* accessors */
 
     attr_accessor(primitive, Symbol);
     attr_accessor(serial, Fixnum);
 
+    void set_executor(rubinius::executor exc) {
+      execute = exc;
+    }
+
     /* interface */
+
+    // Ruby.primitive :executable_allocate
+    static Executable* allocate(STATE, Object* self);
 
     static void init(STATE);
     static Object* default_executor(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
     bool resolve_primitive(STATE);
 
-    // Ruby.primitive :executable_allocate
-    static Executable* allocate(STATE, Object* self);
-
-    void set_executor(rubinius::executor exc) {
-      execute = exc;
-    }
+    void add_inliner(VMMethod* vmm);
+    void clear_inliners(STATE);
 
     class Info : public TypeInfo {
     public:

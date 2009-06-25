@@ -64,6 +64,7 @@ namespace :jit do
       opaque.each do |o|
         f.puts "%\"struct.rubinius::#{o}\" = type opaque"
       end
+      f.puts "%\"struct.std::Inliners\" = type opaque"
       f.puts(*types)
     end
 

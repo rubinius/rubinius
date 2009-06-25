@@ -90,6 +90,9 @@ namespace rubinius {
     , type(NULL)
     , native_function(NULL)
     , jitted_(false)
+#ifdef ENABLE_LLVM
+    , llvm_function_(NULL)
+#endif
   {
     meth->set_executor(&VMMethod::execute);
 
@@ -562,6 +565,22 @@ namespace rubinius {
 
   /* This is a noop for this class. */
   void VMMethod::compile(STATE) { }
+
+  void VMMethod::deoptimize(STATE) {
+#ifdef ENABLE_LLVM
+    // This resets execute to use the interpreter
+    setup_argument_handler(original.get());
+
+    if(llvm_function_) {
+      LLVMState::get(state)->remove(llvm_function_);
+    }
+    llvm_function_ = 0;
+
+    // Don't reset call_count if it's -1
+    // (why would it be -1, it shouldn't be if we got this far)
+    if(call_count >= 0) call_count = 0;
+#endif
+  }
 
   /*
    * Turns a VMMethod into a C++ vector of Opcodes.

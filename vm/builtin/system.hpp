@@ -200,6 +200,10 @@ namespace rubinius {
     // Ruby.primitive :vm_jit_block
     static Object* vm_jit_block(STATE, BlockEnvironment* env, Object* show);
 
+    // Deoptimze any method that inlined exec
+    // Ruby.primitive :vm_deoptimize_inliners
+    static Object* vm_deoptimize_inliners(STATE, Executable* exec);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

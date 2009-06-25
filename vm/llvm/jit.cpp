@@ -266,7 +266,7 @@ namespace rubinius {
         // sure the GC doesn't run.
         ls_->shared().gc_dependent();
 
-        req->vmmethod()->set_jitted();
+        req->vmmethod()->set_jitted(jit->llvm_function());
 
         if(req->is_block()) {
           BlockEnvironment* be = req->block_env();
@@ -440,6 +440,15 @@ namespace rubinius {
     queued_methods_++;
 
     background_thread_->add(req);
+  }
+
+  void LLVMState::remove(llvm::Function* func) {
+    // Deallocate the JITed code
+    engine_->freeMachineCodeForFunction(func);
+
+    // Nuke the Function from the module
+    func->replaceAllUsesWith(UndefValue::get(func->getType()));
+    func->eraseFromParent();
   }
 
   static Value* get_field(BasicBlock* block, Value* val, int which) {

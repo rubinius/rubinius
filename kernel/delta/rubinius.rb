@@ -105,6 +105,13 @@ module Rubinius
     end
     cm_vis = CompiledMethod::Visibility.new executable, visibility
 
+    if old_meth = mod.method_table[name]
+      if old_meth.kind_of? CompiledMethod::Visibility
+        old_meth = old_meth.method
+      end
+      Rubinius.deoptimize_inliners old_meth
+    end
+
     mod.method_table[name] = cm_vis
     Rubinius::VM.reset_method_cache(name)
 

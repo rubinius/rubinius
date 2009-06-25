@@ -6,6 +6,7 @@ namespace rubinius {
     llvm::Value* stack_top_;
 
   protected:
+    VMMethod* vmm_;
     LLVMState* ls_;
     llvm::BasicBlock* block_;
 
@@ -28,9 +29,11 @@ namespace rubinius {
     const llvm::Type* CallFrameTy;
 
   public:
-    JITOperations(LLVMState* ls, llvm::Module* mod, llvm::Value* top,
+    JITOperations(LLVMState* ls, VMMethod* vmm, llvm::Module* mod,
+                  llvm::Value* top,
                   llvm::BasicBlock* start, llvm::Function* func)
       : stack_top_(top)
+      , vmm_(vmm)
       , ls_(ls)
       , block_(start)
       , module_(mod)
@@ -55,6 +58,10 @@ namespace rubinius {
 
       Function::arg_iterator input = function_->arg_begin();
       vm_ = input++;
+    }
+
+    VMMethod* vmmethod() {
+      return vmm_;
     }
 
     LLVMState* state() {

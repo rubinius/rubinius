@@ -101,6 +101,8 @@ namespace rubinius {
     mm->comments_ = 0;
 
     mm->jit_data_ = reinterpret_cast<void*>(jit);
+    vmm->set_jitted(jit->llvm_function());
+
     return mm;
 #else
     return (MachineMethod*)Qnil;

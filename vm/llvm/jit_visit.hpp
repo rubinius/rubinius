@@ -63,7 +63,6 @@ namespace rubinius {
 
   class JITVisit : public VisitInstructions<JITVisit>, public JITOperations {
     JITFunctions f;
-    VMMethod* vmm_;
     BlockMap block_map_;
 
     llvm::Value* stack_;
@@ -125,9 +124,8 @@ namespace rubinius {
              llvm::Value* stack, llvm::Value* call_frame,
              llvm::Value* stack_top, llvm::Value* me, llvm::Value* args,
              llvm::Value* vars, bool is_block)
-      : JITOperations(ls, mod, stack_top, start, func)
+      : JITOperations(ls, vmm, mod, stack_top, start, func)
       , f(ls)
-      , vmm_(vmm)
       , stack_(stack)
       , call_frame_(call_frame)
       , function_(func)

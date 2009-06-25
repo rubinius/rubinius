@@ -10,6 +10,12 @@
 
 #include "vm/builtin/compiledmethod.hpp"
 
+#ifdef ENABLE_LLVM
+namespace llvm {
+  class Function;
+}
+#endif
+
 namespace rubinius {
   typedef void* instlocation;
   typedef uintptr_t opcode;
@@ -67,6 +73,10 @@ namespace rubinius {
   private:
     bool jitted_;
 
+#ifdef ENABLE_LLVM
+    llvm::Function* llvm_function_;
+#endif
+
   public: // Methods
     static void init(STATE);
 
@@ -81,9 +91,12 @@ namespace rubinius {
       return jitted_;
     }
 
-    void set_jitted() {
+#ifdef ENABLE_LLVM
+    void set_jitted(llvm::Function* func) {
+      llvm_function_ = func;
       jitted_ = true;
     }
+#endif
 
     void update_addresses(int index, int operands=0) {
       addresses[index] = instructions[opcodes[index] & cBreakpointMask];
@@ -150,6 +163,8 @@ namespace rubinius {
     void fill_opcodes(STATE);
     void initialize_caches(STATE, int sends);
     void find_super_instructions();
+
+    void deoptimize(STATE);
 
     /*
      * Helper class for iterating over an Opcode array.  Used to convert a

@@ -22,6 +22,7 @@ namespace rubinius {
     Executable* executable = state->new_object<Executable>(G(executable));
     executable->primitive(state, (Symbol*)Qnil);
     executable->serial(state, Fixnum::from(0));
+    executable->inliners_ = 0;
 
     executable->set_executor(Executable::default_executor);
 
@@ -51,5 +52,21 @@ namespace rubinius {
 
     Dispatch dis(state->symbol("call"));
     return dis.send(state, call_frame, args);
+  }
+
+  void Executable::add_inliner(VMMethod* vmm) {
+    if(!inliners_ || inliners_ == (Inliners*)Qnil) inliners_ = new Inliners;
+    inliners_->push_back(vmm);
+  }
+
+  void Executable::clear_inliners(STATE) {
+    if(!inliners_ || inliners_ == (Inliners*)Qnil) return;
+    for(Inliners::const_iterator i = inliners_->begin();
+        i != inliners_->end();
+        i++) {
+      (*i)->deoptimize(state);
+    }
+
+    inliners_->clear();
   }
 }

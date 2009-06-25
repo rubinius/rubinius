@@ -50,6 +50,8 @@ namespace rubinius {
       if(acc->write()->true_p()) return;
       if(count_ != 0) return;
 
+      acc->add_inliner(ops_.vmmethod());
+
       ops_.state()->add_accessor_inlined();
 
       Value* self = ops_.stack_top();

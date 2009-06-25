@@ -133,6 +133,7 @@ namespace rubinius {
     const llvm::Type* ptr_type(std::string name);
 
     void compile_soon(STATE, VMMethod* vmm, BlockEnvironment* block=0);
+    void remove(llvm::Function* func);
 
     Symbol* symbol(const char* sym);
 
@@ -158,6 +159,10 @@ namespace rubinius {
 
     int code_bytes() {
       return mci_->size();
+    }
+
+    llvm::Function* llvm_function() {
+      return function_;
     }
 
     void initialize_call_frame(llvm::Function* func,

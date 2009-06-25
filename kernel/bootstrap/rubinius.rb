@@ -23,4 +23,9 @@ module Rubinius
     Ruby.primitive :vm_jit_block
     raise PrimitiveFailure, "Rubinius.vm_jit_block failed"
   end
+
+  def self.deoptimize_inliners(exec)
+    Ruby.primitive :vm_deoptimize_inliners
+    raise PrimitiveFailure, "Rubinius.vm_deoptimize_inliners failed"
+  end
 end

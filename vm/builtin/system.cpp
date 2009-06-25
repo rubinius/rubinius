@@ -541,4 +541,9 @@ namespace rubinius {
 
     return show;
   }
+
+  Object* System::vm_deoptimize_inliners(STATE, Executable* exec) {
+    exec->clear_inliners(state);
+    return Qtrue;
+  }
 }
