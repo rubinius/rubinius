@@ -299,6 +299,8 @@ module Rubinius
           end
         end
       end
+    rescue SystemExit => e
+      @exit_code = e.status
     end
 
     # Run all scripts passed on the command line
@@ -326,6 +328,8 @@ module Rubinius
           end
         end
       end
+    rescue SystemExit => e
+      @exit_code = e.status
     end
 
     # Run IRB unless we were passed -e, -S arguments or a script to run.
