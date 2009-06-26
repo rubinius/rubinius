@@ -36,6 +36,7 @@ namespace rubinius {
         call_tuple_put();
 
       // If the cache has only ever had one class, inline!
+      /*
       } else if(cache_->classes_seen() == 1) {
         AccessManagedMemory memguard(ops_.state());
         Executable* meth = cache_->method;
@@ -43,6 +44,7 @@ namespace rubinius {
         if(AccessVariable* acc = try_as<AccessVariable>(meth)) {
           inline_ivar_access(cache_->tracked_class(0), acc);
         }
+        */
       }
     }
 
