@@ -48,18 +48,26 @@ namespace rubinius {
             inline_ivar_access(cache_->tracked_class(0), acc);
           }
         } else if(CompiledMethod* cm = try_as<CompiledMethod>(meth)) {
-          if(detect_trivial_method(cm->backend_method_)) {
+          if(detect_trivial_method(cm)) {
             inline_trivial_method(cache_->tracked_class(0), cm);
           }
         }
       }
     }
 
-    bool detect_trivial_method(VMMethod* vmm) {
+    bool detect_trivial_method(CompiledMethod* cm) {
+      VMMethod* vmm = cm->backend_method_;
+
       opcode* stream = vmm->opcodes;
       size_t size_max = 2;
       if(stream[0] == InstructionSequence::insn_push_int) {
         size_max++;
+      } else if(stream[0] == InstructionSequence::insn_push_literal) {
+        if(kind_of<Symbol>(cm->literals()->at(stream[1]))) {
+          size_max++;
+        } else {
+          return false;
+        }
       } else {
         return false;
       }
@@ -84,8 +92,16 @@ namespace rubinius {
       Value* val = 0;
       /////
 
-      if(vmm->opcodes[0] == InstructionSequence::insn_push_int) {
-        val = ops_.constant(Fixnum::from(vmm->opcodes[1]));
+      opcode* stream = vmm->opcodes;
+      if(stream[0] == InstructionSequence::insn_push_int) {
+        val = ops_.constant(Fixnum::from(stream[1]));
+      } else if(stream[0] == InstructionSequence::insn_push_literal) {
+        Symbol* sym = try_as<Symbol>(cm->literals()->at(stream[1]));
+        assert(sym);
+
+        val = ops_.constant(sym);
+      } else {
+        assert(0 && "Trivial detection is broken!");
       }
 
       /////
