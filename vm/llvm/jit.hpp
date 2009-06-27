@@ -136,6 +136,7 @@ namespace rubinius {
     void remove(llvm::Function* func);
 
     Symbol* symbol(const char* sym);
+    const char* symbol_cstr(const Symbol* sym);
 
     void shutdown_i();
     void on_fork_i();

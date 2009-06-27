@@ -267,6 +267,10 @@ namespace rubinius {
       return stack_back(0, block);
     }
 
+    void stack_set_top(Value* val) {
+      new StoreInst(val, stack_ptr(), false, block_);
+    }
+
     llvm::Value* stack_pop(BasicBlock* block = NULL) {
       if(!block) block = block_;
 

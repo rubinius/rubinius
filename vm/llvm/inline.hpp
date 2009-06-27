@@ -36,7 +36,6 @@ namespace rubinius {
         call_tuple_put();
 
       // If the cache has only ever had one class, inline!
-      /*
       } else if(cache_->classes_seen() == 1) {
         AccessManagedMemory memguard(ops_.state());
         Executable* meth = cache_->method;
@@ -44,13 +43,23 @@ namespace rubinius {
         if(AccessVariable* acc = try_as<AccessVariable>(meth)) {
           inline_ivar_access(cache_->tracked_class(0), acc);
         }
-        */
       }
     }
 
     void inline_ivar_access(Class* klass, AccessVariable* acc) {
       if(acc->write()->true_p()) return;
       if(count_ != 0) return;
+
+      /*
+      std::cout << "Inlining accessor to '"
+                << ops_.state()->symbol_cstr(acc->name())
+                << "' on "
+                << ops_.state()->symbol_cstr(klass->name())
+                << " in "
+                << "#"
+                << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+                << "\n";
+      */
 
       acc->add_inliner(ops_.vmmethod());
 
@@ -71,7 +80,7 @@ namespace rubinius {
 
       if(it != ti->slots.end()) {
         int offset = ti->slot_locations[it->second];
-        ivar = ops_.get_object_slot(ops_.stack_top(), offset);
+        ivar = ops_.get_object_slot(self, offset);
       } else {
         Signature sig2(ops_.state(), "Object");
         sig2 << "VM";
@@ -80,7 +89,7 @@ namespace rubinius {
 
         Value* call_args2[] = {
           ops_.vm(),
-          ops_.stack_top(),
+          self,
           ops_.constant(acc->name())
         };
 
@@ -88,8 +97,7 @@ namespace rubinius {
             ops_.current_block());
       }
 
-      ops_.stack_pop();
-      ops_.stack_push(ivar);
+      ops_.stack_set_top(ivar);
 
       ops_.create_branch(after_);
       ops_.set_block(use_send);

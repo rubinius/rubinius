@@ -129,6 +129,11 @@ namespace rubinius {
     return str.c_str();
   }
 
+  const char* SymbolTable::lookup_cstring(const Symbol* sym) {
+    std::string& str = strings[sym->index()];
+    return str.c_str();
+  }
+
   size_t SymbolTable::size() {
     return strings.size();
   }

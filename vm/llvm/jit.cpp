@@ -423,6 +423,10 @@ namespace rubinius {
     return symbols_.lookup(sym);
   }
 
+  const char* LLVMState::symbol_cstr(const Symbol* sym) {
+    return symbols_.lookup_cstring(sym);
+  }
+
   void LLVMState::compile_soon(STATE, VMMethod* vmm, BlockEnvironment* block) {
     Object* placement;
     bool is_block = false;

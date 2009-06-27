@@ -15,7 +15,7 @@ namespace rubinius {
     Symbol* name_;   // slot
     Symbol* visibility_; // slot
     Executable* method_; // slot
-    MethodTableBucket *next_;  // slot
+    MethodTableBucket* next_;  // slot
 
   public:
     attr_accessor(name, Symbol);

@@ -74,6 +74,7 @@ namespace rubinius {
     cls->obj_type_ = ClassType;
 
     cls->set_object_type(state, ClassType);
+    cls->set_class_id(shared.inc_class_count());
 
     /* Set Class into the globals */
     GO(klass).set(cls);
