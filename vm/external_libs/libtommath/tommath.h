@@ -78,7 +78,7 @@ extern "C" {
    typedef unsigned long      mp_digit;
    typedef unsigned long      mp_word __attribute__ ((mode(TI)));
 
-   #define DIGIT_BIT          60
+   #define DIGIT_BIT          63
 #else
    /* this is the default case, 28-bit digits */
    
