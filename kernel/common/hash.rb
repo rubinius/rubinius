@@ -407,15 +407,10 @@ class Hash
         old.next = nil if nxt = old.next
 
         index = key_index old.key_hash
-        unless entry = @entries[index]
-          @entries[index] = old
-        else
-          last = entry
-          while entry = entry.next
-            last = entry
-          end
-          last.next = old
+        if entry = @entries[index]
+          old.next = entry
         end
+        @entries[index] = old
 
         old = nxt
       end
@@ -438,15 +433,10 @@ class Hash
         old.next = nil if nxt = old.next
 
         index = key_index(old.key_hash = old.key.hash)
-        unless entry = @entries[index]
-          @entries[index] = old
-        else
-          last = entry
-          while entry = entry.next
-            last = entry
-          end
-          last.next = old
+        if entry = @entries[index]
+          old.next = entry
         end
+        @entries[index] = old
 
         old = nxt
       end
