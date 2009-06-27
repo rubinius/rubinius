@@ -68,6 +68,8 @@ namespace rubinius {
         } else {
           return false;
         }
+      } else if(stream[0] == InstructionSequence::insn_push_self) {
+        // Ok!
       } else {
         return false;
       }
@@ -100,6 +102,8 @@ namespace rubinius {
         assert(sym);
 
         val = ops_.constant(sym);
+      } else if(stream[0] == InstructionSequence::insn_push_self) {
+        val = self;
       } else {
         assert(0 && "Trivial detection is broken!");
       }
