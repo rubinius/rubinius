@@ -113,7 +113,7 @@ namespace rubinius {
 
     /* Create MethodTableBucket */
     GO(methtblbucket).set(new_basic_class(object));
-    G(methtblbucket)->set_object_type(state, LookupTableBucketType);
+    G(methtblbucket)->set_object_type(state, MethodTableBucketType);
 
     /* Now, we have:
      *  Class
