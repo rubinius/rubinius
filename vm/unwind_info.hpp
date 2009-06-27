@@ -12,7 +12,7 @@ namespace rubinius {
 
   struct UnwindInfo {
     uint32_t target_ip;
-    uint32_t stack_depth;
+    int stack_depth;
     UnwindType type;
 
     bool for_ensure() {
