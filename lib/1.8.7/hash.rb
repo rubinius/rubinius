@@ -39,38 +39,37 @@ class Hash
 
   def each_key
     return to_enum :each_key unless block_given?
-    each_item { |k, v| yield k }
+    i = to_iter
+    while entry = i.next(entry)
+      yield entry.key
+    end
     self
   end
 
   def each
     return to_enum :each unless block_given?
-    each_item { |k, v| yield [k, v] }
-    self
-  end
-
-  # Yields key, value for each item in the Hash. This method
-  # is necessary to protect the essential iterator from subclasses
-  # (e.g. REXML::Attribute) that replace #each with a version
-  # that is incompatible with the dependencies here (e.g. defining
-  # #each -> #each_attribute -> #each_value, where we had been
-  # defining #each_value in terms of #each).
-  def each_item
-    return to_enum :each_item unless block_given?
     i = to_iter
-    while entry = i.next
-      begin
-        yield entry.key, entry.value
-      end while entry = entry.next
+    while entry = i.next(entry)
+      yield [entry.key, entry.value]
     end
     self
   end
 
-  alias_method :each_pair, :each_item
+  def each_pair
+    return to_enum :each_pair unless block_given?
+    i = to_iter
+    while entry = i.next(entry)
+      yield entry.key, entry.value
+    end
+    self
+  end
 
   def each_value
     return to_enum :each_value unless block_given?
-    each_item { |k, v| yield v }
+    i = to_iter
+    while entry = i.next(entry)
+      yield entry.value
+    end
     self
   end
 
@@ -94,10 +93,10 @@ class Hash
     return to_enum :select unless block_given?
     selected = []
     i = to_iter
-    while e = i.next
-      begin
-        selected << [e.key, e.value] if yield(e.key, e.value)
-      end while e = e.next
+    while entry = i.next(entry)
+      if yield(entry.key, entry.value)
+        selected << [entry.key, entry.value]
+      end
     end
 
     selected
