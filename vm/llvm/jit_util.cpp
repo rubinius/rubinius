@@ -640,6 +640,10 @@ extern "C" {
     return self->get_table_ivar(state, name);
   }
 
+  void rbx_set_table_ivar(STATE, Object* self, Symbol* name, Object* val) {
+    self->set_table_ivar(state, name, val);
+  }
+
 }
 
 #endif

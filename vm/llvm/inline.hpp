@@ -41,13 +41,77 @@ namespace rubinius {
         Executable* meth = cache_->method;
 
         if(AccessVariable* acc = try_as<AccessVariable>(meth)) {
-          inline_ivar_access(cache_->tracked_class(0), acc);
+          if(acc->write()->true_p()) {
+            inline_ivar_write(cache_->tracked_class(0), acc);
+          } else {
+            inline_ivar_access(cache_->tracked_class(0), acc);
+          }
         }
       }
     }
 
+    void inline_ivar_write(Class* klass, AccessVariable* acc) {
+      if(count_ != 1) return;
+
+      /*
+      std::cout << "Inlining writer to '"
+                << ops_.state()->symbol_cstr(acc->name())
+                << "' on "
+                << ops_.state()->symbol_cstr(klass->name())
+                << " in "
+                << "#"
+                << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+                << "\n";
+      */
+
+      acc->add_inliner(ops_.vmmethod());
+
+      ops_.state()->add_accessor_inlined();
+
+      Value* val  = ops_.stack_top();
+      Value* self = ops_.stack_back(1);
+
+      BasicBlock* use_send = ops_.new_block("use_send");
+      ops_.check_reference_class(self, klass->class_id(), use_send);
+
+      // Figure out if we should use the table ivar lookup or
+      // the slot ivar lookup.
+
+      TypeInfo* ti = klass->type_info();
+      TypeInfo::Slots::iterator it = ti->slots.find(acc->name()->index());
+
+      if(it != ti->slots.end()) {
+        int offset = ti->slot_locations[it->second];
+        ops_.set_object_slot(self, offset, val);
+      } else {
+        Signature sig2(ops_.state(), "Object");
+        sig2 << "VM";
+        sig2 << "Object";
+        sig2 << "Object";
+        sig2 << "Object";
+
+        Value* call_args2[] = {
+          ops_.vm(),
+          self,
+          ops_.constant(acc->name()),
+          val
+        };
+
+        sig2.call("rbx_set_table_ivar", call_args2, 4, "ivar",
+            ops_.current_block());
+      }
+
+      ops_.stack_remove(1);
+      ops_.stack_set_top(val);
+
+      ops_.create_branch(after_);
+      ops_.set_block(use_send);
+
+      after_->moveAfter(use_send);
+
+    }
+
     void inline_ivar_access(Class* klass, AccessVariable* acc) {
-      if(acc->write()->true_p()) return;
       if(count_ != 0) return;
 
       /*

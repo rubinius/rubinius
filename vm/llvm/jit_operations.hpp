@@ -380,6 +380,24 @@ namespace rubinius {
       return create_load(pos, "field");
     }
 
+    void set_object_slot(Value* obj, int offset, Value* val) {
+      assert(offset % sizeof(Object*) == 0);
+
+      Value* cst = CastInst::Create(
+          Instruction::BitCast,
+          obj,
+          PointerType::getUnqual(ObjType), "obj_array", block_);
+
+      Value* idx2[] = {
+        ConstantInt::get(Type::Int32Ty, offset / sizeof(Object*))
+      };
+
+      Value* pos = create_gep(cst, idx2, 1, "field_pos");
+
+      create_store(val, pos);
+      write_barrier(obj, val);
+    }
+
     // Utilities for creating instructions
     //
     GetElementPtrInst* create_gep(Value* rec, Value** idx, int count,
