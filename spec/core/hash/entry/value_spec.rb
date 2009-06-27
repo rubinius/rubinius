@@ -1,14 +1,14 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-describe "Hash::Bucket#value" do
+describe "Hash::Entry#value" do
   it "returns the value object" do
-    Hash::Bucket.new(1, 2).value.should == 2
+    Hash::Entry.new(1, 3, 2).value.should == 2
   end
 end
 
-describe "Hash::Bucket#value=" do
+describe "Hash::Entry#value=" do
   it "sets the value object" do
-    b = Hash::Bucket.new
+    b = Hash::Entry.new 1, 2, 3
     b.value = 3
     b.value.should == 3
   end

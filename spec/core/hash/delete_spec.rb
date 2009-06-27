@@ -7,7 +7,7 @@ describe "Hash#delete" do
   before :each do
     # construct hash values that will collide
     @hash = Hash.new
-    MASK = @hash.records - 1
+    MASK = Hash::MIN_SIZE - 1
 
     @top = mock("top entry")
     @mid = mock("middle entry")

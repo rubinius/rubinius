@@ -2,13 +2,18 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 
 describe "Hash::Iterator#index" do
   it "returns the index of the last object returned by #next" do
-    a = [1, 2, 3, nil, 4, nil, 5, nil, nil, nil, 6]
-    iter = Hash::Iterator.new a, a.size
+    h = Hash.new
+    a = Hash::Entry.new 1, 2, 3
+    b = Hash::Entry.new 4, 5, 6
+    e = h.instance_variable_get :@entries
+    e[2] = a
+    e[4] = b
 
-    iter.next.should == 1
-    iter.next.should == 2
-    iter.next.should == 3
+    iter = h.to_iter
 
-    iter.index.should == 2
+    (entry = iter.next(entry)).should == a
+    (entry = iter.next(entry)).should == b
+
+    iter.index.should == 4
   end
 end
