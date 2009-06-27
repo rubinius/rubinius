@@ -498,7 +498,7 @@ syck_default_error_handler( SyckParser *p, char *msg )
 {
     printf( "Error at [Line %d, Col %d]: %s\n", 
         p->linect,
-        p->cursor - p->lineptr,
+        (int) (p->cursor - p->lineptr),
         msg );
 }
 
