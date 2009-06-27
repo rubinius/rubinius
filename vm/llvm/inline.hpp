@@ -2,6 +2,7 @@
 #include "llvm/access_memory.hpp"
 
 #include "builtin/access_variable.hpp"
+#include "builtin/iseq.hpp"
 
 namespace rubinius {
   class Inliner {
@@ -46,8 +47,56 @@ namespace rubinius {
           } else {
             inline_ivar_access(cache_->tracked_class(0), acc);
           }
+        } else if(CompiledMethod* cm = try_as<CompiledMethod>(meth)) {
+          if(detect_trivial_method(cm->backend_method_)) {
+            inline_trivial_method(cache_->tracked_class(0), cm);
+          }
         }
       }
+    }
+
+    bool detect_trivial_method(VMMethod* vmm) {
+      opcode* stream = vmm->opcodes;
+      size_t size_max = 2;
+      if(stream[0] == InstructionSequence::insn_push_int) {
+        size_max++;
+      } else {
+        return false;
+      }
+
+      if(vmm->total == size_max &&
+          count_ == 0 &&
+          vmm->required_args == vmm->total_args &&
+          vmm->total_args == 0) return true;
+      return false;
+    }
+
+    void inline_trivial_method(Class* klass, CompiledMethod* cm) {
+      cm->add_inliner(ops_.vmmethod());
+
+      VMMethod* vmm = cm->backend_method_;
+
+      Value* self = ops_.stack_top();
+
+      BasicBlock* use_send = ops_.new_block("use_send");
+      ops_.check_reference_class(self, klass->class_id(), use_send);
+
+      Value* val = 0;
+      /////
+
+      if(vmm->opcodes[0] == InstructionSequence::insn_push_int) {
+        val = ops_.constant(Fixnum::from(vmm->opcodes[1]));
+      }
+
+      /////
+
+      assert(val);
+      ops_.stack_set_top(val);
+
+      ops_.create_branch(after_);
+      ops_.set_block(use_send);
+
+      after_->moveAfter(use_send);
     }
 
     void inline_ivar_write(Class* klass, AccessVariable* acc) {
