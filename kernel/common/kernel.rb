@@ -390,45 +390,6 @@ module Kernel
     raise TypeError, "#{self} is not a class/module"
   end
 
-  ##
-  # Activates the singleton Debugger instance, and sets a breakpoint
-  # immediately after the call site to this method.
-  #--
-  # TODO: Have method take an options hash to configure debugger behavior,
-  # and perhaps a block containing debugger commands to be executed when the
-  # breakpoint is hit.
-
-  def debugger
-    require 'debugger/debugger'
-    dbg = Debugger.instance
-
-    unless dbg.interface
-      # Default to command-line interface if nothing registered
-      require 'debugger/interface'
-      Debugger::CmdLineInterface.new
-    end
-
-    ctxt = MethodContext.current.sender
-    cm = ctxt.method
-    ip = ctxt.ip
-    bp = dbg.get_breakpoint(cm, ip)
-    if bp
-      bp.enable unless bp.enabled?
-    else
-      bp = dbg.set_breakpoint(cm, ip)
-    end
-
-    # TODO Modify send site not to call this method again
-    #bc = ctxt.method.iseq
-
-    #Breakpoint.encoder.replace_instruction(bc, ip-4, [:noop])
-    #Breakpoint.encoder.replace_instruction(bc, ip-2, [:noop])
-
-    #ctxt.reload_method
-  end
-
-  alias_method :breakpoint, :debugger
-
   def extend(*modules)
     modules.reverse_each do |mod|
       mod.extend_object(self)
