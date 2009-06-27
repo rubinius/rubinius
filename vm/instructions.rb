@@ -2438,17 +2438,20 @@ class Instructions
 
   def rotate(count)
     <<-CODE
-    int i;
-    int diff = count / 2;
-    Object* tmp;
+    int diff = count >> 1;
+    Object** start = STACK_PTR - (count - 1);
+    Object** end = STACK_PTR;
 
-    for(i = 0; i < diff; i++) {
-      int offset = count - i - 1;
-      tmp = STACK_PTR[-offset];
-      STACK_PTR[-offset] = STACK_PTR[-i];
-      STACK_PTR[-i] = tmp;
+    for(int i = 0; i < diff; i++) {
+      Object* right = *end;
+      Object* left =  *start;
+
+      *start = right;
+      *end = left;
+
+      start++;
+      end--;
     }
-
     CODE
   end
 
