@@ -14,7 +14,6 @@ executable.rbc
 false.rbc
 fixnum.rbc
 gc.rbc
-hash.rbc
 io.rbc
 kernel.rbc
 lookuptable.rbc

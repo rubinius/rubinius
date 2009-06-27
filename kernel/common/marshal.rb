@@ -149,7 +149,8 @@ class Hash
   def to_marshal(ms)
     raise TypeError, "can't dump hash with default proc" if default_proc
 
-    excluded_ivars = %w[@bins @count @records]
+    #excluded_ivars = %w[@bins @count @records]
+    excluded_ivars = %w[@capacity @mask @max @size @entries]
 
     out = ms.serialize_instance_variables_prefix self, excluded_ivars
     out << ms.serialize_extended_object(self)

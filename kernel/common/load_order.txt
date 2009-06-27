@@ -13,7 +13,6 @@ tuple.rbc
 exception.rbc
 undefined.rbc
 hash.rbc
-hash_186.rbc
 global.rbc
 type.rbc
 kernel.rbc
