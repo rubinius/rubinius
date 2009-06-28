@@ -191,7 +191,7 @@ task :spec do
   puts <<-EOM
 
   The spec and spec:xxx commands are deprecated (and removed).
-  Use bin/mspec directly. MSpec provides 'psuedo-directories',
+  Use bin/mspec directly. MSpec provides 'pseudo-directories',
   which are labels that refer to sets of specs to run. Refer
   to spec/default.mspec, spec/full.mspec and the MSpec docs
   for full details.

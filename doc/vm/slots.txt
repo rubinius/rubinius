@@ -1,7 +1,7 @@
 # Slots
 
 "Slots" are the name given to members of C++ classes that are available as
-psuedo instance variables in the Ruby classes. For example,
+pseudo instance variables in the Ruby classes. For example,
 vm/builtin/exception.hpp has the following member:
 
   private:
