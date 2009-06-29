@@ -5,11 +5,11 @@ namespace rubinius {
   void Arguments::append(STATE, Array* ary) {
     Array* args = Array::create(state, ary->size() + total());
 
-    for(size_t i = 0; i < total(); i++) {
+    for(uint32_t i = 0; i < total(); i++) {
       args->set(state, i, get_argument(i));
     }
 
-    for(size_t i = 0, n = total(); i < ary->size(); i++, n++) {
+    for(uint32_t i = 0, n = total(); i < ary->size(); i++, n++) {
       args->set(state, n, ary->get(state, i));
     }
 
@@ -19,11 +19,11 @@ namespace rubinius {
   void Arguments::prepend(STATE, Array* ary) {
     Array* args = Array::create(state, ary->size() + total());
 
-    for(size_t i = 0; i < ary->size(); i++) {
+    for(uint32_t i = 0; i < ary->size(); i++) {
       args->set(state, i, ary->get(state, i));
     }
 
-    for(size_t i = 0, n = ary->size(); i < total(); i++, n++) {
+    for(uint32_t i = 0, n = ary->size(); i < total(); i++, n++) {
       args->set(state, n, get_argument(i));
     }
 
@@ -33,7 +33,7 @@ namespace rubinius {
   Array* Arguments::as_array(STATE) {
     Array* ary = Array::create(state, total());
 
-    for(size_t i = 0; i < total(); i++) {
+    for(uint32_t i = 0; i < total(); i++) {
       ary->set(state, i, get_argument(i));
     }
 
@@ -53,7 +53,7 @@ namespace rubinius {
 
     ary->set(state, 0, val);
 
-    for(size_t i = 0; i < total(); i++) {
+    for(uint32_t i = 0; i < total(); i++) {
       ary->set(state, i + 1, get_argument(i));
     }
 
@@ -74,7 +74,7 @@ namespace rubinius {
     ary->set(state, 0, one);
     ary->set(state, 1, two);
 
-    for(size_t i = 0; i < total(); i++) {
+    for(uint32_t i = 0; i < total(); i++) {
       ary->set(state, i + 2, get_argument(i));
     }
 

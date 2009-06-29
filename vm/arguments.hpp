@@ -12,12 +12,12 @@ namespace rubinius {
     Object* recv_;
     Object* block_;
 
-    size_t total_;
+    uint32_t total_;
     Object** arguments_;
     Array* array_;
 
   public:
-    Arguments(Object* recv, Object* block, size_t total, Object** buffer)
+    Arguments(Object* recv, Object* block, uint32_t total, Object** buffer)
       : recv_(recv)
       , block_(block)
       , total_(total)
@@ -25,7 +25,7 @@ namespace rubinius {
       , array_(0)
     {}
 
-    Arguments(Object* recv, size_t total, Object** buffer)
+    Arguments(Object* recv, uint32_t total, Object** buffer)
       : recv_(recv)
       , block_(Qnil)
       , total_(total)
@@ -33,7 +33,7 @@ namespace rubinius {
       , array_(0)
     {}
 
-    Arguments(size_t total, Object** buffer)
+    Arguments(uint32_t total, Object** buffer)
       : recv_(0)
       , block_(Qnil)
       , total_(total)
@@ -67,11 +67,11 @@ namespace rubinius {
       block_ = val;
     }
 
-    Object* get_argument(size_t which) {
+    Object* get_argument(uint32_t which) {
       return arguments_[which];
     }
 
-    size_t total() {
+    uint32_t total() {
       return total_;
     }
 
