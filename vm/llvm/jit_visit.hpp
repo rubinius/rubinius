@@ -1010,13 +1010,41 @@ namespace rubinius {
       call_flags_ = flag;
     }
 
+    void emit_uncommon() {
+      Signature sig(ls_, "Object");
+
+      sig << "VM";
+      sig << "CallFrame";
+      sig << "Arguments";
+      sig << Type::Int32Ty;
+
+      Value* cur = stack_ptr();
+
+      Value* sp = subtract_pointers(cur, stack_);
+
+      Value* call_args[] = { vm_, call_frame_, args_, sp };
+
+      Value* call = sig.call("rbx_continue_uncommon", call_args, 4, "", block_);
+
+      ReturnInst::Create(call, block_);
+    }
+
     void visit_send_stack(opcode which, opcode args) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       BasicBlock* after = new_block("after_send");
 
       if(cache->method) {
         Inliner inl(*this, cache, args, after);
-        inl.consider();
+        // Uncommon doesn't yet know how to synthesize UnwindInfos, so
+        // don't do uncommon if there are handlers.
+        if(inl.consider() && exception_handlers_.size() == 0) {
+          emit_uncommon();
+
+          block_ = after;
+
+          allow_private_ = false;
+          return;
+        }
       }
 
       Value* ret = inline_cache_send(args, cache, block_);
@@ -1054,7 +1082,14 @@ namespace rubinius {
 
       if(cache->method) {
         Inliner inl(*this, cache, 0, after);
-        inl.consider();
+        if(inl.consider() && exception_handlers_.size() == 0) {
+          emit_uncommon();
+
+          block_ = after;
+
+          allow_private_ = false;
+          return;
+        }
       }
 
       Value* ret = inline_cache_send(0, cache, block_);

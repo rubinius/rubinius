@@ -54,6 +54,7 @@ namespace rubinius {
     int jitted_methods_;
     int queued_methods_;
     int accessors_inlined_;
+    int uncommons_taken_;
 
     SharedState& shared_;
 
@@ -126,6 +127,14 @@ namespace rubinius {
 
     int accessors_inlined() {
       return accessors_inlined_;
+    }
+
+    void add_uncommons_taken() {
+      uncommons_taken_++;
+    }
+
+    int uncommons_taken() {
+      return uncommons_taken_;
     }
 
     SharedState& shared() { return shared_; }

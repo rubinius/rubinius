@@ -14,6 +14,7 @@
 #include "builtin/proc.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/global_cache_entry.hpp"
+#include "builtin/iseq.hpp"
 #include "instruments/profiler.hpp"
 
 #include "helpers.hpp"
@@ -642,6 +643,22 @@ extern "C" {
 
   void rbx_set_table_ivar(STATE, Object* self, Symbol* name, Object* val) {
     self->set_table_ivar(state, name, val);
+  }
+
+  Object* rbx_continue_uncommon(STATE, CallFrame* call_frame, Arguments& args, int sp) {
+    LLVMState::get(state)->add_uncommons_taken();
+
+    VMMethod* vmm = call_frame->cm->backend_method_;
+    /*
+    if(vmm->opcodes[call_frame->ip()] == InstructionSequence::insn_send_stack) {
+      InlineCache* cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
+      std::cout << "Uncommon trap for send: " << cache->name->c_str(state) << "\n";
+    } else {
+      std::cout << "Uncommon trap running: " << call_frame->name()->c_str(state) << "\n";
+    }
+    */
+
+    return VMMethod::uncommon_interpreter(state, vmm, call_frame, args, sp);
   }
 
 }

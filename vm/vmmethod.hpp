@@ -152,6 +152,9 @@ namespace rubinius {
                                         InterpreterCallFrame* const call_frame,
                                         Arguments& args);
 
+    static Object* uncommon_interpreter(STATE, VMMethod* const vmm,
+      CallFrame* const call_frame, Arguments& args, int sp);
+
     void setup_argument_handler(CompiledMethod* meth);
 
     std::vector<Opcode*> create_opcodes();

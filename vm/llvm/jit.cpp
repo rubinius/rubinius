@@ -344,6 +344,7 @@ namespace rubinius {
     , jitted_methods_(0)
     , queued_methods_(0)
     , accessors_inlined_(0)
+    , uncommons_taken_(0)
     , shared_(state->shared)
     , include_profiling_(state->shared.config.jit_profile)
     , code_bytes_(0)

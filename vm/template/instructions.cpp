@@ -235,6 +235,137 @@ exception:
   } // for(;;)
 }
 
+Object* VMMethod::uncommon_interpreter(STATE, VMMethod* const vmm,
+    CallFrame* const call_frame, Arguments& args, int sp)
+{
+#ruby <<CODE
+  impl2 = si.decode_methods
+  si.generate_jump_table impl2
+CODE
+
+  opcode* stream = vmm->opcodes;
+  InterpreterState is;
+
+  Object** stack_ptr = call_frame->stk + sp;
+  Object* return_value;
+  static int tick = 0;
+
+  int current_unwind = 0;
+  UnwindInfo unwinds[kMaxUnwindInfos];
+
+  for(;;) {
+continue_to_run:
+    if(unlikely(++tick > 0xff)) {
+      tick = 0;
+      if(!state->check_stack(call_frame, &state)) return NULL;
+    }
+
+    if(unlikely(state->interrupts.check)) {
+      state->interrupts.check = false;
+      state->collect_maybe(call_frame);
+    }
+
+    if(unlikely(state->check_local_interrupts)) {
+      if(!state->process_async(call_frame)) return NULL;
+    }
+
+    try {
+
+#undef DISPATCH
+#define DISPATCH goto *insn_locations[stream[call_frame->inc_ip()]];
+
+#undef next_int
+#undef cache_ip
+#undef flush_ip
+
+#define next_int ((opcode)(stream[call_frame->inc_ip()]))
+#define cache_ip(which)
+#define flush_ip()
+
+#ruby <<CODE
+      io = StringIO.new
+      si.generate_jump_implementations impl2, io
+      puts io.string
+CODE
+    } catch(TypeError& e) {
+      flush_ip();
+      Exception* exc =
+        Exception::make_type_error(state, e.type, e.object, e.reason);
+      exc->locations(state, System::vm_backtrace(state, 0, call_frame));
+
+      state->thread_state()->raise_exception(exc);
+      return_value = 0;
+    }
+
+    if(return_value) return return_value;
+
+exception:
+    ThreadState* th = state->thread_state();
+    // if return_value is NULL, then there is an exception outstanding
+    //
+    switch(th->raise_reason()) {
+    case cException:
+      if(current_unwind > 0) {
+        UnwindInfo* info = &unwinds[--current_unwind];
+        stack_position(info->stack_depth);
+        call_frame->set_ip(info->target_ip);
+        cache_ip(info->target_ip);
+      } else {
+        return NULL;
+      }
+      break;
+
+    case cReturn:
+    case cBreak:
+      // Otherwise, we're doing a long return/break unwind through
+      // here. We need to run ensure blocks.
+      while(current_unwind > 0) {
+        UnwindInfo* info = &unwinds[--current_unwind];
+        if(info->for_ensure()) {
+          stack_position(info->stack_depth);
+          call_frame->set_ip(info->target_ip);
+          cache_ip(info->target_ip);
+
+          // Don't reset ep here, we're still handling the return/break.
+          goto continue_to_run;
+        }
+      }
+
+      // Ok, no ensures to run.
+      if(th->raise_reason() == cReturn) {
+        // If we're trying to return to here, we're done!
+        if(th->destination_scope() == call_frame->scope) {
+          Object* val = th->raise_value();
+          th->clear_exception(true);
+          return val;
+        } else {
+          // Give control of this exception to the caller.
+          return NULL;
+        }
+
+      } else { // It's cBreak
+        // If we're trying to break to here, we're done!
+        if(th->destination_scope() == call_frame->scope) {
+          stack_push(th->raise_value());
+          th->clear_exception(true);
+          // Don't return here, because we want to loop back to the top
+          // and keep running this method.
+        } else {
+          // Give control of this exception to the caller.
+          return NULL;
+        }
+      }
+      break;
+    case cExit:
+      return NULL;
+    default:
+      std::cout << "bug!\n";
+      call_frame->print_backtrace(state);
+      abort();
+    } // switch
+  } // for(;;)
+}
+
 
 /* The debugger interpreter loop is used to run a method when a breakpoint
  * has been set. It has additional overhead, since it needs to inspect

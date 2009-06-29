@@ -25,16 +25,18 @@ namespace rubinius {
     }
 
     Value* arg(int which) {
-      return ops_.stack_back(count_ - which);
+      return ops_.stack_back(count_ - (which + 1));
     }
 
-    void consider() {
+    bool consider() {
       executor callee = cache_->method->execute;
 
       if(callee == Primitives::tuple_at && count_ == 1) {
         call_tuple_at();
+        return true;
       } else if(callee == Primitives::tuple_put && count_ == 2) {
         call_tuple_put();
+        return true;
 
       // If the cache has only ever had one class, inline!
       } else if(cache_->classes_seen() == 1) {
@@ -47,12 +49,16 @@ namespace rubinius {
           } else {
             inline_ivar_access(cache_->tracked_class(0), acc);
           }
+          return true;
         } else if(CompiledMethod* cm = try_as<CompiledMethod>(meth)) {
           if(detect_trivial_method(cm)) {
             inline_trivial_method(cache_->tracked_class(0), cm);
+            return true;
           }
         }
       }
+
+      return false;
     }
 
     bool detect_trivial_method(CompiledMethod* cm) {
