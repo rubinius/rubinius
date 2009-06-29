@@ -74,6 +74,7 @@ For the build to succeed you will need these packages:
 * ruby-dev (or ruby1.8-dev)
 * libreadline5-dev
 * zlib1g-dev
+* libssl-dev
 
 
 ## Getting Rubinius
