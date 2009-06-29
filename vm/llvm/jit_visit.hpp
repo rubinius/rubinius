@@ -1517,10 +1517,10 @@ namespace rubinius {
           cond, IntPtrTy, "as_int", block_);
 
       Value* anded = BinaryOperator::CreateAnd(i,
-          ConstantInt::get(Type::Int32Ty, FALSE_MASK), "and", block_);
+          ConstantInt::get(IntPtrTy, FALSE_MASK), "and", block_);
 
       Value* cmp = new ICmpInst(ICmpInst::ICMP_NE, anded,
-          ConstantInt::get(Type::Int32Ty, cFalse), "is_true", block_);
+          ConstantInt::get(IntPtrTy, cFalse), "is_true", block_);
 
       BasicBlock* cont = new_block("continue");
       BranchInst::Create(block_map_[ip], cont, cmp, block_);
@@ -1535,10 +1535,10 @@ namespace rubinius {
           cond, IntPtrTy, "as_int", block_);
 
       Value* anded = BinaryOperator::CreateAnd(i,
-          ConstantInt::get(Type::Int32Ty, FALSE_MASK), "and", block_);
+          ConstantInt::get(IntPtrTy, FALSE_MASK), "and", block_);
 
       Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, anded,
-          ConstantInt::get(Type::Int32Ty, cFalse), "is_true", block_);
+          ConstantInt::get(IntPtrTy, cFalse), "is_true", block_);
 
       BasicBlock* cont = new_block("continue");
       BranchInst::Create(block_map_[ip], cont, cmp, block_);
