@@ -150,20 +150,14 @@ namespace rubinius {
   }
 
   Object * MachineMethod::run_code(STATE, CallFrame* previous, Dispatch& msg, Arguments& args) {
-#ifdef IS_X86
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
     VMMethod* vmm = cm->backend_method_;
     MachineMethod* mm = vmm->machine_method();
     void* func = mm->function();
     return ((executor)func)(state, previous, msg, args);
-#else
-    Assertion::raise("Only supported on x86");
-    return Qnil; // keep compiler happy
-#endif
   }
 
   Object* MachineMethod::activate() {
-#ifdef IS_X86
     if(!function()) return Qfalse;
 #ifdef MM_DEBUG
     vmmethod_->original.get()->execute = &MachineMethod::run_code;
@@ -172,9 +166,5 @@ namespace rubinius {
 #endif
     vmmethod_->set_machine_method(this);
     return Qtrue;
-#else
-    Assertion::raise("Only supported on x86");
-    return Qfalse;
-#endif
   }
 }
