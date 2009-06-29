@@ -421,15 +421,11 @@ namespace rubinius {
     G(rubinius)->set_const(state, "INTERPRETER", symbol("static"));
 #endif
 
-#ifdef USE_USAGE_JIT
     if(shared.config.jit_enabled) {
       G(rubinius)->set_const(state, "JIT", symbol("usage"));
     } else {
       G(rubinius)->set_const(state, "JIT", Qfalse);
     }
-#else
-    G(rubinius)->set_const(state, "JIT", Qfalse);
-#endif
   }
 
   void VM::bootstrap_symbol() {

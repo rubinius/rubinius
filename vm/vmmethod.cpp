@@ -118,7 +118,6 @@ namespace rubinius {
 
     setup_argument_handler(meth);
 
-#ifdef USE_USAGE_JIT
     // Disable JIT for large methods
     if(meth->primitive()->nil_p() &&
         state->shared.config.jit_enabled &&
@@ -127,9 +126,6 @@ namespace rubinius {
     } else {
       call_count = -1;
     }
-#else
-    call_count = 0;
-#endif
 
     machine_method_.set(Qnil);
   }
@@ -494,7 +490,6 @@ namespace rubinius {
       CompiledMethod* cm = as<CompiledMethod>(msg.method);
       VMMethod* vmm = cm->backend_method_;
 
-#ifdef USE_USAGE_JIT
 #ifdef ENABLE_LLVM
     // A negative call_count means we've disabled usage based JIT
     // for this method.
@@ -516,7 +511,6 @@ namespace rubinius {
         vmm->call_count++;
       }
     }
-#endif
 #endif
 
       VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
