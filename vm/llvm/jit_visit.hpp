@@ -1016,7 +1016,7 @@ namespace rubinius {
       sig << "VM";
       sig << "CallFrame";
       sig << "Arguments";
-      sig << Type::Int32Ty;
+      sig << IntPtrTy;
 
       Value* cur = stack_ptr();
 

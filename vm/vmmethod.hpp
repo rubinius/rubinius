@@ -153,7 +153,7 @@ namespace rubinius {
                                         Arguments& args);
 
     static Object* uncommon_interpreter(STATE, VMMethod* const vmm,
-      CallFrame* const call_frame, Arguments& args, int sp);
+      CallFrame* const call_frame, Arguments& args, native_int sp);
 
     void setup_argument_handler(CompiledMethod* meth);
 

@@ -293,7 +293,7 @@ namespace rubinius {
     Value* ptrtoint(Value* ptr) {
       return CastInst::Create(
           Instruction::PtrToInt,
-          ptr, Type::Int32Ty, "ptr2int", block_);
+          ptr, IntPtrTy, "ptr2int", block_);
     }
 
     Value* subtract_pointers(Value* ptra, Value* ptrb) {
@@ -302,7 +302,7 @@ namespace rubinius {
 
       Value* sub = BinaryOperator::CreateSub(inta, intb, "ptr_diff", block_);
 
-      Value* size_of = ConstantInt::get(Type::Int32Ty, 4);
+      Value* size_of = ConstantInt::get(IntPtrTy, sizeof(uintptr_t));
 
       return BinaryOperator::CreateSDiv(sub, size_of, "ptr_diff_adj", block_);
     }
