@@ -248,7 +248,7 @@ namespace rubinius {
   // For when the method expects no arguments at all (no splat, nothing)
   class NoArguments {
   public:
-    bool call(STATE, VMMethod* vmm, VariableScope* scope, Arguments& args) {
+    bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       return args.total() == 0;
     }
   };
@@ -256,7 +256,7 @@ namespace rubinius {
   // For when the method expects 1 and only 1 argument
   class OneArgument {
   public:
-    bool call(STATE, VMMethod* vmm, VariableScope* scope, Arguments& args) {
+    bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       if(args.total() != 1) return false;
       scope->set_local(0, args.get_argument(0));
       return true;
@@ -266,7 +266,7 @@ namespace rubinius {
   // For when the method expects 2 and only 2 arguments
   class TwoArguments {
   public:
-    bool call(STATE, VMMethod* vmm, VariableScope* scope, Arguments& args) {
+    bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       if(args.total() != 2) return false;
       scope->set_local(0, args.get_argument(0));
       scope->set_local(1, args.get_argument(1));
@@ -277,7 +277,7 @@ namespace rubinius {
   // For when the method expects 3 and only 3 arguments
   class ThreeArguments {
   public:
-    bool call(STATE, VMMethod* vmm, VariableScope* scope, Arguments& args) {
+    bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       if(args.total() != 3) return false;
       scope->set_local(0, args.get_argument(0));
       scope->set_local(1, args.get_argument(1));
@@ -289,7 +289,7 @@ namespace rubinius {
   // For when the method expects a fixed number of arguments (no splat)
   class FixedArguments {
   public:
-    bool call(STATE, VMMethod* vmm, VariableScope* scope, Arguments& args) {
+    bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       if((native_int)args.total() != vmm->total_args) return false;
 
       for(native_int i = 0; i < vmm->total_args; i++) {
@@ -303,7 +303,7 @@ namespace rubinius {
   // For when a method takes all arguments as a splat
   class SplatOnlyArgument {
   public:
-    bool call(STATE, VMMethod* vmm, VariableScope* scope, Arguments& args) {
+    bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       const size_t total = args.total();
       Array* ary = Array::create(state, total);
 
@@ -320,7 +320,7 @@ namespace rubinius {
   // The fallback, can handle all cases
   class GenericArguments {
   public:
-    bool call(STATE, VMMethod* vmm, VariableScope* scope, Arguments& args) {
+    bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       const bool has_splat = (vmm->splat_position >= 0);
 
       // expecting 0, got 0.
@@ -485,38 +485,45 @@ namespace rubinius {
    */
   template <typename ArgumentHandler>
     Object* VMMethod::execute_specialized(STATE, CallFrame* previous,
-                                          Dispatch& msg, Arguments& args) {
+        Dispatch& msg, Arguments& args) {
 
       CompiledMethod* cm = as<CompiledMethod>(msg.method);
       VMMethod* vmm = cm->backend_method_;
 
 #ifdef ENABLE_LLVM
-    // A negative call_count means we've disabled usage based JIT
-    // for this method.
-    if(vmm->call_count >= 0) {
-      if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
-        vmm->call_count = -1; // So we don't try and jit twice at the same time
-        state->stats.jitted_methods++;
+      // A negative call_count means we've disabled usage based JIT
+      // for this method.
+      if(vmm->call_count >= 0) {
+        if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
+          vmm->call_count = -1; // So we don't try and jit twice at the same time
+          state->stats.jitted_methods++;
 
-        LLVMState* ls = LLVMState::get(state);
+          LLVMState* ls = LLVMState::get(state);
 
-        ls->compile_soon(state, vmm);
+          ls->compile_soon(state, vmm);
 
-        if(state->shared.config.jit_show_compiling) {
-          std::cout << "[[[ JIT Queued method "
-                    << ls->queued_methods() << "/"
-                    << ls->jitted_methods() << " ]]]\n";
+          if(state->shared.config.jit_show_compiling) {
+            std::cout << "[[[ JIT Queued method "
+              << ls->queued_methods() << "/"
+              << ls->jitted_methods() << " ]]]\n";
+          }
+        } else {
+          vmm->call_count++;
         }
-      } else {
-        vmm->call_count++;
       }
-    }
 #endif
 
-      VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
-                                 (vmm->number_of_locals * sizeof(Object*)));
-
-      scope->prepare(args.recv(), msg.module, args.block(), cm, vmm->number_of_locals);
+      size_t scope_size = sizeof(StackVariables) +
+        (vmm->number_of_locals * sizeof(Object*));
+      StackVariables* scope =
+        reinterpret_cast<StackVariables*>(alloca(scope_size));
+      // Originally, I tried using msg.module directly, but what happens is if
+      // super is used, that field is read. If you combine that with the method
+      // being called recursively, msg.module can change, causing super() to
+      // look in the wrong place.
+      //
+      // Thus, we have to cache the value in the StackVariables.
+      scope->initialize(args.recv(), args.block(), msg.module, vmm->number_of_locals);
 
       InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
 

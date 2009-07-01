@@ -5,11 +5,11 @@
 
 #include "builtin/object.hpp"
 
-
 namespace rubinius {
 
   class CompiledMethod;
   class Module;
+  class CallFrame;
 
   /**
    *  Variable information.
@@ -19,7 +19,7 @@ namespace rubinius {
     const static object_type type = VariableScopeType;
 
   private:    /* Instance variables */
-    /** Block given to method (only on CM scopes) */
+    /** Block given to method */
     Object*         block_;   // slot
     /** Method this scope is for. */
     CompiledMethod* method_;  // slot
@@ -27,10 +27,12 @@ namespace rubinius {
     VariableScope*  parent_;  // slot
 
   public:
-    Object*         self_;    // slot
+    Object* self_;    // slot
 
-    int             number_of_locals_;
-    Object*         locals_[];
+    int number_of_locals_;
+    bool isolated_;
+    Object** locals_;
+    Object* heap_locals_[];
 
   public: /* Accessors */
     attr_accessor(block, Object);
@@ -40,6 +42,16 @@ namespace rubinius {
     attr_accessor(self, Object);
 
     static void init(STATE);
+
+    void point_locals_to(Object** locals) {
+      locals_ = locals;
+    }
+
+    void fixup() {
+      if(isolated_) {
+        locals_ = heap_locals_;
+      }
+    }
 
     /**
      *  Initialize scope for methods.
@@ -78,14 +90,10 @@ namespace rubinius {
       parent_ = vs;
     }
 
-    bool stack_allocated_p() {
-      return obj_type_ == InvalidType;
-    }
-
     void set_local(STATE, int pos, Object* val) {
       locals_[pos] = val;
 
-      if(!stack_allocated_p()) {
+      if(locals_ == heap_locals_) {
         write_barrier(state, val);
       }
     }

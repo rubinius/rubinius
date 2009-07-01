@@ -1082,9 +1082,13 @@ class Compiler
           ex.escape ok
 
           ex.handle!
+          g.push_exception
 
           @ensure.bytecode(g)
           g.pop
+
+          g.pop_exception
+
           # Re-raise the exception
           g.reraise
         end
@@ -1376,10 +1380,10 @@ class Compiler
           else
             g.get_local_fp @variable.stack_position
           end
-        elsif @variable.created_in_block?
-          g.push_local_depth @depth, @variable.slot
-        else
+        elsif !@depth or @depth == 0
           g.push_local @variable.slot
+        else
+          g.push_local_depth @depth, @variable.slot
         end
       end
     end
@@ -1407,16 +1411,10 @@ class Compiler
           g.push_literal @variable.name
           g.swap
           g.send :set_eval_local, 2, false
-        elsif @variable.on_stack?
-          if @variable.argument?
-            raise Error, "Invalid access semantics for argument: #{@name}"
-          end
-
-          g.set_local_fp @variable.stack_position
-        elsif @variable.created_in_block?
-          g.set_local_depth @depth, @variable.slot
-        else
+        elsif !@depth or @depth == 0
           g.set_local @variable.slot
+        else
+          g.set_local_depth @depth, @variable.slot
         end
       end
     end
@@ -2075,8 +2073,6 @@ class Compiler
 
           # Save the current exception into a local
           g.push_exception
-          g.set_local @saved_exception.slot
-          g.pop
 
           g.retry.set!
           g.exceptions do |ex|
@@ -2098,8 +2094,10 @@ class Compiler
             @else.bytecode(g)
           end
           last.set!
+
           # Restore the previous exception if execution reaches this point
-          g.push_local @saved_exception.slot
+          #g.push_local @saved_exception.slot
+          g.swap
           g.pop_exception
         end
         g.pop_modifiers

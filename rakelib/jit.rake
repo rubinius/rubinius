@@ -4,6 +4,7 @@ namespace :jit do
 
     classes = %w!rubinius::ObjectHeader
                  rubinius::Object
+                 rubinius::StackVariables
                  rubinius::CallFrame
                  rubinius::UnwindInfo
                  rubinius::VariableScope
@@ -58,7 +59,7 @@ namespace :jit do
       end
     end
 
-    opaque = %w!VM TypeInfo VMMethod Fixnum Symbol Selector LookupTable!
+    opaque = %w!VM TypeInfo VMMethod Fixnum Symbol Selector LookupTable MethodTable!
 
     File.open("vm/gen/types.ll","w+") do |f|
       opaque.each do |o|

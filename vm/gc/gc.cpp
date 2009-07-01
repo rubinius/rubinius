@@ -77,13 +77,15 @@ namespace rubinius {
     }
   }
 
-  void GarbageCollector::saw_variable_scope(VariableScope* scope) {
-    scope->update(mark_object(scope->self()),
-                  mark_object(scope->method()),
-                  mark_object(scope->module()),
-                  mark_object(scope->block()));
+  void GarbageCollector::saw_variable_scope(CallFrame* call_frame,
+      StackVariables* scope)
+  {
+    scope->self_ = mark_object(scope->self());
+    scope->block_ = mark_object(scope->block());
+    scope->module_ = (Module*)mark_object(scope->module());
 
-    for(int i = 0; i < scope->number_of_locals(); i++) {
+    int locals = call_frame->cm->backend_method_->number_of_locals;
+    for(int i = 0; i < locals; i++) {
       Object* local = scope->get_local(i);
       if(local->reference_p()) {
         scope->set_local(i, mark_object(local));
@@ -91,12 +93,13 @@ namespace rubinius {
     }
 
     VariableScope* parent = scope->parent();
-    if(parent && parent->reference_p()) {
-      if(parent->stack_allocated_p()) {
-        saw_variable_scope(parent);
-      } else {
-        scope->update_parent((VariableScope*)mark_object(parent));
-      }
+    if(parent) {
+      scope->parent_ = (VariableScope*)mark_object(parent);
+    }
+
+    VariableScope* heap = scope->on_heap();
+    if(heap) {
+      scope->on_heap_ = (VariableScope*)mark_object(heap);
     }
   }
 
@@ -126,32 +129,31 @@ namespace rubinius {
 
       if(call_frame->multiple_scopes_p() &&
           call_frame->top_scope_) {
-        if(call_frame->top_scope_->stack_allocated_p()) {
-          saw_variable_scope(call_frame->top_scope_);
-        } else {
-          call_frame->top_scope_ = (VariableScope*)mark_object(call_frame->top_scope_);
-        }
+        call_frame->top_scope_ = (VariableScope*)mark_object(call_frame->top_scope_);
       }
 
-      if(call_frame->scope) {
-        if(call_frame->scope->stack_allocated_p()) {
-          saw_variable_scope(call_frame->scope);
-        } else {
-          call_frame->scope = (VariableScope*)mark_object(call_frame->scope);
-        }
+      if(call_frame->msg) {
+        call_frame->msg->module = (Module*)mark_object(call_frame->msg->module);
+        call_frame->msg->method = (Executable*)mark_object(call_frame->msg->method);
       }
+
+      saw_variable_scope(call_frame, call_frame->scope);
 
       call_frame = static_cast<CallFrame*>(call_frame->previous);
     }
   }
 
-  void GarbageCollector::visit_variable_scope(VariableScope* scope, ObjectVisitor& visit) {
-    scope->update(visit.call(scope->self()),
-                  visit.call(scope->method()),
-                  visit.call(scope->module()),
-                  visit.call(scope->block()));
+  void GarbageCollector::visit_variable_scope(CallFrame* call_frame,
+      StackVariables* scope, ObjectVisitor& visit)
+  {
 
-    for(int i = 0; i < scope->number_of_locals(); i++) {
+    scope->self_ = visit.call(scope->self());
+    scope->block_ = visit.call(scope->block());
+    scope->module_ = (Module*)visit.call(scope->module());
+
+    int locals = call_frame->cm->backend_method_->number_of_locals;
+
+    for(int i = 0; i < locals; i++) {
       Object* local = scope->get_local(i);
       if(local->reference_p()) {
         scope->set_local(i, visit.call(local));
@@ -160,11 +162,12 @@ namespace rubinius {
 
     VariableScope* parent = scope->parent();
     if(parent && parent->reference_p()) {
-      if(parent->stack_allocated_p()) {
-        saw_variable_scope(parent);
-      } else {
-        scope->update_parent((VariableScope*)visit.call(parent));
-      }
+      scope->parent_ = ((VariableScope*)visit.call(parent));
+    }
+
+    VariableScope* on_heap = scope->on_heap();
+    if(on_heap) {
+      scope->on_heap_ = ((VariableScope*)visit.call(on_heap));
     }
   }
 
@@ -194,20 +197,10 @@ namespace rubinius {
 
       if(call_frame->multiple_scopes_p() &&
           call_frame->top_scope_) {
-        if(call_frame->top_scope_->stack_allocated_p()) {
-          visit_variable_scope(call_frame->top_scope_, visit);
-        } else {
-          call_frame->top_scope_ = (VariableScope*)visit.call(call_frame->top_scope_);
-        }
+        call_frame->top_scope_ = (VariableScope*)visit.call(call_frame->top_scope_);
       }
 
-      if(call_frame->scope) {
-        if(call_frame->scope->stack_allocated_p()) {
-          visit_variable_scope(call_frame->scope, visit);
-        } else {
-          call_frame->scope = (VariableScope*)visit.call(call_frame->scope);
-        }
-      }
+      visit_variable_scope(call_frame, call_frame->scope, visit);
 
       call_frame = static_cast<CallFrame*>(call_frame->previous);
     }

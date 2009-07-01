@@ -65,7 +65,7 @@ describe "An Iter node" do
     g.push :self
 
     g.in_block_send :m, :single do |d|
-      d.push_local_depth 0, 0
+      d.push_local 0
       d.push :self
       d.send :x, 0, true
       d.send :+, 1, false
@@ -116,7 +116,7 @@ describe "An Iter node" do
         d.push :self
         d.send :x, 0, true
         d.pop
-        d.push_local_depth 0, 0
+        d.push_local 0
       end
     end
   end
@@ -125,7 +125,7 @@ describe "An Iter node" do
     g.push :self
 
     g.in_block_send :m, :multi, 1 do |d|
-      d.push_local_depth 0, 0
+      d.push_local 0
       d.push :self
       d.send :x, 0, true
       d.send :+, 1, false
@@ -168,12 +168,12 @@ describe "An Iter node" do
       g.push :self
 
       g.in_block_send :m, :rest, -2 do |d|
-        d.push_local_depth 0, 0
+        d.push_local 0
         d.push :self
         d.send :x, 0, true
         d.send :+, 1, false
         d.pop
-        d.push_local_depth 0, 1
+        d.push_local 1
       end
     end
   end
@@ -192,12 +192,12 @@ describe "An Iter node" do
       g.push :self
 
       g.in_block_send :m, :multi, 2 do |d|
-        d.push_local_depth 0, 0
+        d.push_local 0
         d.push :self
         d.send :x, 0, true
         d.send :+, 1, false
         d.pop
-        d.push_local_depth 0, 1
+        d.push_local 1
       end
     end
   end
@@ -206,12 +206,12 @@ describe "An Iter node" do
     g.push :self
 
     g.in_block_send :m, :multi, -2 do |d|
-      d.push_local_depth 0, 0
+      d.push_local 0
       d.push :self
       d.send :x, 0, true
       d.send :+, 1, false
       d.pop
-      d.push_local_depth 0, 1
+      d.push_local 1
     end
   end
 
@@ -245,14 +245,14 @@ describe "An Iter node" do
     g.push :self
 
     g.in_block_send :m, :rest, -3 do |d|
-      d.push_local_depth 0, 0
+      d.push_local 0
       d.push :self
       d.send :x, 0, true
       d.send :+, 1, false
       d.pop
-      d.push_local_depth 0, 1
+      d.push_local 1
       d.pop
-      d.push_local_depth 0, 2
+      d.push_local 2
     end
   end
 
@@ -297,9 +297,9 @@ describe "An Iter node" do
 
       g.in_block_send :m, :none do |d|
         d.push 1
-        d.set_local_depth 0, 0
+        d.set_local 0
         d.pop
-        d.push_local_depth 0, 0
+        d.push_local 0
       end
     end
   end
@@ -319,7 +319,7 @@ describe "An Iter node" do
         d.push_modifiers
         d.new_label.set! # redo
         d.push 1
-        d.set_local_depth 0, 0
+        d.set_local 0
         d.pop
 
         i2 = description do |j|
@@ -361,7 +361,7 @@ describe "An Iter node" do
 
       g.in_block_send :m, :none do |d|
         d.push 2
-        d.set_local 0
+        d.set_local_depth 1, 0
       end
 
       g.pop
@@ -440,7 +440,7 @@ describe "An Iter node" do
       g.send :obj, 0, true
 
       g.in_block_send :m, :single, nil, 0, false do |d|
-        d.push_local_depth 0, 0
+        d.push_local 0
         d.push :self
         d.send :x, 0, true
         d.send :+, 1, false
@@ -466,7 +466,7 @@ describe "An Iter node" do
       g.send :x, 0, true
 
       g.in_block_send :m, :single, nil, 1, false do |d|
-        d.push_local_depth 0, 0
+        d.push_local 0
         d.push :self
         d.send :x, 0, true
         d.send :+, 1, false
@@ -492,7 +492,7 @@ describe "An Iter node" do
       g.send :a, 0, true
 
       g.in_block_send :m, :single, nil, 1, false do |d|
-        d.push_local_depth 0, 0
+        d.push_local 0
         d.push :self
         d.send :x, 0, true
         d.send :+, 1, false
@@ -519,13 +519,13 @@ describe "An Iter node" do
 
       iter = g.block_description do |d|
         d.cast_for_single_block_arg
-        d.set_local 0
+        d.set_local_depth 1, 0
 
         d.pop
         d.push_modifiers
         d.new_label.set!
 
-        d.push_local 0
+        d.push_local_depth 1, 0
         d.push :self
         d.send :x, 0, true
         d.send :+, 1, false

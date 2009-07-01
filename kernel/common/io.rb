@@ -100,8 +100,9 @@ class IO
     # Returns the number of bytes to fetch from the buffer up-to-
     # and-including +pattern+. Returns +nil+ if pattern is not found.
     def find(pattern, discard = nil)
-      return unless count = @storage.locate(pattern, @start)
-      count - @start
+      count = @storage.locate(pattern, @start, @used)
+      return nil unless count
+      return count - @start
     end
 
     ##

@@ -190,18 +190,21 @@ class TestByteArray : public CxxTest::TestSuite, public VMTest {
 
   void test_locate() {
     ByteArray* a = String::create(state, "xyZfoo\nzyx")->data();
-    Integer* zero = Integer::from(state, 0);
-    Integer* three = Integer::from(state, 3);
+    Fixnum* zero = Fixnum::from(0);
+    Fixnum* three = Fixnum::from(3);
     Fixnum* seven = Fixnum::from(7);
+    Fixnum* four = Fixnum::from(4);
+    Fixnum* two = Fixnum::from(2);
 
     String* foo_nl = String::create(state, "foo\n");
 
-    TS_ASSERT_EQUALS(three, a->locate(state, String::create(state, ""), three));
-    TS_ASSERT_EQUALS(Qnil, a->locate(state, String::create(state, "\n\n"), zero));
-    TS_ASSERT_EQUALS(seven, (Fixnum*)a->locate(state, String::create(state, "\n"), zero));
-    TS_ASSERT_EQUALS(Qnil, a->locate(state, foo_nl, Integer::from(state, 4)));
-    TS_ASSERT_EQUALS(seven, (Fixnum*)a->locate(state, foo_nl, Integer::from(state, 2)));
-    TS_ASSERT_EQUALS(seven, (Fixnum*)a->locate(state, foo_nl, three));
-    TS_ASSERT_EQUALS(Fixnum::from(10), (Fixnum*)a->locate(state, String::create(state, "yx"), three));
+    TS_ASSERT_EQUALS(three, a->locate(state, String::create(state, ""), three, zero));
+    TS_ASSERT_EQUALS(Qnil, a->locate(state, String::create(state, "\n\n"), zero, zero));
+    TS_ASSERT_EQUALS(seven, (Fixnum*)a->locate(state, String::create(state, "\n"), zero, zero));
+    TS_ASSERT_EQUALS(Qnil, a->locate(state, foo_nl, four, zero));
+    TS_ASSERT_EQUALS(seven, (Fixnum*)a->locate(state, foo_nl, two, zero));
+    TS_ASSERT_EQUALS(seven, (Fixnum*)a->locate(state, foo_nl, three, zero));
+    TS_ASSERT_EQUALS(Fixnum::from(10), (Fixnum*)a->locate(state,
+                     String::create(state, "yx"), three, zero));
   }
 };

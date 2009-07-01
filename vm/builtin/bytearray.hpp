@@ -54,7 +54,7 @@ namespace rubinius {
      */
 
     // Ruby.primitive :bytearray_locate
-    Object* locate(STATE, String* pattern, Integer* start);
+    Object* locate(STATE, String* pattern, Fixnum* start, Fixnum* max);
 
     char* to_chars(STATE);
 

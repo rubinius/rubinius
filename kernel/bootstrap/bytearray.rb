@@ -63,7 +63,7 @@ module Rubinius
     # of characters from the front of the ByteArray to the end
     # of the pattern if a match is found. Returns Qnil if a match
     # is not found. Starts searching at index +start+.
-    def locate(pattern, start)
+    def locate(pattern, start, max)
       Ruby.primitive :bytearray_locate
       raise PrimitiveFailure, "ByteArray#locate primitive failed"
     end

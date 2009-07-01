@@ -208,6 +208,7 @@ namespace rubinius {
 
     if(dup2(other_fd, cur_fd) == -1) {
       Exception::errno_error(state, "reopen");
+      return NULL;
     }
 
     set_mode(state);
@@ -406,6 +407,7 @@ namespace rubinius {
 
     if(cnt == -1) {
       Exception::errno_error(state);
+      return NULL;
     }
 
     return Integer::from(state, cnt);

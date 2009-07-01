@@ -10,12 +10,8 @@
 #include "object_utils.hpp"
 
 namespace rubinius {
-  void CallFrame::promote_scope(STATE) {
-    if(scope->obj_type_ != InvalidType) return;
-    VariableScope* new_scope = scope->promote(state);
-
-    if(scope == top_scope()) top_scope_ = new_scope;
-    scope = new_scope;
+  VariableScope* CallFrame::promote_scope(STATE) {
+    return scope->create_heap_alias(state, this);
   }
 
   void CallFrame::print_backtrace(STATE) {
@@ -82,7 +78,7 @@ namespace rubinius {
   bool CallFrame::scope_still_valid(VariableScope* scope) {
     CallFrame* cur = this;
     while(cur) {
-      if(cur->scope == scope) return true;
+      if(cur->scope->on_heap() == scope) return true;
       cur = static_cast<CallFrame*>(cur->previous);
     }
 

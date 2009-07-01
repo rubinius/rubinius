@@ -72,6 +72,9 @@ namespace rubinius {
 
     state->set_run_signals(true);
     shared->set_signal_handler(new SignalHandler(state));
+
+    // Ignore sigpipe.
+    signal(SIGPIPE, SIG_IGN);
   }
 
   void Environment::load_argv(int argc, char** argv) {

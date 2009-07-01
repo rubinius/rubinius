@@ -125,78 +125,42 @@ class Compiler
 
   def create_scopes
     ctx = @context
-    if false # ctx.kind_of? BlockContext
-      all_scopes = []
-      block_scopes = []
+    all_scopes = []
+    block_scopes = []
+    dynamic = []
 
-      while ctx.kind_of? BlockContext
-        scope = LocalScope.new(nil)
-        scope.from_eval = true
-        block_scopes.unshift scope
-        all_scopes << scope
-
-        if !ctx.env.from_eval? and names = ctx.method.local_names
-          i = 0
-          names.each do |name|
-            scope[name].created_in_block! i
-            i += 1
-          end
-        end
-
-        ctx = ctx.env.home_block
-      end
-
+    vars = ctx.variables
+    while vars.parent
       scope = LocalScope.new(nil)
       scope.from_eval = true
+      block_scopes.unshift scope
       all_scopes << scope
 
-      if names = ctx.method.local_names
+      # TODO should check for from_eval here?
+      if names = vars.method.local_names
         i = 0
         names.each do |name|
-          scope[name].slot = i
+          scope[name].created_in_block! i
           i += 1
         end
       end
 
-      return [scope, block_scopes, all_scopes, @context]
-    else
-      all_scopes = []
-      block_scopes = []
-      dynamic = []
-
-      vars = ctx.variables
-      while vars.parent
-        scope = LocalScope.new(nil)
-        scope.from_eval = true
-        block_scopes.unshift scope
-        all_scopes << scope
-
-        # TODO should check for from_eval here?
-        if names = vars.method.local_names
-          i = 0
-          names.each do |name|
-            scope[name].created_in_block! i
-            i += 1
-          end
-        end
-
-        vars = vars.parent
-      end
-
-      scope = LocalScope.new(nil)
-      scope.from_eval = true
-      all_scopes << scope
-
-      i = 0
-      if names = vars.method.local_names
-        names.each do |name|
-          scope[name].slot = i
-          i += 1
-        end
-      end
-
-      return [all_scopes.first, block_scopes, all_scopes, @context]
+      vars = vars.parent
     end
+
+    top_scope = LocalScope.new(nil)
+    top_scope.from_eval = true
+    all_scopes << top_scope
+
+    i = 0
+    if names = vars.method.local_names
+      names.each do |name|
+        top_scope[name].slot = i
+        i += 1
+      end
+    end
+
+    return [top_scope, block_scopes, all_scopes, @context]
   end
 
   attr_reader :plugins

@@ -280,6 +280,40 @@ namespace rubinius {
       return val;
     }
 
+    // Scope maintainence
+    void flush_scope_to_heap(Value* vars) {
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, offset::vars_on_heap)
+      };
+
+      Value* pos = GetElementPtrInst::Create(vars, idx, idx + 2, "on_heap_pos", block_);
+
+      Value* on_heap = new LoadInst(pos, "on_heap", block_);
+
+      Value* null = ConstantExpr::getNullValue(on_heap->getType());
+      Value* cmp = create_not_equal(on_heap, null, "null_check");
+
+      BasicBlock* do_flush = new_block("do_flush");
+      BasicBlock* cont = new_block("continue");
+
+      create_conditional_branch(do_flush, cont, cmp);
+
+      set_block(do_flush);
+
+      Signature sig(ls_, "Object");
+      sig << "VM";
+      sig << "StackVariables";
+
+      Value* call_args[] = { vm_, vars };
+
+      sig.call("rbx_flush_scope", call_args, 2, "", block_);
+
+      create_branch(cont);
+
+      set_block(cont);
+    }
+
     // Constant creation
     //
     Value* constant(Object* obj, BasicBlock* block = NULL) {
@@ -437,6 +471,10 @@ namespace rubinius {
 
     ICmpInst* create_equal(Value* left, Value* right, const char* name) {
       return create_icmp(ICmpInst::ICMP_EQ, left, right, name);
+    }
+
+    ICmpInst* create_not_equal(Value* left, Value* right, const char* name) {
+      return create_icmp(ICmpInst::ICMP_NE, left, right, name);
     }
 
     ICmpInst* create_less_than(Value* left, Value* right, const char* name) {

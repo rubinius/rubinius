@@ -148,7 +148,7 @@ module ThreadSpecs
     t = Thread.new do
       begin
         begin
-          Thread.current.send(@method)
+          Thread.current.send(kill_method_name)
         ensure
           raise "In dying thread"
         end

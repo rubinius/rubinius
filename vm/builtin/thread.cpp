@@ -117,10 +117,11 @@ namespace rubinius {
     VM* vm = native_thread_->vm();
     CallFrame* cf = vm->saved_call_frame();
 
-    cf->promote_scope(state);
+    VariableScope* scope = cf->promote_scope(state);
 
-    return Tuple::from(state, 3, Fixnum::from(cf->ip()), cf->cm, cf->scope);
+    return Tuple::from(state, 3, Fixnum::from(cf->ip()), cf->cm, scope);
   }
+
   void Thread::detach_native_thread() {
     native_thread_->detach();
     native_thread_ = NULL;

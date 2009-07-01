@@ -32,9 +32,12 @@ describe "An Ensure node" do
 
       dunno.set!
 
+      g.push_exception
+
       g.push :nil
       g.pop
 
+      g.pop_exception
       g.reraise
 
       bottom.set!

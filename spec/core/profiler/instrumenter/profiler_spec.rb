@@ -62,6 +62,7 @@ with_profiler do
       block_method[:total].should > 0
 
       block = ProfilerSpecs.find_method(data, "ProfilerSpecs::Block#block {}")
+      block.should_not be_nil
       block[:called].should == 5
       block[:total].should > 0
     end

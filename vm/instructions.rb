@@ -453,8 +453,6 @@ class Instructions
     Object* _lit = call_frame->cm->literals()->at(state, index);
     CompiledMethod* cm = as<CompiledMethod>(_lit);
 
-    call_frame->promote_scope(state);
-
     // TODO: We don't need to be doing this everytime.
     cm->scope(state, call_frame->static_scope());
 
@@ -1080,7 +1078,7 @@ class Instructions
   def yield_stack(count)
     <<-CODE
     flush_ip();
-    Object* t1 = call_frame->top_scope()->block();
+    Object* t1 = call_frame->scope->block();
     Object* ret;
     Arguments args(t1, count, stack_back_position(count));
 
@@ -1109,7 +1107,7 @@ class Instructions
     <<-CODE
     flush_ip();
     Object* ary = stack_pop();
-    Object* t1 = call_frame->top_scope()->block();
+    Object* t1 = call_frame->scope->block();
 
     Arguments args(t1, count, stack_back_position(count));
 
@@ -1703,7 +1701,7 @@ class Instructions
 
   def push_block
     <<-CODE
-    stack_push(call_frame->top_scope()->block());
+    stack_push(call_frame->scope->block());
     CODE
   end
 
@@ -2123,7 +2121,7 @@ class Instructions
 
   def push_local(index)
     <<-CODE
-    stack_push(call_frame->top_scope()->get_local(index));
+    stack_push(call_frame->scope->get_local(index));
     CODE
   end
 
@@ -2160,13 +2158,17 @@ class Instructions
 
   def push_local_depth(depth, index)
     <<-CODE
-    VariableScope* scope = call_frame->scope;
+    if(depth == 0) {
+      stack_push(call_frame->scope->get_local(index));
+    } else {
+      VariableScope* scope = call_frame->scope->parent();
 
-    for(int j = 0; j < depth; j++) {
-      scope = scope->parent();
+      for(int j = 1; j < depth; j++) {
+        scope = scope->parent();
+      }
+
+      stack_push(scope->get_local(index));
     }
-
-    stack_push(scope->get_local(index));
     CODE
   end
 
@@ -2405,6 +2407,9 @@ class Instructions
 
   def ret
     <<-CODE
+    if(call_frame->scope->made_alias_p()) {
+      call_frame->scope->flush_to_heap(state);
+    }
     return stack_top();
     CODE
   end
@@ -3265,7 +3270,7 @@ class Instructions
 
   def set_local(index)
     <<-CODE
-    call_frame->top_scope()->set_local(state, index, stack_top());
+    call_frame->scope->set_local(index, stack_top());
     CODE
   end
 
@@ -3307,15 +3312,19 @@ class Instructions
 
   def set_local_depth(depth, index)
     <<-CODE
-    VariableScope* scope = call_frame->scope;
+    if(depth == 0) {
+      call_frame->scope->set_local(index, stack_top());
+    } else {
+      VariableScope* scope = call_frame->scope->parent();
 
-    for(int j = 0; j < depth; j++) {
-      scope = scope->parent();
+      for(int j = 1; j < depth; j++) {
+        scope = scope->parent();
+      }
+
+      Object* val = stack_pop();
+      scope->set_local(state, index, val);
+      stack_push(val);
     }
-
-    Object* val = stack_pop();
-    scope->set_local(state, index, val);
-    stack_push(val);
     CODE
   end
 
@@ -3704,7 +3713,7 @@ class Instructions
       exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
       state->thread_state()->raise_exception(exc);
     } else {
-      state->thread_state()->raise_return(stack_top(), call_frame->top_scope());
+      state->thread_state()->raise_return(stack_top(), call_frame->top_scope(state));
     }
     RUN_EXCEPTION();
     CODE
@@ -3713,7 +3722,7 @@ class Instructions
   def ensure_return
     <<-CODE
     flush_ip();
-    state->thread_state()->raise_return(stack_top(), call_frame->scope);
+    state->thread_state()->raise_return(stack_top(), call_frame->promote_scope(state));
     RUN_EXCEPTION();
     CODE
   end
@@ -3728,8 +3737,7 @@ class Instructions
 
   def push_variables
     <<-CODE
-    call_frame->promote_scope(state);
-    stack_push(call_frame->scope);
+    stack_push(call_frame->promote_scope(state));
     CODE
   end
 
