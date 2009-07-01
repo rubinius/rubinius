@@ -125,21 +125,6 @@ namespace rubinius {
       return new ICmpInst(ICmpInst::ICMP_EQ, obj_type, tag, "is_tuple", block_);
     }
 
-    Value* check_class(Value* obj, int class_id) {
-      Signature sig(ls_, Type::Int1Ty);
-      sig << "VM";
-      sig << "Object";
-      sig << Type::Int32Ty;
-
-      Value* call_args[] = {
-        vm_,
-        obj,
-        ConstantInt::get(Type::Int32Ty, class_id)
-      };
-
-      return sig.call("rbx_check_class", call_args, 3, "checked_class", block_);
-    }
-
     Value* check_is_reference(Value* obj) {
       Value* mask = ConstantInt::get(IntPtrTy, TAG_REF_MASK);
       Value* zero = ConstantInt::get(IntPtrTy, TAG_REF);
@@ -158,6 +143,41 @@ namespace rubinius {
       Value* idx[] = { zero_, cint(3) };
       Value* gep = create_gep(cls, idx, 2, "class_id_pos");
       return create_load(gep, "class_id");
+    }
+
+    Value* check_is_symbol(Value* obj) {
+      Value* mask = ConstantInt::get(IntPtrTy, TAG_SYMBOL_MASK);
+      Value* zero = ConstantInt::get(IntPtrTy, TAG_SYMBOL);
+
+      Value* lint = create_and(cast_int(obj), mask, "masked");
+      return create_equal(lint, zero, "is_symbol");
+    }
+
+    Value* check_is_fixnum(Value* obj) {
+      Value* mask = ConstantInt::get(IntPtrTy, TAG_FIXNUM_MASK);
+      Value* zero = ConstantInt::get(IntPtrTy, TAG_FIXNUM);
+
+      Value* lint = create_and(cast_int(obj), mask, "masked");
+      return create_equal(lint, zero, "is_fixnum");
+    }
+
+    void verify_guard(Value* cmp, BasicBlock* failure) {
+      BasicBlock* cont = new_block("guarded_body");
+      create_conditional_branch(cont, failure, cmp);
+
+      set_block(cont);
+
+      failure->moveAfter(cont);
+    }
+
+    void check_class(Value* obj, Class* klass, BasicBlock* failure) {
+      if(klass->instance_type()->to_native() == rubinius::Symbol::type) {
+        verify_guard(check_is_symbol(obj), failure);
+      } else if(klass->instance_type()->to_native() == rubinius::Fixnum::type) {
+        verify_guard(check_is_fixnum(obj), failure);
+      } else {
+        check_reference_class(obj, klass->class_id(), failure);
+      }
     }
 
     void check_reference_class(Value* obj, int needed_id, BasicBlock* failure) {

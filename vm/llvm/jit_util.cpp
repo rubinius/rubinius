@@ -657,8 +657,12 @@ extern "C" {
     LLVMState::get(state)->add_uncommons_taken();
 
     VMMethod* vmm = call_frame->cm->backend_method_;
+
     /*
     if(vmm->opcodes[call_frame->ip()] == InstructionSequence::insn_send_stack) {
+      InlineCache* cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
+      std::cout << "Uncommon trap for send: " << cache->name->c_str(state) << "\n";
+    } else if(vmm->opcodes[call_frame->ip()] == InstructionSequence::insn_send_method) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
       std::cout << "Uncommon trap for send: " << cache->name->c_str(state) << "\n";
     } else {

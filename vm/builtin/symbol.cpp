@@ -17,6 +17,7 @@
 namespace rubinius {
   void Symbol::init(STATE) {
     GO(symbol).set(state->new_class("Symbol"));
+    G(symbol)->set_object_type(state, Symbol::type);
   }
 
   native_int Symbol::index() const {

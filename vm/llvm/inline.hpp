@@ -95,7 +95,7 @@ namespace rubinius {
       Value* self = ops_.stack_top();
 
       BasicBlock* use_send = ops_.new_block("use_send");
-      ops_.check_reference_class(self, klass->class_id(), use_send);
+      ops_.check_class(self, klass, use_send);
 
       Value* val = 0;
       /////
