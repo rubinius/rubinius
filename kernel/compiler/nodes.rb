@@ -657,11 +657,23 @@ raise "no"
         unless lcl
           if @top_scope.key?(name)
             lcl = @top_scope[name]
+            depth = @block_scope.size
+
+            if @top_scope.from_eval
+              depth += 1
+            end
+
           elsif !allocate
             return nil
           elsif !last_scope
+            depth = @block_scope.size
+
+            if @top_scope.from_eval
+              depth += 1
+            end
+
             # No block scope to allocate
-            return [@top_scope[name], nil]
+            return [@top_scope[name], depth]
           else
             # This not found. create it.
             if last_scope.from_eval
@@ -1068,7 +1080,11 @@ raise "no"
       end
 
       def find_local(name, in_block=false, allocate=true)
-        if normal = super(name, in_block, false)
+        if !in_block
+          if @top_scope.key?(name)
+            return [@top_scope[name], 1]
+          end
+        elsif normal = super(name, in_block, false)
           return normal
         end
 
@@ -1307,7 +1323,17 @@ raise "no"
       kind :iter
 
       def consume(sexp)
-        c = convert(sexp[0])
+        call_sexp = sexp[0]
+        # icky. we should figure out for this to not be here.
+        if call_sexp[2] == :privately and
+            call_sexp[1][0] == :const and
+            call_sexp[1][1] == :Rubinius
+          privately = true
+        else
+          privately = false
+        end
+
+        c = convert(call_sexp)
         sexp[0] = c
 
         # Get rid of the linked list of dasgn_curr's at the top
@@ -1329,16 +1355,22 @@ raise "no"
           return sexp
         end
 
-        set(:iter) do
-          @locals = get(:scope).new_block_scope do
-            set(:iter_args) do
-              sexp[1] = convert(s(:iter_args, sexp[1]))
-            end
+        # icky. we should figure out for this to not be here.
+        if privately
+          sexp[2] = convert(sexp[2])
+        else
+          set(:iter) do
+            @locals = get(:scope).new_block_scope do
+              set(:iter_args) do
+                sexp[1] = convert(s(:iter_args, sexp[1]))
+              end
 
-            set(:pop_unwind, false) do
-              sexp[2] = convert(sexp[2])
+              set(:pop_unwind, false) do
+                sexp[2] = convert(sexp[2])
+              end
             end
           end
+
         end
 
         sexp
@@ -1545,14 +1577,6 @@ raise "no"
       end
 
       attr_accessor :name, :variable, :value
-
-      def from_variable(var, value=nil)
-raise "no"
-
-        super(var)
-
-        @value = value
-      end
 
       def optional
         []
@@ -2193,12 +2217,12 @@ raise "no"
       def args(body, res, els)
         @body, @rescues, @else = body, res, els
 
-        scope = get(:scope)
+        # scope = get(:scope)
         # Create a local (with a crazy name so that it cannot be accessed from Ruby)
         # that will store whatever $! was when we entered this rescue body
         # When the rescue body ends, this local is popped back into $!
         # Designed to support nested rescues.
-        @saved_exception, _ = scope.locals["@saved_exception#{scope.locals.size}".to_sym]
+        # @saved_exception, _ = scope.locals["@saved_exception#{scope.locals.size}".to_sym]
       end
 
       def consume(sexp)

@@ -116,6 +116,12 @@ namespace rubinius {
       argv[i] = ::strdup(as<String>(args->get(state, i))->c_str());
     }
 
+    // Reset all signal handlers to the defaults, so any we setup in Rubinius
+    // won't leak through.
+    for(int i = 0; i < NSIG; i++) {
+      signal(i, SIG_DFL);
+    }
+
     (void) ::execvp(path->c_str(), &argv[0]); /* std::vector is contiguous. --rue */
 
     /* execvp() returning means it failed. */

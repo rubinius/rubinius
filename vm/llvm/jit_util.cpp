@@ -153,8 +153,7 @@ extern "C" {
   }
 
   Object* rbx_promote_variables(STATE, CallFrame* call_frame) {
-    call_frame->promote_scope(state);
-    return call_frame->scope;
+    return call_frame->promote_scope(state);
   }
 
   Object* rbx_construct_splat(STATE, Arguments& args, size_t total) {
@@ -289,7 +288,7 @@ extern "C" {
   }
 
   Object* rbx_yield_stack(STATE, CallFrame* call_frame, int count, Object** args) {
-    Object* t1 = call_frame->top_scope()->block();
+    Object* t1 = call_frame->scope->block();
 
     Arguments out_args(t1, count, args);
 
@@ -311,7 +310,7 @@ extern "C" {
 
   Object* rbx_yield_splat(STATE, CallFrame* call_frame, int count, Object** stk) {
     Object* ary = stk[count];
-    Object* t1 = call_frame->top_scope()->block();
+    Object* t1 = call_frame->scope->block();
 
     Arguments args(t1, count, stk);
 
@@ -457,25 +456,34 @@ extern "C" {
 
   Object* rbx_set_local_depth(STATE, CallFrame* call_frame, Object* top,
                               int depth, int index) {
-    VariableScope* scope = call_frame->scope;
+    if(depth == 0) {
+      call_frame->scope->set_local(index, top);
+    } else {
+      VariableScope* scope = call_frame->scope->parent();
 
-    for(int j = 0; j < depth; j++) {
-      scope = scope->parent();
+      for(int j = 1; j < depth; j++) {
+        scope = scope->parent();
+      }
+
+      scope->set_local(state, index, top);
     }
 
-    scope->set_local(state, index, top);
     return top;
   }
 
   Object* rbx_push_local_depth(STATE, CallFrame* call_frame,
                               int depth, int index) {
-    VariableScope* scope = call_frame->scope;
+    if(depth == 0) {
+      return call_frame->scope->get_local(index);
+    } else {
+      VariableScope* scope = call_frame->scope->parent();
 
-    for(int j = 0; j < depth; j++) {
-      scope = scope->parent();
+      for(int j = 1; j < depth; j++) {
+        scope = scope->parent();
+      }
+
+      return scope->get_local(index);
     }
-
-    return scope->get_local(index);
   }
 
   Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
@@ -502,14 +510,14 @@ extern "C" {
   bool rbx_return_to_here(STATE, CallFrame* call_frame) {
     ThreadState* th = state->thread_state();
     if(th->raise_reason() != cReturn) return false;
-    if(th->destination_scope() == call_frame->scope) return true;
+    if(th->destination_scope() == call_frame->scope->on_heap()) return true;
     return false;
   }
 
   bool rbx_break_to_here(STATE, CallFrame* call_frame) {
     ThreadState* th = state->thread_state();
     if(th->raise_reason() != cBreak) return false;
-    if(th->destination_scope() == call_frame->scope) return true;
+    if(th->destination_scope() == call_frame->scope->on_heap()) return true;
     return false;
   }
 
@@ -617,14 +625,14 @@ extern "C" {
       exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
       state->thread_state()->raise_exception(exc);
     } else {
-      state->thread_state()->raise_return(top, call_frame->top_scope());
+      state->thread_state()->raise_return(top, call_frame->top_scope(state));
     }
 
     return Qnil;
   }
 
   Object* rbx_ensure_return(STATE, CallFrame* call_frame, Object* top) {
-    state->thread_state()->raise_return(top, call_frame->scope);
+    state->thread_state()->raise_return(top, call_frame->promote_scope(state));
     return Qnil;
   }
 
@@ -661,6 +669,10 @@ extern "C" {
     return VMMethod::uncommon_interpreter(state, vmm, call_frame, args, sp);
   }
 
+  Object* rbx_flush_scope(STATE, StackVariables* vars) {
+    vars->flush_to_heap(state);
+    return Qnil;
+  }
 }
 
 #endif

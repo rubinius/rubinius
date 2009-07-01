@@ -93,12 +93,13 @@ namespace rubinius {
     }
 #endif
 
-    VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
-                               (vmm->number_of_locals * sizeof(Object*)));
-
-    scope->setup_as_block(env->top_scope_, env->scope_,
-                          env->method_, vmm->number_of_locals,
-                          invocation.self);
+    size_t scope_size = sizeof(StackVariables) +
+      (vmm->number_of_locals * sizeof(Object*));
+    StackVariables* scope =
+      reinterpret_cast<StackVariables*>(alloca(scope_size));
+    scope->initialize(invocation.self, env->top_scope_->block(),
+                      env->top_scope_->module(), vmm->number_of_locals);
+    scope->set_parent(env->scope_);
 
     InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
     frame->prepare(vmm->stack_size);
@@ -193,8 +194,8 @@ namespace rubinius {
       cm->backend_method_ = vmm;
     }
 
-    be->scope(state, call_frame->scope);
-    be->top_scope(state, call_frame->top_scope());
+    be->scope(state, call_frame->promote_scope(state));
+    be->top_scope(state, call_frame->top_scope(state));
     be->method(state, cm);
     be->local_count(state, cm->local_count());
     be->vmm = vmm;

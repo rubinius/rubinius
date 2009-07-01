@@ -179,16 +179,26 @@ class TestGenerator
     add :goto, x
   end
 
-  def lvar_set slot
+  def lvar_set(slot)
     g.shift_array
     g.set_local slot
     g.pop
   end
 
-  def lvar_at slot
+  def lvar_at(slot)
+    raise "fuck iyou"
     g.shift_array
     g.set_local_depth 0, slot
     g.pop
+  end
+
+  def save_exception
+    push_exception
+  end
+
+  def restore_exception
+    swap
+    pop_exception
   end
 
   def as_primitive(name)
@@ -265,17 +275,6 @@ class TestGenerator
     bottom.set!
   end
 
-  def save_exception(index = 0)
-    g.push_exception
-    g.set_local index
-    g.pop
-  end
-
-  def restore_exception(index = 0)
-    g.push_local index
-    g.pop_exception
-  end
-
   def in_block_send(name, type, required=nil, call_count=0, vis=true)
     iter = block_description do |d|
       count = nil
@@ -291,13 +290,13 @@ class TestGenerator
       when :single
         required = 1
         d.cast_for_single_block_arg
-        d.set_local_depth 0, 0
+        d.set_local 0
       when :splat
         required = -1
         d.cast_for_splat_block_arg
         d.cast_array
         d.cast_array
-        d.set_local_depth 0, 0
+        d.set_local 0
       when :rest
         count = required.abs - 1
       when :multi
@@ -310,14 +309,14 @@ class TestGenerator
 
         (0...count).each do |n|
           d.shift_array
-          d.set_local_depth 0, n
+          d.set_local n
           d.pop
         end
       end
 
       if type == :rest
         d.cast_array
-        d.set_local_depth 0, count
+        d.set_local count
       end
 
       if type != :none and type != :empty and type != 0
@@ -477,7 +476,7 @@ class TestGenerator
     end
 
     g.push_modifiers
-    g.save_exception saved_exception_index
+    g.push_exception
 
     jump_retry.set!
     exceptions do |ex|
@@ -517,14 +516,17 @@ class TestGenerator
     yield :else
 
     jump_last.set!
-    g.restore_exception saved_exception_index
+    g.swap
+    g.pop_exception
     g.pop_modifiers
 
     if has_ensure then
       g.pop_unwind
       g.goto ensure_good
       ensure_bad.set!
+      g.push_exception
       yield :ensure
+      g.pop_exception
       g.reraise
 
       ensure_good.set!

@@ -54,13 +54,11 @@ namespace rubinius {
 
   VariableScope* VariableScope::of_sender(STATE, CallFrame* call_frame) {
     CallFrame* dest = static_cast<CallFrame*>(call_frame->previous);
-    dest->promote_scope(state);
-    return dest->scope;
+    return dest->scope->create_heap_alias(state, dest);
   }
 
   VariableScope* VariableScope::current(STATE, CallFrame* call_frame) {
-    call_frame->promote_scope(state);
-    return call_frame->scope;
+    return call_frame->promote_scope(state);
   }
 
   Tuple* VariableScope::locals(STATE) {
@@ -81,8 +79,12 @@ namespace rubinius {
   void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
 
-    Object* tmp;
     VariableScope* vs = as<VariableScope>(obj);
+
+    vs->fixup();
+
+
+    Object* tmp;
 
     size_t locals = vs->number_of_locals();
     for(size_t i = 0; i < locals; i++) {

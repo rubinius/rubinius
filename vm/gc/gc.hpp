@@ -10,6 +10,7 @@ namespace rubinius {
   class CallFrame;
   class VariableScope;
   class GlobalCache;
+  class StackVariables;
 
   namespace capi {
     class Handles;
@@ -74,9 +75,11 @@ namespace rubinius {
     void scan_object(Object* obj);
     void delete_object(Object* obj);
     void walk_call_frame(CallFrame* top_call_frame);
-    void saw_variable_scope(VariableScope* scope);
+    void saw_variable_scope(CallFrame* call_frame, StackVariables* scope);
 
-    void visit_variable_scope(VariableScope* scope, ObjectVisitor& visit);
+    void visit_variable_scope(CallFrame* call_frame, StackVariables* scope,
+        ObjectVisitor& visit);
+
     void visit_call_frame(CallFrame* top, ObjectVisitor& visit);
 
     Object* mark_object(Object* obj) {

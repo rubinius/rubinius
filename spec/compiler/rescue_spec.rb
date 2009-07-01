@@ -490,7 +490,7 @@ describe "A Rescue node" do
       body       = g.new_label
 
       g.push_modifiers
-      g.save_exception 1
+      g.save_exception
 
       rr.set!
       g.exceptions do |ex|
@@ -522,7 +522,7 @@ describe "A Rescue node" do
 
         last.set!
       end
-      g.restore_exception 1
+      g.restore_exception
       g.pop_modifiers
     end
   end
@@ -554,7 +554,7 @@ describe "A Rescue node" do
       body       = g.new_label
 
       g.push_modifiers
-      g.save_exception 1
+      g.save_exception
 
       rr.set!
       g.exceptions do |ex|
@@ -591,7 +591,7 @@ describe "A Rescue node" do
 
         last.set!
       end
-      g.restore_exception 1
+      g.restore_exception
       g.pop_modifiers
     end
   end

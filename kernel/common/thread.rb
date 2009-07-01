@@ -63,7 +63,7 @@ class Thread
     rescue Exception => e
       # I don't really get this, but this is MRI's behavior. If we're dying
       # by request, ignore any raised exception.
-      @exception = e unless @dying
+      @exception = e # unless @dying
     ensure
       @alive = false
       @lock.send nil

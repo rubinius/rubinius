@@ -4,6 +4,7 @@
 #include "vmmethod.hpp"
 #include "unwind_info.hpp"
 #include "jit_state.h"
+#include "stack_variables.hpp"
 #include "builtin/variable_scope.hpp"
 #include "dispatch.hpp"
 
@@ -31,7 +32,7 @@ namespace rubinius {
     int ip_;
 
     VariableScope* top_scope_;
-    VariableScope* scope;
+    StackVariables* scope;
 
     // Stack
     Object* stk[];
@@ -68,13 +69,17 @@ namespace rubinius {
       return flags & cMultipleScopes;
     }
 
-    VariableScope* top_scope() {
+    VariableScope* top_scope(STATE) {
       if(multiple_scopes_p()) return top_scope_;
-      return scope;
+      return scope->create_heap_alias(state, this);
     }
 
     Module* module() {
-      return top_scope()->module();
+      if(multiple_scopes_p()) {
+        return top_scope_->module();
+      } else {
+        return scope->module();
+      }
     }
 
     void set_ip(int new_ip) {
@@ -93,7 +98,7 @@ namespace rubinius {
       ip_ = pos - cm->backend_method_->addresses;
     }
 
-    void promote_scope(STATE);
+    VariableScope* promote_scope(STATE);
 
     void print_backtrace(STATE);
     int line(STATE);

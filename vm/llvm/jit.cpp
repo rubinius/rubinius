@@ -38,13 +38,22 @@ namespace offset {
   const static int args_total = 2;
   const static int args_ary = 3;
 
-  const static int vars_block = 1;
-  const static int vars_method = 2;
-  const static int vars_module = 3;
-  const static int vars_parent = 4;
-  const static int vars_self = 5;
-  const static int vars_num_locals = 6;
-  const static int vars_tuple = 7;
+  const static int vars_on_heap = 0;
+  const static int vars_parent = 1;
+  const static int vars_self = 2;
+  const static int vars_block = 3;
+  const static int vars_module = 4;
+  const static int vars_tuple = 5;
+
+  const static int varscope_block = 1;
+  const static int varscope_method = 2;
+  const static int varscope_module = 3;
+  const static int varscope_parent = 4;
+  const static int varscope_self = 5;
+  const static int varscope_num_locals = 6;
+  const static int varscope_isolated = 7;
+  const static int varscope_locals = 8;
+  const static int varscope_heap_locals = 9;
 
   const static int tuple_full_size = 1;
   const static int tuple_field = 2;
@@ -616,6 +625,7 @@ namespace rubinius {
     LLVMState* ls_;
     const Type* cf_type;
     const Type* vars_type;
+    const Type* stack_vars_type;
     const Type* obj_type;
     const Type* obj_ary_type;
     Function* func;
@@ -645,6 +655,7 @@ namespace rubinius {
       llvm::Module* mod = ls->module();
       cf_type = mod->getTypeByName("struct.rubinius::CallFrame");
       vars_type = mod->getTypeByName("struct.rubinius::VariableScope");
+      stack_vars_type = mod->getTypeByName("struct.rubinius::StackVariables");
       obj_type = ls->ptr_type("Object");
       obj_ary_type = PointerType::getUnqual(obj_type);
     }
@@ -931,24 +942,13 @@ namespace rubinius {
     }
 
     void setup_scope(VMMethod* vmm) {
-      Value* flag_idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0)
-      };
-
-      Value* flag_pos = GetElementPtrInst::Create(vars, flag_idx, flag_idx+5,
-          "flag_pos", block);
-
-      new StoreInst(ConstantInt::get(Type::Int32Ty, 0), flag_pos, false, block);
+      Value* heap_null = ConstantExpr::getNullValue(PointerType::getUnqual(vars_type));
+      Value* heap_pos = get_field(block, vars, offset::vars_on_heap);
+      new StoreInst(heap_null, heap_pos, false, block);
 
       Value* self = new LoadInst(get_field(block, args, offset::args_recv),
                                  "args.recv", block);
       new StoreInst(self, get_field(block, vars, offset::vars_self), false, block);
-      new StoreInst(method, get_field(block, vars, offset::vars_method),
-                    false, block);
       Value* mod = new LoadInst(get_field(block, msg, offset::msg_module),
                                 "msg.module", block);
       new StoreInst(mod, get_field(block, vars, offset::vars_module), false, block);
@@ -957,49 +957,29 @@ namespace rubinius {
                                 "args.block", block);
       new StoreInst(blk, get_field(block, vars, offset::vars_block), false, block);
 
-      Value* locals = ConstantInt::get(Type::Int32Ty, vmm->number_of_locals);
-      new StoreInst(locals, get_field(block, vars, offset::vars_num_locals),
-                    false, block);
-
-      new StoreInst(Constant::getNullValue(vars->getType()),
+      new StoreInst(Constant::getNullValue(ls_->ptr_type("VariableScope")),
                     get_field(block, vars, offset::vars_parent), false, block);
 
       nil_locals(vmm);
     }
 
     void setup_block_scope(VMMethod* vmm) {
-      Value* flag_idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0)
-      };
-
-      Value* flag_pos = GetElementPtrInst::Create(vars, flag_idx, flag_idx+5,
-          "flag_pos", block);
-
-      new StoreInst(ConstantInt::get(Type::Int32Ty, 0), flag_pos, false, block);
-
+      new StoreInst(ConstantExpr::getNullValue(PointerType::getUnqual(vars_type)),
+          get_field(block, vars, offset::vars_on_heap), false, block);
       Value* self = new LoadInst(
           get_field(block, block_inv, offset::blockinv_self),
           "invocation.self", block);
 
       new StoreInst(self, get_field(block, vars, offset::vars_self), false, block);
-      new StoreInst(method, get_field(block, vars, offset::vars_method),
-                    false, block);
 
-      Value* mod = new LoadInst(get_field(block, top_scope, offset::vars_module),
+      Value* mod = new LoadInst(get_field(block, top_scope, offset::varscope_module),
                                 "top_scope.module", block);
       new StoreInst(mod, get_field(block, vars, offset::vars_module), false, block);
 
-      Value* blk = new LoadInst(get_field(block, top_scope, offset::vars_block),
+      Value* blk = new LoadInst(get_field(block, top_scope, offset::varscope_block),
                                 "args.block", block);
       new StoreInst(blk, get_field(block, vars, offset::vars_block), false, block);
 
-      Value* locals = ConstantInt::get(Type::Int32Ty, vmm->number_of_locals);
-      new StoreInst(locals, get_field(block, vars, offset::vars_num_locals),
-                    false, block);
 
       // We don't use top_scope here because of nested blocks. Parent MUST be
       // the scope the block was created in, not the top scope for depth
@@ -1237,13 +1217,13 @@ namespace rubinius {
 
       Value* var_mem = new AllocaInst(obj_type,
           ConstantInt::get(Type::Int32Ty,
-            (sizeof(VariableScope) / sizeof(Object*)) + vmm->number_of_locals),
+            (sizeof(StackVariables) / sizeof(Object*)) + vmm->number_of_locals),
           "var_mem", block);
 
       vars = CastInst::Create(
           Instruction::BitCast,
           var_mem,
-          PointerType::getUnqual(vars_type), "vars", block);
+          PointerType::getUnqual(stack_vars_type), "vars", block);
 
       initialize_block_frame(vmm->stack_size);
 
@@ -1301,13 +1281,13 @@ namespace rubinius {
 
       Value* var_mem = new AllocaInst(obj_type,
           ConstantInt::get(Type::Int32Ty,
-            (sizeof(VariableScope) / sizeof(Object*)) + vmm->number_of_locals),
+            (sizeof(StackVariables) / sizeof(Object*)) + vmm->number_of_locals),
           "var_mem", block);
 
       vars = CastInst::Create(
           Instruction::BitCast,
           var_mem,
-          PointerType::getUnqual(vars_type), "vars", block);
+          PointerType::getUnqual(stack_vars_type), "vars", block);
 
       initialize_call_frame(vmm->stack_size);
 

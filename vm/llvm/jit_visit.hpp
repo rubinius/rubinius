@@ -147,25 +147,32 @@ namespace rubinius {
         call_frame_
       };
 
-      Value* isit = f.return_to_here.call(call_args, 2, "rth", bail_out_);
+      set_block(bail_out_);
+
+      Value* isit = f.return_to_here.call(call_args, 2, "rth", block_);
 
       BasicBlock* ret_raise_val = new_block("ret_raise_val");
       bail_out_fast_ = new_block("ret_null");
 
-      block_->moveAfter(bail_out_fast_);
+      start->moveAfter(bail_out_fast_);
 
-      BranchInst::Create(ret_raise_val, bail_out_fast_, isit, bail_out_);
+      BranchInst::Create(ret_raise_val, bail_out_fast_, isit, block_);
 
-      ReturnInst::Create(Constant::getNullValue(ObjType), bail_out_fast_);
+      set_block(bail_out_fast_);
+      flush_scope_to_heap(vars_);
+      ReturnInst::Create(Constant::getNullValue(ObjType), block_);
 
-      Value* crv = f.clear_raise_value.call(&vm_, 1, "crv", ret_raise_val);
-      ReturnInst::Create(crv, ret_raise_val);
+      set_block(ret_raise_val);
+      Value* crv = f.clear_raise_value.call(&vm_, 1, "crv", block_);
+      flush_scope_to_heap(vars_);
+      ReturnInst::Create(crv, block_);
+
+      set_block(start);
 
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
         ConstantInt::get(Type::Int32Ty, offset::cf_ip)
       };
-
 
       ip_pos_ = GetElementPtrInst::Create(call_frame_, idx, idx+2, "ip_pos", block_);
 
@@ -363,6 +370,7 @@ namespace rubinius {
         block_ = cont;
       }
 
+      flush_scope_to_heap(vars_);
       ReturnInst::Create(stack_top(), block_);
     }
 
@@ -921,63 +929,68 @@ namespace rubinius {
       stack_push(CallInst::Create(func, call_args, call_args+3, "string_dup", block_));
     }
 
-    void push_local(Value* scope, opcode which) {
+    void push_scope_local(Value* scope, opcode which) {
+      Value* idx2[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, offset::varscope_locals)
+      };
+
+      Value* pos = GetElementPtrInst::Create(scope, idx2, idx2+2, "locals_pos", block_);
+
+      Value* table = new LoadInst(pos, "locals", block_);
+
+      Value* idx3[] = { ConstantInt::get(Type::Int32Ty, which) };
+
+      Value* val_pos = GetElementPtrInst::Create(table, idx3, idx3+1, "local_pos", block_);
+
+      stack_push(new LoadInst(val_pos, "local", block_));
+    }
+
+    void visit_push_local(opcode which) {
       Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, 0),
         ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
         ConstantInt::get(Type::Int32Ty, which)
       };
 
-      Value* pos = GetElementPtrInst::Create(scope, idx2, idx2+3, "local_pos", block_);
+      Value* pos = GetElementPtrInst::Create(vars_, idx2, idx2+3, "local_pos", block_);
 
       stack_push(new LoadInst(pos, "local", block_));
     }
 
-    void visit_push_local(opcode which) {
-      Value* vars;
-      if(is_block_) {
-        vars = top_scope();
-      } else if(creates_blocks_) {
-        vars = scope();
-      } else {
-        vars = vars_;
-      }
+    void set_scope_local(Value* scope, opcode which) {
+      Value* idx2[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, offset::varscope_locals)
+      };
 
-      push_local(vars, which);
+      Value* pos = GetElementPtrInst::Create(scope, idx2, idx2+2, "locals_pos", block_);
+
+      Value* table = new LoadInst(pos, "locals", block_);
+
+      Value* idx3[] = { ConstantInt::get(Type::Int32Ty, which) };
+
+      Value* val_pos = GetElementPtrInst::Create(table, idx3, idx3+1, "local_pos", block_);
+
+      Value* val = stack_top();
+
+      new StoreInst(val, val_pos, false, block_);
+
+      write_barrier(scope, val);
     }
 
-    void set_local(Value* scope, opcode which, bool use_wb=true) {
+    void visit_set_local(opcode which) {
       Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, 0),
         ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
         ConstantInt::get(Type::Int32Ty, which)
       };
 
-      Value* pos = GetElementPtrInst::Create(scope, idx2, idx2+3, "local_pos", block_);
+      Value* pos = GetElementPtrInst::Create(vars_, idx2, idx2+3, "local_pos", block_);
 
       Value* val = stack_top();
 
       new StoreInst(val, pos, false, block_);
-
-      if(use_wb) write_barrier(scope, val);
-    }
-
-    void visit_set_local(opcode which) {
-      bool use_wb;
-      Value* vars;
-
-      if(is_block_) {
-        vars = top_scope();
-        use_wb = true;
-      } else if(creates_blocks_) {
-        vars = scope();
-        use_wb = true;
-      } else {
-        vars = vars_;
-        use_wb = false;
-      }
-
-      set_local(vars, which, use_wb);
     }
 
     Value* get_self() {
@@ -986,9 +999,20 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, offset::vars_self)
       };
 
-      Value* pos = GetElementPtrInst::Create(scope(), idx, idx + 2, "self_pos", block_);
+      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "self_pos", block_);
 
       return new LoadInst(pos, "self", block_);
+    }
+
+    Value* get_block() {
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, offset::vars_block)
+      };
+
+      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "block_pos", block_);
+
+      return new LoadInst(pos, "block", block_);
     }
 
     void visit_push_self() {
@@ -997,7 +1021,7 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, offset::vars_self)
       };
 
-      Value* pos = GetElementPtrInst::Create(scope(), idx, idx + 2, "self_pos", block_);
+      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "self_pos", block_);
 
       stack_push(new LoadInst(pos, "self", block_));
     }
@@ -1161,22 +1185,7 @@ namespace rubinius {
     }
 
     void visit_push_block() {
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::cf_scope)
-      };
-
-      // We're JITing a block, use top_scope
-      if(is_block_) {
-        idx[1] = ConstantInt::get(Type::Int32Ty, offset::cf_top_scope);
-      }
-
-      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "scope_pos", block_);
-      Value* ts =  new LoadInst(gep, "scope", block_);
-
-      idx[1] = ConstantInt::get(Type::Int32Ty, 1);
-      gep = GetElementPtrInst::Create(ts, idx, idx+2, "block_pos", block_);
-      stack_push(new LoadInst(gep, "block", block_));
+      stack_push(get_block());
     }
 
     void visit_send_super_stack_with_block(opcode which, opcode args) {
@@ -1461,7 +1470,8 @@ namespace rubinius {
 
     void visit_set_local_depth(opcode depth, opcode index) {
       if(depth == 0) {
-        set_local(scope(), index);
+        std::cout << "why is depth 0 here?\n";
+        visit_set_local(index);
         return;
       } else if(depth == 1) {
         Value* idx[] = {
@@ -1469,10 +1479,10 @@ namespace rubinius {
           ConstantInt::get(Type::Int32Ty, offset::vars_parent)
         };
 
-        Value* gep = GetElementPtrInst::Create(scope(), idx, idx+2, "parent_pos", block_);
+        Value* gep = GetElementPtrInst::Create(vars_, idx, idx+2, "parent_pos", block_);
 
         Value* parent = new LoadInst(gep, "scope.parent", block_);
-        set_local(parent, index);
+        set_scope_local(parent, index);
         return;
       }
 
@@ -1503,7 +1513,8 @@ namespace rubinius {
 
     void visit_push_local_depth(opcode depth, opcode index) {
       if(depth == 0) {
-        push_local(scope(), index);
+        std::cout << "why is depth 0 here?\n";
+        visit_push_local(index);
         return;
       } else if(depth == 1) {
         Value* idx[] = {
@@ -1511,10 +1522,10 @@ namespace rubinius {
           ConstantInt::get(Type::Int32Ty, offset::vars_parent)
         };
 
-        Value* gep = GetElementPtrInst::Create(scope(), idx, idx+2, "parent_pos", block_);
+        Value* gep = GetElementPtrInst::Create(vars_, idx, idx+2, "parent_pos", block_);
 
         Value* parent = new LoadInst(gep, "scope.parent", block_);
-        push_local(parent, index);
+        push_scope_local(parent, index);
         return;
       }
 
@@ -1674,7 +1685,7 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, offset::vars_self)
       };
 
-      Value* pos = GetElementPtrInst::Create(scope(), idx, idx + 2, "self_pos", block_);
+      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "self_pos", block_);
 
       Value* self = new LoadInst(pos, "self", block_);
 
@@ -1996,7 +2007,7 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, offset::vars_self)
       };
 
-      Value* pos = GetElementPtrInst::Create(scope(), idx, idx + 2, "self_pos", block_);
+      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "self_pos", block_);
 
       Value* self = new LoadInst(pos, "self", block_);
 
@@ -2025,7 +2036,7 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, offset::vars_self)
       };
 
-      Value* pos = GetElementPtrInst::Create(scope(), idx, idx + 2, "self_pos", block_);
+      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "self_pos", block_);
 
       Value* self = new LoadInst(pos, "self", block_);
 

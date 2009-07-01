@@ -832,9 +832,9 @@ describe "A Defn node" do
               d2.send :do_stuff, 0, true
             when :RuntimeError then
               d2.push_exception
-              d2.set_local_depth 0, 0
+              d2.set_local 0
               d2.push :self
-              d2.push_local_depth 0, 0
+              d2.push_local 0
               d2.send :puts, 1, true
             end
           end

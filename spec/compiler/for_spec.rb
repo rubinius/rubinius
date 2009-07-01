@@ -20,14 +20,14 @@ describe "A For node" do
 
       block_description do |d|
         d.cast_for_single_block_arg
-        d.set_local 0
+        d.set_local_depth 1, 0
 
         d.pop
         d.push_modifiers
         d.new_label.set!
 
         d.push :self
-        d.push_local 0
+        d.push_local_depth 1, 0
         d.send :puts, 1, true
 
         d.pop_modifiers
@@ -58,7 +58,7 @@ describe "A For node" do
 
       block_description do |d|
         d.cast_for_single_block_arg
-        d.set_local 0
+        d.set_local_depth 1, 0
 
         d.pop
         d.push_modifiers
@@ -92,10 +92,10 @@ describe "A For node" do
         d.cast_for_multi_block_arg
         d.cast_array
         d.shift_array
-        d.set_local 0
+        d.set_local_depth 1, 0
         d.pop
         d.shift_array
-        d.set_local 1
+        d.set_local_depth 1, 1
         d.pop
         d.pop
         d.push_modifiers
@@ -127,13 +127,13 @@ describe "A For node" do
 
       block_description do |d|
         d.cast_for_single_block_arg
-        d.set_local 0
+        d.set_local_depth 1, 0
 
         d.pop
         d.push_modifiers
         d.new_label.set!
 
-        d.push_local 0
+        d.push_local_depth 1, 0
 
         d.pop_modifiers
         d.ret

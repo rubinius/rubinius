@@ -117,33 +117,30 @@ CODE
 #endif
 
   Object** stack_ptr = call_frame->stk - 1;
-  Object* return_value;
   static int tick = 0;
 
   int current_unwind = 0;
   UnwindInfo unwinds[kMaxUnwindInfos];
 
-  for(;;) {
+  if(unlikely(++tick > 0xff)) {
+    tick = 0;
+    if(!state->check_stack(call_frame, &state)) return NULL;
+  }
+
+  if(unlikely(state->interrupts.check)) {
+    state->interrupts.check = false;
+    state->collect_maybe(call_frame);
+  }
+
+  if(unlikely(state->check_local_interrupts)) {
+    if(!state->process_async(call_frame)) return NULL;
+  }
+
 continue_to_run:
-    if(unlikely(++tick > 0xff)) {
-      tick = 0;
-      if(!state->check_stack(call_frame, &state)) return NULL;
-    }
-
-    if(unlikely(state->interrupts.check)) {
-      state->interrupts.check = false;
-      state->collect_maybe(call_frame);
-    }
-
-    if(unlikely(state->check_local_interrupts)) {
-      if(!state->process_async(call_frame)) return NULL;
-    }
-
-    try {
+  try {
 
 #undef DISPATCH
 #define DISPATCH goto **ip_ptr++
-// #define DISPATCH goto *insn_locations[stream[call_frame->inc_ip()]];
 
 #undef next_int
 #define next_int ((opcode)(*ip_ptr++))
@@ -152,87 +149,99 @@ continue_to_run:
 #define flush_ip() call_frame->calculate_ip(ip_ptr)
 
 #ruby <<CODE
-      io = StringIO.new
-      si.generate_jump_implementations impl2, io
-      puts io.string
+    io = StringIO.new
+    si.generate_jump_implementations impl2, io
+    puts io.string
 CODE
-    } catch(TypeError& e) {
-      flush_ip();
-      Exception* exc =
-        Exception::make_type_error(state, e.type, e.object, e.reason);
-      exc->locations(state, System::vm_backtrace(state, 0, call_frame));
 
-      state->thread_state()->raise_exception(exc);
-      return_value = 0;
+  } catch(TypeError& e) {
+    flush_ip();
+    Exception* exc =
+      Exception::make_type_error(state, e.type, e.object, e.reason);
+    exc->locations(state, System::vm_backtrace(state, 0, call_frame));
+
+    state->thread_state()->raise_exception(exc);
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
+  }
+
+  // There is no reason to be here. Either the bytecode loop exits,
+  // or it jumps to exception;
+  abort();
+
+  // If control finds it's way down here, there is an exception.
+exception:
+  ThreadState* th = state->thread_state();
+  //
+  switch(th->raise_reason()) {
+  case cException:
+    if(current_unwind > 0) {
+      UnwindInfo* info = &unwinds[--current_unwind];
+      stack_position(info->stack_depth);
+      call_frame->set_ip(info->target_ip);
+      cache_ip(info->target_ip);
+      goto continue_to_run;
+    } else {
+      call_frame->scope->flush_to_heap(state);
+      return NULL;
     }
 
-    if(return_value) return return_value;
-
-exception:
-    ThreadState* th = state->thread_state();
-    // if return_value is NULL, then there is an exception outstanding
-    //
-    switch(th->raise_reason()) {
-    case cException:
-      if(current_unwind > 0) {
-        UnwindInfo* info = &unwinds[--current_unwind];
+  case cReturn:
+  case cBreak:
+    // Otherwise, we're doing a long return/break unwind through
+    // here. We need to run ensure blocks.
+    while(current_unwind > 0) {
+      UnwindInfo* info = &unwinds[--current_unwind];
+      if(info->for_ensure()) {
         stack_position(info->stack_depth);
         call_frame->set_ip(info->target_ip);
         cache_ip(info->target_ip);
+
+        // Don't reset ep here, we're still handling the return/break.
+        goto continue_to_run;
+      }
+    }
+
+    // Ok, no ensures to run.
+    if(th->raise_reason() == cReturn) {
+      call_frame->scope->flush_to_heap(state);
+
+      // If we're trying to return to here, we're done!
+      if(th->destination_scope() == call_frame->scope->on_heap()) {
+        Object* val = th->raise_value();
+        th->clear_exception(true);
+        return val;
       } else {
+        // Give control of this exception to the caller.
         return NULL;
       }
-      break;
 
-    case cReturn:
-    case cBreak:
-      // Otherwise, we're doing a long return/break unwind through
-      // here. We need to run ensure blocks.
-      while(current_unwind > 0) {
-        UnwindInfo* info = &unwinds[--current_unwind];
-        if(info->for_ensure()) {
-          stack_position(info->stack_depth);
-          call_frame->set_ip(info->target_ip);
-          cache_ip(info->target_ip);
-
-          // Don't reset ep here, we're still handling the return/break.
-          goto continue_to_run;
-        }
+    } else { // It's cBreak
+      // If we're trying to break to here, we're done!
+      if(th->destination_scope() == call_frame->scope->on_heap()) {
+        stack_push(th->raise_value());
+        th->clear_exception(true);
+        goto continue_to_run;
+        // Don't return here, because we want to loop back to the top
+        // and keep running this method.
+      } else {
+        call_frame->scope->flush_to_heap(state);
+        // Give control of this exception to the caller.
+        return NULL;
       }
+    }
 
-      // Ok, no ensures to run.
-      if(th->raise_reason() == cReturn) {
-        // If we're trying to return to here, we're done!
-        if(th->destination_scope() == call_frame->scope) {
-          Object* val = th->raise_value();
-          th->clear_exception(true);
-          return val;
-        } else {
-          // Give control of this exception to the caller.
-          return NULL;
-        }
+  case cExit:
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
+  default:
+    break;
+  } // switch
 
-      } else { // It's cBreak
-        // If we're trying to break to here, we're done!
-        if(th->destination_scope() == call_frame->scope) {
-          stack_push(th->raise_value());
-          th->clear_exception(true);
-          // Don't return here, because we want to loop back to the top
-          // and keep running this method.
-        } else {
-          // Give control of this exception to the caller.
-          return NULL;
-        }
-      }
-      break;
-    case cExit:
-      return NULL;
-    default:
-      std::cout << "bug!\n";
-      call_frame->print_backtrace(state);
-      abort();
-    } // switch
-  } // for(;;)
+  std::cout << "bug!\n";
+  call_frame->print_backtrace(state);
+  abort();
+  return NULL;
 }
 
 Object* VMMethod::uncommon_interpreter(STATE, VMMethod* const vmm,
@@ -247,29 +256,27 @@ CODE
   InterpreterState is;
 
   Object** stack_ptr = call_frame->stk + sp;
-  Object* return_value;
   static int tick = 0;
 
   int current_unwind = 0;
   UnwindInfo unwinds[kMaxUnwindInfos];
 
-  for(;;) {
+  if(unlikely(++tick > 0xff)) {
+    tick = 0;
+    if(!state->check_stack(call_frame, &state)) return NULL;
+  }
+
+  if(unlikely(state->interrupts.check)) {
+    state->interrupts.check = false;
+    state->collect_maybe(call_frame);
+  }
+
+  if(unlikely(state->check_local_interrupts)) {
+    if(!state->process_async(call_frame)) return NULL;
+  }
+
 continue_to_run:
-    if(unlikely(++tick > 0xff)) {
-      tick = 0;
-      if(!state->check_stack(call_frame, &state)) return NULL;
-    }
-
-    if(unlikely(state->interrupts.check)) {
-      state->interrupts.check = false;
-      state->collect_maybe(call_frame);
-    }
-
-    if(unlikely(state->check_local_interrupts)) {
-      if(!state->process_async(call_frame)) return NULL;
-    }
-
-    try {
+  try {
 
 #undef DISPATCH
 #define DISPATCH goto *insn_locations[stream[call_frame->inc_ip()]];
@@ -283,87 +290,96 @@ continue_to_run:
 #define flush_ip()
 
 #ruby <<CODE
-      io = StringIO.new
-      si.generate_jump_implementations impl2, io
-      puts io.string
+    io = StringIO.new
+    si.generate_jump_implementations impl2, io
+    puts io.string
 CODE
-    } catch(TypeError& e) {
-      flush_ip();
-      Exception* exc =
-        Exception::make_type_error(state, e.type, e.object, e.reason);
-      exc->locations(state, System::vm_backtrace(state, 0, call_frame));
+  } catch(TypeError& e) {
+    flush_ip();
+    Exception* exc =
+      Exception::make_type_error(state, e.type, e.object, e.reason);
+    exc->locations(state, System::vm_backtrace(state, 0, call_frame));
 
-      state->thread_state()->raise_exception(exc);
-      return_value = 0;
-    }
+    state->thread_state()->raise_exception(exc);
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
+  }
 
-    if(return_value) return return_value;
+  // No reason to be here!
+  abort();
 
 exception:
-    ThreadState* th = state->thread_state();
-    // if return_value is NULL, then there is an exception outstanding
-    //
-    switch(th->raise_reason()) {
-    case cException:
-      if(current_unwind > 0) {
-        UnwindInfo* info = &unwinds[--current_unwind];
+  ThreadState* th = state->thread_state();
+  //
+  switch(th->raise_reason()) {
+  case cException:
+    if(current_unwind > 0) {
+      UnwindInfo* info = &unwinds[--current_unwind];
+      stack_position(info->stack_depth);
+      call_frame->set_ip(info->target_ip);
+      cache_ip(info->target_ip);
+      goto continue_to_run;
+    } else {
+      call_frame->scope->flush_to_heap(state);
+      return NULL;
+    }
+
+  case cReturn:
+  case cBreak:
+    // Otherwise, we're doing a long return/break unwind through
+    // here. We need to run ensure blocks.
+    while(current_unwind > 0) {
+      UnwindInfo* info = &unwinds[--current_unwind];
+      if(info->for_ensure()) {
         stack_position(info->stack_depth);
         call_frame->set_ip(info->target_ip);
         cache_ip(info->target_ip);
+
+        // Don't reset ep here, we're still handling the return/break.
+        goto continue_to_run;
+      }
+    }
+
+    // Ok, no ensures to run.
+    if(th->raise_reason() == cReturn) {
+      call_frame->scope->flush_to_heap(state);
+
+      // If we're trying to return to here, we're done!
+      if(th->destination_scope() == call_frame->scope->on_heap()) {
+        Object* val = th->raise_value();
+        th->clear_exception(true);
+        return val;
       } else {
+        // Give control of this exception to the caller.
         return NULL;
       }
-      break;
 
-    case cReturn:
-    case cBreak:
-      // Otherwise, we're doing a long return/break unwind through
-      // here. We need to run ensure blocks.
-      while(current_unwind > 0) {
-        UnwindInfo* info = &unwinds[--current_unwind];
-        if(info->for_ensure()) {
-          stack_position(info->stack_depth);
-          call_frame->set_ip(info->target_ip);
-          cache_ip(info->target_ip);
-
-          // Don't reset ep here, we're still handling the return/break.
-          goto continue_to_run;
-        }
+    } else { // It's cBreak
+      // If we're trying to break to here, we're done!
+      if(th->destination_scope() == call_frame->scope->on_heap()) {
+        stack_push(th->raise_value());
+        th->clear_exception(true);
+        // Don't return here, because we want to loop back to the top
+        // and keep running this method.
+        goto continue_to_run;
+      } else {
+        call_frame->scope->flush_to_heap(state);
+        // Give control of this exception to the caller.
+        return NULL;
       }
+    }
 
-      // Ok, no ensures to run.
-      if(th->raise_reason() == cReturn) {
-        // If we're trying to return to here, we're done!
-        if(th->destination_scope() == call_frame->scope) {
-          Object* val = th->raise_value();
-          th->clear_exception(true);
-          return val;
-        } else {
-          // Give control of this exception to the caller.
-          return NULL;
-        }
+  case cExit:
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
+  default:
+    break;
+  } // switch
 
-      } else { // It's cBreak
-        // If we're trying to break to here, we're done!
-        if(th->destination_scope() == call_frame->scope) {
-          stack_push(th->raise_value());
-          th->clear_exception(true);
-          // Don't return here, because we want to loop back to the top
-          // and keep running this method.
-        } else {
-          // Give control of this exception to the caller.
-          return NULL;
-        }
-      }
-      break;
-    case cExit:
-      return NULL;
-    default:
-      std::cout << "bug!\n";
-      call_frame->print_backtrace(state);
-      abort();
-    } // switch
-  } // for(;;)
+  std::cout << "bug!\n";
+  call_frame->print_backtrace(state);
+  abort();
+  return NULL;
 }
 
 
@@ -376,8 +392,8 @@ Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm,
                                        InterpreterCallFrame* const call_frame,
                                        Arguments& args) {
 #ruby <<CODE
-    impl2 = si.decode_methods
-    si.generate_jump_table impl2
+  impl2 = si.decode_methods
+  si.generate_jump_table impl2
 CODE
 
   opcode* stream = vmm->opcodes;
@@ -395,36 +411,34 @@ CODE
   // instructions.
 
   Object** stack_ptr = call_frame->stk - 1;
-  Object* return_value;
   static int tick = 0;
 
-  for(;;) {
+  if(unlikely(++tick > 0xff)) {
+    tick = 0;
+    if(!state->check_stack(call_frame, &state)) return NULL;
+  }
+
+  if(unlikely(state->interrupts.check)) {
+    state->interrupts.check = false;
+    state->collect_maybe(call_frame);
+  }
+
+  if(unlikely(state->check_local_interrupts)) {
+    if(!state->process_async(call_frame)) return NULL;
+  }
+
 continue_to_run:
-    if(unlikely(++tick > 0xff)) {
-      tick = 0;
-      if(!state->check_stack(call_frame, &state)) return NULL;
-    }
-
-    if(unlikely(state->interrupts.check)) {
-      state->interrupts.check = false;
-      state->collect_maybe(call_frame);
-    }
-
-    if(unlikely(state->check_local_interrupts)) {
-      if(!state->process_async(call_frame)) return NULL;
-    }
-
-    try {
+  try {
 
 #undef DISPATCH
 #define DISPATCH op = stream[call_frame->inc_ip()]; \
-  if(unlikely(op & cBreakpoint)) { \
-    call_frame->dec_ip(); \
-    Helpers::yield_debugger(state, call_frame); \
-    call_frame->inc_ip(); \
-    op &= 0x00ffffff; \
-  } \
-  goto *insn_locations[op];
+    if(unlikely(op & cBreakpoint)) { \
+      call_frame->dec_ip(); \
+      Helpers::yield_debugger(state, call_frame); \
+      call_frame->inc_ip(); \
+      op &= 0x00ffffff; \
+    } \
+    goto *insn_locations[op];
 
 #undef next_int
 #undef cache_ip
@@ -435,87 +449,97 @@ continue_to_run:
 #define flush_ip()
 
 #ruby <<CODE
-      io = StringIO.new
-      si.generate_jump_implementations impl2, io
-      puts io.string
+    io = StringIO.new
+    si.generate_jump_implementations impl2, io
+    puts io.string
 CODE
-    } catch(TypeError& e) {
-      flush_ip();
-      Exception* exc =
-        Exception::make_type_error(state, e.type, e.object, e.reason);
-      exc->locations(state, System::vm_backtrace(state, 0, call_frame));
+  } catch(TypeError& e) {
+    flush_ip();
+    Exception* exc =
+      Exception::make_type_error(state, e.type, e.object, e.reason);
+    exc->locations(state, System::vm_backtrace(state, 0, call_frame));
 
-      state->thread_state()->raise_exception(exc);
-      return_value = 0;
+    state->thread_state()->raise_exception(exc);
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
+  }
+
+  // no reason to be here!
+  abort();
+
+  // If control finds it's way down here, there is an exception.
+exception:
+  ThreadState* th = state->thread_state();
+  //
+  switch(th->raise_reason()) {
+  case cException:
+    if(current_unwind > 0) {
+      UnwindInfo* info = &unwinds[--current_unwind];
+      stack_position(info->stack_depth);
+      call_frame->set_ip(info->target_ip);
+      cache_ip(info->target_ip);
+      goto continue_to_run;
+    } else {
+      call_frame->scope->flush_to_heap(state);
+      return NULL;
     }
 
-    if(return_value) return return_value;
+  case cReturn:
+  case cBreak:
+    // Otherwise, we're doing a long return/break unwind through
+    // here. We need to run ensure blocks.
+    while(current_unwind > 0) {
+      UnwindInfo* info = &unwinds[--current_unwind];
+      stack_position(info->stack_depth);
 
-exception:
-    ThreadState* th = state->thread_state();
-    // if return_value is NULL, then there is an exception outstanding
-    //
-    switch(th->raise_reason()) {
-    case cException:
-      if(current_unwind > 0) {
-        UnwindInfo* info = &unwinds[--current_unwind];
+      if(info->for_ensure()) {
         stack_position(info->stack_depth);
         call_frame->set_ip(info->target_ip);
         cache_ip(info->target_ip);
+
+        // Don't reset ep here, we're still handling the return/break.
+        goto continue_to_run;
+      }
+    }
+
+    // Ok, no ensures to run.
+    if(th->raise_reason() == cReturn) {
+      call_frame->scope->flush_to_heap(state);
+
+      // If we're trying to return to here, we're done!
+      if(th->destination_scope() == call_frame->scope->on_heap()) {
+        Object* val = th->raise_value();
+        th->clear_exception(true);
+        return val;
       } else {
+        // Give control of this exception to the caller.
         return NULL;
       }
-      break;
 
-    case cReturn:
-    case cBreak:
-      // Otherwise, we're doing a long return/break unwind through
-      // here. We need to run ensure blocks.
-      while(current_unwind > 0) {
-        UnwindInfo* info = &unwinds[--current_unwind];
-        stack_position(info->stack_depth);
-
-        if(info->for_ensure()) {
-          stack_position(info->stack_depth);
-          call_frame->set_ip(info->target_ip);
-          cache_ip(info->target_ip);
-
-          // Don't reset ep here, we're still handling the return/break.
-          goto continue_to_run;
-        }
+    } else { // It's cBreak
+      // If we're trying to break to here, we're done!
+      if(th->destination_scope() == call_frame->scope->on_heap()) {
+        stack_push(th->raise_value());
+        th->clear_exception(true);
+        // Don't return here, because we want to loop back to the top
+        // and keep running this method.
+        goto continue_to_run;
+      } else {
+        call_frame->scope->flush_to_heap(state);
+        // Give control of this exception to the caller.
+        return NULL;
       }
+    }
 
-      // Ok, no ensures to run.
-      if(th->raise_reason() == cReturn) {
-        // If we're trying to return to here, we're done!
-        if(th->destination_scope() == call_frame->scope) {
-          Object* val = th->raise_value();
-          th->clear_exception(true);
-          return val;
-        } else {
-          // Give control of this exception to the caller.
-          return NULL;
-        }
+  case cExit:
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
+  default:
+    break;
+  } // switch
 
-      } else { // It's cBreak
-        // If we're trying to break to here, we're done!
-        if(th->destination_scope() == call_frame->scope) {
-          stack_push(th->raise_value());
-          th->clear_exception(true);
-          // Don't return here, because we want to loop back to the top
-          // and keep running this method.
-        } else {
-          // Give control of this exception to the caller.
-          return NULL;
-        }
-      }
-      break;
-    case cExit:
-      return NULL;
-    default:
-      std::cout << "bug!\n";
-      call_frame->print_backtrace(state);
-      abort();
-    } // switch
-  } // for(;;)
+  std::cout << "bug!\n";
+  call_frame->print_backtrace(state);
+  abort();
+  return NULL;
 }
