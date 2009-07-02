@@ -65,7 +65,9 @@ class Float < Numeric
 
   def %(other)
     return 0 / 0.to_f if other == 0
-    self.divmod(Float(other))[1]
+    Ruby.primitive :float_mod
+    b, a = math_coerce other
+    a % b
   end
   alias_method :modulo, :%
 
