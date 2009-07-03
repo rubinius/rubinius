@@ -208,4 +208,52 @@ namespace rubinius {
     if(ary->size() > stop) ellipsis(level);
     close_body(level);
   }
+
+  void ArrayIterator::init(STATE) {
+    GO(array_iterator).set(state->new_class_under("Iterator", G(array)));
+    G(array_iterator)->set_object_type(state, ArrayIteratorType);
+    G(array_iterator)->name(state, state->symbol("Array::Iterator"));
+  }
+
+  ArrayIterator* ArrayIterator::allocate(STATE, Array* array, Fixnum* step, Object* reverse) {
+    ArrayIterator* iter = state->new_object<ArrayIterator>(G(array_iterator));
+
+    iter->start_ = array->start()->to_native();
+    iter->last_  = iter->start_ + array->total()->to_native();
+    iter->step_  = step->to_native();
+
+    if(reverse->true_p()) {
+      iter->index_ = iter->last_ + iter->step_ - 1;
+    } else {
+      iter->index_ = iter->start_ - iter->step_;
+    }
+
+    iter->tuple(state, array->tuple());
+
+    return iter;
+  }
+
+  Object* ArrayIterator::next(STATE) {
+    index_ += step_;
+    if(index_ < last_) return Qtrue;
+    return Qfalse;
+  }
+
+  Object* ArrayIterator::rnext(STATE) {
+    index_ -= step_;
+    if(index_ >= start_) return Qtrue;
+    return Qfalse;
+  }
+
+  Object* ArrayIterator::item(STATE) {
+    return tuple_->at(state, index_);
+  }
+
+  Object* ArrayIterator::at(STATE, Fixnum* relative) {
+    return tuple_->at(state, index_ + relative->to_native());
+  }
+
+  Fixnum* ArrayIterator::index(STATE) {
+    return Fixnum::from(index_ - start_);
+  }
 }

@@ -58,6 +58,41 @@ namespace rubinius {
     };
   };
 
+  class ArrayIterator : public Object {
+  public:
+    const static object_type type = ArrayIteratorType;
+
+  private:
+    Tuple*  tuple_;     // slot
+
+    native_int  start_;
+    native_int  last_;
+    native_int  step_;
+    native_int  index_;
+
+  public:
+    attr_accessor(tuple, Tuple);
+
+    static void init(STATE);
+    // Ruby.primitive :array_iterator_allocate
+    static ArrayIterator* allocate(STATE, Array* array, Fixnum* step, Object* reverse);
+
+    // Ruby.primitive :array_iterator_next
+    Object* next(STATE);
+    // Ruby.primitive :array_iterator_rnext
+    Object* rnext(STATE);
+    // Ruby.primitive :array_iterator_item
+    Object* item(STATE);
+    // Ruby.primitive :array_iterator_at
+    Object* at(STATE, Fixnum* relative);
+    // Ruby.primitive :array_iterator_index
+    Fixnum* index(STATE);
+
+    class Info : public TypeInfo {
+    public:
+      BASIC_TYPEINFO(TypeInfo)
+    };
+  };
 }
 
 #endif

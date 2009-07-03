@@ -206,6 +206,7 @@ namespace rubinius {
     // Let all the builtin classes initialize themselves. This
     // typically means creating a Ruby class.
     Array::init(this);
+    ArrayIterator::init(this);
     ByteArray::init(this);
     String::init(this);
     Executable::init(this);

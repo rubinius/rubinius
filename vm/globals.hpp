@@ -107,6 +107,7 @@ namespace rubinius {
     TypedRoot<Class*> jump_error;
     TypedRoot<Class*> exc_vm_internal;
     TypedRoot<Class*> global_cache_entry;
+    TypedRoot<Class*> array_iterator;
 
     /* Add new globals above this line. */
 
@@ -218,7 +219,8 @@ namespace rubinius {
       stack_error(&roots),
       jump_error(&roots),
       exc_vm_internal(&roots),
-      global_cache_entry(&roots)
+      global_cache_entry(&roots),
+      array_iterator(&roots)
 
       /* Add initialize of globals above this line. */
     { }
