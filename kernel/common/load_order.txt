@@ -18,7 +18,6 @@ type.rbc
 kernel.rbc
 identitymap.rbc
 array.rbc
-array_186.rbc
 backtrace.rbc
 comparable.rbc
 numeric.rbc

@@ -510,6 +510,41 @@ class Array
     obj
   end
 
+  # Deletes every element from self for which block evaluates to true
+  #
+  # NOTE: This method is overridden by lib/1.8.7 or lib/1.9.
+  def delete_if(&block)
+    key = Undefined
+    i = @start
+    tot = @start + @total
+    while i < tot
+      if yield(@tuple.at(i))
+        @tuple.put(i, key)
+      end
+      i+=1
+    end
+
+    if (deleted = @tuple.delete(@start,@total,key)) > 0
+      @total -= deleted
+      reallocate_shrink()
+    end
+    return self
+  end
+
+  # Passes each index of the Array to the given block
+  # and returns self.  We re-evaluate @total each time
+  # through the loop in case the array has changed.
+  #
+  # NOTE: This method is overridden by lib/1.8.7 or lib/1.9.
+  def each_index
+    i = 0
+    while i < @total
+      yield i
+      i += 1
+    end
+    self
+  end
+
   # Returns true if both are the same object or if both
   # have the same elements (#eql? used for testing.)
   def eql?(other)
@@ -923,6 +958,26 @@ class Array
     nil
   end
 
+  # Returns a new Array by removing items from self for
+  # which block is true. An Array is also returned when
+  # invoked on subclasses. See #reject!
+  #
+  # NOTE: This method is overridden by lib/1.8.7 or lib/1.9.
+  def reject(&block)
+    Array.new(self).reject!(&block) || self
+  end
+
+  # Equivalent to #delete_if except that returns nil if
+  # no changes were made.
+  #
+  # NOTE: This method is overridden by lib/1.8.7 or lib/1.9.
+  def reject!(&block)
+    was = length
+    self.delete_if(&block)
+
+    self if was != length     # Too clever?
+  end
+
   # Replaces contents of self with contents of other,
   # adjusting size as needed.
   def replace(other)
@@ -951,6 +1006,20 @@ class Array
       @tuple.swap(i,j)
       i += 1
       j -= 1
+    end
+    self
+  end
+
+  # Goes through the Array back to front and yields
+  # each element to the supplied block. Returns self.
+  #
+  # NOTE: This method is overridden by lib/1.8.7 or lib/1.9.
+  def reverse_each
+    i = @total - 1
+    while i >= 0 do
+      yield at(i)
+      i = @total if @total < i
+      i -= 1
     end
     self
   end

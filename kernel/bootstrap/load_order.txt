@@ -1,5 +1,4 @@
 array.rbc
-array_186.rbc
 bignum.rbc
 block_environment.rbc
 bytearray.rbc
