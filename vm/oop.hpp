@@ -242,6 +242,10 @@ const int cUndef = 0x22L;
       return ivars_;
     }
 
+    Class* reference_class() {
+      return klass_;
+    }
+
     /**
      *  Mark this Object forwarded by the GC.
      *

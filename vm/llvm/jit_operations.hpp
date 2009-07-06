@@ -1,6 +1,22 @@
 #ifndef RBX_LLVM_JIT_OPERATIONS
 #define RBX_LLVM_JIT_OPERATIONS
 
+#include "builtin/class.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/tuple.hpp"
+#include "inline_cache.hpp"
+
+#include "llvm/offset.hpp"
+
+#include "llvm/inline_policy.hpp"
+
+#include <llvm/Value.h>
+#include <llvm/BasicBlock.h>
+#include <llvm/Function.h>
+
+using namespace llvm;
+
 namespace rubinius {
   class JITOperations {
     llvm::Value* stack_top_;
@@ -14,9 +30,13 @@ namespace rubinius {
     llvm::Function* function_;
 
     llvm::Value* vm_;
+    llvm::Value* call_frame_;
 
     llvm::Value* zero_;
     llvm::Value* one_;
+
+    InlinePolicy* inline_policy_;
+    bool own_policy_;
 
   public:
     const llvm::Type* IntPtrTy;
@@ -30,7 +50,7 @@ namespace rubinius {
 
   public:
     JITOperations(LLVMState* ls, VMMethod* vmm, llvm::Module* mod,
-                  llvm::Value* top,
+                  llvm::Value* top, llvm::Value* call_frame,
                   llvm::BasicBlock* start, llvm::Function* func)
       : stack_top_(top)
       , vmm_(vmm)
@@ -38,6 +58,9 @@ namespace rubinius {
       , block_(start)
       , module_(mod)
       , function_(func)
+      , call_frame_(call_frame)
+      , inline_policy_(0)
+      , own_policy_(false)
     {
       zero_ = ConstantInt::get(Type::Int32Ty, 0);
       one_ =  ConstantInt::get(Type::Int32Ty, 1);
@@ -60,6 +83,23 @@ namespace rubinius {
       vm_ = input++;
     }
 
+    ~JITOperations() {
+      if(inline_policy_ and own_policy_) delete inline_policy_;
+    }
+
+    void set_policy(InlinePolicy* policy) {
+      inline_policy_ = policy;
+    }
+
+    void init_policy() {
+      inline_policy_ = InlinePolicy::create_policy(vmm_);
+      own_policy_ = true;
+    }
+
+    InlinePolicy* inline_policy() {
+      return inline_policy_;
+    }
+
     VMMethod* vmmethod() {
       return vmm_;
     }
@@ -70,6 +110,19 @@ namespace rubinius {
 
     Value* vm() {
       return vm_;
+    }
+
+    Function* function() {
+      return function_;
+    }
+
+    Value* call_frame() {
+      return call_frame_;
+    }
+
+    InlineDecision should_inline_p(VMMethod* vmm) {
+      if(inline_policy_) return inline_policy_->inline_p(vmm);
+      return cNoPolicy;
     }
 
     static Value* cint(int num) {
@@ -341,7 +394,15 @@ namespace rubinius {
       return CastInst::Create(
           Instruction::IntToPtr,
           ConstantInt::get(IntPtrTy, (intptr_t)obj),
-          ObjType, "cast_to_obj", block);
+          ObjType, "const_obj", block);
+    }
+
+    Value* constant(Object* obj, const Type* type, BasicBlock* block = NULL) {
+      if(!block) block = block_;
+      return CastInst::Create(
+          Instruction::IntToPtr,
+          ConstantInt::get(IntPtrTy, (intptr_t)obj),
+          type, "const_of_type", block);
     }
 
     Value* ptrtoint(Value* ptr) {

@@ -1,3 +1,6 @@
+#ifndef RBX_INSTRUCTIONS_UTIL_HPP
+#define RBX_INSTRUCTIONS_UTIL_HPP
+
 #define SPECIFIC (static_cast<SubClass*>(this))
 
 namespace rubinius {
@@ -56,3 +59,4 @@ namespace rubinius {
     };
 }
 
+#endif

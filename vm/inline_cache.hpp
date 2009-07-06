@@ -209,6 +209,30 @@ namespace rubinius {
       return seen_classes_[which].klass();
     }
 
+    int tracked_class_hits(int which) {
+      assert(which < cTrackedICHits);
+      return seen_classes_[which].hits();
+    }
+
+    Class* dominating_class() {
+      int seen = classes_seen();
+      switch(seen) {
+      case 0:
+        return NULL;
+      case 1:
+        return seen_classes_[0].klass();
+      case 2: {
+        int h1 = seen_classes_[0].hits();
+        int h2 = seen_classes_[1].hits();
+        if(h2 * 10 < h1) return seen_classes_[0].klass();
+        if(h1 * 10 < h2) return seen_classes_[1].klass();
+        return NULL;
+      }
+      default:
+        return NULL;
+      }
+    }
+
     int total_hits() {
       int hits = 0;
       for(int i = 0; i < cTrackedICHits; i++) {

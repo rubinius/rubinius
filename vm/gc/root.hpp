@@ -113,6 +113,11 @@ namespace rubinius {
 
     /** Envelope the given Object, migrating to given Roots if it is new. */
     void set(Object* obj, Roots* r);
+
+    // Used in the JIT to allow for loading of Roots directly.
+    Object** object_address() {
+      return &object_;
+    }
   };
 
   /**

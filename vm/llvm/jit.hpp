@@ -28,6 +28,8 @@
 
 namespace rubinius {
 
+  typedef std::map<int, llvm::BasicBlock*> BlockMap;
+
   enum JitDebug {
     cSimple = 1,
     cOptimized = 2,

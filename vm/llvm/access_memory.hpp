@@ -18,6 +18,22 @@ namespace rubinius {
       ls_->shared().gc_independent();
     }
   };
+
+  class NoAccessManagedMemory {
+    LLVMState* ls_;
+
+  public:
+    NoAccessManagedMemory(LLVMState* ls)
+      : ls_(ls)
+    {
+      ls_->shared().gc_independent();
+    }
+
+    ~NoAccessManagedMemory() {
+      ls_->shared().gc_dependent();
+    }
+
+  };
 }
 
 #endif

@@ -20,6 +20,8 @@ namespace rubinius {
     config::Integer jit_max_method_size;
     config::Bool    jit_show_compiling;
     config::Bool    jit_profile;
+    config::Bool    jit_inline_generic;
+    config::Bool    jit_inline_debug;
 
     // Debug
     config::Bool    gil_debug;
@@ -48,6 +50,8 @@ namespace rubinius {
                             default_jit_max_method_size)
       , jit_show_compiling(this, "jit.show")
       , jit_profile(this,     "jit.profile")
+      , jit_inline_generic(this, "jit.inline.generic")
+      , jit_inline_debug(this, "jit.inline.debug")
       , gil_debug(this,       "vm.gil.debug")
       , print_config(this,    "config.print")
       , ic_stats(this,        "ic.stats")
@@ -78,6 +82,12 @@ namespace rubinius {
 
       jit_profile.set_description(
           "The JIT will emit code to be sure JITd methods can be profile");
+
+      jit_inline_generic.set_description(
+          "Have the JIT inline generic methods");
+
+      jit_inline_debug.set_description(
+          "Have the JIT print out information about inlining");
 
       print_config.set_description(
           "blank or 1 == names and values, 2 == description as well");

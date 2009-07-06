@@ -16,8 +16,6 @@
 
 namespace rubinius {
 
-  typedef std::map<int, llvm::BasicBlock*> BlockMap;
-
   typedef std::list<llvm::BasicBlock*> EHandlers;
 
   class JITFunction : public Signature {
@@ -66,8 +64,6 @@ namespace rubinius {
     BlockMap block_map_;
 
     llvm::Value* stack_;
-    llvm::Value* call_frame_;
-    llvm::Function* function_;
 
     llvm::Value* stack_top_;
 
@@ -93,6 +89,8 @@ namespace rubinius {
     bool creates_blocks_;
 
     bool is_block_;
+    BasicBlock* inline_return_;
+    PHINode* return_value_;
 
     Value* global_serial_pos;
 
@@ -123,12 +121,10 @@ namespace rubinius {
              llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* start,
              llvm::Value* stack, llvm::Value* call_frame,
              llvm::Value* stack_top, llvm::Value* me, llvm::Value* args,
-             llvm::Value* vars, bool is_block)
-      : JITOperations(ls, vmm, mod, stack_top, start, func)
+             llvm::Value* vars, bool is_block, BasicBlock* inline_return = 0)
+      : JITOperations(ls, vmm, mod, stack_top, call_frame, start, func)
       , f(ls)
       , stack_(stack)
-      , call_frame_(call_frame)
-      , function_(func)
       , stack_top_(stack_top)
       , allow_private_(false)
       , call_flags_(0)
@@ -139,7 +135,14 @@ namespace rubinius {
       , vars_(vars)
       , creates_blocks_(true)
       , is_block_(is_block)
+      , inline_return_(inline_return)
+      , return_value_(0)
     {
+
+      if(inline_return) {
+        return_value_ = PHINode::Create(ObjType, "inline_return_val");
+      }
+
       bail_out_ = new_block("bail_out");
 
       Value* call_args[] = {
@@ -160,12 +163,23 @@ namespace rubinius {
 
       set_block(bail_out_fast_);
       flush_scope_to_heap(vars_);
-      ReturnInst::Create(Constant::getNullValue(ObjType), block_);
+      if(inline_return_) {
+        return_value_->addIncoming(Constant::getNullValue(ObjType), block_);
+        BranchInst::Create(inline_return_, block_);
+      } else {
+        ReturnInst::Create(Constant::getNullValue(ObjType), block_);
+      }
 
       set_block(ret_raise_val);
       Value* crv = f.clear_raise_value.call(&vm_, 1, "crv", block_);
       flush_scope_to_heap(vars_);
-      ReturnInst::Create(crv, block_);
+
+      if(inline_return_) {
+        return_value_->addIncoming(crv, block_);
+        BranchInst::Create(inline_return_, block_);
+      } else {
+        ReturnInst::Create(crv, block_);
+      }
 
       set_block(start);
 
@@ -182,6 +196,10 @@ namespace rubinius {
           PointerType::getUnqual(IntPtrTy), "cast_to_intptr", block_);
 
       init_out_args(block_);
+    }
+
+    Value* return_value() {
+      return return_value_;
     }
 
     void set_creates_blocks(bool val) {
@@ -371,7 +389,13 @@ namespace rubinius {
       }
 
       flush_scope_to_heap(vars_);
-      ReturnInst::Create(stack_top(), block_);
+
+      if(inline_return_) {
+        return_value_->addIncoming(stack_top(), block_);
+        BranchInst::Create(inline_return_, block_);
+      } else {
+        ReturnInst::Create(stack_top(), block_);
+      }
     }
 
     void visit_swap_stack() {
@@ -1050,7 +1074,12 @@ namespace rubinius {
 
       Value* call = sig.call("rbx_continue_uncommon", call_args, 4, "", block_);
 
-      ReturnInst::Create(call, block_);
+      if(inline_return_) {
+        return_value_->addIncoming(call, block_);
+        BranchInst::Create(inline_return_, block_);
+      } else {
+        ReturnInst::Create(call, block_);
+      }
     }
 
     void visit_send_stack(opcode which, opcode args) {
