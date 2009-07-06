@@ -259,17 +259,16 @@ class Array
   def &(other)
     other = Type.coerce_to other, Array, :to_ary
 
-    out, set_include = [], {}
+    array = []
+    im = IdentityMap.new other
 
-    other.each { |x| set_include[x] = [true, x] }
-    each { |x|
-      if set_include[x] and set_include[x].last.eql?(x)
-        out << x
-        set_include[x] = false
-      end
-    }
+    i = to_iter
+    while i.next
+      item = i.item
+      array << item if im.delete item
+    end
 
-    out
+    array
   end
 
   # Creates a new Array by combining the two Arrays' items,
@@ -277,16 +276,9 @@ class Array
   def |(other)
     other = Type.coerce_to other, Array, :to_ary
 
-    out, exclude = [], {}
-
-    (self + other).each { |x|
-      unless exclude[x]
-        out << x
-        exclude[x] = true
-      end
-    }
-
-    out
+    im = IdentityMap.new self, other.size
+    im.load other
+    im.to_array
   end
 
   # Repetition operator when supplied a #to_int argument:
@@ -332,12 +324,17 @@ class Array
   # 'deducting' those items. The matching method is Hash-based.
   def -(other)
     other = Type.coerce_to other, Array, :to_ary
-    out, exclude = [], {}
 
-    other.each { |x| exclude[x] = true }
-    each { |x| out << x unless exclude[x] }
+    array = []
+    im = IdentityMap.new other
 
-    out
+    i = to_iter
+    while i.next
+      item = i.item
+      array << item unless im.include? item
+    end
+
+    array
   end
 
   # Compares the two Arrays and returns -1, 0 or 1 depending
@@ -1090,24 +1087,14 @@ class Array
   # Returns a new Array by removing duplicate entries
   # from self. Equality is determined by using a Hash
   def uniq
-    seen, out = {}, self.class.new
-
-    i = 0
-    while i < @total
-      elem = at(i)
-      unless seen[elem]
-        out << elem
-        seen[elem] = true
-      end
-      i += 1
-    end
-    out
+    dup.uniq! or dup
   end
 
   # Removes duplicates from the Array in place as #uniq
   def uniq!
-    ary = uniq
-    replace(ary) if size != ary.size
+    im = IdentityMap.new self
+    return if im.size == size
+    im.to_array self
   end
 
   # Returns a new Array populated from the elements in
