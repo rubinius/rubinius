@@ -1,3 +1,5 @@
+#ifdef ENABLE_LLVM
+
 #include "llvm/jit_workhorse.hpp"
 #include "instruments/profiler.hpp"
 #include "call_frame.hpp"
@@ -977,3 +979,5 @@ namespace rubinius {
     return true;
   }
 }
+
+#endif

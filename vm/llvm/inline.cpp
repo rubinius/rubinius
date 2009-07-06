@@ -1,3 +1,5 @@
+#ifdef ENABLE_LLVM
+
 #include "llvm/jit.hpp"
 #include "llvm/inline.hpp"
 #include "llvm/jit_workhorse.hpp"
@@ -444,3 +446,5 @@ namespace rubinius {
     use_send->moveAfter(entry);
   }
 }
+
+#endif
