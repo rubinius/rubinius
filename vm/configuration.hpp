@@ -33,7 +33,7 @@ namespace rubinius {
     static const int default_gc_large_object = 2700;
     static const int default_gc_lifetime = 6;
     static const int default_jit_dump_code = 0;
-    static const int default_jit_call_til_compile = 200;
+    static const int default_jit_call_til_compile = 4000;
     static const int default_jit_max_method_size = 2048;
 
     Configuration()
