@@ -377,10 +377,9 @@ class Array
     return false unless size == other.size
 
     Thread.detect_recursion self, other do
-      i = 0
-      while i < size
-        return false unless at(i) == other.at(i)
-        i += 1
+      i = to_iter
+      while i.next
+        return false unless i.item == other.at(i.index)
       end
     end
 
@@ -392,13 +391,10 @@ class Array
   # contained Array using elem == obj. Returns the first contained
   # Array that matches (the first 'associated' Array) or nil.
   def assoc(obj)
-    i = 0
-    while i < @total
-      elem = at(i)
-      if elem.kind_of? Array and elem.first == obj
-        return elem
-      end
-      i += 1
+    i = to_iter
+    while i.next
+      elem = i.item
+      return elem if elem.kind_of? Array and elem.first == obj
     end
 
     nil
@@ -468,16 +464,13 @@ class Array
   # returned instead.
   def delete(obj)
     key = Undefined
-    i = @start
-    tot = @start + @total
-    while i < tot
-      if @tuple.at(i) == obj
-        @tuple.put(i, key)
-      end
-      i+=1
+    i = to_iter
+    while i.next
+      self[i.index] = key if i.item == obj
     end
 
-    if (deleted = @tuple.delete(@start,@total,key)) > 0
+    deleted = @tuple.delete @start, @total, key
+    if deleted > 0
       @total -= deleted
       reallocate_shrink()
       return obj
@@ -515,16 +508,13 @@ class Array
   # NOTE: This method is overridden by lib/1.8.7 or lib/1.9.
   def delete_if(&block)
     key = Undefined
-    i = @start
-    tot = @start + @total
-    while i < tot
-      if yield(@tuple.at(i))
-        @tuple.put(i, key)
-      end
-      i+=1
+    i = to_iter
+    while i.next
+      self[i.index] = key if yield i.item
     end
 
-    if (deleted = @tuple.delete(@start,@total,key)) > 0
+    deleted = @tuple.delete @start, @total, key
+    if deleted > 0
       @total -= deleted
       reallocate_shrink()
     end
@@ -537,10 +527,9 @@ class Array
   #
   # NOTE: This method is overridden by lib/1.8.7 or lib/1.9.
   def each_index
-    i = 0
-    while i < @total
-      yield i
-      i += 1
+    i = to_iter
+    while i.next
+      yield i.index
     end
     self
   end
@@ -553,12 +542,9 @@ class Array
     return false if @total != other.size
 
     Thread.detect_recursion self, other do
-      i = 0
-      while i < @total
-        curr = at(i)
-        other_curr = other.at(i)
-        return false unless curr.eql?(other_curr)
-        i+=1
+      i = to_iter
+      while i.next
+        return false unless i.item.eql? other.at(i.index)
       end
     end
 
@@ -720,10 +706,9 @@ class Array
   # Returns true if the given obj is present in the Array.
   # Presence is determined by calling elem == obj until found.
   def include?(obj)
-    i = 0
-    while i < @total
-      return true if at(i) == obj
-      i += 1
+    i = to_iter
+    while i.next
+      return true if i.item == obj
     end
     false
   end
@@ -731,10 +716,9 @@ class Array
   # Returns the index of the first element in the Array
   # for which elem == obj is true or nil.
   def index(obj)
-    i = 0
-    while i < @total
-      return i if at(i) == obj
-      i += 1
+    i = to_iter
+    while i.next
+      return i.index if i.item == obj
     end
     nil
   end
@@ -800,11 +784,11 @@ class Array
     return "[...]" if Thread.detect_recursion self do
       sep = sep ? StringValue(sep) : $,
       out.taint if sep.tainted? or self.tainted?
-      i = 0
-      while i < @total
-        elem = at(i)
+      i = to_iter
+      while i.next
+        elem = i.item
 
-        out.append sep unless i == 0
+        out.append sep unless i.index == 0
 
         if elem.kind_of?(Array)
           out.append elem.join(sep, method)
@@ -813,7 +797,6 @@ class Array
         end
 
         out.taint if elem.tainted?
-        i += 1
       end
     end
 
@@ -1015,11 +998,9 @@ class Array
   #
   # NOTE: This method is overridden by lib/1.8.7 or lib/1.9.
   def reverse_each
-    i = @total - 1
-    while i >= 0 do
-      yield at(i)
-      i = @total if @total < i
-      i -= 1
+    i = to_reverse_iter
+    while i.rnext
+      yield i.item
     end
     self
   end
@@ -1027,10 +1008,9 @@ class Array
   # Returns the index of the last element in the Array
   # for which elem == obj is true.
   def rindex(obj)
-    i = @total - 1
-    while i >= 0 do
-      return i if at(i) == obj
-      i -= 1
+    i = to_reverse_iter
+    while i.rnext
+      return i.index if i.item == obj
     end
     nil
   end
@@ -1607,13 +1587,10 @@ class Array
   private :isort_block!
 
   def __rescue_match__(exception)
-    i = 0
-    while i < @total
-      return true if at(i) === exception
-      i += 1
+    i = to_iter
+    while i.next
+      return true if i.item === exception
     end
     false
   end
-
-
 end
