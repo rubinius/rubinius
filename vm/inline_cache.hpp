@@ -1,3 +1,6 @@
+#ifndef RBX_INLINE_CACHE_HPP
+#define RBX_INLINE_CACHE_HPP
+
 #include "dispatch.hpp"
 #include "builtin/object.hpp"
 #include "builtin/module.hpp"
@@ -81,6 +84,15 @@ namespace rubinius {
                                Arguments& args);
 
     static Object* empty_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
+                               Arguments& args);
+
+    static Object* check_cache_symbol(STATE, InlineCache* cache, CallFrame* call_frame,
+                               Arguments& args);
+
+    static Object* check_cache_fixnum(STATE, InlineCache* cache, CallFrame* call_frame,
+                               Arguments& args);
+
+    static Object* check_cache_reference(STATE, InlineCache* cache, CallFrame* call_frame,
                                Arguments& args);
 
     static Object* check_cache(STATE, InlineCache* cache, CallFrame* call_frame,
@@ -223,3 +235,5 @@ namespace rubinius {
     void print_stats(STATE);
   };
 }
+
+#endif

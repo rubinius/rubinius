@@ -195,7 +195,15 @@ namespace rubinius {
       args.unshift(state, cache->name);
       cache->execute_backend_ = check_cache_mm;
     } else {
-      cache->execute_backend_ = check_cache;
+      if(recv->fixnum_p()) {
+        cache->execute_backend_ = check_cache_fixnum;
+      } else if(recv->symbol_p()) {
+        cache->execute_backend_ = check_cache_symbol;
+      } else if(recv->reference_p()) {
+        cache->execute_backend_ = check_cache_reference;
+      } else {
+        cache->execute_backend_ = check_cache;
+      }
     }
 
     cache->update_seen_classes();
@@ -269,6 +277,41 @@ namespace rubinius {
     */
 
     return cache->method->execute(state, call_frame, *cache, args);
+  }
+
+  Object* InlineCache::check_cache_fixnum(STATE, InlineCache* cache,
+      CallFrame* call_frame, Arguments& args)
+  {
+    if(likely(args.recv()->fixnum_p())) {
+      cache->inc_hits();
+      return cache->method->execute(state, call_frame, *cache, args);
+    }
+
+    return cache->initialize(state, call_frame, args);
+  }
+
+  Object* InlineCache::check_cache_symbol(STATE, InlineCache* cache,
+      CallFrame* call_frame, Arguments& args)
+  {
+    if(likely(args.recv()->symbol_p())) {
+      cache->inc_hits();
+      return cache->method->execute(state, call_frame, *cache, args);
+    }
+
+    return cache->initialize(state, call_frame, args);
+  }
+
+  Object* InlineCache::check_cache_reference(STATE, InlineCache* cache,
+      CallFrame* call_frame, Arguments& args)
+  {
+    Object* const recv = args.recv();
+    if(likely(recv->reference_p() &&
+              recv->reference_class() == cache->klass())) {
+      cache->inc_hits();
+      return cache->method->execute(state, call_frame, *cache, args);
+    }
+
+    return cache->initialize(state, call_frame, args);
   }
 
   Object* InlineCache::check_cache(STATE, InlineCache* cache, CallFrame* call_frame,
