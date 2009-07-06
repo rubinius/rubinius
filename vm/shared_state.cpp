@@ -8,6 +8,7 @@
 
 #include "util/thread.hpp"
 #include "inline_cache.hpp"
+#include "configuration.hpp"
 
 namespace rubinius {
 
@@ -176,6 +177,11 @@ namespace rubinius {
   }
 
   void SharedState::reinit() {
+    // For now, we disable inline debugging here. This makes inspecting
+    // it much less confusing.
+
+    config.jit_inline_debug.set("no");
+
     world_.reinit();
   }
 
