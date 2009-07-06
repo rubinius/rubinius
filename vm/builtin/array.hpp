@@ -65,9 +65,12 @@ namespace rubinius {
   private:
     Tuple*  tuple_;     // slot
 
-    native_int  start_;
+    bool        reverse_;
+    native_int  first_;
     native_int  last_;
     native_int  step_;
+    native_int  left_;
+    native_int  right_;
     native_int  index_;
 
   public:
@@ -87,6 +90,10 @@ namespace rubinius {
     Object* at(STATE, Fixnum* relative);
     // Ruby.primitive :array_iterator_index
     Fixnum* index(STATE);
+    // Ruby.primitive :array_iterator_bounds
+    Object* bounds(STATE, Fixnum* left, Fixnum* right);
+
+    void set_index();
 
     class Info : public TypeInfo {
     public:

@@ -83,6 +83,15 @@ class Array
       Ruby.primitive :array_iterator_index
       raise PrimitiveFailure, "Array::Iterator#index primitive failed"
     end
+
+    # Sets the extents of the iterator. A forward iterator will iterate from
+    # +left+ to +right+ - 1, inclusive. A reverse iterator will iterate from
+    # +right+ to +left+ + 1, inclusive.  Both +left+, and +right+ values are
+    # zero-based logical indexes.
+    def bounds(left, right)
+      Ruby.primitive :array_iterator_bounds
+      raise PrimitiveFailure, "Array::Iterator#bounds primitive failed"
+    end
   end
 
   attr_accessor :total

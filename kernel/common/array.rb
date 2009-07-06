@@ -348,13 +348,12 @@ class Array
     return 0 if equal? other
 
     Thread.detect_recursion self, other do
-      i = 0
-      max = size
-      max = other.size if other.size < max
-      while i < max
-        diff = at(i) <=> other.at(i)
+      max = other.size < size ? other.size : size
+      i = to_iter
+      i.bounds 0, max
+      while i.next
+        diff = i.item <=> other.at(i.index)
         return diff if diff != 0
-        i += 1
       end
     end
     # subtle: if we are recursing on that pair, then let's

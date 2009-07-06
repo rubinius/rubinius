@@ -215,18 +215,23 @@ namespace rubinius {
     G(array_iterator)->name(state, state->symbol("Array::Iterator"));
   }
 
+  void ArrayIterator::set_index() {
+    if(reverse_) {
+      index_ = right_ + step_ - 1;
+    } else {
+      index_ = left_ - step_;
+    }
+  }
+
   ArrayIterator* ArrayIterator::allocate(STATE, Array* array, Fixnum* step, Object* reverse) {
     ArrayIterator* iter = state->new_object<ArrayIterator>(G(array_iterator));
 
-    iter->start_ = array->start()->to_native();
-    iter->last_  = iter->start_ + array->total()->to_native();
+    iter->left_  = iter->first_ = array->start()->to_native();
+    iter->right_ = iter->last_  = iter->first_ + array->total()->to_native();
     iter->step_  = step->to_native();
 
-    if(reverse->true_p()) {
-      iter->index_ = iter->last_ + iter->step_ - 1;
-    } else {
-      iter->index_ = iter->start_ - iter->step_;
-    }
+    iter->reverse_ = reverse->true_p();
+    iter->set_index();
 
     iter->tuple(state, array->tuple());
 
@@ -235,13 +240,13 @@ namespace rubinius {
 
   Object* ArrayIterator::next(STATE) {
     index_ += step_;
-    if(index_ < last_) return Qtrue;
+    if(index_ < right_) return Qtrue;
     return Qfalse;
   }
 
   Object* ArrayIterator::rnext(STATE) {
     index_ -= step_;
-    if(index_ >= start_) return Qtrue;
+    if(index_ >= left_) return Qtrue;
     return Qfalse;
   }
 
@@ -254,6 +259,18 @@ namespace rubinius {
   }
 
   Fixnum* ArrayIterator::index(STATE) {
-    return Fixnum::from(index_ - start_);
+    return Fixnum::from(index_ - first_);
+  }
+
+  Object* ArrayIterator::bounds(STATE, Fixnum* left, Fixnum* right) {
+    native_int l = left->to_native();
+    native_int r = right->to_native();
+
+    left_ = (l < 0 ? 0 : l) + first_;
+    right_ = r + first_ > last_ ? last_ : r + first_;
+
+    set_index();
+
+    return this;
   }
 }
