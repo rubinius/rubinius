@@ -1,6 +1,10 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
+# Modifying a collection while the contents are being iterated
+# gives undefined behavior. See
+# http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/23633
+
 describe "Array#rindex" do
   it "returns the first index backwards from the end where element == to object" do
     key = 3
@@ -27,26 +31,18 @@ describe "Array#rindex" do
     [1, 1, 3, 2, 1, 3].rindex(4).should == nil
   end
 
-  it "does not fail when removing elements from block" do
-    sentinel = mock('sentinel')
-    ary = [0, 0, 1, 1, 3, 2, 1, sentinel]
-
-    sentinel.instance_variable_set(:@ary, ary)
-    def sentinel.==(o) @ary.slice!(1..-1); false; end
-
-    ary.rindex(0).should == 0
-  end
-
-  it "properly handles recursive arrays" do
+  it "properly handles empty recursive arrays" do
     empty = ArraySpecs.empty_recursive_array
     empty.rindex(empty).should == 0
     empty.rindex(1).should be_nil
+  end
 
+  it "properly handles recursive arrays" do
     array = ArraySpecs.recursive_array
     array.rindex(1).should == 0
     array.rindex(array).should == 7
   end
-  
+
   ruby_version_is "1.8.7" do
     it "accepts a block instead of an argument" do
       [4, 2, 1, 5, 1, 3].rindex{|x| x < 2}.should == 4
