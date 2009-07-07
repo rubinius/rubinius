@@ -33,6 +33,9 @@ module ModuleSpecs
     def undefed_method() end
     undef_method :undefed_method
 
+    def parent_method; end
+    def another_parent_method; end
+
     # For public_class_method spec
     private
     def self.public_method; end
@@ -69,6 +72,8 @@ module ModuleSpecs
     private
     def private_super_module() end
 
+    def super_included_method; end
+
     class SuperChild
     end
   end
@@ -88,11 +93,18 @@ module ModuleSpecs
 
     def public_child() end
 
+    undef_method :parent_method
+    undef_method :another_parent_method
+
     protected
     def protected_child() end
 
     private
     def private_child() end
+  end
+
+  class Grandchild < Child
+    undef_method :super_included_method
   end
 
   class Child2 < Parent
