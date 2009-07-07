@@ -70,7 +70,7 @@ class Array
     # iterator is currently pointing. If +index+ is 0, returns the same
     # element as #item. If +index+ is positive, returns the +index+th element
     # toward the last element from the current element. If +index+ is
-    # positive, returns the +index+th element toward the first element from
+    # negative, returns the +index+th element toward the first element from
     # the current element.
     def at(index)
       Ruby.primitive :array_iterator_at
