@@ -11,9 +11,8 @@ namespace rubinius {
     class Unsupported {};
 
     static bool can_inline_p(VMMethod* vmm) {
-      // Reject methods with 'complex' arguments
-      if(vmm->splat_position >= 0 ||
-          vmm->required_args != vmm->total_args) return false;
+      // Reject methods with splat arguments
+      if(vmm->splat_position >= 0) return false;
 
       InlineEvaluator eval;
 

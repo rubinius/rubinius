@@ -323,6 +323,8 @@ namespace rubinius {
     JITMethodInfo info(vmm);
     info.inline_return = on_return;
     info.inline_policy = ops_.inline_policy();
+    info.called_args = count_;
+
     assert(work.generate_body(info));
 
     on_return->moveAfter(info.fin_block);

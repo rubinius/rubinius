@@ -103,6 +103,8 @@ namespace rubinius {
     Value* out_args_arguments_;
     Value* out_args_array_;
 
+    int called_args_;
+
   public:
 
     class Unsupported {};
@@ -137,6 +139,7 @@ namespace rubinius {
       , is_block_(is_block)
       , inline_return_(inline_return)
       , return_value_(0)
+      , called_args_(-1)
     {
 
       if(inline_return) {
@@ -209,6 +212,10 @@ namespace rubinius {
 
     void set_creates_blocks(bool val) {
       creates_blocks_ = val;
+    }
+
+    void set_called_args(int args) {
+      called_args_ = args;
     }
 
     Value* scope() {
@@ -1980,20 +1987,28 @@ namespace rubinius {
     }
 
     void visit_passed_arg(opcode count) {
-      Signature sig(ls_, ObjType);
+      if(called_args_ >= 0) {
+        if((int)count < called_args_) {
+          stack_push(constant(Qtrue));
+        } else {
+          stack_push(constant(Qfalse));
+        }
+      } else {
+        Signature sig(ls_, ObjType);
 
-      sig << VMTy;
-      sig << "Arguments";
-      sig << Type::Int32Ty;
+        sig << VMTy;
+        sig << "Arguments";
+        sig << Type::Int32Ty;
 
-      Value* call_args[] = {
-        vm_,
-        args_,
-        ConstantInt::get(Type::Int32Ty, count)
-      };
+        Value* call_args[] = {
+          vm_,
+          args_,
+          ConstantInt::get(Type::Int32Ty, count)
+        };
 
-      Value* val = sig.call("rbx_passed_arg", call_args, 3, "pa", block_);
-      stack_push(val);
+        Value* val = sig.call("rbx_passed_arg", call_args, 3, "pa", block_);
+        stack_push(val);
+      }
     }
 
     void visit_passed_blockarg(opcode count) {

@@ -782,10 +782,9 @@ namespace rubinius {
     // We don't support splat in an inlined method!
     assert(vmm->splat_position < 0);
 
-    // We don't support optional arguments!
-    assert(vmm->required_args == vmm->total_args);
+    assert(stack_args.size() <= (size_t)vmm->total_args);
 
-    for(int i = 0; i < vmm->required_args; i++) {
+    for(size_t i = 0; i < stack_args.size(); i++) {
       Value* int_pos = ConstantInt::get(Type::Int32Ty, i);
 
       Value* idx2[] = {
@@ -955,6 +954,8 @@ namespace rubinius {
     } else {
       visitor.init_policy();
     }
+
+    visitor.set_called_args(info.called_args);
 
     // Pass 1, detect BasicBlock boundaries
     BlockFinder finder(visitor.block_map(), func);
