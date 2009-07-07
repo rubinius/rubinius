@@ -35,7 +35,7 @@ class Array
   # neither is provided, the Array is filled with nil.
   def initialize(size_or_array=Undefined, obj=Undefined)
     if size_or_array.equal? Undefined
-      unless @total == 0
+      unless empty?
         @total = @start = 0
         @tuple = Rubinius::Tuple.new 8
       end
@@ -96,18 +96,18 @@ class Array
         return nil if count < 0       # No need to go further
       else # repeat prim case after coercing with to_int
         # Convert negative indices
-        start_idx += @total if start_idx < 0
-        return nil if start_idx < 0 or start_idx >= @total
+        start_idx += size if start_idx < 0
+        return nil if start_idx < 0 or start_idx >= size
         return @tuple.at(@start + start_idx)
       end
     end
 
     # Convert negative indices
-    start_idx += @total if start_idx < 0
+    start_idx += size if start_idx < 0
 
-    if start_idx < 0 or start_idx >= @total
+    if start_idx < 0 or start_idx >= size
       # ONE past end only, MRI compat
-      if start_idx == @total
+      if start_idx == size
         return self.class.new
       else
         return nil
@@ -119,7 +119,7 @@ class Array
       finish_idx = start_idx + count - 1
     else # from a range
       finish_idx = Type.coerce_to arg1.end, Fixnum, :to_int
-      finish_idx += @total if finish_idx < 0
+      finish_idx += size if finish_idx < 0
       finish_idx -= 1 if arg1.exclude_end?
     end
 
@@ -127,7 +127,7 @@ class Array
       return self.class.new
     else
       # Going past the end is ignored (sort of)
-      finish_idx = (@total - 1) if finish_idx >= @total
+      finish_idx = (size - 1) if finish_idx >= size
 
       tot = finish_idx - start_idx + 1
       out = self.class.new
@@ -156,14 +156,14 @@ class Array
       end
 
       last = Type.coerce_to index.last, Fixnum, :to_int
-      last += @total if last < 0
+      last += size if last < 0
       last += 1 unless index.exclude_end?
 
       index = Type.coerce_to index.first, Fixnum, :to_int
 
       if index < 0
-        index += @total
-        raise RangeError, "Range begin #{index-@total} out of bounds" if index < 0
+        index += size
+        raise RangeError, "Range begin #{index-size} out of bounds" if index < 0
       end
 
       # m..n, m > n allowed
@@ -174,8 +174,8 @@ class Array
       index = Type.coerce_to index, Fixnum, :to_int
 
       if index < 0
-        index += @total
-        raise IndexError,"Index #{index-@total} out of bounds" if index < 0
+        index += size
+        raise IndexError,"Index #{index-size} out of bounds" if index < 0
       end
     end
 
@@ -184,7 +184,7 @@ class Array
       raise IndexError, "Negative length #{ins_length}" if ins_length < 0
 
       # MRI seems to be forgiving here!
-      space = @total - index
+      space = size - index
       if ins_length > space
         ins_length = space > 0 ? space : 0
       end
@@ -192,9 +192,9 @@ class Array
       if ent.nil?
         # optimize for fast removal..
         reg_start = index + ins_length
-        reg_length = @total - reg_start
+        reg_length = size - reg_start
 
-        if reg_start <= @total
+        if reg_start <= size
           @tuple.copy_from @tuple, reg_start, reg_length, index
           @total -= ins_length
 
@@ -211,7 +211,7 @@ class Array
         replacement = [ent]
       end
 
-      newtotal = (index > @total) ? index : @total
+      newtotal = (index > size) ? index : size
       if replacement.size > ins_length
         newtotal += replacement.size - ins_length
       elsif replacement.size < ins_length
@@ -219,10 +219,10 @@ class Array
       end
 
       nt = Rubinius::Tuple.new(newtotal)
-      nt.copy_from(@tuple, @start, index < @total ? index : @total, 0)
+      nt.copy_from(@tuple, @start, index < size ? index : size, 0)
       nt.copy_from(replacement.tuple, replacement.start, replacement.size, index)
-      if index < @total
-        nt.copy_from(@tuple, @start+index+ins_length, @total-index-ins_length,
+      if index < size
+        nt.copy_from(@tuple, @start+index+ins_length, size-index-ins_length,
                      index+replacement.size)
       end
       @start = 0
@@ -235,7 +235,7 @@ class Array
       reallocate(nt) if @tuple.size < nt
 
       @tuple.put @start + index, ent
-      if index >= @total - 1
+      if index >= size - 1
         @total = index + 1
       end
       return ent
@@ -249,7 +249,7 @@ class Array
   # Appends the object to the end of the Array.
   # Returns self so several appends can be chained.
   def <<(obj)
-    set_index(@total, obj)
+    set_index(size, obj)
     self
   end
 
@@ -306,7 +306,7 @@ class Array
 
       i = 0
       while i < new_size
-        nt.copy_from(@tuple,@start,@total, i)
+        nt.copy_from(@tuple,@start,size, i)
         i += sz
       end
       out
@@ -407,7 +407,7 @@ class Array
     Ruby.primitive :array_aref
     idx = Type.coerce_to idx, Fixnum, :to_int
 
-    total = @start + @total
+    total = @start + size
 
     if idx < 0
       idx += total
@@ -435,7 +435,7 @@ class Array
 
   # Removes all nil elements from self, returns nil if no changes
   def compact!
-    if (deleted = @tuple.delete(@start,@total,nil)) > 0
+    if (deleted = @tuple.delete(@start,size,nil)) > 0
       @total -= deleted
       reallocate_shrink()
       return self
@@ -447,13 +447,13 @@ class Array
   # Appends the elements in the other Array to self
   def concat(other)
     ary = Type.coerce_to(other, Array, :to_ary)
-    size = @total + ary.size
-    tuple = Rubinius::Tuple.new size
-    tuple.copy_from @tuple, @start, @total, 0 if @total > 0
-    tuple.copy_from ary.tuple, ary.start, ary.size, @total
+    new_size = size + ary.size
+    tuple = Rubinius::Tuple.new new_size
+    tuple.copy_from @tuple, @start, size, 0 if size > 0
+    tuple.copy_from ary.tuple, ary.start, ary.size, size
     @tuple = tuple
     @start = 0
-    @total = size
+    @total = new_size
     self
   end
 
@@ -468,7 +468,7 @@ class Array
       self[i.index] = key if i.item == obj
     end
 
-    deleted = @tuple.delete @start, @total, key
+    deleted = @tuple.delete @start, size, key
     if deleted > 0
       @total -= deleted
       reallocate_shrink()
@@ -489,14 +489,14 @@ class Array
     idx = Type.coerce_to idx, Fixnum, :to_int
 
     # Flip to positive and weed out out of bounds
-    idx += @total if idx < 0
-    return nil if idx < 0 or idx >= @total
+    idx += size if idx < 0
+    return nil if idx < 0 or idx >= size
 
     # Grab the object and adjust the indices for the rest
     obj = @tuple.at(@start + idx)
 
-    @tuple.copy_from(@tuple, @start+idx+1, @total-idx-1, @start+idx)
-    @tuple.put(@start + @total - 1, nil)
+    @tuple.copy_from(@tuple, @start+idx+1, size-idx-1, @start+idx)
+    @tuple.put(@start + size - 1, nil)
 
     @total -= 1
     obj
@@ -512,7 +512,7 @@ class Array
       self[i.index] = key if yield i.item
     end
 
-    deleted = @tuple.delete @start, @total, key
+    deleted = @tuple.delete @start, size, key
     if deleted > 0
       @total -= deleted
       reallocate_shrink()
@@ -538,7 +538,7 @@ class Array
   def eql?(other)
     return true if equal? other
     return false unless other.kind_of?(Array)
-    return false if @total != other.size
+    return false if size != other.size
 
     Thread.detect_recursion self, other do
       i = to_iter
@@ -552,7 +552,7 @@ class Array
 
   # True if Array has no elements.
   def empty?()
-    @total == 0
+    size == 0
   end
 
   # Attempts to return the element at the given index. By default
@@ -564,9 +564,9 @@ class Array
     warn 'Block supercedes default object' if !rest.empty? && block_given?
 
     idx, orig = Type.coerce_to(idx, Fixnum, :to_int), idx
-    idx += @total if idx < 0
+    idx += size if idx < 0
 
-    if idx < 0 || idx >= @total
+    if idx < 0 || idx >= size
       return yield(orig) if block_given?
       return rest.at(0) unless rest.empty?
 
@@ -697,9 +697,9 @@ class Array
     # it does work. It should be replaced with something much better, but I'm not sure
     # what level it belongs at.
     str = ""
-    return @total if Thread.detect_recursion self do
+    return size if Thread.detect_recursion self do
       i = 0
-      while(i < @total)
+      while(i < size)
         curr = at(i)
         str.append curr.hash.to_s
         i+=1
@@ -757,7 +757,7 @@ class Array
 
     # Adjust the index for correct insertion
     idx = Type.coerce_to idx, Fixnum, :to_int
-    idx += (@total + 1) if idx < 0    # Negatives add AFTER the element
+    idx += (size + 1) if idx < 0    # Negatives add AFTER the element
     raise IndexError, "#{idx} out of bounds" if idx < 0
 
     self[idx, 0] = items   # Cheat
@@ -784,7 +784,7 @@ class Array
   # each. The separator defaults to $,. Detects recursive
   # Arrays.
   def join(sep=nil, method=:to_s)
-    return "" if @total == 0
+    return "" if size == 0
     out = ""
     return "[...]" if Thread.detect_recursion self do
       sep = sep ? StringValue(sep) : $,
@@ -812,7 +812,7 @@ class Array
   # the Array is empty, without a count nil is returned,
   # otherwise an empty Array. Always returns an Array.
   def last(n=Undefined)
-    if @total < 1
+    if empty?
       return if n.equal? Undefined
       return []
     end
@@ -915,7 +915,7 @@ class Array
     return nil if empty?
 
     @total -= 1
-    index = @start + @total
+    index = @start + size
 
     elem = @tuple.at(index)
     @tuple.put(index,nil)
@@ -986,11 +986,11 @@ class Array
   # Reverses the order of elements in self. Returns self
   # even if no changes are made
   def reverse!
-    return self unless @total > 1
+    return self unless size > 1
 
     i = @start
-    j = @start + @total - 1
-    while i < (@start+@total/2)
+    j = @start + size - 1
+    while i < (@start+size/2)
       @tuple.swap(i,j)
       i += 1
       j -= 1
@@ -1024,7 +1024,7 @@ class Array
   # Array or nil if empty. All other elements are
   # moved down one index.
   def shift
-    return nil if @total == 0
+    return nil if empty?
 
     obj = @tuple.at @start
     @tuple.put @start, nil
@@ -1164,12 +1164,12 @@ class Array
         finish = Type.coerce_to elem.last, Fixnum, :to_int
         start = Type.coerce_to elem.first, Fixnum, :to_int
 
-        start += @total if start < 0
+        start += size if start < 0
         next if start < 0
 
-        finish += @total if finish < 0
+        finish += size if finish < 0
         finish -= 1 if elem.exclude_end?
-        finish = @total unless finish < @total
+        finish = size unless finish < size
 
         next if finish < start
 
@@ -1209,7 +1209,7 @@ class Array
 
     size.times do |i|
       slot = out.at(i)
-      slot << @tuple.at(@start + i)
+      slot << self[i]
       others.each { |ary| slot << ary.at(i) }
     end
 
@@ -1228,9 +1228,9 @@ class Array
       @tuple.copy_from(values.tuple,0,values.size,@start)
     else
       # FIXME: provision for more unshift prepends?
-      tuple = Rubinius::Tuple.new(@total+values.size)
+      tuple = Rubinius::Tuple.new(size+values.size)
       tuple.copy_from(values.tuple,0,values.size,0)
-      tuple.copy_from(@tuple,@start,@total,values.size)
+      tuple.copy_from(@tuple,@start,size,values.size)
       @start = 0
       @tuple = tuple
     end
@@ -1256,7 +1256,7 @@ class Array
     end
 
     tuple = Rubinius::Tuple.new(new_size)
-    tuple.copy_from @tuple, @start, @total, 0
+    tuple.copy_from @tuple, @start, size, 0
 
     @start = 0
     @tuple = tuple
@@ -1266,17 +1266,17 @@ class Array
 
   def reallocate_shrink
     new_size = @tuple.size
-    return if @total > (new_size / 3)
+    return if size > (new_size / 3)
 
     # halve the tuple size until the total > 1/3 the size of the total
     begin
       new_size /= 2
-    end while @total < (new_size / 6)
+    end while size < (new_size / 6)
 
     tuple = Rubinius::Tuple.new(new_size)
     # position values in the middle somewhere
-    new_start = (new_size-@total)/2
-    tuple.copy_from(@tuple, @start, @total, new_start)
+    new_start = (new_size-size)/2
+    tuple.copy_from(@tuple, @start, size, new_start)
 
     @start = new_start
     @tuple = tuple
