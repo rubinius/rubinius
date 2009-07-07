@@ -147,21 +147,18 @@ class Array
   #
   # NOTE: This method is overridden by lib/1.8.7 or lib/1.9.
   def each
-    i = 0
-    while i < @total
-      yield @tuple.at(@start + i)
-      i += 1
+    i = to_iter
+    while i.next
+      yield i.item
     end
     self
   end
 
   # Runtime method to support case when *foo syntax
   def __matches_when__(receiver)
-    i = @start
-    tot = @total + @start
-    while i < tot
-      return true if @tuple.at(i) === receiver
-      i = i + 1
+    i = to_iter
+    while i.next
+      return true if i.item === receiver
     end
     false
   end
@@ -172,13 +169,12 @@ class Array
   # NOTE: This method is overridden by lib/1.8.7 or lib/1.9.
   def map
     return dup unless block_given?
-    out = Array.new @total
-    i = 0
-    while i < @total
-      out[i] = yield(at(i))
-      i += 1
+    array = Array.new size
+    i = to_iter
+    while i.next
+      array[i.index] = yield(i.item)
     end
-    out
+    array
   end
 
   # Replaces each element in self with the return value
@@ -186,10 +182,9 @@ class Array
   #
   # NOTE: This method is overridden by lib/1.8.7 or lib/1.9.
   def map!
-    i = 0
-    while i < @total
-      self[i] = yield(at(i))
-      i += 1
+    i = to_iter
+    while i.next
+      self[i.index] = yield(i.item)
     end
     self
   end
