@@ -39,6 +39,8 @@ namespace rubinius {
     bool own_policy_;
 
   public:
+    const llvm::Type* NativeIntTy;
+    const llvm::Type* FixnumTy;
     const llvm::Type* IntPtrTy;
     const llvm::Type* ObjType;
     const llvm::Type* ObjArrayTy;
@@ -47,6 +49,10 @@ namespace rubinius {
     // Frequently used types
     const llvm::Type* VMTy;
     const llvm::Type* CallFrameTy;
+
+    // Commonly used constants
+    llvm::Value* Zero;
+    llvm::Value* One;
 
   public:
     JITOperations(LLVMState* ls, VMMethod* vmm, llvm::Module* mod,
@@ -67,9 +73,16 @@ namespace rubinius {
 
 #if __LP64__
       IntPtrTy = llvm::Type::Int64Ty;
+      FixnumTy = llvvm::IntegerType::get(63);
 #else
       IntPtrTy = llvm::Type::Int32Ty;
+      FixnumTy = llvm::IntegerType::get(31);
 #endif
+
+      NativeIntTy = IntPtrTy;
+
+      One = ConstantInt::get(NativeIntTy, 1);
+      Zero = ConstantInt::get(NativeIntTy, 0);
 
       ObjType = ptr_type("Object");
       ObjArrayTy = PointerType::getUnqual(ObjType);
@@ -470,6 +483,18 @@ namespace rubinius {
 
       return CastInst::Create(
           Instruction::IntToPtr, tagged, ObjType, "as_obj", block);
+    }
+
+    Value* nint(int val) {
+      return ConstantInt::get(NativeIntTy, val);
+    }
+
+    Value* fixnum_strip(Value* obj) {
+      Value* i = CastInst::Create(
+          Instruction::PtrToInt,
+          obj, NativeIntTy, "as_int", block_);
+
+      return BinaryOperator::CreateLShr(i, One, "lshr", block_);
     }
 
     Value* as_obj(Value* val) {

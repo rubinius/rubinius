@@ -138,14 +138,13 @@ namespace rubinius {
     ops.create_conditional_branch(inlined, use_send, cmp);
 
     ops.set_block(inlined);
-    Value* native = ops.tag_strip32(self);
+    Value* native = ops.fixnum_strip(self);
     Value* neg = BinaryOperator::CreateSub(
-        ConstantInt::get(Type::Int32Ty, 0), native, "to_neg",
+        ops.Zero, native, "to_neg",
         ops.current_block());
 
-    Value* one = ConstantInt::get(Type::Int32Ty, 1);
-    Value* more = BinaryOperator::CreateShl(neg, one, "shl", ops.current_block());
-    Value* tagged = BinaryOperator::CreateOr(more, one, "or", ops.current_block());
+    Value* more = BinaryOperator::CreateShl(neg, ops.One, "shl", ops.current_block());
+    Value* tagged = BinaryOperator::CreateOr(more, ops.One, "or", ops.current_block());
 
     ops.stack_set_top(ops.as_obj(tagged));
     ops.create_branch(i.after());
