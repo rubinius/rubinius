@@ -129,6 +129,30 @@ namespace rubinius {
     ops.set_block(send);
   }
 
+  static void fixnum_neg(JITOperations& ops, Inliner& i) {
+    BasicBlock* use_send = ops.new_block("use_send");
+    BasicBlock* inlined = ops.new_block("fixnum_neg");
+
+    Value* self = i.recv();
+    Value* cmp = ops.check_if_fixnum(self);
+    ops.create_conditional_branch(inlined, use_send, cmp);
+
+    ops.set_block(inlined);
+    Value* native = ops.tag_strip32(self);
+    Value* neg = BinaryOperator::CreateSub(
+        ConstantInt::get(Type::Int32Ty, 0), native, "to_neg",
+        ops.current_block());
+
+    Value* one = ConstantInt::get(Type::Int32Ty, 1);
+    Value* more = BinaryOperator::CreateShl(neg, one, "shl", ops.current_block());
+    Value* tagged = BinaryOperator::CreateOr(more, one, "or", ops.current_block());
+
+    ops.stack_set_top(ops.as_obj(tagged));
+    ops.create_branch(i.after());
+
+    ops.set_block(use_send);
+  }
+
   static void object_equal(Class* klass, JITOperations& ops, Inliner& i) {
     Value* self = i.recv();
 
@@ -158,6 +182,9 @@ namespace rubinius {
     } else if(prim == Primitives::fixnum_and && count_ == 1) {
       inlined_prim = "fixnum_and";
       fixnum_and(ops_, *this);
+    } else if(prim == Primitives::fixnum_neg && count_ == 0) {
+      inlined_prim = "fixnum_neg";
+      fixnum_neg(ops_, *this);
     } else if(prim == Primitives::object_equal && count_ == 1) {
       inlined_prim = "object_equal";
       object_equal(klass, ops_, *this);
