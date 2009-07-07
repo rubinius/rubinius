@@ -284,38 +284,45 @@ class Module
     raise NameError, "Undefined method `#{name}' for #{self}"
   end
 
-  def instance_methods(all=true)
+  def instance_method_symbols(all)
     filter_methods(:public_names, all) | filter_methods(:protected_names, all)
   end
 
+  def instance_methods(all=true)
+    Rubinius.convert_to_names(instance_method_symbols(all))
+  end
+
   def public_instance_methods(all=true)
-    filter_methods(:public_names, all)
+    Rubinius.convert_to_names(filter_methods(:public_names, all))
   end
 
   def private_instance_methods(all=true)
-    filter_methods(:private_names, all)
+    Rubinius.convert_to_names(filter_methods(:private_names, all))
   end
 
   def protected_instance_methods(all=true)
-    filter_methods(:protected_names, all)
+    Rubinius.convert_to_names(filter_methods(:protected_names, all))
   end
 
   def filter_methods(filter, all)
     unless all or kind_of?(MetaClass) or kind_of?(Rubinius::IncludedModule)
-      return Rubinius.convert_to_names(method_table.__send__(filter))
+      return method_table.__send__ filter
     end
 
     mod = self
-    names = []
+    symbols = []
+    undefs = []
 
     while mod
-      names += mod.method_table.__send__ filter
+      symbols += mod.method_table.__send__ filter
+      mod.method_table.filter_entries do |entry|
+        undefs << entry.name if entry.visibility == :undef
+      end
       mod = mod.direct_superclass
     end
 
-    Rubinius.convert_to_names names.uniq
+    symbols.uniq - undefs
   end
-  private :filter_methods
 
   def define_method(name, meth = nil, &prc)
     meth ||= prc

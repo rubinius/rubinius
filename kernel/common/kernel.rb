@@ -503,21 +503,20 @@ module Kernel
   end
 
   def methods(all=true)
-    mt = metaclass.method_table
-    if all
-      keys = mt.names
-    else
-      keys = mt.public_names + mt.protected_names
+    symbols  = singleton_method_symbols(all)
+    symbols |= self.class.instance_method_symbols(true) if all
+
+    undefs = []
+    metaclass.method_table.filter_entries do |entry|
+      undefs << entry.name if entry.visibility == :undef
     end
 
-    names = Rubinius.convert_to_names(keys)
-    names |= self.class.instance_methods(true) if all
-    names
+    Rubinius.convert_to_names(symbols - undefs)
   end
 
   def private_methods(all=true)
-    names = private_singleton_methods
-    names | self.class.private_instance_methods(all)
+    Rubinius.convert_to_names(metaclass.method_table.private_names |
+                              self.class.filter_methods(:private_names, all))
   end
 
   def private_singleton_methods
@@ -525,8 +524,8 @@ module Kernel
   end
 
   def protected_methods(all=true)
-    names = protected_singleton_methods
-    names | self.class.protected_instance_methods(all)
+    Rubinius.convert_to_names(metaclass.method_table.protected_names |
+                              self.class.filter_methods(:protected_names, all))
   end
 
   def protected_singleton_methods
@@ -534,13 +533,17 @@ module Kernel
   end
 
   def public_methods(all=true)
-    names = singleton_methods(all)
-    names | self.class.public_instance_methods(all)
+    Rubinius.convert_to_names(singleton_method_symbols(all) |
+                              self.class.filter_methods(:public_names, all))
+  end
+
+  def singleton_method_symbols(all)
+    mt = metaclass.method_table
+    all ? mt.names : mt.public_names + mt.protected_names
   end
 
   def singleton_methods(all=true)
-    mt = metaclass.method_table
-    Rubinius.convert_to_names(all ? mt.names : mt.public_names + mt.protected_names)
+    Rubinius.convert_to_names(singleton_method_symbols(all))
   end
 
   alias_method :send, :__send__
