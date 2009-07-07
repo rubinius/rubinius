@@ -466,7 +466,8 @@ namespace rubinius {
     ls->passes()->run(*func);
 
     if(ls->jit_dump_code() & cOptimized) {
-      std::cout << "[[[ LLVM Optimized IR ]]]\n";
+      std::cout << "[[[ LLVM Optimized IR: "
+        << ls->symbol_cstr(vmm->original->name()) << " ]]]\n";
       std::cout << *func << "\n";
     }
 

@@ -7,6 +7,8 @@
 #include "builtin/symbol.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/staticscope.hpp"
+
 #include "object_utils.hpp"
 
 namespace rubinius {
@@ -38,8 +40,10 @@ namespace rubinius {
           }
         } else {
           const char* mod_name;
-          if(cf->module()->name()->nil_p()) {
-            mod_name = "<unknown>";
+          if(cf->module()->nil_p()) {
+            mod_name = cf->cm->scope()->module()->name()->c_str(state);
+          } else if(cf->module()->name()->nil_p()) {
+            mod_name = cf->cm->scope()->module()->name()->c_str(state);
           } else {
             mod_name = cf->module()->name()->c_str(state);
           }
@@ -61,7 +65,11 @@ namespace rubinius {
         std::cout << "<unknown>";
       }
 
-      std::cout << " (+" << cf->ip() << ")";
+      std::cout << " (+" << cf->ip();
+      if(cf->is_inline_frame()) {
+        std::cout << " inline";
+      }
+      std::cout << ")";
 
       std::cout << std::endl;
       cf = static_cast<CallFrame*>(cf->previous);

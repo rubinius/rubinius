@@ -270,7 +270,7 @@ namespace rubinius {
           ConstantInt::get(Type::Int32Ty, i)
         };
 
-        Value* gep = GetElementPtrInst::Create(vars, idx, idx+3, "stack_pos", block);
+        Value* gep = GetElementPtrInst::Create(vars, idx, idx+3, "local_pos", block);
         new StoreInst(nil, gep, block);
       }
       return;
@@ -294,7 +294,7 @@ namespace rubinius {
       cur
     };
 
-    Value* gep = GetElementPtrInst::Create(vars, idx, idx+3, "stack_pos", top);
+    Value* gep = GetElementPtrInst::Create(vars, idx, idx+3, "local_pos", top);
     new StoreInst(nil, gep, top);
 
     Value* added = BinaryOperator::CreateAdd(cur, one, "added", top);
@@ -750,7 +750,7 @@ namespace rubinius {
     new StoreInst(method, cm_gep, false, block);
 
     // flags
-    new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
+    new StoreInst(ConstantInt::get(Type::Int32Ty, CallFrame::cInlineFrame),
         get_field(block, call_frame, offset::cf_flags), false, block);
 
     // ip
@@ -794,7 +794,7 @@ namespace rubinius {
         int_pos
       };
 
-      Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "var_pos", block);
+      Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "local_pos", block);
 
       new StoreInst(stack_args[i], pos, false, block);
     }
@@ -963,7 +963,8 @@ namespace rubinius {
     // DISABLED: This still has problems.
     // visitor.set_creates_blocks(finder.creates_blocks());
 
-    if(finder.number_of_sends() > 0 || finder.loops_p()) {
+    if(!info.inline_return &&
+          (finder.number_of_sends() > 0 || finder.loops_p())) {
       // Check for interrupts at the top
       visitor.visit_check_interrupts();
     }
@@ -976,6 +977,7 @@ namespace rubinius {
     }
 
     info.return_value = visitor.return_value();
+    info.fin_block = visitor.current_block();
     return true;
   }
 }

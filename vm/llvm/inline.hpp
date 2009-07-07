@@ -31,6 +31,10 @@ namespace rubinius {
       return ops_.stack_back(count_ - (which + 1));
     }
 
+    BasicBlock* after() {
+      return after_;
+    }
+
     bool consider();
 
     void inline_generic_method(Class* klass, VMMethod* vmm);
@@ -43,9 +47,7 @@ namespace rubinius {
 
     void inline_ivar_access(Class* klass, AccessVariable* acc);
 
-    void call_tuple_at();
-
-    void call_tuple_put();
+    bool inline_primitive(Class* klass, CompiledMethod* cm, executor prim);
   };
 
 }

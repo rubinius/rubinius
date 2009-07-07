@@ -162,7 +162,10 @@ namespace rubinius {
       BranchInst::Create(ret_raise_val, bail_out_fast_, isit, block_);
 
       set_block(bail_out_fast_);
-      flush_scope_to_heap(vars_);
+      if(!inline_return_) {
+        flush_scope_to_heap(vars_);
+      }
+
       if(inline_return_) {
         return_value_->addIncoming(Constant::getNullValue(ObjType), block_);
         BranchInst::Create(inline_return_, block_);
@@ -172,7 +175,9 @@ namespace rubinius {
 
       set_block(ret_raise_val);
       Value* crv = f.clear_raise_value.call(&vm_, 1, "crv", block_);
-      flush_scope_to_heap(vars_);
+      if(!inline_return_) {
+        flush_scope_to_heap(vars_);
+      }
 
       if(inline_return_) {
         return_value_->addIncoming(crv, block_);
@@ -388,12 +393,11 @@ namespace rubinius {
         block_ = cont;
       }
 
-      flush_scope_to_heap(vars_);
-
       if(inline_return_) {
         return_value_->addIncoming(stack_top(), block_);
         BranchInst::Create(inline_return_, block_);
       } else {
+        flush_scope_to_heap(vars_);
         ReturnInst::Create(stack_top(), block_);
       }
     }

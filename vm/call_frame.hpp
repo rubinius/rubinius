@@ -19,7 +19,8 @@ namespace rubinius {
     enum Flags {
       cIsLambda =           1 << 0,
       cCustomStaticScope =  1 << 1,
-      cMultipleScopes =     1 << 2
+      cMultipleScopes =     1 << 2,
+      cInlineFrame =        1 << 3
     };
 
     CallFrame* previous;
@@ -72,6 +73,10 @@ namespace rubinius {
     VariableScope* top_scope(STATE) {
       if(multiple_scopes_p()) return top_scope_;
       return scope->create_heap_alias(state, this);
+    }
+
+    bool is_inline_frame() {
+      return flags & cInlineFrame;
     }
 
     Module* module() {
