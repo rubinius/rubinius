@@ -211,14 +211,14 @@ class Array
         replacement = [ent]
       end
 
-      newtotal = (index > size) ? index : size
+      new_total = (index > size) ? index : size
       if replacement.size > ins_length
-        newtotal += replacement.size - ins_length
+        new_total += replacement.size - ins_length
       elsif replacement.size < ins_length
-        newtotal -= ins_length - replacement.size
+        new_total -= ins_length - replacement.size
       end
 
-      nt = Rubinius::Tuple.new(newtotal)
+      nt = Rubinius::Tuple.new(new_total)
       nt.copy_from(@tuple, @start, index < size ? index : size, 0)
       nt.copy_from(replacement.tuple, replacement.start, replacement.size, index)
       if index < size
@@ -227,7 +227,7 @@ class Array
       end
       @start = 0
       @tuple = nt
-      @total = newtotal
+      @total = new_total
 
       return ent
     else
@@ -296,16 +296,16 @@ class Array
       raise ArgumentError, "Count cannot be negative" if val < 0
 
       sz = self.size()
-      new_size = val * sz
+      new_total = val * sz
 
-      nt = Rubinius::Tuple.new(new_size)
+      nt = Rubinius::Tuple.new(new_total)
       out = self.class.new()
       out.tuple = nt
-      out.total = new_size
+      out.total = new_total
       out.taint if self.tainted? && val > 0
 
       i = 0
-      while i < new_size
+      while i < new_total
         nt.copy_from(@tuple,@start,size, i)
         i += sz
       end
@@ -447,13 +447,13 @@ class Array
   # Appends the elements in the other Array to self
   def concat(other)
     ary = Type.coerce_to(other, Array, :to_ary)
-    new_size = size + ary.size
-    tuple = Rubinius::Tuple.new new_size
+    new_total = size + ary.size
+    tuple = Rubinius::Tuple.new new_total
     tuple.copy_from @tuple, @start, size, 0 if size > 0
     tuple.copy_from ary.tuple, ary.start, ary.size, size
     @tuple = tuple
     @start = 0
-    @total = new_size
+    @total = new_total
     self
   end
 
@@ -641,9 +641,9 @@ class Array
 
     # Adjust the size progressively
     unless finish < size
-      nt = finish + 1
-      reallocate(nt) if @tuple.size < nt
-      @total = nt
+      new_total = finish + 1
+      reallocate(new_total) if @tuple.size < new_total
+      @total = new_total
     end
 
     i = to_iter
@@ -1249,13 +1249,13 @@ class Array
   def reallocate(at_least)
     return if at_least < @tuple.size
 
-    new_size = @tuple.size * 2
+    new_total = @tuple.size * 2
 
-    if new_size < at_least
-      new_size = at_least
+    if new_total < at_least
+      new_total = at_least
     end
 
-    tuple = Rubinius::Tuple.new(new_size)
+    tuple = Rubinius::Tuple.new(new_total)
     tuple.copy_from @tuple, @start, size, 0
 
     @start = 0
@@ -1265,17 +1265,17 @@ class Array
   private :reallocate
 
   def reallocate_shrink
-    new_size = @tuple.size
-    return if size > (new_size / 3)
+    new_total = @tuple.size
+    return if size > (new_total / 3)
 
     # halve the tuple size until the total > 1/3 the size of the total
     begin
-      new_size /= 2
-    end while size < (new_size / 6)
+      new_total /= 2
+    end while size < (new_total / 6)
 
-    tuple = Rubinius::Tuple.new(new_size)
+    tuple = Rubinius::Tuple.new(new_total)
     # position values in the middle somewhere
-    new_start = (new_size-size)/2
+    new_start = (new_total-size)/2
     tuple.copy_from(@tuple, @start, size, new_start)
 
     @start = new_start
