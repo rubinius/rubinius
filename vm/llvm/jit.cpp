@@ -422,6 +422,28 @@ namespace rubinius {
     func->eraseFromParent();
   }
 
+  VMMethod* LLVMState::find_candidate(VMMethod* start, CallFrame* call_frame) {
+    VMMethod* last = start;
+
+    // No upper call_frames or generic inlining is off, use the start.
+    // With generic inlining off, there is no way to inline back to start,
+    // so we don't both trying.
+    if(!call_frame || !config_.jit_inline_generic) return last;
+
+    VMMethod* cur = call_frame->cm->backend_method_;
+    while(cur->required_args == cur->total_args &&
+          cur->call_count >= 200 &&
+          !cur->jitted() &&
+          cur->total > 10) {
+      last = cur;
+      call_frame = call_frame->previous;
+      if(!call_frame) break;
+      cur = call_frame->cm->backend_method_;
+    }
+
+    return last;
+  }
+
   void LLVMCompiler::compile(LLVMState* ls, VMMethod* vmm, bool is_block) {
     if(ls->config().jit_inline_debug) {
       std::cerr << "JIT: compiling "

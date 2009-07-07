@@ -146,6 +146,8 @@ namespace rubinius {
     void compile_soon(STATE, VMMethod* vmm, BlockEnvironment* block=0);
     void remove(llvm::Function* func);
 
+    VMMethod* find_candidate(VMMethod* start, CallFrame* call_frame);
+
     Symbol* symbol(const char* sym);
     const char* symbol_cstr(const Symbol* sym);
 

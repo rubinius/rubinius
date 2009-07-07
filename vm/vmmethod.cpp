@@ -495,12 +495,13 @@ namespace rubinius {
       // for this method.
       if(vmm->call_count >= 0) {
         if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
-          vmm->call_count = -1; // So we don't try and jit twice at the same time
+          LLVMState* ls = LLVMState::get(state);
+          VMMethod* candidate = ls->find_candidate(vmm, previous);
+
+          candidate->call_count = -1; // So we don't try and jit twice at the same time
           state->stats.jitted_methods++;
 
-          LLVMState* ls = LLVMState::get(state);
-
-          ls->compile_soon(state, vmm);
+          ls->compile_soon(state, candidate);
 
           if(state->shared.config.jit_show_compiling) {
             std::cout << "[[[ JIT Queued method "
