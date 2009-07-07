@@ -301,28 +301,21 @@ class Module
   end
 
   def filter_methods(filter, all)
-    names = method_table.__send__(filter)
     unless all or kind_of?(MetaClass) or kind_of?(Rubinius::IncludedModule)
-      return Rubinius.convert_to_names names
+      return Rubinius.convert_to_names(method_table.__send__(filter))
     end
 
-    excludes = method_table.map { |name, meth| meth == false ? name : nil }
-    undefed = excludes.compact
+    mod = self
+    names = []
 
-    sup = direct_superclass
-
-    while sup
-      names |= sup.method_table.__send__(filter)
-
-      excludes = method_table.map { |name, meth| meth == false ? name : nil }
-      undefed += excludes.compact
-
-      sup = sup.direct_superclass
+    while mod
+      names += mod.method_table.__send__ filter
+      mod = mod.direct_superclass
     end
 
-    Rubinius.convert_to_names(names - undefed)
+    Rubinius.convert_to_names names.uniq
   end
-  # private :filter_methods
+  private :filter_methods
 
   def define_method(name, meth = nil, &prc)
     meth ||= prc

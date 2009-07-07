@@ -511,25 +511,13 @@ module Kernel
     end
 
     names = Rubinius.convert_to_names(keys)
-
-    if all
-      names |= self.class.instance_methods(true)
-    end
-
-    mt.each do |name, val|
-      # undefs show up as false here.
-      if val == false
-        names.delete name.to_s
-      end
-    end
-
-    return names
+    names |= self.class.instance_methods(true) if all
+    names
   end
 
   def private_methods(all=true)
     names = private_singleton_methods
-    names |= self.class.private_instance_methods(all)
-    return names
+    names | self.class.private_instance_methods(all)
   end
 
   def private_singleton_methods
@@ -538,8 +526,7 @@ module Kernel
 
   def protected_methods(all=true)
     names = protected_singleton_methods
-    names |= self.class.protected_instance_methods(all)
-    return names
+    names | self.class.protected_instance_methods(all)
   end
 
   def protected_singleton_methods
@@ -548,8 +535,7 @@ module Kernel
 
   def public_methods(all=true)
     names = singleton_methods(all)
-    names |= self.class.public_instance_methods(all)
-    return names
+    names | self.class.public_instance_methods(all)
   end
 
   def singleton_methods(all=true)
