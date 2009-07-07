@@ -436,8 +436,9 @@ namespace rubinius {
     ops_.set_block(on_return);
 
     ops_.current_block()->getInstList().push_back(cast<Instruction>(info.return_value));
-    ops_.stack_remove(count_);
-    ops_.stack_set_top(info.return_value);
+    ops_.stack_remove(count_ + 1);
+    ops_.check_for_exception(info.return_value);
+    ops_.stack_push(info.return_value);
 
     ops_.create_branch(after_);
 

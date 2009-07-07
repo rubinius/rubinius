@@ -83,7 +83,7 @@ namespace rubinius {
       vm_ = input++;
     }
 
-    ~JITOperations() {
+    virtual ~JITOperations() {
       if(inline_policy_ and own_policy_) delete inline_policy_;
     }
 
@@ -590,6 +590,8 @@ namespace rubinius {
       Value* call_args[] = { vm_, obj, val };
       wb.call("rbx_write_barrier", call_args, 3, "", block_);
     }
+
+    virtual void check_for_exception(llvm::Value* val) = 0;
   };
 }
 
