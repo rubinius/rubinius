@@ -129,6 +129,23 @@ namespace rubinius {
     ops.set_block(send);
   }
 
+  static void object_equal(Class* klass, JITOperations& ops, Inliner& i) {
+    Value* self = i.recv();
+
+    BasicBlock* use_send = ops.new_block("use_send");
+    ops.check_class(self, klass, use_send);
+
+    Value* cmp = ops.create_equal(self, i.arg(0), "idenity_equal");
+    Value* imm_value = SelectInst::Create(cmp, ops.constant(Qtrue),
+          ops.constant(Qfalse), "select_bool", ops.current_block());
+
+    ops.stack_remove(1);
+    ops.stack_set_top(imm_value);
+    ops.create_branch(i.after());
+
+    ops.set_block(use_send);
+  }
+
   bool Inliner::inline_primitive(Class* klass, CompiledMethod* cm, executor prim) {
     char* inlined_prim = 0;
 
@@ -141,6 +158,9 @@ namespace rubinius {
     } else if(prim == Primitives::fixnum_and && count_ == 1) {
       inlined_prim = "fixnum_and";
       fixnum_and(ops_, *this);
+    } else if(prim == Primitives::object_equal && count_ == 1) {
+      inlined_prim = "object_equal";
+      object_equal(klass, ops_, *this);
     }
 
     if(inlined_prim) {
