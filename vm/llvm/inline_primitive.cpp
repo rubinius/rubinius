@@ -103,6 +103,32 @@ namespace rubinius {
     ops.set_block(is_other);
   }
 
+  static void fixnum_and(JITOperations& ops, Inliner& i) {
+    Value* lint = ops.cast_int(i.recv());
+    Value* rint = ops.cast_int(i.arg(0));
+
+    Value* anded = BinaryOperator::CreateAnd(lint, rint, "fixnums_anded", ops.current_block());
+
+    Value* fix_mask = ConstantInt::get(Type::Int32Ty, TAG_FIXNUM_MASK);
+    Value* fix_tag  = ConstantInt::get(Type::Int32Ty, TAG_FIXNUM);
+
+    Value* masked = BinaryOperator::CreateAnd(anded, fix_mask, "masked", ops.current_block());
+
+    Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
+
+    BasicBlock* push = ops.new_block("push_bit_and");
+    BasicBlock* send = ops.new_block("send_bit_and");
+
+    ops.create_conditional_branch(push, send, cmp);
+
+    ops.set_block(push);
+    ops.stack_remove(1);
+    ops.stack_set_top(ops.as_obj(anded));
+    ops.create_branch(i.after());
+
+    ops.set_block(send);
+  }
+
   bool Inliner::inline_primitive(Class* klass, CompiledMethod* cm, executor prim) {
     char* inlined_prim = 0;
 
@@ -112,6 +138,9 @@ namespace rubinius {
     } else if(prim == Primitives::tuple_put && count_ == 2) {
       inlined_prim = "tuple_put";
       call_tuple_put(ops_, *this);
+    } else if(prim == Primitives::fixnum_and && count_ == 1) {
+      inlined_prim = "fixnum_and";
+      fixnum_and(ops_, *this);
     }
 
     if(inlined_prim) {

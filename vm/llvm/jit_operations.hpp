@@ -472,6 +472,11 @@ namespace rubinius {
           Instruction::IntToPtr, tagged, ObjType, "as_obj", block);
     }
 
+    Value* as_obj(Value* val) {
+      return CastInst::Create(
+          Instruction::IntToPtr, val, ObjType, "as_obj", block_);
+    }
+
     Value* check_if_fixnum(Value* val) {
       Value* fix_mask = ConstantInt::get(IntPtrTy, TAG_FIXNUM_MASK);
       Value* fix_tag  = ConstantInt::get(IntPtrTy, TAG_FIXNUM);
