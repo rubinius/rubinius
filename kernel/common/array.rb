@@ -600,7 +600,7 @@ class Array
     raise ArgumentError, "Wrong number of arguments" if args.size > 3
 
     # Normalise arguments
-    start, finish, obj = 0, (@total - 1), nil
+    start, finish, obj = 0, (size - 1), nil
 
     obj = args.shift unless block_given?
     one, two = args.at(0), args.at(1)
@@ -611,8 +611,8 @@ class Array
       start  = Type.coerce_to one.begin, Fixnum, :to_int
       finish = Type.coerce_to one.end, Fixnum, :to_int
 
-      start += @total if start < 0
-      finish += @total if finish < 0
+      start += size if start < 0
+      finish += size if finish < 0
 
       if one.exclude_end?
         return self if start == finish
@@ -626,7 +626,7 @@ class Array
       if one
         start = Type.coerce_to one, Fixnum, :to_int
 
-        start += @total if start < 0
+        start += size if start < 0
         start = 0 if start < 0            # MRI comp adjusts to 0
 
         if two
@@ -640,16 +640,22 @@ class Array
     end                                   # Argument normalisation
 
     # Adjust the size progressively
-    unless finish < @total
+    unless finish < size
       nt = finish + 1
       reallocate(nt) if @tuple.size < nt
-      @total = finish + 1
+      @total = nt
     end
 
+    i = to_iter
+    i.bounds start, finish + 1
     if block_given?
-      start.upto(finish) { |i|  @tuple.put @start + i, yield(i) }
+      while i.next
+        self[i.index] = yield i.index
+      end
     else
-      start.upto(finish) { |i|  @tuple.put @start + i, obj }
+      while i.next
+        self[i.index] = obj
+      end
     end
 
     self
