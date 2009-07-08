@@ -5,7 +5,7 @@ module Rubinius
   class GlobalVariables
     def initialize
       load_path = %w[.]
-      loaded_features = []
+      loaded_features = LoadedFeatures.new
 
       @internal = LookupTable.new
       @internal[:$;] = nil

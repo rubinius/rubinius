@@ -12,6 +12,7 @@ class Array
   # array in the order the elements were added to the map.
   class IdentityMap
     attr_reader :size
+    attr_reader :capacity
 
     Table = Rubinius::Tuple
     MIN_CAPACITY = 64
@@ -89,40 +90,43 @@ class Array
       false
     end
 
+    def insert(item)
+      key_hash = item.hash
+
+      index = key_hash & @mask
+      if hash = @table[index]
+        return if hash == key_hash and item.eql? @table[index+1]
+
+        index = key_hash.hash & @mask
+        if hash = @table[index]
+          unless hash == key_hash and item.eql? @table[index+1]
+            unless @spill.empty?
+              i = @spill.to_iter 3
+              while i.next
+                return if i.item == key_hash and item.eql? i.at(1)
+              end
+            end
+
+            @spill << key_hash << item << @size
+            @size += 1
+          end
+
+          return
+        end
+      end
+
+      @table[index]   = key_hash
+      @table[index+1] = item
+      @table[index+2] = @size
+      @size += 1
+    end
+
     # Addes each element of +array+ to the map. If an element of +array+ is
     # already in the map, the element is not added.
     def load(array)
       i = array.to_iter
       while i.next
-        item = i.item
-        key_hash = item.hash
-
-        index = key_hash & @mask
-        if hash = @table[index]
-          next if hash == key_hash and item.eql? @table[index+1]
-
-          index = key_hash.hash & @mask
-          if hash = @table[index]
-            unless hash == key_hash and item.eql? @table[index+1]
-              unless @spill.empty?
-                j = @spill.to_iter 3
-                while j.next
-                  return if j.item == key_hash and item.eql? j.at(1)
-                end
-              end
-
-              @spill << key_hash << item << @size
-              @size += 1
-            end
-
-            next
-          end
-        end
-
-        @table[index]   = key_hash
-        @table[index+1] = item
-        @table[index+2] = @size
-        @size += 1
+        insert i.item
       end
     end
 

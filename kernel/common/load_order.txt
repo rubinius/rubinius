@@ -13,11 +13,12 @@ tuple.rbc
 exception.rbc
 undefined.rbc
 hash.rbc
-global.rbc
 type.rbc
 kernel.rbc
 identitymap.rbc
 array.rbc
+loadedfeatures.rbc
+global.rbc
 backtrace.rbc
 comparable.rbc
 numeric.rbc
