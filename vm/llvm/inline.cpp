@@ -148,12 +148,12 @@ namespace rubinius {
     case InstructionSequence::insn_push_int:
       val = ops_.constant(Fixnum::from(stream[1]));
       break;
-    case InstructionSequence::insn_push_literal:
+    case InstructionSequence::insn_push_literal: {
       Symbol* sym = try_as<Symbol>(cm->literals()->at(stream[1]));
       assert(sym);
 
       val = ops_.constant(sym);
-      break;
+      } break;
     case InstructionSequence::insn_meta_push_0:
       val = ops_.constant(Fixnum::from(0));
       break;

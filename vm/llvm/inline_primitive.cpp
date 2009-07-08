@@ -170,7 +170,7 @@ namespace rubinius {
   }
 
   bool Inliner::inline_primitive(Class* klass, CompiledMethod* cm, executor prim) {
-    char* inlined_prim = 0;
+    const char* inlined_prim = 0;
 
     if(prim == Primitives::tuple_at && count_ == 1) {
       inlined_prim = "tuple_at";
