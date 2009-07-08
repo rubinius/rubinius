@@ -71,10 +71,8 @@ class Hash
   def self.[](*args)
     if args.size == 1
       obj = args.first
-      if obj.kind_of? Hash
+      if obj.kind_of? Hash or obj.respond_to? :to_hash
         return new.replace(obj)
-      elsif obj.respond_to? :to_hash
-        return new.replace(Type.coerce_to(obj, Hash, :to_hash))
       end
     end
 
@@ -82,13 +80,12 @@ class Hash
       raise ArgumentError, "Expected an even number, got #{args.length}"
     end
 
-    hsh = new
-    i = 0
-    while i < args.size
-      hsh[args[i]] = args[i+1]
-      i += 2
+    hash = new
+    i = args.to_iter 2
+    while i.next
+      hash[i.item] = i.at(1)
     end
-    hsh
+    hash
   end
 
   # Creates a fully-formed instance of Hash.
@@ -465,7 +462,7 @@ class Hash
     other = Type.coerce_to other, Hash, :to_hash
     return self if self.equal? other
 
-    clear
+    setup
     i = other.to_iter
     while entry = i.next(entry)
       self[entry.key] = entry.value
