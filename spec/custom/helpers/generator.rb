@@ -6,6 +6,14 @@ class TestGenerator
     def initialize(gen)
       @generator = gen
       @ip = nil
+      @used = false
+    end
+
+    attr_reader :used
+    alias_method :used?, :used
+
+    def used!
+      @used = true
     end
 
     def inspect
@@ -53,8 +61,6 @@ class TestGenerator
 
   opcodes  = Rubinius::InstructionSet::OpCodes.map { |desc| desc.opcode }
   opcodes += [:add_literal,
-              :gif,
-              :git,
               :pop_modifiers,
               :push,
               :push_literal_at,
@@ -75,6 +81,16 @@ class TestGenerator
         add :#{name}, *args
       end
     CODE
+  end
+
+  def git(lbl)
+    lbl.used!
+    add :goto_if_true, lbl
+  end
+
+  def gif(lbl)
+    lbl.used!
+    add :goto_if_false, lbl
   end
 
   # The :g accessor is provided to make the code in the
@@ -174,8 +190,9 @@ class TestGenerator
     lit
   end
 
-  def goto x
+  def goto(x)
     raise "Bad goto: #{x.inspect} on #{caller.first}" unless Label === x
+    x.used!
     add :goto, x
   end
 

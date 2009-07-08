@@ -85,10 +85,12 @@ describe "An Ensure node" do
         when :SyntaxError then
           g.push_exception
           g.set_local 0
+          g.pop
           g.push 2
         when :Exception then
           g.push_exception
           g.set_local 1
+          g.pop
           g.push 3
         when :else then
           g.pop         # TODO: should this be built in?

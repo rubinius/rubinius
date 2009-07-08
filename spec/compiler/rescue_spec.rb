@@ -101,6 +101,7 @@ describe "A Rescue node" do
         when :StandardError then
           g.push_exception
           g.set_ivar :@e
+          g.pop
           g.push :self
           g.send :c, 0, true
           g.pop
@@ -137,6 +138,7 @@ describe "A Rescue node" do
         when :StandardError then
           g.push_exception
           g.set_local 0
+          g.pop
           g.push :self
           g.send :c, 0, true
           g.pop
@@ -180,6 +182,7 @@ describe "A Rescue node" do
         when :StandardError then
           g.push_exception
           g.set_local 0
+          g.pop
           g.push :nil
         end
       end
@@ -194,6 +197,7 @@ describe "A Rescue node" do
         when :StandardError then
           g.push_exception
           g.set_local 0
+          g.pop
           g.push :nil
         end
       end
@@ -224,6 +228,7 @@ describe "A Rescue node" do
         when :RuntimeError then
           g.push_exception
           g.set_local 0
+          g.pop
           g.push :nil
         end
       end
@@ -579,6 +584,7 @@ describe "A Rescue node" do
         body.set!
         g.push_exception
         g.set_local 0
+        g.pop
         g.push 13
         g.clear_exception
         g.goto last

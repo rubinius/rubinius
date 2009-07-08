@@ -833,6 +833,7 @@ describe "A Defn node" do
             when :RuntimeError then
               d2.push_exception
               d2.set_local 0
+              d2.pop
               d2.push :self
               d2.push_local 0
               d2.send :puts, 1, true
