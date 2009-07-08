@@ -15,6 +15,7 @@ class Compiler
       def initialize(generator)
         @generator = generator
         @position = nil
+        @used = false
       end
 
       attr_accessor :position
@@ -23,6 +24,12 @@ class Compiler
         @position = @generator.ip
       end
 
+      attr_reader :used
+      alias_method :used?, :used
+
+      def used!
+        @used = true
+      end
     end
 
     def initialize
@@ -174,7 +181,12 @@ class Compiler
       cm = Rubinius::CompiledMethod.new.from_string iseq, desc.locals.size, desc.required
 
       sdc = Compiler::StackDepthCalculator.new(iseq)
-      sdc_stack = sdc.run
+      begin
+        sdc_stack = sdc.run
+      rescue RuntimeError => e
+        puts "ERROR in #{desc.name}, #{@lines.first}"
+        raise e
+      end
 
       cm.total_args = desc.required + desc.optional
       cm.required_args = desc.required
@@ -515,10 +527,12 @@ class Compiler
     end
 
     def gif(lbl)
+      lbl.used!
       add :goto_if_false, lbl
     end
 
     def git(lbl)
+      lbl.used!
       add :goto_if_true, lbl
     end
 
@@ -527,6 +541,7 @@ class Compiler
     end
 
     def goto(lbl)
+      lbl.used!
       add :goto, lbl
     end
 

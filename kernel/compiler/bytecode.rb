@@ -2137,9 +2137,25 @@ class Compiler
           assignment.bytecode(g)
           g.pop
         end
+
+        current_break = g.break
+        g.break = g.new_label
+
         @body.bytecode(g)
         g.clear_exception
         g.goto if_done
+
+        if g.break.used?
+          g.break.set!
+          g.clear_exception
+
+          # duplicated code from rescue
+          g.swap
+          g.pop_exception
+          g.goto current_break
+        end
+
+        g.break = current_break
 
         if_false.set! unless last
       end

@@ -5,6 +5,7 @@ class Compiler
     end
 
     def run
+      @stack_at = []
       @last_start = []
       @max_stack = 0
       run_from(0,0)
@@ -26,6 +27,14 @@ class Compiler
       total = @iseq.size
 
       while ip < total
+        if last_time = @stack_at[ip]
+          if last_time != current_stack
+            raise "unbalanced stack detected at #{ip}! #{last_time} != #{current_stack}"
+          end
+        end
+
+        @stack_at[ip] = current_stack
+
         opcode = Rubinius::InstructionSet[@iseq[ip]]
 
         # puts "%3d: %21s %3d %3d" % [ip, opcode.opcode.to_s, current_stack, @max_stack]
@@ -59,7 +68,7 @@ class Compiler
           end
 
           return
-        when :ret, :raise_exc
+        when :ret, :raise_exc, :reraise
           return
         end
         ip += opcode.size
