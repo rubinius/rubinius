@@ -97,7 +97,14 @@ task :uninstall do
 end
 
 desc "Install Rubinius"
-task :install => %w[
+task :install do
+  puts "THIS IS BROKEN, SORRY."
+  puts "Just link 'bin/rbx' into a bin directory and use it like that."
+  puts "Patches welcome to fix install."
+  exit 1
+end
+
+task :old_install => %w[
   clean
   install:build
   install:files
