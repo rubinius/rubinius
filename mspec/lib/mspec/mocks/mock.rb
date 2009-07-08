@@ -1,6 +1,10 @@
 require 'mspec/expectations/expectations'
 require 'mspec/helpers/metaclass'
 
+class Object
+  alias_method :__mspec_object_id__, :object_id
+end
+
 module Mock
   def self.reset
     @mocks = @stubs = @objects = nil
@@ -19,7 +23,7 @@ module Mock
   end
 
   def self.replaced_name(obj, sym)
-    :"__mspec_#{obj.__id__}_#{sym}__"
+    :"__mspec_#{obj.__mspec_object_id__}_#{sym}__"
   end
 
   def self.replaced_key(obj, sym)
@@ -166,7 +170,7 @@ module Mock
       sym = key.last
       meta = obj.metaclass
 
-      if meta.instance_methods.map { |x| x.to_sym }.include?(replaced)
+      if mock_respond_to? obj, replaced
         meta.__send__ :alias_method, sym, replaced
         meta.__send__ :remove_method, replaced
       else

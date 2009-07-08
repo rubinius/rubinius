@@ -46,6 +46,11 @@ describe "#ruby_exe_options" do
     @script.ruby_exe_options(:engine).should == 'ir'
   end
 
+  it "returns 'maglev-ruby' when passed :engine and RUBY_NAME is 'maglev'" do
+    Object.const_set :RUBY_NAME, 'maglev'
+    @script.ruby_exe_options(:engine).should == 'maglev-ruby'
+  end
+
   it "returns RUBY_NAME + $(EXEEXT) when passed :name" do
     bin = RUBY_NAME + (Config::CONFIG['EXEEXT'] || Config::CONFIG['exeext'] || '')
     name = File.join ".", bin

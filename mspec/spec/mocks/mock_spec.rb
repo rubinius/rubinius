@@ -22,7 +22,7 @@ end
 describe Mock, ".replaced_name" do
   it "returns the name for a method that is being replaced by a mock method" do
     m = mock('a fake id')
-    m.stub!(:__id__).and_return(42)
+    m.stub!(:__mspec_object_id__).and_return(42)
     Mock.replaced_name(m, :method_call).should == :__mspec_42_method_call__
   end
 end
@@ -30,7 +30,7 @@ end
 describe Mock, ".replaced_key" do
   it "returns a key used internally by Mock" do
     m = mock('a fake id')
-    m.stub!(:__id__).and_return(42)
+    m.stub!(:__mspec_object_id__).and_return(42)
     Mock.replaced_key(m, :method_call).should == [:__mspec_42_method_call__, :method_call]
   end
 end

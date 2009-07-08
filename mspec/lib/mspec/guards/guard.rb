@@ -123,6 +123,8 @@ class SpecGuard
         RUBY_NAME =~ /^ironruby/
       when :macruby
         RUBY_NAME =~ /^macruby/
+      when :maglev
+        RUBY_NAME =~ /^maglev/
       else
         false
       end

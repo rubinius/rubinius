@@ -221,6 +221,8 @@ class MSpecOptions
         config[:target] = 'jruby'
       when 'i','ironruby'
         config[:target] = 'ir'
+      when 'm','maglev'
+        config[:target] = 'maglev-ruby'
       else
         config[:target] = t
       end
@@ -233,6 +235,7 @@ class MSpecOptions
     doc "     X or rbx               invokes rbx in PATH"
     doc "     j or jruby             invokes jruby in PATH"
     doc "     i or ironruby          invokes ir in PATH"
+    doc "     m or maglev            invokes maglev-ruby in PATH"
     doc "     full path to EXE       invokes EXE directly\n"
 
     on("-T", "--target-opt", "OPT",

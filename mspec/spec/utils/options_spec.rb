@@ -587,6 +587,15 @@ describe "The -t, --target TARGET option" do
     end
   end
 
+  it "sets the target to 'maglev' with TARGET 'm' or 'maglev'" do
+    ["-t", "--target"].each do |opt|
+      ["m", "maglev"].each do |t|
+        @options.parse [opt, t]
+        @config[:target].should == "maglev-ruby"
+      end
+    end
+  end
+
   it "sets the target to TARGET" do
     ["-t", "--target"].each do |opt|
       @options.parse [opt, "whateva"]

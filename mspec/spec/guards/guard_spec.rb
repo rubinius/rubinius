@@ -180,6 +180,11 @@ describe SpecGuard, "#implementation?" do
     @guard.implementation?(:ironruby).should == true
   end
 
+  it "returns true if passed :maglev and RUBY_NAME == 'maglev'" do
+    Object.const_set :RUBY_NAME, 'maglev'
+    @guard.implementation?(:maglev).should == true
+  end
+
   it "returns true if passed :ruby and RUBY_NAME matches /^ruby/" do
     Object.const_set :RUBY_NAME, 'ruby'
     @guard.implementation?(:ruby).should == true
@@ -238,7 +243,7 @@ describe SpecGuard, "#platform?" do
   end
 
   it "returns false when no arg matches RUBY_PLATFORM" do
-    @guard.platform?(:ruby, :jruby, :rubinius).should == false
+    @guard.platform?(:ruby, :jruby, :rubinius, :maglev).should == false
   end
 
   it "returns true when arg matches RUBY_PLATFORM" do
@@ -246,7 +251,7 @@ describe SpecGuard, "#platform?" do
   end
 
   it "returns true when any arg matches RUBY_PLATFORM" do
-    @guard.platform?(:ruby, :jruby, :solarce, :rubinius).should == true
+    @guard.platform?(:ruby, :jruby, :solarce, :rubinius, :maglev).should == true
   end
 
   it "returns true when arg is :windows and RUBY_PLATFORM contains 'mswin'" do

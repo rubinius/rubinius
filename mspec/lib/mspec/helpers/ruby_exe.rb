@@ -76,6 +76,8 @@ class Object
         "bin/rbx"
       when 'jruby'
         "bin/jruby"
+      when 'maglev'
+        "maglev-ruby"
       when 'ironruby'
         "ir"
       end
