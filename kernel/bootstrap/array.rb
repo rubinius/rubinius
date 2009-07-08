@@ -119,9 +119,9 @@ class Array
 
   def []=(idx, ent)
     if idx >= @tuple.fields
-      nt = Rubinius::Tuple.new(idx + 10)
-      nt.copy_from @tuple, @start, size, 0
-      @tuple = nt
+      new_tuple = Rubinius::Tuple.new(idx + 10)
+      new_tuple.copy_from @tuple, @start, size, 0
+      @tuple = new_tuple
     end
 
     @tuple.put @start + idx, ent

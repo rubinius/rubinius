@@ -218,15 +218,15 @@ class Array
         new_total -= ins_length - replacement.size
       end
 
-      nt = Rubinius::Tuple.new(new_total)
-      nt.copy_from(@tuple, @start, index < size ? index : size, 0)
-      nt.copy_from(replacement.tuple, replacement.start, replacement.size, index)
+      new_tuple = Rubinius::Tuple.new(new_total)
+      new_tuple.copy_from(@tuple, @start, index < size ? index : size, 0)
+      new_tuple.copy_from(replacement.tuple, replacement.start, replacement.size, index)
       if index < size
-        nt.copy_from(@tuple, @start+index+ins_length, size-index-ins_length,
-                     index+replacement.size)
+        new_tuple.copy_from(@tuple, @start+index+ins_length, size-index-ins_length,
+                            index+replacement.size)
       end
       @start = 0
-      @tuple = nt
+      @tuple = new_tuple
       @total = new_total
 
       return ent
@@ -285,29 +285,28 @@ class Array
   # returns a new Array as a concatenation of the given number
   # of the original Arrays. With an argument that responds to
   # #to_str, functions exactly like #join instead.
-  def *(val)
-    if val.respond_to? :to_str
-      return join(val)
+  def *(multiplier)
+    if multiplier.respond_to? :to_str
+      return join(multiplier)
 
     else
       # Aaargh stupid MRI's stupid specific stupid error stupid types stupid
-      val = Type.coerce_to val, Fixnum, :to_int
+      multiplier = Type.coerce_to multiplier, Fixnum, :to_int
 
-      raise ArgumentError, "Count cannot be negative" if val < 0
+      raise ArgumentError, "Count cannot be negative" if multiplier < 0
 
-      sz = self.size()
-      new_total = val * sz
+      new_total = multiplier * size
+      new_tuple = Rubinius::Tuple.new(new_total)
 
-      nt = Rubinius::Tuple.new(new_total)
       out = self.class.new()
-      out.tuple = nt
+      out.tuple = new_tuple
       out.total = new_total
-      out.taint if self.tainted? && val > 0
+      out.taint if self.tainted? && multiplier > 0
 
-      i = 0
-      while i < new_total
-        nt.copy_from(@tuple,@start,size, i)
-        i += sz
+      offset = 0
+      while offset < new_total
+        new_tuple.copy_from(@tuple,@start,size,offset)
+        offset += size
       end
       out
     end
@@ -448,10 +447,10 @@ class Array
   def concat(other)
     ary = Type.coerce_to(other, Array, :to_ary)
     new_total = size + ary.size
-    tuple = Rubinius::Tuple.new new_total
-    tuple.copy_from @tuple, @start, size, 0 if size > 0
-    tuple.copy_from ary.tuple, ary.start, ary.size, size
-    @tuple = tuple
+    new_tuple = Rubinius::Tuple.new new_total
+    new_tuple.copy_from @tuple, @start, size, 0 if size > 0
+    new_tuple.copy_from ary.tuple, ary.start, ary.size, size
+    @tuple = new_tuple
     @start = 0
     @total = new_total
     self
@@ -1228,11 +1227,11 @@ class Array
       @tuple.copy_from(values.tuple,0,values.size,@start)
     else
       # FIXME: provision for more unshift prepends?
-      tuple = Rubinius::Tuple.new(size+values.size)
-      tuple.copy_from(values.tuple,0,values.size,0)
-      tuple.copy_from(@tuple,@start,size,values.size)
+      new_tuple = Rubinius::Tuple.new(size+values.size)
+      new_tuple.copy_from(values.tuple,0,values.size,0)
+      new_tuple.copy_from(@tuple,@start,size,values.size)
       @start = 0
-      @tuple = tuple
+      @tuple = new_tuple
     end
     @total += values.size
     self
@@ -1255,11 +1254,11 @@ class Array
       new_total = at_least
     end
 
-    tuple = Rubinius::Tuple.new(new_total)
-    tuple.copy_from @tuple, @start, size, 0
+    new_tuple = Rubinius::Tuple.new(new_total)
+    new_tuple.copy_from @tuple, @start, size, 0
 
     @start = 0
-    @tuple = tuple
+    @tuple = new_tuple
   end
 
   private :reallocate
@@ -1273,13 +1272,13 @@ class Array
       new_total /= 2
     end while size < (new_total / 6)
 
-    tuple = Rubinius::Tuple.new(new_total)
+    new_tuple = Rubinius::Tuple.new(new_total)
     # position values in the middle somewhere
     new_start = (new_total-size)/2
-    tuple.copy_from(@tuple, @start, size, new_start)
+    new_tuple.copy_from(@tuple, @start, size, new_start)
 
     @start = new_start
-    @tuple = tuple
+    @tuple = new_tuple
   end
 
   private :reallocate_shrink
