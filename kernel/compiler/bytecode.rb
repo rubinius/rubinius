@@ -2133,7 +2133,10 @@ class Compiler
         end
 
         body.set!
-        assignment.bytecode(g) if assignment
+        if assignment
+          assignment.bytecode(g)
+          g.pop
+        end
         @body.bytecode(g)
         g.clear_exception
         g.goto if_done
