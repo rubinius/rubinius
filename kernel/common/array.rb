@@ -697,11 +697,9 @@ class Array
     # what level it belongs at.
     str = ""
     return size if Thread.detect_recursion self do
-      i = 0
-      while(i < size)
-        curr = at(i)
-        str.append curr.hash.to_s
-        i+=1
+      i = to_iter
+      while i.next
+        str.append i.item.hash.to_s
       end
     end
     str.hash
