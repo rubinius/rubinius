@@ -567,7 +567,111 @@ describe "An Iter node" do
          [:lasgn, :x, [:lvar, :a]]]]]
     end
 
-    # TODO
+    compile do |g|
+      g.push :nil
+      g.set_local 0
+      g.pop
+      g.push :self
+
+      iter = g.block_description do |d|
+        d.cast_for_single_block_arg
+        d.set_local 0
+
+        d.pop
+        d.push_modifiers
+
+        retry_lbl = d.new_label
+        else_lbl  = d.new_label
+        last_lbl  = d.new_label
+
+        ensure_good_lbl = d.new_label
+        ensure_bad_lbl  = d.new_label
+
+        d.new_label.set!
+
+        d.setup_unwind ensure_bad_lbl
+
+        top_lbl = d.new_label
+        top_lbl.set!
+
+        d.push_modifiers
+        d.push_exception
+
+        retry_lbl.set!
+        d.exceptions do |ex|
+
+          #body
+          d.push_local_depth 1, 0
+
+          ex.escape else_lbl
+          ex.handle!
+
+          body_lbl = d.new_label
+          next_lbl = d.new_label
+          reraise_lbl = d.new_label
+
+          d.push_const :Exception
+          d.push_exception
+          d.send :===, 1
+          d.git body_lbl
+
+          d.goto next_lbl
+          body_lbl.set!
+
+          # Exception
+          d.push_exception
+          d.set_local_depth 1, 0
+          d.pop
+          d.push :nil
+          d.pop_unwind
+          d.goto reraise_lbl
+
+          d.clear_exception
+          d.goto last_lbl
+
+          reraise_lbl.set!
+          d.clear_exception
+          d.swap
+          d.pop_exception
+          d.raise_break
+
+          next_lbl.set!
+
+          d.reraise
+        end
+
+        else_lbl.set!
+        last_lbl.set!
+        d.swap
+        d.pop_exception
+        d.pop_modifiers
+
+        d.pop_unwind
+        d.goto ensure_good_lbl
+
+        # ensure via exception
+        ensure_bad_lbl.set!
+        d.push_exception
+        d.push_local 0
+        d.set_local_depth 1, 0
+        d.pop
+        d.pop_exception
+        d.reraise
+
+        ensure_good_lbl.set!
+
+        # ensure via no exception
+        d.push_local 0
+        d.set_local_depth 1, 0
+        d.pop
+
+        d.pop_modifiers
+        d.ret
+      end
+      iter.required = 1
+
+      g.send_with_block :m, 0, true
+    end
   end
 
   relates "m { next }" do

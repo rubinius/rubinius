@@ -2152,7 +2152,11 @@ class Compiler
           # duplicated code from rescue
           g.swap
           g.pop_exception
-          g.goto current_break
+          if current_break
+            g.goto current_break
+          else
+            g.raise_break
+          end
         end
 
         g.break = current_break
