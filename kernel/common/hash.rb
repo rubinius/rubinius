@@ -76,6 +76,8 @@ class Hash
       end
     end
 
+    return new if args.empty?
+
     if args.size & 1 == 1
       raise ArgumentError, "Expected an even number, got #{args.length}"
     end
