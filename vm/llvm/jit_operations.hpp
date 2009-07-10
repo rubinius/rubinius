@@ -73,7 +73,7 @@ namespace rubinius {
 
 #if __LP64__
       IntPtrTy = llvm::Type::Int64Ty;
-      FixnumTy = llvvm::IntegerType::get(63);
+      FixnumTy = llvm::IntegerType::get(63);
 #else
       IntPtrTy = llvm::Type::Int32Ty;
       FixnumTy = llvm::IntegerType::get(31);
