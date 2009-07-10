@@ -2752,6 +2752,7 @@ raise "no"
       kind :zsuper
 
       def args
+        @in_block = get(:iter)
         @method = get(:scope)
         if @method.is? SClass
           @method = @method.outer_scope

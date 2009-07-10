@@ -2619,16 +2619,18 @@ class Compiler
         pos(g)
         args = []
 
+        depth = @in_block ? 1 : 0
+
         @method.arguments.required.each do |var|
           la = LocalAccess.new @compiler
-          la.from_variable var
+          la.from_variable var, depth
           la.set_position self
           args << la
         end
 
         @method.arguments.optional.each do |var|
           la = LocalAccess.new @compiler
-          la.from_variable var
+          la.from_variable var, depth
           la.set_position self
           args << la
         end
@@ -2639,7 +2641,7 @@ class Compiler
 
           la = LocalAccess.new @compiler
           la.set_position self
-          la.from_variable @method.arguments.splat
+          la.from_variable @method.arguments.splat, depth
 
           cc.args la
           args << cc
