@@ -91,6 +91,27 @@ namespace rubinius {
     return this->set(state, index, val);
   }
 
+  Array* Array::concat(STATE, Array* other) {
+    size_t osize = other->size();
+
+    if(osize == 0) return this;
+    if(osize == 1) {
+      set(state, size(), other->get(state, 0));
+      return this;
+    }
+
+    size_t new_size = size() + osize;
+    Tuple* nt = Tuple::create(state, new_size);
+    nt->copy_from(state, tuple_, start_, total_, Fixnum::from(0));
+    nt->copy_from(state, other->tuple(), other->start(), other->total(), total_);
+
+    tuple(state, nt);
+    start(state, Fixnum::from(0));
+    total(state, Fixnum::from(new_size));
+
+    return this;
+  }
+
   Object* Array::get(STATE, size_t idx) {
     if(idx >= (size_t)total_->to_native()) {
       return Qnil;

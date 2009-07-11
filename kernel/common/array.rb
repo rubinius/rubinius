@@ -446,15 +446,9 @@ class Array
 
   # Appends the elements in the other Array to self
   def concat(other)
-    ary = Type.coerce_to(other, Array, :to_ary)
-    new_total = @total + ary.total
-    new_tuple = Rubinius::Tuple.new new_total
-    new_tuple.copy_from @tuple, @start, @total, 0 if @total > 0
-    new_tuple.copy_from ary.tuple, ary.start, ary.total, @total
-    @tuple = new_tuple
-    @start = 0
-    @total = new_total
-    self
+    Ruby.primitive :array_concat
+
+    concat Type.coerce_to(other, Array, :to_ary)
   end
 
   # Removes all elements from self that are #== to the given object.
@@ -927,8 +921,7 @@ class Array
   # Appends the given object(s) to the Array and returns
   # the modified self.
   def push(*args)
-    args.each { |ent| self << ent }
-    self
+    concat args
   end
 
   # Searches through contained Arrays within the Array,

@@ -43,6 +43,9 @@ namespace rubinius {
     // Ruby.primitive :array_aset
     Object* aset(STATE, Fixnum* idx, Object* val);
 
+    // Ruby.primitive :array_concat
+    Array* concat(STATE, Array* other);
+
     Object* get(STATE, size_t idx);
     Object* set(STATE, size_t idx, Object* val);
     void   unshift(STATE, Object* val);
