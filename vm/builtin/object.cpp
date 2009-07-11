@@ -24,6 +24,7 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "lookup_data.hpp"
+#include "primitives.hpp"
 
 #include "vm/object_utils.hpp"
 
@@ -180,6 +181,14 @@ namespace rubinius {
     }
 
     return Qnil;
+  }
+
+  Object* Object::get_ivar_prim(STATE, Symbol* sym) {
+    if(sym->is_ivar_p(state)->false_p()) {
+      return reinterpret_cast<Object*>(kPrimitiveFailed);
+    }
+
+    return get_ivar(state, sym);
   }
 
   Object* Object::get_ivar(STATE, Symbol* sym) {
@@ -400,6 +409,14 @@ namespace rubinius {
     /* else.. what? */
 
     return val;
+  }
+
+  Object* Object::set_ivar_prim(STATE, Symbol* sym, Object* val) {
+    if(sym->is_ivar_p(state)->false_p()) {
+      return reinterpret_cast<Object*>(kPrimitiveFailed);
+    }
+
+    return set_ivar(state, sym, val);
   }
 
   Object* Object::set_ivar(STATE, Symbol* sym, Object* val) {

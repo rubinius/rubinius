@@ -10,18 +10,6 @@ class Object
   end
   private :get_instance_variables
 
-  def get_instance_variable(sym)
-    Ruby.primitive :object_get_ivar
-    raise PrimitiveFailure, "Object#get_instance_variable primitive failed"
-  end
-  private :get_instance_variable
-
-  def set_instance_variable(sym, value)
-    Ruby.primitive :object_set_ivar
-    raise PrimitiveFailure, "Object#set_instance_variable primitive failed"
-  end
-  private :set_instance_variable
-
   def __fixnum__
     Ruby.primitive :object_is_fixnum
     kind_of? Fixnum

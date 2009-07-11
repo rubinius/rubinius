@@ -436,13 +436,17 @@ module Kernel
   end
 
   def instance_variable_get(sym)
-    sym = instance_variable_validate(sym)
-    get_instance_variable(sym)
+    Ruby.primitive :object_get_ivar
+
+    sym = instance_variable_validate sym
+    instance_variable_get sym
   end
 
   def instance_variable_set(sym, value)
-    sym = instance_variable_validate(sym)
-    set_instance_variable(sym, value)
+    Ruby.primitive :object_set_ivar
+
+    sym = instance_variable_validate sym
+    instance_variable_set sym, value
   end
 
   def remove_instance_variable(sym)

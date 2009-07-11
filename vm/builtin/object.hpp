@@ -220,6 +220,8 @@ namespace rubinius {
      *  identifier.
      */
     // Ruby.primitive :object_get_ivar
+    Object*   get_ivar_prim(STATE, Symbol* sym);
+
     Object*   get_ivar(STATE, Symbol* sym);
 
     // A version that only attempts to find +sym+ in the ivars slot
@@ -266,6 +268,8 @@ namespace rubinius {
      *  given identifier.
      */
     // Ruby.primitive :object_set_ivar
+    Object*   set_ivar_prim(STATE, Symbol* sym, Object* val);
+
     Object*   set_ivar(STATE, Symbol* sym, Object* val);
 
     // Specialized version that only checks ivars_

@@ -14,10 +14,10 @@ class Object
   def instance_variable_validate(name)
     # adapted from rb_to_id
     case name
-    when Symbol
-      return name if name.is_ivar?
     when String
       return name.to_sym if name[0] == ?@
+    when Symbol
+      return name if name.is_ivar?
     when Fixnum
       raise ArgumentError, "#{name.inspect} is not a symbol"
     else
