@@ -38,6 +38,9 @@ namespace rubinius {
     // Ruby.primitive :module_allocate
     static Module* allocate(STATE, Object* self);
 
+    // Ruby.primitive :module_case_compare
+    Object* case_compare(STATE, Object* obj);
+
     void setup(STATE);
     void setup(STATE, const char* name, Module* under = NULL);
     void setup(STATE, Symbol* name, Module* under = NULL);

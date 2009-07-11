@@ -51,6 +51,10 @@ namespace rubinius {
     under->set_const(state, name, this);
   }
 
+  Object* Module::case_compare(STATE, Object* obj) {
+    return obj->kind_of_p(state, this) ? Qtrue : Qfalse;
+  }
+
   void Module::set_name(STATE, Module* under, Symbol* name) {
     if(under == G(object)) {
       this->name(state, name);

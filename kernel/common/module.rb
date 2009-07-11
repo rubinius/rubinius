@@ -581,10 +581,8 @@ class Module
   end
 
   def ===(inst)
-    return true if inst.kind_of? self
-    # TODO: check if inst is extended by self
-    # inst.metaclass < self & true rescue false
-    false
+    Ruby.primitive :module_case_compare
+    raise PrimitiveFailure, "Module#=== primitive failed"
   end
 
   def set_name_if_necessary(name, mod)
