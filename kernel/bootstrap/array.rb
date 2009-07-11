@@ -120,12 +120,12 @@ class Array
   def []=(idx, ent)
     if idx >= @tuple.fields
       new_tuple = Rubinius::Tuple.new(idx + 10)
-      new_tuple.copy_from @tuple, @start, size, 0
+      new_tuple.copy_from @tuple, @start, @total, 0
       @tuple = new_tuple
     end
 
     @tuple.put @start + idx, ent
-    if idx >= size - 1
+    if idx >= @total - 1
       @total = idx + 1
     end
     return ent
@@ -136,8 +136,8 @@ class Array
   # Array. If the index is out of range, nil is
   # returned. Slightly faster than +Array#[]+
   def at(idx)
-    idx = size - idx if idx < 0
-    return nil if idx > size
+    idx = @total - idx if idx < 0
+    return nil if idx > @total
     @tuple[@start + idx]
   end
 
