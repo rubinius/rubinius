@@ -349,7 +349,7 @@ class Array
     Thread.detect_recursion self, other do
       max = other.total < @total ? other.total : @total
       i = to_iter
-      i.bounds 0, max
+      i.bounds! 0, max
       while i.next
         diff = i.item <=> other.at(i.index)
         return diff if diff != 0
@@ -648,7 +648,7 @@ class Array
     end
 
     i = to_iter
-    i.bounds start, finish + 1
+    i.bounds! start, finish + 1
     if block_given?
       while i.next
         self[i.index] = yield i.index

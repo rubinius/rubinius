@@ -88,7 +88,7 @@ class Array
     # +left+ to +right+ - 1, inclusive. A reverse iterator will iterate from
     # +right+ to +left+ + 1, inclusive.  Both +left+, and +right+ values are
     # zero-based logical indexes.
-    def bounds(left, right)
+    def bounds!(left, right)
       Ruby.primitive :array_iterator_bounds
       raise PrimitiveFailure, "Array::Iterator#bounds primitive failed"
     end
