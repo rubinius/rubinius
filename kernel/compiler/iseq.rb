@@ -4,6 +4,117 @@
 module Rubinius
   class InstructionSet
 
+    class OpCode
+      attr_reader :args, :arg_count, :bytecode, :opcode,
+                  :size, :stack, :variable_stack
+
+      ##
+      # Returns a symbol specifying the effect of the symbol on the flow of
+      # execution, or nil if the instruction does not effect flow. The symbol
+      # may be one of :sequential, :send, :return, :goto, or :raise.
+
+      attr_reader :flow
+
+      alias_method :name, :opcode
+      alias_method :width, :size
+
+      def initialize(opcode, bytecode, params)
+        @opcode         = opcode
+        @bytecode       = bytecode
+        @args           = params[:args]
+        @arg_count      = @args.size
+        @size           = @arg_count + 1
+        @stack          = params[:stack]
+        @flow           = params[:flow] || :sequential
+        @flags          = params[:vm_flags] || []
+        @variable_stack = params[:variable_stack]
+      end
+
+      ##
+      # Returns the number of items consumed off of the stack by this opcode.
+      #
+      # If the value is positive, it is the exact number of items consumed.
+      #
+      # If the value is negative, it is a 2-digit number where:
+      # - first digit is the opcode arg to be multiplied (1 or 2), or the
+      #   contents of the args register (3) at that point.
+      # - third digit is a constant arg count to be added to the result
+      #
+      # For example, the value -10 would indicate that the number of stack
+      # items consumed by the opcode is the value of the first opcode arg.
+
+      def stack_consumed
+        @stack.first
+      end
+
+      ##
+      # Returns the number of items produced off of the stack by this opcode.
+
+      def stack_produced
+        @stack.last
+      end
+
+      # Indicates how the stack changes with this instruction. Positive numbers
+      # meaning how far the sp is pushed forward, negative how far back.
+      # +inst+ is an Array in the same format that Encoder#encode takes as input
+
+      def stack_difference(inst)
+        consumed = stack_consumed()
+        if consumed < 0
+          consumed = -consumed
+          arg =   consumed / 10
+          const = consumed % 10
+
+          consumed = inst[arg] + const
+        end
+        produced = stack_produced()
+
+        return produced - consumed
+      end
+
+      def check_interrupts?
+        @flags.include? :check_interrupts
+      end
+
+      def terminator?
+        @flags.include? :terminator
+      end
+
+      def to_s
+        @opcode.to_s
+      end
+    end
+
+
+    # InstructionSet methods
+
+    # Allocates a new ID every call.
+    def self.opcode_id
+      @opcode_ids ||= -1
+      @opcode_ids += 1
+    end
+
+    # Returns the opcode map.
+    def self.opcodes
+      @opcodes ||= Rubinius::LookupTable.new
+    end
+
+    # Utility method for defining the opcodes.
+    def self.opcode(name, params={})
+      id = opcode_id
+      opcodes[name] = opcodes[id] = OpCode.new(name, id, params)
+    end
+
+    class InvalidOpCode < RuntimeError
+    end
+
+    # Returns an opcode given its name or numeric ID.
+    def self.[](name_or_id)
+      opcode = opcodes[name_or_id]
+      raise InvalidOpCode, "Invalid opcode #{op.inspect}" unless opcode
+      opcode
+    end
+
     ##
     # List of Rubinius machine opcodes
     #
@@ -37,298 +148,171 @@ module Rubinius
     # IMPORTANT: Do not change the order of opcodes! The position in this array
     # is the opcode's instuction bytecode.
 
-    OpCodes = [
-      {:opcode => :noop, :args => [], :stack => [0,0]},
+    opcode :noop,                 :stack => [0, 0],   :args => []
 
-      # pushs
-      {:opcode => :push_nil, :args => [], :stack => [0,1]},
-      {:opcode => :push_true, :args => [], :stack => [0,1]},
-      {:opcode => :push_false, :args => [], :stack => [0,1]},
-      {:opcode => :push_int, :args => [:int], :stack => [0,1]},
-      {:opcode => :push_self, :args => [], :stack => [0,1]},
+    # pushs
+    opcode :push_nil,             :stack => [0, 1],   :args => []
+    opcode :push_true,            :stack => [0, 1],   :args => []
+    opcode :push_false,           :stack => [0, 1],   :args => []
+    opcode :push_int,             :stack => [0, 1],   :args => [:int]
+    opcode :push_self,            :stack => [0, 1],   :args => []
 
-      # literals
-      {:opcode => :set_literal, :args => [:literal], :stack => [0,0]},
-      {:opcode => :push_literal, :args => [:literal], :stack => [0,1]},
+    # literals
+    opcode :set_literal,          :stack => [0, 0],   :args => [:literal]
+    opcode :push_literal,         :stack => [0, 1],   :args => [:literal]
 
-      # flow control
+    # flow control
 
-      {:opcode => :goto, :args => [:ip], :stack => [0,0], :flow => :goto},
-      {:opcode => :goto_if_false, :args => [:ip], :stack => [1,0], :flow => :goto},
-      {:opcode => :goto_if_true, :args => [:ip], :stack => [1,0], :flow => :goto},
-      {:opcode => :goto_if_defined, :args => [:ip], :stack => [1,0],
-        :flow => :goto},
-      {:opcode => :ret, :args => [], :stack => [0,0], :flow => :return,
-        :vm_flags => [:terminator]},
+    opcode :goto,                 :stack => [0, 0],   :args => [:ip],
+                                                      :flow => :goto
+    opcode :goto_if_false,        :stack => [1, 0],   :args => [:ip],
+                                                      :flow => :goto
+    opcode :goto_if_true,         :stack => [1, 0],   :args => [:ip],
+                                                      :flow => :goto
+    opcode :goto_if_defined,      :stack => [1, 0],   :args => [:ip],
+                                                      :flow => :goto
+    opcode :ret,                  :stack => [0, 0],   :args => [],
+                                                      :flow => :return,
+                                                      :vm_flags => [:terminator]
 
-      # stack maintainence
-      {:opcode => :swap_stack, :args => [], :stack => [1,1]},
-      {:opcode => :dup_top, :args => [], :stack => [0,1]},
-      {:opcode => :pop, :args => [], :stack => [1,0]},
-      {:opcode => :rotate, :args => [:int], :stack => [0,0]},
-      {:opcode => :move_down, :args => [:int], :stack => [0, 0]},
+    # stack maintainence
+    opcode :swap_stack,           :stack => [1, 1],   :args => []
+    opcode :dup_top,              :stack => [0, 1],   :args => []
+    opcode :pop,                  :stack => [1, 0],   :args => []
+    opcode :rotate,               :stack => [0, 0],   :args => [:int]
+    opcode :move_down,            :stack => [0, 0],   :args => [:int]
 
-      # locals
-      {:opcode => :set_local, :args => [:local], :stack => [1,1]},
-      {:opcode => :push_local, :args => [:local], :stack => [0,1]},
-      {:opcode => :push_local_depth, :args => [:depth, :block_local],
-        :stack => [0,1]},
-      {:opcode => :set_local_depth, :args => [:depth, :block_local],
-        :stack => [1,1], :vm_flags => []},
-      {:opcode => :passed_arg, :args => [:int], :stack => [0,1]},
+    # locals
+    opcode :set_local,            :stack => [1, 1],   :args => [:local]
+    opcode :push_local,           :stack => [0, 1],   :args => [:local]
+    opcode :push_local_depth,     :stack => [0, 1],   :args => [:depth, :block_local]
+    opcode :set_local_depth,      :stack => [1, 1],   :args => [:depth, :block_local]
+    opcode :passed_arg,           :stack => [0, 1],   :args => [:int]
 
-      # exceptions
-      {:opcode => :push_exception, :args => [], :stack => [0,1]},
-      {:opcode => :clear_exception, :args => [], :stack => [0,0]},
-      {:opcode => :pop_exception, :args => [], :stack => [1, 0]},
-      {:opcode => :raise_exc, :args => [], :stack => [0,0], :flow => :raise,
-        :vm_flags => [:terminator]},
-      {:opcode => :setup_unwind, :args => [:ip, :type], :stack => [0, 0]},
-      {:opcode => :pop_unwind, :args => [], :stack => [0, 0]},
-      {:opcode => :raise_return, :args => [], :stack => [0,0]},
-      {:opcode => :ensure_return, :args => [], :stack => [0,0]},
-      {:opcode => :raise_break, :args => [], :stack => [0,0]},
-      {:opcode => :reraise, :args => [], :stack => [0,0]},
+    # exceptions
+    opcode :push_exception,       :stack => [0, 1],   :args => []
+    opcode :clear_exception,      :stack => [0, 0],   :args => []
+    opcode :pop_exception,        :stack => [1, 0],   :args => []
+    opcode :raise_exc,            :stack => [0, 0],   :args => [],
+                                                      :flow => :raise,
+                                                      :vm_flags => [:terminator]
+    opcode :setup_unwind,         :stack => [0, 0],   :args => [:ip, :type]
+    opcode :pop_unwind,           :stack => [0, 0],   :args => []
+    opcode :raise_return,         :stack => [0, 0],   :args => []
+    opcode :ensure_return,        :stack => [0, 0],   :args => []
+    opcode :raise_break,          :stack => [0, 0],   :args => []
+    opcode :reraise,              :stack => [0, 0],   :args => []
 
-      # array
-      {:opcode => :make_array, :args => [:int], :stack => [-10,1],
-        :vm_flags => [], :variable_stack => [0,1]},
-      {:opcode => :cast_array, :args => [], :stack => [1,1],
-        :vm_flags => []},
-      {:opcode => :shift_array, :args => [], :stack => [1,2]},
+    # array
+    opcode :make_array,           :stack => [-10, 1], :args => [:int],
+                                                      :variable_stack => [0,1]
+    opcode :cast_array,           :stack => [1, 1],   :args => []
+    opcode :shift_array,          :stack => [1, 2],   :args => []
 
-      # ivars
-      {:opcode => :set_ivar, :args => [:literal], :stack => [1,1],
-        :vm_flags => []},
-      {:opcode => :push_ivar, :args => [:literal], :stack => [0,1]},
+    # ivars
+    opcode :set_ivar,             :stack => [1, 1],   :args => [:literal]
+    opcode :push_ivar,            :stack => [0, 1],   :args => [:literal]
 
-      # constants
-      {:opcode => :push_const, :args => [:literal], :stack => [0,1]},
-      {:opcode => :set_const, :args => [:literal], :stack => [1,1],
-        :vm_flags => []},
-      {:opcode => :set_const_at, :args => [:literal], :stack => [2,0],
-        :vm_flags => []},
-      {:opcode => :find_const, :args => [:literal], :stack => [1,1]},
-      {:opcode => :push_cpath_top, :args => [], :stack => [0,1]},
-      {:opcode => :push_const_fast, :args => [:literal, :literal],
-       :stack => [0, 1]},
+    # constants
+    opcode :push_const,           :stack => [0, 1],   :args => [:literal]
+    opcode :set_const,            :stack => [1, 1],   :args => [:literal]
+    opcode :set_const_at,         :stack => [2, 0],   :args => [:literal]
+    opcode :find_const,           :stack => [1, 1],   :args => [:literal]
+    opcode :push_cpath_top,       :stack => [0, 1],   :args => []
+    opcode :push_const_fast,      :stack => [0, 1],   :args => [:literal, :literal]
 
-      # send
-      {:opcode => :set_call_flags, :args => [:int], :stack => [0,0]},
-      {:opcode => :allow_private, :args => [], :stack => [0,0]},
-      {:opcode => :send_method, :args => [:literal], :stack => [1,1],
-        :flow => :send, :vm_flags => [:check_interrupts]},
-      {:opcode => :send_stack, :args => [:literal, :int],
-        :stack => [-21,1], :flow => :send, :vm_flags => [:check_interrupts],
-        :variable_stack => [1,2]},
-      {:opcode => :send_stack_with_block, :args => [:literal, :int],
-        :stack => [-22,1], :flow => :send, :vm_flags => [:check_interrupts],
-        :variable_stack => [2,2]},
-      {:opcode => :send_stack_with_splat, :args => [:literal, :int],
-        :stack => [-23,1], :flow => :send, :vm_flags => [:check_interrupts],
-        :variable_stack => [3,2]},
-      {:opcode => :send_super_stack_with_block,  :args => [:literal, :int],
-        :stack => [-21,1], :flow => :send, :vm_flags => [:check_interrupts],
-        :variable_stack => [1,2]},
-      {:opcode => :send_super_stack_with_splat, :args => [:literal, :int],
-        :stack => [-22,1], :flow => :send,
-        :variable_stack => [2,2]},
+    # send
+    opcode :set_call_flags,               :stack => [0, 0],   :args => [:int]
+    opcode :allow_private,                :stack => [0, 0],   :args => []
+    opcode :send_method,                  :stack => [1, 1],   :args => [:literal],
+                                                              :flow => :send,
+                                                              :vm_flags => [:check_interrupts]
+    opcode :send_stack,                   :stack => [-21, 1], :args => [:literal, :int],
+                                                              :flow => :send,
+                                                              :vm_flags => [:check_interrupts],
+                                                              :variable_stack => [1,2]
+    opcode :send_stack_with_block,        :stack => [-22, 1], :args => [:literal, :int],
+                                                              :flow => :send,
+                                                              :vm_flags => [:check_interrupts],
+                                                              :variable_stack => [2,2]
+    opcode :send_stack_with_splat,        :stack => [-23, 1], :args => [:literal, :int],
+                                                              :flow => :send,
+                                                              :vm_flags => [:check_interrupts],
+                                                              :variable_stack => [3,2]
+    opcode :send_super_stack_with_block,  :stack => [-21, 1], :args => [:literal, :int],
+                                                              :flow => :send,
+                                                              :vm_flags => [:check_interrupts],
+                                                              :variable_stack => [1,2]
+    opcode :send_super_stack_with_splat,  :stack => [-22, 1], :args => [:literal, :int],
+                                                              :flow => :send,
+                                                              :variable_stack => [2,2]
 
-      # blocks
-      {:opcode => :push_block, :args => [], :stack => [0,1]},
-      {:opcode => :passed_blockarg, :args => [:int], :stack => [0,1]},
-      {:opcode => :create_block, :args => [:literal], :stack => [0,1],
-        :vm_flags => []},
-      {:opcode => :cast_for_single_block_arg, :args => [], :stack => [1,1]},
-      {:opcode => :cast_for_multi_block_arg, :args => [], :stack => [1,1]},
-      {:opcode => :cast_for_splat_block_arg, :args => [],
-        :stack => [1,1], :vm_flags => []},
-      {:opcode => :yield_stack, :args => [:int],
-        :stack => [-10,1], :flow => :send, :variable_stack => [0,1]},
-      {:opcode => :yield_splat, :args => [:int],
-        :stack => [-11,1], :flow => :send, :variable_stack => [1,1]},
+    # blocks
+    opcode :push_block,                   :stack => [0, 1],   :args => []
+    opcode :passed_blockarg,              :stack => [0, 1],   :args => [:int]
+    opcode :create_block,                 :stack => [0, 1],   :args => [:literal]
+    opcode :cast_for_single_block_arg,    :stack => [1, 1],   :args => []
+    opcode :cast_for_multi_block_arg,     :stack => [1, 1],   :args => []
+    opcode :cast_for_splat_block_arg,     :stack => [1, 1],   :args => []
+    opcode :yield_stack,                  :stack => [-10, 1], :args => [:int],
+                                                              :flow => :send,
+                                                              :variable_stack => [0,1]
+    opcode :yield_splat,                  :stack => [-11, 1], :args => [:int],
+                                                              :flow => :send,
+                                                              :variable_stack => [1,1]
 
-      # strings
-      {:opcode => :string_append, :args => [], :stack => [2,1],
-       :vm_flags => []},
-      {:opcode => :string_dup, :args => [], :stack => [1,1],
-        :vm_flags => []},
+    # strings
+    opcode :string_append,        :stack => [2, 1],   :args => []
+    opcode :string_dup,           :stack => [1, 1],   :args => []
 
-      # scope
-      {:opcode => :push_scope, :args => [], :stack => [0, 1]},
-      {:opcode => :add_scope,  :args => [], :stack => [1, 0]},
+    # scope
+    opcode :push_scope,           :stack => [0, 1],   :args => []
+    opcode :add_scope,            :stack => [1, 0],   :args => []
 
-      # misc
-      {:opcode => :push_variables, :args => [], :stack => [0,1]},
-      {:opcode => :check_interrupts, :args => [], :stack => [0,0]},
-      {:opcode => :yield_debugger, :args => [], :stack => [0,0],
-        :vm_flags => [:check_interrupts]},
-      {:opcode => :is_nil, :args => [], :stack => [1,1]},
-      {:opcode => :check_serial, :args => [:literal, :int], :stack => [1,1]},
+    # misc
+    opcode :push_variables,       :stack => [0, 1],   :args => []
+    opcode :check_interrupts,     :stack => [0, 0],   :args => []
+    opcode :yield_debugger,       :stack => [0, 0],   :args => [],
+                                                      :vm_flags => [:check_interrupts]
+    opcode :is_nil,               :stack => [1, 1],   :args => []
+    opcode :check_serial,         :stack => [1, 1],   :args => [:literal, :int]
 
-      # field access
-      {:opcode => :push_my_field, :args => [:field], :stack => [0,1]},
-      {:opcode => :store_my_field, :args => [:field], :stack => [1,1]},
+    # field access                              ,
+    opcode :push_my_field,        :stack => [0, 1],   :args => [:field]
+    opcode :store_my_field,       :stack => [1, 1],   :args => [:field]
 
-      # type checks
-      {:opcode => :kind_of, :args => [], :stack => [2,1]},
-      {:opcode => :instance_of, :args => [], :stack => [2,1]},
+    # type checks                               ,
+    opcode :kind_of,              :stack => [2, 1],   :args => []
+    opcode :instance_of,          :stack => [2, 1],   :args => []
 
-      # meta opcodes, used for optimization only.
-      {:opcode => :meta_push_neg_1, :args => [], :stack => [0,1]},
-      {:opcode => :meta_push_0, :args => [], :stack => [0,1]},
-      {:opcode => :meta_push_1, :args => [], :stack => [0,1]},
-      {:opcode => :meta_push_2, :args => [], :stack => [0,1]},
-      {:opcode => :meta_send_op_plus, :args => [:literal], :stack => [2,1],
-        :flow => :send, :vm_flags => [:check_interrupts]},
-      {:opcode => :meta_send_op_minus, :args => [:literal], :stack => [2,1],
-        :flow => :send, :vm_flags => [:check_interrupts]},
-      {:opcode => :meta_send_op_equal, :args => [:literal], :stack => [2,1],
-        :flow => :send, :vm_flags => [:check_interrupts]},
-      {:opcode => :meta_send_op_lt, :args => [:literal], :stack => [2,1],
-        :flow => :send, :vm_flags => [:check_interrupts]},
-      {:opcode => :meta_send_op_gt, :args => [:literal], :stack => [2,1],
-        :flow => :send, :vm_flags => [:check_interrupts]},
-      {:opcode => :meta_send_op_tequal, :args => [:literal], :stack => [2,1],
-        :flow => :send, :vm_flags => [:check_interrupts]},
-      {:opcode => :meta_send_call, :args => [:literal, :int], :stack => [-21,1],
-        :flow => :send, :variable_stack => [1,2]},
+    # meta opcodes, used for optimization only.
+    opcode :meta_push_neg_1,      :stack => [0, 1],   :args => []
+    opcode :meta_push_0,          :stack => [0, 1],   :args => []
+    opcode :meta_push_1,          :stack => [0, 1],   :args => []
+    opcode :meta_push_2,          :stack => [0, 1],   :args => []
+    opcode :meta_send_op_plus,    :stack => [2, 1],   :args => [:literal],
+                                                      :flow => :send,
+                                                      :vm_flags => [:check_interrupts]
+    opcode :meta_send_op_minus,   :stack => [2, 1],   :args => [:literal],
+                                                      :flow => :send,
+                                                      :vm_flags => [:check_interrupts]
+    opcode :meta_send_op_equal,   :stack => [2, 1],   :args => [:literal],
+                                                      :flow => :send,
+                                                      :vm_flags => [:check_interrupts]
+    opcode :meta_send_op_lt,      :stack => [2, 1],   :args => [:literal],
+                                                      :flow => :send,
+                                                      :vm_flags => [:check_interrupts]
+    opcode :meta_send_op_gt,      :stack => [2, 1],   :args => [:literal],
+                                                      :flow => :send,
+                                                      :vm_flags => [:check_interrupts]
+    opcode :meta_send_op_tequal,  :stack => [2, 1],   :args => [:literal],
+                                                      :flow => :send,
+                                                      :vm_flags => [:check_interrupts]
+    opcode :meta_send_call,       :stack => [-21, 1], :args => [:literal, :int],
+                                                      :flow => :send,
+                                                      :variable_stack => [1,2]
+    opcode :push_my_offset,       :stack => [0, 1],   :args => [:field]
 
-      {:opcode => :push_my_offset, :args => [:field], :stack => [0,1]}
-    ]
-
-
-    class OpCode
-      def initialize(opcode_info)
-        @opcode_info = opcode_info
-      end
-
-      def opcode
-        @opcode_info[:opcode]
-      end
-
-      def bytecode
-        @opcode_info[:bytecode]
-      end
-
-      def arg_count
-        @opcode_info[:args].size
-      end
-
-      def args
-        @opcode_info[:args]
-      end
-
-      ##
-      # Returns the size of the opcode (including arguments)
-
-      def size
-        @opcode_info[:args].size + 1
-      end
-
-      ##
-      # Returns the width of the opcode (including arguments) in Iseq units
-
-      def width
-        (@opcode_info[:args].size + 1)
-      end
-
-      def stack
-        @opcode_info[:stack]
-      end
-
-      ##
-      # Returns the number of items consumed off of the stack by this opcode.
-      #
-      # If the value is positive, it is the exact number of items consumed.
-      #
-      # If the value is negative, it is a 2-digit number where:
-      # - first digit is the opcode arg to be multiplied (1 or 2), or the
-      #   contents of the args register (3) at that point.
-      # - third digit is a constant arg count to be added to the result
-      #
-      # For example, the value -10 would indicate that the number of stack
-      # items consumed by the opcode is the value of the first opcode arg.
-
-      def stack_consumed
-        @opcode_info[:stack].first
-      end
-
-      ##
-      # Returns the number of items produced off of the stack by this opcode.
-
-      def stack_produced
-        @opcode_info[:stack].last
-      end
-
-      # Indicates how the stack changes with this instruction. Positive numbers
-      # meaning how far the sp is pushed forward, negative how far back.
-      # +inst+ is an Array in the same format that Encoder#encode takes as input
-
-      def stack_difference(inst)
-        consumed = stack_consumed()
-        if consumed < 0
-          consumed = -consumed
-          arg =   consumed / 10
-          const = consumed % 10
-
-          consumed = inst[arg] + const
-        end
-        produced = stack_produced()
-
-        return produced - consumed
-      end
-
-      def variable_stack
-        @opcode_info[:variable_stack]
-      end
-
-      def check_interrupts?
-        flags = @opcode_info[:vm_flags]
-        flags and flags.include? :check_interrupts
-      end
-
-      def terminator?
-        flags = @opcode_info[:vm_flags]
-        flags and flags.include? :terminator
-      end
-
-      ##
-      # Returns a symbol specifying the effect of the symbol on the flow of
-      # execution, or nil if the instruction does not effect flow. The symbol
-      # may be one of :sequential, :send, :return, :goto, or :raise.
-
-      def flow
-        @opcode_info[:flow] || :sequential
-      end
-
-      def to_s
-        @opcode_info[:opcode].to_s
-      end
-    end
-
-    class InvalidOpCode < RuntimeError
-    end
-
-    @opcodes = {}
-    i = 0
-    OpCodes.map! do |info|
-      info[:bytecode] = i
-      i += 1
-      op = OpCode.new info
-      @opcodes[op.opcode] = op
-    end
-
-    def self.[](op)
-      inst = nil
-      if op.kind_of? Fixnum
-        inst = OpCodes[op]
-      else
-        inst = @opcodes[op]
-      end
-      raise InvalidOpCode, "Invalid opcode #{op.inspect}" if inst.nil?
-      inst
-    end
   end
 
   ##
