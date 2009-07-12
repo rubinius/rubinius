@@ -11,7 +11,9 @@ class Object # for vm debugging
   def __show__; end
 end
 
-module Rubinius; end
+module Rubinius
+  LookupTable = Hash
+end
 
 require 'yaml'
 require "#{File.dirname(__FILE__)}/../../kernel/compiler/iseq"
@@ -118,13 +120,13 @@ class Instructions
     return nil
   end
 
-  # Using InstructionSet::OpCodes as a key, gather up all the implementation
+  # Using InstructionSet.opcodes as a key, gather up all the implementation
   # code into Implementation objects from instructions.rb and return it.
   #
   def decode_methods
     pt = ParseTree.new(true)
 
-    basic = Rubinius::InstructionSet::OpCodes.map do |ins|
+    basic = Rubinius::InstructionSet.opcodes.map do |ins|
       meth = method(ins.opcode) rescue nil
       if meth
         # Be sure to call it with the right number of args, to get the code
@@ -170,7 +172,7 @@ class Instructions
         :stack => stack
       }
 
-      ins = Rubinius::InstructionSet::OpCode.new info
+      ins = Rubinius::InstructionSet::OpCode.new info[:opcode], info[:bytecode], info
       composite = combo.map { |op| impls[Rubinius::InstructionSet[op].bytecode] }
       code = construct_code(composite)
 
@@ -315,7 +317,7 @@ class TestInstructions : public CxxTest::TestSuite {
 
     CODE
 
-    Rubinius::InstructionSet::OpCodes.each do |ins|
+    Rubinius::InstructionSet.opcodes.each do |ins|
       meth = "test_#{ins.opcode}".to_sym
       code = send(meth) rescue nil
       if code
@@ -407,7 +409,7 @@ CODE
   end
 
   def output_node(indent, code, node, distance)
-    regular = Rubinius::InstructionSet::OpCodes.size
+    regular = Rubinius::InstructionSet.opcodes.size
 
     if node.size == 1 and node.key?(:__superop__)
       code << "#{' ' * indent}return #{node[:__superop__] + regular};\n"
@@ -461,7 +463,7 @@ CODE
     code << "  return -1;\n"
     code << "}\n"
 
-    regular = Rubinius::InstructionSet::OpCodes.size
+    regular = Rubinius::InstructionSet.opcodes.size
     code << "int reverse_superop(opcode superop) {\n"
     code << "  static int superops[] = {"
     @superinsns.each_with_index do |combo, superop|
@@ -485,7 +487,7 @@ CODE
       v.each do |sub, op|
         inst2 = InstructionSet[sub].bytecode
         code << "    case #{inst2}: // #{sub}\n"
-        code << "      return #{op + InstructionSet::OpCodes.size};\n"
+        code << "      return #{op + InstructionSet.opcodes.size};\n"
       end
       code << "    default: return -1;\n"
       code << "    }\n"
@@ -515,10 +517,10 @@ CODE
 
   def generate_implementation_info
     str = ""
-    size = Rubinius::InstructionSet::OpCodes.size
+    size = Rubinius::InstructionSet.opcodes.size
     str << "const Implementation* implementation(int op) {\n"
     str << "static Implementation implementations[] = {\n"
-    Rubinius::InstructionSet::OpCodes.each do |ins|
+    Rubinius::InstructionSet.opcodes.each do |ins|
       str << "{ (void*)op_#{ins.opcode.to_s}, \"op_#{ins.opcode.to_s}\" },\n"
     end
 

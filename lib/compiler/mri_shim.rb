@@ -12,6 +12,26 @@ module Rubinius
   end
 end
 
+module Rubinius
+  class SendSite
+    def initialize(name)
+      @name = name
+    end
+
+    attr_reader :name
+    attr_accessor :sender
+
+    def ==(other)
+      other.kind_of?(SendSite) and @name == other.name
+    end
+  end
+
+  class Tuple < Array
+  end
+
+  LookupTable = Hash
+end
+
 $: << File.expand_path(File.dirname(__FILE__) + '/../../kernel')
 require 'compiler/blocks'
 require 'compiler/blocks_graph'
@@ -30,24 +50,6 @@ require 'compiler/plugins'
 require 'compiler/stack'
 require 'common/compiled_method'
 $:.pop
-
-module Rubinius
-  class SendSite
-    def initialize(name)
-      @name = name
-    end
-
-    attr_reader :name
-    attr_accessor :sender
-
-    def ==(other)
-      other.kind_of?(SendSite) and @name == other.name
-    end
-  end
-
-  class Tuple < Array
-  end
-end
 
 class Exception
   def awesome_backtrace

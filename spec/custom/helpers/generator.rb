@@ -59,28 +59,33 @@ class TestGenerator
 
   # TestGenerator methods
 
-  opcodes  = Rubinius::InstructionSet::OpCodes.map { |desc| desc.opcode }
-  opcodes += [:add_literal,
-              :pop_modifiers,
-              :push,
-              :push_literal_at,
-              :push_modifiers,
-              :push_unique_literal,
-              :send,
-              :send_super,
-              :send_with_block,
-              :send_with_splat,
-              :swap]
-  opcodes -= [:class,
-              :goto,
-              :set_label]
-
-  opcodes.each do |name|
+  def self.define_opcode_method(name)
     class_eval <<-CODE
       def #{name}(*args)
         add :#{name}, *args
       end
     CODE
+  end
+
+  excluded_opcodes = [:class, :goto, :set_label]
+
+  Rubinius::InstructionSet.opcodes.each do |opcode|
+    next if excluded_opcodes.include? opcode.name
+    define_opcode_method opcode.name
+  end
+
+  [:add_literal,
+   :pop_modifiers,
+   :push,
+   :push_literal_at,
+   :push_modifiers,
+   :push_unique_literal,
+   :send,
+   :send_super,
+   :send_with_block,
+   :send_with_splat,
+   :swap].each do |name|
+    define_opcode_method name
   end
 
   def git(lbl)

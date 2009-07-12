@@ -4,7 +4,7 @@ puts "template <class SubClass>"
 puts "void VisitInstructions::drive() {"
 puts "  switch(current_instruction()) {"
 
-InstructionSet::OpCodes.each do |ins|
+InstructionSet.opcodes.each do |ins|
   puts "  case #{ins.bytecode}: // #{ins.opcode}"
   case ins.arg_count
   when 2
@@ -24,7 +24,7 @@ puts "  }"
 
 puts "}"
 
-InstructionSet::OpCodes.each do |ins|
+InstructionSet.opcodes.each do |ins|
   puts "template <class SubClass>"
   case ins.arg_count
   when 2
