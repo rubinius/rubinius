@@ -204,6 +204,9 @@ namespace rubinius {
     // Ruby.primitive :vm_deoptimize_inliners
     static Object* vm_deoptimize_inliners(STATE, Executable* exec);
 
+    // Ruby.primitive :vm_raise_exception
+    static Object* vm_raise_exception(STATE, Exception* exc);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

@@ -33,7 +33,7 @@ module Kernel
       STDERR.puts "Exception: `#{exc.class}' #{exc.locations[1].position} - #{exc.message}"
     end
 
-    Rubinius.asm(exc) { |e| e.bytecode(self); raise_exc }
+    Rubinius.raise_exception exc
   end
   module_function :raise
 

@@ -63,10 +63,6 @@ namespace rubinius {
     JITFunctions f;
     BlockMap block_map_;
 
-    llvm::Value* stack_;
-
-    llvm::Value* stack_top_;
-
     bool allow_private_;
     opcode call_flags_;
 
@@ -122,12 +118,10 @@ namespace rubinius {
     JITVisit(LLVMState* ls, VMMethod* vmm,
              llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* start,
              llvm::Value* stack, llvm::Value* call_frame,
-             llvm::Value* stack_top, llvm::Value* me, llvm::Value* args,
+             llvm::Value* me, llvm::Value* args,
              llvm::Value* vars, bool is_block, BasicBlock* inline_return = 0)
-      : JITOperations(ls, vmm, mod, stack_top, call_frame, start, func)
+      : JITOperations(ls, vmm, mod, stack, call_frame, start, func)
       , f(ls)
-      , stack_(stack)
-      , stack_top_(stack_top)
       , allow_private_(false)
       , call_flags_(0)
       , rbx_simple_send_(0)
@@ -243,14 +237,16 @@ namespace rubinius {
     }
 
     void check_for_return(Value* val) {
+
       BasicBlock* cont = new_block();
-      BasicBlock* push_val = new_block("push_val");
 
       Value* null = Constant::getNullValue(ObjType);
 
+      BasicBlock* orig = block_;
+
       Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, val, null, "null_check", block_);
       BasicBlock* is_break = new_block("is_break");
-      BranchInst::Create(is_break, push_val, cmp, block_);
+      BranchInst::Create(is_break, cont, cmp, block_);
 
       /////
       Signature brk(ls_, Type::Int1Ty);
@@ -281,16 +277,16 @@ namespace rubinius {
       clear << VMTy;
       Value* crv = clear.call("rbx_clear_raise_value", &vm_, 1, "crv", push_break_val);
 
-      stack_push(crv, push_break_val);
-
       BranchInst::Create(cont, push_break_val);
 
       /////
-      stack_push(val, push_val);
-      BranchInst::Create(cont, push_val);
-
-      /////
       block_ = cont;
+
+      PHINode* phi = PHINode::Create(ObjType, "possible_break", block_);
+      phi->addIncoming(val, orig);
+      phi->addIncoming(crv, push_break_val);
+
+      stack_push(phi);
     }
 
     void check_for_exception_then(Value* val, BasicBlock* cont, BasicBlock* block) {
@@ -321,15 +317,22 @@ namespace rubinius {
     void at_ip(int ip) {
       BlockMap::iterator i = block_map_.find(ip);
       if(i != block_map_.end()) {
-        BasicBlock* next = i->second;
+        JITBasicBlock& jbb = i->second;
+        BasicBlock* next = jbb.block;
         if(!block_->getTerminator()) {
           BranchInst::Create(next, block_);
         }
+
+        // std::cout << ip << ": " << jbb.sp << "\n";
+
+        if(jbb.sp != -10) set_sp(jbb.sp);
 
         next->moveAfter(block_);
 
         block_ = next;
       }
+
+      remember_sp();
 
       new StoreInst(ConstantInt::get(Type::Int32Ty, ip), ip_pos_, false, block_);
     }
@@ -545,7 +548,9 @@ namespace rubinius {
       new StoreInst(constant(Qnil, block), out_args_block_, false, block);
       new StoreInst(ConstantInt::get(Type::Int32Ty, args),
                     out_args_total_, false, block);
-      new StoreInst(stack_objects(args, block), out_args_arguments_, false, block);
+      if(args > 0) {
+        new StoreInst(stack_objects(args, block), out_args_arguments_, false, block);
+      }
       new StoreInst(Constant::getNullValue(ptr_type("Array")),
                     out_args_array_, false, block);
     }
@@ -555,7 +560,9 @@ namespace rubinius {
       new StoreInst(stack_top(block), out_args_block_, false, block);
       new StoreInst(ConstantInt::get(Type::Int32Ty, args),
                     out_args_total_, false, block);
-      new StoreInst(stack_objects(args + 1, block), out_args_arguments_, false, block);
+      if(args > 0) {
+        new StoreInst(stack_objects(args + 1, block), out_args_arguments_, false, block);
+      }
       new StoreInst(Constant::getNullValue(ptr_type("Array")),
                     out_args_array_, false, block);
     }
@@ -1077,9 +1084,7 @@ namespace rubinius {
       sig << "Arguments";
       sig << IntPtrTy;
 
-      Value* cur = stack_ptr();
-
-      Value* sp = subtract_pointers(cur, stack_);
+      Value* sp = last_sp_as_int();
 
       Value* call_args[] = { vm_, call_frame_, args_, sp };
 
@@ -1110,6 +1115,8 @@ namespace rubinius {
           return;
         }
       }
+
+      reset_sp();
 
       Value* ret = inline_cache_send(args, cache, block_);
       stack_remove(args + 1);
@@ -1155,6 +1162,8 @@ namespace rubinius {
           return;
         }
       }
+
+      reset_sp();
 
       Value* ret = inline_cache_send(0, cache, block_);
       stack_remove(1);
@@ -1307,6 +1316,8 @@ namespace rubinius {
 
         block_ = use_call;
       }
+
+      reset_sp();
 
       std::vector<const Type*> types;
 
@@ -1592,7 +1603,7 @@ namespace rubinius {
     }
 
     void visit_goto(opcode ip) {
-      BranchInst::Create(block_map_[ip], block_);
+      BranchInst::Create(block_map_[ip].block, block_);
       block_ = new_block("continue");
     }
 
@@ -1609,7 +1620,7 @@ namespace rubinius {
           ConstantInt::get(IntPtrTy, cFalse), "is_true", block_);
 
       BasicBlock* cont = new_block("continue");
-      BranchInst::Create(block_map_[ip], cont, cmp, block_);
+      BranchInst::Create(block_map_[ip].block, cont, cmp, block_);
 
       block_ = cont;
     }
@@ -1627,7 +1638,7 @@ namespace rubinius {
           ConstantInt::get(IntPtrTy, cFalse), "is_true", block_);
 
       BasicBlock* cont = new_block("continue");
-      BranchInst::Create(block_map_[ip], cont, cmp, block_);
+      BranchInst::Create(block_map_[ip].block, cont, cmp, block_);
 
       block_ = cont;
     }
@@ -1766,13 +1777,13 @@ namespace rubinius {
           next = exception_handlers_.back();
         }
 
-        BranchInst::Create(block_map_[where], next, isit, code);
+        BranchInst::Create(block_map_[where].block, next, isit, code);
       } else {
-        code = block_map_[where];
+        code = block_map_[where].block;
       }
 
       // Reset the stack pointer within the handler to the current value
-      set_stack_ptr(stack_ptr(), block_map_[where]);
+      // set_stack_ptr(stack_ptr(), block_map_[where].block);
 
       exception_handlers_.push_back(code);
     }

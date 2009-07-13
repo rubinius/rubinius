@@ -28,4 +28,9 @@ module Rubinius
     Ruby.primitive :vm_deoptimize_inliners
     raise PrimitiveFailure, "Rubinius.vm_deoptimize_inliners failed"
   end
+
+  def self.raise_exception(exc)
+    Ruby.primitive :vm_raise_exception
+    raise PrimitiveFailure, "Rubinius.vm_raise_exception failed"
+  end
 end

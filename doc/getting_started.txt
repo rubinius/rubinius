@@ -140,6 +140,8 @@ To run a particular spec file, for example, the Array specs:
 
 ## Installing Rubinius
 
+Installing is currently broken. Do not use it.
+
 Run the 'rake install' task to install Rubinius (you may need sudo). Run the
 'rake uninstall' task to uninstall Rubinius.
 
