@@ -25,6 +25,7 @@ namespace rubinius {
 #undef HANDLE_INST2
 
       void at_ip(int ip) { }
+      void before(opcode op, opcode arg1 = 0, opcode arg2 = 0) { }
 
       void drive(opcode* stream, int size) {
         int ip = 0;
@@ -34,14 +35,17 @@ namespace rubinius {
           switch(stream[ip]) {
 #define HANDLE_INST0(code, name) \
           case code: \
+                     SPECIFIC->before(stream[ip]); \
                      SPECIFIC->visit_ ## name(); ip += 1; break;
 
 #define HANDLE_INST1(code, name) \
           case code: \
+                     SPECIFIC->before(stream[ip], stream[ip + 1]); \
                      SPECIFIC->visit_ ## name(stream[ip + 1]); ip += 2; break;
 
 #define HANDLE_INST2(code, name) \
           case code: \
+                     SPECIFIC->before(stream[ip], stream[ip + 1], stream[ip + 2]); \
                      SPECIFIC->visit_ ## name(stream[ip + 1], stream[ip + 2]); ip += 3; break;
 
 #include "vm/gen/inst_list.hpp"

@@ -22,3 +22,21 @@ File.open "#{dir}/inst_list.hpp", "w" do |f|
     end
   end
 end
+
+File.open "#{dir}/inst_stack.hpp", "w" do |f|
+  f.puts "static inline int stack_difference(opcode op, opcode operand1 = 0, opcode operand2 = 0) {"
+  f.puts "switch(op) {"
+  Rubinius::InstructionSet::OpCodes.each do |op|
+    f.puts "case InstructionSequence::insn_#{op.opcode}:"
+    if variable = op.variable_stack
+      extra, position = variable
+      f.puts "  return #{op.stack_produced - extra} - operand#{position};"
+    else
+      f.puts "  return #{op.stack_difference(nil)};"
+    end
+  end
+  f.puts "}"
+  f.puts "abort();"
+  f.puts "return 0;"
+  f.puts "}"
+end

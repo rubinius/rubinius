@@ -19,7 +19,9 @@ using namespace llvm;
 
 namespace rubinius {
   class JITOperations {
-    llvm::Value* stack_top_;
+    llvm::Value* stack_;
+    int sp_;
+    int last_sp_;
 
   protected:
     VMMethod* vmm_;
@@ -56,9 +58,11 @@ namespace rubinius {
 
   public:
     JITOperations(LLVMState* ls, VMMethod* vmm, llvm::Module* mod,
-                  llvm::Value* top, llvm::Value* call_frame,
+                  llvm::Value* stack, llvm::Value* call_frame,
                   llvm::BasicBlock* start, llvm::Function* func)
-      : stack_top_(top)
+      : stack_(stack)
+      , sp_(-1)
+      , last_sp_(-1)
       , vmm_(vmm)
       , ls_(ls)
       , block_(start)
@@ -285,23 +289,48 @@ namespace rubinius {
     //
     Value* stack_ptr(BasicBlock* block = NULL) {
       if(!block) block = block_;
-      return new LoadInst(stack_top_, "stack_ptr", block);
+
+      assert(sp_ >= 0 && sp_ < vmm_->stack_size);
+      Value* idx = ConstantInt::get(Type::Int32Ty, sp_);
+      return GetElementPtrInst::Create(stack_, &idx, &idx+1,
+                                       "stack_pos", block);
     }
 
     void set_stack_ptr(Value* pos, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      new StoreInst(pos, stack_top_, false, block);
+      abort();
+    }
+
+    void set_sp(int sp) {
+      sp_ = sp;
+      assert(sp_ >= -1 && sp_ < vmm_->stack_size);
+    }
+
+    void remember_sp() {
+      last_sp_ = sp_;
+    }
+
+    void reset_sp() {
+      sp_ = last_sp_;
+    }
+
+    int last_sp() {
+      return last_sp_;
+    }
+
+    Value* last_sp_as_int() {
+      return ConstantInt::get(Type::Int32Ty, last_sp_);
     }
 
     Value* stack_position(int amount, BasicBlock* block = NULL) {
       if(!block) block = block_;
 
-      if(amount == 0) return stack_ptr(block);
+      int pos = sp_ + amount;
+      assert(pos >= 0 && pos < vmm_->stack_size);
 
-      Value* idx = ConstantInt::get(Type::Int32Ty, amount);
+      Value* idx = ConstantInt::get(Type::Int32Ty, pos);
 
-      Value* stack_pos = GetElementPtrInst::Create(stack_ptr(block),
-                           &idx, &idx+1, "stack_pos", block);
+      Value* stack_pos = GetElementPtrInst::Create(
+          stack_, &idx, &idx+1, "stack_pos", block);
 
       return stack_pos;
     }
@@ -316,22 +345,21 @@ namespace rubinius {
       return stack_position(-(count - 1), block);
     }
 
-    Value* stack_ptr_adjust(int amount, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-
-      Value* pos = stack_position(amount, block);
-      set_stack_ptr(pos, block);
-
-      return pos;
+    void stack_ptr_adjust(int amount, BasicBlock* block = NULL) {
+      sp_ += amount;
+      assert(sp_ >= -1 && sp_ < vmm_->stack_size);
     }
 
     void stack_remove(int count=1) {
-      stack_ptr_adjust(-count);
+      sp_ -= count;
+      assert(sp_ >= -1 && sp_ < vmm_->stack_size);
     }
 
     void stack_push(Value* val, BasicBlock* block = NULL) {
       if(!block) block = block_;
-      Value* stack_pos = stack_ptr_adjust(1, block);
+      stack_ptr_adjust(1, block);
+      Value* stack_pos = stack_ptr(block);
+
       if(val->getType() == cast<PointerType>(stack_pos->getType())->getElementType()) {
         new StoreInst(val, stack_pos, false, block);
       } else {

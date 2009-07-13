@@ -2,6 +2,7 @@ class Compiler
   class StackDepthCalculator
     def initialize(iseq)
       @iseq = iseq.opcodes
+      @show_stack = ENV["RBX_DEBUG_STACK_DEPTH"]
     end
 
     def run
@@ -37,7 +38,9 @@ class Compiler
 
         opcode = Rubinius::InstructionSet[@iseq[ip]]
 
-        # puts "%3d: %21s %3d %3d" % [ip, opcode.opcode.to_s, current_stack, @max_stack]
+        if @show_stack
+          puts "%3d: %21s %3d %3d" % [ip, opcode.opcode.to_s, current_stack, @max_stack]
+        end
 
         if variable = opcode.variable_stack
           extra, position = variable
@@ -47,6 +50,8 @@ class Compiler
         else
           current_stack += opcode.stack_difference(nil)
         end
+
+        raise "stack underflow detected! at #{ip}" if current_stack < 0
 
         @max_stack = current_stack if current_stack > @max_stack
 

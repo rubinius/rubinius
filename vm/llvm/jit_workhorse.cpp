@@ -813,6 +813,7 @@ namespace rubinius {
     bool creates_blocks_;
     int number_of_sends_;
     bool loops_;
+    int sp_;
 
   public:
 
@@ -824,6 +825,7 @@ namespace rubinius {
       , creates_blocks_(false)
       , number_of_sends_(0)
       , loops_(false)
+      , sp_(-1)
     {}
 
     bool creates_blocks() {
@@ -840,18 +842,82 @@ namespace rubinius {
 
     void at_ip(int ip) {
       current_ip_ = ip;
-      if(force_break_) {
-        break_at(ip);
-        force_break_ = false;
+
+      // If this is a new block, reset sp here
+      /*
+      BlockMap::iterator i = map_.find(ip);
+      if(i != map_.end()) {
+        sp_ = i->second.sp;
+      }
+      */
+    }
+
+    const static int cUnknown = -10;
+    const static bool cDebugStack = false;
+
+#include "gen/inst_stack.hpp"
+
+    void before(opcode op, opcode arg1=0, opcode arg2=0) {
+      BlockMap::iterator i = map_.find(current_ip_);
+      if(i != map_.end()) {
+        if(i->second.sp == cUnknown) {
+          if(cDebugStack) {
+            std::cout << current_ip_ << ": " << sp_ << " (inherit)\n";
+          }
+          i->second.sp = sp_;
+        } else {
+          sp_ = i->second.sp;
+          if(cDebugStack) {
+            std::cout << current_ip_ << ": " << sp_ << " (reset)\n";
+          }
+        }
+      } else {
+        if(force_break_) {
+          if(cDebugStack) {
+            std::cout << current_ip_ << ": unknown\n";
+          }
+          break_at(current_ip_, true);
+          force_break_ = false;
+          sp_ = cUnknown;
+          return;
+        }
+
+        if(cDebugStack) {
+          std::cout << current_ip_ << ": " << sp_ << "\n";
+        }
+      }
+
+      force_break_ = false;
+      if(sp_ != cUnknown) {
+        sp_ += stack_difference(op, arg1, arg2);
+        assert(sp_ >= -1);
       }
     }
 
-    void break_at(int ip) {
+    void break_at(int ip, bool unreachable=false) {
       BlockMap::iterator i = map_.find(ip);
       if(i == map_.end()) {
         std::ostringstream ss;
         ss << "ip" << ip;
-        map_[ip] = BasicBlock::Create(ss.str().c_str(), function_);
+        JITBasicBlock& jbb = map_[ip];
+        jbb.block = BasicBlock::Create(ss.str().c_str(), function_);
+        if(unreachable) {
+          jbb.sp = cUnknown;
+        } else {
+          jbb.sp = sp_;
+        }
+
+        if(cDebugStack) {
+          std::cout << "patch " << ip << ": " << jbb.sp << "\n";
+        }
+      } else {
+        if(!unreachable) {
+          if(i->second.sp == cUnknown) {
+            i->second.sp = sp_;
+          } else if(sp_ != cUnknown) {
+            assert(i->second.sp == sp_);
+          }
+        }
       }
     }
 
@@ -945,7 +1011,7 @@ namespace rubinius {
 
   bool LLVMWorkHorse::generate_body(JITMethodInfo& info) {
     JITVisit visitor(ls_, info.vmm, ls_->module(), func,
-        block, stk, call_frame, stack_top,
+        block, stk, call_frame,
         method_entry_, args,
         vars, info.is_block, info.inline_return);
 

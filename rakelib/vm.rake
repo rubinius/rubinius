@@ -494,7 +494,7 @@ files INSN_GEN, %w[vm/instructions.rb] do |t|
 end
 
 # rake sucks. This can't be a normal dep.
-unless File.exists? 'vm/gen/inst_list.hpp'
+unless File.exists? 'vm/gen/inst_list.hpp' and File.exists? "vm/gen/inst_stack.hpp"
   puts "GEN vm/gen/inst_list.hpp"
   ruby "vm/codegen/instruction_macros.rb"
 end

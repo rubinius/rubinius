@@ -257,9 +257,9 @@ module Rubinius
     opcode :push_block,                   :stack => [0, 1],   :args => []
     opcode :passed_blockarg,              :stack => [0, 1],   :args => [:int]
     opcode :create_block,                 :stack => [0, 1],   :args => [:literal]
-    opcode :cast_for_single_block_arg,    :stack => [1, 1],   :args => []
-    opcode :cast_for_multi_block_arg,     :stack => [1, 1],   :args => []
-    opcode :cast_for_splat_block_arg,     :stack => [1, 1],   :args => []
+    opcode :cast_for_single_block_arg,    :stack => [0, 1],   :args => []
+    opcode :cast_for_multi_block_arg,     :stack => [0, 1],   :args => []
+    opcode :cast_for_splat_block_arg,     :stack => [0, 1],   :args => []
     opcode :yield_stack,                  :stack => [-10, 1], :args => [:int],
                                                               :flow => :send,
                                                               :variable_stack => [0,1]

@@ -545,4 +545,9 @@ namespace rubinius {
     exec->clear_inliners(state);
     return Qtrue;
   }
+
+  Object* System::vm_raise_exception(STATE, Exception* exc) {
+    state->thread_state()->raise_exception(exc);
+    return NULL;
+  }
 }

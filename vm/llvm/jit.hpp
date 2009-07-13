@@ -28,7 +28,18 @@
 
 namespace rubinius {
 
-  typedef std::map<int, llvm::BasicBlock*> BlockMap;
+  struct JITBasicBlock {
+    llvm::BasicBlock* block;
+    int sp;
+
+  public:
+    JITBasicBlock()
+      : block(0)
+      , sp(-1)
+    {}
+  };
+
+  typedef std::map<int, JITBasicBlock> BlockMap;
 
   enum JitDebug {
     cSimple = 1,
