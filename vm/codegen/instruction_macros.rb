@@ -26,7 +26,7 @@ end
 File.open "#{dir}/inst_stack.hpp", "w" do |f|
   f.puts "static inline int stack_difference(opcode op, opcode operand1 = 0, opcode operand2 = 0) {"
   f.puts "switch(op) {"
-  Rubinius::InstructionSet::OpCodes.each do |op|
+  Rubinius::InstructionSet.opcodes.each do |op|
     f.puts "case InstructionSequence::insn_#{op.opcode}:"
     if variable = op.variable_stack
       extra, position = variable
