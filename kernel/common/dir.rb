@@ -4,8 +4,10 @@ class Dir
   GLOB_VERBOSE = 1 << (4 * 8 - 1) # HACK
   GLOB_RECURSIVE = -2
 
-  def self.[](pattern)
-    glob(StringValue(pattern), 0)
+  def self.[](*patterns)
+    files = []
+    patterns.each { |pattern| files.concat glob(StringValue(pattern), 0) }
+    files
   end
 
   def self.old_glob(pattern, flags = 0)
