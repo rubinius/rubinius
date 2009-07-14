@@ -704,10 +704,12 @@ namespace rubinius {
     BasicBlock* entry = BasicBlock::Create("inline_entry", func);
     block = entry;
 
+    BasicBlock* alloca_block = &current->getEntryBlock();
+
     Value* cfstk = new AllocaInst(obj_type,
         ConstantInt::get(Type::Int32Ty,
           (sizeof(CallFrame) / sizeof(Object*)) + vmm->stack_size),
-        "cfstk", block);
+        "cfstk", alloca_block->getTerminator());
 
     call_frame = CastInst::Create(
         Instruction::BitCast,
@@ -723,7 +725,7 @@ namespace rubinius {
     Value* var_mem = new AllocaInst(obj_type,
         ConstantInt::get(Type::Int32Ty,
           (sizeof(StackVariables) / sizeof(Object*)) + vmm->number_of_locals),
-        "var_mem", block);
+        "var_mem", alloca_block->getTerminator());
 
     vars = CastInst::Create(
         Instruction::BitCast,
@@ -1010,7 +1012,7 @@ namespace rubinius {
   };
 
   bool LLVMWorkHorse::generate_body(JITMethodInfo& info) {
-    JITVisit visitor(ls_, info.vmm, ls_->module(), func,
+    JITVisit visitor(ls_, info, ls_->module(), func,
         block, stk, call_frame,
         method_entry_, args,
         vars, info.is_block, info.inline_return);

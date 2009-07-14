@@ -328,6 +328,19 @@ namespace rubinius {
     indent_attribute(level, "splat"); cm->splat()->show(state, level);
     indent_attribute(level, "stack_size"); cm->stack_size()->show(state, level);
     indent_attribute(level, "total_args"); cm->total_args()->show(state, level);
+
+#ifdef ENABLE_LLVM
+    if(cm->backend_method_ && cm->backend_method_->jitted()) {
+      std::cout << "<LLVM>\n";
+      std::cout << *cm->backend_method_->llvm_function();
+      std::cout << "</LLVM>\n<MachineCode>\n";
+      LLVMState::show_machine_code(
+          cm->backend_method_->jitted_impl(),
+          cm->backend_method_->jitted_bytes());
+      std::cout << "</MachineCode>\n";
+    }
+#endif
+
     close_body(level);
   }
 }

@@ -106,6 +106,8 @@ namespace rubinius {
     class Unsupported {};
 
     void init_out_args(BasicBlock* block) {
+      Instruction* term = block->getTerminator();
+      assert(term);
       out_args_ = new AllocaInst(type("Arguments"), 0, "out_args", block);
 
       out_args_recv_ = ptr_gep(out_args_, 0, "out_args_recv", block);
@@ -113,14 +115,17 @@ namespace rubinius {
       out_args_total_= ptr_gep(out_args_, 2, "out_args_total", block);
       out_args_arguments_ = ptr_gep(out_args_, 3, "out_args_arguments", block);
       out_args_array_ = ptr_gep(out_args_, 4, "out_args_array", block);
+
+      term->removeFromParent();
+      term->insertAfter(cast<Instruction>(out_args_array_));
     }
 
-    JITVisit(LLVMState* ls, VMMethod* vmm,
+    JITVisit(LLVMState* ls, JITMethodInfo& info,
              llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* start,
              llvm::Value* stack, llvm::Value* call_frame,
              llvm::Value* me, llvm::Value* args,
              llvm::Value* vars, bool is_block, BasicBlock* inline_return = 0)
-      : JITOperations(ls, vmm, mod, stack, call_frame, start, func)
+      : JITOperations(ls, info, mod, stack, call_frame, start, func)
       , f(ls)
       , allow_private_(false)
       , call_flags_(0)
@@ -197,7 +202,7 @@ namespace rubinius {
           ConstantInt::get(IntPtrTy, (intptr_t)ls_->shared().global_serial_address()),
           PointerType::getUnqual(IntPtrTy), "cast_to_intptr", block_);
 
-      init_out_args(block_);
+      init_out_args(&function_->getEntryBlock());
     }
 
     Value* return_value() {
@@ -916,7 +921,7 @@ namespace rubinius {
 
 
     Object* literal(opcode which) {
-      return vmm_->original.get()->literals()->at(which);
+      return vmmethod()->original.get()->literals()->at(which);
     }
 
     Value* get_literal(opcode which) {
@@ -1273,7 +1278,7 @@ namespace rubinius {
     }
 
     Object* current_literal(opcode which) {
-      return vmm_->original.get()->literals()->at(which);
+      return vmmethod()->original.get()->literals()->at(which);
     }
 
     void visit_push_const_fast(opcode name, opcode cache) {

@@ -33,32 +33,16 @@ namespace rubinius {
       } else {
         inline_ivar_access(klass, acc);
       }
-      return true;
     } else if(CompiledMethod* cm = try_as<CompiledMethod>(meth)) {
       VMMethod* vmm = cm->backend_method_;
 
       if(!cm->primitive()->nil_p()) {
-        return inline_primitive(klass, cm, cache_->method->execute);
+        if(!inline_primitive(klass, cm, cache_->method->execute)) return false;
       } else if(detect_trivial_method(cm)) {
         inline_trivial_method(klass, cm);
-        return true;
       } else if(ops_.state()->config().jit_inline_generic) {
         InlineDecision decision = ops_.should_inline_p(vmm);
-        if(decision == cInline) {
-          if(ops_.state()->config().jit_inline_debug) {
-            std::cerr << "inlining: "
-              << ops_.state()->symbol_cstr(cm->scope()->module()->name())
-              << "#"
-              << ops_.state()->symbol_cstr(cm->name())
-              << " into "
-              << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
-              << "\n";
-          }
-
-          NoAccessManagedMemory unmemguard(ops_.state());
-          inline_generic_method(klass, vmm);
-          return true;
-        } else {
+        if(decision != cInline) {
           if(ops_.state()->config().jit_inline_debug) {
             InlinePolicy* policy = ops_.inline_policy();
 
@@ -83,18 +67,48 @@ namespace rubinius {
           }
           return false;
         }
-      } else if(ops_.state()->config().jit_inline_debug) {
+
+        if(ops_.state()->config().jit_inline_debug) {
+          std::cerr << "inlining: "
+            << ops_.state()->symbol_cstr(cm->scope()->module()->name())
+            << "#"
+            << ops_.state()->symbol_cstr(cm->name())
+            << " into "
+            << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+            << "\n";
+        }
+
+        NoAccessManagedMemory unmemguard(ops_.state());
+        inline_generic_method(klass, vmm);
+      } else {
+        if(ops_.state()->config().jit_inline_debug) {
+          std::cerr << "NOT inlining: "
+            << ops_.state()->symbol_cstr(cm->scope()->module()->name())
+            << "#"
+            << ops_.state()->symbol_cstr(cm->name())
+            << " into "
+            << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+            << ". generic inlining disabled\n";
+        }
+
+        return false;
+      }
+    } else {
+      if(ops_.state()->config().jit_inline_debug) {
         std::cerr << "NOT inlining: "
           << ops_.state()->symbol_cstr(cm->scope()->module()->name())
           << "#"
           << ops_.state()->symbol_cstr(cm->name())
           << " into "
           << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
-          << ". generic inlining disabled\n";
+          << ". unhandled executable type\n";
       }
+      return false;
     }
 
-    return false;
+    meth->add_inliner(ops_.root_vmmethod());
+
+    return true;
   }
 
   bool Inliner::detect_trivial_method(CompiledMethod* cm) {
@@ -131,8 +145,6 @@ namespace rubinius {
   }
 
   void Inliner::inline_trivial_method(Class* klass, CompiledMethod* cm) {
-    cm->add_inliner(ops_.vmmethod());
-
     VMMethod* vmm = cm->backend_method_;
 
     Value* self = ops_.stack_top();
@@ -198,8 +210,6 @@ namespace rubinius {
         << "\n";
     }
 
-    acc->add_inliner(ops_.vmmethod());
-
     ops_.state()->add_accessor_inlined();
 
     Value* val  = ops_.stack_top();
@@ -258,8 +268,6 @@ namespace rubinius {
         << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
         << "\n";
     }
-
-    acc->add_inliner(ops_.vmmethod());
 
     ops_.state()->add_accessor_inlined();
 
@@ -324,6 +332,7 @@ namespace rubinius {
     info.inline_return = on_return;
     info.inline_policy = ops_.inline_policy();
     info.called_args = count_;
+    info.root = ops_.root_method_info();
 
     assert(work.generate_body(info));
 

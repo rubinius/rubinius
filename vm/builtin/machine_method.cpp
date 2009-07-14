@@ -101,7 +101,7 @@ namespace rubinius {
     mm->comments_ = 0;
 
     mm->jit_data_ = reinterpret_cast<void*>(jit);
-    vmm->set_jitted(jit->llvm_function());
+    vmm->set_jitted(jit->llvm_function(), jit->code_bytes(), jit->function_pointer());
 
     return mm;
 #else

@@ -24,7 +24,7 @@ namespace rubinius {
     int last_sp_;
 
   protected:
-    VMMethod* vmm_;
+    JITMethodInfo& method_info_;
     LLVMState* ls_;
     llvm::BasicBlock* block_;
 
@@ -57,13 +57,13 @@ namespace rubinius {
     llvm::Value* One;
 
   public:
-    JITOperations(LLVMState* ls, VMMethod* vmm, llvm::Module* mod,
+    JITOperations(LLVMState* ls, JITMethodInfo& info, llvm::Module* mod,
                   llvm::Value* stack, llvm::Value* call_frame,
                   llvm::BasicBlock* start, llvm::Function* func)
       : stack_(stack)
       , sp_(-1)
       , last_sp_(-1)
-      , vmm_(vmm)
+      , method_info_(info)
       , ls_(ls)
       , block_(start)
       , module_(mod)
@@ -109,7 +109,7 @@ namespace rubinius {
     }
 
     void init_policy() {
-      inline_policy_ = InlinePolicy::create_policy(vmm_);
+      inline_policy_ = InlinePolicy::create_policy(vmmethod());
       own_policy_ = true;
     }
 
@@ -118,7 +118,23 @@ namespace rubinius {
     }
 
     VMMethod* vmmethod() {
-      return vmm_;
+      return method_info_.vmm;
+    }
+
+    VMMethod* root_vmmethod() {
+      if(method_info_.root) {
+        return method_info_.root->vmm;
+      } else {
+        return vmmethod();
+      }
+    }
+
+    JITMethodInfo* root_method_info() {
+      if(method_info_.root) {
+        return method_info_.root;
+      }
+
+      return &method_info_;
     }
 
     LLVMState* state() {
@@ -290,7 +306,7 @@ namespace rubinius {
     Value* stack_ptr(BasicBlock* block = NULL) {
       if(!block) block = block_;
 
-      assert(sp_ >= 0 && sp_ < vmm_->stack_size);
+      assert(sp_ >= 0 && sp_ < vmmethod()->stack_size);
       Value* idx = ConstantInt::get(Type::Int32Ty, sp_);
       return GetElementPtrInst::Create(stack_, &idx, &idx+1,
                                        "stack_pos", block);
@@ -302,7 +318,7 @@ namespace rubinius {
 
     void set_sp(int sp) {
       sp_ = sp;
-      assert(sp_ >= -1 && sp_ < vmm_->stack_size);
+      assert(sp_ >= -1 && sp_ < vmmethod()->stack_size);
     }
 
     void remember_sp() {
@@ -325,7 +341,7 @@ namespace rubinius {
       if(!block) block = block_;
 
       int pos = sp_ + amount;
-      assert(pos >= 0 && pos < vmm_->stack_size);
+      assert(pos >= 0 && pos < vmmethod()->stack_size);
 
       Value* idx = ConstantInt::get(Type::Int32Ty, pos);
 
@@ -347,12 +363,12 @@ namespace rubinius {
 
     void stack_ptr_adjust(int amount, BasicBlock* block = NULL) {
       sp_ += amount;
-      assert(sp_ >= -1 && sp_ < vmm_->stack_size);
+      assert(sp_ >= -1 && sp_ < vmmethod()->stack_size);
     }
 
     void stack_remove(int count=1) {
       sp_ -= count;
-      assert(sp_ >= -1 && sp_ < vmm_->stack_size);
+      assert(sp_ >= -1 && sp_ < vmmethod()->stack_size);
     }
 
     void stack_push(Value* val, BasicBlock* block = NULL) {

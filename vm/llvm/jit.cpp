@@ -232,7 +232,9 @@ namespace rubinius {
         // sure the GC doesn't run.
         ls_->shared().gc_dependent();
 
-        req->vmmethod()->set_jitted(jit->llvm_function());
+        req->vmmethod()->set_jitted(jit->llvm_function(),
+                                    jit->code_bytes(),
+                                    jit->function_pointer());
 
         if(req->is_block()) {
           BlockEnvironment* be = req->block_env();
@@ -462,7 +464,7 @@ namespace rubinius {
     llvm::Function* func = work.func;
 
     JITMethodInfo info(vmm);
-    info.is_block = true;
+    info.is_block = is_block;
 
     if(!work.generate_body(info)) {
       function_ = NULL;
@@ -550,6 +552,10 @@ namespace rubinius {
     } else {
       std::cout << "NULL function!\n";
     }
+  }
+
+  void LLVMState::show_machine_code(void* impl, size_t bytes) {
+    assembler_x86::AssemblerX86::show_buffer(impl, bytes, false, NULL);
   }
 
 }

@@ -75,6 +75,8 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
     llvm::Function* llvm_function_;
+    size_t jitted_bytes_;
+    void*  jitted_impl_;
 #endif
 
   public: // Methods
@@ -92,9 +94,23 @@ namespace rubinius {
     }
 
 #ifdef ENABLE_LLVM
-    void set_jitted(llvm::Function* func) {
+    void set_jitted(llvm::Function* func, size_t bytes, void* impl) {
       llvm_function_ = func;
+      jitted_impl_ = impl;
+      jitted_bytes_ = bytes;
       jitted_ = true;
+    }
+
+    llvm::Function* llvm_function() {
+      return llvm_function_;
+    }
+
+    void* jitted_impl() {
+      return jitted_impl_;
+    }
+
+    size_t jitted_bytes() {
+      return jitted_bytes_;
     }
 #endif
 

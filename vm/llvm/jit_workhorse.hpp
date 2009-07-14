@@ -10,26 +10,6 @@ using namespace llvm;
 namespace rubinius {
   class InlinePolicy;
 
-  struct JITMethodInfo {
-    VMMethod* vmm;
-    bool is_block;
-    llvm::BasicBlock* inline_return;
-    llvm::Value* return_value;
-    InlinePolicy* inline_policy;
-    llvm::BasicBlock* fin_block;
-    int called_args;
-
-    JITMethodInfo(VMMethod* v)
-      : vmm(v)
-      , is_block(false)
-      , inline_return(0)
-      , return_value(0)
-      , inline_policy(0)
-      , fin_block(0)
-      , called_args(-1)
-    {}
-  };
-
   class LLVMWorkHorse {
   public:
     LLVMState* ls_;
