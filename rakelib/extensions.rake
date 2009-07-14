@@ -1,5 +1,6 @@
 desc "Build extensions from lib/ext"
 task :extensions => %w[
+  extension:melbourne
   extension:readline
   extension:digest
   extension:bigdecimal
@@ -132,5 +133,26 @@ namespace :extension do
     "vm/capi/ruby.h"
   ] do
     compile_extension 'lib/ext/syck'
+  end
+
+  desc "Build the melbourne extension"
+  task :melbourne => %W[kernel:build lib/ext/melbourne/melbourne.#{$dlext}]
+  file "lib/ext/melbourne/melbourne.#{$dlext}" => FileList[
+    "lib/ext/melbourne/build.rb",
+    "lib/ext/melbourne/grammar.y",
+    "lib/ext/melbourne/grammar.hpp",
+    "lib/ext/melbourne/grammar.cpp",
+    "lib/ext/melbourne/internal.hpp",
+    "lib/ext/melbourne/melbourne.cpp",
+    "lib/ext/melbourne/node.hpp",
+    "lib/ext/melbourne/visitor.hpp",
+    "lib/ext/melbourne/visitor.cpp",
+    "lib/ext/melbourne/local_state.hpp",
+    "lib/ext/melbourne/node_types.hpp",
+    "lib/ext/melbourne/node_types.cpp",
+    "lib/ext/melbourne/var_table.hpp",
+    "lib/ext/melbourne/var_table.cpp",
+  ] do
+    compile_extension "lib/ext/melbourne"
   end
 end

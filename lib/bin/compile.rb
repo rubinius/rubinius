@@ -75,6 +75,10 @@ class ExtensionCompiler
     @includes << "-I#{inc}"
   end
 
+  def add_pre_compile(block)
+    @block = block
+  end
+
   attr_reader :output
 
   def calculate_output
@@ -151,10 +155,14 @@ class ExtensionCompiler
     return opts.join(" ")
   end
 
+  def pre_compile
+    @block.call if @block
+  end
+
   def compile_files
     @objects = []
     @files.each do |file|
-      out = file.sub /\.c$/, '.o'
+      out = file.sub /\.cpp|\.c$/, '.o'
 
       cmd = "#{compiler} #{compile_options} -c -o #{out} #{file}"
       puts cmd if $VERBOSE
@@ -203,8 +211,8 @@ class ExtensionCompiler
       @ec.set_output name
     end
 
-    def files(glob)
-      Dir[glob].each { |f| @ec.add_file f }
+    def files(*glob)
+      Dir[*glob].each { |f| @ec.add_file f }
     end
 
     def flags(*args)
@@ -217,6 +225,10 @@ class ExtensionCompiler
 
     def includes(*args)
       args.each { |a| @ec.add_include a }
+    end
+
+    def pre_compile(&block)
+      @ec.add_pre_compile block
     end
 
     def setup
@@ -282,9 +294,10 @@ if File.directory?(file)
   Dir.chdir file
   load "build.rb"
 
+  ext.pre_compile
   ext.compile
 
-elsif file.suffix?(".c")
+elsif file.suffix?(".c") or file.suffix?(".cpp")
   puts "Compiling extension #{file}..." if $VERBOSE
 
   ext = ExtensionCompiler.new(flags, ARGV)
