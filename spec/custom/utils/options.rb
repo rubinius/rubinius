@@ -15,6 +15,10 @@ class MSpecOptions
     on("--parser", "Run only the parse part of the compiler specs") do
       SpecDataRelation.enable :parser
     end
+
+    on("--ast", "TEMPORARY: change the compiler spec matcher to use #to_ast") do
+      require 'melbourne'
+    end
   end
 
   def gc_stats

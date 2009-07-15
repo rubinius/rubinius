@@ -12,23 +12,26 @@ class CompileAsMatcher
     @plugins = plugins
   end
 
-  def matches?(actual)
-    sexp = actual.to_sexp
-    generator = TestGenerator.new
+  # This conditional is temporary while converting the compiler
+  unless method_defined? :matches?
+    def matches?(actual)
+      sexp = actual.to_sexp
+      generator = TestGenerator.new
 
-    compiler = Compiler.new TestGenerator
-    # TODO: Fix the compiler to have a proper interface for
-    # enabling plugins. All compiler specs should be written
-    # without plugins enabled, and each plugin should have
-    # specs for bytecode with and without the plugin enabled.
-    compiler.instance_variable_get(:@plugins).clear
-    @plugins.each { |plugin| compiler.activate plugin }
+      compiler = Compiler.new TestGenerator
+      # TODO: Fix the compiler to have a proper interface for
+      # enabling plugins. All compiler specs should be written
+      # without plugins enabled, and each plugin should have
+      # specs for bytecode with and without the plugin enabled.
+      compiler.instance_variable_get(:@plugins).clear
+      @plugins.each { |plugin| compiler.activate plugin }
 
-    node = compiler.convert_sexp s(:snippit, sexp)
-    node.bytecode generator
+      node = compiler.convert_sexp s(:snippit, sexp)
+      node.bytecode generator
 
-    @actual = generator
-    @actual == @expected
+      @actual = generator
+      @actual == @expected
+    end
   end
 
   def diff(actual, expected)
