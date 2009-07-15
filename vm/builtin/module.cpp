@@ -95,6 +95,19 @@ namespace rubinius {
     state->global_cache->clear(this, name);
   }
 
+  Executable* Module::find_method(Symbol* name) {
+    MethodTableBucket* buk;
+    Module* mod = this;
+
+    do {
+      buk = mod->method_table()->find_entry(name);
+      if(buk) return buk->method();
+      mod = mod->superclass();
+    } while(!mod->nil_p());
+
+    return NULL;
+  }
+
   void Module::Info::show(STATE, Object* self, int level) {
     Module* mod = as<Module>(self);
 

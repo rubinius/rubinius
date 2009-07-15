@@ -4,6 +4,8 @@
 #include "llvm/inline.hpp"
 #include "llvm/jit_workhorse.hpp"
 
+#include "builtin/methodtable.hpp"
+
 namespace rubinius {
   bool Inliner::consider() {
     Class* klass = cache_->dominating_class();
@@ -25,7 +27,16 @@ namespace rubinius {
     // If the cache has a dominating class, inline!
 
     AccessManagedMemory memguard(ops_.state());
-    Executable* meth = cache_->method;
+
+    Executable* meth = klass->find_method(cache_->name);
+    if(!meth) {
+      if(ops_.state()->config().jit_inline_debug) {
+        std::cerr << "NOT inlining: "
+          << ops_.state()->symbol_cstr(cache_->name)
+          << ". Inliner error, method missing.\n";
+      }
+      return false;
+    }
 
     if(AccessVariable* acc = try_as<AccessVariable>(meth)) {
       if(acc->write()->true_p()) {
@@ -37,7 +48,7 @@ namespace rubinius {
       VMMethod* vmm = cm->backend_method_;
 
       if(!cm->primitive()->nil_p()) {
-        if(!inline_primitive(klass, cm, cache_->method->execute)) return false;
+        if(!inline_primitive(klass, cm, meth->execute)) return false;
       } else if(detect_trivial_method(cm)) {
         inline_trivial_method(klass, cm);
       } else if(ops_.state()->config().jit_inline_generic) {
@@ -75,7 +86,7 @@ namespace rubinius {
             << ops_.state()->symbol_cstr(cm->name())
             << " into "
             << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
-            << "\n";
+            << " (" << ops_.state()->symbol_cstr(klass->name()) << ")\n";
         }
 
         NoAccessManagedMemory unmemguard(ops_.state());
@@ -96,9 +107,9 @@ namespace rubinius {
     } else {
       if(ops_.state()->config().jit_inline_debug) {
         std::cerr << "NOT inlining: "
-          << ops_.state()->symbol_cstr(cm->scope()->module()->name())
+          << ops_.state()->symbol_cstr(klass->name())
           << "#"
-          << ops_.state()->symbol_cstr(cm->name())
+          << ops_.state()->symbol_cstr(cache_->name)
           << " into "
           << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
           << ". unhandled executable type\n";
@@ -128,7 +139,7 @@ namespace rubinius {
       }
       break;
     case InstructionSequence::insn_meta_push_0:
-      // case InstructionSequence::insn_meta_push_1:
+    case InstructionSequence::insn_meta_push_1:
     case InstructionSequence::insn_meta_push_2:
     case InstructionSequence::insn_meta_push_neg_1:
     case InstructionSequence::insn_push_self:

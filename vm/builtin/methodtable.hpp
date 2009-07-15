@@ -73,6 +73,7 @@ namespace rubinius {
     void   redistribute(STATE, size_t size);
 
     MethodTableBucket* find_entry(STATE, Symbol* name);
+    MethodTableBucket* find_entry(Symbol* name);
 
     // Ruby.primitive :methodtable_lookup
     MethodTableBucket* lookup(STATE, Symbol* name);

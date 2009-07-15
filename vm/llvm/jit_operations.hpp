@@ -247,6 +247,10 @@ namespace rubinius {
       return create_equal(lint, zero, "is_fixnum");
     }
 
+    Value* check_is_immediate(Value* obj, Object* imm) {
+      return create_equal(obj, constant(imm), "is_immediate");
+    }
+
     void verify_guard(Value* cmp, BasicBlock* failure) {
       BasicBlock* cont = new_block("guarded_body");
       create_conditional_branch(cont, failure, cmp);
@@ -257,12 +261,27 @@ namespace rubinius {
     }
 
     void check_class(Value* obj, Class* klass, BasicBlock* failure) {
-      if(klass->instance_type()->to_native() == rubinius::Symbol::type) {
+      object_type type = (object_type)klass->instance_type()->to_native();
+
+      switch(type) {
+      case rubinius::Symbol::type:
         verify_guard(check_is_symbol(obj), failure);
-      } else if(klass->instance_type()->to_native() == rubinius::Fixnum::type) {
+        break;
+      case rubinius::Fixnum::type:
         verify_guard(check_is_fixnum(obj), failure);
-      } else {
+        break;
+      case NilType:
+        verify_guard(check_is_immediate(obj, Qnil), failure);
+        break;
+      case TrueType:
+        verify_guard(check_is_immediate(obj, Qtrue), failure);
+        break;
+      case FalseType:
+        verify_guard(check_is_immediate(obj, Qfalse), failure);
+        break;
+      default:
         check_reference_class(obj, klass->class_id(), failure);
+        break;
       }
     }
 

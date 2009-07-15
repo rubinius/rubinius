@@ -172,8 +172,13 @@ namespace rubinius {
   void VM::initialize_builtin_classes() {
     // Create the immediate classes.
     GO(nil_class).set(new_class("NilClass"));
+    G(nil_class)->set_object_type(state, NilType);
+
     GO(true_class).set(new_class("TrueClass"));
+    G(true_class)->set_object_type(state, TrueType);
+
     GO(false_class).set(new_class("FalseClass"));
+    G(false_class)->set_object_type(state, FalseType);
 
     Class* numeric = new_class("Numeric");
     GO(numeric).set(numeric);

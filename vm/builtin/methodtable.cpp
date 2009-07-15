@@ -149,6 +149,22 @@ namespace rubinius {
     return 0;
   }
 
+  MethodTableBucket* MethodTable::find_entry(Symbol* name) {
+    unsigned int bin;
+
+    bin = find_bin(key_hash(name), bins_->to_native());
+    MethodTableBucket *entry = try_as<MethodTableBucket>(values_->at(bin));
+
+    while(entry) {
+      if(entry->name() == name) {
+        return entry;
+      }
+      entry = try_as<MethodTableBucket>(entry->next());
+    }
+
+    return 0;
+  }
+
   MethodTableBucket* MethodTable::lookup(STATE, Symbol* name) {
     if(MethodTableBucket* bucket = find_entry(state, name)) {
       return bucket;
