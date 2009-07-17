@@ -1,20 +1,31 @@
 module Rubinius
   class Melbourne
+
+    AST = Compiler::Node
+
     attr_accessor :top
     attr_accessor :current
+    attr_accessor :compiler
 
-    def initialize
-      @current = @top = Compiler::Node::AST.new(nil)
+    def initialize(name)
+      @name = name
+      @compiler = nil # Compiler.new TestGenerator
+      @current = @top = AST::Top.new(nil)
+    end
+
+    def syntax_error
+      raise @exc if @exc
     end
 
     def insert(node)
       # TODO: delegate to node
-      @current = node
+      @current.add node
     end
 
-    def process_leave(node)
-      # TODO: delegate to node
-      @current = node if node
+    def process_parse_error(message, column, line, source)
+      @exc = SyntaxError.new message
+      @exc.import_position column, line, source
+      @exc.file = @name
     end
 
     def process_dangling_node
@@ -24,306 +35,309 @@ module Rubinius
 
     # This method is analogous to #method_missing. It is called
     # if there is no processing method defined for a node.
-    def process_missing_node(file, line, node_name, node_type)
+    def process_missing_node(line, node_name, node_type)
       puts "Unhandled node #{node_name} (#{node_type})"
     end
 
     # TODO: remove when all processors are defined
     def method_missing(sym, *args)
-      puts "#{sym} #{args.map { |x| x.inspect}.join(", ")}"
+      #puts "#{sym} #{args.map { |x| x.inspect}.join(", ")}"
     end
 
 
     # Processing methods
 
-    def process_alias(file, line, to, from)
+    def process_alias(line, to, from)
       # insert [:alias, [:lit, to], [:lit, from]]
     end
 
-    def process_and(file, line)
+    def process_and(line)
     end
 
-    def process_args(file, line)
+    def process_args(line)
     end
 
-    def process_argscat(file, line)
+    def process_argscat(line)
     end
 
-    def process_argspush(file, line)
+    def process_argspush(line)
     end
 
-    def process_array(file, line)
+    def process_array(line)
     end
 
-    def process_attrasgn(file, line, sym)
+    def process_attrasgn(line, sym)
     end
 
-    def process_attrset(file, line, sym)
+    def process_attrset(line, sym)
     end
 
-    def process_back_ref(file, line, ref)
+    def process_back_ref(line, ref)
     end
 
-    def process_begin(file, line)
+    def process_begin(line)
     end
 
-    def process_block(file, line)
+    def process_block(line)
       # insert [:block]
     end
 
-    def process_block_arg(file, line, foo)
+    def process_block_arg(line, foo)
     end
 
-    def process_block_pass(file, line)
+    def process_block_pass(line)
     end
 
-    def process_break(file, line)
+    def process_break(line)
     end
 
-    def process_call(file, line, arg)
+    def process_call(line, arg)
     end
 
-    def process_case(file, line)
+    def process_case(line)
     end
 
-    def process_cdecl( file, line)
+    def process_cdecl( line)
     end
 
-    def process_class(file, line)
+    def process_class(line)
     end
 
-    def process_colon2(file, line, sym)
+    def process_colon2(line, sym)
     end
 
-    def process_colon3(file, line, sym)
+    def process_colon3(line, sym)
       # insert [:colon3, [:lit, sym]]
     end
 
-    def process_const(file, line, sym)
+    def process_const(line, sym)
     end
 
-    def process_cvar(file, line, sym)
+    def process_cvar(line, sym)
     end
 
-    def process_cvasgn(file, line, sym)
+    def process_cvasgn(line, sym)
     end
 
-    def process_cvdecl(file, line, sym)
+    def process_cvdecl(line, sym)
     end
 
-    def process_defined(file, line)
+    def process_defined(line)
     end
 
-    def process_defn(file, line, sym)
+    def process_defn(line, sym)
     end
 
-    def process_defs(file, line, sym)
+    def process_defs(line, sym)
     end
 
-    def process_dot2(file, line)
+    def process_dot2(line)
     end
 
-    def process_dot3(file, line)
+    def process_dot3(line)
     end
 
-    def process_dvar(file, line, sym)
+    def process_dvar(line, sym)
     end
 
-    def process_ensure(file, line)
+    def process_ensure(line)
     end
 
-    def process_evstr(file, line)
+    def process_evstr(line)
     end
 
-    def process_false(file, line)
+    def process_false(line)
     end
 
-    def process_fbody(file, line)
+    def process_fbody(line)
     end
 
-    def process_fcall(file, line, arg)
+    def process_fcall(line, arg)
     end
 
-    def process_fixnum(file, line, value)
+    def process_fixnum(line, value)
       # insert [:lit, value]
     end
 
-    def process_flip2(file, line)
+    def process_flip2(line)
     end
 
-    def process_flip3(file, line)
+    def process_flip3(line)
     end
 
-    def process_float(file, line, str)
+    def process_float(line, str)
       # insert [:lit, str.to_f]
     end
 
-    def process_for(file, line)
+    def process_for(line)
     end
 
-    def process_gasgn(file, line, sym)
+    def process_gasgn(line, sym)
     end
 
-    def process_gvar(file, line, sym)
+    def process_gvar(line, sym)
     end
 
-    def process_hash(file, line)
+    def process_hash(line)
     end
 
-    def process_iasgn(file, line, sym)
+    def process_iasgn(line, sym)
     end
 
-    def process_if(file, line)
+    def process_if(line)
     end
 
-    def process_iter(file, line)
+    def process_iter(line)
     end
 
-    def process_ivar(file, line, sym)
+    def process_ivar(line, sym)
     end
 
-    def process_lasgn(file, line, sym)
+    def process_lasgn(line, sym)
       # insert [:lasgn, sym]
     end
 
-    def process_lit(file, line, sym)
+    def process_lit(line, sym)
       # insert [:lit, sym]
     end
 
-    def process_lvar(file, line, sym)
+    def process_lvar(line, sym)
     end
 
-    def process_masgn(file, line)
+    def process_masgn(line)
     end
 
-    def process_match(file, line, regexp, flag)
+    def process_match(line, regexp, flag)
     end
 
-    def process_match2(file, line)
+    def process_match2(line)
     end
 
-    def process_match3(file, line)
+    def process_match3(line)
     end
 
-    def process_method(file, line)
+    def process_method(line)
     end
 
-    def process_module(file, line)
+    def process_module(line)
     end
 
-    def process_negate(file, line)
+    def process_negate(line)
     end
 
-    def process_next(file, line)
+    def process_next(line)
     end
 
-    def process_nil(file, line)
+    def process_nil(line)
       # insert [:nil]
     end
 
-    def process_not(file, line)
+    def process_not(line)
     end
 
-    def process_nth_ref(file, line, ref)
+    def process_nth_ref(line, ref)
     end
 
-    def process_number(file, line, base, str)
+    def process_number(line, base, str)
       # insert [:lit, str.to_i(base)]
+      number = AST::Literal.new @compiler
+      number = number.normalize(str.to_i(base))
+      insert number
     end
 
-    def process_op_asgn1(file, line)
+    def process_op_asgn1(line)
     end
 
-    def process_op_asgn2(file, line)
+    def process_op_asgn2(line)
     end
 
-    def process_op_asgn_and(file, line)
+    def process_op_asgn_and(line)
     end
 
-    def process_op_asgn_or(file, line)
+    def process_op_asgn_or(line)
     end
 
-    def process_opt_n(file, line)
+    def process_opt_n(line)
     end
 
-    def process_or(file, line)
+    def process_or(line)
     end
 
-    def process_redo(file, line)
+    def process_redo(line)
     end
 
-    def process_regex(file, line, regexp, flags)
+    def process_regex(line, regexp, flags)
     end
 
-    def process_resbody(file, line)
+    def process_resbody(line)
     end
 
-    def process_rescue(file, line)
+    def process_rescue(line)
     end
 
-    def process_retry(file, line)
+    def process_retry(line)
     end
 
-    def process_return(file, line)
+    def process_return(line)
     end
 
-    def process_sclass(file, line)
+    def process_sclass(line)
     end
 
-    def process_scope(file, line)
+    def process_scope(line)
     end
 
-    def process_self(file, line)
+    def process_self(line)
     end
 
-    def process_splat(file, line)
+    def process_splat(line)
     end
 
-    def process_str(file, line, foo)
+    def process_str(line, foo)
     end
 
-    def process_super(file, line)
+    def process_super(line)
     end
 
-    def process_svalue(file, line)
+    def process_svalue(line)
     end
 
-    def process_to_ary(file, line)
+    def process_to_ary(line)
     end
 
-    def process_true(file, line)
+    def process_true(line)
     end
 
-    def process_undef(file, line, sym)
+    def process_undef(line, sym)
       # insert [:undef, [:lit, sym]]
     end
 
-    def process_until(file, line)
+    def process_until(line)
     end
 
-    def process_valias(file, line, to, from)
+    def process_valias(line, to, from)
       # insert [:valias, to, from]
     end
 
-    def process_vcall(file, line, arg)
+    def process_vcall(line, arg)
     end
 
-    def process_when(file, line)
+    def process_when(line)
     end
 
-    def process_while(file, line)
+    def process_while(line)
     end
 
-    def process_xstr(file, line, str)
+    def process_xstr(line, str)
     end
 
-    def process_yield(file, line)
+    def process_yield(line)
     end
 
-    def process_zarray(file, line)
+    def process_zarray(line)
     end
 
-    def process_zsuper(file, line)
+    def process_zsuper(line)
     end
   end
 end

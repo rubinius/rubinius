@@ -152,6 +152,7 @@ namespace :extension do
     "lib/ext/melbourne/node_types.cpp",
     "lib/ext/melbourne/var_table.hpp",
     "lib/ext/melbourne/var_table.cpp",
+    "vm/capi/ruby.h"
   ] do
     compile_extension "lib/ext/melbourne"
   end

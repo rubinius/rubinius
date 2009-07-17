@@ -93,6 +93,7 @@ namespace melbourne {
     int memory_size;
 
     VALUE error;
+    VALUE processor;
 
   } rb_parse_state;
 

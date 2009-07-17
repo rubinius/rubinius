@@ -6,14 +6,18 @@ extern "C" {
 #endif
 
 VALUE melbourne_string_to_ast(VALUE self, VALUE source, VALUE name, VALUE line) {
-  bstring bstr = blk2bstr(RSTRING_PTR(source), RSTRING_LEN(source));
-  return melbourne::string_to_ast(self, RSTRING_PTR(name), bstr, FIX2INT(line));
+  bstring b_str = blk2bstr(RSTRING_PTR(source), RSTRING_LEN(source));
+  VALUE result = melbourne::string_to_ast(self, RSTRING_PTR(name), b_str, FIX2INT(line));
+  bdestroy(b_str);
+
+  return result;
 }
 
 VALUE melbourne_file_to_ast(VALUE self, VALUE fname, VALUE start) {
   FILE *file = fopen(RSTRING_PTR(fname), "r");
   VALUE result = melbourne::file_to_ast(self, RSTRING_PTR(fname), file, FIX2INT(start));
   fclose(file);
+
   return result;
 }
 

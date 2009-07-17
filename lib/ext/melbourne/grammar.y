@@ -2059,11 +2059,6 @@ regexp          : tREGEXP_BEG xstring_contents tREGEXP_END
                             {
                                 nd_set_type(node, NODE_REGEX);
                                 node->nd_cnt = options & ~RE_OPTION_ONCE;
-                                /*
-                                node->nd_lit = rb_reg_new(RSTRING(src)->ptr,
-                                                          RSTRING(src)->len,
-                                                          options & ~RE_OPTION_ONCE);
-                                */
                             }
                             break;
                           default:
@@ -2623,7 +2618,7 @@ lex_getline(rb_parse_state *parse_state)
   return parse_state->lex_gets(parse_state);
 }
 
-void process_parse_tree(rb_parse_state*, VALUE, NODE*, QUID*);
+VALUE process_parse_tree(rb_parse_state*, VALUE, NODE*, QUID*);
 
 VALUE
 string_to_ast(VALUE ptp, const char *f, bstring s, int line)
@@ -2638,16 +2633,16 @@ string_to_ast(VALUE ptp, const char *f, bstring s, int line)
     parse_state->lex_p = 0;
     parse_state->lex_pend = 0;
     parse_state->error = Qfalse;
+    parse_state->processor = ptp;
     ruby_sourceline = line - 1;
     compile_for_eval = 1;
 
     n = yycompile(parse_state, (char*)f, line);
 
     if(parse_state->error == Qfalse) {
-        process_parse_tree(parse_state, ptp, parse_state->top, NULL);
-        ret = Qnil;
+        ret = process_parse_tree(parse_state, ptp, parse_state->top, NULL);
     } else {
-        ret = parse_state->error;
+        ret = Qnil;
     }
     pt_free(parse_state);
     free(parse_state);
@@ -2693,15 +2688,15 @@ file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
     parse_state->lex_p = 0;
     parse_state->lex_pend = 0;
     parse_state->error = Qfalse;
+    parse_state->processor = ptp;
     ruby_sourceline = start - 1;
 
     n = yycompile(parse_state, (char*)f, start);
 
     if(parse_state->error == Qfalse) {
-        process_parse_tree(parse_state, ptp, parse_state->top, NULL);
-        ret = Qnil;
+        ret = process_parse_tree(parse_state, ptp, parse_state->top, NULL);
     } else {
-        ret = parse_state->error;
+        ret = Qnil;
     }
 
     pt_free(parse_state);

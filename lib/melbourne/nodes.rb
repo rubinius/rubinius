@@ -24,9 +24,18 @@ end
 
 class Compiler
   class Node
-    class AST < Node
+    def add(node)
+    end
+
+    class Top < Node
+      attr_accessor :child
+
+      def add(node)
+        @child = node
+      end
+
       def bytecode(g)
-        @body.bytecode(g)
+        @child.bytecode(g)
       end
     end
   end
