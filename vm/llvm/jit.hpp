@@ -55,11 +55,17 @@ namespace rubinius {
   struct JITBasicBlock {
     llvm::BasicBlock* block;
     int sp;
+    int start_ip;
+    int end_ip;
+    bool reachable;
 
   public:
     JITBasicBlock()
       : block(0)
       , sp(-1)
+      , start_ip(0)
+      , end_ip(0)
+      , reachable(false)
     {}
   };
 

@@ -816,10 +816,11 @@ namespace rubinius {
     int number_of_sends_;
     bool loops_;
     int sp_;
+    JITBasicBlock* current_block_;
 
   public:
 
-    BlockFinder(BlockMap& map, Function* func)
+    BlockFinder(BlockMap& map, Function* func, BasicBlock* start)
       : map_(map)
       , function_(func)
       , current_ip_(0)
@@ -828,7 +829,13 @@ namespace rubinius {
       , number_of_sends_(0)
       , loops_(false)
       , sp_(-1)
-    {}
+    {
+      JITBasicBlock& jbb = map_[0];
+      jbb.reachable = true;
+      jbb.block = start;
+
+      current_block_ = &jbb;
+    }
 
     bool creates_blocks() {
       return creates_blocks_;
@@ -859,7 +866,7 @@ namespace rubinius {
 
 #include "gen/inst_stack.hpp"
 
-    void before(opcode op, opcode arg1=0, opcode arg2=0) {
+    bool before(opcode op, opcode arg1=0, opcode arg2=0) {
       BlockMap::iterator i = map_.find(current_ip_);
       if(i != map_.end()) {
         if(i->second.sp == cUnknown) {
@@ -873,15 +880,14 @@ namespace rubinius {
             std::cout << current_ip_ << ": " << sp_ << " (reset)\n";
           }
         }
+
+        current_block_ = &i->second;
       } else {
         if(force_break_) {
           if(cDebugStack) {
-            std::cout << current_ip_ << ": unknown\n";
+            std::cout << current_ip_ << ": dead\n";
           }
-          break_at(current_ip_, true);
-          force_break_ = false;
-          sp_ = cUnknown;
-          return;
+          return false;
         }
 
         if(cDebugStack) {
@@ -889,37 +895,38 @@ namespace rubinius {
         }
       }
 
+      // Update current_block everytime. When current_block changes,
+      // previous current blocks will thereby contain their real end_ip
+      current_block_->end_ip = current_ip_;
+
       force_break_ = false;
       if(sp_ != cUnknown) {
         sp_ += stack_difference(op, arg1, arg2);
         assert(sp_ >= -1);
       }
+
+      return true;
     }
 
-    void break_at(int ip, bool unreachable=false) {
+    void break_at(opcode ip) {
       BlockMap::iterator i = map_.find(ip);
       if(i == map_.end()) {
         std::ostringstream ss;
         ss << "ip" << ip;
         JITBasicBlock& jbb = map_[ip];
         jbb.block = BasicBlock::Create(ss.str().c_str(), function_);
-        if(unreachable) {
-          jbb.sp = cUnknown;
-        } else {
-          jbb.sp = sp_;
+        jbb.start_ip = ip;
+        jbb.sp = sp_;
+
+        if(ip < current_ip_) {
+          jbb.end_ip = current_ip_;
         }
 
         if(cDebugStack) {
           std::cout << "patch " << ip << ": " << jbb.sp << "\n";
         }
       } else {
-        if(!unreachable) {
-          if(i->second.sp == cUnknown) {
-            i->second.sp = sp_;
-          } else if(sp_ != cUnknown) {
-            assert(i->second.sp == sp_);
-          }
-        }
+        assert(i->second.sp == sp_);
       }
     }
 
@@ -938,18 +945,21 @@ namespace rubinius {
       if(current_ip_ < which) loops_ = true;
 
       break_at(which);
+      break_at(current_ip_ + 2);
     }
 
     void visit_goto_if_false(opcode which) {
       if(current_ip_ < which) loops_ = true;
 
       break_at(which);
+      break_at(current_ip_ + 2);
     }
 
     void visit_goto_if_defined(opcode which) {
       if(current_ip_ < which) loops_ = true;
 
       break_at(which);
+      break_at(current_ip_ + 2);
     }
 
     void visit_setup_unwind(opcode which, opcode type) {
@@ -1026,7 +1036,7 @@ namespace rubinius {
     visitor.set_called_args(info.called_args);
 
     // Pass 1, detect BasicBlock boundaries
-    BlockFinder finder(visitor.block_map(), func);
+    BlockFinder finder(visitor.block_map(), func, block);
     finder.drive(info.vmm);
 
     // DISABLED: This still has problems.
@@ -1038,9 +1048,46 @@ namespace rubinius {
       visitor.visit_check_interrupts();
     }
 
+    // std::cout << info.vmm << " start: " << info.vmm->total << "\n";
+
+    // Fix up the JITBasicBlock's so that the ranges don't overlap
+    // (overlap is caused by a backward branch)
+    JITBasicBlock* prev = 0;
+    BlockMap& bm = visitor.block_map();
+    for(BlockMap::iterator i = bm.begin();
+          i != bm.end();
+          i++) {
+      JITBasicBlock& jbb = i->second;
+      if(prev && prev->end_ip >= jbb.start_ip) {
+        /*
+        std::cout << info.vmm << " overlap: "
+          << prev->start_ip << "-" << prev->end_ip << " "
+          << jbb.start_ip << "-" << jbb.end_ip
+          << "\n";
+        */
+        prev->end_ip = jbb.start_ip - 1;
+
+        /*
+        std::cout << info.vmm << " split region: " << prev->end_ip << "\n";
+        */
+      }
+
+      prev = &jbb;
+    }
+
     // Pass 2, compile!
     try {
-      visitor.drive(info.vmm);
+      // Drive visitor for only blocks, as they contain all live regions
+      for(BlockMap::iterator i = bm.begin();
+          i != bm.end();
+          i++) {
+        JITBasicBlock& jbb = i->second;
+        /*
+        std::cout << info.vmm
+          << " Driving: " << jbb.start_ip << "-" << jbb.end_ip << "\n";
+        */
+        visitor.drive(info.vmm->opcodes, jbb.end_ip+1, jbb.start_ip);
+      }
     } catch(JITVisit::Unsupported &e) {
       return false;
     }

@@ -320,21 +320,24 @@ namespace rubinius {
     }
 
     void at_ip(int ip) {
+      // Bad startup edge case
+      if(ip == 0) return;
+
       BlockMap::iterator i = block_map_.find(ip);
       if(i != block_map_.end()) {
         JITBasicBlock& jbb = i->second;
-        BasicBlock* next = jbb.block;
-        if(!block_->getTerminator()) {
-          BranchInst::Create(next, block_);
+        if(BasicBlock* next = jbb.block) {
+          if(!block_->getTerminator()) {
+            BranchInst::Create(next, block_);
+          }
+
+          // std::cout << ip << ": " << jbb.sp << "\n";
+
+          next->moveAfter(block_);
+
+          block_ = next;
         }
-
-        // std::cout << ip << ": " << jbb.sp << "\n";
-
         if(jbb.sp != -10) set_sp(jbb.sp);
-
-        next->moveAfter(block_);
-
-        block_ = next;
       }
 
       remember_sp();

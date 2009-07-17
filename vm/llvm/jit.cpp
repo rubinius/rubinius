@@ -19,7 +19,7 @@
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/CallingConv.h>
-
+#include <llvm/Support/CFG.h>
 #include <sstream>
 
 using namespace llvm;
@@ -478,7 +478,32 @@ namespace rubinius {
       std::cout << *func << "\n";
     }
 
-    if(llvm::verifyFunction(*func, PrintMessageAction)) {
+    std::vector<BasicBlock*> to_remove;
+    bool Broken = false;
+    for(Function::iterator I = func->begin(), E = func->end(); I != E; ++I) {
+      if(I->empty()) {
+        BasicBlock& bb = *I;
+        // No one jumps to it....
+        if(llvm::pred_begin(&bb) == llvm::pred_end(&bb)) {
+          to_remove.push_back(&bb);
+        } else {
+          std::cout << "Basic Block is empty and used!\n";
+        }
+      } else if(!I->back().isTerminator()) {
+        std::cerr << "Basic Block does not have terminator!\n";
+        std::cerr << *I << "\n";
+        cerr << "\n";
+        Broken = true;
+      }
+    }
+
+    for(std::vector<BasicBlock*>::iterator i = to_remove.begin();
+        i != to_remove.end();
+        i++) {
+      (*i)->eraseFromParent();
+    }
+
+    if(Broken or llvm::verifyFunction(*func, PrintMessageAction)) {
       std::cout << "ERROR: complication error detected.\n";
       std::cout << "ERROR: Please report the above message and the\n";
       std::cout << "       code below to http://github.com/evanphx/rubinius/issues\n";
