@@ -67,43 +67,13 @@ namespace rubinius {
     return capi::Handle::from(val)->object();
   }
 
-  CApiStructs& NativeMethodFrame::strings() {
-    if(!strings_) strings_ = new CApiStructs;
-    return *strings_;
-  }
-
-  CApiStructs& NativeMethodFrame::arrays() {
-    if(!arrays_) arrays_ = new CApiStructs;
-    return *arrays_;
-  }
-
-  CApiStructs& NativeMethodFrame::data() {
-    if(!data_) data_ = new CApiStructs;
-    return *data_;
-  }
-
   void NativeMethodFrame::flush_cached_data() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     capi::Handles* handles = env->state()->shared.cached_handles();
 
     if(handles->size() > 0) {
       for(capi::Handles::Iterator i(*handles); i.more(); i.advance()) {
-        switch(i->type()) {
-        case capi::cRArray:
-          capi::capi_get_array(env, i->as_value());
-          break;
-        case capi::cRString:
-          capi::capi_get_string(env, i->as_value());
-          break;
-        case capi::cRData:
-          capi::capi_rdata_flush_handle(env, i.current());
-          break;
-        case capi::cRFloat:
-          capi::capi_get_float(env, i->as_value());
-          break;
-        default:
-          break;
-        }
+        i->flush(env);
       }
     }
   }
@@ -114,16 +84,7 @@ namespace rubinius {
 
     if(handles->size() > 0) {
       for(capi::Handles::Iterator i(*handles); i.more(); i.advance()) {
-        switch(i->type()) {
-        case capi::cRArray:
-          capi::capi_update_array(env, i->as_value());
-          break;
-        case capi::cRString:
-          capi::capi_update_string(env, i->as_value());
-          break;
-        default:
-          break;
-        }
+        i->update(env);
       }
     }
   }
@@ -182,18 +143,6 @@ namespace rubinius {
 
   capi::HandleSet& NativeMethodEnvironment::handles() {
     return current_native_frame_->handles();
-  }
-
-  CApiStructs& NativeMethodEnvironment::strings() {
-    return current_native_frame_->strings();
-  }
-
-  CApiStructs& NativeMethodEnvironment::arrays() {
-    return current_native_frame_->arrays();
-  }
-
-  CApiStructs& NativeMethodEnvironment::data() {
-    return current_native_frame_->data();
   }
 
   void NativeMethodEnvironment::flush_cached_data() {

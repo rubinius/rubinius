@@ -186,6 +186,134 @@ VALUE string_spec_STR2CSTR_replace(VALUE self, VALUE str) {
   return Qnil;
 }
 
+#ifdef RUBINIUS
+VALUE string_spec_rb_str_ptr_iterate(VALUE self, VALUE str) {
+  int i;
+  char* ptr;
+
+  ptr = rb_str_ptr(str);
+  for(i = 0; i < RSTRING_LEN(str); i++) {
+    rb_yield(INT2FIX(ptr[i]));
+  }
+  return Qnil;
+}
+
+VALUE string_spec_rb_str_ptr_assign(VALUE self, VALUE str, VALUE chr) {
+  int i;
+  char c;
+  char* ptr;
+
+  ptr = rb_str_ptr(str);
+  c = FIX2INT(chr);
+
+  for(i = 0; i < RSTRING_LEN(str); i++) {
+    ptr[i] = c;
+  }
+  return Qnil;
+}
+
+VALUE string_spec_rb_str_ptr_convert(VALUE self, VALUE str, VALUE more) {
+  char* ptr1 = rb_str_ptr_readonly(str);
+  char* ptr2 = rb_str_ptr(str);
+
+  rb_str_concat(str, more);
+
+  return rb_str_new2(ptr2);
+}
+
+VALUE string_spec_rb_str_ptr_assign_call(VALUE self, VALUE str) {
+  char *ptr = rb_str_ptr(str);
+
+  ptr[1] = 'x';
+  rb_str_concat(str, rb_str_new2("d"));
+  return str;
+}
+
+VALUE string_spec_rb_str_ptr_assign_funcall(VALUE self, VALUE str) {
+  char *ptr = rb_str_ptr(str);
+
+  ptr[1] = 'x';
+  rb_str_flush(str);
+  rb_funcall(str, rb_intern("<<"), 1, rb_str_new2("e"));
+  return str;
+}
+
+VALUE string_spec_rb_str_ptr_readonly_iterate(VALUE self, VALUE str) {
+  int i;
+  char* ptr;
+
+  ptr = rb_str_ptr_readonly(str);
+  for(i = 0; i < RSTRING_LEN(str); i++) {
+    rb_yield(INT2FIX(ptr[i]));
+  }
+  return Qnil;
+}
+
+VALUE string_spec_rb_str_ptr_readonly_assign(VALUE self, VALUE str, VALUE chr) {
+  int i;
+  char c;
+  char* ptr;
+
+  ptr = rb_str_ptr_readonly(str);
+  c = FIX2INT(chr);
+
+  for(i = 0; i < RSTRING_LEN(str); i++) {
+    ptr[i] = c;
+  }
+  return Qnil;
+}
+
+VALUE string_spec_rb_str_ptr_readonly_append(VALUE self, VALUE str, VALUE more) {
+  char *ptr = rb_str_ptr_readonly(str);
+
+  rb_str_concat(str, more);
+
+  return rb_str_new2(ptr);
+}
+
+VALUE string_spec_rb_str_flush_writable(VALUE self, VALUE str) {
+  char *ptr = rb_str_ptr(str);
+
+  ptr[1] = 'B';
+  rb_str_flush(str);
+
+  return Qnil;
+}
+
+VALUE string_spec_rb_str_flush_readonly(VALUE self, VALUE str) {
+  char *ptr = rb_str_ptr_readonly(str);
+
+  ptr[1] = 'b';
+  rb_str_flush(str);
+
+  return Qnil;
+}
+
+VALUE string_spec_rb_str_update_writable(VALUE self, VALUE str, VALUE more) {
+  char *ptr = rb_str_ptr(str);
+
+  rb_str_concat(str, more);
+  rb_str_update(str);
+
+  return rb_str_new2(ptr);
+}
+
+VALUE string_spec_rb_str_update_readonly(VALUE self, VALUE str) {
+  char *ptr = rb_str_ptr_readonly(str);
+
+  ptr[0] = 'q';
+  ptr[1] = 'r';
+  ptr[2] = 's';
+  rb_str_update(str);
+
+  return rb_str_new2(ptr);
+}
+
+VALUE string_spec_rb_str_len(VALUE self, VALUE str) {
+  return INT2FIX(rb_str_len(str));
+}
+#endif
+
 void Init_string_spec() {
   VALUE cls;
   cls = rb_define_class("CApiStringSpecs", rb_cObject);
@@ -223,4 +351,24 @@ void Init_string_spec() {
   rb_define_method(cls, "rb_str2cstr_replace", string_spec_rb_str2cstr_replace, 1);
   rb_define_method(cls, "STR2CSTR", string_spec_STR2CSTR, 1);
   rb_define_method(cls, "STR2CSTR_replace", string_spec_STR2CSTR_replace, 1);
+
+#ifdef RUBINIUS
+  rb_define_method(cls, "rb_str_ptr_iterate", string_spec_rb_str_ptr_iterate, 1);
+  rb_define_method(cls, "rb_str_ptr_assign", string_spec_rb_str_ptr_assign, 2);
+  rb_define_method(cls, "rb_str_ptr_assign_call", string_spec_rb_str_ptr_assign_call, 1);
+  rb_define_method(cls, "rb_str_ptr_convert", string_spec_rb_str_ptr_convert, 2);
+  rb_define_method(cls, "rb_str_ptr_assign_funcall",
+      string_spec_rb_str_ptr_assign_funcall, 1);
+  rb_define_method(cls, "rb_str_len", string_spec_rb_str_len, 1);
+  rb_define_method(cls, "rb_str_ptr_readonly_iterate",
+      string_spec_rb_str_ptr_readonly_iterate, 1);
+  rb_define_method(cls, "rb_str_ptr_readonly_assign",
+      string_spec_rb_str_ptr_readonly_assign, 2);
+  rb_define_method(cls, "rb_str_ptr_readonly_append",
+      string_spec_rb_str_ptr_readonly_append, 2);
+  rb_define_method(cls, "rb_str_flush_writable", string_spec_rb_str_flush_writable, 1);
+  rb_define_method(cls, "rb_str_flush_readonly", string_spec_rb_str_flush_readonly, 1);
+  rb_define_method(cls, "rb_str_update_writable", string_spec_rb_str_update_writable, 2);
+  rb_define_method(cls, "rb_str_update_readonly", string_spec_rb_str_update_readonly, 1);
+#endif
 }

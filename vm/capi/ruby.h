@@ -15,8 +15,6 @@
  *  @todo Blocks/iteration. rb_iterate normally uses fptrs, could
  *        maybe do that or then support 'function objects' --rue
  *
- *  @todo RARRAY, RSTRING etc. --rue
- *
  *  @todo Const correctness. --rue
  *
  *  @todo Add some type of checking for too-long C strings etc? --rue
@@ -532,7 +530,7 @@ double rb_num2dbl(VALUE);
 #define RARRAY_PTR(ary)   (RARRAY(ary)->ptr)
 
 /** The length of string str. */
-#define RSTRING_LEN(str)  (RSTRING(str)->len)
+#define RSTRING_LEN(str)  rb_str_len(str)
 
 /** The pointer to the string str's data. */
 #define RSTRING_PTR(str)  (RSTRING(str)->ptr)
@@ -619,12 +617,6 @@ double rb_num2dbl(VALUE);
 
   /** False if expression evaluates to nil, true otherwise. @internal. */
   int     capi_nil_p(VALUE expression_result);
-
-  /** Length of string string_handle. @internal. */
-  long    capi_rstring_len(VALUE string_handle);
-
-  /** Pointer to string data in string_handle. @internal. */
-  char*   capi_rstring_ptr(VALUE string_handle);
 
   /** Taints obj. @internal. */
   void    capi_taint(VALUE obj);
@@ -1131,6 +1123,39 @@ double rb_num2dbl(VALUE);
   /** Tries to return a String using #to_str. Error raised if no or invalid conversion. */
   VALUE   rb_String(VALUE object_handle);
 
+  /** Returns a pointer to a persistent char [] that contains the same data as
+   * that contained in the Ruby string. The buffer is flushed to the string
+   * when control returns to Ruby code. The buffer is updated with the string
+   * contents when control crosses to C code.
+   *
+   * @note This is NOT an MRI C-API function.
+   */
+  char *rb_str_ptr(VALUE self);
+
+  /** Write the contents of the cached data at the pointer returned by
+   * rb_str_ptr to the Ruby object.
+   *
+   * @note This is NOT an MRI C-API function.
+   */
+  void rb_str_flush(VALUE self);
+
+  /** Update the cached data at the pointer returned by rb_str_ptr with the
+   * contents of the Ruby object.
+   *
+   * @note This is NOT an MRI C-API function.
+   */
+  void rb_str_update(VALUE self);
+
+  /** Returns a pointer to a persistent char [] that contains the same data as
+   * that contained in the Ruby string. The buffer is intended to be
+   * read-only. No changes to the buffer will be propagated to the Ruby
+   * string, and no changes to the Ruby object will be propagated to the
+   * buffer.  The buffer will persist as long as the Ruby string persists.
+   *
+   * @note This is NOT an MRI C-API function.
+   */
+  char* rb_str_ptr_readonly(VALUE self);
+
   /** Appends other String to self and returns the modified self. */
   VALUE   rb_str_append(VALUE self_handle, VALUE other_handle);
 
@@ -1168,6 +1193,13 @@ double rb_num2dbl(VALUE);
 
   /** Returns a symbol created from this string. */
   VALUE   rb_str_intern(VALUE self);
+
+  /** Returns the size of the string. It accesses the size directly and does
+   * not cause the string to be cached.
+   *
+   * @note This is NOT an MRI C-API function.
+   */
+  size_t  rb_str_len(VALUE self);
 
   /** Create a String using the designated length of given C string. */
   VALUE   rb_str_new(const char* string, size_t length);

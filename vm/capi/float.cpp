@@ -11,14 +11,16 @@ namespace rubinius {
 
     Float* capi_get_float(NativeMethodEnvironment* env, VALUE float_handle) {
       Handle* handle = Handle::from(float_handle);
-      Float* float_obj = c_as<Float>(handle->object());
-      if(handle->is_rfloat()) {
-        // Flushing value from the RFloat back to the Float object
-        RFloat* f = handle->as_rfloat(env);
-        float_obj->val = f->value;
-      }
+      handle->flush(env);
+      return c_as<Float>(handle->object());
+    }
 
-      return float_obj;
+    void flush_cached_rfloat(NativeMethodEnvironment* env, Handle* handle) {
+      if(handle->is_rfloat()) {
+        Float* obj = c_as<Float>(handle->object());
+        RFloat* rfloat = handle->as_rfloat(env);
+        obj->val = rfloat->value;
+      }
     }
 
     RFloat* Handle::as_rfloat(NativeMethodEnvironment* env) {
@@ -30,6 +32,8 @@ namespace rubinius {
 
         type_ = cRFloat;
         as_.rfloat = f;
+
+        flush_ = flush_cached_rfloat;
 
         env->state()->shared.global_handles()->move(this,
             env->state()->shared.cached_handles());

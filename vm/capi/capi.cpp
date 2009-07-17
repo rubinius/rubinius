@@ -245,22 +245,6 @@ extern "C" {
     return RBX_NIL_P(env->get_object(expression_result));
   }
 
-  long capi_rstring_len(VALUE string_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    String* string = c_as<String>(env->get_object(string_handle));
-
-    return string->size();
-  }
-
-  char* capi_rstring_ptr(VALUE string_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    String* string = c_as<String>(env->get_object(string_handle));
-
-    return string->byte_address();
-  }
-
   void capi_taint(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 

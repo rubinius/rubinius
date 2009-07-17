@@ -8,82 +8,82 @@
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
 
+#include <cstring>
+
 using namespace rubinius;
 using namespace rubinius::capi;
 
 namespace rubinius {
   namespace capi {
-    // internal helper method
-    static void flush_string(STATE, String* string, struct RString* str) {
-      if(string->size() != str->len) {
-        ByteArray* ba = ByteArray::create(state, str->len+1);
-        string->data(state, ba);
-        string->num_bytes(state, Fixnum::from(str->len));
-        string->characters(state, Fixnum::from(str->len));
-        string->hash_value(state, reinterpret_cast<Integer*>(RBX_Qnil));
-      }
-      std::memcpy(string->byte_address(), str->ptr, str->len);
-      string->byte_address()[str->len] = 0;
-    }
 
     String* capi_get_string(NativeMethodEnvironment* env, VALUE str_handle) {
       if(!env) env = NativeMethodEnvironment::get();
 
       Handle* handle = Handle::from(str_handle);
       String* string = c_as<String>(handle->object());
-      if(handle->is_rstring()) {
-        flush_string(env->state(), string, handle->as_rstring(env));
-      }
+      handle->flush(env);
 
       return string;
-    }
-
-    void capi_rstring_flush(NativeMethodEnvironment* env,
-        CApiStructs& strings, bool release_memory) {
-      for(CApiStructs::iterator iter = strings.begin();
-          iter != strings.end();
-          iter++) {
-        Handle* handle = iter->first;
-        String* string = c_as<String>(handle->object());
-        if(handle->is_rstring()) {
-          flush_string(env->state(), string, handle->as_rstring(env));
-        }
-
-        if(release_memory) handle->free_data();
-      }
-    }
-
-    // internal helper method
-    static void update_string(STATE, String* string, struct RString* str) {
-      size_t size = string->size();
-
-      if(str->len != size) {
-        delete[] str->dmwmb;
-        str->dmwmb = str->ptr = new char[size+1];
-        str->aux.capa = str->len = size;
-      }
-
-      std::memcpy(str->ptr, string->byte_address(), size);
-      str->ptr[size] = 0;
     }
 
     void capi_update_string(NativeMethodEnvironment* env, VALUE str_handle) {
       if(!env) env = NativeMethodEnvironment::get();
 
       Handle* handle = Handle::from(str_handle);
-      if(handle->is_rstring()) {
-        String* string = c_as<String>(handle->object());
-        update_string(env->state(), string, handle->as_rstring(env));
+      handle->update(env);
+    }
+
+    void flush_cached_rstring(NativeMethodEnvironment* env, Handle* handle) {
+      if(handle->is_rstring() && handle->is_writable()) {
+        String* string = as<String>(handle->object());
+        RString* rstring = handle->as_rstring(env);
+
+        if(string->size() != rstring->len) {
+          ByteArray* ba = ByteArray::create(env->state(), rstring->len+1);
+          string->data(env->state(), ba);
+          string->num_bytes(env->state(), Fixnum::from(rstring->len));
+          string->characters(env->state(), Fixnum::from(rstring->len));
+          string->hash_value(env->state(), reinterpret_cast<Integer*>(RBX_Qnil));
+        }
+        std::memcpy(string->byte_address(), rstring->ptr, rstring->len);
+        string->byte_address()[rstring->len] = 0;
       }
     }
 
-    void capi_rstring_update(NativeMethodEnvironment* env, CApiStructs& strings) {
-      for(CApiStructs::iterator iter = strings.begin();
-          iter != strings.end();
-          iter++) {
-        Handle* handle = iter->first;
+    void update_cached_rstring(NativeMethodEnvironment* env, Handle* handle) {
+      if(handle->is_rstring() && handle->is_writable()) {
         String* string = c_as<String>(handle->object());
-        update_string(env->state(), string, handle->as_rstring(env));
+        RString* rstring = handle->as_rstring(env);
+
+        size_t size = string->size();
+
+        if(rstring->len != size) {
+          delete[] rstring->dmwmb;
+          rstring->dmwmb = rstring->ptr = new char[size+1];
+          rstring->aux.capa = rstring->len = size;
+        }
+
+        std::memcpy(rstring->ptr, string->byte_address(), size);
+        rstring->ptr[size] = 0;
+      }
+    }
+
+    void Handle::rstring_auto_update(NativeMethodEnvironment* env) {
+      if(update_type_ != cAutoUpdate) {
+        update_type_ = cAutoUpdate;
+        flush_ = flush_cached_rstring;
+        update_ = update_cached_rstring;
+
+        env->state()->shared.global_handles()->move(this,
+            env->state()->shared.cached_handles());
+      }
+    }
+
+    void Handle::rstring_writable(NativeMethodEnvironment* env) {
+      if(update_type_ == cReadOnly) {
+        update_type_ = cWritable;
+        flush_ = flush_cached_rstring;
+        update_ = update_cached_rstring;
       }
     }
 
@@ -104,9 +104,6 @@ namespace rubinius {
 
         type_ = cRString;
         as_.rstring = str;
-
-        env->state()->shared.global_handles()->move(this,
-            env->state()->shared.cached_handles());
       }
 
       return as_.rstring;
@@ -118,7 +115,11 @@ extern "C" {
   struct RString* capi_rstring_struct(VALUE str_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return Handle::from(str_handle)->as_rstring(env);
+    Handle* handle = Handle::from(str_handle);
+    RString* rstring = handle->as_rstring(env);
+    handle->rstring_auto_update(env);
+
+    return rstring;
   }
 
   VALUE rb_String(VALUE object_handle) {
@@ -333,5 +334,44 @@ extern "C" {
       rb_warn("string contains \\0 character");
     }
     return ptr;
+  }
+
+  char* rb_str_ptr(VALUE self) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Handle* handle = Handle::from(self);
+    RString* rstring = handle->as_rstring(env);
+    handle->rstring_writable(env);
+
+    return rstring->ptr;
+  }
+
+  void rb_str_flush(VALUE self) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Handle* handle = Handle::from(self);
+    handle->flush(env);
+  }
+
+  void rb_str_update(VALUE self) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Handle* handle = Handle::from(self);
+    handle->update(env);
+  }
+
+  char* rb_str_ptr_readonly(VALUE self) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    RString* rstr = Handle::from(self)->as_rstring(env);
+
+    return rstr->ptr;
+  }
+
+  size_t rb_str_len(VALUE self) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    String* string = capi_get_string(env, self);
+    return string->size();
   }
 }

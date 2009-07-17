@@ -112,15 +112,6 @@ namespace rubinius {
     /** Set of Handles available in current Frame (convenience.) */
     capi::HandleSet& handles();
 
-    /** Returns the map of RSTRING structs in the current NativeMethodFrame. */
-    CApiStructs& strings();
-
-    /** Return the map of RDATA structs in  the current NativeMethodFrame. */
-    CApiStructs& data();
-
-    /** Return the map of RARRAY structs in the current NativeMethodFrame. */
-    CApiStructs& arrays();
-
     /** Flush RARRAY, RSTRING, etc. caches, possibly releasing memory. */
     void flush_cached_data();
 
@@ -137,19 +128,10 @@ namespace rubinius {
     NativeMethodFrame* previous_;
     /** HandleSet to Objects used in this Frame. */
     capi::HandleSet handles_;
-    /** RARRAY structs allocated during this call. */
-    CApiStructs* arrays_;
-    /** RDATA structs allocated during this call. */
-    CApiStructs* data_;
-    /** RSTRING structs allocated during this call. */
-    CApiStructs* strings_;
 
   public:
     NativeMethodFrame(NativeMethodFrame* prev)
-      : previous_(prev),
-        arrays_(NULL),
-        data_(NULL),
-        strings_(NULL)
+      : previous_(prev)
     {}
 
     ~NativeMethodFrame();
@@ -184,15 +166,6 @@ namespace rubinius {
     NativeMethodFrame* previous() {
       return previous_;
     }
-
-    /** Returns the map of RSTRING structs in this frame. */
-    CApiStructs& strings();
-
-    /** Return the map of RARRAY structs in this frame. */
-    CApiStructs& arrays();
-
-    /** Return the map of RDATA structs in this frame. */
-    CApiStructs& data();
   };
 
 

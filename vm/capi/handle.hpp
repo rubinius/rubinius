@@ -27,11 +27,24 @@ namespace rubinius {
       cRFloat
     };
 
+    enum UpdateType {
+      cReadOnly,
+      cWritable,
+      cAutoUpdate
+    };
+
     class Handle : public LinkedList::Node {
       Object* object_;
       HandleType type_;
       int references_;
       unsigned int checksum_;
+      UpdateType update_type_;
+
+      typedef void (*CApiCacheFlusher)(NativeMethodEnvironment* env, Handle* handle);
+      typedef void (*CApiCacheUpdater)(NativeMethodEnvironment* env, Handle* handle);
+
+      CApiCacheFlusher flush_;
+      CApiCacheUpdater update_;
 
       union {
         RArray*   rarray;
@@ -48,11 +61,22 @@ namespace rubinius {
         , type_(cUnknown)
         , references_(0)
         , checksum_(0xffff)
+        , update_type_(cReadOnly)
+        , flush_(0)
+        , update_(0)
       {
         as_.cache_data = 0;
       }
 
       ~Handle();
+
+      void flush(NativeMethodEnvironment* env) {
+        if(flush_) (*flush_)(env, this);
+      }
+
+      void update(NativeMethodEnvironment* env) {
+        if(update_) (*update_)(env, this);
+      }
 
       bool valid_p() {
         return checksum_ == 0xffff;
@@ -114,10 +138,17 @@ namespace rubinius {
          return type_;
       }
 
+      bool is_writable() {
+        return update_type_ == cAutoUpdate || update_type_ == cWritable;
+      }
+
       RArray* as_rarray(NativeMethodEnvironment* env);
       RData*  as_rdata(NativeMethodEnvironment* env);
       RString* as_rstring(NativeMethodEnvironment* env);
       RFloat* as_rfloat(NativeMethodEnvironment* env);
+
+      void rstring_auto_update(NativeMethodEnvironment* env);
+      void rstring_writable(NativeMethodEnvironment* env);
 
       void free_data();
     };

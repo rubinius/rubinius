@@ -13,86 +13,60 @@ using namespace rubinius::capi;
 
 namespace rubinius {
   namespace capi {
-    // internal helper method
-    static void flush_array(NativeMethodEnvironment* env,
-        Array* array, struct RArray* ary) {
-      size_t size = array->size();
-
-      if(size != ary->len) {
-        Tuple* tuple = Tuple::create(env->state(), ary->len);
-        array->tuple(env->state(), tuple);
-        array->start(env->state(), Fixnum::from(0));
-        array->total(env->state(), Fixnum::from(ary->len));
-      }
-
-      for(size_t i = 0; i < size; i++) {
-        array->set(env->state(), i, env->get_object(ary->ptr[i]));
-      }
-    }
 
     Array* capi_get_array(NativeMethodEnvironment* env, VALUE val) {
       if(!env) env = NativeMethodEnvironment::get();
 
       Handle* handle = Handle::from(val);
       Array* array = c_as<Array>(handle->object());
-      if(handle->is_rarray()) {
-        flush_array(env, array, handle->as_rarray(env));
-      }
+      handle->flush(env);
 
       return array;
-    }
-
-    void capi_rarray_flush(NativeMethodEnvironment* env,
-        CApiStructs& arrays, bool release_memory) {
-      Array* array;
-
-      for(CApiStructs::iterator iter = arrays.begin();
-          iter != arrays.end();
-          iter++) {
-        Handle* handle = iter->first;
-        array = c_as<Array>(handle->object());
-
-        if(handle->is_rarray()) {
-          flush_array(env, array, handle->as_rarray(env));
-        }
-
-        if(release_memory) {
-          handle->free_data();
-        }
-      }
-    }
-
-    // internal helper method
-    static void update_array(NativeMethodEnvironment* env, Array* array, struct RArray* ary) {
-      size_t size = array->size();
-
-      if(ary->len != size) {
-        delete[] ary->dmwmb;
-        ary->dmwmb = ary->ptr = new VALUE[size];
-        ary->aux.capa = ary->len = size;
-      }
-
-      for(size_t i = 0; i < size; i++) {
-        ary->ptr[i] = env->get_handle(array->get(env->state(), i));
-      }
     }
 
     void capi_update_array(NativeMethodEnvironment* env, VALUE ary_handle) {
       if(!env) env = NativeMethodEnvironment::get();
 
       Handle* handle = Handle::from(ary_handle);
+      handle->update(env);
+    }
+
+    void flush_cached_rarray(NativeMethodEnvironment* env, Handle* handle) {
       if(handle->is_rarray()) {
-        Array* array = c_as<Array>(handle->object());
-        update_array(env, array, handle->as_rarray(env));
+        Array* array = as<Array>(handle->object());
+        RArray* rarray = handle->as_rarray(env);
+
+        size_t size = array->size();
+
+        if(size != rarray->len) {
+          Tuple* tuple = Tuple::create(env->state(), rarray->len);
+          array->tuple(env->state(), tuple);
+          array->start(env->state(), Fixnum::from(0));
+          array->total(env->state(), Fixnum::from(rarray->len));
+        }
+
+        for(size_t i = 0; i < size; i++) {
+          array->set(env->state(), i, env->get_object(rarray->ptr[i]));
+        }
       }
     }
 
-    void capi_rarray_update(NativeMethodEnvironment* env, CApiStructs& arrays) {
-      for(CApiStructs::iterator iter = arrays.begin();
-          iter != arrays.end();
-          iter++) {
-        Array* array = c_as<Array>(env->get_object(iter->first->as_value()));
-        update_array(env, array, iter->first->as_rarray(env));
+    void update_cached_rarray(NativeMethodEnvironment* env, Handle* handle) {
+      if(handle->is_rarray()) {
+        Array* array = c_as<Array>(handle->object());
+        RArray* rarray = handle->as_rarray(env);
+
+        size_t size = array->size();
+
+        if(rarray->len != size) {
+          delete[] rarray->dmwmb;
+          rarray->dmwmb = rarray->ptr = new VALUE[size];
+          rarray->aux.capa = rarray->len = size;
+        }
+
+        for(size_t i = 0; i < size; i++) {
+          rarray->ptr[i] = env->get_handle(array->get(env->state(), i));
+        }
       }
     }
 
@@ -113,6 +87,9 @@ namespace rubinius {
 
         type_ = cRArray;
         as_.rarray = ary;
+
+        flush_ = flush_cached_rarray;
+        update_ = update_cached_rarray;
 
         env->state()->shared.global_handles()->move(this,
             env->state()->shared.cached_handles());

@@ -10,38 +10,14 @@ using namespace rubinius::capi;
 namespace rubinius {
   namespace capi {
 
-    void capi_rdata_flush_handle(NativeMethodEnvironment* env, Handle* handle) {
-      Data* data = c_as<Data>(handle->object());
-
+    void flush_cached_rdata(NativeMethodEnvironment* env, Handle* handle) {
       if(handle->is_rdata()) {
-        RData* d = handle->as_rdata(env);
+        Data* data = c_as<Data>(handle->object());
+        RData* rdata = handle->as_rdata(env);
 
-        data->mark(env->state(), d->dmark);
-        data->free(env->state(), d->dfree);
-        data->data(env->state(), d->data);
-      }
-    }
-
-    void capi_rdata_flush(NativeMethodEnvironment* env,
-        CApiStructs& data_structs, bool release_memory) {
-      Data* data;
-      struct RData* d = 0;
-
-      for(CApiStructs::iterator iter = data_structs.begin();
-          iter != data_structs.end();
-          iter++) {
-        Handle* handle = iter->first;
-        data = c_as<Data>(handle->object());
-
-        if(handle->is_rdata()) {
-          d = handle->as_rdata(env);
-
-          data->mark(env->state(), d->dmark);
-          data->free(env->state(), d->dfree);
-          data->data(env->state(), d->data);
-
-          if(release_memory) handle->free_data();
-        }
+        data->mark(env->state(), rdata->dmark);
+        data->free(env->state(), rdata->dfree);
+        data->data(env->state(), rdata->data);
       }
     }
 
@@ -56,6 +32,8 @@ namespace rubinius {
 
         type_ = cRData;
         as_.rdata = d;
+
+        flush_ = flush_cached_rdata;
 
         env->state()->shared.global_handles()->move(this,
             env->state()->shared.cached_handles());

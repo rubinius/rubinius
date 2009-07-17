@@ -115,13 +115,6 @@ namespace rubinius {
     /** Raise backend */
     void capi_raise_backend(Exception* exception);
 
-    /** Update contents of Array objects for which RARRAY was called. */
-    void capi_rarray_flush(NativeMethodEnvironment* env,
-        CApiStructs& arrays, bool release_memory);
-
-    /** Updates the RARRAY caches with changes to the Array objects. */
-    void capi_rarray_update(NativeMethodEnvironment *env, CApiStructs& arrays);
-
     /** Get an Array object for a handle ensuring that any RARRAY data has
      * been flushed. */
     Array* capi_get_array(NativeMethodEnvironment* env, VALUE ary_handle);
@@ -129,26 +122,12 @@ namespace rubinius {
     /** Update the RARRAY cache if one exists for this handle. */
     void capi_update_array(NativeMethodEnvironment* env, VALUE ary_handle);
 
-    /** Update contents of Data objects for which RDATA was called. */
-    void capi_rdata_flush(NativeMethodEnvironment* env,
-        CApiStructs& data, bool release_memory);
-
-    /** Update contents of String objects for which RSTRING was called. */
-    void capi_rstring_flush(NativeMethodEnvironment* env,
-        CApiStructs& strings, bool release_memory);
-
-    /** Update the RSTRING caches with changes to String objects. */
-    void capi_rstring_update(NativeMethodEnvironment* env, CApiStructs& strings);
-
     /** Get a String object for a handle ensuring that any RSTRING data has
      * been flushed. */
     String* capi_get_string(NativeMethodEnvironment* env, VALUE str_handle);
 
     /** Update the RSTRING cache if one exists for this handle. */
     void capi_update_string(NativeMethodEnvironment* env, VALUE str_handle);
-
-    /** Flush data from an RData back into the Data* */
-    void capi_rdata_flush_handle(NativeMethodEnvironment* env, Handle* handle);
 
     /** Get a Float object for a handle ensuring that RFLOAT data has
      *  been flushed. */
