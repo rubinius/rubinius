@@ -24,7 +24,7 @@ extern "C" {
     } else if(Bignum* big = try_as<Bignum>(object)) {
       return big->to_long();
     } else if(try_as<Float>(object)) {
-      return (long)capi_get_float(obj)->val;
+      return (long)capi_get_float(env, obj)->val;
     }
 
     obj = rb_funcall(obj, rb_intern("to_int"), 0);
@@ -108,7 +108,7 @@ extern "C" {
   double rb_num2dbl(VALUE val) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     if(try_as<Float>(env->get_object(val))) {
-      return capi_get_float(val)->val;
+      return capi_get_float(env, val)->val;
     }
 
     // @todo should coerce other types

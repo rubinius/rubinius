@@ -56,6 +56,9 @@ namespace rubinius {
 
         type_ = cRData;
         as_.rdata = d;
+
+        env->state()->shared.global_handles()->move(this,
+            env->state()->shared.cached_handles());
       }
 
       return as_.rdata;

@@ -190,7 +190,7 @@ extern "C" {
   VALUE rb_obj_clone(VALUE obj_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    env->flush_cached_data(false);
+    env->flush_cached_data();
     return rb_funcall(obj_handle, rb_intern("clone"), 0);
   }
 

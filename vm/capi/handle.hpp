@@ -6,7 +6,7 @@
 
 #include "capi/value.hpp"
 
-#include <list>
+#include <tr1/unordered_set>
 #include <vector>
 
 struct RArray;
@@ -34,10 +34,11 @@ namespace rubinius {
       unsigned int checksum_;
 
       union {
-        RArray* rarray;
-        RString* rstring;
-        RData* rdata;
-        RFloat* rfloat;
+        RArray*   rarray;
+        RString*  rstring;
+        RData*    rdata;
+        RFloat*   rfloat;
+        intptr_t  cache_data;
       } as_;
 
     public:
@@ -48,7 +49,7 @@ namespace rubinius {
         , references_(0)
         , checksum_(0xffff)
       {
-        as_.rarray = 0;
+        as_.cache_data = 0;
       }
 
       ~Handle();
@@ -109,10 +110,14 @@ namespace rubinius {
         return type_ == cRFloat;
       }
 
+      HandleType type() {
+         return type_;
+      }
+
       RArray* as_rarray(NativeMethodEnvironment* env);
       RData*  as_rdata(NativeMethodEnvironment* env);
       RString* as_rstring(NativeMethodEnvironment* env);
-      RFloat* as_rfloat();
+      RFloat* as_rfloat(NativeMethodEnvironment* env);
 
       void free_data();
     };
@@ -123,11 +128,16 @@ namespace rubinius {
         return static_cast<Handle*>(head());
       }
 
+      void move(Node* node, Handles* handles) {
+        remove(node);
+        handles->add(node);
+      }
+
       typedef LinkedList::Iterator<Handles, Handle> Iterator;
     };
 
 
-    typedef std::list<Handle*> HandleList;
+    typedef std::tr1::unordered_set<Handle*> HandleSet;
   }
 }
 

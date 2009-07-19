@@ -108,7 +108,8 @@ namespace rubinius {
   void ObjectMemory::collect_young(GCData& data) {
     static int collect_times = 0;
     young.collect(data);
-    prune_handles(true);
+    prune_handles(data.handles(), true);
+    prune_handles(data.cached_handles(), true);
     collect_times++;
 
     data.global_cache()->prune_young();
@@ -125,7 +126,8 @@ namespace rubinius {
     mark_sweep_.after_marked();
 
     immix_.clean_weakrefs();
-    prune_handles(false);
+    prune_handles(data.handles(), false);
+    prune_handles(data.cached_handles(), false);
 
     data.global_cache()->prune_unmarked();
 
@@ -137,8 +139,7 @@ namespace rubinius {
 #endif
   }
 
-  void ObjectMemory::prune_handles(bool check_forwards) {
-    capi::Handles* handles = state->shared.global_handles();
+  void ObjectMemory::prune_handles(capi::Handles* handles, bool check_forwards) {
     capi::Handle* handle = handles->front();
     capi::Handle* current;
 

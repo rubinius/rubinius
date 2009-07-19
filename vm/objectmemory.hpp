@@ -100,7 +100,7 @@ namespace rubinius {
     void debug_marksweep(bool val);
     void add_type_info(TypeInfo* ti);
 
-    void prune_handles(bool check_forwards);
+    void prune_handles(capi::Handles* handles, bool check_forwards);
 
     ObjectPosition validate_object(Object* obj);
 

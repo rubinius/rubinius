@@ -20,12 +20,13 @@ public:
   CallFrameLocationList call_frames;
   VariableRootBuffers variable_buffers;
   capi::Handles handles;
+  capi::Handles cached_handles;
 
   void setUp() {
     create();
     roots = &state->globals.roots;
     gc_data = new GCData(*roots, call_frames, variable_buffers,
-                         &handles, state->global_cache);
+                         &handles, &cached_handles, state->global_cache);
   }
 
   void tearDown() {

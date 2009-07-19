@@ -23,6 +23,7 @@ namespace rubinius {
     , call_frames_(state->shared.call_frame_locations())
     , variable_buffers_(*state->variable_buffers())
     , handles_(state->shared.global_handles())
+    , cached_handles_(state->shared.cached_handles())
     , global_cache_(state->shared.global_cache)
   {}
 
@@ -292,6 +293,10 @@ namespace rubinius {
     visit_call_frames_list(data.call_frames(), visit);
 
     for(capi::Handles::Iterator i(*data.handles()); i.more(); i.advance()) {
+      visit.call(i->object());
+    }
+
+    for(capi::Handles::Iterator i(*data.cached_handles()); i.more(); i.advance()) {
       visit.call(i->object());
     }
 

@@ -29,16 +29,19 @@ namespace rubinius {
     CallFrameLocationList& call_frames_;
     VariableRootBuffers& variable_buffers_;
     capi::Handles* handles_;
+    capi::Handles* cached_handles_;
     GlobalCache* global_cache_;
 
   public:
     GCData(STATE);
     GCData(Roots& r, CallFrameLocationList& l, VariableRootBuffers& b,
-           capi::Handles* handles = NULL, GlobalCache *cache = NULL)
+           capi::Handles* handles = NULL, capi::Handles* cached_handles = NULL,
+           GlobalCache *cache = NULL)
       : roots_(r)
       , call_frames_(l)
       , variable_buffers_(b)
       , handles_(handles)
+      , cached_handles_(cached_handles)
       , global_cache_(cache)
     {}
 
@@ -56,6 +59,10 @@ namespace rubinius {
 
     capi::Handles* handles() {
       return handles_;
+    }
+
+    capi::Handles* cached_handles() {
+      return cached_handles_;
     }
 
     GlobalCache* global_cache() {

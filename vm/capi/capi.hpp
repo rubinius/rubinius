@@ -152,7 +152,7 @@ namespace rubinius {
 
     /** Get a Float object for a handle ensuring that RFLOAT data has
      *  been flushed. */
-    Float* capi_get_float(VALUE float_handle);
+    Float* capi_get_float(NativeMethodEnvironment* env, VALUE float_handle);
 
     /** Converts a native type (int, uint, long) to a suitable Integer. */
     template<typename NativeType>

@@ -85,6 +85,10 @@ public:
       return current_;
     }
 
+    Root* current() {
+      return current_;
+    }
+
     Root* next() {
       Root* ret = current_;
       if(current_) {

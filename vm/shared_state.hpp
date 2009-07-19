@@ -60,6 +60,7 @@ namespace rubinius {
     CallFrameLocationList cf_locations_;
     VariableRootBuffers root_buffers_;
     capi::Handles* global_handles_;
+    capi::Handles* cached_handles_;
     bool profiling_;
     profiler::ProfilerCollection* profiler_collection_;
     int global_serial_;
@@ -113,6 +114,10 @@ namespace rubinius {
 
     capi::Handles* global_handles() {
       return global_handles_;
+    }
+
+    capi::Handles* cached_handles() {
+      return cached_handles_;
     }
 
     bool profiling() {

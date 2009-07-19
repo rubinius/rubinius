@@ -6,30 +6,26 @@
 namespace rubinius {
   namespace capi {
     void Handle::free_data() {
-      switch(type_) {
-      case cRArray:
-        if(as_.rarray) {
+      if(as_.cache_data) {
+        switch(type_) {
+        case cRArray:
           delete[] as_.rarray->dmwmb;
           delete as_.rarray;
-        }
-
-        as_.rarray = 0;
-        break;
-      case cRData:
-        if(as_.rdata) delete as_.rdata;
-        as_.rdata = 0;
-      case cRString:
-        if(as_.rstring) {
+          break;
+        case cRData:
+          delete as_.rdata;
+          break;
+        case cRString:
           delete[] as_.rstring->dmwmb;
           delete as_.rstring;
+          break;
+        case cRFloat:
+          delete as_.rfloat;
+          break;
+        default:
+          break;
         }
-
-        as_.rstring = 0;
-      case cRFloat:
-        if(as_.rfloat) delete as_.rfloat;
-        as_.rfloat = 0;
-      default:
-        break;
+        as_.cache_data = 0;
       }
 
       type_ = cUnknown;
@@ -45,6 +41,7 @@ namespace rubinius {
     }
 
     Handle::~Handle() {
+      free_data();
       invalidate();
     }
   }

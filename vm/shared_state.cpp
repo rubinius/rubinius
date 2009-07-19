@@ -105,6 +105,7 @@ namespace rubinius {
     : initialized_(false)
     , signal_handler_(0)
     , global_handles_(new capi::Handles)
+    , cached_handles_(new capi::Handles)
     , profiling_(false)
     , profiler_collection_(0)
     , global_serial_(0)
@@ -127,6 +128,7 @@ namespace rubinius {
     delete om;
     delete global_cache;
     delete global_handles_;
+    delete cached_handles_;
   }
 
   void SharedState::discard(SharedState* ss) {

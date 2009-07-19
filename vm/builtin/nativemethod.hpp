@@ -110,7 +110,7 @@ namespace rubinius {
     }
 
     /** Set of Handles available in current Frame (convenience.) */
-    capi::HandleList& handles();
+    capi::HandleSet& handles();
 
     /** Returns the map of RSTRING structs in the current NativeMethodFrame. */
     CApiStructs& strings();
@@ -122,7 +122,7 @@ namespace rubinius {
     CApiStructs& arrays();
 
     /** Flush RARRAY, RSTRING, etc. caches, possibly releasing memory. */
-    void flush_cached_data(bool release_memory);
+    void flush_cached_data();
 
     /** Updates cached data with changes to the Ruby objects. */
     void update_cached_data();
@@ -135,8 +135,8 @@ namespace rubinius {
   class NativeMethodFrame {
     /** Native Frame active before this call. @note This may NOT be the sender. --rue */
     NativeMethodFrame* previous_;
-    /** HandleList to Objects used in this Frame. */
-    capi::HandleList handles_;
+    /** HandleSet to Objects used in this Frame. */
+    capi::HandleSet handles_;
     /** RARRAY structs allocated during this call. */
     CApiStructs* arrays_;
     /** RDATA structs allocated during this call. */
@@ -168,15 +168,15 @@ namespace rubinius {
     Object* get_object(VALUE hndl);
 
     /** Flush RARRAY, RSTRING, etc. caches, possibly releasing memory. */
-    void flush_cached_data(bool release_memory);
+    void flush_cached_data();
 
     /** Updates cached data with changes to the Ruby objects. */
     void update_cached_data();
 
   public:     /* Accessors */
 
-    /** HandleList to Objects used in this Frame. */
-    capi::HandleList& handles() {
+    /** HandleSet to Objects used in this Frame. */
+    capi::HandleSet& handles() {
       return handles_;
     }
 

@@ -112,6 +112,10 @@ namespace rubinius {
       if(!i->weak_p()) saw_object(i->object());
     }
 
+    for(capi::Handles::Iterator i(*data.cached_handles()); i.more(); i.advance()) {
+      if(!i->weak_p()) saw_object(i->object());
+    }
+
     for(VariableRootBuffers::Iterator i(data.variable_buffers());
         i.more(); i.advance()) {
       Object*** buffer = i->buffer();

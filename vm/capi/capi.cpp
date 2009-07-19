@@ -118,7 +118,7 @@ namespace rubinius {
     VALUE capi_funcall_backend(const char* file, int line,
         VALUE receiver, ID method_name, std::size_t arg_count, VALUE* arg_array) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-      env->flush_cached_data(false);
+      env->flush_cached_data();
 
       Array* args = Array::create(env->state(), arg_count);
       for(size_t i = 0; i < arg_count; i++) {

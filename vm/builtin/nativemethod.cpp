@@ -34,8 +34,8 @@ namespace rubinius {
   }
 
   NativeMethodFrame::~NativeMethodFrame() {
-    flush_cached_data(true);
-    for(capi::HandleList::iterator i = handles_.begin();
+    flush_cached_data();
+    for(capi::HandleSet::iterator i = handles_.begin();
         i != handles_.end();
         i++) {
       capi::Handle* handle = *i;
@@ -58,8 +58,8 @@ namespace rubinius {
     }
 
     handle->ref();
+    handles_.insert(handle);
 
-    handles_.push_back(handle);
     return handle->as_value();
   }
 
@@ -82,37 +82,48 @@ namespace rubinius {
     return *data_;
   }
 
-  void NativeMethodFrame::flush_cached_data(bool release_memory) {
+  void NativeMethodFrame::flush_cached_data() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    capi::Handles* handles = env->state()->shared.cached_handles();
 
-    for(capi::HandleList::iterator i = handles_.begin();
-        i != handles_.end();
-        i++) {
-      capi::Handle* handle = *i;
-      if(handle->is_rarray()) {
-        capi::capi_get_array(env, handle->as_value());
-      } else if(handle->is_rstring()) {
-        capi::capi_get_string(env, handle->as_value());
-      } else if(handle->is_rdata()) {
-        capi::capi_rdata_flush_handle(env, handle);
-      } else if(handle->is_rfloat()) {
-        capi::capi_get_float(handle->as_value());
+    if(handles->size() > 0) {
+      for(capi::Handles::Iterator i(*handles); i.more(); i.advance()) {
+        switch(i->type()) {
+        case capi::cRArray:
+          capi::capi_get_array(env, i->as_value());
+          break;
+        case capi::cRString:
+          capi::capi_get_string(env, i->as_value());
+          break;
+        case capi::cRData:
+          capi::capi_rdata_flush_handle(env, i.current());
+          break;
+        case capi::cRFloat:
+          capi::capi_get_float(env, i->as_value());
+          break;
+        default:
+          break;
+        }
       }
-
-      if(release_memory) handle->free_data();
     }
   }
 
   void NativeMethodFrame::update_cached_data() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    for(capi::HandleList::iterator i = handles_.begin();
-        i != handles_.end();
-        i++) {
-      capi::Handle* handle = *i;
-      if(handle->is_rarray()) {
-        capi::capi_update_array(env, handle->as_value());
-      } else if(handle->is_rstring()) {
-        capi::capi_update_string(env, handle->as_value());
+    capi::Handles* handles = env->state()->shared.cached_handles();
+
+    if(handles->size() > 0) {
+      for(capi::Handles::Iterator i(*handles); i.more(); i.advance()) {
+        switch(i->type()) {
+        case capi::cRArray:
+          capi::capi_update_array(env, i->as_value());
+          break;
+        case capi::cRString:
+          capi::capi_update_string(env, i->as_value());
+          break;
+        default:
+          break;
+        }
       }
     }
   }
@@ -169,7 +180,7 @@ namespace rubinius {
     return current_block_.get();
   }
 
-  capi::HandleList& NativeMethodEnvironment::handles() {
+  capi::HandleSet& NativeMethodEnvironment::handles() {
     return current_native_frame_->handles();
   }
 
@@ -185,8 +196,8 @@ namespace rubinius {
     return current_native_frame_->data();
   }
 
-  void NativeMethodEnvironment::flush_cached_data(bool release_memory) {
-    current_native_frame_->flush_cached_data(release_memory);
+  void NativeMethodEnvironment::flush_cached_data() {
+    current_native_frame_->flush_cached_data();
   }
 
   void NativeMethodEnvironment::update_cached_data() {

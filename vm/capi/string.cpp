@@ -104,6 +104,9 @@ namespace rubinius {
 
         type_ = cRString;
         as_.rstring = str;
+
+        env->state()->shared.global_handles()->move(this,
+            env->state()->shared.cached_handles());
       }
 
       return as_.rstring;

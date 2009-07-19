@@ -28,7 +28,7 @@ extern "C" {
 
   VALUE rb_apply(VALUE recv, ID mid, VALUE args) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    env->flush_cached_data(false);
+    env->flush_cached_data();
 
     Array* ary = capi::c_as<Array>(env->get_object(args));
 

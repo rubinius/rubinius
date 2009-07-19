@@ -9,19 +9,19 @@ using namespace rubinius::capi;
 namespace rubinius {
   namespace capi {
 
-    Float* capi_get_float(VALUE float_handle) {
+    Float* capi_get_float(NativeMethodEnvironment* env, VALUE float_handle) {
       Handle* handle = Handle::from(float_handle);
       Float* float_obj = c_as<Float>(handle->object());
       if(handle->is_rfloat()) {
         // Flushing value from the RFloat back to the Float object
-        RFloat* f = handle->as_rfloat();
+        RFloat* f = handle->as_rfloat(env);
         float_obj->val = f->value;
       }
 
       return float_obj;
     }
 
-    RFloat* Handle::as_rfloat() {
+    RFloat* Handle::as_rfloat(NativeMethodEnvironment* env) {
       if(type_ != cRFloat) {
         Float* float_obj = c_as<Float>(object());
 
@@ -30,6 +30,9 @@ namespace rubinius {
 
         type_ = cRFloat;
         as_.rfloat = f;
+
+        env->state()->shared.global_handles()->move(this,
+            env->state()->shared.cached_handles());
       }
 
       return as_.rfloat;
@@ -39,8 +42,9 @@ namespace rubinius {
 
 extern "C" {
   struct RFloat* capi_rfloat_struct(VALUE float_handle) {
-    Handle* handle = Handle::from(float_handle);
-    return handle->as_rfloat();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    return Handle::from(float_handle)->as_rfloat(env);
   }
 
   VALUE rb_float_new(double val) {
