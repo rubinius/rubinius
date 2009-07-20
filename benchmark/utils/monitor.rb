@@ -2,29 +2,45 @@
 # method of monitoring a benchmark and possibly aborting the run if it
 # exceeds a specified time limit. See README for more details.
 
-timeout = File.dirname(__FILE__) + "/timeout"
-limit, vm, runner, name, iterations, report = ARGV
-
-start = Time.now
-cmd = "#{timeout} -t #{limit} #{vm} #{runner} #{name} #{iterations} #{report} > /dev/null"
-system cmd
-finish = Time.now
-
-unless $?.success?
+def write_status(name, report, status)
   File.open report, "a" do |f|
     f.puts "---"
     f.puts "name: #{name}"
-
-    timed_out = (finish - start) * 100.0 / limit.to_i > 95
-
-    if timed_out
-      f.puts "status: Timeout"
-    else
-      if $?.signaled?
-        f.puts "status: Terminated SIG#{Signal.list.invert[$?.termsig]}"
-      else
-        f.puts "status: Terminated for unknown reason"
-      end
-    end
+    f.puts "status: #{status}"
   end
+end
+
+limit, vm, runner, name, iterations, report = ARGV
+finish = Time.now.to_i + limit.to_i
+
+if pid = Kernel.fork
+  loop do
+    Process.waitpid pid, Process::WNOHANG
+
+    if status = $?
+      if status.success?
+        write_status name, report, "success"
+        exit 0
+      end
+
+      write_status name, report, "Exited with status #{status.exitstatus}"
+      exit 1
+    end
+
+    if Time.now.to_i > finish
+      write_status name, report, "Timeout"
+
+      Process.kill :TERM, pid
+      Process.waitpid pid, Process::WNOHANG
+
+      sleep 2
+      Process.kill :KILL, pid
+      Process.waitpid pid
+      exit 1
+    end
+
+    sleep 1
+  end
+else
+  exec vm, runner, name, iterations, report
 end
