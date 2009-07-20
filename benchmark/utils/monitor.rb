@@ -10,6 +10,12 @@ def write_status(name, report, status)
   end
 end
 
+Process.setpgrp
+
+Signal.trap :TERM do
+  # fuck off
+end
+
 limit, vm, runner, name, iterations, report = ARGV
 finish = Time.now.to_i + limit.to_i
 
@@ -30,11 +36,11 @@ if pid = Kernel.fork
     if Time.now.to_i > finish
       write_status name, report, "Timeout"
 
-      Process.kill :TERM, pid
+      Process.kill :TERM, 0
       Process.waitpid pid, Process::WNOHANG
 
       sleep 2
-      Process.kill :KILL, pid
+      Process.kill :KILL, 0
       Process.waitpid pid
       exit 1
     end
