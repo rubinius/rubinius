@@ -8,6 +8,8 @@
 
 namespace rubinius {
 
+  class NativeFunction;
+
   class Inliner {
     JITOperations& ops_;
     InlineCache* cache_;
@@ -48,6 +50,8 @@ namespace rubinius {
     void inline_ivar_access(Class* klass, AccessVariable* acc);
 
     bool inline_primitive(Class* klass, CompiledMethod* cm, executor prim);
+
+    bool inline_ffi(Class* klass, NativeFunction* nf);
   };
 
 }

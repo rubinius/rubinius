@@ -5,6 +5,9 @@
 #include "llvm/jit_workhorse.hpp"
 
 #include "builtin/methodtable.hpp"
+#include "builtin/nativefunction.hpp"
+
+#include "ffi_util.hpp"
 
 namespace rubinius {
   bool Inliner::consider() {
@@ -102,6 +105,18 @@ namespace rubinius {
             << ". generic inlining disabled\n";
         }
 
+        return false;
+      }
+    } else if(NativeFunction* nf = try_as<NativeFunction>(meth)) {
+      if(inline_ffi(klass, nf)) {
+        if(ops_.state()->config().jit_inline_debug) {
+          std::cerr << "inlining: FFI "
+            << ops_.state()->symbol_cstr(nf->name())
+            << " into "
+            << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+            << " (" << ops_.state()->symbol_cstr(klass->name()) << ")\n";
+        }
+      } else {
         return false;
       }
     } else {
@@ -364,6 +379,364 @@ namespace rubinius {
     ops_.set_block(use_send);
 
     use_send->moveAfter(entry);
+  }
+
+  const Type* find_type(size_t type) {
+    switch(type) {
+      case RBX_FFI_TYPE_CHAR:
+      case RBX_FFI_TYPE_UCHAR:
+        return Type::Int8Ty;
+
+      case RBX_FFI_TYPE_SHORT:
+      case RBX_FFI_TYPE_USHORT:
+        return Type::Int16Ty;
+
+      case RBX_FFI_TYPE_INT:
+      case RBX_FFI_TYPE_UINT:
+        return Type::Int32Ty;
+
+      case RBX_FFI_TYPE_LONG:
+      case RBX_FFI_TYPE_ULONG:
+#ifdef IS_X8664
+        return Type::Int64Ty;
+#else
+        return Type::Int32Ty;
+#endif
+
+      case RBX_FFI_TYPE_LONG_LONG:
+      case RBX_FFI_TYPE_ULONG_LONG:
+        return Type::Int64Ty;
+
+      case RBX_FFI_TYPE_FLOAT:
+        return Type::FloatTy;
+
+      case RBX_FFI_TYPE_DOUBLE:
+        return Type::DoubleTy;
+
+      case RBX_FFI_TYPE_OBJECT:
+      case RBX_FFI_TYPE_STRING:
+      case RBX_FFI_TYPE_STRPTR:
+      case RBX_FFI_TYPE_PTR:
+        return PointerType::getUnqual(Type::Int8Ty);
+    }
+
+    return 0;
+  }
+
+  bool Inliner::inline_ffi(Class* klass, NativeFunction* nf) {
+    Value* self = ops_.stack_back(count_);
+
+    BasicBlock* use_send = ops_.new_block("use_send");
+    ops_.check_class(self, klass, use_send);
+
+    ///
+
+    std::vector<Value*> ffi_args;
+    std::vector<const Type*> ffi_type;
+
+    std::vector<const Type*> struct_types;
+    struct_types.push_back(Type::Int32Ty);
+    struct_types.push_back(Type::Int1Ty);
+
+    BasicBlock* failure = ops_.new_block("ffi_type_failure");
+
+    for(size_t i = 0; i < nf->arg_count; i++) {
+      Value* current_arg = arg(i);
+      Value* call_args[] = { ops_.vm(), current_arg };
+
+      switch(nf->arg_types[i]) {
+      case RBX_FFI_TYPE_CHAR:
+      case RBX_FFI_TYPE_UCHAR:
+      case RBX_FFI_TYPE_SHORT:
+      case RBX_FFI_TYPE_USHORT:
+      case RBX_FFI_TYPE_INT:
+      case RBX_FFI_TYPE_UINT:
+      case RBX_FFI_TYPE_LONG:
+      case RBX_FFI_TYPE_ULONG: {
+        struct_types[0] = Type::Int32Ty;
+        Signature sig(ops_.state(), StructType::get(struct_types));
+        sig << "VM";
+        sig << "Object";
+
+        Value* res = sig.call("rbx_ffi_to_int", call_args, 2, "to_int",
+                              ops_.current_block());
+
+        Value* val = ExtractValueInst::Create(res, 0, "int",
+                                              ops_.current_block());
+
+        const Type* type = find_type(nf->arg_types[i]);
+        ffi_type.push_back(type);
+
+        if(type != Type::Int32Ty) {
+          val = new TruncInst(val, type, "truncated",
+                              ops_.current_block());
+        }
+
+        ffi_args.push_back(val);
+
+        Value* valid = ExtractValueInst::Create(res, 1, "valid_conversion",
+                                              ops_.current_block());
+
+        BasicBlock* cont = ops_.new_block("ffi_continue");
+        ops_.create_conditional_branch(cont, failure, valid);
+
+        ops_.set_block(cont);
+        break;
+      }
+
+      case RBX_FFI_TYPE_FLOAT: {
+        ffi_type.push_back(Type::FloatTy);
+
+        struct_types[0] = Type::FloatTy;
+        Signature sig(ops_.state(), StructType::get(struct_types));
+        sig << "VM";
+        sig << "Object";
+
+        Value* res = sig.call("rbx_ffi_to_float", call_args, 2, "to_float",
+                              ops_.current_block());
+
+        Value* val = ExtractValueInst::Create(res, 0, "float",
+                                              ops_.current_block());
+        ffi_args.push_back(val);
+
+        Value* valid = ExtractValueInst::Create(res, 1, "valid_conversion",
+                                              ops_.current_block());
+
+        BasicBlock* cont = ops_.new_block("ffi_continue");
+        ops_.create_conditional_branch(cont, failure, valid);
+
+        ops_.set_block(cont);
+        break;
+      }
+
+      case RBX_FFI_TYPE_DOUBLE: {
+        ffi_type.push_back(Type::DoubleTy);
+
+        struct_types[0] = Type::DoubleTy;
+        Signature sig(ops_.state(), StructType::get(struct_types));
+        sig << "VM";
+        sig << "Object";
+
+        Value* res = sig.call("rbx_ffi_to_double", call_args, 2, "to_double",
+                              ops_.current_block());
+
+        Value* val = ExtractValueInst::Create(res, 0, "double",
+                                              ops_.current_block());
+        ffi_args.push_back(val);
+
+        Value* valid = ExtractValueInst::Create(res, 1, "valid_conversion",
+                                              ops_.current_block());
+
+        BasicBlock* cont = ops_.new_block("ffi_continue");
+        ops_.create_conditional_branch(cont, failure, valid);
+
+        ops_.set_block(cont);
+      }
+
+      case RBX_FFI_TYPE_LONG_LONG:
+      case RBX_FFI_TYPE_ULONG_LONG: {
+        ffi_type.push_back(Type::Int64Ty);
+
+        struct_types[0] = Type::Int64Ty;
+        Signature sig(ops_.state(), StructType::get(struct_types));
+        sig << "VM";
+        sig << "Object";
+
+        Value* res = sig.call("rbx_ffi_to_int64", call_args, 2, "to_int64",
+                              ops_.current_block());
+
+        Value* val = ExtractValueInst::Create(res, 0, "int64",
+                                              ops_.current_block());
+        ffi_args.push_back(val);
+
+        Value* valid = ExtractValueInst::Create(res, 1, "valid_conversion",
+                                              ops_.current_block());
+
+        BasicBlock* cont = ops_.new_block("ffi_continue");
+        ops_.create_conditional_branch(cont, failure, valid);
+
+        ops_.set_block(cont);
+      }
+
+      case RBX_FFI_TYPE_STATE:
+        ffi_type.push_back(ops_.vm()->getType());
+        ffi_args.push_back(ops_.vm());
+        break;
+
+      case RBX_FFI_TYPE_OBJECT:
+        ffi_type.push_back(current_arg->getType());
+        ffi_args.push_back(current_arg);
+        break;
+
+      case RBX_FFI_TYPE_PTR: {
+        ffi_type.push_back(PointerType::getUnqual(Type::Int8Ty));
+        struct_types[0] = PointerType::getUnqual(Type::Int8Ty);
+        Signature sig(ops_.state(), StructType::get(struct_types));
+        sig << "VM";
+        sig << "Object";
+
+        Value* res = sig.call("rbx_ffi_to_ptr", call_args, 2, "to_ptr",
+                              ops_.current_block());
+
+        Value* val = ExtractValueInst::Create(res, 0, "ptr",
+                                              ops_.current_block());
+        ffi_args.push_back(val);
+
+        Value* valid = ExtractValueInst::Create(res, 1, "valid_conversion",
+                                              ops_.current_block());
+
+        BasicBlock* cont = ops_.new_block("ffi_continue");
+        ops_.create_conditional_branch(cont, failure, valid);
+
+        ops_.set_block(cont);
+        break;
+      }
+
+      case RBX_FFI_TYPE_STRING: {
+        ffi_type.push_back(PointerType::getUnqual(Type::Int8Ty));
+        struct_types[0] = PointerType::getUnqual(Type::Int8Ty);
+        Signature sig(ops_.state(), StructType::get(struct_types));
+        sig << "VM";
+        sig << "Object";
+
+        Value* res = sig.call("rbx_ffi_to_string", call_args, 2, "to_string",
+                              ops_.current_block());
+
+        Value* val = ExtractValueInst::Create(res, 0, "string",
+                                              ops_.current_block());
+        ffi_args.push_back(val);
+
+        Value* valid = ExtractValueInst::Create(res, 1, "valid_conversion",
+                                              ops_.current_block());
+
+        BasicBlock* cont = ops_.new_block("ffi_continue");
+        ops_.create_conditional_branch(cont, failure, valid);
+
+        ops_.set_block(cont);
+        break;
+      }
+
+      default:
+        abort();
+      }
+    }
+
+    const Type* return_type = find_type(nf->ret_type);
+
+    FunctionType* ft = FunctionType::get(return_type, ffi_type, false);
+    Value* ep_ptr = CastInst::Create(
+            Instruction::IntToPtr,
+            ConstantInt::get(ops_.IntPtrTy, (intptr_t)nf->ep),
+            PointerType::getUnqual(ft), "cast_to_function",
+            ops_.current_block());
+
+    Value* ffi_result = CallInst::Create(ep_ptr, ffi_args.begin(),
+                           ffi_args.end(), "ffi_result", ops_.current_block());
+
+    Value* res_args[] = { ops_.vm(), ffi_result };
+
+    Value* result;
+    switch(nf->ret_type) {
+    case RBX_FFI_TYPE_CHAR:
+    case RBX_FFI_TYPE_UCHAR:
+    case RBX_FFI_TYPE_SHORT:
+    case RBX_FFI_TYPE_USHORT:
+    case RBX_FFI_TYPE_INT:
+    case RBX_FFI_TYPE_UINT:
+    case RBX_FFI_TYPE_LONG:
+    case RBX_FFI_TYPE_ULONG: {
+      // TODO this won't promote to bignum, so we'll get
+      // invalidate results for large numbers!
+      result = ops_.fixnum_tag(ffi_result);
+      break;
+    }
+
+    case RBX_FFI_TYPE_LONG_LONG:
+    case RBX_FFI_TYPE_ULONG_LONG: {
+      Signature sig(ops_.state(), ops_.ObjType);
+      sig << "VM";
+      sig << Type::Int64Ty;
+
+      result = sig.call("rbx_ffi_from_int64", res_args, 2, "to_obj",
+                        ops_.current_block());
+      break;
+    }
+
+    case RBX_FFI_TYPE_FLOAT: {
+      Signature sig(ops_.state(), ops_.ObjType);
+      sig << "VM";
+      sig << Type::FloatTy;
+
+      result = sig.call("rbx_ffi_from_float", res_args, 2, "to_obj",
+                        ops_.current_block());
+      break;
+    }
+
+    case RBX_FFI_TYPE_DOUBLE: {
+      Signature sig(ops_.state(), ops_.ObjType);
+      sig << "VM";
+      sig << Type::DoubleTy;
+
+      result = sig.call("rbx_ffi_from_double", res_args, 2, "to_obj",
+                        ops_.current_block());
+      break;
+    }
+
+    case RBX_FFI_TYPE_PTR: {
+      Signature sig(ops_.state(), ops_.ObjType);
+      sig << "VM";
+      sig << PointerType::getUnqual(Type::Int8Ty);
+
+      result = sig.call("rbx_ffi_from_ptr", res_args, 2, "to_obj",
+                        ops_.current_block());
+      break;
+    }
+
+    case RBX_FFI_TYPE_OBJECT:
+      result = ffi_result;
+      break;
+
+    case RBX_FFI_TYPE_STRING: {
+      Signature sig(ops_.state(), ops_.ObjType);
+      sig << "VM";
+      sig << PointerType::getUnqual(Type::Int8Ty);
+
+      result = sig.call("rbx_ffi_from_string", res_args, 2, "to_obj",
+                        ops_.current_block());
+      break;
+    }
+
+    case RBX_FFI_TYPE_STRPTR: {
+      Signature sig(ops_.state(), ops_.ObjType);
+      sig << "VM";
+      sig << PointerType::getUnqual(Type::Int8Ty);
+
+      result = sig.call("rbx_ffi_from_string_with_pointer", res_args, 2, "to_obj",
+                        ops_.current_block());
+      break;
+    }
+
+    case RBX_FFI_TYPE_VOID:
+      result = ops_.constant(Qnil);
+      break;
+
+    default:
+      result = 0;
+      std::cout << "Invalid return type.\n";
+      abort();
+
+    }
+
+    ops_.stack_remove(count_);
+    ops_.stack_set_top(result);
+    ops_.create_branch(after_);
+
+    ops_.set_block(failure);
+    ops_.propagate_exception();
+
+    ops_.set_block(use_send);
+
+    return true;
   }
 }
 

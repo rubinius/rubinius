@@ -39,7 +39,6 @@ public:
   void test_create() {
     NativeFunction* func = NativeFunction::create(state, state->symbol("blah"), 0);
     TS_ASSERT_EQUALS(func->name(), state->symbol("blah"));
-    TS_ASSERT_EQUALS(func->data(), Qnil);
   }
 
   void test_bind_with_string() {
@@ -53,7 +52,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, name);
@@ -78,7 +76,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 2);
     input->set(state, 0, Qnil);
@@ -102,7 +99,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -126,7 +122,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -150,7 +145,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -174,7 +168,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 2);
     input->set(state, 0, Fixnum::from(0));
@@ -207,7 +200,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -241,7 +233,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -275,7 +266,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -309,7 +299,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -343,7 +332,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -377,7 +365,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -410,7 +397,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Arguments args_obj;
 
@@ -430,7 +416,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     char buffer[1];
     buffer[0] = 0;
@@ -467,7 +452,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Float::create(state, 13.2));
@@ -492,7 +476,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Float::create(state, 13.2));
@@ -516,7 +499,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, String::create(state, "whatever"));
@@ -548,7 +530,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Arguments args_obj;
 
@@ -575,7 +556,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Arguments args_obj;
 
@@ -598,7 +578,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     Object* obj = state->new_object<Object>(G(object));
@@ -634,7 +613,6 @@ public:
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Arguments args_obj;
 

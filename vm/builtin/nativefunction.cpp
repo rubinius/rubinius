@@ -115,14 +115,13 @@ namespace rubinius {
     return Fixnum::from(NativeFunction::type_size(type->to_native()));
   }
 
-  NativeFunction* NativeFunction::create(STATE, Object* name, int args) {
+  NativeFunction* NativeFunction::create(STATE, Symbol* name, int args) {
     NativeFunction* nf = state->new_object<NativeFunction>(G(native_function));
     nf->primitive(state, state->symbol("nativefunction_call"));
     nf->required(state, Fixnum::from(args));
     nf->serial(state, Fixnum::from(0));
     nf->name(state, name);
     nf->file(state, state->symbol("<system>"));
-    nf->data(state, (MemoryPointer*)Qnil);
 
     nf->set_executor(NativeFunction::execute);
 
@@ -135,7 +134,6 @@ namespace rubinius {
     ffi_type **types;
     ffi_status status;
     ffi_type *rtype;
-    struct ffi_stub *stub;
     int i;
 
     types = ALLOC_N(ffi_type*, arg_count);
@@ -237,20 +235,17 @@ namespace rubinius {
       break;
     }
 
-    stub = ALLOC_N(struct ffi_stub, 1);
-    stub->ret_type = ret_type;
-    stub->ep = func;
-    stub->arg_count = arg_count;
-    stub->arg_types = ALLOC_N(int, arg_count);
-    memcpy(stub->arg_types, arg_types, sizeof(int) * arg_count);
-    status = ffi_prep_cif(&stub->cif, FFI_DEFAULT_ABI, arg_count, rtype, types);
+    this->ret_type = ret_type;
+    this->ep = func;
+    this->arg_count = arg_count;
+    this->arg_types = ALLOC_N(int, arg_count);
+    memcpy(this->arg_types, arg_types, sizeof(int) * arg_count);
+    status = ffi_prep_cif(&this->cif, FFI_DEFAULT_ABI, arg_count, rtype, types);
 
     if(status != FFI_OK) {
-      XFREE(stub);
+      XFREE(this->arg_types);
       sassert(status == FFI_OK);
     }
-
-    data(state, MemoryPointer::create(state, (void*)stub));
   }
 
   /* The main interface function, handles looking up the pointer in the library,
@@ -307,11 +302,10 @@ namespace rubinius {
     Object* ret;
     Object* obj;
 
-    struct ffi_stub *stub = (struct ffi_stub*)data_->pointer;
-    void **values = ALLOCA_N(void*, stub->arg_count);
+    void **values = ALLOCA_N(void*, this->arg_count);
 
-    for(size_t i = 0; i < stub->arg_count; i++) {
-      switch(stub->arg_types[i]) {
+    for(size_t i = 0; i < this->arg_count; i++) {
+      switch(this->arg_types[i]) {
       case RBX_FFI_TYPE_CHAR: {
         char *tmp = ALLOCA(char);
         obj = args.get_argument(i);
@@ -485,99 +479,99 @@ namespace rubinius {
     GlobalLock& lock = state->global_lock();
     lock.unlock();
 
-    switch(stub->ret_type) {
+    switch(this->ret_type) {
     case RBX_FFI_TYPE_CHAR: {
       ffi_arg result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_UCHAR: {
       ffi_arg result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_SHORT: {
       ffi_arg result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_USHORT: {
       ffi_arg result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_INT: {
       ffi_arg result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       ret = Integer::from(state, (native_int)result);
       break;
     }
     case RBX_FFI_TYPE_UINT: {
       ffi_arg result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       ret = Integer::from(state, (unsigned int)result);
       break;
     }
     case RBX_FFI_TYPE_LONG: {
       long result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_ULONG: {
       unsigned long result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_FLOAT: {
       float result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       ret = Float::create(state, (double)result);
       break;
     }
     case RBX_FFI_TYPE_DOUBLE: {
       double result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       ret = Float::create(state, result);
       break;
     }
     case RBX_FFI_TYPE_LONG_LONG: {
       long long result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_ULONG_LONG: {
       unsigned long long result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_OBJECT: {
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &ret, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &ret, values);
       lock.lock();
       break;
     }
     case RBX_FFI_TYPE_PTR: {
       void *result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       if(result == NULL) {
         ret = Qnil;
@@ -588,7 +582,7 @@ namespace rubinius {
     }
     case RBX_FFI_TYPE_STRING: {
       char* result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       if(result == NULL) {
         ret = Qnil;
@@ -602,7 +596,7 @@ namespace rubinius {
       Object* s;
       Object* p;
 
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
 
       if(result == NULL) {
@@ -621,7 +615,7 @@ namespace rubinius {
     default:
     case RBX_FFI_TYPE_VOID: {
       ffi_arg result;
-      ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      ffi_call(&this->cif, FFI_FN(this->ep), &result, values);
       lock.lock();
       ret = Qnil;
       break;

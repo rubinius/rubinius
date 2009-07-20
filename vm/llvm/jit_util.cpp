@@ -15,6 +15,10 @@
 #include "builtin/autoload.hpp"
 #include "builtin/global_cache_entry.hpp"
 #include "builtin/iseq.hpp"
+#include "builtin/memorypointer.hpp"
+#include "builtin/integer.hpp"
+#include "builtin/float.hpp"
+
 #include "instruments/profiler.hpp"
 
 #include "helpers.hpp"
@@ -677,6 +681,175 @@ extern "C" {
     vars->flush_to_heap(state);
     return Qnil;
   }
+
+  // FFI helpers
+  struct ffi_int_result {
+    int value;
+    bool valid;
+  };
+
+  struct ffi_int_result rbx_ffi_to_int(STATE, Object* obj) {
+    struct ffi_int_result res;
+
+    if(Integer* i = try_as<Integer>(obj)) {
+      res.value = i->to_native();
+      res.valid = true;
+    } else {
+      Exception* exc =
+        Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
+      state->thread_state()->raise_exception(exc);
+
+      res.value = 0;
+      res.valid = false;
+    }
+
+    return res;
+  }
+
+  struct ffi_float_result {
+    float value;
+    bool valid;
+  };
+
+  struct ffi_float_result rbx_ffi_to_float(STATE, Object* obj) {
+    struct ffi_float_result res;
+
+    if(Float* i = try_as<Float>(obj)) {
+      res.value = i->val;
+      res.valid = true;
+    } else {
+      Exception* exc =
+        Exception::make_type_error(state, Float::type, obj, "invalid type for FFI");
+      state->thread_state()->raise_exception(exc);
+
+      res.value = 0.0;
+      res.valid = false;
+    }
+
+    return res;
+  }
+
+  struct ffi_double_result {
+    double value;
+    bool valid;
+  };
+
+  struct ffi_double_result rbx_ffi_to_double(STATE, Object* obj) {
+    struct ffi_double_result res;
+
+    if(Float* i = try_as<Float>(obj)) {
+      res.value = i->val;
+      res.valid = true;
+    } else {
+      Exception* exc =
+        Exception::make_type_error(state, Float::type, obj, "invalid type for FFI");
+      state->thread_state()->raise_exception(exc);
+
+      res.valid = false;
+    }
+
+    return res;
+  }
+
+  struct ffi_int64_result {
+    uint64_t value;
+    bool valid;
+  };
+
+  struct ffi_int64_result rbx_ffi_to_int64(STATE, Object* obj) {
+    struct ffi_int64_result res;
+
+    if(Integer* i = try_as<Integer>(obj)) {
+      res.value = i->to_long_long();
+      res.valid = true;
+    } else {
+      Exception* exc =
+        Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
+      state->thread_state()->raise_exception(exc);
+
+      res.valid = false;
+    }
+
+    return res;
+  }
+
+  struct ffi_ptr_result {
+    void* value;
+    bool valid;
+  };
+
+  struct ffi_ptr_result rbx_ffi_to_ptr(STATE, Object* obj) {
+    struct ffi_ptr_result res;
+
+    if(MemoryPointer* ptr = try_as<MemoryPointer>(obj)) {
+      res.value = ptr->pointer;
+      res.valid = true;
+    } else if(obj->nil_p()) {
+      res.value = 0;
+      res.valid = true;
+    } else {
+      Exception* exc =
+        Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
+      state->thread_state()->raise_exception(exc);
+
+      res.value = 0;
+      res.valid = false;
+    }
+
+    return res;
+  }
+
+  struct ffi_string_result {
+    char* value;
+    bool valid;
+  };
+
+  struct ffi_string_result rbx_ffi_to_string(STATE, Object* obj) {
+    struct ffi_string_result res;
+
+    if(String* str = try_as<String>(obj)) {
+      res.value = const_cast<char*>(str->c_str());
+      res.valid = true;
+    } else {
+      Exception* exc =
+        Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
+      state->thread_state()->raise_exception(exc);
+
+      res.value = 0;
+      res.valid = false;
+    }
+
+    return res;
+  }
+
+  Object* rbx_ffi_from_int64(STATE, int64_t ll) {
+    return Integer::from(state, ll);
+  }
+
+  Object* rbx_ffi_from_float(STATE, float val) {
+    return Float::create(state, val);
+  }
+
+  Object* rbx_ffi_from_double(STATE, double val) {
+    return Float::create(state, val);
+  }
+
+  Object* rbx_ffi_from_ptr(STATE, void* ptr) {
+    return MemoryPointer::create(state, ptr);
+  }
+
+  Object* rbx_ffi_from_string(STATE, char* ptr) {
+    return String::create(state, ptr);
+  }
+
+  Object* rbx_ffi_from_string_with_pointer(STATE, char* ptr) {
+    Array* ary = Array::create(state, 2);
+    ary->set(state, 0, String::create(state, ptr));
+    ary->set(state, 1, MemoryPointer::create(state, ptr));
+
+    return ary;
+  }
+
 }
 
 #endif

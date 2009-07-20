@@ -294,6 +294,16 @@ namespace rubinius {
       stack_push(phi);
     }
 
+    void propagate_exception() {
+      // If there are handlers...
+      if(exception_handlers_.size() > 0) {
+        BasicBlock* handler = exception_handlers_.back();
+        BranchInst::Create(handler, block_);
+      } else {
+        BranchInst::Create(bail_out_fast_, block_);
+      }
+    }
+
     void check_for_exception_then(Value* val, BasicBlock* cont, BasicBlock* block) {
       Value* null = Constant::getNullValue(ObjType);
 
@@ -1338,6 +1348,9 @@ namespace rubinius {
       Function* func = cast<Function>(
           module_->getOrInsertFunction("rbx_push_const_fast", ft));
 
+      func->setOnlyReadsMemory(true);
+      func->setDoesNotThrow(true);
+
       Value* call_args[] = {
         vm_,
         call_frame_,
@@ -1345,7 +1358,12 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, cache)
       };
 
-      Value* ret = CallInst::Create(func, call_args, call_args+4, "push_const_fast", block_);
+      CallInst* ret = CallInst::Create(func, call_args, call_args+4,
+                                       "push_const_fast", block_);
+
+      ret->setOnlyReadsMemory(true);
+      ret->setDoesNotThrow(true);
+
       check_for_exception(ret);
       stack_push(ret);
 

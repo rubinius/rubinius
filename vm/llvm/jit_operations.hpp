@@ -685,6 +685,7 @@ namespace rubinius {
     }
 
     virtual void check_for_exception(llvm::Value* val) = 0;
+    virtual void propagate_exception() = 0;
   };
 }
 
