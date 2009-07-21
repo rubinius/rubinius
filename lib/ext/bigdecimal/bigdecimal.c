@@ -223,14 +223,14 @@ GetVpValue(VALUE v, int must)
 #ifdef ENABLE_NUMERIC_STRING
     case T_STRING:
         SafeStringValue(v);
-        return VpCreateRbObject(strlen(RSTRING_PTR(v)) + VpBaseFig() + 1,
-                                RSTRING_PTR(v));
+        return VpCreateRbObject(strlen(rb_str_ptr_readonly(v)) + VpBaseFig() + 1,
+                                rb_str_ptr_readonly(v));
 #endif /* ENABLE_NUMERIC_STRING */
 
     case T_BIGNUM:
         bg = rb_big2str(v, 10);
-        return VpCreateRbObject(strlen(RSTRING_PTR(bg)) + VpBaseFig() + 1,
-                                RSTRING_PTR(bg));
+        return VpCreateRbObject(strlen(rb_str_ptr_readonly(bg)) + VpBaseFig() + 1,
+                                rb_str_ptr_readonly(bg));
     default:
         goto SomeOneMayDoIt;
     }
@@ -239,7 +239,7 @@ SomeOneMayDoIt:
     if(must) {
         rb_raise(rb_eTypeError, "%s can't be coerced into BigDecimal",
                     rb_special_const_p(v)?
-                    RSTRING_PTR(rb_inspect(v)):
+                    rb_str_ptr_readonly(rb_inspect(v)):
                     rb_obj_classname(v)
                 );
     }
@@ -313,9 +313,10 @@ BigDecimal_dump(int argc, VALUE *argv, VALUE self)
     rb_scan_args(argc, argv, "01", &dummy);
     GUARD_OBJ(vp,GetVpValue(self,1));
     dump = rb_str_new(0,VpNumOfChars(vp,"E")+50);
-    psz = RSTRING_PTR(dump);
+    psz = rb_str_ptr(dump);
     sprintf(psz,"%lu:",VpMaxPrec(vp)*VpBaseFig());
     VpToString(vp, psz+strlen(psz), 0, 0);
+    rb_str_flush(dump);
     rb_str_resize(dump, strlen(psz));
     return dump;
 }
@@ -333,7 +334,7 @@ BigDecimal_load(VALUE self, VALUE str)
     unsigned long m=0;
 
     SafeStringValue(str);
-    pch = (unsigned char *)RSTRING_PTR(str);
+    pch = (unsigned char *)rb_str_ptr_readonly(str);
     /* First get max prec */
     while((*pch)!=(unsigned char)'\0' && (ch=*pch++)!=(unsigned char)':') {
         if(!ISDIGIT(ch)) {
@@ -547,7 +548,7 @@ BigDecimal_to_i(VALUE self)
         return INT2FIX(e);
     }
     str = rb_str_new(0, e+nf+2);
-    psz = RSTRING_PTR(str);
+    psz = rb_str_ptr_readonly(str);
 
     n = (e+nf-1)/nf;
     pch = psz;
@@ -598,7 +599,7 @@ BigDecimal_to_f(VALUE self)
     if(VpVtoD(&d, &e, p)!=1) return rb_float_new(d);
     if (e > DBL_MAX_10_EXP) goto erange;
     str = rb_str_new(0, VpNumOfChars(p,"E"));
-    buf = RSTRING_PTR(str);
+    buf = rb_str_ptr_readonly(str);
     VpToString(p, buf, 0, 0);
     errno = 0;
     d = strtod(buf, 0);
@@ -1524,7 +1525,7 @@ BigDecimal_to_s(int argc, VALUE *argv, VALUE self)
     if(rb_scan_args(argc,argv,"01",&f)==1) {
         if(TYPE(f)==T_STRING) {
             SafeStringValue(f);
-            psz = RSTRING_PTR(f);
+            psz = rb_str_ptr_readonly(f);
             if(*psz==' ') {
                 fPlus = 1; psz++;
             } else if(*psz=='+') {
@@ -1550,13 +1551,14 @@ BigDecimal_to_s(int argc, VALUE *argv, VALUE self)
     if(mc>0) nc += (nc + mc - 1) / mc + 1;
 
     str = rb_str_new(0, nc);
-    psz = RSTRING_PTR(str);
+    psz = rb_str_ptr(str);
 
     if(fmt) {
         VpToFString(vp, psz, mc, fPlus);
     } else {
         VpToString (vp, psz, mc, fPlus);
     }
+    rb_str_flush(str);
     rb_str_resize(str, strlen(psz));
     return str;
 }
@@ -1597,7 +1599,7 @@ BigDecimal_split(VALUE self)
 
     GUARD_OBJ(vp,GetVpValue(self,1));
     str = rb_str_new(0, VpNumOfChars(vp,"E"));
-    psz1 = RSTRING_PTR(str);
+    psz1 = rb_str_ptr(str);
     VpSzMantissa(vp,psz1);
     s = 1;
     if(psz1[0]=='-') {
@@ -1609,6 +1611,8 @@ BigDecimal_split(VALUE self)
     }
     if(psz1[0]=='N') s=0; /* NaN */
     e = VpExponent10(vp);
+    rb_str_flush(str);
+
     obj  = rb_ary_new2(4);
     rb_ary_push(obj, INT2FIX(s));
     rb_ary_push(obj, str);
@@ -1654,12 +1658,13 @@ BigDecimal_inspect(VALUE self)
     nc +=(nc + 9) / 10;
 
     obj = rb_str_new(0, nc+256);
-    psz = RSTRING_PTR(obj);
+    psz = rb_str_ptr(obj);
     sprintf(psz,"#<BigDecimal:%lx,'",(long unsigned int)self);
     tmp = psz + strlen(psz);
     VpToString(vp, tmp, 10, 0);
     tmp += strlen(tmp);
     sprintf(tmp,"',%lu(%lu)>",VpPrec(vp)*VpBaseFig(),VpMaxPrec(vp)*VpBaseFig());
+    rb_str_flush(obj);
     rb_str_resize(obj, strlen(psz));
     return obj;
 }
@@ -1710,7 +1715,7 @@ BigDecimal_global_new(int argc, VALUE *argv, VALUE self)
         mf = GetPositiveInt(nFig);
     }
     SafeStringValue(iniValue);
-    GUARD_OBJ(pv,VpCreateRbObject(mf, RSTRING_PTR(iniValue)));
+    GUARD_OBJ(pv,VpCreateRbObject(mf, rb_str_ptr_readonly(iniValue)));
     return ToValue(pv);
 }
 
@@ -1741,7 +1746,7 @@ BigDecimal_new(int argc, VALUE *argv, VALUE self)
         mf = GetPositiveInt(nFig);
     }
     SafeStringValue(iniValue);
-    GUARD_OBJ(pv,VpNewRbClass(mf, RSTRING_PTR(iniValue),self));
+    GUARD_OBJ(pv,VpNewRbClass(mf, rb_str_ptr_readonly(iniValue),self));
     return ToValue(pv);
 }
 
@@ -2544,7 +2549,7 @@ VpAlloc(U_LONG mx, const char *szVal)
     /* Skip all '_' after digit: 2006-6-30 */
     ni = 0;
     buf = rb_str_new(0,strlen(szVal)+1);
-    psz = RSTRING_PTR(buf);
+    psz = rb_str_ptr_readonly(buf);
     i   = 0;
     ipn = 0;
     while((psz[i]=szVal[ipn])!=0) {
