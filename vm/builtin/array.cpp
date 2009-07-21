@@ -94,14 +94,11 @@ namespace rubinius {
   Array* Array::concat(STATE, Array* other) {
     size_t osize = other->size();
 
-    if(osize == 0) {
-      return this;
-    } else if(osize < tuple_->num_fields() - start_->to_native() - total_->to_native()) {
-      // no realloc is necessary if there is space left at the end of the tuple
-      tuple_->copy_from(state, other->tuple(), other->start(), other->total(), total_);
-      total(state, Fixnum::from(total_->to_native() + osize));
+    if(osize == 1) {
+      set(state, size(), other->get(state, 0));
       return this;
     }
+    if(osize == 0) return this;
 
     size_t new_size = size() + osize;
     Tuple* nt = Tuple::create(state, new_size);
