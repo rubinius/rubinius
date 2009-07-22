@@ -63,7 +63,7 @@ namespace rubinius {
       locals_[which] = val;
     }
 
-    VariableScope* create_heap_alias(STATE, CallFrame* call_frame);
+    VariableScope* create_heap_alias(STATE, CallFrame* call_frame, bool full=true);
     void flush_to_heap(STATE);
 
     friend class GarbageCollector;

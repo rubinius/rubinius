@@ -20,7 +20,8 @@ namespace rubinius {
       cIsLambda =           1 << 0,
       cCustomStaticScope =  1 << 1,
       cMultipleScopes =     1 << 2,
-      cInlineFrame =        1 << 3
+      cInlineFrame =        1 << 3,
+      cClosedScope =        1 << 4
     };
 
     CallFrame* previous;
@@ -72,11 +73,15 @@ namespace rubinius {
 
     VariableScope* top_scope(STATE) {
       if(multiple_scopes_p()) return top_scope_;
-      return scope->create_heap_alias(state, this);
+      return promote_scope(state);
     }
 
     bool is_inline_frame() {
       return flags & cInlineFrame;
+    }
+
+    bool has_closed_scope_p() {
+      return flags & cClosedScope;
     }
 
     Module* module() {
