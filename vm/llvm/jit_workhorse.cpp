@@ -376,7 +376,7 @@ namespace rubinius {
     nil_locals(vmm);
   }
 
-  void LLVMWorkHorse::import_args(VMMethod* vmm) {
+  void LLVMWorkHorse::check_arity(VMMethod* vmm) {
     Value* vm_obj = vm;
     Value* dis_obj = msg;
     Value* arg_obj = args;
@@ -390,6 +390,9 @@ namespace rubinius {
     Value* total_offset = GetElementPtrInst::Create(arg_obj, total_idx,
         total_idx + 2, "total_pos", block);
     Value* total = new LoadInst(total_offset, "arg.total", block);
+
+    // For others to use.
+    arg_total = total;
 
     BasicBlock* arg_error = BasicBlock::Create("arg_error", func);
     BasicBlock* cont = BasicBlock::Create("import_args", func);
@@ -450,6 +453,11 @@ namespace rubinius {
 
     // Switch to using continuation
     block = cont;
+  }
+
+  void LLVMWorkHorse::import_args(VMMethod* vmm) {
+    Value* vm_obj = vm;
+    Value* arg_obj = args;
 
     setup_scope(vmm);
 
@@ -498,7 +506,7 @@ namespace rubinius {
 
       // now at the top of block, check if we should continue...
       Value* loop_val = new LoadInst(loop_i, "loop_val", top);
-      Value* cmp = new ICmpInst(ICmpInst::ICMP_SLT, loop_val, total,
+      Value* cmp = new ICmpInst(ICmpInst::ICMP_SLT, loop_val, arg_total,
           "loop_test", top);
 
       BranchInst::Create(body, after, cmp, top);
@@ -650,6 +658,15 @@ namespace rubinius {
           (sizeof(CallFrame) / sizeof(Object*)) + vmm->stack_size),
         "cfstk", block);
 
+    Value* var_mem = new AllocaInst(obj_type,
+        ConstantInt::get(Type::Int32Ty,
+          (sizeof(StackVariables) / sizeof(Object*)) + vmm->number_of_locals),
+        "var_mem", block);
+
+    check_arity(vmm);
+
+    stack_top = new AllocaInst(obj_ary_type, NULL, "stack_top", block);
+
     call_frame = CastInst::Create(
         Instruction::BitCast,
         cfstk,
@@ -661,19 +678,12 @@ namespace rubinius {
 
     stk = GetElementPtrInst::Create(cfstk, cfstk_idx, cfstk_idx+1, "stack", block);
 
-    Value* var_mem = new AllocaInst(obj_type,
-        ConstantInt::get(Type::Int32Ty,
-          (sizeof(StackVariables) / sizeof(Object*)) + vmm->number_of_locals),
-        "var_mem", block);
-
     vars = CastInst::Create(
         Instruction::BitCast,
         var_mem,
         PointerType::getUnqual(stack_vars_type), "vars", block);
 
     initialize_call_frame(vmm->stack_size);
-
-    stack_top = new AllocaInst(obj_ary_type, NULL, "stack_top", block);
 
     Value* stk_idx[] = {
       ConstantInt::get(Type::Int32Ty, (uint64_t)-1),
