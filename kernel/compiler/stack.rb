@@ -2,7 +2,7 @@ class Compiler
   class StackDepthCalculator
     def initialize(iseq)
       @iseq = iseq.opcodes
-      @show_stack = ENV["RBX_DEBUG_STACK_DEPTH"]
+      @show_stack = false
     end
 
     def run
