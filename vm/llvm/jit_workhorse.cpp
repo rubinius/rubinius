@@ -617,16 +617,6 @@ namespace rubinius {
 
     initialize_block_frame(vmm->stack_size);
 
-    stack_top = new AllocaInst(obj_ary_type, NULL, "stack_top", block);
-
-    Value* stk_idx[] = {
-      ConstantInt::get(Type::Int32Ty, (uint64_t)-1),
-    };
-
-    Value* stk_back_one = GetElementPtrInst::Create(stk, stk_idx,
-        stk_idx+1, "stk_back_one", block);
-    new StoreInst(stk_back_one, stack_top, false, block);
-
     nil_stack(vmm->stack_size, constant(Qnil, obj_type, block));
 
     setup_block_scope(vmm);
@@ -665,8 +655,6 @@ namespace rubinius {
 
     check_arity(vmm);
 
-    stack_top = new AllocaInst(obj_ary_type, NULL, "stack_top", block);
-
     call_frame = CastInst::Create(
         Instruction::BitCast,
         cfstk,
@@ -684,14 +672,6 @@ namespace rubinius {
         PointerType::getUnqual(stack_vars_type), "vars", block);
 
     initialize_call_frame(vmm->stack_size);
-
-    Value* stk_idx[] = {
-      ConstantInt::get(Type::Int32Ty, (uint64_t)-1),
-    };
-
-    Value* stk_back_one = GetElementPtrInst::Create(stk, stk_idx,
-        stk_idx+1, "stk_back_one", block);
-    new StoreInst(stk_back_one, stack_top, false, block);
 
     nil_stack(vmm->stack_size, constant(Qnil, obj_type, block));
 
@@ -773,16 +753,6 @@ namespace rubinius {
     new StoreInst(vars, get_field(block, call_frame, offset::cf_scope),
         false, block);
 
-
-    stack_top = new AllocaInst(obj_ary_type, NULL, "stack_top", block);
-
-    Value* stk_idx[] = {
-      ConstantInt::get(Type::Int32Ty, (uint64_t)-1),
-    };
-
-    Value* stk_back_one = GetElementPtrInst::Create(stk, stk_idx,
-        stk_idx+1, "stk_back_one", block);
-    new StoreInst(stk_back_one, stack_top, false, block);
 
     nil_stack(vmm->stack_size, constant(Qnil, obj_type, block));
 
