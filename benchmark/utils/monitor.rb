@@ -48,5 +48,8 @@ if pid = Kernel.fork
     sleep 1
   end
 else
-  exec vm, runner, name, iterations, report
+  args = vm.split
+  exe = args.shift
+  args.concat [runner, name, iterations, report]
+  exec exe, *args
 end
