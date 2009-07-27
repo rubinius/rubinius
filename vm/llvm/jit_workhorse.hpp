@@ -39,6 +39,7 @@ namespace rubinius {
     Value* method;
 
     Value* arg_total;
+    Value* valid_flag;
 
   public:
     LLVMWorkHorse(LLVMState* ls)

@@ -40,6 +40,8 @@ namespace rubinius {
     InlinePolicy* inline_policy_;
     bool own_policy_;
 
+    llvm::Value* valid_flag_;
+
   public:
     const llvm::Type* NativeIntTy;
     const llvm::Type* FixnumTy;
@@ -102,6 +104,14 @@ namespace rubinius {
 
     virtual ~JITOperations() {
       if(inline_policy_ and own_policy_) delete inline_policy_;
+    }
+
+    void set_valid_flag(llvm::Value* val) {
+      valid_flag_ = val;
+    }
+
+    llvm::Value* valid_flag() {
+      return valid_flag_;
     }
 
     void set_policy(InlinePolicy* policy) {

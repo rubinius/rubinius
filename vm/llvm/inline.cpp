@@ -339,6 +339,7 @@ namespace rubinius {
 
   void Inliner::inline_generic_method(Class* klass, VMMethod* vmm) {
     LLVMWorkHorse work(ops_.state());
+    work.valid_flag = ops_.valid_flag();
 
     Value* self = ops_.stack_back(count_);
 
@@ -442,7 +443,7 @@ namespace rubinius {
 
     for(size_t i = 0; i < nf->arg_count; i++) {
       Value* current_arg = arg(i);
-      Value* call_args[] = { ops_.vm(), current_arg };
+      Value* call_args[] = { ops_.vm(), current_arg, ops_.valid_flag() };
 
       switch(nf->arg_types[i]) {
       case RBX_FFI_TYPE_CHAR:
@@ -453,16 +454,13 @@ namespace rubinius {
       case RBX_FFI_TYPE_UINT:
       case RBX_FFI_TYPE_LONG:
       case RBX_FFI_TYPE_ULONG: {
-        struct_types[0] = Type::Int32Ty;
-        Signature sig(ops_.state(), StructType::get(struct_types));
+        Signature sig(ops_.state(), Type::Int32Ty);
         sig << "VM";
         sig << "Object";
+        sig << PointerType::getUnqual(Type::Int1Ty);
 
-        Value* res = sig.call("rbx_ffi_to_int", call_args, 2, "to_int",
+        Value* val = sig.call("rbx_ffi_to_int", call_args, 3, "to_int",
                               ops_.current_block());
-
-        Value* val = ExtractValueInst::Create(res, 0, "int",
-                                              ops_.current_block());
 
         const Type* type = find_type(nf->arg_types[i]);
         ffi_type.push_back(type);
@@ -474,8 +472,7 @@ namespace rubinius {
 
         ffi_args.push_back(val);
 
-        Value* valid = ExtractValueInst::Create(res, 1, "valid_conversion",
-                                              ops_.current_block());
+        Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
         ops_.create_conditional_branch(cont, failure, valid);
@@ -485,22 +482,18 @@ namespace rubinius {
       }
 
       case RBX_FFI_TYPE_FLOAT: {
-        ffi_type.push_back(Type::FloatTy);
-
-        struct_types[0] = Type::FloatTy;
-        Signature sig(ops_.state(), StructType::get(struct_types));
+        Signature sig(ops_.state(), Type::FloatTy);
         sig << "VM";
         sig << "Object";
+        sig << PointerType::getUnqual(Type::Int1Ty);
 
-        Value* res = sig.call("rbx_ffi_to_float", call_args, 2, "to_float",
+        Value* val = sig.call("rbx_ffi_to_float", call_args, 3, "to_float",
                               ops_.current_block());
 
-        Value* val = ExtractValueInst::Create(res, 0, "float",
-                                              ops_.current_block());
+        ffi_type.push_back(val->getType());
         ffi_args.push_back(val);
 
-        Value* valid = ExtractValueInst::Create(res, 1, "valid_conversion",
-                                              ops_.current_block());
+        Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
         ops_.create_conditional_branch(cont, failure, valid);
@@ -510,22 +503,18 @@ namespace rubinius {
       }
 
       case RBX_FFI_TYPE_DOUBLE: {
-        ffi_type.push_back(Type::DoubleTy);
-
-        struct_types[0] = Type::DoubleTy;
-        Signature sig(ops_.state(), StructType::get(struct_types));
+        Signature sig(ops_.state(), Type::DoubleTy);
         sig << "VM";
         sig << "Object";
+        sig << PointerType::getUnqual(Type::Int1Ty);
 
-        Value* res = sig.call("rbx_ffi_to_double", call_args, 2, "to_double",
+        Value* val = sig.call("rbx_ffi_to_double", call_args, 3, "to_double",
                               ops_.current_block());
 
-        Value* val = ExtractValueInst::Create(res, 0, "double",
-                                              ops_.current_block());
+        ffi_type.push_back(val->getType());
         ffi_args.push_back(val);
 
-        Value* valid = ExtractValueInst::Create(res, 1, "valid_conversion",
-                                              ops_.current_block());
+        Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
         ops_.create_conditional_branch(cont, failure, valid);
@@ -535,22 +524,18 @@ namespace rubinius {
 
       case RBX_FFI_TYPE_LONG_LONG:
       case RBX_FFI_TYPE_ULONG_LONG: {
-        ffi_type.push_back(Type::Int64Ty);
-
-        struct_types[0] = Type::Int64Ty;
-        Signature sig(ops_.state(), StructType::get(struct_types));
+        Signature sig(ops_.state(), Type::Int64Ty);
         sig << "VM";
         sig << "Object";
+        sig << PointerType::getUnqual(Type::Int1Ty);
 
-        Value* res = sig.call("rbx_ffi_to_int64", call_args, 2, "to_int64",
+        Value* val = sig.call("rbx_ffi_to_int64", call_args, 3, "to_int64",
                               ops_.current_block());
 
-        Value* val = ExtractValueInst::Create(res, 0, "int64",
-                                              ops_.current_block());
+        ffi_type.push_back(val->getType());
         ffi_args.push_back(val);
 
-        Value* valid = ExtractValueInst::Create(res, 1, "valid_conversion",
-                                              ops_.current_block());
+        Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
         ops_.create_conditional_branch(cont, failure, valid);
@@ -569,21 +554,20 @@ namespace rubinius {
         break;
 
       case RBX_FFI_TYPE_PTR: {
-        ffi_type.push_back(PointerType::getUnqual(Type::Int8Ty));
-        struct_types[0] = PointerType::getUnqual(Type::Int8Ty);
-        Signature sig(ops_.state(), StructType::get(struct_types));
+        const Type* type = PointerType::getUnqual(Type::Int8Ty);
+
+        Signature sig(ops_.state(), type);
         sig << "VM";
         sig << "Object";
+        sig << PointerType::getUnqual(Type::Int1Ty);
 
-        Value* res = sig.call("rbx_ffi_to_ptr", call_args, 2, "to_ptr",
+        Value* val = sig.call("rbx_ffi_to_ptr", call_args, 3, "to_ptr",
                               ops_.current_block());
 
-        Value* val = ExtractValueInst::Create(res, 0, "ptr",
-                                              ops_.current_block());
+        ffi_type.push_back(type);
         ffi_args.push_back(val);
 
-        Value* valid = ExtractValueInst::Create(res, 1, "valid_conversion",
-                                              ops_.current_block());
+        Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
         ops_.create_conditional_branch(cont, failure, valid);
@@ -593,21 +577,20 @@ namespace rubinius {
       }
 
       case RBX_FFI_TYPE_STRING: {
-        ffi_type.push_back(PointerType::getUnqual(Type::Int8Ty));
-        struct_types[0] = PointerType::getUnqual(Type::Int8Ty);
-        Signature sig(ops_.state(), StructType::get(struct_types));
+        const Type* type = PointerType::getUnqual(Type::Int8Ty);
+
+        Signature sig(ops_.state(), type);
         sig << "VM";
         sig << "Object";
+        sig << PointerType::getUnqual(Type::Int1Ty);
 
-        Value* res = sig.call("rbx_ffi_to_string", call_args, 2, "to_string",
+        Value* val = sig.call("rbx_ffi_to_string", call_args, 3, "to_string",
                               ops_.current_block());
 
-        Value* val = ExtractValueInst::Create(res, 0, "string",
-                                              ops_.current_block());
+        ffi_type.push_back(type);
         ffi_args.push_back(val);
 
-        Value* valid = ExtractValueInst::Create(res, 1, "valid_conversion",
-                                              ops_.current_block());
+        Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
         ops_.create_conditional_branch(cont, failure, valid);

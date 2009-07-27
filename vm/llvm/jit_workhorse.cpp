@@ -589,6 +589,8 @@ namespace rubinius {
 
     block = BasicBlock::Create("entry", func);
 
+    valid_flag = new AllocaInst(Type::Int1Ty, 0, "valid_flag", block);
+
     Value* cfstk = new AllocaInst(obj_type,
         ConstantInt::get(Type::Int32Ty,
           (sizeof(CallFrame) / sizeof(Object*)) + vmm->stack_size),
@@ -642,6 +644,7 @@ namespace rubinius {
     args = ai++; args->setName("args");
 
     block = BasicBlock::Create("entry", func);
+    valid_flag = new AllocaInst(Type::Int1Ty, 0, "valid_flag", block);
 
     Value* cfstk = new AllocaInst(obj_type,
         ConstantInt::get(Type::Int32Ty,
@@ -1014,6 +1017,8 @@ namespace rubinius {
     }
 
     visitor.set_called_args(info.called_args);
+
+    visitor.set_valid_flag(valid_flag);
 
     // Pass 1, detect BasicBlock boundaries
     BlockFinder finder(visitor.block_map(), func, block);
