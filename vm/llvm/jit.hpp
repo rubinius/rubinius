@@ -287,6 +287,11 @@ namespace rubinius {
       return llvm::CallInst::Create(function(name), start, start+size, inst_name, block);
     }
 
+    llvm::CallInst* call(const char* name, llvm::Value** start, int size,
+                      const char* inst_name, llvm::IRBuilder<>& builder) {
+      return builder.CreateCall(function(name), start, start+size, inst_name);
+    }
+
   };
 
   class BackgroundCompileRequest {
