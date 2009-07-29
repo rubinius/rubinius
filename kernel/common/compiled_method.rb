@@ -1,11 +1,11 @@
 module Rubinius
   class CompiledMethod < Executable
-    
+
     ##
     # Any CompiledMethod with this value in it's serial slot
     # is expected to be the default, kernel version
     KernelMethodSerial = 47
-    
+
     ##
     # Ivars: instance_variables, primitive, serial, name, iseq, stack_size,
     # local_count, required_args, total_args, splat, literals, exceptions,
@@ -13,9 +13,8 @@ module Rubinius
     ##
     # This is runtime hints, added to the method by the VM to indicate how it's
     # being used.
-    
-    
-    attr_accessor :hints         # added by the VM to indicat how it's being used.
+
+    attr_accessor :hints         # added by the VM to indicate how it's being used.
     attr_accessor :__ivars__
     attr_accessor :name          # [Symbol]  name of the method
     attr_accessor :iseq          # [Tuple]   instructions to execute
@@ -30,7 +29,7 @@ module Rubinius
     attr_accessor :file          # [Symbol]  the file where this comes from
     attr_accessor :local_names   # [Array<Symbol>] names of the local vars
     attr_accessor :scope         
-    
+
     ##
     # Compare this method with +other+. Instead of bugging out if +other+
     # isn't a {CompiledMethod}, this returns +false+ immediately unless
@@ -74,7 +73,7 @@ module Rubinius
         @file          == other.file          and # [Symbol]  the file where this comes from
         @local_names   == other.local_names       # [Array<Symbol>] the names of the local vars. used by eval
     end
-    
+
     ##
     # Update +self+ out of a string, using +bc+ as the iseq,
     # +lcls+ as the number local variables, and +req+ as the required args.
@@ -101,7 +100,7 @@ module Rubinius
       @required_args = req
       return self
     end
-    
+
     ##
     # Return a human readable interpretation of this method.
     # 
@@ -109,7 +108,7 @@ module Rubinius
     def inspect
       "#<#{self.class.name} #{@name} file=#{@file}>"
     end
-    
+
     ##
     # Make the method change its scope so that it can act as though
     # it's frome somewhere else. You can pass in a method and +self+
@@ -119,7 +118,7 @@ module Rubinius
     def inherit_scope(other)
       @scope = other.scope
     end
-    
+
     ##
     # Invoke method directly.
     #
@@ -140,7 +139,7 @@ module Rubinius
       Ruby.primitive :compiledmethod_set_breakpoint
       raise ArgumentError, "Unable to set breakpoint on #{inspect} at invalid bytecode address #{ip}"
     end
-    
+
     ##
     # Erase a breakpoint from being here
     # 
@@ -150,7 +149,7 @@ module Rubinius
       Ruby.primitive :compiledmethod_clear_breakpoint
       raise ArgumentError, "Unable to clear breakpoint on #{inspect} at invalid bytecode address #{ip}"
     end
-    
+
     ##
     # Is there a breakpoint set in this method at +ip+?
     # 
@@ -161,14 +160,14 @@ module Rubinius
       Ruby.primitive :compiledmethod_is_breakpoint
       raise ArgumentError, "Unable to retrieve breakpoint status on #{inspect} at bytecode address #{ip}"
     end
-    
+
     ##
     # Accessor for a hash of filenames (as per $" / $LOADED_FEATURES) to the
     # script CompiledMethod.
     def self.scripts
       @scripts ||= {}
     end
-    
+
     ##
     # Helper function for searching for a CM given a file name; applies similar
     # search and path expansion rules as load/require, so that the full path to
@@ -216,7 +215,7 @@ module Rubinius
       VM.reset_method_cache :__script__
       MAIN.__script__
     end
-    
+
     ##
     # Return the line of source code at +ip+.
     # 
@@ -247,7 +246,7 @@ module Rubinius
 
       @lines.at(@lines.size - 2)
     end
-    
+
     ##
     # Returns the address (IP) of the first instruction in this CompiledMethod
     # that is on the specified line, or the address of the first instruction on
@@ -272,7 +271,7 @@ module Rubinius
 
       return -1
     end
-    
+
     ##
     # The first line of source code.
     # 
@@ -284,7 +283,7 @@ module Rubinius
 
       return -1
     end
-    
+
     ##
     # Is this actually a block of code?
     # 
@@ -300,7 +299,7 @@ module Rubinius
       end
       str
     end
-    
+
     ##
     # Convenience method to return an array of the child CompiledMethods from
     # this CompiledMethod's literals.
@@ -318,7 +317,7 @@ module Rubinius
     def send_sites
       literals.select {|lit| lit.kind_of? SendSite }
     end
-    
+
     ##
     # Locates the CompiledMethod and instruction address (IP) of the first
     # instruction on the specified line. This method recursively examines child
@@ -340,7 +339,7 @@ module Rubinius
           break
         end
       end
-      
+
       # Didn't find line in this CM, so check if a contained
       # CM encompasses the line searched for
       cm.child_methods.each do |child|
@@ -377,7 +376,7 @@ module Rubinius
         end
         instruct
       end
-      
+
       ##
       # Add a convenience method to the array containing the decoded instructions
       # to convert an IP address to the index of the corresponding instruction
@@ -392,10 +391,10 @@ module Rubinius
           return i if ip <= inst.ip
         end
       end
-      
+
       stream
     end
-    
+
     ##
     # Calculates the minimum stack size required for this method.
     def min_stack_size
@@ -403,7 +402,7 @@ module Rubinius
       sdc = Compiler::StackDepthCalculator.new(@iseq)
       sdc.run
     end
-    
+
     ##
     # Graphs the control flow of this method
     def graph_control(file, open_now=false)
@@ -422,7 +421,7 @@ module Rubinius
 
       file
     end
-    
+
     def arity()
       if @required_args == @total_args and
          @splat.nil?
@@ -431,7 +430,7 @@ module Rubinius
         -(@required_args + 1)
       end
     end
-    
+
     ##
     # Represents virtual machine's CPU instruction.
     # Instructions are organized into instruction
@@ -531,7 +530,7 @@ module Rubinius
         end
         return usage
       end
-      
+
       ##
       # A nice human readable interpretation of this set of instructions
       def to_s
