@@ -38,6 +38,9 @@ namespace rubinius {
     Value* method_entry_;
     Value* method;
 
+    Value* arg_total;
+    Value* valid_flag;
+
   public:
     LLVMWorkHorse(LLVMState* ls)
       : ls_(ls)
@@ -65,6 +68,8 @@ namespace rubinius {
     void setup_inline_scope(Value* self, Value* mod, VMMethod* vmm);
 
     void setup_block_scope(VMMethod* vmm);
+
+    void check_arity(VMMethod* vmm);
 
     void import_args(VMMethod* vmm);
 

@@ -6,7 +6,7 @@
 namespace rubinius {
 
   VariableScope* StackVariables::create_heap_alias(STATE,
-      CallFrame* call_frame)
+      CallFrame* call_frame, bool full)
   {
     if(on_heap_) return on_heap_;
 
@@ -25,10 +25,15 @@ namespace rubinius {
     scope->module(state, module_);
     scope->method(state, call_frame->cm);
 
-    scope->isolated_ = false;
     scope->number_of_locals_ = vmm->number_of_locals;
 
-    scope->point_locals_to(locals_);
+    if(full) {
+      scope->isolated_ = false;
+      scope->point_locals_to(locals_);
+    } else {
+      scope->isolated_ = true;
+      scope->point_locals_to(scope->heap_locals_);
+    }
 
     on_heap_ = scope;
 

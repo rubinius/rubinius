@@ -13,7 +13,7 @@
 
 namespace rubinius {
   VariableScope* CallFrame::promote_scope(STATE) {
-    return scope->create_heap_alias(state, this);
+    return scope->create_heap_alias(state, this, !has_closed_scope_p());
   }
 
   void CallFrame::print_backtrace(STATE) {

@@ -54,7 +54,7 @@ namespace rubinius {
 
   VariableScope* VariableScope::of_sender(STATE, CallFrame* call_frame) {
     CallFrame* dest = static_cast<CallFrame*>(call_frame->previous);
-    return dest->scope->create_heap_alias(state, dest);
+    return dest->promote_scope(state);
   }
 
   VariableScope* VariableScope::current(STATE, CallFrame* call_frame) {

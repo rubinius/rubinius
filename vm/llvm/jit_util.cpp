@@ -683,143 +683,91 @@ extern "C" {
   }
 
   // FFI helpers
-  struct ffi_int_result {
-    int value;
-    bool valid;
-  };
-
-  struct ffi_int_result rbx_ffi_to_int(STATE, Object* obj) {
-    struct ffi_int_result res;
-
+  int rbx_ffi_to_int(STATE, Object* obj, bool* valid) {
     if(Integer* i = try_as<Integer>(obj)) {
-      res.value = i->to_native();
-      res.valid = true;
-    } else {
-      Exception* exc =
-        Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
-      state->thread_state()->raise_exception(exc);
-
-      res.value = 0;
-      res.valid = false;
+      *valid = true;
+      return i->to_native();
     }
 
-    return res;
+    Exception* exc =
+      Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
+    state->thread_state()->raise_exception(exc);
+
+    *valid = false;
+    return 0;
   }
 
-  struct ffi_float_result {
-    float value;
-    bool valid;
-  };
-
-  struct ffi_float_result rbx_ffi_to_float(STATE, Object* obj) {
-    struct ffi_float_result res;
-
+  float rbx_ffi_to_float(STATE, Object* obj, bool* valid) {
     if(Float* i = try_as<Float>(obj)) {
-      res.value = i->val;
-      res.valid = true;
-    } else {
-      Exception* exc =
-        Exception::make_type_error(state, Float::type, obj, "invalid type for FFI");
-      state->thread_state()->raise_exception(exc);
-
-      res.value = 0.0;
-      res.valid = false;
+      *valid = true;
+      return i->val;
     }
 
-    return res;
+    Exception* exc =
+      Exception::make_type_error(state, Float::type, obj, "invalid type for FFI");
+    state->thread_state()->raise_exception(exc);
+
+    *valid = false;
+    return 0.0;
   }
 
-  struct ffi_double_result {
-    double value;
-    bool valid;
-  };
-
-  struct ffi_double_result rbx_ffi_to_double(STATE, Object* obj) {
-    struct ffi_double_result res;
-
+  double rbx_ffi_to_double(STATE, Object* obj, bool* valid) {
     if(Float* i = try_as<Float>(obj)) {
-      res.value = i->val;
-      res.valid = true;
-    } else {
-      Exception* exc =
-        Exception::make_type_error(state, Float::type, obj, "invalid type for FFI");
-      state->thread_state()->raise_exception(exc);
-
-      res.valid = false;
+      *valid = true;
+      return i->val;
     }
 
-    return res;
+    Exception* exc =
+      Exception::make_type_error(state, Float::type, obj, "invalid type for FFI");
+    state->thread_state()->raise_exception(exc);
+
+    *valid = false;
+    return 0.0;
   }
 
-  struct ffi_int64_result {
-    uint64_t value;
-    bool valid;
-  };
-
-  struct ffi_int64_result rbx_ffi_to_int64(STATE, Object* obj) {
-    struct ffi_int64_result res;
-
+  uint64_t rbx_ffi_to_int64(STATE, Object* obj, bool* valid) {
     if(Integer* i = try_as<Integer>(obj)) {
-      res.value = i->to_long_long();
-      res.valid = true;
-    } else {
-      Exception* exc =
-        Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
-      state->thread_state()->raise_exception(exc);
-
-      res.valid = false;
+      *valid = true;
+      return i->to_long_long();
     }
 
-    return res;
+    Exception* exc =
+      Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
+    state->thread_state()->raise_exception(exc);
+
+    *valid = false;
+    return 0ULL;
   }
 
-  struct ffi_ptr_result {
-    void* value;
-    bool valid;
-  };
-
-  struct ffi_ptr_result rbx_ffi_to_ptr(STATE, Object* obj) {
-    struct ffi_ptr_result res;
-
+  void* rbx_ffi_to_ptr(STATE, Object* obj, bool* valid) {
     if(MemoryPointer* ptr = try_as<MemoryPointer>(obj)) {
-      res.value = ptr->pointer;
-      res.valid = true;
+      *valid = true;
+      return ptr->pointer;
     } else if(obj->nil_p()) {
-      res.value = 0;
-      res.valid = true;
-    } else {
-      Exception* exc =
-        Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
-      state->thread_state()->raise_exception(exc);
-
-      res.value = 0;
-      res.valid = false;
+      *valid = true;
+      return 0;
     }
 
-    return res;
+    Exception* exc =
+      Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
+    state->thread_state()->raise_exception(exc);
+
+    *valid = false;
+    return 0;
   }
 
-  struct ffi_string_result {
-    char* value;
-    bool valid;
-  };
-
-  struct ffi_string_result rbx_ffi_to_string(STATE, Object* obj) {
-    struct ffi_string_result res;
-
+  char* rbx_ffi_to_string(STATE, Object* obj, bool* valid) {
     if(String* str = try_as<String>(obj)) {
-      res.value = const_cast<char*>(str->c_str());
-      res.valid = true;
-    } else {
-      Exception* exc =
-        Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
-      state->thread_state()->raise_exception(exc);
-
-      res.value = 0;
-      res.valid = false;
+      *valid = true;
+      return const_cast<char*>(str->c_str());
     }
 
-    return res;
+    Exception* exc =
+      Exception::make_type_error(state, Fixnum::type, obj, "invalid type for FFI");
+    state->thread_state()->raise_exception(exc);
+
+    *valid = false;
+    return 0;
   }
 
   Object* rbx_ffi_from_int64(STATE, int64_t ll) {
