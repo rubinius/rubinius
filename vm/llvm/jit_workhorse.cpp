@@ -7,15 +7,10 @@
 
 #include "llvm/jit_visit.hpp"
 
-static Value* get_field(BasicBlock* block, Value* val, int which) {
-  Value* idx[] = {
-    ConstantInt::get(Type::Int32Ty, 0),
-    ConstantInt::get(Type::Int32Ty, which)
-  };
-  Value* gep = GetElementPtrInst::Create(val, idx, idx+2, "gep", block);
-  return gep;
-}
+/*
+*/
 
+/*
 template <typename T>
 static Value* constant(T obj, const Type* obj_type, BasicBlock* block) {
   return CastInst::Create(
@@ -23,19 +18,31 @@ static Value* constant(T obj, const Type* obj_type, BasicBlock* block) {
       ConstantInt::get(Type::Int32Ty, (intptr_t)obj),
       obj_type, "cast_to_obj", block);
 }
+*/
 
 namespace rubinius {
+  LLVMWorkHorse::LLVMWorkHorse(LLVMState* ls)
+    : ls_(ls)
+  {
+    llvm::Module* mod = ls->module();
+    cf_type = mod->getTypeByName("struct.rubinius::CallFrame");
+    vars_type = mod->getTypeByName("struct.rubinius::VariableScope");
+    stack_vars_type = mod->getTypeByName("struct.rubinius::StackVariables");
+    obj_type = ls->ptr_type("Object");
+    obj_ary_type = PointerType::getUnqual(obj_type);
+  }
+
   void LLVMWorkHorse::return_value(Value* ret, BasicBlock* cont) {
     if(ls_->include_profiling()) {
-      Value* test = new LoadInst(ls_->profiling(), "profiling", block);
+      Value* test = b().CreateLoad(ls_->profiling(), "profiling");
       BasicBlock* end_profiling = BasicBlock::Create("end_profiling", func);
       if(!cont) {
         cont = BasicBlock::Create("continue", func);
       }
 
-      BranchInst::Create(end_profiling, cont, test, block);
+      b().CreateCondBr(test, end_profiling, cont);
 
-      block = end_profiling;
+      b().SetInsertPoint(end_profiling);
 
       Signature sig(ls_, Type::VoidTy);
       sig << PointerType::getUnqual(Type::Int8Ty);
@@ -44,61 +51,61 @@ namespace rubinius {
         method_entry_
       };
 
-      sig.call("rbx_end_profiling", call_args, 1, "", block);
+      sig.call("rbx_end_profiling", call_args, 1, "", b());
 
-      BranchInst::Create(cont, block);
+      b().CreateBr(cont);
 
-      block = cont;
+      b().SetInsertPoint(cont);
     }
 
-    ReturnInst::Create(ret, block);
+    b().CreateRet(ret);
+  }
+
+  Value* LLVMWorkHorse::get_field(Value* val, int which) {
+    return b().CreateConstGEP2_32(val, 0, which);
   }
 
   void LLVMWorkHorse::initialize_call_frame(int stack_size) {
-    Value* exec = new LoadInst(get_field(block, msg, 2), "msg.exec", block);
-    Value* cm_gep = get_field(block, call_frame, offset::cf_cm);
-    method = CastInst::Create(
-        Instruction::BitCast,
-        exec,
-        cast<PointerType>(cm_gep->getType())->getElementType(),
-        "cm", block);
+    Value* exec = b().CreateLoad(get_field(msg, 2), "msg.exec");
+    Value* cm_gep = get_field(call_frame, offset::cf_cm);
+    method = b().CreateBitCast(
+        exec, cast<PointerType>(cm_gep->getType())->getElementType(), "cm");
 
     // previous
-    new StoreInst(prev, get_field(block, call_frame, offset::cf_previous),
-        false, block);
+    b().CreateStore(prev, get_field(call_frame, offset::cf_previous));
 
     // msg
-    new StoreInst(msg, get_field(block, call_frame, offset::cf_msg),
-        false, block);
+    b().CreateStore(msg, get_field(call_frame, offset::cf_msg));
 
     // cm
-    new StoreInst(method, cm_gep, false, block);
+    b().CreateStore(method, cm_gep);
 
     // flags
-    new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
-        get_field(block, call_frame, offset::cf_flags), false, block);
+    b().CreateStore(
+        ConstantInt::get(Type::Int32Ty, 0),
+        get_field(call_frame, offset::cf_flags));
 
     // ip
-    new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
-        get_field(block, call_frame, offset::cf_ip), false, block);
+    b().CreateStore(
+        ConstantInt::get(Type::Int32Ty, 0),
+        get_field(call_frame, offset::cf_ip));
 
     // scope
-    new StoreInst(vars, get_field(block, call_frame, offset::cf_scope),
-        false, block);
+    b().CreateStore(vars, get_field(call_frame, offset::cf_scope));
 
     if(ls_->include_profiling()) {
-      method_entry_ = new AllocaInst(Type::Int8Ty,
+      method_entry_ = b().CreateAlloca(Type::Int8Ty,
           ConstantInt::get(Type::Int32Ty, sizeof(profiler::MethodEntry)),
-          "method_entry", block);
+          "method_entry");
 
-      Value* test = new LoadInst(ls_->profiling(), "profiling", block);
+      Value* test = b().CreateLoad(ls_->profiling(), "profiling");
 
       BasicBlock* setup_profiling = BasicBlock::Create("setup_profiling", func);
       BasicBlock* cont = BasicBlock::Create("continue", func);
 
-      BranchInst::Create(setup_profiling, cont, test, block);
+      b().CreateCondBr(test, setup_profiling, cont);
 
-      block = setup_profiling;
+      b().SetInsertPoint(setup_profiling);
 
       Signature sig(ls_, Type::VoidTy);
       sig << "VM";
@@ -115,80 +122,75 @@ namespace rubinius {
         method
       };
 
-      sig.call("rbx_begin_profiling", call_args, 5, "", block);
+      sig.call("rbx_begin_profiling", call_args, 5, "", b());
 
-      BranchInst::Create(cont, block);
+      b().CreateBr(cont);
 
-      block = cont;
+      b().SetInsertPoint(cont);
     }
   }
 
   void LLVMWorkHorse::initialize_block_frame(int stack_size) {
-    Value* cm_gep = get_field(block, call_frame, offset::cf_cm);
+    Value* cm_gep = get_field(call_frame, offset::cf_cm);
 
-    method = new LoadInst(get_field(block, block_env, offset::blockenv_method),
-        "env.method", block);
+    method = b().CreateLoad(get_field(block_env, offset::blockenv_method),
+                            "env.method");
 
     // previous
-    new StoreInst(prev, get_field(block, call_frame, offset::cf_previous),
-        false, block);
+    b().CreateStore(prev, get_field(call_frame, offset::cf_previous));
 
     // static_scope
-    Value* ss = new LoadInst(get_field(block, block_inv, offset::blockinv_static_scope),
-        "invocation.static_scope", block);
+    Value* ss = b().CreateLoad(get_field(block_inv, offset::blockinv_static_scope),
+                               "invocation.static_scope");
 
-    new StoreInst(ss, get_field(block, call_frame, offset::cf_static_scope),
-        false, block);
+    b().CreateStore(ss, get_field(call_frame, offset::cf_static_scope));
 
     // msg
-    new StoreInst(Constant::getNullValue(ls_->ptr_type("Dispatch")),
-        get_field(block, call_frame, offset::cf_msg), false, block);
+    b().CreateStore(Constant::getNullValue(ls_->ptr_type("Dispatch")),
+        get_field(call_frame, offset::cf_msg));
 
     // cm
-    new StoreInst(method, cm_gep, false, block);
+    b().CreateStore(method, cm_gep);
 
     // flags
-    Value* inv_flags = new LoadInst(get_field(block, block_inv, offset::blockinv_flags),
-        "invocation.flags", block);
+    Value* inv_flags = b().CreateLoad(get_field(block_inv, offset::blockinv_flags),
+        "invocation.flags");
 
     int block_flags = CallFrame::cCustomStaticScope |
       CallFrame::cMultipleScopes;
 
-    Value* flags = BinaryOperator::CreateOr(inv_flags,
-        ConstantInt::get(Type::Int32Ty, block_flags), "flags", block);
+    Value* flags = b().CreateOr(inv_flags,
+        ConstantInt::get(Type::Int32Ty, block_flags), "flags");
 
-    new StoreInst(flags,
-        get_field(block, call_frame, offset::cf_flags), false, block);
+    b().CreateStore(flags, get_field(call_frame, offset::cf_flags));
 
     // ip
-    new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
-        get_field(block, call_frame, offset::cf_ip), false, block);
+    b().CreateStore(ConstantInt::get(Type::Int32Ty, 0),
+        get_field(call_frame, offset::cf_ip));
 
     // scope
-    new StoreInst(vars, get_field(block, call_frame, offset::cf_scope),
-        false, block);
+    b().CreateStore(vars, get_field(call_frame, offset::cf_scope));
 
     // top_scope
-    top_scope = new LoadInst(
-        get_field(block, block_env, offset::blockenv_top_scope),
-        "env.top_scope", block);
+    top_scope = b().CreateLoad(
+        get_field(block_env, offset::blockenv_top_scope),
+        "env.top_scope");
 
-    new StoreInst(top_scope, get_field(block, call_frame, offset::cf_top_scope),
-        false, block);
+    b().CreateStore(top_scope, get_field(call_frame, offset::cf_top_scope));
 
     if(ls_->include_profiling()) {
-      method_entry_ = new AllocaInst(Type::Int8Ty,
+      method_entry_ = b().CreateAlloca(Type::Int8Ty,
           ConstantInt::get(Type::Int32Ty, sizeof(profiler::MethodEntry)),
-          "method_entry", block);
+          "method_entry");
 
-      Value* test = new LoadInst(ls_->profiling(), "profiling", block);
+      Value* test = b().CreateLoad(ls_->profiling(), "profiling");
 
       BasicBlock* setup_profiling = BasicBlock::Create("setup_profiling", func);
       BasicBlock* cont = BasicBlock::Create("continue", func);
 
-      BranchInst::Create(setup_profiling, cont, test, block);
+      b().CreateCondBr(test, setup_profiling, cont);
 
-      block = setup_profiling;
+      b().SetInsertPoint(setup_profiling);
 
       Signature sig(ls_, Type::VoidTy);
       sig << "VM";
@@ -205,11 +207,11 @@ namespace rubinius {
         method
       };
 
-      sig.call("rbx_begin_profiling", call_args, 5, "", block);
+      sig.call("rbx_begin_profiling", call_args, 5, "", b());
 
-      BranchInst::Create(cont, block);
+      b().CreateBr(cont);
 
-      block = cont;
+      b().SetInsertPoint(cont);
     }
   }
 
@@ -219,12 +221,7 @@ namespace rubinius {
     // the loop.
     if(size <= 5) {
       for(int i = 0; i < size; i++) {
-        Value* idx[] = {
-          ConstantInt::get(Type::Int32Ty, i)
-        };
-
-        Value* gep = GetElementPtrInst::Create(stk, idx, idx+1, "stack_pos", block);
-        new StoreInst(nil, gep, block);
+        b().CreateStore(nil, b().CreateConstGEP1_32(stk, i, "stack_pos"));
       }
       return;
     }
@@ -235,28 +232,27 @@ namespace rubinius {
     BasicBlock* top = BasicBlock::Create("stack_nil", func);
     BasicBlock* cont = BasicBlock::Create("bottom", func);
 
-    Value* counter = new AllocaInst(Type::Int32Ty, 0, "counter_alloca", block);
-    new StoreInst(ConstantInt::get(Type::Int32Ty, 0), counter, block);
+    Value* counter = b().CreateAlloca(Type::Int32Ty, 0, "counter_alloca");
+    b().CreateStore(ConstantInt::get(Type::Int32Ty, 0), counter);
 
-    BranchInst::Create(top, block);
+    b().CreateBr(top);
 
-    Value* cur = new LoadInst(counter, "counter", top);
-    Value* idx[] = { cur };
+    b().SetInsertPoint(top);
 
-    Value* gep = GetElementPtrInst::Create(stk, idx, idx+1, "stack_pos", top);
-    new StoreInst(nil, gep, top);
+    Value* cur = b().CreateLoad(counter, "counter");
+    b().CreateStore(nil, b().CreateGEP(stk, cur, "stack_pos"));
 
-    Value* added = BinaryOperator::CreateAdd(cur, one, "added", top);
-    new StoreInst(added, counter, top);
+    Value* added = b().CreateAdd(cur, one, "added");
+    b().CreateStore(added, counter);
 
-    Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, added, max, "loop_check", top);
-    BranchInst::Create(cont, top, cmp, top);
+    Value* cmp = b().CreateICmpEQ(added, max, "loop_check");
+    b().CreateCondBr(cmp, cont, top);
 
-    block = cont;
+    b().SetInsertPoint(cont);
   }
 
   void LLVMWorkHorse::nil_locals(VMMethod* vmm) {
-    Value* nil = constant(Qnil, obj_type, block);
+    Value* nil = constant(Qnil, obj_type);
     int size = vmm->number_of_locals;
 
     if(size == 0) return;
@@ -270,8 +266,8 @@ namespace rubinius {
           ConstantInt::get(Type::Int32Ty, i)
         };
 
-        Value* gep = GetElementPtrInst::Create(vars, idx, idx+3, "local_pos", block);
-        new StoreInst(nil, gep, block);
+        Value* gep = b().CreateGEP(vars, idx, idx+3, "local_pos");
+        b().CreateStore(nil, gep);
       }
       return;
     }
@@ -282,96 +278,98 @@ namespace rubinius {
     BasicBlock* top = BasicBlock::Create("locals_nil", func);
     BasicBlock* cont = BasicBlock::Create("bottom", func);
 
-    Value* counter = new AllocaInst(Type::Int32Ty, 0, "counter_alloca", block);
-    new StoreInst(ConstantInt::get(Type::Int32Ty, 0), counter, block);
+    Value* counter = b().CreateAlloca(Type::Int32Ty, 0, "counter_alloca");
+    b().CreateStore(ConstantInt::get(Type::Int32Ty, 0), counter);
 
-    BranchInst::Create(top, block);
+    b().CreateBr(top);
 
-    Value* cur = new LoadInst(counter, "counter", top);
+    b().SetInsertPoint(top);
+
+    Value* cur = b().CreateLoad(counter, "counter");
     Value* idx[] = {
       ConstantInt::get(Type::Int32Ty, 0),
       ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
       cur
     };
 
-    Value* gep = GetElementPtrInst::Create(vars, idx, idx+3, "local_pos", top);
-    new StoreInst(nil, gep, top);
+    Value* gep = b().CreateGEP(vars, idx, idx+3, "local_pos");
+    b().CreateStore(nil, gep);
 
-    Value* added = BinaryOperator::CreateAdd(cur, one, "added", top);
-    new StoreInst(added, counter, top);
+    Value* added = b().CreateAdd(cur, one, "added");
+    b().CreateStore(added, counter);
 
-    Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, added, max, "loop_check", top);
-    BranchInst::Create(cont, top, cmp, top);
+    Value* cmp = b().CreateICmpEQ(added, max, "loop_check");
+    b().CreateCondBr(cmp, cont, top);
 
-    block = cont;
+    b().SetInsertPoint(cont);
   }
 
   void LLVMWorkHorse::setup_scope(VMMethod* vmm) {
     Value* heap_null = ConstantExpr::getNullValue(PointerType::getUnqual(vars_type));
-    Value* heap_pos = get_field(block, vars, offset::vars_on_heap);
-    new StoreInst(heap_null, heap_pos, false, block);
+    Value* heap_pos = get_field(vars, offset::vars_on_heap);
 
-    Value* self = new LoadInst(get_field(block, args, offset::args_recv),
-        "args.recv", block);
-    new StoreInst(self, get_field(block, vars, offset::vars_self), false, block);
-    Value* mod = new LoadInst(get_field(block, msg, offset::msg_module),
-        "msg.module", block);
-    new StoreInst(mod, get_field(block, vars, offset::vars_module), false, block);
+    b().CreateStore(heap_null, heap_pos);
 
-    Value* blk = new LoadInst(get_field(block, args, offset::args_block),
-        "args.block", block);
-    new StoreInst(blk, get_field(block, vars, offset::vars_block), false, block);
+    Value* self = b().CreateLoad(get_field(args, offset::args_recv),
+        "args.recv");
+    b().CreateStore(self, get_field(vars, offset::vars_self));
+    Value* mod = b().CreateLoad(get_field(msg, offset::msg_module),
+        "msg.module");
+    b().CreateStore(mod, get_field(vars, offset::vars_module));
 
-    new StoreInst(Constant::getNullValue(ls_->ptr_type("VariableScope")),
-        get_field(block, vars, offset::vars_parent), false, block);
+    Value* blk = b().CreateLoad(get_field(args, offset::args_block),
+        "args.block");
+    b().CreateStore(blk, get_field(vars, offset::vars_block));
+
+    b().CreateStore(Constant::getNullValue(ls_->ptr_type("VariableScope")),
+        get_field(vars, offset::vars_parent));
 
     nil_locals(vmm);
   }
 
   void LLVMWorkHorse::setup_inline_scope(Value* self, Value* mod, VMMethod* vmm) {
     Value* heap_null = ConstantExpr::getNullValue(PointerType::getUnqual(vars_type));
-    Value* heap_pos = get_field(block, vars, offset::vars_on_heap);
-    new StoreInst(heap_null, heap_pos, false, block);
+    Value* heap_pos = get_field(vars, offset::vars_on_heap);
+    b().CreateStore(heap_null, heap_pos);
 
-    new StoreInst(self, get_field(block, vars, offset::vars_self), false, block);
-    new StoreInst(mod, get_field(block, vars, offset::vars_module), false, block);
+    b().CreateStore(self, get_field(vars, offset::vars_self));
+    b().CreateStore(mod, get_field(vars, offset::vars_module));
 
-    Value* blk = constant(Qnil, obj_type, block);
-    new StoreInst(blk, get_field(block, vars, offset::vars_block), false, block);
+    Value* blk = constant(Qnil, obj_type);
+    b().CreateStore(blk, get_field(vars, offset::vars_block));
 
-    new StoreInst(Constant::getNullValue(ls_->ptr_type("VariableScope")),
-        get_field(block, vars, offset::vars_parent), false, block);
+    b().CreateStore(Constant::getNullValue(ls_->ptr_type("VariableScope")),
+        get_field(vars, offset::vars_parent));
 
     nil_locals(vmm);
   }
 
   void LLVMWorkHorse::setup_block_scope(VMMethod* vmm) {
-    new StoreInst(ConstantExpr::getNullValue(PointerType::getUnqual(vars_type)),
-        get_field(block, vars, offset::vars_on_heap), false, block);
-    Value* self = new LoadInst(
-        get_field(block, block_inv, offset::blockinv_self),
-        "invocation.self", block);
+    b().CreateStore(ConstantExpr::getNullValue(PointerType::getUnqual(vars_type)),
+        get_field(vars, offset::vars_on_heap));
+    Value* self = b().CreateLoad(
+        get_field(block_inv, offset::blockinv_self),
+        "invocation.self");
 
-    new StoreInst(self, get_field(block, vars, offset::vars_self), false, block);
+    b().CreateStore(self, get_field(vars, offset::vars_self));
 
-    Value* mod = new LoadInst(get_field(block, top_scope, offset::varscope_module),
-        "top_scope.module", block);
-    new StoreInst(mod, get_field(block, vars, offset::vars_module), false, block);
+    Value* mod = b().CreateLoad(get_field(top_scope, offset::varscope_module),
+        "top_scope.module");
+    b().CreateStore(mod, get_field(vars, offset::vars_module));
 
-    Value* blk = new LoadInst(get_field(block, top_scope, offset::varscope_block),
-        "args.block", block);
-    new StoreInst(blk, get_field(block, vars, offset::vars_block), false, block);
+    Value* blk = b().CreateLoad(get_field(top_scope, offset::varscope_block),
+        "args.block");
+    b().CreateStore(blk, get_field(vars, offset::vars_block));
 
 
     // We don't use top_scope here because of nested blocks. Parent MUST be
     // the scope the block was created in, not the top scope for depth
     // variables to work.
-    Value* be_scope = new LoadInst(
-        get_field(block, block_env, offset::blockenv_scope),
-        "env.scope", block);
+    Value* be_scope = b().CreateLoad(
+        get_field(block_env, offset::blockenv_scope),
+        "env.scope");
 
-    new StoreInst(be_scope,
-        get_field(block, vars, offset::vars_parent), false, block);
+    b().CreateStore(be_scope, get_field(vars, offset::vars_parent));
 
     nil_locals(vmm);
   }
@@ -381,15 +379,9 @@ namespace rubinius {
     Value* dis_obj = msg;
     Value* arg_obj = args;
 
-    // Check the argument count
-    Value* total_idx[] = {
-      ConstantInt::get(Type::Int32Ty, 0),
-      ConstantInt::get(Type::Int32Ty, offset::args_total),
-    };
-
-    Value* total_offset = GetElementPtrInst::Create(arg_obj, total_idx,
-        total_idx + 2, "total_pos", block);
-    Value* total = new LoadInst(total_offset, "arg.total", block);
+    Value* total_offset = b().CreateConstGEP2_32(arg_obj, 0,
+        offset::args_total, "total_pos");
+    Value* total = b().CreateLoad(total_offset, "arg.total");
 
     // For others to use.
     arg_total = total;
@@ -403,33 +395,33 @@ namespace rubinius {
     if(vmm->splat_position >= 0) {
       if(vmm->required_args > 0) {
         // Make sure we got at least the required args
-        Value* cmp = new ICmpInst(ICmpInst::ICMP_SLT, total,
-            ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
-        BranchInst::Create(arg_error, cont, cmp, block);
+        Value* cmp = b().CreateICmpSLT(total,
+            ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp");
+        b().CreateCondBr(cmp, arg_error, cont);
       } else {
         // Only splat or optionals, no handling!
-        BranchInst::Create(cont, block);
+        b().CreateBr(cont);
       }
 
       // No splat, a precise number of args
     } else if(vmm->required_args == vmm->total_args) {
       // Make sure we got the exact number of arguments
-      Value* cmp = new ICmpInst(ICmpInst::ICMP_NE, total,
-          ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
-      BranchInst::Create(arg_error, cont, cmp, block);
+      Value* cmp = b().CreateICmpNE(total,
+          ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp");
+      b().CreateCondBr(cmp, arg_error, cont);
 
       // No splat, with optionals
     } else {
-      Value* c1 = new ICmpInst(ICmpInst::ICMP_SLT, total,
-          ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
-      Value* c2 = new ICmpInst(ICmpInst::ICMP_SGT, total,
-          ConstantInt::get(Type::Int32Ty, vmm->total_args), "arg_cmp", block);
+      Value* c1 = b().CreateICmpSLT(total,
+          ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp");
+      Value* c2 = b().CreateICmpSGT(total,
+          ConstantInt::get(Type::Int32Ty, vmm->total_args), "arg_cmp");
 
-      Value* cmp = BinaryOperator::CreateOr(c1, c2, "arg_combine", block);
-      BranchInst::Create(arg_error, cont, cmp, block);
+      Value* cmp = b().CreateOr(c1, c2, "arg_combine");
+      b().CreateCondBr(cmp, arg_error, cont);
     }
 
-    block = arg_error;
+    b().SetInsertPoint(arg_error);
 
     // Call our arg_error helper
     Signature sig(ls_, "Object");
@@ -448,11 +440,11 @@ namespace rubinius {
       ConstantInt::get(Type::Int32Ty, vmm->required_args)
     };
 
-    Value* val = sig.call("rbx_arg_error", call_args, 5, "ret", block);
+    Value* val = sig.call("rbx_arg_error", call_args, 5, "ret", b());
     return_value(val);
 
     // Switch to using continuation
-    block = cont;
+    b().SetInsertPoint(cont);
   }
 
   void LLVMWorkHorse::import_args(VMMethod* vmm) {
@@ -462,24 +454,18 @@ namespace rubinius {
     setup_scope(vmm);
 
     // Import the arguments
-    Value* idx1[] = {
-      ConstantInt::get(Type::Int32Ty, 0),
-      ConstantInt::get(Type::Int32Ty, offset::args_ary),
-    };
+    Value* offset = b().CreateConstGEP2_32(args, 0, offset::args_ary, "arg_ary_pos");
 
-    Value* offset = GetElementPtrInst::Create(arg_obj, idx1, idx1+2, "arg_ary_pos", block);
-
-    Value* arg_ary = new LoadInst(offset, "arg_ary", block);
+    Value* arg_ary = b().CreateLoad(offset, "arg_ary");
 
     // If there are a precise number of args, easy.
     if(vmm->required_args == vmm->total_args) {
       for(int i = 0; i < vmm->required_args; i++) {
         Value* int_pos = ConstantInt::get(Type::Int32Ty, i);
 
-        Value* arg_val_offset =
-          GetElementPtrInst::Create(arg_ary, int_pos, "arg_val_offset", block);
+        Value* arg_val_offset = b().CreateConstGEP1_32(arg_ary, i, "arg_val_offset");
 
-        Value* arg_val = new LoadInst(arg_val_offset, "arg_val", block);
+        Value* arg_val = b().CreateLoad(arg_val_offset, "arg_val");
 
         Value* idx2[] = {
           ConstantInt::get(Type::Int32Ty, 0),
@@ -487,36 +473,38 @@ namespace rubinius {
           int_pos
         };
 
-        Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "var_pos", block);
+        Value* pos = b().CreateGEP(vars, idx2, idx2+3, "var_pos");
 
-        new StoreInst(arg_val, pos, false, block);
+        b().CreateStore(arg_val, pos);
       }
 
       // Otherwise, we must loop in the generate code because we don't know
       // how many they've actually passed in.
     } else {
-      Value* loop_i = new AllocaInst(Type::Int32Ty, 0, "loop_i", block);
+      Value* loop_i = b().CreateAlloca(Type::Int32Ty, 0, "loop_i");
 
       BasicBlock* top = BasicBlock::Create("arg_loop_top", func);
       BasicBlock* body = BasicBlock::Create("arg_loop_body", func);
       BasicBlock* after = BasicBlock::Create("arg_loop_cont", func);
 
-      new StoreInst(ConstantInt::get(Type::Int32Ty, 0), loop_i, false, block);
-      BranchInst::Create(top, block);
+      b().CreateStore(ConstantInt::get(Type::Int32Ty, 0), loop_i);
+      b().CreateBr(top);
+
+      b().SetInsertPoint(top);
 
       // now at the top of block, check if we should continue...
-      Value* loop_val = new LoadInst(loop_i, "loop_val", top);
-      Value* cmp = new ICmpInst(ICmpInst::ICMP_SLT, loop_val, arg_total,
-          "loop_test", top);
+      Value* loop_val = b().CreateLoad(loop_i, "loop_val");
+      Value* cmp = b().CreateICmpSLT(loop_val, arg_total, "loop_test");
 
-      BranchInst::Create(body, after, cmp, top);
+      b().CreateCondBr(cmp, body, after);
 
       // Now, the body
+      b().SetInsertPoint(body);
 
       Value* arg_val_offset =
-        GetElementPtrInst::Create(arg_ary, loop_val, "arg_val_offset", body);
+        b().CreateGEP(arg_ary, loop_val, "arg_val_offset");
 
-      Value* arg_val = new LoadInst(arg_val_offset, "arg_val", body);
+      Value* arg_val = b().CreateLoad(arg_val_offset, "arg_val");
 
       Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, 0),
@@ -524,17 +512,17 @@ namespace rubinius {
         loop_val
       };
 
-      Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "var_pos", body);
+      Value* pos = b().CreateGEP(vars, idx2, idx2+3, "var_pos");
 
-      new StoreInst(arg_val, pos, false, body);
+      b().CreateStore(arg_val, pos);
 
-      Value* plus_one = BinaryOperator::CreateAdd(loop_val,
-          ConstantInt::get(Type::Int32Ty, 1), "add", body);
-      new StoreInst(plus_one, loop_i, false, body);
+      Value* plus_one = b().CreateAdd(loop_val,
+          ConstantInt::get(Type::Int32Ty, 1), "add");
+      b().CreateStore(plus_one, loop_i);
 
-      BranchInst::Create(top, body);
+      b().CreateBr(top);
 
-      block = after;
+      b().SetInsertPoint(after);
     }
 
     // Setup the splat.
@@ -554,7 +542,7 @@ namespace rubinius {
       func->setOnlyReadsMemory(true);
       func->setDoesNotThrow(true);
 
-      CallInst* splat_val = sig.call("rbx_construct_splat", call_args, 3, "splat_val", block);
+      CallInst* splat_val = sig.call("rbx_construct_splat", call_args, 3, "splat_val", b());
 
       splat_val->setOnlyReadsMemory(true);
       splat_val->setDoesNotThrow(true);
@@ -565,8 +553,8 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, vmm->splat_position)
       };
 
-      Value* pos = GetElementPtrInst::Create(vars, idx3, idx3+3, "splat_pos", block);
-      new StoreInst(splat_val, pos, false, block);
+      Value* pos = b().CreateGEP(vars, idx3, idx3+3, "splat_pos");
+      b().CreateStore(splat_val, pos);
     }
   }
 
@@ -587,45 +575,41 @@ namespace rubinius {
     args = ai++; args->setName("args");
     block_inv = ai++; block_inv->setName("invocation");
 
-    block = BasicBlock::Create("entry", func);
+    BasicBlock* block = BasicBlock::Create("entry", func);
+    b().SetInsertPoint(block);
 
-    valid_flag = new AllocaInst(Type::Int1Ty, 0, "valid_flag", block);
+    valid_flag = b().CreateAlloca(Type::Int1Ty, 0, "valid_flag");
 
-    Value* cfstk = new AllocaInst(obj_type,
+    Value* cfstk = b().CreateAlloca(obj_type,
         ConstantInt::get(Type::Int32Ty,
           (sizeof(CallFrame) / sizeof(Object*)) + vmm->stack_size),
-        "cfstk", block);
+        "cfstk");
 
-    call_frame = CastInst::Create(
-        Instruction::BitCast,
+    call_frame = b().CreateBitCast(
         cfstk,
-        PointerType::getUnqual(cf_type), "call_frame", block);
+        PointerType::getUnqual(cf_type), "call_frame");
 
-    Value* cfstk_idx[] = {
-      ConstantInt::get(Type::Int32Ty, sizeof(CallFrame) / sizeof(Object*))
-    };
+    stk = b().CreateConstGEP1_32(cfstk, sizeof(CallFrame) / sizeof(Object*), "stack");
 
-    stk = GetElementPtrInst::Create(cfstk, cfstk_idx, cfstk_idx+1, "stack", block);
-
-    Value* var_mem = new AllocaInst(obj_type,
+    Value* var_mem = b().CreateAlloca(obj_type,
         ConstantInt::get(Type::Int32Ty,
           (sizeof(StackVariables) / sizeof(Object*)) + vmm->number_of_locals),
-        "var_mem", block);
+        "var_mem");
 
-    vars = CastInst::Create(
-        Instruction::BitCast,
+    vars = b().CreateBitCast(
         var_mem,
-        PointerType::getUnqual(stack_vars_type), "vars", block);
+        PointerType::getUnqual(stack_vars_type), "vars");
 
     initialize_block_frame(vmm->stack_size);
 
-    nil_stack(vmm->stack_size, constant(Qnil, obj_type, block));
+    nil_stack(vmm->stack_size, constant(Qnil, obj_type));
 
     setup_block_scope(vmm);
 
     BasicBlock* body = BasicBlock::Create("block_body", func);
-    BranchInst::Create(body, block);
-    block = body;
+    b().CreateBr(body);
+
+    b().SetInsertPoint(body);
   }
 
   void LLVMWorkHorse::setup(VMMethod* vmm) {
@@ -643,46 +627,43 @@ namespace rubinius {
     msg =  ai++; msg->setName("msg");
     args = ai++; args->setName("args");
 
-    block = BasicBlock::Create("entry", func);
-    valid_flag = new AllocaInst(Type::Int1Ty, 0, "valid_flag", block);
+    BasicBlock* block = BasicBlock::Create("entry", func);
+    builder_.SetInsertPoint(block);
 
-    Value* cfstk = new AllocaInst(obj_type,
+    valid_flag = b().CreateAlloca(Type::Int1Ty, 0, "valid_flag");
+
+    Value* cfstk = b().CreateAlloca(obj_type,
         ConstantInt::get(Type::Int32Ty,
           (sizeof(CallFrame) / sizeof(Object*)) + vmm->stack_size),
-        "cfstk", block);
+        "cfstk");
 
-    Value* var_mem = new AllocaInst(obj_type,
+    Value* var_mem = b().CreateAlloca(obj_type,
         ConstantInt::get(Type::Int32Ty,
           (sizeof(StackVariables) / sizeof(Object*)) + vmm->number_of_locals),
-        "var_mem", block);
+        "var_mem");
 
     check_arity(vmm);
 
-    call_frame = CastInst::Create(
-        Instruction::BitCast,
+    call_frame = b().CreateBitCast(
         cfstk,
-        PointerType::getUnqual(cf_type), "call_frame", block);
+        PointerType::getUnqual(cf_type), "call_frame");
 
-    Value* cfstk_idx[] = {
-      ConstantInt::get(Type::Int32Ty, sizeof(CallFrame) / sizeof(Object*))
-    };
+    stk = b().CreateConstGEP1_32(cfstk, sizeof(CallFrame) / sizeof(Object*), "stack");
 
-    stk = GetElementPtrInst::Create(cfstk, cfstk_idx, cfstk_idx+1, "stack", block);
-
-    vars = CastInst::Create(
-        Instruction::BitCast,
+    vars = b().CreateBitCast(
         var_mem,
-        PointerType::getUnqual(stack_vars_type), "vars", block);
+        PointerType::getUnqual(stack_vars_type), "vars");
 
     initialize_call_frame(vmm->stack_size);
 
-    nil_stack(vmm->stack_size, constant(Qnil, obj_type, block));
+    nil_stack(vmm->stack_size, constant(Qnil, obj_type));
 
     import_args(vmm);
 
     BasicBlock* body = BasicBlock::Create("method_body", func);
-    BranchInst::Create(body, block);
-    block = body;
+
+    b().CreateBr(body);
+    b().SetInsertPoint(body);
   }
 
   BasicBlock* LLVMWorkHorse::setup_inline(VMMethod* vmm, Function* current,
@@ -695,7 +676,7 @@ namespace rubinius {
     args = ConstantExpr::getNullValue(ls_->ptr_type("Arguments"));
 
     BasicBlock* entry = BasicBlock::Create("inline_entry", func);
-    block = entry;
+    b().SetInsertPoint(entry);
 
     BasicBlock* alloca_block = &current->getEntryBlock();
 
@@ -704,60 +685,50 @@ namespace rubinius {
           (sizeof(CallFrame) / sizeof(Object*)) + vmm->stack_size),
         "cfstk", alloca_block->getTerminator());
 
-    call_frame = CastInst::Create(
-        Instruction::BitCast,
+    call_frame = b().CreateBitCast(
         cfstk,
-        PointerType::getUnqual(cf_type), "call_frame", block);
+        PointerType::getUnqual(cf_type), "call_frame");
 
-    Value* cfstk_idx[] = {
-      ConstantInt::get(Type::Int32Ty, sizeof(CallFrame) / sizeof(Object*))
-    };
-
-    stk = GetElementPtrInst::Create(cfstk, cfstk_idx, cfstk_idx+1, "stack", block);
+    stk = b().CreateConstGEP1_32(cfstk, sizeof(CallFrame) / sizeof(Object*), "stack");
 
     Value* var_mem = new AllocaInst(obj_type,
         ConstantInt::get(Type::Int32Ty,
           (sizeof(StackVariables) / sizeof(Object*)) + vmm->number_of_locals),
         "var_mem", alloca_block->getTerminator());
 
-    vars = CastInst::Create(
-        Instruction::BitCast,
+    vars = b().CreateBitCast(
         var_mem,
-        PointerType::getUnqual(stack_vars_type), "vars", block);
+        PointerType::getUnqual(stack_vars_type), "vars");
 
     //  Setup the CallFrame
     //
     // previous
-    new StoreInst(prev, get_field(block, call_frame, offset::cf_previous),
-        false, block);
+    b().CreateStore(prev, get_field(call_frame, offset::cf_previous));
 
     // msg
-    new StoreInst(ConstantExpr::getNullValue(ls_->ptr_type("Dispatch")),
-        get_field(block, call_frame, offset::cf_msg),
-        false, block);
+    b().CreateStore(ConstantExpr::getNullValue(ls_->ptr_type("Dispatch")),
+        get_field(call_frame, offset::cf_msg));
 
     // cm
     Value* obj_addr = constant(vmm->original.object_address(),
-        PointerType::getUnqual(ls_->ptr_type("CompiledMethod")), block);
+        PointerType::getUnqual(ls_->ptr_type("CompiledMethod")));
 
-    method = new LoadInst(obj_addr, "cm", block);
-    Value* cm_gep = get_field(block, call_frame, offset::cf_cm);
-    new StoreInst(method, cm_gep, false, block);
+    method = b().CreateLoad(obj_addr, "cm");
+    Value* cm_gep = get_field(call_frame, offset::cf_cm);
+    b().CreateStore(method, cm_gep);
 
     // flags
-    new StoreInst(ConstantInt::get(Type::Int32Ty, CallFrame::cInlineFrame),
-        get_field(block, call_frame, offset::cf_flags), false, block);
+    b().CreateStore(ConstantInt::get(Type::Int32Ty, CallFrame::cInlineFrame),
+        get_field(call_frame, offset::cf_flags));
 
     // ip
-    new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
-        get_field(block, call_frame, offset::cf_ip), false, block);
+    b().CreateStore(ConstantInt::get(Type::Int32Ty, 0),
+        get_field(call_frame, offset::cf_ip));
 
     // scope
-    new StoreInst(vars, get_field(block, call_frame, offset::cf_scope),
-        false, block);
+    b().CreateStore(vars, get_field(call_frame, offset::cf_scope));
 
-
-    nil_stack(vmm->stack_size, constant(Qnil, obj_type, block));
+    nil_stack(vmm->stack_size, constant(Qnil, obj_type));
 
     setup_inline_scope(self, mod, vmm);
 
@@ -778,14 +749,14 @@ namespace rubinius {
         int_pos
       };
 
-      Value* pos = GetElementPtrInst::Create(vars, idx2, idx2+3, "local_pos", block);
+      Value* pos = b().CreateGEP(vars, idx2, idx2+3, "local_pos");
 
-      new StoreInst(stack_args[i], pos, false, block);
+      b().CreateStore(stack_args[i], pos);
     }
 
     BasicBlock* body = BasicBlock::Create("method_body", func);
-    BranchInst::Create(body, block);
-    block = body;
+    b().CreateBr(body);
+    b().SetInsertPoint(body);
 
     return entry;
   }
@@ -1006,7 +977,7 @@ namespace rubinius {
 
   bool LLVMWorkHorse::generate_body(JITMethodInfo& info) {
     JITVisit visitor(ls_, info, ls_->module(), func,
-        block, stk, call_frame,
+        b().GetInsertBlock(), stk, call_frame,
         method_entry_, args,
         vars, info.is_block, info.inline_return);
 
@@ -1021,7 +992,7 @@ namespace rubinius {
     visitor.set_valid_flag(valid_flag);
 
     // Pass 1, detect BasicBlock boundaries
-    BlockFinder finder(visitor.block_map(), func, block);
+    BlockFinder finder(visitor.block_map(), func, b().GetInsertBlock());
     finder.drive(info.vmm);
 
     // DISABLED: This still has problems.

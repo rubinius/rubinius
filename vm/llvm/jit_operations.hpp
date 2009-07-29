@@ -14,6 +14,7 @@
 #include <llvm/Value.h>
 #include <llvm/BasicBlock.h>
 #include <llvm/Function.h>
+#include <llvm/Support/IRBuilder.h>
 
 using namespace llvm;
 
@@ -23,10 +24,11 @@ namespace rubinius {
     int sp_;
     int last_sp_;
 
+    llvm::IRBuilder<> builder_;
+
   protected:
     JITMethodInfo& method_info_;
     LLVMState* ls_;
-    llvm::BasicBlock* block_;
 
     llvm::Module* module_;
     llvm::Function* function_;
@@ -67,7 +69,6 @@ namespace rubinius {
       , last_sp_(-1)
       , method_info_(info)
       , ls_(ls)
-      , block_(start)
       , module_(mod)
       , function_(func)
       , call_frame_(call_frame)
@@ -100,11 +101,15 @@ namespace rubinius {
 
       Function::arg_iterator input = function_->arg_begin();
       vm_ = input++;
+
+      builder_.SetInsertPoint(start);
     }
 
     virtual ~JITOperations() {
       if(inline_policy_ and own_policy_) delete inline_policy_;
     }
+
+    IRBuilder<>& b() { return builder_; }
 
     void set_valid_flag(llvm::Value* val) {
       valid_flag_ = val;
@@ -185,22 +190,14 @@ namespace rubinius {
       return module_->getTypeByName(full_name.c_str());
     }
 
-    Value* ptr_gep(Value* ptr, int which, const char* name, BasicBlock* block) {
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, which)
-      };
-
-      return GetElementPtrInst::Create(ptr, idx, idx+2, name, block);
+    Value* ptr_gep(Value* ptr, int which, const char* name) {
+      return b().CreateConstGEP2_32(ptr, 0, which, name);
     }
 
     Value* upcast(Value* rec, const char* name) {
       const Type* type = ptr_type(name);
 
-      return CastInst::Create(
-          Instruction::BitCast,
-          rec,
-          type, "upcast", block_);
+      return b().CreateBitCast(rec, type, "upcast");
     }
 
     Value* check_type_bits(Value* obj, int type) {
@@ -215,10 +212,11 @@ namespace rubinius {
       Value* flags = create_load(gep, "flags");
 
       Value* mask = ConstantInt::get(Type::Int32Ty, (1 << 8) - 1);
-      Value* obj_type = BinaryOperator::CreateAnd(flags, mask, "mask", block_);
+      Value* obj_type = b().CreateAnd(flags, mask, "mask");
 
       Value* tag = ConstantInt::get(Type::Int32Ty, type);
-      return new ICmpInst(ICmpInst::ICMP_EQ, obj_type, tag, "is_tuple", block_);
+
+      return b().CreateICmpEQ(obj_type, tag, "is_tuple");
     }
 
     Value* check_is_reference(Value* obj) {
@@ -319,7 +317,7 @@ namespace rubinius {
     // BasicBlock management
     //
     BasicBlock* current_block() {
-      return block_;
+      return b().GetInsertBlock();
     }
 
     BasicBlock* new_block(const char* name = "continue") {
@@ -327,22 +325,15 @@ namespace rubinius {
     }
 
     void set_block(BasicBlock* bb) {
-      block_ = bb;
+      // block_ = bb;
+      builder_.SetInsertPoint(bb);
     }
 
     // Stack manipulations
     //
-    Value* stack_ptr(BasicBlock* block = NULL) {
-      if(!block) block = block_;
-
+    Value* stack_ptr() {
       assert(sp_ >= 0 && sp_ < vmmethod()->stack_size);
-      Value* idx = ConstantInt::get(Type::Int32Ty, sp_);
-      return GetElementPtrInst::Create(stack_, &idx, &idx+1,
-                                       "stack_pos", block);
-    }
-
-    void set_stack_ptr(Value* pos, BasicBlock* block = NULL) {
-      abort();
+      return b().CreateConstGEP1_32(stack_, sp_, "stack_pos");
     }
 
     void set_sp(int sp) {
@@ -366,31 +357,22 @@ namespace rubinius {
       return ConstantInt::get(Type::Int32Ty, last_sp_);
     }
 
-    Value* stack_position(int amount, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-
+    Value* stack_position(int amount) {
       int pos = sp_ + amount;
       assert(pos >= 0 && pos < vmmethod()->stack_size);
 
-      Value* idx = ConstantInt::get(Type::Int32Ty, pos);
-
-      Value* stack_pos = GetElementPtrInst::Create(
-          stack_, &idx, &idx+1, "stack_pos", block);
-
-      return stack_pos;
+      return b().CreateConstGEP1_32(stack_, pos, "stack_pos");
     }
 
-    Value* stack_back_position(int back, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      return stack_position(-back, block);
+    Value* stack_back_position(int back) {
+      return stack_position(-back);
     }
 
-    Value* stack_objects(int count, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      return stack_position(-(count - 1), block);
+    Value* stack_objects(int count) {
+      return stack_position(-(count - 1));
     }
 
-    void stack_ptr_adjust(int amount, BasicBlock* block = NULL) {
+    void stack_ptr_adjust(int amount) {
       sp_ += amount;
       assert(sp_ >= -1 && sp_ < vmmethod()->stack_size);
     }
@@ -400,55 +382,45 @@ namespace rubinius {
       assert(sp_ >= -1 && sp_ < vmmethod()->stack_size);
     }
 
-    void stack_push(Value* val, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      stack_ptr_adjust(1, block);
-      Value* stack_pos = stack_ptr(block);
+    void stack_push(Value* val) {
+      stack_ptr_adjust(1);
+      Value* stack_pos = stack_ptr();
 
       if(val->getType() == cast<PointerType>(stack_pos->getType())->getElementType()) {
-        new StoreInst(val, stack_pos, false, block);
+        b().CreateStore(val, stack_pos);
       } else {
-        Value* cst = CastInst::Create(
-          Instruction::BitCast,
+        Value* cst = b().CreateBitCast(
           val,
-          ObjType, "casted", block);
-        new StoreInst(cst, stack_pos, false, block);
+          ObjType, "casted");
+        b().CreateStore(cst, stack_pos);
       }
     }
 
-    llvm::Value* stack_back(int back, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      return new LoadInst(stack_back_position(back, block), "stack_load", block);
+    llvm::Value* stack_back(int back) {
+      return b().CreateLoad(stack_back_position(back), "stack_load");
     }
 
-    llvm::Value* stack_top(BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      return stack_back(0, block);
+    llvm::Value* stack_top() {
+      return stack_back(0);
     }
 
     void stack_set_top(Value* val) {
-      new StoreInst(val, stack_ptr(), false, block_);
+      b().CreateStore(val, stack_ptr());
     }
 
-    llvm::Value* stack_pop(BasicBlock* block = NULL) {
-      if(!block) block = block_;
+    llvm::Value* stack_pop() {
+      Value* val = stack_back(0);
 
-      Value* val = stack_back(0, block);
-
-      stack_ptr_adjust(-1, block);
+      stack_ptr_adjust(-1);
       return val;
     }
 
     // Scope maintainence
     void flush_scope_to_heap(Value* vars) {
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::vars_on_heap)
-      };
+      Value* pos = b().CreateConstGEP2_32(vars, 0, offset::vars_on_heap,
+                                     "on_heap_pos");
 
-      Value* pos = GetElementPtrInst::Create(vars, idx, idx + 2, "on_heap_pos", block_);
-
-      Value* on_heap = new LoadInst(pos, "on_heap", block_);
+      Value* on_heap = b().CreateLoad(pos, "on_heap");
 
       Value* null = ConstantExpr::getNullValue(on_heap->getType());
       Value* cmp = create_not_equal(on_heap, null, "null_check");
@@ -466,7 +438,7 @@ namespace rubinius {
 
       Value* call_args[] = { vm_, vars };
 
-      sig.call("rbx_flush_scope", call_args, 2, "", block_);
+      sig.call("rbx_flush_scope", call_args, 2, "", b());
 
       create_branch(cont);
 
@@ -475,87 +447,72 @@ namespace rubinius {
 
     // Constant creation
     //
-    Value* constant(Object* obj, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      return CastInst::Create(
-          Instruction::IntToPtr,
+    Value* constant(Object* obj) {
+      return b().CreateIntToPtr(
           ConstantInt::get(IntPtrTy, (intptr_t)obj),
-          ObjType, "const_obj", block);
+          ObjType, "const_obj");
     }
 
-    Value* constant(Object* obj, const Type* type, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      return CastInst::Create(
-          Instruction::IntToPtr,
+    Value* constant(Object* obj, const Type* type) {
+      return b().CreateIntToPtr(
           ConstantInt::get(IntPtrTy, (intptr_t)obj),
-          type, "const_of_type", block);
+          type, "const_of_type");
     }
 
     Value* ptrtoint(Value* ptr) {
-      return CastInst::Create(
-          Instruction::PtrToInt,
-          ptr, IntPtrTy, "ptr2int", block_);
+      return b().CreatePtrToInt(ptr, IntPtrTy, "ptr2int");
     }
 
     Value* subtract_pointers(Value* ptra, Value* ptrb) {
       Value* inta = ptrtoint(ptra);
       Value* intb = ptrtoint(ptrb);
 
-      Value* sub = BinaryOperator::CreateSub(inta, intb, "ptr_diff", block_);
+      Value* sub = b().CreateSub(inta, intb, "ptr_diff");
 
       Value* size_of = ConstantInt::get(IntPtrTy, sizeof(uintptr_t));
 
-      return BinaryOperator::CreateSDiv(sub, size_of, "ptr_diff_adj", block_);
+      return b().CreateSDiv(sub, size_of, "ptr_diff_adj");
     }
 
     // numeric manipulations
     //
-    Value* cast_int(Value* obj, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-
-      return CastInst::Create(
-          Instruction::PtrToInt,
-          obj,
-          IntPtrTy, "cast", block);
+    Value* cast_int(Value* obj) {
+      return b().CreatePtrToInt(
+          obj, IntPtrTy, "cast");
     }
 
     // Fixnum manipulations
     //
-    Value* tag_strip(Value* obj, BasicBlock* block = NULL, const Type* type = NULL) {
-      if(!block) block = block_;
+    Value* tag_strip(Value* obj, const Type* type = NULL) {
       if(!type) type = Int31Ty;
 
-      Value* i = CastInst::Create(
-          Instruction::PtrToInt,
-          obj, Type::Int32Ty, "as_int", block);
+      Value* i = b().CreatePtrToInt(
+          obj, Type::Int32Ty, "as_int");
 
-      Value* more = BinaryOperator::CreateLShr(
+      Value* more = b().CreateLShr(
           i, ConstantInt::get(Type::Int32Ty, 1),
-          "lshr", block);
-      return CastInst::CreateIntegerCast(
-          more, type, true, "stripped", block);
+          "lshr");
+      return b().CreateIntCast(
+          more, type, true, "stripped");
     }
 
     Value* tag_strip32(Value* obj) {
-      Value* i = CastInst::Create(
-          Instruction::PtrToInt,
-          obj, Type::Int32Ty, "as_int", block_);
+      Value* i = b().CreatePtrToInt(
+          obj, Type::Int32Ty, "as_int");
 
-      return BinaryOperator::CreateLShr(
+      return b().CreateLShr(
           i, ConstantInt::get(Type::Int32Ty, 1),
-          "lshr", block_);
+          "lshr");
     }
 
-    Value* fixnum_tag(Value* obj, BasicBlock* block = NULL) {
-      if(!block) block = block_;
-      Value* obj32 = CastInst::CreateZExtOrBitCast(
-          obj, Type::Int32Ty, "as_32bit", block);
+    Value* fixnum_tag(Value* obj) {
+      Value* obj32 = b().CreateZExt(
+          obj, Type::Int32Ty, "as_32bit");
       Value* one = ConstantInt::get(Type::Int32Ty, 1);
-      Value* more = BinaryOperator::CreateShl(obj32, one, "shl", block);
-      Value* tagged = BinaryOperator::CreateOr(more, one, "or", block);
+      Value* more = b().CreateShl(obj32, one, "shl");
+      Value* tagged = b().CreateOr(more, one, "or");
 
-      return CastInst::Create(
-          Instruction::IntToPtr, tagged, ObjType, "as_obj", block);
+      return b().CreateIntToPtr(tagged, ObjType, "as_obj");
     }
 
     Value* nint(int val) {
@@ -563,16 +520,14 @@ namespace rubinius {
     }
 
     Value* fixnum_strip(Value* obj) {
-      Value* i = CastInst::Create(
-          Instruction::PtrToInt,
-          obj, NativeIntTy, "as_int", block_);
+      Value* i = b().CreatePtrToInt(
+          obj, NativeIntTy, "as_int");
 
-      return BinaryOperator::CreateLShr(i, One, "lshr", block_);
+      return b().CreateLShr(i, One, "lshr");
     }
 
     Value* as_obj(Value* val) {
-      return CastInst::Create(
-          Instruction::IntToPtr, val, ObjType, "as_obj", block_);
+      return b().CreateIntToPtr(val, ObjType, "as_obj");
     }
 
     Value* check_if_fixnum(Value* val) {
@@ -580,9 +535,9 @@ namespace rubinius {
       Value* fix_tag  = ConstantInt::get(IntPtrTy, TAG_FIXNUM);
 
       Value* lint = cast_int(val);
-      Value* masked = BinaryOperator::CreateAnd(lint, fix_mask, "masked", block_);
+      Value* masked = b().CreateAnd(lint, fix_mask, "masked");
 
-      return new ICmpInst(ICmpInst::ICMP_EQ, masked, fix_tag, "is_fixnum", block_);
+      return b().CreateICmpEQ(masked, fix_tag, "is_fixnum");
     }
 
     // Tuple access
@@ -601,10 +556,9 @@ namespace rubinius {
     Value* get_object_slot(Value* obj, int offset) {
       assert(offset % sizeof(Object*) == 0);
 
-      Value* cst = CastInst::Create(
-          Instruction::BitCast,
+      Value* cst = b().CreateBitCast(
           obj,
-          PointerType::getUnqual(ObjType), "obj_array", block_);
+          PointerType::getUnqual(ObjType), "obj_array");
 
       Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, offset / sizeof(Object*))
@@ -618,10 +572,9 @@ namespace rubinius {
     void set_object_slot(Value* obj, int offset, Value* val) {
       assert(offset % sizeof(Object*) == 0);
 
-      Value* cst = CastInst::Create(
-          Instruction::BitCast,
+      Value* cst = b().CreateBitCast(
           obj,
-          PointerType::getUnqual(ObjType), "obj_array", block_);
+          PointerType::getUnqual(ObjType), "obj_array");
 
       Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, offset / sizeof(Object*))
@@ -637,20 +590,20 @@ namespace rubinius {
     //
     GetElementPtrInst* create_gep(Value* rec, Value** idx, int count,
                                   const char* name) {
-      return GetElementPtrInst::Create(rec, idx, idx+count, name, block_);
+      return cast<GetElementPtrInst>(b().CreateGEP(rec, idx, idx+count, name));
     }
 
-    LoadInst* create_load(Value* ptr, const char* name = 0) {
-      return new LoadInst(ptr, name, block_);
+    LoadInst* create_load(Value* ptr, const char* name = "") {
+      return b().CreateLoad(ptr, name);
     }
 
     void create_store(Value* val, Value* ptr) {
-      new StoreInst(val, ptr, false, block_);
+      b().CreateStore(val, ptr);
     }
 
     ICmpInst* create_icmp(ICmpInst::Predicate kind, Value* left, Value* right,
                           const char* name) {
-      return new ICmpInst(kind, left, right, name, block_);
+      return cast<ICmpInst>(b().CreateICmp(kind, left, right, name));
     }
 
     ICmpInst* create_equal(Value* left, Value* right, const char* name) {
@@ -666,15 +619,15 @@ namespace rubinius {
     }
 
     Value* create_and(Value* left, Value* right, const char* name) {
-      return BinaryOperator::CreateAnd(left, right, name, block_);
+      return b().CreateAnd(left, right, name);
     }
 
     void create_conditional_branch(BasicBlock* if_true, BasicBlock* if_false, Value* cmp) {
-      BranchInst::Create(if_true, if_false, cmp, block_);
+      b().CreateCondBr(cmp, if_true, if_false);
     }
 
     void create_branch(BasicBlock* where) {
-      BranchInst::Create(where, block_);
+      b().CreateBr(where);
     }
 
     void write_barrier(Value* obj, Value* val) {
@@ -684,14 +637,11 @@ namespace rubinius {
       wb << ObjType;
 
       if(obj->getType() != ObjType) {
-        obj = CastInst::Create(
-          Instruction::BitCast,
-          obj,
-          ObjType, "casted", block_);
+        obj = b().CreateBitCast(obj, ObjType, "casted");
       }
 
       Value* call_args[] = { vm_, obj, val };
-      wb.call("rbx_write_barrier", call_args, 3, "", block_);
+      wb.call("rbx_write_barrier", call_args, 3, "", b());
     }
 
     virtual void check_for_exception(llvm::Value* val) = 0;

@@ -268,7 +268,7 @@ namespace rubinius {
       };
 
       sig2.call("rbx_set_table_ivar", call_args2, 4, "ivar",
-          ops_.current_block());
+          ops_.b());
     }
 
     ops_.stack_remove(1);
@@ -326,7 +326,7 @@ namespace rubinius {
       };
 
       ivar = sig2.call("rbx_get_ivar", call_args2, 3, "ivar",
-          ops_.current_block());
+          ops_.b());
     }
 
     ops_.stack_set_top(ivar);
@@ -370,7 +370,7 @@ namespace rubinius {
 
     ops_.set_block(on_return);
 
-    ops_.current_block()->getInstList().push_back(cast<Instruction>(info.return_value));
+    ops_.b().Insert(cast<Instruction>(info.return_value));
     ops_.stack_remove(count_ + 1);
     ops_.check_for_exception(info.return_value);
     ops_.stack_push(info.return_value);
@@ -460,14 +460,13 @@ namespace rubinius {
         sig << PointerType::getUnqual(Type::Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_int", call_args, 3, "to_int",
-                              ops_.current_block());
+                              ops_.b());
 
         const Type* type = find_type(nf->arg_types[i]);
         ffi_type.push_back(type);
 
         if(type != Type::Int32Ty) {
-          val = new TruncInst(val, type, "truncated",
-                              ops_.current_block());
+          ops_.b().CreateTrunc(val, type, "truncated");
         }
 
         ffi_args.push_back(val);
@@ -488,7 +487,7 @@ namespace rubinius {
         sig << PointerType::getUnqual(Type::Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_float", call_args, 3, "to_float",
-                              ops_.current_block());
+                              ops_.b());
 
         ffi_type.push_back(val->getType());
         ffi_args.push_back(val);
@@ -509,7 +508,7 @@ namespace rubinius {
         sig << PointerType::getUnqual(Type::Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_double", call_args, 3, "to_double",
-                              ops_.current_block());
+                              ops_.b());
 
         ffi_type.push_back(val->getType());
         ffi_args.push_back(val);
@@ -530,7 +529,7 @@ namespace rubinius {
         sig << PointerType::getUnqual(Type::Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_int64", call_args, 3, "to_int64",
-                              ops_.current_block());
+                              ops_.b());
 
         ffi_type.push_back(val->getType());
         ffi_args.push_back(val);
@@ -562,7 +561,7 @@ namespace rubinius {
         sig << PointerType::getUnqual(Type::Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_ptr", call_args, 3, "to_ptr",
-                              ops_.current_block());
+                              ops_.b());
 
         ffi_type.push_back(type);
         ffi_args.push_back(val);
@@ -585,7 +584,7 @@ namespace rubinius {
         sig << PointerType::getUnqual(Type::Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_string", call_args, 3, "to_string",
-                              ops_.current_block());
+                              ops_.b());
 
         ffi_type.push_back(type);
         ffi_args.push_back(val);
@@ -607,14 +606,12 @@ namespace rubinius {
     const Type* return_type = find_type(nf->ret_type);
 
     FunctionType* ft = FunctionType::get(return_type, ffi_type, false);
-    Value* ep_ptr = CastInst::Create(
-            Instruction::IntToPtr,
+    Value* ep_ptr = ops_.b().CreateIntToPtr(
             ConstantInt::get(ops_.IntPtrTy, (intptr_t)nf->ep),
-            PointerType::getUnqual(ft), "cast_to_function",
-            ops_.current_block());
+            PointerType::getUnqual(ft), "cast_to_function");
 
-    Value* ffi_result = CallInst::Create(ep_ptr, ffi_args.begin(),
-                           ffi_args.end(), "ffi_result", ops_.current_block());
+    Value* ffi_result = ops_.b().CreateCall(ep_ptr, ffi_args.begin(),
+                           ffi_args.end(), "ffi_result");
 
     Value* res_args[] = { ops_.vm(), ffi_result };
 
@@ -641,7 +638,7 @@ namespace rubinius {
       sig << Type::Int64Ty;
 
       result = sig.call("rbx_ffi_from_int64", res_args, 2, "to_obj",
-                        ops_.current_block());
+                        ops_.b());
       break;
     }
 
@@ -651,7 +648,7 @@ namespace rubinius {
       sig << Type::FloatTy;
 
       result = sig.call("rbx_ffi_from_float", res_args, 2, "to_obj",
-                        ops_.current_block());
+                        ops_.b());
       break;
     }
 
@@ -661,7 +658,7 @@ namespace rubinius {
       sig << Type::DoubleTy;
 
       result = sig.call("rbx_ffi_from_double", res_args, 2, "to_obj",
-                        ops_.current_block());
+                        ops_.b());
       break;
     }
 
@@ -671,7 +668,7 @@ namespace rubinius {
       sig << PointerType::getUnqual(Type::Int8Ty);
 
       result = sig.call("rbx_ffi_from_ptr", res_args, 2, "to_obj",
-                        ops_.current_block());
+                        ops_.b());
       break;
     }
 
@@ -685,7 +682,7 @@ namespace rubinius {
       sig << PointerType::getUnqual(Type::Int8Ty);
 
       result = sig.call("rbx_ffi_from_string", res_args, 2, "to_obj",
-                        ops_.current_block());
+                        ops_.b());
       break;
     }
 
@@ -695,7 +692,7 @@ namespace rubinius {
       sig << PointerType::getUnqual(Type::Int8Ty);
 
       result = sig.call("rbx_ffi_from_string_with_pointer", res_args, 2, "to_obj",
-                        ops_.current_block());
+                        ops_.b());
       break;
     }
 

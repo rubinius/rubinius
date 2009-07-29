@@ -4,6 +4,8 @@
 #include "llvm/jit.hpp"
 #include "llvm/offset.hpp"
 
+#include <llvm/Support/IRBuilder.h>
+
 // I know I know, shouldn't put these in header files...
 using namespace llvm;
 
@@ -41,17 +43,13 @@ namespace rubinius {
     Value* arg_total;
     Value* valid_flag;
 
+    llvm::IRBuilder<> builder_;
+
   public:
-    LLVMWorkHorse(LLVMState* ls)
-      : ls_(ls)
-    {
-      llvm::Module* mod = ls->module();
-      cf_type = mod->getTypeByName("struct.rubinius::CallFrame");
-      vars_type = mod->getTypeByName("struct.rubinius::VariableScope");
-      stack_vars_type = mod->getTypeByName("struct.rubinius::StackVariables");
-      obj_type = ls->ptr_type("Object");
-      obj_ary_type = PointerType::getUnqual(obj_type);
-    }
+
+    llvm::IRBuilder<>& b() { return builder_; }
+
+    LLVMWorkHorse(LLVMState* ls);
 
     void return_value(Value* ret, BasicBlock* cont = 0);
 
@@ -81,6 +79,16 @@ namespace rubinius {
         Value* self, Value* mod, std::vector<Value*>& args);
 
     bool generate_body(JITMethodInfo& info);
+
+    Value* get_field(Value* val, int which);
+
+    template <typename T>
+    Value* constant(T obj, const Type* obj_type) {
+      return b().CreateIntToPtr(
+      ConstantInt::get(Type::Int32Ty, (intptr_t)obj),
+      obj_type, "constant");
+    }
+
   };
 }
 

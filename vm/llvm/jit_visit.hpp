@@ -32,8 +32,8 @@ namespace rubinius {
       func_ = function(name);
     }
 
-    Value* call(Value** start, int size, const char* inst_name, BasicBlock* block) {
-      return llvm::CallInst::Create(func_, start, start+size, inst_name, block);
+    Value* call(Value** start, int size, const char* inst_name, IRBuilder<>& b) {
+      return b.CreateCall(func_, start, start+size, inst_name);
     }
   };
 
@@ -108,16 +108,22 @@ namespace rubinius {
     void init_out_args(BasicBlock* block) {
       Instruction* term = block->getTerminator();
       assert(term);
-      out_args_ = new AllocaInst(type("Arguments"), 0, "out_args", block);
 
-      out_args_recv_ = ptr_gep(out_args_, 0, "out_args_recv", block);
-      out_args_block_= ptr_gep(out_args_, 1, "out_args_block", block);
-      out_args_total_= ptr_gep(out_args_, 2, "out_args_total", block);
-      out_args_arguments_ = ptr_gep(out_args_, 3, "out_args_arguments", block);
-      out_args_array_ = ptr_gep(out_args_, 4, "out_args_array", block);
+      BasicBlock* old = current_block();
+      set_block(block);
+
+      out_args_ = b().CreateAlloca(type("Arguments"), 0, "out_args");
+
+      out_args_recv_ = ptr_gep(out_args_, 0, "out_args_recv");
+      out_args_block_= ptr_gep(out_args_, 1, "out_args_block");
+      out_args_total_= ptr_gep(out_args_, 2, "out_args_total");
+      out_args_arguments_ = ptr_gep(out_args_, 3, "out_args_arguments");
+      out_args_array_ = ptr_gep(out_args_, 4, "out_args_array");
 
       term->removeFromParent();
       term->insertAfter(cast<Instruction>(out_args_array_));
+
+      set_block(old);
     }
 
     JITVisit(LLVMState* ls, JITMethodInfo& info,
@@ -154,14 +160,14 @@ namespace rubinius {
 
       set_block(bail_out_);
 
-      Value* isit = f.return_to_here.call(call_args, 2, "rth", block_);
+      Value* isit = f.return_to_here.call(call_args, 2, "rth", b());
 
       BasicBlock* ret_raise_val = new_block("ret_raise_val");
       bail_out_fast_ = new_block("ret_null");
 
       start->moveAfter(bail_out_fast_);
 
-      BranchInst::Create(ret_raise_val, bail_out_fast_, isit, block_);
+      b().CreateCondBr(isit, ret_raise_val, bail_out_fast_);
 
       set_block(bail_out_fast_);
       if(!inline_return_) {
@@ -169,38 +175,32 @@ namespace rubinius {
       }
 
       if(inline_return_) {
-        return_value_->addIncoming(Constant::getNullValue(ObjType), block_);
-        BranchInst::Create(inline_return_, block_);
+        return_value_->addIncoming(Constant::getNullValue(ObjType), current_block());
+        b().CreateBr(inline_return_);
       } else {
-        ReturnInst::Create(Constant::getNullValue(ObjType), block_);
+        b().CreateRet(Constant::getNullValue(ObjType));
       }
 
       set_block(ret_raise_val);
-      Value* crv = f.clear_raise_value.call(&vm_, 1, "crv", block_);
+      Value* crv = f.clear_raise_value.call(&vm_, 1, "crv", b());
       if(!inline_return_) {
         flush_scope_to_heap(vars_);
       }
 
       if(inline_return_) {
-        return_value_->addIncoming(crv, block_);
-        BranchInst::Create(inline_return_, block_);
+        return_value_->addIncoming(crv, current_block());
+        b().CreateBr(inline_return_);
       } else {
-        ReturnInst::Create(crv, block_);
+        b().CreateRet(crv);
       }
 
       set_block(start);
 
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::cf_ip)
-      };
+      ip_pos_ = b().CreateConstGEP2_32(call_frame_, 0, offset::cf_ip, "ip_pos");
 
-      ip_pos_ = GetElementPtrInst::Create(call_frame_, idx, idx+2, "ip_pos", block_);
-
-      global_serial_pos = CastInst::Create(
-          Instruction::IntToPtr,
+      global_serial_pos = b().CreateIntToPtr(
           ConstantInt::get(IntPtrTy, (intptr_t)ls_->shared().global_serial_address()),
-          PointerType::getUnqual(IntPtrTy), "cast_to_intptr", block_);
+          PointerType::getUnqual(IntPtrTy), "cast_to_intptr");
 
       init_out_args(&function_->getEntryBlock());
     }
@@ -218,23 +218,15 @@ namespace rubinius {
     }
 
     Value* scope() {
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::cf_scope)
-      };
-
-      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "scope_pos", block_);
-      return new LoadInst(gep, "scope", block_);
+      return b().CreateLoad(
+          b().CreateConstGEP2_32(call_frame_, 0, offset::cf_scope, "scope_pos"),
+          "scope");
     }
 
     Value* top_scope() {
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::cf_top_scope)
-      };
-
-      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "top_scope_pos", block_);
-      return new LoadInst(gep, "top_scope", block_);
+      return b().CreateLoad(
+          b().CreateConstGEP2_32(call_frame_, 0, offset::cf_top_scope, "top_scope_pos"),
+          "top_scope");
     }
 
     BlockMap& block_map() {
@@ -242,18 +234,20 @@ namespace rubinius {
     }
 
     void check_for_return(Value* val) {
-
       BasicBlock* cont = new_block();
 
       Value* null = Constant::getNullValue(ObjType);
 
-      BasicBlock* orig = block_;
+      BasicBlock* orig = current_block();
 
-      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, val, null, "null_check", block_);
+      Value* cmp = b().CreateICmpEQ(val, null, "null_check");
       BasicBlock* is_break = new_block("is_break");
-      BranchInst::Create(is_break, cont, cmp, block_);
+
+      b().CreateCondBr(cmp, is_break, cont);
 
       /////
+      set_block(is_break);
+
       Signature brk(ls_, Type::Int1Ty);
       brk << VMTy;
       brk << CallFrameTy;
@@ -263,7 +257,7 @@ namespace rubinius {
         call_frame_
       };
 
-      Value* isit = brk.call("rbx_break_to_here", call_args, 2, "bth", is_break);
+      Value* isit = brk.call("rbx_break_to_here", call_args, 2, "bth", b());
 
       BasicBlock* push_break_val = new_block("push_break_val");
       BasicBlock* next = 0;
@@ -275,19 +269,21 @@ namespace rubinius {
         next = bail_out_;
       }
 
-      BranchInst::Create(push_break_val, next, isit, is_break);
+      b().CreateCondBr(isit, push_break_val, next);
 
       ////
+      set_block(push_break_val);
+
       Signature clear(ls_, ObjType);
       clear << VMTy;
-      Value* crv = clear.call("rbx_clear_raise_value", &vm_, 1, "crv", push_break_val);
+      Value* crv = clear.call("rbx_clear_raise_value", &vm_, 1, "crv", b());
 
-      BranchInst::Create(cont, push_break_val);
+      b().CreateBr(cont);
 
       /////
-      block_ = cont;
+      set_block(cont);
 
-      PHINode* phi = PHINode::Create(ObjType, "possible_break", block_);
+      PHINode* phi = b().CreatePHI(ObjType, "possible_break");
       phi->addIncoming(val, orig);
       phi->addIncoming(crv, push_break_val);
 
@@ -298,35 +294,30 @@ namespace rubinius {
       // If there are handlers...
       if(exception_handlers_.size() > 0) {
         BasicBlock* handler = exception_handlers_.back();
-        BranchInst::Create(handler, block_);
+        b().CreateBr(handler);
       } else {
-        BranchInst::Create(bail_out_fast_, block_);
+        b().CreateBr(bail_out_fast_);
       }
     }
 
-    void check_for_exception_then(Value* val, BasicBlock* cont, BasicBlock* block) {
+    void check_for_exception_then(Value* val, BasicBlock* cont) {
       Value* null = Constant::getNullValue(ObjType);
 
-      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, val, null, "null_check", block);
+      Value* cmp = b().CreateICmpEQ(val, null, "null_check");
 
       // If there are handlers...
       if(exception_handlers_.size() > 0) {
         BasicBlock* handler = exception_handlers_.back();
-        BranchInst::Create(handler, cont, cmp, block);
+        b().CreateCondBr(cmp, handler, cont);
       } else {
-        BranchInst::Create(bail_out_fast_, cont, cmp, block);
+        b().CreateCondBr(cmp, bail_out_fast_, cont);
       }
     }
 
-    BasicBlock* check_for_exception(Value* val, BasicBlock* els) {
-      BasicBlock* cont = new_block();
-      check_for_exception_then(val, cont, els);
-
-      return cont;
-    }
-
     void check_for_exception(Value* val) {
-      block_ = check_for_exception(val, block_);
+      BasicBlock* cont = new_block();
+      check_for_exception_then(val, cont);
+      set_block(cont);
     }
 
     void at_ip(int ip) {
@@ -337,22 +328,22 @@ namespace rubinius {
       if(i != block_map_.end()) {
         JITBasicBlock& jbb = i->second;
         if(BasicBlock* next = jbb.block) {
-          if(!block_->getTerminator()) {
-            BranchInst::Create(next, block_);
+          if(!b().GetInsertBlock()->getTerminator()) {
+            b().CreateBr(next);
           }
 
           // std::cout << ip << ": " << jbb.sp << "\n";
 
-          next->moveAfter(block_);
+          next->moveAfter(b().GetInsertBlock());
 
-          block_ = next;
+          set_block(next);
         }
         if(jbb.sp != -10) set_sp(jbb.sp);
       }
 
       remember_sp();
 
-      new StoreInst(ConstantInt::get(Type::Int32Ty, ip), ip_pos_, false, block_);
+      b().CreateStore(ConstantInt::get(Type::Int32Ty, ip), ip_pos_);
     }
 
     // visitors.
@@ -399,13 +390,13 @@ namespace rubinius {
 
     void visit_ret() {
       if(ls_->include_profiling()) {
-        Value* test = new LoadInst(ls_->profiling(), "profiling", block_);
+        Value* test = b().CreateLoad(ls_->profiling(), "profiling");
         BasicBlock* end_profiling = new_block("end_profiling");
         BasicBlock* cont = new_block("continue");
 
-        BranchInst::Create(end_profiling, cont, test, block_);
+        b().CreateCondBr(test, end_profiling, cont);
 
-        block_ = end_profiling;
+        set_block(end_profiling);
 
         Signature sig(ls_, Type::VoidTy);
         sig << PointerType::getUnqual(Type::Int8Ty);
@@ -414,19 +405,19 @@ namespace rubinius {
           method_entry_
         };
 
-        sig.call("rbx_end_profiling", call_args, 1, "", block_);
+        sig.call("rbx_end_profiling", call_args, 1, "", b());
 
-        BranchInst::Create(cont, block_);
+        b().CreateBr(cont);
 
-        block_ = cont;
+        set_block(cont);
       }
 
       if(inline_return_) {
-        return_value_->addIncoming(stack_top(), block_);
-        BranchInst::Create(inline_return_, block_);
+        return_value_->addIncoming(stack_top(), current_block());
+        b().CreateBr(inline_return_);
       } else {
         flush_scope_to_heap(vars_);
-        ReturnInst::Create(stack_top(), block_);
+        b().CreateRet(stack_top());
       }
     }
 
@@ -450,11 +441,11 @@ namespace rubinius {
         Value* pos = stack_back_position(offset);
         Value* pos2 = stack_back_position(i);
 
-        Value* val = new LoadInst(pos, "rotate", block_);
-        Value* val2 = new LoadInst(pos2, "rotate", block_);
+        Value* val = b().CreateLoad(pos, "rotate");
+        Value* val2 = b().CreateLoad(pos2, "rotate");
 
-        new StoreInst(val2, pos, false, block_);
-        new StoreInst(val, pos2, false, block_);
+        b().CreateStore(val2, pos);
+        b().CreateStore(val, pos2);
       }
     }
 
@@ -468,11 +459,10 @@ namespace rubinius {
         Value* tmp = stack_back(current);
         Value* pos = stack_back_position(target);
 
-        new StoreInst(tmp, pos, false, block_);
+        b().CreateStore(tmp, pos);
       }
 
-
-      new StoreInst(val, stack_back_position(positions), false, block_);
+      b().CreateStore(val, stack_back_position(positions));
     }
 
     void check_fixnums(Value* left, Value* right, BasicBlock* if_true,
@@ -482,12 +472,12 @@ namespace rubinius {
 
       Value* lint = cast_int(left);
       Value* rint = cast_int(right);
-      Value* both =   BinaryOperator::CreateAnd(lint, rint, "both", block_);
-      Value* masked = BinaryOperator::CreateAnd(both, mask, "masked", block_);
+      Value* both =   b().CreateAnd(lint, rint, "both");
+      Value* masked = b().CreateAnd(both, mask, "masked");
 
-      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, masked, tag, "are_fixnums", block_);
+      Value* cmp = b().CreateICmpEQ(masked, tag, "are_fixnums");
 
-      BranchInst::Create(if_true, if_false, cmp, block_);
+      b().CreateCondBr(cmp, if_true, if_false);
     }
 
     void check_both_not_references(Value* left, Value* right, BasicBlock* if_true,
@@ -496,18 +486,20 @@ namespace rubinius {
       Value* zero = ConstantInt::get(IntPtrTy, TAG_REF);
 
       Value* lint = cast_int(left);
-      lint = BinaryOperator::CreateAnd(lint, mask, "mask", block_);
-      Value* lcmp = new ICmpInst(ICmpInst::ICMP_NE, lint, zero, "check_mask", block_);
+      lint = b().CreateAnd(lint, mask, "mask");
+      Value* lcmp = b().CreateICmpNE(lint, zero, "check_mask");
 
       BasicBlock* right_check = new_block("ref_check");
-      right_check->moveAfter(block_);
-      BranchInst::Create(right_check, if_false, lcmp, block_);
+      right_check->moveAfter(current_block());
+      b().CreateCondBr(lcmp, right_check, if_false);
 
-      Value* rint = cast_int(right, right_check);
-      rint = BinaryOperator::CreateAnd(rint, mask, "mask", right_check);
-      Value* rcmp = new ICmpInst(ICmpInst::ICMP_NE, rint, zero, "check_mask", right_check);
+      set_block(right_check);
 
-      BranchInst::Create(if_true, if_false, rcmp, right_check);
+      Value* rint = cast_int(right);
+      rint = b().CreateAnd(rint, mask, "mask");
+      Value* rcmp = b().CreateICmpNE(rint, zero, "check_mask");
+
+      b().CreateCondBr(rcmp, if_true, if_false);
     }
 
     void add_send_args(Signature& sig) {
@@ -540,9 +532,7 @@ namespace rubinius {
       return rbx_simple_send_private_;
     }
 
-    Value* simple_send(Symbol* name, int args, BasicBlock* block=NULL, bool priv=false) {
-      if(!block) block = block_;
-
+    Value* simple_send(Symbol* name, int args, bool priv=false) {
       Function* func;
       if(priv) {
         func = rbx_simple_send_private();
@@ -553,59 +543,55 @@ namespace rubinius {
       Value* call_args[] = {
         vm_,
         call_frame_,
-        constant(name, block),
+        constant(name),
         ConstantInt::get(IntPtrTy, args),
-        stack_objects(args + 1, block)
+        stack_objects(args + 1)
       };
 
-      return CallInst::Create(func, call_args, call_args+5, "simple_send", block);
+      return b().CreateCall(func, call_args, call_args+5, "simple_send");
     }
 
-    void setup_out_args(int args, BasicBlock* block) {
-      new StoreInst(stack_back(args, block), out_args_recv_, false, block);
-      new StoreInst(constant(Qnil, block), out_args_block_, false, block);
-      new StoreInst(ConstantInt::get(Type::Int32Ty, args),
-                    out_args_total_, false, block);
+    void setup_out_args(int args) {
+      b().CreateStore(stack_back(args), out_args_recv_);
+      b().CreateStore(constant(Qnil), out_args_block_);
+      b().CreateStore(ConstantInt::get(Type::Int32Ty, args),
+                    out_args_total_);
       if(args > 0) {
-        new StoreInst(stack_objects(args, block), out_args_arguments_, false, block);
+        b().CreateStore(stack_objects(args), out_args_arguments_);
       }
-      new StoreInst(Constant::getNullValue(ptr_type("Array")),
-                    out_args_array_, false, block);
+
+      b().CreateStore(Constant::getNullValue(ptr_type("Array")),
+                    out_args_array_);
     }
 
-    void setup_out_args_with_block(int args, BasicBlock* block) {
-      new StoreInst(stack_back(args + 1, block), out_args_recv_, false, block);
-      new StoreInst(stack_top(block), out_args_block_, false, block);
-      new StoreInst(ConstantInt::get(Type::Int32Ty, args),
-                    out_args_total_, false, block);
+    void setup_out_args_with_block(int args) {
+      b().CreateStore(stack_back(args + 1), out_args_recv_);
+      b().CreateStore(stack_top(), out_args_block_);
+      b().CreateStore(ConstantInt::get(Type::Int32Ty, args),
+                    out_args_total_);
       if(args > 0) {
-        new StoreInst(stack_objects(args + 1, block), out_args_arguments_, false, block);
+        b().CreateStore(stack_objects(args + 1), out_args_arguments_);
       }
-      new StoreInst(Constant::getNullValue(ptr_type("Array")),
-                    out_args_array_, false, block);
+      b().CreateStore(Constant::getNullValue(ptr_type("Array")),
+                    out_args_array_);
     }
 
-    Value* inline_cache_send(int args, InlineCache* cache,
-                             BasicBlock* block=NULL)
-    {
-      if(!block) block = block_;
-
-      Value* cache_const = CastInst::Create(
-          Instruction::IntToPtr,
+    Value* inline_cache_send(int args, InlineCache* cache) {
+      Value* cache_const = b().CreateIntToPtr(
           ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(cache)),
-          ptr_type("InlineCache"), "cast_to_ptr", block);
+          ptr_type("InlineCache"), "cast_to_ptr");
 
       Value* execute_pos_idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
         ConstantInt::get(Type::Int32Ty, 3),
       };
 
-      Value* execute_pos = GetElementPtrInst::Create(cache_const,
-          execute_pos_idx, execute_pos_idx+2, "execute_pos", block);
+      Value* execute_pos = b().CreateGEP(cache_const,
+          execute_pos_idx, execute_pos_idx+2, "execute_pos");
 
-      Value* execute = new LoadInst(execute_pos, "execute", block);
+      Value* execute = b().CreateLoad(execute_pos, "execute");
 
-      setup_out_args(args, block);
+      setup_out_args(args);
 
       Value* call_args[] = {
         vm_,
@@ -614,30 +600,25 @@ namespace rubinius {
         out_args_
       };
 
-      return CallInst::Create(execute, call_args, call_args+4, "ic_send", block);
+      return b().CreateCall(execute, call_args, call_args+4, "ic_send");
     }
 
-    Value* block_send(InlineCache* cache, int args,
-                      BasicBlock* block=NULL, bool priv=false)
-    {
-      if(!block) block = block_;
-
-      Value* cache_const = CastInst::Create(
-          Instruction::IntToPtr,
+    Value* block_send(InlineCache* cache, int args, bool priv=false) {
+      Value* cache_const = b().CreateIntToPtr(
           ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(cache)),
-          ptr_type("InlineCache"), "cast_to_ptr", block);
+          ptr_type("InlineCache"), "cast_to_ptr");
 
       Value* execute_pos_idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
         ConstantInt::get(Type::Int32Ty, 3),
       };
 
-      Value* execute_pos = GetElementPtrInst::Create(cache_const,
-          execute_pos_idx, execute_pos_idx+2, "execute_pos", block);
+      Value* execute_pos = b().CreateGEP(cache_const,
+          execute_pos_idx, execute_pos_idx+2, "execute_pos");
 
-      Value* execute = new LoadInst(execute_pos, "execute", block);
+      Value* execute = b().CreateLoad(execute_pos, "execute");
 
-      setup_out_args_with_block(args, block);
+      setup_out_args_with_block(args);
 
       Value* call_args[] = {
         vm_,
@@ -646,12 +627,10 @@ namespace rubinius {
         out_args_
       };
 
-      return CallInst::Create(execute, call_args, call_args+4, "ic_send", block);
+      return b().CreateCall(execute, call_args, call_args+4, "ic_send");
     }
 
-    Value* splat_send(Symbol* name, int args, BasicBlock* block=NULL, bool priv=false) {
-      if(!block) block = block_;
-
+    Value* splat_send(Symbol* name, int args, bool priv=false) {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
@@ -670,17 +649,15 @@ namespace rubinius {
       Value* call_args[] = {
         vm_,
         call_frame_,
-        constant(name, block),
+        constant(name),
         ConstantInt::get(IntPtrTy, args),
-        stack_objects(args + 3, block),   // 3 == recv + block + splat
+        stack_objects(args + 3),   // 3 == recv + block + splat
       };
 
-      return sig.call(func_name, call_args, 5, "splat_send", block);
+      return sig.call(func_name, call_args, 5, "splat_send", b());
     }
 
-    Value* super_send(Symbol* name, int args, BasicBlock* block=NULL, bool splat=false) {
-      if(!block) block = block_;
-
+    Value* super_send(Symbol* name, int args, bool splat=false) {
       Signature sig(ls_, ObjType);
       sig << VMTy;
       sig << CallFrameTy;
@@ -700,12 +677,12 @@ namespace rubinius {
       Value* call_args[] = {
         vm_,
         call_frame_,
-        constant(name, block),
+        constant(name),
         ConstantInt::get(IntPtrTy, args),
-        stack_objects(args + extra, block),
+        stack_objects(args + extra),
       };
 
-      return sig.call(func_name, call_args, 5, "super_send", block);
+      return sig.call(func_name, call_args, 5, "super_send", b());
     }
 
     void visit_meta_send_op_equal(opcode name) {
@@ -718,19 +695,22 @@ namespace rubinius {
 
       check_both_not_references(recv, arg, fast, dispatch);
 
-      Value* called_value = simple_send(ls_->symbol("=="), 1, dispatch);
-      check_for_exception_then(called_value, cont, dispatch);
+      set_block(dispatch);
 
-      ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_EQ,
-          recv, arg, "imm_cmp", fast);
-      Value* imm_value = SelectInst::Create(cmp, constant(Qtrue, fast),
-          constant(Qfalse, fast), "select_bool", fast);
+      Value* called_value = simple_send(ls_->symbol("=="), 1);
+      check_for_exception_then(called_value, cont);
 
-      BranchInst::Create(cont, fast);
+      set_block(fast);
 
-      block_ = cont;
+      Value* cmp = b().CreateICmpEQ(recv, arg, "imm_cmp");
+      Value* imm_value = b().CreateSelect(cmp,
+          constant(Qtrue), constant(Qfalse), "select_bool");
 
-      PHINode* phi = PHINode::Create(ObjType, "equal_value", block_);
+      b().CreateBr(cont);
+
+      set_block(cont);
+
+      PHINode* phi = b().CreatePHI(ObjType, "equal_value");
       phi->addIncoming(called_value, dispatch);
       phi->addIncoming(imm_value, fast);
 
@@ -748,19 +728,22 @@ namespace rubinius {
 
       check_fixnums(recv, arg, fast, dispatch);
 
-      Value* called_value = simple_send(ls_->symbol("==="), 1, dispatch);
-      check_for_exception_then(called_value, cont, dispatch);
+      set_block(dispatch);
 
-      ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_EQ,
-          recv, arg, "imm_cmp", fast);
-      Value* imm_value = SelectInst::Create(cmp, constant(Qtrue, fast),
-          constant(Qfalse, fast), "select_bool", fast);
+      Value* called_value = simple_send(ls_->symbol("==="), 1);
+      check_for_exception_then(called_value, cont);
 
-      BranchInst::Create(cont, fast);
+      set_block(fast);
 
-      block_ = cont;
+      Value* cmp = b().CreateICmpEQ(recv, arg, "imm_cmp");
+      Value* imm_value = b().CreateSelect(cmp,
+          constant(Qtrue), constant(Qfalse), "select_bool");
 
-      PHINode* phi = PHINode::Create(ObjType, "equal_value", block_);
+      b().CreateBr(cont);
+
+      set_block(cont);
+
+      PHINode* phi = b().CreatePHI(ObjType, "equal_value");
       phi->addIncoming(called_value, dispatch);
       phi->addIncoming(imm_value, fast);
 
@@ -778,19 +761,22 @@ namespace rubinius {
 
       check_fixnums(recv, arg, fast, dispatch);
 
-      Value* called_value = simple_send(ls_->symbol("<"), 1, dispatch);
-      check_for_exception_then(called_value, cont, dispatch);
+      set_block(dispatch);
 
-      ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_SLT,
-          recv, arg, "imm_cmp", fast);
-      Value* imm_value = SelectInst::Create(cmp, constant(Qtrue, fast),
-          constant(Qfalse, fast), "select_bool", fast);
+      Value* called_value = simple_send(ls_->symbol("<"), 1);
+      check_for_exception_then(called_value, cont);
 
-      BranchInst::Create(cont, fast);
+      set_block(fast);
 
-      block_ = cont;
+      Value* cmp = b().CreateICmpSLT(recv, arg, "imm_cmp");
+      Value* imm_value = b().CreateSelect(cmp,
+          constant(Qtrue), constant(Qfalse), "select_bool");
 
-      PHINode* phi = PHINode::Create(ObjType, "addition", block_);
+      b().CreateBr(cont);
+
+      set_block(cont);
+
+      PHINode* phi = b().CreatePHI(ObjType, "addition");
       phi->addIncoming(called_value, dispatch);
       phi->addIncoming(imm_value, fast);
 
@@ -808,19 +794,22 @@ namespace rubinius {
 
       check_fixnums(recv, arg, fast, dispatch);
 
-      Value* called_value = simple_send(ls_->symbol(">"), 1, dispatch);
-      check_for_exception_then(called_value, cont, dispatch);
+      set_block(dispatch);
 
-      ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_SGT,
-          recv, arg, "imm_cmp", fast);
-      Value* imm_value = SelectInst::Create(cmp, constant(Qtrue, fast),
-          constant(Qfalse, fast), "select_bool", fast);
+      Value* called_value = simple_send(ls_->symbol(">"), 1);
+      check_for_exception_then(called_value, cont);
 
-      BranchInst::Create(cont, fast);
+      set_block(fast);
 
-      block_ = cont;
+      Value* cmp = b().CreateICmpSGT(recv, arg, "imm_cmp");
+      Value* imm_value = b().CreateSelect(cmp,
+          constant(Qtrue), constant(Qfalse), "select_bool");
 
-      PHINode* phi = PHINode::Create(ObjType, "compare", block_);
+      b().CreateBr(cont);
+
+      set_block(cont);
+
+      PHINode* phi = b().CreatePHI(ObjType, "compare");
       phi->addIncoming(called_value, dispatch);
       phi->addIncoming(imm_value, fast);
 
@@ -839,8 +828,12 @@ namespace rubinius {
 
       check_fixnums(recv, arg, fast, dispatch);
 
-      Value* called_value = simple_send(ls_->symbol("+"), 1, dispatch);
-      check_for_exception_then(called_value, cont, dispatch);
+      set_block(dispatch);
+
+      Value* called_value = simple_send(ls_->symbol("+"), 1);
+      check_for_exception_then(called_value, cont);
+
+      set_block(fast);
 
       std::vector<const Type*> types;
       types.push_back(Int31Ty);
@@ -856,23 +849,25 @@ namespace rubinius {
       Function* func = cast<Function>(
           module_->getOrInsertFunction("llvm.sadd.with.overflow.i31", ft));
 
-      Value* recv_int = tag_strip(recv, fast);
-      Value* arg_int = tag_strip(arg, fast);
+      Value* recv_int = tag_strip(recv);
+      Value* arg_int = tag_strip(arg);
       Value* call_args[] = { recv_int, arg_int };
-      Value* res = CallInst::Create(func, call_args, call_args+2, "add.overflow", fast);
+      Value* res = b().CreateCall(func, call_args, call_args+2, "add.overflow");
 
-      Value* sum = ExtractValueInst::Create(res, 0, "sum", fast);
-      Value* dof = ExtractValueInst::Create(res, 1, "did_overflow", fast);
+      Value* sum = b().CreateExtractValue(res, 0, "sum");
+      Value* dof = b().CreateExtractValue(res, 1, "did_overflow");
 
-      BranchInst::Create(dispatch, tagnow, dof, fast);
+      b().CreateCondBr(dof, dispatch, tagnow);
 
-      Value* imm_value = fixnum_tag(sum, tagnow);
+      set_block(tagnow);
 
-      BranchInst::Create(cont, tagnow);
+      Value* imm_value = fixnum_tag(sum);
 
-      block_ = cont;
+      b().CreateBr(cont);
 
-      PHINode* phi = PHINode::Create(ObjType, "addition", block_);
+      set_block(cont);
+
+      PHINode* phi = b().CreatePHI(ObjType, "addition");
       phi->addIncoming(called_value, dispatch);
       phi->addIncoming(imm_value, tagnow);
 
@@ -890,8 +885,12 @@ namespace rubinius {
 
       check_fixnums(recv, arg, fast, dispatch);
 
-      Value* called_value = simple_send(ls_->symbol("-"), 1, dispatch);
-      check_for_exception_then(called_value, cont, dispatch);
+      set_block(dispatch);
+
+      Value* called_value = simple_send(ls_->symbol("-"), 1);
+      check_for_exception_then(called_value, cont);
+
+      set_block(fast);
 
       std::vector<const Type*> types;
       types.push_back(Int31Ty);
@@ -907,24 +906,26 @@ namespace rubinius {
       Function* func = cast<Function>(
           module_->getOrInsertFunction("llvm.ssub.with.overflow.i31", ft));
 
-      Value* recv_int = tag_strip(recv, fast);
-      Value* arg_int = tag_strip(arg, fast);
+      Value* recv_int = tag_strip(recv);
+      Value* arg_int = tag_strip(arg);
       Value* call_args[] = { recv_int, arg_int };
-      Value* res = CallInst::Create(func, call_args, call_args+2, "sub.overflow", fast);
+      Value* res = b().CreateCall(func, call_args, call_args+2, "sub.overflow");
 
-      Value* sum = ExtractValueInst::Create(res, 0, "sub", fast);
-      Value* dof = ExtractValueInst::Create(res, 1, "did_overflow", fast);
+      Value* sum = b().CreateExtractValue(res, 0, "sub");
+      Value* dof = b().CreateExtractValue(res, 1, "did_overflow");
 
       BasicBlock* tagnow = new_block("tagnow");
-      BranchInst::Create(dispatch, tagnow, dof, fast);
 
-      Value* imm_value = fixnum_tag(sum, tagnow);
+      b().CreateCondBr(dof, dispatch, tagnow);
 
-      BranchInst::Create(cont, tagnow);
+      set_block(tagnow);
+      Value* imm_value = fixnum_tag(sum);
 
-      block_ = cont;
+      b().CreateBr(cont);
 
-      PHINode* phi = PHINode::Create(ObjType, "subtraction", block_);
+      set_block(cont);
+
+      PHINode* phi = b().CreatePHI(ObjType, "subtraction");
       phi->addIncoming(called_value, dispatch);
       phi->addIncoming(imm_value, tagnow);
 
@@ -932,23 +933,16 @@ namespace rubinius {
       stack_push(phi);
     }
 
-
     Object* literal(opcode which) {
       return vmmethod()->original.get()->literals()->at(which);
     }
 
     Value* get_literal(opcode which) {
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::cf_cm)
-      };
+      Value* gep = b().CreateConstGEP2_32(call_frame_, 0, offset::cf_cm, "cm_pos");
+      Value* cm =  b().CreateLoad(gep, "cm");
 
-      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "cm_pos", block_);
-      Value* cm =  new LoadInst(gep, "cm", block_);
-
-      idx[1] = ConstantInt::get(Type::Int32Ty, 13);
-      gep = GetElementPtrInst::Create(cm, idx, idx+2, "literals_pos", block_);
-      Value* lits = new LoadInst(gep, "literals", block_);
+      gep = b().CreateConstGEP2_32(cm, 0, 13, "literals_pos");
+      Value* lits = b().CreateLoad(gep, "literals");
 
       Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, 0),
@@ -956,8 +950,8 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, which)
       };
 
-      gep = GetElementPtrInst::Create(lits, idx2, idx2+3, "literal_pos", block_);
-      return new LoadInst(gep, "literal", block_);
+      gep = b().CreateGEP(lits, idx2, idx2+3, "literal_pos");
+      return b().CreateLoad(gep, "literal");
     }
 
     void visit_push_literal(opcode which) {
@@ -986,24 +980,18 @@ namespace rubinius {
         stack_pop()
       };
 
-      stack_push(CallInst::Create(func, call_args, call_args+3, "string_dup", block_));
+      stack_push(b().CreateCall(func, call_args, call_args+3, "string_dup"));
     }
 
     void push_scope_local(Value* scope, opcode which) {
-      Value* idx2[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::varscope_locals)
-      };
+      Value* pos = b().CreateConstGEP2_32(scope, 0, offset::varscope_locals,
+                                     "locals_pos");
 
-      Value* pos = GetElementPtrInst::Create(scope, idx2, idx2+2, "locals_pos", block_);
+      Value* table = b().CreateLoad(pos, "locals");
 
-      Value* table = new LoadInst(pos, "locals", block_);
+      Value* val_pos = b().CreateConstGEP1_32(table, which, "local_pos");
 
-      Value* idx3[] = { ConstantInt::get(Type::Int32Ty, which) };
-
-      Value* val_pos = GetElementPtrInst::Create(table, idx3, idx3+1, "local_pos", block_);
-
-      stack_push(new LoadInst(val_pos, "local", block_));
+      stack_push(b().CreateLoad(val_pos, "local"));
     }
 
     void visit_push_local(opcode which) {
@@ -1013,28 +1001,22 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, which)
       };
 
-      Value* pos = GetElementPtrInst::Create(vars_, idx2, idx2+3, "local_pos", block_);
+      Value* pos = b().CreateGEP(vars_, idx2, idx2+3, "local_pos");
 
-      stack_push(new LoadInst(pos, "local", block_));
+      stack_push(b().CreateLoad(pos, "local"));
     }
 
     void set_scope_local(Value* scope, opcode which) {
-      Value* idx2[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::varscope_locals)
-      };
+      Value* pos = b().CreateConstGEP2_32(scope, 0, offset::varscope_locals,
+                                     "locals_pos");
 
-      Value* pos = GetElementPtrInst::Create(scope, idx2, idx2+2, "locals_pos", block_);
+      Value* table = b().CreateLoad(pos, "locals");
 
-      Value* table = new LoadInst(pos, "locals", block_);
-
-      Value* idx3[] = { ConstantInt::get(Type::Int32Ty, which) };
-
-      Value* val_pos = GetElementPtrInst::Create(table, idx3, idx3+1, "local_pos", block_);
+      Value* val_pos = b().CreateConstGEP1_32(table, which, "local_pos");
 
       Value* val = stack_top();
 
-      new StoreInst(val, val_pos, false, block_);
+      b().CreateStore(val, val_pos);
 
       write_barrier(scope, val);
     }
@@ -1046,44 +1028,25 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, which)
       };
 
-      Value* pos = GetElementPtrInst::Create(vars_, idx2, idx2+3, "local_pos", block_);
+      Value* pos = b().CreateGEP(vars_, idx2, idx2+3, "local_pos");
 
       Value* val = stack_top();
 
-      new StoreInst(val, pos, false, block_);
+      b().CreateStore(val, pos);
     }
 
     Value* get_self() {
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::vars_self)
-      };
-
-      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "self_pos", block_);
-
-      return new LoadInst(pos, "self", block_);
+      return b().CreateLoad(
+          b().CreateConstGEP2_32(vars_, 0, offset::vars_self, "self_pos"));
     }
 
     Value* get_block() {
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::vars_block)
-      };
-
-      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "block_pos", block_);
-
-      return new LoadInst(pos, "block", block_);
+      return b().CreateLoad(
+          b().CreateConstGEP2_32(vars_, 0, offset::vars_block, "self_pos"));
     }
 
     void visit_push_self() {
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::vars_self)
-      };
-
-      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "self_pos", block_);
-
-      stack_push(new LoadInst(pos, "self", block_));
+      stack_push(get_self());
     }
 
     void visit_allow_private() {
@@ -1106,13 +1069,13 @@ namespace rubinius {
 
       Value* call_args[] = { vm_, call_frame_, args_, sp };
 
-      Value* call = sig.call("rbx_continue_uncommon", call_args, 4, "", block_);
+      Value* call = sig.call("rbx_continue_uncommon", call_args, 4, "", b());
 
       if(inline_return_) {
-        return_value_->addIncoming(call, block_);
-        BranchInst::Create(inline_return_, block_);
+        return_value_->addIncoming(call, current_block());
+        b().CreateBr(inline_return_);
       } else {
-        ReturnInst::Create(call, block_);
+        b().CreateRet(call);
       }
     }
 
@@ -1127,7 +1090,7 @@ namespace rubinius {
         if(inl.consider() && exception_handlers_.size() == 0) {
           emit_uncommon();
 
-          block_ = after;
+          set_block(after);
 
           allow_private_ = false;
           return;
@@ -1136,33 +1099,15 @@ namespace rubinius {
 
       reset_sp();
 
-      Value* ret = inline_cache_send(args, cache, block_);
+      Value* ret = inline_cache_send(args, cache);
       stack_remove(args + 1);
       check_for_exception(ret);
       stack_push(ret);
 
-      BranchInst::Create(after, block_);
-      block_ = after;
+      b().CreateBr(after);
+      set_block(after);
 
       allow_private_ = false;
-    }
-
-    /*
-     * This is causing a minor slowdown, shows up on
-     * running an empty times loop, so it's not used atm. */
-    void call_is_fixnum() {
-      Value* index_val = stack_pop();
-
-      Value* fix_mask = ConstantInt::get(IntPtrTy, TAG_FIXNUM_MASK);
-      Value* fix_tag  = ConstantInt::get(IntPtrTy, TAG_FIXNUM);
-
-      Value* lint = cast_int(index_val);
-      Value* masked = BinaryOperator::CreateAnd(lint, fix_mask, "masked", block_);
-
-      Value* fix_cmp = new ICmpInst(ICmpInst::ICMP_EQ, masked, fix_tag, "is_fixnum", block_);
-      Value* imm_value = SelectInst::Create(fix_cmp, constant(Qtrue),
-          constant(Qfalse), "select_bool", block_);
-      stack_push(imm_value);
     }
 
     void visit_send_method(opcode which) {
@@ -1174,7 +1119,7 @@ namespace rubinius {
         if(inl.consider() && exception_handlers_.size() == 0) {
           emit_uncommon();
 
-          block_ = after;
+          set_block(after);
 
           allow_private_ = false;
           return;
@@ -1183,13 +1128,13 @@ namespace rubinius {
 
       reset_sp();
 
-      Value* ret = inline_cache_send(0, cache, block_);
+      Value* ret = inline_cache_send(0, cache);
       stack_remove(1);
       check_for_exception(ret);
       stack_push(ret);
 
-      BranchInst::Create(after, block_);
-      block_ = after;
+      b().CreateBr(after);
+      set_block(after);
 
       allow_private_ = false;
     }
@@ -1211,12 +1156,12 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, which)
       };
 
-      stack_push(CallInst::Create(func, call_args, call_args+3, "create_block", block_));
+      stack_push(b().CreateCall(func, call_args, call_args+3, "create_block"));
     }
 
     void visit_send_stack_with_block(opcode which, opcode args) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      Value* ret = block_send(cache, args, block_, allow_private_);
+      Value* ret = block_send(cache, args, allow_private_);
       stack_remove(args + 2);
       check_for_return(ret);
       allow_private_ = false;
@@ -1224,7 +1169,7 @@ namespace rubinius {
 
     void visit_send_stack_with_splat(opcode which, opcode args) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      Value* ret = splat_send(cache->name, args, block_, allow_private_);
+      Value* ret = splat_send(cache->name, args, allow_private_);
       stack_remove(args + 3);
       check_for_exception(ret);
       stack_push(ret);
@@ -1248,7 +1193,7 @@ namespace rubinius {
         stack_pop()
       };
 
-      stack_push(CallInst::Create(func, call_args, call_args+3, "cast_array", block_));
+      stack_push(b().CreateCall(func, call_args, call_args+3, "cast_array"));
     }
 
     void visit_push_block() {
@@ -1264,7 +1209,7 @@ namespace rubinius {
 
     void visit_send_super_stack_with_splat(opcode which, opcode args) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      Value* ret = super_send(cache->name, args, block_, true);
+      Value* ret = super_send(cache->name, args, true);
       stack_remove(args + 2);
       check_for_exception(ret);
       stack_push(ret);
@@ -1287,7 +1232,7 @@ namespace rubinius {
         stack_pop()
       };
 
-      CallInst::Create(func, call_args, call_args+3, "add_array", block_);
+      b().CreateCall(func, call_args, call_args+3);
     }
 
     Object* current_literal(opcode which) {
@@ -1303,36 +1248,33 @@ namespace rubinius {
       if(entry) {
         assert(entry->pin());
 
-        Value* global_serial = new LoadInst(global_serial_pos, "global_serial", block_);
+        Value* global_serial = b().CreateLoad(global_serial_pos, "global_serial");
 
-        Value* current_serial_pos = CastInst::Create(
-            Instruction::IntToPtr,
+        Value* current_serial_pos = b().CreateIntToPtr(
             ConstantInt::get(IntPtrTy, (intptr_t)entry->serial_location()),
-            PointerType::getUnqual(IntPtrTy), "cast_to_intptr", block_);
+            PointerType::getUnqual(IntPtrTy), "cast_to_intptr");
 
-        Value* current_serial = new LoadInst(current_serial_pos, "serial", block_);
+        Value* current_serial = b().CreateLoad(current_serial_pos, "serial");
 
-        Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, global_serial,
-            current_serial, "use_cache", block_);
+        Value* cmp = b().CreateICmpEQ(global_serial, current_serial, "use_cache");
 
         BasicBlock* use_cache = new_block("use_cache");
         BasicBlock* use_call  = new_block("use_call");
         cont =      new_block("continue");
 
-        BranchInst::Create(use_cache, use_call, cmp, block_);
+        b().CreateCondBr(cmp, use_cache, use_call);
 
-        block_ = use_cache;
+        set_block(use_cache);
 
-        Value* value_pos = CastInst::Create(
-            Instruction::IntToPtr,
+        Value* value_pos = b().CreateIntToPtr(
             ConstantInt::get(IntPtrTy, (intptr_t)entry->value_location()),
-            PointerType::getUnqual(ObjType), "cast_to_objptr", block_);
+            PointerType::getUnqual(ObjType), "cast_to_objptr");
 
-        stack_push(new LoadInst(value_pos, "cached_value", block_));
+        stack_push(b().CreateLoad(value_pos, "cached_value"));
 
-        BranchInst::Create(cont, block_);
+        b().CreateBr(cont);
 
-        block_ = use_call;
+        set_block(use_call);
       }
 
       reset_sp();
@@ -1358,8 +1300,8 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, cache)
       };
 
-      CallInst* ret = CallInst::Create(func, call_args, call_args+4,
-                                       "push_const_fast", block_);
+      CallInst* ret = b().CreateCall(func, call_args, call_args+4,
+                                       "push_const_fast");
 
       ret->setOnlyReadsMemory(true);
       ret->setDoesNotThrow(true);
@@ -1368,9 +1310,9 @@ namespace rubinius {
       stack_push(ret);
 
       if(entry) {
-        BranchInst::Create(cont, block_);
+        b().CreateBr(cont);
 
-        block_ = cont;
+        set_block(cont);
       }
     }
 
@@ -1391,7 +1333,7 @@ namespace rubinius {
         constant(as<Symbol>(literal(name)))
       };
 
-      Value* ret = CallInst::Create(func, call_args, call_args+3, "push_const_fast", block_);
+      Value* ret = b().CreateCall(func, call_args, call_args+3, "push_const_fast");
       check_for_exception(ret);
       stack_push(ret);
     }
@@ -1415,7 +1357,7 @@ namespace rubinius {
         stack_top()
       };
 
-      CallInst::Create(func, call_args, call_args+4, "set_const", block_);
+      b().CreateCall(func, call_args, call_args+4);
     }
 
     void visit_set_const_at(opcode name) {
@@ -1437,7 +1379,7 @@ namespace rubinius {
         val
       };
 
-      CallInst::Create(func, call_args, call_args+4, "set_const", block_);
+      b().CreateCall(func, call_args, call_args+4);
 
       stack_push(val);
     }
@@ -1461,7 +1403,7 @@ namespace rubinius {
         stack_top()
       };
 
-      CallInst::Create(func, call_args, call_args+4, "set_literal", block_);
+      b().CreateCall(func, call_args, call_args+4);
     }
 
     void visit_push_variables() {
@@ -1474,27 +1416,16 @@ namespace rubinius {
         call_frame_
       };
 
-      stack_push(sig.call("rbx_promote_variables", args, 2, "promo_vars", block_));
+      stack_push(sig.call("rbx_promote_variables", args, 2, "promo_vars", b()));
     }
 
     void visit_push_scope() {
-      Value* idx2[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::cf_cm)
-      };
+      Value* cm = b().CreateLoad(
+          b().CreateConstGEP2_32(call_frame_, 0, offset::cf_cm, "cm_pos"),
+          "cm");
 
-      Value* gep2 = GetElementPtrInst::Create(call_frame_,
-          idx2, idx2+2, "cm_pos", block_);
-
-      Value* cm = new LoadInst(gep2, "cm", block_);
-
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::cm_static_scope)
-      };
-
-      Value* gep = GetElementPtrInst::Create(cm, idx, idx+2, "scope_pos", block_);
-      stack_push(new LoadInst(gep, "scope", block_));
+      Value* gep = b().CreateConstGEP2_32(cm, 0, offset::cm_static_scope, "scope_pos");
+      stack_push(b().CreateLoad(gep, "scope"));
     }
 
     void visit_cast_for_single_block_arg() {
@@ -1512,7 +1443,7 @@ namespace rubinius {
         args_
       };
 
-      stack_push(CallInst::Create(func, call_args, call_args+2, "cfsba", block_));
+      stack_push(b().CreateCall(func, call_args, call_args+2, "cfsba"));
     }
 
     void visit_cast_for_multi_block_arg() {
@@ -1526,7 +1457,7 @@ namespace rubinius {
       };
 
       Value* val = sig.call("rbx_cast_for_multi_block_arg", call_args, 2,
-                            "cfmba", block_);
+                            "cfmba", b());
       stack_push(val);
     }
 
@@ -1541,7 +1472,7 @@ namespace rubinius {
       };
 
       Value* val = sig.call("rbx_cast_for_splat_block_arg", call_args, 2,
-                            "cfmba", block_);
+                            "cfmba", b());
       stack_push(val);
     }
 
@@ -1556,9 +1487,9 @@ namespace rubinius {
           ConstantInt::get(Type::Int32Ty, offset::vars_parent)
         };
 
-        Value* gep = GetElementPtrInst::Create(vars_, idx, idx+2, "parent_pos", block_);
+        Value* gep = b().CreateGEP(vars_, idx, idx+2, "parent_pos");
 
-        Value* parent = new LoadInst(gep, "scope.parent", block_);
+        Value* parent = b().CreateLoad(gep, "scope.parent");
         set_scope_local(parent, index);
         return;
       }
@@ -1585,7 +1516,7 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, index)
       };
 
-      stack_push(CallInst::Create(func, call_args, call_args+5, "sld", block_));
+      stack_push(b().CreateCall(func, call_args, call_args+5, "sld"));
     }
 
     void visit_push_local_depth(opcode depth, opcode index) {
@@ -1599,9 +1530,9 @@ namespace rubinius {
           ConstantInt::get(Type::Int32Ty, offset::vars_parent)
         };
 
-        Value* gep = GetElementPtrInst::Create(vars_, idx, idx+2, "parent_pos", block_);
+        Value* gep = b().CreateGEP(vars_, idx, idx+2, "parent_pos");
 
-        Value* parent = new LoadInst(gep, "scope.parent", block_);
+        Value* parent = b().CreateLoad(gep, "scope.parent");
         push_scope_local(parent, index);
         return;
       }
@@ -1625,48 +1556,46 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, index)
       };
 
-      stack_push(CallInst::Create(func, call_args, call_args+4, "pld", block_));
+      stack_push(b().CreateCall(func, call_args, call_args+4, "pld"));
     }
 
     void visit_goto(opcode ip) {
-      BranchInst::Create(block_map_[ip].block, block_);
-      block_ = new_block("continue");
+      b().CreateBr(block_map_[ip].block);
+      set_block(new_block("continue"));
     }
 
     void visit_goto_if_true(opcode ip) {
       Value* cond = stack_pop();
-      Value* i = CastInst::Create(
-          Instruction::PtrToInt,
-          cond, IntPtrTy, "as_int", block_);
+      Value* i = b().CreatePtrToInt(
+          cond, IntPtrTy, "as_int");
 
-      Value* anded = BinaryOperator::CreateAnd(i,
-          ConstantInt::get(IntPtrTy, FALSE_MASK), "and", block_);
+      Value* anded = b().CreateAnd(i,
+          ConstantInt::get(IntPtrTy, FALSE_MASK), "and");
 
-      Value* cmp = new ICmpInst(ICmpInst::ICMP_NE, anded,
-          ConstantInt::get(IntPtrTy, cFalse), "is_true", block_);
+      Value* cmp = b().CreateICmpNE(anded,
+          ConstantInt::get(IntPtrTy, cFalse), "is_true");
 
       BasicBlock* cont = new_block("continue");
-      BranchInst::Create(block_map_[ip].block, cont, cmp, block_);
+      b().CreateCondBr(cmp, block_map_[ip].block, cont);
 
-      block_ = cont;
+      set_block(cont);
     }
 
     void visit_goto_if_false(opcode ip) {
       Value* cond = stack_pop();
-      Value* i = CastInst::Create(
-          Instruction::PtrToInt,
-          cond, IntPtrTy, "as_int", block_);
+      Value* i = b().CreatePtrToInt(
+          cond, IntPtrTy, "as_int");
 
-      Value* anded = BinaryOperator::CreateAnd(i,
-          ConstantInt::get(IntPtrTy, FALSE_MASK), "and", block_);
+      Value* anded = b().CreateAnd(i,
+          ConstantInt::get(IntPtrTy, FALSE_MASK), "and");
 
-      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, anded,
-          ConstantInt::get(IntPtrTy, cFalse), "is_true", block_);
+      Value* cmp = b().CreateICmpEQ(anded,
+          ConstantInt::get(IntPtrTy, cFalse), "is_true");
 
       BasicBlock* cont = new_block("continue");
-      BranchInst::Create(block_map_[ip].block, cont, cmp, block_);
+      b().CreateCondBr(cmp, block_map_[ip].block, cont);
 
-      block_ = cont;
+      set_block(cont);
     }
 
     void visit_yield_stack(opcode count) {
@@ -1684,7 +1613,7 @@ namespace rubinius {
         stack_objects(count)
       };
 
-      Value* val = sig.call("rbx_yield_stack", call_args, 4, "ys", block_);
+      Value* val = sig.call("rbx_yield_stack", call_args, 4, "ys", b());
       stack_remove(count);
 
       check_for_exception(val);
@@ -1706,7 +1635,7 @@ namespace rubinius {
         stack_objects(count + 1)
       };
 
-      Value* val = sig.call("rbx_yield_splat", call_args, 4, "ys", block_);
+      Value* val = sig.call("rbx_yield_splat", call_args, 4, "ys", b());
       stack_remove(count + 1);
 
       check_for_exception(val);
@@ -1728,32 +1657,32 @@ namespace rubinius {
         call_frame_
       };
 
-      Value* ret = CallInst::Create(func, call_args, call_args+2, "ci", block_);
+      Value* ret = b().CreateCall(func, call_args, call_args+2, "ci");
       check_for_exception(ret);
     }
 
     void visit_check_serial(opcode index, opcode serial) {
-        std::vector<const Type*> types;
+      std::vector<const Type*> types;
 
-        types.push_back(VMTy);
-        types.push_back(CallFrameTy);
-        types.push_back(Type::Int32Ty);
-        types.push_back(Type::Int32Ty);
-        types.push_back(ObjType);
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(Type::Int32Ty);
+      types.push_back(Type::Int32Ty);
+      types.push_back(ObjType);
 
-        FunctionType* ft = FunctionType::get(ObjType, types, false);
-        Function* func = cast<Function>(
-            module_->getOrInsertFunction("rbx_check_serial", ft));
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_check_serial", ft));
 
-        Value* call_args[] = {
-          vm_,
-          call_frame_,
-          ConstantInt::get(Type::Int32Ty, index),
-          ConstantInt::get(Type::Int32Ty, serial),
-          stack_pop()
-        };
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        ConstantInt::get(Type::Int32Ty, index),
+        ConstantInt::get(Type::Int32Ty, serial),
+        stack_pop()
+      };
 
-        stack_push(CallInst::Create(func, call_args, call_args+5, "cs", block_));
+      stack_push(b().CreateCall(func, call_args, call_args+5, "cs"));
     }
 
     void visit_push_my_offset(opcode i) {
@@ -1762,30 +1691,32 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, offset::vars_self)
       };
 
-      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "self_pos", block_);
+      Value* pos = b().CreateGEP(vars_, idx, idx+2, "self_pos");
 
-      Value* self = new LoadInst(pos, "self", block_);
+      Value* self = b().CreateLoad(pos, "self");
 
       assert(i % sizeof(Object*) == 0);
 
-      Value* cst = CastInst::Create(
-          Instruction::BitCast,
+      Value* cst = b().CreateBitCast(
           self,
-          PointerType::getUnqual(ObjType), "obj_array", block_);
+          PointerType::getUnqual(ObjType), "obj_array");
 
       Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, i / sizeof(Object*))
       };
 
-      pos = GetElementPtrInst::Create(cst, idx2, idx2+1, "field_pos", block_);
+      pos = b().CreateGEP(cst, idx2, idx2+1, "field_pos");
 
-      stack_push(new LoadInst(pos, "field", block_));
+      stack_push(b().CreateLoad(pos, "field"));
     }
 
     void visit_setup_unwind(opcode where, opcode type) {
       BasicBlock* code;
       if(type == cRescue) {
+        BasicBlock* orig = current_block();
         code = new_block("is_exception");
+        set_block(code);
+
         std::vector<const Type*> types;
         types.push_back(VMTy);
 
@@ -1794,7 +1725,7 @@ namespace rubinius {
             module_->getOrInsertFunction("rbx_raising_exception", ft));
 
         Value* call_args[] = { vm_ };
-        Value* isit = CallInst::Create(func, call_args, call_args+1, "rae", code);
+        Value* isit = b().CreateCall(func, call_args, call_args+1, "rae");
 
         BasicBlock* next = 0;
         if(exception_handlers_.size() == 0) {
@@ -1803,13 +1734,12 @@ namespace rubinius {
           next = exception_handlers_.back();
         }
 
-        BranchInst::Create(block_map_[where].block, next, isit, code);
+        b().CreateCondBr(isit, block_map_[where].block, next);
+
+        set_block(orig);
       } else {
         code = block_map_[where].block;
       }
-
-      // Reset the stack pointer within the handler to the current value
-      // set_stack_ptr(stack_ptr(), block_map_[where].block);
 
       exception_handlers_.push_back(code);
     }
@@ -1820,11 +1750,12 @@ namespace rubinius {
 
     void visit_reraise() {
       if(exception_handlers_.size() > 0) {
-        BranchInst::Create(exception_handlers_.back(), block_);
+        b().CreateBr(exception_handlers_.back());
       } else {
-        BranchInst::Create(bail_out_, block_);
+        b().CreateBr(bail_out_);
       }
-      block_ = new_block("continue");
+
+      set_block(new_block("continue"));
     }
 
     void visit_raise_return() {
@@ -1840,7 +1771,7 @@ namespace rubinius {
         stack_top()
       };
 
-      sig.call("rbx_raise_return", call_args, 3, "raise_return", block_);
+      sig.call("rbx_raise_return", call_args, 3, "raise_return", b());
       visit_reraise();
     }
 
@@ -1857,7 +1788,7 @@ namespace rubinius {
         stack_top()
       };
 
-      sig.call("rbx_ensure_return", call_args, 3, "ensure_return", block_);
+      sig.call("rbx_ensure_return", call_args, 3, "ensure_return", b());
       visit_reraise();
     }
 
@@ -1874,7 +1805,7 @@ namespace rubinius {
         stack_top()
       };
 
-      sig.call("rbx_raise_break", call_args, 3, "raise_break", block_);
+      sig.call("rbx_raise_break", call_args, 3, "raise_break", b());
       visit_reraise();
     }
 
@@ -1889,7 +1820,7 @@ namespace rubinius {
 
       Value* call_args[] = { vm_ };
 
-      stack_push(CallInst::Create(func, call_args, call_args+1, "ce", block_));
+      stack_push(b().CreateCall(func, call_args, call_args+1, "ce"));
     }
 
     void visit_clear_exception() {
@@ -1903,7 +1834,7 @@ namespace rubinius {
 
       Value* call_args[] = { vm_ };
 
-      CallInst::Create(func, call_args, call_args+1, "ce", block_);
+      b().CreateCall(func, call_args, call_args+1);
     }
 
     void visit_pop_exception() {
@@ -1918,7 +1849,7 @@ namespace rubinius {
 
       Value* call_args[] = { vm_, stack_pop() };
 
-      CallInst::Create(func, call_args, call_args+2, "pe", block_);
+      b().CreateCall(func, call_args, call_args+2);
     }
 
     void visit_find_const(opcode which) {
@@ -1936,7 +1867,7 @@ namespace rubinius {
         stack_pop()
       };
 
-      Value* val = sig.call("rbx_find_const", call_args, 4, "constant", block_);
+      Value* val = sig.call("rbx_find_const", call_args, 4, "constant", b());
       stack_push(val);
     }
 
@@ -1954,7 +1885,7 @@ namespace rubinius {
         stack_pop()
       };
 
-      Value* val = sig.call("rbx_instance_of", call_args, 3, "constant", block_);
+      Value* val = sig.call("rbx_instance_of", call_args, 3, "constant", b());
       stack_push(val);
     }
 
@@ -1972,15 +1903,15 @@ namespace rubinius {
         stack_pop()
       };
 
-      Value* val = sig.call("rbx_kind_of", call_args, 3, "constant", block_);
+      Value* val = sig.call("rbx_kind_of", call_args, 3, "constant", b());
       stack_push(val);
     }
 
     void visit_is_nil() {
-      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, stack_pop(),
-          constant(Qnil), "is_nil", block_);
-      Value* imm_value = SelectInst::Create(cmp, constant(Qtrue),
-          constant(Qfalse), "select_bool", block_);
+      Value* cmp = b().CreateICmpEQ(stack_pop(),
+          constant(Qnil), "is_nil");
+      Value* imm_value = b().CreateSelect(cmp, constant(Qtrue),
+          constant(Qfalse), "select_bool");
       stack_push(imm_value);
     }
 
@@ -1997,7 +1928,7 @@ namespace rubinius {
         stack_objects(count)
       };
 
-      Value* val = sig.call("rbx_make_array", call_args, 3, "constant", block_);
+      Value* val = sig.call("rbx_make_array", call_args, 3, "constant", b());
       stack_remove(count);
       stack_push(val);
     }
@@ -2017,7 +1948,7 @@ namespace rubinius {
         stack_objects(count + 1)
       };
 
-      Value* val = sig.call("rbx_meta_send_call", call_args, 4, "constant", block_);
+      Value* val = sig.call("rbx_meta_send_call", call_args, 4, "constant", b());
       stack_remove(count+1);
       check_for_exception(val);
       stack_push(val);
@@ -2043,7 +1974,7 @@ namespace rubinius {
           ConstantInt::get(Type::Int32Ty, count)
         };
 
-        Value* val = sig.call("rbx_passed_arg", call_args, 3, "pa", block_);
+        Value* val = sig.call("rbx_passed_arg", call_args, 3, "pa", b());
         stack_push(val);
       }
     }
@@ -2061,7 +1992,7 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, count)
       };
 
-      Value* val = sig.call("rbx_passed_blockarg", call_args, 3, "pa", block_);
+      Value* val = sig.call("rbx_passed_blockarg", call_args, 3, "pa", b());
       stack_push(val);
     }
 
@@ -2076,7 +2007,7 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, 0)
       };
 
-      Value* val = sig.call("rbx_push_system_object", call_args, 2, "so", block_);
+      Value* val = sig.call("rbx_push_system_object", call_args, 2, "so", b());
       stack_push(val);
     }
 
@@ -2087,14 +2018,7 @@ namespace rubinius {
       sig << ObjType;
       sig << ObjType;
 
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::vars_self)
-      };
-
-      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "self_pos", block_);
-
-      Value* self = new LoadInst(pos, "self", block_);
+      Value* self = get_self();
 
       Value* call_args[] = {
         vm_,
@@ -2102,7 +2026,7 @@ namespace rubinius {
         constant(as<Symbol>(literal(which)))
       };
 
-      Value* val = sig.call("rbx_push_ivar", call_args, 3, "ivar", block_);
+      Value* val = sig.call("rbx_push_ivar", call_args, 3, "ivar", b());
       // TODO: why would rbx_push_ivar raise an exception?
       // check_for_exception(val);
       stack_push(val);
@@ -2116,14 +2040,7 @@ namespace rubinius {
       sig << ObjType;
       sig << ObjType;
 
-      Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::vars_self)
-      };
-
-      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "self_pos", block_);
-
-      Value* self = new LoadInst(pos, "self", block_);
+      Value* self = get_self();
 
       Value* call_args[] = {
         vm_,
@@ -2132,7 +2049,7 @@ namespace rubinius {
         stack_top()
       };
 
-      sig.call("rbx_set_ivar", call_args, 4, "ivar", block_);
+      sig.call("rbx_set_ivar", call_args, 4, "ivar", b());
     }
 
     void visit_push_my_field(opcode which) {
@@ -2150,7 +2067,7 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, which)
       };
 
-      Value* val = sig.call("rbx_push_my_field", call_args, 3, "field", block_);
+      Value* val = sig.call("rbx_push_my_field", call_args, 3, "field", b());
       check_for_exception(val);
       stack_push(val);
     }
@@ -2172,7 +2089,7 @@ namespace rubinius {
         stack_top()
       };
 
-      sig.call("rbx_set_my_field", call_args, 4, "field", block_);
+      sig.call("rbx_set_my_field", call_args, 4, "field", b());
     }
 
     void visit_shift_array() {
@@ -2186,7 +2103,7 @@ namespace rubinius {
         stack_back_position(0)
       };
 
-      Value* val = sig.call("rbx_shift_array", call_args, 2, "field", block_);
+      Value* val = sig.call("rbx_shift_array", call_args, 2, "field", b());
       stack_push(val);
     }
 
@@ -2205,7 +2122,7 @@ namespace rubinius {
         stack_pop()
       };
 
-      Value* str = sig.call("rbx_string_append", call_args, 3, "string", block_);
+      Value* str = sig.call("rbx_string_append", call_args, 3, "string", b());
       stack_push(str);
     }
   };
