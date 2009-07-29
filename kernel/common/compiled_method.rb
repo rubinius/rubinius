@@ -28,7 +28,7 @@ module Rubinius
     attr_accessor :lines         # [Tuple]   tuple of the lines where its found
     attr_accessor :file          # [Symbol]  the file where this comes from
     attr_accessor :local_names   # [Array<Symbol>] names of the local vars
-    attr_accessor :scope         
+    attr_accessor :scope
 
     ##
     # Compare this method with +other+. Instead of bugging out if +other+
@@ -36,24 +36,24 @@ module Rubinius
     # we're comparing two apples, AKA, {CompiledMethod}s. The methods have
     # to be the exact same in implementation, but their scoping (location)
     # can differ.
-    # 
+    #
     # For instance:
-    # 
+    #
     # (module A; def m; 5; end; end) == (def m; 5; end)
-    # 
+    #
     # and
-    # 
+    #
     # def monkey; 5; end
-    # 
+    #
     # and
-    # 
+    #
     # module B
     #   def monkey; 5; end
     # end
-    # 
+    #
     # would all be the same, despite their access to different ivars and scopes
     # (which {CompiledMethod}s DO keep track of)
-    # 
+    #
     # @todo Make example (in method documentation) match reality
     # @param [Rubinius::CompiledMethod] other the other part to compare
     # @param [Boolean]
@@ -77,7 +77,7 @@ module Rubinius
     ##
     # Update +self+ out of a string, using +bc+ as the iseq,
     # +lcls+ as the number local variables, and +req+ as the required args.
-    # 
+    #
     # @todo make sure InstructionSequence is the actual class name
     # @param  [InstructionSequence] bc the "bytecode" or
     #   instructions that are the actual method. This *should* be an instance
@@ -103,7 +103,7 @@ module Rubinius
 
     ##
     # Return a human readable interpretation of this method.
-    # 
+    #
     # @return [String]
     def inspect
       "#<#{self.class.name} #{@name} file=#{@file}>"
@@ -113,7 +113,7 @@ module Rubinius
     # Make the method change its scope so that it can act as though
     # it's frome somewhere else. You can pass in a method and +self+
     # will borrow its scope.
-    # 
+    #
     # @param [#scope] other the other method that has a scope we can borrow
     def inherit_scope(other)
       @scope = other.scope
@@ -132,7 +132,7 @@ module Rubinius
 
     ##
     # Set a breakpoint here.
-    # 
+    #
     # @raise [ArgumentError]
     # @param [InstructionPointer] ip where exactly to place the breakpoint
     def set_breakpoint(ip)
@@ -142,7 +142,7 @@ module Rubinius
 
     ##
     # Erase a breakpoint from being here
-    # 
+    #
     # @raise [ArgumentError]
     # @param [InstructionPointer] ip where exactly to remove the breakpoint
     def clear_breakpoint(ip)
@@ -152,7 +152,7 @@ module Rubinius
 
     ##
     # Is there a breakpoint set in this method at +ip+?
-    # 
+    #
     # @raise  [ArgumentError]
     # @param  [InstructionPointer] ip where exactly the breakpoint supposedly is
     # @return [Boolean] is it really there?
@@ -218,7 +218,7 @@ module Rubinius
 
     ##
     # Return the line of source code at +ip+.
-    # 
+    #
     # @param  [InstructionPointer] ip where exactly to place the breakpoint
     # @return [String] the line
     def line_from_ip(ip)
@@ -255,7 +255,7 @@ module Rubinius
     # This method only looks at instructions within the current CompiledMethod;
     # see #locate_line for an alternate method that also searches inside the child
     # CompiledMethods.
-    # 
+    #
     # @return [InstructionPointer] the address of the first instruction
     def first_ip_on_line(line)
       i = 1
@@ -274,7 +274,7 @@ module Rubinius
 
     ##
     # The first line of source code.
-    # 
+    #
     # @return [String]
     def first_line
       @lines.each do |ent|
@@ -286,7 +286,7 @@ module Rubinius
 
     ##
     # Is this actually a block of code?
-    # 
+    #
     # @return [Boolean]
     def is_block?
       @name =~ /__(?:(?:\w|_)+)?block__/
@@ -303,7 +303,7 @@ module Rubinius
     ##
     # Convenience method to return an array of the child CompiledMethods from
     # this CompiledMethod's literals.
-    # 
+    #
     # @return [Tuple]
     def child_methods
       literals.select {|lit| lit.kind_of? CompiledMethod }
@@ -312,7 +312,7 @@ module Rubinius
     ##
     # Convenience method to return an array of the SendSites from
     # this CompiledMethod's literals.
-    # 
+    #
     # @return [Tuple]
     def send_sites
       literals.select {|lit| lit.kind_of? SendSite }
@@ -326,7 +326,7 @@ module Rubinius
     # instruction on the requested line, or nil if no match for the specified line
     # is found.
     # TODO: Update this to work with new lines representation
-    # 
+    #
     # @return [(Rubinius::CompiledMethod, InstructionPointer), NilClass] returns
     #   nil if nothing is found, else an array of size 2 containing the method
     #   the line was found in and the IP pointing there.
@@ -380,7 +380,7 @@ module Rubinius
       ##
       # Add a convenience method to the array containing the decoded instructions
       # to convert an IP address to the index of the corresponding instruction
-      # 
+      #
       # This method is generated upon running decode, which means it will
       # be different after every call to #decode!
       def stream.ip_to_index(ip)
@@ -509,7 +509,7 @@ module Rubinius
 
       ##
       # Calculate the stack usage (pushes or pops) of this instruction.
-      # 
+      #
       # @return [Integer]
       def calculate_stack_usage(code, args_reg=0)
         usage = code
