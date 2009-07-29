@@ -150,6 +150,8 @@ namespace :extension do
     "lib/ext/melbourne/local_state.hpp",
     "lib/ext/melbourne/node_types.hpp",
     "lib/ext/melbourne/node_types.cpp",
+    "lib/ext/melbourne/symbols.hpp",
+    "lib/ext/melbourne/symbols.cpp",
     "lib/ext/melbourne/var_table.hpp",
     "lib/ext/melbourne/var_table.cpp",
     "vm/capi/ruby.h"

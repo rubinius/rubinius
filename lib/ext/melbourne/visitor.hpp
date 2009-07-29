@@ -13,8 +13,8 @@ namespace melbourne {
   NODE *node_newnode(rb_parse_state*, enum node_type, VALUE, VALUE, VALUE);
 };
 
-#endif
-
 #ifdef __cplusplus
 }  /* extern "C" { */
+#endif
+
 #endif

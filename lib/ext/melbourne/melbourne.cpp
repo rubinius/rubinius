@@ -1,5 +1,6 @@
 #include "ruby.h"
 #include "grammar.hpp"
+#include "symbols.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,6 +24,8 @@ VALUE melbourne_file_to_ast(VALUE self, VALUE fname, VALUE start) {
 
 void Init_melbourne(void) {
   VALUE rb_cMelbourne;
+
+  melbourne::init_symbols();
 
 #ifndef RUBINIUS
   VALUE rb_mRubinius = rb_const_get(rb_cObject, rb_intern("Rubinius"));

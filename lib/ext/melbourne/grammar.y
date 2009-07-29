@@ -144,13 +144,15 @@ static NODE *newline_node(rb_parse_state*,NODE*);
 static void fixpos(NODE*,NODE*);
 
 static int value_expr0(NODE*,rb_parse_state*);
-static void void_expr0(NODE *);
+static void void_expr0(NODE*,rb_parse_state*);
 static void void_stmts(NODE*,rb_parse_state*);
 static NODE *remove_begin(NODE*,rb_parse_state*);
 #define  value_expr(node)  value_expr0((node) = \
                               remove_begin(node, (rb_parse_state*)parse_state), \
                               (rb_parse_state*)parse_state)
-#define void_expr(node) void_expr0((node) = remove_begin(node, (rb_parse_state*)parse_state))
+#define void_expr(node) void_expr0((node) = \
+                              remove_begin(node, (rb_parse_state*)parse_state), \
+                              (rb_parse_state*)parse_state)
 
 static NODE *block_append(rb_parse_state*,NODE*,NODE*);
 static NODE *list_append(rb_parse_state*,NODE*,NODE*);
@@ -4693,7 +4695,7 @@ block_append(rb_parse_state *parse_state, NODE *head, NODE *tail)
         break;
     }
 
-    if (RTEST(ruby_verbose)) {
+    if (parse_state->verbose) {
         NODE *nd = end->nd_head;
       newline:
         switch (nd_type(nd)) {
@@ -5232,11 +5234,11 @@ value_expr0(NODE *node, rb_parse_state *parse_state)
 }
 
 static void
-void_expr0(NODE *node)
+void_expr0(NODE *node, rb_parse_state *parse_state)
 {
   const char *useless = NULL;
 
-    if (!RTEST(ruby_verbose)) return;
+    if (!parse_state->verbose) return;
 
   again:
     if (!node) return;
@@ -5329,7 +5331,7 @@ void_expr0(NODE *node)
 static void
 void_stmts(NODE *node, rb_parse_state *parse_state)
 {
-    if (!RTEST(ruby_verbose)) return;
+    if (!parse_state->verbose) return;
     if (!node) return;
     if (nd_type(node) != NODE_BLOCK) return;
 
@@ -5488,7 +5490,7 @@ cond0(NODE *node, rb_parse_state *parse_state)
         if (!e_option_supplied()) {
             int b = literal_node(node->nd_beg);
             int e = literal_node(node->nd_end);
-            if ((b == 1 && e == 1) || (b + e >= 2 && RTEST(ruby_verbose))) {
+            if ((b == 1 && e == 1) || (b + e >= 2 && parse_state->verbose)) {
             }
         }
         break;

@@ -92,6 +92,8 @@ namespace melbourne {
     char *memory_last_addr;
     int memory_size;
 
+    bool verbose;
+
     VALUE error;
     VALUE processor;
 
