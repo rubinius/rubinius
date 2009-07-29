@@ -1,6 +1,5 @@
 ##
 # Ar reads ar(5) formatted files.
-
 class Ar
 
   class Error < RuntimeError; end
@@ -11,7 +10,6 @@ class Ar
 
   ##
   # Removes +files+ from the archive.
-
   def delete(*files)
     require 'fileutils'
     require 'tempfile'
@@ -33,7 +31,8 @@ class Ar
 
   ##
   # Yields each archive item's metadata and data.
-
+  # 
+  # @see Array#each
   def each
     open @path, 'rb' do |io|
       raise Error, "#{@path} is not an archive file" if io.gets != "!<arch>\n"
@@ -67,7 +66,6 @@ class Ar
   ##
   # Exctracts metadata and data for +file+.  Returns an Array containing the
   # name, last modification time, uid, gid, mode and archive item data.
-
   def extract(file)
     find do |name,|
       file == name
@@ -76,15 +74,17 @@ class Ar
 
   ##
   # Lists the files in the archive in order.
-
+  # 
+  # @return [Array<String>] the names of the files in order
   def list
-    map do |name,| name end
+    map {|name,| name }
   end
 
   ##
   # Adds or replaces the file +name+ in the archive.  If the file already
   # exists, it is moved to the end of the archive.
-
+  # 
+  # @return [Ar] chainable
   def replace(name, mtime, uid, gid, mode, data)
     if File.exist? @path then
       delete name if list.include? name
@@ -101,7 +101,8 @@ class Ar
 
   ##
   # Writes the archive to +io+.
-
+  # 
+  # @return [Ar] chainable
   def write(io)
     io.write "!<arch>\n"
 

@@ -16,7 +16,7 @@ end
 class Compiler
   # TODO: This is temporary until the compiler is refactored
   def self.version_number
-    42 # ?
+    42 # No question mark. This is fact.
   end
 
   # TODO: This is temporary until the compiler is refactored
