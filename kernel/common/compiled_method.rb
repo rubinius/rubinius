@@ -1,73 +1,99 @@
-# TODO - Comment!!!
-
 module Rubinius
   class CompiledMethod < Executable
+    
+    ##
     # Any CompiledMethod with this value in it's serial slot
     # is expected to be the default, kernel version
     KernelMethodSerial = 47
-
+    
+    ##
     # Ivars: instance_variables, primitive, serial, name, iseq, stack_size,
     # local_count, required_args, total_args, splat, literals, exceptions,
     # lines, file, compiled, scope
     ##
     # This is runtime hints, added to the method by the VM to indicate how it's
     # being used.
-
-    attr_accessor :hints
+    
+    
+    attr_accessor :hints         # added by the VM to indicat how it's being used.
     attr_accessor :__ivars__
-    attr_accessor :name
-    attr_accessor :iseq
-    attr_accessor :stack_size
-    attr_accessor :local_count
-    attr_accessor :required_args
-    attr_accessor :total_args
-    attr_accessor :splat
-    attr_accessor :literals
-    attr_accessor :exceptions
-    attr_accessor :lines
-    attr_accessor :file
-    attr_accessor :local_names
-    attr_accessor :scope
-
+    attr_accessor :name          # [Symbol]  name of the method
+    attr_accessor :iseq          # [Tuple]   instructions to execute
+    attr_accessor :stack_size    # [Integer] size of stack at compile time
+    attr_accessor :local_count   # [Integer] number of local vars
+    attr_accessor :required_args # [Integer] number of required args
+    attr_accessor :total_args    # [Integer] number of total args
+    attr_accessor :splat         # [Integer] POSITION of the splat arg
+    attr_accessor :literals      # [Tuple]   tuple of the literals
+    attr_accessor :exceptions    # [Tuple]   tuple of the exceptions
+    attr_accessor :lines         # [Tuple]   tuple of the lines where its found
+    attr_accessor :file          # [Symbol]  the file where this comes from
+    attr_accessor :local_names   # [Array<Symbol>] names of the local vars
+    attr_accessor :scope         
+    
+    ##
+    # Compare this method with +other+. Instead of bugging out if +other+
+    # isn't a {CompiledMethod}, this returns +false+ immediately unless
+    # we're comparing two apples, AKA, {CompiledMethod}s. The methods have
+    # to be the exact same in implementation, but their scoping (location)
+    # can differ.
+    # 
+    # For instance:
+    # 
+    # (module A; def m; 5; end; end) == (def m; 5; end)
+    # 
+    # and
+    # 
+    # def monkey; 5; end
+    # 
+    # and
+    # 
+    # module B
+    #   def monkey; 5; end
+    # end
+    # 
+    # would all be the same, despite their access to different ivars and scopes
+    # (which {CompiledMethod}s DO keep track of)
+    # 
+    # @todo Make example (in method documentation) match reality
+    # @param [Rubinius::CompiledMethod] other the other part to compare
+    # @param [Boolean]
     def ==(other)
-      return false unless other.kind_of?(CompiledMethod)
-      @primitive == other.primitive and
-        @name == other.name and
-        @iseq == other.iseq and
-        @stack_size == other.stack_size and
-        @local_count == other.local_count and
-        @required_args == other.required_args and
-        @total_args == other.total_args and
-        @splat == other.splat and
-        @literals == other.literals and
-        @exceptions == other.exceptions and
-        @lines == other.lines and
-        @file == other.file and
-        @local_names == other.local_names
+      return false unless other.kind_of? CompiledMethod
+      @primitive       == other.primitive     and # [Symbol]  the instructions to be run by the VM
+        @name          == other.name          and # [Symbol]  the name of the method
+        @iseq          == other.iseq          and # [Tuple]   the instructions to execute
+        @stack_size    == other.stack_size    and # [Integer] the size of the stack from compile time
+        @local_count   == other.local_count   and # [Integer] the number of local vars
+        @required_args == other.required_args and # [Integer] the number of required args
+        @total_args    == other.total_args    and # [Integer] the number of total args
+        @splat         == other.splat         and # [Integer] the POSITION of the splat arg
+        @literals      == other.literals      and # [Tuple]   a tuple of the literals
+        @exceptions    == other.exceptions    and # [Tuple]   a tuple of the exceptions
+        @lines         == other.lines         and # [Tuple]   a tuple of the lines where its found
+        @file          == other.file          and # [Symbol]  the file where this comes from
+        @local_names   == other.local_names       # [Array<Symbol>] the names of the local vars. used by eval
     end
-
+    
+    ##
+    # Return a human readable interpretation of this method.
+    # 
+    # @return [String]
     def inspect
       "#<#{self.class.name} #{@name} file=#{@file}>"
     end
-
-    def from_string(bc, lcls, req)
-      @iseq = bc
-      @primitive = nil
-      @local_count = lcls
-      @literals = Tuple.new(0)
-      @exceptions = nil
-      @lines = nil
-      @file = nil
-      @name = nil
-      @path = nil
-      @required_args = req
-      return self
-    end
-
+    
+    ##
+    # Make the method change its scope so that it can act as though
+    # it's frome somewhere else. You can pass in a method and +self+
+    # will borrow its scope.
+    # 
+    # @param [#scope] other the other method that has a scope we can borrow
     def inherit_scope(other)
       @scope = other.scope
     end
-
+    
+    ##
     # Invoke method directly.
     #
     # @note The explicit block argument is unnecessary, but
@@ -78,27 +104,45 @@ module Rubinius
       raise PrimitiveFailure, "Unable to call #{@name} on #{recv.inspect}"
     end
 
+    ##
+    # Set a breakpoint here.
+    # 
+    # @raise [ArgumentError]
+    # @param [InstructionPointer] ip where exactly to place the breakpoint
     def set_breakpoint(ip)
       Ruby.primitive :compiledmethod_set_breakpoint
       raise ArgumentError, "Unable to set breakpoint on #{inspect} at invalid bytecode address #{ip}"
     end
-
+    
+    ##
+    # Erase a breakpoint from being here
+    # 
+    # @raise [ArgumentError]
+    # @param [InstructionPointer] ip where exactly to remove the breakpoint
     def clear_breakpoint(ip)
       Ruby.primitive :compiledmethod_clear_breakpoint
       raise ArgumentError, "Unable to clear breakpoint on #{inspect} at invalid bytecode address #{ip}"
     end
-
+    
+    ##
+    # Is there a breakpoint set in this method at +ip+?
+    # 
+    # @raise  [ArgumentError]
+    # @param  [InstructionPointer] ip where exactly the breakpoint supposedly is
+    # @return [Boolean] is it really there?
     def breakpoint?(ip)
       Ruby.primitive :compiledmethod_is_breakpoint
       raise ArgumentError, "Unable to retrieve breakpoint status on #{inspect} at bytecode address #{ip}"
     end
-
+    
+    ##
     # Accessor for a hash of filenames (as per $" / $LOADED_FEATURES) to the
     # script CompiledMethod.
     def self.scripts
       @scripts ||= {}
     end
-
+    
+    ##
     # Helper function for searching for a CM given a file name; applies similar
     # search and path expansion rules as load/require, so that the full path to
     # the file need not be specified.
@@ -145,7 +189,12 @@ module Rubinius
       VM.reset_method_cache :__script__
       MAIN.__script__
     end
-
+    
+    ##
+    # Return the line of source code at +ip+.
+    # 
+    # @param  [InstructionPointer] ip where exactly to place the breakpoint
+    # @return [String] the line
     def line_from_ip(ip)
       return -1 unless @lines
       return 0 if @lines.size < 2
@@ -171,7 +220,8 @@ module Rubinius
 
       @lines.at(@lines.size - 2)
     end
-
+    
+    ##
     # Returns the address (IP) of the first instruction in this CompiledMethod
     # that is on the specified line, or the address of the first instruction on
     # the next code line after the specified line if there are no instructions
@@ -179,7 +229,8 @@ module Rubinius
     # This method only looks at instructions within the current CompiledMethod;
     # see #locate_line for an alternate method that also searches inside the child
     # CompiledMethods.
-
+    # 
+    # @return [InstructionPointer] the address of the first instruction
     def first_ip_on_line(line)
       i = 1
       total = @lines.size
@@ -194,7 +245,11 @@ module Rubinius
 
       return -1
     end
-
+    
+    ##
+    # The first line of source code.
+    # 
+    # @return [String]
     def first_line
       @lines.each do |ent|
         return ent[2] if ent[2] > 0
@@ -202,7 +257,11 @@ module Rubinius
 
       return -1
     end
-
+    
+    ##
+    # Is this actually a block of code?
+    # 
+    # @return [Boolean]
     def is_block?
       @name =~ /__(?:(?:\w|_)+)?block__/
     end
@@ -214,21 +273,26 @@ module Rubinius
       end
       str
     end
-
+    
+    ##
     # Convenience method to return an array of the child CompiledMethods from
     # this CompiledMethod's literals.
-
+    # 
+    # @return [Tuple]
     def child_methods
-      literals.select {|lit| lit.kind_of? CompiledMethod}
+      literals.select {|lit| lit.kind_of? CompiledMethod }
     end
 
+    ##
     # Convenience method to return an array of the SendSites from
     # this CompiledMethod's literals.
-
+    # 
+    # @return [Tuple]
     def send_sites
-      literals.select {|lit| lit.kind_of? SendSite}
+      literals.select {|lit| lit.kind_of? SendSite }
     end
-
+    
+    ##
     # Locates the CompiledMethod and instruction address (IP) of the first
     # instruction on the specified line. This method recursively examines child
     # compiled methods until an exact match for the searched line is found.
@@ -236,7 +300,10 @@ module Rubinius
     # instruction on the requested line, or nil if no match for the specified line
     # is found.
     # TODO: Update this to work with new lines representation
-
+    # 
+    # @return [(Rubinius::CompiledMethod, InstructionPointer), NilClass] returns
+    #   nil if nothing is found, else an array of size 2 containing the method
+    #   the line was found in and the IP pointing there.
     def locate_line(line, cm=self)
       cm.lines.each do |t|
         if (l = t.at(2)) == line
@@ -246,6 +313,7 @@ module Rubinius
           break
         end
       end
+      
       # Didn't find line in this CM, so check if a contained
       # CM encompasses the line searched for
       cm.child_methods.each do |child|
@@ -282,9 +350,13 @@ module Rubinius
         end
         instruct
       end
-
+      
+      ##
       # Add a convenience method to the array containing the decoded instructions
       # to convert an IP address to the index of the corresponding instruction
+      # 
+      # This method is generated upon running decode, which means it will
+      # be different after every call to #decode!
       def stream.ip_to_index(ip)
         if ip < 0 or ip > last.ip
           raise ArgumentError, "IP address is outside valid range of 0 to #{last.ip} (got #{ip})"
@@ -293,9 +365,10 @@ module Rubinius
           return i if ip <= inst.ip
         end
       end
+      
       stream
     end
-
+    
     ##
     # Calculates the minimum stack size required for this method.
     def min_stack_size
@@ -303,7 +376,8 @@ module Rubinius
       sdc = Compiler::StackDepthCalculator.new(@iseq)
       sdc.run
     end
-
+    
+    ##
     # Graphs the control flow of this method
     def graph_control(file, open_now=false)
       require 'compiler/blocks'
@@ -321,7 +395,7 @@ module Rubinius
 
       file
     end
-
+    
     def arity()
       if @required_args == @total_args and
          @splat.nil?
@@ -330,7 +404,8 @@ module Rubinius
         -(@required_args + 1)
       end
     end
-
+    
+    ##
     # Represents virtual machine's CPU instruction.
     # Instructions are organized into instruction
     # sequences known as iSeq, forming body
@@ -372,8 +447,8 @@ module Rubinius
 
       ##
       # Returns the OpCode object
-
-      # Associated OptCode instance.
+      #
+      # Associated OpCode instance.
       def instruction
         @op
       end
@@ -408,7 +483,8 @@ module Rubinius
 
       ##
       # Calculate the stack usage (pushes or pops) of this instruction.
-
+      # 
+      # @return [Integer]
       def calculate_stack_usage(code, args_reg=0)
         usage = code
         if code < 0
@@ -428,7 +504,9 @@ module Rubinius
         end
         return usage
       end
-
+      
+      ##
+      # A nice human readable interpretation of this set of instructions
       def to_s
         str = "%04d:  %-27s" % [@ip, opcode]
         str << @args.map{|a| a.inspect}.join(', ')
