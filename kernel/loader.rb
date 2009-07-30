@@ -204,7 +204,7 @@ module Rubinius
         @debugging = true
       end
       
-      options.on "--no-rbc", "Do not write to an .rbc files" do
+      options.on "--no-rbc", "Do not write to any .rbc files" do
         @eco_friendly = true
       end
 
