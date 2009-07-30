@@ -203,10 +203,6 @@ module Rubinius
         Debugger::CmdLineInterface.new
         @debugging = true
       end
-      
-      options.on "--no-rbc", "Do not write to any .rbc files" do
-        @eco_friendly = true
-      end
 
       options.on "--remote-debug", "Run the program under the control of a remote debugger" do
         require 'debugger/debug_server'
@@ -317,7 +313,7 @@ module Rubinius
       if File.exist?(@script)
         $0 = @script
         Compiler::Utils.debug_script! if @debugging
-        Compiler::Utils.load_from_extension @script, :write_rbc => !(@eco_friendly == true)
+        Compiler::Utils.load_from_extension @script
       else
         if @script.suffix?(".rb")
           puts "Unable to find '#{@script}'"

@@ -1,1 +1,0 @@
-puts "required_file.rb has been loaded!"
