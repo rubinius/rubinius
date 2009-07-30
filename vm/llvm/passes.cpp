@@ -1,3 +1,5 @@
+#ifdef ENABLE_LLVM
+
 #include "llvm/passes.hpp"
 
 #include <llvm/Attributes.h>
@@ -155,3 +157,5 @@ namespace rubinius {
     return new OverflowConstantFolder();
   }
 }
+
+#endif
