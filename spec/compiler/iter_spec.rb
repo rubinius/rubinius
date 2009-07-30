@@ -1299,17 +1299,11 @@ describe "An Iter node" do
       in_method :x do |d|
         d.push :self
 
-        d.block_description do |e|
-          e.push_modifiers
-          e.new_label.set!
+        d.in_block_send :bar, :none do |e|
           e.push_local_depth 1, 0
           e.push_block
           e.send_super :x, 1
-          e.pop_modifiers
-          e.ret
         end
-
-        d.send_with_block :bar, 0, true
       end
     end
   end

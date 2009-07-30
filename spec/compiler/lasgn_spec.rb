@@ -279,4 +279,332 @@ describe "An Lasgn node" do
       g.push :true
     end
   end
+
+  relates <<-ruby do
+      def f
+        a = 1
+      end
+    ruby
+
+    parse do
+      [:defn, :f, [:args], [:scope, [:block, [:lasgn, :a, [:lit, 1]]]]]
+    end
+
+    compile do |g|
+      in_method :f do |d|
+        d.push 1
+        d.set_local 0
+      end
+    end
+  end
+
+  relates <<-ruby do
+      def f(a)
+        a = 1
+      end
+    ruby
+
+    parse do
+      [:defn, :f, [:args, :a], [:scope, [:block, [:lasgn, :a, [:lit, 1]]]]]
+    end
+
+    compile do |g|
+      in_method :f do |d|
+        d.push 1
+        d.set_local 0
+      end
+    end
+  end
+
+  relates <<-ruby do
+      def f
+        b { a = 1 }
+      end
+    ruby
+
+    parse do
+      [:defn,
+       :f,
+       [:args],
+       [:scope,
+        [:block,
+         [:iter, [:call, nil, :b, [:arglist]], nil, [:lasgn, :a, [:lit, 1]]]]]]
+    end
+
+    compile do |g|
+      in_method :f do |d|
+        d.push :self
+
+        d.in_block_send :b, :none do |e|
+          e.push 1
+          e.set_local 0
+        end
+      end
+    end
+  end
+
+  relates <<-ruby do
+      def f(a)
+        b { a = 2 }
+      end
+    ruby
+
+    parse do
+      [:defn,
+       :f,
+       [:args, :a],
+       [:scope,
+        [:block,
+         [:iter, [:call, nil, :b, [:arglist]], nil, [:lasgn, :a, [:lit, 2]]]]]]
+    end
+
+    compile do |g|
+      in_method :f do |d|
+        d.push :self
+
+        d.in_block_send :b, :none do |e|
+          e.push 2
+          e.set_local_depth 1, 0
+        end
+      end
+    end
+  end
+
+  relates <<-ruby do
+      def f
+        a = 1
+        b { a = 2 }
+      end
+    ruby
+
+    parse do
+      [:defn,
+       :f,
+       [:args],
+       [:scope,
+        [:block,
+         [:lasgn, :a, [:lit, 1]],
+         [:iter, [:call, nil, :b, [:arglist]], nil, [:lasgn, :a, [:lit, 2]]]]]]
+    end
+
+    compile do |g|
+      in_method :f do |d|
+        d.push 1
+        d.set_local 0
+        d.pop
+
+        d.push :self
+
+        d.in_block_send :b, :none do |e|
+          e.push 2
+          e.set_local_depth 1, 0
+        end
+      end
+    end
+  end
+
+  relates <<-ruby do
+      def f
+        a
+        b { a = 1 }
+      end
+    ruby
+
+    parse do
+      [:defn,
+       :f,
+       [:args],
+       [:scope,
+        [:block,
+         [:call, nil, :a, [:arglist]],
+         [:iter, [:call, nil, :b, [:arglist]], nil, [:lasgn, :a, [:lit, 1]]]]]]
+    end
+
+    compile do |g|
+      in_method :f do |d|
+        d.push :self
+        d.send :a, 0, true
+        d.pop
+
+        d.push :self
+
+        d.in_block_send :b, :none do |e|
+          e.push 1
+          e.set_local 0
+        end
+      end
+    end
+  end
+
+  relates <<-ruby do
+      def f
+        b { a = 1 }
+        a
+      end
+    ruby
+
+    parse do
+      [:defn,
+       :f,
+       [:args],
+       [:scope,
+        [:block,
+         [:iter, [:call, nil, :b, [:arglist]], nil, [:lasgn, :a, [:lit, 1]]],
+         [:call, nil, :a, [:arglist]]]]]
+    end
+
+    compile do |g|
+      in_method :f do |d|
+        d.push :self
+
+        d.in_block_send :b, :none do |e|
+          e.push 1
+          e.set_local 0
+        end
+
+        d.pop
+        d.push :self
+        d.send :a, 0, true
+      end
+    end
+  end
+
+  relates <<-ruby do
+      def f
+        a = 1
+        b { a = 2 }
+        a
+      end
+    ruby
+
+    parse do
+      [:defn,
+       :f,
+       [:args],
+       [:scope,
+        [:block,
+         [:lasgn, :a, [:lit, 1]],
+         [:iter, [:call, nil, :b, [:arglist]], nil, [:lasgn, :a, [:lit, 2]]],
+         [:lvar, :a]]]]
+    end
+
+    compile do |g|
+      in_method :f do |d|
+        d.push 1
+        d.set_local 0
+        d.pop
+
+        d.push :self
+
+        d.in_block_send :b, :none do |e|
+          e.push 2
+          e.set_local_depth 1, 0
+        end
+
+        d.pop
+        d.push_local 0
+      end
+    end
+  end
+
+  relates <<-ruby do
+      class F
+        a = 1
+      end
+    ruby
+
+    parse do
+      [:class, :F, nil, [:scope, [:lasgn, :a, [:lit, 1]]]]
+    end
+
+    compile do |g|
+      in_class :F do |d|
+        d.push 1
+        d.set_local 0
+      end
+    end
+  end
+
+  relates <<-ruby do
+      class F
+        a = 1
+        def f
+          a = 1
+        end
+      end
+    ruby
+
+    parse do
+      [:class,
+       :F,
+       nil,
+       [:scope,
+        [:block,
+         [:lasgn, :a, [:lit, 1]],
+         [:defn, :f, [:args], [:scope, [:block, [:lasgn, :a, [:lit, 1]]]]]]]]
+    end
+
+    compile do |g|
+      in_class :F do |d|
+        d.push 1
+        d.set_local 0
+        d.pop
+
+        d.in_method :f do |e|
+          e.push 1
+          e.set_local 0
+        end
+      end
+    end
+  end
+
+  relates <<-ruby do
+      module M
+        a = 1
+      end
+    ruby
+
+    parse do
+      [:module, :M, [:scope, [:lasgn, :a, [:lit, 1]]]]
+    end
+
+    compile do |g|
+      in_module :M do |d|
+        d.push 1
+        d.set_local 0
+      end
+    end
+  end
+
+  relates <<-ruby do
+      module M
+        a = 1
+        def f
+          a = 1
+        end
+      end
+    ruby
+
+    parse do
+      [:module,
+       :M,
+       [:scope,
+        [:block,
+         [:lasgn, :a, [:lit, 1]],
+         [:defn, :f, [:args], [:scope, [:block, [:lasgn, :a, [:lit, 1]]]]]]]]
+    end
+
+    compile do |g|
+      in_module :M do |d|
+        d.push 1
+        d.set_local 0
+        d.pop
+
+        d.in_method :f do |e|
+          e.push 1
+          e.set_local 0
+        end
+      end
+    end
+  end
 end
