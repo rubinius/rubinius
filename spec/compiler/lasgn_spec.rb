@@ -1,6 +1,17 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "An Lasgn node" do
+  relates "a = 1" do
+    parse do
+      [:lasgn, :a, [:lit, 1]]
+    end
+
+    compile do |g|
+      g.push 1
+      g.set_local 0
+    end
+  end
+
   relates "a = b, c, *d" do
     parse do
       [:lasgn,
