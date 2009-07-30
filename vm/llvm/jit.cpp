@@ -25,6 +25,7 @@
 using namespace llvm;
 
 #include "llvm/jit_workhorse.hpp"
+#include "llvm/passes.hpp"
 #include "instructions_util.hpp"
 
 template <typename T>
@@ -299,6 +300,7 @@ namespace rubinius {
       passes->add(createDeadStoreEliminationPass());
       passes->add(createAggressiveDCEPass());
       // passes->add(createVerifierPass());
+      passes->add(create_overflow_folding_pass());
     }
   }
 
@@ -353,7 +355,16 @@ namespace rubinius {
       passes_->add(createDeadStoreEliminationPass());
       // passes_->add(createVerifierPass());
       passes_->add(createScalarReplAggregatesPass());
+
+      passes_->add(create_overflow_folding_pass());
+      passes_->add(createCFGSimplificationPass());
+      passes_->add(createInstructionCombiningPass());
+      passes_->add(createScalarReplAggregatesPass());
+      passes_->add(createDeadStoreEliminationPass());
+      passes_->add(createCFGSimplificationPass());
     }
+
+    passes_->doInitialization();
 
     object_ = ptr_type("Object");
 
