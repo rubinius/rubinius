@@ -7,22 +7,11 @@
 
 #include "llvm/jit_visit.hpp"
 
-/*
-*/
-
-/*
-template <typename T>
-static Value* constant(T obj, const Type* obj_type, BasicBlock* block) {
-  return CastInst::Create(
-      Instruction::IntToPtr,
-      ConstantInt::get(Type::Int32Ty, (intptr_t)obj),
-      obj_type, "cast_to_obj", block);
-}
-*/
-
 namespace rubinius {
-  LLVMWorkHorse::LLVMWorkHorse(LLVMState* ls)
+  LLVMWorkHorse::LLVMWorkHorse(LLVMState* ls, VMMethod* vmm)
     : ls_(ls)
+    , vmm_(vmm)
+    , use_full_scope_(false)
   {
     llvm::Module* mod = ls->module();
     cf_type = mod->getTypeByName("struct.rubinius::CallFrame");
@@ -81,8 +70,11 @@ namespace rubinius {
     b().CreateStore(method, cm_gep);
 
     // flags
+    int flags = 0;
+    if(!use_full_scope_) flags |= CallFrame::cClosedScope;
+
     b().CreateStore(
-        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, flags),
         get_field(call_frame, offset::cf_flags));
 
     // ip
@@ -158,6 +150,8 @@ namespace rubinius {
 
     int block_flags = CallFrame::cCustomStaticScope |
       CallFrame::cMultipleScopes;
+
+    if(!use_full_scope_) block_flags |= CallFrame::cClosedScope;
 
     Value* flags = b().CreateOr(inv_flags,
         ConstantInt::get(Type::Int32Ty, block_flags), "flags");
@@ -251,9 +245,9 @@ namespace rubinius {
     b().SetInsertPoint(cont);
   }
 
-  void LLVMWorkHorse::nil_locals(VMMethod* vmm) {
+  void LLVMWorkHorse::nil_locals() {
     Value* nil = constant(Qnil, obj_type);
-    int size = vmm->number_of_locals;
+    int size = vmm_->number_of_locals;
 
     if(size == 0) return;
     // Stack size 5 or less, do 5 stores in a row rather than
@@ -304,7 +298,7 @@ namespace rubinius {
     b().SetInsertPoint(cont);
   }
 
-  void LLVMWorkHorse::setup_scope(VMMethod* vmm) {
+  void LLVMWorkHorse::setup_scope() {
     Value* heap_null = ConstantExpr::getNullValue(PointerType::getUnqual(vars_type));
     Value* heap_pos = get_field(vars, offset::vars_on_heap);
 
@@ -324,10 +318,10 @@ namespace rubinius {
     b().CreateStore(Constant::getNullValue(ls_->ptr_type("VariableScope")),
         get_field(vars, offset::vars_parent));
 
-    nil_locals(vmm);
+    nil_locals();
   }
 
-  void LLVMWorkHorse::setup_inline_scope(Value* self, Value* mod, VMMethod* vmm) {
+  void LLVMWorkHorse::setup_inline_scope(Value* self, Value* mod) {
     Value* heap_null = ConstantExpr::getNullValue(PointerType::getUnqual(vars_type));
     Value* heap_pos = get_field(vars, offset::vars_on_heap);
     b().CreateStore(heap_null, heap_pos);
@@ -341,10 +335,10 @@ namespace rubinius {
     b().CreateStore(Constant::getNullValue(ls_->ptr_type("VariableScope")),
         get_field(vars, offset::vars_parent));
 
-    nil_locals(vmm);
+    nil_locals();
   }
 
-  void LLVMWorkHorse::setup_block_scope(VMMethod* vmm) {
+  void LLVMWorkHorse::setup_block_scope() {
     b().CreateStore(ConstantExpr::getNullValue(PointerType::getUnqual(vars_type)),
         get_field(vars, offset::vars_on_heap));
     Value* self = b().CreateLoad(
@@ -371,10 +365,10 @@ namespace rubinius {
 
     b().CreateStore(be_scope, get_field(vars, offset::vars_parent));
 
-    nil_locals(vmm);
+    nil_locals();
   }
 
-  void LLVMWorkHorse::check_arity(VMMethod* vmm) {
+  void LLVMWorkHorse::check_arity() {
     Value* vm_obj = vm;
     Value* dis_obj = msg;
     Value* arg_obj = args;
@@ -392,11 +386,11 @@ namespace rubinius {
     // Check arguments
     //
     // if there is a splat..
-    if(vmm->splat_position >= 0) {
-      if(vmm->required_args > 0) {
+    if(vmm_->splat_position >= 0) {
+      if(vmm_->required_args > 0) {
         // Make sure we got at least the required args
         Value* cmp = b().CreateICmpSLT(total,
-            ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp");
+            ConstantInt::get(Type::Int32Ty, vmm_->required_args), "arg_cmp");
         b().CreateCondBr(cmp, arg_error, cont);
       } else {
         // Only splat or optionals, no handling!
@@ -404,18 +398,18 @@ namespace rubinius {
       }
 
       // No splat, a precise number of args
-    } else if(vmm->required_args == vmm->total_args) {
+    } else if(vmm_->required_args == vmm_->total_args) {
       // Make sure we got the exact number of arguments
       Value* cmp = b().CreateICmpNE(total,
-          ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp");
+          ConstantInt::get(Type::Int32Ty, vmm_->required_args), "arg_cmp");
       b().CreateCondBr(cmp, arg_error, cont);
 
       // No splat, with optionals
     } else {
       Value* c1 = b().CreateICmpSLT(total,
-          ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp");
+          ConstantInt::get(Type::Int32Ty, vmm_->required_args), "arg_cmp");
       Value* c2 = b().CreateICmpSGT(total,
-          ConstantInt::get(Type::Int32Ty, vmm->total_args), "arg_cmp");
+          ConstantInt::get(Type::Int32Ty, vmm_->total_args), "arg_cmp");
 
       Value* cmp = b().CreateOr(c1, c2, "arg_combine");
       b().CreateCondBr(cmp, arg_error, cont);
@@ -437,7 +431,7 @@ namespace rubinius {
       prev,
       dis_obj,
       arg_obj,
-      ConstantInt::get(Type::Int32Ty, vmm->required_args)
+      ConstantInt::get(Type::Int32Ty, vmm_->required_args)
     };
 
     Value* val = sig.call("rbx_arg_error", call_args, 5, "ret", b());
@@ -447,11 +441,11 @@ namespace rubinius {
     b().SetInsertPoint(cont);
   }
 
-  void LLVMWorkHorse::import_args(VMMethod* vmm) {
+  void LLVMWorkHorse::import_args() {
     Value* vm_obj = vm;
     Value* arg_obj = args;
 
-    setup_scope(vmm);
+    setup_scope();
 
     // Import the arguments
     Value* offset = b().CreateConstGEP2_32(args, 0, offset::args_ary, "arg_ary_pos");
@@ -459,8 +453,8 @@ namespace rubinius {
     Value* arg_ary = b().CreateLoad(offset, "arg_ary");
 
     // If there are a precise number of args, easy.
-    if(vmm->required_args == vmm->total_args) {
-      for(int i = 0; i < vmm->required_args; i++) {
+    if(vmm_->required_args == vmm_->total_args) {
+      for(int i = 0; i < vmm_->required_args; i++) {
         Value* int_pos = ConstantInt::get(Type::Int32Ty, i);
 
         Value* arg_val_offset = b().CreateConstGEP1_32(arg_ary, i, "arg_val_offset");
@@ -526,7 +520,7 @@ namespace rubinius {
     }
 
     // Setup the splat.
-    if(vmm->splat_position >= 0) {
+    if(vmm_->splat_position >= 0) {
       Signature sig(ls_, "Object");
       sig << "VM";
       sig << "Arguments";
@@ -535,7 +529,7 @@ namespace rubinius {
       Value* call_args[] = {
         vm_obj,
         arg_obj,
-        ConstantInt::get(Type::Int32Ty, vmm->total_args)
+        ConstantInt::get(Type::Int32Ty, vmm_->total_args)
       };
 
       Function* func = sig.function("rbx_construct_splat");
@@ -550,7 +544,7 @@ namespace rubinius {
       Value* idx3[] = {
         ConstantInt::get(Type::Int32Ty, 0),
         ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
-        ConstantInt::get(Type::Int32Ty, vmm->splat_position)
+        ConstantInt::get(Type::Int32Ty, vmm_->splat_position)
       };
 
       Value* pos = b().CreateGEP(vars, idx3, idx3+3, "splat_pos");
@@ -558,7 +552,7 @@ namespace rubinius {
     }
   }
 
-  void LLVMWorkHorse::setup_block(VMMethod* vmm) {
+  void LLVMWorkHorse::setup_block() {
     Signature sig(ls_, "Object");
     sig << "VM";
     sig << "CallFrame";
@@ -578,11 +572,15 @@ namespace rubinius {
     BasicBlock* block = BasicBlock::Create("entry", func);
     b().SetInsertPoint(block);
 
+    BasicBlock* body = BasicBlock::Create("block_body", func);
+
+    pass_one(body);
+
     valid_flag = b().CreateAlloca(Type::Int1Ty, 0, "valid_flag");
 
     Value* cfstk = b().CreateAlloca(obj_type,
         ConstantInt::get(Type::Int32Ty,
-          (sizeof(CallFrame) / sizeof(Object*)) + vmm->stack_size),
+          (sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
         "cfstk");
 
     call_frame = b().CreateBitCast(
@@ -593,26 +591,24 @@ namespace rubinius {
 
     Value* var_mem = b().CreateAlloca(obj_type,
         ConstantInt::get(Type::Int32Ty,
-          (sizeof(StackVariables) / sizeof(Object*)) + vmm->number_of_locals),
+          (sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
         "var_mem");
 
     vars = b().CreateBitCast(
         var_mem,
         PointerType::getUnqual(stack_vars_type), "vars");
 
-    initialize_block_frame(vmm->stack_size);
+    initialize_block_frame(vmm_->stack_size);
 
-    nil_stack(vmm->stack_size, constant(Qnil, obj_type));
+    nil_stack(vmm_->stack_size, constant(Qnil, obj_type));
 
-    setup_block_scope(vmm);
-
-    BasicBlock* body = BasicBlock::Create("block_body", func);
+    setup_block_scope();
     b().CreateBr(body);
 
     b().SetInsertPoint(body);
   }
 
-  void LLVMWorkHorse::setup(VMMethod* vmm) {
+  void LLVMWorkHorse::setup() {
     Signature sig(ls_, "Object");
     sig << "VM";
     sig << "CallFrame";
@@ -630,19 +626,23 @@ namespace rubinius {
     BasicBlock* block = BasicBlock::Create("entry", func);
     builder_.SetInsertPoint(block);
 
+    BasicBlock* body = BasicBlock::Create("method_body", func);
+
+    pass_one(body);
+
     valid_flag = b().CreateAlloca(Type::Int1Ty, 0, "valid_flag");
 
     Value* cfstk = b().CreateAlloca(obj_type,
         ConstantInt::get(Type::Int32Ty,
-          (sizeof(CallFrame) / sizeof(Object*)) + vmm->stack_size),
+          (sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
         "cfstk");
 
     Value* var_mem = b().CreateAlloca(obj_type,
         ConstantInt::get(Type::Int32Ty,
-          (sizeof(StackVariables) / sizeof(Object*)) + vmm->number_of_locals),
+          (sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
         "var_mem");
 
-    check_arity(vmm);
+    check_arity();
 
     call_frame = b().CreateBitCast(
         cfstk,
@@ -654,19 +654,17 @@ namespace rubinius {
         var_mem,
         PointerType::getUnqual(stack_vars_type), "vars");
 
-    initialize_call_frame(vmm->stack_size);
+    initialize_call_frame(vmm_->stack_size);
 
-    nil_stack(vmm->stack_size, constant(Qnil, obj_type));
+    nil_stack(vmm_->stack_size, constant(Qnil, obj_type));
 
-    import_args(vmm);
-
-    BasicBlock* body = BasicBlock::Create("method_body", func);
+    import_args();
 
     b().CreateBr(body);
     b().SetInsertPoint(body);
   }
 
-  BasicBlock* LLVMWorkHorse::setup_inline(VMMethod* vmm, Function* current,
+  BasicBlock* LLVMWorkHorse::setup_inline(Function* current,
       Value* vm_i, Value* previous,
       Value* self, Value* mod, std::vector<Value*>& stack_args)
   {
@@ -678,11 +676,14 @@ namespace rubinius {
     BasicBlock* entry = BasicBlock::Create("inline_entry", func);
     b().SetInsertPoint(entry);
 
+    BasicBlock* body = BasicBlock::Create("method_body", func);
+    pass_one(body);
+
     BasicBlock* alloca_block = &current->getEntryBlock();
 
     Value* cfstk = new AllocaInst(obj_type,
         ConstantInt::get(Type::Int32Ty,
-          (sizeof(CallFrame) / sizeof(Object*)) + vmm->stack_size),
+          (sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
         "cfstk", alloca_block->getTerminator());
 
     call_frame = b().CreateBitCast(
@@ -693,7 +694,7 @@ namespace rubinius {
 
     Value* var_mem = new AllocaInst(obj_type,
         ConstantInt::get(Type::Int32Ty,
-          (sizeof(StackVariables) / sizeof(Object*)) + vmm->number_of_locals),
+          (sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
         "var_mem", alloca_block->getTerminator());
 
     vars = b().CreateBitCast(
@@ -710,7 +711,7 @@ namespace rubinius {
         get_field(call_frame, offset::cf_msg));
 
     // cm
-    Value* obj_addr = constant(vmm->original.object_address(),
+    Value* obj_addr = constant(vmm_->original.object_address(),
         PointerType::getUnqual(ls_->ptr_type("CompiledMethod")));
 
     method = b().CreateLoad(obj_addr, "cm");
@@ -718,7 +719,10 @@ namespace rubinius {
     b().CreateStore(method, cm_gep);
 
     // flags
-    b().CreateStore(ConstantInt::get(Type::Int32Ty, CallFrame::cInlineFrame),
+    int flags = CallFrame::cInlineFrame;
+    if(!use_full_scope_) flags |= CallFrame::cClosedScope;
+
+    b().CreateStore(ConstantInt::get(Type::Int32Ty, flags),
         get_field(call_frame, offset::cf_flags));
 
     // ip
@@ -728,17 +732,17 @@ namespace rubinius {
     // scope
     b().CreateStore(vars, get_field(call_frame, offset::cf_scope));
 
-    nil_stack(vmm->stack_size, constant(Qnil, obj_type));
+    nil_stack(vmm_->stack_size, constant(Qnil, obj_type));
 
-    setup_inline_scope(self, mod, vmm);
+    setup_inline_scope(self, mod);
 
     // We know the right arguments are present, so we just need to put them
     // in the right place.
     //
     // We don't support splat in an inlined method!
-    assert(vmm->splat_position < 0);
+    assert(vmm_->splat_position < 0);
 
-    assert(stack_args.size() <= (size_t)vmm->total_args);
+    assert(stack_args.size() <= (size_t)vmm_->total_args);
 
     for(size_t i = 0; i < stack_args.size(); i++) {
       Value* int_pos = ConstantInt::get(Type::Int32Ty, i);
@@ -754,14 +758,13 @@ namespace rubinius {
       b().CreateStore(stack_args[i], pos);
     }
 
-    BasicBlock* body = BasicBlock::Create("method_body", func);
     b().CreateBr(body);
     b().SetInsertPoint(body);
 
     return entry;
   }
 
-  class BlockFinder : public VisitInstructions<BlockFinder> {
+  class PassOne : public VisitInstructions<PassOne> {
     BlockMap& map_;
     Function* function_;
     opcode current_ip_;
@@ -771,10 +774,16 @@ namespace rubinius {
     bool loops_;
     int sp_;
     JITBasicBlock* current_block_;
+    bool calls_evalish_;
+
+    Symbol* s_eval_;
+    Symbol* s_binding_;
+    Symbol* s_class_eval_;
+    Symbol* s_module_eval_;
 
   public:
 
-    BlockFinder(BlockMap& map, Function* func, BasicBlock* start)
+    PassOne(LLVMState* ls, BlockMap& map, Function* func, BasicBlock* start)
       : map_(map)
       , function_(func)
       , current_ip_(0)
@@ -783,12 +792,22 @@ namespace rubinius {
       , number_of_sends_(0)
       , loops_(false)
       , sp_(-1)
+      , calls_evalish_(false)
     {
       JITBasicBlock& jbb = map_[0];
       jbb.reachable = true;
       jbb.block = start;
 
       current_block_ = &jbb;
+
+      s_eval_ = ls->symbol("eval");
+      s_binding_ = ls->symbol("binding");
+      s_class_eval_ = ls->symbol("class_eval");
+      s_module_eval_ = ls->symbol("module_eval");
+    }
+
+    bool calls_evalish() {
+      return calls_evalish_;
     }
 
     bool creates_blocks() {
@@ -950,7 +969,18 @@ namespace rubinius {
       creates_blocks_ = true;
     }
 
+    void check_for_eval(opcode which) {
+      InlineCache* ic = reinterpret_cast<InlineCache*>(which);
+      if(ic->name == s_eval_ ||
+          ic->name == s_binding_ ||
+          ic->name == s_class_eval_ ||
+          ic->name == s_module_eval_) {
+        calls_evalish_ = true;
+      }
+    }
+
     void visit_send_stack(opcode which, opcode args) {
+      check_for_eval(which);
       number_of_sends_++;
     }
 
@@ -963,6 +993,7 @@ namespace rubinius {
     }
 
     void visit_send_stack_with_splat(opcode which, opcode args) {
+      check_for_eval(which);
       number_of_sends_++;
     }
 
@@ -975,8 +1006,22 @@ namespace rubinius {
     }
   };
 
+  void LLVMWorkHorse::pass_one(BasicBlock* body) {
+    // Pass 1, detect BasicBlock boundaries
+    PassOne finder(ls_, block_map_, func, body);
+    finder.drive(vmm_);
+
+    if(finder.creates_blocks() || finder.calls_evalish()) {
+      use_full_scope_ = true;
+    }
+
+    number_of_sends_ = finder.number_of_sends();
+    loops_ = finder.loops_p();
+  }
+
   bool LLVMWorkHorse::generate_body(JITMethodInfo& info) {
-    JITVisit visitor(ls_, info, ls_->module(), func,
+    JITVisit visitor(ls_, info, block_map_,
+        ls_->module(), func,
         b().GetInsertBlock(), stk, call_frame,
         method_entry_, args,
         vars, info.is_block, info.inline_return);
@@ -991,15 +1036,9 @@ namespace rubinius {
 
     visitor.set_valid_flag(valid_flag);
 
-    // Pass 1, detect BasicBlock boundaries
-    BlockFinder finder(visitor.block_map(), func, b().GetInsertBlock());
-    finder.drive(info.vmm);
+    if(use_full_scope_) visitor.use_full_scope();
 
-    // DISABLED: This still has problems.
-    // visitor.set_creates_blocks(finder.creates_blocks());
-
-    if(!info.inline_return &&
-          (finder.number_of_sends() > 0 || finder.loops_p())) {
+    if(!info.inline_return && (number_of_sends_ > 0 || loops_)) {
       // Check for interrupts at the top
       visitor.visit_check_interrupts();
     }

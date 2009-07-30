@@ -15,6 +15,7 @@ namespace rubinius {
   class LLVMWorkHorse {
   public:
     LLVMState* ls_;
+    VMMethod* vmm_;
     const Type* cf_type;
     const Type* vars_type;
     const Type* stack_vars_type;
@@ -45,11 +46,20 @@ namespace rubinius {
 
     llvm::IRBuilder<> builder_;
 
+    Value* call_frame_flags;
+    bool use_full_scope_;
+    bool number_of_sends_;
+    bool loops_;
+
+    BlockMap block_map_;
+
   public:
 
     llvm::IRBuilder<>& b() { return builder_; }
 
-    LLVMWorkHorse(LLVMState* ls);
+    LLVMWorkHorse(LLVMState* ls, VMMethod* vmm);
+
+    void pass_one(BasicBlock* body);
 
     void return_value(Value* ret, BasicBlock* cont = 0);
 
@@ -59,23 +69,23 @@ namespace rubinius {
 
     void nil_stack(int size, Value* nil);
 
-    void nil_locals(VMMethod* vmm);
+    void nil_locals();
 
-    void setup_scope(VMMethod* vmm);
+    void setup_scope();
 
-    void setup_inline_scope(Value* self, Value* mod, VMMethod* vmm);
+    void setup_inline_scope(Value* self, Value* mod);
 
-    void setup_block_scope(VMMethod* vmm);
+    void setup_block_scope();
 
-    void check_arity(VMMethod* vmm);
+    void check_arity();
 
-    void import_args(VMMethod* vmm);
+    void import_args();
 
-    void setup_block(VMMethod* vmm);
+    void setup_block();
 
-    void setup(VMMethod* vmm);
+    void setup();
 
-    BasicBlock* setup_inline(VMMethod* vmm, Function* current, Value* vm_i, Value* previous,
+    BasicBlock* setup_inline(Function* current, Value* vm_i, Value* previous,
         Value* self, Value* mod, std::vector<Value*>& args);
 
     bool generate_body(JITMethodInfo& info);
@@ -85,8 +95,8 @@ namespace rubinius {
     template <typename T>
     Value* constant(T obj, const Type* obj_type) {
       return b().CreateIntToPtr(
-      ConstantInt::get(Type::Int32Ty, (intptr_t)obj),
-      obj_type, "constant");
+        ConstantInt::get(Type::Int32Ty, (intptr_t)obj),
+        obj_type, "constant");
     }
 
   };

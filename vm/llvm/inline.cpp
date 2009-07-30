@@ -338,7 +338,7 @@ namespace rubinius {
   }
 
   void Inliner::inline_generic_method(Class* klass, VMMethod* vmm) {
-    LLVMWorkHorse work(ops_.state());
+    LLVMWorkHorse work(ops_.state(), vmm);
     work.valid_flag = ops_.valid_flag();
 
     Value* self = ops_.stack_back(count_);
@@ -351,7 +351,7 @@ namespace rubinius {
       args.push_back(ops_.stack_back(i));
     }
 
-    BasicBlock* entry = work.setup_inline(vmm, ops_.function(), ops_.vm(), ops_.call_frame(),
+    BasicBlock* entry = work.setup_inline(ops_.function(), ops_.vm(), ops_.call_frame(),
         self, ops_.constant(Qnil, ops_.state()->ptr_type("Module")), args);
 
     BasicBlock* on_return = ops_.new_block("inline_return");

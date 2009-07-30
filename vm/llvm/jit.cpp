@@ -362,6 +362,7 @@ namespace rubinius {
       passes_->add(createScalarReplAggregatesPass());
       passes_->add(createDeadStoreEliminationPass());
       passes_->add(createCFGSimplificationPass());
+      passes_->add(createInstructionCombiningPass());
     }
 
     passes_->doInitialization();
@@ -464,12 +465,13 @@ namespace rubinius {
                 << "#"
                 << ls->symbol_cstr(vmm->original->name()) << "\n";
     }
-    LLVMWorkHorse work(ls);
+
+    LLVMWorkHorse work(ls, vmm);
 
     if(is_block) {
-      work.setup_block(vmm);
+      work.setup_block();
     } else {
-      work.setup(vmm);
+      work.setup();
     }
 
     llvm::Function* func = work.func;

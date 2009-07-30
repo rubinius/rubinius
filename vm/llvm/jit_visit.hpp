@@ -61,7 +61,7 @@ namespace rubinius {
 
   class JITVisit : public VisitInstructions<JITVisit>, public JITOperations {
     JITFunctions f;
-    BlockMap block_map_;
+    BlockMap& block_map_;
 
     bool allow_private_;
     opcode call_flags_;
@@ -82,7 +82,7 @@ namespace rubinius {
     Value* ip_pos_;
 
     Value* vars_;
-    bool creates_blocks_;
+    bool use_full_scope_;
 
     bool is_block_;
     BasicBlock* inline_return_;
@@ -126,13 +126,14 @@ namespace rubinius {
       set_block(old);
     }
 
-    JITVisit(LLVMState* ls, JITMethodInfo& info,
+    JITVisit(LLVMState* ls, JITMethodInfo& info, BlockMap& bm,
              llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* start,
              llvm::Value* stack, llvm::Value* call_frame,
              llvm::Value* me, llvm::Value* args,
              llvm::Value* vars, bool is_block, BasicBlock* inline_return = 0)
       : JITOperations(ls, info, mod, stack, call_frame, start, func)
       , f(ls)
+      , block_map_(bm)
       , allow_private_(false)
       , call_flags_(0)
       , rbx_simple_send_(0)
@@ -140,7 +141,7 @@ namespace rubinius {
       , method_entry_(me)
       , args_(args)
       , vars_(vars)
-      , creates_blocks_(true)
+      , use_full_scope_(false)
       , is_block_(is_block)
       , inline_return_(inline_return)
       , return_value_(0)
@@ -171,7 +172,7 @@ namespace rubinius {
 
       set_block(bail_out_fast_);
       if(!inline_return_) {
-        flush_scope_to_heap(vars_);
+        if(use_full_scope_) flush_scope_to_heap(vars_);
       }
 
       if(inline_return_) {
@@ -184,7 +185,7 @@ namespace rubinius {
       set_block(ret_raise_val);
       Value* crv = f.clear_raise_value.call(&vm_, 1, "crv", b());
       if(!inline_return_) {
-        flush_scope_to_heap(vars_);
+        if(use_full_scope_) flush_scope_to_heap(vars_);
       }
 
       if(inline_return_) {
@@ -209,8 +210,8 @@ namespace rubinius {
       return return_value_;
     }
 
-    void set_creates_blocks(bool val) {
-      creates_blocks_ = val;
+    void use_full_scope() {
+      use_full_scope_ = true;
     }
 
     void set_called_args(int args) {
@@ -416,7 +417,7 @@ namespace rubinius {
         return_value_->addIncoming(stack_top(), current_block());
         b().CreateBr(inline_return_);
       } else {
-        flush_scope_to_heap(vars_);
+        if(use_full_scope_) flush_scope_to_heap(vars_);
         b().CreateRet(stack_top());
       }
     }
