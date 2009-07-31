@@ -11,6 +11,7 @@
 #include <llvm/ADT/APInt.h>
 #include <llvm/Constants.h>
 #include <llvm/Module.h>
+#include <llvm/Intrinsics.h>
 
 #include <iostream>
 
@@ -18,23 +19,11 @@ namespace {
 
   using namespace llvm;
 
-  namespace Attribute = llvm::Attribute;
-  using llvm::BasicBlock;
-  using llvm::CallInst;
-  using llvm::Function;
-  using llvm::FunctionPass;
-  using llvm::InvokeInst;
-  using llvm::dyn_cast;
-  using llvm::isa;
-
   class OverflowConstantFolder : public FunctionPass {
-    Function* sadd_;
-
   public:
     static char ID;
     OverflowConstantFolder()
       : FunctionPass(&ID)
-      , sadd_(0)
     {}
 
     bool try_to_fold_addition(CallInst* call) {
@@ -47,9 +36,9 @@ namespace {
 
       if(ConstantInt* lc = dyn_cast<ConstantInt>(lhs)) {
         if(ConstantInt* rc = dyn_cast<ConstantInt>(rhs)) {
-          APInt zero(31, 0, true);
           const APInt& lval = lc->getValue();
           const APInt& rval = rc->getValue();
+          APInt zero(lval.getBitWidth(), 0, true);
           APInt res = lval + rval;
 
           ConstantInt* overflow = ConstantInt::getFalse();
@@ -90,24 +79,6 @@ namespace {
       return changed;
     }
 
-    virtual bool doInitialization(Module& m) {
-      std::vector<const Type*> types;
-      types.push_back(IntegerType::get(31));
-      types.push_back(IntegerType::get(31));
-
-      std::vector<const Type*> struct_types;
-      struct_types.push_back(IntegerType::get(31));
-      struct_types.push_back(Type::Int1Ty);
-
-      StructType* st = StructType::get(struct_types);
-
-      FunctionType* ft = FunctionType::get(st, types, false);
-      sadd_ = cast<Function>(
-          m.getOrInsertFunction("llvm.sadd.with.overflow.i31", ft));
-
-      return true;
-    }
-
     virtual bool runOnFunction(Function& f) {
       bool changed = false;
 
@@ -125,7 +96,7 @@ namespace {
           // This may miss inlining indirect calls that become
           // direct after inlining something else.
           Function *called_function = call->getCalledFunction();
-          if(called_function == sadd_) {
+          if(called_function->getIntrinsicID() == Intrinsic::sadd_with_overflow) {
             if(try_to_fold_addition(call)) {
               if(call->use_empty()) {
                 to_remove.push_back(call);
