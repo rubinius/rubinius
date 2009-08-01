@@ -169,7 +169,25 @@ module Rubinius
   end
 
   def self.version
-    "rubinius #{RBX_VERSION} (ruby #{RUBY_VERSION}) (#{BUILDREV[0..8]} #{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
+    extra = ""
+
+    if Rubinius::RUBY_CONFIG['jit.enabled']
+      extra << "J"
+    end
+
+    if Rubinius::RUBY_CONFIG['jit.inline.generic']
+      extra << "I"
+    end
+
+    str = "rubinius #{RBX_VERSION} (#{RUBY_VERSION} #{BUILDREV[0..7]} #{RUBY_RELEASE_DATE}"
+
+    unless extra.empty?
+      str << " #{extra}"
+    end
+
+    str << ") [#{RUBY_PLATFORM}]"
+
+    return str
   end
 
 end
