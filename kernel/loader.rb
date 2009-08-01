@@ -181,6 +181,10 @@ module Rubinius
         @script = file ? file : script
       end
 
+      options.on "--no-rbc", "Don't create .rbc files" do
+        @no_rbc = true
+      end
+
       options.on "-v", "Display the version and set $VERBOSE to true" do
         @run_irb = false
         $VERBOSE = true
@@ -313,7 +317,7 @@ module Rubinius
       if File.exist?(@script)
         $0 = @script
         Compiler::Utils.debug_script! if @debugging
-        Compiler::Utils.load_from_extension @script
+        Compiler::Utils.load_from_extension @script, :no_rbc => @no_rbc
       else
         if @script.suffix?(".rb")
           puts "Unable to find '#{@script}'"

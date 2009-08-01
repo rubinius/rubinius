@@ -8,6 +8,7 @@ class MSpecScript
     'spec/frozen/language',
     'spec/core',
     'spec/compiler',
+    'spec/command_line',
     'spec/capi',
     'spec/frozen/library',
     'spec/library',

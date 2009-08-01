@@ -201,7 +201,7 @@ class Compiler
           end
 
           # Store it for the future
-          Rubinius::CompiledFile.dump cm, rbc_path if rbc_path
+          Rubinius::CompiledFile.dump cm, rbc_path if rbc_path && !options[:no_rbc]
         else
           if $DEBUG_LOADING
             STDERR.puts "[Loading #{rbc_path}]"
@@ -220,7 +220,7 @@ class Compiler
                 raise LoadError, "Unable to compile: #{rb_path}" unless cm
               end
 
-              Rubinius::CompiledFile.dump cm, rbc_path
+              Rubinius::CompiledFile.dump cm, rbc_path unless options[:no_rbc]
             end
           end
         end
@@ -298,7 +298,7 @@ class Compiler
     nil
   end
 
-  def self.load_from_extension(path)
+  def self.load_from_extension(path, options = {})
     path = StringValue(path)
     # Remap all library extensions behind the scenes, just like MRI
     path.gsub!(/\.(so|bundle|dll|dylib)$/, "#{Rubinius::LIBSUFFIX}")
@@ -320,7 +320,7 @@ class Compiler
       end
     end
 
-    Compiler::Utils.single_load '', rb, rbc, ext, false, {}
+    Compiler::Utils.single_load '', rb, rbc, ext, false, options
   end
 
   def self.split_path(path)

@@ -42,6 +42,8 @@ class MSpecScript
     '^spec/capi/struct'
   ]
 
+  set :command_line, [ 'spec/command_line' ]
+
   set :compiler, [ 'spec/compiler' ]
 
   # An ordered list of the directories containing specs to run
@@ -74,6 +76,7 @@ class MSpecScript
     'spec/frozen/language',
     'spec/core',
     'spec/compiler',
+    'spec/command_line',
     'spec/capi',
     'spec/frozen/library/digest',
 
