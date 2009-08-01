@@ -4,9 +4,6 @@
 # Use a different matcher while converting the parser/compiler
 class CompileAsMatcher
   def matches?(actual)
-    node = actual.to_ast
-    generator = TestGenerator.new
-
     compiler = Compiler.new TestGenerator
     # TODO: Fix the compiler to have a proper interface for
     # enabling plugins. All compiler specs should be written
@@ -15,6 +12,9 @@ class CompileAsMatcher
     compiler.instance_variable_get(:@plugins).clear
     @plugins.each { |plugin| compiler.activate plugin }
 
+    node = Compiler::Node::Snippit.from compiler, actual.to_ast
+
+    generator = TestGenerator.new
     node.bytecode generator
 
     @actual = generator
@@ -23,7 +23,78 @@ class CompileAsMatcher
 end
 
 class Compiler
+  # Temporary
+  class LocalVar
+    attr_reader :slot
+
+    def initialize(slot)
+      @slot = slot
+    end
+  end
+
+  class LocalReference
+    def initialize(var)
+      @slot = var.slot
+    end
+
+    def get_bytecode(g)
+      g.push_local @slot
+    end
+
+    def set_bytecode(g)
+      g.set_local @slot
+    end
+  end
+
+  class NestedLocalReference
+    attr_accessor :depth
+
+    def initialize(var)
+      @slot = var.slot
+      @depth = 0
+    end
+
+    def get_bytecode(g)
+      g.push_local_depth @depth, @slot
+    end
+
+    def set_bytecode(g)
+      g.set_local_depth @depth, @slot
+    end
+  end
+
+  class EvalLocalReference
+    def get_bytcode(g)
+    end
+
+    def set_bytecode(g)
+    end
+  end
+
   class Node
+    attr_accessor :parent
+
+    def find_parent(klass, ceiling=nil)
+      return unless @parent
+
+      if @parent.is_a? klass
+        @parent unless ceiling and @parent.is_a? ceiling
+      else
+        @parent.find_parent klass
+      end
+    end
+
+    def children
+      []
+    end
+
+    def visit(arg=true, &block)
+      children.each do |child|
+        next unless ch_arg = block.call(arg, child)
+        child.visit(ch_arg, &block)
+      end
+    end
+
     class Alias < Node
       def self.from(p, to, from)
         node = Alias.new p.compiler
@@ -145,6 +216,63 @@ class Compiler
         node = Class.new p.compiler
         node.args name, nil, sup, body
         node
+      end
+
+      def bytecode(g)
+      end
+    end
+
+    class ClosedScope < Node
+      def children
+        [@body]
+      end
+
+      def variables
+        @variables ||= {}
+      end
+
+      def allocate_slot
+        variables.size
+      end
+
+      # A nested scope is looking up a local variable. If the variable exists
+      # in our local variables hash, return a nested reference to it.
+      def search_local(name)
+        if variable = variables[name]
+          NestedLocalReference.new variable
+        end
+      end
+
+      # There is no place above us that may contain a local variable. Set the
+      # local in our local variables hash if not set. Set the local variable
+      # node attribute to a reference to the local variable.
+      def assign_local_reference(var)
+        unless variable = variables[var.name]
+          variable = LocalVar.new allocate_slot
+          variables[var.name] = variable
+        end
+
+        var.variable = LocalReference.new variable
+      end
+
+      def map_locals
+        visit self do |scope, node|
+          case node
+          when ClosedScope
+            nil
+          when LocalVariable
+            scope.assign_local_reference node
+          when Iter
+            scope.nest_scope node
+            scope = node
+          else
+            scope
+          end
+        end
+      end
+
+      def nest_scope(scope)
+        scope.parent = self
       end
     end
 
@@ -360,9 +488,56 @@ class Compiler
     end
 
     class Iter < Node
+      attr_accessor :parent
+
       def self.from(p, iter, args, body)
         node = For.new p.compiler
         node
+      end
+
+      def variables
+        @variables ||= {}
+      end
+
+      def allocate_slot
+        variables.size
+      end
+
+      def nest_scope(scope)
+        scepe.parent = self
+      end
+
+      # A nested scope is looking up a local variable. If the variable exists
+      # in our local variables hash, return a nested reference to it. If it
+      # exists in an enclosing scope, increment the depth of the reference
+      # when it passes through this nested scope (i.e. the depth of a
+      # reference is a function of the nested scopes it passes through from
+      # the scope it is defined in to the scope it is used in).
+      def search_local(name)
+        if variable = variables[name]
+          NestedLocalReference.new variable
+        elsif reference = @parent.search_local(name)
+          reference.depth += 1
+          reference
+        end
+      end
+
+      # If the local variable exists in this scope, set the local variable
+      # node attribute to a reference to the local variable. If the variable
+      # exists in an enclosing scope, set the local variable node attribute to
+      # a nested reference to the local variable. Otherwise, create a local
+      # variable in this scope and set the local variable node attribute.
+      def assign_local_reference(var)
+        if variable = variables[var.name]
+          var.variable = LocalReference.new variable
+        elsif reference = @parent.search_local(var.name)
+          reference.depth += 1
+          var.variable = reference
+        else
+          variable = LocalVar.new allocate_slot
+          variables[var.name] = variable
+          var.variable = LocalReference.new variable
+        end
       end
     end
 
@@ -398,10 +573,52 @@ class Compiler
     end
 
     class LocalAssignment < LocalVariable
+      attr_accessor :depth
+
       def self.from(p, name, expr)
         node = LocalAssignment.new p.compiler
-        node.args name, expr
+        node.name = name
+        node.value = expr
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        if @value
+          @value.bytecode(g)
+        end
+
+        @variable.set_bytecode(g)
+      end
+    end
+
+    class SLocalAssignment < LocalAssignment
+      def self.from(p, name, expr)
+        node = SLocalAssignment.new p.compiler
+        node.name = name
+        node.value = expr
+        node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        if @value
+          @value.bytecode(g)
+          g.cast_array
+          g.send :+, 1
+        end
+
+        @variable.set_bytecode(g)
+      end
+    end
+
+    class LocalVariable < Node
+      def find_local(allocate=true)
+        iter = find_parent Iter, ClosedScope
+        scope = find_parent ClosedScope
+        @variable, @depth = scope.find_local @name, iter, allocate
       end
     end
 
@@ -445,6 +662,15 @@ class Compiler
     end
 
     class Module < ClosedScope
+      def self.from(p, name, body)
+        node = Module.new p.compiler
+        node.name = name
+        node.body = body
+        node
+      end
+
+      def bytecode(g)
+      end
     end
 
     class Negate < Node
@@ -622,6 +848,28 @@ class Compiler
     class Self < Node
       def self.from(p)
         Self.new p.compiler
+      end
+    end
+
+    class Snippit < ClosedScope
+      def self.from(compiler, body)
+        node = Snippit.new compiler
+        node.args body
+        node
+      end
+
+      def args(body)
+        @body = expand body
+      end
+
+      def bytecode(g)
+        map_locals
+        @body.bytecode(g)
+
+        #set(:scope, self) do
+        #  prelude(nil, g)
+        #  @body.bytecode(g)
+        #end
       end
     end
 

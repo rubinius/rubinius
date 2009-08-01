@@ -242,7 +242,11 @@ module Rubinius
     end
 
     def process_lasgn(line, name, expr)
-      AST::LocalAssignment.from self, name, expr
+      if expr.kind_of? AST::SValue
+        AST::SLocalAssignment.from self, name, expr
+      else
+        AST::LocalAssignment.from self, name, expr
+      end
     end
 
     def process_lit(line, sym)
