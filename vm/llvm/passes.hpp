@@ -5,6 +5,7 @@
 
 namespace rubinius {
   llvm::FunctionPass* create_overflow_folding_pass();
+  llvm::FunctionPass* create_rubinius_alias_analysis();
 }
 
 #endif

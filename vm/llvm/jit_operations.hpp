@@ -15,6 +15,7 @@
 #include <llvm/BasicBlock.h>
 #include <llvm/Function.h>
 #include <llvm/Support/IRBuilder.h>
+#include <llvm/CallingConv.h>
 
 using namespace llvm;
 

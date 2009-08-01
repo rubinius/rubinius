@@ -20,6 +20,8 @@
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/CallingConv.h>
 #include <llvm/Support/CFG.h>
+#include <llvm/Analysis/Passes.h>
+
 #include <sstream>
 
 using namespace llvm;
@@ -350,7 +352,8 @@ namespace rubinius {
       // Simplify the control flow graph (deleting unreachable blocks, etc).
       passes_->add(createCFGSimplificationPass());
 
-      // passes_->add(createGVNPass());
+      passes_->add(create_rubinius_alias_analysis());
+      passes_->add(createGVNPass());
       // passes_->add(createCFGSimplificationPass());
       passes_->add(createDeadStoreEliminationPass());
       // passes_->add(createVerifierPass());

@@ -12,7 +12,8 @@
 #include <llvm/Constants.h>
 #include <llvm/Module.h>
 #include <llvm/Intrinsics.h>
-
+#include <llvm/Analysis/SparsePropagation.h>
+#include <llvm/Analysis/AliasAnalysis.h>
 #include <iostream>
 
 namespace {
@@ -96,6 +97,8 @@ namespace {
           // This may miss inlining indirect calls that become
           // direct after inlining something else.
           Function *called_function = call->getCalledFunction();
+          if(!called_function) continue;
+
           if(called_function->getIntrinsicID() == Intrinsic::sadd_with_overflow) {
             if(try_to_fold_addition(call)) {
               if(call->use_empty()) {
@@ -121,11 +124,104 @@ namespace {
   // http://llvm.org/docs/WritingAnLLVMPass.html#basiccode.
   char OverflowConstantFolder::ID = 0;
 
+  class RubiniusAliasAnalysis : public FunctionPass, public AliasAnalysis {
+    const Type* class_type_;
+
+  public:
+    static char ID;
+    RubiniusAliasAnalysis()
+      : FunctionPass(&ID)
+      , class_type_(0)
+    {}
+
+    virtual void getAnalysisUsage(llvm::AnalysisUsage& usage) const {
+      AliasAnalysis::getAnalysisUsage(usage);
+      usage.setPreservesAll();
+    }
+
+    virtual bool doInitialization(Module& mod) {
+      class_type_ = PointerType::getUnqual(
+          mod.getTypeByName("struct.rubinius::Class"));
+
+      return false;
+    }
+
+    virtual bool runOnFunction(Function& func) {
+      AliasAnalysis::InitializeAliasAnalysis(this);
+      return false;
+    }
+
+    virtual
+    AliasAnalysis::AliasResult alias(const Value *V1, unsigned V1Size,
+                                     const Value *V2, unsigned V2Size)
+    {
+      return AliasAnalysis::alias(V1, V1Size, V2, V2Size);
+    }
+
+
+    virtual bool pointsToConstantMemory(const Value* val) {
+      if(const GetElementPtrInst* gep = dyn_cast<GetElementPtrInst>(val)) {
+        if(gep->getPointerOperand()->getType() == class_type_) {
+          // Indicate that the class_id field is constant
+          if(gep->getNumIndices() == 2
+              && gep->getOperand(1) == ConstantInt::get(Type::Int32Ty, 0)
+              && gep->getOperand(2) == ConstantInt::get(Type::Int32Ty, 3)) {
+            return true;
+          }
+
+        // Indicate that pointers to classes are constant
+        } else if(gep->getType() == PointerType::getUnqual(class_type_)) {
+          return true;
+        }
+      }
+      return AliasAnalysis::pointsToConstantMemory(val);
+    }
+  };
+
+  char RubiniusAliasAnalysis::ID = 0;
+
+  static llvm::RegisterPass<RubiniusAliasAnalysis>
+  U("rbx-aa", "Rubinius-specific Alias Analysis", false, true);
+
+  static llvm::RegisterAnalysisGroup<AliasAnalysis> V(U);
+
+  /*
+  class TypeGuardRemoval : public FunctionPass {
+  public:
+    static char ID;
+    TypeGuardRemoval()
+      : FunctionPass(&ID)
+    {}
+
+    class Driver : public AbstractLatticeFunction {
+      virtual LatticeVal ComputeInstructionState(
+                           Instructions &I, SparseSolver& SS)
+      {
+        if(ICmpInst* ic = dyn_cast<ICmpInst>(&I)) {
+          if(LoadInst* lc = dyn_cast<LoadInst>(ic->getOperand(0))) {
+            if(GetElementPtrInst* gepc =
+                dyn_cast<GetElementPtrInst>(lc->getPointerOperand())) {
+          }
+        }
+      }
+    };
+
+    virtual bool runOnFunction(Function& f) { return true; }
+
+  };
+
+  char TypeGuardRemoval::ID = 0;
+  */
+
 }  // anonymous namespace
 
 namespace rubinius {
   llvm::FunctionPass* create_overflow_folding_pass() {
     return new OverflowConstantFolder();
+  }
+
+  llvm::FunctionPass* create_rubinius_alias_analysis() {
+    return new RubiniusAliasAnalysis();
   }
 }
 
