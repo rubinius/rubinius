@@ -123,13 +123,15 @@ namespace rubinius {
 
     immix_.collect(data);
 
-    mark_sweep_.after_marked();
+    data.global_cache()->prune_unmarked();
 
     immix_.clean_weakrefs();
     prune_handles(data.handles(), false);
     prune_handles(data.cached_handles(), false);
 
-    data.global_cache()->prune_unmarked();
+    // Have to do this after all things that check for mark bits is
+    // done, as it free()s objects, invalidating mark bits.
+    mark_sweep_.after_marked();
 
     immix_.unmark_all(data);
 
