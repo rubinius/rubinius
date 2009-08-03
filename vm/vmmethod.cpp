@@ -547,17 +547,12 @@ namespace rubinius {
       frame->cm =       cm;
       frame->scope =    scope;
 
-
 #ifdef RBX_PROFILER
       if(unlikely(state->shared.profiling())) {
         profiler::MethodEntry method(state, msg, args, cm);
-        return (*vmm->run)(state, vmm, frame, args);
-      } else {
-        return (*vmm->run)(state, vmm, frame, args);
       }
-#else
-      return (*vmm->run)(state, vmm, frame, args);
 #endif
+      return (*vmm->run)(state, vmm, frame, args);
     }
 
   /** @todo Is this redundant after having gone through set_argument_handler? --rue */
