@@ -68,6 +68,7 @@ namespace rubinius {
 
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
+    Object* new_object_typed_enduring(Class* cls, size_t bytes, object_type type);
 
     template <class T>
       T* new_object_bytes(Class* cls, size_t& bytes) {
@@ -89,6 +90,12 @@ namespace rubinius {
       T* new_object_variable(Class* cls, size_t fields, size_t& bytes) {
         bytes = sizeof(T) + (fields * sizeof(Object*));
         return reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
+      }
+
+    template <class T>
+      T* new_object_enduring(Class* cls) {
+        return reinterpret_cast<T*>(
+            new_object_typed_enduring(cls, sizeof(T), T::type));
       }
 
     TypeInfo* find_type_info(Object* obj);
@@ -114,9 +121,7 @@ namespace rubinius {
     }
 
     // This only has one use! Don't use it!
-    Object* allocate_object_raw(size_t bytes) {
-      return allocate_object(bytes);
-    }
+    Object* allocate_object_raw(size_t bytes);
 
   private:
     Object* allocate_object(size_t bytes);

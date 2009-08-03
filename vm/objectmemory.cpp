@@ -322,6 +322,43 @@ namespace rubinius {
     return obj;
   }
 
+  /* ONLY use to create Class, the first object. */
+  Object* ObjectMemory::allocate_object_raw(size_t bytes) {
+    Object* obj = mark_sweep_.allocate(bytes, &collect_mature_now);
+    obj->clear_fields(bytes);
+    return obj;
+  }
+
+  Object* ObjectMemory::new_object_typed_enduring(Class* cls, size_t bytes, object_type type) {
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->mature_object_types[type]++;
+#endif
+
+    Object* obj = mark_sweep_.allocate(bytes, &collect_mature_now);
+    if(collect_mature_now) {
+      state->interrupts.check = true;
+    }
+
+#ifdef ENABLE_OBJECT_WATCH
+    if(watched_p(obj)) {
+      std::cout << "detected " << obj << " during enduring allocation\n";
+    }
+#endif
+
+    obj->clear_fields(bytes);
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->large_objects++;
+#endif
+
+    set_class(obj, cls);
+
+    obj->obj_type_ = type;
+    obj->set_requires_cleanup(type_info[type]->instances_need_cleanup);
+
+    return obj;
+  }
+
   TypeInfo* ObjectMemory::find_type_info(Object* obj) {
     return type_info[obj->type_id()];
   }

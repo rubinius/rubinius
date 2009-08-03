@@ -15,7 +15,7 @@
 namespace rubinius {
 
   Module* Module::create(STATE) {
-    Module* mod = state->new_object<Module>(G(module));
+    Module* mod = state->om->new_object_enduring<Module>(G(module));
 
     mod->name(state, (Symbol*)Qnil);
     mod->superclass(state, (Module*)Qnil);
@@ -121,7 +121,7 @@ namespace rubinius {
 
   IncludedModule* IncludedModule::create(STATE) {
     IncludedModule* imod;
-    imod = state->new_object<IncludedModule>(G(included_module));
+    imod = state->om->new_object_enduring<IncludedModule>(G(included_module));
 
     imod->name(state, state->symbol("<included module>"));
     imod->superclass(state, (Module*)Qnil);
