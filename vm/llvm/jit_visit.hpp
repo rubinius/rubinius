@@ -100,6 +100,7 @@ namespace rubinius {
     Value* out_args_array_;
 
     int called_args_;
+    int sends_done_;
 
   public:
 
@@ -146,6 +147,7 @@ namespace rubinius {
       , inline_return_(inline_return)
       , return_value_(0)
       , called_args_(-1)
+      , sends_done_(0)
     {
 
       if(inline_return) {
@@ -216,6 +218,10 @@ namespace rubinius {
 
     void set_called_args(int args) {
       called_args_ = args;
+    }
+
+    int sends_done() {
+      return sends_done_;
     }
 
     Value* scope() {
@@ -534,6 +540,7 @@ namespace rubinius {
     }
 
     Value* simple_send(Symbol* name, int args, bool priv=false) {
+      sends_done_++;
       Function* func;
       if(priv) {
         func = rbx_simple_send_private();
@@ -578,6 +585,7 @@ namespace rubinius {
     }
 
     Value* inline_cache_send(int args, InlineCache* cache) {
+      sends_done_++;
       Value* cache_const = b().CreateIntToPtr(
           ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(cache)),
           ptr_type("InlineCache"), "cast_to_ptr");
@@ -605,6 +613,7 @@ namespace rubinius {
     }
 
     Value* block_send(InlineCache* cache, int args, bool priv=false) {
+      sends_done_++;
       Value* cache_const = b().CreateIntToPtr(
           ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(cache)),
           ptr_type("InlineCache"), "cast_to_ptr");
@@ -632,6 +641,7 @@ namespace rubinius {
     }
 
     Value* splat_send(Symbol* name, int args, bool priv=false) {
+      sends_done_++;
       Signature sig(ls_, ObjType);
 
       sig << VMTy;

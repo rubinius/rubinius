@@ -53,6 +53,9 @@ namespace rubinius {
 
     BlockMap block_map_;
 
+    BasicBlock* import_args_;
+    BasicBlock* method_body_;
+
   public:
 
     llvm::IRBuilder<>& b() { return builder_; }

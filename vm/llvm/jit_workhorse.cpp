@@ -12,6 +12,8 @@ namespace rubinius {
     : ls_(ls)
     , vmm_(vmm)
     , use_full_scope_(false)
+    , import_args_(0)
+    , method_body_(0)
   {
     llvm::Module* mod = ls->module();
     cf_type = mod->getTypeByName("struct.rubinius::CallFrame");
@@ -627,6 +629,7 @@ namespace rubinius {
     builder_.SetInsertPoint(block);
 
     BasicBlock* body = BasicBlock::Create("method_body", func);
+    method_body_ = body;
 
     pass_one(body);
 
@@ -659,6 +662,8 @@ namespace rubinius {
     nil_stack(vmm_->stack_size, constant(Qnil, obj_type));
 
     import_args();
+
+    import_args_ = b().GetInsertBlock();
 
     b().CreateBr(body);
     b().SetInsertPoint(body);
@@ -1038,11 +1043,6 @@ namespace rubinius {
 
     if(use_full_scope_) visitor.use_full_scope();
 
-    if(!info.inline_return && (number_of_sends_ > 0 || loops_)) {
-      // Check for interrupts at the top
-      visitor.visit_check_interrupts();
-    }
-
     // std::cout << info.vmm << " start: " << info.vmm->total << "\n";
 
     // Fix up the JITBasicBlock's so that the ranges don't overlap
@@ -1085,6 +1085,33 @@ namespace rubinius {
       }
     } catch(JITVisit::Unsupported &e) {
       return false;
+    }
+
+    // See if we should check interrupts now
+    if(method_body_ && (visitor.sends_done() > 2 || loops_)) {
+      BasicBlock* cur = b().GetInsertBlock();
+
+      // Remove the branch to method_body
+      import_args_->back().eraseFromParent();
+
+      b().SetInsertPoint(import_args_);
+      Signature sig(ls_, obj_type);
+      sig << "VM";
+      sig << "CallFrame";
+
+      Value* call_args[] = { vm, call_frame };
+
+      BasicBlock* ret_null = BasicBlock::Create("ret_null", func);
+
+      Value* ret = sig.call("rbx_check_interrupts", call_args, 2, "ci", b());
+      b().CreateCondBr(
+          b().CreateICmpEQ(ret, Constant::getNullValue(obj_type)),
+          ret_null, method_body_);
+
+      b().SetInsertPoint(ret_null);
+      b().CreateRet(Constant::getNullValue(obj_type));
+
+      b().SetInsertPoint(cur);
     }
 
     info.return_value = visitor.return_value();
