@@ -134,8 +134,16 @@ class Compiler
     class ArrayLiteral < Node
       def self.from(p, array)
         node = ArrayLiteral.new p.compiler
-        node.args array
+        node.body = array
         node
+      end
+
+      def bytecode(g)
+        @body.each do |x|
+          x.bytecode(g)
+        end
+
+        g.make_array @body.size
       end
     end
 
@@ -276,6 +284,22 @@ class Compiler
       end
     end
 
+    class ConcatArgs < DynamicArguments
+      def self.from(p, array, rest)
+        node = ConcatArgs.new p.compiler
+        node.array = array
+        node.rest = rest
+        node
+      end
+
+      def bytecode(g)
+        @array.bytecode(g)
+        @rest.bytecode(g)
+        g.cast_array
+        g.send :+, 1
+      end
+    end
+
     class ConstAccess < Node
       def self.from(p, outer, name)
         node = ConstAccess.new p.compiler
@@ -405,6 +429,12 @@ class Compiler
         node.string = str
         node.body = array
         node
+      end
+    end
+
+    class EmptyArray < Node
+      def self.from(p)
+        EmptyArray.new p.compiler
       end
     end
 
@@ -587,27 +617,6 @@ class Compiler
 
         if @value
           @value.bytecode(g)
-        end
-
-        @variable.set_bytecode(g)
-      end
-    end
-
-    class SLocalAssignment < LocalAssignment
-      def self.from(p, name, expr)
-        node = SLocalAssignment.new p.compiler
-        node.name = name
-        node.value = expr
-        node
-      end
-
-      def bytecode(g)
-        pos(g)
-
-        if @value
-          @value.bytecode(g)
-          g.cast_array
-          g.send :+, 1
         end
 
         @variable.set_bytecode(g)
@@ -874,10 +883,19 @@ class Compiler
     end
 
     class Splat < DynamicArguments
+      attr_accessor :value
+
       def self.from(p, expr)
         node = Splat.new p.compiler
-        node.args
+        node.value = expr
         node
+      end
+
+      def bytecode(g)
+        g.make_array 0
+        @value.bytecode(g)
+        g.cast_array
+        g.send :+, 1
       end
     end
 

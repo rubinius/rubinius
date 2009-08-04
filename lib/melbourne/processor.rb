@@ -51,8 +51,8 @@ module Rubinius
       AST::Arguments.from self, args, defaults, splat
     end
 
-    def process_argscat(line, normal, splat)
-      AST::ArgList.from self, normal, splat
+    def process_argscat(line, array, rest)
+      AST::ConcatArgs.from self, array, rest
     end
 
     def process_argspush(line, splat, value)
@@ -242,11 +242,7 @@ module Rubinius
     end
 
     def process_lasgn(line, name, expr)
-      if expr.kind_of? AST::SValue
-        AST::SLocalAssignment.from self, name, expr
-      else
-        AST::LocalAssignment.from self, name, expr
-      end
+      AST::LocalAssignment.from self, name, expr
     end
 
     def process_lit(line, sym)
@@ -415,7 +411,7 @@ module Rubinius
     end
 
     def process_zarray(line)
-      AST::ArrayLiteral.from self, []
+      AST::EmptyArray.from self
     end
 
     def process_zsuper(line)

@@ -443,9 +443,9 @@ namespace melbourne {
       break;
     }
     case NODE_ARGSCAT: {
-      VALUE head = process_parse_tree(parse_state, ptp, node->nd_head, locals);
-      VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
-      tree = rb_funcall(ptp, rb_sArgsCat, 3, line, head, body);
+      VALUE array = process_parse_tree(parse_state, ptp, node->nd_head, locals);
+      VALUE rest = process_parse_tree(parse_state, ptp, node->nd_body, locals);
+      tree = rb_funcall(ptp, rb_sArgsCat, 3, line, array, rest);
       break;
     }
     case NODE_ARGSPUSH: {
