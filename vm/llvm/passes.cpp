@@ -126,6 +126,8 @@ namespace {
 
   class RubiniusAliasAnalysis : public FunctionPass, public AliasAnalysis {
     const Type* class_type_;
+    const Type* object_type_;
+    const Type* args_type_;
 
   public:
     static char ID;
@@ -143,6 +145,12 @@ namespace {
       class_type_ = PointerType::getUnqual(
           mod.getTypeByName("struct.rubinius::Class"));
 
+      object_type_ = PointerType::getUnqual(
+          mod.getTypeByName("struct.rubinius::Object"));
+
+      args_type_ = PointerType::getUnqual(
+          mod.getTypeByName("struct.rubinius::Arguments"));
+
       return false;
     }
 
@@ -155,6 +163,18 @@ namespace {
     AliasAnalysis::AliasResult alias(const Value *V1, unsigned V1Size,
                                      const Value *V2, unsigned V2Size)
     {
+      // Indicate that tagged fixnums can't alias anything.
+      if(const IntToPtrInst* ip = dyn_cast<IntToPtrInst>(V1)) {
+        if(ip->getType() == object_type_) {
+          if(const ConstantInt* ci = dyn_cast<ConstantInt>(ip->getOperand(0))) {
+            const APInt& cv = ci->getValue();
+            APInt one(cv.getBitWidth(), 1);
+
+            if(cv.And(one) == one) return NoAlias;
+          }
+        }
+      }
+
       return AliasAnalysis::alias(V1, V1Size, V2, V2Size);
     }
 
@@ -171,6 +191,10 @@ namespace {
 
         // Indicate that pointers to classes are constant
         } else if(gep->getType() == PointerType::getUnqual(class_type_)) {
+          return true;
+
+        // Indicate that all fields within Arguments are constant
+        } else if(gep->getPointerOperand()->getType() == args_type_) {
           return true;
         }
       }
