@@ -351,6 +351,8 @@ namespace rubinius {
       args.push_back(ops_.stack_back(i));
     }
 
+    vmm->call_count /= 2;
+
     BasicBlock* entry = work.setup_inline(ops_.function(), ops_.vm(), ops_.call_frame(),
         self, ops_.constant(Qnil, ops_.state()->ptr_type("Module")), args);
 
