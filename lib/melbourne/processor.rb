@@ -7,7 +7,7 @@ module Rubinius
 
     def initialize(name)
       @name = name
-      @compiler = Compiler.new Compiler::Generator
+      @compiler = Compiler.new TestGenerator
     end
 
     def syntax_error
@@ -80,7 +80,7 @@ module Rubinius
     end
 
     def process_block_arg(line, name)
-      AST::BlockAsArgument.from self, name
+      AST::BlockArgument.from self, name
     end
 
     def process_block_pass(line, var, call)

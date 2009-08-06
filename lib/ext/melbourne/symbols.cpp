@@ -199,7 +199,7 @@ namespace melbourne {
     rb_sStr       = rb_intern("process_str");
     rb_sSuper     = rb_intern("process_super");
     rb_sSValue    = rb_intern("process_svalue");
-    rb_sToAry     = rb_intern("process_toary");
+    rb_sToAry     = rb_intern("process_to_ary");
     rb_sTrue      = rb_intern("process_true");
     rb_sUndef     = rb_intern("process_undef");
     rb_sUntil     = rb_intern("process_until");

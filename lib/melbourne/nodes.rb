@@ -2,6 +2,8 @@
 # Node classes while getting Melbourne running.
 
 # Use a different matcher while converting the parser/compiler
+require 'spec/custom/helpers/generator'
+
 class CompileAsMatcher
   def matches?(actual)
     compiler = Compiler.new TestGenerator
@@ -91,7 +93,7 @@ class Compiler
     def visit(arg=true, &block)
       children.each do |child|
         next unless ch_arg = block.call(arg, child)
-        child.visit(ch_arg, &block)
+        child.visit(ch_arg, &block) if child
       end
     end
 
@@ -121,13 +123,57 @@ class Compiler
     end
 
     class Arguments < Node
-      attr_accessor :arg, :defs, :spl
+      attr_accessor :names, :required, :optional, :defaults, :splat
+      attr_reader :block_arg
 
       def self.from(p, args, defaults, splat)
         node = Arguments.new p.compiler
-        node.arg = args
-        node.defs = defaults
-        node.spl = splat
+
+        if defaults
+          defaults = DefaultArguments.from p, defaults
+          node.defaults = defaults
+          node.optional = defaults.names
+
+          stop = defaults.names.first
+          last = args.each_with_index { |a, i| break i if a == stop }
+          node.required = args[0, last]
+        else
+          node.required = args
+          node.defaults = []
+          node.optional = []
+        end
+
+        args << splat if splat.kind_of? Symbol
+        node.names = args
+        node.splat = splat
+
+        node
+      end
+
+      def block_arg=(node)
+        @names << node.name
+        @block_arg = node
+      end
+
+      def bytecode(g)
+      end
+
+      def children
+        @defaults
+      end
+    end
+
+    class DefaultArguments < Node
+      attr_accessor :arguments, :names
+
+      def self.from(p, block)
+        node = DefaultArguments.new p.compiler
+        node.arguments = block.body
+        node.names = node.arguments.map { |a| a.name }
+        node
+      end
+
+      def bytecode(g)
       end
     end
 
@@ -171,18 +217,38 @@ class Compiler
       end
     end
 
+    # Is it weird that Block has the :arguments attribute? Yes. Is it weird
+    # that MRI parse tree puts arguments and block_arg in Block? Yes. So we
+    # make do and pull them out here rather than having something else reach
+    # inside of Block.
     class Block < Node
       def self.from(p, array)
         node = Block.new p.compiler
         node.body = array
         node
       end
+
+      def strip_arguments
+        if @body.first.kind_of? Arguments
+          node = @body.shift
+          if @body.first.kind_of? BlockArgument
+            node.block_arg = @body.shift
+          end
+        end
+        node
+      end
+
+      def children
+        @body
+      end
     end
 
-    class BlockAsArgument < Node
+    class BlockArgument < LocalVariable
+      attr_accessor :name, :variable
+
       def self.from(p, name)
-        node = BlockAsArgument.new p.compiler
-        node.args name
+        node = BlockArgument.new p.compiler
+        node.name = name
         node
       end
     end
@@ -243,6 +309,10 @@ class Compiler
         variables.size
       end
 
+      def find_local(name, in_block=false, allocate=true)
+        raise "no find_local #{name.inspect}"
+      end
+
       # A nested scope is looking up a local variable. If the variable exists
       # in our local variables hash, return a nested reference to it.
       def search_local(name)
@@ -251,13 +321,17 @@ class Compiler
         end
       end
 
+      def new_local(name)
+        variable = LocalVar.new allocate_slot
+        variables[name] = variable
+      end
+
       # There is no place above us that may contain a local variable. Set the
       # local in our local variables hash if not set. Set the local variable
       # node attribute to a reference to the local variable.
       def assign_local_reference(var)
         unless variable = variables[var.name]
-          variable = LocalVar.new allocate_slot
-          variables[var.name] = variable
+          variable = new_local var.name
         end
 
         var.variable = LocalReference.new variable
@@ -270,6 +344,10 @@ class Compiler
             nil
           when LocalVariable
             scope.assign_local_reference node
+            scope
+          when Arguments
+            scope.map_arguments node
+            scope
           when Iter
             scope.nest_scope node
             scope = node
@@ -277,6 +355,10 @@ class Compiler
             scope
           end
         end
+      end
+
+      def map_arguments(node)
+        node.names.each { |arg| new_local arg }
       end
 
       def nest_scope(scope)
@@ -359,10 +441,61 @@ class Compiler
     class Define < ClosedScope
       attr_accessor :body
 
-      def self.from(p, name, body)
+      def self.from(p, name, scope)
         node = Define.new p.compiler
-        node.body = body
+        node.name = name
+        node.arguments = scope.block.strip_arguments
+        node.body = scope
         node
+      end
+
+      def compile_body(g)
+        desc = new_description()
+        meth = desc.generator
+
+        prelude(g, meth)
+
+        set(:scope, nil) do
+          show_errors(meth) do
+            @arguments.bytecode(meth)
+            desc.run self, @body # TODO: why is it not @body.bytecode(meth) ?
+          end
+        end
+
+        # TODO: remove this, desc.args should have @arguments
+        required = @arguments.required unless @arguments.required.empty?
+        optional = @arguments.optional unless @arguments.optional.empty?
+        desc.args = [required, optional, @arguments.splat]
+
+        meth.ret
+        meth.close
+
+        use_plugin g, :method, desc
+
+        return desc
+      end
+
+      def bytecode(g)
+        map_locals
+        pos(g)
+
+        g.push_const :Rubinius
+        g.push_literal @name
+        g.push_literal compile_body(g)
+        g.push_scope
+
+        if @compiler.kernel?
+          g.push :nil
+        else
+          g.push_variables
+          g.send :method_visibility, 0
+        end
+
+        g.send :add_defn_method, 4
+      end
+
+      def children
+        [@body, @arguments]
       end
     end
 
@@ -569,6 +702,9 @@ class Compiler
           var.variable = LocalReference.new variable
         end
       end
+
+      def bytecode(g)
+      end
     end
 
     class IVar < Node
@@ -595,10 +731,16 @@ class Compiler
     end
 
     class LocalAccess < LocalVariable
+      attr_accessor :variable
+
       def self.from(p, name)
         node = LocalAccess.new p.compiler
         node.args name
         node
+      end
+
+      def bytecode(g)
+        @variable.get_bytecode(g)
       end
     end
 
@@ -620,14 +762,6 @@ class Compiler
         end
 
         @variable.set_bytecode(g)
-      end
-    end
-
-    class LocalVariable < Node
-      def find_local(allocate=true)
-        iter = find_parent Iter, ClosedScope
-        scope = find_parent ClosedScope
-        @variable, @depth = scope.find_local @name, iter, allocate
       end
     end
 
@@ -850,7 +984,16 @@ class Compiler
     class Scope < Node
       def self.from(p, body)
         node = Scope.new p.compiler
+        if body.kind_of? Block
+          node.block = body
+        else
+          node.block = Block.from p, body
+        end
         node
+      end
+
+      def children
+        [@block]
       end
     end
 
