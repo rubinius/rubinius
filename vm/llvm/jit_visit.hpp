@@ -1091,7 +1091,7 @@ namespace rubinius {
     }
 
     void emit_uncommon() {
-      if(!inline_return_ && !has_side_effects()) {
+      if(false) { // !inline_return_ && !has_side_effects()) {
         Signature sig(ls_, "Object");
 
         sig << "VM";
