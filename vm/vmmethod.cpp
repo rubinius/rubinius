@@ -560,7 +560,7 @@ namespace rubinius {
 #endif
     }
 
-  /** @todo Is this redundant after having gone through set_argument_handler? --rue */
+  /** This is used as a fallback way of entering the interpreter */
   Object* VMMethod::execute(STATE, CallFrame* previous, Dispatch& msg, Arguments& args) {
     return execute_specialized<GenericArguments>(state, previous, msg, args);
   }

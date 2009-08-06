@@ -64,7 +64,7 @@ namespace rubinius {
     bool profiling_;
     profiler::ProfilerCollection* profiler_collection_;
     int global_serial_;
-    WorldState& world_;
+    WorldState* world_;
     InlineCacheRegistry* ic_registry_;
     unsigned int class_count_;
 

@@ -677,6 +677,10 @@ extern "C" {
     return VMMethod::uncommon_interpreter(state, vmm, call_frame, args, sp);
   }
 
+  Object* rbx_restart_interp(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args) {
+    return VMMethod::execute(state, call_frame, msg, args);
+  }
+
   Object* rbx_flush_scope(STATE, StackVariables* vars) {
     vars->flush_to_heap(state);
     return Qnil;

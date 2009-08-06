@@ -101,6 +101,7 @@ namespace rubinius {
 
     int called_args_;
     int sends_done_;
+    bool has_side_effects_;
 
   public:
 
@@ -148,6 +149,7 @@ namespace rubinius {
       , return_value_(0)
       , called_args_(-1)
       , sends_done_(0)
+      , has_side_effects_(false)
     {
 
       if(inline_return) {
@@ -206,6 +208,14 @@ namespace rubinius {
           PointerType::getUnqual(IntPtrTy), "cast_to_intptr");
 
       init_out_args(&function_->getEntryBlock());
+    }
+
+    void set_has_side_effects() {
+      has_side_effects_ = true;
+    }
+
+    bool has_side_effects() {
+      return has_side_effects_;
     }
 
     Value* return_value() {
@@ -697,6 +707,8 @@ namespace rubinius {
     }
 
     void visit_meta_send_op_equal(opcode name) {
+      set_has_side_effects();
+
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
@@ -730,6 +742,8 @@ namespace rubinius {
     }
 
     void visit_meta_send_op_tequal(opcode name) {
+      set_has_side_effects();
+
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
@@ -763,6 +777,8 @@ namespace rubinius {
     }
 
     void visit_meta_send_op_lt(opcode name) {
+      set_has_side_effects();
+
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
@@ -796,6 +812,8 @@ namespace rubinius {
     }
 
     void visit_meta_send_op_gt(opcode name) {
+      set_has_side_effects();
+
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
@@ -829,6 +847,8 @@ namespace rubinius {
     }
 
     void visit_meta_send_op_plus(opcode name) {
+      set_has_side_effects();
+
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
@@ -887,6 +907,8 @@ namespace rubinius {
     }
 
     void visit_meta_send_op_minus(opcode name) {
+      set_has_side_effects();
+
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
@@ -1069,24 +1091,41 @@ namespace rubinius {
     }
 
     void emit_uncommon() {
-      Signature sig(ls_, "Object");
+      if(!inline_return_ && !has_side_effects()) {
+        Signature sig(ls_, "Object");
 
-      sig << "VM";
-      sig << "CallFrame";
-      sig << "Arguments";
-      sig << IntPtrTy;
+        sig << "VM";
+        sig << "CallFrame";
+        sig << "Dispatch";
+        sig << "Arguments";
 
-      Value* sp = last_sp_as_int();
+        Function::arg_iterator ai = function_->arg_begin();
+        Value* call_args[] = { ai++, ai++, ai++, ai++ };
 
-      Value* call_args[] = { vm_, call_frame_, args_, sp };
+        Value* call = sig.call("rbx_restart_interp", call_args, 4, "", b());
 
-      Value* call = sig.call("rbx_continue_uncommon", call_args, 4, "", b());
-
-      if(inline_return_) {
-        return_value_->addIncoming(call, current_block());
-        b().CreateBr(inline_return_);
-      } else {
         b().CreateRet(call);
+
+      } else {
+        Signature sig(ls_, "Object");
+
+        sig << "VM";
+        sig << "CallFrame";
+        sig << "Arguments";
+        sig << IntPtrTy;
+
+        Value* sp = last_sp_as_int();
+
+        Value* call_args[] = { vm_, call_frame_, args_, sp };
+
+        Value* call = sig.call("rbx_continue_uncommon", call_args, 4, "", b());
+
+        if(inline_return_) {
+          return_value_->addIncoming(call, current_block());
+          b().CreateBr(inline_return_);
+        } else {
+          b().CreateRet(call);
+        }
       }
     }
 
@@ -1107,6 +1146,8 @@ namespace rubinius {
           return;
         }
       }
+
+      set_has_side_effects();
 
       reset_sp();
 
@@ -1137,6 +1178,7 @@ namespace rubinius {
         }
       }
 
+      set_has_side_effects();
       reset_sp();
 
       Value* ret = inline_cache_send(0, cache);
@@ -1171,6 +1213,8 @@ namespace rubinius {
     }
 
     void visit_send_stack_with_block(opcode which, opcode args) {
+      set_has_side_effects();
+
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       Value* ret = block_send(cache, args, allow_private_);
       stack_remove(args + 2);
@@ -1179,6 +1223,8 @@ namespace rubinius {
     }
 
     void visit_send_stack_with_splat(opcode which, opcode args) {
+      set_has_side_effects();
+
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       Value* ret = splat_send(cache->name, args, allow_private_);
       stack_remove(args + 3);
@@ -1212,6 +1258,8 @@ namespace rubinius {
     }
 
     void visit_send_super_stack_with_block(opcode which, opcode args) {
+      set_has_side_effects();
+
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       Value* ret = super_send(cache->name, args);
       stack_remove(args + 1);
@@ -1219,6 +1267,8 @@ namespace rubinius {
     }
 
     void visit_send_super_stack_with_splat(opcode which, opcode args) {
+      set_has_side_effects();
+
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       Value* ret = super_send(cache->name, args, true);
       stack_remove(args + 2);
@@ -1251,6 +1301,8 @@ namespace rubinius {
     }
 
     void visit_push_const_fast(opcode name, opcode cache) {
+      set_has_side_effects();
+
       AccessManagedMemory memguard(ls_);
 
       BasicBlock* cont = 0;
@@ -1350,6 +1402,8 @@ namespace rubinius {
     }
 
     void visit_set_const(opcode name) {
+      set_has_side_effects();
+
       std::vector<const Type*> types;
 
       types.push_back(VMTy);
@@ -1372,6 +1426,8 @@ namespace rubinius {
     }
 
     void visit_set_const_at(opcode name) {
+      set_has_side_effects();
+
       std::vector<const Type*> types;
 
       types.push_back(VMTy);
@@ -1396,6 +1452,8 @@ namespace rubinius {
     }
 
     void visit_set_literal(opcode which) {
+      set_has_side_effects();
+
       std::vector<const Type*> types;
 
       types.push_back(VMTy);
@@ -1418,6 +1476,8 @@ namespace rubinius {
     }
 
     void visit_push_variables() {
+      set_has_side_effects();
+
       Signature sig(ls_, ObjType);
       sig << "VM";
       sig << "CallFrame";
@@ -1488,6 +1548,8 @@ namespace rubinius {
     }
 
     void visit_set_local_depth(opcode depth, opcode index) {
+      set_has_side_effects();
+
       if(depth == 0) {
         std::cout << "why is depth 0 here?\n";
         visit_set_local(index);
@@ -1531,6 +1593,8 @@ namespace rubinius {
     }
 
     void visit_push_local_depth(opcode depth, opcode index) {
+      set_has_side_effects();
+
       if(depth == 0) {
         std::cout << "why is depth 0 here?\n";
         visit_push_local(index);
@@ -1610,6 +1674,8 @@ namespace rubinius {
     }
 
     void visit_yield_stack(opcode count) {
+      set_has_side_effects();
+
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
@@ -1632,6 +1698,8 @@ namespace rubinius {
     }
 
     void visit_yield_splat(opcode count) {
+      set_has_side_effects();
+
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
@@ -1835,6 +1903,8 @@ namespace rubinius {
     }
 
     void visit_clear_exception() {
+      set_has_side_effects();
+
       std::vector<const Type*> types;
 
       types.push_back(VMTy);
@@ -1945,6 +2015,8 @@ namespace rubinius {
     }
 
     void visit_meta_send_call(opcode name, opcode count) {
+      set_has_side_effects();
+
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
@@ -2044,6 +2116,8 @@ namespace rubinius {
     }
 
     void visit_set_ivar(opcode which) {
+      set_has_side_effects();
+
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
@@ -2084,6 +2158,8 @@ namespace rubinius {
     }
 
     void visit_store_my_field(opcode which) {
+      set_has_side_effects();
+
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
@@ -2119,6 +2195,8 @@ namespace rubinius {
     }
 
     void visit_string_append() {
+      set_has_side_effects();
+
       Signature sig(ls_, ObjType);
 
       sig << VMTy;

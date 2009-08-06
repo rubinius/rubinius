@@ -3,6 +3,7 @@
 #include "config.h"
 #include "objectmemory.hpp"
 #include "instruments/profiler.hpp"
+#include "instruments/timing.hpp"
 #include "global_cache.hpp"
 #include "capi/handle.hpp"
 
@@ -19,11 +20,18 @@ namespace rubinius {
     int pending_threads_;
     bool should_stop_;
 
+    uint64_t time_waiting_;
+
   public:
     WorldState()
       : pending_threads_(0)
       , should_stop_(false)
+      , time_waiting_(0)
     {}
+
+    uint64_t time_waiting() {
+      return time_waiting_;
+    }
 
     // Called after a fork(), when we know we're alone again, to get
     // everything back in the proper order.
@@ -63,6 +71,8 @@ namespace rubinius {
 
       // For ourself..
       pending_threads_--;
+
+      timer::Running timer(time_waiting_);
 
       while(pending_threads_ > 0) {
         waiting_to_stop_.wait(mutex_);
@@ -109,7 +119,7 @@ namespace rubinius {
     , profiling_(false)
     , profiler_collection_(0)
     , global_serial_(0)
-    , world_(*new WorldState)
+    , world_(new WorldState)
     , ic_registry_(new InlineCacheRegistry)
     , class_count_(0)
     , om(0)
@@ -124,6 +134,8 @@ namespace rubinius {
   SharedState::~SharedState() {
     if(!initialized_) return;
 
+    // std::cerr << "Time waiting: " << world_->time_waiting() << "\n";
+    delete world_;
     delete ic_registry_;
     delete om;
     delete global_cache;
@@ -184,26 +196,26 @@ namespace rubinius {
 
     config.jit_inline_debug.set("no");
 
-    world_.reinit();
+    world_->reinit();
   }
 
   void SharedState::stop_the_world() {
-    world_.wait_til_alone();
+    world_->wait_til_alone();
   }
 
   void SharedState::restart_world() {
-    world_.wake_all_waiters();
+    world_->wake_all_waiters();
   }
 
   void SharedState::checkpoint() {
-    world_.checkpoint();
+    world_->checkpoint();
   }
 
   void SharedState::gc_dependent() {
-    world_.become_dependent();
+    world_->become_dependent();
   }
 
   void SharedState::gc_independent() {
-    world_.become_independent();
+    world_->become_independent();
   }
 }

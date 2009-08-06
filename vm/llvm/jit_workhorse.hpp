@@ -74,6 +74,8 @@ namespace rubinius {
 
     void nil_locals();
 
+    void check_self_type();
+
     void setup_scope();
 
     void setup_inline_scope(Value* self, Value* mod);

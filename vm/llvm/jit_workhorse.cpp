@@ -610,6 +610,73 @@ namespace rubinius {
     b().SetInsertPoint(body);
   }
 
+  void LLVMWorkHorse::check_self_type() {
+    int klass_id = 0;
+    {
+      AccessManagedMemory memguard(ls_);
+      if(Class* cls = try_as<Class>(vmm_->original.get()->scope()->module())) {
+        klass_id = cls->class_id();
+      } else {
+        return;
+      }
+    }
+
+    // Now, validate class_id
+
+    Value* self = b().CreateLoad(
+        b().CreateConstGEP2_32(args, 0, offset::args_recv), "self");
+
+    BasicBlock* restart_interp = BasicBlock::Create("restart_interp", func);
+    BasicBlock* check_class = BasicBlock::Create("check_class", func);
+    BasicBlock* cont = BasicBlock::Create("prologue_continue", func);
+
+    Value* mask = ConstantInt::get(Type::Int32Ty, TAG_REF_MASK);
+    Value* zero = ConstantInt::get(Type::Int32Ty, TAG_REF);
+
+    Value* lint = b().CreateAnd(
+        b().CreatePtrToInt(self, Type::Int32Ty),
+        mask, "masked");
+
+    Value* is_ref = b().CreateICmpEQ(lint, zero, "is_reference");
+
+    b().CreateCondBr(is_ref, check_class, restart_interp);
+
+    b().SetInsertPoint(check_class);
+
+    Value* class_idx[] = {
+      ConstantInt::get(Type::Int32Ty, 0),
+      ConstantInt::get(Type::Int32Ty, 0),
+      ConstantInt::get(Type::Int32Ty, 1)
+    };
+
+    Value* self_class = b().CreateLoad(
+        b().CreateGEP(self, class_idx, class_idx+3),
+        "class");
+
+    Value* runtime_id = b().CreateLoad(
+        b().CreateConstGEP2_32(self_class, 0, 3),
+        "class_id");
+
+    Value* equal = b().CreateICmpEQ(runtime_id,
+        ConstantInt::get(Type::Int32Ty, klass_id));
+
+    b().CreateCondBr(equal, cont, restart_interp);
+
+    b().SetInsertPoint(restart_interp);
+
+    Value* call_args[] = { vm, prev, msg, args };
+
+    Signature sig(ls_, "Object");
+    sig << "VM";
+    sig << "CallFrame";
+    sig << "Dispatch";
+    sig << "Arguments";
+
+    b().CreateRet(sig.call("rbx_restart_interp", call_args, 4, "ir", b()));
+
+    b().SetInsertPoint(cont);
+  }
+
   void LLVMWorkHorse::setup() {
     Signature sig(ls_, "Object");
     sig << "VM";
@@ -646,6 +713,8 @@ namespace rubinius {
         "var_mem");
 
     check_arity();
+
+    // check_self_type();
 
     call_frame = b().CreateBitCast(
         cfstk,
