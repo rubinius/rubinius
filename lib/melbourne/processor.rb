@@ -103,8 +103,8 @@ module Rubinius
       AST::ConstSet.from self, expr, value
     end
 
-    def process_class(line, name, sup, body)
-      AST::Class.from self, name, sup, body
+    def process_class(line, name, superclass, body)
+      AST::ClassWrapper.from self, name, superclass, body
     end
 
     def process_colon2(line, outer, name)

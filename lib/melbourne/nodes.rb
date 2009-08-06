@@ -224,7 +224,8 @@ class Compiler
     class Block < Node
       def self.from(p, array)
         node = Block.new p.compiler
-        node.body = array
+        array = Nil.from(p) unless array
+        node.body = Array(array)
         node
       end
 
@@ -240,6 +241,21 @@ class Compiler
 
       def children
         @body
+      end
+
+      def bytecode(g)
+        # TODO: make plugins responsible for popping or not
+        count = @body.size - 1
+        i = 0
+        while i < count
+          ip = g.ip
+          @body[i].bytecode(g)
+
+          # guards for things that plugins might optimize away.
+          g.pop if g.advanced_since?(ip)
+          i += 1
+        end
+        @body[count].bytecode(g)
       end
     end
 
@@ -285,14 +301,121 @@ class Compiler
       end
     end
 
-    class Class < ClosedScope
-      def self.from(p, name, sup, body)
-        node = Class.new p.compiler
-        node.args name, nil, sup, body
+    class ClassWrapper < Node
+      attr_accessor :name, :superclass, :body
+
+      def self.from(p, name, superclass, body)
+        node = ClassWrapper.new p.compiler
+
+        superclass = Nil.from p unless superclass
+        node.superclass = superclass
+
+        if name.kind_of? Symbol
+          name = ClassName.from p, name, superclass
+        else
+          name = ScopedClassName.from p, name, superclass
+        end
+
+        if body
+          node.body = ClassScope.from p, name, body
+        else
+          node.body = EmptyClass.from p
+        end
+        node.name = name
+
+        node
+      end
+
+      def children
+        [@name, @superclass, @body]
+      end
+
+      def bytecode(g)
+        @name.bytecode(g)
+        @body.bytecode(g)
+      end
+    end
+
+    class EmptyClass < Node
+      def self.from(p)
+        EmptyClass.new p.compiler
+      end
+
+      def bytecode(g)
+        g.pop
+        g.push :nil
+      end
+    end
+
+    class ClassScope < ClosedScope
+      attr_accessor :name, :body
+
+      def self.from(p, name, body)
+        node = ClassScope.new p.compiler
+        node.name = name
+        node.body = body
+        node
+      end
+
+      def children
+        [@body]
+      end
+
+      def bytecode(g)
+        pos(g)
+        super(g)
+
+        desc = attach_and_call g, :__class_init__, true
+        desc.name = @name if desc
+      end
+    end
+
+    class ClassName < Node
+      attr_accessor :name, :superclass
+
+      def self.from(p, name, superclass)
+        node = ClassName.new p.compiler
+        node.name = name
+        node.superclass = superclass
+        node
+      end
+
+      def name_bytecode(g)
+        g.push_const :Rubinius
+        g.push_literal @name
+        @superclass.bytecode(g)
+      end
+
+      def bytecode(g)
+        name_bytecode(g)
+        g.push_scope
+        g.send :open_class, 3
+      end
+
+      def children
+        [@superclass]
+      end
+    end
+
+    class ScopedClassName < ClassName
+      attr_accessor :parent
+
+      def self.from(p, parent, superclass)
+        node = ScopedClassName.new p.compiler
+        node.name = parent.name
+        node.parent = parent.parent
+        node.superclass = superclass
         node
       end
 
       def bytecode(g)
+        name_bytecode(g)
+        @parent.bytecode(g)
+        g.send :open_class_under, 3
+      end
+
+      def children
+        [@superclass, @parent]
       end
     end
 
@@ -307,10 +430,6 @@ class Compiler
 
       def allocate_slot
         variables.size
-      end
-
-      def find_local(name, in_block=false, allocate=true)
-        raise "no find_local #{name.inspect}"
       end
 
       # A nested scope is looking up a local variable. If the variable exists
@@ -339,21 +458,20 @@ class Compiler
 
       def map_locals
         visit self do |scope, node|
+          result = scope
           case node
           when ClosedScope
-            nil
+            result = nil
           when LocalVariable
             scope.assign_local_reference node
-            scope
           when Arguments
             scope.map_arguments node
-            scope
           when Iter
             scope.nest_scope node
-            scope = node
-          else
-            scope
+            result = node
           end
+
+          result
         end
       end
 
@@ -363,6 +481,47 @@ class Compiler
 
       def nest_scope(scope)
         scope.parent = self
+      end
+
+      def bytecode(g)
+        map_locals
+      end
+
+      def attach_and_call(g, name, scoped=false)
+        desc = new_description()
+        desc.name = name
+        meth = desc.generator
+
+        prelude(g, meth)
+
+        if scoped
+          meth.push_self
+          meth.add_scope
+        end
+
+        set(:scope, self) do
+          show_errors(meth) do
+            desc.run self, @body
+          end
+        end
+
+        meth.ret
+        meth.close
+
+        g.dup
+        g.push_const :Rubinius
+        g.swap
+        g.push_literal name
+        g.swap
+        g.push_literal desc
+        g.swap
+        g.push_scope
+        g.swap
+        g.send :attach_method, 4
+        g.pop
+        g.send name, 0
+
+        return desc
       end
     end
 
@@ -383,10 +542,15 @@ class Compiler
     end
 
     class ConstAccess < Node
-      def self.from(p, outer, name)
+      def self.from(p, parent, name)
         node = ConstAccess.new p.compiler
-        node.args outer, name
+        node.parent = parent
+        node.name = name
         node
+      end
+
+      def children
+        [@parent]
       end
     end
 
@@ -441,11 +605,11 @@ class Compiler
     class Define < ClosedScope
       attr_accessor :body
 
-      def self.from(p, name, scope)
+      def self.from(p, name, block)
         node = Define.new p.compiler
         node.name = name
-        node.arguments = scope.block.strip_arguments
-        node.body = scope
+        node.arguments = block.strip_arguments
+        node.body = block
         node
       end
 
@@ -476,7 +640,7 @@ class Compiler
       end
 
       def bytecode(g)
-        map_locals
+        super(g)
         pos(g)
 
         g.push_const :Rubinius
@@ -983,17 +1147,11 @@ class Compiler
 
     class Scope < Node
       def self.from(p, body)
-        node = Scope.new p.compiler
         if body.kind_of? Block
-          node.block = body
-        else
-          node.block = Block.from p, body
+          body
+        elsif body
+          Block.from p, body
         end
-        node
-      end
-
-      def children
-        [@block]
       end
     end
 
@@ -1015,7 +1173,7 @@ class Compiler
       end
 
       def bytecode(g)
-        map_locals
+        super(g)
         @body.bytecode(g)
 
         #set(:scope, self) do
