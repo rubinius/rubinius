@@ -704,4 +704,51 @@ describe "An Lasgn node" do
       end
     end
   end
+
+  relates <<-ruby do
+      a = Object
+      module a::M
+        b = 1
+      end
+    ruby
+
+    parse do
+      [:block,
+       [:lasgn, :a, [:const, :Object]],
+       [:module, [:colon2, [:lvar, :a], :M], [:scope, [:lasgn, :b, [:lit, 1]]]]]
+    end
+
+    compile do |g|
+      g.push_const :Object
+      g.set_local 0
+      g.pop
+
+      g.push_const :Rubinius
+      g.push_literal :M
+      g.push_local 0
+      g.send :open_module_under, 2
+      g.dup
+      g.push_const :Rubinius
+      g.swap
+      g.push_literal :__module_init__
+      g.swap
+
+      g.push_literal_desc :F do |d|
+        d.push_self
+        d.add_scope
+
+        d.push 1
+        d.set_local 0
+
+        d.ret
+      end
+
+      g.swap
+      g.push_scope
+      g.swap
+      g.send :attach_method, 4
+      g.pop
+      g.send :__module_init__, 0
+    end
+  end
 end
