@@ -54,7 +54,15 @@ module Kernel
   module_function :Array
 
   def String(obj)
-    Type.coerce_to(obj, String, :to_s)
+    if obj.is_a? String
+      return obj
+    elsif obj.respond_to?(:to_s)
+      coerced_str = obj.to_s
+      return coerced_str if coerced_str.is_a? String
+      raise TypeError, "Coercion error: obj.to_s did NOT return a String (was #{coerced_str.class})"
+    else
+      raise TypeError, "can't convert Object into String: #{obj.inspect}"
+    end
   end
   module_function :String
 
