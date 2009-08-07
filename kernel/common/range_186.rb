@@ -17,14 +17,20 @@ class Range
   #
   #   10 11 12 13 14 15
 
-  def each(&block)
+  def each
     first, last = @begin, @end # dup?
 
-    raise TypeError, "can't iterate from #{first.class}" unless first.respond_to? :succ
+    unless first.respond_to? :succ
+      raise TypeError, "can't iterate from #{first.class}"
+    end
 
     if first.is_a?(Fixnum) && last.is_a?(Fixnum)
       last -= 1 if self.exclude_end?
-      first.upto(last, &block)
+      i = first
+      while i <= last
+        yield i
+        i += 1
+      end
     elsif first.is_a?(String)
       first.upto(last) do |s|
         yield s unless @excl && s == last
