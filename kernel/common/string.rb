@@ -1699,7 +1699,7 @@ class String
           "invalid value for Integer: #{inspect}") if check and self =~ /__/
 
     s = if check then
-          self.strip
+          self
         else
           self.delete('_').strip
         end
@@ -1746,7 +1746,7 @@ class String
     sign, data = $1, $2 if s =~ match_re
 
     raise ArgumentError, "error in impl parsing: #{self.inspect} with #{match_re.source}" if
-      data.nil? || (check && (s =~ /^_/ || data.empty? ))
+      data.nil? || (check && (s =~ /^_|_$/ || data.empty? ))
 
     negative = sign == "-"
     result = 0

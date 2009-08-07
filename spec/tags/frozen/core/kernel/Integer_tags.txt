@@ -1,19 +1,1 @@
 incomplete:Kernel#Integer needs to be reviewed for spec completeness
-fails:Kernel.Integer uncritically return the value of to_int even if it is not an Integer
-fails:Kernel.Integer returns the value of to_int if the result is a Bignum
-fails:Kernel.Integer calls to_i on an object whose to_int returns nil
-fails:Kernel.Integer raises an ArgumentError if the String is a null byte
-fails:Kernel.Integer raises an ArgumentError if the String starts with a null byte
-fails:Kernel.Integer raises an ArgumentError if the String ends with a null byte
-fails:Kernel.Integer raises an ArgumentError if the String contains a null byte
-fails:Kernel.Integer raises an ArgumentError if there are trailing _s
-fails:Kernel.Integer raises an ArgumentError if there are multiple embedded _s
-fails:Kernel#Integer uncritically return the value of to_int even if it is not an Integer
-fails:Kernel#Integer returns the value of to_int if the result is a Bignum
-fails:Kernel#Integer calls to_i on an object whose to_int returns nil
-fails:Kernel#Integer raises an ArgumentError if the String is a null byte
-fails:Kernel#Integer raises an ArgumentError if the String starts with a null byte
-fails:Kernel#Integer raises an ArgumentError if the String ends with a null byte
-fails:Kernel#Integer raises an ArgumentError if the String contains a null byte
-fails:Kernel#Integer raises an ArgumentError if there are trailing _s
-fails:Kernel#Integer raises an ArgumentError if there are multiple embedded _s

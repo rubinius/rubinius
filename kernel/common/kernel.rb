@@ -33,9 +33,12 @@ module Kernel
       else
         return obj.to_int
       end
+    elsif obj.respond_to? :to_int
+      int_value = obj.to_int
+      return int_value unless int_value.nil?
     end
-    method = obj.respond_to?(:to_int) ? :to_int : :to_i
-    Type.coerce_to(obj, Integer, method)
+
+    Type.coerce_to(obj, Integer, :to_i)
   end
   module_function :Integer
 

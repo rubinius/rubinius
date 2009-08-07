@@ -519,6 +519,11 @@ namespace rubinius {
     bool negative = false;
     Integer* value = Fixnum::from(0);
 
+    if(strict == Qtrue) {
+      // In strict mode the string can't have null bytes.
+      if(size() > strlen(str)) return (Integer*)Qnil;
+    }
+
     if(base < 0 || base == 1 || base > 36) return (Integer*)Qnil;
     // Strict mode can only be invoked from Ruby via Kernel#Integer()
     // which does not allow bases other than 0.
@@ -627,6 +632,10 @@ namespace rubinius {
       // If it's an underscore, remember that. An underscore is valid iff
       // it followed by a valid character for this base.
       if(chr == '_') {
+        // Double underscore is forbidden in strict mode.
+        if(underscore && strict == Qtrue) {
+          return (Integer*)Qnil;
+        }
         underscore = true;
         continue;
       } else {
@@ -640,6 +649,13 @@ namespace rubinius {
         chr -= ('A' - 10);
       } else if(chr >= 'a' && chr <= 'z') {
         chr -= ('a' - 10);
+      } else {
+        //Invalid character, stopping right here.
+        if(strict == Qtrue) {
+          return (Integer*)Qnil;
+        } else {
+          break;
+        }
       }
 
       // Bail if the current chr is greater or equal to the base,
