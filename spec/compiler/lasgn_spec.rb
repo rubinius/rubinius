@@ -526,6 +526,103 @@ describe "An Lasgn node" do
   end
 
   relates <<-ruby do
+      a = Object
+      class a::F
+        b = 1
+      end
+    ruby
+
+    parse do
+      [:block,
+       [:lasgn, :a, [:const, :Object]],
+       [:class, [:colon2, [:lvar, :a], :F], nil, [:scope, [:lasgn, :b, [:lit, 1]]]]]
+    end
+
+    compile do |g|
+      g.push_const :Object
+      g.set_local 0
+      g.pop
+
+      g.push_const :Rubinius
+      g.push_literal :F
+      g.push :nil
+      g.push_local 0
+      g.send :open_class_under, 3
+      g.dup
+      g.push_const :Rubinius
+      g.swap
+      g.push_literal :__class_init__
+      g.swap
+
+      g.push_literal_desc :F do |d|
+        d.push_self
+        d.add_scope
+
+        d.push 1
+        d.set_local 0
+
+        d.ret
+      end
+
+      g.swap
+      g.push_scope
+      g.swap
+      g.send :attach_method, 4
+      g.pop
+      g.send :__class_init__, 0
+    end
+  end
+
+  relates <<-ruby do
+      a = Object
+      class F < a
+        b = 1
+      end
+    ruby
+
+    parse do
+      [:block,
+       [:lasgn, :a, [:const, :Object]],
+       [:class, :F, [:lvar, :a], [:scope, [:lasgn, :b, [:lit, 1]]]]]
+    end
+
+    compile do |g|
+      g.push_const :Object
+      g.set_local 0
+      g.pop
+
+      g.push_const :Rubinius
+      g.push_literal :F
+      g.push_local 0
+      g.push_scope
+      g.send :open_class, 3
+
+      g.dup
+      g.push_const :Rubinius
+      g.swap
+      g.push_literal :__class_init__
+      g.swap
+
+      g.push_literal_desc :F do |d|
+        d.push_self
+        d.add_scope
+
+        d.push 1
+        d.set_local 0
+
+        d.ret
+      end
+
+      g.swap
+      g.push_scope
+      g.swap
+      g.send :attach_method, 4
+      g.pop
+      g.send :__class_init__, 0
+    end
+  end
+
+  relates <<-ruby do
       class F
         a = 1
         def f
