@@ -271,7 +271,7 @@ module Rubinius
     end
 
     def process_module(line, name, body)
-      AST::Module.from self, name, body
+      AST::ModuleWrapper.from self, name, body
     end
 
     def process_negate(line, expr)

@@ -315,13 +315,13 @@ class Compiler
         else
           name = ScopedClassName.from p, name, superclass
         end
+        node.name = name
 
         if body
           node.body = ClassScope.from p, name, body
         else
-          node.body = EmptyClass.from p
+          node.body = EmptyModule.from p
         end
-        node.name = name
 
         node
       end
@@ -333,17 +333,6 @@ class Compiler
       def bytecode(g)
         @name.bytecode(g)
         @body.bytecode(g)
-      end
-    end
-
-    class EmptyClass < Node
-      def self.from(p)
-        EmptyClass.new p.compiler
-      end
-
-      def bytecode(g)
-        g.pop
-        g.push :nil
       end
     end
 
@@ -555,10 +544,23 @@ class Compiler
     end
 
     class ConstAtTop < Node
+      attr_accessor :parent
+
       def self.from(p, name)
         node = ConstAtTop.new p.compiler
-        node.args name
+        node.name = name
+        node.parent = TopLevel.from p
         node
+      end
+    end
+
+    class TopLevel < Node
+      def self.from(p)
+        TopLevel.new p.compiler
+      end
+
+      def bytecode(g)
+        g.push_cpath_top
       end
     end
 
@@ -968,15 +970,110 @@ class Compiler
       end
     end
 
-    class Module < ClosedScope
+    class ModuleWrapper < Node
+      attr_accessor :name, :body
+
       def self.from(p, name, body)
-        node = Module.new p.compiler
+        node = ModuleWrapper.new p.compiler
+
+        if name.kind_of? Symbol
+          name = ModuleName.from p, name
+        else
+          name = ScopedModuleName.from p, name
+        end
+        node.name = name
+
+        if body
+          node.body = ModuleScope.from p, name, body
+        else
+          node.body = EmptyModule.from p
+        end
+
+        node
+      end
+
+      def children
+        [@name, @body]
+      end
+
+      def bytecode(g)
+        @name.bytecode(g)
+        @body.bytecode(g)
+      end
+    end
+
+    class EmptyModule < Node
+      def self.from(p)
+        EmptyModule.new p.compiler
+      end
+
+      def bytecode(g)
+        g.pop
+        g.push :nil
+      end
+    end
+
+    class ModuleName < Node
+      attr_accessor :name
+
+      def self.from(p, name)
+        node = ModuleName.new p.compiler
+        node.name = name
+        node
+      end
+
+      def name_bytecode(g)
+        g.push_const :Rubinius
+        g.push_literal @name
+      end
+
+      def bytecode(g)
+        name_bytecode(g)
+        g.push_scope
+        g.send :open_module, 2
+      end
+    end
+
+    class ScopedModuleName < ModuleName
+      attr_accessor :parent
+
+      def self.from(p, parent)
+        node = ScopedModuleName.new p.compiler
+        node.name = parent.name
+        node.parent = parent.parent
+        node
+      end
+
+      def bytecode(g)
+        name_bytecode(g)
+        @parent.bytecode(g)
+        g.send :open_module_under, 2
+      end
+
+      def children
+        [@parent]
+      end
+    end
+
+    class ModuleScope < ClosedScope
+      attr_accessor :name, :body
+
+      def self.from(p, name, body)
+        node = ModuleScope.new p.compiler
         node.name = name
         node.body = body
         node
       end
 
+      def children
+        [@body]
+      end
+
       def bytecode(g)
+        pos(g)
+        super(g)
+
+        attach_and_call g, :__module_init__, true
       end
     end
 
