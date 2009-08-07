@@ -1,7 +1,1 @@
 incomplete:Kernel#Float needs to be reviewed for spec completeness
-fails:Kernel.Float converts Strings to floats without calling #to_f
-fails:Kernel.Float converts String subclasses to floats without calling #to_f
-fails:Kernel.Float raises an Argument Error if to_f is called and it returns NaN
-fails:Kernel#Float converts Strings to floats without calling #to_f
-fails:Kernel#Float converts String subclasses to floats without calling #to_f
-fails:Kernel#Float raises an Argument Error if to_f is called and it returns NaN

@@ -9,6 +9,8 @@ class String
     raise PrimitiveFailure, "String#to_f primitive failed"
   end
 
+  alias_method :convert_float, :to_f
+
   def __crypt__(other_str)
     Ruby.primitive :string_crypt
     raise PrimitiveFailure, "String#crypt primitive failed"
