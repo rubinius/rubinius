@@ -1808,8 +1808,6 @@ raise "huh"
 
           if name_node.is? ConstFind
             parent = nil
-          elsif name_node.is? ConstAtTop
-            parent = name
           else
             parent = name_node.parent
           end

@@ -32,10 +32,29 @@ describe "A Module node" do
     end
 
     compile do |g|
-      in_module :Y do |d|
+      g.push_const :Rubinius
+      g.push_literal :Y
+      g.push_cpath_top
+      g.send :open_module_under, 2
+      g.dup
+      g.push_const :Rubinius
+      g.swap
+      g.push_literal :__module_init__
+      g.swap
+      g.push_literal_desc :Y do |d|
+        d.push_self
+        d.add_scope
         d.push :self
         d.send :c, 0, true
+        d.ret
       end
+
+      g.swap
+      g.push_scope
+      g.swap
+      g.send :attach_method, 4
+      g.pop
+      g.send :__module_init__, 0
     end
   end
 
