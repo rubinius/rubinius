@@ -98,17 +98,28 @@ class Compiler
     end
 
     class Alias < Node
+      attr_accessor :to, :from
+
       def self.from(p, to, from)
         node = Alias.new p.compiler
-        node.args from, to
+        node.to = to
+        node.from = from
         node
+      end
+
+      def bytecode(g)
+        g.push_scope
+        g.push_literal @to
+        g.push_literal @from
+        g.send :alias_method, 2, true
       end
     end
 
     class And < Node
       def self.from(p, left, right)
         node = And.new p.compiler
-        node.args left, right
+        node.left = left
+        node.right = right
         node
       end
     end
@@ -117,7 +128,7 @@ class Compiler
       def self.from(p, normal, splat)
         node = ArgList.new p.compiler
         normal.body << Splat.from(p, splat)
-        node.args normal
+        node.body = normal
         node
       end
     end
@@ -194,9 +205,13 @@ class Compiler
     end
 
     class AttrAssign < Call
+      attr_accessor :receiver, :name, :value
+
       def self.from(p, receiver, name, value)
         node = AttrAssign.new p.compiler
-        node.args receiver, name, value
+        node.receiver = receiver
+        node.name = name
+        node.value = value
         node
       end
     end
@@ -204,7 +219,7 @@ class Compiler
     class BackRef < Node
       def self.from(p, ref)
         node = BackRef.new p.compiler
-        node.args ref
+        node.kind = ref
         node
       end
     end
@@ -309,9 +324,13 @@ class Compiler
     end
 
     class Case < Node
+      attr_accessor :expression, :whens, :else
+
       def self.from(p, expr, whens, els)
         node = Case.new p.compiler
-        node.args expr, whens, els
+        node.expression = expr
+        node.whens = whens
+        node.else = els
         node
       end
     end
@@ -582,7 +601,7 @@ class Compiler
     class ConstFind < Node
       def self.from(p, name)
         node = ConstFind.new p.compiler
-        node.args name
+        node.name = name
         node
       end
     end
@@ -590,7 +609,8 @@ class Compiler
     class ConstSet < Node
       def self.from(p, expr, value)
         node = ConstSet.new p.compiler
-        node.args expr, value
+        node.name = expr
+        node.value = value
         node
       end
     end
@@ -598,7 +618,7 @@ class Compiler
     class CVar < Node
       def self.from(p, name)
         node = CVar.new p.compiler
-        node.args name
+        node.name = name
         node
       end
     end
@@ -606,7 +626,8 @@ class Compiler
     class CVarAssign < Node
       def self.from(p, name, expr)
         node = CVarAssign.new p.compiler
-        node.args name, expr
+        node.name = name
+        node.value = expr
         node
       end
     end
@@ -614,7 +635,8 @@ class Compiler
     class CVarDeclare < CVarAssign
       def self.from(p, name, expr)
         node = CVarDeclare.new p.compiler
-        node.args name, expr
+        node.name = name
+        node.value = expr
         node
       end
     end
@@ -683,7 +705,7 @@ class Compiler
     class Defined < Node
       def self.from(p, expr)
         node = Defined.new p.compiler
-        node.args expr
+        node.expression = expr
         node
       end
     end
@@ -762,7 +784,7 @@ class Compiler
     class ExecuteString < StringLiteral
       def self.from(p, str)
         node = ExecuteString.new p.compiler
-        node.args str
+        node.string = str
         node
       end
     end
@@ -808,7 +830,7 @@ class Compiler
     class GVar < Node
       def self.from(p, name)
         node = GVar.new p.compiler
-        node.args name
+        node.name = name
         node
       end
     end
@@ -816,7 +838,8 @@ class Compiler
     class GVarAssign < Node
       def self.from(p, name, expr)
         node = GVarAssign.new p.compiler
-        node.args name, expr
+        node.name = name
+        node.value = expr
         node
       end
     end
@@ -832,7 +855,9 @@ class Compiler
     class If < Node
       def self.from(p, cond, body, else_body)
         node = If.new p.compiler
-        node.args cond, body, else_body
+        node.condition = cond
+        node.body = body
+        node.else = else_body
         node
       end
     end
@@ -922,7 +947,7 @@ class Compiler
 
       def self.from(p, name)
         node = LocalAccess.new p.compiler
-        node.args name
+        node.name = name
         node
       end
 
@@ -953,9 +978,12 @@ class Compiler
     end
 
     class MAsgn < Node
+      attr_accessor :left, :right
+
       def self.from(p, left, right, flags)
         node = MAsgn.new p.compiler
-        node.args left, right
+        node.left = left
+        node.right = right
         node
       end
     end
@@ -963,23 +991,29 @@ class Compiler
     class Match < Node
       def self.from(p, pattern, flags)
         node = Match.new p.compiler
-        node.args pattern
+        node.pattern = pattern
         node
       end
     end
 
     class Match2 < Node
+      attr_accessor :pattern, :value
+
       def self.from(p, pattern, value)
         node = Match2.new p.compiler
-        node.args pattern, value
+        node.pattern = pattern
+        node.value = value
         node
       end
     end
 
     class Match3 < Node
+      attr_accessor :pattern, :value
+
       def self.from(p, pattern, value)
         node = Match3.new p.compiler
-        node.args pattern, value
+        node.pattern = pattern
+        node.value = value
         node
       end
     end
@@ -1099,10 +1133,23 @@ class Compiler
     end
 
     class Negate < Node
+      attr_accessor :value
+
       def self.from(p, expr)
         node = Negate.new p.compiler
-        node.args expr
+        node.value = expr
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        if @value.is? NumberLiteral
+          g.push(-@value.value)
+        else
+          @value.bytecode(g)
+          g.send :"-@", 0
+        end
       end
     end
 
@@ -1121,17 +1168,34 @@ class Compiler
     end
 
     class Not < Node
+      attr_accessor :value
+
       def self.from(p, expr)
         node = Not.new p.compiler
-        node.args expr
+        node.value = expr
         node
+      end
+
+      def bytecode(g)
+        true_label = g.new_label
+        end_label = g.new_label
+
+        @value.bytecode(g)
+        g.git true_label
+
+        g.push :true
+        g.goto end_label
+
+        true_label.set!
+        g.push :false
+        end_label.set!
       end
     end
 
     class NthRef < Node
       def self.from(p, ref)
         node = NthRef.new p.compiler
-        node.args ref
+        node.which = ref
         node
       end
     end
@@ -1144,9 +1208,14 @@ class Compiler
     end
 
     class OpAssign1 < Node
+      attr_accessor :receiver, :op, :index, :value
+
       def self.from(p, receiver, index, op, value)
         node = OpAssign1.new p.compiler
-        node.args receiver, op, index, value
+        node.receiver = receiver
+        node.op = op
+        node.index = index
+        node.value = value
         node
       end
     end
@@ -1164,17 +1233,19 @@ class Compiler
     end
 
     class OpAssignAnd < Node
-      def self.from(p, var, value)
+      def self.from(p, left, right)
         node = OpAssignAnd.new p.compiler
-        node.args var, value
+        node.left = left
+        node.right = right
         node
       end
     end
 
     class OpAssignOr < OpAssignAnd
-      def self.from(p, var, value)
+      def self.from(p, left, right)
         node = OpAssignOr.new p.compiler
-        node.args var, value
+        node.left = left
+        node.right = right
         node
       end
     end
@@ -1182,7 +1253,8 @@ class Compiler
     class Or < And
       def self.from(p, left, right)
         node = Or.new p.compiler
-        node.args left, right
+        node.left = left
+        node.right = right
         node
       end
     end
@@ -1199,7 +1271,8 @@ class Compiler
     class Range < Node
       def self.from(p, start, finish)
         node = Range.new p.compiler
-        node.args start, finish
+        node.start = start
+        node.finish = finish
         node
       end
     end
@@ -1207,7 +1280,8 @@ class Compiler
     class RangeExclude < Range
       def self.from(p, start, finish)
         node = RangeExclude.new p.compiler
-        node.args start, finish
+        node.start = start
+        node.finish = finish
         node
       end
     end
@@ -1221,7 +1295,8 @@ class Compiler
     class RegexLiteral < Node
       def self.from(p, str, flags)
         node = RegexLiteral.new p.compiler
-        node.args str, flags
+        node.source = str
+        node.options = flags
         node
       end
     end
@@ -1273,9 +1348,12 @@ class Compiler
     end
 
     class SClass < ClosedScope
+      attr_accessor :receiver, :body
+
       def self.from(p, receiver, body)
         node = SClass.new p.compiler
-        node.args receiver, body
+        node.receiver = receiver
+        node.body = body
         node
       end
     end
@@ -1299,7 +1377,7 @@ class Compiler
     class Snippit < ClosedScope
       def self.from(compiler, body)
         node = Snippit.new compiler
-        node.args body
+        node.body = body
         node
       end
 
@@ -1338,7 +1416,7 @@ class Compiler
     class StringLiteral < Node
       def self.from(p, str)
         node = StringLiteral.new p.compiler
-        node.args str
+        node.string = str
         node
       end
     end
@@ -1357,32 +1435,38 @@ class Compiler
     end
 
     class SValue < Node
+      attr_accessor :value
+
       def self.from(p, expr)
         node = SValue.new p.compiler
-        node.args expr
+        node.value = expr
         node
       end
     end
 
     class ToArray < Node
+      attr_accessor :value
+
       def self.from(p, expr)
         node = ToArray.new p.compiler
-        node.args expr
+        node.value = expr
         node
       end
     end
 
     class ToString < Node
+      attr_accessor :value
+
       def self.from(p, value)
         node = ToString.new p.compiler
-        node.args value || ""
+        node.value = value
         node
       end
     end
 
     class True < Node
       def self.from(p)
-        new p.compiler
+        True.new p.compiler
       end
     end
 
@@ -1396,22 +1480,40 @@ class Compiler
     end
 
     class Until < While
-      def self.from(p, cond, body, post_cond)
+      def self.from(p, condition, body, post)
         node = Until.new p.compiler
-        node.args cond, body, post_cond
+        node.condition = condition
+        node.body = body
+        node.post = post
         node
       end
     end
 
     class VAlias < Node
+      attr_accessor :to, :from
+
       def self.from(p, to, from)
         node = VAlias.new p.compiler
-        node.args from, to
+        node.to = to
+        node.from = from
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        g.push_const :Rubinius
+        g.find_const :Globals
+        g.push_literal @from
+        g.push_literal @to
+        # TODO: fix #add_alias arg order to match #alias_method
+        g.send :add_alias, 2
       end
     end
 
     class When < Node
+      attr_accessor :conditions, :body
+
       def self.from(p, args, body)
         node = When.new p.compiler
         node.conditions = args
@@ -1421,9 +1523,13 @@ class Compiler
     end
 
     class While < Node
-      def self.from(p, cond, body, post_cond)
+      attr_accessor :condition, :body, :post
+
+      def self.from(p, cond, body, post)
         node = While.new p.compiler
-        node.args cond, body, post_cond
+        node.condition = condition
+        node.body = body
+        node.post = post
         node
       end
     end
