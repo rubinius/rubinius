@@ -377,14 +377,14 @@ namespace melbourne {
        * a = b rescue c
        */
 
-      VALUE c = Qnil;
+      VALUE conditions = Qnil;
 
       if(node->nd_3rd) {
-        c = process_parse_tree(parse_state, ptp, node->nd_3rd, locals);
+        conditions = process_parse_tree(parse_state, ptp, node->nd_3rd, locals);
       }
-      VALUE b = process_parse_tree(parse_state, ptp, node->nd_2nd, locals);
-      VALUE a = process_parse_tree(parse_state, ptp, node->nd_1st, locals);
-      tree = rb_funcall(ptp, rb_sResbody, 4, line, a, b, c);
+      VALUE body = process_parse_tree(parse_state, ptp, node->nd_2nd, locals);
+      VALUE next = process_parse_tree(parse_state, ptp, node->nd_1st, locals);
+      tree = rb_funcall(ptp, rb_sResbody, 4, line, conditions, body, next);
       break;
     }
     case NODE_ENSURE: {

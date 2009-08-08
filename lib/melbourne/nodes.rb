@@ -210,10 +210,16 @@ class Compiler
     end
 
     class Begin < Node
+      attr_accessor :rescue
+
       def self.from(p, body)
         node = Begin.new p.compiler
-        node.args body
+        node.rescue = body
         node
+      end
+
+      def children
+        [@rescue]
       end
     end
 
@@ -270,26 +276,35 @@ class Compiler
     end
 
     class BlockPass < Node
-      def self.from(p, var, call)
+      def self.from(p, call, var)
         node = BlockPass.new p.compiler
+      end
+
+      def bytecode(g)
       end
     end
 
     class Break < Node
       def self.from(p, expr)
         node = Break.new p.compiler
-        node.args expr
+        node.value expr
         node
       end
     end
 
     class Call < MethodCall
+      attr_accessor :receiver
+
       def self.from(p, receiver, sym, args)
         node = Call.new p.compiler
-        node.object = receiver
+        node.receiver = receiver
         node.method = sym
         node.arguments = args
         node
+      end
+
+      def children
+        [@receiver, @arguments]
       end
     end
 
@@ -623,7 +638,7 @@ class Compiler
 
         set(:scope, nil) do
           show_errors(meth) do
-            @arguments.bytecode(meth)
+            @arguments.bytecode(meth) if @arguments
             desc.run self, @body # TODO: why is it not @body.bytecode(meth) ?
           end
         end
@@ -777,6 +792,12 @@ class Compiler
       end
     end
 
+    class File < Node
+      def self.from(p)
+        File.new p.compiler
+      end
+    end
+
     class For < Iter
       def self.from(p, iter, args, body)
         node = For.new p.compiler
@@ -820,7 +841,7 @@ class Compiler
       attr_accessor :parent
 
       def self.from(p, iter, args, body)
-        node = For.new p.compiler
+        node = Iter.new p.compiler
         node
       end
 
@@ -1088,7 +1109,7 @@ class Compiler
     class Next < Break
       def self.from(p, expr)
         node = Next.new p.compiler
-        node.args expr
+        node.value expr
         node
       end
     end
@@ -1208,15 +1229,28 @@ class Compiler
     class Rescue < Node
       def self.from(p, body, resc, els)
         node = Rescue.new p.compiler
-        node.args body, resc, els
+        node.body = body
+        node.rescue = resc
+        node.else = els
         node
+      end
+
+      def children
+        [@body, @rescue, @else]
       end
     end
 
     class RescueCondition < Node
-      def self.from(p, a, b, c)
+      def self.from(p, conditions, body, nxt)
         node = RescueCondition.new p.compiler
+        node.conditions = conditions
+        node.body = body
+        node.next = nxt
         node
+      end
+
+      def children
+        [@conditions, @body, @next]
       end
     end
 
@@ -1229,14 +1263,18 @@ class Compiler
     class Return < Node
       def self.from(p, expr)
         node = Return.new p.compiler
-        node.args expr
+        node.value = expr
         node
+      end
+
+      def children
+        [@value]
       end
     end
 
     class SClass < ClosedScope
       def self.from(p, receiver, body)
-        node = SClass.new
+        node = SClass.new p.compiler
         node.args receiver, body
         node
       end
@@ -1311,8 +1349,10 @@ class Compiler
         arguments = ArgList.new p.compiler
         arguments.body = args
         node.arguments = arguments
-        node.collapse_args
         node
+      end
+
+      def bytecode(g)
       end
     end
 
@@ -1391,7 +1431,7 @@ class Compiler
     class Yield < Call
       def self.from(p, expr, flags)
         node = Yield.new p.compiler
-        node.args expr
+        node.arguments = expr
         node
       end
     end
@@ -1399,6 +1439,9 @@ class Compiler
     class ZSuper < Super
       def self.from(p)
         ZSuper.new p.compiler
+      end
+
+      def bytecode(g)
       end
     end
   end

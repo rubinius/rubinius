@@ -83,8 +83,8 @@ module Rubinius
       AST::BlockArgument.from self, name
     end
 
-    def process_block_pass(line, var, call)
-      AST::BlockPass.from self, var, call
+    def process_block_pass(line, call, var)
+      AST::BlockPass.from self, call, var
     end
 
     def process_break(line, expr)
@@ -189,6 +189,10 @@ module Rubinius
 
     def process_fcall(line, name, args)
       AST::Call.from self, nil, name, args
+    end
+
+    def process_file(line)
+      AST::File.from self
     end
 
     def process_fixnum(line, value)
@@ -326,8 +330,8 @@ module Rubinius
       AST::RegexLiteral.from self, str, flags
     end
 
-    def process_resbody(line, a, b, c)
-      AST::RescueCondition.from self, a, b, c
+    def process_resbody(line, conditions, body, nxt)
+      AST::RescueCondition.from self, conditions, body, nxt
     end
 
     def process_rescue(line, body, resc, els)
