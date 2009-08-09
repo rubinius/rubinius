@@ -35,6 +35,8 @@ class Compiler
   end
 
   class LocalReference
+    attr_reader :slot
+
     def initialize(var)
       @slot = var.slot
     end
@@ -50,6 +52,7 @@ class Compiler
 
   class NestedLocalReference
     attr_accessor :depth
+    attr_reader :slot
 
     def initialize(var)
       @slot = var.slot
@@ -122,6 +125,22 @@ class Compiler
         node.right = right
         node
       end
+
+      def bytecode(g, use_gif=true)
+        @left.bytecode(g)
+        g.dup
+        lbl = g.new_label
+
+        if use_gif
+          g.gif lbl
+        else
+          g.git lbl
+        end
+
+        g.pop
+        @right.bytecode(g)
+        lbl.set!
+      end
     end
 
     class ArgList < ArrayLiteral
@@ -150,7 +169,6 @@ class Compiler
           node.required = args[0, last]
         else
           node.required = args
-          node.defaults = []
           node.optional = []
         end
 
@@ -167,6 +185,8 @@ class Compiler
       end
 
       def bytecode(g)
+        @defaults.bytecode(g) if @defaults
+        @block_arg.bytecode(g) if @block_arg
       end
 
       def children
@@ -185,6 +205,16 @@ class Compiler
       end
 
       def bytecode(g)
+        @arguments.each do |arg|
+          done = g.new_label
+
+          g.passed_arg arg.variable.slot
+          g.git done
+          arg.bytecode(g)
+          g.pop
+
+          done.set!
+        end
       end
     end
 
@@ -214,6 +244,9 @@ class Compiler
         node.value = value
         node
       end
+
+      def bytecode(g)
+      end
     end
 
     class BackRef < Node
@@ -221,6 +254,12 @@ class Compiler
         node = BackRef.new p.compiler
         node.kind = ref
         node
+      end
+
+      def bytecode(g)
+        g.push_variables
+        g.push_literal @kind
+        g.send :back_ref, 1
       end
     end
 
@@ -235,6 +274,10 @@ class Compiler
 
       def children
         [@rescue]
+      end
+
+      def bytecode(g)
+        @rescue.bytecode(g)
       end
     end
 
@@ -288,6 +331,10 @@ class Compiler
         node.name = name
         node
       end
+
+      def bytecode(g)
+        g.set_local @variable.slot
+      end
     end
 
     class BlockPass < Node
@@ -300,10 +347,29 @@ class Compiler
     end
 
     class Break < Node
+      attr_accessor :value
+
       def self.from(p, expr)
         node = Break.new p.compiler
-        node.value expr
+        node.value = expr || Nil.from(p)
         node
+      end
+
+      def bytecode(g)
+        @value.bytecode(g)
+
+        g.pop_unwind if @pop_unwind
+
+        if g.break
+          g.goto g.break
+        elsif @in_block
+          g.raise_break
+        else
+          g.pop
+          g.push_const :Compiler
+          g.find_const :Utils
+          g.send :__unexpected_break__, 0
+        end
       end
     end
 
@@ -321,17 +387,63 @@ class Compiler
       def children
         [@receiver, @arguments]
       end
+
+      def bytecode(g)
+      end
     end
 
     class Case < Node
-      attr_accessor :expression, :whens, :else
+      attr_accessor :whens, :else
 
-      def self.from(p, expr, whens, els)
+      def self.from(p, whens, else_body)
         node = Case.new p.compiler
-        node.expression = expr
         node.whens = whens
-        node.else = els
+        node.else = else_body || Nil.from(p)
         node
+      end
+
+      def bytecode(g)
+        done = g.new_label
+
+        @whens.each do |w|
+          nxt = g.new_label
+          w.bytecode(g, false, nxt, done)
+          nxt.set!
+        end
+
+        @else.bytecode(g)
+
+        done.set!
+      end
+    end
+
+    class ReceiverCase < Case
+      attr_accessor :receiver
+
+      def self.from(p, receiver, whens, else_body)
+        node = ReceiverCase.new p.compiler
+        node.receiver
+        node.whens = whens
+        node.else = else_body || Nil.from(p)
+        node
+      end
+
+      def bytecode(g)
+        done = g.new_label
+
+        @receiver.bytecode(g)
+
+        @whens.each do |w|
+          nxt = g.new_label
+          w.bytecode(g, true, nxt, done)
+          nxt.set!
+        end
+
+        g.pop
+
+        @else.bytecode(g)
+
+        done.set!
       end
     end
 
@@ -575,6 +687,13 @@ class Compiler
       def children
         [@parent]
       end
+
+      def bytecode(g)
+        pos(g)
+
+        @parent.bytecode(g)
+        g.find_const @name
+      end
     end
 
     class ConstAtTop < Node
@@ -585,6 +704,13 @@ class Compiler
         node.name = name
         node.parent = TopLevel.from p
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        g.push_cpath_top
+        g.find_const @name
       end
     end
 
@@ -604,6 +730,11 @@ class Compiler
         node.name = name
         node
       end
+
+      def bytecode(g)
+        pos(g)
+        g.push_const @name
+      end
     end
 
     class ConstSet < Node
@@ -613,6 +744,9 @@ class Compiler
         node.value = value
         node
       end
+
+      def bytecode(g)
+      end
     end
 
     class CVar < Node
@@ -620,6 +754,9 @@ class Compiler
         node = CVar.new p.compiler
         node.name = name
         node
+      end
+
+      def bytecode(g)
       end
     end
 
@@ -630,6 +767,9 @@ class Compiler
         node.value = expr
         node
       end
+
+      def bytecode(g)
+      end
     end
 
     class CVarDeclare < CVarAssign
@@ -638,6 +778,9 @@ class Compiler
         node.name = name
         node.value = expr
         node
+      end
+
+      def bytecode(g)
       end
     end
 
@@ -717,6 +860,26 @@ class Compiler
         node.body = body
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        if @compiler.kernel?
+          g.push_const :Rubinius
+          g.push_literal @name
+          g.push_literal compile_body(g)
+          g.push_scope
+          @object.bytecode(g)
+          g.send :attach_method, 4
+        else
+          @object.bytecode(g)
+          g.send :metaclass, 0
+          g.push_literal @name
+          g.push_literal compile_body(g)
+          g.push_scope
+          g.send :attach_method, 3
+        end
+      end
     end
 
     class DynamicExecuteString < DynamicString
@@ -725,6 +888,14 @@ class Compiler
         node.string = str
         node.body = array
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        g.push :self
+        super(g)
+        g.send :`, 1, true #`
       end
     end
 
@@ -736,6 +907,15 @@ class Compiler
         node.options = flags
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        g.push_const :Regexp
+        super(g)
+        g.push @options
+        g.send :new, 2
+      end
     end
 
     class DynamicOnceRegex < DynamicRegex
@@ -745,6 +925,24 @@ class Compiler
         node.body = array
         node.options = flags
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        idx = g.add_literal(nil)
+        g.push_literal_at idx
+        g.dup
+        g.is_nil
+
+        lbl = g.new_label
+        g.gif lbl
+        g.pop
+
+        super(g)
+
+        g.set_literal idx
+        lbl.set!
       end
     end
 
@@ -757,6 +955,20 @@ class Compiler
         node.body = array
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        @body.reverse_each do |x|
+          x.bytecode(g)
+        end
+        g.push_literal @string
+        g.string_dup
+
+        @body.size.times do
+          g.string_append
+        end
+      end
     end
 
     class DynamicSymbol < DynamicString
@@ -766,11 +978,24 @@ class Compiler
         node.body = array
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        super(g)
+        g.send :to_sym, 0, true
+      end
     end
 
     class EmptyArray < Node
       def self.from(p)
         EmptyArray.new p.compiler
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        g.make_array 0
       end
     end
 
@@ -778,6 +1003,9 @@ class Compiler
       def self.from(p, head, ensr)
         node = Ensure.new p.compiler
         node
+      end
+
+      def bytecode(g)
       end
     end
 
@@ -787,11 +1015,23 @@ class Compiler
         node.string = str
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        g.push :self
+        super(g)
+        g.send :`, 1, true # ` (silly vim/emacs)
+      end
     end
 
     class False < Node
       def self.from(p)
         False.new p.compiler
+      end
+
+      def bytecode(g)
+        g.push :false
       end
     end
 
@@ -799,11 +1039,17 @@ class Compiler
       def self.from(p, start, finish)
         Flip2.new p.compiler
       end
+
+      def bytecode(g)
+      end
     end
 
     class Flip3 < Node
       def self.from(p, start, finish)
         Flip3.new p.compiler
+      end
+
+      def bytecode(g)
       end
     end
 
@@ -818,12 +1064,22 @@ class Compiler
       def self.from(p)
         File.new p.compiler
       end
+
+      def bytecode(g)
+        pos(g)
+
+        g.push_scope
+        g.send :active_path, 0
+      end
     end
 
     class For < Iter
       def self.from(p, iter, args, body)
         node = For.new p.compiler
         node
+      end
+
+      def bytecode(g)
       end
     end
 
@@ -832,6 +1088,22 @@ class Compiler
         node = GVar.new p.compiler
         node.name = name
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        if @name == :$!
+          g.push_exception
+        elsif @name == :$~
+          g.push_variables
+          g.send :last_match, 0
+        else
+          g.push_const :Rubinius
+          g.find_const :Globals
+          g.push_literal @name
+          g.send :[], 1
+        end
       end
     end
 
@@ -842,6 +1114,42 @@ class Compiler
         node.value = expr
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        # @value can to be present if this is coming via an masgn, which means
+        # the value is already on the stack.
+        if @name == :$!
+          @value.bytecode(g) if @value
+          g.raise_exc
+        elsif @name == :$~
+          if @value
+            g.find_cpath_top_const :Regexp
+            @value.bytecode(g)
+            g.send :last_match=, 1
+          else
+            g.find_cpath_top_const :Regexp
+            g.swap
+            g.send :last_match=, 1
+          end
+        else
+          if @value
+            g.push_const :Rubinius
+            g.find_const :Globals
+            g.push_literal @name
+            @value.bytecode(g)
+            g.send :[]=, 2
+          else
+            g.push_const :Rubinius
+            g.find_const :Globals
+            g.swap
+            g.push_literal @name
+            g.swap
+            g.send :[]=, 2
+          end
+        end
+      end
     end
 
     class HashLiteral < Node
@@ -849,6 +1157,16 @@ class Compiler
         node = HashLiteral.new p.compiler
         node.body = array
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        g.find_cpath_top_const :Hash
+
+        @body.each { |x| x.bytecode(g) }
+
+        g.send :[], @body.size
       end
     end
 
@@ -859,6 +1177,42 @@ class Compiler
         node.body = body
         node.else = else_body
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        ed = g.new_label
+        el = g.new_label
+
+        @condition.bytecode(g)
+
+        if @body and @else
+          g.gif el
+          @body.bytecode(g)
+          g.goto ed
+          el.set!
+          @else.bytecode(g)
+        elsif @body
+          g.gif el
+          @body.bytecode(g)
+          g.goto ed
+          el.set!
+          g.push :nil
+        elsif @else
+          g.git el
+          @else.bytecode(g)
+          g.goto ed
+          el.set!
+          g.push :nil
+        else
+          # An if with no code. Sweet.
+          g.pop
+          g.push :nil
+          return
+        end
+
+        ed.set!
       end
     end
 
@@ -925,6 +1279,12 @@ class Compiler
         node.normalize name
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        g.push_ivar @name
+      end
     end
 
     class IVarAssign < Node
@@ -933,12 +1293,25 @@ class Compiler
         node.normalize name, expr
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        @value.bytecode(g) if @value
+        g.set_ivar @name
+      end
     end
 
     class Literal < Node
       def self.from(p, sym)
         literal = Literal.new p.compiler
         literal.normalize sym
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        g.push_unique_literal @value
       end
     end
 
@@ -986,6 +1359,9 @@ class Compiler
         node.right = right
         node
       end
+
+      def bytecode(g)
+      end
     end
 
     class Match < Node
@@ -993,6 +1369,19 @@ class Compiler
         node = Match.new p.compiler
         node.pattern = pattern
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        g.push_const :Rubinius
+        g.find_const :Globals
+        g.push_literal :$_
+        g.send :[], 1
+
+        @pattern.bytecode(g)
+
+        g.send :=~, 1
       end
     end
 
@@ -1005,6 +1394,14 @@ class Compiler
         node.value = value
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        @pattern.bytecode(g)
+        @target.bytecode(g)
+        g.send :=~, 1
+      end
     end
 
     class Match3 < Node
@@ -1015,6 +1412,14 @@ class Compiler
         node.pattern = pattern
         node.value = value
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        @target.bytecode(g)
+        @pattern.bytecode(g)
+        g.send :=~, 1
       end
     end
 
@@ -1159,11 +1564,35 @@ class Compiler
         node.value expr
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        g.pop_unwind if @pop_unwind
+
+        if g.next
+          g.goto g.next
+        elsif @in_block
+          if @value
+            @value.bytecode(g)
+          else
+            g.push :nil
+          end
+          g.ret
+        else
+          @value.bytecode(g) if @value # next(raise("foo")) ha ha ha
+          jump_error g, "next used in invalid context"
+        end
+      end
     end
 
     class Nil < Node
       def self.from(p)
         Nil.new p.compiler
+      end
+
+      def bytecode(g)
+        g.push :nil
       end
     end
 
@@ -1198,12 +1627,24 @@ class Compiler
         node.which = ref
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        g.push_variables
+        g.push @which
+        g.send :nth_ref, 1
+      end
     end
 
     class NumberLiteral < Node
       def self.from(p, base, str)
         number = Literal.new p.compiler
         number.normalize(str.to_i(base))
+      end
+
+      def bytecode(g)
+        g.push @value
       end
     end
 
@@ -1218,6 +1659,9 @@ class Compiler
         node.value = value
         node
       end
+
+      def bytecode(g)
+      end
     end
 
     class OpAssign2 < Node
@@ -1230,6 +1674,9 @@ class Compiler
         node.assign = name.to_s[-1] == ?= ? :"#{name}=" : name
         node
       end
+
+      def bytecode(g)
+      end
     end
 
     class OpAssignAnd < Node
@@ -1238,6 +1685,18 @@ class Compiler
         node.left = left
         node.right = right
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        @left.bytecode(g)
+        lbl = g.new_label
+        g.dup
+        g.gif lbl
+        g.pop
+        @right.bytecode(g)
+        lbl.set!
       end
     end
 
@@ -1248,6 +1707,14 @@ class Compiler
         node.right = right
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        @left.bytecode_for_or(g) do
+          @right.bytecode(g)
+        end
+      end
     end
 
     class Or < And
@@ -1256,6 +1723,10 @@ class Compiler
         node.left = left
         node.right = right
         node
+      end
+
+      def bytecode(g)
+        super(g, false)
       end
     end
 
@@ -1275,6 +1746,15 @@ class Compiler
         node.finish = finish
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        g.find_cpath_top_const :Range
+        @start.bytecode(g)
+        @finish.bytecode(g)
+        g.send :new, 2
+      end
     end
 
     class RangeExclude < Range
@@ -1284,11 +1764,32 @@ class Compiler
         node.finish = finish
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        g.find_cpath_top_const :Range
+        @start.bytecode(g)
+        @finish.bytecode(g)
+        g.push :true
+
+        g.send :new, 3
+      end
     end
 
     class Redo < Break
       def self.from(p)
         Redo.new p.compiler
+      end
+
+      def bytecode(g)
+        g.pop_unwind if @pop_unwind
+
+        if g.redo
+          g.goto g.redo
+        else
+          jump_error g, "redo used in invalid context"
+        end
       end
     end
 
@@ -1298,6 +1799,29 @@ class Compiler
         node.source = str
         node.options = flags
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        # A regex literal should only be converted to a Regexp the first time it
+        # is encountered. We push a literal nil here, and then overwrite the
+        # literal value with the created Regexp if it is nil, i.e. the first time
+        # only. Subsequent encounters will use the previously created Regexp
+        idx = g.add_literal(nil)
+        g.push_literal_at idx
+        g.dup
+        g.is_nil
+
+        lbl = g.new_label
+        g.gif lbl
+        g.pop
+        g.push_const :Regexp
+        g.push_literal @source
+        g.push @options
+        g.send :new, 2
+        g.set_literal idx
+        lbl.set!
       end
     end
 
@@ -1313,6 +1837,57 @@ class Compiler
       def children
         [@body, @rescue, @else]
       end
+
+      def bytecode(g)
+        pos(g)
+
+        g.push_modifiers
+        if @body.nil?
+          if @else.nil?
+            # Stupid. No body and no else.
+            g.push :nil
+          else
+            # Only an else, run it.
+            @else.bytecode(g)
+          end
+        else
+          g.retry = g.new_label
+          reraise = g.new_label
+          els     = g.new_label
+          last    = g.new_label
+
+          # Save the current exception into a local
+          g.push_exception
+
+          g.retry.set!
+          g.exceptions do |ex|
+            @body.bytecode(g)
+            ex.escape els
+
+            ex.handle!
+            # TODO: this is a linked list now
+            #max = @rescues.size - 1
+            #@rescues.each_with_index do |resbody, i|
+            #  resbody.bytecode(g, reraise, last, i == max)
+            #end
+            reraise.set!
+            g.reraise
+          end
+
+          els.set!
+          if @else
+            g.pop
+            @else.bytecode(g)
+          end
+          last.set!
+
+          # Restore the previous exception if execution reaches this point
+          #g.push_local @saved_exception.slot
+          g.swap
+          g.pop_exception
+        end
+        g.pop_modifiers
+      end
     end
 
     class RescueCondition < Node
@@ -1327,11 +1902,24 @@ class Compiler
       def children
         [@conditions, @body, @next]
       end
+
+      def bytecode(g)
+      end
     end
 
     class Retry < Break
       def self.from(p)
         Retry.new p.compiler
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        if g.retry
+          g.goto g.retry
+        else
+          jump_error g, "retry used in invalid context"
+        end
       end
     end
 
@@ -1345,6 +1933,34 @@ class Compiler
       def children
         [@value]
       end
+
+      def bytecode(g, force=false)
+        pos(g)
+
+        if @in_rescue
+          g.clear_exception
+        end
+
+        # Literal ArrayList and a splat
+        if @splat
+          splat_node = @value.body.pop
+          @value.bytecode(g)
+          splat_node.call_bytecode(g)
+          g.send :+, 1
+        elsif @value
+          @value.bytecode(g)
+        else
+          g.push :nil
+        end
+
+        if @in_block
+          g.raise_return
+        elsif !force and @in_ensure
+          g.ensure_return
+        else
+          g.ret
+        end
+      end
     end
 
     class SClass < ClosedScope
@@ -1355,6 +1971,20 @@ class Compiler
         node.receiver = receiver
         node.body = body
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        @receiver.bytecode(g)
+        g.dup
+        g.send :__verify_metaclass__, 0
+        g.pop
+        g.push_const :Rubinius
+        g.swap
+        g.send :open_metaclass, 1
+
+        attach_and_call g, :__metaclass_init__, true
       end
     end
 
@@ -1371,6 +2001,10 @@ class Compiler
     class Self < Node
       def self.from(p)
         Self.new p.compiler
+      end
+
+      def bytecode(g)
+        g.push :self
       end
     end
 
@@ -1419,6 +2053,13 @@ class Compiler
         node.string = str
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        g.push_literal @string
+        g.string_dup
+      end
     end
 
     class Super < Call
@@ -1442,6 +2083,9 @@ class Compiler
         node.value = expr
         node
       end
+
+      def bytecode(g)
+      end
     end
 
     class ToArray < Node
@@ -1451,6 +2095,13 @@ class Compiler
         node = ToArray.new p.compiler
         node.value = expr
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        @value.bytecode(g)
+        g.cast_array
       end
     end
 
@@ -1462,11 +2113,22 @@ class Compiler
         node.value = value
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        @value.bytecode(g)
+        g.send :to_s, 0, true
+      end
     end
 
     class True < Node
       def self.from(p)
         True.new p.compiler
+      end
+
+      def bytecode(g)
+        g.push :true
       end
     end
 
@@ -1477,6 +2139,14 @@ class Compiler
         node.name = literal.value
         node
       end
+
+      def bytecode(g)
+        pos(g)
+
+        g.push_scope
+        g.push_literal @name
+        g.send :__undef_method__, 1
+      end
     end
 
     class Until < While
@@ -1486,6 +2156,10 @@ class Compiler
         node.body = body
         node.post = post
         node
+      end
+
+      def bytecode(g)
+        super(g, false)
       end
     end
 
@@ -1520,6 +2194,9 @@ class Compiler
         node.body = body
         node
       end
+
+      def bytecode(g)
+      end
     end
 
     class While < Node
@@ -1532,6 +2209,9 @@ class Compiler
         node.post = post
         node
       end
+
+      def bytecode(g)
+      end
     end
 
     class Yield < Call
@@ -1539,6 +2219,9 @@ class Compiler
         node = Yield.new p.compiler
         node.arguments = expr
         node
+      end
+
+      def bytecode(g)
       end
     end
 

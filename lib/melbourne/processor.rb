@@ -95,8 +95,12 @@ module Rubinius
       AST::Call.from self, receiver, sym, args
     end
 
-    def process_case(line, expr, whens, els)
-      AST::Case.from self, expr, whens, els
+    def process_case(line, receiver, whens, else_body)
+      if target
+        AST::ReceiverCase.from self, receiver, whens, else_body
+      else
+        AST::Case.from self, whens, else_body
+      end
     end
 
     def process_cdecl(line, expr, value)
