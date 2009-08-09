@@ -466,7 +466,7 @@ class Compiler
         if body
           node.body = ClassScope.from p, name, body
         else
-          node.body = EmptyModule.from p
+          node.body = EmptyBody.from p
         end
 
         node
@@ -1171,48 +1171,32 @@ class Compiler
     end
 
     class If < Node
+      attr_accessor :condition, :body, :else
+
       def self.from(p, cond, body, else_body)
         node = If.new p.compiler
         node.condition = cond
-        node.body = body
-        node.else = else_body
+        node.body = body || Nil.from(p)
+        node.else = else_body || Nil.from(p)
         node
       end
 
       def bytecode(g)
         pos(g)
 
-        ed = g.new_label
-        el = g.new_label
+        done = g.new_label
+        else_label = g.new_label
 
         @condition.bytecode(g)
+        g.gif else_label
 
-        if @body and @else
-          g.gif el
-          @body.bytecode(g)
-          g.goto ed
-          el.set!
-          @else.bytecode(g)
-        elsif @body
-          g.gif el
-          @body.bytecode(g)
-          g.goto ed
-          el.set!
-          g.push :nil
-        elsif @else
-          g.git el
-          @else.bytecode(g)
-          g.goto ed
-          el.set!
-          g.push :nil
-        else
-          # An if with no code. Sweet.
-          g.pop
-          g.push :nil
-          return
-        end
+        @body.bytecode(g)
+        g.goto done
 
-        ed.set!
+        else_label.set!
+        @else.bytecode(g)
+
+        done.set!
       end
     end
 
@@ -1446,7 +1430,7 @@ class Compiler
         if body
           node.body = ModuleScope.from p, name, body
         else
-          node.body = EmptyModule.from p
+          node.body = EmptyBody.from p
         end
 
         node
@@ -1462,9 +1446,9 @@ class Compiler
       end
     end
 
-    class EmptyModule < Node
+    class EmptyBody < Node
       def self.from(p)
-        EmptyModule.new p.compiler
+        EmptyBody.new p.compiler
       end
 
       def bytecode(g)

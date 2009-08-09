@@ -1,3 +1,5 @@
+require "melbourne/nodes"
+
 module Rubinius
   class Melbourne
 
