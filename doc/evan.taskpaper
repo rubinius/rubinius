@@ -1,4 +1,6 @@
 JIT:
+- Method lookup from IC results should include private methods
+- Unify meta_send_op_* with normal IC logic
 - Debug JIT crashes on elle @urgent
 - Inline all methods
   - create_block
@@ -17,6 +19,22 @@ JIT:
   - Must be disabled in blocks (instance_eval)
   - Don't emit type guards for self
     - Must propagate self info into inlined methods
+- Teach JIT about Float
+- Add counters to backward branches, loops heat up a method
++ Do simple @osr for loops
+- Custom inlining of Class#new and Class#allocate
+- Push IC type info downward into inlined methods
+  - Improve decision making of ambigious ICs
+
+JIT Primitives:
+- Kernel
+  - class, kind_of?, __send__
+- Fixnum
+  - *, / (divide), %, <=, >=
+- Bignum
+  - *
+- Array
+  - []
 
 JIT testing:
 - Find medium size benchmarks (like fractal) to add
@@ -29,16 +47,19 @@ GC:
   - Path to bump pointer ops too long
 - Fix VMMethod/CompiledMethod memory leak
 - Expose GC allocation function to LLVM
-- Teach JIT about Float
 
 Runtime:
 - Add support for pragma comments
 - Add a way to have an empty splat show up as nil
   - def foo(*a) Ruby.splat_or_nil; end
   - pragma comment
+- Ivar to number slot transition for all classes
 
 JIT Future:
 - Replace a running methods with it's new JITd version @osr
   - Only needed for replacement of loops
   - Ignore looping that yields (block inlining + @osr == hard)
-
+- Guards for #kind_of? and #respond_to?
+- Analyze better way to deal using available size of JITd method
+  - Don't just use ICs blindly until there is no space available
+- Custom guard for when IC has both Fixnum and Bignum
