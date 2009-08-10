@@ -35,7 +35,7 @@ module Rubinius
 
     # TODO: remove when all processors are defined
     def method_missing(sym, *args)
-      puts "#{sym} #{args.map { |x| x.inspect}.join(", ")}"
+      puts " *** missing #{sym} #{args.map { |x| x.inspect}.join(", ")}"
     end
 
 
@@ -85,16 +85,21 @@ module Rubinius
       AST::BlockArgument.from self, name
     end
 
-    def process_block_pass(line, call, var)
-      AST::BlockPass.from self, call, var
+    def process_block_pass(line, method_send, block)
+      method_send.block = AST::BlockPass.from self, block
+      method_send
     end
 
     def process_break(line, expr)
       AST::Break.from self, expr
     end
 
-    def process_call(line, receiver, sym, args)
-      AST::Call.from self, receiver, sym, args
+    def process_call(line, receiver, name, arguments)
+      if arguments
+        AST::SendWithArguments.from self, receiver, name, arguments, false
+      else
+        AST::Send.from self, receiver, name, false
+      end
     end
 
     def process_case(line, receiver, whens, else_body)
@@ -193,8 +198,13 @@ module Rubinius
       AST::False.from self
     end
 
-    def process_fcall(line, name, args)
-      AST::Call.from self, nil, name, args
+    def process_fcall(line, name, arguments)
+      receiver = AST::Self.from self
+      if arguments
+        AST::SendWithArguments.from self, receiver, name, arguments
+      else
+        AST::Send.from self, receiver, name
+      end
     end
 
     def process_file(line)
@@ -397,7 +407,7 @@ module Rubinius
     end
 
     def process_vcall(line, name)
-      AST::Call.from self, nil, name, nil
+      AST::Send.from self, AST::Self.from(self), name
     end
 
     def process_valias(line, to, from)

@@ -338,11 +338,34 @@ class Compiler
     end
 
     class BlockPass < Node
-      def self.from(p, call, var)
+      attr_accessor :block
+
+      def self.from(p, block)
         node = BlockPass.new p.compiler
+        node.block = block
+        node
+      end
+
+      def children
+        [@variable]
       end
 
       def bytecode(g)
+        nil_block = g.new_label
+
+        @block.bytecode(g)
+
+        g.dup
+        g.is_nil
+        g.git nil_block
+
+        g.push_cpath_top
+        g.find_const :Proc
+
+        g.swap
+        g.send :__from_block__, 1
+
+        nil_block.set!
       end
     end
 
@@ -373,22 +396,126 @@ class Compiler
       end
     end
 
-    class Call < MethodCall
-      attr_accessor :receiver
+    class Send < Node
+      attr_accessor :receiver, :name, :privately, :block
 
-      def self.from(p, receiver, sym, args)
-        node = Call.new p.compiler
+      def self.from(p, receiver, name, privately=true)
+        node = Send.new p.compiler
         node.receiver = receiver
-        node.method = sym
-        node.arguments = args
+        node.name = name
+        node.privately = privately
         node
       end
 
       def children
-        [@receiver, @arguments]
+        [@receiver, @block]
       end
 
       def bytecode(g)
+        pos(g)
+
+        # TODO: involve plugins
+
+        @receiver.bytecode(g)
+
+        if @block
+          @block.bytecode(g)
+          g.send_with_block @name, 0, @privately
+        else
+          g.send @name, 0, @privately
+        end
+      end
+    end
+
+    class SendWithArguments < Send
+      attr_accessor :arguments
+
+      def self.from(p, receiver, name, arguments, privately=true)
+        node = SendWithArguments.new p.compiler
+        node.receiver = receiver
+        node.name = name
+        node.arguments = ActualArguments.from p, arguments
+        node.privately = privately
+        node
+      end
+
+      def children
+        [@receiver, @arguments, @block]
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        # TODO: involve plugins
+
+        @receiver.bytecode(g)
+        @arguments.bytecode(g)
+
+        if @arguments.splat?
+          @block ? @block.bytecode(g) : g.push(:nil)
+          g.send_with_splat @name, @arguments.size, @privately, false
+        elsif @block
+          @block.bytecode(g)
+          g.send_with_block @name, @arguments.size, @privately
+        else
+          g.send @name, @arguments.size, @privately
+        end
+      end
+    end
+
+    class SplatArgument < Node
+      attr_accessor :value
+
+      def self.from(p, value)
+        node = SplatArgument.new p.compiler
+        node.value = value
+        node
+      end
+
+      def children
+        [@value]
+      end
+
+      def bytecode(g)
+        @value.bytecode(g)
+        g.cast_array unless @value.kind_of? ArrayLiteral
+      end
+    end
+
+    class ActualArguments < Node
+      attr_accessor :array, :splat
+
+      def self.from(p, arguments)
+        node = ActualArguments.new p.compiler
+        if arguments.kind_of? Splat
+          node.splat = SplatArgument.from p, arguments.value
+          node.array = []
+        elsif arguments.kind_of? ConcatArgs
+          node.array = arguments.array.body
+          node.splat = SplatArgument.from p, arguments.rest
+        else
+          node.array = arguments.body
+        end
+        node
+      end
+
+      def size
+        @array.size
+      end
+
+      def splat?
+        not @splat.nil?
+      end
+
+      def children
+        children = @array.dup
+        children << @splat if splat?
+        children
+      end
+
+      def bytecode(g)
+        @array.each { |x| x.bytecode(g) }
+        @splat.bytecode(g) if @splat
       end
     end
 
