@@ -1,0 +1,44 @@
+JIT:
+- Debug JIT crashes on elle @urgent
+- Inline all methods
+  - create_block
+  - has splat
+  - has exception handlers
+- Call counters on primitive invocation
+  - note bm_fractal.rb and Float prims
+  - state->shared.primitive_hits[id]++
+- Inline blocks into creation method
+  - phase 1, yield only
+- Research and revise Inline policies
+  - Current policies made up
+- Research call counters (ticks versus invocation rate)
+- Add JIT method specialization
++ Add self type assumption
+  - Must be disabled in blocks (instance_eval)
+  - Don't emit type guards for self
+    - Must propagate self info into inlined methods
+
+JIT testing:
+- Find medium size benchmarks (like fractal) to add
+  - The code in these should have their entire hot
+    paths compiled.
+- Add rake task to run
+
+GC:
+- Speed up allocation
+  - Path to bump pointer ops too long
+- Fix VMMethod/CompiledMethod memory leak
+- Expose GC allocation function to LLVM
+- Teach JIT about Float
+
+Runtime:
+- Add support for pragma comments
+- Add a way to have an empty splat show up as nil
+  - def foo(*a) Ruby.splat_or_nil; end
+  - pragma comment
+
+JIT Future:
+- Replace a running methods with it's new JITd version @osr
+  - Only needed for replacement of loops
+  - Ignore looping that yields (block inlining + @osr == hard)
+
