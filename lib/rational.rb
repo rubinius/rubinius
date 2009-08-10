@@ -222,14 +222,14 @@ class Rational < Numeric
       Float(self) ** other
     elsif other.kind_of?(Integer)
       if other > 0
-	num = @numerator ** other
-	den = @denominator ** other
+        num = @numerator ** other
+        den = @denominator ** other
       elsif other < 0
-	num = @denominator ** -other
-	den = @numerator ** -other
+        num = @denominator ** -other
+        den = @numerator ** -other
       elsif other == 0
-	num = 1
-	den = 1
+        num = 1
+        den = 1
       end
       Rational.new!(num, den)
     elsif other.kind_of?(Float)
@@ -287,8 +287,8 @@ class Rational < Numeric
   #
   # Don't use Rational.new!
   #
+
   alias_method :eql?, :==
-  
   def == (other)
     if other.kind_of?(Rational)
       @numerator == other.numerator and @denominator == other.denominator
@@ -310,11 +310,11 @@ class Rational < Numeric
       num_a = other.numerator * @denominator
       v = num - num_a
       if v > 0
-	return 1
+        return 1
       elsif v < 0
-	return  -1
+        return  -1
       else
-	return 0
+        return 0
       end
     elsif other.kind_of?(Integer)
       return self <=> Rational.new!(other, 1)
