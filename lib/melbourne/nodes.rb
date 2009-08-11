@@ -163,6 +163,9 @@ class Compiler
       []
     end
 
+    def bytecode(g)
+    end
+
     def visit(arg=true, &block)
       children.each do |child|
         next unless ch_arg = block.call(arg, child)
@@ -227,12 +230,26 @@ class Compiler
       end
     end
 
-    class Arguments < Node
+    class EmptyArguments < Node
+      attr_accessor :names, :required, :optional, :defaults, :splat, :block_arg
+
+      def initialize(compiler)
+        super compiler
+        @required = []
+        @optional = []
+      end
+
+      def arity
+        0
+      end
+    end
+
+    class FormalArguments < Node
       attr_accessor :names, :required, :optional, :defaults, :splat
       attr_reader :block_arg
 
       def self.from(p, args, defaults, splat)
-        node = Arguments.new p.compiler
+        node = FormalArguments.new p.compiler
 
         if defaults
           defaults = DefaultArguments.from p, defaults
@@ -264,8 +281,15 @@ class Compiler
         @block_arg.bytecode(g) if @block_arg
       end
 
+      def arity
+        @required.size
+      end
+
       def children
-        @defaults
+        children = []
+        children << @defaults if @defaults
+        children << @block_arg if @block_arg
+        children
       end
     end
 
@@ -369,11 +393,13 @@ class Compiler
       end
 
       def strip_arguments
-        if @body.first.kind_of? Arguments
+        if @body.first.kind_of? FormalArguments
           node = @body.shift
           if @body.first.kind_of? BlockArgument
             node.block_arg = @body.shift
           end
+        else
+          node = EmptyArguments.new @compiler
         end
         node
       end
@@ -604,6 +630,12 @@ class Compiler
         node
       end
 
+      def children
+        children = @whens.dup
+        children << @else
+        children
+      end
+
       def bytecode(g)
         done = g.new_label
 
@@ -624,10 +656,17 @@ class Compiler
 
       def self.from(p, receiver, whens, else_body)
         node = ReceiverCase.new p.compiler
-        node.receiver
+        node.receiver = receiver
         node.whens = whens
         node.else = else_body || Nil.from(p)
         node
+      end
+
+      def children
+        children = [@receiver]
+        children.concat @whens
+        children << @else
+        children
       end
 
       def bytecode(g)
@@ -801,7 +840,7 @@ class Compiler
             result = nil
           when LocalVariable
             scope.assign_local_reference node
-          when Arguments
+          when FormalArguments
             scope.map_arguments node
           when Iter
             scope.nest_scope node
@@ -1056,14 +1095,16 @@ class Compiler
     end
 
     class DefineSingleton < Define
-      def self.from(p, receiver, name, body)
+      def self.from(p, receiver, name, block)
         node = DefineSingleton.new p.compiler
         node.object = receiver
-        node.body = body
+        node.arguments = block.strip_arguments
+        node.body = block
         node
       end
 
       def bytecode(g)
+        super(g)
         pos(g)
 
         if @compiler.kernel?
@@ -1511,7 +1552,11 @@ class Compiler
       end
 
       def bytecode(g)
+        unless @variable
+          puts " *** attempted to get bytecode for nil variable: #{@name}"
+        else
         @variable.get_bytecode(g)
+        end
       end
     end
 
@@ -2381,7 +2426,7 @@ class Compiler
         node
       end
 
-      def bytecode(g)
+      def bytecode(g, has_receiver, nxt, fin)
       end
     end
 

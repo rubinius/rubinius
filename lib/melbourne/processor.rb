@@ -50,7 +50,7 @@ module Rubinius
     end
 
     def process_args(line, args, defaults, splat)
-      AST::Arguments.from self, args, defaults, splat
+      AST::FormalArguments.from self, args, defaults, splat
     end
 
     def process_argscat(line, array, rest)
@@ -103,7 +103,7 @@ module Rubinius
     end
 
     def process_case(line, receiver, whens, else_body)
-      if target
+      if receiver
         AST::ReceiverCase.from self, receiver, whens, else_body
       else
         AST::Case.from self, whens, else_body
