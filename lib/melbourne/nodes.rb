@@ -2261,11 +2261,11 @@ class Compiler
     end
 
     class Until < While
-      def self.from(p, condition, body, post)
+      def self.from(p, condition, body, check_first)
         node = Until.new p.compiler
         node.condition = condition
         node.body = body
-        node.post = post
+        node.check_first = check_first
         node
       end
 
@@ -2311,17 +2311,68 @@ class Compiler
     end
 
     class While < Node
-      attr_accessor :condition, :body, :post
+      attr_accessor :condition, :body, :check_first
 
-      def self.from(p, cond, body, post)
+      def self.from(p, condition, body, check_first)
         node = While.new p.compiler
         node.condition = condition
         node.body = body
-        node.post = post
+        node.check_first = check_first
         node
       end
 
-      def bytecode(g)
+      def bytecode(g, use_gif=true)
+        pos(g)
+
+        g.push_modifiers
+
+        top = g.new_label
+        bot = g.new_label
+        g.break = g.new_label
+
+        if @check_first
+          g.redo = g.new_label
+          g.next = top
+
+          top.set!
+
+          @condition.bytecode(g)
+          if use_gif
+            g.gif bot
+          else
+            g.git bot
+          end
+
+          g.redo.set!
+
+          @body.bytecode(g)
+          g.pop
+        else
+          g.next = g.new_label
+          g.redo = top
+
+          top.set!
+
+          @body.bytecode(g)
+          g.pop
+
+          g.next.set!
+          @condition.bytecode(g)
+          if use_gif
+            g.gif bot
+          else
+            g.git bot
+          end
+        end
+
+        g.check_interrupts
+        g.goto top
+
+        bot.set!
+        g.push :nil
+        g.break.set!
+
+        g.pop_modifiers
       end
     end
 

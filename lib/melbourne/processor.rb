@@ -402,8 +402,8 @@ module Rubinius
       AST::Undef.from self, sym
     end
 
-    def process_until(line, cond, body, post_cond)
-      AST::Until.from self, cond, body, post_cond
+    def process_until(line, cond, body, check_first)
+      AST::Until.from self, cond, body, check_first
     end
 
     def process_vcall(line, name)
@@ -418,8 +418,8 @@ module Rubinius
       AST::When.from self, args, body
     end
 
-    def process_while(line, cond, body, post_cond)
-      AST::While.from self, cond, body, post_cond
+    def process_while(line, cond, body, check_first)
+      AST::While.from self, cond, body, check_first
     end
 
     def process_xstr(line, str)
