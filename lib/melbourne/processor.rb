@@ -379,7 +379,7 @@ module Rubinius
     end
 
     def process_splat(line, expr)
-      AST::Splat.from self, expr
+      AST::SplatValue.from self, expr
     end
 
     def process_str(line, str)

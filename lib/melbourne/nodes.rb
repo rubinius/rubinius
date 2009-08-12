@@ -554,11 +554,12 @@ class Compiler
       end
     end
 
-    class SplatArgument < Node
+    # TODO: rename to Splat and fix Splat superclass
+    class SplatValue < Node
       attr_accessor :value
 
       def self.from(p, value)
-        node = SplatArgument.new p.compiler
+        node = SplatValue.new p.compiler
         node.value = value
         node
       end
@@ -578,12 +579,12 @@ class Compiler
 
       def self.from(p, arguments)
         node = ActualArguments.new p.compiler
-        if arguments.kind_of? Splat
-          node.splat = SplatArgument.from p, arguments.value
+        if arguments.kind_of? SplatValue
+          node.splat = arguments
           node.array = []
         elsif arguments.kind_of? ConcatArgs
           node.array = arguments.array.body
-          node.splat = SplatArgument.from p, arguments.rest
+          node.splat = SplatValue.from p, arguments.rest
         else
           node.array = arguments.body
         end
@@ -1996,7 +1997,7 @@ class Compiler
     class PushArgs < DynamicArguments
       def self.from(p, splat, value)
         node = PushArgs.new p.compiler
-        node.array = splat.child
+        node.array = splat.value
         node.item = value
         node
       end
@@ -2302,11 +2303,13 @@ class Compiler
         node
       end
 
+      def children
+        [@value]
+      end
+
       def bytecode(g)
-        g.make_array 0
         @value.bytecode(g)
-        g.cast_array
-        g.send :+, 1
+        g.cast_array unless @value.kind_of? ArrayLiteral
       end
     end
 
@@ -2348,6 +2351,21 @@ class Compiler
       end
 
       def bytecode(g)
+        @value.bytecode(g)
+        if @value.kind_of? SplatValue
+          done = g.new_label
+
+          g.dup
+          g.send :size, 0
+          g.push 1
+          g.send :>, 1
+          g.git done
+
+          g.push 0
+          g.send :at, 1
+
+          done.set!
+        end
       end
     end
 
