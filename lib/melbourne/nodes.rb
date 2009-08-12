@@ -230,20 +230,6 @@ class Compiler
       end
     end
 
-    class EmptyArguments < Node
-      attr_accessor :names, :required, :optional, :defaults, :splat, :block_arg
-
-      def initialize(compiler)
-        super compiler
-        @required = []
-        @optional = []
-      end
-
-      def arity
-        0
-      end
-    end
-
     class FormalArguments < Node
       attr_accessor :names, :required, :optional, :defaults, :splat
       attr_reader :block_arg
@@ -285,11 +271,11 @@ class Compiler
         @required.size
       end
 
-      def children
-        children = []
-        children << @defaults if @defaults
-        children << @block_arg if @block_arg
-        children
+      def map_arguments(scope)
+        @required.each { |arg| scope.new_local arg }
+        @defaults.map_arguments scope if @defaults
+        scope.new_local @splat if @splat.kind_of? Symbol
+        scope.assign_local_reference @block_arg if @block_arg
       end
     end
 
@@ -298,9 +284,14 @@ class Compiler
 
       def self.from(p, block)
         node = DefaultArguments.new p.compiler
-        node.arguments = block.body
-        node.names = node.arguments.map { |a| a.name }
+        array = block.array
+        node.names = array.map { |a| a.name }
+        node.arguments = array
         node
+      end
+
+      def map_arguments(scope)
+        @arguments.each { |var| scope.assign_local_reference var }
       end
 
       def bytecode(g)
@@ -385,42 +376,41 @@ class Compiler
     # make do and pull them out here rather than having something else reach
     # inside of Block.
     class Block < Node
+      attr_accessor :array
+
       def self.from(p, array)
         node = Block.new p.compiler
-        array = Nil.from(p) unless array
-        node.body = Array(array)
+        node.array = array
         node
       end
 
       def strip_arguments
-        if @body.first.kind_of? FormalArguments
-          node = @body.shift
-          if @body.first.kind_of? BlockArgument
-            node.block_arg = @body.shift
+        if @array.first.kind_of? FormalArguments
+          node = @array.shift
+          if @array.first.kind_of? BlockArgument
+            node.block_arg = @array.shift
           end
-        else
-          node = EmptyArguments.new @compiler
+          return node
         end
-        node
       end
 
       def children
-        @body
+        @array
       end
 
       def bytecode(g)
         # TODO: make plugins responsible for popping or not
-        count = @body.size - 1
+        count = @array.size - 1
         i = 0
         while i < count
           ip = g.ip
-          @body[i].bytecode(g)
+          @array[i].bytecode(g)
 
           # guards for things that plugins might optimize away.
           g.pop if g.advanced_since?(ip)
           i += 1
         end
-        @body[count].bytecode(g)
+        @array[count].bytecode(g)
       end
     end
 
@@ -841,7 +831,7 @@ class Compiler
           when LocalVariable
             scope.assign_local_reference node
           when FormalArguments
-            scope.map_arguments node
+            node.map_arguments scope
           when Iter
             scope.nest_scope node
             result = node
@@ -851,16 +841,16 @@ class Compiler
         end
       end
 
-      def map_arguments(node)
-        node.names.each { |arg| new_local arg }
-      end
-
       def nest_scope(scope)
         scope.parent = self
       end
 
-      def bytecode(g)
+      def scope_bytecode(g)
         map_locals
+      end
+
+      def bytecode(g)
+        scope_bytecode(g)
       end
 
       def attach_and_call(g, name, scoped=false)
@@ -1032,6 +1022,7 @@ class Compiler
         node = Define.new p.compiler
         node.name = name
         node.arguments = block.strip_arguments
+        block.array << Nil.from(p) if block.array.empty?
         node.body = block
         node
       end
@@ -1063,8 +1054,9 @@ class Compiler
       end
 
       def bytecode(g)
-        super(g)
         pos(g)
+
+        scope_bytecode(g)
 
         g.push_const :Rubinius
         g.push_literal @name
@@ -1095,33 +1087,42 @@ class Compiler
     end
 
     class DefineSingleton < Define
+      attr_accessor :receiver
+
       def self.from(p, receiver, name, block)
         node = DefineSingleton.new p.compiler
-        node.object = receiver
+        node.receiver = receiver
+        node.name = name
         node.arguments = block.strip_arguments
+        block.array << Nil.from(p) if block.array.empty?
         node.body = block
         node
       end
 
       def bytecode(g)
-        super(g)
         pos(g)
+
+        scope_bytecode(g)
 
         if @compiler.kernel?
           g.push_const :Rubinius
           g.push_literal @name
           g.push_literal compile_body(g)
           g.push_scope
-          @object.bytecode(g)
+          @receiver.bytecode(g)
           g.send :attach_method, 4
         else
-          @object.bytecode(g)
+          @receiver.bytecode(g)
           g.send :metaclass, 0
           g.push_literal @name
           g.push_literal compile_body(g)
           g.push_scope
           g.send :attach_method, 3
         end
+      end
+
+      def children
+        [@receiver, @arguments, @body]
       end
     end
 
@@ -2224,7 +2225,7 @@ class Compiler
         if body.kind_of? Block
           body
         elsif body
-          Block.from p, body
+          Block.from p, [body]
         end
       end
     end
