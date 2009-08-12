@@ -123,9 +123,9 @@ class Compiler
 
     def graph_value(name, value, level)
       case value
-      when NilClass
+      when NilClass, String
         graph_simple name, value.inspect, level
-      when TrueClass, FalseClass, Symbol, Fixnum, String
+      when TrueClass, FalseClass, Symbol, Fixnum
         graph_simple name, value, level
       when Array
         puts "#{" " * level}#{name}:"
@@ -438,7 +438,7 @@ class Compiler
       end
 
       def children
-        [@variable]
+        [@block]
       end
 
       def bytecode(g)
@@ -1079,10 +1079,18 @@ class Compiler
     end
 
     class Defined < Node
+      attr_accessor :expression
+
       def self.from(p, expr)
         node = Defined.new p.compiler
         node.expression = expr
         node
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        # TODO: implement as evaluator on @expression AST
       end
     end
 
@@ -1130,7 +1138,7 @@ class Compiler
       def self.from(p, str, array)
         node = DynamicExecuteString.new p.compiler
         node.string = str
-        node.body = array
+        node.array = array
         node
       end
 
@@ -1147,7 +1155,7 @@ class Compiler
       def self.from(p, str, array, flags)
         node = DynamicRegex.new p.compiler
         node.string = str
-        node.body = array
+        node.array = array
         node.options = flags
         node
       end
@@ -1166,7 +1174,7 @@ class Compiler
       def self.from(p, str, array, flags)
         node = DynamicRegex.new p.compiler
         node.string = str
-        node.body = array
+        node.array = array
         node.options = flags
         node
       end
@@ -1191,25 +1199,29 @@ class Compiler
     end
 
     class DynamicString < StringLiteral
-      attr_accessor :options
+      attr_accessor :array, :options
 
       def self.from(p, str, array)
         node = DynamicString.new p.compiler
         node.string = str
-        node.body = array
+        node.array = array
         node
+      end
+
+      def children
+        @array
       end
 
       def bytecode(g)
         pos(g)
 
-        @body.reverse_each do |x|
+        @array.reverse_each do |x|
           x.bytecode(g)
         end
         g.push_literal @string
         g.string_dup
 
-        @body.size.times do
+        @array.size.times do
           g.string_append
         end
       end
@@ -1219,7 +1231,7 @@ class Compiler
       def self.from(p, str, array)
         node = DynamicSymbol.new p.compiler
         node.string = str
-        node.body = array
+        node.array = array
         node
       end
 
@@ -1425,6 +1437,10 @@ class Compiler
         node
       end
 
+      def children
+        [@condition, @body, @else]
+      end
+
       def bytecode(g)
         pos(g)
 
@@ -1553,11 +1569,8 @@ class Compiler
       end
 
       def bytecode(g)
-        unless @variable
-          puts " *** attempted to get bytecode for nil variable: #{@name}"
-        else
+        p @name unless @variable
         @variable.get_bytecode(g)
-        end
       end
     end
 
@@ -1569,6 +1582,12 @@ class Compiler
         node.name = name
         node.value = expr
         node
+      end
+
+      def children
+        children = []
+        children << @value if @value
+        children
       end
 
       def bytecode(g)
@@ -1599,7 +1618,7 @@ class Compiler
     class Match < Node
       def self.from(p, pattern, flags)
         node = Match.new p.compiler
-        node.pattern = pattern
+        node.pattern = RegexLiteral.from p, pattern, flags
         node
       end
 
@@ -1631,7 +1650,7 @@ class Compiler
         pos(g)
 
         @pattern.bytecode(g)
-        @target.bytecode(g)
+        @value.bytecode(g)
         g.send :=~, 1
       end
     end
@@ -1649,7 +1668,7 @@ class Compiler
       def bytecode(g)
         pos(g)
 
-        @target.bytecode(g)
+        @value.bytecode(g)
         @pattern.bytecode(g)
         g.send :=~, 1
       end
@@ -1793,7 +1812,7 @@ class Compiler
     class Next < Break
       def self.from(p, expr)
         node = Next.new p.compiler
-        node.value expr
+        node.value = expr
         node
       end
 
@@ -1892,6 +1911,10 @@ class Compiler
         node
       end
 
+      def children
+        [@receiver, @value]
+      end
+
       def bytecode(g)
       end
     end
@@ -1907,6 +1930,10 @@ class Compiler
         node
       end
 
+      def children
+        [@receiver, @value]
+      end
+
       def bytecode(g)
       end
     end
@@ -1917,6 +1944,10 @@ class Compiler
         node.left = left
         node.right = right
         node
+      end
+
+      def children
+        [@left, @right]
       end
 
       def bytecode(g)
@@ -2344,6 +2375,10 @@ class Compiler
         node = ToString.new p.compiler
         node.value = value
         node
+      end
+
+      def children
+        [@value]
       end
 
       def bytecode(g)

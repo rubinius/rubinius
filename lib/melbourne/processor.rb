@@ -191,7 +191,11 @@ module Rubinius
     end
 
     def process_evstr(line, value)
-      AST::ToString.from self, value
+      if value
+        AST::ToString.from self, value
+      else
+        AST::StringLiteral.from self, ""
+      end
     end
 
     def process_false(line)
