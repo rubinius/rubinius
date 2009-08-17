@@ -1267,12 +1267,43 @@ class Compiler
     end
 
     class Ensure < Node
-      def self.from(p, head, ensr)
+      def self.from(p, body, ensr)
         node = Ensure.new p.compiler
+        node.body = body || Nil.from(p)
+        node.ensure = ensr
         node
       end
 
+      def children
+        [@body, @ensure]
+      end
+
       def bytecode(g)
+        pos(g)
+
+        ok = g.new_label
+        g.exceptions :ensure do |ex|
+          @body.bytecode(g)
+          ex.escape ok
+
+          ex.handle!
+          g.push_exception
+
+          @ensure.bytecode(g)
+          g.pop
+
+          g.pop_exception
+
+          # Re-raise the exception
+          g.reraise
+        end
+
+        ok.set!
+
+        # Now, re-emit the code for the ensure which will run if there was no
+        # exception generated.
+        @ensure.bytecode(g)
+        g.pop
       end
     end
 

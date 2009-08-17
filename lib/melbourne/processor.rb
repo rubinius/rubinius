@@ -186,8 +186,8 @@ module Rubinius
       AST::DynamicExecuteString.from self, str, array
     end
 
-    def process_ensure(line, head, ensr)
-      AST::Ensure.from self, head, ensr
+    def process_ensure(line, body, ensr)
+      AST::Ensure.from self, body, ensr
     end
 
     def process_evstr(line, value)
