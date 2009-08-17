@@ -1,0 +1,1 @@
+fails:"A Rescue node is compiled from \n    begin\n      1\n    rescue\n      def x\n        return 2\n      end\n      x\n    end"

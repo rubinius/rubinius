@@ -656,4 +656,90 @@ describe "A Rescue node" do
       g.pop_modifiers
     end
   end
+
+  relates <<-ruby do
+      begin
+        1
+      rescue
+        begin
+          2
+        rescue
+          return 3
+        end
+      end
+    ruby
+
+    parse do
+      [:rescue,
+       [:lit, 1],
+       [:resbody,
+        [:array],
+        [:rescue, [:lit, 2], [:resbody, [:array], [:return, [:lit, 3]]]]]]
+    end
+
+    compile do |g|
+      in_rescue :StandardError, 1 do |section|
+        case section
+        when :body
+          g.push 1
+        when :StandardError
+          in_rescue :StandardError, 1 do |section|
+            case section
+            when :body
+              g.push 2
+            when :StandardError
+              g.clear_exception
+              g.push 3
+              g.ret
+            end
+          end
+        end
+      end
+    end
+  end
+
+  relates <<-ruby do
+      begin
+        1
+      rescue
+        def x
+          return 2
+        end
+        x
+      end
+    ruby
+
+    parse do
+      [:rescue,
+       [:lit, 1],
+       [:resbody,
+        [:array],
+        [:block,
+         [:defn, :x, [:args], [:scope, [:block, [:return, [:lit, 2]]]]],
+         [:call, nil, :x, [:arglist]]]]]
+    end
+
+    compile do |g|
+      in_rescue :StandardError, 1 do |section|
+        case section
+        when :body
+          g.push 1
+        when :StandardError
+          g.push_const :Rubinius
+          g.push_literal :x
+          g.push_literal_desc :x do |d|
+            d.push 2
+            d.ret
+            d.ret
+          end
+          g.push_scope
+          g.push_variables
+          g.send :method_visibility, 0
+          g.send :add_defn_method, 4
+
+          g.send :x, 0, true
+        end
+      end
+    end
+  end
 end

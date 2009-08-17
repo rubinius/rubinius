@@ -166,10 +166,15 @@ class Compiler
     def bytecode(g)
     end
 
+    def in_rescue
+    end
+
     def visit(arg=true, &block)
       children.each do |child|
-        next unless ch_arg = block.call(arg, child)
-        child.visit(ch_arg, &block) if child
+        if child
+          next unless ch_arg = block.call(arg, child)
+          child.visit(ch_arg, &block)
+        end
       end
     end
 
@@ -325,13 +330,18 @@ class Compiler
     end
 
     class AttrAssign < Call
-      attr_accessor :receiver, :name, :value
+      attr_accessor :receiver, :name, :arguments, :value
 
       def self.from(p, receiver, name, value)
         node = AttrAssign.new p.compiler
         node.receiver = receiver
         node.name = name
-        node.value = value
+        if value.kind_of? ArrayLiteral
+          node.value = value.body.pop
+          node.arguments = value
+        else
+          node.value = value
+        end
         node
       end
 
@@ -2118,7 +2128,7 @@ class Compiler
           g.retry = g.new_label
           reraise = g.new_label
           els     = g.new_label
-          last    = g.new_label
+          done    = g.new_label
 
           # Save the current exception into a local
           g.push_exception
@@ -2129,11 +2139,7 @@ class Compiler
             ex.escape els
 
             ex.handle!
-            # TODO: this is a linked list now
-            #max = @rescues.size - 1
-            #@rescues.each_with_index do |resbody, i|
-            #  resbody.bytecode(g, reraise, last, i == max)
-            #end
+            @rescue.bytecode(g, reraise, done)
             reraise.set!
             g.reraise
           end
@@ -2143,10 +2149,8 @@ class Compiler
             g.pop
             @else.bytecode(g)
           end
-          last.set!
+          done.set!
 
-          # Restore the previous exception if execution reaches this point
-          #g.push_local @saved_exception.slot
           g.swap
           g.pop_exception
         end
@@ -2155,19 +2159,144 @@ class Compiler
     end
 
     class RescueCondition < Node
+      attr_accessor :conditions, :assignment, :body, :next, :splat
+
       def self.from(p, conditions, body, nxt)
         node = RescueCondition.new p.compiler
-        node.conditions = conditions
-        node.body = body
         node.next = nxt
+
+        case conditions
+        when ArrayLiteral
+          node.conditions = conditions
+        when ConcatArgs
+          node.conditions = conditions.array
+          node.splat = RescueSplat.from p, conditions.rest
+        when SplatValue
+          node.splat = RescueSplat.from p, conditions.value
+        when nil
+          condition = ConstFind.from p, :StandardError
+          node.conditions = ArrayLiteral.from p, [condition]
+        end
+
+        case body
+        when ArrayLiteral
+          node.assignment = body.shift if assignment? body.first
+          node.body = body
+        when nil
+          node.body = Nil.from p
+        else
+          if assignment? body
+            node.assignment = body
+            node.body = Nil.from p
+          else
+            node.body = body
+          end
+        end
+
         node
       end
 
-      def children
-        [@conditions, @body, @next]
+      # TODO: simplify after assignment nodes are subclasses of Assignment
+      def self.assignment?(node)
+        (node.kind_of? LocalAssignment or
+         node.kind_of? IVarAssign or
+         node.kind_of? CVarAssign or
+         node.kind_of? AttrAssign or
+         node.kind_of? GVarAssign) and
+        node.value.name == :$!
       end
 
-      def bytecode(g)
+      def map_rescue
+        @body.in_rescue
+        @body.visit do |result, node|
+          case node
+          when ClosedScope
+            result = nil
+          else
+            node.in_rescue
+          end
+
+          result
+        end
+      end
+
+      def children
+        [@conditions, @assignment, @body, @next]
+      end
+
+      def bytecode(g, reraise, done)
+        pos(g)
+        body = g.new_label
+
+        if @conditions
+          @conditions.body.each do |c|
+            c.bytecode(g)
+            g.push_exception
+            g.send :===, 1
+            g.git body
+          end
+        end
+
+        @splat.bytecode(g, body) if @splat
+
+        if @next
+          if_false = g.new_label
+          g.goto if_false
+        else
+          g.goto reraise
+        end
+
+        body.set!
+
+        if @assignment
+          @assignment.bytecode(g)
+          g.pop
+        end
+
+        current_break = g.break
+        g.break = g.new_label
+
+        map_rescue
+        @body.bytecode(g)
+        g.clear_exception
+        g.goto done
+
+        if g.break.used?
+          g.break.set!
+          g.clear_exception
+
+          g.swap
+          g.pop_exception
+          if current_break
+            g.goto current_break
+          else
+            g.raise_break
+          end
+        end
+
+        g.break = current_break
+        if @next
+          if_false.set!
+          @next.bytecode(g, reraise, done)
+        end
+      end
+    end
+
+    class RescueSplat < Node
+      attr_accessor :value
+
+      def self.from(p, value)
+        node = RescueSplat.new p.compiler
+        node.value = value
+        node
+      end
+
+      def bytecode(g, body)
+        @value.bytecode(g)
+        g.cast_array
+        g.push_exception
+        g.send :__rescue_match__, 1
+        g.git body
       end
     end
 
@@ -2196,6 +2325,10 @@ class Compiler
 
       def children
         [@value]
+      end
+
+      def in_rescue
+        @in_rescue = true
       end
 
       def bytecode(g, force=false)
