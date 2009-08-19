@@ -25,6 +25,9 @@ JIT:
 - Custom inlining of Class#new and Class#allocate
 - Push IC type info downward into inlined methods
   - Improve decision making of ambigious ICs
+- Rather than uses the operand stack in every instruction, 
+  return SSA variables and use a tracking map, flushing the
+  map contents to the operand stack only when needed
 
 JIT Primitives:
 - Kernel
