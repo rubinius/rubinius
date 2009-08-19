@@ -14,15 +14,19 @@ namespace rubinius {
     JITOperations& ops_;
     InlineCache* cache_;
     int count_;
-    BasicBlock* after_;
+    BasicBlock* failure_;
+    Value* result_;
+    bool check_for_exception_;
 
   public:
 
-    Inliner(JITOperations& ops, InlineCache* cache, int count, BasicBlock* after)
+    Inliner(JITOperations& ops, InlineCache* cache, int count, BasicBlock* failure)
       : ops_(ops)
       , cache_(cache)
       , count_(count)
-      , after_(after)
+      , failure_(failure)
+      , result_(0)
+      , check_for_exception_(true)
     {}
 
     Value* recv() {
@@ -33,8 +37,24 @@ namespace rubinius {
       return ops_.stack_back(count_ - (which + 1));
     }
 
-    BasicBlock* after() {
-      return after_;
+    BasicBlock* failure() {
+      return failure_;
+    }
+
+    Value* result() {
+      return result_;
+    }
+
+    void set_result(Value* val) {
+      result_ = val;
+    }
+
+    void exception_safe() {
+      check_for_exception_ = false;
+    }
+
+    bool check_for_exception() {
+      return check_for_exception_;
     }
 
     bool consider();

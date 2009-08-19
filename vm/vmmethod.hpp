@@ -21,6 +21,8 @@ namespace rubinius {
   typedef uintptr_t opcode;
   typedef uint32_t bpflags;
 
+  typedef std::list<Object**> IndirectLiterals;
+
   // Breakpoint flags are set in the high byte of an opcode
   const bpflags cBreakpoint = 1 << 24;
   const bpflags cBreakAfterSend = 1 << 25;
@@ -44,6 +46,7 @@ namespace rubinius {
   class VMMethod {
   private:
     TypedRoot<MachineMethod*> machine_method_;
+    IndirectLiterals indirect_literals_;
 
   public:
     static void** instructions;
@@ -129,6 +132,10 @@ namespace rubinius {
       return number_of_caches_;
     }
 
+    IndirectLiterals& indirect_literals() {
+      return indirect_literals_;
+    }
+
     void set_machine_method(MachineMethod* mm);
 
     void specialize(STATE, TypeInfo* ti);
@@ -184,6 +191,7 @@ namespace rubinius {
     void find_super_instructions();
 
     void deoptimize(STATE);
+    Object** add_indirect_literal(Object* obj);
 
     /*
      * Helper class for iterating over an Opcode array.  Used to convert a

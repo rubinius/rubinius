@@ -4,6 +4,8 @@
 #include "builtin/executable.hpp"
 #include "vm.hpp"
 
+#include <list>
+
 namespace rubinius {
 
   class InstructionSequence;
@@ -37,7 +39,6 @@ namespace rubinius {
     /* accessors */
 
     VMMethod* backend_method_;
-
 
     attr_accessor(name, Symbol);
     attr_accessor(iseq, InstructionSequence);

@@ -314,6 +314,17 @@ mod->addTypeName("struct.rubinius::CompiledMethod", StructTy_struct_rubinius__Co
 mod->addTypeName("struct.rubinius::Dispatch", StructTy_struct_rubinius__Dispatch);
 mod->addTypeName("struct.rubinius::Executable", StructTy_struct_rubinius__Executable);
 mod->addTypeName("struct.rubinius::Fixnum", OpaqueTy_struct_rubinius__Fixnum);
+std::vector<const Type*>StructTy_struct_rubinius__Float_fields;
+std::vector<const Type*>StructTy_struct_rubinius__Numeric_fields;
+StructTy_struct_rubinius__Numeric_fields.push_back(StructTy_struct_rubinius__Object);
+StructType* StructTy_struct_rubinius__Numeric = StructType::get(StructTy_struct_rubinius__Numeric_fields, /*isPacked=*/false);
+mod->addTypeName("struct.rubinius::Numeric", StructTy_struct_rubinius__Numeric);
+
+StructTy_struct_rubinius__Float_fields.push_back(StructTy_struct_rubinius__Numeric);
+StructTy_struct_rubinius__Float_fields.push_back(Type::DoubleTy);
+StructType* StructTy_struct_rubinius__Float = StructType::get(StructTy_struct_rubinius__Float_fields, /*isPacked=*/false);
+mod->addTypeName("struct.rubinius::Float", StructTy_struct_rubinius__Float);
+
 std::vector<const Type*>StructTy_struct_rubinius__InlineCache_fields;
 StructTy_struct_rubinius__InlineCache_fields.push_back(StructTy_struct_rubinius__Dispatch);
 StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_2);
@@ -358,6 +369,7 @@ mod->addTypeName("struct.rubinius::InstructionSequence", OpaqueTy_struct_rubiniu
 mod->addTypeName("struct.rubinius::LookupTable", OpaqueTy_struct_rubinius__LookupTable);
 mod->addTypeName("struct.rubinius::MethodTable", OpaqueTy_struct_rubinius__MethodTable);
 mod->addTypeName("struct.rubinius::Module", StructTy_struct_rubinius__Module);
+mod->addTypeName("struct.rubinius::Numeric", StructTy_struct_rubinius__Numeric);
 mod->addTypeName("struct.rubinius::Object", StructTy_struct_rubinius__Object);
 mod->addTypeName("struct.rubinius::ObjectHeader", StructTy_struct_rubinius__ObjectHeader);
 mod->addTypeName("struct.rubinius::ObjectHeader::$_44", StructTy_struct_rubinius__ObjectHeader____44);

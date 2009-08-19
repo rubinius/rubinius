@@ -358,6 +358,8 @@ namespace rubinius {
       return ConstantInt::get(Type::Int32Ty, last_sp_);
     }
 
+    void flush_stack() { }
+
     Value* stack_position(int amount) {
       int pos = sp_ + amount;
       assert(pos >= 0 && pos < vmmethod()->stack_size);

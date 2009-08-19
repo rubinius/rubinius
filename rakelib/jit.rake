@@ -22,6 +22,8 @@ namespace :jit do
                  rubinius::InlineCacheHit
                  rubinius::BlockEnvironment
                  rubinius::BlockInvocation
+                 rubinius::Numeric
+                 rubinius::Float
                  jit_state!
     require 'tempfile'
 
@@ -29,7 +31,9 @@ namespace :jit do
                vm/arguments.hpp
                vm/dispatch.hpp
                vm/inline_cache.hpp
-               vm/builtin/block_environment.hpp!
+               vm/builtin/block_environment.hpp
+               vm/builtin/integer.hpp
+               vm/builtin/float.hpp!
     path = "llvm-type-temp.cpp"
 
     File.open(path, "w+") do |f|

@@ -173,10 +173,9 @@ namespace rubinius {
   void Inliner::inline_trivial_method(Class* klass, CompiledMethod* cm) {
     VMMethod* vmm = cm->backend_method_;
 
-    Value* self = ops_.stack_top();
+    Value* self = recv();
 
-    BasicBlock* use_send = ops_.new_block("use_send");
-    ops_.check_class(self, klass, use_send);
+    ops_.check_class(self, klass, failure());
 
     Value* val = 0;
     /////
@@ -214,12 +213,9 @@ namespace rubinius {
     /////
 
     assert(val);
-    ops_.stack_set_top(val);
 
-    ops_.create_branch(after_);
-    ops_.set_block(use_send);
-
-    after_->moveAfter(use_send);
+    exception_safe();
+    set_result(val);
   }
 
   void Inliner::inline_ivar_write(Class* klass, AccessVariable* acc) {
@@ -238,11 +234,10 @@ namespace rubinius {
 
     ops_.state()->add_accessor_inlined();
 
-    Value* val  = ops_.stack_top();
-    Value* self = ops_.stack_back(1);
+    Value* val  = arg(0);
+    Value* self = recv();
 
-    BasicBlock* use_send = ops_.new_block("use_send");
-    ops_.check_reference_class(self, klass->class_id(), use_send);
+    ops_.check_reference_class(self, klass->class_id(), failure());
 
     // Figure out if we should use the table ivar lookup or
     // the slot ivar lookup.
@@ -271,14 +266,8 @@ namespace rubinius {
           ops_.b());
     }
 
-    ops_.stack_remove(1);
-    ops_.stack_set_top(val);
-
-    ops_.create_branch(after_);
-    ops_.set_block(use_send);
-
-    after_->moveAfter(use_send);
-
+    exception_safe();
+    set_result(val);
   }
 
   void Inliner::inline_ivar_access(Class* klass, AccessVariable* acc) {
@@ -297,10 +286,9 @@ namespace rubinius {
 
     ops_.state()->add_accessor_inlined();
 
-    Value* self = ops_.stack_top();
+    Value* self = recv();
 
-    BasicBlock* use_send = ops_.new_block("use_send");
-    ops_.check_reference_class(self, klass->class_id(), use_send);
+    ops_.check_reference_class(self, klass->class_id(), failure());
 
     // Figure out if we should use the table ivar lookup or
     // the slot ivar lookup.
@@ -329,22 +317,17 @@ namespace rubinius {
           ops_.b());
     }
 
-    ops_.stack_set_top(ivar);
-
-    ops_.create_branch(after_);
-    ops_.set_block(use_send);
-
-    after_->moveAfter(use_send);
+    exception_safe();
+    set_result(ivar);
   }
 
   void Inliner::inline_generic_method(Class* klass, VMMethod* vmm) {
     LLVMWorkHorse work(ops_.state(), vmm);
     work.valid_flag = ops_.valid_flag();
 
-    Value* self = ops_.stack_back(count_);
+    Value* self = recv();
 
-    BasicBlock* use_send = ops_.new_block("use_send");
-    ops_.check_class(self, klass, use_send);
+    ops_.check_class(self, klass, failure());
 
     std::vector<Value*> args;
     for(int i = count_ - 1; i >= 0; i--) {
@@ -366,22 +349,14 @@ namespace rubinius {
     assert(work.generate_body(info));
 
     on_return->moveAfter(info.fin_block);
-    use_send->moveBefore(entry);
 
     ops_.create_branch(entry);
 
     ops_.set_block(on_return);
 
     ops_.b().Insert(cast<Instruction>(info.return_value));
-    ops_.stack_remove(count_ + 1);
-    ops_.check_for_exception(info.return_value);
-    ops_.stack_push(info.return_value);
 
-    ops_.create_branch(after_);
-
-    ops_.set_block(use_send);
-
-    use_send->moveAfter(entry);
+    set_result(info.return_value);
   }
 
   const Type* find_type(size_t type) {
@@ -427,10 +402,9 @@ namespace rubinius {
   }
 
   bool Inliner::inline_ffi(Class* klass, NativeFunction* nf) {
-    Value* self = ops_.stack_back(count_);
+    Value* self = recv();
 
-    BasicBlock* use_send = ops_.new_block("use_send");
-    ops_.check_class(self, klass, use_send);
+    ops_.check_class(self, klass, failure());
 
     ///
 
@@ -440,8 +414,6 @@ namespace rubinius {
     std::vector<const Type*> struct_types;
     struct_types.push_back(Type::Int32Ty);
     struct_types.push_back(Type::Int1Ty);
-
-    BasicBlock* failure = ops_.new_block("ffi_type_failure");
 
     for(size_t i = 0; i < nf->arg_count; i++) {
       Value* current_arg = arg(i);
@@ -476,7 +448,7 @@ namespace rubinius {
         Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
-        ops_.create_conditional_branch(cont, failure, valid);
+        ops_.create_conditional_branch(cont, failure(), valid);
 
         ops_.set_block(cont);
         break;
@@ -497,7 +469,7 @@ namespace rubinius {
         Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
-        ops_.create_conditional_branch(cont, failure, valid);
+        ops_.create_conditional_branch(cont, failure(), valid);
 
         ops_.set_block(cont);
         break;
@@ -518,7 +490,7 @@ namespace rubinius {
         Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
-        ops_.create_conditional_branch(cont, failure, valid);
+        ops_.create_conditional_branch(cont, failure(), valid);
 
         ops_.set_block(cont);
       }
@@ -539,7 +511,7 @@ namespace rubinius {
         Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
-        ops_.create_conditional_branch(cont, failure, valid);
+        ops_.create_conditional_branch(cont, failure(), valid);
 
         ops_.set_block(cont);
       }
@@ -571,7 +543,7 @@ namespace rubinius {
         Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
-        ops_.create_conditional_branch(cont, failure, valid);
+        ops_.create_conditional_branch(cont, failure(), valid);
 
         ops_.set_block(cont);
         break;
@@ -594,7 +566,7 @@ namespace rubinius {
         Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
-        ops_.create_conditional_branch(cont, failure, valid);
+        ops_.create_conditional_branch(cont, failure(), valid);
 
         ops_.set_block(cont);
         break;
@@ -709,14 +681,8 @@ namespace rubinius {
 
     }
 
-    ops_.stack_remove(count_);
-    ops_.stack_set_top(result);
-    ops_.create_branch(after_);
-
-    ops_.set_block(failure);
-    ops_.propagate_exception();
-
-    ops_.set_block(use_send);
+    exception_safe();
+    set_result(result);
 
     return true;
   }

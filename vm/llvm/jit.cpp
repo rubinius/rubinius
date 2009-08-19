@@ -303,6 +303,7 @@ namespace rubinius {
       passes->add(createAggressiveDCEPass());
       // passes->add(createVerifierPass());
       passes->add(create_overflow_folding_pass());
+      passes->add(create_guard_eliminator_pass());
     }
   }
 
@@ -360,6 +361,8 @@ namespace rubinius {
       passes_->add(createScalarReplAggregatesPass());
 
       passes_->add(create_overflow_folding_pass());
+      passes_->add(create_guard_eliminator_pass());
+
       passes_->add(createCFGSimplificationPass());
       passes_->add(createInstructionCombiningPass());
       passes_->add(createScalarReplAggregatesPass());

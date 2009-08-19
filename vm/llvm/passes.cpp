@@ -20,6 +20,172 @@ namespace {
 
   using namespace llvm;
 
+  class GuardEliminator : public FunctionPass {
+    const Type* float_type_;
+
+  public:
+    static char ID;
+    GuardEliminator()
+      : FunctionPass(&ID)
+    {}
+
+    virtual bool doInitialization(Module& mod) {
+      float_type_ = PointerType::getUnqual(
+          mod.getTypeByName("struct.rubinius::Float"));
+
+      return false;
+    }
+
+    virtual bool runOnFunction(Function& f) {
+      bool changed = false;
+
+      for(Function::iterator bb = f.begin(), e = f.end();
+          bb != e;
+          bb++) {
+        for(BasicBlock::iterator inst = bb->begin();
+            inst != bb->end();
+            inst++) {
+          ICmpInst* icmp = dyn_cast<ICmpInst>(inst);
+          if(icmp == NULL) continue;
+
+          if(BinaryOperator* bin = dyn_cast<BinaryOperator>(icmp->getOperand(0))) {
+            if(bin->getOpcode() != Instruction::And) continue;
+            if(PtrToIntInst* p2i = dyn_cast<PtrToIntInst>(bin->getOperand(0))) {
+              if(p2i->getOperand(0)->getType() == float_type_) {
+                icmp->replaceAllUsesWith(ConstantInt::getTrue());
+                changed = true;
+                continue;
+              }
+            }
+          } else if(LoadInst* load = dyn_cast<LoadInst>(icmp->getOperand(0))) {
+            if(GetElementPtrInst* gep1 =
+                dyn_cast<GetElementPtrInst>(load->getOperand(0))) {
+              if(LoadInst* load2 = dyn_cast<LoadInst>(gep1->getOperand(0))) {
+                if(GetElementPtrInst* gep2 =
+                    dyn_cast<GetElementPtrInst>(load2->getOperand(0))) {
+                  if(gep2->getOperand(0)->getType() == float_type_) {
+                    icmp->replaceAllUsesWith(ConstantInt::getTrue());
+                    changed = true;
+                    continue;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return changed;
+    }
+  };
+
+  char GuardEliminator::ID = 0;
+
+  class AllocationEliminator : public FunctionPass {
+    Function* float_alloc_;
+
+  public:
+    static char ID;
+    AllocationEliminator()
+      : FunctionPass(&ID)
+      , float_alloc_(0)
+    {}
+
+    virtual bool doInitialization(Module& mod) {
+      float_alloc_ = mod.getFunction("rbx_float_allocate");
+
+      return false;
+    }
+
+    bool gep_used(GetElementPtrInst* gep) {
+      for(Value::use_iterator u = gep->use_begin();
+          u != gep->use_end();
+          u++) {
+        std::cout << "gep user: " << *(*u) << "\n";
+        if(!dyn_cast<StoreInst>(*u)) return true;
+      }
+
+      return false;
+    }
+
+    void erase_gep_users(GetElementPtrInst* gep) {
+      for(Value::use_iterator u = gep->use_begin();
+          u != gep->use_end();
+          u++) {
+        if(Instruction* inst = dyn_cast<Instruction>(*u)) {
+          inst->eraseFromParent();
+        } else {
+          assert(0);
+        }
+      }
+    }
+
+    virtual bool runOnFunction(Function& f) {
+      std::vector<CallInst*> to_remove;
+
+      for(Function::iterator bb = f.begin(), e = f.end();
+          bb != e;
+          bb++) {
+        for(BasicBlock::iterator inst = bb->begin();
+            inst != bb->end();
+            inst++) {
+          CallInst* call = dyn_cast<CallInst>(inst);
+          if(!call) continue;
+
+          Function* func = call->getCalledFunction();
+          if(func && func->getName() == "rbx_float_allocate") {
+            std::cout << "here2!\n";
+
+            bool use = false;
+            for(Value::use_iterator u = call->use_begin();
+                u != call->use_end();
+                u++) {
+
+              std::cout << "float user: " << *(*u) << "\n";
+
+              if(GetElementPtrInst* gep = dyn_cast<GetElementPtrInst>(*u)) {
+                if(gep_used(gep)) {
+                  use = true;
+                  break;
+                }
+              } else {
+                use = true;
+                break;
+              }
+            }
+
+            if(!use) {
+              to_remove.push_back(call);
+            }
+          }
+        }
+      }
+
+      for(std::vector<CallInst*>::iterator i = to_remove.begin();
+          i != to_remove.end();
+          i++) {
+        CallInst* call = *i;
+        for(Value::use_iterator u = call->use_begin();
+            u != call->use_end();
+            u++) {
+          if(GetElementPtrInst* gep = dyn_cast<GetElementPtrInst>(*u)) {
+            std::cout << "erasing: " << *gep << "\n";
+            erase_gep_users(gep);
+            gep->eraseFromParent();
+          } else {
+            assert(0);
+          }
+        }
+
+        call->eraseFromParent();
+      }
+
+      return !to_remove.empty();
+    }
+  };
+
+  char AllocationEliminator::ID = 0;
+
   class OverflowConstantFolder : public FunctionPass {
   public:
     static char ID;
@@ -128,6 +294,7 @@ namespace {
     const Type* class_type_;
     const Type* object_type_;
     const Type* args_type_;
+    const Type* float_type_;
 
   public:
     static char ID;
@@ -150,6 +317,9 @@ namespace {
 
       args_type_ = PointerType::getUnqual(
           mod.getTypeByName("struct.rubinius::Arguments"));
+
+      float_type_ = PointerType::getUnqual(
+          mod.getTypeByName("struct.rubinius::Float"));
 
       return false;
     }
@@ -178,6 +348,17 @@ namespace {
       return AliasAnalysis::alias(V1, V1Size, V2, V2Size);
     }
 
+    virtual
+    AliasAnalysis::ModRefResult getModRefInfo(CallSite cs,
+        Value* val, unsigned size) {
+      if(Function* func = cs.getCalledFunction()) {
+        if(func->getName() == "rbx_float_allocate") {
+          return NoModRef;
+        }
+      }
+
+      return AliasAnalysis::getModRefInfo(cs, val, size);
+    }
 
     virtual bool pointsToConstantMemory(const Value* val) {
       if(const GetElementPtrInst* gep = dyn_cast<GetElementPtrInst>(val)) {
@@ -195,6 +376,12 @@ namespace {
 
         // Indicate that all fields within Arguments are constant
         } else if(gep->getPointerOperand()->getType() == args_type_) {
+          return true;
+        } else if(gep->getPointerOperand()->getType() == float_type_) {
+          return true;
+        }
+      } else if(const BitCastInst* bc = dyn_cast<BitCastInst>(val)) {
+        if(bc->getType() == PointerType::getUnqual(Type::DoubleTy)) {
           return true;
         }
       }
@@ -246,6 +433,14 @@ namespace rubinius {
 
   llvm::FunctionPass* create_rubinius_alias_analysis() {
     return new RubiniusAliasAnalysis();
+  }
+
+  llvm::FunctionPass* create_guard_eliminator_pass() {
+    return new GuardEliminator();
+  }
+
+  llvm::FunctionPass* create_allocation_eliminator_pass() {
+    return new AllocationEliminator();
   }
 }
 

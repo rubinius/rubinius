@@ -619,6 +619,8 @@ extern "C" {
   }
 
   Object* rbx_string_append(STATE, Object* left, Object* right) {
+    // TODO Don't use as<>, since it will throw a C++ exception
+    // into JITd code.
     return as<String>(left)->append(state, as<String>(right));
   }
 
@@ -800,6 +802,10 @@ extern "C" {
     ary->set(state, 1, MemoryPointer::create(state, ptr));
 
     return ary;
+  }
+
+  Float* rbx_float_allocate(STATE) {
+    return Float::create(state, 0.0);
   }
 
 }

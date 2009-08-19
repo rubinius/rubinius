@@ -15,7 +15,7 @@ namespace rubinius {
 
     BasicBlock* is_tuple = ops.new_block("is_tuple");
     BasicBlock* access =   ops.new_block("tuple_at");
-    BasicBlock* is_other = ops.new_block("is_other");
+    BasicBlock* is_other = i.failure();
 
     ops.create_conditional_branch(is_tuple, is_other, cmp);
 
@@ -38,8 +38,6 @@ namespace rubinius {
 
     ops.set_block(access);
 
-    ops.stack_remove(2);
-
     Value* idx[] = {
       ConstantInt::get(Type::Int32Ty, 0),
       ConstantInt::get(Type::Int32Ty, offset::tuple_field),
@@ -48,11 +46,8 @@ namespace rubinius {
 
     Value* gep = ops.create_gep(tup, idx, 3, "field_pos");
 
-    ops.stack_push(ops.create_load(gep, "tuple_at"));
-
-    ops.create_branch(i.after());
-
-    ops.set_block(is_other);
+    i.exception_safe();
+    i.set_result(ops.create_load(gep, "tuple_at"));
   }
 
   static void call_tuple_put(JITOperations& ops, Inliner& i) {
@@ -62,7 +57,7 @@ namespace rubinius {
 
     BasicBlock* is_tuple = ops.new_block("is_tuple");
     BasicBlock* access =   ops.new_block("tuple_put");
-    BasicBlock* is_other = ops.new_block("is_other");
+    BasicBlock* is_other = i.failure();
 
     ops.create_conditional_branch(is_tuple, is_other, cmp);
 
@@ -84,7 +79,6 @@ namespace rubinius {
     ops.set_block(access);
 
     Value* value = i.arg(1);
-    ops.stack_remove(3);
 
     Value* idx[] = {
       ConstantInt::get(Type::Int32Ty, 0),
@@ -96,11 +90,9 @@ namespace rubinius {
 
     ops.create_store(value, gep);
     ops.write_barrier(tup, value);
-    ops.stack_push(value);
 
-    ops.create_branch(i.after());
-
-    ops.set_block(is_other);
+    i.exception_safe();
+    i.set_result(value);
   }
 
   static void fixnum_and(JITOperations& ops, Inliner& i) {
@@ -117,20 +109,18 @@ namespace rubinius {
     Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
 
     BasicBlock* push = ops.new_block("push_bit_and");
-    BasicBlock* send = ops.new_block("send_bit_and");
+    BasicBlock* send = i.failure();
 
     ops.create_conditional_branch(push, send, cmp);
 
     ops.set_block(push);
-    ops.stack_remove(1);
-    ops.stack_set_top(ops.as_obj(anded));
-    ops.create_branch(i.after());
 
-    ops.set_block(send);
+    i.exception_safe();
+    i.set_result(ops.as_obj(anded));
   }
 
   static void fixnum_neg(JITOperations& ops, Inliner& i) {
-    BasicBlock* use_send = ops.new_block("use_send");
+    BasicBlock* use_send = i.failure();
     BasicBlock* inlined = ops.new_block("fixnum_neg");
 
     Value* self = i.recv();
@@ -146,27 +136,84 @@ namespace rubinius {
     Value* more = BinaryOperator::CreateShl(neg, ops.One, "shl", ops.current_block());
     Value* tagged = BinaryOperator::CreateOr(more, ops.One, "or", ops.current_block());
 
-    ops.stack_set_top(ops.as_obj(tagged));
-    ops.create_branch(i.after());
+    i.exception_safe();
+    i.set_result(ops.as_obj(tagged));
+  }
 
-    ops.set_block(use_send);
+  enum FloatOperation {
+    cAdd, cSub, cMultiply, cDivide, cMod
+  };
+
+  static void float_op(FloatOperation op, Class* klass,
+      JITOperations& ops, Inliner& i)
+  {
+    Value* self = i.recv();
+    ops.check_class(self, klass, i.failure());
+
+    Value* arg = i.arg(0);
+    ops.check_class(arg, klass, i.failure());
+
+    Value* fself = ops.b().CreateBitCast(self, ops.state()->ptr_type("Float"),
+        "self_float");
+
+    Value* farg  = ops.b().CreateBitCast(arg, ops.state()->ptr_type("Float"),
+        "arg_float");
+
+    Value* lhs = ops.b().CreateLoad(
+        ops.b().CreateConstGEP2_32(fself, 0, 1, "self.value_pos"), "fself");
+    Value* rhs = ops.b().CreateLoad(
+        ops.b().CreateConstGEP2_32(farg,  0, 1, "arg.value_pos"), "farg");
+
+    Value* performed = 0;
+
+    switch(op) {
+    case cAdd:
+      performed = ops.b().CreateFAdd(lhs, rhs, "float.add");
+      break;
+    case cSub:
+      performed = ops.b().CreateFSub(lhs, rhs, "float.sub");
+      break;
+    case cMultiply:
+      performed = ops.b().CreateFMul(lhs, rhs, "float.mul");
+      break;
+    case cDivide:
+      performed = ops.b().CreateFDiv(lhs, rhs, "float.div");
+      break;
+    case cMod:
+      performed = ops.b().CreateFRem(lhs, rhs, "float.mod");
+      break;
+    default:
+      abort();
+    }
+
+    Signature sig(ops.state(), ops.state()->ptr_type("Float"));
+    sig << "VM";
+
+    Function* func = sig.function("rbx_float_allocate");
+    func->setDoesNotAlias(0, true); // return value
+
+    Value* call_args[] = { ops.vm() };
+    CallInst* res = sig.call("rbx_float_allocate", call_args, 1, "result", ops.b());
+
+    ops.b().CreateStore(
+        performed,
+        ops.b().CreateConstGEP2_32(res, 0, 1));
+
+    i.exception_safe();
+    i.set_result(ops.b().CreateBitCast(res, ops.ObjType));
   }
 
   static void object_equal(Class* klass, JITOperations& ops, Inliner& i) {
     Value* self = i.recv();
 
-    BasicBlock* use_send = ops.new_block("use_send");
-    ops.check_class(self, klass, use_send);
+    ops.check_class(self, klass, i.failure());
 
     Value* cmp = ops.create_equal(self, i.arg(0), "idenity_equal");
     Value* imm_value = SelectInst::Create(cmp, ops.constant(Qtrue),
           ops.constant(Qfalse), "select_bool", ops.current_block());
 
-    ops.stack_remove(1);
-    ops.stack_set_top(imm_value);
-    ops.create_branch(i.after());
-
-    ops.set_block(use_send);
+    i.exception_safe();
+    i.set_result(imm_value);
   }
 
   bool Inliner::inline_primitive(Class* klass, CompiledMethod* cm, executor prim) {
@@ -187,6 +234,21 @@ namespace rubinius {
     } else if(prim == Primitives::object_equal && count_ == 1) {
       inlined_prim = "object_equal";
       object_equal(klass, ops_, *this);
+    } else if(prim == Primitives::float_add && count_ == 1) {
+      inlined_prim = "float_add";
+      float_op(cAdd, klass, ops_, *this);
+    } else if(prim == Primitives::float_sub && count_ == 1) {
+      inlined_prim = "float_sub";
+      float_op(cSub, klass, ops_, *this);
+    } else if(prim == Primitives::float_mul && count_ == 1) {
+      inlined_prim = "float_mul";
+      float_op(cMultiply, klass, ops_, *this);
+    } else if(prim == Primitives::float_div && count_ == 1) {
+      inlined_prim = "float_div";
+      float_op(cDivide, klass, ops_, *this);
+    } else if(prim == Primitives::float_mod && count_ == 1) {
+      inlined_prim = "float_mod";
+      float_op(cMod, klass, ops_, *this);
     }
 
     if(inlined_prim) {
@@ -211,7 +273,9 @@ namespace rubinius {
         << ops_.state()->symbol_cstr(cm->name())
         << " into "
         << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
-        << ". primitive\n";
+        << ". primitive: "
+        << ops_.state()->symbol_cstr(cm->primitive())
+        << "\n";
     }
     return false;
   }

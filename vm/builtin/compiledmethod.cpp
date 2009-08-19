@@ -279,6 +279,16 @@ namespace rubinius {
         }
       }
     }
+
+    for(IndirectLiterals::iterator i = vmm->indirect_literals().begin();
+        i != vmm->indirect_literals().end();
+        i++) {
+      Object** ptr = (*i);
+      if((tmp = mark.call(*ptr)) != NULL) {
+        *ptr = tmp;
+        mark.just_set(obj, tmp);
+      }
+    }
   }
 
   void CompiledMethod::Info::visit(Object* obj, ObjectVisitor& visit) {

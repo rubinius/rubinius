@@ -7,6 +7,8 @@
 
 #include "llvm/jit_visit.hpp"
 
+#include <llvm/Analysis/CaptureTracking.h>
+
 namespace rubinius {
   LLVMWorkHorse::LLVMWorkHorse(LLVMState* ls, VMMethod* vmm)
     : ls_(ls)
@@ -1112,6 +1114,8 @@ namespace rubinius {
 
     if(use_full_scope_) visitor.use_full_scope();
 
+    visitor.initialize();
+
     // std::cout << info.vmm << " start: " << info.vmm->total << "\n";
 
     // Fix up the JITBasicBlock's so that the ranges don't overlap
@@ -1168,6 +1172,10 @@ namespace rubinius {
       sig << "VM";
       sig << "CallFrame";
 
+      Function* func_ci = sig.function("rbx_check_interrupts");
+      func_ci->setDoesNotCapture(1, true);
+      func_ci->setDoesNotCapture(2, true);
+
       Value* call_args[] = { vm, call_frame };
 
       BasicBlock* ret_null = BasicBlock::Create("ret_null", func);
@@ -1182,6 +1190,15 @@ namespace rubinius {
 
       b().SetInsertPoint(cur);
     }
+
+    // debugging/optimization test code
+    /*
+    if(llvm::PointerMayBeCaptured(stk, true)) {
+      std::cout << "Stack is captured!\n";
+    } else {
+      std::cout << "Stack is NOT captured!\n";
+    }
+    */
 
     info.return_value = visitor.return_value();
     info.fin_block = visitor.current_block();

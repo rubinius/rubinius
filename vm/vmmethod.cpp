@@ -673,6 +673,14 @@ namespace rubinius {
     return 0;
   }
 
+  Object** VMMethod::add_indirect_literal(Object* obj) {
+    Object** ptr = new Object*[1];
+    *ptr = obj;
+    indirect_literals_.push_back(ptr);
+    return ptr;
+  }
+
+
   bool Opcode::is_goto() {
     switch(op) {
     case InstructionSequence::insn_goto_if_false:

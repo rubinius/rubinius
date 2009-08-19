@@ -103,6 +103,8 @@ namespace rubinius {
     int sends_done_;
     bool has_side_effects_;
 
+    int current_ip_;
+
   public:
 
     class Unsupported {};
@@ -150,11 +152,15 @@ namespace rubinius {
       , called_args_(-1)
       , sends_done_(0)
       , has_side_effects_(false)
-    {
+      , current_ip_(0)
+    {}
 
-      if(inline_return) {
+    void initialize() {
+      if(inline_return_) {
         return_value_ = PHINode::Create(ObjType, "inline_return_val");
       }
+
+      BasicBlock* start = b().GetInsertBlock();
 
       bail_out_ = new_block("bail_out");
 
@@ -176,7 +182,9 @@ namespace rubinius {
 
       set_block(bail_out_fast_);
       if(!inline_return_) {
-        if(use_full_scope_) flush_scope_to_heap(vars_);
+        if(use_full_scope_) {
+          flush_scope_to_heap(vars_);
+        }
       }
 
       if(inline_return_) {
@@ -360,7 +368,16 @@ namespace rubinius {
 
       remember_sp();
 
-      b().CreateStore(ConstantInt::get(Type::Int32Ty, ip), ip_pos_);
+      current_ip_ = ip;
+    }
+
+    void flush_ip() {
+      b().CreateStore(ConstantInt::get(Type::Int32Ty, current_ip_), ip_pos_);
+    }
+
+    void flush() {
+      flush_ip();
+      flush_stack();
     }
 
     // visitors.
@@ -566,6 +583,8 @@ namespace rubinius {
         stack_objects(args + 1)
       };
 
+      flush_ip();
+
       return b().CreateCall(func, call_args, call_args+5, "simple_send");
     }
 
@@ -619,6 +638,7 @@ namespace rubinius {
         out_args_
       };
 
+      flush_ip();
       return b().CreateCall(execute, call_args, call_args+4, "ic_send");
     }
 
@@ -647,6 +667,7 @@ namespace rubinius {
         out_args_
       };
 
+      flush_ip();
       return b().CreateCall(execute, call_args, call_args+4, "ic_send");
     }
 
@@ -675,6 +696,7 @@ namespace rubinius {
         stack_objects(args + 3),   // 3 == recv + block + splat
       };
 
+      flush_ip();
       return sig.call(func_name, call_args, 5, "splat_send", b());
     }
 
@@ -703,6 +725,7 @@ namespace rubinius {
         stack_objects(args + extra),
       };
 
+      flush_ip();
       return sig.call(func_name, call_args, 5, "super_send", b());
     }
 
@@ -847,123 +870,132 @@ namespace rubinius {
     }
 
     void visit_meta_send_op_plus(opcode name) {
-      set_has_side_effects();
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      if(cache->classes_seen() == 0) {
+        set_has_side_effects();
+        Value* recv = stack_back(1);
+        Value* arg =  stack_top();
 
-      Value* recv = stack_back(1);
-      Value* arg =  stack_top();
+        BasicBlock* fast = new_block("fast");
+        BasicBlock* dispatch = new_block("dispatch");
+        BasicBlock* tagnow = new_block("tagnow");
+        BasicBlock* cont = new_block("cont");
 
-      BasicBlock* fast = new_block("fast");
-      BasicBlock* dispatch = new_block("dispatch");
-      BasicBlock* tagnow = new_block("tagnow");
-      BasicBlock* cont = new_block("cont");
+        check_fixnums(recv, arg, fast, dispatch);
 
-      check_fixnums(recv, arg, fast, dispatch);
+        set_block(dispatch);
 
-      set_block(dispatch);
+        Value* called_value = simple_send(ls_->symbol("+"), 1);
+        check_for_exception_then(called_value, cont);
 
-      Value* called_value = simple_send(ls_->symbol("+"), 1);
-      check_for_exception_then(called_value, cont);
+        set_block(fast);
 
-      set_block(fast);
+        std::vector<const Type*> types;
+        types.push_back(Int31Ty);
+        types.push_back(Int31Ty);
 
-      std::vector<const Type*> types;
-      types.push_back(Int31Ty);
-      types.push_back(Int31Ty);
+        std::vector<const Type*> struct_types;
+        struct_types.push_back(Int31Ty);
+        struct_types.push_back(Type::Int1Ty);
 
-      std::vector<const Type*> struct_types;
-      struct_types.push_back(Int31Ty);
-      struct_types.push_back(Type::Int1Ty);
+        StructType* st = StructType::get(struct_types);
 
-      StructType* st = StructType::get(struct_types);
+        FunctionType* ft = FunctionType::get(st, types, false);
+        Function* func = cast<Function>(
+            module_->getOrInsertFunction("llvm.sadd.with.overflow.i31", ft));
 
-      FunctionType* ft = FunctionType::get(st, types, false);
-      Function* func = cast<Function>(
-          module_->getOrInsertFunction("llvm.sadd.with.overflow.i31", ft));
+        Value* recv_int = tag_strip(recv);
+        Value* arg_int = tag_strip(arg);
+        Value* call_args[] = { recv_int, arg_int };
+        Value* res = b().CreateCall(func, call_args, call_args+2, "add.overflow");
 
-      Value* recv_int = tag_strip(recv);
-      Value* arg_int = tag_strip(arg);
-      Value* call_args[] = { recv_int, arg_int };
-      Value* res = b().CreateCall(func, call_args, call_args+2, "add.overflow");
+        Value* sum = b().CreateExtractValue(res, 0, "sum");
+        Value* dof = b().CreateExtractValue(res, 1, "did_overflow");
 
-      Value* sum = b().CreateExtractValue(res, 0, "sum");
-      Value* dof = b().CreateExtractValue(res, 1, "did_overflow");
+        b().CreateCondBr(dof, dispatch, tagnow);
 
-      b().CreateCondBr(dof, dispatch, tagnow);
+        set_block(tagnow);
 
-      set_block(tagnow);
+        Value* imm_value = fixnum_tag(sum);
 
-      Value* imm_value = fixnum_tag(sum);
+        b().CreateBr(cont);
 
-      b().CreateBr(cont);
+        set_block(cont);
 
-      set_block(cont);
+        PHINode* phi = b().CreatePHI(ObjType, "addition");
+        phi->addIncoming(called_value, dispatch);
+        phi->addIncoming(imm_value, tagnow);
 
-      PHINode* phi = b().CreatePHI(ObjType, "addition");
-      phi->addIncoming(called_value, dispatch);
-      phi->addIncoming(imm_value, tagnow);
-
-      stack_remove(2);
-      stack_push(phi);
+        stack_remove(2);
+        stack_push(phi);
+      } else {
+        visit_send_stack(name, 1);
+      }
     }
 
     void visit_meta_send_op_minus(opcode name) {
-      set_has_side_effects();
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      if(cache->classes_seen() == 0) {
+        set_has_side_effects();
 
-      Value* recv = stack_back(1);
-      Value* arg =  stack_top();
+        Value* recv = stack_back(1);
+        Value* arg =  stack_top();
 
-      BasicBlock* fast = new_block("fast");
-      BasicBlock* dispatch = new_block("dispatch");
-      BasicBlock* cont = new_block("cont");
+        BasicBlock* fast = new_block("fast");
+        BasicBlock* dispatch = new_block("dispatch");
+        BasicBlock* cont = new_block("cont");
 
-      check_fixnums(recv, arg, fast, dispatch);
+        check_fixnums(recv, arg, fast, dispatch);
 
-      set_block(dispatch);
+        set_block(dispatch);
 
-      Value* called_value = simple_send(ls_->symbol("-"), 1);
-      check_for_exception_then(called_value, cont);
+        Value* called_value = simple_send(ls_->symbol("-"), 1);
+        check_for_exception_then(called_value, cont);
 
-      set_block(fast);
+        set_block(fast);
 
-      std::vector<const Type*> types;
-      types.push_back(Int31Ty);
-      types.push_back(Int31Ty);
+        std::vector<const Type*> types;
+        types.push_back(Int31Ty);
+        types.push_back(Int31Ty);
 
-      std::vector<const Type*> struct_types;
-      struct_types.push_back(Int31Ty);
-      struct_types.push_back(Type::Int1Ty);
+        std::vector<const Type*> struct_types;
+        struct_types.push_back(Int31Ty);
+        struct_types.push_back(Type::Int1Ty);
 
-      StructType* st = StructType::get(struct_types);
+        StructType* st = StructType::get(struct_types);
 
-      FunctionType* ft = FunctionType::get(st, types, false);
-      Function* func = cast<Function>(
-          module_->getOrInsertFunction("llvm.ssub.with.overflow.i31", ft));
+        FunctionType* ft = FunctionType::get(st, types, false);
+        Function* func = cast<Function>(
+            module_->getOrInsertFunction("llvm.ssub.with.overflow.i31", ft));
 
-      Value* recv_int = tag_strip(recv);
-      Value* arg_int = tag_strip(arg);
-      Value* call_args[] = { recv_int, arg_int };
-      Value* res = b().CreateCall(func, call_args, call_args+2, "sub.overflow");
+        Value* recv_int = tag_strip(recv);
+        Value* arg_int = tag_strip(arg);
+        Value* call_args[] = { recv_int, arg_int };
+        Value* res = b().CreateCall(func, call_args, call_args+2, "sub.overflow");
 
-      Value* sum = b().CreateExtractValue(res, 0, "sub");
-      Value* dof = b().CreateExtractValue(res, 1, "did_overflow");
+        Value* sum = b().CreateExtractValue(res, 0, "sub");
+        Value* dof = b().CreateExtractValue(res, 1, "did_overflow");
 
-      BasicBlock* tagnow = new_block("tagnow");
+        BasicBlock* tagnow = new_block("tagnow");
 
-      b().CreateCondBr(dof, dispatch, tagnow);
+        b().CreateCondBr(dof, dispatch, tagnow);
 
-      set_block(tagnow);
-      Value* imm_value = fixnum_tag(sum);
+        set_block(tagnow);
+        Value* imm_value = fixnum_tag(sum);
 
-      b().CreateBr(cont);
+        b().CreateBr(cont);
 
-      set_block(cont);
+        set_block(cont);
 
-      PHINode* phi = b().CreatePHI(ObjType, "subtraction");
-      phi->addIncoming(called_value, dispatch);
-      phi->addIncoming(imm_value, tagnow);
+        PHINode* phi = b().CreatePHI(ObjType, "subtraction");
+        phi->addIncoming(called_value, dispatch);
+        phi->addIncoming(imm_value, tagnow);
 
-      stack_remove(2);
-      stack_push(phi);
+        stack_remove(2);
+        stack_push(phi);
+      } else {
+        visit_send_stack(name, 1);
+      }
     }
 
     Object* literal(opcode which) {
@@ -991,6 +1023,15 @@ namespace rubinius {
       Object* lit = literal(which);
       if(Symbol* sym = try_as<Symbol>(lit)) {
         stack_push(constant(sym));
+      } else if(kind_of<Float>(lit)) {
+        Object** ptr = vmmethod()->add_indirect_literal(lit);
+
+        Value* as_int = ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(ptr));
+        Value* vptr = b().CreateIntToPtr(as_int,
+            PointerType::getUnqual(ptr_type("Float")));
+
+        Value* loaded = b().CreateLoad(vptr, "float_literal");
+        stack_push(loaded);
       } else {
         stack_push(get_literal(which));
       }
@@ -1013,7 +1054,9 @@ namespace rubinius {
         stack_pop()
       };
 
-      stack_push(b().CreateCall(func, call_args, call_args+3, "string_dup"));
+      Value* dup = b().CreateCall(func, call_args, call_args+3, "string_dup");
+      check_for_exception(dup);
+      stack_push(dup);
     }
 
     void push_scope_local(Value* scope, opcode which) {
@@ -1107,14 +1150,16 @@ namespace rubinius {
         b().CreateRet(call);
 
       } else {
+        Value* sp = last_sp_as_int();
+
+        flush();
+
         Signature sig(ls_, "Object");
 
         sig << "VM";
         sig << "CallFrame";
         sig << "Arguments";
         sig << IntPtrTy;
-
-        Value* sp = last_sp_as_int();
 
         Value* call_args[] = { vm_, call_frame_, args_, sp };
 
@@ -1131,16 +1176,51 @@ namespace rubinius {
 
     void visit_send_stack(opcode which, opcode args) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      BasicBlock* after = new_block("after_send");
 
       if(cache->method) {
-        Inliner inl(*this, cache, args, after);
-        // Uncommon doesn't yet know how to synthesize UnwindInfos, so
-        // don't do uncommon if there are handlers.
-        if(inl.consider() && exception_handlers_.size() == 0) {
-          emit_uncommon();
+        BasicBlock* failure = new_block("fallback");
+        BasicBlock* cont = new_block("continue");
 
-          set_block(after);
+        Inliner inl(*this, cache, args, failure);
+        if(inl.consider()) {
+          // Uncommon doesn't yet know how to synthesize UnwindInfos, so
+          // don't do uncommon if there are handlers.
+          if(exception_handlers_.size() == 0) {
+            BasicBlock* cur = b().GetInsertBlock();
+
+            set_block(failure);
+            emit_uncommon();
+
+            set_block(cur);
+            stack_remove(args+1);
+            if(inl.check_for_exception()) {
+              check_for_exception(inl.result());
+            }
+            stack_push(inl.result());
+
+            b().CreateBr(cont);
+
+            set_block(cont);
+          } else {
+            // Emit both the inlined code and a send for it
+            BasicBlock* inline_block = b().GetInsertBlock();
+
+            b().CreateBr(cont);
+
+            set_block(failure);
+            Value* send_res = inline_cache_send(args, cache);
+            b().CreateBr(cont);
+
+            set_block(cont);
+            PHINode* phi = b().CreatePHI(ObjType, "send_result");
+            phi->addIncoming(inl.result(), inline_block);
+            phi->addIncoming(send_res, failure);
+
+            stack_remove(args + 1);
+            check_for_exception(phi);
+
+            stack_push(phi);
+          }
 
           allow_private_ = false;
           return;
@@ -1148,48 +1228,17 @@ namespace rubinius {
       }
 
       set_has_side_effects();
-
-      reset_sp();
 
       Value* ret = inline_cache_send(args, cache);
       stack_remove(args + 1);
       check_for_exception(ret);
       stack_push(ret);
 
-      b().CreateBr(after);
-      set_block(after);
-
       allow_private_ = false;
     }
 
     void visit_send_method(opcode which) {
-      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      BasicBlock* after = new_block("after_send");
-
-      if(cache->method) {
-        Inliner inl(*this, cache, 0, after);
-        if(inl.consider() && exception_handlers_.size() == 0) {
-          emit_uncommon();
-
-          set_block(after);
-
-          allow_private_ = false;
-          return;
-        }
-      }
-
-      set_has_side_effects();
-      reset_sp();
-
-      Value* ret = inline_cache_send(0, cache);
-      stack_remove(1);
-      check_for_exception(ret);
-      stack_push(ret);
-
-      b().CreateBr(after);
-      set_block(after);
-
-      allow_private_ = false;
+      visit_send_stack(which, 0);
     }
 
     void visit_create_block(opcode which) {
@@ -1250,7 +1299,9 @@ namespace rubinius {
         stack_pop()
       };
 
-      stack_push(b().CreateCall(func, call_args, call_args+3, "cast_array"));
+      Value* val = b().CreateCall(func, call_args, call_args+3, "cast_array");
+      check_for_exception(val);
+      stack_push(val);
     }
 
     void visit_push_block() {
@@ -1307,6 +1358,9 @@ namespace rubinius {
 
       BasicBlock* cont = 0;
 
+      Value* cached_value = 0;
+      BasicBlock* cached_block = 0;
+
       GlobalCacheEntry* entry = try_as<GlobalCacheEntry>(current_literal(cache));
       if(entry) {
         assert(entry->pin());
@@ -1333,14 +1387,13 @@ namespace rubinius {
             ConstantInt::get(IntPtrTy, (intptr_t)entry->value_location()),
             PointerType::getUnqual(ObjType), "cast_to_objptr");
 
-        stack_push(b().CreateLoad(value_pos, "cached_value"));
+        cached_value = b().CreateLoad(value_pos, "cached_value");
+        cached_block = b().GetInsertBlock();
 
         b().CreateBr(cont);
 
         set_block(use_call);
       }
-
-      reset_sp();
 
       std::vector<const Type*> types;
 
@@ -1356,6 +1409,8 @@ namespace rubinius {
       func->setOnlyReadsMemory(true);
       func->setDoesNotThrow(true);
 
+      flush();
+
       Value* call_args[] = {
         vm_,
         call_frame_,
@@ -1370,12 +1425,19 @@ namespace rubinius {
       ret->setDoesNotThrow(true);
 
       check_for_exception(ret);
-      stack_push(ret);
 
       if(entry) {
+        BasicBlock* ret_block = b().GetInsertBlock();
         b().CreateBr(cont);
-
         set_block(cont);
+
+        PHINode* phi = b().CreatePHI(ObjType, "constant");
+        phi->addIncoming(cached_value, cached_block);
+        phi->addIncoming(ret, ret_block);
+
+        stack_push(phi);
+      } else {
+        stack_push(ret);
       }
     }
 
@@ -1389,6 +1451,8 @@ namespace rubinius {
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
           module_->getOrInsertFunction("rbx_push_const", ft));
+
+      flush();
 
       Value* call_args[] = {
         vm_,
@@ -1690,6 +1754,7 @@ namespace rubinius {
         stack_objects(count)
       };
 
+      flush_ip();
       Value* val = sig.call("rbx_yield_stack", call_args, 4, "ys", b());
       stack_remove(count);
 
@@ -1714,6 +1779,7 @@ namespace rubinius {
         stack_objects(count + 1)
       };
 
+      flush_ip();
       Value* val = sig.call("rbx_yield_splat", call_args, 4, "ys", b());
       stack_remove(count + 1);
 
@@ -1730,6 +1796,12 @@ namespace rubinius {
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
           module_->getOrInsertFunction("rbx_check_interrupts", ft));
+
+      func->setDoesNotCapture(0, true);
+      func->setDoesNotCapture(1, true);
+      func->setDoesNotCapture(2, true);
+
+      flush();
 
       Value* call_args[] = {
         vm_,
@@ -1948,6 +2020,8 @@ namespace rubinius {
         stack_pop()
       };
 
+      flush();
+
       Value* val = sig.call("rbx_find_const", call_args, 4, "constant", b());
       stack_push(val);
     }
@@ -2031,6 +2105,7 @@ namespace rubinius {
         stack_objects(count + 1)
       };
 
+      flush_ip();
       Value* val = sig.call("rbx_meta_send_call", call_args, 4, "constant", b());
       stack_remove(count+1);
       check_for_exception(val);
