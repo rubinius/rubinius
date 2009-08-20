@@ -808,6 +808,10 @@ extern "C" {
     return Float::create(state, 0.0);
   }
 
+  Class* rbx_class_of(STATE, Object* obj) {
+    return obj->class_object(state);
+  }
+
 }
 
 #endif

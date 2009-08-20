@@ -216,6 +216,23 @@ namespace rubinius {
     i.set_result(imm_value);
   }
 
+  static void object_class(Class* klass, JITOperations& ops, Inliner& i) {
+    Value* self = i.recv();
+
+    ops.check_class(self, klass, i.failure());
+
+    Signature sig(ops.state(), "Class");
+    sig << "VM";
+    sig << "Object";
+
+    Value* call_args[] = { ops.vm(), self };
+
+    Value* res = sig.call("rbx_class_of", call_args, 2, "object_class", ops.b());
+
+    i.exception_safe();
+    i.set_result(ops.downcast(res));
+  }
+
   bool Inliner::inline_primitive(Class* klass, CompiledMethod* cm, executor prim) {
     const char* inlined_prim = 0;
 
@@ -249,6 +266,9 @@ namespace rubinius {
     } else if(prim == Primitives::float_mod && count_ == 1) {
       inlined_prim = "float_mod";
       float_op(cMod, klass, ops_, *this);
+    } else if(prim == Primitives::object_class && count_ == 0) {
+      inlined_prim = "object_class";
+      object_class(klass, ops_, *this);
     }
 
     if(inlined_prim) {

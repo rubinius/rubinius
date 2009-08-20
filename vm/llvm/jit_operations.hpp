@@ -201,6 +201,10 @@ namespace rubinius {
       return b().CreateBitCast(rec, type, "upcast");
     }
 
+    Value* downcast(Value* rec) {
+      return b().CreateBitCast(rec, ptr_type("Object"), "downcast");
+    }
+
     Value* check_type_bits(Value* obj, int type) {
       Value* flag_idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
