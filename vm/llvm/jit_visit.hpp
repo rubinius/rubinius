@@ -730,143 +730,163 @@ namespace rubinius {
     }
 
     void visit_meta_send_op_equal(opcode name) {
-      set_has_side_effects();
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      if(cache->classes_seen() == 0) {
+        set_has_side_effects();
 
-      Value* recv = stack_back(1);
-      Value* arg =  stack_top();
+        Value* recv = stack_back(1);
+        Value* arg =  stack_top();
 
-      BasicBlock* fast = new_block("fast");
-      BasicBlock* dispatch = new_block("dispatch");
-      BasicBlock* cont = new_block();
+        BasicBlock* fast = new_block("fast");
+        BasicBlock* dispatch = new_block("dispatch");
+        BasicBlock* cont = new_block();
 
-      check_both_not_references(recv, arg, fast, dispatch);
+        check_both_not_references(recv, arg, fast, dispatch);
 
-      set_block(dispatch);
+        set_block(dispatch);
 
-      Value* called_value = simple_send(ls_->symbol("=="), 1);
-      check_for_exception_then(called_value, cont);
+        Value* called_value = simple_send(ls_->symbol("=="), 1);
+        check_for_exception_then(called_value, cont);
 
-      set_block(fast);
+        set_block(fast);
 
-      Value* cmp = b().CreateICmpEQ(recv, arg, "imm_cmp");
-      Value* imm_value = b().CreateSelect(cmp,
-          constant(Qtrue), constant(Qfalse), "select_bool");
+        Value* cmp = b().CreateICmpEQ(recv, arg, "imm_cmp");
+        Value* imm_value = b().CreateSelect(cmp,
+            constant(Qtrue), constant(Qfalse), "select_bool");
 
-      b().CreateBr(cont);
+        b().CreateBr(cont);
 
-      set_block(cont);
+        set_block(cont);
 
-      PHINode* phi = b().CreatePHI(ObjType, "equal_value");
-      phi->addIncoming(called_value, dispatch);
-      phi->addIncoming(imm_value, fast);
+        PHINode* phi = b().CreatePHI(ObjType, "equal_value");
+        phi->addIncoming(called_value, dispatch);
+        phi->addIncoming(imm_value, fast);
 
-      stack_remove(2);
-      stack_push(phi);
+        stack_remove(2);
+        stack_push(phi);
+      } else {
+        visit_send_stack(name, 1);
+      }
     }
 
     void visit_meta_send_op_tequal(opcode name) {
-      set_has_side_effects();
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      if(cache->classes_seen() == 0) {
+        set_has_side_effects();
 
-      Value* recv = stack_back(1);
-      Value* arg =  stack_top();
+        Value* recv = stack_back(1);
+        Value* arg =  stack_top();
 
-      BasicBlock* fast = new_block("fast");
-      BasicBlock* dispatch = new_block("dispatch");
-      BasicBlock* cont = new_block();
+        BasicBlock* fast = new_block("fast");
+        BasicBlock* dispatch = new_block("dispatch");
+        BasicBlock* cont = new_block();
 
-      check_fixnums(recv, arg, fast, dispatch);
+        check_fixnums(recv, arg, fast, dispatch);
 
-      set_block(dispatch);
+        set_block(dispatch);
 
-      Value* called_value = simple_send(ls_->symbol("==="), 1);
-      check_for_exception_then(called_value, cont);
+        Value* called_value = simple_send(ls_->symbol("==="), 1);
+        check_for_exception_then(called_value, cont);
 
-      set_block(fast);
+        set_block(fast);
 
-      Value* cmp = b().CreateICmpEQ(recv, arg, "imm_cmp");
-      Value* imm_value = b().CreateSelect(cmp,
-          constant(Qtrue), constant(Qfalse), "select_bool");
+        Value* cmp = b().CreateICmpEQ(recv, arg, "imm_cmp");
+        Value* imm_value = b().CreateSelect(cmp,
+            constant(Qtrue), constant(Qfalse), "select_bool");
 
-      b().CreateBr(cont);
+        b().CreateBr(cont);
 
-      set_block(cont);
+        set_block(cont);
 
-      PHINode* phi = b().CreatePHI(ObjType, "equal_value");
-      phi->addIncoming(called_value, dispatch);
-      phi->addIncoming(imm_value, fast);
+        PHINode* phi = b().CreatePHI(ObjType, "equal_value");
+        phi->addIncoming(called_value, dispatch);
+        phi->addIncoming(imm_value, fast);
 
-      stack_remove(2);
-      stack_push(phi);
+        stack_remove(2);
+        stack_push(phi);
+      } else {
+        visit_send_stack(name, 1);
+      }
     }
 
     void visit_meta_send_op_lt(opcode name) {
-      set_has_side_effects();
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      if(cache->classes_seen() == 0) {
+        set_has_side_effects();
 
-      Value* recv = stack_back(1);
-      Value* arg =  stack_top();
+        Value* recv = stack_back(1);
+        Value* arg =  stack_top();
 
-      BasicBlock* fast = new_block("fast");
-      BasicBlock* dispatch = new_block("dispatch");
-      BasicBlock* cont = new_block("cont");
+        BasicBlock* fast = new_block("fast");
+        BasicBlock* dispatch = new_block("dispatch");
+        BasicBlock* cont = new_block("cont");
 
-      check_fixnums(recv, arg, fast, dispatch);
+        check_fixnums(recv, arg, fast, dispatch);
 
-      set_block(dispatch);
+        set_block(dispatch);
 
-      Value* called_value = simple_send(ls_->symbol("<"), 1);
-      check_for_exception_then(called_value, cont);
+        Value* called_value = simple_send(ls_->symbol("<"), 1);
+        check_for_exception_then(called_value, cont);
 
-      set_block(fast);
+        set_block(fast);
 
-      Value* cmp = b().CreateICmpSLT(recv, arg, "imm_cmp");
-      Value* imm_value = b().CreateSelect(cmp,
-          constant(Qtrue), constant(Qfalse), "select_bool");
+        Value* cmp = b().CreateICmpSLT(recv, arg, "imm_cmp");
+        Value* imm_value = b().CreateSelect(cmp,
+            constant(Qtrue), constant(Qfalse), "select_bool");
 
-      b().CreateBr(cont);
+        b().CreateBr(cont);
 
-      set_block(cont);
+        set_block(cont);
 
-      PHINode* phi = b().CreatePHI(ObjType, "addition");
-      phi->addIncoming(called_value, dispatch);
-      phi->addIncoming(imm_value, fast);
+        PHINode* phi = b().CreatePHI(ObjType, "addition");
+        phi->addIncoming(called_value, dispatch);
+        phi->addIncoming(imm_value, fast);
 
-      stack_remove(2);
-      stack_push(phi);
+        stack_remove(2);
+        stack_push(phi);
+      } else {
+        visit_send_stack(name, 1);
+      }
     }
 
     void visit_meta_send_op_gt(opcode name) {
-      set_has_side_effects();
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      if(cache->classes_seen() == 0) {
+        set_has_side_effects();
 
-      Value* recv = stack_back(1);
-      Value* arg =  stack_top();
+        Value* recv = stack_back(1);
+        Value* arg =  stack_top();
 
-      BasicBlock* fast = new_block("fast");
-      BasicBlock* dispatch = new_block("dispatch");
-      BasicBlock* cont = new_block("cont");
+        BasicBlock* fast = new_block("fast");
+        BasicBlock* dispatch = new_block("dispatch");
+        BasicBlock* cont = new_block("cont");
 
-      check_fixnums(recv, arg, fast, dispatch);
+        check_fixnums(recv, arg, fast, dispatch);
 
-      set_block(dispatch);
+        set_block(dispatch);
 
-      Value* called_value = simple_send(ls_->symbol(">"), 1);
-      check_for_exception_then(called_value, cont);
+        Value* called_value = simple_send(ls_->symbol(">"), 1);
+        check_for_exception_then(called_value, cont);
 
-      set_block(fast);
+        set_block(fast);
 
-      Value* cmp = b().CreateICmpSGT(recv, arg, "imm_cmp");
-      Value* imm_value = b().CreateSelect(cmp,
-          constant(Qtrue), constant(Qfalse), "select_bool");
+        Value* cmp = b().CreateICmpSGT(recv, arg, "imm_cmp");
+        Value* imm_value = b().CreateSelect(cmp,
+            constant(Qtrue), constant(Qfalse), "select_bool");
 
-      b().CreateBr(cont);
+        b().CreateBr(cont);
 
-      set_block(cont);
+        set_block(cont);
 
-      PHINode* phi = b().CreatePHI(ObjType, "compare");
-      phi->addIncoming(called_value, dispatch);
-      phi->addIncoming(imm_value, fast);
+        PHINode* phi = b().CreatePHI(ObjType, "compare");
+        phi->addIncoming(called_value, dispatch);
+        phi->addIncoming(imm_value, fast);
 
-      stack_remove(2);
-      stack_push(phi);
+        stack_remove(2);
+        stack_push(phi);
+      } else {
+        visit_send_stack(name, 1);
+      }
     }
 
     void visit_meta_send_op_plus(opcode name) {
@@ -2089,27 +2109,32 @@ namespace rubinius {
     }
 
     void visit_meta_send_call(opcode name, opcode count) {
-      set_has_side_effects();
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      if(cache->classes_seen() == 0) {
+        set_has_side_effects();
 
-      Signature sig(ls_, ObjType);
+        Signature sig(ls_, ObjType);
 
-      sig << VMTy;
-      sig << CallFrameTy;
-      sig << Type::Int32Ty;
-      sig << ObjArrayTy;
+        sig << VMTy;
+        sig << CallFrameTy;
+        sig << Type::Int32Ty;
+        sig << ObjArrayTy;
 
-      Value* call_args[] = {
-        vm_,
-        call_frame_,
-        ConstantInt::get(Type::Int32Ty, count),
-        stack_objects(count + 1)
-      };
+        Value* call_args[] = {
+          vm_,
+          call_frame_,
+          ConstantInt::get(Type::Int32Ty, count),
+          stack_objects(count + 1)
+        };
 
-      flush_ip();
-      Value* val = sig.call("rbx_meta_send_call", call_args, 4, "constant", b());
-      stack_remove(count+1);
-      check_for_exception(val);
-      stack_push(val);
+        flush_ip();
+        Value* val = sig.call("rbx_meta_send_call", call_args, 4, "constant", b());
+        stack_remove(count+1);
+        check_for_exception(val);
+        stack_push(val);
+      } else {
+        visit_send_stack(name, count);
+      }
     }
 
     void visit_passed_arg(opcode count) {

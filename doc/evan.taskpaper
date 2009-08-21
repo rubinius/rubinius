@@ -4,7 +4,6 @@ Build:
 
 JIT:
 - Method lookup from IC results should include private methods
-- Unify meta_send_op_* with normal IC logic
 - Debug JIT crashes on elle @urgent
 - Inline all methods
   - create_block
@@ -23,7 +22,6 @@ JIT:
   - Must be disabled in blocks (instance_eval)
   - Don't emit type guards for self
     - Must propagate self info into inlined methods
-- Teach JIT about Float
 - Add counters to backward branches, loops heat up a method
 + Do simple @osr for loops
 - Custom inlining of Class#new and Class#allocate
