@@ -208,7 +208,12 @@ class Compiler
           end
 
           compile_feature(rb, requiring) do
-            cm = load_from_rbc(rbc_path, version_number)
+            begin
+              cm = load_from_rbc(rbc_path, version_number)
+            rescue TypeError
+              cm = nil
+            end
+
             # cm is nil if the file is out of date, version wise.
             unless cm
               if $DEBUG_LOADING
