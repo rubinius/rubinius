@@ -21,6 +21,34 @@ namespace rubinius {
     kPrimitiveFailed = ((unsigned int)-1) & ~TAG_REF_MASK
   };
 
+  class JITStubResults {
+    int arg_count_;
+    const char* name_;
+
+  public:
+    JITStubResults()
+      : arg_count_(0)
+      , name_(0)
+    {}
+
+    void set_arg_count(int count) {
+      arg_count_ = count;
+    }
+
+    int arg_count() {
+      return arg_count_;
+    }
+
+    void set_name(const char* name) {
+      name_ = name;
+    }
+
+    const char* name() {
+      return name_;
+    }
+
+  };
+
 
   class Primitives {
   public:
@@ -35,8 +63,9 @@ namespace rubinius {
      * See VMMethod::execute for the version that handles 'regular'
      * Ruby code.
      */
-    static executor resolve_primitive(STATE, Symbol* name);
+    static executor resolve_primitive(STATE, Symbol* name, int* index = 0);
     static Object* unknown_primitive(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    static bool get_jit_stub(int index, JITStubResults& res);
 
 #include "gen/primitives_declare.hpp"
 

@@ -30,6 +30,7 @@ namespace rubinius {
     executor execute;
 
   protected:
+    int prim_index_;
     Inliners* inliners_;
 
   public:
@@ -40,6 +41,10 @@ namespace rubinius {
 
     void set_executor(rubinius::executor exc) {
       execute = exc;
+    }
+
+    int prim_index() {
+      return prim_index_;
     }
 
     /* interface */

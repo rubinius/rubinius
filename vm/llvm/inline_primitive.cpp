@@ -269,6 +269,55 @@ namespace rubinius {
     } else if(prim == Primitives::object_class && count_ == 0) {
       inlined_prim = "object_class";
       object_class(klass, ops_, *this);
+    } else {
+      JITStubResults stub_res;
+
+      if(Primitives::get_jit_stub(cm->prim_index(), stub_res)) {
+        if(stub_res.arg_count() == count_) {
+          Value* self = recv();
+          ops_.check_class(self, klass, failure());
+
+          Signature sig(ops_.state(), "Object");
+          sig << "VM";
+          sig << "CallFrame";
+          sig << "Object";
+
+          std::vector<Value*> call_args;
+          call_args.push_back(ops_.vm());
+          call_args.push_back(ops_.call_frame());
+          call_args.push_back(self);
+
+          for(int i = 0; i < stub_res.arg_count(); i++) {
+            sig << "Object";
+            call_args.push_back(arg(i));
+          }
+
+          Value* res = sig.call(stub_res.name(), call_args, "prim_value", ops_.b());
+          BasicBlock* cont = ops_.new_block("continue");
+
+          Value* as_i = ops_.ptrtoint(res);
+          Value* icmp = ops_.b().CreateICmpEQ(as_i,
+              ConstantInt::get(ops_.IntPtrTy, reinterpret_cast<intptr_t>(Qundef)));
+
+          ops_.b().CreateCondBr(icmp, failure(), cont);
+          ops_.set_block(cont);
+
+          set_result(res);
+
+          if(ops_.state()->config().jit_inline_debug) {
+            std::cerr << "inlining: "
+              << ops_.state()->symbol_cstr(cm->scope()->module()->name())
+              << "#"
+              << ops_.state()->symbol_cstr(cm->name())
+              << " into "
+              << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+              << ". generic primitive: " << stub_res.name() << "\n";
+          }
+          return true;
+
+        }
+      }
+
     }
 
     if(inlined_prim) {

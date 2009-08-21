@@ -23,6 +23,7 @@ namespace rubinius {
     executable->primitive(state, (Symbol*)Qnil);
     executable->serial(state, Fixnum::from(0));
     executable->inliners_ = 0;
+    executable->prim_index_ = -1;
 
     executable->set_executor(Executable::default_executor);
 
@@ -36,7 +37,7 @@ namespace rubinius {
   bool Executable::resolve_primitive(STATE) {
     if(!primitive_->nil_p()) {
       if(Symbol* name = try_as<Symbol>(primitive_)) {
-        set_executor(Primitives::resolve_primitive(state, name));
+        set_executor(Primitives::resolve_primitive(state, name, &prim_index_));
         return true;
       }
     }

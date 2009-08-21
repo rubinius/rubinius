@@ -1,3 +1,7 @@
+Build:
+- Automatically run 'rake jit:generate_header' when needed
+  - Or at least advise that it might need to be run (hm)
+
 JIT:
 - Method lookup from IC results should include private methods
 - Unify meta_send_op_* with normal IC logic
@@ -25,7 +29,7 @@ JIT:
 - Custom inlining of Class#new and Class#allocate
 - Push IC type info downward into inlined methods
   - Improve decision making of ambigious ICs
-- Rather than uses the operand stack in every instruction, 
+- Rather than uses the operand stack in every instruction,
   return SSA variables and use a tracking map, flushing the
   map contents to the operand stack only when needed
 
@@ -57,6 +61,8 @@ Runtime:
   - def foo(*a) Ruby.splat_or_nil; end
   - pragma comment
 - Ivar to number slot transition for all classes
+- Remove C++ RubyException from being thrown into primitive wrappers
+- Implement call stack saving to heap (fibers, continuations)
 
 JIT Future:
 - Replace a running methods with it's new JITd version @osr

@@ -81,6 +81,10 @@ class CPPPrimitive < BasicPrimitive
   attr_accessor :type, :name
   attr_accessor :cpp_name, :return_type, :arg_types
 
+  def arg_count
+    arg_types.size
+  end
+
   def generate_glue
     str = ""
     if @raw
@@ -117,6 +121,54 @@ class CPPPrimitive < BasicPrimitive
 
     return str
   end
+
+  def generate_jit_stub
+    return if @raw or @pass_call_frame or @pass_message
+
+    str = ""
+    if arg_types.empty?
+      arg_list = ""
+    else
+      list = []
+      arg_types.size.times { |i| list << "Object* ra#{i}" }
+      arg_list = ", " + list.join(", ")
+    end
+
+    str << "extern \"C\" Object* jit_stub_#{@name}(STATE, CallFrame* call_frame, Object* recv #{arg_list}) {\n"
+    str << "  Object* ret;\n"
+
+    str << "  #{@type}* self = try_as<#{@type}>(recv);\n"
+    str << "  if(unlikely(recv == NULL)) goto fail;\n"
+
+    args = []
+    i = 0
+    arg_types.each do |t|
+      str << "  #{t}* a#{i} = try_as<#{t}>(ra#{i});\n"
+      str << "  if(unlikely(a#{i} == NULL)) goto fail;\n"
+      args << "a#{i}"
+      i += 1
+    end
+
+    args.unshift "recv" if @pass_self
+    args.unshift "state" if @pass_state
+
+    str << "\n"
+    str << "  try {\n"
+    str << "    ret = self->#{@cpp_name}(#{args.join(', ')});\n"
+    str << "  } catch(const RubyException& exc) {\n"
+    str << "    exc.exception->locations(state,\n"
+    str << "          System::vm_backtrace(state, Fixnum::from(0), call_frame));\n"
+    str << "    state->thread_state()->raise_exception(exc.exception);\n"
+    str << "    return NULL;\n"
+    str << "  }\n"
+    str << "\n"
+    str << "  if(unlikely(ret == reinterpret_cast<Object*>(kPrimitiveFailed)))\n"
+    str << "    goto fail;\n\n"
+    str << "  return ret;\n"
+    str << "fail:\n"
+    str << "  return Qundef;\n"
+    str << "}\n\n"
+  end
 end
 
 class CPPStaticPrimitive < CPPPrimitive
@@ -144,6 +196,52 @@ class CPPStaticPrimitive < CPPPrimitive
     end
     return str
   end
+
+  def generate_jit_stub
+    return if @raw or @pass_call_frame or @pass_message
+
+    str = ""
+    if arg_types.empty?
+      arg_list = ""
+    else
+      list = []
+      arg_types.size.times { |i| list << "Object* ra#{i}" }
+      arg_list = ", " + list.join(", ")
+    end
+
+    str << "extern \"C\" Object* jit_stub_#{@name}(STATE, CallFrame* call_frame, Object* recv #{arg_list}) {\n"
+    str << "  Object* ret;\n"
+
+    args = []
+    i = 0
+    arg_types.each do |t|
+      str << "  #{t}* a#{i} = try_as<#{t}>(ra#{i});\n"
+      str << "  if(unlikely(a#{i} == NULL)) goto fail;\n"
+      args << "a#{i}"
+      i += 1
+    end
+
+    args.unshift "recv" if @pass_self
+    args.unshift "state" if @pass_state
+
+    str << "\n"
+    str << "  try {\n"
+    str << "    ret = #{@type}::#{@cpp_name}(#{args.join(', ')});\n"
+    str << "  } catch(const RubyException& exc) {\n"
+    str << "    exc.exception->locations(state,\n"
+    str << "          System::vm_backtrace(state, Fixnum::from(0), call_frame));\n"
+    str << "    state->thread_state()->raise_exception(exc.exception);\n"
+    str << "    return NULL;\n"
+    str << "  }\n"
+    str << "\n"
+    str << "  if(unlikely(ret == reinterpret_cast<Object*>(kPrimitiveFailed)))\n"
+    str << "    goto fail;\n\n"
+    str << "  return ret;\n"
+    str << "fail:\n"
+    str << "  return Qundef;\n"
+    str << "}\n\n"
+  end
+
 end
 
 class CPPOverloadedPrimitive < BasicPrimitive
@@ -851,26 +949,41 @@ end
 
 write_if_new "vm/gen/primitives_glue.gen.cpp" do |f|
   names = []
+  jit_stubs = []
   parser.classes.sort_by { |name,| name }.each do |n, cpp|
     cpp.primitives.sort_by { |name,| name }.each do |pn, prim|
       names << pn
 
       f << prim.generate_glue
+
+      if prim.respond_to?(:generate_jit_stub) and jit = prim.generate_jit_stub
+        f << jit
+        jit_stubs << [prim, pn]
+      end
+
     end
 
     f << cpp.generate_accessors
     names += cpp.access_primitives
   end
 
-  f.puts "executor Primitives::resolve_primitive(STATE, Symbol* name) {"
+  f.puts "executor Primitives::resolve_primitive(STATE, Symbol* name, int* index) {"
 
+  indexes = {}
+
+  i = 0
   names.sort.each do |name|
+    indexes[name] = i
+
     f.puts <<-EOF
   if(name == state->symbol("#{name}")) {
+    if(index) *index = #{i};
     return &Primitives::#{name};
   }
 
     EOF
+
+    i += 1
   end
 
   f.puts <<-EOF
@@ -882,4 +995,20 @@ return &Primitives::unknown_primitive;
 // throw std::runtime_error(msg.c_str());
 }
   EOF
+
+  f.puts "bool Primitives::get_jit_stub(int index, JITStubResults& res) {"
+  f.puts "  switch(index) {"
+
+  jit_stubs.each do |prim, name|
+    f.puts "  case #{indexes[name]}: // #{name}"
+    f.puts "    res.set_arg_count(#{prim.arg_count});"
+    f.puts "    res.set_name(\"jit_stub_#{name}\");"
+    f.puts "    return true;"
+  end
+
+  f.puts "  }"
+
+  f.puts "  return false;"
+
+  f.puts "}"
 end

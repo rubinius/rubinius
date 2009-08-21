@@ -23,6 +23,7 @@ namespace rubinius {
   AccessVariable* AccessVariable::allocate(STATE) {
     AccessVariable* av = state->new_object<AccessVariable>(G(access_variable));
     av->inliners_ = 0;
+    av->prim_index_ = -1;
     av->set_executor(AccessVariable::access_execute);
     return av;
   }

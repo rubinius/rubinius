@@ -209,6 +209,7 @@ FunctionType* FuncTy_17 = FunctionType::get(
 PointerType* PointerTy_16 = PointerType::get(FuncTy_17, 0);
 
 StructTy_struct_rubinius__Executable_fields.push_back(PointerTy_16);
+StructTy_struct_rubinius__Executable_fields.push_back(IntegerType::get(32));
 OpaqueType* OpaqueTy_struct_std__Inliners = OpaqueType::get();
 mod->addTypeName("struct.std::Inliners", OpaqueTy_struct_std__Inliners);
 
