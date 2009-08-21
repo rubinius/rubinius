@@ -23,6 +23,8 @@ namespace rubinius {
     config::Bool    jit_inline_generic;
     config::Bool    jit_inline_debug;
 
+    config::BoolSet jit_defaults;
+
     // Debug
     config::Bool    gil_debug;
     config::Integer print_config;
@@ -52,6 +54,7 @@ namespace rubinius {
       , jit_profile(this,     "jit.profile")
       , jit_inline_generic(this, "jit.inline.generic")
       , jit_inline_debug(this, "jit.inline.debug")
+      , jit_defaults(this, "J")
       , gil_debug(this,       "vm.gil.debug")
       , print_config(this,    "config.print")
       , ic_stats(this,        "ic.stats")
@@ -88,6 +91,12 @@ namespace rubinius {
 
       jit_inline_debug.set_description(
           "Have the JIT print out information about inlining");
+
+      jit_defaults.set_description(
+          "Enable the JIT and generic inlining");
+
+      jit_defaults.add(jit_enabled);
+      jit_defaults.add(jit_inline_generic);
 
       print_config.set_description(
           "blank or 1 == names and values, 2 == description as well");

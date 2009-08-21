@@ -147,6 +147,31 @@ namespace config {
     }
   };
 
+  class BoolSet : public Bool {
+    std::vector<Bool*> sub_bools_;
+
+  public:
+    bool value;
+
+    BoolSet(Configuration* config, const char* name)
+      : Bool(config, name)
+    {}
+
+    virtual void set(const char* str) {
+      Bool::set(str);
+
+      for(std::vector<Bool*>::iterator i = sub_bools_.begin();
+          i != sub_bools_.end();
+          i++) {
+        (*i)->set(str);
+      }
+    }
+
+    void add(Bool& sub) {
+      sub_bools_.push_back(&sub);
+    }
+  };
+
   inline bool Configuration::import(const char* key, const char* val) {
     for(Items::iterator i = items_.begin();
         i != items_.end();
