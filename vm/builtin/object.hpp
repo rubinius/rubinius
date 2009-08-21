@@ -193,7 +193,7 @@ namespace rubinius {
     Object*   change_class_to(STATE, Class* other_klass);
 
     /** Returns the Class object of which this Object is an instance. */
-    // Ruby.primitive :object_class
+    // Ruby.primitive+ :object_class
     Class*    class_object(STATE) const;
 
     /**

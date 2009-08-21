@@ -24,11 +24,15 @@ namespace rubinius {
   class JITStubResults {
     int arg_count_;
     const char* name_;
+    bool pass_callframe_;
+    bool can_fail_;
 
   public:
     JITStubResults()
       : arg_count_(0)
       , name_(0)
+      , pass_callframe_(true)
+      , can_fail_(false)
     {}
 
     void set_arg_count(int count) {
@@ -45,6 +49,22 @@ namespace rubinius {
 
     const char* name() {
       return name_;
+    }
+
+    void set_pass_callframe(bool val) {
+      pass_callframe_ = val;
+    }
+
+    bool pass_callframe() {
+      return pass_callframe_;
+    }
+
+    void set_can_fail(bool val) {
+      can_fail_ = val;
+    }
+
+    bool can_fail() {
+      return can_fail_;
     }
 
   };

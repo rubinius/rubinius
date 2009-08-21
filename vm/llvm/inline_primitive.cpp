@@ -216,6 +216,7 @@ namespace rubinius {
     i.set_result(imm_value);
   }
 
+  /*
   static void object_class(Class* klass, JITOperations& ops, Inliner& i) {
     Value* self = i.recv();
 
@@ -232,6 +233,7 @@ namespace rubinius {
     i.exception_safe();
     i.set_result(ops.downcast(res));
   }
+  */
 
   bool Inliner::inline_primitive(Class* klass, CompiledMethod* cm, executor prim) {
     const char* inlined_prim = 0;
@@ -266,9 +268,11 @@ namespace rubinius {
     } else if(prim == Primitives::float_mod && count_ == 1) {
       inlined_prim = "float_mod";
       float_op(cMod, klass, ops_, *this);
+      /*
     } else if(prim == Primitives::object_class && count_ == 0) {
       inlined_prim = "object_class";
       object_class(klass, ops_, *this);
+      */
     } else {
       JITStubResults stub_res;
 
@@ -277,14 +281,18 @@ namespace rubinius {
           Value* self = recv();
           ops_.check_class(self, klass, failure());
 
+          std::vector<Value*> call_args;
+
           Signature sig(ops_.state(), "Object");
           sig << "VM";
-          sig << "CallFrame";
-          sig << "Object";
-
-          std::vector<Value*> call_args;
           call_args.push_back(ops_.vm());
-          call_args.push_back(ops_.call_frame());
+
+          if(stub_res.pass_callframe()) {
+            sig << "CallFrame";
+            call_args.push_back(ops_.call_frame());
+          }
+
+          sig << "Object";
           call_args.push_back(self);
 
           for(int i = 0; i < stub_res.arg_count(); i++) {
@@ -292,7 +300,17 @@ namespace rubinius {
             call_args.push_back(arg(i));
           }
 
+          Function* func = sig.function(stub_res.name());
+          func->setDoesNotCapture(1, true);
+
+          if(stub_res.pass_callframe()) {
+            func->setDoesNotCapture(2, true);
+          }
+
           Value* res = sig.call(stub_res.name(), call_args, "prim_value", ops_.b());
+
+          // Only doing this when stub_res.can_fail() causes an exception
+          // to be thrown when running the ci specs, need to investigate.
           BasicBlock* cont = ops_.new_block("continue");
 
           Value* as_i = ops_.ptrtoint(res);
