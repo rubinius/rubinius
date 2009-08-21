@@ -137,13 +137,19 @@ class CPPPrimitive < BasicPrimitive
     str << "extern \"C\" Object* jit_stub_#{@name}(STATE, CallFrame* call_frame, Object* recv #{arg_list}) {\n"
     str << "  Object* ret;\n"
 
+    i = 0
+    arg_types.each do |t|
+      str << "  #{t}* a#{i};\n"
+      i += 1
+    end
+
     str << "  #{@type}* self = try_as<#{@type}>(recv);\n"
     str << "  if(unlikely(recv == NULL)) goto fail;\n"
 
     args = []
     i = 0
     arg_types.each do |t|
-      str << "  #{t}* a#{i} = try_as<#{t}>(ra#{i});\n"
+      str << "  a#{i} = try_as<#{t}>(ra#{i});\n"
       str << "  if(unlikely(a#{i} == NULL)) goto fail;\n"
       args << "a#{i}"
       i += 1
@@ -212,10 +218,16 @@ class CPPStaticPrimitive < CPPPrimitive
     str << "extern \"C\" Object* jit_stub_#{@name}(STATE, CallFrame* call_frame, Object* recv #{arg_list}) {\n"
     str << "  Object* ret;\n"
 
+    i = 0
+    arg_types.each do |t|
+      str << "  #{t}* a#{i};\n"
+      i += 1
+    end
+
     args = []
     i = 0
     arg_types.each do |t|
-      str << "  #{t}* a#{i} = try_as<#{t}>(ra#{i});\n"
+      str << "  a#{i} = try_as<#{t}>(ra#{i});\n"
       str << "  if(unlikely(a#{i} == NULL)) goto fail;\n"
       args << "a#{i}"
       i += 1
