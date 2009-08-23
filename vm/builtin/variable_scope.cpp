@@ -89,7 +89,7 @@ namespace rubinius {
     size_t locals = vs->number_of_locals();
     for(size_t i = 0; i < locals; i++) {
       tmp = mark.call(vs->get_local(i));
-      if(tmp) vs->set_local(mark.gc->object_memory->state, i, tmp);
+      if(tmp) vs->set_local(mark.state(), i, tmp);
     }
   }
 

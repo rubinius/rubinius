@@ -28,7 +28,11 @@ namespace rubinius {
   {}
 
   GarbageCollector::GarbageCollector(ObjectMemory *om)
-                   :object_memory(om), weak_refs(NULL) { }
+                   :object_memory_(om), weak_refs_(NULL) { }
+
+  VM* GarbageCollector::state() {
+    return object_memory_->state;
+  }
 
   /* Understands how to read the inside of an object and find all references
    * located within. It copies the objects pointed to, but does not follow into
@@ -44,26 +48,26 @@ namespace rubinius {
       slot = saw_object(obj->klass());
       // casting to Class* is ok here because we're in the GC, and the movement
       // of slot MUST return the same type as obj->klass()
-      if(slot) obj->klass(object_memory, reinterpret_cast<Class*>(slot));
+      if(slot) obj->klass(object_memory_, reinterpret_cast<Class*>(slot));
     }
 
     if(obj->ivars() && obj->ivars()->reference_p()) {
       slot = saw_object(obj->ivars());
-      if(slot) obj->ivars(object_memory, slot);
+      if(slot) obj->ivars(object_memory_, slot);
     }
 
     // If this object's refs are weak, then add it to the weak_refs
     // vector and don't look at it otherwise.
     if(obj->refs_are_weak_p()) {
-      if(!weak_refs) {
-        weak_refs = new ObjectArray(0);
+      if(!weak_refs_) {
+        weak_refs_ = new ObjectArray(0);
       }
 
-      weak_refs->push_back(obj);
+      weak_refs_->push_back(obj);
       return;
     }
 
-    TypeInfo* ti = object_memory->type_info[obj->type_id()];
+    TypeInfo* ti = object_memory_->type_info[obj->type_id()];
     assert(ti);
 
     ObjectMark mark(this);
@@ -72,11 +76,11 @@ namespace rubinius {
 
   void GarbageCollector::delete_object(Object* obj) {
     if(obj->requires_cleanup_p()) {
-      object_memory->find_type_info(obj)->cleanup(obj);
+      object_memory_->find_type_info(obj)->cleanup(obj);
     }
 
     if(obj->remembered_p()) {
-      object_memory->unremember_object(obj);
+      object_memory_->unremember_object(obj);
     }
   }
 
@@ -289,7 +293,7 @@ namespace rubinius {
   };
 
   void GarbageCollector::unmark_all(GCData& data) {
-    UnmarkVisitor visit(object_memory);
+    UnmarkVisitor visit(object_memory_);
 
     visit_roots(data.roots(), visit);
     visit_call_frames_list(data.call_frames(), visit);
@@ -306,15 +310,15 @@ namespace rubinius {
   }
 
   void GarbageCollector::clean_weakrefs(bool check_forwards) {
-    if(!weak_refs) return;
+    if(!weak_refs_) return;
 
-    for(ObjectArray::iterator i = weak_refs->begin();
-        i != weak_refs->end();
+    for(ObjectArray::iterator i = weak_refs_->begin();
+        i != weak_refs_->end();
         i++) {
       // ATM, only a Tuple can be marked weak.
       Tuple* tup = as<Tuple>(*i);
       for(size_t ti = 0; ti < tup->num_fields(); ti++) {
-        Object* obj = tup->at(object_memory->state, ti);
+        Object* obj = tup->at(object_memory_->state, ti);
 
         if(!obj->reference_p()) continue;
 
@@ -324,7 +328,7 @@ namespace rubinius {
               tup->field[ti] = Qnil;
             } else {
               tup->field[ti] = obj->forward();
-              tup->write_barrier(object_memory->state, obj->forward());
+              tup->write_barrier(object_memory_->state, obj->forward());
             }
           }
         } else if(!obj->marked_p()) {
@@ -333,7 +337,7 @@ namespace rubinius {
       }
     }
 
-    delete weak_refs;
-    weak_refs = NULL;
+    delete weak_refs_;
+    weak_refs_ = NULL;
   }
 }

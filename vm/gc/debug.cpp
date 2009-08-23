@@ -7,7 +7,7 @@
 #include <stdexcept>
 
 namespace rubinius {
-  HeapDebug::HeapDebug(ObjectMemory *om) : 
+  HeapDebug::HeapDebug(ObjectMemory *om) :
     GarbageCollector(om), seen_objects(0) {
 
   }
@@ -30,13 +30,13 @@ namespace rubinius {
     if(!obj->reference_p()) return NULL;
 
     if(seen[obj]) return NULL;
-    
+
     seen_objects++;
 
     seen[obj] = 1;
 
     if(obj->young_object_p()) {
-      if(!object_memory->young.current->contains_p(obj)) {
+      if(!object_memory_->young.current->contains_p(obj)) {
         throw std::runtime_error("Invalid young object detected.");
       }
     }

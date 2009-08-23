@@ -71,14 +71,17 @@ namespace rubinius {
   };
 
   class GarbageCollector {
-  public:
+  protected:
+    ObjectMemory* object_memory_;
 
-    ObjectMemory* object_memory;
-    ObjectArray* weak_refs;
+  private:
+    ObjectArray* weak_refs_;
+
+  public:
+    GarbageCollector(ObjectMemory *om);
+    virtual ~GarbageCollector()  { }
 
     virtual Object* saw_object(Object*) = 0;
-    virtual ~GarbageCollector()  { }
-    GarbageCollector(ObjectMemory *om);
     void scan_object(Object* obj);
     void delete_object(Object* obj);
     void walk_call_frame(CallFrame* top_call_frame);
@@ -100,6 +103,10 @@ namespace rubinius {
     void visit_call_frames_list(CallFrameLocationList& call_frames, ObjectVisitor& visit);
     void unmark_all(GCData& data);
     void clean_weakrefs(bool check_forwards=false);
+
+    VM* state();
+
+    friend class ObjectMark;
   };
 
 

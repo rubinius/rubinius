@@ -8,6 +8,10 @@
 namespace rubinius {
   ObjectMark::ObjectMark(GarbageCollector* gc) : gc(gc) { }
 
+  VM* ObjectMark::state() {
+    return gc->state();
+  }
+
   Object* ObjectMark::call(Object* obj) {
     if(!obj->reference_p()) return NULL;
 #ifdef RBX_DEBUG
@@ -23,13 +27,13 @@ namespace rubinius {
   void ObjectMark::set(Object* target, Object** pos, Object* val) {
     *pos = val;
     if(val->reference_p()) {
-      gc->object_memory->write_barrier(target, val);
+      gc->object_memory_->write_barrier(target, val);
     }
   }
 
   void ObjectMark::just_set(Object* target, Object* val) {
     if(val->reference_p()) {
-      gc->object_memory->write_barrier(target, val);
+      gc->object_memory_->write_barrier(target, val);
     }
   }
 }

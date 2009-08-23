@@ -582,7 +582,7 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
   {
     if(target->#{name}()->reference_p()) {
       Object* res = mark.call(target->#{name}());
-      if(res) target->#{name}(mark.gc->object_memory->state, (#{type}*)res);
+      if(res) target->#{name}(mark.state(), (#{type}*)res);
     }
   }
 

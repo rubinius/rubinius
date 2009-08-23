@@ -70,7 +70,7 @@ namespace rubinius {
     }
 
     allocated_objects--;
-    allocated_bytes -= obj->size_in_bytes(object_memory->state);
+    allocated_bytes -= obj->size_in_bytes(object_memory_->state);
 
 #ifdef USE_DLMALLOC
     malloc_.release(reinterpret_cast<void*>(obj));
@@ -81,10 +81,10 @@ namespace rubinius {
 
   Object* MarkSweepGC::copy_object(Object* orig) {
     bool collect;
-    Object* obj = allocate(orig->size_in_bytes(object_memory->state), &collect);
+    Object* obj = allocate(orig->size_in_bytes(object_memory_->state), &collect);
 
     obj->initialize_copy(orig, 0);
-    obj->copy_body(object_memory->state, orig);
+    obj->copy_body(object_memory_->state, orig);
 
     return obj;
   }

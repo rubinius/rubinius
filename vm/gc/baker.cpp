@@ -48,14 +48,14 @@ namespace rubinius {
     if(next->contains_p(obj)) return obj;
 
     if(unlikely(obj->age++ >= lifetime)) {
-      copy = object_memory->promote_object(obj);
+      copy = object_memory_->promote_object(obj);
 
       promoted_push(copy);
-    } else if(likely(next->enough_space_p(obj->size_in_bytes(object_memory->state)))) {
-      copy = next->copy_object(object_memory->state, obj);
+    } else if(likely(next->enough_space_p(obj->size_in_bytes(object_memory_->state)))) {
+      copy = next->copy_object(object_memory_->state, obj);
       total_objects++;
     } else {
-      copy = object_memory->promote_object(obj);
+      copy = object_memory_->promote_object(obj);
       promoted_push(copy);
     }
 
@@ -68,12 +68,12 @@ namespace rubinius {
   }
 
   void BakerGC::copy_unscanned() {
-    Object* iobj = next->next_unscanned(object_memory->state);
+    Object* iobj = next->next_unscanned(object_memory_->state);
 
     while(iobj) {
       assert(iobj->zone == YoungObjectZone);
       if(!iobj->forwarded_p()) scan_object(iobj);
-      iobj = next->next_unscanned(object_memory->state);
+      iobj = next->next_unscanned(object_memory_->state);
     }
   }
 
@@ -91,9 +91,9 @@ namespace rubinius {
 #endif
 
     Object* tmp;
-    ObjectArray *current_rs = object_memory->remember_set;
+    ObjectArray *current_rs = object_memory_->remember_set;
 
-    object_memory->remember_set = new ObjectArray(0);
+    object_memory_->remember_set = new ObjectArray(0);
     total_objects = 0;
 
     // Tracks all objects that we promoted during this run, so
@@ -233,7 +233,7 @@ namespace rubinius {
 
   inline Object * BakerGC::next_object(Object * obj) {
     return reinterpret_cast<Object*>(reinterpret_cast<uintptr_t>(obj) +
-      obj->size_in_bytes(object_memory->state));
+      obj->size_in_bytes(object_memory_->state));
   }
 
   void BakerGC::clear_marks() {

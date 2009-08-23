@@ -3,6 +3,7 @@
 
 namespace rubinius {
 
+  class VM;
   class GarbageCollector;
   class Object;
 
@@ -12,6 +13,8 @@ namespace rubinius {
   class ObjectMark {
   public:
     GarbageCollector* gc;
+
+    VM* state();
 
     ObjectMark(GarbageCollector* gc);
     Object* call(Object*);

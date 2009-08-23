@@ -146,7 +146,7 @@ namespace rubinius {
     // properly.
     allocator_.get_new_block();
 
-    ObjectArray *current_rs = object_memory->remember_set;
+    ObjectArray *current_rs = object_memory_->remember_set;
 
     int cleared = 0;
 
