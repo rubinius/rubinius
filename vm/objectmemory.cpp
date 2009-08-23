@@ -213,12 +213,6 @@ namespace rubinius {
     }
   }
 
-  // DEPRECATED
-  void ObjectMemory::store_object(Object* target, size_t index, Object* val) {
-    ((Tuple*)target)->field[index] = val;
-    write_barrier(target, val);
-  }
-
   void ObjectMemory::set_class(Object* target, Object* obj) {
     // the setter calls write_barrier when necessary.
     target->klass(state, (Class*)obj);

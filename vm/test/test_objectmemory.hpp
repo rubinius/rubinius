@@ -66,12 +66,12 @@ public:
     size_t start = om.remember_set->size();
 
     obj->zone = MatureObjectZone;
-    om.store_object(obj, 0, obj2);
+    om.write_barrier(obj, obj2);
 
     TS_ASSERT_EQUALS(om.remember_set->size(), start + 1);
     TS_ASSERT_EQUALS(obj->remembered_p(), 1U);
 
-    om.store_object(obj, 0, obj2);
+    om.write_barrier(obj, obj2);
     TS_ASSERT_EQUALS(om.remember_set->size(), start + 1);
   }
 
@@ -86,7 +86,7 @@ public:
 
     obj2 = Qnil;
 
-    om.store_object(obj, 0, obj2);
+    om.write_barrier(obj, obj2);
     TS_ASSERT_EQUALS(obj->remembered_p(), 0U);
   }
 
@@ -328,7 +328,7 @@ public:
 
   void test_collect_mature_marks_young_objects() {
     ObjectMemory& om = *state->om;
-    Object* young;
+    Tuple* young;
     Object* mature;
 
     om.large_object_threshold = 50 * __WORDSIZE / 32;
@@ -336,7 +336,7 @@ public:
     young =  util_new_object(om);
     mature = util_new_object(om,20);
 
-    om.store_object(young, 0, mature);
+    young->field[0] = mature; // dangerous, but ok in tests
 
     Root r(roots, young);
 
