@@ -67,6 +67,7 @@ string.rbc
 string_186.rbc
 range.rbc
 range_186.rbc
+rubinius.rbc
 pack.rbc
 struct.rbc
 struct_186.rbc

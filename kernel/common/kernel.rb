@@ -456,19 +456,19 @@ module Kernel
   def instance_variable_get(sym)
     Ruby.primitive :object_get_ivar
 
-    sym = instance_variable_validate sym
+    sym = Rubinius.instance_variable_validate sym
     instance_variable_get sym
   end
 
   def instance_variable_set(sym, value)
     Ruby.primitive :object_set_ivar
 
-    sym = instance_variable_validate sym
+    sym = Rubinius.instance_variable_validate sym
     instance_variable_set sym, value
   end
 
   def remove_instance_variable(sym)
-    sym = instance_variable_validate(sym)
+    sym = Rubinius.instance_variable_validate(sym)
     vars = get_instance_variables
     vars.delete sym
   end
@@ -480,7 +480,7 @@ module Kernel
   end
 
   def instance_variable_defined?(name)
-    name = instance_variable_validate(name)
+    name = Rubinius.instance_variable_validate(name)
 
     vars = get_instance_variables
     return false unless vars
