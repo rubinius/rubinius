@@ -475,8 +475,11 @@ module Kernel
   private :remove_instance_variable
 
   def instance_variables
-    vars = get_instance_variables || {}
-    Rubinius.convert_to_names vars.keys.find_all{|key| key.is_ivar?}
+    if vars = get_instance_variables()
+      Rubinius.convert_to_names vars.keys.find_all { |key| key.is_ivar? }
+    else
+      []
+    end
   end
 
   def instance_variable_defined?(name)
