@@ -30,12 +30,6 @@
 
 namespace rubinius {
 
-  Object* Object::change_class_to(STATE, Class* other_klass) {
-    this->klass(state, other_klass);
-
-    return this;
-  }
-
   Class* Object::class_object(STATE) const {
     if(reference_p()) {
       Module* mod = klass_;

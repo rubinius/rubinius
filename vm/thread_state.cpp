@@ -13,7 +13,7 @@ namespace rubinius {
       return Qnil;
     default:
       Exception* exc = Exception::create(state);
-      exc->change_class_to(state, G(exc_vm_internal));
+      exc->klass(state, G(exc_vm_internal));
       exc->set_ivar(state, state->symbol("reason"), Fixnum::from(raise_reason_));
       exc->set_ivar(state, state->symbol("value"),  raise_value_.get());
       exc->set_ivar(state, state->symbol("destination"), destination_scope_.get());

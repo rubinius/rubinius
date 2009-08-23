@@ -14,17 +14,6 @@ public:
     destroy();
   }
 
-  void test_change_class_to() {
-    Object* obj = util_new_object();
-    Tuple* tup = Tuple::create(state, 1);
-
-    Class* tup_class = tup->klass();
-
-    obj->change_class_to(state, tup_class);
-
-    TS_ASSERT_EQUALS(tup_class, obj->klass());
-  }
-
   void test_kind_of() {
     Object* obj = util_new_object();
     TS_ASSERT(kind_of<Object>(obj));
