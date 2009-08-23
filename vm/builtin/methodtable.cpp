@@ -52,7 +52,10 @@ namespace rubinius {
 
     size = bins_->to_native();
     dup = MethodTable::create(state, size);
-    state->om->set_class(dup, class_object(state));
+
+    // Allow for subclassing.
+    dup->klass(state, class_object(state));
+
     size_t num = entries_->to_native();
 
     Array* entries = all_entries(state);

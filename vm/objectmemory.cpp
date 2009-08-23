@@ -213,11 +213,6 @@ namespace rubinius {
     }
   }
 
-  void ObjectMemory::set_class(Object* target, Object* obj) {
-    // the setter calls write_barrier when necessary.
-    target->klass(state, (Class*)obj);
-  }
-
   Object* ObjectMemory::allocate_object(size_t bytes) {
     Object* obj;
 
@@ -292,7 +287,7 @@ namespace rubinius {
 #endif
 
     obj = allocate_object(bytes);
-    set_class(obj, cls);
+    obj->klass(this, cls);
 
     obj->obj_type_ = type;
     obj->set_requires_cleanup(type_info[type]->instances_need_cleanup);
@@ -308,7 +303,7 @@ namespace rubinius {
 #endif
 
     obj = allocate_object_mature(bytes);
-    set_class(obj, cls);
+    obj->klass(this, cls);
 
     obj->obj_type_ = type;
     obj->set_requires_cleanup(type_info[type]->instances_need_cleanup);
@@ -345,7 +340,7 @@ namespace rubinius {
     stats::GCStats::get()->large_objects++;
 #endif
 
-    set_class(obj, cls);
+    obj->klass(this, cls);
 
     obj->obj_type_ = type;
     obj->set_requires_cleanup(type_info[type]->instances_need_cleanup);

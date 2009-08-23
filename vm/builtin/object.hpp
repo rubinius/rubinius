@@ -20,7 +20,8 @@ namespace rubinius {
  *  barrier.
  */
 #define attr_writer(name, type) \
-  void name(STATE, type* obj) { \
+  template <class T> \
+  void name(T state, type* obj) { \
     name ## _ = obj; \
     if(zone == MatureObjectZone) this->write_barrier(state, obj); \
   }
@@ -31,16 +32,18 @@ namespace rubinius {
  *  For attr_reader(foo, SomeClass), creates SomeClass* foo() which returns the
  *  instance variable foo_. A const version is also generated.
  */
-#define attr_reader(name, type) type* name() { return name ## _; } \
-                                const type* name() const { return name ## _; }
+#define attr_reader(name, type) \
+  type* name() { return name ## _; } \
+  const type* name() const { return name ## _; }
 
 /**
  *  Ruby-like accessor creation for a slot.
  *
  *  Both attr_writer and attr_reader.
  */
-#define attr_accessor(name, type) attr_reader(name, type) \
-                                  attr_writer(name, type)
+#define attr_accessor(name, type) \
+  attr_reader(name, type) \
+  attr_writer(name, type)
 
   /* Forwards */
   class MetaClass;
@@ -104,6 +107,8 @@ namespace rubinius {
     void        write_barrier(STATE, Fixnum* obj);
     /** Special-case write_barrier() for Symbols. */
     void        write_barrier(STATE, Symbol* obj);
+
+    void        write_barrier(ObjectMemory* om, void* obj);
 
 
   public:   /* Type information, field access, copy support &c. */

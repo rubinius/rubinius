@@ -42,12 +42,14 @@ namespace rubinius {
 
     if(obj->klass() && obj->klass()->reference_p()) {
       slot = saw_object(obj->klass());
-      if(slot) object_memory->set_class(obj, slot);
+      // casting to Class* is ok here because we're in the GC, and the movement
+      // of slot MUST return the same type as obj->klass()
+      if(slot) obj->klass(object_memory, reinterpret_cast<Class*>(slot));
     }
 
     if(obj->ivars() && obj->ivars()->reference_p()) {
       slot = saw_object(obj->ivars());
-      if(slot) obj->ivars(object_memory->state, slot);
+      if(slot) obj->ivars(object_memory, slot);
     }
 
     // If this object's refs are weak, then add it to the weak_refs

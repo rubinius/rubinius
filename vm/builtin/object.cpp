@@ -583,4 +583,8 @@ namespace rubinius {
     state->om->write_barrier(this, reinterpret_cast<Object*>(obj));
   }
 
+  void Object::write_barrier(ObjectMemory* om, void* obj) {
+    om->write_barrier(this, reinterpret_cast<Object*>(obj));
+  }
+
 }

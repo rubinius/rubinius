@@ -213,7 +213,8 @@ namespace rubinius {
     ns->shared(state, Qtrue);
     shared(state, Qtrue);
 
-    state->om->set_class(ns, class_object(state));
+    // Fix for subclassing
+    ns->klass(state, class_object(state));
 
     return ns;
   }

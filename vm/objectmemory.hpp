@@ -63,8 +63,6 @@ namespace rubinius {
     void remember_object(Object* target);
     void unremember_object(Object* target);
 
-    void set_class(Object* target, Object* obj);
-
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_enduring(Class* cls, size_t bytes, object_type type);

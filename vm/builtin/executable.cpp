@@ -27,8 +27,8 @@ namespace rubinius {
 
     executable->set_executor(Executable::default_executor);
 
-    if(kind_of<Class>(self)) {
-      state->om->set_class(executable, self);
+    if(Class* cls = try_as<Class>(self)) {
+      executable->klass(state, cls);
     }
 
     return executable;
