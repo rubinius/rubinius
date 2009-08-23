@@ -177,6 +177,11 @@ module Kernel
   end
   module_function :p
 
+  # Object oriented version of Kernel.p
+  def display(port=$>)
+    port.write self
+  end
+
   def print(*args)
     args.each do |obj|
       $stdout.write obj.to_s

@@ -11,8 +11,4 @@ class Object
   end
   private :initialize
 
-  def display(port=$>)
-    port.write self
-  end
-
 end
