@@ -56,7 +56,7 @@ namespace rubinius {
     // Ruby.primitive :class_s_allocate
     static Class* s_allocate(STATE);
 
-    // Ruby.primitive :class_allocate
+    // Ruby.primitive+ :class_allocate
     Object* allocate(STATE);
 
     // Ruby.primitive :class_set_superclass
