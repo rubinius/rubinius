@@ -6,7 +6,7 @@ namespace rubinius {
   /* Heap methods */
   Heap::Heap(size_t bytes) {
     size = bytes;
-    start = (address)std::calloc(1, size);
+    start = reinterpret_cast<address>(std::malloc(size));
     scan = start;
     last = (void*)((uintptr_t)start + bytes - 1);
     reset();

@@ -43,6 +43,15 @@ namespace rubinius {
       return true;
     }
 
+    address try_allocate(size_t size) {
+      address addr = current;
+      address next = (address)((uintptr_t)current + size);
+      if(next >= last) return 0;
+
+      current = next;
+      return addr;
+    }
+
     bool fully_scanned_p() {
       return scan == current;
     }

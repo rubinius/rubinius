@@ -196,12 +196,21 @@ const int cUndef = 0x22L;
       zone = loc;
     }
 
+    void init_header(Class* cls, gc_zone loc, object_type type) {
+      all_flags = 0;
+      obj_type_ = type;
+      zone = loc;
+
+      klass_ = cls;
+      ivars_ = Qnil;
+    }
+
     /* It's the slow case, should be called only if there's no cached
      * instance size. */
-    size_t slow_size_in_bytes(VM * state) const;
+    size_t slow_size_in_bytes(STATE) const;
 
     /* The whole point of this is inlining */
-    size_t size_in_bytes(VM* state) const {
+    size_t size_in_bytes(STATE) const {
       register size_t size = TypeInfo::instance_sizes[type_id()];
       if(size != 0) {
         return size;
@@ -358,6 +367,7 @@ const int cUndef = 0x22L;
     }
 
     friend class TypeInfo;
+    friend class ObjectMemory;
   };
 }
 

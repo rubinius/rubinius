@@ -67,6 +67,16 @@ namespace rubinius {
     Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_enduring(Class* cls, size_t bytes, object_type type);
 
+    Object* new_object_fast(Class* cls, size_t bytes, object_type type) {
+      if(Object* obj = young.raw_allocate(bytes)) {
+        obj->init_header(cls, YoungObjectZone, type);
+        obj->clear_fields(bytes);
+        return obj;
+      } else {
+        return new_object_typed(cls, bytes, type);
+      }
+    }
+
     template <class T>
       T* new_object_bytes(Class* cls, size_t& bytes) {
         bytes = ObjectHeader::align(sizeof(T) + bytes);

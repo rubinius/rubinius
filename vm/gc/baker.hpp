@@ -34,7 +34,7 @@ namespace rubinius {
     size_t total_objects;
 
     /* Inline methods */
-    Object* allocate(size_t bytes, bool *collect_now) {
+    Object* raw_allocate(size_t bytes) {
       Object* obj;
 
 #ifdef RBX_GC_STATS
@@ -43,29 +43,51 @@ namespace rubinius {
 #endif
 
       if(!current->enough_space_p(bytes)) {
-#if 0
-        if(!next->enough_space_p(bytes)) {
-          return NULL;
-        } else {
-          total_objects++;
-          obj = (Object*)next->allocate(bytes);
-        }
-#endif
-        *collect_now = true;
-
 #ifdef RBX_GC_STATS
-      stats::GCStats::get()->allocate_young.stop();
+       stats::GCStats::get()->allocate_young.stop();
 #endif
-
         return NULL;
       } else {
         total_objects++;
         obj = (Object*)current->allocate(bytes);
       }
 
+#ifdef ENABLE_OBJECT_WATCH
       if(watched_p(obj)) {
         std::cout << "detected " << obj << " during baker allocation.\n";
       }
+#endif
+
+#ifdef RBX_GC_STATS
+      stats::GCStats::get()->allocate_young.stop();
+#endif
+
+      return obj;
+    }
+
+    Object* allocate(size_t bytes) {
+      Object* obj;
+
+#ifdef RBX_GC_STATS
+      stats::GCStats::get()->young_bytes_allocated += bytes;
+      stats::GCStats::get()->allocate_young.start();
+#endif
+
+      if(!current->enough_space_p(bytes)) {
+#ifdef RBX_GC_STATS
+       stats::GCStats::get()->allocate_young.stop();
+#endif
+        return NULL;
+      } else {
+        total_objects++;
+        obj = (Object*)current->allocate(bytes);
+      }
+
+#ifdef ENABLE_OBJECT_WATCH
+      if(watched_p(obj)) {
+        std::cout << "detected " << obj << " during baker allocation.\n";
+      }
+#endif
 
       obj->init_header(YoungObjectZone, InvalidType);
 

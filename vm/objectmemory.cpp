@@ -35,7 +35,6 @@ namespace rubinius {
 
     remember_set = new ObjectArray(0);
 
-    collect_young_now = false;
     collect_mature_now = false;
     last_object_id = 0;
 
@@ -227,7 +226,7 @@ namespace rubinius {
 #endif
 
     } else {
-      obj = young.allocate(bytes, &collect_young_now);
+      obj = young.allocate(bytes);
       if(unlikely(obj == NULL)) {
         collect_young_now = true;
         state->interrupts.check = true;

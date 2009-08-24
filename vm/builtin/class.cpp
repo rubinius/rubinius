@@ -81,8 +81,8 @@ namespace rubinius {
   }
 
   Object* Class::allocate(STATE) {
-    TypeInfo* ti = state->find_type(instance_type_->to_native());
-    return state->new_object_from_type(this, ti);
+    return state->om->new_object_fast(this,
+        type_info_->instance_size, type_info_->type);
   }
 
   Class* Class::true_superclass(STATE) {
