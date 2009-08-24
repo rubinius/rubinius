@@ -219,11 +219,17 @@ class Compiler
 
         call.receiver_bytecode(g)
         g.dup
-        idx = g.check_serial idx, KernelMethodSerial
+
+        if call.allow_private?
+          g.check_serial_private :new, KernelMethodSerial
+        else
+          g.check_serial :new, KernelMethodSerial
+        end
+
         g.gif slow
 
         # fast path
-        g.send :allocate, 0
+        g.send :allocate, 0, true
         g.dup
         call.emit_args(g)
         g.send :initialize, call.argcount, true
@@ -234,13 +240,7 @@ class Compiler
         # slow path
         slow.set!
         call.emit_args(g)
-        g.add :allow_private
-        count = call.argcount
-        if count == 0
-          g.add :send_method, idx
-        else
-          g.add :send_stack, idx, count
-        end
+        g.send :new, call.argcount, call.allow_private?
 
         done.set!
 

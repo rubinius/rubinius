@@ -645,9 +645,11 @@ class Compiler
     end
 
     def check_serial(sym, serial)
-      idx = add_literal Rubinius::SendSite.new(:new)
-      add :check_serial, idx, serial.to_i
-      return idx
+      add :check_serial, add_literal(sym), serial.to_i
+    end
+
+    def check_serial_private(sym, serial)
+      add :check_serial_private, add_literal(sym), serial.to_i
     end
 
     def create_block(desc)

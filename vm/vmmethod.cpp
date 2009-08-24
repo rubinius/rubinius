@@ -175,6 +175,8 @@ namespace rubinius {
         case InstructionSequence::insn_meta_send_op_tequal:
         case InstructionSequence::insn_meta_send_op_lt:
         case InstructionSequence::insn_meta_send_op_gt:
+        case InstructionSequence::insn_check_serial:
+        case InstructionSequence::insn_check_serial_private:
           sends++;
         }
 
@@ -203,6 +205,8 @@ namespace rubinius {
       case InstructionSequence::insn_send_super_stack_with_splat:
         is_super = true;
         // fall through
+      case InstructionSequence::insn_check_serial:
+      case InstructionSequence::insn_check_serial_private:
       case InstructionSequence::insn_send_method:
       case InstructionSequence::insn_send_stack:
       case InstructionSequence::insn_send_stack_with_block:

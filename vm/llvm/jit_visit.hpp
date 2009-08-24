@@ -1833,27 +1833,53 @@ namespace rubinius {
     }
 
     void visit_check_serial(opcode index, opcode serial) {
-      std::vector<const Type*> types;
+      Signature sig(ls_, "Object");
+      sig << "VM";
+      sig << "CallFrame";
+      sig << "InlineCache";
+      sig << Type::Int32Ty;
+      sig << "Object";
 
-      types.push_back(VMTy);
-      types.push_back(CallFrameTy);
-      types.push_back(Type::Int32Ty);
-      types.push_back(Type::Int32Ty);
-      types.push_back(ObjType);
-
-      FunctionType* ft = FunctionType::get(ObjType, types, false);
-      Function* func = cast<Function>(
-          module_->getOrInsertFunction("rbx_check_serial", ft));
+      Value* cache_const = b().CreateIntToPtr(
+          ConstantInt::get(IntPtrTy, index),
+          ptr_type("InlineCache"), "cast_to_ptr");
 
       Value* call_args[] = {
         vm_,
         call_frame_,
-        ConstantInt::get(Type::Int32Ty, index),
+        cache_const,
         ConstantInt::get(Type::Int32Ty, serial),
         stack_pop()
       };
 
-      stack_push(b().CreateCall(func, call_args, call_args+5, "cs"));
+      sig.setDoesNotCapture("rbx_check_serial", 2);
+
+      stack_push(sig.call("rbx_check_serial", call_args, 5, "cs", b()));
+    }
+
+    void visit_check_serial_private(opcode index, opcode serial) {
+      Signature sig(ls_, "Object");
+      sig << "VM";
+      sig << "CallFrame";
+      sig << "InlineCache";
+      sig << Type::Int32Ty;
+      sig << "Object";
+
+      Value* cache_const = b().CreateIntToPtr(
+          ConstantInt::get(IntPtrTy, index),
+          ptr_type("InlineCache"), "cast_to_ptr");
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        cache_const,
+        ConstantInt::get(Type::Int32Ty, serial),
+        stack_pop()
+      };
+
+      sig.setDoesNotCapture("rbx_check_serial_private", 2);
+
+      stack_push(sig.call("rbx_check_serial_private", call_args, 5, "cs", b()));
     }
 
     void visit_push_my_offset(opcode i) {

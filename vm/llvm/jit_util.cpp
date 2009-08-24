@@ -239,7 +239,25 @@ extern "C" {
     return ary;
   }
 
-  Object* rbx_check_serial(STATE, CallFrame* call_frame, int index, int serial, Object* top) {
+  Object* rbx_check_serial(STATE, CallFrame* call_frame, InlineCache* cache,
+                           int serial, Object* recv)
+  {
+    if(cache->update_and_validate(state, call_frame, recv) &&
+         cache->method->serial()->to_native() == serial) {
+      return Qtrue;
+    }
+
+    return Qfalse;
+  }
+
+  Object* rbx_check_serial_private(STATE, CallFrame* call_frame, InlineCache* cache,
+                           int serial, Object* recv)
+  {
+    if(cache->update_and_validate(state, call_frame, recv) &&
+         cache->method->serial()->to_native() == serial) {
+      return Qtrue;
+    }
+
     return Qfalse;
   }
 

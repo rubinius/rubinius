@@ -282,6 +282,10 @@ namespace rubinius {
       return llvm::cast<llvm::Function>(ls_->module()->getOrInsertFunction(name, type()));
     }
 
+    void setDoesNotCapture(const char* name, int which) {
+      function(name)->setDoesNotCapture(which, true);
+    }
+
     llvm::CallInst* call(const char* name, llvm::Value** start, int size,
                       const char* inst_name, llvm::BasicBlock* block) {
       return llvm::CallInst::Create(function(name), start, start+size, inst_name, block);

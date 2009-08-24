@@ -17,18 +17,18 @@ describe "A Call node using FastNew plugin" do
 
       g.push :self
       g.dup
-      idx = g.check_serial idx, Rubinius::CompiledMethod::KernelMethodSerial
+      g.check_serial_private :new, Rubinius::CompiledMethod::KernelMethodSerial
       gif slow
 
-      g.send :allocate, 0
+      g.send :allocate, 0, true
       g.dup
       g.send :initialize, 0, true
       g.pop
       g.goto done
 
       slow.set!
-      g.allow_private
-      g.send_method idx
+
+      g.send :new, 0, true
 
       done.set!
     end
@@ -52,10 +52,10 @@ describe "A Call node using FastNew plugin" do
 
       g.push :self
       g.dup
-      idx = g.check_serial idx, Rubinius::CompiledMethod::KernelMethodSerial
+      g.check_serial_private :new, Rubinius::CompiledMethod::KernelMethodSerial
       gif slow
 
-      g.send :allocate, 0
+      g.send :allocate, 0, true
       g.dup
       g.push :self
       g.send :a, 0, true
@@ -66,8 +66,7 @@ describe "A Call node using FastNew plugin" do
       slow.set!
       g.push :self
       g.send :a, 0, true
-      g.allow_private
-      g.send_stack idx, 1
+      g.send :new, 1, true
 
       done.set!
     end
@@ -89,18 +88,17 @@ describe "A Call node using FastNew plugin" do
 
       g.push_const :A
       g.dup
-      idx = g.check_serial idx, Rubinius::CompiledMethod::KernelMethodSerial
+      g.check_serial :new, Rubinius::CompiledMethod::KernelMethodSerial
       gif slow
 
-      g.send :allocate, 0
+      g.send :allocate, 0, true
       g.dup
       g.send :initialize, 0, true
       g.pop
       g.goto done
 
       slow.set!
-      g.allow_private
-      g.send_method idx
+      g.send :new, 0, false
 
       done.set!
     end
@@ -124,10 +122,10 @@ describe "A Call node using FastNew plugin" do
 
       g.push_const :A
       g.dup
-      idx = g.check_serial idx, Rubinius::CompiledMethod::KernelMethodSerial
+      g.check_serial :new, Rubinius::CompiledMethod::KernelMethodSerial
       gif slow
 
-      g.send :allocate, 0
+      g.send :allocate, 0, true
       g.dup
       g.push :self
       g.send :a, 0, true
@@ -138,8 +136,7 @@ describe "A Call node using FastNew plugin" do
       slow.set!
       g.push :self
       g.send :a, 0, true
-      g.allow_private
-      g.send_stack idx, 1
+      g.send :new, 1, false
 
       done.set!
     end

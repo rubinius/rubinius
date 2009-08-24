@@ -114,6 +114,9 @@ namespace rubinius {
 
     void run_wb(STATE, CompiledMethod* exec);
 
+    bool update_and_validate(STATE, CallFrame* call_frame, Object* recv);
+    bool update_and_validate_private(STATE, CallFrame* call_frame, Object* recv);
+
     InlineCache()
       : Dispatch()
       , klass_(0)

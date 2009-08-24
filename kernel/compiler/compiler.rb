@@ -189,7 +189,7 @@ class Compiler
     activate :kernel_methods if Config['rbx-kernel']
     activate_default :fastsystem
     activate_default :fastgeneric
-    # activate_default :fastnew
+    activate_default :fastnew
     # AutoPrimitiveDetection is currently disabled
     # TODO - Implement the opt_* primitives it requires and reactivate
     # activate_default :auto_primitive

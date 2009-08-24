@@ -182,6 +182,36 @@ namespace rubinius {
     exec->write_barrier(state, klass_);
   }
 
+  bool InlineCache::update_and_validate(STATE, CallFrame* call_frame, Object* recv) {
+    if(valid_p(state, recv)) return true;
+
+    set_klass(recv->lookup_begin(state));
+
+    if(!fill_public(state, call_frame->self(), name)) {
+      return false;
+    }
+
+    update_seen_classes();
+    run_wb(state, call_frame->cm);
+
+    return true;
+  }
+
+  bool InlineCache::update_and_validate_private(STATE, CallFrame* call_frame, Object* recv) {
+    if(valid_p(state, recv)) return true;
+
+    set_klass(recv->lookup_begin(state));
+
+    if(!fill_private(state, name, klass())) {
+      return false;
+    }
+
+    update_seen_classes();
+    run_wb(state, call_frame->cm);
+
+    return true;
+  }
+
   Object* InlineCache::empty_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {

@@ -337,18 +337,15 @@ class Instructions
   # [Operation]
   #   Checks if the specified method serial number matches an expected value
   # [Format]
-  #   \check_serial sendsite serial
+  #   \check_serial index serial
   # [Stack Before]
   #   * obj
   #   * ...
   # [Stack After]
-  #   * true | false
   #   * ...
   # [Description]
-  #   Pops an object off the stack, and determines whether the serial number
-  #   of the method identified by the literal +method+ is the same as the
-  #   expected value +serial+. The result is pushed back on the stack as the
-  #   value +true+ or +false+.
+  #   Pops +obj+ and if +obj+ responds to +index+ and the target method has
+  #   serial +serial+, push true. Else push false.
   # [Notes]
   #   This opcode is typically used to determine at runtime whether an
   #   optimisation can be performed. At compile time, two code paths are
@@ -367,9 +364,23 @@ class Instructions
   def check_serial(index, serial)
     <<-CODE
     Object* recv = stack_pop();
-    SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
+    InlineCache* cache = reinterpret_cast<InlineCache*>(index);
 
-    if(cache->recv_class == recv->lookup_begin(state) &&
+    if(cache->update_and_validate(state, call_frame, recv) &&
+         cache->method->serial()->to_native() == serial) {
+       stack_push(Qtrue);
+    } else {
+      stack_push(Qfalse);
+    }
+    CODE
+  end
+
+  def check_serial_private(index, serial)
+    <<-CODE
+    Object* recv = stack_pop();
+    InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+
+    if(cache->update_and_validate_private(state, call_frame, recv) &&
          cache->method->serial()->to_native() == serial) {
        stack_push(Qtrue);
     } else {

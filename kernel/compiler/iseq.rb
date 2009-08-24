@@ -282,6 +282,7 @@ module Rubinius
                                                       :vm_flags => [:check_interrupts]
     opcode :is_nil,               :stack => [1, 1],   :args => []
     opcode :check_serial,         :stack => [1, 1],   :args => [:literal, :int]
+    opcode :check_serial_private, :stack => [1, 1],   :args => [:literal, :int]
 
     # field access                              ,
     opcode :push_my_field,        :stack => [0, 1],   :args => [:field]
