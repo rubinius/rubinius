@@ -970,7 +970,7 @@ namespace melbourne {
       break;
     }
     case NODE_POSTEXE:            /* END { ... } */
-      /* Nothing to do here... we are in an iter block */
+      tree = rb_funcall(ptp, rb_sPostExe, 1, line);
       break;
 
     default: {

@@ -79,6 +79,7 @@ namespace melbourne {
   ID rb_sOpAsgnAnd;
   ID rb_sOpAsgnOr;
   ID rb_sOr;
+  ID rb_sPostExe;
   ID rb_sRedo;
   ID rb_sRegex;
   ID rb_sResbody;
@@ -186,6 +187,7 @@ namespace melbourne {
     rb_sOpAsgnAnd = rb_intern("process_op_asgn_and");
     rb_sOpAsgnOr  = rb_intern("process_op_asgn_or");
     rb_sOr        = rb_intern("process_or");
+    rb_sPostExe   = rb_intern("process_postexe");
     rb_sRedo      = rb_intern("process_redo");
     rb_sRegex     = rb_intern("process_regex");
     rb_sResbody   = rb_intern("process_resbody");

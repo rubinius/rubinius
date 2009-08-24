@@ -169,6 +169,9 @@ class Compiler
     def in_rescue
     end
 
+    def in_block
+    end
+
     def visit(arg=true, &block)
       children.each do |child|
         if child
@@ -223,15 +226,6 @@ class Compiler
         g.pop
         @right.bytecode(g)
         lbl.set!
-      end
-    end
-
-    class ArgList < ArrayLiteral
-      def self.from(p, normal, splat)
-        node = ArgList.new p.compiler
-        normal.body << Splat.from(p, splat)
-        node.body = normal
-        node
       end
     end
 
@@ -477,6 +471,10 @@ class Compiler
         node = Break.new p.compiler
         node.value = expr || Nil.from(p)
         node
+      end
+
+      def in_block
+        @in_block = true
       end
 
       def bytecode(g)
@@ -1503,10 +1501,12 @@ class Compiler
     end
 
     class Iter < Node
-      attr_accessor :parent
+      attr_accessor :parent, :arguments, :body
 
-      def self.from(p, iter, args, body)
+      def self.from(p, arguments, body)
         node = Iter.new p.compiler
+        node.arguments = IterArguments.from p, arguments
+        node.body = body || Nil.from(p)
         node
       end
 
@@ -1519,7 +1519,7 @@ class Compiler
       end
 
       def nest_scope(scope)
-        scepe.parent = self
+        scope.parent = self
       end
 
       # A nested scope is looking up a local variable. If the variable exists
@@ -1555,7 +1555,197 @@ class Compiler
         end
       end
 
+      def map_iter
+        @body.in_block
+        @body.visit do |result, node|
+          case node
+          when ClosedScope, Iter
+            result = nil
+          else
+            node.in_block
+          end
+
+          result
+        end
+      end
+
+      def children
+        [@arguments, @body]
+      end
+
       def bytecode(g)
+        pos(g)
+
+        map_iter
+
+        desc = MethodDescription.new @compiler.generator_class, @locals
+        desc.name = :__block__
+        desc.for_block = true
+        desc.required = @arguments.arity
+        desc.optional = @arguments.optional
+        blk = desc.generator
+
+        # Push line info down.
+        blk.set_line g.line, g.file
+
+        @arguments.bytecode(blk)
+
+        blk.push_modifiers
+        blk.break = nil
+        blk.next = nil
+        blk.redo = blk.new_label
+        blk.redo.set!
+        @body.bytecode(blk)
+        blk.pop_modifiers
+        blk.ret
+        blk.close
+
+        g.create_block desc
+      end
+    end
+
+    class IterArguments < Node
+      attr_accessor :prelude, :arity, :optional, :array
+
+      def self.from(p, arguments)
+        node = IterArguments.new p.compiler
+        node.optional = 0
+
+        array = []
+        case arguments
+        when Fixnum
+          node.arity = 0
+        when MAsgn
+          node.map_arguments p, array, arguments
+
+          if arguments.splat
+            node.optional = 1
+            node.arity = -array.size
+          else
+            node.arity = array.size
+          end
+
+          if arguments.left
+            node.prelude = :multi
+          else
+            node.prelude = :splat
+          end
+        when nil
+          node.arity = -1
+        else # Assignment
+          array << arguments
+          node.arity = 1
+          node.prelude = :single
+        end
+        node.array = array
+
+        node
+      end
+
+      def map_arguments(p, array, masgn)
+        if masgn.left
+          masgn.left.body.each do |node|
+            case node
+            when MAsgn
+              nested = NestedIterArguments.from p
+              map_arguments p, nested.array, node
+              array << nested
+            else
+              array << IterArgument.from(p, node)
+            end
+          end
+        end
+
+        if masgn.splat.kind_of? Node
+          array << IterSplat.from(p, masgn.splat)
+        end
+      end
+
+      def children
+        @array
+      end
+
+      def arguments_bytecode(g)
+        @array.each { |x| x.bytecode(g) }
+      end
+
+      def bytecode(g)
+        case @prelude
+        when :single
+          g.cast_for_single_block_arg
+          arguments_bytecode(g)
+          g.pop
+        when :multi
+          g.cast_for_multi_block_arg
+          g.cast_array
+          arguments_bytecode(g)
+          g.pop
+        when :splat
+          g.cast_for_splat_block_arg
+          g.cast_array
+          arguments_bytecode(g)
+          g.pop
+        end
+      end
+    end
+
+    class NestedIterArguments < Node
+      attr_accessor :array
+
+      def self.from(p)
+        node = NestedIterArguments.new p.compiler
+        node.array = []
+        node
+      end
+
+      def children
+        @array
+      end
+
+      def bytecode(g)
+        g.shift_array
+        g.cast_array
+        @array.each { |x| x.bytecode(g) }
+        g.pop
+      end
+    end
+
+    class IterArgument < Node
+      attr_accessor :value
+
+      def self.from(p, value)
+        node = IterArgument.new p.compiler
+        node.value = value
+        node
+      end
+
+      def children
+        [@value]
+      end
+
+      def bytecode(g)
+        g.shift_array
+        @value.bytecode(g)
+        g.pop
+      end
+    end
+
+    class IterSplat < Node
+      attr_accessor :name, :value
+
+      def self.from(p, value)
+        node = IterSplat.new p.compiler
+        node.value = value
+        node
+      end
+
+      def children
+        [@value]
+      end
+
+      def bytecode(g)
+        g.cast_array
+        @value.bytecode(g)
       end
     end
 
@@ -1644,13 +1834,20 @@ class Compiler
     end
 
     class MAsgn < Node
-      attr_accessor :left, :right
+      attr_accessor :left, :right, :splat
 
-      def self.from(p, left, right, flags)
+      def self.from(p, left, right, splat)
         node = MAsgn.new p.compiler
         node.left = left
         node.right = right
+        node.splat = splat
         node
+      end
+
+      def children
+        children = [@right, @left]
+        children << @splat if @splat.kind_of? Node
+        children
       end
 
       def bytecode(g)
@@ -1856,6 +2053,10 @@ class Compiler
         node = Next.new p.compiler
         node.value = expr
         node
+      end
+
+      def in_block
+        @in_block = true
       end
 
       def bytecode(g)
@@ -2360,6 +2561,10 @@ class Compiler
 
       def in_rescue
         @in_rescue = true
+      end
+
+      def in_block
+        @in_block = true
       end
 
       def bytecode(g, force=false)

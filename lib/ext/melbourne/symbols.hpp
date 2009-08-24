@@ -78,6 +78,7 @@ namespace melbourne {
   extern ID rb_sOpAsgnAnd;
   extern ID rb_sOpAsgnOr;
   extern ID rb_sOr;
+  extern ID rb_sPostExe;
   extern ID rb_sRedo;
   extern ID rb_sRegex;
   extern ID rb_sResbody;

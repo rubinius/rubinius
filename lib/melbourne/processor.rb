@@ -257,8 +257,9 @@ module Rubinius
       AST::If.from self, cond, body, else_body
     end
 
-    def process_iter(line, iter, args, body)
-      AST::Iter.from self, iter, args, body
+    def process_iter(line, method_send, args, body)
+      method_send.block = AST::Iter.from self, args, body
+      method_send
     end
 
     def process_ivar(line, name)
@@ -277,9 +278,8 @@ module Rubinius
       AST::LocalAccess.from self, name
     end
 
-    def process_masgn(line, left, right, flags)
-      # args is true if [:splat] ?
-      AST::MAsgn.from self, left, right, flags
+    def process_masgn(line, left, right, splat)
+      AST::MAsgn.from self, left, right, splat
     end
 
     def process_match(line, pattern, flags)
@@ -340,6 +340,10 @@ module Rubinius
 
     def process_or(line, left, right)
       AST::Or.from self, left, right
+    end
+
+    def process_postexe(line)
+      AST::Send.from self, AST::Self.from(self), :at_exit
     end
 
     def process_redo(line)
