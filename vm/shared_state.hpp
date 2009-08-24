@@ -10,6 +10,8 @@
 #include "globals.hpp"
 #include "symboltable.hpp"
 
+#include "primitives.hpp"
+
 namespace rubinius {
   namespace capi {
     class Handles;
@@ -67,6 +69,8 @@ namespace rubinius {
     WorldState* world_;
     InlineCacheRegistry* ic_registry_;
     unsigned int class_count_;
+
+    int primitive_hits_[Primitives::cTotalPrimitives];
 
   public:
     Globals globals;
@@ -146,6 +150,14 @@ namespace rubinius {
 
     unsigned int inc_class_count() {
       return ++class_count_;
+    }
+
+    int inc_primitive_hit(int primitive) {
+      return ++primitive_hits_[primitive];
+    }
+
+    int& primitive_hits(int primitive) {
+      return primitive_hits_[primitive];
     }
 
     void enable_profiling(VM* vm);

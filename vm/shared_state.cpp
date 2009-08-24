@@ -129,6 +129,10 @@ namespace rubinius {
     , llvm_state(0)
   {
     ref();
+
+    for(int i = 0; i < Primitives::cTotalPrimitives; i++) {
+      primitive_hits_[i] = 0;
+    }
   }
 
   SharedState::~SharedState() {

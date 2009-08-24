@@ -76,6 +76,8 @@ namespace rubinius {
       return reinterpret_cast<Object*>(kPrimitiveFailed);
     }
 
+    static void queue_for_jit(STATE, CallFrame* call_frame);
+
     /*
      * The primitive generator emits one 'executor' function per
      * primitive. This simply checks the argument types and then

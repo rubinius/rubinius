@@ -7,9 +7,17 @@ class BasicPrimitive
   attr_accessor :safe
   attr_accessor :can_fail
 
+  def emit_counter
+    @@counter ||= 0
+    str = "  check_counter(state, call_frame, #{@@counter});\n"
+    @@counter += 1
+    return str
+  end
+
   def output_header(str)
     str << "Object* Primitives::#{@name}(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args) {\n"
     str << "  state->set_call_frame(call_frame);\n"
+    str << emit_counter
     # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
     return str if @raw
     str << "  Object* ret;\n"
@@ -981,15 +989,20 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
 end
 
 write_if_new "vm/gen/primitives_declare.hpp" do |f|
+  total_prims = 0
   parser.classes.each do |n, cpp|
+    total_prims += cpp.primitives.size
     cpp.primitives.each do |pn, prim|
       f.puts "static Object* #{pn}(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);"
     end
 
+    total_prims += cpp.access_primitives.size
     cpp.access_primitives.each do |name|
       f.puts "static Object* #{name}(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);"
     end
   end
+
+  f.puts "const static int cTotalPrimitives = #{total_prims};"
 end
 
 write_if_new "vm/gen/object_types.hpp" do |f|
