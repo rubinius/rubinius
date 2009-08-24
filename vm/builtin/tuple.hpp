@@ -46,9 +46,6 @@ namespace rubinius {
     // Ruby.primitive :tuple_delete_inplace
     Fixnum* delete_inplace(STATE, Fixnum *start, Fixnum *length, Object *obj);
 
-    // Ruby.primitive :tuple_create_weakref
-    static Tuple* create_weakref(STATE, Object* obj);
-
   public: // Inline Functions
     Object* at(STATE, size_t index) {
       if(num_fields() <= index) {

@@ -165,12 +165,6 @@ namespace rubinius {
     return tuple;
   }
 
-  Tuple* Tuple::create_weakref(STATE, Object* obj) {
-    Tuple* tup = Tuple::from(state, 1, obj);
-    tup->set_refs_are_weak();
-    return tup;
-  }
-
   size_t Tuple::Info::object_size(const ObjectHeader* obj) {
     const Tuple *tup = reinterpret_cast<const Tuple*>(obj);
     assert(tup);

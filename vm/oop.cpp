@@ -27,7 +27,6 @@ namespace rubinius {
     ivars_       = other->ivars_;
 
     Forwarded = 0;
-    RefsAreWeak = other->RefsAreWeak;
     RequiresCleanup = other->RequiresCleanup;
   }
 

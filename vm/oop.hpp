@@ -142,8 +142,6 @@ const int cUndef = 0x22L;
         unsigned int Marked                 : 2;
         unsigned int RequiresCleanup        : 1;
 
-        unsigned int RefsAreWeak            : 1;
-
         unsigned int InImmix                : 1;
         unsigned int Pinned                 : 1;
       };
@@ -336,14 +334,6 @@ const int cUndef = 0x22L;
 
     bool requires_cleanup_p() {
       return RequiresCleanup == 1;
-    }
-
-    void set_refs_are_weak() {
-      RefsAreWeak = 1;
-    }
-
-    bool refs_are_weak_p() {
-      return RefsAreWeak == 1;
     }
 
     bool nil_p() const {

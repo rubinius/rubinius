@@ -10,6 +10,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/weakref.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "call_frame.hpp"
 #include "builtin/variable_scope.hpp"
@@ -58,12 +59,14 @@ namespace rubinius {
 
     // If this object's refs are weak, then add it to the weak_refs
     // vector and don't look at it otherwise.
-    if(obj->refs_are_weak_p()) {
-      if(!weak_refs_) {
-        weak_refs_ = new ObjectArray(0);
-      }
+    if(WeakRef* ref = try_as<WeakRef>(obj)) {
+      if(ref->alive_p()) {
+        if(!weak_refs_) {
+          weak_refs_ = new ObjectArray(0);
+        }
 
-      weak_refs_->push_back(obj);
+        weak_refs_->push_back(obj);
+      }
       return;
     }
 
@@ -315,25 +318,23 @@ namespace rubinius {
     for(ObjectArray::iterator i = weak_refs_->begin();
         i != weak_refs_->end();
         i++) {
-      // ATM, only a Tuple can be marked weak.
-      Tuple* tup = as<Tuple>(*i);
-      for(size_t ti = 0; ti < tup->num_fields(); ti++) {
-        Object* obj = tup->at(object_memory_->state, ti);
+      WeakRef* ref = try_as<WeakRef>(*i);
+      if(!ref) continue; // WTF.
 
-        if(!obj->reference_p()) continue;
+      Object* obj = ref->object();
+      if(!obj->reference_p()) continue;
 
-        if(check_forwards) {
-          if(obj->young_object_p()) {
-            if(!obj->forwarded_p()) {
-              tup->field[ti] = Qnil;
-            } else {
-              tup->field[ti] = obj->forward();
-              tup->write_barrier(object_memory_->state, obj->forward());
-            }
+      if(check_forwards) {
+        if(obj->young_object_p()) {
+          if(!obj->forwarded_p()) {
+            ref->set_object(Qnil);
+          } else {
+            ref->set_object(obj->forward());
+            ref->write_barrier(object_memory_, obj->forward());
           }
-        } else if(!obj->marked_p()) {
-          tup->field[ti] = Qnil;
         }
+      } else if(!obj->marked_p()) {
+        ref->set_object(Qnil);
       }
     }
 

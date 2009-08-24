@@ -40,6 +40,7 @@
 #include "builtin/variable_scope.hpp"
 #include "builtin/location.hpp"
 #include "builtin/global_cache_entry.hpp"
+#include "builtin/weakref.hpp"
 
 #include "configuration.hpp"
 #include "config.h"
@@ -249,6 +250,7 @@ namespace rubinius {
     NativeMethod::init(this);
 
     GlobalCacheEntry::init(this);
+    WeakRef::init(this);
   }
 
   // @todo document all the sections of bootstrap_ontology

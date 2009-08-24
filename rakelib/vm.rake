@@ -136,6 +136,7 @@ field_extract_headers = %w[
   vm/builtin/location.hpp
   vm/builtin/capi_handle.hpp
   vm/builtin/global_cache_entry.hpp
+  vm/builtin/weakref.hpp
 ]
 
 EXTERNALS   = %W[ vm/external_libs/libmpa/libptr_array.a
