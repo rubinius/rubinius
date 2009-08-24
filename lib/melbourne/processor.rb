@@ -57,16 +57,16 @@ module Rubinius
       AST::ConcatArgs.from self, array, rest
     end
 
-    def process_argspush(line, splat, value)
-      AST::PushArgs.from self, splat, value
+    def process_argspush(line, arguments, value)
+      AST::PushArgs.from self, arguments, value
     end
 
     def process_array(line, array)
       AST::ArrayLiteral.from self, array
     end
 
-    def process_attrasgn(line, receiver, name, value)
-      AST::AttrAssign.from self, receiver, name, value
+    def process_attrasgn(line, receiver, name, arguments)
+      AST::AttrAssign.from self, receiver, name, arguments
     end
 
     def process_back_ref(line, ref)

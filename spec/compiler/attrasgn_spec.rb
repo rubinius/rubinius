@@ -63,6 +63,115 @@ describe "An Attrasgn node" do
     end
   end
 
+  relates "a[b, *c] = d" do
+    parse do
+      [:attrasgn,
+       [:call, nil, :a, [:arglist]],
+       :[]=,
+       [:arglist,
+        [:array,
+         [:call, nil, :b, [:arglist]],
+         [:splat, [:call, nil, :c, [:arglist]]]],
+        [:call, nil, :d, [:arglist]]]]
+    end
+
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+      g.push :self
+      g.send :b, 0, true
+      g.make_array 1
+      g.push :self
+      g.send :c, 0, true
+      g.cast_array
+      g.send :+, 1
+      g.push :self
+      g.send :d, 0, true
+      g.dup
+      g.move_down 3
+      g.send :[]=, 2, false
+      g.pop
+    end
+  end
+
+  relates "a[b, *c] = *d" do
+    parse do
+      [:attrasgn,
+       [:call, nil, :a, [:arglist]],
+       :[]=,
+       [:arglist,
+        [:array,
+         [:call, nil, :b, [:arglist]],
+         [:splat, [:call, nil, :c, [:arglist]]]],
+        [:svalue, [:splat, [:call, nil, :d, [:arglist]]]]]]
+    end
+
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+      g.push :self
+      g.send :b, 0, true
+      g.make_array 1
+      g.push :self
+      g.send :c, 0, true
+      g.cast_array
+      g.send :+, 1
+      g.push :self
+      g.send :d, 0, true
+      g.cast_array
+      g.dup
+      g.send :size, 0
+      g.push 1
+      g.send :>, 1
+
+      bigger = g.new_label
+      g.git bigger
+      g.push 0
+      g.send :at, 1
+
+      bigger.set!
+      g.dup
+      g.move_down 3
+      g.send :[]=, 2, false
+      g.pop
+    end
+  end
+
+  relates "a[b, *c] = d, e" do
+    parse do
+      [:attrasgn,
+       [:call, nil, :a, [:arglist]],
+       :[]=,
+       [:arglist,
+        [:array,
+         [:call, nil, :b, [:arglist]],
+         [:splat, [:call, nil, :c, [:arglist]]]],
+        [:svalue,
+         [:array, [:call, nil, :d, [:arglist]], [:call, nil, :e, [:arglist]]]]]]
+    end
+
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+      g.push :self
+      g.send :b, 0, true
+      g.make_array 1
+      g.push :self
+      g.send :c, 0, true
+      g.cast_array
+      g.send :+, 1
+      g.push :self
+      g.send :d, 0, true
+      g.push :self
+      g.send :e, 0, true
+      g.make_array 2
+      g.dup
+      g.move_down 3
+      g.send :[]=, 2, false
+      g.pop
+    end
+  end
+
   relates "a[42] = 24" do
     parse do
       [:attrasgn,

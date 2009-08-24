@@ -323,23 +323,59 @@ class Compiler
       end
     end
 
+    # TODO: Fix superclass
     class AttrAssign < Call
-      attr_accessor :receiver, :name, :arguments, :value
+      attr_accessor :receiver, :name, :arguments, :privately
 
-      def self.from(p, receiver, name, value)
+      def self.from(p, receiver, name, arguments)
         node = AttrAssign.new p.compiler
+
         node.receiver = receiver
-        node.name = name
-        if value.kind_of? ArrayLiteral
-          node.value = value.body.pop
-          node.arguments = value
+        if receiver.kind_of? Self
+          node.privately = true
         else
-          node.value = value
+          node.privately = false
         end
+
+        name_str = name.to_s
+        if name_str[-1] == ?=
+          node.name = name
+        else
+          node.name = :"#{name_str}="
+        end
+
+        case arguments
+        when PushArgs
+          node.arguments = arguments
+        when nil
+          # TODO: in masgn
+        else
+          node.arguments = ActualArguments.from p, arguments
+        end
+
         node
       end
 
+      def children
+        [@receiver, @arguments]
+      end
+
       def bytecode(g)
+        @receiver.bytecode(g)
+        @arguments.bytecode(g)
+        g.dup
+
+        if @arguments.splat?
+          g.move_down @arguments.size + 2
+          g.swap
+          g.push :nil
+          g.send_with_splat @name, @arguments.size, @privately, true
+        else
+          g.move_down @arguments.size + 1
+          g.send @name, @arguments.size, @privately
+        end
+
+        g.pop
       end
     end
 
@@ -901,11 +937,18 @@ class Compiler
     end
 
     class ConcatArgs < DynamicArguments
+      attr_accessor :size
+
       def self.from(p, array, rest)
         node = ConcatArgs.new p.compiler
         node.array = array
+        node.size = array.body.size
         node.rest = rest
         node
+      end
+
+      def children
+        [@array, @rest]
       end
 
       def bytecode(g)
@@ -1801,7 +1844,6 @@ class Compiler
       end
 
       def bytecode(g)
-        p @name unless @variable
         @variable.get_bytecode(g)
       end
     end
@@ -2236,12 +2278,32 @@ class Compiler
       end
     end
 
+    # TODO: Fix superclass
     class PushArgs < DynamicArguments
-      def self.from(p, splat, value)
+      attr_accessor :arguments, :value
+
+      def self.from(p, arguments, value)
         node = PushArgs.new p.compiler
-        node.array = splat.value
-        node.item = value
+        node.arguments = arguments
+        node.value = value
         node
+      end
+
+      def size
+        splat? ? 1 : @arguments.size + 1
+      end
+
+      def splat?
+        @arguments.kind_of? SplatValue
+      end
+
+      def children
+        [@arguments, @value]
+      end
+
+      def bytecode(g)
+        @arguments.bytecode(g)
+        @value.bytecode(g)
       end
     end
 
