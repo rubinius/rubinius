@@ -314,6 +314,10 @@ class Compiler
         node
       end
 
+      def children
+        @body
+      end
+
       def bytecode(g)
         @body.each do |x|
           x.bytecode(g)
@@ -362,20 +366,25 @@ class Compiler
 
       def bytecode(g)
         @receiver.bytecode(g)
-        @arguments.bytecode(g)
-        g.dup
+        if @arguments
+          @arguments.bytecode(g)
+          g.dup
 
-        if @arguments.splat?
-          g.move_down @arguments.size + 2
-          g.swap
-          g.push :nil
-          g.send_with_splat @name, @arguments.size, @privately, true
+          if @arguments.splat?
+            g.move_down @arguments.size + 2
+            g.swap
+            g.push :nil
+            g.send_with_splat @name, @arguments.size, @privately, true
+          else
+            g.move_down @arguments.size + 1
+            g.send @name, @arguments.size, @privately
+          end
+
+          g.pop
         else
-          g.move_down @arguments.size + 1
-          g.send @name, @arguments.size, @privately
+          g.swap
+          g.send @name, 1, @privately
         end
-
-        g.pop
       end
     end
 
@@ -1883,7 +1892,18 @@ class Compiler
         node.left = left
         node.right = right
         node.splat = splat
+
+        node.fixed if right.kind_of? ArrayLiteral
+
         node
+      end
+
+      def fixed
+        @fixed = true
+      end
+
+      def fixed?
+        @fixed
       end
 
       def children
@@ -1892,7 +1912,69 @@ class Compiler
         children
       end
 
+      def pad_short(g)
+        short = @left.body.size - @right.body.size
+        short.times { g.push :nil } if short > 0
+      end
+
+      def pop_excess(g)
+        excess = @right.body.size - @left.body.size
+        excess.times { g.pop } if excess > 0
+      end
+
+      def make_array(g)
+        splat = @right.body.size - @left.body.size
+        g.make_array splat if splat > 0
+      end
+
+      def rotate(g)
+        if @splat
+          size = @left.body.size + 1
+        else
+          size = @right.body.size
+        end
+        g.rotate size
+      end
+
       def bytecode(g)
+        if fixed?
+          pad_short(g) if @left unless @splat
+          @right.body.each { |x| x.bytecode(g) }
+
+          if @left
+            make_array(g) if @splat
+            rotate(g)
+
+            @left.body.each do |x|
+              x.bytecode(g)
+              g.pop
+            end
+
+            pop_excess(g) unless @splat
+          end
+        else
+          if @right
+            @right.bytecode(g)
+            g.cast_array
+          end
+
+          if @left
+            @left.body.each do |x|
+              g.shift_array
+              g.cast_array if x.kind_of? MAsgn
+              x.bytecode(g)
+              g.pop
+            end
+          end
+        end
+
+        if @splat.kind_of? Node
+          g.cast_array
+          @splat.bytecode(g)
+        end
+
+        g.pop unless fixed?
+        g.push :true
       end
     end
 
@@ -2807,6 +2889,10 @@ class Compiler
         node = ToArray.new p.compiler
         node.value = expr
         node
+      end
+
+      def children
+        [@value]
       end
 
       def bytecode(g)
