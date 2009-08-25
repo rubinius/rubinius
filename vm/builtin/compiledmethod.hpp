@@ -32,13 +32,16 @@ namespace rubinius {
     Symbol* file_;               // slot
     StaticScope* scope_;        // slot
 
+    VMMethod* backend_method_;
+
   public:
     // Access directly from assembly, so has to be public.
     Tuple* literals_;           // slot
 
     /* accessors */
-
-    VMMethod* backend_method_;
+    VMMethod* backend_method() {
+      return backend_method_;
+    }
 
     attr_accessor(name, Symbol);
     attr_accessor(iseq, InstructionSequence);

@@ -151,7 +151,7 @@ namespace rubinius {
 
   Object * MachineMethod::run_code(STATE, CallFrame* previous, Dispatch& msg, Arguments& args) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
-    VMMethod* vmm = cm->backend_method_;
+    VMMethod* vmm = cm->backend_method();
     MachineMethod* mm = vmm->machine_method();
     void* func = mm->function();
     return ((executor)func)(state, previous, msg, args);

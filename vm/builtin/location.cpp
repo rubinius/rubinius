@@ -27,7 +27,7 @@ namespace rubinius {
       loc->is_block(state, Qfalse);
     }
 
-    VMMethod* vmm = call_frame->cm->backend_method_;
+    VMMethod* vmm = call_frame->cm->backend_method();
     if(vmm && vmm->jitted()) {
       loc->is_jit(state, Qtrue);
     } else {

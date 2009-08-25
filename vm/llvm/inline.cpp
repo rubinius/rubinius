@@ -48,7 +48,7 @@ namespace rubinius {
         inline_ivar_access(klass, acc);
       }
     } else if(CompiledMethod* cm = try_as<CompiledMethod>(meth)) {
-      VMMethod* vmm = cm->backend_method_;
+      VMMethod* vmm = cm->backend_method();
 
       if(!cm->primitive()->nil_p()) {
         if(!inline_primitive(klass, cm, meth->execute)) return false;
@@ -138,7 +138,7 @@ namespace rubinius {
   }
 
   bool Inliner::detect_trivial_method(CompiledMethod* cm) {
-    VMMethod* vmm = cm->backend_method_;
+    VMMethod* vmm = cm->backend_method();
 
     opcode* stream = vmm->opcodes;
     size_t size_max = 2;
@@ -171,7 +171,7 @@ namespace rubinius {
   }
 
   void Inliner::inline_trivial_method(Class* klass, CompiledMethod* cm) {
-    VMMethod* vmm = cm->backend_method_;
+    VMMethod* vmm = cm->backend_method();
 
     Value* self = recv();
 

@@ -450,7 +450,7 @@ namespace rubinius {
     // so we don't both trying.
     if(!call_frame || !config_.jit_inline_generic) return last;
 
-    VMMethod* cur = call_frame->cm->backend_method_;
+    VMMethod* cur = call_frame->cm->backend_method();
     while(cur->required_args == cur->total_args &&
           cur->call_count >= 200 &&
           !cur->jitted() &&
@@ -458,7 +458,7 @@ namespace rubinius {
       last = cur;
       call_frame = call_frame->previous;
       if(!call_frame) break;
-      cur = call_frame->cm->backend_method_;
+      cur = call_frame->cm->backend_method();
     }
 
     return last;

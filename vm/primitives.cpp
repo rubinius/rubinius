@@ -19,7 +19,7 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
   void Primitives::queue_for_jit(STATE, CallFrame* call_frame) {
     LLVMState* ls = LLVMState::get(state);
-    VMMethod* vmm = call_frame->cm->backend_method_;
+    VMMethod* vmm = call_frame->cm->backend_method();
 
     VMMethod* candidate = ls->find_candidate(vmm, call_frame);
     if(candidate->call_count < 0) return;

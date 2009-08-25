@@ -492,7 +492,7 @@ namespace rubinius {
         Dispatch& msg, Arguments& args) {
 
       CompiledMethod* cm = as<CompiledMethod>(msg.method);
-      VMMethod* vmm = cm->backend_method_;
+      VMMethod* vmm = cm->backend_method();
 
 #ifdef ENABLE_LLVM
       // A negative call_count means we've disabled usage based JIT

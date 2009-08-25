@@ -151,7 +151,7 @@ extern "C" {
     // TODO: We don't need to be doing this everytime.
     cm->scope(state, call_frame->static_scope());
 
-    VMMethod* vmm = call_frame->cm->backend_method_;
+    VMMethod* vmm = call_frame->cm->backend_method();
     return BlockEnvironment::under_call_frame(state, cm, vmm,
                                               call_frame, index);
   }
@@ -680,7 +680,7 @@ extern "C" {
   Object* rbx_continue_uncommon(STATE, CallFrame* call_frame, Arguments& args, native_int sp) {
     LLVMState::get(state)->add_uncommons_taken();
 
-    VMMethod* vmm = call_frame->cm->backend_method_;
+    VMMethod* vmm = call_frame->cm->backend_method();
 
     /*
     if(vmm->opcodes[call_frame->ip()] == InstructionSequence::insn_send_stack) {

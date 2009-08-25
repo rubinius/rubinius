@@ -105,7 +105,7 @@ namespace rubinius {
     }
 
     void calculate_ip(void** pos) {
-      ip_ = pos - cm->backend_method_->addresses;
+      ip_ = pos - cm->backend_method()->addresses;
     }
 
     VariableScope* promote_scope(STATE);

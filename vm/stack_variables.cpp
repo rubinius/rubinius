@@ -10,7 +10,7 @@ namespace rubinius {
   {
     if(on_heap_) return on_heap_;
 
-    VMMethod* vmm = call_frame->cm->backend_method_;
+    VMMethod* vmm = call_frame->cm->backend_method();
     VariableScope* scope = state->new_struct<VariableScope>(
         G(variable_scope), vmm->number_of_locals * sizeof(Object*));
 

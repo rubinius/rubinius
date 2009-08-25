@@ -46,7 +46,7 @@ namespace rubinius {
   VMMethod* BlockEnvironment::vmmethod(STATE) {
     if(!this->vmm) {
       this->method_->formalize(state, false);
-      this->vmm = this->method_->backend_method_;
+      this->vmm = this->method_->backend_method();
     }
 
     return this->vmm;
@@ -63,7 +63,7 @@ namespace rubinius {
   {
     if(!env->vmm) {
       env->method_->formalize(state, false);
-      env->vmm = env->method_->backend_method_;
+      env->vmm = env->method_->backend_method();
 
       // Not sure why we hit this case currenly, so just disable the JIT
       // for them all together.
@@ -186,12 +186,11 @@ namespace rubinius {
 
     VMMethod* vmm;
     if((vmm = caller->blocks[index]) == NULL) {
-      vmm = new VMMethod(state, cm);
+      vmm = cm->formalize(state);
       if(caller->type) {
         vmm->specialize(state, caller->type);
       }
       caller->blocks[index] = vmm;
-      cm->backend_method_ = vmm;
     }
 
     be->scope(state, call_frame->promote_scope(state));
