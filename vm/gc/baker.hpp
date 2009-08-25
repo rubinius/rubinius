@@ -34,7 +34,7 @@ namespace rubinius {
     size_t total_objects;
 
     /* Inline methods */
-    Object* raw_allocate(size_t bytes) {
+    Object* raw_allocate(size_t bytes, bool* limit_hit) {
       Object* obj;
 
 #ifdef RBX_GC_STATS
@@ -50,6 +50,10 @@ namespace rubinius {
       } else {
         total_objects++;
         obj = (Object*)current->allocate(bytes);
+
+        if(current->over_limit_p(obj)) {
+          *limit_hit = true;
+        }
       }
 
 #ifdef ENABLE_OBJECT_WATCH

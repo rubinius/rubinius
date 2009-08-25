@@ -3755,13 +3755,20 @@ class Instructions
   def check_interrupts
     <<-CODE
     flush_ip();
-    if(unlikely(state->interrupts.timer)) {
-      {
+    // The | here reduces the number of branches to check
+    if(unlikely(state->interrupts.timer | state->interrupts.check)) {
+      if(state->interrupts.timer) {
         state->interrupts.timer = false;
         state->set_call_frame(call_frame);
         state->global_lock().yield();
       }
+
+      if(state->interrupts.check) {
+        state->interrupts.check = false;
+        state->collect_maybe(call_frame);
+      }
     }
+
     if(!state->check_async(call_frame)) {
       return NULL;
     }

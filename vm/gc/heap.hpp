@@ -8,70 +8,80 @@ namespace rubinius {
   class VM;
 
   class Heap {
-    /* Fields */
+    address start_;
+    address current_;
+    address last_;
+    address scan_;
+    address limit_;
+
+    size_t size_;
 
   public:
-    address start;
-    address current;
-    address last;
-    address scan;
-
-    size_t size;
-
     /* Inline methods */
+    address current() {
+      return current_;
+    }
+
+    address last() {
+      return last_;
+    }
 
     address allocate(size_t size) {
       address addr;
-      addr = current;
-      current = (address)((uintptr_t)current + size);
+      addr = current_;
+      current_ = (address)((uintptr_t)current_ + size);
 
       return addr;
     }
 
     void put_back(size_t size) {
-      current = (address)((uintptr_t)current - size);
+      current_ = (address)((uintptr_t)current_ - size);
     }
 
     bool contains_p(address addr) {
-      if(addr < start) return false;
-      if(addr >= last) return false;
+      if(addr < start_) return false;
+      if(addr >= last_) return false;
       return true;
     }
 
+    bool over_limit_p(void* ptr) {
+      return (address)ptr >= limit_;
+    }
+
     bool enough_space_p(size_t size) {
-      if((uintptr_t)current + size > (uintptr_t)last) return false;
+      if((uintptr_t)current_ + size > (uintptr_t)last_) return false;
       return true;
     }
 
     address try_allocate(size_t size) {
-      address addr = current;
-      address next = (address)((uintptr_t)current + size);
-      if(next >= last) return 0;
+      address addr = current_;
+      address next = (address)((uintptr_t)current_ + size);
+      if(next >= last_) return 0;
 
-      current = next;
+      current_ = next;
       return addr;
     }
 
     bool fully_scanned_p() {
-      return scan == current;
+      return scan_ == current_;
     }
 
     Object* next_unscanned(VM* state) {
       Object* obj;
       if(fully_scanned_p()) return NULL;
 
-      obj = (Object*)scan;
-      scan = (address)((uintptr_t)scan + obj->size_in_bytes(state));
+      obj = (Object*)scan_;
+      scan_ = (address)((uintptr_t)scan_ + obj->size_in_bytes(state));
       return obj;
     }
 
     Object* first_object() {
-      return (Object*)start;
+      return (Object*)start_;
     }
 
     // Set the scan pointer to +addr+
     void set_scan(address addr) {
-      scan = addr;
+      scan_ = addr;
     }
 
     /* Prototypes */

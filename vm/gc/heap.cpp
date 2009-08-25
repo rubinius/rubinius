@@ -5,29 +5,33 @@
 namespace rubinius {
   /* Heap methods */
   Heap::Heap(size_t bytes) {
-    size = bytes;
-    start = reinterpret_cast<address>(std::malloc(size));
-    scan = start;
-    last = (void*)((uintptr_t)start + bytes - 1);
+    size_ = bytes;
+    start_ = reinterpret_cast<address>(std::malloc(size_));
+    scan_ = start_;
+    last_ = (void*)((uintptr_t)start_ + bytes - 1);
+
+    int red_zone = bytes / 1000;
+    limit_ = (address)((uintptr_t)last_ - (red_zone / 1000));
+
     reset();
   }
 
   Heap::~Heap() {
-    std::free(start);
+    std::free(start_);
   }
 
   void Heap::reset() {
-    current = start;
-    scan = start;
+    current_ = start_;
+    scan_ = start_;
   }
 
   size_t Heap::remaining() {
-    size_t bytes = (uintptr_t)last - (uintptr_t)current;
+    size_t bytes = (uintptr_t)last_ - (uintptr_t)current_;
     return bytes;
   }
 
   size_t Heap::used() {
-    size_t bytes = (uintptr_t)current - (uintptr_t)start;
+    size_t bytes = (uintptr_t)current_ - (uintptr_t)start_;
     return bytes;
   }
 
