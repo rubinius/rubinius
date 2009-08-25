@@ -6,7 +6,7 @@
 #include "builtin/float.hpp"
 
 namespace rubinius {
-  native_int Integer::to_native() {
+  native_int Integer::slow_to_native() {
     if(fixnum_p()) {
       return ((Fixnum*)this)->to_native();
     }

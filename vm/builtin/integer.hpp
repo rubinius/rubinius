@@ -28,9 +28,14 @@ namespace rubinius {
     static Integer* from(STATE, long long i);
     static Integer* from(STATE, unsigned long long i);
 
-    native_int          to_native();
     long long           to_long_long();
     unsigned long long  to_ulong_long();
+
+    native_int slow_to_native();
+    native_int to_native() {
+      if(fixnum_p()) return STRIP_FIXNUM_TAG(this);
+      return slow_to_native();
+    }
 
     class Info : public TypeInfo {
     public:
