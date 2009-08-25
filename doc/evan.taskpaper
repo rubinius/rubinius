@@ -9,9 +9,6 @@ JIT:
   - create_block
   - has splat
   - has exception handlers
-- Call counters on primitive invocation
-  - note bm_fractal.rb and Float prims
-  - state->shared.primitive_hits[id]++
 - Inline blocks into creation method
   - phase 1, yield only
 - Research and revise Inline policies
@@ -48,8 +45,6 @@ JIT testing:
 - Add rake task to run
 
 GC:
-- Speed up allocation
-  - Path to bump pointer ops too long
 - Fix VMMethod/CompiledMethod memory leak
 - Expose GC allocation function to LLVM
 
