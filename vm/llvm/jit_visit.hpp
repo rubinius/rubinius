@@ -1026,7 +1026,7 @@ namespace rubinius {
       Value* gep = b().CreateConstGEP2_32(call_frame_, 0, offset::cf_cm, "cm_pos");
       Value* cm =  b().CreateLoad(gep, "cm");
 
-      gep = b().CreateConstGEP2_32(cm, 0, 13, "literals_pos");
+      gep = b().CreateConstGEP2_32(cm, 0, offset::cm_literals, "literals_pos");
       Value* lits = b().CreateLoad(gep, "literals");
 
       Value* idx2[] = {

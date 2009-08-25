@@ -240,13 +240,13 @@ StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_12);
 StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_12);
 StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_4);
 StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_20);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_12);
 OpaqueType* OpaqueTy_struct_rubinius__VMMethod = OpaqueType::get();
 mod->addTypeName("struct.rubinius::VMMethod", OpaqueTy_struct_rubinius__VMMethod);
 
 PointerType* PointerTy_27 = PointerType::get(OpaqueTy_struct_rubinius__VMMethod, 0);
 
 StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_27);
+StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_12);
 StructType* StructTy_struct_rubinius__CompiledMethod = StructType::get(StructTy_struct_rubinius__CompiledMethod_fields, /*isPacked=*/false);
 mod->addTypeName("struct.rubinius::CompiledMethod", StructTy_struct_rubinius__CompiledMethod);
 
