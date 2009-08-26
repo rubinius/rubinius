@@ -1608,8 +1608,7 @@ class Compiler
       end
 
       def map_iter
-        @body.in_block
-        @body.visit do |result, node|
+        visit do |result, node|
           case node
           when ClosedScope, Iter
             result = nil
@@ -1657,7 +1656,7 @@ class Compiler
     end
 
     class IterArguments < Node
-      attr_accessor :prelude, :arity, :optional, :array
+      attr_accessor :prelude, :arity, :optional, :arguments
 
       def self.from(p, arguments)
         node = IterArguments.new p.compiler
@@ -1668,57 +1667,38 @@ class Compiler
         when Fixnum
           node.arity = 0
         when MAsgn
-          node.map_arguments p, array, arguments
+          node.arguments = arguments
 
           if arguments.splat
             node.optional = 1
-            node.arity = -array.size
+            if arguments.left
+              node.prelude = :multi
+              node.arity = -(arguments.left.body.size + 1)
+            else
+              node.prelude = :splat
+              node.arity = -1
+            end
           else
-            node.arity = array.size
-          end
-
-          if arguments.left
             node.prelude = :multi
-          else
-            node.prelude = :splat
+            node.arity = arguments.left.body.size
           end
         when nil
           node.arity = -1
         else # Assignment
-          array << arguments
+          node.arguments = arguments
           node.arity = 1
           node.prelude = :single
         end
-        node.array = array
 
         node
       end
 
-      def map_arguments(p, array, masgn)
-        if masgn.left
-          masgn.left.body.each do |node|
-            case node
-            when MAsgn
-              nested = NestedIterArguments.from p
-              map_arguments p, nested.array, node
-              array << nested
-            else
-              array << IterArgument.from(p, node)
-            end
-          end
-        end
-
-        if masgn.splat.kind_of? Node
-          array << IterSplat.from(p, masgn.splat)
-        end
-      end
-
       def children
-        @array
+        @arguments ? [@arguments] : []
       end
 
       def arguments_bytecode(g)
-        @array.each { |x| x.bytecode(g) }
+        @arguments.bytecode(g) if @arguments
       end
 
       def bytecode(g)
@@ -1741,52 +1721,11 @@ class Compiler
       end
     end
 
-    class NestedIterArguments < Node
-      attr_accessor :array
-
-      def self.from(p)
-        node = NestedIterArguments.new p.compiler
-        node.array = []
-        node
-      end
-
-      def children
-        @array
-      end
-
-      def bytecode(g)
-        g.shift_array
-        g.cast_array
-        @array.each { |x| x.bytecode(g) }
-        g.pop
-      end
-    end
-
-    class IterArgument < Node
-      attr_accessor :value
-
-      def self.from(p, value)
-        node = IterArgument.new p.compiler
-        node.value = value
-        node
-      end
-
-      def children
-        [@value]
-      end
-
-      def bytecode(g)
-        g.shift_array
-        @value.bytecode(g)
-        g.pop
-      end
-    end
-
-    class IterSplat < Node
+    class SplatAssignment < Node
       attr_accessor :name, :value
 
       def self.from(p, value)
-        node = IterSplat.new p.compiler
+        node = SplatAssignment.new p.compiler
         node.value = value
         node
       end
@@ -1798,6 +1737,12 @@ class Compiler
       def bytecode(g)
         g.cast_array
         @value.bytecode(g)
+      end
+    end
+
+    class EmptySplat < Node
+      def self.from(p)
+        EmptySplat.new p.compiler
       end
     end
 
@@ -1891,7 +1836,12 @@ class Compiler
         node = MAsgn.new p.compiler
         node.left = left
         node.right = right
-        node.splat = splat
+
+        if splat.kind_of? Node
+          node.splat = SplatAssignment.from p, splat
+        elsif splat
+          node.splat = EmptySplat.from p
+        end
 
         node.fixed if right.kind_of? ArrayLiteral
 
@@ -1902,14 +1852,8 @@ class Compiler
         @fixed = true
       end
 
-      def fixed?
-        @fixed
-      end
-
       def children
-        children = [@right, @left]
-        children << @splat if @splat.kind_of? Node
-        children
+        [@right, @left, @splat]
       end
 
       def pad_short(g)
@@ -1923,8 +1867,8 @@ class Compiler
       end
 
       def make_array(g)
-        splat = @right.body.size - @left.body.size
-        g.make_array splat if splat > 0
+        size = @right.body.size - @left.body.size
+        g.make_array size if size > 0
       end
 
       def rotate(g)
@@ -1936,8 +1880,12 @@ class Compiler
         g.rotate size
       end
 
+      def in_block
+        @in_block = true
+      end
+
       def bytecode(g)
-        if fixed?
+        if @fixed
           pad_short(g) if @left unless @splat
           @right.body.each { |x| x.bytecode(g) }
 
@@ -1968,13 +1916,12 @@ class Compiler
           end
         end
 
-        if @splat.kind_of? Node
-          g.cast_array
-          @splat.bytecode(g)
-        end
+        @splat.bytecode(g) if @splat
 
-        g.pop unless fixed?
-        g.push :true
+        unless @in_block
+          g.pop unless @fixed
+          g.push :true
+        end
       end
     end
 
