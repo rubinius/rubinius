@@ -172,6 +172,9 @@ class Compiler
     def in_block
     end
 
+    def in_module
+    end
+
     def visit(arg=true, &block)
       children.each do |child|
         if child
@@ -811,6 +814,10 @@ class Compiler
         node
       end
 
+      def module?
+        true
+      end
+
       def children
         [@body]
       end
@@ -910,12 +917,14 @@ class Compiler
         var.variable = LocalReference.new variable
       end
 
-      def map_locals
+      def map_variables
         visit self do |scope, node|
           result = scope
           case node
           when ClosedScope
             result = nil
+          when CVar, CVarAssign
+            node.in_module if scope.module?
           when LocalVariable
             scope.assign_local_reference node
           when FormalArguments
@@ -933,8 +942,12 @@ class Compiler
         scope.parent = self
       end
 
+      def module?
+        false
+      end
+
       def scope_bytecode(g)
-        map_locals
+        map_variables
       end
 
       def bytecode(g)
@@ -1082,31 +1095,63 @@ class Compiler
         node
       end
 
+      def in_module
+        @in_module = true
+      end
+
       def bytecode(g)
+        if @in_module
+          g.push :self
+        else
+          g.push_scope
+        end
+        g.push_literal @name
+        g.send :class_variable_get, 1
       end
     end
 
     class CVarAssign < Node
-      def self.from(p, name, expr)
+      def self.from(p, name, value)
         node = CVarAssign.new p.compiler
         node.name = name
-        node.value = expr
+        node.value = value
         node
       end
 
+      def in_module
+        @in_module = true
+      end
+
+      def children
+        [@value]
+      end
+
       def bytecode(g)
+        if @in_module
+          g.push :self
+        else
+          g.push_scope
+        end
+
+        if @value
+          g.push_literal @name
+          @value.bytecode(g)
+        else
+          g.swap
+          g.push_literal @name
+          g.swap
+        end
+
+        g.send :class_variable_set, 2
       end
     end
 
     class CVarDeclare < CVarAssign
-      def self.from(p, name, expr)
+      def self.from(p, name, value)
         node = CVarDeclare.new p.compiler
         node.name = name
-        node.value = expr
+        node.value = value
         node
-      end
-
-      def bytecode(g)
       end
     end
 
@@ -2137,6 +2182,10 @@ class Compiler
         node.name = name
         node.body = body
         node
+      end
+
+      def module?
+        true
       end
 
       def children

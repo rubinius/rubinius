@@ -138,12 +138,12 @@ module Rubinius
       AST::CVar.from self, name
     end
 
-    def process_cvasgn(line, name, expr)
-      AST::CVarAssign.from self, name, expr
+    def process_cvasgn(line, name, value)
+      AST::CVarAssign.from self, name, value
     end
 
-    def process_cvdecl(line, name, expr)
-      AST::CVarDeclare.from self, name, expr
+    def process_cvdecl(line, name, value)
+      AST::CVarDeclare.from self, name, value
     end
 
     def process_defined(line, expr)
