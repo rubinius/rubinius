@@ -1095,6 +1095,19 @@ class Compiler
         node
       end
 
+      def map_super
+        visit do |result, node|
+          case node
+          when ClosedScope
+            result = nil
+          when Super
+            node.name = name
+          end
+
+          result
+        end
+      end
+
       def compile_body(g)
         desc = new_description()
         meth = desc.generator
@@ -1124,6 +1137,7 @@ class Compiler
       def bytecode(g)
         pos(g)
 
+        map_super
         scope_bytecode(g)
 
         g.push_const :Rubinius
@@ -1178,6 +1192,7 @@ class Compiler
       def bytecode(g)
         pos(g)
 
+        map_super
         scope_bytecode(g)
 
         if @compiler.kernel?
@@ -2795,16 +2810,36 @@ class Compiler
       end
     end
 
+    # TODO: fix superclass
     class Super < Call
-      def self.from(p, args)
+      attr_accessor :name, :block
+
+      def self.from(p, arguments)
         node = Super.new p.compiler
-        arguments = ArgList.new p.compiler
-        arguments.body = args
-        node.arguments = arguments
+        node.arguments = ActualArguments.from p, arguments
         node
       end
 
+      def children
+        [@arguments]
+      end
+
       def bytecode(g)
+        pos(g)
+
+        @arguments.bytecode(g)
+
+        if @block
+          @block.bytecode(g)
+        else
+          g.push_block
+        end
+
+        if @arguments.splat?
+          g.send_super @name, @arguments.size, true
+        else
+          g.send_super @name, @arguments.size
+        end
       end
     end
 
