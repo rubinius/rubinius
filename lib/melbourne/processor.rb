@@ -434,8 +434,8 @@ module Rubinius
       AST::ExecuteString.from self, str
     end
 
-    def process_yield(line, expr, flags)
-      AST::Yield.from self, expr, flags
+    def process_yield(line, arguments, unwrap)
+      AST::Yield.from self, arguments, unwrap
     end
 
     def process_zarray(line)

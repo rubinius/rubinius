@@ -632,15 +632,22 @@ class Compiler
 
       def self.from(p, arguments)
         node = ActualArguments.new p.compiler
-        if arguments.kind_of? SplatValue
+
+        case arguments
+        when SplatValue
           node.splat = arguments
           node.array = []
-        elsif arguments.kind_of? ConcatArgs
+        when ConcatArgs
           node.array = arguments.array.body
           node.splat = SplatValue.from p, arguments.rest
-        else
+        when ArrayLiteral
           node.array = arguments.body
+        when nil
+          node.array = []
+        else
+          node.array = [arguments]
         end
+
         node
       end
 
@@ -3014,14 +3021,36 @@ class Compiler
       end
     end
 
+    # TODO: fix superclass
     class Yield < Call
-      def self.from(p, expr, flags)
+      attr_accessor :flags
+
+      def self.from(p, arguments, unwrap)
         node = Yield.new p.compiler
-        node.arguments = expr
+
+        if arguments.kind_of? ArrayLiteral and not unwrap
+          arguments = ArrayLiteral.from p, [arguments]
+        end
+
+        node.arguments = ActualArguments.from p, arguments
+
         node
       end
 
+      def children
+        [@arguments]
+      end
+
       def bytecode(g)
+        pos(g)
+
+        @arguments.bytecode(g)
+
+        if @arguments.splat?
+          g.yield_splat @arguments.size
+        else
+          g.yield_stack @arguments.size
+        end
       end
     end
 
