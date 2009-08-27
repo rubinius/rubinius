@@ -245,7 +245,7 @@ class Compiler
           last = args.each_with_index { |a, i| break i if a == stop }
           node.required = args[0, last]
         else
-          node.required = args
+          node.required = args.dup
           node.optional = []
         end
 
@@ -275,6 +275,33 @@ class Compiler
         @defaults.map_arguments scope if @defaults
         scope.new_local @splat if @splat.kind_of? Symbol
         scope.assign_local_reference @block_arg if @block_arg
+      end
+
+      def to_actual
+        arguments = ActualArguments.new @compiler
+
+        last = -1
+        last -= 1 if @block_arg and @block_arg.name == names[last]
+        last -= 1 if @splat == names[last]
+
+        locals = @names[0..last].map do |name|
+          local = LocalAccess.new @compiler
+          local.name = name
+          local
+        end
+        arguments.array = locals
+
+        if @splat.kind_of? Symbol
+          value = LocalAccess.new @compiler
+          value.name = @splat
+
+          splat = SplatValue.new @compiler
+          splat.value = value
+
+          arguments.splat = splat
+        end
+
+        arguments
       end
     end
 
@@ -1092,6 +1119,7 @@ class Compiler
         node.arguments = block.strip_arguments
         block.array << Nil.from(p) if block.array.empty?
         node.body = block
+        node.map_super
         node
       end
 
@@ -1100,6 +1128,10 @@ class Compiler
           case node
           when ClosedScope
             result = nil
+          when ZSuper
+            node.name = name
+            node.arguments = arguments.to_actual
+            node.block = arguments.block_arg
           when Super
             node.name = name
           end
@@ -1134,10 +1166,13 @@ class Compiler
         return desc
       end
 
+      def children
+        [@arguments, @body]
+      end
+
       def bytecode(g)
         pos(g)
 
-        map_super
         scope_bytecode(g)
 
         g.push_const :Rubinius
@@ -1153,10 +1188,6 @@ class Compiler
         end
 
         g.send :add_defn_method, 4
-      end
-
-      def children
-        [@body, @arguments]
       end
     end
 
@@ -1186,13 +1217,13 @@ class Compiler
         node.arguments = block.strip_arguments
         block.array << Nil.from(p) if block.array.empty?
         node.body = block
+        node.map_super
         node
       end
 
       def bytecode(g)
         pos(g)
 
-        map_super
         scope_bytecode(g)
 
         if @compiler.kernel?
@@ -3095,6 +3126,7 @@ class Compiler
       end
 
       def bytecode(g)
+        super(g)
       end
     end
   end
