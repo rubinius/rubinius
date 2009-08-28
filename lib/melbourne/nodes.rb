@@ -1077,14 +1077,58 @@ class Compiler
     end
 
     class ConstSet < Node
-      def self.from(p, expr, value)
+      def self.from(p, name, value)
         node = ConstSet.new p.compiler
-        node.name = expr
+        case name
+        when Symbol
+          node.name = ConstName.from p, name
+        else
+          node.parent = name.parent
+          node.name = ConstName.from p, name.name
+        end
         node.value = value
         node
       end
 
+      def children
+        [@parent, @value]
+      end
+
       def bytecode(g)
+        pos(g)
+
+        if @compiler.kernel?
+          if @parent
+            @parent.bytecode(g)
+            @value.bytecode(g)
+            g.set_const @name.name, true
+          else
+            @value.bytecode(g) if @value
+            g.set_const @name
+          end
+        else
+          @parent ? @parent.bytecode(g) : g.push_scope
+          g.swap unless @value
+
+          @name.bytecode(g)
+
+          @value ? @value.bytecode(g) : g.swap
+          g.send :__const_set__, 2
+        end
+      end
+    end
+
+    class ConstName < Node
+      attr_accessor :name
+
+      def self.from(p, name)
+        node = ConstName.new p.compiler
+        node.name = name
+        node
+      end
+
+      def bytecode(g)
+        g.push_literal @name
       end
     end
 
