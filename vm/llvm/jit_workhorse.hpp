@@ -56,11 +56,13 @@ namespace rubinius {
     BasicBlock* import_args_;
     BasicBlock* method_body_;
 
+    JITMethodInfo& info_;
+
   public:
 
     llvm::IRBuilder<>& b() { return builder_; }
 
-    LLVMWorkHorse(LLVMState* ls, VMMethod* vmm);
+    LLVMWorkHorse(LLVMState* ls, JITMethodInfo& info);
 
     void pass_one(BasicBlock* body);
 
@@ -78,7 +80,7 @@ namespace rubinius {
 
     void setup_scope();
 
-    void setup_inline_scope(Value* self, Value* mod);
+    void setup_inline_scope(Value* self, Value* blk, Value* mod);
 
     void setup_block_scope();
 
@@ -90,10 +92,11 @@ namespace rubinius {
 
     void setup();
 
-    BasicBlock* setup_inline(Function* current, Value* vm_i, Value* previous,
-        Value* self, Value* mod, std::vector<Value*>& args);
+    BasicBlock* setup_inline(Value* self, Value* blk, Value* mod, std::vector<Value*>& args);
 
-    bool generate_body(JITMethodInfo& info);
+    BasicBlock* setup_inline_block(Value* self, Value* mod);
+
+    bool generate_body();
 
     Value* get_field(Value* val, int which);
 

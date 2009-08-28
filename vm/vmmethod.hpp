@@ -47,6 +47,7 @@ namespace rubinius {
   private:
     TypedRoot<MachineMethod*> machine_method_;
     IndirectLiterals indirect_literals_;
+    VMMethod* parent_;
 
   public:
     static void** instructions;
@@ -134,6 +135,18 @@ namespace rubinius {
 
     IndirectLiterals& indirect_literals() {
       return indirect_literals_;
+    }
+
+    VMMethod* parent() {
+      return parent_;
+    }
+
+    void set_parent(VMMethod* parent) {
+      parent_ = parent;
+    }
+
+    bool for_block() {
+      return parent_ != 0;
     }
 
     void set_machine_method(MachineMethod* mm);

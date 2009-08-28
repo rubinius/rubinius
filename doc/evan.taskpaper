@@ -3,6 +3,7 @@ Build:
   - Or at least advise that it might need to be run (hm)
 
 JIT:
+- Remove simple_send path in meta_send_op_*
 - Method lookup from IC results should include private methods
 - Debug JIT crashes on elle @urgent
 - Inline all methods

@@ -62,17 +62,15 @@ namespace rubinius {
     llvm::Value* One;
 
   public:
-    JITOperations(LLVMState* ls, JITMethodInfo& info, llvm::Module* mod,
-                  llvm::Value* stack, llvm::Value* call_frame,
-                  llvm::BasicBlock* start, llvm::Function* func)
-      : stack_(stack)
+    JITOperations(LLVMState* ls, JITMethodInfo& info, llvm::BasicBlock* start)
+      : stack_(info.stack())
       , sp_(-1)
       , last_sp_(-1)
       , method_info_(info)
       , ls_(ls)
-      , module_(mod)
-      , function_(func)
-      , call_frame_(call_frame)
+      , module_(ls->module())
+      , function_(info.function())
+      , call_frame_(info.call_frame())
       , inline_policy_(0)
       , own_policy_(false)
     {
@@ -133,6 +131,10 @@ namespace rubinius {
       return inline_policy_;
     }
 
+    JITMethodInfo& info() {
+      return method_info_;
+    }
+
     VMMethod* vmmethod() {
       return method_info_.vmm;
     }
@@ -143,6 +145,14 @@ namespace rubinius {
       } else {
         return vmmethod();
       }
+    }
+
+    VMMethod* passed_block() {
+      return method_info_.passed_block;
+    }
+
+    std::vector<Value*>* incoming_args() {
+      return method_info_.stack_args;
     }
 
     JITMethodInfo* root_method_info() {
@@ -167,11 +177,6 @@ namespace rubinius {
 
     Value* call_frame() {
       return call_frame_;
-    }
-
-    InlineDecision should_inline_p(VMMethod* vmm) {
-      if(inline_policy_) return inline_policy_->inline_p(vmm);
-      return cNoPolicy;
     }
 
     static Value* cint(int num) {

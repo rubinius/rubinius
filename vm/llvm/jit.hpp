@@ -30,7 +30,24 @@ namespace rubinius {
 
   class InlinePolicy;
 
-  struct JITMethodInfo {
+  class JITMethodInfo {
+    llvm::Function* function_;
+    llvm::BasicBlock* entry_;
+    llvm::Value* call_frame_;
+    llvm::Value* stack_;
+    llvm::Value* vm_;
+    llvm::Value* args_;
+    llvm::Value* variables_;
+    llvm::Value* previous_;
+    llvm::Value* profiling_entry_;
+    llvm::PHINode* block_break_result_;
+    llvm::BasicBlock* block_break_loc_;
+
+    JITMethodInfo* parent_info_;
+
+    bool use_full_scope_;
+
+  public:
     VMMethod* vmm;
     bool is_block;
     llvm::BasicBlock* inline_return;
@@ -38,18 +55,151 @@ namespace rubinius {
     InlinePolicy* inline_policy;
     llvm::BasicBlock* fin_block;
     int called_args;
+    VMMethod* passed_block;
+    std::vector<llvm::Value*>* stack_args;
+
     JITMethodInfo* root;
 
-    JITMethodInfo(VMMethod* v)
-      : vmm(v)
+  public:
+    JITMethodInfo(VMMethod* v, JITMethodInfo* parent = 0)
+      : function_(0)
+      , entry_(0)
+      , call_frame_(0)
+      , stack_(0)
+      , vm_(0)
+      , args_(0)
+      , previous_(0)
+      , profiling_entry_(0)
+      , parent_info_(parent)
+      , use_full_scope_(false)
+      , vmm(v)
       , is_block(false)
       , inline_return(0)
       , return_value(0)
       , inline_policy(0)
       , fin_block(0)
       , called_args(-1)
+      , passed_block(0)
+      , stack_args(0)
       , root(0)
     {}
+
+    void set_function(llvm::Function* func) {
+      function_ = func;
+    }
+
+    llvm::Function* function() {
+      return function_;
+    }
+
+    void set_vm(llvm::Value* vm) {
+      vm_ = vm;
+    }
+
+    llvm::Value* vm() {
+      return vm_;
+    }
+
+    void set_args(llvm::Value* args) {
+      args_ = args;
+    }
+
+    llvm::Value* args() {
+      return args_;
+    }
+
+    void set_previous(llvm::Value* prev) {
+      previous_ = prev;
+    }
+
+    llvm::Value* previous() {
+      return previous_;
+    }
+
+    void set_profiling_entry(llvm::Value* val) {
+      profiling_entry_ = val;
+    }
+
+    llvm::Value* profiling_entry() {
+      return profiling_entry_;
+    }
+
+    void set_entry(llvm::BasicBlock* entry) {
+      entry_ = entry;
+    }
+
+    llvm::BasicBlock* entry() {
+      return entry_;
+    }
+
+    void set_call_frame(llvm::Value* val) {
+      call_frame_ = val;
+    }
+
+    llvm::Value* call_frame() {
+      return call_frame_;
+    }
+
+    void set_stack(llvm::Value* val) {
+      stack_ = val;
+    }
+
+    llvm::Value* stack() {
+      return stack_;
+    }
+
+    void set_variables(llvm::Value* vars) {
+      variables_ = vars;
+    }
+
+    llvm::Value* variables() {
+      return variables_;
+    }
+
+    void set_parent_info(JITMethodInfo& info) {
+      parent_info_ = &info;
+      function_ = info.function();
+      vm_ = info.vm();
+    }
+
+    llvm::Value* parent_call_frame() {
+      if(parent_info_) {
+        return parent_info_->call_frame();
+      }
+
+      return 0;
+    }
+
+    JITMethodInfo* parent_info() {
+      return parent_info_;
+    }
+
+    llvm::BasicBlock* block_break_loc() {
+      return block_break_loc_;
+    }
+
+    llvm::PHINode* block_break_result() {
+      return block_break_result_;
+    }
+
+    void set_block_break(llvm::BasicBlock* block, llvm::PHINode* p) {
+      block_break_result_ = p;
+      block_break_loc_ = block;
+    }
+
+    void clear_block_break() {
+      block_break_result_ = 0;
+      block_break_loc_ = 0;
+    }
+
+    bool use_full_scope() {
+      return use_full_scope_;
+    }
+
+    void set_use_full_scope() {
+      use_full_scope_ = true;
+    }
+
   };
 
   struct JITBasicBlock {

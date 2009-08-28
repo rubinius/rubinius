@@ -231,6 +231,18 @@ namespace rubinius {
         if(h1 * 10 < h2) return seen_classes_[1].klass();
         return NULL;
       }
+
+      case 3: {
+        int h1 = seen_classes_[0].hits();
+        int h2 = seen_classes_[1].hits();
+        int h3 = seen_classes_[2].hits();
+
+        if(h2 * 10 < h1 && h3 * 10 < h1) return seen_classes_[0].klass();
+        if(h1 * 10 < h2 && h3 * 10 < h2) return seen_classes_[1].klass();
+        if(h1 * 10 < h3 && h2 * 10 < h3) return seen_classes_[2].klass();
+
+        return NULL;
+      }
       default:
         return NULL;
       }

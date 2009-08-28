@@ -10,12 +10,13 @@
 #include <llvm/Analysis/CaptureTracking.h>
 
 namespace rubinius {
-  LLVMWorkHorse::LLVMWorkHorse(LLVMState* ls, VMMethod* vmm)
+  LLVMWorkHorse::LLVMWorkHorse(LLVMState* ls, JITMethodInfo& i)
     : ls_(ls)
-    , vmm_(vmm)
+    , vmm_(i.vmm)
     , use_full_scope_(false)
     , import_args_(0)
     , method_body_(0)
+    , info_(i)
   {
     llvm::Module* mod = ls->module();
     cf_type = mod->getTypeByName("struct.rubinius::CallFrame");
@@ -325,7 +326,7 @@ namespace rubinius {
     nil_locals();
   }
 
-  void LLVMWorkHorse::setup_inline_scope(Value* self, Value* mod) {
+  void LLVMWorkHorse::setup_inline_scope(Value* self, Value* blk, Value* mod) {
     Value* heap_null = ConstantExpr::getNullValue(PointerType::getUnqual(vars_type));
     Value* heap_pos = get_field(vars, offset::vars_on_heap);
     b().CreateStore(heap_null, heap_pos);
@@ -333,7 +334,6 @@ namespace rubinius {
     b().CreateStore(self, get_field(vars, offset::vars_self));
     b().CreateStore(mod, get_field(vars, offset::vars_module));
 
-    Value* blk = constant(Qnil, obj_type);
     b().CreateStore(blk, get_field(vars, offset::vars_block));
 
     b().CreateStore(Constant::getNullValue(ls_->ptr_type("VariableScope")),
@@ -576,6 +576,12 @@ namespace rubinius {
     BasicBlock* block = BasicBlock::Create("entry", func);
     b().SetInsertPoint(block);
 
+    info_.set_function(func);
+    info_.set_vm(vm);
+    info_.set_args(args);
+    info_.set_previous(prev);
+    info_.set_entry(block);
+
     BasicBlock* body = BasicBlock::Create("block_body", func);
 
     pass_one(body);
@@ -591,7 +597,11 @@ namespace rubinius {
         cfstk,
         PointerType::getUnqual(cf_type), "call_frame");
 
+    info_.set_call_frame(call_frame);
+
     stk = b().CreateConstGEP1_32(cfstk, sizeof(CallFrame) / sizeof(Object*), "stack");
+
+    info_.set_stack(stk);
 
     Value* var_mem = b().CreateAlloca(obj_type,
         ConstantInt::get(Type::Int32Ty,
@@ -601,6 +611,8 @@ namespace rubinius {
     vars = b().CreateBitCast(
         var_mem,
         PointerType::getUnqual(stack_vars_type), "vars");
+
+    info_.set_variables(vars);
 
     initialize_block_frame(vmm_->stack_size);
 
@@ -697,6 +709,12 @@ namespace rubinius {
     BasicBlock* block = BasicBlock::Create("entry", func);
     builder_.SetInsertPoint(block);
 
+    info_.set_function(func);
+    info_.set_vm(vm);
+    info_.set_args(args);
+    info_.set_previous(prev);
+    info_.set_entry(block);
+
     BasicBlock* body = BasicBlock::Create("method_body", func);
     method_body_ = body;
 
@@ -722,11 +740,17 @@ namespace rubinius {
         cfstk,
         PointerType::getUnqual(cf_type), "call_frame");
 
+    info_.set_call_frame(call_frame);
+
     stk = b().CreateConstGEP1_32(cfstk, sizeof(CallFrame) / sizeof(Object*), "stack");
+
+    info_.set_stack(stk);
 
     vars = b().CreateBitCast(
         var_mem,
         PointerType::getUnqual(stack_vars_type), "vars");
+
+    info_.set_variables(vars);
 
     initialize_call_frame(vmm_->stack_size);
 
@@ -740,22 +764,25 @@ namespace rubinius {
     b().SetInsertPoint(body);
   }
 
-  BasicBlock* LLVMWorkHorse::setup_inline(Function* current,
-      Value* vm_i, Value* previous,
-      Value* self, Value* mod, std::vector<Value*>& stack_args)
+  BasicBlock* LLVMWorkHorse::setup_inline(Value* self, Value* blk,
+      Value* mod, std::vector<Value*>& stack_args)
   {
-    func = current;
-    vm = vm_i;
-    prev = previous;
+    func = info_.function();
+    vm = info_.vm();
+    prev = info_.parent_call_frame();
     args = ConstantExpr::getNullValue(ls_->ptr_type("Arguments"));
 
     BasicBlock* entry = BasicBlock::Create("inline_entry", func);
     b().SetInsertPoint(entry);
 
+    info_.set_args(args);
+    info_.set_previous(prev);
+    info_.set_entry(entry);
+
     BasicBlock* body = BasicBlock::Create("method_body", func);
     pass_one(body);
 
-    BasicBlock* alloca_block = &current->getEntryBlock();
+    BasicBlock* alloca_block = &func->getEntryBlock();
 
     Value* cfstk = new AllocaInst(obj_type,
         ConstantInt::get(Type::Int32Ty,
@@ -768,6 +795,9 @@ namespace rubinius {
 
     stk = b().CreateConstGEP1_32(cfstk, sizeof(CallFrame) / sizeof(Object*), "stack");
 
+    info_.set_call_frame(call_frame);
+    info_.set_stack(stk);
+
     Value* var_mem = new AllocaInst(obj_type,
         ConstantInt::get(Type::Int32Ty,
           (sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
@@ -776,6 +806,8 @@ namespace rubinius {
     vars = b().CreateBitCast(
         var_mem,
         PointerType::getUnqual(stack_vars_type), "vars");
+
+    info_.set_variables(vars);
 
     //  Setup the CallFrame
     //
@@ -810,7 +842,7 @@ namespace rubinius {
 
     nil_stack(vmm_->stack_size, constant(Qnil, obj_type));
 
-    setup_inline_scope(self, mod);
+    setup_inline_scope(self, blk, mod);
 
     // We know the right arguments are present, so we just need to put them
     // in the right place.
@@ -833,6 +865,94 @@ namespace rubinius {
 
       b().CreateStore(stack_args[i], pos);
     }
+
+    b().CreateBr(body);
+    b().SetInsertPoint(body);
+
+    return entry;
+  }
+
+  BasicBlock* LLVMWorkHorse::setup_inline_block(Value* self, Value* mod) {
+    func = info_.function();
+    vm = info_.vm();
+    prev = info_.parent_call_frame();
+    args = ConstantExpr::getNullValue(ls_->ptr_type("Arguments"));
+
+    BasicBlock* entry = BasicBlock::Create("inline_entry", func);
+    b().SetInsertPoint(entry);
+
+    info_.set_args(args);
+    info_.set_previous(prev);
+    info_.set_entry(entry);
+
+    BasicBlock* body = BasicBlock::Create("block_body", func);
+    pass_one(body);
+
+    BasicBlock* alloca_block = &func->getEntryBlock();
+
+    Value* cfstk = new AllocaInst(obj_type,
+        ConstantInt::get(Type::Int32Ty,
+          (sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
+        "cfstk", alloca_block->getTerminator());
+
+    call_frame = b().CreateBitCast(
+        cfstk,
+        PointerType::getUnqual(cf_type), "call_frame");
+
+    info_.set_call_frame(call_frame);
+
+    stk = b().CreateConstGEP1_32(cfstk, sizeof(CallFrame) / sizeof(Object*), "stack");
+
+    info_.set_stack(stk);
+
+    Value* var_mem = new AllocaInst(obj_type,
+        ConstantInt::get(Type::Int32Ty,
+          (sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
+        "var_mem", alloca_block->getTerminator());
+
+    vars = b().CreateBitCast(
+        var_mem,
+        PointerType::getUnqual(stack_vars_type), "vars");
+
+    info_.set_variables(vars);
+
+    //  Setup the CallFrame
+    //
+    // previous
+    b().CreateStore(prev, get_field(call_frame, offset::cf_previous));
+
+    // msg
+    b().CreateStore(ConstantExpr::getNullValue(ls_->ptr_type("Dispatch")),
+        get_field(call_frame, offset::cf_msg));
+
+    // cm
+    Value* obj_addr = constant(vmm_->original.object_address(),
+        PointerType::getUnqual(ls_->ptr_type("CompiledMethod")));
+
+    method = b().CreateLoad(obj_addr, "cm");
+    Value* cm_gep = get_field(call_frame, offset::cf_cm);
+    b().CreateStore(method, cm_gep);
+
+    // flags
+    int flags = CallFrame::cInlineFrame;
+    if(!use_full_scope_) flags |= CallFrame::cClosedScope;
+
+    b().CreateStore(ConstantInt::get(Type::Int32Ty, flags),
+        get_field(call_frame, offset::cf_flags));
+
+    // ip
+    b().CreateStore(ConstantInt::get(Type::Int32Ty, 0),
+        get_field(call_frame, offset::cf_ip));
+
+    // scope
+    b().CreateStore(vars, get_field(call_frame, offset::cf_scope));
+
+    nil_stack(vmm_->stack_size, constant(Qnil, obj_type));
+
+    setup_inline_scope(self, constant(Qnil, obj_type), mod);
+
+    // No argument handling, there are bytecodes in the body that
+    // do that. We just have to make stack_args available.
 
     b().CreateBr(body);
     b().SetInsertPoint(body);
@@ -1088,6 +1208,7 @@ namespace rubinius {
     finder.drive(vmm_);
 
     if(finder.creates_blocks() || finder.calls_evalish()) {
+      info_.set_use_full_scope();
       use_full_scope_ = true;
     }
 
@@ -1095,20 +1216,16 @@ namespace rubinius {
     loops_ = finder.loops_p();
   }
 
-  bool LLVMWorkHorse::generate_body(JITMethodInfo& info) {
-    JITVisit visitor(ls_, info, block_map_,
-        ls_->module(), func,
-        b().GetInsertBlock(), stk, call_frame,
-        method_entry_, args,
-        vars, info.is_block, info.inline_return);
+  bool LLVMWorkHorse::generate_body() {
+    JITVisit visitor(ls_, info_, block_map_, b().GetInsertBlock());
 
-    if(info.inline_policy) {
-      visitor.set_policy(info.inline_policy);
+    if(info_.inline_policy) {
+      visitor.set_policy(info_.inline_policy);
     } else {
       visitor.init_policy();
     }
 
-    visitor.set_called_args(info.called_args);
+    visitor.set_called_args(info_.called_args);
 
     visitor.set_valid_flag(valid_flag);
 
@@ -1154,7 +1271,7 @@ namespace rubinius {
         std::cout << info.vmm
           << " Driving: " << jbb.start_ip << "-" << jbb.end_ip << "\n";
         */
-        visitor.drive(info.vmm->opcodes, jbb.end_ip+1, jbb.start_ip);
+        visitor.drive(info_.vmm->opcodes, jbb.end_ip+1, jbb.start_ip);
       }
     } catch(JITVisit::Unsupported &e) {
       return false;
@@ -1200,8 +1317,8 @@ namespace rubinius {
     }
     */
 
-    info.return_value = visitor.return_value();
-    info.fin_block = visitor.current_block();
+    info_.return_value = visitor.return_value();
+    info_.fin_block = visitor.current_block();
     return true;
   }
 }

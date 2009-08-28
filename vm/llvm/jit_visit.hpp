@@ -84,7 +84,6 @@ namespace rubinius {
     Value* vars_;
     bool use_full_scope_;
 
-    bool is_block_;
     BasicBlock* inline_return_;
     PHINode* return_value_;
 
@@ -104,6 +103,7 @@ namespace rubinius {
     bool has_side_effects_;
 
     int current_ip_;
+    int current_block_;
 
   public:
 
@@ -131,28 +131,25 @@ namespace rubinius {
     }
 
     JITVisit(LLVMState* ls, JITMethodInfo& info, BlockMap& bm,
-             llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* start,
-             llvm::Value* stack, llvm::Value* call_frame,
-             llvm::Value* me, llvm::Value* args,
-             llvm::Value* vars, bool is_block, BasicBlock* inline_return = 0)
-      : JITOperations(ls, info, mod, stack, call_frame, start, func)
+             llvm::BasicBlock* start)
+      : JITOperations(ls, info, start)
       , f(ls)
       , block_map_(bm)
       , allow_private_(false)
       , call_flags_(0)
       , rbx_simple_send_(0)
       , rbx_simple_send_private_(0)
-      , method_entry_(me)
-      , args_(args)
-      , vars_(vars)
+      , method_entry_(info.profiling_entry())
+      , args_(info.args())
+      , vars_(info.variables())
       , use_full_scope_(false)
-      , is_block_(is_block)
-      , inline_return_(inline_return)
+      , inline_return_(info.inline_return)
       , return_value_(0)
       , called_args_(-1)
       , sends_done_(0)
       , has_side_effects_(false)
       , current_ip_(0)
+      , current_block_(-1)
     {}
 
     void initialize() {
@@ -181,10 +178,8 @@ namespace rubinius {
       b().CreateCondBr(isit, ret_raise_val, bail_out_fast_);
 
       set_block(bail_out_fast_);
-      if(!inline_return_) {
-        if(use_full_scope_) {
-          flush_scope_to_heap(vars_);
-        }
+      if(use_full_scope_) {
+        flush_scope_to_heap(vars_);
       }
 
       if(inline_return_) {
@@ -196,9 +191,7 @@ namespace rubinius {
 
       set_block(ret_raise_val);
       Value* crv = f.clear_raise_value.call(&vm_, 1, "crv", b());
-      if(!inline_return_) {
-        if(use_full_scope_) flush_scope_to_heap(vars_);
-      }
+      if(use_full_scope_) flush_scope_to_heap(vars_);
 
       if(inline_return_) {
         return_value_->addIncoming(crv, current_block());
@@ -446,11 +439,12 @@ namespace rubinius {
         set_block(cont);
       }
 
+      if(use_full_scope_) flush_scope_to_heap(vars_);
+
       if(inline_return_) {
         return_value_->addIncoming(stack_top(), current_block());
         b().CreateBr(inline_return_);
       } else {
-        if(use_full_scope_) flush_scope_to_heap(vars_);
         b().CreateRet(stack_top());
       }
     }
@@ -1090,6 +1084,16 @@ namespace rubinius {
       stack_push(b().CreateLoad(val_pos, "local"));
     }
 
+    Value* local_location(Value* vars, opcode which) {
+      Value* idx2[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
+        ConstantInt::get(Type::Int32Ty, which)
+      };
+
+      return b().CreateGEP(vars, idx2, idx2+3, "local_pos");
+    }
+
     void visit_push_local(opcode which) {
       Value* idx2[] = {
         ConstantInt::get(Type::Int32Ty, 0),
@@ -1131,14 +1135,19 @@ namespace rubinius {
       b().CreateStore(val, pos);
     }
 
-    Value* get_self() {
+    Value* get_self(Value* vars = 0) {
+      if(!vars) vars = vars_;
+
+      assert(vars);
+
       return b().CreateLoad(
-          b().CreateConstGEP2_32(vars_, 0, offset::vars_self, "self_pos"));
+          b().CreateConstGEP2_32(vars, 0, offset::vars_self),
+          "self");
     }
 
     Value* get_block() {
       return b().CreateLoad(
-          b().CreateConstGEP2_32(vars_, 0, offset::vars_block, "self_pos"));
+          b().CreateConstGEP2_32(vars_, 0, offset::vars_block, "block_pos"));
     }
 
     void visit_push_self() {
@@ -1262,9 +1271,50 @@ namespace rubinius {
     }
 
     void visit_create_block(opcode which) {
-      std::vector<const Type*> types;
+      // Don't actually do anything, just register which literal we would
+      // use for the block. The later send handles whether to actually
+      // emit the call to create the block
+      current_block_ = (int)which;
+    }
 
+    bool in_inlined_block() {
+      return inline_return_ && info().is_block;
+    }
+
+    void emit_create_block(opcode which) {
+      std::vector<const Type*> types;
       types.push_back(VMTy);
+
+      if(in_inlined_block()) {
+        types.push_back(ObjType);
+        types.push_back(Type::Int32Ty);
+        types.push_back(Type::Int32Ty);
+
+        FunctionType* ft = FunctionType::get(ObjType, types, true);
+        Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_create_block_multi", ft));
+
+        std::vector<Value*> call_args;
+
+        int count = 0;
+        JITMethodInfo* nfo = &info();
+        while(nfo) {
+          call_args.push_back(nfo->call_frame());
+          count++;
+          nfo = nfo->parent_info();
+          if(!nfo) break;
+          nfo = nfo->parent_info();
+        }
+
+        call_args.push_back(ConstantInt::get(Type::Int32Ty, count));
+        call_args.push_back(ConstantInt::get(Type::Int32Ty, which));
+        call_args.push_back(get_literal(which));
+        call_args.push_back(vm_);
+
+        stack_push(b().CreateCall(func, call_args.rbegin(), call_args.rend(), "create_block"));
+        return;
+      };
+
       types.push_back(CallFrameTy);
       types.push_back(Type::Int32Ty);
 
@@ -1284,15 +1334,138 @@ namespace rubinius {
     void visit_send_stack_with_block(opcode which, opcode args) {
       set_has_side_effects();
 
+      bool has_literal_block = (current_block_ >= 0);
+      bool block_on_stack = !has_literal_block;
+
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
+      CompiledMethod* block_code = 0;
+
+      if(cache->method && ls_->config().jit_inline_blocks) {
+        if(has_literal_block) {
+          block_code = try_as<CompiledMethod>(literal(current_block_));
+
+          // Run the policy on the block code here, if we're not going to
+          // inline it, don't inline this either.
+          InlineDecision decision = inline_policy()->inline_p(
+              block_code->backend_method(), false);
+          if(decision != cInline) {
+            // We're not going to inline it, so emit the call to create it
+            emit_create_block(current_block_);
+            block_on_stack = true;
+            block_code = 0;
+          }
+        } else if(has_literal_block) {
+          block_on_stack = true;
+          emit_create_block(current_block_);
+        }
+
+        BasicBlock* failure = new_block("fallback");
+        BasicBlock* cont = new_block("continue");
+        BasicBlock* cleanup = new_block("send_done");
+        PHINode* send_result = b().CreatePHI(ObjType, "send_result");
+
+        // Register data for the inlined block to see!
+        info().set_block_break(cleanup, send_result);
+
+        Inliner inl(*this, cache, args, failure);
+
+        if(block_code) {
+          inl.set_passed_block(block_code);
+        } else {
+          inl.set_block_on_stack();
+        }
+
+        if(inl.consider()) {
+          // Uncommon doesn't yet know how to synthesize UnwindInfos, so
+          // don't do uncommon if there are handlers.
+          if(exception_handlers_.size() == 0) {
+            send_result->addIncoming(inl.result(), b().GetInsertBlock());
+
+            b().CreateBr(cleanup);
+
+            set_block(failure);
+            if(!block_on_stack) {
+              emit_create_block(current_block_);
+              block_on_stack = true;
+            }
+            emit_uncommon();
+
+            set_block(cleanup);
+            send_result->removeFromParent();
+            cleanup->getInstList().push_back(send_result);
+
+            // send_result->moveBefore(&cleanup->back());
+
+            stack_remove(args+1); // not 2, because we never created the block!
+            if(inl.check_for_exception()) {
+              check_for_exception(send_result);
+            }
+
+            stack_push(send_result);
+
+            b().CreateBr(cont);
+
+            set_block(cont);
+          } else {
+            // Emit both the inlined code and a send for it
+            send_result->addIncoming(inl.result(), b().GetInsertBlock());
+
+            b().CreateBr(cleanup);
+
+            set_block(failure);
+            if(!block_on_stack) {
+              emit_create_block(current_block_);
+              block_on_stack = true;
+            }
+
+            Value* send_res = block_send(cache, args, allow_private_);
+            b().CreateBr(cleanup);
+
+            set_block(cleanup);
+            send_result->removeFromParent();
+            cleanup->getInstList().push_back(send_result);
+
+            send_result->addIncoming(send_res, failure);
+
+            stack_remove(args + 2);
+            check_for_exception(send_result);
+
+            stack_push(send_result);
+          }
+
+          info().clear_block_break();
+
+          allow_private_ = false;
+
+          // Clear the current block
+          current_block_ = -1;
+          return;
+        }
+
+        // Don't need it.
+        send_result->eraseFromParent();
+      }
+
+      // Detect a literal block being created and passed here.
+      if(!block_on_stack) {
+        emit_create_block(current_block_);
+      }
+
       Value* ret = block_send(cache, args, allow_private_);
       stack_remove(args + 2);
       check_for_return(ret);
       allow_private_ = false;
+
+      // Clear the current block
+      current_block_ = -1;
     }
 
     void visit_send_stack_with_splat(opcode which, opcode args) {
       set_has_side_effects();
+
+      if(current_block_ >= 0) {
+        emit_create_block(current_block_);
+      }
 
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       Value* ret = splat_send(cache->name, args, allow_private_);
@@ -1300,6 +1473,9 @@ namespace rubinius {
       check_for_exception(ret);
       stack_push(ret);
       allow_private_ = false;
+
+      // Clear the current block
+      current_block_ = -1;
     }
 
     void visit_cast_array() {
@@ -1584,55 +1760,144 @@ namespace rubinius {
     }
 
     void visit_cast_for_single_block_arg() {
-      std::vector<const Type*> types;
+      std::vector<Value*>* inline_args = incoming_args();
+      if(inline_args) {
+        switch(inline_args->size()) {
+        case 0:
+          stack_push(constant(Qnil));
+          break;
+        case 1:
+          stack_push(inline_args->at(0));
+          break;
+        default: {
+          std::vector<const Type*> types;
+          types.push_back(ls_->ptr_type("VM"));
+          types.push_back(Type::Int32Ty);
 
-      types.push_back(VMTy);
-      types.push_back(ptr_type("Arguments"));
+          FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), types, true);
+          Function* func = cast<Function>(
+              ls_->module()->getOrInsertFunction("rbx_create_array", ft));
 
-      FunctionType* ft = FunctionType::get(ObjType, types, false);
-      Function* func = cast<Function>(
-          module_->getOrInsertFunction("rbx_cast_for_single_block_arg", ft));
+          std::vector<Value*> outgoing_args;
+          outgoing_args.push_back(vm());
+          outgoing_args.push_back(ConstantInt::get(Type::Int32Ty, inline_args->size()));
 
-      Value* call_args[] = {
-        vm_,
-        args_
-      };
+          for(size_t i = 0; i < inline_args->size(); i++) {
+            outgoing_args.push_back(inline_args->at(i));
+          }
 
-      stack_push(b().CreateCall(func, call_args, call_args+2, "cfsba"));
+          Value* ary =
+            b().CreateCall(func, outgoing_args.begin(), outgoing_args.end(), "ary");
+          stack_push(ary);
+         }
+        }
+      } else {
+        std::vector<const Type*> types;
+
+        types.push_back(VMTy);
+        types.push_back(ptr_type("Arguments"));
+
+        FunctionType* ft = FunctionType::get(ObjType, types, false);
+        Function* func = cast<Function>(
+            module_->getOrInsertFunction("rbx_cast_for_single_block_arg", ft));
+
+        Value* call_args[] = {
+          vm_,
+          args_
+        };
+
+        stack_push(b().CreateCall(func, call_args, call_args+2, "cfsba"));
+      }
     }
 
     void visit_cast_for_multi_block_arg() {
-      Signature sig(ls_, ObjType);
-      sig << VMTy;
-      sig << ptr_type("Arguments");
+      std::vector<Value*>* inline_args = incoming_args();
+      if(inline_args) {
+        std::vector<const Type*> types;
+        types.push_back(ls_->ptr_type("VM"));
+        types.push_back(Type::Int32Ty);
 
-      Value* call_args[] = {
-        vm_,
-        args_
-      };
+        FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), types, true);
+        Function* func = cast<Function>(
+            ls_->module()->getOrInsertFunction("rbx_cast_for_multi_block_arg_varargs", ft));
 
-      Value* val = sig.call("rbx_cast_for_multi_block_arg", call_args, 2,
-                            "cfmba", b());
-      stack_push(val);
+        std::vector<Value*> outgoing_args;
+        outgoing_args.push_back(vm());
+        outgoing_args.push_back(ConstantInt::get(Type::Int32Ty, inline_args->size()));
+
+        for(size_t i = 0; i < inline_args->size(); i++) {
+          outgoing_args.push_back(inline_args->at(i));
+        }
+
+        Value* ary =
+          b().CreateCall(func, outgoing_args.begin(), outgoing_args.end(), "ary");
+        stack_push(ary);
+      } else {
+        Signature sig(ls_, ObjType);
+        sig << VMTy;
+        sig << ptr_type("Arguments");
+
+        Value* call_args[] = {
+          vm_,
+          args_
+        };
+
+        Value* val = sig.call("rbx_cast_for_multi_block_arg", call_args, 2,
+            "cfmba", b());
+        stack_push(val);
+      }
     }
 
     void visit_cast_for_splat_block_arg() {
-      Signature sig(ls_, ObjType);
-      sig << VMTy;
-      sig << ptr_type("Arguments");
+      std::vector<Value*>* inline_args = incoming_args();
+      if(inline_args) {
+        std::vector<const Type*> types;
+        types.push_back(ls_->ptr_type("VM"));
+        types.push_back(Type::Int32Ty);
 
-      Value* call_args[] = {
-        vm_,
-        args_
-      };
+        FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), types, true);
+        Function* func = cast<Function>(
+            ls_->module()->getOrInsertFunction("rbx_create_array", ft));
 
-      Value* val = sig.call("rbx_cast_for_splat_block_arg", call_args, 2,
-                            "cfmba", b());
-      stack_push(val);
+        std::vector<Value*> outgoing_args;
+        outgoing_args.push_back(vm());
+        outgoing_args.push_back(ConstantInt::get(Type::Int32Ty, inline_args->size()));
+
+        for(size_t i = 0; i < inline_args->size(); i++) {
+          outgoing_args.push_back(inline_args->at(i));
+        }
+
+        Value* ary =
+          b().CreateCall(func, outgoing_args.begin(), outgoing_args.end(), "ary");
+        stack_push(ary);
+      } else {
+        Signature sig(ls_, ObjType);
+        sig << VMTy;
+        sig << ptr_type("Arguments");
+
+        Value* call_args[] = {
+          vm_,
+          args_
+        };
+
+        Value* val = sig.call("rbx_cast_for_splat_block_arg", call_args, 2,
+            "cfmba", b());
+        stack_push(val);
+      }
     }
 
     void visit_set_local_depth(opcode depth, opcode index) {
       set_has_side_effects();
+
+      // We're inlinig a block...
+      if(inline_return_) {
+        JITMethodInfo* nfo = upscope_info(depth);
+        assert(nfo);
+
+        Value* local_pos = local_location(nfo->variables(), index);
+        stack_push(b().CreateLoad(local_pos, "upscope_local"));
+        return;
+      }
 
       if(depth == 0) {
         std::cout << "why is depth 0 here?\n";
@@ -1676,8 +1941,31 @@ namespace rubinius {
       stack_push(b().CreateCall(func, call_args, call_args+5, "sld"));
     }
 
+    JITMethodInfo* upscope_info(int which) {
+      JITMethodInfo* nfo = &info();
+
+      for(int i = 0; i < which; i++) {
+        // we always go 2 levels up, through the method that does the yield.
+        nfo = nfo->parent_info();
+        if(!nfo) return 0;
+        nfo = nfo->parent_info();
+      }
+
+      return nfo;
+    }
+
     void visit_push_local_depth(opcode depth, opcode index) {
       set_has_side_effects();
+
+      // We're in an inlined block..
+      if(inline_return_) {
+        JITMethodInfo* nfo = upscope_info(depth);
+        assert(nfo);
+
+        Value* local_pos = local_location(nfo->variables(), index);
+        stack_push(b().CreateLoad(local_pos, "upscope_local"));
+        return;
+      }
 
       if(depth == 0) {
         std::cout << "why is depth 0 here?\n";
@@ -1759,6 +2047,28 @@ namespace rubinius {
 
     void visit_yield_stack(opcode count) {
       set_has_side_effects();
+
+      // Hey! Look at that! We know the block we'd be yielding to
+      // staticly! woo! ok, lets just emit the code for it here!
+      if(VMMethod* pb = passed_block()) {
+        JITMethodInfo* parent = info().parent_info();
+        assert(parent);
+
+        // Count the block against the policy size total
+        inline_policy()->increase_size(pb);
+
+        // We inline unconditionally here, since we make the decision
+        // wrt the block when we are considering inlining the send that
+        // has the block on it.
+        Inliner inl(*this, count);
+        inl.inline_block(pb, get_self(parent->variables()));
+        stack_remove(count);
+        if(inl.check_for_exception()) {
+          check_for_exception(inl.result());
+        }
+        stack_push(inl.result());
+        return;
+      }
 
       Signature sig(ls_, ObjType);
 
@@ -1956,6 +2266,22 @@ namespace rubinius {
     }
 
     void visit_raise_return() {
+      // Inlining a block!
+      if(inline_return_) {
+        // We have to flush scopes before we return.
+        JITMethodInfo* nfo = &info();
+        while(nfo) {
+          if(nfo->use_full_scope()) {
+            flush_scope_to_heap(nfo->variables());
+          }
+
+          nfo = nfo->parent_info();
+        }
+
+        b().CreateRet(stack_pop());
+        return;
+      }
+
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
@@ -1990,6 +2316,22 @@ namespace rubinius {
     }
 
     void visit_raise_break() {
+      // inlining a block!
+      if(inline_return_) {
+        JITMethodInfo* upinfo = upscope_info(1);
+        assert(upinfo);
+
+        BasicBlock* blk = upinfo->block_break_loc();
+        assert(blk);
+
+        PHINode* phi = upinfo->block_break_result();
+        phi->addIncoming(stack_pop(), b().GetInsertBlock());
+
+        b().CreateBr(blk);
+        set_block(new_block("continue"));
+        return;
+      }
+
       Signature sig(ls_, ObjType);
 
       sig << VMTy;

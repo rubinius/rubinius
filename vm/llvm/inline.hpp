@@ -14,9 +14,13 @@ namespace rubinius {
     JITOperations& ops_;
     InlineCache* cache_;
     int count_;
+    int self_pos_;
     BasicBlock* failure_;
     Value* result_;
     bool check_for_exception_;
+    VMMethod* passed_block_;
+
+    bool block_on_stack_;
 
   public:
 
@@ -24,17 +28,30 @@ namespace rubinius {
       : ops_(ops)
       , cache_(cache)
       , count_(count)
+      , self_pos_(count)
       , failure_(failure)
       , result_(0)
       , check_for_exception_(true)
+      , passed_block_(0)
+      , block_on_stack_(false)
+    {}
+
+    Inliner(JITOperations& ops, int count)
+      : ops_(ops)
+      , cache_(0)
+      , count_(count)
+      , failure_(0)
+      , result_(0)
+      , check_for_exception_(true)
+      , passed_block_(0)
     {}
 
     Value* recv() {
-      return ops_.stack_back(count_);
+      return ops_.stack_back(self_pos_);
     }
 
     Value* arg(int which) {
-      return ops_.stack_back(count_ - (which + 1));
+      return ops_.stack_back(self_pos_ - (which + 1));
     }
 
     BasicBlock* failure() {
@@ -57,9 +74,19 @@ namespace rubinius {
       return check_for_exception_;
     }
 
-    bool consider();
+    void set_passed_block(CompiledMethod* cm) {
+      passed_block_ = cm->backend_method();
+    }
 
-    void inline_generic_method(Class* klass, VMMethod* vmm);
+    void set_block_on_stack() {
+      self_pos_++;
+      block_on_stack_ = true;
+    }
+
+    bool consider();
+    void inline_block(VMMethod* vmm, Value* self);
+
+    void inline_generic_method(Class* klass, VMMethod* vmm, bool pass_block=false);
 
     bool detect_trivial_method(CompiledMethod* cm);
 
@@ -72,6 +99,8 @@ namespace rubinius {
     bool inline_primitive(Class* klass, CompiledMethod* cm, executor prim);
 
     bool inline_ffi(Class* klass, NativeFunction* nf);
+
+    void emit_inline_block(VMMethod* vmm, Value* val);
   };
 
 }

@@ -28,6 +28,8 @@
 #include "lookup_data.hpp"
 #include "inline_cache.hpp"
 
+#include <cstdarg>
+
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
 
 using namespace rubinius;
@@ -156,6 +158,35 @@ extern "C" {
                                               call_frame, index);
   }
 
+  Object* rbx_create_block_multi(STATE, CompiledMethod* cm, int index, int count, ...) {
+    va_list ap;
+
+    CallFrame* closest = 0;
+    VariableScope* top = 0;
+    VariableScope* parent = 0;
+
+    va_start(ap, count);
+    for(int i = 0; i < count; i++) {
+      closest = va_arg(ap, CallFrame*);
+      closest->scope->set_parent(parent);
+      parent = closest->promote_scope(state);
+
+      if(!top) {
+        top = parent;
+      } else {
+        closest->flags |= CallFrame::cMultipleScopes;
+        closest->top_scope_ = top;
+      }
+    }
+    va_end(ap);
+
+    // TODO: We don't need to be doing this everytime.
+    cm->scope(state, closest->static_scope());
+
+    VMMethod* vmm = closest->previous->cm->backend_method();
+    return BlockEnvironment::under_call_frame(state, cm, vmm, closest, index);
+  }
+
   Object* rbx_promote_variables(STATE, CallFrame* call_frame) {
     return call_frame->promote_scope(state);
   }
@@ -219,6 +250,35 @@ extern "C" {
     for(size_t i = 0; i < args.total(); i++) {
       ary->set(state, i, args.get_argument(i));
     }
+
+    return ary;
+  }
+
+  Object* rbx_cast_for_multi_block_arg_varargs(STATE, int count, ...) {
+    va_list ap;
+
+    /* If there is only one argument and that thing is an array... */
+    if(count == 1) {
+      va_start(ap, count);
+
+      Object* first = va_arg(ap, Object*);
+      if(!kind_of<Array>(first)) {
+        Array* ary = Array::create(state, 1);
+        ary->set(state, 0, first);
+        first = ary;
+      }
+
+      va_end(ap);
+      return first;
+    }
+
+    Array* ary = Array::create(state, count);
+
+    va_start(ap, count);
+    for(int i = 0; i < count; i++) {
+      ary->set(state, i, va_arg(ap, Object*));
+    }
+    va_end(ap);
 
     return ary;
   }
@@ -291,6 +351,22 @@ extern "C" {
     for(int i = 0; i < count; i++) {
       ary->set(state, i, args[i]);
     }
+
+    return ary;
+  }
+
+  Object* rbx_create_array(STATE, int count, ...) {
+    va_list ap;
+
+    Array* ary = Array::create(state, count);
+
+    va_start(ap, count);
+    for(int i = 0; i < count; i++) {
+      Object* obj = va_arg(ap, Object*);
+      ary->set(state, i, obj);
+    }
+
+    va_end(ap);
 
     return ary;
   }

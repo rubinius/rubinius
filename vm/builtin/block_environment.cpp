@@ -75,18 +75,22 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     if(vmm->call_count >= 0) {
       if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
-        vmm->call_count = -1; // So we don't try and jit twice at the same time
-        state->stats.jitted_methods++;
-
         LLVMState* ls = LLVMState::get(state);
+
+        if(state->shared.config.jit_inline_blocks) {
+          if(VMMethod* parent = vmm->parent()) {
+            while(VMMethod* next = parent->parent()) {
+              parent = next;
+            }
+
+            if(parent->call_count >= 200) {
+              ls->compile_soon(state, parent);
+            }
+          }
+        }
 
         ls->compile_soon(state, vmm, env);
 
-        if(state->shared.config.jit_show_compiling) {
-          std::cout << "[[[ JIT Queued method "
-                    << ls->queued_methods() << "/"
-                    << ls->jitted_methods() << " ]]]\n";
-        }
       } else {
         vmm->call_count++;
       }
@@ -191,6 +195,8 @@ namespace rubinius {
         vmm->specialize(state, caller->type);
       }
       caller->blocks[index] = vmm;
+
+      vmm->set_parent(caller);
     }
 
     be->scope(state, call_frame->promote_scope(state));

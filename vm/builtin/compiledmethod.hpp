@@ -67,6 +67,7 @@ namespace rubinius {
     static Object* primitive_failed(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
     int start_line(STATE);
+    int start_line();
     int line(STATE, int ip);
 
     void post_marshal(STATE);

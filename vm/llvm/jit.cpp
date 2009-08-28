@@ -418,6 +418,10 @@ namespace rubinius {
     Object* placement;
     bool is_block = false;
 
+    // Ignore it!
+    if(vmm->call_count < 0) return;
+    vmm->call_count = -1;
+
     if(block) {
       is_block = true;
       placement = block;
@@ -425,12 +429,21 @@ namespace rubinius {
       placement = state->new_struct<MachineMethod>(G(machine_method));
     }
 
+    state->stats.jitted_methods++;
+
     BackgroundCompileRequest* req =
       new BackgroundCompileRequest(state, vmm, placement, is_block);
 
     queued_methods_++;
 
     background_thread_->add(req);
+
+    if(state->shared.config.jit_show_compiling) {
+      std::cout << "[[[ JIT Queued"
+                << (block ? " block " : " method ")
+                << queued_methods() << "/"
+                << jitted_methods() << " ]]]\n";
+    }
   }
 
   void LLVMState::remove(llvm::Function* func) {
@@ -442,8 +455,11 @@ namespace rubinius {
     func->eraseFromParent();
   }
 
+  const static int cInlineMaxDepth = 8;
+
   VMMethod* LLVMState::find_candidate(VMMethod* start, CallFrame* call_frame) {
     VMMethod* last = start;
+    int depth = 0;
 
     // No upper call_frames or generic inlining is off, use the start.
     // With generic inlining off, there is no way to inline back to start,
@@ -451,14 +467,25 @@ namespace rubinius {
     if(!call_frame || !config_.jit_inline_generic) return last;
 
     VMMethod* cur = call_frame->cm->backend_method();
-    while(cur->required_args == cur->total_args &&
-          cur->call_count >= 200 &&
-          !cur->jitted() &&
-          cur->total > 10) {
-      last = cur;
+    while(depth < cInlineMaxDepth) {
+      if(cur->required_args != cur->total_args ||
+          cur->call_count < 200 ||
+          cur->jitted() ||
+          cur->total < 10) break;
+
       call_frame = call_frame->previous;
       if(!call_frame) break;
+
       cur = call_frame->cm->backend_method();
+
+      // Jump to defining methods of blocks!
+      if(VMMethod* parent = cur->parent()) {
+        cur = parent;
+      } else {
+        last = cur;
+      }
+
+      depth++;
     }
 
     return last;
@@ -466,13 +493,29 @@ namespace rubinius {
 
   void LLVMCompiler::compile(LLVMState* ls, VMMethod* vmm, bool is_block) {
     if(ls->config().jit_inline_debug) {
-      std::cerr << "JIT: compiling "
-                << ls->symbol_cstr(vmm->original->scope()->module()->name())
-                << "#"
-                << ls->symbol_cstr(vmm->original->name()) << "\n";
+      if(is_block) {
+        VMMethod* parent = vmm->parent();
+        assert(parent);
+
+        std::cerr << "JIT: compiling block in "
+                  << ls->symbol_cstr(parent->original->scope()->module()->name())
+                  << "#"
+                  << ls->symbol_cstr(vmm->original->name())
+                  << " near "
+                  << ls->symbol_cstr(vmm->original->file()) << ":"
+                  << vmm->original->start_line() << "\n";
+      } else {
+        std::cerr << "JIT: compiling "
+                  << ls->symbol_cstr(vmm->original->scope()->module()->name())
+                  << "#"
+                  << ls->symbol_cstr(vmm->original->name()) << "\n";
+      }
     }
 
-    LLVMWorkHorse work(ls, vmm);
+    JITMethodInfo info(vmm);
+    info.is_block = is_block;
+
+    LLVMWorkHorse work(ls, info);
 
     if(is_block) {
       work.setup_block();
@@ -480,12 +523,9 @@ namespace rubinius {
       work.setup();
     }
 
-    llvm::Function* func = work.func;
+    llvm::Function* func = info.function();
 
-    JITMethodInfo info(vmm);
-    info.is_block = is_block;
-
-    if(!work.generate_body(info)) {
+    if(!work.generate_body()) {
       function_ = NULL;
       // This is too noisy to report
       // std::cout << "not supported yet.\n";
@@ -602,6 +642,12 @@ namespace rubinius {
     assembler_x86::AssemblerX86::show_buffer(impl, bytes, false, NULL);
   }
 
+}
+
+extern "C" {
+  void llvm_dump(Value* val) {
+    std::cout << *val;
+  }
 }
 
 #endif

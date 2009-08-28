@@ -55,10 +55,12 @@ namespace rubinius {
       } else if(detect_trivial_method(cm)) {
         inline_trivial_method(klass, cm);
       } else if(ops_.state()->config().jit_inline_generic) {
-        InlineDecision decision = ops_.should_inline_p(vmm);
+        InlinePolicy* policy = ops_.inline_policy();
+        assert(policy);
+
+        InlineDecision decision = policy->inline_p(vmm);
         if(decision != cInline) {
           if(ops_.state()->config().jit_inline_debug) {
-            InlinePolicy* policy = ops_.inline_policy();
 
             std::cerr << "NOT inlining: "
               << ops_.state()->symbol_cstr(cm->scope()->module()->name())
@@ -92,6 +94,7 @@ namespace rubinius {
             << " (" << ops_.state()->symbol_cstr(klass->name()) << ")\n";
         }
 
+        policy->increase_size(vmm);
         NoAccessManagedMemory unmemguard(ops_.state());
         inline_generic_method(klass, vmm);
       } else {
@@ -137,6 +140,31 @@ namespace rubinius {
     return true;
   }
 
+  void Inliner::inline_block(VMMethod* vmm, Value* self) {
+    AccessManagedMemory memguard(ops_.state());
+
+    CompiledMethod* cm = vmm->original.get();
+
+    if(detect_trivial_method(cm)) {
+      if(ops_.state()->config().jit_inline_debug) {
+        std::cerr << "inlining trivial block into: "
+          << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+          << "\n";
+      }
+
+      inline_trivial_method(0, cm);
+    } else {
+      if(ops_.state()->config().jit_inline_debug) {
+        std::cerr << "inlining block into: "
+          << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+          << "\n";
+      }
+
+      NoAccessManagedMemory unmemguard(ops_.state());
+      emit_inline_block(vmm, self);
+    }
+  }
+
   bool Inliner::detect_trivial_method(CompiledMethod* cm) {
     VMMethod* vmm = cm->backend_method();
 
@@ -175,7 +203,9 @@ namespace rubinius {
 
     Value* self = recv();
 
-    ops_.check_class(self, klass, failure());
+    if(klass) {
+      ops_.check_class(self, klass, failure());
+    }
 
     Value* val = 0;
     /////
@@ -321,32 +351,83 @@ namespace rubinius {
     set_result(ivar);
   }
 
-  void Inliner::inline_generic_method(Class* klass, VMMethod* vmm) {
-    LLVMWorkHorse work(ops_.state(), vmm);
+  void Inliner::inline_generic_method(Class* klass, VMMethod* vmm, bool pass_block) {
+    Value* self = recv();
+    ops_.check_class(self, klass, failure());
+
+    JITMethodInfo info(vmm);
+    info.set_parent_info(ops_.info());
+
+    BasicBlock* on_return = ops_.new_block("inline_return");
+    info.inline_return = on_return;
+    info.inline_policy = ops_.inline_policy();
+    info.called_args = count_;
+    info.root = ops_.root_method_info();
+    info.passed_block = passed_block_;
+
+    LLVMWorkHorse work(ops_.state(), info);
     work.valid_flag = ops_.valid_flag();
 
-    Value* self = recv();
+    Value* blk = 0;
 
-    ops_.check_class(self, klass, failure());
+    std::vector<Value*> args;
+    if(block_on_stack_) {
+      blk = ops_.stack_top();
+      for(int i = count_; i >= 1; i--) {
+        args.push_back(ops_.stack_back(i));
+      }
+    } else {
+      blk = ops_.constant(Qnil);
+      for(int i = count_ - 1; i >= 0; i--) {
+        args.push_back(ops_.stack_back(i));
+      }
+    }
+
+    vmm->call_count /= 2;
+
+    BasicBlock* entry = work.setup_inline(self, blk,
+        ops_.constant(Qnil, ops_.state()->ptr_type("Module")), args);
+
+    assert(work.generate_body());
+
+    on_return->moveAfter(info.fin_block);
+
+    ops_.create_branch(entry);
+
+    ops_.set_block(on_return);
+
+    ops_.b().Insert(cast<Instruction>(info.return_value));
+
+    set_result(info.return_value);
+  }
+
+  void Inliner::emit_inline_block(VMMethod* vmm, Value* self) {
+    JITMethodInfo info(vmm);
+    info.set_parent_info(ops_.info());
+
+    BasicBlock* on_return = ops_.new_block("inline_return");
+    info.inline_return = on_return;
+    info.inline_policy = ops_.inline_policy();
+    info.called_args = count_;
+    info.root = ops_.root_method_info();
+    info.passed_block = passed_block_;
+
+    LLVMWorkHorse work(ops_.state(), info);
+    work.valid_flag = ops_.valid_flag();
 
     std::vector<Value*> args;
     for(int i = count_ - 1; i >= 0; i--) {
       args.push_back(ops_.stack_back(i));
     }
 
+    info.stack_args = &args;
+
     vmm->call_count /= 2;
 
-    BasicBlock* entry = work.setup_inline(ops_.function(), ops_.vm(), ops_.call_frame(),
-        self, ops_.constant(Qnil, ops_.state()->ptr_type("Module")), args);
+    BasicBlock* entry = work.setup_inline_block(self,
+        ops_.constant(Qnil, ops_.state()->ptr_type("Module")));
 
-    BasicBlock* on_return = ops_.new_block("inline_return");
-    JITMethodInfo info(vmm);
-    info.inline_return = on_return;
-    info.inline_policy = ops_.inline_policy();
-    info.called_args = count_;
-    info.root = ops_.root_method_info();
-
-    assert(work.generate_body(info));
+    assert(work.generate_body());
 
     on_return->moveAfter(info.fin_block);
 

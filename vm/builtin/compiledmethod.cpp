@@ -54,6 +54,14 @@ namespace rubinius {
     return as<Fixnum>(lines_->at(state, 1))->to_native();
   }
 
+  int CompiledMethod::start_line() {
+    if(lines_->nil_p()) return -1;
+    if(lines_->num_fields() < 2) return -1;
+    // This is fixed as one because entry 0 is always ip = 0 and
+    // 1 is the first line
+    return as<Fixnum>(lines_->at(1))->to_native();
+  }
+
   int CompiledMethod::line(STATE, int ip) {
     if(lines_->nil_p()) return -3;
 

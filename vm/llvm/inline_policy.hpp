@@ -25,7 +25,7 @@ namespace rubinius {
       return true;
     }
 
-    void visit_create_block(opcode which) {
+    void visit_push_block() {
       throw Unsupported();
     }
 
@@ -79,19 +79,21 @@ namespace rubinius {
       return true;
     }
 
-    InlineDecision inline_p(VMMethod* vmm) {
+    InlineDecision inline_p(VMMethod* vmm, bool check_size=true) {
       if(!InlineEvaluator::can_inline_p(vmm)) return cTooComplex;
-      if(!check_size_p(vmm)) return cTooBig;
-
-      current_size_ += vmm->total;
+      if(check_size && !check_size_p(vmm)) return cTooBig;
       return cInline;
+    }
+
+    void increase_size(VMMethod* vmm) {
+      current_size_ += vmm->total;
     }
   };
 
   class SmallMethodInlinePolicy : public InlinePolicy {
   public:
     const static bool is_small_p(VMMethod* vmm) {
-      if(vmm->total < 10) return true;
+      if(vmm->total < 20) return true;
       return false;
     }
 

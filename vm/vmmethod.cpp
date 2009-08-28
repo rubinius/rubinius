@@ -85,6 +85,7 @@ namespace rubinius {
    */
   VMMethod::VMMethod(STATE, CompiledMethod* meth)
     : machine_method_(state)
+    , parent_(NULL)
     , run(standard_interpreter)
     , original(state, meth)
     , type(NULL)
@@ -502,16 +503,14 @@ namespace rubinius {
           LLVMState* ls = LLVMState::get(state);
           VMMethod* candidate = ls->find_candidate(vmm, previous);
 
-          candidate->call_count = -1; // So we don't try and jit twice at the same time
-          state->stats.jitted_methods++;
+          assert(!candidate->parent());
+
+          if(candidate->call_count < 0) {
+            // Ignore it. compile this one.
+            candidate = vmm;
+          }
 
           ls->compile_soon(state, candidate);
-
-          if(state->shared.config.jit_show_compiling) {
-            std::cout << "[[[ JIT Queued method "
-              << ls->queued_methods() << "/"
-              << ls->jitted_methods() << " ]]]\n";
-          }
         } else {
           vmm->call_count++;
         }
