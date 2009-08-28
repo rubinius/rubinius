@@ -503,7 +503,21 @@ class Compiler
       end
 
       def bytecode(g)
+        g.push_block
+        g.dup
+        g.is_nil
+
+        after = g.new_label
+        g.git after
+
+        g.push_const :Proc
+        g.swap
+        g.send :__from_block__, 1
+
+        after.set!
+
         g.set_local @variable.slot
+        g.pop
       end
     end
 
