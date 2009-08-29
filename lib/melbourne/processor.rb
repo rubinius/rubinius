@@ -422,8 +422,8 @@ module Rubinius
       AST::VAlias.from self, to, from
     end
 
-    def process_when(line, args, body)
-      AST::When.from self, args, body
+    def process_when(line, conditions, body)
+      AST::When.from self, conditions, body
     end
 
     def process_while(line, cond, body, check_first)

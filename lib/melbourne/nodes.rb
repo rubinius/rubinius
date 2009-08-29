@@ -726,18 +726,14 @@ class Compiler
       end
 
       def children
-        children = @whens.dup
-        children << @else
-        children
+        @whens.dup << @else
       end
 
       def bytecode(g)
         done = g.new_label
 
         @whens.each do |w|
-          nxt = g.new_label
-          w.bytecode(g, false, nxt, done)
-          nxt.set!
+          w.bytecode(g, done)
         end
 
         @else.bytecode(g)
@@ -758,10 +754,7 @@ class Compiler
       end
 
       def children
-        children = [@receiver]
-        children.concat @whens
-        children << @else
-        children
+        [@receiver] + @whens << @else
       end
 
       def bytecode(g)
@@ -770,13 +763,10 @@ class Compiler
         @receiver.bytecode(g)
 
         @whens.each do |w|
-          nxt = g.new_label
-          w.bytecode(g, true, nxt, done)
-          nxt.set!
+          w.receiver_bytecode(g, done)
         end
 
         g.pop
-
         @else.bytecode(g)
 
         done.set!
@@ -2944,7 +2934,7 @@ class Compiler
         pos(g)
 
         g.push_literal @string
-        g.string_dup
+        g.string_dup # TODO: why?
       end
     end
 
@@ -3115,16 +3105,120 @@ class Compiler
     end
 
     class When < Node
-      attr_accessor :conditions, :body
+      attr_accessor :conditions, :body, :single, :splat
 
-      def self.from(p, args, body)
+      def self.from(p, conditions, body)
         node = When.new p.compiler
-        node.conditions = args
-        node.body = body
+        node.body = body || Nil.from(p)
+
+        if conditions.kind_of? ArrayLiteral
+          if conditions.body.last.kind_of? When
+            last = conditions.body.pop
+            if last.conditions.kind_of? ArrayLiteral
+              conditions.body.concat last.conditions.body
+            else
+              node.splat = SplatWhen.from p, last.conditions
+            end
+          end
+
+          if conditions.body.size == 1 and !node.splat
+            node.single = conditions.body.first
+          else
+            node.conditions = conditions
+          end
+        else
+          node.conditions = conditions
+        end
+
         node
       end
 
-      def bytecode(g, has_receiver, nxt, fin)
+      def children
+        [@conditions, @splat, @body]
+      end
+
+      def condition_bytecode(g, condition)
+        g.dup
+        condition.bytecode(g)
+        g.swap
+        g.send :===, 1
+      end
+
+      def receiver_bytecode(g, done)
+        body = g.new_label
+        nxt = g.new_label
+
+        if @single
+          condition_bytecode(g, @single)
+          g.gif nxt
+        else
+          if @conditions
+            @conditions.body.each do |c|
+              condition_bytecode(g, c)
+              g.git body
+            end
+          end
+
+          @splat.receiver_bytecode(g, body, nxt) if @splat
+          g.goto nxt
+
+          body.set!
+        end
+
+        g.pop
+        @body.bytecode(g)
+        g.goto done
+
+        nxt.set!
+      end
+
+      def bytecode(g, done)
+        nxt = g.new_label
+        body = g.new_label
+
+        if @single
+          @single.bytecode(g)
+          g.gif nxt
+        else
+          if @conditions
+            @conditions.body.each do |condition|
+              condition.bytecode(g)
+              g.git body
+            end
+          end
+
+          @splat.bytecode(g, body, nxt) if @splat
+          g.goto nxt
+
+          body.set!
+        end
+
+        @body.bytecode(g)
+        g.goto done
+
+        nxt.set!
+      end
+    end
+
+    class SplatWhen < Node
+      attr_accessor :condition
+
+      def self.from(p, condition)
+        node = SplatWhen.new p.compiler
+        node.condition = condition
+        node
+      end
+
+      def receiver_bytecode(g, body, nxt)
+        g.dup
+        @condition.bytecode(g)
+        g.cast_array
+        g.swap
+        g.send :__matches_when__, 1
+        g.git body
+      end
+
+      def bytecode(g, body, nxt)
       end
     end
 
