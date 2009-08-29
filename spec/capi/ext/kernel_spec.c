@@ -50,7 +50,7 @@ VALUE kernel_spec_rb_rescue2(int argc, VALUE *args, VALUE self) {
   rb_ary_push(raise_array, args[2]);
   rb_ary_push(raise_array, args[3]);
 
-  return rb_rescue2(kernel_spec_call_proc, main_array, kernel_spec_call_proc, raise_array, args[4], args[5], 0);
+  return rb_rescue2(kernel_spec_call_proc, main_array, kernel_spec_call_proc, raise_array, args[4], args[5], (VALUE)0);
 }
 
 VALUE kernel_spec_rb_ensure(VALUE self, VALUE main_proc, VALUE arg, VALUE ensure_proc, VALUE arg2) {
