@@ -3177,16 +3177,20 @@ class Compiler
         [@arguments]
       end
 
-      def bytecode(g)
-        pos(g)
-
-        @arguments.bytecode(g)
-
+      def block_bytecode(g)
         if @block
           @block.bytecode(g)
         else
           g.push_block
         end
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        @arguments.bytecode(g)
+
+        block_bytecode(g)
 
         if @arguments.splat?
           g.send_super @name, @arguments.size, true
@@ -3549,6 +3553,10 @@ class Compiler
     class ZSuper < Super
       def self.from(p)
         ZSuper.new p.compiler
+      end
+
+      def block_bytecode(g)
+        g.push_block
       end
 
       def bytecode(g)
