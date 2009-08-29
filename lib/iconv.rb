@@ -119,11 +119,11 @@ class Iconv
   end
 
   def get_success(os, l2)
-    os.read_string(l2.read_int - os.address)
+    os.read_string(l2.read_pointer.address - os.address)
   end
 
   def get_failed(is, ic, l1)
-    (is + (l1.read_int - is.address)).read_string(ic.read_long)
+    (is + (l1.read_pointer.address - is.address)).read_string(ic.read_long)
   end
 
   private :get_success
