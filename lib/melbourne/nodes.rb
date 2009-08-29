@@ -1607,12 +1607,47 @@ class Compiler
     end
 
     class For < Iter
-      def self.from(p, iter, args, body)
+      def self.from(p, iter, arguments, body)
         node = For.new p.compiler
-        node
+
+        node.arguments = IterArguments.from p, arguments
+        node.body = body || Nil.from(p)
+
+        method_send = Send.from p, iter, :each, false
+        method_send.block = node
+
+        method_send
       end
 
-      def bytecode(g)
+      def variables
+        @parent.variables
+      end
+
+      def allocate_slot
+        @parent.allocate_slot
+      end
+
+      def nest_scope(scope)
+        scope.parent = @parent
+      end
+
+      def search_local(name)
+        if reference = @parent.search_local(name)
+          reference.depth += 1
+          reference
+        end
+      end
+
+      def assign_local_reference(var)
+        unless reference = search_local(var.name)
+          variable = LocalVar.new allocate_slot
+          variables[var.name] = variable
+
+          reference = NestedLocalReference.new variable
+          reference.depth += 1
+        end
+
+        var.variable = reference
       end
     end
 

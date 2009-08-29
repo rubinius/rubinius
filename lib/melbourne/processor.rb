@@ -233,8 +233,8 @@ module Rubinius
       AST::Float.from self, str
     end
 
-    def process_for(line, iter, args, body)
-      AST::For.from self, iter, args, body
+    def process_for(line, iter, arguments, body)
+      AST::For.from self, iter, arguments, body
     end
 
     def process_gasgn(line, name, expr)
@@ -257,8 +257,8 @@ module Rubinius
       AST::If.from self, cond, body, else_body
     end
 
-    def process_iter(line, method_send, args, body)
-      method_send.block = AST::Iter.from self, args, body
+    def process_iter(line, method_send, arguments, body)
+      method_send.block = AST::Iter.from self, arguments, body
       method_send
     end
 
