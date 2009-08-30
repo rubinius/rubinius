@@ -30,7 +30,11 @@ namespace assembler_x86 {
     ud_t ud;
 
     ud_init(&ud);
+#ifdef __LP64__
+    ud_set_mode(&ud, 64);
+#else
     ud_set_mode(&ud, 32);
+#endif
     ud_set_syntax(&ud, UD_SYN_ATT);
     ud_set_input_buffer(&ud, reinterpret_cast<uint8_t*>(buffer), size);
 
