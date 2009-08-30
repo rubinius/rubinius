@@ -14,6 +14,14 @@
 
 #include <list>
 
+#ifdef IS_X8664
+#define ADD_WITH_OVERFLOW "llvm.sadd.with.overflow.i63"
+#define SUB_WITH_OVERFLOW "llvm.ssub.with.overflow.i63"
+#else
+#define ADD_WITH_OVERFLOW "llvm.sadd.with.overflow.i31"
+#define SUB_WITH_OVERFLOW "llvm.ssub.with.overflow.i31"
+#endif
+
 namespace rubinius {
 
   typedef std::list<llvm::BasicBlock*> EHandlers;
@@ -905,18 +913,18 @@ namespace rubinius {
         set_block(fast);
 
         std::vector<const Type*> types;
-        types.push_back(Int31Ty);
-        types.push_back(Int31Ty);
+        types.push_back(FixnumTy);
+        types.push_back(FixnumTy);
 
         std::vector<const Type*> struct_types;
-        struct_types.push_back(Int31Ty);
+        struct_types.push_back(FixnumTy);
         struct_types.push_back(Type::Int1Ty);
 
         StructType* st = StructType::get(struct_types);
 
         FunctionType* ft = FunctionType::get(st, types, false);
         Function* func = cast<Function>(
-            module_->getOrInsertFunction("llvm.sadd.with.overflow.i31", ft));
+            module_->getOrInsertFunction(ADD_WITH_OVERFLOW, ft));
 
         Value* recv_int = tag_strip(recv);
         Value* arg_int = tag_strip(arg);
@@ -969,18 +977,18 @@ namespace rubinius {
         set_block(fast);
 
         std::vector<const Type*> types;
-        types.push_back(Int31Ty);
-        types.push_back(Int31Ty);
+        types.push_back(FixnumTy);
+        types.push_back(FixnumTy);
 
         std::vector<const Type*> struct_types;
-        struct_types.push_back(Int31Ty);
+        struct_types.push_back(FixnumTy);
         struct_types.push_back(Type::Int1Ty);
 
         StructType* st = StructType::get(struct_types);
 
         FunctionType* ft = FunctionType::get(st, types, false);
         Function* func = cast<Function>(
-            module_->getOrInsertFunction("llvm.ssub.with.overflow.i31", ft));
+            module_->getOrInsertFunction(SUB_WITH_OVERFLOW, ft));
 
         Value* recv_int = tag_strip(recv);
         Value* arg_int = tag_strip(arg);

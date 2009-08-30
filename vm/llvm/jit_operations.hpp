@@ -1,6 +1,7 @@
 #ifndef RBX_LLVM_JIT_OPERATIONS
 #define RBX_LLVM_JIT_OPERATIONS
 
+#include "config.h"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
@@ -51,7 +52,6 @@ namespace rubinius {
     const llvm::Type* IntPtrTy;
     const llvm::Type* ObjType;
     const llvm::Type* ObjArrayTy;
-    const llvm::Type* Int31Ty;
 
     // Frequently used types
     const llvm::Type* VMTy;
@@ -77,7 +77,7 @@ namespace rubinius {
       zero_ = ConstantInt::get(Type::Int32Ty, 0);
       one_ =  ConstantInt::get(Type::Int32Ty, 1);
 
-#if __LP64__
+#ifdef IS_X8664
       IntPtrTy = llvm::Type::Int64Ty;
       FixnumTy = llvm::IntegerType::get(63);
 #else
@@ -92,8 +92,6 @@ namespace rubinius {
 
       ObjType = ptr_type("Object");
       ObjArrayTy = PointerType::getUnqual(ObjType);
-
-      Int31Ty = llvm::IntegerType::get(31);
 
       VMTy = ptr_type("VM");
       CallFrameTy = ptr_type("CallFrame");
@@ -364,7 +362,7 @@ namespace rubinius {
     }
 
     Value* last_sp_as_int() {
-      return ConstantInt::get(Type::Int32Ty, last_sp_);
+      return ConstantInt::get(NativeIntTy, last_sp_);
     }
 
     void flush_stack() { }
@@ -490,19 +488,19 @@ namespace rubinius {
     //
     Value* cast_int(Value* obj) {
       return b().CreatePtrToInt(
-          obj, IntPtrTy, "cast");
+          obj, NativeIntTy, "cast");
     }
 
     // Fixnum manipulations
     //
     Value* tag_strip(Value* obj, const Type* type = NULL) {
-      if(!type) type = Int31Ty;
+      if(!type) type = FixnumTy;
 
       Value* i = b().CreatePtrToInt(
-          obj, Type::Int32Ty, "as_int");
+          obj, NativeIntTy, "as_int");
 
       Value* more = b().CreateLShr(
-          i, ConstantInt::get(Type::Int32Ty, 1),
+          i, ConstantInt::get(NativeIntTy, 1),
           "lshr");
       return b().CreateIntCast(
           more, type, true, "stripped");
@@ -518,10 +516,10 @@ namespace rubinius {
     }
 
     Value* fixnum_tag(Value* obj) {
-      Value* obj32 = b().CreateZExt(
-          obj, Type::Int32Ty, "as_32bit");
-      Value* one = ConstantInt::get(Type::Int32Ty, 1);
-      Value* more = b().CreateShl(obj32, one, "shl");
+      Value* native_obj = b().CreateZExt(
+          obj, NativeIntTy, "as_native_int");
+      Value* one = ConstantInt::get(NativeIntTy, 1);
+      Value* more = b().CreateShl(native_obj, one, "shl");
       Value* tagged = b().CreateOr(more, one, "or");
 
       return b().CreateIntToPtr(tagged, ObjType, "as_obj");

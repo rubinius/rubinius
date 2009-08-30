@@ -101,8 +101,8 @@ namespace rubinius {
 
     Value* anded = BinaryOperator::CreateAnd(lint, rint, "fixnums_anded", ops.current_block());
 
-    Value* fix_mask = ConstantInt::get(Type::Int32Ty, TAG_FIXNUM_MASK);
-    Value* fix_tag  = ConstantInt::get(Type::Int32Ty, TAG_FIXNUM);
+    Value* fix_mask = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM_MASK);
+    Value* fix_tag  = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM);
 
     Value* masked = BinaryOperator::CreateAnd(anded, fix_mask, "masked", ops.current_block());
 
