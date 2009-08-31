@@ -36,7 +36,16 @@ describe :time_params, :shared => true do
       end
 
       platform_is :wordsize => 64 do
-        Time.send(@method, 1900, 12, 31, 23, 59, 59, 0).wday.should == 1
+        darwin = false
+        platform_is :darwin do
+          darwin = true
+          lambda { Time.send(@method, 1900, 12, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
+        end
+
+        unless darwin
+          Time.send(@method, 1900, 12, 31, 23, 59, 59, 0).wday.should == 1
+        end
+
         Time.send(@method, 2038, 12, 31, 23, 59, 59, 0).wday.should == 5
       end
     end   
