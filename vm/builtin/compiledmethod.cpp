@@ -350,13 +350,13 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
     if(cm->backend_method_ && cm->backend_method_->jitted()) {
-      std::cout << "<LLVM>\n";
-      std::cout << *cm->backend_method_->llvm_function();
-      std::cout << "</LLVM>\n<MachineCode>\n";
+      llvm::outs() << "<LLVM>\n"
+                   << *cm->backend_method_->llvm_function()
+                   << "</LLVM>\n<MachineCode>\n";
       LLVMState::show_machine_code(
           cm->backend_method_->jitted_impl(),
           cm->backend_method_->jitted_bytes());
-      std::cout << "</MachineCode>\n";
+      llvm::outs() << "</MachineCode>\n";
     }
 #endif
 

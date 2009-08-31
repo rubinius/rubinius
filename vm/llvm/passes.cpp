@@ -14,6 +14,7 @@
 #include <llvm/Intrinsics.h>
 #include <llvm/Analysis/SparsePropagation.h>
 #include <llvm/Analysis/AliasAnalysis.h>
+#include <llvm/Support/raw_ostream.h>
 #include <iostream>
 
 namespace {
@@ -52,7 +53,7 @@ namespace {
             if(bin->getOpcode() != Instruction::And) continue;
             if(PtrToIntInst* p2i = dyn_cast<PtrToIntInst>(bin->getOperand(0))) {
               if(p2i->getOperand(0)->getType() == float_type_) {
-                icmp->replaceAllUsesWith(ConstantInt::getTrue());
+                icmp->replaceAllUsesWith(ConstantInt::getTrue(f.getContext()));
                 changed = true;
                 continue;
               }
@@ -64,7 +65,7 @@ namespace {
                 if(GetElementPtrInst* gep2 =
                     dyn_cast<GetElementPtrInst>(load2->getOperand(0))) {
                   if(gep2->getOperand(0)->getType() == float_type_) {
-                    icmp->replaceAllUsesWith(ConstantInt::getTrue());
+                    icmp->replaceAllUsesWith(ConstantInt::getTrue(f.getContext()));
                     changed = true;
                     continue;
                   }
@@ -101,7 +102,7 @@ namespace {
       for(Value::use_iterator u = gep->use_begin();
           u != gep->use_end();
           u++) {
-        std::cout << "gep user: " << *(*u) << "\n";
+        llvm::outs() << "gep user: " << *(*u) << "\n";
         if(!dyn_cast<StoreInst>(*u)) return true;
       }
 
@@ -134,14 +135,14 @@ namespace {
 
           Function* func = call->getCalledFunction();
           if(func && func->getName() == "rbx_float_allocate") {
-            std::cout << "here2!\n";
+            llvm::outs() << "here2!\n";
 
             bool use = false;
             for(Value::use_iterator u = call->use_begin();
                 u != call->use_end();
                 u++) {
 
-              std::cout << "float user: " << *(*u) << "\n";
+              llvm::outs() << "float user: " << *(*u) << "\n";
 
               if(GetElementPtrInst* gep = dyn_cast<GetElementPtrInst>(*u)) {
                 if(gep_used(gep)) {
@@ -169,7 +170,7 @@ namespace {
             u != call->use_end();
             u++) {
           if(GetElementPtrInst* gep = dyn_cast<GetElementPtrInst>(*u)) {
-            std::cout << "erasing: " << *gep << "\n";
+            llvm::outs() << "erasing: " << *gep << "\n";
             erase_gep_users(gep);
             gep->eraseFromParent();
           } else {
@@ -193,7 +194,7 @@ namespace {
       : FunctionPass(&ID)
     {}
 
-    bool try_to_fold_addition(CallInst* call) {
+    bool try_to_fold_addition(LLVMContext& ctx, CallInst* call) {
       CallSite cs(call);
 
       Value* lhs = cs.getArgument(0);
@@ -208,11 +209,11 @@ namespace {
           APInt zero(lval.getBitWidth(), 0, true);
           APInt res = lval + rval;
 
-          ConstantInt* overflow = ConstantInt::getFalse();
+          ConstantInt* overflow = ConstantInt::getFalse(ctx);
           if(lval.sgt(zero) && res.slt(rval)) {
-            overflow = ConstantInt::getTrue();
+            overflow = ConstantInt::getTrue(ctx);
           } else if(rval.sgt(zero) && res.slt(lval)) {
-            overflow = ConstantInt::getTrue();
+            overflow = ConstantInt::getTrue(ctx);
           }
 
           // Now, update the extracts
@@ -224,11 +225,11 @@ namespace {
 
               ExtractValueInst::idx_iterator idx = extract->idx_begin();
               if(*idx == 0) {
-                result = ConstantInt::get(res);
+                result = ConstantInt::get(ctx, res);
               } else if(*idx == 1) {
                 result = overflow;
               } else {
-                std::cout << "unknown index on sadd.overflow extract\n";
+                llvm::outs() << "unknown index on sadd.overflow extract\n";
               }
 
               if(result) {
@@ -266,7 +267,7 @@ namespace {
           if(!called_function) continue;
 
           if(called_function->getIntrinsicID() == Intrinsic::sadd_with_overflow) {
-            if(try_to_fold_addition(call)) {
+            if(try_to_fold_addition(f.getContext(), call)) {
               if(call->use_empty()) {
                 to_remove.push_back(call);
                 changed = true;
@@ -361,12 +362,14 @@ namespace {
     }
 
     virtual bool pointsToConstantMemory(const Value* val) {
+      LLVMContext& ctx = val->getContext();
+
       if(const GetElementPtrInst* gep = dyn_cast<GetElementPtrInst>(val)) {
         if(gep->getPointerOperand()->getType() == class_type_) {
           // Indicate that the class_id field is constant
           if(gep->getNumIndices() == 2
-              && gep->getOperand(1) == ConstantInt::get(Type::Int32Ty, 0)
-              && gep->getOperand(2) == ConstantInt::get(Type::Int32Ty, 3)) {
+              && gep->getOperand(1) == ConstantInt::get(Type::getInt32Ty(ctx), 0)
+              && gep->getOperand(2) == ConstantInt::get(Type::getInt32Ty(ctx), 3)) {
             return true;
           }
 
@@ -381,7 +384,7 @@ namespace {
           return true;
         }
       } else if(const BitCastInst* bc = dyn_cast<BitCastInst>(val)) {
-        if(bc->getType() == PointerType::getUnqual(Type::DoubleTy)) {
+        if(bc->getType() == PointerType::getUnqual(Type::getDoubleTy(ctx))) {
           return true;
         }
       }

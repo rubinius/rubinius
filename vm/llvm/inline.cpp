@@ -440,43 +440,43 @@ namespace rubinius {
     set_result(info.return_value);
   }
 
-  const Type* find_type(size_t type) {
+  const Type* find_type(JITOperations& ops_, size_t type) {
     switch(type) {
       case RBX_FFI_TYPE_CHAR:
       case RBX_FFI_TYPE_UCHAR:
-        return Type::Int8Ty;
+        return ops_.state()->Int8Ty;
 
       case RBX_FFI_TYPE_SHORT:
       case RBX_FFI_TYPE_USHORT:
-        return Type::Int16Ty;
+        return ops_.state()->Int16Ty;
 
       case RBX_FFI_TYPE_INT:
       case RBX_FFI_TYPE_UINT:
-        return Type::Int32Ty;
+        return ops_.state()->Int32Ty;
 
       case RBX_FFI_TYPE_LONG:
       case RBX_FFI_TYPE_ULONG:
 #ifdef IS_X8664
-        return Type::Int64Ty;
+        return ops_.state()->Int64Ty;
 #else
-        return Type::Int32Ty;
+        return ops_.state()->Int32Ty;
 #endif
 
       case RBX_FFI_TYPE_LONG_LONG:
       case RBX_FFI_TYPE_ULONG_LONG:
-        return Type::Int64Ty;
+        return ops_.state()->Int64Ty;
 
       case RBX_FFI_TYPE_FLOAT:
-        return Type::FloatTy;
+        return ops_.state()->FloatTy;
 
       case RBX_FFI_TYPE_DOUBLE:
-        return Type::DoubleTy;
+        return ops_.state()->DoubleTy;
 
       case RBX_FFI_TYPE_OBJECT:
       case RBX_FFI_TYPE_STRING:
       case RBX_FFI_TYPE_STRPTR:
       case RBX_FFI_TYPE_PTR:
-        return PointerType::getUnqual(Type::Int8Ty);
+        return PointerType::getUnqual(ops_.state()->Int8Ty);
     }
 
     return 0;
@@ -493,8 +493,8 @@ namespace rubinius {
     std::vector<const Type*> ffi_type;
 
     std::vector<const Type*> struct_types;
-    struct_types.push_back(Type::Int32Ty);
-    struct_types.push_back(Type::Int1Ty);
+    struct_types.push_back(ops_.state()->Int32Ty);
+    struct_types.push_back(ops_.state()->Int1Ty);
 
     for(size_t i = 0; i < nf->arg_count; i++) {
       Value* current_arg = arg(i);
@@ -509,18 +509,18 @@ namespace rubinius {
       case RBX_FFI_TYPE_UINT:
       case RBX_FFI_TYPE_LONG:
       case RBX_FFI_TYPE_ULONG: {
-        Signature sig(ops_.state(), Type::Int32Ty);
+        Signature sig(ops_.state(), ops_.state()->Int32Ty);
         sig << "VM";
         sig << "Object";
-        sig << PointerType::getUnqual(Type::Int1Ty);
+        sig << PointerType::getUnqual(ops_.state()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_int", call_args, 3, "to_int",
                               ops_.b());
 
-        const Type* type = find_type(nf->arg_types[i]);
+        const Type* type = find_type(ops_, nf->arg_types[i]);
         ffi_type.push_back(type);
 
-        if(type != Type::Int32Ty) {
+        if(type != ops_.state()->Int32Ty) {
           ops_.b().CreateTrunc(val, type, "truncated");
         }
 
@@ -536,10 +536,10 @@ namespace rubinius {
       }
 
       case RBX_FFI_TYPE_FLOAT: {
-        Signature sig(ops_.state(), Type::FloatTy);
+        Signature sig(ops_.state(), ops_.state()->FloatTy);
         sig << "VM";
         sig << "Object";
-        sig << PointerType::getUnqual(Type::Int1Ty);
+        sig << PointerType::getUnqual(ops_.state()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_float", call_args, 3, "to_float",
                               ops_.b());
@@ -557,10 +557,10 @@ namespace rubinius {
       }
 
       case RBX_FFI_TYPE_DOUBLE: {
-        Signature sig(ops_.state(), Type::DoubleTy);
+        Signature sig(ops_.state(), ops_.state()->DoubleTy);
         sig << "VM";
         sig << "Object";
-        sig << PointerType::getUnqual(Type::Int1Ty);
+        sig << PointerType::getUnqual(ops_.state()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_double", call_args, 3, "to_double",
                               ops_.b());
@@ -578,10 +578,10 @@ namespace rubinius {
 
       case RBX_FFI_TYPE_LONG_LONG:
       case RBX_FFI_TYPE_ULONG_LONG: {
-        Signature sig(ops_.state(), Type::Int64Ty);
+        Signature sig(ops_.state(), ops_.state()->Int64Ty);
         sig << "VM";
         sig << "Object";
-        sig << PointerType::getUnqual(Type::Int1Ty);
+        sig << PointerType::getUnqual(ops_.state()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_int64", call_args, 3, "to_int64",
                               ops_.b());
@@ -608,12 +608,12 @@ namespace rubinius {
         break;
 
       case RBX_FFI_TYPE_PTR: {
-        const Type* type = PointerType::getUnqual(Type::Int8Ty);
+        const Type* type = PointerType::getUnqual(ops_.state()->Int8Ty);
 
         Signature sig(ops_.state(), type);
         sig << "VM";
         sig << "Object";
-        sig << PointerType::getUnqual(Type::Int1Ty);
+        sig << PointerType::getUnqual(ops_.state()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_ptr", call_args, 3, "to_ptr",
                               ops_.b());
@@ -631,12 +631,12 @@ namespace rubinius {
       }
 
       case RBX_FFI_TYPE_STRING: {
-        const Type* type = PointerType::getUnqual(Type::Int8Ty);
+        const Type* type = PointerType::getUnqual(ops_.state()->Int8Ty);
 
         Signature sig(ops_.state(), type);
         sig << "VM";
         sig << "Object";
-        sig << PointerType::getUnqual(Type::Int1Ty);
+        sig << PointerType::getUnqual(ops_.state()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_string", call_args, 3, "to_string",
                               ops_.b());
@@ -658,11 +658,11 @@ namespace rubinius {
       }
     }
 
-    const Type* return_type = find_type(nf->ret_type);
+    const Type* return_type = find_type(ops_, nf->ret_type);
 
     FunctionType* ft = FunctionType::get(return_type, ffi_type, false);
     Value* ep_ptr = ops_.b().CreateIntToPtr(
-            ConstantInt::get(ops_.IntPtrTy, (intptr_t)nf->ep),
+            ConstantInt::get(ops_.state()->IntPtrTy, (intptr_t)nf->ep),
             PointerType::getUnqual(ft), "cast_to_function");
 
     Value* ffi_result = ops_.b().CreateCall(ep_ptr, ffi_args.begin(),
@@ -690,7 +690,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_ULONG_LONG: {
       Signature sig(ops_.state(), ops_.ObjType);
       sig << "VM";
-      sig << Type::Int64Ty;
+      sig << ops_.state()->Int64Ty;
 
       result = sig.call("rbx_ffi_from_int64", res_args, 2, "to_obj",
                         ops_.b());
@@ -700,7 +700,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_FLOAT: {
       Signature sig(ops_.state(), ops_.ObjType);
       sig << "VM";
-      sig << Type::FloatTy;
+      sig << ops_.state()->FloatTy;
 
       result = sig.call("rbx_ffi_from_float", res_args, 2, "to_obj",
                         ops_.b());
@@ -710,7 +710,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_DOUBLE: {
       Signature sig(ops_.state(), ops_.ObjType);
       sig << "VM";
-      sig << Type::DoubleTy;
+      sig << ops_.state()->DoubleTy;
 
       result = sig.call("rbx_ffi_from_double", res_args, 2, "to_obj",
                         ops_.b());
@@ -720,7 +720,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_PTR: {
       Signature sig(ops_.state(), ops_.ObjType);
       sig << "VM";
-      sig << PointerType::getUnqual(Type::Int8Ty);
+      sig << PointerType::getUnqual(ops_.state()->Int8Ty);
 
       result = sig.call("rbx_ffi_from_ptr", res_args, 2, "to_obj",
                         ops_.b());
@@ -734,7 +734,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_STRING: {
       Signature sig(ops_.state(), ops_.ObjType);
       sig << "VM";
-      sig << PointerType::getUnqual(Type::Int8Ty);
+      sig << PointerType::getUnqual(ops_.state()->Int8Ty);
 
       result = sig.call("rbx_ffi_from_string", res_args, 2, "to_obj",
                         ops_.b());
@@ -744,7 +744,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_STRPTR: {
       Signature sig(ops_.state(), ops_.ObjType);
       sig << "VM";
-      sig << PointerType::getUnqual(Type::Int8Ty);
+      sig << PointerType::getUnqual(ops_.state()->Int8Ty);
 
       result = sig.call("rbx_ffi_from_string_with_pointer", res_args, 2, "to_obj",
                         ops_.b());

@@ -28,7 +28,7 @@ namespace rubinius {
 
     Value* tup = ops.upcast(rec, "Tuple");
 
-    Value* index = ops.tag_strip32(index_val);
+    Value* index = ops.fixnum_to_native(index_val);
     Value* full_size = ops.get_tuple_size(tup);
     Value* size_cmp = ops.create_less_than(index, full_size, "is_in_bounds");
 
@@ -39,8 +39,8 @@ namespace rubinius {
     ops.set_block(access);
 
     Value* idx[] = {
-      ConstantInt::get(Type::Int32Ty, 0),
-      ConstantInt::get(Type::Int32Ty, offset::tuple_field),
+      ConstantInt::get(ops.state()->Int32Ty, 0),
+      ConstantInt::get(ops.state()->Int32Ty, offset::tuple_field),
       index
     };
 
@@ -68,7 +68,7 @@ namespace rubinius {
 
     Value* tup = ops.upcast(rec, "Tuple");
 
-    Value* index = ops.tag_strip32(index_val);
+    Value* index = ops.fixnum_to_native(index_val);
     Value* full_size = ops.get_tuple_size(tup);
     Value* size_cmp = ops.create_less_than(index, full_size, "is_in_bounds");
 
@@ -81,8 +81,8 @@ namespace rubinius {
     Value* value = i.arg(1);
 
     Value* idx[] = {
-      ConstantInt::get(Type::Int32Ty, 0),
-      ConstantInt::get(Type::Int32Ty, offset::tuple_field),
+      ConstantInt::get(ops.state()->Int32Ty, 0),
+      ConstantInt::get(ops.state()->Int32Ty, offset::tuple_field),
       index
     };
 
@@ -315,7 +315,7 @@ namespace rubinius {
 
           Value* as_i = ops_.ptrtoint(res);
           Value* icmp = ops_.b().CreateICmpEQ(as_i,
-              ConstantInt::get(ops_.IntPtrTy, reinterpret_cast<intptr_t>(Qundef)));
+              ConstantInt::get(ops_.state()->IntPtrTy, reinterpret_cast<intptr_t>(Qundef)));
 
           ops_.b().CreateCondBr(icmp, failure(), cont);
           ops_.set_block(cont);

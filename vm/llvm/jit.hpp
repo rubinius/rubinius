@@ -15,6 +15,8 @@
 #include <llvm/CodeGen/MachineCodeInfo.h>
 #include <llvm/Pass.h>
 #include <llvm/PassManager.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/LLVMContext.h>
 
 #include "vm.hpp"
 #include "vmmethod.hpp"
@@ -232,6 +234,7 @@ namespace rubinius {
   class BackgroundCompilerThread;
 
   class LLVMState {
+    llvm::LLVMContext& ctx_;
     llvm::Module* module_;
     llvm::ExistingModuleProvider* mp_;
     llvm::ExecutionEngine* engine_;
@@ -259,6 +262,18 @@ namespace rubinius {
   public:
 
     uint64_t time_spent;
+
+    const llvm::Type* VoidTy;
+
+    const llvm::Type* Int1Ty;
+    const llvm::Type* Int8Ty;
+    const llvm::Type* Int16Ty;
+    const llvm::Type* Int32Ty;
+    const llvm::Type* Int64Ty;
+    const llvm::Type* IntPtrTy;
+
+    const llvm::Type* FloatTy;
+    const llvm::Type* DoubleTy;
 
     static LLVMState* get(STATE);
     static void shutdown(STATE);
@@ -331,6 +346,8 @@ namespace rubinius {
     }
 
     SharedState& shared() { return shared_; }
+
+    llvm::LLVMContext& ctx() { return ctx_; }
 
     const llvm::Type* ptr_type(std::string name);
 

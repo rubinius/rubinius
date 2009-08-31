@@ -31,7 +31,7 @@ namespace rubinius {
 
   public:
     JITFunction(LLVMState* ls)
-      : Signature(ls, Type::VoidTy)
+      : Signature(ls, ls->VoidTy)
       , func_(0)
     {}
 
@@ -58,7 +58,7 @@ namespace rubinius {
         << "VM"
         << "CallFrame";
 
-      return_to_here.resolve("rbx_return_to_here", Type::Int1Ty);
+      return_to_here.resolve("rbx_return_to_here", ls->Int1Ty);
 
       clear_raise_value
         << "VM";
@@ -213,8 +213,8 @@ namespace rubinius {
       ip_pos_ = b().CreateConstGEP2_32(call_frame_, 0, offset::cf_ip, "ip_pos");
 
       global_serial_pos = b().CreateIntToPtr(
-          ConstantInt::get(IntPtrTy, (intptr_t)ls_->shared().global_serial_address()),
-          PointerType::getUnqual(IntPtrTy), "cast_to_intptr");
+          ConstantInt::get(ls_->IntPtrTy, (intptr_t)ls_->shared().global_serial_address()),
+          PointerType::getUnqual(ls_->IntPtrTy), "cast_to_intptr");
 
       init_out_args(&function_->getEntryBlock());
     }
@@ -274,7 +274,7 @@ namespace rubinius {
       /////
       set_block(is_break);
 
-      Signature brk(ls_, Type::Int1Ty);
+      Signature brk(ls_, ls_->Int1Ty);
       brk << VMTy;
       brk << CallFrameTy;
 
@@ -373,7 +373,7 @@ namespace rubinius {
     }
 
     void flush_ip() {
-      b().CreateStore(ConstantInt::get(Type::Int32Ty, current_ip_), ip_pos_);
+      b().CreateStore(ConstantInt::get(ls_->Int32Ty, current_ip_), ip_pos_);
     }
 
     void flush() {
@@ -433,8 +433,8 @@ namespace rubinius {
 
         set_block(end_profiling);
 
-        Signature sig(ls_, Type::VoidTy);
-        sig << PointerType::getUnqual(Type::Int8Ty);
+        Signature sig(ls_, ls_->VoidTy);
+        sig << PointerType::getUnqual(ls_->Int8Ty);
 
         Value* call_args[] = {
           method_entry_
@@ -503,8 +503,8 @@ namespace rubinius {
 
     void check_fixnums(Value* left, Value* right, BasicBlock* if_true,
                        BasicBlock* if_false) {
-      Value* mask = ConstantInt::get(IntPtrTy, TAG_FIXNUM_MASK);
-      Value* tag  = ConstantInt::get(IntPtrTy, TAG_FIXNUM);
+      Value* mask = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM_MASK);
+      Value* tag  = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM);
 
       Value* lint = cast_int(left);
       Value* rint = cast_int(right);
@@ -518,8 +518,8 @@ namespace rubinius {
 
     void check_both_not_references(Value* left, Value* right, BasicBlock* if_true,
                             BasicBlock* if_false) {
-      Value* mask = ConstantInt::get(IntPtrTy, TAG_REF_MASK);
-      Value* zero = ConstantInt::get(IntPtrTy, TAG_REF);
+      Value* mask = ConstantInt::get(ls_->IntPtrTy, TAG_REF_MASK);
+      Value* zero = ConstantInt::get(ls_->IntPtrTy, TAG_REF);
 
       Value* lint = cast_int(left);
       lint = b().CreateAnd(lint, mask, "mask");
@@ -542,7 +542,7 @@ namespace rubinius {
       sig << VMTy;
       sig << CallFrameTy;
       sig << ObjType;
-      sig << IntPtrTy;
+      sig << ls_->IntPtrTy;
       sig << ObjArrayTy;
     }
 
@@ -581,7 +581,7 @@ namespace rubinius {
         vm_,
         call_frame_,
         constant(name),
-        ConstantInt::get(IntPtrTy, args),
+        ConstantInt::get(ls_->IntPtrTy, args),
         stack_objects(args + 1)
       };
 
@@ -593,7 +593,7 @@ namespace rubinius {
     void setup_out_args(int args) {
       b().CreateStore(stack_back(args), out_args_recv_);
       b().CreateStore(constant(Qnil), out_args_block_);
-      b().CreateStore(ConstantInt::get(Type::Int32Ty, args),
+      b().CreateStore(ConstantInt::get(ls_->Int32Ty, args),
                     out_args_total_);
       if(args > 0) {
         b().CreateStore(stack_objects(args), out_args_arguments_);
@@ -606,7 +606,7 @@ namespace rubinius {
     void setup_out_args_with_block(int args) {
       b().CreateStore(stack_back(args + 1), out_args_recv_);
       b().CreateStore(stack_top(), out_args_block_);
-      b().CreateStore(ConstantInt::get(Type::Int32Ty, args),
+      b().CreateStore(ConstantInt::get(ls_->Int32Ty, args),
                     out_args_total_);
       if(args > 0) {
         b().CreateStore(stack_objects(args + 1), out_args_arguments_);
@@ -618,12 +618,12 @@ namespace rubinius {
     Value* inline_cache_send(int args, InlineCache* cache) {
       sends_done_++;
       Value* cache_const = b().CreateIntToPtr(
-          ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(cache)),
+          ConstantInt::get(ls_->IntPtrTy, reinterpret_cast<uintptr_t>(cache)),
           ptr_type("InlineCache"), "cast_to_ptr");
 
       Value* execute_pos_idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 3),
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, 3),
       };
 
       Value* execute_pos = b().CreateGEP(cache_const,
@@ -647,12 +647,12 @@ namespace rubinius {
     Value* block_send(InlineCache* cache, int args, bool priv=false) {
       sends_done_++;
       Value* cache_const = b().CreateIntToPtr(
-          ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(cache)),
+          ConstantInt::get(ls_->IntPtrTy, reinterpret_cast<uintptr_t>(cache)),
           ptr_type("InlineCache"), "cast_to_ptr");
 
       Value* execute_pos_idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 3),
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, 3),
       };
 
       Value* execute_pos = b().CreateGEP(cache_const,
@@ -680,7 +680,7 @@ namespace rubinius {
       sig << VMTy;
       sig << CallFrameTy;
       sig << ObjType;
-      sig << IntPtrTy;
+      sig << ls_->IntPtrTy;
       sig << ObjArrayTy;
 
       const char* func_name;
@@ -694,7 +694,7 @@ namespace rubinius {
         vm_,
         call_frame_,
         constant(name),
-        ConstantInt::get(IntPtrTy, args),
+        ConstantInt::get(ls_->IntPtrTy, args),
         stack_objects(args + 3),   // 3 == recv + block + splat
       };
 
@@ -707,7 +707,7 @@ namespace rubinius {
       sig << VMTy;
       sig << CallFrameTy;
       sig << ObjType;
-      sig << IntPtrTy;
+      sig << ls_->IntPtrTy;
       sig << ObjArrayTy;
 
       const char* func_name;
@@ -723,7 +723,7 @@ namespace rubinius {
         vm_,
         call_frame_,
         constant(name),
-        ConstantInt::get(IntPtrTy, args),
+        ConstantInt::get(ls_->IntPtrTy, args),
         stack_objects(args + extra),
       };
 
@@ -918,9 +918,9 @@ namespace rubinius {
 
         std::vector<const Type*> struct_types;
         struct_types.push_back(FixnumTy);
-        struct_types.push_back(Type::Int1Ty);
+        struct_types.push_back(ls_->Int1Ty);
 
-        StructType* st = StructType::get(struct_types);
+        StructType* st = StructType::get(ls_->ctx(), struct_types);
 
         FunctionType* ft = FunctionType::get(st, types, false);
         Function* func = cast<Function>(
@@ -982,9 +982,9 @@ namespace rubinius {
 
         std::vector<const Type*> struct_types;
         struct_types.push_back(FixnumTy);
-        struct_types.push_back(Type::Int1Ty);
+        struct_types.push_back(ls_->Int1Ty);
 
-        StructType* st = StructType::get(struct_types);
+        StructType* st = StructType::get(ls_->ctx(), struct_types);
 
         FunctionType* ft = FunctionType::get(st, types, false);
         Function* func = cast<Function>(
@@ -1032,9 +1032,9 @@ namespace rubinius {
       Value* lits = b().CreateLoad(gep, "literals");
 
       Value* idx2[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::tuple_field),
-        ConstantInt::get(Type::Int32Ty, which)
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::tuple_field),
+        ConstantInt::get(ls_->Int32Ty, which)
       };
 
       gep = b().CreateGEP(lits, idx2, idx2+3, "literal_pos");
@@ -1048,7 +1048,7 @@ namespace rubinius {
       } else if(kind_of<Float>(lit)) {
         Object** ptr = vmmethod()->add_indirect_literal(lit);
 
-        Value* as_int = ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(ptr));
+        Value* as_int = ConstantInt::get(ls_->IntPtrTy, reinterpret_cast<uintptr_t>(ptr));
         Value* vptr = b().CreateIntToPtr(as_int,
             PointerType::getUnqual(ptr_type("Float")));
 
@@ -1094,9 +1094,9 @@ namespace rubinius {
 
     Value* local_location(Value* vars, opcode which) {
       Value* idx2[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
-        ConstantInt::get(Type::Int32Ty, which)
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        ConstantInt::get(ls_->Int32Ty, which)
       };
 
       return b().CreateGEP(vars, idx2, idx2+3, "local_pos");
@@ -1104,9 +1104,9 @@ namespace rubinius {
 
     void visit_push_local(opcode which) {
       Value* idx2[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
-        ConstantInt::get(Type::Int32Ty, which)
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        ConstantInt::get(ls_->Int32Ty, which)
       };
 
       Value* pos = b().CreateGEP(vars_, idx2, idx2+3, "local_pos");
@@ -1131,9 +1131,9 @@ namespace rubinius {
 
     void visit_set_local(opcode which) {
       Value* idx2[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
-        ConstantInt::get(Type::Int32Ty, which)
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        ConstantInt::get(ls_->Int32Ty, which)
       };
 
       Value* pos = b().CreateGEP(vars_, idx2, idx2+3, "local_pos");
@@ -1196,7 +1196,7 @@ namespace rubinius {
         sig << "VM";
         sig << "CallFrame";
         sig << "Arguments";
-        sig << IntPtrTy;
+        sig << ls_->IntPtrTy;
 
         Value* call_args[] = { vm_, call_frame_, args_, sp };
 
@@ -1295,8 +1295,8 @@ namespace rubinius {
 
       if(in_inlined_block()) {
         types.push_back(ObjType);
-        types.push_back(Type::Int32Ty);
-        types.push_back(Type::Int32Ty);
+        types.push_back(ls_->Int32Ty);
+        types.push_back(ls_->Int32Ty);
 
         FunctionType* ft = FunctionType::get(ObjType, types, true);
         Function* func = cast<Function>(
@@ -1314,8 +1314,8 @@ namespace rubinius {
           nfo = nfo->parent_info();
         }
 
-        call_args.push_back(ConstantInt::get(Type::Int32Ty, count));
-        call_args.push_back(ConstantInt::get(Type::Int32Ty, which));
+        call_args.push_back(ConstantInt::get(ls_->Int32Ty, count));
+        call_args.push_back(ConstantInt::get(ls_->Int32Ty, which));
         call_args.push_back(get_literal(which));
         call_args.push_back(vm_);
 
@@ -1324,7 +1324,7 @@ namespace rubinius {
       };
 
       types.push_back(CallFrameTy);
-      types.push_back(Type::Int32Ty);
+      types.push_back(ls_->Int32Ty);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
@@ -1333,7 +1333,7 @@ namespace rubinius {
       Value* call_args[] = {
         vm_,
         call_frame_,
-        ConstantInt::get(Type::Int32Ty, which)
+        ConstantInt::get(ls_->Int32Ty, which)
       };
 
       stack_push(b().CreateCall(func, call_args, call_args+3, "create_block"));
@@ -1572,8 +1572,8 @@ namespace rubinius {
         Value* global_serial = b().CreateLoad(global_serial_pos, "global_serial");
 
         Value* current_serial_pos = b().CreateIntToPtr(
-            ConstantInt::get(IntPtrTy, (intptr_t)entry->serial_location()),
-            PointerType::getUnqual(IntPtrTy), "cast_to_intptr");
+            ConstantInt::get(ls_->IntPtrTy, (intptr_t)entry->serial_location()),
+            PointerType::getUnqual(ls_->IntPtrTy), "cast_to_intptr");
 
         Value* current_serial = b().CreateLoad(current_serial_pos, "serial");
 
@@ -1588,7 +1588,7 @@ namespace rubinius {
         set_block(use_cache);
 
         Value* value_pos = b().CreateIntToPtr(
-            ConstantInt::get(IntPtrTy, (intptr_t)entry->value_location()),
+            ConstantInt::get(ls_->IntPtrTy, (intptr_t)entry->value_location()),
             PointerType::getUnqual(ObjType), "cast_to_objptr");
 
         cached_value = b().CreateLoad(value_pos, "cached_value");
@@ -1604,7 +1604,7 @@ namespace rubinius {
       types.push_back(VMTy);
       types.push_back(CallFrameTy);
       types.push_back(ObjType);
-      types.push_back(Type::Int32Ty);
+      types.push_back(ls_->Int32Ty);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
@@ -1619,7 +1619,7 @@ namespace rubinius {
         vm_,
         call_frame_,
         constant(as<Symbol>(literal(name))),
-        ConstantInt::get(Type::Int32Ty, cache)
+        ConstantInt::get(ls_->Int32Ty, cache)
       };
 
       CallInst* ret = b().CreateCall(func, call_args, call_args+4,
@@ -1726,7 +1726,7 @@ namespace rubinius {
 
       types.push_back(VMTy);
       types.push_back(CallFrameTy);
-      types.push_back(Type::Int32Ty);
+      types.push_back(ls_->Int32Ty);
       types.push_back(ObjType);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
@@ -1736,7 +1736,7 @@ namespace rubinius {
       Value* call_args[] = {
         vm_,
         call_frame_,
-        ConstantInt::get(Type::Int32Ty, which),
+        ConstantInt::get(ls_->Int32Ty, which),
         stack_top()
       };
 
@@ -1780,7 +1780,7 @@ namespace rubinius {
         default: {
           std::vector<const Type*> types;
           types.push_back(ls_->ptr_type("VM"));
-          types.push_back(Type::Int32Ty);
+          types.push_back(ls_->Int32Ty);
 
           FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), types, true);
           Function* func = cast<Function>(
@@ -1788,7 +1788,7 @@ namespace rubinius {
 
           std::vector<Value*> outgoing_args;
           outgoing_args.push_back(vm());
-          outgoing_args.push_back(ConstantInt::get(Type::Int32Ty, inline_args->size()));
+          outgoing_args.push_back(ConstantInt::get(ls_->Int32Ty, inline_args->size()));
 
           for(size_t i = 0; i < inline_args->size(); i++) {
             outgoing_args.push_back(inline_args->at(i));
@@ -1823,7 +1823,7 @@ namespace rubinius {
       if(inline_args) {
         std::vector<const Type*> types;
         types.push_back(ls_->ptr_type("VM"));
-        types.push_back(Type::Int32Ty);
+        types.push_back(ls_->Int32Ty);
 
         FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), types, true);
         Function* func = cast<Function>(
@@ -1831,7 +1831,7 @@ namespace rubinius {
 
         std::vector<Value*> outgoing_args;
         outgoing_args.push_back(vm());
-        outgoing_args.push_back(ConstantInt::get(Type::Int32Ty, inline_args->size()));
+        outgoing_args.push_back(ConstantInt::get(ls_->Int32Ty, inline_args->size()));
 
         for(size_t i = 0; i < inline_args->size(); i++) {
           outgoing_args.push_back(inline_args->at(i));
@@ -1861,7 +1861,7 @@ namespace rubinius {
       if(inline_args) {
         std::vector<const Type*> types;
         types.push_back(ls_->ptr_type("VM"));
-        types.push_back(Type::Int32Ty);
+        types.push_back(ls_->Int32Ty);
 
         FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), types, true);
         Function* func = cast<Function>(
@@ -1869,7 +1869,7 @@ namespace rubinius {
 
         std::vector<Value*> outgoing_args;
         outgoing_args.push_back(vm());
-        outgoing_args.push_back(ConstantInt::get(Type::Int32Ty, inline_args->size()));
+        outgoing_args.push_back(ConstantInt::get(ls_->Int32Ty, inline_args->size()));
 
         for(size_t i = 0; i < inline_args->size(); i++) {
           outgoing_args.push_back(inline_args->at(i));
@@ -1913,8 +1913,8 @@ namespace rubinius {
         return;
       } else if(depth == 1) {
         Value* idx[] = {
-          ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, offset::vars_parent)
+          ConstantInt::get(ls_->Int32Ty, 0),
+          ConstantInt::get(ls_->Int32Ty, offset::vars_parent)
         };
 
         Value* gep = b().CreateGEP(vars_, idx, idx+2, "parent_pos");
@@ -1931,8 +1931,8 @@ namespace rubinius {
       types.push_back(VMTy);
       types.push_back(CallFrameTy);
       types.push_back(ObjType);
-      types.push_back(Type::Int32Ty);
-      types.push_back(Type::Int32Ty);
+      types.push_back(ls_->Int32Ty);
+      types.push_back(ls_->Int32Ty);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
@@ -1942,8 +1942,8 @@ namespace rubinius {
         vm_,
         call_frame_,
         stack_pop(),
-        ConstantInt::get(Type::Int32Ty, depth),
-        ConstantInt::get(Type::Int32Ty, index)
+        ConstantInt::get(ls_->Int32Ty, depth),
+        ConstantInt::get(ls_->Int32Ty, index)
       };
 
       stack_push(b().CreateCall(func, call_args, call_args+5, "sld"));
@@ -1981,8 +1981,8 @@ namespace rubinius {
         return;
       } else if(depth == 1) {
         Value* idx[] = {
-          ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, offset::vars_parent)
+          ConstantInt::get(ls_->Int32Ty, 0),
+          ConstantInt::get(ls_->Int32Ty, offset::vars_parent)
         };
 
         Value* gep = b().CreateGEP(vars_, idx, idx+2, "parent_pos");
@@ -1997,8 +1997,8 @@ namespace rubinius {
 
       types.push_back(VMTy);
       types.push_back(CallFrameTy);
-      types.push_back(Type::Int32Ty);
-      types.push_back(Type::Int32Ty);
+      types.push_back(ls_->Int32Ty);
+      types.push_back(ls_->Int32Ty);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
@@ -2007,8 +2007,8 @@ namespace rubinius {
       Value* call_args[] = {
         vm_,
         call_frame_,
-        ConstantInt::get(Type::Int32Ty, depth),
-        ConstantInt::get(Type::Int32Ty, index)
+        ConstantInt::get(ls_->Int32Ty, depth),
+        ConstantInt::get(ls_->Int32Ty, index)
       };
 
       stack_push(b().CreateCall(func, call_args, call_args+4, "pld"));
@@ -2022,13 +2022,13 @@ namespace rubinius {
     void visit_goto_if_true(opcode ip) {
       Value* cond = stack_pop();
       Value* i = b().CreatePtrToInt(
-          cond, IntPtrTy, "as_int");
+          cond, ls_->IntPtrTy, "as_int");
 
       Value* anded = b().CreateAnd(i,
-          ConstantInt::get(IntPtrTy, FALSE_MASK), "and");
+          ConstantInt::get(ls_->IntPtrTy, FALSE_MASK), "and");
 
       Value* cmp = b().CreateICmpNE(anded,
-          ConstantInt::get(IntPtrTy, cFalse), "is_true");
+          ConstantInt::get(ls_->IntPtrTy, cFalse), "is_true");
 
       BasicBlock* cont = new_block("continue");
       b().CreateCondBr(cmp, block_map_[ip].block, cont);
@@ -2039,13 +2039,13 @@ namespace rubinius {
     void visit_goto_if_false(opcode ip) {
       Value* cond = stack_pop();
       Value* i = b().CreatePtrToInt(
-          cond, IntPtrTy, "as_int");
+          cond, ls_->IntPtrTy, "as_int");
 
       Value* anded = b().CreateAnd(i,
-          ConstantInt::get(IntPtrTy, FALSE_MASK), "and");
+          ConstantInt::get(ls_->IntPtrTy, FALSE_MASK), "and");
 
       Value* cmp = b().CreateICmpEQ(anded,
-          ConstantInt::get(IntPtrTy, cFalse), "is_true");
+          ConstantInt::get(ls_->IntPtrTy, cFalse), "is_true");
 
       BasicBlock* cont = new_block("continue");
       b().CreateCondBr(cmp, block_map_[ip].block, cont);
@@ -2082,13 +2082,13 @@ namespace rubinius {
 
       sig << VMTy;
       sig << CallFrameTy;
-      sig << Type::Int32Ty;
+      sig << ls_->Int32Ty;
       sig << ObjArrayTy;
 
       Value* call_args[] = {
         vm_,
         call_frame_,
-        ConstantInt::get(Type::Int32Ty, count),
+        ConstantInt::get(ls_->Int32Ty, count),
         stack_objects(count)
       };
 
@@ -2107,13 +2107,13 @@ namespace rubinius {
 
       sig << VMTy;
       sig << CallFrameTy;
-      sig << Type::Int32Ty;
+      sig << ls_->Int32Ty;
       sig << ObjArrayTy;
 
       Value* call_args[] = {
         vm_,
         call_frame_,
-        ConstantInt::get(Type::Int32Ty, count),
+        ConstantInt::get(ls_->Int32Ty, count),
         stack_objects(count + 1)
       };
 
@@ -2155,18 +2155,18 @@ namespace rubinius {
       sig << "VM";
       sig << "CallFrame";
       sig << "InlineCache";
-      sig << Type::Int32Ty;
+      sig << ls_->Int32Ty;
       sig << "Object";
 
       Value* cache_const = b().CreateIntToPtr(
-          ConstantInt::get(IntPtrTy, index),
+          ConstantInt::get(ls_->IntPtrTy, index),
           ptr_type("InlineCache"), "cast_to_ptr");
 
       Value* call_args[] = {
         vm_,
         call_frame_,
         cache_const,
-        ConstantInt::get(Type::Int32Ty, serial),
+        ConstantInt::get(ls_->Int32Ty, serial),
         stack_pop()
       };
 
@@ -2180,18 +2180,18 @@ namespace rubinius {
       sig << "VM";
       sig << "CallFrame";
       sig << "InlineCache";
-      sig << Type::Int32Ty;
+      sig << ls_->Int32Ty;
       sig << "Object";
 
       Value* cache_const = b().CreateIntToPtr(
-          ConstantInt::get(IntPtrTy, index),
+          ConstantInt::get(ls_->IntPtrTy, index),
           ptr_type("InlineCache"), "cast_to_ptr");
 
       Value* call_args[] = {
         vm_,
         call_frame_,
         cache_const,
-        ConstantInt::get(Type::Int32Ty, serial),
+        ConstantInt::get(ls_->Int32Ty, serial),
         stack_pop()
       };
 
@@ -2202,8 +2202,8 @@ namespace rubinius {
 
     void visit_push_my_offset(opcode i) {
       Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::vars_self)
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_self)
       };
 
       Value* pos = b().CreateGEP(vars_, idx, idx+2, "self_pos");
@@ -2217,7 +2217,7 @@ namespace rubinius {
           PointerType::getUnqual(ObjType), "obj_array");
 
       Value* idx2[] = {
-        ConstantInt::get(Type::Int32Ty, i / sizeof(Object*))
+        ConstantInt::get(ls_->Int32Ty, i / sizeof(Object*))
       };
 
       pos = b().CreateGEP(cst, idx2, idx2+1, "field_pos");
@@ -2235,7 +2235,7 @@ namespace rubinius {
         std::vector<const Type*> types;
         types.push_back(VMTy);
 
-        FunctionType* ft = FunctionType::get(Type::Int1Ty, types, false);
+        FunctionType* ft = FunctionType::get(ls_->Int1Ty, types, false);
         Function* func = cast<Function>(
             module_->getOrInsertFunction("rbx_raising_exception", ft));
 
@@ -2406,13 +2406,13 @@ namespace rubinius {
 
       sig << VMTy;
       sig << CallFrameTy;
-      sig << Type::Int32Ty;
+      sig << ls_->Int32Ty;
       sig << ObjType;
 
       Value* call_args[] = {
         vm_,
         call_frame_,
-        ConstantInt::get(Type::Int32Ty, which),
+        ConstantInt::get(ls_->Int32Ty, which),
         stack_pop()
       };
 
@@ -2470,12 +2470,12 @@ namespace rubinius {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
-      sig << Type::Int32Ty;
+      sig << ls_->Int32Ty;
       sig << ObjArrayTy;
 
       Value* call_args[] = {
         vm_,
-        ConstantInt::get(Type::Int32Ty, count),
+        ConstantInt::get(ls_->Int32Ty, count),
         stack_objects(count)
       };
 
@@ -2493,13 +2493,13 @@ namespace rubinius {
 
         sig << VMTy;
         sig << CallFrameTy;
-        sig << Type::Int32Ty;
+        sig << ls_->Int32Ty;
         sig << ObjArrayTy;
 
         Value* call_args[] = {
           vm_,
           call_frame_,
-          ConstantInt::get(Type::Int32Ty, count),
+          ConstantInt::get(ls_->Int32Ty, count),
           stack_objects(count + 1)
         };
 
@@ -2525,12 +2525,12 @@ namespace rubinius {
 
         sig << VMTy;
         sig << "Arguments";
-        sig << Type::Int32Ty;
+        sig << ls_->Int32Ty;
 
         Value* call_args[] = {
           vm_,
           args_,
-          ConstantInt::get(Type::Int32Ty, count)
+          ConstantInt::get(ls_->Int32Ty, count)
         };
 
         Value* val = sig.call("rbx_passed_arg", call_args, 3, "pa", b());
@@ -2543,12 +2543,12 @@ namespace rubinius {
 
       sig << VMTy;
       sig << "Arguments";
-      sig << Type::Int32Ty;
+      sig << ls_->Int32Ty;
 
       Value* call_args[] = {
         vm_,
         args_,
-        ConstantInt::get(Type::Int32Ty, count)
+        ConstantInt::get(ls_->Int32Ty, count)
       };
 
       Value* val = sig.call("rbx_passed_blockarg", call_args, 3, "pa", b());
@@ -2559,11 +2559,11 @@ namespace rubinius {
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
-      sig << Type::Int32Ty;
+      sig << ls_->Int32Ty;
 
       Value* call_args[] = {
         vm_,
-        ConstantInt::get(Type::Int32Ty, 0)
+        ConstantInt::get(ls_->Int32Ty, 0)
       };
 
       Value* val = sig.call("rbx_push_system_object", call_args, 2, "so", b());
@@ -2618,14 +2618,14 @@ namespace rubinius {
 
       sig << VMTy;
       sig << ObjType;
-      sig << Type::Int32Ty;
+      sig << ls_->Int32Ty;
 
       Value* self = get_self();
 
       Value* call_args[] = {
         vm_,
         self,
-        ConstantInt::get(Type::Int32Ty, which)
+        ConstantInt::get(ls_->Int32Ty, which)
       };
 
       Value* val = sig.call("rbx_push_my_field", call_args, 3, "field", b());
@@ -2640,7 +2640,7 @@ namespace rubinius {
 
       sig << VMTy;
       sig << ObjType;
-      sig << Type::Int32Ty;
+      sig << ls_->Int32Ty;
       sig << ObjType;
 
       Value* self = get_self();
@@ -2648,7 +2648,7 @@ namespace rubinius {
       Value* call_args[] = {
         vm_,
         self,
-        ConstantInt::get(Type::Int32Ty, which),
+        ConstantInt::get(ls_->Int32Ty, which),
         stack_top()
       };
 

@@ -145,7 +145,7 @@ const int cUndef = 0x22L;
         unsigned int InImmix                : 1;
         unsigned int Pinned                 : 1;
       };
-      uintptr_t all_flags; // forces the width to pointer aligned
+      uint32_t all_flags;
     };
 
 #ifdef RBX_TEST

@@ -21,6 +21,7 @@
 #include <llvm/CallingConv.h>
 #include <llvm/Support/CFG.h>
 #include <llvm/Analysis/Passes.h>
+#include <llvm/Target/TargetSelect.h>
 
 #include <sstream>
 
@@ -29,15 +30,6 @@ using namespace llvm;
 #include "llvm/jit_workhorse.hpp"
 #include "llvm/passes.hpp"
 #include "instructions_util.hpp"
-
-template <typename T>
-static Value* constant(T obj, const Type* obj_type, BasicBlock* block) {
-  return CastInst::Create(
-      Instruction::IntToPtr,
-      ConstantInt::get(Type::Int32Ty, (intptr_t)obj),
-      obj_type, "cast_to_obj", block);
-}
-
 
 namespace autogen_types {
 #include "llvm/types.cpp.gen"
@@ -242,14 +234,14 @@ namespace rubinius {
         if(req->is_block()) {
           BlockEnvironment* be = req->block_env();
           if(!be) {
-            std::cout << "Fatal error in JIT. Expected a BlockEnvironment.\n";
+            llvm::outs() << "Fatal error in JIT. Expected a BlockEnvironment.\n";
           } else {
             be->set_native_function(jit->function_pointer());
           }
         } else {
           MachineMethod* mm = req->machine_method();
           if(!mm) {
-            std::cout << "Fatal error in JIT. Expected a MachineMethod.\n";
+            llvm::outs() << "Fatal error in JIT. Expected a MachineMethod.\n";
           } else {
             mm->update(req->vmmethod(), jit);
             mm->activate();
@@ -258,7 +250,7 @@ namespace rubinius {
 
         int which = ls_->add_jitted_method();
         if(ls_->config().jit_show_compiling) {
-          std::cout << "[[[ JIT finished background compiling "
+          llvm::outs() << "[[[ JIT finished background compiling "
                     << which
                     << (req->is_block() ? " (block)" : " (method)")
                     << " ]]]\n";
@@ -311,7 +303,8 @@ namespace rubinius {
   }
 
   LLVMState::LLVMState(STATE)
-    : config_(state->shared.config)
+    : ctx_(llvm::getGlobalContext())
+    , config_(state->shared.config)
     , global_lock_(state->global_lock())
     , symbols_(state->symbols)
     , jitted_methods_(0)
@@ -323,9 +316,28 @@ namespace rubinius {
     , code_bytes_(0)
     , time_spent(0)
   {
+    llvm::InitializeNativeTarget();
+
+    VoidTy = Type::getVoidTy(ctx_);
+
+    Int1Ty = Type::getInt1Ty(ctx_);
+    Int8Ty = Type::getInt8Ty(ctx_);
+    Int16Ty = Type::getInt16Ty(ctx_);
+    Int32Ty = Type::getInt32Ty(ctx_);
+    Int64Ty = Type::getInt64Ty(ctx_);
+
+#ifdef IS_X8664
+    IntPtrTy = Int64Ty;
+#else
+    IntPtrTy = Int32Ty;
+#endif
+
+    FloatTy = Type::getFloatTy(ctx_);
+    DoubleTy = Type::getDoubleTy(ctx_);
+
     bool fast_code_passes = false;
 
-    module_ = new llvm::Module("rubinius");
+    module_ = new llvm::Module("rubinius", ctx_);
 
     autogen_types::makeLLVMModuleContents(module_);
 
@@ -376,10 +388,9 @@ namespace rubinius {
     object_ = ptr_type("Object");
 
     profiling_ = new GlobalVariable(
-        Type::Int1Ty,
-        false,
+        *module_, Int1Ty, false,
         GlobalVariable::ExternalLinkage,
-        0, "profiling_flag", module_);
+        0, "profiling_flag");
 
     engine_->addGlobalMapping(profiling_,
         reinterpret_cast<void*>(state->shared.profiling_address()));
@@ -439,7 +450,7 @@ namespace rubinius {
     background_thread_->add(req);
 
     if(state->shared.config.jit_show_compiling) {
-      std::cout << "[[[ JIT Queued"
+      llvm::outs() << "[[[ JIT Queued"
                 << (block ? " block " : " method ")
                 << queued_methods() << "/"
                 << jitted_methods() << " ]]]\n";
@@ -497,7 +508,7 @@ namespace rubinius {
         VMMethod* parent = vmm->parent();
         assert(parent);
 
-        std::cerr << "JIT: compiling block in "
+        llvm::errs() << "JIT: compiling block in "
                   << ls->symbol_cstr(parent->original->scope()->module()->name())
                   << "#"
                   << ls->symbol_cstr(vmm->original->name())
@@ -505,7 +516,7 @@ namespace rubinius {
                   << ls->symbol_cstr(vmm->original->file()) << ":"
                   << vmm->original->start_line() << "\n";
       } else {
-        std::cerr << "JIT: compiling "
+        llvm::errs() << "JIT: compiling "
                   << ls->symbol_cstr(vmm->original->scope()->module()->name())
                   << "#"
                   << ls->symbol_cstr(vmm->original->name()) << "\n";
@@ -528,13 +539,13 @@ namespace rubinius {
     if(!work.generate_body()) {
       function_ = NULL;
       // This is too noisy to report
-      // std::cout << "not supported yet.\n";
+      // llvm::outs() << "not supported yet.\n";
       return;
     }
 
     if(ls->jit_dump_code() & cSimple) {
-      std::cout << "[[[ LLVM Simple IR ]]]\n";
-      std::cout << *func << "\n";
+      llvm::outs() << "[[[ LLVM Simple IR ]]]\n";
+      llvm::outs() << *func << "\n";
     }
 
     std::vector<BasicBlock*> to_remove;
@@ -546,12 +557,12 @@ namespace rubinius {
         if(llvm::pred_begin(&bb) == llvm::pred_end(&bb)) {
           to_remove.push_back(&bb);
         } else {
-          std::cout << "Basic Block is empty and used!\n";
+          llvm::outs() << "Basic Block is empty and used!\n";
         }
       } else if(!I->back().isTerminator()) {
-        std::cerr << "Basic Block does not have terminator!\n";
-        std::cerr << *I << "\n";
-        cerr << "\n";
+        llvm::errs() << "Basic Block does not have terminator!\n";
+        llvm::errs() << *I << "\n";
+        llvm::errs() << "\n";
         Broken = true;
       }
     }
@@ -563,10 +574,10 @@ namespace rubinius {
     }
 
     if(Broken or llvm::verifyFunction(*func, PrintMessageAction)) {
-      std::cout << "ERROR: complication error detected.\n";
-      std::cout << "ERROR: Please report the above message and the\n";
-      std::cout << "       code below to http://github.com/evanphx/rubinius/issues\n";
-      std::cout << *func << "\n";
+      llvm::outs() << "ERROR: complication error detected.\n";
+      llvm::outs() << "ERROR: Please report the above message and the\n";
+      llvm::outs() << "       code below to http://github.com/evanphx/rubinius/issues\n";
+      llvm::outs() << *func << "\n";
       function_ = NULL;
       return;
     }
@@ -574,9 +585,9 @@ namespace rubinius {
     ls->passes()->run(*func);
 
     if(ls->jit_dump_code() & cOptimized) {
-      std::cout << "[[[ LLVM Optimized IR: "
+      llvm::outs() << "[[[ LLVM Optimized IR: "
         << ls->symbol_cstr(vmm->original->name()) << " ]]]\n";
-      std::cout << *func << "\n";
+      llvm::outs() << *func << "\n";
     }
 
     function_ = func;
@@ -590,7 +601,7 @@ namespace rubinius {
       ls->engine()->runJITOnFunction(function_, mci_);
 
       if(state->shared.config.jit_dump_code & cMachineCode) {
-        std::cout << "[[[ JIT Machine Code ]]]\n";
+        llvm::outs() << "[[[ JIT Machine Code ]]]\n";
         assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
       }
 
@@ -606,7 +617,7 @@ namespace rubinius {
   }
 
   void LLVMCompiler::show_machine_code() {
-    std::cout << "[[[ JIT Machine Code ]]]\n";
+    llvm::outs() << "[[[ JIT Machine Code ]]]\n";
     assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
   }
 
@@ -627,14 +638,14 @@ namespace rubinius {
 
   void LLVMCompiler::show_assembly(STATE) {
     if(function_) {
-      std::cout << *function_ << "\n";
-      std::cout << "\n== x86 assembly ==\n";
+      llvm::outs() << *function_ << "\n";
+      llvm::outs() << "\n== x86 assembly ==\n";
 
       // Force it to be compiled
       function_pointer(state);
       assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
     } else {
-      std::cout << "NULL function!\n";
+      llvm::outs() << "NULL function!\n";
     }
   }
 
@@ -646,7 +657,7 @@ namespace rubinius {
 
 extern "C" {
   void llvm_dump(Value* val) {
-    std::cout << *val;
+    llvm::outs() << *val << "\n";
   }
 }
 

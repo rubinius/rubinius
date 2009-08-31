@@ -103,7 +103,7 @@ namespace rubinius {
     template <typename T>
     Value* constant(T obj, const Type* obj_type) {
       return b().CreateIntToPtr(
-        ConstantInt::get(Type::Int64Ty, (intptr_t)obj),
+        ConstantInt::get(ls_->Int64Ty, (intptr_t)obj),
         obj_type, "constant");
     }
 

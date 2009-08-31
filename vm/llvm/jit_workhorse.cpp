@@ -13,6 +13,7 @@ namespace rubinius {
   LLVMWorkHorse::LLVMWorkHorse(LLVMState* ls, JITMethodInfo& i)
     : ls_(ls)
     , vmm_(i.vmm)
+    , builder_(ls->ctx())
     , use_full_scope_(false)
     , import_args_(0)
     , method_body_(0)
@@ -29,17 +30,17 @@ namespace rubinius {
   void LLVMWorkHorse::return_value(Value* ret, BasicBlock* cont) {
     if(ls_->include_profiling()) {
       Value* test = b().CreateLoad(ls_->profiling(), "profiling");
-      BasicBlock* end_profiling = BasicBlock::Create("end_profiling", func);
+      BasicBlock* end_profiling = BasicBlock::Create(ls_->ctx(), "end_profiling", func);
       if(!cont) {
-        cont = BasicBlock::Create("continue", func);
+        cont = BasicBlock::Create(ls_->ctx(), "continue", func);
       }
 
       b().CreateCondBr(test, end_profiling, cont);
 
       b().SetInsertPoint(end_profiling);
 
-      Signature sig(ls_, Type::VoidTy);
-      sig << PointerType::getUnqual(Type::Int8Ty);
+      Signature sig(ls_, ls_->VoidTy);
+      sig << PointerType::getUnqual(ls_->Int8Ty);
 
       Value* call_args[] = {
         method_entry_
@@ -79,34 +80,34 @@ namespace rubinius {
     if(!use_full_scope_) flags |= CallFrame::cClosedScope;
 
     b().CreateStore(
-        ConstantInt::get(Type::Int32Ty, flags),
+        ConstantInt::get(ls_->Int32Ty, flags),
         get_field(call_frame, offset::cf_flags));
 
     // ip
     b().CreateStore(
-        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, 0),
         get_field(call_frame, offset::cf_ip));
 
     // scope
     b().CreateStore(vars, get_field(call_frame, offset::cf_scope));
 
     if(ls_->include_profiling()) {
-      method_entry_ = b().CreateAlloca(Type::Int8Ty,
-          ConstantInt::get(Type::Int32Ty, sizeof(profiler::MethodEntry)),
+      method_entry_ = b().CreateAlloca(ls_->Int8Ty,
+          ConstantInt::get(ls_->Int32Ty, sizeof(profiler::MethodEntry)),
           "method_entry");
 
       Value* test = b().CreateLoad(ls_->profiling(), "profiling");
 
-      BasicBlock* setup_profiling = BasicBlock::Create("setup_profiling", func);
-      BasicBlock* cont = BasicBlock::Create("continue", func);
+      BasicBlock* setup_profiling = BasicBlock::Create(ls_->ctx(), "setup_profiling", func);
+      BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "continue", func);
 
       b().CreateCondBr(test, setup_profiling, cont);
 
       b().SetInsertPoint(setup_profiling);
 
-      Signature sig(ls_, Type::VoidTy);
+      Signature sig(ls_, ls_->VoidTy);
       sig << "VM";
-      sig << PointerType::getUnqual(Type::Int8Ty);
+      sig << PointerType::getUnqual(ls_->Int8Ty);
       sig << "Dispatch";
       sig << "Arguments";
       sig << "CompiledMethod";
@@ -159,12 +160,12 @@ namespace rubinius {
     if(!use_full_scope_) block_flags |= CallFrame::cClosedScope;
 
     Value* flags = b().CreateOr(inv_flags,
-        ConstantInt::get(Type::Int32Ty, block_flags), "flags");
+        ConstantInt::get(ls_->Int32Ty, block_flags), "flags");
 
     b().CreateStore(flags, get_field(call_frame, offset::cf_flags));
 
     // ip
-    b().CreateStore(ConstantInt::get(Type::Int32Ty, 0),
+    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0),
         get_field(call_frame, offset::cf_ip));
 
     // scope
@@ -178,22 +179,22 @@ namespace rubinius {
     b().CreateStore(top_scope, get_field(call_frame, offset::cf_top_scope));
 
     if(ls_->include_profiling()) {
-      method_entry_ = b().CreateAlloca(Type::Int8Ty,
-          ConstantInt::get(Type::Int32Ty, sizeof(profiler::MethodEntry)),
+      method_entry_ = b().CreateAlloca(ls_->Int8Ty,
+          ConstantInt::get(ls_->Int32Ty, sizeof(profiler::MethodEntry)),
           "method_entry");
 
       Value* test = b().CreateLoad(ls_->profiling(), "profiling");
 
-      BasicBlock* setup_profiling = BasicBlock::Create("setup_profiling", func);
-      BasicBlock* cont = BasicBlock::Create("continue", func);
+      BasicBlock* setup_profiling = BasicBlock::Create(ls_->ctx(), "setup_profiling", func);
+      BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "continue", func);
 
       b().CreateCondBr(test, setup_profiling, cont);
 
       b().SetInsertPoint(setup_profiling);
 
-      Signature sig(ls_, Type::VoidTy);
+      Signature sig(ls_, ls_->VoidTy);
       sig << "VM";
-      sig << PointerType::getUnqual(Type::Int8Ty);
+      sig << PointerType::getUnqual(ls_->Int8Ty);
       sig << "Dispatch";
       sig << "Arguments";
       sig << "CompiledMethod";
@@ -225,14 +226,14 @@ namespace rubinius {
       return;
     }
 
-    Value* max = ConstantInt::get(Type::Int32Ty, size);
-    Value* one = ConstantInt::get(Type::Int32Ty, 1);
+    Value* max = ConstantInt::get(ls_->Int32Ty, size);
+    Value* one = ConstantInt::get(ls_->Int32Ty, 1);
 
-    BasicBlock* top = BasicBlock::Create("stack_nil", func);
-    BasicBlock* cont = BasicBlock::Create("bottom", func);
+    BasicBlock* top = BasicBlock::Create(ls_->ctx(), "stack_nil", func);
+    BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "bottom", func);
 
-    Value* counter = b().CreateAlloca(Type::Int32Ty, 0, "counter_alloca");
-    b().CreateStore(ConstantInt::get(Type::Int32Ty, 0), counter);
+    Value* counter = b().CreateAlloca(ls_->Int32Ty, 0, "counter_alloca");
+    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0), counter);
 
     b().CreateBr(top);
 
@@ -260,9 +261,9 @@ namespace rubinius {
     if(size <= 5) {
       for(int i = 0; i < size; i++) {
         Value* idx[] = {
-          ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
-          ConstantInt::get(Type::Int32Ty, i)
+          ConstantInt::get(ls_->Int32Ty, 0),
+          ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+          ConstantInt::get(ls_->Int32Ty, i)
         };
 
         Value* gep = b().CreateGEP(vars, idx, idx+3, "local_pos");
@@ -271,14 +272,14 @@ namespace rubinius {
       return;
     }
 
-    Value* max = ConstantInt::get(Type::Int32Ty, size);
-    Value* one = ConstantInt::get(Type::Int32Ty, 1);
+    Value* max = ConstantInt::get(ls_->Int32Ty, size);
+    Value* one = ConstantInt::get(ls_->Int32Ty, 1);
 
-    BasicBlock* top = BasicBlock::Create("locals_nil", func);
-    BasicBlock* cont = BasicBlock::Create("bottom", func);
+    BasicBlock* top = BasicBlock::Create(ls_->ctx(), "locals_nil", func);
+    BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "bottom", func);
 
-    Value* counter = b().CreateAlloca(Type::Int32Ty, 0, "counter_alloca");
-    b().CreateStore(ConstantInt::get(Type::Int32Ty, 0), counter);
+    Value* counter = b().CreateAlloca(ls_->Int32Ty, 0, "counter_alloca");
+    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0), counter);
 
     b().CreateBr(top);
 
@@ -286,8 +287,8 @@ namespace rubinius {
 
     Value* cur = b().CreateLoad(counter, "counter");
     Value* idx[] = {
-      ConstantInt::get(Type::Int32Ty, 0),
-      ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
+      ConstantInt::get(ls_->Int32Ty, 0),
+      ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
       cur
     };
 
@@ -384,8 +385,8 @@ namespace rubinius {
     // For others to use.
     arg_total = total;
 
-    BasicBlock* arg_error = BasicBlock::Create("arg_error", func);
-    BasicBlock* cont = BasicBlock::Create("import_args", func);
+    BasicBlock* arg_error = BasicBlock::Create(ls_->ctx(), "arg_error", func);
+    BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "import_args", func);
 
     // Check arguments
     //
@@ -394,7 +395,7 @@ namespace rubinius {
       if(vmm_->required_args > 0) {
         // Make sure we got at least the required args
         Value* cmp = b().CreateICmpSLT(total,
-            ConstantInt::get(Type::Int32Ty, vmm_->required_args), "arg_cmp");
+            ConstantInt::get(ls_->Int32Ty, vmm_->required_args), "arg_cmp");
         b().CreateCondBr(cmp, arg_error, cont);
       } else {
         // Only splat or optionals, no handling!
@@ -405,15 +406,15 @@ namespace rubinius {
     } else if(vmm_->required_args == vmm_->total_args) {
       // Make sure we got the exact number of arguments
       Value* cmp = b().CreateICmpNE(total,
-          ConstantInt::get(Type::Int32Ty, vmm_->required_args), "arg_cmp");
+          ConstantInt::get(ls_->Int32Ty, vmm_->required_args), "arg_cmp");
       b().CreateCondBr(cmp, arg_error, cont);
 
       // No splat, with optionals
     } else {
       Value* c1 = b().CreateICmpSLT(total,
-          ConstantInt::get(Type::Int32Ty, vmm_->required_args), "arg_cmp");
+          ConstantInt::get(ls_->Int32Ty, vmm_->required_args), "arg_cmp");
       Value* c2 = b().CreateICmpSGT(total,
-          ConstantInt::get(Type::Int32Ty, vmm_->total_args), "arg_cmp");
+          ConstantInt::get(ls_->Int32Ty, vmm_->total_args), "arg_cmp");
 
       Value* cmp = b().CreateOr(c1, c2, "arg_combine");
       b().CreateCondBr(cmp, arg_error, cont);
@@ -428,14 +429,14 @@ namespace rubinius {
     sig << "CallFrame";
     sig << "Dispatch";
     sig << "Arguments";
-    sig << Type::Int32Ty;
+    sig << ls_->Int32Ty;
 
     Value* call_args[] = {
       vm_obj,
       prev,
       dis_obj,
       arg_obj,
-      ConstantInt::get(Type::Int32Ty, vmm_->required_args)
+      ConstantInt::get(ls_->Int32Ty, vmm_->required_args)
     };
 
     Value* val = sig.call("rbx_arg_error", call_args, 5, "ret", b());
@@ -459,15 +460,15 @@ namespace rubinius {
     // If there are a precise number of args, easy.
     if(vmm_->required_args == vmm_->total_args) {
       for(int i = 0; i < vmm_->required_args; i++) {
-        Value* int_pos = ConstantInt::get(Type::Int32Ty, i);
+        Value* int_pos = ConstantInt::get(ls_->Int32Ty, i);
 
         Value* arg_val_offset = b().CreateConstGEP1_32(arg_ary, i, "arg_val_offset");
 
         Value* arg_val = b().CreateLoad(arg_val_offset, "arg_val");
 
         Value* idx2[] = {
-          ConstantInt::get(Type::Int32Ty, 0),
-          ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
+          ConstantInt::get(ls_->Int32Ty, 0),
+          ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
           int_pos
         };
 
@@ -479,13 +480,13 @@ namespace rubinius {
       // Otherwise, we must loop in the generate code because we don't know
       // how many they've actually passed in.
     } else {
-      Value* loop_i = b().CreateAlloca(Type::Int32Ty, 0, "loop_i");
+      Value* loop_i = b().CreateAlloca(ls_->Int32Ty, 0, "loop_i");
 
-      BasicBlock* top = BasicBlock::Create("arg_loop_top", func);
-      BasicBlock* body = BasicBlock::Create("arg_loop_body", func);
-      BasicBlock* after = BasicBlock::Create("arg_loop_cont", func);
+      BasicBlock* top = BasicBlock::Create(ls_->ctx(), "arg_loop_top", func);
+      BasicBlock* body = BasicBlock::Create(ls_->ctx(), "arg_loop_body", func);
+      BasicBlock* after = BasicBlock::Create(ls_->ctx(), "arg_loop_cont", func);
 
-      b().CreateStore(ConstantInt::get(Type::Int32Ty, 0), loop_i);
+      b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0), loop_i);
       b().CreateBr(top);
 
       b().SetInsertPoint(top);
@@ -505,8 +506,8 @@ namespace rubinius {
       Value* arg_val = b().CreateLoad(arg_val_offset, "arg_val");
 
       Value* idx2[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
         loop_val
       };
 
@@ -515,7 +516,7 @@ namespace rubinius {
       b().CreateStore(arg_val, pos);
 
       Value* plus_one = b().CreateAdd(loop_val,
-          ConstantInt::get(Type::Int32Ty, 1), "add");
+          ConstantInt::get(ls_->Int32Ty, 1), "add");
       b().CreateStore(plus_one, loop_i);
 
       b().CreateBr(top);
@@ -528,12 +529,12 @@ namespace rubinius {
       Signature sig(ls_, "Object");
       sig << "VM";
       sig << "Arguments";
-      sig << Type::Int32Ty;
+      sig << ls_->Int32Ty;
 
       Value* call_args[] = {
         vm_obj,
         arg_obj,
-        ConstantInt::get(Type::Int32Ty, vmm_->total_args)
+        ConstantInt::get(ls_->Int32Ty, vmm_->total_args)
       };
 
       Function* func = sig.function("rbx_construct_splat");
@@ -546,9 +547,9 @@ namespace rubinius {
       splat_val->setDoesNotThrow(true);
 
       Value* idx3[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
-        ConstantInt::get(Type::Int32Ty, vmm_->splat_position)
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
+        ConstantInt::get(ls_->Int32Ty, vmm_->splat_position)
       };
 
       Value* pos = b().CreateGEP(vars, idx3, idx3+3, "splat_pos");
@@ -573,7 +574,7 @@ namespace rubinius {
     args = ai++; args->setName("args");
     block_inv = ai++; block_inv->setName("invocation");
 
-    BasicBlock* block = BasicBlock::Create("entry", func);
+    BasicBlock* block = BasicBlock::Create(ls_->ctx(), "entry", func);
     b().SetInsertPoint(block);
 
     info_.set_function(func);
@@ -582,14 +583,14 @@ namespace rubinius {
     info_.set_previous(prev);
     info_.set_entry(block);
 
-    BasicBlock* body = BasicBlock::Create("block_body", func);
+    BasicBlock* body = BasicBlock::Create(ls_->ctx(), "block_body", func);
 
     pass_one(body);
 
-    valid_flag = b().CreateAlloca(Type::Int1Ty, 0, "valid_flag");
+    valid_flag = b().CreateAlloca(ls_->Int1Ty, 0, "valid_flag");
 
     Value* cfstk = b().CreateAlloca(obj_type,
-        ConstantInt::get(Type::Int32Ty,
+        ConstantInt::get(ls_->Int32Ty,
           (sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
         "cfstk");
 
@@ -604,7 +605,7 @@ namespace rubinius {
     info_.set_stack(stk);
 
     Value* var_mem = b().CreateAlloca(obj_type,
-        ConstantInt::get(Type::Int32Ty,
+        ConstantInt::get(ls_->Int32Ty,
           (sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
         "var_mem");
 
@@ -640,15 +641,15 @@ namespace rubinius {
     Value* self = b().CreateLoad(
         b().CreateConstGEP2_32(args, 0, offset::args_recv), "self");
 
-    BasicBlock* restart_interp = BasicBlock::Create("restart_interp", func);
-    BasicBlock* check_class = BasicBlock::Create("check_class", func);
-    BasicBlock* cont = BasicBlock::Create("prologue_continue", func);
+    BasicBlock* restart_interp = BasicBlock::Create(ls_->ctx(), "restart_interp", func);
+    BasicBlock* check_class = BasicBlock::Create(ls_->ctx(), "check_class", func);
+    BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "prologue_continue", func);
 
-    Value* mask = ConstantInt::get(Type::Int32Ty, TAG_REF_MASK);
-    Value* zero = ConstantInt::get(Type::Int32Ty, TAG_REF);
+    Value* mask = ConstantInt::get(ls_->Int32Ty, TAG_REF_MASK);
+    Value* zero = ConstantInt::get(ls_->Int32Ty, TAG_REF);
 
     Value* lint = b().CreateAnd(
-        b().CreatePtrToInt(self, Type::Int32Ty),
+        b().CreatePtrToInt(self, ls_->Int32Ty),
         mask, "masked");
 
     Value* is_ref = b().CreateICmpEQ(lint, zero, "is_reference");
@@ -658,9 +659,9 @@ namespace rubinius {
     b().SetInsertPoint(check_class);
 
     Value* class_idx[] = {
-      ConstantInt::get(Type::Int32Ty, 0),
-      ConstantInt::get(Type::Int32Ty, 0),
-      ConstantInt::get(Type::Int32Ty, 1)
+      ConstantInt::get(ls_->Int32Ty, 0),
+      ConstantInt::get(ls_->Int32Ty, 0),
+      ConstantInt::get(ls_->Int32Ty, 1)
     };
 
     Value* self_class = b().CreateLoad(
@@ -672,7 +673,7 @@ namespace rubinius {
         "class_id");
 
     Value* equal = b().CreateICmpEQ(runtime_id,
-        ConstantInt::get(Type::Int32Ty, klass_id));
+        ConstantInt::get(ls_->Int32Ty, klass_id));
 
     b().CreateCondBr(equal, cont, restart_interp);
 
@@ -706,7 +707,7 @@ namespace rubinius {
     msg =  ai++; msg->setName("msg");
     args = ai++; args->setName("args");
 
-    BasicBlock* block = BasicBlock::Create("entry", func);
+    BasicBlock* block = BasicBlock::Create(ls_->ctx(), "entry", func);
     builder_.SetInsertPoint(block);
 
     info_.set_function(func);
@@ -715,20 +716,20 @@ namespace rubinius {
     info_.set_previous(prev);
     info_.set_entry(block);
 
-    BasicBlock* body = BasicBlock::Create("method_body", func);
+    BasicBlock* body = BasicBlock::Create(ls_->ctx(), "method_body", func);
     method_body_ = body;
 
     pass_one(body);
 
-    valid_flag = b().CreateAlloca(Type::Int1Ty, 0, "valid_flag");
+    valid_flag = b().CreateAlloca(ls_->Int1Ty, 0, "valid_flag");
 
     Value* cfstk = b().CreateAlloca(obj_type,
-        ConstantInt::get(Type::Int32Ty,
+        ConstantInt::get(ls_->Int32Ty,
           (sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
         "cfstk");
 
     Value* var_mem = b().CreateAlloca(obj_type,
-        ConstantInt::get(Type::Int32Ty,
+        ConstantInt::get(ls_->Int32Ty,
           (sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
         "var_mem");
 
@@ -772,20 +773,20 @@ namespace rubinius {
     prev = info_.parent_call_frame();
     args = ConstantExpr::getNullValue(ls_->ptr_type("Arguments"));
 
-    BasicBlock* entry = BasicBlock::Create("inline_entry", func);
+    BasicBlock* entry = BasicBlock::Create(ls_->ctx(), "inline_entry", func);
     b().SetInsertPoint(entry);
 
     info_.set_args(args);
     info_.set_previous(prev);
     info_.set_entry(entry);
 
-    BasicBlock* body = BasicBlock::Create("method_body", func);
+    BasicBlock* body = BasicBlock::Create(ls_->ctx(), "method_body", func);
     pass_one(body);
 
     BasicBlock* alloca_block = &func->getEntryBlock();
 
     Value* cfstk = new AllocaInst(obj_type,
-        ConstantInt::get(Type::Int32Ty,
+        ConstantInt::get(ls_->Int32Ty,
           (sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
         "cfstk", alloca_block->getTerminator());
 
@@ -799,7 +800,7 @@ namespace rubinius {
     info_.set_stack(stk);
 
     Value* var_mem = new AllocaInst(obj_type,
-        ConstantInt::get(Type::Int32Ty,
+        ConstantInt::get(ls_->Int32Ty,
           (sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
         "var_mem", alloca_block->getTerminator());
 
@@ -830,11 +831,11 @@ namespace rubinius {
     int flags = CallFrame::cInlineFrame;
     if(!use_full_scope_) flags |= CallFrame::cClosedScope;
 
-    b().CreateStore(ConstantInt::get(Type::Int32Ty, flags),
+    b().CreateStore(ConstantInt::get(ls_->Int32Ty, flags),
         get_field(call_frame, offset::cf_flags));
 
     // ip
-    b().CreateStore(ConstantInt::get(Type::Int32Ty, 0),
+    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0),
         get_field(call_frame, offset::cf_ip));
 
     // scope
@@ -853,11 +854,11 @@ namespace rubinius {
     assert(stack_args.size() <= (size_t)vmm_->total_args);
 
     for(size_t i = 0; i < stack_args.size(); i++) {
-      Value* int_pos = ConstantInt::get(Type::Int32Ty, i);
+      Value* int_pos = ConstantInt::get(ls_->Int32Ty, i);
 
       Value* idx2[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::vars_tuple),
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
         int_pos
       };
 
@@ -878,20 +879,20 @@ namespace rubinius {
     prev = info_.parent_call_frame();
     args = ConstantExpr::getNullValue(ls_->ptr_type("Arguments"));
 
-    BasicBlock* entry = BasicBlock::Create("inline_entry", func);
+    BasicBlock* entry = BasicBlock::Create(ls_->ctx(), "inline_entry", func);
     b().SetInsertPoint(entry);
 
     info_.set_args(args);
     info_.set_previous(prev);
     info_.set_entry(entry);
 
-    BasicBlock* body = BasicBlock::Create("block_body", func);
+    BasicBlock* body = BasicBlock::Create(ls_->ctx(), "block_body", func);
     pass_one(body);
 
     BasicBlock* alloca_block = &func->getEntryBlock();
 
     Value* cfstk = new AllocaInst(obj_type,
-        ConstantInt::get(Type::Int32Ty,
+        ConstantInt::get(ls_->Int32Ty,
           (sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
         "cfstk", alloca_block->getTerminator());
 
@@ -906,7 +907,7 @@ namespace rubinius {
     info_.set_stack(stk);
 
     Value* var_mem = new AllocaInst(obj_type,
-        ConstantInt::get(Type::Int32Ty,
+        ConstantInt::get(ls_->Int32Ty,
           (sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
         "var_mem", alloca_block->getTerminator());
 
@@ -937,11 +938,11 @@ namespace rubinius {
     int flags = CallFrame::cInlineFrame;
     if(!use_full_scope_) flags |= CallFrame::cClosedScope;
 
-    b().CreateStore(ConstantInt::get(Type::Int32Ty, flags),
+    b().CreateStore(ConstantInt::get(ls_->Int32Ty, flags),
         get_field(call_frame, offset::cf_flags));
 
     // ip
-    b().CreateStore(ConstantInt::get(Type::Int32Ty, 0),
+    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0),
         get_field(call_frame, offset::cf_ip));
 
     // scope
@@ -961,6 +962,7 @@ namespace rubinius {
   }
 
   class PassOne : public VisitInstructions<PassOne> {
+    LLVMState* ls_;
     BlockMap& map_;
     Function* function_;
     opcode current_ip_;
@@ -980,7 +982,8 @@ namespace rubinius {
   public:
 
     PassOne(LLVMState* ls, BlockMap& map, Function* func, BasicBlock* start)
-      : map_(map)
+      : ls_(ls)
+      , map_(map)
       , function_(func)
       , current_ip_(0)
       , force_break_(false)
@@ -1083,7 +1086,7 @@ namespace rubinius {
         std::ostringstream ss;
         ss << "ip" << ip;
         JITBasicBlock& jbb = map_[ip];
-        jbb.block = BasicBlock::Create(ss.str().c_str(), function_);
+        jbb.block = BasicBlock::Create(ls_->ctx(), ss.str().c_str(), function_);
         jbb.start_ip = ip;
         jbb.sp = sp_;
 
@@ -1295,7 +1298,7 @@ namespace rubinius {
 
       Value* call_args[] = { vm, call_frame };
 
-      BasicBlock* ret_null = BasicBlock::Create("ret_null", func);
+      BasicBlock* ret_null = BasicBlock::Create(ls_->ctx(), "ret_null", func);
 
       Value* ret = sig.call("rbx_check_interrupts", call_args, 2, "ci", b());
       b().CreateCondBr(

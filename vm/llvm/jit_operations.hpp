@@ -49,7 +49,6 @@ namespace rubinius {
   public:
     const llvm::Type* NativeIntTy;
     const llvm::Type* FixnumTy;
-    const llvm::Type* IntPtrTy;
     const llvm::Type* ObjType;
     const llvm::Type* ObjArrayTy;
 
@@ -66,6 +65,7 @@ namespace rubinius {
       : stack_(info.stack())
       , sp_(-1)
       , last_sp_(-1)
+      , builder_(ls->ctx())
       , method_info_(info)
       , ls_(ls)
       , module_(ls->module())
@@ -74,18 +74,16 @@ namespace rubinius {
       , inline_policy_(0)
       , own_policy_(false)
     {
-      zero_ = ConstantInt::get(Type::Int32Ty, 0);
-      one_ =  ConstantInt::get(Type::Int32Ty, 1);
+      zero_ = ConstantInt::get(ls_->Int32Ty, 0);
+      one_ =  ConstantInt::get(ls_->Int32Ty, 1);
 
 #ifdef IS_X8664
-      IntPtrTy = llvm::Type::Int64Ty;
-      FixnumTy = llvm::IntegerType::get(63);
+      FixnumTy = llvm::IntegerType::get(ls_->ctx(), 63);
 #else
-      IntPtrTy = llvm::Type::Int32Ty;
-      FixnumTy = llvm::IntegerType::get(31);
+      FixnumTy = llvm::IntegerType::get(ls_->ctx(), 31);
 #endif
 
-      NativeIntTy = IntPtrTy;
+      NativeIntTy = ls_->IntPtrTy;
 
       One = ConstantInt::get(NativeIntTy, 1);
       Zero = ConstantInt::get(NativeIntTy, 0);
@@ -177,8 +175,8 @@ namespace rubinius {
       return call_frame_;
     }
 
-    static Value* cint(int num) {
-      return ConstantInt::get(Type::Int32Ty, num);
+    Value* cint(int num) {
+      return ConstantInt::get(ls_->Int32Ty, num);
     }
 
     // Type resolution and manipulation
@@ -210,26 +208,26 @@ namespace rubinius {
 
     Value* check_type_bits(Value* obj, int type) {
       Value* flag_idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, 0)
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, 0)
       };
 
       Value* gep = create_gep(obj, flag_idx, 4, "flag_pos");
       Value* flags = create_load(gep, "flags");
 
-      Value* mask = ConstantInt::get(Type::Int32Ty, (1 << 8) - 1);
+      Value* mask = ConstantInt::get(ls_->Int32Ty, (1 << 8) - 1);
       Value* obj_type = b().CreateAnd(flags, mask, "mask");
 
-      Value* tag = ConstantInt::get(Type::Int32Ty, type);
+      Value* tag = ConstantInt::get(ls_->Int32Ty, type);
 
       return b().CreateICmpEQ(obj_type, tag, "is_tuple");
     }
 
     Value* check_is_reference(Value* obj) {
-      Value* mask = ConstantInt::get(IntPtrTy, TAG_REF_MASK);
-      Value* zero = ConstantInt::get(IntPtrTy, TAG_REF);
+      Value* mask = ConstantInt::get(ls_->IntPtrTy, TAG_REF_MASK);
+      Value* zero = ConstantInt::get(ls_->IntPtrTy, TAG_REF);
 
       Value* lint = create_and(cast_int(obj), mask, "masked");
       return create_equal(lint, zero, "is_reference");
@@ -248,16 +246,16 @@ namespace rubinius {
     }
 
     Value* check_is_symbol(Value* obj) {
-      Value* mask = ConstantInt::get(IntPtrTy, TAG_SYMBOL_MASK);
-      Value* zero = ConstantInt::get(IntPtrTy, TAG_SYMBOL);
+      Value* mask = ConstantInt::get(ls_->IntPtrTy, TAG_SYMBOL_MASK);
+      Value* zero = ConstantInt::get(ls_->IntPtrTy, TAG_SYMBOL);
 
       Value* lint = create_and(cast_int(obj), mask, "masked");
       return create_equal(lint, zero, "is_symbol");
     }
 
     Value* check_is_fixnum(Value* obj) {
-      Value* mask = ConstantInt::get(IntPtrTy, TAG_FIXNUM_MASK);
-      Value* zero = ConstantInt::get(IntPtrTy, TAG_FIXNUM);
+      Value* mask = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM_MASK);
+      Value* zero = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM);
 
       Value* lint = create_and(cast_int(obj), mask, "masked");
       return create_equal(lint, zero, "is_fixnum");
@@ -329,7 +327,7 @@ namespace rubinius {
     }
 
     BasicBlock* new_block(const char* name = "continue") {
-      return BasicBlock::Create(name, function_);
+      return BasicBlock::Create(ls_->ctx(), name, function_);
     }
 
     void set_block(BasicBlock* bb) {
@@ -459,18 +457,18 @@ namespace rubinius {
     //
     Value* constant(Object* obj) {
       return b().CreateIntToPtr(
-          ConstantInt::get(IntPtrTy, (intptr_t)obj),
+          ConstantInt::get(ls_->IntPtrTy, (intptr_t)obj),
           ObjType, "const_obj");
     }
 
     Value* constant(Object* obj, const Type* type) {
       return b().CreateIntToPtr(
-          ConstantInt::get(IntPtrTy, (intptr_t)obj),
+          ConstantInt::get(ls_->IntPtrTy, (intptr_t)obj),
           type, "const_of_type");
     }
 
     Value* ptrtoint(Value* ptr) {
-      return b().CreatePtrToInt(ptr, IntPtrTy, "ptr2int");
+      return b().CreatePtrToInt(ptr, ls_->IntPtrTy, "ptr2int");
     }
 
     Value* subtract_pointers(Value* ptra, Value* ptrb) {
@@ -479,7 +477,7 @@ namespace rubinius {
 
       Value* sub = b().CreateSub(inta, intb, "ptr_diff");
 
-      Value* size_of = ConstantInt::get(IntPtrTy, sizeof(uintptr_t));
+      Value* size_of = ConstantInt::get(ls_->IntPtrTy, sizeof(uintptr_t));
 
       return b().CreateSDiv(sub, size_of, "ptr_diff_adj");
     }
@@ -508,10 +506,19 @@ namespace rubinius {
 
     Value* tag_strip32(Value* obj) {
       Value* i = b().CreatePtrToInt(
-          obj, Type::Int32Ty, "as_int");
+          obj, ls_->Int32Ty, "as_int");
 
       return b().CreateLShr(
-          i, ConstantInt::get(Type::Int32Ty, 1),
+          i, ConstantInt::get(ls_->Int32Ty, 1),
+          "lshr");
+    }
+
+    Value* fixnum_to_native(Value* obj) {
+      Value* i = b().CreatePtrToInt(
+          obj, NativeIntTy, "as_int");
+
+      return b().CreateLShr(
+          i, ConstantInt::get(NativeIntTy, 1),
           "lshr");
     }
 
@@ -541,8 +548,8 @@ namespace rubinius {
     }
 
     Value* check_if_fixnum(Value* val) {
-      Value* fix_mask = ConstantInt::get(IntPtrTy, TAG_FIXNUM_MASK);
-      Value* fix_tag  = ConstantInt::get(IntPtrTy, TAG_FIXNUM);
+      Value* fix_mask = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM_MASK);
+      Value* fix_tag  = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM);
 
       Value* lint = cast_int(val);
       Value* masked = b().CreateAnd(lint, fix_mask, "masked");
@@ -553,8 +560,8 @@ namespace rubinius {
     // Tuple access
     Value* get_tuple_size(Value* tup) {
       Value* idx[] = {
-        ConstantInt::get(Type::Int32Ty, 0),
-        ConstantInt::get(Type::Int32Ty, offset::tuple_full_size)
+        ConstantInt::get(ls_->Int32Ty, 0),
+        ConstantInt::get(ls_->Int32Ty, offset::tuple_full_size)
       };
 
       Value* pos = create_gep(tup, idx, 2, "table_size_pos");
@@ -571,7 +578,7 @@ namespace rubinius {
           PointerType::getUnqual(ObjType), "obj_array");
 
       Value* idx2[] = {
-        ConstantInt::get(Type::Int32Ty, offset / sizeof(Object*))
+        ConstantInt::get(ls_->Int32Ty, offset / sizeof(Object*))
       };
 
       Value* pos = create_gep(cst, idx2, 1, "field_pos");
@@ -587,7 +594,7 @@ namespace rubinius {
           PointerType::getUnqual(ObjType), "obj_array");
 
       Value* idx2[] = {
-        ConstantInt::get(Type::Int32Ty, offset / sizeof(Object*))
+        ConstantInt::get(ls_->Int32Ty, offset / sizeof(Object*))
       };
 
       Value* pos = create_gep(cst, idx2, 1, "field_pos");
