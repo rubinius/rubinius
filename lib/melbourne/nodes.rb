@@ -227,6 +227,10 @@ class Compiler
         node
       end
 
+      def children
+        [@left, @right]
+      end
+
       def bytecode(g, use_gif=true)
         @left.bytecode(g)
         g.dup
@@ -274,6 +278,10 @@ class Compiler
       def block_arg=(node)
         @names << node.name
         @block_arg = node
+      end
+
+      def children
+        [@defaults, @block_arg]
       end
 
       def bytecode(g)
@@ -982,11 +990,7 @@ class Compiler
           meth.add_scope
         end
 
-        set(:scope, self) do
-          show_errors(meth) do
-            desc.run self, @body
-          end
-        end
+        desc.run self, @body
 
         meth.ret
         meth.close
@@ -1278,12 +1282,8 @@ class Compiler
 
         prelude(g, meth)
 
-        set(:scope, nil) do
-          show_errors(meth) do
-            @arguments.bytecode(meth) if @arguments
-            desc.run self, @body # TODO: why is it not @body.bytecode(meth) ?
-          end
-        end
+        @arguments.bytecode(meth) if @arguments
+        desc.run self, @body # TODO: why is it not @body.bytecode(meth) ?
 
         # TODO: remove this, desc.args should have @arguments
         required = @arguments.required unless @arguments.required.empty?
@@ -2025,17 +2025,15 @@ class Compiler
     class LocalAssignment < LocalVariable
       attr_accessor :depth
 
-      def self.from(p, name, expr)
+      def self.from(p, name, value)
         node = LocalAssignment.new p.compiler
         node.name = name
-        node.value = expr
+        node.value = value
         node
       end
 
       def children
-        children = []
-        children << @value if @value
-        children
+        [@value]
       end
 
       def bytecode(g)
@@ -2717,6 +2715,10 @@ class Compiler
         node.start = start
         node.finish = finish
         node
+      end
+
+      def children
+        [@start, @finish]
       end
 
       def bytecode(g)

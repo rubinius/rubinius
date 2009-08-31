@@ -266,8 +266,8 @@ module Rubinius
       AST::IVar.from self, name
     end
 
-    def process_lasgn(line, name, expr)
-      AST::LocalAssignment.from self, name, expr
+    def process_lasgn(line, name, value)
+      AST::LocalAssignment.from self, name, value
     end
 
     def process_lit(line, sym)
