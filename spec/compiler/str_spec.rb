@@ -42,14 +42,15 @@ describe "A Str node" do
     ruby
 
     parse do
-      [:dstr, "file = ", [:str, "(eval)"], [:str, "\n"]]
+      [:dstr, "file = ", [:evstr, [:file]], [:str, "\n"]]
     end
 
     compile do |g|
       g.push_literal "\n"
       g.string_dup
-      g.push_literal "(eval)"
-      g.string_dup
+      g.push_scope
+      g.send :active_path, 0
+      g.send :to_s, 0, true
       g.push_literal "file = "
       g.string_dup
       g.string_append

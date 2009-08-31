@@ -199,7 +199,6 @@ class Rubinius::SydneyRewriter
 
   def rewrite_evstr(exp)
     return s(:str, "") if exp == s(:evstr)
-    return s(:str, exp.file) if exp.last == s(:file)
     exp
   end
 

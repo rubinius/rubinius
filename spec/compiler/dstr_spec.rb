@@ -302,7 +302,7 @@ EOF
        "s1 '",
        [:evstr, [:const, :RUBY_PLATFORM]],
        [:str, "' s2\n"],
-       [:str, "(eval)"],
+       [:evstr, [:file]],
        [:str, "\n"]]
     end
 
@@ -310,8 +310,9 @@ EOF
       g.push_literal "\n"         # 1
       g.string_dup
 
-      g.push_literal "(eval)"     # 2
-      g.string_dup
+      g.push_scope                # 2
+      g.send :active_path, 0
+      g.send :to_s, 0, true
 
       g.push_literal "' s2\n"     # 3
       g.string_dup
@@ -357,7 +358,7 @@ EOF
     parse do
       [:dstr,
        "blah",
-       [:str, "(eval)"],
+       [:evstr, [:file]],
        [:str, ":"],
        [:evstr, [:lit, 1]],
        [:str, ": warning: "],
@@ -388,10 +389,11 @@ EOF
       g.push 1                     # 6
       g.send :to_s, 0, true
 
-      g.push_literal ":"
+      g.push_literal ":"           # 7
       g.string_dup
-      g.push_literal "(eval)"
-      g.string_dup
+      g.push_scope                 # 8
+      g.send :active_path, 0
+      g.send :to_s, 0, true
       g.push_literal "blah"
       g.string_dup
 
@@ -409,7 +411,7 @@ EOF
        [:str, " middle "],
        [:evstr, [:call, nil, :to, [:arglist]]],
        [:str, " ("],
-       [:str, "(eval)"],
+       [:evstr, [:file]],
        [:str, ":"],
        [:evstr, [:lit, 1]],
        [:str, ")"]]
@@ -425,8 +427,9 @@ EOF
       g.push_literal ":"        # 3
       g.string_dup
 
-      g.push_literal "(eval)"   # 4
-      g.string_dup
+      g.push_scope              # 4
+      g.send :active_path, 0
+      g.send :to_s, 0, true
 
       g.push_literal " ("       # 5
       g.string_dup
