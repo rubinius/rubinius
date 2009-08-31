@@ -1402,7 +1402,7 @@ class Compiler
         node = DynamicRegex.new p.compiler
         node.string = str
         node.array = array
-        node.options = flags
+        node.options = flags || 0
         node
       end
 
@@ -1418,10 +1418,10 @@ class Compiler
 
     class DynamicOnceRegex < DynamicRegex
       def self.from(p, str, array, flags)
-        node = DynamicRegex.new p.compiler
+        node = DynamicOnceRegex.new p.compiler
         node.string = str
         node.array = array
-        node.options = flags
+        node.options = flags || 0
         node
       end
 
