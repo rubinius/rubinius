@@ -197,22 +197,8 @@ class Rubinius::SydneyRewriter
     result
   end
 
-  def rewrite_dstr(exp)
-    str = exp[1]
-    if String === str
-      while kind(s = exp[2]) == :str
-        exp.delete_at 2
-        str << s.last
-      end
-      exp[1] = str
-    end
-
-    exp[0] = :str if exp.size == 2 and String === exp.last
-
-    exp
-  end
-
   def rewrite_evstr(exp)
+    return s(:str, "") if exp == s(:evstr)
     return s(:str, exp.file) if exp.last == s(:file)
     exp
   end

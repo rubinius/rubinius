@@ -6,7 +6,7 @@ describe "A Dregx node" do
     ruby
 
     parse do
-      [:dregx, "(", [:evstr], [:str, ")"]]
+      [:dregx, "(", [:str, ""], [:str, ")"]]
     end
 
     compile do |g|
@@ -15,7 +15,6 @@ describe "A Dregx node" do
       g.string_dup
       g.push_literal ""
       g.string_dup
-      g.send :to_s, 0, true
       g.push_literal "("
       g.string_dup
       g.string_append
@@ -58,7 +57,7 @@ describe "A Dregx node" do
 
   relates "/a\#{}b/" do
     parse do
-      [:dregx, "a", [:evstr], [:str, "b"]]
+      [:dregx, "a", [:str, ""], [:str, "b"]]
     end
 
     compile do |g|
@@ -69,7 +68,6 @@ describe "A Dregx node" do
 
       g.push_literal ""
       g.string_dup
-      g.send :to_s, 0, true
 
       g.push_literal "a"
       g.string_dup

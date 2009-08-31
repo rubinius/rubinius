@@ -6,13 +6,12 @@ describe "A Dstr node" do
     ruby
 
     parse do
-      [:dstr, "hello ", [:evstr]]
+      [:dstr, "hello ", [:str, ""]]
     end
 
     compile do |g|
       g.push_literal ""
       g.string_dup
-      g.send :to_s, 0, true
       g.push_literal "hello "
       g.string_dup
       g.string_append
@@ -357,7 +356,9 @@ EOF
   relates '"#{"blah"}#{__FILE__}:#{__LINE__}: warning: #{$!.message} (#{$!.class})"' do
     parse do
       [:dstr,
-       "blah(eval):",
+       "blah",
+       [:str, "(eval)"],
+       [:str, ":"],
        [:evstr, [:lit, 1]],
        [:str, ": warning: "],
        [:evstr, [:call, [:gvar, :$!], :message, [:arglist]]],
@@ -387,10 +388,14 @@ EOF
       g.push 1                     # 6
       g.send :to_s, 0, true
 
-      g.push_literal "blah(eval):" # 7
+      g.push_literal ":"
+      g.string_dup
+      g.push_literal "(eval)"
+      g.string_dup
+      g.push_literal "blah"
       g.string_dup
 
-      6.times do
+      8.times do
         g.string_append
       end
     end
