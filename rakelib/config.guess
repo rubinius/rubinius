@@ -1135,6 +1135,15 @@ EOF
 	    *86) UNAME_PROCESSOR=i686 ;;
 	    powerpc) UNAME_PROCESSOR=powerpc ;;
 	esac
+  case $UNAME_RELEASE in
+    10.*)
+	    test -n "$CC_FOR_BUILD" || eval $set_cc_for_build
+	    if echo __LP64__ | (CCOPTS= $CC_FOR_BUILD -E -dM -) | grep __LP64__ >/dev/null
+      then
+	      echo x86_64-apple-darwin${UNAME_RELEASE}
+        exit 0
+      fi
+  esac
 	echo ${UNAME_PROCESSOR}-apple-darwin${UNAME_RELEASE}
 	exit 0 ;;
     *:procnto*:*:* | *:QNX:[0123456789]*:*)
