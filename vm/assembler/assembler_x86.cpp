@@ -1,4 +1,4 @@
-#include "config.h"
+#include "detection.hpp"
 #include "assembler_x86.hpp"
 
 #include <iostream>
