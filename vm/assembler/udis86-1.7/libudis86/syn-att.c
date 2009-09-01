@@ -49,12 +49,20 @@ gen_operand(struct ud* u, struct ud_operand* op)
 		}
 		else if (op->offset == 16) {
       if(!op->base || op->lval.uword > 0) {
-  			mkasm(u, "0x%x", op->lval.uword);
+        if(op->lval.sword < 0) {
+  			  mkasm(u, "-0x%x", -op->lval.sword);
+        } else {
+  			  mkasm(u, "0x%x", op->lval.sword);
+        }
       }
     }
 		else if (op->offset == 32) {
       if(!op->base || op->lval.udword > 0) {
-			  mkasm(u, "0x%lx", op->lval.udword);
+        if(op->lval.sdword < 0) {
+			    mkasm(u, "-0x%lx", -op->lval.sdword);
+        } else {
+			    mkasm(u, "0x%lx", op->lval.sdword);
+        }
       }
     }
 		else if (op->offset == 64) {
