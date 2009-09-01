@@ -466,8 +466,8 @@ module Enumerable
     raise ArgumentError, "attempt to take negative size: #{n}" if n < 0
     array = []
     each do |elem|
-      break if array.size >= n
       array << elem
+      break if array.size >= n
     end unless n <= 0
     array
   end
