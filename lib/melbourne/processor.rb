@@ -1,9 +1,5 @@
-require "melbourne/nodes"
-
 module Rubinius
   class Melbourne
-
-    AST = Compiler::Node
 
     attr_accessor :compiler
 
@@ -216,9 +212,7 @@ module Rubinius
     end
 
     def process_fixnum(line, value)
-      node = AST::NumberLiteral.new @compiler
-      node.args value
-      node
+      AST::FixnumLiteral.from self, value
     end
 
     def process_flip2(line, start, finish)
@@ -249,8 +243,8 @@ module Rubinius
       AST::HashLiteral.from self, array
     end
 
-    def process_iasgn(line, name, expr)
-      AST::IVarAssign.from self, name, expr
+    def process_iasgn(line, name, value)
+      AST::IVarAssign.from self, name, value
     end
 
     def process_if(line, cond, body, else_body)
@@ -298,8 +292,8 @@ module Rubinius
       AST::ModuleWrapper.from self, name, body
     end
 
-    def process_negate(line, expr)
-      AST::Negate.from self, expr
+    def process_negate(line, value)
+      AST::Negate.from self, value
     end
 
     def process_next(line, expr)

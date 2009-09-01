@@ -17,7 +17,8 @@ class MSpecOptions
     end
 
     on("--ast", "TEMPORARY: change the compiler spec matcher to use #to_ast") do
-      require 'melbourne'
+      require 'compiler-ng'
+      require 'spec/custom/matchers/compile_as-ng'
     end
   end
 

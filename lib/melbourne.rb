@@ -1,6 +1,5 @@
 require "ext/melbourne/melbourne"
 require "melbourne/processor"
-require "melbourne/nodes"
 
 class String
   def to_ast(name="(eval)", line=1)
