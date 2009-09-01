@@ -58,8 +58,8 @@ class String
   #   Example three
   #   "hello\n\n\n"
   #   "world"
-  def each(sep = $/)
-    return to_enum :each, sep unless block_given?
+  def each_line(sep = $/)
+    return to_enum :each_line, sep unless block_given?
     if sep.nil?
       yield self
       return self
@@ -102,7 +102,7 @@ class String
 
     self
   end
-  alias_method :each_line, :each
+  alias_method :each, :each_line
 
   alias_method :lines, :each_line
 
