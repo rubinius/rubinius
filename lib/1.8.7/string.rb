@@ -104,6 +104,8 @@ class String
   end
   alias_method :each_line, :each
 
+  alias_method :lines, :each_line
+
   def end_with?(*suffixes)
     suffixes.each do |suffix|
       next unless suffix.respond_to? :to_str
