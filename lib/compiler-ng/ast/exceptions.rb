@@ -157,11 +157,8 @@ module Rubinius
 
       # TODO: simplify after assignment nodes are subclasses of Assignment
       def assignment?(node)
-        (node.kind_of? LocalAssignment or
-         node.kind_of? IVarAssign or
-         node.kind_of? CVarAssign or
-         node.kind_of? AttrAssign or
-         node.kind_of? GVarAssign) and
+        (node.kind_of? VariableAssignment or
+         node.kind_of? AttributeAssignment) and
         node.value.name == :$!
       end
 

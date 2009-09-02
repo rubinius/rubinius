@@ -62,7 +62,7 @@ module Rubinius
     end
 
     def process_attrasgn(line, receiver, name, arguments)
-      AST::AttrAssign.new line, receiver, name, arguments
+      AST::AttributeAssignment.new line, receiver, name, arguments
     end
 
     def process_back_ref(line, ref)
@@ -131,15 +131,15 @@ module Rubinius
     end
 
     def process_cvar(line, name)
-      AST::CVar.new line, name
+      AST::ClassVariableAccess.new line, name
     end
 
     def process_cvasgn(line, name, value)
-      AST::CVarAssign.new line, name, value
+      AST::ClassVariableAssignment.new line, name, value
     end
 
     def process_cvdecl(line, name, value)
-      AST::CVarDeclare.new line, name, value
+      AST::ClassVariableAssignment.new line, name, value
     end
 
     def process_defined(line, expr)
@@ -234,11 +234,11 @@ module Rubinius
     end
 
     def process_gasgn(line, name, expr)
-      AST::GVarAssign.new line, name, expr
+      AST::GlobalVariableAssignment.new line, name, expr
     end
 
     def process_gvar(line, name)
-      AST::GVar.new line, name
+      AST::GlobalVariableAccess.new line, name
     end
 
     def process_hash(line, array)
@@ -246,7 +246,7 @@ module Rubinius
     end
 
     def process_iasgn(line, name, value)
-      AST::IVarAssign.new line, name, value
+      AST::InstanceVariableAssignment.new line, name, value
     end
 
     def process_if(line, cond, body, else_body)
@@ -259,11 +259,11 @@ module Rubinius
     end
 
     def process_ivar(line, name)
-      AST::IVar.new line, name
+      AST::InstanceVariableAccess.new line, name
     end
 
     def process_lasgn(line, name, value)
-      AST::LocalAssignment.new line, name, value
+      AST::LocalVariableAssignment.new line, name, value
     end
 
     def process_lit(line, sym)
@@ -271,7 +271,7 @@ module Rubinius
     end
 
     def process_lvar(line, name)
-      AST::LocalAccess.new line, name
+      AST::LocalVariableAccess.new line, name
     end
 
     def process_masgn(line, left, right, splat)

@@ -142,7 +142,7 @@ module Rubinius
           case node
           when ClosedScope
             result = nil
-          when CVar, CVarAssign
+          when ClassVariableAccess, ClassVariableAssignment
             node.in_module if scope.module?
           when LocalVariable
             scope.assign_local_reference node
@@ -382,10 +382,10 @@ module Rubinius
         last -= 1 if @block_arg and @block_arg.name == names[last]
         last -= 1 if @splat == names[last]
 
-        arguments.array = @names[0..last].map { |name| LocalAccess.new line, name }
+        arguments.array = @names[0..last].map { |name| LocalVariableAccess.new line, name }
 
         if @splat.kind_of? Symbol
-          arguments.splat = SplatValue.new(line, LocalAccess.new(line, @splat))
+          arguments.splat = SplatValue.new(line, LocalVariableAccess.new(line, @splat))
         end
 
         arguments
@@ -420,12 +420,14 @@ module Rubinius
       end
     end
 
-    class LocalVariable < Node
-      attr_accessor :name
+    module LocalVariable
+      attr_accessor :variable
     end
 
-    class BlockArgument < LocalVariable
-      attr_accessor :variable
+    class BlockArgument < Node
+      include LocalVariable
+
+      attr_accessor :name
 
       def initialize(line, name)
         @line = line

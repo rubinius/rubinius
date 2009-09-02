@@ -32,14 +32,26 @@ module Rubinius
       end
     end
 
-    class CVar < Node
+    class VariableAccess < Node
       attr_accessor :name
 
       def initialize(line, name)
         @line = line
         @name = name
       end
+    end
 
+    class VariableAssignment < Node
+      attr_accessor :name, :value
+
+      def initialize(line, name, value)
+        @line = line
+        @name = name
+        @value = value
+      end
+    end
+
+    class ClassVariableAccess < VariableAccess
       def in_module
         @in_module = true
       end
@@ -82,15 +94,7 @@ module Rubinius
       end
     end
 
-    class CVarAssign < Node
-      attr_accessor :name, :value
-
-      def initialize(line, name, value)
-        @line = line
-        @name = name
-        @value = value
-      end
-
+    class ClassVariableAssignment < VariableAssignment
       def in_module
         @in_module = true
       end
@@ -119,17 +123,10 @@ module Rubinius
       end
     end
 
-    class CVarDeclare < CVarAssign
+    class CVarDeclare < ClassVariableAssignment
     end
 
-    class GVar < Node
-      attr_accessor :name
-
-      def initialize(line, name)
-        @line = line
-        @name = name
-      end
-
+    class GlobalVariableAccess < VariableAccess
       def bytecode(g)
         pos(g)
 
@@ -147,15 +144,7 @@ module Rubinius
       end
     end
 
-    class GVarAssign < Node
-      attr_accessor :name, :value
-
-      def initialize(line, name, expr)
-        @line = line
-        @name = name
-        @value = expr
-      end
-
+    class GlobalVariableAssignment < VariableAssignment
       def bytecode(g)
         pos(g)
 
@@ -214,14 +203,7 @@ module Rubinius
     class EmptySplat < Node
     end
 
-    class IVar < Node
-      attr_accessor :name
-
-      def initialize(line, name)
-        @line = line
-        @name = name
-      end
-
+    class InstanceVariableAccess < VariableAccess
       def bytecode(g)
         pos(g)
 
@@ -229,15 +211,7 @@ module Rubinius
       end
     end
 
-    class IVarAssign < Node
-      attr_accessor :name, :value
-
-      def initialize(line, name, value)
-        @line = line
-        @name = name
-        @value = value
-      end
-
+    class InstanceVariableAssignment < VariableAssignment
       def bytecode(g)
         pos(g)
 
@@ -246,8 +220,8 @@ module Rubinius
       end
     end
 
-    class LocalAccess < LocalVariable
-      attr_accessor :variable
+    class LocalVariableAccess < VariableAccess
+      include LocalVariable
 
       def initialize(line, name)
         @line = line
@@ -259,8 +233,8 @@ module Rubinius
       end
     end
 
-    class LocalAssignment < LocalVariable
-      attr_accessor :value, :variable
+    class LocalVariableAssignment < VariableAssignment
+      include LocalVariable
 
       def initialize(line, name, value)
         @line = line

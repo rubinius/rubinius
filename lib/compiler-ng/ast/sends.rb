@@ -58,7 +58,7 @@ module Rubinius
       end
     end
 
-    class AttrAssign < SendWithArguments
+    class AttributeAssignment < SendWithArguments
       def initialize(line, receiver, name, arguments)
         @line = line
 
