@@ -3,11 +3,10 @@ module Rubinius
     class Alias < Node
       attr_accessor :to, :from
 
-      def self.from(p, to, from)
-        node = Alias.new p.compiler
-        node.to = to
-        node.from = from
-        node
+      def initialize(line, to, from)
+        @line = line
+        @to = to
+        @from = from
       end
 
       def bytecode(g)
@@ -18,16 +17,7 @@ module Rubinius
       end
     end
 
-    class VAlias < Node
-      attr_accessor :to, :from
-
-      def self.from(p, to, from)
-        node = VAlias.new p.compiler
-        node.to = to
-        node.from = from
-        node
-      end
-
+    class VAlias < Alias
       def bytecode(g)
         pos(g)
 
@@ -43,11 +33,9 @@ module Rubinius
     class Undef < Node
       attr_accessor :name
 
-      def self.from(p, sym)
-        literal = Literal.new(p.compiler).normalize(sym)
-        node = Undef.new p.compiler
-        node.name = literal.value
-        node
+      def initialize(line, sym)
+        @line = line
+        @name = sym
       end
 
       def bytecode(g)
@@ -66,10 +54,9 @@ module Rubinius
     class Block < Node
       attr_accessor :array
 
-      def self.from(p, array)
-        node = Block.new p.compiler
-        node.array = array
-        node
+      def initialize(line, array)
+        @line = line
+        @array = array
       end
 
       def strip_arguments
@@ -105,8 +92,8 @@ module Rubinius
     class ClosedScope < Node
       attr_accessor :locals
 
-      def new_description
-        Compiler::MethodDescription.new(@compiler.generator_class, self.locals)
+      def new_description(g)
+        Compiler::MethodDescription.new(g.class, self.locals)
       end
 
       def argument_info
@@ -187,7 +174,7 @@ module Rubinius
       end
 
       def attach_and_call(g, name, scoped=false)
-        desc = new_description()
+        desc = new_description(g)
         desc.name = name
         meth = desc.generator
 
@@ -223,14 +210,13 @@ module Rubinius
     class Define < ClosedScope
       attr_accessor :name, :arguments, :body
 
-      def self.from(p, name, block)
-        node = Define.new p.compiler
-        node.name = name
-        node.arguments = block.strip_arguments
-        block.array << Nil.from(p) if block.array.empty?
-        node.body = block
-        node.map_super
-        node
+      def initialize(line, name, block)
+        @line = line
+        @name = name
+        @arguments = block.strip_arguments
+        block.array << Nil.new(line) if block.array.empty?
+        @body = block
+        map_super
       end
 
       # TODO: fix
@@ -247,7 +233,7 @@ module Rubinius
             result = nil
           when ZSuper
             node.name = name
-            node.arguments = arguments.to_actual
+            node.arguments = arguments.to_actual node.line
             node.block = arguments.block_arg
           when Super
             node.name = name
@@ -258,7 +244,7 @@ module Rubinius
       end
 
       def compile_body(g)
-        desc = new_description()
+        desc = new_description(g)
         meth = desc.generator
 
         # prelude(g, meth)
@@ -293,7 +279,7 @@ module Rubinius
         g.push_literal compile_body(g)
         g.push_scope
 
-        if @compiler.kernel?
+        if kernel?
           g.push :nil
         else
           g.push_variables
@@ -307,15 +293,9 @@ module Rubinius
     class DefineSingleton < Define
       attr_accessor :receiver
 
-      def self.from(p, receiver, name, block)
-        node = DefineSingleton.new p.compiler
-        node.receiver = receiver
-        node.name = name
-        node.arguments = block.strip_arguments
-        block.array << Nil.from(p) if block.array.empty?
-        node.body = block
-        node.map_super
-        node
+      def initialize(line, receiver, name, block)
+        @receiver = receiver
+        super line, name, block
       end
 
       def bytecode(g)
@@ -323,7 +303,7 @@ module Rubinius
 
         scope_bytecode(g)
 
-        if @compiler.kernel?
+        if kernel?
           g.push_const :Rubinius
           g.push_literal @name
           g.push_literal compile_body(g)
@@ -349,27 +329,25 @@ module Rubinius
       attr_accessor :names, :required, :optional, :defaults, :splat
       attr_reader :block_arg
 
-      def self.from(p, args, defaults, splat)
-        node = FormalArguments.new p.compiler
+      def initialize(line, args, defaults, splat)
+        @line = line
 
         if defaults
-          defaults = DefaultArguments.from p, defaults
-          node.defaults = defaults
-          node.optional = defaults.names
+          defaults = DefaultArguments.new line, defaults
+          @defaults = defaults
+          @optional = defaults.names
 
           stop = defaults.names.first
           last = args.each_with_index { |a, i| break i if a == stop }
-          node.required = args[0, last]
+          @required = args[0, last]
         else
-          node.required = args.dup
-          node.optional = []
+          @required = args.dup
+          @optional = []
         end
 
         args << splat if splat.kind_of? Symbol
-        node.names = args
-        node.splat = splat
-
-        node
+        @names = args
+        @splat = splat
       end
 
       def block_arg=(node)
@@ -397,28 +375,17 @@ module Rubinius
         scope.assign_local_reference @block_arg if @block_arg
       end
 
-      def to_actual
-        arguments = ActualArguments.new @compiler
+      def to_actual(line)
+        arguments = ActualArguments.new line
 
         last = -1
         last -= 1 if @block_arg and @block_arg.name == names[last]
         last -= 1 if @splat == names[last]
 
-        locals = @names[0..last].map do |name|
-          local = LocalAccess.new @compiler
-          local.name = name
-          local
-        end
-        arguments.array = locals
+        arguments.array = @names[0..last].map { |name| LocalAccess.new line, name }
 
         if @splat.kind_of? Symbol
-          value = LocalAccess.new @compiler
-          value.name = @splat
-
-          splat = SplatValue.new @compiler
-          splat.value = value
-
-          arguments.splat = splat
+          arguments.splat = SplatValue.new(line, LocalAccess.new(line, @splat))
         end
 
         arguments
@@ -428,12 +395,11 @@ module Rubinius
     class DefaultArguments < Node
       attr_accessor :arguments, :names
 
-      def self.from(p, block)
-        node = DefaultArguments.new p.compiler
+      def initialize(line, block)
+        @line = line
         array = block.array
-        node.names = array.map { |a| a.name }
-        node.arguments = array
-        node
+        @names = array.map { |a| a.name }
+        @arguments = array
       end
 
       def map_arguments(scope)
@@ -461,10 +427,9 @@ module Rubinius
     class BlockArgument < LocalVariable
       attr_accessor :variable
 
-      def self.from(p, name)
-        node = BlockArgument.new p.compiler
-        node.name = name
-        node
+      def initialize(line, name)
+        @line = line
+        @name = name
       end
 
       def bytecode(g)
@@ -489,26 +454,22 @@ module Rubinius
     class ClassWrapper < Node
       attr_accessor :name, :superclass, :body
 
-      def self.from(p, name, superclass, body)
-        node = ClassWrapper.new p.compiler
+      def initialize(line, name, superclass, body)
+        @line = line
 
-        superclass = Nil.from p unless superclass
-        node.superclass = superclass
+        @superclass = superclass ? superclass : Nil.new(line)
 
         if name.kind_of? Symbol
-          name = ClassName.from p, name, superclass
+          @name = ClassName.new line, name, @superclass
         else
-          name = ScopedClassName.from p, name, superclass
+          @name = ScopedClassName.new line, name, @superclass
         end
-        node.name = name
 
         if body
-          node.body = ClassScope.from p, name, body
+          @body = ClassScope.new line, @name, body
         else
-          node.body = EmptyBody.from p
+          @body = EmptyBody.new line
         end
-
-        node
       end
 
       def children
@@ -524,11 +485,10 @@ module Rubinius
     class ClassScope < ClosedScope
       attr_accessor :name, :body
 
-      def self.from(p, name, body)
-        node = ClassScope.new p.compiler
-        node.name = name
-        node.body = body
-        node
+      def initialize(line, name, body)
+        @line = line
+        @name = name
+        @body = body
       end
 
       def module?
@@ -551,11 +511,10 @@ module Rubinius
     class ClassName < Node
       attr_accessor :name, :superclass
 
-      def self.from(p, name, superclass)
-        node = ClassName.new p.compiler
-        node.name = name
-        node.superclass = superclass
-        node
+      def initialize(line, name, superclass)
+        @line = line
+        @name = name
+        @superclass = superclass
       end
 
       def name_bytecode(g)
@@ -578,12 +537,11 @@ module Rubinius
     class ScopedClassName < ClassName
       attr_accessor :parent
 
-      def self.from(p, parent, superclass)
-        node = ScopedClassName.new p.compiler
-        node.name = parent.name
-        node.parent = parent.parent
-        node.superclass = superclass
-        node
+      def initialize(line, parent, superclass)
+        @line = line
+        @name = parent.name
+        @parent = parent.parent
+        @superclass = superclass
       end
 
       def bytecode(g)
@@ -600,23 +558,20 @@ module Rubinius
     class ModuleWrapper < Node
       attr_accessor :name, :body
 
-      def self.from(p, name, body)
-        node = ModuleWrapper.new p.compiler
+      def initialize(line, name, body)
+        @line = line
 
         if name.kind_of? Symbol
-          name = ModuleName.from p, name
+          @name = ModuleName.new line, name
         else
-          name = ScopedModuleName.from p, name
+          @name = ScopedModuleName.new line, name
         end
-        node.name = name
 
         if body
-          node.body = ModuleScope.from p, name, body
+          @body = ModuleScope.new line, @name, body
         else
-          node.body = EmptyBody.from p
+          @body = EmptyBody.new line
         end
-
-        node
       end
 
       def children
@@ -630,10 +585,6 @@ module Rubinius
     end
 
     class EmptyBody < Node
-      def self.from(p)
-        EmptyBody.new p.compiler
-      end
-
       def bytecode(g)
         g.pop
         g.push :nil
@@ -643,10 +594,9 @@ module Rubinius
     class ModuleName < Node
       attr_accessor :name
 
-      def self.from(p, name)
-        node = ModuleName.new p.compiler
-        node.name = name
-        node
+      def initialize(line, name)
+        @line = line
+        @name = name
       end
 
       def name_bytecode(g)
@@ -664,11 +614,10 @@ module Rubinius
     class ScopedModuleName < ModuleName
       attr_accessor :parent
 
-      def self.from(p, parent)
-        node = ScopedModuleName.new p.compiler
-        node.name = parent.name
-        node.parent = parent.parent
-        node
+      def initialize(line, parent)
+        @line = line
+        @name = parent.name
+        @parent = parent.parent
       end
 
       def bytecode(g)
@@ -685,11 +634,10 @@ module Rubinius
     class ModuleScope < ClosedScope
       attr_accessor :name, :body
 
-      def self.from(p, name, body)
-        node = ModuleScope.new p.compiler
-        node.name = name
-        node.body = body
-        node
+      def initialize(line, name, body)
+        @line = line
+        @name = name
+        @body = body
       end
 
       def module?
@@ -711,11 +659,10 @@ module Rubinius
     class SClass < ClosedScope
       attr_accessor :receiver, :name, :body
 
-      def self.from(p, receiver, body)
-        node = SClass.new p.compiler
-        node.receiver = receiver
-        node.body = body
-        node
+      def initialize(line, receiver, body)
+        @line = line
+        @receiver = receiver
+        @body = body
       end
 
       def bytecode(g)
@@ -733,25 +680,11 @@ module Rubinius
       end
     end
 
-    class Scope < Node
-      attr_accessor :body
-
-      def self.from(p, body)
-        if body.kind_of? Block
-          body
-        elsif body
-          Block.from p, [body]
-        end
-      end
-    end
-
     class Snippit < ClosedScope
       attr_accessor :body
 
-      def self.from(compiler, body)
-        node = Snippit.new compiler
-        node.body = body
-        node
+      def initialize(body)
+        @body = body
       end
 
       def args(body)
@@ -772,16 +705,14 @@ module Rubinius
     class Script < ClosedScope
       attr_accessor :body
 
-      def self.from(p, body)
-        node = Script.new p.compiler
-        node.body = body
-        node
+      def initialize(body)
+        @body = body
       end
 
       def bytecode(g)
         super(g)
 
-        prelude(nil, g)
+        # prelude(nil, g)
         @body.bytecode(g)
         g.pop
         g.push :true
@@ -792,10 +723,9 @@ module Rubinius
     class Defined < Node
       attr_accessor :expression
 
-      def self.from(p, expr)
-        node = Defined.new p.compiler
-        node.expression = expr
-        node
+      def initialize(line, expr)
+        @line = line
+        @expression = expr
       end
 
       def bytecode(g)

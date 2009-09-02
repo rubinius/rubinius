@@ -3,12 +3,11 @@ module Rubinius
     class Send < Node
       attr_accessor :receiver, :name, :privately, :block
 
-      def self.from(p, receiver, name, privately=true)
-        node = Send.new p.compiler
-        node.receiver = receiver
-        node.name = name
-        node.privately = privately
-        node
+      def initialize(line, receiver, name, privately=true)
+        @line = line
+        @receiver = receiver
+        @name = name
+        @privately = privately
       end
 
       def children
@@ -32,13 +31,9 @@ module Rubinius
     class SendWithArguments < Send
       attr_accessor :arguments
 
-      def self.from(p, receiver, name, arguments, privately=true)
-        node = SendWithArguments.new p.compiler
-        node.receiver = receiver
-        node.name = name
-        node.arguments = ActualArguments.from p, arguments
-        node.privately = privately
-        node
+      def initialize(line, receiver, name, arguments, privately=true)
+        super line, receiver, name, privately
+        @arguments = ActualArguments.new line, arguments
       end
 
       def children
@@ -64,35 +59,23 @@ module Rubinius
     end
 
     class AttrAssign < SendWithArguments
-      attr_accessor :receiver, :name, :arguments, :privately
+      def initialize(line, receiver, name, arguments)
+        @line = line
 
-      def self.from(p, receiver, name, arguments)
-        node = AttrAssign.new p.compiler
-
-        node.receiver = receiver
-        if receiver.kind_of? Self
-          node.privately = true
-        else
-          node.privately = false
-        end
+        @receiver = receiver
+        @privately = receiver.kind_of?(Self) ? true : false
 
         name_str = name.to_s
-        if name_str[-1] == ?=
-          node.name = name
-        else
-          node.name = :"#{name_str}="
-        end
+        @name = name_str[-1] == ?= ? name : :"#{name_str}="
 
         case arguments
         when PushArgs
-          node.arguments = arguments
+          @arguments = arguments
         when nil
-          # TODO: in masgn
+          # nothing, in masgn
         else
-          node.arguments = ActualArguments.from p, arguments
+          @arguments = ActualArguments.new line, arguments
         end
-
-        node
       end
 
       def children
@@ -126,11 +109,10 @@ module Rubinius
     class PushArgs < Node
       attr_accessor :arguments, :value
 
-      def self.from(p, arguments, value)
-        node = PushArgs.new p.compiler
-        node.arguments = arguments
-        node.value = value
-        node
+      def initialize(line, arguments, value)
+        @line = line
+        @arguments = arguments
+        @value = value
       end
 
       def size
@@ -154,10 +136,9 @@ module Rubinius
     class BlockPass < Node
       attr_accessor :block
 
-      def self.from(p, block)
-        node = BlockPass.new p.compiler
-        node.block = block
-        node
+      def initialize(line, block)
+        @line = line
+        @block = block
       end
 
       def children
@@ -186,25 +167,23 @@ module Rubinius
     class ActualArguments < Node
       attr_accessor :array, :splat
 
-      def self.from(p, arguments)
-        node = ActualArguments.new p.compiler
+      def initialize(line, arguments=nil)
+        @line = line
 
         case arguments
         when SplatValue
-          node.splat = arguments
-          node.array = []
+          @splat = arguments
+          @array = []
         when ConcatArgs
-          node.array = arguments.array.body
-          node.splat = SplatValue.from p, arguments.rest
+          @array = arguments.array.body
+          @splat = SplatValue.new line, arguments.rest
         when ArrayLiteral
-          node.array = arguments.body
+          @array = arguments.body
         when nil
-          node.array = []
+          @array = []
         else
-          node.array = [arguments]
+          @array = [arguments]
         end
-
-        node
       end
 
       def size
@@ -230,11 +209,10 @@ module Rubinius
     class Iter < Node
       attr_accessor :parent, :arguments, :body
 
-      def self.from(p, arguments, body)
-        node = Iter.new p.compiler
-        node.arguments = IterArguments.from p, arguments
-        node.body = body || Nil.from(p)
-        node
+      def initialize(line, arguments, body)
+        @line = line
+        @arguments = IterArguments.new line, arguments
+        @body = body || Nil.new(line)
       end
 
       # TODO: fix
@@ -309,7 +287,7 @@ module Rubinius
 
         map_iter
 
-        desc = Compiler::MethodDescription.new @compiler.generator_class, @locals
+        desc = Compiler::MethodDescription.new g.class, @locals
         desc.name = :__block__
         desc.for_block = true
         desc.required = @arguments.arity
@@ -338,39 +316,37 @@ module Rubinius
     class IterArguments < Node
       attr_accessor :prelude, :arity, :optional, :arguments
 
-      def self.from(p, arguments)
-        node = IterArguments.new p.compiler
-        node.optional = 0
+      def initialize(line, arguments)
+        @line = line
+        @optional = 0
 
         array = []
         case arguments
         when Fixnum
-          node.arity = 0
+          @arity = 0
         when MAsgn
-          node.arguments = arguments
+          @arguments = arguments
 
           if arguments.splat
-            node.optional = 1
+            @optional = 1
             if arguments.left
-              node.prelude = :multi
-              node.arity = -(arguments.left.body.size + 1)
+              @prelude = :multi
+              @arity = -(arguments.left.body.size + 1)
             else
-              node.prelude = :splat
-              node.arity = -1
+              @prelude = :splat
+              @arity = -1
             end
           else
-            node.prelude = :multi
-            node.arity = arguments.left.body.size
+            @prelude = :multi
+            @arity = arguments.left.body.size
           end
         when nil
-          node.arity = -1
+          @arity = -1
         else # Assignment
-          node.arguments = arguments
-          node.arity = 1
-          node.prelude = :single
+          @arguments = arguments
+          @arity = 1
+          @prelude = :single
         end
-
-        node
       end
 
       def children
@@ -402,16 +378,10 @@ module Rubinius
     end
 
     class For < Iter
-      def self.from(p, iter, arguments, body)
-        node = For.new p.compiler
-
-        node.arguments = IterArguments.from p, arguments
-        node.body = body || Nil.from(p)
-
-        method_send = Send.from p, iter, :each, false
-        method_send.block = node
-
-        method_send
+      def initialize(line, arguments, body)
+        @line = line
+        @arguments = IterArguments.new line, arguments
+        @body = body || Nil.new(line)
       end
 
       def variables
@@ -449,10 +419,9 @@ module Rubinius
     class Negate < Node
       attr_accessor :value
 
-      def self.from(p, expr)
-        node = Negate.new p.compiler
-        node.value = expr
-        node
+      def initialize(line, value)
+        @line = line
+        @value = value
       end
 
       def bytecode(g)
@@ -467,14 +436,12 @@ module Rubinius
       end
     end
 
-    # TODO: fix superclass
     class Super < SendWithArguments
       attr_accessor :name, :block
 
-      def self.from(p, arguments)
-        node = Super.new p.compiler
-        node.arguments = ActualArguments.from p, arguments
-        node
+      def initialize(line, arguments)
+        @line = line
+        @arguments = ActualArguments.new line, arguments
       end
 
       def children
@@ -504,20 +471,17 @@ module Rubinius
       end
     end
 
-    # TODO: fix superclass
     class Yield < SendWithArguments
       attr_accessor :flags
 
-      def self.from(p, arguments, unwrap)
-        node = Yield.new p.compiler
+      def initialize(line, arguments, unwrap)
+        @line = line
 
         if arguments.kind_of? ArrayLiteral and not unwrap
-          arguments = ArrayLiteral.from p, [arguments]
+          arguments = ArrayLiteral.new line, [arguments]
         end
 
-        node.arguments = ActualArguments.from p, arguments
-
-        node
+        @arguments = ActualArguments.new line, arguments
       end
 
       def children
@@ -538,8 +502,8 @@ module Rubinius
     end
 
     class ZSuper < Super
-      def self.from(p)
-        ZSuper.new p.compiler
+      def initialize(line)
+        @line = line
       end
 
       def block_bytecode(g)

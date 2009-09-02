@@ -3,11 +3,10 @@ module Rubinius
     class ConstAccess < Node
       attr_accessor :parent, :name
 
-      def self.from(p, parent, name)
-        node = ConstAccess.new p.compiler
-        node.parent = parent
-        node.name = name
-        node
+      def initialize(line, parent, name)
+        @line = line
+        @parent = parent
+        @name = name
       end
 
       def children
@@ -25,11 +24,10 @@ module Rubinius
     class ConstAtTop < Node
       attr_accessor :parent, :name
 
-      def self.from(p, name)
-        node = ConstAtTop.new p.compiler
-        node.name = name
-        node.parent = TopLevel.from p
-        node
+      def initialize(line, name)
+        @line = line
+        @name = name
+        @parent = TopLevel.new line
       end
 
       def bytecode(g)
@@ -41,10 +39,6 @@ module Rubinius
     end
 
     class TopLevel < Node
-      def self.from(p)
-        TopLevel.new p.compiler
-      end
-
       def bytecode(g)
         g.push_cpath_top
       end
@@ -53,10 +47,9 @@ module Rubinius
     class ConstFind < Node
       attr_accessor :name
 
-      def self.from(p, name)
-        node = ConstFind.new p.compiler
-        node.name = name
-        node
+      def initialize(line, name)
+        @line = line
+        @name = name
       end
 
       def bytecode(g)
@@ -68,17 +61,16 @@ module Rubinius
     class ConstSet < Node
       attr_accessor :parent, :name, :value
 
-      def self.from(p, name, value)
-        node = ConstSet.new p.compiler
-        case name
-        when Symbol
-          node.name = ConstName.from p, name
+      def initialize(line, name, value)
+        @line = line
+        @value = value
+
+        if name.kind_of? Symbol
+          @name = ConstName.new line, name
         else
-          node.parent = name.parent
-          node.name = ConstName.from p, name.name
+          @parent = name.parent
+          @name = ConstName.new line, name.name
         end
-        node.value = value
-        node
       end
 
       def children
@@ -88,7 +80,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        if @compiler.kernel?
+        if kernel?
           if @parent
             @parent.bytecode(g)
             @value.bytecode(g)
@@ -112,10 +104,9 @@ module Rubinius
     class ConstName < Node
       attr_accessor :name
 
-      def self.from(p, name)
-        node = ConstName.new p.compiler
-        node.name = name
-        node
+      def initialize(line, name)
+        @line = line
+        @name = name
       end
 
       def bytecode(g)

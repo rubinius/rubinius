@@ -3,11 +3,10 @@ module Rubinius
     class And < Node
       attr_accessor :left, :right
 
-      def self.from(p, left, right)
-        node = And.new p.compiler
-        node.left = left
-        node.right = right
-        node
+      def initialize(line, left, right)
+        @line = line
+        @left = left
+        @right = right
       end
 
       def children
@@ -32,13 +31,6 @@ module Rubinius
     end
 
     class Or < And
-      def self.from(p, left, right)
-        node = Or.new p.compiler
-        node.left = left
-        node.right = right
-        node
-      end
-
       def bytecode(g)
         super(g, false)
       end
@@ -47,10 +39,9 @@ module Rubinius
     class Not < Node
       attr_accessor :value
 
-      def self.from(p, value)
-        node = Not.new p.compiler
-        node.value = value
-        node
+      def initialize(line, value)
+        @line = line
+        @value = value
       end
 
       def bytecode(g)
@@ -72,13 +63,12 @@ module Rubinius
     class OpAssign1 < Node
       attr_accessor :receiver, :op, :index, :value
 
-      def self.from(p, receiver, index, op, value)
-        node = OpAssign1.new p.compiler
-        node.receiver = receiver
-        node.op = op
-        node.index = index.body
-        node.value = value
-        node
+      def initialize(line, receiver, index, op, value)
+        @line = line
+        @receiver = receiver
+        @op = op
+        @index = index.body
+        @value = value
       end
 
       def children
@@ -184,14 +174,13 @@ module Rubinius
     class OpAssign2 < Node
       attr_accessor :receiver, :name, :assign, :op, :value
 
-      def self.from(p, receiver, name, op, value)
-        node = OpAssign2.new p.compiler
-        node.receiver = receiver
-        node.name = name
-        node.op = op
-        node.value = value
-        node.assign = name.to_s[-1] == ?= ? name : :"#{name}="
-        node
+      def initialize(line, receiver, name, op, value)
+        @line = line
+        @receiver = receiver
+        @name = name
+        @op = op
+        @value = value
+        @assign = name.to_s[-1] == ?= ? name : :"#{name}="
       end
 
       def children
@@ -262,11 +251,10 @@ module Rubinius
     class OpAssignAnd < Node
       attr_accessor :left, :right
 
-      def self.from(p, left, right)
-        node = OpAssignAnd.new p.compiler
-        node.left = left
-        node.right = right
-        node
+      def initialize(line, left, right)
+        @line = line
+        @left = left
+        @right = right
       end
 
       def children
@@ -287,13 +275,6 @@ module Rubinius
     end
 
     class OpAssignOr < OpAssignAnd
-      def self.from(p, left, right)
-        node = OpAssignOr.new p.compiler
-        node.left = left
-        node.right = right
-        node
-      end
-
       def bytecode(g)
         pos(g)
 

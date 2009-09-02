@@ -8,7 +8,7 @@ class CompileAsMatcher
     compiler.instance_variable_get(:@plugins).clear
     @plugins.each { |plugin| compiler.activate plugin }
 
-    node = Rubinius::AST::Snippit.from compiler, actual.to_ast
+    node = Rubinius::AST::Snippit.new actual.to_ast
 
     generator = TestGenerator.new
     node.bytecode generator

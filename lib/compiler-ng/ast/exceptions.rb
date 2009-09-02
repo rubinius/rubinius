@@ -3,10 +3,9 @@ module Rubinius
     class Begin < Node
       attr_accessor :rescue
 
-      def self.from(p, body)
-        node = Begin.new p.compiler
-        node.rescue = body
-        node
+      def initialize(line, body)
+        @line = line
+        @rescue = body
       end
 
       def children
@@ -21,11 +20,10 @@ module Rubinius
     class Ensure < Node
       attr_accessor :body, :ensure
 
-      def self.from(p, body, ensr)
-        node = Ensure.new p.compiler
-        node.body = body || Nil.from(p)
-        node.ensure = ensr
-        node
+      def initialize(line, body, ensr)
+        @line = line
+        @body = body || Nil.new(line)
+        @ensure = ensr
       end
 
       def children
@@ -64,12 +62,11 @@ module Rubinius
     class Rescue < Node
       attr_accessor :body, :rescue, :else
 
-      def self.from(p, body, resc, els)
-        node = Rescue.new p.compiler
-        node.body = body
-        node.rescue = resc
-        node.else = els
-        node
+      def initialize(line, body, rescue_body, else_body)
+        @line = line
+        @body = body
+        @rescue = rescue_body
+        @else = else_body
       end
 
       def children
@@ -125,43 +122,41 @@ module Rubinius
     class RescueCondition < Node
       attr_accessor :conditions, :assignment, :body, :next, :splat
 
-      def self.from(p, conditions, body, nxt)
-        node = RescueCondition.new p.compiler
-        node.next = nxt
+      def initialize(line, conditions, body, nxt)
+        @line = line
+        @next = nxt
 
         case conditions
         when ArrayLiteral
-          node.conditions = conditions
+          @conditions = conditions
         when ConcatArgs
-          node.conditions = conditions.array
-          node.splat = RescueSplat.from p, conditions.rest
+          @conditions = conditions.array
+          @splat = RescueSplat.new line, conditions.rest
         when SplatValue
-          node.splat = RescueSplat.from p, conditions.value
+          @splat = RescueSplat.new line, conditions.value
         when nil
-          condition = ConstFind.from p, :StandardError
-          node.conditions = ArrayLiteral.from p, [condition]
+          condition = ConstFind.new line, :StandardError
+          @conditions = ArrayLiteral.new line, [condition]
         end
 
         case body
         when ArrayLiteral
-          node.assignment = body.shift if assignment? body.first
-          node.body = body
+          @assignment = body.shift if assignment? body.first
+          @body = body
         when nil
-          node.body = Nil.from p
+          @body = Nil.new line
         else
           if assignment? body
-            node.assignment = body
-            node.body = Nil.from p
+            @assignment = body
+            @body = Nil.new line
           else
-            node.body = body
+            @body = body
           end
         end
-
-        node
       end
 
       # TODO: simplify after assignment nodes are subclasses of Assignment
-      def self.assignment?(node)
+      def assignment?(node)
         (node.kind_of? LocalAssignment or
          node.kind_of? IVarAssign or
          node.kind_of? CVarAssign or
@@ -249,10 +244,9 @@ module Rubinius
     class RescueSplat < Node
       attr_accessor :value
 
-      def self.from(p, value)
-        node = RescueSplat.new p.compiler
-        node.value = value
-        node
+      def initialize(line, value)
+        @line = line
+        @value = value
       end
 
       def bytecode(g, body)

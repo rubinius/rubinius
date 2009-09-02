@@ -3,10 +3,9 @@ module Rubinius
     class SplatValue < Node
       attr_accessor :value
 
-      def self.from(p, value)
-        node = SplatValue.new p.compiler
-        node.value = value
-        node
+      def initialize(line, value)
+        @line = line
+        @value = value
       end
 
       def children
@@ -22,12 +21,11 @@ module Rubinius
     class ConcatArgs < Node
       attr_accessor :array, :rest, :size
 
-      def self.from(p, array, rest)
-        node = ConcatArgs.new p.compiler
-        node.array = array
-        node.size = array.body.size
-        node.rest = rest
-        node
+      def initialize(line, array, rest)
+        @line = line
+        @array = array
+        @size = array.body.size
+        @rest = rest
       end
 
       def children
@@ -45,10 +43,9 @@ module Rubinius
     class SValue < Node
       attr_accessor :value
 
-      def self.from(p, expr)
-        node = SValue.new p.compiler
-        node.value = expr
-        node
+      def initialize(line, value)
+        @line = line
+        @value = value
       end
 
       def bytecode(g)
@@ -73,10 +70,9 @@ module Rubinius
     class ToArray < Node
       attr_accessor :value
 
-      def self.from(p, expr)
-        node = ToArray.new p.compiler
-        node.value = expr
-        node
+      def initialize(line, value)
+        @line = line
+        @value = value
       end
 
       def children
@@ -94,10 +90,9 @@ module Rubinius
     class ToString < Node
       attr_accessor :value
 
-      def self.from(p, value)
-        node = ToString.new p.compiler
-        node.value = value
-        node
+      def initialize(line, value)
+        @line = line
+        @value = value
       end
 
       def children

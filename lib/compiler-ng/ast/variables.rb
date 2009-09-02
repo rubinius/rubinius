@@ -3,10 +3,9 @@ module Rubinius
     class BackRef < Node
       attr_accessor :kind
 
-      def self.from(p, ref)
-        node = BackRef.new p.compiler
-        node.kind = ref
-        node
+      def initialize(line, ref)
+        @line = line
+        @kind = ref
       end
 
       def bytecode(g)
@@ -19,10 +18,9 @@ module Rubinius
     class NthRef < Node
       attr_accessor :which
 
-      def self.from(p, ref)
-        node = NthRef.new p.compiler
-        node.which = ref
-        node
+      def initialize(line, ref)
+        @line = line
+        @which = ref
       end
 
       def bytecode(g)
@@ -37,10 +35,9 @@ module Rubinius
     class CVar < Node
       attr_accessor :name
 
-      def self.from(p, name)
-        node = CVar.new p.compiler
-        node.name = name
-        node
+      def initialize(line, name)
+        @line = line
+        @name = name
       end
 
       def in_module
@@ -88,11 +85,10 @@ module Rubinius
     class CVarAssign < Node
       attr_accessor :name, :value
 
-      def self.from(p, name, value)
-        node = CVarAssign.new p.compiler
-        node.name = name
-        node.value = value
-        node
+      def initialize(line, name, value)
+        @line = line
+        @name = name
+        @value = value
       end
 
       def in_module
@@ -124,21 +120,14 @@ module Rubinius
     end
 
     class CVarDeclare < CVarAssign
-      def self.from(p, name, value)
-        node = CVarDeclare.new p.compiler
-        node.name = name
-        node.value = value
-        node
-      end
     end
 
     class GVar < Node
       attr_accessor :name
 
-      def self.from(p, name)
-        node = GVar.new p.compiler
-        node.name = name
-        node
+      def initialize(line, name)
+        @line = line
+        @name = name
       end
 
       def bytecode(g)
@@ -161,11 +150,10 @@ module Rubinius
     class GVarAssign < Node
       attr_accessor :name, :value
 
-      def self.from(p, name, expr)
-        node = GVarAssign.new p.compiler
-        node.name = name
-        node.value = expr
-        node
+      def initialize(line, name, expr)
+        @line = line
+        @name = name
+        @value = expr
       end
 
       def bytecode(g)
@@ -208,10 +196,9 @@ module Rubinius
     class SplatAssignment < Node
       attr_accessor :name, :value
 
-      def self.from(p, value)
-        node = SplatAssignment.new p.compiler
-        node.value = value
-        node
+      def initialize(line, value)
+        @line = line
+        @value = value
       end
 
       def children
@@ -225,18 +212,14 @@ module Rubinius
     end
 
     class EmptySplat < Node
-      def self.from(p)
-        EmptySplat.new p.compiler
-      end
     end
 
     class IVar < Node
       attr_accessor :name
 
-      def self.from(p, name)
-        node = IVar.new p.compiler
-        node.name = name
-        node
+      def initialize(line, name)
+        @line = line
+        @name = name
       end
 
       def bytecode(g)
@@ -249,11 +232,10 @@ module Rubinius
     class IVarAssign < Node
       attr_accessor :name, :value
 
-      def self.from(p, name, value)
-        node = IVarAssign.new p.compiler
-        node.name = name
-        node.value = value
-        node
+      def initialize(line, name, value)
+        @line = line
+        @name = name
+        @value = value
       end
 
       def bytecode(g)
@@ -267,10 +249,9 @@ module Rubinius
     class LocalAccess < LocalVariable
       attr_accessor :variable
 
-      def self.from(p, name)
-        node = LocalAccess.new p.compiler
-        node.name = name
-        node
+      def initialize(line, name)
+        @line = line
+        @name = name
       end
 
       def bytecode(g)
@@ -279,13 +260,12 @@ module Rubinius
     end
 
     class LocalAssignment < LocalVariable
-      attr_accessor :value, :depth, :variable
+      attr_accessor :value, :variable
 
-      def self.from(p, name, value)
-        node = LocalAssignment.new p.compiler
-        node.name = name
-        node.value = value
-        node
+      def initialize(line, name, value)
+        @line = line
+        @name = name
+        @value = value
       end
 
       def children
@@ -306,24 +286,18 @@ module Rubinius
     class MAsgn < Node
       attr_accessor :left, :right, :splat
 
-      def self.from(p, left, right, splat)
-        node = MAsgn.new p.compiler
-        node.left = left
-        node.right = right
+      def initialize(line, left, right, splat)
+        @line = line
+        @left = left
+        @right = right
 
         if splat.kind_of? Node
-          node.splat = SplatAssignment.from p, splat
+          @splat = SplatAssignment.new line, splat
         elsif splat
-          node.splat = EmptySplat.from p
+          @splat = EmptySplat.new line
         end
 
-        node.fixed if right.kind_of? ArrayLiteral
-
-        node
-      end
-
-      def fixed
-        @fixed = true
+        @fixed = true if right.kind_of? ArrayLiteral
       end
 
       def children

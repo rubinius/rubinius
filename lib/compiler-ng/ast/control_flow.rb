@@ -1,51 +1,12 @@
 module Rubinius
   module AST
-    class Break < Node
-      attr_accessor :value
-
-      def self.from(p, expr)
-        node = Break.new p.compiler
-        node.value = expr || Nil.from(p)
-        node
-      end
-
-      def jump_error(g, msg)
-        g.push :self
-        g.push_const :LocalJumpError
-        g.push_literal msg
-        g.send :raise, 2, true
-      end
-
-      def in_block
-        @in_block = true
-      end
-
-      def bytecode(g)
-        @value.bytecode(g)
-
-        g.pop_unwind if @pop_unwind
-
-        if g.break
-          g.goto g.break
-        elsif @in_block
-          g.raise_break
-        else
-          g.pop
-          g.push_const :Compiler
-          g.find_const :Utils
-          g.send :__unexpected_break__, 0
-        end
-      end
-    end
-
     class Case < Node
       attr_accessor :whens, :else
 
-      def self.from(p, whens, else_body)
-        node = Case.new p.compiler
-        node.whens = whens
-        node.else = else_body || Nil.from(p)
-        node
+      def initialize(line, whens, else_body)
+        @line = line
+        @whens = whens
+        @else = else_body || Nil.new(line)
       end
 
       def children
@@ -68,12 +29,11 @@ module Rubinius
     class ReceiverCase < Case
       attr_accessor :receiver
 
-      def self.from(p, receiver, whens, else_body)
-        node = ReceiverCase.new p.compiler
-        node.receiver = receiver
-        node.whens = whens
-        node.else = else_body || Nil.from(p)
-        node
+      def initialize(line, receiver, whens, else_body)
+        @line = line
+        @receiver = receiver
+        @whens = whens
+        @else = else_body || Nil.new(line)
       end
 
       def children
@@ -99,9 +59,9 @@ module Rubinius
     class When < Node
       attr_accessor :conditions, :body, :single, :splat
 
-      def self.from(p, conditions, body)
-        node = When.new p.compiler
-        node.body = body || Nil.from(p)
+      def initialize(line, conditions, body)
+        @line = line
+        @body = body || Nil.new(line)
 
         if conditions.kind_of? ArrayLiteral
           if conditions.body.last.kind_of? When
@@ -109,20 +69,18 @@ module Rubinius
             if last.conditions.kind_of? ArrayLiteral
               conditions.body.concat last.conditions.body
             else
-              node.splat = SplatWhen.from p, last.conditions
+              @splat = SplatWhen.new line, last.conditions
             end
           end
 
-          if conditions.body.size == 1 and !node.splat
-            node.single = conditions.body.first
+          if conditions.body.size == 1 and !@splat
+            @single = conditions.body.first
           else
-            node.conditions = conditions
+            @conditions = conditions
           end
         else
-          node.conditions = conditions
+          @conditions = conditions
         end
-
-        node
       end
 
       def children
@@ -195,10 +153,9 @@ module Rubinius
     class SplatWhen < Node
       attr_accessor :condition
 
-      def self.from(p, condition)
-        node = SplatWhen.new p.compiler
-        node.condition = condition
-        node
+      def initialize(line, condition)
+        @line = line
+        @condition = condition
       end
 
       def receiver_bytecode(g, body, nxt)
@@ -215,8 +172,10 @@ module Rubinius
     end
 
     class Flip2 < Node
-      def self.from(p, start, finish)
-        Flip2.new p.compiler
+      def initialize(line, start, finish)
+        @line = line
+        @start = start
+        @finish = finish
       end
 
       def bytecode(g)
@@ -224,8 +183,10 @@ module Rubinius
     end
 
     class Flip3 < Node
-      def self.from(p, start, finish)
-        Flip3.new p.compiler
+      def initialize(line, start, finish)
+        @line = line
+        @start = start
+        @finish = finish
       end
 
       def bytecode(g)
@@ -235,12 +196,11 @@ module Rubinius
     class If < Node
       attr_accessor :condition, :body, :else
 
-      def self.from(p, cond, body, else_body)
-        node = If.new p.compiler
-        node.condition = cond
-        node.body = body || Nil.from(p)
-        node.else = else_body || Nil.from(p)
-        node
+      def initialize(line, condition, body, else_body)
+        @line = line
+        @condition = condition
+        @body = body || Nil.new(line)
+        @else = else_body || Nil.new(line)
       end
 
       def children
@@ -269,12 +229,11 @@ module Rubinius
     class While < Node
       attr_accessor :condition, :body, :check_first
 
-      def self.from(p, condition, body, check_first)
-        node = While.new p.compiler
-        node.condition = condition
-        node.body = body
-        node.check_first = check_first
-        node
+      def initialize(line, condition, body, check_first)
+        @line = line
+        @condition = condition
+        @body = body
+        @check_first = check_first
       end
 
       def bytecode(g, use_gif=true)
@@ -333,14 +292,6 @@ module Rubinius
     end
 
     class Until < While
-      def self.from(p, condition, body, check_first)
-        node = Until.new p.compiler
-        node.condition = condition
-        node.body = body
-        node.check_first = check_first
-        node
-      end
-
       def bytecode(g)
         super(g, false)
       end
@@ -349,10 +300,9 @@ module Rubinius
     class Match < Node
       attr_accessor :pattern
 
-      def self.from(p, pattern, flags)
-        node = Match.new p.compiler
-        node.pattern = RegexLiteral.from p, pattern, flags
-        node
+      def initialize(line, pattern, flags)
+        @line = line
+        @pattern = RegexLiteral.new line, pattern, flags
       end
 
       def bytecode(g)
@@ -372,11 +322,10 @@ module Rubinius
     class Match2 < Node
       attr_accessor :pattern, :value
 
-      def self.from(p, pattern, value)
-        node = Match2.new p.compiler
-        node.pattern = pattern
-        node.value = value
-        node
+      def initialize(line, pattern, value)
+        @line = line
+        @pattern = pattern
+        @value = value
       end
 
       def bytecode(g)
@@ -391,11 +340,10 @@ module Rubinius
     class Match3 < Node
       attr_accessor :pattern, :value
 
-      def self.from(p, pattern, value)
-        node = Match3.new p.compiler
-        node.pattern = pattern
-        node.value = value
-        node
+      def initialize(line, pattern, value)
+        @line = line
+        @pattern = pattern
+        @value = value
       end
 
       def bytecode(g)
@@ -407,11 +355,47 @@ module Rubinius
       end
     end
 
+    class Break < Node
+      attr_accessor :value
+
+      def initialize(line, expr)
+        @line = line
+        @value = expr || Nil.new(line)
+      end
+
+      def jump_error(g, msg)
+        g.push :self
+        g.push_const :LocalJumpError
+        g.push_literal msg
+        g.send :raise, 2, true
+      end
+
+      def in_block
+        @in_block = true
+      end
+
+      def bytecode(g)
+        @value.bytecode(g)
+
+        g.pop_unwind if @pop_unwind
+
+        if g.break
+          g.goto g.break
+        elsif @in_block
+          g.raise_break
+        else
+          g.pop
+          g.push_const :Compiler
+          g.find_const :Utils
+          g.send :__unexpected_break__, 0
+        end
+      end
+    end
+
     class Next < Break
-      def self.from(p, expr)
-        node = Next.new p.compiler
-        node.value = expr
-        node
+      def initialize(line, value)
+        @line = line
+        @value = value
       end
 
       def in_block
@@ -440,8 +424,8 @@ module Rubinius
     end
 
     class Redo < Break
-      def self.from(p)
-        Redo.new p.compiler
+      def initialize(line)
+        @line = line
       end
 
       def bytecode(g)
@@ -456,8 +440,8 @@ module Rubinius
     end
 
     class Retry < Break
-      def self.from(p)
-        Retry.new p.compiler
+      def initialize(line)
+        @line = line
       end
 
       def bytecode(g)
@@ -474,10 +458,9 @@ module Rubinius
     class Return < Node
       attr_accessor :value
 
-      def self.from(p, expr)
-        node = Return.new p.compiler
-        node.value = expr
-        node
+      def initialize(line, expr)
+        @line = line
+        @value = expr
       end
 
       def children

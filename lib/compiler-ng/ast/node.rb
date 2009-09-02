@@ -1,12 +1,19 @@
 module Rubinius
   module AST
     class Node
-      def initialize(compiler)
-        @compiler = compiler
+      attr_accessor :line
+
+      def initialize(line)
+        @line = line
       end
 
       def pos(g)
         g.set_line @line, @file
+      end
+
+      # TODO: transform nodes that use this
+      def kernel?
+        false
       end
 
       def children

@@ -38,406 +38,418 @@ module Rubinius
     # Processing methods
 
     def process_alias(line, to, from)
-      AST::Alias.from self, to, from
+      AST::Alias.new line, to, from
     end
 
     def process_and(line, left, right)
-      AST::And.from self, left, right
+      AST::And.new line, left, right
     end
 
     def process_args(line, args, defaults, splat)
-      AST::FormalArguments.from self, args, defaults, splat
+      AST::FormalArguments.new line, args, defaults, splat
     end
 
     def process_argscat(line, array, rest)
-      AST::ConcatArgs.from self, array, rest
+      AST::ConcatArgs.new line, array, rest
     end
 
     def process_argspush(line, arguments, value)
-      AST::PushArgs.from self, arguments, value
+      AST::PushArgs.new line, arguments, value
     end
 
     def process_array(line, array)
-      AST::ArrayLiteral.from self, array
+      AST::ArrayLiteral.new line, array
     end
 
     def process_attrasgn(line, receiver, name, arguments)
-      AST::AttrAssign.from self, receiver, name, arguments
+      AST::AttrAssign.new line, receiver, name, arguments
     end
 
     def process_back_ref(line, ref)
-      AST::BackRef.from self, ref
+      AST::BackRef.new line, ref
     end
 
     def process_begin(line, body)
-      AST::Begin.from self, body
+      AST::Begin.new line, body
     end
 
     def process_block(line, array)
-      AST::Block.from self, array
+      AST::Block.new line, array
     end
 
     def process_block_arg(line, name)
-      AST::BlockArgument.from self, name
+      AST::BlockArgument.new line, name
     end
 
     def process_block_pass(line, method_send, block)
-      method_send.block = AST::BlockPass.from self, block
+      method_send.block = AST::BlockPass.new line, block
       method_send
     end
 
-    def process_break(line, expr)
-      AST::Break.from self, expr
+    def process_break(line, value)
+      AST::Break.new line, value
     end
 
     def process_call(line, receiver, name, arguments)
       if arguments
-        AST::SendWithArguments.from self, receiver, name, arguments, false
+        AST::SendWithArguments.new line, receiver, name, arguments, false
       else
-        AST::Send.from self, receiver, name, false
+        AST::Send.new line, receiver, name, false
       end
     end
 
     def process_case(line, receiver, whens, else_body)
       if receiver
-        AST::ReceiverCase.from self, receiver, whens, else_body
+        AST::ReceiverCase.new line, receiver, whens, else_body
       else
-        AST::Case.from self, whens, else_body
+        AST::Case.new line, whens, else_body
       end
     end
 
     def process_cdecl(line, expr, value)
-      AST::ConstSet.from self, expr, value
+      AST::ConstSet.new line, expr, value
     end
 
     def process_class(line, name, superclass, body)
-      AST::ClassWrapper.from self, name, superclass, body
+      AST::ClassWrapper.new line, name, superclass, body
     end
 
     def process_colon2(line, outer, name)
       if outer
-        AST::ConstAccess.from self, outer, name
+        AST::ConstAccess.new line, outer, name
       else
-        AST::ConstFind.from self, name
+        AST::ConstFind.new line, name
       end
     end
 
     def process_colon3(line, name)
-      AST::ConstAtTop.from self, name
+      AST::ConstAtTop.new line, name
     end
 
     def process_const(line, name)
-      AST::ConstFind.from self, name
+      AST::ConstFind.new line, name
     end
 
     def process_cvar(line, name)
-      AST::CVar.from self, name
+      AST::CVar.new line, name
     end
 
     def process_cvasgn(line, name, value)
-      AST::CVarAssign.from self, name, value
+      AST::CVarAssign.new line, name, value
     end
 
     def process_cvdecl(line, name, value)
-      AST::CVarDeclare.from self, name, value
+      AST::CVarDeclare.new line, name, value
     end
 
     def process_defined(line, expr)
-      AST::Defined.from self, expr
+      AST::Defined.new line, expr
     end
 
     def process_defn(line, name, body)
-      AST::Define.from self, name, body
+      AST::Define.new line, name, body
     end
 
     def process_defs(line, receiver, name, body)
-      AST::DefineSingleton.from self, receiver, name, body
+      AST::DefineSingleton.new line, receiver, name, body
     end
 
     def process_dot2(line, start, finish)
-      AST::Range.from self, start, finish
+      AST::Range.new line, start, finish
     end
 
     def process_dot3(line, start, finish)
-      AST::RangeExclude.from self, start, finish
+      AST::RangeExclude.new line, start, finish
     end
 
     def process_dregx(line, str, array, flags)
-      AST::DynamicRegex.from self, str, array, flags
+      AST::DynamicRegex.new line, str, array, flags
     end
 
     def process_dregx_once(line, str, array, flags)
-      AST::DynamicOnceRegex.from self, str, array, flags
+      AST::DynamicOnceRegex.new line, str, array, flags
     end
 
     def process_dstr(line, str, array)
-      AST::DynamicString.from self, str, array
+      AST::DynamicString.new line, str, array
     end
 
     def process_dsym(line, str, array)
-      AST::DynamicSymbol.from self, str, array
+      AST::DynamicSymbol.new line, str, array
     end
 
     def process_dxstr(line, str, array)
-      AST::DynamicExecuteString.from self, str, array
+      AST::DynamicExecuteString.new line, str, array
     end
 
     def process_ensure(line, body, ensr)
-      AST::Ensure.from self, body, ensr
+      AST::Ensure.new line, body, ensr
     end
 
     def process_evstr(line, value)
       if value
-        AST::ToString.from self, value
+        AST::ToString.new line, value
       else
-        AST::StringLiteral.from self, ""
+        AST::StringLiteral.new line, ""
       end
     end
 
     def process_false(line)
-      AST::False.from self
+      AST::False.new line
     end
 
     def process_fcall(line, name, arguments)
-      receiver = AST::Self.from self
+      receiver = AST::Self.new line
       if arguments
-        AST::SendWithArguments.from self, receiver, name, arguments
+        AST::SendWithArguments.new line, receiver, name, arguments
       else
-        AST::Send.from self, receiver, name
+        AST::Send.new line, receiver, name
       end
     end
 
     def process_file(line)
-      AST::File.from self
+      AST::File.new line
     end
 
     def process_fixnum(line, value)
-      AST::FixnumLiteral.from self, value
+      AST::FixnumLiteral.new line, value
     end
 
     def process_flip2(line, start, finish)
-      AST::Flip2.from self, start, finish
+      AST::Flip2.new line, start, finish
     end
 
     def process_flip3(line, start, finish)
-      AST::Flip3.from self, start, finish
+      AST::Flip3.new line, start, finish
     end
 
     def process_float(line, str)
-      AST::Float.from self, str
+      AST::Float.new line, str
     end
 
     def process_for(line, iter, arguments, body)
-      AST::For.from self, iter, arguments, body
+      method_send = AST::Send.new line, iter, :each, false
+      method_send.block = AST::For.new line, arguments, body
+      method_send
     end
 
     def process_gasgn(line, name, expr)
-      AST::GVarAssign.from self, name, expr
+      AST::GVarAssign.new line, name, expr
     end
 
     def process_gvar(line, name)
-      AST::GVar.from self, name
+      AST::GVar.new line, name
     end
 
     def process_hash(line, array)
-      AST::HashLiteral.from self, array
+      AST::HashLiteral.new line, array
     end
 
     def process_iasgn(line, name, value)
-      AST::IVarAssign.from self, name, value
+      AST::IVarAssign.new line, name, value
     end
 
     def process_if(line, cond, body, else_body)
-      AST::If.from self, cond, body, else_body
+      AST::If.new line, cond, body, else_body
     end
 
     def process_iter(line, method_send, arguments, body)
-      method_send.block = AST::Iter.from self, arguments, body
+      method_send.block = AST::Iter.new line, arguments, body
       method_send
     end
 
     def process_ivar(line, name)
-      AST::IVar.from self, name
+      AST::IVar.new line, name
     end
 
     def process_lasgn(line, name, value)
-      AST::LocalAssignment.from self, name, value
+      AST::LocalAssignment.new line, name, value
     end
 
     def process_lit(line, sym)
-      AST::Literal.from self, sym
+      AST::Literal.new line, sym
     end
 
     def process_lvar(line, name)
-      AST::LocalAccess.from self, name
+      AST::LocalAccess.new line, name
     end
 
     def process_masgn(line, left, right, splat)
-      AST::MAsgn.from self, left, right, splat
+      AST::MAsgn.new line, left, right, splat
     end
 
     def process_match(line, pattern, flags)
-      AST::Match.from self, pattern, flags
+      AST::Match.new line, pattern, flags
     end
 
     def process_match2(line, pattern, value)
-      AST::Match2.from self, pattern, value
+      AST::Match2.new line, pattern, value
     end
 
     def process_match3(line, pattern, value)
-      AST::Match3.from self, pattern, value
+      AST::Match3.new line, pattern, value
     end
 
     def process_module(line, name, body)
-      AST::ModuleWrapper.from self, name, body
+      AST::ModuleWrapper.new line, name, body
     end
 
     def process_negate(line, value)
-      AST::Negate.from self, value
+      AST::Negate.new line, value
     end
 
-    def process_next(line, expr)
-      AST::Next.from self, expr
+    def process_next(line, value)
+      AST::Next.new line, value
     end
 
     def process_nil(line)
-      AST::Nil.from self
+      AST::Nil.new line
     end
 
-    def process_not(line, expr)
-      AST::Not.from self, expr
+    def process_not(line, value)
+      AST::Not.new line, value
     end
 
     def process_nth_ref(line, ref)
-      AST::NthRef.from self, ref
+      AST::NthRef.new line, ref
     end
 
     def process_number(line, base, str)
-      AST::NumberLiteral.from self, base, str
+      value = str.to_i base
+      case value
+      when Fixnum
+        AST::FixnumLiteral.new line, value
+      when Bignum
+        AST::NumberLiteral.new line, value
+      end
     end
 
     def process_op_asgn1(line, receiver, index, op, value)
-      AST::OpAssign1.from self, receiver, index, op, value
+      AST::OpAssign1.new line, receiver, index, op, value
     end
 
     def process_op_asgn2(line, receiver, name, op, value)
-      AST::OpAssign2.from self, receiver, name, op, value
+      AST::OpAssign2.new line, receiver, name, op, value
     end
 
     def process_op_asgn_and(line, var, value)
-      AST::OpAssignAnd.from self, var, value
+      AST::OpAssignAnd.new line, var, value
     end
 
     def process_op_asgn_or(line, var, value)
-      AST::OpAssignOr.from self, var, value
+      AST::OpAssignOr.new line, var, value
     end
 
     def process_or(line, left, right)
-      AST::Or.from self, left, right
+      AST::Or.new line, left, right
     end
 
     def process_postexe(line)
-      AST::Send.from self, AST::Self.from(self), :at_exit
+      AST::Send.new line, AST::Self.new(line), :at_exit
     end
 
     def process_redo(line)
-      AST::Redo.from self
+      AST::Redo.new line
     end
 
     def process_regex(line, str, flags)
-      AST::RegexLiteral.from self, str, flags
+      AST::RegexLiteral.new line, str, flags
     end
 
     def process_resbody(line, conditions, body, nxt)
-      AST::RescueCondition.from self, conditions, body, nxt
+      AST::RescueCondition.new line, conditions, body, nxt
     end
 
-    def process_rescue(line, body, resc, els)
-      AST::Rescue.from self, body, resc, els
+    def process_rescue(line, body, rescue_body, else_body)
+      AST::Rescue.new line, body, rescue_body, else_body
     end
 
     def process_retry(line)
-      AST::Retry.from self
+      AST::Retry.new line
     end
 
-    def process_return(line, expr)
-      AST::Return.from self, expr
+    def process_return(line, value)
+      AST::Return.new line, value
     end
 
     def process_sclass(line, receiver, body)
-      AST::SClass.from self, receiver, body
+      AST::SClass.new line, receiver, body
     end
 
     def process_scope(line, body)
-      AST::Scope.from self, body
+      if body.kind_of? AST::Block
+        body
+      elsif body
+        AST::Block.new line, [body]
+      end
     end
 
     def process_self(line)
-      AST::Self.from self
+      AST::Self.new line
     end
 
     def process_splat(line, expr)
-      AST::SplatValue.from self, expr
+      AST::SplatValue.new line, expr
     end
 
     def process_str(line, str)
-      AST::StringLiteral.from self, str
+      AST::StringLiteral.new line, str
     end
 
     def process_super(line, args)
-      AST::Super.from self, args
+      AST::Super.new line, args
     end
 
     def process_svalue(line, expr)
-      AST::SValue.from self, expr
+      AST::SValue.new line, expr
     end
 
     def process_to_ary(line, expr)
-      AST::ToArray.from self, expr
+      AST::ToArray.new line, expr
     end
 
     def process_true(line)
-      AST::True.from self
+      AST::True.new line
     end
 
     def process_undef(line, sym)
-      AST::Undef.from self, sym
+      AST::Undef.new line, sym
     end
 
     def process_until(line, cond, body, check_first)
-      AST::Until.from self, cond, body, check_first
+      AST::Until.new line, cond, body, check_first
     end
 
     def process_vcall(line, name)
-      AST::Send.from self, AST::Self.from(self), name
+      AST::Send.new line, AST::Self.new(line), name
     end
 
     def process_valias(line, to, from)
-      AST::VAlias.from self, to, from
+      AST::VAlias.new line, to, from
     end
 
     def process_when(line, conditions, body)
-      AST::When.from self, conditions, body
+      AST::When.new line, conditions, body
     end
 
     def process_while(line, cond, body, check_first)
-      AST::While.from self, cond, body, check_first
+      AST::While.new line, cond, body, check_first
     end
 
     def process_xstr(line, str)
-      AST::ExecuteString.from self, str
+      AST::ExecuteString.new line, str
     end
 
     def process_yield(line, arguments, unwrap)
-      AST::Yield.from self, arguments, unwrap
+      AST::Yield.new line, arguments, unwrap
     end
 
     def process_zarray(line)
-      AST::EmptyArray.from self
+      AST::EmptyArray.new line
     end
 
     def process_zsuper(line)
-      AST::ZSuper.from self
+      AST::ZSuper.new line
     end
   end
 end
