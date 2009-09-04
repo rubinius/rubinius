@@ -1,11 +1,8 @@
 module Rubinius
   class Melbourne
 
-    attr_accessor :compiler
-
     def initialize(name)
       @name = name
-      @compiler = Compiler.new TestGenerator
     end
 
     def syntax_error

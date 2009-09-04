@@ -100,7 +100,7 @@ module Rubinius
 
       options.left_align
       options.on_extra do |x|
-        raise ParseError, "Unrecognized option: #{x}" if x[0] == ?-
+        raise Options::ParseError, "Unrecognized option: #{x}" if x[0] == ?-
         if @script.nil? and @evals.empty?
           @script = x
         else
@@ -181,10 +181,6 @@ module Rubinius
         @script = file ? file : script
       end
 
-      options.on "--no-rbc", "Don't create .rbc files" do
-        @no_rbc = true
-      end
-
       options.on "-v", "Display the version and set $VERBOSE to true" do
         @run_irb = false
         $VERBOSE = true
@@ -236,6 +232,15 @@ module Rubinius
       options.on "--gc-stats", "Show GC stats" do
         stats = Stats::GC.new
         at_exit { stats.show }
+      end
+
+      options.on "--melbourne", "Use Melbourne parser and new compiler." do
+        require 'compiler-ng'
+        Rubinius::CompilerNG.enable
+      end
+
+      options.on "--no-rbc", "Don't create .rbc files" do
+        @no_rbc = true
       end
 
       options.on("-P", "[COLUMN]",
