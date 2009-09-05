@@ -6,6 +6,10 @@ module Rubinius
     attr_accessor :method
     attr_accessor :name
 
+    def inlined?
+      @name.nil?
+    end
+
     def describe
       # We can't call @receiver.class because it might be overriden (or in
       # the case of Mocha, mocked out) and easily causes stack overflows
@@ -31,6 +35,8 @@ module Rubinius
         "#{@name} {}"
       elsif @name == @method.name
         "#{@name}"
+      elsif !@name # inlined methods have no name
+        "#{@method.name}"
       else
         "#{@name} (#{@method.name})"
       end

@@ -28,6 +28,7 @@ class Backtrace
     @first_color = "\033[0;31m"
     @kernel_color = "\033[0;34m"
     @eval_color = "\033[0;33m"
+    @inline_effect = "\033[0;4m"
 
     @width = Rubinius::TERMINAL_WIDTH
   end
@@ -62,6 +63,7 @@ class Backtrace
         times = 0
       end
     end
+
     max = MAX_WIDTH if max > MAX_WIDTH
 
     str = ""
@@ -77,7 +79,11 @@ class Backtrace
       #  pos = "...#{pos[pos.size-max-3..-1]}" if pos.size > max
       #end
 
-      start = " #{' ' * spaces}#{recv} at "
+      if @colorize and location.inlined?
+        start = " #{' ' * spaces}#{recv} #{@inline_effect}at#{clear}#{color} "
+      else
+        start = " #{' ' * spaces}#{recv} at "
+      end
 
       line_break = @width - start.size - 1
 
