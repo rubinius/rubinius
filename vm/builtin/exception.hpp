@@ -55,6 +55,8 @@ namespace rubinius {
     static void system_call_error(STATE, const char* reason);
     static void system_call_error(STATE, const std::string& reason);
 
+    static Exception* make_lje(STATE, CallFrame* frame);
+
     // Ruby.primitive :exception_errno_error
     static Object* errno_error(STATE, Object* reason, Fixnum* ern);
     static void errno_error(STATE, const char* reason = NULL, int ern = 0);

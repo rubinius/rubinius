@@ -6,6 +6,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
+#include "builtin/system.hpp"
 
 #include "vm.hpp"
 #include "vm/object_utils.hpp"
@@ -62,6 +63,12 @@ namespace rubinius {
     if(meth) {
       exc->set_ivar(state, state->symbol("@method_name"), meth);
     }
+    return exc;
+  }
+
+  Exception* Exception::make_lje(STATE, CallFrame* call_frame) {
+    Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
+    exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
     return exc;
   }
 

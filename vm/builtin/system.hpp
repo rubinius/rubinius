@@ -12,6 +12,8 @@ namespace rubinius {
   class Fixnum;
   class String;
   class BlockEnvironment;
+  class CompiledMethod;
+  class StaticScope;
 
   class CallFrame;
 

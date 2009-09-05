@@ -1098,9 +1098,7 @@ class Instructions
     } else if(Proc* proc = try_as<Proc>(t1)) {
       ret = proc->yield(state, call_frame, args);
     } else if(t1->nil_p()) {
-      Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
-      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
-      state->thread_state()->raise_exception(exc);
+      state->thread_state()->raise_exception(Exception::make_lje(state, call_frame));
       ret = NULL;
     } else {
       Dispatch dis(G(sym_call));
@@ -1132,9 +1130,7 @@ class Instructions
     } else if(Proc* proc = try_as<Proc>(t1)) {
       ret = proc->yield(state, call_frame, args);
     } else if(t1->nil_p()) {
-      Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
-      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
-      state->thread_state()->raise_exception(exc);
+      state->thread_state()->raise_exception(Exception::make_lje(state, call_frame));
       ret = NULL;
     } else {
       Dispatch dis(G(sym_call));
