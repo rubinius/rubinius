@@ -19,21 +19,10 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
   void Primitives::queue_for_jit(STATE, CallFrame* call_frame) {
     LLVMState* ls = LLVMState::get(state);
-    VMMethod* vmm = call_frame->cm->backend_method();
 
-    VMMethod* candidate = ls->find_candidate(vmm, call_frame);
-    if(candidate->call_count < 0) return;
-
-    candidate->call_count = -1; // So we don't try and jit twice at the same time
-    state->stats.jitted_methods++;
+    VMMethod* candidate = ls->find_candidate(0, call_frame);
 
     ls->compile_soon(state, candidate);
-
-    if(state->shared.config.jit_show_compiling) {
-      std::cout << "[[[ JIT Queued method "
-        << ls->queued_methods() << "/"
-        << ls->jitted_methods() << " ]]]\n";
-    }
   }
 #endif
 
