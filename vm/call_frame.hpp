@@ -114,6 +114,8 @@ namespace rubinius {
     int line(STATE);
 
     bool scope_still_valid(VariableScope* scope);
+
+    void dump();
   };
 
   class InterpreterCallFrame : public CallFrame {

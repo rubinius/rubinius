@@ -93,6 +93,28 @@ namespace rubinius {
     return false;
   }
 
+  void CallFrame::dump() {
+    VM* state = VM::current_state();
+    std::cout << "<CallFrame:" << (void*)this << " ";
+    if(is_inline_frame()) {
+      std::cout << "inline ";
+    }
+
+    if(is_block_p(state)) {
+      std::cout << "block ";
+    } else if(msg) {
+      std::cout << "name=" << name()->c_str(state) << " ";
+    } else {
+      std::cout << "name=" << cm->name()->c_str(state) << " ";
+    }
+
+    std::cout << "ip=" << ip_ << " ";
+
+    std::cout << "line=" << line(state);
+
+    std::cout << ">\n";
+  }
+
   /* For debugging. */
   extern "C" {
     void __printbt__(CallFrame* call_frame) {
