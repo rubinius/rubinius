@@ -143,10 +143,6 @@ namespace rubinius {
       }
     }
 
-    VMMethod* passed_block() {
-      return method_info_.passed_block;
-    }
-
     std::vector<Value*>* incoming_args() {
       return method_info_.stack_args;
     }

@@ -18,9 +18,11 @@ namespace rubinius {
     BasicBlock* failure_;
     Value* result_;
     bool check_for_exception_;
-    VMMethod* passed_block_;
+    JITInlineBlock* inline_block_;
 
     bool block_on_stack_;
+
+    JITMethodInfo* creator_info_;
 
   public:
 
@@ -32,8 +34,9 @@ namespace rubinius {
       , failure_(failure)
       , result_(0)
       , check_for_exception_(true)
-      , passed_block_(0)
+      , inline_block_(0)
       , block_on_stack_(false)
+      , creator_info_(0)
     {}
 
     Inliner(JITOperations& ops, int count)
@@ -43,7 +46,9 @@ namespace rubinius {
       , failure_(0)
       , result_(0)
       , check_for_exception_(true)
-      , passed_block_(0)
+      , inline_block_(0)
+      , block_on_stack_(false)
+      , creator_info_(0)
     {}
 
     Value* recv() {
@@ -74,8 +79,12 @@ namespace rubinius {
       return check_for_exception_;
     }
 
-    void set_passed_block(CompiledMethod* cm) {
-      passed_block_ = cm->backend_method();
+    void set_inline_block(JITInlineBlock* ib) {
+      inline_block_ = ib;
+    }
+
+    JITInlineBlock* inline_block() {
+      return inline_block_;
     }
 
     void set_block_on_stack() {
@@ -83,10 +92,14 @@ namespace rubinius {
       block_on_stack_ = true;
     }
 
+    void set_creator(JITMethodInfo* home) {
+      creator_info_ = home;
+    }
+
     bool consider();
     void inline_block(VMMethod* vmm, Value* self);
 
-    void inline_generic_method(Class* klass, VMMethod* vmm, bool pass_block=false);
+    void inline_generic_method(Class* klass, VMMethod* vmm);
 
     bool detect_trivial_method(CompiledMethod* cm);
 

@@ -40,6 +40,10 @@ namespace rubinius {
     void visit_send_super_stack_with_splat(opcode which, opcode args) {
       throw Unsupported();
     }
+
+    void visit_yield_splat(opcode count) {
+      throw Unsupported();
+    }
   };
 
   enum InlineDecision {

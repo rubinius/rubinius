@@ -23,6 +23,8 @@
 #include <llvm/Analysis/Passes.h>
 #include <llvm/Target/TargetSelect.h>
 
+#include <llvm/Target/TargetOptions.h>
+
 #include <sstream>
 
 using namespace llvm;
@@ -36,6 +38,13 @@ namespace autogen_types {
 }
 
 namespace rubinius {
+
+  AllocaInst* JITMethodInfo::create_alloca(const Type* type, Value* size,
+                                           const Twine& name)
+  {
+    return new AllocaInst(type, size, name,
+        function_->getEntryBlock().getTerminator());
+  }
 
   LLVMState* LLVMState::get(STATE) {
     if(!state->shared.llvm_state) {
@@ -69,6 +78,11 @@ namespace rubinius {
     std::string full_name = std::string("struct.rubinius::") + name;
     return PointerType::getUnqual(
         module_->getTypeByName(full_name.c_str()));
+  }
+
+  const llvm::Type* LLVMState::type(std::string name) {
+    std::string full_name = std::string("struct.rubinius::") + name;
+    return module_->getTypeByName(full_name.c_str());
   }
 
   class BackgroundCompilerThread : public thread::Thread {
@@ -316,6 +330,7 @@ namespace rubinius {
     , code_bytes_(0)
     , time_spent(0)
   {
+    llvm::NoFramePointerElim = true;
     llvm::InitializeNativeTarget();
 
     VoidTy = Type::getVoidTy(ctx_);
@@ -468,38 +483,127 @@ namespace rubinius {
 
   const static int cInlineMaxDepth = 8;
 
+  /*
+  static CallFrame* find_call_frame(CallFrame* frame, VMMethod* meth, int* dist) {
+    *dist = 0;
+    while(frame) {
+      if(frame->cm->backend_method() == meth) return frame;
+      frame = frame->previous;
+      dist++;
+    }
+
+    return 0;
+  }
+  */
+
+  /*
+  static void show_method(LLVMState* ls, VMMethod* vmm, const char* extra = "") {
+    CompiledMethod* cm = vmm->original.get();
+
+    std::cerr << "  "
+              << ls->symbol_cstr(cm->scope()->module()->name())
+              << "#"
+              << ls->symbol_cstr(cm->name())
+              << " (" << vmm->call_count << ") "
+              << extra
+              << "\n";
+  }
+  */
+
+  static VMMethod* find_first_non_block(CallFrame* cf) {
+    VMMethod* vmm = cf->cm->backend_method();
+    while(vmm->parent()) {
+      cf = cf->previous;
+      if(!cf) return 0;
+      vmm = cf->cm->backend_method();
+    }
+
+    return vmm;
+  }
+
+  static CallFrame* validate_block_parent(CallFrame* cf, VMMethod* parent) {
+    if(cf->previous && cf->previous->previous) {
+      cf = cf->previous->previous;
+      if(cf->cm->backend_method() == parent) return cf;
+    }
+
+    return 0;
+  }
+
   VMMethod* LLVMState::find_candidate(VMMethod* start, CallFrame* call_frame) {
-    VMMethod* last = start;
+    VMMethod* found = start;
     int depth = 0;
+    bool consider_block_parents = config_.jit_inline_blocks;
 
     // No upper call_frames or generic inlining is off, use the start.
     // With generic inlining off, there is no way to inline back to start,
     // so we don't both trying.
-    if(!call_frame || !config_.jit_inline_generic) return last;
+    if(!config_.jit_inline_generic) {
+      if(!start) start = call_frame->cm->backend_method();
+      return find_first_non_block(call_frame);
+    }
 
-    VMMethod* cur = call_frame->cm->backend_method();
+#if 0
+    std::cerr << "JIT target search:\n";
+
+    if(start) {
+      show_method(this, start);
+    } else {
+      std::cerr << "  <primitive>\n";
+    }
+#endif
+
+    VMMethod* next = call_frame->cm->backend_method();
+    VMMethod* parent = 0;
+
     while(depth < cInlineMaxDepth) {
-      if(cur->required_args != cur->total_args ||
-          cur->call_count < 200 ||
-          cur->jitted() ||
-          cur->total < 10) break;
+      // show_method(this, next);
+
+      // Basic requirements
+      if(next->required_args != next->total_args ||
+          next->call_count < 200 ||
+          next->jitted() ||
+          next->total < 10) break;
+
+      // Jump to defining methods of blocks?
+      parent = next->parent();
+      if(parent) {
+        if(consider_block_parents) {
+          // See if parent is in this call_frame chain properly..
+          if(CallFrame* pf = validate_block_parent(call_frame, parent)) {
+            depth++;
+
+            // Method parents are valuable, so always use them if we find them.
+            if(!parent->parent()) {
+              found = parent;
+            }
+            // show_method(this, parent, " parent!");
+
+            call_frame = pf;
+          }
+        } else {
+          // We hit a block, just bail.
+          break;
+        }
+      } else {
+        found = next;
+      }
 
       call_frame = call_frame->previous;
       if(!call_frame) break;
 
-      cur = call_frame->cm->backend_method();
-
-      // Jump to defining methods of blocks!
-      if(VMMethod* parent = cur->parent()) {
-        cur = parent;
-      } else {
-        last = cur;
-      }
+      next = call_frame->cm->backend_method();
 
       depth++;
     }
 
-    return last;
+    if(!found) found = next;
+
+    assert(found);
+
+    // show_method(this, found, " <==");
+
+    return found;
   }
 
   void LLVMCompiler::compile(LLVMState* ls, VMMethod* vmm, bool is_block) {

@@ -385,19 +385,17 @@ extern "C" {
     return rbx_simple_send(state, call_frame, G(sym_call), count, args);
   }
 
-  Object* rbx_yield_stack(STATE, CallFrame* call_frame, int count, Object** args) {
-    Object* t1 = call_frame->scope->block();
+  Object* rbx_yield_stack(STATE, CallFrame* call_frame, Object* block,
+                          int count, Object** args)
+  {
+    Arguments out_args(block, count, args);
 
-    Arguments out_args(t1, count, args);
-
-    if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
+    if(BlockEnvironment *env = try_as<BlockEnvironment>(block)) {
       return env->call(state, call_frame, out_args);
-    } else if(Proc* proc = try_as<Proc>(t1)) {
+    } else if(Proc* proc = try_as<Proc>(block)) {
       return proc->yield(state, call_frame, out_args);
-    } else if(t1->nil_p()) {
-      Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
-      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
-      state->thread_state()->raise_exception(exc);
+    } else if(block->nil_p()) {
+      state->thread_state()->raise_exception(Exception::make_lje(state, call_frame));
       return NULL;
     }
 
@@ -406,24 +404,23 @@ extern "C" {
     return dis.send(state, call_frame, out_args);
   }
 
-  Object* rbx_yield_splat(STATE, CallFrame* call_frame, int count, Object** stk) {
+  Object* rbx_yield_splat(STATE, CallFrame* call_frame, Object* block,
+                          int count, Object** stk)
+  {
     Object* ary = stk[count];
-    Object* t1 = call_frame->scope->block();
 
-    Arguments args(t1, count, stk);
+    Arguments args(block, count, stk);
 
     if(!ary->nil_p()) {
       args.append(state, as<Array>(ary));
     }
 
-    if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
+    if(BlockEnvironment *env = try_as<BlockEnvironment>(block)) {
       return env->call(state, call_frame, args);
-    } else if(Proc* proc = try_as<Proc>(t1)) {
+    } else if(Proc* proc = try_as<Proc>(block)) {
       return proc->yield(state, call_frame, args);
-    } else if(t1->nil_p()) {
-      Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
-      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
-      state->thread_state()->raise_exception(exc);
+    } else if(block->nil_p()) {
+      state->thread_state()->raise_exception(Exception::make_lje(state, call_frame));
       return NULL;
     }
 
@@ -569,6 +566,19 @@ extern "C" {
     return top;
   }
 
+  Object* rbx_set_local_from(STATE, CallFrame* call_frame, Object* top,
+                             int depth, int index) {
+    VariableScope* scope = call_frame->scope->parent();
+
+    for(int j = 1; j < depth; j++) {
+      scope = scope->parent();
+    }
+
+    scope->set_local(state, index, top);
+
+    return top;
+  }
+
   Object* rbx_push_local_depth(STATE, CallFrame* call_frame,
                               int depth, int index) {
     if(depth == 0) {
@@ -582,6 +592,17 @@ extern "C" {
 
       return scope->get_local(index);
     }
+  }
+
+  Object* rbx_push_local_from(STATE, CallFrame* call_frame,
+                              int depth, int index) {
+    VariableScope* scope = call_frame->scope->parent();
+
+    for(int j = 1; j < depth; j++) {
+      scope = scope->parent();
+    }
+
+    return scope->get_local(index);
   }
 
   Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
@@ -765,10 +786,27 @@ extern "C" {
     } else if(vmm->opcodes[call_frame->ip()] == InstructionSequence::insn_send_method) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
       std::cout << "Uncommon trap for send: " << cache->name->c_str(state) << "\n";
+    } else if(vmm->opcodes[call_frame->ip()] == InstructionSequence::insn_send_stack_with_block) {
+      InlineCache* cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
+      std::cout << "Uncommon trap for send: " << cache->name->c_str(state) << "\n";
     } else {
       std::cout << "Uncommon trap running: " << call_frame->name()->c_str(state) << "\n";
     }
     */
+
+    if(call_frame->is_inline_frame()) {
+      // Fix up this inlined block.
+      if(vmm->parent()) {
+        CallFrame* creator = call_frame->previous->previous;
+        assert(creator);
+
+        VariableScope* parent = creator->promote_scope(state);
+        call_frame->scope->set_parent(parent);
+
+        // Only support one depth!
+        assert(!creator->cm->backend_method()->parent());
+      }
+    }
 
     return VMMethod::uncommon_interpreter(state, vmm, call_frame, args, sp);
   }
@@ -783,7 +821,7 @@ extern "C" {
   }
 
   // FFI helpers
-  int rbx_ffi_to_int(STATE, Object* obj, bool* valid) {
+  native_int rbx_ffi_to_int(STATE, Object* obj, bool* valid) {
     if(Integer* i = try_as<Integer>(obj)) {
       *valid = true;
       return i->to_native();

@@ -351,7 +351,7 @@ namespace rubinius {
     set_result(ivar);
   }
 
-  void Inliner::inline_generic_method(Class* klass, VMMethod* vmm, bool pass_block) {
+  void Inliner::inline_generic_method(Class* klass, VMMethod* vmm) {
     Value* self = recv();
     ops_.check_class(self, klass, failure());
 
@@ -363,7 +363,7 @@ namespace rubinius {
     info.inline_policy = ops_.inline_policy();
     info.called_args = count_;
     info.root = ops_.root_method_info();
-    info.passed_block = passed_block_;
+    info.set_inline_block(inline_block_);
 
     LLVMWorkHorse work(ops_.state(), info);
     work.valid_flag = ops_.valid_flag();
@@ -410,7 +410,10 @@ namespace rubinius {
     info.inline_policy = ops_.inline_policy();
     info.called_args = count_;
     info.root = ops_.root_method_info();
-    info.passed_block = passed_block_;
+    info.is_block = true;
+
+    info.set_creator_info(creator_info_);
+    info.set_inline_block(inline_block_);
 
     LLVMWorkHorse work(ops_.state(), info);
     work.valid_flag = ops_.valid_flag();
@@ -509,7 +512,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_UINT:
       case RBX_FFI_TYPE_LONG:
       case RBX_FFI_TYPE_ULONG: {
-        Signature sig(ops_.state(), ops_.state()->Int32Ty);
+        Signature sig(ops_.state(), ops_.NativeIntTy);
         sig << "VM";
         sig << "Object";
         sig << PointerType::getUnqual(ops_.state()->Int1Ty);
@@ -520,8 +523,8 @@ namespace rubinius {
         const Type* type = find_type(ops_, nf->arg_types[i]);
         ffi_type.push_back(type);
 
-        if(type != ops_.state()->Int32Ty) {
-          ops_.b().CreateTrunc(val, type, "truncated");
+        if(type != ops_.NativeIntTy) {
+          val = ops_.b().CreateTrunc(val, type, "truncated");
         }
 
         ffi_args.push_back(val);

@@ -117,25 +117,14 @@ namespace rubinius {
 
     class Unsupported {};
 
-    void init_out_args(BasicBlock* block) {
-      Instruction* term = block->getTerminator();
-      assert(term);
-
-      BasicBlock* old = current_block();
-      set_block(block);
-
-      out_args_ = b().CreateAlloca(type("Arguments"), 0, "out_args");
+    void init_out_args() {
+      out_args_ = info().out_args();
 
       out_args_recv_ = ptr_gep(out_args_, 0, "out_args_recv");
       out_args_block_= ptr_gep(out_args_, 1, "out_args_block");
       out_args_total_= ptr_gep(out_args_, 2, "out_args_total");
       out_args_arguments_ = ptr_gep(out_args_, 3, "out_args_arguments");
       out_args_array_ = ptr_gep(out_args_, 4, "out_args_array");
-
-      term->removeFromParent();
-      term->insertAfter(cast<Instruction>(out_args_array_));
-
-      set_block(old);
     }
 
     JITVisit(LLVMState* ls, JITMethodInfo& info, BlockMap& bm,
@@ -216,7 +205,7 @@ namespace rubinius {
           ConstantInt::get(ls_->IntPtrTy, (intptr_t)ls_->shared().global_serial_address()),
           PointerType::getUnqual(ls_->IntPtrTy), "cast_to_intptr");
 
-      init_out_args(&function_->getEntryBlock());
+      init_out_args();
     }
 
     void set_has_side_effects() {
@@ -1171,6 +1160,8 @@ namespace rubinius {
     }
 
     void emit_uncommon() {
+      emit_delayed_create_block(true);
+
       if(false) { // !inline_return_ && !has_side_effects()) {
         Signature sig(ls_, "Object");
 
@@ -1222,7 +1213,7 @@ namespace rubinius {
         if(inl.consider()) {
           // Uncommon doesn't yet know how to synthesize UnwindInfos, so
           // don't do uncommon if there are handlers.
-          if(exception_handlers_.size() == 0) {
+          if(!in_inlined_block() && exception_handlers_.size() == 0) {
             BasicBlock* cur = b().GetInsertBlock();
 
             set_block(failure);
@@ -1279,9 +1270,10 @@ namespace rubinius {
     }
 
     void visit_create_block(opcode which) {
-      // Don't actually do anything, just register which literal we would
+      // Push a placeholder and register which literal we would
       // use for the block. The later send handles whether to actually
-      // emit the call to create the block
+      // emit the call to create the block (replacing the placeholder)
+      stack_push(constant(Qnil));
       current_block_ = (int)which;
     }
 
@@ -1289,9 +1281,58 @@ namespace rubinius {
       return inline_return_ && info().is_block;
     }
 
+    void emit_delayed_create_block(bool always=false) {
+      JITInlineBlock* ib = info().inline_block();
+      if(ib && ib->code()) {
+        if(!always && ib->created_object_p()) return;
+        JITMethodInfo* creator = ib->creation_scope();
+        assert(creator);
+
+        Signature sig(ls_, ObjType);
+        sig << VMTy;
+        sig << CallFrameTy;
+        sig << ls_->Int32Ty;
+
+        Value* call_args[] = {
+          vm_,
+          creator->call_frame(),
+          ConstantInt::get(ls_->Int32Ty, ib->which())
+        };
+
+        Value* blk = sig.call("rbx_create_block", call_args, 3,
+                              "delayed_create_block", b());
+
+        b().CreateStore(
+            blk,
+            b().CreateConstGEP2_32(info().variables(), 0,
+                                   offset::vars_block),
+            false);
+
+        if(!always) ib->set_created_object();
+      }
+
+
+    }
+
     void emit_create_block(opcode which) {
+      // if we're inside an inlined method that has a block
+      // visible, that means that we've note yet emited the code to
+      // actually create the block for this inlined block.
+      //
+      // But, because we're about to create a block here, it might
+      // want to yield (ie, inlining Enumerable#find on an Array, but
+      // not inlining the call to each inside find).
+      //
+      // So at this point, we have to create the block object
+      // for this parent block.
+
+      emit_delayed_create_block();
+
       std::vector<const Type*> types;
       types.push_back(VMTy);
+
+      // we use stack_set_top here because we always have a placeholder
+      // on the stack that we're going to just replace.
 
       if(in_inlined_block()) {
         types.push_back(ObjType);
@@ -1303,23 +1344,27 @@ namespace rubinius {
           module_->getOrInsertFunction("rbx_create_block_multi", ft));
 
         std::vector<Value*> call_args;
+        call_args.push_back(vm_);
+        call_args.push_back(get_literal(which));
+        call_args.push_back(ConstantInt::get(ls_->Int32Ty, which));
 
-        int count = 0;
+        std::vector<JITMethodInfo*> mis;
+
         JITMethodInfo* nfo = &info();
         while(nfo) {
-          call_args.push_back(nfo->call_frame());
-          count++;
-          nfo = nfo->parent_info();
-          if(!nfo) break;
-          nfo = nfo->parent_info();
+          mis.push_back(nfo);
+          nfo = nfo->creator_info();
         }
 
-        call_args.push_back(ConstantInt::get(ls_->Int32Ty, count));
-        call_args.push_back(ConstantInt::get(ls_->Int32Ty, which));
-        call_args.push_back(get_literal(which));
-        call_args.push_back(vm_);
+        call_args.push_back(ConstantInt::get(ls_->Int32Ty, mis.size()));
 
-        stack_push(b().CreateCall(func, call_args.rbegin(), call_args.rend(), "create_block"));
+        for(std::vector<JITMethodInfo*>::reverse_iterator i = mis.rbegin();
+            i != mis.rend();
+            ++i) {
+          call_args.push_back((*i)->call_frame());
+        }
+
+        stack_set_top(b().CreateCall(func, call_args.begin(), call_args.end(), "create_block"));
         return;
       };
 
@@ -1336,7 +1381,7 @@ namespace rubinius {
         ConstantInt::get(ls_->Int32Ty, which)
       };
 
-      stack_push(b().CreateCall(func, call_args, call_args+3, "create_block"));
+      stack_set_top(b().CreateCall(func, call_args, call_args+3, "create_block"));
     }
 
     void visit_send_stack_with_block(opcode which, opcode args) {
@@ -1372,21 +1417,24 @@ namespace rubinius {
         BasicBlock* cleanup = new_block("send_done");
         PHINode* send_result = b().CreatePHI(ObjType, "send_result");
 
-        // Register data for the inlined block to see!
-        info().set_block_break(cleanup, send_result);
-
         Inliner inl(*this, cache, args, failure);
 
-        if(block_code) {
-          inl.set_passed_block(block_code);
-        } else {
-          inl.set_block_on_stack();
-        }
+        VMMethod* code = 0;
+        if(block_code) code = block_code->backend_method();
+        JITInlineBlock block_info(send_result, cleanup, code, &info(),
+                                  current_block_);
+
+        inl.set_inline_block(&block_info);
+
+        int stack_cleanup = args + 2;
+
+        // So that the inliner can find recv and args properly.
+        inl.set_block_on_stack();
 
         if(inl.consider()) {
           // Uncommon doesn't yet know how to synthesize UnwindInfos, so
           // don't do uncommon if there are handlers.
-          if(exception_handlers_.size() == 0) {
+          if(!in_inlined_block() && exception_handlers_.size() == 0) {
             send_result->addIncoming(inl.result(), b().GetInsertBlock());
 
             b().CreateBr(cleanup);
@@ -1404,7 +1452,7 @@ namespace rubinius {
 
             // send_result->moveBefore(&cleanup->back());
 
-            stack_remove(args+1); // not 2, because we never created the block!
+            stack_remove(stack_cleanup);
             if(inl.check_for_exception()) {
               check_for_exception(send_result);
             }
@@ -1435,13 +1483,11 @@ namespace rubinius {
 
             send_result->addIncoming(send_res, failure);
 
-            stack_remove(args + 2);
+            stack_remove(stack_cleanup);
             check_for_exception(send_result);
 
             stack_push(send_result);
           }
-
-          info().clear_block_break();
 
           allow_private_ = false;
 
@@ -1900,10 +1946,50 @@ namespace rubinius {
       // We're inlinig a block...
       if(inline_return_) {
         JITMethodInfo* nfo = upscope_info(depth);
-        assert(nfo);
 
-        Value* local_pos = local_location(nfo->variables(), index);
-        stack_push(b().CreateLoad(local_pos, "upscope_local"));
+        if(nfo) {
+          Value* local_pos = local_location(nfo->variables(), index);
+          b().CreateStore(stack_top(), local_pos);
+        } else {
+          JITMethodInfo* nfo = &info();
+
+          while(nfo->creator_info()) {
+            nfo = nfo->creator_info();
+            depth--;
+          }
+
+          // Now we've got as far up as we can see, so we'll search like
+          // normal up from here.
+
+          assert(nfo->is_block && "confused, top must be a block");
+
+          /*
+          Value* idx[] = {
+            ConstantInt::get(ls_->Int32Ty, 0),
+            ConstantInt::get(ls_->Int32Ty, offset::vars_parent)
+          };
+
+          Value* varscope = b().CreateLoad(
+              b().CreateGEP(vars_, idx, idx+2), "scope.parent");
+          */
+
+          Signature sig(ls_, ObjType);
+          sig << VMTy;
+          sig << "CallFrame";
+          sig << ObjType;
+          sig << ls_->Int32Ty;
+          sig << ls_->Int32Ty;
+
+          Value* call_args[] = {
+            vm_,
+            nfo->call_frame(),
+            stack_top(),
+            ConstantInt::get(ls_->Int32Ty, depth),
+            ConstantInt::get(ls_->Int32Ty, index)
+          };
+
+          sig.call("rbx_set_local_from", call_args, 5, "vs_uplocal", b());
+        }
         return;
       }
 
@@ -1953,10 +2039,8 @@ namespace rubinius {
       JITMethodInfo* nfo = &info();
 
       for(int i = 0; i < which; i++) {
-        // we always go 2 levels up, through the method that does the yield.
-        nfo = nfo->parent_info();
+        nfo = nfo->creator_info();
         if(!nfo) return 0;
-        nfo = nfo->parent_info();
       }
 
       return nfo;
@@ -1968,10 +2052,51 @@ namespace rubinius {
       // We're in an inlined block..
       if(inline_return_) {
         JITMethodInfo* nfo = upscope_info(depth);
-        assert(nfo);
 
-        Value* local_pos = local_location(nfo->variables(), index);
-        stack_push(b().CreateLoad(local_pos, "upscope_local"));
+        // And we can see this scope depth directly because of inlining...
+        if(nfo) {
+          Value* local_pos = local_location(nfo->variables(), index);
+          stack_push(b().CreateLoad(local_pos, "upscope_local"));
+        } else {
+          JITMethodInfo* nfo = &info();
+
+          while(nfo->creator_info()) {
+            nfo = nfo->creator_info();
+            depth--;
+          }
+
+          // Now we've got as far up as we can see, so we'll search like
+          // normal up from here.
+
+          assert(nfo->is_block && "confused, top must be a block");
+
+          /*
+          Value* idx[] = {
+            ConstantInt::get(ls_->Int32Ty, 0),
+            ConstantInt::get(ls_->Int32Ty, offset::vars_parent)
+          };
+
+          Value* varscope = b().CreateLoad(
+              b().CreateGEP(vars_, idx, idx+2), "scope.parent");
+              */
+
+          Signature sig(ls_, ObjType);
+          sig << VMTy;
+          sig << "CallFrame";
+          sig << ls_->Int32Ty;
+          sig << ls_->Int32Ty;
+
+          Value* call_args[] = {
+            vm_,
+            nfo->call_frame(),
+            ConstantInt::get(ls_->Int32Ty, depth),
+            ConstantInt::get(ls_->Int32Ty, index)
+          };
+
+          stack_push(
+              sig.call("rbx_push_local_from", call_args, 4, "vs_uplocal", b()));
+        }
+
         return;
       }
 
@@ -2056,20 +2181,27 @@ namespace rubinius {
     void visit_yield_stack(opcode count) {
       set_has_side_effects();
 
+      JITInlineBlock* ib = info().inline_block();
+
       // Hey! Look at that! We know the block we'd be yielding to
       // staticly! woo! ok, lets just emit the code for it here!
-      if(VMMethod* pb = passed_block()) {
-        JITMethodInfo* parent = info().parent_info();
-        assert(parent);
+      if(ib && ib->code()) {
+        JITMethodInfo* creator = ib->creation_scope();
+        assert(creator);
 
         // Count the block against the policy size total
-        inline_policy()->increase_size(pb);
+        inline_policy()->increase_size(ib->code());
 
         // We inline unconditionally here, since we make the decision
         // wrt the block when we are considering inlining the send that
         // has the block on it.
         Inliner inl(*this, count);
-        inl.inline_block(pb, get_self(parent->variables()));
+        inl.set_inline_block(creator->inline_block());
+
+        inl.set_creator(creator);
+
+        inl.inline_block(ib->code(), get_self(creator->variables()));
+
         stack_remove(count);
         if(inl.check_for_exception()) {
           check_for_exception(inl.result());
@@ -2078,22 +2210,34 @@ namespace rubinius {
         return;
       }
 
+      Value* vars = vars_;
+
+      if(JITMethodInfo* home = info().home_info()) {
+        vars = home->variables();
+      }
+
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
       sig << CallFrameTy;
+      sig << "Object";
       sig << ls_->Int32Ty;
       sig << ObjArrayTy;
+
+      Value* block_obj = b().CreateLoad(
+          b().CreateConstGEP2_32(vars, 0, offset::vars_block),
+          "block");
 
       Value* call_args[] = {
         vm_,
         call_frame_,
+        block_obj,
         ConstantInt::get(ls_->Int32Ty, count),
         stack_objects(count)
       };
 
       flush_ip();
-      Value* val = sig.call("rbx_yield_stack", call_args, 4, "ys", b());
+      Value* val = sig.call("rbx_yield_stack", call_args, 5, "ys", b());
       stack_remove(count);
 
       check_for_exception(val);
@@ -2107,18 +2251,24 @@ namespace rubinius {
 
       sig << VMTy;
       sig << CallFrameTy;
+      sig << "Object";
       sig << ls_->Int32Ty;
       sig << ObjArrayTy;
+
+      Value* block_obj = b().CreateLoad(
+          b().CreateConstGEP2_32(vars_, 0, offset::vars_block),
+          "block");
 
       Value* call_args[] = {
         vm_,
         call_frame_,
+        block_obj,
         ConstantInt::get(ls_->Int32Ty, count),
         stack_objects(count + 1)
       };
 
       flush_ip();
-      Value* val = sig.call("rbx_yield_splat", call_args, 4, "ys", b());
+      Value* val = sig.call("rbx_yield_splat", call_args, 5, "ys", b());
       stack_remove(count + 1);
 
       check_for_exception(val);

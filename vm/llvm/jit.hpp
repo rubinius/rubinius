@@ -31,6 +31,55 @@
 namespace rubinius {
 
   class InlinePolicy;
+  class JITMethodInfo;
+
+  class JITInlineBlock {
+    llvm::PHINode* block_break_result_;
+    llvm::BasicBlock* block_break_loc_;
+    VMMethod* code_;
+    JITMethodInfo* scope_;
+    int which_;
+    bool created_object_;
+
+  public:
+    JITInlineBlock(llvm::PHINode* phi, llvm::BasicBlock* brk, VMMethod* code,
+                   JITMethodInfo* scope, int which)
+      : block_break_result_(phi)
+      , block_break_loc_(brk)
+      , code_(code)
+      , scope_(scope)
+      , which_(which)
+      , created_object_(false)
+    {}
+
+    llvm::PHINode* block_break_result() {
+      return block_break_result_;
+    }
+
+    llvm::BasicBlock* block_break_loc() {
+      return block_break_loc_;
+    }
+
+    VMMethod* code() {
+      return code_;
+    }
+
+    JITMethodInfo* creation_scope() {
+      return scope_;
+    }
+
+    int which() {
+      return which_;
+    }
+
+    bool created_object_p() {
+      return created_object_;
+    }
+
+    void set_created_object() {
+      created_object_ = true;
+    }
+  };
 
   class JITMethodInfo {
     llvm::Function* function_;
@@ -42,12 +91,15 @@ namespace rubinius {
     llvm::Value* variables_;
     llvm::Value* previous_;
     llvm::Value* profiling_entry_;
-    llvm::PHINode* block_break_result_;
-    llvm::BasicBlock* block_break_loc_;
+    llvm::Value* out_args_;
+    llvm::Value* counter_;
 
     JITMethodInfo* parent_info_;
+    JITMethodInfo* creator_info_;
 
     bool use_full_scope_;
+
+    JITInlineBlock* inline_block_;
 
   public:
     VMMethod* vmm;
@@ -57,7 +109,6 @@ namespace rubinius {
     InlinePolicy* inline_policy;
     llvm::BasicBlock* fin_block;
     int called_args;
-    VMMethod* passed_block;
     std::vector<llvm::Value*>* stack_args;
 
     JITMethodInfo* root;
@@ -72,8 +123,12 @@ namespace rubinius {
       , args_(0)
       , previous_(0)
       , profiling_entry_(0)
+      , out_args_(0)
+      , counter_(0)
       , parent_info_(parent)
+      , creator_info_(0)
       , use_full_scope_(false)
+      , inline_block_(0)
       , vmm(v)
       , is_block(false)
       , inline_return(0)
@@ -81,7 +136,6 @@ namespace rubinius {
       , inline_policy(0)
       , fin_block(0)
       , called_args(-1)
-      , passed_block(0)
       , stack_args(0)
       , root(0)
     {}
@@ -162,6 +216,8 @@ namespace rubinius {
       parent_info_ = &info;
       function_ = info.function();
       vm_ = info.vm();
+      out_args_ = info.out_args();
+      counter_ = info.counter();
     }
 
     llvm::Value* parent_call_frame() {
@@ -176,22 +232,51 @@ namespace rubinius {
       return parent_info_;
     }
 
+    JITMethodInfo* creator_info() {
+      return creator_info_;
+    }
+
+    void set_creator_info(JITMethodInfo* creator_info) {
+      creator_info_ = creator_info;
+    }
+
+    JITMethodInfo* home_info() {
+      JITMethodInfo* nfo = creator_info_;
+      if(!nfo) return 0;
+
+      while(JITMethodInfo* nxt = nfo->creator_info()) {
+        nfo = nxt;
+      }
+
+      return nfo;
+    }
+
+    JITInlineBlock* inline_block() {
+      return inline_block_;
+    }
+
     llvm::BasicBlock* block_break_loc() {
-      return block_break_loc_;
+      return inline_block_->block_break_loc();
     }
 
     llvm::PHINode* block_break_result() {
-      return block_break_result_;
+      return inline_block_->block_break_result();
     }
 
-    void set_block_break(llvm::BasicBlock* block, llvm::PHINode* p) {
-      block_break_result_ = p;
-      block_break_loc_ = block;
+    void set_inline_block(JITInlineBlock* bi) {
+      inline_block_ = bi;
     }
 
-    void clear_block_break() {
-      block_break_result_ = 0;
-      block_break_loc_ = 0;
+    void clear_inline_block() {
+      inline_block_ = 0;
+    }
+
+    void set_out_args(llvm::Value* out_args) {
+      out_args_ = out_args;
+    }
+
+    llvm::Value* out_args() {
+      return out_args_;
     }
 
     bool use_full_scope() {
@@ -201,6 +286,17 @@ namespace rubinius {
     void set_use_full_scope() {
       use_full_scope_ = true;
     }
+
+    llvm::Value* counter() {
+      return counter_;
+    }
+
+    void set_counter(llvm::Value* counter) {
+      counter_ = counter;
+    }
+
+    llvm::AllocaInst* create_alloca(const llvm::Type* type, llvm::Value* size = 0,
+                                    const llvm::Twine& name = "");
 
   };
 
@@ -350,6 +446,7 @@ namespace rubinius {
     llvm::LLVMContext& ctx() { return ctx_; }
 
     const llvm::Type* ptr_type(std::string name);
+    const llvm::Type* type(std::string name);
 
     void compile_soon(STATE, VMMethod* vmm, BlockEnvironment* block=0);
     void remove(llvm::Function* func);

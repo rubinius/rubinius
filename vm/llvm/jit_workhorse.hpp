@@ -44,6 +44,8 @@ namespace rubinius {
     Value* arg_total;
     Value* valid_flag;
 
+    Value* counter;
+
     llvm::IRBuilder<> builder_;
 
     Value* call_frame_flags;

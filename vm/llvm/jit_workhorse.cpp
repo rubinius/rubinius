@@ -92,10 +92,6 @@ namespace rubinius {
     b().CreateStore(vars, get_field(call_frame, offset::cf_scope));
 
     if(ls_->include_profiling()) {
-      method_entry_ = b().CreateAlloca(ls_->Int8Ty,
-          ConstantInt::get(ls_->Int32Ty, sizeof(profiler::MethodEntry)),
-          "method_entry");
-
       Value* test = b().CreateLoad(ls_->profiling(), "profiling");
 
       BasicBlock* setup_profiling = BasicBlock::Create(ls_->ctx(), "setup_profiling", func);
@@ -179,10 +175,6 @@ namespace rubinius {
     b().CreateStore(top_scope, get_field(call_frame, offset::cf_top_scope));
 
     if(ls_->include_profiling()) {
-      method_entry_ = b().CreateAlloca(ls_->Int8Ty,
-          ConstantInt::get(ls_->Int32Ty, sizeof(profiler::MethodEntry)),
-          "method_entry");
-
       Value* test = b().CreateLoad(ls_->profiling(), "profiling");
 
       BasicBlock* setup_profiling = BasicBlock::Create(ls_->ctx(), "setup_profiling", func);
@@ -232,18 +224,17 @@ namespace rubinius {
     BasicBlock* top = BasicBlock::Create(ls_->ctx(), "stack_nil", func);
     BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "bottom", func);
 
-    Value* counter = b().CreateAlloca(ls_->Int32Ty, 0, "counter_alloca");
-    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0), counter);
+    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0), info_.counter());
 
     b().CreateBr(top);
 
     b().SetInsertPoint(top);
 
-    Value* cur = b().CreateLoad(counter, "counter");
+    Value* cur = b().CreateLoad(info_.counter(), "counter");
     b().CreateStore(nil, b().CreateGEP(stk, cur, "stack_pos"));
 
     Value* added = b().CreateAdd(cur, one, "added");
-    b().CreateStore(added, counter);
+    b().CreateStore(added, info_.counter());
 
     Value* cmp = b().CreateICmpEQ(added, max, "loop_check");
     b().CreateCondBr(cmp, cont, top);
@@ -278,14 +269,13 @@ namespace rubinius {
     BasicBlock* top = BasicBlock::Create(ls_->ctx(), "locals_nil", func);
     BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "bottom", func);
 
-    Value* counter = b().CreateAlloca(ls_->Int32Ty, 0, "counter_alloca");
-    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0), counter);
+    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0), info_.counter());
 
     b().CreateBr(top);
 
     b().SetInsertPoint(top);
 
-    Value* cur = b().CreateLoad(counter, "counter");
+    Value* cur = b().CreateLoad(info_.counter(), "counter");
     Value* idx[] = {
       ConstantInt::get(ls_->Int32Ty, 0),
       ConstantInt::get(ls_->Int32Ty, offset::vars_tuple),
@@ -296,7 +286,7 @@ namespace rubinius {
     b().CreateStore(nil, gep);
 
     Value* added = b().CreateAdd(cur, one, "added");
-    b().CreateStore(added, counter);
+    b().CreateStore(added, info_.counter());
 
     Value* cmp = b().CreateICmpEQ(added, max, "loop_check");
     b().CreateCondBr(cmp, cont, top);
@@ -480,7 +470,7 @@ namespace rubinius {
       // Otherwise, we must loop in the generate code because we don't know
       // how many they've actually passed in.
     } else {
-      Value* loop_i = b().CreateAlloca(ls_->Int32Ty, 0, "loop_i");
+      Value* loop_i = info_.counter();
 
       BasicBlock* top = BasicBlock::Create(ls_->ctx(), "arg_loop_top", func);
       BasicBlock* body = BasicBlock::Create(ls_->ctx(), "arg_loop_body", func);
@@ -587,6 +577,8 @@ namespace rubinius {
 
     pass_one(body);
 
+    info_.set_counter(b().CreateAlloca(ls_->Int32Ty, 0, "counter_alloca"));
+
     valid_flag = b().CreateAlloca(ls_->Int1Ty, 0, "valid_flag");
 
     Value* cfstk = b().CreateAlloca(obj_type,
@@ -597,6 +589,14 @@ namespace rubinius {
     call_frame = b().CreateBitCast(
         cfstk,
         PointerType::getUnqual(cf_type), "call_frame");
+
+    info_.set_out_args(b().CreateAlloca(ls_->type("Arguments"), 0, "out_args"));
+
+    if(ls_->include_profiling()) {
+      method_entry_ = b().CreateAlloca(ls_->Int8Ty,
+          ConstantInt::get(ls_->Int32Ty, sizeof(profiler::MethodEntry)),
+          "method_entry");
+    }
 
     info_.set_call_frame(call_frame);
 
@@ -722,6 +722,7 @@ namespace rubinius {
     pass_one(body);
 
     valid_flag = b().CreateAlloca(ls_->Int1Ty, 0, "valid_flag");
+    info_.set_counter(b().CreateAlloca(ls_->Int32Ty, 0, "counter_alloca"));
 
     Value* cfstk = b().CreateAlloca(obj_type,
         ConstantInt::get(ls_->Int32Ty,
@@ -732,6 +733,14 @@ namespace rubinius {
         ConstantInt::get(ls_->Int32Ty,
           (sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
         "var_mem");
+
+    info_.set_out_args(b().CreateAlloca(ls_->type("Arguments"), 0, "out_args"));
+
+    if(ls_->include_profiling()) {
+      method_entry_ = b().CreateAlloca(ls_->Int8Ty,
+          ConstantInt::get(ls_->Int32Ty, sizeof(profiler::MethodEntry)),
+          "method_entry");
+    }
 
     check_arity();
 
