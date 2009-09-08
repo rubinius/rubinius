@@ -76,7 +76,7 @@ module Rubinius
       end
 
       def run
-        @output = @input
+        @output = @input.package Rubinius::CompiledMethod
         run_next
       end
     end
@@ -113,7 +113,7 @@ module Rubinius
       def initialize(compiler, last)
         super
         compiler.generator = self
-        @processor = Compiler::Generator
+        @processor = Rubinius::Generator
       end
 
       def run

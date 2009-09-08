@@ -1,6 +1,6 @@
 module Rubinius
   class CompilerNG
-    attr_accessor :parser, :generator, :encoder, :writer
+    attr_accessor :parser, :generator, :encoder, :packager, :writer
 
     # Temporary
     def self.enable
@@ -29,6 +29,13 @@ module Rubinius
     end
 
     def self.compile_string(string, file="(eval)", line=1)
+      compiler = new :string, :compiled_file
+
+      parser = compiler.parser
+      parser.root AST::Script
+      parser.input string, file, line
+
+      compiler.run
     end
 
     def self.compile_eval(string, binding, file="(eval", line=1)

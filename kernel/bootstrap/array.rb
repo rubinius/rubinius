@@ -196,4 +196,10 @@ class Array
   def to_reverse_iter(step=1)
     Iterator.new self, step, true
   end
+
+  def to_tuple
+    tuple = Rubinius::Tuple.new @total
+    tuple.copy_from @tuple, @start, @total, 0
+    tuple
+  end
 end
