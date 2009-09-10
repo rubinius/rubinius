@@ -15,11 +15,21 @@ module Rubinius
       end
     end
 
-    def self.compile(file, output=nil)
+    def self.compile(file, line=1, output=nil)
+      compiler = new :file, :compiled_file
+
+      parser = compiler.parser
+      parser.root AST::Script
+      parser.input file, line
+
+      writer = compiler.writer
+      writer.name = output
+
+      compiler.run
     end
 
     def self.compile_file(file, line=1)
-      compiler = new :file, :compiled_file
+      compiler = new :file, :compiled_method
 
       parser = compiler.parser
       parser.root AST::Script
@@ -29,7 +39,7 @@ module Rubinius
     end
 
     def self.compile_string(string, file="(eval)", line=1)
-      compiler = new :string, :compiled_file
+      compiler = new :string, :compiled_method
 
       parser = compiler.parser
       parser.root AST::Script

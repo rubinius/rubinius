@@ -55,6 +55,8 @@ module Rubinius
     class Writer < Stage
       stage :compiled_file
 
+      attr_accessor :name
+
       def initialize(compiler, last)
         super
         compiler.writer = self
