@@ -194,7 +194,7 @@ namespace rubinius {
     String* other = as<String>(b);
 
     if(self->num_bytes() != other->num_bytes()) return false;
-    if(strncmp(self->byte_address(), other->byte_address(), self->num_bytes()->to_native())) {
+    if(memcmp(self->byte_address(), other->byte_address(), self->num_bytes()->to_native())) {
       return false;
     }
 
