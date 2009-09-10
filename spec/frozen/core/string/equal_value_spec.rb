@@ -24,4 +24,8 @@ describe "String#==" do
 
     ('hello' == obj).should ==  true
   end
+
+  it "is not fooled by NUL characters" do
+    "abc\0def".should_not == "abc\0xyz"
+  end
 end
