@@ -177,8 +177,6 @@ module Rubinius
 
       def scope_bytecode(g)
         map_variables
-        g.local_count = local_count
-        g.local_names = local_names
       end
 
       def bytecode(g)
@@ -193,6 +191,9 @@ module Rubinius
 
         meth = desc.generator
         meth.name = name
+
+        meth.local_count = local_count
+        meth.local_names = local_names
 
         if scoped
           meth.push_self
@@ -268,6 +269,9 @@ module Rubinius
         meth.required_args = @arguments.required_args
         meth.total_args = @arguments.total_args
         meth.splat_index = @arguments.splat_index
+
+        meth.local_count = local_count
+        meth.local_names = local_names
 
         meth.ret
         meth.close
@@ -713,6 +717,7 @@ module Rubinius
 
       def bytecode(g)
         super(g)
+        g.name = :__snippit__
         @body.bytecode(g)
       end
     end
@@ -726,6 +731,7 @@ module Rubinius
 
       def bytecode(g)
         super(g)
+        g.name = :__script__
 
         @body.bytecode(g)
         g.pop

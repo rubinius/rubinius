@@ -47,7 +47,7 @@ module Rubinius
       @required_args = 0
       @total_args = 0
       @splat_index = nil
-      @local_names = []
+      @local_names = nil
       @local_count = 0
 
       @children = []
@@ -149,7 +149,7 @@ module Rubinius
       cm.total_args     = @total_args
       cm.splat          = @splat_index
       cm.local_count    = @local_count
-      cm.local_names    = @local_names.to_tuple
+      cm.local_names    = @local_names.to_tuple if @local_names
 
       cm.stack_size     = @stack_size
       cm.file           = @file # TODO
