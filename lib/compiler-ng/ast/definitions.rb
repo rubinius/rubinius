@@ -95,7 +95,9 @@ module Rubinius
       attr_accessor :locals
 
       def new_description(g)
-        Compiler::MethodDescription.new(g.class, self.locals)
+        desc = Compiler::MethodDescription.new(g.class, self.locals)
+        desc.generator.file = g.file
+        desc
       end
 
       def argument_info
@@ -716,34 +718,42 @@ module Rubinius
       end
     end
 
-    class Snippit < ClosedScope
-      attr_accessor :body
+    class Container < ClosedScope
+      attr_accessor :file, :name, :body
 
       def initialize(body)
         @body = body
       end
 
-      def args(body)
-        @body = expand body
+      def bytecode(g)
+        super(g)
+
+        g.name = @name
+        g.file = @file.to_sym
+      end
+    end
+
+    class Snippit < Container
+      def initialize(body)
+        super body
+        @name = :__snippit__
       end
 
       def bytecode(g)
         super(g)
-        g.name = :__snippit__
+
         @body.bytecode(g)
       end
     end
 
-    class Script < ClosedScope
-      attr_accessor :body
-
+    class Script < Container
       def initialize(body)
-        @body = body
+        super body
+        @name = :__script__
       end
 
       def bytecode(g)
         super(g)
-        g.name = :__script__
 
         @body.bytecode(g)
         g.pop

@@ -238,7 +238,7 @@ module Rubinius
       @break, @redo, @next, @retry = @modstack.pop
     end
 
-    def set_line(line, file)
+    def set_line(line)
       if line and line > 0 and line != @last_line
         # Fold redundent line changes on the same ip into the same
         # entry
@@ -248,7 +248,6 @@ module Rubinius
           @lines << @ip
           @lines << line
         end
-        @file = file
         @last_line = line
       end
     end

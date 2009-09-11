@@ -287,15 +287,17 @@ module Rubinius
 
         map_iter
 
+        # TODO: remove MethodDescription and replace with constructor method
         desc = Compiler::MethodDescription.new g.class, @locals
         desc.name = :__block__
         desc.for_block = true
         desc.required = @arguments.arity
         desc.optional = @arguments.optional
         blk = desc.generator
+        blk.file = g.file
 
         # Push line info down.
-        blk.set_line g.line, g.file
+        pos(blk)
 
         @arguments.bytecode(blk)
 

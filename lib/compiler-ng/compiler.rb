@@ -48,7 +48,7 @@ module Rubinius
       compiler.run
     end
 
-    def self.compile_eval(string, binding, file="(eval", line=1)
+    def self.compile_eval(string, binding, file="(eval)", line=1)
       compiler = new :string, :compiled_method
 
       parser = compiler.parser

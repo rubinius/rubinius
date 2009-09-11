@@ -9,4 +9,8 @@ class TestGenerator
   def setup_unwind(label, *)
     add :setup_unwind, label
   end
+
+  def set_line(line)
+    @line = line
+  end
 end

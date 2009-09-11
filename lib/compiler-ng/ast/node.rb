@@ -8,7 +8,7 @@ module Rubinius
       end
 
       def pos(g)
-        g.set_line @line, @file
+        g.set_line @line
       end
 
       # TODO: transform nodes that use this

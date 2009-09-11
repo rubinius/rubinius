@@ -143,13 +143,14 @@ module Rubinius
       next_stage Generator
 
       def input(file, line=1)
-        @input = file
+        @file = file
         @line = line
       end
 
       def run
-        ast = File.to_ast @input, @line
+        ast = File.to_ast @file, @line
         @output = @root.new ast
+        @output.file = @file
         run_next
       end
     end
@@ -168,6 +169,7 @@ module Rubinius
       def run
         ast = @input.to_ast @name, @line
         @output = @root.new ast
+        @output.file = @name
         run_next
       end
     end
