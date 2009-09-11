@@ -10,6 +10,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         g.push_scope
         g.push_literal @to
         g.push_literal @from
@@ -459,6 +461,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         g.push_block
         g.dup
         g.is_nil
@@ -549,6 +553,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         name_bytecode(g)
         g.push_scope
         g.send :open_class, 3
@@ -570,6 +576,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         name_bytecode(g)
         @parent.bytecode(g)
         g.send :open_class_under, 3
@@ -630,6 +638,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         name_bytecode(g)
         g.push_scope
         g.send :open_module, 2
@@ -646,6 +656,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         name_bytecode(g)
         @parent.bytecode(g)
         g.send :open_module_under, 2

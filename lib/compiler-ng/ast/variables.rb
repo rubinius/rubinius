@@ -9,6 +9,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         g.push_variables
         g.push_literal @kind
         g.send :back_ref, 1
@@ -57,6 +59,8 @@ module Rubinius
       end
 
       def or_bytecode(g)
+        pos(g)
+
         if @in_module
           g.push :self
         else
@@ -84,6 +88,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         if @in_module
           g.push :self
         else
@@ -104,6 +110,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         if @in_module
           g.push :self
         else
@@ -195,6 +203,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         g.cast_array
         @value.bytecode(g)
       end
@@ -229,6 +239,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         @variable.get_bytecode(g)
       end
     end

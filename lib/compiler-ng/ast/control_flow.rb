@@ -14,6 +14,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         done = g.new_label
 
         @whens.each do |w|
@@ -41,6 +43,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         done = g.new_label
 
         @receiver.bytecode(g)
@@ -123,6 +127,8 @@ module Rubinius
       end
 
       def bytecode(g, done)
+        pos(g)
+
         nxt = g.new_label
         body = g.new_label
 
@@ -159,6 +165,8 @@ module Rubinius
       end
 
       def receiver_bytecode(g, body, nxt)
+        pos(g)
+
         g.dup
         @condition.bytecode(g)
         g.cast_array
@@ -375,6 +383,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         @value.bytecode(g)
 
         g.pop_unwind if @pop_unwind
@@ -429,6 +439,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         g.pop_unwind if @pop_unwind
 
         if g.redo

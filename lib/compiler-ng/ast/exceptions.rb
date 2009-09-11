@@ -262,6 +262,8 @@ module Rubinius
       end
 
       def bytecode(g, body)
+        pos(g)
+
         @value.bytecode(g)
         g.cast_array
         g.push_exception

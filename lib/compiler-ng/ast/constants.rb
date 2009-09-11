@@ -110,6 +110,7 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
         g.push_literal @name
       end
     end
