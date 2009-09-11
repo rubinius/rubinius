@@ -104,6 +104,16 @@ module Rubinius
         [@body]
       end
 
+      def local_count
+        variables.size
+      end
+
+      def local_names
+        names = Array.new local_count
+        variables.each_pair { |name, var| names[var.slot] = name }
+        names
+      end
+
       def variables
         @variables ||= {}
       end
@@ -167,25 +177,29 @@ module Rubinius
 
       def scope_bytecode(g)
         map_variables
+        g.local_count = local_count
+        g.local_names = local_names
       end
 
       def bytecode(g)
+        pos(g)
+
         scope_bytecode(g)
       end
 
       def attach_and_call(g, name, scoped=false)
         desc = new_description(g)
         desc.name = name
-        meth = desc.generator
 
-        # prelude(g, meth)
+        meth = desc.generator
+        meth.name = name
 
         if scoped
           meth.push_self
           meth.add_scope
         end
 
-        desc.run self, @body
+        @body.bytecode meth
 
         meth.ret
         meth.close
@@ -246,21 +260,17 @@ module Rubinius
       def compile_body(g)
         desc = new_description(g)
         meth = desc.generator
-
-        # prelude(g, meth)
+        meth.name = @name
 
         @arguments.bytecode(meth) if @arguments
-        desc.run self, @body # TODO: why is it not @body.bytecode(meth) ?
+        @body.bytecode(meth)
 
-        # TODO: remove this, desc.args should have @arguments
-        required = @arguments.required unless @arguments.required.empty?
-        optional = @arguments.optional unless @arguments.optional.empty?
-        desc.args = [required, optional, @arguments.splat]
+        meth.required_args = @arguments.required_args
+        meth.total_args = @arguments.total_args
+        meth.splat_index = @arguments.splat_index
 
         meth.ret
         meth.close
-
-        # use_plugin g, :method, desc
 
         return desc
       end
@@ -270,9 +280,7 @@ module Rubinius
       end
 
       def bytecode(g)
-        pos(g)
-
-        scope_bytecode(g)
+        super(g)
 
         g.push_const :Rubinius
         g.push_literal @name
@@ -366,6 +374,18 @@ module Rubinius
 
       def arity
         @required.size
+      end
+
+      def required_args
+        @required.size
+      end
+
+      def total_args
+        @required.size + @optional.size
+      end
+
+      def splat_index
+        @names.size - 1 if @splat.kind_of? Symbol
       end
 
       def map_arguments(scope)
@@ -502,7 +522,6 @@ module Rubinius
       end
 
       def bytecode(g)
-        pos(g)
         super(g)
 
         desc = attach_and_call g, :__class_init__, true
@@ -651,7 +670,6 @@ module Rubinius
       end
 
       def bytecode(g)
-        pos(g)
         super(g)
 
         attach_and_call g, :__module_init__, true
@@ -668,7 +686,7 @@ module Rubinius
       end
 
       def bytecode(g)
-        pos(g)
+        super(g)
 
         @receiver.bytecode(g)
         g.dup
@@ -696,11 +714,6 @@ module Rubinius
       def bytecode(g)
         super(g)
         @body.bytecode(g)
-
-        #set(:scope, self) do
-        #  prelude(nil, g)
-        #  @body.bytecode(g)
-        #end
       end
     end
 
@@ -714,7 +727,6 @@ module Rubinius
       def bytecode(g)
         super(g)
 
-        # prelude(nil, g)
         @body.bytecode(g)
         g.pop
         g.push :true

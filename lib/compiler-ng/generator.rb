@@ -43,14 +43,20 @@ module Rubinius
       @lines = []
       @primitive = nil
       @last = nil
+
+      @required_args = 0
+      @total_args = 0
+      @splat_index = nil
       @local_names = []
       @local_count = 0
+
       @children = []
     end
 
     attr_reader :cache_size, :literals, :iseq
     attr_accessor :break, :redo, :next, :retry, :ensure_return
-    attr_accessor :file, :name, :local_count, :local_names, :primitive
+    attr_accessor :file, :name, :required_args, :total_args, :splat_index,
+                  :local_count, :local_names, :primitive
 
     # Temporary
     attr_accessor :desc
@@ -119,7 +125,7 @@ module Rubinius
         raise e
       end
 
-      stack_size = sdc_stack # + local.size
+      stack_size = sdc_stack + @local_count
       stack_size += 1 if @for_block
       @stack_size = stack_size
 
@@ -127,27 +133,29 @@ module Rubinius
     end
 
     def package(klass)
-      literals = @literals.map { |l| l.kind_of?(self.class) ? l.package(klass) : l }
+      @literals.each_with_index do |literal, index|
+        if literal.kind_of? Compiler::MethodDescription
+          @literals[index] = literal.generator.package klass
+        end
+      end
 
       cm = klass.new
       cm.iseq           = @iseq
-      if @arguments
-        cm.required_args  = @arguments.required_args
-        cm.total_args     = @arguments.total_args
-        cm.splat          = @arguments.splat_index
-      else
-        cm.required_args  = 0
-        cm.total_args     = 0
-      end
       cm.literals       = literals.to_tuple
       cm.lines          = @lines.to_tuple
-      cm.exceptions     = [].to_tuple
+      cm.exceptions     = [].to_tuple # TODO: remove
+
+      cm.required_args  = @required_args
+      cm.total_args     = @total_args
+      cm.splat          = @splat_index
       cm.local_count    = @local_count # TODO
       cm.local_names    = @local_names.to_tuple # TODO
+
       cm.stack_size     = @stack_size
       cm.file           = @file # TODO
       cm.name           = @name # TODO
       cm.primitive      = @primitive # TODO
+
       cm
     end
 
@@ -414,7 +422,7 @@ module Rubinius
       add :push_literal, idx
 
       # TODO: fix
-      @children << what if what.kind_of? self.class
+      @children << what.generator if what.kind_of? Compiler::MethodDescription
 
       return idx
     end

@@ -49,6 +49,13 @@ module Rubinius
     end
 
     def self.compile_eval(string, binding, file="(eval", line=1)
+      compiler = new :string, :compiled_method
+
+      parser = compiler.parser
+      parser.root AST::Script
+      parser.input string, file, line
+
+      compiler.run
     end
 
     def self.compile_test_bytecode(string, name="(eval)")
