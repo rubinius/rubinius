@@ -148,8 +148,8 @@ module Rubinius
       cm.required_args  = @required_args
       cm.total_args     = @total_args
       cm.splat          = @splat_index
-      cm.local_count    = @local_count # TODO
-      cm.local_names    = @local_names.to_tuple # TODO
+      cm.local_count    = @local_count
+      cm.local_names    = @local_names.to_tuple
 
       cm.stack_size     = @stack_size
       cm.file           = @file # TODO
@@ -276,87 +276,6 @@ module Rubinius
       Label.new(self)
     end
 
-    ##
-    # Used to generate the exception table for a begin.
-
-    class ExceptionBlock
-
-      Types = {
-        :rescue => 0,
-        :ensure => 1
-      }
-
-      def initialize(gen, type=:rescue)
-        @generator = gen
-        @type = Types[type]
-      end
-
-      def start!
-        @handler = @generator.new_label
-        @start = @generator.ip
-        @generator.setup_unwind @handler, @type
-      end
-
-      def handle!
-        @handler.set!
-        @handler = @generator.ip
-        @end = @handler - 1
-      end
-
-      def escape(label)
-        @generator.pop_unwind
-        @generator.goto label
-      end
-
-      def range
-        [@start, @end]
-      end
-
-      def as_tuple
-        Rubinius::Tuple[@start, @end, @handler]
-      end
-
-      def <=>(other)
-        return 0 if self.equal?(other)
-
-        os, oe = other.range
-
-        # Make sure that the 2 blocks are valid
-        if os == @start and oe == @end
-          raise Error, "Invalid exception blocking detected"
-        end
-
-        if @start < os and @end >= os and @end <= oe
-          raise Error, "Overlapping exception ranges"
-        end
-
-        if os < @start and oe >= @start and oe <= @end
-          raise Error, "Overlapping exception ranges"
-        end
-
-        # Now, they're either disjoined or one is a subrange.
-
-        # If self is a sub-region of other, then it's
-        # less than other.
-        return -1 if @start >= os and @end <= oe
-        return  1 if os >= @start and oe <= @end
-
-        # Ok, they're disjoined.
-
-        @start <=> os
-      end
-
-      def inspect
-        "#<#{self.class}:0x#{object_id.to_s(16)} start=#{@start} handler=#{@handler}>"
-      end
-    end
-
-    def exceptions(type=:rescue)
-      ex = ExceptionBlock.new(self, type)
-      ex.start!
-      @exceptions << ex
-      yield ex
-    end
 
     # Operations
 

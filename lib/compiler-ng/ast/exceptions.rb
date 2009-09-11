@@ -17,6 +17,8 @@ module Rubinius
       end
     end
 
+    EnsureType = 1
+
     class Ensure < Node
       attr_accessor :body, :ensure
 
@@ -34,21 +36,27 @@ module Rubinius
         pos(g)
 
         ok = g.new_label
-        g.exceptions :ensure do |ex|
-          @body.bytecode(g)
-          ex.escape ok
+        ex = g.new_label
+        g.setup_unwind ex, EnsureType
 
-          ex.handle!
-          g.push_exception
+        # TODO: ?
+        g.new_label.set!
 
-          @ensure.bytecode(g)
-          g.pop
+        @body.bytecode(g)
 
-          g.pop_exception
+        g.pop_unwind
+        g.goto ok
 
-          # Re-raise the exception
-          g.reraise
-        end
+        ex.set!
+        g.push_exception
+
+        @ensure.bytecode(g)
+        g.pop
+
+        g.pop_exception
+
+        # Re-raise the exception
+        g.reraise
 
         ok.set!
 
@@ -58,6 +66,8 @@ module Rubinius
         g.pop
       end
     end
+
+    RescueType = 0
 
     class Rescue < Node
       attr_accessor :body, :rescue, :else
@@ -95,15 +105,20 @@ module Rubinius
           g.push_exception
 
           g.retry.set!
-          g.exceptions do |ex|
-            @body.bytecode(g)
-            ex.escape els
+          ex = g.new_label
+          g.setup_unwind ex, RescueType
 
-            ex.handle!
-            @rescue.bytecode(g, reraise, done)
-            reraise.set!
-            g.reraise
-          end
+          # TODO: ?
+          g.new_label.set!
+
+          @body.bytecode(g)
+          g.pop_unwind
+          g.goto els
+
+          ex.set!
+          @rescue.bytecode(g, reraise, done)
+          reraise.set!
+          g.reraise
 
           els.set!
           if @else
