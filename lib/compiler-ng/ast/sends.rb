@@ -215,11 +215,6 @@ module Rubinius
         @body = body || Nil.new(line)
       end
 
-      # TODO: fix
-      def argument_info
-        [@arguments.arity, @arguments.optional.size, nil]
-      end
-
       def variables
         @variables ||= {}
       end

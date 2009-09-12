@@ -92,16 +92,12 @@ module Rubinius
     end
 
     class ClosedScope < Node
-      attr_accessor :locals
+      attr_accessor :body
 
       def new_description(g)
-        desc = Compiler::MethodDescription.new(g.class, self.locals)
+        desc = Compiler::MethodDescription.new(g.class, nil)
         desc.generator.file = g.file
         desc
-      end
-
-      def argument_info
-        [0, 0, nil]
       end
 
       def children
@@ -194,7 +190,7 @@ module Rubinius
         desc.name = name
 
         meth = desc.generator
-        meth.name = name
+        meth.name = @name ? @name : name
 
         meth.local_count = local_count
         meth.local_names = local_names
@@ -227,7 +223,7 @@ module Rubinius
     end
 
     class Define < ClosedScope
-      attr_accessor :name, :arguments, :body
+      attr_accessor :name, :arguments
 
       def initialize(line, name, block)
         @line = line
@@ -236,13 +232,6 @@ module Rubinius
         block.array << Nil.new(line) if block.array.empty?
         @body = block
         map_super
-      end
-
-      # TODO: fix
-      def argument_info
-        opt = @arguments.optional || [] # FIX: temporary
-
-        [@arguments.arity, opt.size, @arguments.splat]
       end
 
       def map_super
@@ -515,11 +504,9 @@ module Rubinius
     end
 
     class ClassScope < ClosedScope
-      attr_accessor :name, :body
-
       def initialize(line, name, body)
         @line = line
-        @name = name
+        @name = name.name
         @body = body
       end
 
@@ -534,8 +521,7 @@ module Rubinius
       def bytecode(g)
         super(g)
 
-        desc = attach_and_call g, :__class_init__, true
-        desc.name = @name if desc
+        attach_and_call g, :__class_init__, true
       end
     end
 
@@ -671,11 +657,9 @@ module Rubinius
     end
 
     class ModuleScope < ClosedScope
-      attr_accessor :name, :body
-
       def initialize(line, name, body)
         @line = line
-        @name = name
+        @name = name.name
         @body = body
       end
 
@@ -695,7 +679,7 @@ module Rubinius
     end
 
     class SClass < ClosedScope
-      attr_accessor :receiver, :name, :body
+      attr_accessor :receiver
 
       def initialize(line, receiver, body)
         @line = line
@@ -719,7 +703,7 @@ module Rubinius
     end
 
     class Container < ClosedScope
-      attr_accessor :file, :name, :body
+      attr_accessor :file, :name
 
       def initialize(body)
         @body = body

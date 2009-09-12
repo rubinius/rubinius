@@ -121,6 +121,7 @@ module Rubinius
       def run
         @output = @processor.new
         @input.bytecode @output
+        @output.close
         run_next
       end
     end
