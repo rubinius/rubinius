@@ -246,7 +246,19 @@ describe "A Rescue node" do
       [:rescue, [:lit, 1], [:resbody, [:array, [:iasgn, :@e, [:gvar, :$!]]], nil]]
     end
 
-    # rescue iasgn var empty
+    compile do |g|
+      in_rescue :StandardError, 1 do |section|
+        case section
+        when :body then
+          g.push 1
+        when :StandardError then
+          g.push_exception
+          g.set_ivar :@e
+          g.pop
+          g.push :nil
+        end
+      end
+    end
   end
 
   relates <<-ruby do
@@ -261,7 +273,17 @@ describe "A Rescue node" do
       [:rescue, [:lit, 1], [:resbody, [:array], [:lasgn, :var, [:lit, 2]]]]
     end
 
-    # rescue lasgn
+    compile do |g|
+      in_rescue :StandardError, 1 do |section|
+        case section
+        when :body then
+          g.push 1
+        when :StandardError then
+          g.push 2
+          g.set_local 0
+        end
+      end
+    end
   end
 
   relates <<-ruby do
@@ -275,7 +297,53 @@ describe "A Rescue node" do
       [:rescue, [:lit, 1], [:resbody, [:array, [:lasgn, :e, [:gvar, :$!]]], nil]]
     end
 
-    # rescue lasgn var empty
+    compile do |g|
+      in_rescue :StandardError, 1 do |section|
+        case section
+        when :body then
+          g.push 1
+        when :StandardError then
+          g.push_exception
+          g.set_local 0
+          g.pop
+          g.push :nil
+        end
+      end
+    end
+  end
+
+  relates <<-ruby do
+      begin
+        1
+      rescue
+        a.b = nil
+      end
+    ruby
+
+    parse do
+      [:rescue,
+       [:lit, 1],
+       [:resbody,
+        [:array],
+        [:attrasgn, [:call, nil, :a, [:arglist]], :b=, [:arglist, [:nil]]]]]
+    end
+
+    compile do |g|
+      in_rescue :StandardError, 1 do |section|
+        case section
+        when :body then
+          g.push 1
+        when :StandardError then
+          g.push :self
+          g.send :a, 0, true
+          g.push :nil
+          g.dup
+          g.move_down 2
+          g.send :b=, 1, false
+          g.pop
+        end
+      end
+    end
   end
 
   relates <<-ruby do
@@ -292,7 +360,20 @@ describe "A Rescue node" do
        [:resbody, [:array, [:lasgn, :e, [:gvar, :$!]]], [:lasgn, :var, [:lit, 2]]]]
     end
 
-    # rescue lasgn var
+    compile do |g|
+      in_rescue :StandardError, 1 do |section|
+        case section
+        when :body then
+          g.push 1
+        when :StandardError then
+          g.push_exception
+          g.set_local 0
+          g.pop
+          g.push 2
+          g.set_local 1
+        end
+      end
+    end
   end
 
   relates <<-ruby do

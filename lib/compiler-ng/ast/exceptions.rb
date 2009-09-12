@@ -170,11 +170,17 @@ module Rubinius
         end
       end
 
-      # TODO: simplify after assignment nodes are subclasses of Assignment
       def assignment?(node)
-        (node.kind_of? VariableAssignment or
-         node.kind_of? AttributeAssignment) and
-        node.value.name == :$!
+        case node
+        when VariableAssignment
+          value = node.value
+        when AttributeAssignment
+          value = node.arguments.array.last
+        else
+          return false
+        end
+
+        return true if value.kind_of? GlobalVariableAccess and value.name == :$!
       end
 
       def map_rescue
