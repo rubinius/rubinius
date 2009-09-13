@@ -58,4 +58,27 @@ describe "A Hash node" do
       g.send :[], 2
     end
   end
+
+  relates <<-ruby do
+      a = 1
+      { :a => a }
+    ruby
+
+    parse do
+      [:block,
+        [:lasgn, :a, [:lit, 1]],
+        [:hash, [:lit, :a], [:lvar, :a]]]
+    end
+
+    compile do |g|
+      g.push 1
+      g.set_local 0
+      g.pop
+      g.push_cpath_top
+      g.find_const :Hash
+      g.push_unique_literal :a
+      g.push_local 0
+      g.send :[], 2
+    end
+  end
 end

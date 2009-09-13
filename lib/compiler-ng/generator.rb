@@ -121,7 +121,7 @@ module Rubinius
       begin
         sdc_stack = sdc.run
       rescue RuntimeError => e
-        puts "ERROR in #{desc.name}, #{@lines.first}"
+        puts "ERROR in #{@name}, #{@lines.first}"
         raise e
       end
 

@@ -195,9 +195,7 @@ module Rubinius
       end
 
       def children
-        children = @array.dup
-        children << @splat if splat?
-        children
+        @array.dup << @splat
       end
 
       def bytecode(g)
@@ -442,7 +440,7 @@ module Rubinius
       end
 
       def children
-        [@arguments]
+        [@arguments, @block]
       end
 
       def block_bytecode(g)

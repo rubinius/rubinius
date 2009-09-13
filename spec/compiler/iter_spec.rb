@@ -739,6 +739,29 @@ describe "An Iter node" do
     end
   end
 
+  relates "m { x = 1; next x }" do
+    parse do
+      [:iter,
+        [:call, nil, :m, [:arglist]],
+        nil,
+        [:block,
+          [:lasgn, :x, [:lit, 1]],
+          [:next, [:lvar, :x]]]]
+    end
+
+    compile do |g|
+      g.push :self
+
+      g.in_block_send :m, :none do |d|
+        d.push 1
+        d.set_local 0
+        d.pop
+        d.push_local 0
+        d.ret
+      end
+    end
+  end
+
   relates "m { next [1] }" do
     parse do
       [:iter, [:call, nil, :m, [:arglist]], nil, [:next, [:array, [:lit, 1]]]]
@@ -893,6 +916,29 @@ describe "An Iter node" do
       g.in_block_send :m, :none do |d|
         d.push :self
         d.send :x, 0, true
+        d.raise_break
+      end
+    end
+  end
+
+  relates "m { x = 1; break x }" do
+    parse do
+      [:iter,
+        [:call, nil, :m, [:arglist]],
+        nil,
+        [:block,
+          [:lasgn, :x, [:lit, 1]],
+          [:break, [:lvar, :x]]]]
+    end
+
+    compile do |g|
+      g.push :self
+
+      g.in_block_send :m, :none do |d|
+        d.push 1
+        d.set_local 0
+        d.pop
+        d.push_local 0
         d.raise_break
       end
     end
@@ -1055,6 +1101,29 @@ describe "An Iter node" do
       g.in_block_send :m, :none do |d|
         d.push :self
         d.send :x, 0, true
+        d.raise_return
+      end
+    end
+  end
+
+  relates "m { x = 1; return x }" do
+    parse do
+      [:iter,
+        [:call, nil, :m, [:arglist]],
+        nil,
+        [:block,
+          [:lasgn, :x, [:lit, 1]],
+          [:return, [:lvar, :x]]]]
+    end
+
+    compile do |g|
+      g.push :self
+
+      g.in_block_send :m, :none do |d|
+        d.push 1
+        d.set_local 0
+        d.pop
+        d.push_local 0
         d.raise_return
       end
     end

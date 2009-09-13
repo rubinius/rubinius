@@ -44,6 +44,10 @@ module Rubinius
         @value = value
       end
 
+      def children
+        [@value]
+      end
+
       def bytecode(g)
         true_label = g.new_label
         end_label = g.new_label
@@ -72,7 +76,10 @@ module Rubinius
       end
 
       def children
-        [@receiver, @value]
+        children = [@receiver]
+        children.concat @index
+        children << @value
+        children
       end
 
       def bytecode(g)

@@ -240,8 +240,12 @@ module Rubinius
       def initialize(line, condition, body, check_first)
         @line = line
         @condition = condition
-        @body = body
+        @body = body || Nil.new(line)
         @check_first = check_first
+      end
+
+      def children
+        [@condition, @body]
       end
 
       def bytecode(g, use_gif=true)
@@ -336,6 +340,10 @@ module Rubinius
         @value = value
       end
 
+      def children
+        [@pattern, @value]
+      end
+
       def bytecode(g)
         pos(g)
 
@@ -354,6 +362,10 @@ module Rubinius
         @value = value
       end
 
+      def children
+        [@pattern, @value]
+      end
+
       def bytecode(g)
         pos(g)
 
@@ -369,6 +381,10 @@ module Rubinius
       def initialize(line, expr)
         @line = line
         @value = expr || Nil.new(line)
+      end
+
+      def children
+        [@value]
       end
 
       def jump_error(g, msg)

@@ -61,6 +61,56 @@ describe "An Op_asgn1 node" do
     end
   end
 
+  relates <<-ruby do
+      x = 1
+      hsh[x] ||= 8
+    ruby
+
+    parse do
+      [:block,
+       [:lasgn, :x, [:lit, 1]],
+       [:op_asgn1,
+        [:call, nil, :hsh, [:arglist]],
+        [:arglist, [:lvar, :x]],
+        :"||",
+        [:lit, 8]]]
+    end
+
+    compile do |g|
+      g.push 1
+      g.set_local 0
+      g.pop
+
+      found = g.new_label
+      fin = g.new_label
+
+      g.push :self
+      g.send :hsh, 0, true
+      g.dup
+      g.push_local 0
+      g.send :[], 1
+      g.dup
+      g.git found
+
+      g.pop
+      g.push_local 0
+      g.push 8
+      g.dup
+      g.move_down 3
+      g.send :[]=, 2
+      g.pop
+      g.goto fin
+
+      found.set!
+
+      # Remove the object from the stack
+      g.swap
+      g.pop
+
+      fin.set!
+    end
+  end
+
   relates "hsh[:blah] &&= 8" do
     parse do
       [:op_asgn1,

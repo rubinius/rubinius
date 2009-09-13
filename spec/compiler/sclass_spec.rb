@@ -98,4 +98,33 @@ describe "An Sclass node" do
       end
     end
   end
+
+  relates <<-ruby do
+      x = "a"
+      class << x
+      end
+    ruby
+
+    parse do
+      [:block,
+        [:lasgn, :x, [:str, "a"]],
+        [:sclass, [:lvar, :x], [:scope]]]
+    end
+
+    compile do |g|
+      g.push_literal "a"
+      g.string_dup
+      g.set_local 0
+      g.pop
+      g.push_local 0
+      g.dup
+      g.send :__verify_metaclass__, 0
+      g.pop
+      g.push_const :Rubinius
+      g.swap
+      g.send :open_metaclass, 1
+      g.pop
+      g.push :nil
+    end
+  end
 end

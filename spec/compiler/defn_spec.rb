@@ -314,6 +314,33 @@ describe "A Defn node" do
   end
 
   relates <<-ruby do
+      def f(x, a=x.b)
+      end
+    ruby
+
+    parse do
+      [:defn,
+       :f,
+       [:args, :x, :a, [:block, [:lasgn, :a, [:call, [:lvar, :x], :b, [:arglist]]]]],
+       [:scope, [:block, [:nil]]]]
+    end
+
+    compile do |g|
+      in_method :f do |d|
+        if_set = d.new_label
+        d.passed_arg 1
+        d.git if_set
+        d.push_local 0
+        d.send :b, 0, false
+        d.set_local 1
+        d.pop
+        if_set.set!
+        d.push :nil
+      end
+    end
+  end
+
+  relates <<-ruby do
       def f(mand, &block)
       end
     ruby

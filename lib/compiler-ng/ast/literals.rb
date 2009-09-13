@@ -62,6 +62,10 @@ module Rubinius
         @array = array
       end
 
+      def children
+        @array
+      end
+
       def bytecode(g)
         pos(g)
 

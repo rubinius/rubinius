@@ -48,6 +48,43 @@ describe "A Return node" do
     end
   end
 
+  relates <<-ruby do
+      x = 1, 2
+      return *x
+    ruby
+
+    parse do
+      [:block,
+        [:lasgn, :x, [:svalue, [:array, [:lit, 1], [:lit, 2]]]],
+        [:return, [:svalue, [:splat, [:lvar, :x]]]]]
+    end
+
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.make_array 2
+      g.set_local 0
+      g.pop
+
+      bottom = g.new_label
+
+      g.push_local 0
+      g.cast_array
+      g.dup
+      g.send :size, 0
+      g.push 1
+      g.send :>, 1
+      g.git bottom
+
+      g.push 0
+      g.send :at, 1
+
+      bottom.set!
+
+      g.ret
+    end
+  end
+
   relates "return 1, 2, 3" do
     parse do
       [:return, [:array, [:lit, 1], [:lit, 2], [:lit, 3]]]

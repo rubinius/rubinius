@@ -51,6 +51,52 @@ describe "A While node" do
     compile(&pre_while)
   end
 
+  relates <<-ruby do
+      a = x
+      while a.b
+        1
+      end
+    ruby
+
+    parse do
+      [:block,
+       [:lasgn, :a, [:call, nil, :x, [:arglist]]],
+       [:while, [:call, [:lvar, :a], :b, [:arglist]], [:lit, 1], true]]
+    end
+
+    compile do |g|
+      top    = g.new_label
+      rdo    = g.new_label
+      brk    = g.new_label
+      bottom = g.new_label
+
+      g.push :self
+      g.send :x, 0, true
+      g.set_local 0
+      g.pop
+
+      g.push_modifiers
+      top.set!
+
+      g.push_local 0
+      g.send :b, 0, false
+      g.gif bottom
+
+      rdo.set!
+      g.push 1
+      g.pop
+
+      g.check_interrupts
+      g.goto top
+
+      bottom.set!
+      g.push :nil
+
+      brk.set!
+      g.pop_modifiers
+    end
+  end
+
   relates "b + 1 while a" do
     parse do
       pre_while_sexp

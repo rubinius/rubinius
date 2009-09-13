@@ -20,6 +20,38 @@ describe "A Super node" do
   end
 
   relates <<-ruby do
+      def x(&block)
+        super(&block)
+      end
+    ruby
+
+    parse do
+      [:defn,
+       :x,
+       [:args, :"&block"],
+       [:scope, [:block, [:super, [:block_pass, [:lvar, :block]]]]]]
+    end
+
+    compile do |g|
+      in_method :x do |d|
+        d.block_arg 0
+
+        is_nil = d.new_label
+        d.push_local 0
+        d.dup
+        d.is_nil
+        d.git is_nil
+        d.push_cpath_top
+        d.find_const :Proc
+        d.swap
+        d.send :__from_block__, 1
+        is_nil.set!
+        d.send_super :x, 0
+      end
+    end
+  end
+
+  relates <<-ruby do
       def x
         super([24, 42])
       end

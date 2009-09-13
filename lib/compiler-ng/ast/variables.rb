@@ -51,6 +51,10 @@ module Rubinius
         @name = name
         @value = value
       end
+
+      def children
+        [@value]
+      end
     end
 
     class ClassVariableAccess < VariableAccess
@@ -103,10 +107,6 @@ module Rubinius
     class ClassVariableAssignment < VariableAssignment
       def in_module
         @in_module = true
-      end
-
-      def children
-        [@value]
       end
 
       def bytecode(g)
@@ -252,10 +252,6 @@ module Rubinius
         @line = line
         @name = name
         @value = value
-      end
-
-      def children
-        [@value]
       end
 
       def bytecode(g)

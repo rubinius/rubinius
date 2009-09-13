@@ -48,6 +48,10 @@ module Rubinius
         @value = value
       end
 
+      def children
+        [@value]
+      end
+
       def bytecode(g)
         @value.bytecode(g)
         if @value.kind_of? SplatValue

@@ -419,6 +419,10 @@ module Rubinius
         @arguments = array
       end
 
+      def children
+        @arguments
+      end
+
       def map_arguments(scope)
         @arguments.each { |var| scope.assign_local_reference var }
       end
@@ -687,6 +691,10 @@ module Rubinius
         @body = body
       end
 
+      def children
+        [@receiver, @body]
+      end
+
       def bytecode(g)
         super(g)
 
@@ -698,7 +706,12 @@ module Rubinius
         g.swap
         g.send :open_metaclass, 1
 
-        attach_and_call g, :__metaclass_init__, true
+        if @body
+          attach_and_call g, :__metaclass_init__, true
+        else
+          g.pop
+          g.push :nil
+        end
       end
     end
 
@@ -706,7 +719,7 @@ module Rubinius
       attr_accessor :file, :name
 
       def initialize(body)
-        @body = body
+        @body = body || Nil.new(1)
       end
 
       def bytecode(g)
