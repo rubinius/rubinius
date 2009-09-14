@@ -117,6 +117,9 @@ namespace rubinius {
     // Ruby.primitive :float_to_s_formatted
     String* to_s_formatted(STATE, String* format);
 
+    // Ruby.primitive :float_to_packed
+    String* to_packed(STATE, Object* want_double);
+
     static int radix()      { return FLT_RADIX; }
     static int rounds()     { return FLT_ROUNDS; }
     static double min()     { return DBL_MIN; }

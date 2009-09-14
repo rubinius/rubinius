@@ -45,8 +45,13 @@ class Array::Packer
       when 'M' then
         # for some reason MRI responds to to_s here
         item = Type.coerce_to(fetch_item(), String, :to_s)
-        # 75 chars per line includes =\n
-        @result << item.scan(/.{1,73}/m).map { |line|
+        line_length = 72
+        if t && t =~ /^\d/ && t.to_i >= 3
+          line_length = t.to_i
+        end
+        line_length += 1 # bug compatibility with MRI
+        
+        @result << item.scan(/.{1,#{line_length}}/m).map { |line|
           line.gsub(/[^ -<>-~\t\n]/) { |m| "=%02X" % m[0] } + "=\n"
         }.join
       when 'm' then
@@ -62,8 +67,7 @@ class Array::Packer
       when 'p', 'P' then
         pointer(kind, t)
       when 'Q', 'q' then
-        item = Type.coerce_to(fetch_item(), Fixnum, :to_int)
-        raise ArgumentError, "#{kind} not implemented"
+        integer(kind, t)
       when 'H', 'h' then
         hex_string(kind, t)
       when 'U' then
@@ -97,6 +101,13 @@ class Array::Packer
   end
 
   def parse_tail(t, kind, remaining = @source.size - @index)
+    if(t != nil && (t.include?('_') || t.include?('!')))
+      unless 'sSiIlL'.include?(kind)
+        raise ArgumentError, "#{t} allowed only after types sSiIlL"
+      end
+      t = t.delete("_!")
+    end
+
     case t
     when nil
       1
@@ -104,11 +115,6 @@ class Array::Packer
       remaining
     else
       m = t.match(/(\d+)/)
-      if(t.include?('_') || t.include?('!'))
-        unless 'sSiIlL'.include?(kind)
-          raise ArgumentError, "#{t} allowed only after types sSiIlL"
-        end
-      end
       m ? m[0].to_i : 1
     end
   end
@@ -227,31 +233,42 @@ class Array::Packer
   end
 
   def decimal(kind, t)
-    item = fetch_item()
-    item = FloatValue item
+    size = parse_tail(t, kind)
 
-    raise ArgumentError, "not implemented"
+    want_double = case kind
+                  when 'E', 'D', 'd', 'G' then true
+                  when 'e', 'F', 'f', 'g' then false
+                  end
+
+    little_endian = case kind
+                    when 'e', 'E' then true
+                    when 'g', 'G' then false
+                    else endian?(:little)
+                    end
+    
+    size.times do
+      item = fetch_item()
+      item = FloatValue item
+      bytes = item.to_packed(want_double)
+      bytes.reverse! if little_endian ^ endian?(:little)
+      @result << bytes
+    end
   end
 
-  # i, s, l, n, I, S, L, V, v, N
+  # i, s, l, n, I, S, L, V, v, N, q, Q
   def integer(kind, t)
     size = parse_tail(t, kind)
 
     if(t && (t.include?('_') || t.include?('!')))
-      native = t
-    else
-      native = false
-    end
-
-    unsigned      = (kind =~ /I|S|L/)
-    little_endian = case kind
-                    when 'V', 'v' then true
-                    when 'N', 'n' then false
-                    else endian?(:little)
-                    end
-
-    unless native then
+      # Native sizes
       bytes = case kind
+              when 'L', 'l' then Rubinius::SIZEOF_LONG
+              when 'I', 'i' then Rubinius::SIZEOF_INT
+              when 'S', 's' then Rubinius::SIZEOF_SHORT
+              end
+    else
+      bytes = case kind
+              when 'Q', 'q' then 8
               when 'L', 'l' then 4
               when 'I', 'i' then 4
               when 'S', 's' then 2
@@ -262,46 +279,64 @@ class Array::Packer
               end
     end
 
+    unsigned      = (kind =~ /I|S|L/)
+    little_endian = case kind
+                    when 'V', 'v' then true
+                    when 'N', 'n' then false
+                    else endian?(:little)
+                    end
+
     raise ArgumentError, "too few array elements" if
       @index + size > @source.length
 
     size.times do |i|
       item = Type.coerce_to(fetch_item(), Integer, :to_int)
 
-      if item.abs >= 2**Rubinius::WORDSIZE
+      max_wordsize = case kind
+                     when 'Q', 'q' then 64
+                     else Rubinius::WORDSIZE
+                     end
+
+      if item.abs >= 2**max_wordsize
         raise RangeError, "bignum too big to convert into 'unsigned long'"
       end
 
-      raise ArgumentError, "unsupported - fix me" if native
-
-      @result << if little_endian then
-                   item += 2 ** (8 * bytes) if item < 0
-                   (0...bytes).map { |b| ((item >> (b * 8)) & 0xFF).chr }
-                 else # ugly
-                   (0...bytes).map {n=(item & 0xFF).chr;item >>= 8; n}.reverse
-                 end.join
+        @result << if little_endian then
+                     item += 2 ** (8 * bytes) if item < 0
+                     (0...bytes).map { |b| ((item >> (b * 8)) & 0xFF).chr }
+                   else # ugly
+                     (0...bytes).map {n=(item & 0xFF).chr;item >>= 8; n}.reverse
+                   end.join
     end
   end
 
   # w
   def ber_compress(kind, t)
-    item = Type.coerce_to(fetch_item(), Integer, :to_int)
-    raise ArgumentError, "can't compress negative numbers" if item < 0
-
-    @result << (item & 0x7f)
-    while (item >>= 7) > 0 do
-      @result << ((item & 0x7f) | 0x80)
+    parse_tail(t, kind).times do
+      chars = ''
+      item = Type.coerce_to(fetch_item(), Integer, :to_int)
+      raise ArgumentError, "can't compress negative numbers" if item < 0
+      
+      chars << (item & 0x7f)
+      while (item >>= 7) > 0 do
+        chars << ((item & 0x7f) | 0x80)
+      end
+      @result << chars.reverse
     end
-
-    @result.reverse! # FIX - breaks anything following BER?
   end
 
   # u, m
   def encode(kind, t, type = :base64)
     item = Type.coerce_to(fetch_item(), String, :to_str)
 
+    line_length = 45
+    if t && t =~ /^\d/ && t.to_i >= 3
+      line_length = t.to_i
+      line_length -= line_length % 3
+    end
+
     # http://www.opengroup.org/onlinepubs/009695399/utilities/uuencode.html
-    item.scan(/.{1,45}/m).map { |line|
+    item.scan(/.{1,#{line_length}}/m).map { |line|
       encoded = line.scan(/(.)(.?)(.?)/m).map { |a,b,c|
         a = a[0]
         b = b[0] || 0

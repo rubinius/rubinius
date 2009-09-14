@@ -423,6 +423,11 @@ namespace rubinius {
       G(rubinius)->set_const(state, "ENDIAN", symbol("big"));
     }
 
+    // Used in Array.pack
+    G(rubinius)->set_const(state, "SIZEOF_SHORT", Fixnum::from(sizeof(short)));
+    G(rubinius)->set_const(state, "SIZEOF_INT", Fixnum::from(sizeof(int)));
+    G(rubinius)->set_const(state, "SIZEOF_LONG", Fixnum::from(sizeof(long)));
+
 #ifdef USE_DYNAMIC_INTERPRETER
     if(shared.config.dynamic_interpreter_enabled) {
       G(rubinius)->set_const(state, "INTERPRETER", symbol("dynamic"));

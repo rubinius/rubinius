@@ -163,6 +163,10 @@ class Float < Numeric
   end
   private :to_s_formatted
 
+  def to_packed(size)
+    Ruby.primitive :float_to_packed
+  end
+
   def round
     Ruby.primitive :float_round
   end

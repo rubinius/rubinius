@@ -661,10 +661,22 @@ class Array
         start = 0 if start < 0            # MRI comp adjusts to 0
 
         if two
-          finish = Type.coerce_to two, Fixnum, :to_int
-          return self if finish < 1       # Nothing to modify
-          raise ArgumentError, "argument too big" if finish < 0 && start < finish.abs
+          begin
+            finish = Type.coerce_to two, Fixnum, :to_int
+          rescue TypeError
+            finish = two
+          end
 
+          # NB: the 2**N constants in these two "too big" tests are
+          # for MRI compatibility, not actual limits.  The values are
+          # specified by rubyspec. --pbevin
+          too_big_for_long = Rubinius::L64 ? 2**63 : 2**31  # MRI's Fixnum#MAX
+          raise RangeError, "argument too big" if finish >= too_big_for_long
+
+          too_big_for_array = Rubinius::L64 ? 2**55 : 2**23
+          raise ArgumentError, "argument too big" if finish >= too_big_for_array
+
+          return self if finish == 0       # Nothing to modify
           finish = start + finish - 1
         end
       end

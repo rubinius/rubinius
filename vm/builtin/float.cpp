@@ -256,6 +256,24 @@ namespace rubinius {
     return String::create(state, str, size);
   }
 
+  String* Float::to_packed(STATE, Object* want_double) {
+    char str[sizeof(double)];
+    int sz;
+
+    if (want_double == Qtrue) {
+      double* p = (double *)str;
+      *p = this->val;
+      sz = 8;
+    }
+    else {
+      float* p = (float *)str;
+      *p = this->val;
+      sz = 4;
+    }
+
+    return String::create(state, str, sz);
+  }
+
   void Float::into_string(STATE, char* buf, size_t sz) {
     snprintf(buf, sz, "%+.17e", val);
   }
