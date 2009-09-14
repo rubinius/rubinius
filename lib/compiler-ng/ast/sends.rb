@@ -213,6 +213,10 @@ module Rubinius
         @body = body || Nil.new(line)
       end
 
+      def module?
+        false
+      end
+
       def variables
         @variables ||= {}
       end
