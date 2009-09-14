@@ -76,10 +76,7 @@ module Rubinius
       end
 
       def children
-        children = [@receiver]
-        children.concat @index
-        children << @value
-        children
+        [@receiver] + @index << @value
       end
 
       def bytecode(g)

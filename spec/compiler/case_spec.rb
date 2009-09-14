@@ -648,4 +648,45 @@ describe "A Case node" do
       done.set!
     end
   end
+
+  relates <<-ruby do
+      x = 1
+      case a
+      when x
+        2
+      end
+    ruby
+
+    parse do
+      [:block,
+       [:lasgn, :x, [:lit, 1]],
+       [:case,
+        [:call, nil, :a, [:arglist]],
+        [:when, [:array, [:lvar, :x]], [:lit, 2]],
+        nil]]
+    end
+
+    compile do |g|
+      no_match = g.new_label
+      done     = g.new_label
+
+      g.push 1
+      g.set_local 0
+      g.pop
+      g.push :self
+      g.send :a, 0, true
+      g.dup
+      g.push_local 0
+      g.swap
+      g.send :===, 1
+      g.gif no_match
+      g.pop
+      g.push 2
+      g.goto done
+      no_match.set!
+      g.pop
+      g.push :nil
+      done.set!
+    end
+  end
 end

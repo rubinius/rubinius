@@ -88,7 +88,7 @@ module Rubinius
       end
 
       def children
-        [@conditions, @splat, @body]
+        [@conditions, @single, @splat, @body]
       end
 
       def condition_bytecode(g, condition)
