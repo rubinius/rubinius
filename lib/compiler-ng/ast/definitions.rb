@@ -771,6 +771,7 @@ module Rubinius
         pos(g)
 
         # TODO: implement as evaluator on @expression AST
+        g.push :false
       end
     end
   end
