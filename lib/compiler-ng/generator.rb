@@ -225,11 +225,6 @@ module Rubinius
 
     # Commands (these don't generate data in the stream)
 
-    def advanced_since?(ip)
-      return true if @last
-      @ip > ip
-    end
-
     def push_modifiers
       @modstack << [@break, @redo, @next, @retry]
     end

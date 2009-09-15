@@ -76,18 +76,11 @@ module Rubinius
       end
 
       def bytecode(g)
-        # TODO: make plugins responsible for popping or not
         count = @array.size - 1
-        i = 0
-        while i < count
-          ip = g.ip
-          @array[i].bytecode(g)
-
-          # guards for things that plugins might optimize away.
-          g.pop if g.advanced_since?(ip)
-          i += 1
+        @array.each_with_index do |x, i|
+          x.bytecode(g)
+          g.pop unless i == count
         end
-        @array[count].bytecode(g)
       end
     end
 
