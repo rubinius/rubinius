@@ -105,10 +105,6 @@ module Rubinius
       return true
     end
 
-    def run(node)
-      node.bytecode self if node # HACK
-    end
-
     # Formalizers
 
     def encode(encoder, calculator)
@@ -117,15 +113,8 @@ module Rubinius
 
       @iseq = encoder.new.encode_stream @stream
 
-      sdc = calculator.new @iseq
-      begin
-        sdc_stack = sdc.run
-      rescue RuntimeError => e
-        puts "ERROR in #{@name}, #{@lines.first}"
-        raise e
-      end
-
-      stack_size = sdc_stack + @local_count
+      sdc = calculator.new @iseq, @lines
+      stack_size = sdc.run + @local_count
       stack_size += 1 if @for_block
       @stack_size = stack_size
 

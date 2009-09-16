@@ -396,14 +396,6 @@ module Rubinius
     end
 
     ##
-    # Calculates the minimum stack size required for this method.
-    def min_stack_size
-      require 'compiler/stack'
-      sdc = Compiler::StackDepthCalculator.new(@iseq)
-      sdc.run
-    end
-
-    ##
     # Graphs the control flow of this method
     def graph_control(file, open_now=false)
       require 'compiler/blocks'

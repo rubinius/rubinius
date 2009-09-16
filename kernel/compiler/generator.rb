@@ -180,7 +180,7 @@ class Compiler
 
       cm = Rubinius::CompiledMethod.new.from_string iseq, desc.locals.size, desc.required
 
-      sdc = Compiler::StackDepthCalculator.new(iseq)
+      sdc = Compiler::StackDepthCalculator.new(iseq, @lines)
       begin
         sdc_stack = sdc.run
       rescue RuntimeError => e

@@ -1,7 +1,8 @@
 class Compiler
   class StackDepthCalculator
-    def initialize(iseq)
+    def initialize(iseq, lines)
       @iseq = iseq.opcodes
+      @lines = lines
       @show_stack = false
     end
 
@@ -11,6 +12,19 @@ class Compiler
       @max_stack = 0
       run_from(0,0)
       @max_stack
+    end
+
+    def ip_to_line(ip)
+      total = @lines.size - 2
+      i = 0
+
+      while i < total
+        if ip >= @lines[i] and ip <= @lines[i+2]
+          return @lines[i+1]
+        end
+
+        i += 2
+      end
     end
 
     def run_from(start_ip, current_stack)
@@ -30,7 +44,8 @@ class Compiler
       while ip < total
         if last_time = @stack_at[ip]
           if last_time != current_stack
-            raise "unbalanced stack detected at #{ip}! #{last_time} != #{current_stack}"
+            line = ip_to_line ip
+            raise "unbalanced stack at line #{line} (#{ip}): #{last_time} != #{current_stack}"
           end
         end
 
@@ -51,7 +66,7 @@ class Compiler
           current_stack += opcode.stack_difference(nil)
         end
 
-        raise "stack underflow detected! at #{ip}" if current_stack < 0
+        raise "stack underflow at line #{ip_to_line ip} (#{ip})" if current_stack < 0
 
         @max_stack = current_stack if current_stack > @max_stack
 
