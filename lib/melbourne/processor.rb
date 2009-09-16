@@ -59,7 +59,11 @@ module Rubinius
     end
 
     def process_attrasgn(line, receiver, name, arguments)
-      AST::AttributeAssignment.new line, receiver, name, arguments
+      if name == :[]=
+        AST::ElementAssignment.new line, receiver, arguments
+      else
+        AST::AttributeAssignment.new line, receiver, name, arguments
+      end
     end
 
     def process_back_ref(line, ref)

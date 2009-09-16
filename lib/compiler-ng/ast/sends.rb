@@ -65,17 +65,13 @@ module Rubinius
         @receiver = receiver
         @privately = receiver.kind_of?(Self) ? true : false
 
-        name_str = name.to_s
-        @name = name_str[-1] == ?= ? name : :"#{name_str}="
+        @name = :"#{name}="
 
-        case arguments
-        when PushArgs
-          @arguments = arguments
-        when nil
-          # nothing, in masgn
-        else
-          @arguments = ActualArguments.new line, arguments
-        end
+        @arguments = ActualArguments.new line, arguments
+      end
+
+      def in_masgn
+        @in_masgn = true
       end
 
       def children
@@ -84,7 +80,10 @@ module Rubinius
 
       def bytecode(g)
         @receiver.bytecode(g)
-        if @arguments
+        if @in_masgn
+          g.swap
+          g.send @name, 1, @privately
+        else
           @arguments.bytecode(g)
           g.dup
 
@@ -99,10 +98,61 @@ module Rubinius
           end
 
           g.pop
-        else
-          g.swap
-          g.send @name, 1, @privately
         end
+      end
+    end
+
+    class ElementAssignment < SendWithArguments
+      def initialize(line, receiver, arguments)
+        @line = line
+
+        @receiver = receiver
+        @privately = receiver.kind_of?(Self) ? true : false
+
+        @name = :[]=
+
+        case arguments
+        when PushArgs
+          @arguments = arguments
+        else
+          @arguments = ActualArguments.new line, arguments
+        end
+      end
+
+      def in_masgn
+        @in_masgn = true
+      end
+
+      def children
+        [@receiver, @arguments]
+      end
+
+      def masgn_bytecode(g)
+        @receiver.bytecode(g)
+        g.swap
+        @arguments.masgn_bytecode(g)
+        g.send @name, @arguments.size + 1, @privately
+        # TODO: splat
+      end
+
+      def bytecode(g)
+        return masgn_bytecode(g) if @in_masgn
+
+        @receiver.bytecode(g)
+        @arguments.bytecode(g)
+        g.dup
+
+        if @arguments.splat?
+          g.move_down @arguments.size + 2
+          g.swap
+          g.push :nil
+          g.send_with_splat @name, @arguments.size, @privately, true
+        else
+          g.move_down @arguments.size + 1
+          g.send @name, @arguments.size, @privately
+        end
+
+        g.pop
       end
     end
 
@@ -196,6 +246,14 @@ module Rubinius
 
       def children
         @array.dup << @splat
+      end
+
+      def masgn_bytecode(g)
+        @array.each do |x|
+          x.bytecode(g)
+          g.swap
+        end
+        # TODO: splat
       end
 
       def bytecode(g)

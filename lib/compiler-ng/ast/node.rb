@@ -32,6 +32,9 @@ module Rubinius
       def in_module
       end
 
+      def in_masgn
+      end
+
       def visit(arg=true, &block)
         children.each do |child|
           if child

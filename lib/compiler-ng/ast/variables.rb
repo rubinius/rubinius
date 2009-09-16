@@ -314,7 +314,16 @@ module Rubinius
         @in_block = true
       end
 
+      def map_masgn
+        visit do |result, node|
+          node.in_masgn
+          result
+        end
+      end
+
       def bytecode(g)
+        map_masgn
+
         if @fixed
           pad_short(g) if @left unless @splat
           @right.body.each { |x| x.bytecode(g) }
