@@ -17,7 +17,7 @@ First, you can treat a Channel like a thread safe queue that lets you push an
 item onto the tail from any thread, and then receive the item at the head from
 any thread:
 
-    c = Channel.new
+    c = Rubinius::Channel.new
 
     Thread.new do
       c.send "foo"
@@ -33,7 +33,7 @@ threads are blocked on the same channel then they will be unblocked one at a
 time, in the order of arrival, as new items become available.  This
 functionality means the Channel can also serve as a mutex:
 
-    lock = Channel.new
+    lock = Rubinius::Channel.new
 
     #...
 
@@ -48,7 +48,7 @@ or when sharing a set of resources a Channel can act as a counting semaphore.
 Say a pool of threads are sharing a limited number of database connections:
 
     # Initialize the semaphore by writing a value per available resource
-    sem = Channel.new
+    sem = Rubinius::Channel.new
     NUM_CONNECTIONS.times { sem << nil }
 
     #...
