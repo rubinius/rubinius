@@ -604,12 +604,12 @@ namespace rubinius {
         break;
 
       case NODE_ALIAS:            /* u1 u2 (alias :blah :blah2) */
-        array_push(state, current, wrap_into_node(state, "lit", Q2SYM(node->u2.id)));
-        array_push(state, current, wrap_into_node(state, "lit", Q2SYM(node->u1.id)));
+        add_to_parse_tree(current, node->u2.node, locals);
+        add_to_parse_tree(current, node->u1.node, locals);
         break;
 
       case NODE_UNDEF:            /* u2    (undef instvar) */
-        array_push(state, current, wrap_into_node(state, "lit", Q2SYM(node->u2.id)));
+        add_to_parse_tree(current, node->u2.node, locals);
         break;
 
       case NODE_COLON3:           /* u2    (::OUTER_CONST) */

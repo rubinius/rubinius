@@ -150,4 +150,36 @@ describe "An Undef node" do
       end
     end
   end
+
+  relates <<-ruby do
+      undef :"x\#{1}", :"x\#{2}"
+    ruby
+
+    parse do
+      [:block,
+        [:undef, [:dsym, "x", [:evstr, [:lit, 1]]]],
+        [:undef, [:dsym, "x", [:evstr, [:lit, 2]]]]]
+    end
+
+    compile do |g|
+      g.push_scope
+      g.push 1
+      g.send :to_s, 0, true
+      g.push_literal "x"
+      g.string_dup
+      g.string_append
+      g.send :to_sym, 0, true
+      g.send :__undef_method__, 1
+      g.pop
+
+      g.push_scope
+      g.push 2
+      g.send :to_s, 0, true
+      g.push_literal "x"
+      g.string_dup
+      g.string_append
+      g.send :to_sym, 0, true
+      g.send :__undef_method__, 1
+    end
+  end
 end

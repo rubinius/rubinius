@@ -33,13 +33,16 @@ class Compiler
     class Alias < Node
       kind :alias
 
-      def args(current, name)
-        if current.kind_of? Literal
-          current = current.value
+      def args(name, current)
+        if name.kind_of? Literal
           name = name.value
         end
 
-        @current, @new = current, name
+        if current.kind_of? Literal
+          current = current.value
+        end
+
+        @new, @current = name, current
       end
 
       attr_accessor :current, :new
@@ -2604,8 +2607,11 @@ raise "no"
       kind :undef
 
       def args(name)
-        raise "name should be lit: #{name.inspect}" unless Literal === name
-        @name = name.value
+        if name.kind_of? Literal
+          @name = name.value
+        else
+          @name = name
+        end
         scope = get(:scope)
         if scope.is? Node::Class or scope.is? Node::Module
           @in_module = true

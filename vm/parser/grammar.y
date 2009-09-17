@@ -354,9 +354,9 @@ static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_tab
 %type <node> mrhs superclass block_call block_command
 %type <node> f_arglist f_args f_optarg f_opt f_block_arg opt_f_block_arg
 %type <node> assoc_list assocs assoc undef_list backref string_dvar
-%type <node> block_var opt_block_var brace_block cmd_brace_block do_block lhs none
+%type <node> block_var opt_block_var brace_block cmd_brace_block do_block lhs none fitem
 %type <node> mlhs mlhs_head mlhs_basic mlhs_entry mlhs_item mlhs_node
-%type <id>   fitem variable sym symbol operation operation2 operation3
+%type <id>   fsym variable sym symbol operation operation2 operation3
 %type <id>   cname fname op f_rest_arg
 %type <num>  f_norm_arg f_arg
 %token tUPLUS           /* unary+ */
@@ -991,8 +991,15 @@ fname           : tIDENTIFIER
                     }
                 ;
 
-fitem           : fname
+fsym            : fname
                 | symbol
+                ;
+
+fitem           : fsym
+                    {
+                        $$ = NEW_LIT(ID2SYM($1));
+                    }
+                | dsym
                 ;
 
 undef_list      : fitem

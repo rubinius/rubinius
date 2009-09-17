@@ -82,8 +82,19 @@ class Compiler
     class Alias
       def bytecode(g)
         g.push_scope
-        g.push_literal @current
-        g.push_literal @new
+
+        if @new.kind_of? Symbol
+          g.push_literal @new
+        else
+          @new.bytecode(g)
+        end
+
+        if @current.kind_of? Symbol
+          g.push_literal @current
+        else
+          @current.bytecode(g)
+        end
+
         g.send :alias_method, 2, true
       end
     end
@@ -2461,7 +2472,11 @@ class Compiler
         pos(g)
 
         g.push_scope
-        g.push_literal @name
+        if @name.kind_of? Symbol
+          g.push_literal @name
+        else
+          @name.bytecode(g)
+        end
         g.send :__undef_method__, 1
       end
     end
