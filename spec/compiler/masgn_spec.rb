@@ -216,6 +216,70 @@ describe "A Masgn node" do
     end
   end
 
+  relates <<-ruby do
+      c, d, e, f = [], 1, 2, 3
+      a, *b = c[d] = f(e, f, c)
+    ruby
+
+    parse do
+      [:block,
+       [:masgn,
+        [:array, [:lasgn, :c], [:lasgn, :d], [:lasgn, :e], [:lasgn, :f]],
+        [:array, [:array], [:lit, 1], [:lit, 2], [:lit, 3]]],
+       [:masgn,
+        [:array, [:lasgn, :a], [:splat, [:lasgn, :b]]],
+        [:to_ary,
+         [:attrasgn,
+          [:lvar, :c],
+          :[]=,
+          [:arglist,
+           [:lvar, :d],
+           [:call, nil, :f, [:arglist, [:lvar, :e], [:lvar, :f], [:lvar, :c]]]]]]]]
+    end
+
+    compile do |g|
+      g.make_array 0
+      g.push 1
+      g.push 2
+      g.push 3
+      g.rotate 4
+
+      g.set_local 0
+      g.pop
+      g.set_local 1
+      g.pop
+      g.set_local 2
+      g.pop
+      g.set_local 3
+      g.pop
+      g.push :true
+      g.pop
+
+      g.push_local 0
+      g.push_local 1
+      g.push :self
+      g.push_local 2
+      g.push_local 3
+      g.push_local 0
+      g.send :f, 3, true
+
+      g.dup
+      g.move_down 3
+      g.send :[]=, 2, false
+      g.pop
+
+      g.cast_array
+      g.shift_array
+      g.set_local 4
+      g.pop
+      g.cast_array
+      g.set_local 5
+      g.pop
+
+      g.push :true
+    end
+  end
+
   relates "a, b.c = d, e" do
     parse do
       [:masgn,

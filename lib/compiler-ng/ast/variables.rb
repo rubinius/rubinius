@@ -315,9 +315,11 @@ module Rubinius
       end
 
       def map_masgn
-        visit do |result, node|
-          node.in_masgn
-          result
+        if @left
+          @left.visit do |result, node|
+            node.in_masgn
+            result
+          end
         end
       end
 
