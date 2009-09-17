@@ -213,7 +213,10 @@ module Rubinius
       mc.method_table.store :__script__, self, :public
       compile
       VM.reset_method_cache :__script__
-      MAIN.__script__
+
+      # HACK we use __send__ here so that the method inliner
+      # doesn't accidentally inline a script body into here!
+      MAIN.__send__ :__script__
     end
 
     ##
