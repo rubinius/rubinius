@@ -17,7 +17,7 @@ describe "A Lit node" do
     end
 
     compile do |g|
-      g.push_unique_literal 1.1
+      g.push_literal 1.1
     end
   end
 
@@ -27,7 +27,7 @@ describe "A Lit node" do
     end
 
     compile do |g|
-      g.push_unique_literal 18446744073709551615
+      g.push_literal 18446744073709551615
     end
   end
 
@@ -37,7 +37,7 @@ describe "A Lit node" do
     end
 
     compile do |g|
-      g.push_unique_literal 18446744073709551615
+      g.push_literal 18446744073709551615
     end
   end
 
@@ -87,7 +87,7 @@ describe "A Lit node" do
     end
 
     compile do |g|
-      g.push_unique_literal :x
+      g.push_literal :x
     end
   end
 
@@ -97,7 +97,7 @@ describe "A Lit node" do
     end
 
     compile do |g|
-      g.push_unique_literal :"*args"
+      g.push_literal :"*args"
     end
   end
 end

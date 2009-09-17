@@ -79,7 +79,6 @@ class TestGenerator
    :push,
    :push_literal_at,
    :push_modifiers,
-   :push_unique_literal,
    :send,
    :send_super,
    :send_with_block,
@@ -230,6 +229,10 @@ class TestGenerator
   def find_cpath_top_const(name)
     g.push_cpath_top
     g.find_const name
+  end
+
+  def push_unique_literal(lit)
+    push_literal lit
   end
 
   def push_literal_desc(name = nil)

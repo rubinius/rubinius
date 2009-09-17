@@ -894,7 +894,7 @@ describe "A Defn node" do
 
         d.passed_arg 0
         d.git opt_arg_1
-        d.push_unique_literal 0.0
+        d.push_literal 0.0
         d.set_local 0
         d.pop
 
@@ -902,7 +902,7 @@ describe "A Defn node" do
 
         d.passed_arg 1
         d.git opt_arg_2
-        d.push_unique_literal 0.0
+        d.push_literal 0.0
         d.set_local 1
         d.pop
 

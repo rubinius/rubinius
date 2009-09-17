@@ -297,8 +297,8 @@ describe "A Call node" do
       t = g.new_label
 
       g.push :self
-      g.push_unique_literal :x
-      g.push_unique_literal :sequence_name
+      g.push_literal :x
+      g.push_literal :sequence_name
 
       g.push_const :Proc
       in_block_send :new, :splat, nil, 0, false do |d|
@@ -368,9 +368,9 @@ describe "A Call node" do
       g.send :o, 0, true
       g.push_cpath_top
       g.find_const :Hash
-      g.push_unique_literal :a
+      g.push_literal :a
       g.push 1
-      g.push_unique_literal :b
+      g.push_literal :b
       g.push 2
       g.send :[], 4
       g.send :m, 1, false
@@ -393,9 +393,9 @@ describe "A Call node" do
       g.push 42
       g.push_cpath_top
       g.find_const :Hash
-      g.push_unique_literal :a
+      g.push_literal :a
       g.push 1
-      g.push_unique_literal :b
+      g.push_literal :b
       g.push 2
       g.send :[], 4
       g.send :m, 2, false
@@ -419,9 +419,9 @@ describe "A Call node" do
       g.push 42
       g.push_cpath_top
       g.find_const :Hash
-      g.push_unique_literal :a
+      g.push_literal :a
       g.push 1
-      g.push_unique_literal :b
+      g.push_literal :b
       g.push 2
       g.send :[], 4
 
@@ -531,9 +531,9 @@ describe "A Call node" do
       g.push_cpath_top
       g.find_const :Hash
 
-      g.push_unique_literal :a
+      g.push_literal :a
       g.push 1
-      g.push_unique_literal :b
+      g.push_literal :b
       g.push 2
 
       g.send :[], 4
@@ -556,9 +556,9 @@ describe "A Call node" do
       g.push_cpath_top
       g.find_const :Hash
 
-      g.push_unique_literal :a
+      g.push_literal :a
       g.push 1
-      g.push_unique_literal :b
+      g.push_literal :b
       g.push 2
 
       g.send :[], 4
@@ -584,9 +584,9 @@ describe "A Call node" do
       g.push_cpath_top
       g.find_const :Hash
 
-      g.push_unique_literal :a
+      g.push_literal :a
       g.push 1
-      g.push_unique_literal :b
+      g.push_literal :b
       g.push 2
 
       g.send :[], 4
@@ -619,10 +619,10 @@ describe "A Call node" do
 
     compile do |g|
       g.push :self
-      g.push_unique_literal :b
+      g.push_literal :b
 
       g.in_block_send :a, :none, nil, 1 do |d|
-        d.push_unique_literal :c
+        d.push_literal :c
       end
     end
   end

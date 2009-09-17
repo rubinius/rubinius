@@ -76,7 +76,7 @@ describe "A Hash node" do
       g.pop
       g.push_cpath_top
       g.find_const :Hash
-      g.push_unique_literal :a
+      g.push_literal :a
       g.push_local 0
       g.send :[], 2
     end

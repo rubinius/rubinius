@@ -73,7 +73,7 @@ describe "A Dstr node" do
 
       g.push_literal "%.2f" # 2
       g.string_dup
-      g.push_unique_literal 3.14159
+      g.push_literal 3.14159
       g.send :%, 1, false
       g.send :to_s, 0, true
 
@@ -130,7 +130,7 @@ describe "A Dstr node" do
         g.string_append
       end
 
-      g.push_unique_literal 3.14159      # - # 2
+      g.push_literal 3.14159      # - # 2
       g.send :%, 1, false
       g.send :to_s, 0, true
 

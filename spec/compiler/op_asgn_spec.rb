@@ -37,13 +37,13 @@ describe "An Op_asgn1 node" do
       g.push :self
       g.send :hsh, 0, true
       g.dup
-      g.push_unique_literal :blah
+      g.push_literal :blah
       g.send :[], 1
       g.dup
       g.git found
 
       g.pop
-      g.push_unique_literal :blah
+      g.push_literal :blah
       g.push 8
       g.dup
       g.move_down 3
@@ -127,13 +127,13 @@ describe "An Op_asgn1 node" do
       g.push :self
       g.send :hsh, 0, true
       g.dup
-      g.push_unique_literal :blah
+      g.push_literal :blah
       g.send :[], 1
       g.dup
       g.gif found
 
       g.pop
-      g.push_unique_literal :blah
+      g.push_literal :blah
       g.push 8
       g.dup
       g.move_down 3
@@ -167,11 +167,11 @@ describe "An Op_asgn1 node" do
       g.push :self
       g.send :hsh, 0, true
       g.dup
-      g.push_unique_literal :blah
+      g.push_literal :blah
       g.send :[], 1
       g.push 8
       g.send :"^", 1
-      g.push_unique_literal :blah
+      g.push_literal :blah
       g.swap
       g.dup
       g.move_down 3
@@ -543,7 +543,7 @@ describe "An Op_asgn2 node" do
       bottom = g.new_label
 
       g.push_const :Struct
-      g.push_unique_literal :var
+      g.push_literal :var
       g.send :new, 1, false
       g.set_local 0
       g.pop
@@ -664,7 +664,7 @@ describe "An Op_asgn_and node" do
       g.push_const :Gem
       g.send :configuration, 0, false
 
-      g.push_unique_literal :http_proxy
+      g.push_literal :http_proxy
       g.send :[], 1, false
 
       g.send :new, 1, true
@@ -828,7 +828,7 @@ describe "An Op_asgn_or node" do
       g.push_const :Gem
       g.send :configuration, 0, false
 
-      g.push_unique_literal :http_proxy
+      g.push_literal :http_proxy
       g.send :[], 1, false
 
       g.send :new, 1, true

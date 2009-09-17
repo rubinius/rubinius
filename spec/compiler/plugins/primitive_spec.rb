@@ -24,7 +24,7 @@ describe "A Call node using PrimitiveDeclaration plugin" do
     compile do |g|
       in_method :m do |d|
         d.push_const :Ruby
-        d.push_unique_literal :prim
+        d.push_literal :prim
         d.send :primitive, 1, false
         d.pop
         d.push :self

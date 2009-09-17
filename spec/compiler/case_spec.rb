@@ -469,7 +469,7 @@ describe "A Case node" do
       g.push 1
       g.send :==, 1, false
       g.gif c2
-      g.push_unique_literal :a
+      g.push_literal :a
       g.goto bottom
 
       c2.set!
@@ -479,11 +479,11 @@ describe "A Case node" do
       g.push 2
       g.send :==, 1, false
       g.gif c3
-      g.push_unique_literal :b
+      g.push_literal :b
       g.goto bottom
 
       c3.set!
-      g.push_unique_literal :c
+      g.push_literal :c
 
       bottom.set!
     end
@@ -514,7 +514,7 @@ describe "A Case node" do
       g.send :a, 0, true
 
       g.dup
-      g.push_unique_literal :b
+      g.push_literal :b
       g.swap
       g.send :===, 1
       g.git c1

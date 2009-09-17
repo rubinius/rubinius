@@ -8,7 +8,7 @@ describe "An Array node" do
 
     compile do |g|
       g.push 1
-      g.push_unique_literal :b
+      g.push_literal :b
       g.push_literal "c"
       g.string_dup
       g.make_array 3
