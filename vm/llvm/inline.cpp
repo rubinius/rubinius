@@ -479,8 +479,11 @@ namespace rubinius {
       case RBX_FFI_TYPE_STRING:
       case RBX_FFI_TYPE_STRPTR:
       case RBX_FFI_TYPE_PTR:
+      case RBX_FFI_TYPE_VOID:
         return PointerType::getUnqual(ops_.state()->Int8Ty);
     }
+
+    assert(0 && "unknown type to return!");
 
     return 0;
   }
