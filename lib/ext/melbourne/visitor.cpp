@@ -598,12 +598,14 @@ namespace melbourne {
       break;
 
     case NODE_ALIAS:            /* u1 u2 (alias :blah :blah2) */
-      tree = rb_funcall(ptp, rb_sAlias, 3, line,
-          Q2SYM(node->u2.id), Q2SYM(node->u1.id));
+      VALUE to = process_parse_tree(parse_state, ptp, node->u2.node, locals);
+      VALUE from = process_parse_tree(parse_state, ptp, node->u1.node, locals);
+      tree = rb_funcall(ptp, rb_sAlias, 3, line, to, from);
       break;
 
     case NODE_UNDEF:            /* u2    (undef instvar) */
-      tree = rb_funcall(ptp, rb_sUndef, 2, line, Q2SYM(node->u2.id));
+      VALUE name = process_parse_tree(parse_state, ptp, node->u2.node, locals);
+      tree = rb_funcall(ptp, rb_sUndef, 2, line, name);
       break;
 
     case NODE_COLON3:           /* u2    (::OUTER_CONST) */

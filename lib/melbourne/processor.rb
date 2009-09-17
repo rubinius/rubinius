@@ -268,7 +268,7 @@ module Rubinius
     end
 
     def process_lit(line, sym)
-      AST::Literal.new line, sym
+      AST::SymbolLiteral.new line, sym
     end
 
     def process_lvar(line, name)

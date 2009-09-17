@@ -77,51 +77,18 @@ module Rubinius
       end
     end
 
-    class Literal < Node
+    class SymbolLiteral < Node
       attr_accessor :value
 
       def initialize(line, sym)
         @line = line
-        normalize sym
-      end
-
-      # TODO: remove
-      def normalize(value)
-        @value = value
-
-        case value
-        when Fixnum
-          nd = NumberLiteral.new(@compiler)
-          nd.value = value
-          return nd
-        when Regexp
-          nd = RegexLiteral.new(@compiler)
-          nd.args(value.source, value.options)
-          return nd
-        when ::Range
-          if value.exclude_end?
-            nd = RangeExclude.new(@compiler)
-          else
-            nd = Range.new(@compiler)
-          end
-
-          start = NumberLiteral.new(@compiler)
-          start.args value.begin
-
-          fin = NumberLiteral.new(@compiler)
-          fin.args value.end
-
-          nd.args start, fin
-          return nd
-        end
-
-        return self
+        @value = sym
       end
 
       def bytecode(g)
         pos(g)
 
-        g.push_unique_literal @value
+        g.push_literal @value
       end
     end
 

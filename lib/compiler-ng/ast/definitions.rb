@@ -13,8 +13,8 @@ module Rubinius
         pos(g)
 
         g.push_scope
-        g.push_literal @to
-        g.push_literal @from
+        @to.bytecode(g)
+        @from.bytecode(g)
         g.send :alias_method, 2, true
       end
     end
@@ -44,7 +44,7 @@ module Rubinius
         pos(g)
 
         g.push_scope
-        g.push_literal @name
+        @name.bytecode(g)
         g.send :__undef_method__, 1
       end
     end
