@@ -1282,36 +1282,47 @@ namespace rubinius {
     }
 
     void emit_delayed_create_block(bool always=false) {
-      JITInlineBlock* ib = info().inline_block();
-      if(ib && ib->code()) {
-        if(!always && ib->created_object_p()) return;
-        JITMethodInfo* creator = ib->creation_scope();
-        assert(creator);
+      std::list<JITMethodInfo*> in_scope;
+      JITMethodInfo* nfo = &info();
 
-        Signature sig(ls_, ObjType);
-        sig << VMTy;
-        sig << CallFrameTy;
-        sig << ls_->Int32Ty;
-
-        Value* call_args[] = {
-          vm_,
-          creator->call_frame(),
-          ConstantInt::get(ls_->Int32Ty, ib->which())
-        };
-
-        Value* blk = sig.call("rbx_create_block", call_args, 3,
-                              "delayed_create_block", b());
-
-        b().CreateStore(
-            blk,
-            b().CreateConstGEP2_32(info().variables(), 0,
-                                   offset::vars_block),
-            false);
-
-        if(!always) ib->set_created_object();
+      while(nfo) {
+        in_scope.push_front(nfo);
+        nfo = nfo->parent_info();
       }
 
+      for(std::list<JITMethodInfo*>::iterator i = in_scope.begin();
+          i != in_scope.end();
+          i++ ) {
+        nfo = *i;
 
+        JITInlineBlock* ib = nfo->inline_block();
+        if(ib && ib->code() && (always || !ib->created_object_p())) {
+          JITMethodInfo* creator = ib->creation_scope();
+          assert(creator);
+
+          Signature sig(ls_, ObjType);
+          sig << VMTy;
+          sig << CallFrameTy;
+          sig << ls_->Int32Ty;
+
+          Value* call_args[] = {
+            vm_,
+            creator->call_frame(),
+            ConstantInt::get(ls_->Int32Ty, ib->which())
+          };
+
+          Value* blk = sig.call("rbx_create_block", call_args, 3,
+              "delayed_create_block", b());
+
+          b().CreateStore(
+              blk,
+              b().CreateConstGEP2_32(nfo->variables(), 0,
+                offset::vars_block),
+              false);
+
+          if(!always) ib->set_created_object();
+        }
+      }
     }
 
     void emit_create_block(opcode which) {
