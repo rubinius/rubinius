@@ -183,7 +183,7 @@ extern "C" {
     // TODO: We don't need to be doing this everytime.
     cm->scope(state, closest->static_scope());
 
-    VMMethod* vmm = closest->previous->cm->backend_method();
+    VMMethod* vmm = closest->cm->backend_method();
     return BlockEnvironment::under_call_frame(state, cm, vmm, closest, index);
   }
 

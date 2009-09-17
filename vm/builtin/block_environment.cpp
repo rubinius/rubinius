@@ -188,8 +188,8 @@ namespace rubinius {
   {
     BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
 
-    VMMethod* vmm;
-    if((vmm = caller->blocks[index]) == NULL) {
+    VMMethod* vmm = caller->blocks.at(index);
+    if(!vmm) {
       vmm = cm->formalize(state);
       if(caller->type) {
         vmm->specialize(state, caller->type);
