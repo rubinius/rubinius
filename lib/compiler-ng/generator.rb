@@ -30,6 +30,7 @@ module Rubinius
 
     def initialize
       @stream = []
+      @literals_map = Hash.new { |h,k| h[k] = add_literal(k) }
       @literals = []
       @ip = 0
       @modstack = []
@@ -197,19 +198,17 @@ module Rubinius
 
     # Find the index for the specified literal, or create a new slot if the
     # literal has not been encountered previously.
-    def find_literal(what)
-      idx = @literals.index(what)
-      return idx if idx
-      add_literal(what)
+    def find_literal(literal)
+      @literals_map[literal]
     end
 
     # Add literal exists to allow RegexLiteral's to create a new regex literal
     # object at run-time. All other literals should be added via find_literal,
     # which re-use an existing matching literal if one exists.
-    def add_literal(val)
-      idx = @literals.size
-      @literals << val
-      return idx
+    def add_literal(literal)
+      index = @literals.size
+      @literals << literal
+      return index
     end
 
     # Commands (these don't generate data in the stream)
@@ -324,19 +323,18 @@ module Rubinius
     end
 
     # Pushes the specified literal value into the literal's tuple
-    def push_literal(what)
-      idx = find_literal(what)
-      add :push_literal, idx
-
-      return idx
+    def push_literal(literal)
+      index = find_literal literal
+      add :push_literal, index
+      return index
     end
 
     # Puts +what+ is the literals tuple without trying to see if
     # something that is like +what+ is already there.
-    def push_unique_literal(what)
-      idx = add_literal(what)
-      add :push_literal, idx
-      return idx
+    def push_unique_literal(literal)
+      index = add_literal literal
+      add :push_literal, index
+      return index
     end
 
     # Pushes the literal value on the stack into the specified position in the
@@ -399,10 +397,6 @@ module Rubinius
       add :goto_if_true, lbl
     end
 
-    def equal()
-      add :equal
-    end
-
     def goto(lbl)
       lbl.used!
       add :goto, lbl
@@ -434,22 +428,6 @@ module Rubinius
 
     def push_local_depth(a, b)
       add :push_local_depth, a, b
-    end
-
-    def allocate_stack(a)
-      add :allocate_stack, a
-    end
-
-    def set_local_fp(a)
-      add :set_local_fp, a
-    end
-
-    def get_local_fp(a)
-      add :get_local_fp, a
-    end
-
-    def make_array(count)
-      add :make_array, count
     end
 
     def cast_array
@@ -517,15 +495,11 @@ module Rubinius
 
     def create_block(desc)
       @children << desc.generator
-      idx = add_literal(desc)
-      add :create_block, idx
+      index = add_literal desc
+      add :create_block, index
     end
 
     def method_missing(*op)
-      if op[0] == :val
-        raise "Passed incorrect op to method_missing in generator.rb: #{op.inspect}"
-      end
-
       add(*op)
     end
   end
