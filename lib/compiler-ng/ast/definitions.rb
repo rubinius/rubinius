@@ -203,7 +203,7 @@ module Rubinius
         g.swap
         g.push_literal name
         g.swap
-        g.push_literal desc
+        g.push_generator desc
         g.swap
         g.push_scope
         g.swap
@@ -274,7 +274,7 @@ module Rubinius
 
         g.push_const :Rubinius
         g.push_literal @name
-        g.push_literal compile_body(g)
+        g.push_generator compile_body(g)
         g.push_scope
 
         if kernel?
@@ -304,7 +304,7 @@ module Rubinius
         if kernel?
           g.push_const :Rubinius
           g.push_literal @name
-          g.push_literal compile_body(g)
+          g.push_generator compile_body(g)
           g.push_scope
           @receiver.bytecode(g)
           g.send :attach_method, 4
@@ -312,7 +312,7 @@ module Rubinius
           @receiver.bytecode(g)
           g.send :metaclass, 0
           g.push_literal @name
-          g.push_literal compile_body(g)
+          g.push_generator compile_body(g)
           g.push_scope
           g.send :attach_method, 3
         end

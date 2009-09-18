@@ -235,6 +235,10 @@ class TestGenerator
     push_literal lit
   end
 
+  def push_generator(desc)
+    push_literal desc
+  end
+
   def push_literal_desc(name = nil)
     desc = description name do |d|
       yield d

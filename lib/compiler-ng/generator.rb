@@ -318,13 +318,15 @@ module Rubinius
       end
     end
 
+    def push_generator(desc)
+      @children << desc.generator
+      push_literal desc
+    end
+
     # Pushes the specified literal value into the literal's tuple
     def push_literal(what)
       idx = find_literal(what)
       add :push_literal, idx
-
-      # TODO: fix
-      @children << what.generator if what.kind_of? Compiler::MethodDescription
 
       return idx
     end
@@ -514,6 +516,7 @@ module Rubinius
     end
 
     def create_block(desc)
+      @children << desc.generator
       idx = add_literal(desc)
       add :create_block, idx
     end
