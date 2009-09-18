@@ -1,4 +1,15 @@
 module Rubinius
+  # Temporary
+  class InstructionSequence
+    attr_accessor :opcodes
+
+    def self.from(opcodes)
+      is = allocate
+      is.opcodes = opcodes
+      is
+    end
+  end
+
   class Generator
 
     CALL_FLAG_PRIVATE = 1
@@ -43,7 +54,7 @@ module Rubinius
       @file = nil
       @lines = []
       @primitive = nil
-      @last = nil
+      @instruction = nil
 
       @required_args = 0
       @total_args = 0
@@ -54,23 +65,14 @@ module Rubinius
       @children = []
     end
 
-    attr_reader :cache_size, :literals, :iseq
+    attr_reader :ip, :stream, :iseq
+    attr_reader :cache_size, :literals
     attr_accessor :break, :redo, :next, :retry, :ensure_return
     attr_accessor :file, :name, :required_args, :total_args, :splat_index,
                   :local_count, :local_names, :primitive
 
     # Temporary
     attr_accessor :desc
-
-    def stream
-      flush if @last
-      @stream
-    end
-
-    def ip
-      flush if @last
-      @ip
-    end
 
     def ===(pattern)
 
@@ -109,10 +111,9 @@ module Rubinius
     # Formalizers
 
     def encode(encoder, calculator)
-      flush
-      collapse_labels
+      set_label_positions
 
-      @iseq = encoder.new.encode_stream @stream
+      @iseq = InstructionSequence.from @stream.to_tuple
 
       sdc = calculator.new @iseq, @lines
       stack_size = sdc.run + @local_count
@@ -131,7 +132,7 @@ module Rubinius
 
       cm = klass.new
       cm.iseq           = @iseq
-      cm.literals       = literals.to_tuple
+      cm.literals       = @literals.to_tuple
       cm.lines          = @lines.to_tuple
       cm.exceptions     = [].to_tuple # TODO: remove
 
@@ -142,58 +143,44 @@ module Rubinius
       cm.local_names    = @local_names.to_tuple if @local_names
 
       cm.stack_size     = @stack_size
-      cm.file           = @file # TODO
-      cm.name           = @name # TODO
+      cm.file           = @file
+      cm.name           = @name
       cm.primitive      = @primitive # TODO
 
       cm
     end
 
-    def collapse_labels
-      @stream.each do |part|
-        if part.kind_of? Array
-          part.map! do |x|
-            if x.kind_of? Label
-              pos = x.position
-              if pos.nil?
-                raise Error, "Label never set, but used"
-              end
-              pos
-            else
-              x
-            end
+    def set_label_positions
+      @stream.each_with_index do |op, index|
+        if op.kind_of? Label
+          unless position = op.position
+            raise "Label used but position is not set"
+          else
+            @stream[index] = position
           end
         end
       end
     end
 
-
     # Helpers
 
-    def add(*instruction)
-      what = @last
-      @last = instruction
+    def add(instruction, arg1=nil, arg2=nil)
+      @stream << InstructionSet[instruction].bytecode
+      length = 1
 
-      return unless what
+      if arg1
+        @stream << arg1
+        length = 2
 
-      @ip += what.size
-      if what.size == 1
-        @stream << what.first
-      else
-        @stream << what
-      end
-    end
-
-    def flush
-      return unless @last
-      @ip += @last.size
-      if @last.size == 1
-        @stream << @last.first
-      else
-        @stream << @last
+        if arg2
+          @stream << arg2
+          length = 3
+        end
       end
 
-      @last = nil
+      @ip += length
+
+      @instruction = instruction
     end
 
     # Find the index for the specified literal, or create a new slot if the
@@ -260,19 +247,6 @@ module Rubinius
 
 
     # Operations
-
-    SideEffectFreePushes = [:push_nil, :push_true, :push_false,
-      :push_int, :meta_push_0, :meta_push_1, :meta_push_neg_1,
-      :meta_push_2, :push_self]
-
-    def pop
-      if @last and SideEffectFreePushes.include? @last.first
-        @last = nil
-      else
-        flush
-        add :pop
-      end
-    end
 
     def push(what)
       case what
@@ -341,13 +315,13 @@ module Rubinius
     # literals tuple. Most timees, push_literal should be used instead; this
     # method exists to support RegexLiteral, where the compiled literal value
     # (a Regex object) does not exist until runtime.
-    def push_literal_at(idx)
-      add :push_literal, idx
-      return idx
+    def push_literal_at(index)
+      add :push_literal, index
+      return index
     end
 
-    def set_literal(which)
-      add :set_literal, which
+    def set_literal(index)
+      add :set_literal, index
     end
 
     def push_ivar(name)
@@ -410,28 +384,24 @@ module Rubinius
       add :add_method, find_literal(name)
     end
 
-    def check_argcount(a, b)
-      add :check_argcount, a, b
+    def set_local(index)
+      add :set_local, index
     end
 
-    def set_local(a)
-      add :set_local, a
+    def push_local(index)
+      add :push_local, index
     end
 
-    def push_local(a)
-      add :push_local, a
+    def set_local_depth(depth, index)
+      add :set_local_depth, depth, index
     end
 
-    def set_local_depth(a, b)
-      add :set_local_depth, a, b
-    end
-
-    def push_local_depth(a, b)
-      add :push_local_depth, a, b
+    def push_local_depth(depth, index)
+      add :push_local_depth, depth, index
     end
 
     def cast_array
-      unless @last and [:cast_array, :make_array].include? @last.first
+      unless @instruction == :cast_array or @instruction == :make_array
         add :cast_array
       end
     end
@@ -499,8 +469,8 @@ module Rubinius
       add :create_block, index
     end
 
-    def method_missing(*op)
-      add(*op)
+    def method_missing(instruction, arg1=nil, arg2=nil)
+      add instruction, arg1, arg2
     end
   end
 end
