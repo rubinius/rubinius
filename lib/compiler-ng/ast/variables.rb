@@ -310,8 +310,8 @@ module Rubinius
         g.rotate size
       end
 
-      def in_block
-        @in_block = true
+      def iter_arguments
+        @iter_arguments = true
       end
 
       def map_masgn
@@ -359,7 +359,7 @@ module Rubinius
 
         @splat.bytecode(g) if @splat
 
-        unless @in_block
+        unless @iter_arguments
           g.pop unless @fixed
           g.push :true
         end

@@ -894,4 +894,40 @@ describe "A Masgn node" do
       g.push :true
     end
   end
+
+  relates <<-ruby do
+      m do
+        a, b = 1, 2
+        next
+      end
+    ruby
+
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:block,
+        [:masgn,
+         [:array, [:lasgn, :a], [:lasgn, :b]],
+         [:array, [:lit, 1], [:lit, 2]]],
+        [:next]]]
+    end
+
+    compile do |g|
+      g.push :self
+      g.in_block_send :m, :none do |d|
+        d.push 1
+        d.push 2
+        d.rotate 2
+        d.set_local 0
+        d.pop
+        d.set_local 1
+        d.pop
+        d.push :true
+        d.pop
+        d.push :nil
+        d.ret
+      end
+    end
+  end
 end

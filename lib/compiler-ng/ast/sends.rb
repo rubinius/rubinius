@@ -382,7 +382,7 @@ module Rubinius
         when Fixnum
           @arity = 0
         when MAsgn
-          @arguments = arguments
+          arguments.iter_arguments
 
           if arguments.splat
             @optional = 1
@@ -397,6 +397,8 @@ module Rubinius
             @prelude = :multi
             @arity = arguments.left.body.size
           end
+
+          @arguments = arguments
         when nil
           @arity = -1
         else # Assignment
