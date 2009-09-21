@@ -88,9 +88,9 @@ module Rubinius
       end
 
       if arguments
-        AST::SendWithArguments.new line, receiver, name, arguments, false
+        AST::SendWithArguments.new line, receiver, name, arguments
       else
-        AST::Send.new line, receiver, name, false
+        AST::Send.new line, receiver, name
       end
     end
 
@@ -196,10 +196,15 @@ module Rubinius
 
     def process_fcall(line, name, arguments)
       receiver = AST::Self.new line
+
+      if node = process_transforms(line, receiver, name, arguments, true)
+        return node
+      end
+
       if arguments
-        AST::SendWithArguments.new line, receiver, name, arguments
+        AST::SendWithArguments.new line, receiver, name, arguments, true
       else
-        AST::Send.new line, receiver, name
+        AST::Send.new line, receiver, name, true
       end
     end
 
@@ -224,7 +229,7 @@ module Rubinius
     end
 
     def process_for(line, iter, arguments, body)
-      method_send = AST::Send.new line, iter, :each, false
+      method_send = AST::Send.new line, iter, :each
       method_send.block = AST::For.new line, arguments, body
       method_send
     end
@@ -341,7 +346,7 @@ module Rubinius
     end
 
     def process_postexe(line)
-      AST::Send.new line, AST::Self.new(line), :at_exit
+      AST::Send.new line, AST::Self.new(line), :at_exit, true
     end
 
     def process_redo(line)
@@ -417,7 +422,13 @@ module Rubinius
     end
 
     def process_vcall(line, name)
-      AST::Send.new line, AST::Self.new(line), name
+      receiver = AST::Self.new line
+
+      if node = process_transforms(line, receiver, name, nil, true)
+        return node
+      end
+
+      AST::Send.new line, receiver, name, true
     end
 
     def process_valias(line, to, from)

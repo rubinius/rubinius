@@ -7,6 +7,17 @@ module Rubinius
         Transforms.register category, name, self
       end
 
+      def self.match_send?(node, receiver, method, name)
+        node.kind_of? ConstFind and
+          node.name == receiver and
+          method == name
+      end
+
+      def self.match_arguments?(arguments, count)
+        (arguments and arguments.body.size == count) or
+          (arguments.nil? and count == 0)
+      end
+
       def initialize(line)
         @line = line
       end

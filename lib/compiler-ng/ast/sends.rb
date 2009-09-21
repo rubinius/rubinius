@@ -3,7 +3,7 @@ module Rubinius
     class Send < Node
       attr_accessor :receiver, :name, :privately, :block
 
-      def initialize(line, receiver, name, privately=true)
+      def initialize(line, receiver, name, privately=false)
         @line = line
         @receiver = receiver
         @name = name
@@ -31,7 +31,7 @@ module Rubinius
     class SendWithArguments < Send
       attr_accessor :arguments
 
-      def initialize(line, receiver, name, arguments, privately=true)
+      def initialize(line, receiver, name, arguments, privately=false)
         super line, receiver, name, privately
         @arguments = ActualArguments.new line, arguments
       end

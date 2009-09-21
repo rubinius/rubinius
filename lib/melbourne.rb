@@ -45,10 +45,13 @@ module Rubinius
       ast
     end
 
-    def process_transforms(line, receiver, name, arguments)
+    def process_transforms(line, receiver, name, arguments, privately=false)
       @transforms.each do |transform|
-        if transform.match? receiver, name, arguments
-          return transform.new line, receiver, name, arguments
+        if node = transform.match?(line, receiver, name, arguments, privately)
+          unless node.kind_of? AST::Node
+            node = transform.new line, receiver, name, arguments, privately
+          end
+          return node
         end
       end
       nil
