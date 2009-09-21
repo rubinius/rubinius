@@ -1,14 +1,5 @@
 module Rubinius
   class Melbourne
-
-    def initialize(name)
-      @name = name
-    end
-
-    def syntax_error
-      raise @exc if @exc
-    end
-
     def process_parse_error(message, column, line, source)
       @exc = SyntaxError.new message
       @exc.import_position column, line, source
@@ -92,6 +83,10 @@ module Rubinius
     end
 
     def process_call(line, receiver, name, arguments)
+      if node = process_transforms(line, receiver, name, arguments)
+        return node
+      end
+
       if arguments
         AST::SendWithArguments.new line, receiver, name, arguments, false
       else

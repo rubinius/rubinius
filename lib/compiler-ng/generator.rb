@@ -237,7 +237,7 @@ module Rubinius
       @lines << @ip
     end
 
-    def as_primitive(name)
+    def send_primitive(name)
       @primitive = name
     end
 

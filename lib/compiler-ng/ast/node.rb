@@ -3,6 +3,10 @@ module Rubinius
     class Node
       attr_accessor :line
 
+      def self.transform(category, name)
+        Transforms.register category, name, self
+      end
+
       def initialize(line)
         @line = line
       end

@@ -226,6 +226,8 @@ class TestGenerator
     @primitive = name
   end
 
+  alias_method :send_primitive, :as_primitive
+
   def find_cpath_top_const(name)
     g.push_cpath_top
     g.find_const name

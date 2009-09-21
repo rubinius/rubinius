@@ -131,10 +131,27 @@ module Rubinius
       def initialize(compiler, last)
         super
         compiler.parser = self
+        @transforms = []
+        @processor = Rubinius::Melbourne
       end
 
       def root(klass)
         @root = klass
+      end
+
+      def default_transforms
+        @tranforms.concat AST::Transforms.default
+      end
+
+      def enable_transform(name)
+        transform = AST::Transforms[name]
+        @transforms << transform if transform
+      end
+
+      def run
+        @output = @root.new parse
+        @output.file = @file
+        run_next
       end
     end
 
@@ -148,11 +165,8 @@ module Rubinius
         @line = line
       end
 
-      def run
-        ast = File.to_ast @file, @line
-        @output = @root.new ast
-        @output.file = @file
-        run_next
+      def parse
+        @processor.new(@file, @line, @transforms).parse_file
       end
     end
 
@@ -163,15 +177,12 @@ module Rubinius
 
       def input(string, name="(eval)", line=1)
         @input = string
-        @name = name
+        @file = name
         @line = line
       end
 
-      def run
-        ast = @input.to_ast @name, @line
-        @output = @root.new ast
-        @output.file = @name
-        run_next
+      def parse
+        @processor.new(@file, @line, @transforms).parse_string(@input)
       end
     end
   end

@@ -33,6 +33,7 @@ module Rubinius
 
       parser = compiler.parser
       parser.root AST::Script
+      parser.default_transforms
       parser.input file, line
 
       compiler.run
@@ -43,6 +44,7 @@ module Rubinius
 
       parser = compiler.parser
       parser.root AST::Script
+      parser.default_transforms
       parser.input string, file, line
 
       compiler.run
@@ -53,18 +55,19 @@ module Rubinius
 
       parser = compiler.parser
       parser.root AST::Script
+      parser.default_transforms
       parser.input string, file, line
 
       compiler.run
     end
 
-    def self.compile_test_bytecode(string, name="(eval)")
+    def self.compile_test_bytecode(string, transforms)
       compiler = new :string, :bytecode
 
       parser = compiler.parser
       parser.root AST::Snippit
-      parser.input string, name
-      # TODO: handle AST transforms
+      parser.input string
+      transforms.each { |x| parser.enable_transform x }
 
       compiler.generator.processor TestGenerator
 

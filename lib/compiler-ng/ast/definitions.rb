@@ -78,8 +78,9 @@ module Rubinius
       def bytecode(g)
         count = @array.size - 1
         @array.each_with_index do |x, i|
+          start_ip = g.ip
           x.bytecode(g)
-          g.pop unless i == count
+          g.pop unless start_ip == g.ip or i == count
         end
       end
     end
