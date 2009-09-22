@@ -242,5 +242,39 @@ module Rubinius
         g.add @name
       end
     end
+
+    ##
+    # Speeds up certain forms of Type.coerce_to
+    #
+    class SendFastCoerceTo < SendWithArguments
+      transform :default, :fast_coerce
+
+      def self.match?(line, receiver, name, arguments, privately)
+        match_send?(receiver, :Type, name, :coerce_to) and
+          arguments.body.size == 3
+      end
+
+      def bytecode(g)
+        var = @arguments.array[0]
+        const = @arguments.array[1]
+
+        if var.kind_of? LocalVariableAccess and
+           const.kind_of? ConstFind and const.name == :Fixnum
+          done = g.new_label
+
+          var.bytecode(g)
+          g.dup
+          g.send :__fixnum__, 0
+          g.git done
+
+          g.pop # remove the dup
+          super(g)
+
+          done.set!
+        else
+          super(g)
+        end
+      end
+    end
   end
 end
