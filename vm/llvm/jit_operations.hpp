@@ -562,7 +562,11 @@ namespace rubinius {
 
       Value* pos = create_gep(tup, idx, 2, "table_size_pos");
 
-      return create_load(pos, "table_size");
+      return b().CreateIntCast(
+          create_load(pos, "table_size"),
+          NativeIntTy,
+          true,
+          "to_native_int");
     }
 
     // Object access
