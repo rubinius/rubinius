@@ -19,6 +19,7 @@ namespace rubinius {
     Value* result_;
     bool check_for_exception_;
     JITInlineBlock* inline_block_;
+    JITInlineBlock* block_info_;
 
     bool block_on_stack_;
 
@@ -35,6 +36,7 @@ namespace rubinius {
       , result_(0)
       , check_for_exception_(true)
       , inline_block_(0)
+      , block_info_(0)
       , block_on_stack_(false)
       , creator_info_(0)
     {}
@@ -47,6 +49,7 @@ namespace rubinius {
       , result_(0)
       , check_for_exception_(true)
       , inline_block_(0)
+      , block_info_(0)
       , block_on_stack_(false)
       , creator_info_(0)
     {}
@@ -94,6 +97,10 @@ namespace rubinius {
 
     void set_creator(JITMethodInfo* home) {
       creator_info_ = home;
+    }
+
+    void set_block_info(JITInlineBlock* ib) {
+      block_info_ = ib;
     }
 
     bool consider();

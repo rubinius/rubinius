@@ -414,6 +414,7 @@ namespace rubinius {
 
     info.set_creator_info(creator_info_);
     info.set_inline_block(inline_block_);
+    info.set_block_info(block_info_);
 
     LLVMWorkHorse work(ops_.state(), info);
     work.valid_flag = ops_.valid_flag();

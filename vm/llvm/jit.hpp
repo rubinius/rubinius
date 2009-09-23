@@ -100,6 +100,7 @@ namespace rubinius {
     bool use_full_scope_;
 
     JITInlineBlock* inline_block_;
+    JITInlineBlock* block_info_;
 
   public:
     VMMethod* vmm;
@@ -129,6 +130,7 @@ namespace rubinius {
       , creator_info_(0)
       , use_full_scope_(false)
       , inline_block_(0)
+      , block_info_(0)
       , vmm(v)
       , is_block(false)
       , inline_return(0)
@@ -255,20 +257,28 @@ namespace rubinius {
       return inline_block_;
     }
 
-    llvm::BasicBlock* block_break_loc() {
-      return inline_block_->block_break_loc();
-    }
-
-    llvm::PHINode* block_break_result() {
-      return inline_block_->block_break_result();
-    }
-
     void set_inline_block(JITInlineBlock* bi) {
       inline_block_ = bi;
     }
 
     void clear_inline_block() {
       inline_block_ = 0;
+    }
+    
+    void set_block_info(JITInlineBlock* block) {
+      block_info_ = block;
+    }
+
+    JITInlineBlock* block_info() {
+      return block_info_;
+    }
+
+    llvm::BasicBlock* block_break_loc() {
+      return block_info_->block_break_loc();
+    }
+
+    llvm::PHINode* block_break_result() {
+      return block_info_->block_break_result();
     }
 
     void set_out_args(llvm::Value* out_args) {

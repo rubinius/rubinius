@@ -2209,6 +2209,9 @@ namespace rubinius {
         Inliner inl(*this, count);
         inl.set_inline_block(creator->inline_block());
 
+        // Make it's inlining info available to itself
+        inl.set_block_info(ib);
+
         inl.set_creator(creator);
 
         inl.inline_block(ib->code(), get_self(creator->variables()));
@@ -2486,14 +2489,14 @@ namespace rubinius {
 
     void visit_raise_break() {
       // inlining a block!
-      if(inline_return_) {
-        JITMethodInfo* upinfo = upscope_info(1);
-        assert(upinfo);
+      if(info().block_info()) {
+        // TODO this won't work if we can inline methods with exception
+        // handling, because we'll skip an ensures.
 
-        BasicBlock* blk = upinfo->block_break_loc();
+        BasicBlock* blk = info().block_break_loc();
         assert(blk);
 
-        PHINode* phi = upinfo->block_break_result();
+        PHINode* phi = info().block_break_result();
         phi->addIncoming(stack_pop(), b().GetInsertBlock());
 
         b().CreateBr(blk);
