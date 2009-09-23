@@ -34,6 +34,16 @@ class Autoload
     scope.__send__(:remove_const, name)
   end
 
+  ## 
+  # Called to destroy an Autoload that hasn't been trigger
+  def destroy!
+    if ary = Autoload.autoloads[@path]
+      ary.delete(self)
+    end
+
+    discard
+  end
+
   ##
   # Class methods
   class << self

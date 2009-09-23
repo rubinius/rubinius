@@ -600,6 +600,17 @@ class Module
     name = normalize_const_name(name)
     raise TypeError, "autoload filename must be a String" unless path.kind_of? String
     raise ArgumentError, "empty file name" if path.empty?
+
+    if existing = constant_table[name]
+      if existing.kind_of? Autoload
+        existing.destroy!
+      else
+        # Trying to register an autoload for a constant that already exists,
+        # ignore the request entirely.
+        return
+      end
+    end
+
     constants_table[name] = Autoload.new(name, self, path)
     Rubinius.inc_global_serial
     return nil
