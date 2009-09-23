@@ -688,17 +688,15 @@ class Array
   # Arrays with the same content will have the same hash
   # code (similar to #eql?)
   def hash
-    # IMPROVE: This is a really really poor implementation of hash for an array, but
-    # it does work. It should be replaced with something much better, but I'm not sure
-    # what level it belongs at.
-    str = ""
+    hash_val = size
     return size if Thread.detect_recursion self do
       i = to_iter
       while i.next
-        str.append i.item.hash.to_s
+        hash_val ^= i.item.hash
       end
     end
-    str.hash
+
+    return hash_val
   end
 
   # Returns true if the given obj is present in the Array.
