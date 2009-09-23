@@ -108,6 +108,12 @@ module Rubinius
       return true
     end
 
+    def execute(node)
+      node.bytecode self
+    end
+
+    alias_method :run, :execute
+
     # Formalizers
 
     def encode(encoder, calculator)

@@ -412,6 +412,27 @@ module Rubinius
         @arguments ? [@arguments] : []
       end
 
+      def names
+        case @arguments
+        when MAsgn
+          if arguments = @arguments.left.body
+            array = arguments.map { |x| x.name }
+          else
+            array = []
+          end
+
+          if @arguments.splat.kind_of? SplatAssignment
+            array << @arguments.splat.name
+          end
+
+          array
+        when nil
+          []
+        else
+          [@arguments.name]
+        end
+      end
+
       def arguments_bytecode(g)
         @arguments.bytecode(g) if @arguments
       end

@@ -64,6 +64,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        e = Evaluator.new g, @block.arguments.names, @arguments.array
+        e.execute @block.body
       end
     end
 
