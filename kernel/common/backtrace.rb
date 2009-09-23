@@ -86,8 +86,9 @@ class Backtrace
       end
 
       line_break = @width - start.size - 1
+      line_break = nil if line_break < 20
 
-      if pos.size >= line_break
+      if line_break and pos.size >= line_break
         indent = start.size
 
         new_pos = ""
