@@ -24,6 +24,10 @@ module Rubinius
         set_options options
         set_options :full_report => true if RUBY_CONFIG["profiler.full_report"]
         set_options :graph => true if RUBY_CONFIG["profiler.graph"]
+
+        if RUBY_CONFIG['profiler.cumulative_percentage']
+          set_options :cumulative_percentage => true
+        end
       end
 
       # Set options for profiler output. Presently, the only option
@@ -99,6 +103,8 @@ module Rubinius
         total_calls = 0
         total = 0.0
 
+        all_selves = 0.0
+
         data = @info[:methods].values.map do |m|
           cumulative   = m[:cumulative]
           method_total = m[:total]
@@ -108,9 +114,11 @@ module Rubinius
           total       += method_total
           total_calls += called
 
+          all_selves += self_total
+
           name = m[:name]
           name = "#toplevel" if name == "<metaclass>#__script__ {}"
-          [ method_total,
+          [ 0,
             sec(cumulative),
             sec(self_total),
             called,
@@ -119,18 +127,32 @@ module Rubinius
             name ]
         end
 
+        all_selves = sec(all_selves)
+
+        if options[:cumulative_percentage]
+          data.each do |d|
+            d[0] = (d[1] / sec(@info[:runtime])) * 100
+          end
+        else
+          data.each do |d|
+            d[0] = (d[2] / all_selves) * 100
+          end
+        end
+
         columns = sort_order
         data = data.sort_by do |row|
           columns.map {|col| row[col] }
         end.reverse
 
+        out.puts "Total running time: #{sec(@info[:runtime])}s"
+        out.puts ""
         out.puts "  %   cumulative   self                self     total"
         out.puts " time   seconds   seconds      calls  ms/call  ms/call  name"
         out.puts "------------------------------------------------------------"
 
         report = options[:full_report] ? data : data.first(SHORT_LINES)
         report.each do |d|
-          out.printf "%6s ", percentage(d.first, total, 2, nil)
+          out.printf " %6s", ("%.2f" % d[0])
           out.printf "%8.2f  %8.2f %10d %8.2f %8.2f  %s\n", *d.last(6)
         end
 

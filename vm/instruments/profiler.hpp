@@ -229,6 +229,7 @@ namespace rubinius {
       typedef std::tr1::unordered_map<VM*, Profiler*> ProfilerMap;
 
     private:
+      uint64_t start_time_;
       KeyMap keys_;
       ProfilerMap profilers_;
       TypedRoot<LookupTable*> profile_;

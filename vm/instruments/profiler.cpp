@@ -334,6 +334,8 @@ namespace rubinius {
                      String::create(state, TIMING_METHOD));
 
       profile_.set(profile);
+
+      start_time_ = get_current_time();
     }
 
     ProfilerCollection::~ProfilerCollection() {
@@ -364,6 +366,9 @@ namespace rubinius {
 
     LookupTable* ProfilerCollection::results(STATE) {
       LookupTable* profile = profile_.get();
+
+      profile->store(state, state->symbol("runtime"),
+          Integer::from(state, get_current_time() - start_time_));
 
       for(ProfilerMap::iterator iter = profilers_.begin();
           iter != profilers_.end();
