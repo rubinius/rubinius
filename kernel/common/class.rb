@@ -52,7 +52,7 @@ class Class
 
   protected :instance_type
 
-  def initialize(sclass=Object)
+  def initialize(sclass=Object, name=nil, under=nil)
     unless sclass.kind_of?(Class)
       raise TypeError, "superclass must be a Class (#{sclass.class} given)"
     end
@@ -63,6 +63,11 @@ class Class
     mc.set_superclass sclass.metaclass
 
     super()
+
+    # Things (rails) depend on the fact that a normal class is in the constant
+    # table and have a name BEFORE inherited is run.
+    set_name_if_necessary name, under if name and under
+    under.const_set name, self if under
 
     # add class to sclass's subclass list, for ObjectSpace.each_object(Class)
     # NOTE: This is non-standard; Ruby does not normally track subclasses

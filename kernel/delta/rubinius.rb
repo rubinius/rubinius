@@ -11,9 +11,7 @@ module Rubinius
     if !tbl.key?(name)
       # Create the class
       sup = Object unless sup
-      obj = Class.new sup
-      obj.set_name_if_necessary name, mod
-      mod.const_set name, obj
+      obj = Class.new sup, name, mod
     else
       obj = tbl[name]
       if obj.kind_of? Autoload
