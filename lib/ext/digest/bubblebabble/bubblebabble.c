@@ -22,6 +22,8 @@ bubblebabble_str_new(VALUE str_digest)
     size_t digest_len;
     VALUE str;
     char *p;
+    char *buf;
+    int buf_len;
     int i, j, seed = 1;
     static const char vowels[] = {
         'a', 'e', 'i', 'o', 'u', 'y'
@@ -32,15 +34,16 @@ bubblebabble_str_new(VALUE str_digest)
     };
 
     StringValue(str_digest);
-    digest = RSTRING_PTR(str_digest);
     digest_len = RSTRING_LEN(str_digest);
 
     if ((LONG_MAX - 2) / 3 < (digest_len | 1)) {
-	rb_raise(rb_eRuntimeError, "digest string too long");
+      rb_raise(rb_eRuntimeError, "digest string too long");
     }
 
-    str = rb_str_new(0, (digest_len | 1) * 3 + 2);
-    p = RSTRING_PTR(str);
+    digest = rb_str_ptr_readonly(str_digest);
+    buf_len = (digest_len | 1) * 3 + 2;
+    buf = calloc(buf_len, sizeof(char));
+    p = buf;
 
     i = j = 0;
     p[j++] = 'x';
@@ -73,6 +76,9 @@ bubblebabble_str_new(VALUE str_digest)
     }
 
     p[j] = 'x';
+
+    str = rb_str_new(buf, buf_len);
+    free(buf);
 
     return str;
 }

@@ -42,28 +42,31 @@ hexencode_str_new(VALUE str_digest)
     int i;
     VALUE str;
     char *p;
+    char *buf;
     static const char hex[] = {
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
         'a', 'b', 'c', 'd', 'e', 'f'
     };
 
     StringValue(str_digest);
-    digest = RSTRING_PTR(str_digest);
     digest_len = RSTRING_LEN(str_digest);
 
     if (LONG_MAX / 2 < digest_len) {
         rb_raise(rb_eRuntimeError, "digest string too long");
     }
 
-    str = rb_str_new(0, digest_len * 2);
+    digest = rb_str_ptr_readonly(str_digest);
+    buf = calloc(digest_len * 2, sizeof(char));
 
-    for (i = 0, p = RSTRING_PTR(str); i < digest_len; i++) {
+    for (i = 0, p = buf; i < digest_len; i++) {
         unsigned char byte = digest[i];
 
         p[i + i]     = hex[byte >> 4];
         p[i + i + 1] = hex[byte & 0x0f];
     }
 
+    str = rb_str_new(buf, digest_len * 2);
+    free(buf);
     return str;
 }
 
@@ -101,7 +104,7 @@ static VALUE
 rb_digest_instance_update(VALUE self, VALUE str)
 {
     rb_raise(rb_eRuntimeError, "%s does not implement update()",
-        RSTRING_PTR(rb_inspect(self)));
+        rb_str_ptr_readonly(rb_inspect(self)));
     return Qnil;  /* Keep compiler happy */
 }
 
@@ -121,7 +124,7 @@ static VALUE
 rb_digest_instance_finish(VALUE self)
 {
     rb_raise(rb_eRuntimeError, "%s does not implement finish()",
-        RSTRING_PTR(rb_inspect(self)));
+        rb_str_ptr_readonly(rb_inspect(self)));
     return Qnil;  /* Keep compiler happy */
 }
 
@@ -137,7 +140,7 @@ static VALUE
 rb_digest_instance_reset(VALUE self)
 {
     rb_raise(rb_eRuntimeError, "%s does not implement reset()",
-        RSTRING_PTR(rb_inspect(self)));
+        rb_str_ptr_readonly(rb_inspect(self)));
     return Qnil;  /* Keep compiler happy */
 }
 
@@ -317,8 +320,8 @@ rb_digest_instance_equal(VALUE self, VALUE other)
     StringValue(str2);
 
     if (RSTRING_LEN(str1) == RSTRING_LEN(str2) &&
-	rb_str_cmp(str1, str2) == 0) {
-	return Qtrue;
+        rb_str_cmp(str1, str2) == 0) {
+	    return Qtrue;
     }
     return Qfalse;
 }
@@ -368,7 +371,7 @@ static VALUE
 rb_digest_instance_block_length(VALUE self)
 {
     rb_raise(rb_eRuntimeError, "%s does not implement block_length()",
-        RSTRING_PTR(rb_inspect(self)));
+        rb_str_ptr_readonly(rb_inspect(self)));
     return Qnil;  /* Keep compiler happy */
 }
 
@@ -533,7 +536,7 @@ rb_digest_base_update(VALUE self, VALUE str)
     Data_Get_Struct(self, void, pctx);
 
     StringValue(str);
-    algo->update_func(pctx, (unsigned char *)RSTRING_PTR(str), RSTRING_LEN(str));
+    algo->update_func(pctx, (unsigned char *)rb_str_ptr_readonly(str), RSTRING_LEN(str));
 
     return self;
 }
@@ -550,11 +553,15 @@ rb_digest_base_finish(VALUE self)
 
     Data_Get_Struct(self, void, pctx);
 
-    str = rb_str_new(0, algo->digest_len);
-    algo->finish_func(pctx, (unsigned char *)RSTRING_PTR(str));
+    char* buf = calloc(algo->digest_len, sizeof(char));
+
+    algo->finish_func(pctx, (unsigned char*)buf);
 
     /* avoid potential coredump caused by use of a finished context */
     algo->init_func(pctx);
+
+    str = rb_str_new(buf, algo->digest_len);
+    free(buf);
 
     return str;
 }
