@@ -1,21 +1,83 @@
 require "compiler-ng"
 
 class CompilerScript
-  def options(argv=ARGV)
-    options = Rubinius::Options.new "Usage: rbx compile-ng [options] [files]", 25
+  def initialize
+    @files = []
+    @transforms = []
+  end
 
-    options.on "-o", "--output NAME", "Compile single input file to NAME" do |n|
+  def options(argv=ARGV)
+    @options = Rubinius::Options.new "Usage: rbx compile-ng [options] [files]", 28
+
+    @options.doc " How to specify the output file"
+
+    @options.on "-o", "--output", "NAME", "Compile single input file to NAME" do |n|
       @output_name = n
     end
 
-    options.help
+    @options.on("-s", "--replace", "FORM",
+               "Transform filename, where FORM is pattern:replacement") do |s|
+      pattern, @replacement = s.split(":")
+      @pattern = Regexp.new pattern
+    end
 
-    @sources = options.parse argv
+
+    @options.doc "\n How to transform the AST"
+    @options.doc "\n  The default category of transforms are enabled unless specific"
+    @options.doc "  ones are selected or --no-transform is given"
+    @options.doc ""
+
+    @options.on "-t", "--transform", "NAME", "Enable AST transform NAME" do |t|
+      transform = Rubinius::AST::Transforms[t.to_sym]
+      @transforms << transform if transform
+    end
+
+    @options.on("-T", "--transforms", "NAME",
+                "Enable NAME category of AST transforms") do |c|
+      transforms = Rubinius::AST::Transforms.category c.to_sym
+      @transforms.concat transforms if transforms
+    end
+
+    @options.on "--no-transform", "Do not transform the AST" do
+      @no_transforms = true
+    end
+
+    @options.doc "\n     where the transforms are:"
+    Rubinius::AST::Transforms.category_map.each do |category, transforms|
+      @options.doc "       Category: #{category}"
+      transforms.each do |t|
+        text = "         %-14s  %s" % [t.transform_name, t.transform_comment]
+        @options.doc text
+      end
+      @options.doc ""
+    end
+
+
+    @options.doc " How to modify runtime behavior"
+
+    @options.on "-i", "--ignore", "Continue on errors" do
+      @ignore = true
+    end
+
+
+    @options.doc "\n Help!"
+
+    @options.on "-V", "--verbose", "Print processing information" do
+      @verbose = true
+    end
+
+    @options.help
+    @options.doc ""
+
+    @sources = @options.parse argv
+  end
+
+  def help(message=nil)
+    puts message, "\n" if message
+    puts @options
   end
 
   def collect_files
-    @files = []
-
     @sources.each do |entry|
       if File.directory? entry
         spec = "#{entry}/**/*.rb"
@@ -27,9 +89,62 @@ class CompilerScript
     end
   end
 
+  def protect(name)
+    begin
+      yield
+    rescue Object => e
+      puts "Failed compiling #{name}"
+      if @ignore
+        puts e.awesome_backtrace
+      else
+        raise e
+      end
+    end
+  end
+
+  def enable_transforms(parser)
+    return if @no_transforms
+    if @transforms.empty?
+      parser.default_transforms
+    else
+      parser.transforms = @transforms
+    end
+  end
+
   def run
+    if @files.empty?
+      help "No files given"
+      return
+    end
+
+    if @output_name and @files.size > 1
+      help "Cannot give output name for multiple input files."
+      return
+    end
+
     @files.each do |file|
-      Rubinius::CompilerNG.compile file
+      puts file if @verbose
+
+      if @pattern
+        output = file.gsub(@pattern, @replacement)
+        output << "c"
+      else
+        output = @output_name
+      end
+
+      protect file do
+        compiler = Rubinius::CompilerNG.new :file, :compiled_file
+
+        parser = compiler.parser
+        parser.root Rubinius::AST::Script
+        parser.input file
+        enable_transforms parser
+
+        writer = compiler.writer
+        writer.name = output
+
+        compiler.run
+      end
     end
   end
 

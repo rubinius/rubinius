@@ -3,8 +3,18 @@ module Rubinius
     class Node
       attr_accessor :line
 
-      def self.transform(category, name)
+      def self.transform(category, name, comment)
         Transforms.register category, name, self
+        @transform_name = name
+        @transform_comment = comment
+      end
+
+      def self.transform_name
+        @transform_name
+      end
+
+      def self.transform_comment
+        @transform_comment
       end
 
       def self.match_send?(node, receiver, method, name)

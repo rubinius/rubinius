@@ -60,9 +60,12 @@ module Rubinius
       def initialize(compiler, last)
         super
         compiler.writer = self
+        @processor = Rubinius::CompiledFile
       end
 
       def run
+        @name = "#{@input.file}c" unless @name
+        @processor.dump @input, @name
         @input
       end
     end
@@ -128,6 +131,8 @@ module Rubinius
 
     # source -> AST
     class Parser < Stage
+      attr_accessor :transforms
+
       def initialize(compiler, last)
         super
         compiler.parser = self
@@ -140,7 +145,7 @@ module Rubinius
       end
 
       def default_transforms
-        @tranforms.concat AST::Transforms.default
+        @transforms.concat AST::Transforms.default
       end
 
       def enable_transform(name)

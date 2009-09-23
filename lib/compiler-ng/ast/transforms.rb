@@ -3,30 +3,30 @@ module Rubinius
     module Transforms
       def self.register(category, name, klass)
         transform_map[name] = klass
-        send(category) << klass
+        category_map[category] << klass
       end
 
       def self.transform_map
-        @transform_map ||= LookupTable.new
+        @transform_map ||= { }
+      end
+
+      def self.category_map
+        @category_map ||= Hash.new { |h, k| h[k] = [] }
       end
 
       def self.[](name)
         transform_map[name]
       end
 
-      def self.default
-        @default ||= []
-      end
-
-      def self.kernel
-        @kernel ||= []
+      def self.category(name)
+        category_map[name]
       end
     end
 
     ##
     # Handles block_given?
     class BlockGiven < Send
-      transform :default, :block_given
+      transform :default, :block_given, "VM instruction for block_given?, iterator?"
 
       def self.match?(line, receiver, name, arguments, privately)
         if receiver.kind_of? Self and (name == :block_given? or name == :iterator?)
@@ -42,7 +42,7 @@ module Rubinius
     ##
     # Handles Ruby.primitive
     class SendPrimitive < SendWithArguments
-      transform :default, :primitive
+      transform :default, :primitive, "Ruby.primitive"
 
       def self.match?(line, receiver, name, arguments, privately)
         match_send? receiver, :Ruby, name, :primitive
@@ -57,7 +57,7 @@ module Rubinius
     # Handles Rubinius.asm
     #
     class InlineAssembly < SendWithArguments
-      transform :default, :assembly
+      transform :default, :assembly, "Rubinius.asm"
 
       def self.match?(line, receiver, name, arguments, privately)
         match_send? receiver, :Rubinius, name, :asm
@@ -73,7 +73,7 @@ module Rubinius
     # Handles Rubinius.privately
     #
     class SendPrivately < Send
-      transform :kernel, :privately
+      transform :kernel, :privately, "Rubinius.privately"
 
       def self.match?(line, receiver, name, arguments, privately)
         if match_send? receiver, :Rubinius, name, :privately
@@ -103,7 +103,7 @@ module Rubinius
     # Emits fast VM instructions for certain methods.
     #
     class SendFastMath < SendWithArguments
-      transform :default, :fastmath
+      transform :default, :fastmath, "VM instructions for math, relational methods"
 
       Operators = {
         :+    => :meta_send_op_plus,
@@ -138,7 +138,7 @@ module Rubinius
     # Emits a fast path for #new
     #
     class SendFastNew < SendWithArguments
-      transform :default, :fastnew
+      transform :default, :fastnew, "Fast SomeClass.new path"
 
       # FIXME duplicated from kernel/common/compiled_method.rb
       KernelMethodSerial = 47
@@ -185,7 +185,7 @@ module Rubinius
     # Emits "safe" names for certain fundamental core library methods
     #
     class SendKernelMethod < SendWithArguments
-      transform :kernel, :kernel_methods
+      transform :kernel, :kernel_methods, "Safe names for fundamental methods"
 
       Methods = {
         :/      => :divide,
@@ -216,7 +216,7 @@ module Rubinius
     # Maps various methods to VM instructions
     #
     class SendInstructionMethod < SendWithArguments
-      transform :kernel, :fastsystem
+      transform :kernel, :fastsystem, "VM instructions for certain methods"
 
       Methods = {
         :__kind_of__     => :kind_of,
@@ -249,7 +249,7 @@ module Rubinius
     # Speeds up certain forms of Type.coerce_to
     #
     class SendFastCoerceTo < SendWithArguments
-      transform :default, :fast_coerce
+      transform :default, :fast_coerce, "Fast Type.coerce_to path"
 
       def self.match?(line, receiver, name, arguments, privately)
         match_send?(receiver, :Type, name, :coerce_to) and
