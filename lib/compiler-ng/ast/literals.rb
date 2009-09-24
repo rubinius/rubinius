@@ -69,11 +69,25 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
+        count = @array.size
+        i = 0
+
         g.find_cpath_top_const :Hash
+        g.push count / 2
+        g.send :new_from_literal, 1
 
-        @array.each { |x| x.bytecode(g) }
+        while i < count
+          k = @array[i]
+          v = @array[i + 1]
 
-        g.send :[], @array.size
+          g.dup
+          k.bytecode(g)
+          v.bytecode(g)
+          g.send :[]=, 2
+          g.pop
+
+          i += 2
+        end
       end
     end
 
