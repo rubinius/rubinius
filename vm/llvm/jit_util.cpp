@@ -780,17 +780,20 @@ extern "C" {
     VMMethod* vmm = call_frame->cm->backend_method();
 
     /*
+    InlineCache* cache = 0;
+
     if(vmm->opcodes[call_frame->ip()] == InstructionSequence::insn_send_stack) {
-      InlineCache* cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
-      std::cout << "Uncommon trap for send: " << cache->name->c_str(state) << "\n";
+      cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
     } else if(vmm->opcodes[call_frame->ip()] == InstructionSequence::insn_send_method) {
-      InlineCache* cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
-      std::cout << "Uncommon trap for send: " << cache->name->c_str(state) << "\n";
+      cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
     } else if(vmm->opcodes[call_frame->ip()] == InstructionSequence::insn_send_stack_with_block) {
-      InlineCache* cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
-      std::cout << "Uncommon trap for send: " << cache->name->c_str(state) << "\n";
-    } else {
-      std::cout << "Uncommon trap running: " << call_frame->name()->c_str(state) << "\n";
+      cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
+    }
+
+    if(cache) {
+      if(cache->name->symbol_p()) {
+        std::cout << "Uncommon trap for send: " << cache->name->c_str(state) << "\n";
+      }
     }
     */
 
