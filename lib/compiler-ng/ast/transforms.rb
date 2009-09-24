@@ -81,8 +81,12 @@ module Rubinius
         end
       end
 
+      def block=(iter)
+        @block = iter.body
+      end
+
       def map_sends
-        @block.visit do |result, node|
+        visit do |result, node|
           case node
           when Send, SendWithArguments
             node.privately = true
@@ -95,7 +99,7 @@ module Rubinius
       def bytecode(g)
         map_sends
 
-        @block.body.bytecode(g)
+        @block.bytecode(g)
       end
     end
 
