@@ -30,6 +30,13 @@
 
 namespace rubinius {
 
+  void Object::bootstrap_methods(STATE) {
+    System::attach_primitive(state,
+                             G(object), false,
+                             state->symbol("metaclass"),
+                             state->symbol("object_metaclass"));
+  }
+
   Class* Object::class_object(STATE) const {
     if(reference_p()) {
       Module* mod = klass_;

@@ -111,12 +111,7 @@ class Compiler
     @line = 0
     @context = context
 
-    @kernel = Config['rbx-kernel']
     load_plugins
-  end
-
-  def kernel?
-    @kernel
   end
 
   def custom_scopes?

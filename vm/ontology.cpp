@@ -289,6 +289,7 @@ namespace rubinius {
     GO(vm).set(new_class_under("VM", G(rubinius)));
     G(vm)->name(state, state->symbol("Rubinius::VM"));
 
+    Object::bootstrap_methods(this);
     Class::bootstrap_methods(this);
     Module::bootstrap_methods(this);
     StaticScope::bootstrap_methods(this);

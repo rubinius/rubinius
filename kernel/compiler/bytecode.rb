@@ -761,21 +761,12 @@ class Compiler
       def bytecode(g)
         pos(g)
 
-        if @compiler.kernel?
-          g.push_const :Rubinius
-          g.push_literal @name
-          g.push_literal compile_body(g)
-          g.push_scope
-          @object.bytecode(g)
-          g.send :attach_method, 4
-        else
-          @object.bytecode(g)
-          g.send :metaclass, 0
-          g.push_literal @name
-          g.push_literal compile_body(g)
-          g.push_scope
-          g.send :attach_method, 3
-        end
+        @object.bytecode(g)
+        g.send :metaclass, 0
+        g.push_literal @name
+        g.push_literal compile_body(g)
+        g.push_scope
+        g.send :attach_method, 3
       end
     end
 

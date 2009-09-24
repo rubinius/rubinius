@@ -3,11 +3,13 @@
 #include "objectmemory.hpp"
 
 #include "builtin/class.hpp"
+#include "builtin/compiledmethod.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/staticscope.hpp"
 #include "builtin/string.hpp"
 #include "builtin/system.hpp"
 
@@ -52,6 +54,11 @@ namespace rubinius {
                              G(rubinius), true,
                              state->symbol("attach_method"),
                              state->symbol("vm_attach_method"));
+
+    System::attach_primitive(state,
+                             G(metaclass), false,
+                             state->symbol("attach_method"),
+                             state->symbol("metaclass_attach_method"));
   }
 
   Class* Class::create(STATE, Class* super) {
@@ -126,6 +133,16 @@ namespace rubinius {
     */
 
     return meta;
+  }
+
+  Object* MetaClass::attach_method(STATE, Symbol* name,
+                                   CompiledMethod* method, StaticScope* scope)
+  {
+    method->scope(state, scope);
+    method->serial(state, Fixnum::from(0));
+    add_method(state, name, method);
+
+    return method;
   }
 
   void MetaClass::Info::show(STATE, Object* self, int level) {

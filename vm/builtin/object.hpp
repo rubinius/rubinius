@@ -96,6 +96,8 @@ namespace rubinius {
     /** Class type identifier. */
     static const object_type type = ObjectType;
 
+    static void bootstrap_methods(STATE);
+
   public:   /* GC support, bookkeeping &c. */
 
     /** Calls cleanup() on the TypeInfo for this object's type. */
@@ -258,6 +260,7 @@ namespace rubinius {
     Object*   kind_of_prim(STATE, Module* klass);
 
     /** Return object's MetaClass object. Created as needed. */
+    // Ruby.primitive :object_metaclass
     Class*    metaclass(STATE);
 
     /**

@@ -68,6 +68,9 @@ namespace rubinius {
     };
   };
 
+  class CompiledMethod;
+  class StaticScope;
+
   class MetaClass : public Class {
   public:
     const static object_type type = MetaClassType;
@@ -83,6 +86,9 @@ namespace rubinius {
     /* interface */
 
     static MetaClass* attach(STATE, Object* obj, Object* sup = NULL);
+
+    // Ruby.primitive :metaclass_attach_method
+    Object* attach_method(STATE, Symbol* name, CompiledMethod* method, StaticScope* scope);
 
     class Info : public Class::Info {
     public:
