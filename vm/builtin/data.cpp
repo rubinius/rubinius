@@ -12,11 +12,15 @@ namespace rubinius {
 
   Data* Data::create(STATE, void* data_ptr, MarkFunctor mark, FreeFunctor free) {
     Data* data;
-    data = state->new_object<Data>(G(data));
 
-    data->data_ = data_ptr;
-    data->mark_ = mark;
-    data->free_ = free;
+    // Construct this object pinned, so that we can pass out address to the
+    // inside of it to C code without worry about object movement.
+    data = state->new_object_mature<Data>(G(data));
+    assert(data->pin());
+
+    data->data(state, data_ptr);
+    data->mark(state, mark);
+    data->free(state, free);
 
     return data;
   }
@@ -26,10 +30,10 @@ namespace rubinius {
 
     Data* data = as<Data>(t);
 
-    if(data->mark_) {
+    if(data->mark()) {
       ObjectMark* cur = VM::current_state()->current_mark;
       VM::current_state()->current_mark = &mark;
-      (*data->mark_)(data->data_);
+      (*data->mark())(data->data());
       VM::current_state()->current_mark = cur;
     }
   }

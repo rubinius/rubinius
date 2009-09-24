@@ -12,9 +12,6 @@ namespace rubinius {
           delete[] as_.rarray->dmwmb;
           delete as_.rarray;
           break;
-        case cRData:
-          delete as_.rdata;
-          break;
         case cRString:
           delete[] as_.rstring->dmwmb;
           delete as_.rstring;

@@ -24,19 +24,9 @@ namespace rubinius {
     RData* Handle::as_rdata(NativeMethodEnvironment* env) {
       if(type_ != cRData) {
         Data* data = c_as<Data>(object());
-
-        RData* d = new RData;
-        d->dmark = data->mark();
-        d->dfree = data->free();
-        d->data = data->data();
-
         type_ = cRData;
-        as_.rdata = d;
 
-        flush_ = flush_cached_rdata;
-
-        env->state()->shared.global_handles()->move(this,
-            env->state()->shared.cached_handles());
+        as_.rdata = reinterpret_cast<RData*>(data->exposed());
       }
 
       return as_.rdata;

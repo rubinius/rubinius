@@ -6,12 +6,18 @@
 
 namespace rubinius {
 
+  // HACK manually copied here from ruby.h
+  struct RDataExposed {
+    void (*dmark)(void*);
+    void (*dfree)(void*);
+    void *data;
+  };
+
   class Data : public Object {
   public:
     const static object_type type = DataType;
 
   public:   /* Types */
-
     /** The signature for the mark function. */
     typedef   void (*MarkFunctor)(void*);
 
@@ -19,9 +25,7 @@ namespace rubinius {
     typedef   void (*FreeFunctor)(void*);
 
   private:
-    FreeFunctor free_;
-    MarkFunctor mark_;
-    void*       data_;
+    RDataExposed exposed_;
 
   public:   /* Interface */
 
@@ -31,32 +35,36 @@ namespace rubinius {
     /** New Data instance. */
     static Data*  create(STATE, void* data, MarkFunctor mark, FreeFunctor free);
 
+    RDataExposed* exposed() {
+      return &exposed_;
+    }
+
     void* data() {
-      return data_;
+      return exposed_.data;
     }
 
     FreeFunctor free() {
-      return free_;
+      return exposed_.dfree;
     }
 
     MarkFunctor mark() {
-      return mark_;
+      return exposed_.dmark;
     }
 
     void** data_address() {
-      return &data_;
+      return &exposed_.data;
     }
 
     void data(STATE, void* data) {
-      data_ = data;
+      exposed_.data = data;
     }
 
     void free(STATE, FreeFunctor free) {
-      free_ = free;
+      exposed_.dfree = free;
     }
 
     void mark(STATE, MarkFunctor mark) {
-      mark_ = mark;
+      exposed_.dmark = mark;
     }
 
   public:   /* TypeInfo */
