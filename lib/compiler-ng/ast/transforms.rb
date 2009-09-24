@@ -49,7 +49,7 @@ module Rubinius
       end
 
       def bytecode(g)
-        g.send_primitive @name
+        g.send_primitive @arguments.array.first.value
       end
     end
 
