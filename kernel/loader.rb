@@ -377,9 +377,7 @@ module Rubinius
 
       # TODO: Fix these with better -X processing
       if RUBY_CONFIG['rbx.jit_stats']
-        stats = VM.jit_info
-        puts "JIT time spent: #{stats[0] / 1000000}ms"
-        puts " JITed methods: #{stats[1]}"
+        p VM.jit_info
       end
 
       if RUBY_CONFIG['rbx.gc_stats']
