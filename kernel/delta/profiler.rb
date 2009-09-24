@@ -28,6 +28,10 @@ module Rubinius
         if RUBY_CONFIG['profiler.cumulative_percentage']
           set_options :cumulative_percentage => true
         end
+
+        if RUBY_CONFIG['profiler.classes']
+          set_options :classes => true
+        end
       end
 
       # Set options for profiler output. Presently, the only option
@@ -157,6 +161,22 @@ module Rubinius
         end
 
         epilogue data.size, total_calls
+
+        if options[:classes]
+          classes = Hash.new { |h,k| h[k] = 0.0 }
+
+          data.each do |row|
+            if m = /(.*)[#\.]/.match(row.last)
+              classes[m[1]] += ((row[2] / all_selves) * 100)
+            end
+          end
+
+          out.puts "\nUsage percentage by class:"
+          sorted = classes.to_a.sort_by { |row| row[1] }.reverse
+          sorted.each do |row|
+            out.printf "%6s: %s\n", ("%.2f" % row[1]), row[0]
+          end
+        end
       end
 
       # Prints an entry for each method, along with the method's callers and
