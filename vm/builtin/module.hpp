@@ -54,7 +54,7 @@ namespace rubinius {
 
     void add_method(STATE, Symbol* name, Executable* exec, Symbol* vis = 0);
 
-    Executable* find_method(Symbol* name);
+    Executable* find_method(Symbol* name, Module** defined_in = 0);
 
     class Info : public TypeInfo {
     public:

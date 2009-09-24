@@ -95,13 +95,16 @@ namespace rubinius {
     state->global_cache->clear(this, name);
   }
 
-  Executable* Module::find_method(Symbol* name) {
+  Executable* Module::find_method(Symbol* name, Module** defined_in) {
     MethodTableBucket* buk;
     Module* mod = this;
 
     do {
       buk = mod->method_table()->find_entry(name);
-      if(buk) return buk->method();
+      if(buk) {
+        if(defined_in) *defined_in = mod;
+        return buk->method();
+      }
       mod = mod->superclass();
     } while(!mod->nil_p());
 
