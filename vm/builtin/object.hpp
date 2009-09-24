@@ -318,6 +318,9 @@ namespace rubinius {
     // Ruby.primitive :object_respond_to
     Object* respond_to(STATE, Symbol* name, Object* priv);
 
+    // Ruby.primitive :object_respond_to_public
+    Object* respond_to_public(STATE, Object* obj);
+
     // Ruby.primitive :object_is_fixnum
     Object* is_fixnum() {
       return FIXNUM_P(this) ? Qtrue : Qfalse;

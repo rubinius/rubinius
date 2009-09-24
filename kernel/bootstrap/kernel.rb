@@ -39,16 +39,17 @@ module Kernel
     raise PrimitiveFailure, "Kernel#object_id primitive failed"
   end
 
-  def respond_to?(meth,include_private=false)
-    return prim_respond_to?(meth.to_sym, include_private)
+  def respond_to?(meth, include_private=false)
+    Ruby.primitive :object_respond_to_public
+    respond_to_all?(meth.to_sym, include_private);
   end
 
-  def prim_respond_to?(meth, include)
+  def respond_to_all?(meth, include)
     Ruby.primitive :object_respond_to
     raise PrimitiveFailure, "Kernel#prim_respond_to? failed"
   end
 
-  private :prim_respond_to?
+  private :respond_to_all?
 
   # Rather than attr = !!value or attr = value && true or attr = (value
   # and true) littering code, we provide attr = value.to_bool for when
