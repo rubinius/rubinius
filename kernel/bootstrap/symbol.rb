@@ -8,4 +8,9 @@ class Symbol
     Ruby.primitive :symbol_is_ivar
     raise PrimitiveFailure, "Symbol#is_ivar failed."
   end
+
+  def is_cvar?
+    Ruby.primitive :symbol_is_cvar
+    raise PrimitiveFailure, "Symbol#is_cvar failed."
+  end
 end

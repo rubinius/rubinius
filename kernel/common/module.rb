@@ -38,7 +38,12 @@ class Module
   end
 
   def verify_class_variable_name(name)
-    name = name.kind_of?(Symbol) ? name.to_s : StringValue(name)
+    if name.kind_of? Symbol
+      return name if name.is_cvar?
+      raise NameError, "#{name} is not an allowed class variable name"
+    end
+
+    name = StringValue(name)
     unless name[0..1] == '@@' and name[2].toupper.between?(?A, ?Z) or name[2] == ?_
       raise NameError, "#{name} is not an allowed class variable name"
     end
@@ -46,10 +51,9 @@ class Module
   end
   private :verify_class_variable_name
 
-  def class_variables_table
-    @class_variables ||= Hash.new
+  def __class_variables__
+    @class_variables ||= Rubinius::LookupTable.new
   end
-  private :class_variables_table
 
   def class_variable_set(name, val)
     name = verify_class_variable_name name
@@ -57,20 +61,20 @@ class Module
     current = direct_superclass
     while current
       if current.__kind_of__ MetaClass
-        vars = current.attached_instance.send :class_variables_table
+        vars = current.attached_instance.__class_variables__
       elsif current.__kind_of__ Rubinius::IncludedModule
-        vars = current.module.send :class_variables_table
+        vars = current.module.__class_variables__
       else
-        vars = current.send :class_variables_table
+        vars = current.__class_variables__
       end
       return vars[name] = val if vars.key? name
       current = current.direct_superclass
     end
 
     if self.__kind_of__ MetaClass
-      table = self.attached_instance.send :class_variables_table
+      table = self.attached_instance.__class_variables__
     else
-      table = class_variables_table
+      table = __class_variables__
     end
     table[name] = val
   end
@@ -81,11 +85,11 @@ class Module
     current = self
     while current
       if current.__kind_of__ MetaClass
-        vars = current.attached_instance.send :class_variables_table
+        vars = current.attached_instance.__class_variables__
       elsif current.__kind_of__ Rubinius::IncludedModule
-        vars = current.module.send :class_variables_table
+        vars = current.module.__class_variables__
       else
-        vars = current.send :class_variables_table
+        vars = current.__class_variables__
       end
       return vars[name] if vars.key? name
       current = current.direct_superclass
@@ -102,9 +106,9 @@ class Module
     current = self
     while current
       if current.__kind_of__ Rubinius::IncludedModule
-        vars = current.module.send :class_variables_table
+        vars = current.module.__class_variables__
       else
-        vars = current.send :class_variables_table
+        vars = current.__class_variables__
       end
       return true if vars.key? name
       current = current.direct_superclass
@@ -115,7 +119,7 @@ class Module
   def class_variables(symbols = false)
     names = []
     ancestors.map do |mod|
-      names.concat mod.send(:class_variables_table).keys
+      names.concat mod.__class_variables__.keys
     end
     names = Rubinius.convert_to_names(names) unless symbols
     names

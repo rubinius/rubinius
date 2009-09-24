@@ -48,6 +48,10 @@ namespace rubinius {
     return state->symbols.kind(state, this) == SymbolTable::IVar ? Qtrue : Qfalse;
   }
 
+  Object* Symbol::is_cvar_p(STATE) {
+    return state->symbols.kind(state, this) == SymbolTable::CVar ? Qtrue : Qfalse;
+  }
+
   void Symbol::Info::show(STATE, Object* self, int level) {
     Symbol* sym = try_as<Symbol>(self);
     std::cout << ":" << sym->c_str(state) << std::endl;
