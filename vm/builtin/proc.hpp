@@ -37,7 +37,7 @@ namespace rubinius {
     Object* call_on_object(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
     // Ruby.primitive :proc_from_env
-    static Proc* from_env(STATE, BlockEnvironment* env);
+    static Proc* from_env(STATE, Object* env);
 
     class Info : public TypeInfo {
     public:

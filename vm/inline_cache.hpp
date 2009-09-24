@@ -224,6 +224,8 @@ namespace rubinius {
         return NULL;
       case 1:
         return seen_classes_[0].klass();
+      /*
+       *  These are disabled because they hurt performance.
       case 2: {
         int h1 = seen_classes_[0].hits();
         int h2 = seen_classes_[1].hits();
@@ -243,6 +245,7 @@ namespace rubinius {
 
         return NULL;
       }
+      */
       default:
         return NULL;
       }
