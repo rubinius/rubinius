@@ -368,11 +368,21 @@ describe "A Call node" do
       g.send :o, 0, true
       g.push_cpath_top
       g.find_const :Hash
+      g.push 2
+      g.send :new_from_literal, 1
+
+      g.dup
       g.push_literal :a
       g.push 1
+      g.send :[]=, 2
+      g.pop
+
+      g.dup
       g.push_literal :b
       g.push 2
-      g.send :[], 4
+      g.send :[]=, 2
+      g.pop
+
       g.send :m, 1, false
     end
   end
@@ -393,11 +403,21 @@ describe "A Call node" do
       g.push 42
       g.push_cpath_top
       g.find_const :Hash
+      g.push 2
+      g.send :new_from_literal, 1
+
+      g.dup
       g.push_literal :a
       g.push 1
+      g.send :[]=, 2
+      g.pop
+
+      g.dup
       g.push_literal :b
       g.push 2
-      g.send :[], 4
+      g.send :[]=, 2
+      g.pop
+
       g.send :m, 2, false
     end
   end
@@ -419,11 +439,20 @@ describe "A Call node" do
       g.push 42
       g.push_cpath_top
       g.find_const :Hash
+      g.push 2
+      g.send :new_from_literal, 1
+
+      g.dup
       g.push_literal :a
       g.push 1
+      g.send :[]=, 2
+      g.pop
+
+      g.dup
       g.push_literal :b
       g.push 2
-      g.send :[], 4
+      g.send :[]=, 2
+      g.pop
 
       g.push :self
       g.send :c, 0, true
@@ -530,13 +559,20 @@ describe "A Call node" do
       g.push :self
       g.push_cpath_top
       g.find_const :Hash
+      g.push 2
+      g.send :new_from_literal, 1
 
+      g.dup
       g.push_literal :a
       g.push 1
+      g.send :[]=, 2
+      g.pop
+
+      g.dup
       g.push_literal :b
       g.push 2
-
-      g.send :[], 4
+      g.send :[]=, 2
+      g.pop
 
       g.send :m, 1, true
     end
@@ -555,13 +591,20 @@ describe "A Call node" do
       g.push 42
       g.push_cpath_top
       g.find_const :Hash
+      g.push 2
+      g.send :new_from_literal, 1
 
+      g.dup
       g.push_literal :a
       g.push 1
+      g.send :[]=, 2
+      g.pop
+
+      g.dup
       g.push_literal :b
       g.push 2
-
-      g.send :[], 4
+      g.send :[]=, 2
+      g.pop
 
       g.send :m, 2, true
     end
@@ -583,13 +626,20 @@ describe "A Call node" do
       g.push 42
       g.push_cpath_top
       g.find_const :Hash
+      g.push 2
+      g.send :new_from_literal, 1
 
+      g.dup
       g.push_literal :a
       g.push 1
+      g.send :[]=, 2
+      g.pop
+
+      g.dup
       g.push_literal :b
       g.push 2
-
-      g.send :[], 4
+      g.send :[]=, 2
+      g.pop
 
       g.push :self
       g.send :c, 0, true

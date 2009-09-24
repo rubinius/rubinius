@@ -31,12 +31,22 @@ namespace rubinius {
 
     AccessManagedMemory memguard(ops_.state());
 
-    Executable* meth = klass->find_method(cache_->name);
+    Module* defined_in = 0;
+    Executable* meth = klass->find_method(cache_->name, &defined_in);
     if(!meth) {
       if(ops_.state()->config().jit_inline_debug) {
         std::cerr << "NOT inlining: "
           << ops_.state()->symbol_cstr(cache_->name)
           << ". Inliner error, method missing.\n";
+      }
+      return false;
+    }
+
+    if(instance_of<Module>(defined_in)) {
+      if(ops_.state()->config().jit_inline_debug) {
+        std::cerr << "NOT inlining: "
+          << ops_.state()->symbol_cstr(cache_->name)
+          << ". Not inlining methods defined in Modules.\n";
       }
       return false;
     }

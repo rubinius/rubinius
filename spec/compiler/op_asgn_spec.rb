@@ -854,7 +854,8 @@ describe "An Op_asgn_or node" do
 
       g.push_cpath_top
       g.find_const :Hash
-      g.send :[], 0
+      g.push 0
+      g.send :new_from_literal, 1
 
       g.set_ivar :@v
 

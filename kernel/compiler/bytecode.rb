@@ -1230,17 +1230,21 @@ class Compiler
         i = 0
 
         g.find_cpath_top_const :Hash
+        g.push count / 2
+        g.send :new_from_literal, 1
 
         while i < count
-          v = @body[i]
-          k = @body[i + 1]
+          k = @body[i]
+          v = @body[i + 1]
 
-          v.bytecode(g)
+          g.dup
           k.bytecode(g)
+          v.bytecode(g)
+          g.send :[]=, 2
+          g.pop
+
           i += 2
         end
-
-        g.send :[], count
       end
     end
 

@@ -9,11 +9,20 @@ describe "A Hash node" do
     compile do |g|
       g.push_cpath_top
       g.find_const :Hash
+      g.push 2
+      g.send :new_from_literal, 1
+
+      g.dup
       g.push 1
       g.push 2
+      g.send :[]=, 2
+      g.pop
+
+      g.dup
       g.push 3
       g.push 4
-      g.send :[], 4
+      g.send :[]=, 2
+      g.pop
     end
   end
 
@@ -26,6 +35,10 @@ describe "A Hash node" do
       g.push_cpath_top
       g.find_const :Hash
       g.push 1
+      g.send :new_from_literal, 1
+
+      g.dup
+      g.push 1
 
       g.in_rescue :StandardError do |section|
         case section
@@ -36,7 +49,8 @@ describe "A Hash node" do
         end
       end
 
-      g.send :[], 2
+      g.send :[]=, 2
+      g.pop
     end
   end
 
@@ -49,13 +63,18 @@ describe "A Hash node" do
       g.push_cpath_top
       g.find_const :Hash
       g.push 1
+      g.send :new_from_literal, 1
+
+      g.dup
+      g.push 1
 
       g.make_array 0
       g.push 1
       g.cast_array
       g.send :+, 1
 
-      g.send :[], 2
+      g.send :[]=, 2
+      g.pop
     end
   end
 
@@ -76,9 +95,14 @@ describe "A Hash node" do
       g.pop
       g.push_cpath_top
       g.find_const :Hash
+      g.push 1
+      g.send :new_from_literal, 1
+
+      g.dup
       g.push_literal :a
       g.push_local 0
-      g.send :[], 2
+      g.send :[]=, 2
+      g.pop
     end
   end
 end

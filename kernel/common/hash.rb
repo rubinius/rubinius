@@ -90,6 +90,10 @@ class Hash
     hash
   end
 
+  def self.new_from_literal(size)
+    new
+  end
+
   # Creates a fully-formed instance of Hash.
   def self.allocate
     hash = super()
