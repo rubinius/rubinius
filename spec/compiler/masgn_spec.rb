@@ -350,21 +350,21 @@ describe "A Masgn node" do
       g.swap
       g.push_literal :A
       g.swap
-      g.send :__const_set__, 2
+      g.send :const_set, 2
       g.pop
 
       g.push_scope
       g.swap
       g.push_literal :B
       g.swap
-      g.send :__const_set__, 2
+      g.send :const_set, 2
       g.pop
 
       g.push_scope
       g.swap
       g.push_literal :C
       g.swap
-      g.send :__const_set__, 2
+      g.send :const_set, 2
       g.pop
 
       g.push :true

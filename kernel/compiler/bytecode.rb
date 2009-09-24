@@ -678,49 +678,34 @@ class Compiler
       def bytecode(g)
         pos(g)
 
-        if @compiler.kernel?
+        if @value
+          # Put the value on the stack
           if @parent
             @parent.bytecode(g)
-            @value.bytecode(g)
-            g.set_const @name, true
           elsif @from_top
             g.push_cpath_top
-            @value.bytecode(g)
-            g.set_const @name, true
           else
-            @value.bytecode(g) if @value
-            g.set_const @name
+            g.push_scope
           end
+          g.push_literal @name
+          @value.bytecode(g)
+          g.send :const_set, 2
         else
-          if @value
-            # Put the value on the stack
-            if @parent
-              @parent.bytecode(g)
-            elsif @from_top
-              g.push_cpath_top
-            else
-              g.push_scope
-            end
-            g.push_literal @name
-            @value.bytecode(g)
-            g.send :__const_set__, 2
+          # if @value is nil, it means this was used inside masgn, and the value
+          # is already on the stack.
+          if @parent
+            @parent.bytecode(g)
+          elsif @from_top
+            g.push_cpath_top
           else
-            # if @value is nil, it means this was used inside masgn, and the value
-            # is already on the stack.
-            if @parent
-              @parent.bytecode(g)
-            elsif @from_top
-              g.push_cpath_top
-            else
-              g.push_scope
-            end
-            g.swap
-            g.push_literal @name
-            g.swap
-
-            g.send :__const_set__, 2
+            g.push_scope
           end
-        end # @compiler.kernel?
+          g.swap
+          g.push_literal @name
+          g.swap
+
+          g.send :const_set, 2
+        end
       end
     end
 

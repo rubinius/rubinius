@@ -290,6 +290,8 @@ namespace rubinius {
     G(vm)->name(state, state->symbol("Rubinius::VM"));
 
     Class::bootstrap_methods(this);
+    Module::bootstrap_methods(this);
+    StaticScope::bootstrap_methods(this);
 
     /*
      * Setup the table we use to store ivars for immediates

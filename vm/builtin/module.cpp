@@ -9,10 +9,18 @@
 #include "builtin/methodtable.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
+#include "builtin/system.hpp"
 
 #include "global_cache.hpp"
 
 namespace rubinius {
+
+  void Module::bootstrap_methods(STATE) {
+    System::attach_primitive(state,
+                             G(module), false,
+                             state->symbol("const_set"),
+                             state->symbol("module_const_set"));
+  }
 
   Module* Module::create(STATE) {
     Module* mod = state->om->new_object_enduring<Module>(G(module));
@@ -65,6 +73,11 @@ namespace rubinius {
 
       this->name(state, str_name->to_sym(state));
     }
+  }
+
+  Object* Module::const_set(STATE, Object* name, Object* value) {
+    set_const(state, name, value);
+    return value;
   }
 
   void Module::set_const(STATE, Object* sym, Object* val) {

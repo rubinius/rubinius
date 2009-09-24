@@ -23,8 +23,8 @@ class << MAIN
     Object.__send__ :alias_method, new_name, current_name
   end
 
-  def __const_set__(name, obj)
-    Object.__const_set__(name, obj)
+  def const_set(name, value)
+    Object.const_set name, value
   end
 end
 

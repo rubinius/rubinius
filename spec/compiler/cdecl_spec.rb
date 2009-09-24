@@ -10,7 +10,7 @@ describe "A Cdecl node" do
       g.push_scope
       g.push_literal :X
       g.push 42
-      g.send :__const_set__, 2
+      g.send :const_set, 2
     end
   end
 
@@ -23,7 +23,7 @@ describe "A Cdecl node" do
       g.push_cpath_top
       g.push_literal :X
       g.push 1
-      g.send :__const_set__, 2
+      g.send :const_set, 2
     end
   end
 
@@ -36,7 +36,7 @@ describe "A Cdecl node" do
       g.push_const :X
       g.push_literal :Y
       g.push 1
-      g.send :__const_set__, 2
+      g.send :const_set, 2
     end
   end
 
@@ -53,7 +53,7 @@ describe "A Cdecl node" do
       g.push_literal :Z
       g.push :self
       g.send :a, 0, true
-      g.send :__const_set__, 2
+      g.send :const_set, 2
     end
   end
 
@@ -67,7 +67,7 @@ describe "A Cdecl node" do
       g.send :a, 0, true
       g.push_literal :A
       g.push 1
-      g.send :__const_set__, 2
+      g.send :const_set, 2
     end
   end
 
@@ -90,7 +90,7 @@ describe "A Cdecl node" do
       g.push_literal :B
       g.push :self
       g.send :b, 0, true
-      g.send :__const_set__, 2
+      g.send :const_set, 2
     end
   end
 end

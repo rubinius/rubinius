@@ -30,6 +30,8 @@ namespace rubinius {
 
   public:   /* Primitives */
 
+    static void attach_primitive(STATE, Module* mod, bool meta, Symbol* name, Symbol* prim);
+
     /** Load a compiled file. */
     // Ruby.primitive :compiledfile_load
     static Object*  compiledfile_load(STATE, String* path, Object* version);

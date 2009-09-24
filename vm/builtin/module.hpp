@@ -35,11 +35,16 @@ namespace rubinius {
     /* interface */
     static Module* create(STATE);
 
+    static void bootstrap_methods(STATE);
+
     // Ruby.primitive :module_allocate
     static Module* allocate(STATE, Object* self);
 
     // Ruby.primitive :module_case_compare
     Object* case_compare(STATE, Object* obj);
+
+    // Ruby.primitive :module_const_set
+    Object* const_set(STATE, Object* name, Object* value);
 
     void setup(STATE);
     void setup(STATE, const char* name, Module* under = NULL);

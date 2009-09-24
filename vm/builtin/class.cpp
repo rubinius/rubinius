@@ -9,6 +9,7 @@
 #include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
+#include "builtin/system.hpp"
 
 #include "builtin/executable.hpp"
 
@@ -16,44 +17,41 @@
 
 namespace rubinius {
 
-  static void hookup_prim(STATE, Symbol* meth, Symbol* prim) {
-    MethodTable* tbl = G(rubinius)->metaclass(state)->method_table();
-
-    Executable* oc = Executable::allocate(state, Qnil);
-    oc->primitive(state, prim);
-    assert(oc->resolve_primitive(state));
-
-    tbl->store(state, meth, oc, G(sym_public));
-  }
-
   void Class::bootstrap_methods(STATE) {
-    hookup_prim(state,
-                state->symbol("open_class"),
-                state->symbol("vm_open_class"));
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("open_class"),
+                             state->symbol("vm_open_class"));
 
-    hookup_prim(state,
-                state->symbol("open_class_under"),
-                state->symbol("vm_open_class_under"));
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("open_class_under"),
+                             state->symbol("vm_open_class_under"));
 
-    hookup_prim(state,
-                state->symbol("open_module"),
-                state->symbol("vm_open_module"));
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("open_module"),
+                             state->symbol("vm_open_module"));
 
-    hookup_prim(state,
-                state->symbol("open_module_under"),
-                state->symbol("vm_open_module_under"));
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("open_module_under"),
+                             state->symbol("vm_open_module_under"));
 
-    hookup_prim(state,
-                state->symbol("open_metaclass"),
-                state->symbol("vm_open_metaclass"));
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("open_metaclass"),
+                             state->symbol("vm_open_metaclass"));
 
-    hookup_prim(state,
-                state->symbol("add_defn_method"),
-                state->symbol("vm_add_method"));
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("add_defn_method"),
+                             state->symbol("vm_add_method"));
 
-    hookup_prim(state,
-                state->symbol("attach_method"),
-                state->symbol("vm_attach_method"));
+    System::attach_primitive(state,
+                             G(rubinius), true,
+                             state->symbol("attach_method"),
+                             state->symbol("vm_attach_method"));
   }
 
   Class* Class::create(STATE, Class* super) {

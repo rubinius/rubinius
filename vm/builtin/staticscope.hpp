@@ -32,10 +32,14 @@ namespace rubinius {
     /* interface */
 
     static void init(STATE);
+    static void bootstrap_methods(STATE);
     static StaticScope* create(STATE);
 
     // Ruby.primitive :static_scope_of_sender
     static StaticScope* of_sender(STATE, CallFrame* calling_environment);
+
+    // Ruby.primitive :static_scope_const_set
+    Object* const_set(STATE, Object* name, Object* value);
 
     // The module to use when adding and removing methods
     Module* for_method_definition();

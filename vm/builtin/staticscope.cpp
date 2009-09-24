@@ -2,6 +2,7 @@
 #include "prelude.hpp"
 #include "builtin/class.hpp"
 #include "builtin/staticscope.hpp"
+#include "builtin/system.hpp"
 #include "call_frame.hpp"
 
 namespace rubinius {
@@ -9,6 +10,13 @@ namespace rubinius {
     GO(staticscope).set(state->new_class("StaticScope", G(object), G(rubinius)));
     G(staticscope)->set_object_type(state, StaticScopeType);
     G(staticscope)->name(state, state->symbol("Rubinius::StaticScope"));
+  }
+
+  void StaticScope::bootstrap_methods(STATE) {
+    System::attach_primitive(state,
+                             G(staticscope), false,
+                             state->symbol("const_set"),
+                             state->symbol("static_scope_const_set"));
   }
 
   StaticScope* StaticScope::create(STATE) {
@@ -29,5 +37,10 @@ namespace rubinius {
     }
 
     return (StaticScope*)Qnil;
+  }
+
+  Object* StaticScope::const_set(STATE, Object* name, Object* value) {
+    module_->set_const(state, name, value);
+    return value;
   }
 }

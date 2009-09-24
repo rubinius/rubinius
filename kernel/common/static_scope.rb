@@ -60,10 +60,6 @@ module Rubinius
       return @module
     end
 
-    def __const_set__(name, value)
-      @module.__const_set__(name, value)
-    end
-
     def alias_method(name, original)
       for_method_definition.__send__ :alias_method, name, original
     end

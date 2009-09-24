@@ -34,6 +34,7 @@
 #include "builtin/selector.hpp"
 #include "builtin/taskprobe.hpp"
 #include "builtin/float.hpp"
+#include "builtin/methodtable.hpp"
 
 #include "builtin/staticscope.hpp"
 #include "builtin/block_environment.hpp"
@@ -55,6 +56,21 @@
 
 namespace rubinius {
 
+  void System::attach_primitive(STATE, Module* mod, bool meta, Symbol* name, Symbol* prim) {
+    MethodTable* tbl;
+
+    if(meta) {
+      tbl = mod->metaclass(state)->method_table();
+    } else {
+      tbl = mod->method_table();
+    }
+
+    Executable* oc = Executable::allocate(state, Qnil);
+    oc->primitive(state, prim);
+    assert(oc->resolve_primitive(state));
+
+    tbl->store(state, name, oc, G(sym_public));
+  }
 
 /* Primitives */
   //

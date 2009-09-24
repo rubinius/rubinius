@@ -505,14 +505,6 @@ class Module
   end
 
   ##
-  # \_\_const_set__ is emitted by the compiler for const assignment in
-  # userland.
-
-  def __const_set__(name, value)
-    return const_set(name, value)
-  end
-
-  ##
   # Return the named constant enclosed in this Module.
   #
   # Included Modules and, for Class objects, superclasses are also searched.

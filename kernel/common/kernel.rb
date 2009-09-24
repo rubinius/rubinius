@@ -403,16 +403,6 @@ module Kernel
     self.class.class_variables(symbols)
   end
 
-  ##
-  # \_\_const_set__ is emitted by the compiler for const assignment
-  # in userland.
-  #
-  # This is the catch-all version for unwanted values
-
-  def __const_set__(name, obj)
-    raise TypeError, "#{self} is not a class/module"
-  end
-
   def extend(*modules)
     modules.reverse_each do |mod|
       mod.extend_object(self)
