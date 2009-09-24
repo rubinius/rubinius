@@ -145,7 +145,7 @@ module Rubinius
       end
 
       def default_transforms
-        @transforms.concat AST::Transforms.default
+        @transforms.concat AST::Transforms.category :default
       end
 
       def enable_transform(name)

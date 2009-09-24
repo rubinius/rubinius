@@ -351,14 +351,6 @@ module Rubinius
       add :find_const, find_literal(name)
     end
 
-    def set_const(name, sub=false)
-      if sub
-        add :set_const_at, find_literal(name)
-      else
-        add :set_const, find_literal(name)
-      end
-    end
-
     def dup
       add :dup_top
     end
@@ -380,14 +372,6 @@ module Rubinius
     def goto(lbl)
       lbl.used!
       add :goto, lbl
-    end
-
-    def attach_method(name)
-      add :attach_method, find_literal(name)
-    end
-
-    def add_method(name)
-      add :add_method, find_literal(name)
     end
 
     def set_local(index)

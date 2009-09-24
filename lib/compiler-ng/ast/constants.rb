@@ -77,27 +77,27 @@ module Rubinius
         [@parent, @value]
       end
 
+      def in_masgn
+        @in_masgn = true
+      end
+
+      def masgn_bytecode(g)
+        g.swap
+        @name.bytecode(g)
+        g.swap
+        g.send :const_set, 2
+      end
+
       def bytecode(g)
         pos(g)
 
-        if kernel?
-          if @parent
-            @parent.bytecode(g)
-            @value.bytecode(g)
-            g.set_const @name.name, true
-          else
-            @value.bytecode(g) if @value
-            g.set_const @name
-          end
-        else
-          @parent ? @parent.bytecode(g) : g.push_scope
-          g.swap unless @value
+        @parent ? @parent.bytecode(g) : g.push_scope
 
-          @name.bytecode(g)
+        return masgn_bytecode(g) if @in_masgn
 
-          @value ? @value.bytecode(g) : g.swap
-          g.send :__const_set__, 2
-        end
+        @name.bytecode(g)
+        @value.bytecode(g)
+        g.send :const_set, 2
       end
     end
 

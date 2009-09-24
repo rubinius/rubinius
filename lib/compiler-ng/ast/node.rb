@@ -36,11 +36,6 @@ module Rubinius
         g.set_line @line
       end
 
-      # TODO: transform nodes that use this
-      def kernel?
-        false
-      end
-
       def children
         []
       end

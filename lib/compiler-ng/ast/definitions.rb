@@ -277,13 +277,8 @@ module Rubinius
         g.push_literal @name
         g.push_generator compile_body(g)
         g.push_scope
-
-        if kernel?
-          g.push :nil
-        else
-          g.push_variables
-          g.send :method_visibility, 0
-        end
+        g.push_variables
+        g.send :method_visibility, 0
 
         g.send :add_defn_method, 4
       end
@@ -302,21 +297,12 @@ module Rubinius
 
         scope_bytecode(g)
 
-        if kernel?
-          g.push_const :Rubinius
-          g.push_literal @name
-          g.push_generator compile_body(g)
-          g.push_scope
-          @receiver.bytecode(g)
-          g.send :attach_method, 4
-        else
-          @receiver.bytecode(g)
-          g.send :metaclass, 0
-          g.push_literal @name
-          g.push_generator compile_body(g)
-          g.push_scope
-          g.send :attach_method, 3
-        end
+        @receiver.bytecode(g)
+        g.send :metaclass, 0
+        g.push_literal @name
+        g.push_generator compile_body(g)
+        g.push_scope
+        g.send :attach_method, 3
       end
 
       def children
