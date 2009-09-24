@@ -750,13 +750,8 @@ class Compiler
         g.push_literal @name
         g.push_literal compile_body(g)
         g.push_scope
-
-        if @compiler.kernel?
-          g.push :nil
-        else
-          g.push_variables
-          g.send :method_visibility, 0
-        end
+        g.push_variables
+        g.send :method_visibility, 0
 
         g.send :add_defn_method, 4
       end

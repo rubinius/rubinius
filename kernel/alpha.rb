@@ -275,12 +275,14 @@ class Module
   def attr_reader(name)
     meth = Rubinius::AccessVariable.get_ivar name
     @method_table.store name, meth, :public
+    Rubinius::VM.reset_method_cache name
     return nil
   end
 
   def attr_writer(name)
     meth = Rubinius::AccessVariable.set_ivar name
     @method_table.store "#{name}=".to_sym, meth, :public
+    Rubinius::VM.reset_method_cache name
     return nil
   end
 

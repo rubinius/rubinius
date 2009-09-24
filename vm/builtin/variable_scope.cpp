@@ -5,12 +5,20 @@
 #include "builtin/object.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/class.hpp"
+#include "builtin/system.hpp"
 
 namespace rubinius {
   void VariableScope::init(STATE) {
     GO(variable_scope).set(state->new_class("VariableScope", G(object), G(rubinius)));
     G(variable_scope)->set_object_type(state, VariableScopeType);
     G(variable_scope)->name(state, state->symbol("Rubinius::VariableScope"));
+  }
+
+  void VariableScope::bootstrap_methods(STATE) {
+    System::attach_primitive(state,
+                             G(variable_scope), false,
+                             state->symbol("method_visibility"),
+                             state->symbol("variable_scope_method_visibility"));
   }
 
   VariableScope* VariableScope::promote(STATE) {
@@ -68,6 +76,11 @@ namespace rubinius {
     }
 
     return tup;
+  }
+
+  // bootstrap method, replaced with an attr_accessor in kernel.
+  Object* VariableScope::method_visibility(STATE) {
+    return Qnil;
   }
 
   size_t VariableScope::Info::object_size(const ObjectHeader* obj) {

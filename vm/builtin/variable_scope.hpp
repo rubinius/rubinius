@@ -42,6 +42,7 @@ namespace rubinius {
     attr_accessor(self, Object);
 
     static void init(STATE);
+    static void bootstrap_methods(STATE);
 
     void point_locals_to(Object** locals) {
       locals_ = locals;
@@ -124,6 +125,9 @@ namespace rubinius {
 
     // Ruby.primitive :variable_scope_locals
     Tuple* locals(STATE);
+
+    // Ruby.primitive :variable_scope_method_visibility
+    Object* method_visibility(STATE);
 
 
   public: // Rubinius Type stuff
