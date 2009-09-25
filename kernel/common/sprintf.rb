@@ -255,22 +255,26 @@ module Rubinius
 
     def get_arg(slot)
       return nil unless slot
-      if slot.position == :next
+
+      case
+      when slot.position == :next
         raise ArgumentError, "unnumbered mixed with numbered" if @positional
         @relative = true
         raise ArgumentError, "you ran out of arguments" if @arg_position >= args.size
         ret = args[@arg_position]
         @arg_position += 1
-      elsif slot.pos
+      when slot.pos
         raise ArgumentError, "unnumbered mixed with numbered" if @relative
         @positional = true
         ret = args[slot.position - 1]
-      elsif slot.value
+      when slot.value
         raise ArgumentError, "unnumbered mixed with numbered" if @positional
         @relative = true
         ret = slot.value
+      else
+        raise ArgumentError, "argument position does not exist: #{slot.str}"
       end
-      raise ArgumentError, "you specified an argument position that did not exist: #{slot.str}" unless defined?(ret)
+
       ret
     end
 
