@@ -150,6 +150,25 @@ module Rubinius
           g.send :[], 1
         end
       end
+
+      def defined(g)
+        t = g.new_label
+        f = g.new_label
+
+        g.push_const :Rubinius
+        g.find_const :Globals
+        g.push_literal @name
+        g.send :key?, 1
+        g.git t
+
+        g.push :nil
+        g.goto f
+
+        t.set!
+        g.push_literal "global-variable"
+
+        f.set!
+      end
     end
 
     class GlobalVariableAssignment < VariableAssignment
@@ -242,6 +261,10 @@ module Rubinius
         pos(g)
 
         @variable.get_bytecode(g)
+      end
+
+      def defined(g)
+        g.push_literal "local-variable"
       end
     end
 

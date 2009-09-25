@@ -43,6 +43,16 @@ module Rubinius
       def bytecode(g)
       end
 
+      def defined(g)
+        g.push_const :Rubinius
+        g.push_scope
+        g.send :active_path, 0
+        g.push @line
+        g.send :unrecognized_defined, 2
+
+        g.push :nil
+      end
+
       def in_rescue
       end
 

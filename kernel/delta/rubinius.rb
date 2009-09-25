@@ -188,4 +188,9 @@ module Rubinius
     return str
   end
 
+  def self.unrecognized_defined(file, line)
+    message = "#{file}:#{line}: defined? passed an unrecognized expression"
+    raise Exception, message
+  end
+
 end

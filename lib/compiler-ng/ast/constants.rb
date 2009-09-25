@@ -56,6 +56,23 @@ module Rubinius
         pos(g)
         g.push_const @name
       end
+
+      def defined(g)
+        t = g.new_label
+        f = g.new_label
+
+        g.push_scope
+        g.push_literal @name
+        g.send :const_defined?, 1
+        g.git t
+        g.push :nil
+        g.goto f
+
+        t.set!
+        g.push_literal "constant"
+
+        f.set!
+      end
     end
 
     class ConstSet < Node

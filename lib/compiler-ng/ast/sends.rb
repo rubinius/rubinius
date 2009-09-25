@@ -26,6 +26,24 @@ module Rubinius
           g.send @name, 0, @privately
         end
       end
+
+      def defined(g)
+        t = g.new_label
+        f = g.new_label
+
+        g.push :self
+        g.push_literal @name
+        g.push :true
+        g.send :__respond_to_eh__, 2
+        g.git t
+        g.push :nil
+        g.goto f
+
+        t.set!
+        g.push_literal "method"
+
+        f.set!
+      end
     end
 
     class SendWithArguments < Send

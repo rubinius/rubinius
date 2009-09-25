@@ -751,8 +751,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        # TODO: implement as evaluator on @expression AST
-        g.push :false
+        @expression.defined(g)
       end
     end
   end
