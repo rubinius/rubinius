@@ -350,6 +350,7 @@ module Rubinius
         desc.optional = @arguments.optional
         blk = desc.generator
         blk.file = g.file
+        blk.name = :__block__
 
         # Push line info down.
         pos(blk)

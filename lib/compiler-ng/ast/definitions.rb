@@ -362,7 +362,8 @@ module Rubinius
       end
 
       def splat_index
-        @names.size - 1 if @splat.kind_of? Symbol
+        delta = @block_arg ? 2 : 1
+        @names.size - delta if @splat.kind_of? Symbol
       end
 
       def map_arguments(scope)
