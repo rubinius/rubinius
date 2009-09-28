@@ -462,6 +462,8 @@ namespace rubinius {
     void remove(llvm::Function* func);
 
     VMMethod* find_candidate(VMMethod* start, CallFrame* call_frame);
+    void compile_callframe(STATE, VMMethod* start, CallFrame* call_frame,
+                           int primitive = -1);
 
     Symbol* symbol(const char* sym);
     const char* symbol_cstr(const Symbol* sym);

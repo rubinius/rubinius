@@ -501,16 +501,7 @@ namespace rubinius {
       if(vmm->call_count >= 0) {
         if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
           LLVMState* ls = LLVMState::get(state);
-          VMMethod* candidate = ls->find_candidate(vmm, previous);
-
-          assert(!candidate->parent());
-
-          if(candidate->call_count < 0) {
-            // Ignore it. compile this one.
-            candidate = vmm;
-          }
-
-          ls->compile_soon(state, candidate);
+          ls->compile_callframe(state, vmm, previous);
         } else {
           vmm->call_count++;
         }

@@ -445,7 +445,22 @@ namespace rubinius {
     bool is_block = false;
 
     // Ignore it!
-    if(vmm->call_count < 0) return;
+    if(vmm->call_count < 0) {
+      if(config().jit_inline_debug) {
+        llvm::errs() << "JIT: ignoring candidate! "
+          << symbol_cstr(vmm->original->scope()->module()->name())
+          << "#"
+          << symbol_cstr(vmm->original->name()) << "\n";
+      }
+      return;
+    }
+
+    if(config().jit_inline_debug) {
+      llvm::errs() << "JIT: queueing method: "
+        << symbol_cstr(vmm->original->scope()->module()->name())
+        << "#"
+        << symbol_cstr(vmm->original->name()) << "\n";
+    }
     vmm->call_count = -1;
 
     if(block) {
@@ -481,7 +496,7 @@ namespace rubinius {
     func->eraseFromParent();
   }
 
-  const static int cInlineMaxDepth = 8;
+  const static int cInlineMaxDepth = 4;
 
   /*
   static CallFrame* find_call_frame(CallFrame* frame, VMMethod* meth, int* dist) {
@@ -530,6 +545,38 @@ namespace rubinius {
     return 0;
   }
 
+  void LLVMState::compile_callframe(STATE, VMMethod* start, CallFrame* call_frame,
+                                    int primitive) {
+    if(config().jit_inline_debug) {
+      if(start) {
+        llvm::errs() << "JIT: target search from "
+          << symbol_cstr(start->original->scope()->module()->name())
+          << "#"
+          << symbol_cstr(start->original->name()) << "\n";
+      } else {
+        llvm::errs() << "JIT: target search from primitive\n";
+      }
+    }
+
+    VMMethod* candidate = find_candidate(start, call_frame);
+    if(!candidate) {
+      if(config().jit_inline_debug) {
+        llvm::errs() << "JIT: unable to find candidate\n";
+      }
+      return;
+    }
+
+    assert(!candidate->parent());
+
+    if(candidate->call_count < 0) {
+      if(!start) return;
+      // Ignore it. compile this one.
+      candidate = start;
+    }
+
+    compile_soon(state, candidate);
+  }
+
   VMMethod* LLVMState::find_candidate(VMMethod* start, CallFrame* call_frame) {
     VMMethod* found = start;
     int depth = 0;
@@ -543,7 +590,7 @@ namespace rubinius {
       return find_first_non_block(call_frame);
     }
 
-#if 0
+    /*
     std::cerr << "JIT target search:\n";
 
     if(start) {
@@ -551,7 +598,7 @@ namespace rubinius {
     } else {
       std::cerr << "  <primitive>\n";
     }
-#endif
+    */
 
     VMMethod* next = call_frame->cm->backend_method();
     VMMethod* parent = 0;
@@ -562,8 +609,7 @@ namespace rubinius {
       // Basic requirements
       if(next->required_args != next->total_args ||
           next->call_count < 200 ||
-          next->jitted() ||
-          next->total < 10) break;
+          next->jitted()) break;
 
       // Jump to defining methods of blocks?
       parent = next->parent();
@@ -597,11 +643,7 @@ namespace rubinius {
       depth++;
     }
 
-    if(!found) found = next;
-
-    assert(found);
-
-    // show_method(this, found, " <==");
+    if(!found && !next->parent()) return next;
 
     return found;
   }

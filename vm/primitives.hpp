@@ -76,7 +76,7 @@ namespace rubinius {
       return reinterpret_cast<Object*>(kPrimitiveFailed);
     }
 
-    static void queue_for_jit(STATE, CallFrame* call_frame);
+    static void queue_for_jit(STATE, CallFrame* call_frame, int which);
 
     /*
      * The primitive generator emits one 'executor' function per
