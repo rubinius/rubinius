@@ -242,36 +242,35 @@ module Rubinius
       # For object +val+, return a String represetation.
 
       def marshal(val)
-        str = ""
-
         case val
         when TrueClass
-          str << "t"
+          "t"
         when FalseClass
-          str << "f"
+          "f"
         when NilClass
-          str << "n"
+          "n"
         when Fixnum, Bignum
           if val < 0
-            str << 'J' << to_varint(-val)
+            'J' << to_varint(-val)
           else
-            str << 'I' << to_varint(val)
+            'I' << to_varint(val)
           end
         when String
-          str << "s#{to_varint(val.size)}#{val}"
+          "s#{to_varint(val.size)}#{val}"
         when Symbol
           s = val.to_s
-          str << "x#{to_varint(s.size)}#{s}"
+          "x#{to_varint(s.size)}#{s}"
         when SendSite
           s = val.name.to_s
-          str << "S#{to_varint(s.size)}#{s}"
+          "S#{to_varint(s.size)}#{s}"
         when Tuple
-          str << "p#{to_varint(val.size)}"
+          str = "p#{to_varint(val.size)}"
           val.each do |ele|
             str << marshal(ele)
           end
+          str
         when Float
-          str << "d"
+          str = "d"
           if val.infinite?
             str << "-" if val < 0.0
             str << "Infinity"
@@ -282,12 +281,13 @@ module Rubinius
           end
           str << "\n"
         when InstructionSequence
-          str << "i#{to_varint(val.size)}"
+          str = "i#{to_varint(val.size)}"
           val.opcodes.each do |op|
             str << to_varint(op)
           end
+          str
         when CompiledMethod
-          str << "M#{to_varint(1)}"
+          str = "M#{to_varint(1)}"
           str << marshal(val.__ivars__)
           str << marshal(val.primitive)
           str << marshal(val.name)
@@ -302,11 +302,10 @@ module Rubinius
           str << marshal(val.lines)
           str << marshal(val.file)
           str << marshal(val.local_names)
+          str
         else
           raise ArgumentError, "Unknown type #{val.class}: #{val.inspect}"
         end
-
-        return str
       end
 
       ##
