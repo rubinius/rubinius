@@ -2,10 +2,10 @@
 
 RBX_DTRACE          = ENV['DTRACE']
 RBX_RUBY_ENGINE     = 'rbx'
-RBX_RUBY_VERSION    = '1.8.6'
-RBX_RUBY_PATCHLEVEL = 322
+RBX_RUBY_VERSION    = '1.8.7'
+RBX_RUBY_PATCHLEVEL = 174
 RBX_RUBY_RELDATE    = '12/31/2009'
-RBX_LIBVER          = '0.11'
+RBX_LIBVER          = '0.12'
 RBX_VERSION         = "#{RBX_LIBVER}.0-dev"
 RBX_HOST            = `./rakelib/config.guess`.chomp
 RBX_BUILDREV        = `git rev-list --all | head -n1`.chomp
