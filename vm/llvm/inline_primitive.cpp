@@ -119,6 +119,36 @@ namespace rubinius {
     i.set_result(ops.as_obj(anded));
   }
 
+  static void fixnum_or(JITOperations& ops, Inliner& i) {
+    Value* lint = ops.cast_int(i.recv());
+    Value* rint = ops.cast_int(i.arg(0));
+
+    Value* anded = BinaryOperator::CreateAnd(lint, rint, "fixnums_anded",
+                                             ops.current_block());
+
+    Value* fix_mask = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM_MASK);
+    Value* fix_tag  = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM);
+
+    Value* masked = BinaryOperator::CreateAnd(anded, fix_mask, "masked",
+                                              ops.current_block());
+
+    Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
+
+    BasicBlock* push = ops.new_block("push_bit_or");
+    BasicBlock* send = i.failure();
+
+    ops.create_conditional_branch(push, send, cmp);
+
+    ops.set_block(push);
+
+    Value* ored = BinaryOperator::CreateOr(lint, rint, "fixnums_ored",
+                                           ops.current_block());
+
+
+    i.exception_safe();
+    i.set_result(ops.as_obj(ored));
+  }
+
   static void fixnum_neg(JITOperations& ops, Inliner& i) {
     BasicBlock* use_send = i.failure();
     BasicBlock* inlined = ops.new_block("fixnum_neg");
@@ -247,6 +277,9 @@ namespace rubinius {
     } else if(prim == Primitives::fixnum_and && count_ == 1) {
       inlined_prim = "fixnum_and";
       fixnum_and(ops_, *this);
+    } else if(prim == Primitives::fixnum_or && count_ == 1) {
+      inlined_prim = "fixnum_or";
+      fixnum_or(ops_, *this);
     } else if(prim == Primitives::fixnum_neg && count_ == 0) {
       inlined_prim = "fixnum_neg";
       fixnum_neg(ops_, *this);
