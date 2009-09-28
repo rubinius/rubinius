@@ -1,1 +1,2 @@
 incomplete:Matrix#rank needs to be reviewed for spec completeness
+fails:Matrix#rank works for some easy rectangular matrices

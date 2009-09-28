@@ -1,0 +1,2 @@
+fails:ARGF.lineno resets to 0 after the stream is rewound
+fails:ARGF.lineno aliases to $.

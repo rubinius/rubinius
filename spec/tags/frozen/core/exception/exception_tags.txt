@@ -1,0 +1,2 @@
+fails:Exception#exception returns self when passed self as an argument
+fails:Exception#exception returns an exception of the same class as self with the message given as argument

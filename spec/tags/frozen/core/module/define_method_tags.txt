@@ -1,0 +1,2 @@
+fails:Module#define_method when given an UnboundMethod works for singleton classes too
+fails:Module#define_method accepts a Method (still bound)
