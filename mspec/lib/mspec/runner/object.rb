@@ -19,6 +19,10 @@ class Object
     MSpec.current.it_should_behave_like desc
   end
 
+  # For ReadRuby compatiability
+  def doc(*a)
+  end
+
   alias_method :context, :describe
   alias_method :specify, :it
 end
