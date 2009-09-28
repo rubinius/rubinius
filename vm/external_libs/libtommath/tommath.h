@@ -24,6 +24,7 @@
 #include <tommath_class.h>
 
 #define MP_31BIT
+#define MP_LOW_MEM
 
 #ifndef MIN
    #define MIN(x,y) ((x)<(y)?(x):(y))

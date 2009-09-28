@@ -674,8 +674,7 @@ namespace rubinius {
 
     if(bi < 0) {
       bi = -bi;
-      mp_init(&n);
-      mp_copy(a, &n);
+      mp_init_copy(&n, a);
       mp_neg(&n, &n);
       a = &n;
       clear_a = true;
@@ -709,8 +708,7 @@ namespace rubinius {
     mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
-      mp_init(&n);
-      mp_copy(a, &n);
+      mp_init_copy(&n, a);
       mp_neg(&n, &n);
 
       int r = mp_cmp_d(&n, -bi);
@@ -755,8 +753,7 @@ namespace rubinius {
     mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
-      mp_init(&n);
-      mp_copy(a, &n);
+      mp_init_copy(&n, a);
       mp_neg(&n, &n);
 
       int r = mp_cmp_d(&n, -bi);
@@ -792,8 +789,7 @@ namespace rubinius {
     mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
-      mp_init(&n);
-      mp_copy(a, &n);
+      mp_init_copy(&n, a);
       mp_neg(&n, &n);
       int r = mp_cmp_d(&n, -bi);
       mp_clear(&n);
@@ -828,8 +824,7 @@ namespace rubinius {
     mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
-      mp_init(&n);
-      mp_copy(a, &n);
+      mp_init_copy(&n, a);
       mp_neg(&n, &n);
 
       int r = mp_cmp_d(&n, -bi);
@@ -865,8 +860,7 @@ namespace rubinius {
     mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
-      mp_init(&n);
-      mp_copy(a, &n);
+      mp_init_copy(&n, a);
       mp_neg(&n, &n);
       int r = mp_cmp_d(&n, -bi);
       mp_clear(&n);
