@@ -3783,7 +3783,9 @@ require File.dirname(__FILE__) + "/codegen/instructions_gen.rb"
 if $0 == __FILE__
   si = Instructions.new
   methods = si.decode_methods
-  si.inject_superops(methods)
+
+  # TODO: superops don't handle variable_stack
+  #si.inject_superops(methods)
 
   File.open("vm/gen/iseq_instruction_names.cpp","w") do |f|
     f.puts si.generate_names(methods)

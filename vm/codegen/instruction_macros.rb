@@ -28,11 +28,10 @@ File.open "#{dir}/inst_stack.hpp", "w" do |f|
   f.puts "switch(op) {"
   Rubinius::InstructionSet.opcodes.each do |op|
     f.puts "case InstructionSequence::insn_#{op.opcode}:"
-    if variable = op.variable_stack
-      extra, position = variable
-      f.puts "  return #{op.stack_produced - extra} - operand#{position};"
+    if op.variable_stack?
+      f.puts "  return #{op.stack_difference} - operand#{op.position};"
     else
-      f.puts "  return #{op.stack_difference(nil)};"
+      f.puts "  return #{op.stack_difference};"
     end
   end
   f.puts "}"

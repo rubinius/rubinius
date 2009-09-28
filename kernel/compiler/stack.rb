@@ -57,13 +57,10 @@ class Compiler
           puts "%3d: %21s %3d %3d" % [ip, opcode.opcode.to_s, current_stack, @max_stack]
         end
 
-        if variable = opcode.variable_stack
-          extra, position = variable
-          current_stack += opcode.stack_produced
-          current_stack -= extra
-          current_stack -= @iseq[ip + position]
+        if opcode.variable_stack?
+          current_stack += opcode.stack_difference - @iseq[ip + opcode.position]
         else
-          current_stack += opcode.stack_difference(nil)
+          current_stack += opcode.stack_difference
         end
 
         raise "stack underflow at line #{ip_to_line ip} (#{ip})" if current_stack < 0

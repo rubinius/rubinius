@@ -5,8 +5,9 @@ module Rubinius
   class InstructionSet
 
     class OpCode
-      attr_reader :args, :arg_count, :bytecode, :opcode,
-                  :size, :stack, :variable_stack
+      attr_reader :args, :arg_count, :bytecode, :opcode, :size,
+                  :stack, :stack_consumed, :stack_produced, :variable_stack,
+                  :position, :stack_difference
 
       ##
       # Returns a symbol specifying the effect of the symbol on the flow of
@@ -24,52 +25,22 @@ module Rubinius
         @args           = params[:args]
         @arg_count      = @args.size
         @size           = @arg_count + 1
-        @stack          = params[:stack]
         @flow           = params[:flow] || :sequential
         @flags          = params[:vm_flags] || []
-        @variable_stack = params[:variable_stack]
-      end
 
-      ##
-      # Returns the number of items consumed off of the stack by this opcode.
-      #
-      # If the value is positive, it is the exact number of items consumed.
-      #
-      # If the value is negative, it is a 2-digit number where:
-      # - first digit is the opcode arg to be multiplied (1 or 2), or the
-      #   contents of the args register (3) at that point.
-      # - third digit is a constant arg count to be added to the result
-      #
-      # For example, the value -10 would indicate that the number of stack
-      # items consumed by the opcode is the value of the first opcode arg.
-
-      def stack_consumed
-        @stack.first
-      end
-
-      ##
-      # Returns the number of items produced off of the stack by this opcode.
-
-      def stack_produced
-        @stack.last
-      end
-
-      # Indicates how the stack changes with this instruction. Positive numbers
-      # meaning how far the sp is pushed forward, negative how far back.
-      # +inst+ is an Array in the same format that Encoder#encode takes as input
-
-      def stack_difference(inst)
-        consumed = stack_consumed()
-        if consumed < 0
-          consumed = -consumed
-          arg =   consumed / 10
-          const = consumed % 10
-
-          consumed = inst[arg] + const
+        @stack_consumed, @stack_produced = params[:stack]
+        if @stack_consumed
+          @variable_stack = false
+          @stack_difference = @stack_produced - @stack_consumed
+        else
+          @variable_stack = true
+          extra, @position = params[:variable_stack]
+          @stack_difference = @stack_produced - extra
         end
-        produced = stack_produced()
+      end
 
-        return produced - consumed
+      def variable_stack?
+        @variable_stack
       end
 
       def check_interrupts?
@@ -210,7 +181,7 @@ module Rubinius
     opcode :reraise,              :stack => [0, 0],   :args => []
 
     # array
-    opcode :make_array,           :stack => [-10, 1], :args => [:int],
+    opcode :make_array,           :stack => [nil, 1], :args => [:int],
                                                       :variable_stack => [0,1]
     opcode :cast_array,           :stack => [1, 1],   :args => []
     opcode :shift_array,          :stack => [1, 2],   :args => []
@@ -233,23 +204,23 @@ module Rubinius
     opcode :send_method,                  :stack => [1, 1],   :args => [:literal],
                                                               :flow => :send,
                                                               :vm_flags => [:check_interrupts]
-    opcode :send_stack,                   :stack => [-21, 1], :args => [:literal, :int],
+    opcode :send_stack,                   :stack => [nil, 1], :args => [:literal, :int],
                                                               :flow => :send,
                                                               :vm_flags => [:check_interrupts],
                                                               :variable_stack => [1,2]
-    opcode :send_stack_with_block,        :stack => [-22, 1], :args => [:literal, :int],
+    opcode :send_stack_with_block,        :stack => [nil, 1], :args => [:literal, :int],
                                                               :flow => :send,
                                                               :vm_flags => [:check_interrupts],
                                                               :variable_stack => [2,2]
-    opcode :send_stack_with_splat,        :stack => [-23, 1], :args => [:literal, :int],
+    opcode :send_stack_with_splat,        :stack => [nil, 1], :args => [:literal, :int],
                                                               :flow => :send,
                                                               :vm_flags => [:check_interrupts],
                                                               :variable_stack => [3,2]
-    opcode :send_super_stack_with_block,  :stack => [-21, 1], :args => [:literal, :int],
+    opcode :send_super_stack_with_block,  :stack => [nil, 1], :args => [:literal, :int],
                                                               :flow => :send,
                                                               :vm_flags => [:check_interrupts],
                                                               :variable_stack => [1,2]
-    opcode :send_super_stack_with_splat,  :stack => [-22, 1], :args => [:literal, :int],
+    opcode :send_super_stack_with_splat,  :stack => [nil, 1], :args => [:literal, :int],
                                                               :flow => :send,
                                                               :variable_stack => [2,2]
 
@@ -260,10 +231,10 @@ module Rubinius
     opcode :cast_for_single_block_arg,    :stack => [0, 1],   :args => []
     opcode :cast_for_multi_block_arg,     :stack => [0, 1],   :args => []
     opcode :cast_for_splat_block_arg,     :stack => [0, 1],   :args => []
-    opcode :yield_stack,                  :stack => [-10, 1], :args => [:int],
+    opcode :yield_stack,                  :stack => [nil, 1], :args => [:int],
                                                               :flow => :send,
                                                               :variable_stack => [0,1]
-    opcode :yield_splat,                  :stack => [-11, 1], :args => [:int],
+    opcode :yield_splat,                  :stack => [nil, 1], :args => [:int],
                                                               :flow => :send,
                                                               :variable_stack => [1,1]
 
@@ -315,7 +286,7 @@ module Rubinius
     opcode :meta_send_op_tequal,  :stack => [2, 1],   :args => [:literal],
                                                       :flow => :send,
                                                       :vm_flags => [:check_interrupts]
-    opcode :meta_send_call,       :stack => [-21, 1], :args => [:literal, :int],
+    opcode :meta_send_call,       :stack => [nil, 1], :args => [:literal, :int],
                                                       :flow => :send,
                                                       :variable_stack => [1,2]
     opcode :push_my_offset,       :stack => [0, 1],   :args => [:field]
@@ -526,17 +497,6 @@ module Rubinius
           unless opcode.kind_of? InstructionSet::OpCode
             opcode = InstructionSet[opcode]
           end
-        end
-
-        this = opcode.stack_difference(inst)
-        #print "%-30s" % inst.inspect
-        #p [this, @stack_depth, @max_stack_depth]
-
-        if @stack_depth
-          # @stack_depth not set when replacing instructions
-          # TODO: Does instruction replacement need to worry about stack depth?
-          @stack_depth += this
-          @max_stack_depth = @stack_depth if @stack_depth > @max_stack_depth
         end
 
         begin
