@@ -34,10 +34,13 @@ describe IO, "#print" do
   end
 
   it "does not call obj.to_str" do
-    o = Object.new
-    def o.to_str(); 'Haha!'; end
+    o = mock('o')
+    o.should_not_receive(:to_str)
+    o.should_receive(:to_s)
+    
+    require 'stringio'
 
-    lambda { $stdout.print(o) }.should output("#{o.to_s}#{$\}")
+    StringIO.new.print(o)
   end
 
   it "writes each obj.to_s to the stream and appends $\\ (if any) given multiple objects" do

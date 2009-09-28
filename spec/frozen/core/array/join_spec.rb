@@ -1,9 +1,10 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
-require  File.dirname(__FILE__) + '/shared/join'
+require  File.dirname(__FILE__) + '/../../shared/array/join'
 
 describe "Array#join" do
-  it_behaves_like :array_join, :join
+
+  it_behaves_like :array_join, :join, ArraySpecs::NewArray
 
   it "does not separates elements when the passed separator is nil" do
     [1, 2, 3].join(nil).should == '123'

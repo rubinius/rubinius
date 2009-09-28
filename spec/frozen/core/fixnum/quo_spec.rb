@@ -7,11 +7,21 @@ describe "Fixnum#quo" do
     45.quo(bignum_value).should be_close(1.04773789668636e-08, TOLERANCE)
   end
 
-  conflicts_with :Rational do
-    it "does not raise a ZeroDivisionError when the given Integer is 0" do
-      0.quo(0).to_s.should == "NaN"
-      10.quo(0).to_s.should == "Infinity"
-      -10.quo(0).to_s.should == "-Infinity"
+  ruby_version_is ""..."1.9" do
+    conflicts_with :Rational do
+      it "does not raise a ZeroDivisionError when the given Integer is 0" do
+        0.quo(0).to_s.should == "NaN"
+        10.quo(0).to_s.should == "Infinity"
+        -10.quo(0).to_s.should == "-Infinity"
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a ZeroDivisionError when the given Integer is 0" do
+      lambda { 0.quo(0) }.should raise_error(ZeroDivisionError)
+      lambda { 10.quo(0) }.should raise_error(ZeroDivisionError)
+      lambda { -10.quo(0) }.should raise_error(ZeroDivisionError)
     end
   end
 

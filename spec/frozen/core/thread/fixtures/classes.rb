@@ -91,13 +91,14 @@ module ThreadSpecs
   end
   
   def self.status_of_aborting_thread
-    t = Thread.new { sleep }
+    t = Thread.new { begin; sleep; ensure; Thread.pass; end }
     begin
-      Thread.critical = true
+      Thread.critical = true if Thread.respond_to? :critical
+      Thread.pass while t.status and t.status != 'sleep'
       t.kill
       Status.new t
     ensure
-      Thread.critical = false      
+      Thread.critical = false if Thread.respond_to? :critical
     end
   end
   

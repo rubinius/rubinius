@@ -12,7 +12,7 @@ describe "ARGF.read" do
   end
 
   after :each do
-    ARGF.close
+    ARGF.close unless ARGF.closed?
   end
 
   it "reads the contents of a file" do

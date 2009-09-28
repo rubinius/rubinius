@@ -16,8 +16,19 @@ describe "Thread#key?" do
     @th.key?(:stanley.to_s).should == false
   end
 
-  it "raises exceptions on the wrong type of keys" do
-    lambda { Thread.current.key? nil }.should raise_error(TypeError)
-    lambda { Thread.current.key? 5 }.should raise_error(ArgumentError)
+  quarantine! do
+    ruby_version_is ""..."1.9" do
+      it "raises exceptions on the wrong type of keys" do
+        lambda { Thread.current.key? nil }.should raise_error(TypeError)
+        lambda { Thread.current.key? 5 }.should raise_error(ArgumentError)
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises exceptions on the wrong type of keys" do
+      lambda { Thread.current.key? nil }.should raise_error(TypeError)
+      lambda { Thread.current.key? 5 }.should raise_error(TypeError)
+    end
   end
 end

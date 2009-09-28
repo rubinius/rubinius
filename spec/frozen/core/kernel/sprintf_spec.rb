@@ -10,8 +10,10 @@ describe "Kernel#sprintf" do
     sprintf("%s%d%s%s", nil, 4, 'a', 'b').should == '4ab'
   end
 
-  it "treats nil arguments as zeroes in %d slots" do
-    sprintf("%d%d%s%s", nil, 4, 'a', 'b').should == '04ab'
+  ruby_version_is ""..."1.9" do
+    it "treats nil arguments as zeroes in %d slots" do
+      sprintf("%d%d%s%s", nil, 4, 'a', 'b').should == '04ab'
+    end
   end
 end
 

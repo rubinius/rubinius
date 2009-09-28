@@ -14,6 +14,12 @@ describe "File.ctime" do
     File.ctime(@file).class.should == Time
   end
 
+  ruby_version_is "1.9" do
+    it "accepts an object that has a #to_path method" do
+      File.ctime(mock_to_path(@file))
+    end
+  end
+
   it "raises an Errno::ENOENT exception if the file is not found" do
     lambda { File.ctime('bogus') }.should raise_error(Errno::ENOENT)
   end

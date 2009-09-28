@@ -107,10 +107,18 @@ describe "IO#reopen" do
     File.readlines(@name2_w).should == ["line1-F2\n"]
   end
 
-  it "reassociates self with new a new stream after some reads" do
+  it "reassociates self with a new stream after some reads" do
     @file1.reopen(@file2)
     @file1.gets
     @file1.gets
     @file1.reopen(@file2).gets.should == "Line 1: One\n"
+  end
+
+  ruby_version_is "1.9" do
+    it "calls #to_path on non-String arguments" do
+      p = mock('path')
+      p.should_receive(:to_path).and_return(@file2.to_path)
+      @file1.reopen(p)
+    end
   end
 end

@@ -160,6 +160,12 @@ describe :file_fnmatch, :shared => true do
     File.send(@method, pattern, 'a/.b/c/foo', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
   end
 
+  ruby_version_is "1.9" do
+    it "accepts an object that has a #to_path method" do
+      File.send(@method, '\*', mock_to_path('a')).should == false
+    end
+  end
+
   it "raises a TypeError if the first and second arguments are not string-like" do
     lambda { File.send(@method, nil, nil, 0, 0) }.should raise_error(ArgumentError)
     lambda { File.send(@method, 1, 'some/thing') }.should raise_error(TypeError)

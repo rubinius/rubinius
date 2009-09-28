@@ -24,18 +24,20 @@ describe "Module#attr_writer" do
     o.instance_variable_get(:@test2).should == "test_2 updated"
   end
 
-  not_compliant_on :rubinius do
-    it "creates a setter for an attribute name given as a Fixnum" do
-      c = Class.new do
-        attr_writer :test1.to_i
+  ruby_version_is ""..."1.9" do
+    not_compliant_on :rubinius do
+      it "creates a setter for an attribute name given as a Fixnum" do
+        c = Class.new do
+          attr_writer :test1.to_i
+        end
+
+        o = c.new
+        o.respond_to?("test1").should == false
+        o.respond_to?("test1=").should == true
+
+        o.test1 = "test_1"
+        o.instance_variable_get(:@test1).should == "test_1"
       end
-
-      o = c.new
-      o.respond_to?("test1").should == false
-      o.respond_to?("test1=").should == true
-
-      o.test1 = "test_1"
-      o.instance_variable_get(:@test1).should == "test_1"
     end
   end
 

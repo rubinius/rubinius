@@ -82,12 +82,12 @@ module ArraySpecs
     def initialize(*values, &block)
       @values = values;
     end
-    
+
     def to_a
       self.called = :to_a
       @values
     end
-    
+
     def to_ary
       self.called = :to_ary
       @values
@@ -100,4 +100,57 @@ module ArraySpecs
     end
   end
 
+  class SortSame
+    def <=>(other); 0; end
+    def ==(other); true; end
+  end
+
+  class UFOSceptic
+    def <=>(other); raise "N-uh, UFO:s do not exist!"; end
+  end
+
+  class MockForCompared
+    @@count = 0
+    @@compared = false
+    def initialize
+      @@compared = false
+      @order = (@@count += 1)
+    end
+    def <=>(rhs)
+      @@compared = true
+      return rhs.order <=> self.order
+    end
+    def self.compared?
+      @@compared
+    end
+
+    protected
+    attr_accessor :order
+  end
+
+  class ComparableWithFixnum
+    include Comparable
+    def initialize(num)
+      @num = num
+    end
+
+    def <=>(fixnum)
+      @num <=> fixnum
+    end
+  end
+
+  class Uncomparable
+    def <=>(obj)
+      nil
+    end
+  end
+
+  # Useful for shared specs where you pass in an object as the third argument.
+  # @object.new(a,b,c) creates an Array-like object with elements a, b, and c.
+  # This class allows a similar constructor for Array
+  class NewArray
+    def self.new(*args)
+      args
+    end
+  end
 end

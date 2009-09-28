@@ -2,7 +2,7 @@ describe :file_directory, :shared => true do
   before :each do
     platform_is :windows do
       @dir  = "C:\\"
-      @file = "C:\\winnt\\notepad.exe"
+      @file = "C:\\windows\\notepad.exe"
     end
 
     platform_is_not :windows do
@@ -18,6 +18,12 @@ describe :file_directory, :shared => true do
   it "return true if dir is a directory, otherwise return false" do
     @object.send(@method, @dir).should == true
     @object.send(@method, @file).should == false
+  end
+
+  ruby_version_is "1.9" do
+    it "accepts an object that has a #to_path method" do
+      @object.send(@method, mock_to_path(@dir)).should == true
+    end
   end
 
   it "raises an ArgumentError if not passed one argument" do

@@ -35,8 +35,17 @@ describe "Module#instance_method" do
     @mod_um.inspect.should    =~ /\bModuleSpecs::InstanceMethChild\b/
   end
 
-  it "raises an ArgumentError if passed a Fixnum that is not a symbol" do
-    lambda { Object.instance_method(0) }.should raise_error(ArgumentError)
+  ruby_version_is ""..."1.9" do
+    it "raises an ArgumentError if passed a Fixnum that is not a symbol" do
+      lambda { Object.instance_method(0) }.should raise_error(ArgumentError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a TypeError if not passed a symbol" do
+      lambda { Object.instance_method([]) }.should raise_error(TypeError)
+      lambda { Object.instance_method(0)  }.should raise_error(TypeError)
+    end
   end
 
   it "raises a TypeError if the given name is not a string/symbol" do

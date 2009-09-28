@@ -82,7 +82,7 @@ describe :string_each_line, :shared => true do
   end
 
   ruby_version_is '1.9' do
-    it "not care if the string is modified while substituting" do
+    it "does not care if the string is modified while substituting" do
       str = "hello\nworld."
       out = []
       str.send(@method){|x| out << x; str[-1] = '!' }.should == "hello\nworld!"

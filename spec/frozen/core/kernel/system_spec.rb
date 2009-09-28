@@ -16,9 +16,23 @@ describe "Kernel#system" do
     end
   end
 
-  it "returns false when it can't" do
-    result = system("sad")
-    result.should == false
+  ruby_version_is ""..."1.9" do
+    it "returns false when command execution fails" do
+      result = system("sad")
+      result.should == false
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns nil when command execution fails" do
+      result = system("sad")
+      result.should be_nil
+    end
+  end
+
+  it "returns false when the command has a non-zero exit status" do
+    result = system("#{RUBY_EXE} -e 'exit(1)'")
+    result.should be_false
   end
 
   it "does not write to stderr when it can't find a command" do

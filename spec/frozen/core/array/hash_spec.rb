@@ -21,6 +21,20 @@ describe "Array#hash" do
     end
   end
 
+  ruby_bug "redmine #1852", "1.9.1" do
+    it "returns the same hash for recursive arrays" do
+      rec = []; rec << rec
+      rec.hash.should == [rec].hash
+      rec.hash.should == [[rec]].hash
+    end
+
+    it "returns the same hash for recursive arrays through hashes" do
+      h = {} ; rec = [h] ; h[:x] = rec
+      rec.hash.should == [h].hash
+      rec.hash.should == [{:x => rec}].hash
+    end
+  end
+
   #  Too much of an implementation detail? -rue
   not_compliant_on :rubinius do
     it "calls to_int on result of calling hash on each element" do

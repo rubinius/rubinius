@@ -19,10 +19,18 @@ describe "Math.erfc" do
     Math.erfc(-0.00000000000001).should be_close(1.00000000000001, TOLERANCE) 
   end  
   
-  it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
-    lambda { Math.erfc("test") }.should raise_error(ArgumentError)
+  ruby_version_is ""..."1.9" do
+    it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
+      lambda { Math.erfc("test") }.should raise_error(ArgumentError)
+    end
   end
   
+  ruby_version_is "1.9" do
+    it "raises a TypeError if the argument cannot be coerced with Float()" do    
+      lambda { Math.erfc("test") }.should raise_error(TypeError)
+    end
+  end
+
   it "raises a TypeError if the argument is nil" do
     lambda { Math.erfc(nil) }.should raise_error(TypeError)
   end 

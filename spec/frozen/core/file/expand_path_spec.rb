@@ -67,23 +67,39 @@ describe "File.expand_path" do
       File.expand_path('~/').should == ENV['HOME']
       File.expand_path('~/..badfilename').should == "#{ENV['HOME']}/..badfilename"
       File.expand_path('..').should == Dir.pwd.split('/')[0...-1].join("/")
-      File.expand_path('//').should == '//'
       File.expand_path('~/a','~/b').should == "#{ENV['HOME']}/a"
     end
 
+    not_compliant_on :macruby do
+      it "leaves multiple prefixed slashes untouched" do
+        File.expand_path('//').should == '//'
+        File.expand_path('////').should == '////'
+      end
+    end
+
     it "raises an ArgumentError if the path is not valid" do
-      lambda { File.expand_path("~a_fake_file") }.should raise_error(ArgumentError)
+      lambda { File.expand_path("~a_not_existing_user") }.should raise_error(ArgumentError)
     end
 
     it "expands ~ENV['USER'] to the user's home directory" do
       File.expand_path("~#{ENV['USER']}").should == ENV['HOME']
       File.expand_path("~#{ENV['USER']}/a").should == "#{ENV['HOME']}/a"
     end
+
+    it "expands ../foo with ~/dir as base dir to /path/to/user/home/foo" do
+      File.expand_path('../foo', '~/dir').should == "#{ENV['HOME']}/foo"
+    end
   end
 
-  it "raises an ArgumentError is not passed one or two arguments" do
+  it "raises an ArgumentError if not passed one or two arguments" do
     lambda { File.expand_path }.should raise_error(ArgumentError)
     lambda { File.expand_path '../', 'tmp', 'foo' }.should raise_error(ArgumentError)
+  end
+
+  ruby_version_is "1.9" do
+    it "accepts objects that have a #to_path method" do
+      File.expand_path(mock_to_path("a"), mock_to_path("#{@tmpdir}"))
+    end
   end
 
   it "raises a TypeError if not passed a String type" do
@@ -94,5 +110,15 @@ describe "File.expand_path" do
 
   it "expands /./dir to /dir" do
     File.expand_path("/./dir").should == "/dir"
+  end
+
+  ruby_version_is "1.9" do
+    it "produces a String in the default external encoding" do
+      old_external = Encoding.default_external
+      Encoding.default_external = Encoding::SHIFT_JIS
+      File.expand_path("./a").encoding.should == Encoding::SHIFT_JIS
+      File.expand_path("./\u{9876}").encoding.should == Encoding::SHIFT_JIS
+      Encoding.default_external = old_external
+    end
   end
 end

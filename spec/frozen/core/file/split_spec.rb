@@ -66,4 +66,10 @@ describe "File.split" do
     class C; def to_str; "/rubinius/better/than/ruby"; end; end
     File.split(C.new).should == ["/rubinius/better/than", "ruby"]
   end
+
+  ruby_version_is "1.9" do
+    it "accepts an object that has a #to_path method" do
+      File.split(mock_to_path("")).should == [".", ""]
+    end
+  end
 end

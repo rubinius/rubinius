@@ -22,6 +22,12 @@ describe "String#slice with Regexp, index" do
   it_behaves_like :string_slice_regexp_index, :slice
 end
 
+ruby_version_is "1.9" do
+  describe "String#slice with Regexp, group" do
+    it_behaves_like :string_slice_regexp_group, :slice
+  end
+end
+
 describe "String#slice with String" do
   it_behaves_like :string_slice_string, :slice
 end

@@ -23,6 +23,14 @@ describe "IO.sysopen" do
     fd.should_not equal(0)
   end
 
+  ruby_version_is "1.9" do
+    it "calls #to_path on first argument" do
+      p = mock('path')
+      p.should_receive(:to_path).and_return(@filename)
+      IO.sysopen(p, 'w')
+    end
+  end
+
   it "accepts a mode as second argument" do
     fd = 0
     lambda { fd = IO.sysopen(@filename, "w") }.should_not raise_error

@@ -8,7 +8,7 @@ describe "ARGF.binmode" do
   end
 
   after :each do
-    ARGF.close
+    ARGF.close unless ARGF.closed?
   end
 
   it "returns self" do
@@ -42,6 +42,18 @@ describe "ARGF.binmode" do
     it "does not raise an error" do
       argv [@bin_file] do
         lambda { ARGF.binmode }.should_not raise_error
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "sets the file's encoding to ASCII-8BIT" do
+      argv [@bin_file, @file1] do
+        ARGF.binmode
+        ARGF.binmode?.should be_true
+        ARGF.gets.encoding.should == Encoding::ASCII_8BIT
+        ARGF.skip
+        ARGF.read.encoding.should == Encoding::ASCII_8BIT
       end
     end
   end

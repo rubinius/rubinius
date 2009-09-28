@@ -10,7 +10,27 @@ describe "The not keyword" do
     (not false).should be_true
     (not nil).should be_true
   end
+
+  it "accepts an argument" do
+    lambda do
+      not(true)
+    end.should_not raise_error(SyntaxError)
+  end
+
+  it "returns false if the argument is true" do
+    (not(true)).should be_false
+  end
+
+  it "returns true if the argument is false" do
+    (not(false)).should be_true
+  end
+
+  it "returns true if the argument is nil" do
+    (not(false)).should be_true
+  end
 end
+
+language_version __FILE__, "not"
 
 describe "The `!' keyword" do
   it "negates a `true' value" do

@@ -15,7 +15,7 @@ ruby_version_is "1.9" do
       "\u{6666}".bytesize.should == 3
     end
 
-    it "works with psuedo-ASCII strings containing single UTF-8 characters" do
+    it "works with pseudo-ASCII strings containing single UTF-8 characters" do
       "\u{6666}".force_encoding('ASCII').bytesize.should == 3
     end
     
@@ -24,7 +24,7 @@ ruby_version_is "1.9" do
       "c \u{6666}".bytesize.should == 5
     end
     
-    it "works with psuedo-ASCII strings containing UTF-8 characters" do
+    it "works with pseudo-ASCII strings containing UTF-8 characters" do
       "c \u{6666}".force_encoding('ASCII').bytesize.should == 5
     end
     

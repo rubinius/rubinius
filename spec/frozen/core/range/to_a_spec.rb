@@ -8,4 +8,11 @@ describe "Range#to_a" do
     (0xfffd...0xffff).to_a.should == [0xfffd,0xfffe]
     lambda { (0.5..2.4).to_a }.should raise_error(TypeError)
   end
+
+  ruby_version_is "1.9" do
+    # This crashed on 1.9 prior to r24573
+    it "works with Ranges of Symbols" do
+      (:A..:z).to_a.size.should == 58
+    end
+  end
 end

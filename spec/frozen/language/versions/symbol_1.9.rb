@@ -4,4 +4,12 @@ describe "A Symbol literal" do
     c.class.should == Symbol
     c.inspect.should == ':""'
   end
+
+  # These weren't allowed on 1.8
+  it "can be :!, :!=, or :!~" do
+    %w{'!', '!=', '!~'}.each do |sym|
+      lambda { sym.to_sym }.should_not raise_error(SyntaxError)
+      sym.to_sym.to_s.should == sym
+    end
+  end
 end

@@ -11,7 +11,7 @@ describe :determinant, :shared => true do
   ruby_bug "#1516", "1.8.7" do
     it "returns the determinant of a square Matrix" do
       m = Matrix[ [7,6], [3,9] ]
-      m.send(@method).should == 45 
+      m.send(@method).should == 45
 
       m = Matrix[ [9, 8], [6,5] ]
       m.send(@method).should == -3
@@ -19,9 +19,9 @@ describe :determinant, :shared => true do
       m = Matrix[ [9,8,3], [4,20,5], [1,1,1] ]
       m.send(@method).should == 95
     end
-  end  
-  
-  it "returns the determinant of a single-element Matrix" do  
+  end
+
+  it "returns the determinant of a single-element Matrix" do
     m = Matrix[ [2] ]
     m.send(@method).should == 2
   end
@@ -33,14 +33,20 @@ describe :determinant, :shared => true do
 
   # Matrix#square? returns true if the first row of the matrix has the same
   # number of columns as the matrix has rows. This causes the .determinant
-  # method to raise a NoMethodError for '-'. I've reported it as 
+  # method to raise a NoMethodError for '-'. I've reported it as
   # http://redmine.ruby-lang.org/issues/show/1515 , and will guard for this bug
-  # in the #square? test. The examples below deliberately avoid this condition. 
-  it "returns 0 when the Matrix is not square" do 
-    m = Matrix[ [1], [2,3] ] 
+  # in the #square? test. The examples below deliberately avoid this condition.
+  it "returns 0 when the Matrix is not square" do
+    m = Matrix[ [1], [2,3] ]
     m.send(@method).should == 0
 
     m = Matrix[ [1,2,3], [4,2] ]
     m.send(@method).should == 0
-  end  
+  end
+
+  ruby_bug "#1531", "1.9.1" do
+    it "returns the determinant of a Matrices containing 0 as first entry" do
+      Matrix[[0,1],[1,0]].send(@method).should == -1
+    end
+  end
 end

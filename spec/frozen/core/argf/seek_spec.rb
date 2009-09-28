@@ -10,7 +10,7 @@ describe "ARGF.seek" do
   end
 
   after :each do
-    ARGF.close
+    ARGF.close unless ARGF.closed?
   end
 
   it "sets the absolute position relative to beginning of file" do

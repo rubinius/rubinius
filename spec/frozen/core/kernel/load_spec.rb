@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
+require 'fileutils'
+
 $load_fixture_dir = (File.dirname(__FILE__) + '/../../fixtures/load')
 $LOAD_PATH << $load_fixture_dir
 
@@ -109,10 +111,31 @@ describe "Kernel#load" do
     $LOADED_FEATURES.grep(/load_spec_3.rb/).should == []
   end
 
+  ruby_version_is ""..."1.8.7" do
+    it "returns __FILE__ as a relative path" do
+      Dir.chdir($load_fixture_dir) do |dir|
+        load('load_spec_4.rb') 
+        $load_spec_4.first.first.should == './load_spec_4.rb'
+      end
+    end
+  end
+
+  ruby_version_is "1.8.7" do
+    it "returns __FILE__ as an absolute path" do
+      Dir.chdir($load_fixture_dir) do |dir|
+        load('load_spec_4.rb') 
+        $load_spec_4.first.first.should == File.expand_path('./load_spec_4.rb')
+      end
+    end
+  end
+
   it "produces __FILE__ as the given filename and __LINE__ as the source line number" do
     Dir.chdir($load_fixture_dir) do |dir|
       load('load_spec_4.rb').should == true 
-      $load_spec_4.should == [['./load_spec_4.rb', 1], ['./load_spec_4.rb', 10]]
+      $load_spec_4.first.first.should =~ /load_spec_4\.rb$/
+      $load_spec_4.first.last.should == 1
+      $load_spec_4.last.first.should =~ /load_spec_4\.rb$/
+      $load_spec_4.last.last.should == 10
 
       extended_on :rubinius do
         `rm load_spec_4.rbc`
@@ -186,6 +209,14 @@ describe "Kernel#load" do
     lambda { load(nil) }.should raise_error TypeError
     lambda { load(42) }.should raise_error TypeError
     lambda { load([]) }.should raise_error TypeError
+  end
+
+  ruby_version_is "1.9" do
+    it "calls #to_path on non-String arguments" do
+      p = mock('path')
+      p.should_receive(:to_path).and_return 'load_spec_1.rb'
+      load(p)
+    end
   end
 
   runner_is_not :rspec do

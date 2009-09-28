@@ -22,6 +22,13 @@ describe :file_identical, :shared => true do
     @object.send(@method, @file1, @file3).should == true
   end
 
+  ruby_version_is "1.9" do
+    it "accepts an object that has a #to_path method" do
+      @object.send(@method, mock_to_path(@file1), mock_to_path(@file3)).should == true
+    end
+  end
+
+
   it "raises an ArgumentError if not passed two arguments" do
     lambda { @object.send(@method, @file1, @file2, @file3) }.should raise_error(ArgumentError)
     lambda { @object.send(@method, @file1) }.should raise_error(ArgumentError)

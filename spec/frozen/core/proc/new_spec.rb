@@ -7,13 +7,25 @@ describe "Proc.new with an associated block" do
     Proc.new { "hello" }.call.should == "hello"
   end
 
+  # This raises a ThreadError on 1.8 HEAD. Reported as bug #1707
   it "raises a LocalJumpError when context of the block no longer exists" do
     def some_method
       Proc.new { return }
     end
     res = some_method()
+    
+    # Using raise_error here causes 1.9 to hang, so we roll our own
+    # begin/rescue block to verify that the exception is raised.
 
-    lambda { res.call }.should raise_error(LocalJumpError)
+    exception = nil  
+    
+    begin
+      res.call
+    rescue LocalJumpError => e
+      exception = e
+    end
+
+    e.should be_an_instance_of(LocalJumpError)
   end
 
   it "returns from within enclosing method when 'return' is used in the block" do

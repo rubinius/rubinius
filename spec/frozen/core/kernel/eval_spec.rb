@@ -31,106 +31,175 @@ describe "Kernel#eval" do
     A::C.name.should == "A::C"
   end
 
-  it "accepts a Proc object as a binding" do
-    x = 1
-    bind = proc {}
+  ruby_version_is ""..."1.9" do
+    it "accepts a Proc object as a binding" do
+      x = 1
+      bind = proc {}
 
-    eval("x", bind).should == 1
-    eval("y = 2", bind).should == 2
-    eval("y", bind).should == 2
+      eval("x", bind).should == 1
+      eval("y = 2", bind).should == 2
+      eval("y", bind).should == 2
 
-    eval("z = 3").should == 3
-    eval("z", bind).should == 3
+      eval("z = 3").should == 3
+      eval("z", bind).should == 3
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "doesn't accept a Proc object as a binding" do
+      x = 1
+      bind = proc {}
+
+      lambda { eval("x", bind) }.should raise_error(TypeError)
+    end
   end
 
   it "does not make Proc locals visible to evaluated code" do
     bind = proc { inner = 4 }
-    lambda { eval("inner", bind) }.should raise_error(NameError)
+    lambda { eval("inner", bind.binding) }.should raise_error(NameError)
   end
 
-  it "allows a binding to be captured inside an eval" do
-    outer_binding = binding
-    level1 = eval("binding", outer_binding)
-    level2 = eval("binding", level1)
+  ruby_version_is ""..."1.9" do
+    it "allows a binding to be captured inside an eval" do
+      outer_binding = binding
+      level1 = eval("binding", outer_binding)
+      level2 = eval("binding", level1)
 
-    eval("w = 1")
-    eval("x = 2", outer_binding)
-    eval("y = 3", level1)
+      eval("w = 1")
+      eval("x = 2", outer_binding)
+      eval("y = 3", level1)
 
-    eval("w").should == 1
-    eval("w", outer_binding).should == 1
-    eval("w", level1).should == 1
-    eval("w", level2).should == 1
+      eval("w").should == 1
+      eval("w", outer_binding).should == 1
+      eval("w", level1).should == 1
+      eval("w", level2).should == 1
 
-    eval("x").should == 2
-    eval("x", outer_binding).should == 2
-    eval("x", level1).should == 2
-    eval("x", level2).should == 2
+      eval("x").should == 2
+      eval("x", outer_binding).should == 2
+      eval("x", level1).should == 2
+      eval("x", level2).should == 2
 
-    eval("y").should == 3
-    eval("y", outer_binding).should == 3
-    eval("y", level1).should == 3
-    eval("y", level2).should == 3
+      eval("y").should == 3
+      eval("y", outer_binding).should == 3
+      eval("y", level1).should == 3
+      eval("y", level2).should == 3
+    end
   end
 
-  it "allows Proc and binding to be nested in horrible ways" do
-    outer_binding = binding
-    proc_binding = eval("proc {l = 5; binding}.call", outer_binding)
-    inner_binding = eval("proc {k = 6; binding}.call", proc_binding)
+  ruby_version_is "1.9" do
+    # This differs from the 1.8 example because 1.9 doesn't share scope across
+    # sibling evals
+    it "allows a binding to be captured inside an eval" do
+      outer_binding = binding
+      level1 = eval("binding", outer_binding)
+      level2 = eval("binding", level1)
 
-    eval("w = 1")
-    eval("x = 2", outer_binding)
-    eval("yy = 3", proc_binding)
-    eval("z = 4", inner_binding)
+      eval("x = 2", outer_binding)
+      eval("y = 3", level1)
 
-    eval("w").should == 1
-    eval("w", outer_binding).should == 1
-    eval("w", proc_binding).should == 1
-    eval("w", inner_binding).should == 1
+      eval("w=1", outer_binding)
+      eval("w", outer_binding).should == 1
+      eval("w=1", level1).should == 1
+      eval("w", level1).should == 1
+      eval("w=1", level2).should == 1
+      eval("w", level2).should == 1
 
-    eval("x").should == 2
-    eval("x", outer_binding).should == 2
-    eval("x", proc_binding).should == 2
-    eval("x", inner_binding).should == 2
+      eval("x", outer_binding).should == 2
+      eval("x=2", level1)
+      eval("x", level1).should == 2
+      eval("x=2", level2)
+      eval("x", level2).should == 2
 
-    lambda { eval("yy") }.should raise_error(NameError)
-    lambda { eval("yy", outer_binding) }.should raise_error(NameError)
-    eval("yy", proc_binding).should == 3
-    eval("yy", inner_binding).should == 3
-
-    lambda { eval("z") }.should raise_error(NameError)
-    lambda { eval("z", outer_binding) }.should raise_error(NameError)
-    lambda { eval("z", proc_binding)  }.should raise_error(NameError)
-    eval("z", inner_binding).should == 4
-
-    lambda { eval("l") }.should raise_error(NameError)
-    lambda { eval("l", outer_binding) }.should raise_error(NameError)
-    eval("l", proc_binding).should == 5
-    eval("l", inner_binding).should == 5
-
-    lambda { eval("k") }.should raise_error(NameError)
-    lambda { eval("k", outer_binding) }.should raise_error(NameError)
-    lambda { eval("k", proc_binding)  }.should raise_error(NameError)
-    eval("k", inner_binding).should == 6
+      eval("y=3", outer_binding)
+      eval("y", outer_binding).should == 3
+      eval("y=3", level1)
+      eval("y", level1).should == 3
+      eval("y=3", level2)
+      eval("y", level2).should == 3
+    end
   end
 
-  it "allows creating a new class in a binding" do
-    bind = proc {}
-    eval "class A; end", bind
-    eval("A.name", bind).should == "A"
+  ruby_version_is ""..."1.9" do
+    it "allows Proc and binding to be nested in horrible ways" do
+      outer_binding = binding
+      proc_binding = eval("proc {l = 5; binding}.call", outer_binding)
+      inner_binding = eval("proc {k = 6; binding}.call", proc_binding)
+
+      eval("w = 1")
+      eval("x = 2", outer_binding)
+      eval("yy = 3", proc_binding)
+      eval("z = 4", inner_binding)
+
+      eval("w").should == 1
+      eval("w", outer_binding).should == 1
+      eval("w", proc_binding).should == 1
+      eval("w", inner_binding).should == 1
+
+      eval("x").should == 2
+      eval("x", outer_binding).should == 2
+      eval("x", proc_binding).should == 2
+      eval("x", inner_binding).should == 2
+
+      lambda { eval("yy") }.should raise_error(NameError)
+      lambda { eval("yy", outer_binding) }.should raise_error(NameError)
+      eval("yy", proc_binding).should == 3
+      eval("yy", inner_binding).should == 3
+
+      lambda { eval("z") }.should raise_error(NameError)
+      lambda { eval("z", outer_binding) }.should raise_error(NameError)
+      lambda { eval("z", proc_binding)  }.should raise_error(NameError)
+      eval("z", inner_binding).should == 4
+
+      lambda { eval("l") }.should raise_error(NameError)
+      lambda { eval("l", outer_binding) }.should raise_error(NameError)
+      eval("l", proc_binding).should == 5
+      eval("l", inner_binding).should == 5
+
+      lambda { eval("k") }.should raise_error(NameError)
+      lambda { eval("k", outer_binding) }.should raise_error(NameError)
+      lambda { eval("k", proc_binding)  }.should raise_error(NameError)
+      eval("k", inner_binding).should == 6
+    end
   end
 
-  it "allows creating a new class in a binding created by #eval" do
-    bind = eval "binding"
-    eval "class A; end", bind
-    eval("A.name").should == "A"
+  ruby_version_is ""..."1.9" do
+    it "allows creating a new class in a binding" do
+      bind = proc {}
+      eval "class A; end", bind.binding
+      eval("A.name", bind.binding).should == "A"
+    end
+
+    it "allows creating a new class in a binding created by #eval" do
+      bind = eval "binding"
+      eval "class A; end", bind
+      eval("A.name").should == "A"
+    end
+
+    it "allows creating a new class in a binding returned by a method defined with #eval" do
+      bind = eval "def spec_binding; binding; end; spec_binding"
+      eval "class A; end", bind
+      eval("A.name").should == "A"
+    end
   end
 
-  it "allows creating a new class in a binding returned by a method defined with #eval" do
-    bind = eval "def spec_binding; binding; end; spec_binding"
-    eval "class A; end", bind
-    eval("A.name").should == "A"
+  ruby_version_is "1.9" do
+    it "allows creating a new class in a binding" do
+      bind = proc {}
+      eval("class A; end; A.name", bind.binding).should =~ /A$/
+    end
+
+    it "allows creating a new class in a binding created by #eval" do
+      bind = eval "binding"
+      eval("class A; end; A.name", bind).should =~ /A$/
+    end
+
+    it "allows creating a new class in a binding returned by a method defined with #eval" do
+      bind = eval "def spec_binding; binding; end; spec_binding"
+      eval("class A; end; A.name", bind).should =~ /A$/
+    end
   end
+
+
 
   it "includes file and line information in syntax error" do
     expected = 'speccing.rb'
@@ -142,20 +211,43 @@ describe "Kernel#eval" do
   end
 
   it "should perform top level evaluations from inside a block" do
-    [1].each { eval "Const = 1"}
-    Const.should ==1
+    # The class Object bit is needed to workaround some mspec oddness
     class Object
+      [1].each { eval "Const = 1"}
+      Const.should == 1
       remove_const :Const
     end
   end
 
-  it "uses the filename of the binding if none is provided" do
-    eval("__FILE__").should == "(eval)"
-    eval("__FILE__", binding).should == __FILE__
-    eval("__FILE__", binding, "success").should == "success"
-    eval("eval '__FILE__', binding").should == "(eval)"
-    eval("eval '__FILE__', binding", binding).should == __FILE__
-    eval("eval '__FILE__', binding", binding, 'success').should == 'success'
+  ruby_version_is ""..."1.9" do
+    it "uses the filename of the binding if none is provided" do
+      eval("__FILE__").should == "(eval)"
+      eval("__FILE__", binding).should == __FILE__
+      eval("__FILE__", binding, "success").should == "success"
+      eval("eval '__FILE__', binding").should == "(eval)"
+      eval("eval '__FILE__', binding", binding).should == __FILE__
+      eval("eval '__FILE__', binding", binding, 'success').should == 'success'
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "uses a filename of (eval) if none is provided" do
+      eval("__FILE__").should == "(eval)"
+      eval("__FILE__", binding).should == "(eval)"
+      eval("__FILE__", binding, "success").should == "success"
+      eval("eval '__FILE__', binding").should == "(eval)"
+      eval("eval '__FILE__', binding", binding).should == "(eval)"
+      eval("eval '__FILE__', binding", binding, 'success').should == '(eval)'
+    end
+  end
+
+  deviates_on "jruby" do
+    it "can be aliased" do
+      alias aliased_eval eval
+      x = 2
+      aliased_eval('x += 40')
+      x.should == 42
+    end
   end
 end
 

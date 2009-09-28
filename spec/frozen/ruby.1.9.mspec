@@ -55,6 +55,12 @@ class MSpecScript
   # This set of files is run by mspec ci
   set :ci_files, get(:files)
 
+  # Optional library specs
+  set :ffi, 'optional/ffi'
+
+  # A list of _all_ optional library specs
+  set :optional, [get(:ffi)]
+
   # The default implementation to run the specs.
   # TODO: this needs to be more sophisticated since the
   # executable is not consistently named.

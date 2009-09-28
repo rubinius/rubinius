@@ -5,14 +5,14 @@ describe "Time.at" do
   ruby_version_is ""..."1.9" do
     it "converts to time object" do
       # the #chomp calls are necessary because of RSpec
-      Time.at(1168475924).inspect.chomp.should == localtime_18(1168475924).chomp
+      Time.at(1184027924).inspect.chomp.should == localtime_18(1184027924).chomp
     end
   end
   
   ruby_version_is "1.9" do
     it "converts to time object" do
       # the #chomp calls are necessary because of RSpec
-      Time.at(1168475924).inspect.chomp.should == localtime_19(1168475924).chomp
+      Time.at(1184027924).inspect.chomp.should == localtime_19(1184027924).chomp
     end
   end
 

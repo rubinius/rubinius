@@ -5,7 +5,7 @@ describe :argf_pos, :shared => true do
   end
 
   after :each do
-    ARGF.close
+    ARGF.close unless ARGF.closed?
   end
 
   it "gives the correct position for each read operation" do

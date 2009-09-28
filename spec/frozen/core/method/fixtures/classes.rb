@@ -1,9 +1,39 @@
 module MethodSpecs
+  
+  
+  class SourceLocation
+    def self.location # This needs to be on this line 
+      :location       # for the spec to pass
+    end
+    
+    def self.redefined
+      :first
+    end
+
+    def self.redefined
+      :last
+    end
+
+    def original
+    end
+
+    alias :aka :original 
+  end
+
   class Methods
     def foo
       true
     end
+
     alias bar foo
+
+    def same_as_foo
+      true
+    end
+
+    def respond_to_missing? method
+      [:handled_via_method_missing, :also_handled].include? method
+    end
 
     attr_accessor :attr
 
@@ -64,5 +94,39 @@ module MethodSpecs
 
   class D
     def bar() 'done' end
+  end
+
+  class Eql
+
+    def same_body
+      1 + 1
+    end
+
+    alias :same_body_alias :same_body
+
+    def same_body_with_args(arg)
+      1 + 1
+    end
+
+    def different_body
+      1 + 2
+    end
+
+    def same_body_two 
+      1 + 1
+    end
+
+    private
+    def same_body_private
+      1 + 1
+    end
+  end
+
+  class Eql2
+
+    def same_body
+      1 + 1
+    end
+
   end
 end

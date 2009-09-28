@@ -61,7 +61,7 @@ describe "Hash#merge!" do
   # This bug is far too odd to explain in a comment; see
   # http://redmine.ruby-lang.org/issues/show/1535 for the closest I've got to
   # an explanation.
-  ruby_bug "#1535", "1.8.7.167" do
+  ruby_bug "#1535", "1.8.7.174" do
     it "shouldn't raise spurious RuntimeErrors" do
       hash = {1 => 2, 3 => 4, 5 => 6}
       big_hash = {}

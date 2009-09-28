@@ -33,7 +33,15 @@ describe "Module#included" do
     c.test.should == :passed
   end
 
-  it "is private in its default implementation" do
-    Module.new.private_methods.should include("included")
+  ruby_version_is ""..."1.9" do
+    it "is private in its default implementation" do
+      Module.new.private_methods.should include("included")
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "is private in its default implementation" do
+      Module.new.private_methods.should include(:included)
+    end
   end
 end

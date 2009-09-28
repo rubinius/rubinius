@@ -29,4 +29,11 @@ describe "ENV.each_key" do
     end
   end
 
+  ruby_version_is "1.9" do
+    it "returns keys in the locale encoding" do
+      ENV.each_key do |key|
+        key.encoding.should == Encoding.find('locale')
+      end
+    end
+  end
 end

@@ -97,12 +97,16 @@ describe "File.new" do
     File.exists?(@file).should == true
   end
 
-  it "raises an Errno::EINVAL error with File::APPEND" do
-    lambda { @fh = File.new(@file, File::APPEND) }.should raise_error(Errno::EINVAL)
+  ruby_bug "#1582", "1.9.2" do
+    it "raises an Errno::EINVAL error with File::APPEND" do
+      lambda { @fh = File.new(@file, File::APPEND) }.should raise_error(Errno::EINVAL)
+    end
   end
 
-  it "raises an Errno::EINVAL error with File::RDONLY|File::APPEND" do
-    lambda { @fh = File.new(@file, File::RDONLY|File::APPEND) }.should raise_error(Errno::EINVAL)
+  ruby_bug "#1582", "1.9.2" do
+    it "raises an Errno::EINVAL error with File::RDONLY|File::APPEND" do
+      lambda { @fh = File.new(@file, File::RDONLY|File::APPEND) }.should raise_error(Errno::EINVAL)
+    end
   end
 
   it "raises an Errno::EINVAL error with File::RDONLY|File::WRONLY" do
@@ -125,6 +129,15 @@ describe "File.new" do
     File.exists?(@file).should == true
   end
 
+  ruby_version_is "1.9" do
+    it "coerces filename using #to_path" do
+      name = mock("file")
+      name.should_receive(:to_path).and_return(@file)
+      File.new(name, "w") { }
+      File.exists?(@file).should == true
+    end
+  end
+
   specify  "expected errors " do
     lambda { File.new(true)  }.should raise_error(TypeError)
     lambda { File.new(false) }.should raise_error(TypeError)
@@ -133,10 +146,12 @@ describe "File.new" do
     lambda { File.new(@file, File::CREAT, 0755, 'test') }.should raise_error(ArgumentError)
   end
 
-  # You can't alter mode or permissions when opening a file descriptor
-  #
-  it "can't alter mode or permissions when opening a file" do
-    @fh = File.new(@file)
-    lambda { File.new(@fh.fileno, @flags) }.should raise_error(Errno::EINVAL)
+  ruby_bug "#1582", "1.9.2" do
+    # You can't alter mode or permissions when opening a file descriptor
+    #
+    it "can't alter mode or permissions when opening a file" do
+      @fh = File.new(@file)
+      lambda { File.new(@fh.fileno, @flags) }.should raise_error(Errno::EINVAL)
+    end
   end
 end

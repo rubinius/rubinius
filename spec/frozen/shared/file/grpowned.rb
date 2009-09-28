@@ -13,6 +13,12 @@ describe :file_grpowned, :shared => true do
     it "return true if the file exist" do
       @object.send(@method, @file).should == true
     end
+
+    ruby_version_is "1.9" do
+      it "accepts an object that has a #to_path method" do
+        @object.send(@method, mock_to_path(@file)).should == true
+      end
+    end
   end
 
   platform_is :windows do

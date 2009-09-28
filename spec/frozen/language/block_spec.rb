@@ -1,6 +1,14 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/block'
 
+describe "A block with mismatched arguments" do
+  it "Should fill in unsupplied arguments with nil" do
+    ret = nil
+    BlockSpecs::Yield.new.two_args {|one, two, three| ret = [one, two, three]}
+    ret.should == [1, 2, nil]
+  end
+end
+
 describe "A block with a 'rest' arg" do
   it "collects all of the arguments passed to yield" do
     ret = nil

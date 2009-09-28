@@ -1,24 +1,20 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require 'complex'
+require File.dirname(__FILE__) + '/../../shared/complex/denominator'
 
-# FIXME:
-# Complex#denominator requires the rational library,
-# as Integer#denominator is defined by it.
-# I think this method is pretty buggy, as there is no
-# denominator for Floats and rational might not always
-# be loaded, both resulting in a method missing exception.
-# Also, the documentation for Complex#denominator does
-# not mention a dependency for rational.
-require "rational"
+ruby_version_is ""..."1.9" do
+  
+  require 'complex'
 
-describe "Complex#denominator" do
-  it "returns the least common multiple denominator of the real and imaginary parts" do
-    Complex(3, 4).denominator.should == 1
-    Complex(3, bignum_value).denominator.should == 1
+  # FIXME:
+  # Complex#denominator requires the rational library,
+  # as Integer#denominator is defined by it.
+  # I think this method is pretty buggy, as there is no
+  # denominator for Floats and rational might not always
+  # be loaded, both resulting in a method missing exception.
+  # Also, the documentation for Complex#denominator does
+  # not mention a dependency for rational.
+  require "rational"
 
-    Complex(3, Rational(3,4)).denominator.should == 4
-
-    Complex(Rational(4,8), Rational(3,4)).denominator.should == 4
-    Complex(Rational(3,8), Rational(3,4)).denominator.should == 8
+  describe "Complex#denominator" do
+    it_behaves_like(:complex_denominator, :denominator)
   end
 end

@@ -12,8 +12,18 @@ describe "IO#binmode" do
     File.unlink @filename
   end
   
-  it "does not raise any errors on closed stream" do
-    lambda { IOSpecs.closed_file.binmode }.should_not raise_error()
+  ruby_version_is ""..."1.9" do
+    ruby_bug "#2046", "1.8.6.381" do
+      it "raises an IOError on closed stream" do
+        lambda { IOSpecs.closed_file.binmode }.should raise_error(IOError)
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises an IOError on closed stream" do
+      lambda { IOSpecs.closed_file.binmode }.should raise_error(IOError)
+    end
   end
 
   # Even if it does nothing in Unix it should not raise any errors.

@@ -1,9 +1,10 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
-require 'enumerator'
 
-describe "Enumerator#enum_with_index" do
-  ruby_version_is ''...'1.9' do
+ruby_version_is ""..."1.9" do 
+  require File.dirname(__FILE__) + '/../../fixtures/enumerator/classes'
+  require 'enumerator'
+
+  describe "Enumerator#enum_with_index" do
     it "returns an enumerator of the receiver with an iteration of each_with_index" do
       a = []
       enum = EnumSpecs::Numerous.new.enum_with_index

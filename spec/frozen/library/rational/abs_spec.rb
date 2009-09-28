@@ -1,12 +1,7 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require 'rational'
+require File.dirname(__FILE__) + '/../../shared/rational/abs'
 
-describe "Rational#abs" do
-  it "returns self's absolute value" do
-    Rational(3, 4).abs.should == Rational(3, 4)
-    Rational(-3, 4).abs.should == Rational(3, 4)
-    Rational(3, -4).abs.should == Rational(3, 4)
-    
-    Rational(bignum_value, -bignum_value).abs.should == Rational(bignum_value, bignum_value)
+ruby_version_is ""..."1.9" do
+  describe "Rational#abs" do
+    it_behaves_like(:rational_abs, :abs)
   end
 end

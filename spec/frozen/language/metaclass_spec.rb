@@ -27,8 +27,8 @@ describe "self in a metaclass body (class << obj)" do
     cls.is_a?(Class).should == true
     cls.should_not equal(Object)
   end
-  
-  deviates_on(:rubinius) do 
+
+  deviates_on(:rubinius) do
     it "is a MetaClass instance" do
       cls = class << mock('x'); self; end
       cls.is_a?(MetaClass).should == true
@@ -95,13 +95,26 @@ describe "A constant on a metaclass" do
     end.should raise_error(NameError)
   end
 
-  it "appears in the metaclass constant list" do
-    constants = class << @object; constants; end 
-    constants.should include("CONST")
+  ruby_version_is ""..."1.9" do
+    it "appears in the metaclass constant list" do
+      constants = class << @object; constants; end 
+      constants.should include("CONST")
+    end
+
+    it "does not appear in the object's class constant list" do
+      @object.class.constants.should_not include("CONST")
+    end
   end
 
-  it "does not appear in the object's class constant list" do
-    @object.class.constants.should_not include("CONST")
+  ruby_version_is "1.9" do
+    it "appears in the metaclass constant list" do
+      constants = class << @object; constants; end 
+      constants.should include(:CONST)
+    end
+
+    it "does not appear in the object's class constant list" do
+      @object.class.constants.should_not include(:CONST)
+    end
   end
 
   it "is not preserved when the object is duped" do
@@ -120,7 +133,3 @@ describe "A constant on a metaclass" do
     end
   end
 end
-
-
-
-

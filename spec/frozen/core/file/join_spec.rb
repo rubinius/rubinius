@@ -30,7 +30,7 @@ describe "File.join" do
     File.join(["a", ["b", ["c"]]]).should == "a/b/c"
   end
   
-  it "inserts the separator in between empty strings and arrays" do  
+  it "inserts the separator in between empty strings and arrays" do
     File.join("").should == ""
     File.join("", "").should == "/"
     File.join(["", ""]).should == "/"
@@ -66,6 +66,15 @@ describe "File.join" do
     File.join("usr/",  "", "/bin").should == "usr/bin"
   end
 
+  it "gives priority to existing separators in the rightmost argument" do
+    File.join("usr/",   "bin")   .should == "usr/bin"
+    File.join("usr/",   "/bin")  .should == "usr/bin"
+    File.join("usr//",  "/bin")  .should == "usr/bin"
+    File.join("usr//",  "//bin") .should == "usr//bin"
+    File.join("usr//",  "///bin").should == "usr///bin"
+    File.join("usr///", "//bin") .should == "usr//bin"
+  end
+
   # TODO: See MRI svn r23306. Add patchlevel when there is a release.
   ruby_bug "redmine #1418", "1.8.8" do
     it "raises an ArgumentError if passed a recursive array" do
@@ -93,4 +102,14 @@ describe "File.join" do
     File.join("usr", bin).should == "usr/bin"
   end
 
+  ruby_version_is "1.9" do
+    it "calls #to_path" do
+      lambda { File.join(mock('x')) }.should raise_error(TypeError)
+
+      bin = mock("bin")
+      bin.should_receive(:to_path).exactly(:twice).and_return("bin")
+      File.join(bin).should == "bin"
+      File.join("usr", bin).should == "usr/bin"
+    end
+  end
 end

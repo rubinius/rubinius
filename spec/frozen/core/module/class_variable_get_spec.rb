@@ -33,17 +33,19 @@ describe "Module#class_variable_get" do
     ModuleSpecs::CVars.new.meta.should == :meta
   end
 
-  not_compliant_on :rubinius do
-    it "accepts Fixnums for class variables" do
-      c = Class.new { class_variable_set :@@class_var, "test" }
-      c.send(:class_variable_get, :@@class_var.to_i).should == "test"
-    end
+  ruby_version_is ""..."1.9" do
+    not_compliant_on :rubinius do
+      it "accepts Fixnums for class variables" do
+        c = Class.new { class_variable_set :@@class_var, "test" }
+        c.send(:class_variable_get, :@@class_var.to_i).should == "test"
+      end
 
-    it "raises a NameError when a Fixnum for an uninitialized class variable is given" do
-      c = Class.new
-      lambda {
-        c.send :class_variable_get, :@@no_class_var.to_i
-      }.should raise_error(NameError)
+      it "raises a NameError when a Fixnum for an uninitialized class variable is given" do
+        c = Class.new
+        lambda {
+          c.send :class_variable_get, :@@no_class_var.to_i
+        }.should raise_error(NameError)
+      end
     end
   end
 

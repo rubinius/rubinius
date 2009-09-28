@@ -17,6 +17,14 @@ describe "IO.read" do
     IO.read(@fname).should == @contents
   end
 
+  ruby_version_is "1.9" do
+    it "calls #to_path on non-String arguments" do
+      p = mock('path')
+      p.should_receive(:to_path).and_return(@fname)
+      IO.read(p)
+    end
+  end
+
   it "treats second nil argument as no length limit" do
     IO.read(@fname, nil).should == @contents
     IO.read(@fname, nil, 5).should == IO.read(@fname, @contents.length, 5)
@@ -88,8 +96,16 @@ describe "IO#read" do
   end
 
   after :each do
-    @io.close
     File.delete(@fname) if File.exists?(@fname)
+  end
+
+  after :all do
+    # We originally closed @io after every example, but on 1.9 that led to a
+    # particularly bizarre bug where #close would raise an Errno::EBADF under
+    # certain conditions. I can't determine what these conditions are,
+    # unfortunately. I believe it's safe to only close @io here because it's
+    # instantiated anew before each example.
+    @io.close
   end
 
   it "can be read from consecutively" do
@@ -226,6 +242,21 @@ describe "IO#read" do
 
   it "raises IOError on closed stream" do
     lambda { IOSpecs.closed_file.read }.should raise_error(IOError)
+  end
+
+  ruby_version_is "1.9" do
+    # Example derived from test/ruby/test_io_m17n.rb on MRI
+    it "strips the BOM when given 'rb:utf-7-bom' as the mode" do
+      text = "\uFEFFT"
+      %w/UTF-8 UTF-16BE UTF-16LE UTF-32BE UTF-32LE/.each do |name|
+        path = tmp('%s-bom.txt' % name)
+        content = text.encode(name)
+        File.open(path,'w') { |f| f.print content }
+        result = File.read(path, :mode => "rb:BOM|#{name}")
+        content[1].force_encoding("ascii-8bit").should == result.force_encoding("ascii-8bit")
+        File.unlink(path)
+      end
+    end
   end
 
   it "ignores unicode encoding" do

@@ -1,6 +1,8 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
 ruby_version_is "1.9" do
+  require 'fiber'
+  
   describe :resume, :shared => :true do
 
     it "can be invoked from the root Fiber" do
@@ -67,5 +69,5 @@ ruby_version_is "1.9" do
       lambda { fiber.send(@method) }.should raise_error(LocalJumpError)
     end 
 
-  end
+  end    
 end

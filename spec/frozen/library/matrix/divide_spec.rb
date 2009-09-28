@@ -32,7 +32,7 @@ describe "Matrix#/" do
   end
 
   it "raises a Matrix::ErrDimensionMismatch if the matrices are different sizes" do
-    lambda { @a / Matrix[ 1 ] }.should raise_error(Matrix::ErrDimensionMismatch)
+    lambda { @a / Matrix[ [1] ] }.should raise_error(Matrix::ErrDimensionMismatch)
   end
 
   it "returns an instance of Matrix" do

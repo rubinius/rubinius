@@ -1,11 +1,7 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require 'rational'
+require File.dirname(__FILE__) + '/../../shared/rational/numerator'
 
-describe "Rational#numerator" do
-  it "returns the numerator" do
-    Rational(3, 4).numerator.should equal(3)
-    Rational(3, -4).numerator.should equal(-3)
-    
-    Rational(bignum_value, 1).numerator.should == bignum_value
+ruby_version_is ""..."1.9" do
+  describe "Rational#numerator" do
+    it_behaves_like(:rational_numerator, :numerator)
   end
 end

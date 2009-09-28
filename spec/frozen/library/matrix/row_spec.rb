@@ -10,6 +10,7 @@ describe "Matrix#row" do
     Matrix[ *@data ].row(0).should == Vector[1,2]
   end
 
+  # Seems like a bad idea...
   it "returns an Array when called with a block" do
     Matrix[ *@data ].row(0) { |x| x }.should == [1, 2]
   end

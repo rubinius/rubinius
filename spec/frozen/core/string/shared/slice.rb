@@ -406,3 +406,5 @@ describe :string_slice_string, :shared => true do
     r.class.should == StringSpecs::MyString
   end
 end
+
+language_version __FILE__, "slice"

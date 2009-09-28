@@ -22,6 +22,20 @@ describe "Hash#hash" do
     (h.hash == h[:a].hash).should == true
   end
 
+  ruby_bug "redmine #1852", "1.9.1" do
+    it "returns the same hash for recursive hashes" do
+      h = {} ; h[:x] = h
+      h.hash.should == {:x => h}.hash
+      h.hash.should == {:x => {:x => h}}.hash
+    end
+
+    it "returns the same hash for recursive hashes through arrays" do
+      h = {} ; rec = [h] ; h[:x] = rec
+      h.hash.should == {:x => rec}.hash
+      h.hash.should == {:x => [h]}.hash
+    end
+  end
+
   ruby_version_is "" .. "1.8.6" do
     it "computes recursive hash keys with identical hashes" do
       h = new_hash

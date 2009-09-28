@@ -34,4 +34,24 @@ describe "UnboundMethod#bind" do
     obj = UnboundMethodSpecs::Methods.new
     @normal_um.bind(obj).call.should == obj.foo
   end
+
+  ruby_bug "redmine:2117", "1.8.7" do
+    it "binds a Parent's class method to any Child's class methods" do
+      m = UnboundMethodSpecs::Parent.method(:class_method).unbind.bind(UnboundMethodSpecs::Child1)
+      m.should be_an_instance_of(Method)
+      m.call.should == "I am UnboundMethodSpecs::Child1"
+    end
+
+    it "will raise when binding a an object singleton's method to another object" do
+      other = UnboundMethodSpecs::Parent.new
+      p = UnboundMethodSpecs::Parent.new
+      class << p
+        def singleton_method
+          :single
+        end
+      end
+      um = p.method(:singleton_method).unbind
+      lambda{ um.bind(other) }.should raise_error(TypeError)
+    end
+  end
 end

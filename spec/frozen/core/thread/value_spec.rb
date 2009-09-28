@@ -11,16 +11,26 @@ describe "Thread#value" do
     lambda { t.value }.should raise_error(RuntimeError, "Hello")
   end
 
-  it "is false for a killed thread" do
-    t = Thread.new { Thread.current.exit }
-    t.value.should == false
+  ruby_version_is "" ... "1.9" do
+    it "is false for a killed thread" do
+      t = Thread.new { Thread.current.exit }
+      t.value.should == false
+    end
   end
 
-  # This behavior is highly suspect as "correct"
-  not_compliant_on :rubinius do
-    it "is false for an uncaught exception thrown from a dying thread" do
-      t = ThreadSpecs.dying_thread_ensures { 1/0 }
-      t.value.should == false
+  ruby_version_is "1.9" do
+    it "is nil for a killed thread" do
+      t = Thread.new { Thread.current.exit }
+      t.value.should == nil
+    end
+  end
+
+  ruby_version_is "" ... "1.9" do
+    not_compliant_on :rubinius do
+      it "is false for an uncaught exception thrown from a dying thread" do
+        t = ThreadSpecs.dying_thread_ensures { 1/0 }
+        t.value.should == false
+      end
     end
   end
 end

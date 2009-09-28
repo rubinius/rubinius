@@ -2,7 +2,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#close_write" do
-
   before :each do
     @io = IO.popen 'cat', 'r+'
     @path = tmp('io.close.txt')
@@ -63,6 +62,4 @@ describe "IO#close_write" do
 
     lambda { @io.close_write }.should raise_error(IOError)
   end
-
 end
-

@@ -12,4 +12,12 @@ describe "ENV.values" do
       ENV.replace orig
     end
   end
+
+  ruby_version_is "1.9" do
+    it "uses the locale encoding" do
+      ENV.values.each do |value|
+        value.encoding.should == Encoding.find('locale')
+      end
+    end
+  end
 end

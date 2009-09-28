@@ -1,6 +1,10 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/enum_for'
 
-describe "#enum_for" do
-  it_behaves_like :enumerator_enum_for, :enum_for
+ruby_version_is ""..."1.9" do
+  require 'enumerator'
+  require File.dirname(__FILE__) + '/../../shared/enumerator/enum_for'
+  
+  describe "#enum_for" do
+    it_behaves_like :enum_for, :enum_for
+  end
 end

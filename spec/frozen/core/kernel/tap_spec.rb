@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-ruby_version_is "1.8.7".."" do
+ruby_version_is "1.8.7" do
   describe "Kernel#tap" do
     it "always yields self and returns self" do
       a = KernelSpecs::A.new

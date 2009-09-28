@@ -1,15 +1,12 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
-require 'complex'
+require File.dirname(__FILE__) + '/../../../shared/complex/numeric/polar'
 
-describe "Numeric#polar" do
-  it "returns self's absolute value and self's argument" do
-    5.polar.should == [5, 0]
-    (-5).polar.should == [5, Math::PI]
-    
-    4.5.polar.should == [4.5, 0]
-    (-4.5).polar.should == [4.5, Math::PI]
+ruby_version_is ""..."1.9" do
 
-    bignum_value.polar.should == [bignum_value, 0]
-    (-bignum_value).polar.should == [bignum_value, Math::PI]
+  require 'complex'
+  require 'rational'
+
+  describe "Numeric#polar" do
+    it_behaves_like(:numeric_polar, :polar)
   end
 end

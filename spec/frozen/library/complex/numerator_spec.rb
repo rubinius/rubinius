@@ -1,22 +1,12 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require 'complex'
-# Depends on Rational to be loaded.
-require "rational"
+require File.dirname(__FILE__) + '/../../shared/complex/numerator'
 
-describe "Complex#numerator" do
-  it "returns self's numerator" do
-    Complex(2).numerator.should    == Complex(2)
-    Complex(3, 4).numerator.should == Complex(3, 4)
-    
-    Complex(Rational(3, 4), Rational(3, 4)).numerator.should == Complex(3, 3)
-    Complex(Rational(7, 4), Rational(8, 4)).numerator.should == Complex(7, 8)
+ruby_version_is ""..."1.9" do
+  
+  require 'complex'
+  # Depends on Rational to be loaded.
+  require "rational"
 
-    Complex(Rational(7, 8), Rational(8, 4)).numerator.should == Complex(7, 16)
-    Complex(Rational(7, 4), Rational(8, 8)).numerator.should == Complex(7, 4)
-    
-    # NOTE:
-    # Bug? - Fails with a MethodMissingError
-    # (undefined method `denominator' for 3.5:Float)
-    # Complex(3.5, 3.7).numerator
+  describe "Complex#numerator" do
+    it_behaves_like(:complex_numerator, :numerator)
   end
 end

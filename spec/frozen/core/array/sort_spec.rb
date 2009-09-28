@@ -1,48 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-module ArraySpecs
-  class SortSame
-    def <=>(other); 0; end
-    def ==(other); true; end
-  end
-
-  class UFOSceptic
-    def <=>(other); raise "N-uh, UFO:s do not exist!"; end
-  end
-
-  class MockForCompared
-    @@count = 0
-    @@compared = false
-    def initialize
-      @@compared = false
-      @order = (@@count += 1)
-    end
-    def <=>(rhs)
-      @@compared = true
-      return rhs.order <=> self.order
-    end
-    def self.compared?
-      @@compared
-    end
-
-    protected
-    attr_accessor :order
-  end
-  
-  class ComparableWithFixnum
-    include Comparable
-    def initialize(num)
-      @num = num
-    end
-
-    def <=>(fixnum)
-      @num <=> fixnum
-    end
-  end
-end
-
-
 describe "Array#sort" do
   it "returns a new array sorted based on comparing elements with <=>" do
     a = [1, -2, 3, 9, 1, 5, -5, 1000, -5, 2, -10, 14, 6, 23, 0]
@@ -147,7 +105,7 @@ describe "Array#sort" do
   it "returns the specified value when it would break in the given block" do
     [1, 2, 3].sort{ break :a }.should == :a
   end
-  
+
   it "compares values returned by block with 0" do
     a = [1, 2, 5, 10, 7, -4, 12]
     a.sort { |n, m| n - m }.should == [-4, 1, 2, 5, 7, 10, 12]
@@ -158,7 +116,11 @@ describe "Array#sort" do
       a.sort { |n, m| (n - m).to_s }
     }.should raise_error(ArgumentError)
   end
-  
+
+  it "raises an error if objects can't be compared" do
+    a=[ArraySpecs::Uncomparable.new, ArraySpecs::Uncomparable.new]
+    lambda {a.sort}.should raise_error(ArgumentError)
+  end
 end
 
 describe "Array#sort!" do

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "Range.last_match" do
+describe "Regexp.last_match" do
   it "returns MatchData instance when not passed arguments" do
     /c(.)t/ =~ 'cat'
     

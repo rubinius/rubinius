@@ -25,7 +25,7 @@ describe "Array#push" do
     array.push(:last).should == [1, 'two', 3.0, array, array, array, array, array, :last]
   end
 
-  ruby_version_is "" .. "1.9" do
+  ruby_version_is "" ... "1.9" do
     it "raises a TypeError on a frozen array if modification takes place" do
       lambda { ArraySpecs.frozen_array.push(1) }.should raise_error(TypeError)
     end

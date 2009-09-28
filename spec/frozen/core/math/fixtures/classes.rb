@@ -3,7 +3,7 @@ class IncludesMath
 end
 
 module MathSpecs
-  class Float
+  class Float < Numeric
     def initialize(value=1.0)
       @value = value
     end

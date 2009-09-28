@@ -12,13 +12,22 @@ describe "Bignum#quo" do
   end
 
   conflicts_with :Rational do
-    it "does not raise a ZeroDivisionError when the given Integer is 0" do
-      @bignum.quo(0).to_s.should == "Infinity"
-      (-@bignum).quo(0).to_s.should == "-Infinity"
+    ruby_version_is ""..."1.9" do
+      it "does not raise a ZeroDivisionError when the given Integer is 0" do
+        @bignum.quo(0).to_s.should == "Infinity"
+        (-@bignum).quo(0).to_s.should == "-Infinity"
+      end
     end
   end
 
-  it "does not raise a FloatDomainError when the given Integer is 0 and a Float" do
+  ruby_version_is "1.9" do
+    it "raises a ZeroDivisionError when the given Integer is 0" do
+      lambda { @bignum.quo(0) }.should raise_error(ZeroDivisionError)
+      lambda { -@bignum.quo(0) }.should raise_error(ZeroDivisionError)
+    end
+  end
+
+  it "does not raise a FloatDomainError when the given argument is 0 and a Float" do
     @bignum.quo(0.0).to_s.should == "Infinity"
     (-@bignum).quo(0.0).to_s.should == "-Infinity"
   end

@@ -19,7 +19,7 @@ describe "ARGF.gets" do
   end
 
   after :each do
-    ARGF.close
+    ARGF.close unless ARGF.closed?
   end
 
   it "returns nil when reaching end of files" do

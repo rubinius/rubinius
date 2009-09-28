@@ -15,6 +15,30 @@ describe "CGI::Cookie#value" do
     cookie = CGI::Cookie.new("name" => "test-cookie", "value" => ["one", "two", "three"])
     cookie.value.should == ["one", "two", "three"]
   end
+
+  ruby_bug "http://redmine.ruby-lang.org/issues/show/229", "1.8.7" do
+    it "is in synch with self" do
+      fail = []
+      [
+        :pop,
+        :shift,
+        [:<<, "Hello"],
+        [:push, "Hello"],
+        [:unshift, "World"],
+        [:replace, ["A", "B"]],
+        [:[]=, 1, "Set"],
+        [:delete, "first"],
+        [:delete_at, 0],
+      ].each do |method, *args|
+        cookie1 = CGI::Cookie.new("test-cookie", "first", "second")
+        cookie2 = CGI::Cookie.new("test-cookie", "first", "second")
+        cookie1.send(method, *args)
+        cookie2.value.send(method, *args)
+        fail << method unless cookie1.value == cookie2.value
+      end
+      fail.should be_empty
+    end
+  end
 end
 
 describe "CGI::Cookie#value=" do

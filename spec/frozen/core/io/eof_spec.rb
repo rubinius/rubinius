@@ -48,9 +48,18 @@ describe "IO#eof?" do
     @file.eof?.should == false
   end
 
-  it "should not consume the data from the stream" do
-    @file.eof?.should == false
-    @file.getc.should == 86
+  ruby_version_is ""..."1.9" do
+    it "should not consume the data from the stream" do
+      @file.eof?.should == false
+      @file.getc.should == 86
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "should not consume the data from the stream" do
+      @file.eof?.should == false
+      @file.getc.should == 'V'
+    end
   end
 
   it "raises IOError on closed stream" do

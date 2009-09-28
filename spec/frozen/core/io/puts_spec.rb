@@ -59,6 +59,12 @@ describe "IO#puts" do
     @io.should_receive(:write).with("\n").exactly(3).times
     @io.puts([1, 2, [3]]).should == nil
   end
+
+  it "writes nothing for an empty array" do
+    x = []
+    @io.should_receive(:write).exactly(0).times
+    @io.puts(x).should == nil
+  end
   
   it "writes [...] for a recursive array arg" do
     x = []

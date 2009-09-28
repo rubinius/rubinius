@@ -75,7 +75,10 @@ describe "Hash#[]" do
     x = mock('0')
     x.should_receive(:hash).and_return(0)
 
-    new_hash[x].should == nil
+    h = new_hash
+    # 1.9 only calls #hash if the hash had at least one entry beforehand.
+    h[:foo] = :bar
+    h[x].should == nil
   end
 
   it "does not compare key with unknown hash codes via eql?" do

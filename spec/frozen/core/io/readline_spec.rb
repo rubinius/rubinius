@@ -32,12 +32,21 @@ describe "IO#readline" do
   it "raises EOFError on end of stream" do
     testfile = File.dirname(__FILE__) + '/fixtures/gets.txt'
     File.open(testfile, 'r') do |f|
-      lambda { loop { f.readline } }.should raise_error(EOFError)
+      lambda { while true; f.readline; end }.should raise_error(EOFError)
     end
 
   end
 
   it "raises IOError on closed stream" do
     lambda { IOSpecs.closed_file.readline }.should raise_error(IOError)
+  end
+
+  it "assigns the returned line to $_" do
+    File.open(IOSpecs.gets_fixtures, 'r') do |f|
+      IOSpecs.lines.each do |line|
+        f.readline
+        $_.should == line
+      end
+    end
   end
 end

@@ -32,9 +32,23 @@ describe "Bignum#divmod" do
     lambda { (-@bignum).divmod(0) }.should raise_error(ZeroDivisionError)
   end
 
-  it "raises a FloatDomainError when the given argument is 0 and a Float" do
-    lambda { @bignum.divmod(0.0) }.should raise_error(FloatDomainError)
-    lambda { (-@bignum).divmod(0.0) }.should raise_error(FloatDomainError)
+  # Behaviour established as correct in r23953
+  it "raises a FloatDomainError if other is NaN" do
+    lambda { @bignum.divmod(nan_value) }.should raise_error(FloatDomainError)
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "raises a FloatDomainError when the given argument is 0 and a Float" do
+      lambda { @bignum.divmod(0.0) }.should raise_error(FloatDomainError)
+      lambda { (-@bignum).divmod(0.0) }.should raise_error(FloatDomainError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a ZeroDivisionError when the given argument is 0 and a Float" do
+      lambda { @bignum.divmod(0.0) }.should raise_error(ZeroDivisionError)
+      lambda { (-@bignum).divmod(0.0) }.should raise_error(ZeroDivisionError)
+    end
   end
 
   it "raises a TypeError when the given argument is not an Integer" do

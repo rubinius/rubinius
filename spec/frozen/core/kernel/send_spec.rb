@@ -1,102 +1,68 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/shared/send'
 
 describe "Kernel#send" do
-  it "invokes the named method" do
+  it "invokes the named public method" do
     class KernelSpecs::Foo
       def bar
         'done'
-      end
-
-      private
-      def bar2
-        'done2'
       end
     end
     KernelSpecs::Foo.new.send(:bar).should == 'done'
-    KernelSpecs::Foo.new.send(:bar2).should == 'done2'
   end
 
-  it "invokes a class method if called on a class" do
+  it "invokes the named alias of a public method" do
     class KernelSpecs::Foo
-      def self.bar
-        'done'
-      end
-    end
-    KernelSpecs::Foo.send(:bar).should == 'done'
-  end
-
-  it "raises a NoMethodError if the corresponding method can't be found" do
-    class KernelSpecs::Foo
+      alias :aka :bar
       def bar
         'done'
       end
     end
-    lambda { KernelSpecs::Foo.new.send(:baz) }.should raise_error(NameError)
+    KernelSpecs::Foo.new.send(:aka).should == 'done'
   end
 
-  it "raises a NoMethodError if the corresponding singleton method can't be found" do
+  it "invokes the named protected method" do
     class KernelSpecs::Foo
-      def self.bar
+      protected
+      def bar
         'done'
       end
     end
-    lambda { KernelSpecs::Foo.send(:baz) }.should raise_error(NameError)
+    KernelSpecs::Foo.new.send(:bar).should == 'done'
   end
 
-  it "raises an ArgumentError if called with more arguments than available parameters" do
+  it "invokes the named private method" do
     class KernelSpecs::Foo
-      def bar; end
+      private
+      def bar
+        'done2'
+      end
     end
-
-    lambda { KernelSpecs::Foo.new.send(:bar, :arg) }.should raise_error(ArgumentError)
+    KernelSpecs::Foo.new.send(:bar).should == 'done2'
   end
 
-  it "raises an ArgumentError if called with fewer arguments than required parameters" do
+  it "invokes the named alias of a private method" do
     class KernelSpecs::Foo
-      def foo(arg); end
+      alias :aka :bar
+      private
+      def bar
+        'done2'
+      end
     end
-
-    lambda { KernelSpecs::Foo.new.send(:foo) }.should raise_error(ArgumentError)
+    KernelSpecs::Foo.new.send(:aka).should == 'done2'
   end
 
-  it "succeeds if passed an arbitrary number of arguments as a splat parameter" do
+  it "invokes the named alias of a protected method" do
     class KernelSpecs::Foo
-      def baz(*args) args end
+      alias :aka :bar
+      protected
+      def bar
+        'done2'
+      end
     end
-
-    begin
-      KernelSpecs::Foo.new.send(:baz).should == []
-      KernelSpecs::Foo.new.send(:baz, :quux).should == [:quux]
-      KernelSpecs::Foo.new.send(:baz, :quux, :foo).should == [:quux, :foo]
-    rescue
-      fail
-    end
+    KernelSpecs::Foo.new.send(:aka).should == 'done2'
   end
 
-  it "succeeds when passing 1 or more arguments as a required and a splat parameter" do
-    class KernelSpecs::Foo
-      def foo(first, *rest) [first, *rest] end
-    end
-
-    begin
-      KernelSpecs::Foo.new.send(:baz, :quux).should == [:quux]
-      KernelSpecs::Foo.new.send(:baz, :quux, :foo).should == [:quux, :foo]
-    rescue
-      fail
-    end
-  end
-
-  it "succeeds when passing 0 arguments to a method with one parameter with a default" do
-    class KernelSpecs::Foo
-      def foo(first = true) first end
-    end
-
-    begin
-      KernelSpecs::Foo.new.send(:foo).should == true
-      KernelSpecs::Foo.new.send(:foo, :arg).should == :arg
-    rescue
-      fail
-    end
-  end
+  it_behaves_like(:kernel_send, :send)
 end

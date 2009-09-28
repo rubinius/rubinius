@@ -11,6 +11,15 @@ describe :dir_delete, :shared => true do
     Dir.send(@method, DirSpecs.mock_rmdir("empty")).should == 0
   end
 
+  ruby_version_is "1.9" do
+    it "calls #to_path on non-String arguments" do
+      DirSpecs.rmdir_dirs
+      p = mock('path')
+      p.should_receive(:to_path).and_return(DirSpecs.mock_rmdir("empty"))
+      Dir.send(@method, p)
+    end
+  end
+
   it "raises a SystemCallError when trying to remove a nonempty directory" do
     lambda do
       Dir.send @method, DirSpecs.mock_rmdir("nonempty")

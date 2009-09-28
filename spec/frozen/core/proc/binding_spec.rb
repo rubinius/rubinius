@@ -7,7 +7,7 @@ describe "Proc#binding" do
     }
   end
 
-  it "returns the binding associated wiht self" do
+  it "returns the binding associated with self" do
     obj = mock('binding')
     def obj.test_binding(some, params)
       lambda {}

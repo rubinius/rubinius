@@ -14,4 +14,12 @@ describe "Enumerable#sort_by" do
     ar = [a, b].sort_by { |d| d.s }
     ar.should == [b, a]
   end
+
+  ruby_version_is "1.8.7" do
+    it "returns an Enumerator when a block is not supplied" do
+      a = EnumerableSpecs::Numerous.new("a","b")
+      a.sort_by.should be_an_instance_of(enumerator_class)
+      a.to_a.should == ["a", "b"]
+    end
+  end
 end

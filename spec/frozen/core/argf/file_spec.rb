@@ -7,7 +7,7 @@ describe "ARGF.file" do
   end
 
   after :each do
-    ARGF.close
+    ARGF.close unless ARGF.closed?
   end
 
   # NOTE: this test assumes that fixtures files have two lines each

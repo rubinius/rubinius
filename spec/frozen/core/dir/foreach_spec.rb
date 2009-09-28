@@ -16,6 +16,14 @@ describe "Dir.foreach" do
     Dir.foreach(DirSpecs.mock_dir) {|f| f}.should == nil
   end
 
+  ruby_version_is "1.9" do
+    it "calls #to_path on non-String arguments" do
+      p = mock('path')
+      p.should_receive(:to_path).and_return(DirSpecs.mock_dir)
+      Dir.foreach(p).to_a
+    end
+  end
+
   it "raises a SystemCallError if passed a nonexistent directory" do
     lambda { Dir.foreach(DirSpecs.nonexistent) {} }.should raise_error(SystemCallError)
   end

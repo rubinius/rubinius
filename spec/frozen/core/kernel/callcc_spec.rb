@@ -1,6 +1,10 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
+ruby_version_is "1.9" do
+  require 'continuation'
+end
+
 describe "Kernel#callcc" do
   it "is a private method" do
     Kernel.should have_private_instance_method(:callcc)
@@ -20,9 +24,10 @@ describe "Kernel#callcc" do
   it "is possible to call a continuation multiple times" do
     i = 0
     cont = nil
-    Kernel.callcc {|cont|}
+    @cont = nil
+    Kernel.callcc {|cont| @cont = cont}
     i += 1
-    cont.call() if i < 5
+    @cont.call() if i < 5
     i.should == 5
   end
 
@@ -34,8 +39,9 @@ describe "Kernel#callcc" do
 
   it "returns the results of continuation once called" do
     cont = nil
-    a = callcc {|cont| 0}
-    cont.call(1) if a == 0
+    @cont = nil
+    a = callcc {|cont| @cont = cont; 0}
+    @cont.call(1) if a == 0
     a.should == 1
   end
 

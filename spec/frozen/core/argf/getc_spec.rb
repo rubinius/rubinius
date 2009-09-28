@@ -12,7 +12,7 @@ describe "ARGF.getc" do
   end
 
   after :each do
-    ARGF.close
+    ARGF.close unless ARGF.closed?
   end
 
   it "returns nil when end of stream reached" do

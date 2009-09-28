@@ -1,10 +1,11 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
-require 'enumerator'
+require File.dirname(__FILE__) + '/../../fixtures/enumerator/classes'
 
-describe "Enumerator#enum_slice" do
-  ruby_version_is ''...'1.9' do
-    it "returns an enumerator of the receiver with iteration of each_slice for each slice of n elements" do
+ruby_version_is ""..."1.9" do
+require 'enumerator'
+  
+  describe "Enumerator#enum_slice" do
+    it "returns an enumerator of the receiver with iteration of each_slice for each slice of n elemts" do
       a = []
       enum = EnumSpecs::Numerous.new.enum_slice(4)
       enum.should be_kind_of(enumerator_class)

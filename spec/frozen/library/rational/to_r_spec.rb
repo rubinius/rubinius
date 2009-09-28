@@ -1,14 +1,7 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require 'rational'
+require File.dirname(__FILE__) + '/../../shared/rational/to_r'
 
-describe "Rational#to_r" do
-  conflicts_with :Prime do
-    it "returns self" do
-      a = Rational(3, 4)
-      a.to_r.should equal(a)
-
-      a = Rational(bignum_value, 4)
-      a.to_r.should equal(a)
-    end
+ruby_version_is ""..."1.9" do
+  describe "Rational#to_r" do
+    it_behaves_like(:rational_to_r, :to_r)
   end
 end

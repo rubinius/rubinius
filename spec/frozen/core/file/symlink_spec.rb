@@ -28,6 +28,13 @@ describe "File.symlink" do
       File.symlink?(@link).should == true
     end
 
+    ruby_version_is "1.9" do
+      it "accepts args that have #to_path methods" do
+        File.symlink(mock_to_path(@file), mock_to_path(@link))
+        File.symlink?(@link).should == true
+      end
+    end
+
     it "raises an Errno::EEXIST if the target already exists" do
       File.symlink(@file, @link)
       lambda { File.symlink(@file, @link) }.should raise_error(Errno::EEXIST)

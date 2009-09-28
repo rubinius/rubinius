@@ -6,7 +6,7 @@ describe "The retry statement" do
   end
 
   # block retry has been officially deprecated by matz and is unsupported in 1.9
-  not_compliant_on :rubinius do
+  not_compliant_on :rubinius, :jruby do
     it "re-executes the entire enumeration" do
       list = []
       [1,2,3].each do |x|

@@ -60,6 +60,10 @@ describe :io_new, :shared => true do
     lambda { IO.send(@method, Object.new, 'r') }.should raise_error(TypeError)
   end
 
+  it "raises ArgumentError if not given any arguments" do
+    lambda { IO.send(@method, IO.new) }.should raise_error(ArgumentError)
+  end
+
   it "raises EBADF if the file descriptor given is not a valid and open one" do
     lambda { IO.send(@method, -2, 'r') }.should raise_error(Errno::EBADF)
 
@@ -68,22 +72,12 @@ describe :io_new, :shared => true do
     lambda { IO.send(@method, fd, 'w') }.should raise_error(Errno::EBADF)
   end
 
-  ruby_version_is "" ... "1.9" do
-    it "raises EINVAL if mode is not compatible with the descriptor's current mode" do
-      lambda { IO.send(@method, @file.fileno, 'r') }.
-        should raise_error(Errno::EINVAL)
-      lambda { io = IO.send(@method, @file.fileno, 'w'); io.close }.
-        should_not raise_error
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "does not raise EINVAL even if mode is not compatible with the descriptor's current mode" do
-      lambda { IO.send(@method, @file.fileno, 'r') }.
-        should_not raise_error(Errno::EINVAL)
-      lambda { io = IO.send(@method, @file.fileno, 'w'); io.close }.
-        should_not raise_error
-    end
+  # (1.9 behaviour verified as correct in bug #1582)
+  it "raises EINVAL if mode is not compatible with the descriptor's current mode" do
+    lambda { IO.send(@method, @file.fileno, 'r') }.
+      should raise_error(Errno::EINVAL)
+    lambda { io = IO.send(@method, @file.fileno, 'w'); io.close }.
+      should_not raise_error
   end
 
   it "raises IOError on closed stream" do
@@ -119,15 +113,8 @@ describe :io_new, :shared => true do
     io.close
   end
 
-  ruby_version_is "" ... "1.9" do
-    it "cannot open an IO with incompatible flags" do
-      lambda { IO.new(@file.fileno, "r") }.should raise_error
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "can open an IO with incompatible flags" do
-      lambda { IO.new(@file.fileno, "r") }.should_not raise_error
-    end
+  # (1.9 behaviour verified as correct in bug #1582)
+  it "cannot open an IO with incompatible flags" do
+    lambda { IO.new(@file.fileno, "r") }.should raise_error(Errno::EINVAL)
   end
 end

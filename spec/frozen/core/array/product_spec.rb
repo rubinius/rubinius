@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#product" do
   ruby_version_is "1.9" do
-    it "returns convert arguments using :to_ary" do
+    it "returns converted arguments using :to_ary" do
       lambda{ [1].product(2..3) }.should raise_error(TypeError)
       ar = ArraySpecs::ArrayConvertable.new(2,3)
       [1].product(ar).should == [[1,2],[1,3]]

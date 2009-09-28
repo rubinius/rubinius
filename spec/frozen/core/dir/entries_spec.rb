@@ -11,6 +11,14 @@ describe "Dir.entries" do
     a.should == %w|. .. .dotfile.ext directory|
   end
   
+  ruby_version_is "1.9" do
+    it "calls #to_path on non-String arguments" do
+      p = mock('path')
+      p.should_receive(:to_path).and_return(DirSpecs.mock_dir)
+      Dir.entries(p)
+    end
+  end
+
   it "raises a SystemCallError if called with a nonexistent diretory" do
     lambda { Dir.entries DirSpecs.nonexistent }.should raise_error(SystemCallError)
   end

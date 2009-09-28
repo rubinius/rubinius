@@ -41,24 +41,17 @@ describe "Kernel.throw" do
     res.should == :return_value
   end
 
-  it "raises NameError if there is no catch block for the symbol" do
-    proc {
-      throw :blah
-    }.should raise_error(NameError) { |error|
-      # TODO:
-      # See: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/17629
-      #
-      # The ruby docs are not clear whether NameError#name should
-      # retrun String or Symbol. Well, the docs state the *String*
-      # should be returned, but the actual MRI behavior is to return Symbol.
-      # And in MRI 1.9, even different Exception raised altogether.
+  ruby_version_is ""..."1.9" do
+    it "raises a NameError if there is no catch block for the symbol" do
+      lambda { throw :blah }.should raise_error(NameError)
+    end
+  end  
 
-      # So, instead of checking that error.name == :blah, we perform
-      # more generic test, suitable for different implementations
-      # (like JRuby, since JRuby follows the ruby-doc, and returns String).
-      error.name.to_s.should == "blah"
-    }
-  end
+  ruby_version_is "1.9" do
+    it "raises an ArgumentError if there is no catch block for the symbol" do
+      lambda { throw :blah }.should raise_error(ArgumentError)
+    end
+  end  
 
   it "raises ArgumentError if 3 or more arguments provided" do
     lambda {
@@ -74,14 +67,26 @@ describe "Kernel.throw" do
     }.should raise_error(ArgumentError)
   end
 
-  it "raises TypeError if the first argument is not a symbol" do
-    lambda {
-      catch :blah do
-        throw Object.new
-      end
-    }.should raise_error(TypeError)
+  ruby_version_is ""..."1.9" do
+    it "raises TypeError if the first argument is not a symbol" do
+      lambda {
+        catch :blah do
+          throw Object.new
+        end
+      }.should raise_error(TypeError)
+    end
   end
 
+  ruby_version_is "1.9" do
+    it "can throw an object" do
+      lambda {
+        obj = Object.new
+        catch obj do
+          throw obj
+        end
+      }.should_not raise_error(NameError)
+    end
+  end
 end
 
 describe "Kernel#throw" do

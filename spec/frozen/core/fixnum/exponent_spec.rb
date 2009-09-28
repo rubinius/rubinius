@@ -13,10 +13,18 @@ describe "Fixnum#**" do
   end
 
   conflicts_with :Rational do
-    ruby_bug "ruby-dev:32084", "1.8.6.138" do
-      it "returns Infinity for 0**-1" do
-        (0**-1).should be_kind_of(Float)
-        (0**-1).infinite?.should == 1
+    ruby_version_is ""..."1.9" do
+      ruby_bug "ruby-dev:32084", "1.8.6.138" do
+        it "returns Infinity for 0**-1" do
+          (0**-1).should be_kind_of(Float)
+          (0**-1).infinite?.should == 1
+        end
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "raises a ZeroDivisionError for 0**-1" do
+        lambda { (0**-1) }.should raise_error(ZeroDivisionError)
       end
     end
 

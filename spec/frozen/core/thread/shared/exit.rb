@@ -74,13 +74,15 @@ describe :thread_exit, :shared => true do
     thread.join
     ScratchPad.recorded.should == nil
   end
-  
-  it "killing dying sleeping thread wakes up thread" do
-    t = ThreadSpecs.dying_thread_ensures { Thread.stop; ScratchPad.record :after_stop }
-    Thread.pass while t.status and t.status != "sleep"
-    t.send(@method)
-    t.join
-    ScratchPad.recorded.should == :after_stop
+ 
+  ruby_version_is "" ... "1.9" do 
+    it "killing dying sleeping thread wakes up thread" do
+      t = ThreadSpecs.dying_thread_ensures { Thread.stop; ScratchPad.record :after_stop }
+      Thread.pass while t.status and t.status != "sleep"
+      t.send(@method)
+      t.join
+      ScratchPad.recorded.should == :after_stop
+    end
   end
   
   it "killing dying running does nothing" do
@@ -98,22 +100,25 @@ describe :thread_exit, :shared => true do
     t.join
     ScratchPad.recorded.should == :after_stop
   end
-  
-  it "propogates inner exception to Thread.join if there is an outer ensure clause" do
-    thread = ThreadSpecs.dying_thread_with_outer_ensure(@method) { }
-    lambda { thread.join }.should raise_error(RuntimeError, "In dying thread")
+
+  quarantine! do
+
+    it "propogates inner exception to Thread.join if there is an outer ensure clause" do
+      thread = ThreadSpecs.dying_thread_with_outer_ensure(@method) { }
+      lambda { thread.join }.should raise_error(RuntimeError, "In dying thread")
+    end
+
+    it "runs all outer ensure clauses even if inner ensure clause raises exception" do
+      thread = ThreadSpecs.join_dying_thread_with_outer_ensure(@method) { ScratchPad.record :in_outer_ensure_clause }
+      ScratchPad.recorded.should == :in_outer_ensure_clause
+    end
+
+    it "sets $! in outer ensure clause if inner ensure clause raises exception" do
+      thread = ThreadSpecs.join_dying_thread_with_outer_ensure(@method) { ScratchPad.record $! }
+      ScratchPad.recorded.to_s.should == "In dying thread"
+    end
   end
-  
-  it "runs all outer ensure clauses even if inner ensure clause raises exception" do
-    thread = ThreadSpecs.join_dying_thread_with_outer_ensure(@method) { ScratchPad.record :in_outer_ensure_clause }
-    ScratchPad.recorded.should == :in_outer_ensure_clause
-  end
-  
-  it "sets $! in outer ensure clause if inner ensure clause raises exception" do
-    thread = ThreadSpecs.join_dying_thread_with_outer_ensure(@method) { ScratchPad.record $! }
-    ScratchPad.recorded.to_s.should == "In dying thread"
-  end
-  
+
   it "can be rescued by outer rescue clause when inner ensure clause raises exception" do
     thread = Thread.new do
       begin

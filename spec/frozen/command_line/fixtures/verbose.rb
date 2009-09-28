@@ -1,1 +1,1 @@
-puts $VERBOSE
+puts $VERBOSE.inspect

@@ -57,7 +57,7 @@ describe "The super keyword" do
     Super::S4::B.new.foo([],"test").should == ["B#foo(a,test)", "A#foo"]
   end
 
-  ruby_bug "#1151 [ruby-core:22040]", "1.8.6" do
+  ruby_bug "#1151 [ruby-core:22040]", "1.8.7.174" do
     it "raises an error error when super method does not exist" do
       sup = Class.new
       sub_normal = Class.new(sup) do

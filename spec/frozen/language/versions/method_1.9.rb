@@ -29,6 +29,11 @@ describe "Calling a method" do
     fooP1O1RQ0B(1, 2, 3, 4) { |z| z }.should == [1, 2, [3, 4], 5]
   end
 
+  it "works with vestigial trailing ',' in call" do
+    def fooP1Q0(a); [a]; end
+    fooP1Q0(1,).should == [1]
+  end
+
 #   it "with lambda as block argument is ok" do
 #     def foo(a,&b); [a,yield(b)] end
 

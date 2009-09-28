@@ -30,8 +30,10 @@ describe "Thread#status" do
     ThreadSpecs.status_of_thread_with_uncaught_exception.status.should == nil
   end
 
-  it "describes a dying running thread" do
-    ThreadSpecs.status_of_dying_running_thread.status.should == 'aborting'
+  ruby_version_is ""..."1.9" do
+    it "describes a dying running thread" do
+      ThreadSpecs.status_of_dying_running_thread.status.should == 'aborting'
+    end
   end
 
   it "describes a dying sleeping thread" do

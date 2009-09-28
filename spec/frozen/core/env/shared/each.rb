@@ -25,4 +25,13 @@ describe :env_each, :shared => true do
       ENV.send(@method).should be_kind_of(enumerator_class)
     end
   end
+
+  ruby_version_is "1.9" do
+    it "uses the locale encoding" do
+      ENV.send(@method) do |key, value|
+        key.encoding.should == Encoding.find('locale')
+        value.encoding.should == Encoding.find('locale')
+      end
+    end
+  end
 end

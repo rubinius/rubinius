@@ -37,11 +37,22 @@ describe "Kernel#extend" do
     (C.kind_of? KernelSpecs::M).should == true
   end
 
-  it "raises a TypeError if self is frozen" do
-    module KernelSpecs::Mod; end
-    o = mock('o')
-    o.freeze
-    lambda { o.extend KernelSpecs::Mod }.should raise_error(TypeError)
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError if self is frozen" do
+      module KernelSpecs::Mod; end
+      o = mock('o')
+      o.freeze
+      lambda { o.extend KernelSpecs::Mod }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError if self is frozen" do
+      module KernelSpecs::Mod; end
+      o = mock('o')
+      o.freeze
+      lambda { o.extend KernelSpecs::Mod }.should raise_error(RuntimeError)
+    end
   end
 end
 

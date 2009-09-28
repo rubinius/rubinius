@@ -2,12 +2,20 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'timeout'
 
 describe "Timeout.timeout" do
-  it "raises Timeout::Error when it times out" do
+  it "raises Timeout::Error when it times out with no specified error type" do
     lambda {
       Timeout::timeout(1) do
         sleep 3
       end
     }.should raise_error(Timeout::Error)
+  end
+
+  it "raises specified error type when it times out" do
+    lambda do
+      Timeout.timeout(0.1, StandardError) do
+        sleep 1
+      end
+    end.should raise_error(StandardError)
   end
   
   it "does not wait too long" do

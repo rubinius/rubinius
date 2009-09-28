@@ -113,8 +113,23 @@ describe "String#[]= with String" do
     lambda { str[-20] = "bam" }.should raise_error(IndexError)
     str.should == "hello"
 
-    lambda { ""[0] = "bam"  }.should raise_error(IndexError)
     lambda { ""[-1] = "bam" }.should raise_error(IndexError)
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "raises an IndexError when setting the zero'th element of an empty String" do
+      lambda { ""[0] = "bam"  }.should raise_error(IndexError)
+    end
+  end
+
+  # Behaviour verfieid correct by matz in
+  # http://redmine.ruby-lang.org/issues/show/1750
+  ruby_version_is "1.9" do
+    it "allows assignment to the zero'th element of an empty String" do
+      str = ""
+      str[0] = "bam"
+      str.should == "bam"
+    end
   end
 
   it "raises IndexError if the string index doesn't match a position in the string" do

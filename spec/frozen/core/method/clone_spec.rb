@@ -7,7 +7,7 @@ describe "Method#clone" do
     m2 = m1.clone
 
     m1.should == m2
-    m1.should_not eql(m2)
+    m1.should_not equal(m2)
 
     m1.call.should == m2.call
   end

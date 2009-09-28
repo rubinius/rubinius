@@ -81,42 +81,44 @@ describe :regexp_new_string, :shared => true do
     (r.options & Regexp::EXTENDED).should       == 0
   end
 
-  it "does not enable multibyte support by default" do
-    r = Regexp.send @method, 'Hi', true
-    r.kcode.should_not == 'euc'
-    r.kcode.should_not == 'sjis'
-    r.kcode.should_not == 'utf8'
-  end
+  ruby_version_is ""..."1.9" do
+    it "does not enable multibyte support by default" do
+      r = Regexp.send @method, 'Hi', true
+      r.kcode.should_not == 'euc'
+      r.kcode.should_not == 'sjis'
+      r.kcode.should_not == 'utf8'
+    end
 
-  it "enables EUC encoding if third argument is 'e' or 'euc' (case-insensitive)" do
-    Regexp.send(@method, 'Hi', nil, 'e').kcode.should     == 'euc'
-    Regexp.send(@method, 'Hi', nil, 'E').kcode.should     == 'euc'
-    Regexp.send(@method, 'Hi', nil, 'euc').kcode.should   == 'euc'
-    Regexp.send(@method, 'Hi', nil, 'EUC').kcode.should   == 'euc'
-    Regexp.send(@method, 'Hi', nil, 'EuC').kcode.should   == 'euc'
-  end
+    it "enables EUC encoding if third argument is 'e' or 'euc' (case-insensitive)" do
+      Regexp.send(@method, 'Hi', nil, 'e').kcode.should     == 'euc'
+      Regexp.send(@method, 'Hi', nil, 'E').kcode.should     == 'euc'
+      Regexp.send(@method, 'Hi', nil, 'euc').kcode.should   == 'euc'
+      Regexp.send(@method, 'Hi', nil, 'EUC').kcode.should   == 'euc'
+      Regexp.send(@method, 'Hi', nil, 'EuC').kcode.should   == 'euc'
+    end
 
-  it "enables SJIS encoding if third argument is 's' or 'sjis' (case-insensitive)" do
-    Regexp.send(@method, 'Hi', nil, 's').kcode.should     == 'sjis'
-    Regexp.send(@method, 'Hi', nil, 'S').kcode.should     == 'sjis'
-    Regexp.send(@method, 'Hi', nil, 'sjis').kcode.should  == 'sjis'
-    Regexp.send(@method, 'Hi', nil, 'SJIS').kcode.should  == 'sjis'
-    Regexp.send(@method, 'Hi', nil, 'sJiS').kcode.should  == 'sjis'
-  end
+    it "enables SJIS encoding if third argument is 's' or 'sjis' (case-insensitive)" do
+      Regexp.send(@method, 'Hi', nil, 's').kcode.should     == 'sjis'
+      Regexp.send(@method, 'Hi', nil, 'S').kcode.should     == 'sjis'
+      Regexp.send(@method, 'Hi', nil, 'sjis').kcode.should  == 'sjis'
+      Regexp.send(@method, 'Hi', nil, 'SJIS').kcode.should  == 'sjis'
+      Regexp.send(@method, 'Hi', nil, 'sJiS').kcode.should  == 'sjis'
+    end
 
-  it "enables UTF-8 encoding if third argument is 'u' or 'utf8' (case-insensitive)" do
-    Regexp.send(@method, 'Hi', nil, 'u').kcode.should     == 'utf8'
-    Regexp.send(@method, 'Hi', nil, 'U').kcode.should     == 'utf8'
-    Regexp.send(@method, 'Hi', nil, 'utf8').kcode.should  == 'utf8'
-    Regexp.send(@method, 'Hi', nil, 'UTF8').kcode.should  == 'utf8'
-    Regexp.send(@method, 'Hi', nil, 'uTf8').kcode.should  == 'utf8'
-  end
+    it "enables UTF-8 encoding if third argument is 'u' or 'utf8' (case-insensitive)" do
+      Regexp.send(@method, 'Hi', nil, 'u').kcode.should     == 'utf8'
+      Regexp.send(@method, 'Hi', nil, 'U').kcode.should     == 'utf8'
+      Regexp.send(@method, 'Hi', nil, 'utf8').kcode.should  == 'utf8'
+      Regexp.send(@method, 'Hi', nil, 'UTF8').kcode.should  == 'utf8'
+      Regexp.send(@method, 'Hi', nil, 'uTf8').kcode.should  == 'utf8'
+    end
 
-  it "disables multibyte support if third argument is 'n' or 'none' (case insensitive)" do
-    Regexp.send(@method, 'Hi', nil, 'N').kcode.should == 'none'
-    Regexp.send(@method, 'Hi', nil, 'n').kcode.should == 'none'
-    Regexp.send(@method, 'Hi', nil, 'nONE').kcode.should == 'none'
-  end
+    it "disables multibyte support if third argument is 'n' or 'none' (case insensitive)" do
+      Regexp.send(@method, 'Hi', nil, 'N').kcode.should == 'none'
+      Regexp.send(@method, 'Hi', nil, 'n').kcode.should == 'none'
+      Regexp.send(@method, 'Hi', nil, 'nONE').kcode.should == 'none'
+    end
+  end    
 end
 
 describe :regexp_new_regexp, :shared => true do
@@ -145,17 +147,28 @@ describe :regexp_new_regexp, :shared => true do
     (r.options & Regexp::IGNORECASE).should == 0
   end
 
-  it "does not enable multibyte support by default" do
-    r = Regexp.send @method, /Hi/
-    r.kcode.should_not == 'euc'
-    r.kcode.should_not == 'sjis'
-    r.kcode.should_not == 'utf8'
+  ruby_version_is ""..."1.9" do
+    it "does not enable multibyte support by default" do
+      r = Regexp.send @method, /Hi/
+      r.kcode.should_not == 'euc'
+      r.kcode.should_not == 'sjis'
+      r.kcode.should_not == 'utf8'
+    end
+
+    it "enables multibyte support if given in the literal" do
+      Regexp.send(@method, /Hi/u).kcode.should == 'utf8'
+      Regexp.send(@method, /Hi/e).kcode.should == 'euc'
+      Regexp.send(@method, /Hi/s).kcode.should == 'sjis'
+      Regexp.send(@method, /Hi/n).kcode.should == 'none'
+    end
   end
 
-  it "enables multibyte support if given in the literal" do
-    Regexp.send(@method, /Hi/u).kcode.should == 'utf8'
-    Regexp.send(@method, /Hi/e).kcode.should == 'euc'
-    Regexp.send(@method, /Hi/s).kcode.should == 'sjis'
-    Regexp.send(@method, /Hi/n).kcode.should == 'none'
+  ruby_version_is "1.9" do
+    it "enables multibyte support if given in the literal" do
+      Regexp.send(@method, /Hi/u).encoding.inspect.should == "#<Encoding:UTF-8>"
+      Regexp.send(@method, /Hi/e).encoding.inspect.should == "#<Encoding:EUC-JP>"
+      Regexp.send(@method, /Hi/s).encoding.inspect.should == "#<Encoding:Windows-31J>"
+      Regexp.send(@method, /Hi/n).encoding.inspect.should == "#<Encoding:US-ASCII>"
+    end
   end
 end

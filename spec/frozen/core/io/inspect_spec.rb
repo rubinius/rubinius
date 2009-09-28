@@ -14,6 +14,6 @@ describe "IO#inspect" do
   it "returns a string describing a stream" do
     # don't hardcode the tmp path 
     @file.inspect.should =~ /#<File.*inspect_spec>/
-    IO.new(@file.to_i).inspect.should =~ /<IO:[\w\d]+>/
+    IO.new(@file.to_i).inspect.should =~ /<IO:[\w\s?\d]+>/
   end
 end

@@ -12,7 +12,7 @@ describe "ARGF.readchar" do
   end
 
   after :each do
-    ARGF.close
+    ARGF.close unless ARGF.closed?
   end
 
   it "raises EOFError when end of stream reached" do

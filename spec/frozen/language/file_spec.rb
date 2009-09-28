@@ -11,15 +11,28 @@ describe "The __FILE__ constant" do
     eval("__FILE__").should == "(eval)"
   end
   
-  it "equals a relative path when required using a relative path" do
-    base_path = File.dirname(File.dirname(fixture(__FILE__, "file.rb")))
-    path = "fixtures/file.rb"
-    Dir.chdir(base_path) do
-      require path
-      ScratchPad.recorded.should == File.join(".",path)
+  ruby_version_is ""..."1.8.7" do
+    it "equals a relative path when required using a relative path" do
+      base_path = File.dirname(File.dirname(fixture(__FILE__, "file.rb")))
+      path = "fixtures/file.rb"
+      Dir.chdir(base_path) do
+        require path
+        ScratchPad.recorded.should == File.join(".",path)
+      end
     end
   end
-  
+
+  ruby_version_is "1.8.7" do
+    it "equals an absolute path when required using a relative path" do
+      base_path = File.dirname(File.dirname(fixture(__FILE__, "file.rb")))
+      path = "./fixtures/file.rb"
+      Dir.chdir(base_path) do
+        require path
+        ScratchPad.recorded.should == File.expand_path(path)
+      end
+    end
+  end
+
   it "equals the full path when required using a full path" do
     path = fixture(__FILE__, "file.rb")
     require path

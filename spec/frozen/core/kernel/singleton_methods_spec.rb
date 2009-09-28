@@ -12,6 +12,23 @@ ruby_version_is ""..."1.9" do
       
       KernelSpecs::Methods.new.singleton_methods(false).should == []
     end
+
+    it "returns a list of names of singleton methods in object and superclasses when passed true" do |e|
+      x = Class.new {
+        def self.cls_inherited; end
+      }
+      y = Class.new(x)
+
+      m0 = x.singleton_methods(false)
+      m1 = y.singleton_methods(false)
+      m2 = x.singleton_methods(true)
+      m3 = y.singleton_methods(true)
+
+      m0.should include "cls_inherited"
+      m1.should_not include "cls_inherited"
+      m2.should include "cls_inherited"
+      m3.should include "cls_inherited"
+    end
     
     it "should handle singleton_methods call with and without argument" do
       [1, "string", :symbol, [], {} ].each do |e|
@@ -43,6 +60,23 @@ ruby_version_is "1.9" do
       end
       
       KernelSpecs::Methods.new.singleton_methods(false).should == []
+    end
+    
+    it "returns a list of names of singleton methods in object and superclasses when passed true" do |e|
+      x = Class.new {
+        def self.cls_inherited; end
+      }
+      y = Class.new(x)
+
+      m0 = x.singleton_methods(false)
+      m1 = y.singleton_methods(false)
+      m2 = x.singleton_methods(true)
+      m3 = y.singleton_methods(true)
+
+      m0.should include :cls_inherited
+      m1.should_not include :cls_inherited
+      m2.should include :cls_inherited
+      m3.should include :cls_inherited
     end
     
     it "should handle singleton_methods call with and without argument" do

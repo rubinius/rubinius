@@ -17,4 +17,14 @@ describe "Struct#hash" do
     car.hash.should == similar_car.hash
   end
   
+  ruby_bug "redmine #1852", "1.9.1" do
+    it "returns the same hash for recursive structs" do
+      car = Struct::Car.new("Honda", "Accord", "1998")
+      similar_car = Struct::Car.new("Honda", "Accord", "1998")
+      car[:make] = car
+      similar_car[:make] = car
+      car.hash.should == similar_car.hash
+    end
+  end
+
 end

@@ -45,11 +45,19 @@ describe "Thread#join" do
     t.join.should equal(t)
   end
 
-  # This behavior is highly suspect as "correct"
-  not_compliant_on :rubinius do
-    it "returns the dead thread even if an uncaught exception is thrown from ensure block" do
-      t = ThreadSpecs.dying_thread_ensures { raise "In dying thread" }
-      t.join.should equal(t)
+  ruby_version_is "" ... "1.9" do
+    not_compliant_on :rubinius do
+      it "returns the dead thread even if an uncaught exception is thrown from ensure block" do
+        t = ThreadSpecs.dying_thread_ensures { raise "In dying thread" }
+        t.join.should equal(t)
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises any uncaught exception encountered in ensure block" do
+      t = ThreadSpecs.dying_thread_ensures { raise NotImplementedError.new("Just kidding") }
+      lambda { t.join }.should raise_error(NotImplementedError)
     end
   end
 end

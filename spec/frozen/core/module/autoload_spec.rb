@@ -199,19 +199,47 @@ describe "Module#autoload" do
     ModuleSpecs::Autoload::U::V::X.should == :autoload_uvx
   end
 
-  # [ruby-core:19127]
-  it "raises a NameError when the autoload file did not define the constant and a module is opened with the same name" do
-    lambda do
-      module ModuleSpecs::Autoload
-        class W
-          autoload :Y, fixture(__FILE__, "autoload_w.rb")
+  # TODO: Remove duplicate specs (this one and that which follows it) when ruby_bug is fixed
+  ruby_bug "#1745", "1.9" do
+    # [ruby-core:19127]
+    it "raises a NameError when the autoload file did not define the constant and a module is opened with the same name" do
+      lambda do
+        module ModuleSpecs::Autoload
+          class W
+            autoload :Y, fixture(__FILE__, "autoload_w.rb")
 
-          class Y
+            class Y
+            end
           end
         end
-      end
-    end.should raise_error(NameError)
-    ScratchPad.recorded.should == :loaded
+      end.should raise_error(NameError)
+      ScratchPad.recorded.should == :loaded
+    end
+  end
+
+  ruby_version_is ""..."1.9" do
+    # [ruby-core:19127]
+    it "raises a NameError when the autoload file did not define the constant and a module is opened with the same name" do
+      lambda do
+        module ModuleSpecs::Autoload
+          class W
+            autoload :Y, fixture(__FILE__, "autoload_w.rb")
+
+            class Y
+            end
+          end
+        end
+      end.should raise_error(NameError)
+      ScratchPad.recorded.should == :loaded
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "calls #to_path on non-string filenames" do
+      p = mock('path')
+      p.should_receive(:to_path).and_return @non_existent
+      ModuleSpecs.autoload :A, p
+    end
   end
 
   it "raises an ArgumentError when an empty filename is given" do
@@ -256,12 +284,29 @@ describe "Module#autoload" do
     end.should raise_error(TypeError)
   end
 
-  it "raises a TypeError if not passed a String for the filename" do
-    name = mock("autoload_name.rb")
-    name.stub!(:to_s).and_return("autoload_name.rb")
-    name.stub!(:to_str).and_return("autoload_name.rb")
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError if not passed a String for the filename" do
+      name = mock("autoload_name.rb")
+      name.stub!(:to_s).and_return("autoload_name.rb")
+      name.stub!(:to_str).and_return("autoload_name.rb")
 
-    lambda { ModuleSpecs::Autoload.autoload :Str, name }.should raise_error(TypeError)
+      lambda { ModuleSpecs::Autoload.autoload :Str, name }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a TypeError if not passed a String or object respodning to #to_path for the filename" do
+      name = mock("autoload_name.rb")
+
+      lambda { ModuleSpecs::Autoload.autoload :Str, name }.should raise_error(TypeError)
+    end
+
+    it "calls #to_path on non-String filename arguments" do
+      name = mock("autoload_name.rb")
+      name.should_receive(:to_path).and_return("autoload_name.rb")
+
+      lambda { ModuleSpecs::Autoload.autoload :Str, name }.should_not raise_error
+    end
   end
 end
 

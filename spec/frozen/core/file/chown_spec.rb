@@ -61,6 +61,12 @@ as_superuser do
       it "returns the number of files processed" do
         File.chown(nil, nil, @fname, @fname).should == 2
       end
+
+      ruby_version_is "1.9" do
+        it "accepts an object that has a #to_path method" do
+          File.chown(nil, nil, mock_to_path(@fname)).should == 1
+        end
+      end
     end
   end
 

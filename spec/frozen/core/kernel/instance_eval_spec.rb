@@ -10,10 +10,18 @@ describe "Kernel#instance_eval" do
     lambda { "hola".instance_eval(4, 5) { |a,b| a + b } }.should raise_error(ArgumentError)
   end
   
-  it "passes the object to the block" do
-    "hola".instance_eval { |o| o.size }.should == 4
+  ruby_version_is ""..."1.9" do
+    it "passes the object to the block" do
+      "hola".instance_eval { |o| o.size }.should == 4
+    end
   end
   
+  ruby_version_is "1.9" do
+    it "doesn't pass the object to the block" do
+      "hola".instance_eval { |o| o }.should be_nil
+    end
+  end
+
   it "only binds the eval to the receiver" do
     f = Object.new
     f.instance_eval do 
@@ -28,15 +36,19 @@ describe "Kernel#instance_eval" do
   # TODO: This should probably be replaced with a "should behave like" that uses
   # the many scoping/binding specs from kernel/eval_spec, since most of those
   # behaviors are the same for instance_eval. See also module_eval/class_eval.
-  it "shares a scope across sibling evals" do
-    a, b = Object.new, Object.new
+  
+  # Feature removed in 1.9
+  ruby_version_is ""..."1.9" do
+    it "shares a scope across sibling evals" do
+      a, b = Object.new, Object.new
 
-    result = nil
-    a.instance_eval "x = 1"
-    lambda do
-      b.instance_eval "result = x"
-    end.should_not raise_error
-    result.should == 1
+      result = nil
+      a.instance_eval "x = 1"
+      lambda do
+        b.instance_eval "result = x"
+      end.should_not raise_error
+      result.should == 1
+    end
   end
 
   it "binds self to the receiver" do
@@ -75,9 +87,20 @@ describe "Kernel#instance_eval" do
     prc.call(false, prc).should == 1
   end
 
-  it "sets class variables in the receiver" do
-    KernelSpecs::IncludesInstEval.class_variables.should include("@@count")
-    KernelSpecs::IncludesInstEval.send(:class_variable_get, :@@count).should == 2
+  ruby_version_is ""..."1.9" do
+    it "sets class variables in the receiver" do
+      KernelSpecs::IncludesInstEval.class_variables.should include("@@count")
+      KernelSpecs::IncludesInstEval.send(:class_variable_get, :@@count).should == 2
+    end
+  end
+
+  ruby_version_is "1.9" do
+    # On 1.9 class variables aren't inherited so we have to modify the test
+    # from 1.8
+    it "sets class variables in the receiver" do
+      KernelSpecs::InstEvalCVar.class_variables.should include(:@@count)
+      KernelSpecs::InstEvalCVar.send(:class_variable_get, :@@count).should == 2
+    end
   end
 
   it "raises a TypeError when defining methods on an immediate" do

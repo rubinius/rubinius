@@ -108,26 +108,6 @@ describe "Array#[]=" do
     a.should == [1, 2, -1]
   end
 
-  it "sets elements according to a Range, setting nil" do
-    ary = [1, 2, 3]
-    c = nil
-    0.upto(ary.size + 2) do |a|
-      a.upto(ary.size + 3) do |b|
-        ary1 = ary.dup
-        ary1[a .. b] = c
-        ary2 = ary.dup
-        ary2[a, 1 + b-a] = c
-        ary1.should == ary2
-
-        ary1 = ary.dup
-        ary1[a ... b] = c
-        ary2 = ary.dup
-        ary2[a, b-a] = c
-        ary1.should == ary2
-      end
-    end
-  end
-
   it "sets elements in the range arguments when passed ranges" do
     ary = [1, 2, 3]
     rhs = [nil, [], ["x"], ["x", "y"]]

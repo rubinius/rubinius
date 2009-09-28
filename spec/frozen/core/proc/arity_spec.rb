@@ -43,15 +43,31 @@ describe "Proc#arity" do
     proc { |a, b, *c| }.arity.should == -3
   end
   
-  it "returns -1 if no argument declaration is made, using Proc.new" do
-    Proc.new { }.arity.should == -1
+  ruby_version_is ""..."1.9" do
+    it "returns -1 if no argument declaration is made, using Kernel#lambda" do
+      lambda { }.arity.should == -1
+    end
+
+    it "returns -1 if no argument declaration is made, using Kernel#proc" do
+      proc { }.arity.should == -1
+    end
+
+    it "returns -1 if no argument declaration is made, using Proc.new" do
+      Proc.new { }.arity.should == -1
+    end
   end
   
-  it "returns -1 if no argument declaration is made, using Kernel#lambda" do
-    lambda { }.arity.should == -1
-  end
-  
-  it "returns -1 if no argument declaration is made, using Kernel#proc" do
-    proc { }.arity.should == -1
+  ruby_version_is "1.9" do
+    it "returns 0 if no argument declaration is made, using Kernel#lambda" do
+      lambda { }.arity.should == 0
+    end
+
+    it "returns 0 if no argument declaration is made, using Kernel#proc" do
+      proc { }.arity.should == 0
+    end
+
+    it "returns 0 if no argument declaration is made, using Proc.new" do
+      Proc.new { }.arity.should == 0
+    end
   end
 end

@@ -15,13 +15,13 @@ describe "String#upto" do
   end
 
   # This is weird but MRI behaves like that
-  it "upto calls block with self even if self is less than stop but stop length is less than self length" do
+  it "calls block with self even if self is less than stop but stop length is less than self length" do
     a = []
     "25".upto("5") { |s| a << s }
     a.should == ["25"]
   end
 
-  it "upto doesn't call block if stop is less than self and stop length is less than self length" do
+  it "doesn't call block if stop is less than self and stop length is less than self length" do
     a = []
     "25".upto("1") { |s| a << s }
     a.should == []
@@ -76,7 +76,7 @@ describe "String#upto" do
   end
 
   ruby_version_is '1.9' do
-    it "works with symbols to" do
+    it "works with symbols" do
       "a".upto(:c).to_a.should == ["a", "b", "c"]
     end
 

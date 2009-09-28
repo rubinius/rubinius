@@ -8,7 +8,7 @@ describe :argf_getc, :shared => true do
   end
 
   after :each do
-    ARGF.close
+    ARGF.close unless ARGF.closed?
   end
 
   it "reads each char of files" do

@@ -1,7 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "The loop expression" do
-  
   it "repeats the given block until a break is called" do
     outer_loop = 0
     loop do
@@ -10,7 +9,7 @@ describe "The loop expression" do
     end
     outer_loop.should == 10
   end
-  
+
   it "executes code in its own scope" do
     loop do
       inner_loop = 123
@@ -18,13 +17,13 @@ describe "The loop expression" do
     end
     lambda { inner_loop }.should raise_error(NameError)
   end
-  
+
   it "returns the value passed to break if interrupted by break" do
     loop do
       break 123
     end.should == 123
   end
-  
+
   it "returns nil if interrupted by break with no arguments" do
     loop do
       break
@@ -41,14 +40,14 @@ describe "The loop expression" do
     end
     a.should == [1, 2, 4]
   end
-  
+
   it "restarts the current iteration with redo" do
     a = []
     loop do
       a << 1
       redo if a.size < 2
       a << 2
-      break if a.size == 3      
+      break if a.size == 3
     end
     a.should == [1, 1, 2]
   end
@@ -64,5 +63,5 @@ describe "The loop expression" do
       break if a.size > 6
     end
     a.should == [1, 1, 2, 1, 2, 3, 1, 2, 3]
-  end  
+  end
 end

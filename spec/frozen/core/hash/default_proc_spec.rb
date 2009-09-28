@@ -37,7 +37,7 @@ describe "Hash#default_proc=" do
       h.default_proc.call.should == 6
     end
 
-    it "raise an error if passed stuff not convertible to procs" do
+    it "raises an error if passed stuff not convertible to procs" do
       lambda{new_hash.default_proc = nil}.should raise_error(TypeError)
       lambda{new_hash.default_proc = 42}.should raise_error(TypeError)
     end

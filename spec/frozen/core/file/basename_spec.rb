@@ -102,6 +102,12 @@ describe "File.basename" do
     lambda { File.basename(true)         }.should raise_error(TypeError)
   end
 
+  ruby_version_is "1.9" do
+    it "accepts an object that has a #to_path method" do
+      File.basename(mock_to_path("foo.txt"))
+    end
+  end
+
   it "raises an ArgumentError if passed more than two arguments" do
     lambda { File.basename('bar.txt', '.txt', '.txt') }.should raise_error(ArgumentError)
   end

@@ -1,11 +1,12 @@
 describe :enumerable_take, :shared => true do
   before :each do
-    @values = [4,3,2,1]
+    @values = [4,3,2,1,0,-1]
     @enum = EnumerableSpecs::Numerous.new(*@values)
   end
 
   it "returns the first count elements if given a count" do
     @enum.send(@method, 2).should == [4, 3]
+    @enum.send(@method, 4).should == [4, 3, 2, 1] # See redmine #1686 !
   end
 
   it "returns an empty array when passed count on an empty array" do
@@ -28,7 +29,8 @@ describe :enumerable_take, :shared => true do
   end
 
   it "returns the entire array when count > length" do
-    @enum.send(@method, 10).should == @values
+    @enum.send(@method, 100).should == @values
+    @enum.send(@method, 8).should == @values  # See redmine #1686 !
   end
 
   it "tries to convert the passed argument to an Integer using #to_int" do

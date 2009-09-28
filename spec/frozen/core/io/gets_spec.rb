@@ -189,4 +189,30 @@ describe "IO#gets" do
     b.should == "\nB\n"
     File.unlink(tmp("gets_specs"))
   end
+  
+  ruby_version_is "1.9" do
+    it "accepts an integer as first parameter to limit the output's size" do
+      f = File.open(tmp("gets_specs"), "w")
+      f.print("waduswadus")
+      f.close
+      
+      f = File.new(tmp("gets_specs"), "r")
+      b = f.gets(5)
+      b.should == 'wadus'
+      
+      File.unlink(tmp("gets_specs"))
+    end
+    
+    it "accepts an integer as second parameter to limit the output's size" do
+      f = File.open(tmp("gets_specs"), "w")
+      f.print("wa\n\ndus\n\nwadus")
+      f.close
+      
+      f = File.new(tmp("gets_specs"), "r")
+      b = f.gets('\n\n', 5)
+      b.should == "wa\n\nd"
+      
+      File.unlink(tmp("gets_specs"))
+    end
+  end
 end

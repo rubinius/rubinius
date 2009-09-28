@@ -68,5 +68,13 @@ describe "The rescue keyword" do
       end
     end.should raise_error(OtherCustomException)
   end
-  
+
+  ruby_version_is "1.9" do
+    it "parses  'a += b rescue c' as 'a += (b rescue c)'" do
+      a = 'a'
+      c = 'c'
+      a += b rescue c
+      a.should == 'ac'
+    end
+  end
 end

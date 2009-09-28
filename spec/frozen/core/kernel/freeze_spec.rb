@@ -9,6 +9,7 @@ describe "Kernel#freeze" do
     o.frozen?.should == true
   end
 
+  # 1.9 allows immediate's to be frozen; reported as bug #1747
   it "has no effect on immediate values" do
     a = nil
     b = true

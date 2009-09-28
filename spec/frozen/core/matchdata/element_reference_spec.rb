@@ -16,3 +16,5 @@ describe "MatchData#[]" do
     /(.)(.)(\d+)(\d)/.match("THX1138.")[1..3].should == %w|H X 113|
   end
 end
+
+language_version __FILE__, "element_reference"

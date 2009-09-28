@@ -32,6 +32,9 @@ module UnboundMethodSpecs
 
   class Parent
     def foo; end
+    def self.class_method
+      "I am #{name}"
+    end
   end
 
   class Child1 < Parent; end

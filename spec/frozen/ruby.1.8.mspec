@@ -36,6 +36,23 @@ class MSpecScript
   # An ordered list of the directories containing specs to run
   set :files, get(:language) + get(:core) + get(:library)
 
-  # The default implementation to run the specs.
+  # This set of files is run by mspec ci
+  set :ci_files, get(:files)
+
+  # Optional library specs
+  set :ffi, 'optional/ffi'
+
+  # A list of _all_ optional library specs
+  set :optional, [get(:ffi)]
+
+  # The default implementation to run the specs
   set :target, 'ruby'
+
+  set :tags_patterns, [
+                        [%r(language/),     'tags/1.8/language/'],
+                        [%r(core/),         'tags/1.8/core/'],
+                        [%r(command_line/), 'tags/1.8/command_line/'],
+                        [%r(library/),      'tags/1.8/library/'],
+                        [/_spec.rb$/,       '_tags.txt']
+                      ]
 end

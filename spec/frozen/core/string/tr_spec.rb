@@ -1,3 +1,4 @@
+# coding: utf-8
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
@@ -56,6 +57,17 @@ describe "String#tr" do
 
       str.tr("e".taint, "a").tainted?.should == false
       str.tr("e", "a".taint).tainted?.should == false
+    end
+  end
+
+  ruby_version_is "1.9" do
+    # http://redmine.ruby-lang.org/issues/show/1839
+    it "can replace a 7-bit ASCII character with a multibyte one" do
+      a = "uber"
+      a.encoding.should == Encoding::UTF_8
+      b = a.tr("u","ü")
+      b.should == "über"
+      b.encoding.should == Encoding::UTF_8
     end
   end
 end

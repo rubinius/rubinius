@@ -233,17 +233,20 @@ describe "String#sub with pattern and block" do
     offsets.should == [[1, 2]]
   end
 
-  it "restores $~ after leaving the block" do
-    [/./, "l"].each do |pattern|
-      old_md = nil
-      "hello".sub(pattern) do
-        old_md = $~
-        "ok".match(/./)
-        "x"
-      end
+  # The conclusion of bug #1749 was that this example was version-specific...
+  ruby_version_is "".."1.9" do
+    it "restores $~ after leaving the block" do
+      [/./, "l"].each do |pattern|
+        old_md = nil
+        "hello".sub(pattern) do
+          old_md = $~
+          "ok".match(/./)
+          "x"
+        end
 
-      $~.should == old_md
-      $~.string.should == "hello"
+        $~.should == old_md
+        $~.string.should == "hello"
+      end
     end
   end
 

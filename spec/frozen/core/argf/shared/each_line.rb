@@ -8,7 +8,7 @@ describe :argf_each_line, :shared => true do
   end
 
   after :each do
-    ARGF.close
+    ARGF.close unless ARGF.closed?
   end
 
   it "reads each line of files" do
@@ -16,6 +16,14 @@ describe :argf_each_line, :shared => true do
       lines = []
       ARGF.send(@method) { |b| lines << b }
       lines.should == @lines
+    end
+  end
+
+  ruby_bug "#1633", "1.9.2" do
+    it "returns self when passed a block" do
+      argv [@file1_name, @file2_name] do
+        ARGF.send(@method) {}.should equal(ARGF)
+      end
     end
   end
 end

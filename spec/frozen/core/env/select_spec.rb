@@ -2,10 +2,20 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "ENV.select" do
 
-  it "returns the Hash for which block return true" do
-    ENV["foo"] = "bar"
-    ENV.select { |k, v| k == "foo" }.should == [["foo", "bar"]]
-    ENV.delete "foo"
+  ruby_version_is ""..."1.9" do
+    it "returns the Hash for which block return true" do
+      ENV["foo"] = "bar"
+      ENV.select { |k, v| k == "foo" }.should == [["foo", "bar"]]
+      ENV.delete "foo"
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns the Hash for which block return true" do
+      ENV["foo"] = "bar"
+      ENV.select { |k, v| k == "foo" }.should == {"foo" => "bar"}
+      ENV.delete "foo"
+    end
   end
 
   ruby_version_is "" ... "1.8.7" do

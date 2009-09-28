@@ -21,8 +21,8 @@ describe "Kernel#respond_to?" do
 
   it "returns true if obj responds to the given public method" do    
     @a.respond_to?("five").should == false
-    @a.respond_to?(:public_method).should == true
-    @a.respond_to?("public_method").should == true
+    @a.respond_to?(:pub_method).should == true
+    @a.respond_to?("pub_method").should == true
   end
   
   it "returns true if obj responds to the given protected method" do
@@ -59,5 +59,23 @@ describe "Kernel#respond_to?" do
     class KernelSpecs::Foo; def bar; 'done'; end; end
     KernelSpecs::Foo.new.respond_to?(:bar).should == true
     KernelSpecs::Foo.new.respond_to?(:invalid_and_silly_method_name).should == false
+  end
+
+  ruby_version_is "1.9" do
+    platform_is :os => :windows do
+      it "returns false for a method which exists but is unimplemented" do
+        Process.methods.include?(:fork).should be_true
+        Process.respond_to?(:fork).should be_false
+        lambda { Process.fork }.should raise_error(NotImplementedError)  
+      end
+    end  
+
+    platform_is :os => [:linux, :openbsd] do
+      it "returns false for a method which exists but is unimplemented" do
+        File.methods.include?(:lchmod).should be_true
+        File.respond_to?(:lchmod).should be_false
+        lambda { File.lchmod }.should raise_error(NotImplementedError)  
+      end
+    end  
   end
 end

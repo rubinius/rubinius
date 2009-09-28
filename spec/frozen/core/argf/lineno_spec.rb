@@ -7,13 +7,14 @@ describe "ARGF.lineno" do
   end
 
   after :each do
-    ARGF.close
+    ARGF.close unless ARGF.closed?
   end
 
   # NOTE: this test assumes that fixtures files have two lines each
   # TODO: break this into four specs
   it "returns the current line number on each file" do
     argv [@file1, @file2, @file1, @file2] do
+      ARGF.lineno = 0
       ARGF.gets
       ARGF.lineno.should == 1
       ARGF.gets
@@ -22,26 +23,31 @@ describe "ARGF.lineno" do
       ARGF.lineno.should == 3
       ARGF.gets
       ARGF.lineno.should == 4
+    end
+  end
 
-      ARGF.rewind
-      ARGF.lineno.should == 4
-      ARGF.gets
-      ARGF.lineno.should == 3
+  ruby_bug "#1693", "1.8" do
+    it "resets to 0 after the stream is rewound" do
+      argv [@file1, @file2, @file1, @file2] do
+        ARGF.lineno = 0
+        ARGF.lineno.should == 0
+        ARGF.readline
+        ARGF.rewind
+        ARGF.lineno.should == 0
+      end
+    end
+  end
 
-      ARGF.lineno = 1000
-      $..should == 1000
+  it "aliases to $." do
+    argv [@file1, @file2, @file1, @file2] do
       ARGF.gets
-      $..should == 1001
+      $..should == 1
       ARGF.gets
-      $..should == 1002
-
-      $. = 2000
+      $..should == 2
       ARGF.gets
-      $..should == 2001
+      $..should == 3
       ARGF.gets
-      $..should == 2002
-      ARGF.read
-      $..should == 2002
+      $..should == 4
     end
   end
 end

@@ -1,10 +1,12 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
-require 'complex'
+require File.dirname(__FILE__) + '/../../../shared/complex/numeric/real'
 
-describe "Numeric#real" do
-  it "returns self" do
-    20.real.should == 20
-    (-4.5).real.should == -4.5
-    bignum_value.real.should == bignum_value
+ruby_version_is ""..."1.9" do
+
+  require 'complex'
+  require 'rational'
+
+  describe "Numeric#real" do
+    it_behaves_like(:numeric_real, :real)
   end
 end

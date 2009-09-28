@@ -48,7 +48,7 @@ describe :time_params, :shared => true do
 
         Time.send(@method, 2038, 12, 31, 23, 59, 59, 0).wday.should == 5
       end
-    end   
+    end
 
     it "raises an ArgumentError for out of range values" do
       # year-based Time.local(year (, month, day, hour, min, sec, usec))

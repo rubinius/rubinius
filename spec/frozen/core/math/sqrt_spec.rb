@@ -9,11 +9,19 @@ describe "Math.sqrt" do
   it "returns the square root of the argument" do
     Math.sqrt(1).should == 1.0
     Math.sqrt(4.0).should == 2.0
-    Math.sqrt(15241578780673814.441547445).to_s.should == '123456789.123457'
+    Math.sqrt(15241578780673814.441547445).should be_close(123456789.123457, TOLERANCE)
   end
 
-  it "raises an ArgumentError if the argument cannot be coerced with Float()" do
-    lambda { Math.sqrt("test") }.should raise_error(ArgumentError)
+  ruby_version_is ""..."1.9" do
+    it "raises an ArgumentError if the argument cannot be coerced with Float()" do
+      lambda { Math.sqrt("test") }.should raise_error(ArgumentError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a TypeError if the argument cannot be coerced with Float()" do
+      lambda { Math.sqrt("test") }.should raise_error(TypeError)
+    end
   end
 
   it "raises a TypeError if the argument is nil" do

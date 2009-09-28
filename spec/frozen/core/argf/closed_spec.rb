@@ -7,7 +7,7 @@ describe "ARGF.closed?" do
   end
 
   after :each do
-    ARGF.close
+    ARGF.close unless ARGF.closed?
   end
 
   it "returns true if the current stream has been closed" do
@@ -16,6 +16,7 @@ describe "ARGF.closed?" do
       stream.close
       
       ARGF.closed?.should be_true
+      stream.reopen(ARGF.filename, 'r')
     end
   end
 end

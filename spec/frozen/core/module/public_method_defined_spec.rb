@@ -32,13 +32,35 @@ describe "Module#public_method_defined?" do
   end
 
   not_compliant_on :rubinius do
-    it "raises an ArgumentError if called with a Fixnum" do
+    ruby_version_is ""..."1.9" do
+      it "raises an ArgumentError if called with a Fixnum" do
+        lambda {
+          ModuleSpecs::CountsMixin.public_method_defined?(1)
+        }.should raise_error(ArgumentError)
+      end
+
+      it "raises a TypeError if not passed a Symbol" do
+        lambda {
+          ModuleSpecs::CountsMixin.public_method_defined?(nil)
+        }.should raise_error(TypeError)
+        lambda {
+          ModuleSpecs::CountsMixin.public_method_defined?(false)
+        }.should raise_error(TypeError)
+
+        sym = mock('symbol')
+        def sym.to_sym() :public_3 end
+        lambda {
+          ModuleSpecs::CountsMixin.public_method_defined?(sym)
+        }.should raise_error(TypeError)
+      end
+    end
+  end
+  
+  ruby_version_is "1.9" do
+    it "raises a TypeError if not passed a Symbol" do
       lambda {
         ModuleSpecs::CountsMixin.public_method_defined?(1)
-      }.should raise_error(ArgumentError)
-    end
-
-    it "raises a TypeError if not passed a Symbol" do
+      }.should raise_error(TypeError)
       lambda {
         ModuleSpecs::CountsMixin.public_method_defined?(nil)
       }.should raise_error(TypeError)

@@ -17,6 +17,7 @@ describe "Thread::list" do
     c = Channel.new
     t = Thread.new { c.receive }
     begin
+      Thread.pass while t.status and t.status != 'sleep'
       Thread.list.should include(t)
     ensure
       c << nil

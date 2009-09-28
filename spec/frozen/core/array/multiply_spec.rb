@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
-require  File.dirname(__FILE__) + '/shared/join'
+require  File.dirname(__FILE__) + '/../../shared/array/join'
 
 describe "Array#*" do
   it "tries to convert the passed argument to a String using #to_str" do
@@ -126,5 +126,5 @@ describe "Array#* with an integer" do
 end
 
 describe "Array#* with a string" do
-  it_behaves_like :array_join, :*
+  it_behaves_like :array_join, :*, ArraySpecs::NewArray
 end

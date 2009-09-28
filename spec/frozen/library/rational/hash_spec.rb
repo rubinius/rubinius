@@ -1,10 +1,7 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require 'rational'
+require File.dirname(__FILE__) + '/../../shared/rational/hash'
 
-describe "Rational#hash" do
-  # BUG: Rational(2, 3).hash == Rational(3, 2).hash
-  it "is static" do
-    Rational(2, 3).hash.should == Rational(2, 3).hash
-    Rational(2, 4).hash.should_not == Rational(2, 3).hash
+ruby_version_is ""..."1.9" do
+  describe "Rational#hash" do
+    it_behaves_like(:rational_hash, :hash)
   end
 end

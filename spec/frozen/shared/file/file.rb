@@ -25,6 +25,13 @@ describe :file_file, :shared => true do
     @object.send(@method, @dir).should == false
   end
 
+  ruby_version_is "1.9" do
+    it "accepts an object that has a #to_path method" do
+    @object.send(@method, mock_to_path(@file)).should == true
+    end
+  end
+
+
   platform_is_not :windows do
     it "return true if the null device exists and is a regular file." do
       @object.send(@method, @null).should == false # May fail on MS Windows

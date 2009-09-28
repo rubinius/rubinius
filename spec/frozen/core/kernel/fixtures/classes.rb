@@ -41,7 +41,8 @@ module KernelSpecs
   end
 
   class A
-    def public_method; :public_method; end
+    # 1.9 as Kernel#public_method, so we don't want this one to clash:
+    def pub_method; :public_method; end
 
     def undefed_method; :undefed_method; end
     undef_method :undefed_method
@@ -76,59 +77,6 @@ module KernelSpecs
     end
   end
 
-  module MethodMissing
-    def self.method_missing(*args) :method_missing end
-    def self.existing() :existing end
-
-    def self.private_method() :private_method end
-    private_class_method :private_method
-  end
-
-  class MethodMissingC
-    def self.method_missing(*args) :method_missing end
-    def method_missing(*args) :instance_method_missing end
-
-    def self.existing() :existing end
-    def existing() :instance_existing end
-
-    def self.private_method() :private_method end
-    def self.protected_method() :protected_method end
-    class << self
-      private :private_method
-      protected :protected_method
-    end
-
-    def private_method() :private_instance_method end
-    private :private_method
-
-    def protected_method() :protected_instance_method end
-    protected :protected_method
-  end
-
-  module NoMethodMissing
-    def self.existing() :existing end
-
-    def self.private_method() :private_method end
-    private_class_method :private_method
-  end
-
-  class NoMethodMissingC
-    def self.existing() :existing end
-    def existing() :instance_existing end
-
-    def self.private_method() :private_method end
-    def self.protected_method() :protected_method end
-    class << self
-      private :private_method
-      protected :protected_method
-    end
-
-    def private_method() :private_instance_method end
-    private :private_method
-
-    def protected_method() :protected_instance_method end
-    protected :protected_method
-  end
 
   module BlockGiven
     def self.accept_block
@@ -210,6 +158,10 @@ module KernelSpecs
     end
   end
 
+  module InstEvalCVar
+    instance_eval { @@count = 2 }
+  end
+
   module InstEval
     def self.included(base)
       base.instance_eval { @@count = 2 }
@@ -260,9 +212,15 @@ module KernelSpecs
     include ParentMixin
     def parent_method; end
     def another_parent_method; end
+    def self.parent_class_method; :foo; end
   end
 
   class Child < Parent
+    # In case this trips anybody up: This fixtures file must only be loaded
+    # once for the Kernel specs. If it's loaded multiple times the following
+    # line raises a NameError. This is a problem if you require it from a
+    # location outside of core/kernel on 1.8.6, because 1.8.6 doesn't
+    # normalise paths...
     undef_method :parent_method
   end
 

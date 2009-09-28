@@ -104,11 +104,14 @@ describe "Array#pack" do
     end
 
     it "returns a string in encoding of common to the concatenated results" do
-      ["\u{3042 3044 3046 3048}", 0x2000B].pack("A*U").encoding.should == Encoding::UTF_8
-      ["abcde\xd1", "\xFF\xFe\x81\x82"].pack("A*u").encoding.should == Encoding::ISO_8859_1
-      ["abcde".encode(Encoding::US_ASCII), "\xFF\xFe\x81\x82"].pack("A*u").encoding.should == Encoding::US_ASCII
+      ["\u{3042 3044 3046 3048}", 0x2000B].pack("A*U").encoding.should == 
+        Encoding::ASCII_8BIT
+      ["abcde\xd1", "\xFF\xFe\x81\x82"].pack("A*u").encoding.should == 
+        Encoding::ASCII_8BIT
+      ["abcde".encode(Encoding::US_ASCII), "\xFF\xFe\x81\x82"].pack("A*u").encoding.should == 
+        Encoding::ASCII_8BIT
       # under discussion [ruby-dev:37294]
-      #   ["\u{3042 3044 3046 3048}", 1].pack("A*N").encoding.should == Encoding::ASCII_8BIT
+      ["\u{3042 3044 3046 3048}", 1].pack("A*N").encoding.should == Encoding::ASCII_8BIT
     end
   end
 
@@ -125,8 +128,8 @@ describe "Array#pack with the empty format" do
   end
 
   ruby_version_is '1.9' do
-    it "returns an ASCII-8BIT" do
-      [1, 2, 3, true].pack("").encoding.should == Encoding::ASCII_8BIT
+    it "returns an empty String in US-ASCII" do
+      [1, 2, 3, true].pack("").encoding.should == Encoding::US_ASCII
     end
   end
 end
@@ -194,22 +197,20 @@ describe "Array#pack with ASCII-string format", :shared => true do
     end
 
     # This feature is under discussion - [ruby-dev:37278]
-    it "keeps encoding of source strings" do
-      # ISO-8859-1
-      ["abcd"].pack(format).encoding.should == "abcd".encoding
-      # UTF-8
-      ["\u3042"].pack(format).encoding.should == "\u3042".encoding
-      # example of dummy encoding
-      ["\u3042".encode(Encoding::UTF_32BE)].pack(format).encoding.should == Encoding::UTF_32BE
-      # example of stateful encoding
-      ["\u3042".encode(Encoding::ISO_2022_JP)].pack(format).encoding.should == Encoding::ISO_2022_JP
+    it "returns result in ASCII-8BIT" do
+      ["abcd"].pack(format).encoding.should == Encoding::ASCII_8BIT
+      ["\u3042"].pack(format).encoding.should == Encoding::ASCII_8BIT
+      ["\u3042".encode(Encoding::UTF_32BE)].pack(format).encoding.should == 
+        Encoding::ASCII_8BIT
+      ["\u3042".encode(Encoding::ISO_2022_JP)].pack(format).encoding.should == 
+        Encoding::ASCII_8BIT
     end
 
     # This feature is under discussion - [ruby-dev:37278]
     it "cuts byte sequence even if it breaks a multibyte character" do
-      ["\u3042"].pack(format).should == utf8("\xe3")
-      ["\u3042".encode(Encoding::UTF_32BE)].pack(format(2)).should == "\x00\x00".force_encoding(Encoding::UTF_32BE)
-      ["\u3042".encode(Encoding::ISO_2022_JP)].pack(format(4)).should == "\e$B$".force_encoding(Encoding::ISO_2022_JP)
+      ["\u3042"].pack(format).should == "\xe3".force_encoding('ascii-8bit')
+      ["\u3042".encode(Encoding::UTF_32BE)].pack(format(2)).should == "\x00\x00"
+      ["\u3042".encode(Encoding::ISO_2022_JP)].pack(format(4)).should == "\e$B$"
     end
   end
 end
@@ -713,7 +714,7 @@ describe "Array#pack with integer format (16bit, little endian)", :shared => tru
       it "does not raise a RangeError even when a pack argument is >= 2**64" do
         [2**64-1].pack(format).should == binary("\xFF\xFF")
         [2**64  ].pack(format).should == binary("\x00\x00")
-        [2**64+1].pack(format).should == binary("\x00\x01")
+        [2**64+1].pack(format).should == binary("\x01\x00")
       end
 
       it "does not raise a RangeError even when a pack argument is <= -2**64" do
@@ -1807,7 +1808,7 @@ end
 
 
 describe "Array#pack with format 'M'" do
-  it "enocdes string with Qouted Printable encoding" do
+  it "encodes string with Quoted Printable encoding" do
     ["ABCDEF"].pack('M').should == "ABCDEF=\n"
   end
 
@@ -2281,18 +2282,17 @@ describe "Array#pack with format 'X'" do
   end
 
   ruby_version_is '1.9' do
-    it "doesn't change encoding of the result string" do
-      [0x41, 0x42, 0x43].pack('U3X').encoding.should == Encoding::UTF_8
+    it "returns an ASCII 8-bit String" do
+      [0x41, 0x42, 0x43].pack('U3X').encoding.should == Encoding::ASCII_8BIT
       [1, 2, 3].pack('w3X').encoding.should == Encoding::ASCII_8BIT
-      ["\x01\x02"].pack("mX").encoding.should == Encoding::US_ASCII
+      ["\x01\x02"].pack("mX").encoding.should == Encoding::ASCII_8BIT
     end
 
-    it "doesn't care even if breaks a character" do
+    it "doesn't care if it breaks a character" do
       str = nil
       lambda { str = [0x3042].pack("UX") }.should_not raise_error
-      str.encoding.should == Encoding::UTF_8
+      str.encoding.should == Encoding::ASCII_8BIT
       str.bytesize.should == 2
-      str.valid_encoding?.should be_false
     end
   end
 end
@@ -2316,18 +2316,17 @@ describe "Array#pack with '@'" do
   end
 
   ruby_version_is '1.9' do
-    it "doesn't change encoding of the result string" do
-      [0x41, 0x42, 0x43].pack('U3@6').encoding.should == Encoding::UTF_8
+    it "returns a String in ASCII 8-bit" do
+      [0x41, 0x42, 0x43].pack('U3@6').encoding.should == Encoding::ASCII_8BIT
       [1, 2, 3].pack('w3@3').encoding.should == Encoding::ASCII_8BIT
-      ["\x01\x02"].pack("m@4").encoding.should == Encoding::US_ASCII
+      ["\x01\x02"].pack("m@4").encoding.should == Encoding::ASCII_8BIT
     end
 
     it "doesn't care even if breaks a character" do
       str = nil
       lambda { str = [0x3042].pack("U@2") }.should_not raise_error
-      str.encoding.should == Encoding::UTF_8
+      str.encoding.should == Encoding::ASCII_8BIT
       str.bytesize.should == 2
-      str.valid_encoding?.should be_false
     end
   end
 end
@@ -2362,13 +2361,26 @@ describe "Array#pack with format 'x'" do
 end
 
 describe "String#unpack with 'w' directive" do
-  it "produces a BER-compressed integer" do
-    [88].pack('w').should == 'X'
-    [88,89,90].pack('www').should == 'XYZ'
-    [88,89,90].pack('w3').should == 'XYZ'
-    [92,48,48,49].pack('w4').should == '\001'
-    [104,101,108,108,111,32,119,111,114,108,100].pack('w*').should == 'hello world'
-    [1234567890].pack('w').should == "\204\314\330\205R"
+  ruby_version_is ""..."1.9" do
+    it "produces a BER-compressed integer" do
+      [88].pack('w').should == 'X'
+      [88,89,90].pack('www').should == 'XYZ'
+      [88,89,90].pack('w3').should == 'XYZ'
+      [92,48,48,49].pack('w4').should == '\001'
+      [104,101,108,108,111,32,119,111,114,108,100].pack('w*').should == 'hello world'
+      [1234567890].pack('w').should == "\204\314\330\205R"
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "produces a BER-compressed integer" do
+      [88].pack('w').should == 'X'
+      [88,89,90].pack('www').should == 'XYZ'
+      [88,89,90].pack('w3').should == 'XYZ'
+      [92,48,48,49].pack('w4').should == '\001'
+      [104,101,108,108,111,32,119,111,114,108,100].pack('w*').should == 'hello world'
+      [1234567890].pack('w').should == "\204\314\330\205R".force_encoding(Encoding::ASCII_8BIT)
+    end
   end
 end
 

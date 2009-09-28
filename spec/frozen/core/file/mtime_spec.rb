@@ -27,6 +27,7 @@ describe "File#mtime" do
   end
 
   after :each do
+    @f.close
     File.delete(@filename) if File.exist?(@filename)
   end
 

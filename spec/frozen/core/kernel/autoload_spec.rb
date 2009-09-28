@@ -98,6 +98,12 @@ describe "Kernel.autoload" do
         should have_constant(:KSAutoloadBB)
       end
     end
+
+    it "calls #to_path on non-String filenames" do
+      p = mock('path')
+      p.should_receive(:to_path).and_return @non_existent
+      Kernel.autoload :KSAutoloadAA, p
+    end
   end
 end
 

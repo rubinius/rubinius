@@ -21,10 +21,18 @@ describe "Kernel#instance_variable_set" do
     lambda { NoDog.new.instance_variable_set(:c, "cat") }.should raise_error(NameError)
   end
 
-  it "raises an ArgumentError if the instance variable name is a Fixnum" do
-    lambda { "".instance_variable_set(1, 2) }.should raise_error(ArgumentError)
+  ruby_version_is ""..."1.9" do
+    it "raises an ArgumentError if the instance variable name is a Fixnum" do
+      lambda { "".instance_variable_set(1, 2) }.should raise_error(ArgumentError)
+    end
   end
   
+  ruby_version_is "1.9" do
+    it "raises a TypeError if the instance variable name is a Fixnum" do
+      lambda { "".instance_variable_set(1, 2) }.should raise_error(TypeError)
+    end
+  end
+
   it "raises a TypeError if the instance variable name is an object that does not respond to to_str" do
     class KernelSpecs::A; end
     lambda { "".instance_variable_set(KernelSpecs::A.new, 3) }.should raise_error(TypeError)
