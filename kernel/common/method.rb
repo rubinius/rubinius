@@ -24,13 +24,13 @@ class Method
     @name             = name
   end
 
+  attr_reader :name
   attr_reader :receiver
   attr_reader :pulled_from
   attr_reader :defined_in
   attr_reader :compiled_method
-  protected   :receiver
   protected   :pulled_from
-  
+
   ##
   # Method objects are equal if they have the same body and are bound to the
   # same object.
@@ -90,6 +90,14 @@ class Method
     "#{@compiled_method.file}, near line #{@compiled_method.first_line}"
   end
 
+  def owner
+    if defined_in.class == Rubinius::IncludedModule
+      defined_in.module
+    else
+      defined_in
+    end
+  end
+
   ##
   # Returns a Proc object corresponding to this Method.
 
@@ -140,6 +148,7 @@ class UnboundMethod
     @name             = name
   end
 
+  attr_reader :name
   attr_reader :compiled_method
   attr_reader :defined_in
 
@@ -205,4 +214,13 @@ class UnboundMethod
 
   alias_method :to_s, :inspect
 
+  def owner
+    def owner
+      if defined_in.class == Rubinius::IncludedModule
+        defined_in.module
+      else
+        defined_in
+      end
+    end
+  end
 end
