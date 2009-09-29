@@ -22,7 +22,7 @@ describe "Array#combination" do
       a.combination(3).to_a.sort.should == [[1,2,3],[1,2,4],[1,3,4],[2,3,4]]
     end
 
-    if "yields [] when length is 0"
+    it "yields [] when length is 0" do
       [1,2,3].combination(0).to_a.should == [[]] # one combination of length 0
       [].combination(0).to_a.should == [[]] # one combination of length 0
     end
