@@ -1,5 +1,3 @@
-require 'stringio_186'
-
 class StringIO
 
   include Enumerable
@@ -68,6 +66,8 @@ class StringIO
     nil
   end
 
+  alias_method :bytes, :each_byte
+
   def each_char
     return to_enum :each_char unless block_given?
     if $KCODE == "UTF-8"
@@ -105,9 +105,6 @@ class StringIO
     self
   end
   alias_method :each_line, :each
-
-  alias_method :getbyte, :getc
-
 
   def <<(str)
     self.write(str)
@@ -196,6 +193,7 @@ class StringIO
     @pos += 1 unless self.eof?
     char
   end
+  alias_method :getbyte, :getc
 
   def gets(sep = $/)
     $_ = self.getline(sep)
