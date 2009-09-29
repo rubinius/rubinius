@@ -7,4 +7,12 @@ class GC
     Ruby.primitive :vm_gc_start
     raise PrimitiveFailure, "GC.run primitive failed"
   end
+
+  def self.stress
+    false
+  end
+
+  def self.stress=(flag)
+    raise NotImplementedError
+  end
 end
