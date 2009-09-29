@@ -1,1 +1,1 @@
-require 'enumerator_186'
+# Empty stub
