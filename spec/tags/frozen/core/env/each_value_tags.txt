@@ -1,1 +1,0 @@
-fails:ENV.each_value returns an Enumerator if called without a block
