@@ -132,6 +132,20 @@ class Hash
     true
   end
 
+  alias_method :eql?, :==
+
+  def hash
+    val = size
+    Thread.detect_recursion self do
+      i = to_iter
+      while entry = i.next(entry)
+        val ^= entry.key.hash
+        val ^= entry.value.hash
+      end
+    end
+
+    return val
+  end
   def [](key)
     if entry = find_entry(key)
       entry.value
