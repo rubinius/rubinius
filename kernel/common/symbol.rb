@@ -34,4 +34,9 @@ class Symbol
   alias_method :intern, :to_sym
   alias_method :id2name, :to_s
 
+  # Returns a Proc object which respond to the given method by sym.
+  def to_proc
+    Proc.new { |*args| args.shift.__send__(self, *args) }
+  end
+
 end
