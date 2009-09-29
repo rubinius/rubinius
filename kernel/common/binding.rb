@@ -17,12 +17,12 @@
 #       return binding()
 #     end
 #   end
-#   
+#
 #   k1 = Demo.new(99)
 #   b1 = k1.getBinding
 #   k2 = Demo.new(-3)
 #   b2 = k2.getBinding
-#   
+#
 #   eval("@secret", b1)   #=> 99
 #   eval("@secret", b2)   #=> -3
 #   eval("@secret")       #=> nil
@@ -46,5 +46,12 @@ class Binding
     bind.code = code
     bind.static_scope = static_scope
     return bind
+  end
+
+  # Evaluates the Ruby expression(s) in string, in the binding‘s context.
+  # If the optional filename and lineno parameters are present,
+  # they will be used when reporting syntax errors.
+  def eval(expr, *arg)
+    Kernel.eval(expr, self, *arg)
   end
 end
