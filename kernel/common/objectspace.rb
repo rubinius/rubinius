@@ -7,7 +7,8 @@ module ObjectSpace
   # @todo rewrite each_object
 
   # Tryes to handle as much as it can.
-  def self.each_object(what = nil, &block)
+  def self.each_object(what=nil, &block)
+    return to_enum :each_object, what unless block_given?
 
     raise TypeError, "class or module required" if what and not what.is_a? Module
 
