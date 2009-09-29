@@ -1,3 +1,0 @@
-fails:Enumerable#inject can take two argument
-fails:Enumerable#inject ignores the block if two arguments
-fails:Enumerable#inject can take a symbol argument

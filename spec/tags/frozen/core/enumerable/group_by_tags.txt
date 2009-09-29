@@ -1,3 +1,0 @@
-fails:Enumerable#group_by returns a hash with values grouped according to the block
-fails:Enumerable#group_by returns an empty hash for empty enumerables
-fails:Enumerable#group_by returns an Enumerator if called without a block
