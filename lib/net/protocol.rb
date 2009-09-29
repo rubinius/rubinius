@@ -11,7 +11,7 @@
 # modify this program under the same terms as Ruby itself,
 # Ruby Distribute License or GNU General Public License.
 #
-# $Id: protocol.rb 11708 2007-02-12 23:01:19Z shyouhei $
+# $Id: protocol.rb 12092 2007-03-19 02:39:22Z aamine $
 #++
 #
 # WARNING: This file is going to remove.
@@ -121,19 +121,19 @@ module Net # :nodoc:
         return rbuf_consume(@rbuf.size)
       end
     end
-
+        
     def readline
       readuntil("\n").chop
     end
 
     private
 
-    # Fill the internal buffer.
-    #
-    # TODO: Could try different block sizes, 8k is typical. --rue
-    #
+    BUFSIZE = 1024 * 16
+
     def rbuf_fill
-      timeout(@read_timeout) { @rbuf << @io.sysread(1024) }
+      timeout(@read_timeout) {
+        @rbuf << @io.sysread(BUFSIZE)
+      }
     end
 
     def rbuf_consume(len)

@@ -284,7 +284,13 @@ module Net
 
     # Disconnects from the server.
     def disconnect
-      @sock.shutdown unless @usessl
+      begin
+        # try to call SSL::SSLSocket#io.
+        @sock.io.shutdown
+      rescue NoMethodError
+        # @sock is not an SSL::SSLSocket.
+        @sock.shutdown
+      end
       @receiver_thread.join
       @sock.close
     end
@@ -896,6 +902,7 @@ module Net
         end
         @sock = SSLSocket.new(@sock, context)
         @sock.connect   # start ssl session.
+        @sock.post_connection_check(@host) if verify
       else
         @usessl = false
       end
@@ -3055,7 +3062,7 @@ module Net
             elsif $7
               return Token.new(T_RPAR, $+)
             else
-              parse_error("[Net::IMAP BUG] BEG_REGEXP is invalid")
+              parse_error("[Net::IMAP BUG] DATA_REGEXP is invalid")
             end
           else
             @str.index(/\S*/n, @pos)
@@ -3109,7 +3116,7 @@ module Net
           $stderr.printf("@str: %s\n", @str.dump)
           $stderr.printf("@pos: %d\n", @pos)
           $stderr.printf("@lex_state: %s\n", @lex_state)
-          if @token.symbol
+          if @token
             $stderr.printf("@token.symbol: %s\n", @token.symbol)
             $stderr.printf("@token.value: %s\n", @token.value.inspect)
           end
