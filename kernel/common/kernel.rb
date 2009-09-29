@@ -1,4 +1,25 @@
 module Kernel
+  def __method__
+    # Look in the backtrace for locations where the scope is that of the sender.
+    # The first non-block one will be our call,
+    # unless where are called from a DelegatedMethod
+    # For the later, we check to see if the next location
+    # was a call from a delegated method
+    scope_of_sender = Rubinius::StaticScope.of_sender
+    trace = Rubinius::VM.backtrace(1)
+    trace.each_with_index do |loc, i|
+      next unless loc.method.scope == scope_of_sender
+      if loc.is_block
+        loc = trace.at(i+1)
+        if loc.kind_of? Rubinius::DelegateMethod
+          return loc.receiver.name
+        end
+      else
+        return loc.method.name == :__script__ ? nil : loc.method.name
+      end
+    end
+    nil
+  end
 
   def Float(obj)
     raise TypeError, "can't convert nil into Float" if obj.nil?
@@ -344,6 +365,11 @@ module Kernel
     Signal.trap(sig, prc, &block)
   end
   module_function :trap
+
+  def tap
+    yield self
+    self
+  end
 
   alias_method :object_id, :__id__
 
