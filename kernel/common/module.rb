@@ -493,7 +493,7 @@ class Module
   end
 
   def const_set(name, value)
-    if value.is_a? Module
+    if Type.obj_kind_of?(value, Module)
       value.set_name_if_necessary(name, self)
     end
 
