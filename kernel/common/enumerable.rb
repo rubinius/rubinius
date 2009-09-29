@@ -407,6 +407,8 @@ module Enumerable
     nil
   end
 
+  alias_method :enum_cons, :each_cons
+
   def each_slice(slice_size)
     n = Type.coerce_to(slice_size, Fixnum, :to_int)
     raise ArgumentError, "invalid slice size: #{n}" if n <= 0
@@ -424,6 +426,8 @@ module Enumerable
     yield a unless a.empty?
     nil
   end
+
+  alias_method :enum_slice, :each_slice
 
   ##
   # :call-seq:
@@ -445,6 +449,8 @@ module Enumerable
     each(*arg) { |o| yield(o, idx); idx += 1 }
     self
   end
+
+  alias_method :enum_with_index, :each_with_index
 
   ##
   # :call-seq:
