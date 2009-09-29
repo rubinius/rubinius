@@ -93,23 +93,16 @@ desc "Uninstall Rubinius"
 task :uninstall do
   rm_rf install_bin
   rm_rf RBX_BASE_PATH
-  sh "rake clean"
+  sh "rake -q clean"
 end
 
 desc "Install Rubinius"
-task :install do
-  puts "THIS IS BROKEN, SORRY."
-  puts "Just link 'bin/rbx' into a bin directory and use it like that."
-  puts "Patches welcome to fix install."
-  exit 1
-end
-
-task :old_install => %w[
+task :install => %w[
   clean
   install:build
   install:files
 ] do
-  sh "rake clean"
+  sh "rake -q clean"
   puts "Install complete."
   puts "The install versions of files have been cleaned."
   puts "Run 'rake build' to rebuild development versions."
@@ -121,7 +114,7 @@ namespace :install do
   task :build do
     ENV['RBX_PREFIX'] = ENV['PREFIX'] || "/usr/local"
     ENV['RBX_RUNTIME'] = File.join(Dir.pwd, 'runtime')
-    sh "rake build"
+    sh "rake -q build"
   end
 
   # Internal task, not documented with desc. Performs the
@@ -134,12 +127,9 @@ namespace :install do
     mkdir_p RBX_BIN_PATH, :verbose => true
     mkdir_p RBX_LIB_PATH, :verbose => true
 
-    install "vm/subtend/ruby.h", File.join(RBX_EXT_PATH, "ruby.h"),
-      :mode => 0644, :verbose => true
 
-    File.open File.join(RBX_EXT_PATH, "defines.h"), "w" do |f|
-      f.puts "// This file left empty"
-    end
+    capi_header_files = Rake::FileList.new "vm/capi/*.h"
+    install_files capi_header_files, RBX_EXT_PATH
 
     File.open File.join(RBX_EXT_PATH, "missing.h"), "w" do |f|
       f.puts "// This file left empty"
@@ -155,7 +145,13 @@ namespace :install do
     install_files lib_files, RBX_LIB_PATH
 
     Rake::FileList.new("#{RBX_LIB_PATH}/**/*.rb").sort.each do |rb|
-      compile_ruby rb, "#{rb}c"
+      begin
+        compile_ruby rb, "#{rb}c"
+      rescue Object => e
+        puts "Error compiling #{rb}!"
+        puts e.backtrace
+        puts "Install continuing but please file a ticket"
+      end
     end
 
     install 'vm/vm', install_bin, :mode => 0755, :verbose => true
