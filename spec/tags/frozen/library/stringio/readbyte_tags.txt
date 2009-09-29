@@ -1,4 +1,0 @@
-fails:StringIO#readbyte reads the next 8-bit byte from self's current position
-fails:StringIO#readbyte correctly updates the current position
-fails:StringIO#readbyte raises an EOFError when self is at the end
-fails:StringIO#readbyte when self is not readable raises an IOError
