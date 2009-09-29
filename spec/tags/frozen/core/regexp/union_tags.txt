@@ -1,1 +1,0 @@
-fails:Regexp.union accepts a single array of patterns as arguments
