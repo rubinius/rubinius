@@ -1,5 +1,0 @@
-fails:Array#combination returns an enumerator when no block is provided
-fails:Array#combination returns self when a block is given
-fails:Array#combination yields nothing for out of bounds length and return self
-fails:Array#combination yields the excepted combinations
-fails:Array#combination yields [] when length is 0

@@ -1,2 +1,1 @@
 fails:Array#map! raises a TypeError on a frozen array
-fails:Array#map! returns an Enumerator when no block given, and the enumerator can modify the original array

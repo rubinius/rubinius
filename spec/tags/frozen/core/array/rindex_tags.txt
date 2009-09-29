@@ -1,1 +1,0 @@
-fails:Array#rindex accepts a block instead of an argument

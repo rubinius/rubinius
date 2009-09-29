@@ -1,3 +1,0 @@
-fails:Enumerable#cycle returns nil and does nothing for non positive n or empty arrays
-fails:Enumerable#cycle cycle as many times as requested
-fails:Enumerable#cycle loop indefinitely if no n

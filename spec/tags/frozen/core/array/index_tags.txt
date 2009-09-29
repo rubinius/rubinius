@@ -1,1 +1,0 @@
-fails:Array#index accepts a block instead of an argument
