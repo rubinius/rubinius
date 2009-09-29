@@ -354,10 +354,22 @@ class Dir
     glob_pattern
   end
 
+  def self.foreach(path)
+    return to_enum :foreach, path unless block_given?
+
+    open(path) do |dir|
+      while s = dir.read
+        yield s
+      end
+    end
+
+    nil
+  end
+
   def self.join_path(p1, p2, dirsep)
     "#{p1}#{dirsep ? '/' : ''}#{p2}"
   end
-  
+
   def self.chdir(path = ENV['HOME'])
     if block_given?
       original_path = self.getwd
@@ -380,7 +392,7 @@ class Dir
       error
     end
   end
-  
+
   def self.mkdir(path, mode = 0777)
     error = Platform::POSIX.mkdir(path, mode)
     if error != 0
@@ -388,7 +400,7 @@ class Dir
     end
     error
   end
-  
+
   def self.rmdir(path)
     error = Platform::POSIX.rmdir(path)
     if error != 0
@@ -401,7 +413,7 @@ class Dir
     buf = " " * 1024
     Platform::POSIX.getcwd(buf, buf.length)
   end
-  
+
   def self.open(path)
     dir = new path
     if block_given?
@@ -428,7 +440,7 @@ class Dir
 
     ret
   end
-  
+
   def initialize(path)
     begin
       __open__ path
@@ -439,7 +451,17 @@ class Dir
 
     @path = path
   end
-  
+
+  def each
+    return to_enum unless block_given?
+
+    while s = read
+      yield s
+    end
+
+    self
+  end
+
   def path
     raise IOError, "closed directory" if closed?
 
