@@ -55,9 +55,11 @@ describe "Tempfile.open when passed a block" do
 end
 
 ruby_version_is '1.8.7' .. '1.9' do
-  describe "Tempfile.open is passed an array [base,suffix] as first argument" do
-    tempfile = nil
-    Tempfile.open(["specs", ".tt"]) { |x| tempfile = x }
-    tempfile.path.should =~ /specs.*\.tt$/
+  describe "Tempfile.open" do
+    it "is passed an array [base,suffix] as first argument" do
+      tempfile = nil
+      Tempfile.open(["specs", ".tt"]) { |x| tempfile = x }
+      tempfile.path.should =~ /specs.*\.tt$/
+    end
   end
 end
