@@ -1,2 +1,0 @@
-fails:Numeric#step with [stop, step] returns an Enumerator when passed no block and self > stop
-fails:Numeric#step with [stop, step] returns an Enumerator when passed no block and self < stop
