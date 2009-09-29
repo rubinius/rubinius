@@ -1,1 +1,0 @@
-fails:String#crypt returns '.' prepended to the string for each NULL byte the salt contains

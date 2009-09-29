@@ -1,5 +1,2 @@
-fails:String#unpack with 'N' and 'n' directives returns an array by decoding self according to the format string
-fails:String#unpack with 'V' and 'v' directives returns an array by decoding self according to the format string
-fails:String#unpack with 'C' and 'c' directives returns an array by decoding self according to the format string
 fails:String#unpack with 'w' directive produces a BER-compressed integer
 fails:String#unpack with 'w' directive produces a BER-compressed integer

@@ -1,4 +1,0 @@
-fails:String#each_char passes each char in self to the given block
-fails:String#each_char returns self
-fails:String#each_char returns an enumerator when no block given
-fails:String#each_char is unicode aware

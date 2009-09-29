@@ -1,2 +1,1 @@
 fails:String#inspect can handle malformed UTF-8 string when $KCODE is UTF-8
-fails:String#inspect returns a string with nonprinting charaters replaced by escaped-numeric notation
