@@ -11,6 +11,8 @@ class Float < Numeric
     end
   end
 
+  alias_method :fdiv, :/
+
   def coerce(other)
     return [other, self] if other.kind_of? Float
     [Float(other), self]
