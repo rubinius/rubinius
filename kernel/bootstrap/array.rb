@@ -144,9 +144,8 @@ class Array
   # Passes each element in the Array to the given block
   # and returns self.  We re-evaluate @total each time
   # through the loop in case the array has changed.
-  #
-  # NOTE: This method is overridden by lib/1.8.7 or lib/1.9.
   def each
+    return to_enum :each unless block_given?
     i = to_iter
     while i.next
       yield i.item
@@ -165,8 +164,6 @@ class Array
 
   # Creates a new Array from the return values of passing
   # each element in self to the supplied block.
-  #
-  # NOTE: This method is overridden by lib/1.8.7 or lib/1.9.
   def map
     return dup unless block_given?
     array = Array.new size
@@ -179,9 +176,9 @@ class Array
 
   # Replaces each element in self with the return value
   # of passing that element to the supplied block.
-  #
-  # NOTE: This method is overridden by lib/1.8.7 or lib/1.9.
   def map!
+    return to_enum :map! unless block_given?
+
     i = to_iter
     while i.next
       self[i.index] = yield(i.item)
