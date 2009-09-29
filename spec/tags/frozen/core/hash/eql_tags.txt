@@ -1,5 +1,4 @@
 fails:Hash#eql? computes equality for complex recursive hashes
-fails:Hash#eql? computes equality for recursive hashes & arrays
 fails:Hash#eql? compares values when keys match
 fails:Hash#eql? compares keys with eql? semantics
 fails:Hash#eql? returns true iff other Hash has the same number of keys and each key-value pair matches
