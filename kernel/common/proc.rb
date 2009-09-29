@@ -65,6 +65,7 @@ class Proc
   end
 
   alias_method :[], :call
+  alias_method :yield, :call
 
   class Method < Proc
     def bound_method
