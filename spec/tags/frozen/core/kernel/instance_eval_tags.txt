@@ -1,3 +1,2 @@
-fails:Kernel#instance_eval raises a TypeError when defining methods on numerics
 fails:Kernel#instance_eval shares a scope across sibling evals
 fails:Kernel#instance_eval treats block-local variables as local to the block
