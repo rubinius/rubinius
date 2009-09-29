@@ -36,7 +36,7 @@ class MSpecMain < MSpecScript
     options.targets
 
     options.on("-D", "--gdb", "Run under gdb") do
-      config[:flags] << '--gdb'
+      config[:use_gdb] = true
     end
     options.on("-A", "--valgrind", "Run under valgrind") do
       config[:flags] << '--valgrind'
@@ -150,7 +150,12 @@ class MSpecMain < MSpecScript
     if config[:multi] and config[:command] == "ci"
       multi_exec argv
     else
-      exec config[:target], *argv
+      if config[:use_gdb]
+        more = ["--args", config[:target]] + argv
+        exec "gdb", *more
+      else
+        exec config[:target], *argv
+      end
     end
   end
 end
