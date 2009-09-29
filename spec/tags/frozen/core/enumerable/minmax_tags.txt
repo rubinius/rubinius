@@ -1,0 +1,3 @@
+fails:Enumerable#minmax min should return the minimum element
+fails:Enumerable#minmax return nil when error
+fails:Enumerable#minmax return the minimun when using a block rule

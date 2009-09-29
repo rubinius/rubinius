@@ -1,0 +1,5 @@
+fails:Enumerable#count returns size when no argument or a block
+fails:Enumerable#count counts nils if given nil as an argument
+fails:Enumerable#count accepts an argument for comparison using ==
+fails:Enumerable#count uses a block for comparison
+fails:Enumerable#count ignores the block when given an argument

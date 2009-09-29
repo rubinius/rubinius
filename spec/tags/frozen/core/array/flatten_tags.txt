@@ -1,1 +1,11 @@
 fails:Array#flatten! raises a TypeError on frozen arrays when modification would take place
+fails:Array#flatten takes an optional argument that determines the level of recursion
+fails:Array#flatten returns self when the level of recursion is 0
+fails:Array#flatten ignores negative levels
+fails:Array#flatten tries to convert passed Objects to Integers using #to_int
+fails:Array#flatten raises a TypeError when the passed Object can't be converted to an Integer
+fails:Array#flatten! takes an optional argument that determines the level of recursion
+fails:Array#flatten! returns nil when the level of recursion is 0
+fails:Array#flatten! treats negative levels as no arguments
+fails:Array#flatten! tries to convert passed Objects to Integers using #to_int
+fails:Array#flatten! raises a TypeError when the passed Object can't be converted to an Integer

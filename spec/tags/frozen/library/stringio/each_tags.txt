@@ -1,0 +1,1 @@
+fails:StringIO#each when passed no arguments returns an Enumerator when passed no block

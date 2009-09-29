@@ -1,0 +1,5 @@
+fails:StringIO#getbyte increases self's position by one
+fails:StringIO#getbyte returns the 8-bit byte at the current position
+fails:StringIO#getbyte returns nil when called at the end of self
+fails:StringIO#getbyte does not increase self's position when called at the end of file
+fails:StringIO#getbyte when self is not readable raises an IOError

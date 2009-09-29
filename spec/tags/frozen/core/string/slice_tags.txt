@@ -4,3 +4,7 @@ fails:String#slice! Range raises a TypeError if self is frozen
 fails:String#slice! with Regexp raises a TypeError if self is frozen
 fails:String#slice! with Regexp, index raises a TypeError if self is frozen
 fails:String#slice! with String raises a TypeError if self is frozen
+fails:String#slice! Range raises a TypeError if self is frozen
+fails:String#slice! with Regexp raises a TypeError if self is frozen
+fails:String#slice! with Regexp, index raises a TypeError if self is frozen
+fails:String#slice! with String raises a TypeError if self is frozen

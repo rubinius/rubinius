@@ -1,0 +1,2 @@
+fails:Enumerable#find returns an enumerator when no block given
+fails:Enumerable#find passes the ifnone proc to the enumerator

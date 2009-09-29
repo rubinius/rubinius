@@ -1,0 +1,2 @@
+fails:Symbol#to_proc returns a new Proc
+fails:Symbol#to_proc sends self to arguments passed when calling #call on the proc

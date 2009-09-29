@@ -1,0 +1,6 @@
+fails:StringIO#bytes yields each character code in turn
+fails:StringIO#bytes updates the position before each yield
+fails:StringIO#bytes does not yield if the current position is out of bounds
+fails:StringIO#bytes returns self
+fails:StringIO#bytes returns an Enumerator when passed no block
+fails:StringIO#bytes when self is not readable raises an IOError

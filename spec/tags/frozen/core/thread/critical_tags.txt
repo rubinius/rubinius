@@ -2,3 +2,5 @@ fails:Thread#critical returns the current critical state
 fails:Thread#critical= sets the current critical state
 fails:Thread.critical= allows all non-bool arguments
 fails:Thread.critical= defers exit
+fails:Thread.critical= allows all non-bool arguments
+fails:Thread.critical= defers exit

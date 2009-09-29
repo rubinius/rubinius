@@ -1,0 +1,1 @@
+fails:Enumerator#each returns an Enumerator if no block is given

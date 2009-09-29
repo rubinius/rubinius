@@ -1,2 +1,3 @@
 critical:Integer#times skips all iterations when encountering 'break'
 critical:Integer#times skips all iterations when encountering break with an argument and returns that argument
+fails:Integer#times returns an Enumerator

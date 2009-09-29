@@ -1,1 +1,2 @@
 fails:Array#delete_if raises a TypeError on a frozen array
+fails:Array#delete_if returns an Enumerator if no block given, and the enumerator can modify the original array

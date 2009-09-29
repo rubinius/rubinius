@@ -1,0 +1,1 @@
+fails:Hash.[] creates a Hash; values can be provided as a list of value-pairs in an array

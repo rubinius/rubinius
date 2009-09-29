@@ -1,0 +1,2 @@
+fails:Method#name returns the name of the method
+fails:Method#name returns the name even when aliased

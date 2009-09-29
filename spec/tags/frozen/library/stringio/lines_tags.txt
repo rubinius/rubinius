@@ -1,0 +1,13 @@
+fails:StringIO#lines when passed a separator uses the passed argument as the line separator
+fails:StringIO#lines when passed a separator does not change $_
+fails:StringIO#lines when passed a separator returns self
+fails:StringIO#lines when passed a separator tries to convert the passed separator to a String using #to_str
+fails:StringIO#lines when passed a separator yields self's content starting from the current position when the passed separator is nil
+fails:StringIO#lines when passed a separator yields each paragraph when passed an empty String as separator
+fails:StringIO#lines when passed no arguments yields each line to the passed block
+fails:StringIO#lines when passed no arguments yields each line starting from the current position
+fails:StringIO#lines when passed no arguments does not change $_
+fails:StringIO#lines when passed no arguments uses $/ as the default line separator
+fails:StringIO#lines when passed no arguments returns self
+fails:StringIO#lines when passed no arguments returns an Enumerator when passed no block
+fails:StringIO#lines when self is not readable raises an IOError

@@ -1,1 +1,2 @@
 incomplete:Kernel.load needs to be reviewed for spec completeness
+fails:Kernel#load returns __FILE__ as an absolute path

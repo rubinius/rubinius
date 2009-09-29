@@ -1,0 +1,3 @@
+fails:Method#owner returns the owner of the method
+fails:Method#owner returns the name even when aliased
+fails:Method#owner returns the class/module it was defined in

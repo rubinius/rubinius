@@ -1,0 +1,1 @@
+fails:Enumerable#map with implicit to_proc [each(&obj) form] calls obj.to_proc

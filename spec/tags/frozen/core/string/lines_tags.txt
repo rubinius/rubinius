@@ -1,0 +1,12 @@
+fails:String#lines splits self using the supplied record separator and passes each substring to the block
+fails:String#lines taints substrings that are passed to the block if self is tainted
+fails:String#lines passes self as a whole to the block if the separator is nil
+fails:String#lines appends multiple successive newlines together when the separator is an empty string
+fails:String#lines uses $/ as the separator when none is given
+fails:String#lines yields subclass instances for subclasses
+fails:String#lines returns self
+fails:String#lines tries to convert the separator to a string using to_str
+fails:String#lines raises a RuntimeError if the string is modified while substituting
+fails:String#lines raises a TypeError when the separator can't be converted to a string
+fails:String#lines raises a TypeError when the separator is a character or a symbol
+fails:String#lines returns an enumerator when no block given

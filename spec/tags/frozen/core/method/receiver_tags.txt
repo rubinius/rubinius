@@ -1,0 +1,2 @@
+fails:Method#receiver returns the receiver of the method
+fails:Method#receiver returns the right receiver even when aliased
