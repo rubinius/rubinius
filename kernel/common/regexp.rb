@@ -126,7 +126,13 @@ class Regexp
   end
 
   def self.union(*patterns)
-    return /(?!)/ if patterns.empty?
+    if patterns.size == 1
+      pat = patterns.first
+      return Regexp.new(pat) unless pat.respond_to?(:to_ary)
+      patterns = Type.coerce_to(pat, Array, :to_ary)
+    end
+
+    return %r/(?!)/ if patterns.empty?
     patterns.map! do |pat|
       pat = pat.to_s if pat.is_a? Regexp
       Type.coerce_to(pat, String, :to_str)
