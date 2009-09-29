@@ -1,2 +1,0 @@
-fails:IO#lines returns an Enumerator
-fails:IO#lines ignores a given block

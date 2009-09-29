@@ -1,1 +1,0 @@
-fails:IO#each_line returns an Enumerator when passed no block

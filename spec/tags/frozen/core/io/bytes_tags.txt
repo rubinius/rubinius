@@ -1,3 +1,0 @@
-fails:IO#bytes returns an enumerator of the next bytes from the stream
-fails:IO#bytes ignores a block
-fails:IO#bytes raises IOError on closed stream
