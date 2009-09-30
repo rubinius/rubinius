@@ -42,4 +42,16 @@ describe "Rubinius::Options#process" do
     @opt.on "-a", "ARG", "desc"
     lambda { @opt.process [], "-a", "-a", "ARG" }.should_not raise_error
   end
+
+  it "ignores post equal text when considering an optional arg" do
+    enabled = nil
+    prefix = nil
+
+    @opt.on("--en", "[OPT]", "desc") { |e| enabled = e || :def }
+    @opt.on("--prefix", "OPT", "desc") { |x| prefix = x }
+    @opt.process ["--prefix=blah"], "--en", "--en", nil
+
+    enabled.should == :def
+
+  end
 end

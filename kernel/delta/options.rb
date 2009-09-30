@@ -138,6 +138,11 @@ module Rubinius
           if arg.nil?
             if option.optional?
               arg = argv.first
+
+              if arg
+                arg, equal_arg = arg.split("=",2)
+              end
+
               if arg and arg[0] == ?-
                 arg = match?(arg) ? nil : argv.shift
               else
