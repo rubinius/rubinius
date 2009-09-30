@@ -652,7 +652,7 @@ namespace :vm do
   desc "Clean up, including all external libs"
   task :distclean => :clean do
     EXTERNALS.each do |lib|
-      path = File.join(*lib.split(File::SEPARATOR)[0..2])
+      path = File.join(*(lib.split(File::SEPARATOR)[0..-2].reject{|i| i =~ /^\./}))
       system "cd #{path}; #{make} clean || true"
     end
   end
