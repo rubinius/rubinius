@@ -1,6 +1,7 @@
 require 'tmpdir'
 require 'rakelib/rubinius'
 require 'rakelib/configuration'
+require 'rakelib/build'
 require 'ostruct'
 
 require 'lib/ffi/generator_task.rb'
@@ -17,20 +18,14 @@ task :vm => 'vm/vm'
 ############################################################
 # Files, Flags, & Constants
 
+ENV.delete 'CDPATH' # confuses llvm_config
+
 if CONFIG.compile_with_llvm
   ENV['CC'] = "llvm-gcc"
 end
 
-if ENV['LLVM_DEBUG']
-  LLVM_STYLE = "Debug"
-else
-  LLVM_STYLE = "Release"
-end
+LLVM_ENABLE = Rubinius::BUILD_CONFIG[:llvm]
 
-LLVM_ENABLE = !!ENV['RBX_LLVM']
-
-ENV.delete 'CDPATH' # confuses llvm_config
-LLVM_CONFIG = "vm/external_libs/llvm/#{LLVM_STYLE}/bin/llvm-config"
 
 if ENV['TESTS_ONLY']
   tests = FileList[ENV['TESTS_ONLY']]
@@ -71,7 +66,7 @@ end
 
 EX_INC      = %w[ libtommath libgdtoa onig libffi/include
                   libbstring libcchash libmquark libmpa
-                  libltdl libev llvm/include
+                  libltdl libev
                 ].map { |f| "vm/external_libs/#{f}" }
 
 INSN_GEN    = %w[ vm/gen/iseq_instruction_names.cpp
@@ -151,22 +146,7 @@ EXTERNALS   = %W[ vm/external_libs/libmpa/libptr_array.a
                   vm/external_libs/libev/.libs/libev.a ]
 
 
-if LLVM_ENABLE
-  LLVM_A = "vm/external_libs/llvm/#{LLVM_STYLE}/lib/libLLVMSystem.a"
-  EXTERNALS << LLVM_A
-else
-  LLVM_A = ""
-end
-
-OPTIONS     = {
-                LLVM_A => "--enable-targets=host-only --enable-bindings=none"
-              }
-
-if LLVM_STYLE == "Release"
-  OPTIONS[LLVM_A] << " --enable-optimized"
-end
-
-INCLUDES      = EX_INC + %w[/usr/local/include vm/test/cxxtest vm . vm/assembler vm/assembler/udis86-1.7]
+INCLUDES      = EX_INC + %w[vm/test/cxxtest vm . vm/assembler vm/assembler/udis86-1.7]
 INCLUDES.map! { |f| "-I#{f}" }
 
 # Default build options
@@ -186,11 +166,14 @@ end
 
 if LLVM_ENABLE
   FLAGS << "-DENABLE_LLVM"
+  STDERR.puts "LLVM inclusion enabled."
+=begin
   llvm_flags = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
   llvm_flags.delete_if { |e| e.index("-O") == 0 }
   FLAGS.concat llvm_flags
   FLAGS << '-D__STDC_LIMIT_MACROS' unless FLAGS.include? '-D__STDC_LIMIT_MACROS'
   FLAGS << '-D__STDC_CONSTANT_MACROS' unless FLAGS.include? '-D__STDC_CONSTANT_MACROS'
+=end
 end
 
 BUILD_PRETASKS = []
@@ -204,7 +187,7 @@ CC          = ENV['CC'] || "gcc"
 CXX         = ENV["CXX"] || "g++"
 
 def compile_c(obj, src, output_kind="c")
-  flags = INCLUDES + FLAGS
+  flags = INCLUDES + FLAGS + llvm_flags
 
   if CONFIG.compile_with_llvm
     flags << "-emit-llvm"
@@ -220,7 +203,6 @@ def compile_c(obj, src, output_kind="c")
     flags.delete_if { |f| f == '-Wno-deprecated' }
   end
 
-
   flags = flags.join(" ")
 
   if $verbose
@@ -232,14 +214,10 @@ def compile_c(obj, src, output_kind="c")
 end
 
 def ld(t)
-  if LLVM_ENABLE
-    $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
-  else
-    $link_opts ||= ""
-  end
+  link_opts = llvm_link_flags()
 
-  $link_opts += ' -Wl,--export-dynamic' if RUBY_PLATFORM =~ /linux/i
-  $link_opts += ' -rdynamic'            if RUBY_PLATFORM =~ /bsd/
+  link_opts += ' -Wl,--export-dynamic' if RUBY_PLATFORM =~ /linux/i
+  link_opts += ' -rdynamic'            if RUBY_PLATFORM =~ /bsd/
 
   ld = ENV['LD'] || 'g++'
 
@@ -263,10 +241,10 @@ def ld(t)
   l  = ex_libs.join(' ')
 
   if $verbose
-    sh "#{ld} #{$link_opts} -o #{t.name} #{o} #{l}"
+    sh "#{ld} #{link_opts} -o #{t.name} #{o} #{l}"
   else
     puts "LD #{t.name}"
-    sh "#{ld} #{$link_opts} -o #{t.name} #{o} #{l}", :verbose => false
+    sh "#{ld} #{link_opts} -o #{t.name} #{o} #{l}", :verbose => false
   end
 end
 
@@ -308,9 +286,19 @@ namespace :build do
 
   import dep_file
 
+  desc "Build LLVM"
+  task :llvm do
+    if LLVM_ENABLE and Rubinius::BUILD_CONFIG[:llvm] == :svn
+      unless File.file?("vm/external_libs/llvm/Release/bin/llvm-config")
+        sh "cd vm/external_libs/llvm; ./configure #{llvm_config_flags} && make"
+      end
+    end
+  end
+
   # Issue the actual build commands. NEVER USE DIRECTLY.
   task :build => BUILD_PRETASKS +
                  %w[
+                     build:llvm
                      vm
                      kernel:build
                      lib/rbconfig.rb
@@ -590,24 +578,15 @@ namespace :vm do
 
   task :coverage do
     Dir.mkdir "vm/test/coverage" unless File.directory? "vm/test/coverage"
-    if LLVM_ENABLE and !defined? $llvm_c then
-      $llvm_c = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
-      $llvm_c.delete_if { |e| e.index("-O") == 0 }
-    end
+    link_opts = llvm_link_flags()
 
-    if LLVM_ENABLE
-      $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
-    else
-      $link_opts ||= ""
-    end
-
-    flags = (INCLUDES + FLAGS + $llvm_c).join(' ')
+    flags = (INCLUDES + FLAGS + llvm_flags).join(' ')
 
     puts "CC/LD vm/test/coverage/runner"
     begin
       path = "vm/gen/instructions.cpp"
       ruby 'vm/codegen/rubypp.rb', "vm/template/instructions.cpp", path
-      sh "#{CXX} -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp #{path} #{$link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
+      sh "#{CXX} -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp #{path} #{link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
 
       puts "RUN vm/test/coverage/runner"
       sh "vm/test/coverage/runner"
@@ -680,10 +659,9 @@ require 'rake/loaders/makefile'
 generated = (TYPE_GEN + INSN_GEN).select { |f| f =~ /pp$/ }
 
 file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated + %w[vm/gen/instructions.cpp] do |t|
-  includes = INCLUDES.join ' '
+  includes = "-I. -Ivm" # includes = INCLUDES.join ' '
 
   flags = FLAGS.join ' '
-  flags << " -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
   flags.slice!(/-Wno-deprecated/)
 
   Dir.mkdir "vm/.deps" unless File.directory? "vm/.deps"
@@ -696,8 +674,9 @@ file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated + %w[vm/gen/instr
         f.puts File.read(file_deps)
       else
         object_file = file.sub(/((c(pp)?)|S)$/, 'o')
-        cmd = "gcc -MM -MT \"#{object_file}\" #{includes} #{flags} #{file} 2>&1"
+        cmd = "gcc -nostdinc -nostdinc++ -MM -MT \"#{object_file}\" #{includes} #{flags} #{file} 2>&1"
         data = `#{cmd}`
+        puts cmd
         if $?.exitstatus == 0
           data.strip!
 
@@ -724,16 +703,7 @@ def ex_libs # needs to be method to delay running of llvm_config
     $ex_libs << "-lcrypt -L/usr/local/lib -lexecinfo" if RUBY_PLATFORM =~ /bsd/
     $ex_libs << "-lrt -lcrypt" if RUBY_PLATFORM =~ /linux/
 
-    if LLVM_ENABLE
-      llvm_libfiles = `#{LLVM_CONFIG} --libfiles all`.split(/\s+/)
-      llvm_libfiles = llvm_libfiles.select { |f| File.file? f }
-    else
-      llvm_libfiles = []
-    end
-
-    pwd = File.join Dir.pwd, '' # add /
-    llvm_libfiles = llvm_libfiles.map { |f| f.sub pwd, '' }
-    $ex_libs += llvm_libfiles
+    $ex_libs += llvm_lib_files
   end
   $ex_libs
 end

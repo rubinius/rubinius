@@ -1,6 +1,14 @@
 # configuration for Rubinius
 
-RBX_DTRACE          = ENV['DTRACE']
+config_path = File.join(File.dirname(__FILE__), "..", "config.rb")
+unless File.file?(config_path)
+  STDERR.puts "Please run ./configure first"
+  exit 1
+end
+
+load config_path
+
+RBX_DTRACE          = nil
 RBX_RUBY_ENGINE     = 'rbx'
 RBX_RUBY_VERSION    = '1.8.7'
 RBX_RUBY_PATCHLEVEL = 174
@@ -9,15 +17,14 @@ RBX_LIBVER          = '0.12'
 RBX_VERSION         = "#{RBX_LIBVER}.0-dev"
 RBX_HOST            = `./rakelib/config.guess`.chomp
 RBX_BUILDREV        = `git rev-list --all | head -n1`.chomp
-RBX_CC              = ENV['CC'] || 'gcc'
+RBX_CC              = Rubinius::BUILD_CONFIG[:compiler]
 
 # There are two ways to build Rubinius: development and install.
-# We assume that if ENV['RBX_PREFIX'] is set, we are building in
+# We assume that if prefix is set, we are building in
 # install mode, otherwise development mode. For more details,
 # see doc/build_system.txt.
-install = ! Rake.application.top_level_tasks.grep(/install/).empty?
-if install || ENV['RBX_PREFIX']
-  RBX_PREFIX          = ENV['RBX_PREFIX'] || "/usr/local"
+if prefix = Rubinius::BUILD_CONFIG[:prefix]
+  RBX_PREFIX          = prefix
   RBX_BINPATH         = "#{RBX_PREFIX}/bin"
   RBX_LIBPATH         = "#{RBX_PREFIX}/lib"
   RBX_BASE_PATH       = "#{RBX_PREFIX}/lib/rubinius/#{RBX_LIBVER}"

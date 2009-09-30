@@ -1,0 +1,148 @@
+#!/usr/bin/env ruby
+
+root = File.expand_path File.dirname(__FILE__)
+
+require File.join(root, "kernel", "delta", "options")
+
+class Configure
+
+  def initialize(root)
+    @config = File.join(root, "config.rb")
+
+    @llvm = :none
+    @llvm_path = nil
+    @prefix = nil
+
+    @llvm_svn_dir = File.join(root, "vm", "external_libs", "llvm")
+
+    o = Rubinius::Options.new "Usage: configure [options]", 40
+
+    o.on "-h", "--help", "Display this help" do
+      puts o
+      exit 1
+    end
+
+    o.on("--enable-llvm", "[MODE]",
+         "Build with LLVM") do |which|
+      @llvm = (which || "auto").to_sym
+    end
+
+    o.on "--llvm-path", "PATH", "Where to find LLVM" do |dir|
+      @llvm_path = dir
+    end
+
+    o.on "--prefix", "PATH", "Where to install Rubinius" do |dir|
+      @prefix = dir
+    end
+
+    @options = o
+  end
+
+  def parse(ary)
+    @options.parse ary
+  end
+
+  LLVM_SVN_DIR = %w!vm external_libs llvm!
+  LLVM_SVN_URL = "http://llvm.org/svn/llvm-project/llvm/branches/release_26/"
+
+  def setup_svn
+    unless File.directory?(@llvm_svn_dir)
+      print "  Checking out LLVM from svn: #{LLVM_SVN_URL}"
+      system "svn co #{LLVM_SVN_URL} #{@llvm_svn_dir}"
+    end
+
+    unless File.exists?(File.join(@llvm_svn_dir, "include"))
+      puts "  Code in #{@llvm_svn_dir} doesn't appear to be proper LLVM tree!"
+      exit 1
+    end
+  end
+
+  def setup_auto
+    print "  Checking for existing LLVM tree: "
+    if File.directory?(@llvm_svn_dir)
+      puts "found!"
+      @llvm = :svn
+      return
+    else
+      puts "not found."
+    end
+
+    return if setup_config
+
+    @llvm = :svn
+    setup_svn
+  end
+
+  def setup_config
+    print "  Checking for 'llvm-config': "
+    which = ENV['PATH'].split(":").find do |path|
+      File.exists? File.join(path, "llvm-config")
+    end
+
+    if which
+      config = File.join(which, "llvm-config")
+      version = `#{config} --version`.strip
+      parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
+      if parts[0] < 2 or parts[1] < 6
+        puts "too old of a version"
+      else
+        puts "found! (version #{version})"
+        @llvm = :config
+        return true
+      end
+    else
+      puts "not found"
+    end
+
+    false
+  end
+
+  def process
+    print "Using LLVM: "
+    case @llvm
+    when :svn
+      puts "svn"
+      setup_svn
+    when :auto
+      puts "auto"
+      setup_auto
+    when :config
+      puts "config"
+      exit 1 unless setup_config
+    when :no
+      puts "no"
+    else
+      puts "unknown value '#{@llvm}'"
+    end
+  end
+
+  def arch
+    `./rakelib/config.guess`.strip
+  end
+
+  def compiler
+    ENV['CC'] || "gcc"
+  end
+
+  def write_config
+    File.open @config, "w" do |f|
+      f.puts "module Rubinius"
+      f.puts "BUILD_CONFIG = {"
+      f.puts "  :llvm => :#{@llvm},"
+      f.puts "  :llvm_path => '#{@llvm_path}',"
+      f.puts "  :arch => '#{arch()}',"
+      f.puts "  :prefix => #{@prefix.inspect},"
+      f.puts "  :compiler => '#{compiler}'"
+      f.puts "}"
+      f.puts "end"
+    end
+  end
+
+end
+
+STDOUT.sync = true
+
+c = Configure.new(root)
+c.parse ARGV
+c.process
+c.write_config
