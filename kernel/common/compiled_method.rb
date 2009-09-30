@@ -458,7 +458,11 @@ module Rubinius
         @ip = ip
         @line = cm.line_from_ip(ip)
 
-        @stack_consumed = calculate_stack_usage(@op.stack_consumed, args_reg)
+        if sc = @op.stack_consumed
+          @stack_consumed = calculate_stack_usage(sc, args_reg)
+        else
+          @stack_produced = 0
+        end
         @stack_produced = calculate_stack_usage(@op.stack_produced)
       end
 
