@@ -86,6 +86,8 @@ module Rubinius
     end
 
     class ClosedScope < Node
+      include CompilerNG::LocalVariables
+
       attr_accessor :body
 
       def new_description(g)
@@ -96,24 +98,6 @@ module Rubinius
 
       def children
         [@body]
-      end
-
-      def local_count
-        variables.size
-      end
-
-      def local_names
-        names = Array.new local_count
-        variables.each_pair { |name, var| names[var.slot] = name }
-        names
-      end
-
-      def variables
-        @variables ||= {}
-      end
-
-      def allocate_slot
-        variables.size
       end
 
       # A nested scope is looking up a local variable. If the variable exists

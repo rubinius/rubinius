@@ -281,6 +281,8 @@ module Rubinius
     end
 
     class Iter < Node
+      include CompilerNG::LocalVariables
+
       attr_accessor :parent, :arguments, :body
 
       def initialize(line, arguments, body)
@@ -291,24 +293,6 @@ module Rubinius
 
       def module?
         false
-      end
-
-      def local_count
-        variables.size
-      end
-
-      def local_names
-        names = Array.new local_count
-        variables.each_pair { |name, var| names[var.slot] = name }
-        names
-      end
-
-      def variables
-        @variables ||= {}
-      end
-
-      def allocate_slot
-        variables.size
       end
 
       def nest_scope(scope)
@@ -502,12 +486,6 @@ module Rubinius
     end
 
     class For < Iter
-      def initialize(line, arguments, body)
-        @line = line
-        @arguments = IterArguments.new line, arguments
-        @body = body || Nil.new(line)
-      end
-
       def variables
         @parent.variables
       end
