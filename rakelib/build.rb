@@ -1,6 +1,6 @@
 def llvm_configure
   case Rubinius::BUILD_CONFIG[:llvm]
-  when :svn
+  when :svn, :prebuilt
     "vm/external_libs/llvm/Release/bin/llvm-config"
   when :config
     "llvm-config"
@@ -14,7 +14,8 @@ def llvm_flags
 
   return @llvm_flags if defined?(@llvm_flags)
 
-  if Rubinius::BUILD_CONFIG[:llvm] == :svn
+  case Rubinius::BUILD_CONFIG[:llvm]
+  when :svn, :prebuilt
     @llvm_flags = ["-Ivm/external_libs/llvm/include"]
   else
     @llvm_flags = []

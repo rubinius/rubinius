@@ -35,11 +35,36 @@ class Configure
       @prefix = dir
     end
 
+    o.on "--update-prebuilt", "Update prebuilt packages from the internet" do
+      update_prebuilt
+    end
+
     @options = o
   end
 
   def parse(ary)
     @options.parse ary
+  end
+
+  def update_prebuilt
+    file = "llvm-#{arch}.tar.bz2"
+    full_path = "vm/external_libs/prebuilt/#{file}"
+
+    url = "http://asset.rubini.us/prebuilt/#{file}"
+
+    unless File.exists?(full_path)
+      dir = File.dirname(full_path)
+      Dir.mkdir dir unless File.directory?(dir)
+      puts "Fetching #{url}..."
+
+      system "curl -# -f -o \"#{full_path}\" #{url}"
+      if $?.exitstatus == 22
+        puts "ERROR. No #{file} available on server."
+      end
+    end
+
+    puts "Prebuilt packages updated."
+
   end
 
   LLVM_SVN_DIR = %w!vm external_libs llvm!
@@ -48,25 +73,47 @@ class Configure
   def setup_svn
     unless File.directory?(@llvm_svn_dir)
       print "  Checking out LLVM from svn: #{LLVM_SVN_URL}"
-      system "svn co #{LLVM_SVN_URL} #{@llvm_svn_dir}"
+      system "svn co -q #{LLVM_SVN_URL} #{@llvm_svn_dir}"
     end
 
-    unless File.exists?(File.join(@llvm_svn_dir, "include"))
+    if File.exists?(File.join(@llvm_svn_dir, "include"))
+      puts "  Code appears to be proper svn tree."
+    else
       puts "  Code in #{@llvm_svn_dir} doesn't appear to be proper LLVM tree!"
       exit 1
     end
+  end
+
+  def setup_prebuilt
+    file = "vm/external_libs/prebuilt/llvm-#{arch}.tar.bz2"
+
+    if File.exists?(file)
+      print "  Unpacking prebuilt LLVM for #{arch}: "
+      system "cd vm/external_libs; mkdir llvm; cd llvm; tar xjf ../prebuilt/llvm-#{arch}.tar.bz2"
+      puts "done!"
+      @llvm = :prebuilt
+      return true
+    end
+
+    return false
   end
 
   def setup_auto
     print "  Checking for existing LLVM tree: "
     if File.directory?(@llvm_svn_dir)
       puts "found!"
-      @llvm = :svn
+      if File.exists?(File.join(@llvm_svn_dir, "Makefile.common"))
+        @llvm = :svn
+      else
+        @llvm = :prebuilt
+      end
+
       return
     else
       puts "not found."
     end
 
+    return if setup_prebuilt
     return if setup_config
 
     @llvm = :svn
@@ -109,6 +156,11 @@ class Configure
     when :config
       puts "config"
       exit 1 unless setup_config
+    when :prebuilt
+      unless setup_prebuilt
+        puts "No prebuilt LLVM available for #{arch}"
+        exit 1
+      end
     when :no
       puts "no"
     else
@@ -117,7 +169,7 @@ class Configure
   end
 
   def arch
-    `./rakelib/config.guess`.strip
+    @arch ||= `./rakelib/config.guess`.strip
   end
 
   def compiler
