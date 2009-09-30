@@ -293,6 +293,16 @@ module Rubinius
         false
       end
 
+      def local_count
+        variables.size
+      end
+
+      def local_names
+        names = Array.new local_count
+        variables.each_pair { |name, var| names[var.slot] = name }
+        names
+      end
+
       def variables
         @variables ||= {}
       end
@@ -366,9 +376,19 @@ module Rubinius
         desc.for_block = true
         desc.required = @arguments.arity
         desc.optional = @arguments.optional
+
         blk = desc.generator
         blk.file = g.file
         blk.name = :__block__
+
+        blk.for_block = true
+
+        blk.required_args = @arguments.required_args
+        blk.total_args = @arguments.total_args
+        blk.splat_index = @arguments.splat_index
+
+        blk.local_count = local_count
+        blk.local_names = local_names
 
         # Push line info down.
         pos(blk)
@@ -390,7 +410,7 @@ module Rubinius
     end
 
     class IterArguments < Node
-      attr_accessor :prelude, :arity, :optional, :arguments
+      attr_accessor :prelude, :arity, :optional, :arguments, :splat_index
 
       def initialize(line, arguments)
         @line = line
@@ -426,6 +446,11 @@ module Rubinius
           @prelude = :single
         end
       end
+
+      # TODO: decide whether to use #arity or #required_args uniformly
+      # see FormalArguments
+      alias_method :required_args, :arity
+      alias_method :total_args, :arity
 
       def children
         @arguments ? [@arguments] : []

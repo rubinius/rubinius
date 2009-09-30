@@ -3,7 +3,7 @@ require 'spec/custom/helpers/generator'
 
 class TestGenerator
   attr_accessor :name, :file, :required_args, :total_args, :splat_index,
-                :local_count, :local_names, :primitive
+                :local_count, :local_names, :primitive, :for_block
 
   # TODO: fix TestGenerator to reflect current setup_unwind insn
   def setup_unwind(label, *)

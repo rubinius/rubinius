@@ -69,7 +69,7 @@ module Rubinius
     attr_reader :cache_size, :literals
     attr_accessor :break, :redo, :next, :retry, :ensure_return
     attr_accessor :file, :name, :required_args, :total_args, :splat_index,
-                  :local_count, :local_names, :primitive
+                  :local_count, :local_names, :primitive, :for_block
 
     # Temporary
     attr_accessor :desc
