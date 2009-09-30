@@ -719,8 +719,8 @@ describe "A Rescue node" do
         g.git body
         g.goto rr
         body.set!
-        g.clear_exception
         g.push :nil
+        g.clear_exception
         g.ret
         g.clear_exception
         g.goto last
@@ -769,8 +769,8 @@ describe "A Rescue node" do
             when :body
               g.push 2
             when :StandardError
-              g.clear_exception
               g.push 3
+              g.clear_exception
               g.ret
             end
           end

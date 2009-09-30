@@ -430,10 +430,7 @@ class Instructions
 
   def clear_exception
     <<-CODE
-    // Don't allow this code to clear non-exception raises
-    if(state->thread_state()->raise_reason() == cException) {
-      state->thread_state()->clear_exception();
-    }
+    state->thread_state()->clear_exception(true);
     CODE
   end
 

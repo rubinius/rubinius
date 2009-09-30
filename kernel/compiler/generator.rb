@@ -42,7 +42,6 @@ class Compiler
       @redo = nil
       @next = nil
       @retry = nil
-      @ensure_return = nil
       @last_line = nil
       @file = nil
       @lines = []
@@ -53,7 +52,7 @@ class Compiler
     end
 
     attr_reader :cache_size, :literals
-    attr_accessor :break, :redo, :next, :retry, :ensure_return
+    attr_accessor :break, :redo, :next, :retry
 
     def stream
       flush if @last

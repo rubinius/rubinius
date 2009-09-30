@@ -1066,7 +1066,10 @@ class Compiler
           ex.handle!
           g.push_exception
 
-          @ensure.bytecode(g)
+          set(:exception_on_stack) do
+            @ensure.bytecode(g)
+          end
+
           g.pop
 
           g.pop_exception
@@ -2167,10 +2170,6 @@ class Compiler
       def bytecode(g, force=false)
         pos(g)
 
-        if @in_rescue
-          g.clear_exception
-        end
-
         # Literal ArrayList and a splat
         if @splat
           splat_node = @value.body.pop
@@ -2181,6 +2180,10 @@ class Compiler
           @value.bytecode(g)
         else
           g.push :nil
+        end
+
+        if @in_rescue or get(:exception_on_stack)
+          g.clear_exception
         end
 
         if @in_block

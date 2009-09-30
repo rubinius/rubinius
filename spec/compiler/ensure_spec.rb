@@ -148,7 +148,30 @@ describe "An Ensure node" do
       [:ensure, [:block, [:lit, 14], [:return, [:lit, 2]]], [:lit, 13]]
     end
 
-    # TODO
+    compile do |g|
+      ok = g.new_label
+      g.exceptions(:ensure) do |ex|
+        g.push 14
+        g.pop
+        g.push 2
+        g.ensure_return
+        ex.escape ok
+
+        ex.handle!
+        g.push_exception
+
+        g.push 13
+        g.pop
+
+        g.pop_exception
+        g.reraise
+      end
+
+      ok.set!
+
+      g.push 13
+      g.pop
+    end
   end
 
   relates <<-ruby do
