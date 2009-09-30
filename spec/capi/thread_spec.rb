@@ -32,4 +32,10 @@ describe "CApiThreadSpecs" do
       t.join
     end
   end
+
+  describe "rb_thread_alone" do
+    it "returns 0" do
+      @t.rb_thread_alone.should == 0
+    end
+  end
 end

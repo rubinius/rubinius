@@ -15,4 +15,8 @@ extern "C" {
 
     return select(max, read, write, except, timeval);
   }
+
+  int rb_thread_alone() {
+    return 0;
+  }
 }

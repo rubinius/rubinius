@@ -198,4 +198,8 @@ extern "C" {
   void rb_sys_fail(const char* mesg) {
     rb_funcall(rb_mErrno, rb_intern("handle"), 1, rb_str_new2(mesg));
   }
+
+  VALUE rb_eval_string(const char* str) {
+    return rb_funcall(rb_mKernel, rb_intern("eval"), 1, rb_str_new2(str));
+  }
 }

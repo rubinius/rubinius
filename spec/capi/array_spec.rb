@@ -201,4 +201,32 @@ describe "C-API Array function" do
       @s.rb_ary_includes([1, 2, 3], 4).should be_false
     end
   end
+
+  describe "rb_ary_aref" do
+    it "returns the element at the given index" do
+      @s.rb_ary_aref([:me, :you], 0).should == :me
+      @s.rb_ary_aref([:me, :you], 1).should == :you
+    end
+
+    it "returns nil for an out of range index" do
+      @s.rb_ary_aref([1, 2, 3], 6).should be_nil
+    end
+
+    it "returns a new array where the first argument is the index and the second is the length" do
+      @s.rb_ary_aref([1, 2, 3, 4], 0, 2).should == [1, 2]
+      @s.rb_ary_aref([1, 2, 3, 4], -4, 3).should == [1, 2, 3]
+    end
+
+    it "accepts a range" do
+      @s.rb_ary_aref([1, 2, 3, 4], 0..-1).should == [1, 2, 3, 4]
+    end
+
+    it "returns nil when the start of a range is out of bounds" do
+      @s.rb_ary_aref([1, 2, 3, 4], 6..10).should be_nil
+    end
+
+    it "returns an empty array when the start of a range equals the last element" do
+      @s.rb_ary_aref([1, 2, 3, 4], 4..10).should == []
+    end
+  end
 end

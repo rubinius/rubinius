@@ -257,4 +257,8 @@ extern "C" {
   VALUE rb_assoc_new(VALUE first, VALUE second) {
     return rb_funcall(rb_cArray, rb_intern("[]"), 2, first, second);
   }
+
+  VALUE rb_ary_aref(int argc, VALUE *argv, VALUE self_handle) {
+    return rb_funcall2(self_handle, rb_intern("[]"), argc, argv);
+  }
 }

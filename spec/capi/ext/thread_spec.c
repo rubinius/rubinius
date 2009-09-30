@@ -20,9 +20,14 @@ static VALUE thread_spec_rb_thread_select(VALUE self, VALUE msec) {
   return Qnil;
 }
 
+static VALUE thread_spec_rb_thread_alone() {
+  return INT2NUM(rb_thread_alone());
+}
+
 void Init_thread_spec() {
   VALUE cls;
   cls = rb_define_class("CApiThreadSpecs", rb_cObject);
   rb_define_method(cls, "rb_thread_select_fd", thread_spec_rb_thread_select_fd, 2);
   rb_define_method(cls, "rb_thread_select", thread_spec_rb_thread_select, 1);
+  rb_define_method(cls, "rb_thread_alone", thread_spec_rb_thread_alone, 0);
 }

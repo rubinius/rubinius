@@ -723,6 +723,9 @@ double rb_num2dbl(VALUE);
   /** Add object to the front of Array. Changes old indexes +1. Returns object. */
   VALUE   rb_ary_unshift(VALUE self_handle, VALUE object_handle);
 
+  /** Returns the element at index, or returns a subarray or returns a subarray specified by a range. */
+  VALUE   rb_ary_aref(int argc, VALUE *argv, VALUE object_handle);
+
   /** Return new Array with elements first and second. */
   VALUE   rb_assoc_new(VALUE first, VALUE second);
 
@@ -1255,6 +1258,9 @@ double rb_num2dbl(VALUE);
   /** Raises an exception from the value of errno. */
   void rb_sys_fail(const char* mesg);
 
+  /** Evaluate the given string. */
+  VALUE   rb_eval_string(const char* string);
+
   /** Create a String from the C string. */
   VALUE   rb_tainted_str_new2(const char* string);
 
@@ -1263,6 +1269,9 @@ double rb_num2dbl(VALUE);
 
   /** Issue a thread.pass. */
   void    rb_thread_schedule();
+
+  /** Stubbed to always return 0. */
+  int    rb_thread_alone();
 
   /** Request status of file descriptors */
   int     rb_thread_select(int max, fd_set* read, fd_set* write, fd_set* except,

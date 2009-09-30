@@ -142,4 +142,10 @@ describe "C-API Kernel function" do
       lambda { @s.rb_ensure(raise_proc, nil, proc, nil) }.should raise_error(RuntimeError, 'foo')
     end
   end
+
+  describe "rb_eval_string" do
+    it "evaluates a string of ruby code" do
+      @s.rb_eval_string("1+1").should == 2
+    end
+  end
 end
