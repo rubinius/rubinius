@@ -1,7 +1,7 @@
 #ifndef RBX_VAR_TABLE_HPP
 #define RBX_VAR_TABLE_HPP
 
-#include "quark.h"
+#include <quark.h>
 
 namespace rubinius {
   namespace parser {

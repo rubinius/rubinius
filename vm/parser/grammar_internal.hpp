@@ -5,9 +5,9 @@
 #include <string>
 #include <list>
 
-#include "quark.h"
-#include "bstrlib.h"
-#include "ptr_array.h"
+#include <quark.h>
+#include <bstrlib.h>
+#include <ptr_array.h>
 
 #include "parser/local_state.hpp"
 #include "prelude.hpp"

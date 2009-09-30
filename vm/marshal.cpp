@@ -8,8 +8,8 @@
 
 #include "object_utils.hpp"
 
-#include "tommath.h"
-#include "gdtoa.h"
+#include <tommath.h>
+#include <gdtoa.h>
 
 #include "builtin/sendsite.hpp"
 #include "builtin/array.hpp"

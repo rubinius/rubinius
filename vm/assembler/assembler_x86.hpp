@@ -13,7 +13,7 @@
 #include <dlfcn.h>
 
 #include "assembler/assembler.hpp"
-#include "udis86.h"
+#include <udis86.h>
 #include "assembler/relocation.hpp"
 #include "assembler/code_map.hpp"
 

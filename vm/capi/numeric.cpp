@@ -6,7 +6,7 @@
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
 
-#include "gdtoa.h"
+#include <gdtoa.h>
 
 using namespace rubinius;
 using namespace rubinius::capi;

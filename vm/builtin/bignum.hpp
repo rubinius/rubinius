@@ -2,7 +2,7 @@
 #define RBX_BUILTIN_BIGNUM_HPP
 
 #include "builtin/integer.hpp"
-#include "tommath.h"
+#include <tommath.h>
 
 namespace rubinius {
   class Array;
