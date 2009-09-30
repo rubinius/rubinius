@@ -66,7 +66,9 @@ namespace rubinius {
 
   namespace {
     /** Utility function used by IO::select, returns highest descriptor. */
-    static inline native_int hidden_fd_set_from_array(VM* state, Object* maybe_descriptors, fd_set* set) {
+    static inline native_int hidden_fd_set_from_array(VM* state,
+                               Object* maybe_descriptors, fd_set* set)
+    {
       if(NULL == set) {
         return 0;
       }
@@ -80,14 +82,16 @@ namespace rubinius {
         native_int descriptor = as<IO>(descriptors->get(state, i))->to_fd();
         highest = descriptor > highest ? descriptor : highest;
 
-        FD_SET(descriptor, set);
+        if(descriptor > 0) FD_SET(descriptor, set);
       }
 
       return highest;
     }
 
     /** Utility function used by IO::select, returns Array of IOs that were set. */
-    static inline Array* hidden_reject_unset_fds(VM* state, Object* maybe_originals, fd_set* set) {
+    static inline Array* hidden_reject_unset_fds(VM* state,
+                           Object* maybe_originals, fd_set* set)
+    {
       if(NULL == set) {
         return Array::create(state, 0);
       }
@@ -98,7 +102,8 @@ namespace rubinius {
       for(std::size_t i = 0; i < originals->size(); ++i) {
         IO* io = as<IO>(originals->get(state, i));
 
-        if(FD_ISSET(io->to_fd(), set)) {
+        int fd = io->to_fd();
+        if(fd < 0 || FD_ISSET(fd, set)) {
           selected->set(state, i, io);
         }
       }
@@ -112,7 +117,10 @@ namespace rubinius {
    *
    *  @todo This is highly unoptimised since we always rebuild the FD_SETs. --rue
    */
-  Object* IO::select(STATE, Object* readables, Object* writables, Object* errorables, Object* timeout, CallFrame* calling_environment) {
+  Object* IO::select(STATE, Object* readables, Object* writables,
+                     Object* errorables, Object* timeout,
+                     CallFrame* calling_environment)
+  {
     fd_set read_set;
     fd_set* maybe_read_set = readables->nil_p() ? NULL : &read_set;
 

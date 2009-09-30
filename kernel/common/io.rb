@@ -486,19 +486,25 @@ class IO
 
     if readables
       readables = Type.coerce_to(readables, Array, :to_ary).map {|obj|
-                    Type.coerce_to obj, IO, :to_io
+                    io = Type.coerce_to obj, IO, :to_io
+                    raise IOError, "closed stream" if io.closed?
+                    io
                   }
     end
 
     if writables
       writables = Type.coerce_to(writables, Array, :to_ary).map {|obj|
-                      Type.coerce_to obj, IO, :to_io
+                    io = Type.coerce_to obj, IO, :to_io
+                    raise IOError, "closed stream" if io.closed?
+                    io
                     }
     end
 
     if errorables
       errorables = Type.coerce_to(errorables, Array, :to_ary).map {|obj|
-                      Type.coerce_to obj, IO, :to_io
+                    io = Type.coerce_to obj, IO, :to_io
+                    raise IOError, "closed stream" if io.closed?
+                    io
                     }
     end
 
