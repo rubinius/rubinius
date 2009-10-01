@@ -27,7 +27,7 @@ def llvm_flags
 end
 
 def llvm_link_flags
-  return [] unless LLVM_ENABLE
+  return "" unless LLVM_ENABLE
 
   `#{llvm_configure} --ldflags`.strip
 end
