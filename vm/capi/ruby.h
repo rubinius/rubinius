@@ -735,6 +735,9 @@ double rb_num2dbl(VALUE);
   /** Return 1 if this send has a block, 0 otherwise. */
   int     rb_block_given_p();
 
+  /* Converts implicit block into a new Proc. */
+  VALUE   rb_block_proc();
+
   VALUE   rb_big2str(VALUE self, int base);
 
   long    rb_big2long(VALUE obj);

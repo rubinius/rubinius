@@ -69,6 +69,10 @@ VALUE kernel_spec_rb_eval_string(VALUE self, VALUE str) {
   return rb_eval_string(RSTRING_PTR(str));
 }
 
+VALUE kernel_spec_rb_block_proc(VALUE self) {
+  return rb_block_proc();
+}
+
 void Init_kernel_spec() {
   VALUE cls;
   cls = rb_define_class("CApiKernelSpecs", rb_cObject);
@@ -80,4 +84,5 @@ void Init_kernel_spec() {
   rb_define_method(cls, "rb_rescue2", kernel_spec_rb_rescue2, -1);
   rb_define_method(cls, "rb_ensure", kernel_spec_rb_ensure, 4);
   rb_define_method(cls, "rb_eval_string", kernel_spec_rb_eval_string, 1);
+  rb_define_method(cls, "rb_block_proc", kernel_spec_rb_block_proc, 0);
 }

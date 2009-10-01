@@ -202,4 +202,9 @@ extern "C" {
   VALUE rb_eval_string(const char* str) {
     return rb_funcall(rb_mKernel, rb_intern("eval"), 1, rb_str_new2(str));
   }
+
+  VALUE rb_block_proc() {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    return rb_funcall(rb_cProc, rb_intern("__from_block__"), 1, env->get_handle(env->block()));
+  }
 }
