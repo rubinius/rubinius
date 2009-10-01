@@ -676,7 +676,6 @@ file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated + %w[vm/gen/instr
         object_file = file.sub(/((c(pp)?)|S)$/, 'o')
         cmd = "gcc -nostdinc -nostdinc++ -MM -MT \"#{object_file}\" #{includes} #{flags} #{file} 2>&1"
         data = `#{cmd}`
-        puts cmd
         if $?.exitstatus == 0
           data.strip!
 
