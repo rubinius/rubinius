@@ -13,6 +13,21 @@ Rubinius uses the BSD license. See LICENSE for details.
 
 See doc/getting_started.txt.
 
+3.1. For the impatient
+
+Try "./configure --update-prebuilt" to try and use a prebuilt version of LLVM.
+
+If it can't find a prebuilt for your system, then it will at the very least
+checkout LLVM from svn and built it (this takes a lot of time).
+
+Now to configure with LLVM: "./configure --enable-llvm"
+
+  or
+
+To configure without the JIT: "./configure"
+
+Now: "rake"
+
 4. Status
 
 Rubinius is under heavy development and currently supports the core Ruby
