@@ -3,7 +3,7 @@ module Rubinius
     Stages = { }
 
     class Stage
-      attr_accessor :next_stage
+      attr_accessor :next_stage, :printer
 
       def self.stage(name)
         @stage = name
@@ -39,6 +39,10 @@ module Rubinius
 
         stage = self.class.next_stage_class
         stage.new compiler, last if stage
+      end
+
+      def insert(stage)
+        @next_stage, stage.next_stage = stage.next_stage, self
       end
 
       def run_next
@@ -78,6 +82,12 @@ module Rubinius
       def initialize(compiler, last)
         super
         compiler.packager = self
+      end
+
+      def print(klass=MethodPrinter)
+        @printer = klass.new
+        @printer.insert self
+        @printer
       end
 
       def run
@@ -146,6 +156,12 @@ module Rubinius
 
       def default_transforms
         @transforms.concat AST::Transforms.category :default
+      end
+
+      def print(klass=ASTPrinter)
+        @printer = klass.new
+        @printer.insert self
+        @printer
       end
 
       def enable_transform(name)

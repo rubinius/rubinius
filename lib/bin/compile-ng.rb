@@ -4,6 +4,7 @@ class CompilerScript
   def initialize
     @files = []
     @transforms = []
+    @method_names = []
   end
 
   def options(argv=ARGV)
@@ -62,7 +63,29 @@ class CompilerScript
     end
 
 
-    @options.doc " How to modify runtime behavior"
+    @options.doc " How to print representations of data structures"
+
+    @options.on "-A", "--print-ast", "Print an ascii graph of the AST" do
+      @print_ast = true
+    end
+
+    @options.on "-B", "--print-bytecode", "Print bytecode for compiled methods" do
+      @print_bytecode = true
+    end
+
+    @options.on "-D", "--print-assembly", "Print machine code for compiled methods" do
+      @print_assembly = true
+    end
+
+    @options.on "-N", "--method", "NAME", "Only decode methods named NAME" do |n|
+      @method_names << n
+    end
+
+    @options.on "-P", "--print", "Enable all stage printers" do
+    end
+
+
+    @options.doc "\n How to modify runtime behavior"
 
     @options.on "-i", "--ignore", "Continue on errors" do
       @ignore = true
@@ -144,13 +167,25 @@ class CompilerScript
       protect file do
         compiler = Rubinius::CompilerNG.new :file, :compiled_file
 
-        parser = compiler.parser
-        parser.root Rubinius::AST::Script
-        parser.input file
-        enable_transforms parser
+        if parser = compiler.parser
+          parser.root Rubinius::AST::Script
+          parser.input file
+          enable_transforms parser
+          parser.print if @print_ast
+        end
 
-        writer = compiler.writer
-        writer.name = output
+        if @print_bytecode or @print_assembly
+          if packager = compiler.packager
+            printer = packager.print
+            printer.bytecode = @print_bytecode
+            printer.assembly = @print_assembly
+            printer.method_names = @method_names
+          end
+        end
+
+        if writer = compiler.writer
+          writer.name = output
+        end
 
         compiler.run
       end
