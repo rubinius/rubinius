@@ -9,7 +9,7 @@ class Configure
   def initialize(root)
     @config = File.join(root, "config.rb")
 
-    @llvm = :none
+    @llvm = :no
     @llvm_path = nil
     @prefix = nil
 
