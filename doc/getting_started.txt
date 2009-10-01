@@ -62,11 +62,6 @@ help</tt> and http://www.rubygems.org for more information.
 ### System-dependent requirements
 
 
-#### FreeBSD, OpenBSD
-
-* [libexecinfo](http://www.freshports.org/devel/libexecinfo)
-
-
 #### Debian/Ubuntu family systems
 
 For the build to succeed you will need these packages:
@@ -88,6 +83,28 @@ For more information on Rubinius' best practices for git, see
 
 
 ## Compiling Rubinius
+
+First, we need to configure rubinius for your system.
+
+If you want to include LLVM for the JIT, you have a couple of choices.
+Easiest is to use a prebuilt LLVM if there is one available for your
+system. To try this, run:
+
+   ./configure --update-prebuilt
+
+If you don't get an error, you're ready to go. If not, configure will
+try to use an installed version of LLVM by running the 'llvm-config'
+command. Rubinius require LLVM version 2.6 or higher. If an installed
+version of LLVM is not available, configure will
+automatically checkout LLVM from svn and build it for you.
+
+Now, if you wanna go ahead and use LLVM, run:
+
+   ./configure --enable-llvm
+
+Or if you wanna do without it, run:
+
+  ./configure
 
 The C++ VM is compiled using Rake. Typically, it will be as simple as:
 
