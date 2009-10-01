@@ -24,7 +24,7 @@ if CONFIG.compile_with_llvm
   ENV['CC'] = "llvm-gcc"
 end
 
-LLVM_ENABLE = Rubinius::BUILD_CONFIG[:llvm]
+LLVM_ENABLE = (Rubinius::BUILD_CONFIG[:llvm] != :no)
 
 
 if ENV['TESTS_ONLY']
