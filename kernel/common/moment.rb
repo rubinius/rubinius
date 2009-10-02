@@ -16,9 +16,9 @@ class Moment
       @utc   = time.respond_to?(:first) ? time.first : time
       @micro = time.respond_to?(:last)  ? time.last  : 0
     else
-      tv = Platform::POSIX::TimeVal.new
+      tv = FFI::Platform::POSIX::TimeVal.new
 
-      if 0 != Platform::POSIX.gettimeofday(tv.pointer, nil)
+      if 0 != FFI::Platform::POSIX.gettimeofday(tv.pointer, nil)
         Errno.handle
       end
 
@@ -28,7 +28,7 @@ class Moment
       tv.free
     end
 
-    @local = @utc - Platform::POSIX.timezone
+    @local = @utc - FFI::Platform::POSIX.timezone
     @time  = @local
     @human = nil
   end
@@ -41,7 +41,7 @@ class Moment
     def initialize(moment)
       @moment = moment
       # HACK. the 0 should be 1 if this Moment is during DST
-      @timezone = Platform::POSIX.tzname(0)
+      @timezone = FFI::Platform::POSIX.tzname(0)
     end
 
     attr_accessor :micro

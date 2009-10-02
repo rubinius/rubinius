@@ -531,7 +531,7 @@ class IO
   # The +sync+ attribute will also be set.
   #
   def self.setup(io, fd, mode = nil, sync = false)
-    cur_mode = Platform::POSIX.fcntl(fd, F_GETFL, 0)
+    cur_mode = FFI::Platform::POSIX.fcntl(fd, F_GETFL, 0)
     Errno.handle if cur_mode < 0
     cur_mode &= ACCMODE
 
@@ -566,7 +566,7 @@ class IO
   ##
   # Obtains a new duplicate descriptor for the current one.
   def initialize_copy(original) # :nodoc:
-    @descriptor = Platform::POSIX.dup(@descriptor)
+    @descriptor = FFI::Platform::POSIX.dup(@descriptor)
   end
 
   private :initialize_copy
@@ -773,7 +773,7 @@ class IO
   def fcntl(command, arg=0)
     ensure_open
     if arg.kind_of? Fixnum then
-      Platform::POSIX.fcntl(descriptor, command, arg)
+      FFI::Platform::POSIX.fcntl(descriptor, command, arg)
     else
       raise NotImplementedError, "cannot handle #{arg.class}"
     end
@@ -816,7 +816,7 @@ class IO
   def fsync
     flush
 
-    err = Platform::POSIX.fsync @descriptor
+    err = FFI::Platform::POSIX.fsync @descriptor
 
     Errno.handle 'fsync(2)' if err < 0
 
@@ -1437,7 +1437,7 @@ class IO
   #  File.new("/dev/tty").isatty   #=> true
   def tty?
     ensure_open
-    Platform::POSIX.isatty(@descriptor) == 1
+    FFI::Platform::POSIX.isatty(@descriptor) == 1
   end
 
   alias_method :isatty, :tty?

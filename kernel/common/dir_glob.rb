@@ -93,7 +93,7 @@ class Dir
       end
 
       def match?(str)
-        Platform::POSIX.fnmatch(@glob, str, 4) == 0
+        FFI::Platform::POSIX.fnmatch(@glob, str, 4) == 0
       end
     end
 

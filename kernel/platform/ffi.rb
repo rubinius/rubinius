@@ -148,6 +148,6 @@ end
 ##
 # Namespace for holding platform-specific C constants.
 
-module Platform
+module FFI::Platform
 end
 

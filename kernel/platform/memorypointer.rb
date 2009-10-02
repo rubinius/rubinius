@@ -61,10 +61,10 @@ module FFI
         total = size
       end
 
-      ptr = Platform::POSIX.malloc total
+      ptr = FFI::Platform::POSIX.malloc total
       ptr.total = total
       ptr.type_size = size
-      Platform::POSIX.memset ptr, 0, total if clear
+      FFI::Platform::POSIX.memset ptr, 0, total if clear
 
       if block_given?
         begin
@@ -81,10 +81,10 @@ module FFI
     end
 
     def dup
-      other = Platform::POSIX.malloc total
+      other = FFI::Platform::POSIX.malloc total
       other.total = total
       other.type_size = type_size
-      Platform::POSIX.memcpy other, self, total
+      FFI::Platform::POSIX.memcpy other, self, total
       other.send :initialize_copy, self
       other
     end
@@ -122,7 +122,7 @@ module FFI
     # Release the memory pointed to back to the OS.
     def free
       self.autorelease = false
-      Platform::POSIX.free(self) unless null?
+      FFI::Platform::POSIX.free(self) unless null?
       #self.class.set_address self, nil
     end
 

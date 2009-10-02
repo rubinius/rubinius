@@ -373,19 +373,19 @@ class Dir
   def self.chdir(path = ENV['HOME'])
     if block_given?
       original_path = self.getwd
-      error = Platform::POSIX.chdir path
+      error = FFI::Platform::POSIX.chdir path
       Errno.handle(path) if error != 0
 
       begin
         value = yield path
       ensure
-        error = Platform::POSIX.chdir original_path
+        error = FFI::Platform::POSIX.chdir original_path
         Errno.handle(original_path) if error != 0
       end
 
       return value
     else
-      error = Platform::POSIX.chdir path
+      error = FFI::Platform::POSIX.chdir path
       if error != 0
         Errno.handle path
       end
@@ -394,7 +394,7 @@ class Dir
   end
 
   def self.mkdir(path, mode = 0777)
-    error = Platform::POSIX.mkdir(path, mode)
+    error = FFI::Platform::POSIX.mkdir(path, mode)
     if error != 0
       Errno.handle path
     end
@@ -402,7 +402,7 @@ class Dir
   end
 
   def self.rmdir(path)
-    error = Platform::POSIX.rmdir(path)
+    error = FFI::Platform::POSIX.rmdir(path)
     if error != 0
       Errno.handle path
     end
@@ -411,7 +411,7 @@ class Dir
 
   def self.getwd
     buf = " " * 1024
-    Platform::POSIX.getcwd(buf, buf.length)
+    FFI::Platform::POSIX.getcwd(buf, buf.length)
   end
 
   def self.open(path)

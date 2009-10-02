@@ -46,7 +46,7 @@ module Etc
   def self.getpwnam(name)
     login = StringValue(name)
 
-    passwd_ptr = Platform::POSIX.getpwnam(name)
+    passwd_ptr = FFI::Platform::POSIX.getpwnam(name)
     if passwd_ptr.nil?
       raise ArgumentError, "cannot find user - #{name}"
     end
@@ -57,7 +57,7 @@ module Etc
   def self.getpwuid(uid = Process.uid)
     uid = Type.coerce_to(uid, Integer, :to_int)
 
-    passwd_ptr = Platform::POSIX.getpwuid(uid)
+    passwd_ptr = FFI::Platform::POSIX.getpwuid(uid)
     if passwd_ptr.nil?
       raise ArgumentError, "cannot find user - #{uid}"
     end
@@ -66,18 +66,18 @@ module Etc
   end
 
   def self.setpwent
-    Platform::POSIX.setpwent
+    FFI::Platform::POSIX.setpwent
   end
 
   def self.getpwent
-    passwd_ptr = Platform::POSIX.getpwent
+    passwd_ptr = FFI::Platform::POSIX.getpwent
     return nil if passwd_ptr.nil?
 
     Passwd.new(passwd_ptr)
   end
 
   def self.endpwent
-    Platform::POSIX.endpwent
+    FFI::Platform::POSIX.endpwent
   end
 
   def self.passwd
@@ -96,7 +96,7 @@ module Etc
   def self.getgrnam(name)
     name = StringValue(name)
 
-    group_ptr = Platform::POSIX.getgrnam(name)
+    group_ptr = FFI::Platform::POSIX.getgrnam(name)
     if group_ptr.nil?
       raise ArgumentError, "cannot find group - #{name}"
     end
@@ -107,7 +107,7 @@ module Etc
   def self.getgrgid(gid = Process.gid)
     gid = Type.coerce_to(gid, Integer, :to_int)
 
-    group_ptr = Platform::POSIX.getgrgid(gid)
+    group_ptr = FFI::Platform::POSIX.getgrgid(gid)
     if group_ptr.nil?
       raise ArgumentError, "cannot find group - #{gid}"
     end
@@ -116,18 +116,18 @@ module Etc
   end
 
   def self.setgrent
-    Platform::POSIX.setgrent
+    FFI::Platform::POSIX.setgrent
   end
 
   def self.getgrent
-    group_ptr = Platform::POSIX.getgrent
+    group_ptr = FFI::Platform::POSIX.getgrent
     return nil if group_ptr.nil?
 
     Group.new(group_ptr)
   end
 
   def self.endgrent
-    Platform::POSIX.endgrent
+    FFI::Platform::POSIX.endgrent
   end
 
   def self.group

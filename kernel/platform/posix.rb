@@ -1,7 +1,7 @@
 ##
 # Namespace for various POSIX functions.
 
-module Platform::POSIX
+module FFI::Platform::POSIX
   extend FFI::Library
 
   # errors

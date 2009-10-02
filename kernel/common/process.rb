@@ -36,20 +36,20 @@ module Process
     rlimit = Rlimit.new
     rlimit[:rlim_cur] = cur_limit
     rlimit[:rlim_max] = max_limit.equal?(Undefined) ? cur_limit : max_limit
-    Errno.handle if -1 == Platform::POSIX.setrlimit(resource, rlimit.pointer)
+    Errno.handle if -1 == FFI::Platform::POSIX.setrlimit(resource, rlimit.pointer)
     nil
   end
 
   def self.getrlimit(resource)
     lim_max = []
     rlimit = Rlimit.new
-    Errno.handle if -1 == Platform::POSIX.getrlimit(resource, rlimit.pointer)
+    Errno.handle if -1 == FFI::Platform::POSIX.getrlimit(resource, rlimit.pointer)
     lim_max = [rlimit[:rlim_cur], rlimit[:rlim_max]]
     lim_max
   end
 
   def self.setsid
-    pgid = Platform::POSIX.setsid
+    pgid = FFI::Platform::POSIX.setsid
     Errno.handle if -1 == pgid
     pgid
   end
@@ -89,7 +89,7 @@ module Process
     end
     pid = -pid if use_process_group
     raise ArgumentError unless number
-    ret = Platform::POSIX.kill(pid, number)
+    ret = FFI::Platform::POSIX.kill(pid, number)
     case ret
     when 0
       return 1
@@ -107,13 +107,13 @@ module Process
   end
 
   def self.getpgid(pid)
-    ret = Platform::POSIX.getpgid(pid)
+    ret = FFI::Platform::POSIX.getpgid(pid)
     Errno.handle if ret == -1
     ret
   end
 
   def self.setpgid(pid, int)
-    ret = Platform::POSIX.setpgid(pid, int)
+    ret = FFI::Platform::POSIX.setpgid(pid, int)
     Errno.handle if ret == -1
     ret
   end
@@ -130,19 +130,19 @@ module Process
     setpgid(0, 0)
   end
   def self.getpgrp
-    ret = Platform::POSIX.getpgrp
+    ret = FFI::Platform::POSIX.getpgrp
     Errno.handle if ret == -1
     ret
   end
 
   def self.pid
-    ret = Platform::POSIX.getpid
+    ret = FFI::Platform::POSIX.getpid
     Errno.handle if ret == -1
     ret
   end
 
   def self.ppid
-    ret = Platform::POSIX.getppid
+    ret = FFI::Platform::POSIX.getppid
     Errno.handle if ret == -1
     ret
   end
@@ -164,38 +164,38 @@ module Process
   end
 
   def self.uid
-    ret = Platform::POSIX.getuid
+    ret = FFI::Platform::POSIX.getuid
     Errno.handle if ret == -1
     ret
   end
 
   def self.gid
-    ret = Platform::POSIX.getgid
+    ret = FFI::Platform::POSIX.getgid
     Errno.handle if ret == -1
     ret
   end
 
   def self.euid
-    ret = Platform::POSIX.geteuid
+    ret = FFI::Platform::POSIX.geteuid
     Errno.handle if ret == -1
     ret
   end
 
   def self.egid
-    ret = Platform::POSIX.getegid
+    ret = FFI::Platform::POSIX.getegid
     Errno.handle if ret == -1
     ret
   end
 
   def self.getpriority(kind, id)
-    Platform::POSIX.errno = 0
-    ret = Platform::POSIX.getpriority(kind, id)
+    FFI::Platform::POSIX.errno = 0
+    ret = FFI::Platform::POSIX.getpriority(kind, id)
     Errno.handle
     ret
   end
 
   def self.setpriority(kind, id, priority)
-    ret = Platform::POSIX.setpriority(kind, id, priority)
+    ret = FFI::Platform::POSIX.setpriority(kind, id, priority)
     Errno.handle if ret == -1
     ret
   end
@@ -203,7 +203,7 @@ module Process
   def self.groups
     g = []
     FFI::MemoryPointer.new(:int, @maxgroups) { |p|
-      num_groups = Platform::POSIX.getgroups(@maxgroups, p)
+      num_groups = FFI::Platform::POSIX.getgroups(@maxgroups, p)
       Errno.handle if num_groups == -1
       g = p.read_array_of_int(num_groups)
     }
@@ -214,13 +214,13 @@ module Process
     @maxgroups = g.length if g.length > @maxgroups
     FFI::MemoryPointer.new(:int, @maxgroups) { |p|
       p.write_array_of_int(g)
-      Errno.handle if -1 == Platform::POSIX.setgroups(g.length, p)
+      Errno.handle if -1 == FFI::Platform::POSIX.setgroups(g.length, p)
     }
     g
   end
 
   def self.initgroups(username, gid)
-    Errno.handle if -1 == Platform::POSIX.initgroups(username, gid)
+    Errno.handle if -1 == FFI::Platform::POSIX.initgroups(username, gid)
     Process.groups
   end
 
@@ -400,22 +400,22 @@ module Process
   module Sys
     class << self
       def getegid
-        ret = Platform::POSIX.getegid
+        ret = FFI::Platform::POSIX.getegid
         Errno.handle if ret == -1
         ret
       end
       def geteuid
-        ret = Platform::POSIX.geteuid
+        ret = FFI::Platform::POSIX.geteuid
         Errno.handle if ret == -1
         ret
       end
       def getgid
-        ret = Platform::POSIX.getgid
+        ret = FFI::Platform::POSIX.getgid
         Errno.handle if ret == -1
         ret
       end
       def getuid
-        ret = Platform::POSIX.getuid
+        ret = FFI::Platform::POSIX.getuid
         Errno.handle if ret == -1
         ret
       end
@@ -423,22 +423,22 @@ module Process
         raise "not implemented"
       end
       def setgid(gid)
-        Platform::POSIX.setgid gid
+        FFI::Platform::POSIX.setgid gid
         Errno.handle if ret == -1
         nil
       end
       def setuid(uid)
-        Platform::POSIX.setuid uid
+        FFI::Platform::POSIX.setuid uid
         Errno.handle if ret == -1
         nil
       end
       def setegid(egid)
-        ret = Platform::POSIX.setegid egid
+        ret = FFI::Platform::POSIX.setegid egid
         Errno.handle if ret == -1
         nil
       end
       def seteuid(euid)
-        Platform::POSIX.seteuid euid
+        FFI::Platform::POSIX.seteuid euid
         Errno.handle if ret == -1
         nil
       end
@@ -449,22 +449,22 @@ module Process
         setreuid(ruid, -1)
       end
       def setregid(rid, eid)
-        Platform::POSIX.setregid rid, eid
+        FFI::Platform::POSIX.setregid rid, eid
         Errno.handle if ret == -1
         nil
       end
       def setreuid(rid)
-        Platform::POSIX.setreuid rid
+        FFI::Platform::POSIX.setreuid rid
         Errno.handle if ret == -1
         nil
       end
       def setresgid(rid, eid, sid)
-        Platform::POSIX.setresgid rid, eid, sid
+        FFI::Platform::POSIX.setresgid rid, eid, sid
         Errno.handle if ret == -1
         nil
       end
       def setresuid(rid, eig, sid)
-        Platform::POSIX.setresuid rid, eid, sid
+        FFI::Platform::POSIX.setresuid rid, eid, sid
         Errno.handle if ret == -1
         nil
       end
@@ -474,29 +474,29 @@ module Process
   module UID
     class << self
       def change_privilege(uid)
-        Platform::POSIX.setreuid(uid, uid)
+        FFI::Platform::POSIX.setreuid(uid, uid)
         uid
       end
 
       def eid
-        ret = Platform::POSIX.geteuid
+        ret = FFI::Platform::POSIX.geteuid
         Errno.handle if ret == -1
         ret
       end
 
       def eid=(uid)
-        ret = Platform::POSIX.seteuid(uid)
+        ret = FFI::Platform::POSIX.seteuid(uid)
         Errno.handle if ret == -1
         uid
       end
       alias_method :grant_privilege, :eid=
 
       def re_exchange
-        real = Platform::POSIX.getuid
+        real = FFI::Platform::POSIX.getuid
         Errno.handle if real == -1
-        eff = Platform::POSIX.geteuid
+        eff = FFI::Platform::POSIX.geteuid
         Errno.handle if eff == -1
-        ret = Platform::POSIX.setreuid(eff, real)
+        ret = FFI::Platform::POSIX.setreuid(eff, real)
         Errno.handle if ret == -1
         eff
       end
@@ -506,7 +506,7 @@ module Process
       end
 
       def rid
-        ret = Platform::POSIX.getuid
+        ret = FFI::Platform::POSIX.getuid
         Errno.handle if ret == -1
         ret
       end
@@ -532,30 +532,30 @@ module Process
   module GID
     class << self
       def change_privilege(gid)
-        ret = Platform::POSIX.setregid(gid, gid)
+        ret = FFI::Platform::POSIX.setregid(gid, gid)
         Errno.handle if ret == -1
         gid
       end
 
       def eid
-        ret = Platform::POSIX.getegid
+        ret = FFI::Platform::POSIX.getegid
         Errno.handle if ret == -1
         ret
       end
 
       def eid=(gid)
-        ret = Platform::POSIX.setegid(gid)
+        ret = FFI::Platform::POSIX.setegid(gid)
         Errno.handle if ret == -1
         gid
       end
       alias_method :grant_privilege, :eid=
 
       def re_exchange
-        real = Platform::POSIX.getgid
+        real = FFI::Platform::POSIX.getgid
         Errno.handle if real == -1
-        eff = Platform::POSIX.getegid
+        eff = FFI::Platform::POSIX.getegid
         Errno.handle if eff == -1
-        ret = Platform::POSIX.setregid(eff, real)
+        ret = FFI::Platform::POSIX.setregid(eff, real)
         Errno.handle if ret == -1
         eff
       end
@@ -565,7 +565,7 @@ module Process
       end
 
       def rid
-        ret = Platform::POSIX.getgid
+        ret = FFI::Platform::POSIX.getgid
         Errno.handle if ret == -1
         ret
       end

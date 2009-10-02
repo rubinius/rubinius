@@ -1,7 +1,7 @@
 ##
 # Platform specific behavior for Math.
 
-module Platform::Math
+module FFI::Platform::Math
   extend FFI::Library
 
   attach_function :atan2, [:double, :double], :double

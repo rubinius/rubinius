@@ -1,4 +1,4 @@
-module Platform::POSIX
+module FFI::Platform::POSIX
   #--
   # Internal class for accessing timevals
   #++
@@ -53,11 +53,11 @@ class File < IO
     FNM_CASEFOLD = 0x08
   end
 
-  SEPARATOR = Platform::File::SEPARATOR
-  Separator = Platform::File::SEPARATOR
-  ALT_SEPARATOR = Platform::File::ALT_SEPARATOR
-  PATH_SEPARATOR = Platform::File::PATH_SEPARATOR
-  POSIX = Platform::POSIX
+  SEPARATOR = FFI::Platform::File::SEPARATOR
+  Separator = FFI::Platform::File::SEPARATOR
+  ALT_SEPARATOR = FFI::Platform::File::ALT_SEPARATOR
+  PATH_SEPARATOR = FFI::Platform::File::PATH_SEPARATOR
+  POSIX = FFI::Platform::POSIX
 
   def self.open(path_or_fd, mode = "r", perm = 0666)
     file = new path_or_fd, mode, perm
@@ -114,7 +114,7 @@ class File < IO
   def self.basename(path,ext = "")
     path = StringValue(path)
     ext = StringValue(ext)
-    Platform::File.basename(path,ext)
+    FFI::Platform::File.basename(path,ext)
   end
 
   ##
@@ -226,7 +226,7 @@ class File < IO
   #  File.dirname("/home/gumby/work/ruby.rb")   #=> "/home/gumby/work"
   def self.dirname(path)
     path = StringValue(path)
-    Platform::File.dirname(path)
+    FFI::Platform::File.dirname(path)
   end
 
   ##
@@ -264,7 +264,7 @@ class File < IO
   #  File.expand_path("~oracle/bin")           #=> "/home/oracle/bin"
   #  File.expand_path("../../bin", "/tmp/x")   #=> "/bin"
   def self.expand_path(path, dir_string = nil)
-    Platform::File.expand_path(path, dir_string)
+    FFI::Platform::File.expand_path(path, dir_string)
   end
 
   ##
@@ -1018,7 +1018,7 @@ class File::Stat
   S_ISUID  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_ISUID']
   S_ISGID  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_ISGID']
 
-  POSIX    = Platform::POSIX
+  POSIX    = FFI::Platform::POSIX
 
   attr_reader :path
 

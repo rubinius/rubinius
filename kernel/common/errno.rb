@@ -10,12 +10,12 @@ module Errno
   # Unlike rb_sys_fail(), handle does not raise an exception if errno is 0.
 
   def self.handle(additional = nil)
-    err = Platform::POSIX.errno
+    err = FFI::Platform::POSIX.errno
     return if err == 0
 
     exc = Errno::Mapping[err]
     if exc
-      msg = Platform::POSIX.strerror(err)
+      msg = FFI::Platform::POSIX.strerror(err)
 
       if additional
         msg << " - " << additional
@@ -23,7 +23,7 @@ module Errno
 
       raise exc.new(msg, err)
     else
-      raise "Unknown error: #{Platform::POSIX.strerror(err)} (#{err})"
+      raise "Unknown error: #{FFI::Platform::POSIX.strerror(err)} (#{err})"
     end
   end
 end

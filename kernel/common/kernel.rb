@@ -239,7 +239,7 @@ module Kernel
         seed = Time.now.to_i
       end
     end
-    Platform::POSIX.srand(seed.to_i)
+    FFI::Platform::POSIX.srand(seed.to_i)
     Kernel.current_srand = seed.to_i
     cur
   end
@@ -256,7 +256,7 @@ module Kernel
 
   def rand(max=nil)
     max = max.to_i.abs
-    x = Platform::POSIX.rand
+    x = FFI::Platform::POSIX.rand
     # scale result of rand to a domain between 0 and max
     if max.zero?
       x / 0x7fffffff.to_f
