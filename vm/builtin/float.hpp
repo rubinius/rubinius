@@ -78,9 +78,9 @@ namespace rubinius {
     Object* eql(STATE, Integer* other);
 
     // Ruby.primitive! :float_compare
-    Fixnum* compare(STATE, Float* other);
+    Object* compare(STATE, Float* other);
     // Ruby.primitive! :float_compare
-    Fixnum* compare(STATE, Integer* other);
+    Object* compare(STATE, Integer* other);
 
     // Ruby.primitive! :float_gt
     Object* gt(STATE, Float* other);

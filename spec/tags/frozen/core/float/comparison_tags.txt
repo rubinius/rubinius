@@ -1,4 +1,0 @@
-fails:Float#<=> returns nil when either argument is NaN
-fails:Float#<=> returns 1 when self is Infinity and other is a Bignum
-fails:Float#<=> returns -1 when self is -Infinity and other is negative
-fails:Float#<=> returns 1 when self is negative and other is -Infinity

@@ -119,13 +119,13 @@ namespace rubinius {
     Object* equal(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_compare
-    Fixnum* compare(STATE, Fixnum* other);
+    Object* compare(STATE, Fixnum* other);
 
     // Ruby.primitive! :fixnum_compare
-    Fixnum* compare(STATE, Bignum* other);
+    Object* compare(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_compare
-    Fixnum* compare(STATE, Float* other);
+    Object* compare(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_gt
     Object* gt(STATE, Fixnum* other) {

@@ -185,7 +185,7 @@ namespace rubinius {
     return (double)to_native() == other->val ? Qtrue : Qfalse;
   }
 
-  Fixnum* Fixnum::compare(STATE, Fixnum* other) {
+  Object* Fixnum::compare(STATE, Fixnum* other) {
     native_int left  = to_native();
     native_int right = other->to_native();
     if(left == right) {
@@ -197,8 +197,8 @@ namespace rubinius {
     }
   }
 
-  Fixnum* Fixnum::compare(STATE, Bignum* other) {
-    native_int res = other->compare(state, this)->to_native();
+  Object* Fixnum::compare(STATE, Bignum* other) {
+    native_int res = as<Fixnum>(other->compare(state, this))->to_native();
     if(res == 0) {
       return Fixnum::from(0);
     } else if(res < 0) {
@@ -208,7 +208,7 @@ namespace rubinius {
     }
   }
 
-  Fixnum* Fixnum::compare(STATE, Float* other) {
+  Object* Fixnum::compare(STATE, Float* other) {
     double left  = (double)to_native();
     double right = other->val;
     if(left == right) {

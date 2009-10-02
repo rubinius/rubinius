@@ -111,11 +111,11 @@ namespace rubinius {
     Object* equal(STATE, Float* b);
 
     // Ruby.primitive! :bignum_compare
-    Fixnum* compare(STATE, Fixnum* b);
+    Object* compare(STATE, Fixnum* b);
     // Ruby.primitive! :bignum_compare
-    Fixnum* compare(STATE, Bignum* b);
+    Object* compare(STATE, Bignum* b);
     // Ruby.primitive! :bignum_compare
-    Fixnum* compare(STATE, Float* b);
+    Object* compare(STATE, Float* b);
 
     // Ruby.primitive! :bignum_and
     Integer* bit_and(STATE, Integer* b);

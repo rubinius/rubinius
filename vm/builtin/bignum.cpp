@@ -703,7 +703,7 @@ namespace rubinius {
     return Float::coerce(state, this)->equal(state, b);
   }
 
-  Fixnum* Bignum::compare(STATE, Fixnum* b) {
+  Object* Bignum::compare(STATE, Fixnum* b) {
     native_int bi = b->to_native();
     mp_int* a = mp_val();
     if(bi < 0) {
@@ -733,7 +733,7 @@ namespace rubinius {
     return Fixnum::from(0);
   }
 
-  Fixnum* Bignum::compare(STATE, Bignum* b) {
+  Object* Bignum::compare(STATE, Bignum* b) {
     switch(mp_cmp(mp_val(), b->mp_val())) {
       case MP_LT:
         return Fixnum::from(-1);
@@ -743,7 +743,14 @@ namespace rubinius {
     return Fixnum::from(0);
   }
 
-  Fixnum* Bignum::compare(STATE, Float* b) {
+  Object* Bignum::compare(STATE, Float* b) {
+    if(std::isinf(b->val)) {
+      if(b->val > 0) {
+        return Fixnum::from(-1);
+      } else {
+        return Fixnum::from(1);
+      }
+    }
     return Float::coerce(state, this)->compare(state, b);
   }
 

@@ -145,24 +145,35 @@ namespace rubinius {
     return Qfalse;
   }
 
-  Fixnum* Float::compare(STATE, Float* other) {
+  Object* Float::compare(STATE, Float* other) {
     if(this->val == other->val) {
       return Fixnum::from(0);
     } else if(this->val > other->val) {
       return Fixnum::from(1);
-    } else {
+    } else if(this->val < other->val){
       return Fixnum::from(-1);
+    } else {
+      return Qnil;
     }
   }
 
-  Fixnum* Float::compare(STATE, Integer* other) {
+  Object* Float::compare(STATE, Integer* other) {
+    if(std::isinf(this->val)) {
+      if(this->val > 0) {
+          return Fixnum::from(1);
+      } else {
+        return Fixnum::from(-1);
+      }
+    }
     Float* o = Float::coerce(state, other);
     if(this->val == o->val) {
       return Fixnum::from(0);
     } else if(this->val > o->val) {
       return Fixnum::from(1);
-    } else {
+    } else if(this->val < o->val){
       return Fixnum::from(-1);
+    } else {
+      return Qnil;
     }
   }
 
