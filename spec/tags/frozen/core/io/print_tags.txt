@@ -1,9 +1,2 @@
 incomplete:IO#print needs to be reviewed for spec completeness
-critical:IO#print writes $_.to_s followed by $\ (if any) to the stream if no arguments given
-critical:IO#print writes obj.to_s followed by $\ (if any) to the stream when given one object
-critical:IO#print writes $_.to_s followed by $\ (if any) to the stream if no arguments given
-critical:IO#print writes obj.to_s followed by $\ (if any) to the stream when given one object
-critical:IO#print does not call obj.to_str
-critical:IO#print writes each obj.to_s to the stream and appends $\ (if any) given multiple objects
-critical:IO#print raises IOError on closed stream
-critical:IO#print needs to be reviewed for spec completeness
+fails:IO#print does not call obj.to_str

@@ -1,1 +1,0 @@
-critical:IO#write does not warn if called after IO#read

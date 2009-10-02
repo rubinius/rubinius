@@ -1,2 +1,1 @@
 incomplete:Kernel.sleep needs to be reviewed for spec completeness
-critical:Kernel#sleep pauses execution indefinitely if not given a duration

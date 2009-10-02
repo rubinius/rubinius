@@ -1,6 +1,1 @@
-critical:IO.select blocks for duration of timeout if there are no objects ready for I/O
-critical:IO.select returns immediately all objects that are ready for I/O when timeout is 0
-critical:IO.select returns nil after timeout if there are no objects ready for I/O
-critical:IO.select returns supplied objects when they are ready for I/O
 critical:IO.select invokes to_io on supplied objects that are not IO
-critical:IO.select does not raise errors if the first three arguments are nil

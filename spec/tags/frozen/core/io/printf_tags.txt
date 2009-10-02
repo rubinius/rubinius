@@ -1,1 +1,0 @@
-critical:IO#printf writes the #sprintf formatted string to the file descriptor

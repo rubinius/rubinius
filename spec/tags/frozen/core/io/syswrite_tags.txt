@@ -1,4 +1,0 @@
-critical:IO#syswrite on a file writes all of the string's bytes but does not buffer them
-critical:IO#syswrite on a file does not warn if called after IO#write with intervening IO#sysread
-critical:IO#syswrite on a file writes to the actual file position when called after buffered IO#read
-critical:IO#syswrite does not warn if called after IO#read

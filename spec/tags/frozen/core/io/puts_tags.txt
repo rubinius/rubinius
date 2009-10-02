@@ -1,1 +1,0 @@
-critical:IO#puts writes just a newline when given just a newline

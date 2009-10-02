@@ -1,1 +1,0 @@
-fails:Module#module_eval shares a scope across sibling evals

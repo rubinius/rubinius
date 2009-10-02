@@ -1,3 +1,0 @@
-critical:Kernel#respond_to? returns true if obj responds to the given protected method
-critical:Kernel#respond_to? returns true if obj responds to the given protected method, include_private = true
-critical:Kernel#respond_to? returns true if obj responds to the given protected method
