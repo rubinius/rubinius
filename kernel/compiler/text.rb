@@ -85,8 +85,8 @@ class Compiler
       end
     end
 
-    def add(thing)
-      method_missing(thing)
+    def add(*things)
+      method_missing(*things)
     end
 
     def push(what)
