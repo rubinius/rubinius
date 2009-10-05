@@ -122,15 +122,25 @@ namespace rubinius {
 
         size_t i;
         for(i = 0; i < edges->size(); i++) {
-          Array* ary = as<Array>(edges->get(state, i));
+          Array* ary = try_as<Array>(edges->get(state, i));
+          if(!ary) continue;
 
-          if(key != as<Fixnum>(ary->get(state, 0))) continue;
+          Fixnum* fix = try_as<Fixnum>(ary->get(state, 0));
+          if(!fix) continue;
 
-          uint64_t called = as<Integer>(ary->get(state, 1))->to_native();
+          if(key != fix) continue;
+
+          Integer* igr = try_as<Integer>(ary->get(state, 1));
+          if(!igr) continue;
+
+          uint64_t called = igr->to_native();
           called += edge->called();
           ary->set(state, 1, Integer::from(state, called));
 
-          uint64_t total = as<Integer>(ary->get(state, 2))->to_native();
+          igr = try_as<Integer>(ary->get(state, 2));
+          if(!igr) continue;
+
+          uint64_t total = igr->to_native();
           total += edge->total();
           ary->set(state, 2, Integer::from(state, total));
 
@@ -262,8 +272,10 @@ namespace rubinius {
 
     // internal helper method
     static void update_method(STATE, LookupTable* profile, KeyMap& keys, Method* meth) {
-      LookupTable* methods = as<LookupTable>(profile->fetch(
+      LookupTable* methods = try_as<LookupTable>(profile->fetch(
             state, state->symbol("methods")));
+
+      if(!methods) return;
 
       Symbol* cumulative_sym = state->symbol("cumulative");
       Symbol* total_sym = state->symbol("total");
@@ -273,19 +285,30 @@ namespace rubinius {
       LookupTable* method;
       Fixnum* key = meth->find_key(keys);
       if((method = try_as<LookupTable>(methods->fetch(state, key)))) {
-        uint64_t cumulative = as<Integer>(
-            method->fetch(state, cumulative_sym))->to_ulong_long();
+        Integer* igr = try_as<Integer>(method->fetch(state, cumulative_sym));
+        if(!igr) igr = Integer::from(state, 0);
+
+        uint64_t cumulative = igr->to_ulong_long();
         method->store(state, cumulative_sym,
             Integer::from(state, cumulative + meth->timer.total()));
 
-        uint64_t total = as<Integer>(method->fetch(state, total_sym))->to_ulong_long();
+        igr = try_as<Integer>(method->fetch(state, total_sym));
+        if(!igr) igr = Integer::from(state, 0);
+
+        uint64_t total = igr->to_ulong_long();
         method->store(state, total_sym,
             Integer::from(state, total + meth->total()));
 
-        size_t called = as<Fixnum>(method->fetch(state, called_sym))->to_native();
+        Fixnum* fix = try_as<Fixnum>(method->fetch(state, called_sym));
+        if(!fix) fix = Fixnum::from(0);
+
+        size_t called = fix->to_native();
         method->store(state, called_sym, Fixnum::from(called + meth->timer.count()));
 
-        meth->merge_edges(state, keys, as<Array>(method->fetch(state, edges_sym)));
+        Array* ary = try_as<Array>(method->fetch(state, edges_sym));
+        if(!ary) return;
+
+        meth->merge_edges(state, keys, ary);
       } else {
         method = LookupTable::create(state);
         methods->store(state, key, method);
