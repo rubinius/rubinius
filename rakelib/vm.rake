@@ -655,43 +655,28 @@ end
 # Importers & Methods:
 
 require 'rake/loaders/makefile'
+require 'rakelib/dependency_grapher'
 
 generated = (TYPE_GEN + INSN_GEN).select { |f| f =~ /pp$/ }
 
-file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated + %w[vm/gen/instructions.cpp] do |t|
-  includes = "-I. -Ivm" # includes = INCLUDES.join ' '
+object_sources = srcs + vm_srcs + generated + ["vm/gen/instructions.cpp"]
 
-  flags = FLAGS.join ' '
-  flags.slice!(/-Wno-deprecated/)
+# vm/.depends.mf depends on all source and include files. If any of
+# those files are newer than vm/.depends.mf, all dependencies are
+# recalculated.
 
-  Dir.mkdir "vm/.deps" unless File.directory? "vm/.deps"
-
+file dep_file => hdrs + object_sources do |t|
   warn "Updating dependencies..."
-  File.open t.name, "w" do |f|
-    t.prerequisites.each do |file|
-      file_deps = File.join "vm", ".deps", file.gsub("/", "--")
-      if File.exists?(file_deps) and File.mtime(file_deps) > File.mtime(file)
-        f.puts File.read(file_deps)
-      else
-        object_file = file.sub(/((c(pp)?)|S)$/, 'o')
-        cmd = "gcc -nostdinc -nostdinc++ -MM -MT \"#{object_file}\" #{includes} #{flags} #{file} 2>&1"
-        data = `#{cmd}`
-        if $?.exitstatus == 0
-          data.strip!
 
-          File.open file_deps, "w" do |fd|
-            fd << data
-          end
+  directories = ".", "vm"
+  defines = FLAGS.join ' '
+  defines.slice!(/-Wno-deprecated/)
 
-          unless data.strip.empty?
-            f.puts data
-          end
-        else
-          puts data
-          exit 1
-        end
-      end
-    end
+  grapher = DependencyGrapher.new object_sources, directories, defines
+  grapher.process
+
+  File.open t.name, "w" do |file|
+    grapher.print_dependencies file
   end
 end
 
