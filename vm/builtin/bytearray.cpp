@@ -1,9 +1,9 @@
 /* The simple ByteArray class, used to implement String. */
 
-#include "bytearray.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "primitives.hpp"
+#include "builtin/bytearray.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"

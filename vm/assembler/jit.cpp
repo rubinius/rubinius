@@ -1,7 +1,7 @@
-#include "assembler/assembler_x86.hpp"
 #include "oop.hpp"
 #include "jit_state.h"
-#include "operations.hpp"
+#include "assembler/assembler_x86.hpp"
+#include "assembler/operations.hpp"
 #include "instructions.hpp"
 #include "vmmethod.hpp"
 

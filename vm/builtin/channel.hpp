@@ -7,7 +7,7 @@
 #include "virtual.hpp" // ObjectCallback
 #include "gc/root.hpp" // TypedRoot
 
-#include "thread.hpp"
+#include "builtin/thread.hpp"
 
 namespace rubinius {
   class Float;

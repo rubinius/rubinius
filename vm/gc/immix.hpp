@@ -2,7 +2,7 @@
 #define RBX_GC_IMMIX
 
 #include "util/immix.hpp"
-#include "gc.hpp"
+#include "gc/gc.hpp"
 
 #include "object_position.hpp"
 

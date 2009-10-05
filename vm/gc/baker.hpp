@@ -4,7 +4,7 @@
 #include <iostream>
 #include <cstring>
 
-#include "heap.hpp"
+#include "gc/heap.hpp"
 #include "gc/gc.hpp"
 #include "gc/root.hpp"
 #include "object_position.hpp"

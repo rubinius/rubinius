@@ -1,4 +1,4 @@
-#include "stats.hpp"
+#include "instruments/stats.hpp"
 
 #include "vm.hpp"
 

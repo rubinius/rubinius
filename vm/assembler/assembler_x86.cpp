@@ -1,5 +1,5 @@
 #include "detection.hpp"
-#include "assembler_x86.hpp"
+#include "assembler/assembler_x86.hpp"
 
 #include <iostream>
 #include <iomanip>

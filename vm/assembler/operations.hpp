@@ -1,7 +1,7 @@
 #ifndef RBX_ASM_OPERATIONS
 #define RBX_ASM_OPERATIONS
 
-#include "assembler_x86.hpp"
+#include "assembler/assembler_x86.hpp"
 #include "oop.hpp"
 #include "jit_state.h"
 #include "builtin/tuple.hpp"

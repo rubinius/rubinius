@@ -17,7 +17,6 @@
 #include "dispatch.hpp"
 #include "event.hpp"
 #include "call_frame.hpp"
-#include "thread.hpp"
 #include "native_thread.hpp"
 
 #include "on_stack.hpp"
