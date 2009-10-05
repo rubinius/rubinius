@@ -13,6 +13,8 @@ class MSpecScript
     'spec/frozen/library',
     'spec/library',
 
+    'spec/build',
+
     # excluded because significantly broken
     '^spec/core/compiledmethod',
     '^spec/core/module',

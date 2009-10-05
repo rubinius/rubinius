@@ -46,9 +46,11 @@ class MSpecScript
 
   set :compiler, [ 'spec/compiler' ]
 
+  set :build, [ 'spec/build' ]
+
   # An ordered list of the directories containing specs to run
   set :files, get(:language) + get(:core) + get(:library) +
-              get(:capi) + get(:compiler)
+              get(:capi) + get(:compiler) + get(:build)
 
   set :ruby, [
     'spec/ruby/language',
@@ -79,6 +81,8 @@ class MSpecScript
     'spec/command_line',
     'spec/capi',
     'spec/frozen/library/digest',
+
+    'spec/build',
 
     '^spec/core/compiledmethod',
     '^spec/core/module',
