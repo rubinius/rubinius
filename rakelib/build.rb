@@ -3,7 +3,7 @@ def llvm_configure
   when :svn, :prebuilt
     "vm/external_libs/llvm/Release/bin/llvm-config"
   when :config
-    "llvm-config"
+    Rubinius::BUILD_CONFIG[:llvm_configure]
   else
     raise "Tried to use LLVM unconfigure!"
   end

@@ -11,6 +11,7 @@ class Configure
 
     @llvm = :no
     @llvm_path = nil
+    @llvm_configure = nil
     @prefix = nil
 
     @llvm_svn_dir = File.join(root, "vm", "external_libs", "llvm")
@@ -98,6 +99,26 @@ class Configure
     return false
   end
 
+  def setup_path
+    print "Validating '#{@llvm_path}': "
+    if File.directory? @llvm_path
+      ["Release", "Debug"].each do |which|
+        sub = File.join(@llvm_path, which, "bin")
+        if File.directory? sub
+          puts "Ok! Using #{which}"
+          @llvm_configure = File.join(@llvm_path, which, "bin", "llvm-config")
+          @llvm = :config
+          return true
+        end
+      end
+
+      puts "ERROR. Doesn't appear to be built already!"
+    end
+
+    puts "ERROR. Path doesn't exist."
+    return false
+  end
+
   def setup_auto
     print "  Checking for existing LLVM tree: "
     if File.directory?(@llvm_svn_dir)
@@ -111,6 +132,15 @@ class Configure
       return
     else
       puts "not found."
+    end
+
+    if @llvm_path
+      unless setup_path
+        puts "ABORT: Path '#{@llvm_path}' not a proper LLVM path"
+        exit 1
+      end
+
+      return
     end
 
     return if setup_prebuilt
@@ -134,6 +164,7 @@ class Configure
         puts "too old of a version"
       else
         puts "found! (version #{version})"
+        @llvm_configure = which
         @llvm = :config
         return true
       end
@@ -161,6 +192,9 @@ class Configure
         puts "No prebuilt LLVM available for #{arch}"
         exit 1
       end
+    when :path
+      puts "existing build"
+      exit 1 unless setup_path
     when :no
       puts "no"
     else
@@ -181,7 +215,7 @@ class Configure
       f.puts "module Rubinius"
       f.puts "BUILD_CONFIG = {"
       f.puts "  :llvm => :#{@llvm},"
-      f.puts "  :llvm_path => '#{@llvm_path}',"
+      f.puts "  :llvm_configure => '#{@llvm_configure}',"
       f.puts "  :arch => '#{arch()}',"
       f.puts "  :prefix => #{@prefix.inspect},"
       f.puts "  :compiler => '#{compiler}'"
