@@ -34,6 +34,8 @@ class Fixnum < Integer
     to_f / n
   end
 
+  alias_method :quo, :fdiv
+
   def to_s(base=10)
     raise ArgumentError, 'base must be between 2 and 36' unless base.between?(2, 36)
     based_to_s(base)

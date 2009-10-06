@@ -36,6 +36,13 @@ class Fixnum < Integer
     super(o)
   end
 
+  # Must be it's own method, so that super calls the correct method
+  # on Numeric
+  def div(o)
+    Ruby.primitive :fixnum_div
+    super(o)
+  end
+
   def %(o)
     Ruby.primitive :fixnum_mod
     super(o)

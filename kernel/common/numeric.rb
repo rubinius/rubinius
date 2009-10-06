@@ -102,6 +102,11 @@ class Numeric
     end
   end
 
+  def eql?(other)
+    return false unless other.instance_of? self.class
+    self == other
+  end
+
   def <=>(other)
     begin
       b, a = math_coerce other, :compare_error

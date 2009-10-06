@@ -46,8 +46,14 @@ class Bignum < Integer
   end
 
   alias_method :modulo, :%
-  
+
   #alias_method :div, :/
+
+  def fdiv(n)
+    to_f / n
+  end
+
+  alias_method :quo, :fdiv
 
   private :radix_to_s # in kernel/bootstrap/bignum.rb
 end
