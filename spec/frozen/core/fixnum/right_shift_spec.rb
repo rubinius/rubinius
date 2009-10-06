@@ -43,5 +43,11 @@ describe "Fixnum#>>" do
     (-3 >> obj).should == -1
   end
 
+  it "wraps to 0 when shifting all bits off" do
+    # test for both Fixnum size boundaries
+    (5 >> 32).should == 0
+    (5 >> 64).should == 0
+  end
+
 
 end
