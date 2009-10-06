@@ -5,6 +5,10 @@ describe "Fixnum#/" do
     (2 / 2).should == 1
     (3 / 2).should == 1
   end
+
+  it "supports dividing negative numbers" do
+    (-1 / 10).should == -1
+  end
   
   it "raises a ZeroDivisionError if the given argument is zero and not a Float" do
     lambda { 1 / 0 }.should raise_error(ZeroDivisionError)
