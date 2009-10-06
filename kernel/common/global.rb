@@ -31,6 +31,7 @@ module Rubinius
       @internal[:$stderr]          = STDERR
       @internal[:$stdin]           = STDIN
       @internal[:$stdout]          = STDOUT
+      @internal[:$deferr]          = STDERR
 
       @alias = LookupTable.new
       @hooks = LookupTable.new
