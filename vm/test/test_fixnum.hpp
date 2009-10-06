@@ -520,6 +520,12 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(FIXNUM_MIN - 1, min_minus1->to_native());
   }
 
+  void test_right_shift_moves_to_zero() {
+    Integer* i = Fixnum::from(5)->right_shift(state, 
+                   Fixnum::from(sizeof(native_int) * 8));
+    TS_ASSERT_EQUALS(i, Fixnum::from(0));
+  }
+
   void test_size() {
     TS_ASSERT_EQUALS(static_cast<unsigned int>(Fixnum::from(0)->size(state)->to_native()),
 		     sizeof(native_int));
