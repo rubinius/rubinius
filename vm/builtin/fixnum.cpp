@@ -106,17 +106,32 @@ namespace rubinius {
     }
     native_int numerator = to_native();
     native_int denominator = other->to_native();
-    native_int quotient = numerator / denominator;
-    if(quotient < 0 && quotient * denominator != numerator) --quotient;
+    native_int quotient;
+
+    if(denominator < 0) {
+      if(numerator < 0) {
+        quotient = -numerator / -denominator;
+      } else {
+        quotient = - (numerator / -denominator);
+      }
+    } else {
+      if(numerator < 0) {
+        quotient = - (-numerator / denominator);
+      } else {
+        quotient = numerator / denominator;
+      }
+    }
+
+    native_int mod = numerator - (quotient * denominator);
+    if((mod < 0 && denominator > 0) || (mod > 0 && denominator < 0)) {
+      quotient--;
+    }
+
     return Fixnum::from(quotient);
   }
 
   Integer* Fixnum::div(STATE, Bignum* other) {
     return Bignum::from(state, to_native())->div(state, other);
-  }
-
-  Float* Fixnum::div(STATE, Float* other) {
-    return Float::coerce(state, this)->div(state, other);
   }
 
   Integer* Fixnum::mod(STATE, Fixnum* other) {

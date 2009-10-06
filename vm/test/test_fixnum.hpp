@@ -206,12 +206,6 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
                             TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
   }
 
-  void test_div_a_float() {
-    Fixnum* one = Fixnum::from(13);
-    Float* res = one->div(state, Float::create(state, 1.4));
-    check_float(res, Float::create(state, 9.28571428571));
-  }
-
   void test_div_with_positive_arguments() {
     TS_ASSERT_EQUALS(Fixnum::from(3)->div(state, Fixnum::from(2)), Fixnum::from(1));
   }
@@ -226,6 +220,10 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
 
   void test_div_with_negative_arguments() {
     TS_ASSERT_EQUALS(Fixnum::from(-3)->div(state, Fixnum::from(-2)), Fixnum::from(1));
+  }
+
+  void test_div_close_to_zero() {
+    TS_ASSERT_EQUALS(Fixnum::from(-1)->div(state, Fixnum::from(10)), Fixnum::from(-1));
   }
 
   void test_mod() {
