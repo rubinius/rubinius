@@ -316,6 +316,7 @@ namespace rubinius {
     int start_ip;
     int end_ip;
     bool reachable;
+    bool landing_pad;
 
   public:
     JITBasicBlock()
@@ -324,6 +325,7 @@ namespace rubinius {
       , start_ip(0)
       , end_ip(0)
       , reachable(false)
+      , landing_pad(false)
     {}
   };
 

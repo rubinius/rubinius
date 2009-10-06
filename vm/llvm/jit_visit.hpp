@@ -354,6 +354,8 @@ namespace rubinius {
           set_block(next);
         }
         if(jbb.sp != -10) set_sp(jbb.sp);
+
+        if(jbb.landing_pad) exception_handlers_.pop_back();
       }
 
       remember_sp();
@@ -2391,6 +2393,11 @@ namespace rubinius {
 
     void visit_setup_unwind(opcode where, opcode type) {
       BasicBlock* code;
+
+      JITBasicBlock& jbb = block_map_[where];
+      jbb.landing_pad = true;
+      assert(jbb.block);
+
       if(type == cRescue) {
         BasicBlock* orig = current_block();
         code = new_block("is_exception");
@@ -2413,18 +2420,18 @@ namespace rubinius {
           next = exception_handlers_.back();
         }
 
-        b().CreateCondBr(isit, block_map_[where].block, next);
+        b().CreateCondBr(isit, jbb.block, next);
 
         set_block(orig);
       } else {
-        code = block_map_[where].block;
+        code = jbb.block;
       }
 
       exception_handlers_.push_back(code);
     }
 
     void visit_pop_unwind() {
-      exception_handlers_.pop_back();
+      // exception_handlers_.pop_back();
     }
 
     void visit_reraise() {
