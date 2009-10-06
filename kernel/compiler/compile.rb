@@ -243,6 +243,7 @@ class Compiler
           end
           cm.as_script do |script|
             script.path = rb_path
+            script.root_script = options[:root_script]
           end
         rescue Exception => e
           $LOADED_FEATURES.delete(rb) if requiring

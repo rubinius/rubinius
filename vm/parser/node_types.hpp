@@ -120,7 +120,8 @@ namespace rubinius {
       NODE_FLOAT,
       NODE_NEGATE,
       NODE_LAST,
-      NODE_FILE
+      NODE_FILE,
+      NODE_END_DATA
     };
 
     const char *get_node_type_string(enum node_type nt);

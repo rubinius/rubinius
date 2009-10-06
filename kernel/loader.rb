@@ -322,7 +322,8 @@ module Rubinius
       if File.exist?(@script)
         $0 = @script
         Compiler::Utils.debug_script! if @debugging
-        Compiler::Utils.load_from_extension @script, :no_rbc => @no_rbc
+        Compiler::Utils.load_from_extension @script,
+          :no_rbc => @no_rbc, :root_script => true
       else
         if @script.suffix?(".rb")
           puts "Unable to find '#{@script}'"

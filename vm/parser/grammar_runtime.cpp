@@ -813,6 +813,7 @@ namespace rubinius {
 
       case NODE_XSTR:             /* u1    (%x{ls}) */
       case NODE_STR:              /* u1 */
+      case NODE_END_DATA:
         array_push(state, current, string_newfrombstr(state, node->nd_str));
         bdestroy(node->nd_str);
         break;

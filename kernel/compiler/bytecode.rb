@@ -1034,6 +1034,27 @@ class Compiler
       end
     end
 
+    class EndData
+      def bytecode(g)
+        # if (scope.root_script?)
+        #   Rubinius.set_data(...)
+        # end
+        not_root = g.new_label
+        done = g.new_label
+
+        g.push_scope
+        g.send :root_script?, 0
+        g.gif not_root
+        g.push_const(:Rubinius)
+        g.push_literal(data)
+        g.send :set_data, 1
+        g.goto done
+        not_root.set!
+        g.push_nil
+        done.set!
+      end
+    end
+
     class Ensure
       def bytecode(g)
         pos(g)

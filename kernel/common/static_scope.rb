@@ -70,18 +70,27 @@ module Rubinius
     end
 
     def active_path
-      scope = self
-      while scope and !scope.script
-        scope = scope.parent
-      end
-
-      if scope and script = scope.script
+      script = current_script
+      if script
         if path = script.path
           return path.dup
         end
       end
 
       return "__unknown__.rb"
+    end
+
+    def root_script?
+      script = current_script
+      return script && script.root_script?
+    end
+
+    def current_script
+      scope = self
+      while scope and !scope.script
+        scope = scope.parent
+      end
+      return scope && scope.script
     end
 
     def const_defined?(name)

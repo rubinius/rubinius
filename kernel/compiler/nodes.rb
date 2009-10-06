@@ -992,6 +992,16 @@ raise "no"
       kind :zarray
     end
 
+    class EndData < Node
+      kind :end_data
+
+      def args(data)
+        @data = data
+      end
+
+      attr_accessor :data
+    end
+
     class Ensure < Node
       kind :ensure
 

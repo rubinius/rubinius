@@ -198,6 +198,8 @@ module Rubinius
 
     class Script
       attr_accessor :path
+      def root_script=(value); @root_script = value; end
+      def root_script?; @root_script; end
     end
 
     def as_script(script=nil)

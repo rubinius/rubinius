@@ -119,6 +119,7 @@ namespace rubinius {
       "negate\0"
       "last\0"
       "file\0"
+      "end_data\0"
     };
 
     static const unsigned short node_types_offsets[] = {
@@ -234,7 +235,8 @@ namespace rubinius {
       697,
       703,
       710,
-      715
+      715,
+      720
     };
 
     const char *get_node_type_string(enum node_type nt) {
