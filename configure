@@ -88,6 +88,8 @@ class Configure
   def setup_prebuilt
     file = "vm/external_libs/prebuilt/llvm-#{arch}.tar.bz2"
 
+    update_prebuilt unless File.exists?(file)
+
     if File.exists?(file)
       print "  Unpacking prebuilt LLVM for #{arch}: "
       system "cd vm/external_libs; mkdir llvm; cd llvm; tar xjf ../prebuilt/llvm-#{arch}.tar.bz2"
