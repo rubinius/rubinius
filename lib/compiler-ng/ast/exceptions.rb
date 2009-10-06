@@ -32,8 +32,23 @@ module Rubinius
         [@body, @ensure]
       end
 
+      def map_ensure
+        @body.in_ensure
+        @body.visit do |result, node|
+          case node
+          when ClosedScope
+            result = nil
+          else
+            node.in_ensure
+          end
+
+          result
+        end
+      end
+
       def bytecode(g)
         pos(g)
+        map_ensure
 
         ok = g.new_label
         ex = g.new_label

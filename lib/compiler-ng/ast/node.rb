@@ -56,6 +56,9 @@ module Rubinius
       def in_rescue
       end
 
+      def in_ensure
+      end
+
       def in_block
       end
 

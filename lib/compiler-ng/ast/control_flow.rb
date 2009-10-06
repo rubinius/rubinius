@@ -499,6 +499,10 @@ module Rubinius
         @in_rescue = true
       end
 
+      def in_ensure
+        @in_ensure = true
+      end
+
       def in_block
         @in_block = true
       end
