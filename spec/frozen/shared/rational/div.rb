@@ -72,7 +72,8 @@ describe :rational_div, :shared => true do
     lambda { Rational(3, 4).div(2,3) }.should raise_error(ArgumentError)
   end
 
-  ruby_bug "#1648", "1.8.7" do
+  # See http://redmine.ruby-lang.org/issues/show/1648
+  ruby_version_is "1.8.8" do
     it "raises a TypeError if passed a non-numeric argument" do
       lambda { Rational(3, 4).div([]) }.should raise_error(TypeError)
     end
