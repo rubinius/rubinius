@@ -16,7 +16,13 @@ RBX_RUBY_RELDATE    = '2009-10-06'
 RBX_LIBVER          = '0.12'
 RBX_VERSION         = "#{RBX_LIBVER}.0"
 RBX_HOST            = `./rakelib/config.guess`.chomp
-RBX_BUILDREV        = `git rev-list --all | head -n1`.chomp
+
+if File.directory? ".git"
+  RBX_BUILDREV      = `git rev-list --all | head -n1`.chomp
+else
+  RBX_BUILDREV      = "release"
+end
+
 RBX_CC              = Rubinius::BUILD_CONFIG[:compiler]
 
 # There are two ways to build Rubinius: development and install.
