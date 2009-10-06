@@ -11,6 +11,7 @@ module Rubinius
       @verbose_eval = false
       @debugging    = false
       @run_irb      = true
+      @printed_version = false
     end
 
     # Finish setting up after loading kernel.
@@ -184,7 +185,11 @@ module Rubinius
       options.on "-v", "Display the version and set $VERBOSE to true" do
         @run_irb = false
         $VERBOSE = true
-        puts Rubinius.version
+
+        unless @printed_version
+          puts Rubinius.version
+          @printed_version = true
+        end
       end
 
       options.on "-w", "Enable warnings" do
