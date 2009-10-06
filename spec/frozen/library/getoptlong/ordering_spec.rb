@@ -4,13 +4,12 @@ require 'getoptlong'
 describe "GetoptLong#ordering=" do
   it "raises an ArgumentError if called after processing has started" do
     begin
-      s = $stderr
-      $stderr = IOStub.new
       old_argv = ARGV
       ARGV = [ "--size", "10k", "--verbose" ]
       
       opts = GetoptLong.new([ '--size', GetoptLong::REQUIRED_ARGUMENT ],
         [ '--verbose', GetoptLong::NO_ARGUMENT ])
+      opts.quiet = true
       opts.get
       
       lambda {
@@ -18,7 +17,6 @@ describe "GetoptLong#ordering=" do
       }.should raise_error(ArgumentError)
     ensure
       ARGV = old_argv
-      $stderr = s
     end
   end
 

@@ -6,6 +6,7 @@ describe :getoptlong_get, :shared => true do
       [ '--query', '-q',            GetoptLong::NO_ARGUMENT ],
       [ '--check', '--valid', '-c', GetoptLong::NO_ARGUMENT ]
     )
+    @opts.quiet = true # silence using $deferr
   end
 
   it "returns the next option name and its argument as an Array" do
@@ -63,15 +64,12 @@ describe :getoptlong_get, :shared => true do
 
   it "raises a if an argument was required, but none given" do
     begin
-      s = $stderr
-      $stderr = IOStub.new
       old_argv = ARGV
       ARGV = [ "--size" ]
 
       lambda { @opts.send(@method) }.should raise_error(GetoptLong::MissingArgument)
     ensure
       ARGV = old_argv
-      $stderr = s
     end
   end
 end

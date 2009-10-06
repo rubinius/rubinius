@@ -19,10 +19,10 @@ describe "GetoptLong#error_message" do
 
   it "returns the error message of the last error that occurred" do
     begin
-      $stderr = IOStub.new
       ARGV = []
 
       opts = GetoptLong.new
+      opts.quiet = true
       opts.get
       opts.ordering = GetoptLong::PERMUTE
     rescue ArgumentError
