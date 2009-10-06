@@ -37,15 +37,6 @@ using namespace rubinius;
 
 #define STACK_PTR stack_ptr
 
-// HACK: sassert is stack protection
-#ifdef RBX_STACK_DEBUG
-
-#define stack_push(val) ({ Object* _v = (val); sassert(_v && (int)_v != 0x10 && call_frame->js.stack < call_frame->js.stack_top); *++call_frame->js.stack = _v; })
-#define stack_pop() ({ assert(call_frame->js.stack >= call_frame->stk); *call_frame->js.stack--; })
-#define stack_set_top(val) ({ Object* _v = (val); assert((int)(_v) != 0x10); *call_frame->js.stack = _v; })
-
-#else
-
 /** We have to use the local here we need to evaluate val before we alter
  * the stack. The reason is evaluating val might throw an exception. The
  * old code used an undefined behavior, this forces the order. */
@@ -54,8 +45,6 @@ using namespace rubinius;
 #define stack_set_top(val) *STACK_PTR = (val)
 
 #define USE_JUMP_TABLE
-
-#endif
 
 #define stack_top() *STACK_PTR
 #define stack_back(count) *(STACK_PTR - count)
