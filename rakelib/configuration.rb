@@ -12,9 +12,9 @@ RBX_DTRACE          = nil
 RBX_RUBY_ENGINE     = 'rbx'
 RBX_RUBY_VERSION    = '1.8.7'
 RBX_RUBY_PATCHLEVEL = 174
-RBX_RUBY_RELDATE    = '2009-10-06'
-RBX_LIBVER          = '0.12'
-RBX_VERSION         = "#{RBX_LIBVER}.0"
+RBX_RUBY_RELDATE    = '2009-11-06'
+RBX_LIBVER          = '0.13'
+RBX_VERSION         = "#{RBX_LIBVER}.0-dev"
 RBX_HOST            = `./rakelib/config.guess`.chomp
 
 if File.directory? ".git"
