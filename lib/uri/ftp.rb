@@ -3,7 +3,7 @@
 #
 # Author:: Akira Yamada <akira@ruby-lang.org>
 # License:: You can redistribute it and/or modify it under the same term as Ruby.
-# Revision:: $Id: ftp.rb 11708 2007-02-12 23:01:19Z shyouhei $
+# Revision:: $Id: ftp.rb 16085 2008-04-19 11:56:22Z knu $
 #
 
 require 'uri/generic'
@@ -177,7 +177,7 @@ module URI
     # This method will then return "/pub/ruby"
     #
     def path
-      return @path.sub(/^\//,'').sub(/^%2F/,'/')
+      return @path.sub(/^\//,'').sub(/^%2F/i,'/')
     end
 
     def to_s

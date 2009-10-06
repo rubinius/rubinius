@@ -1208,6 +1208,7 @@ module DRb
     end
 
     def alive?  # :nodoc:
+      return false unless @protocol
       @protocol.alive?
     end
   end
@@ -1476,10 +1477,10 @@ module DRb
       raise(ArgumentError, "#{any_to_s(msg_id)} is not a symbol") unless Symbol == msg_id.class
       raise(SecurityError, "insecure method `#{msg_id}'") if insecure_method?(msg_id)
       
-      if obj.private_methods.include?(msg_id)
+      if obj.private_methods.include?(msg_id.to_s)
 	desc = any_to_s(obj)
         raise NoMethodError, "private method `#{msg_id}' called for #{desc}"
-      elsif obj.protected_methods.include?(msg_id)
+      elsif obj.protected_methods.include?(msg_id.to_s)
 	desc = any_to_s(obj)
         raise NoMethodError, "protected method `#{msg_id}' called for #{desc}"
       else

@@ -2,14 +2,14 @@
 #--
 # set.rb - defines the Set class
 #++
-# Copyright (c) 2002 Akinori MUSHA <knu@iDaemons.org>
+# Copyright (c) 2002-2008 Akinori MUSHA <knu@iDaemons.org>
 #
 # Documentation by Akinori MUSHA and Gavin Sinclair. 
 #
 # All rights reserved.  You can redistribute and/or modify it under the same
 # terms as Ruby.
 #
-#   $Id: set.rb 11980 2007-03-03 16:06:45Z knu $
+#   $Id: set.rb 17051 2008-06-09 09:20:43Z knu $
 #
 # == Overview 
 # 
@@ -47,6 +47,10 @@
 #   s1.merge([2, 6])                      # -> #<Set: {6, 1, 2, "foo"}>
 #   s1.subset? s2                         # -> false
 #   s2.subset? s1                         # -> true
+#
+# == Contact
+#
+#   - Akinori MUSHA <knu@iDaemons.org> (current maintainer)
 #
 class Set
   include Enumerable
@@ -184,8 +188,10 @@ class Set
   end
 
   # Calls the given block once for each element in the set, passing
-  # the element as parameter.
+  # the element as parameter.  Returns an enumerator if no block is
+  # given.
   def each
+    block_given? or return enum_for(__method__)
     @hash.each_key { |o| yield(o) }
     self
   end
@@ -228,7 +234,7 @@ class Set
   # Deletes every element of the set for which block evaluates to
   # true, and returns self.
   def delete_if
-    @hash.delete_if { |o,| yield(o) }
+    to_a.each { |o| @hash.delete(o) if yield(o) }
     self
   end
 
@@ -486,7 +492,7 @@ class SortedSet < Set
 
 	  def delete_if
 	    n = @hash.size
-	    @hash.delete_if { |o,| yield(o) }
+	    super
 	    @keys = nil if @hash.size != n
 	    self
 	  end
@@ -497,7 +503,9 @@ class SortedSet < Set
 	  end
 
 	  def each
+	    block_given? or return enum_for(__method__)
 	    to_a.each { |o| yield(o) }
+	    self
 	  end
 
 	  def to_a
@@ -914,9 +922,11 @@ class TC_Set < Test::Unit::TestCase
     ary = [1,3,5,7,10,20]
     set = Set.new(ary)
 
-    assert_raises(LocalJumpError) {
-      set.each
-    }
+    ret = set.each { |o| }
+    assert_same(set, ret)
+
+    e = set.each
+    assert_instance_of(Enumerable::Enumerator, e)
 
     assert_nothing_raised {
       set.each { |o|
@@ -1161,11 +1171,33 @@ class TC_SortedSet < Test::Unit::TestCase
     assert_equal([-10,-8,-6,-4,-2], s.to_a)
 
     prev = nil
-    s.each { |o| assert(prev < o) if prev; prev = o }
+    ret = s.each { |o| assert(prev < o) if prev; prev = o }
     assert_not_nil(prev)
+    assert_same(s, ret)
 
     s = SortedSet.new([2,1,3]) { |o| o * -2 }
     assert_equal([-6,-4,-2], s.to_a)
+
+    s = SortedSet.new(['one', 'two', 'three', 'four'])
+    a = []
+    ret = s.delete_if { |o| a << o; o.start_with?('t') }
+    assert_same(s, ret)
+    assert_equal(['four', 'one'], s.to_a)
+    assert_equal(['four', 'one', 'three', 'two'], a)
+
+    s = SortedSet.new(['one', 'two', 'three', 'four'])
+    a = []
+    ret = s.reject! { |o| a << o; o.start_with?('t') }
+    assert_same(s, ret)
+    assert_equal(['four', 'one'], s.to_a)
+    assert_equal(['four', 'one', 'three', 'two'], a)
+
+    s = SortedSet.new(['one', 'two', 'three', 'four'])
+    a = []
+    ret = s.reject! { |o| a << o; false }
+    assert_same(nil, ret)
+    assert_equal(['four', 'one', 'three', 'two'], s.to_a)
+    assert_equal(['four', 'one', 'three', 'two'], a)
   end
 end
 

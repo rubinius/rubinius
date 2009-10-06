@@ -14,7 +14,7 @@
 # NOTE: You can find Japanese version of this document at:
 # http://www.ruby-lang.org/ja/man/html/net_smtp.html
 # 
-# $Id: smtp.rb 18351 2008-08-04 05:46:53Z shyouhei $
+# $Id: smtp.rb 18353 2008-08-04 05:51:11Z shyouhei $
 #
 # See Net::SMTP for documentation. 
 # 
@@ -172,7 +172,7 @@ module Net
   #
   class SMTP
 
-    Revision = %q$Revision: 18351 $.split[1]
+    Revision = %q$Revision: 18353 $.split[1]
 
     # The default SMTP port number, 25.
     def SMTP.default_port
@@ -437,7 +437,7 @@ module Net
     # +port+ is the port to connect to; it defaults to port 25.
     #
     # +helo+ is the _HELO_ _domain_ provided by the client to the
-    # server (see overview comments); it defaults to 'localhost'. 
+    # server (see overview comments); it defaults to 'localhost.localdomain'. 
     #
     # The remaining arguments are used for SMTP authentication, if required
     # or desired.  +user+ is the account name; +secret+ is your password
@@ -457,7 +457,7 @@ module Net
     # * IOError
     # * TimeoutError
     #
-    def SMTP.start(address, port = nil, helo = 'localhost',
+    def SMTP.start(address, port = nil, helo = 'localhost.localdomain',
                    user = nil, secret = nil, authtype = nil,
                    &block)   # :yield: smtp
       new(address, port).start(helo, user, secret, authtype, &block)
@@ -518,7 +518,7 @@ module Net
     # * IOError
     # * TimeoutError
     #
-    def start(helo = 'localhost',
+    def start(helo = 'localhost.localdomain',
               user = nil, secret = nil, authtype = nil)   # :yield: smtp
       if block_given?
         begin

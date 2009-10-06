@@ -250,7 +250,7 @@ class Date
   ABBR_DAYNAMES = %w(Sun Mon Tue Wed Thu Fri Sat)
 
   [MONTHNAMES, DAYNAMES, ABBR_MONTHNAMES, ABBR_DAYNAMES].each do |xs|
-    xs.each{|x| x.freeze}.freeze
+    xs.each{|x| x.freeze if x}.freeze
   end
 
   class Infinity < Numeric # :nodoc:
@@ -489,7 +489,7 @@ class Date
   #
   # Returns the (civil) Julian Day Number as [day_number,
   # fraction] where +fraction+ is always 1/2.
-  def self.ajd_to_jd(ajd, of=0) (ajd + of + 1.to_r/2).divmod(1) end
+  def self.ajd_to_jd(ajd, of=0) (ajd + of + HALF_DAYS_IN_DAY).divmod(1) end
 
   # Convert a (civil) Julian Day Number to an Astronomical Julian
   # Day Number.
@@ -500,46 +500,58 @@ class Date
   #
   # Returns the Astronomical Julian Day Number as a single
   # numeric value.
-  def self.jd_to_ajd(jd, fr, of=0) jd + fr - of - 1.to_r/2 end
+  def self.jd_to_ajd(jd, fr, of=0) jd + fr - of - HALF_DAYS_IN_DAY end
 
   # Convert a fractional day +fr+ to [hours, minutes, seconds,
   # fraction_of_a_second]
   def self.day_fraction_to_time(fr)
-    h,   fr = fr.divmod(1.to_r/24)
-    min, fr = fr.divmod(1.to_r/1440)
-    s,   fr = fr.divmod(1.to_r/86400)
+    ss,  fr = fr.divmod(SECONDS_IN_DAY) # 4p
+    h,   ss = ss.divmod(3600)
+    min, s  = ss.divmod(60)
     return h, min, s, fr
   end
 
   # Convert an +h+ hour, +min+ minutes, +s+ seconds period
   # to a fractional day.
-  def self.time_to_day_fraction(h, min, s)
-    h.to_r/24 + min.to_r/1440 + s.to_r/86400
+  begin
+    Rational(Rational(1, 2), 2) # a challenge
+
+    def self.time_to_day_fraction(h, min, s)
+      Rational(h * 3600 + min * 60 + s, 86400) # 4p
+    end
+  rescue
+    def self.time_to_day_fraction(h, min, s)
+       if Integer === h && Integer === min && Integer === s
+         Rational(h * 3600 + min * 60 + s, 86400) # 4p
+       else
+         (h * 3600 + min * 60 + s).to_r/86400 # 4p
+       end
+    end
   end
 
   # Convert an Astronomical Modified Julian Day Number to an
   # Astronomical Julian Day Number.
-  def self.amjd_to_ajd(amjd) amjd + 4800001.to_r/2 end
+  def self.amjd_to_ajd(amjd) amjd + MJD_EPOCH_IN_AJD end
 
   # Convert an Astronomical Julian Day Number to an
   # Astronomical Modified Julian Day Number.
-  def self.ajd_to_amjd(ajd) ajd - 4800001.to_r/2 end
+  def self.ajd_to_amjd(ajd) ajd - MJD_EPOCH_IN_AJD end
 
   # Convert a Modified Julian Day Number to a Julian
   # Day Number.
-  def self.mjd_to_jd(mjd) mjd + 2400001 end
+  def self.mjd_to_jd(mjd) mjd + MJD_EPOCH_IN_CJD end
 
   # Convert a Julian Day Number to a Modified Julian Day
   # Number.
-  def self.jd_to_mjd(jd) jd - 2400001 end
+  def self.jd_to_mjd(jd) jd - MJD_EPOCH_IN_CJD end
 
   # Convert a count of the number of days since the adoption
   # of the Gregorian Calendar (in Italy) to a Julian Day Number.
-  def self.ld_to_jd(ld) ld + 2299160 end
+  def self.ld_to_jd(ld) ld + LD_EPOCH_IN_CJD end
 
   # Convert a Julian Day Number to the number of days since
   # the adoption of the Gregorian Calendar (in Italy).
-  def self.jd_to_ld(jd) jd - 2299160 end
+  def self.jd_to_ld(jd) jd - LD_EPOCH_IN_CJD end
 
   # Convert a Julian Day Number to the day of the week.
   #
@@ -1194,7 +1206,7 @@ class Date
 
   def new_offset(of=0)
     if String === of
-      of = (self.class.zone_to_diff(of) || 0).to_r/86400
+      of = Rational(zone_to_diff(of) || 0, 86400)
     end
     self.class.new!(@ajd, of, @sg)
   end
@@ -1353,7 +1365,7 @@ class Date
   # Return the date as a human-readable string.
   #
   # The format used is YYYY-MM-DD.
-  def to_s() strftime end
+  def to_s() format('%.4d-%02d-%02d', year, mon, mday) end
 
   # Dump to Marshal format.
   def _dump(limit) Marshal.dump([@ajd, @of, @sg], -1) end
@@ -1445,7 +1457,7 @@ class DateTime < Date
       raise ArgumentError, 'invalid date'
     end
     if String === of
-      of = (zone_to_diff(of) || 0).to_r/86400
+      of = Rational(zone_to_diff(of) || 0, 86400)
     end
     new!(jd_to_ajd(jd, fr, of), of, sg)
   end
@@ -1470,7 +1482,7 @@ class DateTime < Date
       raise ArgumentError, 'invalid date'
     end
     if String === of
-      of = (zone_to_diff(of) || 0).to_r/86400
+      of = Rational(zone_to_diff(of) || 0, 86400)
     end
     new!(jd_to_ajd(jd, fr, of), of, sg)
   end
@@ -1495,7 +1507,7 @@ class DateTime < Date
       raise ArgumentError, 'invalid date'
     end
     if String === of
-      of = (zone_to_diff(of) || 0).to_r/86400
+      of = Rational(zone_to_diff(of) || 0, 86400)
     end
     new!(jd_to_ajd(jd, fr, of), of, sg)
   end
@@ -1523,7 +1535,7 @@ class DateTime < Date
       raise ArgumentError, 'invalid date'
     end
     if String === of
-      of = (zone_to_diff(of) || 0).to_r/86400
+      of = Rational(zone_to_diff(of) || 0, 86400)
     end
     new!(jd_to_ajd(jd, fr, of), of, sg)
   end
@@ -1534,7 +1546,7 @@ class DateTime < Date
       raise ArgumentError, 'invalid date'
     end
     if String === of
-      of = (zone_to_diff(of) || 0).to_r/86400
+      of = Rational(zone_to_diff(of) || 0, 86400)
     end
     new!(jd_to_ajd(jd, fr, of), of, sg)
   end
@@ -1548,10 +1560,8 @@ class DateTime < Date
            (fr = valid_time_frags?(elem))
       raise ArgumentError, 'invalid date'
     end
-    sf = (elem[:sec_fraction] || 0)
-    fr += sf/86400
-    of = (elem[:offset] || 0)
-    of = of.to_r/86400
+    fr += (elem[:sec_fraction] || 0) / 86400
+    of = Rational(elem[:offset] || 0, 86400)
     new!(jd_to_ajd(jd, fr, of), of, sg)
   end
 
@@ -1598,6 +1608,11 @@ class DateTime < Date
 
   public :hour, :min, :sec, :sec_fraction, :zone, :offset, :new_offset
 
+  def to_s # 4p
+    format('%.4d-%02d-%02dT%02d:%02d:%02d%s',
+          year, mon, mday, hour, min, sec, zone)
+  end
+
 end
 
 class Time
@@ -1612,8 +1627,8 @@ class Time
   def to_datetime
     jd = DateTime.civil_to_jd(year, mon, mday, DateTime::ITALY)
     fr = DateTime.time_to_day_fraction(hour, min, [sec, 59].min) +
-         usec.to_r/86400000000
-    of = utc_offset.to_r/86400
+         Rational(usec, 86400_000_000)
+    of = Rational(utc_offset, 86400)
     DateTime.new!(DateTime.jd_to_ajd(jd, fr, of), of, DateTime::ITALY)
   end
 
@@ -1632,12 +1647,23 @@ class Date
   # Create a new Date object representing today.
   #
   # +sg+ specifies the Day of Calendar Reform.
-  def self.today(sg=ITALY) Time.now.__send__(:to_date)    .new_start(sg) end
+  def self.today(sg=ITALY)
+    t = Time.now
+    jd = civil_to_jd(t.year, t.mon, t.mday, sg)
+    new!(jd_to_ajd(jd, 0, 0), 0, sg)
+  end
 
   # Create a new DateTime object representing the current time.
   #
   # +sg+ specifies the Day of Calendar Reform.
-  def self.now  (sg=ITALY) Time.now.__send__(:to_datetime).new_start(sg) end
+  def self.now(sg=ITALY)
+    t = Time.now
+    jd = civil_to_jd(t.year, t.mon, t.mday, sg)
+    fr = time_to_day_fraction(t.hour, t.min, [t.sec, 59].min) +
+      Rational(t.usec, 86400_000_000)
+    of = Rational(t.utc_offset, 86400)
+    new!(jd_to_ajd(jd, fr, of), of, sg)
+  end
 
   private_class_method :now
 
@@ -1661,61 +1687,5 @@ class DateTime < Date
 
   private_class_method :today
   public_class_method  :now
-
-end
-
-class Date
-
-  [ %w(os?      julian?),
-    %w(ns?      gregorian?),
-    %w(exist1?  valid_jd?),
-    %w(exist2?  valid_ordinal?),
-    %w(exist3?  valid_date?),
-    %w(exist?   valid_date?),
-    %w(existw?  valid_commercial?),
-    %w(new0     new!),
-    %w(new1     jd),
-    %w(new2     ordinal),
-    %w(new3     new),
-    %w(neww     commercial)
-  ].each do |old, new|
-    module_eval <<-"end;"
-      def self.#{old}(*args, &block)
-        if $VERBOSE
-          warn("\#{caller.shift.sub(/:in .*/, '')}: " \
-               "warning: \#{self}::#{old} is deprecated; " \
-               "use \#{self}::#{new}")
-        end
-        #{new}(*args, &block)
-      end
-    end;
-  end
-
-  [ %w(os?      julian?),
-    %w(ns?      gregorian?),
-    %w(sg       start),
-    %w(newsg    new_start),
-    %w(of       offset),
-    %w(newof    new_offset)
-  ].each do |old, new|
-    module_eval <<-"end;"
-      def #{old}(*args, &block)
-        if $VERBOSE
-          warn("\#{caller.shift.sub(/:in .*/, '')}: " \
-               "warning: \#{self.class}\##{old} is deprecated; " \
-               "use \#{self.class}\##{new}")
-        end
-        #{new}(*args, &block)
-      end
-    end;
-  end
-
-  private :of, :newof
-
-end
-
-class DateTime < Date
-
-  public :of, :newof
 
 end

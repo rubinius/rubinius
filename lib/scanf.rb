@@ -1,9 +1,9 @@
 # scanf for Ruby
 #
-# $Revision: 11708 $
-# $Id: scanf.rb 11708 2007-02-12 23:01:19Z shyouhei $
+# $Revision: 21682 $
+# $Id: scanf.rb 21682 2009-01-20 03:23:46Z shyouhei $
 # $Author: shyouhei $
-# $Date: 2007-02-12 15:01:19 -0800 (Mon, 12 Feb 2007) $
+# $Date: 2009-01-19 19:23:46 -0800 (Mon, 19 Jan 2009) $
 #
 # A product of the Austin Ruby Codefest (Austin, Texas, August 2002)
 
@@ -357,7 +357,7 @@ module Scanf
 
           # %i
         when /%\*?i/
-          [ "([-+]?(?:(?:0[0-7]+)|(?:0[Xx]#{h}+)|(?:[1-9]\\d+)))", :extract_integer ]
+          [ "([-+]?(?:(?:0[0-7]+)|(?:0[Xx]#{h}+)|(?:[1-9]\\d*)))", :extract_integer ]
 
           # %5i
         when /%\*?(\d+)i/

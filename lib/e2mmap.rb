@@ -1,9 +1,9 @@
 #
 #   e2mmap.rb - for ruby 1.1
-#       $Release Version: 2.0$
-#       $Revision: 1.10 $
-#       $Date: 1999/02/17 12:33:17 $
-#       by Keiju ISHITSUKA
+#   	$Release Version: 2.0$
+#   	$Revision: 1.10 $
+#   	$Date: 1999/02/17 12:33:17 $
+#   	by Keiju ISHITSUKA
 #
 # --
 #   Usage:
@@ -48,6 +48,8 @@
 #   Foo.Fail ExistingExceptionClass, arg...
 #
 #
+fail "Use Ruby 1.1" if VERSION < "1.1"
+
 module Exception2MessageMapper
   @RCS_ID='-$Id: e2mmap.rb,v 1.10 1999/02/17 12:33:17 keiju Exp keiju $-'
 
@@ -55,45 +57,65 @@ module Exception2MessageMapper
 
   def E2MM.extend_object(cl)
     super
-    cl.bind(self) unless cl < E2MM
+    cl.bind(self) unless cl == E2MM
+  end
+  
+  # backward compatibility
+  def E2MM.extend_to(b)
+    c = eval("self", b)
+    c.extend(self)
   end
 
   def bind(cl)
     self.module_eval %[
       def Raise(err = nil, *rest)
-        Exception2MessageMapper.Raise(self.class, err, *rest)
+	Exception2MessageMapper.Raise(self.class, err, *rest)
       end
       alias Fail Raise
 
       def self.included(mod)
-        mod.extend Exception2MessageMapper
+	mod.extend Exception2MessageMapper
       end
     ]
   end
 
   # Fail(err, *rest)
-  #    err:    exception
-  #    rest:    message arguments
+  #	err:	exception
+  #	rest:	message arguments
   #
   def Raise(err = nil, *rest)
     E2MM.Raise(self, err, *rest)
   end
   alias Fail Raise
 
+  # backward compatibility
+  alias fail! fail
+  def fail(err = nil, *rest)
+    begin 
+      E2MM.Fail(self, err, *rest)
+    rescue E2MM::ErrNotRegisteredException
+      super
+    end
+  end
+  class << self
+    public :fail
+  end
+
+  
   # def_e2message(c, m)
-  #        c:  exception
-  #        m:  message_form
-  #    define exception c with message m.
+  #	    c:  exception
+  #	    m:  message_form
+  #	define exception c with message m.
   #
   def def_e2message(c, m)
     E2MM.def_e2message(self, c, m)
   end
-
+  
   # def_exception(n, m, s)
-  #        n:  exception_name
-  #        m:  message_form
-  #        s:    superclass(default: StandardError)
-  #    define exception named ``c'' with message m.
+  #	    n:  exception_name
+  #	    m:  message_form
+  #	    s:	superclass(default: StandardError)
+  #	define exception named ``c'' with message m.
   #
   def def_exception(n, m, s = StandardError)
     E2MM.def_exception(self, n, m, s)
@@ -106,22 +128,22 @@ module Exception2MessageMapper
   @MessageMap = {}
 
   # E2MM.def_exception(k, e, m)
-  #        k:  class to define exception under.
-  #        e:  exception
-  #        m:  message_form
-  #    define exception c with message m.
+  #	    k:  class to define exception under.
+  #	    e:  exception
+  #	    m:  message_form
+  #	define exception c with message m.
   #
   def E2MM.def_e2message(k, c, m)
     E2MM.instance_eval{@MessageMap[[k, c]] = m}
     c
   end
-
+  
   # E2MM.def_exception(k, n, m, s)
-  #        k:  class to define exception under.
-  #        n:  exception_name
-  #        m:  message_form
-  #        s:    superclass(default: StandardError)
-  #    define exception named ``c'' with message m.
+  #	    k:  class to define exception under.
+  #	    n:  exception_name
+  #	    m:  message_form
+  #	    s:	superclass(default: StandardError)
+  #	define exception named ``c'' with message m.
   #
   def E2MM.def_exception(k, n, m, s = StandardError)
     n = n.id2name if n.kind_of?(Fixnum)
@@ -131,17 +153,18 @@ module Exception2MessageMapper
   end
 
   # Fail(klass, err, *rest)
-  #    klass:  class to define exception under.
-  #    err:    exception
-  #    rest:    message arguments
+  #	klass:  class to define exception under.
+  #	err:	exception
+  #	rest:	message arguments
   #
   def E2MM.Raise(klass = E2MM, err = nil, *rest)
     if form = e2mm_message(klass, err)
-      b = $@.nil? ? caller(1) : $@
+      $! = err.new(sprintf(form, *rest))
+      $@ = caller(1) if $@.nil?
       #p $@
       #p __FILE__
-      b.shift if b[0] =~ /^#{Regexp.quote(__FILE__)}:/
-      raise err, sprintf(form, *rest), b
+      $@.shift if $@[0] =~ /^#{Regexp.quote(__FILE__)}:/
+      raise
     else
       E2MM.Fail E2MM, ErrNotRegisteredException, err.inspect
     end
@@ -153,9 +176,9 @@ module Exception2MessageMapper
   def E2MM.e2mm_message(klass, exp)
     for c in klass.ancestors
       if mes = @MessageMap[[c,exp]]
-        #p mes
-        m = klass.instance_eval('"' + mes + '"')
-        return m
+	#p mes
+	m = klass.instance_eval('"' + mes + '"')
+	return m
       end
     end
     nil
@@ -164,9 +187,9 @@ module Exception2MessageMapper
     alias message e2mm_message
   end
 
-  E2MM.def_exception(E2MM,
-             :ErrNotRegisteredException,
-             "not registerd exception(%s)")
+  E2MM.def_exception(E2MM, 
+		     :ErrNotRegisteredException, 
+		     "not registerd exception(%s)")
 end
 
 

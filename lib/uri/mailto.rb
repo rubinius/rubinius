@@ -3,7 +3,7 @@
 #
 # Author:: Akira Yamada <akira@ruby-lang.org>
 # License:: You can redistribute it and/or modify it under the same term as Ruby.
-# Revision:: $Id: mailto.rb 14565 2007-12-24 01:51:49Z drbrain $
+# Revision:: $Id: mailto.rb 11747 2007-02-15 02:41:45Z knu $
 #
 
 require 'uri/generic'
@@ -55,7 +55,7 @@ module URI
         (#{PATTERN::FRAGMENT})                        (?# 3: fragment)
       )?
       \\z
-    ", Regexp::EXTENDED).freeze
+    ", Regexp::EXTENDED, 'N').freeze
     # :startdoc:
 
     #

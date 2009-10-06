@@ -2,7 +2,7 @@
 #--
 # $Idaemons: /home/cvs/rb/generator.rb,v 1.8 2001/10/03 08:54:32 knu Exp $
 # $RoughId: generator.rb,v 1.10 2003/10/14 19:36:58 knu Exp $
-# $Id: generator.rb 11708 2007-02-12 23:01:19Z shyouhei $
+# $Id: generator.rb 15954 2008-04-10 10:52:50Z knu $
 #++
 #
 # = generator.rb: convert an internal iterator to an external one
@@ -161,6 +161,44 @@ class Generator
       yield self.next
     end
 
+    self
+  end
+end
+
+class Enumerable::Enumerator
+  def __generator
+    @generator ||= Generator.new(self)
+  end
+  private :__generator
+
+  # call-seq:
+  #   e.next   => object
+  #
+  # Returns the next object in the enumerator, and move the internal
+  # position forward.  When the position reached at the end, internal
+  # position is rewinded then StopIteration is raised.
+  #
+  # Note that enumeration sequence by next method does not affect other
+  # non-external enumeration methods, unless underlying iteration
+  # methods itself has side-effect, e.g. IO#each_line.
+  #
+  # Caution: This feature internally uses Generator, which uses callcc
+  # to stop and resume enumeration to fetch each value.  Use with care
+  # and be aware of the performance loss.
+  def next
+    g = __generator
+    return g.next unless g.end?
+
+    g.rewind
+    raise StopIteration, 'iteration reached at end' 
+  end
+
+  # call-seq:
+  #   e.rewind   => e
+  #
+  # Rewinds the enumeration sequence by the next method.
+  def rewind
+    __generator.rewind
     self
   end
 end

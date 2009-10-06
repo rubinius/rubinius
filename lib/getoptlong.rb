@@ -157,7 +157,7 @@ class GetoptLong
     @argument_flags = Hash.new
 
     #
-    # Whether error messages are output to $stderr.
+    # Whether error messages are output to $deferr.
     #
     @quiet = FALSE
 
@@ -248,7 +248,7 @@ class GetoptLong
     if @status != STATUS_YET
       set_error(ArgumentError, "argument error")
       raise RuntimeError,
-        "invoke ordering=, but option processing has already started"
+	"invoke ordering=, but option processing has already started"
     end
 
     #
@@ -280,7 +280,7 @@ class GetoptLong
     #
     if @status != STATUS_YET
       raise RuntimeError, 
-        "invoke set_options, but option processing has already started"
+	"invoke set_options, but option processing has already started"
     end
 
     #
@@ -294,7 +294,7 @@ class GetoptLong
       # Each argument must be an Array.
       #
       if !arg.is_a?(Array)
-        raise ArgumentError, "the option list contains non-Array argument"
+	raise ArgumentError, "the option list contains non-Array argument"
       end
 
       #
@@ -302,43 +302,43 @@ class GetoptLong
       #
       argument_flag = nil
       arg.each do |i|
-        if ARGUMENT_FLAGS.include?(i)
-          if argument_flag != nil
-            raise ArgumentError, "too many argument-flags"
-          end
-          argument_flag = i
-        end
+	if ARGUMENT_FLAGS.include?(i)
+	  if argument_flag != nil
+	    raise ArgumentError, "too many argument-flags"
+	  end
+	  argument_flag = i
+	end
       end
       raise ArgumentError, "no argument-flag" if argument_flag == nil
 
       canonical_name = nil
       arg.each do |i|
-        #
-        # Check an option name.
-        #
-        next if i == argument_flag
-        begin
-          if !i.is_a?(String) || i !~ /^-([^-]|-.+)$/
-            raise ArgumentError, "an invalid option `#{i}'"
-          end
-          if (@canonical_names.include?(i))
-            raise ArgumentError, "option redefined `#{i}'"
-          end
-        rescue
-          @canonical_names.clear
-          @argument_flags.clear
-          raise
-        end
+	#
+	# Check an option name.
+	#
+	next if i == argument_flag
+	begin
+	  if !i.is_a?(String) || i !~ /^-([^-]|-.+)$/
+	    raise ArgumentError, "an invalid option `#{i}'"
+	  end
+	  if (@canonical_names.include?(i))
+	    raise ArgumentError, "option redefined `#{i}'"
+	  end
+	rescue
+	  @canonical_names.clear
+	  @argument_flags.clear
+	  raise
+	end
 
-        #
-        # Register the option (`i') to the `@canonical_names' and 
-        # `@canonical_names' Hashes.
-        #
-        if canonical_name == nil
-          canonical_name = i
-        end
-        @canonical_names[i] = canonical_name
-        @argument_flags[i] = argument_flag
+	#
+	# Register the option (`i') to the `@canonical_names' and 
+	# `@canonical_names' Hashes.
+	#
+	if canonical_name == nil
+	  canonical_name = i
+	end
+	@canonical_names[i] = canonical_name
+	@argument_flags[i] = argument_flag
       end
       raise ArgumentError, "no option name" if canonical_name == nil
     end
@@ -391,7 +391,7 @@ class GetoptLong
   # Set an error (protected).
   #
   def set_error(type, message)
-    $stderr.print("#{$0}: #{message}\n") if !@quiet
+    $deferr.print("#{$0}: #{message}\n") if !@quiet
 
     @error = type
     @error_message = message
@@ -456,17 +456,17 @@ class GetoptLong
       return nil
     elsif @ordering == PERMUTE
       while 0 < ARGV.length && ARGV[0] !~ /^-./
-        @non_option_arguments.push(ARGV.shift)
+	@non_option_arguments.push(ARGV.shift)
       end
       if ARGV.length == 0
-        terminate
-        return nil
+	terminate
+	return nil
       end
       argument = ARGV.shift
     elsif @ordering == REQUIRE_ORDER 
       if (ARGV[0] !~ /^-./)
-        terminate
-        return nil
+	terminate
+	return nil
       end
       argument = ARGV.shift
     else
@@ -491,49 +491,49 @@ class GetoptLong
       #
       pattern = $1
       if @canonical_names.include?(pattern)
-        option_name = pattern
+	option_name = pattern
       else
-        #
-        # The option `option_name' is not registered in `@canonical_names'.
-        # It may be an abbreviated.
-        #
-        match_count = 0
-        @canonical_names.each_key do |key|
-          if key.index(pattern) == 0
-            option_name = key
-            match_count += 1
-          end
-        end
-        if 2 <= match_count
-          set_error(AmbigousOption, "option `#{argument}' is ambiguous")
-        elsif match_count == 0
-          set_error(InvalidOption, "unrecognized option `#{argument}'")
-        end
+	#
+	# The option `option_name' is not registered in `@canonical_names'.
+	# It may be an abbreviated.
+	#
+	match_count = 0
+	@canonical_names.each_key do |key|
+	  if key.index(pattern) == 0
+	    option_name = key
+	    match_count += 1
+	  end
+	end
+	if 2 <= match_count
+	  set_error(AmbigousOption, "option `#{argument}' is ambiguous")
+	elsif match_count == 0
+	  set_error(InvalidOption, "unrecognized option `#{argument}'")
+	end
       end
 
       #
       # Check an argument to the option.
       #
       if @argument_flags[option_name] == REQUIRED_ARGUMENT
-        if argument =~ /=(.*)$/
-          option_argument = $1
-        elsif 0 < ARGV.length
-          option_argument = ARGV.shift
-        else
-          set_error(MissingArgument,
-                    "option `#{argument}' requires an argument")
-        end
+	if argument =~ /=(.*)$/
+	  option_argument = $1
+	elsif 0 < ARGV.length
+	  option_argument = ARGV.shift
+	else
+	  set_error(MissingArgument,
+	            "option `#{argument}' requires an argument")
+	end
       elsif @argument_flags[option_name] == OPTIONAL_ARGUMENT
-        if argument =~ /=(.*)$/
-          option_argument = $1
-        elsif 0 < ARGV.length && ARGV[0] !~ /^-./
-          option_argument = ARGV.shift
-        else
-          option_argument = ''
-        end
+	if argument =~ /=(.*)$/
+	  option_argument = $1
+	elsif 0 < ARGV.length && ARGV[0] !~ /^-./
+	  option_argument = ARGV.shift
+	else
+	  option_argument = ''
+	end
       elsif argument =~ /=(.*)$/
-        set_error(NeedlessArgument,
-                  "option `#{option_name}' doesn't allow an argument")
+	set_error(NeedlessArgument,
+		  "option `#{option_name}' doesn't allow an argument")
       end
 
     elsif argument =~ /^(-(.))(.*)/
@@ -545,40 +545,40 @@ class GetoptLong
       option_name, ch, @rest_singles = $1, $2, $3
 
       if @canonical_names.include?(option_name)
-        #
-        # The option `option_name' is found in `@canonical_names'.
-        # Check its argument.
-        #
-        if @argument_flags[option_name] == REQUIRED_ARGUMENT
-          if 0 < @rest_singles.length
-            option_argument = @rest_singles
-            @rest_singles = ''
-          elsif 0 < ARGV.length
-            option_argument = ARGV.shift
-          else
-            # 1003.2 specifies the format of this message.
-            set_error(MissingArgument, "option requires an argument -- #{ch}")
-          end
-        elsif @argument_flags[option_name] == OPTIONAL_ARGUMENT
-          if 0 < @rest_singles.length
-            option_argument = @rest_singles
-            @rest_singles = ''
-          elsif 0 < ARGV.length && ARGV[0] !~ /^-./
-            option_argument = ARGV.shift
-          else
-            option_argument = ''
-          end
-        end
+	#
+	# The option `option_name' is found in `@canonical_names'.
+	# Check its argument.
+	#
+	if @argument_flags[option_name] == REQUIRED_ARGUMENT
+	  if 0 < @rest_singles.length
+	    option_argument = @rest_singles
+	    @rest_singles = ''
+	  elsif 0 < ARGV.length
+	    option_argument = ARGV.shift
+	  else
+	    # 1003.2 specifies the format of this message.
+	    set_error(MissingArgument, "option requires an argument -- #{ch}")
+	  end
+	elsif @argument_flags[option_name] == OPTIONAL_ARGUMENT
+	  if 0 < @rest_singles.length
+	    option_argument = @rest_singles
+	    @rest_singles = ''
+	  elsif 0 < ARGV.length && ARGV[0] !~ /^-./
+	    option_argument = ARGV.shift
+	  else
+	    option_argument = ''
+	  end
+	end
       else
-        #
-        # This is an invalid option.
-        # 1003.2 specifies the format of this message.
-        #
-        if ENV.include?('POSIXLY_CORRECT')
-          set_error(InvalidOption, "illegal option -- #{ch}")
-        else
-          set_error(InvalidOption, "invalid option -- #{ch}")
-        end
+	#
+	# This is an invalid option.
+	# 1003.2 specifies the format of this message.
+	#
+	if ENV.include?('POSIXLY_CORRECT')
+	  set_error(InvalidOption, "illegal option -- #{ch}")
+	else
+	  set_error(InvalidOption, "invalid option -- #{ch}")
+	end
       end
     else
       #

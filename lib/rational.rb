@@ -240,6 +240,10 @@ class Rational < Numeric
     end
   end
 
+  def div(other)
+    (self / other).floor
+  end
+
   #
   # Returns the remainder when this value is divided by +other+.
   #
@@ -251,7 +255,7 @@ class Rational < Numeric
   #   r % 0.26             # -> 0.19
   #
   def % (other)
-    value = (self / other).to_i
+    value = (self / other).floor
     return self - other * value
   end
 
@@ -263,7 +267,7 @@ class Rational < Numeric
   #   r.divmod Rational(1,2)   # -> [3, Rational(1,4)]
   #
   def divmod(other)
-    value = (self / other).to_i
+    value = (self / other).floor
     return value, self - other * value
   end
 
@@ -272,7 +276,7 @@ class Rational < Numeric
   #
   def abs
     if @numerator > 0
-      Rational.new!(@numerator, @denominator)
+      self
     else
       Rational.new!(-@numerator, @denominator)
     end
@@ -287,8 +291,6 @@ class Rational < Numeric
   #
   # Don't use Rational.new!
   #
-
-  alias_method :eql?, :==
   def == (other)
     if other.kind_of?(Rational)
       @numerator == other.numerator and @denominator == other.denominator
@@ -342,15 +344,42 @@ class Rational < Numeric
   # Converts the rational to an Integer.  Not the _nearest_ integer, the
   # truncated integer.  Study the following example carefully:
   #   Rational(+7,4).to_i             # -> 1
-  #   Rational(-7,4).to_i             # -> -2
+  #   Rational(-7,4).to_i             # -> -1
   #   (-1.75).to_i                    # -> -1
   #
   # In other words:
   #   Rational(-7,4) == -1.75                 # -> true
-  #   Rational(-7,4).to_i == (-1.75).to_i     # false
+  #   Rational(-7,4).to_i == (-1.75).to_i     # -> true
   #
-  def to_i
-    Integer(@numerator.div(@denominator))
+
+  def floor
+    @numerator.div(@denominator)
+  end
+
+  def ceil
+    -((-@numerator).div(@denominator))
+  end
+
+  def truncate
+    if @numerator < 0
+      return -((-@numerator).div(@denominator))
+    end
+    @numerator.div(@denominator)
+  end
+
+  alias_method :to_i, :truncate
+
+  def round
+    if @numerator < 0
+      num = -@numerator
+      num = num * 2 + @denominator
+      den = @denominator * 2
+      -(num.div(den))
+    else
+      num = @numerator * 2 + @denominator
+      den = @denominator * 2
+      num.div(den)
+    end
   end
 
   #
@@ -483,37 +512,11 @@ class Integer
 end
 
 class Fixnum
-  undef quo
+  remove_method :quo
+
   # If Rational is defined, returns a Rational number instead of a Fixnum.
   def quo(other)
-    Rational.new!(self,1) / other
-  end
-  alias rdiv quo
-
-  # Returns a Rational number if the result is in fact rational (i.e. +other+ < 0).
-  def rpower (other)
-    if other >= 0
-      self.power!(other)
-    else
-      Rational.new!(self,1)**other
-    end
-  end
-
-  unless defined? 1.power!
-    alias power! **
-    alias ** rpower
-  end
-end
-
-class Bignum
-  unless defined? Complex
-    alias power! **
-  end
-
-  undef quo
-  # If Rational is defined, returns a Rational number instead of a Bignum.
-  def quo(other)
-    Rational.new!(self,1) / other
+    Rational.new!(self, 1) / other
   end
   alias rdiv quo
 
@@ -525,8 +528,35 @@ class Bignum
       Rational.new!(self, 1)**other
     end
   end
+end
 
-  unless defined? Complex
-    alias ** rpower
+class Bignum
+  remove_method :quo
+
+  # If Rational is defined, returns a Rational number instead of a Float.
+  def quo(other)
+    Rational.new!(self, 1) / other
+  end
+  alias rdiv quo
+
+  # Returns a Rational number if the result is in fact rational (i.e. +other+ < 0).
+  def rpower (other)
+    if other >= 0
+      self.power!(other)
+    else
+      Rational.new!(self, 1)**other
+    end
+  end
+end
+
+unless 1.respond_to?(:power!)
+  class Fixnum
+    alias_method :power!, :"**"
+    alias_method :"**", :rpower
+  end
+
+  class Bignum
+    alias_method :power!, :"**"
+    alias_method :"**", :rpower
   end
 end

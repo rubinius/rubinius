@@ -284,7 +284,7 @@ class CGI
   # Standard internet newline sequence
   EOL = CR + LF
 
-  REVISION = '$Id: cgi.rb 12050 2007-03-12 17:55:03Z knu $' #:nodoc:
+  REVISION = '$Id: cgi.rb 17817 2008-07-02 10:06:58Z shyouhei $' #:nodoc:
 
   NEEDS_BINMODE = true if /WIN/ni.match(RUBY_PLATFORM) 
 
@@ -792,11 +792,16 @@ class CGI
     #
     # These keywords correspond to attributes of the cookie object.
     def initialize(name = "", *value)
-      options = if name.kind_of?(String)
-                  { "name" => name, "value" => value }
-                else
-                  name
-                end
+      if name.kind_of?(String)
+        @name = name
+        @value = value
+        %r|^(.*/)|.match(ENV["SCRIPT_NAME"])
+        @path = ($1 or "")
+        @secure = false
+        return super(@value)
+      end
+
+      options = name
       unless options.has_key?("name")
         raise ArgumentError, "`name' required"
       end
@@ -880,7 +885,7 @@ class CGI
       if cookies.has_key?(name)
         values = cookies[name].value + values
       end
-      cookies[name] = Cookie::new({ "name" => name, "value" => values })
+      cookies[name] = Cookie::new(name, *values)
     end
 
     cookies
@@ -1032,13 +1037,13 @@ class CGI
           if "--" == $2
             content_length = -1
           end
-         boundary_end = $2.dup
+          boundary_end = $2.dup
           ""
         end
 
         body.rewind
 
-        /Content-Disposition:.* filename=(?:"((?:\\.|[^\"])*)"|([^;]*))/ni.match(head)
+        /Content-Disposition:.* filename=(?:"((?:\\.|[^\"])*)"|([^;\s]*))/ni.match(head)
 	filename = ($1 or $2 or "")
 	if /Mac/ni.match(env_table['HTTP_USER_AGENT']) and
 	    /Mozilla/ni.match(env_table['HTTP_USER_AGENT']) and
@@ -1046,7 +1051,7 @@ class CGI
 	  filename = CGI::unescape(filename)
 	end
         
-        /Content-Type: (.*)/ni.match(head)
+        /Content-Type: ([\s]*)/ni.match(head)
         content_type = ($1 or "")
 
         (class << body; self; end).class_eval do
@@ -1055,7 +1060,7 @@ class CGI
           define_method(:content_type) {content_type.dup.taint}
         end
 
-        /Content-Disposition:.* name="?([^\";]*)"?/ni.match(head)
+        /Content-Disposition:.* name="?([^\";\s]*)"?/ni.match(head)
         name = $1.dup
 
         if params.has_key?(name)
@@ -1163,6 +1168,7 @@ class CGI
     # retrieved; use #params() to get the array of values.
     def [](key)
       params = @params[key]
+      return '' unless params
       value = params[0]
       if @multipart
         if value

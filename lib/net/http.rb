@@ -22,7 +22,7 @@
 # http://www.ruby-lang.org/ja/man/?cmd=view;name=net%2Fhttp.rb
 # 
 #--
-# $Id: http.rb 22197 2009-02-10 09:05:28Z knu $
+# $Id: http.rb 13657 2007-10-08 11:16:54Z gotoyuzo $
 #++ 
 
 require 'net/protocol'
@@ -39,7 +39,7 @@ module Net   #:nodoc:
   # 
   # This library provides your program functions to access WWW
   # documents via HTTP, Hyper Text Transfer Protocol version 1.1.
-  # For details of HTTP, refer to [RFC2616]
+  # For details of HTTP, refer [RFC2616]
   # (http://www.ietf.org/rfc/rfc2616.txt).
   # 
   # == Examples
@@ -278,7 +278,7 @@ module Net   #:nodoc:
   class HTTP < Protocol
 
     # :stopdoc:
-    Revision = %q$Revision: 22197 $.split[1]
+    Revision = %q$Revision: 13657 $.split[1]
     HTTPVersion = '1.1'
     @newimpl = true
     # :startdoc:

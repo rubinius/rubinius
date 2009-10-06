@@ -1,5 +1,4 @@
 require 'rexml/formatters/pretty'
-require 'rexml/formatters/transitive'
 
 module REXML
   module Formatters

@@ -32,6 +32,7 @@ module REXML
 	  # @param context if supplied, contains the context of the document;
 	  # this should be a Hash.
 		def initialize( source = nil, context = {} )
+      @entity_expansion_count = 0
 			super()
 			@context = context
 			return if source.nil?
@@ -147,7 +148,7 @@ module REXML
     # A controversial point is whether Document should always write the XML
     # declaration (<?xml version='1.0'?>) whether or not one is given by the
     # user (or source document).  REXML does not write one if one was not
-    # specified, because it adds unneccessary bandwidth to applications such
+    # specified, because it adds unnecessary bandwidth to applications such
     # as XML-RPC.
     #
     # See also the classes in the rexml/formatters package for the proper way
@@ -199,6 +200,27 @@ module REXML
 		def Document::parse_stream( source, listener )
 			Parsers::StreamParser.new( source, listener ).parse
 		end
+
+    @@entity_expansion_limit = 10_000
+
+    # Set the entity expansion limit. By default the limit is set to 10000.
+    def Document::entity_expansion_limit=( val )
+      @@entity_expansion_limit = val
+    end
+
+    # Get the entity expansion limit. By default the limit is set to 10000.
+    def Document::entity_expansion_limit
+      return @@entity_expansion_limit
+    end
+
+    attr_reader :entity_expansion_count
+    
+    def record_entity_expansion
+      @entity_expansion_count += 1
+      if @entity_expansion_count > @@entity_expansion_limit
+        raise "number of entity expansions exceeded, processing aborted."
+      end
+    end
 
 		private
 		def build( source )
