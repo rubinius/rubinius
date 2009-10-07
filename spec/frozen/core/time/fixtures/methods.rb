@@ -24,7 +24,7 @@ end
 # Time.at(seconds).inspect on MRI 1.8
 def localtime_18(seconds)
   platform_is :os => [:darwin, :bsd] do
-    return `LC_ALL=C date -r #{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
+    return `LC_ALL=C /bin/date -r #{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
   end
 
   platform_is :os => :linux do
@@ -38,7 +38,7 @@ end
 # Time.at(seconds).inspect on MRI 1.9
 def localtime_19(seconds)
   platform_is :os => [:darwin, :bsd] do
-    return `LC_ALL=C date -r #{seconds} +'%F %H:%M:%S %z'`.chomp
+    return `LC_ALL=C /bin/date -r #{seconds} +'%F %H:%M:%S %z'`.chomp
   end
 
   platform_is :os => :linux do
