@@ -17,6 +17,7 @@
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
+#include <llvm/System/Threading.h>
 #endif
 
 #include "signal.hpp"
@@ -33,6 +34,10 @@
 namespace rubinius {
 
   Environment::Environment() {
+#ifdef ENABLE_LLVM
+    assert(llvm::llvm_start_multithreaded() && "llvm doesn't support threading!");
+#endif
+
     shared = new SharedState(config, config_parser);
 
     state = shared->new_vm();
