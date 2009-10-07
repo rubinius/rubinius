@@ -23,6 +23,7 @@ namespace rubinius {
     config::Bool    jit_inline_generic;
     config::Bool    jit_inline_debug;
     config::Bool    jit_inline_blocks;
+    config::Bool    jit_force_off;
 
     config::BoolSet jit_defaults;
 
@@ -38,6 +39,7 @@ namespace rubinius {
     static const int default_jit_dump_code = 0;
     static const int default_jit_call_til_compile = 4000;
     static const int default_jit_max_method_size = 2048;
+    static const int default_jit_on = true;
 
     Configuration()
       : gc_bytes(this,        "gc.bytes", default_gc_bytes)
@@ -45,7 +47,7 @@ namespace rubinius {
       , gc_lifetime(this,     "gc.lifetime", default_gc_lifetime)
       , gc_show(this,         "gc.show")
       , dynamic_interpreter_enabled(this, "interpreter.dynamic")
-      , jit_enabled(this,     "jit.enabled")
+      , jit_enabled(this,     "jit.enabled", default_jit_on)
       , jit_dump_code(this,   "jit.dump_code", default_jit_dump_code)
       , jit_call_til_compile(this, "jit.call_til_compile",
                              default_jit_call_til_compile)
@@ -53,10 +55,11 @@ namespace rubinius {
                             default_jit_max_method_size)
       , jit_show_compiling(this, "jit.show")
       , jit_profile(this,     "jit.profile")
-      , jit_inline_generic(this, "jit.inline.generic")
+      , jit_inline_generic(this, "jit.inline.generic", true)
       , jit_inline_debug(this, "jit.inline.debug")
       , jit_inline_blocks(this, "jit.inline.blocks")
-      , jit_defaults(this, "J")
+      , jit_force_off(this,   "int")
+      , jit_defaults(this,    "J")
       , gil_debug(this,       "vm.gil.debug")
       , print_config(this,    "config.print")
       , ic_stats(this,        "ic.stats")
@@ -96,6 +99,9 @@ namespace rubinius {
 
       jit_inline_blocks.set_description(
           "Have the JIT try and inline methods and their literal blocks");
+
+      jit_force_off.set_description(
+          "Force the JIT to never turn on");
 
       jit_defaults.set_description(
           "Enable the JIT and generic inlining");

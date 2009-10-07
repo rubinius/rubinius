@@ -143,6 +143,11 @@ namespace rubinius {
   }
 
   void Environment::boot_vm() {
+    // Respect -Xint
+    if(config.jit_force_off) {
+      config.jit_enabled.set("no");
+    }
+
     state->boot();
 
     TaskProbe* probe = TaskProbe::create(state);

@@ -119,9 +119,9 @@ namespace config {
   public:
     bool value;
 
-    Bool(Configuration* config, const char* name)
+    Bool(Configuration* config, const char* name, bool def=false)
       : ConfigItem(config, name)
-      , value(false)
+      , value(def)
     {}
 
     static bool convert(const char* str) {
