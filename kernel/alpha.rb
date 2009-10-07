@@ -420,13 +420,6 @@ class Module
     raise PrimitiveFailure, "Module.allocate primitive failed"
   end
 
-  # TODO: Obsolete?
-  #
-  def __find_method(namesym)
-    Ruby.primitive :find_method
-    raise PrimitiveFailure, "primitive failed"
-  end
-
   # :internal:
   #
   # Hook called when a constant cannot be located.
