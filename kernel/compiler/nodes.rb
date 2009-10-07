@@ -1101,23 +1101,15 @@ raise "no"
           return normal
         end
 
-        existing = false
-
-        unless allocate
-          if dynamic = @context.dynamic_locals
-            if dynamic.key? name
-              existing = true
-            else
-              return nil
-            end
-          else
-            return nil
-          end
+        if @context.eval_local_defined?(name)
+          return DynamicLocal.new(name)
         end
+
+        return nil unless allocate
 
         # Seed the dynamic_locals table with the name, so key? works
         # later.
-        @context.set_eval_local(name, nil) unless existing
+        @context.set_eval_local(name, nil)
 
         return DynamicLocal.new(name)
       end
