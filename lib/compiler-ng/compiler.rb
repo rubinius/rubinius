@@ -54,9 +54,11 @@ module Rubinius
       compiler = new :string, :compiled_method
 
       parser = compiler.parser
-      parser.root AST::Script
+      parser.root AST::EvalExpression
       parser.default_transforms
       parser.input string, file, line
+
+      compiler.generator.context = binding
 
       compiler.run
     end

@@ -307,7 +307,7 @@ module Rubinius
       # the scope it is defined in to the scope it is used in).
       def search_local(name)
         if variable = variables[name]
-          CompilerNG::NestedLocalReference.new variable
+          variable.nested_reference
         elsif reference = @parent.search_local(name)
           reference.depth += 1
           reference
@@ -321,14 +321,14 @@ module Rubinius
       # variable in this scope and set the local variable node attribute.
       def assign_local_reference(var)
         if variable = variables[var.name]
-          var.variable = CompilerNG::LocalReference.new variable
+          var.variable = variable.reference
         elsif reference = @parent.search_local(var.name)
           reference.depth += 1
           var.variable = reference
         else
           variable = CompilerNG::LocalVariable.new allocate_slot
           variables[var.name] = variable
-          var.variable = CompilerNG::LocalReference.new variable
+          var.variable = variable.reference
         end
       end
 
@@ -510,7 +510,7 @@ module Rubinius
           variable = CompilerNG::LocalVariable.new allocate_slot
           variables[var.name] = variable
 
-          reference = CompilerNG::NestedLocalReference.new variable
+          reference = variable.nested_reference
           reference.depth += 1
         end
 

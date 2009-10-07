@@ -104,7 +104,7 @@ module Rubinius
       # in our local variables hash, return a nested reference to it.
       def search_local(name)
         if variable = variables[name]
-          CompilerNG::NestedLocalReference.new variable
+          variable.nested_reference
         end
       end
 
@@ -121,7 +121,7 @@ module Rubinius
           variable = new_local var.name
         end
 
-        var.variable = CompilerNG::LocalReference.new variable
+        var.variable = variable.reference
       end
 
       def map_variables
@@ -692,6 +692,67 @@ module Rubinius
 
         g.name = @name
         g.file = @file.to_sym
+      end
+    end
+
+    class EvalExpression < Container
+      attr_accessor :context
+
+      def initialize(body)
+        super body
+        @name = :__eval_script__
+      end
+
+      def search_scopes(name)
+        depth = 1
+        scope = @context.variables
+        while scope
+          if slot = scope.method.local_slot(name)
+            return CompilerNG::NestedLocalVariable.new(depth, slot)
+          elsif scope.dynamic_locals.key? name
+            return CompilerNG::EvalLocalVariable.new(name)
+          end
+
+          depth += 1
+          scope = scope.parent
+        end
+      end
+
+      # Returns a cached reference to a variable or searches all
+      # surrounding scopes for a variable. If no variable is found,
+      # it returns nil and a nested scope will create the variable
+      # in itself.
+      def search_local(name)
+        if variable = variables[name]
+          return variable.reference
+        end
+
+        if variable = search_scopes(name)
+          variables[name] = variable
+          return variable.reference
+        end
+      end
+
+      def new_local(name)
+        variable = CompilerNG::EvalLocalVariable.new name
+        @context.variables.set_eval_local name, nil
+        variables[name] = variable
+      end
+
+      def assign_local_reference(var)
+        unless reference = search_local(var.name)
+          variable = new_local var.name
+          reference = variable.reference
+        end
+
+        var.variable = reference
+      end
+
+      def bytecode(g)
+        super(g)
+
+        @body.bytecode(g)
+        g.ret
       end
     end
 

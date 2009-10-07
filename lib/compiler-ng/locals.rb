@@ -26,13 +26,50 @@ module Rubinius
       def initialize(slot)
         @slot = slot
       end
+
+      def reference
+        LocalReference.new @slot
+      end
+
+      def nested_reference
+        NestedLocalReference.new @slot
+      end
+    end
+
+    class NestedLocalVariable
+      attr_reader :depth, :slot
+
+      def initialize(depth, slot)
+        @depth = depth
+        @slot = slot
+      end
+
+      def reference
+        NestedLocalReference.new @slot, @depth
+      end
+
+      alias_method :nested_reference, :reference
+    end
+
+    class EvalLocalVariable
+      attr_reader :name
+
+      def initialize(name)
+        @name = name
+      end
+
+      def reference
+        EvalLocalReference.new @name
+      end
+
+      alias_method :nested_reference, :reference
     end
 
     class LocalReference
       attr_reader :slot
 
-      def initialize(var)
-        @slot = var.slot
+      def initialize(slot)
+        @slot = slot
       end
 
       def get_bytecode(g)
@@ -48,9 +85,9 @@ module Rubinius
       attr_accessor :depth
       attr_reader :slot
 
-      def initialize(var)
-        @slot = var.slot
-        @depth = 0
+      def initialize(slot, depth=0)
+        @slot = slot
+        @depth = depth
       end
 
       def get_bytecode(g)
@@ -63,10 +100,22 @@ module Rubinius
     end
 
     class EvalLocalReference
-      def get_bytcode(g)
+      def initialize(name)
+        @name = name
+      end
+
+      def get_bytecode(g)
+        g.push_variables
+        g.push_literal @name
+        g.send :get_eval_local, 1, false
       end
 
       def set_bytecode(g)
+        g.push_variables
+        g.swap
+        g.push_literal @name
+        g.swap
+        g.send :set_eval_local, 2, false
       end
     end
   end

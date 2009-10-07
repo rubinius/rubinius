@@ -125,6 +125,8 @@ module Rubinius
       stage :bytecode
       next_stage Encoder
 
+      attr_accessor :context
+
       def initialize(compiler, last)
         super
         compiler.generator = self
@@ -133,6 +135,7 @@ module Rubinius
 
       def run
         @output = @processor.new
+        @input.context = @context if @context
         @input.bytecode @output
         @output.close
         run_next

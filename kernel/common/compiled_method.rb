@@ -102,6 +102,17 @@ module Rubinius
     end
 
     ##
+    # Returns the index of local +name+ or nil if there is no local.
+    #
+    def local_slot(name)
+      slot = 0
+      while slot < @local_count
+        return slot if @local_names[slot] == name
+        slot += 1
+      end
+    end
+
+    ##
     # Return a human readable interpretation of this method.
     #
     # @return [String]
