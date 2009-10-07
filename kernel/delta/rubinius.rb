@@ -155,26 +155,16 @@ module Rubinius
     cm.jit_soon
   end
 
-  def self.compile_common_methods
-    methods = [
-      Array.instance_method(:each)
-    ]
-
-    methods.each do |meth|
-      puts "AOT: compiling #{meth}" if $DEBUG
-      jit_soon meth
-    end
-  end
-
   def self.version
     extra = ""
 
-    if Rubinius::RUBY_CONFIG['jit.enabled']
+    if jit = Rubinius::JIT
       extra << "J"
-    end
 
-    if Rubinius::RUBY_CONFIG['jit.inline.generic']
-      extra << "I"
+      if jit.include? :inline_generic
+        extra << "I"
+      end
+
     end
 
     str = "rubinius #{RBX_VERSION} (#{RUBY_VERSION} #{BUILDREV[0..7]} #{RUBY_RELEASE_DATE}"

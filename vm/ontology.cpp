@@ -439,7 +439,16 @@ namespace rubinius {
 #endif
 
     if(shared.config.jit_enabled) {
-      G(rubinius)->set_const(state, "JIT", symbol("usage"));
+      Array* ary = Array::create(state, 3);
+      ary->append(state, symbol("usage"));
+      if(shared.config.jit_inline_generic) {
+        ary->append(state, symbol("inline_generic"));
+      }
+
+      if(shared.config.jit_inline_blocks) {
+        ary->append(state, symbol("inline_blocks"));
+      }
+      G(rubinius)->set_const(state, "JIT", ary);
     } else {
       G(rubinius)->set_const(state, "JIT", Qfalse);
     }

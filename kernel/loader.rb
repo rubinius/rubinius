@@ -230,10 +230,6 @@ module Rubinius
         puts "[Code loading debugging enabled]"
       end
 
-      options.on "--fast", "Compile specific methods at startup" do
-        Rubinius.compile_common_methods
-      end
-
       options.on "--gc-stats", "Show GC stats" do
         stats = Stats::GC.new
         at_exit { stats.show }
