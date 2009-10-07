@@ -40,7 +40,9 @@ module Kernel
 
   # Evaluate and execute code given in the String.
   #
-  def eval(string, binding=nil, filename="(eval)", lineno=1)
+  def eval(string, binding=nil, filename=nil, lineno=1)
+    filename ||= binding ? binding.static_scope.active_path : "(eval)"
+
     if !binding
       binding = Binding.setup(Rubinius::VariableScope.of_sender,
                               Rubinius::CompiledMethod.of_sender,
@@ -65,6 +67,7 @@ module Kernel
     script = Rubinius::CompiledMethod::Script.new
     script.path = filename
     compiled_method.scope.script = script
+    script.path = binding.static_scope.active_path if binding
 
     # Internalize it now, since we're going to springboard to it as a block.
     compiled_method.compile
