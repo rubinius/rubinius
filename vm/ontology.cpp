@@ -438,6 +438,7 @@ namespace rubinius {
     G(rubinius)->set_const(state, "INTERPRETER", symbol("static"));
 #endif
 
+#ifdef ENABLE_LLVM
     if(shared.config.jit_enabled) {
       Array* ary = Array::create(state, 3);
       ary->append(state, symbol("usage"));
@@ -452,6 +453,9 @@ namespace rubinius {
     } else {
       G(rubinius)->set_const(state, "JIT", Qfalse);
     }
+#else
+    G(rubinius)->set_const(state, "JIT", Qnil);
+#endif
   }
 
   void VM::bootstrap_symbol() {
