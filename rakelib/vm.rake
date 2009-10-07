@@ -157,11 +157,21 @@ BASIC_FLAGS     = %W[ -pipe -Wall -Wno-deprecated
 
 FLAGS = BASIC_FLAGS.dup
 
+# Check compiler preferences (LLVM may still override.)
+CC          = ENV['CC'] || "gcc"
+CXX         = ENV["CXX"] || "g++"
+
 if RUBY_PLATFORM =~ /darwin/i
   if `sw_vers` =~ /10\.4/
     FLAGS.concat %w(-DHAVE_STRLCAT -DHAVE_STRLCPY)
   end
-  FLAGS << "-mdynamic-no-pic"
+
+  # This flag makes the executable non-relocatable (and
+  # slightly faster), but 4.3 does not support it.
+  # TODO: Look for workarounds.
+  unless `#{CC} -v 2>&1` =~ /gcc version 4\.3/i
+    FLAGS << "-mdynamic-no-pic"
+  end
 end
 
 if LLVM_ENABLE
@@ -181,10 +191,6 @@ BUILD_PRETASKS = []
 if ENV['DEV']
   BUILD_PRETASKS << "build:debug_flags"
 end
-
-# Check compiler preferences (LLVM may still override.)
-CC          = ENV['CC'] || "gcc"
-CXX         = ENV["CXX"] || "g++"
 
 def compile_c(obj, src, output_kind="c")
   flags = INCLUDES + FLAGS + llvm_flags
