@@ -89,4 +89,61 @@ describe "A Defined node" do
       f.set!
     end
   end
+
+  relates "defined? ::X" do
+    compile do |g|
+      t = g.new_label
+      f = g.new_label
+
+      g.push_const :Object
+      g.push_literal "X"
+      g.send :const_path_defined?, 1
+      g.git t
+      g.push :nil
+      g.goto f
+
+      t.set!
+      g.push_literal "constant"
+
+      f.set!
+    end
+  end
+
+  relates "defined? X::Y" do
+    compile do |g|
+      t = g.new_label
+      f = g.new_label
+
+      g.push_scope
+      g.push_literal "X::Y"
+      g.send :const_path_defined?, 1
+      g.git t
+      g.push :nil
+      g.goto f
+
+      t.set!
+      g.push_literal "constant"
+
+      f.set!
+    end
+  end
+
+  relates "defined? X::Y::Z" do
+    compile do |g|
+      t = g.new_label
+      f = g.new_label
+
+      g.push_scope
+      g.push_literal "X::Y::Z"
+      g.send :const_path_defined?, 1
+      g.git t
+      g.push :nil
+      g.goto f
+
+      t.set!
+      g.push_literal "constant"
+
+      f.set!
+    end
+  end
 end
