@@ -13,6 +13,28 @@ module Rubinius
         [@parent]
       end
 
+      def constant_defined(s)
+        @parent.constant_defined s
+        s << "::" << @name.to_s
+      end
+
+      def defined(g)
+        t = g.new_label
+        f = g.new_label
+
+        g.push_scope
+        g.push_literal constant_defined("")
+        g.send :const_path_defined?, 1
+        g.git t
+        g.push :nil
+        g.goto f
+
+        t.set!
+        g.push_literal "constant"
+
+        f.set!
+      end
+
       def bytecode(g)
         pos(g)
 
@@ -36,6 +58,23 @@ module Rubinius
         g.push_cpath_top
         g.find_const @name
       end
+
+      def defined(g)
+        t = g.new_label
+        f = g.new_label
+
+        g.push_const :Object
+        g.push_literal @name.to_s
+        g.send :const_path_defined?, 1
+        g.git t
+        g.push :nil
+        g.goto f
+
+        t.set!
+        g.push_literal "constant"
+
+        f.set!
+      end
     end
 
     class TopLevel < Node
@@ -55,6 +94,10 @@ module Rubinius
       def bytecode(g)
         pos(g)
         g.push_const @name
+      end
+
+      def constant_defined(s)
+        s << @name.to_s
       end
 
       def defined(g)
