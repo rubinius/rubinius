@@ -27,6 +27,10 @@ class Compiler
     def set_eval_local(name, val)
       dynamic_locals[name] = val
     end
+
+    def eval_local_defined?(name)
+      @variables.eval_local_defined?(name)
+    end
   end
 
   def self.process_flags(flags)
