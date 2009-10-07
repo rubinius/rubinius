@@ -267,7 +267,7 @@ namespace immix {
 
   class Chunk {
     Address system_base_;
-    int system_size_;
+    std::size_t system_size_;
 
     Address base_;
     Block blocks_[cBlocksPerChunk];
@@ -313,7 +313,7 @@ namespace immix {
       return base_;
     }
 
-    int size() {
+    std::size_t size() {
       return system_size_;
     }
 
