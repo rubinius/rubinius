@@ -322,6 +322,12 @@ module Rubinius
 
       if File.exist?(@script)
         $0 = @script
+
+        # make sure that the binding has a script associated with it
+        # and theat the script has a path
+        TOPLEVEL_BINDING.static_scope.script = CompiledMethod::Script.new
+        TOPLEVEL_BINDING.static_scope.script.path = @script
+
         Compiler::Utils.debug_script! if @debugging
         Compiler::Utils.load_from_extension @script,
           :no_rbc => @no_rbc, :root_script => true
