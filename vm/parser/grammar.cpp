@@ -1139,13 +1139,13 @@ static const yytype_uint16 yyrline[] =
     2176,  2188,  2187,  2207,  2208,  2209,  2210,  2213,  2220,  2221,
     2222,  2223,  2226,  2257,  2258,  2259,  2263,  2269,  2270,  2271,
     2272,  2273,  2274,  2275,  2276,  2277,  2278,  2279,  2282,  2288,
-    2294,  2295,  2298,  2303,  2302,  2310,  2313,  2318,  2324,  2328,
-    2332,  2336,  2340,  2344,  2348,  2352,  2357,  2362,  2366,  2370,
-    2374,  2378,  2389,  2390,  2396,  2406,  2411,  2417,  2418,  2421,
-    2429,  2435,  2436,  2439,  2449,  2453,  2456,  2461,  2461,  2486,
-    2487,  2491,  2500,  2501,  2507,  2513,  2514,  2515,  2518,  2519,
-    2520,  2521,  2524,  2525,  2526,  2529,  2530,  2533,  2534,  2537,
-    2538,  2541,  2542,  2543,  2546,  2547,  2550,  2551,  2554
+    2294,  2295,  2298,  2303,  2302,  2310,  2313,  2319,  2325,  2329,
+    2333,  2337,  2341,  2345,  2349,  2353,  2358,  2363,  2367,  2371,
+    2375,  2379,  2390,  2391,  2397,  2407,  2412,  2418,  2419,  2422,
+    2430,  2436,  2437,  2440,  2450,  2454,  2457,  2462,  2462,  2487,
+    2488,  2492,  2501,  2502,  2508,  2514,  2515,  2516,  2519,  2520,
+    2521,  2522,  2525,  2526,  2527,  2530,  2531,  2534,  2535,  2538,
+    2539,  2542,  2543,  2544,  2547,  2548,  2551,  2552,  2555
 };
 #endif
 
@@ -7178,109 +7178,110 @@ yyreduce:
     {
                         (yyval.node) = (yyvsp[(2) - (4)].node);
                         vps->lex_state = EXPR_BEG;
+                        command_start = TRUE;
                     ;}
     break;
 
   case 447:
-#line 2319 "vm/parser/grammar.y"
+#line 2320 "vm/parser/grammar.y"
     {
                         (yyval.node) = (yyvsp[(1) - (2)].node);
                     ;}
     break;
 
   case 448:
-#line 2325 "vm/parser/grammar.y"
+#line 2326 "vm/parser/grammar.y"
     {
                         (yyval.node) = block_append(vps, NEW_ARGS((intptr_t)(yyvsp[(1) - (6)].num), (yyvsp[(3) - (6)].node), (yyvsp[(5) - (6)].id)), (yyvsp[(6) - (6)].node));
                     ;}
     break;
 
   case 449:
-#line 2329 "vm/parser/grammar.y"
+#line 2330 "vm/parser/grammar.y"
     {
                         (yyval.node) = block_append(vps, NEW_ARGS((intptr_t)(yyvsp[(1) - (4)].num), (yyvsp[(3) - (4)].node), 0), (yyvsp[(4) - (4)].node));
                     ;}
     break;
 
   case 450:
-#line 2333 "vm/parser/grammar.y"
+#line 2334 "vm/parser/grammar.y"
     {
                         (yyval.node) = block_append(vps, NEW_ARGS((intptr_t)(yyvsp[(1) - (4)].num), 0, (yyvsp[(3) - (4)].id)), (yyvsp[(4) - (4)].node));
                     ;}
     break;
 
   case 451:
-#line 2337 "vm/parser/grammar.y"
+#line 2338 "vm/parser/grammar.y"
     {
                         (yyval.node) = block_append(vps, NEW_ARGS((intptr_t)(yyvsp[(1) - (2)].num), 0, 0), (yyvsp[(2) - (2)].node));
                     ;}
     break;
 
   case 452:
-#line 2341 "vm/parser/grammar.y"
+#line 2342 "vm/parser/grammar.y"
     {
                         (yyval.node) = block_append(vps, NEW_ARGS(0, (yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].id)), (yyvsp[(4) - (4)].node));
                     ;}
     break;
 
   case 453:
-#line 2345 "vm/parser/grammar.y"
+#line 2346 "vm/parser/grammar.y"
     {
                         (yyval.node) = block_append(vps, NEW_ARGS(0, (yyvsp[(1) - (2)].node), 0), (yyvsp[(2) - (2)].node));
                     ;}
     break;
 
   case 454:
-#line 2349 "vm/parser/grammar.y"
+#line 2350 "vm/parser/grammar.y"
     {
                         (yyval.node) = block_append(vps, NEW_ARGS(0, 0, (yyvsp[(1) - (2)].id)), (yyvsp[(2) - (2)].node));
                     ;}
     break;
 
   case 455:
-#line 2353 "vm/parser/grammar.y"
+#line 2354 "vm/parser/grammar.y"
     {
                         (yyval.node) = block_append(vps, NEW_ARGS(0, 0, 0), (yyvsp[(1) - (1)].node));
                     ;}
     break;
 
   case 456:
-#line 2357 "vm/parser/grammar.y"
+#line 2358 "vm/parser/grammar.y"
     {
                         (yyval.node) = NEW_ARGS(0, 0, 0);
                     ;}
     break;
 
   case 457:
-#line 2363 "vm/parser/grammar.y"
+#line 2364 "vm/parser/grammar.y"
     {
                         yyerror("formal argument cannot be a constant");
                     ;}
     break;
 
   case 458:
-#line 2367 "vm/parser/grammar.y"
+#line 2368 "vm/parser/grammar.y"
     {
                         yyerror("formal argument cannot be an instance variable");
                     ;}
     break;
 
   case 459:
-#line 2371 "vm/parser/grammar.y"
+#line 2372 "vm/parser/grammar.y"
     {
                         yyerror("formal argument cannot be a global variable");
                     ;}
     break;
 
   case 460:
-#line 2375 "vm/parser/grammar.y"
+#line 2376 "vm/parser/grammar.y"
     {
                         yyerror("formal argument cannot be a class variable");
                     ;}
     break;
 
   case 461:
-#line 2379 "vm/parser/grammar.y"
+#line 2380 "vm/parser/grammar.y"
     {
                         if (!is_local_id((yyvsp[(1) - (1)].id)))
                             yyerror("formal argument must be local variable");
@@ -7292,14 +7293,14 @@ yyreduce:
     break;
 
   case 463:
-#line 2391 "vm/parser/grammar.y"
+#line 2392 "vm/parser/grammar.y"
     {
                         (yyval.num) += 1;
                     ;}
     break;
 
   case 464:
-#line 2397 "vm/parser/grammar.y"
+#line 2398 "vm/parser/grammar.y"
     {
                         if (!is_local_id((yyvsp[(1) - (3)].id)))
                             yyerror("formal argument must be local variable");
@@ -7310,7 +7311,7 @@ yyreduce:
     break;
 
   case 465:
-#line 2407 "vm/parser/grammar.y"
+#line 2408 "vm/parser/grammar.y"
     {
                         (yyval.node) = NEW_BLOCK((yyvsp[(1) - (1)].node));
                         (yyval.node)->nd_end = (yyval.node);
@@ -7318,14 +7319,14 @@ yyreduce:
     break;
 
   case 466:
-#line 2412 "vm/parser/grammar.y"
+#line 2413 "vm/parser/grammar.y"
     {
                         (yyval.node) = block_append(vps, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
                     ;}
     break;
 
   case 469:
-#line 2422 "vm/parser/grammar.y"
+#line 2423 "vm/parser/grammar.y"
     {
                         if (!is_local_id((yyvsp[(2) - (2)].id)))
                             yyerror("rest argument must be local variable");
@@ -7336,14 +7337,14 @@ yyreduce:
     break;
 
   case 470:
-#line 2430 "vm/parser/grammar.y"
+#line 2431 "vm/parser/grammar.y"
     {
                         (yyval.id) = -2;
                     ;}
     break;
 
   case 473:
-#line 2440 "vm/parser/grammar.y"
+#line 2441 "vm/parser/grammar.y"
     {
                         if (!is_local_id((yyvsp[(2) - (2)].id)))
                             yyerror("block argument must be local variable");
@@ -7354,14 +7355,14 @@ yyreduce:
     break;
 
   case 474:
-#line 2450 "vm/parser/grammar.y"
+#line 2451 "vm/parser/grammar.y"
     {
                         (yyval.node) = (yyvsp[(2) - (2)].node);
                     ;}
     break;
 
   case 476:
-#line 2457 "vm/parser/grammar.y"
+#line 2458 "vm/parser/grammar.y"
     {
                         (yyval.node) = (yyvsp[(1) - (1)].node);
                         value_expr((yyval.node));
@@ -7369,12 +7370,12 @@ yyreduce:
     break;
 
   case 477:
-#line 2461 "vm/parser/grammar.y"
+#line 2462 "vm/parser/grammar.y"
     {vps->lex_state = EXPR_BEG;;}
     break;
 
   case 478:
-#line 2462 "vm/parser/grammar.y"
+#line 2463 "vm/parser/grammar.y"
     {
                         if ((yyvsp[(3) - (5)].node) == 0) {
                             yyerror("can't define singleton method for ().");
@@ -7400,14 +7401,14 @@ yyreduce:
     break;
 
   case 480:
-#line 2488 "vm/parser/grammar.y"
+#line 2489 "vm/parser/grammar.y"
     {
                         (yyval.node) = (yyvsp[(1) - (2)].node);
                     ;}
     break;
 
   case 481:
-#line 2492 "vm/parser/grammar.y"
+#line 2493 "vm/parser/grammar.y"
     {
                         if ((yyvsp[(1) - (2)].node)->nd_alen%2 != 0) {
                             yyerror("odd number list for Hash");
@@ -7417,37 +7418,37 @@ yyreduce:
     break;
 
   case 483:
-#line 2502 "vm/parser/grammar.y"
+#line 2503 "vm/parser/grammar.y"
     {
                         (yyval.node) = list_concat((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
                     ;}
     break;
 
   case 484:
-#line 2508 "vm/parser/grammar.y"
+#line 2509 "vm/parser/grammar.y"
     {
                         (yyval.node) = list_append(vps, NEW_LIST((yyvsp[(1) - (3)].node)), (yyvsp[(3) - (3)].node));
                     ;}
     break;
 
   case 504:
-#line 2546 "vm/parser/grammar.y"
+#line 2547 "vm/parser/grammar.y"
     {yyerrok;;}
     break;
 
   case 507:
-#line 2551 "vm/parser/grammar.y"
+#line 2552 "vm/parser/grammar.y"
     {yyerrok;;}
     break;
 
   case 508:
-#line 2554 "vm/parser/grammar.y"
+#line 2555 "vm/parser/grammar.y"
     {(yyval.node) = 0;;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 7451 "vm/parser/grammar.cpp"
+#line 7452 "vm/parser/grammar.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -7661,7 +7662,7 @@ yyreturn:
 }
 
 
-#line 2556 "vm/parser/grammar.y"
+#line 2557 "vm/parser/grammar.y"
 
 
 /* We remove any previous definition of `SIGN_EXTEND_CHAR',
@@ -7696,6 +7697,7 @@ yycompile(rb_parse_state *parse_state, char *f, int line)
     lex_strterm = 0;
     parse_state->end_seen = 0;
     ruby_sourcefile = f;
+    command_start = TRUE;
     n = yyparse(parse_state);
     ruby_debug_lines = 0;
     compile_for_eval = 0;
