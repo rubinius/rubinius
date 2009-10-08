@@ -530,13 +530,17 @@ describe "A Masgn node" do
       g.push 3
 
       g.make_array 1
-      g.set_local 2
+
+      g.rotate 3
+
+      g.set_local 0
       g.pop
 
       g.set_local 1
       g.pop
 
-      g.set_local 0
+      g.cast_array
+      g.set_local 2
       g.pop
 
       g.push :true
@@ -794,15 +798,18 @@ describe "A Masgn node" do
       g.send :f, 0, true
       g.push :self
       g.send :g, 0, true
-      g.make_array 2 # TODO: 2?!?
+      g.make_array 2
 
-      g.set_local 2 # TODO: backwards
+      g.rotate 3
+
+      g.set_local 0
       g.pop
 
       g.set_local 1
       g.pop
 
-      g.set_local 0
+      g.cast_array
+      g.set_local 2
       g.pop
 
       g.push :true

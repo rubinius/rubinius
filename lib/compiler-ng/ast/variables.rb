@@ -383,7 +383,7 @@ module Rubinius
         @splat.bytecode(g) if @splat
 
         unless @iter_arguments
-          g.pop unless @fixed
+          g.pop if !@fixed or @splat
           g.push :true
         end
       end
