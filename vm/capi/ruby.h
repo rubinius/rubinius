@@ -31,6 +31,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "intern.h"
+
 #define RUBY
 #define RUBINIUS
 

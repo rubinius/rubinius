@@ -674,7 +674,7 @@ object_sources = srcs + vm_srcs + generated + ["vm/gen/instructions.cpp"]
 file dep_file => hdrs + object_sources do |t|
   warn "Updating dependencies..."
 
-  directories = ".", "vm"
+  directories = ".", "vm", "vm/capi"
   defines = FLAGS.join ' '
   defines.slice!(/-Wno-deprecated/)
 
