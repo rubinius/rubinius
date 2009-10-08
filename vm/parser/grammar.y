@@ -1843,14 +1843,17 @@ opt_block_var   : none
                 | '|' /* none */ '|'
                     {
                         $$ = (NODE*)1;
+                        command_start = TRUE;
                     }
                 | tOROP
                     {
                         $$ = (NODE*)1;
+                        command_start = TRUE;
                     }
                 | '|' block_var '|'
                     {
                         $$ = $2;
+                        command_start = TRUE;
                     }
                 ;
 
@@ -4290,6 +4293,7 @@ yylex(void *yylval_v, void *vstate)
         COND_PUSH(0);
         CMDARG_PUSH(0);
         parse_state->lex_state = EXPR_BEG;
+        if (c != tLBRACE) command_start = TRUE;
         return c;
 
       case '\\':
@@ -4614,6 +4618,7 @@ yylex(void *yylval_v, void *vstate)
                         pslval->id = rb_intern(kw->name);
                     }
                     if (kw->id[0] == kDO) {
+                        command_start = TRUE;
                         if (COND_P()) return kDO_COND;
                         if (CMDARG_P() && state != EXPR_CMDARG)
                             return kDO_BLOCK;
