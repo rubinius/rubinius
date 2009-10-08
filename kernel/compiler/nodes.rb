@@ -870,6 +870,27 @@ raise "no"
     class Defined < Node
       kind :defined
 
+      def self.create(compiler, sexp)
+        expr = sexp[1]
+        if expr[0] == :call and !expr[1] and compiler.get(:eval)
+          # Detect checking for a local
+          scope = compiler.get(:scope)
+
+          if compiler.get(:iter)
+            var, dep = scope.find_local expr[2], true, false
+          else
+            var, dep = scope.find_local expr[2], false, false
+          end
+
+          # Shortcut things and turn this into a literal now
+          if var
+            return Literal.create(compiler, s(:str, "local-variable"))
+          end
+        end
+
+        super(compiler, sexp)
+      end
+
       def consume(sexp)
         expr = sexp[0]
         if expr[0] == :call
