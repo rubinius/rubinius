@@ -589,12 +589,15 @@ describe "A Rescue node" do
         g.send :blah, 0, true
         g.cast_array
         g.push_exception
-        g.set_local 0
 
         g.send :__rescue_match__, 1
         g.git body
         g.goto reraise
         body.set!
+
+        g.push_exception
+        g.set_local 0
+        g.pop
 
         g.push 13
         g.clear_exception
@@ -817,7 +820,9 @@ describe "A Rescue node" do
           g.push_variables
           g.send :method_visibility, 0
           g.send :add_defn_method, 4
+          g.pop
 
+          g.push :self
           g.send :x, 0, true
         end
       end

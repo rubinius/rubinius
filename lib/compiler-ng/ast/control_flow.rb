@@ -510,10 +510,6 @@ module Rubinius
       def bytecode(g, force=false)
         pos(g)
 
-        if @in_rescue
-          g.clear_exception
-        end
-
         # Literal ArrayList and a splat
         if @splat
           splat_node = @value.body.pop
@@ -524,6 +520,10 @@ module Rubinius
           @value.bytecode(g)
         else
           g.push :nil
+        end
+
+        if @in_rescue
+          g.clear_exception
         end
 
         if @in_block
