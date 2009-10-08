@@ -274,7 +274,7 @@ module Rubinius
         i += 2
       end
 
-      return -1
+      -1
     end
 
     ##
@@ -282,11 +282,11 @@ module Rubinius
     #
     # @return [String]
     def first_line
-      @lines.each do |ent|
-        return ent[2] if ent[2] > 0
+      if @lines.size > 1
+        @lines[1]
+      else
+        -1
       end
-
-      return -1
     end
 
     ##

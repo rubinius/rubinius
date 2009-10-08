@@ -86,8 +86,8 @@ class Method
   # Location gives the file and line number of the start of this method's
   # definition.
 
-  def location()
-    "#{@compiled_method.file}, near line #{@compiled_method.first_line}"
+  def source_location
+    [@compiled_method.file.to_s, @compiled_method.first_line]
   end
 
   def owner
