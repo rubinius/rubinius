@@ -43,6 +43,23 @@ module Kernel
   def eval(string, binding=nil, filename=nil, lineno=1)
     filename ||= binding ? binding.static_scope.active_path : "(eval)"
 
+    # shortcut for checking for a local in a binding!
+    # This speeds rails up quite a bit because it uses this in rendering
+    # a view A LOT.
+    #
+    # TODO eval the AST rather than compiling. Thats slightly slower than
+    # this, but handles infinitely more cases.
+    if binding
+      if m = /^\s*defined\? ([a-z][A-Za-z0-9_]?)+\s*$/.match(string)
+        local = m[1].to_sym
+        if binding.variables.local_defined?(local)
+          return "local-variable"
+        else
+          return nil
+        end
+      end
+    end
+
     if !binding
       binding = Binding.setup(Rubinius::VariableScope.of_sender,
                               Rubinius::CompiledMethod.of_sender,

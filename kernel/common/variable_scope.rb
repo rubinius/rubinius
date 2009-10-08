@@ -32,15 +32,28 @@ module Rubinius
       nil
     end
 
-    def eval_local_defined?(name)
-      scope = self
-      while scope
-        return true if scope.dynamic_locals.key? name
+    def eval_local_defined?(name, search=true)
+      if search
+        scope = self
+        while scope
+          return true if scope.dynamic_locals.key? name
 
-        scope = scope.parent
+          scope = scope.parent
+        end
+      else
+        return true if @dynamic_locals and @dynamic_locals.key? name
       end
 
       return false
+    end
+
+    def local_defined?(name)
+      vars = self
+      while vars
+        return true if vars.method.local_names.include? name
+        return true if vars.eval_local_defined?(name, false)
+        vars = vars.parent
+      end
     end
 
     def exitted?
