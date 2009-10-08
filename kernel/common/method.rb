@@ -214,6 +214,10 @@ class UnboundMethod
 
   alias_method :to_s, :inspect
 
+  def source_location
+    [@compiled_method.file.to_s, @compiled_method.first_line]
+  end
+
   def owner
     def owner
       if defined_in.class == Rubinius::IncludedModule
