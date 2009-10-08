@@ -33,13 +33,13 @@ module FFI
     end
 
     def self.config(base, *fields)
-      @size = Rubinius::RUBY_CONFIG["#{base}.sizeof"]
+      @size = Rubinius::Config["#{base}.sizeof"]
       cspec = Rubinius::LookupTable.new
 
       fields.each do |field|
-        offset = Rubinius::RUBY_CONFIG["#{base}.#{field}.offset"]
-        size   = Rubinius::RUBY_CONFIG["#{base}.#{field}.size"]
-        type   = Rubinius::RUBY_CONFIG["#{base}.#{field}.type"]
+        offset = Rubinius::Config["#{base}.#{field}.offset"]
+        size   = Rubinius::Config["#{base}.#{field}.size"]
+        type   = Rubinius::Config["#{base}.#{field}.type"]
         type   = type ? type.to_sym : FFI.size_to_type(size)
 
         code = FFI.find_type type

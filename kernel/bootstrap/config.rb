@@ -1,5 +1,5 @@
 module Rubinius
-  class RubyConfig
+  class Configuration
     def initialize
     end
 
@@ -26,7 +26,9 @@ module Rubinius
     def [](name)
       get_variable(name)
     end
+
+    alias_method :get, :[]
   end
 
-  RUBY_CONFIG = RubyConfig.new
+  Config = Configuration.new
 end

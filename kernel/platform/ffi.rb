@@ -56,13 +56,13 @@ module FFI
     end
 
     def config(name)
-      Rubinius::RUBY_CONFIG["rbx.platform.#{name}"]
+      Rubinius::Config["rbx.platform.#{name}"]
     end
 
     def config_hash(name)
       vals = { }
       section = "rbx.platform.#{name}."
-      Rubinius::RUBY_CONFIG.section section do |key,value|
+      Rubinius::Config.section section do |key,value|
         vals[key.substring(section.size, key.length)] = value
       end
       vals
@@ -139,7 +139,7 @@ module FFI
 
   # Load all the platform dependent types
 
-  Rubinius::RUBY_CONFIG.section("rbx.platform.typedef.") do |key, value|
+  Rubinius::Config.section("rbx.platform.typedef.") do |key, value|
     add_typedef(find_type(value.to_sym), key.substring(21, key.length).to_sym)
   end
 

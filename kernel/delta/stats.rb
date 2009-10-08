@@ -140,7 +140,7 @@ module Rubinius
         puts "\nGarbage collector stats:"
 
         # TODO: make all configured values, even defaults, visible in config
-        young = "Young (%d)" % (Rubinius::RUBY_CONFIG["rbx.gc.lifetime"] || 6)
+        young = "Young (%d)" % (Rubinius::Config["rbx.gc.lifetime"] || 6)
         heading young
 
         value      "Collections",       collect_young[:timings]
@@ -181,7 +181,7 @@ module Rubinius
       end
 
       def object_types(data)
-        return if data.empty? || !Rubinius::RUBY_CONFIG["rbx.gc_stats.object_types"]
+        return if data.empty? || !Rubinius::Config["rbx.gc_stats.object_types"]
 
         total = 0
         puts "Object types"

@@ -17,7 +17,7 @@ class Backtrace
   end
 
   def initialize(locations)
-    color_config = Rubinius::RUBY_CONFIG["rbx.colorize_backtraces"]
+    color_config = Rubinius::Config["rbx.colorize_backtraces"]
     if ENV['RBX_NOCOLOR'] or color_config == "no" or color_config == "NO"
       @colorize = false
     else

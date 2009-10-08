@@ -22,14 +22,14 @@ module Rubinius
       def initialize(options = {})
         @options = { :sort => :percent }
         set_options options
-        set_options :full_report => true if RUBY_CONFIG["profiler.full_report"]
-        set_options :graph => true if RUBY_CONFIG["profiler.graph"]
+        set_options :full_report => true if Config["profiler.full_report"]
+        set_options :graph => true if Config["profiler.graph"]
 
-        if RUBY_CONFIG['profiler.cumulative_percentage']
+        if Config['profiler.cumulative_percentage']
           set_options :cumulative_percentage => true
         end
 
-        if RUBY_CONFIG['profiler.classes']
+        if Config['profiler.classes']
           set_options :classes => true
         end
       end

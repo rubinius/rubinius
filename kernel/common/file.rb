@@ -16,23 +16,23 @@ class File < IO
   class PermissionError < FileError; end
 
   module Constants
-    F_GETFL  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.F_GETFL']
-    F_SETFL  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.F_SETFL']
+    F_GETFL  = Rubinius::Config['rbx.platform.fcntl.F_GETFL']
+    F_SETFL  = Rubinius::Config['rbx.platform.fcntl.F_SETFL']
 
     # O_ACCMODE is /undocumented/ for fcntl() on some platforms
-    ACCMODE  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.O_ACCMODE']
+    ACCMODE  = Rubinius::Config['rbx.platform.fcntl.O_ACCMODE']
 
-    RDONLY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_RDONLY']
-    WRONLY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_WRONLY']
-    RDWR     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_RDWR']
+    RDONLY   = Rubinius::Config['rbx.platform.file.O_RDONLY']
+    WRONLY   = Rubinius::Config['rbx.platform.file.O_WRONLY']
+    RDWR     = Rubinius::Config['rbx.platform.file.O_RDWR']
 
-    CREAT    = Rubinius::RUBY_CONFIG['rbx.platform.file.O_CREAT']
-    EXCL     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_EXCL']
-    NOCTTY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_NOCTTY']
-    TRUNC    = Rubinius::RUBY_CONFIG['rbx.platform.file.O_TRUNC']
-    APPEND   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_APPEND']
-    NONBLOCK = Rubinius::RUBY_CONFIG['rbx.platform.file.O_NONBLOCK']
-    SYNC     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_SYNC']
+    CREAT    = Rubinius::Config['rbx.platform.file.O_CREAT']
+    EXCL     = Rubinius::Config['rbx.platform.file.O_EXCL']
+    NOCTTY   = Rubinius::Config['rbx.platform.file.O_NOCTTY']
+    TRUNC    = Rubinius::Config['rbx.platform.file.O_TRUNC']
+    APPEND   = Rubinius::Config['rbx.platform.file.O_APPEND']
+    NONBLOCK = Rubinius::Config['rbx.platform.file.O_NONBLOCK']
+    SYNC     = Rubinius::Config['rbx.platform.file.O_SYNC']
 
     # TODO: these flags should probably be imported from Platform
     LOCK_SH  = 0x01
@@ -996,27 +996,27 @@ class File::Stat
 
   include Comparable
 
-  S_IRUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IRUSR']
-  S_IWUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWUSR']
-  S_IXUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXUSR']
-  S_IRGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IRGRP']
-  S_IWGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWGRP']
-  S_IXGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXGRP']
-  S_IROTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IROTH']
-  S_IWOTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWOTH']
-  S_IXOTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXOTH']
+  S_IRUSR  = Rubinius::Config['rbx.platform.file.S_IRUSR']
+  S_IWUSR  = Rubinius::Config['rbx.platform.file.S_IWUSR']
+  S_IXUSR  = Rubinius::Config['rbx.platform.file.S_IXUSR']
+  S_IRGRP  = Rubinius::Config['rbx.platform.file.S_IRGRP']
+  S_IWGRP  = Rubinius::Config['rbx.platform.file.S_IWGRP']
+  S_IXGRP  = Rubinius::Config['rbx.platform.file.S_IXGRP']
+  S_IROTH  = Rubinius::Config['rbx.platform.file.S_IROTH']
+  S_IWOTH  = Rubinius::Config['rbx.platform.file.S_IWOTH']
+  S_IXOTH  = Rubinius::Config['rbx.platform.file.S_IXOTH']
 
-  S_IFMT   = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IFMT']
-  S_IFIFO  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IFIFO']
-  S_IFCHR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IFCHR']
-  S_IFDIR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IFDIR']
-  S_IFBLK  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IFBLK']
-  S_IFREG  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IFREG']
-  S_IFLNK  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IFLNK']
-  S_IFSOCK = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IFSOCK']
-  S_IFWHT  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IFWHT']
-  S_ISUID  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_ISUID']
-  S_ISGID  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_ISGID']
+  S_IFMT   = Rubinius::Config['rbx.platform.file.S_IFMT']
+  S_IFIFO  = Rubinius::Config['rbx.platform.file.S_IFIFO']
+  S_IFCHR  = Rubinius::Config['rbx.platform.file.S_IFCHR']
+  S_IFDIR  = Rubinius::Config['rbx.platform.file.S_IFDIR']
+  S_IFBLK  = Rubinius::Config['rbx.platform.file.S_IFBLK']
+  S_IFREG  = Rubinius::Config['rbx.platform.file.S_IFREG']
+  S_IFLNK  = Rubinius::Config['rbx.platform.file.S_IFLNK']
+  S_IFSOCK = Rubinius::Config['rbx.platform.file.S_IFSOCK']
+  S_IFWHT  = Rubinius::Config['rbx.platform.file.S_IFWHT']
+  S_ISUID  = Rubinius::Config['rbx.platform.file.S_ISUID']
+  S_ISGID  = Rubinius::Config['rbx.platform.file.S_ISGID']
 
   POSIX    = FFI::Platform::POSIX
 

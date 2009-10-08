@@ -268,12 +268,25 @@ module Rubinius
         puts "Options:"
         puts "  Interpreter type: #{INTERPRETER}"
         if jit = JIT
-          puts "  JIT enabled: #{jit}"
+          puts "  JIT enabled: #{jit.join(', ')}"
         else
           puts "  JIT disabled"
         end
         puts
       end
+
+      options.doc <<-DOC
+\nVM Options
+   -X<variable>[=<value>]
+     This option is recognized by the VM before any ruby code loaded.
+     It is used to set VM configuration options.
+
+     Use -Xconfig.print to see the list of options the VM recognizes.
+     All variables, even ones that VM doesn't understand, are available
+     in Rubinius::Config.
+
+     A number of Rubinius features are driven by setting these variables.
+      DOC
 
       options.parse ARGV
     end
@@ -384,11 +397,11 @@ module Rubinius
       ObjectSpace.run_finalizers
 
       # TODO: Fix these with better -X processing
-      if RUBY_CONFIG['rbx.jit_stats']
+      if Config['rbx.jit_stats']
         p VM.jit_info
       end
 
-      if RUBY_CONFIG['rbx.gc_stats']
+      if Config['rbx.gc_stats']
         Stats::GC.new.show
       end
     end
