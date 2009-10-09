@@ -104,7 +104,6 @@ namespace rubinius {
     Value* out_args_block_;
     Value* out_args_total_;
     Value* out_args_arguments_;
-    Value* out_args_array_;
 
     int called_args_;
     int sends_done_;
@@ -124,7 +123,6 @@ namespace rubinius {
       out_args_block_= ptr_gep(out_args_, 1, "out_args_block");
       out_args_total_= ptr_gep(out_args_, 2, "out_args_total");
       out_args_arguments_ = ptr_gep(out_args_, 3, "out_args_arguments");
-      out_args_array_ = ptr_gep(out_args_, 4, "out_args_array");
     }
 
     JITVisit(LLVMState* ls, JITMethodInfo& info, BlockMap& bm,
@@ -589,9 +587,6 @@ namespace rubinius {
       if(args > 0) {
         b().CreateStore(stack_objects(args), out_args_arguments_);
       }
-
-      b().CreateStore(Constant::getNullValue(ptr_type("Array")),
-                    out_args_array_);
     }
 
     void setup_out_args_with_block(int args) {
@@ -602,8 +597,6 @@ namespace rubinius {
       if(args > 0) {
         b().CreateStore(stack_objects(args + 1), out_args_arguments_);
       }
-      b().CreateStore(Constant::getNullValue(ptr_type("Array")),
-                    out_args_array_);
     }
 
     Value* inline_cache_send(int args, InlineCache* cache) {

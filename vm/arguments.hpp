@@ -14,7 +14,6 @@ namespace rubinius {
 
     uint32_t total_;
     Object** arguments_;
-    Array* array_;
 
   public:
     Arguments(Object* recv, Object* block, uint32_t total, Object** buffer)
@@ -22,7 +21,6 @@ namespace rubinius {
       , block_(block)
       , total_(total)
       , arguments_(buffer)
-      , array_(0)
     {}
 
     Arguments(Object* recv, uint32_t total, Object** buffer)
@@ -30,7 +28,6 @@ namespace rubinius {
       , block_(Qnil)
       , total_(total)
       , arguments_(buffer)
-      , array_(0)
     {}
 
     Arguments(uint32_t total, Object** buffer)
@@ -38,13 +35,11 @@ namespace rubinius {
       , block_(Qnil)
       , total_(total)
       , arguments_(buffer)
-      , array_(0)
     {}
 
     Arguments()
       : total_(0)
       , arguments_(0)
-      , array_(0)
     {}
 
     Arguments(Array* ary) {
@@ -77,15 +72,21 @@ namespace rubinius {
 
     void use_array(Array* ary) {
       total_ = ary->size();
-      array_ = ary;
       arguments_ = ary->tuple()->field + ary->start()->to_native();
     }
 
+    void use_tuple(Tuple* tup, int size) {
+      total_ = size;
+      arguments_ = tup->field;
+    }
+
+    Array* as_array(STATE);
     void append(STATE, Array* ary);
     void prepend(STATE, Array* ary);
-    Array* as_array(STATE);
+
     void unshift(STATE, Object* val);
     void unshift2(STATE, Object* val, Object* val2);
+
     Object* shift(STATE);
   };
 }
