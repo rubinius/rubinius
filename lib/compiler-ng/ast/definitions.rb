@@ -441,7 +441,7 @@ module Rubinius
       end
     end
 
-    class ClassWrapper < Node
+    class Class < Node
       attr_accessor :name, :superclass, :body
 
       def initialize(line, name, superclass, body)
@@ -545,7 +545,7 @@ module Rubinius
       end
     end
 
-    class ModuleWrapper < Node
+    class Module < Node
       attr_accessor :name, :body
 
       def initialize(line, name, body)
@@ -647,13 +647,13 @@ module Rubinius
       end
     end
 
-    class SClass < ClosedScope
+    class SClass < Node
       attr_accessor :receiver
 
       def initialize(line, receiver, body)
         @line = line
         @receiver = receiver
-        @body = body
+        @body = SClassScope.new line, body
       end
 
       def children
@@ -661,9 +661,25 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+        @receiver.bytecode(g)
+        @body.bytecode(g)
+      end
+    end
+
+    class SClassScope < ClosedScope
+      def initialize(line, body)
+        @line = line
+        @body = body
+      end
+
+      def children
+        [@body]
+      end
+
+      def bytecode(g)
         super(g)
 
-        @receiver.bytecode(g)
         g.dup
         g.send :__verify_metaclass__, 0
         g.pop

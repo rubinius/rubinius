@@ -107,7 +107,7 @@ module Rubinius
     end
 
     def process_class(line, name, superclass, body)
-      AST::ClassWrapper.new line, name, superclass, body
+      AST::Class.new line, name, superclass, body
     end
 
     def process_colon2(line, outer, name)
@@ -292,7 +292,7 @@ module Rubinius
     end
 
     def process_module(line, name, body)
-      AST::ModuleWrapper.new line, name, body
+      AST::Module.new line, name, body
     end
 
     def process_negate(line, value)
