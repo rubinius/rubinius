@@ -425,7 +425,7 @@ end
 
 rule '.S' do |t|
   obj = t.name
-  src   = t.prerequisites.find { |f| f =~ /#{File.basename obj, '.S'}\.((c(pp)?)|S)$/}
+  src = obj.gsub(/\.S$/, ".cpp")
 
   compile_c obj, src, "S"
 end
