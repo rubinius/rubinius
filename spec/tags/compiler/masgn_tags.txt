@@ -1,0 +1,2 @@
+fails:A Masgn node is compiled from 'a, b, *c = 1, 2, 3'
+fails:A Masgn node is compiled from 'a, b, *c = d, e, f, g'
