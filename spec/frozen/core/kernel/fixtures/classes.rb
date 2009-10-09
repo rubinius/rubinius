@@ -229,6 +229,19 @@ module KernelSpecs
   end
 end
 
+class EvalSpecs
+  class A
+    eval "class B; end"
+    def c
+      eval "class C; end"
+    end
+  end
+
+  def f
+    yield
+  end
+end
+
 # for Kernel#sleep to have Channel in it's specs
 # TODO: switch directly to queue for both Kernel#sleep and Thread specs?
 unless defined? Channel
