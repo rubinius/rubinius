@@ -1,7 +1,7 @@
 module Rubinius
   module AST
     class Send < Node
-      attr_accessor :receiver, :name, :privately, :block
+      attr_accessor :receiver, :name, :privately, :block, :variable
 
       def initialize(line, receiver, name, privately=false)
         @line = line
@@ -16,6 +16,8 @@ module Rubinius
 
       def bytecode(g)
         pos(g)
+
+        return @variable.get_bytecode(g) if @variable
 
         @receiver.bytecode(g)
 

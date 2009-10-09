@@ -748,7 +748,32 @@ module Rubinius
         var.variable = reference
       end
 
+      def map_eval
+        depth = 0
+
+        visit do |result, node|
+          case node
+          when ClosedScope
+            result = nil
+          when Iter
+            depth += 1
+          when Send
+            if node.receiver.kind_of? Self
+              if reference = search_local(node.name)
+                if reference.kind_of? CompilerNG::NestedLocalReference
+                  reference.depth += depth
+                end
+                node.variable = reference
+              end
+            end
+          end
+
+          result
+        end
+      end
+
       def bytecode(g)
+        map_eval
         super(g)
 
         @body.bytecode(g)
