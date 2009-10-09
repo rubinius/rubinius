@@ -126,9 +126,29 @@ module Rubinius
           # TODO: ?
           g.new_label.set!
 
+          if current_break = g.break
+            # Make a break available to use, which we'll use to
+            # lazily generate a cleanup area
+            g.break = g.new_label
+          end
+
           @body.bytecode(g)
           g.pop_unwind
           g.goto els
+
+          if current_break
+            if g.break.used?
+              g.break.set!
+              g.pop_unwind
+
+              # Reset the outer exception
+              g.swap
+              g.pop_exception
+              g.goto current_break
+            end
+
+            g.break = current_break
+          end
 
           ex.set!
           @rescue.bytecode(g, reraise, done)
