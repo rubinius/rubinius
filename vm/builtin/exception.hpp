@@ -57,6 +57,8 @@ namespace rubinius {
 
     static Exception* make_lje(STATE, CallFrame* frame);
 
+    static void internal_error(STATE, CallFrame* frame, const char* reason);
+
     // Ruby.primitive :exception_errno_error
     static Object* errno_error(STATE, Object* reason, Fixnum* ern);
     static void errno_error(STATE, const char* reason = NULL, int ern = 0);

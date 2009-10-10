@@ -2125,6 +2125,10 @@ class Instructions
 
   def push_local(index)
     <<-CODE
+    if(index >= vmm->number_of_locals) {
+      Exception::internal_error(state, call_frame, "invalid local access");
+      RUN_EXCEPTION();
+    }
     stack_push(call_frame->scope->get_local(index));
     CODE
   end
@@ -2163,12 +2167,27 @@ class Instructions
   def push_local_depth(depth, index)
     <<-CODE
     if(depth == 0) {
-      stack_push(call_frame->scope->get_local(index));
+      Exception::internal_error(state, call_frame, "illegal push_local_depth usage");
+      RUN_EXCEPTION();
     } else {
       VariableScope* scope = call_frame->scope->parent();
 
+      if(!scope) {
+        Exception::internal_error(state, call_frame, "illegal push_local_depth usage, no parent");
+        RUN_EXCEPTION();
+      }
+
       for(int j = 1; j < depth; j++) {
         scope = scope->parent();
+        if(!scope) {
+          Exception::internal_error(state, call_frame, "illegal push_local_depth usage, no parent");
+          RUN_EXCEPTION();
+        }
+      }
+
+      if(index >= scope->number_of_locals()) {
+        Exception::internal_error(state, call_frame, "illegal push_local_depth usage, bad index");
+        RUN_EXCEPTION();
       }
 
       stack_push(scope->get_local(index));
@@ -3274,6 +3293,10 @@ class Instructions
 
   def set_local(index)
     <<-CODE
+    if(index >= vmm->number_of_locals) {
+      Exception::internal_error(state, call_frame, "invalid local access");
+      RUN_EXCEPTION();
+    }
     call_frame->scope->set_local(index, stack_top());
     CODE
   end
@@ -3317,14 +3340,28 @@ class Instructions
   def set_local_depth(depth, index)
     <<-CODE
     if(depth == 0) {
-      call_frame->scope->set_local(index, stack_top());
+      Exception::internal_error(state, call_frame, "illegal set_local_depth usage");
+      RUN_EXCEPTION();
     } else {
       VariableScope* scope = call_frame->scope->parent();
 
-      for(int j = 1; j < depth; j++) {
-        scope = scope->parent();
+      if(!scope) {
+        Exception::internal_error(state, call_frame, "illegal set_local_depth usage, no parent");
+        RUN_EXCEPTION();
       }
 
+      for(int j = 1; j < depth; j++) {
+        scope = scope->parent();
+        if(!scope) {
+          Exception::internal_error(state, call_frame, "illegal set_local_depth usage, no parent");
+          RUN_EXCEPTION();
+        }
+      }
+
+      if(index >= scope->number_of_locals()) {
+        Exception::internal_error(state, call_frame, "illegal set_local_depth usage, bad index");
+        RUN_EXCEPTION();
+      }
       Object* val = stack_pop();
       scope->set_local(state, index, val);
       stack_push(val);

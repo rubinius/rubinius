@@ -72,6 +72,12 @@ namespace rubinius {
     return exc;
   }
 
+  void Exception::internal_error(STATE, CallFrame* call_frame, const char* reason) {
+    Exception* exc = Exception::make_exception(state, G(exc_vm_internal), reason);
+    exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    state->thread_state()->raise_exception(exc);
+  }
+
   void Exception::argument_error(STATE, int expected, int given) {
     std::ostringstream msg;
 
