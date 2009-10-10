@@ -708,6 +708,9 @@ module Rubinius
 
         g.name = @name
         g.file = @file.to_sym
+
+        g.local_count = local_count
+        g.local_names = local_names
       end
     end
 
