@@ -166,6 +166,10 @@ module Rubinius
         @condition = condition
       end
 
+      def children
+        [@condition]
+      end
+
       def receiver_bytecode(g, body, nxt)
         pos(g)
 
