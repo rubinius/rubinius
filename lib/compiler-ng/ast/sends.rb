@@ -586,6 +586,16 @@ module Rubinius
         end
 
         @arguments = ActualArguments.new line, arguments
+        @argument_count = @arguments.size
+        @yield_splat = false
+
+        if @arguments.splat?
+          if @arguments.splat.value.kind_of? ArrayLiteral and not unwrap
+            @argument_count += 1
+          else
+            @yield_splat = true
+          end
+        end
       end
 
       def children
@@ -597,10 +607,10 @@ module Rubinius
 
         @arguments.bytecode(g)
 
-        if @arguments.splat?
-          g.yield_splat @arguments.size
+        if @yield_splat
+          g.yield_splat @argument_count
         else
-          g.yield_stack @arguments.size
+          g.yield_stack @argument_count
         end
       end
     end
