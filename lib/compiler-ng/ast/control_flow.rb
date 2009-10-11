@@ -72,6 +72,8 @@ module Rubinius
             last = conditions.body.pop
             if last.conditions.kind_of? ArrayLiteral
               conditions.body.concat last.conditions.body
+            elsif last.single
+              @splat = SplatWhen.new line, last.single
             else
               @splat = SplatWhen.new line, last.conditions
             end
