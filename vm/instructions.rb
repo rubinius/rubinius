@@ -3785,6 +3785,10 @@ class Instructions
   def check_interrupts
     <<-CODE
     flush_ip();
+
+    // This is used in loops, and allows loops to heat a method up.
+    if(vmm->call_count >= 0) vmm->call_count++;
+
     // The | here reduces the number of branches to check
     if(unlikely(state->interrupts.timer | state->interrupts.check)) {
       if(state->interrupts.timer) {
