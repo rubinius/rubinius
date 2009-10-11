@@ -1038,6 +1038,8 @@ namespace rubinius {
 
         Value* loaded = b().CreateLoad(vptr, "float_literal");
         stack_push(loaded);
+      } else if(kind_of<Fixnum>(lit)) {
+        stack_push(constant(lit));
       } else {
         stack_push(get_literal(which));
       }
