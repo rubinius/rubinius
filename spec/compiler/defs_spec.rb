@@ -124,4 +124,24 @@ describe "A Defs node" do
       end
     end
   end
+
+  relates <<-ruby do
+    x = "a"
+    def x.m(a)
+      a
+    end
+    ruby
+
+    compile do |g|
+      g.push_literal "a"
+      g.string_dup
+      g.set_local 0
+      g.pop
+      g.push_local 0
+
+      in_method :m, true do |d|
+        d.push_local 0
+      end
+    end
+  end
 end
