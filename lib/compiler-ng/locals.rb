@@ -10,9 +10,16 @@ module Rubinius
       end
 
       def local_names
-        names = Array.new local_count
-        variables.each_pair { |name, var| names[var.slot] = name }
-        names
+        names = []
+        eval_names = []
+        variables.each_pair do |name, var|
+          if var.kind_of? EvalLocalVariable
+            eval_names << name
+          else
+            names[var.slot] = name
+          end
+        end
+        names += eval_names
       end
 
       def allocate_slot
