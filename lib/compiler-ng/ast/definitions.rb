@@ -268,11 +268,28 @@ module Rubinius
       end
     end
 
-    class DefineSingleton < Define
-      attr_accessor :receiver
+    class DefineSingleton < Node
+      attr_accessor :receiver, :body
 
       def initialize(line, receiver, name, block)
         @receiver = receiver
+        @body = DefineSingletonScope.new line, name, block
+      end
+
+      def children
+        [@receiver]
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        @receiver.bytecode(g)
+        @body.bytecode(g)
+      end
+    end
+
+    class DefineSingletonScope < Define
+      def initialize(line, name, block)
         super line, name, block
       end
 
@@ -281,7 +298,6 @@ module Rubinius
 
         scope_bytecode(g)
 
-        @receiver.bytecode(g)
         g.send :metaclass, 0
         g.push_literal @name
         g.push_generator compile_body(g)
@@ -290,7 +306,7 @@ module Rubinius
       end
 
       def children
-        [@receiver, @arguments, @body]
+        [@arguments, @body]
       end
     end
 
