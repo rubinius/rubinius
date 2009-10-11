@@ -1,4 +1,8 @@
 class Symbol
+
+  # Use equal? for ===
+  alias_method :===, :equal?
+
   ##
   # Returns an array of all the symbols currently in Ruby‘s symbol table.
   #
