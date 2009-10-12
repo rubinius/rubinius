@@ -9,7 +9,7 @@ module Rubinius
           alias_method :old_compile_file, :compile_file
           alias_method :old_compile_string, :compile_string
 
-          define_method :compile_file, CompilerNG.method(:compile_file)
+          define_method :compile_file, CompilerNG.method(:compile_file_old)
           define_method :compile_string, CompilerNG.method(:compile_eval)
         end
       end
@@ -26,6 +26,11 @@ module Rubinius
       writer.name = output
 
       compiler.run
+    end
+
+    # Match old compiler's signature
+    def self.compile_file_old(file, flags=nil)
+      compile_file file, 1
     end
 
     def self.compile_file(file, line=1)
