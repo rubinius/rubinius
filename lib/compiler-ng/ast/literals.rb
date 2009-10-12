@@ -33,11 +33,19 @@ module Rubinius
       def bytecode(g)
         g.push :false
       end
+
+      def defined(g)
+        g.push_literal "false"
+      end
     end
 
     class True < Node
       def bytecode(g)
         g.push :true
+      end
+
+      def defined(g)
+        g.push_literal "true"
       end
     end
 
@@ -104,11 +112,19 @@ module Rubinius
 
         g.push_literal @value
       end
+
+      def defined(g)
+        g.push_literal "expression"
+      end
     end
 
     class Nil < Node
       def bytecode(g)
         g.push :nil
+      end
+
+      def defined(g)
+        g.push_literal "nil"
       end
     end
 
@@ -122,6 +138,10 @@ module Rubinius
 
       def bytecode(g)
         g.push_unique_literal @value
+      end
+
+      def defined(g)
+        g.push_literal "expression"
       end
     end
 
@@ -225,6 +245,10 @@ module Rubinius
         # TODO: change to push_unique_literal
         g.push_literal @string
         g.string_dup
+      end
+
+      def defined(g)
+        g.push_literal "expression"
       end
     end
 

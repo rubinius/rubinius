@@ -613,6 +613,21 @@ module Rubinius
           g.yield_stack @argument_count
         end
       end
+
+      def defined(g)
+        t = g.new_label
+        f = g.new_label
+
+        g.push_block
+        g.git t
+        g.push :nil
+        g.goto f
+
+        t.set!
+        g.push_literal "yield"
+
+        f.set!
+      end
     end
 
     class ZSuper < Super

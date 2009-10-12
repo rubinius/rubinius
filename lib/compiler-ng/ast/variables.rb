@@ -102,6 +102,23 @@ module Rubinius
         g.push_literal @name
         g.send :class_variable_get, 1
       end
+
+      def defined(g)
+        t = g.new_label
+        f = g.new_label
+
+        g.push_scope
+        g.push_literal @name
+        g.send :class_variable_defined?, 1
+        g.git t
+        g.push :nil
+        g.goto f
+
+        t.set!
+        g.push_literal "class variable"
+
+        f.set!
+      end
     end
 
     class ClassVariableAssignment < VariableAssignment
@@ -238,6 +255,24 @@ module Rubinius
 
         g.push_ivar @name
       end
+
+      def defined(g)
+        t = g.new_label
+        f = g.new_label
+
+        g.push :self
+        g.push_literal @name
+        g.send :instance_variable_defined?, 1
+        g.git t
+
+        g.push :nil
+        g.goto f
+
+        t.set!
+        g.push_literal "instance-variable"
+
+        f.set!
+      end
     end
 
     class InstanceVariableAssignment < VariableAssignment
@@ -285,6 +320,10 @@ module Rubinius
         end
 
         @variable.set_bytecode(g)
+      end
+
+      def defined(g)
+        g.push_literal "assignment"
       end
     end
 
