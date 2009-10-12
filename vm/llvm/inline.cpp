@@ -209,6 +209,16 @@ namespace rubinius {
   }
 
   void Inliner::inline_trivial_method(Class* klass, CompiledMethod* cm) {
+    if(ops_.state()->config().jit_inline_debug) {
+      std::cerr << "inlining: "
+        << ops_.state()->symbol_cstr(cm->scope()->module()->name())
+        << "#"
+        << ops_.state()->symbol_cstr(cm->name())
+        << " into "
+        << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+        << " (" << ops_.state()->symbol_cstr(klass->name()) << ") trivial\n";
+    }
+
     VMMethod* vmm = cm->backend_method();
 
     Value* self = recv();

@@ -237,6 +237,14 @@ namespace rubinius {
     }
 
     cache->update_seen_classes();
+
+    // This is important! We need to inc the hits here, otherwise if
+    // we flush a lot (like in the poly_method benchmark), then legitly
+    // used classes will never be recorded, because they'll get kicked out
+    // with hits == 0, since before we'd inc_hits() in the cache hit
+    // case only.
+    cache->inc_hits();
+
     cache->run_wb(state, call_frame->cm);
 
     /*
