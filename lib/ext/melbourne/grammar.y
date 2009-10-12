@@ -2296,6 +2296,7 @@ f_arglist       : '(' f_args opt_nl ')'
                     {
                         $$ = $2;
                         vps->lex_state = EXPR_BEG;
+                        command_start = TRUE;
                     }
                 | f_args term
                     {
@@ -2568,6 +2569,7 @@ yycompile(rb_parse_state *parse_state, char *f, int line)
     heredoc_end = 0;
     lex_strterm = 0;
     ruby_sourcefile = f;
+    command_start = TRUE;
     n = yyparse(parse_state);
     ruby_debug_lines = 0;
     compile_for_eval = 0;
