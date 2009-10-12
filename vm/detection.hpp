@@ -33,7 +33,7 @@
 
 /** CONFIGURE */
 
-#ifndef OS_X_ANCIENT
+#ifdef HAS_EXECINFO
 #define USE_EXECINFO
 #endif
 

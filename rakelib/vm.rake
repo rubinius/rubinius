@@ -186,6 +186,10 @@ if LLVM_ENABLE
 =end
 end
 
+Rubinius::BUILD_CONFIG[:defines].each do |flag|
+  FLAGS << "-D#{flag}"
+end
+
 BUILD_PRETASKS = []
 
 if ENV['DEV']

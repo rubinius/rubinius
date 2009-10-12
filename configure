@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require 'tempfile'
+
 root = File.expand_path File.dirname(__FILE__)
 
 require File.join(root, "kernel", "delta", "options")
@@ -13,6 +15,7 @@ class Configure
     @llvm_path = nil
     @llvm_configure = nil
     @prefix = nil
+    @defines = []
 
     @llvm_svn_dir = File.join(root, "vm", "external_libs", "llvm")
 
@@ -177,6 +180,37 @@ class Configure
     false
   end
 
+  def has_function(name, includes=[])
+    print "Checking for function '#{name}': "
+    tf = Tempfile.new("rbx-test")
+    includes.each do |i|
+      tf.puts "#include <#{i}>"
+    end
+
+    tf.puts "int main() { void* ptr = &#{name}; }"
+
+    tf.close
+
+    `#{compiler} -o /dev/null -x c #{tf.path} 2>&1`
+    status = ($?.exitstatus == 0)
+
+    tf.unlink
+
+    if status
+      puts "found!"
+    else
+      puts "not found."
+    end
+
+    return status
+  end
+
+  def detect_features
+    if has_function("backtrace", "execinfo.h")
+      @defines << "HAS_EXECINFO"
+    end
+  end
+
   def process
     print "Using LLVM: "
     case @llvm
@@ -202,6 +236,8 @@ class Configure
     else
       puts "unknown value '#{@llvm}'"
     end
+
+    detect_features
   end
 
   def arch
@@ -220,7 +256,12 @@ class Configure
       f.puts "  :llvm_configure => '#{@llvm_configure}',"
       f.puts "  :arch => '#{arch()}',"
       f.puts "  :prefix => #{@prefix.inspect},"
-      f.puts "  :compiler => '#{compiler}'"
+      f.puts "  :compiler => '#{compiler}',"
+      if @defines.empty?
+        f.puts "  :defines => []"
+      else
+        f.puts "  :defines => ['#{@defines.join(', ')}']"
+      end
       f.puts "}"
       f.puts "end"
     end
