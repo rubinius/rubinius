@@ -12,7 +12,7 @@
 #include "object_utils.hpp"
 
 namespace rubinius {
-  VariableScope* CallFrame::promote_scope(STATE) {
+  VariableScope* CallFrame::promote_scope_full(STATE) {
     return scope->create_heap_alias(state, this, !has_closed_scope_p());
   }
 

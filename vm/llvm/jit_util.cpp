@@ -148,10 +148,10 @@ extern "C" {
     Object* _lit = call_frame->cm->literals()->at(state, index);
     CompiledMethod* cm = as<CompiledMethod>(_lit);
 
-    call_frame->promote_scope(state);
-
     // TODO: We don't need to be doing this everytime.
-    cm->scope(state, call_frame->static_scope());
+    if(cm->scope()->nil_p()) {
+      cm->scope(state, call_frame->static_scope());
+    }
 
     VMMethod* vmm = call_frame->cm->backend_method();
     return BlockEnvironment::under_call_frame(state, cm, vmm,

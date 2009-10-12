@@ -108,7 +108,12 @@ namespace rubinius {
       ip_ = pos - cm->backend_method()->addresses;
     }
 
-    VariableScope* promote_scope(STATE);
+    VariableScope* promote_scope_full(STATE);
+
+    VariableScope* promote_scope(STATE) {
+      if(VariableScope* vs = scope->on_heap()) return vs;
+      return promote_scope_full(state);
+    }
 
     void print_backtrace(STATE);
     int line(STATE);
