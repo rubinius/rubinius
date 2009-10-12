@@ -2104,6 +2104,8 @@ class String
       @data = @data.dup
       @shared = nil
     end
+
+    @hash_value = nil # reset the hash value
   end
 
   # Raises RuntimeError if either the ByteArray object_id
