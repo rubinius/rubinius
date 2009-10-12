@@ -1,0 +1,11 @@
+fails:"A Defined node is compiled from \n    a = 1\n    defined? a"
+fails:A Defined node is compiled from 'defined? self'
+fails:A Defined node is compiled from 'defined? true'
+fails:A Defined node is compiled from 'defined? false'
+fails:A Defined node is compiled from 'defined? nil'
+fails:A Defined node is compiled from 'defined? :a'
+fails:A Defined node is compiled from 'defined? 'a''
+fails:A Defined node is compiled from 'defined? 0'
+fails:A Defined node is compiled from 'defined? x = 1'
+fails:A Defined node is compiled from 'defined? @var'
+fails:A Defined node is compiled from 'defined? @@var'
