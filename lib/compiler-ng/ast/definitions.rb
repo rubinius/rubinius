@@ -233,6 +233,7 @@ module Rubinius
         desc = new_description(g)
         meth = desc.generator
         meth.name = @name
+        pos(meth)
 
         @arguments.bytecode(meth) if @arguments
         @body.bytecode(meth)
