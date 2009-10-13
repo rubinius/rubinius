@@ -33,6 +33,14 @@ namespace rubinius {
     Object* ret = vm_->thread.get()->send(vm_, NULL, vm_->symbol("__run__"));
 
     if(!ret) {
+      if(vm_->thread_state()->raise_reason() == cExit) {
+        if(Fixnum* fix = try_as<Fixnum>(vm_->thread_state()->raise_value())) {
+          exit(fix->to_native());
+        } else {
+          exit(-1);
+        }
+      }
+
       if(Exception* exc = try_as<Exception>(vm_->thread_state()->raise_value())) {
         std::cout << "Exception at thread toplevel:\n";
         String* message = exc->message();
