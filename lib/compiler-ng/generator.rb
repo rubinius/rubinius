@@ -342,11 +342,6 @@ module Rubinius
       add :push_const_fast, find_literal(name), add_literal(nil)
     end
 
-    def find_cpath_top_const(name)
-      push_cpath_top
-      find_const(name)
-    end
-
     def find_const(name)
       add :find_const, find_literal(name)
     end

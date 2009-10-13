@@ -80,7 +80,8 @@ module Rubinius
         count = @array.size
         i = 0
 
-        g.find_cpath_top_const :Hash
+        g.push_cpath_top
+        g.find_const :Hash
         g.push count / 2
         g.send :new_from_literal, 1
 
@@ -172,7 +173,8 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        g.find_cpath_top_const :Range
+        g.push_cpath_top
+        g.find_const :Range
         @start.bytecode(g)
         @finish.bytecode(g)
         g.send :new, 2
@@ -189,7 +191,8 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        g.find_cpath_top_const :Range
+        g.push_cpath_top
+        g.find_const :Range
         @start.bytecode(g)
         @finish.bytecode(g)
         g.push :true

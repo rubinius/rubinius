@@ -198,30 +198,22 @@ module Rubinius
           @value.bytecode(g) if @value
           g.raise_exc
         elsif @name == :$~
-          if @value
-            g.find_cpath_top_const :Regexp
-            @value.bytecode(g)
-            g.send :last_match=, 1
-          else
-            g.find_cpath_top_const :Regexp
-            g.swap
-            g.send :last_match=, 1
-          end
+          g.push_cpath_top
+          g.find_const :Regexp
+          @value ?  @value.bytecode(g) : g.swap
+          g.send :last_match=, 1
         else
+          g.push_const :Rubinius
+          g.find_const :Globals
           if @value
-            g.push_const :Rubinius
-            g.find_const :Globals
             g.push_literal @name
             @value.bytecode(g)
-            g.send :[]=, 2
           else
-            g.push_const :Rubinius
-            g.find_const :Globals
             g.swap
             g.push_literal @name
             g.swap
-            g.send :[]=, 2
           end
+          g.send :[]=, 2
         end
       end
     end
