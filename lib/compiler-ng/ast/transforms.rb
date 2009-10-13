@@ -282,5 +282,39 @@ module Rubinius
         end
       end
     end
+
+    ##
+    # Handles loop do ... end
+    #
+    class SendLoop < Send
+      transform :default, :loop, "loop do ... end"
+
+      def self.match?(line, receiver, name, arguments, privately)
+        if receiver.kind_of? Self and name == :loop
+          new line, receiver, name, privately
+        end
+      end
+
+      def block=(iter)
+        @block = iter.body
+      end
+
+      def bytecode(g)
+        g.push_modifiers
+
+        g.break = g.new_label
+        g.next = g.redo = top = g.new_label
+        top.set!
+
+        @block.bytecode(g)
+        g.pop
+
+        g.check_interrupts
+        g.goto top
+
+        g.break.set!
+        g.pop_modifiers
+      end
+    end
   end
 end
