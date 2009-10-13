@@ -299,21 +299,30 @@ module Rubinius
         @block = iter.body
       end
 
+      def children
+        [@block]
+      end
+
       def bytecode(g)
-        g.push_modifiers
+        if @block
+          g.push_modifiers
 
-        g.break = g.new_label
-        g.next = g.redo = top = g.new_label
-        top.set!
+          g.break = g.new_label
+          g.next = g.redo = top = g.new_label
+          top.set!
 
-        @block.bytecode(g)
-        g.pop
+          @block.bytecode(g)
+          g.pop
 
-        g.check_interrupts
-        g.goto top
+          g.check_interrupts
+          g.goto top
 
-        g.break.set!
-        g.pop_modifiers
+          g.break.set!
+          g.pop_modifiers
+        else
+          g.push :self
+          g.send :loop, 0, true
+        end
       end
     end
   end

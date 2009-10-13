@@ -1,0 +1,1 @@
+fails:"A Call node using SendLoop transform is compiled from \n    a = 1\n    loop do\n      a += 1\n      break if a > 10\n    end"
