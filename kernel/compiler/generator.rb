@@ -254,7 +254,15 @@ class Compiler
     # literal has not been encountered previously.
     def find_literal(what)
       idx = @literals.index(what)
-      return idx if idx
+
+      # #index uses == to compare objects, but things like
+      # Float#== return true when the rhs is a Fixnum.
+      #
+      # So only reuse the literal if both objects are the same
+      # class.
+      if idx and @literals.at(idx).instance_of? what.class
+        return idx if idx
+      end
       add_literal(what)
     end
 
