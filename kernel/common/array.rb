@@ -962,7 +962,7 @@ class Array
   # Removes and returns the last element from the Array.
   def pop(many=Undefined)
     if many.equal? Undefined
-      return nil if empty?
+      return nil if @total == 0
 
       @total -= 1
       index = @start + @total
@@ -970,7 +970,7 @@ class Array
       elem = @tuple.at(index)
       @tuple.put(index,nil)
 
-      reallocate_shrink()
+      # reallocate_shrink()
 
       elem
     else
@@ -1136,7 +1136,7 @@ class Array
       @start += 1
       @total -= 1
 
-      reallocate_shrink()
+      # reallocate_shrink()
 
       obj
     else
