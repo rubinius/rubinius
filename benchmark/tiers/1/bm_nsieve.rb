@@ -23,8 +23,8 @@ def sieve(m)
   count
 end
 
-$iterations = m = 9
-Flags = "\x1" * ( 2 ** m * 10_000)
+$iterations = m = 7
+Flags = [1] * (2 ** m * 10_000)
 
 def Bench.run
   n = $iterations
@@ -32,7 +32,7 @@ def Bench.run
     break if exponent < 0
     m = (1 << exponent) * 10_000
     # m = (2 ** exponent) * 10_000
-    count = sieve(n)
-    printf "Primes up to %8d %8d\n", n, count
+    count = sieve(m)
+    printf "Primes up to %8d %8d\n", m, count
   end
 end
