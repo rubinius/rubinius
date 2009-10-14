@@ -261,7 +261,7 @@ class Compiler
       # So only reuse the literal if both objects are the same
       # class.
       if idx and @literals.at(idx).instance_of? what.class
-        return idx if idx
+        return idx
       end
       add_literal(what)
     end
