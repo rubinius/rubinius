@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 util_dir = File.expand_path "#{File.dirname(__FILE__)}/../utils"
 
 tier = ARGV.shift
@@ -9,6 +11,19 @@ else
 end
 
 STDOUT.sync = true
+
+case ARGV.first
+when "--all"
+  ARGV.shift
+  ARGV.unshift "ruby", "ruby19", "macruby", "jruby --fast", "../../bin/rbx"
+when "--all-int"
+  ARGV.shift
+  ARGV.unshift "ruby", "ruby19", "macruby", "jruby", "jruby --fast",
+               "../../bin/rbx -Xint", "../../bin/rbx"
+when "--rbx"
+  ARGV.shift
+  ARGV.unshift "../../bin/rbx"
+end
 
 def median(ary)
   sorted = ary.sort
