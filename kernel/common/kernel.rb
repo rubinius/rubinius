@@ -254,18 +254,17 @@ module Kernel
     @current_seed = val
   end
 
-  def rand(max=nil)
+  def rand(max=0)
     max = max.to_i.abs
     x = FFI::Platform::POSIX.rand
+
     # scale result of rand to a domain between 0 and max
-    if max.zero?
-      x / 0x7fffffff.to_f
+    if max == 0
+      x.to_f / 2147483647.0
+    elsif max < 0x7fffffff
+      x / (0x7fffffff / max)
     else
-      if max < 0x7fffffff
-        x / (0x7fffffff / max)
-      else
-         x * (max / 0x7fffffff)
-      end
+      x * (max / 0x7fffffff)
     end
   end
   module_function :rand
