@@ -261,6 +261,10 @@ namespace rubinius {
       return create_equal(obj, constant(imm), "is_immediate");
     }
 
+    Value* check_is_tuple(Value* obj) {
+      return check_type_bits(obj, rubinius::Tuple::type);
+    }
+
     void verify_guard(Value* cmp, BasicBlock* failure) {
       BasicBlock* cont = new_block("guarded_body");
       create_conditional_branch(cont, failure, cmp);
@@ -549,6 +553,19 @@ namespace rubinius {
 
       Value* lint = cast_int(val);
       Value* masked = b().CreateAnd(lint, fix_mask, "masked");
+
+      return b().CreateICmpEQ(masked, fix_tag, "is_fixnum");
+    }
+
+    Value* check_if_fixnums(Value* val, Value* val2) {
+      Value* fix_mask = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM_MASK);
+      Value* fix_tag  = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM);
+
+      Value* lint = cast_int(val);
+      Value* rint = cast_int(val2);
+
+      Value* anded = b().CreateAnd(lint, rint, "fixnums_anded");
+      Value* masked = b().CreateAnd(anded, fix_mask, "masked");
 
       return b().CreateICmpEQ(masked, fix_tag, "is_fixnum");
     }

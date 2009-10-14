@@ -95,6 +95,59 @@ namespace rubinius {
     i.set_result(value);
   }
 
+  static void call_tuple_swap(JITOperations& ops, Inliner& i) {
+    Value* rec = i.recv();
+
+    ops.verify_guard(ops.check_is_tuple(rec), i.failure());
+
+    Value* left_index = i.arg(0);
+    Value* right_index = i.arg(1);
+
+    Value* fix_cmp = ops.check_if_fixnums(left_index, right_index);
+
+    ops.verify_guard(fix_cmp, i.failure());
+
+    // Check that index is not over the end of the Tuple
+    Value* tup = ops.upcast(rec, "Tuple");
+
+    Value* full_size = ops.get_tuple_size(tup);
+
+    Value* lindex = ops.fixnum_to_native(left_index);
+    Value* lsize_cmp = ops.create_less_than(lindex, full_size, "is_in_bounds");
+
+    Value* rindex = ops.fixnum_to_native(right_index);
+    Value* rsize_cmp = ops.create_less_than(rindex, full_size, "is_in_bounds");
+
+    // Combine lsize_cmp and rsize_cmp to validate entry into access code
+    Value* access_cmp = ops.create_and(lsize_cmp, rsize_cmp, "access_cmp");
+    ops.verify_guard(access_cmp, i.failure());
+
+    Value* lidx[] = {
+      ConstantInt::get(ops.state()->Int32Ty, 0),
+      ConstantInt::get(ops.state()->Int32Ty, offset::tuple_field),
+      lindex
+    };
+
+    Value* lgep = ops.create_gep(tup, lidx, 3, "field_pos");
+
+    Value* ridx[] = {
+      ConstantInt::get(ops.state()->Int32Ty, 0),
+      ConstantInt::get(ops.state()->Int32Ty, offset::tuple_field),
+      rindex
+    };
+
+    Value* rgep = ops.create_gep(tup, ridx, 3, "field_pos");
+
+    Value* left_val = ops.create_load(lgep, "tuple_swap_left");
+    Value* right_val = ops.create_load(rgep, "tuple_swap_right");
+
+    ops.b().CreateStore(right_val, lgep);
+    ops.b().CreateStore(left_val, rgep);
+
+    i.exception_safe();
+    i.set_result(rec);
+  }
+
   static void fixnum_and(JITOperations& ops, Inliner& i) {
     Value* lint = ops.cast_int(i.recv());
     Value* rint = ops.cast_int(i.arg(0));
@@ -484,6 +537,39 @@ namespace rubinius {
         << "\n";
     }
     return false;
+  }
+
+  int Inliner::detect_jit_intrinsic(Class* klass, CompiledMethod* cm) {
+    if(klass->instance_type()->to_native() == rubinius::Tuple::type) {
+      if(count_ == 2 && cm->name() == ops_.state()->symbol("swap")) {
+        return 1;
+      }
+    }
+
+    return 0;
+  }
+
+  void Inliner::inline_intrinsic(Class* klass, CompiledMethod* cm, int which) {
+    const char* inlined_intrinsic = "<unknown>";
+
+    switch(which) {
+    case 1: // Tuple#swap
+      inlined_intrinsic = "tuple_swap";
+      call_tuple_swap(ops_, *this);
+      break;
+    default:
+      abort();
+    }
+
+    if(ops_.state()->config().jit_inline_debug) {
+      std::cerr << "inlining: "
+        << ops_.state()->symbol_cstr(cm->scope()->module()->name())
+        << "#"
+        << ops_.state()->symbol_cstr(cm->name())
+        << " into "
+        << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+        << ". intrinsic " << inlined_intrinsic << "\n";
+    }
   }
 }
 

@@ -720,6 +720,13 @@ namespace rubinius {
       if(cache->classes_seen() == 0) {
         set_has_side_effects();
 
+        if(state()->config().jit_inline_debug) {
+          std::cerr << "inlining: primitive fixnum_equal"
+            << " into "
+            << state()->symbol_cstr(vmmethod()->original->name())
+            << ".\n";
+        }
+
         Value* recv = stack_back(1);
         Value* arg =  stack_top();
 
@@ -798,6 +805,13 @@ namespace rubinius {
     void visit_meta_send_op_lt(opcode name) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(name);
       if(cache->classes_seen() == 0) {
+        if(state()->config().jit_inline_debug) {
+          std::cerr << "inlining: primitive fixnum_lt"
+            << " into "
+            << state()->symbol_cstr(vmmethod()->original->name())
+            << ".\n";
+        }
+
         set_has_side_effects();
 
         Value* recv = stack_back(1);

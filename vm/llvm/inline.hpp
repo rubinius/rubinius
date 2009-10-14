@@ -121,6 +121,9 @@ namespace rubinius {
     bool inline_ffi(Class* klass, NativeFunction* nf);
 
     void emit_inline_block(VMMethod* vmm, Value* val);
+
+    int detect_jit_intrinsic(Class* klass, CompiledMethod* cm);
+    void inline_intrinsic(Class* klass, CompiledMethod* cm, int which);
   };
 
 }

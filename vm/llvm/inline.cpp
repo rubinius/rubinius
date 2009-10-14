@@ -64,6 +64,8 @@ namespace rubinius {
         if(!inline_primitive(klass, cm, meth->execute)) return false;
       } else if(detect_trivial_method(cm)) {
         inline_trivial_method(klass, cm);
+      } else if(int which = detect_jit_intrinsic(klass, cm)) {
+        inline_intrinsic(klass, cm, which);
       } else if(ops_.state()->config().jit_inline_generic) {
         InlinePolicy* policy = ops_.inline_policy();
         assert(policy);
