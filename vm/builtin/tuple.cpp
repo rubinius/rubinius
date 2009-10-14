@@ -148,6 +148,33 @@ namespace rubinius {
     return Fixnum::from(0);
   }
 
+  Object* Tuple::reverse(STATE, Fixnum* o_start, Fixnum* o_total) {
+    native_int start = o_start->to_native();
+    native_int total = o_total->to_native();
+
+    if(start < 0) return this;
+
+    native_int limit = start + (total / 2);
+
+    if(start > full_size_) return this;
+    if(limit > full_size_) limit = full_size_ - 1;
+
+    native_int i = start;
+    native_int j = start + total - 1;
+
+    Object** pos1 = field + i;
+    Object** pos2 = field + j;
+
+    register Object* tmp;
+    while(pos1 < pos2) {
+      tmp = *pos1;
+      *pos1++ = *pos2;
+      *pos2-- = tmp;
+    }
+
+    return this;
+  }
+
   // @todo performance primitive; could be replaced with Ruby
   Tuple* Tuple::pattern(STATE, Fixnum* size, Object* val) {
     native_int cnt = size->to_native();

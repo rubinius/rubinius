@@ -135,9 +135,18 @@ module Rubinius
       return 0
     end
 
+    def reverse!(start, total)
+      Ruby.primitive :tuple_reverse
+
+      reverse(
+        Type.coerce_to(start, Fixnum, :to_i),
+        Type.coerce_to(total, Fixnum, :to_i))
+    end
+
     def self.create_weakref(object)
       Ruby.primitive :tuple_create_weakref
       raise PrimitiveFailure, "Tuple.create_weakref failed, unable to create a weak reference"
     end
+
   end
 end

@@ -1067,14 +1067,9 @@ class Array
   def reverse!
     return self unless @total > 1
 
-    i = @start
-    j = @start + @total - 1
-    while i < (@start+@total/2)
-      @tuple.swap(i,j)
-      i += 1
-      j -= 1
-    end
-    self
+    @tuple.reverse! @start, @total
+
+    return self
   end
 
   # Goes through the Array back to front and yields

@@ -49,6 +49,9 @@ namespace rubinius {
     // Ruby.primitive :tuple_delete_inplace
     Fixnum* delete_inplace(STATE, Fixnum *start, Fixnum *length, Object *obj);
 
+    // Ruby.primitive :tuple_reverse
+    Object* reverse(STATE, Fixnum* start, Fixnum* total);
+
   public: // Inline Functions
     Object* at(STATE, size_t index) {
       if(num_fields() <= index) {
