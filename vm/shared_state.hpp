@@ -34,24 +34,30 @@ namespace rubinius {
 
   struct Interrupts {
     bool check;
-    bool switch_task;
     bool perform_gc;
-    bool check_events;
-    bool reschedule;
-    bool use_preempt;
     bool enable_preempt;
     bool timer;
 
     Interrupts() :
       check(false),
-      switch_task(false),
       perform_gc(false),
-      check_events(false),
-      reschedule(false),
-      use_preempt(false),
       enable_preempt(false),
       timer(false)
-    { }
+    {}
+
+    void checked() {
+      check = false;
+    }
+
+    void set_timer() {
+      timer = true;
+      check = true;
+    }
+
+    void set_perform_gc() {
+      perform_gc = true;
+      check = true;
+    }
   };
 
   class SharedState : public RefCount {

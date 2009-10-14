@@ -3790,22 +3790,22 @@ class Instructions
     if(vmm->call_count >= 0) vmm->call_count++;
 
     // The | here reduces the number of branches to check
-    if(unlikely(state->interrupts.timer | state->interrupts.check)) {
+    if(unlikely(state->interrupts.check)) {
+      state->interrupts.checked();
+
       if(state->interrupts.timer) {
         state->interrupts.timer = false;
         state->set_call_frame(call_frame);
         state->global_lock().yield();
       }
 
-      if(state->interrupts.check) {
-        state->interrupts.check = false;
+      if(state->interrupts.perform_gc) {
+        state->interrupts.perform_gc = false;
         state->collect_maybe(call_frame);
       }
     }
 
-    if(!state->check_async(call_frame)) {
-      return NULL;
-    }
+    if(!state->check_async(call_frame)) RUN_EXCEPTION();
     CODE
   end
 

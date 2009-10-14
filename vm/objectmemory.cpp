@@ -218,7 +218,7 @@ namespace rubinius {
     if(unlikely(bytes > large_object_threshold)) {
       obj = mark_sweep_.allocate(bytes, &collect_mature_now);
       if(collect_mature_now) {
-        state->interrupts.check = true;
+        state->interrupts.set_perform_gc();
       }
 
 #ifdef RBX_GC_STATS
@@ -229,11 +229,11 @@ namespace rubinius {
       obj = young.allocate(bytes);
       if(unlikely(obj == NULL)) {
         collect_young_now = true;
-        state->interrupts.check = true;
+        state->interrupts.set_perform_gc();
 
         obj = immix_.allocate(bytes);
         if(collect_mature_now) {
-          state->interrupts.check = true;
+          state->interrupts.set_perform_gc();
         }
       }
     }
@@ -254,7 +254,7 @@ namespace rubinius {
     if(bytes > large_object_threshold) {
       obj = mark_sweep_.allocate(bytes, &collect_mature_now);
       if(collect_mature_now) {
-        state->interrupts.check = true;
+        state->interrupts.set_perform_gc();
       }
 
 #ifdef RBX_GC_STATS
@@ -264,7 +264,7 @@ namespace rubinius {
     } else {
       obj = immix_.allocate(bytes);
       if(collect_mature_now) {
-        state->interrupts.check = true;
+        state->interrupts.set_perform_gc();
       }
     }
 
@@ -324,7 +324,7 @@ namespace rubinius {
 
     Object* obj = mark_sweep_.allocate(bytes, &collect_mature_now);
     if(collect_mature_now) {
-      state->interrupts.check = true;
+      state->interrupts.set_perform_gc();
     }
 
 #ifdef ENABLE_OBJECT_WATCH

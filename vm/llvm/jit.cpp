@@ -747,7 +747,7 @@ namespace rubinius {
       ls->engine()->runJITOnFunction(function_, mci_);
 
       if(state->shared.config.jit_dump_code & cMachineCode) {
-        llvm::outs() << "[[[ JIT Machine Code ]]]\n";
+        llvm::outs() << "[[[ JIT Machine Code: " << function_->getName() << " ]]]\n";
         assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
       }
 
@@ -763,7 +763,7 @@ namespace rubinius {
   }
 
   void LLVMCompiler::show_machine_code() {
-    llvm::outs() << "[[[ JIT Machine Code ]]]\n";
+    llvm::outs() << "[[[ JIT Machine Code: " << function_->getName() << " ]]]\n";
     assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
   }
 

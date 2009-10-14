@@ -120,7 +120,6 @@ namespace rubinius {
 
     // Force these back to false because creating the default Thread
     // sets them to true.
-    interrupts.use_preempt = false;
     interrupts.enable_preempt = false;
 
     GlobalLock::debug_locking = shared.config.gil_debug;
@@ -239,7 +238,7 @@ namespace rubinius {
   void VM::run_gc_soon() {
     om->collect_young_now = true;
     om->collect_mature_now = true;
-    interrupts.check = true;
+    interrupts.set_perform_gc();
   }
 
   void VM::collect(CallFrame* call_frame) {
@@ -347,9 +346,7 @@ namespace rubinius {
     for(;;) {
       nanosleep(&requested, &actual);
       if(interrupts.enable_preempt) {
-        interrupts.reschedule = true;
-        interrupts.check_events = true;
-        interrupts.timer = true;
+        interrupts.set_timer();
       }
     }
   }

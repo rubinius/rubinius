@@ -693,13 +693,21 @@ namespace rubinius {
   }
 
   void LLVMWorkHorse::setup() {
-    Signature sig(ls_, "Object");
-    sig << "VM";
-    sig << "CallFrame";
-    sig << "Dispatch";
-    sig << "Arguments";
+    std::vector<const Type*> ftypes;
+    ftypes.push_back(ls_->ptr_type("VM"));
+    ftypes.push_back(ls_->ptr_type("CallFrame"));
+    ftypes.push_back(ls_->ptr_type("Dispatch"));
+    ftypes.push_back(ls_->ptr_type("Arguments"));
 
-    func = sig.function("");
+    FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), ftypes, false);
+
+    std::string name = std::string("_X_") +
+                         ls_->symbol_cstr(vmm_->original->scope()->module()->name()) +
+                         "#" +
+                         ls_->symbol_cstr(vmm_->original->name());
+
+    func = Function::Create(ft, GlobalValue::ExternalLinkage,
+                            name.c_str(), ls_->module());
 
     Function::arg_iterator ai = func->arg_begin();
     vm =   ai++; vm->setName("state");
@@ -1309,7 +1317,7 @@ namespace rubinius {
 
       BasicBlock* ret_null = BasicBlock::Create(ls_->ctx(), "ret_null", func);
 
-      Value* ret = sig.call("rbx_check_interrupts", call_args, 2, "ci", b());
+      Value* ret = sig.call("rbx_prologue_check", call_args, 2, "ci", b());
       b().CreateCondBr(
           b().CreateICmpEQ(ret, Constant::getNullValue(obj_type)),
           ret_null, method_body_);

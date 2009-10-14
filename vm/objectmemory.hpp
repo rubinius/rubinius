@@ -69,7 +69,7 @@ namespace rubinius {
 
     Object* new_object_fast(Class* cls, size_t bytes, object_type type) {
       if(Object* obj = young.raw_allocate(bytes, &collect_young_now)) {
-        if(collect_young_now) state->interrupts.check = true;
+        if(collect_young_now) state->interrupts.set_perform_gc();
         obj->init_header(cls, YoungObjectZone, type);
         obj->clear_fields(bytes);
         return obj;

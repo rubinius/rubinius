@@ -117,8 +117,11 @@ CODE
   }
 
   if(unlikely(state->interrupts.check)) {
-    state->interrupts.check = false;
-    state->collect_maybe(call_frame);
+    state->interrupts.checked();
+    if(state->interrupts.perform_gc) {
+      state->interrupts.perform_gc = false;
+      state->collect_maybe(call_frame);
+    }
   }
 
   if(unlikely(state->check_local_interrupts)) {
@@ -256,8 +259,11 @@ CODE
   }
 
   if(unlikely(state->interrupts.check)) {
-    state->interrupts.check = false;
-    state->collect_maybe(call_frame);
+    state->interrupts.checked();
+    if(state->interrupts.perform_gc) {
+      state->interrupts.perform_gc = false;
+      state->collect_maybe(call_frame);
+    }
   }
 
   if(unlikely(state->check_local_interrupts)) {
@@ -408,8 +414,11 @@ CODE
   }
 
   if(unlikely(state->interrupts.check)) {
-    state->interrupts.check = false;
-    state->collect_maybe(call_frame);
+    state->interrupts.checked();
+    if(state->interrupts.perform_gc) {
+      state->interrupts.perform_gc = false;
+      state->collect_maybe(call_frame);
+    }
   }
 
   if(unlikely(state->check_local_interrupts)) {

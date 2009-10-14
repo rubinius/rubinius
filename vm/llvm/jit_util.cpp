@@ -605,21 +605,40 @@ extern "C" {
     return scope->get_local(index);
   }
 
-  Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
+  Object* rbx_prologue_check(STATE, CallFrame* call_frame) {
     if(!state->check_stack(call_frame, &state)) return NULL;
+    if(!state->check_async(call_frame)) return NULL;
+    if(!state->interrupts.check) return Qtrue;
 
-    if(unlikely(state->interrupts.check)) {
-      state->interrupts.check = false;
+    state->interrupts.checked();
+
+    if(state->interrupts.perform_gc) {
+      state->interrupts.perform_gc = false;
       state->collect_maybe(call_frame);
     }
 
-    if(unlikely(state->interrupts.timer)) {
-      {
+    if(state->interrupts.timer) {
+      state->interrupts.timer = false;
+      state->set_call_frame(call_frame);
+      state->global_lock().yield();
+    }
+
+    return Qtrue;
+  }
+
+  Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
+    if(unlikely(state->interrupts.check)) {
+      state->interrupts.checked();
+
+      if(state->interrupts.perform_gc) {
+        state->interrupts.perform_gc = true;
+        state->collect_maybe(call_frame);
+      }
+
+      if(state->interrupts.timer) {
         state->interrupts.timer = false;
         state->set_call_frame(call_frame);
-        // unlock..
-        GlobalLock::UnlockGuard lock(state->global_lock());
-        // and relock automatically!
+        state->global_lock().yield();
       }
     }
     if(!state->check_async(call_frame)) return NULL;

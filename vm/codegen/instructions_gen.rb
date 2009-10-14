@@ -266,10 +266,6 @@ class Instructions
         end
       end
 
-      #if impl.name.check_interrupts?
-      #  io.puts "    if(unlikely(state->interrupts.check)) return;"
-      #end
-
       io.puts "  DISPATCH;"
       io.puts "  }"
     end

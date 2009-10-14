@@ -123,9 +123,9 @@ namespace rubinius {
     } else if(NativeFunction* nf = try_as<NativeFunction>(meth)) {
       if(inline_ffi(klass, nf)) {
         if(ops_.state()->config().jit_inline_debug) {
-          std::cerr << "inlining: FFI "
+          std::cerr << "inlining: FFI call to "
             << ops_.state()->symbol_cstr(nf->name())
-            << " into "
+            << "() into "
             << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
             << " (" << ops_.state()->symbol_cstr(klass->name()) << ")\n";
         }
