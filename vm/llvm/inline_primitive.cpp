@@ -171,7 +171,8 @@ namespace rubinius {
   }
 
   enum FloatOperation {
-    cAdd, cSub, cMultiply, cDivide, cMod
+    cAdd, cSub, cMultiply, cDivide, cMod,
+    cEqual, cLessThan, cLessThanEqual, cGreaterThan, cGreaterThanEqual
   };
 
   static void float_op(FloatOperation op, Class* klass,
@@ -231,6 +232,80 @@ namespace rubinius {
 
     i.exception_safe();
     i.set_result(ops.b().CreateBitCast(res, ops.ObjType));
+  }
+
+  static void float_compare(FloatOperation op, Class* klass,
+      JITOperations& ops, Inliner& i)
+  {
+    Value* self = i.recv();
+    ops.check_class(self, klass, i.failure());
+
+    // Support compare against Floats and Fixnums inline
+    BasicBlock* do_compare = ops.new_block("float_compare");
+    BasicBlock* check_fix =  ops.new_block("check_fixnum");
+
+    Value* arg = i.arg(0);
+    ops.check_class(arg, klass, check_fix);
+
+    Value* farg =  ops.b().CreateBitCast(arg, ops.state()->ptr_type("Float"),
+        "arg_float");
+
+    Value* unboxed_rhs = ops.b().CreateLoad(
+        ops.b().CreateConstGEP2_32(farg,  0, 1, "arg.value_pos"), "farg");
+
+    BasicBlock* unboxed_block = ops.current_block();
+
+    ops.b().CreateBr(do_compare);
+
+    ops.set_block(check_fix);
+    ops.verify_guard(ops.check_is_fixnum(arg), i.failure());
+    Value* converted_rhs = ops.b().CreateUIToFP(
+        ops.fixnum_to_native(arg), unboxed_rhs->getType());
+
+    BasicBlock* converted_block = ops.current_block();
+
+    ops.b().CreateBr(do_compare);
+
+    ops.set_block(do_compare);
+
+    do_compare->moveAfter(converted_block);
+
+    PHINode* rhs = ops.b().CreatePHI(converted_rhs->getType(), "float_rhs");
+    rhs->addIncoming(unboxed_rhs, unboxed_block);
+    rhs->addIncoming(converted_rhs, converted_block);
+
+    Value* fself = ops.b().CreateBitCast(self, ops.state()->ptr_type("Float"),
+        "self_float");
+    Value* lhs = ops.b().CreateLoad(
+        ops.b().CreateConstGEP2_32(fself, 0, 1, "self.value_pos"), "fself");
+
+    Value* performed = 0;
+
+    switch(op) {
+    case cEqual:
+      performed = ops.b().CreateFCmpUEQ(lhs, rhs, "float.eq");
+      break;
+    case cLessThan:
+      performed = ops.b().CreateFCmpULT(lhs, rhs, "float.lt");
+      break;
+    case cLessThanEqual:
+      performed = ops.b().CreateFCmpULE(lhs, rhs, "float.le");
+      break;
+    case cGreaterThan:
+      performed = ops.b().CreateFCmpUGT(lhs, rhs, "float.gt");
+      break;
+    case cGreaterThanEqual:
+      performed = ops.b().CreateFCmpUGE(lhs, rhs, "float.ge");
+      break;
+    default:
+      abort();
+    }
+
+    Value* imm_value = ops.b().CreateSelect(performed,
+            ops.constant(Qtrue), ops.constant(Qfalse), "select_bool");
+
+    i.exception_safe();
+    i.set_result(imm_value);
   }
 
   static void object_equal(Class* klass, JITOperations& ops, Inliner& i) {
@@ -301,11 +376,22 @@ namespace rubinius {
     } else if(prim == Primitives::float_mod && count_ == 1) {
       inlined_prim = "float_mod";
       float_op(cMod, klass, ops_, *this);
-      /*
-    } else if(prim == Primitives::object_class && count_ == 0) {
-      inlined_prim = "object_class";
-      object_class(klass, ops_, *this);
-      */
+
+    } else if(prim == Primitives::float_equal && count_ == 1) {
+      inlined_prim = "float_equal";
+      float_compare(cLessThan, klass, ops_, *this);
+    } else if(prim == Primitives::float_lt && count_ == 1) {
+      inlined_prim = "float_lt";
+      float_compare(cLessThan, klass, ops_, *this);
+    } else if(prim == Primitives::float_le && count_ == 1) {
+      inlined_prim = "float_le";
+      float_compare(cLessThanEqual, klass, ops_, *this);
+    } else if(prim == Primitives::float_gt && count_ == 1) {
+      inlined_prim = "float_gt";
+      float_compare(cGreaterThan, klass, ops_, *this);
+    } else if(prim == Primitives::float_ge && count_ == 1) {
+      inlined_prim = "float_ge";
+      float_compare(cGreaterThanEqual, klass, ops_, *this);
     } else {
       JITStubResults stub_res;
 
