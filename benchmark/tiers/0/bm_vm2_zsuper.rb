@@ -15,7 +15,7 @@ def Bench.run
   i = 0
   obj = CC.new
 
-  while i<6000000 # benchmark loop 2
+  while i < 15_000_000 # benchmark loop 2
     obj.m 10
     i+=1
   end

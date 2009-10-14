@@ -4,7 +4,7 @@ end
 
 def Bench.run
   i=0
-  while i<30000000 # while loop 1
+  while i<50000000 # while loop 1
     i+=1
     m {}
   end

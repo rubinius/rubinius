@@ -18,7 +18,7 @@ def Bench.run
   o = o1
 
   i = 0
-  while i<6000000 # benchmark loop 2
+  while i < 10_000_000 # benchmark loop 2
     if which
       o = o1
     else
