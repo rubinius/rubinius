@@ -267,5 +267,25 @@ class Range
     "#{@begin}#{@excl ? "..." : ".."}#{@end}"
   end
 
+  def to_a
+    if @begin.kind_of? Fixnum and @end.kind_of? Fixnum
+      fin = @end
+      fin += 1 unless @excl
+
+      size = fin - @begin
+
+      ary = Array.new(size)
+      i = 0
+      while i < size
+        ary[i] = @begin + i
+        i += 1
+      end
+
+      return ary
+    end
+
+    super
+  end
+
 end
 
