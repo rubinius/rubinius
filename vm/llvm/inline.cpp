@@ -11,6 +11,8 @@
 
 namespace rubinius {
   bool Inliner::consider() {
+    AccessManagedMemory memguard(ops_.state());
+
     Class* klass = cache_->dominating_class();
     if(!klass) {
       if(ops_.state()->config().jit_inline_debug) {
@@ -29,10 +31,9 @@ namespace rubinius {
 
     // If the cache has a dominating class, inline!
 
-    AccessManagedMemory memguard(ops_.state());
-
     Module* defined_in = 0;
     Executable* meth = klass->find_method(cache_->name, &defined_in);
+
     if(!meth) {
       if(ops_.state()->config().jit_inline_debug) {
         std::cerr << "NOT inlining: "
@@ -107,8 +108,12 @@ namespace rubinius {
         }
 
         policy->increase_size(vmm);
+        meth->add_inliner(ops_.root_vmmethod());
+
         NoAccessManagedMemory unmemguard(ops_.state());
+
         inline_generic_method(klass, vmm);
+        return true;
       } else {
         if(ops_.state()->config().jit_inline_debug) {
           std::cerr << "NOT inlining: "
