@@ -5,19 +5,22 @@
 # modified by Sokolov Yura
 # Adapted for the Ruby Benchmark Suite.
 
-def frecuency(seq, length)
-  n, table = seq.length - length + 1, Hash.new(0)
-  f, i = nil, nil
-  (0 ... length).each do |f|
-      (f ... n).step(length) do |i|
-          table[seq[i,length]] += 1
-      end
+def frequency(seq, length)
+  n = seq.length - length + 1
+  table = Hash.new(0)
+  f = nil
+  i = nil
+
+  0.upto(length-1) do |f|
+    (f...n).step(length) do |i|
+      table[seq[i,length]] += 1
+    end
   end
   [n,table]
 end
 
 def sort_by_freq(seq, length)
-  n,table = frecuency(seq, length)
+  n, table = frequency(seq, length)
   a, b, v = nil, nil, nil
   table.sort{|a,b| b[1] <=> a[1]}.each do |v|
       puts "%s %.3f" % [v[0].upcase,((v[1]*100).to_f/n)]
@@ -26,7 +29,7 @@ def sort_by_freq(seq, length)
 end
 
 def find_seq(seq, s)
-  n,table = frecuency(seq, s.length)
+  n, table = frequency(seq, s.length)
   puts "#{table[s].to_s}\t#{s.upcase}"
 end
 
