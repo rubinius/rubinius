@@ -107,8 +107,13 @@ module Rubinius
     end
 
     class EvalLocalReference
+
+      # Ignored, but simplifies duck-typing references
+      attr_accessor :depth
+
       def initialize(name)
         @name = name
+        @depth = 0
       end
 
       def get_bytecode(g)

@@ -764,18 +764,18 @@ module Rubinius
       # in itself.
       def search_local(name)
         if variable = variables[name]
-          return variable.reference
+          return variable.nested_reference
         end
 
         if variable = search_scopes(name)
           variables[name] = variable
-          return variable.reference
+          return variable.nested_reference
         end
       end
 
       def new_local(name)
         variable = CompilerNG::EvalLocalVariable.new name
-        @context.variables.set_eval_local name, nil
+        @context.variables.dynamic_locals[name] = nil
         variables[name] = variable
       end
 
