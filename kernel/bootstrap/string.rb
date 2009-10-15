@@ -32,9 +32,15 @@ class String
   end
 
   def substring(start, count)
-    return if count < 0 || start > @num_bytes || -start > @num_bytes
+    return nil if count < 0
 
-    start += @num_bytes if start < 0
+    if start < 0
+      start += @num_bytes
+      return nil if start < 0
+    else
+      return nil if start > @num_bytes
+    end
+
     count = @num_bytes - start if start + count > @num_bytes
     count = 0 if count < 0
 
