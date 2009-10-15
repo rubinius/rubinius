@@ -143,13 +143,19 @@ class Range
 
   def each(&block)
     return to_enum unless block_given?
-    first, last = @begin, @end # dup?
+    first, last = @begin, @end
 
     raise TypeError, "can't iterate from #{first.class}" unless first.respond_to? :succ
 
-    if first.is_a?(Fixnum) && last.is_a?(Fixnum)
-      last -= 1 if self.exclude_end?
-      first.upto(last, &block)
+    if first.is_a?(Fixnum)
+      last -= 1 if @excl
+
+      i = first
+      while i <= last
+        yield i
+        i += 1
+      end
+
     elsif first.is_a?(String)
       first.upto(last) do |s|
         yield s unless @excl && s == last
@@ -232,27 +238,27 @@ class Range
   #    7 xxxxxxx
   #   10 xxxxxxxxxx
 
-  def step(step_size = 1, &block) # :yields: object
+  def step(step_size=1) # :yields: object
     return to_enum :step, step_size unless block_given?
     first, last = @begin, @end
     step_size = (Float === first) ? Float(step_size) : Integer(step_size)
 
-    raise ArgumentError, "step can't be negative" if step_size < 0
-    raise ArgumentError, "step can't be 0" if step_size == 0
+    if step_size <= 0
+      raise ArgumentError, "step can't be negative" if step_size < 0
+      raise ArgumentError, "step can't be 0"
+    end
 
-    if step_size == 1
-      each(&block)
-    elsif first.kind_of?(Numeric)
-      cmp_method = self.exclude_end? ? :< : :<=
+    if first.kind_of?(Numeric)
+      last -= 1 if @excl
 
-      while first.__send__(cmp_method, last)
-        block.call(first)
+      while first <= last
+        yield first
         first += step_size
       end
     else
       counter = 0
       each do |o|
-        block.call(o) if counter % step_size == 0
+        yield o if counter % step_size == 0
         counter += 1
       end
     end
