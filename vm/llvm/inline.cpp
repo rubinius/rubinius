@@ -410,7 +410,7 @@ namespace rubinius {
       }
     }
 
-    vmm->call_count /= 2;
+    if(vmm->call_count >= 0) vmm->call_count /= 2;
 
     BasicBlock* entry = work.setup_inline(self, blk,
         ops_.constant(Qnil, ops_.state()->ptr_type("Module")), args);
@@ -453,7 +453,7 @@ namespace rubinius {
 
     info.stack_args = &args;
 
-    vmm->call_count /= 2;
+    if(vmm->call_count >= 0) vmm->call_count /= 2;
 
     BasicBlock* entry = work.setup_inline_block(self,
         ops_.constant(Qnil, ops_.state()->ptr_type("Module")));
