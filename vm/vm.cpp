@@ -268,6 +268,10 @@ namespace rubinius {
 
       om->collect_young_now = false;
       om->collect_young(gc_data);
+
+      if(shared.config.gc_show) {
+        std::cout << get_current_time() << " [GC] Finished young gen\n";
+      }
     }
 
     if(om->collect_mature_now) {
@@ -277,6 +281,10 @@ namespace rubinius {
 
       om->collect_mature_now = false;
       om->collect_mature(gc_data);
+
+      if(shared.config.gc_show) {
+        std::cout << get_current_time() << " [GC] Finished mature gen\n";
+      }
 
     }
   }
