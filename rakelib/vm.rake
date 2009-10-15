@@ -694,7 +694,8 @@ def ex_libs # needs to be method to delay running of llvm_config
   unless defined? $ex_libs then
     $ex_libs = EXTERNALS.reverse
     $ex_libs << "-ldl" unless RUBY_PLATFORM =~ /bsd/
-    $ex_libs << "-lcrypt -L/usr/local/lib -lexecinfo" if RUBY_PLATFORM =~ /bsd/
+    $ex_libs << "-lcrypt -L/usr/local/lib" if RUBY_PLATFORM =~ /bsd/
+    $ex_libs << "-lexecinfo" if RUBY_PLATFORM =~ /bsd/ && Rubinius::BUILD_CONFIG[:defines].include?('HAS_EXECINFO')
     $ex_libs << "-lrt -lcrypt" if RUBY_PLATFORM =~ /linux/
 
     $ex_libs += llvm_lib_files

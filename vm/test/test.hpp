@@ -6,6 +6,7 @@
 #include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 #include "configuration.hpp"
+#include "vm/detection.hpp"
 
 #include <cxxtest/TestSuite.h>
 

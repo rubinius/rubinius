@@ -203,7 +203,7 @@ public:
     ObjectMemory& om = *state->om;
     Tuple *young, *mature;
 
-    om.large_object_threshold = 50 * __WORDSIZE / 32;
+    om.large_object_threshold = 50 * 8 * sizeof(void *) / 32;
 
     young =  (Tuple*)util_new_object(om);
     TS_ASSERT_EQUALS(young->zone, YoungObjectZone);
@@ -246,7 +246,7 @@ public:
     ObjectMemory& om = *state->om;
     Tuple *young, *mature;
 
-    om.large_object_threshold = 50 * __WORDSIZE / 32;
+    om.large_object_threshold = 50 * 8 * sizeof(void *) / 32;
 
     young =  (Tuple*)util_new_object(om);
     mature = (Tuple*)util_new_object(om,20);
@@ -331,7 +331,7 @@ public:
     Tuple* young;
     Object* mature;
 
-    om.large_object_threshold = 50 * __WORDSIZE / 32;
+    om.large_object_threshold = 50 * 8 * sizeof(void *) / 32;
 
     young =  util_new_object(om);
     mature = util_new_object(om,20);

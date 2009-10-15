@@ -28,6 +28,7 @@
 
 #include <iostream>
 #include <signal.h>
+#include <sys/resource.h>
 
 // Reset macros since we're inside state
 #undef G

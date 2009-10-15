@@ -99,6 +99,7 @@ namespace rubinius {
 
     // TODO fix me to raise an exception
     assert(0);
+    return Qnil;
   }
 
   void CompiledMethod::specialize(STATE, TypeInfo* ti) {
