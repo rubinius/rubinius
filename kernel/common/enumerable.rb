@@ -275,7 +275,7 @@ module Enumerable
   #   %w[ant bear cat].any? { |word| word.length >= 4}   #=> true
   #   [ nil, true, 99 ].any?                             #=> true
 
-  def any?(&prc)
+  def any?
     if block_given?
       each { |o| return true if yield(o) }
     else
@@ -570,7 +570,7 @@ module Enumerable
   #   a.min                                  #=> "albatross"
   #   a.min { |a,b| a.length <=> b.length }   #=> "dog"
 
-  def min(&prc)
+  def min
     min = Undefined
     each do |o|
       if min.equal? Undefined
@@ -601,7 +601,7 @@ module Enumerable
   #    a.max                                  #=> "horse"
   #    a.max { |a,b| a.length <=> b.length }   #=> "albatross"
 
-  def max(&prc)
+  def max
     max = Undefined
     each do |o|
       if max.equal? Undefined
@@ -714,7 +714,7 @@ module Enumerable
   #    %w{ant bear cat}.none? { |word| word.length >= 4}   #=> false
   #    [ nil, true, 99 ].none?                             #=> true
 
-  def none?(&prc)
+  def none?
     if block_given?
       each { |o| return false if yield(o) }
     else
@@ -737,7 +737,7 @@ module Enumerable
   #   %w[ant bear cat].one? { |word| word.length >= 4}   #=> false
   #   [ nil, true, 99 ].one?                             #=> true
 
-  def one?(&prc)
+  def one?
     found_one = false
     if block_given?
       each do |o|
