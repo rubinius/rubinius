@@ -318,7 +318,19 @@ describe "A Masgn node" do
        [:splat, [:call, nil, :b, [:arglist]]]]
     end
 
-    # masgn attrasgn splat lhs splat rhs
+    compile do |g|
+      g.push :self
+      g.send :b, 0, true
+      g.cast_array
+      g.push :self
+      g.send :a, 0, true
+      g.dup
+      g.move_down 1
+      g.send :m=, 0, false
+      g.pop
+      g.pop
+      g.push :true
+    end
   end
 
   relates "*a.m = b" do
@@ -329,7 +341,35 @@ describe "A Masgn node" do
        [:to_ary, [:call, nil, :b, [:arglist]]]]
     end
 
-    # masgn attrasgn splat lhs
+    compile do |g|
+      ary = g.new_label
+      assign = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+      g.dup
+
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.git ary
+      g.cast_array
+      g.goto assign
+
+      ary.set!
+      g.make_array 1
+
+      assign.set!
+      g.push :self
+      g.send :a, 0, true
+      g.dup
+      g.move_down 1
+      g.send :m=, 0, false
+      g.pop
+      g.pop
+      g.push :true
+    end
   end
 
   relates "A, B, C = 1, 2, 3" do
@@ -376,7 +416,14 @@ describe "A Masgn node" do
       [:masgn, [:array, [:splat]], [:array, [:lit, 1], [:lit, 2]]]
     end
 
-    # masgn empty lhs splat
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.make_array 2
+
+      g.pop
+      g.push :true
+    end
   end
 
   relates "*$a = b" do
@@ -386,7 +433,34 @@ describe "A Masgn node" do
        [:to_ary, [:call, nil, :b, [:arglist]]]]
     end
 
-    # masgn gasgn splat lhs
+    compile do |g|
+      ary = g.new_label
+      assign = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+      g.dup
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.git ary
+      g.cast_array
+      g.goto assign
+
+      ary.set!
+      g.make_array 1
+
+      assign.set!
+      g.push_const :Rubinius
+      g.find_const :Globals
+      g.swap
+      g.push_literal :$a
+      g.swap
+      g.send :[]=, 2
+      g.pop
+      g.push :true
+    end
   end
 
   relates "*$a = *b" do
@@ -396,7 +470,19 @@ describe "A Masgn node" do
        [:splat, [:call, nil, :b, [:arglist]]]]
     end
 
-    # masgn gasgn splat lhs splat rhs
+    compile do |g|
+      g.push :self
+      g.send :b, 0, true
+      g.cast_array
+      g.push_const :Rubinius
+      g.find_const :Globals
+      g.swap
+      g.push_literal :$a
+      g.swap
+      g.send :[]=, 2
+      g.pop
+      g.push :true
+    end
   end
 
   relates "a, @b = c, d" do
@@ -430,7 +516,29 @@ describe "A Masgn node" do
        [:to_ary, [:call, nil, :b, [:arglist]]]]
     end
 
-    # masgn iasgn splat lhs
+    compile do |g|
+      ary = g.new_label
+      assign = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+      g.dup
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.git ary
+      g.cast_array
+      g.goto assign
+
+      ary.set!
+      g.make_array 1
+
+      assign.set!
+      g.set_ivar :@a
+      g.pop
+      g.push :true
+    end
   end
 
   relates "*@a = *b" do
@@ -440,7 +548,14 @@ describe "A Masgn node" do
        [:splat, [:call, nil, :b, [:arglist]]]]
     end
 
-    # masgn iasgn splat lhs splat rhs
+    compile do |g|
+      g.push :self
+      g.send :b, 0, true
+      g.cast_array
+      g.set_ivar :@a
+      g.pop
+      g.push :true
+    end
   end
 
   relates "@a, $b = 1, 2" do
@@ -547,6 +662,54 @@ describe "A Masgn node" do
     end
   end
 
+  relates "a, b, *c = 1, 2" do
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.make_array 0
+
+      g.rotate 3
+
+      g.set_local 0
+      g.pop
+
+      g.set_local 1
+      g.pop
+
+      g.cast_array
+      g.set_local 2
+      g.pop
+
+      g.push :true
+    end
+  end
+
+  relates "a, b, c, *d = 1, 2" do
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.push :nil
+      g.make_array 0
+
+      g.rotate 4
+
+      g.set_local 0
+      g.pop
+
+      g.set_local 1
+      g.pop
+
+      g.set_local 2
+      g.pop
+
+      g.cast_array
+      g.set_local 3
+      g.pop
+
+      g.push :true
+    end
+  end
+
   relates "a, b, c = *d" do
     parse do
       [:masgn,
@@ -627,7 +790,15 @@ describe "A Masgn node" do
        [:array, [:lit, 1], [:lit, 2], [:lit, 3]]]
     end
 
-    # masgn lasgn splat lhs array
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.push 3
+      g.make_array 3
+      g.set_local 0
+      g.pop
+      g.push :true
+    end
   end
 
   relates "*a = b" do
@@ -637,6 +808,31 @@ describe "A Masgn node" do
        [:to_ary, [:call, nil, :b, [:arglist]]]]
     end
 
+    compile do |g|
+      ary = g.new_label
+      assign = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+      g.dup
+
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.git ary
+      g.cast_array
+      g.goto assign
+
+      ary.set!
+      g.make_array 1
+
+      assign.set!
+      g.set_local 0
+      g.pop
+
+      g.push :true
+    end
     # masgn lasgn splat lhs
   end
 
@@ -647,7 +843,14 @@ describe "A Masgn node" do
        [:splat, [:call, nil, :b, [:arglist]]]]
     end
 
-    # masgn lasgn splat lhs splat rhs
+    compile do |g|
+      g.push :self
+      g.send :b, 0, true
+      g.cast_array
+      g.set_local 0
+      g.pop
+      g.push :true
+    end
   end
 
   relates "a, (b, c) = [1, [2, 3]]" do
@@ -695,7 +898,17 @@ describe "A Masgn node" do
        [:splat, [:array, [:array, [:array, [:lit, 1]]]]]]
     end
 
-    # masgn splat no name array
+    compile do |g|
+      g.push 1
+      g.make_array 1
+      g.make_array 1
+      g.make_array 1
+      g.shift_array
+      g.set_local 0
+      g.pop
+      g.pop
+      g.push :true
+    end
   end
 
   relates "a, b, * = c" do
