@@ -18,7 +18,7 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
   }
 
   void test_init() {
-#if __WORDSIZE == 64
+#ifdef IS_X8664
     size_t max_size =  4611686018427387903U;
     size_t min_size = -4611686018427387903U;
 #else

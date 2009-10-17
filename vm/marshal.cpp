@@ -77,7 +77,7 @@ namespace rubinius {
       mp_init_set_int(&mp_val, val);
       mp_init(&a);
 
-#if (__WORDSIZE == 64)
+#ifdef IS_X8664
       // mp_(init_)set_int can only deal with 32 bit values,
       // so the above call only copied the lower 32 bits of _val_.
       // Handle the upper 32 bits as well:
