@@ -31,7 +31,7 @@ namespace rubinius {
   }
 
   Integer* Integer::from(STATE, int num) {
-#ifdef IS_X8664
+#ifndef IS_X8664
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
       /* Number is too big for Fixnum. Use Bignum. */
       return Bignum::from(state, (native_int)num);
@@ -41,7 +41,7 @@ namespace rubinius {
   }
 
   Integer* Integer::from(STATE, unsigned int num) {
-#ifdef IS_X8664
+#ifndef IS_X8664
     if(num > FIXNUM_MAX) {
       return Bignum::from(state, (unsigned long)num);
     }
