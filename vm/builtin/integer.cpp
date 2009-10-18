@@ -1,4 +1,5 @@
 #include "vm/object_utils.hpp"
+#include "vm/config.h"
 
 #include "builtin/integer.hpp"
 #include "builtin/fixnum.hpp"
