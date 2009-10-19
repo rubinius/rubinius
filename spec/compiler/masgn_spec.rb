@@ -347,20 +347,8 @@ describe "A Masgn node" do
 
       g.push :self
       g.send :b, 0, true
-      g.dup
 
-      g.push_cpath_top
-      g.find_const :Array
-      g.swap
-      g.kind_of
-      g.git ary
-      g.cast_array
-      g.goto assign
-
-      ary.set!
       g.make_array 1
-
-      assign.set!
       g.push :self
       g.send :a, 0, true
       g.dup
@@ -439,19 +427,8 @@ describe "A Masgn node" do
 
       g.push :self
       g.send :b, 0, true
-      g.dup
-      g.push_cpath_top
-      g.find_const :Array
-      g.swap
-      g.kind_of
-      g.git ary
-      g.cast_array
-      g.goto assign
 
-      ary.set!
       g.make_array 1
-
-      assign.set!
       g.push_const :Rubinius
       g.find_const :Globals
       g.swap
@@ -522,19 +499,8 @@ describe "A Masgn node" do
 
       g.push :self
       g.send :b, 0, true
-      g.dup
-      g.push_cpath_top
-      g.find_const :Array
-      g.swap
-      g.kind_of
-      g.git ary
-      g.cast_array
-      g.goto assign
 
-      ary.set!
       g.make_array 1
-
-      assign.set!
       g.set_ivar :@a
       g.pop
       g.push :true
@@ -814,20 +780,8 @@ describe "A Masgn node" do
 
       g.push :self
       g.send :b, 0, true
-      g.dup
 
-      g.push_cpath_top
-      g.find_const :Array
-      g.swap
-      g.kind_of
-      g.git ary
-      g.cast_array
-      g.goto assign
-
-      ary.set!
       g.make_array 1
-
-      assign.set!
       g.set_local 0
       g.pop
 
