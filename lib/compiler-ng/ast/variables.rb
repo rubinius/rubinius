@@ -219,7 +219,7 @@ module Rubinius
     end
 
     class SplatAssignment < Node
-      attr_accessor :name, :value
+      attr_accessor :value
 
       def initialize(line, value)
         @line = line
@@ -238,7 +238,57 @@ module Rubinius
       end
     end
 
+    class SplatArray < SplatAssignment
+      def initialize(line, value, size)
+        @line = line
+        @value = value
+        @size = size
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        g.make_array @size
+        @value.bytecode(g)
+      end
+    end
+
+    class SplatWrapped < SplatAssignment
+      def bytecode(g)
+        pos(g)
+
+        wrap = g.new_label
+        done = g.new_label
+
+        g.dup
+        g.push_cpath_top
+        g.find_const :Array
+        g.swap
+        g.kind_of
+
+        g.gif wrap
+        g.cast_array
+        g.goto done
+
+        wrap.set!
+        g.make_array 1
+
+        done.set!
+        @value.bytecode(g)
+      end
+    end
+
     class EmptySplat < Node
+      def initialize(line, size)
+        @line = line
+        @size = size
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        g.make_array @size
+      end
     end
 
     class InstanceVariableAccess < VariableAccess
@@ -327,13 +377,21 @@ module Rubinius
         @left = left
         @right = right
 
-        if splat.kind_of? Node
-          @splat = SplatAssignment.new line, splat
-        elsif splat
-          @splat = EmptySplat.new line
-        end
-
         @fixed = true if right.kind_of? ArrayLiteral
+
+        if splat.kind_of? Node
+          if @left
+            @splat = SplatAssignment.new line, splat
+          elsif @fixed
+            @splat = SplatArray.new line, splat, right.body.size
+          elsif right.kind_of? SplatValue
+            @splat = splat
+          else
+            @splat = SplatWrapped.new line, splat
+          end
+        elsif splat and @fixed
+          @splat = EmptySplat.new line, right.body.size
+        end
       end
 
       def children
@@ -342,7 +400,10 @@ module Rubinius
 
       def pad_short(g)
         short = @left.body.size - @right.body.size
-        short.times { g.push :nil } if short > 0
+        if short > 0
+          short.times { g.push :nil }
+          g.make_array 0 if @splat
+        end
       end
 
       def pop_excess(g)
@@ -352,7 +413,7 @@ module Rubinius
 
       def make_array(g)
         size = @right.body.size - @left.body.size
-        g.make_array size if size > 0
+        g.make_array size if size >= 0
       end
 
       def rotate(g)
@@ -381,8 +442,9 @@ module Rubinius
         map_masgn
 
         if @fixed
-          pad_short(g) if @left unless @splat
+          pad_short(g) if @left and !@splat
           @right.body.each { |x| x.bytecode(g) }
+          pad_short(g) if @left and @splat
 
           if @left
             make_array(g) if @splat

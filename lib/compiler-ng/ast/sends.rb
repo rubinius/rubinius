@@ -418,9 +418,12 @@ module Rubinius
               @prelude = :splat
               @arity = -1
             end
-          else
+          elsif arguments.left
             @prelude = :multi
             @arity = arguments.left.body.size
+          else
+            @prelude = :multi
+            @arity = -1
           end
 
           @arguments = arguments
