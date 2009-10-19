@@ -276,6 +276,10 @@ module Rubinius
         @right.bytecode(g)
         lbl.set!
       end
+
+      def defined(g)
+        g.push_literal "assignment"
+      end
     end
 
     class OpAssignOr < OpAssignAnd
