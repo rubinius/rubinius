@@ -70,14 +70,21 @@ describe "A Yield node" do
     end
   end
 
+  relates "yield([*[]])" do
+    compile do |g|
+      g.make_array 0
+      g.yield_stack 1
+    end
+  end
+
   relates "yield([*[1]])" do
     parse do
       [:yield, [:array, [:splat, [:array, [:lit, 1]]]]]
     end
 
     compile do |g|
-      g.array_of_splatted_array
-
+      g.push 1
+      g.make_array 1
       g.yield_stack 1
     end
   end
@@ -88,11 +95,9 @@ describe "A Yield node" do
     end
 
     compile do |g|
-      g.array_of_splatted_array 2 do
-        g.push 1
-        g.push 2
-      end
-
+      g.push 1
+      g.push 2
+      g.make_array 2
       g.yield_stack 1
     end
   end

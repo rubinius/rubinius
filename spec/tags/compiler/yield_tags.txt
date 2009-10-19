@@ -1,0 +1,3 @@
+fails:A Yield node is compiled from 'yield([*[]])'
+fails:A Yield node is compiled from 'yield([*[1]])'
+fails:A Yield node is compiled from 'yield([*[1, 2]])'

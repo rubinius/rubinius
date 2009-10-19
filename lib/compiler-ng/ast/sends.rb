@@ -594,7 +594,8 @@ module Rubinius
         @yield_splat = false
 
         if @arguments.splat?
-          if @arguments.splat.value.kind_of? ArrayLiteral and not unwrap
+          splat = @arguments.splat.value
+          if (splat.kind_of? ArrayLiteral or splat.kind_of? EmptyArray) and not unwrap
             @argument_count += 1
           else
             @yield_splat = true
