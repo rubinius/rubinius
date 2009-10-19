@@ -15,12 +15,11 @@ See doc/getting_started.txt.
 
 3.1. For the impatient
 
-Try "./configure --update-prebuilt" to try and use a prebuilt version of LLVM.
-
-If it can't find a prebuilt for your system, then it will at the very least
-checkout LLVM from svn and built it (this takes a lot of time).
-
 Now to configure with LLVM: "./configure --enable-llvm"
+
+This will try to download a prebuilt version of llvm for your system. If it
+can't find a prebuilt version, then it will at the very least checkout LLVM
+from svn and built it during the next step (this takes a lot of time).
 
   or
 
