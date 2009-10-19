@@ -427,6 +427,7 @@ module Rubinius
         when nil
           @arity = -1
         else # Assignment
+          arguments.in_masgn
           @arguments = arguments
           @arity = 1
           @prelude = :single
