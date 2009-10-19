@@ -66,6 +66,24 @@ describe "A Defined node" do
     end
   end
 
+  relates "defined? x += 1" do
+    compile do |g|
+      g.push_literal "assignment"
+    end
+  end
+
+  relates "defined? x ||= 1" do
+    compile do |g|
+      g.push_literal "assignment"
+    end
+  end
+
+  relates "defined? x &&= 1" do
+    compile do |g|
+      g.push_literal "assignment"
+    end
+  end
+
   relates "defined? X" do
     compile do |g|
       t = g.new_label
