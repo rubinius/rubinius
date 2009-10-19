@@ -1,3 +1,2 @@
 fails:Array#sort! temporarily freezes self and recovers after sorted
 fails:Array#sort! raises a TypeError on a frozen array
-fails:Array#sort raises an error if objects can't be compared

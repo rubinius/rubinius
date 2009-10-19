@@ -1689,7 +1689,7 @@ class Array
     while i <= right
       j = i
 
-      while j > @start and (@tuple.at(j - 1) <=> @tuple.at(j)) > 0
+      while j > @start and Type.coerce_to_comparison(@tuple.at(j - 1), @tuple.at(j)) > 0
         @tuple.swap(j, (j - 1))
         j -= 1
       end
