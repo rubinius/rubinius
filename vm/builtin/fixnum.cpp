@@ -61,11 +61,20 @@ namespace rubinius {
     return Float::coerce(state, this)->sub(state, other);
   }
 
+#define SQRT_LONG_MAX ((native_int)1<<((sizeof(native_int)*CHAR_BIT-1)/2))
+/*tests if N*N would overflow*/
+#define FIT_SQRT(n) (((n)<SQRT_LONG_MAX)&&((n)>=-SQRT_LONG_MAX))
+
   Integer* Fixnum::mul(STATE, Fixnum* other) {
     native_int a  = to_native();
     native_int b  = other->to_native();
 
     if(a == 0 || b == 0) return Fixnum::from(0);
+
+    // Adapted from the logic in 1.9
+    if(FIT_SQRT(a) & FIT_SQRT(b)) {
+      return Fixnum::from(a * b);
+    }
 
     if(a > 0) {
       if(b > 0) {
@@ -78,7 +87,7 @@ namespace rubinius {
         }
       }
     } else {
-      if(b > 0){
+      if(b > 0) {
         if(a < (FIXNUM_MIN / b)) {
           return Bignum::from(state, a)->mul(state, other);
         }

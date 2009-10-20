@@ -488,29 +488,32 @@ module Kernel
   end
 
   def remove_instance_variable(sym)
-    sym = Rubinius.instance_variable_validate(sym)
-    vars = get_instance_variables
-    vars.delete sym
+    Ruby.primitive :object_del_ivar
+
+    remove_instance_variable Rubinius.instance_variable_validate(sym)
   end
   private :remove_instance_variable
 
+  def all_instance_variables
+    Ruby.primitive :object_ivar_names
+
+    raise PrimitiveFailure, "Object#instance_variables failed"
+  end
+  private :all_instance_variables
+
   def instance_variables
-    if vars = get_instance_variables()
-      Rubinius.convert_to_names vars.keys.find_all { |key| key.is_ivar? }
-    else
-      []
+    ary = []
+    all_instance_variables.each do |sym|
+      ary << sym.to_s if sym.is_ivar?
     end
+
+    return ary
   end
 
   def instance_variable_defined?(name)
-    name = Rubinius.instance_variable_validate(name)
+    Ruby.primitive :object_ivar_defined
 
-    vars = get_instance_variables
-    return false unless vars
-
-    name = name.to_sym unless name.kind_of? Symbol
-
-    return vars.key?(name)
+    instance_variable_defined? Rubinius.instance_variable_validate(name)
   end
 
   # Both of these are for defined? when used inside a proxy obj that

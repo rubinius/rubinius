@@ -33,4 +33,9 @@ module Rubinius
     Ruby.primitive :vm_raise_exception
     raise PrimitiveFailure, "Rubinius.vm_raise_exception failed"
   end
+
+  def self.memory_size(obj)
+    Ruby.primitive :vm_memory_size
+    raise PrimitiveFailure, "Rubinius.vm_memory_size failed"
+  end
 end

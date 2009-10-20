@@ -203,6 +203,10 @@ const int cUndef = 0x22L;
       ivars_ = Qnil;
     }
 
+    void** pointer_to_body() {
+      return __body__;
+    }
+
     /* It's the slow case, should be called only if there's no cached
      * instance size. */
     size_t slow_size_in_bytes(STATE) const;
@@ -246,6 +250,10 @@ const int cUndef = 0x22L;
     }
 
     Object* forward() {
+      return ivars_;
+    }
+
+    Object* ivars() {
       return ivars_;
     }
 

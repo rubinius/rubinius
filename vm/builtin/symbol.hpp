@@ -23,6 +23,11 @@ namespace rubinius {
 
     native_int index() const;
 
+    // Ruby.primitive :symbol_s_eqq
+    static Object* is_symbol(STATE, Object* obj) {
+      return obj->symbol_p() ? Qtrue : Qfalse;
+    }
+
     // Ruby.primitive :symbol_index
     Integer* index(STATE);
 

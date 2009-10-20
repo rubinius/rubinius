@@ -27,8 +27,16 @@ namespace rubinius {
   }
 
   Object* CompactLookupTable::fetch(STATE, Object* key) {
+    bool found;
+    return fetch(state, key, &found);
+  }
+
+  Object* CompactLookupTable::fetch(STATE, Object* key, bool* found) {
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
-      if(at(state, i) == key) return at(state, i + 1);
+      if(at(state, i) == key) {
+        *found = true;
+        return at(state, i + 1);
+      }
     }
 
     return Qnil;

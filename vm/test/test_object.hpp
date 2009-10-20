@@ -36,26 +36,14 @@ public:
     obj->set_ivar(state, t1, Qtrue);
     obj->set_ivar(state, t2, Qtrue);
 
-    TS_ASSERT_EQUALS(Qtrue, as<CompactLookupTable>(obj->get_ivars(state))->fetch(state, t1));
-    TS_ASSERT_EQUALS(Qtrue, as<CompactLookupTable>(obj->get_ivars(state))->fetch(state, t2));
-  }
-
-  void test_instance_variables_nil() {
-    Object* obj = Qnil;
-    Symbol* t1 = state->symbol("@test1");
-    Symbol* t2 = state->symbol("@test2");
-
-    obj->set_ivar(state, t1, Qtrue);
-    obj->set_ivar(state, t2, Qtrue);
-
-    TS_ASSERT_EQUALS(Qtrue, as<LookupTable>(obj->get_ivars(state))->fetch(state, t1));
-    TS_ASSERT_EQUALS(Qtrue, as<LookupTable>(obj->get_ivars(state))->fetch(state, t2));
+    TS_ASSERT_EQUALS(Qtrue, as<CompactLookupTable>(obj->ivars())->fetch(state, t1));
+    TS_ASSERT_EQUALS(Qtrue, as<CompactLookupTable>(obj->ivars())->fetch(state, t2));
   }
 
   void test_instance_variables_none() {
     Object* obj = util_new_object();
 
-    TS_ASSERT_EQUALS(Qnil, obj->get_ivars(state));
+    TS_ASSERT_EQUALS(Qnil, obj->ivars());
   }
 
   void test_as() {
@@ -262,7 +250,7 @@ public:
     TS_ASSERT_EQUALS(val, obj->get_ivar(state, sym));
   }
 
-  void test_get_ivars() {
+  void test_ivars() {
     Object* obj = util_new_object();
 
     Symbol* sym1 = state->symbol("@test1");
@@ -272,7 +260,7 @@ public:
     obj->set_ivar(state, sym1, one);
     obj->set_ivar(state, sym2, two);
 
-    CompactLookupTable* ivars = (CompactLookupTable*)obj->get_ivars(state);
+    CompactLookupTable* ivars = (CompactLookupTable*)obj->ivars();
 
     TS_ASSERT_EQUALS(ivars->fetch(state, sym1), one);
     TS_ASSERT_EQUALS(ivars->fetch(state, sym2), two);

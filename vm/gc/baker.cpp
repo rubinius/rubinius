@@ -109,8 +109,8 @@ namespace rubinius {
       // unremember_object throws a NULL in to remove an object
       // so we don't have to compact the set in unremember
       if(tmp) {
-        assert(tmp->zone == MatureObjectZone);
-        assert(!tmp->forwarded_p());
+        // assert(tmp->zone == MatureObjectZone);
+        // assert(!tmp->forwarded_p());
 
         // Remove the Remember bit, since we're clearing the set.
         tmp->clear_remember();
@@ -121,10 +121,11 @@ namespace rubinius {
     delete current_rs;
 
     for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {
-      tmp = i->get();
-      if(tmp->reference_p() && tmp->young_object_p()) {
-        i->set(saw_object(tmp));
-      }
+      i->set(saw_object(i->get()));
+      //tmp = i->get();
+      //if(tmp->reference_p() && tmp->young_object_p()) {
+      //  i->set(saw_object(tmp));
+      //}
     }
 
     for(capi::Handles::Iterator i(*data.handles()); i.more(); i.advance()) {

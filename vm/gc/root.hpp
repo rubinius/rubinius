@@ -58,13 +58,13 @@ namespace rubinius {
     Root()
       : LinkedList::Node()
       , roots_(NULL)
-      , object_(NULL)
+      , object_(Qundef)
     {}
 
     Root(Roots* roots)
       : LinkedList::Node()
       , roots_(roots)
-      , object_(NULL)
+      , object_(Qundef)
     {}
 
     Root(Roots* roots, Object* obj)
@@ -82,7 +82,7 @@ namespace rubinius {
     Root(const Root& other)
       : LinkedList::Node()
       , roots_(NULL)
-      , object_(NULL)
+      , object_(Qundef)
     {
       set(other.object_, other.roots_);
     }
@@ -99,9 +99,8 @@ namespace rubinius {
       return *this;
     }
 
-    /** Obtain the enveloped Object or Qnil if none. */
+    /** Obtain the enveloped Object. */
     Object* get() {
-      assert(object_ && "Using an unassigned root!");
       return object_;
     }
 
@@ -153,14 +152,14 @@ namespace rubinius {
       /** Transparently delegate dereferencing to enveloped object. */
       /** @todo Use as<ObjType>() when using base type instead of pointer. --rue */
       ObjType operator->() {
-        assert(object_ && "Using an unassigned root!");
+        // assert(object_ && "Using an unassigned root!");
         return reinterpret_cast<ObjType>(object_);
       }
 
       /** Return the enveloped object as the real ObjType. */
       /** @todo Use as<ObjType>() when using base type instead of pointer. --rue */
       ObjType get() {
-        assert(object_ && "Using an unassigned root!");
+        // assert(object_ && "Using an unassigned root!");
         return reinterpret_cast<ObjType>(object_);
       }
     };

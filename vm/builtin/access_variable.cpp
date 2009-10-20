@@ -6,6 +6,7 @@
 #include "builtin/executable.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/packed_object.hpp"
 
 #include "objectmemory.hpp"
 #include "dispatch.hpp"
@@ -28,7 +29,7 @@ namespace rubinius {
     return av;
   }
 
-  Object* AccessVariable::access_read_table_ivar(STATE, CallFrame* call_frame, Dispatch& msg,
+  Object* AccessVariable::access_read_regular_ivar(STATE, CallFrame* call_frame, Dispatch& msg,
                                          Arguments& args) {
     AccessVariable* access = as<AccessVariable>(msg.method);
     if(unlikely(args.total() != 0)) {
@@ -36,10 +37,17 @@ namespace rubinius {
       return NULL;
     }
 
-    return args.recv()->get_table_ivar(state, access->name());
+    Object* recv = args.recv();
+
+    // Handle packed objects in a unique way.
+    if(PackedObject* po = try_as<PackedObject>(recv)) {
+      return po->get_packed_ivar(state, access->name());
+    }
+
+    return recv->get_table_ivar(state, access->name());
   }
 
-  Object* AccessVariable::access_write_table_ivar(STATE, CallFrame* call_frame, Dispatch& msg,
+  Object* AccessVariable::access_write_regular_ivar(STATE, CallFrame* call_frame, Dispatch& msg,
                                          Arguments& args) {
     AccessVariable* access = as<AccessVariable>(msg.method);
     if(unlikely(args.total() != 1)) {
@@ -47,7 +55,14 @@ namespace rubinius {
       return NULL;
     }
 
-    return args.recv()->set_table_ivar(state, access->name(), args.get_argument(0));
+    Object* recv = args.recv();
+
+    // Handle packed objects in a unique way.
+    if(PackedObject* po = try_as<PackedObject>(recv)) {
+      return po->set_packed_ivar(state, access->name(), args.get_argument(0));
+    }
+
+    return recv->set_table_ivar(state, access->name(), args.get_argument(0));
   }
 
   /* Run when an AccessVariable is executed. Uses the details in msg.method
@@ -77,7 +92,7 @@ namespace rubinius {
 
       /* Fall through, handle it as a normal ivar. */
       if(self->reference_p()) {
-        access->set_executor(access_write_table_ivar);
+        access->set_executor(access_write_regular_ivar);
       }
 
       self->set_ivar(state, access->name(), args.get_argument(0));
@@ -102,7 +117,7 @@ namespace rubinius {
 
     // Ok, its a table ivar, setup fast access for next time.
     if(self->reference_p()) {
-      access->set_executor(access_read_table_ivar);
+      access->set_executor(access_read_regular_ivar);
     }
 
     return self->get_ivar(state, access->name());

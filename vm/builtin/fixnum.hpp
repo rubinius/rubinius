@@ -32,6 +32,11 @@ namespace rubinius {
     long long          to_long_long() const;
     unsigned long long to_ulong_long() const;
 
+    // Ruby.primitive :fixnum_s_eqq
+    static Object* is_fixnum(STATE, Object* obj) {
+      return obj->fixnum_p() ? Qtrue : Qfalse;
+    }
+
     // Ruby.primitive! :fixnum_add
     Integer* add(STATE, Fixnum* other) {
       native_int r = to_native() + other->to_native();
