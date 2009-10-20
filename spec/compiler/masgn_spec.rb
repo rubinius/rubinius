@@ -787,7 +787,6 @@ describe "A Masgn node" do
 
       g.push :true
     end
-    # masgn lasgn splat lhs
   end
 
   relates "*a = *b" do
@@ -837,10 +836,7 @@ describe "A Masgn node" do
       g.pop
 
       g.pop
-      g.push :true # FIX: necessary?!?
       g.pop
-      g.pop
-
       g.push :true
     end
   end
@@ -1102,6 +1098,419 @@ describe "A Masgn node" do
         d.push :nil
         d.ret
       end
+    end
+  end
+
+  relates "a, (b, c) = 1" do
+    compile do |g|
+      g.push 1
+      g.cast_array
+
+      g.shift_array
+      g.set_local 0
+      g.pop
+
+      g.shift_array
+      g.cast_array
+
+      g.shift_array
+      g.set_local 1
+      g.pop
+
+      g.shift_array
+      g.set_local 2
+      g.pop
+
+      g.pop
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, (b, c) = *1" do
+    compile do |g|
+      g.push 1
+      g.cast_array
+
+      g.shift_array
+      g.set_local 0
+      g.pop
+
+      g.shift_array
+      g.cast_array
+
+      g.shift_array
+      g.set_local 1
+      g.pop
+
+      g.shift_array
+      g.set_local 2
+      g.pop
+
+      g.pop
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, (b, c) = 1, 2, 3" do
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.push 3
+
+      g.rotate 3
+
+      g.set_local 0
+      g.pop
+
+      g.cast_array
+
+      g.shift_array
+      g.set_local 1
+      g.pop
+
+      g.shift_array
+      g.set_local 2
+      g.pop
+
+      g.pop
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, (b, *c), d = 1, 2, 3, 4" do
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.push 3
+      g.push 4
+
+      g.rotate 4
+
+      g.set_local 0
+      g.pop
+
+      g.cast_array
+
+      g.shift_array
+      g.set_local 1
+      g.pop
+
+      ary = g.new_label
+      assign = g.new_label
+
+      g.dup
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.git assign
+      g.make_array 1
+
+      assign.set!
+      g.set_local 2
+      g.pop
+
+      g.set_local 3
+      g.pop
+
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, (b, c) = 1, *2" do
+    compile do |g|
+      g.push 1
+      g.make_array 1
+      g.push 2
+      g.cast_array
+      g.send :+, 1
+      g.cast_array
+
+      g.shift_array
+      g.set_local 0
+      g.pop
+
+      g.shift_array
+      g.cast_array
+
+      g.shift_array
+      g.set_local 1
+      g.pop
+
+      g.shift_array
+      g.set_local 2
+      g.pop
+
+      g.pop
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, (b, *c) = 1" do
+    compile do |g|
+      g.push 1
+      g.cast_array
+
+      g.shift_array
+      g.set_local 0
+      g.pop
+
+      g.shift_array
+      g.cast_array
+
+      g.shift_array
+      g.set_local 1
+      g.pop
+
+      assign = g.new_label
+
+      g.dup
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.git assign
+      g.make_array 1
+
+      assign.set!
+      g.set_local 2
+
+      g.pop
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, (b, *c) = 1, 2" do
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.rotate 2
+
+      g.set_local 0
+      g.pop
+
+      g.cast_array
+
+      g.shift_array
+      g.set_local 1
+      g.pop
+
+      assign = g.new_label
+
+      g.dup
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.git assign
+      g.make_array 1
+
+      assign.set!
+      g.set_local 2
+
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, (b, *c) = *1" do
+    compile do |g|
+      g.push 1
+      g.cast_array
+
+      g.shift_array
+      g.set_local 0
+      g.pop
+
+      g.shift_array
+      g.cast_array
+
+      g.shift_array
+      g.set_local 1
+      g.pop
+
+      assign = g.new_label
+
+      g.dup
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.git assign
+      g.make_array 1
+
+      assign.set!
+      g.set_local 2
+      g.pop
+
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, (b, *c) = 1, *2" do
+    compile do |g|
+      g.push 1
+      g.make_array 1
+      g.push 2
+      g.cast_array
+      g.send :+, 1
+
+      g.cast_array
+
+      g.shift_array
+      g.set_local 0
+      g.pop
+
+      g.shift_array
+      g.cast_array
+
+      g.shift_array
+      g.set_local 1
+      g.pop
+
+      assign = g.new_label
+
+      g.dup
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.git assign
+      g.make_array 1
+
+      assign.set!
+      g.set_local 2
+      g.pop
+
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, (*b) = 1" do
+    compile do |g|
+      g.push 1
+      g.cast_array
+
+      g.shift_array
+      g.set_local 0
+      g.pop
+
+      assign = g.new_label
+
+      g.shift_array
+      g.dup
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.git assign
+      g.make_array 1
+
+      assign.set!
+      g.set_local 1
+      g.pop
+
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, (*b) = 1, 2" do
+    compile do |g|
+      g.push 1
+      g.push 2
+
+      g.rotate 2
+
+      g.set_local 0
+      g.pop
+
+      assign = g.new_label
+
+      g.dup
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.git assign
+      g.make_array 1
+
+      assign.set!
+      g.set_local 1
+      g.pop
+
+      g.push :true
+    end
+  end
+
+  relates "a, (*b) = *1" do
+    compile do |g|
+      g.push 1
+      g.cast_array
+
+      g.shift_array
+      g.set_local 0
+      g.pop
+
+      assign = g.new_label
+
+      g.shift_array
+      g.dup
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.git assign
+      g.make_array 1
+
+      assign.set!
+      g.set_local 1
+      g.pop
+
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, (*b) = 1, *2" do
+    compile do |g|
+      g.push 1
+      g.make_array 1
+      g.push 2
+      g.cast_array
+      g.send :+, 1
+      g.cast_array
+
+      g.shift_array
+      g.set_local 0
+      g.pop
+
+      g.shift_array
+
+      assign = g.new_label
+
+      g.dup
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+      g.git assign
+      g.make_array 1
+
+      assign.set!
+      g.set_local 1
+      g.pop
+
+      g.pop
+      g.push :true
     end
   end
 end
