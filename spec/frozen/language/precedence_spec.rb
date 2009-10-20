@@ -428,19 +428,19 @@ describe "Operators" do
   end
 
   it "= %= /= -= += |= &= >>= <<= *= &&= ||= **= have higher precedence than defined? operator" do
-    (defined? a =   10).should_not == nil
-    (defined? a %=  10).should_not == nil
-    (defined? a /=  10).should_not == nil
-    (defined? a -=  10).should_not == nil
-    (defined? a +=  10).should_not == nil
-    (defined? a |=  10).should_not == nil
-    (defined? a &=  10).should_not == nil
-    (defined? a >>= 10).should_not == nil
-    (defined? a <<= 10).should_not == nil
-    (defined? a *=  10).should_not == nil
-    (defined? a &&= 10).should_not == nil
-    (defined? a ||= 10).should_not == nil
-    (defined? a **= 10).should_not == nil
+    (defined? a =   10).should == "assignment"
+    (defined? a %=  10).should == "assignment"
+    (defined? a /=  10).should == "assignment"
+    (defined? a -=  10).should == "assignment"
+    (defined? a +=  10).should == "assignment"
+    (defined? a |=  10).should == "assignment"
+    (defined? a &=  10).should == "assignment"
+    (defined? a >>= 10).should == "assignment"
+    (defined? a <<= 10).should == "assignment"
+    (defined? a *=  10).should == "assignment"
+    (defined? a &&= 10).should == "assignment"
+    (defined? a ||= 10).should == "assignment"
+    (defined? a **= 10).should == "assignment"
   end
 
   # XXX: figure out how to test it
