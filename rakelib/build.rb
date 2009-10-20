@@ -21,7 +21,7 @@ def llvm_flags
     @llvm_flags = []
   end
 
-  @llvm_flags += `#{llvm_configure} --cflags`.split(/\s+/)
+  @llvm_flags += `perl #{llvm_configure} --cflags`.split(/\s+/)
   @llvm_flags.delete_if { |e| e.index("-O") == 0 }
   @llvm_flags
 end
@@ -29,13 +29,13 @@ end
 def llvm_link_flags
   return "" unless LLVM_ENABLE
 
-  `#{llvm_configure} --ldflags`.strip
+  `perl #{llvm_configure} --ldflags`.strip
 end
 
 def llvm_lib_files
   return [] unless LLVM_ENABLE
 
-  files = `#{llvm_configure} --libfiles all`.split(/\s+/)
+  files = `perl #{llvm_configure} --libfiles all`.split(/\s+/)
   files.select { |f| File.file? f }
 end
 
