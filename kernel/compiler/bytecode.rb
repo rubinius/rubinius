@@ -792,6 +792,8 @@ class Compiler
         :lit    => "expression",
         :lvar   => "local-variable",
         :nil    => "nil",
+        :op_asgn_and => "assignment",
+        :op_asgn_or  => "assignment",
         :self   => "self",
         :str    => "expression",
         :true   => "true",
