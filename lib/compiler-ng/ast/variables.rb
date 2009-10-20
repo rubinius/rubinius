@@ -257,23 +257,17 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        wrap = g.new_label
-        done = g.new_label
+        assign = g.new_label
 
         g.dup
         g.push_cpath_top
         g.find_const :Array
         g.swap
         g.kind_of
-
-        g.gif wrap
-        g.cast_array
-        g.goto done
-
-        wrap.set!
+        g.git assign
         g.make_array 1
 
-        done.set!
+        assign.set!
         @value.bytecode(g)
       end
     end
@@ -381,7 +375,11 @@ module Rubinius
 
         if splat.kind_of? Node
           if @left
-            @splat = SplatAssignment.new line, splat
+            if right
+              @splat = SplatAssignment.new line, splat
+            else
+              @splat = SplatWrapped.new line, splat
+            end
           elsif @fixed
             @splat = SplatArray.new line, splat, right.body.size
           elsif right.kind_of? SplatValue
@@ -441,6 +439,8 @@ module Rubinius
       def bytecode(g)
         map_masgn
 
+        g.cast_array unless @right or (@splat and not @left)
+
         if @fixed
           pad_short(g) if @left and !@splat
           @right.body.each { |x| x.bytecode(g) }
@@ -466,7 +466,7 @@ module Rubinius
           if @left
             @left.body.each do |x|
               g.shift_array
-              g.cast_array if x.kind_of? MAsgn
+              g.cast_array if x.kind_of? MAsgn and x.left
               x.bytecode(g)
               g.pop
             end
@@ -475,7 +475,7 @@ module Rubinius
 
         @splat.bytecode(g) if @splat
 
-        unless @iter_arguments
+        if @right
           g.pop if !@fixed or @splat
           g.push :true
         end

@@ -410,6 +410,8 @@ module Rubinius
           arguments.iter_arguments
 
           if arguments.splat
+            arguments.splat = arguments.splat.value
+
             @optional = 1
             if arguments.left
               @prelude = :multi
