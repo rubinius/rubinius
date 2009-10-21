@@ -28,21 +28,21 @@ describe "A Defined node" do
 
   relates "defined? a" do
     compile do |g|
-      t = g.new_label
       f = g.new_label
+      done = g.new_label
 
       g.push :self
       g.push_literal :a
       g.push :true
-      g.send :__respond_to_eh__, 2
-      g.git t
-      g.push :nil
-      g.goto f
-
-      t.set!
+      g.send :respond_to?, 2
+      g.gif f
       g.push_literal "method"
+      g.goto done
 
       f.set!
+      g.push :nil
+
+      done.set!
     end
   end
 
@@ -86,96 +86,96 @@ describe "A Defined node" do
 
   relates "defined? X" do
     compile do |g|
-      t = g.new_label
       f = g.new_label
+      done = g.new_label
 
       g.push_scope
       g.push_literal :X
       g.send :const_defined?, 1
-      g.git t
-      g.push :nil
-      g.goto f
-
-      t.set!
+      g.gif f
       g.push_literal "constant"
+      g.goto done
 
       f.set!
+      g.push :nil
+
+      done.set!
     end
   end
 
   relates "defined? ::X" do
     compile do |g|
-      t = g.new_label
       f = g.new_label
+      done = g.new_label
 
       g.push_const :Object
       g.push_literal "X"
       g.send :const_path_defined?, 1
-      g.git t
-      g.push :nil
-      g.goto f
-
-      t.set!
+      g.gif f
       g.push_literal "constant"
+      g.goto done
 
       f.set!
+      g.push :nil
+
+      done.set!
     end
   end
 
   relates "defined? X::Y" do
     compile do |g|
-      t = g.new_label
       f = g.new_label
+      done = g.new_label
 
       g.push_scope
       g.push_literal "X::Y"
       g.send :const_path_defined?, 1
-      g.git t
-      g.push :nil
-      g.goto f
-
-      t.set!
+      g.gif f
       g.push_literal "constant"
+      g.goto done
 
       f.set!
+      g.push :nil
+
+      done.set!
     end
   end
 
   relates "defined? X::Y::Z" do
     compile do |g|
-      t = g.new_label
       f = g.new_label
+      done = g.new_label
 
       g.push_scope
       g.push_literal "X::Y::Z"
       g.send :const_path_defined?, 1
-      g.git t
-      g.push :nil
-      g.goto f
-
-      t.set!
+      g.gif f
       g.push_literal "constant"
+      g.goto done
 
       f.set!
+      g.push :nil
+
+      done.set!
     end
   end
 
   relates "defined? self::A" do
     compile do |g|
-      t = g.new_label
       f = g.new_label
+      done = g.new_label
 
       g.push_scope
       g.push_literal "self::A"
       g.send :const_path_defined?, 1
-      g.git t
-      g.push :nil
-      g.goto f
-
-      t.set!
+      g.gif f
       g.push_literal "constant"
+      g.goto done
 
       f.set!
+      g.push :nil
+
+      done.set!
     end
   end
 
@@ -273,6 +273,81 @@ describe "A Defined node" do
       g.push_literal "yield"
 
       f.set!
+    end
+  end
+
+  relates "defined? A.m" do
+    compile do |g|
+      f = g.new_label
+      done = g.new_label
+
+      g.push_scope
+      g.push_literal :A
+      g.send :const_defined?, 1
+      g.gif f
+      g.push_const :A
+      g.push_literal :m
+      g.push :true
+      g.send :respond_to?, 2
+      g.gif f
+      g.push_literal "method"
+      g.goto done
+
+      f.set!
+      g.push :nil
+
+      done.set!
+    end
+  end
+
+  relates "defined? ::A.m" do
+    compile do |g|
+      f = g.new_label
+      done = g.new_label
+
+      g.push_const :Object
+      g.push_literal "A"
+      g.send :const_path_defined?, 1
+      g.gif f
+      g.push_cpath_top
+      g.find_const :A
+      g.push_literal :m
+      g.push :true
+      g.send :respond_to?, 2
+      g.gif f
+      g.push_literal "method"
+      g.goto done
+
+      f.set!
+      g.push :nil
+
+      done.set!
+    end
+  end
+
+  relates "defined? A::B.m" do
+    compile do |g|
+      f = g.new_label
+      done = g.new_label
+
+      g.push_scope
+      g.push_literal "A::B"
+      g.send :const_path_defined?, 1
+      g.gif f
+
+      g.push_const :A
+      g.find_const :B
+      g.push_literal :m
+      g.push :true
+      g.send :respond_to?, 2
+      g.gif f
+      g.push_literal "method"
+      g.goto done
+
+      f.set!
+      g.push :nil
+
+      done.set!
     end
   end
 end
