@@ -84,14 +84,22 @@ namespace rubinius {
     return so;
   }
 
+  /* +bytes+ should NOT attempt to take the trailing null into account
+   * +bytes+ is the number of 'real' characters in the string
+   */
+  String* String::create(STATE, const char* str) {
+    if(!str) return String::create(state, Fixnum::from(0));
+
+    size_t bytes = strlen(str);
+
+    return String::create(state, str, bytes);
+  }
 
   /* +bytes+ should NOT attempt to take the trailing null into account
    * +bytes+ is the number of 'real' characters in the string
    */
   String* String::create(STATE, const char* str, size_t bytes) {
-    if(bytes == 0 && str) bytes = strlen(str);
-
-    String *so = String::create(state, Fixnum::from(bytes));
+    String* so = String::create(state, Fixnum::from(bytes));
 
     if(str) std::memcpy(so->data_->bytes, str, bytes);
 
