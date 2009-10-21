@@ -20,9 +20,12 @@ describe "C-API String function" do
   end
 
   describe "rb_str_new" do
-    it "returns a new string object" do
-      # Hardcoded to pass const char * = "hello"
-      @s.rb_str_new.should == "hello"
+    it "returns a new string object from a char buffer of len characters" do
+      @s.rb_str_new("hello", 3).should == "hel"
+    end
+
+    it "returns an empty string if len is 0" do
+      @s.rb_str_new("hello", 0).should == ""
     end
   end
 

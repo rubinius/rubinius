@@ -1,9 +1,8 @@
 #include "ruby.h"
 #include <string.h>
 
-VALUE string_spec_rb_str_new(VALUE self) {
-  const char *str = "hello";
-  return rb_str_new(str, strlen(str));
+VALUE string_spec_rb_str_new(VALUE self, VALUE str, VALUE len) {
+  return rb_str_new(RSTRING_PTR(str), FIX2INT(len));
 }
 
 VALUE string_spec_rb_str_new2(VALUE self) {
@@ -318,7 +317,7 @@ void Init_string_spec() {
   VALUE cls;
   cls = rb_define_class("CApiStringSpecs", rb_cObject);
 
-  rb_define_method(cls, "rb_str_new", string_spec_rb_str_new, 0);
+  rb_define_method(cls, "rb_str_new", string_spec_rb_str_new, 2);
   rb_define_method(cls, "rb_str_new2", string_spec_rb_str_new2, 0);
   rb_define_method(cls, "rb_str_new2_with_null", string_spec_rb_str_new2_with_null, 0);
   rb_define_method(cls, "rb_str_dup", string_spec_rb_str_dup, 1);
