@@ -53,6 +53,10 @@ module Rubinius
         g.push :nil
       end
 
+      def receiver_defined(g, f)
+        g.goto f
+      end
+
       def in_rescue
       end
 

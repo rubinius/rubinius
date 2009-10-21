@@ -18,21 +18,32 @@ module Rubinius
         s << "::" << @name.to_s
       end
 
-      def defined(g)
-        t = g.new_label
-        f = g.new_label
-
+      def check_const(g)
         g.push_scope
         g.push_literal constant_defined("")
         g.send :const_path_defined?, 1
-        g.git t
-        g.push :nil
-        g.goto f
+      end
 
-        t.set!
+      def defined(g)
+        f = g.new_label
+        done = g.new_label
+
+        check_const(g)
+        g.gif f
         g.push_literal "constant"
+        g.goto done
 
         f.set!
+        g.push :nil
+
+        done.set!
+      end
+
+      def receiver_defined(g, f)
+        check_const(g)
+        g.gif f
+
+        bytecode(g)
       end
 
       def bytecode(g)
@@ -59,21 +70,31 @@ module Rubinius
         g.find_const @name
       end
 
-      def defined(g)
-        t = g.new_label
-        f = g.new_label
-
+      def check_const(g)
         g.push_const :Object
         g.push_literal @name.to_s
         g.send :const_path_defined?, 1
-        g.git t
-        g.push :nil
-        g.goto f
+      end
 
-        t.set!
+      def defined(g)
+        f = g.new_label
+        done = g.new_label
+
+        check_const(g)
+        g.gif f
         g.push_literal "constant"
+        g.goto done
 
         f.set!
+        g.push :nil
+
+        done.set!
+      end
+
+      def receiver_defined(g, f)
+        check_const(g)
+        g.gif f
+        bytecode(g)
       end
     end
 
@@ -100,21 +121,31 @@ module Rubinius
         s << @name.to_s
       end
 
-      def defined(g)
-        t = g.new_label
-        f = g.new_label
-
+      def check_const(g)
         g.push_scope
         g.push_literal @name
         g.send :const_defined?, 1
-        g.git t
-        g.push :nil
-        g.goto f
+      end
 
-        t.set!
+      def defined(g)
+        f = g.new_label
+        done = g.new_label
+
+        check_const(g)
+        g.gif f
         g.push_literal "constant"
+        g.goto done
 
         f.set!
+        g.push :nil
+
+        done.set!
+      end
+
+      def receiver_defined(g, f)
+        check_const(g)
+        g.gif f
+        bytecode(g)
       end
     end
 

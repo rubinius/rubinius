@@ -12,6 +12,10 @@ module Rubinius
       def constant_defined(s)
         s << "self"
       end
+
+      def receiver_defined(g, f)
+        g.push :self
+      end
     end
   end
 end

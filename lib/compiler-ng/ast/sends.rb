@@ -30,21 +30,22 @@ module Rubinius
       end
 
       def defined(g)
-        t = g.new_label
         f = g.new_label
+        done = g.new_label
 
-        g.push :self
+        @receiver.receiver_defined(g, f)
+
         g.push_literal @name
         g.push :true
-        g.send :__respond_to_eh__, 2
-        g.git t
-        g.push :nil
-        g.goto f
-
-        t.set!
+        g.send :respond_to?, 2
+        g.gif f
         g.push_literal "method"
+        g.goto done
 
         f.set!
+        g.push :nil
+
+        done.set!
       end
     end
 
@@ -578,6 +579,10 @@ module Rubinius
         else
           g.send_super @name, @arguments.size
         end
+      end
+
+      def defined(g)
+        g.push :nil
       end
     end
 
