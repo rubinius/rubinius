@@ -768,8 +768,8 @@ describe "A Call node" do
 
     compile do |g|
       g.push :self
-      g.array_of_splatted_array
-
+      g.push 1
+      g.make_array 1
       g.send :meth, 1, true
     end
   end

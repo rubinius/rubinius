@@ -808,7 +808,8 @@ describe "An Iter node" do
       g.push :self
 
       g.in_block_send :m, :none do |d|
-        d.array_of_splatted_array
+        d.push 1
+        d.make_array 1
         d.ret
       end
     end
@@ -847,10 +848,9 @@ describe "An Iter node" do
       g.push :self
 
       g.in_block_send :m, :none do |d|
-        d.array_of_splatted_array 2 do
-          d.push 1
-          d.push 2
-        end
+        d.push 1
+        d.push 2
+        d.make_array 2
         d.ret
       end
     end
@@ -993,7 +993,8 @@ describe "An Iter node" do
       g.push :self
 
       g.in_block_send :m, :none do |d|
-        d.array_of_splatted_array
+        d.push 1
+        d.make_array 1
         d.raise_break
       end
     end
@@ -1032,10 +1033,9 @@ describe "An Iter node" do
       g.push :self
 
       g.in_block_send :m, :none do |d|
-        d.array_of_splatted_array 2 do
-          d.push 1
-          d.push 2
-        end
+        d.push 1
+        d.push 2
+        d.make_array 2
         d.raise_break
       end
     end
@@ -1178,7 +1178,8 @@ describe "An Iter node" do
       g.push :self
 
       g.in_block_send :m, :none do |d|
-        d.array_of_splatted_array
+        d.push 1
+        d.make_array 1
         d.raise_return
       end
     end
@@ -1217,10 +1218,9 @@ describe "An Iter node" do
       g.push :self
 
       g.in_block_send :m, :none do |d|
-        d.array_of_splatted_array 2 do
-          d.push 1
-          d.push 2
-        end
+        d.push 1
+        d.push 2
+        d.make_array 2
         d.raise_return
       end
     end

@@ -183,8 +183,8 @@ describe "A Super node" do
     end
 
     compile do |g|
-      g.array_of_splatted_array
-
+      g.push 1
+      g.make_array 1
       g.push_block
       g.send_super nil, 1
     end

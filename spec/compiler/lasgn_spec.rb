@@ -217,7 +217,8 @@ describe "An Lasgn node" do
     end
 
     compile do |g|
-      g.array_of_splatted_array
+      g.push 1
+      g.make_array 1
       g.set_local 0
     end
   end

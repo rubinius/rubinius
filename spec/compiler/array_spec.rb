@@ -96,7 +96,8 @@ describe "An Array node" do
     end
 
     compile do |g|
-      g.array_of_splatted_array
+      g.push 1
+      g.make_array 1
     end
   end
 
@@ -106,10 +107,8 @@ describe "An Array node" do
     end
 
     compile do |g|
-      g.make_array 0
       g.push 1
       g.cast_array
-      g.send :+, 1
     end
   end
 
@@ -119,10 +118,8 @@ describe "An Array node" do
     end
 
     compile do |g|
-      g.make_array 0
       g.push 1
       g.cast_array
-      g.send :+, 1
       g.make_array 1
     end
   end

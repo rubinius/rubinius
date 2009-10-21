@@ -130,32 +130,28 @@ describe "An If node" do
     end
 
     compile do |g|
-      yep  = g.new_label
-      done = g.new_label
-      inner_done = g.new_label
-      nope = g.new_label
+      else1 = g.new_label
+      else2 = g.new_label
+      done1 = g.new_label
+      done2 = g.new_label
 
       g.push :true
-      g.git  yep
+      g.gif else1
+      g.push :nil
+      g.goto done1
 
+      else1.set!
       g.push :false
-      g.gif  nope
-
+      g.gif else2
       g.push :nil
       g.ret
-      g.goto inner_done
+      g.goto done2
 
-      nope.set!
+      else2.set!
       g.push :nil
 
-      inner_done.set!
-
-      g.goto done
-
-      yep.set!
-      g.push :nil
-
-      done.set!
+      done2.set!
+      done1.set!
     end
   end
 
@@ -165,19 +161,18 @@ describe "An If node" do
     end
 
     compile do |g|
-      yep  = g.new_label
+      else_label = g.new_label
       done = g.new_label
 
       g.push :self
       g.send :b, 0, true
-      g.git yep
-
-      g.push :self
-      g.send :a, 0, true
+      g.gif else_label
+      g.push :nil
       g.goto done
 
-      yep.set!
-      g.push :nil
+      else_label.set!
+      g.push :self
+      g.send :a, 0, true
 
       done.set!
     end
@@ -213,19 +208,18 @@ describe "An If node" do
     end
 
     compile do |g|
-      yep  = g.new_label
+      else_label = g.new_label
       done = g.new_label
 
       g.push :self
       g.send :b, 0, true
-      g.git yep
-
-      g.push :self
-      g.send :a, 0, true
+      g.gif else_label
+      g.push :nil
       g.goto done
 
-      yep.set!
-      g.push :nil
+      else_label.set!
+      g.push :self
+      g.send :a, 0, true
 
       done.set!
     end
@@ -336,19 +330,18 @@ describe "An If node" do
     end
 
     compile do |g|
-      yep  = g.new_label
+      else_label = g.new_label
       done = g.new_label
 
       g.push :self
       g.send :b, 0, true
-      g.git  yep
-
-      g.push :self
-      g.send :a, 0, true
+      g.gif else_label
+      g.push :nil
       g.goto done
 
-      yep.set!
-      g.push :nil
+      else_label.set!
+      g.push :self
+      g.send :a, 0, true
 
       done.set!
     end
@@ -384,19 +377,18 @@ describe "An If node" do
     end
 
     compile do |g|
-      yep  = g.new_label
+      else_label = g.new_label
       done = g.new_label
 
       g.push :self
       g.send :b, 0, true
-      g.git  yep
-
-      g.push :self
-      g.send :a, 0, true
+      g.gif else_label
+      g.push :nil
       g.goto done
 
-      yep.set!
-      g.push :nil
+      else_label.set!
+      g.push :self
+      g.send :a, 0, true
 
       done.set!
     end

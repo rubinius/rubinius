@@ -346,7 +346,6 @@ class TestGenerator
       end
 
       if type == :rest
-        d.cast_array
         d.set_local count
       end
 

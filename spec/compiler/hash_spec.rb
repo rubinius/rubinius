@@ -67,12 +67,8 @@ describe "A Hash node" do
 
       g.dup
       g.push 1
-
-      g.make_array 0
       g.push 1
       g.cast_array
-      g.send :+, 1
-
       g.send :[]=, 2
       g.pop
     end
