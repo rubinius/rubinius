@@ -9,6 +9,10 @@ describe "DependencyGrapher#print_dependencies" do
     @grapher.should_receive(:get_system_defines)
   end
 
+  after :each do
+    $stdout = @stdout
+  end
+
   it "prints the dependencies for all object files" do
     @grapher.file_names = [fixture(__FILE__, "c.cpp"), fixture(__FILE__, "d.cpp")]
     @grapher.directories = [fixture(__FILE__)]
