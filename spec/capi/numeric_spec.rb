@@ -54,4 +54,12 @@ describe "CApiNumericSpecs" do
       @s.rb_num2ulong(obj).should == 2
     end
   end
+  
+  describe "rb_Integer" do
+    it "should create a new Integer from a String" do
+      i = @s.rb_Integer_method("8675309")
+      i.is_a?(Integer).should == true
+      i.eql?(8675309).should == true
+    end
+  end
 end

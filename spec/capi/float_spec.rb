@@ -26,4 +26,12 @@ describe "CApiFloatSpecs" do
       f.eql?(4.0).should == true
     end
   end
+  
+  describe "rb_Float" do
+    it "should create a new Float from a String" do
+      f = @f.rb_Float_method("101.99")
+      f.is_a?(Float).should == true
+      f.eql?(101.99).should == true
+    end
+  end
 end

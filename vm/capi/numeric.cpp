@@ -185,4 +185,8 @@ extern "C" {
     }
     return d;
   }
+  
+  VALUE rb_Integer(VALUE object_handle) {
+    return rb_convert_type(object_handle, 0, "Integer", "to_i");
+  }
 }

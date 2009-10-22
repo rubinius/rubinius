@@ -1297,6 +1297,10 @@ double rb_num2dbl(VALUE);
   VALUE   rb_marshal_load(VALUE string);
 
   VALUE   rb_float_new(double val);
+  
+  VALUE   rb_Float(VALUE object_handle);
+  
+  VALUE   rb_Integer(VALUE object_handle);
 
   void    rb_bug(const char *fmt, ...);
 
