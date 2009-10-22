@@ -1,5 +1,5 @@
 def item_check(left, item, right)
-  return item if left.nil?
+  return item unless left
   item + item_check(*left) - item_check(*right)
 end
 
