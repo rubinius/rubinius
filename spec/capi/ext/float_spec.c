@@ -1,12 +1,12 @@
 #include "ruby.h"
 #include <math.h>
 
-static VALUE sf_new_zero(VALUE self) {
+static VALUE float_spec_new_zero(VALUE self) {
   double flt = 0;
   return rb_float_new(flt);
 }
 
-static VALUE sf_new_point_five(VALUE self) {
+static VALUE float_spec_new_point_five(VALUE self) {
   double flt = 0.555;
   return rb_float_new(flt);
 }
@@ -20,16 +20,16 @@ static VALUE float_spec_RFLOAT_value_set(VALUE self, VALUE float_h, VALUE new_va
   return Qnil;
 }
 
-static VALUE float_spec_rb_Float_method(VALUE self, VALUE float_str) {
+static VALUE float_spec_rb_Float(VALUE self, VALUE float_str) {
   return rb_Float(float_str);
 }
 
 void Init_float_spec() {
   VALUE cls;
   cls = rb_define_class("CApiFloatSpecs", rb_cObject);
-  rb_define_method(cls, "sf_new_zero", sf_new_zero, 0);
-  rb_define_method(cls, "sf_new_point_five", sf_new_point_five, 0);
+  rb_define_method(cls, "new_zero", float_spec_new_zero, 0);
+  rb_define_method(cls, "new_point_five", float_spec_new_point_five, 0);
   rb_define_method(cls, "RFLOAT_value", float_spec_RFLOAT_value, 1);
   rb_define_method(cls, "RFLOAT_value_set", float_spec_RFLOAT_value_set, 2);
-  rb_define_method(cls, "rb_Float_method", float_spec_rb_Float_method, 1);
+  rb_define_method(cls, "rb_Float", float_spec_rb_Float, 1);
 }
