@@ -215,6 +215,8 @@ namespace rubinius {
       return Qnil;
     }
 
+    if(type_id() == Object::type) return get_table_ivar(state, sym);
+
     // Handle packed objects in a unique way.
     if(PackedObject* po = try_as<PackedObject>(this)) {
       return po->get_packed_ivar(state, sym);
@@ -495,6 +497,8 @@ namespace rubinius {
       tbl->store(state, sym, val);
       return val;
     }
+
+    if(type_id() == Object::type) return set_table_ivar(state, sym, val);
 
     // Handle packed objects in a unique way.
     if(PackedObject* po = try_as<PackedObject>(this)) {
