@@ -344,7 +344,7 @@ module Rubinius
         desc.optional = @arguments.optional
 
         blk = desc.generator
-        blk.push_state g.state.scope
+        blk.push_state self
         blk.file = g.file
         blk.name = :__block__
 
@@ -353,9 +353,6 @@ module Rubinius
         blk.required_args = @arguments.required_args
         blk.total_args = @arguments.total_args
         blk.splat_index = @arguments.splat_index
-
-        blk.local_count = local_count
-        blk.local_names = local_names
 
         # Push line info down.
         pos(blk)
@@ -374,6 +371,9 @@ module Rubinius
         blk.ret
         blk.close
         blk.pop_state
+
+        blk.local_count = local_count
+        blk.local_names = local_names
 
         g.create_block desc
       end

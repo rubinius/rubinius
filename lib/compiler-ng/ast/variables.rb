@@ -323,6 +323,8 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
+        g.state.scope.assign_local_reference self
+
         @variable.get_bytecode(g)
       end
 
@@ -342,6 +344,8 @@ module Rubinius
 
       def bytecode(g)
         pos(g)
+
+        g.state.scope.assign_local_reference self
 
         if @value
           @value.bytecode(g)

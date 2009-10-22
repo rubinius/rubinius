@@ -124,41 +124,12 @@ module Rubinius
         var.variable = variable.reference
       end
 
-      def map_variables
-        visit self do |scope, node|
-          result = scope
-          case node
-          when ClosedScope
-            result = nil
-          when LocalVariable
-            scope.assign_local_reference node
-          when FormalArguments
-            node.map_arguments scope
-          when Iter
-            scope.nest_scope node
-            result = node
-          end
-
-          result
-        end
-      end
-
       def nest_scope(scope)
         scope.parent = self
       end
 
       def module?
         false
-      end
-
-      def scope_bytecode(g)
-        map_variables
-      end
-
-      def bytecode(g)
-        pos(g)
-
-        scope_bytecode(g)
       end
 
       def attach_and_call(g, name, scoped=false)
@@ -169,9 +140,6 @@ module Rubinius
         meth.name = @name ? @name : name
         meth.push_state self
 
-        meth.local_count = local_count
-        meth.local_names = local_names
-
         if scoped
           meth.push_self
           meth.add_scope
@@ -181,6 +149,10 @@ module Rubinius
 
         meth.ret
         meth.close
+
+        meth.local_count = local_count
+        meth.local_names = local_names
+
         meth.pop_state
 
         g.dup
@@ -258,7 +230,7 @@ module Rubinius
       end
 
       def bytecode(g)
-        super(g)
+        pos(g)
 
         g.push_const :Rubinius
         g.push_literal @name
@@ -298,8 +270,6 @@ module Rubinius
 
       def bytecode(g)
         pos(g)
-
-        scope_bytecode(g)
 
         g.send :metaclass, 0
         g.push_literal @name
@@ -348,6 +318,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        map_arguments g.state.scope
+
         @defaults.bytecode(g) if @defaults
         @block_arg.bytecode(g) if @block_arg
       end
@@ -511,7 +483,7 @@ module Rubinius
       end
 
       def bytecode(g)
-        super(g)
+        pos(g)
 
         attach_and_call g, :__class_init__, true
       end
@@ -664,7 +636,7 @@ module Rubinius
       end
 
       def bytecode(g)
-        super(g)
+        pos(g)
 
         attach_and_call g, :__module_init__, true
       end
@@ -701,7 +673,7 @@ module Rubinius
       end
 
       def bytecode(g)
-        super(g)
+        pos(g)
 
         g.dup
         g.send :__verify_metaclass__, 0
@@ -726,11 +698,11 @@ module Rubinius
         @body = body || Nil.new(1)
       end
 
-      def bytecode(g)
-        super(g)
-
+      def container_bytecode(g)
         g.name = @name
         g.file = @file.to_sym
+
+        yield if block_given?
 
         g.local_count = local_count
         g.local_names = local_names
@@ -818,10 +790,12 @@ module Rubinius
         map_eval
         super(g)
 
-        g.push_state self
-        @body.bytecode(g)
-        g.ret
-        g.pop_state
+        container_bytecode(g) do
+          g.push_state self
+          @body.bytecode(g)
+          g.ret
+          g.pop_state
+        end
       end
     end
 
@@ -834,9 +808,11 @@ module Rubinius
       def bytecode(g)
         super(g)
 
-        g.push_state self
-        @body.bytecode(g)
-        g.pop_state
+        container_bytecode(g) do
+          g.push_state self
+          @body.bytecode(g)
+          g.pop_state
+        end
       end
     end
 
@@ -849,12 +825,14 @@ module Rubinius
       def bytecode(g)
         super(g)
 
-        g.push_state self
-        @body.bytecode(g)
-        g.pop
-        g.push :true
-        g.ret
-        g.pop_state
+        container_bytecode(g) do
+          g.push_state self
+          @body.bytecode(g)
+          g.pop
+          g.push :true
+          g.ret
+          g.pop_state
+        end
       end
     end
 
