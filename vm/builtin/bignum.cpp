@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iostream>
 
+#include "gc/gc.hpp"
 #include "vm/object_utils.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
@@ -14,6 +15,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
+#include "builtin/bytearray.hpp"
 
 #define BASIC_CLASS(blah) G(blah)
 #define NEW_STRUCT(obj, str, kls, kind) \
@@ -31,6 +33,8 @@
 #define BDIGIT_DBL long long
 #define DIGIT_RADIX (1UL << DIGIT_BIT)
 
+#define XST ((void*)state)
+
 namespace rubinius {
 
   /*
@@ -41,7 +45,7 @@ namespace rubinius {
    * of the mp_set_long, mp_init_set_long and mp_get_long
    * functions here.
    */
-  static int mp_set_long (mp_int * a, unsigned long b)
+  static int mp_set_long MPA(mp_int * a, unsigned long b)
   {
     int     err;
     // @todo Move these two values to bignum.h
@@ -49,12 +53,12 @@ namespace rubinius {
     size_t  count = sizeof(unsigned long) * 2;
     size_t  shift_width = (sizeof(unsigned long) * 8) - 4;
 
-    mp_zero (a);
+    mp_zero(a);
 
     /* set four bits at a time */
     for (x = 0; x < count; x++) {
       /* shift the number up four bits */
-      if ((err = mp_mul_2d (a, 4, a)) != MP_OKAY) {
+      if ((err = mp_mul_2d(MPST, a, 4, a)) != MP_OKAY) {
         return err;
       }
 
@@ -71,8 +75,7 @@ namespace rubinius {
     return MP_OKAY;
   }
 
-  static unsigned long mp_get_long (mp_int * a)
-  {
+  static unsigned long mp_get_long(mp_int * a) {
       int i;
       unsigned long res;
 
@@ -115,21 +118,23 @@ namespace rubinius {
 #define BITWISE_OP_OR  2
 #define BITWISE_OP_XOR 3
 
-  static void bignum_bitwise_op(int op, mp_int *x, mp_int *y, mp_int *n)
+  static void bignum_bitwise_op MPA(int op, mp_int *x, mp_int *y, mp_int *n)
   {
     mp_int   a,   b;
     mp_int *d1, *d2;
     int i, sign,  l1,  l2;
-    mp_init(&a) ; mp_init(&b);
+
+    mp_init(&a);
+    mp_init(&b);
 
     if (y->sign == MP_NEG) {
-      mp_copy(y, &b);
+      mp_copy(MPST, y, &b);
       twos_complement(&b);
       y = &b;
     }
 
     if (x->sign == MP_NEG) {
-      mp_copy(x, &a);
+      mp_copy(MPST, x, &a);
       twos_complement(&a);
       x = &a;
     }
@@ -148,7 +153,7 @@ namespace rubinius {
       sign = x->sign;
     }
 
-    mp_grow(n, l2);
+    mp_grow(MPST, n, l2);
     n->used = l2;
     n->sign = MP_ZPOS;
     switch(op) {
@@ -191,10 +196,32 @@ namespace rubinius {
   void Bignum::Info::cleanup(Object* obj) {
     Bignum* big = as<Bignum>(obj);
     mp_int *n = big->mp_val();
-    mp_clear(n);
+    assert(MANAGED(n));
+    // mp_clear(n);
   }
 
-  void Bignum::Info::mark(Object* obj, ObjectMark& mark) { }
+  void Bignum::Info::mark(Object* obj, ObjectMark& mark) {
+    Bignum* big = force_as<Bignum>(obj);
+
+    mp_int* n = big->mp_val();
+    assert(MANAGED(n));
+
+    Object* tmp = mark.call(static_cast<Object*>(n->managed));
+    if(tmp) {
+      n->managed = reinterpret_cast<void*>(tmp);
+      ByteArray* ba = force_as<ByteArray>(tmp);
+      n->dp = OPT_CAST(mp_digit)ba->bytes;
+    }
+  }
+
+  void Bignum::Info::visit(Object* obj, ObjectVisitor& visit) {
+    Bignum* big = force_as<Bignum>(obj);
+
+    mp_int* n = big->mp_val();
+    assert(MANAGED(n));
+
+    visit.call(static_cast<Object*>(n->managed));
+  }
 
   void Bignum::Info::show(STATE, Object* self, int level) {
     Bignum* b = as<Bignum>(self);
@@ -210,15 +237,39 @@ namespace rubinius {
     G(bignum)->set_object_type(state, BignumType);
   }
 
+  namespace {
+    // Cripped and modified from bn_mp_init.c
+    void mp_init_managed(STATE, mp_int* a) {
+      int i;
+
+      ByteArray* storage = ByteArray::create(state, sizeof (mp_digit) * MP_PREC);
+      a->managed = reinterpret_cast<void*>(storage);
+
+      /* allocate memory required and clear it */
+      a->dp = OPT_CAST(mp_digit)storage->bytes;
+
+      /* set the digits to zero */
+      for (i = 0; i < MP_PREC; i++) {
+        a->dp[i] = 0;
+      }
+
+      /* set the used to zero, allocated digits to the default precision
+       * and sign to positive */
+      a->used  = 0;
+      a->alloc = MP_PREC;
+      a->sign  = MP_ZPOS;
+    }
+  }
+
   Bignum* Bignum::create(STATE) {
     Bignum* o;
     o = state->new_struct<Bignum>(G(bignum));
-    mp_init(o->mp_val());
+    mp_init_managed(state, o->mp_val());
     return o;
   }
 
   Bignum* Bignum::initialize_copy(STATE, Bignum* other) {
-    mp_copy(mp_val(), other->mp_val());
+    mp_copy(XST, mp_val(), other->mp_val());
     return this;
   }
 
@@ -229,10 +280,10 @@ namespace rubinius {
     a = o->mp_val();
 
     if(num < 0) {
-      mp_set_int(a, (unsigned int)-num);
+      mp_set_int(XST, a, (unsigned int)-num);
       a->sign = MP_NEG;
     } else {
-      mp_set_int(a, (unsigned int)num);
+      mp_set_int(XST, a, (unsigned int)num);
     }
     return o;
   }
@@ -240,7 +291,7 @@ namespace rubinius {
   Bignum* Bignum::from(STATE, unsigned int num) {
     Bignum* o;
     o = Bignum::create(state);
-    mp_set_int(o->mp_val(), num);
+    mp_set_int(XST, o->mp_val(), num);
     return o;
   }
 
@@ -251,10 +302,10 @@ namespace rubinius {
     a = o->mp_val();
 
     if(num < 0) {
-      mp_set_long(a, (unsigned long)-num);
+      mp_set_long(XST, a, (unsigned long)-num);
       a->sign = MP_NEG;
     } else {
-      mp_set_long(a, (unsigned long)num);
+      mp_set_long(XST, a, (unsigned long)num);
     }
     return o;
   }
@@ -262,7 +313,7 @@ namespace rubinius {
   Bignum* Bignum::from(STATE, unsigned long num) {
     Bignum* o;
     o = Bignum::create(state);
-    mp_set_long(o->mp_val(), num);
+    mp_set_long(XST, o->mp_val(), num);
     return o;
   }
 
@@ -270,13 +321,13 @@ namespace rubinius {
     Bignum* ret = Bignum::create(state);
     mp_int* num = ret->mp_val();
 
-    mp_set_long(num, val & 0xffffffff);
+    mp_set_long(XST, num, val & 0xffffffff);
 
     mp_int high;
-    mp_init_set_int(&high, val >> 32);
-    mp_mul_2d(&high, 32, &high);
+    mp_init_set_int(XST, &high, val >> 32);
+    mp_mul_2d(XST, &high, 32, &high);
 
-    mp_or(num, &high, num);
+    mp_or(XST, num, &high, num);
 
     mp_clear(&high);
 
@@ -302,7 +353,7 @@ namespace rubinius {
       return num->sign == MP_NEG ? Fixnum::from(-val) : Fixnum::from(val);
     } else {
       Bignum* n_obj = Bignum::create(state);
-      mp_copy(num, n_obj->mp_val());
+      mp_copy(XST, num, n_obj->mp_val());
       return n_obj;
     }
   }
@@ -345,7 +396,7 @@ namespace rubinius {
     out = mp_get_int(s);
 
     mp_init(&t);
-    mp_div_2d(s, 32, &t, NULL);
+    mp_div_2d(0, s, 32, &t, NULL);
 
     tmp = mp_get_int(&t);
     out |= tmp << 32;
@@ -369,16 +420,16 @@ namespace rubinius {
     NMP;
     native_int bi = b->to_native();
     if(bi > 0) {
-      mp_add_d(mp_val(), bi, n);
+      mp_add_d(XST, mp_val(), bi, n);
     } else {
-      mp_sub_d(mp_val(), -bi, n);
+      mp_sub_d(XST, mp_val(), -bi, n);
     }
     return Bignum::normalize(state, n_obj);
   }
 
   Integer* Bignum::add(STATE, Bignum* b) {
     NMP;
-    mp_add(mp_val(), b->mp_val(), n);
+    mp_add(XST, mp_val(), b->mp_val(), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -390,16 +441,16 @@ namespace rubinius {
     NMP;
     native_int bi = b->to_native();
     if(bi > 0) {
-      mp_sub_d(mp_val(), bi, n);
+      mp_sub_d(XST, mp_val(), bi, n);
     } else {
-      mp_add_d(mp_val(), -bi, n);
+      mp_add_d(XST, mp_val(), -bi, n);
     }
     return Bignum::normalize(state, n_obj);
   }
 
   Integer* Bignum::sub(STATE, Bignum* b) {
     NMP;
-    mp_sub(mp_val(), b->mp_val(), n);
+    mp_sub(XST, mp_val(), b->mp_val(), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -412,13 +463,13 @@ namespace rubinius {
 
     native_int bi = b->to_native();
     if(bi == 2) {
-      mp_mul_2(mp_val(), n);
+      mp_mul_2(XST, mp_val(), n);
     } else {
       if(bi > 0) {
-        mp_mul_d(mp_val(), bi, n);
+        mp_mul_d(XST, mp_val(), bi, n);
       } else {
-        mp_mul_d(mp_val(), -bi, n);
-        mp_neg(n, n);
+        mp_mul_d(XST, mp_val(), -bi, n);
+        mp_neg(XST, n, n);
       }
     }
     return Bignum::normalize(state, n_obj);
@@ -426,7 +477,7 @@ namespace rubinius {
 
   Integer* Bignum::mul(STATE, Bignum* b) {
     NMP;
-    mp_mul(mp_val(), b->mp_val(), n);
+    mp_mul(XST, mp_val(), b->mp_val(), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -444,10 +495,10 @@ namespace rubinius {
     native_int bi  = denominator->to_native();
     mp_digit r;
     if(bi < 0) {
-      mp_div_d(mp_val(), -bi, n, &r);
-      mp_neg(n, n);
+      mp_div_d(XST, mp_val(), -bi, n, &r);
+      mp_neg(XST, n, n);
     } else {
-      mp_div_d(mp_val(), bi, n, &r);
+      mp_div_d(XST, mp_val(), bi, n, &r);
     }
 
     if(remainder) {
@@ -462,7 +513,7 @@ namespace rubinius {
       if(remainder) {
         *remainder = Fixnum::from(as<Fixnum>(*remainder)->to_native() + bi);
       }
-      mp_sub_d(n, 1, n);
+      mp_sub_d(XST, n, 1, n);
     }
     return Bignum::normalize(state, n_obj);
   }
@@ -474,11 +525,11 @@ namespace rubinius {
 
     NMP;
     MMP;
-    mp_div(mp_val(), b->mp_val(), n, m);
+    mp_div(XST, mp_val(), b->mp_val(), n, m);
     if(mp_cmp_d(n, 0) == MP_LT && mp_cmp_d(m, 0) != MP_EQ) {
-      mp_sub_d(n, 1, n);
-      mp_mul(b->mp_val(), n, m);
-      mp_sub(mp_val(), m, m);
+      mp_sub_d(XST, n, 1, n);
+      mp_mul(XST, b->mp_val(), n, m);
+      mp_sub(XST, mp_val(), m, m);
     }
     if(remainder) {
       *remainder = Bignum::normalize(state, m_obj);
@@ -546,7 +597,7 @@ namespace rubinius {
     }
 
     /* Perhaps this should use mp_and rather than our own version */
-    bignum_bitwise_op(BITWISE_OP_AND, mp_val(), as<Bignum>(b)->mp_val(), n);
+    bignum_bitwise_op(XST, BITWISE_OP_AND, mp_val(), as<Bignum>(b)->mp_val(), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -561,7 +612,7 @@ namespace rubinius {
       b = Bignum::from(state, b->to_native());
     }
     /* Perhaps this should use mp_or rather than our own version */
-    bignum_bitwise_op(BITWISE_OP_OR, mp_val(), as<Bignum>(b)->mp_val(), n);
+    bignum_bitwise_op(XST, BITWISE_OP_OR, mp_val(), as<Bignum>(b)->mp_val(), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -576,7 +627,7 @@ namespace rubinius {
       b = Bignum::from(state, b->to_native());
     }
     /* Perhaps this should use mp_xor rather than our own version */
-    bignum_bitwise_op(BITWISE_OP_XOR, mp_val(), as<Bignum>(b)->mp_val(), n);
+    bignum_bitwise_op(XST, BITWISE_OP_XOR, mp_val(), as<Bignum>(b)->mp_val(), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -588,11 +639,11 @@ namespace rubinius {
     NMP;
 
     mp_int a; mp_init(&a);
-    mp_int b; mp_init_set_int(&b, 1);
+    mp_int b; mp_init_set_int(XST, &b, 1);
 
     /* inversion by -(a)-1 */
-    mp_neg(mp_val(), &a);
-    mp_sub(&a, &b, n);
+    mp_neg(XST, mp_val(), &a);
+    mp_sub(XST, &a, &b, n);
 
     mp_clear(&a); mp_clear(&b);
     return Bignum::normalize(state, n_obj);
@@ -601,7 +652,7 @@ namespace rubinius {
   Integer* Bignum::neg(STATE) {
     NMP;
 
-    mp_neg(mp_val(), n);
+    mp_neg(XST, mp_val(), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -616,7 +667,7 @@ namespace rubinius {
     }
     mp_int *a = mp_val();
 
-    mp_mul_2d(a, shift, n);
+    mp_mul_2d(XST, a, shift, n);
     n->sign = a->sign;
     return Bignum::normalize(state, n_obj);
   }
@@ -637,11 +688,11 @@ namespace rubinius {
     }
 
     if (shift == 0) {
-      mp_copy(a, n);
+      mp_copy(XST, a, n);
     } else {
-      mp_div_2d(a, shift, n, NULL);
+      mp_div_2d(XST, a, shift, n, NULL);
       if ((a->sign == MP_NEG) && (DIGIT(a, 0) & 1)) {
-        mp_sub_d(n, 1, n);
+        mp_sub_d(XST, n, 1, n);
       }
     }
 
@@ -657,7 +708,7 @@ namespace rubinius {
     }
 
     mp_int *a = mp_val();
-    mp_expt_d(a, exp, n);
+    mp_expt_d(XST, a, exp, n);
 
     return Bignum::normalize(state, n_obj);
   }
@@ -674,8 +725,8 @@ namespace rubinius {
 
     if(bi < 0) {
       bi = -bi;
-      mp_init_copy(&n, a);
-      mp_neg(&n, &n);
+      mp_init_copy(XST, &n, a);
+      mp_neg(XST, &n, &n);
       a = &n;
       clear_a = true;
     }
@@ -708,8 +759,8 @@ namespace rubinius {
     mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
-      mp_init_copy(&n, a);
-      mp_neg(&n, &n);
+      mp_init_copy(XST, &n, a);
+      mp_neg(XST, &n, &n);
 
       int r = mp_cmp_d(&n, -bi);
 
@@ -760,8 +811,8 @@ namespace rubinius {
     mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
-      mp_init_copy(&n, a);
-      mp_neg(&n, &n);
+      mp_init_copy(XST, &n, a);
+      mp_neg(XST, &n, &n);
 
       int r = mp_cmp_d(&n, -bi);
 
@@ -796,8 +847,8 @@ namespace rubinius {
     mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
-      mp_init_copy(&n, a);
-      mp_neg(&n, &n);
+      mp_init_copy(XST, &n, a);
+      mp_neg(XST, &n, &n);
       int r = mp_cmp_d(&n, -bi);
       mp_clear(&n);
       if(r == MP_EQ || r == MP_LT) {
@@ -831,8 +882,8 @@ namespace rubinius {
     mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
-      mp_init_copy(&n, a);
-      mp_neg(&n, &n);
+      mp_init_copy(XST, &n, a);
+      mp_neg(XST, &n, &n);
 
       int r = mp_cmp_d(&n, -bi);
 
@@ -867,8 +918,8 @@ namespace rubinius {
     mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
-      mp_init_copy(&n, a);
-      mp_neg(&n, &n);
+      mp_init_copy(XST, &n, a);
+      mp_neg(XST, &n, &n);
       int r = mp_cmp_d(&n, -bi);
       mp_clear(&n);
       if(r == MP_EQ || r == MP_GT) {
@@ -908,7 +959,7 @@ namespace rubinius {
 
     for(;;) {
       buf = ALLOC_N(char, sz);
-      mp_toradix_nd(mp_val(), buf, radix->to_native(), sz, &k);
+      mp_toradix_nd(XST, mp_val(), buf, radix->to_native(), sz, &k);
       if(k < sz - 2) {
         obj = String::create(state, buf);
         FREE(buf);
@@ -954,7 +1005,7 @@ namespace rubinius {
           radix = 8; s += 1;
       }
     }
-    mp_read_radix(&n, s, radix);
+    mp_read_radix(XST, &n, s, radix);
 
     if(!sign) {
       n.sign = MP_NEG;
@@ -981,7 +1032,7 @@ namespace rubinius {
 
     mp_int n;
     mp_init(&n);
-    mp_read_radix(&n, str, radix);
+    mp_read_radix(XST, &n, str, radix);
 
     Integer* res = Bignum::from(state, &n);
 
@@ -992,7 +1043,7 @@ namespace rubinius {
 
   void Bignum::into_string(STATE, size_t radix, char *buf, size_t sz) {
     int k;
-    mp_toradix_nd(mp_val(), buf, radix, sz, &k);
+    mp_toradix_nd(XST, mp_val(), buf, radix, sz, &k);
   }
 
   double Bignum::to_double(STATE) {
@@ -1042,7 +1093,7 @@ namespace rubinius {
       i++;
     }
 
-    mp_grow(n, i);
+    mp_grow(XST, n, i);
 
     while (i--) {
       value *= DIGIT_RADIX;
@@ -1053,7 +1104,7 @@ namespace rubinius {
     }
 
     if (d < 0) {
-      mp_neg(n, n);
+      mp_neg(XST, n, n);
     }
 
     return Bignum::normalize(state, n_obj);
@@ -1104,4 +1155,15 @@ namespace rubinius {
     return String::hash_str((unsigned char *)a->dp, a->used * sizeof(mp_digit));
   }
 
+  extern "C" void* MANAGED_REALLOC_MPINT(void* s, mp_int* a, size_t bytes) {
+    assert(s);
+    VM* state = reinterpret_cast<VM*>(s);
+
+    ByteArray* storage = ByteArray::create(state, bytes);
+    a->managed = reinterpret_cast<void*>(storage);
+
+    return storage->bytes;
+  }
+
 }
+

@@ -75,24 +75,24 @@ namespace rubinius {
       int shift = sizeof(long) * 7;
       mp_int a;
 
-      mp_init_set_int(&mp_val, val);
+      mp_init_set_int(0, &mp_val, val);
       mp_init(&a);
 
 #ifdef IS_X8664
       // mp_(init_)set_int can only deal with 32 bit values,
       // so the above call only copied the lower 32 bits of _val_.
       // Handle the upper 32 bits as well:
-      mp_set_int(&a, val >> 32);
-      mp_mul_2d(&a, 32, &a);
-      mp_add(&a, &mp_val, &mp_val);
+      mp_set_int(0, &a, val >> 32);
+      mp_mul_2d(0, &a, 32, &a);
+      mp_add(0, &a, &mp_val, &mp_val);
 #endif
 
       while(!done) {
         unsigned int byte = stream.get();
 
-        mp_set_int(&a, byte & ~128);
-        mp_mul_2d(&a, shift, &a);
-        mp_add(&a, &mp_val, &mp_val);
+        mp_set_int(0, &a, byte & ~128);
+        mp_mul_2d(0, &a, shift, &a);
+        mp_add(0, &a, &mp_val, &mp_val);
 
         shift += 7;
         done = byte < 128;
@@ -119,7 +119,7 @@ namespace rubinius {
 
     // negate:
     if(Bignum* bignum = try_as<Bignum>(result)) {
-      mp_neg (bignum->mp_val(), bignum->mp_val());
+      mp_neg(0, bignum->mp_val(), bignum->mp_val());
       return bignum;
     } else {
       return as<Fixnum>(result)->neg(state);
