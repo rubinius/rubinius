@@ -41,10 +41,6 @@ class Proc
     bind
   end
 
-  def caller(start = 0)
-    @block.home_block.stack_trace_starting_at(start)
-  end
-
   def inspect
     "#<Proc:0x#{self.object_id.to_s(16)} @ #{@block.file}:#{@block.line}>"
   end
