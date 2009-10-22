@@ -124,6 +124,9 @@ namespace rubinius {
     instance_type(state, sup->instance_type());
     set_type_info(sup->type_info());
 
+    packed_ivar_info(state, sup->packed_ivar_info());
+    set_packed_size(sup->packed_size());
+
     return Qnil;
   }
 
