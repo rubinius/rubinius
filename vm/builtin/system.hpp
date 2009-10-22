@@ -158,6 +158,9 @@ namespace rubinius {
     // Ruby.primitive :vm_stats_gc_info
     static Object* vm_stats_gc_info(STATE);
 
+    // Ruby.primitive :vm_memory_size
+    static Fixnum* vm_memory_size(STATE, Object* obj);
+
     // Ruby.primitive :vm_watch_signal
     static Object*  vm_watch_signal(STATE, Fixnum* sig);
 

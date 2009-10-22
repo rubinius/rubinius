@@ -148,6 +148,32 @@ namespace rubinius {
     i.set_result(rec);
   }
 
+  static void fixnum_s_eqq(JITOperations& ops, Inliner& i) {
+    Value* cmp = ops.check_if_fixnum(i.arg(0));
+
+    Value* imm_value = ops.b().CreateSelect(cmp,
+            ops.constant(Qtrue), ops.constant(Qfalse), "is_fixnum");
+
+    i.exception_safe();
+    i.set_result(imm_value);
+  }
+
+  static void symbol_s_eqq(JITOperations& ops, Inliner& i) {
+    Value* sym_mask = ConstantInt::get(ops.state()->IntPtrTy, TAG_SYMBOL_MASK);
+    Value* sym_tag  = ConstantInt::get(ops.state()->IntPtrTy, TAG_SYMBOL);
+
+    Value* lint = ops.cast_int(i.arg(0));
+    Value* masked = ops.b().CreateAnd(lint, sym_mask, "masked");
+
+    Value* cmp = ops.b().CreateICmpEQ(masked, sym_tag, "is_symbol");
+
+    Value* imm_value = ops.b().CreateSelect(cmp,
+        ops.constant(Qtrue), ops.constant(Qfalse), "is_symbol");
+
+    i.exception_safe();
+    i.set_result(imm_value);
+  }
+
   static void fixnum_and(JITOperations& ops, Inliner& i) {
     Value* lint = ops.cast_int(i.recv());
     Value* rint = ops.cast_int(i.arg(0));
@@ -445,6 +471,14 @@ namespace rubinius {
     } else if(prim == Primitives::float_ge && count_ == 1) {
       inlined_prim = "float_ge";
       float_compare(cGreaterThanEqual, klass, ops_, *this);
+
+    } else if(prim == Primitives::fixnum_s_eqq && count_ == 1) {
+      inlined_prim = "fixnum_s_eqq";
+      fixnum_s_eqq(ops_, *this);
+    } else if(prim == Primitives::symbol_s_eqq && count_ == 1) {
+      inlined_prim = "symbol_s_eqq";
+      symbol_s_eqq(ops_, *this);
+
     } else {
       JITStubResults stub_res;
 

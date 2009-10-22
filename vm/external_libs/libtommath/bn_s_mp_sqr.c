@@ -16,7 +16,7 @@
  */
 
 /* low level squaring, b = a*a, HAC pp.596-597, Algorithm 14.16 */
-int s_mp_sqr (mp_int * a, mp_int * b)
+int s_mp_sqr MPA(mp_int * a, mp_int * b)
 {
   mp_int  t;
   int     res, ix, iy, pa;
@@ -73,7 +73,7 @@ int s_mp_sqr (mp_int * a, mp_int * b)
   }
 
   mp_clamp (&t);
-  mp_exch (&t, b);
+  mp_managed_copy (MPST, &t, b);
   mp_clear (&t);
   return MP_OKAY;
 }

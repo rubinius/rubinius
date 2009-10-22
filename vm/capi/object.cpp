@@ -254,16 +254,7 @@ extern "C" {
 
     Symbol* ivar = prefixed_by("@", ivar_name);
     Object* obj = env->get_object(obj_handle);
-    Object* ivars = obj->get_ivars(env->state());
-
-    Object* ret;
-    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars)) {
-      ret = tbl->has_key(env->state(), ivar);
-    } else if(LookupTable* tbl = try_as<LookupTable>(ivars)) {
-      ret = tbl->has_key(env->state(), ivar);
-    } else {
-      ret = Qfalse;
-    }
+    Object* ret = obj->ivar_defined(env->state(), ivar);
 
     return env->get_handle(ret);
   }

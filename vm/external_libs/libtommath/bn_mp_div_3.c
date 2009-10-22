@@ -17,7 +17,7 @@
 
 /* divide by three (based on routine from MPI and the GMP manual) */
 int
-mp_div_3 (mp_int * a, mp_int *c, mp_digit * d)
+mp_div_3 MPA(mp_int * a, mp_int *c, mp_digit * d)
 {
   mp_int   q;
   mp_word  w, t;
@@ -65,7 +65,7 @@ mp_div_3 (mp_int * a, mp_int *c, mp_digit * d)
   /* [optional] store the quotient */
   if (c != NULL) {
      mp_clamp(&q);
-     mp_exch(&q, c);
+     mp_managed_copy (MPST, &q, c);
   }
   mp_clear(&q);
   

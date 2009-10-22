@@ -19,7 +19,7 @@
  * [meant to get the higher part of the product]
  */
 int
-s_mp_mul_high_digs (mp_int * a, mp_int * b, mp_int * c, int digs)
+s_mp_mul_high_digs MPA(mp_int * a, mp_int * b, mp_int * c, int digs)
 {
   mp_int  t;
   int     res, pa, pb, ix, iy;
@@ -31,7 +31,7 @@ s_mp_mul_high_digs (mp_int * a, mp_int * b, mp_int * c, int digs)
 #ifdef BN_FAST_S_MP_MUL_HIGH_DIGS_C
   if (((a->used + b->used + 1) < MP_WARRAY)
       && MIN (a->used, b->used) < (1 << ((CHAR_BIT * sizeof (mp_word)) - (2 * DIGIT_BIT)))) {
-    return fast_s_mp_mul_high_digs (a, b, c, digs);
+    return fast_s_mp_mul_high_digs (MPST, a, b, c, digs);
   }
 #endif
 
@@ -70,7 +70,7 @@ s_mp_mul_high_digs (mp_int * a, mp_int * b, mp_int * c, int digs)
     *tmpt = u;
   }
   mp_clamp (&t);
-  mp_exch (&t, c);
+  mp_managed_copy (MPST, &t, c);
   mp_clear (&t);
   return MP_OKAY;
 }

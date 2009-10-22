@@ -21,7 +21,7 @@
  * embedded in the normal function but that wasted alot of stack space
  * for nothing (since 99% of the time the Montgomery code would be called)
  */
-int mp_exptmod (mp_int * G, mp_int * X, mp_int * P, mp_int * Y)
+int mp_exptmod MPA(mp_int * G, mp_int * X, mp_int * P, mp_int * Y)
 {
   int dr;
 
@@ -40,7 +40,7 @@ int mp_exptmod (mp_int * G, mp_int * X, mp_int * P, mp_int * Y)
      if ((err = mp_init(&tmpG)) != MP_OKAY) {
         return err;
      }
-     if ((err = mp_invmod(G, P, &tmpG)) != MP_OKAY) {
+     if ((err = mp_invmod(MPST, G, P, &tmpG)) != MP_OKAY) {
         mp_clear(&tmpG);
         return err;
      }
@@ -50,13 +50,13 @@ int mp_exptmod (mp_int * G, mp_int * X, mp_int * P, mp_int * Y)
         mp_clear(&tmpG);
         return err;
      }
-     if ((err = mp_abs(X, &tmpX)) != MP_OKAY) {
+     if ((err = mp_abs(MPST, X, &tmpX)) != MP_OKAY) {
         mp_clear_multi(&tmpG, &tmpX, NULL);
         return err;
      }
 
      /* and now compute (1/G)**|X| instead of G**X [X < 0] */
-     err = mp_exptmod(&tmpG, &tmpX, P, Y);
+     err = mp_exptmod(MPST, &tmpG, &tmpX, P, Y);
      mp_clear_multi(&tmpG, &tmpX, NULL);
      return err;
 #else 
@@ -68,7 +68,7 @@ int mp_exptmod (mp_int * G, mp_int * X, mp_int * P, mp_int * Y)
 /* modified diminished radix reduction */
 #if defined(BN_MP_REDUCE_IS_2K_L_C) && defined(BN_MP_REDUCE_2K_L_C) && defined(BN_S_MP_EXPTMOD_C)
   if (mp_reduce_is_2k_l(P) == MP_YES) {
-     return s_mp_exptmod(G, X, P, Y, 1);
+     return s_mp_exptmod(MPST, G, X, P, Y, 1);
   }
 #endif
 
@@ -90,12 +90,12 @@ int mp_exptmod (mp_int * G, mp_int * X, mp_int * P, mp_int * Y)
   /* if the modulus is odd or dr != 0 use the montgomery method */
 #ifdef BN_MP_EXPTMOD_FAST_C
   if (mp_isodd (P) == 1 || dr !=  0) {
-    return mp_exptmod_fast (G, X, P, Y, dr);
+    return mp_exptmod_fast (MPST, G, X, P, Y, dr);
   } else {
 #endif
 #ifdef BN_S_MP_EXPTMOD_C
     /* otherwise use the generic Barrett reduction technique */
-    return s_mp_exptmod (G, X, P, Y, 0);
+    return s_mp_exptmod (MPST, G, X, P, Y, 0);
 #else
     /* no exptmod for evens */
     return MP_VAL;

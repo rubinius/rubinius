@@ -17,14 +17,14 @@
 
 /* single digit addition */
 int
-mp_add_d (mp_int * a, mp_digit b, mp_int * c)
+mp_add_d MPA(mp_int * a, mp_digit b, mp_int * c)
 {
   int     res, ix, oldused;
   mp_digit *tmpa, *tmpc, mu;
 
   /* grow c as required */
   if (c->alloc < a->used + 1) {
-     if ((res = mp_grow(c, a->used + 1)) != MP_OKAY) {
+     if ((res = mp_grow(MPST, c, a->used + 1)) != MP_OKAY) {
         return res;
      }
   }
@@ -35,7 +35,7 @@ mp_add_d (mp_int * a, mp_digit b, mp_int * c)
      a->sign = MP_ZPOS;
 
      /* c = |a| - b */
-     res = mp_sub_d(a, b, c);
+     res = mp_sub_d(MPST, a, b, c);
 
      /* fix sign  */
      a->sign = c->sign = MP_NEG;

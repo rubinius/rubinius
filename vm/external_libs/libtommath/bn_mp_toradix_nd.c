@@ -20,7 +20,7 @@
  * Stores upto maxlen-1 chars and always a NULL byte
  * Indicate how many digits were used in digits
  */
-int mp_toradix_nd(mp_int * a, char *str, int radix, int maxlen, int *digits)
+int mp_toradix_nd MPA(mp_int * a, char *str, int radix, int maxlen, int *digits)
 {
   int     res, digs;
   mp_int  t;
@@ -40,7 +40,7 @@ int mp_toradix_nd(mp_int * a, char *str, int radix, int maxlen, int *digits)
      return MP_OKAY;
   }
 
-  if ((res = mp_init_copy (&t, a)) != MP_OKAY) {
+  if ((res = mp_init_copy (MPST, &t, a)) != MP_OKAY) {
     return res;
   }
 
@@ -63,7 +63,7 @@ int mp_toradix_nd(mp_int * a, char *str, int radix, int maxlen, int *digits)
        /* no more room */
        break;
     }
-    if ((res = mp_div_d (&t, (mp_digit) radix, &t, &d)) != MP_OKAY) {
+    if ((res = mp_div_d (MPST, &t, (mp_digit) radix, &t, &d)) != MP_OKAY) {
       mp_clear (&t);
       return res;
     }

@@ -1,5 +1,10 @@
 class Fixnum < Integer
 
+  def self.===(obj)
+    Ruby.primitive :fixnum_s_eqq
+    super
+  end
+
   # unary operators
 
   def ~

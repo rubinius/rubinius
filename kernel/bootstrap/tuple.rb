@@ -17,11 +17,20 @@ module Rubinius
 
     def [](idx)
       Ruby.primitive :tuple_at
+
+      unless idx.kind_of? Fixnum
+        raise TypeError, "Only Fixnums valid for Tuple indices"
+      end
+
       raise PrimitiveFailure, "Tuple#[] primitive failed"
     end
 
     def []=(idx, val)
       Ruby.primitive :tuple_put
+
+      unless idx.kind_of? Fixnum
+        raise TypeError, "Only Fixnums valid for Tuple indices"
+      end
       raise PrimitiveFailure, "Tuple#[]= primitive failed"
     end
 

@@ -6,8 +6,6 @@
 #include "vm.hpp"
 
 namespace rubinius {
-  ObjectMark::ObjectMark(GarbageCollector* gc) : gc(gc) { }
-
   VM* ObjectMark::state() {
     return gc->state();
   }

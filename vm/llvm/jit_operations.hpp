@@ -236,7 +236,7 @@ namespace rubinius {
     }
 
     Value* get_class_id(Value* cls) {
-      Value* idx[] = { zero_, cint(3) };
+      Value* idx[] = { zero_, cint(4) };
       Value* gep = create_gep(cls, idx, 2, "class_id_pos");
       return create_load(gep, "class_id");
     }

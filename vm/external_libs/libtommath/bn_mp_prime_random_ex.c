@@ -31,7 +31,7 @@
  */
 
 /* This is possibly the mother of all prime generation functions, muahahahahaha! */
-int mp_prime_random_ex(mp_int *a, int t, int size, int flags, ltm_prime_callback cb, void *dat)
+int mp_prime_random_ex MPA(mp_int *a, int t, int size, int flags, ltm_prime_callback cb, void *dat)
 {
    unsigned char *tmp, maskAND, maskOR_msb, maskOR_lsb;
    int res, err, bsize, maskOR_msb_offset;
@@ -87,28 +87,28 @@ int mp_prime_random_ex(mp_int *a, int t, int size, int flags, ltm_prime_callback
       tmp[bsize-1]             |= maskOR_lsb;
 
       /* read it in */
-      if ((err = mp_read_unsigned_bin(a, tmp, bsize)) != MP_OKAY)     { goto error; }
+      if ((err = mp_read_unsigned_bin(MPST, a, tmp, bsize)) != MP_OKAY)     { goto error; }
 
       /* is it prime? */
-      if ((err = mp_prime_is_prime(a, t, &res)) != MP_OKAY)           { goto error; }
+      if ((err = mp_prime_is_prime(MPST, a, t, &res)) != MP_OKAY)           { goto error; }
       if (res == MP_NO) {  
          continue;
       }
 
       if (flags & LTM_PRIME_SAFE) {
          /* see if (a-1)/2 is prime */
-         if ((err = mp_sub_d(a, 1, a)) != MP_OKAY)                    { goto error; }
-         if ((err = mp_div_2(a, a)) != MP_OKAY)                       { goto error; }
+         if ((err = mp_sub_d(MPST, a, 1, a)) != MP_OKAY)                    { goto error; }
+         if ((err = mp_div_2(MPST, a, a)) != MP_OKAY)                       { goto error; }
  
          /* is it prime? */
-         if ((err = mp_prime_is_prime(a, t, &res)) != MP_OKAY)        { goto error; }
+         if ((err = mp_prime_is_prime(MPST, a, t, &res)) != MP_OKAY)        { goto error; }
       }
    } while (res == MP_NO);
 
    if (flags & LTM_PRIME_SAFE) {
       /* restore a to the original value */
-      if ((err = mp_mul_2(a, a)) != MP_OKAY)                          { goto error; }
-      if ((err = mp_add_d(a, 1, a)) != MP_OKAY)                       { goto error; }
+      if ((err = mp_mul_2(MPST, a, a)) != MP_OKAY)                          { goto error; }
+      if ((err = mp_add_d(MPST, a, 1, a)) != MP_OKAY)                       { goto error; }
    }
 
    err = MP_OKAY;

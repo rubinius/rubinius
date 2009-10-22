@@ -76,6 +76,7 @@ namespace rubinius {
 
     cls->set_object_type(state, ClassType);
     cls->set_class_id(shared.inc_class_count());
+    cls->set_packed_size(0);
 
     /* Set Class into the globals */
     GO(klass).set(cls);

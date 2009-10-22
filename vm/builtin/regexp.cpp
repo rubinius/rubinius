@@ -7,10 +7,13 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/bytearray.hpp"
 
 #include "vm.hpp"
 #include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
+
+#include "gc/gc.hpp"
 
 #define OPTION_IGNORECASE ONIG_OPTION_IGNORECASE
 #define OPTION_EXTENDED   ONIG_OPTION_EXTEND
@@ -25,11 +28,6 @@
 #define KCODE_MASK        (KCODE_EUC|KCODE_SJIS|KCODE_UTF8)
 
 namespace rubinius {
-
-  void Regexp::Info::cleanup(Object* regexp) {
-    onig_free(as<Regexp>(regexp)->onig_data);
-    as<Regexp>(regexp)->onig_data = NULL;
-  }
 
   void Regexp::init(STATE) {
     onig_init();
@@ -100,11 +98,77 @@ namespace rubinius {
    * regular expression via Regexp#initialize_copy
    */
   Regexp* Regexp::create(STATE) {
-    Regexp* o_reg = state->new_object<Regexp>(G(regexp));
+    Regexp* o_reg = state->new_object_mature<Regexp>(G(regexp));
 
     o_reg->onig_data = NULL;
 
     return o_reg;
+  }
+
+  void Regexp::make_managed(STATE) {
+    Regexp* obj = this;
+    regex_t* reg = onig_data;
+
+    assert(reg->chain == 0);
+
+    ByteArray* reg_ba = ByteArray::create(state, sizeof(regex_t));
+    memcpy(reg_ba->bytes, reg, sizeof(regex_t));
+
+    regex_t* old_reg = reg;
+    reg = reinterpret_cast<regex_t*>(reg_ba->bytes);
+    obj->onig_data = reg;
+
+    if(reg->p) {
+      ByteArray* pattern = ByteArray::create(state, reg->alloc);
+      memcpy(pattern->bytes, reg->p, reg->alloc);
+
+      reg->p = reinterpret_cast<unsigned char*>(pattern->bytes);
+
+      obj->write_barrier(state, pattern);
+    }
+
+    if(reg->exact) {
+      int exact_size = reg->exact_end - reg->exact;
+      ByteArray* exact = ByteArray::create(state, exact_size);
+      memcpy(exact->bytes, reg->exact, exact_size);
+
+      reg->exact = reinterpret_cast<unsigned char*>(exact->bytes);
+      reg->exact_end = reg->exact + exact_size;
+
+      obj->write_barrier(state, exact);
+    }
+
+    int int_map_size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
+
+    if(reg->int_map) {
+      ByteArray* intmap = ByteArray::create(state, int_map_size);
+      memcpy(intmap->bytes, reg->int_map, int_map_size);
+
+      reg->int_map = reinterpret_cast<int*>(intmap->bytes);
+
+      obj->write_barrier(state, intmap);
+    }
+
+    if(reg->int_map_backward) {
+      ByteArray* intmap_back = ByteArray::create(state, int_map_size);
+      memcpy(intmap_back->bytes, reg->int_map_backward, int_map_size);
+
+      reg->int_map_backward = reinterpret_cast<int*>(intmap_back->bytes);
+
+      obj->write_barrier(state, intmap_back);
+    }
+
+    if(reg->repeat_range) {
+      int rrange_size = sizeof(OnigRepeatRange) * reg->repeat_range_alloc;
+      ByteArray* rrange = ByteArray::create(state, rrange_size);
+      memcpy(rrange->bytes, reg->repeat_range, rrange_size);
+
+      reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(rrange->bytes);
+
+      obj->write_barrier(state, rrange);
+    }
+
+    onig_free(old_reg);
   }
 
   /*
@@ -136,6 +200,7 @@ namespace rubinius {
       snprintf(err_buf, 1024, "%s: %s", onig_err_buf, pat);
 
       Exception::regexp_error(state, err_buf);
+      return 0;
     }
 
     this->source(state, pattern);
@@ -152,6 +217,8 @@ namespace rubinius {
       onig_foreach_name(this->onig_data, (int (*)(const OnigUChar*, const OnigUChar*,int,int*,OnigRegex,void*))_gather_names, (void*)&gd);
       this->names(state, tbl);
     }
+
+    make_managed(state);
 
     return this;
   }
@@ -175,7 +242,7 @@ namespace rubinius {
     return Integer::from(state, ((int)(option & OPTION_MASK) | get_kcode_from_enc(enc)));
   }
 
-  static Object* _md_region_to_tuple(STATE, OnigRegion *region, int max) {
+  static Tuple* _md_region_to_tuple(STATE, OnigRegion *region, int max) {
     int i;
     Tuple* sub;
     Tuple* tup = Tuple::create(state, region->num_regs - 1);
@@ -196,11 +263,13 @@ namespace rubinius {
 			     Integer::from(state, region->beg[0]),
 			     Integer::from(state, region->end[0]));
     md->full(state, tup);
-    md->region(state, (Tuple*)_md_region_to_tuple(state, region, max));
+    md->region(state, _md_region_to_tuple(state, region, max));
     return md;
   }
 
-  Object* Regexp::match_region(STATE, String* string, Integer* start, Integer* end, Object* forward) {
+  Object* Regexp::match_region(STATE, String* string, Integer* start,
+                               Integer* end, Object* forward)
+  {
     int beg, max;
     const UChar *str;
     OnigRegion *region;
@@ -212,9 +281,15 @@ namespace rubinius {
     str = (UChar*)string->c_str();
 
     if(!RTEST(forward)) {
-      beg = onig_search(onig_data, str, str + max, str + end->to_native(), str + start->to_native(), region, ONIG_OPTION_NONE);
+      beg = onig_search(onig_data, str, str + max,
+                        str + end->to_native(),
+                        str + start->to_native(),
+                        region, ONIG_OPTION_NONE);
     } else {
-      beg = onig_search(onig_data, str, str + max, str + start->to_native(), str + end->to_native(), region, ONIG_OPTION_NONE);
+      beg = onig_search(onig_data, str, str + max,
+                        str + start->to_native(),
+                        str + end->to_native(),
+                        region, ONIG_OPTION_NONE);
     }
 
     if(beg == ONIG_MISMATCH) {
@@ -247,5 +322,109 @@ namespace rubinius {
 
     onig_region_free(region, 1);
     return md;
+  }
+
+  void Regexp::Info::mark(Object* obj, ObjectMark& mark) {
+    auto_mark(obj, mark);
+
+    Regexp* reg_o = force_as<Regexp>(obj);
+    regex_t* reg = reg_o->onig_data;
+
+    ByteArray* reg_ba = ByteArray::from_body(reg);
+
+    if(ByteArray* reg_tmp = force_as<ByteArray>(mark.call(reg_ba))) {
+      reg_o->onig_data = reinterpret_cast<regex_t*>(reg_tmp->bytes);
+      mark.just_set(obj, reg_tmp);
+
+      reg_ba = reg_tmp;
+      reg = reg_o->onig_data;
+    }
+
+    if(reg->p) {
+      ByteArray* ba = ByteArray::from_body(reg->p);
+
+      ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
+      if(tmp) {
+        reg->p = reinterpret_cast<unsigned char*>(tmp->bytes);
+        mark.just_set(reg_ba, tmp);
+      }
+    }
+
+    if(reg->exact) {
+      int exact_size = reg->exact_end - reg->exact;
+      ByteArray* ba = ByteArray::from_body(reg->exact);
+
+      ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
+      if(tmp) {
+        reg->exact = reinterpret_cast<unsigned char*>(tmp->bytes);
+        reg->exact_end = reg->exact + exact_size;
+        mark.just_set(reg_ba, tmp);
+      }
+    }
+
+    if(reg->int_map) {
+      ByteArray* ba = ByteArray::from_body(reg->int_map);
+
+      ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
+      if(tmp) {
+        reg->int_map = reinterpret_cast<int*>(tmp->bytes);
+        mark.just_set(reg_ba, tmp);
+      }
+    }
+
+    if(reg->int_map_backward) {
+      ByteArray* ba = ByteArray::from_body(reg->int_map_backward);
+
+      ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
+      if(tmp) {
+        reg->int_map_backward = reinterpret_cast<int*>(tmp->bytes);
+        mark.just_set(reg_ba, tmp);
+      }
+    }
+
+    if(reg->repeat_range) {
+      ByteArray* ba = ByteArray::from_body(reg->repeat_range);
+
+      ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
+      if(tmp) {
+        reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(tmp->bytes);
+        mark.just_set(reg_ba, tmp);
+      }
+    }
+  }
+
+  void Regexp::Info::visit(Object* obj, ObjectVisitor& visit) {
+    auto_visit(obj, visit);
+
+    Regexp* reg_o = force_as<Regexp>(obj);
+    regex_t* reg = reg_o->onig_data;
+
+    ByteArray* reg_ba = ByteArray::from_body(reg);
+    visit.call(reg_ba);
+
+    if(reg->p) {
+      ByteArray* ba = ByteArray::from_body(reg->p);
+      visit.call(ba);
+    }
+
+    if(reg->exact) {
+      ByteArray* ba = ByteArray::from_body(reg->exact);
+      visit.call(ba);
+    }
+
+    if(reg->int_map) {
+      ByteArray* ba = ByteArray::from_body(reg->int_map);
+      visit.call(ba);
+    }
+
+    if(reg->int_map_backward) {
+      ByteArray* ba = ByteArray::from_body(reg->int_map_backward);
+      visit.call(ba);
+    }
+
+    if(reg->repeat_range) {
+      ByteArray* ba = ByteArray::from_body(reg->repeat_range);
+      visit.call(ba);
+    }
   }
 }

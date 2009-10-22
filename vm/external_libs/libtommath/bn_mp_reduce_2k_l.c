@@ -19,7 +19,7 @@
    This differs from reduce_2k since "d" can be larger
    than a single digit.
 */
-int mp_reduce_2k_l(mp_int *a, mp_int *n, mp_int *d)
+int mp_reduce_2k_l MPA(mp_int *a, mp_int *n, mp_int *d)
 {
    mp_int q;
    int    p, res;
@@ -31,22 +31,22 @@ int mp_reduce_2k_l(mp_int *a, mp_int *n, mp_int *d)
    p = mp_count_bits(n);    
 top:
    /* q = a/2**p, a = a mod 2**p */
-   if ((res = mp_div_2d(a, p, &q, a)) != MP_OKAY) {
+   if ((res = mp_div_2d(MPST, a, p, &q, a)) != MP_OKAY) {
       goto ERR;
    }
    
    /* q = q * d */
-   if ((res = mp_mul(&q, d, &q)) != MP_OKAY) { 
+   if ((res = mp_mul(MPST, &q, d, &q)) != MP_OKAY) { 
       goto ERR;
    }
    
    /* a = a + q */
-   if ((res = s_mp_add(a, &q, a)) != MP_OKAY) {
+   if ((res = s_mp_add(MPST, a, &q, a)) != MP_OKAY) {
       goto ERR;
    }
    
    if (mp_cmp_mag(a, n) != MP_LT) {
-      s_mp_sub(a, n, a);
+      s_mp_sub(MPST, a, n, a);
       goto top;
    }
    

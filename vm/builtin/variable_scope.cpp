@@ -1,11 +1,13 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "call_frame.hpp"
+#include "gc/gc.hpp"
 
 #include "builtin/object.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/class.hpp"
 #include "builtin/system.hpp"
+#include "builtin/tuple.hpp"
 
 namespace rubinius {
   void VariableScope::init(STATE) {

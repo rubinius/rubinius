@@ -2,6 +2,7 @@
 #include "objectmemory.hpp"
 #include "event.hpp"
 #include "global_cache.hpp"
+#include "gc/gc.hpp"
 
 #include "vm/object_utils.hpp"
 
@@ -157,6 +158,7 @@ namespace rubinius {
   Class* VM::new_basic_class(Class* sup) {
     Class *cls = om->new_object_enduring<Class>(G(klass));
     cls->set_class_id(shared.inc_class_count());
+    cls->set_packed_size(0);
 
     if(sup->nil_p()) {
       cls->instance_type(this, Fixnum::from(ObjectType));

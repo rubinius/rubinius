@@ -178,8 +178,18 @@ exception:
       return NULL;
     }
 
-  case cReturn:
   case cBreak:
+    // If we're trying to break to here, we're done!
+    if(th->destination_scope() == call_frame->scope->on_heap()) {
+      stack_push(th->raise_value());
+      th->clear_exception(true);
+      goto continue_to_run;
+      // Don't return here, because we want to loop back to the top
+      // and keep running this method.
+    }
+
+    // Otherwise, fall through and run the unwinds
+  case cReturn:
     // Otherwise, we're doing a long return/break unwind through
     // here. We need to run ensure blocks.
     while(current_unwind > 0) {
@@ -208,19 +218,10 @@ exception:
         return NULL;
       }
 
-    } else { // It's cBreak
-      // If we're trying to break to here, we're done!
-      if(th->destination_scope() == call_frame->scope->on_heap()) {
-        stack_push(th->raise_value());
-        th->clear_exception(true);
-        goto continue_to_run;
-        // Don't return here, because we want to loop back to the top
-        // and keep running this method.
-      } else {
-        call_frame->scope->flush_to_heap(state);
-        // Give control of this exception to the caller.
-        return NULL;
-      }
+    } else { // It's cBreak thats not for us!
+      call_frame->scope->flush_to_heap(state);
+      // Give control of this exception to the caller.
+      return NULL;
     }
 
   case cExit:
@@ -319,8 +320,18 @@ exception:
       return NULL;
     }
 
-  case cReturn:
   case cBreak:
+    // If we're trying to break to here, we're done!
+    if(th->destination_scope() == call_frame->scope->on_heap()) {
+      stack_push(th->raise_value());
+      th->clear_exception(true);
+      goto continue_to_run;
+      // Don't return here, because we want to loop back to the top
+      // and keep running this method.
+    }
+
+    // Otherwise, fall through and run the unwinds
+  case cReturn:
     // Otherwise, we're doing a long return/break unwind through
     // here. We need to run ensure blocks.
     while(current_unwind > 0) {
@@ -349,19 +360,10 @@ exception:
         return NULL;
       }
 
-    } else { // It's cBreak
-      // If we're trying to break to here, we're done!
-      if(th->destination_scope() == call_frame->scope->on_heap()) {
-        stack_push(th->raise_value());
-        th->clear_exception(true);
-        // Don't return here, because we want to loop back to the top
-        // and keep running this method.
-        goto continue_to_run;
-      } else {
-        call_frame->scope->flush_to_heap(state);
-        // Give control of this exception to the caller.
-        return NULL;
-      }
+    } else { // It's cBreak thats not for us!
+      call_frame->scope->flush_to_heap(state);
+      // Give control of this exception to the caller.
+      return NULL;
     }
 
   case cExit:
@@ -482,8 +484,18 @@ exception:
       return NULL;
     }
 
-  case cReturn:
   case cBreak:
+    // If we're trying to break to here, we're done!
+    if(th->destination_scope() == call_frame->scope->on_heap()) {
+      stack_push(th->raise_value());
+      th->clear_exception(true);
+      goto continue_to_run;
+      // Don't return here, because we want to loop back to the top
+      // and keep running this method.
+    }
+
+    // Otherwise, fall through and run the unwinds
+  case cReturn:
     // Otherwise, we're doing a long return/break unwind through
     // here. We need to run ensure blocks.
     while(current_unwind > 0) {
@@ -514,19 +526,10 @@ exception:
         return NULL;
       }
 
-    } else { // It's cBreak
-      // If we're trying to break to here, we're done!
-      if(th->destination_scope() == call_frame->scope->on_heap()) {
-        stack_push(th->raise_value());
-        th->clear_exception(true);
-        // Don't return here, because we want to loop back to the top
-        // and keep running this method.
-        goto continue_to_run;
-      } else {
-        call_frame->scope->flush_to_heap(state);
-        // Give control of this exception to the caller.
-        return NULL;
-      }
+    } else { // It's cBreak thats not for us!
+      call_frame->scope->flush_to_heap(state);
+      // Give control of this exception to the caller.
+      return NULL;
     }
 
   case cExit:

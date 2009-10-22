@@ -16,12 +16,12 @@
  */
 
 /* store in unsigned [big endian] format */
-int mp_to_unsigned_bin (mp_int * a, unsigned char *b)
+int mp_to_unsigned_bin MPA(mp_int * a, unsigned char *b)
 {
   int     x, res;
   mp_int  t;
 
-  if ((res = mp_init_copy (&t, a)) != MP_OKAY) {
+  if ((res = mp_init_copy (MPST, &t, a)) != MP_OKAY) {
     return res;
   }
 
@@ -32,7 +32,7 @@ int mp_to_unsigned_bin (mp_int * a, unsigned char *b)
 #else
       b[x++] = (unsigned char) (t.dp[0] | ((t.dp[1] & 0x01) << 7));
 #endif
-    if ((res = mp_div_2d (&t, 8, &t, NULL)) != MP_OKAY) {
+    if ((res = mp_div_2d (MPST, &t, 8, &t, NULL)) != MP_OKAY) {
       mp_clear (&t);
       return res;
     }

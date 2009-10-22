@@ -17,7 +17,7 @@
 
 /* calc a value mod 2**b */
 int
-mp_mod_2d (mp_int * a, int b, mp_int * c)
+mp_mod_2d MPA(mp_int * a, int b, mp_int * c)
 {
   int     x, res;
 
@@ -29,12 +29,12 @@ mp_mod_2d (mp_int * a, int b, mp_int * c)
 
   /* if the modulus is larger than the value than return */
   if (b >= (int) (a->used * DIGIT_BIT)) {
-    res = mp_copy (a, c);
+    res = mp_copy (MPST, a, c);
     return res;
   }
 
   /* copy */
-  if ((res = mp_copy (a, c)) != MP_OKAY) {
+  if ((res = mp_copy (MPST, a, c)) != MP_OKAY) {
     return res;
   }
 

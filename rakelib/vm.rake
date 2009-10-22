@@ -111,6 +111,7 @@ field_extract_headers = %w[
   vm/builtin/memorypointer.hpp
   vm/builtin/methodtable.hpp
   vm/builtin/nativefunction.hpp
+  vm/builtin/packed_object.hpp
   vm/builtin/regexp.hpp
   vm/builtin/selector.hpp
   vm/builtin/staticscope.hpp

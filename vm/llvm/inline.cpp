@@ -319,7 +319,7 @@ namespace rubinius {
         val
       };
 
-      sig2.call("rbx_set_table_ivar", call_args2, 4, "ivar",
+      sig2.call("rbx_set_ivar", call_args2, 4, "ivar",
           ops_.b());
     }
 

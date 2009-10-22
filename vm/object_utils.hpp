@@ -164,6 +164,21 @@ namespace rubinius {
       return static_cast<const T*>(obj);
     }
 
+  /**
+   *  Converts one type into another without a type check. This is
+   *  like reinterprete_cast<>(), but we use it so we can easily
+   *  find where we're doing explicit force casts.
+   */
+  template <class T>
+    static inline T* force_as(ObjectHeader* obj) {
+      return reinterpret_cast<T*>(obj);
+    }
+
+  template <class T>
+    static inline const T* force_as(const ObjectHeader* obj) {
+      return reinterpret_cast<const T*>(obj);
+    }
+
 
   void type_assert(STATE, Object* obj, object_type type, const char* reason);
 

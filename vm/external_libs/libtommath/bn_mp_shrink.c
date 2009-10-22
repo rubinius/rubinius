@@ -16,12 +16,17 @@
  */
 
 /* shrink a bignum */
-int mp_shrink (mp_int * a)
+int mp_shrink MPA(mp_int * a)
 {
   mp_digit *tmp;
   if (a->alloc != a->used && a->used > 0) {
-    if ((tmp = OPT_CAST(mp_digit) XREALLOC (a->dp, sizeof (mp_digit) * a->used)) == NULL) {
-      return MP_MEM;
+    if(MANAGED(a)) {
+      tmp = OPT_CAST(mp_digit) MANAGED_REALLOC_MPINT(MPST, a,
+                                 sizeof(mp_digit) * a->used);
+    } else {
+      if ((tmp = OPT_CAST(mp_digit) XREALLOC (a->dp, sizeof (mp_digit) * a->used)) == NULL) {
+        return MP_MEM;
+      }
     }
     a->dp    = tmp;
     a->alloc = a->used;

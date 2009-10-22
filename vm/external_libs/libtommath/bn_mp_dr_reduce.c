@@ -30,7 +30,7 @@
  * Input x must be in the range 0 <= x <= (n-1)**2
  */
 int
-mp_dr_reduce (mp_int * x, mp_int * n, mp_digit k)
+mp_dr_reduce MPA(mp_int * x, mp_int * n, mp_digit k)
 {
   int      err, i, m;
   mp_word  r;
@@ -41,7 +41,7 @@ mp_dr_reduce (mp_int * x, mp_int * n, mp_digit k)
 
   /* ensure that "x" has at least 2m digits */
   if (x->alloc < m + m) {
-    if ((err = mp_grow (x, m + m)) != MP_OKAY) {
+    if ((err = mp_grow (MPST, x, m + m)) != MP_OKAY) {
       return err;
     }
   }
@@ -82,7 +82,7 @@ top:
    * Each successive "recursion" makes the input smaller and smaller.
    */
   if (mp_cmp_mag (x, n) != MP_LT) {
-    s_mp_sub(x, n, x);
+    s_mp_sub(MPST, x, n, x);
     goto top;
   }
   return MP_OKAY;

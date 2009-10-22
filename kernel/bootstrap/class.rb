@@ -12,4 +12,9 @@ class Class
     Ruby.primitive :class_set_superclass
     raise PrimitiveFailure, "Unable to set the superclass"
   end
+
+  def packed!(ary)
+    Ruby.primitive :class_set_packed
+    raise PrimitiveFailure, "Class#pack! failed"
+  end
 end

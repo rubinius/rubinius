@@ -16,14 +16,14 @@
  */
 
 /* creates "a" then copies b into it */
-int mp_init_copy (mp_int * a, mp_int * b)
+int mp_init_copy MPA(mp_int * a, mp_int * b)
 {
   int     res;
 
   if ((res = mp_init (a)) != MP_OKAY) {
     return res;
   }
-  return mp_copy (b, a);
+  return mp_copy (MPST, b, a);
 }
 #endif
 

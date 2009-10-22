@@ -15,12 +15,12 @@
  * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 
-int mp_fwrite(mp_int *a, int radix, FILE *stream)
+int mp_fwrite MPA(mp_int *a, int radix, FILE *stream)
 {
    char *buf;
    int err, len, x;
    
-   if ((err = mp_radix_size(a, radix, &len)) != MP_OKAY) {
+   if ((err = mp_radix_size(MPST, a, radix, &len)) != MP_OKAY) {
       return err;
    }
 
@@ -29,7 +29,7 @@ int mp_fwrite(mp_int *a, int radix, FILE *stream)
       return MP_MEM;
    }
    
-   if ((err = mp_toradix(a, buf, radix)) != MP_OKAY) {
+   if ((err = mp_toradix(MPST, a, buf, radix)) != MP_OKAY) {
       XFREE (buf);
       return err;
    }

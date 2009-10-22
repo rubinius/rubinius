@@ -12,6 +12,8 @@ class Hash
     attr_accessor :value
     attr_accessor :next
 
+    packed! [:@key, :@key_hash, :@value, :@next]
+
     def initialize(key, key_hash, value)
       @key      = key
       @key_hash = key_hash
@@ -19,6 +21,11 @@ class Hash
     end
 
     def match?(key, key_hash)
+      case key
+      when Symbol, Fixnum
+        return key.equal?(@key)
+      end
+
       @key_hash == key_hash and key.eql? @key
     end
   end
@@ -158,15 +165,16 @@ class Hash
     redistribute @entries if @size > @max
 
     key_hash = key.hash
-    index = key_index key_hash
+    index = key_hash & @mask # key_index key_hash
 
-    unless entry = @entries[index]
+    entry = @entries[index]
+    unless entry
       @entries[index] = new_entry key, key_hash, value
       return value
-    else
-      if entry.match? key, key_hash
-        return entry.value = value
-      end
+    end
+
+    if entry.match? key, key_hash
+      return entry.value = value
     end
 
     last = entry
@@ -541,6 +549,8 @@ class Hash
       return entry.key, entry.value
     end
   end
+
+  # packed! [:@capacity, :@mask, :@max, :@size, :@entries]
 
   # Sets the underlying data structures.
   #

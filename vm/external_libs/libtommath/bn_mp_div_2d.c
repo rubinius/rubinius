@@ -16,7 +16,7 @@
  */
 
 /* shift right by a certain bit count (store quotient in c, optional remainder in d) */
-int mp_div_2d (mp_int * a, int b, mp_int * c, mp_int * d)
+int mp_div_2d MPA(mp_int * a, int b, mp_int * c, mp_int * d)
 {
   mp_digit D, r, rr;
   int     x, res;
@@ -25,7 +25,7 @@ int mp_div_2d (mp_int * a, int b, mp_int * c, mp_int * d)
 
   /* if the shift count is <= 0 then we do no work */
   if (b <= 0) {
-    res = mp_copy (a, c);
+    res = mp_copy (MPST, a, c);
     if (d != NULL) {
       mp_zero (d);
     }
@@ -38,14 +38,14 @@ int mp_div_2d (mp_int * a, int b, mp_int * c, mp_int * d)
 
   /* get the remainder */
   if (d != NULL) {
-    if ((res = mp_mod_2d (a, b, &t)) != MP_OKAY) {
+    if ((res = mp_mod_2d (MPST, a, b, &t)) != MP_OKAY) {
       mp_clear (&t);
       return res;
     }
   }
 
   /* copy */
-  if ((res = mp_copy (a, c)) != MP_OKAY) {
+  if ((res = mp_copy (MPST, a, c)) != MP_OKAY) {
     mp_clear (&t);
     return res;
   }
@@ -85,7 +85,7 @@ int mp_div_2d (mp_int * a, int b, mp_int * c, mp_int * d)
   }
   mp_clamp (c);
   if (d != NULL) {
-    mp_exch (&t, d);
+    mp_exch (MPST, &t, d);
   }
   mp_clear (&t);
   return MP_OKAY;

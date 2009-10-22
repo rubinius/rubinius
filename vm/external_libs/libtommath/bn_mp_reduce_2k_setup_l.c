@@ -16,7 +16,7 @@
  */
 
 /* determines the setup value */
-int mp_reduce_2k_setup_l(mp_int *a, mp_int *d)
+int mp_reduce_2k_setup_l MPA(mp_int *a, mp_int *d)
 {
    int    res;
    mp_int tmp;
@@ -25,11 +25,11 @@ int mp_reduce_2k_setup_l(mp_int *a, mp_int *d)
       return res;
    }
    
-   if ((res = mp_2expt(&tmp, mp_count_bits(a))) != MP_OKAY) {
+   if ((res = mp_2expt(MPST, &tmp, mp_count_bits(a))) != MP_OKAY) {
       goto ERR;
    }
    
-   if ((res = s_mp_sub(&tmp, a, d)) != MP_OKAY) {
+   if ((res = s_mp_sub(MPST, &tmp, a, d)) != MP_OKAY) {
       goto ERR;
    }
    

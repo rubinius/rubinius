@@ -19,6 +19,7 @@
 #include "builtin/staticscope.hpp"
 #include "builtin/system.hpp"
 #include "builtin/methodtable.hpp"
+#include "builtin/packed_object.hpp"
 
 #include "objectmemory.hpp"
 #include "arguments.hpp"
@@ -184,6 +185,18 @@ namespace rubinius {
     return Qnil;
   }
 
+  Object* Object::table_ivar_defined(STATE, Symbol* sym) {
+    bool found = false;
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
+      tbl->fetch(state, sym, &found);
+    } else if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
+      tbl->fetch(state, sym, &found);
+    }
+
+    if(found) return Qtrue;
+    return Qfalse;
+  }
+
   Object* Object::get_ivar_prim(STATE, Symbol* sym) {
     if(sym->is_ivar_p(state)->false_p()) {
       return reinterpret_cast<Object*>(kPrimitiveFailed);
@@ -202,6 +215,13 @@ namespace rubinius {
       return Qnil;
     }
 
+    if(type_id() == Object::type) return get_table_ivar(state, sym);
+
+    // Handle packed objects in a unique way.
+    if(PackedObject* po = try_as<PackedObject>(this)) {
+      return po->get_packed_ivar(state, sym);
+    }
+
     // We might be trying to access a slot, so try that first.
 
     TypeInfo* ti = state->om->find_type_info(this);
@@ -215,13 +235,39 @@ namespace rubinius {
     return get_table_ivar(state, sym);
   }
 
-  /*
-   * Returns a LookupTable or a CompactLookupTable.  Below a certain number of
-   * instance variables a CompactTable is used to save memory.  See
-   * Object::get_ivar for how to fetch an item out of get_ivars depending upon
-   * storage type.
-   */
-  Object* Object::get_ivars(STATE) {
+  Object* Object::ivar_defined(STATE, Symbol* sym) {
+    if(!sym->is_ivar_p(state)->true_p()) {
+      return reinterpret_cast<Object*>(kPrimitiveFailed);
+    }
+
+    /* Implements the external ivars table for objects that don't
+       have their own space for ivars. */
+    if(!reference_p()) {
+      LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
+
+      if(tbl) {
+        bool found = false;
+        tbl->fetch(state, sym, &found);
+        if(found) return Qtrue;
+      }
+
+      return Qfalse;
+    }
+
+    // Handle packed objects in a unique way.
+    if(PackedObject* po = try_as<PackedObject>(this)) {
+      return po->packed_ivar_defined(state, sym);
+    }
+
+    // We don't check slots, because we don't advertise them
+    // as normal ivars.
+
+    return table_ivar_defined(state, sym);
+  }
+
+  Object* Object::ivar_names(STATE) {
+    Array* ary = Array::create(state, 3);
+
     if(!reference_p()) {
       LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
 
@@ -229,7 +275,21 @@ namespace rubinius {
       return Qnil;
     }
 
-    return ivars_;
+    // Handle packed objects in a unique way.
+    if(PackedObject* po = try_as<PackedObject>(this)) {
+      po->add_packed_ivars(state, ary);
+    }
+
+    // We don't check slots, because we don't advertise them
+    // as normal ivars.
+
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
+      ary->concat(state, tbl->keys(state));
+    } else if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
+      ary->concat(state, tbl->all_keys(state));
+    }
+
+    return ary;
   }
 
   object_type Object::get_type() const {
@@ -244,6 +304,8 @@ namespace rubinius {
 
   hashval Object::hash(STATE) {
     if(!reference_p()) {
+      return reinterpret_cast<uintptr_t>(this) & FIXNUM_MAX;
+
 #ifdef _LP64
       uintptr_t key = reinterpret_cast<uintptr_t>(this);
       key = (~key) + (key << 21); // key = (key << 21) - key - 1;
@@ -436,6 +498,13 @@ namespace rubinius {
       return val;
     }
 
+    if(type_id() == Object::type) return set_table_ivar(state, sym, val);
+
+    // Handle packed objects in a unique way.
+    if(PackedObject* po = try_as<PackedObject>(this)) {
+      return po->set_packed_ivar(state, sym, val);
+    }
+
     /* We might be trying to access a field, so check there first. */
     TypeInfo* ti = state->om->find_type_info(this);
     if(ti) {
@@ -461,6 +530,11 @@ namespace rubinius {
       return this;
     }
 
+    // Handle packed objects in a unique way.
+    if(PackedObject* po = try_as<PackedObject>(this)) {
+      return po->packed_ivar_delete(state, sym);
+    }
+
     /* We might be trying to access a field, so check there first. */
     TypeInfo* ti = state->om->find_type_info(this);
     if(ti) {
@@ -469,6 +543,10 @@ namespace rubinius {
       if(it != ti->slots.end()) return this;
     }
 
+    return del_table_ivar(state, sym);
+  }
+
+  Object* Object::del_table_ivar(STATE, Symbol* sym) {
     /* No ivars, we're done! */
     if(ivars_->nil_p()) return this;
 

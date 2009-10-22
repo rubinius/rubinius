@@ -1,4 +1,6 @@
 #include <tommath.h>
+#include <assert.h>
+
 #ifdef BN_MP_CLEAR_C
 /* LibTomMath, multiple-precision integer library -- Tom St Denis
  *
@@ -27,6 +29,8 @@ mp_clear (mp_int * a)
     for (i = 0; i < a->used; i++) {
         a->dp[i] = 0;
     }
+
+    assert(!MANAGED(a));
 
     /* free ram */
     XFREE(a->dp);

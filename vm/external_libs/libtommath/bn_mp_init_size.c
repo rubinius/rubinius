@@ -33,6 +33,7 @@ int mp_init_size (mp_int * a, int size)
   a->used  = 0;
   a->alloc = size;
   a->sign  = MP_ZPOS;
+  a->managed = 0;
 
   /* zero the digits */
   for (x = 0; x < size; x++) {

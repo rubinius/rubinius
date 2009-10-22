@@ -16,7 +16,7 @@
  */
 
 /* shift left a certain amount of digits */
-int mp_lshd (mp_int * a, int b)
+int mp_lshd MPA(mp_int * a, int b)
 {
   int     x, res;
 
@@ -27,7 +27,7 @@ int mp_lshd (mp_int * a, int b)
 
   /* grow to fit the new digits */
   if (a->alloc < a->used + b) {
-     if ((res = mp_grow (a, a->used + b)) != MP_OKAY) {
+     if ((res = mp_grow (MPST, a, a->used + b)) != MP_OKAY) {
        return res;
      }
   }

@@ -16,7 +16,7 @@
  */
 
 /* set a 32-bit const */
-int mp_set_int (mp_int * a, unsigned long b)
+int mp_set_int MPA(mp_int * a, unsigned long b)
 {
   int     x, res;
 
@@ -25,7 +25,7 @@ int mp_set_int (mp_int * a, unsigned long b)
   /* set four bits at a time */
   for (x = 0; x < 8; x++) {
     /* shift the number up four bits */
-    if ((res = mp_mul_2d (a, 4, a)) != MP_OKAY) {
+    if ((res = mp_mul_2d (MPST, a, 4, a)) != MP_OKAY) {
       return res;
     }
 

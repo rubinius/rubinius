@@ -14,9 +14,13 @@ namespace rubinius {
   public:
     GarbageCollector* gc;
 
+  public:
+    ObjectMark(GarbageCollector* gc)
+      : gc(gc)
+    {}
+
     VM* state();
 
-    ObjectMark(GarbageCollector* gc);
     Object* call(Object*);
     void set(Object* target, Object** pos, Object* val);
     void just_set(Object* target, Object* val);

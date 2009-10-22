@@ -15,14 +15,17 @@ namespace rubinius {
 
   private:
     Fixnum* instance_type_;   // slot
+    LookupTable* packed_ivar_info_; // slot
 
     TypeInfo* type_info_;
 
     int class_id_;
+    size_t packed_size_;
 
   public:
     /* accessors */
 
+    attr_accessor(packed_ivar_info, LookupTable);
     attr_accessor(instance_type, Fixnum);
 
     TypeInfo* type_info() {
@@ -39,6 +42,14 @@ namespace rubinius {
 
     void set_class_id(int id) {
       class_id_ = id;
+    }
+
+    size_t packed_size() {
+      return packed_size_;
+    }
+
+    void set_packed_size(size_t s) {
+      packed_size_ = s;
     }
 
     /* static */
@@ -61,6 +72,9 @@ namespace rubinius {
 
     // Ruby.primitive :class_set_superclass
     Object* set_superclass(STATE, Class* sup);
+
+    // Ruby.primitive :class_set_packed
+    Object* set_packed(STATE, Array* info);
 
     class Info : public Module::Info {
     public:

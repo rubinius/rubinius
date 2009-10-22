@@ -16,7 +16,7 @@
  */
 
 /* this function is less generic than mp_n_root, simpler and faster */
-int mp_sqrt(mp_int *arg, mp_int *ret) 
+int mp_sqrt MPA(mp_int *arg, mp_int *ret) 
 {
   int res;
   mp_int t1,t2;
@@ -32,7 +32,7 @@ int mp_sqrt(mp_int *arg, mp_int *ret)
     return MP_OKAY;
   }
 
-  if ((res = mp_init_copy(&t1, arg)) != MP_OKAY) {
+  if ((res = mp_init_copy(MPST, &t1, arg)) != MP_OKAY) {
     return res;
   }
 
@@ -44,30 +44,30 @@ int mp_sqrt(mp_int *arg, mp_int *ret)
   mp_rshd (&t1,t1.used/2);
 
   /* t1 > 0  */ 
-  if ((res = mp_div(arg,&t1,&t2,NULL)) != MP_OKAY) {
+  if ((res = mp_div(MPST, arg,&t1,&t2,NULL)) != MP_OKAY) {
     goto E1;
   }
-  if ((res = mp_add(&t1,&t2,&t1)) != MP_OKAY) {
+  if ((res = mp_add(MPST, &t1,&t2,&t1)) != MP_OKAY) {
     goto E1;
   }
-  if ((res = mp_div_2(&t1,&t1)) != MP_OKAY) {
+  if ((res = mp_div_2(MPST, &t1,&t1)) != MP_OKAY) {
     goto E1;
   }
   /* And now t1 > sqrt(arg) */
   do { 
-    if ((res = mp_div(arg,&t1,&t2,NULL)) != MP_OKAY) {
+    if ((res = mp_div(MPST, arg,&t1,&t2,NULL)) != MP_OKAY) {
       goto E1;
     }
-    if ((res = mp_add(&t1,&t2,&t1)) != MP_OKAY) {
+    if ((res = mp_add(MPST, &t1,&t2,&t1)) != MP_OKAY) {
       goto E1;
     }
-    if ((res = mp_div_2(&t1,&t1)) != MP_OKAY) {
+    if ((res = mp_div_2(MPST, &t1,&t1)) != MP_OKAY) {
       goto E1;
     }
     /* t1 >= sqrt(arg) >= t2 at this point */
   } while (mp_cmp_mag(&t1,&t2) == MP_GT);
 
-  mp_exch(&t1,ret);
+  mp_managed_copy(MPST, &t1,ret);
 
 E1: mp_clear(&t2);
 E2: mp_clear(&t1);

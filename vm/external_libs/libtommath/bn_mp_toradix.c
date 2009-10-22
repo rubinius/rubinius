@@ -16,7 +16,7 @@
  */
 
 /* stores a bignum as a ASCII string in a given radix (2..64) */
-int mp_toradix (mp_int * a, char *str, int radix)
+int mp_toradix MPA(mp_int * a, char *str, int radix)
 {
   int     res, digs;
   mp_int  t;
@@ -35,7 +35,7 @@ int mp_toradix (mp_int * a, char *str, int radix)
      return MP_OKAY;
   }
 
-  if ((res = mp_init_copy (&t, a)) != MP_OKAY) {
+  if ((res = mp_init_copy (MPST, &t, a)) != MP_OKAY) {
     return res;
   }
 
@@ -48,7 +48,7 @@ int mp_toradix (mp_int * a, char *str, int radix)
 
   digs = 0;
   while (mp_iszero (&t) == 0) {
-    if ((res = mp_div_d (&t, (mp_digit) radix, &t, &d)) != MP_OKAY) {
+    if ((res = mp_div_d (MPST, &t, (mp_digit) radix, &t, &d)) != MP_OKAY) {
       mp_clear (&t);
       return res;
     }

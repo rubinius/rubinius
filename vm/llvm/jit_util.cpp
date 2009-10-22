@@ -786,7 +786,7 @@ extern "C" {
   }
 
   Object* rbx_get_ivar(STATE, Object* self, Symbol* name) {
-    return self->get_table_ivar(state, name);
+    return self->get_ivar(state, name);
   }
 
   void rbx_set_table_ivar(STATE, Object* self, Symbol* name, Object* val) {

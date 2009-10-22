@@ -25,6 +25,11 @@ describe "The break statement" do
 end
 
 describe "Executing break from within a block" do
+
+  before :each do
+    ScratchPad.clear
+  end
+
   it "returns from the invoking singleton method" do
     obj = Object.new
     def obj.meth_with_block
@@ -92,6 +97,44 @@ describe "Executing break from within a block" do
     end
     res.should == :return_value
 
+  end
+
+  class BreakTest2
+    def one
+      two { yield }
+    end
+
+    def two
+      yield
+    ensure
+      ScratchPad << :two_ensure
+    end
+
+    def three
+      begin
+        one { break }
+        ScratchPad << :three_post
+      ensure
+        ScratchPad << :three_ensure
+      end
+    end
+  end
+
+  it "runs ensures when continuing upward" do
+    ScratchPad.record []
+
+    bt2 = BreakTest2.new
+    bt2.one { break }
+    ScratchPad.recorded.should == [:two_ensure]
+  end
+
+  it "doesn't run ensures in the destination method" do
+    ScratchPad.record []
+
+    bt2 = BreakTest2.new
+    bt2.three
+    ScratchPad.recorded.include? :three_post
+    ScratchPad.recorded.count(:three_ensure).should == 1
   end
 end
 

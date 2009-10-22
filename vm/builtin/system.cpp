@@ -588,4 +588,21 @@ namespace rubinius {
     state->thread_state()->raise_exception(exc);
     return NULL;
   }
+
+  Fixnum* System::vm_memory_size(STATE, Object* obj) {
+    if(obj->reference_p()) {
+      size_t bytes = obj->size_in_bytes(state);
+      Object* iv = obj->ivars();
+      if(LookupTable* lt = try_as<LookupTable>(iv)) {
+        bytes += iv->size_in_bytes(state);
+        bytes += lt->values()->size_in_bytes(state);
+        bytes += (lt->entries()->to_native() * sizeof(LookupTableBucket));
+      } else if(iv->reference_p()) {
+        bytes += iv->size_in_bytes(state);
+      }
+      return Fixnum::from(bytes);
+    }
+
+    return Fixnum::from(0);
+  }
 }

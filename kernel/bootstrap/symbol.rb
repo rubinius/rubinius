@@ -1,4 +1,9 @@
 class Symbol
+  def self.===(obj)
+    Ruby.primitive :symbol_s_eqq
+    super
+  end
+
   def index
     Ruby.primitive :symbol_index
     raise PrimitiveFailure, "Symbol#index failed."

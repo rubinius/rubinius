@@ -12,6 +12,8 @@
 #include "builtin/staticscope.hpp"
 #include "builtin/string.hpp"
 #include "builtin/system.hpp"
+#include "builtin/packed_object.hpp"
+#include "builtin/array.hpp"
 
 #include "builtin/executable.hpp"
 
@@ -64,6 +66,7 @@ namespace rubinius {
   Class* Class::create(STATE, Class* super) {
     Class* cls = state->om->new_object_enduring<Class>(G(klass));
     cls->class_id_ = state->shared.inc_class_count();
+    cls->packed_size_ = 0;
 
     cls->name(state, (Symbol*)Qnil);
     cls->instance_type(state, super->instance_type());
@@ -80,14 +83,30 @@ namespace rubinius {
   Class* Class::s_allocate(STATE) {
     Class* cls = as<Class>(state->om->new_object_enduring<Class>(G(klass)));
     cls->class_id_ = state->shared.inc_class_count();
+    cls->set_packed_size(0);
 
     cls->set_type_info(state->om->type_info[ObjectType]);
     return cls;
   }
 
   Object* Class::allocate(STATE) {
-    return state->om->new_object_fast(this,
-        type_info_->instance_size, type_info_->type);
+    if(type_info_->type == PackedObject::type) {
+      assert(packed_size_ > 0);
+      PackedObject* obj = reinterpret_cast<PackedObject*>(
+          state->om->new_object_fast(this, packed_size_, type_info_->type));
+
+      uintptr_t body = reinterpret_cast<uintptr_t>(obj->body_as_array());
+      for(size_t i = 0; i < packed_size_ - sizeof(ObjectHeader);
+          i += sizeof(Object*)) {
+        Object** pos = reinterpret_cast<Object**>(body + i);
+        *pos = Qundef;
+      }
+
+      return obj;
+    } else {
+      return state->om->new_object_fast(this,
+          type_info_->instance_size, type_info_->type);
+    }
   }
 
   Class* Class::true_superclass(STATE) {
@@ -105,12 +124,38 @@ namespace rubinius {
     instance_type(state, sup->instance_type());
     set_type_info(sup->type_info());
 
+    packed_ivar_info(state, sup->packed_ivar_info());
+    set_packed_size(sup->packed_size());
+
     return Qnil;
   }
 
   void Class::set_object_type(STATE, size_t type) {
     instance_type(state, Fixnum::from(type));
     type_info_ = state->om->type_info[type];
+  }
+
+  Object* Class::set_packed(STATE, Array* info) {
+    // Only transition Object typed objects to Packed
+    if(type_info_->type != Object::type) return Fixnum::from(1);
+
+    // Reject methods that already have packing.
+    if(packed_size_) return Fixnum::from(2);
+
+    LookupTable* lt = LookupTable::create(state);
+
+    size_t s = info->size();
+    for(size_t i = 0; i < s; i++) {
+      Symbol* sym = as<Symbol>(info->get(state, i));
+      lt->store(state, sym, Fixnum::from(i));
+    }
+
+    packed_size_ = sizeof(Object) + (s * sizeof(Object*));
+    packed_ivar_info(state, lt);
+
+    set_object_type(state, PackedObject::type);
+
+    return Qtrue;
   }
 
   MetaClass* MetaClass::attach(STATE, Object* obj, Object* sup) {
@@ -124,6 +169,10 @@ namespace rubinius {
     meta->setup(state);
     meta->superclass(state, (Module*)sup);
     meta->set_type_info(obj->klass()->type_info());
+
+    meta->set_packed_size(obj->klass()->packed_size());
+    meta->packed_ivar_info(state, obj->klass()->packed_ivar_info());
+
     obj->klass(state, meta);
 
     meta->name(state, state->symbol("<metaclass>"));

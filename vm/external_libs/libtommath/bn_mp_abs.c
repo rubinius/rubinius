@@ -20,13 +20,13 @@
  * Simple function copies the input and fixes the sign to positive
  */
 int
-mp_abs (mp_int * a, mp_int * b)
+mp_abs MPA(mp_int * a, mp_int * b)
 {
   int     res;
 
   /* copy a to b */
   if (a != b) {
-     if ((res = mp_copy (a, b)) != MP_OKAY) {
+     if ((res = mp_copy (MPST, a, b)) != MP_OKAY) {
        return res;
      }
   }

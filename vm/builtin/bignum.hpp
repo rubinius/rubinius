@@ -1,8 +1,8 @@
 #ifndef RBX_BUILTIN_BIGNUM_HPP
 #define RBX_BUILTIN_BIGNUM_HPP
 
-#include "builtin/integer.hpp"
 #include <tommath.h>
+#include "builtin/integer.hpp"
 
 namespace rubinius {
   class Array;
@@ -193,15 +193,19 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type, bool cleanup = true) : TypeInfo(type, true) { }
+      Info(object_type type, bool cleanup = false) : TypeInfo(type, false) { }
       virtual void mark(Object* t, ObjectMark& mark);
-      virtual void cleanup(Object* obj);
+      virtual void visit(Object* obj, ObjectVisitor& visit);
       virtual void show(STATE, Object* self, int level);
       virtual void show_simple(STATE, Object* self, int level);
       virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
   };
 
+}
+
+extern "C" {
+  void* MANAGED_REALLOC_MPINT(void* s, mp_int* a, size_t bytes);
 }
 
 #endif

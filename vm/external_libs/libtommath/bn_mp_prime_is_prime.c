@@ -22,7 +22,7 @@
  *
  * Sets result to 1 if probably prime, 0 otherwise
  */
-int mp_prime_is_prime (mp_int * a, int t, int *result)
+int mp_prime_is_prime MPA(mp_int * a, int t, int *result)
 {
   mp_int  b;
   int     ix, err, res;
@@ -44,7 +44,7 @@ int mp_prime_is_prime (mp_int * a, int t, int *result)
   }
 
   /* first perform trial division */
-  if ((err = mp_prime_is_divisible (a, &res)) != MP_OKAY) {
+  if ((err = mp_prime_is_divisible (MPST, a, &res)) != MP_OKAY) {
     return err;
   }
 
@@ -62,7 +62,7 @@ int mp_prime_is_prime (mp_int * a, int t, int *result)
     /* set the prime */
     mp_set (&b, ltm_prime_tab[ix]);
 
-    if ((err = mp_prime_miller_rabin (a, &b, &res)) != MP_OKAY) {
+    if ((err = mp_prime_miller_rabin (MPST, a, &b, &res)) != MP_OKAY) {
       goto LBL_B;
     }
 

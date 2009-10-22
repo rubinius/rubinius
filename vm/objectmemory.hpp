@@ -1,9 +1,9 @@
 #ifndef RBX_OBJECTMEMORY_H
 #define RBX_OBJECTMEMORY_H
 
-#include "gc/marksweep.hpp"
-#include "gc/baker.hpp"
-#include "gc/immix.hpp"
+// #include "gc/marksweep.hpp"
+// #include "gc/baker.hpp"
+// #include "gc/immix.hpp"
 
 #include "prelude.hpp"
 #include "type_info.hpp"
@@ -11,6 +11,10 @@
 #include "object_position.hpp"
 
 #include "call_frame_list.hpp"
+
+#include "builtin/object.hpp"
+
+class TestObjectMemory; // So we can friend it properly
 
 namespace rubinius {
 
@@ -37,19 +41,24 @@ namespace rubinius {
   class CallFrame;
   class GCData;
   class Configuration;
+  class BakerGC;
+  class MarkSweepGC;
+  class ImmixGC;
+
+  typedef std::vector<Object*> ObjectArray;
 
   class ObjectMemory {
-  public:
+    BakerGC* young_;
+    MarkSweepGC* mark_sweep_;
 
+    ImmixGC* immix_;
+
+  public:
     bool collect_young_now;
     bool collect_mature_now;
 
     STATE;
     ObjectArray *remember_set;
-    BakerGC young;
-    MarkSweepGC mark_sweep_;
-
-    ImmixGC immix_;
 
     size_t last_object_id;
     TypeInfo* type_info[(int)LastObjectType];
@@ -67,16 +76,7 @@ namespace rubinius {
     Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_enduring(Class* cls, size_t bytes, object_type type);
 
-    Object* new_object_fast(Class* cls, size_t bytes, object_type type) {
-      if(Object* obj = young.raw_allocate(bytes, &collect_young_now)) {
-        if(collect_young_now) state->interrupts.set_perform_gc();
-        obj->init_header(cls, YoungObjectZone, type);
-        obj->clear_fields(bytes);
-        return obj;
-      } else {
-        return new_object_typed(cls, bytes, type);
-      }
-    }
+    Object* new_object_fast(Class* cls, size_t bytes, object_type type);
 
     template <class T>
       T* new_object_bytes(Class* cls, size_t& bytes) {
@@ -134,6 +134,9 @@ namespace rubinius {
   private:
     Object* allocate_object(size_t bytes);
     Object* allocate_object_mature(size_t bytes);
+
+  public:
+    friend class ::TestObjectMemory;
   };
 
 #define FREE(obj) free(obj)
@@ -143,7 +146,6 @@ namespace rubinius {
 
 #define ALLOCA_N(type, size) ((type*)alloca(sizeof(type) * (size)))
 #define ALLOCA(type) ((type*)alloca(sizeof(type)))
-
 };
 
 
