@@ -21,6 +21,12 @@ namespace rubinius {
     static ByteArray* create(STATE, size_t bytes);
     static ByteArray* create_pinned(STATE, size_t bytes);
 
+    template <typename Any>
+      static ByteArray* from_body(Any obj) {
+        ByteArray* ba = reinterpret_cast<ByteArray*>(obj);
+        return ba - 1; // move back up to the pointer to the header
+      }
+
     // Ruby.primitive :bytearray_allocate
     static ByteArray* allocate(STATE, Integer* bytes);
 

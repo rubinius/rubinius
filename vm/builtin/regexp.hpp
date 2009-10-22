@@ -54,10 +54,21 @@ namespace rubinius {
     // Ruby.primitive :regexp_allocate
     static Regexp* allocate(STATE, Object* self);
 
+    void make_managed(STATE);
+
     class Info : public TypeInfo {
     public:
-      BASIC_TYPEINFO_WITH_CLEANUP(TypeInfo)
+      Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
+      virtual void mark(Object* obj, ObjectMark& mark);
+      virtual void visit(Object* obj, ObjectVisitor& visit);
+      virtual void auto_mark(Object* obj, ObjectMark& mark);
+      virtual void auto_visit(Object*, ObjectVisitor&);
+      virtual void populate_slot_locations();
+      virtual void set_field(STATE, Object*, size_t, Object*);
+      virtual Object* get_field(STATE, Object*, size_t);
     };
+
+    friend class Info;
 
   };
 
