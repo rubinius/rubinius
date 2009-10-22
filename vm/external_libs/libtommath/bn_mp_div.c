@@ -18,7 +18,7 @@
 #ifdef BN_MP_DIV_SMALL
 
 /* slower bit-bang division... also smaller */
-int mp_div(mp_int * a, mp_int * b, mp_int * c, mp_int * d)
+int mp_div MPA(mp_int * a, mp_int * b, mp_int * c, mp_int * d)
 {
    mp_int ta, tb, tq, q;
    int    res, n, n2;
@@ -100,7 +100,7 @@ LBL_ERR:
  * The overall algorithm is as described as 
  * 14.20 from HAC but fixed to treat these cases.
 */
-int mp_div (mp_int * a, mp_int * b, mp_int * c, mp_int * d)
+int mp_div MPA(mp_int * a, mp_int * b, mp_int * c, mp_int * d)
 {
   mp_int  q, x, y, t1, t2;
   int     res, n, t, i, norm, neg;
@@ -113,7 +113,7 @@ int mp_div (mp_int * a, mp_int * b, mp_int * c, mp_int * d)
   /* if a < b then q=0, r = a */
   if (mp_cmp_mag (a, b) == MP_LT) {
     if (d != NULL) {
-      res = mp_copy (a, d);
+      res = mp_copy (MPST, a, d);
     } else {
       res = MP_OKAY;
     }
@@ -136,11 +136,11 @@ int mp_div (mp_int * a, mp_int * b, mp_int * c, mp_int * d)
     goto LBL_T1;
   }
 
-  if ((res = mp_init_copy (&x, a)) != MP_OKAY) {
+  if ((res = mp_init_copy (MPST, &x, a)) != MP_OKAY) {
     goto LBL_T2;
   }
 
-  if ((res = mp_init_copy (&y, b)) != MP_OKAY) {
+  if ((res = mp_init_copy (MPST, &y, b)) != MP_OKAY) {
     goto LBL_X;
   }
 
@@ -152,10 +152,10 @@ int mp_div (mp_int * a, mp_int * b, mp_int * c, mp_int * d)
   norm = mp_count_bits(&y) % DIGIT_BIT;
   if (norm < (int)(DIGIT_BIT-1)) {
      norm = (DIGIT_BIT-1) - norm;
-     if ((res = mp_mul_2d (&x, norm, &x)) != MP_OKAY) {
+     if ((res = mp_mul_2d (MPST, &x, norm, &x)) != MP_OKAY) {
        goto LBL_Y;
      }
-     if ((res = mp_mul_2d (&y, norm, &y)) != MP_OKAY) {
+     if ((res = mp_mul_2d (MPST, &y, norm, &y)) != MP_OKAY) {
        goto LBL_Y;
      }
   } else {
@@ -167,13 +167,13 @@ int mp_div (mp_int * a, mp_int * b, mp_int * c, mp_int * d)
   t = y.used - 1;
 
   /* while (x >= y*b**n-t) do { q[n-t] += 1; x -= y*b**{n-t} } */
-  if ((res = mp_lshd (&y, n - t)) != MP_OKAY) { /* y = y*b**{n-t} */
+  if ((res = mp_lshd (MPST, &y, n - t)) != MP_OKAY) { /* y = y*b**{n-t} */
     goto LBL_Y;
   }
 
   while (mp_cmp (&x, &y) != MP_LT) {
     ++(q.dp[n - t]);
-    if ((res = mp_sub (&x, &y, &x)) != MP_OKAY) {
+    if ((res = mp_sub (MPST, &x, &y, &x)) != MP_OKAY) {
       goto LBL_Y;
     }
   }
@@ -215,7 +215,7 @@ int mp_div (mp_int * a, mp_int * b, mp_int * c, mp_int * d)
       t1.dp[0] = (t - 1 < 0) ? 0 : y.dp[t - 1];
       t1.dp[1] = y.dp[t];
       t1.used = 2;
-      if ((res = mp_mul_d (&t1, q.dp[i - t - 1], &t1)) != MP_OKAY) {
+      if ((res = mp_mul_d (MPST, &t1, q.dp[i - t - 1], &t1)) != MP_OKAY) {
         goto LBL_Y;
       }
 
@@ -227,27 +227,27 @@ int mp_div (mp_int * a, mp_int * b, mp_int * c, mp_int * d)
     } while (mp_cmp_mag(&t1, &t2) == MP_GT);
 
     /* step 3.3 x = x - q{i-t-1} * y * b**{i-t-1} */
-    if ((res = mp_mul_d (&y, q.dp[i - t - 1], &t1)) != MP_OKAY) {
+    if ((res = mp_mul_d (MPST, &y, q.dp[i - t - 1], &t1)) != MP_OKAY) {
       goto LBL_Y;
     }
 
-    if ((res = mp_lshd (&t1, i - t - 1)) != MP_OKAY) {
+    if ((res = mp_lshd (MPST, &t1, i - t - 1)) != MP_OKAY) {
       goto LBL_Y;
     }
 
-    if ((res = mp_sub (&x, &t1, &x)) != MP_OKAY) {
+    if ((res = mp_sub (MPST, &x, &t1, &x)) != MP_OKAY) {
       goto LBL_Y;
     }
 
     /* if x < 0 then { x = x + y*b**{i-t-1}; q{i-t-1} -= 1; } */
     if (x.sign == MP_NEG) {
-      if ((res = mp_copy (&y, &t1)) != MP_OKAY) {
+      if ((res = mp_copy (MPST, &y, &t1)) != MP_OKAY) {
         goto LBL_Y;
       }
-      if ((res = mp_lshd (&t1, i - t - 1)) != MP_OKAY) {
+      if ((res = mp_lshd (MPST, &t1, i - t - 1)) != MP_OKAY) {
         goto LBL_Y;
       }
-      if ((res = mp_add (&x, &t1, &x)) != MP_OKAY) {
+      if ((res = mp_add (MPST, &x, &t1, &x)) != MP_OKAY) {
         goto LBL_Y;
       }
 
@@ -264,13 +264,13 @@ int mp_div (mp_int * a, mp_int * b, mp_int * c, mp_int * d)
 
   if (c != NULL) {
     mp_clamp (&q);
-    mp_exch (&q, c);
+    mp_managed_copy (MPST, &q, c);
     c->sign = neg;
   }
 
   if (d != NULL) {
-    mp_div_2d (&x, norm, &x, NULL);
-    mp_exch (&x, d);
+    mp_div_2d (MPST, &x, norm, &x, NULL);
+    mp_managed_copy (MPST, &x, d);
   }
 
   res = MP_OKAY;

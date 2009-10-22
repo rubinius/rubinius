@@ -16,7 +16,7 @@
  */
 
 /* read a bigint from a file stream in ASCII */
-int mp_fread(mp_int *a, int radix, FILE *stream)
+int mp_fread MPA(mp_int *a, int radix, FILE *stream)
 {
    int err, ch, neg, y;
    
@@ -44,10 +44,10 @@ int mp_fread(mp_int *a, int radix, FILE *stream)
       }
       
       /* shift up and add */
-      if ((err = mp_mul_d(a, radix, a)) != MP_OKAY) {
+      if ((err = mp_mul_d(MPST, a, radix, a)) != MP_OKAY) {
          return err;
       }
-      if ((err = mp_add_d(a, y, a)) != MP_OKAY) {
+      if ((err = mp_add_d(MPST, a, y, a)) != MP_OKAY) {
          return err;
       }
       

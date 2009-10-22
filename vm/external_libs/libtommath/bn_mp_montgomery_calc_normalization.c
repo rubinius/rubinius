@@ -21,7 +21,7 @@
  * The method is slightly modified to shift B unconditionally upto just under
  * the leading bit of b.  This saves alot of multiple precision shifting.
  */
-int mp_montgomery_calc_normalization (mp_int * a, mp_int * b)
+int mp_montgomery_calc_normalization MPA(mp_int * a, mp_int * b)
 {
   int     x, bits, res;
 
@@ -29,7 +29,7 @@ int mp_montgomery_calc_normalization (mp_int * a, mp_int * b)
   bits = mp_count_bits (b) % DIGIT_BIT;
 
   if (b->used > 1) {
-     if ((res = mp_2expt (a, (b->used - 1) * DIGIT_BIT + bits - 1)) != MP_OKAY) {
+     if ((res = mp_2expt (MPST, a, (b->used - 1) * DIGIT_BIT + bits - 1)) != MP_OKAY) {
         return res;
      }
   } else {
@@ -40,11 +40,11 @@ int mp_montgomery_calc_normalization (mp_int * a, mp_int * b)
 
   /* now compute C = A * B mod b */
   for (x = bits - 1; x < (int)DIGIT_BIT; x++) {
-    if ((res = mp_mul_2 (a, a)) != MP_OKAY) {
+    if ((res = mp_mul_2 (MPST, a, a)) != MP_OKAY) {
       return res;
     }
     if (mp_cmp_mag (a, b) != MP_LT) {
-      if ((res = s_mp_sub (a, b, a)) != MP_OKAY) {
+      if ((res = s_mp_sub (MPST, a, b, a)) != MP_OKAY) {
         return res;
       }
     }

@@ -22,7 +22,7 @@
  * Randomly the chance of error is no more than 1/4 and often 
  * very much lower.
  */
-int mp_prime_miller_rabin (mp_int * a, mp_int * b, int *result)
+int mp_prime_miller_rabin MPA(mp_int * a, mp_int * b, int *result)
 {
   mp_int  n1, y, r;
   int     s, j, err;
@@ -36,15 +36,15 @@ int mp_prime_miller_rabin (mp_int * a, mp_int * b, int *result)
   }     
 
   /* get n1 = a - 1 */
-  if ((err = mp_init_copy (&n1, a)) != MP_OKAY) {
+  if ((err = mp_init_copy (MPST, &n1, a)) != MP_OKAY) {
     return err;
   }
-  if ((err = mp_sub_d (&n1, 1, &n1)) != MP_OKAY) {
+  if ((err = mp_sub_d (MPST, &n1, 1, &n1)) != MP_OKAY) {
     goto LBL_N1;
   }
 
   /* set 2**s * r = n1 */
-  if ((err = mp_init_copy (&r, &n1)) != MP_OKAY) {
+  if ((err = mp_init_copy (MPST, &r, &n1)) != MP_OKAY) {
     goto LBL_N1;
   }
 
@@ -54,7 +54,7 @@ int mp_prime_miller_rabin (mp_int * a, mp_int * b, int *result)
   s = mp_cnt_lsb(&r);
 
   /* now divide n - 1 by 2**s */
-  if ((err = mp_div_2d (&r, s, &r, NULL)) != MP_OKAY) {
+  if ((err = mp_div_2d (MPST, &r, s, &r, NULL)) != MP_OKAY) {
     goto LBL_R;
   }
 
@@ -62,7 +62,7 @@ int mp_prime_miller_rabin (mp_int * a, mp_int * b, int *result)
   if ((err = mp_init (&y)) != MP_OKAY) {
     goto LBL_R;
   }
-  if ((err = mp_exptmod (b, &r, a, &y)) != MP_OKAY) {
+  if ((err = mp_exptmod (MPST, b, &r, a, &y)) != MP_OKAY) {
     goto LBL_Y;
   }
 
@@ -71,7 +71,7 @@ int mp_prime_miller_rabin (mp_int * a, mp_int * b, int *result)
     j = 1;
     /* while j <= s-1 and y != n1 */
     while ((j <= (s - 1)) && mp_cmp (&y, &n1) != MP_EQ) {
-      if ((err = mp_sqrmod (&y, a, &y)) != MP_OKAY) {
+      if ((err = mp_sqrmod (MPST, &y, a, &y)) != MP_OKAY) {
          goto LBL_Y;
       }
 

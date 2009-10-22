@@ -23,7 +23,7 @@
  *
  * Sets result to 1 if the congruence holds, or zero otherwise.
  */
-int mp_prime_fermat (mp_int * a, mp_int * b, int *result)
+int mp_prime_fermat MPA(mp_int * a, mp_int * b, int *result)
 {
   mp_int  t;
   int     err;
@@ -42,7 +42,7 @@ int mp_prime_fermat (mp_int * a, mp_int * b, int *result)
   }
 
   /* compute t = b**a mod a */
-  if ((err = mp_exptmod (b, a, a, &t)) != MP_OKAY) {
+  if ((err = mp_exptmod (MPST, b, a, a, &t)) != MP_OKAY) {
     goto LBL_T;
   }
 

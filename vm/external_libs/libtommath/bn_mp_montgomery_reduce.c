@@ -17,7 +17,7 @@
 
 /* computes xR**-1 == x (mod N) via Montgomery Reduction */
 int
-mp_montgomery_reduce (mp_int * x, mp_int * n, mp_digit rho)
+mp_montgomery_reduce MPA(mp_int * x, mp_int * n, mp_digit rho)
 {
   int     ix, res, digs;
   mp_digit mu;
@@ -32,12 +32,12 @@ mp_montgomery_reduce (mp_int * x, mp_int * n, mp_digit rho)
   if ((digs < MP_WARRAY) &&
       n->used <
       (1 << ((CHAR_BIT * sizeof (mp_word)) - (2 * DIGIT_BIT)))) {
-    return fast_mp_montgomery_reduce (x, n, rho);
+    return fast_mp_montgomery_reduce (MPST, x, n, rho);
   }
 
   /* grow the input as required */
   if (x->alloc < digs) {
-    if ((res = mp_grow (x, digs)) != MP_OKAY) {
+    if ((res = mp_grow (MPST, x, digs)) != MP_OKAY) {
       return res;
     }
   }
@@ -106,7 +106,7 @@ mp_montgomery_reduce (mp_int * x, mp_int * n, mp_digit rho)
 
   /* if x >= n then x = x - n */
   if (mp_cmp_mag (x, n) != MP_LT) {
-    return s_mp_sub (x, n, x);
+    return s_mp_sub (MPST, x, n, x);
   }
 
   return MP_OKAY;

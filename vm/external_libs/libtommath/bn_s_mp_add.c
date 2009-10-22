@@ -17,7 +17,7 @@
 
 /* low level addition, based on HAC pp.594, Algorithm 14.7 */
 int
-s_mp_add (mp_int * a, mp_int * b, mp_int * c)
+s_mp_add MPA(mp_int * a, mp_int * b, mp_int * c)
 {
   mp_int *x;
   int     olduse, res, min, max;
@@ -37,7 +37,7 @@ s_mp_add (mp_int * a, mp_int * b, mp_int * c)
 
   /* init result */
   if (c->alloc < max + 1) {
-    if ((res = mp_grow (c, max + 1)) != MP_OKAY) {
+    if ((res = mp_grow (MPST, c, max + 1)) != MP_OKAY) {
       return res;
     }
   }

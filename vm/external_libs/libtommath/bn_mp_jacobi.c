@@ -18,7 +18,7 @@
 /* computes the jacobi c = (a | n) (or Legendre if n is prime)
  * HAC pp. 73 Algorithm 2.149
  */
-int mp_jacobi (mp_int * a, mp_int * p, int *c)
+int mp_jacobi MPA(mp_int * a, mp_int * p, int *c)
 {
   mp_int  a1, p1;
   int     k, s, r, res;
@@ -45,7 +45,7 @@ int mp_jacobi (mp_int * a, mp_int * p, int *c)
   s = 0;
 
   /* step 3.  write a = a1 * 2**k  */
-  if ((res = mp_init_copy (&a1, a)) != MP_OKAY) {
+  if ((res = mp_init_copy (MPST, &a1, a)) != MP_OKAY) {
     return res;
   }
 
@@ -55,7 +55,7 @@ int mp_jacobi (mp_int * a, mp_int * p, int *c)
 
   /* divide out larger power of two */
   k = mp_cnt_lsb(&a1);
-  if ((res = mp_div_2d(&a1, k, &a1, NULL)) != MP_OKAY) {
+  if ((res = mp_div_2d(MPST, &a1, k, &a1, NULL)) != MP_OKAY) {
      goto LBL_P1;
   }
 
@@ -83,10 +83,10 @@ int mp_jacobi (mp_int * a, mp_int * p, int *c)
     *c = s;
   } else {
     /* n1 = n mod a1 */
-    if ((res = mp_mod (p, &a1, &p1)) != MP_OKAY) {
+    if ((res = mp_mod (MPST, p, &a1, &p1)) != MP_OKAY) {
       goto LBL_P1;
     }
-    if ((res = mp_jacobi (&p1, &a1, &r)) != MP_OKAY) {
+    if ((res = mp_jacobi (MPST, &p1, &a1, &r)) != MP_OKAY) {
       goto LBL_P1;
     }
     *c = s * r;

@@ -22,7 +22,7 @@
  * is essentially the same algorithm but merely 
  * tuned to perform recursive squarings.
  */
-int mp_karatsuba_sqr (mp_int * a, mp_int * b)
+int mp_karatsuba_sqr MPA(mp_int * a, mp_int * b)
 {
   mp_int  x0, x1, t1, t2, x0x0, x1x1;
   int     B, err;
@@ -75,32 +75,32 @@ int mp_karatsuba_sqr (mp_int * a, mp_int * b)
   mp_clamp (&x0);
 
   /* now calc the products x0*x0 and x1*x1 */
-  if (mp_sqr (&x0, &x0x0) != MP_OKAY)
+  if (mp_sqr (MPST, &x0, &x0x0) != MP_OKAY)
     goto X1X1;           /* x0x0 = x0*x0 */
-  if (mp_sqr (&x1, &x1x1) != MP_OKAY)
+  if (mp_sqr (MPST, &x1, &x1x1) != MP_OKAY)
     goto X1X1;           /* x1x1 = x1*x1 */
 
   /* now calc (x1+x0)**2 */
-  if (s_mp_add (&x1, &x0, &t1) != MP_OKAY)
+  if (s_mp_add (MPST, &x1, &x0, &t1) != MP_OKAY)
     goto X1X1;           /* t1 = x1 - x0 */
-  if (mp_sqr (&t1, &t1) != MP_OKAY)
+  if (mp_sqr (MPST, &t1, &t1) != MP_OKAY)
     goto X1X1;           /* t1 = (x1 - x0) * (x1 - x0) */
 
   /* add x0y0 */
-  if (s_mp_add (&x0x0, &x1x1, &t2) != MP_OKAY)
+  if (s_mp_add (MPST, &x0x0, &x1x1, &t2) != MP_OKAY)
     goto X1X1;           /* t2 = x0x0 + x1x1 */
-  if (s_mp_sub (&t1, &t2, &t1) != MP_OKAY)
+  if (s_mp_sub (MPST, &t1, &t2, &t1) != MP_OKAY)
     goto X1X1;           /* t1 = (x1+x0)**2 - (x0x0 + x1x1) */
 
   /* shift by B */
-  if (mp_lshd (&t1, B) != MP_OKAY)
+  if (mp_lshd (MPST, &t1, B) != MP_OKAY)
     goto X1X1;           /* t1 = (x0x0 + x1x1 - (x1-x0)*(x1-x0))<<B */
-  if (mp_lshd (&x1x1, B * 2) != MP_OKAY)
+  if (mp_lshd (MPST, &x1x1, B * 2) != MP_OKAY)
     goto X1X1;           /* x1x1 = x1x1 << 2*B */
 
-  if (mp_add (&x0x0, &t1, &t1) != MP_OKAY)
+  if (mp_add (MPST, &x0x0, &t1, &t1) != MP_OKAY)
     goto X1X1;           /* t1 = x0x0 + t1 */
-  if (mp_add (&t1, &x1x1, b) != MP_OKAY)
+  if (mp_add (MPST, &t1, &x1x1, b) != MP_OKAY)
     goto X1X1;           /* t1 = x0x0 + t1 + x1x1 */
 
   err = MP_OKAY;

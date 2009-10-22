@@ -20,7 +20,7 @@ CFLAGS += -O3 -funroll-loops
 #CFLAGS += -Os
 
 #x86 optimizations [should be valid for any GCC install though]
-CFLAGS  += -fomit-frame-pointer
+#CFLAGS  += -fomit-frame-pointer
 
 #debug
 #CFLAGS += -g3

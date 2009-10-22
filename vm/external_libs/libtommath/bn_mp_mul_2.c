@@ -16,13 +16,13 @@
  */
 
 /* b = a*2 */
-int mp_mul_2(mp_int * a, mp_int * b)
+int mp_mul_2 MPA(mp_int * a, mp_int * b)
 {
   int     x, res, oldused;
 
   /* grow to accomodate result */
   if (b->alloc < a->used + 1) {
-    if ((res = mp_grow (b, a->used + 1)) != MP_OKAY) {
+    if ((res = mp_grow (MPST, b, a->used + 1)) != MP_OKAY) {
       return res;
     }
   }

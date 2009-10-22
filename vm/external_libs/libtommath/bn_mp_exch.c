@@ -19,9 +19,17 @@
  * mp_int pointers around
  */
 void
-mp_exch (mp_int * a, mp_int * b)
+mp_exch MPA(mp_int * a, mp_int * b)
 {
   mp_int  t;
+
+  if(MANAGED(a) || MANAGED(b)) {
+    mp_init_copy(MPST, &t, a);
+    mp_copy(MPST, a, b);
+    mp_copy(MPST, b, &t);
+    mp_clear(&t);
+    return;
+  }
 
   t  = *a;
   *a = *b;

@@ -16,7 +16,7 @@
  */
 
 /* returns size of ASCII reprensentation */
-int mp_radix_size (mp_int * a, int radix, int *size)
+int mp_radix_size MPA(mp_int * a, int radix, int *size)
 {
   int     res, digs;
   mp_int  t;
@@ -49,7 +49,7 @@ int mp_radix_size (mp_int * a, int radix, int *size)
   }
 
   /* init a copy of the input */
-  if ((res = mp_init_copy (&t, a)) != MP_OKAY) {
+  if ((res = mp_init_copy (MPST, &t, a)) != MP_OKAY) {
     return res;
   }
 
@@ -58,7 +58,7 @@ int mp_radix_size (mp_int * a, int radix, int *size)
 
   /* fetch out all of the digits */
   while (mp_iszero (&t) == MP_NO) {
-    if ((res = mp_div_d (&t, (mp_digit) radix, &t, &d)) != MP_OKAY) {
+    if ((res = mp_div_d (MPST, &t, (mp_digit) radix, &t, &d)) != MP_OKAY) {
       mp_clear (&t);
       return res;
     }

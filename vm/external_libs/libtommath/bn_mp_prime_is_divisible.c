@@ -20,7 +20,7 @@
  *
  * sets result to 0 if not, 1 if yes
  */
-int mp_prime_is_divisible (mp_int * a, int *result)
+int mp_prime_is_divisible MPA(mp_int * a, int *result)
 {
   int     err, ix;
   mp_digit res;
@@ -30,7 +30,7 @@ int mp_prime_is_divisible (mp_int * a, int *result)
 
   for (ix = 0; ix < PRIME_SIZE; ix++) {
     /* what is a mod LBL_prime_tab[ix] */
-    if ((err = mp_mod_d (a, ltm_prime_tab[ix], &res)) != MP_OKAY) {
+    if ((err = mp_mod_d (MPST, a, ltm_prime_tab[ix], &res)) != MP_OKAY) {
       return err;
     }
 

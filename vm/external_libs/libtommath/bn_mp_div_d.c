@@ -34,7 +34,7 @@ static int s_is_power_of_two(mp_digit b, int *p)
 }
 
 /* single digit division (based on routine from MPI) */
-int mp_div_d (mp_int * a, mp_digit b, mp_int * c, mp_digit * d)
+int mp_div_d MPA(mp_int * a, mp_digit b, mp_int * c, mp_digit * d)
 {
   mp_int  q;
   mp_word w;
@@ -52,7 +52,7 @@ int mp_div_d (mp_int * a, mp_digit b, mp_int * c, mp_digit * d)
         *d = 0;
      }
      if (c != NULL) {
-        return mp_copy(a, c);
+        return mp_copy(MPST, a, c);
      }
      return MP_OKAY;
   }
@@ -63,7 +63,7 @@ int mp_div_d (mp_int * a, mp_digit b, mp_int * c, mp_digit * d)
         *d = a->dp[0] & ((((mp_digit)1)<<ix) - 1);
      }
      if (c != NULL) {
-        return mp_div_2d(a, ix, c, NULL);
+        return mp_div_2d(MPST, a, ix, c, NULL);
      }
      return MP_OKAY;
   }
@@ -71,7 +71,7 @@ int mp_div_d (mp_int * a, mp_digit b, mp_int * c, mp_digit * d)
 #ifdef BN_MP_DIV_3_C
   /* three? */
   if (b == 3) {
-     return mp_div_3(a, c, d);
+     return mp_div_3(MPST, a, c, d);
   }
 #endif
 
@@ -101,7 +101,7 @@ int mp_div_d (mp_int * a, mp_digit b, mp_int * c, mp_digit * d)
   
   if (c != NULL) {
      mp_clamp(&q);
-     mp_exch(&q, c);
+     mp_managed_copy(MPST, &q, c);
   }
   mp_clear(&q);
   

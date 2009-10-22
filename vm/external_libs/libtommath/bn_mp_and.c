@@ -17,19 +17,19 @@
 
 /* AND two ints together */
 int
-mp_and (mp_int * a, mp_int * b, mp_int * c)
+mp_and MPA(mp_int * a, mp_int * b, mp_int * c)
 {
   int     res, ix, px;
   mp_int  t, *x;
 
   if (a->used > b->used) {
-    if ((res = mp_init_copy (&t, a)) != MP_OKAY) {
+    if ((res = mp_init_copy (MPST, &t, a)) != MP_OKAY) {
       return res;
     }
     px = b->used;
     x = b;
   } else {
-    if ((res = mp_init_copy (&t, b)) != MP_OKAY) {
+    if ((res = mp_init_copy (MPST, &t, b)) != MP_OKAY) {
       return res;
     }
     px = a->used;
@@ -46,7 +46,7 @@ mp_and (mp_int * a, mp_int * b, mp_int * c)
   }
 
   mp_clamp (&t);
-  mp_exch (c, &t);
+  mp_managed_copy (MPST, &t, c);
   mp_clear (&t);
   return MP_OKAY;
 }

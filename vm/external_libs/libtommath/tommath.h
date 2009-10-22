@@ -112,7 +112,7 @@ extern "C" {
 /* define heap macros */
 #ifndef CRYPT
    /* default to libc stuff */
-   #ifndef USE_XMALLOC 
+   #ifndef USE_XMALLOC
        #define XMALLOC  malloc
        #define XFREE    free
        #define XREALLOC realloc
@@ -180,11 +180,17 @@ extern int KARATSUBA_MUL_CUTOFF,
 /* size of comba arrays, should be at least 2 * 2**(BITS_PER_WORD - BITS_PER_DIGIT*2) */
 #define MP_WARRAY               (1 << (sizeof(mp_word) * CHAR_BIT - 2 * DIGIT_BIT + 1))
 
+#define MPA(args...) (void* __state, args)
+#define MPST __state
+
 /* the infamous mp_int structure */
 typedef struct  {
     int used, alloc, sign;
+    void* managed;
     mp_digit *dp;
 } mp_int;
+
+extern void* MANAGED_REALLOC_MPINT(void* s, mp_int* a, size_t bytes);
 
 /* callback for mp_prime_random, should fill dst with random bytes and return how many read [upto len] */
 typedef int ltm_prime_callback(unsigned char *dst, int len, void *dat);
@@ -193,6 +199,7 @@ typedef int ltm_prime_callback(unsigned char *dst, int len, void *dat);
 #define USED(m)    ((m)->used)
 #define DIGIT(m,k) ((m)->dp[(k)])
 #define SIGN(m)    ((m)->sign)
+#define MANAGED(m) ((m)->managed != 0)
 
 /* error code to char* string */
 char *mp_error_to_string(int code);
@@ -211,13 +218,13 @@ int mp_init_multi(mp_int *mp, ...);
 void mp_clear_multi(mp_int *mp, ...);
 
 /* exchange two ints */
-void mp_exch(mp_int *a, mp_int *b);
+void mp_exch MPA(mp_int *a, mp_int *b);
 
 /* shrink ram required for a bignum */
-int mp_shrink(mp_int *a);
+int mp_shrink MPA(mp_int *a);
 
 /* grow an int to a given size */
-int mp_grow(mp_int *a, int size);
+int mp_grow MPA(mp_int *a, int size);
 
 /* init to a given number of digits */
 int mp_init_size(mp_int *a, int size);
@@ -234,7 +241,7 @@ void mp_zero(mp_int *a);
 void mp_set(mp_int *a, mp_digit b);
 
 /* set a 32-bit const */
-int mp_set_int(mp_int *a, unsigned long b);
+int mp_set_int MPA(mp_int *a, unsigned long b);
 
 /* get a 32-bit value */
 unsigned long mp_get_int(mp_int * a);
@@ -243,13 +250,15 @@ unsigned long mp_get_int(mp_int * a);
 int mp_init_set (mp_int * a, mp_digit b);
 
 /* initialize and set 32-bit value */
-int mp_init_set_int (mp_int * a, unsigned long b);
+int mp_init_set_int MPA(mp_int * a, unsigned long b);
 
 /* copy, b = a */
-int mp_copy(mp_int *a, mp_int *b);
+int mp_copy MPA(mp_int *a, mp_int *b);
+
+#define mp_managed_copy(_s, a, b) (MANAGED(b) ? mp_copy(_s, a, b) : mp_exch(_s, a, b))
 
 /* inits and copies, a = b */
-int mp_init_copy(mp_int *a, mp_int *b);
+int mp_init_copy MPA(mp_int *a, mp_int *b);
 
 /* trim unused digits */
 void mp_clamp(mp_int *a);
@@ -260,25 +269,25 @@ void mp_clamp(mp_int *a);
 void mp_rshd(mp_int *a, int b);
 
 /* left shift by "b" digits */
-int mp_lshd(mp_int *a, int b);
+int mp_lshd MPA(mp_int *a, int b);
 
 /* c = a / 2**b */
-int mp_div_2d(mp_int *a, int b, mp_int *c, mp_int *d);
+int mp_div_2d MPA(mp_int *a, int b, mp_int *c, mp_int *d);
 
 /* b = a/2 */
-int mp_div_2(mp_int *a, mp_int *b);
+int mp_div_2 MPA(mp_int *a, mp_int *b);
 
 /* c = a * 2**b */
-int mp_mul_2d(mp_int *a, int b, mp_int *c);
+int mp_mul_2d MPA(mp_int *a, int b, mp_int *c);
 
 /* b = a*2 */
-int mp_mul_2(mp_int *a, mp_int *b);
+int mp_mul_2 MPA(mp_int *a, mp_int *b);
 
 /* c = a mod 2**d */
-int mp_mod_2d(mp_int *a, int b, mp_int *c);
+int mp_mod_2d MPA(mp_int *a, int b, mp_int *c);
 
 /* computes a = 2**b */
-int mp_2expt(mp_int *a, int b);
+int mp_2expt MPA(mp_int *a, int b);
 
 /* Counts the number of lsbs which are zero before the first zero bit */
 int mp_cnt_lsb(mp_int *a);
@@ -286,25 +295,25 @@ int mp_cnt_lsb(mp_int *a);
 /* I Love Earth! */
 
 /* makes a pseudo-random int of a given size */
-int mp_rand(mp_int *a, int digits);
+int mp_rand MPA(mp_int *a, int digits);
 
 /* ---> binary operations <--- */
 /* c = a XOR b  */
-int mp_xor(mp_int *a, mp_int *b, mp_int *c);
+int mp_xor MPA(mp_int *a, mp_int *b, mp_int *c);
 
 /* c = a OR b */
-int mp_or(mp_int *a, mp_int *b, mp_int *c);
+int mp_or MPA(mp_int *a, mp_int *b, mp_int *c);
 
 /* c = a AND b */
-int mp_and(mp_int *a, mp_int *b, mp_int *c);
+int mp_and MPA(mp_int *a, mp_int *b, mp_int *c);
 
 /* ---> Basic arithmetic <--- */
 
 /* b = -a */
-int mp_neg(mp_int *a, mp_int *b);
+int mp_neg MPA(mp_int *a, mp_int *b);
 
 /* b = |a| */
-int mp_abs(mp_int *a, mp_int *b);
+int mp_abs MPA(mp_int *a, mp_int *b);
 
 /* compare a to b */
 int mp_cmp(mp_int *a, mp_int *b);
@@ -313,22 +322,22 @@ int mp_cmp(mp_int *a, mp_int *b);
 int mp_cmp_mag(mp_int *a, mp_int *b);
 
 /* c = a + b */
-int mp_add(mp_int *a, mp_int *b, mp_int *c);
+int mp_add MPA(mp_int *a, mp_int *b, mp_int *c);
 
 /* c = a - b */
-int mp_sub(mp_int *a, mp_int *b, mp_int *c);
+int mp_sub MPA(mp_int *a, mp_int *b, mp_int *c);
 
 /* c = a * b */
-int mp_mul(mp_int *a, mp_int *b, mp_int *c);
+int mp_mul MPA(mp_int *a, mp_int *b, mp_int *c);
 
 /* b = a*a  */
-int mp_sqr(mp_int *a, mp_int *b);
+int mp_sqr MPA(mp_int *a, mp_int *b);
 
 /* a/b => cb + d == a */
-int mp_div(mp_int *a, mp_int *b, mp_int *c, mp_int *d);
+int mp_div MPA(mp_int *a, mp_int *b, mp_int *c, mp_int *d);
 
 /* c = a mod b, 0 <= c < b  */
-int mp_mod(mp_int *a, mp_int *b, mp_int *c);
+int mp_mod MPA(mp_int *a, mp_int *b, mp_int *c);
 
 /* ---> single digit functions <--- */
 
@@ -336,76 +345,76 @@ int mp_mod(mp_int *a, mp_int *b, mp_int *c);
 int mp_cmp_d(mp_int *a, mp_digit b);
 
 /* c = a + b */
-int mp_add_d(mp_int *a, mp_digit b, mp_int *c);
+int mp_add_d MPA(mp_int *a, mp_digit b, mp_int *c);
 
 /* c = a - b */
-int mp_sub_d(mp_int *a, mp_digit b, mp_int *c);
+int mp_sub_d MPA(mp_int *a, mp_digit b, mp_int *c);
 
 /* c = a * b */
-int mp_mul_d(mp_int *a, mp_digit b, mp_int *c);
+int mp_mul_d MPA(mp_int *a, mp_digit b, mp_int *c);
 
 /* a/b => cb + d == a */
-int mp_div_d(mp_int *a, mp_digit b, mp_int *c, mp_digit *d);
+int mp_div_d MPA(mp_int *a, mp_digit b, mp_int *c, mp_digit *d);
 
 /* a/3 => 3c + d == a */
-int mp_div_3(mp_int *a, mp_int *c, mp_digit *d);
+int mp_div_3 MPA(mp_int *a, mp_int *c, mp_digit *d);
 
 /* c = a**b */
-int mp_expt_d(mp_int *a, mp_digit b, mp_int *c);
+int mp_expt_d MPA(mp_int *a, mp_digit b, mp_int *c);
 
 /* c = a mod b, 0 <= c < b  */
-int mp_mod_d(mp_int *a, mp_digit b, mp_digit *c);
+int mp_mod_d MPA(mp_int *a, mp_digit b, mp_digit *c);
 
 /* ---> number theory <--- */
 
 /* d = a + b (mod c) */
-int mp_addmod(mp_int *a, mp_int *b, mp_int *c, mp_int *d);
+int mp_addmod MPA(mp_int *a, mp_int *b, mp_int *c, mp_int *d);
 
 /* d = a - b (mod c) */
-int mp_submod(mp_int *a, mp_int *b, mp_int *c, mp_int *d);
+int mp_submod MPA(mp_int *a, mp_int *b, mp_int *c, mp_int *d);
 
 /* d = a * b (mod c) */
-int mp_mulmod(mp_int *a, mp_int *b, mp_int *c, mp_int *d);
+int mp_mulmod MPA(mp_int *a, mp_int *b, mp_int *c, mp_int *d);
 
 /* c = a * a (mod b) */
-int mp_sqrmod(mp_int *a, mp_int *b, mp_int *c);
+int mp_sqrmod MPA(mp_int *a, mp_int *b, mp_int *c);
 
 /* c = 1/a (mod b) */
-int mp_invmod(mp_int *a, mp_int *b, mp_int *c);
+int mp_invmod MPA(mp_int *a, mp_int *b, mp_int *c);
 
 /* c = (a, b) */
-int mp_gcd(mp_int *a, mp_int *b, mp_int *c);
+int mp_gcd MPA(mp_int *a, mp_int *b, mp_int *c);
 
 /* produces value such that U1*a + U2*b = U3 */
-int mp_exteuclid(mp_int *a, mp_int *b, mp_int *U1, mp_int *U2, mp_int *U3);
+int mp_exteuclid MPA(mp_int *a, mp_int *b, mp_int *U1, mp_int *U2, mp_int *U3);
 
 /* c = [a, b] or (a*b)/(a, b) */
-int mp_lcm(mp_int *a, mp_int *b, mp_int *c);
+int mp_lcm MPA(mp_int *a, mp_int *b, mp_int *c);
 
 /* finds one of the b'th root of a, such that |c|**b <= |a|
  *
  * returns error if a < 0 and b is even
  */
-int mp_n_root(mp_int *a, mp_digit b, mp_int *c);
+int mp_n_root MPA(mp_int *a, mp_digit b, mp_int *c);
 
 /* special sqrt algo */
-int mp_sqrt(mp_int *arg, mp_int *ret);
+int mp_sqrt MPA(mp_int *arg, mp_int *ret);
 
 /* is number a square? */
-int mp_is_square(mp_int *arg, int *ret);
+int mp_is_square MPA(mp_int *arg, int *ret);
 
 /* computes the jacobi c = (a | n) (or Legendre if b is prime)  */
-int mp_jacobi(mp_int *a, mp_int *n, int *c);
+int mp_jacobi MPA(mp_int *a, mp_int *n, int *c);
 
 /* used to setup the Barrett reduction for a given modulus b */
-int mp_reduce_setup(mp_int *a, mp_int *b);
+int mp_reduce_setup MPA(mp_int *a, mp_int *b);
 
 /* Barrett Reduction, computes a (mod b) with a precomputed value c
  *
  * Assumes that 0 < a <= b*b, note if 0 > a > -(b*b) then you can merely
  * compute the reduction as -1 * mp_reduce(mp_abs(a)) [pseudo code].
  */
-int mp_reduce(mp_int *a, mp_int *b, mp_int *c);
+int mp_reduce MPA(mp_int *a, mp_int *b, mp_int *c);
 
 /* setups the montgomery reduction */
 int mp_montgomery_setup(mp_int *a, mp_digit *mp);
@@ -413,10 +422,10 @@ int mp_montgomery_setup(mp_int *a, mp_digit *mp);
 /* computes a = B**n mod b without division or multiplication useful for
  * normalizing numbers in a Montgomery system.
  */
-int mp_montgomery_calc_normalization(mp_int *a, mp_int *b);
+int mp_montgomery_calc_normalization MPA(mp_int *a, mp_int *b);
 
 /* computes x/R == x (mod N) via Montgomery Reduction */
-int mp_montgomery_reduce(mp_int *a, mp_int *m, mp_digit mp);
+int mp_montgomery_reduce MPA(mp_int *a, mp_int *m, mp_digit mp);
 
 /* returns 1 if a is a valid DR modulus */
 int mp_dr_is_modulus(mp_int *a);
@@ -425,28 +434,28 @@ int mp_dr_is_modulus(mp_int *a);
 void mp_dr_setup(mp_int *a, mp_digit *d);
 
 /* reduces a modulo b using the Diminished Radix method */
-int mp_dr_reduce(mp_int *a, mp_int *b, mp_digit mp);
+int mp_dr_reduce MPA(mp_int *a, mp_int *b, mp_digit mp);
 
 /* returns true if a can be reduced with mp_reduce_2k */
 int mp_reduce_is_2k(mp_int *a);
 
 /* determines k value for 2k reduction */
-int mp_reduce_2k_setup(mp_int *a, mp_digit *d);
+int mp_reduce_2k_setup MPA(mp_int *a, mp_digit *d);
 
 /* reduces a modulo b where b is of the form 2**p - k [0 <= a] */
-int mp_reduce_2k(mp_int *a, mp_int *n, mp_digit d);
+int mp_reduce_2k MPA(mp_int *a, mp_int *n, mp_digit d);
 
 /* returns true if a can be reduced with mp_reduce_2k_l */
 int mp_reduce_is_2k_l(mp_int *a);
 
 /* determines k value for 2k reduction */
-int mp_reduce_2k_setup_l(mp_int *a, mp_int *d);
+int mp_reduce_2k_setup_l MPA(mp_int *a, mp_int *d);
 
 /* reduces a modulo b where b is of the form 2**p - k [0 <= a] */
-int mp_reduce_2k_l(mp_int *a, mp_int *n, mp_int *d);
+int mp_reduce_2k_l MPA(mp_int *a, mp_int *n, mp_int *d);
 
 /* d = a**b (mod c) */
-int mp_exptmod(mp_int *a, mp_int *b, mp_int *c, mp_int *d);
+int mp_exptmod MPA(mp_int *a, mp_int *b, mp_int *c, mp_int *d);
 
 /* ---> Primes <--- */
 
@@ -461,17 +470,17 @@ int mp_exptmod(mp_int *a, mp_int *b, mp_int *c, mp_int *d);
 extern const mp_digit ltm_prime_tab[];
 
 /* result=1 if a is divisible by one of the first PRIME_SIZE primes */
-int mp_prime_is_divisible(mp_int *a, int *result);
+int mp_prime_is_divisible MPA(mp_int *a, int *result);
 
 /* performs one Fermat test of "a" using base "b".
  * Sets result to 0 if composite or 1 if probable prime
  */
-int mp_prime_fermat(mp_int *a, mp_int *b, int *result);
+int mp_prime_fermat MPA(mp_int *a, mp_int *b, int *result);
 
 /* performs one Miller-Rabin test of "a" using base "b".
  * Sets result to 0 if composite or 1 if probable prime
  */
-int mp_prime_miller_rabin(mp_int *a, mp_int *b, int *result);
+int mp_prime_miller_rabin MPA(mp_int *a, mp_int *b, int *result);
 
 /* This gives [for a given bit size] the number of trials required
  * such that Miller-Rabin gives a prob of failure lower than 2^-96 
@@ -485,14 +494,14 @@ int mp_prime_rabin_miller_trials(int size);
  *
  * Sets result to 1 if probably prime, 0 otherwise
  */
-int mp_prime_is_prime(mp_int *a, int t, int *result);
+int mp_prime_is_prime MPA(mp_int *a, int t, int *result);
 
 /* finds the next prime after the number "a" using "t" trials
  * of Miller-Rabin.
  *
  * bbs_style = 1 means the prime must be congruent to 3 mod 4
  */
-int mp_prime_next_prime(mp_int *a, int t, int bbs_style);
+int mp_prime_next_prime MPA(mp_int *a, int t, int bbs_style);
 
 /* makes a truly random prime of a given size (bytes),
  * call with bbs = 1 if you want it to be congruent to 3 mod 4 
@@ -503,7 +512,7 @@ int mp_prime_next_prime(mp_int *a, int t, int bbs_style);
  *
  * The prime generated will be larger than 2^(8*size).
  */
-#define mp_prime_random(a, t, size, bbs, cb, dat) mp_prime_random_ex(a, t, ((size) * 8) + 1, (bbs==1)?LTM_PRIME_BBS:0, cb, dat)
+#define mp_prime_random(_s, a, t, size, bbs, cb, dat) mp_prime_random_ex(_s, a, t, ((size) * 8) + 1, (bbs==1)?LTM_PRIME_BBS:0, cb, dat)
 
 /* makes a truly random prime of a given size (bits),
  *
@@ -519,29 +528,29 @@ int mp_prime_next_prime(mp_int *a, int t, int bbs_style);
  * so it can be NULL
  *
  */
-int mp_prime_random_ex(mp_int *a, int t, int size, int flags, ltm_prime_callback cb, void *dat);
+int mp_prime_random_ex MPA(mp_int *a, int t, int size, int flags, ltm_prime_callback cb, void *dat);
 
 /* ---> radix conversion <--- */
 int mp_count_bits(mp_int *a);
 
 int mp_unsigned_bin_size(mp_int *a);
-int mp_read_unsigned_bin(mp_int *a, const unsigned char *b, int c);
-int mp_to_unsigned_bin(mp_int *a, unsigned char *b);
-int mp_to_unsigned_bin_n (mp_int * a, unsigned char *b, unsigned long *outlen);
+int mp_read_unsigned_bin MPA(mp_int *a, const unsigned char *b, int c);
+int mp_to_unsigned_bin MPA(mp_int *a, unsigned char *b);
+int mp_to_unsigned_bin_n MPA(mp_int * a, unsigned char *b, unsigned long *outlen);
 
 int mp_signed_bin_size(mp_int *a);
-int mp_read_signed_bin(mp_int *a, const unsigned char *b, int c);
-int mp_to_signed_bin(mp_int *a,  unsigned char *b);
-int mp_to_signed_bin_n (mp_int * a, unsigned char *b, unsigned long *outlen);
+int mp_read_signed_bin MPA(mp_int *a, const unsigned char *b, int c);
+int mp_to_signed_bin MPA(mp_int *a,  unsigned char *b);
+int mp_to_signed_bin_n MPA(mp_int * a, unsigned char *b, unsigned long *outlen);
 
-int mp_read_radix(mp_int *a, const char *str, int radix);
-int mp_toradix(mp_int *a, char *str, int radix);
-int mp_toradix_n(mp_int * a, char *str, int radix, int maxlen);
-int mp_toradix_nd(mp_int * a, char *str, int radix, int maxlen, int *digits);
-int mp_radix_size(mp_int *a, int radix, int *size);
+int mp_read_radix MPA(mp_int *a, const char *str, int radix);
+int mp_toradix MPA(mp_int *a, char *str, int radix);
+int mp_toradix_n MPA(mp_int * a, char *str, int radix, int maxlen);
+int mp_toradix_nd MPA(mp_int * a, char *str, int radix, int maxlen, int *digits);
+int mp_radix_size MPA(mp_int *a, int radix, int *size);
 
-int mp_fread(mp_int *a, int radix, FILE *stream);
-int mp_fwrite(mp_int *a, int radix, FILE *stream);
+int mp_fread MPA(mp_int *a, int radix, FILE *stream);
+int mp_fwrite MPA(mp_int *a, int radix, FILE *stream);
 
 #define mp_read_raw(mp, str, len) mp_read_signed_bin((mp), (str), (len))
 #define mp_raw_size(mp)           mp_signed_bin_size(mp)
@@ -556,24 +565,24 @@ int mp_fwrite(mp_int *a, int radix, FILE *stream);
 #define mp_tohex(M, S)     mp_toradix((M), (S), 16)
 
 /* lowlevel functions, do not call! */
-int s_mp_add(mp_int *a, mp_int *b, mp_int *c);
-int s_mp_sub(mp_int *a, mp_int *b, mp_int *c);
-#define s_mp_mul(a, b, c) s_mp_mul_digs(a, b, c, (a)->used + (b)->used + 1)
-int fast_s_mp_mul_digs(mp_int *a, mp_int *b, mp_int *c, int digs);
-int s_mp_mul_digs(mp_int *a, mp_int *b, mp_int *c, int digs);
-int fast_s_mp_mul_high_digs(mp_int *a, mp_int *b, mp_int *c, int digs);
-int s_mp_mul_high_digs(mp_int *a, mp_int *b, mp_int *c, int digs);
-int fast_s_mp_sqr(mp_int *a, mp_int *b);
-int s_mp_sqr(mp_int *a, mp_int *b);
-int mp_karatsuba_mul(mp_int *a, mp_int *b, mp_int *c);
-int mp_toom_mul(mp_int *a, mp_int *b, mp_int *c);
-int mp_karatsuba_sqr(mp_int *a, mp_int *b);
-int mp_toom_sqr(mp_int *a, mp_int *b);
-int fast_mp_invmod(mp_int *a, mp_int *b, mp_int *c);
-int mp_invmod_slow (mp_int * a, mp_int * b, mp_int * c);
-int fast_mp_montgomery_reduce(mp_int *a, mp_int *m, mp_digit mp);
-int mp_exptmod_fast(mp_int *G, mp_int *X, mp_int *P, mp_int *Y, int mode);
-int s_mp_exptmod (mp_int * G, mp_int * X, mp_int * P, mp_int * Y, int mode);
+int s_mp_add MPA(mp_int *a, mp_int *b, mp_int *c);
+int s_mp_sub MPA(mp_int *a, mp_int *b, mp_int *c);
+#define s_mp_mul(_s, a, b, c) s_mp_mul_digs(_s, a, b, c, (a)->used + (b)->used + 1)
+int fast_s_mp_mul_digs MPA(mp_int *a, mp_int *b, mp_int *c, int digs);
+int s_mp_mul_digs MPA(mp_int *a, mp_int *b, mp_int *c, int digs);
+int fast_s_mp_mul_high_digs MPA(mp_int *a, mp_int *b, mp_int *c, int digs);
+int s_mp_mul_high_digs MPA(mp_int *a, mp_int *b, mp_int *c, int digs);
+int fast_s_mp_sqr MPA(mp_int *a, mp_int *b);
+int s_mp_sqr MPA(mp_int *a, mp_int *b);
+int mp_karatsuba_mul MPA(mp_int *a, mp_int *b, mp_int *c);
+int mp_toom_mul MPA(mp_int *a, mp_int *b, mp_int *c);
+int mp_karatsuba_sqr MPA(mp_int *a, mp_int *b);
+int mp_toom_sqr MPA(mp_int *a, mp_int *b);
+int fast_mp_invmod MPA(mp_int *a, mp_int *b, mp_int *c);
+int mp_invmod_slow MPA(mp_int * a, mp_int * b, mp_int * c);
+int fast_mp_montgomery_reduce MPA(mp_int *a, mp_int *m, mp_digit mp);
+int mp_exptmod_fast MPA(mp_int *G, mp_int *X, mp_int *P, mp_int *Y, int mode);
+int s_mp_exptmod MPA(mp_int * G, mp_int * X, mp_int * P, mp_int * Y, int mode);
 void bn_reverse(unsigned char *s, int len);
 
 extern const char *mp_s_rmap;

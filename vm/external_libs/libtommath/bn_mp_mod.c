@@ -17,7 +17,7 @@
 
 /* c = a mod b, 0 <= c < b */
 int
-mp_mod (mp_int * a, mp_int * b, mp_int * c)
+mp_mod MPA(mp_int * a, mp_int * b, mp_int * c)
 {
   mp_int  t;
   int     res;
@@ -26,16 +26,16 @@ mp_mod (mp_int * a, mp_int * b, mp_int * c)
     return res;
   }
 
-  if ((res = mp_div (a, b, NULL, &t)) != MP_OKAY) {
+  if ((res = mp_div (MPST, a, b, NULL, &t)) != MP_OKAY) {
     mp_clear (&t);
     return res;
   }
 
   if (t.sign != b->sign) {
-    res = mp_add (b, &t, c);
+    res = mp_add (MPST, b, &t, c);
   } else {
     res = MP_OKAY;
-    mp_exch (&t, c);
+    mp_managed_copy (MPST, &t, c);
   }
 
   mp_clear (&t);

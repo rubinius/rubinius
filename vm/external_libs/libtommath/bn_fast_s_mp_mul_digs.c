@@ -31,7 +31,7 @@
  * Based on Algorithm 14.12 on pp.595 of HAC.
  *
  */
-int fast_s_mp_mul_digs (mp_int * a, mp_int * b, mp_int * c, int digs)
+int fast_s_mp_mul_digs MPA(mp_int * a, mp_int * b, mp_int * c, int digs)
 {
   int     olduse, res, pa, ix, iz;
   mp_digit W[MP_WARRAY];
@@ -39,7 +39,7 @@ int fast_s_mp_mul_digs (mp_int * a, mp_int * b, mp_int * c, int digs)
 
   /* grow the destination as required */
   if (c->alloc < digs) {
-    if ((res = mp_grow (c, digs)) != MP_OKAY) {
+    if ((res = mp_grow (MPST, c, digs)) != MP_OKAY) {
       return res;
     }
   }

@@ -17,7 +17,7 @@
 
 /* copy, b = a */
 int
-mp_copy (mp_int * a, mp_int * b)
+mp_copy MPA(mp_int * a, mp_int * b)
 {
   int     res, n;
 
@@ -28,7 +28,7 @@ mp_copy (mp_int * a, mp_int * b)
 
   /* grow dest */
   if (b->alloc < a->used) {
-     if ((res = mp_grow (b, a->used)) != MP_OKAY) {
+     if ((res = mp_grow (MPST, b, a->used)) != MP_OKAY) {
         return res;
      }
   }

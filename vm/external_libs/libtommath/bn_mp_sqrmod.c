@@ -17,7 +17,7 @@
 
 /* c = a * a (mod b) */
 int
-mp_sqrmod (mp_int * a, mp_int * b, mp_int * c)
+mp_sqrmod MPA(mp_int * a, mp_int * b, mp_int * c)
 {
   int     res;
   mp_int  t;
@@ -26,11 +26,11 @@ mp_sqrmod (mp_int * a, mp_int * b, mp_int * c)
     return res;
   }
 
-  if ((res = mp_sqr (a, &t)) != MP_OKAY) {
+  if ((res = mp_sqr (MPST, a, &t)) != MP_OKAY) {
     mp_clear (&t);
     return res;
   }
-  res = mp_mod (&t, b, c);
+  res = mp_mod (MPST, &t, b, c);
   mp_clear (&t);
   return res;
 }

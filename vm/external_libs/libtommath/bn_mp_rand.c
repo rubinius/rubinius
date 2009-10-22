@@ -17,7 +17,7 @@
 
 /* makes a pseudo-random int of a given size */
 int
-mp_rand (mp_int * a, int digits)
+mp_rand MPA(mp_int * a, int digits)
 {
   int     res;
   mp_digit d;
@@ -32,16 +32,16 @@ mp_rand (mp_int * a, int digits)
     d = ((mp_digit) abs (rand ())) & MP_MASK;
   } while (d == 0);
 
-  if ((res = mp_add_d (a, d, a)) != MP_OKAY) {
+  if ((res = mp_add_d (MPST, a, d, a)) != MP_OKAY) {
     return res;
   }
 
   while (--digits > 0) {
-    if ((res = mp_lshd (a, 1)) != MP_OKAY) {
+    if ((res = mp_lshd (MPST, a, 1)) != MP_OKAY) {
       return res;
     }
 
-    if ((res = mp_add_d (a, ((mp_digit) abs (rand ())), a)) != MP_OKAY) {
+    if ((res = mp_add_d (MPST, a, ((mp_digit) abs (rand ())), a)) != MP_OKAY) {
       return res;
     }
   }

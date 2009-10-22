@@ -36,6 +36,7 @@ int mp_init (mp_int * a)
   a->used  = 0;
   a->alloc = MP_PREC;
   a->sign  = MP_ZPOS;
+  a->managed = 0;
 
   return MP_OKAY;
 }

@@ -20,7 +20,7 @@
  *
  * bbs_style = 1 means the prime must be congruent to 3 mod 4
  */
-int mp_prime_next_prime(mp_int *a, int t, int bbs_style)
+int mp_prime_next_prime MPA(mp_int *a, int t, int bbs_style)
 {
    int      err, res, x, y;
    mp_digit res_tab[PRIME_SIZE], step, kstep;
@@ -81,12 +81,12 @@ int mp_prime_next_prime(mp_int *a, int t, int bbs_style)
    if (bbs_style == 1) {
       /* if a mod 4 != 3 subtract the correct value to make it so */
       if ((a->dp[0] & 3) != 3) {
-         if ((err = mp_sub_d(a, (a->dp[0] & 3) + 1, a)) != MP_OKAY) { return err; };
+         if ((err = mp_sub_d(MPST, a, (a->dp[0] & 3) + 1, a)) != MP_OKAY) { return err; };
       }
    } else {
       if (mp_iseven(a) == 1) {
          /* force odd */
-         if ((err = mp_sub_d(a, 1, a)) != MP_OKAY) {
+         if ((err = mp_sub_d(MPST, a, 1, a)) != MP_OKAY) {
             return err;
          }
       }
@@ -94,7 +94,7 @@ int mp_prime_next_prime(mp_int *a, int t, int bbs_style)
 
    /* generate the restable */
    for (x = 1; x < PRIME_SIZE; x++) {
-      if ((err = mp_mod_d(a, ltm_prime_tab[x], res_tab + x)) != MP_OKAY) {
+      if ((err = mp_mod_d(MPST, a, ltm_prime_tab[x], res_tab + x)) != MP_OKAY) {
          return err;
       }
    }
@@ -132,7 +132,7 @@ int mp_prime_next_prime(mp_int *a, int t, int bbs_style)
       } while (y == 1 && step < ((((mp_digit)1)<<DIGIT_BIT) - kstep));
 
       /* add the step */
-      if ((err = mp_add_d(a, step, a)) != MP_OKAY) {
+      if ((err = mp_add_d(MPST, a, step, a)) != MP_OKAY) {
          goto LBL_ERR;
       }
 
@@ -144,7 +144,7 @@ int mp_prime_next_prime(mp_int *a, int t, int bbs_style)
       /* is this prime? */
       for (x = 0; x < t; x++) {
           mp_set(&b, ltm_prime_tab[t]);
-          if ((err = mp_prime_miller_rabin(a, &b, &res)) != MP_OKAY) {
+          if ((err = mp_prime_miller_rabin(MPST, a, &b, &res)) != MP_OKAY) {
              goto LBL_ERR;
           }
           if (res == MP_NO) {

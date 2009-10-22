@@ -16,27 +16,27 @@
  */
 
 /* shift left by a certain bit count */
-int mp_mul_2d (mp_int * a, int b, mp_int * c)
+int mp_mul_2d MPA(mp_int * a, int b, mp_int * c)
 {
   mp_digit d;
   int      res;
 
   /* copy */
   if (a != c) {
-     if ((res = mp_copy (a, c)) != MP_OKAY) {
+     if ((res = mp_copy (MPST, a, c)) != MP_OKAY) {
        return res;
      }
   }
 
   if (c->alloc < (int)(c->used + b/DIGIT_BIT + 1)) {
-     if ((res = mp_grow (c, c->used + b / DIGIT_BIT + 1)) != MP_OKAY) {
+     if ((res = mp_grow (MPST, c, c->used + b / DIGIT_BIT + 1)) != MP_OKAY) {
        return res;
      }
   }
 
   /* shift by as many digits in the bit count */
   if (b >= (int)DIGIT_BIT) {
-    if ((res = mp_lshd (c, b / DIGIT_BIT)) != MP_OKAY) {
+    if ((res = mp_lshd (MPST, c, b / DIGIT_BIT)) != MP_OKAY) {
       return res;
     }
   }

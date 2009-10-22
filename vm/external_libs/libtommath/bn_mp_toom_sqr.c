@@ -17,7 +17,7 @@
 
 /* squaring using Toom-Cook 3-way algorithm */
 int
-mp_toom_sqr(mp_int *a, mp_int *b)
+mp_toom_sqr MPA(mp_int *a, mp_int *b)
 {
     mp_int w0, w1, w2, w3, w4, tmp1, a0, a1, a2;
     int res, B;
@@ -31,76 +31,76 @@ mp_toom_sqr(mp_int *a, mp_int *b)
     B = a->used / 3;
 
     /* a = a2 * B**2 + a1 * B + a0 */
-    if ((res = mp_mod_2d(a, DIGIT_BIT * B, &a0)) != MP_OKAY) {
+    if ((res = mp_mod_2d(MPST, a, DIGIT_BIT * B, &a0)) != MP_OKAY) {
        goto ERR;
     }
 
-    if ((res = mp_copy(a, &a1)) != MP_OKAY) {
+    if ((res = mp_copy(MPST, a, &a1)) != MP_OKAY) {
        goto ERR;
     }
     mp_rshd(&a1, B);
-    mp_mod_2d(&a1, DIGIT_BIT * B, &a1);
+    mp_mod_2d(MPST, &a1, DIGIT_BIT * B, &a1);
 
-    if ((res = mp_copy(a, &a2)) != MP_OKAY) {
+    if ((res = mp_copy(MPST, a, &a2)) != MP_OKAY) {
        goto ERR;
     }
     mp_rshd(&a2, B*2);
 
     /* w0 = a0*a0 */
-    if ((res = mp_sqr(&a0, &w0)) != MP_OKAY) {
+    if ((res = mp_sqr(MPST, &a0, &w0)) != MP_OKAY) {
        goto ERR;
     }
 
     /* w4 = a2 * a2 */
-    if ((res = mp_sqr(&a2, &w4)) != MP_OKAY) {
+    if ((res = mp_sqr(MPST, &a2, &w4)) != MP_OKAY) {
        goto ERR;
     }
 
     /* w1 = (a2 + 2(a1 + 2a0))**2 */
-    if ((res = mp_mul_2(&a0, &tmp1)) != MP_OKAY) {
+    if ((res = mp_mul_2(MPST, &a0, &tmp1)) != MP_OKAY) {
        goto ERR;
     }
-    if ((res = mp_add(&tmp1, &a1, &tmp1)) != MP_OKAY) {
+    if ((res = mp_add(MPST, &tmp1, &a1, &tmp1)) != MP_OKAY) {
        goto ERR;
     }
-    if ((res = mp_mul_2(&tmp1, &tmp1)) != MP_OKAY) {
+    if ((res = mp_mul_2(MPST, &tmp1, &tmp1)) != MP_OKAY) {
        goto ERR;
     }
-    if ((res = mp_add(&tmp1, &a2, &tmp1)) != MP_OKAY) {
+    if ((res = mp_add(MPST, &tmp1, &a2, &tmp1)) != MP_OKAY) {
        goto ERR;
     }
 
-    if ((res = mp_sqr(&tmp1, &w1)) != MP_OKAY) {
+    if ((res = mp_sqr(MPST, &tmp1, &w1)) != MP_OKAY) {
        goto ERR;
     }
 
     /* w3 = (a0 + 2(a1 + 2a2))**2 */
-    if ((res = mp_mul_2(&a2, &tmp1)) != MP_OKAY) {
+    if ((res = mp_mul_2(MPST, &a2, &tmp1)) != MP_OKAY) {
        goto ERR;
     }
-    if ((res = mp_add(&tmp1, &a1, &tmp1)) != MP_OKAY) {
+    if ((res = mp_add(MPST, &tmp1, &a1, &tmp1)) != MP_OKAY) {
        goto ERR;
     }
-    if ((res = mp_mul_2(&tmp1, &tmp1)) != MP_OKAY) {
+    if ((res = mp_mul_2(MPST, &tmp1, &tmp1)) != MP_OKAY) {
        goto ERR;
     }
-    if ((res = mp_add(&tmp1, &a0, &tmp1)) != MP_OKAY) {
+    if ((res = mp_add(MPST, &tmp1, &a0, &tmp1)) != MP_OKAY) {
        goto ERR;
     }
 
-    if ((res = mp_sqr(&tmp1, &w3)) != MP_OKAY) {
+    if ((res = mp_sqr(MPST, &tmp1, &w3)) != MP_OKAY) {
        goto ERR;
     }
 
 
     /* w2 = (a2 + a1 + a0)**2 */
-    if ((res = mp_add(&a2, &a1, &tmp1)) != MP_OKAY) {
+    if ((res = mp_add(MPST, &a2, &a1, &tmp1)) != MP_OKAY) {
        goto ERR;
     }
-    if ((res = mp_add(&tmp1, &a0, &tmp1)) != MP_OKAY) {
+    if ((res = mp_add(MPST, &tmp1, &a0, &tmp1)) != MP_OKAY) {
        goto ERR;
     }
-    if ((res = mp_sqr(&tmp1, &w2)) != MP_OKAY) {
+    if ((res = mp_sqr(MPST, &tmp1, &w2)) != MP_OKAY) {
        goto ERR;
     }
 
@@ -116,101 +116,101 @@ mp_toom_sqr(mp_int *a, mp_int *b)
      */
 
      /* r1 - r4 */
-     if ((res = mp_sub(&w1, &w4, &w1)) != MP_OKAY) {
+     if ((res = mp_sub(MPST, &w1, &w4, &w1)) != MP_OKAY) {
         goto ERR;
      }
      /* r3 - r0 */
-     if ((res = mp_sub(&w3, &w0, &w3)) != MP_OKAY) {
+     if ((res = mp_sub(MPST, &w3, &w0, &w3)) != MP_OKAY) {
         goto ERR;
      }
      /* r1/2 */
-     if ((res = mp_div_2(&w1, &w1)) != MP_OKAY) {
+     if ((res = mp_div_2(MPST, &w1, &w1)) != MP_OKAY) {
         goto ERR;
      }
      /* r3/2 */
-     if ((res = mp_div_2(&w3, &w3)) != MP_OKAY) {
+     if ((res = mp_div_2(MPST, &w3, &w3)) != MP_OKAY) {
         goto ERR;
      }
      /* r2 - r0 - r4 */
-     if ((res = mp_sub(&w2, &w0, &w2)) != MP_OKAY) {
+     if ((res = mp_sub(MPST, &w2, &w0, &w2)) != MP_OKAY) {
         goto ERR;
      }
-     if ((res = mp_sub(&w2, &w4, &w2)) != MP_OKAY) {
+     if ((res = mp_sub(MPST, &w2, &w4, &w2)) != MP_OKAY) {
         goto ERR;
      }
      /* r1 - r2 */
-     if ((res = mp_sub(&w1, &w2, &w1)) != MP_OKAY) {
+     if ((res = mp_sub(MPST, &w1, &w2, &w1)) != MP_OKAY) {
         goto ERR;
      }
      /* r3 - r2 */
-     if ((res = mp_sub(&w3, &w2, &w3)) != MP_OKAY) {
+     if ((res = mp_sub(MPST, &w3, &w2, &w3)) != MP_OKAY) {
         goto ERR;
      }
      /* r1 - 8r0 */
-     if ((res = mp_mul_2d(&w0, 3, &tmp1)) != MP_OKAY) {
+     if ((res = mp_mul_2d(MPST, &w0, 3, &tmp1)) != MP_OKAY) {
         goto ERR;
      }
-     if ((res = mp_sub(&w1, &tmp1, &w1)) != MP_OKAY) {
+     if ((res = mp_sub(MPST, &w1, &tmp1, &w1)) != MP_OKAY) {
         goto ERR;
      }
      /* r3 - 8r4 */
-     if ((res = mp_mul_2d(&w4, 3, &tmp1)) != MP_OKAY) {
+     if ((res = mp_mul_2d(MPST, &w4, 3, &tmp1)) != MP_OKAY) {
         goto ERR;
      }
-     if ((res = mp_sub(&w3, &tmp1, &w3)) != MP_OKAY) {
+     if ((res = mp_sub(MPST, &w3, &tmp1, &w3)) != MP_OKAY) {
         goto ERR;
      }
      /* 3r2 - r1 - r3 */
-     if ((res = mp_mul_d(&w2, 3, &w2)) != MP_OKAY) {
+     if ((res = mp_mul_d(MPST, &w2, 3, &w2)) != MP_OKAY) {
         goto ERR;
      }
-     if ((res = mp_sub(&w2, &w1, &w2)) != MP_OKAY) {
+     if ((res = mp_sub(MPST, &w2, &w1, &w2)) != MP_OKAY) {
         goto ERR;
      }
-     if ((res = mp_sub(&w2, &w3, &w2)) != MP_OKAY) {
+     if ((res = mp_sub(MPST, &w2, &w3, &w2)) != MP_OKAY) {
         goto ERR;
      }
      /* r1 - r2 */
-     if ((res = mp_sub(&w1, &w2, &w1)) != MP_OKAY) {
+     if ((res = mp_sub(MPST, &w1, &w2, &w1)) != MP_OKAY) {
         goto ERR;
      }
      /* r3 - r2 */
-     if ((res = mp_sub(&w3, &w2, &w3)) != MP_OKAY) {
+     if ((res = mp_sub(MPST, &w3, &w2, &w3)) != MP_OKAY) {
         goto ERR;
      }
      /* r1/3 */
-     if ((res = mp_div_3(&w1, &w1, NULL)) != MP_OKAY) {
+     if ((res = mp_div_3(MPST, &w1, &w1, NULL)) != MP_OKAY) {
         goto ERR;
      }
      /* r3/3 */
-     if ((res = mp_div_3(&w3, &w3, NULL)) != MP_OKAY) {
+     if ((res = mp_div_3(MPST, &w3, &w3, NULL)) != MP_OKAY) {
         goto ERR;
      }
 
      /* at this point shift W[n] by B*n */
-     if ((res = mp_lshd(&w1, 1*B)) != MP_OKAY) {
+     if ((res = mp_lshd(MPST, &w1, 1*B)) != MP_OKAY) {
         goto ERR;
      }
-     if ((res = mp_lshd(&w2, 2*B)) != MP_OKAY) {
+     if ((res = mp_lshd(MPST, &w2, 2*B)) != MP_OKAY) {
         goto ERR;
      }
-     if ((res = mp_lshd(&w3, 3*B)) != MP_OKAY) {
+     if ((res = mp_lshd(MPST, &w3, 3*B)) != MP_OKAY) {
         goto ERR;
      }
-     if ((res = mp_lshd(&w4, 4*B)) != MP_OKAY) {
+     if ((res = mp_lshd(MPST, &w4, 4*B)) != MP_OKAY) {
         goto ERR;
      }
 
-     if ((res = mp_add(&w0, &w1, b)) != MP_OKAY) {
+     if ((res = mp_add(MPST, &w0, &w1, b)) != MP_OKAY) {
         goto ERR;
      }
-     if ((res = mp_add(&w2, &w3, &tmp1)) != MP_OKAY) {
+     if ((res = mp_add(MPST, &w2, &w3, &tmp1)) != MP_OKAY) {
         goto ERR;
      }
-     if ((res = mp_add(&w4, &tmp1, &tmp1)) != MP_OKAY) {
+     if ((res = mp_add(MPST, &w4, &tmp1, &tmp1)) != MP_OKAY) {
         goto ERR;
      }
-     if ((res = mp_add(&tmp1, b, b)) != MP_OKAY) {
+     if ((res = mp_add(MPST, &tmp1, b, b)) != MP_OKAY) {
         goto ERR;
      }
 

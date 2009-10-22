@@ -25,7 +25,7 @@
  * each step involves a fair bit.  This is not meant to 
  * find huge roots [square and cube, etc].
  */
-int mp_n_root (mp_int * a, mp_digit b, mp_int * c)
+int mp_n_root MPA(mp_int * a, mp_digit b, mp_int * c)
 {
   mp_int  t1, t2, t3;
   int     res, neg;
@@ -56,52 +56,52 @@ int mp_n_root (mp_int * a, mp_digit b, mp_int * c)
 
   do {
     /* t1 = t2 */
-    if ((res = mp_copy (&t2, &t1)) != MP_OKAY) {
+    if ((res = mp_copy (MPST, &t2, &t1)) != MP_OKAY) {
       goto LBL_T3;
     }
 
     /* t2 = t1 - ((t1**b - a) / (b * t1**(b-1))) */
     
     /* t3 = t1**(b-1) */
-    if ((res = mp_expt_d (&t1, b - 1, &t3)) != MP_OKAY) {   
+    if ((res = mp_expt_d (MPST, &t1, b - 1, &t3)) != MP_OKAY) {   
       goto LBL_T3;
     }
 
     /* numerator */
     /* t2 = t1**b */
-    if ((res = mp_mul (&t3, &t1, &t2)) != MP_OKAY) {    
+    if ((res = mp_mul (MPST, &t3, &t1, &t2)) != MP_OKAY) {    
       goto LBL_T3;
     }
 
     /* t2 = t1**b - a */
-    if ((res = mp_sub (&t2, a, &t2)) != MP_OKAY) {  
+    if ((res = mp_sub (MPST, &t2, a, &t2)) != MP_OKAY) {  
       goto LBL_T3;
     }
 
     /* denominator */
     /* t3 = t1**(b-1) * b  */
-    if ((res = mp_mul_d (&t3, b, &t3)) != MP_OKAY) {    
+    if ((res = mp_mul_d (MPST, &t3, b, &t3)) != MP_OKAY) {    
       goto LBL_T3;
     }
 
     /* t3 = (t1**b - a)/(b * t1**(b-1)) */
-    if ((res = mp_div (&t2, &t3, &t3, NULL)) != MP_OKAY) {  
+    if ((res = mp_div (MPST, &t2, &t3, &t3, NULL)) != MP_OKAY) {  
       goto LBL_T3;
     }
 
-    if ((res = mp_sub (&t1, &t3, &t2)) != MP_OKAY) {
+    if ((res = mp_sub (MPST, &t1, &t3, &t2)) != MP_OKAY) {
       goto LBL_T3;
     }
   }  while (mp_cmp (&t1, &t2) != MP_EQ);
 
   /* result can be off by a few so check */
   for (;;) {
-    if ((res = mp_expt_d (&t1, b, &t2)) != MP_OKAY) {
+    if ((res = mp_expt_d (MPST, &t1, b, &t2)) != MP_OKAY) {
       goto LBL_T3;
     }
 
     if (mp_cmp (&t2, a) == MP_GT) {
-      if ((res = mp_sub_d (&t1, 1, &t1)) != MP_OKAY) {
+      if ((res = mp_sub_d (MPST, &t1, 1, &t1)) != MP_OKAY) {
          goto LBL_T3;
       }
     } else {
@@ -113,7 +113,7 @@ int mp_n_root (mp_int * a, mp_digit b, mp_int * c)
   a->sign = neg;
 
   /* set the result */
-  mp_exch (&t1, c);
+  mp_managed_copy (MPST, &t1, c);
 
   /* set the sign of the result */
   c->sign = neg;

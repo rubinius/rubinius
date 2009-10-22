@@ -17,7 +17,7 @@
 
 /* d = a + b (mod c) */
 int
-mp_addmod (mp_int * a, mp_int * b, mp_int * c, mp_int * d)
+mp_addmod MPA(mp_int * a, mp_int * b, mp_int * c, mp_int * d)
 {
   int     res;
   mp_int  t;
@@ -26,11 +26,11 @@ mp_addmod (mp_int * a, mp_int * b, mp_int * c, mp_int * d)
     return res;
   }
 
-  if ((res = mp_add (a, b, &t)) != MP_OKAY) {
+  if ((res = mp_add (MPST, a, b, &t)) != MP_OKAY) {
     mp_clear (&t);
     return res;
   }
-  res = mp_mod (&t, c, d);
+  res = mp_mod (MPST, &t, c, d);
   mp_clear (&t);
   return res;
 }
