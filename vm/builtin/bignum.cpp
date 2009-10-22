@@ -193,13 +193,6 @@ namespace rubinius {
     mp_clear(&b);
   }
 
-  void Bignum::Info::cleanup(Object* obj) {
-    Bignum* big = as<Bignum>(obj);
-    mp_int *n = big->mp_val();
-    assert(MANAGED(n));
-    // mp_clear(n);
-  }
-
   void Bignum::Info::mark(Object* obj, ObjectMark& mark) {
     Bignum* big = force_as<Bignum>(obj);
 

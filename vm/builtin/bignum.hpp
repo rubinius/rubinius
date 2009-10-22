@@ -196,7 +196,6 @@ namespace rubinius {
       Info(object_type type, bool cleanup = false) : TypeInfo(type, false) { }
       virtual void mark(Object* t, ObjectMark& mark);
       virtual void visit(Object* obj, ObjectVisitor& visit);
-      virtual void cleanup(Object* obj);
       virtual void show(STATE, Object* self, int level);
       virtual void show_simple(STATE, Object* self, int level);
       virtual void auto_mark(Object* obj, ObjectMark& mark) {}
