@@ -57,21 +57,6 @@ module Rubinius
         g.goto f
       end
 
-      def in_rescue
-      end
-
-      def in_ensure
-      end
-
-      def in_block
-      end
-
-      def in_module
-      end
-
-      def in_masgn
-      end
-
       def visit(arg=true, &block)
         children.each do |child|
           if child
@@ -95,6 +80,74 @@ module Rubinius
         g.pop
         yield
         found.set!
+      end
+    end
+
+    # In a perfect world, each AST node would fully encapsulate its state. But
+    # in the real world, some state exists across the AST rather than just in
+    # a node. For example, some nodes need to emit different bytecode when in
+    # a rescue.
+    #
+    # This class maintains state needed as the AST is walked to generate
+    # bytecode. An instance of State is pushed onto a stack in the Generator
+    # instance as each ClosedScope or Iter is entered, and popped when left.
+    class State
+      attr_reader :scope
+
+      def initialize(scope)
+        @scope = scope
+        @rescue = 0
+        @ensure = 0
+        @block = 0
+        @masgn = 0
+      end
+
+      def push_rescue
+        @rescue += 1
+      end
+
+      def pop_rescue
+        @rescue -= 1 if rescue?
+      end
+
+      def rescue?
+        @rescue > 0
+      end
+
+      def push_ensure
+        @ensure += 1
+      end
+
+      def pop_ensure
+        @ensure -= 1 if ensure?
+      end
+
+      def ensure?
+        @ensure > 0
+      end
+
+      def push_block
+        @block += 1
+      end
+
+      def pop_block
+        @block -= 1 if block?
+      end
+
+      def block?
+        @block > 0
+      end
+
+      def push_masgn
+        @masgn += 1
+      end
+
+      def pop_masgn
+        @masgn -= 1 if masgn?
+      end
+
+      def masgn?
+        @masgn > 0
       end
     end
   end

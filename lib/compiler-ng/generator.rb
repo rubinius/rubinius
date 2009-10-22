@@ -49,7 +49,6 @@ module Rubinius
       @redo = nil
       @next = nil
       @retry = nil
-      @ensure_return = nil
       @last_line = nil
       @file = nil
       @lines = []
@@ -62,12 +61,13 @@ module Rubinius
       @local_names = nil
       @local_count = 0
 
+      @state = []
       @children = []
     end
 
     attr_reader :ip, :stream, :iseq
     attr_reader :cache_size, :literals
-    attr_accessor :break, :redo, :next, :retry, :ensure_return
+    attr_accessor :break, :redo, :next, :retry
     attr_accessor :file, :name, :required_args, :total_args, :splat_index,
                   :local_count, :local_names, :primitive, :for_block
 
@@ -205,6 +205,18 @@ module Rubinius
     end
 
     # Commands (these don't generate data in the stream)
+
+    def state
+      @state.last
+    end
+
+    def push_state(scope)
+      @state << AST::State.new(scope)
+    end
+
+    def pop_state
+      @state.pop
+    end
 
     def push_modifiers
       @modstack << [@break, @redo, @next, @retry]

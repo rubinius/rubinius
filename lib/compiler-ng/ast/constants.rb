@@ -168,10 +168,6 @@ module Rubinius
         [@parent, @value]
       end
 
-      def in_masgn
-        @in_masgn = true
-      end
-
       def masgn_bytecode(g)
         g.swap
         @name.bytecode(g)
@@ -184,7 +180,7 @@ module Rubinius
 
         @parent ? @parent.bytecode(g) : g.push_scope
 
-        return masgn_bytecode(g) if @in_masgn
+        return masgn_bytecode(g) if g.state.masgn?
 
         @name.bytecode(g)
         @value.bytecode(g)

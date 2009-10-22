@@ -32,23 +32,8 @@ module Rubinius
         [@body, @ensure]
       end
 
-      def map_ensure
-        @body.in_ensure
-        @body.visit do |result, node|
-          case node
-          when ClosedScope
-            result = nil
-          else
-            node.in_ensure
-          end
-
-          result
-        end
-      end
-
       def bytecode(g)
         pos(g)
-        map_ensure
 
         ok = g.new_label
         ex = g.new_label
@@ -57,7 +42,9 @@ module Rubinius
         # TODO: ?
         g.new_label.set!
 
+        g.state.push_ensure
         @body.bytecode(g)
+        g.state.pop_ensure
 
         g.pop_unwind
         g.goto ok
@@ -65,7 +52,9 @@ module Rubinius
         ex.set!
         g.push_exception
 
+        g.state.push_rescue
         @ensure.bytecode(g)
+        g.state.pop_rescue
         g.pop
 
         g.pop_exception
@@ -218,20 +207,6 @@ module Rubinius
         return true if value.kind_of? GlobalVariableAccess and value.name == :$!
       end
 
-      def map_rescue
-        @body.in_rescue
-        @body.visit do |result, node|
-          case node
-          when ClosedScope
-            result = nil
-          else
-            node.in_rescue
-          end
-
-          result
-        end
-      end
-
       def children
         [@conditions, @assignment, @body, @next]
       end
@@ -268,8 +243,9 @@ module Rubinius
         current_break = g.break
         g.break = g.new_label
 
-        map_rescue
+        g.state.push_rescue
         @body.bytecode(g)
+        g.state.pop_rescue
         g.clear_exception
         g.goto done
 

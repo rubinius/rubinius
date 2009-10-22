@@ -130,8 +130,6 @@ module Rubinius
           case node
           when ClosedScope
             result = nil
-          when ClassVariableAccess, ClassVariableAssignment
-            node.in_module if scope.module?
           when LocalVariable
             scope.assign_local_reference node
           when FormalArguments
@@ -169,6 +167,7 @@ module Rubinius
 
         meth = desc.generator
         meth.name = @name ? @name : name
+        meth.push_state self
 
         meth.local_count = local_count
         meth.local_names = local_names
@@ -182,6 +181,7 @@ module Rubinius
 
         meth.ret
         meth.close
+        meth.pop_state
 
         g.dup
         g.push_const :Rubinius
@@ -233,6 +233,7 @@ module Rubinius
         desc = new_description(g)
         meth = desc.generator
         meth.name = @name
+        meth.push_state self
         pos(meth)
 
         @arguments.bytecode(meth) if @arguments
@@ -247,6 +248,7 @@ module Rubinius
 
         meth.ret
         meth.close
+        meth.pop_state
 
         return desc
       end
@@ -816,8 +818,10 @@ module Rubinius
         map_eval
         super(g)
 
+        g.push_state self
         @body.bytecode(g)
         g.ret
+        g.pop_state
       end
     end
 
@@ -830,7 +834,9 @@ module Rubinius
       def bytecode(g)
         super(g)
 
+        g.push_state self
         @body.bytecode(g)
+        g.pop_state
       end
     end
 
@@ -843,10 +849,12 @@ module Rubinius
       def bytecode(g)
         super(g)
 
+        g.push_state self
         @body.bytecode(g)
         g.pop
         g.push :true
         g.ret
+        g.pop_state
       end
     end
 

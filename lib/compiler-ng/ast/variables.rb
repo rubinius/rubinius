@@ -58,14 +58,10 @@ module Rubinius
     end
 
     class ClassVariableAccess < VariableAccess
-      def in_module
-        @in_module = true
-      end
-
       def or_bytecode(g)
         pos(g)
 
-        if @in_module
+        if g.state.scope.module?
           g.push :self
         else
           g.push_scope
@@ -94,7 +90,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        if @in_module
+        if g.state.scope.module?
           g.push :self
         else
           g.push_scope
@@ -122,14 +118,10 @@ module Rubinius
     end
 
     class ClassVariableAssignment < VariableAssignment
-      def in_module
-        @in_module = true
-      end
-
       def bytecode(g)
         pos(g)
 
-        if @in_module
+        if g.state.scope.module?
           g.push :self
         else
           g.push_scope
@@ -427,18 +419,7 @@ module Rubinius
         @iter_arguments = true
       end
 
-      def map_masgn
-        if @left
-          @left.visit do |result, node|
-            node.in_masgn
-            result
-          end
-        end
-      end
-
       def bytecode(g)
-        map_masgn
-
         g.cast_array unless @right or (@splat and not @left)
 
         if @fixed
@@ -450,10 +431,12 @@ module Rubinius
             make_array(g) if @splat
             rotate(g)
 
+            g.state.push_masgn
             @left.body.each do |x|
               x.bytecode(g)
               g.pop
             end
+            g.state.pop_masgn
 
             pop_excess(g) unless @splat
           end
@@ -464,12 +447,14 @@ module Rubinius
           end
 
           if @left
+            g.state.push_masgn
             @left.body.each do |x|
               g.shift_array
               g.cast_array if x.kind_of? MAsgn and x.left
               x.bytecode(g)
               g.pop
             end
+            g.state.pop_masgn
           end
         end
 

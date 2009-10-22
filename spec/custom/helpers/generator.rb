@@ -109,6 +109,7 @@ class TestGenerator
     @lbl    = 0
     @slot   = 0
     @g      = self
+    @state = []
   end
 
   def run(node)

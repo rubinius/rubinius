@@ -91,17 +91,13 @@ module Rubinius
         @arguments = ActualArguments.new line, arguments
       end
 
-      def in_masgn
-        @in_masgn = true
-      end
-
       def children
         [@receiver, @arguments]
       end
 
       def bytecode(g)
         @receiver.bytecode(g)
-        if @in_masgn
+        if g.state.masgn?
           g.swap
           g.send @name, 1, @privately
         else
@@ -140,10 +136,6 @@ module Rubinius
         end
       end
 
-      def in_masgn
-        @in_masgn = true
-      end
-
       def children
         [@receiver, @arguments]
       end
@@ -157,7 +149,7 @@ module Rubinius
       end
 
       def bytecode(g)
-        return masgn_bytecode(g) if @in_masgn
+        return masgn_bytecode(g) if g.state.masgn?
 
         @receiver.bytecode(g)
         @arguments.bytecode(g)
@@ -335,19 +327,6 @@ module Rubinius
         end
       end
 
-      def map_iter
-        visit do |result, node|
-          case node
-          when ClosedScope, Iter
-            result = nil
-          else
-            node.in_block
-          end
-
-          result
-        end
-      end
-
       def children
         [@arguments, @body]
       end
@@ -355,7 +334,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        map_iter
+        g.state.scope.nest_scope self
 
         # TODO: remove MethodDescription and replace with constructor method
         desc = Compiler::MethodDescription.new g.class, @locals
@@ -365,6 +344,7 @@ module Rubinius
         desc.optional = @arguments.optional
 
         blk = desc.generator
+        blk.push_state g.state.scope
         blk.file = g.file
         blk.name = :__block__
 
@@ -382,6 +362,7 @@ module Rubinius
 
         @arguments.bytecode(blk)
 
+        blk.state.push_block
         blk.push_modifiers
         blk.break = nil
         blk.next = nil
@@ -389,8 +370,10 @@ module Rubinius
         blk.redo.set!
         @body.bytecode(blk)
         blk.pop_modifiers
+        blk.state.pop_block
         blk.ret
         blk.close
+        blk.pop_state
 
         g.create_block desc
       end
@@ -433,7 +416,6 @@ module Rubinius
         when nil
           @arity = -1
         else # Assignment
-          arguments.in_masgn
           @arguments = arguments
           @arity = 1
           @prelude = :single
@@ -471,7 +453,9 @@ module Rubinius
       end
 
       def arguments_bytecode(g)
+        g.state.push_masgn
         @arguments.bytecode(g) if @arguments
+        g.state.pop_masgn
       end
 
       def bytecode(g)

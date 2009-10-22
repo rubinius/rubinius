@@ -400,10 +400,6 @@ module Rubinius
         g.send :raise, 2, true
       end
 
-      def in_block
-        @in_block = true
-      end
-
       def bytecode(g)
         pos(g)
 
@@ -413,7 +409,7 @@ module Rubinius
 
         if g.break
           g.goto g.break
-        elsif @in_block
+        elsif g.state.block?
           g.raise_break
         else
           g.pop
@@ -430,10 +426,6 @@ module Rubinius
         @value = value
       end
 
-      def in_block
-        @in_block = true
-      end
-
       def bytecode(g)
         pos(g)
 
@@ -441,7 +433,7 @@ module Rubinius
 
         if g.next
           g.goto g.next
-        elsif @in_block
+        elsif g.state.block?
           if @value
             @value.bytecode(g)
           else
@@ -501,18 +493,6 @@ module Rubinius
         [@value]
       end
 
-      def in_rescue
-        @in_rescue = true
-      end
-
-      def in_ensure
-        @in_ensure = true
-      end
-
-      def in_block
-        @in_block = true
-      end
-
       def bytecode(g, force=false)
         pos(g)
 
@@ -528,13 +508,13 @@ module Rubinius
           g.push :nil
         end
 
-        if @in_rescue
+        if g.state.rescue?
           g.clear_exception
         end
 
-        if @in_block
+        if g.state.block?
           g.raise_return
-        elsif !force and @in_ensure
+        elsif !force and g.state.ensure?
           g.ensure_return
         else
           g.ret
