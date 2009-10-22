@@ -35,11 +35,13 @@ namespace rubinius {
 
     seen[obj] = 1;
 
+    /*
     if(obj->young_object_p()) {
       if(!object_memory_->young.current->contains_p(obj)) {
         throw std::runtime_error("Invalid young object detected.");
       }
     }
+    */
 
     scan_object(obj);
 

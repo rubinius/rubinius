@@ -54,6 +54,7 @@ mod->addTypeName("struct.rubinius::Fixnum", OpaqueTy_struct_rubinius__Fixnum);
 PointerType* PointerTy_7 = PointerType::get(OpaqueTy_struct_rubinius__Fixnum, 0);
 
 StructTy_struct_rubinius__Class_fields.push_back(PointerTy_7);
+StructTy_struct_rubinius__Class_fields.push_back(PointerTy_5);
 OpaqueType* OpaqueTy_struct_rubinius__TypeInfo = OpaqueType::get(getGlobalContext());
 mod->addTypeName("struct.rubinius::TypeInfo", OpaqueTy_struct_rubinius__TypeInfo);
 
@@ -61,6 +62,7 @@ PointerType* PointerTy_8 = PointerType::get(OpaqueTy_struct_rubinius__TypeInfo, 
 
 StructTy_struct_rubinius__Class_fields.push_back(PointerTy_8);
 StructTy_struct_rubinius__Class_fields.push_back(IntegerType::get(getGlobalContext(), 32));
+StructTy_struct_rubinius__Class_fields.push_back(IntegerType::get(getGlobalContext(), 64));
 StructType* StructTy_struct_rubinius__Class = StructType::get(mod->getContext(), StructTy_struct_rubinius__Class_fields, /*isPacked=*/false);
 mod->addTypeName("struct.rubinius::Class", StructTy_struct_rubinius__Class);
 

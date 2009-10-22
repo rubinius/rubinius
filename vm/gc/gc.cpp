@@ -17,6 +17,8 @@
 #include "builtin/staticscope.hpp"
 #include "capi/handle.hpp"
 
+#include "object_watch.hpp"
+
 namespace rubinius {
 
   GCData::GCData(STATE)
@@ -45,33 +47,15 @@ namespace rubinius {
       std::cout << "detected " << obj << " during scan_object.\n";
     }
 
-    if(obj->klass() && obj->klass()->reference_p()) {
-      slot = saw_object(obj->klass());
-      // casting to Class* is ok here because we're in the GC, and the movement
-      // of slot MUST return the same type as obj->klass()
-      if(slot) obj->klass(object_memory_, reinterpret_cast<Class*>(slot));
-    }
+    slot = saw_object(obj->klass());
+    if(slot) obj->klass(object_memory_, force_as<Class>(slot));
 
-    if(obj->ivars() && obj->ivars()->reference_p()) {
+    if(obj->ivars()->reference_p()) {
       slot = saw_object(obj->ivars());
       if(slot) obj->ivars(object_memory_, slot);
     }
 
-    // If this object's refs are weak, then add it to the weak_refs
-    // vector and don't look at it otherwise.
-    if(WeakRef* ref = try_as<WeakRef>(obj)) {
-      if(ref->alive_p()) {
-        if(!weak_refs_) {
-          weak_refs_ = new ObjectArray(0);
-        }
-
-        weak_refs_->push_back(obj);
-      }
-      return;
-    }
-
     TypeInfo* ti = object_memory_->type_info[obj->type_id()];
-    assert(ti);
 
     ObjectMark mark(this);
     ti->mark(obj, mark);

@@ -7,6 +7,7 @@ namespace rubinius {
   class VariableScope;
 
   class StackVariables {
+  public: // Treat these like private!
     VariableScope* on_heap_;
     VariableScope* parent_;
     Object* self_;

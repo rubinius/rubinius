@@ -4,6 +4,7 @@
 #include "instruments/stats.hpp"
 
 #include "capi/handle.hpp"
+#include "object_watch.hpp"
 
 namespace rubinius {
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
@@ -103,9 +104,7 @@ namespace rubinius {
 
     for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {
       tmp = i->get();
-      if(tmp->reference_p()) {
-        saw_object(tmp);
-      }
+      if(tmp->reference_p()) saw_object(tmp);
     }
 
     for(capi::Handles::Iterator i(*data.handles()); i.more(); i.advance()) {

@@ -282,7 +282,7 @@ namespace immix {
 
       if(base_.as_int() == -1) {
         perror("mmap");
-        abort();
+        ::abort();
       }
 
       // Best case scenario
@@ -305,7 +305,7 @@ namespace immix {
     void free() {
       if(munmap(system_base_, system_size_) != 0) {
         perror("munmap");
-        abort();
+        ::abort();
       }
     }
 

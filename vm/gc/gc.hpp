@@ -106,6 +106,14 @@ namespace rubinius {
 
     VM* state();
 
+    void add_weak_ref(Object* obj) {
+      if(!weak_refs_) {
+        weak_refs_ = new ObjectArray;
+      }
+
+      weak_refs_->push_back(obj);
+    }
+
     friend class ObjectMark;
   };
 

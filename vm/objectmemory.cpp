@@ -4,6 +4,9 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "gc/marksweep.hpp"
+#include "gc/baker.hpp"
+#include "gc/immix.hpp"
+
 #include "config_parser.hpp"
 
 #include "builtin/class.hpp"
@@ -21,12 +24,11 @@ namespace rubinius {
 
   /* ObjectMemory methods */
   ObjectMemory::ObjectMemory(STATE, Configuration& config)
-    : state(state)
-    , young(this, config.gc_bytes)
-    , mark_sweep_(this)
-    , immix_(this)
+    : young_(new BakerGC(this, config.gc_bytes))
+    , mark_sweep_(new MarkSweepGC(this))
+    , immix_(new ImmixGC(this))
+    , state(state)
   {
-
     // TODO Not sure where this code should be...
     if(char* num = getenv("RBX_WATCH")) {
       object_watch = (Object*)strtol(num, NULL, 10);
@@ -39,7 +41,7 @@ namespace rubinius {
     last_object_id = 0;
 
     large_object_threshold = config.gc_large_object;
-    young.lifetime = config.gc_lifetime;
+    young_->lifetime = config.gc_lifetime;
 
     for(size_t i = 0; i < LastObjectType; i++) {
       type_info[i] = NULL;
@@ -50,8 +52,8 @@ namespace rubinius {
 
   ObjectMemory::~ObjectMemory() {
 
-    young.free_objects();
-    mark_sweep_.free_objects();
+    young_->free_objects();
+    mark_sweep_->free_objects();
 
     // TODO free immix data
 
@@ -60,23 +62,39 @@ namespace rubinius {
     for(size_t i = 0; i < LastObjectType; i++) {
       if(type_info[i]) delete type_info[i];
     }
+
+    delete immix_;
+    delete mark_sweep_;
+    delete young_;
   }
 
+  Object* ObjectMemory::new_object_fast(Class* cls, size_t bytes, object_type type) {
+    if(Object* obj = young_->raw_allocate(bytes, &collect_young_now)) {
+      if(collect_young_now) state->interrupts.set_perform_gc();
+      obj->init_header(cls, YoungObjectZone, type);
+      obj->clear_fields(bytes);
+      return obj;
+    } else {
+      return new_object_typed(cls, bytes, type);
+    }
+  }
+
+
   void ObjectMemory::set_young_lifetime(size_t age) {
-    young.lifetime = age;
+    young_->lifetime = age;
   }
 
   void ObjectMemory::debug_marksweep(bool val) {
     if(val) {
-      mark_sweep_.free_entries = false;
+      mark_sweep_->free_entries = false;
     } else {
-      mark_sweep_.free_entries = true;
+      mark_sweep_->free_entries = true;
     }
   }
 
   bool ObjectMemory::valid_object_p(Object* obj) {
     if(obj->young_object_p()) {
-      return young.current->contains_p(obj);
+      return young_->current->contains_p(obj);
     } else if(obj->mature_object_p()) {
       return true;
     } else {
@@ -91,7 +109,7 @@ namespace rubinius {
     stats::GCStats::get()->objects_promoted++;
 #endif
 
-    Object* copy = immix_.allocate(obj->size_in_bytes(state));
+    Object* copy = immix_->allocate(obj->size_in_bytes(state));
 
     copy->obj_type_ = obj->type_id();
     copy->initialize_copy(obj, 0);
@@ -106,7 +124,7 @@ namespace rubinius {
 
   void ObjectMemory::collect_young(GCData& data) {
     static int collect_times = 0;
-    young.collect(data);
+    young_->collect(data);
     prune_handles(data.handles(), true);
     prune_handles(data.cached_handles(), true);
     collect_times++;
@@ -120,19 +138,19 @@ namespace rubinius {
     stats::GCStats::get()->collect_mature.start();
 #endif
 
-    immix_.collect(data);
+    immix_->collect(data);
 
     data.global_cache()->prune_unmarked();
 
-    immix_.clean_weakrefs();
+    immix_->clean_weakrefs();
     prune_handles(data.handles(), false);
     prune_handles(data.cached_handles(), false);
 
     // Have to do this after all things that check for mark bits is
     // done, as it free()s objects, invalidating mark bits.
-    mark_sweep_.after_marked();
+    mark_sweep_->after_marked();
 
-    immix_.unmark_all(data);
+    immix_->unmark_all(data);
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->collect_mature.stop();
@@ -161,7 +179,7 @@ namespace rubinius {
         if(obj->young_object_p()) {
 
           // A weakref pointing to a valid young object
-          if(young.validate_object(obj) == cValid) {
+          if(young_->validate_object(obj) == cValid) {
             continue;
 
           // A weakref pointing to a forwarded young object
@@ -216,7 +234,7 @@ namespace rubinius {
     Object* obj;
 
     if(unlikely(bytes > large_object_threshold)) {
-      obj = mark_sweep_.allocate(bytes, &collect_mature_now);
+      obj = mark_sweep_->allocate(bytes, &collect_mature_now);
       if(collect_mature_now) {
         state->interrupts.set_perform_gc();
       }
@@ -226,12 +244,12 @@ namespace rubinius {
 #endif
 
     } else {
-      obj = young.allocate(bytes);
+      obj = young_->allocate(bytes);
       if(unlikely(obj == NULL)) {
         collect_young_now = true;
         state->interrupts.set_perform_gc();
 
-        obj = immix_.allocate(bytes);
+        obj = immix_->allocate(bytes);
         if(collect_mature_now) {
           state->interrupts.set_perform_gc();
         }
@@ -252,7 +270,7 @@ namespace rubinius {
     Object* obj;
 
     if(bytes > large_object_threshold) {
-      obj = mark_sweep_.allocate(bytes, &collect_mature_now);
+      obj = mark_sweep_->allocate(bytes, &collect_mature_now);
       if(collect_mature_now) {
         state->interrupts.set_perform_gc();
       }
@@ -262,7 +280,7 @@ namespace rubinius {
 #endif
 
     } else {
-      obj = immix_.allocate(bytes);
+      obj = immix_->allocate(bytes);
       if(collect_mature_now) {
         state->interrupts.set_perform_gc();
       }
@@ -312,7 +330,7 @@ namespace rubinius {
 
   /* ONLY use to create Class, the first object. */
   Object* ObjectMemory::allocate_object_raw(size_t bytes) {
-    Object* obj = mark_sweep_.allocate(bytes, &collect_mature_now);
+    Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
     obj->clear_fields(bytes);
     return obj;
   }
@@ -322,7 +340,7 @@ namespace rubinius {
     stats::GCStats::get()->mature_object_types[type]++;
 #endif
 
-    Object* obj = mark_sweep_.allocate(bytes, &collect_mature_now);
+    Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
     if(collect_mature_now) {
       state->interrupts.set_perform_gc();
     }
@@ -354,13 +372,13 @@ namespace rubinius {
   ObjectPosition ObjectMemory::validate_object(Object* obj) {
     ObjectPosition pos;
 
-    pos = young.validate_object(obj);
+    pos = young_->validate_object(obj);
     if(pos != cUnknown) return pos;
 
-    pos = immix_.validate_object(obj);
+    pos = immix_->validate_object(obj);
     if(pos != cUnknown) return pos;
 
-    return mark_sweep_.validate_object(obj);
+    return mark_sweep_->validate_object(obj);
   }
 };
 

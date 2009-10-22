@@ -1,3 +1,5 @@
+#include "gc/gc.hpp"
+
 #include "builtin/tuple.hpp"
 #include "vm.hpp"
 #include "vm/object_utils.hpp"
@@ -193,10 +195,7 @@ namespace rubinius {
   }
 
   size_t Tuple::Info::object_size(const ObjectHeader* obj) {
-    const Tuple *tup = reinterpret_cast<const Tuple*>(obj);
-    assert(tup);
-
-    return tup->full_size_;
+    return force_as<Tuple>(obj)->full_size_;
   }
 
 

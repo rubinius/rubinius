@@ -1,3 +1,5 @@
+#include "gc/gc.hpp"
+
 #include "builtin/sendsite.hpp"
 #include "builtin/class.hpp"
 #include "builtin/lookuptable.hpp"

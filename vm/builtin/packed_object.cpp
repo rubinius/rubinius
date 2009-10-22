@@ -1,3 +1,5 @@
+#include "gc/gc.hpp"
+
 #include "builtin/packed_object.hpp"
 #include "builtin/object.hpp"
 #include "builtin/lookuptable.hpp"
@@ -85,8 +87,10 @@ namespace rubinius {
     return const_cast<ObjectHeader*>(obj)->reference_class()->packed_size();
   }
 
-  static size_t to_fields(size_t total) {
-    return (total - sizeof(ObjectHeader)) / sizeof(Object*);
+  namespace {
+    inline size_t to_fields(size_t total) {
+      return (total - sizeof(ObjectHeader)) / sizeof(Object*);
+    }
   }
 
   void PackedObject::Info::mark(Object* obj, ObjectMark& mark) {

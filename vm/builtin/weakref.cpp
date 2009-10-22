@@ -1,6 +1,9 @@
 #include "builtin/weakref.hpp"
 #include "builtin/class.hpp"
 
+#include "object_utils.hpp"
+#include "gc/gc.hpp"
+
 namespace rubinius {
   void WeakRef::init(STATE) {
     GO(cls_weakref).set(state->new_class("WeakRef", G(object)));
@@ -12,5 +15,12 @@ namespace rubinius {
     ref->set_object(obj);
 
     return ref;
+  }
+
+  void WeakRef::Info::mark(Object* obj, ObjectMark& mark) {
+    WeakRef* ref = as<WeakRef>(obj);
+    if(ref->alive_p()) {
+      mark.gc->add_weak_ref(obj);
+    }
   }
 }

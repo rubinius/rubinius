@@ -1,3 +1,5 @@
+#include "gc/gc.hpp"
+
 #include "builtin/compiledmethod.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"

@@ -4,6 +4,9 @@
 
 #include "gc/gc.hpp"
 #include "gc/root.hpp"
+#include "gc/baker.hpp"
+#include "gc/marksweep.hpp"
+
 #include "object_utils.hpp"
 
 #include "builtin/array.hpp"
@@ -43,15 +46,15 @@ public:
 
     Tuple* obj;
 
-    int start = om.young.current->used();
+    int start = om.young_->current->used();
 
     obj = util_new_object(om);
 
     TS_ASSERT_EQUALS(obj->num_fields(), 3U);
     TS_ASSERT_EQUALS(obj->zone, YoungObjectZone);
 
-    TS_ASSERT(om.young.current->used() == start + obj->size_in_bytes(state));
-    TS_ASSERT(om.young.heap_a.used()  == start + obj->size_in_bytes(state));
+    TS_ASSERT(om.young_->current->used() == start + obj->size_in_bytes(state));
+    TS_ASSERT(om.young_->heap_a.used()  == start + obj->size_in_bytes(state));
   }
 
   void test_write_barrier() {
@@ -93,7 +96,7 @@ public:
   void test_collect_young() {
     ObjectMemory& om = *state->om;
     Object* obj;
-    size_t start = om.young.current->used();
+    size_t start = om.young_->current->used();
 
     util_new_object(om);
     util_new_object(om);
@@ -101,13 +104,13 @@ public:
     util_new_object(om);
     obj = util_new_object(om);
 
-    Heap *cur = om.young.next;
-    TS_ASSERT_EQUALS(om.young.current->used(), start + obj->size_in_bytes(state) * 5);
+    Heap *cur = om.young_->next;
+    TS_ASSERT_EQUALS(om.young_->current->used(), start + obj->size_in_bytes(state) * 5);
 
     om.collect_young(*gc_data);
 
-    TS_ASSERT(om.young.current->used() <= start);
-    TS_ASSERT_EQUALS((void*)cur, (void*)om.young.current);
+    TS_ASSERT(om.young_->current->used() <= start);
+    TS_ASSERT_EQUALS((void*)cur, (void*)om.young_->current);
 
     obj = util_new_object(om);
     TS_ASSERT_EQUALS(obj->age, 0U);
@@ -140,7 +143,7 @@ public:
     TS_ASSERT(obj != new_obj);
     obj = (Tuple*)new_obj;
 
-    TS_ASSERT(om.young.current->contains_p(obj));
+    TS_ASSERT(om.young_->current->contains_p(obj));
     obj3 = (Tuple*)obj->field[0];
     TS_ASSERT(obj2 != obj3);
 
@@ -175,13 +178,13 @@ public:
 
     om.large_object_threshold = 10;
 
-    size_t start = om.young.current->used();
+    size_t start = om.young_->current->used();
 
     obj = util_new_object(om,20);
     TS_ASSERT_EQUALS(obj->num_fields(), 20U);
     TS_ASSERT_EQUALS(obj->zone, MatureObjectZone);
 
-    TS_ASSERT_EQUALS(om.young.current->used(), start);
+    TS_ASSERT_EQUALS(om.young_->current->used(), start);
   }
 
   void test_collect_young_doesnt_move_mature_objects() {
@@ -453,7 +456,7 @@ public:
 
     TS_ASSERT_EQUALS(obj->requires_cleanup_p(), true);
 
-    state->om->mark_sweep_.delete_object(obj);
+    state->om->mark_sweep_->delete_object(obj);
 
     TS_ASSERT_EQUALS(c->squeaky, obj);
 

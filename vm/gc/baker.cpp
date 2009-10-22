@@ -6,6 +6,7 @@
 #include "object_utils.hpp"
 
 #include "builtin/tuple.hpp"
+#include "builtin/class.hpp"
 
 #include "instruments/stats.hpp"
 
@@ -122,10 +123,6 @@ namespace rubinius {
 
     for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {
       i->set(saw_object(i->get()));
-      //tmp = i->get();
-      //if(tmp->reference_p() && tmp->young_object_p()) {
-      //  i->set(saw_object(tmp));
-      //}
     }
 
     for(capi::Handles::Iterator i(*data.handles()); i.more(); i.advance()) {

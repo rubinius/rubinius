@@ -2,6 +2,7 @@
 #include "objectmemory.hpp"
 #include "event.hpp"
 #include "global_cache.hpp"
+#include "gc/gc.hpp"
 
 #include "vm/object_utils.hpp"
 

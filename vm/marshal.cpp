@@ -21,6 +21,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 
+#include "detection.hpp"
 
 namespace rubinius {
 
