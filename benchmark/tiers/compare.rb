@@ -6,8 +6,10 @@ tier = ARGV.shift
 
 if File.file?(tier)
   files = [tier]
-else
+elsif File.directory?(tier)
   files = Dir["#{tier}/*.rb"]
+else
+  files = Dir[tier].find_all { |f| File.extname(f) == ".rb" }
 end
 
 STDOUT.sync = true
