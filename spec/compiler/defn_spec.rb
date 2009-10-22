@@ -20,6 +20,43 @@ describe "A Defn node" do
   end
 
   relates <<-ruby do
+      def m
+        return :a
+      ensure
+        return :b
+      end
+    ruby
+
+    compile do |g|
+      in_method :m do |d|
+        ensure_exc_lbl = d.new_label
+        ensure_noexc_lbl = d.new_label
+
+        d.setup_unwind ensure_exc_lbl
+        d.new_label.set!
+        d.push_literal :a
+        d.ensure_return
+        d.pop_unwind
+        d.goto ensure_noexc_lbl
+
+        ensure_exc_lbl.set!
+        d.push_exception
+        d.push_literal :b
+        d.clear_exception
+        d.ret
+        d.pop
+        d.pop_exception
+        d.reraise
+
+        ensure_noexc_lbl.set!
+        d.push_literal :b
+        d.ret
+        d.pop
+      end
+    end
+  end
+
+  relates <<-ruby do
       def blah(*args, &block)
         other(42, *args, &block)
       end
