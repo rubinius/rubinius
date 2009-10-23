@@ -1,0 +1,1 @@
+fails:Fixnum#<< coerces result on overflow and return self shifted left other bits
