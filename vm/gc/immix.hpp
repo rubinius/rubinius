@@ -3,6 +3,7 @@
 
 #include "util/immix.hpp"
 #include "gc/gc.hpp"
+#include "exception.hpp"
 
 #include "object_position.hpp"
 
@@ -54,7 +55,7 @@ namespace rubinius {
 
         if(obj->marked_p()) {
           if(obj->marked_p(gc_->which_mark())) return false;
-          assert(0 && "invalid mark detectet!\n");
+          rubinius::bug("invalid mark detected!");
         }
         obj->mark(gc_->which_mark());
 

@@ -13,6 +13,7 @@ namespace rubinius {
   class Exception;
 
   void abort();
+  void bug(const char* message);
   void print_backtrace();
 
   /**
