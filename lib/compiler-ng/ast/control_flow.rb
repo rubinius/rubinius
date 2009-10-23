@@ -369,8 +369,6 @@ module Rubinius
 
         @value.bytecode(g)
 
-        g.pop_unwind if @pop_unwind
-
         if g.break
           g.goto g.break
         elsif g.state.block?
@@ -392,8 +390,6 @@ module Rubinius
 
       def bytecode(g)
         pos(g)
-
-        g.pop_unwind if @pop_unwind
 
         if g.next
           g.goto g.next
@@ -418,8 +414,6 @@ module Rubinius
 
       def bytecode(g)
         pos(g)
-
-        g.pop_unwind if @pop_unwind
 
         if g.redo
           g.goto g.redo
