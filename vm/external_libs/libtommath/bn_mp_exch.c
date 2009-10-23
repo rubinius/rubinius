@@ -24,9 +24,17 @@ mp_exch MPA(mp_int * a, mp_int * b)
   mp_int  t;
 
   if(MANAGED(a) || MANAGED(b)) {
-    mp_init_copy(MPST, &t, a);
-    mp_copy(MPST, a, b);
-    mp_copy(MPST, b, &t);
+    mp_init(&t);
+
+    // copy a to t
+    mp_copy(MPST, a, &t);
+
+    // copy b to a
+    mp_copy(MPST, b, a);
+
+    // copy t to b
+    mp_copy(MPST, &t, b);
+
     mp_clear(&t);
     return;
   }
