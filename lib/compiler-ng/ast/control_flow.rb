@@ -9,10 +9,6 @@ module Rubinius
         @else = else_body || Nil.new(line)
       end
 
-      def children
-        @whens.dup << @else
-      end
-
       def bytecode(g)
         pos(g)
 
@@ -36,10 +32,6 @@ module Rubinius
         @receiver = receiver
         @whens = whens
         @else = else_body || Nil.new(line)
-      end
-
-      def children
-        [@receiver] + @whens << @else
       end
 
       def bytecode(g)
@@ -87,10 +79,6 @@ module Rubinius
         else
           @conditions = conditions
         end
-      end
-
-      def children
-        [@conditions, @single, @splat, @body]
       end
 
       def condition_bytecode(g, condition)
@@ -166,10 +154,6 @@ module Rubinius
         @condition = condition
       end
 
-      def children
-        [@condition]
-      end
-
       def receiver_bytecode(g, body, nxt)
         pos(g)
 
@@ -217,10 +201,6 @@ module Rubinius
         @else = else_body || Nil.new(line)
       end
 
-      def children
-        [@condition, @body, @else]
-      end
-
       def bytecode(g)
         pos(g)
 
@@ -248,10 +228,6 @@ module Rubinius
         @condition = condition
         @body = body || Nil.new(line)
         @check_first = check_first
-      end
-
-      def children
-        [@condition, @body]
       end
 
       def bytecode(g, use_gif=true)
@@ -346,10 +322,6 @@ module Rubinius
         @value = value
       end
 
-      def children
-        [@pattern, @value]
-      end
-
       def bytecode(g)
         pos(g)
 
@@ -368,10 +340,6 @@ module Rubinius
         @value = value
       end
 
-      def children
-        [@pattern, @value]
-      end
-
       def bytecode(g)
         pos(g)
 
@@ -387,10 +355,6 @@ module Rubinius
       def initialize(line, expr)
         @line = line
         @value = expr || Nil.new(line)
-      end
-
-      def children
-        [@value]
       end
 
       def jump_error(g, msg)
@@ -487,10 +451,6 @@ module Rubinius
       def initialize(line, expr)
         @line = line
         @value = expr
-      end
-
-      def children
-        [@value]
       end
 
       def bytecode(g, force=false)

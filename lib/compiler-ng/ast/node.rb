@@ -36,10 +36,6 @@ module Rubinius
         g.set_line @line
       end
 
-      def children
-        []
-      end
-
       def bytecode(g)
       end
 
@@ -58,11 +54,11 @@ module Rubinius
       end
 
       def visit(arg=true, &block)
-        children.each do |child|
-          if child
-            next unless ch_arg = block.call(arg, child)
-            child.visit(ch_arg, &block)
-          end
+        instance_variables.each do |name|
+          child = instance_variable_get name
+          next unless child.kind_of? Node
+          next unless ch_arg = block.call(arg, child)
+          child.visit(ch_arg, &block)
         end
       end
 

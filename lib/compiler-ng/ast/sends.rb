@@ -10,10 +10,6 @@ module Rubinius
         @privately = privately
       end
 
-      def children
-        [@receiver, @block]
-      end
-
       def bytecode(g)
         pos(g)
 
@@ -61,10 +57,6 @@ module Rubinius
         @arguments = ActualArguments.new line, arguments
       end
 
-      def children
-        [@receiver, @arguments, @block]
-      end
-
       def bytecode(g)
         pos(g)
 
@@ -93,10 +85,6 @@ module Rubinius
         @name = :"#{name}="
 
         @arguments = ActualArguments.new line, arguments
-      end
-
-      def children
-        [@receiver, @arguments]
       end
 
       def bytecode(g)
@@ -138,10 +126,6 @@ module Rubinius
         else
           @arguments = ActualArguments.new line, arguments
         end
-      end
-
-      def children
-        [@receiver, @arguments]
       end
 
       def masgn_bytecode(g)
@@ -190,10 +174,6 @@ module Rubinius
         @arguments.kind_of? SplatValue
       end
 
-      def children
-        [@arguments, @value]
-      end
-
       def bytecode(g)
         @arguments.bytecode(g)
         @value.bytecode(g)
@@ -206,10 +186,6 @@ module Rubinius
       def initialize(line, block)
         @line = line
         @block = block
-      end
-
-      def children
-        [@block]
       end
 
       def bytecode(g)
@@ -259,10 +235,6 @@ module Rubinius
 
       def splat?
         not @splat.nil?
-      end
-
-      def children
-        @array.dup << @splat
       end
 
       def masgn_bytecode(g)
@@ -329,10 +301,6 @@ module Rubinius
           variables[var.name] = variable
           var.variable = variable.reference
         end
-      end
-
-      def children
-        [@arguments, @body]
       end
 
       def bytecode(g)
@@ -433,10 +401,6 @@ module Rubinius
       # see FormalArguments
       alias_method :required_args, :arity
       alias_method :total_args, :arity
-
-      def children
-        @arguments ? [@arguments] : []
-      end
 
       def names
         case @arguments
@@ -546,10 +510,6 @@ module Rubinius
         @arguments = ActualArguments.new line, arguments
       end
 
-      def children
-        [@arguments, @block]
-      end
-
       def block_bytecode(g)
         if @block
           @block.bytecode(g)
@@ -601,10 +561,6 @@ module Rubinius
             @yield_splat = true
           end
         end
-      end
-
-      def children
-        [@arguments]
       end
 
       def bytecode(g)

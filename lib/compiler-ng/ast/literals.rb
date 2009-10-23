@@ -8,10 +8,6 @@ module Rubinius
         @body = array
       end
 
-      def children
-        @body
-      end
-
       def bytecode(g)
         @body.each do |x|
           x.bytecode(g)
@@ -68,10 +64,6 @@ module Rubinius
       def initialize(line, array)
         @line = line
         @array = array
-      end
-
-      def children
-        @array
       end
 
       def bytecode(g)
@@ -166,10 +158,6 @@ module Rubinius
         @finish = finish
       end
 
-      def children
-        [@start, @finish]
-      end
-
       def bytecode(g)
         pos(g)
 
@@ -262,10 +250,6 @@ module Rubinius
         @line = line
         @string = str
         @array = array
-      end
-
-      def children
-        @array
       end
 
       def bytecode(g)

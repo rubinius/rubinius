@@ -8,10 +8,6 @@ module Rubinius
         @value = value
       end
 
-      def children
-        [@value]
-      end
-
       def bytecode(g)
         @value.bytecode(g)
         g.cast_array unless @value.kind_of? ArrayLiteral
@@ -28,10 +24,6 @@ module Rubinius
         @rest = rest
       end
 
-      def children
-        [@array, @rest]
-      end
-
       def bytecode(g)
         @array.bytecode(g)
         @rest.bytecode(g)
@@ -46,10 +38,6 @@ module Rubinius
       def initialize(line, value)
         @line = line
         @value = value
-      end
-
-      def children
-        [@value]
       end
 
       def bytecode(g)
@@ -79,10 +67,6 @@ module Rubinius
         @value = value
       end
 
-      def children
-        [@value]
-      end
-
       def bytecode(g)
         pos(g)
 
@@ -97,10 +81,6 @@ module Rubinius
       def initialize(line, value)
         @line = line
         @value = value
-      end
-
-      def children
-        [@value]
       end
 
       def bytecode(g)

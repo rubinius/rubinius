@@ -62,7 +62,7 @@ module Rubinius
       @local_count = 0
 
       @state = []
-      @children = []
+      @generators = []
     end
 
     attr_reader :ip, :stream, :iseq
@@ -126,7 +126,7 @@ module Rubinius
       stack_size += 1 if @for_block
       @stack_size = stack_size
 
-      @children.each { |d| d.encode encoder, calculator }
+      @generators.each { |d| d.encode encoder, calculator }
     end
 
     def package(klass)
@@ -310,7 +310,7 @@ module Rubinius
     end
 
     def push_generator(desc)
-      @children << desc.generator
+      @generators << desc.generator
       push_literal desc
     end
 
@@ -461,7 +461,7 @@ module Rubinius
     end
 
     def create_block(desc)
-      @children << desc.generator
+      @generators << desc.generator
       index = add_literal desc
       add :create_block, index
     end

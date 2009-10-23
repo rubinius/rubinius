@@ -71,10 +71,6 @@ module Rubinius
         end
       end
 
-      def children
-        @array
-      end
-
       def bytecode(g)
         count = @array.size - 1
         @array.each_with_index do |x, i|
@@ -94,10 +90,6 @@ module Rubinius
         desc = Compiler::MethodDescription.new(g.class, nil)
         desc.generator.file = g.file
         desc
-      end
-
-      def children
-        [@body]
       end
 
       # A nested scope is looking up a local variable. If the variable exists
@@ -208,10 +200,6 @@ module Rubinius
         return desc
       end
 
-      def children
-        [@arguments, @body]
-      end
-
       def bytecode(g)
         pos(g)
 
@@ -232,10 +220,6 @@ module Rubinius
       def initialize(line, receiver, name, block)
         @receiver = receiver
         @body = DefineSingletonScope.new line, name, block
-      end
-
-      def children
-        [@receiver]
       end
 
       def bytecode(g)
@@ -259,10 +243,6 @@ module Rubinius
         g.push_generator compile_body(g)
         g.push_scope
         g.send :attach_method, 3
-      end
-
-      def children
-        [@arguments, @body]
       end
     end
 
@@ -294,10 +274,6 @@ module Rubinius
       def block_arg=(node)
         @names << node.name
         @block_arg = node
-      end
-
-      def children
-        [@defaults, @block_arg]
       end
 
       def bytecode(g)
@@ -360,10 +336,6 @@ module Rubinius
         array = block.array
         @names = array.map { |a| a.name }
         @arguments = array
-      end
-
-      def children
-        @arguments
       end
 
       def map_arguments(scope)
@@ -440,10 +412,6 @@ module Rubinius
         end
       end
 
-      def children
-        [@name, @superclass, @body]
-      end
-
       def bytecode(g)
         @name.bytecode(g)
         @body.bytecode(g)
@@ -459,10 +427,6 @@ module Rubinius
 
       def module?
         true
-      end
-
-      def children
-        [@body]
       end
 
       def bytecode(g)
@@ -494,10 +458,6 @@ module Rubinius
         g.push_scope
         g.send :open_class, 3
       end
-
-      def children
-        [@superclass]
-      end
     end
 
     class ScopedClassName < ClassName
@@ -516,10 +476,6 @@ module Rubinius
         name_bytecode(g)
         @parent.bytecode(g)
         g.send :open_class_under, 3
-      end
-
-      def children
-        [@superclass, @parent]
       end
     end
 
@@ -540,10 +496,6 @@ module Rubinius
         else
           @body = EmptyBody.new line
         end
-      end
-
-      def children
-        [@name, @body]
       end
 
       def bytecode(g)
@@ -597,10 +549,6 @@ module Rubinius
         @parent.bytecode(g)
         g.send :open_module_under, 2
       end
-
-      def children
-        [@parent]
-      end
     end
 
     class ModuleScope < ClosedScope
@@ -612,10 +560,6 @@ module Rubinius
 
       def module?
         true
-      end
-
-      def children
-        [@body]
       end
 
       def bytecode(g)
@@ -634,10 +578,6 @@ module Rubinius
         @body = SClassScope.new line, body
       end
 
-      def children
-        [@receiver, @body]
-      end
-
       def bytecode(g)
         pos(g)
         @receiver.bytecode(g)
@@ -649,10 +589,6 @@ module Rubinius
       def initialize(line, body)
         @line = line
         @body = body
-      end
-
-      def children
-        [@body]
       end
 
       def bytecode(g)

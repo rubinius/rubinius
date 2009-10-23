@@ -51,10 +51,6 @@ module Rubinius
         @name = name
         @value = value
       end
-
-      def children
-        [@value]
-      end
     end
 
     class ClassVariableAccess < VariableAccess
@@ -216,10 +212,6 @@ module Rubinius
       def initialize(line, value)
         @line = line
         @value = value
-      end
-
-      def children
-        [@value]
       end
 
       def bytecode(g)
@@ -386,10 +378,6 @@ module Rubinius
         elsif splat and @fixed
           @splat = EmptySplat.new line, right.body.size
         end
-      end
-
-      def children
-        [@right, @left, @splat]
       end
 
       def pad_short(g)

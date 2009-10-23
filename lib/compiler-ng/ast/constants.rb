@@ -9,10 +9,6 @@ module Rubinius
         @name = name
       end
 
-      def children
-        [@parent]
-      end
-
       def constant_defined(s)
         @parent.constant_defined s
         s << "::" << @name.to_s
@@ -162,10 +158,6 @@ module Rubinius
           @parent = name.parent
           @name = ConstName.new line, name.name
         end
-      end
-
-      def children
-        [@parent, @value]
       end
 
       def masgn_bytecode(g)

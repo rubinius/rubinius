@@ -9,10 +9,6 @@ module Rubinius
         @right = right
       end
 
-      def children
-        [@left, @right]
-      end
-
       def bytecode(g, use_gif=true)
         @left.bytecode(g)
         g.dup
@@ -44,10 +40,6 @@ module Rubinius
         @value = value
       end
 
-      def children
-        [@value]
-      end
-
       def bytecode(g)
         true_label = g.new_label
         end_label = g.new_label
@@ -73,10 +65,6 @@ module Rubinius
         @op = op
         @index = index.body
         @value = value
-      end
-
-      def children
-        [@receiver] + @index << @value
       end
 
       def bytecode(g)
@@ -187,10 +175,6 @@ module Rubinius
         @assign = name.to_s[-1] == ?= ? name : :"#{name}="
       end
 
-      def children
-        [@receiver, @value]
-      end
-
       def bytecode(g)
         pos(g)
 
@@ -259,10 +243,6 @@ module Rubinius
         @line = line
         @left = left
         @right = right
-      end
-
-      def children
-        [@left, @right]
       end
 
       def bytecode(g)

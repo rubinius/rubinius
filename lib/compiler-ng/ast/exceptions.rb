@@ -8,10 +8,6 @@ module Rubinius
         @rescue = body
       end
 
-      def children
-        [@rescue]
-      end
-
       def bytecode(g)
         @rescue.bytecode(g)
       end
@@ -26,10 +22,6 @@ module Rubinius
         @line = line
         @body = body || Nil.new(line)
         @ensure = ensr
-      end
-
-      def children
-        [@body, @ensure]
       end
 
       def bytecode(g)
@@ -81,10 +73,6 @@ module Rubinius
         @body = body
         @rescue = rescue_body
         @else = else_body
-      end
-
-      def children
-        [@body, @rescue, @else]
       end
 
       def bytecode(g)
@@ -205,10 +193,6 @@ module Rubinius
         end
 
         return true if value.kind_of? GlobalVariableAccess and value.name == :$!
-      end
-
-      def children
-        [@conditions, @assignment, @body, @next]
       end
 
       def bytecode(g, reraise, done)

@@ -299,10 +299,6 @@ module Rubinius
         @block = iter.body
       end
 
-      def children
-        [@block]
-      end
-
       def bytecode(g)
         if @block
           g.push_modifiers
