@@ -92,7 +92,7 @@ module Rubinius
     # bytecode. An instance of State is pushed onto a stack in the Generator
     # instance as each ClosedScope or Iter is entered, and popped when left.
     class State
-      attr_reader :scope, :super
+      attr_reader :scope, :super, :eval
 
       def initialize(scope)
         @scope = scope
@@ -155,6 +155,12 @@ module Rubinius
       end
 
       alias_method :super?, :super
+
+      def push_eval(scope)
+        @eval = scope
+      end
+
+      alias_method :eval?, :eval
     end
   end
 end

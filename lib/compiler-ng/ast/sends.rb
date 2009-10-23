@@ -17,7 +17,11 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        return @variable.get_bytecode(g) if @variable
+        if @receiver.kind_of? Self and g.state.eval?
+          if reference = g.state.scope.search_local(@name)
+            return reference.get_bytecode(g)
+          end
+        end
 
         @receiver.bytecode(g)
 
@@ -347,6 +351,7 @@ module Rubinius
         blk = desc.generator
         blk.push_state self
         blk.state.push_super state.super
+        blk.state.push_eval state.eval
         blk.file = g.file
         blk.name = :__block__
 
