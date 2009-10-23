@@ -220,7 +220,7 @@ module Rubinius
     # Maps various methods to VM instructions
     #
     class SendInstructionMethod < SendWithArguments
-      transform :kernel, :fastsystem, "VM instructions for certain methods"
+      transform :default, :fastsystem, "VM instructions for certain methods"
 
       Methods = {
         :__kind_of__     => :kind_of,

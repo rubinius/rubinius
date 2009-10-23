@@ -19,6 +19,8 @@ class NilClass
     true
   end
 
+  alias_method :__nil__, :nil?
+
   def to_a
     []
   end

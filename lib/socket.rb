@@ -1048,7 +1048,7 @@ class TCPServer < TCPSocket
       host = nil
     end
 
-    port = StringValue port unless port.__kind_of__ Fixnum
+    port = StringValue port unless port.kind_of? Fixnum
 
     @host = host
     @port = port
