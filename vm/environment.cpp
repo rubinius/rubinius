@@ -41,7 +41,6 @@ namespace rubinius {
     shared = new SharedState(config, config_parser);
 
     state = shared->new_vm();
-    state->initialize();
   }
 
   Environment::~Environment() {
@@ -153,6 +152,7 @@ namespace rubinius {
       config.jit_enabled.set("no");
     }
 
+    state->initialize();
     state->boot();
 
     TaskProbe* probe = TaskProbe::create(state);
