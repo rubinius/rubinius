@@ -334,7 +334,8 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        g.state.scope.nest_scope self
+        state = g.state
+        state.scope.nest_scope self
 
         # TODO: remove MethodDescription and replace with constructor method
         desc = Compiler::MethodDescription.new g.class, @locals
@@ -345,6 +346,7 @@ module Rubinius
 
         blk = desc.generator
         blk.push_state self
+        blk.state.push_super state.super
         blk.file = g.file
         blk.name = :__block__
 
@@ -554,6 +556,8 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
+        @name = g.state.super.name if g.state.super?
+
         @arguments.bytecode(g)
 
         block_bytecode(g)
@@ -636,6 +640,12 @@ module Rubinius
       end
 
       def bytecode(g)
+        if g.state.super?
+          arguments = g.state.super.arguments
+          @arguments = arguments.to_actual @line
+          @block = arguments.block_arg
+        end
+
         super(g)
       end
     end

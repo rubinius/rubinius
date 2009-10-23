@@ -181,24 +181,6 @@ module Rubinius
         @arguments = block.strip_arguments
         block.array << Nil.new(line) if block.array.empty?
         @body = block
-        map_super
-      end
-
-      def map_super
-        visit do |result, node|
-          case node
-          when ClosedScope
-            result = nil
-          when ZSuper
-            node.name = name
-            node.arguments = arguments.to_actual node.line
-            node.block = arguments.block_arg
-          when Super
-            node.name = name
-          end
-
-          result
-        end
       end
 
       def compile_body(g)
@@ -206,6 +188,7 @@ module Rubinius
         meth = desc.generator
         meth.name = @name
         meth.push_state self
+        meth.state.push_super self
         pos(meth)
 
         @arguments.bytecode(meth) if @arguments
