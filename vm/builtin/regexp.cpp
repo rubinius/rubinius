@@ -116,7 +116,9 @@ namespace rubinius {
 
     regex_t* old_reg = reg;
     reg = reinterpret_cast<regex_t*>(reg_ba->bytes);
+
     obj->onig_data = reg;
+    write_barrier(state, reg_ba);
 
     if(reg->p) {
       ByteArray* pattern = ByteArray::create(state, reg->alloc);
@@ -346,7 +348,7 @@ namespace rubinius {
       ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
       if(tmp) {
         reg->p = reinterpret_cast<unsigned char*>(tmp->bytes);
-        mark.just_set(reg_ba, tmp);
+        mark.just_set(obj, tmp);
       }
     }
 
@@ -358,7 +360,7 @@ namespace rubinius {
       if(tmp) {
         reg->exact = reinterpret_cast<unsigned char*>(tmp->bytes);
         reg->exact_end = reg->exact + exact_size;
-        mark.just_set(reg_ba, tmp);
+        mark.just_set(obj, tmp);
       }
     }
 
@@ -368,7 +370,7 @@ namespace rubinius {
       ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
       if(tmp) {
         reg->int_map = reinterpret_cast<int*>(tmp->bytes);
-        mark.just_set(reg_ba, tmp);
+        mark.just_set(obj, tmp);
       }
     }
 
@@ -378,7 +380,7 @@ namespace rubinius {
       ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
       if(tmp) {
         reg->int_map_backward = reinterpret_cast<int*>(tmp->bytes);
-        mark.just_set(reg_ba, tmp);
+        mark.just_set(obj, tmp);
       }
     }
 
@@ -388,7 +390,7 @@ namespace rubinius {
       ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
       if(tmp) {
         reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(tmp->bytes);
-        mark.just_set(reg_ba, tmp);
+        mark.just_set(obj, tmp);
       }
     }
   }
