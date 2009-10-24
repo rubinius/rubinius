@@ -23,6 +23,17 @@ describe "GzipReader#read" do
 
     gz.read(5).should == @data[5...10]
   end
+  
+  it "should not accept a negative length to read" do
+    gz = Zlib::GzipReader.new @io
+    lambda {
+      gz.read(-1)
+    }.should raise_error(ArgumentError)
+  end
+  
+  it "should return an empty string if a 0 length is given" do
+    gz = Zlib::GzipReader.new @io
+    gz.read(0).should eql("")
+  end
 
 end
-
