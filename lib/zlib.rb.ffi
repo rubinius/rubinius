@@ -991,7 +991,7 @@ module Zlib
     end
 
     def eof?
-      @zstream.finished? and @zstream.input_empty?
+      @zstream.finished? and @zstream.input_empty? and @buffer.empty?
     end
 
     def pos
@@ -1013,7 +1013,11 @@ module Zlib
       end
 
       if length then
-        @buffer = data.slice! length..-1
+        if length > data.length
+          @buffer = ''
+        else
+          @buffer = data.slice! length..-1
+        end
       else
         @buffer = ''
       end
