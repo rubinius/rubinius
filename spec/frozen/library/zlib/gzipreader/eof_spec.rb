@@ -1,22 +1,42 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require 'stringio'
 require 'zlib'
-
+ 
 describe "GzipReader#eof?" do
-
+ 
   before :each do
-    @data = '12345abcde'
-    @zip = "\037\213\b\000,\334\321G\000\00334261MLJNI\005\000\235\005\000$\n\000\000\000"
+    @data = '{"a":1234}'
+    @zip = "\037\213\b\000\000\000\000\000\000\003\253VJT\2622426\251\005\000\304\024v\325\n\000\000\000"
     @io = StringIO.new @zip
   end
-
+ 
   it "returns true when at EOF" do
     gz = Zlib::GzipReader.new @io
-
     gz.eof?.should == false
     gz.read
     gz.eof?.should == true
   end
-
+  
+  it "returns true when at EOF with the exact length of uncompressed data" do
+    gz = Zlib::GzipReader.new @io
+    gz.eof?.should == false
+    gz.read(10)
+    gz.eof?.should == true
+  end
+  
+  it "returns true when at EOF with a length greater than the size of uncompressed data" do
+    gz = Zlib::GzipReader.new @io
+    gz.eof?.should == false
+    gz.read(11)
+    gz.eof?.should == true
+  end
+  
+  it "returns false when at EOF when there's data left in the buffer to read" do
+    gz = Zlib::GzipReader.new @io
+    data = gz.read(9)
+    gz.eof?.should == false
+    gz.read
+    gz.eof?.should == true
+  end
+ 
 end
-
