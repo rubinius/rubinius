@@ -1002,6 +1002,9 @@ module Zlib
     # See Zlib::GzipReader documentation for a description.
 
     def read(length = nil)
+      if length && length < 0
+        raise ArgumentError, "Negative length #{length} given"
+      end
       data = @buffer
 
       while chunk = @io.read(CHUNK) do
