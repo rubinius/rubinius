@@ -356,11 +356,10 @@ module Rubinius
         @value = expr || Nil.new(line)
       end
 
-      def jump_error(g, msg)
-        g.push :self
-        g.push_const :LocalJumpError
-        g.push_literal msg
-        g.send :raise, 2, true
+      def jump_error(g, name)
+        g.push_const :Rubinius
+        g.push_literal name
+        g.send :jump_error, 1
       end
 
       def bytecode(g)
@@ -374,9 +373,7 @@ module Rubinius
           g.raise_break
         else
           g.pop
-          g.push_const :Compiler
-          g.find_const :Utils
-          g.send :__unexpected_break__, 0
+          jump_error g, :break
         end
       end
     end
@@ -401,7 +398,7 @@ module Rubinius
           g.ret
         else
           @value.bytecode(g) if @value # next(raise("foo")) ha ha ha
-          jump_error g, "next used in invalid context"
+          jump_error g, :next
         end
       end
     end
@@ -417,7 +414,7 @@ module Rubinius
         if g.redo
           g.goto g.redo
         else
-          jump_error g, "redo used in invalid context"
+          jump_error g, :redo
         end
       end
     end
@@ -433,7 +430,7 @@ module Rubinius
         if g.retry
           g.goto g.retry
         else
-          jump_error g, "retry used in invalid context"
+          jump_error g, :retry
         end
       end
     end

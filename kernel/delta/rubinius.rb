@@ -183,4 +183,8 @@ module Rubinius
     raise Exception, message
   end
 
+  def self.jump_error(name)
+    raise LocalJumpError, "invalid context for '#{name}'"
+  end
+
 end
