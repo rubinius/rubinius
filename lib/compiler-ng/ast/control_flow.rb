@@ -230,13 +230,27 @@ module Rubinius
         @check_first = check_first
       end
 
+      def condition_bytecode(g, bottom, use_gif)
+        @condition.bytecode(g)
+        if use_gif
+          g.gif bottom
+        else
+          g.git bottom
+        end
+      end
+
+      def body_bytecode(g)
+        @body.bytecode(g)
+        g.pop
+      end
+
       def bytecode(g, use_gif=true)
         pos(g)
 
         g.push_modifiers
 
         top = g.new_label
-        bot = g.new_label
+        bottom = g.new_label
         g.break = g.new_label
 
         if @check_first
@@ -244,40 +258,25 @@ module Rubinius
           g.next = top
 
           top.set!
-
-          @condition.bytecode(g)
-          if use_gif
-            g.gif bot
-          else
-            g.git bot
-          end
+          condition_bytecode(g, bottom, use_gif)
 
           g.redo.set!
-
-          @body.bytecode(g)
-          g.pop
+          body_bytecode(g)
         else
           g.next = g.new_label
           g.redo = top
 
           top.set!
-
-          @body.bytecode(g)
-          g.pop
+          body_bytecode(g)
 
           g.next.set!
-          @condition.bytecode(g)
-          if use_gif
-            g.gif bot
-          else
-            g.git bot
-          end
+          condition_bytecode(g, bottom, use_gif)
         end
 
         g.check_interrupts
         g.goto top
 
-        bot.set!
+        bottom.set!
         g.push :nil
         g.break.set!
 
