@@ -623,7 +623,6 @@ describe "An Iter node" do
           d.set_local_depth 1, 0
           d.pop
           d.push :nil
-          d.pop_unwind
           d.goto reraise_lbl
 
           d.clear_exception

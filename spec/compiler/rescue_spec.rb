@@ -828,4 +828,170 @@ describe "A Rescue node" do
       end
     end
   end
+
+  relates <<-ruby do
+      begin
+        while 1
+          2
+          break :brk
+        end
+      rescue
+        3
+      end
+    ruby
+
+    compile do |g|
+      top         = g.new_label
+      retry_lbl   = g.new_label
+      exc_lbl     = g.new_label
+      noexc_lbl   = g.new_label
+      rescue_lbl  = g.new_label
+      reraise_lbl = g.new_label
+      break_lbl   = g.new_label
+      done        = g.new_label
+      bottom      = g.new_label
+
+      g.push_modifiers
+      g.push_exception
+
+      retry_lbl.set!
+      g.setup_unwind exc_lbl
+
+      # redo
+      g.new_label.set!
+
+      g.push_modifiers
+      top.set!
+      g.push 1
+      g.gif bottom
+
+      # redo
+      g.new_label.set!
+
+      g.push 2
+      g.pop
+      g.push_literal :brk
+      g.goto break_lbl
+
+      g.pop
+      g.check_interrupts
+      g.goto top
+
+      bottom.set!
+      g.push :nil
+
+      break_lbl.set!
+      g.pop_modifiers
+      g.pop_unwind
+      g.goto noexc_lbl
+
+      exc_lbl.set!
+      g.push_const :StandardError
+      g.push_exception
+      g.send :===, 1
+      g.git rescue_lbl
+      g.goto reraise_lbl
+
+      rescue_lbl.set!
+      g.push 3
+      g.clear_exception
+      g.goto done
+
+      reraise_lbl.set!
+      g.reraise
+
+      noexc_lbl.set!
+      done.set!
+      g.swap
+      g.pop_exception
+      g.pop_modifiers
+    end
+  end
+
+  relates <<-ruby do
+      begin
+        1
+      rescue
+        while 2
+          3
+          break :brk
+        end
+      end
+    ruby
+
+    compile do |g|
+      top         = g.new_label
+      retry_lbl   = g.new_label
+      exc_lbl     = g.new_label
+      noexc_lbl   = g.new_label
+      rescue_lbl  = g.new_label
+      reraise_lbl = g.new_label
+      cur_brk_lbl = g.new_label
+      break_lbl   = g.new_label
+      done        = g.new_label
+      bottom      = g.new_label
+
+      g.push_modifiers
+      g.push_exception
+
+      retry_lbl.set!          # 1
+      g.setup_unwind exc_lbl
+
+      # redo
+      g.new_label.set!        # 2
+
+      g.push 1
+      g.pop_unwind
+      g.goto noexc_lbl
+
+      exc_lbl.set!            # 3
+      g.push_const :StandardError
+      g.push_exception
+      g.send :===, 1
+      g.git rescue_lbl
+      g.goto reraise_lbl
+
+      rescue_lbl.set!         # 4
+      g.push_modifiers
+      top.set!                # 5
+      g.push 2
+      g.gif bottom
+
+      # redo
+      g.new_label.set!        # 6
+
+      g.push 3
+      g.pop
+      g.push_literal :brk
+      g.goto cur_brk_lbl
+
+      g.pop
+      g.check_interrupts
+      g.goto top
+
+      bottom.set!             # 7
+      g.push :nil
+
+      break_lbl.set!          # 8
+      g.pop_modifiers
+
+      g.clear_exception
+      g.goto done
+
+      cur_brk_lbl.set!        # 9
+      g.clear_exception
+      g.swap
+      g.pop_exception
+      g.raise_break
+
+      reraise_lbl.set!        # 10
+      g.reraise
+
+      noexc_lbl.set!          # 11
+      done.set!               # 12
+      g.swap
+      g.pop_exception
+      g.pop_modifiers
+    end
+  end
 end

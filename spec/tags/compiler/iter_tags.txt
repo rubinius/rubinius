@@ -7,3 +7,4 @@ fails:An Iter node is compiled from 'm { break [*[1]] }'
 fails:An Iter node is compiled from 'm { break [*[1, 2]] }'
 fails:An Iter node is compiled from 'm { return [*[1]] }'
 fails:An Iter node is compiled from 'm { return [*[1, 2]] }'
+fails:"An Iter node is compiled from \n    x = nil\n    m do |a|\n      begin\n        x\n      rescue Exception => x\n        break\n      ensure\n        x = a\n      end\n    end"
