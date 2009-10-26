@@ -28,6 +28,7 @@
 #include "configuration.hpp"
 
 #include <iostream>
+#include <iomanip>
 #include <signal.h>
 #include <sys/resource.h>
 
@@ -264,29 +265,47 @@ namespace rubinius {
 
     GCData gc_data(this);
 
+    uint64_t start_time = 0;
+
     if(om->collect_young_now) {
       if(shared.config.gc_show) {
-        std::cout << get_current_time() << " [GC] Running young gen\n";
+        start_time = get_current_time();
       }
 
-      om->collect_young_now = false;
-      om->collect_young(gc_data);
+      YoungCollectStats stats;
+      om->collect_young(gc_data, &stats);
 
       if(shared.config.gc_show) {
-        std::cout << get_current_time() << " [GC] Finished young gen\n";
+        uint64_t fin_time = get_current_time();
+        int diff = (fin_time - start_time) / 1000000;
+
+        fprintf(stderr, "[GC %0.1f%% %d/%d %d %2dms]\n",
+                  stats.percentage_used,
+                  stats.promoted_objects,
+                  stats.excess_objects,
+                  stats.lifetime,
+                  diff);
       }
     }
 
     if(om->collect_mature_now) {
+      int before_kb = 0;
+
       if(shared.config.gc_show) {
-        std::cout << get_current_time() << " [GC] Running mature gen\n";
+        start_time = get_current_time();
+        before_kb = om->mature_bytes_allocated() / 1024;
       }
 
-      om->collect_mature_now = false;
       om->collect_mature(gc_data);
 
       if(shared.config.gc_show) {
-        std::cout << get_current_time() << " [GC] Finished mature gen\n";
+        uint64_t fin_time = get_current_time();
+        int diff = (fin_time - start_time) / 1000000;
+        int kb = om->mature_bytes_allocated() / 1024;
+        fprintf(stderr, "[Full GC %dkB => %dkB %2dms]\n",
+            before_kb,
+            kb,
+            diff);
       }
 
     }

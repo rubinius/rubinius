@@ -84,6 +84,11 @@ namespace rubinius {
       scan_ = addr;
     }
 
+    double percentage_used() {
+      size_t used = (size_t)current_ - (size_t)start_;
+      return ((double)used/ (double)size_) * 100.0;
+    }
+
     /* Prototypes */
     Heap(size_t size);
     ~Heap();

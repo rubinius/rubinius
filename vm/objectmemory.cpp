@@ -94,7 +94,7 @@ namespace rubinius {
 
   bool ObjectMemory::valid_object_p(Object* obj) {
     if(obj->young_object_p()) {
-      return young_->current->contains_p(obj);
+      return young_->validate_object(obj) == cValid;
     } else if(obj->mature_object_p()) {
       return true;
     } else {
@@ -122,9 +122,11 @@ namespace rubinius {
     return copy;
   }
 
-  void ObjectMemory::collect_young(GCData& data) {
+  void ObjectMemory::collect_young(GCData& data, YoungCollectStats* stats) {
+    collect_young_now = false;
+
     static int collect_times = 0;
-    young_->collect(data);
+    young_->collect(data, stats);
     prune_handles(data.handles(), true);
     prune_handles(data.cached_handles(), true);
     collect_times++;
@@ -138,6 +140,7 @@ namespace rubinius {
     stats::GCStats::get()->collect_mature.start();
 #endif
 
+    collect_mature_now = false;
     immix_->collect(data);
 
     data.global_cache()->prune_unmarked();
@@ -179,7 +182,10 @@ namespace rubinius {
         if(obj->young_object_p()) {
 
           // A weakref pointing to a valid young object
-          if(young_->validate_object(obj) == cValid) {
+          //
+          // TODO this only works because we run prune_handles right after
+          // a collection. In this state, valid objects are only in current.
+          if(young_->in_current_p(obj)) {
             continue;
 
           // A weakref pointing to a forwarded young object
@@ -203,6 +209,10 @@ namespace rubinius {
     }
 
     // std::cout << "Pruned " << count << " handles, " << total << "/" << handles->size() << " total.\n";
+  }
+
+  int ObjectMemory::mature_bytes_allocated() {
+    return immix_->bytes_allocated() + mark_sweep_->allocated_bytes;
   }
 
   void ObjectMemory::add_type_info(TypeInfo* ti) {

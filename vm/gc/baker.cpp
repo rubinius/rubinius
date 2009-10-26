@@ -19,8 +19,9 @@
 namespace rubinius {
   BakerGC::BakerGC(ObjectMemory *om, size_t bytes) :
     GarbageCollector(om),
-    heap_a(bytes),
-    heap_b(bytes),
+    eden(bytes),
+    heap_a(bytes / 2),
+    heap_b(bytes / 2),
     total_objects(0),
     promoted_(0)
   {
@@ -56,6 +57,7 @@ namespace rubinius {
       copy = next->copy_object(object_memory_->state, obj);
       total_objects++;
     } else {
+      copy_spills_++;
       copy = object_memory_->promote_object(obj);
       promoted_push(copy);
     }
@@ -83,7 +85,7 @@ namespace rubinius {
   }
 
   /* Perform garbage collection on the young objects. */
-  void BakerGC::collect(GCData& data) {
+  void BakerGC::collect(GCData& data, YoungCollectStats* stats) {
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->bytes_copied.start();
     stats::GCStats::get()->objects_copied.start();
@@ -97,11 +99,8 @@ namespace rubinius {
     object_memory_->remember_set = new ObjectArray(0);
     total_objects = 0;
 
-    // Tracks all objects that we promoted during this run, so
-    // we can scan them at the end.
-    promoted_ = new ObjectArray(0);
-
-    promoted_current = promoted_insert = promoted_->begin();
+    copy_spills_ = 0;
+    reset_promoted();
 
     for(ObjectArray::iterator oi = current_rs->begin();
         oi != current_rs->end();
@@ -200,17 +199,15 @@ namespace rubinius {
       copy_unscanned();
     }
 
-    assert(promoted_->size() == 0);
-
-    delete promoted_;
-    promoted_ = NULL;
+    clear_promotion();
 
     assert(fully_scanned_p());
 
-    /* Another than is going to be found is found now, so we go back and
-     * look at everything in current and call delete_object() on anything
-     * thats not been forwarded. */
+#ifdef RBX_GC_STATS
+    // Lost souls just tracks the ages of objects, so we know how old they
+    // were when they died.
     find_lost_souls();
+#endif
 
     /* Check any weakrefs and replace dead objects with nil*/
     clean_weakrefs(true);
@@ -221,6 +218,16 @@ namespace rubinius {
     current = x;
     next->reset();
 
+    // Reset eden to empty
+    eden.reset();
+
+    if(stats) {
+      stats->lifetime = lifetime;
+      stats->percentage_used = current->percentage_used();
+      stats->promoted_objects = promoted_objects_;
+      stats->excess_objects = copy_spills_;
+    }
+
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->collect_young.stop();
     stats::GCStats::get()->objects_copied.stop();
@@ -229,7 +236,7 @@ namespace rubinius {
 #endif
   }
 
-  inline Object * BakerGC::next_object(Object * obj) {
+  inline Object *BakerGC::next_object(Object * obj) {
     return reinterpret_cast<Object*>(reinterpret_cast<uintptr_t>(obj) +
       obj->size_in_bytes(object_memory_->state));
   }
@@ -243,6 +250,12 @@ namespace rubinius {
 
     obj = next->first_object();
     while(obj < next->current()) {
+      obj->clear_mark();
+      obj = next_object(obj);
+    }
+
+    obj = eden.first_object();
+    while(obj < eden.current()) {
       obj->clear_mark();
       obj = next_object(obj);
     }
@@ -261,14 +274,28 @@ namespace rubinius {
       delete_object(obj);
       obj = next_object(obj);
     }
+
+    obj = eden.first_object();
+    while(obj < eden.current()) {
+      delete_object(obj);
+      obj = next_object(obj);
+    }
   }
 
   void BakerGC::find_lost_souls() {
     Object* obj = current->first_object();
     while(obj < current->current()) {
       if(!obj->forwarded_p()) {
-        delete_object(obj);
+#ifdef RBX_GC_STATS
+        stats::GCStats::get()->lifetimes[obj->age]++;
+#endif
+      }
+      obj = next_object(obj);
+    }
 
+    obj = eden.first_object();
+    while(obj < eden.current()) {
+      if(!obj->forwarded_p()) {
 #ifdef RBX_GC_STATS
         stats::GCStats::get()->lifetimes[obj->age]++;
 #endif
@@ -277,8 +304,12 @@ namespace rubinius {
     }
   }
 
+  bool BakerGC::in_current_p(Object* obj) {
+    return current->contains_p(obj);
+  }
+
   ObjectPosition BakerGC::validate_object(Object* obj) {
-    if(current->contains_p(obj)) {
+    if(current->contains_p(obj) || eden.contains_p(obj)) {
       return cValid;
     } else if(next->contains_p(obj)) {
       return cInWrongYoungHalf;

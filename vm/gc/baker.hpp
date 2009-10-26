@@ -21,15 +21,16 @@ namespace rubinius {
 
   class ObjectMemory;
   class GCData;
+  class YoungCollectStats;
 
   class BakerGC : public GarbageCollector {
-  public:
-
-    /* Fields */
+    Heap eden;
     Heap heap_a;
     Heap heap_b;
     Heap *current;
     Heap *next;
+
+  public:
     size_t lifetime;
     size_t total_objects;
 
@@ -42,16 +43,16 @@ namespace rubinius {
       stats::GCStats::get()->allocate_young.start();
 #endif
 
-      if(!current->enough_space_p(bytes)) {
+      if(!eden.enough_space_p(bytes)) {
 #ifdef RBX_GC_STATS
        stats::GCStats::get()->allocate_young.stop();
 #endif
         return NULL;
       } else {
         total_objects++;
-        obj = (Object*)current->allocate(bytes);
+        obj = (Object*)eden.allocate(bytes);
 
-        if(current->over_limit_p(obj)) {
+        if(eden.over_limit_p(obj)) {
           *limit_hit = true;
         }
       }
@@ -77,14 +78,14 @@ namespace rubinius {
       stats::GCStats::get()->allocate_young.start();
 #endif
 
-      if(!current->enough_space_p(bytes)) {
+      if(!eden.enough_space_p(bytes)) {
 #ifdef RBX_GC_STATS
        stats::GCStats::get()->allocate_young.stop();
 #endif
         return NULL;
       } else {
         total_objects++;
-        obj = (Object*)current->allocate(bytes);
+        obj = (Object*)eden.allocate(bytes);
       }
 
 #ifdef ENABLE_OBJECT_WATCH
@@ -103,11 +104,16 @@ namespace rubinius {
     }
 
   private:
+    int copy_spills_;
+
+    int promoted_objects_;
     ObjectArray* promoted_;
     ObjectArray::iterator promoted_insert, promoted_current;
 
     // Assume ObjectArray is a vector!
     void promoted_push(Object* obj) {
+      promoted_objects_++;
+
       if(promoted_insert == promoted_current) {
         size_t i = promoted_insert - promoted_->begin(),
                j = promoted_current - promoted_->begin();
@@ -119,6 +125,23 @@ namespace rubinius {
       }
     }
 
+    void reset_promoted() {
+      promoted_objects_ = 0;
+      promoted_ = new ObjectArray(0);
+      promoted_current = promoted_insert = promoted_->begin();
+    }
+
+    void clear_promotion() {
+      assert(promoted_->size() == 0);
+      if(promoted_) delete promoted_;
+      promoted_ = 0;
+    }
+
+  public:
+    size_t bytes_used() {
+      return eden.used();
+    }
+
   public:
     /* Prototypes */
     BakerGC(ObjectMemory *om, size_t size);
@@ -127,11 +150,12 @@ namespace rubinius {
     virtual Object* saw_object(Object* obj);
     void    copy_unscanned();
     bool    fully_scanned_p();
-    void    collect(GCData& data);
+    void    collect(GCData& data, YoungCollectStats* stats = 0);
     void    clear_marks();
     void    find_lost_souls();
 
     ObjectPosition validate_object(Object* obj);
+    bool in_current_p(Object* obj);
 
   private:
     /* Private for inlining */

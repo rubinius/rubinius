@@ -47,6 +47,22 @@ namespace rubinius {
 
   typedef std::vector<Object*> ObjectArray;
 
+  struct YoungCollectStats {
+    int bytes_copied;
+    double percentage_used;
+    int promoted_objects;
+    int lifetime;
+    int excess_objects;
+
+    YoungCollectStats()
+      : bytes_copied(0)
+      , percentage_used(0.0)
+      , promoted_objects(0)
+      , lifetime(0)
+      , excess_objects(0)
+    {}
+  };
+
   class ObjectMemory {
     BakerGC* young_;
     MarkSweepGC* mark_sweep_;
@@ -108,7 +124,7 @@ namespace rubinius {
 
     TypeInfo* find_type_info(Object* obj);
     void set_young_lifetime(size_t age);
-    void collect_young(GCData& data);
+    void collect_young(GCData& data, YoungCollectStats* stats = 0);
     void collect_mature(GCData& data);
     Object* promote_object(Object* obj);
     bool valid_object_p(Object* obj);
@@ -118,6 +134,8 @@ namespace rubinius {
     void prune_handles(capi::Handles* handles, bool check_forwards);
 
     ObjectPosition validate_object(Object* obj);
+
+    int mature_bytes_allocated();
 
     void write_barrier(Object* target, Object* val) {
       if(target->remembered_p()) return;

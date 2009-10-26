@@ -89,6 +89,10 @@ namespace rubinius {
     int which_mark() {
       return which_mark_;
     }
+
+    int bytes_allocated() {
+      return gc_.bytes_allocated();
+    }
   };
 }
 
