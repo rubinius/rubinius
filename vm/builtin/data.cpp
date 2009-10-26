@@ -3,6 +3,8 @@
 #include "objectmemory.hpp"
 #include "object_utils.hpp"
 
+#include "gc/gc.hpp"
+
 namespace rubinius {
 
   void Data::init(STATE) {
@@ -36,6 +38,10 @@ namespace rubinius {
       (*data->mark())(data->data());
       VM::current_state()->current_mark = cur;
     }
+
+    // Data's can be written to without write barriers running,
+    // if it lives to here, we need to always check it.
+    mark.gc->state()->om->remember_object(t);
   }
 
 }

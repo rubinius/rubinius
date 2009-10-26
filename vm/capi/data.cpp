@@ -1,3 +1,5 @@
+#include "objectmemory.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/data.hpp"
 
@@ -28,6 +30,8 @@ namespace rubinius {
 
         as_.rdata = reinterpret_cast<RData*>(data->exposed());
       }
+
+      env->state()->om->remember_object(object());
 
       return as_.rdata;
     }
