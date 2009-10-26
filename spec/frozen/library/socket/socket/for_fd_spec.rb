@@ -27,8 +27,5 @@ describe "Socket#for_fd given a file descriptor" do
     new_sock.close unless new_sock.closed?
   end
 
-  it "raises error for a bad descriptor" do
-    lambda { Socket.for_fd(9999999) }.should raise_error
-  end
 end
 
