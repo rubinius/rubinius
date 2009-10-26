@@ -54,31 +54,34 @@ module Rubinius
       @method.line_from_ip(ip)
     end
 
-    ##
-    # Place in the source that this method was created at.
-    def position(relative_to=nil)
-      l = line()
+    def file(relative_to=nil)
       if relative_to
         # Be sure we can bail out if something doesn't work and still
         # show something.
         begin
           full = File.expand_path @method.file.to_s
           if full.prefix? relative_to
-            file = full[relative_to.size+1..-1]
+            return full[relative_to.size+1..-1]
           else
-            file = @method.file
+            return @method.file
           end
         rescue Object => e
-          file = @method.file
+          return @method.file
         end
-      else
-        file = @method.file
       end
 
+      @method.file
+    end
+
+    ##
+    # Place in the source that this method was created at.
+    def position(relative_to=nil)
+      l = line()
+
       if l == 0
-        "#{file}+#{@ip-1}"
+        "#{file(relative_to)}+#{@ip-1}"
       else
-        "#{file}:#{l}"
+        "#{file(relative_to)}:#{l}"
       end
     end
 

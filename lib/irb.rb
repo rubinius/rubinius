@@ -53,10 +53,16 @@ module IRB
 
     IRB.setup(ap_path)
 
-    if @CONF[:SCRIPT]
-      irb = Irb.new(nil, @CONF[:SCRIPT])
+    if @CONF[:IRB_CLASS]
+      klass = @CONF[:IRB_CLASS]
     else
-      irb = Irb.new
+      klass = Irb
+    end
+
+    if @CONF[:SCRIPT]
+      irb = klass.new(nil, @CONF[:SCRIPT])
+    else
+      irb = klass.new
     end
 
     @CONF[:IRB_RC].call(irb.context) if @CONF[:IRB_RC]
@@ -143,6 +149,10 @@ module IRB
 	end
       end
 
+      process_statements
+    end
+
+    def process_statements
       @scanner.each_top_level_statement do |line, line_no|
 	signal_status(:IN_EVAL) do
 	  begin

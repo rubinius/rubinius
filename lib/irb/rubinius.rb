@@ -30,7 +30,11 @@ module IRB
                 break
               end
 
-              puts "   from #{recv} at #{loc}"
+              if recv == "Object#__eval__" and frame.file == :"(irb)"
+                puts "   from #{loc}"
+              else
+                puts "   from #{recv} at #{loc}"
+              end
             end
           end
         end
