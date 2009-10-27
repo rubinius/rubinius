@@ -25,6 +25,15 @@ extern "C" {
                                                  reinterpret_cast<Symbol*>(name)));
   }
 
+  void rb_const_set(VALUE module_handle, ID name, VALUE obj_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Module* module = c_as<Module>(env->get_object(module_handle));
+    Object* object = env->get_object(obj_handle);
+
+    module->set_const(env->state(), reinterpret_cast<Symbol*>(name),  object);
+  }
+
   void rb_define_alias(VALUE module_handle, const char* new_name, const char* old_name) {
     ID id_new = rb_intern(new_name);
     ID id_old = rb_intern(old_name);

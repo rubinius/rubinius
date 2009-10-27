@@ -12,6 +12,12 @@ describe "CApiModule" do
     @m = CApiModuleSpecs.new
   end
 
+  it "rb_const_set should set a constant on a module" do
+    @m.rb_const_set(SubtendModuleTest, 7)
+    SubtendModuleTest::FOO.should == 7
+    (SubtendModuleTest::FOO != 5).should == true
+  end
+
   it "rb_define_const should define a constant on a module" do
     @m.rb_define_const(SubtendModuleTest, 7)
     SubtendModuleTest::FOO.should == 7

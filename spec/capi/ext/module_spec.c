@@ -5,6 +5,11 @@ VALUE sm_define_const(VALUE self, VALUE klass, VALUE val) {
   return Qnil;
 }
 
+VALUE sm_const_set(VALUE self, VALUE klass, VALUE val) {
+  rb_const_set(klass, rb_intern("FOO"), val);
+  return Qnil;
+}
+
 VALUE sm_const_defined(VALUE self, VALUE klass, VALUE id) {
   return rb_const_defined(klass, SYM2ID(id)) ? Qtrue : Qfalse;
 }
@@ -29,6 +34,7 @@ void Init_module_spec() {
   VALUE cls, mod;
 
   cls = rb_define_class("CApiModuleSpecs", rb_cObject);
+  rb_define_method(cls, "rb_const_set", sm_const_set, 2);
   rb_define_method(cls, "rb_define_const", sm_define_const, 2);
   rb_define_method(cls, "rb_const_defined", sm_const_defined, 2);
 
