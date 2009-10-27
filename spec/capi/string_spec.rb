@@ -353,12 +353,6 @@ describe "C-API String function" do
         @s.rb_str_ptr_assign_funcall(str)
         str.should == "axce"
       end
-
-      it "converts a previously readonly cache to a writable cache" do
-        str = "abc"
-        @s.rb_str_ptr_convert(str, "QRS").should == "abcQRS"
-        str.should == "abcQRS"
-      end
     end
 
     describe "rb_str_ptr_readonly" do

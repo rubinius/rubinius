@@ -211,15 +211,6 @@ VALUE string_spec_rb_str_ptr_assign(VALUE self, VALUE str, VALUE chr) {
   return Qnil;
 }
 
-VALUE string_spec_rb_str_ptr_convert(VALUE self, VALUE str, VALUE more) {
-  char* ptr1 = rb_str_ptr_readonly(str);
-  char* ptr2 = rb_str_ptr(str);
-
-  rb_str_concat(str, more);
-
-  return rb_str_new2(ptr2);
-}
-
 VALUE string_spec_rb_str_ptr_assign_call(VALUE self, VALUE str) {
   char *ptr = rb_str_ptr(str);
 
@@ -317,7 +308,6 @@ void Init_string_spec() {
   rb_define_method(cls, "rb_str_ptr_iterate", string_spec_rb_str_ptr_iterate, 1);
   rb_define_method(cls, "rb_str_ptr_assign", string_spec_rb_str_ptr_assign, 2);
   rb_define_method(cls, "rb_str_ptr_assign_call", string_spec_rb_str_ptr_assign_call, 1);
-  rb_define_method(cls, "rb_str_ptr_convert", string_spec_rb_str_ptr_convert, 2);
   rb_define_method(cls, "rb_str_ptr_assign_funcall",
       string_spec_rb_str_ptr_assign_funcall, 1);
   rb_define_method(cls, "rb_str_len", string_spec_rb_str_len, 1);
