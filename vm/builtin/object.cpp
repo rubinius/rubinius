@@ -62,7 +62,7 @@ namespace rubinius {
     if(!reference_p()) return this;
 
     Object* other = state->new_object_typed(
-        class_object(state), this->total_size(state), obj_type_);
+        class_object(state), this->total_size(state), type_id());
     return other->copy_object(state, this);
   }
 
@@ -96,7 +96,7 @@ namespace rubinius {
   }
 
   Object* Object::copy_object(STATE, Object* other) {
-    initialize_copy(other, age);
+    initialize_copy(other, age());
 
     /* C extensions use Data objects for various purposes. The object
      * usually is made an instance of some extension class. So, we
@@ -116,7 +116,7 @@ namespace rubinius {
     // then remember other. The up side to just remembering it like
     // this is that other is rarely mature, and the remember_set is
     // flushed on each collection anyway.
-    if(zone == MatureObjectZone) {
+    if(zone() == MatureObjectZone) {
       state->om->remember_object(this);
     }
 

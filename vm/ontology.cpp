@@ -72,7 +72,7 @@ namespace rubinius {
     /* Class's klass is Class */
     cls->klass(state, cls);
     cls->ivars(state, Qnil);
-    cls->obj_type_ = ClassType;
+    cls->set_obj_type(ClassType);
 
     cls->set_object_type(state, ClassType);
     cls->set_class_id(shared.inc_class_count());

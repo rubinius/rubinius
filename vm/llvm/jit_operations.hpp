@@ -203,20 +203,21 @@ namespace rubinius {
     }
 
     Value* check_type_bits(Value* obj, int type) {
-      Value* flag_idx[] = {
+      Value* word_idx[] = {
         ConstantInt::get(ls_->Int32Ty, 0),
         ConstantInt::get(ls_->Int32Ty, 0),
         ConstantInt::get(ls_->Int32Ty, 0),
         ConstantInt::get(ls_->Int32Ty, 0)
       };
 
-      Value* gep = create_gep(obj, flag_idx, 4, "flag_pos");
-      Value* flags = create_load(gep, "flags");
+      Value* gep = create_gep(obj, word_idx, 4, "word_pos");
+      Value* word = create_load(gep, "flags");
 
-      Value* mask = ConstantInt::get(ls_->Int32Ty, (1 << 8) - 1);
+      Value* mask = ConstantInt::get(ls_->Int32Ty, ((1 << 8) - 1) << 1);
+      Value* flags = b().CreatePtrToInt(word, ls_->Int32Ty, "word2flags");
       Value* obj_type = b().CreateAnd(flags, mask, "mask");
 
-      Value* tag = ConstantInt::get(ls_->Int32Ty, type);
+      Value* tag = ConstantInt::get(ls_->Int32Ty, type << 1);
 
       return b().CreateICmpEQ(obj_type, tag, "is_tuple");
     }

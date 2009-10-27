@@ -36,7 +36,7 @@ using namespace rubinius;
 
 extern "C" {
   Object* rbx_write_barrier(STATE, Object* obj, Object* val) {
-    if(obj->zone == UnspecifiedZone) return val;
+    if(obj->zone() == UnspecifiedZone) return val;
     state->om->write_barrier(obj, val);
     return val;
   }

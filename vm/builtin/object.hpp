@@ -23,7 +23,7 @@ namespace rubinius {
   template <class T> \
   void name(T state, type* obj) { \
     name ## _ = obj; \
-    if(zone == MatureObjectZone) this->write_barrier(state, obj); \
+    if(zone() == MatureObjectZone) this->write_barrier(state, obj); \
   }
 
 /**

@@ -21,18 +21,19 @@ namespace rubinius {
     // (that, btw, is likely a bug in itself), but we should never,
     // MUST never change obj_type_ to make them match. This causes the GC
     // to get confused about the memory shape of the object!
-    assert(obj_type_ == other->obj_type_);
-    age          = new_age;
-    klass_       = other->klass_;
-    ivars_       = other->ivars_;
+    assert(type_id() == other->type_id());
+    set_age(new_age);
+    klass_ = other->klass_;
+    ivars_ = other->ivars_;
 
-    Forwarded = 0;
-    RequiresCleanup = other->RequiresCleanup;
+    clear_forwarded();
+    set_requires_cleanup(other->requires_cleanup_p());
   }
 
   void ObjectHeader::copy_flags(Object* source) {
-    this->obj_type_       = source->obj_type_;
-    this->RequiresCleanup = source->RequiresCleanup;
+    // TODO OH NO! Don't do this!!
+    set_obj_type(source->type_id());
+    set_requires_cleanup(source->requires_cleanup_p());
   }
 
   void ObjectHeader::copy_body(STATE, Object* other) {
@@ -65,6 +66,11 @@ namespace rubinius {
       dst[counter] = 0;
     }
 
+  }
+
+  void InflatedHeader::set_object(ObjectHeader* obj) {
+    flags_ = obj->flags();
+    object_ = obj;
   }
 
 }

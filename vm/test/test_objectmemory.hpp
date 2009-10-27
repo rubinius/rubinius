@@ -49,7 +49,7 @@ public:
     obj = util_new_object(om);
 
     TS_ASSERT_EQUALS(obj->num_fields(), 3U);
-    TS_ASSERT_EQUALS(obj->zone, YoungObjectZone);
+    TS_ASSERT_EQUALS(obj->zone(), YoungObjectZone);
   }
 
   void test_write_barrier() {
@@ -63,7 +63,7 @@ public:
     TS_ASSERT_EQUALS(obj2->remembered_p(), 0U);
     size_t start = om.remember_set->size();
 
-    obj->zone = MatureObjectZone;
+    obj->set_zone(MatureObjectZone);
     om.write_barrier(obj, obj2);
 
     TS_ASSERT_EQUALS(om.remember_set->size(), start + 1);
@@ -80,7 +80,7 @@ public:
     Object* obj2;
 
     obj = util_new_object(om);
-    obj->zone = MatureObjectZone;
+    obj->set_zone(MatureObjectZone);
 
     obj2 = Qnil;
 
@@ -106,7 +106,7 @@ public:
     TS_ASSERT(om.young_->bytes_used() <= start);
 
     obj = util_new_object(om);
-    TS_ASSERT_EQUALS(obj->age, 0U);
+    TS_ASSERT_EQUALS(obj->age(), 0U);
     Root r(roots, obj);
 
     om.collect_young(*gc_data);
@@ -175,7 +175,7 @@ public:
 
     obj = util_new_object(om,20);
     TS_ASSERT_EQUALS(obj->num_fields(), 20U);
-    TS_ASSERT_EQUALS(obj->zone, MatureObjectZone);
+    TS_ASSERT_EQUALS(obj->zone(), MatureObjectZone);
 
     TS_ASSERT_EQUALS(om.young_->bytes_used(), start);
   }
@@ -202,9 +202,9 @@ public:
     om.large_object_threshold = 50 * 8 * sizeof(void *) / 32;
 
     young =  (Tuple*)util_new_object(om);
-    TS_ASSERT_EQUALS(young->zone, YoungObjectZone);
+    TS_ASSERT_EQUALS(young->zone(), YoungObjectZone);
     mature = (Tuple*)util_new_object(om,20);
-    TS_ASSERT_EQUALS(mature->zone, MatureObjectZone);
+    TS_ASSERT_EQUALS(mature->zone(), MatureObjectZone);
 
     young->field[0] = Qtrue;
     mature->field[0] = young;
@@ -228,12 +228,12 @@ public:
 
     om.set_young_lifetime(1);
 
-    TS_ASSERT_EQUALS(young->age, 0U);
+    TS_ASSERT_EQUALS(young->age(), 0U);
     om.collect_young(*gc_data);
-    TS_ASSERT_EQUALS(roots->front()->get()->age, 1U);
+    TS_ASSERT_EQUALS(roots->front()->get()->age(), 1U);
     om.collect_young(*gc_data);
 
-    TS_ASSERT_EQUALS(roots->front()->get()->age, 0U);
+    TS_ASSERT_EQUALS(roots->front()->get()->age(), 0U);
 
     TS_ASSERT(roots->front()->get()->mature_object_p());
   }
@@ -257,9 +257,9 @@ public:
 
     TS_ASSERT_EQUALS(mature->remembered_p(), 1U);
 
-    TS_ASSERT_EQUALS(young->age, 0U);
+    TS_ASSERT_EQUALS(young->age(), 0U);
     om.collect_young(*gc_data);
-    TS_ASSERT_EQUALS(mature->field[0]->age, 1U);
+    TS_ASSERT_EQUALS(mature->field[0]->age(), 1U);
     om.collect_young(*gc_data);
   }
 
@@ -398,7 +398,7 @@ public:
     obj = util_new_object(om);
     TS_ASSERT(om.valid_object_p(obj));
 
-    obj->zone = (gc_zone)0;
+    obj->set_zone((gc_zone)0);
     TS_ASSERT(!om.valid_object_p(obj));
   }
 

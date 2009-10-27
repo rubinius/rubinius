@@ -37,6 +37,10 @@ namespace rubinius {
     }
 
     Handle::~Handle() {
+      InflatedHeader* ih = object_->inflated_header();
+      assert(ih);
+      ih->set_handle(0);
+
       free_data();
       invalidate();
     }

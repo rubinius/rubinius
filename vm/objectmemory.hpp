@@ -44,6 +44,7 @@ namespace rubinius {
   class BakerGC;
   class MarkSweepGC;
   class ImmixGC;
+  class InflatedHeaders;
 
   typedef std::vector<Object*> ObjectArray;
 
@@ -68,6 +69,7 @@ namespace rubinius {
     MarkSweepGC* mark_sweep_;
 
     ImmixGC* immix_;
+    InflatedHeaders* inflated_headers_;
 
   public:
     bool collect_young_now;
@@ -137,11 +139,13 @@ namespace rubinius {
 
     int mature_bytes_allocated();
 
+    InflatedHeader* inflate_header(ObjectHeader* obj);
+
     void write_barrier(Object* target, Object* val) {
       if(target->remembered_p()) return;
       if(!REFERENCE_P(val)) return;
-      if(target->zone == YoungObjectZone) return;
-      if(val->zone != YoungObjectZone) return;
+      if(target->zone() == YoungObjectZone) return;
+      if(val->zone() != YoungObjectZone) return;
 
       remember_object(target);
     }

@@ -45,7 +45,7 @@ namespace rubinius {
     copy->initialize_copy(orig, 0);
     copy->copy_body(object_memory_->state, orig);
 
-    copy->zone = MatureObjectZone;
+    copy->set_zone(MatureObjectZone);
     copy->set_in_immix();
 
     return copy_addr;
@@ -156,7 +156,7 @@ namespace rubinius {
       // unremember_object throws a NULL in to remove an object
       // so we don't have to compact the set in unremember
       if(tmp) {
-        assert(tmp->zone == MatureObjectZone);
+        assert(tmp->zone() == MatureObjectZone);
         assert(!tmp->forwarded_p());
 
         if(!tmp->marked_p()) {

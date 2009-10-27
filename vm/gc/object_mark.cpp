@@ -13,7 +13,7 @@ namespace rubinius {
   Object* ObjectMark::call(Object* obj) {
     if(!obj->reference_p()) return NULL;
 #ifdef RBX_DEBUG
-      if(unlikely(obj->zone == UnspecifiedZone)) {
+      if(unlikely(obj->zone() == UnspecifiedZone)) {
         std::cout << "USZ!\n";
         char* bad = (char*)0;
         if(*bad) exit(11);

@@ -2,7 +2,10 @@ namespace :jit do
   task :generate_header do
     puts "GEN vm/llvm/types.cpp.gen"
 
-    classes = %w!rubinius::ObjectHeader
+    classes = %w!
+                 rubinius::ObjectFlags
+                 rubinius::HeaderWord
+                 rubinius::ObjectHeader
                  rubinius::Object
                  rubinius::StackVariables
                  rubinius::CallFrame

@@ -130,23 +130,82 @@ const int cUndef = 0x22L;
   class Object;
   class VM;
 
-  class ObjectHeader {
+  struct ObjectFlags {
+    unsigned int inflated   : 1;
+    object_type  obj_type   : 8;
+    gc_zone      zone       : 2;
+    unsigned int age        : 4;
+
+    unsigned int Forwarded             : 1;
+    unsigned int Remember              : 1;
+    unsigned int Marked                : 2;
+    unsigned int RequiresCleanup       : 1;
+
+    unsigned int InImmix               : 1;
+    unsigned int Pinned                : 1;
+  };
+
+  union HeaderWord {
+    struct ObjectFlags f;
+    void* all_flags;
+  };
+
+  namespace capi {
+    class Handle;
+  }
+
+  class InflatedHeader {
     union {
-      struct {
-        object_type     obj_type_   : 8;
-        gc_zone         zone        : 2;
-        unsigned int    age         : 4;
-
-        unsigned int Forwarded              : 1;
-        unsigned int Remember               : 1;
-        unsigned int Marked                 : 2;
-        unsigned int RequiresCleanup        : 1;
-
-        unsigned int InImmix                : 1;
-        unsigned int Pinned                 : 1;
-      };
-      uint32_t all_flags;
+      ObjectFlags flags_;
+      InflatedHeader* next_;
     };
+    ObjectHeader* object_;
+    capi::Handle* handle_;
+
+  public:
+    ObjectFlags& flags() {
+      return flags_;
+    }
+
+    InflatedHeader* next() {
+      return next_;
+    }
+
+    void set_next(InflatedHeader* next) {
+      next_ = next;
+    }
+
+    void clear() {
+      next_ = 0;
+      object_ = 0;
+      handle_ = 0;
+    }
+
+    bool used_p() {
+      return object_ != 0;
+    }
+
+    void set_object(ObjectHeader* obj);
+    void reset_object(ObjectHeader* obj) {
+      object_ = obj;
+    }
+
+    bool marked_p() {
+      return flags_.Marked != 0;
+    }
+
+    capi::Handle* handle() {
+      return handle_;
+    }
+
+    void set_handle(capi::Handle* handle) {
+      handle_ = handle;
+    }
+  };
+
+  class ObjectHeader {
+  private:
+    HeaderWord header;
 
 #ifdef RBX_TEST
   public:
@@ -172,6 +231,67 @@ const int cUndef = 0x22L;
       return (bytes - sizeof(ObjectHeader)) / sizeof(Object*);
     }
 
+  public: // accessors for header members
+
+    bool inflated_header_p() const {
+      return header.f.inflated;
+    }
+
+    InflatedHeader* inflated_header() const {
+      uintptr_t untagged =
+        reinterpret_cast<uintptr_t>(header.all_flags) & ~1;
+      return reinterpret_cast<InflatedHeader*>(untagged);
+    }
+
+    void set_inflated_header(InflatedHeader* ih) {
+      header.all_flags = ih;
+      header.f.inflated = 1;
+    }
+
+    InflatedHeader* deflate_header() {
+      InflatedHeader* ih = inflated_header();
+      header.f = ih->flags();
+      header.f.inflated = 0;
+
+      return ih;
+    }
+
+    ObjectFlags& flags() const {
+      if(inflated_header_p()) return inflated_header()->flags();
+      return const_cast<ObjectFlags&>(header.f);
+    }
+
+    ObjectFlags& flags() {
+      if(inflated_header_p()) return inflated_header()->flags();
+      return header.f;
+    }
+
+    gc_zone zone() const {
+      return flags().zone;
+    }
+
+    void set_zone(gc_zone zone) {
+      flags().zone = zone;
+    }
+
+    unsigned int age() const {
+      return flags().age;
+    }
+
+    unsigned int inc_age() {
+      return flags().age++;
+    }
+
+    void set_age(unsigned int age) {
+      flags().age = age;
+    }
+
+    void set_obj_type(object_type type) {
+      flags().obj_type = type;
+    }
+
+  public:
+
     void initialize_copy(Object* other, unsigned int age);
 
     /* Copies the body of +other+ into +this+ */
@@ -189,15 +309,15 @@ const int cUndef = 0x22L;
     /* Initialize the objects data with the most basic info. This is done
      * right after an object is created. */
     void init_header(gc_zone loc, object_type type) {
-      all_flags = 0;
-      obj_type_ = type;
-      zone = loc;
+      header.all_flags = 0;
+      flags().obj_type = type;
+      set_zone(loc);
     }
 
     void init_header(Class* cls, gc_zone loc, object_type type) {
-      all_flags = 0;
-      obj_type_ = type;
-      zone = loc;
+      header.all_flags = 0;
+      flags().obj_type = type;
+      set_zone(loc);
 
       klass_ = cls;
       ivars_ = Qnil;
@@ -234,19 +354,19 @@ const int cUndef = 0x22L;
     }
 
     bool young_object_p() const {
-      return zone == YoungObjectZone;
+      return zone() == YoungObjectZone;
     }
 
     bool mature_object_p() const {
-      return zone == MatureObjectZone;
+      return zone() == MatureObjectZone;
     }
 
     bool forwarded_p() const {
-      return Forwarded == 1;
+      return flags().Forwarded == 1;
     }
 
     void clear_forwarded() {
-      Forwarded = 0;
+      flags().Forwarded = 0;
     }
 
     Object* forward() {
@@ -273,75 +393,84 @@ const int cUndef = 0x22L;
      *  A forwarded object should never exist while the GC is running.
      */
 
-    void set_forward(Object* fwd) {
-      Forwarded = 1;
+    void set_forward(ObjectHeader* fwd) {
+      flags().Forwarded = 1;
+
       // DO NOT USE klass() because we need to get around the
       // write barrier!
-      ivars_ = fwd;
+      ivars_ = reinterpret_cast<Object*>(fwd);
+
+      // If the header is inflated, repoint it.
+      if(inflated_header_p()) {
+        InflatedHeader* ih = deflate_header();
+
+        ih->set_object(fwd);
+        fwd->set_inflated_header(ih);
+      }
     }
 
     bool marked_p() const {
-      return Marked != 0;
+      return flags().Marked != 0;
     }
 
     bool marked_p(unsigned int which) const {
-      return Marked == which;
+      return flags().Marked == which;
     }
 
     void mark(unsigned int which=1) {
-      Marked = which;
+      flags().Marked = which;
     }
 
     int which_mark() {
-      return Marked;
+      return flags().Marked;
     }
 
     void clear_mark() {
-      Marked = 0;
+      flags().Marked = 0;
     }
 
     bool pinned_p() {
-      return Pinned == 1;
+      return flags().Pinned == 1;
     }
 
     bool pin() {
       // Can't pin young objects!
       if(young_object_p()) return false;
 
-      Pinned = 1;
+      flags().Pinned = 1;
       return true;
     }
 
     void unpin() {
-      Pinned = 0;
+      flags().Pinned = 0;
     }
 
     bool in_immix_p() {
-      return InImmix == 1;
+      return flags().InImmix == 1;
     }
 
     void set_in_immix() {
-      InImmix = 1;
+      flags().InImmix = 1;
     }
 
     bool remembered_p() {
-      return Remember == 1;
+      return flags().Remember == 1;
     }
 
     void set_remember() {
-      Remember = 1;
+      flags().Remember = 1;
     }
 
     void clear_remember() {
-      Remember = 0;
+      flags().Remember = 0;
     }
 
     void set_requires_cleanup(int val) {
-      RequiresCleanup = val;
+      flags().RequiresCleanup = val;
     }
 
     bool requires_cleanup_p() {
-      return RequiresCleanup == 1;
+      return flags().RequiresCleanup == 1;
     }
 
     bool nil_p() const {
@@ -357,11 +486,11 @@ const int cUndef = 0x22L;
     }
 
     object_type type_id() const {
-      return obj_type_;
+      return flags().obj_type;
     }
 
     bool check_type(object_type type) const {
-      return reference_p() && obj_type_ == type;
+      return reference_p() && flags().obj_type == type;
     }
 
     friend class TypeInfo;

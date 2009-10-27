@@ -6,6 +6,7 @@
 #include "gc/marksweep.hpp"
 #include "gc/baker.hpp"
 #include "gc/immix.hpp"
+#include "gc/inflated_headers.hpp"
 
 #include "config_parser.hpp"
 
@@ -27,6 +28,7 @@ namespace rubinius {
     : young_(new BakerGC(this, config.gc_bytes))
     , mark_sweep_(new MarkSweepGC(this))
     , immix_(new ImmixGC(this))
+    , inflated_headers_(new InflatedHeaders)
     , state(state)
   {
     // TODO Not sure where this code should be...
@@ -111,7 +113,7 @@ namespace rubinius {
 
     Object* copy = immix_->allocate(obj->size_in_bytes(state));
 
-    copy->obj_type_ = obj->type_id();
+    copy->set_obj_type(obj->type_id());
     copy->initialize_copy(obj, 0);
     copy->copy_body(state, obj);
 
@@ -153,12 +155,22 @@ namespace rubinius {
     // done, as it free()s objects, invalidating mark bits.
     mark_sweep_->after_marked();
 
+    inflated_headers_->deallocate_headers();
+
     immix_->unmark_all(data);
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->collect_mature.stop();
     stats::GCStats::get()->objects_seen.stop();
 #endif
+  }
+
+  InflatedHeader* ObjectMemory::inflate_header(ObjectHeader* obj) {
+    if(obj->inflated_header_p()) return obj->inflated_header();
+
+    InflatedHeader* header = inflated_headers_->allocate(obj);
+    obj->set_inflated_header(header);
+    return header;
   }
 
   void ObjectMemory::prune_handles(capi::Handles* handles, bool check_forwards) {
@@ -191,6 +203,7 @@ namespace rubinius {
           // A weakref pointing to a forwarded young object
           } else if(obj->forwarded_p()) {
             current->set_object(obj->forward());
+            assert(current->object()->inflated_header_p());
 
           // A weakref pointing to a dead young object
           } else {
@@ -222,7 +235,7 @@ namespace rubinius {
   /* Store an object into the remember set. Called when we've calculated
    * externally that the object in question needs to be remembered */
   void ObjectMemory::remember_object(Object* target) {
-    assert(target->zone == MatureObjectZone);
+    assert(target->zone() == MatureObjectZone);
     /* If it's already remembered, ignore this request */
     if(target->remembered_p()) return;
     target->set_remember();
@@ -316,7 +329,7 @@ namespace rubinius {
     obj = allocate_object(bytes);
     obj->klass(this, cls);
 
-    obj->obj_type_ = type;
+    obj->set_obj_type(type);
     obj->set_requires_cleanup(type_info[type]->instances_need_cleanup);
 
     return obj;
@@ -332,7 +345,7 @@ namespace rubinius {
     obj = allocate_object_mature(bytes);
     obj->klass(this, cls);
 
-    obj->obj_type_ = type;
+    obj->set_obj_type(type);
     obj->set_requires_cleanup(type_info[type]->instances_need_cleanup);
 
     return obj;
@@ -369,7 +382,7 @@ namespace rubinius {
 
     obj->klass(this, cls);
 
-    obj->obj_type_ = type;
+    obj->set_obj_type(type);
     obj->set_requires_cleanup(type_info[type]->instances_need_cleanup);
 
     return obj;

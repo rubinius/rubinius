@@ -9,6 +9,7 @@
 #include "native_libraries.hpp"
 #include "primitives.hpp"
 #include "call_frame.hpp"
+#include "objectmemory.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/exception.hpp"
@@ -44,17 +45,15 @@ namespace rubinius {
   }
 
   VALUE NativeMethodFrame::get_handle(STATE, Object* obj) {
-    capi::Handle* handle;
+    InflatedHeader* ih = state->om->inflate_header(obj);
 
-    Object* existing = obj->get_table_ivar(state, state->symbol("capi_handle"));
+    capi::Handle* handle = ih->handle();
 
-    if(CApiHandle* wrapper = try_as<CApiHandle>(existing)) {
-      handle = wrapper->handle;
-    } else {
+    if(!handle) {
       handle = new capi::Handle(state, obj);
+      ih->set_handle(handle);
+
       state->shared.global_handles()->add(handle);
-      CApiHandle* wrapper = CApiHandle::create(state, handle);
-      obj->set_table_ivar(state, state->symbol("capi_handle"), wrapper);
     }
 
     handle->ref();

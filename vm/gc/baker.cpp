@@ -40,7 +40,7 @@ namespace rubinius {
 
     if(!obj->reference_p()) return obj;
 
-    if(obj->zone != YoungObjectZone) return obj;
+    if(obj->zone() != YoungObjectZone) return obj;
 
     if(obj->forwarded_p()) return obj->forward();
 
@@ -49,7 +49,7 @@ namespace rubinius {
     // TODO test this!
     if(next->contains_p(obj)) return obj;
 
-    if(unlikely(obj->age++ >= lifetime)) {
+    if(unlikely(obj->inc_age() >= lifetime)) {
       copy = object_memory_->promote_object(obj);
 
       promoted_push(copy);
@@ -74,7 +74,7 @@ namespace rubinius {
     Object* iobj = next->next_unscanned(object_memory_->state);
 
     while(iobj) {
-      assert(iobj->zone == YoungObjectZone);
+      assert(iobj->zone() == YoungObjectZone);
       if(!iobj->forwarded_p()) scan_object(iobj);
       iobj = next->next_unscanned(object_memory_->state);
     }
@@ -181,7 +181,7 @@ namespace rubinius {
         for(;promoted_current != promoted_->end();
             ++promoted_current) {
           tmp = *promoted_current;
-          assert(tmp->zone == MatureObjectZone);
+          assert(tmp->zone() == MatureObjectZone);
           scan_object(tmp);
           if(watched_p(tmp)) {
             std::cout << "detected " << tmp << " during scan of promoted objects.\n";
@@ -287,7 +287,7 @@ namespace rubinius {
     while(obj < current->current()) {
       if(!obj->forwarded_p()) {
 #ifdef RBX_GC_STATS
-        stats::GCStats::get()->lifetimes[obj->age]++;
+        stats::GCStats::get()->lifetimes[obj->age()]++;
 #endif
       }
       obj = next_object(obj);
@@ -297,7 +297,7 @@ namespace rubinius {
     while(obj < eden.current()) {
       if(!obj->forwarded_p()) {
 #ifdef RBX_GC_STATS
-        stats::GCStats::get()->lifetimes[obj->age]++;
+        stats::GCStats::get()->lifetimes[obj->age()]++;
 #endif
       }
       obj = next_object(obj);
