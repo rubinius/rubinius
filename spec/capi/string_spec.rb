@@ -361,34 +361,6 @@ describe "C-API String function" do
       end
     end
 
-    describe "rb_str_flush" do
-      it "updates the Ruby string with the contents of the writable cache" do
-        str = "abc"
-        @s.rb_str_flush_writable(str)
-        str.should == "aBc"
-      end
-
-      it "does not update the Ruby string with the contents of the readonly cache" do
-        str = "ABC"
-        @s.rb_str_flush_readonly(str)
-        str.should == "ABC"
-      end
-    end
-
-    describe "rb_str_update" do
-      it "updates the writable cache with the contents of the Ruby string" do
-        str = "abc"
-        @s.rb_str_update_writable(str, "qrs").should == "abcqrs"
-        str.should == "abcqrs"
-      end
-
-      it "does not update the readonly cache with the contents of the Ruby string" do
-        str = "abc"
-        @s.rb_str_update_readonly(str).should == "qrs"
-        str.should == "abc"
-      end
-    end
-
     describe "rb_str_ptr_readonly" do
       it "returns struct with a pointer to the string's contents" do
         str = "xyz"
@@ -397,18 +369,6 @@ describe "C-API String function" do
           chars << c
         end
         chars.should == [120, 121, 122]
-      end
-
-      it "does not propagate changes to the Ruby string" do
-        str = "abc"
-        @s.rb_str_ptr_readonly_assign(str, 70)
-        str.should == "abc"
-      end
-
-      it "does not update the buffer with changes from the Ruby string" do
-        str = "abc"
-        @s.rb_str_ptr_readonly_append(str, "GHI").should == "abc"
-        str.should == "abcGHI"
       end
     end
 

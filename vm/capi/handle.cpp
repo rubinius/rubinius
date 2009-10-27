@@ -13,7 +13,6 @@ namespace rubinius {
           delete as_.rarray;
           break;
         case cRString:
-          delete[] as_.rstring->dmwmb;
           delete as_.rstring;
           break;
         case cRFloat:

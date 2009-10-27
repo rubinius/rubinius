@@ -270,44 +270,6 @@ VALUE string_spec_rb_str_ptr_readonly_append(VALUE self, VALUE str, VALUE more) 
   return rb_str_new2(ptr);
 }
 
-VALUE string_spec_rb_str_flush_writable(VALUE self, VALUE str) {
-  char *ptr = rb_str_ptr(str);
-
-  ptr[1] = 'B';
-  rb_str_flush(str);
-
-  return Qnil;
-}
-
-VALUE string_spec_rb_str_flush_readonly(VALUE self, VALUE str) {
-  char *ptr = rb_str_ptr_readonly(str);
-
-  ptr[1] = 'b';
-  rb_str_flush(str);
-
-  return Qnil;
-}
-
-VALUE string_spec_rb_str_update_writable(VALUE self, VALUE str, VALUE more) {
-  char *ptr = rb_str_ptr(str);
-
-  rb_str_concat(str, more);
-  rb_str_update(str);
-
-  return rb_str_new2(ptr);
-}
-
-VALUE string_spec_rb_str_update_readonly(VALUE self, VALUE str) {
-  char *ptr = rb_str_ptr_readonly(str);
-
-  ptr[0] = 'q';
-  ptr[1] = 'r';
-  ptr[2] = 's';
-  rb_str_update(str);
-
-  return rb_str_new2(ptr);
-}
-
 VALUE string_spec_rb_str_len(VALUE self, VALUE str) {
   return INT2FIX(rb_str_len(str));
 }
@@ -365,9 +327,5 @@ void Init_string_spec() {
       string_spec_rb_str_ptr_readonly_assign, 2);
   rb_define_method(cls, "rb_str_ptr_readonly_append",
       string_spec_rb_str_ptr_readonly_append, 2);
-  rb_define_method(cls, "rb_str_flush_writable", string_spec_rb_str_flush_writable, 1);
-  rb_define_method(cls, "rb_str_flush_readonly", string_spec_rb_str_flush_readonly, 1);
-  rb_define_method(cls, "rb_str_update_writable", string_spec_rb_str_update_writable, 2);
-  rb_define_method(cls, "rb_str_update_readonly", string_spec_rb_str_update_readonly, 1);
 #endif
 }

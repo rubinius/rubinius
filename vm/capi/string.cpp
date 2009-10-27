@@ -21,85 +21,53 @@ namespace rubinius {
 
       Handle* handle = Handle::from(str_handle);
       String* string = c_as<String>(handle->object());
-      handle->flush(env);
 
       return string;
+    }
+
+    void repin_string(NativeMethodEnvironment* env, String* string, RString* str) {
+      size_t size = string->size();
+
+      ByteArray* ba = string->data();
+
+      char* ptr = 0;
+      if(ba->pinned_p()) {
+        ptr = reinterpret_cast<char*>(ba->bytes);
+      } else {
+        ByteArray* new_ba = ByteArray::create_pinned(env->state(), size + 1);
+        std::memcpy(new_ba->bytes, string->byte_address(), size);
+        string->data(env->state(), new_ba);
+
+        ptr = reinterpret_cast<char*>(new_ba->bytes);
+      }
+
+      ptr[size] = 0;
+
+      str->dmwmb = str->ptr = ptr;
+      str->aux.capa = str->len = size;
     }
 
     void capi_update_string(NativeMethodEnvironment* env, VALUE str_handle) {
       if(!env) env = NativeMethodEnvironment::get();
 
       Handle* handle = Handle::from(str_handle);
-      handle->update(env);
-    }
 
-    void flush_cached_rstring(NativeMethodEnvironment* env, Handle* handle) {
-      if(handle->is_rstring() && handle->is_writable()) {
-        String* string = as<String>(handle->object());
-        RString* rstring = handle->as_rstring(env);
+      RString* str = handle->as_rstring(env);
 
-        if(string->size() != rstring->len) {
-          ByteArray* ba = ByteArray::create(env->state(), rstring->len+1);
-          string->data(env->state(), ba);
-          string->num_bytes(env->state(), Fixnum::from(rstring->len));
-          string->characters(env->state(), Fixnum::from(rstring->len));
-          string->hash_value(env->state(), reinterpret_cast<Integer*>(RBX_Qnil));
-        }
-        std::memcpy(string->byte_address(), rstring->ptr, rstring->len);
-        string->byte_address()[rstring->len] = 0;
-      }
-    }
+      String* string = c_as<String>(handle->object());
 
-    void update_cached_rstring(NativeMethodEnvironment* env, Handle* handle) {
-      if(handle->is_rstring() && handle->is_writable()) {
-        String* string = c_as<String>(handle->object());
-        RString* rstring = handle->as_rstring(env);
-
-        size_t size = string->size();
-
-        if(rstring->len != size) {
-          delete[] rstring->dmwmb;
-          rstring->dmwmb = rstring->ptr = new char[size+1];
-          rstring->aux.capa = rstring->len = size;
-        }
-
-        std::memcpy(rstring->ptr, string->byte_address(), size);
-        rstring->ptr[size] = 0;
-      }
-    }
-
-    void Handle::rstring_auto_update(NativeMethodEnvironment* env) {
-      if(update_type_ != cAutoUpdate) {
-        update_type_ = cAutoUpdate;
-        flush_ = flush_cached_rstring;
-        update_ = update_cached_rstring;
-
-        env->state()->shared.global_handles()->move(this,
-            env->state()->shared.cached_handles());
-      }
-    }
-
-    void Handle::rstring_writable(NativeMethodEnvironment* env) {
-      if(update_type_ == cReadOnly) {
-        update_type_ = cWritable;
-        flush_ = flush_cached_rstring;
-        update_ = update_cached_rstring;
-      }
+      repin_string(env, string, str);
     }
 
     RString* Handle::as_rstring(NativeMethodEnvironment* env) {
       if(type_ != cRString) {
         String* string = c_as<String>(object());
         string->unshare(env->state());
-        size_t size = string->size();
 
         RString* str = new RString;
-        char* ptr = new char[size+1];
-        std::memcpy(ptr, string->byte_address(), size);
-        ptr[size] = 0;
 
-        str->dmwmb = str->ptr = ptr;
-        str->aux.capa = str->len = size;
+        repin_string(env, string, str);
+
         str->aux.shared = Qfalse;
 
         type_ = cRString;
@@ -117,7 +85,6 @@ extern "C" {
 
     Handle* handle = Handle::from(str_handle);
     RString* rstring = handle->as_rstring(env);
-    handle->rstring_auto_update(env);
 
     return rstring;
   }
@@ -233,7 +200,7 @@ extern "C" {
     size_t size = string->size();
     if(size != len) {
       if(size < len) {
-        ByteArray* ba = ByteArray::create(env->state(), len+1);
+        ByteArray* ba = ByteArray::create_pinned(env->state(), len+1);
         std::memcpy(ba->bytes, string->byte_address(), size);
         string->data(env->state(), ba);
       }
@@ -341,23 +308,16 @@ extern "C" {
 
     Handle* handle = Handle::from(self);
     RString* rstring = handle->as_rstring(env);
-    handle->rstring_writable(env);
 
     return rstring->ptr;
   }
 
   void rb_str_flush(VALUE self) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Handle* handle = Handle::from(self);
-    handle->flush(env);
+    // Using pinned ByteArray, we don't need this anymore.
   }
 
   void rb_str_update(VALUE self) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Handle* handle = Handle::from(self);
-    handle->update(env);
+    // Using pinned ByteArray, we don't need this anymore.
   }
 
   char* rb_str_ptr_readonly(VALUE self) {
