@@ -526,7 +526,7 @@ double rb_num2dbl(VALUE);
 #define NIL_P(v)          capi_nil_p((v))
 
 /** The length of the array. */
-#define RARRAY_LEN(ary)   (RARRAY(ary)->len)
+#define RARRAY_LEN(ary)   rb_ary_size(ary)
 
 /** The pointer to the array's data. */
 #define RARRAY_PTR(ary)   (RARRAY(ary)->ptr)
@@ -535,7 +535,11 @@ double rb_num2dbl(VALUE);
 #define RSTRING_LEN(str)  rb_str_len(str)
 
 /** The pointer to the string str's data. */
+#ifdef RUBY_READONLY_STRING
+#define RSTRING_PTR(str)  rb_str_ptr_readonly(str)
+#else
 #define RSTRING_PTR(str)  (RSTRING(str)->ptr)
+#endif
 
 /** The pointer to the data. */
 #define DATA_PTR(d)       (RDATA(d)->data)
