@@ -214,6 +214,12 @@ namespace rubinius {
     // Ruby.primitive :vm_raise_exception
     static Object* vm_raise_exception(STATE, Exception* exc);
 
+    // Ruby.primitive :vm_throw
+    static Object* vm_throw(STATE, Symbol* dest, Object* value);
+
+    // Ruby.primitive :vm_catch
+    static Object* vm_catch(STATE, Symbol* dest, Object* obj, CallFrame* calling_environment);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

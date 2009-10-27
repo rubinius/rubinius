@@ -38,4 +38,14 @@ module Rubinius
     Ruby.primitive :vm_memory_size
     raise PrimitiveFailure, "Rubinius.vm_memory_size failed"
   end
+
+  def self.throw(dest, obj)
+    Ruby.primitive :vm_throw
+    raise PrimitiveFailure, "Rubinius.throw failed"
+  end
+
+  def self.catch(dest, obj)
+    Ruby.primitive :vm_catch
+    raise PrimitiveFailure, "Rubinius.catch failed"
+  end
 end

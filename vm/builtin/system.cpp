@@ -20,6 +20,8 @@
 #include "global_cache.hpp"
 #include "config_parser.hpp"
 
+#include "arguments.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
@@ -604,5 +606,30 @@ namespace rubinius {
     }
 
     return Fixnum::from(0);
+  }
+
+  Object* System::vm_throw(STATE, Symbol* dest, Object* value) {
+    state->thread_state()->raise_throw(dest, value);
+    return NULL;
+  }
+
+  Object* System::vm_catch(STATE, Symbol* dest, Object* obj, CallFrame* call_frame) {
+    LookupData lookup(obj, obj->lookup_begin(state), false);
+    Dispatch dis(state->symbol("call"));
+
+    Arguments args;
+    args.set_recv(obj);
+
+    Object* ret = dis.send(state, call_frame, lookup, args);
+
+    if(!ret && state->thread_state()->raise_reason() == cCatchThrow) {
+      if(state->thread_state()->throw_dest() == dest) {
+        Object* val = state->thread_state()->raise_value();
+        state->thread_state()->clear_exception(true);
+        return val;
+      }
+    }
+
+    return ret;
   }
 }

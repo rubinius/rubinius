@@ -190,6 +190,7 @@ exception:
 
     // Otherwise, fall through and run the unwinds
   case cReturn:
+  case cCatchThrow:
     // Otherwise, we're doing a long return/break unwind through
     // here. We need to run ensure blocks.
     while(current_unwind > 0) {
@@ -218,7 +219,7 @@ exception:
         return NULL;
       }
 
-    } else { // It's cBreak thats not for us!
+    } else { // Not for us!
       call_frame->scope->flush_to_heap(state);
       // Give control of this exception to the caller.
       return NULL;
@@ -332,6 +333,7 @@ exception:
 
     // Otherwise, fall through and run the unwinds
   case cReturn:
+  case cCatchThrow:
     // Otherwise, we're doing a long return/break unwind through
     // here. We need to run ensure blocks.
     while(current_unwind > 0) {
@@ -496,6 +498,7 @@ exception:
 
     // Otherwise, fall through and run the unwinds
   case cReturn:
+  case cCatchThrow:
     // Otherwise, we're doing a long return/break unwind through
     // here. We need to run ensure blocks.
     while(current_unwind > 0) {

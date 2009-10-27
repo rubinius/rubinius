@@ -3,6 +3,7 @@
 #include "builtin/variable_scope.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/class.hpp"
+#include "builtin/symbol.hpp"
 
 namespace rubinius {
   Object* ThreadState::as_object(STATE) {
@@ -17,6 +18,7 @@ namespace rubinius {
       exc->set_ivar(state, state->symbol("reason"), Fixnum::from(raise_reason_));
       exc->set_ivar(state, state->symbol("value"),  raise_value_.get());
       exc->set_ivar(state, state->symbol("destination"), destination_scope_.get());
+      exc->set_ivar(state, state->symbol("throw_dest"), throw_dest_.get());
       return exc;
     }
   }
@@ -26,12 +28,15 @@ namespace rubinius {
       Object* reason = obj->get_ivar(state, state->symbol("reason"));
       raise_reason_ = (RaiseReason)as<Fixnum>(reason)->to_native();
       raise_value_.set(obj->get_ivar(state, state->symbol("value")));
-      destination_scope_.set(
-          as<VariableScope>(obj->get_ivar(state, state->symbol("destination"))));
+      Object* vs = try_as<VariableScope>(
+          obj->get_ivar(state, state->symbol("destination")));
+      destination_scope_.set(vs ? vs : Qnil);
+      throw_dest_.set(obj->get_ivar(state, state->symbol("throw_dest")));
     } else {
       raise_reason_ = cException;
       raise_value_.set(obj);
       destination_scope_.set(Qnil);
+      throw_dest_.set(Qnil);
     }
   }
 
@@ -57,5 +62,11 @@ namespace rubinius {
     raise_reason_ = cExit;
     raise_value_.set(code);
     destination_scope_.set(Qnil);
+  }
+
+  void ThreadState::raise_throw(Symbol* dest, Object* value) {
+    raise_reason_ = cCatchThrow;
+    raise_value_.set(value);
+    throw_dest_.set(dest);
   }
 }
