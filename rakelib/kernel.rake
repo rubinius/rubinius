@@ -1,7 +1,5 @@
 # All the tasks to manage the kernel
 
-require 'lib/compiler/mri_compile'
-
 def compile_ruby(src, rbc, check_mtime = false, kernel = false)
   if check_mtime and File.readable?(rbc)
     return if File.mtime(rbc) >= File.mtime(src)
@@ -63,6 +61,10 @@ kernel << rb << rbc
 file "runtime/alpha.rbc" => "kernel/alpha.rb"
 kernel << "runtime/alpha.rbc"
 
+opcodes = "kernel/compiler/opcodes.rb"
+file "runtime/compiler/opcodes.rbc" => opcodes
+kernel << "runtime/compiler/opcodes.rbc"
+
 file "runtime/loader.rbc" => "kernel/loader.rb" do |t|
   rbc = t.name
   src = t.prerequisites.first
@@ -96,7 +98,11 @@ desc "Build all kernel files"
 task :kernel => 'kernel:build'
 
 namespace :kernel do
-  task :check_compiler do
+  task :load_compiler => opcodes do
+    require 'lib/compiler/mri_compile'
+  end
+
+  task :check_compiler => :load_compiler do
     unless ENV['NOCLEAN']
       existing = kernel.select { |name| name =~ /rbc$/ and File.exists? name }
       kernel_mtime = existing.map { |name| File.stat(name).mtime }.min

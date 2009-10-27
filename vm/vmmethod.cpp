@@ -679,7 +679,6 @@ namespace rubinius {
     switch(op) {
     case InstructionSequence::insn_goto_if_false:
     case InstructionSequence::insn_goto_if_true:
-    case InstructionSequence::insn_goto_if_defined:
     case InstructionSequence::insn_goto:
       return true;
     }

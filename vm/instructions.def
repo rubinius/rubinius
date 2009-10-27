@@ -1,0 +1,2274 @@
+#  vim: filetype=ruby
+
+# Definitions of the Rubinius VM instruction set.
+#
+
+# [Operation]
+#   Performs a no-op, i.e. does nothing.
+# [Format]
+#   \noop
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * ...
+# [Description]
+#   The classic no-op operator; performs no actions, and does not modify the
+#   stack.
+#
+#   To consume an item from the stack, but otherwise do nothing, use
+#   pop.
+# [See Also]
+#   * pop
+
+instruction noop() [ -- ]
+end
+
+section "Push primitive values"
+
+# [Operation]
+#   Puts nil on the stack
+# [Format]
+#   \push_nil
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * nil
+#   * ...
+# [Description]
+#   The special object nil is pushed onto the stack.
+
+instruction push_nil() [ -- nil ]
+  stack_push(Qnil);
+end
+
+# [Operation]
+#   Pushes true onto the stack
+# [Format]
+#   \push_true
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * true
+#   * ...
+# [Description]
+#   The special value true is pushed onto the stack.
+
+instruction push_true() [ -- true ]
+  stack_push(Qtrue);
+end
+
+# [Operation]
+#   Pushes false onto the stack
+# [Format]
+#   \push_false
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * false
+#   * ...
+# [Description]
+#   The special object false is pushed onto the stack.
+
+instruction push_false() [ -- false ]
+  stack_push(Qfalse);
+end
+
+# [Operation]
+#   Pushes a small integer literal value onto the stack
+# [Format]
+#   \push_int value
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * value
+#   * ...
+# [Description]
+#   Pushes the value of the integer literal onto the stack.
+# [See Also]
+#   * meta_push_0
+#   * meta_push_1
+#   * meta_push_2
+#   * meta_push_neg_1
+# [Notes]
+#   Certain common cases (i.e. -1, 0, 1, and 2) are optimised to avoid the
+#   decoding of the argument.
+
+instruction push_int(number) [ -- number ]
+  stack_push(Fixnum::from(number));
+end
+
+# [Operation]
+#   Pushes a reference to the current self object onto the stack.
+# [Format]
+#   \push_self
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * self
+#   * ...
+# [Description]
+#   The current self object is pushed onto the stack.
+
+instruction push_self() [ -- self ]
+  stack_push(call_frame->self());
+end
+
+section "Manipulate literals"
+
+# [Operation]
+#   Sets a literal to the specified value
+# [Format]
+#   \set_literal lit
+# [Stack Before]
+#   * regexlit
+#   * ...
+# [Stack After]
+#   * regex
+#   * ...
+# [Description]
+#   Used to set the value of a literal that is a regular expression. The
+#   Regexp object to which the literal is to be set is copied from the top
+#   of the stack, but is not consumed.
+# [Notes]
+#   Unlike other literals such as strings and numbers, creating a Regexp
+#   literal (i.e. via the /regex/ syntax) is a two step process to create
+#   the literal slot for the Regexp, create a literal for the string between
+#   the '/' delimiters and create a new Regexp object passing it the string.
+#   Only then can the literal value be set, using the set_literal opcode.
+
+instruction set_literal(literal) [ -- ]
+  call_frame->cm->literals()->put(state, literal, stack_top());
+end
+
+# [Operation]
+#   Pushes a literal from the current state onto the stack.
+# [Format]
+#   \push_literal index
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * literal
+#   * ...
+# [Description]
+#   The literal identified by the opcode argument (+index+) in the current
+#   state literals tuple is retrieved and placed onto the stack.
+#
+#   The literals tuple is part of the machine state, and holds all literal
+#   objects defined or used within a particular scope.
+
+instruction push_literal(literal) [ -- literal ]
+  Object* t2 = call_frame->cm->literals()->at(state, literal);
+  stack_push(t2);
+end
+
+section "Flow control"
+
+# [Operation]
+#   Unconditionally jump execution to the position specified by the label
+# [Format]
+#   \goto label
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * ...
+# [Description]
+#   Moves the instruction pointer to the instruction following the specified
+#   label without disturbing the stack.
+# [See Also]
+#   * goto_if_true
+#   * goto_if_false
+#   * goto_if_defined
+
+instruction goto(location) [ -- ]
+  call_frame->set_ip(location);
+  cache_ip(location);
+  DISPATCH;
+end
+
+# [Operation]
+#   Jump execution to the position specified by the label if the top of the
+#   stack evaluates to false.
+# [Format]
+#   \goto_if_false label
+# [Stack Before]
+#   * value
+#   * ...
+# [Stack After]
+#   * ...
+# [Description]
+#   Remove the top item on the stack, and if +nil+ or +false+, jump to the
+#   instruction following the specified label; otherwise, continue.
+# [See Also]
+#   * goto
+#   * goto_if_false
+#   * goto_if_defined
+
+instruction goto_if_false(location) [ ip -- ]
+  Object* t1 = stack_pop();
+  if(!RTEST(t1)) {
+    call_frame->set_ip(location);
+    cache_ip(location);
+    DISPATCH;
+  }
+end
+
+# [Operation]
+#   Jump execution to the position specified by the label if the top of the
+#   stack evaluates to true.
+# [Format]
+#   \goto_if_true label
+# [Stack Before]
+#   * value
+#   * ...
+# [Stack After]
+#   * ...
+# [Description]
+#   Remove the top item on the stack, and if not +nil+ or +false+, jump to
+#   the instruction following the specified label; otherwise, continue.
+# [See Also]
+#   * goto
+#   * goto_if_false
+#   * goto_if_defined
+
+instruction goto_if_true(location) [ ip -- ]
+  Object* t1 = stack_pop();
+  if(RTEST(t1)) {
+    call_frame->set_ip(location);
+    cache_ip(location);
+    DISPATCH;
+  }
+end
+
+# [Operation]
+#   Simple return from a method (only)
+# [Format]
+#   \ret
+# [Stack Before]
+#   * retval
+#   * ...
+# [Stack After]
+#   * ...
+# [Description]
+#   Pops the top value from the stack, and uses it as the return value from
+#   a method.
+# [See Also]
+#   * caller_return
+#   * raise_exc
+
+instruction ret() [ -- ]
+  if(call_frame->scope->made_alias_p()) {
+    call_frame->scope->flush_to_heap(state);
+  }
+  return stack_top();
+end
+
+section "Stack manipulations"
+
+# [Operation]
+#   Swap the top two stack values
+# [Format]
+#   \swap_stack
+# [Stack Before]
+#   * value1
+#   * value2
+#   * ...
+# [Stack After]
+#   * value2
+#   * value1
+#   * ...
+# [Description]
+#   Swaps the top two items on the stack, so that the second item becomes
+#   the first, and the first item becomes the second.
+
+instruction swap_stack() [ -- ]
+  Object* t1 = stack_pop();
+  Object* t2 = stack_pop();
+  stack_push(t1);
+  stack_push(t2);
+end
+
+# [Operation]
+#   Duplicate the top item on the stack
+# [Format]
+#   \dup_top
+# [Stack Before]
+#   * value
+#   * ...
+# [Stack After]
+#   * value
+#   * value
+#   * ...
+# [Description]
+#   Duplicate the top value on the operand stack and push the duplicated
+#   value onto the operand stack.
+
+instruction dup_top() [ -- value ]
+  Object* t1 = stack_top();
+  stack_push(t1);
+end
+
+# [Operation]
+#   Pop an item off the stack and discard
+# [Format]
+#   \pop
+# [Stack Before]
+#   * value
+#   * ...
+# [Stack After]
+#   * ...
+# [Description]
+#   Removes the top item from the stack, discarding it.
+# [Notes]
+#   Pop is typically used when the return value of another opcode is not
+#   required.
+
+instruction pop() [ value -- ]
+  stack_pop();
+end
+
+# [Operation]
+#   Reverses the order on the stack of the top +count+ items
+# [Format]
+# \rotate count
+# [Stack Before]
+# * obj1
+# * obj2
+# * obj3
+# * ...
+# [Stack After]
+# * obj3
+# * obj2
+# * obj1
+# * ...
+
+instruction rotate(count) [ -- ]
+  int diff = count >> 1;
+  Object** start = STACK_PTR - (count - 1);
+  Object** end = STACK_PTR;
+
+  for(int i = 0; i < diff; i++) {
+    Object* right = *end;
+    Object* left =  *start;
+
+    *start = right;
+    *end = left;
+
+    start++;
+    end--;
+  }
+end
+
+instruction move_down(positions) [ -- ]
+  Object* val = stack_top();
+  for(int i = 0; i < positions; i++) {
+    int target = -i;
+    int current = target - 1;
+    STACK_PTR[target] = STACK_PTR[current];
+  }
+  STACK_PTR[-positions] = val;
+end
+
+section "Manipulate local variables"
+
+# [Operation]
+#   Sets the value of a local variable
+# [Format]
+#   \set_local index
+# [Stack Before]
+#   * value
+#   * ...
+# [Stack After]
+#   * value
+#   * ...
+# [Description]
+#   Sets the local variable identified by +index+ to +value+.
+#   The stack is not modified by this instruction.
+
+instruction set_local(index) [ -- ]
+  if(index >= vmm->number_of_locals) {
+    Exception::internal_error(state, call_frame, "invalid local access");
+    RUN_EXCEPTION();
+  }
+  call_frame->scope->set_local(index, stack_top());
+end
+
+# [Operation]
+#   Pushes the value of a local variable onto the stack
+# [Format]
+#   \push_local local
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * local_value
+#   * ...
+# [Description]
+#   Retrieves the current value (+local_value+) of the referenced local
+#   variable (+local+), and pushes it onto the stack.
+
+instruction push_local(index) [ -- value ]
+  if(index >= vmm->number_of_locals) {
+    Exception::internal_error(state, call_frame, "invalid local access");
+    RUN_EXCEPTION();
+  }
+  stack_push(call_frame->scope->get_local(index));
+end
+
+# [Operation]
+#   Pushes the value of a local from an enclosing scope onto the stack
+# [Format]
+#   \push_local_depth depth local
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * localval
+#   * ...
+# [Description]
+#   Retrieves the value of a local variable from a context enclosing the
+#   current context, and pushes it onto the stack.
+# [Example]
+#   <code>
+#     foo.each do |i|
+#       bar.each do |j|
+#         i = i + j  # i is a local variable from enclosing scope at depth 1
+#       end
+#     end
+#   </code>
+
+instruction push_local_depth(depth index) [ -- value ]
+  if(depth == 0) {
+    Exception::internal_error(state, call_frame,
+                              "illegal push_local_depth usage");
+    RUN_EXCEPTION();
+  } else {
+    VariableScope* scope = call_frame->scope->parent();
+
+    if(!scope) {
+      Exception::internal_error(state, call_frame,
+                                "illegal push_local_depth usage, no parent");
+      RUN_EXCEPTION();
+    }
+
+    for(int j = 1; j < depth; j++) {
+      scope = scope->parent();
+      if(!scope) {
+        Exception::internal_error(state, call_frame,
+                                  "illegal push_local_depth usage, no parent");
+        RUN_EXCEPTION();
+      }
+    }
+
+    if(index >= scope->number_of_locals()) {
+      Exception::internal_error(state, call_frame,
+                                "illegal push_local_depth usage, bad index");
+      RUN_EXCEPTION();
+    }
+
+    stack_push(scope->get_local(index));
+  }
+end
+
+# [Operation]
+#   Updates the value of a local variable contained in an enclosing scope
+# [Format]
+#   \set_local_depth depth local
+# [Stack Before]
+#   * value
+#   * ...
+# [Stack After]
+#   * value
+#   * ...
+# [Description]
+#   Uses the +value+ on the top of the stack to update the value of the
+#   local variable +local+ in an enclosing scope. The value is then pushed
+#   back onto the stack, to represent the return value from the expression.
+# [Example]
+#   <code>
+#     foo.each do |i|
+#       bar.each do |j|
+#         i = i + j  # i is a local variable from enclosing scope at depth 1
+#       end
+#     end
+#   </code>
+
+instruction set_local_depth(depth index) [ -- ]
+  if(depth == 0) {
+    Exception::internal_error(state, call_frame,
+                              "illegal set_local_depth usage");
+    RUN_EXCEPTION();
+  } else {
+    VariableScope* scope = call_frame->scope->parent();
+
+    if(!scope) {
+      Exception::internal_error(state, call_frame,
+                                "illegal set_local_depth usage, no parent");
+      RUN_EXCEPTION();
+    }
+
+    for(int j = 1; j < depth; j++) {
+      scope = scope->parent();
+      if(!scope) {
+        Exception::internal_error(state, call_frame,
+                                  "illegal set_local_depth usage, no parent");
+        RUN_EXCEPTION();
+      }
+    }
+
+    if(index >= scope->number_of_locals()) {
+      Exception::internal_error(state, call_frame,
+                                "illegal set_local_depth usage, bad index");
+      RUN_EXCEPTION();
+    }
+    Object* val = stack_pop();
+    scope->set_local(state, index, val);
+    stack_push(val);
+  }
+end
+
+# [Operation]
+#   Test to determine whether an argument was passed
+# [Format]
+#   \passed_arg index
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * true | false
+#   * ...
+# [Description]
+#   Checks if the number of arguments passed to a method is greater than the
+#   specified argument index +index+ (0-based), and pushes the result of the
+#   test onto the stack.
+
+instruction passed_arg(index) [ -- boolean ]
+  if(index < (int)args.total()) {
+    stack_push(Qtrue);
+  } else {
+    stack_push(Qfalse);
+  }
+end
+
+section "Manipulate execeptions"
+
+# [Operation]
+#   Pushes the current exception onto the stack
+# [Format]
+#   \push_exception
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * exception
+#   * ...
+# [Description]
+#   Pushes the current exception onto the stack, so that it can be used for
+#   some purpose, such as checking the exception type, setting an exception
+#   variable in a rescue clause, etc.
+# [See Also]
+#   * raise_exc
+# [Example]
+#   <code>
+#     begin
+#       foo = BAR        # BAR is not defined
+#     rescue NameError   # push_exception used to check type of exception (via ===)
+#       puts "No BAR"
+#     end
+#   </code>
+
+instruction push_exception() [ -- exception ]
+  stack_push(state->thread_state()->as_object(state));
+end
+
+# [Operation]
+#   Clears any exceptions from the current execution context
+# [Format]
+#   \clear_exception
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * ...
+# [Description]
+#   Clears any exceptions from the current execution context. The stack is
+#   untouched by this opcode.
+
+instruction clear_exception() [ -- ]
+  state->thread_state()->clear_exception(true);
+end
+
+# [Operation]
+#   Pop the first item off the stack and fill $! with it.
+# [Format]
+#   \pop_exception
+# [Stack Before]
+#   * exception
+#   * ...
+# [Stack After]
+#   * ...
+# [Description]
+#   The top item on the stack becomes the current exception
+
+instruction pop_exception() [ exception -- ]
+    Object* top = stack_pop();
+    if(top->nil_p()) {
+      state->thread_state()->clear_exception();
+    } else {
+      state->thread_state()->set_exception(state, top);
+    }
+end
+
+# [Operation]
+#   Raises an exception
+# [Format]
+#   \raise_exc
+# [Stack Before]
+#   * exception
+#   * ...
+# [Stack After]
+#   * ...
+# [Description]
+#   Pops an exception instance +exception+ off the stack, and uses it to
+#   raise an exception in the machine.
+
+instruction raise_exc() [ -- ]
+  flush_ip();
+  Object* t1 = stack_pop();
+  state->thread_state()->raise_exception(as<Exception>(t1));
+  RUN_EXCEPTION();
+end
+
+instruction setup_unwind(ip type) [ -- ]
+  assert(current_unwind < kMaxUnwindInfos);
+  UnwindInfo& info = unwinds[current_unwind++];
+  info.target_ip = ip;
+  info.stack_depth = stack_calculate_sp();
+  info.type = (UnwindType)type;
+end
+
+instruction pop_unwind() [ -- ]
+  assert(current_unwind > 0);
+  --current_unwind;
+end
+
+instruction raise_return() [ -- ]
+  flush_ip();
+  if(!(call_frame->flags & CallFrame::cIsLambda) &&
+     !call_frame->scope_still_valid(call_frame->scope->parent())) {
+    Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
+    exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    state->thread_state()->raise_exception(exc);
+  } else {
+    state->thread_state()->raise_return(stack_top(), call_frame->top_scope(state));
+  }
+  RUN_EXCEPTION();
+end
+
+instruction ensure_return() [ -- ]
+  flush_ip();
+  state->thread_state()->raise_return(stack_top(), call_frame->promote_scope(state));
+  RUN_EXCEPTION();
+end
+
+instruction raise_break() [ -- ]
+  flush_ip();
+  state->thread_state()->raise_break(stack_top(), call_frame->scope->parent());
+  RUN_EXCEPTION();
+end
+
+instruction reraise() [ -- ]
+  assert(state->thread_state()->raise_reason() != cNone);
+  RUN_EXCEPTION();
+end
+
+section "Manipulate arrays"
+
+# [Operation]
+#   Create an array and populate with items on the stack
+# [Format]
+#   \make_array argc
+# [Stack Before]
+#   * valueN
+#   * ...
+#   * value2
+#   * value1
+#   * ...
+# [Stack After]
+#   * [value1, value2, ..., valueN]
+#   * ...
+# [Description]
+#   Creates a new array, populating its contents with the number of items
+#   (+argc+) specified in the opcode. The contents of the new array are
+#   taken from the stack, with the top item on the stack becoming the last
+#   item in the array. The resulting array is added back to the stack.
+
+instruction make_array(count) [ +count -- array ]
+  Object* t2;
+  Array* ary = Array::create(state, count);
+  int j = count - 1;
+  for(; j >= 0; j--) {
+    t2 = stack_pop();
+    ary->set(state, j, t2);
+  }
+
+  stack_push(ary);
+end
+
+# [Operation]
+#   Convert a tuple to an array, or wrap an object within an array
+# [Format]
+#   \cast_array
+# [Stack Before]
+#   * value
+#   * ...
+# [Stack After]
+#   * array
+#   * ...
+# [Description]
+#   Removes the object on the top of the stack, and:
+#
+#   If the input is a tuple, a new array object is created based on the
+#   tuple data.
+#
+#   If the input is an array, it is unmodified.
+#
+#   If the input is any other type, that type is wrapped within a new array
+#   of length one.
+#
+#   The resulting array is then pushed back onto the stack.
+
+instruction cast_array() [ value -- array ]
+  Object* t1 = stack_pop();
+  if(kind_of<Tuple>(t1)) {
+    t1 = Array::from_tuple(state, as<Tuple>(t1));
+  } else if(!kind_of<Array>(t1)) {
+    Object* recv = G(array);
+    Arguments args(recv, 1, &t1);
+    Dispatch dis(G(sym_coerce_into_array));
+
+    t1 = dis.send(state, call_frame, args);
+  }
+  stack_push(t1);
+end
+
+# [Operation]
+#   Shifts the first item in a tuple onto the stack
+# [Format]
+#   \shift_array
+# [Stack Before]
+#   * [value1, value2, ..., valueN]
+#   * ...
+# [Stack After]
+#   * value1
+#   * [value2, ..., valueN]
+#   * ...
+# [Description]
+#   Pops an array off the top of the stack. If the array is empty, it is
+#   pushed back onto the stack, followed by nil.
+#   Otherwise, the array is shifted, then pushed back onto the stack,
+#   followed by the object that was shifted from the front of the array.
+
+instruction shift_array() [ array -- array value ]
+  Array* array = as<Array>(stack_pop());
+  size_t size = (size_t)array->size();
+
+  if(size == 0) {
+    stack_push(array);
+    stack_push(Qnil);
+  } else {
+    size_t j = size - 1;
+    Object* shifted_value = array->get(state, 0);
+    Array* smaller_array = Array::create(state, j);
+
+    for(size_t i = 0; i < j; i++) {
+      smaller_array->set(state, i, array->get(state, i+1));
+    }
+
+    stack_push(smaller_array);
+    stack_push(shifted_value);
+  }
+end
+
+section "Manipulate instance variables"
+
+# [Operation]
+#   Sets an instance variable on self
+# [Format]
+#   \set_ivar ivar
+# [Stack Before]
+#   * value
+#   * ...
+# [Stack After]
+#   * value
+#   * ...
+# [Description]
+#   Pops a value off the stack, and uses it to set the value of the instance
+#   variable identifies by the literal +ivar+ on the current +self+ object.
+#   The value popped off the stack is then pushed back on again.
+
+instruction set_ivar(index) [ -- ]
+  Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+  call_frame->self()->set_ivar(state, sym, stack_top());
+end
+
+# [Operation]
+#   Pushes an instance variable onto the stack
+# [Format]
+#   \push_ivar lit
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * value
+#   * ...
+# [Description]
+#   Pushes the instance variable identified by +lit+ onto the stack.
+
+instruction push_ivar(index) [ -- value ]
+  Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+  Object* ret = call_frame->self()->get_ivar(state, sym);
+
+  HANDLE_EXCEPTION(ret);
+  stack_push(ret);
+end
+
+section "Manipulate constants"
+
+# [Operation]
+#   Pushes a constant onto the stack
+# [Format]
+#   \push_const constant
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * const
+#   * ...
+# [Description]
+#   Locates the constant indicated by the literal +constant+ from the
+#   current context, and pushes it onto the stack. If the constant cannot be
+#   found in the current context, nothing is pushed onto the stack, and a
+#   NameError exception is raised.
+# [Example]
+#   <code>
+#     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
+#   </code>
+
+instruction push_const(literal) [ -- constant ]
+  bool found;
+  Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, literal));
+  Object* res = Helpers::const_get(state, call_frame, sym, &found);
+  if(!found) {
+    Module* under;
+    StaticScope* scope = call_frame->static_scope();
+    if(scope->nil_p()) {
+      under = G(object);
+    } else {
+      under = scope->module();
+    }
+    flush_ip();
+    res = Helpers::const_missing(state, under, sym, call_frame);
+  } else if(Autoload* autoload = try_as<Autoload>(res)) {
+    flush_ip();
+    res = autoload->resolve(state, call_frame);
+  }
+
+  HANDLE_EXCEPTION(res);
+
+  stack_push(res);
+end
+
+# [Operation]
+#   Sets a literal to refer to a constant
+# [Format]
+#   \set_const lit
+# [Stack Before]
+#   * item
+#   * ...
+# [Stack After]
+#   * const
+#   * ...
+# [Description]
+#   Pops an object off the stack, and sets the literal referenced in the
+#   opcode to refer to the object as a constant. The constant is pushed back
+#   onto the stack.
+
+instruction set_const(index) [ -- ]
+  Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+  call_frame->static_scope()->module()->set_const(state, sym, stack_top());
+end
+
+# [Operation]
+#   Sets the value of a constant under a module
+# [Format]
+#   \set_const_at lit
+# [Stack Before]
+#   * value
+#   * module
+#   * ...
+# [Stack After]
+#   * ...
+# [Description]
+#   Pops the new +value+ for a constant identified by the +lit+ index in the
+#   literals tuple, in the scope of +module+, which is also popped from the
+#   stack.
+
+instruction set_const_at(index) [ value module -- ]
+  Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+  Object* val = stack_pop();
+  Module* under = as<Module>(stack_pop());
+
+  under->set_const(state, sym, val);
+  stack_push(val);
+end
+
+# [Operation]
+#   Finds a constant
+# [Format]
+#   \find_const constant
+# [Stack Before]
+#   * parent
+#   * ...
+# [Stack After]
+#   * const
+#   * ...
+# [Description]
+#   Pops the module or \class +ns+ off the stack, and searches within it's
+#   namespace for the constant identified by the literal +constant+. If
+#   found, it is pushed onto the stack; otherwise, nothing is pushed onto
+#   the stack, and a NameError exception is raised.
+# [Example]
+#   <code>
+#     str = "abc"
+#     enum = Enumerable::Enumerator(str, :each_byte)
+#   </code>
+
+instruction find_const(index) [ module -- constant ]
+  bool found;
+  Module* under = as<Module>(stack_pop());
+  Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+  Object* res = Helpers::const_get(state, under, sym, &found);
+  if(!found) {
+    flush_ip();
+    res = Helpers::const_missing(state, under, sym, call_frame);
+  } else if(Autoload* autoload = try_as<Autoload>(res)) {
+    flush_ip();
+    res = autoload->resolve(state, call_frame);
+  }
+
+  HANDLE_EXCEPTION(res);
+
+  stack_push(res);
+end
+
+# [Operation]
+#   Pushes the Object, the root of constants
+# [Format]
+#   \push_cpath_top
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * cpathtop
+#   * ...
+# [Description]
+#   Pushes the top-level global object that represents the top-level
+#   namespace for constants. Used to find constants relative to the
+#   toplevel.
+
+instruction push_cpath_top() [ -- constant ]
+  stack_push(G(object));
+end
+
+# [Operation]
+#   Pushes a constant onto the stack. Caches the lookup to provide
+#   faster future lookup
+# [Format]
+#   \push_const_fast symbol_index association_index
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * const
+#   * ...
+# [Description]
+#   Locates the constant indicated by the literal +constant+ from the
+#   current context, and pushes it onto the stack. If the constant cannot be
+#   found in the current context, nothing is pushed onto the stack, and a
+#   NameError exception is raised.
+#
+#   Internally, the constant is cached via the internal Association object
+#   in the literals spot specified by the second arg. This allows for future
+#   lookup to not require the full LookupTable resolution.
+# [Example]
+#   <code>
+#     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
+#   </code>
+
+instruction push_const_fast(literal association) [ -- constant ]
+  bool found;
+  Object* res = 0;
+
+  Object* val = call_frame->cm->literals()->at(state, association);
+
+  // See if the cache is present, if so, validate it and use the value
+  GlobalCacheEntry* cache;
+  if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
+    if(cache->valid_p(state)) {
+      res = cache->value();
+    } else {
+      Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, literal));
+      flush_ip();
+      res = Helpers::const_get(state, call_frame, sym, &found);
+      if(found) {
+        cache->update(state, res);
+      }
+    }
+  } else {
+    flush_ip();
+    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, literal));
+    res = Helpers::const_get(state, call_frame, sym, &found);
+    if(found) {
+      cache = GlobalCacheEntry::create(state, res);
+      call_frame->cm->literals()->put(state, association, cache);
+    } else {
+      Module* under;
+      StaticScope* scope = call_frame->static_scope();
+      if(scope->nil_p()) {
+        under = G(object);
+      } else {
+        under = scope->module();
+      }
+      res = Helpers::const_missing(state, under, sym, call_frame);
+    }
+  }
+
+  HANDLE_EXCEPTION(res);
+
+  if(Autoload* autoload = try_as<Autoload>(res)) {
+    flush_ip();
+    res = autoload->resolve(state, call_frame);
+    if(cache && res) {
+      cache->update(state, res);
+    }
+  }
+
+  HANDLE_EXCEPTION(res);
+
+  stack_push(res);
+end
+
+section "Send messages"
+
+# [Operation]
+#   Sets call flags prior to a send operation
+# [Format]
+#   \set_call_flags flags
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * ...
+# [Description]
+#   The call flags on the current execution context are set to the opcode
+#   argument +flags+.
+# [Notes]
+#   Currently, the only call flag is 1, which instructs the machine to
+#   include private methods when looking for a method that responds to a
+#   message.
+
+instruction set_call_flags(flags) [ -- ]
+  SET_CALL_FLAGS(flags);
+end
+
+instruction allow_private() [ -- ]
+  SET_ALLOW_PRIVATE(true);
+end
+
+# [Operation]
+#   Sends a message with no args to a receiver
+# [Format]
+#   \send_method method_name
+# [Stack Before]
+#   * receiver
+#   * ...
+# [Stack After]
+#   * retval
+#   * ...
+# [Description]
+#   Pops an object off the top of the stack (+receiver+), and sends it the no
+#   arg message +method_name+.
+#
+#   When the method returns, the return value will be on top of the stack.
+# [See Also]
+#   * send_with_arg_register
+# [Notes]
+#   This form of send is for methods that take no arguments.
+#
+
+instruction send_method(literal) [ receiver -- value ]
+  flush_ip();
+  Object* recv = stack_top();
+  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+
+  SET_ALLOW_PRIVATE(false);
+
+  Arguments args(recv, Qnil, 0, 0);
+  Object* ret = cache->execute(state, call_frame, args);
+
+  stack_pop();
+
+  HANDLE_EXCEPTION(ret);
+  stack_push(ret);
+end
+
+# [Operation]
+#   Sends a message with arguments on the stack
+# [Format]
+#   \send_stack method argc
+# [Stack Before]
+#   * argN
+#   * ...
+#   * arg2
+#   * arg1
+#   * receiver
+# [Stack After]
+#   * retval
+#   * ...
+# [Description]
+#   Pops the receiver and the block to be passed off the stack, and sends
+#   the message +method+ with +argc+ arguments. The arguments to the method
+#   remain on the stack, ready to be converted to locals when the method is
+#   activated.
+#
+#   When the method returns, the return value will be on top of the stack.
+# [See Also]
+#   * send_stack_with_block
+# [Notes]
+#   This opcode does not pass a block to the receiver; see
+#   send_stack_with_block for the equivalent op code used when a block is to
+#   be passed.
+
+instruction send_stack(index count) [ receiver +count -- value ]
+  flush_ip();
+  Object* recv = stack_back(count);
+  InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+
+  SET_ALLOW_PRIVATE(false);
+
+  Arguments args(recv, Qnil, count,
+                 stack_back_position(count));
+
+  Object* ret = cache->execute(state, call_frame, args);
+
+  stack_clear(count + 1);
+
+  HANDLE_EXCEPTION(ret);
+  stack_push(ret);
+end
+
+# [Operation]
+#   Sends a message with arguments and a block on the stack
+# [Format]
+#   \send_stack_with_block method argc
+# [Stack Before]
+#   * block
+#   * argN
+#   * ...
+#   * arg2
+#   * arg1
+#   * receiver
+# [Stack After]
+#   * retval
+#   * ...
+# [Description]
+#   Pops the receiver +receiver+ and a block off the stack, and sends the
+#   message +method+ with +argc+ arguments. The arguments to the method
+#   remain on the stack, ready to be converted to locals as part of method
+#   activation.
+#
+#   When the method returns, the return value will be on top of the stack.
+# [See Also]
+#   * send_stack
+# [Notes]
+#   This opcode passes a block to the receiver; see send_stack for the
+#   equivalent op code used when no block is to be passed.
+
+instruction send_stack_with_block(index count) [ block receiver +count -- value ]
+  flush_ip();
+  Object* block = stack_pop();
+  Object* recv = stack_back(count);
+  InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+
+  Arguments args(recv, block, count,
+                 stack_back_position(count));
+
+  SET_ALLOW_PRIVATE(false);
+
+  Object* ret = cache->execute(state, call_frame, args);
+
+  stack_clear(count + 1);
+
+  HANDLE_EXCEPTION(ret);
+  stack_push(ret);
+end
+
+# [Operation]
+#   Sends a message with args to a receiver
+# [Format]
+#   \send_stack_with_splat method direct_args
+# [Stack Before]
+#   * block
+#   * splat
+#   * argN
+#   * ...
+#   * arg2
+#   * arg1
+#   * receiver
+# [Stack After]
+#   * retval
+#   * ...
+# [Description]
+#   Pops the receiver +receiver+ and a block +block+ off the top of the stack,
+#   and sends the message +method+. The number of arguments taken by the
+#   method must have previously been set in the args register, and the arg
+#   values themselves remain on the top of the stack, to be converted to
+#   locals as part of method activation.
+#
+#   When the method returns, the return value will be on top of the stack.
+# [See Also]
+#   * send_method
+#   * set_args
+#   * cast_array_for_args
+# [Notes]
+#   The number of arguments to be passed to the method in +args+ must have
+#   been set previously via a call to either set_args or
+#   cast_array_for_args.
+
+define CALL_FLAG_CONCAT 2
+
+instruction send_stack_with_splat(index count) [ block array receiver +count -- value ]
+  flush_ip();
+  Object* block = stack_pop();
+  Object* ary   = stack_pop();
+  Object* recv =  stack_back(count);
+  InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+
+  Arguments args(recv, block, count,
+                 stack_back_position(count));
+
+  if(!ary->nil_p()) {
+    if(CALL_FLAGS() & CALL_FLAG_CONCAT) {
+      args.prepend(state, as<Array>(ary));
+    } else {
+      args.append(state, as<Array>(ary));
+    }
+  }
+
+  SET_CALL_FLAGS(0);
+  SET_ALLOW_PRIVATE(false);
+
+  Object* ret = cache->execute(state, call_frame, args);
+
+  stack_clear(count + 1);
+
+  HANDLE_EXCEPTION(ret);
+  stack_push(ret);
+end
+
+# [Operation]
+#   Call a method on the superclass with a block
+# [Format]
+#   \send_super_stack_with_block method argc
+# [Stack Before]
+#   * block
+#   * argN
+#   * ...
+#   * arg2
+#   * arg1
+# [Stack After]
+#   * retval
+#   * ...
+# [Description]
+#   Pops a block off the stack, and sends the message +method+ with +argc+
+#   arguments. The arguments to the method remain on the stack, ready to be
+#   converted into locals when the method is activated.
+#
+#   When the method returns, the return value will be on top of the stack.
+# [Notes]
+#   The receiver is not specified for a call to super; it is the superclass
+#   of the current object that will receive the message.
+
+instruction send_super_stack_with_block(index count) [ block +count -- value ]
+  flush_ip();
+  Object* block = stack_pop();
+  InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+  Object* const recv = call_frame->self();
+
+  Arguments args(recv, block, count,
+                 stack_back_position(count));
+
+  SET_ALLOW_PRIVATE(false);
+
+  Object* ret = cache->execute(state, call_frame, args);
+
+  stack_clear(count);
+
+  HANDLE_EXCEPTION(ret);
+  stack_push(ret);
+end
+
+# [Operation]
+#   Call a method on the superclass, passing args plus a block
+# [Format]
+#   \send_super_stack_with_splat method direct_args
+# [Stack Before]
+#   * block
+#   * argN
+#   * ...
+#   * arg2
+#   * arg1
+# [Stack After]
+#   * retval
+#   * ...
+# [Description]
+#   Pops a block off the stack, and sends the message +method+ to the current
+#   objects  superclass. The arguments to the method are left on the top of
+#   the stack, ready to be converted into locals when the method is
+#   activated.
+#
+#   When the method returns, the return value will be on top of the stack.
+# [Notes]
+#   The args register must have previously been set to the count of the
+#   number of arguments in +args+ via either set_args or
+#   cast_array_for_args.
+
+instruction send_super_stack_with_splat(index count) [ block array +count -- value ]
+  flush_ip();
+  Object* block = stack_pop();
+  Object* ary   = stack_pop();
+  Object* const recv = call_frame->self();
+  InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+
+  Arguments args(recv, block, count,
+                 stack_back_position(count));
+
+  if(!ary->nil_p()) {
+    if(CALL_FLAGS() & CALL_FLAG_CONCAT) {
+      args.prepend(state, as<Array>(ary));
+    } else {
+      args.append(state, as<Array>(ary));
+    }
+  }
+
+  SET_CALL_FLAGS(0);
+  SET_ALLOW_PRIVATE(false);
+
+  Object* ret = cache->execute(state, call_frame, args);
+
+  stack_clear(count);
+
+  HANDLE_EXCEPTION(ret);
+  stack_push(ret);
+end
+
+section "Manipulate blocks"
+
+# [Operation]
+#   Pushes a block onto the stack
+# [Format]
+#   \push_block
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * block
+#   * ...
+# [Description]
+#   Pushes the current block onto the stack. Used when a block passed to a
+#   method is used.
+# [Example]
+#   <code>
+#     instruction takes_block
+#       yield # yields to the block passed to the method, which causes
+#             # push_block to be called
+#     end
+#   </code>
+
+instruction push_block() [ -- block ]
+  stack_push(call_frame->scope->block());
+end
+
+# [Operation]
+#   Test to determine whether a block argument was passed
+# [Format]
+#   \passed_blockarg count
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * true | false
+#   * ...
+# [Description]
+#   Checks if a block was passed to a method, and pushes the result of the
+#   test onto the stack.
+
+instruction passed_blockarg(count) [ -- boolean ]
+  if(count == (int)args.total()) {
+    stack_push(Qtrue);
+  } else {
+    stack_push(Qfalse);
+  }
+end
+
+# [Operation]
+#   Creates a block
+# [Format]
+#   \create_block literal
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * block_env
+#   * ...
+# [Description]
+#   Takes a +compiled_method+ out of the literals tuple, and converts it
+#   into a block environment +block_env+, which is then pushed back onto the
+#   stack.
+
+instruction create_block(index) [ -- block ]
+  Object* _lit = call_frame->cm->literals()->at(state, index);
+  CompiledMethod* cm = as<CompiledMethod>(_lit);
+
+  // TODO: We do not need to be doing this everytime.
+  cm->scope(state, call_frame->static_scope());
+
+  Object* be = BlockEnvironment::under_call_frame(state, cm, vmm, call_frame, index);
+
+  stack_push(be);
+end
+
+# [Operation]
+#   Converts the item on the top of the stack into an argument for a block
+#   taking one arg
+# [Format]
+#   \cast_for_single_block_arg
+# [Stack Before]
+#   * arg
+#   * ...
+# [Stack After]
+#   * block_arg
+#   * ...
+# [Description]
+#   The item on the top of the stack is popped, and:
+#
+#   If it has no fields, the result is nil
+#
+#   If the item contains a single field, the result is the value in the
+#   first field
+#
+#   If the item is a tuple, the result is an array created from the tuple.
+#
+#   The result is then pushed onto the stack.
+
+instruction cast_for_single_block_arg() [ -- argument ]
+  int k = args.total();
+  if(k == 0) {
+    stack_push(Qnil);
+  } else if(k == 1) {
+    stack_push(args.get_argument(0));
+  } else {
+    Array* ary = Array::create(state, k);
+    for(int i = 0; i < k; i++) {
+      ary->set(state, i, args.get_argument(i));
+    }
+    stack_push(ary);
+  }
+end
+
+# [Operation]
+#   Converts a block argument single-valued tuple into multiple arguments if
+#   the arg is an array
+# [Format]
+#   \cast_for_multi_block_arg
+# [Stack Before]
+#   * tuple[array[el1,el2,...,eln]]
+#   * ...
+# [Stack After]
+#   * tuple[el1,el2,...,eln]
+#   * ...
+# [Description]
+#   If the tuple on the top of the stack has only a single element, and that
+#   element is an array, a new tuple is created containing the contents of
+#   the array, and this new tuple is used to update the top of the stack.
+# [Example]
+#   <code>
+#     [[1,2,3]].each do |i,j,k|
+#       # do something
+#     end
+#   </code>
+
+instruction cast_for_multi_block_arg() [ -- array ]
+  /* If there is only one argument and that thing is an array... */
+  if(args.total() == 1 && kind_of<Array>(args.get_argument(0))) {
+    stack_push(args.get_argument(0));
+  } else {
+    Array* ary = Array::create(state, args.total());
+    for(size_t i = 0; i < args.total(); i++) {
+      ary->set(state, i, args.get_argument(i));
+    }
+    stack_push(ary);
+  }
+end
+
+# [Operation]
+#   Evil twin for cast_array. The difference is how it handles nil.
+#   Cast_for_splat_block_arg converts nil to [], cast_array
+#   converts nil to [nil]
+# [Format]
+#   \cast_for_splat_block_arg
+# [Stack Before]
+#   * value
+#   * ...
+# [Stack After]
+#   * array
+#   * ...
+# [Description]
+#   Removes the object on the top of the stack, and:
+#
+#   If the input is nil, a new empty array object is created.
+#
+#   If the input is a tuple, a new array object is created based on the
+#   tuple data.
+#
+#   If the input is an array, it is unmodified.
+#
+#   If the input is any other type, that type is wrapped within a new array
+#   of length one.
+#
+#   The resulting array is then pushed back onto the stack.
+
+instruction cast_for_splat_block_arg() [ -- arguments ]
+  Array* ary = Array::create(state, args.total());
+  for(size_t i = 0; i < args.total(); i++) {
+    ary->set(state, i, args.get_argument(i));
+  }
+
+  stack_push(ary);
+end
+
+instruction yield_stack(count) [ +count -- value ]
+  flush_ip();
+  Object* t1 = call_frame->scope->block();
+  Object* ret;
+  Arguments args(t1, count, stack_back_position(count));
+
+  if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
+    ret = env->call(state, call_frame, args);
+  } else if(Proc* proc = try_as<Proc>(t1)) {
+    ret = proc->yield(state, call_frame, args);
+  } else if(t1->nil_p()) {
+    state->thread_state()->raise_exception(Exception::make_lje(state, call_frame));
+    ret = NULL;
+  } else {
+    Dispatch dis(G(sym_call));
+    ret = dis.send(state, call_frame, args);
+  }
+
+  stack_clear(count);
+
+  HANDLE_EXCEPTION(ret);
+  stack_push(ret);
+end
+
+instruction yield_splat(count) [ array +count -- value ]
+  flush_ip();
+  Object* ary = stack_pop();
+  Object* t1 = call_frame->scope->block();
+
+  Arguments args(t1, count, stack_back_position(count));
+
+  if(!ary->nil_p()) {
+    args.append(state, as<Array>(ary));
+  }
+
+  Object* ret;
+  if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
+    ret = env->call(state, call_frame, args);
+  } else if(Proc* proc = try_as<Proc>(t1)) {
+    ret = proc->yield(state, call_frame, args);
+  } else if(t1->nil_p()) {
+    state->thread_state()->raise_exception(Exception::make_lje(state, call_frame));
+    ret = NULL;
+  } else {
+    Dispatch dis(G(sym_call));
+    ret = dis.send(state, call_frame, args);
+  }
+
+  stack_clear(count);
+
+  HANDLE_EXCEPTION(ret);
+  stack_push(ret);
+end
+
+section "Manipulate strings"
+
+# [Operation]
+#   Appends two stings together to form a single string
+# [Format]
+#   \string_append
+# [Stack Before]
+#   * string1
+#   * string2
+#   * ...
+# [Stack After]
+#   * string1string2
+#   * ...
+# [Description]
+#   Pops two strings off the stack, appends the second to the first, and
+#   then pushes the combined string back onto the stack.
+# [Notes]
+#   The original string is modified by the append.
+
+instruction string_append() [ prefix suffix -- string ]
+  flush_ip();
+  String* s1 = as<String>(stack_pop());
+  String* s2 = as<String>(stack_pop());
+  s1->append(state, s2);
+  stack_push(s1);
+end
+
+# [Operation]
+#   Create a new string with the same contents as the string currently on
+#   the stack
+# [Format]
+#   \string_dup
+# [Stack Before]
+#   * original
+#   * ...
+# [Stack After]
+#   * duplicate
+#   * ...
+# [Description]
+#   Consume the string on the stack, replacing it with a duplicate. Mutating
+#   operations on the original string will not affect the duplicate, and
+#   vice-versa.
+
+instruction string_dup() [ string -- string ]
+  flush_ip();
+  String *s1 = as<String>(stack_pop());
+  stack_push(s1->string_dup(state));
+end
+
+section "Manipulate scope"
+
+# [Operation]
+#   Pushes the current StaticScope object on the stack
+# [Format]
+#   \push_scope
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * #<StaticScope>
+#   * ...
+# [Description]
+#   Many operations are defered to the current scope. This operation
+#   retrieves the current scope so methods can be called on it.
+#
+
+instruction push_scope() [ -- scope ]
+  stack_push(call_frame->static_scope());
+end
+
+# [Operation]
+#   Add a new StaticScope entry for the given Module
+# [Format]
+#   \add_scope
+# [Stack Before]
+#   * #<Module>
+#   * ...
+# [Stack After]
+#   * ...
+# [Description]
+#   Create a new StaticScope object for the given Module on the stack.
+#   This scope is chained off the current scope of the method.
+#
+#   This also sets the scope of the current CompiledMethod to the new
+#   StaticScope
+#
+
+instruction add_scope() [ module -- ]
+  Object* obj = stack_pop();
+  Module* mod = as<Module>(obj);
+  StaticScope* scope = StaticScope::create(state);
+  scope->module(state, mod);
+  scope->parent(state, call_frame->static_scope());
+  call_frame->cm->scope(state, scope);
+  call_frame->static_scope_ = scope;
+end
+
+instruction push_variables() [ -- scope ]
+  stack_push(call_frame->promote_scope(state));
+end
+
+section "Miscellaneous. TODO: better categorize these"
+
+instruction check_interrupts() [ -- ]
+  flush_ip();
+
+  // This is used in loops, and allows loops to heat a method up.
+  if(vmm->call_count >= 0) vmm->call_count++;
+
+  // The | here reduces the number of branches to check
+  if(unlikely(state->interrupts.check)) {
+    state->interrupts.checked();
+
+    if(state->interrupts.timer) {
+      state->interrupts.timer = false;
+      state->set_call_frame(call_frame);
+      state->global_lock().yield();
+    }
+
+    if(state->interrupts.perform_gc) {
+      state->interrupts.perform_gc = false;
+      state->collect_maybe(call_frame);
+    }
+  }
+
+  if(!state->check_async(call_frame)) RUN_EXCEPTION();
+end
+
+# [Operation]
+#   Pauses execution and yields to the debugger
+# [Format]
+#   \yield_debugger
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * ...
+# [Description]
+#   Pauses virtual machine execution at the \yield_debugger instruction, and
+#   yields control to the debugger on the debug channel. If no debugger is
+#   registered, an error is raised.
+# [Notes]
+#   The \yield_debugger instruction is VM plumbing that exists to support
+#   "full-speed" debugging. As such, it is not output by the compiler, but
+#   rather is used by the debugger to replace an existing instruction at a
+#   breakpoint. Prior to encountering a \yield_debugger instruction, the VM
+#   will execute normally, i.e. at full speed, and not be slowed
+#   significantly by the fact that a debugger is attached.
+#
+#   When the debugger is yielded to by this instruction, it can examine the
+#   execution context, stack, etc, or replace the \yield_debugger instruction
+#   with the original instruction at that point, and then step through the
+#   code.
+
+instruction yield_debugger() [ -- ]
+  flush_ip();
+  Helpers::yield_debugger(state, call_frame);
+end
+
+# [Operation]
+#   Return true if value is nil, otherwise false
+# [Format]
+#   \is_nil
+# [Stack Before]
+#   * value
+#   * ...
+# [Stack After]
+#   * result
+#   * ...
+# [Description]
+#   Consume the value on the stack, and put the special values true or false
+#   depending on whether the consumed value was the special value nil
+
+instruction is_nil() [ value -- boolean ]
+  Object* t1 = stack_pop();
+  stack_push(t1 == Qnil ? Qtrue : Qfalse);
+end
+
+# [Operation]
+#   Checks if the specified method serial number matches an expected value
+# [Format]
+#   \check_serial index serial
+# [Stack Before]
+#   * obj
+#   * ...
+# [Stack After]
+#   * ...
+# [Description]
+#   Pops +obj+ and if +obj+ responds to +index+ and the target method has
+#   serial +serial+, push true. Else push false.
+# [Notes]
+#   This opcode is typically used to determine at runtime whether an
+#   optimisation can be performed. At compile time, two code paths are
+#   generated: a slow, but guaranteed correct path, and a fast path that
+#   uses certain optimisations. The serial number check is then performed at
+#   runtime to determine which code path is executed.
+#
+#   For example, a method such as Fixnum#times can be optimised at compile
+#   time, but we can't know until runtime whether or not the Fixnum#times
+#   method has been overridden. The serial number check is used to determine
+#   each time the code is executed, whether or not the standard Fixnum#times
+#   has been overridden. It leverages the serial number field on a
+#   CompiledMethod, is initialised to either 0 (for kernel land methods) or
+#   1 (for user land methods).
+
+instruction check_serial(index serial) [ receiver -- boolean ]
+  Object* recv = stack_pop();
+  InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+
+  if(cache->update_and_validate(state, call_frame, recv) &&
+       cache->method->serial()->to_native() == serial) {
+     stack_push(Qtrue);
+  } else {
+    stack_push(Qfalse);
+  }
+end
+
+instruction check_serial_private(index serial) [ receiver -- boolean ]
+  Object* recv = stack_pop();
+  InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+
+  if(cache->update_and_validate_private(state, call_frame, recv) &&
+       cache->method->serial()->to_native() == serial) {
+     stack_push(Qtrue);
+  } else {
+    stack_push(Qfalse);
+  }
+end
+
+section "Access object fields"
+
+# [Operation]
+#   Pushes a value from an object field onto the stack
+# [Format]
+#   \push_my_field fld
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * value
+#   * ...
+# [Description]
+#   Pushes the value of the specified field in the current object onto the
+#   stack.
+# [Notes]
+#   Fields are similar to instance variables, but have dedicated storage
+#   allocated. They are primarily used on core or bootstap classes.
+#   Accessing a field is slightly faster than accessing an ivar.
+
+instruction push_my_field(index) [ -- value ]
+  stack_push(call_frame->self()->get_field(state, index));
+end
+
+# [Operation]
+#   Store a value into a field of self
+# [Format]
+#   \store_my_field fld
+# [Stack Before]
+#   * value
+#   * ...
+# [Stack After]
+#   * value
+#   * ...
+# [Description]
+#   Stores the value at the top of the stack into the field specified by
+#   +fld+ on +self+.
+#
+#   The stack is left unmodified.
+
+instruction store_my_field(index) [ -- ]
+  call_frame->self()->set_field(state, index, stack_top());
+end
+
+section "Type checks"
+
+# [Operation]
+#   Evaluate if +object+ is an instance of +\class+ or of an ancestor of
+#   +\class+.
+# [Format]
+#   \kind_of
+# [Stack Before]
+#   * object
+#   * class
+#   * ...
+# [Stack After]
+#   * result
+#   * ...
+# [Description]
+#   Evaluate if the object is created by +\class+, its parent, or a further
+#   ancestor. This differs from +instance_of+ in that the \class heirarchy
+#   will be evaluated rather than just the \class object given.
+# [See Also]
+#   * instance_of
+
+instruction kind_of() [ object class -- boolean ]
+  Object* t1 = stack_pop();
+  Object* mod = stack_pop();
+  if(t1->kind_of_p(state, mod)) {
+    stack_push(Qtrue);
+  } else {
+    stack_push(Qfalse);
+  }
+end
+
+# [Operation]
+#   Evaluate if +object+ is an instance of +class+
+# [Format]
+#   \instance_of
+# [Stack Before]
+#   * object
+#   * class
+#   * ...
+# [Stack After]
+#   * result
+#   * ...
+# [Description]
+#   If the object is an instance of +\class+ return the special value +true+,
+#   otherwise return +false+. This check is different than +kind_of+ in that
+#   it does not evaluate superclass relationships. Instance-specific
+#   subtyping via metaclasses are ignored in computing the parent \class.
+# [See Also]
+#   * kind_of
+
+instruction instance_of() [ object class -- boolean ]
+  Object* t1 = stack_pop();
+  Class* cls = as<Class>(stack_pop());
+  if(t1->class_object(state) == cls) {
+    stack_push(Qtrue);
+  } else {
+    stack_push(Qfalse);
+  }
+end
+
+section "Optimization instructions"
+
+# [Operation]
+#   Pushes -1 onto the stack
+# [Format]
+#   \meta_push_neg_1
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * -1
+#   * ...
+# [Description]
+#   Fast push of -1 (negative 1) onto the stack. This is an optimisation
+#   applied whenever a literal -1 is encountered by the compiler. It is
+#   equivalent to 'push -1', but faster because there is no need to lookup
+#   the literal value in the literals tuple.
+
+instruction meta_push_neg_1() [ -- value ]
+  stack_push(Fixnum::from(-1));
+end
+
+# [Operation]
+#   Pushes 0 onto the stack
+# [Format]
+#   \meta_push_0
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * 0
+#   * ...
+# [Description]
+#   Fast push of 0 (zero) onto the stack. This is an optimisation applied
+#   whenever a literal 0 is encountered by the compiler. It is equivalent to
+#   'push 0', but faster because there is no need to lookup the literal
+#   value in the literals tuple.
+
+instruction meta_push_0() [ -- value ]
+  stack_push(Fixnum::from(0));
+end
+
+# [Operation]
+#   Pushes 1 onto the stack
+# [Format]
+#   \meta_push_1
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * 1
+#   * ...
+# [Description]
+#   Fast push of 1 (one) onto the stack. This is an optimisation applied
+#   whenever a literal 1 is encountered by the compiler. It is equivalent to
+#   'push 1', but faster because there is no need to lookup the literal
+#   value in the literals tuple.
+
+instruction meta_push_1() [ -- value ]
+  stack_push(Fixnum::from(1));
+end
+
+# [Operation]
+#   Pushes 2 onto the stack
+# [Format]
+#   \meta_push_2
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * 2
+#   * ...
+# [Description]
+#   Fast push of 2 (two) onto the stack. This is an optimisation applied
+#   whenever a literal 2 is encountered by the compiler. It is equivalent to
+#   'push 2', but faster because there is no need to lookup the literal
+#   value in the literals tuple.
+
+instruction meta_push_2() [ -- value ]
+  stack_push(Fixnum::from(2));
+end
+
+# [Operation]
+#   Implementation of + optimised for fixnums
+# [Format]
+#   \meta_send_op_plus
+# [Stack Before]
+#   * value2
+#   * value1
+#   * ...
+# [Stack After]
+#   * value1 + value2
+#   * ...
+# [Description]
+#   Pops +value1+ and +value2+ off the stack, and pushes the logical result
+#   of (+value1+ + +value2+). If +value1+ and +value2+ are both fixnums, the
+#   addition is done directly via the fixnum_add primitive; otherwise, the +
+#   method is called on +value1+, passing +value2+ as the argument.
+
+instruction meta_send_op_plus(name) [ value1 value2 -- sum ]
+  Object* left =  stack_back(1);
+  Object* right = stack_back(0);
+
+  if(both_fixnum_p(left, right)) {
+    stack_pop();
+    stack_pop();
+    Object* res = ((Fixnum*)(left))->add(state, (Fixnum*)(right));
+    stack_push(res);
+  } else {
+    flush_ip();
+    Arguments out_args(left, 1, stack_back_position(1));
+    InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    Object* ret = cache->execute(state, call_frame, out_args);
+    stack_clear(2);
+
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
+  }
+end
+
+# [Operation]
+#   Implementation of - optimised for fixnums
+# [Format]
+#   \meta_send_op_minus
+# [Stack Before]
+#   * value2
+#   * value1
+#   * ...
+# [Stack After]
+#   * value1 - value2
+#   * ...
+# [Description]
+#   Pops +value1+ and +value2+ off the stack, and pushes the logical result
+#   of (+value1+ - +value2+). If +value1+ and +value2+ are both fixnums, the
+#   subtraction is done directly via the fixnum_sub primitive; otherwise,
+#   the - method is called on +value1+, passing +value2+ as the argument.
+
+instruction meta_send_op_minus(name) [ value1 value2 -- difference ]
+  Object* left =  stack_back(1);
+  Object* right = stack_back(0);
+
+  if(both_fixnum_p(left, right)) {
+    stack_pop();
+    stack_set_top(((Fixnum*)(left))->sub(state, (Fixnum*)(right)));
+  } else {
+    flush_ip();
+    Arguments out_args(left, 1, stack_back_position(1));
+    InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    Object* ret = cache->execute(state, call_frame, out_args);
+    stack_clear(2);
+
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
+  }
+end
+
+# [Operation]
+#   Implementation of == optimised for fixnums and symbols
+# [Format]
+#   \meta_send_op_equal
+# [Stack Before]
+#   * value2
+#   * value1
+#   * ...
+# [Stack After]
+#   * true | false
+#   * ...
+# [Description]
+#   Pops +value1+ and +value2+ off the stack, and pushes the logical result
+#   of (+value1+ == +value2+). If +value1+ and +value2+ are both fixnums or
+#   both symbols, the comparison is done directly; otherwise, the == method
+#   is called on +value1+, passing +value2+ as the argument.
+
+instruction meta_send_op_equal(name) [ value1 value2 -- boolean ]
+  Object* t1 = stack_back(1);
+  Object* t2 = stack_back(0);
+  /* If both are not references, compare them directly. */
+  if(!t1->reference_p() && !t2->reference_p()) {
+    stack_pop();
+    stack_set_top((t1 == t2) ? Qtrue : Qfalse);
+  } else {
+    flush_ip();
+
+    Arguments out_args(t1, 1, stack_back_position(1));
+    InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    Object* ret = cache->execute(state, call_frame, out_args);
+    stack_clear(2);
+
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
+  }
+end
+
+# [Operation]
+#   Implementation of < optimised for fixnums
+# [Format]
+#   \meta_send_op_lt
+# [Stack Before]
+#   * value2
+#   * value1
+#   * ...
+# [Stack After]
+#   * true | false
+#   * ...
+# [Description]
+#   Pops +value1+ and +value2+ off the stack, and pushes the logical result
+#   of (+value1+ < +value2+). If +value1+ and +value2+ are both fixnums, the
+#   comparison is done directly; otherwise, the < method is called on
+#   +value1+, passing +value2+ as the argument.
+
+instruction meta_send_op_lt(name) [ value1 value2 -- boolean ]
+  Object* t1 = stack_back(1);
+  Object* t2 = stack_back(0);
+  if(both_fixnum_p(t1, t2)) {
+    native_int j = as<Integer>(t1)->to_native();
+    native_int k = as<Integer>(t2)->to_native();
+    stack_pop();
+    stack_set_top((j < k) ? Qtrue : Qfalse);
+  } else {
+    flush_ip();
+    Arguments out_args(t1, 1, stack_back_position(1));
+    InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    Object* ret = cache->execute(state, call_frame, out_args);
+    stack_clear(2);
+
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
+  }
+end
+
+# [Operation]
+#   Implementation of > optimised for fixnums
+# [Format]
+#   \meta_send_op_gt
+# [Stack Before]
+#   * value2
+#   * value1
+#   * ...
+# [Stack After]
+#   * true | false
+#   * ...
+# [Description]
+#   Pops +value1+ and +value2+ off the stack, and pushes the logical result
+#   of (+value1+ > +value2+). If +value1+ and +value2+ are both fixnums, the
+#   comparison is done directly; otherwise, the > method is called on
+#   +value1+, passing +value2+ as the argument.
+
+instruction meta_send_op_gt(name) [ value1 value2 -- boolean ]
+  Object* t1 = stack_back(1);
+  Object* t2 = stack_back(0);
+  if(both_fixnum_p(t1, t2)) {
+    native_int j = as<Integer>(t1)->to_native();
+    native_int k = as<Integer>(t2)->to_native();
+    stack_pop();
+    stack_set_top((j > k) ? Qtrue : Qfalse);
+  } else {
+    flush_ip();
+    Arguments out_args(t1, 1, stack_back_position(1));
+    InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    Object* ret = cache->execute(state, call_frame, out_args);
+    stack_clear(2);
+
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
+  }
+end
+
+# [Operation]
+#   Implementation of === (triple \equal) optimised for fixnums and symbols
+# [Format]
+#   \meta_send_op_tequal
+# [Stack Before]
+#   * value2
+#   * value1
+#   * ...
+# [Stack After]
+#   * true | false
+#   * ...
+# [Description]
+#   Pops +value1+ and +value2+ off the stack, and pushes the logical result
+#   of (+value1+ === +value2+). If +value1+ and +value2+ are both fixnums or
+#   both symbols, the comparison is done directly; otherwise, the === method
+#   is called on +value1+, passing +value2+ as the argument.
+# [Notes]
+#   Exactly like equal, except calls === if it can't handle it directly.
+
+instruction meta_send_op_tequal(name) [ value1 value2 -- boolean ]
+  Object* t1 = stack_back(1);
+  Object* t2 = stack_back(0);
+  /* If both are fixnums, or both are symbols, compare the ops directly. */
+  if((t1->fixnum_p() && t2->fixnum_p()) || (t1->symbol_p() && t2->symbol_p())) {
+    stack_pop();
+    stack_set_top((t1 == t2) ? Qtrue : Qfalse);
+  } else {
+    flush_ip();
+    Arguments out_args(t1, 1, stack_back_position(1));
+    InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    Object* ret = cache->execute(state, call_frame, out_args);
+    stack_clear(2);
+
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
+  }
+end
+
+# [Operation]
+#   Used for non-dynamic 'yield' calls and for simple calls with static args
+# [Format]
+#   \meta_send_call count
+# [Stack Before]
+#   * argN
+#   * ...
+#   * arg1
+#   * receiver
+# [Stack After]
+#   * retval
+# [Description]
+#   Simplified call instruction used for yields and basic calls
+
+instruction meta_send_call(name count) [ receiver +count -- value ]
+  flush_ip();
+  Object* t1 = stack_back(count);
+  Object* ret;
+
+  Arguments out_args(t1, count, stack_back_position(count));
+
+  if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
+    ret = env->call(state, call_frame, out_args);
+  } else if(Proc* proc = try_as<Proc>(t1)) {
+    ret = proc->call(state, call_frame, out_args);
+  } else {
+    InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    ret = cache->execute(state, call_frame, out_args);
+  }
+
+  stack_clear(count + 1);
+
+  HANDLE_EXCEPTION(ret);
+  stack_push(ret);
+end
+
+section "More misc"
+
+instruction push_my_offset(index) [ -- offset ]
+  Object* val = *reinterpret_cast<Object**>(
+      reinterpret_cast<uintptr_t>(call_frame->self()) + index);
+  stack_push(val);
+end

@@ -2,6 +2,7 @@ require 'tmpdir'
 require 'rakelib/rubinius'
 require 'rakelib/configuration'
 require 'rakelib/build'
+require 'rakelib/instruction_parser'
 require 'ostruct'
 
 require 'lib/ffi/generator_task.rb'
@@ -33,8 +34,6 @@ else
   tests = FileList["vm/test/**/test_*.hpp"]
 end
 
-# vm/test/test_instructions.hpp may not have been generated yet
-# tests      << 'vm/test/test_instructions.hpp'
 tests.uniq!
 
 subdirs = %w!builtin capi parser util instruments gc llvm!
@@ -72,6 +71,12 @@ EX_INC      = %w[ libtommath libgdtoa onig libffi/include
 INSN_GEN    = %w[ vm/gen/iseq_instruction_names.cpp
                   vm/gen/iseq_instruction_names.hpp
                   vm/gen/iseq_instruction_size.gen
+                  vm/gen/implementation_prototype.hpp
+                  vm/gen/instruction_defines.hpp
+                  vm/gen/instruction_locations.hpp
+                  vm/gen/instruction_implementations.hpp
+                  vm/gen/inst_list.hpp
+                  vm/gen/inst_stack.hpp
                 ]
 TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/kind_of.hpp
@@ -258,14 +263,6 @@ def ld(t)
   else
     puts "LD #{t.name}"
     sh "#{ld} #{link_opts} -o #{t.name} #{o} #{l}", :verbose => false
-  end
-end
-
-def rubypp_task(target, prerequisite, *extra)
-  file target => [prerequisite, 'vm/codegen/rubypp.rb'] + extra do
-    path = File.join("vm/gen", File.basename(prerequisite))
-    ruby 'vm/codegen/rubypp.rb', prerequisite, path
-    yield path
   end
 end
 
@@ -462,8 +459,6 @@ objs.zip(srcs).each do |obj, src|
   file "#{File.basename obj, '.o'}.S" => src
 end
 
-objs += ["vm/instructions.o"] # NOTE: BC isn't added due to llvm-g++ requirement
-
 files EXTERNALS do |t|
   path = File.join(*split_all(t.name)[0..2])
   configure_path = File.join(path, 'configure')
@@ -485,21 +480,7 @@ end
 
 file 'vm/primitives.o'                => 'vm/codegen/field_extract.rb'
 file 'vm/primitives.o'                => TYPE_GEN
-file 'vm/codegen/instructions_gen.rb' => 'kernel/compiler/iseq.rb'
-file 'vm/instructions.rb'             => 'vm/gen'
-file 'vm/instructions.rb'             => 'vm/codegen/instructions_gen.rb'
-# file 'vm/test/test_instructions.hpp'  => 'vm/codegen/instructions_gen.rb'
 file 'vm/codegen/field_extract.rb'    => 'vm/gen'
-
-files INSN_GEN, %w[vm/instructions.rb] do |t|
-  ruby 'vm/instructions.rb', :verbose => $verbose
-end
-
-# rake sucks. This can't be a normal dep.
-unless File.exists? 'vm/gen/inst_list.hpp' and File.exists? "vm/gen/inst_stack.hpp"
-  puts "GEN vm/gen/inst_list.hpp"
-  ruby "vm/codegen/instruction_macros.rb"
-end
 
 task :run_field_extract do
   field_extract field_extract_headers
@@ -557,26 +538,59 @@ file 'vm/compile' => EXTERNALS + objs + %w[vm/drivers/compile.o] do |t|
   ld t
 end
 
+# Generate files for instructions and interpreters
 
-file "vm/instructions.o" => "vm/gen/instructions.cpp" do
-  compile_c "vm/instructions.o", "vm/gen/instructions.cpp"
+iparser = InstructionParser.new "vm/instructions.def"
+
+def generate_instruction_file(parser, generator, name)
+  puts "GEN #{name}"
+  parser.parse
+  parser.send generator, name
 end
 
-file "vm/instructions.S" => "vm/gen/instructions.cpp" do
-  compile_c "vm/instructions.S", "vm/gen/instructions.cpp", "S"
+insn_deps = %w[  vm/gen
+                 vm/instructions.def
+                 rakelib/instruction_parser.rb
+              ]
+
+file "kernel/compiler/opcodes.rb" => insn_deps do |t|
+  generate_instruction_file iparser, :generate_definitions, t.name
 end
 
-file "vm/gen/instructions.cpp" => %w[vm/template/instructions.cpp vm/instructions.rb] + hdrs do
-  ruby "vm/codegen/rubypp.rb", "vm/template/instructions.cpp", "vm/gen/instructions.cpp"
+file "vm/gen/iseq_instruction_names.hpp" => insn_deps do |t|
+  generate_instruction_file iparser, :generate_names_header, t.name
 end
 
-#
-#rubypp_task 'vm/instructions.o', 'vm/template/instructions.cpp', 'vm/instructions.rb', *hdrs do |path|
-#  compile_c 'vm/instructions.o', path
-#end
+file "vm/gen/iseq_instruction_names.cpp" => insn_deps do |t|
+  generate_instruction_file iparser, :generate_names, t.name
+end
 
-rubypp_task 'vm/instructions.bc', 'vm/template/instructions.cpp', *hdrs do |path|
-  sh "llvm-g++ -emit-llvm -Ivm -Ivm/external_libs/libffi/include -c -o vm/instructions.bc #{path}"
+file "vm/gen/implementation_prototype.hpp" => insn_deps do |t|
+  generate_instruction_file iparser, :generate_prototypes, t.name
+end
+
+file "vm/gen/iseq_instruction_size.gen" => insn_deps do |t|
+  generate_instruction_file iparser, :generate_sizes, t.name
+end
+
+file "vm/gen/instruction_defines.hpp" => insn_deps do |t|
+  generate_instruction_file iparser, :generate_defines, t.name
+end
+
+file "vm/gen/instruction_locations.hpp" => insn_deps do |t|
+  generate_instruction_file iparser, :generate_locations, t.name
+end
+
+file "vm/gen/instruction_implementations.hpp" => insn_deps do |t|
+  generate_instruction_file iparser, :generate_implementations , t.name
+end
+
+file "vm/gen/inst_list.hpp" => insn_deps do |t|
+  generate_instruction_file iparser, :generate_visitors, t.name
+end
+
+file "vm/gen/inst_stack.hpp" => insn_deps do |t|
+  generate_instruction_file iparser, :generate_stack_effects, t.name
 end
 
 namespace :vm do
@@ -597,8 +611,7 @@ namespace :vm do
 
     puts "CC/LD vm/test/coverage/runner"
     begin
-      path = "vm/gen/instructions.cpp"
-      ruby 'vm/codegen/rubypp.rb', "vm/template/instructions.cpp", path
+      path = "vm/instructions.cpp"
       sh "#{CXX} -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp #{path} #{link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
 
       puts "RUN vm/test/coverage/runner"
@@ -631,7 +644,6 @@ namespace :vm do
       'vm/test/runner',
       'vm/test/runner.cpp',
       'vm/test/runner.o',
-      'vm/test/test_instructions.hpp',
       'vm/vm',
       'vm/.deps'
     ].flatten
@@ -672,7 +684,7 @@ require 'rakelib/dependency_grapher'
 
 generated = (TYPE_GEN + INSN_GEN).select { |f| f =~ /pp$/ }
 
-object_sources = srcs + vm_srcs + generated + ["vm/gen/instructions.cpp"]
+object_sources = srcs + vm_srcs + generated
 
 # vm/.depends.mf depends on all source and include files. If any of
 # those files are newer than vm/.depends.mf, all dependencies are

@@ -4,6 +4,7 @@ compiler.rbc
 node.rbc
 nodes.rbc
 iseq.rbc
+opcodes.rbc
 generator.rbc
 bytecode.rbc
 compile.rbc

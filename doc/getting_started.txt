@@ -6,7 +6,6 @@ next section.
 
 1. Install [ruby 1.8](http://www.ruby-lang.org/en/downloads/)
 1. Install [RubyGems](http://rubyforge.org/projects/rubygems)
-1. Install rake and ParseTree: <tt>gem install rake ParseTree</tt>
 1. Install Git
 1. Clone rubinius: <tt>git clone git://github.com/evanphx/rubinius.git</tt>
 1. cd to your rubinius checkout
@@ -54,7 +53,6 @@ for rubinius development.
 ### Requirements through RubyGems
 
 * rake
-* ParseTree
 
 Rake may be obtained with the <tt>gem install</tt> command. See <tt>gem
 help</tt> and http://www.rubygems.org for more information.

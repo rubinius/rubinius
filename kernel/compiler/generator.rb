@@ -5,9 +5,6 @@ class Compiler
 
   class Generator
 
-    CALL_FLAG_PRIVATE = 1
-    CALL_FLAG_CONCAT = 2
-
     ##
     # Jump label for the goto instructions.
 
@@ -632,7 +629,7 @@ class Compiler
 
     def send_with_splat(meth, args, priv=false, concat=false)
       val = 0
-      val |= CALL_FLAG_CONCAT  if concat
+      val |= Rubinius::InstructionSet::CALL_FLAG_CONCAT if concat
       add :set_call_flags, val unless val == 0
 
       add :allow_private if priv

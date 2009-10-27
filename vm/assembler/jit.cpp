@@ -346,12 +346,6 @@ namespace rubinius {
         s.pop();
         ops.jump_if_true(eax, labels[vmm->opcodes[i + 1]]);
         break;
-      case InstructionSequence::insn_goto_if_defined:
-        s.load_nth(eax, 0);
-        s.pop();
-        a.cmp(eax, (uintptr_t)Qundef);
-        a.jump_if_not_equal(labels[vmm->opcodes[i + 1]]);
-        break;
       case InstructionSequence::insn_setup_unwind:
         labels[vmm->opcodes[i + 1]].flags() |= cFlagUnwoundTo;
         goto call_op;
@@ -598,24 +592,6 @@ call_op:
       AssemblerX86::NearJumpLocation set, done;
 
       ops.jump_if_true(eax, set);
-      a.jump(done);
-
-      a.set_label(set);
-      ops.load_opcode(eax, edi, edx);
-      ops.store_virtual_ip(eax);
-
-      a.set_label(done);
-      break;
-    }
-    case InstructionSequence::insn_goto_if_defined: {
-      ops.load_and_increment_ip(edx);
-      s.load_nth(eax, 0);
-      s.pop();
-
-      AssemblerX86::NearJumpLocation set, done;
-
-      a.cmp(eax, (uintptr_t)Qundef);
-      a.jump_if_not_equal(set);
       a.jump(done);
 
       a.set_label(set);

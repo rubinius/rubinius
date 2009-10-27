@@ -1,5 +1,3 @@
-/** \file   Base template for generating vm/gen/instructions.cpp. */
-
 #include "builtin/object.hpp"
 #include "builtin/array.hpp"
 #include "builtin/autoload.hpp"
@@ -33,6 +31,8 @@
 #include "helpers.hpp"
 #include "inline_cache.hpp"
 
+#include "vm/gen/instruction_defines.hpp"
+
 using namespace rubinius;
 
 #define STACK_PTR stack_ptr
@@ -58,7 +58,8 @@ using namespace rubinius;
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
 
 extern "C" {
-  Object* send_slowly(STATE, VMMethod* vmm, InterpreterCallFrame* const call_frame, Symbol* name, Object** stk_pos, size_t args);
+  Object* send_slowly(STATE, VMMethod* vmm, InterpreterCallFrame* const call_frame,
+                      Symbol* name, Object** stk_pos, size_t args);
 
 #define HANDLE_EXCEPTION(val) if(val == NULL) goto exception
 #define RUN_EXCEPTION() goto exception
@@ -71,31 +72,30 @@ extern "C" {
 
 #define stack_back_position(count) (STACK_PTR - (count - 1))
 
-#ruby <<CODE
-  require 'stringio'
-    require 'vm/instructions.rb'
-    si = Instructions.new
-    impl = si.decode_methods
-    nil
-CODE
+  Object* send_slowly(STATE, VMMethod* vmm, InterpreterCallFrame* const call_frame,
+                      Symbol* name, Object** stk_pos, size_t count)
+  {
+    Object* recv = stk_pos[0];
+    Arguments args(recv, count, stk_pos+1);
+    Dispatch dis(name);
 
-    Object* send_slowly(STATE, VMMethod* vmm, InterpreterCallFrame* const call_frame, Symbol* name, Object** stk_pos, size_t count) {
-      Object* recv = stk_pos[0];
-      Arguments args(recv, count, stk_pos+1);
-      Dispatch dis(name);
-
-      return dis.send(state, call_frame, args);
-    }
+    return dis.send(state, call_frame, args);
+  }
 }
 
 
-Object* VMMethod::interpreter(STATE, VMMethod* const vmm,
-    InterpreterCallFrame* const call_frame, Arguments& args)
+Object* VMMethod::interpreter(STATE,
+                              VMMethod* const vmm,
+                              InterpreterCallFrame* const call_frame,
+                              Arguments& args)
 {
-#ruby <<CODE
-  impl2 = si.decode_methods
-  si.generate_jump_table impl2, true
-CODE
+
+#include "vm/gen/instruction_locations.hpp"
+
+  if(unlikely(state == 0)) {
+    VMMethod::instructions = const_cast<void**>(insn_locations);
+    return NULL;
+  }
 
   InterpreterState is;
 
@@ -140,11 +140,7 @@ continue_to_run:
 #define cache_ip(which) ip_ptr = vmm->addresses + which
 #define flush_ip() call_frame->calculate_ip(ip_ptr)
 
-#ruby <<CODE
-    io = StringIO.new
-    si.generate_jump_implementations impl2, io
-    puts io.string
-CODE
+#include "vm/gen/instruction_implementations.hpp"
 
   } catch(TypeError& e) {
     flush_ip();
@@ -238,13 +234,14 @@ exception:
   return NULL;
 }
 
-Object* VMMethod::uncommon_interpreter(STATE, VMMethod* const vmm,
-    CallFrame* const call_frame, Arguments& args, native_int sp)
+Object* VMMethod::uncommon_interpreter(STATE,
+                                       VMMethod* const vmm,
+                                       CallFrame* const call_frame,
+                                       Arguments& args,
+                                       native_int sp)
 {
-#ruby <<CODE
-  impl2 = si.decode_methods
-  si.generate_jump_table impl2
-CODE
+
+#include "vm/gen/instruction_locations.hpp"
 
   opcode* stream = vmm->opcodes;
   InterpreterState is;
@@ -286,11 +283,8 @@ continue_to_run:
 #define cache_ip(which)
 #define flush_ip()
 
-#ruby <<CODE
-    io = StringIO.new
-    si.generate_jump_implementations impl2, io
-    puts io.string
-CODE
+#include "vm/gen/instruction_implementations.hpp"
+
   } catch(TypeError& e) {
     flush_ip();
     Exception* exc =
@@ -387,13 +381,13 @@ exception:
  * each opcode for the breakpoint flag. It is installed on the VMMethod when
  * a breakpoint is set on compiled method.
  */
-Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm,
+Object* VMMethod::debugger_interpreter(STATE,
+                                       VMMethod* const vmm,
                                        InterpreterCallFrame* const call_frame,
-                                       Arguments& args) {
-#ruby <<CODE
-  impl2 = si.decode_methods
-  si.generate_jump_table impl2
-CODE
+                                       Arguments& args)
+{
+
+#include "vm/gen/instruction_locations.hpp"
 
   opcode* stream = vmm->opcodes;
   InterpreterState is;
@@ -450,11 +444,8 @@ continue_to_run:
 #define cache_ip(which)
 #define flush_ip()
 
-#ruby <<CODE
-    io = StringIO.new
-    si.generate_jump_implementations impl2, io
-    puts io.string
-CODE
+#include "vm/gen/instruction_implementations.hpp"
+
   } catch(TypeError& e) {
     flush_ip();
     Exception* exc =

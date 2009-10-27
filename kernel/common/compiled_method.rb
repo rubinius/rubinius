@@ -470,13 +470,6 @@ module Rubinius
         end
         @ip = ip
         @line = cm.line_from_ip(ip)
-
-        if sc = @op.stack_consumed
-          @stack_consumed = calculate_stack_usage(sc, args_reg)
-        else
-          @stack_produced = 0
-        end
-        @stack_produced = calculate_stack_usage(@op.stack_produced)
       end
 
       # Instruction pointer
@@ -518,30 +511,6 @@ module Rubinius
       # Returns the stack operands produced by this instruction, as well as a flag
       # indicating whether this is an exact value (true) or a minimum (false).
       attr_reader :stack_produced
-
-      ##
-      # Calculate the stack usage (pushes or pops) of this instruction.
-      #
-      # @return [Integer]
-      def calculate_stack_usage(code, args_reg=0)
-        usage = code
-        if code < 0
-          usage = 0
-          # Stack usage depends on opcode args
-          code *= -1
-          arg, code = code.divmod(10)
-          if arg >= 1 and arg <= 2
-            # Opcode consumes/produces a multiple of the value in the specified
-            # opcode arg
-            usage += args[arg-1]
-          elsif arg == 3
-            # Opcode consumes number of args specified in args register
-            usage += args_reg
-          end
-          usage += code
-        end
-        return usage
-      end
 
       ##
       # A nice human readable interpretation of this set of instructions
