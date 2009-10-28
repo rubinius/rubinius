@@ -9,6 +9,7 @@ next section.
 1. Install Git
 1. Clone rubinius: <tt>git clone git://github.com/evanphx/rubinius.git</tt>
 1. cd to your rubinius checkout
+1. `./configure`
 1. `rake`
 1. `bin/rbx -v`
 
