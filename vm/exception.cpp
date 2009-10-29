@@ -120,6 +120,14 @@ namespace rubinius {
     ::abort();
   }
 
+  void bug(const char* message, const char* arg) {
+    std::cerr << "[BUG: " << message
+              << ": " << arg
+              << "]\n";
+    print_backtrace();
+    ::abort();
+  }
+
   void print_backtrace() {
     VMException::Backtrace s = get_trace(2);
     demangle(s);
