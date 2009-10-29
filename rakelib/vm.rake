@@ -191,6 +191,8 @@ Rubinius::BUILD_CONFIG[:defines].each do |flag|
   FLAGS << "-D#{flag}"
 end
 
+FLAGS << "-DRBX_HOST=\\\"#{RBX_HOST}\\\""
+
 BUILD_PRETASKS = []
 
 if ENV['DEV']
