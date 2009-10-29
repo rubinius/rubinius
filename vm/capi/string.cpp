@@ -60,19 +60,21 @@ namespace rubinius {
     }
 
     RString* Handle::as_rstring(NativeMethodEnvironment* env) {
+      String* string = c_as<String>(object());
+
       if(type_ != cRString) {
-        String* string = c_as<String>(object());
         string->unshare(env->state());
 
         RString* str = new RString;
-
-        repin_string(env, string, str);
-
         str->aux.shared = Qfalse;
 
         type_ = cRString;
         as_.rstring = str;
       }
+
+      // We always repin because the ByteArray could have changed between
+      // the last time we used this handle and now.
+      repin_string(env, string, as_.rstring);
 
       return as_.rstring;
     }

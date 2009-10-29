@@ -189,6 +189,17 @@ describe "C-API String function" do
       @s.RSTRING_PTR_assign(str, 65)
       str.should == "AAA"
     end
+
+    it "reflects changes after a rb_funcall" do
+      lamb = proc { |s| s.replace "NEW CONTENT" }
+
+      str = "beforebefore"
+
+      ret = @s.RSTRING_PTR_after_funcall(str, lamb)
+
+      str.should == "NEW CONTENT"
+      ret.should == str
+    end
   end
 
   describe "RSTRING_LEN" do
