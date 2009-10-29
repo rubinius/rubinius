@@ -141,7 +141,7 @@ class DependencyGrapher
       @includes = []
     end
 
-    def expand_filename
+    def expand_filename(node)
       return if File.exist? @name
 
       @parser.directories.each do |dir|
@@ -149,11 +149,11 @@ class DependencyGrapher
         return @name = path if File.file? path
       end
 
-      raise Errno::ENOENT, "unable to find file to include: #{@name}"
+      raise Errno::ENOENT, "unable to find file to include: #{@name} from #{node.name}"
     end
 
     def execute(defines, node)
-      expand_filename
+      expand_filename(node)
 
       if cached = self.class.cache[@name.to_sym]
         @body = cached.body
