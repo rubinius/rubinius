@@ -26,6 +26,8 @@
 #include "native_thread.hpp"
 #include "inline_cache.hpp"
 
+#include "agent.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -33,13 +35,14 @@
 
 namespace rubinius {
 
-  Environment::Environment() {
+  Environment::Environment()
+    : agent(0)
+  {
 #ifdef ENABLE_LLVM
     assert(llvm::llvm_start_multithreaded() && "llvm doesn't support threading!");
 #endif
 
     shared = new SharedState(config, config_parser);
-
     state = shared->new_vm();
   }
 
@@ -147,6 +150,8 @@ namespace rubinius {
   }
 
   void Environment::boot_vm() {
+    if(config.qa_port > 0) start_agent(config.qa_port);
+
     // Respect -Xint
     if(config.jit_force_off) {
       config.jit_enabled.set("no");
@@ -220,4 +225,9 @@ namespace rubinius {
     return 0;
   }
 
+  void Environment::start_agent(int port) {
+    agent = new QueryAgent(port);
+    if(config.qa_verbose) agent->set_verbose();
+    agent->run();
+  }
 }

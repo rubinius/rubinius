@@ -27,6 +27,10 @@ namespace rubinius {
 
     config::BoolSet jit_defaults;
 
+    // Query Agent
+    config::Integer qa_port;
+    config::Bool    qa_verbose;
+
     // Debug
     config::Bool    gil_debug;
     config::Integer print_config;
@@ -60,6 +64,8 @@ namespace rubinius {
       , jit_inline_blocks(this, "jit.inline.blocks")
       , jit_force_off(this,   "int")
       , jit_defaults(this,    "J")
+      , qa_port(this,         "agent.port")
+      , qa_verbose(this,      "agent.verbose")
       , gil_debug(this,       "vm.gil.debug")
       , print_config(this,    "config.print")
       , ic_stats(this,        "ic.stats")
@@ -120,6 +126,12 @@ namespace rubinius {
 
       ic_stats.set_description(
           "Print out stats about the InlineCaches before exiting");
+
+      qa_port.set_description(
+          "The TCP port for the query agent to listen on");
+
+      qa_verbose.set_description(
+          "Whether or not the query agent should print out status to stderr");
     }
   };
 }

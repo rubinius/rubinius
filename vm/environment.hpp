@@ -11,11 +11,13 @@
 namespace rubinius {
 
   class ConfigParser;
+  class QueryAgent;
 
   class Environment {
   public:
     SharedState* shared;
     VM* state;
+    QueryAgent* agent;
 
     ConfigParser  config_parser;
     Configuration config;
@@ -35,6 +37,7 @@ namespace rubinius {
     void halt();
     int exit_code();
     void start_signals();
+    void start_agent(int port);
   };
 
 }
