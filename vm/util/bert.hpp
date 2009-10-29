@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include <ostream>
 #include <iostream>
@@ -453,7 +454,7 @@ namespace bert {
         ssize_t bytes = ::write(fd_, (const void*)buf, need);
 
         if(bytes == -1) {
-          if(errno != EAGAIN && errno != EINTR) abort(); // ug.
+          if(errno != EAGAIN && errno != EINTR) ::abort(); // ug.
           bytes = 0;
         }
 
