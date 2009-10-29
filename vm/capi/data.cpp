@@ -56,6 +56,10 @@ extern "C" {
 
     data->klass(env->state(), data_klass);
 
+    // Data objects are directly manipulated, so we have to always
+    // track them.
+    env->state()->om->remember_object(data);
+
     return env->get_handle(data);
   }
 }
