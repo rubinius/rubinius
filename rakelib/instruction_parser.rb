@@ -261,19 +261,22 @@ class InstructionParser
   def parse
     return if @parsed
 
-    @file = File.open @filename, "r"
-    while line = @file.gets
-      if index = line.index("#")
-        line = line[0, index]
+    File.open @filename, "r" do |file|
+      @file = file
+
+      while line = @file.gets
+        if index = line.index("#")
+          line = line[0, index]
+        end
+
+        next if line.empty?
+
+        m = line.match(/^(instruction|section|define) +(.*)$/)
+
+        send :"process_#{m[1]}", self, m[2] if m
       end
-
-      next if line.empty?
-
-      m = line.match(/^(instruction|section|define) +(.*)$/)
-
-      send :"process_#{m[1]}", self, m[2] if m
     end
-    @file.close
+
     @parsed = true
   end
 
