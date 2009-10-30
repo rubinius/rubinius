@@ -615,13 +615,6 @@ class TestGenerator
     end
   end
 
-  def invalid_context(name)
-    g.push :self
-    g.push_const :LocalJumpError
-    g.push_literal "#{name} used in invalid context"
-    g.send :raise, 2, true
-  end
-
   def cast_array
     unless @last and [:cast_array, :make_array].include? @last.first
       add :cast_array
