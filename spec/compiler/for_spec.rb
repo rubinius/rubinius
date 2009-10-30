@@ -142,4 +142,57 @@ describe "A For node" do
       g.send_with_block :each, 0, false
     end
   end
+
+  relates <<-ruby do
+      c = 1
+      for i in a
+        for j in b
+          c
+        end
+      end
+    ruby
+
+    compile do |g|
+      g.push 1
+      g.set_local 0
+      g.pop
+
+      g.push :self
+      g.send :a, 0, true
+
+      i = description do |d|
+        d.cast_for_single_block_arg
+        d.set_local_depth 1, 1
+        d.pop
+
+        d.push_modifiers
+        d.new_label.set!
+
+        d.push :self
+        d.send :b, 0, true
+
+        i2 = description do |e|
+          e.cast_for_single_block_arg
+          e.set_local_depth 2, 2
+          e.pop
+
+          e.push_modifiers
+          e.new_label.set!
+          e.push_local_depth 2, 0
+
+          e.pop_modifiers
+          e.ret
+        end
+
+        d.create_block i2
+        d.send_with_block :each, 0, false
+
+        d.pop_modifiers
+        d.ret
+      end
+
+      g.create_block i
+      g.send_with_block :each, 0, false
+    end
+  end
 end
