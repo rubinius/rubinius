@@ -927,7 +927,7 @@ class Environment
     @dyn.unshift dyn
     @env.unshift({})
     @use.unshift({})
-   end
+  end
 
   def initialize dyn = false
     @dyn = []
