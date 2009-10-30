@@ -17,7 +17,7 @@ RUBINIUS_BASE = File.expand_path(File.dirname(__FILE__))
 $: << "lib"
 
 task :default => %w[build vm:test] do
-  system "bin/mspec ci -B full --background"
+  sh "bin/mspec ci -B full --background"
 end
 
 desc "Compile the given ruby file into a .rbc file"
