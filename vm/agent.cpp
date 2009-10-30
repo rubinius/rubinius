@@ -138,8 +138,7 @@ namespace rubinius {
     if(!bind()) return;
 
     while(1) {
-      fd_set read_fds;
-      FD_COPY(&fds_, &read_fds);
+      fd_set read_fds = fds_;
 
       int ret = select(max_fd_ + 1, &read_fds, 0, 0, 0);
 
