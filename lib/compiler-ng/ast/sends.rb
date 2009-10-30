@@ -285,6 +285,15 @@ module Rubinius
         end
       end
 
+      def new_local(name)
+        variable = CompilerNG::LocalVariable.new allocate_slot
+        variables[name] = variable
+      end
+
+      def new_nested_local(name)
+        new_local(name).nested_reference
+      end
+
       # If the local variable exists in this scope, set the local variable
       # node attribute to a reference to the local variable. If the variable
       # exists in an enclosing scope, set the local variable node attribute to
@@ -297,8 +306,7 @@ module Rubinius
           reference.depth += 1
           var.variable = reference
         else
-          variable = CompilerNG::LocalVariable.new allocate_slot
-          variables[var.name] = variable
+          variable = new_local var.name
           var.variable = variable.reference
         end
       end
@@ -450,16 +458,8 @@ module Rubinius
     end
 
     class For < Iter
-      def variables
-        @parent.variables
-      end
-
-      def allocate_slot
-        @parent.allocate_slot
-      end
-
       def nest_scope(scope)
-        scope.parent = @parent
+        scope.parent = self
       end
 
       def search_local(name)
@@ -469,13 +469,15 @@ module Rubinius
         end
       end
 
+      def new_nested_local(name)
+        reference = @parent.new_nested_local name
+        reference.depth += 1
+        reference
+      end
+
       def assign_local_reference(var)
         unless reference = search_local(var.name)
-          variable = CompilerNG::LocalVariable.new allocate_slot
-          variables[var.name] = variable
-
-          reference = variable.nested_reference
-          reference.depth += 1
+          reference = new_nested_local var.name
         end
 
         var.variable = reference

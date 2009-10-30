@@ -105,6 +105,10 @@ module Rubinius
         variables[name] = variable
       end
 
+      def new_nested_local(name)
+        new_local(name).nested_reference
+      end
+
       # There is no place above us that may contain a local variable. Set the
       # local in our local variables hash if not set. Set the local variable
       # node attribute to a reference to the local variable.
