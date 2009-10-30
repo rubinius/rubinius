@@ -35,7 +35,7 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
     };
 
-#include "gen/iseq_instruction_names.hpp"
+#include "gen/instruction_names.hpp"
   };
 
 }

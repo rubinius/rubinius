@@ -244,7 +244,7 @@ namespace rubinius {
 
       std::size_t width() {
         opcode op = this->op();
-#include "gen/iseq_instruction_size.gen"
+#include "gen/instruction_sizes.hpp"
         return width;
       }
 

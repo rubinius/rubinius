@@ -18,7 +18,7 @@ namespace rubinius {
 #define HANDLE_INST2(code, name) \
       void visit_ ## name(opcode arg1, opcode arg2) { SPECIFIC->visit(code, arg1, arg2); }
 
-#include "vm/gen/inst_list.hpp"
+#include "vm/gen/instruction_visitors.hpp"
 
 #undef HANDLE_INST0
 #undef HANDLE_INST1
@@ -48,7 +48,7 @@ namespace rubinius {
                      if(SPECIFIC->before(stream[ip], stream[ip + 1], stream[ip + 2])) { \
                      SPECIFIC->visit_ ## name(stream[ip + 1], stream[ip + 2]); } ip += 3; break;
 
-#include "vm/gen/inst_list.hpp"
+#include "vm/gen/instruction_visitors.hpp"
 
 #undef HANDLE_INST0
 #undef HANDLE_INST1

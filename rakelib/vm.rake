@@ -68,15 +68,15 @@ EX_INC      = %w[ libtommath libgdtoa onig libffi/include
                   libltdl libev
                 ].map { |f| "vm/external_libs/#{f}" }
 
-INSN_GEN    = %w[ vm/gen/iseq_instruction_names.cpp
-                  vm/gen/iseq_instruction_names.hpp
-                  vm/gen/iseq_instruction_size.gen
-                  vm/gen/implementation_prototype.hpp
+INSN_GEN    = %w[ vm/gen/instruction_names.cpp
+                  vm/gen/instruction_names.hpp
+                  vm/gen/instruction_sizes.hpp
+                  vm/gen/instruction_prototypes.hpp
                   vm/gen/instruction_defines.hpp
                   vm/gen/instruction_locations.hpp
                   vm/gen/instruction_implementations.hpp
-                  vm/gen/inst_list.hpp
-                  vm/gen/inst_stack.hpp
+                  vm/gen/instruction_visitors.hpp
+                  vm/gen/instruction_effects.hpp
                 ]
 TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/kind_of.hpp
@@ -557,19 +557,19 @@ file "kernel/compiler/opcodes.rb" => insn_deps do |t|
   generate_instruction_file iparser, :generate_definitions, t.name
 end
 
-file "vm/gen/iseq_instruction_names.hpp" => insn_deps do |t|
+file "vm/gen/instruction_names.hpp" => insn_deps do |t|
   generate_instruction_file iparser, :generate_names_header, t.name
 end
 
-file "vm/gen/iseq_instruction_names.cpp" => insn_deps do |t|
+file "vm/gen/instruction_names.cpp" => insn_deps do |t|
   generate_instruction_file iparser, :generate_names, t.name
 end
 
-file "vm/gen/implementation_prototype.hpp" => insn_deps do |t|
+file "vm/gen/instruction_prototypes.hpp" => insn_deps do |t|
   generate_instruction_file iparser, :generate_prototypes, t.name
 end
 
-file "vm/gen/iseq_instruction_size.gen" => insn_deps do |t|
+file "vm/gen/instruction_sizes.hpp" => insn_deps do |t|
   generate_instruction_file iparser, :generate_sizes, t.name
 end
 
@@ -585,11 +585,11 @@ file "vm/gen/instruction_implementations.hpp" => insn_deps do |t|
   generate_instruction_file iparser, :generate_implementations , t.name
 end
 
-file "vm/gen/inst_list.hpp" => insn_deps do |t|
+file "vm/gen/instruction_visitors.hpp" => insn_deps do |t|
   generate_instruction_file iparser, :generate_visitors, t.name
 end
 
-file "vm/gen/inst_stack.hpp" => insn_deps do |t|
+file "vm/gen/instruction_effects.hpp" => insn_deps do |t|
   generate_instruction_file iparser, :generate_stack_effects, t.name
 end
 

@@ -1053,7 +1053,7 @@ namespace rubinius {
     const static int cUnknown = -10;
     const static bool cDebugStack = false;
 
-#include "gen/inst_stack.hpp"
+#include "gen/instruction_effects.hpp"
 
     bool before(opcode op, opcode arg1=0, opcode arg2=0) {
       BlockMap::iterator i = map_.find(current_ip_);

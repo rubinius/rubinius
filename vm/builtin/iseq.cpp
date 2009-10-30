@@ -17,7 +17,7 @@ namespace rubinius {
   }
 
   size_t InstructionSequence::instruction_width(size_t op) {
-#include "gen/iseq_instruction_size.gen"
+#include "gen/instruction_sizes.hpp"
     return width;
   }
 
@@ -25,5 +25,5 @@ namespace rubinius {
 
   }
 
-#include "gen/iseq_instruction_names.cpp"
+#include "gen/instruction_names.cpp"
 }
