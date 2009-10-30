@@ -82,11 +82,11 @@ extra_compiler = ["lib/strscan.rb",
                   "lib/ruby_parser.rb",
                   "lib/ruby_parser_extras.rb",
                   "lib/sexp_processor.rb"]
-extra_compiler.each do |rb|
-  rbc = "#{rb}c"
-  kernel << rbc
+extra_compiler.each do |rb_file|
+  rbc_file = "#{rb_file}c"
+  kernel << rbc_file
 
-  file rbc => rb do |t|
+  file rbc_file => rb_file do |t|
     src = t.prerequisites.first
     dst = t.name
 
