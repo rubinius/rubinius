@@ -226,7 +226,7 @@ namespace rubinius {
   }
 
   void Environment::start_agent(int port) {
-    agent = new QueryAgent(port);
+    agent = new QueryAgent(*shared, port);
     if(config.qa_verbose) agent->set_verbose();
     agent->run();
   }

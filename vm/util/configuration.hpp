@@ -21,6 +21,7 @@ namespace config {
 
     bool import(const char* key, const char* val);
     void print(bool desc=false);
+    ConfigItem* find(const char* key);
   };
 
   class ConfigItem {
@@ -39,7 +40,7 @@ namespace config {
     virtual ~ConfigItem() {}
 
     virtual void set(const char* str) = 0;
-    virtual void print_value() = 0;
+    virtual void print_value(std::ostream& stream) = 0;
 
     bool set_maybe(const char* key, const char* val) {
       if(strcmp(name_, key) != 0) return false;
@@ -64,6 +65,10 @@ namespace config {
     void set_description(const char* str) {
       description_ = str;
     }
+
+    bool equal_p(const char* key) {
+      return strcmp(name_, key) == 0;
+    }
   };
 
   class Integer : public ConfigItem {
@@ -84,8 +89,8 @@ namespace config {
       }
     }
 
-    virtual void print_value() {
-      std::cout << value;
+    virtual void print_value(std::ostream& stream) {
+      stream << value;
     }
 
     operator long() {
@@ -106,8 +111,8 @@ namespace config {
       value = std::string(str);
     }
 
-    virtual void print_value() {
-      std::cout << value;
+    virtual void print_value(std::ostream& stream) {
+      stream << value;
     }
 
     operator const char*() {
@@ -138,8 +143,8 @@ namespace config {
       value = convert(str);
     }
 
-    virtual void print_value() {
-      std::cout << (value ? "true" : "false");
+    virtual void print_value(std::ostream& stream) {
+      stream << (value ? "true" : "false");
     }
 
     operator bool() {
@@ -183,13 +188,24 @@ namespace config {
     return false;
   }
 
+  inline ConfigItem* Configuration::find(const char* key) {
+    for(Items::iterator i = items_.begin();
+        i != items_.end();
+        i++) {
+      ConfigItem* item = *i;
+      if(item->equal_p(key)) return item;
+    }
+
+    return 0;
+  }
+
   inline void Configuration::print(bool desc) {
     for(Items::iterator i = items_.begin();
         i != items_.end();
         i++) {
       ConfigItem* item = *i;
       std::cout << item->name() << ": ";
-      item->print_value();
+      item->print_value(std::cout);
       std::cout << "\n";
       if(desc) {
         if(const char* desc = item->description()) {

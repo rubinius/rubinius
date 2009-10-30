@@ -454,7 +454,7 @@ namespace bert {
         ssize_t bytes = ::write(fd_, (const void*)buf, need);
 
         if(bytes == -1) {
-          if(errno != EAGAIN && errno != EINTR) ::abort(); // ug.
+          if(errno != EAGAIN && errno != EINTR) return;
           bytes = 0;
         }
 
@@ -466,11 +466,17 @@ namespace bert {
 
   class IOReader {
     int fd_;
+    bool eof_;
 
   public:
     IOReader(int fd)
       : fd_(fd)
+      , eof_(false)
     {}
+
+    bool eof_p() {
+      return eof_;
+    }
 
     bool read(int count, char* into) {
       size_t need = count;
@@ -480,8 +486,14 @@ namespace bert {
         ssize_t bytes = ::read(fd_, (void*)buf, need);
 
         if(bytes == -1) {
-          if(errno != EAGAIN && errno != EINTR) return false;
-          bytes = 0;
+          if(errno == EAGAIN || errno == EINTR) {
+            bytes = 0;
+          } else {
+            return false;
+          }
+        } if(bytes == 0) {
+          eof_ = true;
+          return false;
         }
 
         need -= bytes;
@@ -599,6 +611,23 @@ namespace bert {
       return time_;
     }
 
+    // Access
+    bool equal_atom(const char* str) {
+      if(type_ != Atom) return false;
+
+      int len = strlen(str);
+      if(len != integer()) return false;
+      if(memcmp(str, string(), len) != 0) return false;
+
+      return true;
+    }
+
+    Value* get_element(size_t which) {
+      if(!elements_) return NULL;
+      return elements_->at(which);
+    }
+
+    // Printing
     void print_element_list(std::ostream& stream) {
       int last = elements_->size() - 1;
       int j = 0;
@@ -948,8 +977,8 @@ namespace bert {
     {}
 
     int read_version() {
-      char buf;
-      if(!reader_.read(1, &buf)) return 0;
+      unsigned char buf;
+      if(!reader_.read(1, (char*)&buf)) return 0;
       return (int)buf;
     }
 
@@ -1096,6 +1125,10 @@ namespace bert {
 
     void write_tuple(int size) {
       bzr_.write_tuple(size);
+    }
+
+    void write_integer(int val) {
+      bzr_.write_integer(val);
     }
 
     void write_value(Value* val) {
