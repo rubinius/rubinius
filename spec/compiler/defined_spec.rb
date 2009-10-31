@@ -350,4 +350,53 @@ describe "A Defined node" do
       done.set!
     end
   end
+
+  relates "defined? a.b" do
+    compile do |g|
+      f = g.new_label
+      done = g.new_label
+
+      g.push :self
+      g.send :a, 0, true
+      g.push_literal :b
+      g.push :true
+      g.send :respond_to?, 2
+      g.gif f
+      g.push_literal "method"
+      g.goto done
+
+      f.set!
+      g.push :nil
+
+      done.set!
+    end
+  end
+
+  relates <<-ruby do
+      a = 1
+      defined? a.to_s
+    ruby
+
+    compile do |g|
+      f = g.new_label
+      done = g.new_label
+
+      g.push 1
+      g.set_local 0
+      g.pop
+
+      g.push_local 0
+      g.push_literal :to_s
+      g.push :true
+      g.send :respond_to?, 2
+      g.gif f
+      g.push_literal "method"
+      g.goto done
+
+      f.set!
+      g.push :nil
+
+      done.set!
+    end
+  end
 end
