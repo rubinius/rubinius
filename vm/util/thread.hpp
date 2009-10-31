@@ -413,6 +413,22 @@ namespace thread {
       return cReady;
     }
   };
+
+  // Useful for stubbing out lock usage. Either based on a compile time
+  // decision about not needing a lock around something or for while debugging.
+  class NullLock {
+  public:
+    void lock() {}
+    void unlock() {}
+    bool try_lock() { return cLocked; }
+
+    std::string describe() {
+      std::stringstream ss;
+      ss << "NullLock ";
+      ss << (void*)this;
+      return ss.str();
+    }
+  };
 }
 
 #ifdef HAVE_OSX_SPINLOCK
@@ -458,6 +474,63 @@ namespace thread {
     }
   };
 };
+
+#elif ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 1))
+
+// You can uncomment this to use compare_and_swap, but
+// CAS doesn't have any fencing, so it's not known how they'll
+// behave.
+// #define USE_SYNC_CAS
+
+namespace thread {
+  class SpinLock {
+  public: // Types
+    typedef StackLockGuard<SpinLock> LockGuard;
+    typedef StackUnlockGuard<SpinLock> UnlockGuard;
+
+  private:
+    int lock_;
+
+  public:
+    SpinLock()
+      : lock_(1)
+    {}
+
+    void lock() {
+#ifdef USE_SYNC_CAS
+      while(!__sync_bool_compare_and_swap(&lock_, 1, 0));
+      __sync_synchronize(); // HM?!
+#else
+      __sync_lock_test_and_set(&lock_, 1);
+#endif
+    }
+
+    void unlock() {
+#ifdef USE_SYNC_CAS
+      lock_ = 1;
+#else
+      // See http://bugs.mysql.com/bug.php?id=34175 about using
+      // __sync_lock_release
+      __sync_lock_test_and_set(&lock_, 0);
+#endif
+    }
+
+    Code try_lock() {
+      if(__sync_bool_compare_and_swap(&lock_, 1, 0)) {
+        return cLocked;
+      }
+
+      return cLockBusy;
+    }
+
+    std::string describe() {
+      std::stringstream ss;
+      ss << "SpinLock ";
+      ss << (void*)this;
+      return ss.str();
+    }
+  };
+}
 
 #else
 

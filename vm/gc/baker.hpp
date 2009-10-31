@@ -17,6 +17,8 @@
 
 #include "object_watch.hpp"
 
+#include "util/thread.hpp"
+
 namespace rubinius {
 
   class ObjectMemory;
@@ -29,6 +31,10 @@ namespace rubinius {
     Heap heap_b;
     Heap *current;
     Heap *next;
+
+    // No locking for now, but this will need to change
+    // eventually.
+    thread::NullLock lock_;
 
   public:
     size_t lifetime;
@@ -49,8 +55,12 @@ namespace rubinius {
 #endif
         return NULL;
       } else {
+        lock_.lock();
+
         total_objects++;
         obj = (Object*)eden.allocate(bytes);
+
+        lock_.unlock();
 
         if(eden.over_limit_p(obj)) {
           *limit_hit = true;
@@ -84,8 +94,12 @@ namespace rubinius {
 #endif
         return NULL;
       } else {
+        lock_.lock();
+
         total_objects++;
         obj = (Object*)eden.allocate(bytes);
+
+        lock_.unlock();
       }
 
 #ifdef ENABLE_OBJECT_WATCH
