@@ -1155,7 +1155,13 @@ namespace rubinius {
     ByteArray* storage = ByteArray::create(state, bytes);
     a->managed = reinterpret_cast<void*>(storage);
 
-    memcpy(storage->bytes, a->dp, bytes);
+    // Be sure to use the smaller value!
+    size_t current_bytes = (size_t)a->alloc;
+    size_t to_copy = bytes;
+
+    if(current_bytes < bytes) to_copy = current_bytes;
+
+    memcpy(storage->bytes, a->dp, to_copy);
 
     return storage->bytes;
   }
