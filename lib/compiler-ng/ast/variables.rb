@@ -312,16 +312,26 @@ module Rubinius
         @name = name
       end
 
+      def assign_variable(g)
+        unless @variable
+          g.state.scope.assign_local_reference self
+        end
+      end
+
       def bytecode(g)
         pos(g)
 
-        g.state.scope.assign_local_reference self
-
+        assign_variable(g)
         @variable.get_bytecode(g)
       end
 
       def defined(g)
         g.push_literal "local-variable"
+      end
+
+      def receiver_defined(g, f)
+        assign_variable(g)
+        @variable.get_bytecode(g)
       end
     end
 

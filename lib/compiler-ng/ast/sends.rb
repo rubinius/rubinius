@@ -29,6 +29,10 @@ module Rubinius
         end
       end
 
+      def receiver_defined(g, f)
+        bytecode(g)
+      end
+
       def defined(g)
         f = g.new_label
         done = g.new_label
