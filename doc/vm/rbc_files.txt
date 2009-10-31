@@ -9,78 +9,104 @@ Since Rubinius is available on many platforms, and .rbc files are platform
 independent, an .rbc file compiled on one platform will execute under Rubinius
 on another platform without modification.
 
-=== Data Types
-
-The only special data type that's used in .rbc files are variable length
-integers. In this encoding, the number of bytes that are used to store
-an integer vary with its value -- smaller numbers are encoded in fewer
-bytes than large numbers. Each byte in a variable length integer is split
-in two parts: the MSB is zero if this byte is the last one and one if there's
-more bytes to be read. The seven lower bits contain the integers payload.
-The least significant byte is written first. Variable length integers are
-unsigned. Decode them like this:
-
-  value = 0 # this will hold the decoded integer
-  shift = 0
-
-  loop do
-    byte = read_next_byte
-
-    value += (byte & ~128) << shift
-    break if byte < 128
-
-    shift += 7
-  end
-
 === File Layout
 
+Compiled .rbc files are written in big-endian format, i.e. for a 4-byte
+integer, the high-order (big end) byte appears first, and the low-order (little
+end) byte appears last. Thus, the value 0x10fe4d05 would appear similar to how
+it is written, as 10 fe 4d 05.
+
 An .rbc file consists of:
-* a 5-byte header containing the magic constant '!RBIX'
-* a newline-delimited string representation of the version number of the .rbc file
+* a 4-byte header containing the magic constant 'RBIX' (older versions used
+  'RBIS', and omitted a version field)
+* a 4-byte field specifying the version number of the .rbc file (currently 5)
 * a variable number of number of marshaled objects
 
 Objects are marshaled using a scheme whereby each object type is identified by
 a single-byte tag, followed by 0 or more bytes containing the object data. The
 following table specifies the values and formats for each tag:
 
-[Positive integer (I)]
-  * the integer's value stored as a variable length integer.
-[Negative integer (J)]
-  * the negated integer's value stored as a variable length integer.
+[Fixnum (i)]
+  * 1 byte indicating the sign ('n' for negative, 'p' for positive)
+  * 4 bytes specifying the integer value
 [String (s)]
-  * the string's size in bytes stored as a variable length integer.
-  * the characters (single bytes) that make up the string.
+  * 4 bytes that specify the string size
+  * the characters (single bytes) that make up the string
 [Symbol (x)]
-  * the symbol string's size in bytes stored as a variable length integer.
-  * the characters (single bytes) that make up the symbol string.
-[SendSite (S)]
-  * the sendsite's name's size in bytes stored as a variable length integer.
-  * the characters (single bytes) that make up the name of the sendsite.
+  * 4 bytes that specify the symbol string size
+  * the characters (single byte) that make up the symbol string
 [Tuple (p)]
-  * the number of elements in the tuple stored as a variable length integer.
-  * the marshaled objects that represent each value in the tuple.
-[InstructionSequence (i)]
-  * the number of opcodes in the InstructionSequence stored as a variable length integer.
-  * the opcodes that make up the InstructionSequence, stored as variable length integers.
+  * 4 bytes that specify the tuple size, i.e. number of elements in the tuple
+  * the marshaled objects that represent each value in the tuple
+[ByteArray (b)]
+  * 4 bytes that specify the size of the byte array
+  * the raw bytes of the byte array
+[InstructionSequence (I)]
+  * a single byte character that indicates whether the instruction sequence is
+    in big-endian or little-endian format; big-endian is indicated by the value
+    'b', while little-endian is indicated by an 'l'. Currently, only big-endian
+    format is used for marshaling instruction sequences.
+  * 4 bytes that specify the size of the instruction sequence
+  * the raw bytes that make up the instruction sequence.
+  
+  When unmarshaling an instruction sequence, the instruction sequence is
+  flipped if necessary to convert it to the endian-ness of the host platform.
 [CompiledMethod (M)]
-  * the version number of the CompiledMethod that has been marshaled.
+  * 4 bytes that specify the version number of the CompiledMethod that has been
+    marshaled. As of this writing, CompiledMethod has 17 fields, but only the
+    first 16 are marshaled (the 17th field contains the translated instruction
+    sequence, which is not persisted).
   * the marshaled value of each field, where the fields are:
     1. <tt>\_\_ivars__</tt>
     1. primitive
+    1. required
+    1. serial
+    1. bytecodes
     1. name
-    1. iseq
-    1. stack_size
-    1. local_count
-    1. required_args
-    1. total_args
-    1. splat
+    1. file
+    1. locals
     1. literals
+    1. arguments
+    1. scope
     1. exceptions
     1. lines
+    1. path
+    1. cache
+    1. bonus
+[CompiledMethod (m)]
+  <b>Note: This tag has been deprecated, in favour of 'M' (see above).</b> The
+  tag is followed by:
+  
+  * 4 bytes that specify the number of fields in the compiled method (presently
+    16)
+  * the marshaled value of each field, where the fields are:
+    1. <tt>\_\_ivars__</tt>
+    1. primitive
+    1. required
+    1. serial
+    1. bytecodes
+    1. name
     1. file
-    1. local_names
+    1. locals
+    1. literals
+    1. arguments
+    1. scope
+    1. exceptions
+    1. lines
+    1. path
+    1. cache
+    1. bonus
+[Bignum (B)]
+  * 4 bytes that specify the size of the string representation of the Bignum
+  * the string representation of the Bignum
+  * a 0 byte to create a null-terminated string.
 [Float (d)]
-  * the newline-delimited string representation of the Float
+  * 4 bytes that specify the size of the string representation of the Float
+  * the string representation of the Float
+  * a 0 byte to create a null-terminated string.
+[Object (r)]
+  * 4 bytes that specify the number of fields in the object
+  * the marshaled value of each field.
 [NilClass (n)]
   * "nil"
 [TrueClass (t)]
@@ -88,8 +114,8 @@ following table specifies the values and formats for each tag:
 [FalseClass (f)]
   * "false"
 
-=== Formatter
+=== Disassembler
 
-To make .rbc files easier to read and debug, you may use
-<tt>lib/bin/describe_rbc.rb</tt>.
+A disassembler is provided in <tt>compiler/bytecode/disassembler.rb</tt>, and
+it can be used to examine the contents of an .rbc file.
 

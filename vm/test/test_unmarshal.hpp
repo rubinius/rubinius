@@ -44,36 +44,36 @@ public:
   }
 
   void test_nil() {
-    mar->sstream.str(std::string("n"));
+    mar->sstream.str(std::string("n\n"));
     Object* obj = mar->unmarshal();
 
     TS_ASSERT_EQUALS(obj, Qnil);
   }
 
   void test_true() {
-    mar->sstream.str(std::string("t"));
+    mar->sstream.str(std::string("t\n"));
     Object* obj = mar->unmarshal();
 
     TS_ASSERT_EQUALS(obj, Qtrue);
   }
 
   void test_false() {
-    mar->sstream.str(std::string("f"));
+    mar->sstream.str(std::string("f\n"));
     Object* obj = mar->unmarshal();
 
     TS_ASSERT_EQUALS(obj, Qfalse);
   }
 
   void test_int() {
-    mar->sstream.str(std::string("I\3\n"));
+    mar->sstream.str(std::string("I\n42\n"));
     Object* obj = mar->unmarshal();
 
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 3);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 66);
   }
 
   void test_large_int() {
-    mar->sstream.str(std::string("I\x80\x80\x80\x80\x10"));
+    mar->sstream.str(std::string("I\n100000000\n"));
     Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<Integer>(obj));
@@ -81,7 +81,7 @@ public:
   }
 
   void test_larger_int() {
-    mar->sstream.str(std::string("I\xdc\x93\xf6\xc4\x9d\xb1\xa7\xec\x09"));
+    mar->sstream.str(std::string("I\n9d89d89d89d89dc\n"));
     Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<Integer>(obj));
@@ -89,7 +89,7 @@ public:
   }
 
   void test_string() {
-    mar->sstream.str(std::string("s\4blah"));
+    mar->sstream.str(std::string("s\n4\nblah\n"));
     Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<String>(obj));
@@ -98,7 +98,7 @@ public:
   }
 
   void test_symbol() {
-    mar->sstream.str(std::string("x\4blah"));
+    mar->sstream.str(std::string("x\n4\nblah\n"));
     Object* obj = mar->unmarshal();
 
     TS_ASSERT(obj->symbol_p());
@@ -106,7 +106,7 @@ public:
   }
 
   void test_sendsite() {
-    mar->sstream.str(std::string("S\4blah"));
+    mar->sstream.str(std::string("S\n4\nblah\n"));
     Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<SendSite>(obj));
@@ -115,7 +115,7 @@ public:
   }
 
   void test_tuple() {
-    mar->sstream.str(std::string("p\2I\2I\x2f"));
+    mar->sstream.str(std::string("p\n2\nI\n2\nI\n2f\n"));
 
     Object* obj = mar->unmarshal();
 
@@ -129,7 +129,7 @@ public:
 
   void test_float() {
     mar->sstream.str(
-        std::string("d +0.666666666666666629659232512494781985878944396972656250    -2\n"));
+        std::string("d\n +0.666666666666666629659232512494781985878944396972656250    -2\n"));
 
     Object* obj = mar->unmarshal();
 
@@ -140,7 +140,7 @@ public:
     TS_ASSERT_EQUALS(flt->val, 1.0 / 6.0);
 
     mar->sstream.str(
-        std::string("d +0.999999999999999888977697537484345957636833190917968750  1024\n"));
+        std::string("d\n +0.999999999999999888977697537484345957636833190917968750  1024\n"));
     obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<Float>(obj));
@@ -151,7 +151,7 @@ public:
   }
 
   void test_float_infinity() {
-    mar->sstream.str(std::string("dInfinity\n"));
+    mar->sstream.str(std::string("d\nInfinity\n"));
 
     Object* obj = mar->unmarshal();
 
@@ -163,7 +163,7 @@ public:
   }
 
   void test_float_neg_infinity() {
-    mar->sstream.str(std::string("d-Infinity\n"));
+    mar->sstream.str(std::string("d\n-Infinity\n"));
 
     Object* obj = mar->unmarshal();
 
@@ -176,7 +176,7 @@ public:
   }
 
   void test_float_nan() {
-    mar->sstream.str(std::string("dNaN\n"));
+    mar->sstream.str(std::string("d\nNaN\n"));
 
     Object* obj = mar->unmarshal();
 
@@ -188,7 +188,7 @@ public:
   }
 
   void test_iseq() {
-    mar->sstream.str(std::string("i\1\0", 3));
+    mar->sstream.str(std::string("i\n1\n0\n"));
 
     Object* obj = mar->unmarshal();
 
@@ -204,7 +204,7 @@ public:
   }
 
   void test_cmethod() {
-    std::string str = std::string("M\1nx\x0cobject_equalx\4testi\1\0I\x0aI\0I\0I\0np\2I\1I\2np\1p\3I\0I\1I\1x\x08not_realp\1x\4blah", 70);
+    std::string str = "M\n1\nn\nx\n12\nobject_equal\nx\n4\ntest\ni\n1\n0\nI\na\nI\n0\nI\n0\nI\n0\nn\np\n2\nI\n1\nI\n2\nn\np\n1\np\n3\nI\n0\nI\n1\nI\n1\nx\n8\nnot_real\np\n1\nx\n4\nblah\n";
     mar->sstream.str(str);
 
     Object* obj = mar->unmarshal();
