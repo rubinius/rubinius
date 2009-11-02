@@ -107,31 +107,6 @@ namespace rubinius {
     return 0; // keep compiler happy
   }
 
-  Object* NativeMethodEnvironment::get_object(VALUE val) {
-    if(CAPI_REFERENCE_P(val)) {
-      capi::Handle* handle = capi::Handle::from(val);
-      if(!handle->valid_p()) {
-        handle->debug_print();
-        rubinius::abort();
-      }
-
-      return handle->object();
-    } else if(FIXNUM_P(val) || SYMBOL_P(val)) {
-      return reinterpret_cast<Object*>(val);
-    } else if(CAPI_FALSE_P(val)) {
-      return Qfalse;
-    } else if(CAPI_TRUE_P(val)) {
-      return Qtrue;
-    } else if(CAPI_NIL_P(val)) {
-      return Qnil;
-    } else if(CAPI_UNDEF_P(val)) {
-      return Qundef;
-    }
-
-    capi::capi_raise_runtime_error("requested Object for unknown NativeMethod handle type");
-    return Qnil; // keep compiler happy
-  }
-
   void NativeMethodEnvironment::delete_global(VALUE val) {
     abort();
   }

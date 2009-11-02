@@ -9,6 +9,10 @@
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
 
+#include "lookup_data.hpp"
+#include "dispatch.hpp"
+#include "arguments.hpp"
+
 #include "exception_point.hpp"
 #include "global_cache.hpp"
 
@@ -136,6 +140,29 @@ namespace rubinius {
       return env->get_handle(ret);
     }
 
+    VALUE capi_funcall_backend_native(
+        NativeMethodEnvironment* env,
+        const char* file, int line,
+        Object* recv, Symbol* method, std::size_t arg_count,
+        Object** args)
+    {
+      env->flush_cached_data();
+
+      LookupData lookup(recv, recv->lookup_begin(env->state()), true);
+      Arguments args_o(recv, arg_count, args);
+      Dispatch dis(method);
+
+      Object* ret = dis.send(env->state(), env->current_call_frame(),
+                             lookup, args_o);
+
+      env->update_cached_data();
+
+      // An exception occurred
+      if(!ret) env->current_ep()->return_to(env);
+
+      return env->get_handle(ret);
+    }
+
     /** Make sure the name has the given prefix. */
     Symbol* prefixed_by(std::string prefix, std::string name) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
@@ -207,27 +234,39 @@ extern "C" {
 
   VALUE capi_rb_funcall(const char* file, int line,
       VALUE receiver, ID method_name, int arg_count, ...) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
     va_list varargs;
     va_start(varargs, arg_count);
 
-    VALUE* args = new VALUE[arg_count];
+    Object** args = reinterpret_cast<Object**>(alloca(sizeof(Object*) * arg_count));
 
-    for (int i = 0; i < arg_count; ++i) {
-      args[i] = va_arg(varargs, VALUE);
+    for(int i = 0; i < arg_count; i++) {
+      args[i] = env->get_object(va_arg(varargs, VALUE));
     }
 
     va_end(varargs);
 
-    VALUE ret = capi_funcall_backend(file, line, receiver,
-        method_name, arg_count, args);
-
-    delete[] args;
-    return ret;
+    return capi_funcall_backend_native(env, file, line,
+        env->get_object(receiver),
+        reinterpret_cast<Symbol*>(method_name),
+        arg_count, args);
   }
 
   VALUE capi_rb_funcall2(const char* file, int line,
-      VALUE receiver, ID method_name, int arg_count, VALUE* args) {
-    return capi_funcall_backend(file, line, receiver, method_name, arg_count, args);
+      VALUE receiver, ID method_name, int arg_count, VALUE* v_args) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object** args = reinterpret_cast<Object**>(alloca(sizeof(Object**) * arg_count));
+
+    for(int i = 0; i < arg_count; i++) {
+      args[i] = env->get_object(v_args[i]);
+    }
+
+    return capi_funcall_backend_native(env, file, line,
+        env->get_object(receiver),
+        reinterpret_cast<Symbol*>(method_name),
+        arg_count, args);
   }
 
   void capi_infect(VALUE obj1, VALUE obj2) {

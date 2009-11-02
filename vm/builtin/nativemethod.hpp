@@ -16,6 +16,7 @@
 
 #include "vm/object_utils.hpp"
 
+#include "capi/tag.hpp"
 #include "capi/value.hpp"
 #include "capi/handle.hpp"
 
@@ -59,14 +60,38 @@ namespace rubinius {
     /** Create or retrieve VALUE for obj. */
     VALUE get_handle(Object* obj);
 
-    /** Obtain the Object the VALUE represents. */
-    Object* get_object(VALUE handle);
-
     /** Delete a global Object and its VALUE. */
     void delete_global(VALUE handle);
 
     /** GC marking for Objects behind VALUEs. */
     void mark_handles(ObjectMark& mark);
+
+  public:
+    /** Obtain the Object the VALUE represents. */
+    Object* get_object(VALUE val) {
+      if(CAPI_REFERENCE_P(val)) {
+        capi::Handle* handle = capi::Handle::from(val);
+        if(!handle->valid_p()) {
+          handle->debug_print();
+          rubinius::abort();
+        }
+
+        return handle->object();
+      } else if(FIXNUM_P(val) || SYMBOL_P(val)) {
+        return reinterpret_cast<Object*>(val);
+      } else if(CAPI_FALSE_P(val)) {
+        return Qfalse;
+      } else if(CAPI_TRUE_P(val)) {
+        return Qtrue;
+      } else if(CAPI_NIL_P(val)) {
+        return Qnil;
+      } else if(CAPI_UNDEF_P(val)) {
+        return Qundef;
+      }
+
+      rubinius::bug("requested Object for unknown NativeMethod handle type");
+      return Qnil; // keep compiler happy
+    }
 
 
   public:   /* Accessors */
