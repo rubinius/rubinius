@@ -152,6 +152,10 @@ describe "Basic assignment" do
     a,b,*c = *[*[1,2]]; [a,b,c].should == [1, 2, []]
   end
 
+  it "calls to_a on the given argument when using a splat" do
+    a,b = *VariablesSpecs::ArrayLike.new([1,2]); [a,b].should == [1,2]
+  end
+
   it "supports the {|r,| } form of block assignment" do
     f = lambda {|r,| r.should == []}
     f.call([], *[])
