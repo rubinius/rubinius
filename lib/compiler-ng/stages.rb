@@ -105,7 +105,7 @@ module Rubinius
         super
         compiler.encoder = self
         @encoder = InstructionSequence::Encoder
-        @calculator = Compiler::StackDepthCalculator
+        @calculator = StackDepthCalculator
       end
 
       def processor(encoder, calculator)

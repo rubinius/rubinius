@@ -5,6 +5,7 @@ require 'compiler-ng/stages'
 require 'compiler-ng/locals'
 require 'compiler-ng/ast'
 require 'compiler-ng/generator'
+require 'compiler-ng/stack_calculator'
 require 'compiler-ng/evaluator'
 require 'compiler-ng/printers'
 
