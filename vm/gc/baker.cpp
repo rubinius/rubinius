@@ -206,7 +206,7 @@ namespace rubinius {
 #ifdef RBX_GC_STATS
     // Lost souls just tracks the ages of objects, so we know how old they
     // were when they died.
-    find_lost_souls();
+    // find_lost_souls();
 #endif
 
     /* Check any weakrefs and replace dead objects with nil*/
