@@ -1,5 +1,5 @@
 extension do |e|
-  e.name 'melbourne'
+  e.name 'rbx/melbourne'
   e.files '*.c', '*.cpp'
   e.includes '.', '../../../vm/external_libs/libbstring',
              '../../../vm/external_libs/libmquark',

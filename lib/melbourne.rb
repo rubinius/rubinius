@@ -1,4 +1,10 @@
-require "ext/melbourne/melbourne"
+unless Object.const_defined? :RUBY_ENGINE
+  ext_dir = "ruby"
+else
+  ext_dir = Object.const_get :RUBY_ENGINE
+end
+
+require "ext/melbourne/#{ext_dir}/melbourne"
 require "melbourne/processor"
 
 class String

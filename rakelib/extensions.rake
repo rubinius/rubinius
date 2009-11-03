@@ -135,9 +135,12 @@ namespace :extension do
     compile_extension 'lib/ext/syck'
   end
 
+  directory "lib/ext/melbourne/rbx"
+
   desc "Build the melbourne extension"
-  task :melbourne => %W[kernel:build lib/ext/melbourne/melbourne.#{$dlext}]
-  file "lib/ext/melbourne/melbourne.#{$dlext}" => FileList[
+  task :melbourne => %W[kernel:build lib/ext/melbourne/rbx/melbourne.#{$dlext}]
+  file "lib/ext/melbourne/rbx/melbourne.#{$dlext}" => FileList[
+    "lib/ext/melbourne/rbx",
     "lib/ext/melbourne/build.rb",
     "lib/ext/melbourne/grammar.y",
     "lib/ext/melbourne/grammar.hpp",
