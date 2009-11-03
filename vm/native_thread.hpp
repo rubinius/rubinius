@@ -25,6 +25,14 @@ namespace rubinius {
       pthread_sigmask(SIG_SETMASK, &set, NULL);
     }
 
+#ifdef SIGEMT
+    const static int cWakeupSignal = SIGEMT;
+#elif defined(linux)
+    const static int cWakeupSignal = SIGPWR;
+#else
+    const static int cWakeupSignal = 7;
+#endif
+
   };
 
   class Waiter {
@@ -70,7 +78,7 @@ namespace rubinius {
     {}
 
     void wakeup() {
-      pthread_kill(target_, 7);
+      pthread_kill(target_, NativeThread::cWakeupSignal);
     }
   };
 }

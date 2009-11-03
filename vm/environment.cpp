@@ -20,6 +20,10 @@
 #include <llvm/System/Threading.h>
 #endif
 
+#ifdef linux
+#include <execinfo.h>
+#endif
+
 #include "signal.hpp"
 #include "object_utils.hpp"
 
@@ -70,18 +74,109 @@ namespace rubinius {
 
   static void null_func(int sig) {}
 
+#ifdef linux
+  static void segv_handler(int sig) {
+    static int crashing = 0;
+    void *array[32];
+    size_t size;
+
+    // So we don't recurse!
+    if(crashing) exit(101);
+
+    crashing = 1;
+
+    // get void*'s for all entries on the stack
+    size = backtrace(array, 32);
+
+    // print out all the frames to stderr
+    static const char msg[] = "Error: signal ";
+    write(2, msg, sizeof(msg));
+
+    switch(sig) {
+    case SIGSEGV:
+      write(2, "SIGSEGV\n", 8);
+      break;
+    case SIGBUS:
+      write(2, "SIGBUS\n", 7);
+      break;
+    case SIGILL:
+      write(2, "SIGILL\n", 7);
+      break;
+    case SIGABRT:
+      write(2, "SIGABRT\n", 8);
+      break;
+    case SIGFPE:
+      write(2, "SIGFPE\n", 7);
+      break;
+    default:
+      write(2, "UNKNOWN\n", 8);
+      break;
+    }
+
+    backtrace_symbols_fd(array, size, 2);
+    exit(100);
+  }
+#endif
+
+  static void quit_handler(int sig) {
+    static const char msg[] = "Terminated: signal ";
+    write(2, msg, sizeof(msg));
+
+    switch(sig) {
+    case SIGHUP:
+      write(2, "SIGHUP\n", 6);
+      break;
+    case SIGTERM:
+      write(2, "SIGTERM\n", 7);
+      break;
+    case SIGUSR1:
+      write(2, "SIGUSR1\n", 7);
+      break;
+    case SIGUSR2:
+      write(2, "SIGUSR2\n", 7);
+      break;
+    default:
+      write(2, "UNKNOWN\n", 8);
+      break;
+    }
+
+    exit(1);
+  }
+
   void Environment::start_signals() {
     struct sigaction action;
     action.sa_handler = null_func;
     action.sa_flags = SA_RESTART;
     sigfillset(&action.sa_mask);
-    sigaction(7, &action, NULL);
+    sigaction(NativeThread::cWakeupSignal, &action, NULL);
 
     state->set_run_signals(true);
     shared->set_signal_handler(new SignalHandler(state));
 
     // Ignore sigpipe.
     signal(SIGPIPE, SIG_IGN);
+
+    // On linux, setup some crash handlers
+#ifdef linux
+    signal(SIGSEGV, segv_handler);
+    signal(SIGBUS,  segv_handler);
+    signal(SIGILL,  segv_handler);
+    signal(SIGFPE,  segv_handler);
+    signal(SIGABRT, segv_handler);
+
+    // Force glibc to load the shared library containing backtrace()
+    // now, so that we don't have to try and load it in the signal
+    // handler.
+    void* ary[1];
+    backtrace(ary, 1);
+#endif
+
+    // Setup some other signal that normally just cause the process
+    // to terminate so that we print out a message, then terminate.
+    signal(SIGHUP,  quit_handler);
+    signal(SIGTERM, quit_handler);
+    signal(SIGUSR1, quit_handler);
+    signal(SIGUSR2, quit_handler);
   }
 
   void Environment::load_argv(int argc, char** argv) {
