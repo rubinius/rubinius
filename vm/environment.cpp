@@ -85,12 +85,9 @@ namespace rubinius {
 
     crashing = 1;
 
-    // get void*'s for all entries on the stack
-    size = backtrace(array, 32);
-
     // print out all the frames to stderr
     static const char msg[] = "Error: signal ";
-    write(2, msg, sizeof(msg));
+    write(2, msg, 14);
 
     switch(sig) {
     case SIGSEGV:
@@ -113,7 +110,17 @@ namespace rubinius {
       break;
     }
 
+    // Try to get the output to flush...
+    write(2, "\n\n", 2);
+
+    // get void*'s for all entries on the stack
+    size = backtrace(array, 32);
+
     backtrace_symbols_fd(array, size, 2);
+
+    // Try to get the output to flush...
+    write(2, "\n\n", 2);
+
     exit(100);
   }
 #endif
