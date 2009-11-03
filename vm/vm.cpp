@@ -273,7 +273,17 @@ namespace rubinius {
       }
 
       YoungCollectStats stats;
+
+#ifdef RBX_PROFILER
+      if(unlikely(shared.profiling())) {
+        profiler::MethodEntry method(this, profiler::kYoungGC);
+        om->collect_young(gc_data, &stats);
+      } else {
+        om->collect_young(gc_data, &stats);
+      }
+#else
       om->collect_young(gc_data, &stats);
+#endif
 
       if(shared.config.gc_show) {
         uint64_t fin_time = get_current_time();
@@ -296,7 +306,16 @@ namespace rubinius {
         before_kb = om->mature_bytes_allocated() / 1024;
       }
 
+#ifdef RBX_PROFILER
+      if(unlikely(shared.profiling())) {
+        profiler::MethodEntry method(this, profiler::kMatureGC);
+        om->collect_mature(gc_data);
+      } else {
+        om->collect_mature(gc_data);
+      }
+#else
       om->collect_mature(gc_data);
+#endif
 
       if(shared.config.gc_show) {
         uint64_t fin_time = get_current_time();

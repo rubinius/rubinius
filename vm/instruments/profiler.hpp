@@ -51,7 +51,9 @@ namespace rubinius {
     enum Kind {
       kNormal,
       kSingleton,
-      kBlock
+      kBlock,
+      kYoungGC,
+      kMatureGC
     };
 
     class Method;
@@ -181,6 +183,7 @@ namespace rubinius {
       MethodEntry(STATE, Dispatch& msg, Arguments& args);
       MethodEntry(STATE, Dispatch& msg, Arguments& args, CompiledMethod* cm);
       MethodEntry(STATE, Symbol* name, Module* module, CompiledMethod* cm);
+      MethodEntry(STATE, Kind kind);
       ~MethodEntry();
 
       void start();

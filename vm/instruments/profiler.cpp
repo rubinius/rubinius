@@ -54,6 +54,8 @@ namespace rubinius {
         name->append(state, method_name);
         break;
       case kSingleton:
+      case kYoungGC:
+      case kMatureGC:
         name->append(state, ".");
         name->append(state, method_name);
         break;
@@ -177,10 +179,31 @@ namespace rubinius {
     }
 
     MethodEntry::MethodEntry(STATE, Symbol* name, Module* module, CompiledMethod* cm)
-      :state_(state)
+      : state_(state)
       , edge_(0)
     {
       method_ = state->profiler()->enter_block(name, module, cm);
+      start();
+    }
+
+    MethodEntry::MethodEntry(STATE, Kind kind)
+      : state_(state)
+      , edge_(0)
+    {
+      Symbol* name;
+
+      switch(kind) {
+      case kYoungGC:
+        name = state_->symbol("collect_young");
+        break;
+      case kMatureGC:
+        name = state_->symbol("collect_mature");
+        break;
+      default:
+        name = state_->symbol("unknown");
+      }
+
+      method_ = state->profiler()->find_method(state_->symbol("GC"), name, kind);
       start();
     }
 
