@@ -140,7 +140,7 @@ namespace rubinius {
           igr = try_as<Integer>(ary->get(state, 2));
           if(!igr) continue;
 
-          uint64_t total = igr->to_native();
+          uint64_t total = igr->to_ulong_long();
           total += edge->total();
           ary->set(state, 2, Integer::from(state, total));
 
