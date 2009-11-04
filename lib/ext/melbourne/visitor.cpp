@@ -122,9 +122,9 @@ namespace melbourne {
     const char *op;
     op = melbourne::op_to_name(quark);
     if(op) {
-      return rb_intern(op);
+      return ID2SYM(rb_intern(op));
     }
-    return rb_intern(quark_to_string(id_to_quark(quark)));
+    return ID2SYM(rb_intern(quark_to_string(id_to_quark(quark))));
   }
 
 #define nd_3rd    u3.node
@@ -888,7 +888,7 @@ namespace melbourne {
       char str[2];
       str[0] = node->nd_nth;
       str[1] = 0;
-      tree = rb_funcall(ptp, rb_sBackRef, 2, line, rb_intern(str));
+      tree = rb_funcall(ptp, rb_sBackRef, 2, line, ID2SYM(rb_intern(str)));
       break;
     }
 
