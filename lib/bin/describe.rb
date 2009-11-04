@@ -57,7 +57,6 @@ def describe_compiled_method(cm, dis=false)
     puts ""
     sub = extra.shift
     describe_compiled_method(sub, dis)
-    extra += sub.literals.to_a.find_all { |l| l.kind_of? Rubinius::CompiledMethod }
   end
 
 end
