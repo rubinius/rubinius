@@ -282,6 +282,8 @@ namespace rubinius {
     max = string->size();
     str = (UChar*)string->c_str();
 
+    int* back_match = onig_data->int_map_backward;
+
     if(!RTEST(forward)) {
       beg = onig_search(onig_data, str, str + max,
                         str + end->to_native(),
@@ -293,6 +295,22 @@ namespace rubinius {
                         str + end->to_native(),
                         region, ONIG_OPTION_NONE);
     }
+
+    // Seems like onig must setup int_map_backward lazily, so we have to watch
+    // for it to appear here.
+    if(onig_data->int_map_backward != back_match) {
+      size_t size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
+      ByteArray* ba = ByteArray::create(state, size);
+      memcpy(ba->bytes, onig_data->int_map_backward, size);
+
+      // Dispose of the old one.
+      free(onig_data->int_map_backward);
+
+      onig_data->int_map_backward = reinterpret_cast<int*>(ba->bytes);
+
+      write_barrier(state, ba);
+    }
+
 
     if(beg == ONIG_MISMATCH) {
       onig_region_free(region, 1);
@@ -315,8 +333,25 @@ namespace rubinius {
     max = string->size();
     str = (UChar*)string->c_str();
 
+    int* back_match = onig_data->int_map_backward;
+
     beg = onig_match(onig_data, str, str + max, str + start->to_native(), region,
                      ONIG_OPTION_NONE);
+
+    // Seems like onig must setup int_map_backward lazily, so we have to watch
+    // for it to appear here.
+    if(onig_data->int_map_backward != back_match) {
+      size_t size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
+      ByteArray* ba = ByteArray::create(state, size);
+      memcpy(ba->bytes, onig_data->int_map_backward, size);
+
+      // Dispose of the old one.
+      free(onig_data->int_map_backward);
+
+      onig_data->int_map_backward = reinterpret_cast<int*>(ba->bytes);
+
+      write_barrier(state, ba);
+    }
 
     if(beg != ONIG_MISMATCH) {
       md = get_match_data(state, region, string, this, max);
