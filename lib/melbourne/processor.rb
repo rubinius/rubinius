@@ -73,8 +73,8 @@ module Rubinius
       AST::BlockArgument.new line, name
     end
 
-    def process_block_pass(line, method_send, block)
-      method_send.block = AST::BlockPass.new line, block
+    def process_block_pass(line, method_send, body)
+      method_send.block = AST::BlockPass.new line, body
       method_send
     end
 

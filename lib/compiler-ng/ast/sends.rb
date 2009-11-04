@@ -185,17 +185,17 @@ module Rubinius
     end
 
     class BlockPass < Node
-      attr_accessor :block
+      attr_accessor :body
 
-      def initialize(line, block)
+      def initialize(line, body)
         @line = line
-        @block = block
+        @body = body
       end
 
       def bytecode(g)
         nil_block = g.new_label
 
-        @block.bytecode(g)
+        @body.bytecode(g)
 
         g.dup
         g.is_nil
