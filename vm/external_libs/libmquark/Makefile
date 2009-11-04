@@ -17,8 +17,7 @@ CFLAGS = $(WARNINGS) $(DEBUG)
 
 COMP=$(CC)
 ifeq ($(UNAME),Darwin)
-	CFLAGS += -arch ppc -arch i386
-  LDOPT=-dynamiclib
+  LDOPT=-dynamiclib 
   LINKER=$(CC) $(LDOPT)
   SUFFIX=dylib
   BIN_RPATH=
