@@ -228,8 +228,12 @@ namespace rubinius {
   }
 
   void String::unshare(STATE) {
-    data(state, as<ByteArray>(data_->duplicate(state)));
-    shared(state, Qfalse);
+    if(shared_->true_p()) {
+      if(data_->reference_p()) {
+        data(state, as<ByteArray>(data_->duplicate(state)));
+      }
+      shared(state, Qfalse);
+    }
   }
 
   String* String::append(STATE, String* other) {
