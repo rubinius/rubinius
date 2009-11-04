@@ -1139,10 +1139,10 @@ end
 #   send_stack_with_block for the equivalent op code used when a block is to
 #   be passed.
 
-instruction send_stack(index count) [ receiver +count -- value ]
+instruction send_stack(literal count) [ receiver +count -- value ]
   flush_ip();
   Object* recv = stack_back(count);
-  InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
   SET_ALLOW_PRIVATE(false);
 
