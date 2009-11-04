@@ -194,7 +194,7 @@ namespace melbourne {
     if(node) {
       line = INT2FIX(nd_line(node));
     } else {
-      tree = rb_funcall(ptp, rb_intern("process_dangling_node"), 1, line);
+      return rb_funcall(ptp, rb_intern("process_dangling_node"), 0);
     }
 
     switch(nd_type(node)) {
