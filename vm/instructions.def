@@ -384,12 +384,12 @@ section "Manipulate local variables"
 #   Sets the local variable identified by +index+ to +value+.
 #   The stack is not modified by this instruction.
 
-instruction set_local(index) [ -- ]
-  if(index >= vmm->number_of_locals) {
+instruction set_local(local) [ -- ]
+  if(local >= vmm->number_of_locals) {
     Exception::internal_error(state, call_frame, "invalid local access");
     RUN_EXCEPTION();
   }
-  call_frame->scope->set_local(index, stack_top());
+  call_frame->scope->set_local(local, stack_top());
 end
 
 # [Operation]
@@ -405,12 +405,12 @@ end
 #   Retrieves the current value (+local_value+) of the referenced local
 #   variable (+local+), and pushes it onto the stack.
 
-instruction push_local(index) [ -- value ]
-  if(index >= vmm->number_of_locals) {
+instruction push_local(local) [ -- value ]
+  if(local >= vmm->number_of_locals) {
     Exception::internal_error(state, call_frame, "invalid local access");
     RUN_EXCEPTION();
   }
-  stack_push(call_frame->scope->get_local(index));
+  stack_push(call_frame->scope->get_local(local));
 end
 
 # [Operation]
@@ -1184,11 +1184,11 @@ end
 #   This opcode passes a block to the receiver; see send_stack for the
 #   equivalent op code used when no block is to be passed.
 
-instruction send_stack_with_block(index count) [ block receiver +count -- value ]
+instruction send_stack_with_block(literal count) [ block receiver +count -- value ]
   flush_ip();
   Object* block = stack_pop();
   Object* recv = stack_back(count);
-  InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
   Arguments args(recv, block, count,
                  stack_back_position(count));
@@ -1237,12 +1237,12 @@ end
 
 define CALL_FLAG_CONCAT 2
 
-instruction send_stack_with_splat(index count) [ block array receiver +count -- value ]
+instruction send_stack_with_splat(literal count) [ block array receiver +count -- value ]
   flush_ip();
   Object* block = stack_pop();
   Object* ary   = stack_pop();
   Object* recv =  stack_back(count);
-  InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
   Arguments args(recv, block, count,
                  stack_back_position(count));
@@ -1289,10 +1289,10 @@ end
 #   The receiver is not specified for a call to super; it is the superclass
 #   of the current object that will receive the message.
 
-instruction send_super_stack_with_block(index count) [ block +count -- value ]
+instruction send_super_stack_with_block(literal count) [ block +count -- value ]
   flush_ip();
   Object* block = stack_pop();
-  InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
   Object* const recv = call_frame->self();
 
   Arguments args(recv, block, count,
@@ -1333,12 +1333,12 @@ end
 #   number of arguments in +args+ via either set_args or
 #   cast_array_for_args.
 
-instruction send_super_stack_with_splat(index count) [ block array +count -- value ]
+instruction send_super_stack_with_splat(literal count) [ block array +count -- value ]
   flush_ip();
   Object* block = stack_pop();
   Object* ary   = stack_pop();
   Object* const recv = call_frame->self();
-  InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
   Arguments args(recv, block, count,
                  stack_back_position(count));
@@ -1423,14 +1423,14 @@ end
 #   into a block environment +block_env+, which is then pushed back onto the
 #   stack.
 
-instruction create_block(index) [ -- block ]
-  Object* _lit = call_frame->cm->literals()->at(state, index);
+instruction create_block(literal) [ -- block ]
+  Object* _lit = call_frame->cm->literals()->at(state, literal);
   CompiledMethod* cm = as<CompiledMethod>(_lit);
 
   // TODO: We do not need to be doing this everytime.
   cm->scope(state, call_frame->static_scope());
 
-  Object* be = BlockEnvironment::under_call_frame(state, cm, vmm, call_frame, index);
+  Object* be = BlockEnvironment::under_call_frame(state, cm, vmm, call_frame, literal);
 
   stack_push(be);
 end
@@ -1801,9 +1801,9 @@ end
 #   CompiledMethod, is initialised to either 0 (for kernel land methods) or
 #   1 (for user land methods).
 
-instruction check_serial(index serial) [ receiver -- boolean ]
+instruction check_serial(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
-  InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
   if(cache->update_and_validate(state, call_frame, recv) &&
        cache->method->serial()->to_native() == serial) {
@@ -1813,9 +1813,9 @@ instruction check_serial(index serial) [ receiver -- boolean ]
   }
 end
 
-instruction check_serial_private(index serial) [ receiver -- boolean ]
+instruction check_serial_private(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
-  InlineCache* cache = reinterpret_cast<InlineCache*>(index);
+  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
   if(cache->update_and_validate_private(state, call_frame, recv) &&
        cache->method->serial()->to_native() == serial) {
@@ -2023,7 +2023,7 @@ end
 #   addition is done directly via the fixnum_add primitive; otherwise, the +
 #   method is called on +value1+, passing +value2+ as the argument.
 
-instruction meta_send_op_plus(name) [ value1 value2 -- sum ]
+instruction meta_send_op_plus(literal) [ value1 value2 -- sum ]
   Object* left =  stack_back(1);
   Object* right = stack_back(0);
 
@@ -2035,7 +2035,7 @@ instruction meta_send_op_plus(name) [ value1 value2 -- sum ]
   } else {
     flush_ip();
     Arguments out_args(left, 1, stack_back_position(1));
-    InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
@@ -2061,7 +2061,7 @@ end
 #   subtraction is done directly via the fixnum_sub primitive; otherwise,
 #   the - method is called on +value1+, passing +value2+ as the argument.
 
-instruction meta_send_op_minus(name) [ value1 value2 -- difference ]
+instruction meta_send_op_minus(literal) [ value1 value2 -- difference ]
   Object* left =  stack_back(1);
   Object* right = stack_back(0);
 
@@ -2071,7 +2071,7 @@ instruction meta_send_op_minus(name) [ value1 value2 -- difference ]
   } else {
     flush_ip();
     Arguments out_args(left, 1, stack_back_position(1));
-    InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
@@ -2097,7 +2097,7 @@ end
 #   both symbols, the comparison is done directly; otherwise, the == method
 #   is called on +value1+, passing +value2+ as the argument.
 
-instruction meta_send_op_equal(name) [ value1 value2 -- boolean ]
+instruction meta_send_op_equal(literal) [ value1 value2 -- boolean ]
   Object* t1 = stack_back(1);
   Object* t2 = stack_back(0);
   /* If both are not references, compare them directly. */
@@ -2108,7 +2108,7 @@ instruction meta_send_op_equal(name) [ value1 value2 -- boolean ]
     flush_ip();
 
     Arguments out_args(t1, 1, stack_back_position(1));
-    InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
@@ -2134,7 +2134,7 @@ end
 #   comparison is done directly; otherwise, the < method is called on
 #   +value1+, passing +value2+ as the argument.
 
-instruction meta_send_op_lt(name) [ value1 value2 -- boolean ]
+instruction meta_send_op_lt(literal) [ value1 value2 -- boolean ]
   Object* t1 = stack_back(1);
   Object* t2 = stack_back(0);
   if(both_fixnum_p(t1, t2)) {
@@ -2145,7 +2145,7 @@ instruction meta_send_op_lt(name) [ value1 value2 -- boolean ]
   } else {
     flush_ip();
     Arguments out_args(t1, 1, stack_back_position(1));
-    InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
@@ -2171,7 +2171,7 @@ end
 #   comparison is done directly; otherwise, the > method is called on
 #   +value1+, passing +value2+ as the argument.
 
-instruction meta_send_op_gt(name) [ value1 value2 -- boolean ]
+instruction meta_send_op_gt(literal) [ value1 value2 -- boolean ]
   Object* t1 = stack_back(1);
   Object* t2 = stack_back(0);
   if(both_fixnum_p(t1, t2)) {
@@ -2182,7 +2182,7 @@ instruction meta_send_op_gt(name) [ value1 value2 -- boolean ]
   } else {
     flush_ip();
     Arguments out_args(t1, 1, stack_back_position(1));
-    InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
@@ -2210,7 +2210,7 @@ end
 # [Notes]
 #   Exactly like equal, except calls === if it can't handle it directly.
 
-instruction meta_send_op_tequal(name) [ value1 value2 -- boolean ]
+instruction meta_send_op_tequal(literal) [ value1 value2 -- boolean ]
   Object* t1 = stack_back(1);
   Object* t2 = stack_back(0);
   /* If both are fixnums, or both are symbols, compare the ops directly. */
@@ -2220,7 +2220,7 @@ instruction meta_send_op_tequal(name) [ value1 value2 -- boolean ]
   } else {
     flush_ip();
     Arguments out_args(t1, 1, stack_back_position(1));
-    InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
@@ -2243,7 +2243,7 @@ end
 # [Description]
 #   Simplified call instruction used for yields and basic calls
 
-instruction meta_send_call(name count) [ receiver +count -- value ]
+instruction meta_send_call(literal count) [ receiver +count -- value ]
   flush_ip();
   Object* t1 = stack_back(count);
   Object* ret;
@@ -2255,7 +2255,7 @@ instruction meta_send_call(name count) [ receiver +count -- value ]
   } else if(Proc* proc = try_as<Proc>(t1)) {
     ret = proc->call(state, call_frame, out_args);
   } else {
-    InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
     ret = cache->execute(state, call_frame, out_args);
   }
 
