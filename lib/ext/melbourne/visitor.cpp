@@ -120,11 +120,15 @@ namespace melbourne {
 
   static VALUE quark_to_symbol(quark quark) {
     const char *op;
-    op = melbourne::op_to_name(quark);
-    if(op) {
+    if((op = melbourne::op_to_name(quark)) ||
+       (op = quark_to_string(id_to_quark(quark)))) {
       return ID2SYM(rb_intern(op));
+    } else {
+      fprintf(stderr,
+              "unable to retrieve string from parser symbol(quark: %#zx, id: %#zx)\n",
+              quark, id_to_quark(quark));
+      abort();
     }
-    return ID2SYM(rb_intern(quark_to_string(id_to_quark(quark))));
   }
 
 #define nd_3rd    u3.node
@@ -871,8 +875,7 @@ namespace melbourne {
       break;
 
     case NODE_LIT:
-      tree = rb_funcall(ptp, rb_sLit, 2, line,
-          Q2SYM((uintptr_t)node->nd_lit));
+      tree = rb_funcall(ptp, rb_sLit, 2, line, Q2SYM((uintptr_t)node->nd_lit));
       break;
 
     case NODE_NEWLINE:
