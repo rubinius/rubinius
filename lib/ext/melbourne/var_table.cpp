@@ -31,7 +31,7 @@ namespace melbourne {
       var_table cur = vt;
       vt = vt->next;
 
-      XFREE(cur);
+      xfree(cur);
     }
   }
 
@@ -45,7 +45,7 @@ namespace melbourne {
     var_table nw;
 
     nw = cur->next;
-    XFREE(cur);
+    xfree(cur);
     return nw;
   }
 

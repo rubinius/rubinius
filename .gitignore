@@ -75,6 +75,8 @@ tmtags
 /lib/openssl/digest.rb
 /lib/syslog.rb
 
+/lib/ext/melbourne/Makefile
+
 # LLVM and its Makefiles
 vm/external_libs/llvm/Makefile
 vm/external_libs/llvm/Makefile.common

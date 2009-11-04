@@ -1,5 +1,6 @@
 unless Object.const_defined? :RUBY_ENGINE
   ext_dir = "ruby"
+  require "mri_bridge"
 else
   ext_dir = Object.const_get :RUBY_ENGINE
 end
