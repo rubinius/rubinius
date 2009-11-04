@@ -31,7 +31,7 @@ class TestGemSourceIndex < RubyGemTestCase
 
     a1 = quick_gem 'a', '1' do |spec| spec.author = 'author 1' end
 
-    spec_file = File.join spec_dir, "#{a1.full_name}.gemspec"
+    spec_file = File.join spec_dir, a1.spec_name
 
     File.open spec_file, 'w' do |fp|
       fp.write a1.to_ruby
@@ -52,7 +52,7 @@ class TestGemSourceIndex < RubyGemTestCase
 
     a1 = quick_gem 'a', '1' do |spec| spec.author = 'author 1' end
 
-    spec_file = File.join spec_dir, "#{a1.full_name}.gemspec"
+    spec_file = File.join spec_dir, a1.spec_name
 
     File.open spec_file, 'w' do |fp|
       fp.write a1.to_ruby
@@ -298,11 +298,11 @@ WARNING:  Invalid .gemspec format in '#{spec_file}'
     a1 = quick_gem 'a', '1' do |spec| spec.author = 'author 1' end
     a2 = quick_gem 'a', '1' do |spec| spec.author = 'author 2' end
 
-    File.open File.join(spec_dir1, "#{a1.full_name}.gemspec"), 'w' do |fp|
+    File.open File.join(spec_dir1, a1.spec_name), 'w' do |fp|
       fp.write a1.to_ruby
     end
 
-    File.open File.join(spec_dir2, "#{a2.full_name}.gemspec"), 'w' do |fp|
+    File.open File.join(spec_dir2, a2.spec_name), 'w' do |fp|
       fp.write a2.to_ruby
     end
 
@@ -335,14 +335,12 @@ WARNING:  Invalid .gemspec format in '#{spec_file}'
     @source_index.add_spec gem_a1_alpha
 
     refute @source_index.latest_specs.include?(gem_a1_alpha)
-    assert_nil @source_index.specification(gem_a1_alpha.full_name)
+    assert @source_index.find_name(gem_a1_alpha.full_name).empty?
     assert @source_index.prerelease_specs.include?(gem_a1_alpha)
-
-    # TODO: don't think this tests writing prerelease index to disk
   end
 
   def test_refresh_bang
-    a1_spec = File.join @gemhome, "specifications", "#{@a1.full_name}.gemspec" 
+    a1_spec = File.join @gemhome, "specifications", @a1.spec_name 
 
     FileUtils.mv a1_spec, @tempdir
 
@@ -350,7 +348,7 @@ WARNING:  Invalid .gemspec format in '#{spec_file}'
 
     refute source_index.gems.include?(@a1.full_name)
 
-    FileUtils.mv File.join(@tempdir, "#{@a1.full_name}.gemspec"), a1_spec
+    FileUtils.mv File.join(@tempdir, @a1.spec_name), a1_spec
 
     source_index.refresh!
 
@@ -407,6 +405,9 @@ WARNING:  Invalid .gemspec format in '#{spec_file}'
 
     with_default = Gem::Dependency.new(/^a/, Gem::Requirement.default)
     assert_equal [@a1, @a2, @a3a, @a_evil9], @source_index.search(with_default)
+
+    c1_1_dep = Gem::Dependency.new 'c', '~> 1.1'
+    assert_equal [@c1_2], @source_index.search(c1_1_dep)
   end
 
   def test_search_platform

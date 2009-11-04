@@ -78,14 +78,6 @@ class TestGem < RubyGemTestCase
     end
   end
 
-  def test_self_bin_path_with_spaces
-    quick_gem 'sp ace', '3' do |s|
-      s.executables = ['exec']
-    end
-    path = Gem.bin_path('sp ace', 'exec')
-    assert_equal %w(" "), [path[0,1], path[-1,1]], "Path should be escaped"
-  end
-
   def test_self_bin_path_not_found
     assert_raises(Gem::GemNotFoundException) do
       Gem.bin_path('non-existent')
@@ -103,7 +95,7 @@ class TestGem < RubyGemTestCase
     bindir = if defined?(RUBY_FRAMEWORK_VERSION) then
                '/usr/bin'
              else
-               Config::CONFIG['bindir']
+               RbConfig::CONFIG['bindir']
              end
 
     assert_equal bindir, Gem.bindir(default)
@@ -194,11 +186,6 @@ class TestGem < RubyGemTestCase
 
   def test_self_dir
     assert_equal @gemhome, Gem.dir
-
-    Gem::DIRECTORIES.each do |filename|
-      assert File.directory?(File.join(Gem.dir, filename)),
-             "expected #{filename} to exist"
-    end
   end
 
   def test_self_ensure_gem_directories
@@ -450,13 +437,13 @@ class TestGem < RubyGemTestCase
   def test_self_refresh
     util_make_gems
 
-    a1_spec = File.join @gemhome, "specifications", "#{@a1.full_name}.gemspec" 
+    a1_spec = File.join @gemhome, "specifications", @a1.spec_name 
 
     FileUtils.mv a1_spec, @tempdir
 
     refute Gem.source_index.gems.include?(@a1.full_name)
 
-    FileUtils.mv File.join(@tempdir, "#{@a1.full_name}.gemspec"), a1_spec
+    FileUtils.mv File.join(@tempdir, @a1.spec_name), a1_spec
 
     Gem.refresh
 
@@ -546,11 +533,11 @@ class TestGem < RubyGemTestCase
     path = [@userhome, other].join File::PATH_SEPARATOR
     Gem.send :set_paths, path
 
-    assert File.exist?(File.join(@userhome, 'gems'))
-    assert File.exist?(File.join(other, 'gems'))
+    assert_equal [@userhome, other, @gemhome], Gem.path
   end
 
   def test_self_set_paths_nonexistent_home
+    ENV['GEM_HOME'] = @gemhome
     Gem.clear_paths
 
     other = File.join @tempdir, 'other'
@@ -559,7 +546,7 @@ class TestGem < RubyGemTestCase
 
     Gem.send :set_paths, other
 
-    refute File.exist?(File.join(other, 'gems'))
+    assert_equal [other, @gemhome], Gem.path
   end
 
   def test_self_source_index
@@ -624,7 +611,7 @@ class TestGem < RubyGemTestCase
     ENV['USERPROFILE'] = orig_user_profile
     ENV['USERDRIVE'] = orig_user_drive
     ENV['USERPATH'] = orig_user_path
-  end
+  end if '1.9' > RUBY_VERSION
 
   def util_ensure_gem_dirs
     Gem.ensure_gem_subdirectories @gemhome

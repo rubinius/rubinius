@@ -566,7 +566,7 @@ div.method-source-code pre { color: #ffdead; overflow: hidden; }
       deps = spec.dependencies.map do |dep|
         { "name"    => dep.name,
           "type"    => dep.type,
-          "version" => dep.version_requirements.to_s, }
+          "version" => dep.requirement.to_s, }
       end
 
       deps = deps.sort_by { |dep| [dep["name"].downcase, dep["version"]] }
@@ -602,7 +602,7 @@ div.method-source-code pre { color: #ffdead; overflow: hidden; }
       "only_one_executable" => true,
       "full_name" => "rubygems-#{Gem::RubyGemsVersion}",
       "has_deps" => false,
-      "homepage" => "http://rubygems.org/",
+      "homepage" => "http://docs.rubygems.org/",
       "name" => 'rubygems',
       "rdoc_installed" => true,
       "summary" => "RubyGems itself",

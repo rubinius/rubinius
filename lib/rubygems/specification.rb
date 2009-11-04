@@ -17,7 +17,7 @@ class Date; end # for ruby_code if date.rb wasn't required
 # defined in a .gemspec file or a Rakefile, and looks like this:
 #
 #   spec = Gem::Specification.new do |s|
-#     s.name = 'rfoo'
+#     s.name = 'example'
 #     s.version = '1.0'
 #     s.summary = 'Example gem specification'
 #     ...
@@ -409,14 +409,18 @@ class Gem::Specification
   # :startdoc:
 
   ##
-  # Specification constructor.  Assigns the default values to the attributes
-  # and yields itself for further initialization.
+  # Specification constructor.  Assigns the default values to the
+  # attributes and yields itself for further
+  # initialization. Optionally takes +name+ and +version+.
 
-  def initialize
+  def initialize name = nil, version = nil
     @new_platform = nil
     assign_defaults
     @loaded = false
     @loaded_from = nil
+
+    self.name = name if name
+    self.version = version if version
 
     yield self if block_given?
 
@@ -498,7 +502,7 @@ class Gem::Specification
 
   def self.load(filename)
     gemspec = nil
-    fail "NESTED Specification.load calls not allowed!" if @@gather
+    raise "NESTED Specification.load calls not allowed!" if @@gather
     @@gather = proc { |gs| gemspec = gs }
     data = File.read(filename)
     eval(data)
@@ -598,10 +602,12 @@ class Gem::Specification
   end
 
   ##
-  # The default (generated) file name of the gem.
+  # The default (generated) file name of the gem.  See also #spec_name.
+  #
+  #   spec.file_name # => "example-1.0.gem"
 
   def file_name
-    full_name + ".gem"
+    full_name + '.gem'
   end
 
   ##
@@ -620,7 +626,7 @@ class Gem::Specification
 
   def satisfies_requirement?(dependency)
     return @name == dependency.name &&
-      dependency.version_requirements.satisfied_by?(@version)
+      dependency.requirement.satisfied_by?(@version)
   end
 
   ##
@@ -628,6 +634,15 @@ class Gem::Specification
 
   def sort_obj
     [@name, @version, @new_platform == Gem::Platform::RUBY ? -1 : 1]
+  end
+
+  ##
+  # The default name of the gemspec.  See also #file_name
+  #
+  #   spec.spec_name # => "example-1.0.gemspec"
+
+  def spec_name
+    full_name + '.gemspec'
   end
 
   def <=>(other) # :nodoc:
@@ -847,7 +862,7 @@ class Gem::Specification
             'authors must be Array of Strings'
     end
 
-    licenses.each{ |license|
+    licenses.each { |license|
       if license.length > 64
         raise Gem::InvalidSpecificationException,
           "each license must be 64 characters or less"

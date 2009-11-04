@@ -30,7 +30,7 @@ class Gem::SourceIndex
 
   include Gem::UserInteraction
 
-  attr_reader :gems, :prerelease_gems # :nodoc:
+  attr_reader :gems # :nodoc:
 
   ##
   # Directories to use to refresh this SourceIndex when calling refresh!
@@ -122,16 +122,22 @@ class Gem::SourceIndex
   # #prerelease_gems
 
   def initialize(specifications={})
-    @gems, @prerelease_gems = [{}, {}]
+    @gems = {}
     specifications.each{ |full_name, spec| add_spec spec }
     @spec_dirs = nil
   end
 
-  ##
-  # Both regular and prerelease gems
-
+  # TODO: remove method
   def all_gems
-    @gems.merge @prerelease_gems
+    @gems
+  end
+
+  def prerelease_gems
+    @gems.reject{ |name, gem| !gem.version.prerelease? }
+  end
+
+  def released_gems
+    @gems.reject{ |name, gem| gem.version.prerelease? }
   end
 
   ##
@@ -153,8 +159,8 @@ class Gem::SourceIndex
   end
 
   ##
-  # Returns an Array specifications for the latest versions of each gem in
-  # this index.
+  # Returns an Array specifications for the latest released versions
+  # of each gem in this index.
 
   def latest_specs
     result = Hash.new { |h,k| h[k] = [] }
@@ -165,6 +171,7 @@ class Gem::SourceIndex
       curr_ver = spec.version
       prev_ver = latest.key?(name) ? latest[name].version : nil
 
+      next if curr_ver.prerelease?
       next unless prev_ver.nil? or curr_ver >= prev_ver or
                   latest[name].platform != Gem::Platform::RUBY
 
@@ -192,7 +199,14 @@ class Gem::SourceIndex
   # An array including only the prerelease gemspecs
 
   def prerelease_specs
-    @prerelease_gems.values
+    prerelease_gems.values
+  end
+
+  ##
+  # An array including only the released gemspecs
+
+  def released_specs
+    released_gems.values
   end
 
   ##
@@ -201,11 +215,7 @@ class Gem::SourceIndex
   def add_spec(gem_spec, name = gem_spec.full_name)
     # No idea why, but the Indexer wants to insert them using original_name
     # instead of full_name. So we make it an optional arg.
-    if gem_spec.version.prerelease?
-      @prerelease_gems[name] = gem_spec
-    else
-      @gems[name] = gem_spec
-    end
+    @gems[name] = gem_spec
   end
 
   ##
@@ -221,11 +231,7 @@ class Gem::SourceIndex
   # Remove a gem specification named +full_name+.
 
   def remove_spec(full_name)
-    if @gems.key? full_name then
-      @gems.delete full_name
-    else
-      @prerelease_gems.delete full_name
-    end
+    @gems.delete full_name
   end
 
   ##
@@ -247,18 +253,18 @@ class Gem::SourceIndex
   # change in the index.
 
   def index_signature
-    require 'rubygems/digest/sha2'
+    require 'digest'
 
-    Gem::SHA256.new.hexdigest(@gems.keys.sort.join(',')).to_s
+    Digest::SHA256.new.hexdigest(@gems.keys.sort.join(',')).to_s
   end
 
   ##
   # The signature for the given gem specification.
 
   def gem_signature(gem_full_name)
-    require 'rubygems/digest/sha2'
+    require 'digest'
 
-    Gem::SHA256.new.hexdigest(@gems[gem_full_name].to_yaml).to_s
+    Digest::SHA256.new.hexdigest(@gems[gem_full_name].to_yaml).to_s
   end
 
   def size
@@ -297,7 +303,7 @@ class Gem::SourceIndex
       version_requirement = platform_only || Gem::Requirement.default
     when Gem::Dependency then
       only_platform = platform_only
-      version_requirement = gem_pattern.version_requirements
+      version_requirement = gem_pattern.requirement
       gem_pattern = if Regexp === gem_pattern.name then
                       gem_pattern.name
                     elsif gem_pattern.name.empty? then
