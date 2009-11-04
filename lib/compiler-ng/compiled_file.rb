@@ -140,11 +140,6 @@ module Rubinius
           str = next_bytes count
           discard # remove the \n
           return str.to_sym
-        when ?S
-          count = next_string.to_i
-          str = next_bytes count
-          discard # remove the \n
-          return SendSite.new(str.to_sym)
         when ?p
           count = next_string.to_i
           obj = Tuple.new(count)
@@ -265,9 +260,6 @@ module Rubinius
         when Symbol
           s = val.to_s
           "x\n#{s.size}\n#{s}\n"
-        when SendSite
-          s = val.name.to_s
-          "S\n#{s.size}\n#{s}\n"
         when Tuple
           str = "p\n#{val.size}\n"
           val.each do |ele|

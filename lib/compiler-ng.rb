@@ -13,4 +13,5 @@ require 'compiler-ng/evaluator'
 require 'compiler-ng/printers'
 
 # Temporary
+require 'compiler-ng/description'
 require 'compiler-ng/test_generator'
