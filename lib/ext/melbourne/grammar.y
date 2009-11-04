@@ -230,7 +230,7 @@ static int _debug_print(const char *fmt, ...) {
 #define rb_warn _debug_print
 #define rb_warning _debug_print
 
-static QUID rb_intern(const char *name);
+static QUID rb_parser_sym(const char *name);
 static QUID rb_id_attrset(QUID);
 
 rb_parse_state *alloc_parse_state();
@@ -494,7 +494,7 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                         char buf[3];
 
                         snprintf(buf, sizeof(buf), "$%c", (char)$3->nd_nth);
-                        $$ = NEW_VALIAS($2, rb_intern(buf));
+                        $$ = NEW_VALIAS($2, rb_parser_sym(buf));
                     }
                 | kALIAS tGVAR tNTH_REF
                     {
@@ -1898,11 +1898,11 @@ method_call     : operation paren_args
                     }
                 | primary_value '\\' operation2
                     {
-                        $$ = NEW_CALL($1, rb_intern("get_reference"), NEW_LIST(NEW_LIT(ID2SYM($3))));
+                        $$ = NEW_CALL($1, rb_parser_sym("get_reference"), NEW_LIST(NEW_LIT(ID2SYM($3))));
                     }
                 | tUBS operation2
                     {
-                        $$ = NEW_FCALL(rb_intern("get_reference"), NEW_LIST(NEW_LIT(ID2SYM($2))));
+                        $$ = NEW_FCALL(rb_parser_sym("get_reference"), NEW_LIST(NEW_LIT(ID2SYM($2))));
                     }
                 | kSUPER paren_args
                     {
@@ -1965,7 +1965,7 @@ opt_rescue      : kRESCUE exc_list exc_var then
                   opt_rescue
                     {
                         if ($3) {
-                            $3 = node_assign($3, NEW_GVAR(rb_intern("$!")), vps);
+                            $3 = node_assign($3, NEW_GVAR(rb_parser_sym("$!")), vps);
                             $5 = block_append(vps, $3, $5);
                         }
                         $$ = NEW_RESBODY($2, $5, $6);
@@ -2219,7 +2219,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                               case NODE_STR:
                                 /* TODO: this line should never fail unless nd_str is binary */
                                 if (strlen(bdatae($$->nd_str,"")) == (size_t)blength($$->nd_str)) {
-                                  QUID tmp = rb_intern(bdata($$->nd_str));
+                                  QUID tmp = rb_parser_sym(bdata($$->nd_str));
                                   bdestroy($$->nd_str);
                                   $$->nd_lit = ID2SYM(tmp);
                                   nd_set_type($$, NODE_LIT);
@@ -4345,14 +4345,14 @@ yylex(void *yylval_v, void *vstate)
 
               case 1:
                 lex_strterm = NEW_STRTERM(str_xquote, term, paren);
-                pslval->id = rb_intern(tmpstr);
+                pslval->id = rb_parser_sym(tmpstr);
                 return tXSTRING_BEG;
 
               default:
                 lex_strterm = NEW_STRTERM(str_xquote, term, paren);
                 tmpstr[0] = c;
                 tmpstr[1] = 0;
-                pslval->id = rb_intern(tmpstr);
+                pslval->id = rb_parser_sym(tmpstr);
                 return tXSTRING_BEG;
             }
         }
@@ -4410,7 +4410,7 @@ yylex(void *yylval_v, void *vstate)
             tokadd('$', parse_state);
             tokadd((char)c, parse_state);
             tokfix();
-            pslval->id = rb_intern(tok());
+            pslval->id = rb_parser_sym(tok());
             return tGVAR;
 
           case '-':
@@ -4420,7 +4420,7 @@ yylex(void *yylval_v, void *vstate)
             tokadd((char)c, parse_state);
           gvar:
             tokfix();
-            pslval->id = rb_intern(tok());
+            pslval->id = rb_parser_sym(tok());
             /* xxx shouldn't check if valid option variable */
             return tGVAR;
 
@@ -4572,7 +4572,7 @@ yylex(void *yylval_v, void *vstate)
                     enum lex_state state = parse_state->lex_state;
                     parse_state->lex_state = kw->state;
                     if (state == EXPR_FNAME) {
-                        pslval->id = rb_intern(kw->name);
+                        pslval->id = rb_parser_sym(kw->name);
                     }
                     if (kw->id[0] == kDO) {
                         if (COND_P()) return kDO_COND;
@@ -4608,7 +4608,7 @@ yylex(void *yylval_v, void *vstate)
                 parse_state->lex_state = EXPR_END;
             }
         }
-        pslval->id = rb_intern(tok());
+        pslval->id = rb_parser_sym(tok());
         if(is_local_id(pslval->id) &&
            last_state != EXPR_DOT &&
            local_id(pslval->id)) {
@@ -4911,7 +4911,7 @@ static QUID convert_op(QUID id) {
     int i;
     for(i = 0; op_tbl[i].token; i++) {
         if(op_tbl[i].token == id) {
-            return rb_intern(op_tbl[i].name);
+            return rb_parser_sym(op_tbl[i].name);
         }
     }
     return id;
@@ -5440,7 +5440,7 @@ range_op(NODE *node, rb_parse_state *parse_state)
     }
     if (type == NODE_LIT && FIXNUM_P(node->nd_lit)) {
         warn_unless_e_option(parse_state, node, "integer literal in conditional range");
-        return call_op(node,tEQ,1,NEW_GVAR(rb_intern("$.")), parse_state);
+        return call_op(node,tEQ,1,NEW_GVAR(rb_parser_sym("$.")), parse_state);
     }
     return node;
 }
@@ -5482,7 +5482,7 @@ cond0(NODE *node, rb_parse_state *parse_state)
       case NODE_DREGX_ONCE:
         local_cnt('_');
         local_cnt('~');
-        return NEW_MATCH2(node, NEW_GVAR(rb_intern("$_")));
+        return NEW_MATCH2(node, NEW_GVAR(rb_parser_sym("$_")));
 
       case NODE_AND:
       case NODE_OR:
@@ -5743,7 +5743,7 @@ mel_local_id(rb_parse_state *st, QUID id)
 }
 
 static QUID
-rb_intern(const char *name)
+rb_parser_sym(const char *name)
 {
     const char *m = name;
     QUID id, pre, qrk, bef;

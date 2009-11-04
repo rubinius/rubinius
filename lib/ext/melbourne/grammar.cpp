@@ -501,7 +501,7 @@ static int _debug_print(const char *fmt, ...) {
 #define rb_warn _debug_print
 #define rb_warning _debug_print
 
-static QUID rb_intern(const char *name);
+static QUID rb_parser_sym(const char *name);
 static QUID rb_id_attrset(QUID);
 
 rb_parse_state *alloc_parse_state();
@@ -4543,7 +4543,7 @@ yyreduce:
                         char buf[3];
 
                         snprintf(buf, sizeof(buf), "$%c", (char)(yyvsp[(3) - (3)].node)->nd_nth);
-                        (yyval.node) = NEW_VALIAS((yyvsp[(2) - (3)].id), rb_intern(buf));
+                        (yyval.node) = NEW_VALIAS((yyvsp[(2) - (3)].id), rb_parser_sym(buf));
                     ;}
     break;
 
@@ -6613,14 +6613,14 @@ yyreduce:
   case 357:
 #line 1900 "grammar.y"
     {
-                        (yyval.node) = NEW_CALL((yyvsp[(1) - (3)].node), rb_intern("get_reference"), NEW_LIST(NEW_LIT(ID2SYM((yyvsp[(3) - (3)].id)))));
+                        (yyval.node) = NEW_CALL((yyvsp[(1) - (3)].node), rb_parser_sym("get_reference"), NEW_LIST(NEW_LIT(ID2SYM((yyvsp[(3) - (3)].id)))));
                     ;}
     break;
 
   case 358:
 #line 1904 "grammar.y"
     {
-                        (yyval.node) = NEW_FCALL(rb_intern("get_reference"), NEW_LIST(NEW_LIT(ID2SYM((yyvsp[(2) - (2)].id)))));
+                        (yyval.node) = NEW_FCALL(rb_parser_sym("get_reference"), NEW_LIST(NEW_LIT(ID2SYM((yyvsp[(2) - (2)].id)))));
                     ;}
     break;
 
@@ -6705,7 +6705,7 @@ yyreduce:
 #line 1966 "grammar.y"
     {
                         if ((yyvsp[(3) - (6)].node)) {
-                            (yyvsp[(3) - (6)].node) = node_assign((yyvsp[(3) - (6)].node), NEW_GVAR(rb_intern("$!")), vps);
+                            (yyvsp[(3) - (6)].node) = node_assign((yyvsp[(3) - (6)].node), NEW_GVAR(rb_parser_sym("$!")), vps);
                             (yyvsp[(5) - (6)].node) = block_append(vps, (yyvsp[(3) - (6)].node), (yyvsp[(5) - (6)].node));
                         }
                         (yyval.node) = NEW_RESBODY((yyvsp[(2) - (6)].node), (yyvsp[(5) - (6)].node), (yyvsp[(6) - (6)].node));
@@ -6998,7 +6998,7 @@ yyreduce:
                               case NODE_STR:
                                 /* TODO: this line should never fail unless nd_str is binary */
                                 if (strlen(bdatae((yyval.node)->nd_str,"")) == (size_t)blength((yyval.node)->nd_str)) {
-                                  QUID tmp = rb_intern(bdata((yyval.node)->nd_str));
+                                  QUID tmp = rb_parser_sym(bdata((yyval.node)->nd_str));
                                   bdestroy((yyval.node)->nd_str);
                                   (yyval.node)->nd_lit = ID2SYM(tmp);
                                   nd_set_type((yyval.node), NODE_LIT);
@@ -9398,14 +9398,14 @@ yylex(void *yylval_v, void *vstate)
 
               case 1:
                 lex_strterm = NEW_STRTERM(str_xquote, term, paren);
-                pslval->id = rb_intern(tmpstr);
+                pslval->id = rb_parser_sym(tmpstr);
                 return tXSTRING_BEG;
 
               default:
                 lex_strterm = NEW_STRTERM(str_xquote, term, paren);
                 tmpstr[0] = c;
                 tmpstr[1] = 0;
-                pslval->id = rb_intern(tmpstr);
+                pslval->id = rb_parser_sym(tmpstr);
                 return tXSTRING_BEG;
             }
         }
@@ -9463,7 +9463,7 @@ yylex(void *yylval_v, void *vstate)
             tokadd('$', parse_state);
             tokadd((char)c, parse_state);
             tokfix();
-            pslval->id = rb_intern(tok());
+            pslval->id = rb_parser_sym(tok());
             return tGVAR;
 
           case '-':
@@ -9473,7 +9473,7 @@ yylex(void *yylval_v, void *vstate)
             tokadd((char)c, parse_state);
           gvar:
             tokfix();
-            pslval->id = rb_intern(tok());
+            pslval->id = rb_parser_sym(tok());
             /* xxx shouldn't check if valid option variable */
             return tGVAR;
 
@@ -9625,7 +9625,7 @@ yylex(void *yylval_v, void *vstate)
                     enum lex_state state = parse_state->lex_state;
                     parse_state->lex_state = kw->state;
                     if (state == EXPR_FNAME) {
-                        pslval->id = rb_intern(kw->name);
+                        pslval->id = rb_parser_sym(kw->name);
                     }
                     if (kw->id[0] == kDO) {
                         if (COND_P()) return kDO_COND;
@@ -9661,7 +9661,7 @@ yylex(void *yylval_v, void *vstate)
                 parse_state->lex_state = EXPR_END;
             }
         }
-        pslval->id = rb_intern(tok());
+        pslval->id = rb_parser_sym(tok());
         if(is_local_id(pslval->id) &&
            last_state != EXPR_DOT &&
            local_id(pslval->id)) {
@@ -9964,7 +9964,7 @@ static QUID convert_op(QUID id) {
     int i;
     for(i = 0; op_tbl[i].token; i++) {
         if(op_tbl[i].token == id) {
-            return rb_intern(op_tbl[i].name);
+            return rb_parser_sym(op_tbl[i].name);
         }
     }
     return id;
@@ -10493,7 +10493,7 @@ range_op(NODE *node, rb_parse_state *parse_state)
     }
     if (type == NODE_LIT && FIXNUM_P(node->nd_lit)) {
         warn_unless_e_option(parse_state, node, "integer literal in conditional range");
-        return call_op(node,tEQ,1,NEW_GVAR(rb_intern("$.")), parse_state);
+        return call_op(node,tEQ,1,NEW_GVAR(rb_parser_sym("$.")), parse_state);
     }
     return node;
 }
@@ -10535,7 +10535,7 @@ cond0(NODE *node, rb_parse_state *parse_state)
       case NODE_DREGX_ONCE:
         local_cnt('_');
         local_cnt('~');
-        return NEW_MATCH2(node, NEW_GVAR(rb_intern("$_")));
+        return NEW_MATCH2(node, NEW_GVAR(rb_parser_sym("$_")));
 
       case NODE_AND:
       case NODE_OR:
@@ -10796,7 +10796,7 @@ mel_local_id(rb_parse_state *st, QUID id)
 }
 
 static QUID
-rb_intern(const char *name)
+rb_parser_sym(const char *name)
 {
     const char *m = name;
     QUID id, pre, qrk, bef;
