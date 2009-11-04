@@ -112,8 +112,6 @@ class Dir
 
             if File.directory? full
               @next.call env, full
-            else
-              env.matches << full
             end
           end
         end
@@ -177,7 +175,7 @@ class Dir
       parts.reverse_each do |dir|
         if dir == "**"
           last = RecursiveDirectories.new last
-        elsif /[a-zA-Z0-9]+/.match(dir)
+        elsif /[a-zA-Z0-9.]+/.match(dir)
           last = ConstantDirectory.new last, dir
         elsif !dir.empty?
           last = DirectoryMatch.new last, dir
