@@ -192,7 +192,7 @@ static int  mel_local_id(rb_parse_state*,QUID);
 static QUID  *mel_local_tbl(rb_parse_state *st);
 static QUID   convert_op(QUID id);
 
-
+#define QUID2SYM(x)   (x)
 
 static void tokadd(char c, rb_parse_state *parse_state);
 static int tokadd_string(int, int, int, QUID*, rb_parse_state*);
@@ -993,7 +993,7 @@ fsym            : fname
 
 fitem           : fsym
                     {
-                        $$ = NEW_LIT(ID2SYM($1));
+                        $$ = NEW_LIT(QUID2SYM($1));
                     }
                 | dsym
                 ;
@@ -1898,11 +1898,13 @@ method_call     : operation paren_args
                     }
                 | primary_value '\\' operation2
                     {
-                        $$ = NEW_CALL($1, rb_parser_sym("get_reference"), NEW_LIST(NEW_LIT(ID2SYM($3))));
+                        $$ = NEW_CALL($1, rb_parser_sym("get_reference"),
+                        NEW_LIST(NEW_LIT(QUID2SYM($3))));
                     }
                 | tUBS operation2
                     {
-                        $$ = NEW_FCALL(rb_parser_sym("get_reference"), NEW_LIST(NEW_LIT(ID2SYM($2))));
+                        $$ = NEW_FCALL(rb_parser_sym("get_reference"),
+                        NEW_LIST(NEW_LIT(QUID2SYM($2))));
                     }
                 | kSUPER paren_args
                     {
@@ -2003,7 +2005,7 @@ opt_ensure      : kENSURE compstmt
 literal         : numeric
                 | symbol
                     {
-                        $$ = NEW_LIT(ID2SYM($1));
+                        $$ = NEW_LIT(QUID2SYM($1));
                     }
                 | dsym
                 ;
@@ -2221,7 +2223,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                                 if (strlen(bdatae($$->nd_str,"")) == (size_t)blength($$->nd_str)) {
                                   QUID tmp = rb_parser_sym(bdata($$->nd_str));
                                   bdestroy($$->nd_str);
-                                  $$->nd_lit = ID2SYM(tmp);
+                                  $$->nd_lit = QUID2SYM(tmp);
                                   nd_set_type($$, NODE_LIT);
                                   break;
                                 } else {
