@@ -158,7 +158,7 @@ module Rubinius
       end
 
       def default_transforms
-        @transforms.concat AST::Transforms.category :default
+        @transforms.concat AST::Transforms.category(:default)
       end
 
       def print(klass=ASTPrinter)
