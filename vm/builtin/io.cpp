@@ -121,6 +121,9 @@ namespace rubinius {
                      Object* errorables, Object* timeout,
                      CallFrame* calling_environment)
   {
+    // GC protection / awareness
+    OnStack<3> os(state, readables, writables, errorables);
+
     fd_set read_set;
     fd_set* maybe_read_set = readables->nil_p() ? NULL : &read_set;
 
