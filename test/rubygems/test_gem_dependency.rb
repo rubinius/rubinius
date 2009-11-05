@@ -1,105 +1,190 @@
-require "minitest/autorun"
-require "support/shortcuts"
-require "rubygems/dependency"
+#--
+# Copyright 2006 by Chad Fowler, Rich Kilmer, Jim Weirich and others.
+# All rights reserved.
+# See LICENSE.txt for permissions.
+#++
 
-class TestGemDependency < MiniTest::Unit::TestCase
-  include Support::Shortcuts
+require File.join(File.expand_path(File.dirname(__FILE__)), 'gemutilities')
+require 'rubygems/version'
+
+class TestGemDependency < RubyGemTestCase
+
+  def setup
+    super
+
+    @pkg1_0 = Gem::Dependency.new 'pkg', ['> 1.0']
+    @pkg1_1 = Gem::Dependency.new 'pkg', ['> 1.1']
+
+    @oth1_0 = Gem::Dependency.new 'other', ['> 1.0']
+
+    @r1_0 = Gem::Requirement.new ['> 1.0']
+  end
+
+  def dep(name, version)
+    Gem::Dependency.new name, version
+  end
 
   def test_initialize
-    d = dep "pkg", "> 1.0"
-
-    assert_equal "pkg", d.name
-    assert_equal req("> 1.0"), d.requirement
+    assert_equal "pkg", @pkg1_0.name
+    assert_equal @r1_0, @pkg1_0.version_requirements
   end
 
   def test_initialize_double
-    d = dep "pkg", "> 1.0", "< 2.0"
-    assert_equal req("> 1.0", "< 2.0"), d.requirement
+    dep = Gem::Dependency.new("pkg", ["> 1.0", "< 2.0"])
+
+    assert_equal Gem::Requirement.new(["> 1.0", "< 2.0"]),
+                 dep.version_requirements
   end
 
   def test_initialize_empty
-    d = dep "pkg"
-    assert_equal req(">= 0"), d.requirement
-  end
+    dep = Gem::Dependency.new("pkg", [])
+    req = @r1_0
 
-  def test_initialize_type
-    assert_equal :runtime, dep("pkg").type
-    assert_equal :development, dep("pkg", [], :development).type
-
-    assert_raises ArgumentError do
-      dep "pkg", :sometimes
+    req.instance_eval do
+      @version = ">= 1.0"
+      @op = ">="
+      @nums = [1,0]
+      @requirements = nil
     end
+
+    dep.instance_eval do
+      @version_requirement = req
+      @version_requirements = nil
+    end
+
+    assert_equal Gem::Requirement.new([">= 1.0"]), dep.version_requirements
   end
 
   def test_initialize_version
-    d = dep "pkg", v("2")
-    assert_equal req("= 2"), d.requirement
+    dep = Gem::Dependency.new 'pkg', Gem::Version.new('2')
+
+    assert_equal 'pkg', dep.name
+
+    assert_equal Gem::Requirement.new('= 2'), dep.version_requirements
+  end
+
+  def test_initialize_with_type
+    dep = Gem::Dependency.new("pkg", [], :development)
+    assert_equal(:development, dep.type)
+  end
+
+  def test_type_is_runtime_by_default
+    assert_equal(:runtime, Gem::Dependency.new("pkg", []).type)
+  end
+
+  def test_type_is_restricted
+    assert_raises ArgumentError do
+      Gem::Dependency.new("pkg", [:sometimes])
+    end
   end
 
   def test_equals2
-    o  = dep "other"
-    d  = dep "pkg", "> 1.0"
-    d1 = dep "pkg", "> 1.1"
+    assert_equal @pkg1_0, @pkg1_0.dup
+    assert_equal @pkg1_0.dup, @pkg1_0
 
-    assert_equal d, d.dup
-    assert_equal d.dup, d
+    refute_equal @pkg1_0, @pkg1_1, "requirements different"
+    refute_equal @pkg1_1, @pkg1_0, "requirements different"
 
-    refute_equal d, d1
-    refute_equal d1, d
+    refute_equal @pkg1_0, @oth1_0, "names different"
+    refute_equal @oth1_0, @pkg1_0, "names different"
 
-    refute_equal d, o
-    refute_equal o, d
-
-    refute_equal d, Object.new
-    refute_equal Object.new, d
+    refute_equal @pkg1_0, Object.new
+    refute_equal Object.new, @pkg1_0
   end
 
   def test_equals2_type
-    refute_equal dep("pkg", :runtime), dep("pkg", :development)
+    runtime = Gem::Dependency.new("pkg", [])
+    development = Gem::Dependency.new("pkg", [], :development)
+
+    refute_equal(runtime, development)
   end
 
   def test_equals_tilde
-    d = dep "a", "0"
+    a0   = dep 'a', '0'
+    a1   = dep 'a', '1'
+    b0   = dep 'b', '0'
 
-    assert_match d,                  d,             "matche self"
-    assert_match dep("a", ">= 0"),   d,             "match version exact"
-    assert_match dep("a", ">= 0"),   dep("a", "1"), "match version"
-    assert_match dep(/a/, ">= 0"),   d,             "match simple regexp"
-    assert_match dep(/a|b/, ">= 0"), d,             "match scary regexp"
+    pa0  = dep 'a', '>= 0'
+    pa0r = dep(/a/, '>= 0')
+    pab0r = dep(/a|b/, '>= 0')
 
-    refute_match dep(/a/), dep("b")
-    refute_match dep("a"), Object.new
+    assert_match a0,    a0, 'match self'
+    assert_match pa0,   a0, 'match version exact'
+    assert_match pa0,   a1, 'match version'
+    assert_match pa0r,  a0, 'match regex simple'
+    assert_match pab0r, a0, 'match regex complex'
+
+    refute_match pa0r, b0,         'fail match regex'
+    refute_match pa0r, Object.new, 'fail match Object'
   end
 
   def test_equals_tilde_escape
-    refute_match dep("a|b"), dep("a", "1")
-    assert_match dep(/a|b/), dep("a", "1")
+    a1 = Gem::Dependency.new 'a', '1'
+
+    pab1  = Gem::Dependency.new 'a|b', '>= 1'
+    pab1r = Gem::Dependency.new(/a|b/, '>= 1')
+
+    refute_match pab1,  a1, 'escaped'
+    assert_match pab1r, a1, 'exact regexp'
   end
 
   def test_equals_tilde_object
-    o = Object.new
-    def o.name    ; 'a' end
-    def o.version ; '0' end
+    a0 = Object.new
 
-    assert_match dep("a"), o
+    def a0.name() 'a' end
+    def a0.version() '0' end
+
+    pa0  = Gem::Dependency.new 'a', '>= 0'
+
+    assert_match pa0, a0, 'match version exact'
   end
 
   def test_equals_tilde_spec
-    assert_match dep("a", ">= 0"),   spec("a", "0")
-    assert_match dep("a", "1"),      spec("a", "1")
-    assert_match dep(/a/, ">= 0"),   spec("a", "0")
-    assert_match dep(/a|b/, ">= 0"), spec("b", "0")
-    refute_match dep(/a/, ">= 0"),   spec("b", "0")
+    def spec(name, version)
+      Gem::Specification.new do |spec|
+        spec.name = name
+        spec.version = version
+      end
+    end
+
+    a0   = spec 'a', '0'
+    a1   = spec 'a', '1'
+    b0   = spec 'b', '0'
+
+    pa0  = dep 'a', '>= 0'
+    pa0r = dep(/a/, '>= 0')
+    pab0r = dep(/a|b/, '>= 0')
+
+    assert_match pa0, a0,   'match version exact'
+    assert_match pa0, a1,   'match version'
+
+    assert_match pa0r, a0,  'match regex simple'
+    assert_match pa0r, a1,  'match regex simple'
+
+    assert_match pab0r, a0, 'match regex complex'
+    assert_match pab0r, b0, 'match regex complex'
+
+    refute_match pa0r, b0,         'fail match regex'
+    refute_match pa0r, Object.new, 'fail match Object'
   end
 
   def test_hash
-    d = dep "pkg", "1.0"
+    assert_equal @pkg1_0.hash, @pkg1_0.dup.hash
+    assert_equal @pkg1_0.dup.hash, @pkg1_0.hash
 
-    assert_equal d.hash, d.dup.hash
-    assert_equal d.dup.hash, d.hash
+    refute_equal @pkg1_0.hash, @pkg1_1.hash, "requirements different"
+    refute_equal @pkg1_1.hash, @pkg1_0.hash, "requirements different"
 
-    refute_equal dep("pkg", "1.0").hash,   dep("pkg", "2.0").hash, "requirement"
-    refute_equal dep("pkg", "1.0").hash,   dep("abc", "1.0").hash, "name"
-    refute_equal dep("pkg", :development), dep("pkg", :runtime), "type"
+    refute_equal @pkg1_0.hash, @oth1_0.hash, "names different"
+    refute_equal @oth1_0.hash, @pkg1_0.hash, "names different"
   end
+
+  def test_hash_type
+    runtime = Gem::Dependency.new("pkg", [])
+    development = Gem::Dependency.new("pkg", [], :development)
+
+    refute_equal(runtime.hash, development.hash)
+  end
+
 end
+
