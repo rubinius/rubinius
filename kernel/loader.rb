@@ -443,17 +443,7 @@ module Rubinius
 
     rescue Object => e
       begin
-        if e.kind_of? Exception
-          msg = e.message
-        else
-          msg = "strange object detected as exception: #{e.inspect}"
-        end
-
-        puts "An exception occurred #{@stage}"
-        puts "    #{e.message} (#{e.class})"
-
-        puts "\nBacktrace:"
-        puts e.awesome_backtrace.show
+        e.render "An exception occurred #{@stage}"
         @exit_code = 1
 
       rescue Object => e2

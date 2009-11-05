@@ -2,6 +2,7 @@ class Exception
 
   attr_writer :message
   attr_accessor :locations
+  attr_accessor :parent
 
   def initialize(message = nil)
     @message = message
@@ -25,8 +26,33 @@ class Exception
     @backtrace = Backtrace.backtrace(@locations)
   end
 
+  def render(header="An exception occurred", io=STDOUT)
+    io.puts header
+    io.puts "    #{message} (#{self.class})"
+    io.puts "\nBacktrace:"
+    io.puts awesome_backtrace.show
+
+    extra = @parent
+    while extra
+      io.puts "\nCaused by: #{extra.message} (#{extra.class})"
+      io.puts "\nBacktrace:"
+      io.puts extra.awesome_backtrace.show
+
+      extra = extra.parent
+    end
+
+  end
+
   def set_backtrace(bt)
     @backtrace = bt
+  end
+
+  def set_context(ctx)
+    if ctx.kind_of? Exception
+      @parent = ctx
+    else
+      set_backtrace(ctx)
+    end
   end
 
   def to_s

@@ -6,7 +6,7 @@ module Kernel
   # raising forever blows)
   #++
 
-  def raise(exc = Undefined, msg = nil, trace = nil)
+  def raise(exc=Undefined, msg=nil, ctx=nil)
     skip = false
     if exc.equal? Undefined
       exc = $!
@@ -18,15 +18,17 @@ module Kernel
     elsif exc.respond_to? :exception
       exc = exc.exception msg
       raise ::TypeError, 'exception class/object expected' unless exc.kind_of?(::Exception)
-      exc.set_backtrace trace if trace
     elsif exc.kind_of? String or !exc
       exc = ::RuntimeError.exception exc
     else
       raise ::TypeError, 'exception class/object expected'
     end
 
-    if !skip and !exc.locations
-      exc.locations = Rubinius::VM.backtrace 1
+    unless skip
+      exc.set_context ctx if ctx
+      unless exc.locations
+        exc.locations = Rubinius::VM.backtrace 1
+      end
     end
 
     if $DEBUG and $VERBOSE != nil

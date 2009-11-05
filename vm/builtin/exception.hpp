@@ -17,12 +17,14 @@ namespace rubinius {
   private:
     String* message_;  // slot
     Array* locations_; // slot
+    Exception* parent_; // slot
 
   public:
     /* accessors */
 
     attr_accessor(message, String);
     attr_accessor(locations, Array);
+    attr_accessor(parent, Exception);
 
     /* interface */
 
