@@ -57,7 +57,8 @@ describe "A Zsuper node" do
         d.is_nil
         d.git proc_lbl
 
-        d.push_const :Proc
+        d.push_cpath_top
+        d.find_const :Proc
         d.swap
         d.send :__from_block__, 1
 

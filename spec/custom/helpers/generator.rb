@@ -581,7 +581,8 @@ class TestGenerator
     g.dup
     g.is_nil
     g.git is_nil
-    g.push_const :Proc
+    g.push_cpath_top
+    g.find_const :Proc
     g.swap
     g.send :__from_block__, 1
     is_nil.set!

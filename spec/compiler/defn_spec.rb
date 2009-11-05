@@ -87,7 +87,8 @@ describe "A Defn node" do
         d.is_nil
         d.git no_proc
 
-        d.push_const :Proc
+        d.push_cpath_top
+        d.find_const :Proc
         d.swap
         d.send :__from_block__, 1
 
@@ -147,7 +148,8 @@ describe "A Defn node" do
         d.is_nil
         d.git no_proc
 
-        d.push_const :Proc
+        d.push_cpath_top
+        d.find_const :Proc
         d.swap
         d.send :__from_block__, 1
 
