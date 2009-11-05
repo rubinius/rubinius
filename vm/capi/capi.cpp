@@ -146,6 +146,11 @@ namespace rubinius {
         Object* recv, Symbol* method, std::size_t arg_count,
         Object** args)
     {
+      int marker = 0;
+      if(!env->state()->check_stack(env->current_call_frame(), &marker)) {
+        env->current_ep()->return_to(env);
+      }
+
       env->flush_cached_data();
 
       LookupData lookup(recv, recv->lookup_begin(env->state()), true);
