@@ -122,19 +122,6 @@ module Rubinius
 
       return Object.const_path_defined?(parts.join("::"))
     end
-
-    def class_variable_get(name)
-      return @module.class_variable_get(name)
-    end
-
-    def class_variable_set(name, val)
-      return @module.class_variable_set(name, val)
-    end
-
-    def class_variable_defined?(name)
-      return @module.class_variable_defined?(name)
-    end
-
   end
 end
 

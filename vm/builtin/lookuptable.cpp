@@ -238,6 +238,28 @@ namespace rubinius {
     return Qtrue;
   }
 
+  Array* LookupTable::collect(STATE, LookupTable* tbl, CollectAction& action)
+  {
+    size_t i, j;
+    Tuple* values;
+    LookupTableBucket* entry;
+
+    Array* ary = Array::create(state, tbl->entries()->to_native());
+    size_t num_bins = tbl->bins()->to_native();
+    values = tbl->values();
+
+    for(i = j = 0; i < num_bins; i++) {
+      entry = try_as<LookupTableBucket>(values->at(state, i));
+
+      while(entry) {
+        Object* ret = action.call(state, entry);
+        if(ret) ary->set(state, j++, ret);
+        entry = try_as<LookupTableBucket>(entry->next());
+      }
+    }
+    return ary;
+  }
+
   Array* LookupTable::collect(STATE, LookupTable* tbl,
                               Object* (*action)(STATE, LookupTableBucket*))
   {
@@ -265,7 +287,32 @@ namespace rubinius {
   }
 
   Array* LookupTable::all_keys(STATE) {
-    return collect(state, this, get_key);
+    class all_keys : public CollectAction {
+    public:
+      virtual Object* call(STATE, LookupTableBucket* bucket) {
+        return bucket->key();
+      }
+    } match;
+
+    return collect(state, this, match);
+  }
+
+  Array* LookupTable::filtered_keys(STATE, ObjectMatcher& matcher) {
+    class filtered_keys : public CollectAction {
+      ObjectMatcher& m_;
+
+    public:
+      filtered_keys(ObjectMatcher& m)
+        : m_(m)
+      {}
+
+      virtual Object* call(STATE, LookupTableBucket* bucket) {
+        if(m_.match_p(state, bucket->key())) return bucket->key();
+        return 0;
+      }
+    } match(matcher);
+
+    return collect(state, this, match);
   }
 
   Object* LookupTable::get_value(STATE, LookupTableBucket* entry) {

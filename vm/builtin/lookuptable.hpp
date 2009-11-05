@@ -92,6 +92,8 @@ namespace rubinius {
     // Ruby.primitive :lookuptable_keys
     Array* all_keys(STATE);
 
+    Array* filtered_keys(STATE, ObjectMatcher& match);
+
     static Object* get_value(STATE, LookupTableBucket* entry);
 
     // Ruby.primitive :lookuptable_values
@@ -101,6 +103,15 @@ namespace rubinius {
 
     // Ruby.primitive :lookuptable_entries
     Array* all_entries(STATE);
+
+    // This must be below all primitive declarations due to parsing bug
+    // in field_extract
+    class CollectAction {
+    public:
+      virtual Object* call(STATE, LookupTableBucket* bucket) = 0;
+    };
+
+    Array* collect(STATE, LookupTable* tbl, CollectAction& action);
 
     class Info : public TypeInfo {
     public:

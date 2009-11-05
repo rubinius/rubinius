@@ -389,6 +389,17 @@ namespace rubinius {
     /* No-op */
   }
 
+  // Used in filtering APIs
+  class ObjectMatcher {
+  public:
+    virtual bool match_p(STATE, Object* obj) = 0;
+  };
+
+  class ObjectMatchAll : public ObjectMatcher {
+  public:
+    virtual bool match_p(STATE, Object* obj) { return true; }
+  };
+
 }
 
 #endif

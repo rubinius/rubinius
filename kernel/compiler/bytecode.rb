@@ -868,11 +868,9 @@ class Compiler
           end
         when :cvar
           cvar = expr.shift
-          g.push :self
-          g.push :true # class vars as symbols, not strings
-          g.send :class_variables, 1
+          g.push_scope
           g.push_literal cvar
-          g.send :include?, 1
+          g.send :class_variable_defined?, 1
         when :gvar
           g.push_const :Rubinius
           g.find_const :Globals

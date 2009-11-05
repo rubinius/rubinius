@@ -10,6 +10,8 @@
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
 #include "builtin/system.hpp"
+#include "builtin/array.hpp"
+#include "builtin/compactlookuptable.hpp"
 
 #include "global_cache.hpp"
 
@@ -122,6 +124,189 @@ namespace rubinius {
     } while(!mod->nil_p());
 
     return NULL;
+  }
+
+  Array* Module::class_variables(STATE) {
+    Array* ary = Array::create(state, 2);
+    Module* mod = this;
+    Module* mod_to_query;
+
+    class cvar_match : public ObjectMatcher {
+    public:
+      virtual bool match_p(STATE, Object* obj) {
+        if(Symbol* sym = try_as<Symbol>(obj)) {
+          return sym->is_cvar_p(state)->true_p();
+        }
+
+        return false;
+      };
+    } match;
+
+    while(!mod->nil_p()) {
+      if(MetaClass* mc = try_as<MetaClass>(mod)) {
+        mod_to_query = as<Module>(mc->attached_instance());
+      } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
+        mod_to_query = im->module();
+      } else {
+        mod_to_query = mod;
+      }
+
+      Object* ivars = mod_to_query->ivars();
+
+      if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars)) {
+        ary->concat(state, tbl->filtered_keys(state, match));
+      } else if(LookupTable* tbl = try_as<LookupTable>(ivars)) {
+        ary->concat(state, tbl->filtered_keys(state, match));
+      }
+
+      mod = mod->superclass();
+    }
+
+    return ary;
+  }
+
+  Object* Module::cvar_defined(STATE, Symbol* name) {
+    if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
+
+    Module* mod = this;
+    Module* mod_to_query;
+
+    while(!mod->nil_p()) {
+      if(MetaClass* mc = try_as<MetaClass>(mod)) {
+        mod_to_query = as<Module>(mc->attached_instance());
+      } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
+        mod_to_query = im->module();
+      } else {
+        mod_to_query = mod;
+      }
+
+      if(mod_to_query->table_ivar_defined(state, name)->true_p()) return Qtrue;
+
+      mod = mod->superclass();
+    }
+
+    return Qfalse;
+  }
+
+  Object* Module::cvar_get(STATE, Symbol* name) {
+    if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
+
+    Module* mod = this;
+    Module* mod_to_query;
+
+    while(!mod->nil_p()) {
+      if(MetaClass* mc = try_as<MetaClass>(mod)) {
+        mod_to_query = as<Module>(mc->attached_instance());
+      } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
+        mod_to_query = im->module();
+      } else {
+        mod_to_query = mod;
+      }
+
+      if(mod_to_query->table_ivar_defined(state, name)->true_p()) {
+        return mod_to_query->get_table_ivar(state, name);
+      }
+
+      mod = mod->superclass();
+    }
+
+    mod = this;
+    if(MetaClass* mc = try_as<MetaClass>(mod)) {
+      mod = as<Module>(mc->attached_instance());
+    }
+
+    std::stringstream ss;
+    ss << "uninitialized class variable ";
+    ss << name->c_str(state);
+    ss << " in module ";
+    if(mod->name()->nil_p()) {
+      if(kind_of<Class>(mod)) {
+        ss << "#<Class>";
+      } else {
+        ss << "#<Module>";
+      }
+    } else {
+      ss << mod->name()->c_str(state);
+    }
+
+    RubyException::raise(
+        Exception::make_exception(state,
+          as<Class>(G(object)->get_const(state, "NameError")),
+          ss.str().c_str()));
+
+    return NULL;
+  }
+
+  Object* Module::cvar_set(STATE, Symbol* name, Object* value) {
+    if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
+
+    Module* mod = this;
+    Module* mod_to_query;
+
+    while(!mod->nil_p()) {
+      if(MetaClass* mc = try_as<MetaClass>(mod)) {
+        mod_to_query = as<Module>(mc->attached_instance());
+      } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
+        mod_to_query = im->module();
+      } else {
+        mod_to_query = mod;
+      }
+
+      if(mod_to_query->table_ivar_defined(state, name)->true_p()) {
+        mod_to_query->set_table_ivar(state, name, value);
+        return value;
+      }
+
+      mod = mod->superclass();
+    }
+
+    mod = this;
+    if(MetaClass* mc = try_as<MetaClass>(mod)) {
+      mod_to_query = as<Module>(mc->attached_instance());
+    } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
+      mod_to_query = im->module();
+    } else {
+      mod_to_query = mod;
+    }
+
+    mod_to_query->set_ivar(state, name, value);
+    return value;
+  }
+
+  Object* Module::cvar_get_or_set(STATE, Symbol* name, Object* value) {
+    if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
+
+    Module* mod = this;
+    Module* mod_to_query;
+
+    while(!mod->nil_p()) {
+      if(MetaClass* mc = try_as<MetaClass>(mod)) {
+        mod_to_query = as<Module>(mc->attached_instance());
+      } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
+        mod_to_query = im->module();
+      } else {
+        mod_to_query = mod;
+      }
+
+      if(mod_to_query->table_ivar_defined(state, name)->true_p()) {
+        return mod_to_query->get_table_ivar(state, name);
+      }
+
+      mod = mod->superclass();
+    }
+
+    mod = this;
+    if(MetaClass* mc = try_as<MetaClass>(mod)) {
+      mod_to_query = as<Module>(mc->attached_instance());
+    } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
+      mod_to_query = im->module();
+    } else {
+      mod_to_query = mod;
+    }
+
+    mod_to_query->set_table_ivar(state, name, value);
+    return value;
+
   }
 
   void Module::Info::show(STATE, Object* self, int level) {

@@ -3,7 +3,13 @@
 #include "builtin/class.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/system.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/compactlookuptable.hpp"
+
 #include "call_frame.hpp"
+
+#include <sstream>
 
 namespace rubinius {
   void StaticScope::init(STATE) {
@@ -42,5 +48,28 @@ namespace rubinius {
   Object* StaticScope::const_set(STATE, Object* name, Object* value) {
     module_->set_const(state, name, value);
     return value;
+  }
+
+  Object* StaticScope::cvar_get(STATE, Symbol* name) {
+    if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
+    return module_->cvar_get(state, name);
+  }
+
+  Object* StaticScope::cvar_defined(STATE, Symbol* name) {
+    if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
+
+    return module_->cvar_defined(state, name);
+  }
+
+  Object* StaticScope::cvar_set(STATE, Symbol* name, Object* value) {
+    if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
+
+    return module_->cvar_set(state, name, value);
+  }
+
+  Object* StaticScope::cvar_get_or_set(STATE, Symbol* name, Object* value) {
+    if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
+
+    return module_->cvar_get_or_set(state, name, value);
   }
 }

@@ -51,78 +51,33 @@ class Module
   end
   private :verify_class_variable_name
 
-  def __class_variables__
-    @class_variables ||= Rubinius::LookupTable.new
-  end
 
   def class_variable_set(name, val)
-    name = verify_class_variable_name name
+    Ruby.primitive :module_cvar_set
 
-    current = direct_superclass
-    while current
-      if current.__kind_of__ MetaClass
-        vars = current.attached_instance.__class_variables__
-      elsif current.__kind_of__ Rubinius::IncludedModule
-        vars = current.module.__class_variables__
-      else
-        vars = current.__class_variables__
-      end
-      return vars[name] = val if vars.key? name
-      current = current.direct_superclass
-    end
-
-    if self.__kind_of__ MetaClass
-      table = self.attached_instance.__class_variables__
-    else
-      table = __class_variables__
-    end
-    table[name] = val
+    class_variable_set verify_class_variable_name(name), val
   end
 
   def class_variable_get(name)
-    name = verify_class_variable_name name
+    Ruby.primitive :module_cvar_get
 
-    current = self
-    while current
-      if current.__kind_of__ MetaClass
-        vars = current.attached_instance.__class_variables__
-      elsif current.__kind_of__ Rubinius::IncludedModule
-        vars = current.module.__class_variables__
-      else
-        vars = current.__class_variables__
-      end
-      return vars[name] if vars.key? name
-      current = current.direct_superclass
-    end
-
-    # Try to print something useful for anonymous modules and metaclasses
-    module_name = self.name || self.inspect
-    raise NameError, "uninitialized class variable #{name} in #{module_name}"
+    class_variable_get verify_class_variable_name(name)
   end
 
   def class_variable_defined?(name)
-    name = verify_class_variable_name name
+    Ruby.primitive :module_cvar_defined
 
-    current = self
-    while current
-      if current.__kind_of__ Rubinius::IncludedModule
-        vars = current.module.__class_variables__
-      else
-        vars = current.__class_variables__
-      end
-      return true if vars.key? name
-      current = current.direct_superclass
-    end
-    return false
+    class_variable_defined? verify_class_variable_name(name)
   end
 
-  def class_variables(symbols = false)
-    names = []
-    ancestors.map do |mod|
-      names.concat mod.__class_variables__.keys
-    end
-    names = Rubinius.convert_to_names(names) unless symbols
-    names
+  def __class_variables__
+    Ruby.primitive :module_class_variables
+
+    raise PrimitiveFailure, "module_class_variables failed"
+  end
+
+  def class_variables
+    Rubinius.convert_to_names(__class_variables__)
   end
 
   def name

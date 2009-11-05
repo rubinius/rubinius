@@ -46,6 +46,21 @@ namespace rubinius {
     // Ruby.primitive :module_const_set
     Object* const_set(STATE, Object* name, Object* value);
 
+    // Ruby.primitive :module_class_variables
+    Array* class_variables(STATE);
+
+    // Ruby.primitive :module_cvar_defined
+    Object* cvar_defined(STATE, Symbol* name);
+
+    // Ruby.primitive :module_cvar_get
+    Object* cvar_get(STATE, Symbol* name);
+
+    // Ruby.primitive :module_cvar_set
+    Object* cvar_set(STATE, Symbol* name, Object* val);
+
+    // Ruby.primitive :module_cvar_get_or_set
+    Object* cvar_get_or_set(STATE, Symbol* name, Object* val);
+
     void setup(STATE);
     void setup(STATE, const char* name, Module* under = NULL);
     void setup(STATE, Symbol* name, Module* under = NULL);

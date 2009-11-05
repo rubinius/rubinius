@@ -44,6 +44,18 @@ namespace rubinius {
     // The module to use when adding and removing methods
     Module* for_method_definition();
 
+    // Ruby.primitive :static_scope_cvar_defined
+    Object* cvar_defined(STATE, Symbol* name);
+
+    // Ruby.primitive :static_scope_cvar_get
+    Object* cvar_get(STATE, Symbol* name);
+
+    // Ruby.primitive :static_scope_cvar_set
+    Object* cvar_set(STATE, Symbol* name, Object* value);
+
+    // Ruby.primitive :static_scope_cvar_get_or_set
+    Object* cvar_get_or_set(STATE, Symbol* name, Object* value);
+
     bool top_level_p(STATE) {
       return parent_->nil_p();
     }

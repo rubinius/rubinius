@@ -282,11 +282,21 @@ namespace rubinius {
 
     // We don't check slots, because we don't advertise them
     // as normal ivars.
+    class ivar_match : public ObjectMatcher {
+    public:
+      virtual bool match_p(STATE, Object* match) {
+        if(Symbol* sym = try_as<Symbol>(match)) {
+          if(sym->is_ivar_p(state)->true_p()) return true;
+        }
+
+        return false;
+      }
+    } match;
 
     if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
-      ary->concat(state, tbl->keys(state));
+      ary->concat(state, tbl->filtered_keys(state, match));
     } else if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
-      ary->concat(state, tbl->all_keys(state));
+      ary->concat(state, tbl->filtered_keys(state, match));
     }
 
     return ary;
