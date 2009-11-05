@@ -317,10 +317,10 @@ class Logger
     progname ||= @progname
     if message.nil?
       if block_given?
-	message = yield
+        message = yield
       else
-	message = progname
-	progname = @progname
+        message = progname
+        progname = @progname
       end
     end
     @logdev.write(
@@ -482,13 +482,13 @@ private
       @dev = @filename = @shift_age = @shift_size = nil
       @mutex = LogDeviceMutex.new
       if log.respond_to?(:write) and log.respond_to?(:close)
-	@dev = log
+        @dev = log
       else
-	@dev = open_logfile(log)
-	@dev.sync = true
-	@filename = log
-	@shift_age = opt[:shift_age] || 7
-	@shift_size = opt[:shift_size] || 1048576
+        @dev = open_logfile(log)
+        @dev.sync = true
+        @filename = log
+        @shift_age = opt[:shift_age] || 7
+        @shift_size = opt[:shift_size] || 1048576
       end
     end
 
