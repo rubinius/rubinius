@@ -210,7 +210,7 @@ class Compiler
           compile_feature(rb, requiring) do
             begin
               cm = load_from_rbc(rbc_path, version_number)
-            rescue TypeError
+            rescue TypeError, IOError
               cm = nil
             end
 
