@@ -741,7 +741,17 @@ instruction cast_array() [ value -- array ]
     Arguments args(recv, 1, &t1);
     Dispatch dis(G(sym_coerce_into_array));
 
-    t1 = dis.send(state, call_frame, args);
+    Object* res = dis.send(state, call_frame, args);
+
+    // If the send still doesnt produce an array, wrap
+    // the value in one.
+    if(!kind_of<Array>(res)) {
+      Array* ary = Array::create(state, 1);
+      ary->set(state, 0, t1);
+      t1 = ary;
+    } else {
+      t1 = res;
+    }
   }
   stack_push(t1);
 end
