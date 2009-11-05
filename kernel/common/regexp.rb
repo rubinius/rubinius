@@ -470,6 +470,27 @@ class Regexp
     @names
   end
 
+  #
+  # call-seq:
+  #    rxp.named_captures  => hash
+  #
+  # Returns a hash representing information about named captures of <i>rxp</i>.
+  #
+  # A key of the hash is a name of the named captures.
+  # A value of the hash is an array which is list of indexes of corresponding
+  # named captures.
+  #
+  #    /(?<foo>.)(?<bar>.)/.named_captures
+  #    #=> {"foo"=>[1], "bar"=>[2]}
+  #
+  #    /(?<foo>.)(?<foo>.)/.named_captures
+  #    #=> {"foo"=>[1, 2]}
+  #
+  # If there are no named captures, an empty hash is returned.
+  #
+  #    /(.)(.)/.named_captures
+  #    #=> {}
+  #
   def named_captures
     hash = {}
     @names.each do |k,v|
@@ -477,6 +498,25 @@ class Regexp
     end
 
     return hash
+  end
+
+  #
+  # call-seq:
+  #    rxp.names   => [name1, name2, ...]
+  #
+  # Returns a list of names of captures as an array of strings.
+  #
+  #     /(?<foo>.)(?<bar>.)(?<baz>.)/.names
+  #     #=> ["foo", "bar", "baz"]
+  #
+  #     /(?<foo>.)(?<foo>.)/.names
+  #     #=> ["foo"]
+  #
+  #     /(.)(.)/.names
+  #     #=> []
+  #
+  def names
+    @names.keys
   end
 end
 
