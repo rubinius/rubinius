@@ -1,7 +1,4 @@
 class Regexp
-  attr_reader :source
-  attr_reader :names
-
   ValidKcode    = [?n,?e,?s,?u]
   KcodeValue    = [16,32,48,64]
 
@@ -64,7 +61,7 @@ class Regexp
   # You may also explicitly pass in 'n', 'N' or 'none' to disable multibyte
   # support. Any other values are ignored.
 
-  def self.new(pattern, opts = nil, lang = nil)
+  def initialize(pattern, opts=nil, lang=nil)
     if pattern.is_a?(Regexp)
       opts = pattern.options
       pattern  = pattern.source
@@ -82,9 +79,7 @@ class Regexp
       opts |= KcodeValue[idx] if idx
     end
 
-    r = allocate
-    r.send :initialize, pattern, opts, lang
-    r
+    compile pattern, opts, lang
   end
 
   def self.escape(str)
@@ -138,6 +133,10 @@ class Regexp
       Type.coerce_to(pat, String, :to_str)
     end
     Regexp.new(patterns.join('|'))
+  end
+
+  def source
+    @source.dup
   end
 
   def ~
@@ -466,6 +465,19 @@ class Regexp
     string << 'x' if (option & EXTENDED) > 0
     string
   end
+
+  def name_table
+    @names
+  end
+
+  def named_captures
+    hash = {}
+    @names.each do |k,v|
+      hash[k.to_s] = [v + 1] # we only have one location currently for a key
+    end
+
+    return hash
+  end
 end
 
 class MatchData
@@ -544,7 +556,7 @@ class MatchData
     if len
       return to_a[idx, len]
     elsif idx.is_a?(Symbol)
-      num = @regexp.names[idx]
+      num = @regexp.name_table[idx]
       raise ArgumentError, "Unknown named group '#{idx}'" unless num
       return get_capture(num)
     elsif !idx.is_a?(Integer) or idx < 0

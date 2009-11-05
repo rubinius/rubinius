@@ -8,11 +8,13 @@ class Regexp
   ##
   # See Regexp.new. This may be overridden by subclasses.
 
-  def initialize(pattern, opts, lang)
+  def compile(pattern, opts, lang)
     Ruby.primitive :regexp_initialize
     raise PrimitiveFailure,
           "regexp_new(#{str.inspect}, #{opts}, #{lang.inspect}) primitive failed"
   end
+
+  private :compile
 
   def search_region(str, start, finish, forward) # equiv to MRI's re_search
     Ruby.primitive :regexp_search_region

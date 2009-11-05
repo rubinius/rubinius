@@ -228,6 +228,7 @@ namespace rubinius {
   // 'self' is passed in automatically by the primitive glue
   Regexp* Regexp::allocate(STATE, Object* self) {
     Regexp* re = Regexp::create(state);
+    re->onig_data = 0;
     re->klass(state, (Class*)self);
     return re;
   }
@@ -367,6 +368,8 @@ namespace rubinius {
     Regexp* reg_o = force_as<Regexp>(obj);
     regex_t* reg = reg_o->onig_data;
 
+    if(!reg) return;
+
     ByteArray* reg_ba = ByteArray::from_body(reg);
 
     if(ByteArray* reg_tmp = force_as<ByteArray>(mark.call(reg_ba))) {
@@ -435,6 +438,8 @@ namespace rubinius {
 
     Regexp* reg_o = force_as<Regexp>(obj);
     regex_t* reg = reg_o->onig_data;
+
+    if(!reg) return;
 
     ByteArray* reg_ba = ByteArray::from_body(reg);
     visit.call(reg_ba);
