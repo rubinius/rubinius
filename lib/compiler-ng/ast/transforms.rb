@@ -296,7 +296,11 @@ module Rubinius
       end
 
       def block=(iter)
-        @block = iter.body
+        if iter.kind_of? BlockPass
+          @blockarg = iter
+        else
+          @block = iter.body
+        end
       end
 
       def bytecode(g)
@@ -315,6 +319,10 @@ module Rubinius
 
           g.break.set!
           g.pop_modifiers
+        elsif @blockarg
+          g.push :self
+          @blockarg.bytecode(g)
+          g.send_with_block :loop, 0, true
         else
           g.push :self
           g.send :loop, 0, true

@@ -384,7 +384,9 @@ module Rubinius
         after = g.new_label
         g.git after
 
-        g.push_const :Proc
+        g.push_cpath_top
+        g.find_const :Proc
+
         g.swap
         g.send :__from_block__, 1
 
