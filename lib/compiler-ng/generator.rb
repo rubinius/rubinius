@@ -410,7 +410,7 @@ module Rubinius
         raise Error, "count must be a number"
       end
 
-      idx = add_literal(meth)
+      idx = find_literal(meth)
 
       if count == 0
         add :send_method, idx
@@ -426,7 +426,7 @@ module Rubinius
         raise Error, "count must be a number"
       end
 
-      idx = add_literal(meth)
+      idx = find_literal(meth)
 
       add :send_stack_with_block, idx, count
     end
@@ -438,12 +438,12 @@ module Rubinius
 
       add :allow_private if priv
 
-      idx = add_literal(meth)
+      idx = find_literal(meth)
       add :send_stack_with_splat, idx, args
     end
 
     def send_super(meth, args, splat=false)
-      idx = add_literal(meth)
+      idx = find_literal(meth)
 
       if splat
         add :send_super_stack_with_splat, idx, args
@@ -453,11 +453,11 @@ module Rubinius
     end
 
     def check_serial(sym, serial)
-      add :check_serial, add_literal(sym), serial.to_i
+      add :check_serial, find_literal(sym), serial.to_i
     end
 
     def check_serial_private(sym, serial)
-      add :check_serial_private, add_literal(sym), serial.to_i
+      add :check_serial_private, find_literal(sym), serial.to_i
     end
 
     def create_block(desc)
