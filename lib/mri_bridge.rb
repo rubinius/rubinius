@@ -3,7 +3,7 @@
 
 module Rubinius
   LookupTable = Hash
-  Tuple = Array
+  class Tuple < Array; end
 
   class Executable
     attr_accessor :primitive
