@@ -409,18 +409,14 @@ class Gem::Specification
   # :startdoc:
 
   ##
-  # Specification constructor.  Assigns the default values to the
-  # attributes and yields itself for further
-  # initialization. Optionally takes +name+ and +version+.
+  # Specification constructor.  Assigns the default values to the attributes
+  # and yields itself for further initialization.
 
-  def initialize name = nil, version = nil
+  def initialize
     @new_platform = nil
     assign_defaults
     @loaded = false
     @loaded_from = nil
-
-    self.name = name if name
-    self.version = version if version
 
     yield self if block_given?
 
@@ -502,7 +498,7 @@ class Gem::Specification
 
   def self.load(filename)
     gemspec = nil
-    raise "NESTED Specification.load calls not allowed!" if @@gather
+    fail "NESTED Specification.load calls not allowed!" if @@gather
     @@gather = proc { |gs| gemspec = gs }
     data = File.read(filename)
     eval(data)
@@ -626,7 +622,7 @@ class Gem::Specification
 
   def satisfies_requirement?(dependency)
     return @name == dependency.name &&
-      dependency.requirement.satisfied_by?(@version)
+      dependency.version_requirements.satisfied_by?(@version)
   end
 
   ##

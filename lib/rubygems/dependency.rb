@@ -1,7 +1,11 @@
-require "rubygems/requirement"
+#--
+# Copyright 2006 by Chad Fowler, Rich Kilmer, Jim Weirich and others.
+# All rights reserved.
+# See LICENSE.txt for permissions.
+#++
 
 ##
-# The Dependency class holds a Gem name and a Gem::Requirement.
+# The Dependency class holds a Gem name and a Gem::Requirement
 
 class Gem::Dependency
 
@@ -12,9 +16,9 @@ class Gem::Dependency
   # Gem::Specification::CURRENT_SPECIFICATION_VERSION as well.
 
   TYPES = [
-           :development,
-           :runtime,
-          ]
+    :development,
+    :runtime,
+  ]
 
   ##
   # Dependency name or regular expression.
@@ -27,112 +31,119 @@ class Gem::Dependency
   attr_reader :type
 
   ##
-  # What does this dependency require?
+  # Dependent versions.
 
-  attr_reader :requirement
-
-  ##
-  # Constructs a dependency with +name+ and +requirements+. The last
-  # argument can optionally be the dependency type, which defaults to
-  # <tt>:runtime</tt>.
-
-  def initialize name, *requirements
-    type         = Symbol === requirements.last ? requirements.pop : :runtime
-    requirements = requirements.first if 1 == requirements.length # unpack
-
-    unless TYPES.include? type
-      raise ArgumentError, "Valid types are #{TYPES.inspect}, "
-        + "not #{@type.inspect}"
-    end
-
-    @name        = name
-    @requirement = Gem::Requirement.create requirements
-    @type        = type
-  end
+  attr_writer :version_requirements
 
   ##
-  # A dependency's hash is the XOR of the hashes of +name+, +type+,
-  # and +requirement+.
+  # Orders dependencies by name only.
 
-  def hash
-    name.hash ^ type.hash ^ requirement.hash
-  end
-
-  def inspect # :nodoc:
-    "<%s type=%p name=%p requirements=%p>" %
-      [self.class, @type, @name, requirement.to_s]
-  end
-
-  def requirements_list
-    requirement.as_list
-  end
-
-  def to_s # :nodoc:
-    "#{name} (#{requirement}, #{type})"
-  end
-
-  def pretty_print(q) # :nodoc:
-    q.group 1, 'Gem::Dependency.new(', ')' do
-      q.pp name
-      q.text ','
-      q.breakable
-
-      q.pp requirement
-
-      q.text ','
-      q.breakable
-
-      q.pp type
-    end
-  end
-
-  def version_requirements # :nodoc:
-    warn "Gem::Dependency#version_requirements is deprecated, " +
-      " and will be removed on or after April 2010. " +
-      " Use Gem::Dependency#requirement.\n#{caller.join "\n"}"
-
-    requirement
-  end
-
-  alias_method :version_requirement, :version_requirements
-
-  def == other # :nodoc:
-    Gem::Dependency === other &&
-      self.name        == other.name &&
-      self.type        == other.type &&
-      self.requirement == other.requirement
-  end
-
-  ##
-  # Dependencies are ordered by name.
-
-  def <=> other
+  def <=>(other)
     [@name] <=> [other.name]
   end
 
   ##
-  # Uses this dependency as a pattern to compare to +other+. This
-  # dependency will match if the name matches the other's name, and
-  # other has only an equal version requirement that satisfies this
-  # dependency.
+  # Constructs a dependency with +name+ and +requirements+.
 
-  def =~ other
-    unless Gem::Dependency === other
-      other = Gem::Dependency.new other.name, other.version rescue return false
+  def initialize(name, version_requirements, type=:runtime)
+    @name = name
+
+    unless TYPES.include? type
+      raise ArgumentError, "Valid types are #{TYPES.inspect}, not #{@type.inspect}"
     end
 
-    pattern = name
-    pattern = /\A#{Regexp.escape pattern}\Z/ unless Regexp === pattern
+    @type = type
+
+    @version_requirements = Gem::Requirement.create version_requirements
+    @version_requirement = nil   # Avoid warnings.
+  end
+
+  def version_requirements
+    normalize if defined? @version_requirement and @version_requirement
+    @version_requirements
+  end
+
+  def requirement_list
+    version_requirements.as_list
+  end
+
+  alias requirements_list requirement_list
+
+  def normalize
+    # TODO: sad panda is sad
+    ver = @version_requirement.instance_variable_get :@version
+    @version_requirements = Gem::Requirement.new([ver])
+    @version_requirement = nil
+  end
+
+  def to_s # :nodoc:
+    "#{name} (#{version_requirements}, #{@type || :runtime})"
+  end
+
+  def pretty_print(q) # :nodoc:
+    q.group 1, 'Gem::Dependency.new(', ')' do
+      q.pp @name
+      q.text ','
+      q.breakable
+
+      q.pp @version_requirements
+
+      q.text ','
+      q.breakable
+
+      q.pp @type
+    end
+  end
+
+  def ==(other) # :nodoc:
+    self.class === other &&
+      self.name == other.name &&
+      self.type == other.type &&
+      self.version_requirements == other.version_requirements
+  end
+
+  ##
+  # Uses this dependency as a pattern to compare to +other+.  This dependency
+  # will match if the name matches the other's name, and other has only an
+  # equal version requirement that satisfies this dependency.
+
+  def =~(other)
+    other = if self.class === other then
+              other
+            else
+              return false unless other.respond_to? :name and
+                                  other.respond_to? :version
+
+              Gem::Dependency.new other.name, other.version
+            end
+
+    pattern = @name
+    pattern = /\A#{Regexp.escape @name}\Z/ unless Regexp === pattern
 
     return false unless pattern =~ other.name
 
-    reqs = other.requirement.requirements
+    reqs = other.version_requirements.requirements
 
     return false unless reqs.length == 1
     return false unless reqs.first.first == '='
 
     version = reqs.first.last
 
-    requirement.satisfied_by? version
+    version_requirements.satisfied_by? version
   end
+
+  ##
+  # A dependency's hash is the sum of the hash of the #name, #type and
+  # #version_requirements
+
+  def hash
+    name.hash + type.hash + version_requirements.hash
+  end
+
+  def inspect # :nodoc:
+    "<%s type=%p name=%p requirements=%p>" % [self.class, @type, @name,
+      version_requirements.to_s]
+  end
+
 end
+

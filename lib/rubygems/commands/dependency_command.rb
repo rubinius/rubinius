@@ -121,7 +121,7 @@ class Gem::Commands::DependencyCommand < Gem::Command
       specs.values.sort_by { |_, spec| spec }.each do |_, spec|
         unless spec.dependencies.empty?
           spec.dependencies.each do |dep|
-            say "#{dep.name} --version '#{dep.requirement}'"
+            say "#{dep.name} --version '#{dep.version_requirements}'"
           end
         end
       end
@@ -163,7 +163,7 @@ class Gem::Commands::DependencyCommand < Gem::Command
         dep = Gem::Dependency.new(*dep) unless Gem::Dependency === dep
 
         if spec.name == dep.name and
-           dep.requirement.satisfied_by?(spec.version) then
+           dep.version_requirements.satisfied_by?(spec.version) then
           result << [sp.full_name, dep]
         end
       end

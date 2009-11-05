@@ -30,7 +30,7 @@ module Gem
 
     def ensure_ssl_available
       unless ssl_available?
-        raise Gem::Exception, "SSL is not installed on this system"
+        fail Gem::Exception, "SSL is not installed on this system"
       end
     end
   end
