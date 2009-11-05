@@ -91,10 +91,11 @@ class Compiler
           node.args(*args)
         end
       rescue ArgumentError => e
-        e2 = ArgumentError.new e.message +
-          ": #{node.class}##{msg} passed: #{args.inspect}"
-        e2.set_backtrace e.backtrace
-        raise e2
+        if e.respond_to? :set_context
+          raise ArgumentError, "#{node.class}##{msg} passed: #{args.inspect}", e
+        else
+          raise e
+        end
       end
 
       return node

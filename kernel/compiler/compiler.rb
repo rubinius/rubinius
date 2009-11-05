@@ -226,10 +226,12 @@ class Compiler
     begin
       convert_sexp(s(:script, sexp))
     rescue Object => e
-      puts "Compilation error detected: #{e.message}"
-      puts "   near #{@file}:#{@line}"
-      puts
-      puts e.awesome_backtrace.show
+      if e.respond_to? :render
+        puts "Compilation error near #{@file}:#{@line}"
+        e.render
+      else
+        raise e
+      end
     end
   end
 
