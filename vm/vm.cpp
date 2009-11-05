@@ -61,7 +61,10 @@ namespace rubinius {
     , current_mark(NULL)
     , reuse_llvm(true)
     , use_safe_position(false)
-  {}
+  {
+    probe.set(Qnil, &globals.roots);
+  }
+
 
   void VM::discard(VM* vm) {
     vm->alive_ = false;
@@ -79,8 +82,6 @@ namespace rubinius {
 
     om = new ObjectMemory(this, shared.config);
     shared.om = om;
-
-    probe.set(Qnil, &globals.roots);
 
     global_cache = new GlobalCache;
     shared.global_cache = global_cache;
