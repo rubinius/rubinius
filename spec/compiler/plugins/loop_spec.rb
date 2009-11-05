@@ -2,6 +2,16 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "A Call node using SendLoop transform" do
   relates <<-ruby do
+      loop
+    ruby
+
+    compile :loop do |g|
+      g.push :self
+      g.send :loop, 0, true
+    end
+  end
+
+  relates <<-ruby do
       a = 1
       loop do
         a += 1
@@ -45,6 +55,45 @@ describe "A Call node using SendLoop transform" do
 
       done.set!
       g.pop_modifiers
+    end
+  end
+
+  relates <<-ruby do
+      def f(&block)
+        loop(&block)
+      end
+    ruby
+
+    compile do |g|
+      in_method :f do |d|
+        body = d.new_label
+        call = d.new_label
+
+        d.push_block
+        d.dup
+        d.is_nil
+        d.git body
+        d.push_cpath_top
+        d.find_const :Proc
+        d.swap
+        d.send :__from_block__, 1
+
+        body.set!
+        d.set_local 0
+        d.pop
+        d.push :self
+        d.push_local 0
+        d.dup
+        d.is_nil
+        d.git call
+        d.push_cpath_top
+        d.find_const :Proc
+        d.swap
+        d.send :__from_block__, 1
+
+        call.set!
+        d.send_with_block :loop, 0, true
+      end
     end
   end
 end
