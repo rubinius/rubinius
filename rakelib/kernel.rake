@@ -27,37 +27,42 @@ else
   raise "unable to build kernel, runtime/index is missing"
 end
 
+def kernel_dependency(name, files)
+  rbc = name.sub(/^kernel/, "runtime") + "c"
+  file rbc => [name, File.dirname(rbc)]
+  files << rbc
+end
+
 kernel = ["runtime/platform.conf"]
 
 subdirs.each do |subdir|
-  directory(dir = "runtime/#{subdir}")
+  directory "runtime/#{subdir}"
 
   Dir["kernel/#{subdir}/*.rb"].each do |rb|
-    rbc = "runtime/#{subdir}/#{File.basename(rb)}c"
-    kernel << rbc
-    file rbc => [rb, dir]
+    kernel_dependency rb, kernel
   end
 end
 
-rb  = "kernel/bootstrap/rubinius_config.rb"
-rbc = "runtime/bootstrap/rubinius_config.rbc"
-file rbc => rb
-kernel << rb << rbc
-
-rb  = "kernel/bootstrap/ruby_config.rb"
-rbc = "runtime/bootstrap/ruby_config.rbc"
-file rbc => rb
-kernel << rb << rbc
-
-file "runtime/alpha.rbc" => "kernel/alpha.rb"
-kernel << "runtime/alpha.rbc"
-
 opcodes = "kernel/compiler/opcodes.rb"
-file "runtime/compiler/opcodes.rbc" => opcodes
-kernel << "runtime/compiler/opcodes.rbc"
 
-file "runtime/loader.rbc" => "kernel/loader.rb"
-kernel << "runtime/loader.rbc"
+FileList[ "kernel/bootstrap/rubinius_config.rb",
+          "kernel/bootstrap/ruby_config.rb",
+          "kernel/alpha.rb",
+          "kernel/loader.rb",
+          opcodes
+].each do |rb|
+  kernel_dependency rb, kernel
+end
+
+FileList[ "lib/compiler-ng.rb",
+          "lib/compiler-ng/**/*.rb",
+          "lib/melbourne.rb",
+          "lib/melbourne/**/*.rb"
+].each do |rb|
+  rbc = "#{rb}c"
+  file rbc => rb
+  kernel << rbc
+end
 
 namespace :compiler do
   directory(mri_ext_dir = "lib/ext/melbourne/ruby")
