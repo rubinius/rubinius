@@ -95,11 +95,11 @@ namespace :compiler do
       libs = File.expand_path "../../vm/external_libs", __FILE__
       ruby "extconf.rb --with-bstring-include=#{libs}/libbstring" \
                      " --with-mquark-include=#{libs}/libmquark" \
-                     " --with-mpa-include=#{libs}/libmpa" \
+                     " --with-ptr-array-include=#{libs}/libptr_array" \
                      " --with-cchash-include=#{libs}/libcchash" \
                      " --with-bstring-lib=#{libs}/libbstring" \
                      " --with-mquark-lib=#{libs}/libmquark" \
-                     " --with-mpa-lib=#{libs}/libmpa" \
+                     " --with-ptr_array-lib=#{libs}/libptr_array" \
                      " --with-cchash-lib=#{libs}/libcchash" \
                      " #{redirect}"
 

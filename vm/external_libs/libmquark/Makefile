@@ -68,13 +68,13 @@ ifeq ($(CPU), powerpc)
   OPTIMIZATIONS+=-falign-loops=16
 endif
 
-CPPFLAGS += -I../libcchash -I../libmpa
+CPPFLAGS += -I../libcchash -I../libptr_array
 CFLAGS += -fPIC $(CPPFLAGS)
 DEPS=quark.h
 
 SOURCES=quark.c
 OBJS=$(SOURCES:.c=.o)
-LIBS=-L../libcchash -L../libmpa -lcchash -lptr_array -lm
+LIBS=-L../libcchash -L../libptr_array -lcchash -lptr_array -lm
 %.o: %.c
 	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -c $< -o $@
 

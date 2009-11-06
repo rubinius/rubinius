@@ -1,14 +1,19 @@
 require 'mkmf'
 
-dir_config("mquark")
-dir_config("bstring")
-dir_config("mpa")
-dir_config("cchash")
+def add_lib(name)
+  i, lib = dir_config(name)
+  $libs << " #{lib}/lib#{name}.a "
+end
 
-have_library("bstring")
-have_library("mquark")
-have_library("ptr_array")
-have_library("cchash")
+add_lib("mquark")
+add_lib("bstring")
+add_lib("ptr_array")
+add_lib("cchash")
+
+#have_library("bstring")
+#have_library("mquark")
+#have_library("ptr_array")
+#have_library("cchash")
 
 $CFLAGS += " -ggdb3"
 
