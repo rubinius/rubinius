@@ -1,4 +1,4 @@
-unless (Object.const_defined? :RUBY_ENGINE) && RUBY_ENGINE == "rbx"
+unless Object.const_defined?(:RUBY_ENGINE) && RUBY_ENGINE == "rbx"
   ext_dir = "ruby"
   require "mri_bridge"
 else
