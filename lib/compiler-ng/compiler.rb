@@ -15,11 +15,12 @@ module Rubinius
       end
     end
 
-    def self.compile(file, line=1, output=nil)
+    def self.compile(file, line=1, output=nil, transforms=:default)
       compiler = new :file, :compiled_file
 
       parser = compiler.parser
       parser.root AST::Script
+      parser.enable_category transforms
       parser.input file, line
 
       writer = compiler.writer

@@ -19,7 +19,11 @@ module Rubinius
       end
 
       def self.category(name)
-        category_map[name]
+        if name == :all
+          category_map.values.flatten
+        else
+          category_map[name]
+        end
       end
     end
 

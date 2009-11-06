@@ -167,6 +167,11 @@ module Rubinius
         @printer
       end
 
+      def enable_category(name)
+        transforms = AST::Transforms.category name
+        @transforms.concat transforms if transforms
+      end
+
       def enable_transform(name)
         transform = AST::Transforms[name]
         @transforms << transform if transform

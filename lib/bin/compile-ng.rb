@@ -35,14 +35,8 @@ class CompilerScript
 
     @options.on("-T", "--transforms", "NAME",
                 "Enable NAME category of AST transforms") do |c|
-      if c == "all"
-        Rubinius::AST::Transforms.category_map.each do |c, ts|
-          @transforms.concat ts
-        end
-      else
-        transforms = Rubinius::AST::Transforms.category c.to_sym
-        @transforms.concat transforms if transforms
-      end
+      transforms = Rubinius::AST::Transforms.category c.to_sym
+      @transforms.concat transforms if transforms
     end
 
     @options.on "--no-transform", "Do not transform the AST" do
