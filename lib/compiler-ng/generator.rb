@@ -54,6 +54,7 @@ module Rubinius
       @lines = []
       @primitive = nil
       @instruction = nil
+      @for_block = nil
 
       @required_args = 0
       @total_args = 0

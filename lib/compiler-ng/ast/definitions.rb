@@ -222,6 +222,7 @@ module Rubinius
       attr_accessor :receiver, :body
 
       def initialize(line, receiver, name, block)
+        @line = line
         @receiver = receiver
         @body = DefineSingletonScope.new line, name, block
       end
@@ -256,6 +257,8 @@ module Rubinius
 
       def initialize(line, args, defaults, splat)
         @line = line
+        @defaults = nil
+        @block_arg = nil
 
         if defaults
           defaults = DefaultArguments.new line, defaults
@@ -595,6 +598,7 @@ module Rubinius
       def initialize(line, body)
         @line = line
         @body = body
+        @name = nil
       end
 
       def bytecode(g)

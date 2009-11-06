@@ -301,7 +301,7 @@ module Rubinius
     class Yield
       def execute(e)
         # TODO
-        e.block.call *@arguments.execute(e)
+        e.block.call(*@arguments.execute(e))
       end
     end
 

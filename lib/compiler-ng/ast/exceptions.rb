@@ -152,6 +152,8 @@ module Rubinius
       def initialize(line, conditions, body, nxt)
         @line = line
         @next = nxt
+        @splat = nil
+        @assignment = nil
 
         case conditions
         when ArrayLiteral

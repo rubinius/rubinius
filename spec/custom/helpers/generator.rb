@@ -616,6 +616,9 @@ class TestGenerator
     end
   end
 
+  # TODO: silences MRI warning; fix
+  remove_method :cast_array
+
   def cast_array
     unless @last and [:cast_array, :make_array].include? @last.first
       add :cast_array

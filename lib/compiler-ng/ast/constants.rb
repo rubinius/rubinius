@@ -151,6 +151,7 @@ module Rubinius
       def initialize(line, name, value)
         @line = line
         @value = value
+        @parent = nil
 
         if name.kind_of? Symbol
           @name = ConstName.new line, name

@@ -310,6 +310,7 @@ module Rubinius
       def initialize(line, name)
         @line = line
         @name = name
+        @variable = nil
       end
 
       def assign_variable(g)
@@ -342,6 +343,7 @@ module Rubinius
         @line = line
         @name = name
         @value = value
+        @variable = nil
       end
 
       def bytecode(g)
@@ -368,8 +370,9 @@ module Rubinius
         @line = line
         @left = left
         @right = right
+        @splat = nil
 
-        @fixed = true if right.kind_of? ArrayLiteral
+        @fixed = right.kind_of?(ArrayLiteral) ? true : false
 
         if splat.kind_of? Node
           if @left

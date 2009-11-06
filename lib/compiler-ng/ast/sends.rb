@@ -8,6 +8,7 @@ module Rubinius
         @receiver = receiver
         @name = name
         @privately = privately
+        @block = nil
       end
 
       def bytecode(g)
@@ -58,6 +59,7 @@ module Rubinius
 
       def initialize(line, receiver, name, arguments, privately=false)
         super line, receiver, name, privately
+        @block = nil
         @arguments = ActualArguments.new line, arguments
       end
 
@@ -216,6 +218,7 @@ module Rubinius
 
       def initialize(line, arguments=nil)
         @line = line
+        @splat = nil
 
         case arguments
         when SplatValue
@@ -322,7 +325,7 @@ module Rubinius
         state.scope.nest_scope self
 
         # TODO: remove MethodDescription and replace with constructor method
-        desc = Compiler::MethodDescription.new g.class, @locals
+        desc = Compiler::MethodDescription.new g.class, nil
         desc.name = :__block__
         desc.for_block = true
         desc.required = @arguments.arity
@@ -377,6 +380,7 @@ module Rubinius
         case arguments
         when Fixnum
           @arity = 0
+          @prelude = nil
         when MAsgn
           arguments.iter_arguments
 
@@ -402,6 +406,7 @@ module Rubinius
           @arguments = arguments
         when nil
           @arity = -1
+          @prelude = nil
         else # Assignment
           @arguments = arguments
           @arity = 1
@@ -513,6 +518,7 @@ module Rubinius
 
       def initialize(line, arguments)
         @line = line
+        @block = nil
         @arguments = ActualArguments.new line, arguments
       end
 

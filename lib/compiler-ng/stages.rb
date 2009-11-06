@@ -129,6 +129,7 @@ module Rubinius
 
       def initialize(compiler, last)
         super
+        @context = nil
         compiler.generator = self
         @processor = Rubinius::Generator
       end

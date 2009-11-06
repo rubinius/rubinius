@@ -58,6 +58,8 @@ module Rubinius
       def initialize(line, conditions, body)
         @line = line
         @body = body || Nil.new(line)
+        @splat = nil
+        @single = nil
 
         if conditions.kind_of? ArrayLiteral
           if conditions.body.last.kind_of? When
@@ -441,6 +443,7 @@ module Rubinius
       def initialize(line, expr)
         @line = line
         @value = expr
+        @splat = nil
       end
 
       def bytecode(g, force=false)

@@ -19,9 +19,15 @@ class TestGenerator
   end
 
   # TODO: fix TestGenerator to reflect current setup_unwind insn
+  # TODO: silences MRI warning; fix
+  remove_method :setup_unwind
+
   def setup_unwind(label, *)
     add :setup_unwind, label
   end
+
+  # TODO: silences MRI warning; fix
+  remove_method :set_line
 
   def set_line(line)
     @line = line
