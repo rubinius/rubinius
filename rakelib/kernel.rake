@@ -54,8 +54,8 @@ FileList[ "kernel/bootstrap/rubinius_config.rb",
   kernel_dependency rb, kernel
 end
 
-FileList[ "lib/compiler-ng.rb",
-          "lib/compiler-ng/**/*.rb",
+FileList[ "lib/compiler.rb",
+          "lib/compiler/**/*.rb",
           "lib/melbourne.rb",
           "lib/melbourne/**/*.rb"
 ].each do |rb|
@@ -110,7 +110,7 @@ namespace :compiler do
   end
 
   task :load => [opcodes, :build] do
-    require File.expand_path("../../lib/compiler-ng", __FILE__)
+    require File.expand_path("../../lib/compiler", __FILE__)
   end
 
   task :check => :load do

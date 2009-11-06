@@ -236,7 +236,7 @@ module Rubinius
       end
 
       options.on "--melbourne", "Use Melbourne parser and new compiler." do
-        require 'compiler-ng'
+        require 'compiler'
         Rubinius::CompilerNG.enable
       end
 
@@ -304,7 +304,7 @@ module Rubinius
     end
 
     def load_compiler
-      require "compiler-ng"
+      require "compiler"
       Rubinius::CompilerNG.enable
     end
 

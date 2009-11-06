@@ -1,4 +1,4 @@
-require "compiler-ng"
+require "compiler"
 
 class CompilerScript
   def initialize
