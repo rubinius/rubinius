@@ -1,3 +1,0 @@
-fails:An Array node is compiled from '[*[1]]'
-fails:An Array node is compiled from '[*1]'
-fails:An Array node is compiled from '[[*1]]'

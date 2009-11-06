@@ -1,3 +1,0 @@
-fails:"A Call node using SendLoop transform is compiled from \n    a = 1\n    loop do\n      a += 1\n      break if a > 10\n    end"
-fails:"A Call node using SendLoop transform is compiled from \n    loop"
-fails:"A Call node using SendLoop transform is compiled from \n    def f(&block)\n      loop(&block)\n    end"

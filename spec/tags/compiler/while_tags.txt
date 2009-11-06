@@ -1,1 +1,0 @@
-fails:"A While node is compiled from \n    while 1\n      begin\n        2\n        break :brk\n      rescue\n        3\n      end\n    end"

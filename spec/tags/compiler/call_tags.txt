@@ -1,1 +1,0 @@
-fails:A Call node is compiled from 'meth([*[1]])'

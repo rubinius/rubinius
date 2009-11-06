@@ -1,1 +1,0 @@
-fails:A Return node is compiled from 'return [*[1]]'

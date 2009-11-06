@@ -1,5 +1,0 @@
-fails:An If node is compiled from 'return if false unless true'
-fails:An If node is compiled from 'a if not b'
-fails:An If node is compiled from 'if not b then a end'
-fails:An If node is compiled from 'a unless b'
-fails:An If node is compiled from 'unless b then a end'

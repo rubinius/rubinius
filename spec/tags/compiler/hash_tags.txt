@@ -1,1 +1,0 @@
-fails:A Hash node is compiled from '{ 1 => [*1] }'
