@@ -36,26 +36,9 @@ namespace rubinius {
   }
 
   void InflatedHeaders::deallocate_headers() {
+    // Detect and free any full chunks first!
     for(Chunks::iterator i = chunks_.begin();
-        i != chunks_.end();
-        i++) {
-      InflatedHeader* chunk = *i;
-
-      for(size_t j = 0; j < cChunkSize; j++) {
-        InflatedHeader* header = &chunk[j];
-
-        if(header->used_p() && !header->marked_p()) {
-          in_use_--;
-          header->clear();
-          header->set_next(free_list_);
-          free_list_ = header;
-        }
-      }
-    }
-
-    for(Chunks::iterator i = chunks_.begin();
-        i != chunks_.end();
-        i++) {
+        i != chunks_.end();) {
       InflatedHeader* chunk = *i;
 
       bool used = false;
@@ -63,16 +46,42 @@ namespace rubinius {
       for(size_t j = 0; j < cChunkSize; j++) {
         InflatedHeader* header = &chunk[j];
 
-        if(header->used_p()) {
+        if(header->marked_p()) {
           used = true;
           break;
         }
       }
 
+      // No header was marked, so it's completely empty. Free it.
       if(!used) {
         delete[] chunk;
         i = chunks_.erase(i);
+      } else {
+        i++;
       }
     }
+
+    // Ok, now, rebuild the free_list
+    free_list_ = 0;
+    in_use_ = 0;
+
+    for(Chunks::iterator i = chunks_.begin();
+        i != chunks_.end();
+        i++) {
+      InflatedHeader* chunk = *i;
+
+      for(size_t j = 0; j < cChunkSize; j++) {
+        InflatedHeader* header = &chunk[j];
+
+        if(!header->marked_p()) {
+          header->clear();
+          header->set_next(free_list_);
+          free_list_ = header;
+        } else {
+          in_use_++;
+        }
+      }
+    }
+
   }
 }
