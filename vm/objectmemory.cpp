@@ -54,7 +54,6 @@ namespace rubinius {
 
   ObjectMemory::~ObjectMemory() {
 
-    young_->free_objects();
     mark_sweep_->free_objects();
 
     // TODO free immix data

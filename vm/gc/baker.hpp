@@ -160,7 +160,6 @@ namespace rubinius {
     /* Prototypes */
     BakerGC(ObjectMemory *om, size_t size);
     virtual ~BakerGC();
-    void free_objects();
     virtual Object* saw_object(Object* obj);
     void    copy_unscanned();
     bool    fully_scanned_p();

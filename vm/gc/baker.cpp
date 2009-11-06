@@ -261,27 +261,6 @@ namespace rubinius {
     }
   }
 
-  void BakerGC::free_objects() {
-    Object* obj = current->first_object();
-    while(obj < current->current()) {
-      delete_object(obj);
-      obj = next_object(obj);
-    }
-
-    assert(next->current() < next->last());
-    obj = next->first_object();
-    while(obj < next->current()) {
-      delete_object(obj);
-      obj = next_object(obj);
-    }
-
-    obj = eden.first_object();
-    while(obj < eden.current()) {
-      delete_object(obj);
-      obj = next_object(obj);
-    }
-  }
-
   void BakerGC::find_lost_souls() {
     Object* obj = current->first_object();
     while(obj < current->current()) {
