@@ -99,7 +99,7 @@ $(OUTPUT_A): $(DEPS) $(OBJS)
 .PHONY: library
 
 clean:
-	rm -f *.o *.lo *.la *.so *.dylib *.a tester
+	rm -f *.o *.lo *.la *.so *.dylib *.a .*.d tester
 
 test: tester
 	./tester

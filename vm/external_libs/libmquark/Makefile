@@ -75,6 +75,7 @@ DEPS=quark.h
 SOURCES=quark.c
 OBJS=$(SOURCES:.c=.o)
 LIBS=-L../libcchash -L../libptr_array -lcchash -lptr_array -lm
+
 %.o: %.c
 	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -c $< -o $@
 
@@ -100,7 +101,7 @@ $(OUTPUT_A): $(DEPS) $(OBJS)
 .PHONY: library
 
 clean:
-	rm -f *.o *.lo *.la *.so *.dylib *.a tester
+	rm -f *.o *.lo *.la *.so *.dylib *.a .*.d tester
 
 test: tester
 	./tester
