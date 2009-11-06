@@ -392,11 +392,13 @@ namespace rubinius {
   // Used in filtering APIs
   class ObjectMatcher {
   public:
+    virtual ~ObjectMatcher() {}
     virtual bool match_p(STATE, Object* obj) = 0;
   };
 
   class ObjectMatchAll : public ObjectMatcher {
   public:
+    virtual ~ObjectMatchAll() {}
     virtual bool match_p(STATE, Object* obj) { return true; }
   };
 
