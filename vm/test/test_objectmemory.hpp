@@ -61,16 +61,16 @@ public:
     obj2 = util_new_object(om);
     TS_ASSERT_EQUALS(obj->remembered_p(), 0U);
     TS_ASSERT_EQUALS(obj2->remembered_p(), 0U);
-    size_t start = om.remember_set->size();
+    size_t start = om.remember_set()->size();
 
     obj->set_zone(MatureObjectZone);
     om.write_barrier(obj, obj2);
 
-    TS_ASSERT_EQUALS(om.remember_set->size(), start + 1);
+    TS_ASSERT_EQUALS(om.remember_set()->size(), start + 1);
     TS_ASSERT_EQUALS(obj->remembered_p(), 1U);
 
     om.write_barrier(obj, obj2);
-    TS_ASSERT_EQUALS(om.remember_set->size(), start + 1);
+    TS_ASSERT_EQUALS(om.remember_set()->size(), start + 1);
   }
 
   /* Causes a segfault when fails. */

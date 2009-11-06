@@ -71,19 +71,27 @@ namespace rubinius {
     ImmixGC* immix_;
     InflatedHeaders* inflated_headers_;
 
+    ObjectArray* remember_set_;
+
   public:
     bool collect_young_now;
     bool collect_mature_now;
 
     STATE;
-    ObjectArray *remember_set;
-
     size_t last_object_id;
     TypeInfo* type_info[(int)LastObjectType];
 
     /* Config variables */
     size_t large_object_threshold;
 
+  public:
+    ObjectArray* remember_set() {
+      return remember_set_;
+    }
+
+    ObjectArray* swap_remember_set();
+
+  public:
     ObjectMemory(STATE, Configuration& config);
     ~ObjectMemory();
 

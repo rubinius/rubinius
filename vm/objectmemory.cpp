@@ -37,7 +37,7 @@ namespace rubinius {
       std::cout << "Watching for " << object_watch << "\n";
     }
 
-    remember_set = new ObjectArray(0);
+    remember_set_ = new ObjectArray(0);
 
     collect_mature_now = false;
     last_object_id = 0;
@@ -58,7 +58,7 @@ namespace rubinius {
 
     // TODO free immix data
 
-    delete remember_set;
+    delete remember_set_;
 
     for(size_t i = 0; i < LastObjectType; i++) {
       if(type_info[i]) delete type_info[i];
@@ -67,6 +67,12 @@ namespace rubinius {
     delete immix_;
     delete mark_sweep_;
     delete young_;
+  }
+
+  ObjectArray* ObjectMemory::swap_remember_set() {
+    ObjectArray* cur = remember_set_;
+    remember_set_ = new ObjectArray(0);
+    return cur;
   }
 
   Object* ObjectMemory::new_object_fast(Class* cls, size_t bytes, object_type type) {
@@ -238,12 +244,12 @@ namespace rubinius {
     /* If it's already remembered, ignore this request */
     if(target->remembered_p()) return;
     target->set_remember();
-    remember_set->push_back(target);
+    remember_set_->push_back(target);
   }
 
   void ObjectMemory::unremember_object(Object* target) {
-    for(ObjectArray::iterator oi = remember_set->begin();
-        oi != remember_set->end();
+    for(ObjectArray::iterator oi = remember_set_->begin();
+        oi != remember_set_->end();
         oi++) {
       if(*oi == target) {
         *oi = NULL;

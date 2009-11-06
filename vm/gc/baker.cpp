@@ -94,9 +94,8 @@ namespace rubinius {
 #endif
 
     Object* tmp;
-    ObjectArray *current_rs = object_memory_->remember_set;
+    ObjectArray *current_rs = object_memory_->swap_remember_set();
 
-    object_memory_->remember_set = new ObjectArray(0);
     total_objects = 0;
 
     copy_spills_ = 0;
