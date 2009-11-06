@@ -87,31 +87,31 @@ namespace rubinius {
 
     // print out all the frames to stderr
     static const char msg[] = "Error: signal ";
-    write(2, msg, 14);
+    if(write(2, msg, 14) == 0) exit(101);
 
     switch(sig) {
     case SIGSEGV:
-      write(2, "SIGSEGV\n", 8);
+      if(write(2, "SIGSEGV\n", 8) == 0) exit(101);
       break;
     case SIGBUS:
-      write(2, "SIGBUS\n", 7);
+      if(write(2, "SIGBUS\n", 7) == 0) exit(101);
       break;
     case SIGILL:
-      write(2, "SIGILL\n", 7);
+      if(write(2, "SIGILL\n", 7) == 0) exit(101);
       break;
     case SIGABRT:
-      write(2, "SIGABRT\n", 8);
+      if(write(2, "SIGABRT\n", 8) == 0) exit(101);
       break;
     case SIGFPE:
-      write(2, "SIGFPE\n", 7);
+      if(write(2, "SIGFPE\n", 7) == 0) exit(101);
       break;
     default:
-      write(2, "UNKNOWN\n", 8);
+      if(write(2, "UNKNOWN\n", 8) == 0) exit(101);
       break;
     }
 
     // Try to get the output to flush...
-    write(2, "\n\n", 2);
+    if(write(2, "\n\n", 2) == 0) exit(101);
 
     // get void*'s for all entries on the stack
     size = backtrace(array, 32);
@@ -119,7 +119,7 @@ namespace rubinius {
     backtrace_symbols_fd(array, size, 2);
 
     // Try to get the output to flush...
-    write(2, "\n\n", 2);
+    if(write(2, "\n\n", 2) == 0) exit(101);
 
     exit(100);
   }
@@ -127,23 +127,23 @@ namespace rubinius {
 
   static void quit_handler(int sig) {
     static const char msg[] = "Terminated: signal ";
-    write(2, msg, sizeof(msg));
+    if(write(2, msg, sizeof(msg)) == 0) exit(1);
 
     switch(sig) {
     case SIGHUP:
-      write(2, "SIGHUP\n", 6);
+      if(write(2, "SIGHUP\n", 6) == 0) exit(1);
       break;
     case SIGTERM:
-      write(2, "SIGTERM\n", 7);
+      if(write(2, "SIGTERM\n", 7) == 0) exit(1);
       break;
     case SIGUSR1:
-      write(2, "SIGUSR1\n", 7);
+      if(write(2, "SIGUSR1\n", 7) == 0) exit(1);
       break;
     case SIGUSR2:
-      write(2, "SIGUSR2\n", 7);
+      if(write(2, "SIGUSR2\n", 7) == 0) exit(1);
       break;
     default:
-      write(2, "UNKNOWN\n", 8);
+      if(write(2, "UNKNOWN\n", 8) == 0) exit(1);
       break;
     }
 
