@@ -48,6 +48,10 @@ module Rubinius
     end
 
     def parse_file
+      unless @name and File.exists? @name
+        raise Errno::ENOENT, @name.inspect
+      end
+
       syntax_error unless ast = file_to_ast(@name, @line)
       ast
     end
