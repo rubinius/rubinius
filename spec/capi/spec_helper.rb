@@ -20,7 +20,7 @@ def compile_extension(path, name)
 
   # TODO use Tap; write a common ext build task
   if RUBY_NAME == 'rbx'
-    `./bin/rbx compile -I#{Rubinius::HDR_PATH} -C,-ggdb #{source}`
+    `./bin/rbx compile -I#{Rubinius::HDR_PATH} -C,-ggdb -C,-fPIC #{source}`
   elsif RUBY_NAME == 'ruby'
     cc        = Config::CONFIG["CC"]
     hdrdir    = Config::CONFIG["archdir"]
