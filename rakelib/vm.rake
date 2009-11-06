@@ -553,7 +553,7 @@ insn_deps = %w[  vm/gen
                  rakelib/instruction_parser.rb
               ]
 
-file "kernel/compiler/opcodes.rb" => insn_deps do |t|
+file "lib/compiler/opcodes.rb" => insn_deps do |t|
   generate_instruction_file iparser, :generate_definitions, t.name
 end
 

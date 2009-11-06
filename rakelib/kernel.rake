@@ -43,7 +43,7 @@ subdirs.each do |subdir|
   end
 end
 
-opcodes = "kernel/compiler/opcodes.rb"
+opcodes = "lib/compiler/opcodes.rb"
 
 FileList[ "kernel/bootstrap/rubinius_config.rb",
           "kernel/bootstrap/ruby_config.rb",
@@ -118,7 +118,7 @@ namespace :compiler do
       existing = kernel.select { |name| name =~ /rbc$/ and File.exists? name }
       kernel_mtime = existing.map { |name| File.stat(name).mtime }.min
 
-      compiler = (Dir["kernel/compiler/*.rb"])
+      compiler = (Dir["lib/compiler/*.rb"])
       compiler_mtime = compiler.map { |name| File.stat(name).mtime }.max
 
       kernel_clean if !kernel_mtime or compiler_mtime > kernel_mtime
