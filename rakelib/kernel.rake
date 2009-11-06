@@ -1,17 +1,5 @@
 # All the tasks to manage the kernel
 
-def compile_ruby(src, rbc, check_mtime = false, kernel = false)
-  if check_mtime and File.readable?(rbc)
-    return if File.mtime(rbc) >= File.mtime(src)
-  end
-
-  dir = File.dirname rbc
-  FileUtils.mkdir_p dir unless File.directory? dir
-
-  flags = kernel ? ["rbx-safe-math", "rbx-kernel"] : []
-  mri_compile src, rbc, false, flags
-end
-
 # drake does not allow invoke to be called inside tasks
 def kernel_clean
   rm_f Dir["**/*.rbc",
@@ -28,23 +16,26 @@ rule ".rbc" do |t|
   rbc = t.name
   src = t.prerequisites.first
 
-  compile_ruby src, rbc, false, true
+  puts "Compiling #{src}"
+  Rubinius::CompilerNG.compile src, 1, rbc, :all
 end
 
 # Create file dependencies for all kernel files
-unless File.exists? "runtime/index"
-  raise "unable to build kernel, runtime/index is missing"
-else
+if File.exists? "runtime/index"
   subdirs = IO.readlines("runtime/index").map { |line| line.chomp }
+else
+  raise "unable to build kernel, runtime/index is missing"
 end
 
 kernel = ["runtime/platform.conf"]
 
 subdirs.each do |subdir|
+  directory(dir = "runtime/#{subdir}")
+
   Dir["kernel/#{subdir}/*.rb"].each do |rb|
     rbc = "runtime/#{subdir}/#{File.basename(rb)}c"
     kernel << rbc
-    file rbc => rb
+    file rbc => [rb, dir]
   end
 end
 
@@ -65,34 +56,8 @@ opcodes = "kernel/compiler/opcodes.rb"
 file "runtime/compiler/opcodes.rbc" => opcodes
 kernel << "runtime/compiler/opcodes.rbc"
 
-file "runtime/loader.rbc" => "kernel/loader.rb" do |t|
-  rbc = t.name
-  src = t.prerequisites.first
-
-  compile_ruby src, rbc, false, true
-end
+file "runtime/loader.rbc" => "kernel/loader.rb"
 kernel << "runtime/loader.rbc"
-
-# TODO: extra_compiler is temporary until sexp processing is removed
-# from the compiler.
-extra_compiler = ["lib/strscan.rb",
-                  "lib/stringio.rb",
-                  "lib/racc/parser.rb",
-                  "lib/ruby_lexer.rb",
-                  "lib/ruby_parser.rb",
-                  "lib/ruby_parser_extras.rb",
-                  "lib/sexp_processor.rb"]
-extra_compiler.each do |rb_file|
-  rbc_file = "#{rb_file}c"
-  kernel << rbc_file
-
-  file rbc_file => rb_file do |t|
-    src = t.prerequisites.first
-    dst = t.name
-
-    compile_ruby src, dst
-  end
-end
 
 namespace :compiler do
   directory(mri_ext_dir = "lib/ext/melbourne/ruby")
@@ -140,7 +105,7 @@ namespace :compiler do
   end
 
   task :load => [opcodes, :build] do
-    require 'lib/compiler/mri_compile'
+    require File.expand_path("../../lib/compiler-ng", __FILE__)
   end
 
   task :check => :load do
@@ -148,7 +113,7 @@ namespace :compiler do
       existing = kernel.select { |name| name =~ /rbc$/ and File.exists? name }
       kernel_mtime = existing.map { |name| File.stat(name).mtime }.min
 
-      compiler = (Dir["kernel/compiler/*.rb"] + extra_compiler)
+      compiler = (Dir["kernel/compiler/*.rb"])
       compiler_mtime = compiler.map { |name| File.stat(name).mtime }.max
 
       kernel_clean if !kernel_mtime or compiler_mtime > kernel_mtime
@@ -161,7 +126,7 @@ desc "Build all kernel files"
 task :kernel => 'kernel:build'
 
 namespace :kernel do
-  task :build => ['compiler:check'] + kernel + extra_compiler do
+  task :build => ['compiler:check'] + kernel do
     subdirs.each do |subdir|
       cp "kernel/#{subdir}/load_order.txt", "runtime/#{subdir}/load_order.txt"
     end
