@@ -593,21 +593,26 @@ class MatchData
   end
 
   def [](idx, len = nil)
-    if len
-      return to_a[idx, len]
-    elsif idx.is_a?(Symbol)
+    return to_a[idx, len] if len
+
+    case idx
+    when Fixnum
+      if idx == 0
+        return matched_area()
+      elsif 0 < idx and idx < size
+        return get_capture(idx - 1)
+      end
+    when Symbol
       num = @regexp.name_table[idx]
       raise ArgumentError, "Unknown named group '#{idx}'" unless num
       return get_capture(num)
-    elsif !idx.is_a?(Integer) or idx < 0
-      return to_a[idx]
+    when String
+      num = @regexp.name_table[idx.to_sym]
+      raise ArgumentError, "Unknown named group '#{idx}'" unless num
+      return get_capture(num)
     end
 
-    if idx == 0
-      return matched_area()
-    elsif idx < size
-      return get_capture(idx - 1)
-    end
+    return to_a[idx]
   end
 
   def to_s
