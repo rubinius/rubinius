@@ -109,6 +109,7 @@ namespace rubinius {
     class CollectAction {
     public:
       virtual Object* call(STATE, LookupTableBucket* bucket) = 0;
+      virtual ~CollectAction() {}
     };
 
     Array* collect(STATE, LookupTable* tbl, CollectAction& action);
