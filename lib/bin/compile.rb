@@ -318,7 +318,7 @@ else
 
     if flags.include? "-e"
       puts "Compiling (external) #{file}..."
-      cm = Compiler.compile_file file, rbx_flags
+      cm = Rubinius::CompilerNG.compile_file_old file, rbx_flags
       puts "Unable to compile '#{file}'" unless cm
       Rubinius::CompiledFile.dump cm, out
     else

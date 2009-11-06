@@ -303,6 +303,11 @@ module Rubinius
       end
     end
 
+    def load_compiler
+      require "compiler-ng"
+      Rubinius::CompilerNG.enable
+    end
+
     # Require any -r arguments
     def requires
       @stage = "requiring command line files"
@@ -419,6 +424,7 @@ module Rubinius
       signals
       options
       load_paths
+      load_compiler
       requires
       evals
       script

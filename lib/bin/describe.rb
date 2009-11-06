@@ -92,7 +92,7 @@ if __FILE__.include?($0) then
     pp File.to_sexp(file)
 
     puts "\nCompiled output:"
-    top = Compiler.compile_file(file, flags)
+    top = Rubinius::CompilerNG.compile_file_old(file, flags)
     describe_compiled_method(top, flags.include?("dis"))
 
   rescue SyntaxError

@@ -10,7 +10,7 @@ flags = []
 
 puts "Graphing #{file}"
 
-top = Compiler.compile_file(file, flags)
+top = Rubinius::CompilerNG.compile_file_old(file, flags)
 
 be = Compiler::BlockExtractor.new(top.iseq)
 

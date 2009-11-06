@@ -9,10 +9,18 @@ module Rubinius
           alias_method :old_compile_file, :compile_file
           alias_method :old_compile_string, :compile_string
 
-          define_method :compile_file, CompilerNG.method(:compile_file_old)
-          define_method :compile_string, CompilerNG.method(:compile_eval)
+          define_method :compile_file, CompilerNG.method(:compile_file_obsolete)
+          define_method :compile_string, CompilerNG.method(:compile_string_obsolete)
         end
       end
+    end
+
+    def self.compile_file_obsolete(file, flags=nil)
+      raise "We're sorry, the compiler you're trying to reach has been disconnected."
+    end
+
+    def self.compile_string_obsolete(string, binding, file="(eval)", line=1)
+      raise "We're sorry, the compiler you're trying to reach has been disconnected."
     end
 
     def self.compile(file, line=1, output=nil, transforms=:default)

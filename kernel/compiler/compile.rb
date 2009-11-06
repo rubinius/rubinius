@@ -196,7 +196,7 @@ class Compiler
           end
 
           compile_feature(rb, requiring) do
-            cm = Compiler::Utils.compile_file(rb_path)
+            cm = Rubinius::CompilerNG.compile_file_old(rb_path)
             raise LoadError, "Unable to compile: #{rb_path}" unless cm
           end
 

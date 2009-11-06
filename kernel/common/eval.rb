@@ -74,7 +74,7 @@ module Kernel
 
     context = Compiler::Context.new binding.variables, binding.code
 
-    compiled_method = Compiler::Utils.compile_string string, context, filename, lineno
+    compiled_method = Rubinius::CompilerNG.compile_eval string, context, filename, lineno
     compiled_method.scope = binding.static_scope
     compiled_method.name = :__eval__
 
@@ -147,7 +147,7 @@ module Kernel
 
       context = Compiler::Context.new binding.variables, binding.code
 
-      compiled_method = Compiler::Utils.compile_string string, context, filename, line
+      compiled_method = Rubinius::CompilerNG.compile_eval string, context, filename, line
       compiled_method.scope = binding.static_scope.using_current_as(metaclass)
       compiled_method.name = :__instance_eval__
       compiled_method.compile
@@ -226,7 +226,7 @@ class Module
 
     string = StringValue(string)
 
-    compiled_method = Compiler::Utils.compile_string string, context, filename, line
+    compiled_method = Rubinius::CompilerNG.compile_eval string, context, filename, line
 
     # The staticscope of a module_eval CM is the receiver of module_eval
     ss = Rubinius::StaticScope.new self, Rubinius::StaticScope.of_sender
