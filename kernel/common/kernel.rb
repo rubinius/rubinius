@@ -690,7 +690,7 @@ module Kernel
       end
     end
 
-    Compiler::Utils.unified_load path, rb, rbc, ext, nil, opts
+    Requirer::Utils.unified_load path, rb, rbc, ext, nil, opts
   end
   module_function :load
 
@@ -738,9 +738,9 @@ module Kernel
   #
   def require(path)
     path = StringValue(path)
-    rb, rbc, ext = Compiler::Utils.split_path path
+    rb, rbc, ext = Requirer::Utils.split_path path
     Autoload.remove(rb)
-    Compiler::Utils.unified_load path, rb, rbc, ext, true
+    Requirer::Utils.unified_load path, rb, rbc, ext, true
   end
   module_function :require
 

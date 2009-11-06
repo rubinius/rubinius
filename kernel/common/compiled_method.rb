@@ -414,6 +414,8 @@ module Rubinius
     ##
     # Graphs the control flow of this method
     def graph_control(file, open_now=false)
+      raise "We're sorry, this is out of order. Check back soon."
+
       require 'compiler/blocks'
       require 'compiler/blocks_graph'
 

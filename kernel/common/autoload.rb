@@ -15,7 +15,7 @@ class Autoload
     @name = name
     @scope = scope
     @original_path = path
-    @path, @rbc, @ext = Compiler::Utils.split_path(path)
+    @path, @rbc, @ext = Requirer::Utils.split_path(path)
     Autoload.add(self)
   end
 
@@ -24,7 +24,7 @@ class Autoload
   # it calls this method on us
   def call
     self.class.remove @path
-    Compiler::Utils.unified_load path, @path, @rbc, @ext, true
+    Requirer::Utils.unified_load path, @path, @rbc, @ext, true
     scope.const_get @name
   end
 

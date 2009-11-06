@@ -72,7 +72,7 @@ module Kernel
       raise ArgumentError, "unknown type of binding"
     end
 
-    context = Compiler::Context.new binding.variables, binding.code
+    context = Rubinius::CompilerNG::Context.new binding.variables, binding.code
 
     compiled_method = Rubinius::CompilerNG.compile_eval string, context, filename, lineno
     compiled_method.scope = binding.static_scope
@@ -145,7 +145,7 @@ module Kernel
                               Rubinius::CompiledMethod.of_sender,
                               Rubinius::StaticScope.of_sender)
 
-      context = Compiler::Context.new binding.variables, binding.code
+      context = Rubinius::CompilerNG::Context.new binding.variables, binding.code
 
       compiled_method = Rubinius::CompilerNG.compile_eval string, context, filename, line
       compiled_method.scope = binding.static_scope.using_current_as(metaclass)
@@ -222,7 +222,7 @@ class Module
     variables = Rubinius::VariableScope.of_sender
     method = Rubinius::CompiledMethod.of_sender
 
-    context = Compiler::Context.new variables, method
+    context = Rubinius::CompilerNG::Context.new variables, method
 
     string = StringValue(string)
 

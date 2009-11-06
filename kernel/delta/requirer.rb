@@ -13,32 +13,10 @@ end
 # Main entrace point to the Rubinius compiler.  Handles loading and compiling
 # ruby code.
 
-class Compiler
+class Requirer
   # TODO: This is temporary until the compiler is refactored
   def self.version_number
     42 # No question mark. This is fact.
-  end
-
-  class Context
-    def initialize(variables, method)
-      @variables = variables
-      @method = method
-    end
-
-    attr_accessor :variables
-    attr_accessor :method
-
-    def dynamic_locals
-      @variables.dynamic_locals
-    end
-
-    def set_eval_local(name, val)
-      dynamic_locals[name] = val
-    end
-
-    def eval_local_defined?(name)
-      @variables.eval_local_defined?(name)
-    end
   end
 
   # TODO: This is temporary until the compiler is refactored
@@ -47,7 +25,7 @@ class Compiler
   @load_rbc_directly = false
 
   def self.compiler
-    return ::Compiler
+    return ::Requirer
   end
 
   def self.version_number
@@ -104,10 +82,10 @@ class Compiler
         rb.slice! '~/' if rb
         rbc.slice! '~/' if rbc
         ext.slice! '~/' if ext
-        res = Compiler::Utils.single_load "#{ENV['HOME']}/", rb, rbc, ext, requiring, options
+        res = Requirer::Utils.single_load "#{ENV['HOME']}/", rb, rbc, ext, requiring, options
 
       else
-        res = Compiler::Utils.single_load '', rb, rbc, ext, requiring, options
+        res = Requirer::Utils.single_load '', rb, rbc, ext, requiring, options
       end
 
       return res unless res.nil?      # false is valid
@@ -149,7 +127,7 @@ class Compiler
           # Fall through
         end
 
-        res = Compiler::Utils.single_load "#{dir}/", rb, rbc, ext, requiring, options
+        res = Requirer::Utils.single_load "#{dir}/", rb, rbc, ext, requiring, options
         return res unless res.nil?      # false is valid
       end
     end
@@ -243,7 +221,7 @@ class Compiler
               end
 
               compile_feature(rb, requiring) do
-                cm = Compiler::Utils.compile_file(rb_path)
+                cm = Requirer::Utils.compile_file(rb_path)
                 raise LoadError, "Unable to compile: #{rb_path}" unless cm
               end
 
@@ -348,7 +326,7 @@ class Compiler
       end
     end
 
-    Compiler::Utils.single_load '', rb, rbc, ext, false, options
+    Requirer::Utils.single_load '', rb, rbc, ext, false, options
   end
 
   def self.split_path(path)
@@ -375,4 +353,4 @@ class Compiler
   end
 
   end   # module Utils
-end   # class Compiler
+end   # class Requirer

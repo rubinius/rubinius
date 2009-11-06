@@ -116,7 +116,7 @@ module Rubinius
       options.on "-", "Read and evaluate code from STDIN" do
         @run_irb = false
         $0 = "-"
-        Compiler::Utils.execute STDIN.read
+        Requirer::Utils.execute STDIN.read
       end
 
       options.on "--", "Stop processing command line arguments" do
@@ -346,8 +346,8 @@ module Rubinius
         TOPLEVEL_BINDING.static_scope.script = CompiledMethod::Script.new
         TOPLEVEL_BINDING.static_scope.script.path = @script
 
-        Compiler::Utils.debug_script! if @debugging
-        Compiler::Utils.load_from_extension @script,
+        Requirer::Utils.debug_script! if @debugging
+        Requirer::Utils.load_from_extension @script,
           :no_rbc => @no_rbc, :root_script => true
       else
         if @script.suffix?(".rb")
@@ -389,7 +389,7 @@ module Rubinius
         end
       else
         $0 = "(eval)"
-        Compiler::Utils.execute "p #{STDIN.read}"
+        Requirer::Utils.execute "p #{STDIN.read}"
       end
     end
 
