@@ -28,14 +28,10 @@ def compile_extension(path, flags = "-p -I#{Dir.pwd}/vm/capi")
 
   verbose = $verbose ? "-d" : ""
 
-  command = "./bin/rbx compile #{verbose} #{flags} #{path}"
+  #command = "./bin/rbx compile #{verbose} #{flags} #{path}"
 
-  if $verbose
-    sh command
-  else
-    puts "Building extension #{path}"
-    sh command, :verbose => false
-  end
+  puts "Building extension #{path}"
+  ruby "lib/bin/compile.rb #{verbose} #{flags} #{path}"
 end
 
 namespace :extension do

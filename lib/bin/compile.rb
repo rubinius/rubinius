@@ -1,4 +1,4 @@
-$: << "#{Dir.pwd}/lib"
+require 'rbconfig'
 
 class ExtensionCompiler
 
@@ -84,9 +84,11 @@ class ExtensionCompiler
   def calculate_output
     m = /(.*)\.[^\.]+/.match(@output_name)
     if m
-      @output = "#{m[1]}#{Rubinius::LIBSUFFIX}"
+      #@output = "#{m[1]}#{Rubinius::LIBSUFFIX}"
+      @output = "#{m[1]}.#{Config::CONFIG['DLEXT']}"
     else
-      @output = "#{@output_name}#{Rubinius::LIBSUFFIX}"
+      #@output = "#{@output_name}#{Rubinius::LIBSUFFIX}"
+      @output = "#{@output_name}.#{Config::CONFIG['DLEXT']}"
     end
   end
 
@@ -95,29 +97,37 @@ class ExtensionCompiler
   end
 
   def gcc?
-    Rubinius::COMPILER == :gcc
+    # Rubinius::COMPILER == :gcc
+    Config::CONFIG['CC'] == "gcc"
   end
 
   def vcc?
-    Rubinius::OS == :win32 and Rubinius::COMPILER == :microsoft
+    # Rubinius::OS == :win32 and Rubinius::COMPILER == :microsoft
+    false
   end
 
   def mingw?
-    Rubinius::OS == :win32 and Rubinius::COMPILER == :gcc
+    # Rubinius::OS == :win32 and Rubinius::COMPILER == :gcc
+    false
   end
 
   def cygwin?
-    Rubinius::OS == :cygwin
+    # Rubinius::OS == :cygwin
+    false
   end
 
   def darwin?
-    Rubinius::OS == :darwin
+    # TODO: fix
+    RUBY_PLATFORM =~ /darwin/
+    #Rubinius::OS == :darwin
   end
 
   def compile_options
     str = (@includes + @compile_flags).join(" ")
 
-    if Rubinius::PLATFORM == :amd64 || ( Rubinius::PLATFORM == :x86 && gcc? )
+    # TODO: fix
+    if Config::CONFIG["CFLAGS"].include?("-fPIC")
+    #if Rubinius::PLATFORM == :amd64 || ( Rubinius::PLATFORM == :x86 && gcc? )
       str += ' -fPIC '
     end
 
@@ -248,7 +258,7 @@ rbx_flags = []
 ext_flags = []
 flags = []
 
-while ARGV[0] and ARGV[0].prefix? "-f"
+while ARGV[0] and ARGV[0][0,2] == "-f"
   body = ARGV.shift[2..-1]
   if body.empty?
     flags << '-f'
@@ -262,7 +272,7 @@ while ARGV[0] and ARGV[0].prefix? "-f"
   end
 end
 
-while ARGV[0] and ARGV[0].prefix? "-"
+while ARGV[0] and ARGV[0][0,1] ==  "-"
   flags << ARGV.shift
 end
 
