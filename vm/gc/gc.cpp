@@ -60,10 +60,26 @@ namespace rubinius {
       if(slot) obj->ivars(object_memory_, slot);
     }
 
-    TypeInfo* ti = object_memory_->type_info[obj->type_id()];
+    // Handle Tuple directly, because it's so common
+    if(Tuple* tup = try_as<Tuple>(obj)) {
+      int size = tup->num_fields();
 
-    ObjectMark mark(this);
-    ti->mark(obj, mark);
+      for(int i = 0; i < size; i++) {
+        slot = tup->field[i];
+        if(slot->reference_p()) {
+          slot = saw_object(tup->field[i]);
+          if(slot) {
+            tup->field[i] = slot;
+            object_memory_->write_barrier(tup, slot);
+          }
+        }
+      }
+    } else {
+      TypeInfo* ti = object_memory_->type_info[obj->type_id()];
+
+      ObjectMark mark(this);
+      ti->mark(obj, mark);
+    }
   }
 
   void GarbageCollector::delete_object(Object* obj) {
