@@ -53,26 +53,23 @@ namespace rubinius {
       bool mark_address(immix::Address addr, immix::MarkStack& ms) {
         Object* obj = addr.as<Object>();
 
-        if(obj->marked_p()) {
-          if(obj->marked_p(gc_->which_mark())) return false;
-          rubinius::bug("invalid mark detected!");
-        }
+        if(obj->marked_p()) return false;
         obj->mark(gc_->which_mark());
+        gc_->inc_marked_objects();
 
         ms.push_back(addr);
+        if(obj->in_immix_p()) return true;
 
         // If this is a young object, let the GC know not to try and mark
         // the block it's in.
-        if(obj->young_object_p() || !obj->in_immix_p()) {
-          return false;
-        }
-        return true;
+        return false;
       }
     };
 
     immix::GC<ObjectDescriber> gc_;
     immix::ExpandingAllocator allocator_;
     int which_mark_;
+    int marked_objects_;
 
   public:
     ImmixGC(ObjectMemory* om);
@@ -92,6 +89,20 @@ namespace rubinius {
 
     int bytes_allocated() {
       return gc_.bytes_allocated();
+    }
+
+    void inc_marked_objects() {
+      marked_objects_++;
+    }
+
+    int marked_objects() {
+      return marked_objects_;
+    }
+
+    int clear_marked_objects() {
+      int m = marked_objects_;
+      marked_objects_ = 0;
+      return m;
     }
   };
 }

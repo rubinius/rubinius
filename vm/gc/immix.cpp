@@ -6,6 +6,8 @@
 #include "capi/handle.hpp"
 #include "object_watch.hpp"
 
+#include "configuration.hpp"
+
 namespace rubinius {
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
 #ifdef IMMIX_DEBUG
@@ -102,17 +104,25 @@ namespace rubinius {
 
     gc_.clear_lines();
 
+    int via_handles_ = 0;
+
     for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {
       tmp = i->get();
       if(tmp->reference_p()) saw_object(tmp);
     }
 
     for(capi::Handles::Iterator i(*data.handles()); i.more(); i.advance()) {
-      if(!i->weak_p()) saw_object(i->object());
+      if(!i->weak_p()) {
+        saw_object(i->object());
+        via_handles_++;
+      }
     }
 
     for(capi::Handles::Iterator i(*data.cached_handles()); i.more(); i.advance()) {
-      if(!i->weak_p()) saw_object(i->object());
+      if(!i->weak_p()) {
+        saw_object(i->object());
+        via_handles_++;
+      }
     }
 
     for(VariableRootBuffers::Iterator i(data.variable_buffers());
@@ -168,6 +178,11 @@ namespace rubinius {
 
     // Switch the which_mark_ for next time.
     which_mark_ = (which_mark_ == 1 ? 2 : 1);
+
+    if(object_memory_->state->shared.config.gc_immix_debug) {
+      std::cerr << "[GC IMMIX: " << clear_marked_objects() << " marked"
+                << ", " << via_handles_ << " handles]\n";
+    }
 
 #ifdef IMMIX_DEBUG
     std::cout << "Immix: RS size cleared: " << cleared << "\n";

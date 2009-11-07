@@ -11,6 +11,7 @@ namespace rubinius {
     config::Integer gc_large_object;
     config::Integer gc_lifetime;
     config::Bool    gc_show;
+    config::Bool    gc_immix_debug;
 
     // JIT/Interpreter
     config::Bool    dynamic_interpreter_enabled;
@@ -50,6 +51,7 @@ namespace rubinius {
       , gc_large_object(this, "gc.large_object", default_gc_large_object)
       , gc_lifetime(this,     "gc.lifetime", default_gc_lifetime)
       , gc_show(this,         "gc.show")
+      , gc_immix_debug(this,  "gc.immix.debug")
       , dynamic_interpreter_enabled(this, "interpreter.dynamic")
       , jit_enabled(this,     "jit.enabled", default_jit_on)
       , jit_dump_code(this,   "jit.dump_code", default_jit_dump_code)
@@ -123,6 +125,9 @@ namespace rubinius {
 
       gc_show.set_description(
           "Print out whenever the GC runs");
+
+      gc_immix_debug.set_description(
+          "Print out collection stats when the Immix collector finishes");
 
       ic_stats.set_description(
           "Print out stats about the InlineCaches before exiting");
