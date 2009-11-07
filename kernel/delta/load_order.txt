@@ -18,7 +18,6 @@ stats.rbc
 profiler.rbc
 signal.rbc
 static_scope.rbc
-string.rbc
 struct.rbc
 thread.rbc
 requirer.rbc

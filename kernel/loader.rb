@@ -20,9 +20,6 @@ module Rubinius
 
       Object.const_set :ENV, EnvironmentVariables.new
 
-      String.ruby_parser if ENV['RUBY_PARSER']
-      String.sydney_parser if ENV['SYDNEY'] or ENV['SYDPARSE']
-
       # define a global "start time" to use for process calculation
       $STARTUP_TIME = Time.now
 
@@ -235,11 +232,6 @@ module Rubinius
         at_exit { stats.show }
       end
 
-      options.on "--melbourne", "Use Melbourne parser and new compiler." do
-        require 'compiler'
-        Rubinius::CompilerNG.enable
-      end
-
       options.on "--no-rbc", "Don't create .rbc files" do
         @no_rbc = true
       end
@@ -250,14 +242,6 @@ module Rubinius
         if columns
           Profiler__.options :sort => columns.split(/,/).map {|x| x.to_sym }
         end
-      end
-
-      options.on "--ruby_parser", "Use RubyParser" do
-        String.ruby_parser
-      end
-
-      options.on "--sydney", "Use SydneyParser" do
-        String.sydney_parser
       end
 
       options.on "--vv", "Display version and extra info" do
