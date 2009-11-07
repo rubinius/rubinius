@@ -25,16 +25,6 @@ describe "A Call node using BlockGiven plugin" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :m,
-       [:args],
-       [:scope,
-        [:block,
-         [:if,
-          [:call, nil, :block_given?, [:arglist]], [:lit, 1], nil]]]]
-    end
-
     compile do |g|
       in_method :m do |d|
         no_blk = d.new_label
@@ -62,16 +52,6 @@ describe "A Call node using BlockGiven plugin" do
         1 if iterator?
       end
     ruby
-
-    parse do
-      [:defn,
-       :m,
-       [:args],
-       [:scope,
-        [:block,
-         [:if,
-          [:call, nil, :iterator?, [:arglist]], [:lit, 1], nil]]]]
-    end
 
     compile do |g|
       in_method :m do |d|

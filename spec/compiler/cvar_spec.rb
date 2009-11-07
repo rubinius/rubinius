@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A Cvar node" do
   relates "@@x" do
-    parse do
-      [:cvar, :@@x]
-    end
-
     compile do |g|
       g.push_scope
       g.push_literal :@@x
@@ -18,10 +14,6 @@ describe "A Cvar node" do
         @@a
       end
     ruby
-
-    parse do
-      [:class, :A, nil, [:scope, [:cvar, :@@a]]]
-    end
 
     compile do |g|
       in_class :A do |d|
@@ -37,10 +29,6 @@ describe "A Cvar node" do
         @@a
       end
     ruby
-
-    parse do
-      [:module, :M, [:scope, [:cvar, :@@a]]]
-    end
 
     compile do |g|
       in_module :M do |d|

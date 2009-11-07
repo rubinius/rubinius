@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "A Call node using FastMath plugin" do
   relates "1 + 1" do
-    parse do
-      [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]]
-    end
-
     compile do |g|
       g.push 1
       g.push 1
@@ -20,10 +16,6 @@ describe "A Call node using FastMath plugin" do
   end
 
   relates "1 - 1" do
-    parse do
-      [:call, [:lit, 1], :-, [:arglist, [:lit, 1]]]
-    end
-
     compile do |g|
       g.push 1
       g.push 1
@@ -38,10 +30,6 @@ describe "A Call node using FastMath plugin" do
   end
 
   relates "1 == 1" do
-    parse do
-      [:call, [:lit, 1], :==, [:arglist, [:lit, 1]]]
-    end
-
     compile do |g|
       g.push 1
       g.push 1
@@ -56,10 +44,6 @@ describe "A Call node using FastMath plugin" do
   end
 
   relates "1 === 1" do
-    parse do
-      [:call, [:lit, 1], :===, [:arglist, [:lit, 1]]]
-    end
-
     compile do |g|
       g.push 1
       g.push 1
@@ -74,10 +58,6 @@ describe "A Call node using FastMath plugin" do
   end
 
   relates "1 < 1" do
-    parse do
-      [:call, [:lit, 1], :<, [:arglist, [:lit, 1]]]
-    end
-
     compile do |g|
       g.push 1
       g.push 1
@@ -92,10 +72,6 @@ describe "A Call node using FastMath plugin" do
   end
 
   relates "1 > 1" do
-    parse do
-      [:call, [:lit, 1], :>, [:arglist, [:lit, 1]]]
-    end
-
     compile do |g|
       g.push 1
       g.push 1

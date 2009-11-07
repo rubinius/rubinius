@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "An Array node" do
   relates '[1, :b, "c"]' do
-    parse do
-      [:array, [:lit, 1], [:lit, :b], [:str, "c"]]
-    end
-
     compile do |g|
       g.push 1
       g.push_literal :b
@@ -16,10 +12,6 @@ describe "An Array node" do
   end
 
   relates "%w[a b c]" do
-    parse do
-      [:array, [:str, "a"], [:str, "b"], [:str, "c"]]
-    end
-
     compile do |g|
       g.push_literal "a"
       g.string_dup
@@ -32,10 +24,6 @@ describe "An Array node" do
   end
 
   relates '%w[a #{@b} c]' do
-    parse do
-      [:array, [:str, "a"], [:str, "\#{@b}"], [:str, "c"]]
-    end
-
     compile do |g|
       g.push_literal "a"
       g.string_dup
@@ -50,11 +38,6 @@ describe "An Array node" do
   end
 
   relates "%W[a b c]" do
-    parse do
-      [:array,
-        [:str, "a"], [:str, "b"], [:str, "c"]]
-    end
-
     compile do |g|
       g.push_literal "a"
       g.string_dup
@@ -67,13 +50,6 @@ describe "An Array node" do
   end
 
   relates '%W[a #{@b} c]' do
-    parse do
-      [:array,
-        [:str, "a"],
-        [:dstr, "", [:evstr, [:ivar, :@b]]],
-        [:str, "c"]]
-    end
-
     compile do |g|
       g.push_literal "a"
       g.string_dup
@@ -91,10 +67,6 @@ describe "An Array node" do
   end
 
   relates "[*[1]]" do
-    parse do
-      [:array, [:splat, [:array, [:lit, 1]]]]
-    end
-
     compile do |g|
       g.push 1
       g.make_array 1
@@ -102,10 +74,6 @@ describe "An Array node" do
   end
 
   relates "[*1]" do
-    parse do
-      [:array, [:splat, [:lit, 1]]]
-    end
-
     compile do |g|
       g.push 1
       g.cast_array
@@ -113,10 +81,6 @@ describe "An Array node" do
   end
 
   relates "[[*1]]" do
-    parse do
-      [:array, [:array, [:splat, [:lit, 1]]]]
-    end
-
     compile do |g|
       g.push 1
       g.cast_array
@@ -125,10 +89,6 @@ describe "An Array node" do
   end
 
   relates "[1, *2]" do
-    parse do
-      [:array, [:lit, 1], [:splat, [:lit, 2]]]
-    end
-
     compile do |g|
       g.push 1
       g.make_array 1
@@ -141,10 +101,6 @@ describe "An Array node" do
   end
 
   relates "[1, *c()]" do
-    parse do
-      [:array, [:lit, 1], [:splat, [:call, nil, :c, [:arglist]]]]
-    end
-
     # TODO
   end
 
@@ -152,12 +108,6 @@ describe "An Array node" do
       x = [2]
       [1, *x]
     ruby
-
-    parse do
-      [:block,
-       [:lasgn, :x, [:array, [:lit, 2]]],
-       [:array, [:lit, 1], [:splat, [:lvar, :x]]]]
-    end
 
     # TODO
   end

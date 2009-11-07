@@ -7,10 +7,6 @@ describe "A Super node" do
       end
     ruby
 
-    parse do
-      [:defn, :x, [:args], [:scope, [:block, [:super]]]]
-    end
-
     compile do |g|
       in_method :x do |d|
         d.push_block
@@ -24,13 +20,6 @@ describe "A Super node" do
         super(&block)
       end
     ruby
-
-    parse do
-      [:defn,
-       :x,
-       [:args, :"&block"],
-       [:scope, [:block, [:super, [:block_pass, [:lvar, :block]]]]]]
-    end
 
     compile do |g|
       in_method :x do |d|
@@ -57,13 +46,6 @@ describe "A Super node" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :x,
-       [:args],
-       [:scope, [:block, [:super, [:array, [:lit, 24], [:lit, 42]]]]]]
-    end
-
     compile do |g|
       in_method :x do |d|
         d.push 24
@@ -81,10 +63,6 @@ describe "A Super node" do
       end
     ruby
 
-    parse do
-      [:defn, :x, [:args], [:scope, [:block, [:super, [:lit, 4]]]]]
-    end
-
     compile do |g|
       in_method :x do |d|
         d.push 4
@@ -95,12 +73,6 @@ describe "A Super node" do
   end
 
   relates "super(a, &b)" do
-    parse do
-      [:super,
-       [:call, nil, :a, [:arglist]],
-       [:block_pass, [:call, nil, :b, [:arglist]]]]
-    end
-
     compile do |g|
       t = g.new_label
 
@@ -130,12 +102,6 @@ describe "A Super node" do
   end
 
   relates "super(a, *b)" do
-    parse do
-      [:super,
-        [:call, nil, :a, [:arglist]],
-        [:splat, [:call, nil, :b, [:arglist]]]]
-    end
-
     compile do |g|
       g.push :self
       g.send :a, 0, true
@@ -160,13 +126,6 @@ describe "A Super node" do
       end
     ruby
 
-    parse do
-      [:defn,
-        :x,
-        [:args],
-        [:scope, [:block, [:super, [:lit, 24], [:lit, 42]]]]]
-    end
-
     compile do |g|
       in_method :x do |d|
         d.push 24
@@ -178,10 +137,6 @@ describe "A Super node" do
   end
 
   relates "super([*[1]])" do
-    parse do
-      [:super, [:array, [:splat, [:array, [:lit, 1]]]]]
-    end
-
     compile do |g|
       g.push 1
       g.make_array 1
@@ -191,10 +146,6 @@ describe "A Super node" do
   end
 
   relates "super(*[1])" do
-    parse do
-      [:super, [:splat, [:array, [:lit, 1]]]]
-    end
-
     compile do |g|
       g.push 1
       g.make_array 1

@@ -7,14 +7,6 @@ describe "A Defs node" do
       end
     ruby
 
-    parse do
-      [:defs,
-         [:self],
-         :x,
-         [:args, :y],
-         [:scope, [:block, [:call, [:lvar, :y], :+, [:arglist, [:lit, 1]]]]]]
-    end
-
     compile do |g|
       g.push :self
       in_method :x, true do |d|
@@ -32,18 +24,6 @@ describe "A Defs node" do
         return bind
       end
     ruby
-
-    parse do
-      [:defs,
-         [:self],
-         :setup,
-         [:args, :ctx],
-         [:scope,
-          [:block,
-           [:lasgn, :bind, [:call, nil, :allocate, [:arglist]]],
-           [:attrasgn, [:lvar, :bind], :context=, [:arglist, [:lvar, :ctx]]],
-           [:return, [:lvar, :bind]]]]]
-    end
 
     compile do |g|
       g.push :self
@@ -72,10 +52,6 @@ describe "A Defs node" do
       end
     ruby
 
-    parse do
-      [:defs, [:self], :empty, [:args, :*], [:scope, [:block]]]
-    end
-
     compile do |g|
       g.push :self
       in_method :empty, true do |d|
@@ -89,10 +65,6 @@ describe "A Defs node" do
       end
     ruby
 
-    parse do
-      [:defs, [:self], :empty, [:args], [:scope, [:block]]]
-    end
-
     compile do |g|
       g.push :self
       in_method :empty, true do |d|
@@ -105,14 +77,6 @@ describe "A Defs node" do
       def (a.b).empty(*)
       end
     ruby
-
-    parse do
-      [:defs,
-       [:call, [:call, nil, :a, [:arglist]], :b, [:arglist]],
-       :empty,
-       [:args, :*],
-       [:scope, [:block]]]
-    end
 
     compile do |g|
       g.push :self

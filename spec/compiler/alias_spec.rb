@@ -16,10 +16,6 @@ describe "An Alias node" do
       end
     ruby
 
-    parse do
-      [:class, :X, nil, [:scope, [:alias, [:lit, :y], [:lit, :x]]]]
-    end
-
     compile(&alias_both)
   end
 
@@ -29,10 +25,6 @@ describe "An Alias node" do
       end
     ruby
 
-    parse do
-      [:class, :X, nil, [:scope, [:alias, [:lit, :y], [:lit, :x]]]]
-    end
-
     compile(&alias_both)
   end
 
@@ -41,16 +33,6 @@ describe "An Alias node" do
         alias :"y\#{1}" :"x\#{2}"
       end
     ruby
-
-    parse do
-      [:class,
-       :X,
-       nil,
-       [:scope,
-        [:alias,
-         [:dsym, "y", [:evstr, [:lit, 1]]],
-         [:dsym, "x", [:evstr, [:lit, 2]]]]]]
-    end
 
     compile do |g|
       in_class :X do |d|

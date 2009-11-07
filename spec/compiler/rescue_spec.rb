@@ -14,10 +14,6 @@ describe "A Rescue node" do
   end
 
   relates "blah rescue nil" do
-    parse do
-      [:rescue, [:call, nil, :blah, [:arglist]], [:resbody, [:array], [:nil]]]
-    end
-
     compile(&rescue_empty)
   end
 
@@ -27,10 +23,6 @@ describe "A Rescue node" do
       rescue
       end
     ruby
-
-    parse do
-      [:rescue, [:call, nil, :blah, [:arglist]], [:resbody, [:array], nil]]
-    end
 
     compile(&rescue_empty)
   end
@@ -46,14 +38,6 @@ describe "A Rescue node" do
         d
       end
     ruby
-
-    parse do
-      [:rescue,
-       [:call, nil, :a, [:arglist]],
-       [:resbody, [:array, [:const, :A]], [:call, nil, :b, [:arglist]]],
-       [:resbody, [:array, [:const, :B]], [:call, nil, :c, [:arglist]]],
-       [:resbody, [:array, [:const, :C]], [:call, nil, :d, [:arglist]]]]
-    end
 
     compile do |g|
       in_rescue :A, :B, :C do |section|
@@ -84,14 +68,6 @@ describe "A Rescue node" do
       end
     ruby
 
-    parse do
-      [:rescue,
-       [:call, nil, :a, [:arglist]],
-       [:resbody,
-        [:array, [:iasgn, :@e, [:gvar, :$!]]],
-        [:block, [:call, nil, :c, [:arglist]], [:call, nil, :d, [:arglist]]]]]
-    end
-
     compile do |g|
       in_rescue :StandardError do |section|
         case section
@@ -120,14 +96,6 @@ describe "A Rescue node" do
         d
       end
     ruby
-
-    parse do
-      [:rescue,
-       [:call, nil, :a, [:arglist]],
-       [:resbody,
-        [:array, [:lasgn, :e, [:gvar, :$!]]],
-        [:block, [:call, nil, :c, [:arglist]], [:call, nil, :d, [:arglist]]]]]
-    end
 
     compile do |g|
       in_rescue :StandardError, 1 do |section|
@@ -162,16 +130,6 @@ describe "A Rescue node" do
         # do nothing
       end
     ruby
-
-    parse do
-      [:block,
-         [:rescue,
-          [:call, nil, :a, [:arglist]],
-          [:resbody, [:array, [:lasgn, :mes, [:gvar, :$!]]], nil]],
-         [:rescue,
-          [:call, nil, :b, [:arglist]],
-          [:resbody, [:array, [:lasgn, :mes, [:gvar, :$!]]], nil]]]
-    end
 
     compile do |g|
       in_rescue :StandardError, 1 do |section|
@@ -211,14 +169,6 @@ describe "A Rescue node" do
       end
     ruby
 
-    parse do
-      [:rescue,
-       [:call, nil, :blah, [:arglist]],
-       [:resbody,
-        [:array, [:const, :RuntimeError], [:lasgn, :r, [:gvar, :$!]]],
-        nil]]
-    end
-
     compile do |g|
       in_rescue :RuntimeError, 1 do |section|
         case section
@@ -241,10 +191,6 @@ describe "A Rescue node" do
       rescue => @e
       end
     ruby
-
-    parse do
-      [:rescue, [:lit, 1], [:resbody, [:array, [:iasgn, :@e, [:gvar, :$!]]], nil]]
-    end
 
     compile do |g|
       in_rescue :StandardError, 1 do |section|
@@ -269,10 +215,6 @@ describe "A Rescue node" do
       end
     ruby
 
-    parse do
-      [:rescue, [:lit, 1], [:resbody, [:array], [:lasgn, :var, [:lit, 2]]]]
-    end
-
     compile do |g|
       in_rescue :StandardError, 1 do |section|
         case section
@@ -292,10 +234,6 @@ describe "A Rescue node" do
       rescue => e
       end
     ruby
-
-    parse do
-      [:rescue, [:lit, 1], [:resbody, [:array, [:lasgn, :e, [:gvar, :$!]]], nil]]
-    end
 
     compile do |g|
       in_rescue :StandardError, 1 do |section|
@@ -319,14 +257,6 @@ describe "A Rescue node" do
         a.b = nil
       end
     ruby
-
-    parse do
-      [:rescue,
-       [:lit, 1],
-       [:resbody,
-        [:array],
-        [:attrasgn, [:call, nil, :a, [:arglist]], :b=, [:arglist, [:nil]]]]]
-    end
 
     compile do |g|
       in_rescue :StandardError, 1 do |section|
@@ -354,12 +284,6 @@ describe "A Rescue node" do
       end
     ruby
 
-    parse do
-      [:rescue,
-       [:lit, 1],
-       [:resbody, [:array, [:lasgn, :e, [:gvar, :$!]]], [:lasgn, :var, [:lit, 2]]]]
-    end
-
     compile do |g|
       in_rescue :StandardError, 1 do |section|
         case section
@@ -385,13 +309,6 @@ describe "A Rescue node" do
         14
       end
     ruby
-
-    parse do
-      [:rescue,
-       [:lit, 12],
-       [:resbody, [:array, [:const, :String]], [:lit, 13]],
-       [:lit, 14]]
-    end
 
     compile do |g|
       fin        = g.new_label
@@ -442,12 +359,6 @@ describe "A Rescue node" do
       end
     ruby
 
-    parse do
-      [:rescue,
-       [:lit, 12],
-       [:resbody, [:splat, [:call, nil, :blah, [:arglist]]], [:lit, 13]]]
-    end
-
     compile do |g|
       fin        = g.new_label
       rr         = g.new_label
@@ -496,14 +407,6 @@ describe "A Rescue node" do
         13
       end
     ruby
-
-    parse do
-      [:rescue,
-       [:lit, 12],
-       [:resbody,
-        [:array, [:const, :String], [:splat, [:call, nil, :blah, [:arglist]]]],
-        [:lit, 13]]]
-    end
 
     compile do |g|
       fin        = g.new_label
@@ -560,14 +463,6 @@ describe "A Rescue node" do
       end
     ruby
 
-    parse do
-      [:rescue,
-       [:lit, 12],
-       [:resbody,
-        [:splat, [:call, nil, :blah, [:arglist]], [:lasgn, :e, [:gvar, :$!]]],
-        [:lit, 13]]]
-    end
-
     compile do |g|
       fin        = g.new_label
       rr         = g.new_label
@@ -623,17 +518,6 @@ describe "A Rescue node" do
         13
       end
     ruby
-
-    parse do
-      [:rescue,
-       [:lit, 12],
-       [:resbody,
-        [:array,
-         [:const, :String],
-         [:splat, [:call, nil, :blah, [:arglist]]],
-         [:lasgn, :e, [:gvar, :$!]]],
-        [:lit, 13]]]
-    end
 
     compile do |g|
       fin        = g.new_label
@@ -694,12 +578,6 @@ describe "A Rescue node" do
       end
     ruby
 
-    parse do
-      [:rescue,
-       [:lit, 12],
-       [:resbody, [:array, [:const, :String]], [:return, [:nil]]]]
-    end
-
     compile do |g|
       fin        = g.new_label
       rr         = g.new_label
@@ -753,14 +631,6 @@ describe "A Rescue node" do
       end
     ruby
 
-    parse do
-      [:rescue,
-       [:lit, 1],
-       [:resbody,
-        [:array],
-        [:rescue, [:lit, 2], [:resbody, [:array], [:return, [:lit, 3]]]]]]
-    end
-
     compile do |g|
       in_rescue :StandardError, 1 do |section|
         case section
@@ -792,16 +662,6 @@ describe "A Rescue node" do
         x
       end
     ruby
-
-    parse do
-      [:rescue,
-       [:lit, 1],
-       [:resbody,
-        [:array],
-        [:block,
-         [:defn, :x, [:args], [:scope, [:block, [:return, [:lit, 2]]]]],
-         [:call, nil, :x, [:arglist]]]]]
-    end
 
     compile do |g|
       in_rescue :StandardError, 1 do |section|

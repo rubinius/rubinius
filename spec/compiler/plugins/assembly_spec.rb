@@ -7,16 +7,6 @@ describe "A Call node using InlineAssembly plugin" do
       end
     ruby
 
-    parse do
-      [:iter,
-       [:call,
-        [:const, :Rubinius],
-        :asm,
-        [:arglist, [:call, nil, :a, [:arglist]]]],
-       [:lasgn, :m],
-       [:call, nil, :push, [:arglist, [:lit, 1]]]]
-    end
-
     compile do |g|
       g.push_const :Rubinius
       g.push :self

@@ -27,30 +27,6 @@ describe "A Case node" do
       end
     ruby
 
-    parse do
-      [:block,
-       [:lasgn, :var, [:lit, 2]],
-       [:lasgn, :result, [:str, ""]],
-       [:case,
-        [:lvar, :var],
-        [:when,
-         [:array, [:lit, 1]],
-         [:block,
-          [:call, nil, :puts, [:arglist, [:str, "something"]]],
-          [:lasgn, :result, [:str, "red"]]]],
-        [:when,
-         [:array, [:lit, 2], [:lit, 3]],
-         [:lasgn, :result, [:str, "yellow"]]],
-        [:when, [:array, [:lit, 4]], nil],
-        [:lasgn, :result, [:str, "green"]]],
-       [:case,
-        [:lvar, :result],
-        [:when, [:array, [:str, "red"]], [:lasgn, :var, [:lit, 1]]],
-        [:when, [:array, [:str, "yellow"]], [:lasgn, :var, [:lit, 2]]],
-        [:when, [:array, [:str, "green"]], [:lasgn, :var, [:lit, 3]]],
-        nil]]
-    end
-
     compile do |g|
       a1 = g.new_label
       a2 = g.new_label
@@ -198,23 +174,6 @@ describe "A Case node" do
       end
     ruby
 
-    parse do
-      [:case,
-       [:call, nil, :a, [:arglist]],
-       [:when,
-        [:array, [:call, nil, :b, [:arglist]]],
-        [:case,
-         nil,
-         [:when,
-          [:array,
-           [:and,
-            [:call, nil, :d, [:arglist]],
-            [:call, nil, :e, [:arglist]]]],
-          [:call, nil, :f, [:arglist]]],
-         nil]],
-       nil]
-    end
-
     compile do |g|
       c2, bottom = g.new_label, g.new_label
       i1, i2, ibottom = g.new_label, g.new_label, g.new_label
@@ -289,30 +248,6 @@ describe "A Case node" do
         result = 7
       end
     ruby
-
-    parse do
-      [:block,
-       [:lasgn, :var1, [:lit, 1]],
-       [:lasgn, :var2, [:lit, 2]],
-       [:lasgn, :result, [:nil]],
-       [:case,
-        [:lvar, :var1],
-        [:when,
-         [:array, [:lit, 1]],
-         [:case,
-          [:lvar, :var2],
-          [:when, [:array, [:lit, 1]], [:lasgn, :result, [:lit, 1]]],
-          [:when, [:array, [:lit, 2]], [:lasgn, :result, [:lit, 2]]],
-          [:lasgn, :result, [:lit, 3]]]],
-        [:when,
-         [:array, [:lit, 2]],
-         [:case,
-          [:lvar, :var2],
-          [:when, [:array, [:lit, 1]], [:lasgn, :result, [:lit, 4]]],
-          [:when, [:array, [:lit, 2]], [:lasgn, :result, [:lit, 5]]],
-          [:lasgn, :result, [:lit, 6]]]],
-        [:lasgn, :result, [:lit, 7]]]]
-    end
 
     compile do |g|
       a2 = g.new_label
@@ -447,20 +382,6 @@ describe "A Case node" do
       end
     ruby
 
-    parse do
-      [:case,
-       nil,
-       [:when,
-        [:array,
-         [:call, [:call, nil, :a, [:arglist]], :==, [:arglist, [:lit, 1]]]],
-        [:lit, :a]],
-       [:when,
-        [:array,
-         [:call, [:call, nil, :a, [:arglist]], :==, [:arglist, [:lit, 2]]]],
-        [:lit, :b]],
-       [:lit, :c]]
-    end
-
     compile do |g|
       c2, c3, bottom = g.new_label, g.new_label, g.new_label
 
@@ -497,15 +418,6 @@ describe "A Case node" do
         e
       end
     ruby
-
-    parse do
-      [:case,
-       [:call, nil, :a, [:arglist]],
-       [:when,
-        [:array, [:lit, :b], [:when, [:call, nil, :c, [:arglist]], nil]],
-        [:call, nil, :d, [:arglist]]],
-       [:call, nil, :e, [:arglist]]]
-    end
 
     compile do |g|
       c1, c2, bottom = g.new_label, g.new_label, g.new_label
@@ -552,17 +464,6 @@ describe "A Case node" do
         12
       end
     ruby
-
-    parse do
-      [:case,
-       [:true],
-       [:when,
-        [:array,
-         [:const, :String],
-         [:when, [:array, [:str, "foo"], [:str, "bar"], [:str, "baz"]], nil]],
-        [:lit, 12]],
-       nil]
-    end
 
     compile do |g|
       body = g.new_label
@@ -619,13 +520,6 @@ describe "A Case node" do
       end
     ruby
 
-    parse do
-      [:case,
-       [:nil],
-       [:when, [:array, [:call, nil, :a, [:arglist]]], [:lit, 1]],
-       nil]
-    end
-
     compile do |g|
       no_match = g.new_label
       done     = g.new_label
@@ -656,15 +550,6 @@ describe "A Case node" do
         2
       end
     ruby
-
-    parse do
-      [:block,
-       [:lasgn, :x, [:lit, 1]],
-       [:case,
-        [:call, nil, :a, [:arglist]],
-        [:when, [:array, [:lvar, :x]], [:lit, 2]],
-        nil]]
-    end
 
     compile do |g|
       no_match = g.new_label

@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "An And node" do
   relates "(a and b)" do
-    parse do
-      [:and, [:call, nil, :a, [:arglist]], [:call, nil, :b, [:arglist]]]
-    end
-
     compile do |g|
       g.push :self
       g.send :a, 0, true
@@ -23,10 +19,6 @@ describe "An And node" do
   end
 
   relates "() and a" do
-    parse do
-      [:and, [:nil], [:call, nil, :a, [:arglist]]]
-    end
-
     compile do |g|
       f = g.new_label
       g.push :nil
@@ -40,10 +32,6 @@ describe "An And node" do
   end
 
   relates "a and ()" do
-    parse do
-      [:and, [:call, nil, :a, [:arglist]], [:nil]]
-    end
-
     compile do |g|
       f = g.new_label
       g.push :self

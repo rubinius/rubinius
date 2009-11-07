@@ -7,13 +7,6 @@ describe "A For node" do
       end
     ruby
 
-    parse do
-      [:for,
-       [:call, nil, :ary, [:arglist]],
-       [:lasgn, :o],
-       [:call, nil, :puts, [:arglist, [:lvar, :o]]]]
-    end
-
     compile do |g|
       g.push :self
       g.send :ary, 0, true
@@ -43,10 +36,6 @@ describe "A For node" do
         # do nothing
       end
     ruby
-
-    parse do
-      [:for, [:dot2, [:lit, 0], [:call, nil, :max, [:arglist]]], [:lasgn, :i]]
-    end
 
     compile do |g|
       g.push_cpath_top
@@ -80,13 +69,6 @@ describe "A For node" do
       end
     ruby
 
-    parse do
-      [:for,
-       [:call, nil, :x, [:arglist]],
-       [:masgn, [:array, [:lasgn, :a], [:lasgn, :b]]],
-       [:lit, 5]]
-    end
-
     compile do |g|
       iter = description do |d|
         d.cast_for_multi_block_arg
@@ -117,10 +99,6 @@ describe "A For node" do
         i
       end
     ruby
-
-    parse do
-      [:for, [:nil], [:lasgn, :i], [:lvar, :i]]
-    end
 
     compile do |g|
       g.push :nil

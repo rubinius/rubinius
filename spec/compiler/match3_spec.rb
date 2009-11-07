@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A Match3 node" do
   relates '"blah" =~ /x/' do
-    parse do
-      [:match3, [:regex, "x", 0], [:str, "blah"]]
-    end
-
     compile do |g|
       g.push_literal "blah"
       g.string_dup
@@ -27,15 +23,6 @@ describe "A Match3 node" do
         1
       end
     ruby
-
-    parse do
-      [:block,
-       [:lasgn, :a, [:str, "abc"]],
-       [:if,
-        [:match3, [:dregx, "", [:evstr, [:lvar, :a]]], [:lvar, :a]],
-        [:lit, 1],
-        nil]]
-    end
 
     compile do |g|
       g.push_literal "abc"

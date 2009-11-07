@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A Hash node" do
   relates "{ 1 => 2, 3 => 4 }" do
-    parse do
-      [:hash, [:lit, 1], [:lit, 2], [:lit, 3], [:lit, 4]]
-    end
-
     compile do |g|
       g.push_cpath_top
       g.find_const :Hash
@@ -27,10 +23,6 @@ describe "A Hash node" do
   end
 
   relates "{ 1 => (2 rescue 3) }" do
-    parse do
-      [:hash, [:lit, 1], [:rescue, [:lit, 2], [:resbody, [:array], [:lit, 3]]]]
-    end
-
     compile do |g|
       g.push_cpath_top
       g.find_const :Hash
@@ -55,10 +47,6 @@ describe "A Hash node" do
   end
 
   relates "{ 1 => [*1] }" do
-    parse do
-      [:hash, [:lit, 1], [:array, [:splat, [:lit, 1]]]]
-    end
-
     compile do |g|
       g.push_cpath_top
       g.find_const :Hash
@@ -78,12 +66,6 @@ describe "A Hash node" do
       a = 1
       { :a => a }
     ruby
-
-    parse do
-      [:block,
-        [:lasgn, :a, [:lit, 1]],
-        [:hash, [:lit, :a], [:lvar, :a]]]
-    end
 
     compile do |g|
       g.push 1

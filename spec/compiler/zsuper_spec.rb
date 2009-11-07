@@ -7,10 +7,6 @@ describe "A Zsuper node" do
       end
     ruby
 
-    parse do
-      [:defn, :x, [:args], [:scope, [:block, [:zsuper]]]]
-    end
-
     compile do |g|
       in_method :x do |d|
         d.push_block
@@ -24,10 +20,6 @@ describe "A Zsuper node" do
         super
       end
     ruby
-
-    parse do
-      [:defn, :x, [:args, :a], [:scope, [:block, [:zsuper]]]]
-    end
 
     compile do |g|
       in_method :x do |d|
@@ -43,10 +35,6 @@ describe "A Zsuper node" do
         super
       end
     ruby
-
-    parse do
-      [:defn, :x, [:args, :"&block"], [:scope, [:block, [:zsuper]]]]
-    end
 
     compile do |g|
       in_method :x do |d|
@@ -77,10 +65,6 @@ describe "A Zsuper node" do
         super
       end
     ruby
-
-    parse do
-      [:defn, :x, [:args, :a, :"*as"], [:scope, [:block, [:zsuper]]]]
-    end
 
     compile do |g|
       in_method :x do |d|

@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "A Call node using FastNew plugin" do
   relates "new" do
-    parse do
-      [:call, nil, :new, [:arglist]]
-    end
-
     compile do |g|
       g.push :self
       g.send :new, 0, true
@@ -35,10 +31,6 @@ describe "A Call node using FastNew plugin" do
   end
 
   relates "new(a)" do
-    parse do
-      [:call, nil, :new, [:arglist, [:call, nil, :a, [:arglist]]]]
-    end
-
     compile do |g|
       g.push :self
       g.push :self
@@ -73,10 +65,6 @@ describe "A Call node using FastNew plugin" do
   end
 
   relates "A.new" do
-    parse do
-      [:call, [:const, :A], :new, [:arglist]]
-    end
-
     compile do |g|
       g.push_const :A
       g.send :new, 0, false
@@ -105,10 +93,6 @@ describe "A Call node using FastNew plugin" do
   end
 
   relates "A.new(a)" do
-    parse do
-      [:call, [:const, :A], :new, [:arglist, [:call, nil, :a, [:arglist]]]]
-    end
-
     compile do |g|
       g.push_const :A
       g.push :self

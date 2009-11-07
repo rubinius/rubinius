@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "An Lasgn node" do
   relates "a = 1" do
-    parse do
-      [:lasgn, :a, [:lit, 1]]
-    end
-
     compile do |g|
       g.push 1
       g.set_local 0
@@ -13,16 +9,6 @@ describe "An Lasgn node" do
   end
 
   relates "a = b, c, *d" do
-    parse do
-      [:lasgn,
-         :a,
-         [:svalue,
-          [:array,
-           [:call, nil, :b, [:arglist]],
-           [:call, nil, :c, [:arglist]],
-           [:splat, [:call, nil, :d, [:arglist]]]]]]
-    end
-
     compile do |g|
       g.push :self
       g.send :b, 0, true
@@ -38,14 +24,6 @@ describe "An Lasgn node" do
   end
 
   relates "a = [b, *c]" do
-    parse do
-      [:lasgn,
-         :a,
-         [:array,
-          [:call, nil, :b, [:arglist]],
-          [:splat, [:call, nil, :c, [:arglist]]]]]
-    end
-
     compile do |g|
       g.push :self
       g.send :b, 0, true
@@ -63,14 +41,6 @@ describe "An Lasgn node" do
            (y + 2))
     ruby
 
-    parse do
-      [:lasgn,
-         :x,
-         [:block,
-          [:lasgn, :y, [:lit, 1]],
-          [:call, [:lvar, :y], :+, [:arglist, [:lit, 2]]]]]
-    end
-
     compile do |g|
       g.push 1
       g.set_local 1
@@ -87,20 +57,10 @@ describe "An Lasgn node" do
       a [42]
     ruby
 
-    parse do
-      [:block,
-       [:lasgn, :a, [:array]],
-       [:call, [:lvar, :a], :[], [:arglist, [:lit, 42]]]]
-    end
-
     # call index space
   end
 
   relates 'var = ["foo", "bar"]' do
-    parse do
-      [:lasgn, :var, [:array, [:str, "foo"], [:str, "bar"]]]
-    end
-
     compile do |g|
       g.push_literal "foo"
       g.string_dup
@@ -112,10 +72,6 @@ describe "An Lasgn node" do
   end
 
   relates "c = (2 + 3)" do
-    parse do
-      [:lasgn, :c, [:call, [:lit, 2], :+, [:arglist, [:lit, 3]]]]
-    end
-
     compile do |g|
       g.push 2
       g.push 3
@@ -125,10 +81,6 @@ describe "An Lasgn node" do
   end
 
   relates "a = *[1]" do
-    parse do
-      [:lasgn, :a, [:svalue, [:splat, [:array, [:lit, 1]]]]]
-    end
-
     compile do |g|
       g.splatted_array
       g.set_local 0
@@ -136,10 +88,6 @@ describe "An Lasgn node" do
   end
 
   relates "a = *b" do
-    parse do
-      [:lasgn, :a, [:svalue, [:splat, [:call, nil, :b, [:arglist]]]]]
-    end
-
     compile do |g|
       t = g.new_label
 
@@ -171,17 +119,6 @@ describe "An Lasgn node" do
       a
     ruby
 
-    parse do
-      [:block,
-       [:lasgn,
-        :a,
-        [:if,
-         [:call, nil, :c, [:arglist]],
-         [:rescue, [:call, nil, :b, [:arglist]], [:resbody, [:array], [:nil]]],
-         nil]],
-       [:lvar, :a]]
-    end
-
     compile do |g|
       bottom = g.new_label
       f      = g.new_label
@@ -212,10 +149,6 @@ describe "An Lasgn node" do
   end
 
   relates "x = [*[1]]" do
-    parse do
-      [:lasgn, :x, [:array, [:splat, [:array, [:lit, 1]]]]]
-    end
-
     compile do |g|
       g.push 1
       g.make_array 1
@@ -224,10 +157,6 @@ describe "An Lasgn node" do
   end
 
   relates "a = []" do
-    parse do
-      [:lasgn, :a, [:array]]
-    end
-
     compile do |g|
       g.make_array 0
       g.set_local 0
@@ -238,10 +167,6 @@ describe "An Lasgn node" do
       a = 12
       a
     ruby
-
-    parse do
-      [:block, [:lasgn, :a, [:lit, 12]], [:lvar, :a]]
-    end
 
     compile do |g|
       g.push 12
@@ -257,19 +182,10 @@ describe "An Lasgn node" do
       name
     ruby
 
-    parse do
-      [:block,
-       [:call, nil, :name, [:arglist]],
-       [:lasgn, :name, [:lit, 3]],
-       [:lvar, :name]]
-    end
+    # TODO
   end
 
   relates "a=12; b=13; true" do
-    parse do
-      [:block, [:lasgn, :a, [:lit, 12]], [:lasgn, :b, [:lit, 13]], [:true]]
-    end
-
     compile do |g|
       g.push 12
       g.set_local 0
@@ -287,10 +203,6 @@ describe "An Lasgn node" do
       end
     ruby
 
-    parse do
-      [:defn, :f, [:args], [:scope, [:block, [:lasgn, :a, [:lit, 1]]]]]
-    end
-
     compile do |g|
       in_method :f do |d|
         d.push 1
@@ -305,10 +217,6 @@ describe "An Lasgn node" do
       end
     ruby
 
-    parse do
-      [:defn, :f, [:args, :a], [:scope, [:block, [:lasgn, :a, [:lit, 1]]]]]
-    end
-
     compile do |g|
       in_method :f do |d|
         d.push 1
@@ -322,15 +230,6 @@ describe "An Lasgn node" do
         b { a = 1 }
       end
     ruby
-
-    parse do
-      [:defn,
-       :f,
-       [:args],
-       [:scope,
-        [:block,
-         [:iter, [:call, nil, :b, [:arglist]], nil, [:lasgn, :a, [:lit, 1]]]]]]
-    end
 
     compile do |g|
       in_method :f do |d|
@@ -350,15 +249,6 @@ describe "An Lasgn node" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :f,
-       [:args, :a],
-       [:scope,
-        [:block,
-         [:iter, [:call, nil, :b, [:arglist]], nil, [:lasgn, :a, [:lit, 2]]]]]]
-    end
-
     compile do |g|
       in_method :f do |d|
         d.push :self
@@ -377,16 +267,6 @@ describe "An Lasgn node" do
         b { a = 2 }
       end
     ruby
-
-    parse do
-      [:defn,
-       :f,
-       [:args],
-       [:scope,
-        [:block,
-         [:lasgn, :a, [:lit, 1]],
-         [:iter, [:call, nil, :b, [:arglist]], nil, [:lasgn, :a, [:lit, 2]]]]]]
-    end
 
     compile do |g|
       in_method :f do |d|
@@ -411,16 +291,6 @@ describe "An Lasgn node" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :f,
-       [:args],
-       [:scope,
-        [:block,
-         [:call, nil, :a, [:arglist]],
-         [:iter, [:call, nil, :b, [:arglist]], nil, [:lasgn, :a, [:lit, 1]]]]]]
-    end
-
     compile do |g|
       in_method :f do |d|
         d.push :self
@@ -443,16 +313,6 @@ describe "An Lasgn node" do
         a
       end
     ruby
-
-    parse do
-      [:defn,
-       :f,
-       [:args],
-       [:scope,
-        [:block,
-         [:iter, [:call, nil, :b, [:arglist]], nil, [:lasgn, :a, [:lit, 1]]],
-         [:call, nil, :a, [:arglist]]]]]
-    end
 
     compile do |g|
       in_method :f do |d|
@@ -477,17 +337,6 @@ describe "An Lasgn node" do
         a
       end
     ruby
-
-    parse do
-      [:defn,
-       :f,
-       [:args],
-       [:scope,
-        [:block,
-         [:lasgn, :a, [:lit, 1]],
-         [:iter, [:call, nil, :b, [:arglist]], nil, [:lasgn, :a, [:lit, 2]]],
-         [:lvar, :a]]]]
-    end
 
     compile do |g|
       in_method :f do |d|
@@ -514,10 +363,6 @@ describe "An Lasgn node" do
       end
     ruby
 
-    parse do
-      [:class, :F, nil, [:scope, [:lasgn, :a, [:lit, 1]]]]
-    end
-
     compile do |g|
       in_class :F do |d|
         d.push 1
@@ -532,12 +377,6 @@ describe "An Lasgn node" do
         b = 1
       end
     ruby
-
-    parse do
-      [:block,
-       [:lasgn, :a, [:const, :Object]],
-       [:class, [:colon2, [:lvar, :a], :F], nil, [:scope, [:lasgn, :b, [:lit, 1]]]]]
-    end
 
     compile do |g|
       g.push_const :Object
@@ -580,12 +419,6 @@ describe "An Lasgn node" do
         b = 1
       end
     ruby
-
-    parse do
-      [:block,
-       [:lasgn, :a, [:const, :Object]],
-       [:class, :F, [:lvar, :a], [:scope, [:lasgn, :b, [:lit, 1]]]]]
-    end
 
     compile do |g|
       g.push_const :Object
@@ -632,16 +465,6 @@ describe "An Lasgn node" do
       end
     ruby
 
-    parse do
-      [:class,
-       :F,
-       nil,
-       [:scope,
-        [:block,
-         [:lasgn, :a, [:lit, 1]],
-         [:defn, :f, [:args], [:scope, [:block, [:lasgn, :a, [:lit, 1]]]]]]]]
-    end
-
     compile do |g|
       in_class :F do |d|
         d.push 1
@@ -662,10 +485,6 @@ describe "An Lasgn node" do
       end
     ruby
 
-    parse do
-      [:module, :M, [:scope, [:lasgn, :a, [:lit, 1]]]]
-    end
-
     compile do |g|
       in_module :M do |d|
         d.push 1
@@ -682,15 +501,6 @@ describe "An Lasgn node" do
         end
       end
     ruby
-
-    parse do
-      [:module,
-       :M,
-       [:scope,
-        [:block,
-         [:lasgn, :a, [:lit, 1]],
-         [:defn, :f, [:args], [:scope, [:block, [:lasgn, :a, [:lit, 1]]]]]]]]
-    end
 
     compile do |g|
       in_module :M do |d|
@@ -712,12 +522,6 @@ describe "An Lasgn node" do
         b = 1
       end
     ruby
-
-    parse do
-      [:block,
-       [:lasgn, :a, [:const, :Object]],
-       [:module, [:colon2, [:lvar, :a], :M], [:scope, [:lasgn, :b, [:lit, 1]]]]]
-    end
 
     compile do |g|
       g.push_const :Object

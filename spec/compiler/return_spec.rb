@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A Return node" do
   relates "return" do
-    parse do
-      [:return]
-    end
-
     compile do |g|
       g.push :nil
       g.ret
@@ -13,10 +9,6 @@ describe "A Return node" do
   end
 
   relates "return 1" do
-    parse do
-      [:return, [:lit, 1]]
-    end
-
     compile do |g|
       g.push 1
       g.ret
@@ -24,10 +16,6 @@ describe "A Return node" do
   end
 
   relates "return *1" do
-    parse do
-      [:return, [:svalue, [:splat, [:lit, 1]]]]
-    end
-
     compile do |g|
       bottom = g.new_label
 
@@ -52,12 +40,6 @@ describe "A Return node" do
       x = 1, 2
       return *x
     ruby
-
-    parse do
-      [:block,
-        [:lasgn, :x, [:svalue, [:array, [:lit, 1], [:lit, 2]]]],
-        [:return, [:svalue, [:splat, [:lvar, :x]]]]]
-    end
 
     compile do |g|
       g.push 1
@@ -86,10 +68,6 @@ describe "A Return node" do
   end
 
   relates "return 1, 2, 3" do
-    parse do
-      [:return, [:array, [:lit, 1], [:lit, 2], [:lit, 3]]]
-    end
-
     compile do |g|
       g.push 1
       g.push 2
@@ -100,12 +78,6 @@ describe "A Return node" do
   end
 
   relates "return 1, 2, *c" do
-    parse do
-      [:return,
-       [:array,
-         [:lit, 1], [:lit, 2], [:splat, [:call, nil, :c, [:arglist]]]]]
-    end
-
     compile do |g|
       g.push 1
       g.push 2
@@ -121,10 +93,6 @@ describe "A Return node" do
   end
 
   relates "return [*[1]]" do
-    parse do
-      [:return, [:array, [:splat, [:array, [:lit, 1]]]]]
-    end
-
     compile do |g|
       g.push 1
       g.make_array 1
@@ -133,10 +101,6 @@ describe "A Return node" do
   end
 
   relates "return *[1]" do
-    parse do
-      [:return, [:svalue, [:splat, [:array, [:lit, 1]]]]]
-    end
-
     compile do |g|
       g.splatted_array
       g.ret

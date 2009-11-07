@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "An Or node" do
   relates "(a or b)" do
-    parse do
-      [:or, [:call, nil, :a, [:arglist]], [:call, nil, :b, [:arglist]]]
-    end
-
     compile do |g|
       g.push :self
       g.send :a, 0, true
@@ -54,30 +50,14 @@ describe "An Or node" do
   end
 
   relates "((a || b) || (c && d))" do
-    parse do
-      [:or,
-       [:or, [:call, nil, :a, [:arglist]], [:call, nil, :b, [:arglist]]],
-       [:and, [:call, nil, :c, [:arglist]], [:call, nil, :d, [:arglist]]]]
-    end
-
     compile(&or_complex)
   end
 
   relates "((a or b) or (c and d))" do
-    parse do
-      [:or,
-       [:or, [:call, nil, :a, [:arglist]], [:call, nil, :b, [:arglist]]],
-       [:and, [:call, nil, :c, [:arglist]], [:call, nil, :d, [:arglist]]]]
-    end
-
     compile(&or_complex)
   end
 
   relates "() or a" do
-    parse do
-      [:or, [:nil], [:call, nil, :a, [:arglist]]]
-    end
-
     compile do |g|
       t = g.new_label
       g.push :nil
@@ -91,10 +71,6 @@ describe "An Or node" do
   end
 
   relates "a or ()" do
-    parse do
-      [:or, [:call, nil, :a, [:arglist]], [:nil]]
-    end
-
     compile do |g|
       t = g.new_label
       g.push :self

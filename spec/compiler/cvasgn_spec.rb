@@ -7,13 +7,6 @@ describe "A Cvasgn node" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :x,
-       [:args],
-       [:scope, [:block, [:cvasgn, :@@blah, [:lit, 1]]]]]
-    end
-
     compile do |g|
       in_method :x do |d|
         d.push_scope
@@ -29,14 +22,6 @@ describe "A Cvasgn node" do
         @@quiet_mode = boolean
       end
     ruby
-
-    parse do
-      [:defs,
-       [:self],
-       :quiet_mode=,
-       [:args, :boolean],
-       [:scope, [:block, [:cvasgn, :@@quiet_mode, [:lvar, :boolean]]]]]
-    end
 
     compile do |g|
       g.push :self

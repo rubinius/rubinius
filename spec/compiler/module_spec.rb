@@ -8,10 +8,6 @@ describe "A Module node" do
       end
     ruby
 
-    parse do
-      [:module, :X, [:scope, [:defn, :y, [:args], [:scope, [:block, [:nil]]]]]]
-    end
-
     compile do |g|
       in_module :X do |d|
         d.in_method :y do |d2|
@@ -26,10 +22,6 @@ describe "A Module node" do
         c
       end
     ruby
-
-    parse do
-      [:module, [:colon3, :Y], [:scope, [:call, nil, :c, [:arglist]]]]
-    end
 
     compile do |g|
       g.push_const :Rubinius
@@ -64,10 +56,6 @@ describe "A Module node" do
       end
     ruby
 
-    parse do
-      [:module, [:colon2, [:const, :X], :Y], [:scope, [:call, nil, :c, [:arglist]]]]
-    end
-
     compile do |g|
       in_module "X::Y" do |d|
         d.push :self
@@ -82,10 +70,6 @@ describe "A Module node" do
       module Graffle
       end
     ruby
-
-    parse do
-      [:module, :Graffle, [:scope]]
-    end
 
     compile do |g|
       g.in_module :Graffle

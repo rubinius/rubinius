@@ -8,19 +8,6 @@ describe "A Call node using PrimitiveDeclaration plugin" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :m,
-       [:args],
-       [:scope,
-        [:block,
-         [:call, [:const, :Ruby], :primitive, [:arglist, [:lit, :prim]]],
-         [:call,
-          nil,
-          :raise,
-          [:arglist, [:const, :PrimitiveFailure], [:str, "failed"]]]]]]
-    end
-
     compile do |g|
       in_method :m do |d|
         d.push_const :Ruby

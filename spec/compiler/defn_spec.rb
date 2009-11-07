@@ -8,10 +8,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn, :m, [:args], [:scope, [:block, [:nil]]]]
-    end
-
     compile do |g|
       in_method :m do |d|
         d.push :nil
@@ -62,21 +58,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :blah,
-       [:args, :"*args", :"&block"],
-       [:scope,
-        [:block,
-         [:call,
-          nil,
-          :other,
-          [:arglist,
-           [:lit, 42],
-           [:splat, [:lvar, :args]],
-           [:block_pass, [:lvar, :block]]]]]]]
-    end
-
     compile do |g|
       in_method :blah do |d|
         no_proc  = d.new_label
@@ -123,20 +104,6 @@ describe "A Defn node" do
         other(*args, &block)
       end
     ruby
-
-    parse do
-      [:defn,
-       :blah,
-       [:args, :"*args", :"&block"],
-       [:scope,
-        [:block,
-         [:call,
-          nil,
-          :other,
-          [:arglist,
-           [:splat, [:lvar, :args]],
-           [:block_pass, [:lvar, :block]]]]]]]
-    end
 
     compile do |g|
       g.in_method :blah do |d|
@@ -190,18 +157,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :f,
-       [:args],
-       [:scope,
-        [:block,
-         [:rescue,
-          [:call, nil, :b, [:arglist]],
-          [:resbody, [:array], [:call, nil, :c, [:arglist]]]],
-         [:call, nil, :d, [:arglist]]]]]
-    end
-
     compile do |g|
       in_method :f do |d|
         d.in_rescue :StandardError do |section|
@@ -232,18 +187,6 @@ describe "A Defn node" do
         end
       end
     ruby
-
-    parse do
-      [:defn,
-       :f,
-       [:args],
-       [:scope,
-        [:block,
-         [:call, nil, :a, [:arglist]],
-         [:rescue,
-          [:call, nil, :b, [:arglist]],
-          [:resbody, [:array], [:call, nil, :c, [:arglist]]]]]]]
-    end
 
     compile do |g|
       in_method :f do |d|
@@ -277,19 +220,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :f,
-       [:args],
-       [:scope,
-        [:block,
-         [:call, nil, :a, [:arglist]],
-         [:rescue,
-          [:call, nil, :b, [:arglist]],
-          [:resbody, [:array], [:call, nil, :c, [:arglist]]]],
-         [:call, nil, :d, [:arglist]]]]]
-    end
-
     compile do |g|
       in_method :f do |d|
         d.push :self
@@ -319,10 +249,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn, :f, [:args, :"&block"], [:scope, [:block, [:nil]]]]
-    end
-
     compile do |g|
       in_method :f do |d|
         d.block_arg 0
@@ -335,13 +261,6 @@ describe "A Defn node" do
       def f(mand, opt = 42, &block)
       end
     ruby
-
-    parse do
-      [:defn,
-       :f,
-       [:args, :mand, :opt, :"&block", [:block, [:lasgn, :opt, [:lit, 42]]]],
-       [:scope, [:block, [:nil]]]]
-    end
 
     compile do |g|
       in_method :f do |d|
@@ -356,13 +275,6 @@ describe "A Defn node" do
       def f(x, a=x.b)
       end
     ruby
-
-    parse do
-      [:defn,
-       :f,
-       [:args, :x, :a, [:block, [:lasgn, :a, [:call, [:lvar, :x], :b, [:arglist]]]]],
-       [:scope, [:block, [:nil]]]]
-    end
 
     compile do |g|
       in_method :f do |d|
@@ -384,10 +296,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn, :f, [:args, :mand, :"&block"], [:scope, [:block, [:nil]]]]
-    end
-
     compile do |g|
       in_method :f do |d|
         d.block_arg 1
@@ -401,13 +309,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :f,
-       [:args, :mand, :opt, [:block, [:lasgn, :opt, [:lit, 42]]]],
-       [:scope, [:block, [:nil]]]]
-    end
-
     compile do |g|
       in_method :f do |d|
         d.optional_arg 1
@@ -420,18 +321,6 @@ describe "A Defn node" do
       def f(mand, opt = 42, *rest, &block)
       end
     ruby
-
-    parse do
-      [:defn,
-       :f,
-       [:args,
-        :mand,
-        :opt,
-        :"*rest",
-        :"&block",
-        [:block, [:lasgn, :opt, [:lit, 42]]]],
-       [:scope, [:block, [:nil]]]]
-    end
 
     compile do |g|
       in_method :f do |d|
@@ -447,13 +336,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :x,
-       [:args, :a, :b, :*, [:block, [:lasgn, :b, [:lit, 42]]]],
-       [:scope, [:block, [:nil]]]]
-    end
-
     compile do |g|
       in_method :x do |d|
         d.optional_arg 1
@@ -466,13 +348,6 @@ describe "A Defn node" do
       def f(mand, opt = 42, *rest)
       end
     ruby
-
-    parse do
-      [:defn,
-       :f,
-       [:args, :mand, :opt, :"*rest", [:block, [:lasgn, :opt, [:lit, 42]]]],
-       [:scope, [:block, [:nil]]]]
-    end
 
     compile do |g|
       in_method :f do |d|
@@ -487,10 +362,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn, :empty, [:args], [:scope, [:block, [:nil]]]]
-    end
-
     compile do |g|
       in_method :empty do |d|
         d.push :nil
@@ -503,10 +374,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn, :f, [:args, :mand], [:scope, [:block, [:nil]]]]
-    end
-
     compile do |g|
       in_method :f do |d|
         d.push :nil
@@ -518,10 +385,6 @@ describe "A Defn node" do
       def f(mand, *rest, &block)
       end
     ruby
-
-    parse do
-      [:defn, :f, [:args, :mand, :"*rest", :"&block"], [:scope, [:block, [:nil]]]]
-    end
 
     compile do |g|
       in_method :f do |d|
@@ -536,13 +399,6 @@ describe "A Defn node" do
         p(a, args)
       end
     ruby
-
-    parse do
-      [:defn,
-       :x,
-       [:args, :a, :"*args"],
-       [:scope, [:block, [:call, nil, :p, [:arglist, [:lvar, :a], [:lvar, :args]]]]]]
-    end
 
     compile do |g|
       in_method :x do |d|
@@ -559,10 +415,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn, :f, [:args, :mand, :"*rest"], [:scope, [:block, [:nil]]]]
-    end
-
     compile do |g|
       in_method :f do |d|
         d.push :nil
@@ -574,13 +426,6 @@ describe "A Defn node" do
       def f(opt = 42, &block)
       end
     ruby
-
-    parse do
-      [:defn,
-       :f,
-       [:args, :opt, :"&block", [:block, [:lasgn, :opt, [:lit, 42]]]],
-       [:scope, [:block, [:nil]]]]
-    end
 
     compile do |g|
       in_method :f do |d|
@@ -596,22 +441,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :f,
-       [:args,
-        :a,
-        :b,
-        :c,
-        [:block,
-         [:lasgn, :a, [:lit, 42]],
-         [:lasgn, :b, [:str, "1"]],
-         [:lasgn,
-          :c,
-          [:iter, [:call, nil, :lambda, [:arglist]], [:lasgn, :n], [:lvar, :n]]]]],
-       [:scope, [:block, [:nil]]]]
-    end
-
     # defn args opt lambda
   end
 
@@ -619,13 +448,6 @@ describe "A Defn node" do
       def f(opt = 42)
       end
     ruby
-
-    parse do
-      [:defn,
-       :f,
-       [:args, :opt, [:block, [:lasgn, :opt, [:lit, 42]]]],
-       [:scope, [:block, [:nil]]]]
-    end
 
     compile do |g|
       in_method :f do |d|
@@ -639,13 +461,6 @@ describe "A Defn node" do
       def f(opt = 42, *rest, &block)
       end
     ruby
-
-    parse do
-      [:defn,
-       :f,
-       [:args, :opt, :"*rest", :"&block", [:block, [:lasgn, :opt, [:lit, 42]]]],
-       [:scope, [:block, [:nil]]]]
-    end
 
     compile do |g|
       in_method :f do |d|
@@ -661,13 +476,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :x,
-       [:args, :b, :*, [:block, [:lasgn, :b, [:lit, 42]]]],
-       [:scope, [:block, [:nil]]]]
-    end
-
     compile do |g|
       in_method :x do |d|
         d.optional_arg 0
@@ -681,13 +489,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :f,
-       [:args, :opt, :"*rest", [:block, [:lasgn, :opt, [:lit, 42]]]],
-       [:scope, [:block, [:nil]]]]
-    end
-
     compile do |g|
       in_method :f do |d|
         d.optional_arg 0
@@ -700,10 +501,6 @@ describe "A Defn node" do
       def |(o)
       end
     ruby
-
-    parse do
-      [:defn, :|, [:args, :o], [:scope, [:block, [:nil]]]]
-    end
 
     compile do |g|
       in_method :"|" do |d|
@@ -719,20 +516,6 @@ describe "A Defn node" do
         false
       end
     ruby
-
-    parse do
-      [:defn,
-       :eql?,
-       [:args, :resource],
-       [:scope,
-        [:block,
-         [:rescue,
-          [:call,
-           [:call, [:self], :uuid, [:arglist]],
-           :==,
-           [:arglist, [:call, [:lvar, :resource], :uuid, [:arglist]]]],
-          [:resbody, [:array], [:false]]]]]]
-    end
 
     compile do |g|
       in_method :eql? do |d|
@@ -757,10 +540,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn, :something?, [:args], [:scope, [:block, [:nil]]]]
-    end
-
     compile do |g|
       in_method :something? do |d|
         d.push :nil
@@ -772,10 +551,6 @@ describe "A Defn node" do
       def x(*)
       end
     ruby
-
-    parse do
-      [:defn, :x, [:args, :*], [:scope, [:block, [:nil]]]]
-    end
 
     compile do |g|
       in_method :x do |d|
@@ -789,10 +564,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn, :f, [:args, :"*rest"], [:scope, [:block, [:nil]]]]
-    end
-
     compile do |g|
       in_method :f do |d|
         d.push :nil
@@ -805,13 +576,6 @@ describe "A Defn node" do
         p(a)
       end
     ruby
-
-    parse do
-      [:defn,
-       :x,
-       [:args, :a, :*],
-       [:scope, [:block, [:call, nil, :p, [:arglist, [:lvar, :a]]]]]]
-    end
 
     compile do |g|
       in_method :x do |d|
@@ -828,13 +592,6 @@ describe "A Defn node" do
         return a
       end
     ruby
-
-    parse do
-      [:defn,
-       :zarray,
-       [:args],
-       [:scope, [:block, [:lasgn, :a, [:array]], [:return, [:lvar, :a]]]]]
-    end
 
     compile do |g|
       in_method :zarray do |d|
@@ -863,24 +620,6 @@ describe "A Defn node" do
         end
       end
     ruby
-
-    parse do
-      [:block,
-       [:lasgn, :b, [:lit, 42]],
-       [:defn,
-        :a,
-        [:args],
-        [:scope,
-         [:block,
-          [:iter,
-           [:call, nil, :c, [:arglist]],
-           nil,
-           [:rescue,
-            [:call, nil, :do_stuff, [:arglist]],
-            [:resbody,
-             [:array, [:const, :RuntimeError], [:lasgn, :b, [:gvar, :$!]]],
-             [:call, nil, :puts, [:arglist, [:lvar, :b]]]]]]]]]]
-    end
 
     compile do |g|
       g.push 42
@@ -916,16 +655,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :x,
-       [:args,
-        :a,
-        :b,
-        [:block, [:lasgn, :a, [:lit, 0.0]], [:lasgn, :b, [:lit, 0.0]]]],
-       [:scope, [:block, [:call, [:lvar, :a], :+, [:arglist, [:lvar, :b]]]]]]
-    end
-
     compile do |g|
       in_method :x do |d|
         opt_arg_1 = d.new_label
@@ -960,13 +689,6 @@ describe "A Defn node" do
       end
     ruby
 
-    parse do
-      [:defn,
-       :x,
-       [:args, :"*b"],
-       [:scope, [:block, [:call, nil, :a, [:arglist, [:splat, [:lvar, :b]]]]]]]
-    end
-
     compile do |g|
       in_method :x do |d|
         d.push :self
@@ -983,10 +705,6 @@ describe "A Defn node" do
         b
       end
     ruby
-
-    parse do
-      [:defn, :meth, [:args, :b], [:scope, [:block, [:lvar, :b]]]]
-    end
 
     compile do |g|
       in_method :meth do |d|

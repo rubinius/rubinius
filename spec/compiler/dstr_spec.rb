@@ -5,10 +5,6 @@ describe "A Dstr node" do
       "hello \#{}"
     ruby
 
-    parse do
-      [:dstr, "hello ", [:str, ""]]
-    end
-
     compile do |g|
       g.push_literal ""
       g.string_dup
@@ -22,12 +18,6 @@ describe "A Dstr node" do
       argl = 1
       "x\#{argl}y"
     ruby
-
-    parse do
-      [:block,
-       [:lasgn, :argl, [:lit, 1]],
-       [:dstr, "x", [:evstr, [:lvar, :argl]], [:str, "y"]]]
-    end
 
     compile do |g|
       g.push 1
@@ -53,15 +43,6 @@ describe "A Dstr node" do
       argl = 1
       "x\#{("%.2f" % 3.14159)}y"
     ruby
-
-    parse do
-      [:block,
-       [:lasgn, :argl, [:lit, 1]],
-       [:dstr,
-        "x",
-        [:evstr, [:call, [:str, "%.2f"], :%, [:arglist, [:lit, 3.14159]]]],
-        [:str, "y"]]]
-    end
 
     compile do |g|
       g.push 1
@@ -91,20 +72,6 @@ describe "A Dstr node" do
       argl = 1
       "x\#{("%.\#{max}f" % 3.14159)}y"
     ruby
-
-    parse do
-      [:block,
-       [:lasgn, :max, [:lit, 2]],
-       [:lasgn, :argl, [:lit, 1]],
-       [:dstr,
-        "x",
-        [:evstr,
-         [:call,
-          [:dstr, "%.", [:evstr, [:lvar, :max]], [:str, "f"]],
-          :%,
-          [:arglist, [:lit, 3.14159]]]],
-        [:str, "y"]]]
-    end
 
     compile do |g|
       g.push 2
@@ -144,17 +111,6 @@ describe "A Dstr node" do
   end
 
   relates '"#{22}aa" "cd#{44}" "55" "#{66}"' do
-    parse do
-      [:dstr,
-       "",
-       [:evstr, [:lit, 22]],
-       [:str, "aa"],
-       [:str, "cd"],
-       [:evstr, [:lit, 44]],
-       [:str, "55"],
-       [:evstr, [:lit, 66]]]
-    end
-
     compile do |g|
       g.push 66             # 1
       g.send :to_s, 0, true
@@ -184,17 +140,6 @@ describe "A Dstr node" do
   end
 
   relates '"a #$global b #@ivar c #@@cvar d"' do
-    parse do
-      [:dstr,
-       "a ",
-       [:evstr, [:gvar, :$global]],
-       [:str, " b "],
-       [:evstr, [:ivar, :@ivar]],
-       [:str, " c "],
-       [:evstr, [:cvar, :@@cvar]],
-       [:str, " d"]]
-    end
-
     compile do |g|
       g.push_literal " d"           # 1
       g.string_dup
@@ -235,13 +180,6 @@ describe "A Dstr node" do
 EOM
     ruby
 
-    parse do
-      [:dstr,
-       "  blah\n",
-       [:evstr, [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]]],
-       [:str, "blah\n"]]
-    end
-
     compile do |g|
       g.push_literal "blah\n"   # 1
       g.string_dup
@@ -265,13 +203,6 @@ EOM
 def test_\#{action}_valid_feed
 EOF
     ruby
-
-    parse do
-      [:dstr,
-       "def test_",
-       [:evstr, [:call, nil, :action, [:arglist]]],
-       [:str, "_valid_feed\n"]]
-    end
 
     compile do |g|
       g.push_literal "_valid_feed\n" # 1
@@ -297,15 +228,6 @@ s1 '\#{RUBY_PLATFORM}' s2
 EOF
     ruby
 
-    parse do
-      [:dstr,
-       "s1 '",
-       [:evstr, [:const, :RUBY_PLATFORM]],
-       [:str, "' s2\n"],
-       [:evstr, [:file]],
-       [:str, "\n"]]
-    end
-
     compile do |g|
       g.push_literal "\n"         # 1
       g.string_dup
@@ -330,13 +252,6 @@ EOF
   end
 
   relates "%Q[before [\#{nest}] after]" do
-    parse do
-      [:dstr,
-       "before [",
-       [:evstr, [:call, nil, :nest, [:arglist]]],
-       [:str, "] after"]]
-    end
-
     compile do |g|
       g.push_literal "] after"  # 1
       g.string_dup
@@ -355,19 +270,6 @@ EOF
   end
 
   relates '"#{"blah"}#{__FILE__}:#{__LINE__}: warning: #{$!.message} (#{$!.class})"' do
-    parse do
-      [:dstr,
-       "blah",
-       [:evstr, [:file]],
-       [:str, ":"],
-       [:evstr, [:lit, 1]],
-       [:str, ": warning: "],
-       [:evstr, [:call, [:gvar, :$!], :message, [:arglist]]],
-       [:str, " ("],
-       [:evstr, [:call, [:gvar, :$!], :class, [:arglist]]],
-       [:str, ")"]]
-    end
-
     compile do |g|
       g.push_literal ")"           # 1
       g.string_dup
@@ -404,19 +306,6 @@ EOF
   end
 
   relates '"before #{from} middle #{to} (#{__FILE__}:#{__LINE__})"' do
-    parse do
-      [:dstr,
-       "before ",
-       [:evstr, [:call, nil, :from, [:arglist]]],
-       [:str, " middle "],
-       [:evstr, [:call, nil, :to, [:arglist]]],
-       [:str, " ("],
-       [:evstr, [:file]],
-       [:str, ":"],
-       [:evstr, [:lit, 1]],
-       [:str, ")"]]
-    end
-
     compile do |g|
       g.push_literal ")"        # 1
       g.string_dup

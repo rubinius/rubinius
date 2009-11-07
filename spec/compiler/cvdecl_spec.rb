@@ -7,10 +7,6 @@ describe "A Cvdecl node" do
       end
     ruby
 
-    parse do
-      [:class, :X, nil, [:scope, [:cvdecl, :@@blah, [:lit, 1]]]]
-    end
-
     compile do |g|
       in_class :X do |d|
         d.push :self

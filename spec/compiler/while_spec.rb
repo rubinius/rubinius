@@ -44,10 +44,6 @@ describe "A While node" do
       end
     ruby
 
-    parse do
-      pre_while_sexp
-    end
-
     compile(&pre_while)
   end
 
@@ -57,12 +53,6 @@ describe "A While node" do
         1
       end
     ruby
-
-    parse do
-      [:block,
-       [:lasgn, :a, [:call, nil, :x, [:arglist]]],
-       [:while, [:call, [:lvar, :a], :b, [:arglist]], [:lit, 1], true]]
-    end
 
     compile do |g|
       top    = g.new_label
@@ -98,10 +88,6 @@ describe "A While node" do
   end
 
   relates "b + 1 while a" do
-    parse do
-      pre_while_sexp
-    end
-
     compile(&pre_while)
   end
 
@@ -111,18 +97,10 @@ describe "A While node" do
       end
     ruby
 
-    parse do
-      pre_while_sexp
-    end
-
     compile(&pre_while)
   end
 
   relates "b + 1 until not a" do
-    parse do
-      pre_while_sexp
-    end
-
     compile(&pre_while)
   end
 
@@ -171,10 +149,6 @@ describe "A While node" do
       end while a
     ruby
 
-    parse do
-      post_while_sexp
-    end
-
     compile(&post_while)
   end
 
@@ -183,10 +157,6 @@ describe "A While node" do
         b + 1
       end until not a
     ruby
-
-    parse do
-      post_while_sexp
-    end
 
     compile(&post_while)
   end
@@ -221,10 +191,6 @@ describe "A While node" do
   end
 
   relates "a while ()" do
-    parse do
-      nil_condition_sexp
-    end
-
     compile(&nil_condition)
   end
 
@@ -234,19 +200,10 @@ describe "A While node" do
       end
     ruby
 
-    parse do
-      nil_condition_sexp
-    end
-
     compile(&nil_condition)
   end
 
   relates "a until not ()" do
-
-    parse do
-      nil_condition_sexp
-    end
-
     compile(&nil_condition)
   end
 
@@ -255,10 +212,6 @@ describe "A While node" do
         a
       end
     ruby
-
-    parse do
-      nil_condition_sexp
-    end
 
     compile(&nil_condition)
   end

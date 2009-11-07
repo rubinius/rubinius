@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A Not node" do
   relates "(not true)" do
-    parse do
-      [:not, [:true]]
-    end
-
     compile do |g|
       f = g.new_label
       t = g.new_label
@@ -27,10 +23,6 @@ describe "A Not node" do
       a = 1
       b = !a
     ruby
-
-    parse do
-      [:block, [:lasgn, :a, [:lit, 1]], [:lasgn, :b, [:not, [:lvar, :a]]]]
-    end
 
     compile do |g|
       invert = g.new_label

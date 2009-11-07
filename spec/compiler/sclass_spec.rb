@@ -7,10 +7,6 @@ describe "An Sclass node" do
       end
     ruby
 
-    parse do
-      [:sclass, [:self], [:scope, [:lit, 42]]]
-    end
-
     compile do |g|
       g.push :self
       g.dup
@@ -50,16 +46,6 @@ describe "An Sclass node" do
         end
       end
     ruby
-
-    parse do
-      [:class,
-       :A,
-       nil,
-       [:scope,
-        [:block,
-         [:sclass, [:self], [:scope, [:call, nil, :a, [:arglist]]]],
-         [:class, :B, nil, [:scope]]]]]
-    end
 
     compile do |g|
       in_class :A do |d|
@@ -104,12 +90,6 @@ describe "An Sclass node" do
       class << x
       end
     ruby
-
-    parse do
-      [:block,
-        [:lasgn, :x, [:str, "a"]],
-        [:sclass, [:lvar, :x], [:scope]]]
-    end
 
     compile do |g|
       g.push_literal "a"

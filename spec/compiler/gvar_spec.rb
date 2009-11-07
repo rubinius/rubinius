@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A Gvar node" do
   relates "$x" do
-    parse do
-      [:gvar, :$x]
-    end
-
     compile do |g|
       g.push_const :Rubinius
       g.find_const :Globals
@@ -15,10 +11,6 @@ describe "A Gvar node" do
   end
 
   relates "$stderr" do
-    parse do
-      [:gvar, :$stderr]
-    end
-
     compile do |g|
       g.push_const :Rubinius
       g.find_const :Globals
@@ -28,10 +20,6 @@ describe "A Gvar node" do
   end
 
   relates "$__blah" do
-    parse do
-      [:gvar, :$__blah]
-    end
-
     compile do |g|
       g.push_const :Rubinius
       g.find_const :Globals
@@ -41,10 +29,6 @@ describe "A Gvar node" do
   end
 
   relates "$_" do
-    parse do
-      [:gvar, :$_]
-    end
-
     compile do |g|
       g.push_const :Rubinius
       g.find_const :Globals

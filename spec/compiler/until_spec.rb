@@ -44,18 +44,10 @@ describe "An Until node" do
       end
     ruby
 
-    parse do
-      pre_until_sexp
-    end
-
     compile(&pre_until)
   end
 
   relates "b + 1 while not a" do
-    parse do
-      pre_until_sexp
-    end
-
     compile(&pre_until)
   end
 
@@ -65,18 +57,10 @@ describe "An Until node" do
       end
     ruby
 
-    parse do
-      pre_until_sexp
-    end
-
     compile(&pre_until)
   end
 
   relates "b + 1 until a" do
-    parse do
-      pre_until_sexp
-    end
-
     compile(&pre_until)
   end
 
@@ -126,10 +110,6 @@ describe "An Until node" do
       end while not a
     ruby
 
-    parse do
-      post_until_sexp
-    end
-
     compile(&post_until)
   end
 
@@ -138,10 +118,6 @@ describe "An Until node" do
         b + 1
       end until a
     ruby
-
-    parse do
-      post_until_sexp
-    end
 
     compile(&post_until)
   end
@@ -176,10 +152,6 @@ describe "An Until node" do
   end
 
   relates "a until ()" do
-    parse do
-      nil_condition_sexp
-    end
-
     compile(&nil_condition)
   end
 
@@ -189,18 +161,10 @@ describe "An Until node" do
       end
     ruby
 
-    parse do
-      nil_condition_sexp
-    end
-
     compile(&nil_condition)
   end
 
   relates "a while not ()" do
-    parse do
-      nil_condition_sexp
-    end
-
     compile(&nil_condition)
   end
 
@@ -209,10 +173,6 @@ describe "An Until node" do
         a
       end
     ruby
-
-    parse do
-      nil_condition_sexp
-    end
 
     compile(&nil_condition)
   end

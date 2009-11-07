@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A Match2 node" do
   relates '/x/ =~ "blah"' do
-    parse do
-      [:match2, [:regex, "x", 0], [:str, "blah"]]
-    end
-
     compile do |g|
       g.memoize do
         g.push_const :Regexp
@@ -24,12 +20,6 @@ describe "A Match2 node" do
       x = "x"
       /\#{x}/ =~ x
     ruby
-
-    parse do
-      [:block,
-       [:lasgn, :x, [:str, "x"]],
-       [:match2, [:dregx, "", [:evstr, [:lvar, :x]]], [:lvar, :x]]]
-    end
 
     compile do |g|
       g.push_literal "x"

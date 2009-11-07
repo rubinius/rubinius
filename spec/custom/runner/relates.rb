@@ -65,11 +65,6 @@ class SpecDataRelation
     end
   end
 
-  # TODO: remove; just prevents parser specs from failing
-  # until they are removed
-  def parse(&block)
-  end
-
   # Creates spec example blocks if the compile process is enabled.
   def compile(*plugins, &block)
     return unless self.class.enabled? :compiler

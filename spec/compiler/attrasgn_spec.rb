@@ -6,12 +6,6 @@ describe "An Attrasgn node" do
       42.method = y
     ruby
 
-    parse do
-      [:block,
-       [:lasgn, :y, [:lit, 0]],
-       [:attrasgn, [:lit, 42], :method=, [:arglist, [:lvar, :y]]]]
-    end
-
     compile do |g|
       g.push 0
       g.set_local 0
@@ -26,26 +20,10 @@ describe "An Attrasgn node" do
   end
 
   relates "a.m = *[1]" do
-    parse do
-      [:attrasgn,
-       [:call, nil, :a, [:arglist]],
-       :m=,
-       [:arglist, [:svalue, [:splat, [:array, [:lit, 1]]]]]]
-    end
-
     # attrasgn_splat
   end
 
   relates "a[*b] = c" do
-    parse do
-      [:attrasgn,
-       [:call, nil, :a, [:arglist]],
-       :[]=,
-       [:arglist,
-        [:splat, [:call, nil, :b, [:arglist]]],
-        [:call, nil, :c, [:arglist]]]]
-    end
-
     compile do |g|
       g.push :self
       g.send :a, 0, true
@@ -64,17 +42,6 @@ describe "An Attrasgn node" do
   end
 
   relates "a[b, *c] = d" do
-    parse do
-      [:attrasgn,
-       [:call, nil, :a, [:arglist]],
-       :[]=,
-       [:arglist,
-        [:array,
-         [:call, nil, :b, [:arglist]],
-         [:splat, [:call, nil, :c, [:arglist]]]],
-        [:call, nil, :d, [:arglist]]]]
-    end
-
     compile do |g|
       g.push :self
       g.send :a, 0, true
@@ -95,17 +62,6 @@ describe "An Attrasgn node" do
   end
 
   relates "a[b, *c] = *d" do
-    parse do
-      [:attrasgn,
-       [:call, nil, :a, [:arglist]],
-       :[]=,
-       [:arglist,
-        [:array,
-         [:call, nil, :b, [:arglist]],
-         [:splat, [:call, nil, :c, [:arglist]]]],
-        [:svalue, [:splat, [:call, nil, :d, [:arglist]]]]]]
-    end
-
     compile do |g|
       g.push :self
       g.send :a, 0, true
@@ -138,18 +94,6 @@ describe "An Attrasgn node" do
   end
 
   relates "a[b, *c] = d, e" do
-    parse do
-      [:attrasgn,
-       [:call, nil, :a, [:arglist]],
-       :[]=,
-       [:arglist,
-        [:array,
-         [:call, nil, :b, [:arglist]],
-         [:splat, [:call, nil, :c, [:arglist]]]],
-        [:svalue,
-         [:array, [:call, nil, :d, [:arglist]], [:call, nil, :e, [:arglist]]]]]]
-    end
-
     compile do |g|
       g.push :self
       g.send :a, 0, true
@@ -173,13 +117,6 @@ describe "An Attrasgn node" do
   end
 
   relates "a[42] = 24" do
-    parse do
-      [:attrasgn,
-       [:call, nil, :a, [:arglist]],
-       :[]=,
-       [:arglist, [:lit, 42], [:lit, 24]]]
-    end
-
     compile do |g|
       g.push :self
       g.send :a, 0, true
@@ -193,16 +130,6 @@ describe "An Attrasgn node" do
   end
 
   relates "self[index, 0] = other_string" do
-    parse do
-      [:attrasgn,
-       [:self],
-       :[]=,
-       [:arglist,
-        [:call, nil, :index, [:arglist]],
-        [:lit, 0],
-        [:call, nil, :other_string, [:arglist]]]]
-    end
-
     compile do |g|
       g.push :self
       g.push :self
@@ -221,12 +148,6 @@ describe "An Attrasgn node" do
       a = []
       a [42] = 24
     ruby
-
-    parse do
-      [:block,
-       [:lasgn, :a, [:array]],
-       [:attrasgn, [:lvar, :a], :[]=, [:arglist, [:lit, 42], [:lit, 24]]]]
-    end
 
     compile do |g|
       g.make_array 0

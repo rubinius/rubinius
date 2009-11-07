@@ -6,10 +6,6 @@ describe "A Dxstr node" do
       `touch \#{t}`
     ruby
 
-    parse do
-      [:block, [:lasgn, :t, [:lit, 5]], [:dxstr, "touch ", [:evstr, [:lvar, :t]]]]
-    end
-
     compile do |g|
       g.push 5
       g.set_local 0

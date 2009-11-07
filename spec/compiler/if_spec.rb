@@ -9,10 +9,6 @@ describe "An If node" do
       end
     ruby
 
-    parse do
-      [:if, [:true], [:lit, 10], [:lit, 12]]
-    end
-
     compile do |g|
       g.push :true
       els = g.new_label
@@ -27,10 +23,6 @@ describe "An If node" do
   end
 
   relates "if b then a end" do
-    parse do
-      [:if, [:call, nil, :b, [:arglist]], [:call, nil, :a, [:arglist]], nil]
-    end
-
     compile do |g|
       nope = g.new_label
       done = g.new_label
@@ -56,15 +48,6 @@ describe "An If node" do
         nil
       end
     ruby
-
-    parse do
-      [:if,
-       [:block,
-        [:lasgn, :x, [:lit, 5]],
-        [:call, [:lvar, :x], :+, [:arglist, [:lit, 1]]]],
-       [:nil],
-       nil]
-    end
 
     compile do |g|
       f      = g.new_label
@@ -95,13 +78,6 @@ describe "An If node" do
       end
     ruby
 
-    parse do
-      [:if,
-       [:lasgn, :x, [:call, [:call, nil, :obj, [:arglist]], :x, [:arglist]]],
-       [:call, [:lvar, :x], :do_it, [:arglist]],
-       nil]
-    end
-
     compile do |g|
       f      = g.new_label
       bottom = g.new_label
@@ -125,10 +101,6 @@ describe "An If node" do
   end
 
   relates "return if false unless true" do
-    parse do
-      [:if, [:true], nil, [:if, [:false], [:return], nil]]
-    end
-
     compile do |g|
       else1 = g.new_label
       else2 = g.new_label
@@ -156,10 +128,6 @@ describe "An If node" do
   end
 
   relates "a if not b" do
-    parse do
-      [:if, [:call, nil, :b, [:arglist]], nil, [:call, nil, :a, [:arglist]]]
-    end
-
     compile do |g|
       else_label = g.new_label
       done = g.new_label
@@ -179,10 +147,6 @@ describe "An If node" do
   end
 
   relates "a if b" do
-    parse do
-      [:if, [:call, nil, :b, [:arglist]], [:call, nil, :a, [:arglist]], nil]
-    end
-
     compile do |g|
       nope = g.new_label
       done = g.new_label
@@ -203,10 +167,6 @@ describe "An If node" do
   end
 
   relates "if not b then a end" do
-    parse do
-      [:if, [:call, nil, :b, [:arglist]], nil, [:call, nil, :a, [:arglist]]]
-    end
-
     compile do |g|
       else_label = g.new_label
       done = g.new_label
@@ -226,10 +186,6 @@ describe "An If node" do
   end
 
   relates "if b then a end" do
-    parse do
-      [:if, [:call, nil, :b, [:arglist]], [:call, nil, :a, [:arglist]], nil]
-    end
-
     compile do |g|
       nope = g.new_label
       done = g.new_label
@@ -269,42 +225,22 @@ describe "An If node" do
   end
 
   relates "a if ()" do
-    parse do
-      nil_condition_sexp
-    end
-
     compile(&nil_condition)
   end
 
   relates "if () then a end" do
-    parse do
-      nil_condition_sexp
-    end
-
     compile(&nil_condition)
   end
 
   relates "a unless not ()" do
-    parse do
-      nil_condition_sexp
-    end
-
     compile(&nil_condition)
   end
 
   relates "unless not () then a end" do
-    parse do
-      nil_condition_sexp
-    end
-
     compile(&nil_condition)
   end
 
   relates "a unless not b" do
-    parse do
-      [:if, [:call, nil, :b, [:arglist]], [:call, nil, :a, [:arglist]], nil]
-    end
-
     compile do |g|
       nope = g.new_label
       done = g.new_label
@@ -325,10 +261,6 @@ describe "An If node" do
   end
 
   relates "a unless b" do
-    parse do
-      [:if, [:call, nil, :b, [:arglist]], nil, [:call, nil, :a, [:arglist]]]
-    end
-
     compile do |g|
       else_label = g.new_label
       done = g.new_label
@@ -348,10 +280,6 @@ describe "An If node" do
   end
 
   relates "unless not b then a end" do
-    parse do
-      [:if, [:call, nil, :b, [:arglist]], [:call, nil, :a, [:arglist]], nil]
-    end
-
     compile do |g|
       nope = g.new_label
       done = g.new_label
@@ -372,10 +300,6 @@ describe "An If node" do
   end
 
   relates "unless b then a end" do
-    parse do
-      [:if, [:call, nil, :b, [:arglist]], nil, [:call, nil, :a, [:arglist]]]
-    end
-
     compile do |g|
       else_label = g.new_label
       done = g.new_label

@@ -2,10 +2,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A Str node" do
   relates '"x"' do
-    parse do
-      [:str, "x"]
-    end
-
     compile do |g|
       g.push_literal "x"
       g.string_dup
@@ -22,28 +18,16 @@ describe "A Str node" do
       " after"
     ruby
 
-    parse do
-      [:str, "before after"]
-    end
-
     compile(&str_concat)
   end
 
   relates '"before" " after"' do
-    parse do
-      [:str, "before after"]
-    end
-
     compile(&str_concat)
   end
 
   relates <<-ruby do
       "file = \#{__FILE__}\n"
     ruby
-
-    parse do
-      [:dstr, "file = ", [:evstr, [:file]], [:str, "\n"]]
-    end
 
     compile do |g|
       g.push_literal "\n"
@@ -65,10 +49,6 @@ blah
 EOM
     ruby
 
-    parse do
-      [:call, [:str, "  blah\nblah\n"], :strip, [:arglist]]
-    end
-
     compile do |g|
       g.push_literal "  blah\nblah\n"
       g.string_dup
@@ -83,19 +63,6 @@ H1
   second
 H2
     ruby
-
-    parse do
-      [:lasgn,
-       :a,
-       [:call,
-        [:lvar, :a],
-        :+,
-        [:arglist,
-         [:call,
-          [:call, [:str, "  first\n"], :+, [:arglist, [:call, nil, :b, [:arglist]]]],
-          :+,
-          [:arglist, [:str, "  second\n"]]]]]]
-    end
 
     compile do |g|
       g.push_local 0
@@ -125,10 +92,6 @@ blah
   EOM
     ruby
 
-    parse do
-      [:str, "  blah\nblah\n\n"]
-    end
-
     compile do |g|
       g.push_literal "  blah\nblah\n\n"
       g.string_dup
@@ -142,10 +105,6 @@ blah
 EOM
     ruby
 
-    parse do
-      [:str, "  blah\nblah\n"]
-    end
-
     compile do |g|
       g.push_literal "  blah\nblah\n"
       g.string_dup
@@ -153,10 +112,6 @@ EOM
   end
 
   relates "%(blah)" do
-    parse do
-      [:str, "blah"]
-    end
-
     compile do |g|
       g.push_literal "blah"
       g.string_dup
