@@ -60,7 +60,6 @@ namespace rubinius {
     , thread(this, (Thread*)Qnil)
     , current_mark(NULL)
     , reuse_llvm(true)
-    , use_safe_position(false)
   {
     probe.set(Qnil, &globals.roots);
   }
@@ -341,27 +340,6 @@ namespace rubinius {
 
   void VM::print_backtrace() {
     abort();
-  }
-
-  void VM::raise_exception_safely(Exception* exc) {
-    abort();
-    safe_position_data.exc = exc;
-    siglongjmp(safe_position, cReasonException);
-    // Never reached.
-  }
-
-  void VM::raise_typeerror_safely(TypeError* err) {
-    abort();
-    safe_position_data.type_error = err;
-    siglongjmp(safe_position, cReasonTypeError);
-    // Never reached.
-  }
-
-  void VM::raise_assertion_safely(Assertion* err) {
-    abort();
-    safe_position_data.assertion = err;
-    siglongjmp(safe_position, cReasonAssertion);
-    // Never reached.
   }
 
   // Trampoline to call scheduler_loop()

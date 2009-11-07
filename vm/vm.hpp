@@ -118,25 +118,6 @@ namespace rubinius {
     // The thread used to trigger preemptive thread switching
     pthread_t preemption_thread;
 
-    // The safe position on the stack used to handle rare
-    // events.
-    sigjmp_buf safe_position;
-
-    // Indicates if safe_position should be used, or if the error
-    // should be thrown as a C++ exception.
-    bool use_safe_position;
-
-    // Data used with safe_position.
-    union {
-      Exception* exc;
-      TypeError* type_error;
-      Assertion* assertion;
-    } safe_position_data;
-
-    static const int cReasonException = 1;
-    static const int cReasonTypeError = 2;
-    static const int cReasonAssertion = 3;
-
     static int cStackDepthMax;
 
   public: /* Inline methods */
@@ -228,10 +209,6 @@ namespace rubinius {
     void initialize_builtin_classes();
     void initialize_platform_data();
     void boot_threads();
-
-    void raise_exception_safely(Exception* exc);
-    void raise_typeerror_safely(TypeError* exc);
-    void raise_assertion_safely(Assertion* exc);
 
     void raise_stack_error(CallFrame* call_frame);
     void init_stack_size();
