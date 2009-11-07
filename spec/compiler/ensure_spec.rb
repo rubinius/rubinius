@@ -121,25 +121,32 @@ describe "An Ensure node" do
     ruby
 
     compile do |g|
-      ok = g.new_label
-      g.exceptions(:ensure) do |ex|
-        g.push 14
-        g.pop
-        g.push 2
-        g.ensure_return
-        ex.escape ok
+      top = g.new_label
+      exc_lbl = g.new_label
+      noexc_lbl = g.new_label
 
-        ex.handle!
-        g.push_exception
+      g.setup_unwind exc_lbl
 
-        g.push 13
-        g.pop
+      top.set!
 
-        g.pop_exception
-        g.reraise
-      end
+      g.push 14
+      g.pop
+      g.push 2
+      g.ensure_return
 
-      ok.set!
+      g.pop_unwind
+      g.goto noexc_lbl
+
+      exc_lbl.set!
+      g.push_exception
+
+      g.push 13
+      g.pop
+
+      g.pop_exception
+      g.reraise
+
+      noexc_lbl.set!
 
       g.push 13
       g.pop

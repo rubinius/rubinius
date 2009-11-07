@@ -15,4 +15,3 @@ require 'compiler/printers'
 
 # Temporary
 require 'compiler/description'
-require 'compiler/test_generator'

@@ -387,46 +387,51 @@ describe "An Iter node" do
         d.push_exception
 
         retry_lbl.set!
-        d.exceptions do |ex|
 
-          #body
-          d.push_local_depth 1, 0
+        exc_lbl = d.new_label
+        d.setup_unwind exc_lbl
 
-          ex.escape else_lbl
-          ex.handle!
+        d.new_label.set!
 
-          body_lbl = d.new_label
-          next_lbl = d.new_label
-          reraise_lbl = d.new_label
+        #body
+        d.push_local_depth 1, 0
 
-          d.push_const :Exception
-          d.push_exception
-          d.send :===, 1
-          d.git body_lbl
+        d.pop_unwind
+        d.goto else_lbl
 
-          d.goto next_lbl
-          body_lbl.set!
+        exc_lbl.set!
 
-          # Exception
-          d.push_exception
-          d.set_local_depth 1, 0
-          d.pop
-          d.push :nil
-          d.goto reraise_lbl
+        body_lbl = d.new_label
+        next_lbl = d.new_label
+        reraise_lbl = d.new_label
 
-          d.clear_exception
-          d.goto last_lbl
+        d.push_const :Exception
+        d.push_exception
+        d.send :===, 1
+        d.git body_lbl
 
-          reraise_lbl.set!
-          d.clear_exception
-          d.swap
-          d.pop_exception
-          d.raise_break
+        d.goto next_lbl
+        body_lbl.set!
 
-          next_lbl.set!
+        # Exception
+        d.push_exception
+        d.set_local_depth 1, 0
+        d.pop
+        d.push :nil
+        d.goto reraise_lbl
 
-          d.reraise
-        end
+        d.clear_exception
+        d.goto last_lbl
+
+        reraise_lbl.set!
+        d.clear_exception
+        d.swap
+        d.pop_exception
+        d.raise_break
+
+        next_lbl.set!
+
+        d.reraise
 
         else_lbl.set!
         last_lbl.set!

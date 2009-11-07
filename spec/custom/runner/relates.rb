@@ -71,7 +71,7 @@ class SpecDataRelation
 
     ruby = @ruby
     it "is compiled from #{format ruby}" do
-      generator = TestGenerator.new
+      generator = Rubinius::TestGenerator.new
       generator.instance_eval(&block)
 
       ruby.should compile_as(generator, *plugins)

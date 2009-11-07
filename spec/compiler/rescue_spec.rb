@@ -317,36 +317,44 @@ describe "A Rescue node" do
       body       = g.new_label
 
       g.push_modifiers
-      g.save_exception
+      g.push_exception
 
       rr.set!
-      g.exceptions do |ex|
-        g.push 12
-        ex.escape fin
 
-        ex.handle!
-        g.push_const :String
-        g.push_exception
-        g.send :===, 1
+      exc_lbl = g.new_label
+      g.setup_unwind exc_lbl
 
-        g.git body
-        g.goto rr
-        body.set!
-        g.push 13
-        g.clear_exception
-        g.goto last
+      g.new_label.set!
 
-        rr.set!
+      g.push 12
+      g.pop_unwind
+      g.goto fin
 
-        g.reraise
+      exc_lbl.set!
 
-        fin.set!
-        g.pop
-        g.push 14
+      g.push_const :String
+      g.push_exception
+      g.send :===, 1
 
-        last.set!
-      end
-      g.restore_exception
+      g.git body
+      g.goto rr
+      body.set!
+      g.push 13
+      g.clear_exception
+      g.goto last
+
+      rr.set!
+
+      g.reraise
+
+      fin.set!
+      g.pop
+      g.push 14
+
+      last.set!
+
+      g.swap
+      g.pop_exception
       g.pop_modifiers
     end
   end
@@ -366,36 +374,42 @@ describe "A Rescue node" do
       body       = g.new_label
 
       g.push_modifiers
-      g.save_exception
+      g.push_exception
 
       rr.set!
-      g.exceptions do |ex|
-        g.push 12
-        ex.escape fin
 
-        ex.handle!
-        g.push :self
-        g.send :blah, 0, true
-        g.cast_array
-        g.push_exception
-        g.send :__rescue_match__, 1
+      exc_lbl = g.new_label
+      g.setup_unwind exc_lbl
 
-        g.git body
-        g.goto rr
-        body.set!
-        g.push 13
-        g.clear_exception
-        g.goto last
+      g.new_label.set!
+      g.push 12
+      g.pop_unwind
+      g.goto fin
 
-        rr.set!
+      exc_lbl.set!
 
-        g.reraise
+      g.push :self
+      g.send :blah, 0, true
+      g.cast_array
+      g.push_exception
+      g.send :__rescue_match__, 1
 
-        fin.set!
+      g.git body
+      g.goto rr
+      body.set!
+      g.push 13
+      g.clear_exception
+      g.goto last
 
-        last.set!
-      end
-      g.restore_exception
+      rr.set!
+
+      g.reraise
+
+      fin.set!
+      last.set!
+
+      g.swap
+      g.pop_exception
       g.pop_modifiers
     end
   end
@@ -415,42 +429,47 @@ describe "A Rescue node" do
       body       = g.new_label
 
       g.push_modifiers
-      g.save_exception
+      g.push_exception
 
       rr.set!
-      g.exceptions do |ex|
-        g.push 12
-        ex.escape fin
 
-        ex.handle!
+      exc_lbl = g.new_label
+      g.setup_unwind exc_lbl
 
-        g.push_const :String
-        g.push_exception
-        g.send :===, 1
-        g.git body
+      g.new_label.set!
+      g.push 12
+      g.pop_unwind
+      g.goto fin
 
-        g.push :self
-        g.send :blah, 0, true
-        g.cast_array
-        g.push_exception
+      exc_lbl.set!
 
-        g.send :__rescue_match__, 1
-        g.git body
-        g.goto rr
-        body.set!
-        g.push 13
-        g.clear_exception
-        g.goto last
+      g.push_const :String
+      g.push_exception
+      g.send :===, 1
+      g.git body
 
-        rr.set!
+      g.push :self
+      g.send :blah, 0, true
+      g.cast_array
+      g.push_exception
 
-        g.reraise
+      g.send :__rescue_match__, 1
+      g.git body
+      g.goto rr
+      body.set!
+      g.push 13
+      g.clear_exception
+      g.goto last
 
-        fin.set!
+      rr.set!
 
-        last.set!
-      end
-      g.restore_exception
+      g.reraise
+
+      fin.set!
+      last.set!
+
+      g.swap
+      g.pop_exception
       g.pop_modifiers
     end
   end
@@ -471,42 +490,47 @@ describe "A Rescue node" do
       body       = g.new_label
 
       g.push_modifiers
-      g.save_exception
+      g.push_exception
 
       rr.set!
-      g.exceptions do |ex|
-        g.push 12
-        ex.escape fin
 
-        ex.handle!
+      exc_lbl = g.new_label
+      g.setup_unwind exc_lbl
 
-        g.push :self
-        g.send :blah, 0, true
-        g.cast_array
-        g.push_exception
+      g.new_label.set!
+      g.push 12
+      g.pop_unwind
+      g.goto fin
 
-        g.send :__rescue_match__, 1
-        g.git body
-        g.goto reraise
-        body.set!
+      exc_lbl.set!
 
-        g.push_exception
-        g.set_local 0
-        g.pop
+      g.push :self
+      g.send :blah, 0, true
+      g.cast_array
+      g.push_exception
 
-        g.push 13
-        g.clear_exception
-        g.goto last
+      g.send :__rescue_match__, 1
+      g.git body
+      g.goto reraise
+      body.set!
 
-        reraise.set!
+      g.push_exception
+      g.set_local 0
+      g.pop
 
-        g.reraise
+      g.push 13
+      g.clear_exception
+      g.goto last
 
-        fin.set!
+      reraise.set!
 
-        last.set!
-      end
-      g.restore_exception
+      g.reraise
+
+      fin.set!
+      last.set!
+
+      g.swap
+      g.pop_exception
       g.pop_modifiers
     end
   end
@@ -527,45 +551,50 @@ describe "A Rescue node" do
       body       = g.new_label
 
       g.push_modifiers
-      g.save_exception
+      g.push_exception
 
       rr.set!
-      g.exceptions do |ex|
-        g.push 12
-        ex.escape fin
 
-        ex.handle!
+      exc_lbl = g.new_label
+      g.setup_unwind exc_lbl
 
-        g.push_const :String
-        g.push_exception
-        g.send :===, 1
-        g.git body
+      g.new_label.set!
+      g.push 12
+      g.pop_unwind
+      g.goto fin
 
-        g.push :self
-        g.send :blah, 0, true
-        g.cast_array
-        g.push_exception
+      exc_lbl.set!
 
-        g.send :__rescue_match__, 1
-        g.git body
-        g.goto reraise
-        body.set!
-        g.push_exception
-        g.set_local 0
-        g.pop
-        g.push 13
-        g.clear_exception
-        g.goto last
+      g.push_const :String
+      g.push_exception
+      g.send :===, 1
+      g.git body
 
-        reraise.set!
+      g.push :self
+      g.send :blah, 0, true
+      g.cast_array
+      g.push_exception
 
-        g.reraise
+      g.send :__rescue_match__, 1
+      g.git body
+      g.goto reraise
+      body.set!
+      g.push_exception
+      g.set_local 0
+      g.pop
+      g.push 13
+      g.clear_exception
+      g.goto last
 
-        fin.set!
+      reraise.set!
 
-        last.set!
-      end
-      g.restore_exception
+      g.reraise
+
+      fin.set!
+      last.set!
+
+      g.swap
+      g.pop_exception
       g.pop_modifiers
     end
   end
@@ -585,36 +614,42 @@ describe "A Rescue node" do
       body       = g.new_label
 
       g.push_modifiers
-      g.save_exception
+      g.push_exception
 
       rr.set!
-      g.exceptions do |ex|
-        g.push 12
-        ex.escape fin
 
-        ex.handle!
-        g.push_const :String
-        g.push_exception
-        g.send :===, 1
+      exc_lbl = g.new_label
+      g.setup_unwind exc_lbl
 
-        g.git body
-        g.goto rr
-        body.set!
-        g.push :nil
-        g.clear_exception
-        g.ret
-        g.clear_exception
-        g.goto last
+      g.new_label.set!
+      g.push 12
+      g.pop_unwind
+      g.goto fin
 
-        rr.set!
+      exc_lbl.set!
 
-        g.reraise
+      g.push_const :String
+      g.push_exception
+      g.send :===, 1
 
-        fin.set!
+      g.git body
+      g.goto rr
+      body.set!
+      g.push :nil
+      g.clear_exception
+      g.ret
+      g.clear_exception
+      g.goto last
 
-        last.set!
-      end
-      g.restore_exception
+      rr.set!
+
+      g.reraise
+
+      fin.set!
+      last.set!
+
+      g.swap
+      g.pop_exception
       g.pop_modifiers
     end
   end

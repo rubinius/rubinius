@@ -532,9 +532,17 @@ describe "A Masgn node" do
 
       g.cast_array
 
-      g.lvar_set 0
-      g.lvar_set 1
-      g.lvar_set 2
+      g.shift_array
+      g.set_local 0
+      g.pop
+
+      g.shift_array
+      g.set_local 1
+      g.pop
+
+      g.shift_array
+      g.set_local 2
+      g.pop
 
       g.pop
       g.push :true
@@ -553,9 +561,17 @@ describe "A Masgn node" do
       g.send :+, 1
       g.cast_array
 
-      g.lvar_set 0
-      g.lvar_set 1
-      g.lvar_set 2
+      g.shift_array
+      g.set_local 0
+      g.pop
+
+      g.shift_array
+      g.set_local 1
+      g.pop
+
+      g.shift_array
+      g.set_local 2
+      g.pop
 
       g.pop
       g.push :true
@@ -569,8 +585,13 @@ describe "A Masgn node" do
 
       g.cast_array
 
-      g.lvar_set 0
-      g.lvar_set 1
+      g.shift_array
+      g.set_local 0
+      g.pop
+
+      g.shift_array
+      g.set_local 1
+      g.pop
 
       g.cast_array
       g.set_local 2
