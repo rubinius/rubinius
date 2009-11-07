@@ -1,5 +1,4 @@
 require 'spec/custom/utils/script'
-require 'spec/custom/matchers/parse_as'
 require 'spec/custom/matchers/compile_as'
 require 'spec/custom/helpers/generator'
 require 'spec/custom/guards/profiler'

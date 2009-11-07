@@ -12,12 +12,9 @@ class CompileAsMatcher
     @plugins = plugins
   end
 
-  # This conditional is temporary while converting the compiler
-  unless method_defined? :matches?
-    def matches?(actual)
-      @actual = Rubinius::CompilerNG.compile_test_bytecode actual, @plugins
-      @actual == @expected
-    end
+  def matches?(actual)
+    @actual = Rubinius::CompilerNG.compile_test_bytecode actual, @plugins
+    @actual == @expected
   end
 
   def diff(actual, expected)

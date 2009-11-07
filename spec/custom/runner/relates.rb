@@ -65,14 +65,9 @@ class SpecDataRelation
     end
   end
 
-  # Creates spec example blocks if the parse process is enabled.
+  # TODO: remove; just prevents parser specs from failing
+  # until they are removed
   def parse(&block)
-    return unless self.class.enabled? :parser
-
-    ruby = @ruby
-    it "is parsed from #{format ruby}" do
-      ruby.should parse_as(block.call)
-    end
   end
 
   # Creates spec example blocks if the compile process is enabled.

@@ -11,15 +11,6 @@ class MSpecOptions
     on("--compiler", "Run only the compile part of the compiler specs") do
       SpecDataRelation.enable :compiler
     end
-
-    on("--parser", "Run only the parse part of the compiler specs") do
-      SpecDataRelation.enable :parser
-    end
-
-    on("--ast", "TEMPORARY: change the compiler spec matcher to use #to_ast") do
-      require 'compiler-ng'
-      require 'spec/custom/matchers/compile_as-ng'
-    end
   end
 
   def gc_stats
