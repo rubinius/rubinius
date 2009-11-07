@@ -49,15 +49,23 @@ namespace rubinius {
 
     capi::Handle* handle = ih->handle();
 
-    if(!handle) {
+    if(handle) {
+      // ref() ONLY if it's not already in there!
+      // otherwise the refcount is wrong and we leak handles.
+      capi::HandleSet::iterator pos = handles_.find(handle);
+      if(pos == handles_.end()) {
+        handle->ref();
+        handles_.insert(handle);
+      }
+    } else {
       handle = new capi::Handle(state, obj);
       ih->set_handle(handle);
 
       state->shared.global_handles()->add(handle);
-    }
 
-    handle->ref();
-    handles_.insert(handle);
+      handle->ref();
+      handles_.insert(handle);
+    }
 
     return handle->as_value();
   }
