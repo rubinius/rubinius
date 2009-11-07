@@ -21,12 +21,16 @@ describe "An Sclass node" do
       g.swap
       g.push_literal :__metaclass_init__
       g.swap
-      g.push_literal_desc do |d2|
-        d2.push_self
-        d2.add_scope
-        d2.push 42
-        d2.ret
-      end
+
+      d = new_generator(g)
+
+      d.push_self
+      d.add_scope
+      d.push 42
+      d.ret
+
+      g.push_literal(d)
+
       g.swap
       g.push_scope
       g.swap
@@ -63,13 +67,16 @@ describe "An Sclass node" do
         d.push_literal :__metaclass_init__
         d.swap
 
-        d.push_literal_desc do |d2|
-          d2.push_self
-          d2.add_scope
-          d2.push :self
-          d2.send :a, 0, true
-          d2.ret
-        end
+        e = new_generator(g)
+
+        e.push_self
+        e.add_scope
+        e.push :self
+        e.send :a, 0, true
+        e.ret
+
+        d.push_literal(e)
+
         d.swap
         d.push_scope
         d.swap

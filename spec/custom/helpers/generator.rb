@@ -202,32 +202,18 @@ module Rubinius
       push_literal desc
     end
 
-    def push_literal_desc(name = nil)
-      desc = description name do |d|
-        yield d
-      end
+    def new_block_generator(g)
+      blk = g.class.new
+      blk.name == :__block__
 
-      g.push_literal desc
+      blk
     end
 
-    def description(name=nil)
-      desc = Compiler::MethodDescription.new TestGenerator, 0
-      desc.name = name if name
+    def new_generator(g, name=nil)
+      meth = g.class.new
+      meth.name = name
 
-      yield desc.generator
-
-      desc
-    end
-
-    def block_description
-      iter = description :__block__ do |d|
-        yield d
-      end
-      iter.required = -1
-
-      g.create_block iter
-
-      iter
+      meth
     end
 
     def splatted_array(n=1)
@@ -254,61 +240,62 @@ module Rubinius
     end
 
     def in_block_send(name, type, required=nil, call_count=0, vis=true)
-      iter = block_description do |d|
-        count = nil
+      d = new_block_generator(g)
 
-        case type
-        when :none
-          required = -1
-        when :empty
-          required = 0
-        when :blank
-          required = -1
-          count = 0
-        when :single
-          required = 1
-          d.cast_for_single_block_arg
-          d.set_local 0
-        when :splat
-          required = -1
-          d.cast_for_splat_block_arg
-          d.cast_array
-          d.cast_array
-          d.set_local 0
-        when :rest
-          count = required.abs - 1
-        when :multi
-          count = required.abs
-        end
+      count = nil
 
-        if count
-          d.cast_for_multi_block_arg
-          d.cast_array
+      case type
+      when :none
+        required = -1
+      when :empty
+        required = 0
+      when :blank
+        required = -1
+        count = 0
+      when :single
+        required = 1
+        d.cast_for_single_block_arg
+        d.set_local 0
+      when :splat
+        required = -1
+        d.cast_for_splat_block_arg
+        d.cast_array
+        d.cast_array
+        d.set_local 0
+      when :rest
+        count = required.abs - 1
+      when :multi
+        count = required.abs
+      end
 
-          (0...count).each do |n|
-            d.shift_array
-            d.set_local n
-            d.pop
-          end
-        end
+      if count
+        d.cast_for_multi_block_arg
+        d.cast_array
 
-        if type == :rest
-          d.set_local count
-        end
-
-        if type != :none and type != :empty and type != 0
+        (0...count).each do |n|
+          d.shift_array
+          d.set_local n
           d.pop
         end
-
-        d.push_modifiers
-        d.new_label.set!
-
-        yield d
-
-        d.pop_modifiers
-        d.ret
       end
-      iter.required = required
+
+      if type == :rest
+        d.set_local count
+      end
+
+      if type != :none and type != :empty and type != 0
+        d.pop
+      end
+
+      d.push_modifiers
+      d.new_label.set!
+
+      yield d
+
+      d.pop_modifiers
+      d.ret
+
+      g.create_block(d)
 
       g.send_with_block name, call_count, vis
     end
@@ -345,14 +332,18 @@ module Rubinius
       g.swap
       g.push_literal :__class_init__
       g.swap
-      g.push_literal_desc name do |d|
-        d.push_self
-        d.add_scope
 
-        yield d
+      d = new_generator(g, name)
 
-        d.ret
-      end
+      d.push_self
+      d.add_scope
+
+      yield d
+
+      d.ret
+
+      g.push_literal(d)
+
       g.swap
       g.push_scope
       g.swap
@@ -369,10 +360,13 @@ module Rubinius
       end
 
       g.push_literal name
-      g.push_literal_desc name do |d|
-        yield d
-        d.ret
-      end
+
+      d = new_generator(g, name)
+
+      yield d
+      d.ret
+
+      g.push_literal(d)
 
       g.push_scope
 
@@ -413,14 +407,18 @@ module Rubinius
       g.swap
       g.push_literal :__module_init__
       g.swap
-      g.push_literal_desc do |d|
-        d.push_self
-        d.add_scope
 
-        yield d
+      d = new_generator(g)
 
-        d.ret
-      end
+      d.push_self
+      d.add_scope
+
+      yield d
+
+      d.ret
+
+      g.push_literal(d)
+
       g.swap
       g.push_scope
       g.swap

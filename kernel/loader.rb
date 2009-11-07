@@ -289,7 +289,6 @@ module Rubinius
 
     def load_compiler
       require "compiler"
-      Rubinius::CompilerNG.enable
     end
 
     # Require any -r arguments

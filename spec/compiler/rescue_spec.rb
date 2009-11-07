@@ -706,11 +706,15 @@ describe "A Rescue node" do
         when :StandardError
           g.push_const :Rubinius
           g.push_literal :x
-          g.push_literal_desc :x do |d|
-            d.push 2
-            d.ret
-            d.ret
-          end
+
+          d = new_generator(g, :x)
+
+          d.push 2
+          d.ret
+          d.ret
+
+          g.push_literal(d)
+
           g.push_scope
           g.push_variables
           g.send :method_visibility, 0

@@ -394,15 +394,16 @@ describe "An Lasgn node" do
       g.push_literal :__class_init__
       g.swap
 
-      g.push_literal_desc :F do |d|
-        d.push_self
-        d.add_scope
+      d = new_generator(g, :F)
 
-        d.push 1
-        d.set_local 0
+      d.push_self
+      d.add_scope
 
-        d.ret
-      end
+      d.push 1
+      d.set_local 0
+      d.ret
+
+      g.push_literal(d)
 
       g.swap
       g.push_scope
@@ -437,15 +438,17 @@ describe "An Lasgn node" do
       g.push_literal :__class_init__
       g.swap
 
-      g.push_literal_desc :F do |d|
-        d.push_self
-        d.add_scope
+      d = new_generator(g, :F)
 
-        d.push 1
-        d.set_local 0
+      d.push_self
+      d.add_scope
 
-        d.ret
-      end
+      d.push 1
+      d.set_local 0
+
+      d.ret
+
+      g.push_literal(d)
 
       g.swap
       g.push_scope
@@ -538,15 +541,17 @@ describe "An Lasgn node" do
       g.push_literal :__module_init__
       g.swap
 
-      g.push_literal_desc :F do |d|
-        d.push_self
-        d.add_scope
+      d = new_generator(g, :F)
 
-        d.push 1
-        d.set_local 0
+      d.push_self
+      d.add_scope
 
-        d.ret
-      end
+      d.push 1
+      d.set_local 0
+
+      d.ret
+
+      g.push_literal(d)
 
       g.swap
       g.push_scope

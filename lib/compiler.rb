@@ -12,6 +12,3 @@ require 'compiler/opcodes'
 require 'compiler/compiled_file'
 require 'compiler/evaluator'
 require 'compiler/printers'
-
-# Temporary
-require 'compiler/description'

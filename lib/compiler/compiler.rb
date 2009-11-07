@@ -2,19 +2,6 @@ module Rubinius
   class CompilerNG
     attr_accessor :parser, :generator, :encoder, :packager, :writer
 
-    # Temporary
-    def self.enable
-      Compiler.module_eval do
-        def self.compile_file_obsolete(file, flags=nil)
-          raise "We're sorry, the compiler you're trying to reach has been disconnected."
-        end
-
-        def self.compile_string_obsolete(string, binding, file="(eval)", line=1)
-          raise "We're sorry, the compiler you're trying to reach has been disconnected."
-        end
-      end
-    end
-
     def self.compile(file, line=1, output=nil, transforms=:default)
       compiler = new :file, :compiled_file
 

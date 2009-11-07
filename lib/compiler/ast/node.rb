@@ -36,6 +36,33 @@ module Rubinius
         g.set_line @line
       end
 
+      def new_block_generator(g, arguments)
+        blk = g.class.new
+        blk.name = :__block__
+        blk.file = g.file
+        blk.for_block = true
+
+        blk.required_args = arguments.required_args
+        blk.total_args = arguments.total_args
+        blk.splat_index = arguments.splat_index
+
+        blk
+      end
+
+      def new_generator(g, name, arguments=nil)
+        meth = g.class.new
+        meth.name = name
+        meth.file = g.file
+
+        if arguments
+          meth.required_args = arguments.required_args
+          meth.total_args = arguments.total_args
+          meth.splat_index = arguments.splat_index
+        end
+
+        meth
+      end
+
       def bytecode(g)
       end
 

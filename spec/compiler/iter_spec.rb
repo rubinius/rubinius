@@ -186,31 +186,31 @@ describe "An Iter node" do
 
   relates "m { n = 1; m { n } }" do
     compile do |g|
-      iter = description do |d|
-        d.push_modifiers
-        d.new_label.set! # redo
-        d.push 1
-        d.set_local 0
-        d.pop
+      d = new_block_generator(g)
 
-        i2 = description do |j|
-          j.push_modifiers
-          j.new_label.set! # redo
-          j.push_local_depth 1, 0
-          j.pop_modifiers
-          j.ret
-        end
+      d.push_modifiers
+      d.new_label.set! # redo
+      d.push 1
+      d.set_local 0
+      d.pop
 
-        d.push :self
-        d.create_block i2
-        d.send_with_block :m, 0, true
+      e = new_block_generator(g)
 
-        d.pop_modifiers
-        d.ret
-      end
+      e.push_modifiers
+      e.new_label.set! # redo
+      e.push_local_depth 1, 0
+      e.pop_modifiers
+      e.ret
+
+      d.push :self
+      d.create_block(e)
+      d.send_with_block :m, 0, true
+
+      d.pop_modifiers
+      d.ret
 
       g.push :self
-      g.create_block iter
+      g.create_block(d)
       g.send_with_block :m, 0, true
     end
   end
@@ -321,23 +321,24 @@ describe "An Iter node" do
 
       g.push :self
 
-      iter = g.block_description do |d|
-        d.cast_for_single_block_arg
-        d.set_local_depth 1, 0
+      d = new_block_generator(g)
 
-        d.pop
-        d.push_modifiers
-        d.new_label.set!
+      d.cast_for_single_block_arg
+      d.set_local_depth 1, 0
 
-        d.push_local_depth 1, 0
-        d.push :self
-        d.send :x, 0, true
-        d.send :+, 1, false
+      d.pop
+      d.push_modifiers
+      d.new_label.set!
 
-        d.pop_modifiers
-        d.ret
-      end
-      iter.required = 1
+      d.push_local_depth 1, 0
+      d.push :self
+      d.send :x, 0, true
+      d.send :+, 1, false
+
+      d.pop_modifiers
+      d.ret
+
+      g.create_block(d)
 
       g.send_with_block :m, 0, true
     end
@@ -362,106 +363,107 @@ describe "An Iter node" do
       g.pop
       g.push :self
 
-      iter = g.block_description do |d|
-        d.cast_for_single_block_arg
-        d.set_local 0
+      d = new_block_generator(g)
 
-        d.pop
-        d.push_modifiers
+      d.cast_for_single_block_arg
+      d.set_local 0
 
-        retry_lbl = d.new_label
-        else_lbl  = d.new_label
-        last_lbl  = d.new_label
+      d.pop
+      d.push_modifiers
 
-        ensure_good_lbl = d.new_label
-        ensure_bad_lbl  = d.new_label
+      retry_lbl = d.new_label
+      else_lbl  = d.new_label
+      last_lbl  = d.new_label
 
-        d.new_label.set!
+      ensure_good_lbl = d.new_label
+      ensure_bad_lbl  = d.new_label
 
-        d.setup_unwind ensure_bad_lbl
+      d.new_label.set!
 
-        top_lbl = d.new_label
-        top_lbl.set!
+      d.setup_unwind ensure_bad_lbl
 
-        d.push_modifiers
-        d.push_exception
+      top_lbl = d.new_label
+      top_lbl.set!
 
-        retry_lbl.set!
+      d.push_modifiers
+      d.push_exception
 
-        exc_lbl = d.new_label
-        d.setup_unwind exc_lbl
+      retry_lbl.set!
 
-        d.new_label.set!
+      exc_lbl = d.new_label
+      d.setup_unwind exc_lbl
 
-        #body
-        d.push_local_depth 1, 0
+      d.new_label.set!
 
-        d.pop_unwind
-        d.goto else_lbl
+      #body
+      d.push_local_depth 1, 0
 
-        exc_lbl.set!
+      d.pop_unwind
+      d.goto else_lbl
 
-        body_lbl = d.new_label
-        next_lbl = d.new_label
-        reraise_lbl = d.new_label
+      exc_lbl.set!
 
-        d.push_const :Exception
-        d.push_exception
-        d.send :===, 1
-        d.git body_lbl
+      body_lbl = d.new_label
+      next_lbl = d.new_label
+      reraise_lbl = d.new_label
 
-        d.goto next_lbl
-        body_lbl.set!
+      d.push_const :Exception
+      d.push_exception
+      d.send :===, 1
+      d.git body_lbl
 
-        # Exception
-        d.push_exception
-        d.set_local_depth 1, 0
-        d.pop
-        d.push :nil
-        d.goto reraise_lbl
+      d.goto next_lbl
+      body_lbl.set!
 
-        d.clear_exception
-        d.goto last_lbl
+      # Exception
+      d.push_exception
+      d.set_local_depth 1, 0
+      d.pop
+      d.push :nil
+      d.goto reraise_lbl
 
-        reraise_lbl.set!
-        d.clear_exception
-        d.swap
-        d.pop_exception
-        d.raise_break
+      d.clear_exception
+      d.goto last_lbl
 
-        next_lbl.set!
+      reraise_lbl.set!
+      d.clear_exception
+      d.swap
+      d.pop_exception
+      d.raise_break
 
-        d.reraise
+      next_lbl.set!
 
-        else_lbl.set!
-        last_lbl.set!
-        d.swap
-        d.pop_exception
-        d.pop_modifiers
+      d.reraise
 
-        d.pop_unwind
-        d.goto ensure_good_lbl
+      else_lbl.set!
+      last_lbl.set!
+      d.swap
+      d.pop_exception
+      d.pop_modifiers
 
-        # ensure via exception
-        ensure_bad_lbl.set!
-        d.push_exception
-        d.push_local 0
-        d.set_local_depth 1, 0
-        d.pop
-        d.pop_exception
-        d.reraise
+      d.pop_unwind
+      d.goto ensure_good_lbl
 
-        ensure_good_lbl.set!
+      # ensure via exception
+      ensure_bad_lbl.set!
+      d.push_exception
+      d.push_local 0
+      d.set_local_depth 1, 0
+      d.pop
+      d.pop_exception
+      d.reraise
 
-        # ensure via no exception
-        d.push_local 0
-        d.set_local_depth 1, 0
-        d.pop
+      ensure_good_lbl.set!
 
-        d.pop_modifiers
-        d.ret
-      end
-      iter.required = 1
+      # ensure via no exception
+      d.push_local 0
+      d.set_local_depth 1, 0
+      d.pop
+
+      d.pop_modifiers
+      d.ret
+
+      g.create_block(d)
 
       g.send_with_block :m, 0, true
     end
@@ -840,14 +842,16 @@ describe "An Iter node" do
     compile do |g|
       g.push :self
 
-      g.block_description do |d|
-        redo_lbl = d.new_label
-        d.push_modifiers
-        redo_lbl.set!
-        d.goto redo_lbl
-        d.pop_modifiers
-        d.ret
-      end
+      d = new_block_generator(g)
+
+      redo_lbl = d.new_label
+      d.push_modifiers
+      redo_lbl.set!
+      d.goto redo_lbl
+      d.pop_modifiers
+      d.ret
+
+      g.create_block(d)
 
       g.send_with_block :m, 0, true
     end
@@ -857,28 +861,30 @@ describe "An Iter node" do
     compile do |g|
       g.push :self
 
-      g.block_description do |d|
-        redo_lbl = d.new_label
-        f = d.new_label
-        done = d.new_label
+      d = new_block_generator(g)
 
-        d.push_modifiers
-        redo_lbl.set!
+      redo_lbl = d.new_label
+      f = d.new_label
+      done = d.new_label
 
-        d.push :self
-        d.send :x, 0, true
-        d.gif f
+      d.push_modifiers
+      redo_lbl.set!
 
-        d.goto redo_lbl
-        d.goto done
+      d.push :self
+      d.send :x, 0, true
+      d.gif f
 
-        f.set!
-        d.push :nil
+      d.goto redo_lbl
+      d.goto done
 
-        done.set!
-        d.pop_modifiers
-        d.ret
-      end
+      f.set!
+      d.push :nil
+
+      done.set!
+      d.pop_modifiers
+      d.ret
+
+      g.create_block(d)
 
       g.send_with_block :m, 0, true
     end

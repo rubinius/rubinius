@@ -50,45 +50,45 @@ describe "A Call node using InlineAssembly plugin" do
         d.push_local 0
         d.push_local 1
 
-        iter = description do |i|
-          i.cast_for_multi_block_arg
-          i.cast_array
-          i.shift_array
+        e = new_block_generator(g)
 
-          i.set_local_depth 1, 0
-          i.pop
-          i.shift_array
-          i.set_local_depth 1, 1
-          i.pop
-          i.pop
+        e.cast_for_multi_block_arg
+        e.cast_array
+        e.shift_array
 
-          i.push_modifiers
-          i.new_label.set!
+        e.set_local_depth 1, 0
+        e.pop
+        e.shift_array
+        e.set_local_depth 1, 1
+        e.pop
+        e.pop
 
-          i.push :self
-          i.push_local_depth 1, 1
-          i.send :run, 1, true
-          i.pop
+        e.push_modifiers
+        e.new_label.set!
 
-          i.push :self
-          i.push_local_depth 1, 0
-          i.send :run, 1, true
-          i.pop
+        e.push :self
+        e.push_local_depth 1, 1
+        e.send :run, 1, true
+        e.pop
 
-          i.push :self
-          i.send :push_block, 0, true
-          i.pop
-          i.push :self
-          i.push_literal :initialize
-          i.push 0
-          i.push :true
-          i.send :send_with_splat, 3, true
+        e.push :self
+        e.push_local_depth 1, 0
+        e.send :run, 1, true
+        e.pop
 
-          i.pop_modifiers
-          i.ret
-        end
+        e.push :self
+        e.send :push_block, 0, true
+        e.pop
+        e.push :self
+        e.push_literal :initialize
+        e.push 0
+        e.push :true
+        e.send :send_with_splat, 3, true
 
-        d.create_block iter
+        e.pop_modifiers
+        e.ret
+
+        d.create_block(e)
         d.send_with_block :asm, 2, false
         d.pop
         d.push_local 1
@@ -138,35 +138,35 @@ describe "A Call node using InlineAssembly plugin" do
         d.push_const :Rubinius
         d.push_local 1
 
-        iter = description do |i|
-          i.cast_for_single_block_arg
+        e = new_block_generator(g)
 
-          i.set_local_depth 1, 1
-          i.pop
+        e.cast_for_single_block_arg
 
-          i.push_modifiers
-          i.new_label.set!
+        e.set_local_depth 1, 1
+        e.pop
 
-          i.push :self
-          i.send :push_block, 0, true
-          i.pop
+        e.push_modifiers
+        e.new_label.set!
 
-          i.push :self
-          i.push_local_depth 1, 1
-          i.send :run, 1, true
-          i.pop
+        e.push :self
+        e.send :push_block, 0, true
+        e.pop
 
-          i.push :self
-          i.push_literal :initialize
-          i.push 0
-          i.push :true
-          i.send :send_with_block, 3, true
+        e.push :self
+        e.push_local_depth 1, 1
+        e.send :run, 1, true
+        e.pop
 
-          i.pop_modifiers
-          i.ret
-        end
+        e.push :self
+        e.push_literal :initialize
+        e.push 0
+        e.push :true
+        e.send :send_with_block, 3, true
 
-        d.create_block iter
+        e.pop_modifiers
+        e.ret
+
+        d.create_block(e)
         d.send_with_block :asm, 1, false
         d.pop
         d.push_local 1

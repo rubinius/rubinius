@@ -132,8 +132,8 @@ module Rubinius
 
     def package(klass)
       @literals.each_with_index do |literal, index|
-        if literal.kind_of? Compiler::MethodDescription
-          @literals[index] = literal.generator.package klass
+        if literal.kind_of? self.class
+          @literals[index] = literal.package klass
         end
       end
 
@@ -152,7 +152,7 @@ module Rubinius
       cm.stack_size     = @stack_size
       cm.file           = @file
       cm.name           = @name
-      cm.primitive      = @primitive # TODO
+      cm.primitive      = @primitive
 
       cm
     end
@@ -310,9 +310,9 @@ module Rubinius
       end
     end
 
-    def push_generator(desc)
-      @generators << desc.generator
-      push_literal desc
+    def push_generator(generator)
+      @generators << generator
+      push_literal generator
     end
 
     # Pushes the specified literal value into the literal's tuple
@@ -461,9 +461,9 @@ module Rubinius
       add :check_serial_private, find_literal(sym), serial.to_i
     end
 
-    def create_block(desc)
-      @generators << desc.generator
-      index = add_literal desc
+    def create_block(generator)
+      @generators << generator
+      index = add_literal generator
       add :create_block, index
     end
 

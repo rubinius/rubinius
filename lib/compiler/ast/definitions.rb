@@ -86,12 +86,6 @@ module Rubinius
 
       attr_accessor :body
 
-      def new_description(g)
-        desc = Compiler::MethodDescription.new(g.class, nil)
-        desc.generator.file = g.file
-        desc
-      end
-
       # A nested scope is looking up a local variable. If the variable exists
       # in our local variables hash, return a nested reference to it.
       def search_local(name)
@@ -129,11 +123,8 @@ module Rubinius
       end
 
       def attach_and_call(g, name, scoped=false)
-        desc = new_description(g)
-        desc.name = name
+        meth = new_generator(g, @name || name)
 
-        meth = desc.generator
-        meth.name = @name ? @name : name
         meth.push_state self
 
         if scoped
@@ -156,7 +147,7 @@ module Rubinius
         g.swap
         g.push_literal name
         g.swap
-        g.push_generator desc
+        g.push_generator meth
         g.swap
         g.push_scope
         g.swap
@@ -164,7 +155,7 @@ module Rubinius
         g.pop
         g.send name, 0
 
-        return desc
+        return meth
       end
     end
 
@@ -180,19 +171,14 @@ module Rubinius
       end
 
       def compile_body(g)
-        desc = new_description(g)
-        meth = desc.generator
-        meth.name = @name
+        meth = new_generator(g, @name, @arguments)
+
         meth.push_state self
         meth.state.push_super self
         pos(meth)
 
-        @arguments.bytecode(meth) if @arguments
+        @arguments.bytecode(meth)
         @body.bytecode(meth)
-
-        meth.required_args = @arguments.required_args
-        meth.total_args = @arguments.total_args
-        meth.splat_index = @arguments.splat_index
 
         meth.local_count = local_count
         meth.local_names = local_names
@@ -201,7 +187,7 @@ module Rubinius
         meth.close
         meth.pop_state
 
-        return desc
+        return meth
       end
 
       def bytecode(g)

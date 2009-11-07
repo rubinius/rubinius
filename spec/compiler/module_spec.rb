@@ -33,13 +33,16 @@ describe "A Module node" do
       g.swap
       g.push_literal :__module_init__
       g.swap
-      g.push_literal_desc :Y do |d|
-        d.push_self
-        d.add_scope
-        d.push :self
-        d.send :c, 0, true
-        d.ret
-      end
+
+      d = new_generator(g, :Y)
+
+      d.push_self
+      d.add_scope
+      d.push :self
+      d.send :c, 0, true
+      d.ret
+
+      g.push_literal(d)
 
       g.swap
       g.push_scope

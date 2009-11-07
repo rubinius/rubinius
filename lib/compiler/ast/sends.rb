@@ -324,25 +324,11 @@ module Rubinius
         state = g.state
         state.scope.nest_scope self
 
-        # TODO: remove MethodDescription and replace with constructor method
-        desc = Compiler::MethodDescription.new g.class, nil
-        desc.name = :__block__
-        desc.for_block = true
-        desc.required = @arguments.arity
-        desc.optional = @arguments.optional
+        blk = new_block_generator g, @arguments
 
-        blk = desc.generator
         blk.push_state self
         blk.state.push_super state.super
         blk.state.push_eval state.eval
-        blk.file = g.file
-        blk.name = :__block__
-
-        blk.for_block = true
-
-        blk.required_args = @arguments.required_args
-        blk.total_args = @arguments.total_args
-        blk.splat_index = @arguments.splat_index
 
         # Push line info down.
         pos(blk)
@@ -355,7 +341,9 @@ module Rubinius
         blk.next = nil
         blk.redo = blk.new_label
         blk.redo.set!
+
         @body.bytecode(blk)
+
         blk.pop_modifiers
         blk.state.pop_block
         blk.ret
@@ -365,7 +353,7 @@ module Rubinius
         blk.local_count = local_count
         blk.local_names = local_names
 
-        g.create_block desc
+        g.create_block blk
       end
     end
 
