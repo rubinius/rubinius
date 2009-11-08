@@ -43,7 +43,7 @@ module Rubinius
       compiler.run
     end
 
-    def self.compile_eval(string, binding, file="(eval)", line=1)
+    def self.compile_eval(string, variable_scope, file="(eval)", line=1)
       compiler = new :string, :compiled_method
 
       parser = compiler.parser
@@ -51,7 +51,7 @@ module Rubinius
       parser.default_transforms
       parser.input string, file, line
 
-      compiler.generator.context = binding
+      compiler.generator.variable_scope = variable_scope
 
       compiler.run
     end

@@ -607,7 +607,7 @@ module Rubinius
     end
 
     class Container < ClosedScope
-      attr_accessor :file, :name
+      attr_accessor :file, :name, :variable_scope
 
       def initialize(body)
         @body = body || Nil.new(1)
@@ -625,8 +625,6 @@ module Rubinius
     end
 
     class EvalExpression < Container
-      attr_accessor :context
-
       def initialize(body)
         super body
         @name = :__eval_script__
@@ -634,7 +632,7 @@ module Rubinius
 
       def search_scopes(name)
         depth = 1
-        scope = @context.variables
+        scope = @variable_scope
         while scope
           if slot = scope.method.local_slot(name)
             return CompilerNG::NestedLocalVariable.new(depth, slot)
@@ -664,7 +662,7 @@ module Rubinius
 
       def new_local(name)
         variable = CompilerNG::EvalLocalVariable.new name
-        @context.variables.dynamic_locals[name] = nil
+        @variable_scope.dynamic_locals[name] = nil
         variables[name] = variable
       end
 

@@ -72,25 +72,22 @@ module Kernel
       raise ArgumentError, "unknown type of binding"
     end
 
-    context = Rubinius::CompilerNG::Context.new binding.variables, binding.code
+    cm = Rubinius::CompilerNG.compile_eval string, binding.variables, filename, lineno
+    cm.scope = binding.static_scope
+    cm.name = :__eval__
 
-    compiled_method = Rubinius::CompilerNG.compile_eval string, context, filename, lineno
-    compiled_method.scope = binding.static_scope
-    compiled_method.name = :__eval__
-
-    yield compiled_method if block_given?
+    yield cm if block_given?
 
     # This has to be setup so __FILE__ works in eval.
     script = Rubinius::CompiledMethod::Script.new
-    script.path = filename
-    compiled_method.scope.script = script
-    script.path = binding.static_scope.active_path if binding
+    script.path = filename || binding.static_scope.active_path
+    cm.scope.script = script
 
     # Internalize it now, since we're going to springboard to it as a block.
-    compiled_method.compile
+    cm.compile
 
     be = Rubinius::BlockEnvironment.new
-    be.under_context binding.variables, compiled_method
+    be.under_context binding.variables, cm
 
     # Pass the BlockEnvironment this binding was created from
     # down into the new BlockEnvironment we just created.
@@ -145,21 +142,19 @@ module Kernel
                               Rubinius::CompiledMethod.of_sender,
                               Rubinius::StaticScope.of_sender)
 
-      context = Rubinius::CompilerNG::Context.new binding.variables, binding.code
-
-      compiled_method = Rubinius::CompilerNG.compile_eval string, context, filename, line
-      compiled_method.scope = binding.static_scope.using_current_as(metaclass)
-      compiled_method.name = :__instance_eval__
-      compiled_method.compile
+      cm = Rubinius::CompilerNG.compile_eval string, binding.variables, filename, line
+      cm.scope = binding.static_scope.using_current_as(metaclass)
+      cm.name = :__instance_eval__
+      cm.compile
 
       # This has to be setup so __FILE__ works in eval.
       script = Rubinius::CompiledMethod::Script.new
       script.path = filename
-      compiled_method.scope.script = script
+      cm.scope.script = script
 
       be = Rubinius::BlockEnvironment.new
       be.from_eval!
-      be.under_context binding.variables, compiled_method
+      be.under_context binding.variables, cm
       be.call_on_instance(self)
     else
       raise ArgumentError, 'block not supplied'
@@ -222,11 +217,9 @@ class Module
     variables = Rubinius::VariableScope.of_sender
     method = Rubinius::CompiledMethod.of_sender
 
-    context = Rubinius::CompilerNG::Context.new variables, method
-
     string = StringValue(string)
 
-    compiled_method = Rubinius::CompilerNG.compile_eval string, context, filename, line
+    cm = Rubinius::CompilerNG.compile_eval string, variables, filename, line
 
     # The staticscope of a module_eval CM is the receiver of module_eval
     ss = Rubinius::StaticScope.new self, Rubinius::StaticScope.of_sender
@@ -236,14 +229,14 @@ class Module
     script.path = filename
     ss.script = script
 
-    compiled_method.scope = ss
-    compiled_method.compile
+    cm.scope = ss
+    cm.compile
 
     # The gist of this code is that we need the receiver's static scope
     # but the caller's binding to implement the proper constant behavior
     be = Rubinius::BlockEnvironment.new
     be.from_eval!
-    be.under_context variables, compiled_method
+    be.under_context variables, cm
     be.call_under self, ss, self
   end
 
