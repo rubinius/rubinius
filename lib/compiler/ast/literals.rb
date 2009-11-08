@@ -9,6 +9,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         @body.each do |x|
           x.bytecode(g)
         end
@@ -27,6 +29,8 @@ module Rubinius
 
     class False < Node
       def bytecode(g)
+        pos(g)
+
         g.push :false
       end
 
@@ -37,6 +41,8 @@ module Rubinius
 
     class True < Node
       def bytecode(g)
+        pos(g)
+
         g.push :true
       end
 
@@ -54,6 +60,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         g.push_unique_literal @value
       end
     end
@@ -113,6 +121,8 @@ module Rubinius
 
     class Nil < Node
       def bytecode(g)
+        pos(g)
+
         g.push :nil
       end
 
@@ -130,6 +140,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         g.push_unique_literal @value
       end
 
@@ -145,6 +157,8 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
+
         g.push @value
       end
     end
@@ -283,7 +297,7 @@ module Rubinius
     end
 
     class DynamicRegex < DynamicString
-      def initialize(p, str, array, flags)
+      def initialize(line, str, array, flags)
         super line, str, array
         @options = flags || 0
       end

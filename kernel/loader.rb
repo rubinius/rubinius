@@ -405,9 +405,9 @@ module Rubinius
       system_load_path
       preload
       signals
+      load_compiler
       options
       load_paths
-      load_compiler
       requires
       evals
       script

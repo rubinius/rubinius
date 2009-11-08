@@ -49,7 +49,7 @@ module Rubinius
       @redo = nil
       @next = nil
       @retry = nil
-      @last_line = nil
+      @last_line = 0
       @file = nil
       @lines = []
       @primitive = nil
@@ -66,10 +66,9 @@ module Rubinius
       @generators = []
     end
 
-    attr_reader :ip, :stream, :iseq
-    attr_reader :cache_size, :literals
-    attr_accessor :break, :redo, :next, :retry
-    attr_accessor :file, :name, :required_args, :total_args, :splat_index,
+    attr_reader   :ip, :stream, :iseq, :literals
+    attr_accessor :break, :redo, :next, :retry, :file, :name,
+                  :required_args, :total_args, :splat_index,
                   :local_count, :local_names, :primitive, :for_block
 
     # Temporary
@@ -228,15 +227,26 @@ module Rubinius
     end
 
     def set_line(line)
-      if line and line > 0 and line != @last_line
+      raise Exception, "source code line cannot be nil" unless line
+
+      if line > @last_line
         # Fold redundent line changes on the same ip into the same
-        # entry
-        if @lines[-2] == @ip
+        # entry, except for in the case where @ip is 0. Here's why:
+        #
+        #   def some_method
+        #   end
+        #
+        # There is nothing in the bytecode stream that corresponds
+        # to 'def some_method' so the first line of the method will
+        # be recorded as the line 'end' is on.
+
+        if @ip > 0 and @lines[-2] == @ip
           @lines[-1] = line
         else
           @lines << @ip
           @lines << line
         end
+
         @last_line = line
       end
     end
@@ -245,12 +255,10 @@ module Rubinius
       @last_line
     end
 
-    attr_reader :file
-
     def close
       if @lines.empty?
-        @lines << @ip
-        @lines << @last_line
+        msg = "closing a method definition with no line info: #{file}:#{line}"
+        raise Exception, msg
       end
 
       @lines << @ip

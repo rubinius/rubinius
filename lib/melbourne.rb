@@ -34,7 +34,7 @@ module Rubinius
 
     def initialize(name, line, transforms=[])
       @name = name
-      @line = line
+      @line = line > 0 ? line : 1
       @transforms = transforms
     end
 
