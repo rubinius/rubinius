@@ -49,6 +49,9 @@ namespace rubinius {
     // Ruby.primitive :symbol_is_cvar
     Object* is_cvar_p(STATE);
 
+    // Ruby.primitive :symbol_is_constant
+    Object* is_constant_p(STATE);
+
     class Info : public TypeInfo {
     public:
       Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }

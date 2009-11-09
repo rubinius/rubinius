@@ -642,22 +642,15 @@ class Module
 
   def normalize_const_name(name)
     name = Type.coerce_to_symbol(name)
-    raise NameError, "wrong constant name #{name}" unless valid_const_name?(name)
+
+    unless name.is_constant?
+      raise NameError, "wrong constant name #{name}"
+    end
+
     name
   end
 
   private :normalize_const_name
-
-  #--
-  # Modified to fit definition at:
-  # http://docs.huihoo.com/ruby/ruby-man-1.4/syntax.html#variable
-  #++
-
-  def valid_const_name?(name)
-    name.to_s =~ /^([A-Z]\w*)+$/ ? true : false
-  end
-
-  private :valid_const_name?
 
   def initialize_copy(other)
     @method_table = other.method_table.dup

@@ -52,6 +52,10 @@ namespace rubinius {
     return state->symbols.kind(state, this) == SymbolTable::CVar ? Qtrue : Qfalse;
   }
 
+  Object* Symbol::is_constant_p(STATE) {
+    return state->symbols.kind(state, this) == SymbolTable::Constant ? Qtrue : Qfalse;
+  }
+
   void Symbol::Info::show(STATE, Object* self, int level) {
     Symbol* sym = try_as<Symbol>(self);
     std::cout << ":" << sym->c_str(state) << std::endl;

@@ -62,15 +62,41 @@ module Math
     FFI::Platform::Math.asinh Float(x)
   end
 
-  def atanh(x)
-    x = Float(x)
-    verify_domain('atanh') { x.abs <= 1.0 }
+  # This is wierd, but we need to only do the ERANGE check if
+  # there is an ERANGE.
+  if Errno.const_defined?(:ERANGE)
 
-    FFI::Platform::POSIX.errno = 0
+    def atanh(x)
+      x = Float(x)
+      verify_domain('atanh') { x.abs <= 1.0 }
 
-    ret = FFI::Platform::Math.atanh x
-    Errno.handle
-    ret
+      FFI::Platform::POSIX.errno = 0
+
+      ret = FFI::Platform::Math.atanh x
+      begin
+        Errno.handle
+
+        # Linux sets errno to ERANGE, but it should be EDOM
+      rescue Errno::ERANGE
+        raise Errno::EDOM
+      end
+
+      ret
+    end
+
+  else
+
+    def atanh(x)
+      x = Float(x)
+      verify_domain('atanh') { x.abs <= 1.0 }
+
+      FFI::Platform::POSIX.errno = 0
+
+      ret = FFI::Platform::Math.atanh x
+      Errno.handle
+      ret
+    end
+
   end
 
   def exp(x)

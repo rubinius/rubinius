@@ -18,4 +18,9 @@ class Symbol
     Ruby.primitive :symbol_is_cvar
     raise PrimitiveFailure, "Symbol#is_cvar failed."
   end
+
+  def is_constant?
+    Ruby.primitive :symbol_is_constant
+    raise PrimitiveFailure, "Symbol#is_constant failed."
+  end
 end
