@@ -20,7 +20,7 @@ namespace rubinius {
     TypeInfo* type_info_;
 
     int class_id_;
-    size_t packed_size_;
+    uint32_t packed_size_;
 
   public:
     /* accessors */
@@ -44,11 +44,11 @@ namespace rubinius {
       class_id_ = id;
     }
 
-    size_t packed_size() {
+    uint32_t packed_size() {
       return packed_size_;
     }
 
-    void set_packed_size(size_t s) {
+    void set_packed_size(uint32_t s) {
       packed_size_ = s;
     }
 

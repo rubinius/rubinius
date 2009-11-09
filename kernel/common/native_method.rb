@@ -5,9 +5,6 @@
 # The primitive slot for a NativeMethod points to the nmethod_call primitive
 # which dispatches to the underlying C function.
 
-#
-# TODO: Rework exceptions.
-#
 module Rubinius
   class NativeMethod < Executable
 
@@ -39,10 +36,6 @@ module Rubinius
     end
 
     def lines
-      nil
-    end
-
-    def exceptions
       nil
     end
 

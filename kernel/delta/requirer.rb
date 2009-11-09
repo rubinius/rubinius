@@ -32,14 +32,6 @@ class Requirer
     return self.compiler ? self.compiler.version_number : 0
   end
 
-  def self.compile_file(path, flags=nil)
-    compiler.compile_file(path, flags)
-  end
-
-  def self.compile_string(string, context=nil, filename="(eval)", line=1)
-    compiler.compile_string(string, context, filename, line)
-  end
-
   def self.execute(string)
     eval(string, TOPLEVEL_BINDING)
   end
@@ -221,7 +213,7 @@ class Requirer
               end
 
               compile_feature(rb, requiring) do
-                cm = Requirer::Utils.compile_file(rb_path)
+                cm = Rubinius::CompilerNG.compile_file_old(rb_path)
                 raise LoadError, "Unable to compile: #{rb_path}" unless cm
               end
 

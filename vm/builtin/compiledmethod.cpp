@@ -192,18 +192,6 @@ namespace rubinius {
 #endif
   }
 
-  bool CompiledMethod::is_rescue_target(STATE, int ip) {
-    Tuple* table = exceptions();
-
-    if(table->nil_p()) return false;
-    for(size_t i = 0; i < table->num_fields(); i++) {
-      Tuple* entry = as<Tuple>(table->at(state, i));
-      if(as<Fixnum>(entry->at(state, 2))->to_native() == ip) return true;
-    }
-
-    return false;
-  }
-
   Object* CompiledMethod::set_breakpoint(STATE, Fixnum* ip) {
     int i = ip->to_native();
     if(backend_method_ == NULL) formalize(state);
@@ -337,8 +325,7 @@ namespace rubinius {
     CompiledMethod* cm = as<CompiledMethod>(self);
 
     class_header(state, self);
-    indent_attribute(++level, "exceptions"); cm->exceptions()->show_simple(state, level);
-    indent_attribute(level, "file"); cm->file()->show(state, level);
+    indent_attribute(++level, "file"); cm->file()->show(state, level);
     indent_attribute(level, "iseq"); cm->iseq()->show(state, level);
     indent_attribute(level, "lines"); cm->lines()->show_simple(state, level);
     indent_attribute(level, "literals"); cm->literals()->show_simple(state, level);

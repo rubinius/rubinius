@@ -174,7 +174,6 @@ module Rubinius
           cm.total_args    = unmarshal_data
           cm.splat         = unmarshal_data
           cm.literals      = unmarshal_data
-          cm.exceptions    = unmarshal_data
           cm.lines         = unmarshal_data
           cm.file          = unmarshal_data
           cm.local_names   = unmarshal_data
@@ -295,7 +294,6 @@ module Rubinius
           str << marshal(val.total_args)
           str << marshal(val.splat)
           str << marshal(val.literals)
-          str << marshal(val.exceptions)
           str << marshal(val.lines)
           str << marshal(val.file)
           str << marshal(val.local_names)

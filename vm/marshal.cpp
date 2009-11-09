@@ -171,7 +171,6 @@ namespace rubinius {
     cm->total_args(state, (Fixnum*)unmarshal());
     cm->splat(state, unmarshal());
     cm->literals(state, (Tuple*)unmarshal());
-    cm->exceptions(state, (Tuple*)unmarshal());
     cm->lines(state, (Tuple*)unmarshal());
     cm->file(state, (Symbol*)unmarshal());
     cm->local_names(state, (Tuple*)unmarshal());

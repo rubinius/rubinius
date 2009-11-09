@@ -140,7 +140,6 @@ module Rubinius
       cm.iseq           = @iseq
       cm.literals       = @literals.to_tuple
       cm.lines          = @lines.to_tuple
-      cm.exceptions     = [].to_tuple # TODO: remove
 
       cm.required_args  = @required_args
       cm.total_args     = @total_args

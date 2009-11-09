@@ -64,7 +64,7 @@ PointerType* PointerTy_9 = PointerType::get(OpaqueTy_struct_rubinius__TypeInfo, 
 
 StructTy_struct_rubinius__Class_fields.push_back(PointerTy_9);
 StructTy_struct_rubinius__Class_fields.push_back(IntegerType::get(getGlobalContext(), 32));
-StructTy_struct_rubinius__Class_fields.push_back(IntegerType::get(getGlobalContext(), 64));
+StructTy_struct_rubinius__Class_fields.push_back(IntegerType::get(getGlobalContext(), 32));
 StructType* StructTy_struct_rubinius__Class = StructType::get(mod->getContext(), StructTy_struct_rubinius__Class_fields, /*isPacked=*/false);
 mod->addTypeName("struct.rubinius::Class", StructTy_struct_rubinius__Class);
 
@@ -233,7 +233,6 @@ StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_8);
 StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_8);
 StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_8);
 StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_1);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_11);
 StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_11);
 StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_11);
 StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_5);

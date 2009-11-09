@@ -24,7 +24,6 @@ module Rubinius
     attr_accessor :total_args    # [Integer] number of total args
     attr_accessor :splat         # [Integer] POSITION of the splat arg
     attr_accessor :literals      # [Tuple]   tuple of the literals
-    attr_accessor :exceptions    # [Tuple]   tuple of the exceptions
     attr_accessor :lines         # [Tuple]   tuple of the lines where its found
     attr_accessor :file          # [Symbol]  the file where this comes from
     attr_accessor :local_names   # [Array<Symbol>] names of the local vars
@@ -68,7 +67,6 @@ module Rubinius
         @total_args    == other.total_args    and # [Integer] the number of total args
         @splat         == other.splat         and # [Integer] the POSITION of the splat arg
         @literals      == other.literals      and # [Tuple]   a tuple of the literals
-        @exceptions    == other.exceptions    and # [Tuple]   a tuple of the exceptions
         @lines         == other.lines         and # [Tuple]   a tuple of the lines where its found
         @file          == other.file          and # [Symbol]  the file where this comes from
         @local_names   == other.local_names       # [Array<Symbol>] the names of the local vars. used by eval

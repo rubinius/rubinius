@@ -26,7 +26,6 @@ namespace rubinius {
     Fixnum* required_args_;      // slot
     Fixnum* total_args_;         // slot
     Object* splat_;              // slot
-    Tuple* exceptions_;         // slot
     Tuple* lines_;              // slot
     Tuple* local_names_;        // slot
     Symbol* file_;               // slot
@@ -51,7 +50,6 @@ namespace rubinius {
     attr_accessor(total_args, Fixnum);
     attr_accessor(splat, Object);
     attr_accessor(literals, Tuple);
-    attr_accessor(exceptions, Tuple);
     attr_accessor(lines, Tuple);
     attr_accessor(local_names, Tuple);
     attr_accessor(file, Symbol);
@@ -88,8 +86,6 @@ namespace rubinius {
 
     // Ruby.primitive :compiledmethod_jit_soon
     Object* jit_soon(STATE);
-
-    bool is_rescue_target(STATE, int ip);
 
     // Ruby.primitive :compiledmethod_set_breakpoint
     Object* set_breakpoint(STATE, Fixnum* ip);
