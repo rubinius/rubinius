@@ -187,4 +187,9 @@ module Rubinius
     raise LocalJumpError, "invalid context for '#{name}'"
   end
 
+  # Support for __END__ and DATA
+  def self.set_data(str)
+    require 'stringio'
+    Object.const_set :DATA, StringIO.new(str)
+  end
 end

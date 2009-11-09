@@ -33,6 +33,7 @@ namespace melbourne {
   ID rb_sCVar;
   ID rb_sCVAsgn;
   ID rb_sCVDecl;
+  ID rb_sData;
   ID rb_sDefined;
   ID rb_sDefn;
   ID rb_sDefs;
@@ -141,6 +142,7 @@ namespace melbourne {
     rb_sCVar      = rb_intern("process_cvar");
     rb_sCVAsgn    = rb_intern("process_cvasgn");
     rb_sCVDecl    = rb_intern("process_cvdecl");
+    rb_sData      = rb_intern("process_data");
     rb_sDefined   = rb_intern("process_defined");
     rb_sDefn      = rb_intern("process_defn");
     rb_sDefs      = rb_intern("process_defs");

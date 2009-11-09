@@ -32,6 +32,7 @@ namespace melbourne {
   extern ID rb_sCVar;
   extern ID rb_sCVAsgn;
   extern ID rb_sCVDecl;
+  extern ID rb_sData;
   extern ID rb_sDefined;
   extern ID rb_sDefn;
   extern ID rb_sDefs;

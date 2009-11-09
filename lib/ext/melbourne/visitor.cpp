@@ -862,6 +862,12 @@ namespace melbourne {
       bdestroy(node->nd_str);
       break;
 
+    case NODE_END_DATA:
+      tree = rb_funcall(ptp, rb_sData, 2, line,
+          string_newfrombstr(node->nd_str));
+      bdestroy(node->nd_str);
+      break;
+
     case NODE_REGEX:
       tree = rb_funcall(ptp, rb_sRegex, 3, line,
           string_newfrombstr(node->nd_str), INT2FIX(node->nd_cnt));

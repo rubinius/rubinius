@@ -333,16 +333,17 @@ static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_tab
         klEND
         k__LINE__
         k__FILE__
+        k__END__
 
 %token <id>   tIDENTIFIER tFID tGVAR tIVAR tCONSTANT tCVAR tXSTRING_BEG
-%token <node> tINTEGER tFLOAT tSTRING_CONTENT
+%token <node> tINTEGER tFLOAT tSTRING_CONTENT tEND_DATA
 %token <node> tNTH_REF tBACK_REF
 %token <num>  tREGEXP_END
 %type <node> singleton strings string string1 xstring regexp
 %type <node> string_contents xstring_contents string_content
 %type <node> words qwords word_list qword_list word
 %type <node> literal numeric dsym cpath
-%type <node> bodystmt compstmt stmts stmt expr arg primary command command_call method_call
+%type <node> bodystmt compstmt opt_end_data stmts stmt expr arg primary command command_call method_call
 %type <node> expr_value arg_value primary_value
 %type <node> if_tail opt_else case_body cases opt_rescue exc_list exc_var opt_ensure
 %type <node> args when_args call_args call_args2 open_args paren_args opt_paren_args
@@ -421,7 +422,7 @@ program         :  {
                         vps->variables = new LocalState(0);
                         class_nest = 0;
                     }
-                  compstmt
+                  compstmt opt_end_data
                     {
                         if ($2 && !compile_for_eval) {
                             /* last expression should not be void */
@@ -435,6 +436,8 @@ program         :  {
                             }
                         }
                         vps->top = block_append(vps, vps->top, $2);
+                        if ($3)
+                            vps->top = block_append(vps, $3, vps->top);
                         class_nest = 0;
                     }
                 ;
@@ -465,6 +468,12 @@ compstmt        : stmts opt_terms
                         $$ = $1;
                     }
                 ;
+
+opt_end_data    : none
+                | k__END__ tEND_DATA
+                    {
+                      $$ = $2;
+                    }
 
 stmts           : none
                 | stmt
@@ -1036,7 +1045,7 @@ op              : '|'           { $$ = '|'; }
                 | '`'           { $$ = '`'; }
                 ;
 
-reswords        : k__LINE__ | k__FILE__  | klBEGIN | klEND
+reswords        : k__LINE__ | k__FILE__  | klBEGIN | klEND | k__END__
                 | kALIAS | kAND | kBEGIN | kBREAK | kCASE | kCLASS | kDEF
                 | kDEFINED | kDO | kELSE | kELSIF | kEND | kENSURE | kFALSE
                 | kFOR | kIN | kMODULE | kNEXT | kNIL | kNOT
@@ -2570,6 +2579,7 @@ yycompile(rb_parse_state *parse_state, char *f, int line)
     /* Setup an initial empty scope. */
     heredoc_end = 0;
     lex_strterm = 0;
+    parse_state->end_seen = 0;
     ruby_sourcefile = f;
     command_start = TRUE;
     n = yyparse(parse_state);
@@ -3471,6 +3481,18 @@ yylex(void *yylval_v, void *vstate)
         }
         return token;
     }
+
+    if (parse_state->end_seen) {  /* After __END__ */
+      newtok(parse_state);
+      while ((c = nextc()) != -1) {
+        tokadd(c, parse_state);
+      }
+      tokfix();
+      pslval->node = NEW_END_DATA(string_new(tok(), toklen()));
+      parse_state->end_seen = 0;
+      return tEND_DATA;
+    }
+
     cmd_state = command_start;
     command_start = FALSE;
   retry:
@@ -4489,7 +4511,9 @@ yylex(void *yylval_v, void *vstate)
       case '_':
         if (was_bol() && whole_match_p("__END__", 7, 0, parse_state)) {
             parse_state->lex_lastline = 0;
-            return -1;
+            parse_state->end_seen = 1;
+            parse_state->lex_p = parse_state->lex_pend;
+            return k__END__;
         }
         newtok(parse_state);
         break;

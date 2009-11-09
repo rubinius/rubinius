@@ -34,7 +34,6 @@ compiled_method.rbc
 continuation.rbc
 delegated_method.rbc
 fixnum.rbc
-data.rbc
 dir.rbc
 dir_glob.rbc
 dtrace.rbc
