@@ -1,1 +1,0 @@
-fails:Array#pop passed a number n as an argument raises a TypeError on a frozen array

@@ -1,1 +1,0 @@
-fails:Array#initialize_copy raises a TypeError on a frozen array
