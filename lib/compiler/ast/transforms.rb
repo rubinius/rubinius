@@ -123,7 +123,8 @@ module Rubinius
       }
 
       def self.match?(line, receiver, name, arguments, privately)
-        if op = Operators[name] and arguments.body.size == 1
+        return false unless op = Operators[name]
+        if match_arguments? arguments, 1
           node = new line, receiver, name, arguments
           node.operator = op
           node

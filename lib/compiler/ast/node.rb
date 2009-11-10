@@ -24,8 +24,14 @@ module Rubinius
       end
 
       def self.match_arguments?(arguments, count)
-        (arguments and arguments.body.size == count) or
-          (arguments.nil? and count == 0)
+        case arguments
+        when ArrayLiteral
+          arguments.body.size == count
+        when nil
+          count == 0
+        else
+          false
+        end
       end
 
       def initialize(line)

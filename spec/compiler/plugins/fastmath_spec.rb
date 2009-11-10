@@ -15,6 +15,26 @@ describe "A Call node using FastMath plugin" do
     end
   end
 
+  relates "1.+(*a)" do
+    compile do |g|
+      g.push 1
+      g.push :self
+      g.send :a, 0, true
+      g.cast_array
+      g.push :nil
+      g.send_with_splat :+, 0, false, false
+    end
+
+    compile :fastmath do |g|
+      g.push 1
+      g.push :self
+      g.send :a, 0, true
+      g.cast_array
+      g.push :nil
+      g.send_with_splat :+, 0, false, false
+    end
+  end
+
   relates "1 - 1" do
     compile do |g|
       g.push 1
