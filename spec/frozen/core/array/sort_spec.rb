@@ -191,10 +191,12 @@ describe "Array#sort!" do
       lambda { ArraySpecs.frozen_array.sort! }.should raise_error(TypeError)
     end
 
-    it "temporarily freezes self and recovers after sorted" do
-      a = [1, 2, 3]
-      a.sort! { |x,y| a.frozen?.should == true; x <=> y }
-      a.frozen?.should == false
+    not_compliant_on :rubinius do
+      it "temporarily freezes self and recovers after sorted" do
+        a = [1, 2, 3]
+        a.sort! { |x,y| a.frozen?.should == true; x <=> y }
+        a.frozen?.should == false
+      end
     end
   end
 
