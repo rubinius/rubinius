@@ -220,6 +220,9 @@ namespace rubinius {
     // Ruby.primitive :vm_catch
     static Object* vm_catch(STATE, Symbol* dest, Object* obj, CallFrame* calling_environment);
 
+    // Ruby.primitive :vm_set_class
+    static Object* vm_set_class(STATE, Object* obj, Class* cls);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {
