@@ -23,15 +23,19 @@ describe "Array#hash" do
 
   ruby_bug "redmine #1852", "1.9.1" do
     it "returns the same hash for recursive arrays" do
-      rec = []; rec << rec
-      rec.hash.should == [rec].hash
-      rec.hash.should == [[rec]].hash
+      rec = []
+      before = rec.hash
+      rec << rec
+
+      rec.hash.should == before
     end
 
     it "returns the same hash for recursive arrays through hashes" do
-      h = {} ; rec = [h] ; h[:x] = rec
-      rec.hash.should == [h].hash
-      rec.hash.should == [{:x => rec}].hash
+      h = {}
+      rec = [h]
+      h[:x] = rec
+
+      rec.hash.should == h.hash
     end
   end
 
