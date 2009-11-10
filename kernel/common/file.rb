@@ -922,7 +922,7 @@ class File < IO
   end
 
   def reopen(other, mode = 'r+')
-    rewind
+    rewind unless closed?
     super(other, mode)
   end
 

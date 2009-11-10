@@ -1280,8 +1280,6 @@ class IO
     buffer
   end
 
-  alias_method :orig_reopen, :reopen
-
   ##
   # Reassociates ios with the I/O stream given in other_IO or to
   # a new stream opened on path. This may dynamically change the
@@ -1292,17 +1290,25 @@ class IO
   #  f2.readlines[0]   #=> "This is line one\n"
   #  f2.reopen(f1)     #=> #<File:testfile>
   #  f2.readlines[0]   #=> "This is line one\n"
-  def reopen(other, mode = 'r+')
-    flush
-    other = if other.respond_to? :to_io then
-              other.to_io
-            else
-              File.new other, mode
-            end
+  def reopen(other, mode="r+")
+    flush unless closed?
 
-    other.ensure_open
+    if other.respond_to? :to_io
+      raise IOError, "closed stream" if closed?
 
-    prim_reopen other
+      other = other.to_io
+      other.ensure_open
+
+      prim_reopen other
+    else
+      path = StringValue(other)
+      other = File.new other, mode
+
+      fd = IO.sysopen(path, mode, 0666)
+      Errno.handle path if fd < 0
+
+      IO.setup self, fd, mode
+    end
 
     self
   end
