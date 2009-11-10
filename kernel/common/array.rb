@@ -1365,7 +1365,12 @@ class Array
 
   # Exactly the same as #replace but private
   def initialize_copy(other)
-    replace other
+    other = Type.coerce_to other, Array, :to_ary
+
+    @tuple = other.tuple.dup
+    @total = other.total
+    @start = other.start
+    self
   end
 
   private :initialize_copy
@@ -1722,5 +1727,46 @@ class Array
       return true if i.item === exception
     end
     false
+  end
+
+  class Frozen < Array
+    def []=(*args) frozen_error; end
+    def <<(*args) frozen_error; end
+    def clear() frozen_error; end
+    def compact!() frozen_error; end
+    def concat(other) frozen_error unless other.empty?; self; end
+    def delete_if(*args) frozen_error; end
+    def delete_at(*args) frozen_error; end
+    def fill(*args) frozen_error; end
+    def initialize(*args) frozen_error; end
+    def insert(idx, *args) frozen_error unless args.empty?; self; end
+    def map!() frozen_error; end
+    def pop() frozen_error; end
+    def push(*args) frozen_error unless args.empty?; self; end
+    def reject!(*args) frozen_error; end
+    def replace(*args) frozen_error; end
+    def reverse!() frozen_error; end
+    def shift(*args) frozen_error; end
+    def slice!(*args) frozen_error; end
+    def sort!() frozen_error; end
+    def unshift(*args); frozen_error unless args.empty?; self; end
+
+    def uniq!
+      im = IdentityMap.new self
+      return if im.size == size
+
+      frozen_error
+    end
+
+    def frozen_error
+      raise TypeError, "can't modify frozen array"
+    end
+    private :frozen_error
+  end
+
+  def freeze
+    super
+    Rubinius::Unsafe.set_class self, Frozen
+    self
   end
 end
