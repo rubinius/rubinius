@@ -1,2 +1,0 @@
-fails:ARGF.binmode returns self
-fails:ARGF.binmode does not raise an error

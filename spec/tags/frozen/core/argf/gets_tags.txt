@@ -1,3 +1,2 @@
-fails:ARGF.gets reads all lines of stdin
 fails:ARGF.gets modifies the files when in place edit mode is on
 fails:ARGF.gets modifies and backups two files when in place edit mode is on

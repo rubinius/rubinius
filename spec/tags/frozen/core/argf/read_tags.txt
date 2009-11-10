@@ -1,2 +1,0 @@
-fails:ARGF.read reads a number of bytes from stdin
-fails:ARGF.read reads the contents of stdin
