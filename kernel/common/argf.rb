@@ -6,26 +6,50 @@ module Rubinius
   class ARGFClass
     include Enumerable
 
-    def bytes
-      to_enum :each_byte
+    def initialize
+      @lineno = 0
+      @advance = true
+      @init = false
+      @use_stdin_only = false
     end
 
-    def chars
-      to_enum :each_char
+    def bytes(&b)
+      return to_enum(:each_byte) unless block_given?
+      each_byte(&b)
+      self
+    end
+
+    def binmode
+      self
+    end
+
+    def chars(&b)
+      return to_enum(:each_char) unless block_given?
+      each_char(&b)
+      self
     end
 
     def close
-      close_stream if current_stream
+      advance!
+      @stream.close
+
+      @advance = true
+      @lineno = 0
+
+      self
     end
 
     def closed?
-      ARGV.empty? and @stream == nil
+      advance!
+      @stream.closed?
     end
 
-    def each_line(&block)
+    def each_line
       return to_enum :each_line unless block_given?
-      while stream = next_stream
-        stream.each_line(&block)
+      return nil unless advance!
+
+      while line = gets()
+        yield line
       end
       self
     end
@@ -36,65 +60,75 @@ module Rubinius
       self
     end
 
-    def each_byte(&block)
+    def each_byte
       return to_enum :each_byte unless block_given?
-      while stream = next_stream
-        stream.each_byte(&block)
+      while ch = getc()
+        yield ch
       end
       self
     end
 
     def each_char(&block)
       return to_enum :each_char unless block_given?
-      while stream = next_stream
-        stream.each_char(&block)
+      while c = getc()
+        yield c.chr
       end
       self
     end
 
     def eof?
-      raise IOError if closed?
-      current_stream.eof
+      return @stream.eof? if @stream
+      return false
     end
 
     alias_method :eof, :eof?
 
     def fileno
-      raise ArgumentError if closed?
-      @fileno
+      raise ArgumentError, "no stream" unless advance!
+      @stream.fileno
     end
 
     alias_method :to_i, :fileno
 
     def filename
-      current_stream
-      @last_filename
+      advance!
+      @filename
     end
 
     alias_method :path, :filename
 
     def file
-      current_stream
-      @last_file
-    end
-
-    def getbyte
-      stream = next_stream
-      stream.getbyte if stream
+      advance!
+      @stream
     end
 
     def getc
-      stream = next_stream
-      stream.getc if stream
+      while true
+        return nil unless advance!
+        if val = @stream.getc
+          return val
+        end
+
+        @stream.close unless @stream.closed?
+        @advance = true
+      end
     end
+    alias_method :getbyte, :getc
 
     def gets
-      stream = next_stream
-      if stream
-        stream.lineno = $.
-        value = stream.gets
-        @lineno = stream.lineno
-        value
+      while true
+        return nil unless advance!
+        line = @stream.gets
+
+        unless line
+          @stream.close unless @stream.closed?
+          @advance = true
+          next
+        end
+
+        @lineno += 1
+        $. = @lineno
+        return line
       end
     end
 
@@ -102,116 +136,147 @@ module Rubinius
       to_enum :each_line, *args
     end
 
-    def lineno
-      @lineno || 0
-    end
+    attr_reader :lineno
 
-    def lineno=(value)
-      stream = current_stream
-      stream.lineno = value if stream
-      $. = @lineno = value
-      @last_stream_lineno = 0
+    def lineno=(val)
+      $. = @lineno = val
     end
 
     def pos
-      raise ArgumentError if closed?
-      current_stream.pos
+      raise ArgumentError, "no stream" unless advance!
+      @stream.tell
     end
 
     alias_method :tell, :pos
 
     def pos=(position)
-      current_stream.pos = position unless current_stream.closed?
+      raise ArgumentError, "no stream" unless advance!
+      @stream.pos = position
     end
 
     def readbyte
-      stream = next_stream
-      raise EOFError unless stream
-      stream.readbyte
+      advance!
+
+      if val = getc()
+        return val
+      end
+
+      raise EOFError, "ARGF at end"
     end
 
+    alias_method :readchar, :readbyte
+
     def read(bytes=nil, output=nil)
-      result = ""
-      have_enough = false
-      while not have_enough and stream = next_stream
-        to_read = bytes ? (bytes-result.size) : nil
-        result << stream.read(to_read)
-        have_enough = bytes ? (result.size == bytes) : false
+      output ||= ""
+
+      if bytes
+        bytes_left = bytes
+
+        until bytes_left == 0
+          return output unless advance!
+
+          if res = @stream.read(bytes_left)
+            output << res
+            bytes_left -= res.size
+          else
+            @stream.close unless @stream.closed?
+            @advance = true
+          end
+
+        end
+
+        return output
       end
-      output ? output << result : result
+
+      while advance!
+        output << @stream.read
+        break if @use_stdin_only
+
+        @stream.close unless @stream.closed?
+        @advance = true
+      end
+
+      return output
     end
 
     def readlines
+      return nil unless advance!
+
       lines = []
-      while stream = next_stream
-        lines << stream.gets
+      while line = gets()
+        lines << line
       end
-      lines.any? ? lines : nil
+      return lines
     end
 
     def readline
-      stream = next_stream
-      raise EOFError unless stream
-      stream.readline
+      raise EOFError, "ARGF at end" unless advance!
+
+      if line = gets()
+        return line
+      end
+
+      raise EOFError, "ARGF at end"
     end
 
     alias_method :to_a, :readlines
 
-    def readchar
-      stream = next_stream
-      raise EOFError unless stream
-      stream.readchar
-    end
-
     def rewind
-      raise ArgumentError if closed?
-      $. = @last_stream_lineno
-      current_stream.rewind
+      raise ArgumentError, "no stream to rewind" unless advance!
+      @lineno -= @stream.lineno
+      @stream.rewind
     end
 
-    def to_io
-      current_stream.to_io
-    end
-
-    def seek(offset, whence=IO::SEEK_SET)
-      current_stream.seek(offset, whence) unless closed? or current_stream.closed?
+    def seek(*args)
+      raise ArgumentError, "no stream" unless advance!
+      @stream.seek(*args)
     end
 
     def skip
-      current_stream.close unless closed? or current_stream.closed?
+      @stream.close unless @stream.closed?
+      @advance = true
+      self
+    end
+
+    def to_io
+      advance!
+      @stream.to_io
+    end
+
+    def to_s
+      "ARGF"
     end
 
     ## private methods
 
-    def current_stream
-      @stream or next_stream
-    end
-    private :current_stream
+    def advance!
+      return true unless @advance
 
-    def next_stream
-      return @stream unless @stream == nil or @stream.closed? or @stream.eof?
+      unless @init
 
-      close_stream if @stream
-      return nil if ARGV.empty? # nothing left
-      $. = @last_stream_lineno = 0 unless @stream # reset values on first file
+        if ARGV.empty?
+          @advance = false
+          @stream = STDIN
+          @filename = "-"
+          @use_stdin_only = true
+          return true
+        end
 
-      $FILENAME = @last_filename = ARGV.shift
-      @stream = @last_filename == '-' ? STDIN : File.open(@last_filename, 'r')
-      @last_file = @stream
-      @fileno = (@fileno || 0) + 1
-
-      @stream
-    end
-    private :next_stream
-
-    def close_stream
-      unless @stream.closed? or @stream.fileno == 0 # STDIN
-        @last_stream_lineno = @stream.lineno
-        @stream.close
+        @init = true
       end
-      @stream = nil if ARGV.empty? # close ARGF
+
+      return false if @use_stdin_only || ARGV.empty?
+
+      @advance = false
+
+      file = ARGV.shift
+      @stream = (file == "-" ? STDIN : File.open(file, "r"))
+      $FILENAME = @filename = file
+
+      return true
     end
-    private :close_stream
+    private :advance!
+
   end
 end
 
