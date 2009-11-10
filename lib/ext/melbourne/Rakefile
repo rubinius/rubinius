@@ -1,0 +1,47 @@
+# Setup project files
+project_files = common_headers + headers + sources("grammar.cpp") + objects
+
+add_include_dir "#{$ELIBSDIR}/libbstring",
+                "#{$ELIBSDIR}/libmquark",
+                "#{$ELIBSDIR}/libptr_array",
+                "#{$ELIBSDIR}/libcchash"
+
+add_external_lib "mquark", "bstring", "ptr_array", "cchash"
+
+task :clean do
+  rm_f FileList["./**/*.o"], :verbose => $verbose
+end
+
+# Build the Melbourne extension against Rubinius
+directory "rbx"
+melbourne_rbx = "rbx/melbourne.#{$DLEXT}"
+
+# Build the Melbourne extension against MRI
+directory "ruby"
+melbourne_mri = "ruby/melbourne.#{$DLEXT}"
+
+# Build tasks
+namespace :build do
+  task :pre_rbx do
+    puts "Building Melbourne for Rubinius"
+    add_rbx_capi
+  end
+
+  desc "Build Melbourne for Rubinius"
+  task :rbx => melbourne_rbx
+
+  task :pre_mri do
+    puts "Building Melbourne for MRI"
+    add_mri_capi
+  end
+
+  desc "Build Melbourne for MRI"
+  task :mri => melbourne_mri
+end
+
+file melbourne_rbx => %w[build:pre_rbx clean rbx] + project_files
+
+file melbourne_mri => %w[build:pre_mri clean ruby] + project_files
+
+desc "Build Melbourne for both Rubinius and MRI"
+task :build => %w[build:mri build:rbx]

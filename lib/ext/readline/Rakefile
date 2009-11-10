@@ -1,0 +1,20 @@
+# Setup project files
+project_files = common_headers + headers + sources + objects
+
+add_rbx_capi
+
+if ENV["READLINE_DIR"]
+  add_include_dir ENV["READLINE_DIR"]
+  add_link_dir "#{ENV["READLINE_DIR"]}/lib"
+else
+  add_include_dir "/usr/include"
+end
+
+add_shared_lib "readline", "ncurses"
+
+readline = "readline.#{$DLEXT}"
+
+file readline => project_files
+
+desc "Build Readline extension"
+task :build => readline

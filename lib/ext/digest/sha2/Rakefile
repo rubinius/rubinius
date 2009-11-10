@@ -1,0 +1,14 @@
+# Setup project files
+project_files = common_headers + headers + sources + objects
+
+add_rbx_capi
+
+add_include_dir ".."
+add_shared_lib "crypto"
+
+sha2 = "sha2.#{$DLEXT}"
+
+file sha2 => project_files
+
+desc "Build Digest/sha2 extension"
+task :build => sha2

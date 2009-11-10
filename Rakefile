@@ -75,7 +75,7 @@ task :clean => %w[
   vm:clean
   kernel:clean
   clean:crap
-  extension:clean
+  extensions:clean
   configure:clean
 ]
 

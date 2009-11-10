@@ -1,0 +1,14 @@
+# Setup project files
+project_files = common_headers + headers + sources + objects
+
+add_rbx_capi
+
+add_include_dir ".."
+add_shared_lib "crypto"
+
+bubblebabble = "bubblebabble.#{$DLEXT}"
+
+file bubblebabble => project_files
+
+desc "Build Digest/bubblebabble extension"
+task :build => bubblebabble

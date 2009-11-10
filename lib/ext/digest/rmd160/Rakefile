@@ -1,0 +1,14 @@
+# Setup project files
+project_files = common_headers + headers + sources + objects
+
+add_rbx_capi
+
+add_include_dir ".."
+add_shared_lib "crypto"
+
+rmd160 = "rmd160.#{$DLEXT}"
+
+file rmd160 => project_files
+
+desc "Build Digest/rmd160 extension"
+task :build => rmd160

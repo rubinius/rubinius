@@ -1,0 +1,13 @@
+# Setup project files
+project_files = common_headers + headers + sources + objects
+
+add_rbx_capi
+
+add_define "BASE=10000UL", "BASE_FIG=4"
+
+bigdecimal = "bigdecimal.#{$DLEXT}"
+
+file bigdecimal => project_files
+
+desc "Build Bigdecimal extension"
+task :build => bigdecimal

@@ -65,51 +65,7 @@ FileList[ "lib/compiler.rb",
 end
 
 namespace :compiler do
-  directory(mri_ext_dir = "lib/ext/melbourne/ruby")
-
-  mri_ext = "lib/ext/melbourne/ruby/melbourne.#{$dlext}"
-  task :build => mri_ext
-  file mri_ext => FileList[
-    mri_ext_dir,
-    "lib/ext/melbourne/extconf.rb",
-    "lib/ext/melbourne/grammar.y",
-    "lib/ext/melbourne/grammar.hpp",
-    "lib/ext/melbourne/grammar.cpp",
-    "lib/ext/melbourne/internal.hpp",
-    "lib/ext/melbourne/melbourne.cpp",
-    "lib/ext/melbourne/node.hpp",
-    "lib/ext/melbourne/visitor.hpp",
-    "lib/ext/melbourne/visitor.cpp",
-    "lib/ext/melbourne/local_state.hpp",
-    "lib/ext/melbourne/node_types.hpp",
-    "lib/ext/melbourne/node_types.cpp",
-    "lib/ext/melbourne/symbols.hpp",
-    "lib/ext/melbourne/symbols.cpp",
-    "lib/ext/melbourne/var_table.hpp",
-    "lib/ext/melbourne/var_table.cpp",
-  ] do
-    Dir.chdir "lib/ext/melbourne" do
-      puts "Building melbourne for MRI"
-      redirect = $verbose ? "" : " > /dev/null 2>&1"
-
-      libs = File.expand_path "../../vm/external_libs", __FILE__
-      ruby "extconf.rb --with-bstring-include=#{libs}/libbstring" \
-                     " --with-mquark-include=#{libs}/libmquark" \
-                     " --with-ptr-array-include=#{libs}/libptr_array" \
-                     " --with-cchash-include=#{libs}/libcchash" \
-                     " --with-bstring-lib=#{libs}/libbstring" \
-                     " --with-mquark-lib=#{libs}/libmquark" \
-                     " --with-ptr_array-lib=#{libs}/libptr_array" \
-                     " --with-cchash-lib=#{libs}/libcchash" \
-                     " #{redirect}"
-
-      sh "make clean #{redirect}"
-      sh "make #{redirect}"
-      mv "melbourne.#{$dlext}", "ruby", :verbose => $verbose
-    end
-  end
-
-  task :load => [opcodes, :build] do
+  task :load => [opcodes, "lib/ext/melbourne/ruby/melbourne.#{$dlext}"] do
     require File.expand_path("../../lib/compiler", __FILE__)
   end
 
@@ -124,7 +80,6 @@ namespace :compiler do
       kernel_clean if !kernel_mtime or compiler_mtime > kernel_mtime
     end
   end
-
 end
 
 desc "Build all kernel files"

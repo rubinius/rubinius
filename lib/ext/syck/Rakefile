@@ -1,0 +1,11 @@
+# Setup project files
+project_files = common_headers + headers + sources + objects
+
+add_rbx_capi
+
+syck = "syck.#{$DLEXT}"
+
+file syck => project_files
+
+desc "Build Syck extension"
+task :build => syck
