@@ -33,7 +33,7 @@ module Rubinius
       advance!
       @stream.close
 
-      @advance = true
+      @advance = true unless @use_stdin_only
       @lineno = 0
 
       self
@@ -109,6 +109,7 @@ module Rubinius
           return val
         end
 
+        return nil if @use_stdin_only
         @stream.close unless @stream.closed?
         @advance = true
       end
@@ -121,6 +122,7 @@ module Rubinius
         line = @stream.gets
 
         unless line
+          return nil if @use_stdin_only
           @stream.close unless @stream.closed?
           @advance = true
           next
@@ -179,6 +181,7 @@ module Rubinius
             output << res
             bytes_left -= res.size
           else
+            break if @use_stdin_only
             @stream.close unless @stream.closed?
             @advance = true
           end
@@ -190,8 +193,8 @@ module Rubinius
 
       while advance!
         output << @stream.read
-        break if @use_stdin_only
 
+        break if @use_stdin_only
         @stream.close unless @stream.closed?
         @advance = true
       end
@@ -233,6 +236,7 @@ module Rubinius
     end
 
     def skip
+      return self if @use_stdin_only
       @stream.close unless @stream.closed?
       @advance = true
       self
