@@ -1,1 +1,0 @@
-fails:Array#uniq! raises a TypeError on a frozen array if modification would take place

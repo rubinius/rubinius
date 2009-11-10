@@ -1,2 +1,1 @@
 fails:Array#sort! temporarily freezes self and recovers after sorted
-fails:Array#sort! raises a TypeError on a frozen array

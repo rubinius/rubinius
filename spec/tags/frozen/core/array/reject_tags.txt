@@ -1,1 +1,0 @@
-fails:Array#reject! raises a TypeError on a frozen array

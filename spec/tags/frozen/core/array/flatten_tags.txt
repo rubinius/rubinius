@@ -1,1 +1,0 @@
-fails:Array#flatten! raises a TypeError on frozen arrays when modification would take place

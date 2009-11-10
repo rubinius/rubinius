@@ -1,1 +1,0 @@
-fails:Array#reverse! raises a TypeError on a frozen array

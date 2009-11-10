@@ -1,1 +1,0 @@
-fails:Array#initialize raises a TypeError on frozen arrays even if the array would not be modified

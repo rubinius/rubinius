@@ -1,1 +1,0 @@
-fails:Array#delete raises a TypeError on a frozen array if a modification would take place
