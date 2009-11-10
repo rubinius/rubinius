@@ -31,6 +31,21 @@ describe "IO#reopen" do
     }
   end
 
+  it "raises IOError when called on closed stream" do
+    @file1.close
+    lambda { @file1.reopen(@file2) }.should raise_error(IOError)
+  end
+
+  it "should not raise IOError when called on closed stream with path" do
+    @file1.close
+    lambda do
+      @file1.reopen(@name2, "r")
+    end.should_not raise_error(IOError)
+
+    @file1.closed?.should be_false
+    @file1.gets.should == "Line 1: One\n"
+  end
+
   it "reassociates self to another file/descriptor but returns self" do
     @file1.reopen(@file2).should == @file1
     @file2.reopen(@file1).should == @file2
