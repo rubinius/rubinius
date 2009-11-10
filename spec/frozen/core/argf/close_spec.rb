@@ -35,12 +35,18 @@ describe "ARGF.close" do
   end
 
   # This passes on 1.8.6 and 1.8.7 but fails on 1.9. matz confirmed that it
-  # should pass in the referenced bug report
-  it "can close STDIN" do
-    argv ['-'] do
-      ARGV.size.should == 1
-      ARGF.close.should == ARGF
-      ARGF.closed?.should be_true
+  # should pass in the referenced bug report.
+  #
+  # This is quarantined because closing STDIN easily destabilizes specs that
+  # run after this. If this is to be spec'd, it must be done in a subprocess
+  # or in some kind of isolation.
+  quarantine! do
+    it "can close STDIN" do
+      argv ['-'] do
+        ARGV.size.should == 1
+        ARGF.close.should == ARGF
+        ARGF.closed?.should be_true
+      end
     end
-  end   
+  end
 end
