@@ -245,12 +245,11 @@ class Module
     raise NameError, "Undefined method `#{name}' for #{self}"
   end
 
-  def instance_method_symbols(all)
-    filter_methods(:public_names, all) | filter_methods(:protected_names, all)
-  end
-
   def instance_methods(all=true)
-    Rubinius.convert_to_names(instance_method_symbols(all))
+    methods = filter_methods(:public_names, all) |
+              filter_methods(:protected_names, all)
+
+    Rubinius.convert_to_names methods
   end
 
   def public_instance_methods(all=true)
