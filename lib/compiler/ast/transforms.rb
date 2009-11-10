@@ -111,7 +111,7 @@ module Rubinius
     # Emits fast VM instructions for certain methods.
     #
     class SendFastMath < SendWithArguments
-      transform :default, :fastmath, "VM instructions for math, relational methods"
+      transform :default, :fast_math, "VM instructions for math, relational methods"
 
       Operators = {
         :+    => :meta_send_op_plus,
@@ -147,7 +147,7 @@ module Rubinius
     # Emits a fast path for #new
     #
     class SendFastNew < SendWithArguments
-      transform :default, :fastnew, "Fast SomeClass.new path"
+      transform :default, :fast_new, "Fast SomeClass.new path"
 
       # FIXME duplicated from kernel/common/compiled_method.rb
       KernelMethodSerial = 47
@@ -225,7 +225,7 @@ module Rubinius
     # Maps various methods to VM instructions
     #
     class SendInstructionMethod < SendWithArguments
-      transform :default, :fastsystem, "VM instructions for certain methods"
+      transform :default, :fast_system, "VM instructions for certain methods"
 
       Methods = {
         :__kind_of__     => :kind_of,

@@ -10,7 +10,7 @@ describe "A Call node using SendInstructionMethod transform" do
       g.send :__kind_of__, 1, false
     end
 
-    compile :fastsystem do |g|
+    compile :fast_system do |g|
       g.push :self
       g.send :b, 0, true
       g.push :self
@@ -28,7 +28,7 @@ describe "A Call node using SendInstructionMethod transform" do
       g.send :__instance_of__, 1, false
     end
 
-    compile :fastsystem do |g|
+    compile :fast_system do |g|
       g.push :self
       g.send :b, 0, true
       g.push :self
@@ -44,7 +44,7 @@ describe "A Call node using SendInstructionMethod transform" do
       g.send :__nil__, 0, false
     end
 
-    compile :fastsystem do |g|
+    compile :fast_system do |g|
       g.push :self
       g.send :a, 0, true
       g.is_nil

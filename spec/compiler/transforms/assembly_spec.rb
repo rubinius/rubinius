@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "A Call node using InlineAssembly plugin" do
+describe "A Call node using InlineAssembly transform" do
   relates <<-ruby do
       Rubinius.asm(a) do |m|
         push 1

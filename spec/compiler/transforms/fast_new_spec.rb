@@ -1,13 +1,13 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "A Call node using FastNew plugin" do
+describe "A Call node using FastNew transform" do
   relates "new" do
     compile do |g|
       g.push :self
       g.send :new, 0, true
     end
 
-    compile :fastnew do |g|
+    compile :fast_new do |g|
       slow = g.new_label
       done = g.new_label
 
@@ -38,7 +38,7 @@ describe "A Call node using FastNew plugin" do
       g.send :new, 1, true
     end
 
-    compile :fastnew do |g|
+    compile :fast_new do |g|
       slow = g.new_label
       done = g.new_label
 
@@ -70,7 +70,7 @@ describe "A Call node using FastNew plugin" do
       g.send :new, 0, false
     end
 
-    compile :fastnew do |g|
+    compile :fast_new do |g|
       slow = g.new_label
       done = g.new_label
 
@@ -100,7 +100,7 @@ describe "A Call node using FastNew plugin" do
       g.send :new, 1, false
     end
 
-    compile :fastnew do |g|
+    compile :fast_new do |g|
       slow = g.new_label
       done = g.new_label
 

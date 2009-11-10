@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "A Call node using PrimitiveDeclaration plugin" do
+describe "A Call node using PrimitiveDeclaration transform" do
   relates <<-ruby do
       def m
         Ruby.primitive :prim

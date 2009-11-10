@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "A Call node using FastMath plugin" do
+describe "A Call node using FastMath transform" do
   relates "1 + 1" do
     compile do |g|
       g.push 1
@@ -8,7 +8,7 @@ describe "A Call node using FastMath plugin" do
       g.send :+, 1, false
     end
 
-    compile :fastmath do |g|
+    compile :fast_math do |g|
       g.push 1
       g.push 1
       g.meta_send_op_plus :+
@@ -25,7 +25,7 @@ describe "A Call node using FastMath plugin" do
       g.send_with_splat :+, 0, false, false
     end
 
-    compile :fastmath do |g|
+    compile :fast_math do |g|
       g.push 1
       g.push :self
       g.send :a, 0, true
@@ -42,7 +42,7 @@ describe "A Call node using FastMath plugin" do
       g.send :-, 1, false
     end
 
-    compile :fastmath do |g|
+    compile :fast_math do |g|
       g.push 1
       g.push 1
       g.meta_send_op_minus :-
@@ -56,7 +56,7 @@ describe "A Call node using FastMath plugin" do
       g.send :==, 1, false
     end
 
-    compile :fastmath do |g|
+    compile :fast_math do |g|
       g.push 1
       g.push 1
       g.meta_send_op_equal :==
@@ -70,7 +70,7 @@ describe "A Call node using FastMath plugin" do
       g.send :===, 1, false
     end
 
-    compile :fastmath do |g|
+    compile :fast_math do |g|
       g.push 1
       g.push 1
       g.meta_send_op_tequal :===
@@ -84,7 +84,7 @@ describe "A Call node using FastMath plugin" do
       g.send :<, 1, false
     end
 
-    compile :fastmath do |g|
+    compile :fast_math do |g|
       g.push 1
       g.push 1
       g.meta_send_op_lt :<
@@ -98,7 +98,7 @@ describe "A Call node using FastMath plugin" do
       g.send :>, 1, false
     end
 
-    compile :fastmath do |g|
+    compile :fast_math do |g|
       g.push 1
       g.push 1
       g.meta_send_op_gt :>

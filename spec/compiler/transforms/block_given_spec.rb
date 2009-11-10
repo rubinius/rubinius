@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "A Call node using BlockGiven plugin" do
+describe "A Call node using BlockGiven transform" do
   block_given = lambda do |g|
     in_method :m do |d|
       no_blk = d.new_label
