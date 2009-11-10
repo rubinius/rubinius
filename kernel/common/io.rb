@@ -1291,16 +1291,16 @@ class IO
   #  f2.reopen(f1)     #=> #<File:testfile>
   #  f2.readlines[0]   #=> "This is line one\n"
   def reopen(other, mode="r+")
-    flush unless closed?
-
     if other.respond_to? :to_io
-      raise IOError, "closed stream" if closed?
+      flush
 
       other = other.to_io
       other.ensure_open
 
       prim_reopen other
     else
+      flush unless closed?
+
       path = StringValue(other)
       other = File.new other, mode
 
