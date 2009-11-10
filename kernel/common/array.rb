@@ -1155,7 +1155,10 @@ class Array
       out = self[start]
 
       if start.kind_of? Range
-        self[start] = nil
+        s = Type.coerce_to start.begin, Fixnum, :to_int
+        unless s >= @total
+          self[start] = nil
+        end
       else
         # make sure that negative values are not passed through to the
         # []= assignment
@@ -1169,8 +1172,14 @@ class Array
         self[start, 1] = nil
       end
     else
+      start = Type.coerce_to start, Fixnum, :to_int
+      length = Type.coerce_to length, Fixnum, :to_int
+
       out = self[start,length]
-      self[start,length] = nil
+
+      unless start >= @total
+        self[start,length] = nil
+      end
     end
 
     out
@@ -1365,6 +1374,8 @@ class Array
 
   # Exactly the same as #replace but private
   def initialize_copy(other)
+    raise TypeError, "array is frozen" if frozen?
+
     other = Type.coerce_to other, Array, :to_ary
 
     @tuple = other.tuple.dup
@@ -1741,7 +1752,7 @@ class Array
     def initialize(*args) frozen_error; end
     def insert(idx, *args) frozen_error unless args.empty?; self; end
     def map!() frozen_error; end
-    def pop() frozen_error; end
+    def pop(*args) frozen_error; end
     def push(*args) frozen_error unless args.empty?; self; end
     def reject!(*args) frozen_error; end
     def replace(*args) frozen_error; end
