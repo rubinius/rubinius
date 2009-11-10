@@ -1,2 +1,0 @@
-fails:Array#hash returns the same hash for recursive arrays
-fails:Array#hash returns the same hash for recursive arrays through hashes
