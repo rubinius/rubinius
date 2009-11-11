@@ -453,6 +453,196 @@ namespace rubinius {
     }
   }
 
+  // Stole/ported from 1.8.7. The system fnmatch doesn't support
+  // a bunch of things this does (and must).
+
+#ifndef CASEFOLD_FILESYSTEM
+# if defined DOSISH || defined __VMS
+#   define CASEFOLD_FILESYSTEM 1
+# else
+#   define CASEFOLD_FILESYSTEM 0
+# endif
+#endif
+
+#define FNM_NOESCAPE	0x01
+#define FNM_PATHNAME	0x02
+#define FNM_DOTMATCH	0x04
+#define FNM_CASEFOLD	0x08
+#if CASEFOLD_FILESYSTEM
+#define FNM_SYSCASE	FNM_CASEFOLD
+#else
+#define FNM_SYSCASE	0
+#endif
+
+#define FNM_NOMATCH	1
+#define FNM_ERROR	2
+
+#define downcase(c) (nocase && ISUPPER(c) ? tolower(c) : (c))
+#define compare(c1, c2) (((unsigned char)(c1)) - ((unsigned char)(c2)))
+#define Next(p) ((p) + 1)
+#define Inc(p) (++(p))
+#define Compare(p1, p2) (compare(downcase(*(p1)), downcase(*(p2))))
+
+  namespace {
+
+    static char *bracket(const char* p, const char* s, int flags) {
+      const int nocase = flags & FNM_CASEFOLD;
+      const int escape = !(flags & FNM_NOESCAPE);
+
+      int ok = 0, nope = 0;
+
+      if(*p == '!' || *p == '^') {
+        nope = 1;
+        p++;
+      }
+
+      while(*p != ']') {
+        const char *t1 = p;
+        if(escape && *t1 == '\\') t1++;
+        if(!*t1) return NULL;
+
+        p = Next(t1);
+        if(p[0] == '-' && p[1] != ']') {
+          const char *t2 = p + 1;
+          if(escape && *t2 == '\\') t2++;
+          if(!*t2) return NULL;
+
+          p = Next(t2);
+          if(!ok && Compare(t1, s) <= 0 && Compare(s, t2) <= 0) ok = 1;
+        } else {
+          if(!ok && Compare(t1, s) == 0) ok = 1;
+        }
+      }
+
+      return ok == nope ? NULL : (char *)p + 1;
+    }
+    /* If FNM_PATHNAME is set, only path element will be matched. (upto '/' or '\0')
+       Otherwise, entire string will be matched.
+       End marker itself won't be compared.
+       And if function succeeds, *pcur reaches end marker.
+       */
+#define UNESCAPE(p) (escape && *(p) == '\\' ? (p) + 1 : (p))
+#define ISEND(p) (!*(p) || (pathname && *(p) == '/'))
+#define RETURN(val) return *pcur = p, *scur = s, (val);
+
+    bool mri_fnmatch_helper(const char** pcur, const char** scur, int flags) {
+      const int period = !(flags & FNM_DOTMATCH);
+      const int pathname = flags & FNM_PATHNAME;
+      const int escape = !(flags & FNM_NOESCAPE);
+      const int nocase = flags & FNM_CASEFOLD;
+
+      const char *ptmp = 0;
+      const char *stmp = 0;
+
+      const char *p = *pcur;
+      const char *s = *scur;
+
+      if (period && *s == '.' && *UNESCAPE(p) != '.') /* leading period */
+        RETURN(false);
+
+      while(1) {
+        switch(*p) {
+        case '*':
+          do { p++; } while (*p == '*');
+          if(ISEND(UNESCAPE(p))) {
+            p = UNESCAPE(p);
+            RETURN(true);
+          }
+          if(ISEND(s)) RETURN(false);
+
+          ptmp = p;
+          stmp = s;
+          continue;
+
+        case '?':
+          if(ISEND(s)) RETURN(false);
+          p++;
+          Inc(s);
+          continue;
+
+        case '[': {
+          const char *t;
+          if(ISEND(s)) RETURN(false);
+          if((t = bracket(p + 1, s, flags)) != 0) {
+            p = t;
+            Inc(s);
+            continue;
+          }
+          goto failed;
+        }
+        }
+
+        /* ordinary */
+        p = UNESCAPE(p);
+        if(ISEND(s)) RETURN(ISEND(p) ? true : false);
+        if(ISEND(p)) goto failed;
+        if(Compare(p, s) != 0) goto failed;
+
+        Inc(p);
+        Inc(s);
+        continue;
+
+failed: /* try next '*' position */
+        if (ptmp && stmp) {
+          p = ptmp;
+          Inc(stmp); /* !ISEND(*stmp) */
+          s = stmp;
+          continue;
+        }
+        RETURN(false);
+      }
+    }
+
+    int mri_fnmatch(const char* p, const char* s, int flags) {
+      const int period = !(flags & FNM_DOTMATCH);
+      const int pathname = flags & FNM_PATHNAME;
+
+      const char *ptmp = 0;
+      const char *stmp = 0;
+
+      if(pathname) {
+        while(1) {
+          if(p[0] == '*' && p[1] == '*' && p[2] == '/') {
+            do { p += 3; } while (p[0] == '*' && p[1] == '*' && p[2] == '/');
+            ptmp = p;
+            stmp = s;
+          }
+          if(mri_fnmatch_helper(&p, &s, flags)) {
+            while(*s && *s != '/') Inc(s);
+            if(*p && *s) {
+              p++;
+              s++;
+              continue;
+            }
+            if(!*p && !*s)
+              return true;
+          }
+          /* failed : try next recursion */
+          if(ptmp && stmp && !(period && *stmp == '.')) {
+            while(*stmp && *stmp != '/') Inc(stmp);
+            if(*stmp) {
+              p = ptmp;
+              stmp++;
+              s = stmp;
+              continue;
+            }
+          }
+          return false;
+        }
+      } else {
+        return mri_fnmatch_helper(&p, &s, flags);
+      }
+    }
+  }
+
+  Object* IO::fnmatch(STATE, String* pattern, String* path, Fixnum* flags) {
+    if(mri_fnmatch(pattern->c_str(), path->c_str(), flags->to_native())) {
+      return Qtrue;
+    }
+
+    return Qfalse;
+  }
+
 /* IOBuffer methods */
 
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {

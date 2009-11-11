@@ -64,6 +64,8 @@ namespace rubinius {
     // Ruby.primitive :io_select
     static Object*  select(STATE, Object* readables, Object* writables, Object* errorables, Object* timeout, CallFrame* calling_environment);
 
+    // Ruby.primitive :io_fnmatch
+    static Object* fnmatch(STATE, String* pattern, String* path, Fixnum* flags);
 
   /* Instance primitives */
 

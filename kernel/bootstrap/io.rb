@@ -46,6 +46,10 @@ class IO
     raise PrimitiveFailure, "IO#select_primitive primitive failed"
   end
 
+  def self.fnmatch(pattern, path, flags)
+    Ruby.primitive :io_fnmatch
+    raise PrimitiveFailure, "IO#fnmatch primitive failed"
+  end
 
   # Instance primitive bindings
 
