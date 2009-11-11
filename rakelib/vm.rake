@@ -36,13 +36,12 @@ end
 
 tests.uniq!
 
-subdirs = %w!builtin capi parser util instruments gc llvm!
+subdirs = %w!builtin capi util instruments gc llvm!
 
 srcs        = FileList["vm/*.{cpp,c}"]
 subdirs.each do |dir|
   srcs += FileList["vm/#{dir}/*.{cpp,c}"]
 end
-srcs       << 'vm/parser/grammar.cpp'
 
 hdrs        = FileList["vm/*.{hpp,h}"]
 subdirs.each do |dir|
@@ -511,17 +510,6 @@ file 'vm/test/runner.cpp' => tests + objs do
      "--abort-on-fail", "-include=string.h", "-include=stdlib.h",
      "-include=vm/test/test_setup.h",
      "-o", "vm/test/runner.cpp", *tests)
-end
-
-file 'vm/parser/grammar.cpp' => 'vm/parser/grammar.y' do
-  src = 'vm/parser/grammar.y'
-  bison = "bison -o vm/parser/grammar.cpp #{src}"
-  if $verbose
-    sh bison
-  else
-    puts "BISON #{src}"
-    sh bison, :verbose => false
-  end
 end
 
 file 'vm/test/runner.o' => 'vm/test/runner.cpp' # no rule .o => .cpp

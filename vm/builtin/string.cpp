@@ -7,8 +7,6 @@
 #include "builtin/float.hpp"
 #include "builtin/integer.hpp"
 
-#include "parser/grammar.hpp"
-
 #include "vm.hpp"
 #include "object_utils.hpp"
 #include "objectmemory.hpp"
@@ -718,11 +716,6 @@ return_value:
     if(val->nil_p()) return (Integer*)Primitives::failure();
 
     return val;
-  }
-
-  Object* String::parse(STATE, String* name, Fixnum* line) {
-    bstring str = blk2bstr(byte_address(), size());
-    return parser::syd_compile_string(state, name->c_str(), str, line->to_native());
   }
 
   void String::Info::show(STATE, Object* self, int level) {

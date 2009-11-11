@@ -150,9 +150,6 @@ namespace rubinius {
     // Ruby.primitive :string_pattern
     static String* pattern(STATE, Object* self, Fixnum* size, Object* pattern);
 
-    // Ruby.primitive :string_parse
-    Object* parse(STATE, String* name, Fixnum* line);
-
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
