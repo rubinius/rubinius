@@ -949,13 +949,26 @@ extern "C" {
 
   Object* rbx_ffi_from_string(STATE, char* ptr) {
     if(!ptr) return Qnil;
-    return String::create(state, ptr);
+    String* str = String::create(state, ptr);
+    str->taint(state);
+    return str;
   }
 
   Object* rbx_ffi_from_string_with_pointer(STATE, char* ptr) {
+    Object* s;
+    Object* p;
+
+    if(ptr) {
+      s = String::create(state, ptr);
+      s->taint(state);
+      p = MemoryPointer::create(state, ptr);
+    } else {
+      s = p = Qnil;
+    }
+
     Array* ary = Array::create(state, 2);
-    ary->set(state, 0, String::create(state, ptr));
-    ary->set(state, 1, MemoryPointer::create(state, ptr));
+    ary->set(state, 0, s);
+    ary->set(state, 1, p);
 
     return ary;
   }

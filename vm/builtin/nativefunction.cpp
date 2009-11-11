@@ -588,6 +588,7 @@ namespace rubinius {
         ret = Qnil;
       } else {
         ret = String::create(state, result);
+        ret->taint(state);
       }
       break;
     }
@@ -603,6 +604,7 @@ namespace rubinius {
         s = p = Qnil;
       } else {
         s = String::create(state, result);
+        s->taint(state);
         p = MemoryPointer::create(state, result);
       }
 
