@@ -274,6 +274,7 @@ RUBY_PATCHLEVEL   = #{RBX_RUBY_PATCHLEVEL.inspect}
 RUBY_PLATFORM     = #{RBX_HOST.inspect}
 RUBY_RELEASE_DATE = #{RBX_RUBY_RELDATE.inspect}
 RUBY_VERSION      = #{RBX_RUBY_VERSION.inspect}
+RUBY_COPYRIGHT    = "rubinius - Copyright (C) 2006-2009 Evan Phoenix"
 
 VERSION           = RUBY_VERSION
     EOF
