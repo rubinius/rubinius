@@ -121,6 +121,22 @@ describe "A Super node" do
   end
 
   relates <<-ruby do
+      def f(*)
+        super
+      end
+    ruby
+
+    compile do |g|
+      in_method :f do |d|
+        d.push_local 0
+        d.cast_array
+        d.push_block
+        d.send_super :f, 0, true
+      end
+    end
+  end
+
+  relates <<-ruby do
       def x
         super(24, 42)
       end

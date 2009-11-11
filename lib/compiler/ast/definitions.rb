@@ -259,7 +259,12 @@ module Rubinius
           @optional = []
         end
 
-        args << splat if splat.kind_of? Symbol
+        if splat.kind_of? Symbol
+          args << splat
+        elsif splat
+          splat = :@unnamed_splat
+          args << splat
+        end
         @names = args
         @splat = splat
       end
