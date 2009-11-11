@@ -943,10 +943,12 @@ extern "C" {
   }
 
   Object* rbx_ffi_from_ptr(STATE, void* ptr) {
+    if(!ptr) return Qnil;
     return MemoryPointer::create(state, ptr);
   }
 
   Object* rbx_ffi_from_string(STATE, char* ptr) {
+    if(!ptr) return Qnil;
     return String::create(state, ptr);
   }
 
