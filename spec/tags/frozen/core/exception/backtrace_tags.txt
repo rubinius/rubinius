@@ -1,1 +1,0 @@
-fails:Exception#backtrace returns nil if no backtrace was set

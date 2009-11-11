@@ -1,2 +1,0 @@
-fails:SystemCallError.new accepts single Fixnum argument as errno
-fails:SystemCallError#errno returns the errno given as optional argument to new
