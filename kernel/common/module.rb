@@ -31,9 +31,8 @@ class Module
   end
 
   def initialize(&block)
-    @method_table = Rubinius::MethodTable.new
-    @constants = Rubinius::LookupTable.new
-
+    # The method and constants tables are created and setup
+    # by Class and Module allocate.
     module_eval(&block) if block
   end
 

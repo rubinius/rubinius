@@ -85,6 +85,8 @@ namespace rubinius {
     cls->class_id_ = state->shared.inc_class_count();
     cls->set_packed_size(0);
 
+    cls->setup(state);
+
     cls->set_type_info(state->om->type_info[ObjectType]);
     return cls;
   }
