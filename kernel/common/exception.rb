@@ -238,8 +238,10 @@ class SystemCallError < StandardError
       message = StringValue message
     end
 
-    if errno and error = SystemCallError.errno_error(message, errno)
-      return error
+    if errno and errno.kind_of? Fixnum
+      if error = SystemCallError.errno_error(message, errno)
+        return error
+      end
     end
 
     super(message, errno)
