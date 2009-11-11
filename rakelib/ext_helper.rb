@@ -84,7 +84,15 @@ def add_mri_capi
 
   add_ldflag DEFAULT["LDSHARED"].split[1..-1].join(' ')
   add_ldflag DEFAULT["LDFLAGS"]
-  add_include_dir DEFAULT["archdir"]
+  rubyhdrdir = DEFAULT["rubyhdrdir"]
+  if RUBY_VERSION =~ /\A1\.9\./
+    arch_hdrdir = "#{rubyhdrdir}/#{DEFAULT['arch']}"
+    add_include_dir rubyhdrdir
+    add_include_dir arch_hdrdir
+    add_link_dir DEFAULT["archdir"]
+  else
+    add_include_dir DEFAULT["archdir"]
+  end
 end
 
 def add_rbx_capi

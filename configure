@@ -206,7 +206,7 @@ class Configure
   end
 
   def detect_features
-    if has_function("backtrace", "execinfo.h")
+    if has_function("backtrace", ["execinfo.h"])
       @defines << "HAS_EXECINFO"
     end
   end

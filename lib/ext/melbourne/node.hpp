@@ -48,7 +48,10 @@ namespace melbourne {
 
 #define RNODE(obj)  ((NODE*)(obj))
 
+#ifndef FL_USHIFT
 #define FL_USHIFT 11
+#endif
+
 #define FL_UMASK (0xff<<FL_USHIFT)
 
 #define nd_type(n) ((int)(((RNODE(n))->flags>>FL_USHIFT)&0xff))
