@@ -3,21 +3,19 @@
 
 module Rubinius
   class EnvironmentVariables
-
     include Enumerable
+    include Rubinius::EnvironmentAccess
 
     def [](key)
-      value = EnvironmentVariables.getenv StringValue(key)
-      value.taint unless value.nil?
-      value
+      getenv StringValue(key)
     end
 
     def []=(key, value)
       key = StringValue(key)
       if value.nil?
-        EnvironmentVariables.unsetenv(key)
+        unsetenv(key)
       else
-        EnvironmentVariables.setenv key, StringValue(value), 1
+        setenv key, StringValue(value), 1
       end
       value
     end
@@ -159,15 +157,15 @@ module Rubinius
     end
 
     def to_hash
-      environ = EnvironmentVariables.environ
-      environ.type_size = FFI.type_size(FFI.find_type :pointer)
+      env = environ()
+      env.type_size = FFI.type_size(FFI.find_type :pointer)
 
       i = 0
 
       hash = {}
 
-      until environ[i].read_pointer.null? do
-        entry = environ[i].read_pointer.read_string
+      until env[i].read_pointer.null? do
+        entry = env[i].read_pointer.read_string
         key, value = entry.split '=', 2
         value.taint unless value.nil?
         key.taint unless key.nil?

@@ -1,5 +1,5 @@
 module Rubinius
-  class EnvironmentVariables
+  module EnvironmentAccess
     extend FFI::Library
 
     attach_function :getenv,   [:string], :string
