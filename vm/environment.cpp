@@ -287,7 +287,11 @@ namespace rubinius {
 
       msg << "exception detected at toplevel: ";
       if(!exc->message()->nil_p()) {
-        msg << exc->message()->c_str();
+        if(String* str = try_as<String>(exc->message())) {
+          msg << str->c_str();
+        } else {
+          msg << "<non-string Exception message>";
+        }
       } else if(Exception::argument_error_p(state, exc)) {
         msg << "given "
             << as<Fixnum>(exc->get_ivar(state, state->symbol("@given")))->to_native()

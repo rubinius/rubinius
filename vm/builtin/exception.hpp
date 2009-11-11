@@ -15,14 +15,14 @@ namespace rubinius {
     const static object_type type = ExceptionType;
 
   private:
-    String* message_;  // slot
+    Object* message_;  // slot
     Array* locations_; // slot
     Exception* parent_; // slot
 
   public:
     /* accessors */
 
-    attr_accessor(message, String);
+    attr_accessor(message, Object);
     attr_accessor(locations, Array);
     attr_accessor(parent, Exception);
 
@@ -32,6 +32,8 @@ namespace rubinius {
     static Exception* create(STATE);
 
     void print_locations(STATE);
+
+    const char* message_c_str();
 
     static Exception* make_exception(STATE, Class* exc_class, const char* message);
     static Exception* make_type_error(STATE, object_type type, Object* object,

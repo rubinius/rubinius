@@ -43,12 +43,8 @@ namespace rubinius {
 
       if(Exception* exc = try_as<Exception>(vm_->thread_state()->raise_value())) {
         std::cout << "Exception at thread toplevel:\n";
-        String* message = exc->message();
-        if(message->nil_p()) {
-          std::cout << "<no message> (";
-        } else {
-          std::cout << exc->message()->c_str() << " (";
-        }
+
+        std::cout << exc->message_c_str() << " (";
 
         std::cout << exc->class_object(vm_)->name()->c_str(vm_) << ")\n\n";
         // This can blow up. Don't do it.

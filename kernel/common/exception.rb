@@ -19,7 +19,11 @@ class Exception
       return @backtrace.to_mri
     end
 
-    awesome_backtrace.to_mri
+    if @locations
+      awesome_backtrace.to_mri
+    else
+      nil
+    end
   end
 
   def awesome_backtrace
@@ -72,10 +76,12 @@ class Exception
 
   def exception(message=nil)
     if message
-      self.class.new(message)
-    else
-      self
+      unless message.equal? self
+        return self.class.new(message)
+      end
     end
+
+    self
   end
 
   def location
@@ -221,20 +227,29 @@ class SystemCallError < StandardError
     raise PrimitiveFailure, "SystemCallError.errno_error failed"
   end
 
-  def self.new(message, errno = nil)
-    if message.is_a? Integer
-      errno   = message
+  # We use .new here because when errno is set, we attempt to
+  # lookup and return a subclass of SystemCallError, specificly,
+  # one of the Errno subclasses.
+  def self.new(message, errno=nil)
+    if message.kind_of? Integer
+      errno = message
       message = nil
     elsif message
       message = StringValue message
     end
 
-    if errno and error = errno_error(message, errno)
+    if errno and error = SystemCallError.errno_error(message, errno)
       return error
     end
 
+    super(message, errno)
+  end
+
+  def initialize(message, errno)
+    @errno = errno
+
     msg = "unknown error"
-    msg << " - #{message}" if message
+    msg << " - #{StringValue(message)}" if message
     super(msg)
   end
 end
