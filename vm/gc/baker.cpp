@@ -17,13 +17,18 @@
 #include "capi/handle.hpp"
 
 namespace rubinius {
-  BakerGC::BakerGC(ObjectMemory *om, size_t bytes) :
-    GarbageCollector(om),
-    eden(bytes),
-    heap_a(bytes / 2),
-    heap_b(bytes / 2),
-    total_objects(0),
-    promoted_(0)
+  BakerGC::BakerGC(ObjectMemory *om, size_t bytes)
+    : GarbageCollector(om)
+    , eden(bytes)
+    , heap_a(bytes / 2)
+    , heap_b(bytes / 2)
+    , total_objects(0)
+    , copy_spills_(0)
+    , autotune_(false)
+    , tune_threshold_(0)
+    , original_lifetime_(1)
+    , lifetime_(1)
+    , promoted_(0)
   {
     current = &heap_a;
     next = &heap_b;
@@ -49,7 +54,7 @@ namespace rubinius {
     // TODO test this!
     if(next->contains_p(obj)) return obj;
 
-    if(unlikely(obj->inc_age() >= lifetime)) {
+    if(unlikely(obj->inc_age() >= lifetime_)) {
       copy = object_memory_->promote_object(obj);
 
       promoted_push(copy);
@@ -83,6 +88,14 @@ namespace rubinius {
   bool BakerGC::fully_scanned_p() {
     return next->fully_scanned_p();
   }
+
+  const static double cOverFullThreshold = 95.0;
+  const static int cOverFullTimes = 3;
+  const static size_t cMinimumLifetime = 1;
+
+  const static double cUnderFullThreshold = 20.0;
+  const static int cUnderFullTimes = -3;
+  const static size_t cMaximumLifetime = 6;
 
   /* Perform garbage collection on the young objects. */
   void BakerGC::collect(GCData& data, YoungCollectStats* stats) {
@@ -221,10 +234,37 @@ namespace rubinius {
     eden.reset();
 
     if(stats) {
-      stats->lifetime = lifetime;
+      stats->lifetime = lifetime_;
       stats->percentage_used = current->percentage_used();
       stats->promoted_objects = promoted_objects_;
       stats->excess_objects = copy_spills_;
+    }
+
+    if(autotune_) {
+      double used = current->percentage_used();
+      if(used > cOverFullThreshold) {
+        if(tune_threshold_ >= cOverFullTimes) {
+          if(lifetime_ > cMinimumLifetime) lifetime_--;
+        } else {
+          tune_threshold_++;
+        }
+      } else if(used < cUnderFullThreshold) {
+        if(tune_threshold_ <= cUnderFullTimes) {
+          if(lifetime_ < cMaximumLifetime) lifetime_++;
+        } else {
+          tune_threshold_--;
+        }
+      } else if(tune_threshold_ > 0) {
+        tune_threshold_--;
+      } else if(tune_threshold_ < 0) {
+        tune_threshold_++;
+      } else if(tune_threshold_ == 0) {
+        if(lifetime_ < original_lifetime_) {
+          lifetime_++;
+        } else if(lifetime_ > original_lifetime_) {
+          lifetime_--;
+        }
+      }
     }
 
 #ifdef RBX_GC_STATS

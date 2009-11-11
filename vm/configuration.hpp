@@ -10,6 +10,7 @@ namespace rubinius {
     config::Integer gc_bytes;
     config::Integer gc_large_object;
     config::Integer gc_lifetime;
+    config::Bool    gc_autotune;
     config::Bool    gc_show;
     config::Bool    gc_immix_debug;
 
@@ -40,16 +41,18 @@ namespace rubinius {
     // defaults
     static const int default_gc_bytes = 1048576 * 3;
     static const int default_gc_large_object = 2700;
-    static const int default_gc_lifetime = 6;
+    static const int default_gc_lifetime = 3;
     static const int default_jit_dump_code = 0;
     static const int default_jit_call_til_compile = 4000;
     static const int default_jit_max_method_size = 2048;
-    static const int default_jit_on = true;
+    static const bool default_jit_on = true;
+    static const bool default_gc_autotune = true;
 
     Configuration()
       : gc_bytes(this,        "gc.bytes", default_gc_bytes)
       , gc_large_object(this, "gc.large_object", default_gc_large_object)
       , gc_lifetime(this,     "gc.lifetime", default_gc_lifetime)
+      , gc_autotune(this,     "gc.autotune", default_gc_autotune)
       , gc_show(this,         "gc.show")
       , gc_immix_debug(this,  "gc.immix.debug")
       , dynamic_interpreter_enabled(this, "interpreter.dynamic")
@@ -80,6 +83,9 @@ namespace rubinius {
 
       gc_lifetime.set_description(
           "How many young GC cycles an object lives before promoption");
+
+      gc_autotune.set_description(
+          "Set whether or not the GC should adjust itself for performance");
 
       jit_enabled.set_description(
           "Whether or not to use the dynamic JIT");

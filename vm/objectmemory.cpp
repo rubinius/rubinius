@@ -43,7 +43,9 @@ namespace rubinius {
     last_object_id = 0;
 
     large_object_threshold = config.gc_large_object;
-    young_->lifetime = config.gc_lifetime;
+    young_->set_lifetime(config.gc_lifetime);
+
+    if(config.gc_autotune) young_->set_autotune();
 
     for(size_t i = 0; i < LastObjectType; i++) {
       type_info[i] = NULL;
@@ -88,7 +90,7 @@ namespace rubinius {
 
 
   void ObjectMemory::set_young_lifetime(size_t age) {
-    young_->lifetime = age;
+    young_->set_lifetime(age);
   }
 
   void ObjectMemory::debug_marksweep(bool val) {

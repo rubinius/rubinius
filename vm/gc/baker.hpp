@@ -37,7 +37,6 @@ namespace rubinius {
     thread::NullLock lock_;
 
   public:
-    size_t lifetime;
     size_t total_objects;
 
     /* Inline methods */
@@ -120,6 +119,11 @@ namespace rubinius {
   private:
     int copy_spills_;
 
+    bool autotune_;
+    int tune_threshold_;
+    size_t original_lifetime_;
+    size_t lifetime_;
+
     int promoted_objects_;
     ObjectArray* promoted_;
     ObjectArray::iterator promoted_insert, promoted_current;
@@ -154,6 +158,18 @@ namespace rubinius {
   public:
     size_t bytes_used() {
       return eden.used();
+    }
+
+    void set_lifetime(int val) {
+      lifetime_ = original_lifetime_ = val;
+    }
+
+    void set_autotune(bool val = true) {
+      autotune_ = val;
+    }
+
+    bool autotune() {
+      return autotune_;
     }
 
   public:
