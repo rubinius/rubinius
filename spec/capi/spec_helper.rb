@@ -18,26 +18,27 @@ def compile_extension(path, name)
   # avoid problems where compilation failed but previous shlib exists
   File.delete lib if File.exists? lib
 
-  # TODO use Tap; write a common ext build task
+  # TODO use rakelib/ext_helper.rb?
   if RUBY_NAME == 'rbx'
-    `./bin/rbx compile -I#{Rubinius::HDR_PATH} -C,-ggdb -C,-fPIC #{source}`
+    hdrdir = Rubinius::HDR_PATH
   elsif RUBY_NAME == 'ruby'
-    cc        = Config::CONFIG["CC"]
-    hdrdir    = Config::CONFIG["archdir"]
-    cflags    = Config::CONFIG["CFLAGS"]
-    incflags  = "-I#{path} -I#{hdrdir}"
-
-    `#{cc} #{incflags} #{cflags} -c #{source} -o #{obj}`
-
-    ldshared  = Config::CONFIG["LDSHARED"]
-    libpath   = "-L#{path}"
-    libs      = Config::CONFIG["LIBS"]
-    dldflags  = Config::CONFIG["DLDFLAGS"]
-
-    `#{ldshared} -o #{lib} #{libpath} #{dldflags} #{libs} #{obj}`
+    hdrdir = Config::CONFIG["archdir"]
   else
     raise "Don't know how to build C extensions with #{RUBY_NAME}"
   end
+
+  cc        = Config::CONFIG["CC"]
+  cflags    = Config::CONFIG["CFLAGS"]
+  incflags  = "-I#{path} -I#{hdrdir}"
+
+  `#{cc} #{incflags} #{cflags} -c #{source} -o #{obj}`
+
+  ldshared  = Config::CONFIG["LDSHARED"]
+  libpath   = "-L#{path}"
+  libs      = Config::CONFIG["LIBS"]
+  dldflags  = Config::CONFIG["DLDFLAGS"]
+
+  `#{ldshared} #{obj} #{libpath} #{dldflags} #{libs} -o #{lib}`
 
   # we don't need to leave the object file around
   File.delete obj if File.exists? obj

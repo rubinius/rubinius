@@ -107,7 +107,6 @@ static VALUE array_spec_RARRAY_ptr_assign(VALUE self, VALUE array, VALUE value) 
 }
 
 static VALUE array_spec_RARRAY_ptr_assign_call(VALUE self, VALUE array) {
-  int i;
   VALUE* ptr;
 
   ptr = RARRAY(array)->ptr;
@@ -119,7 +118,6 @@ static VALUE array_spec_RARRAY_ptr_assign_call(VALUE self, VALUE array) {
 }
 
 static VALUE array_spec_RARRAY_ptr_assign_funcall(VALUE self, VALUE array) {
-  int i;
   VALUE* ptr;
 
   ptr = RARRAY(array)->ptr;

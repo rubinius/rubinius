@@ -91,9 +91,10 @@ VALUE string_spec_RSTRING_PTR_assign(VALUE self, VALUE str, VALUE chr) {
 }
 
 VALUE string_spec_RSTRING_PTR_after_funcall(VALUE self, VALUE str, VALUE cb) {
-  RSTRING_PTR(str); // force it out
-
-  rb_funcall(cb, rb_intern("call"), 1, str);
+  // Silence gcc 4.3.2 warning about computed value not used
+  if(RSTRING_PTR(str)) { // force it out
+    rb_funcall(cb, rb_intern("call"), 1, str);
+  }
 
   return rb_str_new2(RSTRING_PTR(str));
 }
