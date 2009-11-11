@@ -1,1 +1,0 @@
-fails:Dir.glob converts patterns with to_str
