@@ -92,7 +92,15 @@ module FFI
         lib = setup_ld_library_path lib if lib
 
         if func = create_backend(lib, cname, args, ret)
+
+          # Make it available as a method callable directly..
           metaclass.method_table.store mname, func, :public
+
+          # and expose it as a private method for people who
+          # want to include this module.
+          method_table.store mname, func, :private
+
+
           return func
         end
       end
