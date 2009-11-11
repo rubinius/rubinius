@@ -47,6 +47,7 @@ module FFI::Platform::POSIX
   attach_function :closedir,  [:pointer], :int
   attach_function :mkdir,     [:string, :short], :int
   attach_function :rmdir,     [:string], :int
+  attach_function :chroot,    [:string], :int
 
   attach_function :fnmatch,   [:string, :string, :int], :int
 

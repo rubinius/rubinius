@@ -19,6 +19,8 @@ class Dir
   end
 
   def self.glob(pattern, flags=0)
+    pattern = StringValue pattern
+
     return [] if pattern.empty?
 
     # The new glob impl doesn't handle flags or curly expansion, so
@@ -385,6 +387,7 @@ class Dir
 
       return value
     else
+      path = StringValue path
       error = FFI::Platform::POSIX.chdir path
       if error != 0
         Errno.handle path
@@ -441,6 +444,12 @@ class Dir
     ret
   end
 
+  def self.chroot(path)
+    ret = FFI::Platform::POSIX.chroot StringValue(path)
+    Errno.handle
+    return ret
+  end
+
   def initialize(path)
     begin
       __open__ path
@@ -462,11 +471,7 @@ class Dir
     self
   end
 
-  def path
-    raise IOError, "closed directory" if closed?
-
-    @path
-  end
+  attr_reader :path
 
   SeekKind = 0
   RewindKind = 1
