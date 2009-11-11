@@ -1740,7 +1740,7 @@ class Array
     false
   end
 
-  class Frozen < Array
+  module Frozen
     def []=(*args) frozen_error; end
     def <<(*args) frozen_error; end
     def clear() frozen_error; end
@@ -1777,7 +1777,7 @@ class Array
 
   def freeze
     super
-    Rubinius::Unsafe.set_class self, Frozen
+    extend Frozen
     self
   end
 end
