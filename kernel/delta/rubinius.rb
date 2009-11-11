@@ -193,3 +193,6 @@ module Rubinius
     Object.const_set :DATA, StringIO.new(str)
   end
 end
+
+# A wierd place for it, but it works.
+RUBY_DESCRIPTION = Rubinius.version
