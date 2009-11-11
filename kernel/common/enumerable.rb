@@ -19,9 +19,17 @@ module Enumerable
       @sorter = sorter
     end
 
+    def self.sort_proc
+      @sort_proc ||= Proc.new do |a,b|
+        unless ret = a <=> b
+          raise ArgumentError, "Improper spaceship value"
+        end
+        ret
+      end
+    end
+
     def sort(xs, &prc)
-      # The ary should be inmutable while sorting
-      prc = Proc.new { |a,b| a <=> b } unless block_given?
+      prc = Sort.sort_proc unless block_given?
 
       if @sorter
         @sorter = method(@sorter) unless @sorter.respond_to?(:call)
