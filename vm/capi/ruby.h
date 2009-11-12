@@ -809,6 +809,9 @@ double rb_num2dbl(VALUE);
   /** Retrieve constant from given module. */
   VALUE   rb_const_get(VALUE module_handle, ID name);
 
+  /** Set constant on the given module */
+  void rb_const_set(VALUE module_handle, ID name, VALUE const_handle);
+
   /** Parses a string into a double value. If badcheck is true, raises an
    * exception if the string contains non-digit or '.' characters.
    */
