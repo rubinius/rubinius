@@ -118,6 +118,7 @@ module Enumerable
   def sorter
     Enumerable::Sort.new
   end
+  private :sorter
 
   ##
   # :call-seq:
