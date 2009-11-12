@@ -75,6 +75,8 @@ class File < IO
     end
   end
 
+  attr_reader :path
+
   def initialize(path_or_fd, mode = "r", perm = 0666)
     if path_or_fd.kind_of? Integer
       super(path_or_fd, mode)
@@ -92,7 +94,15 @@ class File < IO
 
   private :initialize
 
-  attr_reader :path
+  # The mode_t type is 2 bytes (ushort). Instead of getting whatever
+  # value happens to be in the least significant 16 bits, just set
+  # the value to 0 if it is greater than 0xffff. Also, negative values
+  # don't make any sense here.
+  def clamp_short(value)
+    mode = Type.coerce_to value, Integer, :to_int
+    mode < 0 || mode > 0xffff ? 0 : mode
+  end
+  module_function :clamp_short
 
   ##
   # Returns the last access time for the named file as a Time object).
@@ -140,11 +150,7 @@ class File < IO
   #
   #  File.chmod(0644, "testfile", "out")   #=> 2
   def self.chmod(mode, *paths)
-    mode = Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
-    # Bug-to-bug compability: MRI cast mode into a mode_t, which gives you
-    # pretty much a garbage value if it's greater than 2**16. If mode is greater
-    # than 2**16, make mode 0.
-    mode = 0 if mode.abs > 2**16
+    mode = clamp_short mode
 
     paths.each do |path|
       path = Type.coerce_to(path, String, :to_str) unless path.is_a? String
@@ -645,9 +651,8 @@ class File < IO
   #  File.umask(0006)   #=> 18
   #  File.umask         #=> 6
   def self.umask(mask = nil)
-    mask = mask.to_int if mask
     if mask
-      POSIX.umask(mask)
+      POSIX.umask(clamp_short(mask))
     else
       old_mask = POSIX.umask(0)
       POSIX.umask(old_mask)
@@ -771,13 +776,7 @@ class File < IO
   end
 
   def chmod(mode)
-    mode = Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
-
-    # Bug-to-bug compability: MRI cast mode into a mode_t, which gives you
-    # pretty much a garbage value if it's greater than 2**16. If mode is greater
-    # than 2**16, make mode 0.
-    mode = 0 if mode.abs > 2**16
-    POSIX.fchmod(@descriptor, mode)
+    POSIX.fchmod(@descriptor, clamp_short(mode))
   end
 
   def chown(owner_int, group_int)
