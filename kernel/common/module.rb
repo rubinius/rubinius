@@ -296,7 +296,7 @@ class Module
       be.method = meth
       cm = Rubinius::BlockEnvironment::AsMethod.new(be)
     when Method
-      cm = Rubinius::DelegatedMethod.new(name, :call, meth, false)
+      cm = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth.unbind, true)
     when UnboundMethod
       cm = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth, true)
     else

@@ -184,14 +184,8 @@ class UnboundMethod
   # Module anyway.
 
   def bind(receiver)
-    if @defined_in.kind_of? MetaClass
-      unless @defined_in.attached_instance == receiver
-        raise TypeError, "Must be bound to #{@defined_in.attached_instance.inspect} only"
-      end
-    else
-      unless receiver.__kind_of__ @defined_in
-        raise TypeError, "Must be bound to an object of kind #{@defined_in}"
-      end
+    unless receiver.__kind_of__ @defined_in
+      raise TypeError, "Must be bound to an object of kind #{@defined_in}"
     end
     Method.new receiver, @defined_in, @compiled_method, @name
   end
@@ -219,12 +213,10 @@ class UnboundMethod
   end
 
   def owner
-    def owner
-      if defined_in.class == Rubinius::IncludedModule
-        defined_in.module
-      else
-        defined_in
-      end
+    if defined_in.class == Rubinius::IncludedModule
+      defined_in.module
+    else
+      defined_in
     end
   end
 end
