@@ -223,13 +223,14 @@ namespace rubinius {
 
   Integer* Float::fround(STATE) {
     double value = this->val;
-    if (value > 0.0) {
-	value = floor(value);
-	if (this->val - value >= 0.5) value += 1.0;
+    if(value > 0.0) {
+      value = floor(value);
+      if(this->val - value >= 0.5) value += 1.0;
     }
-    if (value < 0.0) {
-	value = ceil(value);
-	if (value - this->val >= 0.5) value -= 1.0;
+
+    if(value < 0.0) {
+      value = ceil(value);
+      if(value - this->val >= 0.5) value -= 1.0;
     }
     return Bignum::from_double(state, value);
   }
