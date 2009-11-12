@@ -66,16 +66,6 @@ namespace rubinius {
       ret = dis.send(state, call_frame, args);
     }
 
-    if(lambda_style && !ret) {
-      RaiseReason reason = state->thread_state()->raise_reason();
-      if(reason == cReturn || reason == cBreak) {
-        // TODO investigate if we should check the destination_scope here.
-        // It doesn't appear that MRI checks anything similar.
-        ret = state->thread_state()->raise_value();
-        state->thread_state()->clear_exception(true);
-      }
-    }
-
     return ret;
   }
 
@@ -118,16 +108,6 @@ namespace rubinius {
       ret = dis.send(state, call_frame, args);
     }
 
-    if(lambda_style && !ret) {
-      RaiseReason reason = state->thread_state()->raise_reason();
-      if(reason == cReturn || reason == cBreak) {
-        // TODO investigate if we should check the destination_scope here.
-        // It doesn't appear that MRI checks anything similar.
-        ret = state->thread_state()->raise_value();
-        state->thread_state()->clear_exception(true);
-      }
-    }
-
     return ret;
   }
 
@@ -160,18 +140,6 @@ namespace rubinius {
       return NULL;
     }
 
-    Object* ret = block_->call_on_object(state, call_frame, args, flags);
-
-    if(lambda_style && !ret) {
-      RaiseReason reason = state->thread_state()->raise_reason();
-      if(reason == cReturn || reason == cBreak) {
-        // TODO investigate if we should check the destination_scope here.
-        // It doesn't appear that MRI checks anything similar.
-        ret = state->thread_state()->raise_value();
-        state->thread_state()->clear_exception(true);
-      }
-    }
-
-    return ret;
+    return block_->call_on_object(state, call_frame, args, flags);
   }
 }

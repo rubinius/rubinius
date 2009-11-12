@@ -654,7 +654,11 @@ instruction raise_return() [ -- ]
     exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
     state->thread_state()->raise_exception(exc);
   } else {
-    state->thread_state()->raise_return(stack_top(), call_frame->top_scope(state));
+    if(call_frame->flags & CallFrame::cIsLambda) {
+      state->thread_state()->raise_return(stack_top(), call_frame->promote_scope(state));
+    } else {
+      state->thread_state()->raise_return(stack_top(), call_frame->top_scope(state));
+    }
   }
   RUN_EXCEPTION();
 end
@@ -1238,12 +1242,6 @@ end
 #   When the method returns, the return value will be on top of the stack.
 # [See Also]
 #   * send_method
-#   * set_args
-#   * cast_array_for_args
-# [Notes]
-#   The number of arguments to be passed to the method in +args+ must have
-#   been set previously via a call to either set_args or
-#   cast_array_for_args.
 
 define CALL_FLAG_CONCAT 2
 
@@ -1347,10 +1345,6 @@ end
 #   activated.
 #
 #   When the method returns, the return value will be on top of the stack.
-# [Notes]
-#   The args register must have previously been set to the count of the
-#   number of arguments in +args+ via either set_args or
-#   cast_array_for_args.
 
 instruction send_super_stack_with_splat(literal count) [ block array +count -- value ]
   flush_ip();

@@ -46,19 +46,7 @@ namespace rubinius {
 
     invocation.module = msg.module;
 
-    Object* ret = (*bm->block_env()->execute)(state, call_frame,
+    return (*bm->block_env()->execute)(state, call_frame,
                                        bm->block_env(), args, invocation);
-
-    if(!ret) {
-      RaiseReason reason = state->thread_state()->raise_reason();
-      if(reason == cReturn || reason == cBreak) {
-        // TODO investigate if we should check the destination_scope here.
-        // It doesn't appear that MRI checks anything similar.
-        ret = state->thread_state()->raise_value();
-        state->thread_state()->clear_exception(true);
-      }
-    }
-
-    return ret;
   }
 }
