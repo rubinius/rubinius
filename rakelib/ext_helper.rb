@@ -26,6 +26,8 @@ $LDFLAGS     = ENV["LDFLAGS"]    || ""
 $DLEXT       = ENV["DLEXT"]      || DEFAULT["DLEXT"]
 $LIBEXT      = ENV["LIBEXT"]     || DEFAULT["LIBEXT"]
 
+$BITS        = 1.size == 8 ? 64 : 32
+
 # Helper methods for manipulating constants
 #
 def add_define(*defines)
