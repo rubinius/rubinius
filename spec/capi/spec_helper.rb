@@ -29,6 +29,7 @@ def compile_extension(path, name)
 
   cc        = Config::CONFIG["CC"]
   cflags    = Config::CONFIG["CFLAGS"]
+  cflags   += " -fPIC" unless cflags.include?("-fPIC")
   incflags  = "-I#{path} -I#{hdrdir}"
 
   `#{cc} #{incflags} #{cflags} -c #{source} -o #{obj}`

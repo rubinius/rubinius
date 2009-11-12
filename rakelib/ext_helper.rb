@@ -52,6 +52,13 @@ def add_cxxflag(*flags)
   flags.each { |f| $CXXFLAGS << " #{f}" }
 end
 
+def add_flag(*flags)
+  flags.each do |f|
+    add_cflag f
+    add_cxxflag f
+  end
+end
+
 def add_ldflag(*flags)
   flags.each { |f| $LDFLAGS << " #{f}" }
 end
@@ -152,6 +159,7 @@ when /aix/
 else
   # on Unix we need a g++ link, not gcc.
   $LDSHARED = "#{$CXX} -shared"
+  add_flag "-fPIC"
 end
 
 # To quiet MRI's warnings about ivars being uninitialized.
