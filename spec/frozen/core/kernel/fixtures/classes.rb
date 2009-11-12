@@ -227,6 +227,26 @@ module KernelSpecs
   class Grandchild < Child
     undef_method :parent_mixin_method
   end
+
+  # for testing lambda
+  class Lambda
+    def outer(meth)
+      inner(meth)
+    end
+
+    def mp(&b); b; end
+
+    def inner(meth)
+      b = mp { return :good }
+
+      pr = send(meth) { |x| x.call }
+
+      pr.call(b)
+
+      # We shouldn't be here, b should have unwinded through
+      return :bad
+    end
+  end
 end
 
 class EvalSpecs

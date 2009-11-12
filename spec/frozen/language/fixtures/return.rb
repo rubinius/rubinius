@@ -45,4 +45,44 @@ module ReturnSpecs
       ScratchPad.record :after_invoke2
     end
   end
+
+  class ThroughDefineMethod
+    lamb = proc { |x| x.call }
+    define_method :foo, lamb
+
+    def mp(&b); b; end
+
+    def outer
+      pr = mp { return :good }
+
+      foo(pr)
+      return :bad
+    end
+  end
+
+  class DefineMethod
+    lamb = proc { return :good }
+    define_method :foo, lamb
+
+    def outer
+      val = :bad
+
+      # This is tricky, but works. If lamb properly returns, then the
+      # return value will go into val before we run the ensure.
+      #
+      # If lamb's return keeps unwinding incorrectly, val will still
+      # have it's old value.
+      #
+      # We can therefore use val to figure out what happened.
+      begin
+        val = foo()
+      ensure
+        if val != :good
+          return :bad
+        end
+      end
+
+      return val
+    end
+  end
 end

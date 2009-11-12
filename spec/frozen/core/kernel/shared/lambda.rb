@@ -19,4 +19,8 @@ describe :kernel_lambda_return_like_method, :shared => true do
     test
     @reached_end_of_method.should be_true
   end
+
+  it "allows long returns to flow through it" do
+    KernelSpecs::Lambda.new.outer(@method).should == :good
+  end
 end
