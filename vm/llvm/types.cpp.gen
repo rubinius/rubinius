@@ -285,6 +285,7 @@ std::vector<const Type*>StructTy_struct_rubinius__BlockInvocation_fields;
 StructTy_struct_rubinius__BlockInvocation_fields.push_back(IntegerType::get(getGlobalContext(), 32));
 StructTy_struct_rubinius__BlockInvocation_fields.push_back(PointerTy_1);
 StructTy_struct_rubinius__BlockInvocation_fields.push_back(PointerTy_19);
+StructTy_struct_rubinius__BlockInvocation_fields.push_back(PointerTy_7);
 StructType* StructTy_struct_rubinius__BlockInvocation = StructType::get(mod->getContext(), StructTy_struct_rubinius__BlockInvocation_fields, /*isPacked=*/false);
 mod->addTypeName("struct.rubinius::BlockInvocation", StructTy_struct_rubinius__BlockInvocation);
 

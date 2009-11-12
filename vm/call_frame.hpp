@@ -85,11 +85,7 @@ namespace rubinius {
     }
 
     Module* module() {
-      if(multiple_scopes_p()) {
-        return top_scope_->module();
-      } else {
-        return scope->module();
-      }
+      return scope->module();
     }
 
     void set_ip(int new_ip) {

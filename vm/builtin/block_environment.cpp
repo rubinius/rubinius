@@ -101,8 +101,11 @@ namespace rubinius {
       (vmm->number_of_locals * sizeof(Object*));
     StackVariables* scope =
       reinterpret_cast<StackVariables*>(alloca(scope_size));
+
+    Module* mod = invocation.module;
+    if(!mod) mod = env->top_scope_->module();
     scope->initialize(invocation.self, env->top_scope_->block(),
-                      env->top_scope_->module(), vmm->number_of_locals);
+                      mod, vmm->number_of_locals);
     scope->set_parent(env->scope_);
 
     InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);

@@ -290,9 +290,11 @@ class Module
     when Proc::Method
       cm = Rubinius::DelegatedMethod.new(name, :call, meth, false)
     when Proc
-      prc = meth.dup
-      prc.lambda_style!
-      cm = Rubinius::DelegatedMethod.new(name, :call_on_object, prc, true)
+      be = meth.block.dup
+      meth = be.method.dup
+      meth.name = name.to_sym
+      be.method = meth
+      cm = Rubinius::BlockEnvironment::AsMethod.new(be)
     when Method
       cm = Rubinius::DelegatedMethod.new(name, :call, meth, false)
     when UnboundMethod

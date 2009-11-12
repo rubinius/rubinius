@@ -223,8 +223,13 @@ namespace rubinius {
         InlineCache* cache = &caches[which++];
         cache->set_location(ip, this);
 
-        Symbol* name = as<Symbol>(original->literals()->at(opcodes[ip + 1]));
+        Symbol* name = try_as<Symbol>(original->literals()->at(opcodes[ip + 1]));
+        if(!name) {
+          name = state->symbol("__unknown__");
+        }
+
         cache->set_name(name);
+
         if(allow_private) cache->set_is_private();
         if(is_super) cache->set_is_super();
 

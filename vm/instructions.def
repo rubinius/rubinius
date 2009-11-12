@@ -1305,12 +1305,21 @@ instruction send_super_stack_with_block(literal count) [ block +count -- value ]
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
   Object* const recv = call_frame->self();
 
-  Arguments args(recv, block, count,
+  Arguments new_args(recv, block, count,
                  stack_back_position(count));
 
   SET_ALLOW_PRIVATE(false);
 
-  Object* ret = cache->execute(state, call_frame, args);
+  Object* ret;
+
+  Symbol* current_name = call_frame->cm->name();
+  if(cache->name != current_name) {
+    cache->name = current_name;
+
+    ret = InlineCache::empty_cache_super(state, cache, call_frame, new_args);
+  } else {
+    ret = cache->execute(state, call_frame, new_args);
+  }
 
   stack_clear(count);
 

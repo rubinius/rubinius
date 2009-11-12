@@ -20,11 +20,13 @@ namespace rubinius {
     int flags;
     Object* self;
     StaticScope* static_scope;
+    Module* module;
 
     BlockInvocation(Object* self, StaticScope* static_scope, int flags)
       : flags(flags)
       , self(self)
       , static_scope(static_scope)
+      , module(0)
     {}
   };
 
