@@ -2,6 +2,10 @@ require "rbconfig"
 
 $verbose = Rake.application.options.trace || ARGV.delete("-v")
 
+def env_or_default(name, default)
+  (ENV[name] || default).dup
+end
+
 # Common settings. These can be augmented or overridden
 # by the particular extension Rakefile.
 #
@@ -10,21 +14,21 @@ DEFAULT = Config::CONFIG
 # Don't like the globals? Too bad, they are simple and the
 # duration of this process is supposed to be short.
 
-$CC          = ENV["CC"]         || "gcc"
-$CXX         = ENV["CXX"]        || "g++"
-$LDSHARED    = ENV["LDSHARED"]   || $CXX
-$YACC        = ENV["YACC"]       || "bison"
+$CC          = env_or_default("CC", "gcc")
+$CXX         = env_or_default("CXX", "g++")
+$LDSHARED    = env_or_default("LDSHARED", $CXX)
+$YACC        = env_or_default("YACC", "bison")
 
-$CFLAGS      = ENV["CFLAGS"]     || ""
-$CXXFLAGS    = ENV["CXXFLAGS"]   || ""
+$CFLAGS      = env_or_default("CFLAGS", "")
+$CXXFLAGS    = env_or_default("CXXFLAGS", "")
 
-$ELIBSDIR    = ENV["ELIBSDIR"]   || File.expand_path("../../vm/external_libs", __FILE__)
-$LIBS        = ENV["LIBS"]       || ""
-$LDDIRS      = ENV["LDDIRS"]     || ""
-$LDFLAGS     = ENV["LDFLAGS"]    || ""
+$ELIBSDIR    = env_or_default("ELIBSDIR", File.expand_path("../../vm/external_libs", __FILE__))
+$LIBS        = env_or_default("LIBS", "")
+$LDDIRS      = env_or_default("LDDIRS", "")
+$LDFLAGS     = env_or_default("LDFLAGS", "")
 
-$DLEXT       = ENV["DLEXT"]      || DEFAULT["DLEXT"]
-$LIBEXT      = ENV["LIBEXT"]     || DEFAULT["LIBEXT"]
+$DLEXT       = env_or_default("DLEXT", DEFAULT["DLEXT"])
+$LIBEXT      = env_or_default("LIBEXT", DEFAULT["LIBEXT"])
 
 $BITS        = 1.size == 8 ? 64 : 32
 
