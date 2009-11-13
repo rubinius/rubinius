@@ -205,6 +205,13 @@ class SyntaxError < ScriptError
   attr_accessor :file
   attr_accessor :code
 
+  def self.from(message, column, line, code, file)
+    exc = new message
+    exc.import_position column, line, code
+    exc.file = file
+    exc
+  end
+
   def import_position(c,l, code)
     @column = c
     @line = l

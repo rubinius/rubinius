@@ -16,5 +16,12 @@ class Array
   end
 end
 
+class SyntaxError
+  def self.from(message, column, line, code, file)
+    message << " #{file}:#{line}:#{column}\n  #{code}"
+    SyntaxError.new message
+  end
+end
+
 require File.expand_path("../../kernel/common/compiled_method", __FILE__)
 require File.expand_path("../../kernel/delta/options", __FILE__)
