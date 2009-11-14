@@ -11,7 +11,7 @@ module Rubinius
 
       def constant_defined(s)
         @parent.constant_defined s
-        s << "::" << @name.to_s
+        s << "::#{@name}"
       end
 
       def check_const(g)
@@ -64,6 +64,10 @@ module Rubinius
 
         g.push_cpath_top
         g.find_const @name
+      end
+
+      def constant_defined(s)
+        s << "::#{@name}"
       end
 
       def check_const(g)
