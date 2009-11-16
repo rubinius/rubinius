@@ -102,7 +102,8 @@ This directory contains Rubinius specific standard library classes (e.g.
 Actor, VMActor) and Rubinius specific behavior of methods of MatzRuby standard
 library classes.
 
-## Subtend
+## Capi
+(_Capi was formally called subtend_)
 
 Subtend is the Rubinius component that provides a C API compatible with MRI.
 Writing specs for the subtend functions involves writing a C extension. Review

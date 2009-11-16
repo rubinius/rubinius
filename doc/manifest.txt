@@ -76,7 +76,7 @@ with a brief description of the contents of each.
 
 *   lib/ext/
 
-    C extensions that use Subtend (Ruby C-API).
+    C extensions that use Capi (Ruby C-API).
 
 *   mspec/
 

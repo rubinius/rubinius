@@ -16,7 +16,7 @@ that it is not necessary to have anything compiled beforehand. FFI should be
 used to access the code outside of Rubinius, whether it is system libraries or
 some type of extension code, for example.
 
-There is also a specific Rubinius extension layer called Subtend.  It emulates
+There is also a specific Rubinius extension layer called Capi.  It emulates
 the extension interface of Ruby to allow old Ruby extensions to work with
 Rubinius.
 

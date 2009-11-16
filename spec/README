@@ -39,7 +39,7 @@ spec
  |                + -- ...
  |                + -- time
  |                + -- yaml
- |-- subtend
+ |-- capi
  |     +-- ext
  +-- tags
 

@@ -3,7 +3,7 @@
 Rubinius provides three different mechanisms for interfacing with the VM:
 * Primitives
 * Foregin Function Interface (FFI)
-* Subtend
+* Capi
 
 === Primitives
 
@@ -36,18 +36,16 @@ additional details on how to use FFI.
 FFI should be used whenever access to an external library is required from
 Ruby.
 
-=== Subtend
+=== Capi
 
-Subtend is the MRI-compatible C interface that allows external code to call
+Capi is the MRI-compatible C interface that allows external code to call
 Ruby code running on Rubinius. It is provided so that external libraries
 written to the MRI C-interface can work with Rubinius, with only a re-compile
-required. See
-here[http://blog.fallingsnow.net/2007/03/06/subtend-version-1-is-in/] for more
-information.
+required.
 
 ==== When to Use
 
-Subtend should be used when external code needs to interact with Ruby code.
-Unlike the other two interfaces, Subtend is an inbound interface to
+Capi should be used when external code needs to interact with Ruby code.
+Unlike the other two interfaces, Capi is an inbound interface to
 Ruby/Rubinius.
 
