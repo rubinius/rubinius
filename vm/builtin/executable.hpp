@@ -55,6 +55,9 @@ namespace rubinius {
     static void init(STATE);
     static Object* default_executor(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
+    // Ruby.primitive :executable_invoke
+    Object* invoke(STATE, Symbol* name, Module* mod, Object* recv, Array* args, Object* block, CallFrame* calling_environment);
+
     bool resolve_primitive(STATE);
 
     void add_inliner(VMMethod* vmm);

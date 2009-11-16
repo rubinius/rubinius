@@ -81,9 +81,6 @@ namespace rubinius {
     // Ruby.primitive :compiledmethod_make_machine_method
     MachineMethod* make_machine_method(STATE);
 
-    // Ruby.primitive? :compiledmethod_activate
-    Object* activate(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);
-
     // Ruby.primitive :compiledmethod_jit_soon
     Object* jit_soon(STATE);
 

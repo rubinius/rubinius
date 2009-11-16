@@ -21,11 +21,6 @@ module Rubinius
       raise PrimitiveFailure, "CompiledMethod#jit_soon primitive failed"
     end
 
-    def activate(recv, mod, args)
-      Ruby.primitive :compiledmethod_activate
-      raise PrimitiveFailure, "CompiledMethod#activate failed"
-    end
-
     def self.of_sender
       Ruby.primitive :compiledmethod_of_sender
       raise PrimitiveFailure, "CompiledMethod.of_sender failed"

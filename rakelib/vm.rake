@@ -92,11 +92,11 @@ task :bogo_field_extract => TYPE_GEN
 field_extract_headers = %w[
   vm/builtin/object.hpp
   vm/builtin/integer.hpp
-  vm/builtin/executable.hpp
-  vm/builtin/access_variable.hpp
   vm/builtin/fixnum.hpp
   vm/builtin/array.hpp
   vm/builtin/bignum.hpp
+  vm/builtin/executable.hpp
+  vm/builtin/access_variable.hpp
   vm/builtin/block_environment.hpp
   vm/builtin/block_as_method.hpp
   vm/builtin/bytearray.hpp

@@ -621,7 +621,10 @@ class BreakpointTracker
   def on(method, selector={})
     cm = method
     if method.kind_of? Method or method.kind_of? UnboundMethod
-      cm = method.compiled_method
+      cm = method.executable
+      unless cm.kind_of? CompiledMethod
+        raise ArgumentError, "Method object wasn't bound to a CompiledMethod"
+      end
     end
 
     selector = {:ip => selector} if selector.kind_of? Fixnum

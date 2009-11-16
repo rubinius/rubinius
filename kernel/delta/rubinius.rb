@@ -131,7 +131,7 @@ module Rubinius
   end
 
   def self.jit(meth)
-    cm = meth.compiled_method
+    cm = meth.executable
 
     return unless cm.respond_to? :make_machine_method
 
@@ -139,7 +139,7 @@ module Rubinius
       unless mm.activate
         if $DEBUG
           puts
-          puts meth.compiled_method.decode
+          puts meth.executable.decode
           puts
         end
       end
@@ -151,7 +151,7 @@ module Rubinius
   end
 
   def self.jit_soon(meth)
-    cm = meth.compiled_method
+    cm = meth.executable
     cm.jit_soon
   end
 

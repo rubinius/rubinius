@@ -93,9 +93,19 @@ class Proc
     end
 
     def inspect
-      compiled_method = @bound_method.compiled_method
-      line = compiled_method.first_line if compiled_method.lines
-      file = compiled_method.file
+      cm = @bound_method.executable
+      if cm.respond_to? :file
+        if cm.lines
+          line = cm.first_line
+        else
+          line = "-1"
+        end
+        file = cm.file
+      else
+        line = "-1"
+        file = "(unknown)"
+      end
+
       "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{file}:#{line}>"
     end
 

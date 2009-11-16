@@ -139,26 +139,6 @@ namespace rubinius {
     return local_count_->to_native();
   }
 
-  Object* CompiledMethod::activate(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg,
-                                   Arguments& args) {
-    CompiledMethod* meth = as<CompiledMethod>(args.recv());
-    Object* recv = args.get_argument(0);
-    Module* mod  = as<Module>(args.get_argument(1));
-    Array*  ary = as<Array>(args.get_argument(2));
-
-    Dispatch disp(meth->name(), mod, meth);
-    Arguments new_args(recv, 0, 0);
-
-    new_args.use_array(ary);
-    new_args.set_block(args.block());
-
-    // NOTE even when we're activating a method_missing, we don't
-    // push the name given, because there really isn't one. So if
-    // this is used to call a method_missing, you have to supply all
-    // the args.
-    return meth->execute(state, call_frame, disp, new_args);
-  }
-
   String* CompiledMethod::full_name(STATE) {
     return name_->to_str(state);
   }

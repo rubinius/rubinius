@@ -16,20 +16,17 @@ class Method
   # Takes and stores the receiver object, the method's bytecodes and the
   # Module that the method is defined in.
 
-  def initialize(receiver, defined_in, compiled_method, name = compiled_method.name)
-    @receiver         = receiver
-    @pulled_from      = receiver.class
-    @defined_in       = defined_in
-    @compiled_method  = compiled_method
-    @name             = name
+  def initialize(receiver, defined_in, executable, name)
+    @receiver    = receiver
+    @defined_in  = defined_in
+    @executable  = executable
+    @name        = name
   end
 
   attr_reader :name
   attr_reader :receiver
-  attr_reader :pulled_from
   attr_reader :defined_in
-  attr_reader :compiled_method
-  protected   :pulled_from
+  attr_reader :executable
 
   ##
   # Method objects are equal if they have the same body and are bound to the
@@ -38,7 +35,7 @@ class Method
   def ==(other)
     return true if other.class == Method and
                    @receiver.equal?(other.receiver) and
-                   @compiled_method == other.compiled_method
+                   @executable == other.executable
 
     false
   end
@@ -57,8 +54,8 @@ class Method
   #   def foo(*a);           end   # arity => ((-0) -1) => -1
   #   def foo(a, b, *c, &d); end   # arity => ((-2) -1) => -3
 
-  def arity()
-    @compiled_method.arity
+  def arity
+    @executable.arity
   end
 
   ##
@@ -67,7 +64,7 @@ class Method
   # optionally.
 
   def call(*args, &block)
-    @compiled_method.activate(@receiver, @defined_in, args, &block)
+    @executable.invoke(@name, @defined_in, @receiver, args, block)
   end
 
   alias_method :[], :call
@@ -76,8 +73,8 @@ class Method
   # String representation of this Method includes the method name, the Module
   # it is defined in and the Module that it was extracted from.
 
-  def inspect()
-    "#<#{self.class}: #{@pulled_from}##{@name} (defined in #{@defined_in})>"
+  def inspect
+    "#<#{self.class}: #{@receiver.class}##{@name} (defined in #{@defined_in})>"
   end
 
   alias_method :to_s, :inspect
@@ -87,21 +84,25 @@ class Method
   # definition.
 
   def source_location
-    [@compiled_method.file.to_s, @compiled_method.first_line]
+    if @executable.respond_to? :file
+      [@executable.file.to_s, @executable.first_line]
+    else
+      nil
+    end
   end
 
   def owner
-    if defined_in.class == Rubinius::IncludedModule
-      defined_in.module
+    if @defined_in.class == Rubinius::IncludedModule
+      @defined_in.module
     else
-      defined_in
+      @defined_in
     end
   end
 
   ##
   # Returns a Proc object corresponding to this Method.
 
-  def to_proc()
+  def to_proc
     Proc::Method.new self
   end
 
@@ -112,8 +113,8 @@ class Method
   #
   # See UnboundMethod for more information.
 
-  def unbind()
-    UnboundMethod.new(@defined_in, @compiled_method, @pulled_from, @name)
+  def unbind
+    UnboundMethod.new(@defined_in, @executable, @receiver.class, @name)
   end
 
 end
@@ -141,15 +142,15 @@ class UnboundMethod
   # from can be given but will not be stored. This is always used internally
   # only.
 
-  def initialize(mod, compiled_method, pulled_from = nil, name = compiled_method.name)
-    @defined_in       = mod
-    @compiled_method  = compiled_method
-    @pulled_from      = pulled_from
-    @name             = name
+  def initialize(mod, executable, pulled_from, name)
+    @defined_in  = mod
+    @executable  = executable
+    @pulled_from = pulled_from
+    @name        = name
   end
 
   attr_reader :name
-  attr_reader :compiled_method
+  attr_reader :executable
   attr_reader :defined_in
 
   ##
@@ -161,7 +162,7 @@ class UnboundMethod
   def ==(other)
     return true if other.kind_of? UnboundMethod and
                    @defined_in == other.defined_in and
-                   @compiled_method == other.compiled_method
+                   @executable == other.executable
 
     false
   end
@@ -169,8 +170,8 @@ class UnboundMethod
   ##
   # See Method#arity.
 
-  def arity()
-    @compiled_method.arity
+  def arity
+    @executable.arity
   end
 
   ##
@@ -187,36 +188,40 @@ class UnboundMethod
     unless receiver.__kind_of__ @defined_in
       raise TypeError, "Must be bound to an object of kind #{@defined_in}"
     end
-    Method.new receiver, @defined_in, @compiled_method, @name
+    Method.new receiver, @defined_in, @executable, @name
   end
 
   ##
   # Convenience method for #binding to the given receiver object and calling
   # it with the optionally supplied arguments.
 
-  def call_on_instance(obj, *args)
-    bind(obj).call(*args)
+  def call_on_instance(obj, *args, &block)
+    @executable.invoke(@name, @defined_in, obj, args, block)
   end
 
   ##
   # String representation for UnboundMethod includes the method name, the
   # Module it is defined in and the Module that it was extracted from.
 
-  def inspect()
-    "#<#{self.class}: #{@pulled_from}##{@compiled_method.name} (defined in #{@defined_in})>"
+  def inspect
+    "#<#{self.class}: #{@pulled_from}##{@executable.name} (defined in #{@defined_in})>"
   end
 
   alias_method :to_s, :inspect
 
   def source_location
-    [@compiled_method.file.to_s, @compiled_method.first_line]
+    if @executable.respond_to? :file
+      [@executable.file.to_s, @executable.first_line]
+    else
+      nil
+    end
   end
 
   def owner
-    if defined_in.class == Rubinius::IncludedModule
-      defined_in.module
+    if @defined_in.class == Rubinius::IncludedModule
+      @defined_in.module
     else
-      defined_in
+      @defined_in
     end
   end
 end
