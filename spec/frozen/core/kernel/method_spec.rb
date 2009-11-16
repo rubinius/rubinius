@@ -20,4 +20,9 @@ describe "Kernel#method" do
     @obj.send(:protected_method).should == :protected_method
     @obj.method(:protected_method).should be_an_instance_of(Method)
   end
+
+  it "can call methods created with define_method" do
+    m = @obj.method(:defined_method)
+    m.call.should == :defined
+  end
 end

@@ -52,6 +52,9 @@ module KernelSpecs
 
     private
     def private_method; :private_method; end
+
+    public
+    define_method(:defined_method) { :defined }
   end
 
   class Binding

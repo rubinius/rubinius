@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "GlobalBreakpoint#initalize" do
 
   before :all do
-    @cm = BreakpointSpecs::Debuggee.instance_method(:simple_method).compiled_method
+    @cm = BreakpointSpecs::Debuggee.instance_method(:simple_method).executable
     @cm.iseq = BreakpointSpecs::Debuggee.orig_bytecodes.dup
   end
 
