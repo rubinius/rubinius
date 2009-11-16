@@ -139,6 +139,7 @@ file 'runtime/platform.conf' => deps do |task|
       S_IFWHT
       S_ISUID
       S_ISGID
+      S_ISVTX
     ]
 
     file_constants.each { |c| cg.const c }

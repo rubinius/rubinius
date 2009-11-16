@@ -751,6 +751,8 @@ class File < IO
   # Returns true if the named file has the sticky bit set.
   def self.sticky?(file_name)
     Stat.new(file_name).sticky?
+  rescue Errno::ENOENT
+    return false
   end
   
   ##
@@ -860,6 +862,7 @@ class File::Stat
   S_IFWHT  = Rubinius::Config['rbx.platform.file.S_IFWHT']
   S_ISUID  = Rubinius::Config['rbx.platform.file.S_ISUID']
   S_ISGID  = Rubinius::Config['rbx.platform.file.S_ISGID']
+  S_ISVTX  = Rubinius::Config['rbx.platform.file.S_ISVTX']
 
   POSIX    = FFI::Platform::POSIX
 
@@ -1087,6 +1090,10 @@ class File::Stat
   
   def setuid?
     @stat[:st_mode] & S_ISUID != 0
+  end
+  
+  def sticky?
+    @stat[:st_mode] & S_ISVTX != 0
   end
 
   def size
