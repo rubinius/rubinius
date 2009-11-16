@@ -98,11 +98,19 @@ module Rubinius
       end
 
       def get_bytecode(g)
-        g.push_local_depth @depth, @slot
+        if @depth == 0
+          g.push_local @slot
+        else
+          g.push_local_depth @depth, @slot
+        end
       end
 
       def set_bytecode(g)
-        g.set_local_depth @depth, @slot
+        if @depth == 0
+          g.set_local @slot
+        else
+          g.set_local_depth @depth, @slot
+        end
       end
     end
 

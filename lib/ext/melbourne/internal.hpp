@@ -7,6 +7,8 @@
 
 #include "local_state.hpp"
 
+#include <vector>
+
 namespace melbourne {
 
 #define QUID    quark
@@ -77,7 +79,7 @@ namespace melbourne {
 
     void *lval; /* the parser's yylval */
 
-    ptr_array comments;
+    std::vector<bstring>* magic_comments;
     int column;
     NODE *top;
     ID *locals;

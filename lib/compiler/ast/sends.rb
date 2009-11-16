@@ -2,6 +2,7 @@ module Rubinius
   module AST
     class Send < Node
       attr_accessor :receiver, :name, :privately, :block, :variable
+      attr_accessor :check_for_local
 
       def initialize(line, receiver, name, privately=false)
         @line = line
@@ -9,12 +10,13 @@ module Rubinius
         @name = name
         @privately = privately
         @block = nil
+        @check_for_local = false
       end
 
       def bytecode(g)
         pos(g)
 
-        if @receiver.kind_of? Self and g.state.eval?
+        if @receiver.kind_of? Self and (@check_for_local or g.state.eval?)
           if reference = g.state.scope.search_local(@name)
             return reference.get_bytecode(g)
           end

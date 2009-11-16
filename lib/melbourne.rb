@@ -23,6 +23,7 @@ end
 module Rubinius
   class Melbourne
     attr_accessor :transforms
+    attr_accessor :magic_handler
 
     def self.parse_string(string, name="(eval)", line=1)
       new(name, line).parse_string string
@@ -36,6 +37,13 @@ module Rubinius
       @name = name
       @line = line > 0 ? line : 1
       @transforms = transforms
+      @magic_handler = nil
+    end
+
+    def add_magic_comment(str)
+      if @magic_handler
+        @magic_handler.add_magic_comment str
+      end
     end
 
     def syntax_error
@@ -58,6 +66,8 @@ module Rubinius
 
     def process_transforms(line, receiver, name, arguments, privately=false)
       @transforms.each do |transform|
+        next unless transform.transform_kind == :call
+
         if node = transform.match?(line, receiver, name, arguments, privately)
           unless node.kind_of? AST::Node
             node = transform.new line, receiver, name, arguments, privately
@@ -67,6 +77,5 @@ module Rubinius
       end
       nil
     end
-
   end
 end

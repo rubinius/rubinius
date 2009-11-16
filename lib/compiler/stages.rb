@@ -178,6 +178,18 @@ module Rubinius
         @transforms << transform if transform
       end
 
+      def create
+        @parser = @processor.new(@file, @line, @transforms)
+        @parser.magic_handler = self
+        @parser
+      end
+
+      def add_magic_comment(str)
+        if m = /-\*-\s*(.*?)\s*(-\*-)$/.match(str)
+          enable_transform(m[1].to_sym)
+        end
+      end
+
       def run
         @output = @root.new parse
         @output.file = @file
@@ -196,7 +208,7 @@ module Rubinius
       end
 
       def parse
-        @processor.new(@file, @line, @transforms).parse_file
+        create.parse_file
       end
     end
 
@@ -212,7 +224,7 @@ module Rubinius
       end
 
       def parse
-        @processor.new(@file, @line, @transforms).parse_string(@input)
+        create.parse_string(@input)
       end
     end
   end

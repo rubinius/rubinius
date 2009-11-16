@@ -7,7 +7,13 @@ module Rubinius
 
       parser = compiler.parser
       parser.root AST::Script
-      parser.enable_category transforms
+
+      if transforms.kind_of? Array
+        transforms.each { |t| parser.enable_category t }
+      else
+        parser.enable_category transforms
+      end
+
       parser.input file, line
 
       writer = compiler.writer

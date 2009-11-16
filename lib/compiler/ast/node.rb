@@ -7,6 +7,7 @@ module Rubinius
         Transforms.register category, name, self
         @transform_name = name
         @transform_comment = comment
+        @transform_kind = :call
       end
 
       def self.transform_name
@@ -15,6 +16,14 @@ module Rubinius
 
       def self.transform_comment
         @transform_comment
+      end
+
+      def self.transform_kind
+        @transform_kind
+      end
+
+      def self.transform_kind=(k)
+        @transform_kind = k
       end
 
       def self.match_send?(node, receiver, method, name)

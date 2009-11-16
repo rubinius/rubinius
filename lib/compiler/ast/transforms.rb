@@ -288,6 +288,117 @@ module Rubinius
       end
     end
 
+    class ArrayZen < Node
+      transform :magic, :array_zen, "Array Zen support"
+
+      def self.fixup_send(acc, node, recurse=true)
+        if node.kind_of? Send and
+           node.receiver.kind_of? Self and
+           (node.name == acc or node.name == :_)
+          node.check_for_local = true
+          return
+        end
+
+        if node.kind_of? ArrayLiteral
+          node.body.each { |x| fixup_send(acc, x) }
+        end
+
+        return unless recurse
+
+        node.visit do |result, n|
+          case n
+          when Send
+            fixup_send(acc, n, false)
+          when ArrayLiteral
+            n.body.each { |x| fixup_send(acc, x) }
+          end
+
+          true
+        end
+      end
+
+      def self.match?(line, receiver, name, arguments, privately)
+        return nil unless name == :"+@"
+        return nil unless receiver.kind_of? ArrayLiteral
+
+        ary = receiver.body
+
+        transform = ary.shift
+        source = ary.shift
+
+        unless ary.empty?
+          raise SyntaxError, "invalid array zen form"
+        end
+
+        unless source.kind_of? SendWithArguments
+          raise SyntaxError, "invalid array zen form"
+        end
+
+        unless source.name == :in
+          raise SyntaxError, "invalid array zen form"
+        end
+
+        var = source.receiver
+        source_ary = source.arguments.array.first
+
+        # Ok! it's the form we want. That was a lot of checking.
+
+        acc = var.name
+        acc_node = LocalVariableAssignment.new(line, acc, nil)
+
+        fixup_send(acc, transform)
+
+        new(line, acc_node, source_ary, transform)
+      end
+
+      def initialize(line, var, source, transform)
+        @line = line
+        @var = var
+        @source = source
+        @transform = transform
+
+        @res_set = LocalVariableAssignment.new(line, :_, nil)
+        @res = LocalVariableAccess.new(line, :_)
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        done = g.new_label
+        top = g.new_label
+
+        g.make_array 0
+        @res_set.bytecode(g)
+        g.pop
+
+        @source.bytecode(g)
+        g.send :to_iter, 0
+
+        top.set!
+
+        g.dup
+        g.send :next, 0
+        g.gif done
+
+        g.dup
+        g.send :item, 0
+        @var.bytecode(g)
+        g.pop
+
+        @res.bytecode(g)
+        @transform.bytecode(g)
+        g.send :<<, 1
+        g.pop
+
+        g.goto top
+
+        done.set!
+
+        g.pop # iter
+        @res.bytecode(g)
+      end
+    end
+
     ##
     # Handles loop do ... end
     #

@@ -39,7 +39,6 @@ namespace melbourne {
       parse_state->token_buffer = NULL;
       parse_state->tokidx = 0;
       parse_state->toksiz = 0;
-      parse_state->comments = 0;
       parse_state->memory_cur = NULL;
       parse_state->memory_last_addr = NULL;
       parse_state->current_pool = 0;
@@ -48,6 +47,7 @@ namespace melbourne {
       parse_state->memory_pools = NULL;
       parse_state->emit_warnings = 0;
       parse_state->verbose = RTEST(ruby_verbose);
+      parse_state->magic_comments = new std::vector<bstring>;
 
       return parse_state;
   }
@@ -99,6 +99,14 @@ namespace melbourne {
       free(st->memory_pools[i]);
     }
     free(st->memory_pools);
+
+    for(std::vector<bstring>::iterator i = st->magic_comments->begin();
+        i != st->magic_comments->end();
+        i++) {
+      bdestroy(*i);
+    }
+
+    delete st->magic_comments;
   }
 
   extern long mel_sourceline;

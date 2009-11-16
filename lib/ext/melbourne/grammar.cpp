@@ -7773,7 +7773,13 @@ string_to_ast(VALUE ptp, const char *f, bstring s, int line)
     n = yycompile(parse_state, (char*)f, line);
 
     if(parse_state->error == Qfalse) {
-        ret = process_parse_tree(parse_state, ptp, parse_state->top, NULL);
+      for(std::vector<bstring>::iterator i = parse_state->magic_comments->begin();
+          i != parse_state->magic_comments->end();
+          i++) {
+        rb_funcall(ptp, rb_intern("add_magic_comment"), 1,
+          rb_str_new((const char*)(*i)->data, (*i)->slen));
+      }
+      ret = process_parse_tree(parse_state, ptp, parse_state->top, NULL);
     } else {
         ret = Qnil;
     }
@@ -7827,6 +7833,12 @@ file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
     n = yycompile(parse_state, (char*)f, start);
 
     if(parse_state->error == Qfalse) {
+      for(std::vector<bstring>::iterator i = parse_state->magic_comments->begin();
+          i != parse_state->magic_comments->end();
+          i++) {
+        rb_funcall(ptp, rb_intern("add_magic_comment"), 1,
+          rb_str_new((const char*)(*i)->data, (*i)->slen));
+      }
         ret = process_parse_tree(parse_state, ptp, parse_state->top, NULL);
     } else {
         ret = Qnil;
@@ -8551,6 +8563,19 @@ arg_ambiguous()
 
 #define IS_ARG() (parse_state->lex_state == EXPR_ARG || parse_state->lex_state == EXPR_CMDARG)
 
+
+static char* parse_comment(struct rb_parse_state* parse_state) {
+  int len = parse_state->lex_pend - parse_state->lex_p;
+
+  char* str = parse_state->lex_p;
+  while(len-- > 0 && ISSPACE(str[0])) str++;
+  if(len <= 2) return NULL;
+
+  if(str[0] == '-' && str[1] == '*' && str[2] == '-') return str;
+
+  return NULL;
+}
+
 static int
 yylex(void *yylval_v, void *vstate)
 {
@@ -8619,26 +8644,12 @@ yylex(void *yylval_v, void *vstate)
         goto retry;
 
       case '#':         /* it's a comment */
-        if(parse_state->comments) {
-            comment_column = parse_state->column;
-            cur_line = bfromcstralloc(50, "");
-
-            while((c = nextc()) != '\n' && c != -1) {
-              bconchar(cur_line, c);
-            }
-
-            // FIXME: used to have the file and column too, but took it out.
-            ptr_array_append(parse_state->comments, cur_line);
-
-            if(c == -1) {
-                return 0;
-            }
-        } else {
-            while ((c = nextc()) != '\n') {
-                if (c == -1)
-                    return 0;
-            }
+        if(char* str = parse_comment(parse_state)) {
+            int len = parse_state->lex_pend - str - 1; // - 1 for the \n
+            cur_line = blk2bstr(str, len);
+            parse_state->magic_comments->push_back(cur_line);
         }
+        parse_state->lex_p = parse_state->lex_pend;
         /* fall through */
       case '\n':
         switch (parse_state->lex_state) {
