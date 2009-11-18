@@ -75,4 +75,12 @@ describe "The super keyword" do
       lambda {sub_zsuper.new.foo}.should raise_error(NoMethodError, /super/)
     end
   end
+
+  it "calls the superclass method when in a block" do
+    Super::S6.new.here.should == :good
+  end
+
+  it "calls the superclass method when initial method is defined_method'd" do
+    Super::S7.new.here.should == :good
+  end
 end
