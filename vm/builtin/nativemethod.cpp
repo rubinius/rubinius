@@ -120,7 +120,7 @@ namespace rubinius {
   }
 
   Object* NativeMethodEnvironment::block() {
-    return current_block_.get();
+    return get_object(current_native_frame_->block());
   }
 
   capi::HandleSet& NativeMethodEnvironment::handles() {
@@ -169,10 +169,12 @@ namespace rubinius {
     NativeMethodFrame nmf(env->current_native_frame());
 
     CallFrame* saved_frame = env->current_call_frame();
-    Object* saved_block = env->block();
     env->set_current_call_frame(call_frame);
     env->set_current_native_frame(&nmf);
-    env->set_current_block(args.block());
+
+    // Be sure to do this after installing nmf as the current
+    // native frame.
+    nmf.set_block(env->get_handle(args.block()));
 
     Object* ret;
     ExceptionPoint ep(env);
@@ -194,7 +196,6 @@ namespace rubinius {
 #endif
     }
 
-    env->set_current_block(saved_block);
     env->set_current_call_frame(saved_frame);
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);

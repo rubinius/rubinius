@@ -171,6 +171,10 @@ const int cUndef = 0x22L;
       return next_;
     }
 
+    ObjectHeader* object() {
+      return object_;
+    }
+
     void set_next(InflatedHeader* next) {
       next_ = next;
     }
@@ -244,6 +248,8 @@ const int cUndef = 0x22L;
     }
 
     void set_inflated_header(InflatedHeader* ih) {
+      ih->reset_object(this);
+      ih->flags() = header.f; // probably should be in reset_object
       header.all_flags = ih;
       header.f.inflated = 1;
     }
@@ -394,12 +400,6 @@ const int cUndef = 0x22L;
      */
 
     void set_forward(ObjectHeader* fwd) {
-      flags().Forwarded = 1;
-
-      // DO NOT USE klass() because we need to get around the
-      // write barrier!
-      ivars_ = reinterpret_cast<Object*>(fwd);
-
       // If the header is inflated, repoint it.
       if(inflated_header_p()) {
         InflatedHeader* ih = deflate_header();
@@ -407,6 +407,12 @@ const int cUndef = 0x22L;
         ih->set_object(fwd);
         fwd->set_inflated_header(ih);
       }
+
+      flags().Forwarded = 1;
+
+      // DO NOT USE klass() because we need to get around the
+      // write barrier!
+      ivars_ = reinterpret_cast<Object*>(fwd);
     }
 
     bool marked_p() const {

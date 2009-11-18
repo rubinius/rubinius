@@ -44,6 +44,12 @@ namespace rubinius {
       return true;
     }
 
+    bool in_current_p(address addr) {
+      if(addr < start_) return false;
+      if(addr >= current_) return false;
+      return true;
+    }
+
     bool over_limit_p(void* ptr) {
       return (address)ptr >= limit_;
     }

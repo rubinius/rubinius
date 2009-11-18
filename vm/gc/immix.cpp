@@ -84,7 +84,16 @@ namespace rubinius {
     }
 
     immix::Address fwd = gc_.mark_address(immix::Address(obj), allocator_);
-    return fwd.as<Object>();
+    Object* copy = fwd.as<Object>();
+
+    // Check and update an inflated header
+    if(copy && copy != obj && obj->inflated_header_p()) {
+      InflatedHeader* ih = obj->deflate_header();
+      ih->reset_object(copy);
+      copy->set_inflated_header(ih);
+    }
+
+    return copy;
   }
 
   ObjectPosition ImmixGC::validate_object(Object* obj) {

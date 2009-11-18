@@ -141,9 +141,11 @@ namespace rubinius {
     void debug_marksweep(bool val);
     void add_type_info(TypeInfo* ti);
 
+    void validate_handles(capi::Handles* handles);
     void prune_handles(capi::Handles* handles, bool check_forwards);
 
     ObjectPosition validate_object(Object* obj);
+    bool valid_young_object_p(Object* obj);
 
     int mature_bytes_allocated();
 

@@ -135,6 +135,10 @@ namespace rubinius {
     collect_young_now = false;
 
     static int collect_times = 0;
+
+    // validate_handles(data.handles());
+    // validate_handles(data.cached_handles());
+
     young_->collect(data, stats);
     prune_handles(data.handles(), true);
     prune_handles(data.cached_handles(), true);
@@ -148,6 +152,9 @@ namespace rubinius {
     stats::GCStats::get()->objects_seen.start();
     stats::GCStats::get()->collect_mature.start();
 #endif
+
+    // validate_handles(data.handles());
+    // validate_handles(data.cached_handles());
 
     collect_mature_now = false;
     immix_->collect(data);
@@ -180,6 +187,24 @@ namespace rubinius {
     return header;
   }
 
+  void ObjectMemory::validate_handles(capi::Handles* handles) {
+    capi::Handle* handle = handles->front();
+    capi::Handle* current;
+
+    while(handle) {
+      current = handle;
+      handle = static_cast<capi::Handle*>(handle->next());
+
+      Object* obj = current->object();
+
+      assert(obj->inflated_header_p());
+      InflatedHeader* ih = obj->inflated_header();
+
+      assert(ih->handle() == current);
+      assert(ih->object() == obj);
+    }
+  }
+
   void ObjectMemory::prune_handles(capi::Handles* handles, bool check_forwards) {
     capi::Handle* handle = handles->front();
     capi::Handle* current;
@@ -197,6 +222,7 @@ namespace rubinius {
       // Strong references will already have been updated.
       if(!current->weak_p()) {
         if(check_forwards) assert(!obj->forwarded_p());
+        assert(obj->inflated_header()->object() == obj);
       } else if(check_forwards) {
         if(obj->young_object_p()) {
 
@@ -211,6 +237,7 @@ namespace rubinius {
           } else if(obj->forwarded_p()) {
             current->set_object(obj->forward());
             assert(current->object()->inflated_header_p());
+            assert(current->object()->inflated_header()->object() == current->object());
 
           // A weakref pointing to a dead young object
           } else {
@@ -225,6 +252,8 @@ namespace rubinius {
         count++;
         handles->remove(current);
         delete current;
+      } else {
+        assert(obj->inflated_header()->object() == obj);
       }
     }
 
@@ -409,6 +438,10 @@ namespace rubinius {
     if(pos != cUnknown) return pos;
 
     return mark_sweep_->validate_object(obj);
+  }
+
+  bool ObjectMemory::valid_young_object_p(Object* obj) {
+    return obj->young_object_p() && young_->in_current_p(obj);
   }
 };
 

@@ -39,7 +39,6 @@ namespace rubinius {
     /** Current native callframe. */
     NativeMethodFrame*  current_native_frame_;
     ExceptionPoint*     current_ep_;
-    TypedRoot<Object*>  current_block_;
 
   public:   /* Class Interface */
     NativeMethodEnvironment(STATE)
@@ -47,10 +46,7 @@ namespace rubinius {
       , current_call_frame_(0)
       , current_native_frame_(0)
       , current_ep_(0)
-      , current_block_(state)
-    {
-      current_block_.set(Qnil);
-    }
+    {}
 
     /** Obtain the NativeMethodEnvironment for this thread. */
     static NativeMethodEnvironment* get();
@@ -97,10 +93,6 @@ namespace rubinius {
   public:   /* Accessors */
 
     Object* block();
-
-    void set_current_block(Object* block) {
-      current_block_.set(block);
-    }
 
     void set_state(VM* vm) {
       state_ = vm;
@@ -154,9 +146,13 @@ namespace rubinius {
     /** HandleSet to Objects used in this Frame. */
     capi::HandleSet handles_;
 
+    /** Handle for the block passed in **/
+    VALUE block_;
+
   public:
     NativeMethodFrame(NativeMethodFrame* prev)
       : previous_(prev)
+      , block_(cCApiHandleQnil)
     {}
 
     ~NativeMethodFrame();
@@ -190,6 +186,14 @@ namespace rubinius {
     /** Native Frame active before this call. */
     NativeMethodFrame* previous() {
       return previous_;
+    }
+
+    VALUE block() {
+      return block_;
+    }
+
+    void set_block(VALUE block) {
+      block_ = block;
     }
   };
 

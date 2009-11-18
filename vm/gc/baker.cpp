@@ -139,6 +139,7 @@ namespace rubinius {
     for(capi::Handles::Iterator i(*data.handles()); i.more(); i.advance()) {
       if(!i->weak_p() && i->object()->young_object_p()) {
         i->set_object(saw_object(i->object()));
+        assert(i->object()->inflated_header_p());
       }
 
       assert(i->object()->type_id() != InvalidType);
@@ -147,6 +148,7 @@ namespace rubinius {
     for(capi::Handles::Iterator i(*data.cached_handles()); i.more(); i.advance()) {
       if(!i->weak_p() && i->object()->young_object_p()) {
         i->set_object(saw_object(i->object()));
+        assert(i->object()->inflated_header_p());
       }
 
       assert(i->object()->type_id() != InvalidType);
@@ -327,7 +329,7 @@ namespace rubinius {
   }
 
   ObjectPosition BakerGC::validate_object(Object* obj) {
-    if(current->contains_p(obj) || eden.contains_p(obj)) {
+    if(current->in_current_p(obj) || eden.in_current_p(obj)) {
       return cValid;
     } else if(next->contains_p(obj)) {
       return cInWrongYoungHalf;
