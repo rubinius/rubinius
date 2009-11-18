@@ -21,7 +21,8 @@ namespace rubinius {
       cCustomStaticScope =  1 << 1,
       cMultipleScopes =     1 << 2,
       cInlineFrame =        1 << 3,
-      cClosedScope =        1 << 4
+      cClosedScope =        1 << 4,
+      cBlockAsMethod =      1 << 5
     };
 
     CallFrame* previous;
@@ -45,9 +46,22 @@ namespace rubinius {
       return ip_;
     }
 
+    bool block_as_method_p() {
+      return flags & cBlockAsMethod;
+    }
+
     Symbol* name() {
       if(msg) return msg->name;
       return reinterpret_cast<Symbol*>(Qnil);
+    }
+
+    Symbol* original_name() {
+      if(multiple_scopes_p()) {
+        if(block_as_method_p()) return cm->name();
+        return top_scope_->method()->name();
+      }
+
+      return cm->name();
     }
 
     bool custom_static_scope_p() {
