@@ -46,9 +46,8 @@ namespace rubinius {
     print_backtrace();
   }
 
-  static VMException::Backtrace get_trace(size_t skip) {
+  static VMException::Backtrace get_trace(size_t skip, size_t max_depth=100) {
 #ifdef USE_EXECINFO
-    const size_t max_depth = 100;
     size_t stack_depth;
     void *stack_addrs[max_depth];
     char **stack_strings;
@@ -128,8 +127,8 @@ namespace rubinius {
     ::abort();
   }
 
-  void print_backtrace() {
-    VMException::Backtrace s = get_trace(2);
+  void print_backtrace(size_t max) {
+    VMException::Backtrace s = get_trace(2, max);
     demangle(s);
 
     for(size_t i = 0; i < s.size(); i++) {

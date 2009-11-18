@@ -15,7 +15,7 @@ namespace rubinius {
   void abort();
   void bug(const char* message);
   void bug(const char* message, const char* arg);
-  void print_backtrace();
+  void print_backtrace(size_t max=100);
 
   /**
    * Base class for the various exception.
