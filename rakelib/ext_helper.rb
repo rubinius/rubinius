@@ -197,8 +197,8 @@ def sources(*extra)
   @sources ||= FileList["*.{c,cpp}", *extra].uniq
 end
 
-def objects(*extra)
-  @objects ||= sources.ext(".o")
+def objects(dir=nil)
+  @objects ||= dir ? sources.pathmap("#{dir}/%X.o") : sources.ext(".o")
 end
 
 # Helper methods for invoking and reporting on commands

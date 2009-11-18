@@ -128,6 +128,9 @@ end
 
 namespace :compiler do
   melbourne = "lib/ext/melbourne/ruby/melbourne.#{$dlext}"
+
+  file melbourne => "extensions:melbourne_mri"
+
   task :load => [compiler_signature, melbourne] + compiler_files do
     require File.expand_path("../../lib/compiler", __FILE__)
     require File.expand_path("../../kernel/delta/signature", __FILE__)

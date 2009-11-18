@@ -22,31 +22,25 @@ def compile_ext(name, opts={})
   ext_dir = File.join "lib/ext", names
 
   if t = opts[:task]
-    task_name = "build:#{t}"
+    ext_task_name = "build:#{t}"
+    names << t
   else
-    task_name = "build"
+    ext_task_name = "build"
   end
 
-  if dir = opts[:dir]
-    target_dir = File.join ext_dir, dir
-  else
-    target_dir = ext_dir
-  end
-
-  target = "#{target_dir}/#{name}.#{$dlext}"
-  file target do
-    ext_helper = File.expand_path "../ext_helper.rb", __FILE__
-    Dir.chdir ext_dir do
-      ruby "-S rake #{'-t' if $verbose} -r #{ext_helper} #{task_name}"
-    end
-  end
-
-  Rake::Task[:extensions].prerequisites << target
+  task_name = names.join "_"
 
   namespace :extensions do
     desc "Build #{name.capitalize} extension #{opts[:doc]}"
-    task task_name => target
+    task task_name do
+      ext_helper = File.expand_path "../ext_helper.rb", __FILE__
+      Dir.chdir ext_dir do
+        ruby "-S rake #{'-t' if $verbose} -r #{ext_helper} #{ext_task_name}"
+      end
+    end
   end
+
+  Rake::Task[:extensions].prerequisites << "extensions:#{task_name}"
 end
 
 compile_ext "bigdecimal"
@@ -58,5 +52,5 @@ compile_ext "digest:sha1"
 compile_ext "digest:sha2"
 compile_ext "digest:bubblebabble"
 compile_ext "syck"
-compile_ext "melbourne", :task => "rbx", :dir => "rbx", :doc => "for Rubinius"
-compile_ext "melbourne", :task => "mri", :dir => "ruby", :doc => "for MRI"
+compile_ext "melbourne", :task => "rbx", :doc => "for Rubinius"
+compile_ext "melbourne", :task => "mri", :doc => "for MRI"

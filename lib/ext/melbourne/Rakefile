@@ -1,5 +1,46 @@
+# Special rule for putting .o files in the implementation-specific
+# subdirectory so this single extension can be built for both MRI
+# and Rubinius
+
+rule ".o" do |t|
+  source = t.prerequisites.first
+
+  report_command "CXX #{source}"
+  qsh "#{$CXX} -c -o #{t.name} #{$CXXFLAGS} #{source}"
+end
+
+def set_ext_dir(dir)
+  @ext_dir = dir
+end
+
+def ext_dir
+  @ext_dir
+end
+
 # Setup project files
-project_files = common_headers + headers + sources("grammar.cpp") + objects
+def add_objects(files, dir)
+  sources("grammar.cpp").zip(objects(dir)).each do |source, obj|
+    file obj => source
+    files << source << obj
+  end
+end
+
+project_files = common_headers + headers
+
+# This is a horrid hack. It is temporary until we replace Rake
+# as the build system.
+case Rake.application.top_level_tasks
+when ["build:rbx"]
+  puts "Building Melbourne for Rubinius"
+  add_rbx_capi
+  set_ext_dir "rbx"
+when ["build:mri"]
+  puts "Building Melbourne for MRI"
+  add_mri_capi
+  set_ext_dir "ruby"
+end
+
+add_objects project_files, ext_dir
 
 add_include_dir "#{$ELIBSDIR}/libbstring",
                 "#{$ELIBSDIR}/libmquark",
@@ -8,40 +49,26 @@ add_include_dir "#{$ELIBSDIR}/libbstring",
 
 add_external_lib "mquark", "bstring", "ptr_array", "cchash"
 
-task :clean do
-  rm_f FileList["./**/*.o"], :verbose => $verbose
-end
-
 # Build the Melbourne extension against Rubinius
 directory "rbx"
 melbourne_rbx = "rbx/melbourne.#{$DLEXT}"
+
+file melbourne_rbx => project_files
 
 # Build the Melbourne extension against MRI
 directory "ruby"
 melbourne_mri = "ruby/melbourne.#{$DLEXT}"
 
+file melbourne_mri => project_files
+
 # Build tasks
 namespace :build do
-  task :pre_rbx do
-    puts "Building Melbourne for Rubinius"
-    add_rbx_capi
-  end
-
   desc "Build Melbourne for Rubinius"
   task :rbx => melbourne_rbx
-
-  task :pre_mri do
-    puts "Building Melbourne for MRI"
-    add_mri_capi
-  end
 
   desc "Build Melbourne for MRI"
   task :mri => melbourne_mri
 end
-
-file melbourne_rbx => %w[build:pre_rbx clean rbx] + project_files
-
-file melbourne_mri => %w[build:pre_mri clean ruby] + project_files
 
 desc "Build Melbourne for both Rubinius and MRI"
 task :build => %w[build:mri build:rbx]
