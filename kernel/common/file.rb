@@ -1083,15 +1083,15 @@ class File::Stat
     return @stat[:st_mode] & S_IRGRP != 0 if rgrpowned?
     return @stat[:st_mode] & S_IROTH != 0
   end
-  
+
   def setgid?
     @stat[:st_mode] & S_ISGID != 0
   end
-  
+
   def setuid?
     @stat[:st_mode] & S_ISUID != 0
   end
-  
+
   def sticky?
     @stat[:st_mode] & S_ISVTX != 0
   end

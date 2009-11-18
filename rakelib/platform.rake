@@ -2,7 +2,7 @@ require 'ffi/struct_generator'
 require 'ffi/const_generator'
 require 'ffi/types_generator'
 
-deps = %w[Rakefile] + Dir['lib/ffi/*rb']
+deps = %w[Rakefile rakelib/platform.rake] + Dir['lib/ffi/*rb']
 
 file 'runtime/platform.conf' => deps do |task|
   addrinfo = FFI::StructGenerator.new 'addrinfo' do |s|
