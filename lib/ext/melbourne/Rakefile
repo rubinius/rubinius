@@ -10,6 +10,7 @@ rule ".o" do |t|
 end
 
 def set_ext_dir(dir)
+  Dir.mkdir(dir) unless File.exists?(dir)
   @ext_dir = dir
 end
 
@@ -24,7 +25,7 @@ def add_objects(files, dir)
     files << source << obj
   end
 end
-
+ 
 project_files = common_headers + headers
 
 # This is a horrid hack. It is temporary until we replace Rake
