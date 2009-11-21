@@ -20,6 +20,10 @@ module Rubinius
         Ruby.primitive :block_as_method_create
         raise PrimitiveFailure, "BlockEnvironment::AsMethod.new failed"
       end
+
+      def arity
+        @block_env.method.arity
+      end
     end
   end
 end
