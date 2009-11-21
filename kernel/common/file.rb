@@ -59,22 +59,6 @@ class File < IO
   PATH_SEPARATOR = FFI::Platform::File::PATH_SEPARATOR
   POSIX = FFI::Platform::POSIX
 
-  def self.open(path_or_fd, mode = "r", perm = 0666)
-    file = new path_or_fd, mode, perm
-
-    return file unless block_given?
-
-    begin
-      yield file
-    ensure
-      begin
-        file.close unless file.closed?
-      rescue StandardError
-        # nothing, just swallow it.
-      end
-    end
-  end
-
   attr_reader :path
 
   def initialize(path_or_fd, mode = "r", perm = 0666)

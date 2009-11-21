@@ -704,10 +704,6 @@ end
 class UNIXSocket < BasicSocket
   attr_accessor :path
 
-  class << self
-    alias :open :new
-  end
-
   # Coding to the lowest standard here.
   def recvfrom(bytes_to_read, flags = 0)
     [super, ["AF_UNIX", ""]]
@@ -849,10 +845,6 @@ class IPSocket < BasicSocket
 end
 
 class UDPSocket < IPSocket
-
-  def self.open(socktype = Socket::AF_INET)
-    self.new socktype
-  end
 
   def initialize(socktype = Socket::AF_INET)
     status = Socket::Foreign.socket socktype,
