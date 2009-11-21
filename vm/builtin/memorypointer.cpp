@@ -103,6 +103,15 @@ namespace rubinius {
     return Float::create(state, (double)(*(float*)pointer));
   }
 
+  Float* MemoryPointer::write_double(STATE, Float* flt) {
+    *(double*)pointer = flt->val;
+    return flt;
+  }
+
+  Float* MemoryPointer::read_double(STATE) {
+    return Float::create(state, *(double*)pointer);
+  }
+
   MemoryPointer* MemoryPointer::read_pointer(STATE) {
     return MemoryPointer::create(state, *(void**)pointer);
   }

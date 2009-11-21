@@ -193,6 +193,16 @@ module FFI
       Ruby.primitive :memorypointer_read_float
       raise PrimitiveFailure, "Unable to read float"
     end
+    
+    def write_double(obj)
+      Ruby.primitive :memorypointer_write_double
+      raise PrimitiveFailure, "Unable to write double"
+    end
+    
+    def read_double
+      Ruby.primitive :memorypointer_read_double
+      raise PrimitiveFailure, "Unable to read double"
+    end
 
     def read_array_of_int(length)
       read_array_of_type(:int, :read_int, length)
