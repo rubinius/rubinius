@@ -96,14 +96,14 @@ public:
   }
 
   void test_read_float() {
-    double one = 1.0;
+    float one = 1.0;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
     Float* f = ptr->read_float(state);
     TS_ASSERT_EQUALS(1.0, f->val);
   }
 
   void test_write_float() {
-    double one = 1.0;
+    float one = 1.0;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
     ptr->write_float(state, Float::create(state, 2.0));
     Float* f = ptr->read_float(state);
