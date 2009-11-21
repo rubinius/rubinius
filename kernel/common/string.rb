@@ -9,14 +9,12 @@ class String
   attr_accessor :data
   attr_accessor :num_bytes
   attr_accessor :characters
-  attr_accessor :encoding
 
   def self.allocate
     str = super()
     str.data = Rubinius::ByteArray.new(1)
     str.num_bytes = 0
     str.characters = 0
-    str.encoding = nil
     str
   end
 
@@ -1111,7 +1109,6 @@ class String
     @data = other.data
     @num_bytes = other.num_bytes
     @characters = other.characters
-    @encoding = other.encoding
 
     self.taint if other.tainted?
 
