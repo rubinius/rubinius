@@ -136,6 +136,10 @@ extern "C" {
     return ret;
   }
 
+  void rb_p(VALUE obj) {
+    rb_funcall(rb_mKernel, rb_intern("p"), 1, obj);
+  }
+
   /* @note  It is of dubious correctness that any C extension uses
    * rb_bug, but some do. We basically mimic MRI behavior here.
    */

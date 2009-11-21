@@ -8,6 +8,8 @@
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
 
+#include <stdarg.h>
+
 using namespace rubinius;
 using namespace rubinius::capi;
 
@@ -159,6 +161,28 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Array* array = Array::create(env->state(), length);
+
+    return env->get_handle(array);
+  }
+
+  VALUE rb_ary_new3(unsigned long length, ...) {
+    va_list args;
+    va_start(args, length);
+
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Array* array = Array::create(env->state(), length);
+    array->start(env->state(), Fixnum::from(0));
+    array->total(env->state(), Fixnum::from(length));
+
+    for(unsigned long i = 0; i < length; ++i) {
+      // @todo determine if we need to check these objects for whether
+      // they are arrays and flush any caches
+      Object* object = env->get_object(va_arg(args, VALUE));
+      array->set(env->state(), i, object);
+    }
+
+    va_end(args);
 
     return env->get_handle(array);
   }

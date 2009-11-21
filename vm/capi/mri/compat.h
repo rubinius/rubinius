@@ -21,9 +21,15 @@
 #include "version.h"
 #if RUBY_VERSION_MAJOR >= 1
 #if  RUBY_VERSION_MINOR >= 8
+
 #if   RUBY_VERSION_TEENY >= 7
 #define RUBY_COMPAT_LEVEL 1
 #endif
+
+#elif RUBY_VERSION_MINOR >= 9
+
+#define RUBY_COMPAT_LEVEL 3
+
 #endif
 #endif
 

@@ -271,4 +271,8 @@ extern "C" {
   void rb_extend_object(VALUE obj, VALUE mod) {
     rb_funcall(obj, rb_intern("extend"), 1, mod);
   }
+
+  VALUE rb_obj_id(VALUE self) {
+    return rb_funcall(self, rb_intern("object_id"), 0);
+  }
 }

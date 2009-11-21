@@ -25,4 +25,27 @@ extern "C" {
   VALUE rb_hash_size(VALUE self) {
     return rb_funcall(self, rb_intern("size"), 0);
   }
+
+  void rb_hash_foreach(VALUE self,
+                       int (*func)(VALUE key, VALUE val, VALUE data),
+                       VALUE farg)
+  {
+    VALUE iter = rb_funcall(self, rb_intern("to_iter"), 0);
+    VALUE entry = Qnil;
+
+    while(RTEST(entry = rb_funcall(iter, rb_intern("next"), 1, entry))) {
+      VALUE key = rb_funcall(entry, rb_intern("key"), 0);
+      VALUE val = rb_funcall(entry, rb_intern("value"), 0);
+
+      int ret = (*func)(key, val, farg);
+      switch(ret) {
+      case 0: // ST_CONTINUE:
+        continue;
+      case 1: // ST_STOP:
+        return;
+      default:
+        rubinius::bug("unsupported hash_foreach value");
+      }
+    }
+  }
 }

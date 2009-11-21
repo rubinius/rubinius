@@ -705,6 +705,9 @@ double rb_num2dbl(VALUE);
   /** New Array of nil elements at given length. */
   VALUE   rb_ary_new2(unsigned long length);
 
+  /** New Array of given length, filled with varargs elements. */
+  VALUE   rb_ary_new3(unsigned long length, ...);
+
   /** New Array of given length, filled with copies of given object. */
   VALUE   rb_ary_new4(unsigned long length, const VALUE* object_handle);
 
@@ -798,6 +801,9 @@ double rb_num2dbl(VALUE);
 
   /** Return the module referred to by qualified path (e.g. A::B::C) */
   VALUE   rb_path2class(const char*);
+
+  /** Print the value to $stdout */
+  void    rb_p(VALUE);
 
   /** Returns object returned by invoking method on object if right type, or raises error. */
   VALUE   rb_convert_type(VALUE object_handle, int type,
@@ -958,6 +964,11 @@ double rb_num2dbl(VALUE);
   /** Returns the number of entries as a Fixnum. */
   VALUE   rb_hash_size(VALUE self);
 
+  /** Iterate over the hash, calling the function. */
+  void rb_hash_foreach(VALUE self,
+                       int (*func)(VALUE key, VALUE val, VALUE data),
+                       VALUE farg);
+
   // A macro to access the size "directly"
 #define RHASH_SIZE(obj) FIX2INT(rb_hash_size(obj))
 
@@ -1015,6 +1026,9 @@ double rb_num2dbl(VALUE);
 
   /** Returns true-ish if module is object's class or other ancestor. */
   VALUE   rb_obj_is_kind_of(VALUE object_handle, VALUE module_handle);
+
+  /** Returns the object_id of the object. */
+  VALUE   rb_obj_id(VALUE self);
 
   /** Return object's instance variable by name. @ optional. */
   VALUE   rb_iv_get(VALUE self_handle, const char* name);
@@ -1324,6 +1338,8 @@ double rb_num2dbl(VALUE);
 
   /** Creates a Range object from begin to end */
   VALUE   rb_range_new(VALUE begin, VALUE end, int exclude_end);
+
+  VALUE   rb_range_beg_len(VALUE range, long* begp, long* lenp, long len, int err);
 #ifdef __cplusplus
 }
 #endif
