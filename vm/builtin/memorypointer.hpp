@@ -45,10 +45,10 @@ namespace rubinius {
 
     // Ruby.primitive :memorypointer_read_float
     Float* read_float(STATE);
-
+    
     // Ruby.primitive :memorypointer_write_double
     Float* write_double(STATE, Float* val);
-
+    
     // Ruby.primitive :memorypointer_read_double
     Float* read_double(STATE);
 
