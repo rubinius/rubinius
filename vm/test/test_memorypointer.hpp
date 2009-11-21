@@ -110,6 +110,21 @@ public:
     TS_ASSERT_EQUALS(2.0, f->val);
   }
 
+  void test_read_double() {
+    double one = 1.0;
+    MemoryPointer* ptr = MemoryPointer::create(state, &one);
+    Float* f = ptr->read_double(state);
+    TS_ASSERT_EQUALS(1.0, f->val);
+  }
+
+  void test_write_double() {
+    double one = 1.0;
+    MemoryPointer* ptr = MemoryPointer::create(state, &one);
+    ptr->write_double(state, Float::create(state, 2.0));
+    Float* f = ptr->read_double(state);
+    TS_ASSERT_EQUALS(2.0, f->val);
+  }
+
   void test_read_pointer() {
     uintptr_t one = 1;
     void *addr = &one;
