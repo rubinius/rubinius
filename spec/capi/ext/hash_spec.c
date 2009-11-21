@@ -21,6 +21,17 @@ VALUE hash_spec_rb_hash_delete(VALUE self, VALUE hash, VALUE key) {
   return rb_hash_delete(hash, key);
 }
 
+static int foreach_i(VALUE key, VALUE val, VALUE other) {
+  rb_hash_aset(other, key, val);
+  return 0; // ST_CONTINUE;
+}
+
+VALUE hash_spec_rb_hash_foreach(VALUE self, VALUE hsh) {
+  VALUE other = rb_hash_new();
+  rb_hash_foreach(hsh, foreach_i, other);
+  return other;
+}
+
 #ifdef RUBINIUS
 // rb_hash_size is a static symbol in MRI
 VALUE hash_spec_rb_hash_size(VALUE self, VALUE hash) {
@@ -36,6 +47,7 @@ void Init_hash_spec() {
   rb_define_method(cls, "rb_hash_aref_nil", hash_spec_rb_hash_aref_nil, 2);
   rb_define_method(cls, "rb_hash_aset", hash_spec_rb_hash_aset, 3);
   rb_define_method(cls, "rb_hash_delete", hash_spec_rb_hash_delete, 2);
+  rb_define_method(cls, "rb_hash_foreach", hash_spec_rb_hash_foreach, 1);
 
 #ifdef RUBINIUS
   rb_define_method(cls, "rb_hash_size", hash_spec_rb_hash_size, 1);
