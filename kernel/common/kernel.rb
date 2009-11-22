@@ -10,10 +10,7 @@ module Kernel
     trace.each_with_index do |loc, i|
       next unless loc.method.scope == scope_of_sender
       if loc.is_block
-        loc = trace.at(i+1)
-        if loc.kind_of? Rubinius::DelegateMethod
-          return loc.receiver.name
-        end
+        return loc.name
       else
         return loc.method.name == :__script__ ? nil : loc.method.name
       end
