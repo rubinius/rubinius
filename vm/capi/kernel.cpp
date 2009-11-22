@@ -89,7 +89,7 @@ extern "C" {
       va_end(exc_classes);
 
       if(handle_exc) {
-        ret = (*raise_func)(arg2);
+        ret = (*raise_func)(arg2, exc_handle);
         env->state()->thread_state()->clear_exception();
       } else {
         env->current_ep()->return_to(env);
