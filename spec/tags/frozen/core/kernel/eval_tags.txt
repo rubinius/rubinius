@@ -1,5 +1,3 @@
 incomplete:Kernel.eval needs to be reviewed for spec completeness
 fails:Kernel#eval accepts a Proc object as a binding
 fails:Kernel#eval allows a binding to be captured inside an eval
-fails:Kernel#eval allows Proc and binding to be nested in horrible ways
-fails:Kernel#eval uses the filename of the binding if none is provided

@@ -1,1 +1,0 @@
-fails:Kernel#methods does not include any .undef'd methods
