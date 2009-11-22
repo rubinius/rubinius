@@ -1,1 +1,0 @@
-fails:UnboundMethod#bind binds a Parent's class method to any Child's class methods

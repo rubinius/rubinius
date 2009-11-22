@@ -293,6 +293,12 @@ module Rubinius
       @write = write
     end
 
+    # Get the arity for this reader or writr
+    #
+    def arity
+      @write ? 1 : 0
+    end
+
     # Create a getter for named instance var, without leading @.
     #
     def self.get_ivar(name)

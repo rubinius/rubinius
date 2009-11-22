@@ -204,7 +204,7 @@ class UnboundMethod
   # Module it is defined in and the Module that it was extracted from.
 
   def inspect
-    "#<#{self.class}: #{@pulled_from}##{@executable.name} (defined in #{@defined_in})>"
+    "#<#{self.class}: #{@pulled_from}##{@name} (defined in #{@defined_in})>"
   end
 
   alias_method :to_s, :inspect

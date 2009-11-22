@@ -1,1 +1,0 @@
-critical:Method#to_proc returns a proc that can be yielded to
