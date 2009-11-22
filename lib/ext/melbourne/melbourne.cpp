@@ -16,10 +16,14 @@ VALUE melbourne_string_to_ast(VALUE self, VALUE source, VALUE name, VALUE line) 
 
 VALUE melbourne_file_to_ast(VALUE self, VALUE fname, VALUE start) {
   FILE *file = fopen(RSTRING_PTR(fname), "r");
-  VALUE result = melbourne::file_to_ast(self, RSTRING_PTR(fname), file, FIX2INT(start));
-  fclose(file);
+  if(file) {
+    VALUE result = melbourne::file_to_ast(self, RSTRING_PTR(fname), file, FIX2INT(start));
+    fclose(file);
 
-  return result;
+    return result;
+  } else {
+    rb_raise(rb_eLoadError, "no such file to load -- %s", RSTRING_PTR(fname));
+  }
 }
 
 void Init_melbourne(void) {
