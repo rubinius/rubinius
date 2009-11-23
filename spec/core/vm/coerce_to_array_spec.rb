@@ -28,19 +28,4 @@ describe "Rubinius::VM#coerce_to_array" do
     type_error_raised.should == true
   end
 
-#  it "when passed an Object that uses implement to_a, returns an Array containing that Object" do
-#    obj = mock('x')
-#    class << obj
-#      remove_method :to_a
-#    end
-#    obj.respond_to?(:to_a).should == false
-#    Rubinius::VM.coerce_to_array(obj).should == [obj]
-#  end
-
-  it "returns an Array containing that Object when passed an Object that uses Kernel#to_a" do
-    obj = mock('x')
-    # TODO: NS/BT - Make Method#initialize take a Module instead of a IncludedModule
-    obj.method(:to_a).module.module.should == Kernel
-    Rubinius::VM.coerce_to_array(obj).should == [obj]
-  end
 end

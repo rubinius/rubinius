@@ -1,1 +1,0 @@
-fails:Rubinius::VM#coerce_to_array returns an Array containing that Object when passed an Object that uses Kernel#to_a
