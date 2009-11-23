@@ -20,20 +20,20 @@ describe "File.stat" do
   end
 
   it "should be able to call stat on an unlinked file" do
-    f = File.open(@file)
+    File.open(@file) do |f|
+      File.unlink(@link)
+      File.unlink(@file)
+      st = f.stat
 
-    File.unlink(@link)
-    File.unlink(@file)
-    st = f.stat
-
-    st.file?.should == true
-    st.zero?.should == false
-    st.size.should == 8
-    st.size?.should == 8
-    st.blksize.should > 0
-    st.atime.class.should == Time
-    st.ctime.class.should == Time
-    st.mtime.class.should == Time
+      st.file?.should == true
+      st.zero?.should == false
+      st.size.should == 8
+      st.size?.should == 8
+      st.blksize.should > 0
+      st.atime.class.should == Time
+      st.ctime.class.should == Time
+      st.mtime.class.should == Time
+    end
   end
 
   platform_is_not :windows do
