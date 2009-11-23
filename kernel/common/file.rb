@@ -788,7 +788,7 @@ class File < IO
   end
 
   def stat
-    Stat.new @path
+    Stat.from_fd @descriptor
   end
 
   def truncate(length)
