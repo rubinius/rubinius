@@ -5,7 +5,7 @@ Gem.platforms << Gem::Platform.new([cpu, 'rubinius', version])
 
 module Gem
   def self.default_bindir
-    File.join Rubinius::CODE_PATH, "bin"
+    File.join Rubinius::CODE_PATH, "gems", "bin"
   end
 
   def self.default_dir

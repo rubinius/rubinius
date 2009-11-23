@@ -12,6 +12,8 @@ module Rubinius
       @debugging    = false
       @run_irb      = true
       @printed_version = false
+
+      @gem_bin = File.join Rubinius::CODE_PATH, "gems", "bin"
     end
 
     # Finish setting up after loading kernel.
@@ -165,7 +167,7 @@ module Rubinius
         options.stop_parsing
         @run_irb = false
 
-        search = ENV['PATH'].split(File::PATH_SEPARATOR).unshift(BIN_PATH)
+        search = [BIN_PATH, @gem_bin] + ENV['PATH'].split(File::PATH_SEPARATOR)
         dir    = search.detect do |d|
           path = File.join(d, script)
           File.exist?(path)
