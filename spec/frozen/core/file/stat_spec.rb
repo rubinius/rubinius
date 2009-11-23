@@ -19,6 +19,23 @@ describe "File.stat" do
     File.delete(@file) if File.exist?(@file)
   end
 
+  it "should be able to call stat on an unlinked file" do
+    f = File.open(@file)
+
+    File.unlink(@link)
+    File.unlink(@file)
+    st = f.stat
+
+    st.file?.should == true
+    st.zero?.should == false
+    st.size.should == 8
+    st.size?.should == 8
+    st.blksize.should > 0
+    st.atime.class.should == Time
+    st.ctime.class.should == Time
+    st.mtime.class.should == Time
+  end
+
   platform_is_not :windows do
     it "returns a File::Stat object with file properties for a symlink" do
       st = File.stat(@link)
