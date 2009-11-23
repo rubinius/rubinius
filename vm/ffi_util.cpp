@@ -147,19 +147,11 @@ unsigned int ffi_cast(unsigned int val) {
 }
 
 long ffi_major(dev_t n) {
-#if defined(major)
   return major(n);
-#else
-  return -1;
-#endif
 }
 
 long ffi_minor(dev_t n) {
-#if defined(minor)
   return minor(n);
-#else
-  return -1;
-#endif
 }
 
 /* FIXME: these are TEMPORARY until we determine how to
