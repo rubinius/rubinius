@@ -73,4 +73,17 @@ describe "CApiBignumSpecs" do
       $stderr.should =~ /Bignum out of Float range/
     end
   end
+
+  describe "rb_big2str" do
+
+    it "converts a Bignum to a string with base 10" do
+      @s.rb_big2str(ensure_bignum(1), 10).eql?("1").should == true
+      @s.rb_big2str(ensure_bignum(4611686018427387904), 10).eql?("4611686018427387904").should == true
+    end
+
+    it "converts a Bignum to a string with a different base" do
+      @s.rb_big2str(ensure_bignum(1), 16).eql?("1").should == true
+      @s.rb_big2str(ensure_bignum(4611686018427387904), 16).eql?("4000000000000000").should == true
+    end
+  end
 end
