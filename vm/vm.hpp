@@ -204,6 +204,8 @@ namespace rubinius {
     void bootstrap_class();
     void bootstrap_ontology();
     void bootstrap_symbol();
+
+    void setup_errno(int num, const char* name, Class* sce, Module* ern);
     void bootstrap_exceptions();
     void initialize_fundamental_constants();
     void initialize_builtin_classes();

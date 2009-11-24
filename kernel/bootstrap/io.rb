@@ -73,6 +73,11 @@ class IO
     raise PrimitiveFailure, "IO#blocking_read primitive failed"
   end
 
+  def read_if_available(size)
+    Ruby.primitive :io_read_if_available
+    raise PrimitiveFailure, "IO#read_if_available primitive failed"
+  end
+
   def prim_reopen(other)
     Ruby.primitive :io_reopen
     raise ArgumentError, "IO#prim_reopen only accepts an IO object"

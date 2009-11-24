@@ -488,6 +488,22 @@ namespace rubinius {
     GO(sym_gt).set(symbol(">"));
   }
 
+  void VM::setup_errno(int num, const char* name, Class* sce, Module* ern) {
+    bool found = false;
+
+    Object* key = Fixnum::from(num);
+
+    Object* current = state->globals.errno_mapping->fetch(state, key, &found);
+    if(found) {
+      ern->set_const(state, symbol(name), current);
+    } else {
+      Class* cls = state->new_class(name, sce, ern);
+      cls->set_const(state, symbol("Errno"), key);
+      cls->set_const(state, symbol("Strerror"), String::create(state, strerror(num)));
+      state->globals.errno_mapping->store(state, key, cls);
+    }
+  }
+
   void VM::bootstrap_exceptions() {
     Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sxp, *sce, *type, *lje, *vme;
     Class* rng;
@@ -544,12 +560,7 @@ namespace rubinius {
 
     ern->set_const(state, symbol("Mapping"), G(errno_mapping));
 
-#define set_syserr(num, name) ({ \
-    Class* _cls = new_class(name, sce, ern); \
-    _cls->set_const(state, symbol("Errno"), Fixnum::from(num)); \
-    _cls->set_const(state, symbol("Strerror"), String::create(state, strerror(num))); \
-    G(errno_mapping)->store(state, Fixnum::from(num), _cls); \
-    })
+#define set_syserr(num, name) setup_errno(num, name, sce, ern)
 
     /*
      * Stolen from MRI

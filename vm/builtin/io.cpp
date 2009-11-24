@@ -370,7 +370,6 @@ namespace rubinius {
     mode(state, Fixnum::from((m & ~O_ACCMODE) | O_WRONLY));
   }
 
-
   Object* IO::sysread(STATE, Fixnum* number_of_bytes, CallFrame* calling_environment) {
     std::size_t count = number_of_bytes->to_ulong();
     String* buffer = String::create_pinned(state, number_of_bytes);
@@ -412,6 +411,47 @@ namespace rubinius {
     return buffer;
   }
 
+  Object* IO::read_if_available(STATE, Fixnum* number_of_bytes) {
+    fd_set set;
+    FD_ZERO(&set);
+
+    native_int fd = descriptor()->to_native();
+    FD_SET(fd, &set);
+
+    struct timeval tv = {0,0};
+    int res = ::select(fd+1, &set, 0, 0, &tv);
+
+    if(res == 0) {
+      Exception::errno_error(state, "no data ready", EAGAIN);
+      return 0;
+    } else if(res <= 0) {
+      Exception::errno_error(state, "read(2) failed");
+      return 0;
+    }
+
+    std::size_t count = number_of_bytes->to_ulong();
+    String* buffer = String::create_pinned(state, number_of_bytes);
+
+    // There is a minor race here. If another thread is running concurrently
+    // and it reads from fd, then our select might say there is data, but when
+    // we go to read from it, we block.
+    //
+    // The problem is that twiddle the O_NONBLOCK bit has the same problem,
+    // so when there are concurrent IO reads, we'll need to enforce
+    // some kind of integrity here.
+    ssize_t bytes_read = ::read(fd, buffer->data()->bytes, count);
+
+    buffer->unpin();
+
+    if(bytes_read == -1) {
+      Exception::errno_error(state, "read(2) failed");
+    }
+
+    if(bytes_read == 0) return Qnil;
+
+    buffer->num_bytes(state, Fixnum::from(bytes_read));
+    return buffer;
+  }
 
   Object* IO::write(STATE, String* buf) {
     ssize_t cnt = ::write(this->to_fd(), buf->data()->bytes, buf->size());

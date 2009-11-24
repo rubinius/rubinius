@@ -1101,6 +1101,9 @@ class IO
 
   private :read_all
 
+  # defined in bootstrap, used here.
+  private :read_if_available
+
   ##
   # Reads at most maxlen bytes from ios using read(2) system
   # call after O_NONBLOCK is set for the underlying file descriptor.
@@ -1115,9 +1118,22 @@ class IO
   #
   # If the read buffer is not empty, read_nonblock reads from the
   # buffer like readpartial. In this case, read(2) is not called.
-  def read_nonblock(size, buffer = nil)
+  def read_nonblock(size, buffer=nil)
+    raise ArgumentError, "illegal read size" if size < 0
     ensure_open
-    prim_read(size, buffer)
+
+    buffer = StringValue buffer if buffer
+
+    if @ibuffer.size > 0
+      return @ibuffer.shift(size)
+    end
+
+    if str = read_if_available(size)
+      buffer.replace(str) if buffer
+      return str
+    else
+      raise EOFError, "stream closed"
+    end
   end
 
   ##
@@ -1270,12 +1286,11 @@ class IO
 
     buffer = '' if buffer.nil?
 
-    in_buf = @ibuffer.shift size
-    size = size - in_buf.length
+    if @ibuffer.size > 0
+      return @ibuffer.shift size
+    end
 
-    in_buf << sysread(size) if size > 0
-
-    buffer.replace in_buf
+    buffer.replace(sysread(size)) if size > 0
 
     buffer
   end

@@ -80,17 +80,20 @@ namespace rubinius {
     // Ruby.primitive :io_sysread
     Object* sysread(STATE, Fixnum* number_of_bytes, CallFrame* calling_environment);
 
+    // Ruby.primitive :io_read_if_available
+    Object* read_if_available(STATE, Fixnum* number_of_bytes);
+
     // Ruby.primitive :io_seek
-    Integer*  seek(STATE, Integer* amount, Fixnum* whence);
+    Integer* seek(STATE, Integer* amount, Fixnum* whence);
 
     // Ruby.primitive :io_write
-    Object*   write(STATE, String* buf);
+    Object* write(STATE, String* buf);
 
     // Ruby.primitive :io_reopen
-    Object*   reopen(STATE, IO* other);
+    Object* reopen(STATE, IO* other);
 
     // Ruby.primitive :io_close
-    Object*   close(STATE);
+    Object* close(STATE);
 
     /**
      *  Shutdown a full-duplex descriptor's read and/or write stream.
