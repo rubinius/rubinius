@@ -5075,7 +5075,6 @@ extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table vars)
     out = block_append(parse_state, var, node);
 
 out:
-  assert(vars == parse_state->variables->block_vars);
   parse_state->variables->block_vars = var_table_pop(parse_state->variables->block_vars);
 
   return out;
