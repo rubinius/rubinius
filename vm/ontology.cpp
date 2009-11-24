@@ -332,89 +332,25 @@ namespace rubinius {
     G(object)->set_const(state, "STDOUT", out_io);
     G(object)->set_const(state, "STDERR", err_io);
 
-#if defined(__ppc__) || defined(__POWERPC__) || defined(_POWER)
-    G(rubinius)->set_const(state, "PLATFORM", symbol("ppc"));
-#elif defined(__amd64__)
-    G(rubinius)->set_const(state, "PLATFORM", symbol("amd64"));
-#elif defined(i386) || defined(__i386__)
-    G(rubinius)->set_const(state, "PLATFORM", symbol("x86"));
-#elif defined(__alpha) || defined(__alpha__)
-    G(rubinius)->set_const(state, "PLATFORM", symbol("alpha"));
-#elif defined(VAX) || defined(__VAX)
-    G(rubinius)->set_const(state, "PLATFORM", symbol("vax"));
-#elif defined(__hppa__)
-    G(rubinius)->set_const(state, "PLATFORM", symbol("hppa"));
-#elif defined(__sparc__)
-    G(rubinius)->set_const(state, "PLATFORM", symbol("sparc"));
-#elif defined(__s390__)
-    G(rubinius)->set_const(state, "PLATFORM", symbol("s390"));
-#elif (defined(TARGET_CPU_68K) || defined(__CFM68K__) || defined(m68k) || defined(_M_M68K))
-    G(rubinius)->set_const(state, "PLATFORM", symbol("m68k"));
-#else
-    G(rubinius)->set_const(state, "PLATFORM", symbol("unknown"));
-#endif
+    /* Fundamental constants. These are uniformly Strings and not symbols
+     * because some are passed to e.g. File.expand_path and having them
+     * be uniform is simpler.
+     */
+    G(rubinius)->set_const(state, "BIN_PATH", String::create(state, RBX_BIN_PATH));
+    G(rubinius)->set_const(state, "LIB_PATH", String::create(state, RBX_LIB_PATH));
+    G(rubinius)->set_const(state, "EXT_PATH", String::create(state, RBX_EXT_PATH));
+    G(rubinius)->set_const(state, "HDR_PATH", String::create(state, RBX_HDR_PATH));
+    G(rubinius)->set_const(state, "GEMS_PATH", String::create(state, RBX_GEMS_PATH));
 
-#if defined(__APPLE__) || defined(__MACH__)
-    G(rubinius)->set_const(state, "OS", symbol("darwin"));
-#elif defined(__linux__) || defined(linux) || defined(__linux)
-    G(rubinius)->set_const(state, "OS", symbol("linux"));
-#elif defined(__FreeBSD__)
-    G(rubinius)->set_const(state, "OS", symbol("freebsd"));
-#elif defined(__CYGWIN__)
-    G(rubinius)->set_const(state, "OS", symbol("cygwin"));
-#elif defined(__OS2__)
-    G(rubinius)->set_const(state, "OS", symbol("os2"));
-#elif defined(__NT__) || defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
-    G(rubinius)->set_const(state, "OS", symbol("win32"));
-#elif defined(__WINDOWS__)
-    G(rubinius)->set_const(state, "OS", symbol("windows_3x"));
-#elif defined(__NETWARE_386__)
-    G(rubinius)->set_const(state, "OS", symbol("netware"));
-#elif defined(__MSDOS__)
-    G(rubinius)->set_const(state, "OS", symbol("dos"));
-#elif defined(VMS) || defined(__VMS__)
-    G(rubinius)->set_const(state, "OS", symbol("vms"));
-#elif defined(__hpux__)
-    G(rubinius)->set_const(state, "OS", symbol("hpux"));
-#elif defined(__sun__) || defined(__sun)
-    G(rubinius)->set_const(state, "OS", symbol("solaris"));
-#elif defined(__svr4__)
-    G(rubinius)->set_const(state, "OS", symbol("unixware"));
-#elif defined(_AIX)
-    G(rubinius)->set_const(state, "OS", symbol("aix"));
-#elif (defined(_SCO_DS) && defined(_SCO_ELF) && defined(_SCO_XPG_VERS) && defined(_SCO_C_DIALECT))
-    G(rubinius)->set_const(state, "OS", symbol("openserver"));
-#elif defined(__unix__)
-    G(rubinius)->set_const(state, "OS", symbol("decunix"));
-#else
-    G(rubinius)->set_const(state, "OS", symbol("unknown"));
-#endif
+    G(rubinius)->set_const(state, "VERSION", String::create(state, RBX_VERSION));
+    G(rubinius)->set_const(state, "LIB_VERSION", String::create(state, RBX_LIB_VERSION));
+    G(rubinius)->set_const(state, "BUILD_REV", String::create(state, RBX_BUILD_REV));
+    G(rubinius)->set_const(state, "LDSHARED", String::create(state, RBX_LDSHARED));
 
-#if defined(__VERSION__)
-    G(rubinius)->set_const(state, "COMPILER_VERSION", String::create(state, __VERSION__));
-#else
-    G(rubinius)->set_const(state, "COMPILER_VERSION", Qnil);
-#endif
-
-#if defined(_MSC_VER)
-    G(rubinius)->set_const(state, "COMPILER", symbol("microsoft"));
-#elif defined(__DECC) || defined(VAXC)
-    G(rubinius)->set_const(state, "COMPILER", symbol("digital"));
-#elif defined(__BORLANDC__)
-    G(rubinius)->set_const(state, "COMPILER", symbol("borland"));
-#elif defined(__WATCOMC__)
-    G(rubinius)->set_const(state, "COMPILER", symbol("watcom"));
-#elif defined(__GNUC__)
-    G(rubinius)->set_const(state, "COMPILER", symbol("gcc"));
-#elif defined(__MWERKS__)
-    G(rubinius)->set_const(state, "COMPILER", symbol("metrowerks"));
-#elif defined(__IBMC__) || defined(__IBMCPP__)
-    G(rubinius)->set_const(state, "COMPILER", symbol("ibm"));
-#elif defined(__SUNPRO_C)
-    G(rubinius)->set_const(state, "COMPILER", symbol("sunpro"));
-#else
-    G(rubinius)->set_const(state, "COMPILER", symbol("unknown"));
-#endif
+    G(rubinius)->set_const(state, "HOST", String::create(state, RBX_HOST));
+    G(rubinius)->set_const(state, "CPU", String::create(state, RBX_CPU));
+    G(rubinius)->set_const(state, "VENDOR", String::create(state, RBX_VENDOR));
+    G(rubinius)->set_const(state, "OS", String::create(state, RBX_OS));
 
     // Crazy? yep.
     int one = 1;

@@ -62,15 +62,12 @@ tmtags
 /vm/log
 /vm/.deps
 
-/kernel/bootstrap/rubinius_config.rb
-/kernel/bootstrap/ruby_config.rb
 /kernel/delta/signature.rb
 
 /lib/compiler/opcodes.rb
 
 /lib/etc.rb
 /lib/kernel.rb
-/lib/rbconfig.rb
 /lib/zlib.rb
 /lib/fcntl.rb
 /lib/openssl/digest.rb

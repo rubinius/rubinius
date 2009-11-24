@@ -167,7 +167,7 @@ module Rubinius
 
     end
 
-    str = "rubinius #{RBX_VERSION} (#{RUBY_VERSION} #{BUILDREV[0..7]} #{RUBY_RELEASE_DATE}"
+    str = "rubinius #{VERSION} (#{RUBY_VERSION} #{BUILD_REV[0..7]} #{RUBY_RELEASE_DATE}"
 
     unless extra.empty?
       str << " #{extra}"

@@ -1,11 +1,13 @@
-require 'tmpdir'
 require 'rakelib/rubinius'
-require 'rakelib/configuration'
 require 'rakelib/build'
 require 'rakelib/instruction_parser'
+
+require 'tmpdir'
 require 'ostruct'
 
 require 'lib/ffi/generator_task.rb'
+
+require 'config'
 
 config = OpenStruct.new
 config.use_jit = true
@@ -156,10 +158,7 @@ INCLUDES      = EX_INC + %w[vm/test/cxxtest vm . vm/assembler vm/assembler/udis8
 INCLUDES.map! { |f| "-I#{f}" }
 
 # Default build options
-BASIC_FLAGS     = %W[ -pipe -Wall -Wno-deprecated
-                    -DBASE_PATH=\\"#{RBX_BASE_PATH}\\"
-                    -DRBA_PATH=\\"#{RBX_RBA_PATH}\\"
-                ]
+BASIC_FLAGS     = %W[ -pipe -Wall -Wno-deprecated ]
 
 FLAGS = BASIC_FLAGS.dup
 
@@ -195,8 +194,6 @@ end
 Rubinius::BUILD_CONFIG[:defines].each do |flag|
   FLAGS << "-D#{flag}"
 end
-
-FLAGS << "-DRBX_HOST=\\\"#{RBX_HOST}\\\""
 
 BUILD_PRETASKS = []
 
@@ -311,7 +308,6 @@ namespace :build do
                      build:llvm
                      vm
                      kernel:build
-                     lib/rbconfig.rb
                      build:ffi:preprocessor
                      extensions
                    ]
@@ -627,15 +623,19 @@ namespace :vm do
 
   desc "Clean up vm build files"
   task :clean do
-    files = [
-      objs, vm_objs, dep_file, TYPE_GEN, INSN_GEN,
-      'vm/gen',
+    files = FileList[
+      objs,
+      vm_objs,
+      dep_file,
+      TYPE_GEN,
+      INSN_GEN,
+      'vm/gen/*',
       'vm/test/runner',
       'vm/test/runner.cpp',
       'vm/test/runner.o',
       'vm/vm',
       'vm/.deps'
-    ].flatten
+    ].exclude("vm/gen/config.h")
 
     files.each do |filename|
       rm_rf filename, :verbose => $verbose

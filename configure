@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require 'rbconfig'
 require 'tempfile'
 
 root = File.expand_path File.dirname(__FILE__)
@@ -9,22 +10,51 @@ require File.join(root, "kernel", "delta", "options")
 class Configure
 
   def initialize(root)
+    @defines = []
     @config = File.join(root, "config.rb")
 
-    @llvm = :no
-    @llvm_path = nil
+    # LLVM settings
+    @llvm           = :no
+    @llvm_path      = nil
     @llvm_configure = nil
-    @prefix = nil
-    @defines = []
+    @llvm_svn_dir   = File.join(root, "vm", "external_libs", "llvm")
 
-    @llvm_svn_dir = File.join(root, "vm", "external_libs", "llvm")
+    # File system paths
+    @bindir       = root + "/bin"
+    @includedir   = root + "/vm/capi"
+    @libdir       = root
+    @mandir       = root + "/man"
+    @gemsdir      = root + "/gems"
+    @program_name = "rbx"
 
-    o = Rubinius::Options.new "Usage: configure [options]", 40
+    # Essential settings
+    @libversion = "0.13"
+    @version = "#{@libversion}.0"
 
-    o.on "-h", "--help", "Display this help" do
-      puts o
-      exit 1
+    if File.directory? root + "/.git"
+      @buildrev = `git rev-list --all | head -n1`.chomp
+    else
+      @buildrev = "release"
     end
+
+    # TODO: conditionalize for Windows
+    @host = `./rakelib/config.guess`.chomp
+    /([^-]+)-([^-]+)-(.*)/ =~ @host
+    @cpu, @vendor, @os = $1, $2, $3
+
+    # TODO: add conditionals for platforms
+    if Config::CONFIG["build_os"] =~ /darwin/
+      @ldshared = "cc -dynamic -bundle -undefined suppress -flat_namespace"
+    else
+      @ldshared = "cc -shared"
+    end
+  end
+
+  def options
+    o = Rubinius::Options.new "Usage: configure [options]", 30
+    o.left_align
+
+    o.doc " LLVM settings"
 
     o.on("--enable-llvm", "[MODE]",
          "Build with LLVM") do |which|
@@ -35,13 +65,53 @@ class Configure
       @llvm_path = dir
     end
 
-    o.on "--prefix", "PATH", "Where to install Rubinius" do |dir|
-      @prefix = dir
-    end
-
-    o.on "--update-prebuilt", "Update prebuilt packages from the internet" do
+    o.on "--update-prebuilt", "Update prebuilt LLVM packages from the internet" do
       update_prebuilt
     end
+
+    o.doc "\n File system paths for installing Rubinius"
+
+    o.on "-P", "--prefix", "PATH", "Install Rubinius in subdirectories of PATH" do |dir|
+      @bindir       = dir + "/bin"
+      @includedir   = dir + "/include"
+      @libdir       = dir
+      @mandir       = dir + "/man"
+      @gemsdir      = dir + "/gems"
+    end
+
+    o.on "-B", "--bindir", "PATH", "Install Rubinius executable in PATH" do |dir|
+      @bindir = dir
+    end
+
+    o.on "-I", "--includedir", "PATH", "Install Rubinius C-API include files in PATH" do |dir|
+      @includedir = dir
+    end
+
+    o.on "-L", "--libdir", "PATH", "Install Ruby library in PATH" do |dir|
+      @libdir = dir
+    end
+
+    o.on "-M", "--mandir", "PATH", "Install man pages in PATH" do |dir|
+      @mandir = dir
+    end
+
+    o.on "-G", "--gemsdir", "PATH", "Install gems in PATH" do |dir|
+      @gemsdir = dir
+    end
+
+    o.on "--version", "VER", "Set Rubinius version to VER (default #{@version})" do |v|
+      @version = v
+    end
+
+    o.doc "\n Help!"
+
+    o.on "-V", "--verbose", "Print debugging info" do
+      @verbose = true
+    end
+
+    o.help
+
+    o.doc ""
 
     @options = o
   end
@@ -240,38 +310,63 @@ class Configure
     detect_features
   end
 
-  def arch
-    @arch ||= `./rakelib/config.guess`.strip
-  end
-
   def compiler
     ENV['CC'] || "gcc"
   end
 
   def write_config
     File.open @config, "w" do |f|
-      f.puts "module Rubinius"
-      f.puts "BUILD_CONFIG = {"
-      f.puts "  :llvm => :#{@llvm},"
-      f.puts "  :llvm_configure => '#{@llvm_configure}',"
-      f.puts "  :arch => '#{arch()}',"
-      f.puts "  :prefix => #{@prefix.inspect},"
-      f.puts "  :compiler => '#{compiler}',"
-      if @defines.empty?
-        f.puts "  :defines => []"
-      else
-        f.puts "  :defines => ['#{@defines.join(', ')}']"
-      end
-      f.puts "}"
-      f.puts "end"
+      f.puts <<-EOC
+module Rubinius
+  BUILD_CONFIG = {
+    :llvm           => :#{@llvm},
+    :llvm_configure => "#{@llvm_configure}",
+    :compiler       => "#{compiler()}",
+    :defines        => #{@defines.inspect},
+    :host           => "#{@host}",
+    :cpu            => "#{@cpu}",
+    :vendor         => "#{@vendor}",
+    :os             => "#{@os}",
+    :bindir         => "#{@bindir}",
+    :libdir         => "#{@libdir}",
+    :includedir     => "#{@includedir}",
+    :mandir         => "#{@mandir}",
+    :gemsdir        => "#{@gemsdir}",
+    :program_name   => "#{@program_name}"
+  }
+end
+      EOC
+    end
+
+    Dir.mkdir "vm/gen" unless File.directory? "vm/gen"
+
+    File.open "vm/gen/config.h", "w" do |f|
+      f.puts <<-EOC
+#define RBX_HOST        "#{@host}"
+#define RBX_CPU         "#{@cpu}"
+#define RBX_VENDOR      "#{@vendor}"
+#define RBX_OS          "#{@os}"
+#define RBX_BIN_PATH    "#{@bindir}"
+#define RBX_GEMS_PATH   "#{@gemsdir}"
+#define RBX_RUNTIME     "#{@libdir}/runtime"
+#define RBX_LIB_PATH    "#{@libdir}/lib"
+#define RBX_EXT_PATH    "#{@libdir}/lib/ext"
+#define RBX_HDR_PATH    "#{@includedir}"
+#define RBX_VERSION     "#{@version}"
+#define RBX_LIB_VERSION "#{@libversion}"
+#define RBX_BUILD_REV   "#{@buildrev}"
+#define RBX_LDSHARED    "#{@ldshared}"
+      EOC
     end
   end
 
+  def run
+    options
+    parse ARGV
+    process
+    write_config
+  end
 end
 
 STDOUT.sync = true
-
-c = Configure.new(root)
-c.parse ARGV
-c.process
-c.write_config
+Configure.new(root).run

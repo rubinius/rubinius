@@ -63,7 +63,7 @@ describe "Config::CONFIG" do
   it_has_keys 'Config::CONFIG', keys
 
   entries = {
-    "RUBY_SO_NAME"      => "rubinius-#{Rubinius::RBX_VERSION}",
+    "RUBY_SO_NAME"      => "rubinius-#{Rubinius::VERSION}",
     "ruby_install_name" => "rbx",
     "ruby_version"      => "1.8",
   }
@@ -72,6 +72,10 @@ describe "Config::CONFIG" do
 end
 
 describe "Config::MAKEFILE_CONFIG" do
+  sitedir    = "#{Rubinius::LIB_PATH}/rubinius"
+  sitelibdir = "#{sitedir}/#{Rubinius::LIB_VERSION}"
+  arch       = "#{Rubinius::CPU}-#{Rubinius::OS}"
+
   entries = {
     "exec_prefix"        => "$(prefix)",
     "bindir"             => "$(exec_prefix)/bin",
@@ -93,12 +97,11 @@ describe "Config::MAKEFILE_CONFIG" do
     "libdir"             => "$(exec_prefix)/lib",
     "localedir"          => "$(datarootdir)/locale",
     "mandir"             => "$(datarootdir)/man",
-    "sitedir"            => "$(libdir)/ruby/site_ruby",
     "ruby_version"       => "$(MAJOR).$(MINOR)",
-    "rubylibdir"         => "#{Rubinius::RUBYLIBDIR}",
-    "archdir"            => "#{Rubinius::ARCHDIR}",
-    "sitearchdir"        => "#{Rubinius::SITEARCHDIR}",
-    "sitedir"            => "#{Rubinius::SITEDIR}",
+    "rubylibdir"         => sitelibdir,
+    "archdir"            => "#{sitelibdir}/#{arch}",
+    "sitearchdir"        => "#{sitelibdir}/#{arch}",
+    "sitedir"            => "#{sitedir}",
     "rubyhdrdir"         => "#{Rubinius::HDR_PATH}"
   }
 

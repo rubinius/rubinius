@@ -8,6 +8,8 @@
 #include "vm/type_info.hpp"
 #include "vm/exception.hpp"
 
+#include "vm/config.h"
+
 
 using namespace std;
 using namespace rubinius;
@@ -80,7 +82,7 @@ int main(int argc, char** argv) {
     if(!runtime) {
       struct stat st;
 
-      runtime = RBA_PATH;
+      runtime = RBX_RUNTIME;
       if(stat(runtime, &st) == -1 || !S_ISDIR(st.st_mode)) {
         // Use throw rather than ::raise here because we're outside
         // the VM really.

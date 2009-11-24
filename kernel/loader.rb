@@ -13,7 +13,7 @@ module Rubinius
       @run_irb      = true
       @printed_version = false
 
-      @gem_bin = File.join Rubinius::CODE_PATH, "gems", "bin"
+      @gem_bin = File.join Rubinius::GEMS_PATH, "bin"
     end
 
     # Finish setting up after loading kernel.
@@ -44,17 +44,15 @@ module Rubinius
     def system_load_path
       @stage = "setting up system load path"
 
-      # Add a fallback directory if Rubinius::LIB_PATH doesn't exist
-      @main_lib = File.expand_path(LIB_PATH)
-      @main_lib = File.join(Dir.pwd, 'lib') unless File.exists?(@main_lib)
+      @main_lib = File.expand_path(Rubinius::LIB_PATH)
 
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
       additions = []
-      additions << SITELIBDIR
-      additions << SITEARCHDIR
-      additions << SITEDIR
-      additions << RUBYLIBDIR
+      #additions << SITELIBDIR
+      #additions << SITEARCHDIR
+      #additions << SITEDIR
+      #additions << RUBYLIBDIR
       additions << @main_lib
       additions.uniq!
 

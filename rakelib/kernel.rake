@@ -62,10 +62,11 @@ dir_names.each do |dir|
 end
 
 # Generate file tasks for all kernel files.
+compiler_signature = "kernel/delta/signature.rb"
+
 FileList[
   "kernel/**/*.rb",
-  "kernel/bootstrap/rubinius_config.rb",
-  "kernel/bootstrap/ruby_config.rb",
+  compiler_signature
 ].each do |rb|
   kernel_dependency rb, runtime
 end
@@ -102,10 +103,6 @@ parser_ext_files = FileList[
 
 # Generate a sha1 of all parser and compiler files to use as
 # as signature in the .rbc files.
-compiler_signature = "kernel/delta/signature.rb"
-
-kernel_dependency compiler_signature, runtime
-
 file compiler_signature => compiler_files + parser_ext_files do |t|
   require 'digest'
   digest = Digest::SHA1.new

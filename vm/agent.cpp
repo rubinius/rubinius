@@ -13,6 +13,8 @@
 #include "agent.hpp"
 #include "exception.hpp"
 
+#include "config.h"
+
 namespace rubinius {
   bool QueryAgent::bind() {
     server_fd_ = ::socket(AF_INET, SOCK_STREAM, 0);

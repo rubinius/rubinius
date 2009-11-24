@@ -9,6 +9,12 @@ if !$verbose and respond_to?(:verbose)
   verbose(false) if verbose() == :default
 end
 
+unless File.exists?(File.expand_path("../config.rb", __FILE__)) and
+       File.exists?(File.expand_path("../vm/gen/config.h", __FILE__))
+  STDERR.puts "Please run ./configure first"
+  exit 1
+end
+
 $dlext = Config::CONFIG["DLEXT"]
 $compiler = nil
 
@@ -76,7 +82,6 @@ task :clean => %w[
   kernel:clean
   clean:crap
   extensions:clean
-  configure:clean
 ]
 
 desc 'Remove rubinius build files and external library build files'

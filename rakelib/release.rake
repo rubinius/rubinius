@@ -1,4 +1,4 @@
-require 'rakelib/configuration'
+require 'config'
 
 namespace :release do
   desc "Create the tarball for the release"
