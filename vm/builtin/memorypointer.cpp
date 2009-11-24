@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <dlfcn.h>
+#include <arpa/inet.h>
 
 #include "vm.hpp"
 #include "oop.hpp"
