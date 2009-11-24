@@ -12,6 +12,11 @@ class Array::Packer
     @schema = schema
     @index = 0
     @result = ""
+    @ptr = nil
+  end
+
+  def ptr
+    @ptr ||= FFI::MemoryPointer.new(16) # enough for all uses
   end
 
   def parse(schema)
@@ -19,30 +24,28 @@ class Array::Packer
     # ["X", ""]]. It represents the parsed form of "A6u*X".  Remove
     # strings in the schema between # and \n
     schema = schema.gsub(/#.*/, '')
-    schema = schema.scan(/([^\s\d!_\*][\d!_\*]*)/).flatten.map {|x|
-      x.match(/([^\s\d!_\*])([\d!_\*]*)/)[1..-1]
-    }
+    schema.scan(/([^\s\d!_\*])([\d!_\*]*)/)
   end
 
-  def dispatch()
+  def dispatch
     parse(@schema).each do |kind, t|
       t = nil if t.empty?
 
       case kind # TODO: switch kind to ints
-      when 'X' then
+      when 'X'
         size = (t || 1).to_i
         raise ArgumentError, "you're backing up too far" if size > @result.size
         @result[-size..-1] = '' if size > 0
-      when 'x' then
+      when 'x'
         size = (t || 1).to_i
         @result << "\000" * size
-      when 'a', 'A', 'Z' then
+      when 'a', 'A', 'Z'
         ascii_string(kind, t)
-      when 'b', 'B' then
+      when 'b', 'B'
         bit_string(kind, t)
-      when 'c', 'C' then
+      when 'c', 'C'
         character(kind, t)
-      when 'M' then
+      when 'M'
         # for some reason MRI responds to to_s here
         item = Type.coerce_to(fetch_item(), String, :to_s)
         line_length = 72
@@ -50,27 +53,31 @@ class Array::Packer
           line_length = t.to_i
         end
         line_length += 1 # bug compatibility with MRI
-        
+
         @result << item.scan(/.{1,#{line_length}}/m).map { |line|
           line.gsub(/[^ -<>-~\t\n]/) { |m| "=%02X" % m[0] } + "=\n"
         }.join
-      when 'm' then
+      when 'm'
         @result << encode(kind, t, :base64).join.sub(/(A{1,2})\n\Z/) { "#{'=' * $1.size}\n" }
-      when 'w' then
+      when 'w'
         ber_compress(kind, t)
-      when 'u' then
+      when 'u'
         @result << encode(kind, t, :uuencode).join.gsub(/ /, '`')
-      when 'd', 'D', 'e', 'E', 'f', 'F', 'g', 'G' then
+      when 'd', 'D', 'e', 'E', 'f', 'F', 'g', 'G'
         decimal(kind, t)
-      when 'i', 's', 'l', 'n', 'I', 'S', 'L', 'V', 'v', 'N', 'n' then
+      when 'i', 'I', 's', 'S', 'l', 'L', 'v', 'V'
         integer(kind, t)
-      when 'p', 'P' then
+      when 'N'
+        net_long(t)
+      when 'n'
+        net_short(t)
+      when 'p', 'P'
         pointer(kind, t)
-      when 'Q', 'q' then
-        integer(kind, t)
-      when 'H', 'h' then
+      when 'Q', 'q'
+        integer64(kind, t)
+      when 'H', 'h'
         hex_string(kind, t)
-      when 'U' then
+      when 'U'
         utf_string(kind, t)
       when '@'
         pos = if(t.nil?)
@@ -89,6 +96,9 @@ class Array::Packer
     end
 
     return @result
+  ensure
+    @ptr.free if @ptr
+    @ptr = nil
   end
 
   def fetch_item
@@ -245,7 +255,7 @@ class Array::Packer
                     when 'g', 'G' then false
                     else endian?(:little)
                     end
-    
+
     size.times do
       item = fetch_item()
       item = FloatValue item
@@ -255,7 +265,82 @@ class Array::Packer
     end
   end
 
-  # i, s, l, n, I, S, L, V, v, N, q, Q
+  QUAD_MAX = 2 ** 64
+  MAX = 2 ** Rubinius::WORDSIZE
+
+  # Q, q
+  def integer64(kind, t)
+    size = parse_tail(t, kind)
+
+    bytes = 8
+
+    little_endian = true
+
+    if @index + size > @source.length
+      raise ArgumentError, "too few array elements"
+    end
+
+    size.times do |i|
+      val = Type.coerce_to(fetch_item, Integer, :to_int)
+
+      max_wordsize = 64
+
+      if val.abs >= QUAD_MAX
+        raise RangeError, "bignum too big to convert into 'unsigned long'"
+      end
+
+      ptr.write_int64 val
+      @result << ptr.read_string(8)
+    end
+  end
+
+  # N
+  def net_long(t)
+    size = parse_tail(t, 'N')
+
+    if @index + size > @source.length
+      raise ArgumentError, "too few array elements"
+    end
+
+    size.times do |i|
+      val = Type.coerce_to(fetch_item, Integer, :to_int)
+
+      # These ranges checks are so stupid. They don't even check the actual
+      # range of 32bit long!? But this is what MRI does.
+      if val.abs >= MAX
+        raise RangeError, "too big to be a network long"
+      end
+
+      ptr.write_int val
+      ptr.network_order 0, 4
+      @result << ptr.read_string(4)
+    end
+  end
+
+  # n
+  def net_short(t)
+    size = parse_tail(t, 'n')
+
+    if @index + size > @source.length
+      raise ArgumentError, "too few array elements"
+    end
+
+    size.times do |i|
+      val = Type.coerce_to(fetch_item, Integer, :to_int)
+
+      # These ranges checks are so stupid. They don't even check the actual
+      # range of short!? But this is what MRI does.
+      if val.abs >= MAX
+        raise RangeError, "too big to be a network short"
+      end
+
+      ptr.write_short val
+      ptr.network_order 0, 2
+      @result << ptr.read_string(2)
+    end
+  end
+
+  # i, s, l, I, S, L, V, v
   def integer(kind, t)
     size = parse_tail(t, kind)
 
@@ -268,21 +353,17 @@ class Array::Packer
               end
     else
       bytes = case kind
-              when 'Q', 'q' then 8
               when 'L', 'l' then 4
               when 'I', 'i' then 4
               when 'S', 's' then 2
               when 'V'      then 4
               when 'v'      then 2
-              when 'N'      then 4
-              when 'n'      then 2
               end
     end
 
     unsigned      = (kind =~ /I|S|L/)
     little_endian = case kind
                     when 'V', 'v' then true
-                    when 'N', 'n' then false
                     else endian?(:little)
                     end
 
@@ -292,12 +373,7 @@ class Array::Packer
     size.times do |i|
       item = Type.coerce_to(fetch_item(), Integer, :to_int)
 
-      max_wordsize = case kind
-                     when 'Q', 'q' then 64
-                     else Rubinius::WORDSIZE
-                     end
-
-      if item.abs >= 2**max_wordsize
+      if item.abs >= MAX
         raise RangeError, "bignum too big to convert into 'unsigned long'"
       end
 
@@ -316,7 +392,7 @@ class Array::Packer
       chars = ''
       item = Type.coerce_to(fetch_item(), Integer, :to_int)
       raise ArgumentError, "can't compress negative numbers" if item < 0
-      
+
       chars << (item & 0x7f)
       while (item >>= 7) > 0 do
         chars << ((item & 0x7f) | 0x80)
