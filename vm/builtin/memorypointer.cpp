@@ -76,6 +76,16 @@ namespace rubinius {
     return this;
   }
 
+  Integer* MemoryPointer::write_short(STATE, Integer* val) {
+    unsigned short s = val->to_native();
+    *(unsigned short*)pointer = s;
+    return val;
+  }
+
+  Integer* MemoryPointer::read_short(STATE) {
+    return Integer::from(state, *(short*)pointer);
+  }
+
   Integer* MemoryPointer::write_int(STATE, Integer* val) {
     *(int*)pointer = val->to_native();
     return val;
@@ -92,6 +102,15 @@ namespace rubinius {
 
   Integer* MemoryPointer::read_long(STATE) {
     return Integer::from(state, *(long*)pointer);
+  }
+
+  Integer* MemoryPointer::write_long_long(STATE, Integer* val) {
+    *(long long*)pointer = val->to_native();
+    return val;
+  }
+
+  Integer* MemoryPointer::read_long_long(STATE) {
+    return Integer::from(state, *(long long*)pointer);
   }
 
   Float* MemoryPointer::write_float(STATE, Float* flt) {
@@ -114,6 +133,30 @@ namespace rubinius {
 
   MemoryPointer* MemoryPointer::read_pointer(STATE) {
     return MemoryPointer::create(state, *(void**)pointer);
+  }
+
+  Object* MemoryPointer::network_order(STATE, Fixnum* offset, Fixnum* intsize) {
+    native_int size = intsize->to_native();
+
+    char* pos = ((char*)pointer) + offset->to_native();
+
+#define ptr_to(type) (*(type*)pos)
+
+    switch(size) {
+    case 2:
+      ptr_to(uint16_t) = htons(ptr_to(uint16_t));
+      return Integer::from(state, ptr_to(uint16_t));
+    case 4:
+      ptr_to(uint32_t) = htonl(ptr_to(uint32_t));
+      return Integer::from(state, ptr_to(uint32_t));
+    case 8:
+      ptr_to(uint32_t) = htonl(ptr_to(uint32_t));
+      pos += 4; // 32 bits
+      ptr_to(uint32_t) = htonl(ptr_to(uint32_t));
+      return Integer::from(state, *(uint64_t*)(pos - 4));
+    }
+
+    return Primitives::failure();
   }
 
   Object* MemoryPointer::get_at_offset(STATE, Fixnum* offset, Fixnum* type) {

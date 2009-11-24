@@ -28,6 +28,12 @@ namespace rubinius {
     // Ruby.primitive :memorypointer_add
     MemoryPointer* add(STATE, Integer* amount);
 
+    // Ruby.primitive :memorypointer_write_short
+    Integer* write_short(STATE, Integer* val);
+
+    // Ruby.primitive :memorypointer_read_short
+    Integer* read_short(STATE);
+
     // Ruby.primitive :memorypointer_write_int
     Integer* write_int(STATE, Integer* val);
 
@@ -39,6 +45,12 @@ namespace rubinius {
 
     // Ruby.primitive :memorypointer_read_long
     Integer* read_long(STATE);
+
+    // Ruby.primitive :memorypointer_write_long_long
+    Integer* write_long_long(STATE, Integer* val);
+
+    // Ruby.primitive :memorypointer_read_long_long
+    Integer* read_long_long(STATE);
 
     // Ruby.primitive :memorypointer_write_float
     Float* write_float(STATE, Float* val);
@@ -74,6 +86,8 @@ namespace rubinius {
     // Ruby.primitive :memorypointer_set_at_offset
     Object* set_at_offset(STATE, Fixnum* offset, Fixnum* type, Object* val);
 
+    // Ruby.primitive :memorypointer_network_order
+    Object* network_order(STATE, Fixnum* offset, Fixnum* intsize);
 
     /** @todo Need cleanup here? */
     class Info : public TypeInfo {

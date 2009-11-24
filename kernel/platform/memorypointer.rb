@@ -126,6 +126,18 @@ module FFI
       #self.class.set_address self, nil
     end
 
+    # Write +obj+ as a C short at the memory pointed to.
+    def write_short(obj)
+      Ruby.primitive :memorypointer_write_short
+      raise PrimitiveFailure, "Unable to write short"
+    end
+
+    # Read a C short from the memory pointed to.
+    def read_short
+      Ruby.primitive :memorypointer_read_short
+      raise PrimitiveFailure, "Unable to read short"
+    end
+
     # Write +obj+ as a C int at the memory pointed to.
     def write_int(obj)
       Ruby.primitive :memorypointer_write_int
@@ -148,6 +160,27 @@ module FFI
     def read_long
       Ruby.primitive :memorypointer_read_long
       raise PrimitiveFailure, "Unable to read long"
+    end
+
+    # Write +obj+ as a C long long at the memory pointed to.
+    def write_long_long(obj)
+      Ruby.primitive :memorypointer_write_long_long
+      raise PrimitiveFailure, "Unable to write long long"
+    end
+
+    alias_method :write_int64, :write_long_long
+
+    # Read a C long from the memory pointed to.
+    def read_long_long
+      Ruby.primitive :memorypointer_read_long_long
+      raise PrimitiveFailure, "Unable to read long long"
+    end
+
+    alias_method :read_int64, :read_long_long
+
+    def network_order(start, size)
+      Ruby.primitive :memorypointer_network_order
+      raise PrimitiveFailure, "Unable to convert to network order"
     end
 
     def read_string_length(len)
