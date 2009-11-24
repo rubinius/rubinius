@@ -191,7 +191,7 @@ class Configure
 
     tf.close
 
-    `#{compiler} -o /dev/null -x c #{tf.path} 2>&1`
+    `#{compiler} -S -o - -x c #{tf.path} 2>&1`
     status = ($?.exitstatus == 0)
 
     tf.unlink
