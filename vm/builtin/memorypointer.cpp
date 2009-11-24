@@ -106,7 +106,7 @@ namespace rubinius {
   }
 
   Integer* MemoryPointer::write_long_long(STATE, Integer* val) {
-    *(long long*)pointer = val->to_native();
+    *(long long*)pointer = val->to_long_long();
     return val;
   }
 
