@@ -2162,7 +2162,9 @@ namespace rubinius {
     }
 
     void visit_goto(opcode ip) {
-      b().CreateBr(block_map_[ip].block);
+      BasicBlock* bb = block_map_[ip].block;
+      assert(bb);
+      b().CreateBr(bb);
       set_block(new_block("continue"));
     }
 
@@ -2178,7 +2180,9 @@ namespace rubinius {
           ConstantInt::get(ls_->IntPtrTy, cFalse), "is_true");
 
       BasicBlock* cont = new_block("continue");
-      b().CreateCondBr(cmp, block_map_[ip].block, cont);
+      BasicBlock* bb = block_map_[ip].block;
+      assert(bb);
+      b().CreateCondBr(cmp, bb, cont);
 
       set_block(cont);
     }
@@ -2195,7 +2199,9 @@ namespace rubinius {
           ConstantInt::get(ls_->IntPtrTy, cFalse), "is_true");
 
       BasicBlock* cont = new_block("continue");
-      b().CreateCondBr(cmp, block_map_[ip].block, cont);
+      BasicBlock* bb = block_map_[ip].block;
+      assert(bb);
+      b().CreateCondBr(cmp, bb, cont);
 
       set_block(cont);
     }

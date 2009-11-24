@@ -6,6 +6,7 @@
 #include "vmmethod.hpp"
 
 #include "llvm/jit_visit.hpp"
+#include "llvm/control_flow.hpp"
 
 #include <llvm/Analysis/CaptureTracking.h>
 
@@ -1247,6 +1248,28 @@ namespace rubinius {
     loops_ = finder.loops_p();
   }
 
+  class Walker {
+    JITVisit& v_;
+    BlockMap& map_;
+
+  public:
+    Walker(JITVisit& v, BlockMap& map)
+      : v_(v)
+      , map_(map)
+    {}
+
+    void call(OpcodeIterator& iter) {
+      v_.dispatch(iter.stream(), iter.ip());
+
+      if(v_.b().GetInsertBlock()->getTerminator() == NULL) {
+        BlockMap::iterator i = map_.find(iter.next_ip());
+        if(i != map_.end()) {
+          v_.b().CreateBr(i->second.block);
+        }
+      }
+    }
+  };
+
   bool LLVMWorkHorse::generate_body() {
     JITVisit visitor(ls_, info_, block_map_, b().GetInsertBlock());
 
@@ -1264,46 +1287,13 @@ namespace rubinius {
 
     visitor.initialize();
 
-    // std::cout << info.vmm << " start: " << info.vmm->total << "\n";
-
-    // Fix up the JITBasicBlock's so that the ranges don't overlap
-    // (overlap is caused by a backward branch)
-    JITBasicBlock* prev = 0;
-    BlockMap& bm = visitor.block_map();
-    for(BlockMap::iterator i = bm.begin();
-          i != bm.end();
-          i++) {
-      JITBasicBlock& jbb = i->second;
-      if(prev && prev->end_ip >= jbb.start_ip) {
-        /*
-        std::cout << info.vmm << " overlap: "
-          << prev->start_ip << "-" << prev->end_ip << " "
-          << jbb.start_ip << "-" << jbb.end_ip
-          << "\n";
-        */
-        prev->end_ip = jbb.start_ip - 1;
-
-        /*
-        std::cout << info.vmm << " split region: " << prev->end_ip << "\n";
-        */
-      }
-
-      prev = &jbb;
-    }
-
     // Pass 2, compile!
+    // Drive by following the control flow.
+    jit::ControlFlowWalker walker(info_.vmm);
+    Walker cb(visitor, block_map_);
+
     try {
-      // Drive visitor for only blocks, as they contain all live regions
-      for(BlockMap::iterator i = bm.begin();
-          i != bm.end();
-          i++) {
-        JITBasicBlock& jbb = i->second;
-        /*
-        std::cout << info.vmm
-          << " Driving: " << jbb.start_ip << "-" << jbb.end_ip << "\n";
-        */
-        visitor.drive(info_.vmm->opcodes, jbb.end_ip+1, jbb.start_ip);
-      }
+      walker.run<Walker>(cb);
     } catch(JITVisit::Unsupported &e) {
       return false;
     }
