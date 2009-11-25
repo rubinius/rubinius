@@ -126,7 +126,7 @@ class Configure
   end
 
   def update_prebuilt
-    file = "llvm-#{arch}.tar.bz2"
+    file = "llvm-#{@host}.tar.bz2"
     full_path = "vm/external_libs/prebuilt/#{file}"
 
     url = "http://asset.rubini.us/prebuilt/#{file}"
@@ -164,13 +164,13 @@ class Configure
   end
 
   def setup_prebuilt
-    file = "vm/external_libs/prebuilt/llvm-#{arch}.tar.bz2"
+    file = "vm/external_libs/prebuilt/llvm-#{@host}.tar.bz2"
 
     update_prebuilt unless File.exists?(file)
 
     if File.exists?(file)
-      print "  Unpacking prebuilt LLVM for #{arch}: "
-      system "cd vm/external_libs; mkdir llvm; cd llvm; tar xjf ../prebuilt/llvm-#{arch}.tar.bz2"
+      print "  Unpacking prebuilt LLVM for #{@host}: "
+      system "cd vm/external_libs; mkdir llvm; cd llvm; tar xjf ../prebuilt/llvm-#{@host}.tar.bz2"
       puts "done!"
       @llvm = :prebuilt
       return true
@@ -300,7 +300,7 @@ class Configure
       exit 1 unless setup_config
     when :prebuilt
       unless setup_prebuilt
-        puts "No prebuilt LLVM available for #{arch}"
+        puts "No prebuilt LLVM available for #{@host}"
         exit 1
       end
     when :path
