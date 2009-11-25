@@ -156,11 +156,32 @@ To run a particular spec file, for example, the Array specs:
 
 ## Installing Rubinius
 
-Installing is currently broken. Do not use it.
+NOTE: You do NOT need to install Rubinius. Rubinius will run perfectly
+from the source directory. If you just want to take Rubinius for a test
+run, build in the source directory and either run ./bin/rbx directly or
+create a symlink to that file somewhere in your PATH directories.
 
-Run the 'rake install' task to install Rubinius (you may need sudo). Run the
-'rake uninstall' task to uninstall Rubinius.
+Now, assuming you really want to install Rubinius...
 
+You can configure Rubinius to install into a single directory, or install
+the executable, the core and standard libraries, gems, etc. in multiple
+directories.
+
+The simplest is the single-directory install. Run
+
+    ./configure [--enable-llvm] --prefix=/some/path/to/base/dir
+    rake install
+
+The rake install task depends on the build task, so rake install will
+build and then install.
+
+See `./configure --help` for options for setting the other directories.
+
+NOTE: When Rubinius is built, the path to the directory in which it finds
+the core and standard library files is compiled into the exectuable. You
+should not move the install (or development) directory after you build
+Rubinius. If you do, however, you should get a friendly message about how
+to run Rubinius by setting the RBX_RUNTIME and RBX_LIB environment variables.
 
 ## Running Rubinius
 
