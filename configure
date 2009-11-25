@@ -94,7 +94,7 @@ class Configure
     end
 
     o.on "-L", "--libdir", "PATH", "Install Ruby library in PATH" do |dir|
-      @libdir   = dir + "/rubinius"
+      @libdir   = dir + "/rubinius/#{@libversion}"
       @runtime  = @libdir + "/runtime"
       @lib_path = @libdir + "/lib"
       @ext_path = @libdir + "/lib/ext"
