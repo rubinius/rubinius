@@ -31,8 +31,8 @@ class Configure
     @program_name = "rbx"
 
     # Essential settings
-    @libversion = "0.13"
-    @version = "#{@libversion}.0"
+    @libversion = "1.0"
+    @version = "#{@libversion}.0-rc1"
 
     if File.directory? root + "/.git"
       @buildrev = `git rev-list --all | head -n1`.chomp
