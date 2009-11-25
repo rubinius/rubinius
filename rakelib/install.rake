@@ -37,6 +37,10 @@ def need_sudo?(dirs)
   return false
 end
 
+def need_install?
+  File.expand_path(Dir.pwd) != BUILD_CONFIG[:libdir]
+end
+
 def precompile(dir)
   ruby "-Ilib lib/bin/compile.rb -V -T default #{dir}"
 end
@@ -57,18 +61,20 @@ task :install => %w[ build install:build install:files ]
 namespace :install do
   desc "Compile all lib Ruby files"
   task :build do
-    puts "Compiling library files for install..."
-    precompile "lib"
+    if need_install?
+      puts "Compiling library files for install..."
+      precompile "lib"
 
-    puts "Compiling pre-installed gem files for install..."
-    precompile "preinstalled-gems/rubinius/0.13/gems"
+      puts "Compiling pre-installed gem files for install..."
+      precompile "preinstalled-gems/rubinius/0.13/gems"
+    end
   end
 
   desc "Install all the Rubinius files"
   task :files do
     if need_sudo? install_dirs
       sh "sudo #{FileUtils::RUBY} -S rake install:files", :verbose => true
-    elsif File.expand_path(Dir.pwd) == BUILD_CONFIG[:libdir]
+    elsif !need_install?
       puts "Install directory is the same as build directory, nothing to install"
     else
       install_dirs.each { |name| mkdir_p name, :verbose => $verbose }
