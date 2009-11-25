@@ -65,7 +65,7 @@ end
 
 # See vm.rake for more information
 desc "Build everything that needs to be built at default level."
-task :build => "build:normal"
+task :build => ["build:normal", "gem_bootstrap"]
 
 desc "Recompile all ruby system files"
 task :rebuild => %w[clean build]
@@ -84,6 +84,14 @@ task :distclean => %w[
   clean
   vm:distclean
 ]
+
+desc 'Move the preinstalled gem setup into place'
+task :gem_bootstrap do
+  unless File.directory?("gems/rubinius")
+    sh "mkdir gems"
+    sh "cp -r preinstalled-gems gems/rubinius"
+  end
+end
 
 def install_bin
   File.join RBX_BINPATH, 'rbx'
