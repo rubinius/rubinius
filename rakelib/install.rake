@@ -92,6 +92,15 @@ namespace :install do
         install_file name, /^runtime/, BUILD_CONFIG[:runtime]
       end
 
+      # This is separate from below because it is an open question
+      # whether we should install the .rb files along with the
+      # .rbc files for the standard library. Some libraries,
+      # like IRB, look for a specific .rb file and fail to work
+      # if not finding it.
+      FileList['lib/**/*.rb'].each do |name|
+        install_file name, /^lib/, BUILD_CONFIG[:lib_path]
+      end
+
       FileList['lib/**/*.rbc'].each do |name|
         install_file name, /^lib/, BUILD_CONFIG[:lib_path]
       end
