@@ -46,6 +46,23 @@ module Rubinius
 
       @main_lib = File.expand_path(Rubinius::LIB_PATH)
 
+      unless File.exists? @main_lib
+        if ENV['RBX_LIB']
+          @main_lib = ENV['RBX_LIB']
+        else
+          STDERR.puts <<-EOM
+Rubinius was configured to find standard library files at:
+
+  #{@main_lib}
+
+but that directory does not exist.
+
+Set the environment variable RBX_LIB to the directory
+containing the Rubinius standard library files.
+          EOM
+        end
+      end
+
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
       additions = []

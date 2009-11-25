@@ -84,9 +84,22 @@ int main(int argc, char** argv) {
 
       runtime = RBX_RUNTIME;
       if(stat(runtime, &st) == -1 || !S_ISDIR(st.st_mode)) {
-        // Use throw rather than ::raise here because we're outside
-        // the VM really.
-        throw new Assertion("set RBX_RUNTIME to runtime (or equiv)");
+
+        std::cerr << "ERROR: unable to find runtime directory" << std::endl;
+        std::cerr << std::endl;
+        std::cerr << "Rubinius was configured to find the runtime directory at:" << std::endl;
+        std::cerr << std::endl << "  " << runtime << std::endl;
+        std::cerr << std::endl;
+        std::cerr << "but that directory does not exist." << std::endl;
+        std::cerr << std::endl;
+        std::cerr << "Set the environment variable RBX_RUNTIME to the location" << std::endl;
+        std::cerr << "of the directory with the compiled Rubinius kernel files." << std::endl;
+        std::cerr << std::endl;
+        std::cerr << "You may have configured Rubinius for a different install" << std::endl;
+        std::cerr << "directory but you have not run \'rake install\' yet." << std::endl;
+        std::cerr << std::endl;
+
+        exit(1);
       }
     }
 
