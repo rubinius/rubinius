@@ -12,17 +12,44 @@ using namespace rubinius::capi;
 
 extern "C" {
   int rb_const_defined(VALUE module_handle, ID const_id) {
-    return RTEST(rb_funcall(module_handle, rb_intern("const_defined?"),
-          1, ID2SYM(const_id)));
+    VALUE ret = rb_funcall(module_handle,
+        rb_intern("const_defined?"), 1, ID2SYM(const_id));
+
+    // This version also checks Object. le sigh.
+    if(!RTEST(ret)) {
+      ret = rb_funcall(rb_cObject,
+          rb_intern("const_defined?"), 1, ID2SYM(const_id));
+    }
+
+    return ret;
   }
 
-  VALUE rb_const_get(VALUE module_handle, ID name) {
+  VALUE rb_const_get(VALUE module_handle, ID id_name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
+    Symbol* name = reinterpret_cast<Symbol*>(id_name);
     Module* module = c_as<Module>(env->get_object(module_handle));
 
-    return env->get_handle(module->get_const(env->state(),
-                                                 reinterpret_cast<Symbol*>(name)));
+    bool found = false;
+    while(!module->nil_p()) {
+      Object* val = module->get_const(env->state(), name, &found);
+      if(found) return env->get_handle(val);
+
+      module = module->superclass();
+    }
+
+    // Try from Object as well.
+    module = env->state()->globals.object.get();
+
+    while(!module->nil_p()) {
+      Object* val = module->get_const(env->state(), name, &found);
+      if(found) return env->get_handle(val);
+
+      module = module->superclass();
+    }
+
+    // BUG should call const missing here.
+    return Qnil;
   }
 
   void rb_const_set(VALUE module_handle, ID name, VALUE obj_handle) {
