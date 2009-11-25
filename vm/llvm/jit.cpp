@@ -225,10 +225,22 @@ namespace rubinius {
 
         LLVMCompiler* jit = new LLVMCompiler();
 
+        void* func = 0;
         {
           timer::Running timer(ls_->time_spent);
           jit->compile(ls_, req->vmmethod(), req->is_block());
-          jit->generate_function(ls_);
+          func = jit->generate_function(ls_);
+        }
+
+        // We were unable to compile this function, likely
+        // because it's got something we don't support.
+        if(!func) {
+          if(ls_->config().jit_show_compiling) {
+            llvm::outs() << "[[[ JIT error in background compiling ]]]\n";
+          }
+
+          delete req;
+          continue; // for(;;)
         }
 
         if(show_machine_code_) {
@@ -243,7 +255,7 @@ namespace rubinius {
 
         req->vmmethod()->set_jitted(jit->llvm_function(),
                                     jit->code_bytes(),
-                                    jit->function_pointer());
+                                    func);
 
         if(req->is_block()) {
           BlockEnvironment* be = req->block_env();
