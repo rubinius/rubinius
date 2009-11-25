@@ -366,7 +366,8 @@ module Rubinius
           # Investigate when we have specs running.
           require prog
         rescue LoadError => e
-          STDERR.puts "Unable to find repr named '#{repr}' to load."
+          STDERR.puts "Unable to load REPL named '#{repr}'"
+          STDERR.puts e.message
           puts e.awesome_backtrace.show
           exit 1
         end

@@ -23,6 +23,9 @@ class Configure
     @bindir       = root + "/bin"
     @includedir   = root + "/vm/capi"
     @libdir       = root
+    @runtime      = @libdir + "/runtime"
+    @lib_path     = @libdir + "/lib"
+    @ext_path     = @libdir + "/lib/ext"
     @mandir       = root + "/man"
     @gemsdir      = root + "/gems"
     @program_name = "rbx"
@@ -75,6 +78,9 @@ class Configure
       @bindir       = dir + "/bin"
       @includedir   = dir + "/include"
       @libdir       = dir
+      @runtime      = @libdir + "/runtime"
+      @lib_path     = @libdir + "/lib"
+      @ext_path     = @libdir + "/lib/ext"
       @mandir       = dir + "/man"
       @gemsdir      = dir + "/gems"
     end
@@ -88,7 +94,10 @@ class Configure
     end
 
     o.on "-L", "--libdir", "PATH", "Install Ruby library in PATH" do |dir|
-      @libdir = dir
+      @libdir   = dir + "/rubinius"
+      @runtime  = @libdir + "/runtime"
+      @lib_path = @libdir + "/lib"
+      @ext_path = @libdir + "/lib/ext"
     end
 
     o.on "-M", "--mandir", "PATH", "Install man pages in PATH" do |dir|
@@ -97,10 +106,6 @@ class Configure
 
     o.on "-G", "--gemsdir", "PATH", "Install gems in PATH" do |dir|
       @gemsdir = dir
-    end
-
-    o.on "--version", "VER", "Set Rubinius version to VER (default #{@version})" do |v|
-      @version = v
     end
 
     o.doc "\n Help!"
@@ -329,10 +334,15 @@ module Rubinius
     :os             => "#{@os}",
     :bindir         => "#{@bindir}",
     :libdir         => "#{@libdir}",
+    :runtime        => "#{@runtime}",
+    :lib_path       => "#{@lib_path}",
+    :ext_path       => "#{@ext_path}",
     :includedir     => "#{@includedir}",
     :mandir         => "#{@mandir}",
     :gemsdir        => "#{@gemsdir}",
-    :program_name   => "#{@program_name}"
+    :program_name   => "#{@program_name}",
+    :version        => "#{@version}",
+    :libversion     => "#{@libversion}"
   }
 end
       EOC
@@ -348,9 +358,9 @@ end
 #define RBX_OS          "#{@os}"
 #define RBX_BIN_PATH    "#{@bindir}"
 #define RBX_GEMS_PATH   "#{@gemsdir}"
-#define RBX_RUNTIME     "#{@libdir}/runtime"
-#define RBX_LIB_PATH    "#{@libdir}/lib"
-#define RBX_EXT_PATH    "#{@libdir}/lib/ext"
+#define RBX_RUNTIME     "#{@runtime}"
+#define RBX_LIB_PATH    "#{@lib_path}"
+#define RBX_EXT_PATH    "#{@ext_path}"
 #define RBX_HDR_PATH    "#{@includedir}"
 #define RBX_VERSION     "#{@version}"
 #define RBX_LIB_VERSION "#{@libversion}"

@@ -7,8 +7,6 @@ require 'ostruct'
 
 require 'lib/ffi/generator_task.rb'
 
-require 'config'
-
 config = OpenStruct.new
 config.use_jit = true
 config.compile_with_llvm = false

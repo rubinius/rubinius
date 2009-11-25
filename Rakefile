@@ -9,16 +9,18 @@ if !$verbose and respond_to?(:verbose)
   verbose(false) if verbose() == :default
 end
 
-unless File.exists?(File.expand_path("../config.rb", __FILE__)) and
-       File.exists?(File.expand_path("../vm/gen/config.h", __FILE__))
+config_rb = File.expand_path "../config.rb", __FILE__
+config_h  = File.expand_path "../vm/gen/config.h", __FILE__
+
+unless File.exists?(config_rb) and File.exists?(config_h)
   STDERR.puts "Please run ./configure first"
   exit 1
 end
 
-$dlext = Config::CONFIG["DLEXT"]
-$compiler = nil
+require config_rb
+BUILD_CONFIG = Rubinius::BUILD_CONFIG
 
-RUBINIUS_BASE = File.expand_path(File.dirname(__FILE__))
+$dlext = Config::CONFIG["DLEXT"]
 
 $: << "lib"
 
@@ -47,93 +49,20 @@ task :distclean => %w[
   vm:distclean
 ]
 
-desc 'Move the preinstalled gem setup into place'
-task :gem_bootstrap do
-  unless File.directory?("gems/rubinius")
-    sh "mkdir gems"
-    sh "cp -r preinstalled-gems/* gems/"
-  end
-end
-
-def install_bin
-  File.join RBX_BINPATH, 'rbx'
-end
-
-desc "Uninstall Rubinius"
-task :uninstall do
-  rm_rf install_bin
-  rm_rf RBX_BASE_PATH
-  sh "rake -q clean"
-end
-
-desc "Install Rubinius"
-task :install => %w[
-  clean
-  install:build
-  install:files
-] do
-  sh "rake -q clean"
-  puts "Install complete."
-  puts "The install versions of files have been cleaned."
-  puts "Run 'rake build' to rebuild development versions."
-end
-
-namespace :install do
-  # Internal task, not documented with desc. Shells out
-  # to perform the build. See reason in doc/build_system.txt.
-  task :build do
-    ENV['RBX_PREFIX'] = ENV['PREFIX'] || "/usr/local"
-    ENV['RBX_RUNTIME'] = File.join(Dir.pwd, 'runtime')
-    sh "rake -q build"
-  end
-
-  # Internal task, not documented with desc. Performs the
-  # actual file installation enabling the :install task
-  # to clean up after itself.
-  task :files do
-    mkdir_p RBX_BASE_PATH, :verbose => true
-    mkdir_p RBX_RBA_PATH, :verbose => true
-    mkdir_p RBX_EXT_PATH, :verbose => true
-    mkdir_p RBX_BIN_PATH, :verbose => true
-    mkdir_p RBX_LIB_PATH, :verbose => true
-
-
-    capi_header_files = Rake::FileList.new "vm/capi/*.h"
-    install_files capi_header_files, RBX_EXT_PATH
-
-    File.open File.join(RBX_EXT_PATH, "missing.h"), "w" do |f|
-      f.puts "// This file left empty"
-    end
-
-    core_files = Rake::FileList.new('runtime/index',
-                                    'runtime/platform.conf',
-                                    'runtime/**/*.rb{a,c}',
-                                    'runtime/**/load_order.txt')
-    install_files core_files, RBX_RBA_PATH
-
-    lib_files = Rake::FileList.new 'lib/**/*'
-    install_files lib_files, RBX_LIB_PATH
-
-    Rake::FileList.new("#{RBX_LIB_PATH}/**/*.rb").sort.each do |rb|
-      begin
-        compile_ruby rb, "#{rb}c"
-      rescue Object => e
-        puts "Error compiling #{rb}!"
-        puts e.backtrace
-        puts "Install continuing but please file a ticket"
-      end
-    end
-
-    install 'vm/vm', install_bin, :mode => 0755, :verbose => true
-  end
-end
-
 namespace :clean do
   desc "Cleans up editor files and other misc crap"
   task :crap do
     files = (Dir["*~"] + Dir["**/*~"]).uniq
 
     rm_f files, :verbose => $verbose unless files.empty?
+  end
+end
+
+desc 'Move the preinstalled gem setup into place'
+task :gem_bootstrap do
+  unless File.directory?("gems/rubinius")
+    sh "mkdir gems"
+    sh "cp -r preinstalled-gems gems/rubinius"
   end
 end
 
