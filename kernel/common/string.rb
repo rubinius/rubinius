@@ -676,6 +676,8 @@ class String
     self
   end
 
+  alias_method :bytes, :each_byte
+
   # Splits <i>self</i> using the supplied parameter as the record separator
   # (<code>$/</code> by default), passing each substring in turn to the supplied
   # block. If a zero-length record separator is supplied, the string is split on
