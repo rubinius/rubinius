@@ -1,6 +1,0 @@
-fails:String#bytes returns an Enumerator when no block is given
-fails:String#bytes yields each byte to a block if one is given, returning self
-fails:String#bytes returns #bytesize bytes
-fails:String#bytes returns bytes as Fixnums
-fails:String#bytes agrees with #unpack('C*')
-fails:String#bytes yields/returns no bytes for the empty string
