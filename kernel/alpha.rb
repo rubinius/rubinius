@@ -235,7 +235,7 @@ module Kernel
   def dup
     copy = self.class.allocate
     copy.copy_object self
-    copy.send :initialize_copy, self
+    copy.__send__ :initialize_copy, self
     copy
   end
 
