@@ -19,8 +19,8 @@ class BasicPrimitive
     str << "  state->set_call_frame(call_frame);\n"
     str << emit_counter
     # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
-    return str if @raw
     str << "  Object* ret;\n"
+    return str if @raw
     str << "  Object* self;\n" if @pass_self
   end
 
@@ -111,13 +111,15 @@ class CPPPrimitive < BasicPrimitive
     if @raw
       str << "\n"
       str << "  try {\n"
-      str << "    return recv->#{@cpp_name}(state, msg.method, call_frame, msg, args);\n"
+      str << "    ret = recv->#{@cpp_name}(state, msg.method, call_frame, msg, args);\n"
       str << "  } catch(const RubyException& exc) {\n"
       str << "    exc.exception->locations(state,\n"
       str << "          System::vm_backtrace(state, Fixnum::from(0), call_frame));\n"
       str << "    state->thread_state()->raise_exception(exc.exception);\n"
       str << "    return NULL;\n"
       str << "  }\n"
+      str << "  if(ret == Primitives::failure()) goto fail;\n"
+      str << "  return ret;\n"
       str << "\n"
       str << "fail:\n"
       str << "  return CompiledMethod::primitive_failed(state, call_frame, msg, args);\n"

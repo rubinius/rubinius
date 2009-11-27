@@ -121,9 +121,22 @@ module Kernel
   # As denoted by the double-underscore, this method must not
   # be removed or redefined by user code.
   #
-  def __send__(*args)
+  def __send__(message, *args)
     Ruby.primitive :object_send
-    raise RuntimeError, "Kernel#__send__ primitive failed"
+
+    # MRI checks for Fixnum explicitly and raises ArgumentError
+    # instead of TypeError. Seems silly, so we don't bother.
+    #
+    case message
+    when String
+      message = Type.coerce_to message, Symbol, :to_sym
+    when Symbol
+      # nothing!
+    else
+      raise TypeError, "#{message.inspect} is not a symbol"
+    end
+
+    __send__ message, *args
   end
 
   # Return the Class object this object is an instance of.

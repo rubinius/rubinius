@@ -441,18 +441,23 @@ namespace rubinius {
 
   Object* Object::send_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg,
                             Arguments& args) {
-    if(unlikely(args.total() < 1)) {
-      Exception* exc = Exception::make_exception(state, G(exc_arg), "no method name given");
-      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
-      state->thread_state()->raise_exception(exc);
-      return NULL;
-    }
-    Object* meth = args.shift(state);
+    if(args.total() < 1) return Primitives::failure();
+
+    // Don't shift the argument because we might fail and we need Arguments
+    // to be pristine in the fallback code.
+    Object* meth = args.get_argument(0);
     Symbol* sym = try_as<Symbol>(meth);
 
     if(!sym) {
-      sym = as<String>(meth)->to_sym(state);
+      if(String* str = try_as<String>(meth)) {
+        sym = str->to_sym(state);
+      } else {
+        return Primitives::failure();
+      }
     }
+
+    // Discard the 1st argument.
+    args.shift(state);
 
     Dispatch dis(sym);
     LookupData lookup(this, this->lookup_begin(state), true);
