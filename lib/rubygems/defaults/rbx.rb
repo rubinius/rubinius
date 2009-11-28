@@ -18,7 +18,9 @@ module Gem
   end
 
   def self.default_path
-    [default_dir, default_preinstalled_dir]
+    dirs = [default_dir, default_preinstalled_dir]
+    dirs.unshift(Gem.user_home) if File.exist?(Gem.user_home)
+    dirs
   end
 end
 
