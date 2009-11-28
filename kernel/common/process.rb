@@ -251,8 +251,8 @@ module Process
   #
   # TODO: Support other options such as WUNTRACED? --rue
   #
-  def self.wait(input_pid=-1, flags=nil)
-    if flags && flags | WNOHANG
+  def self.wait2(input_pid=-1, flags=nil)
+    if flags and (flags & WNOHANG) == WNOHANG
       value = wait_pid_prim input_pid, true
       return if value.nil?
     else
@@ -263,6 +263,9 @@ module Process
       raise Errno::ECHILD, "No child process: #{input_pid}"
     end
 
+    # wait_pid_prim returns a tuple when wait needs to communicate
+    # the pid that was actually detected as stopped (since wait
+    # can wait for all child pids, groups, etc)
     if value.kind_of? Rubinius::Tuple
       status, pid = value
     else
@@ -270,9 +273,9 @@ module Process
       pid = input_pid
     end
 
-    $? = Process::Status.new pid, status
-
-    pid
+    status = Process::Status.new(pid, status)
+    $? = status
+    [pid, status]
   end
 
   #
@@ -290,15 +293,19 @@ module Process
   def self.waitall
     statuses = []
 
-    statuses << [Process.wait, $?] while true
+    begin
+      while true
+        statuses << Process.wait2
+      end
+    rescue Errno::ECHILD
+    end
 
-  rescue Errno::ECHILD
     statuses
   end
 
-  def self.wait2(pid=-1, flags=0)
-    pid = Process.wait(pid, flags)
-    pid ? [pid, $?] : nil
+  def self.wait(pid=-1, flags=nil)
+    pid, status = Process.wait2(pid, flags)
+    return pid
   end
 
   class << self
