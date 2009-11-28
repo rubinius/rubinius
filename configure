@@ -375,6 +375,7 @@ end
     parse ARGV
     process
     write_config
+    puts "Configured."
   end
 end
 
