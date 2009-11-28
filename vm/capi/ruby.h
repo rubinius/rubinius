@@ -30,6 +30,7 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
 
 #include "intern.h"
 
