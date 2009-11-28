@@ -35,6 +35,10 @@ describe :kernel_send, :shared => true do
     lambda { KernelSpecs::Foo.send(@method, :baz) }.should raise_error(NameError)
   end
 
+  it "raises an ArgumentError if no arguments are given" do
+    lambda { KernelSpecs::Foo.new.send }.should raise_error(ArgumentError)
+  end
+
   it "raises an ArgumentError if called with more arguments than available parameters" do
     class KernelSpecs::Foo
       def bar; end
