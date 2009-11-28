@@ -137,7 +137,7 @@ extern "C" {
     } catch(TypeError& e) {
       Exception* exc =
         Exception::make_type_error(state, e.type, e.object, e.reason);
-      exc->locations(state, System::vm_backtrace(state, 0, call_frame));
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
 
       state->thread_state()->raise_exception(exc);
       return NULL;
