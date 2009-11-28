@@ -441,6 +441,12 @@ namespace rubinius {
 
   Object* Object::send_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg,
                             Arguments& args) {
+    if(unlikely(args.total() < 1)) {
+      Exception* exc = Exception::make_exception(state, G(exc_arg), "no method name given");
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      state->thread_state()->raise_exception(exc);
+      return NULL;
+    }
     Object* meth = args.shift(state);
     Symbol* sym = try_as<Symbol>(meth);
 
