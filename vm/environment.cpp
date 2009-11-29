@@ -68,6 +68,21 @@ namespace rubinius {
     }
   }
 
+  void cpp_exception_bug() {
+    std::cerr << "[BUG] Uncaught C++ internal exception\n";
+    std::cerr << "So sorry, it appears that you've encountered an internal\n";
+    std::cerr << "bug. Please report this on the rubinius issue tracker.\n";
+    std::cerr << "Include the following backtrace in the issue:\n\n";
+
+    rubinius::abort();
+  }
+
+  void Environment::setup_cpp_terminate() {
+    // Install a better terminate function to tell the user
+    // there was a rubinius bug.
+    std::set_terminate(cpp_exception_bug);
+  }
+
   void Environment::enable_preemption() {
     state->setup_preemption();
   }

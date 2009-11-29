@@ -63,6 +63,8 @@ static void load_runtime_kernel(Environment& env, std::string root) {
  */
 int main(int argc, char** argv) {
   Environment env;
+  env.setup_cpp_terminate();
+
   env.state->init_stack_size();
   env.state->set_stack_start(&env);
 

@@ -22,8 +22,11 @@ namespace rubinius {
     ConfigParser  config_parser;
     Configuration config;
 
+  public:
     Environment();
     ~Environment();
+
+    void setup_cpp_terminate();
 
     void load_config_argv(int argc, char** argv);
     void load_argv(int argc, char** argv);
