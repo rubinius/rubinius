@@ -107,6 +107,16 @@ containing the Rubinius standard library files.
       end
     end
 
+    def show_syntax_error(e)
+      puts "A syntax error has occured:"
+      puts "    #{e.message}"
+      puts "    near line #{e.file}:#{e.line}, column #{e.column}"
+      puts "\nCode:\n#{e.code}"
+      if e.column
+        puts((" " * (e.column - 1)) + "^")
+      end
+    end
+
     # Process all command line arguments.
     def options(argv=ARGV)
       @stage = "processing command line arguments"
@@ -135,6 +145,19 @@ containing the Rubinius standard library files.
 
       options.on "--", "Stop processing command line arguments" do
         options.stop_parsing
+      end
+
+      options.on "-c", "FILE", "Check the syntax of FILE" do |file|
+        mel = Rubinius::Melbourne.new file, 0, []
+        begin
+          mel.parse_file
+        rescue SyntaxError => e
+          show_syntax_error(e)
+          exit 1
+        end
+
+        puts "Syntax OK"
+        exit 0
       end
 
       options.on "-C", "DIR", "Change directory to DIR before running scripts" do |dir|
@@ -436,13 +459,7 @@ containing the Rubinius standard library files.
       @exit_code = e.status
 
     rescue SyntaxError => e
-      puts "A syntax error has occured:"
-      puts "    #{e.message}"
-      puts "    near line #{e.file}:#{e.line}, column #{e.column}"
-      puts "\nCode:\n#{e.code}"
-      if e.column
-        puts((" " * (e.column - 1)) + "^")
-      end
+      show_syntax_error(e)
 
       puts "\nBacktrace:"
       puts e.awesome_backtrace.show
