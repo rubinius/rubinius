@@ -51,7 +51,7 @@ module Rubinius
         size = cm.lines.size - 1
         i = 1
         while i < size
-          print "#{cm.lines[i]}: #{cm.lines[i - 1]}-#{cm.lines[i + 1]}"
+          print "#{cm.lines[i]}: #{cm.lines[i - 1]}-#{cm.lines[i + 1] - 1}"
           i += 2
           print ", " if i < size
         end
