@@ -143,7 +143,7 @@ module Rubinius
     # Set a breakpoint here.
     #
     # @raise [ArgumentError]
-    # @param [InstructionPointer] ip where exactly to place the breakpoint
+    # @param [Fixnum] ip where exactly to place the breakpoint
     def set_breakpoint(ip)
       Ruby.primitive :compiledmethod_set_breakpoint
       raise ArgumentError, "Unable to set breakpoint on #{inspect} at invalid bytecode address #{ip}"
@@ -153,7 +153,7 @@ module Rubinius
     # Erase a breakpoint from being here
     #
     # @raise [ArgumentError]
-    # @param [InstructionPointer] ip where exactly to remove the breakpoint
+    # @param [Fixnum] ip where exactly to remove the breakpoint
     def clear_breakpoint(ip)
       Ruby.primitive :compiledmethod_clear_breakpoint
       raise ArgumentError, "Unable to clear breakpoint on #{inspect} at invalid bytecode address #{ip}"
@@ -163,7 +163,7 @@ module Rubinius
     # Is there a breakpoint set in this method at +ip+?
     #
     # @raise  [ArgumentError]
-    # @param  [InstructionPointer] ip where exactly the breakpoint supposedly is
+    # @param  [Fixnum] ip where exactly the breakpoint supposedly is
     # @return [Boolean] is it really there?
     def breakpoint?(ip)
       Ruby.primitive :compiledmethod_is_breakpoint
@@ -233,8 +233,8 @@ module Rubinius
     ##
     # Return the line of source code at +ip+.
     #
-    # @param  [InstructionPointer] ip where exactly to place the breakpoint
-    # @return [String] the line
+    # @param  [Fixnum] ip
+    # @return [Fixnum] line
     def line_from_ip(ip)
       return -1 unless @lines
       return 0 if @lines.size < 2
@@ -270,7 +270,7 @@ module Rubinius
     # see #locate_line for an alternate method that also searches inside the child
     # CompiledMethods.
     #
-    # @return [InstructionPointer] the address of the first instruction
+    # @return [Fixnum] the address of the first instruction
     def first_ip_on_line(line)
       i = 1
       total = @lines.size
@@ -289,7 +289,7 @@ module Rubinius
     ##
     # The first line of source code.
     #
-    # @return [String]
+    # @return [Fixnum]
     def first_line
       if @lines.size > 1
         @lines[1]
@@ -341,7 +341,7 @@ module Rubinius
     # is found.
     # TODO: Update this to work with new lines representation
     #
-    # @return [(Rubinius::CompiledMethod, InstructionPointer), NilClass] returns
+    # @return [(Rubinius::CompiledMethod, Fixnum), NilClass] returns
     #   nil if nothing is found, else an array of size 2 containing the method
     #   the line was found in and the IP pointing there.
     def locate_line(line, cm=self)
