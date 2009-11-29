@@ -10,6 +10,12 @@ def compile_extension(path, name)
   signature = "#{ext}.sig"
   header    = "#{Config::CONFIG['rubyhdrdir']}/ruby.h"
 
+  unless File.exists? header
+    if Object.const_defined?(:RUBY_ENGINE) && RUBY_ENGINE == "rbx"
+      header = "vm/capi/ruby.h"
+    end
+  end
+
   return lib if File.exists?(signature) and
                 IO.read(signature).chomp == RUBY_NAME and
                 File.exists?(lib) and File.mtime(lib) > File.mtime(source) and
@@ -28,7 +34,7 @@ def compile_extension(path, name)
   end
 
   cc        = Config::CONFIG["CC"]
-  cflags    = Config::CONFIG["CFLAGS"]
+  cflags    = (ENV["CFLAGS"] || Config::CONFIG["CFLAGS"]).dup
   cflags   += " -fPIC" unless cflags.include?("-fPIC")
   incflags  = "-I#{path} -I#{hdrdir}"
 
