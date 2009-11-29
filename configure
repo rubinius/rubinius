@@ -255,6 +255,23 @@ class Configure
     false
   end
 
+  def c_includes
+    str = []
+    if File.exists? "/usr/local/include"
+      str << "-I/usr/local/include"
+    end
+
+    if File.exists? "/opt/local/include"
+      str << "-I/opt/local/include"
+    end
+
+    return str.join(" ")
+  end
+
+  def env(which)
+    ENV[which] || ""
+  end
+
   def has_function(name, includes=[])
     print "Checking for function '#{name}': "
     tf = Tempfile.new("rbx-test")
@@ -266,7 +283,7 @@ class Configure
 
     tf.close
 
-    `#{compiler} -S -o - -x c #{tf.path} 2>&1`
+    `#{compiler} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} 2>&1`
     status = ($?.exitstatus == 0)
 
     tf.unlink

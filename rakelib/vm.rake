@@ -153,6 +153,13 @@ EXTERNALS   = %W[ vm/external_libs/libptr_array/libptr_array.a
 
 
 INCLUDES      = EX_INC + %w[vm/test/cxxtest vm . vm/assembler vm/assembler/udis86-1.7]
+
+extra = %w!/usr/local/include /opt/local/include!
+
+extra.each do |dir|
+  INCLUDES << dir if File.directory?(dir)
+end
+
 INCLUDES.map! { |f| "-I#{f}" }
 
 # Default build options
@@ -218,6 +225,13 @@ def compile_c(obj, src, output_kind="c")
 
   flags = flags.join(" ")
 
+  # Now include CFLAGS and CXXFLAGS
+  if str = ENV['CXXFLAGS']
+    flags << " #{str}"
+  elsif str = ENV['CFLAGS']
+    flags << " #{str}"
+  end
+
   if $verbose
     sh "#{CC} #{flags} -#{output_kind} -o #{obj} #{src} 2>&1"
   else
@@ -231,6 +245,11 @@ def ld(t)
 
   link_opts += ' -Wl,--export-dynamic' if RUBY_PLATFORM =~ /linux/i
   link_opts += ' -rdynamic'            if RUBY_PLATFORM =~ /bsd/
+
+  # Include LDFLAGS
+  if str = ENV['LDFLAGS']
+    link_opts << " #{str}"
+  end
 
   ld = ENV['LD'] || 'g++'
 
@@ -695,8 +714,17 @@ end
 def ex_libs # needs to be method to delay running of llvm_config
   unless defined? $ex_libs then
     $ex_libs = EXTERNALS.reverse
+
+    if File.directory?("/usr/local/lib")
+      $ex_libs << "-L/usr/local/lib"
+    end
+
+    if File.directory?("/opt/local/lib")
+      $ex_libs << "-L/opt/local/lib"
+    end
+
     $ex_libs << "-ldl" unless RUBY_PLATFORM =~ /bsd/
-    $ex_libs << "-lcrypt -L/usr/local/lib" if RUBY_PLATFORM =~ /bsd/
+    $ex_libs << "-lcrypt" if RUBY_PLATFORM =~ /bsd/
     $ex_libs << "-lexecinfo" if RUBY_PLATFORM =~ /bsd/ && Rubinius::BUILD_CONFIG[:defines].include?('HAS_EXECINFO')
     $ex_libs << "-lrt -lcrypt" if RUBY_PLATFORM =~ /linux/
 
