@@ -33,11 +33,9 @@ class Method
   # same object.
 
   def ==(other)
-    return true if other.class == Method and
-                   @receiver.equal?(other.receiver) and
-                   @executable == other.executable
-
-    false
+    other.class == Method and
+      @receiver.equal?(other.receiver) and
+      @executable == other.executable
   end
 
   ##

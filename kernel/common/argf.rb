@@ -77,8 +77,7 @@ module Rubinius
     end
 
     def eof?
-      return @stream.eof? if @stream
-      return false
+      @stream and @stream.eof?
     end
 
     alias_method :eof, :eof?

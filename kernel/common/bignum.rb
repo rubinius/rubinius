@@ -36,9 +36,7 @@ class Bignum < Integer
   end
 
   def eql?(value)
-    return false unless value.is_a?(Bignum)
-
-    self == value
+    value.is_a?(Bignum) && self == value
   end
 
   def div(other)
