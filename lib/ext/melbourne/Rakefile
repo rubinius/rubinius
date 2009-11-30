@@ -22,6 +22,7 @@ end
 def add_objects(files, dir)
   sources("grammar.cpp").zip(objects(dir)).each do |source, obj|
     file obj => source
+    file obj => __FILE__ # depend on the Rakefile, it might change
     files << source << obj
   end
 end
