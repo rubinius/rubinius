@@ -596,17 +596,17 @@ module Rubinius
     class ZSuper < Super
       def initialize(line)
         @line = line
-      end
-
-      def block_bytecode(g)
-        g.push_block
+        @block = nil
       end
 
       def bytecode(g)
         if g.state.super?
           arguments = g.state.super.arguments
           @arguments = arguments.to_actual @line
-          @block = arguments.block_arg
+
+          # Don't use arguments.block_arg, it's actually the setter
+          # for the block arg, not a retrieval for it. Anyway, we don't
+          # need it anyway, using g.push_block has the same effect.
         end
 
         super(g)
