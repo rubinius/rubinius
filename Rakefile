@@ -128,3 +128,9 @@ task :spec do
 
   EOM
 end
+
+desc "Print list of items marked to-do in kernel/ (@todo|TODO)"
+task :todos do
+  sh "grep", "-Rn", "@todo", "kernel"
+  sh "grep", "-Rn", "TODO", "kernel"
+end
