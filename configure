@@ -110,7 +110,12 @@ class Configure
 
     o.doc "\n Help!"
 
-    o.on "-V", "--verbose", "Print debugging info" do
+    o.on "--show", "Print the current configuration and exit" do
+      print_debug
+      exit 0
+    end
+
+    o.on "-V", "--verbose", "Print additional info" do
       @verbose = true
     end
 
@@ -387,12 +392,22 @@ end
     end
   end
 
+  def print_debug
+    puts "\nUsing the following configuration to build"
+    puts "------------------------------------------"
+    system "cat config.rb"
+    puts "\nSetting the following defines for the VM"
+    puts "----------------------------------------"
+    system "cat vm/gen/config.h"
+  end
+
   def run
     options
     parse ARGV
     process
     write_config
-    puts "Configured."
+    print_debug if @verbose
+    puts "\nConfigured. Run 'rake' to build and run VM tests and rubyspecs"
   end
 end
 
