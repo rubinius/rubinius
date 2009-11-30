@@ -1,6 +1,8 @@
 #ifndef MEL_INTERNAL_HPP
 #define MEL_INTERNAL_HPP
 
+#include <list>
+
 #include "quark.h"
 #include "bstrlib.h"
 #include "ptr_array.h"
@@ -36,6 +38,16 @@ namespace melbourne {
 #include "node.hpp"
 
 namespace melbourne {
+
+  struct StartPosition {
+    int line;
+    const char* kind;
+
+    StartPosition(int l, const char* k)
+      : line(l)
+      , kind(k)
+    {}
+  };
 
   typedef struct rb_parse_state {
     int end_seen;
@@ -98,6 +110,10 @@ namespace melbourne {
 
     VALUE error;
     VALUE processor;
+
+    // Keeps track of lines that 'end' starters are on, to enable
+    // better error reporting.
+    std::list<StartPosition>* start_lines;
 
   } rb_parse_state;
 

@@ -230,10 +230,23 @@ static int _debug_print(const char *fmt, ...) {
 #define rb_warn _debug_print
 #define rb_warning _debug_print
 
+void push_start_line(rb_parse_state* st, int line, const char* which) {
+  st->start_lines->push_back(StartPosition(line, which));
+}
+
+#define PUSH_LINE(which) push_start_line((rb_parse_state*)parse_state, ruby_sourceline, which)
+
+void pop_start_line(rb_parse_state* st) {
+  st->start_lines->pop_back();
+}
+
+#define POP_LINE() pop_start_line((rb_parse_state*)parse_state)
+
 static QUID rb_parser_sym(const char *name);
 static QUID rb_id_attrset(QUID);
 
 rb_parse_state *alloc_parse_state();
+
 static unsigned long scan_oct(const char *start, int len, int *retlen);
 static unsigned long scan_hex(const char *start, int len, int *retlen);
 
@@ -1536,10 +1549,12 @@ primary         : literal
                 | kBEGIN
                     {
                         $<num>1 = ruby_sourceline;
+                        PUSH_LINE("begin");
                     }
                   bodystmt
                   kEND
                     {
+                        POP_LINE();
                         if ($3 == NULL)
                             $$ = NEW_NIL();
                         else
@@ -1623,76 +1638,103 @@ primary         : literal
                         $$ = $2;
                         fixpos($$, $1);
                     }
-                | kIF expr_value then
+                | kIF {
+                    PUSH_LINE("if");
+                  } expr_value then
                   compstmt
                   if_tail
                   kEND
                     {
-                        $$ = NEW_IF(cond($2, vps), $4, $5);
-                        fixpos($$, $2);
+                        POP_LINE();
+                        $$ = NEW_IF(cond($3, vps), $5, $6);
+                        fixpos($$, $3);
                         if (cond_negative(&$$->nd_cond)) {
                             NODE *tmp = $$->nd_body;
                             $$->nd_body = $$->nd_else;
                             $$->nd_else = tmp;
                         }
                     }
-                | kUNLESS expr_value then
+                | kUNLESS {
+                    PUSH_LINE("unless");
+                  } expr_value then
                   compstmt
                   opt_else
                   kEND
                     {
-                        $$ = NEW_UNLESS(cond($2, vps), $4, $5);
-                        fixpos($$, $2);
+                        POP_LINE();
+                        $$ = NEW_UNLESS(cond($3, vps), $5, $6);
+                        fixpos($$, $3);
                         if (cond_negative(&$$->nd_cond)) {
                             NODE *tmp = $$->nd_body;
                             $$->nd_body = $$->nd_else;
                             $$->nd_else = tmp;
                         }
                     }
-                | kWHILE {COND_PUSH(1);} expr_value do {COND_POP();}
+                | kWHILE {
+                    PUSH_LINE("while");
+                    COND_PUSH(1);
+                  } expr_value do {COND_POP();}
                   compstmt
                   kEND
                     {
+                        POP_LINE();
                         $$ = NEW_WHILE(cond($3, vps), $6, 1);
                         fixpos($$, $3);
                         if (cond_negative(&$$->nd_cond)) {
                             nd_set_type($$, NODE_UNTIL);
                         }
                     }
-                | kUNTIL {COND_PUSH(1);} expr_value do {COND_POP();}
+                | kUNTIL {
+                    PUSH_LINE("until");
+                    COND_PUSH(1);
+                  } expr_value do {COND_POP();}
                   compstmt
                   kEND
                     {
+                        POP_LINE();
                         $$ = NEW_UNTIL(cond($3, vps), $6, 1);
                         fixpos($$, $3);
                         if (cond_negative(&$$->nd_cond)) {
                             nd_set_type($$, NODE_WHILE);
                         }
                     }
-                | kCASE expr_value opt_terms
+                | kCASE {
+                    PUSH_LINE("case");
+                  } expr_value opt_terms
                   case_body
                   kEND
                     {
-                        $$ = NEW_CASE($2, $4);
-                        fixpos($$, $2);
+                        POP_LINE();
+                        $$ = NEW_CASE($3, $5);
+                        fixpos($$, $3);
                     }
-                | kCASE opt_terms case_body kEND
+                | kCASE opt_terms { 
+                    push_start_line((rb_parse_state*)parse_state, ruby_sourceline - 1, "case");
+                  } case_body kEND
                     {
-                        $$ = $3;
-                    }
-                | kCASE opt_terms kELSE compstmt kEND
-                    {
+                        POP_LINE();
                         $$ = $4;
                     }
-                | kFOR block_var kIN {COND_PUSH(1);} expr_value do {COND_POP();}
+                | kCASE opt_terms { 
+                    push_start_line((rb_parse_state*)parse_state, ruby_sourceline - 1, "case");
+                  } kELSE compstmt kEND
+                    {
+                        POP_LINE();
+                        $$ = $5;
+                    }
+                | kFOR {
+                    PUSH_LINE("for");
+                  } block_var kIN {COND_PUSH(1);} expr_value do {COND_POP();}
                   compstmt
                   kEND
                     {
-                        $$ = NEW_FOR($2, $5, $8);
-                        fixpos($$, $2);
+                        POP_LINE();
+                        $$ = NEW_FOR($3, $6, $9);
+                        fixpos($$, $3);
                     }
                 | kCLASS cpath superclass
                     {
+                        PUSH_LINE("class");
                         if (in_def || in_single)
                             yyerror("class definition in method body");
                         class_nest++;
@@ -1702,6 +1744,7 @@ primary         : literal
                   bodystmt
                   kEND
                     {
+                        POP_LINE();
                         $$ = NEW_CLASS($2, $5, $3);
                         nd_set_line($$, $<num>4);
                         local_pop();
@@ -1709,6 +1752,7 @@ primary         : literal
                     }
                 | kCLASS tLSHFT expr
                     {
+                        PUSH_LINE("class");
                         $<num>$ = in_def;
                         in_def = 0;
                     }
@@ -1722,6 +1766,7 @@ primary         : literal
                   bodystmt
                   kEND
                     {
+                        POP_LINE();
                         $$ = NEW_SCLASS($3, $7);
                         fixpos($$, $3);
                         local_pop();
@@ -1731,6 +1776,7 @@ primary         : literal
                     }
                 | kMODULE cpath
                     {
+                        PUSH_LINE("module");
                         if (in_def || in_single)
                             yyerror("module definition in method body");
                         class_nest++;
@@ -1740,6 +1786,7 @@ primary         : literal
                   bodystmt
                   kEND
                     {
+                        POP_LINE();
                         $$ = NEW_MODULE($2, $4);
                         nd_set_line($$, $<num>3);
                         local_pop();
@@ -1747,6 +1794,7 @@ primary         : literal
                     }
                 | kDEF fname
                     {
+                        PUSH_LINE("def");
                         $<id>$ = cur_mid;
                         cur_mid = $2;
                         in_def++;
@@ -1756,6 +1804,7 @@ primary         : literal
                   bodystmt
                   kEND
                     {
+                        POP_LINE();
                         if (!$5) $5 = NEW_NIL();
                         $$ = NEW_DEFN($2, $4, $5, NOEX_PRIVATE);
                         fixpos($$, $4);
@@ -1765,6 +1814,7 @@ primary         : literal
                     }
                 | kDEF singleton dot_or_colon {vps->lex_state = EXPR_FNAME;} fname
                     {
+                        PUSH_LINE("def");
                         in_single++;
                         local_push(0);
                         vps->lex_state = EXPR_END; /* force for args */
@@ -1773,6 +1823,7 @@ primary         : literal
                   bodystmt
                   kEND
                     {
+                        POP_LINE();
                         $$ = NEW_DEFS($2, $5, $7, $8);
                         fixpos($$, $2);
                         local_pop();
@@ -1852,6 +1903,7 @@ opt_block_var   : none
 
 do_block        : kDO_BLOCK
                     {
+                        PUSH_LINE("do");
                         $<num>1 = ruby_sourceline;
                         reset_block(vps);
                     }
@@ -1862,6 +1914,7 @@ do_block        : kDO_BLOCK
                   compstmt
                   kEND
                     {
+                        POP_LINE();
                         $$ = NEW_ITER($3, 0, extract_block_vars(vps, $5, $<vars>4));
                         nd_set_line($$, $<num>1);
                     }
@@ -1938,12 +1991,14 @@ brace_block     : '{'
                     }
                 | kDO
                     {
+                        PUSH_LINE("do");
                         $<num>1 = ruby_sourceline;
                         reset_block(vps);
                     }
                   opt_block_var { $<vars>$ = vps->variables->block_vars; }
                   compstmt kEND
                     {
+                        POP_LINE();
                         $$ = NEW_ITER($3, 0, extract_block_vars(vps, $5, $<vars>4));
                         nd_set_line($$, $<num>1);
                     }

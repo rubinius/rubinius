@@ -1,5 +1,7 @@
 #include <string.h>
 
+#include <sstream>
+
 #include "ruby.h"
 
 #include "grammar.hpp"
@@ -48,6 +50,7 @@ namespace melbourne {
       parse_state->emit_warnings = 0;
       parse_state->verbose = RTEST(ruby_verbose);
       parse_state->magic_comments = new std::vector<bstring>;
+      parse_state->start_lines = new std::list<StartPosition>;
 
       return parse_state;
   }
@@ -107,16 +110,39 @@ namespace melbourne {
     }
 
     delete st->magic_comments;
+    delete st->start_lines;
   }
 
   extern long mel_sourceline;
 
   void create_error(rb_parse_state *parse_state, char *msg) {
+    VALUE err_msg;
+
+    // Cleanup one of the common and ugly syntax errors.
+    if(std::string("syntax error, unexpected $end, expecting kEND") ==
+        std::string(msg)) {
+      if(parse_state->start_lines->size() > 0) {
+        StartPosition& pos = parse_state->start_lines->back();
+
+        std::stringstream ss;
+        ss << "missing 'end' for '"
+           << pos.kind
+           << "' started on line "
+           << pos.line;
+        err_msg = rb_str_new2(ss.str().c_str());
+
+      } else {
+        err_msg = rb_str_new2("missing 'end' for unknown start");
+      }
+    } else {
+      err_msg = rb_str_new2(msg);
+    }
+
     int col = parse_state->lex_p - parse_state->lex_pbeg;
 
     rb_funcall(parse_state->processor,
                rb_intern("process_parse_error"),4,
-               rb_str_new2(msg),
+               err_msg,
                INT2FIX(col),
                INT2FIX(mel_sourceline),
                string_newfrombstr(parse_state->lex_lastline));
