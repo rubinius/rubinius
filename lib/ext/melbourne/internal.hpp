@@ -3,9 +3,8 @@
 
 #include <list>
 
-#include "quark.h"
+#include "quark.hpp"
 #include "bstrlib.h"
-#include "ptr_array.h"
 
 #include "local_state.hpp"
 

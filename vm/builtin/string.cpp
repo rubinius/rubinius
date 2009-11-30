@@ -13,7 +13,6 @@
 #include "primitives.hpp"
 
 #include <gdtoa.h>
-#include <bstrlib.h>
 
 #include <unistd.h>
 #include <iostream>

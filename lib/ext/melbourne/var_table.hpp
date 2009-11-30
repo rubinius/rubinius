@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "quark.h"
+#include "quark.hpp"
 
 namespace melbourne {
   struct var_table_t;

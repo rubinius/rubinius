@@ -63,7 +63,6 @@ if config.use_jit
 end
 
 EX_INC      = %w[ libtommath libgdtoa onig libffi/include
-                  libbstring libcchash libmquark libptr_array
                   libltdl libev
                 ].map { |f| "vm/external_libs/#{f}" }
 
@@ -140,11 +139,7 @@ field_extract_headers = %w[
   vm/builtin/weakref.hpp
 ]
 
-EXTERNALS   = %W[ vm/external_libs/libptr_array/libptr_array.a
-                  vm/external_libs/libcchash/libcchash.a
-                  vm/external_libs/libmquark/libmquark.a
-                  vm/external_libs/libtommath/libtommath.a
-                  vm/external_libs/libbstring/libbstring.a
+EXTERNALS   = %W[ vm/external_libs/libtommath/libtommath.a
                   vm/external_libs/libgdtoa/libgdtoa.a
                   vm/external_libs/onig/.libs/libonig.a
                   vm/external_libs/libffi/.libs/libffi.a

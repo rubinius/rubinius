@@ -43,13 +43,6 @@ end
 
 add_objects project_files, ext_dir
 
-add_include_dir "#{$ELIBSDIR}/libbstring",
-                "#{$ELIBSDIR}/libmquark",
-                "#{$ELIBSDIR}/libptr_array",
-                "#{$ELIBSDIR}/libcchash"
-
-add_external_lib "mquark", "bstring", "ptr_array", "cchash"
-
 # Build the Melbourne extension against Rubinius
 directory "rbx"
 melbourne_rbx = "rbx/melbourne.#{$DLEXT}"
