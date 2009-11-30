@@ -174,7 +174,8 @@ containing the Rubinius standard library files.
         @evals << code
       end
 
-      options.on "-E", "CODE", "Compile and execute CODE (show sexp and bytecode)" do |code|
+      # Sexp not generated currently. --rue
+      options.on "-E", "CODE", "Compile, show bytecode and execute CODE" do |code|
         @run_irb = false
         $0 = "(eval)"
         @verbose_eval = true
@@ -345,7 +346,8 @@ containing the Rubinius standard library files.
       @evals.each do |code|
         eval(code, TOPLEVEL_BINDING) do |compiled_method|
           if @verbose_eval
-            p code.to_sexp("(eval)", 1)
+# Disabled until and if generating sexps is re-enabled. --rue
+#            p code.to_sexp("(eval)", 1)
             puts compiled_method.decode
           end
         end
