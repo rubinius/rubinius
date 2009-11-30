@@ -135,7 +135,22 @@ namespace melbourne {
         err_msg = rb_str_new2("missing 'end' for unknown start");
       }
     } else {
-      err_msg = rb_str_new2(msg);
+      err_msg = 0;
+
+      std::string pmsg(msg);
+      std::string comma(", ");
+
+      size_t one = pmsg.find(comma);
+      if(one != std::string::npos) {
+        size_t two = pmsg.find(comma, one+1);
+        if(two != std::string::npos) {
+          std::string sub = pmsg.substr(two+2);
+
+          err_msg = rb_str_new2(sub.c_str());
+        }
+      }
+
+      if(!err_msg) err_msg = rb_str_new2(msg);
     }
 
     int col = parse_state->lex_p - parse_state->lex_pbeg;
