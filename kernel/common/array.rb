@@ -784,13 +784,13 @@ class Array
 
     out = []
 
-    args.each { |a|
+    args.each do |a|
       if a.kind_of? Range
         out << self[a]
       else
         out << at(Type.coerce_to(a, Fixnum, :to_int))
       end
-    }
+    end
 
     out
   end
@@ -820,9 +820,7 @@ class Array
   def inspect()
     out = []
     return "[...]" if Thread.detect_recursion self do
-      each { |o|
-        out << o.inspect
-      }
+      each { |o| out << o.inspect }
     end
 
     "[#{out.join ', '}]"
@@ -1259,7 +1257,7 @@ class Array
 
     out, max = [], nil
 
-    each { |ary|
+    each do |ary|
       ary = Type.coerce_to ary, Array, :to_ary
       max ||= ary.size
 
@@ -1267,7 +1265,7 @@ class Array
       raise IndexError, "All arrays must be same length" if ary.size != max
 
       ary.size.times { |i| (out[i] ||= []) << ary.at(i) }
-    }
+    end
 
     out
   end
@@ -1292,7 +1290,7 @@ class Array
   def values_at(*args)
     out = []
 
-    args.each { |elem|
+    args.each do |elem|
       # Cannot use #[] because of subtly different errors
       if elem.kind_of? Range
         finish = Type.coerce_to elem.last, Fixnum, :to_int
@@ -1313,7 +1311,7 @@ class Array
         i = Type.coerce_to elem, Fixnum, :to_int
         out << at(i)
       end
-    }
+    end
 
     out
   end
@@ -1434,7 +1432,7 @@ class Array
     else
       max_levels -= 1
       recursion = Thread.detect_recursion(array) do
-        array.each { |o|
+        array.each do |o|
           if o.respond_to? :to_ary
             ary = Type.coerce_to o, Array, :to_ary
             recursively_flatten(ary, out, max_levels)
@@ -1442,7 +1440,7 @@ class Array
           else
             out << o
           end
-        }
+        end
       end
       raise ArgumentError, "tried to flatten recursive array" if recursion
     end

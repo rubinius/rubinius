@@ -267,10 +267,10 @@ module FFI
     def write_array_of_type(type, writer, ary)
       size = FFI.type_size(FFI.find_type type)
       tmp = self
-      ary.each {|i|
+      ary.each do |i|
         tmp.send(writer, i)
         tmp += size
-      }
+      end
       self
     end
 
