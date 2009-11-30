@@ -379,9 +379,7 @@ class Hash
   end
 
   def key?(key)
-    return true if find_entry key
-
-    false
+    find_entry(key) != nil
   end
 
   alias_method :has_key?, :key?
