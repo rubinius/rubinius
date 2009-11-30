@@ -511,7 +511,7 @@ class Module
     meth = Rubinius::AccessVariable.get_ivar name
     @method_table.store name, meth, :public
     Rubinius::VM.reset_method_cache name
-    return nil
+    nil
   end
 
   # :internal:
@@ -524,7 +524,7 @@ class Module
     meth = Rubinius::AccessVariable.set_ivar name
     @method_table.store "#{name}=".to_sym, meth, :public
     Rubinius::VM.reset_method_cache name
-    return nil
+    nil
   end
 
   # :internal:
@@ -536,7 +536,7 @@ class Module
   def attr_accessor(name)
     attr_reader(name)
     attr_writer(name)
-    return true
+    nil
   end
 
   # :internal:
