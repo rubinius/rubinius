@@ -1,6 +1,8 @@
 #include "quark.hpp"
 #include <tr1/unordered_map>
 #include <vector>
+#include <string.h>
+
 using namespace melbourne;
 
 struct ConstCharHash {
