@@ -1,3 +1,0 @@
-This is based on the C hash code functions available at:
-
-http://www.cl.cam.ac.uk/~cwc22/hashtable/
