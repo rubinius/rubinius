@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include <sstream>
+#include <stdint.h>
 
 #include "ruby.h"
 
