@@ -214,7 +214,7 @@ module Rubinius
     # reading from a file, the stream is closed.
     #
     def getc
-      while true
+      while true          # Performance
         return nil unless advance!
         if val = @stream.getc
           return val
@@ -237,7 +237,7 @@ module Rubinius
     # and updates $. accordingly.
     #
     def gets
-      while true
+      while true          # Performance
         return nil unless advance!
         line = @stream.gets
 
@@ -340,7 +340,10 @@ module Rubinius
     # is provided, as by default, a String with the data is
     # returned instead.
     #
-    def read(bytes = nil, output = "")
+    def read(bytes = nil, output = nil)
+      # The user might try to pass in nil, so we have to check here
+      output ||= ""
+
       if bytes
         bytes_left = bytes
 
