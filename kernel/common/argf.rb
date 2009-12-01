@@ -214,7 +214,7 @@ module Rubinius
     # reading from a file, the stream is closed.
     #
     def getc
-      loop do
+      while true
         return nil unless advance!
         if val = @stream.getc
           return val
@@ -237,7 +237,7 @@ module Rubinius
     # and updates $. accordingly.
     #
     def gets
-      loop do
+      while true
         return nil unless advance!
         line = @stream.gets
 
