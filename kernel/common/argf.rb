@@ -1,11 +1,27 @@
-##
-# The virtual concatenation file of the files given on command line (or from
-# $stdin if no files were given).
+
 
 module Rubinius
+
+  # :internal:
+  #
+  # The virtual concatenation file of the files given on command line (or
+  # from $stdin if no files were given.)
+  #
+  # The only instance hereof is the object referred to by ARGF.
+  #
+  # @see  ARGF
+  #
   class ARGFClass
     include Enumerable
 
+    # :internal:
+    #
+    # Create a stateless ARGF.
+    #
+    # The actual setup is done on the fly:
+    #
+    # @see  #advance!
+    #
     def initialize
       @lineno = 0
       @advance = true
@@ -13,22 +29,47 @@ module Rubinius
       @use_stdin_only = false
     end
 
+    #
+    # Bytewise iterator.
+    #
+    # @see  #each_byte
+    #
     def bytes(&b)
       return to_enum(:each_byte) unless block_given?
       each_byte(&b)
       self
     end
 
+    #
+    # Set stream into binary mode.
+    #
+    # Stream is set into binary mode, i.e. 8-bit ASCII.
+    # Once set, the binary mode cannot be undone. Returns
+    # self.
+    #
+    # @todo Not implemented! Intentional? --rue
+    #
     def binmode
       self
     end
 
+    #
+    # Character iterator.
+    #
+    # @see  #each_char
+    #
     def chars(&b)
       return to_enum(:each_char) unless block_given?
       each_char(&b)
       self
     end
 
+    #
+    # Close stream.
+    #
+    # @todo Should this #advance!? That may cause an error
+    #       to be raised, for example. --rue
+    #
     def close
       advance!
       @stream.close
@@ -39,11 +80,26 @@ module Rubinius
       self
     end
 
+    #
+    # True if the stream is closed.
+    #
+    # @todo Should this #advance!? That may cause an error
+    #       to be raised, for example. --rue
+    #
     def closed?
       advance!
       @stream.closed?
     end
 
+    #
+    # Linewise iteration.
+    #
+    # Yields one line from stream at a time, as given by
+    # #gets. An Enumerator is returned if no block is
+    # provided. Returns nil if no content, self otherwise.
+    #
+    # @see  #gets.
+    #
     def each_line
       return to_enum :each_line unless block_given?
       return nil unless advance!
@@ -54,12 +110,26 @@ module Rubinius
       self
     end
 
+    #
+    # Linewise iteration.
+    #
+    # @see  #each_line.
+    #
     def each(&block)
       return to_enum :each unless block_given?
       each_line &block
       self
     end
 
+    #
+    # Bytewise iteration.
+    #
+    # Yields one byte at a time from stream, an Integer
+    # as given by #getc. An Enumerator is returned if no
+    # block is provided. Returns self.
+    #
+    # @see  #getc
+    #
     def each_byte
       return to_enum :each_byte unless block_given?
       while ch = getc()
@@ -68,6 +138,17 @@ module Rubinius
       self
     end
 
+    #
+    # Character-wise iteration.
+    #
+    # Yields one character at a time from stream. An
+    # Enumerator is returned if no block is provided.
+    # Returns self.
+    #
+    # The characters yielded are gotten from #getc.
+    #
+    # @see  #getc
+    #
     def each_char(&block)
       return to_enum :each_char unless block_given?
       while c = getc()
@@ -76,31 +157,62 @@ module Rubinius
       self
     end
 
+    #
+    # Query whether stream is at end-of-file.
+    #
+    # True if there is a stream and it is in EOF
+    # status.
+    #
     def eof?
       @stream and @stream.eof?
     end
-
     alias_method :eof, :eof?
 
+    #
+    # File descriptor number for stream.
+    #
+    # Returns a file descriptor number for the stream being
+    # read out of.
+    #
+    # @todo   Check correctness, does this imply there may be
+    #         multiple FDs and if so, is this correct? --rue
+    #
     def fileno
-      raise ArgumentError, "no stream" unless advance!
+      raise ArgumentError, "No stream" unless advance!
       @stream.fileno
     end
-
     alias_method :to_i, :fileno
 
+    #
+    # File path currently in use.
+    #
+    # Path to file from which read currently is
+    # occurring, or an indication that the stream
+    # is STDIN.
+    #
     def filename
       advance!
       @filename
     end
-
     alias_method :path, :filename
 
+    #
+    # Current stream object.
+    #
+    # This may change during the course of execution,
+    # but is the current one!
+    #
     def file
       advance!
       @stream
     end
 
+    #
+    # Return one character from stream.
+    #
+    # If a character cannot be returned and we are
+    # reading from a file, the stream is closed.
+    #
     def getc
       while true
         return nil unless advance!
@@ -115,6 +227,15 @@ module Rubinius
     end
     alias_method :getbyte, :getc
 
+    #
+    # Return next line of text from stream.
+    #
+    # If a line cannot be returned and we are
+    # reading from a file, the stream is closed.
+    #
+    # The mechanism does track the line numbers,
+    # and updates $. accordingly.
+    #
     def gets
       while true
         return nil unless advance!
@@ -133,28 +254,69 @@ module Rubinius
       end
     end
 
+    #
+    # Returns Enumerator for linewise iteration.
+    #
+    # Does not iterate directly, returns an Enumerator.
+    # If iteration is desired, use #each_line.
+    #
+    # @see  #each_line.
+    #
     def lines(*args)
       to_enum :each_line, *args
     end
 
+    #
+    # Return current line number.
+    #
+    # Line numbers are maintained when using the linewise
+    # access methods.
+    #
+    # @see  #gets
+    # @see  #each_line
+    #
     attr_reader :lineno
 
+    #
+    # Set current line number.
+    #
+    # Also sets $. accordingly.
+    #
+    # @todo Should this be public? --rue
+    #
     def lineno=(val)
       $. = @lineno = val
     end
 
+    #
+    # Return stream position for seeking etc.
+    #
+    # @see IO#pos.
+    #
     def pos
       raise ArgumentError, "no stream" unless advance!
       @stream.tell
     end
-
     alias_method :tell, :pos
 
+    #
+    # Set stream position to a previously obtained position.
+    #
+    # @see IO#pos=
+    #
     def pos=(position)
       raise ArgumentError, "no stream" unless advance!
       @stream.pos = position
     end
 
+    #
+    # Read a byte from stream.
+    #
+    # Similar to #getc, but raises an EOFError if
+    # EOF has been reached.
+    #
+    # @see  #getc
+    #
     def readbyte
       advance!
 
@@ -164,12 +326,21 @@ module Rubinius
 
       raise EOFError, "ARGF at end"
     end
-
     alias_method :readchar, :readbyte
 
-    def read(bytes=nil, output=nil)
-      output ||= ""
-
+    #
+    # Read number of bytes or all, optionally into buffer.
+    #
+    # If number of bytes is not given or is nil, tries to read
+    # all of the stream, which is then closed. If the number is
+    # specified, then at most that many bytes will be read.
+    #
+    # A buffer responding to #<< may be provided as the second
+    # argument. The data read is pushed into it. If no buffer
+    # is provided, as by default, a String with the data is
+    # returned instead.
+    #
+    def read(bytes = nil, output = "")
       if bytes
         bytes_left = bytes
 
@@ -198,9 +369,17 @@ module Rubinius
         @advance = true
       end
 
-      return output
+      output
     end
 
+    #
+    # Read all lines from stream.
+    #
+    # Reads all lines into an Array using #gets and
+    # returns the Array.
+    #
+    # @see  #gets
+    #
     def readlines
       return nil unless advance!
 
@@ -208,9 +387,19 @@ module Rubinius
       while line = gets()
         lines << line
       end
-      return lines
-    end
 
+      lines
+    end
+    alias_method :to_a, :readlines
+
+    #
+    # Read next line of text.
+    #
+    # As #gets, but an EOFError is raised if the stream
+    # is at EOF.
+    #
+    # @see  #gets
+    #
     def readline
       raise EOFError, "ARGF at end" unless advance!
 
@@ -221,19 +410,37 @@ module Rubinius
       raise EOFError, "ARGF at end"
     end
 
-    alias_method :to_a, :readlines
-
+    #
+    # Rewind the stream to its beginning.
+    #
+    # Line number is updated accordingly.
+    #
+    # @todo Is this correct, only current stream is rewound? --rue
+    #
     def rewind
       raise ArgumentError, "no stream to rewind" unless advance!
       @lineno -= @stream.lineno
       @stream.rewind
     end
 
+    #
+    # Seek into a previous position in the stream.
+    #
+    # @see IO#seek.
+    #
     def seek(*args)
       raise ArgumentError, "no stream" unless advance!
       @stream.seek(*args)
     end
 
+    #
+    # Close file stream and return self.
+    #
+    # STDIN is not closed if being used, otherwise the
+    # stream gets closed. Returns self.
+    #
+    # @todo Need more detail on the genesis/purpose
+    #       of this method. --rue
     def skip
       return self if @use_stdin_only
       @stream.close unless @stream.closed?
@@ -241,17 +448,36 @@ module Rubinius
       self
     end
 
+    #
+    # Return IO object for current stream.
+    #
+    # @see IO#to_io
+    #
     def to_io
       advance!
       @stream.to_io
     end
 
+    #
+    # Returns "ARGF" as the string representation of this object.
+    #
     def to_s
       "ARGF"
     end
 
-    ## private methods
 
+    # Internals
+
+    #
+    # Main processing.
+    #
+    # If not initialised yet, sets the object up on either
+    # first of provided file names or STDIN.
+    #
+    # Does nothing further or later if using STDIN, but if
+    # there are further file names in ARGV, tries to open
+    # the next one as the current stream.
+    #
     def advance!
       return true unless @advance
 
@@ -283,4 +509,9 @@ module Rubinius
   end
 end
 
+#
+# The virtual concatenation file of the files given on command line (or
+# from $stdin if no files were given.) Usable like an IO.
+#
 ARGF = Rubinius::ARGFClass.new
+
