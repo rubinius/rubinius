@@ -54,6 +54,7 @@
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
+#include "llvm/jit_compiler.hpp"
 #endif
 
 namespace rubinius {
@@ -568,14 +569,14 @@ namespace rubinius {
 
     VMMethod* vmm = env->vmmethod(state);
 
-    LLVMCompiler* jit = new LLVMCompiler();
-    jit->compile_block(ls, vmm);
+    jit::Compiler jit;
+    jit.compile_block(ls, vmm);
 
     if(show->true_p()) {
-      jit->show_assembly(state);
+      jit.show_assembly(ls);
     }
 
-    env->set_native_function(jit->function_pointer(state));
+    env->set_native_function(jit.generate_function(ls));
 #endif
 
     return show;

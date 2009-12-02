@@ -11,6 +11,7 @@
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
+#include "llvm/jit_compiler.hpp"
 #include <llvm/Support/CommandLine.h>
 #endif
 
@@ -88,20 +89,19 @@ namespace rubinius {
     LLVMState* ls = LLVMState::get(state);
     timer::Running timer(ls->time_spent);
 
-    LLVMCompiler* jit = new LLVMCompiler();
-    jit->compile_method(ls, vmm);
+    jit::Compiler jit;
+    jit.compile_method(ls, vmm);
 
     MachineMethod* mm = state->new_struct<MachineMethod>(G(machine_method));
 
     mm->vmmethod_ = vmm;
-    mm->code_size_ = 0;
-    mm->set_function(jit->function_pointer(state));
+    mm->set_function(jit.generate_function(ls));
+    mm->code_size_ = jit.code_bytes();
     mm->relocations_ = 0;
     mm->virtual2native_ = 0;
     mm->comments_ = 0;
 
-    mm->jit_data_ = reinterpret_cast<void*>(jit);
-    vmm->set_jitted(jit->llvm_function(), jit->code_bytes(), jit->function_pointer());
+    vmm->set_jitted(jit.llvm_function(), jit.code_bytes(), jit.function_pointer());
 
     return mm;
 #else
@@ -109,16 +109,14 @@ namespace rubinius {
 #endif
   }
 
-  void MachineMethod::update(VMMethod* vmm, LLVMCompiler* jit) {
+  void MachineMethod::update(VMMethod* vmm, void* func, int size) {
 #ifdef ENABLE_LLVM
     vmmethod_ = vmm;
-    code_size_ = 0;
-    set_function(jit->function_pointer());
+    code_size_ = size;
+    set_function(func);
     relocations_ = 0;
     virtual2native_ = 0;
     comments_ = 0;
-
-    jit_data_ = reinterpret_cast<void*>(jit);
 #endif
   }
 
@@ -130,20 +128,15 @@ namespace rubinius {
 
   Object* MachineMethod::show(STATE) {
 #ifdef ENABLE_LLVM
-    if(code_size_ == 0) {
-      std::cout << "== llvm assembly ==\n";
-      reinterpret_cast<LLVMCompiler*>(jit_data_)->show_assembly(state);
-    } else {
-      std::cout << "== stats ==\n";
-      std::cout << "number of bytecodes: " << vmmethod_->total << "\n";
-      std::cout << " bytes of assembley: " << code_size_ << "\n";
-      double ratio = (double)code_size_ / (double)vmmethod_->total;
-      std::cout << "       direct ratio: " << ratio << "\n";
-      ratio = (double)code_size_ / ((double)vmmethod_->total * sizeof(rubinius::opcode));
-      std::cout << "       memory ratio: " << ratio << "\n";
-      std::cout << "\n== x86 assembly ==\n";
-      assembler_x86::AssemblerX86::show_buffer(function(), code_size_, false, comments_);
-    }
+    std::cout << "== stats ==\n";
+    std::cout << "number of bytecodes: " << vmmethod_->total << "\n";
+    std::cout << " bytes of assembley: " << code_size_ << "\n";
+    double ratio = (double)code_size_ / (double)vmmethod_->total;
+    std::cout << "       direct ratio: " << ratio << "\n";
+    ratio = (double)code_size_ / ((double)vmmethod_->total * sizeof(rubinius::opcode));
+    std::cout << "       memory ratio: " << ratio << "\n";
+    std::cout << "\n== x86 assembly ==\n";
+    assembler_x86::AssemblerX86::show_buffer(function(), code_size_, false, comments_);
 #endif
 
     return Qnil;

@@ -31,6 +31,7 @@ namespace autogen_types {
 
 #include <sstream>
 
+#include "llvm/jit_compiler.hpp"
 #include "llvm/jit_method.hpp"
 #include "llvm/jit_block.hpp"
 #include "llvm/passes.hpp"
@@ -223,20 +224,19 @@ namespace rubinius {
         // mutex now unlock, allowing others to push more requests
         //
 
-
-        LLVMCompiler* jit = new LLVMCompiler();
+        jit::Compiler jit;
 
         void* func = 0;
         {
           timer::Running timer(ls_->time_spent);
 
           if(req->is_block()) {
-            jit->compile_block(ls_, req->vmmethod());
+            jit.compile_block(ls_, req->vmmethod());
           } else {
-            jit->compile_method(ls_, req->vmmethod());
+            jit.compile_method(ls_, req->vmmethod());
           }
 
-          func = jit->generate_function(ls_);
+          func = jit.generate_function(ls_);
         }
 
         // We were unable to compile this function, likely
@@ -251,7 +251,7 @@ namespace rubinius {
         }
 
         if(show_machine_code_) {
-          jit->show_machine_code();
+          jit.show_machine_code();
         }
 
         // Ok, compiled, generated machine code, now update MachineMethod
@@ -260,8 +260,8 @@ namespace rubinius {
         // sure the GC doesn't run.
         ls_->shared().gc_dependent();
 
-        req->vmmethod()->set_jitted(jit->llvm_function(),
-                                    jit->code_bytes(),
+        req->vmmethod()->set_jitted(jit.llvm_function(),
+                                    jit.code_bytes(),
                                     func);
 
         if(req->is_block()) {
@@ -269,14 +269,14 @@ namespace rubinius {
           if(!be) {
             llvm::outs() << "Fatal error in JIT. Expected a BlockEnvironment.\n";
           } else {
-            be->set_native_function(jit->function_pointer());
+            be->set_native_function(func);
           }
         } else {
           MachineMethod* mm = req->machine_method();
           if(!mm) {
             llvm::outs() << "Fatal error in JIT. Expected a MachineMethod.\n";
           } else {
-            mm->update(req->vmmethod(), jit);
+            mm->update(req->vmmethod(), func, jit.code_bytes());
             mm->activate();
           }
         }
@@ -665,165 +665,6 @@ namespace rubinius {
     if(!found && !next->parent()) return next;
 
     return found;
-  }
-
-  void LLVMCompiler::compile_builder(LLVMState* ls, JITMethodInfo& info,
-                                     jit::Builder& work)
-  {
-    llvm::Function* func = info.function();
-
-    if(!work.generate_body()) {
-      function_ = NULL;
-      // This is too noisy to report
-      // llvm::outs() << "not supported yet.\n";
-      return;
-    }
-
-    if(ls->jit_dump_code() & cSimple) {
-      llvm::outs() << "[[[ LLVM Simple IR ]]]\n";
-      llvm::outs() << *func << "\n";
-    }
-
-    std::vector<BasicBlock*> to_remove;
-    bool Broken = false;
-    for(Function::iterator I = func->begin(), E = func->end(); I != E; ++I) {
-      if(I->empty()) {
-        BasicBlock& bb = *I;
-        // No one jumps to it....
-        if(llvm::pred_begin(&bb) == llvm::pred_end(&bb)) {
-          to_remove.push_back(&bb);
-        } else {
-          llvm::outs() << "Basic Block is empty and used!\n";
-        }
-      } else if(!I->back().isTerminator()) {
-        llvm::errs() << "Basic Block does not have terminator!\n";
-        llvm::errs() << *I << "\n";
-        llvm::errs() << "\n";
-        Broken = true;
-      }
-    }
-
-    for(std::vector<BasicBlock*>::iterator i = to_remove.begin();
-        i != to_remove.end();
-        i++) {
-      (*i)->eraseFromParent();
-    }
-
-    if(Broken or llvm::verifyFunction(*func, PrintMessageAction)) {
-      llvm::outs() << "ERROR: complication error detected.\n";
-      llvm::outs() << "ERROR: Please report the above message and the\n";
-      llvm::outs() << "       code below to http://github.com/evanphx/rubinius/issues\n";
-      llvm::outs() << *func << "\n";
-      function_ = NULL;
-      return;
-    }
-
-    ls->passes()->run(*func);
-
-    if(ls->jit_dump_code() & cOptimized) {
-      llvm::outs() << "[[[ LLVM Optimized IR: "
-        << ls->symbol_cstr(info.vmm->original->name()) << " ]]]\n";
-      llvm::outs() << *func << "\n";
-    }
-
-    function_ = func;
-
-  }
-
-  void LLVMCompiler::compile_method(LLVMState* ls, VMMethod* vmm) {
-    if(ls->config().jit_inline_debug) {
-      llvm::errs() << "JIT: compiling "
-        << ls->symbol_cstr(vmm->original->scope()->module()->name())
-        << "#"
-        << ls->symbol_cstr(vmm->original->name()) << "\n";
-    }
-
-    JITMethodInfo info(vmm);
-    info.is_block = false;
-
-    jit::MethodBuilder work(ls, info);
-    work.setup();
-
-    compile_builder(ls, info, work);
-  }
-
-  void LLVMCompiler::compile_block(LLVMState* ls, VMMethod* vmm) {
-    if(ls->config().jit_inline_debug) {
-      VMMethod* parent = vmm->parent();
-      assert(parent);
-
-      llvm::errs() << "JIT: compiling block in "
-        << ls->symbol_cstr(parent->original->scope()->module()->name())
-        << "#"
-        << ls->symbol_cstr(vmm->original->name())
-        << " near "
-        << ls->symbol_cstr(vmm->original->file()) << ":"
-        << vmm->original->start_line() << "\n";
-    }
-
-    JITMethodInfo info(vmm);
-    info.is_block = true;
-
-    jit::BlockBuilder work(ls, info);
-    work.setup();
-
-    compile_builder(ls, info, work);
-  }
-
-  void* LLVMCompiler::function_pointer(STATE) {
-    if(!mci_) {
-      if(!function_) return NULL;
-      mci_ = new llvm::MachineCodeInfo();
-      LLVMState* ls = LLVMState::get(state);
-      ls->engine()->runJITOnFunction(function_, mci_);
-
-      if(state->shared.config.jit_dump_code & cMachineCode) {
-        llvm::outs() << "[[[ JIT Machine Code: " << function_->getName() << " ]]]\n";
-        assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
-      }
-
-      ls->add_code_bytes(mci_->size());
-    }
-
-    return mci_->address();
-  }
-
-  void* LLVMCompiler::function_pointer() {
-    if(!mci_) return NULL;
-    return mci_->address();
-  }
-
-  void LLVMCompiler::show_machine_code() {
-    llvm::outs() << "[[[ JIT Machine Code: " << function_->getName() << " ]]]\n";
-    assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
-  }
-
-  void* LLVMCompiler::generate_function(LLVMState* ls) {
-    if(!mci_) {
-      if(!function_) return NULL;
-      mci_ = new llvm::MachineCodeInfo();
-      ls->engine()->runJITOnFunction(function_, mci_);
-      ls->add_code_bytes(mci_->size());
-    }
-
-    return mci_->address();
-  }
-
-  llvm::Function* LLVMCompiler::llvm_function(STATE) {
-    return function_;
-  }
-
-  void LLVMCompiler::show_assembly(STATE) {
-    if(function_) {
-      llvm::outs() << *function_ << "\n";
-      llvm::outs() << "\n== x86 assembly ==\n";
-
-      // Force it to be compiled
-      function_pointer(state);
-      assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
-    } else {
-      llvm::outs() << "NULL function!\n";
-    }
   }
 
   void LLVMState::show_machine_code(void* impl, size_t bytes) {

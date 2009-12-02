@@ -491,47 +491,6 @@ namespace rubinius {
     static void show_machine_code(void* impl, size_t bytes);
   };
 
-  class LLVMCompiler {
-    llvm::Function* function_;
-    llvm::MachineCodeInfo* mci_;
-
-  public:
-    LLVMCompiler()
-      : function_(0)
-      , mci_(0)
-    {}
-
-    ~LLVMCompiler() {
-      delete mci_;
-    }
-
-    int code_bytes() {
-      return mci_->size();
-    }
-
-    llvm::Function* llvm_function() {
-      return function_;
-    }
-
-    void initialize_call_frame(llvm::Function* func,
-      llvm::BasicBlock* block, llvm::Value* call_frame,
-      int stack_size, llvm::Value* stack, llvm::Value* vars);
-
-    void compile_method(LLVMState*, VMMethod* vmm);
-    void compile_block(LLVMState*, VMMethod* vmm);
-    void compile_builder(LLVMState*, JITMethodInfo&, rubinius::jit::Builder&);
-
-    void* function_pointer(STATE);
-    void* function_pointer();
-    llvm::Function* llvm_function(STATE);
-    void show_assembly(STATE);
-    void* generate_function(LLVMState* ls);
-    void show_machine_code();
-
-    void import_args(LLVMState* ls, llvm::Function* func,
-                   llvm::BasicBlock*& block, VMMethod* vmm,
-                   llvm::Value* vars, llvm::Value* call_frame);
-  };
 
   class Signature {
   protected:

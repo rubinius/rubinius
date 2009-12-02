@@ -21,7 +21,6 @@ namespace rubinius {
     assembler::Relocation** relocations_;
 
     void* function_;
-    void* jit_data_;
 
   public:
     static void init(STATE);
@@ -46,7 +45,7 @@ namespace rubinius {
     Object* activate();
 
     void* resolve_virtual_ip(int ip);
-    void update(VMMethod* vmm, LLVMCompiler* jit);
+    void update(VMMethod* vmm, void* func, int size);
   };
 }
 
