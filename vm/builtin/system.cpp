@@ -569,7 +569,7 @@ namespace rubinius {
     VMMethod* vmm = env->vmmethod(state);
 
     LLVMCompiler* jit = new LLVMCompiler();
-    jit->compile(ls, vmm, true);
+    jit->compile_block(ls, vmm);
 
     if(show->true_p()) {
       jit->show_assembly(state);

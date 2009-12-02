@@ -30,6 +30,10 @@
 
 namespace rubinius {
 
+  namespace jit {
+    class Builder;
+  }
+
   class InlinePolicy;
   class JITMethodInfo;
 
@@ -513,7 +517,10 @@ namespace rubinius {
       llvm::BasicBlock* block, llvm::Value* call_frame,
       int stack_size, llvm::Value* stack, llvm::Value* vars);
 
-    void compile(LLVMState*, VMMethod* vmm, bool is_block=false);
+    void compile_method(LLVMState*, VMMethod* vmm);
+    void compile_block(LLVMState*, VMMethod* vmm);
+    void compile_builder(LLVMState*, JITMethodInfo&, rubinius::jit::Builder&);
+
     void* function_pointer(STATE);
     void* function_pointer();
     llvm::Function* llvm_function(STATE);

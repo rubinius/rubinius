@@ -2,7 +2,6 @@
 
 #include "llvm/jit.hpp"
 #include "llvm/inline.hpp"
-#include "llvm/jit_workhorse.hpp"
 
 namespace rubinius {
 

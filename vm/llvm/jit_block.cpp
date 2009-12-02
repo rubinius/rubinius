@@ -1,0 +1,214 @@
+#include "llvm/jit_block.hpp"
+#include "call_frame.hpp"
+#include "stack_variables.hpp"
+
+#include "instruments/profiler.hpp"
+
+using namespace llvm;
+
+namespace rubinius {
+namespace jit {
+
+  void BlockBuilder::setup() {
+    Signature sig(ls_, "Object");
+    sig << "VM";
+    sig << "CallFrame";
+    sig << "BlockEnvironment";
+    sig << "Arguments";
+    sig << "BlockInvocation";
+
+    func = sig.function("");
+
+    Function::arg_iterator ai = func->arg_begin();
+    vm =   ai++; vm->setName("state");
+    prev = ai++; prev->setName("previous");
+    block_env = ai++; block_env->setName("env");
+    args = ai++; args->setName("args");
+    block_inv = ai++; block_inv->setName("invocation");
+
+    BasicBlock* block = BasicBlock::Create(ls_->ctx(), "entry", func);
+    b().SetInsertPoint(block);
+
+    info_.set_function(func);
+    info_.set_vm(vm);
+    info_.set_args(args);
+    info_.set_previous(prev);
+    info_.set_entry(block);
+
+    BasicBlock* body = BasicBlock::Create(ls_->ctx(), "block_body", func);
+
+    pass_one(body);
+
+    info_.set_counter(b().CreateAlloca(ls_->Int32Ty, 0, "counter_alloca"));
+
+    valid_flag = b().CreateAlloca(ls_->Int1Ty, 0, "valid_flag");
+
+    Value* cfstk = b().CreateAlloca(obj_type,
+        ConstantInt::get(ls_->Int32Ty,
+          (sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
+        "cfstk");
+
+    call_frame = b().CreateBitCast(
+        cfstk,
+        PointerType::getUnqual(cf_type), "call_frame");
+
+    info_.set_out_args(b().CreateAlloca(ls_->type("Arguments"), 0, "out_args"));
+
+    if(ls_->include_profiling()) {
+      method_entry_ = b().CreateAlloca(ls_->Int8Ty,
+          ConstantInt::get(ls_->Int32Ty, sizeof(profiler::MethodEntry)),
+          "method_entry");
+    }
+
+    info_.set_call_frame(call_frame);
+
+    stk = b().CreateConstGEP1_32(cfstk, sizeof(CallFrame) / sizeof(Object*), "stack");
+
+    info_.set_stack(stk);
+
+    Value* var_mem = b().CreateAlloca(obj_type,
+        ConstantInt::get(ls_->Int32Ty,
+          (sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
+        "var_mem");
+
+    vars = b().CreateBitCast(
+        var_mem,
+        PointerType::getUnqual(stack_vars_type), "vars");
+
+    info_.set_variables(vars);
+
+    initialize_frame(vmm_->stack_size);
+
+    nil_stack(vmm_->stack_size, constant(Qnil, obj_type));
+
+    setup_block_scope();
+    b().CreateBr(body);
+
+    b().SetInsertPoint(body);
+  }
+
+  void BlockBuilder::setup_block_scope() {
+    b().CreateStore(ConstantExpr::getNullValue(PointerType::getUnqual(vars_type)),
+        get_field(vars, offset::vars_on_heap));
+    Value* self = b().CreateLoad(
+        get_field(block_inv, offset::blockinv_self),
+        "invocation.self");
+
+    b().CreateStore(self, get_field(vars, offset::vars_self));
+
+
+    Value* inv_mod = b().CreateLoad(
+        get_field(block_inv, offset::blockinv_module),
+        "invocation.module");
+
+    Value* ts_mod = b().CreateLoad(get_field(top_scope, offset::varscope_module),
+        "top_scope.module");
+
+    Value* mod = b().CreateSelect(
+        b().CreateICmpNE(inv_mod, ConstantExpr::getNullValue(inv_mod->getType())),
+        inv_mod,
+        ts_mod);
+
+    b().CreateStore(mod, get_field(vars, offset::vars_module));
+
+    Value* blk = b().CreateLoad(get_field(top_scope, offset::varscope_block),
+        "args.block");
+    b().CreateStore(blk, get_field(vars, offset::vars_block));
+
+
+    // We don't use top_scope here because of nested blocks. Parent MUST be
+    // the scope the block was created in, not the top scope for depth
+    // variables to work.
+    Value* be_scope = b().CreateLoad(
+        get_field(block_env, offset::blockenv_scope),
+        "env.scope");
+
+    b().CreateStore(be_scope, get_field(vars, offset::vars_parent));
+
+    nil_locals();
+  }
+
+  void BlockBuilder::initialize_frame(int stack_size) {
+    Value* cm_gep = get_field(call_frame, offset::cf_cm);
+
+    method = b().CreateLoad(get_field(block_env, offset::blockenv_method),
+                            "env.method");
+
+    // previous
+    b().CreateStore(prev, get_field(call_frame, offset::cf_previous));
+
+    // static_scope
+    Value* ss = b().CreateLoad(get_field(block_inv, offset::blockinv_static_scope),
+                               "invocation.static_scope");
+
+    b().CreateStore(ss, get_field(call_frame, offset::cf_static_scope));
+
+    // msg
+    b().CreateStore(Constant::getNullValue(ls_->ptr_type("Dispatch")),
+        get_field(call_frame, offset::cf_msg));
+
+    // cm
+    b().CreateStore(method, cm_gep);
+
+    // flags
+    Value* inv_flags = b().CreateLoad(get_field(block_inv, offset::blockinv_flags),
+        "invocation.flags");
+
+    int block_flags = CallFrame::cCustomStaticScope |
+      CallFrame::cMultipleScopes;
+
+    if(!use_full_scope_) block_flags |= CallFrame::cClosedScope;
+
+    Value* flags = b().CreateOr(inv_flags,
+        ConstantInt::get(ls_->Int32Ty, block_flags), "flags");
+
+    b().CreateStore(flags, get_field(call_frame, offset::cf_flags));
+
+    // ip
+    b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0),
+        get_field(call_frame, offset::cf_ip));
+
+    // scope
+    b().CreateStore(vars, get_field(call_frame, offset::cf_scope));
+
+    // top_scope
+    top_scope = b().CreateLoad(
+        get_field(block_env, offset::blockenv_top_scope),
+        "env.top_scope");
+
+    b().CreateStore(top_scope, get_field(call_frame, offset::cf_top_scope));
+
+    if(ls_->include_profiling()) {
+      Value* test = b().CreateLoad(ls_->profiling(), "profiling");
+
+      BasicBlock* setup_profiling = BasicBlock::Create(ls_->ctx(), "setup_profiling", func);
+      BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "continue", func);
+
+      b().CreateCondBr(test, setup_profiling, cont);
+
+      b().SetInsertPoint(setup_profiling);
+
+      Signature sig(ls_, ls_->VoidTy);
+      sig << "VM";
+      sig << PointerType::getUnqual(ls_->Int8Ty);
+      sig << "Dispatch";
+      sig << "Arguments";
+      sig << "CompiledMethod";
+
+      Value* call_args[] = {
+        vm,
+        method_entry_,
+        msg,
+        args,
+        method
+      };
+
+      sig.call("rbx_begin_profiling", call_args, 5, "", b());
+
+      b().CreateBr(cont);
+
+      b().SetInsertPoint(cont);
+    }
+  }
+}
+}

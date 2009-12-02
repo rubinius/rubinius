@@ -2,7 +2,8 @@
 
 #include "llvm/jit.hpp"
 #include "llvm/inline.hpp"
-#include "llvm/jit_workhorse.hpp"
+#include "llvm/jit_inline_method.hpp"
+#include "llvm/jit_inline_block.hpp"
 
 #include "builtin/methodtable.hpp"
 #include "builtin/nativefunction.hpp"
@@ -392,7 +393,7 @@ namespace rubinius {
     info.root = ops_.root_method_info();
     info.set_inline_block(inline_block_);
 
-    LLVMWorkHorse work(ops_.state(), info);
+    jit::InlineMethodBuilder work(ops_.state(), info);
     work.valid_flag = ops_.valid_flag();
 
     Value* blk = 0;
@@ -443,7 +444,7 @@ namespace rubinius {
     info.set_inline_block(inline_block_);
     info.set_block_info(block_info_);
 
-    LLVMWorkHorse work(ops_.state(), info);
+    jit::InlineBlockBuilder work(ops_.state(), info);
     work.valid_flag = ops_.valid_flag();
 
     std::vector<Value*> args;

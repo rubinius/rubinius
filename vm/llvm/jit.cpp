@@ -25,17 +25,18 @@
 
 #include <llvm/Target/TargetOptions.h>
 
+namespace autogen_types {
+  void makeLLVMModuleContents(llvm::Module* module);
+}
+
 #include <sstream>
 
-using namespace llvm;
-
-#include "llvm/jit_workhorse.hpp"
+#include "llvm/jit_method.hpp"
+#include "llvm/jit_block.hpp"
 #include "llvm/passes.hpp"
 #include "instructions_util.hpp"
 
-namespace autogen_types {
-#include "llvm/types.cpp.gen"
-}
+using namespace llvm;
 
 namespace rubinius {
 
@@ -228,7 +229,13 @@ namespace rubinius {
         void* func = 0;
         {
           timer::Running timer(ls_->time_spent);
-          jit->compile(ls_, req->vmmethod(), req->is_block());
+
+          if(req->is_block()) {
+            jit->compile_block(ls_, req->vmmethod());
+          } else {
+            jit->compile_method(ls_, req->vmmethod());
+          }
+
           func = jit->generate_function(ls_);
         }
 
@@ -660,38 +667,9 @@ namespace rubinius {
     return found;
   }
 
-  void LLVMCompiler::compile(LLVMState* ls, VMMethod* vmm, bool is_block) {
-    if(ls->config().jit_inline_debug) {
-      if(is_block) {
-        VMMethod* parent = vmm->parent();
-        assert(parent);
-
-        llvm::errs() << "JIT: compiling block in "
-                  << ls->symbol_cstr(parent->original->scope()->module()->name())
-                  << "#"
-                  << ls->symbol_cstr(vmm->original->name())
-                  << " near "
-                  << ls->symbol_cstr(vmm->original->file()) << ":"
-                  << vmm->original->start_line() << "\n";
-      } else {
-        llvm::errs() << "JIT: compiling "
-                  << ls->symbol_cstr(vmm->original->scope()->module()->name())
-                  << "#"
-                  << ls->symbol_cstr(vmm->original->name()) << "\n";
-      }
-    }
-
-    JITMethodInfo info(vmm);
-    info.is_block = is_block;
-
-    LLVMWorkHorse work(ls, info);
-
-    if(is_block) {
-      work.setup_block();
-    } else {
-      work.setup();
-    }
-
+  void LLVMCompiler::compile_builder(LLVMState* ls, JITMethodInfo& info,
+                                     jit::Builder& work)
+  {
     llvm::Function* func = info.function();
 
     if(!work.generate_body()) {
@@ -744,11 +722,52 @@ namespace rubinius {
 
     if(ls->jit_dump_code() & cOptimized) {
       llvm::outs() << "[[[ LLVM Optimized IR: "
-        << ls->symbol_cstr(vmm->original->name()) << " ]]]\n";
+        << ls->symbol_cstr(info.vmm->original->name()) << " ]]]\n";
       llvm::outs() << *func << "\n";
     }
 
     function_ = func;
+
+  }
+
+  void LLVMCompiler::compile_method(LLVMState* ls, VMMethod* vmm) {
+    if(ls->config().jit_inline_debug) {
+      llvm::errs() << "JIT: compiling "
+        << ls->symbol_cstr(vmm->original->scope()->module()->name())
+        << "#"
+        << ls->symbol_cstr(vmm->original->name()) << "\n";
+    }
+
+    JITMethodInfo info(vmm);
+    info.is_block = false;
+
+    jit::MethodBuilder work(ls, info);
+    work.setup();
+
+    compile_builder(ls, info, work);
+  }
+
+  void LLVMCompiler::compile_block(LLVMState* ls, VMMethod* vmm) {
+    if(ls->config().jit_inline_debug) {
+      VMMethod* parent = vmm->parent();
+      assert(parent);
+
+      llvm::errs() << "JIT: compiling block in "
+        << ls->symbol_cstr(parent->original->scope()->module()->name())
+        << "#"
+        << ls->symbol_cstr(vmm->original->name())
+        << " near "
+        << ls->symbol_cstr(vmm->original->file()) << ":"
+        << vmm->original->start_line() << "\n";
+    }
+
+    JITMethodInfo info(vmm);
+    info.is_block = true;
+
+    jit::BlockBuilder work(ls, info);
+    work.setup();
+
+    compile_builder(ls, info, work);
   }
 
   void* LLVMCompiler::function_pointer(STATE) {

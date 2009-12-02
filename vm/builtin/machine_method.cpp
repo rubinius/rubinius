@@ -89,7 +89,7 @@ namespace rubinius {
     timer::Running timer(ls->time_spent);
 
     LLVMCompiler* jit = new LLVMCompiler();
-    jit->compile(ls, vmm);
+    jit->compile_method(ls, vmm);
 
     MachineMethod* mm = state->new_struct<MachineMethod>(G(machine_method));
 
