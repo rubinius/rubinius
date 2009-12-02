@@ -1,3 +1,5 @@
+#ifdef ENABLE_LLVM
+
 #include <llvm/Target/TargetData.h>
 // #include <llvm/LinkAllPasses.h>
 #include <llvm/Analysis/Verifier.h>
@@ -16,3 +18,4 @@ namespace autogen_types {
 #include "llvm/types.cpp.gen"
 }
 
+#endif

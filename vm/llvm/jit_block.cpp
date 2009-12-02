@@ -1,3 +1,5 @@
+#ifdef ENABLE_LLVM
+
 #include "llvm/jit_block.hpp"
 #include "call_frame.hpp"
 #include "stack_variables.hpp"
@@ -212,3 +214,5 @@ namespace jit {
   }
 }
 }
+
+#endif

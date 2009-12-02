@@ -1,3 +1,5 @@
+#ifdef ENABLE_LLVM
+
 #include "llvm/jit_inline_method.hpp"
 #include "call_frame.hpp"
 
@@ -131,3 +133,5 @@ namespace jit {
 
 }
 }
+
+#endif
