@@ -71,7 +71,7 @@ namespace rubinius {
     Object* allocate(STATE);
 
     // Ruby.primitive :class_set_superclass
-    Object* set_superclass(STATE, Class* sup);
+    Object* set_superclass(STATE, Object* sup);
 
     // Ruby.primitive :class_set_packed
     Object* set_packed(STATE, Array* info);

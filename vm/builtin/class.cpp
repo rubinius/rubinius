@@ -121,8 +121,19 @@ namespace rubinius {
     return as<Class>(super);
   }
 
-  Object* Class::set_superclass(STATE, Class* sup) {
+  Object* Class::set_superclass(STATE, Object* obj) {
+    if(obj->nil_p()) {
+      superclass(state, (Class*)Qnil);
+      return Qnil;
+    }
+
+    Class* sup;
+    if((sup = try_as<Class>(obj)) == 0) {
+      return Primitives::failure();
+    }
+
     superclass(state, sup);
+
     instance_type(state, sup->instance_type());
     set_type_info(sup->type_info());
 
