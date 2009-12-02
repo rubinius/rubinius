@@ -42,7 +42,7 @@ def need_install?
 end
 
 def precompile(dir)
-  ruby "-Ilib lib/bin/compile.rb -V -T default #{dir}"
+  ruby "lib/bin/compile.rb -V -T default #{dir}"
 end
 
 def install_file(source, pattern, dest)

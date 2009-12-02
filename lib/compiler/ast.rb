@@ -1,15 +1,17 @@
-require 'compiler/ast/node'
-require 'compiler/ast/self'
-require 'compiler/ast/constants'
-require 'compiler/ast/control_flow'
-require 'compiler/ast/data'
-require 'compiler/ast/definitions'
-require 'compiler/ast/exceptions'
-require 'compiler/ast/file'
-require 'compiler/ast/grapher'
-require 'compiler/ast/literals'
-require 'compiler/ast/operators'
-require 'compiler/ast/sends'
-require 'compiler/ast/values'
-require 'compiler/ast/variables'
-require 'compiler/ast/transforms'
+base = File.expand_path "../", __FILE__
+
+require base + "/ast/node"
+require base + "/ast/self"
+require base + "/ast/constants"
+require base + "/ast/control_flow"
+require base + "/ast/data"
+require base + "/ast/definitions"
+require base + "/ast/exceptions"
+require base + "/ast/file"
+require base + "/ast/grapher"
+require base + "/ast/literals"
+require base + "/ast/operators"
+require base + "/ast/sends"
+require base + "/ast/values"
+require base + "/ast/variables"
+require base + "/ast/transforms"

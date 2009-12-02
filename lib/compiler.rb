@@ -1,13 +1,15 @@
-require 'melbourne'
+base = File.expand_path "../", __FILE__
 
-require 'compiler/compiler'
-require 'compiler/stages'
-require 'compiler/locals'
-require 'compiler/ast'
-require 'compiler/generator'
-require 'compiler/stack_calculator'
-require 'compiler/iseq'
-require 'compiler/opcodes'
-require 'compiler/compiled_file'
-require 'compiler/evaluator'
-require 'compiler/printers'
+require base + "/melbourne"
+
+require base + "/compiler/compiler"
+require base + "/compiler/stages"
+require base + "/compiler/locals"
+require base + "/compiler/ast"
+require base + "/compiler/generator"
+require base + "/compiler/stack_calculator"
+require base + "/compiler/iseq"
+require base + "/compiler/opcodes"
+require base + "/compiler/compiled_file"
+require base + "/compiler/evaluator"
+require base + "/compiler/printers"
