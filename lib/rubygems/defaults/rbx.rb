@@ -13,8 +13,7 @@ module Gem
   end
 
   def self.default_preinstalled_dir
-    version = Rubinius::VERSION.split('.')[0, 2].join '.'
-    pre_installed = File.join Rubinius::GEMS_PATH, "rubinius", version
+    pre_installed = File.join Rubinius::GEMS_PATH, "rubinius", "preinstalled"
   end
 
   def self.default_path

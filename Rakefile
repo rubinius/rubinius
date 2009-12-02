@@ -69,8 +69,9 @@ end
 desc 'Move the preinstalled gem setup into place'
 task :gem_bootstrap do
   unless File.directory?("gems/rubinius")
-    sh "mkdir gems"
-    sh "cp -r preinstalled-gems gems/rubinius"
+    sh "mkdir -p gems/rubinius"
+    sh "cp -r preinstalled-gems/bin gems/bin"
+    sh "cp -r preinstalled-gems/data gems/rubinius/preinstalled"
   end
 end
 
