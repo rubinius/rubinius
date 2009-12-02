@@ -149,9 +149,6 @@ class Module
     end
 
     meth = entry.method
-    if meth.primitive and meth.primitive > 0
-      raise NameError, "Unable to remote alias primitive method '#{current_name}'"
-    end
 
     @method_table.store new_name, entry.method, entry.visibility
     Rubinius::VM.reset_method_cache(new_name)
