@@ -34,7 +34,6 @@ namespace rubinius {
   class Opcode;
   class SendSite;
   class VMMethod;
-  class MachineMethod;
   class InterpreterCallFrame;
   class InlineCache;
 
@@ -45,7 +44,6 @@ namespace rubinius {
 
   class VMMethod {
   private:
-    TypedRoot<MachineMethod*> machine_method_;
     IndirectLiterals indirect_literals_;
     VMMethod* parent_;
 
@@ -88,10 +86,6 @@ namespace rubinius {
 
     VMMethod(STATE, CompiledMethod* meth);
     ~VMMethod();
-
-    MachineMethod* machine_method() {
-      return machine_method_.get();
-    }
 
     bool jitted() {
       return jitted_;
@@ -148,8 +142,6 @@ namespace rubinius {
     bool for_block() {
       return parent_ != 0;
     }
-
-    void set_machine_method(MachineMethod* mm);
 
     void specialize(STATE, TypeInfo* ti);
     void compile(STATE);

@@ -4,7 +4,6 @@
 
 namespace rubinius {
   class VMMethod;
-  class MachineMethod;
   class VM;
 
   class JITCompiler {

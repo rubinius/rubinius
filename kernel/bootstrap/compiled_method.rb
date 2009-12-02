@@ -11,9 +11,9 @@ module Rubinius
       raise PrimitiveFailure, "CompiledMethod#compile primitive failed"
     end
 
-    def make_machine_method
-      Ruby.primitive :compiledmethod_make_machine_method
-      raise PrimitiveFailure, "CompiledMethod#make_machine_method primitive failed"
+    def jit_now
+      Ruby.primitive :compiledmethod_jit_now
+      raise PrimitiveFailure, "CompiledMethod#jit_now primitive failed"
     end
 
     def jit_soon

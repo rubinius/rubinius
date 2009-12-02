@@ -58,19 +58,6 @@ namespace jit {
     return mci_->address();
   }
 
-  void Compiler::show_assembly(LLVMState* ls) {
-    if(function_) {
-      llvm::outs() << *function_ << "\n";
-      llvm::outs() << "\n== x86 assembly ==\n";
-
-      // Force it to be compiled
-      generate_function(ls);
-      assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
-    } else {
-      llvm::outs() << "NULL function!\n";
-    }
-  }
-
   void Compiler::compile_block(LLVMState* ls, VMMethod* vmm) {
     if(ls->config().jit_inline_debug) {
       VMMethod* parent = vmm->parent();

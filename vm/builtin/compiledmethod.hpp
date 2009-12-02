@@ -12,7 +12,6 @@ namespace rubinius {
   class MemoryPointer;
   class VMMethod;
   class StaticScope;
-  class MachineMethod;
 
   class CompiledMethod : public Executable {
   public:
@@ -78,8 +77,8 @@ namespace rubinius {
     // Ruby.primitive :compiledmethod_compile
     Object* compile(STATE);
 
-    // Ruby.primitive :compiledmethod_make_machine_method
-    MachineMethod* make_machine_method(STATE);
+    // Ruby.primitive :compiledmethod_jit_now
+    Object* jit_now(STATE);
 
     // Ruby.primitive :compiledmethod_jit_soon
     Object* jit_soon(STATE);

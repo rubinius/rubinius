@@ -16,7 +16,6 @@
 #include "builtin/class.hpp"
 #include "builtin/sendsite.hpp"
 #include "builtin/system.hpp"
-#include "builtin/machine_method.hpp"
 #include "instructions.hpp"
 
 #include "instruments/profiler.hpp"
@@ -84,8 +83,7 @@ namespace rubinius {
    * Turns a CompiledMethod's InstructionSequence into a C array of opcodes.
    */
   VMMethod::VMMethod(STATE, CompiledMethod* meth)
-    : machine_method_(state)
-    , parent_(NULL)
+    : parent_(NULL)
     , run(standard_interpreter)
     , original(state, meth)
     , type(NULL)
@@ -127,8 +125,6 @@ namespace rubinius {
     } else {
       call_count = -1;
     }
-
-    machine_method_.set(Qnil);
   }
 
   VMMethod::~VMMethod() {
@@ -245,10 +241,6 @@ namespace rubinius {
 
       ip += InstructionSequence::instruction_width(op);
     }
-  }
-
-  void VMMethod::set_machine_method(MachineMethod* mm) {
-    machine_method_.set(mm);
   }
 
   // Argument handler implementations

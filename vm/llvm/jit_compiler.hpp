@@ -47,7 +47,6 @@ namespace jit {
     void* function_pointer();
     void* generate_function(LLVMState* ls);
     void show_machine_code();
-    void show_assembly(LLVMState* ls);
 
     void import_args(LLVMState* ls, llvm::Function* func,
                    llvm::BasicBlock*& block, VMMethod* vmm,

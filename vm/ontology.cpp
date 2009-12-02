@@ -35,7 +35,6 @@
 #include "builtin/tuple.hpp"
 #include "builtin/taskprobe.hpp"
 #include "builtin/autoload.hpp"
-#include "builtin/machine_method.hpp"
 #include "builtin/proc.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/location.hpp"
@@ -241,7 +240,6 @@ namespace rubinius {
     Exception::init(this);
     Data::init(this);
     Autoload::init(this);
-    MachineMethod::init(this);
     Proc::init(this);
     VariableScope::init(this);
     Location::init(this);

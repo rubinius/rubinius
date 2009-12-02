@@ -133,21 +133,13 @@ module Rubinius
   def self.jit(meth)
     cm = meth.executable
 
-    return unless cm.respond_to? :make_machine_method
+    return unless cm.respond_to? :jit_now
 
-    if mm = cm.make_machine_method
-      unless mm.activate
-        if $DEBUG
-          puts
-          puts meth.executable.decode
-          puts
-        end
-      end
-    elsif $DEBUG
+    unless status = cm.jit_now
       puts "AOT: unable to compile #{meth}"
     end
 
-    return mm
+    return status
   end
 
   def self.jit_soon(meth)

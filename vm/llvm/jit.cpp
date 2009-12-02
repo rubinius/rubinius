@@ -254,8 +254,6 @@ namespace rubinius {
           jit.show_machine_code();
         }
 
-        // Ok, compiled, generated machine code, now update MachineMethod
-
         // Ok, now we are manipulating managed memory, so make
         // sure the GC doesn't run.
         ls_->shared().gc_dependent();
@@ -272,13 +270,8 @@ namespace rubinius {
             be->set_native_function(func);
           }
         } else {
-          MachineMethod* mm = req->machine_method();
-          if(!mm) {
-            llvm::outs() << "Fatal error in JIT. Expected a MachineMethod.\n";
-          } else {
-            mm->update(req->vmmethod(), func, jit.code_bytes());
-            mm->activate();
-          }
+          req->vmmethod()->original.get()->execute =
+                           reinterpret_cast<executor>(func);
         }
 
         int which = ls_->add_jitted_method();
@@ -486,7 +479,7 @@ namespace rubinius {
       is_block = true;
       placement = block;
     } else {
-      placement = state->new_struct<MachineMethod>(G(machine_method));
+      placement = Qnil;
     }
 
     state->stats.jitted_methods++;

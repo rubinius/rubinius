@@ -573,7 +573,7 @@ namespace rubinius {
     jit.compile_block(ls, vmm);
 
     if(show->true_p()) {
-      jit.show_assembly(ls);
+      jit.show_machine_code();
     }
 
     env->set_native_function(jit.generate_function(ls));

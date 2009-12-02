@@ -8,7 +8,6 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
-#include "builtin/machine_method.hpp"
 #include "builtin/sendsite.hpp"
 
 #include "ffi.hpp"
@@ -27,6 +26,7 @@
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
+#include "llvm/jit_compiler.hpp"
 #endif
 
 namespace rubinius {
@@ -143,7 +143,8 @@ namespace rubinius {
     return name_->to_str(state);
   }
 
-  MachineMethod* CompiledMethod::make_machine_method(STATE) {
+  Object* CompiledMethod::jit_now(STATE) {
+#ifdef ENABLE_LLVM
     if(backend_method_ == NULL) {
       formalize(state, false);
     }
@@ -152,7 +153,20 @@ namespace rubinius {
       std::cout << "[[[ JIT compiling " << full_name(state)->c_str() << " ]]]\n";
     }
 
-    return MachineMethod::create(state, backend_method_);
+    LLVMState* ls = LLVMState::get(state);
+    timer::Running timer(ls->time_spent);
+
+    jit::Compiler jit;
+    jit.compile_method(ls, backend_method_);
+
+    if(jit.generate_function(ls)) {
+      backend_method_->set_jitted(jit.llvm_function(),
+                                  jit.code_bytes(), jit.function_pointer());
+      return Qtrue;
+    }
+#endif
+
+    return Qfalse;
   }
 
   Object* CompiledMethod::jit_soon(STATE) {

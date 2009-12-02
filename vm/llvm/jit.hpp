@@ -22,7 +22,6 @@
 #include "vmmethod.hpp"
 #include "configuration.hpp"
 
-#include "builtin/machine_method.hpp"
 #include "builtin/block_environment.hpp"
 
 #include "instruments/timing.hpp"
@@ -572,10 +571,6 @@ namespace rubinius {
 
     VMMethod* vmmethod() {
       return vmm_;
-    }
-
-    MachineMethod* machine_method() {
-      return try_as<MachineMethod>(mm_.get());
     }
 
     BlockEnvironment* block_env() {
