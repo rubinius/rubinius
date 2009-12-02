@@ -1008,6 +1008,8 @@ namespace rubinius {
     Symbol* s_class_eval_;
     Symbol* s_module_eval_;
 
+    std::list<JITBasicBlock*> exception_handlers_;
+
   public:
 
     PassOne(LLVMState* ls, BlockMap& map, Function* func, BasicBlock* start)
@@ -1032,6 +1034,9 @@ namespace rubinius {
       s_binding_ = ls->symbol("binding");
       s_class_eval_ = ls->symbol("class_eval");
       s_module_eval_ = ls->symbol("module_eval");
+
+      // By default, there is no handler.
+      exception_handlers_.push_back(0);
     }
 
     bool calls_evalish() {
@@ -1068,8 +1073,16 @@ namespace rubinius {
 #include "gen/instruction_effects.hpp"
 
     bool before(opcode op, opcode arg1=0, opcode arg2=0) {
+      // Handle pop_unwind specially, so we always see it.
+      if(op == InstructionSequence::insn_pop_unwind) {
+        exception_handlers_.pop_back();
+      }
+
       BlockMap::iterator i = map_.find(current_ip_);
       if(i != map_.end()) {
+        // Setup the exception handler for this block
+        i->second.exception_handler = exception_handlers_.back();
+
         if(i->second.sp == cUnknown) {
           if(cDebugStack) {
             std::cout << current_ip_ << ": " << sp_ << " (inherit)\n";
@@ -1109,7 +1122,7 @@ namespace rubinius {
       return true;
     }
 
-    void break_at(opcode ip) {
+    JITBasicBlock* break_at(opcode ip) {
       BlockMap::iterator i = map_.find(ip);
       if(i == map_.end()) {
         std::ostringstream ss;
@@ -1126,8 +1139,10 @@ namespace rubinius {
         if(cDebugStack) {
           std::cout << "patch " << ip << ": " << jbb.sp << "\n";
         }
+        return &jbb;
       } else {
         assert(i->second.sp == sp_);
+        return &(i->second);
       }
     }
 
@@ -1164,9 +1179,18 @@ namespace rubinius {
     }
 
     void visit_setup_unwind(opcode which, opcode type) {
-      if(current_ip_ < which) loops_ = true;
+      // setup_unwind must always refer to an instruction further
+      // on in the stream
+      assert(current_ip_ < which);
 
-      break_at(which);
+      JITBasicBlock* jbb = break_at(which);
+
+      // Install the handler...
+      exception_handlers_.push_back(jbb);
+
+      // Break at the next IP. When we advance to it, the logic
+      // above will install the handler we just installed on it.
+      break_at(current_ip_ + 3);
     }
 
     void visit_ret() {

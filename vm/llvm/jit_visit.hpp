@@ -82,8 +82,6 @@ namespace rubinius {
     llvm::BasicBlock* bail_out_;
     llvm::BasicBlock* bail_out_fast_;
 
-    EHandlers exception_handlers_;
-
     Value* method_entry_;
     Value* args_;
 
@@ -111,6 +109,8 @@ namespace rubinius {
 
     int current_ip_;
     int current_block_;
+
+    JITBasicBlock* current_jbb_;
 
   public:
 
@@ -145,6 +145,7 @@ namespace rubinius {
       , has_side_effects_(false)
       , current_ip_(0)
       , current_block_(-1)
+      , current_jbb_(0)
     {}
 
     void initialize() {
@@ -246,6 +247,14 @@ namespace rubinius {
       return block_map_;
     }
 
+    bool has_exception_handler() {
+      return current_jbb_->exception_handler != 0;
+    }
+
+    BasicBlock* exception_handler() {
+      return current_jbb_->exception_handler->entry();
+    }
+
     void check_for_return(Value* val) {
       BasicBlock* cont = new_block();
 
@@ -276,8 +285,8 @@ namespace rubinius {
       BasicBlock* next = 0;
 
       // If there are handlers...
-      if(exception_handlers_.size() > 0) {
-        next = exception_handlers_.back();
+      if(has_exception_handler()) {
+        next = exception_handler();
       } else {
         next = bail_out_;
       }
@@ -305,9 +314,8 @@ namespace rubinius {
 
     void propagate_exception() {
       // If there are handlers...
-      if(exception_handlers_.size() > 0) {
-        BasicBlock* handler = exception_handlers_.back();
-        b().CreateBr(handler);
+      if(has_exception_handler()) {
+        b().CreateBr(exception_handler());
       } else {
         b().CreateBr(bail_out_fast_);
       }
@@ -319,9 +327,8 @@ namespace rubinius {
       Value* cmp = b().CreateICmpEQ(val, null, "null_check");
 
       // If there are handlers...
-      if(exception_handlers_.size() > 0) {
-        BasicBlock* handler = exception_handlers_.back();
-        b().CreateCondBr(cmp, handler, cont);
+      if(has_exception_handler()) {
+        b().CreateCondBr(cmp, exception_handler(), cont);
       } else {
         b().CreateCondBr(cmp, bail_out_fast_, cont);
       }
@@ -335,11 +342,17 @@ namespace rubinius {
 
     void at_ip(int ip) {
       // Bad startup edge case
-      if(ip == 0) return;
+      if(ip == 0) {
+        current_jbb_ = &(block_map_[0]);
+        return;
+      }
 
       BlockMap::iterator i = block_map_.find(ip);
       if(i != block_map_.end()) {
         JITBasicBlock& jbb = i->second;
+
+        current_jbb_ = &jbb;
+
         if(BasicBlock* next = jbb.block) {
           if(!b().GetInsertBlock()->getTerminator()) {
             b().CreateBr(next);
@@ -352,8 +365,6 @@ namespace rubinius {
           set_block(next);
         }
         if(jbb.sp != -10) set_sp(jbb.sp);
-
-        if(jbb.landing_pad) exception_handlers_.pop_back();
       }
 
       remember_sp();
@@ -1224,7 +1235,7 @@ namespace rubinius {
         if(inl.consider()) {
           // Uncommon doesn't yet know how to synthesize UnwindInfos, so
           // don't do uncommon if there are handlers.
-          if(!in_inlined_block() && exception_handlers_.size() == 0) {
+          if(!in_inlined_block() && !has_exception_handler()) {
             BasicBlock* cur = b().GetInsertBlock();
 
             set_block(failure);
@@ -1456,7 +1467,7 @@ namespace rubinius {
         if(inl.consider()) {
           // Uncommon doesn't yet know how to synthesize UnwindInfos, so
           // don't do uncommon if there are handlers.
-          if(!in_inlined_block() && exception_handlers_.size() == 0) {
+          if(!in_inlined_block() && !has_exception_handler()) {
             send_result->addIncoming(inl.result(), b().GetInsertBlock());
 
             b().CreateBr(cleanup);
@@ -2414,6 +2425,9 @@ namespace rubinius {
       assert(jbb.block);
 
       if(type == cRescue) {
+        // Add a prologue block that checks if we should handle this
+        // exception.
+
         BasicBlock* orig = current_block();
         code = new_block("is_exception");
         set_block(code);
@@ -2428,30 +2442,32 @@ namespace rubinius {
         Value* call_args[] = { vm_ };
         Value* isit = b().CreateCall(func, call_args, call_args+1, "rae");
 
+        // Chain to an existing handler.
         BasicBlock* next = 0;
-        if(exception_handlers_.size() == 0) {
-          next = bail_out_;
+        if(has_exception_handler()) {
+          next = exception_handler();
         } else {
-          next = exception_handlers_.back();
+          next = bail_out_;
         }
 
         b().CreateCondBr(isit, jbb.block, next);
 
         set_block(orig);
+
+        // Now, change jbb to point to code, so anyone branching there hits
+        // the check first.
+        jbb.prologue = code;
       } else {
         code = jbb.block;
       }
-
-      exception_handlers_.push_back(code);
     }
 
-    void visit_pop_unwind() {
-      // exception_handlers_.pop_back();
-    }
+    // Nothing, handled by pass_one
+    void visit_pop_unwind() {}
 
     void visit_reraise() {
-      if(exception_handlers_.size() > 0) {
-        b().CreateBr(exception_handlers_.back());
+      if(has_exception_handler()) {
+        b().CreateBr(exception_handler());
       } else {
         b().CreateBr(bail_out_);
       }

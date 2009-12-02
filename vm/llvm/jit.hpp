@@ -312,6 +312,8 @@ namespace rubinius {
 
   struct JITBasicBlock {
     llvm::BasicBlock* block;
+    llvm::BasicBlock* prologue;
+    JITBasicBlock* exception_handler;
     int sp;
     int start_ip;
     int end_ip;
@@ -321,12 +323,19 @@ namespace rubinius {
   public:
     JITBasicBlock()
       : block(0)
+      , prologue(0)
+      , exception_handler(0)
       , sp(-1)
       , start_ip(0)
       , end_ip(0)
       , reachable(false)
       , landing_pad(false)
     {}
+
+    llvm::BasicBlock* entry() {
+      if(prologue) return prologue;
+      return block;
+    }
   };
 
   typedef std::map<int, JITBasicBlock> BlockMap;

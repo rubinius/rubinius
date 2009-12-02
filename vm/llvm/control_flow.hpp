@@ -53,6 +53,11 @@ namespace rubinius {
               assert(target >= 0 && target < vmm_->total);
 
               add_section(target);
+
+              // Non-terminating goto's stop the current block and queue the code
+              // right after them.
+              if(!iter.terminator_p() && iter.next_p()) add_section(iter.next_ip());
+              break;
             }
 
             if(iter.terminator_p()) break;
