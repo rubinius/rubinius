@@ -493,8 +493,11 @@ class Regexp
   #
   def named_captures
     hash = {}
-    @names.each do |k,v|
-      hash[k.to_s] = [v + 1] # we only have one location currently for a key
+
+    if @names
+      @names.each do |k,v|
+        hash[k.to_s] = [v + 1] # we only have one location currently for a key
+      end
     end
 
     return hash
