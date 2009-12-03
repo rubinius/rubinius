@@ -1,6 +1,19 @@
 module Rubinius
+
+  class CompileError < RuntimeError
+  end
+
   class CompilerNG
     attr_accessor :parser, :generator, :encoder, :packager, :writer
+
+    def self.compiler_error(msg, orig)
+      if defined?(RUBY_ENGINE) and RUBY_ENGINE == "rbx"
+        raise Rubinius::CompileError, msg, orig
+      else
+        orig.message.replace("#{orig.message} - #{msg}")
+        raise orig
+      end
+    end
 
     def self.compile(file, line=1, output=nil, transforms=:default)
       compiler = new :file, :compiled_file
@@ -19,7 +32,14 @@ module Rubinius
       writer = compiler.writer
       writer.name = output
 
-      compiler.run
+      begin
+        compiler.run
+      rescue LoadError => e
+        raise e
+      rescue Exception => e
+        compiler_error "Error trying to compile #{file}", e
+      end
+
     end
 
     # Match old compiler's signature
@@ -35,7 +55,13 @@ module Rubinius
       parser.default_transforms
       parser.input file, line
 
-      compiler.run
+      begin
+        compiler.run
+      rescue LoadError => e
+        raise e
+      rescue Exception => e
+        compiler_error "Error trying to compile #{file}", e
+      end
     end
 
     def self.compile_string(string, file="(eval)", line=1)
