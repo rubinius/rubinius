@@ -169,8 +169,8 @@ module Rubinius
         end
 
         case body
-        when ArrayLiteral
-          @assignment = body.shift if assignment? body.first
+        when Block
+          @assignment = body.array.shift if assignment? body.array.first
           @body = body
         when nil
           @body = Nil.new line
