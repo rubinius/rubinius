@@ -104,7 +104,7 @@ parser_ext_files = FileList[
 # Generate a sha1 of all parser and compiler files to use as
 # as signature in the .rbc files.
 file compiler_signature => compiler_files + parser_ext_files do |t|
-  require 'digest'
+  require 'digest/sha1'
   digest = Digest::SHA1.new
 
   t.prerequisites.each do |name|
