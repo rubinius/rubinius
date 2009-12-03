@@ -32,13 +32,16 @@ module Rubinius
           next if v == "@body" and value.nil? and not v.respond_to? :body=
 
           if value.kind_of? Node
-            nodes << value
+            nodes << [v, value]
           else
             graph_value v, value, level
           end
         end
 
-        nodes.each { |n| graph_node n, level }
+        nodes.each do |name, node|
+          puts "#{" " * level}#{name}: \\"
+          graph_node node, level
+        end
       end
 
       def graph_simple(name, value, level)
@@ -52,7 +55,7 @@ module Rubinius
         when TrueClass, FalseClass, Symbol, Fixnum
           graph_simple name, value, level
         when Array
-          puts "#{" " * level}#{name}:"
+          puts "#{" " * level}#{name}: \\"
           nodes = []
           value.each do |v|
             if v.kind_of? Node
