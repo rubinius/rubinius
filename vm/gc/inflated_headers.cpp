@@ -35,7 +35,7 @@ namespace rubinius {
     chunks_.push_back(chunk);
   }
 
-  void InflatedHeaders::deallocate_headers() {
+  void InflatedHeaders::deallocate_headers(int mark) {
     // Detect and free any full chunks first!
     for(Chunks::iterator i = chunks_.begin();
         i != chunks_.end();) {
@@ -46,7 +46,7 @@ namespace rubinius {
       for(size_t j = 0; j < cChunkSize; j++) {
         InflatedHeader* header = &chunk[j];
 
-        if(header->marked_p()) {
+        if(header->marked_p(mark)) {
           used = true;
           break;
         }
@@ -73,7 +73,7 @@ namespace rubinius {
       for(size_t j = 0; j < cChunkSize; j++) {
         InflatedHeader* header = &chunk[j];
 
-        if(!header->marked_p()) {
+        if(!header->marked_p(mark)) {
           header->clear();
           header->set_next(free_list_);
           free_list_ = header;

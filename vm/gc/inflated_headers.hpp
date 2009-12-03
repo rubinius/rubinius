@@ -23,7 +23,7 @@ namespace rubinius {
     ~InflatedHeaders();
 
     InflatedHeader* allocate(ObjectHeader* obj);
-    void deallocate_headers();
+    void deallocate_headers(int mark);
     void allocate_chunk();
   };
 }

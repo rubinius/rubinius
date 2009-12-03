@@ -51,7 +51,7 @@ namespace rubinius {
     }
   }
 
-  void GlobalCache::prune_unmarked() {
+  void GlobalCache::prune_unmarked(int mark) {
     cache_entry* entry;
     for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
       entry = &entries[i];
@@ -61,7 +61,7 @@ namespace rubinius {
       Object* mod = reinterpret_cast<Object*>(entry->module);
       Object* exec = reinterpret_cast<Object*>(entry->method);
 
-      if(!klass->marked_p() || !mod->marked_p() || !exec->marked_p()) {
+      if(!klass->marked_p(mark) || !mod->marked_p(mark) || !exec->marked_p(mark)) {
         entry->klass = 0;
         entry->name = 0;
         entry->module = 0;

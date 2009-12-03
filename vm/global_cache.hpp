@@ -78,7 +78,7 @@ namespace rubinius {
 
     void prune_young();
 
-    void prune_unmarked();
+    void prune_unmarked(int mark);
 
     void retain(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
                 bool missing, bool was_private = false) {

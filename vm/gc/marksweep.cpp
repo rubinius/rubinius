@@ -93,8 +93,8 @@ namespace rubinius {
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->objects_seen++;
 #endif
-    if(obj->marked_p()) return NULL;
-    obj->mark();
+    if(obj->marked_p(object_memory_->mark())) return NULL;
+    obj->mark(object_memory_->mark());
 
     // Add the object to the mark stack, to be scanned later.
     mark_stack_.push_back(obj);
@@ -144,7 +144,7 @@ namespace rubinius {
 
     for(i = entries.begin(); i != entries.end();) {
       Object* obj = *i;
-      if(obj->marked_p()) {
+      if(obj->marked_p(object_memory_->mark())) {
         i++;
       } else {
         free_object(obj);

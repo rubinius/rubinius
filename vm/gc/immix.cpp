@@ -1,5 +1,5 @@
-#include "gc/immix.hpp"
 #include "objectmemory.hpp"
+#include "gc/immix.hpp"
 
 #include "instruments/stats.hpp"
 
@@ -33,7 +33,6 @@ namespace rubinius {
   ImmixGC::ImmixGC(ObjectMemory* om)
     : GarbageCollector(om)
     , allocator_(gc_.block_allocator())
-    , which_mark_(1)
     , chunks_before_collection_(10)
   {
     gc_.describer().set_object_memory(om, this);
@@ -183,15 +182,12 @@ namespace rubinius {
         assert(tmp->zone() == MatureObjectZone);
         assert(!tmp->forwarded_p());
 
-        if(!tmp->marked_p()) {
+        if(!tmp->marked_p(object_memory_->mark())) {
           cleared++;
           *oi = NULL;
         }
       }
     }
-
-    // Switch the which_mark_ for next time.
-    which_mark_ = (which_mark_ == 1 ? 2 : 1);
 
     if(object_memory_->state->shared.config.gc_immix_debug) {
       std::cerr << "[GC IMMIX: " << clear_marked_objects() << " marked"

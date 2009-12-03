@@ -53,8 +53,8 @@ namespace rubinius {
       bool mark_address(immix::Address addr, immix::MarkStack& ms) {
         Object* obj = addr.as<Object>();
 
-        if(obj->marked_p()) return false;
-        obj->mark(gc_->which_mark());
+        if(obj->marked_p(object_memory_->mark())) return false;
+        obj->mark(object_memory_->mark());
         gc_->inc_marked_objects();
 
         ms.push_back(addr);
@@ -68,7 +68,6 @@ namespace rubinius {
 
     immix::GC<ObjectDescriber> gc_;
     immix::ExpandingAllocator allocator_;
-    int which_mark_;
     int marked_objects_;
     int chunks_left_;
     int chunks_before_collection_;
@@ -85,10 +84,6 @@ namespace rubinius {
     ObjectPosition validate_object(Object*);
 
   public: // Inline
-    int which_mark() {
-      return which_mark_;
-    }
-
     int bytes_allocated() {
       return gc_.bytes_allocated();
     }

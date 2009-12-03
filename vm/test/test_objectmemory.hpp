@@ -315,7 +315,7 @@ public:
 
     TS_ASSERT(mature->mature_object_p());
 
-    TS_ASSERT(!mature->marked_p());
+    TS_ASSERT(!mature->marked_p(om.mark()));
 
     om.collect_mature(*gc_data);
 
@@ -337,7 +337,7 @@ public:
     Root r(roots, young);
 
     om.collect_mature(*gc_data);
-    TS_ASSERT_EQUALS(young->marked_p(), 0U);
+    TS_ASSERT_EQUALS(young->marked_p(om.mark()), 0U);
   }
 
   /* Could segfault on failure due to infinite loop. */

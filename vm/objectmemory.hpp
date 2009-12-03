@@ -72,6 +72,7 @@ namespace rubinius {
     InflatedHeaders* inflated_headers_;
 
     ObjectArray* remember_set_;
+    int mark_;
 
   public:
     bool collect_young_now;
@@ -90,6 +91,14 @@ namespace rubinius {
     }
 
     ObjectArray* swap_remember_set();
+
+    int mark() {
+      return mark_;
+    }
+
+    void rotate_mark() {
+      mark_ = (mark_ == 1 ? 2 : 1);
+    }
 
   public:
     ObjectMemory(STATE, Configuration& config);

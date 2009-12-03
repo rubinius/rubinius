@@ -260,7 +260,7 @@ namespace rubinius {
         std::cout << "detected " << obj << " during unmarking.\n";
       }
 
-      if(obj->reference_p() && obj->marked_p()) {
+      if(obj->reference_p() && obj->marked_p(object_memory_->mark())) {
         obj->clear_mark();
         stack_.push_back(obj);
       }
@@ -338,7 +338,7 @@ namespace rubinius {
             ref->write_barrier(object_memory_, obj->forward());
           }
         }
-      } else if(!obj->marked_p()) {
+      } else if(!obj->marked_p(object_memory_->mark())) {
         ref->set_object(Qnil);
       }
     }

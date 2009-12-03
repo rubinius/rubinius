@@ -29,6 +29,7 @@ namespace rubinius {
     , mark_sweep_(new MarkSweepGC(this))
     , immix_(new ImmixGC(this))
     , inflated_headers_(new InflatedHeaders)
+    , mark_(1)
     , state(state)
   {
     // TODO Not sure where this code should be...
@@ -159,7 +160,7 @@ namespace rubinius {
     collect_mature_now = false;
     immix_->collect(data);
 
-    data.global_cache()->prune_unmarked();
+    data.global_cache()->prune_unmarked(mark());
 
     immix_->clean_weakrefs();
     prune_handles(data.handles(), false);
@@ -169,9 +170,15 @@ namespace rubinius {
     // done, as it free()s objects, invalidating mark bits.
     mark_sweep_->after_marked();
 
-    inflated_headers_->deallocate_headers();
+    inflated_headers_->deallocate_headers(mark());
 
-    immix_->unmark_all(data);
+    // We no longer need to unmark all, we use the rotating mark instead.
+    // This means that the mark we just set on all reachable objects will
+    // be ignored next time anyway.
+    //
+    // immix_->unmark_all(data);
+
+    rotate_mark();
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->collect_mature.stop();
@@ -248,7 +255,7 @@ namespace rubinius {
         }
 
       // A weakref pointing to a dead mature object
-      } else if(!obj->marked_p()) {
+      } else if(!obj->marked_p(mark())) {
         count++;
         handles->remove(current);
         delete current;

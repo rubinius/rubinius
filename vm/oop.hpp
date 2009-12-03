@@ -194,8 +194,8 @@ const int cUndef = 0x22L;
       object_ = obj;
     }
 
-    bool marked_p() {
-      return flags_.Marked != 0;
+    bool marked_p(int which) const {
+      return flags_.Marked == which;
     }
 
     capi::Handle* handle() {
@@ -415,15 +415,11 @@ const int cUndef = 0x22L;
       ivars_ = reinterpret_cast<Object*>(fwd);
     }
 
-    bool marked_p() const {
-      return flags().Marked != 0;
-    }
-
     bool marked_p(unsigned int which) const {
       return flags().Marked == which;
     }
 
-    void mark(unsigned int which=1) {
+    void mark(unsigned int which) {
       flags().Marked = which;
     }
 
