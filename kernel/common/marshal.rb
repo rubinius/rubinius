@@ -1,7 +1,7 @@
 class Object
   def to_marshal(ms, strip_ivars = false)
     out = ms.serialize_extended_object self
-    out << Marshal::TYPE_OBJECT
+    out << Marshal::TYPE_OBJECT.chr
     out << ms.serialize(self.class.name.to_sym)
     out << ms.serialize_instance_variables_suffix(self, true, strip_ivars)
   end
@@ -15,45 +15,45 @@ end
 
 class NilClass
   def to_marshal(ms)
-    Marshal::TYPE_NIL
+    Marshal::TYPE_NIL.chr
   end
 end
 
 class TrueClass
   def to_marshal(ms)
-    Marshal::TYPE_TRUE
+    Marshal::TYPE_TRUE.chr
   end
 end
 
 class FalseClass
   def to_marshal(ms)
-    Marshal::TYPE_FALSE
+    Marshal::TYPE_FALSE.chr
   end
 end
 
 class Class
   def to_marshal(ms)
     raise TypeError, "can't dump anonymous class #{self}" if self.name == ''
-    Marshal::TYPE_CLASS + ms.serialize_integer(name.length) + name
+    Marshal::TYPE_CLASS.chr + ms.serialize_integer(name.length) + name
   end
 end
 
 class Module
   def to_marshal(ms)
     raise TypeError, "can't dump anonymous module #{self}" if self.name == ''
-    Marshal::TYPE_MODULE + ms.serialize_integer(name.length) + name
+    Marshal::TYPE_MODULE.chr + ms.serialize_integer(name.length) + name
   end
 end
 
 class Symbol
   def to_marshal(ms)
     if idx = ms.find_symlink(self) then
-      Marshal::TYPE_SYMLINK + ms.serialize_integer(idx)
+      Marshal::TYPE_SYMLINK.chr + ms.serialize_integer(idx)
     else
       ms.add_symlink self
 
       str = to_s
-      Marshal::TYPE_SYMBOL + ms.serialize_integer(str.length) + str
+      Marshal::TYPE_SYMBOL.chr + ms.serialize_integer(str.length) + str
     end
   end
 end
@@ -63,7 +63,7 @@ class String
     out = ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, String)
-    out << Marshal::TYPE_STRING
+    out << Marshal::TYPE_STRING.chr
     out << ms.serialize_integer(self.length) << self
     out << ms.serialize_instance_variables_suffix(self)
   end
@@ -71,13 +71,13 @@ end
 
 class Fixnum
   def to_marshal(ms)
-    Marshal::TYPE_FIXNUM + ms.serialize_integer(self)
+    Marshal::TYPE_FIXNUM.chr + ms.serialize_integer(self)
   end
 end
 
 class Bignum
   def to_marshal(ms)
-    str = Marshal::TYPE_BIGNUM + (self < 0 ? '-' : '+')
+    str = Marshal::TYPE_BIGNUM.chr + (self < 0 ? '-' : '+')
     cnt = 0
     num = self.abs
 
@@ -102,7 +102,7 @@ class Regexp
     out = ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Regexp)
-    out << Marshal::TYPE_REGEXP
+    out << Marshal::TYPE_REGEXP.chr
     out << ms.serialize_integer(str.length) + str
     out << ms.to_byte(options & 0x7)
     out << ms.serialize_instance_variables_suffix(self)
@@ -114,7 +114,7 @@ class Struct
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
 
-    out << Marshal::TYPE_STRUCT
+    out << Marshal::TYPE_STRUCT.chr
 
     out << ms.serialize(self.class.name.to_sym)
     out << ms.serialize_integer(self.length)
@@ -134,7 +134,7 @@ class Array
     out = ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Array)
-    out << Marshal::TYPE_ARRAY
+    out << Marshal::TYPE_ARRAY.chr
     out << ms.serialize_integer(self.length)
     unless empty? then
       each do |element|
@@ -155,7 +155,7 @@ class Hash
     out = ms.serialize_instance_variables_prefix self, excluded_ivars
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Hash)
-    out << (self.default ? Marshal::TYPE_HASH_DEF : Marshal::TYPE_HASH)
+    out << (self.default ? Marshal::TYPE_HASH_DEF : Marshal::TYPE_HASH).chr
     out << ms.serialize_integer(length)
     unless empty? then
       each_pair do |(key, val)|
@@ -180,7 +180,7 @@ class Float
           else
             "%.*g" % [17, self] + ms.serialize_float_thing(self)
           end
-    Marshal::TYPE_FLOAT + ms.serialize_integer(str.length) + str
+    Marshal::TYPE_FLOAT.chr + ms.serialize_integer(str.length) + str
   end
 end
 
@@ -213,34 +213,34 @@ module Marshal
 
   VERSION_STRING = "\x04\x08"
 
-  TYPE_NIL = '0'
-  TYPE_TRUE = 'T'
-  TYPE_FALSE = 'F'
-  TYPE_FIXNUM = 'i'
+  TYPE_NIL = ?0
+  TYPE_TRUE = ?T
+  TYPE_FALSE = ?F
+  TYPE_FIXNUM = ?i
 
-  TYPE_EXTENDED = 'e'
-  TYPE_UCLASS = 'C'
-  TYPE_OBJECT = 'o'
-  TYPE_DATA = 'd'  # no specs
-  TYPE_USERDEF = 'u'
-  TYPE_USRMARSHAL = 'U'
-  TYPE_FLOAT = 'f'
-  TYPE_BIGNUM = 'l'
-  TYPE_STRING = '"'
-  TYPE_REGEXP = '/'
-  TYPE_ARRAY = '['
-  TYPE_HASH = '{'
-  TYPE_HASH_DEF = '}'
-  TYPE_STRUCT = 'S'
-  TYPE_MODULE_OLD = 'M'  # no specs
-  TYPE_CLASS = 'c'
-  TYPE_MODULE = 'm'
+  TYPE_EXTENDED = ?e
+  TYPE_UCLASS = ?C
+  TYPE_OBJECT = ?o
+  TYPE_DATA = ?d  # no specs
+  TYPE_USERDEF = ?u
+  TYPE_USRMARSHAL = ?U
+  TYPE_FLOAT = ?f
+  TYPE_BIGNUM = ?l
+  TYPE_STRING = ?"
+  TYPE_REGEXP = ?/
+  TYPE_ARRAY = ?[
+  TYPE_HASH = ?{
+  TYPE_HASH_DEF = ?}
+  TYPE_STRUCT = ?S
+  TYPE_MODULE_OLD = ?M  # no specs
+  TYPE_CLASS = ?c
+  TYPE_MODULE = ?m
 
-  TYPE_SYMBOL = ':'
-  TYPE_SYMLINK = ';'
+  TYPE_SYMBOL = ?:
+  TYPE_SYMLINK = ?;
 
-  TYPE_IVAR = 'I'
-  TYPE_LINK = '@'
+  TYPE_IVAR = ?I
+  TYPE_LINK = ?@
 
   class State
 
@@ -255,10 +255,18 @@ module Marshal
       @depth = depth
 
       # loading
-      @stream = stream
-      @consumed = 0
+      if stream
+        @stream = stream
+        @byte_array = stream.data
+      else
+        @stream = nil
+      end
 
-      consume 2 if @stream
+      if stream
+        @consumed = 2
+      else
+        @consumed = 0
+      end
 
       @modules = nil
       @has_ivar = []
@@ -284,7 +292,7 @@ module Marshal
     end
 
     def construct(ivar_index = nil, call_proc = true)
-      type = consume
+      type = consume_byte()
       obj = case type
             when TYPE_NIL
               nil
@@ -313,8 +321,10 @@ module Marshal
               construct_regexp
             when TYPE_ARRAY
               construct_array
-            when TYPE_HASH, TYPE_HASH_DEF
-              construct_hash type
+            when TYPE_HASH
+              construct_hash
+            when TYPE_HASH_DEF
+              construct_hash_def
             when TYPE_STRUCT
               construct_struct
             when TYPE_OBJECT
@@ -327,14 +337,14 @@ module Marshal
               num = construct_integer
               obj = @objects[num]
 
-              raise ArgumentError, "dump format error (unlinked)" if obj.nil?
+              raise ArgumentError, "dump format error (unlinked)" unless obj
 
               return obj
             when TYPE_SYMLINK
               num = construct_integer
               sym = @symbols[num]
 
-              raise ArgumentError, "bad symbol" if sym.nil?
+              raise ArgumentError, "bad symbol" unless sym
 
               return sym
             when TYPE_EXTENDED
@@ -367,7 +377,7 @@ module Marshal
               raise ArgumentError, "load error, unknown type #{type}"
             end
 
-      call obj if call_proc
+      call obj if @proc and call_proc
 
       obj
     end
@@ -384,7 +394,7 @@ module Marshal
     end
 
     def construct_bignum
-      sign = consume == '-' ? -1 : 1
+      sign = consume_byte() == ?- ? -1 : 1
       size = construct_integer * 2
 
       result = 0
@@ -417,7 +427,7 @@ module Marshal
       obj
     end
 
-    def construct_hash(type)
+    def construct_hash
       obj = @user_class ? get_user_class.allocate : {}
       store_unique_object obj
 
@@ -427,31 +437,70 @@ module Marshal
         obj[key] = val
       end
 
-      obj.default = construct if type == TYPE_HASH_DEF
+      obj
+    end
+
+    def construct_hash_def
+      obj = @user_class ? get_user_class.allocate : {}
+      store_unique_object obj
+
+      construct_integer.times do
+        key = construct
+        val = construct
+        obj[key] = val
+      end
+
+      obj.default = construct
 
       obj
     end
 
     def construct_integer
-      n = consume[0]
+      c = consume_byte()
 
-      if (n > 0 and n < 5) or n > 251
-        size, signed = n > 251 ? [256 - n, 2**((256 - n)*8)] : [n, 0]
+      # The format appears to be a simple integer compression format
+      #
+      # The 0-123 cases are easy, and use one byte
+      # We've read c as unsigned char in a way, but we need to honor
+      # the sign bit. We do that by simply comparing with the +128 values
+      return 0 if c == 0
+      return c - 5 if 4 < c and c < 128
 
-        result = 0
-        data = consume size
+      # negative, but checked known it's instead in 2's compliment
+      return c - 251 if 252 > c and c > 127
 
-        (0...size).each do |exp|
-          result += (data[exp] * 2**(exp*8))
-        end
+      # otherwise c (now in the 1 to 4 range) indicates how many
+      # bytes to read to construct the value.
+      #
+      # Because we're operating on a small number of possible values,
+      # it's cleaner to just unroll the calculate of each
 
-        result - signed
-      elsif n > 127
-        (n - 256) + 5
-      elsif n > 4
-        n - 5
+      case c
+      when 1
+        consume_byte
+      when 2
+        consume_byte | (consume_byte << 8)
+      when 3
+        consume_byte | (consume_byte << 8) | (consume_byte << 16)
+      when 4
+        consume_byte | (consume_byte << 8) | (consume_byte << 16) |
+                       (consume_byte << 24)
+
+      when 255 # -1
+        consume_byte - 256
+      when 254 # -2
+        (consume_byte | (consume_byte << 8)) - 65536
+      when 253 # -3
+        (consume_byte |
+         (consume_byte << 8) |
+         (consume_byte << 16)) - 16777216 # 2 ** 24
+      when 252 # -4
+        (consume_byte |
+         (consume_byte << 8) |
+         (consume_byte << 16) |
+         (consume_byte << 24)) - 4294967296
       else
-        n
+        raise "Invalid integer size: #{c}"
       end
     end
 
@@ -471,9 +520,9 @@ module Marshal
     def construct_regexp
       s = get_byte_sequence
       if @user_class
-        obj = get_user_class.new s, consume[0]
+        obj = get_user_class.new s, consume_byte
       else
-        obj = Regexp.new s, consume[0]
+        obj = Regexp.new s, consume_byte
       end
 
       store_unique_object obj
@@ -558,10 +607,16 @@ module Marshal
       obj
     end
 
-    def consume(bytes = 1)
+    def consume(bytes)
       data = @stream[@consumed, bytes]
       @consumed += bytes
       data
+    end
+
+    def consume_byte
+      data = @byte_array[@consumed]
+      @consumed += 1
+      return data
     end
 
     def extend_object(obj)
@@ -600,7 +655,7 @@ module Marshal
     end
 
     def get_symbol
-      type = consume
+      type = consume_byte()
 
       case type
       when TYPE_SYMBOL then
@@ -627,7 +682,7 @@ module Marshal
       @depth -= 1;
 
       if link = find_link(obj)
-        str = TYPE_LINK + serialize_integer(link)
+        str = TYPE_LINK.chr + serialize_integer(link)
       else
         add_object obj
 
@@ -648,7 +703,7 @@ module Marshal
     def serialize_extended_object(obj)
       str = ''
       get_module_names(obj).each do |mod_name|
-        str << TYPE_EXTENDED + serialize(mod_name.to_sym)
+        str << TYPE_EXTENDED.chr + serialize(mod_name.to_sym)
       end
       str
     end
@@ -675,7 +730,7 @@ module Marshal
       ivars -= exclude_ivars if exclude_ivars
 
       if ivars.length > 0 then
-        TYPE_IVAR + ''
+        TYPE_IVAR.chr + ''
       else
         ''
       end
@@ -729,7 +784,7 @@ module Marshal
 
     def serialize_user_class(obj, cls)
       if obj.class != cls
-        TYPE_UCLASS + serialize(obj.class.name.to_sym)
+        TYPE_UCLASS.chr + serialize(obj.class.name.to_sym)
       else
       ''
       end
@@ -739,7 +794,7 @@ module Marshal
       str = obj._dump @depth
       raise TypeError, "_dump() must return string" if str.class != String
       out = serialize_instance_variables_prefix(str)
-      out << TYPE_USERDEF + serialize(obj.class.name.to_sym)
+      out << TYPE_USERDEF.chr + serialize(obj.class.name.to_sym)
       out << serialize_integer(str.length) + str
       out << serialize_instance_variables_suffix(str)
     end
@@ -749,7 +804,7 @@ module Marshal
 
       add_object val
 
-      out = TYPE_USRMARSHAL + serialize(obj.class.name.to_sym)
+      out = TYPE_USRMARSHAL.chr + serialize(obj.class.name.to_sym)
       out << val.to_marshal(self)
     end
 
@@ -777,7 +832,7 @@ module Marshal
   end
 
   def self.dump(obj, an_io=nil, limit=nil)
-    if limit.nil?
+    unless limit
       if an_io.kind_of? Fixnum
         limit = an_io
         an_io = nil
