@@ -53,6 +53,7 @@ class String
 
   def ==(other)
     Ruby.primitive :string_equal
+    raise PrimitiveFailure, "String#== failed"
   end
 
   # Returns the length of <i>self</i>.
