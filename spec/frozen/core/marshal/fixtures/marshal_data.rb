@@ -226,6 +226,8 @@ module MarshalSpec
                           "\004\bf\t-inf"],
     "Float 1.0" => [1.0,
                     "\004\bf\0061"],
+    "Float 8323434.342" => [8323434.342,
+                            "\004\bf\0328323434.3420000002\000S\370"],
     "Hash" => [Hash.new,
                "\004\b{\000"],
     "Hash subclass" => [UserHash.new,
