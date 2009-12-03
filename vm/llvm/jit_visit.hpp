@@ -2892,5 +2892,29 @@ namespace rubinius {
       Value* str = sig.call("rbx_string_append", call_args, 3, "string", b());
       stack_push(str);
     }
+
+    void visit_string_build(opcode count) {
+      set_has_side_effects();
+
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << ls_->Int32Ty;
+      sig << ObjArrayTy;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        ConstantInt::get(ls_->Int32Ty, count),
+        stack_objects(count)
+      };
+
+      Value* str = sig.call("rbx_string_build", call_args, 4, "string", b());
+      stack_remove(count);
+
+      check_for_exception(str);
+      stack_push(str);
+    }
   };
 }

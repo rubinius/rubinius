@@ -110,21 +110,24 @@ describe "An Undef node" do
 
     compile do |g|
       g.push_scope
+      g.push_literal "x"
+
       g.push 1
       g.send :to_s, 0, true
-      g.push_literal "x"
-      g.string_dup
-      g.string_append
+
+      g.string_build 2
+
       g.send :to_sym, 0, true
       g.send :__undef_method__, 1
       g.pop
 
       g.push_scope
+
+      g.push_literal "x"
       g.push 2
       g.send :to_s, 0, true
-      g.push_literal "x"
-      g.string_dup
-      g.string_append
+      g.string_build 2
+
       g.send :to_sym, 0, true
       g.send :__undef_method__, 1
     end

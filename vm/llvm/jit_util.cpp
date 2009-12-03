@@ -758,6 +758,36 @@ extern "C" {
     return as<String>(left)->append(state, as<String>(right));
   }
 
+  Object* rbx_string_build(STATE, CallFrame* call_frame, int count, Object** parts) {
+    size_t size = 0;
+
+    // Figure out the total size
+    for(int i = 0; i < count; i++) {
+      if(String* str = try_as<String>(parts[i])) {
+        size += str->size();
+      } else {
+        Exception* exc =
+          Exception::make_type_error(state, String::type, parts[i], "not a string");
+        exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+
+        state->thread_state()->raise_exception(exc);
+        return NULL;
+      }
+    }
+
+    String* str = String::create(state, 0, size);
+    char* pos = str->byte_address();
+
+    for(int i = 0; i < count; i++) {
+      // We can force here because we've typed check them above.
+      String* sub = force_as<String>(parts[i]);
+      memcpy(pos, sub->byte_address(), sub->size());
+      pos += sub->size();
+    }
+
+    return str;
+  }
+
   Object* rbx_raise_return(STATE, CallFrame* call_frame, Object* top) {
     if(!(call_frame->flags & CallFrame::cIsLambda) &&
        !call_frame->scope_still_valid(call_frame->scope->parent())) {

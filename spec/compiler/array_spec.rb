@@ -56,9 +56,6 @@ describe "An Array node" do
 
       g.push_ivar :@b
       g.send :to_s, 0, true
-      g.push_literal ""
-      g.string_dup
-      g.string_append
 
       g.push_literal "c"
       g.string_dup

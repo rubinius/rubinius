@@ -1639,6 +1639,29 @@ instruction string_append() [ prefix suffix -- string ]
   stack_push(s1);
 end
 
+
+instruction string_build(count) [ +count -- string ]
+  flush_ip();
+  size_t size = 0;
+
+  // Figure out the total size
+  for(int i = 0; i < count; i++) {
+    size += as<String>(stack_back(i))->size();
+  }
+
+  String* str = String::create(state, 0, size);
+  char* pos = str->byte_address();
+
+  for(int i = count - 1; i >= 0; i--) {
+    String* sub = as<String>(stack_back(i));
+    memcpy(pos, sub->byte_address(), sub->size());
+    pos += sub->size();
+  }
+
+  stack_clear(count);
+  stack_push(str);
+end
+
 # [Operation]
 #   Create a new string with the same contents as the string currently on
 #   the stack

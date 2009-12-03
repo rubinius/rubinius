@@ -269,6 +269,52 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
+        prefix = false
+
+        unless @string.empty?
+          prefix = true
+          g.push_literal @string
+        end
+
+        if @array.empty?
+          g.push_literal "" if total == 0
+          g.string_dup
+          return
+        end
+
+        if !prefix and @array.size == 1
+          @array.first.bytecode(g)
+          return
+        end
+
+        total = 0
+        @array.each do |x|
+          case x
+          when StringLiteral
+            unless x.string.empty?
+              g.push_literal x.string
+              total += 1
+            end
+          else
+            x.bytecode(g)
+            total += 1
+          end
+        end
+
+        if prefix
+          if total == 0
+            g.string_dup
+            return
+          end
+          total += 1
+        end
+
+        g.string_build total
+      end
+
+      def old_bytecode(g)
+        pos(g)
+
         @array.reverse_each do |x|
           x.bytecode(g)
         end

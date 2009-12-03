@@ -7,14 +7,9 @@ describe "A Dregx node" do
 
     compile do |g|
       g.push_const :Regexp
-      g.push_literal ")"
-      g.string_dup
-      g.push_literal ""
-      g.string_dup
       g.push_literal "("
-      g.string_dup
-      g.string_append
-      g.string_append
+      g.push_literal ")"
+      g.string_build 2
       g.push 0
       g.send :new, 2
     end
@@ -24,20 +19,16 @@ describe "A Dregx node" do
     compile do |g|
       g.push_const :Regexp
 
-      g.push_literal "y"    # 1
-      g.string_dup
+      g.push_literal "x"    # 1
 
       g.push 1              # 2
       g.push 1
       g.send :+, 1, false
       g.send :to_s, 0, true
 
-      g.push_literal "x"    # 3
-      g.string_dup
+      g.push_literal "y"    # 3
 
-      2.times do
-        g.string_append
-      end
+      g.string_build 3
 
       g.push 0
       g.send :new, 2
@@ -48,17 +39,9 @@ describe "A Dregx node" do
     compile do |g|
       g.push_const :Regexp
 
-      g.push_literal "b"
-      g.string_dup
-
-      g.push_literal ""
-      g.string_dup
-
       g.push_literal "a"
-      g.string_dup
-
-      g.string_append
-      g.string_append
+      g.push_literal "b"
+      g.string_build 2
 
       g.push 0
       g.send :new, 2
@@ -72,11 +55,6 @@ describe "A Dregx node" do
       g.push_ivar :@rakefile
       g.send :to_s, 0, true
 
-      g.push_literal ""
-      g.string_dup
-
-      g.string_append
-
       g.push 0
       g.send :new, 2
     end
@@ -89,11 +67,6 @@ describe "A Dregx node" do
       g.push 1
       g.send :to_s, 0, true
 
-      g.push_literal ""
-      g.string_dup
-
-      g.string_append
-
       g.push 16
       g.send :new, 2
     end
@@ -104,18 +77,13 @@ describe "A Dregx node" do
       memoize do
         g.push_const :Regexp
 
-        g.push_const :SB      # 1
+        g.push_const :IAC     # 1
         g.send :to_s, 0, true
 
-        g.push_const :IAC     # 2
+        g.push_const :SB      # 2
         g.send :to_s, 0, true
 
-        g.push_literal ""     # 3
-        g.string_dup
-
-        2.times do
-          g.string_append
-        end
+        g.string_build 2
 
         g.push 16
         g.send :new, 2
@@ -128,20 +96,16 @@ describe "A Dregx node" do
       memoize do
         g.push_const :Regexp
 
-        g.push_literal "y"    # 1
-        g.string_dup
+        g.push_literal "x"    # 1
 
         g.push 1              # 2
         g.push 1
         g.send :+, 1, false
         g.send :to_s, 0, true
 
-        g.push_literal "x"    # 3
-        g.string_dup
+        g.push_literal "y"    # 3
 
-        2.times do
-          g.string_append
-        end
+        g.string_build 3
 
         g.push 0
         g.send :new, 2
