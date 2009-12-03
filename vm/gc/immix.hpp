@@ -70,6 +70,8 @@ namespace rubinius {
     immix::ExpandingAllocator allocator_;
     int which_mark_;
     int marked_objects_;
+    int chunks_left_;
+    int chunks_before_collection_;
 
   public:
     ImmixGC(ObjectMemory* om);
@@ -103,6 +105,14 @@ namespace rubinius {
       int m = marked_objects_;
       marked_objects_ = 0;
       return m;
+    }
+
+    int dec_chunks_left() {
+      return --chunks_left_;
+    }
+
+    void reset_chunks_left() {
+      chunks_left_ = chunks_before_collection_;
     }
   };
 }

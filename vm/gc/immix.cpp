@@ -19,7 +19,10 @@ namespace rubinius {
 #endif
 
     if(object_memory_) {
-      object_memory_->collect_mature_now = true;
+      if(gc_->dec_chunks_left() <= 0) {
+        object_memory_->collect_mature_now = true;
+        gc_->reset_chunks_left();
+      }
     }
   }
 
@@ -31,8 +34,10 @@ namespace rubinius {
     : GarbageCollector(om)
     , allocator_(gc_.block_allocator())
     , which_mark_(1)
+    , chunks_before_collection_(10)
   {
     gc_.describer().set_object_memory(om, this);
+    reset_chunks_left();
   }
 
   immix::Address ImmixGC::ObjectDescriber::copy(immix::Address original,
