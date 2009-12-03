@@ -1,7 +1,7 @@
 class Object
   def to_marshal(ms, strip_ivars = false)
     out = ms.serialize_extended_object self
-    out << Marshal::TYPE_OBJECT.chr
+    out << "o"
     out << ms.serialize(self.class.name.to_sym)
     out << ms.serialize_instance_variables_suffix(self, true, strip_ivars)
   end
@@ -15,74 +15,76 @@ end
 
 class NilClass
   def to_marshal(ms)
-    Marshal::TYPE_NIL.chr
+    "0"
   end
 end
 
 class TrueClass
   def to_marshal(ms)
-    Marshal::TYPE_TRUE.chr
+    "T"
   end
 end
 
 class FalseClass
   def to_marshal(ms)
-    Marshal::TYPE_FALSE.chr
+    "F"
   end
 end
 
 class Class
   def to_marshal(ms)
     raise TypeError, "can't dump anonymous class #{self}" if self.name == ''
-    Marshal::TYPE_CLASS.chr + ms.serialize_integer(name.length) + name
+    "c#{ms.serialize_integer(name.length)}#{name}"
   end
 end
 
 class Module
   def to_marshal(ms)
     raise TypeError, "can't dump anonymous module #{self}" if self.name == ''
-    Marshal::TYPE_MODULE.chr + ms.serialize_integer(name.length) + name
+    "m#{ms.serialize_integer(name.length)}#{name}"
   end
 end
 
 class Symbol
   def to_marshal(ms)
     if idx = ms.find_symlink(self) then
-      Marshal::TYPE_SYMLINK.chr + ms.serialize_integer(idx)
+      ";#{ms.serialize_integer(idx)}"
     else
       ms.add_symlink self
 
       str = to_s
-      Marshal::TYPE_SYMBOL.chr + ms.serialize_integer(str.length) + str
+      ":#{ms.serialize_integer(str.length)}#{str}"
     end
   end
 end
 
 class String
   def to_marshal(ms)
-    out = ms.serialize_instance_variables_prefix(self)
+    out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, String)
-    out << Marshal::TYPE_STRING.chr
+    out << '"'
     out << ms.serialize_integer(self.length) << self
     out << ms.serialize_instance_variables_suffix(self)
+
+    out
   end
 end
 
 class Fixnum
   def to_marshal(ms)
-    Marshal::TYPE_FIXNUM.chr + ms.serialize_integer(self)
+    "i#{ms.serialize_integer(self)}"
   end
 end
 
 class Bignum
   def to_marshal(ms)
-    str = Marshal::TYPE_BIGNUM.chr + (self < 0 ? '-' : '+')
+    str = (self < 0 ? 'l-' : 'l+')
     cnt = 0
     num = self.abs
 
     while num != 0
-      str << ms.to_byte(num)
+      str << (num & 0xff).chr
       num >>= 8
       cnt += 1
     end
@@ -99,13 +101,15 @@ end
 class Regexp
   def to_marshal(ms)
     str = self.source
-    out = ms.serialize_instance_variables_prefix(self)
+    out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Regexp)
-    out << Marshal::TYPE_REGEXP.chr
+    out << "/"
     out << ms.serialize_integer(str.length) + str
-    out << ms.to_byte(options & 0x7)
+    out << (options & 0x7).chr
     out << ms.serialize_instance_variables_suffix(self)
+
+    out
   end
 end
 
@@ -114,7 +118,7 @@ class Struct
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
 
-    out << Marshal::TYPE_STRUCT.chr
+    out << "S"
 
     out << ms.serialize(self.class.name.to_sym)
     out << ms.serialize_integer(self.length)
@@ -125,16 +129,17 @@ class Struct
     end
 
     out << ms.serialize_instance_variables_suffix(self)
+
     out
   end
 end
 
 class Array
   def to_marshal(ms)
-    out = ms.serialize_instance_variables_prefix(self)
+    out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Array)
-    out << Marshal::TYPE_ARRAY.chr
+    out << "["
     out << ms.serialize_integer(self.length)
     unless empty? then
       each do |element|
@@ -142,6 +147,8 @@ class Array
       end
     end
     out << ms.serialize_instance_variables_suffix(self)
+
+    out
   end
 end
 
@@ -152,10 +159,10 @@ class Hash
     #excluded_ivars = %w[@bins @count @records]
     excluded_ivars = %w[@capacity @mask @max @size @entries]
 
-    out = ms.serialize_instance_variables_prefix self, excluded_ivars
+    out =  ms.serialize_instance_variables_prefix(self, excluded_ivars)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Hash)
-    out << (self.default ? Marshal::TYPE_HASH_DEF : Marshal::TYPE_HASH).chr
+    out << (self.default ? "}" : "{")
     out << ms.serialize_integer(length)
     unless empty? then
       each_pair do |(key, val)|
@@ -166,6 +173,8 @@ class Hash
     out << (default ? ms.serialize(default) : '')
     out << ms.serialize_instance_variables_suffix(self, false, false,
                                                   excluded_ivars)
+
+    out
   end
 end
 
@@ -178,9 +187,10 @@ class Float
           elsif infinite? then
             self < 0 ? "-inf" : "inf"
           else
-            "%.*g" % [17, self] + ms.serialize_float_thing(self)
+            # HACK shouldn't ignore the mantissa.
+            ("%.*g" % [17, self]) #  + ms.serialize_mantissa(self)
           end
-    Marshal::TYPE_FLOAT.chr + ms.serialize_integer(str.length) + str
+    "f#{ms.serialize_integer(str.length)}#{str}"
   end
 end
 
@@ -246,8 +256,8 @@ module Marshal
 
     def initialize(stream, depth, proc)
       # shared
-      @links = {}
-      @symlinks = {}
+      @links = Rubinius::LookupTable.new
+      @symlinks = Rubinius::LookupTable.new
       @symbols = []
       @objects = []
 
@@ -682,7 +692,7 @@ module Marshal
       @depth -= 1;
 
       if link = find_link(obj)
-        str = TYPE_LINK.chr + serialize_integer(link)
+        str = "@#{serialize_integer(link)}"
       else
         add_object obj
 
@@ -703,24 +713,30 @@ module Marshal
     def serialize_extended_object(obj)
       str = ''
       get_module_names(obj).each do |mod_name|
-        str << TYPE_EXTENDED.chr + serialize(mod_name.to_sym)
+        str << "e#{serialize(mod_name.to_sym)}"
       end
       str
     end
 
-    def serialize_float_thing(flt)
-      str = ''
+    def serialize_mantissa(flt)
+      str = "\0" * 32
+
       flt = Math.modf(Math.ldexp(Math.frexp(flt.abs)[0], 37))[0]
-      str << "\0" if flt > 0
-      while flt > 0
-        flt, n = Math.modf(Math.ldexp(flt, 32))
-        n = n.to_i
-        str << to_byte(n >> 24)
-        str << to_byte(n >> 16)
-        str << to_byte(n >> 8)
-        str << to_byte(n)
+      p :inner => flt
+      if flt > 0
+        i = 1
+        while flt > 0
+          flt, n = Math.modf(Math.ldexp(flt, 32))
+          n = n.to_i
+          p :mant => n
+          str[i += 1] = (n >> 24) & 0xff
+          str[i += 1] = (n >> 16) & 0xff
+          str[i += 1] = (n >> 8) & 0xff
+          str[i += 1] = (n & 0xff)
+        end
+
+        str.chomp!("\0")
       end
-      str.chomp!("\0") while str[-1] == 0
       str
     end
 
@@ -730,7 +746,7 @@ module Marshal
       ivars -= exclude_ivars if exclude_ivars
 
       if ivars.length > 0 then
-        TYPE_IVAR.chr + ''
+        "I"
       else
         ''
       end
@@ -763,40 +779,46 @@ module Marshal
 
     def serialize_integer(n)
       if n == 0
-        s = to_byte(n)
+        s = n.chr
       elsif n > 0 and n < 123
-        s = to_byte(n + 5)
+        s = (n + 5).chr
       elsif n < 0 and n > -124
-        s = to_byte(256 + (n - 5))
+        s = (256 + (n - 5)).chr
       else
         s = "\0"
         cnt = 0
         4.times do
-          s << to_byte(n)
+          s << (n & 0xff).chr
           n >>= 8
           cnt += 1
           break if n == 0 or n == -1
         end
-        s[0] = to_byte(n < 0 ? 256 - cnt : cnt)
+        s[0] = (n < 0 ? 256 - cnt : cnt).chr
       end
       s
     end
 
     def serialize_user_class(obj, cls)
       if obj.class != cls
-        TYPE_UCLASS.chr + serialize(obj.class.name.to_sym)
+        "C#{serialize(obj.class.name.to_sym)}"
       else
-      ''
+        ''
       end
     end
 
     def serialize_user_defined(obj)
       str = obj._dump @depth
-      raise TypeError, "_dump() must return string" if str.class != String
+
+      unless str.kind_of? String
+        raise TypeError, "_dump() must return string"
+      end
+
       out = serialize_instance_variables_prefix(str)
-      out << TYPE_USERDEF.chr + serialize(obj.class.name.to_sym)
+      out << "u#{serialize(obj.class.name.to_sym)}"
       out << serialize_integer(str.length) + str
       out << serialize_instance_variables_suffix(str)
+
+      out
     end
 
     def serialize_user_marshal(obj)
@@ -804,8 +826,7 @@ module Marshal
 
       add_object val
 
-      out = TYPE_USRMARSHAL.chr + serialize(obj.class.name.to_sym)
-      out << val.to_marshal(self)
+      "U#{serialize(obj.class.name.to_sym)}#{val.to_marshal(self)}"
     end
 
     def set_instance_variables(obj)
@@ -823,10 +844,6 @@ module Marshal
         add_object obj
       end
       obj
-    end
-
-    def to_byte(n)
-      [n].pack('C')
     end
 
   end
