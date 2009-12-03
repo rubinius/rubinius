@@ -194,7 +194,7 @@ const int cUndef = 0x22L;
       object_ = obj;
     }
 
-    bool marked_p(int which) const {
+    bool marked_p(unsigned int which) const {
       return flags_.Marked == which;
     }
 

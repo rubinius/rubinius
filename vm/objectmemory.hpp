@@ -72,7 +72,7 @@ namespace rubinius {
     InflatedHeaders* inflated_headers_;
 
     ObjectArray* remember_set_;
-    int mark_;
+    unsigned int mark_;
 
   public:
     bool collect_young_now;
@@ -92,7 +92,7 @@ namespace rubinius {
 
     ObjectArray* swap_remember_set();
 
-    int mark() {
+    unsigned int mark() {
       return mark_;
     }
 
