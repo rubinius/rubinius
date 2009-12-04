@@ -566,13 +566,15 @@ describe "String#%" do
   end
 
   it "supports string formats using %s" do
+    ("%s" % "hello").should == "hello"
+    ("%s" % "").should == ""
     ("%s" % 10).should == "10"
     ("%1$s" % [10, 8]).should == "10"
     ("%-5s" % 10).should == "10   "
     ("%*s" % [10, 9]).should == "         9"
   end
 
-  it "calls to_s on arguments for %s format" do
+  it "calls to_s on non-String arguments for %s format" do
     obj = mock('obj')
     def obj.to_s() "obj" end
 
