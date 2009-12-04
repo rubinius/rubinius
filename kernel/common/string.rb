@@ -46,7 +46,11 @@ class String
   #   "%05d" % 123                       #=> "00123"
   #   "%-5s: %08x" % [ "ID", self.id ]   #=> "ID   : 200e14d6"
   def %(args)
-    Rubinius::Sprintf.new(self, *args).parse
+    if args.is_a? String    # Fixes "%s" % ""
+      Rubinius::Sprintf.new(self, args).parse
+    else
+      Rubinius::Sprintf.new(self, *args).parse
+    end
   end
 
   # call-seq:
