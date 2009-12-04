@@ -85,7 +85,8 @@ namespace rubinius {
     native_int index = idx->to_native();
 
     if(index < 0) {
-      return Primitives::failure();
+      index += total_->to_native();
+      if(index < 0) return Primitives::failure();
     }
 
     return this->set(state, index, val);
