@@ -31,6 +31,44 @@ describe "The defined? keyword" do
     end
   end
 
+  class LanguageDefinedSubclassDM < LanguageDefinedSpecs
+    define_method(:no_args) {
+      defined?(super)
+    }
+
+    define_method(:args) {
+      defined?(super())
+    }
+  end
+
+  class LanguageDefinedSubclassBlock < LanguageDefinedSpecs
+    def no_args
+      ret = nil
+      1.times { ret = defined?(super) }
+      ret
+    end
+
+    def args
+      ret = nil
+      1.times { ret = defined?( super() ) }
+      ret
+    end
+  end
+
+  class LanguageDefinedSubclassDMBlock < LanguageDefinedSpecs
+    define_method(:no_args) {
+      ret = nil
+      1.times { ret = defined?(super) }
+      ret
+    }
+
+    define_method(:args) {
+      ret = nil
+      1.times { ret = defined?(super()) }
+      ret
+    }
+  end
+
   module AAA
     self::FOO = 'x' unless defined? self::FOO rescue nil
   end
@@ -182,6 +220,36 @@ describe "The defined? keyword" do
 
   it "returns 'super' when Subclass#args uses defined?" do
     ret = (LanguageDefinedSubclass.new.args)
+    ret.should == "super"
+  end
+
+  it "returns 'super' when Subclass#no_args and created with define_method" do
+    ret = (LanguageDefinedSubclassDM.new.no_args)
+    ret.should == "super"
+  end
+
+  it "returns 'super' when Subclass#args and created with define_method" do
+    ret = (LanguageDefinedSubclassDM.new.args)
+    ret.should == "super"
+  end
+
+  it "returns 'super' when Subclass#no_args uses a block" do
+    ret = (LanguageDefinedSubclassBlock.new.no_args)
+    ret.should == "super"
+  end
+
+  it "returns 'super' when Subclass#args uses a block" do
+    ret = (LanguageDefinedSubclassBlock.new.args)
+    ret.should == "super"
+  end
+
+  it "returns 'super' when Subclass#no_args uses a block in define_method" do
+    ret = (LanguageDefinedSubclassDMBlock.new.no_args)
+    ret.should == "super"
+  end
+
+  it "returns 'super' when Subclass#args uses a block in define_method" do
+    ret = (LanguageDefinedSubclassDMBlock.new.args)
     ret.should == "super"
   end
 
