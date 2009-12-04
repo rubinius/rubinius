@@ -150,6 +150,20 @@ namespace rubinius {
     return Fixnum::from(0);
   }
 
+  Tuple *Tuple::lshift_inplace(STATE, Fixnum *shift) {
+    int size = this->num_fields();
+    const int n = shift->to_native();
+
+    if (n > 0) {
+      int i = 0;
+      int j = i + n;
+      while (j < size) this->field[i++] = this->field[j++];
+      while (i < size) this->field[i++] = Qnil;
+    }
+
+    return this;
+  }
+
   Object* Tuple::reverse(STATE, Fixnum* o_start, Fixnum* o_total) {
     native_int start = o_start->to_native();
     native_int total = o_total->to_native();

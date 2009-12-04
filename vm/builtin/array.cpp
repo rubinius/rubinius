@@ -129,15 +129,20 @@ namespace rubinius {
     idx += start_->to_native();
 
     if(idx >= tuple_size) {
-      // Uses the same algo as 1.8 to resize the tuple
-      size_t new_size = tuple_size / 2;
-      if(new_size < 3) {
-        new_size = 3;
-      }
+      if (oidx < tuple_size) {
+        // There is enough space in the tuple for this element
+        tuple_->lshift_inplace(state, start_);
+      } else {
+        // Uses the same algo as 1.8 to resize the tuple
+        size_t new_size = tuple_size / 2;
+        if(new_size < 3) {
+          new_size = 3;
+        }
 
-      Tuple* nt = Tuple::create(state, new_size+idx);
-      nt->copy_from(state, tuple_, start_, total_, Fixnum::from(0));
-      tuple(state, nt);
+        Tuple* nt = Tuple::create(state, new_size+idx);
+        nt->copy_from(state, tuple_, start_, total_, Fixnum::from(0));
+        tuple(state, nt);
+      }
       start(state, Fixnum::from(0));
       idx = oidx;
     }
