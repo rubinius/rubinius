@@ -61,6 +61,23 @@ module Rubinius
     end
 
     def super_method_defined?
+      # Minor HACK __block__ as the name is ambigious. Need a better
+      # way to detect that a VS is for a define_method scope.
+      #
+      # This code is so that if this VS is for a block, we walk up
+      # to the VS for the actual method. It's complicated by the fact
+      # that there may be a VS for a define_method in there, so we need
+      # to stop looking if we hit one.
+      if @parent and @method.name == :__block__
+        vars = self
+
+        while vars.method.name == :__block__ and nxt = vars.parent
+          vars = nxt
+        end
+
+        return vars.super_method_defined?
+      end
+
       if sup = @module.direct_superclass
         # This will probably break for define_method
         return sup.find_method_in_hierarchy(@method.name) != nil
