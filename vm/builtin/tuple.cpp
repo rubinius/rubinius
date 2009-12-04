@@ -150,15 +150,24 @@ namespace rubinius {
     return Fixnum::from(0);
   }
 
-  Tuple *Tuple::lshift_inplace(STATE, Fixnum *shift) {
-    int size = this->num_fields();
-    const int n = shift->to_native();
+  /** @todo Add some error checking/handling and
+   *  evaluate corner cases, and add tests... --rue
+   */
+  Tuple* Tuple::lshift_inplace(STATE, Fixnum* shift) {
+    std::size_t size = this->num_fields();
+    const int start = shift->to_native();
 
-    if (n > 0) {
-      int i = 0;
-      int j = i + n;
-      while (j < size) this->field[i++] = this->field[j++];
-      while (i < size) this->field[i++] = Qnil;
+    if(start > 0) {
+      std::size_t i = 0;
+      std::size_t j = start;
+
+      while(j < size) {
+        this->field[i++] = this->field[j++];
+      }
+
+      while(i < size) {
+        this->field[i++] = Qnil;
+      }
     }
 
     return this;

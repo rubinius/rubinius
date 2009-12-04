@@ -26,6 +26,13 @@ namespace rubinius {
     static Tuple* create(STATE, size_t fields);
     static Tuple* from(STATE, size_t fields, ...);
 
+    /** Shift all elements leftward, clear old slots. */
+    Tuple* lshift_inplace(STATE, Fixnum* shift);
+
+
+  /** Primitives */
+  public:
+
     // Ruby.primitive :tuple_allocate
     static Tuple* allocate(STATE, Fixnum* fields);
 
@@ -48,9 +55,6 @@ namespace rubinius {
 
     // Ruby.primitive :tuple_delete_inplace
     Fixnum* delete_inplace(STATE, Fixnum *start, Fixnum *length, Object *obj);
-
-    // Ruby.primitive :tuple_lshift_inplace
-    Tuple* lshift_inplace(STATE, Fixnum *shift);
 
     // Ruby.primitive :tuple_reverse
     Object* reverse(STATE, Fixnum* start, Fixnum* total);
