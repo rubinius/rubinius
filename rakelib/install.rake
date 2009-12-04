@@ -92,11 +92,9 @@ namespace :install do
         install_file name, /^runtime/, BUILD_CONFIG[:runtime]
       end
 
-      # This is separate from below because it is an open question
-      # whether we should install the .rb files along with the
-      # .rbc files for the standard library. Some libraries,
-      # like IRB, look for a specific .rb file and fail to work
-      # if not finding it.
+      # Install the .rb files for the standard library. This is a
+      # separate block from the .rbc files so that the .rb files
+      # have an older timestamp and do not trigger recompiling.
       FileList['lib/**/*.rb'].each do |name|
         install_file name, /^lib/, BUILD_CONFIG[:lib_path]
       end
@@ -105,25 +103,22 @@ namespace :install do
         install_file name, /^lib/, BUILD_CONFIG[:lib_path]
       end
 
+      # Install the C extensions for the standard library.
       FileList["lib/ext/**/*.#{$dlext}"].each do |name|
         install_file name, %r[^lib/ext], BUILD_CONFIG[:ext_path]
       end
 
-      # TODO: the preinstalled gems are a total mess right now, they
-      # should not be in a source dir that includes any rbx version.
-      # Furthermore, we are going from the source dir here because the
-      # check on 'gems/rubinius' to copy them over will fail on any
-      # repo that used gems before since `gem` created the 'gems/rubinius'
-      # directory.
-      gems_dest = "#{BUILD_CONFIG[:gemsdir]}/rubinius/#{BUILD_CONFIG[:libversion]}"
-      FileList["preinstalled-gems/rubinius/0.13/**/*"].each do |name|
-        install_file name, %r[^preinstalled-gems/rubinius/0.13], gems_dest
+      # Install pre-installed gems
+      gems_dest = "#{BUILD_CONFIG[:gemsdir]}/rubinius/preinstalled"
+      FileList["preinstalled-gems/data/**/*"].each do |name|
+        install_file name, %r[^preinstalled-gems/data], gems_dest
       end
 
       FileList["preinstalled-gems/bin/*"].each do |name|
         install_file name, /^preinstalled-gems/, BUILD_CONFIG[:gemsdir]
       end
 
+      # Install the Rubinius executable
       exe = "#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
       install "vm/vm", exe, :mode => 0755, :verbose => true
     end
