@@ -59,5 +59,14 @@ module Rubinius
     def exitted?
       @exitted
     end
+
+    def super_method_defined?
+      if sup = @module.direct_superclass
+        # This will probably break for define_method
+        return sup.find_method_in_hierarchy(@method.name) != nil
+      end
+
+      return false
+    end
   end
 end

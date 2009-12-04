@@ -537,7 +537,22 @@ module Rubinius
       end
 
       def defined(g)
+        nope = g.new_label
+        done = g.new_label
+
+        g.push_variables
+        g.send :super_method_defined?, 0
+
+        g.gif nope
+
+        g.push_literal "super"
+        g.string_dup
+        g.goto done
+
+        nope.set!
         g.push :nil
+
+        done.set!
       end
     end
 
