@@ -28,15 +28,6 @@ rule ".rbc" do |t|
   Rubinius::CompilerNG.compile source, 1, t.name, [:default, :kernel]
 end
 
-# Helper to create file dependencies for all kernel files
-def kernel_dependency(rb, files, sub=true)
-  rbc =  rb + "c"
-  rbc.sub!(/^kernel/, "runtime") if sub
-
-  file rbc => rb
-  files << rbc
-end
-
 # Collection of all files in the kernel runtime. Modified by
 # various tasks below.
 runtime = FileList["runtime/platform.conf"]
@@ -68,7 +59,10 @@ FileList[
   "kernel/**/*.rb",
   compiler_signature
 ].each do |rb|
-  kernel_dependency rb, runtime
+  rbc = rb.sub(/^kernel/, "runtime") + "c"
+
+  file rbc => [rb, compiler_signature]
+  runtime << rbc
 end
 
 # Directories to store the core library runtime files (.rbc's)
@@ -92,7 +86,10 @@ compiler_files = FileList[
 ]
 
 compiler_files.each do |rb|
-  kernel_dependency rb, runtime, false
+  rbc = rb + "c"
+
+  file rbc => rb
+  runtime << rbc
 end
 
 parser_ext_files = FileList[
