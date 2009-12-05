@@ -165,6 +165,9 @@ namespace rubinius {
       return NULL;
     }
 
+    // Register the CallFrame, because we might GC below this.
+    state->set_call_frame(call_frame);
+
     NativeMethodEnvironment* env = native_method_environment.get();
     NativeMethodFrame nmf(env->current_native_frame());
 
@@ -174,7 +177,11 @@ namespace rubinius {
 
     // Be sure to do this after installing nmf as the current
     // native frame.
-    nmf.set_block(env->get_handle(args.block()));
+    nmf.setup(
+        env->get_handle(args.recv()),
+        env->get_handle(args.block()),
+        env->get_handle(msg.method),
+        env->get_handle(msg.module));
 
     Object* ret;
     ExceptionPoint ep(env);

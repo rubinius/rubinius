@@ -20,6 +20,15 @@ class Thread
     @abort_on_exception = val
   end
 
+  # It's also an instance method...
+  def abort_on_exception=(val)
+    @abort_on_exception = val
+  end
+
+  def abort_on_exception
+    @abort_on_exception ||= false
+  end
+
   def inspect
     stat = status()
     stat = "dead" unless stat
@@ -70,7 +79,7 @@ class Thread
     end
 
     if @exception
-      if Thread.abort_on_exception
+      if abort_on_exception or Thread.abort_on_exception
         Thread.main.raise @exception
       elsif $DEBUG
         STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"

@@ -123,6 +123,6 @@ extern "C" {
   }
 
   void rb_undef_method(VALUE module_handle, const char* name) {
-    rb_funcall(module_handle, rb_intern("undef_method"), 1, ID2SYM(rb_intern(name)));
+    rb_funcall(module_handle, rb_intern("undef_method!"), 1, ID2SYM(rb_intern(name)));
   }
 }

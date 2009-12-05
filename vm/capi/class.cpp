@@ -99,6 +99,17 @@ extern "C" {
     return klass;
   }
 
+  void rb_attr(VALUE klass, ID id, int read, int write, int ex) {
+    // TODO don't ignore ex.
+    if(read) {
+      rb_funcall(klass, rb_intern("attr_reader"), 1, ID2SYM(id));
+    }
+
+    if(write) {
+      rb_funcall(klass, rb_intern("attr_writer"), 1, ID2SYM(id));
+    }
+  }
+
   /** @todo   Should this be a global handle? Surely not.. --rue */
   VALUE rb_singleton_class(VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();

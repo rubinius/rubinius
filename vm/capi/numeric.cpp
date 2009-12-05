@@ -87,6 +87,11 @@ extern "C" {
     return rb_str2inum(rb_str_new2(string), base);
   }
 
+  VALUE rb_cstr_to_inum(const char* str, int base, int badcheck) {
+    // TODO don't ignore badcheck
+    return rb_cstr2inum(str, base);
+  }
+
   VALUE rb_ll2inum(long long val) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     return env->get_handle(Bignum::from(env->state(), val));

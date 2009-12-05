@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "intern.h"
 
@@ -66,6 +67,10 @@
 #define ANYARGS ...
 #else
 #define ANYARGS
+#endif
+
+#ifndef NORETURN
+#define NORETURN(x) x
 #endif
 
 #ifdef __STDC__
@@ -482,6 +487,10 @@ struct RFloat {
 /** Convert a Fixnum into an unsigned int. */
 #define FIX2UINT(x)       ((unsigned int)FIX2ULONG(x))
 
+#ifndef SYMBOL_P
+#define SYMBOL_P(obj)     (((unsigned int)obj & 7) == 6)
+#endif
+
 /** Get a handle for the Symbol object represented by ID. */
 #define ID2SYM(id)        (id)
 
@@ -567,6 +576,8 @@ double rb_num2dbl(VALUE);
 #define StringValuePtr(v)     rb_string_value_ptr(&(v))
 #define StringValueCStr(str)  rb_string_value_cstr(&(str))
 #define STR2CSTR(str)         rb_str2cstr((VALUE)(str), 0)
+
+#define Check_SafeStr(x)
 
 /** Retrieve the ID given a Symbol handle. */
 #define SYM2ID(sym)       (sym)
@@ -736,11 +747,15 @@ double rb_num2dbl(VALUE);
   /** Returns the element at index, or returns a subarray or returns a subarray specified by a range. */
   VALUE   rb_ary_aref(int argc, VALUE *argv, VALUE object_handle);
 
+  VALUE   rb_ary_each(VALUE ary);
+
   /** Return new Array with elements first and second. */
   VALUE   rb_assoc_new(VALUE first, VALUE second);
 
   /** @see rb_ivar_get */
   VALUE   rb_attr_get(VALUE obj_handle, ID attr_name);
+
+  void    rb_attr(VALUE klass, ID id, int read, int write, int ex);
 
   /** Return 1 if this send has a block, 0 otherwise. */
   int     rb_block_given_p();
@@ -826,6 +841,7 @@ double rb_num2dbl(VALUE);
 
   /** Return Integer obtained from String#to_i using given base. */
   VALUE   rb_cstr2inum(const char* string, int base);
+  VALUE   rb_cstr_to_inum(const char* str, int base, int badcheck);
 
   /** Returns module's named class variable. @@ is optional. */
   VALUE   rb_cv_get(VALUE module_handle, const char* name);
@@ -919,10 +935,9 @@ double rb_num2dbl(VALUE);
   /**
    *  Freeze object and return it.
    *
-   *  NOT supported in Rubinius. Just returns itself.
+   *  NOT supported in Rubinius.
    */
-  #define rb_obj_freeze(object_handle) \
-          (object_handle)
+  #define rb_obj_freeze(object_handle)
 
   /**
    *  Call method on receiver, args as varargs. Calls private methods.
@@ -949,6 +964,7 @@ double rb_num2dbl(VALUE);
   /** @todo define rb_funcall3, which is the same as rb_funcall2 but
    * will not call private methods.
    */
+  #define rb_funcall3 rb_funcall2
 
   /** Create a new Hash object */
   VALUE   rb_hash_new();
@@ -973,8 +989,15 @@ double rb_num2dbl(VALUE);
   // A macro to access the size "directly"
 #define RHASH_SIZE(obj) FIX2INT(rb_hash_size(obj))
 
+  void    rb_eof_error();
+
   /** Send #write to io passing str. */
   VALUE   rb_io_write(VALUE io, VALUE str);
+
+  int     rb_io_fd(VALUE io);
+  void    rb_io_wait_readable(int fd);
+  void    rb_io_wait_writable(int fd);
+  void    rb_thread_wait_fd(int fd);
 
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);
@@ -1093,6 +1116,18 @@ double rb_num2dbl(VALUE);
    * is the return of func().
    */
   VALUE rb_ensure(VALUE (*func)(ANYARGS), VALUE arg1, VALUE (*ensure_func)(ANYARGS), VALUE arg2);
+
+  /**
+   * Call func(), and if there is an exception, returns nil and sets
+   * *status to 1, otherwise the return of func is returned and *status
+   * is 0.
+   */
+  VALUE rb_protect(VALUE (*func)(ANYARGS), VALUE data, int* status);
+
+  /**
+   * Continue raising a pending exception if status is not 0
+   */
+  void rb_jump_tag(int status);
 
   /**
    *  Require a Ruby file.
@@ -1231,11 +1266,18 @@ double rb_num2dbl(VALUE);
    */
   size_t  rb_str_len(VALUE self);
 
+  void    rb_str_clamp(VALUE self, size_t len);
+#define rb_str_set_len(s,l) rb_str_clamp(s,l)
+
   /** Create a String using the designated length of given C string. */
-  VALUE   rb_str_new(const char* string, size_t length);
+  /* length is a long because MRI has it as a long, and it also has
+   * to check that length is greater than 0 properly */
+  VALUE   rb_str_new(const char* string, long length);
 
   /** Create a String from a C string. */
   VALUE   rb_str_new2(const char* string);
+
+  void    rb_str_modify(VALUE str);
 
   /** Returns a new String created from concatenating self with other. */
   VALUE   rb_str_plus(VALUE self_handle, VALUE other_handle);

@@ -160,7 +160,7 @@ extern "C" {
       // about other enum values for type_id() not being present.
       if(rb_obj_is_kind_of(obj, rb_cHash)) return T_HASH;
       if(rb_obj_is_kind_of(obj, rb_cStruct)) return T_STRUCT;
-      if(rb_obj_is_kind_of(obj, rb_cFile)) return T_FILE;
+      if(rb_obj_is_kind_of(obj, rb_cIO)) return T_FILE;
       if(rb_obj_is_kind_of(obj, rb_cMatch)) return T_MATCH;
     }
 

@@ -139,6 +139,17 @@ extern "C" {
     return env->get_handle(self->aref(env->state(), Fixnum::from(index)));
   }
 
+  VALUE rb_ary_each(VALUE self_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Array* self = capi_get_array(env, self_handle);
+    for(size_t i = 0; i < self->size(); i++) {
+      rb_yield(env->get_handle(self->get(env->state(), i)));
+    }
+
+    return self_handle;
+  }
+
   VALUE rb_ary_includes(VALUE self, VALUE obj) {
     return rb_funcall(self, rb_intern("include?"), 1, obj);
   }

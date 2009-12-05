@@ -95,6 +95,13 @@ extern "C" {
     return rb_convert_type(object_handle, 0, "String", "to_s");
   }
 
+  void rb_str_modify(VALUE self_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    String* self = capi_get_string(env, self_handle);
+    self->unshare(env->state());
+  }
+
   VALUE rb_str_append(VALUE self_handle, VALUE other_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
@@ -176,7 +183,8 @@ extern "C" {
     return rb_funcall(self, rb_intern("to_sym"), 0);
   }
 
-  VALUE rb_str_new(const char* string, size_t length) {
+  VALUE rb_str_new(const char* string, long length) {
+    if(length < 0) rb_raise(rb_eArgError, "invalid string size");
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return env->get_handle(String::create(env->state(), string, length));
@@ -335,5 +343,15 @@ extern "C" {
 
     String* string = capi_get_string(env, self);
     return string->size();
+  }
+
+  void rb_str_clamp(VALUE self, size_t len) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    String* string = capi_get_string(env, self);
+    if(string->size() > len) {
+      string->byte_address()[len] = 0;
+      string->num_bytes(env->state(), Fixnum::from(len));
+    }
   }
 }

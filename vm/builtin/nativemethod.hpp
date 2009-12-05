@@ -149,6 +149,15 @@ namespace rubinius {
     /** Handle for the block passed in **/
     VALUE block_;
 
+    /** Handle for receiver **/
+    VALUE receiver_;
+
+    /** Handle for module method came from **/
+    VALUE module_;
+
+    /** Handle for method being invoked **/
+    VALUE method_;
+
   public:
     NativeMethodFrame(NativeMethodFrame* prev)
       : previous_(prev)
@@ -160,7 +169,7 @@ namespace rubinius {
   public:     /* Interface methods */
 
     /** Currently active/used Frame in this Environment i.e. thread. */
-    NativeMethodFrame* current() {
+    static NativeMethodFrame* current() {
       return NativeMethodEnvironment::get()->current_native_frame();
     }
 
@@ -188,13 +197,29 @@ namespace rubinius {
       return previous_;
     }
 
+    void setup(VALUE recv, VALUE block, VALUE method, VALUE module) {
+      receiver_ = recv;
+      method_ = method;
+      block_ = block;
+      module_ = module;
+    }
+
     VALUE block() {
       return block_;
     }
 
-    void set_block(VALUE block) {
-      block_ = block;
+    VALUE receiver() {
+      return receiver_;
     }
+
+    VALUE method() {
+      return method_;
+    }
+
+    VALUE module() {
+      return module_;
+    }
+
   };
 
 

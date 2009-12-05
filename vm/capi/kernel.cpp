@@ -110,6 +110,32 @@ extern "C" {
     return rb_rescue2(func, arg1, raise_func, arg2, rb_eStandardError,  0);
   }
 
+  VALUE rb_protect(VALUE (*func)(ANYARGS), VALUE data, int* status) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    VALUE ret = Qnil;
+
+    ExceptionPoint ep(env);
+    PLACE_EXCEPTION_POINT(ep);
+
+    if(unlikely(ep.jumped_to())) {
+      *status = 1;
+    } else {
+      ret = (*func)(data);
+      *status = 0;
+    }
+
+    return ret;
+  }
+
+  void rb_jump_tag(int status) {
+    if(!status) return;
+
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    // TODO should check if there is an ep?
+    env->current_ep()->return_to(env);
+  }
+
   VALUE rb_ensure(VALUE (*func)(ANYARGS), VALUE arg1,
                   VALUE (*ensure_func)(ANYARGS), VALUE arg2)
   {

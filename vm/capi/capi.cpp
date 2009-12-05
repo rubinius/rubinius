@@ -168,6 +168,39 @@ namespace rubinius {
       return env->get_handle(ret);
     }
 
+    VALUE capi_call_super_native(
+        NativeMethodEnvironment* env,
+        std::size_t arg_count,
+        Object** args)
+    {
+      int marker = 0;
+      if(!env->state()->check_stack(env->current_call_frame(), &marker)) {
+        env->current_ep()->return_to(env);
+      }
+
+      env->flush_cached_data();
+
+      NativeMethodFrame* frame = NativeMethodFrame::current();
+
+      Object* recv = env->get_object(frame->receiver());
+      Module* mod =  c_as<Module>(env->get_object(frame->module()));
+      Symbol* name = c_as<NativeMethod>(env->get_object(frame->method()))->name();
+
+      LookupData lookup(recv, mod->superclass(), true);
+      Arguments args_o(recv, arg_count, args);
+      Dispatch dis(name);
+
+      Object* ret = dis.send(env->state(), env->current_call_frame(),
+                             lookup, args_o);
+
+      env->update_cached_data();
+
+      // An exception occurred
+      if(!ret) env->current_ep()->return_to(env);
+
+      return env->get_handle(ret);
+    }
+
     /** Make sure the name has the given prefix. */
     Symbol* prefixed_by(std::string prefix, std::string name) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
@@ -235,6 +268,17 @@ extern "C" {
     } else {
       return entry->second;
     }
+  }
+
+  VALUE rb_call_super(int argc, const VALUE *argv) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object** args = reinterpret_cast<Object**>(alloca(sizeof(Object*) * argc));
+    for(int i = 0; i < argc; i++) {
+      args[i] = env->get_object(argv[i]);
+    }
+
+    return capi_call_super_native(env, argc, args);
   }
 
   VALUE capi_rb_funcall(const char* file, int line,

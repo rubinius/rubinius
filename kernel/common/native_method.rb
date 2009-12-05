@@ -33,6 +33,7 @@ module Rubinius
     #
     def self.load_entry_point(library_path, name)
       Ruby.primitive :nativemethod_load_extension_entry_point
+      raise PrimitiveFailure, "Unable to load #{library_path}"
     end
 
     def lines

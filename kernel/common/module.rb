@@ -170,6 +170,18 @@ class Module
     nil
   end
 
+  # Like undef_method, but doesn't even check that the method exists. Used
+  # mainly to implement rb_undef_method.
+  def undef_method!(name)
+    name = Type.coerce_to_symbol(name)
+    @method_table.store name, nil, :undef
+    Rubinius::VM.reset_method_cache(name)
+
+    method_undefined(name) if respond_to? :method_undefined
+
+    name
+  end
+
   def remove_method(*names)
     names.each do |name|
       name = Type.coerce_to_symbol(name)
