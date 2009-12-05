@@ -177,9 +177,8 @@ section "Flow control"
 # [See Also]
 #   * goto_if_true
 #   * goto_if_false
-#   * goto_if_defined
 
-instruction goto(location) [ -- ]
+instruction goto(location) [ -- ] {:branch}
   call_frame->set_ip(location);
   cache_ip(location);
   DISPATCH;
@@ -201,9 +200,8 @@ end
 # [See Also]
 #   * goto
 #   * goto_if_false
-#   * goto_if_defined
 
-instruction goto_if_false(location) [ ip -- ]
+instruction goto_if_false(location) [ ip -- ] {:branch}
   Object* t1 = stack_pop();
   if(!RTEST(t1)) {
     call_frame->set_ip(location);
@@ -228,9 +226,8 @@ end
 # [See Also]
 #   * goto
 #   * goto_if_false
-#   * goto_if_defined
 
-instruction goto_if_true(location) [ ip -- ]
+instruction goto_if_true(location) [ ip -- ] {:branch}
   Object* t1 = stack_pop();
   if(RTEST(t1)) {
     call_frame->set_ip(location);
@@ -255,7 +252,7 @@ end
 #   * caller_return
 #   * raise_exc
 
-instruction ret() [ -- ]
+instruction ret() [ -- ] {:return}
   if(call_frame->scope->made_alias_p()) {
     call_frame->scope->flush_to_heap(state);
   }
@@ -329,17 +326,17 @@ end
 # [Operation]
 #   Reverses the order on the stack of the top +count+ items
 # [Format]
-# \rotate count
+#   \rotate count
 # [Stack Before]
-# * obj1
-# * obj2
-# * obj3
-# * ...
+#   * obj1
+#   * obj2
+#   * obj3
+#   * ...
 # [Stack After]
-# * obj3
-# * obj2
-# * obj1
-# * ...
+#   * obj3
+#   * obj2
+#   * obj1
+#   * ...
 
 instruction rotate(count) [ -- ]
   int diff = count >> 1;
@@ -357,6 +354,24 @@ instruction rotate(count) [ -- ]
     end--;
   }
 end
+
+# [Operation]
+#   Moves the top item on the stack +positions+ lower down.
+# [Format]
+#   \move_down
+# [Stack Before]
+#   * obj1
+#   * obj2
+#   * ...
+#   * objn
+# [Stack After]
+#   * obj2
+#   * ...
+#   * objn
+#   * obj1
+# [Description]
+#  The top item on the stack is moved down by the specified number of
+#  +positions+, with all items above that position shuffling up by one.
 
 instruction move_down(positions) [ -- ]
   Object* val = stack_top();
@@ -626,7 +641,7 @@ end
 #   Pops an exception instance +exception+ off the stack, and uses it to
 #   raise an exception in the machine.
 
-instruction raise_exc() [ -- ]
+instruction raise_exc() [ -- ] {:raise}
   flush_ip();
   Object* t1 = stack_pop();
   state->thread_state()->raise_exception(as<Exception>(t1));
@@ -646,7 +661,7 @@ instruction pop_unwind() [ -- ]
   --current_unwind;
 end
 
-instruction raise_return() [ -- ]
+instruction raise_return() [ -- ] {:raise}
   flush_ip();
   if(!(call_frame->flags & CallFrame::cIsLambda) &&
      !call_frame->scope_still_valid(call_frame->scope->parent())) {
@@ -663,19 +678,19 @@ instruction raise_return() [ -- ]
   RUN_EXCEPTION();
 end
 
-instruction ensure_return() [ -- ]
+instruction ensure_return() [ -- ] {:raise}
   flush_ip();
   state->thread_state()->raise_return(stack_top(), call_frame->promote_scope(state));
   RUN_EXCEPTION();
 end
 
-instruction raise_break() [ -- ]
+instruction raise_break() [ -- ] {:raise}
   flush_ip();
   state->thread_state()->raise_break(stack_top(), call_frame->scope->parent());
   RUN_EXCEPTION();
 end
 
-instruction reraise() [ -- ]
+instruction reraise() [ -- ] {:raise}
   assert(state->thread_state()->raise_reason() != cNone);
   RUN_EXCEPTION();
 end
@@ -1110,7 +1125,7 @@ end
 #   This form of send is for methods that take no arguments.
 #
 
-instruction send_method(literal) [ receiver -- value ]
+instruction send_method(literal) [ receiver -- value ] {:send}
   flush_ip();
   Object* recv = stack_top();
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
@@ -1153,7 +1168,7 @@ end
 #   send_stack_with_block for the equivalent op code used when a block is to
 #   be passed.
 
-instruction send_stack(literal count) [ receiver +count -- value ]
+instruction send_stack(literal count) [ receiver +count -- value ] {:send}
   flush_ip();
   Object* recv = stack_back(count);
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
@@ -1198,7 +1213,7 @@ end
 #   This opcode passes a block to the receiver; see send_stack for the
 #   equivalent op code used when no block is to be passed.
 
-instruction send_stack_with_block(literal count) [ block receiver +count -- value ]
+instruction send_stack_with_block(literal count) [ block receiver +count -- value ] {:send}
   flush_ip();
   Object* block = stack_pop();
   Object* recv = stack_back(count);
@@ -1245,7 +1260,7 @@ end
 
 define CALL_FLAG_CONCAT 2
 
-instruction send_stack_with_splat(literal count) [ block array receiver +count -- value ]
+instruction send_stack_with_splat(literal count) [ block array receiver +count -- value ] {:send}
   flush_ip();
   Object* block = stack_pop();
   Object* ary   = stack_pop();
@@ -1297,7 +1312,7 @@ end
 #   The receiver is not specified for a call to super; it is the superclass
 #   of the current object that will receive the message.
 
-instruction send_super_stack_with_block(literal count) [ block +count -- value ]
+instruction send_super_stack_with_block(literal count) [ block +count -- value ] {:send}
   flush_ip();
   Object* block = stack_pop();
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
@@ -1347,7 +1362,7 @@ end
 #
 #   When the method returns, the return value will be on top of the stack.
 
-instruction send_super_stack_with_splat(literal count) [ block array +count -- value ]
+instruction send_super_stack_with_splat(literal count) [ block array +count -- value ] {:send}
   flush_ip();
   Object* block = stack_pop();
   Object* ary   = stack_pop();
@@ -1558,7 +1573,7 @@ instruction cast_for_splat_block_arg() [ -- arguments ]
   stack_push(ary);
 end
 
-instruction yield_stack(count) [ +count -- value ]
+instruction yield_stack(count) [ +count -- value ] {:yield}
   flush_ip();
   Object* t1 = call_frame->scope->block();
   Object* ret;
@@ -1582,7 +1597,7 @@ instruction yield_stack(count) [ +count -- value ]
   stack_push(ret);
 end
 
-instruction yield_splat(count) [ array +count -- value ]
+instruction yield_splat(count) [ array +count -- value ] {:yield}
   flush_ip();
   Object* ary = stack_pop();
   Object* t1 = call_frame->scope->block();
@@ -2060,7 +2075,7 @@ end
 #   addition is done directly via the fixnum_add primitive; otherwise, the +
 #   method is called on +value1+, passing +value2+ as the argument.
 
-instruction meta_send_op_plus(literal) [ value1 value2 -- sum ]
+instruction meta_send_op_plus(literal) [ value1 value2 -- sum ] {:send}
   Object* left =  stack_back(1);
   Object* right = stack_back(0);
 
@@ -2098,7 +2113,7 @@ end
 #   subtraction is done directly via the fixnum_sub primitive; otherwise,
 #   the - method is called on +value1+, passing +value2+ as the argument.
 
-instruction meta_send_op_minus(literal) [ value1 value2 -- difference ]
+instruction meta_send_op_minus(literal) [ value1 value2 -- difference ] {:send}
   Object* left =  stack_back(1);
   Object* right = stack_back(0);
 
@@ -2134,7 +2149,7 @@ end
 #   both symbols, the comparison is done directly; otherwise, the == method
 #   is called on +value1+, passing +value2+ as the argument.
 
-instruction meta_send_op_equal(literal) [ value1 value2 -- boolean ]
+instruction meta_send_op_equal(literal) [ value1 value2 -- boolean ] {:send}
   Object* t1 = stack_back(1);
   Object* t2 = stack_back(0);
   /* If both are not references, compare them directly. */
@@ -2247,7 +2262,7 @@ end
 # [Notes]
 #   Exactly like equal, except calls === if it can't handle it directly.
 
-instruction meta_send_op_tequal(literal) [ value1 value2 -- boolean ]
+instruction meta_send_op_tequal(literal) [ value1 value2 -- boolean ] {:send}
   Object* t1 = stack_back(1);
   Object* t2 = stack_back(0);
   /* If both are fixnums, or both are symbols, compare the ops directly. */
@@ -2280,7 +2295,7 @@ end
 # [Description]
 #   Simplified call instruction used for yields and basic calls
 
-instruction meta_send_call(literal count) [ receiver +count -- value ]
+instruction meta_send_call(literal count) [ receiver +count -- value ] {:send}
   flush_ip();
   Object* t1 = stack_back(count);
   Object* ret;

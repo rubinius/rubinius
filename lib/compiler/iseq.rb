@@ -7,7 +7,7 @@ module Rubinius
     class OpCode
       attr_reader :args, :arg_count, :bytecode, :opcode, :size,
                   :stack, :stack_consumed, :stack_produced, :variable_stack,
-                  :position, :stack_difference
+                  :position, :stack_difference, :control_flow
 
       alias_method :name, :opcode
       alias_method :width, :size
@@ -28,6 +28,8 @@ module Rubinius
           extra, @position = @stack_consumed
           @stack_difference = @stack_produced - extra
         end
+
+        @control_flow = params[:control_flow]
       end
 
       def variable_stack?

@@ -550,7 +550,7 @@ insn_deps = %w[  vm/gen
               ]
 
 file "lib/compiler/opcodes.rb" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_definitions, t.name
+  generate_instruction_file iparser, :generate_opcodes, t.name
 end
 
 file "vm/gen/instruction_names.hpp" => insn_deps do |t|
