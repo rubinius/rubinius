@@ -144,6 +144,23 @@ namespace jit {
       BasicBlock* body = BasicBlock::Create(ls_->ctx(), "arg_loop_body", func);
       BasicBlock* after = BasicBlock::Create(ls_->ctx(), "arg_loop_cont", func);
 
+      Value* limit;
+
+      // Because of a splat, there can be more args given than
+      // vmm->total_args, so we need to use vmm->total_args as a max.
+      if(vmm_->splat_position >= 0) {
+        Value* static_total = ConstantInt::get(ls_->Int32Ty, vmm_->total_args);
+
+        limit = b().CreateSelect(
+            b().CreateICmpSLT(static_total, arg_total),
+            static_total,
+            arg_total);
+      } else {
+        // Because of arity checks, arg_total is less than or equal
+        // to vmm->total_args.
+        limit = arg_total;
+      }
+
       b().CreateStore(ConstantInt::get(ls_->Int32Ty, 0), loop_i);
       b().CreateBr(top);
 
@@ -151,7 +168,7 @@ namespace jit {
 
       // now at the top of block, check if we should continue...
       Value* loop_val = b().CreateLoad(loop_i, "loop_val");
-      Value* cmp = b().CreateICmpSLT(loop_val, arg_total, "loop_test");
+      Value* cmp = b().CreateICmpSLT(loop_val, limit, "loop_test");
 
       b().CreateCondBr(cmp, body, after);
 
