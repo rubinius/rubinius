@@ -307,7 +307,7 @@ class StepBreakpoint < Breakpoint
       calculate_next_breakpoint bc
     end
 
-    if @break_type == :opcode_replacement
+    if @break_type == :opcode_flag
       # Set new breakpoint
       @method = @context.method
     end
@@ -323,7 +323,7 @@ class StepBreakpoint < Breakpoint
   # context yet on which the breakpoint can be set; in this case, we use a thread
   # flag to tell the VM to yield after creating the new context.
   def install(bytecodes=nil)
-    if @break_type == :opcode_replacement
+    if @break_type == :opcode_flag
       # Set new breakpoint
       super(@context, bytecodes)
     elsif @break_type == :context_change
@@ -351,7 +351,7 @@ class StepBreakpoint < Breakpoint
   # knowable. When a step breakpoint is set with a target, we can just set a
   # yield_debugger at the specified target and then wait for it to be hit.
   def calculate_target_breakpoint
-    @break_type = :opcode_replacement
+    @break_type = :opcode_flag
     ctxt = @context
     mthd = ctxt.method
     ip = ctxt.ip
@@ -403,21 +403,6 @@ class StepBreakpoint < Breakpoint
     ctxt = @context
     ip = ctxt.ip
     mthd = ctxt.method
-
-    # [emp] shortcutting logic for now.
-    if @step_by == :line
-      target_line = @last_line + 1
-      @method = mthd
-      @ip = mthd.first_ip_on_line(target_line)
-      if @ip == -1
-        raise "No target line #{target_line} in this method"
-      end
-      @steps -= 1
-      return @ip
-    end
-
-    raise "not supported"
-
     asm = bc ? mthd.decode(bc) : mthd.decode
     i = asm.ip_to_index(ip)
 
@@ -445,14 +430,13 @@ class StepBreakpoint < Breakpoint
         # We've stepped if this instruction is not the starting instruction
         @steps -= 1 if op.ip > ip
       end
-
-      flow = op.instruction.flow
-      if @steps == 0 or (op.ip > ip and flow != :sequential)
+      flow = op.instruction.control_flow
+      if @steps == 0 or (op.ip > ip and flow != :next)
         # At target, or else we need to stop stepping because we are at an
         # opcode that may alter control flow. In the latter case, we will set
         # the next breakpoint once we reach the point where the flow change
         # occurs. This is so we do not set a breakpoint we might then hit before
-        # we are supposed to; e.g. if a opcode causes the IP to be set to an
+        # we are supposed to; e.g. if an opcode causes the IP to be set to an
         # earlier value in the same method, it might be one we have not yet
         # executed, and so we could trigger the breakpoint too early if we set
         # it now.
@@ -461,7 +445,7 @@ class StepBreakpoint < Breakpoint
           # send, but we are not stepping in
           @ip = op.ip
         end
-      elsif op.ip == ip and flow != :sequential
+      elsif op.ip == ip and flow != :next
         # We are currently stopped on a flow changing opcode
         if flow == :send and @step_type == :in
           # We only need to stop at a send if we are stepping into called methods
@@ -474,7 +458,7 @@ class StepBreakpoint < Breakpoint
           @ip = @context.ip
         elsif flow == :raise
           raise "Step handling on exception raise not yet implemented"
-        elsif flow == :goto
+        elsif flow == :branch
           # At a flow control switch opcode; evaluate where execution will goto next
           case op.opcode
           when :goto
@@ -483,8 +467,6 @@ class StepBreakpoint < Breakpoint
             @ip = op.args.first if @thread.get_stack_value(0)
           when :goto_if_false
             @ip = op.args.first unless @thread.get_stack_value(0)
-          when :goto_if_defined
-            @ip = op.args.first unless @thread.get_stack_value(0) == Undefined
           else
             raise "Unrecognized goto instruction"
           end
@@ -495,7 +477,7 @@ class StepBreakpoint < Breakpoint
     end
 
     # Record last file/line we saw for next time
-    @break_type = :opcode_replacement unless @break_type
+    @break_type = :opcode_flag unless @break_type
     @ip
   end
 
@@ -503,12 +485,12 @@ class StepBreakpoint < Breakpoint
   # location where this breakpoint should fire.
   def trigger?(thread)
     ctxt = thread.current_context
-    if @break_type == :opcode_replacement
-      ctxt == @context and ctxt.ip == @ip
+    mthd = ctxt.method
+    ip = ctxt.ip
+    if @break_type == :opcode_flag
+      mthd == @method and ip == @ip
     elsif @break_type == :context_change
-      ctxt != @context and ctxt.ip == 0
-    else
-      ctxt.ip == @ip and ctxt.method == @method
+      mthd != @method and ip == 0
     end
   end
 
@@ -520,25 +502,6 @@ class StepBreakpoint < Breakpoint
       # Final step destination reached
       super(thread, ctx)
     end
-  end
-end
-
-
-##
-# A StepBreakpoint subclass that is used to restore a persistent breakpoint once
-# execution has been resumed after the persistent breakpoint was hit. It is a
-# subclass of StepBreakpoint since it requires the same smarts to determine
-# where the next instruction will be so that it can set a breakpoint immediately
-# following the current instruction. This will cause a reload of the CM bytecode,
-# which will re-apply the global breakpoint that needs restoring.
-class BreakpointRestorer < StepBreakpoint
-  def initialize(thread)
-    super(thread, :step_type => :in, :step_by => :ip, :steps => 1)
-  end
-
-  # BreakpointRestorer will always trigger if the thread matches
-  def trigger?(thread)
-    thread == @thread
   end
 end
 
@@ -722,7 +685,7 @@ class BreakpointTracker
 
       @bp_list = find_breakpoints(@thread, cm, ip)
       unless @bp_list.size > 0
-        raise "Unable to find any managed breakpoint for #{ctx.inspect} at IP:#{ctx.ip}"
+        raise "Unable to find any managed breakpoint for #{@thread.inspect} at IP:#{ctx.ip}"
       end
 
       do_yield = false
@@ -732,7 +695,7 @@ class BreakpointTracker
           if bp.steps.nil? or bp.steps == 0 then
             # Delete expired thread breakpoints
             @thread_breakpoints[@thread].delete(bp)
-            do_yield = true unless bp.kind_of? BreakpointRestorer
+            do_yield = true
           end
         when GlobalBreakpoint
           do_yield = true if bp.trigger?(ctx)
@@ -743,7 +706,7 @@ class BreakpointTracker
       end
 
       begin
-        @callback.call(@thread, ctx, @bp_list) if do_yield
+        @callback.call(@thread, ctx, @bp_list)
       rescue Exception => e
         STDERR.puts "An exception occured in a breakpoint handler:"
         STDERR.puts e.to_s
@@ -763,16 +726,6 @@ class BreakpointTracker
       ctx = thread.context
       mthd = ctx.method
       bc = mthd.iseq.dup
-
-      @bp_list.each do |bp|
-        if bp.kind_of? GlobalBreakpoint
-          # Ensure global breakpoint is removed from current context so we can resume
-          #bp.remove(ctx, bc)
-          # Create a BreakpointRestorer breakpoint to restore the globabl
-          # breakpoint on the current context
-          #@thread_breakpoints[thread] << BreakpointRestorer.new(thread) if get_breakpoint(mthd, ctx.ip)
-        end
-      end
 
       # Define a hash of thread-specific bytecodes for use when installing
       ctxt_bc = Hash.new {|h,mthd| h[mthd] = mthd ? mthd.iseq.dup : nil}
@@ -810,7 +763,7 @@ class BreakpointTracker
       bp.remove if bp.installed?
     end
     @thread_breakpoints.values.flatten do |bp|
-      if bp.step_type == :opcode_replacement
+      if bp.step_type == :opcode_flag
         bp.context.reload_method
       else
         bp.remove nil
