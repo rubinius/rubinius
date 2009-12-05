@@ -124,6 +124,8 @@ extern "C" {
       *status = 0;
     }
 
+    ep.pop(env);
+
     return ret;
   }
 
