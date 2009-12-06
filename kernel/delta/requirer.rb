@@ -230,7 +230,7 @@ class Requirer
           cm.hints = { :source => :rb }
           # Set a breakpoint on the script CompiledMethod if flag is set
           if @debug_script
-            Debugger.instance.set_breakpoint cm, 0
+            Rubinius::Debugger.instance.set_breakpoint cm, 0
             @debug_script = false
           end
           cm.as_script do |script|

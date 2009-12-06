@@ -243,16 +243,16 @@ containing the Rubinius standard library files.
       options.doc "\nRubinius options"
       options.on "--debug", "Launch the debugger" do
         require 'debugger/interface'
-        Debugger::CmdLineInterface.new
+        Rubinius::Debugger::CmdLineInterface.new
         @debugging = true
       end
 
       options.on "--remote-debug", "Run the program under the control of a remote debugger" do
         require 'debugger/debug_server'
         if port = (ARGV.first =~ /^\d+$/ and ARGV.shift)
-          $DEBUG_SERVER = Debugger::Server.new(port.to_i)
+          $DEBUG_SERVER = Rubinius::Debugger::Server.new(port.to_i)
         else
-          $DEBUG_SERVER = Debugger::Server.new
+          $DEBUG_SERVER = Rubinius::Debugger::Server.new
         end
         $DEBUG_SERVER.listen
         @debugging = true
