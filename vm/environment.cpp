@@ -20,7 +20,7 @@
 #include <llvm/System/Threading.h>
 #endif
 
-#ifdef linux
+#ifdef USE_EXECINFO
 #include <execinfo.h>
 #endif
 
@@ -89,7 +89,7 @@ namespace rubinius {
 
   static void null_func(int sig) {}
 
-#ifdef linux
+#ifdef USE_EXECINFO
   static void segv_handler(int sig) {
     static int crashing = 0;
     void *array[32];
@@ -178,8 +178,8 @@ namespace rubinius {
     // Ignore sigpipe.
     signal(SIGPIPE, SIG_IGN);
 
-    // On linux, setup some crash handlers
-#ifdef linux
+    // If we have execinfo, setup some crash handlers
+#ifdef USE_EXECINFO
     signal(SIGSEGV, segv_handler);
     signal(SIGBUS,  segv_handler);
     signal(SIGILL,  segv_handler);
