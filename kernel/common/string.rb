@@ -717,7 +717,7 @@ class String
 
     sep = StringValue sep
 
-    id = @data.object_id
+    orig = @data
     size = @num_bytes
     ssize = sep.size
     newline = ssize == 0 ? ?\n : sep[ssize-1]
@@ -737,7 +737,10 @@ class String
         line = substring last, i-last
         line.taint if tainted?
         yield line
-        modified? id, size
+
+        unless orig.equal?(@data)
+          raise RuntimeError, "string has been modified"
+        end
         last = i
       end
 
@@ -2156,14 +2159,6 @@ class String
     end
 
     @hash_value = nil # reset the hash value
-  end
-
-  # Raises RuntimeError if either the ByteArray object_id
-  # or the size has changed.
-  def modified?(id, size)
-    if id != @data.object_id or size != @num_bytes
-      raise RuntimeError, "string has been modified"
-    end
   end
 
   def subpattern(pattern, capture)
