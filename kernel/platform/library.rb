@@ -39,6 +39,7 @@ module FFI
       # Do not raise an exception if this primitive fails to bind an external
       # function because #attach_function may be attempting to bind to a
       # function in more than one library
+      raise PrimitiveFailure, "create_backend failed"
     end
     private :create_backend
 
