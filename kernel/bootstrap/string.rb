@@ -32,6 +32,8 @@ class String
   end
 
   def substring(start, count)
+    Ruby.primitive :string_substring
+
     return nil if count < 0
 
     if start < 0
@@ -50,6 +52,13 @@ class String
 
     return str
   end
+
+  def find_string(pattern, start)
+    Ruby.primitive :string_index
+    raise PrimitiveFailure, "String#find_string failude"
+  end
+
+  private :find_string
 
   def ==(other)
     Ruby.primitive :string_equal

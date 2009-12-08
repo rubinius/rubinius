@@ -1381,6 +1381,15 @@ class String
       # Pass
     else
       pattern = StringValue(pattern) unless pattern.kind_of?(String)
+
+      if !limited and limit.equal? Undefined
+        if pattern.empty?
+          return pull_apart
+        else
+          return split_on_string(pattern)
+        end
+      end
+
       pattern = Regexp.new(Regexp.quote(pattern))
     end
 
@@ -1429,6 +1438,44 @@ class String
         ret.shift
       end
     end
+
+    ret
+  end
+
+  def pull_apart
+    ret = []
+    pos = 0
+
+    while pos < @num_bytes
+      ret << substring(pos, 1)
+      pos += 1
+    end
+
+    ret
+  end
+  private :pull_apart
+
+  def split_on_string(pattern)
+    pos = 0
+
+    ret = []
+
+    pat_size = pattern.size
+
+    while pos < @num_bytes
+      nxt = find_string(pattern, pos)
+      break unless nxt
+
+      match_size = nxt - pos
+      ret << substring(pos, match_size)
+
+      pos = nxt + pat_size
+    end
+
+    # No more seperates, but we need to grab the last part still.
+    ret << substring(pos, @num_bytes - pos)
+
+    ret.pop while !ret.empty? and ret.last.empty?
 
     ret
   end

@@ -717,6 +717,72 @@ return_value:
     return val;
   }
 
+  String* String::substring(STATE, Fixnum* start_f, Fixnum* count_f) {
+    native_int start = start_f->to_native();
+    native_int count = count_f->to_native();
+    native_int total = num_bytes_->to_native();
+
+    if(count < 0) return (String*)Qnil;
+
+    if(start < 0) {
+      start += total;
+      if(start < 0) return (String*)Qnil;
+    }
+
+    if(start > total) return (String*)Qnil;
+
+    if(start + count > total) {
+      count = total - start;
+    }
+
+    if(count < 0) count = 0;
+
+    String* sub = String::create(state, Fixnum::from(count));
+    sub->klass(state, class_object(state));
+
+    uint8_t* buf = data_->bytes + start;
+
+    memcpy(sub->data()->bytes, buf, count);
+
+    if(tainted_p(state) == Qtrue) sub->taint(state);
+
+    return sub;
+  }
+
+  Fixnum* String::index(STATE, String* pattern, Fixnum* start) {
+    native_int total = size();
+    native_int match_size = pattern->size();
+
+    switch(match_size) {
+    case 0:
+      return start;
+    case 1:
+      {
+        uint8_t* buf = data()->bytes;
+        uint8_t matcher = pattern->data()->bytes[0];
+
+        for(native_int pos = start->to_native(); pos < total; pos++) {
+          if(buf[pos] == matcher) return Fixnum::from(pos);
+        }
+      }
+      return (Fixnum*)Qnil;
+    default:
+      {
+        uint8_t* buf = data()->bytes;
+        uint8_t* matcher = pattern->data()->bytes;
+
+        uint8_t* last = buf + (total - match_size);
+        uint8_t* pos = buf + start->to_native();
+
+        while(pos <= last) {
+          if(memcmp(pos, matcher, match_size) == 0) return Fixnum::from(pos - buf);
+          pos++;
+        }
+      }
+      return (Fixnum*)Qnil;
+    }
+  }
+
   void String::Info::show(STATE, Object* self, int level) {
     String* str = as<String>(self);
     std::cout << "\"" << str->c_str() << "\"" << std::endl;

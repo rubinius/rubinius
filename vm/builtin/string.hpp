@@ -150,6 +150,12 @@ namespace rubinius {
     // Ruby.primitive :string_pattern
     static String* pattern(STATE, Object* self, Fixnum* size, Object* pattern);
 
+    // Ruby.primitive :string_substring
+    String* substring(STATE, Fixnum* start, Fixnum* count);
+
+    // Ruby.primitive :string_index
+    Fixnum* index(STATE, String* pattern, Fixnum* start);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
