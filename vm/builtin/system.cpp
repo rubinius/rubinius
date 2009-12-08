@@ -280,7 +280,8 @@ namespace rubinius {
   Object* System::vm_get_config_section(STATE, String* section) {
     ConfigParser::EntryList* list;
 
-    list = state->shared.user_variables.get_section(section->byte_address());
+    list = state->shared.user_variables.get_section(
+        reinterpret_cast<char*>(section->byte_address()));
 
     Array* ary = Array::create(state, list->size());
     for(size_t i = 0; i < list->size(); i++) {

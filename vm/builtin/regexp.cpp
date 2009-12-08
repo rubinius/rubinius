@@ -112,19 +112,19 @@ namespace rubinius {
     assert(reg->chain == 0);
 
     ByteArray* reg_ba = ByteArray::create(state, sizeof(regex_t));
-    memcpy(reg_ba->bytes, reg, sizeof(regex_t));
+    memcpy(reg_ba->raw_bytes(), reg, sizeof(regex_t));
 
     regex_t* old_reg = reg;
-    reg = reinterpret_cast<regex_t*>(reg_ba->bytes);
+    reg = reinterpret_cast<regex_t*>(reg_ba->raw_bytes());
 
     obj->onig_data = reg;
     write_barrier(state, reg_ba);
 
     if(reg->p) {
       ByteArray* pattern = ByteArray::create(state, reg->alloc);
-      memcpy(pattern->bytes, reg->p, reg->alloc);
+      memcpy(pattern->raw_bytes(), reg->p, reg->alloc);
 
-      reg->p = reinterpret_cast<unsigned char*>(pattern->bytes);
+      reg->p = reinterpret_cast<unsigned char*>(pattern->raw_bytes());
 
       obj->write_barrier(state, pattern);
     }
@@ -132,9 +132,9 @@ namespace rubinius {
     if(reg->exact) {
       int exact_size = reg->exact_end - reg->exact;
       ByteArray* exact = ByteArray::create(state, exact_size);
-      memcpy(exact->bytes, reg->exact, exact_size);
+      memcpy(exact->raw_bytes(), reg->exact, exact_size);
 
-      reg->exact = reinterpret_cast<unsigned char*>(exact->bytes);
+      reg->exact = reinterpret_cast<unsigned char*>(exact->raw_bytes());
       reg->exact_end = reg->exact + exact_size;
 
       obj->write_barrier(state, exact);
@@ -144,18 +144,18 @@ namespace rubinius {
 
     if(reg->int_map) {
       ByteArray* intmap = ByteArray::create(state, int_map_size);
-      memcpy(intmap->bytes, reg->int_map, int_map_size);
+      memcpy(intmap->raw_bytes(), reg->int_map, int_map_size);
 
-      reg->int_map = reinterpret_cast<int*>(intmap->bytes);
+      reg->int_map = reinterpret_cast<int*>(intmap->raw_bytes());
 
       obj->write_barrier(state, intmap);
     }
 
     if(reg->int_map_backward) {
       ByteArray* intmap_back = ByteArray::create(state, int_map_size);
-      memcpy(intmap_back->bytes, reg->int_map_backward, int_map_size);
+      memcpy(intmap_back->raw_bytes(), reg->int_map_backward, int_map_size);
 
-      reg->int_map_backward = reinterpret_cast<int*>(intmap_back->bytes);
+      reg->int_map_backward = reinterpret_cast<int*>(intmap_back->raw_bytes());
 
       obj->write_barrier(state, intmap_back);
     }
@@ -163,9 +163,9 @@ namespace rubinius {
     if(reg->repeat_range) {
       int rrange_size = sizeof(OnigRepeatRange) * reg->repeat_range_alloc;
       ByteArray* rrange = ByteArray::create(state, rrange_size);
-      memcpy(rrange->bytes, reg->repeat_range, rrange_size);
+      memcpy(rrange->raw_bytes(), reg->repeat_range, rrange_size);
 
-      reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(rrange->bytes);
+      reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(rrange->raw_bytes());
 
       obj->write_barrier(state, rrange);
     }
@@ -302,12 +302,12 @@ namespace rubinius {
     if(onig_data->int_map_backward != back_match) {
       size_t size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
       ByteArray* ba = ByteArray::create(state, size);
-      memcpy(ba->bytes, onig_data->int_map_backward, size);
+      memcpy(ba->raw_bytes(), onig_data->int_map_backward, size);
 
       // Dispose of the old one.
       free(onig_data->int_map_backward);
 
-      onig_data->int_map_backward = reinterpret_cast<int*>(ba->bytes);
+      onig_data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
 
       write_barrier(state, ba);
     }
@@ -344,12 +344,12 @@ namespace rubinius {
     if(onig_data->int_map_backward != back_match) {
       size_t size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
       ByteArray* ba = ByteArray::create(state, size);
-      memcpy(ba->bytes, onig_data->int_map_backward, size);
+      memcpy(ba->raw_bytes(), onig_data->int_map_backward, size);
 
       // Dispose of the old one.
       free(onig_data->int_map_backward);
 
-      onig_data->int_map_backward = reinterpret_cast<int*>(ba->bytes);
+      onig_data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
 
       write_barrier(state, ba);
     }
@@ -373,7 +373,7 @@ namespace rubinius {
     ByteArray* reg_ba = ByteArray::from_body(reg);
 
     if(ByteArray* reg_tmp = force_as<ByteArray>(mark.call(reg_ba))) {
-      reg_o->onig_data = reinterpret_cast<regex_t*>(reg_tmp->bytes);
+      reg_o->onig_data = reinterpret_cast<regex_t*>(reg_tmp->raw_bytes());
       mark.just_set(obj, reg_tmp);
 
       reg_ba = reg_tmp;
@@ -385,7 +385,7 @@ namespace rubinius {
 
       ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
       if(tmp) {
-        reg->p = reinterpret_cast<unsigned char*>(tmp->bytes);
+        reg->p = reinterpret_cast<unsigned char*>(tmp->raw_bytes());
         mark.just_set(obj, tmp);
       }
     }
@@ -396,7 +396,7 @@ namespace rubinius {
 
       ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
       if(tmp) {
-        reg->exact = reinterpret_cast<unsigned char*>(tmp->bytes);
+        reg->exact = reinterpret_cast<unsigned char*>(tmp->raw_bytes());
         reg->exact_end = reg->exact + exact_size;
         mark.just_set(obj, tmp);
       }
@@ -407,7 +407,7 @@ namespace rubinius {
 
       ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
       if(tmp) {
-        reg->int_map = reinterpret_cast<int*>(tmp->bytes);
+        reg->int_map = reinterpret_cast<int*>(tmp->raw_bytes());
         mark.just_set(obj, tmp);
       }
     }
@@ -417,7 +417,7 @@ namespace rubinius {
 
       ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
       if(tmp) {
-        reg->int_map_backward = reinterpret_cast<int*>(tmp->bytes);
+        reg->int_map_backward = reinterpret_cast<int*>(tmp->raw_bytes());
         mark.just_set(obj, tmp);
       }
     }
@@ -427,7 +427,7 @@ namespace rubinius {
 
       ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
       if(tmp) {
-        reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(tmp->bytes);
+        reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(tmp->raw_bytes());
         mark.just_set(obj, tmp);
       }
     }

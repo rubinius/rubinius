@@ -1665,7 +1665,7 @@ instruction string_build(count) [ +count -- string ]
   }
 
   String* str = String::create(state, 0, size);
-  char* pos = str->byte_address();
+  uint8_t* pos = str->byte_address();
 
   for(int i = count - 1; i >= 0; i--) {
     String* sub = as<String>(stack_back(i));

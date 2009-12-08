@@ -3,6 +3,8 @@
 
 #include "builtin/object.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/bytearray.hpp"
+
 #include "type_info.hpp"
 #include <ctype.h> // For isdigit and friends
 #include <cerrno> // For ERANGE
@@ -78,7 +80,9 @@ namespace rubinius {
     // return a null terminated char*, so be sure to use size() with it.
     //
     // NOTE: do not free() or realloc() this buffer.
-    char* byte_address();
+    uint8_t* byte_address() {
+      return data_->raw_bytes();
+    }
 
     // Use this version if you want to use this String as a null
     // terminated char*.
@@ -120,7 +124,6 @@ namespace rubinius {
 
     /** Append length bytes from C string. Returns self. */
     String* append(STATE, const char* other, std::size_t length);
-
 
     // Ruby.primitive :string_to_f
     Float* to_f(STATE);

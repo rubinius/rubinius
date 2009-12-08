@@ -203,7 +203,7 @@ namespace rubinius {
     if(tmp) {
       n->managed = reinterpret_cast<void*>(tmp);
       ByteArray* ba = force_as<ByteArray>(tmp);
-      n->dp = OPT_CAST(mp_digit)ba->bytes;
+      n->dp = OPT_CAST(mp_digit)ba->raw_bytes();
     }
   }
 
@@ -239,7 +239,7 @@ namespace rubinius {
       a->managed = reinterpret_cast<void*>(storage);
 
       /* allocate memory required and clear it */
-      a->dp = OPT_CAST(mp_digit)storage->bytes;
+      a->dp = OPT_CAST(mp_digit)storage->raw_bytes();
 
       /* set the digits to zero */
       for (i = 0; i < MP_PREC; i++) {
@@ -1161,9 +1161,9 @@ namespace rubinius {
 
     if(current_bytes < bytes) to_copy = current_bytes;
 
-    memcpy(storage->bytes, a->dp, to_copy);
+    memcpy(storage->raw_bytes(), a->dp, to_copy);
 
-    return storage->bytes;
+    return storage->raw_bytes();
   }
 
 }

@@ -776,7 +776,7 @@ extern "C" {
     }
 
     String* str = String::create(state, 0, size);
-    char* pos = str->byte_address();
+    uint8_t* pos = str->byte_address();
 
     for(int i = 0; i < count; i++) {
       // We can force here because we've typed check them above.

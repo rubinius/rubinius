@@ -608,7 +608,7 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
 
   void test_to_s() {
     String* n = Fixnum::from(86545)->to_s(state);
-    TS_ASSERT_EQUALS(std::string("86545"), n->byte_address());
+    TS_ASSERT_EQUALS(std::string("86545"), n->c_str());
   }
 
   void test_coerce_fixnum() {

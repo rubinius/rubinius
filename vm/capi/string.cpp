@@ -32,13 +32,13 @@ namespace rubinius {
 
       char* ptr = 0;
       if(ba->pinned_p()) {
-        ptr = reinterpret_cast<char*>(ba->bytes);
+        ptr = reinterpret_cast<char*>(ba->raw_bytes());
       } else {
         ByteArray* new_ba = ByteArray::create_pinned(env->state(), size + 1);
-        std::memcpy(new_ba->bytes, string->byte_address(), size);
+        std::memcpy(new_ba->raw_bytes(), string->byte_address(), size);
         string->data(env->state(), new_ba);
 
-        ptr = reinterpret_cast<char*>(new_ba->bytes);
+        ptr = reinterpret_cast<char*>(new_ba->raw_bytes());
       }
 
       ptr[size] = 0;
@@ -211,7 +211,7 @@ extern "C" {
     if(size != len) {
       if(size < len) {
         ByteArray* ba = ByteArray::create_pinned(env->state(), len+1);
-        std::memcpy(ba->bytes, string->byte_address(), size);
+        std::memcpy(ba->raw_bytes(), string->byte_address(), size);
         string->data(env->state(), ba);
       }
 

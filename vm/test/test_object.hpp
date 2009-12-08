@@ -122,11 +122,11 @@ public:
   void test_dup_bytes() {
     ByteArray* obj = ByteArray::create(state, 1);
 
-    obj->bytes[0] = 8;
+    obj->raw_bytes()[0] = 8;
 
     ByteArray* obj2 = (ByteArray*)obj->duplicate(state);
 
-    TS_ASSERT_EQUALS(obj2->bytes[0], 8);
+    TS_ASSERT_EQUALS(obj2->raw_bytes()[0], 8);
   }
 
   void test_kind_of_p() {

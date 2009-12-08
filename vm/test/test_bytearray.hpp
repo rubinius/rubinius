@@ -101,7 +101,7 @@ class TestByteArray : public CxxTest::TestSuite, public VMTest {
     String* s = String::create(state, "xyzzy");
     ByteArray* b = s->data();
     b->move_bytes(state, Fixnum::from(0), Fixnum::from(2), Fixnum::from(3));
-    TS_ASSERT_SAME_DATA(b->bytes, "xyzxy", 5);
+    TS_ASSERT_SAME_DATA(b->raw_bytes(), "xyzxy", 5);
   }
 
   void test_move_bytes_out_of_bounds() {
@@ -132,7 +132,7 @@ class TestByteArray : public CxxTest::TestSuite, public VMTest {
     String* s = String::create(state, "xyzzy");
     ByteArray* b = s->data();
     ByteArray* ba = b->fetch_bytes(state, Fixnum::from(1), Fixnum::from(3));
-    TS_ASSERT_SAME_DATA(ba->bytes, "yzz", 3);
+    TS_ASSERT_SAME_DATA(ba->raw_bytes(), "yzz", 3);
   }
 
   void test_fetch_bytes_out_of_bounds() {

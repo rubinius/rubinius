@@ -1151,7 +1151,7 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     Bignum* b = as<Bignum>(Bignum::from_string(state, buf, 10));
     String* s = b->to_s(state, Fixnum::from(10));
 
-    TS_ASSERT_EQUALS(std::string(buf), s->byte_address());
+    TS_ASSERT_EQUALS(std::string(buf), s->c_str());
   }
 
   void test_size() {

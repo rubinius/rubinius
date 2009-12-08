@@ -29,7 +29,7 @@ public:
   void test_create_with_substring() {
     str = String::create(state, "blah", 2);
     TS_ASSERT_EQUALS(str->size(), 2U);
-    TS_ASSERT_SAME_DATA("bl\0", str->byte_address(), 3);
+    TS_ASSERT_SAME_DATA("bl\0", str->c_str(), 3);
   }
 
   void test_create_with_null_and_zero_count() {
@@ -77,7 +77,7 @@ public:
     str->unshare(state);
 
     TS_ASSERT(str->data() != str2->data());
-    TS_ASSERT_EQUALS(std::string("blah"), str->byte_address());
+    TS_ASSERT_EQUALS(std::string("blah"), str->c_str());
   }
 
   void test_append() {
@@ -127,8 +127,8 @@ public:
     str = String::create(state, "blah");
     String* str2 = str->add(state, String::create(state, " foo"));
 
-    TS_ASSERT_EQUALS(std::string("blah foo"), str2->byte_address());
-    TS_ASSERT_EQUALS(std::string("blah"), str->byte_address());
+    TS_ASSERT_EQUALS(std::string("blah foo"), str2->c_str());
+    TS_ASSERT_EQUALS(std::string("blah"), str->c_str());
   }
 
   void test_equal() {
@@ -340,51 +340,51 @@ public:
   void test_tr_expand() {
     String* s = String::create(state, "a-g");
     TS_ASSERT_EQUALS(s->tr_expand(state, Qnil), Fixnum::from(7));
-    TS_ASSERT_SAME_DATA(s->data()->bytes, "abcdefg", 7);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "abcdefg", 7);
   }
 
   void test_tr_expand_range() {
     String* s = String::create(state, "abc-egh");
     TS_ASSERT_EQUALS(s->tr_expand(state, Qnil), Fixnum::from(7));
-    TS_ASSERT_SAME_DATA(s->data()->bytes, "abcdegh", 7);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "abcdegh", 7);
   }
 
   void test_tr_expand_duplicate_chars_last_position() {
     String* s = String::create(state, "a-cabdage");
     TS_ASSERT_EQUALS(s->tr_expand(state, Qnil), Fixnum::from(9));
-    TS_ASSERT_SAME_DATA(s->data()->bytes, "cbdage", 6);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "cbdage", 6);
   }
 
   void test_tr_expand_leading_carat() {
     String* s = String::create(state, "^");
     TS_ASSERT_EQUALS(s->tr_expand(state, Qnil), Fixnum::from(1));
-    TS_ASSERT_SAME_DATA(s->data()->bytes, "^", 1);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "^", 1);
 
     s = String::create(state, "^a-c");
     TS_ASSERT_EQUALS(s->tr_expand(state, Qnil), Fixnum::from(3));
-    TS_ASSERT_SAME_DATA(s->data()->bytes, "abc", 3);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "abc", 3);
   }
 
   void test_tr_expand_limit_processing() {
     String* s = String::create(state, "a-h");
     Fixnum* five = Fixnum::from(5);
     TS_ASSERT_EQUALS(s->tr_expand(state, five), five);
-    TS_ASSERT_SAME_DATA(s->data()->bytes, "abcde", 5);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "abcde", 5);
 
     s = String::create(state, "abc-ga-i");
     Fixnum* ten = Fixnum::from(10);
     TS_ASSERT_EQUALS(s->tr_expand(state, ten), ten);
-    TS_ASSERT_SAME_DATA(s->data()->bytes, "defgabc", 7);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "defgabc", 7);
 
     s = String::create(state, "abc-ga-i");
     Fixnum* three = Fixnum::from(3);
     TS_ASSERT_EQUALS(s->tr_expand(state, three), three);
-    TS_ASSERT_SAME_DATA(s->data()->bytes, "abc", 3);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "abc", 3);
 
     s = String::create(state, "^abcde");
     Fixnum* four = Fixnum::from(4);
     TS_ASSERT_EQUALS(s->tr_expand(state, four), four);
-    TS_ASSERT_SAME_DATA(s->data()->bytes, "abcd", 4);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "abcd", 4);
   }
 
   void test_tr_expand_all() {
@@ -409,49 +409,49 @@ public:
     String* a = String::create(state, "abcdefghijkl");
     String* b = String::create(state, "ihgfed");
     a->copy_from(state, b, Fixnum::from(1), Fixnum::from(4), Fixnum::from(4));
-    TS_ASSERT_SAME_DATA(a->data()->bytes, "abcdhgfeijkl", 12);
+    TS_ASSERT_SAME_DATA(a->byte_address(), "abcdhgfeijkl", 12);
   }
 
   void test_copy_from_limit_copy_from_size() {
     String* a = String::create(state, "xxxxxx");
     String* b = String::create(state, "yy");
     a->copy_from(state, b, Fixnum::from(0), Fixnum::from(3), Fixnum::from(2));
-    TS_ASSERT_SAME_DATA(a->data()->bytes, "xxyyxx", 6);
+    TS_ASSERT_SAME_DATA(a->byte_address(), "xxyyxx", 6);
   }
 
   void test_copy_from_start_not_less_than_zero() {
     String* a = String::create(state, "xxx");
     String* b = String::create(state, "yy");
     a->copy_from(state, b, Fixnum::from(-1), Fixnum::from(2), Fixnum::from(1));
-    TS_ASSERT_SAME_DATA(a->data()->bytes, "xyy", 3);
+    TS_ASSERT_SAME_DATA(a->byte_address(), "xyy", 3);
   }
 
   void test_copy_from_start_not_greater_than_size() {
     String* a = String::create(state, "xxx");
     String* b = String::create(state, "yy");
     a->copy_from(state, b, Fixnum::from(2), Fixnum::from(2), Fixnum::from(0));
-    TS_ASSERT_SAME_DATA(a->data()->bytes, "xxx", 3);
+    TS_ASSERT_SAME_DATA(a->byte_address(), "xxx", 3);
   }
 
   void test_copy_from_limit_copy_to_size() {
     String* a = String::create(state, "xx");
     String* b = String::create(state, "yyyy");
     a->copy_from(state, b, Fixnum::from(0), Fixnum::from(4), Fixnum::from(0));
-    TS_ASSERT_SAME_DATA(a->data()->bytes, "yy", 2);
+    TS_ASSERT_SAME_DATA(a->byte_address(), "yy", 2);
   }
 
   void test_copy_from_only_copy_if_dest_is_within_bounds() {
     String* a = String::create(state, "xx");
     String* b = String::create(state, "yy");
     a->copy_from(state, b, Fixnum::from(0), Fixnum::from(2), Fixnum::from(2));
-    TS_ASSERT_SAME_DATA(a->data()->bytes, "xx", 2);
+    TS_ASSERT_SAME_DATA(a->byte_address(), "xx", 2);
   }
 
   void test_copy_from_dest_start_not_less_than_zero() {
     String* a = String::create(state, "xx");
     String* b = String::create(state, "yy");
     a->copy_from(state, b, Fixnum::from(0), Fixnum::from(2), Fixnum::from(-1));
-    TS_ASSERT_SAME_DATA(a->data()->bytes, "yy", 2);
+    TS_ASSERT_SAME_DATA(a->byte_address(), "yy", 2);
   }
 
   void test_compare_substring_less_than() {
@@ -517,19 +517,19 @@ public:
 
   void test_pattern_from_character() {
     String* s = String::pattern(state, G(string), Fixnum::from(10), Fixnum::from(97));
-    TS_ASSERT_SAME_DATA(s->data()->bytes, "aaaaaaaaaa", 10);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "aaaaaaaaaa", 10);
   }
 
   void test_pattern_from_string() {
     Fixnum* ten = Fixnum::from(10);
     String* s = String::pattern(state, G(string), ten, String::create(state, "b"));
-    TS_ASSERT_SAME_DATA(s->data()->bytes, "bbbbbbbbbb", 10);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "bbbbbbbbbb", 10);
 
     s = String::pattern(state, G(string), ten, String::create(state, " "));
-    TS_ASSERT_SAME_DATA(s->data()->bytes, "          ", 10);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "          ", 10);
 
     s = String::pattern(state, G(string), ten, String::create(state, "abc"));
-    TS_ASSERT_SAME_DATA(s->data()->bytes, "abcabcabca", 10);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "abcabcabca", 10);
   }
 
   void test_crypt() {

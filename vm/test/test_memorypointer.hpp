@@ -301,7 +301,7 @@ public:
 
     String* so = as<String>(obj);
 
-    TS_ASSERT(!strncmp(str, so->byte_address(), 4));
+    TS_ASSERT(!strncmp(str, so->c_str(), 4));
   }
 
   void test_get_field_string_thats_null() {
@@ -326,7 +326,7 @@ public:
 
     TS_ASSERT(ary->get(state, 0)->check_type(StringType));
     String *so = as<String>(ary->get(state, 0));
-    TS_ASSERT(!strncmp(str, so->byte_address(), 4));
+    TS_ASSERT(!strncmp(str, so->c_str(), 4));
 
     TS_ASSERT(ary->get(state, 1)->check_type(MemoryPointerType));
     MemoryPointer* mp = as<MemoryPointer>(ary->get(state, 1));
@@ -595,7 +595,7 @@ public:
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
     ptr->set_field(state, 0, RBX_FFI_TYPE_STRING, str);
-    TS_ASSERT_EQUALS(*buffer, str->byte_address());
+    TS_ASSERT_EQUALS(*buffer, str->c_str());
   }
 
   void test_set_field_string_null() {

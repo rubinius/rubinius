@@ -293,14 +293,14 @@ public:
     ByteArray* obj;
 
     obj = ByteArray::create(state, 3);
-    obj->bytes[0] = 47;
+    obj->raw_bytes()[0] = 47;
 
     Root r(roots, obj);
 
     om.collect_young(*gc_data);
 
     obj = (ByteArray*)roots->front()->get();
-    TS_ASSERT_EQUALS(obj->bytes[0], static_cast<char>(47));
+    TS_ASSERT_EQUALS(obj->raw_bytes()[0], static_cast<char>(47));
   }
 
   void test_collect_mature() {

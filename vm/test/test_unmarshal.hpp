@@ -94,7 +94,7 @@ public:
 
     TS_ASSERT(kind_of<String>(obj));
     String *str = as<String>(obj);
-    TS_ASSERT_EQUALS(std::string(str->byte_address()), "blah");
+    TS_ASSERT_EQUALS(std::string(str->c_str()), "blah");
   }
 
   void test_symbol() {

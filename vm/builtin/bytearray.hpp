@@ -12,11 +12,13 @@ namespace rubinius {
   public:
     const static object_type type = ByteArrayType;
 
+  private:
     native_int full_size_;
 
     // Body access
     uint8_t bytes[];
 
+  public:
     static void init(STATE);
     static ByteArray* create(STATE, size_t bytes);
     static ByteArray* create_pinned(STATE, size_t bytes);
@@ -36,6 +38,10 @@ namespace rubinius {
     // Return the number of bytes this ByteArray contains
     size_t size() {
       return full_size_ - sizeof(ByteArray);
+    }
+
+    uint8_t* raw_bytes() {
+      return bytes;
     }
 
     // Ruby.primitive :bytearray_get_byte

@@ -508,7 +508,7 @@ public:
     Object* out = func->call(state, args_obj);
 
     TS_ASSERT(kind_of<String>(out));
-    TS_ASSERT_EQUALS(as<String>(out)->byte_address(), std::string("whatever"));
+    TS_ASSERT_EQUALS(as<String>(out)->c_str(), std::string("whatever"));
 
     input = Array::create(state, 1);
     input->set(state, 0, Qnil);
@@ -542,7 +542,7 @@ public:
     TS_ASSERT(kind_of<String>(o1));
     TS_ASSERT(kind_of<MemoryPointer>(o2));
 
-    TS_ASSERT_EQUALS(o1->byte_address(), std::string("static strings are fun"));
+    TS_ASSERT_EQUALS(o1->c_str(), std::string("static strings are fun"));
     TS_ASSERT(strcmp((char*)(o2->pointer), "static strings are fun") == 0);
   }
 

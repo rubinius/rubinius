@@ -46,7 +46,7 @@ namespace rubinius {
     String* str = String::create(state, NULL, count);
 
     stream.get(); // read off newline
-    stream.read(str->byte_address(), count);
+    stream.read(reinterpret_cast<char*>(str->byte_address()), count);
     stream.get(); // read off newline
 
     return str;

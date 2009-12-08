@@ -386,7 +386,7 @@ namespace rubinius {
 
     {
       GlobalLock::UnlockGuard lock(state->global_lock());
-      bytes_read = ::read(fd, buffer->data()->bytes, count);
+      bytes_read = ::read(fd, buffer->byte_address(), count);
     }
 
     state->clear_waiter();
@@ -439,7 +439,7 @@ namespace rubinius {
     // The problem is that twiddle the O_NONBLOCK bit has the same problem,
     // so when there are concurrent IO reads, we'll need to enforce
     // some kind of integrity here.
-    ssize_t bytes_read = ::read(fd, buffer->data()->bytes, count);
+    ssize_t bytes_read = ::read(fd, buffer->byte_address(), count);
 
     buffer->unpin();
 
@@ -454,7 +454,7 @@ namespace rubinius {
   }
 
   Object* IO::write(STATE, String* buf) {
-    ssize_t cnt = ::write(this->to_fd(), buf->data()->bytes, buf->size());
+    ssize_t cnt = ::write(this->to_fd(), buf->byte_address(), buf->size());
 
     if(cnt == -1) {
       Exception::errno_error(state);
@@ -467,7 +467,7 @@ namespace rubinius {
   Object* IO::blocking_read(STATE, Fixnum* bytes) {
     String* str = String::create(state, bytes);
 
-    ssize_t cnt = ::read(this->to_fd(), str->data()->bytes, bytes->to_native());
+    ssize_t cnt = ::read(this->to_fd(), str->byte_address(), bytes->to_native());
     if(cnt == -1) {
       Exception::errno_error(state);
     } else if(cnt == 0) {
@@ -711,7 +711,7 @@ failed: /* try next '*' position */
       total_sz = available_space;
     }
 
-    memcpy(storage_->bytes + used_native, str->byte_address() + start_pos_native, total_sz);
+    memcpy(storage_->raw_bytes() + used_native, str->byte_address() + start_pos_native, total_sz);
     used(state, Fixnum::from(used_native + total_sz));
 
     return Fixnum::from(total_sz);
@@ -764,7 +764,7 @@ failed: /* try next '*' position */
   }
 
   char* IOBuffer::byte_address() {
-    return (char*)storage_->bytes;
+    return (char*)storage_->raw_bytes();
   }
 
   size_t IOBuffer::left() {
@@ -772,7 +772,7 @@ failed: /* try next '*' position */
   }
 
   char* IOBuffer::at_unused() {
-    char* start = (char*)storage_->bytes;
+    char* start = (char*)storage_->raw_bytes();
     start += used_->to_native();
     return start;
   }

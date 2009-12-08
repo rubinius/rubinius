@@ -165,7 +165,7 @@ namespace rubinius {
   }
 
   Object* ByteArray::locate(STATE, String* pattern, Fixnum* start, Fixnum* max_o) {
-    const char *pat = pattern->byte_address();
+    const uint8_t* pat = pattern->byte_address();
     size_t len = pattern->size();
     size_t max = (size_t)max_o->to_native();
 
