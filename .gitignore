@@ -69,7 +69,6 @@ tmtags
 /lib/kernel.rb
 /lib/zlib.rb
 /lib/fcntl.rb
-/lib/openssl/digest.rb
 /lib/syslog.rb
 
 /lib/ext/melbourne/Makefile

@@ -193,6 +193,10 @@ extern "C" {
     rb_raise(rb_eFatal, msg);
   }
 
+  void rb_notimplement() {
+    rb_fatal("not implemented");
+  }
+
   /* rb_warn and rb_warning don't factor out creating the string for the
    * message because it is just as much work preparing the va_list to
    * pass to another variadic function.

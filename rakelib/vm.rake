@@ -403,7 +403,6 @@ namespace :build do
 
     FFI_PREPROCESSABLES = %w[ lib/etc.rb
                               lib/fcntl.rb
-                              lib/openssl/digest.rb
                               lib/syslog.rb
                               lib/zlib.rb
                             ]

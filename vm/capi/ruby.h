@@ -1388,6 +1388,8 @@ double rb_num2dbl(VALUE);
 
   void    rb_fatal(const char *fmt, ...);
 
+  void    rb_notimplement();
+
   /** Raises an ArgumentError exception. */
   void rb_invalid_str(const char *str, const char *type);
 

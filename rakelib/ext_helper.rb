@@ -218,6 +218,246 @@ def qsh(cmd)
   result
 end
 
+class String
+  # Wraps a string in escaped quotes if it contains whitespace.
+  def quote
+    /\s/ =~ self ? "\"#{self}\"" : "#{self}"
+  end
+
+  # Generates a string used as cpp macro name.
+  def tr_cpp
+    strip.upcase.tr_s("^A-Z0-9_", "_")
+  end
+end
+class Array
+  # Wraps all strings in escaped quotes if they contain whitespace.
+  def quote
+    map {|s| s.quote}
+  end
+end
+
+module MKMF
+  module Logging
+    @log = nil
+    @logfile = 'mkmf.log'
+    @orgerr = $stderr.dup
+    @orgout = $stdout.dup
+    @postpone = 0
+    @quiet = $extmk
+
+    def self::open
+      @log ||= File::open(@logfile, 'w')
+      @log.sync = true
+      $stderr.reopen(@log)
+      $stdout.reopen(@log)
+      yield
+    ensure
+      $stderr.reopen(@orgerr)
+      $stdout.reopen(@orgout)
+    end
+
+    def self::message(*s)
+      @log ||= File::open(@logfile, 'w')
+      @log.sync = true
+      @log.printf(*s)
+    end
+
+    def self::logfile file
+      @logfile = file
+      if @log and not @log.closed?
+        @log.flush
+        @log.close
+        @log = nil
+      end
+    end
+
+    def self::postpone
+      tmplog = "mkmftmp#{@postpone += 1}.log"
+      open do
+        log, *save = @log, @logfile, @orgout, @orgerr
+        @log, @logfile, @orgout, @orgerr = nil, tmplog, log, log
+        begin
+          log.print(open {yield})
+          @log.close
+          File::open(tmplog) {|t| FileUtils.copy_stream(t, log)}
+        ensure
+          @log, @logfile, @orgout, @orgerr = log, *save
+          @postpone -= 1
+          rm_f tmplog
+        end
+      end
+    end
+
+    class << self
+      attr_accessor :quiet
+    end
+  end
+
+  def message(*s)
+    unless Logging.quiet and not $VERBOSE
+      printf(*s)
+      $stdout.flush
+    end
+  end
+
+  def checking_for(m, fmt = nil)
+    f = caller[0][/in `(.*)'$/, 1] and f << ": " #` for vim
+    m = "checking #{/\Acheck/ =~ f ? '' : 'for '}#{m}... "
+    message "%s", m
+    a = r = nil
+    Logging::postpone do
+      r = yield
+      a = (fmt ? fmt % r : r ? "yes" : "no") << "\n"
+      "#{f}#{m}-------------------- #{a}\n"
+    end
+    message(a)
+    Logging::message "--------------------\n\n"
+    r
+  end
+
+  def checking_message(target, place = nil, opt = nil)
+    [["in", place], ["with", opt]].inject("#{target}") do |msg, (pre, noun)|
+      if noun
+        [[:to_str], [:join, ","], [:to_s]].each do |meth, *args|
+          if noun.respond_to?(meth)
+            break noun = noun.send(meth, *args)
+          end
+        end
+        msg << " #{pre} #{noun}" unless noun.empty?
+      end
+    msg
+    end
+  end
+
+  def cpp_include(header)
+    if header
+      header = [header] unless header.kind_of? Array
+      header.map {|h| "#include <#{h}>\n"}.join
+    else
+      ""
+    end
+  end
+
+  MAIN_DOES_NOTHING = "int main() { return 0; }"
+
+  def try_func(func, libs, headers = nil, &b)
+    headers = cpp_include(headers)
+    try_link(<<"SRC", libs, &b) or
+#{headers}
+/*top*/
+#{MAIN_DOES_NOTHING}
+int t() { void ((*volatile p)()); p = (void ((*)()))#{func}; return 0; }
+SRC
+    try_link(<<"SRC", libs, &b)
+#{headers}
+/*top*/
+#{MAIN_DOES_NOTHING}
+int t() { #{func}(); return 0; }
+SRC
+  end
+
+  class << self
+    attr_accessor :libs
+  end
+
+  def format(str, *rest)
+    str % rest
+  end
+
+  def with_config(config, *defaults)
+    return *defaults
+
+    config = config.sub(/^--with[-_]/, '')
+    val = arg_config("--with-"+config) do
+      if arg_config("--without-"+config)
+        false
+      elsif block_given?
+        yield(config, *defaults)
+      else
+        break *defaults
+      end
+    end
+    case val
+    when "yes"
+      true
+    when "no"
+      false
+    else
+      val
+    end
+  end
+
+  COMMON_LIBS = []
+  LIBARG = "-l%s"
+
+  def append_library(libs, lib) # :no-doc:
+    STDERR.puts "Hello" #  [libs, lib]
+    format(LIBARG, lib) + " " + libs
+  end
+
+  def current_libs
+    @libs ||= ""
+  end
+
+  def try_link0(src, opt="", &b)
+    try_do(src, link_command("", opt), &b)
+  end
+
+  def try_link(src, opt="", &b)
+    try_link0(src, opt, &b)
+  ensure
+    rm_f "conftest*", "c0x32*"
+  end
+
+  def try_do(src, command, &b)
+    unless have_devel?
+      raise <<-MSG
+The complier failed to generate an executable file.
+You have to install development tools first.
+      MSG
+    end
+    src = create_tmpsrc(src, &b)
+    xsystem(command)
+  ensure
+    log_src(src)
+  end
+
+  def rm_f(*files)
+    FileUtils.rm_f(Dir[files.join("\0")])
+  end
+
+  def have_library(lib, func = nil, headers = nil, &b)
+    func = "main" if !func or func.empty?
+    lib = with_config(lib+'lib', lib)
+    checking_for checking_message("#{func}()", LIBARG%lib) do
+      if COMMON_LIBS.include?(lib)
+        true
+      else
+        libs = append_library(current_libs, lib)
+        if try_func(func, libs, headers, &b)
+          @libs = libs
+          add_shared_lib lib
+          true
+        else
+          false
+        end
+      end
+    end
+  end
+
+  def have_func(func, headers = nil, &b)
+    checking_for checking_message("#{func}()", headers) do
+      if try_func(func, current_libs, headers, &b)
+        add_cflag format("-DHAVE_%s", func.tr_cpp)
+        true
+      else
+        false
+      end
+    end
+  end
+
+end
+
 # Rules for building all files
 #
 rule ".cpp" => ".y" do |t|
