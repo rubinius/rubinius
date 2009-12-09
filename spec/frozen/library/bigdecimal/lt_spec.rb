@@ -24,7 +24,7 @@ describe "BigDecimal#<" do
 
     @values = [@mixed, @pos_int, @neg_int, @pos_frac, @neg_frac,
       -2**32, -2**31, -2**30, -2**16, -2**8, -100, -10, -1,
-      @zero , 1, 2, 10, 2**8, 2**16, 2**32, @int_mock, @zero_pos, @zero_neg]
+      @zero , 1, 2, 10, 10.5, 2**8, 2**16, 2**32, @int_mock, @zero_pos, @zero_neg]
 
     @infinity = BigDecimal("Infinity")
     @infinity_neg = BigDecimal("-Infinity")
@@ -62,28 +62,24 @@ describe "BigDecimal#<" do
     (@infinity_neg < @infinity).should == true
   end
 
-  it "properly handles NaN values" do
-    @values += [@infinity, @infinity_neg, @nan]
-    @values << nil
-    @values << Object.new
-    @values.each { |val|
-      (@nan < val).should == nil
-    }
-
-    lambda { 10 < @nan }.should raise_error(ArgumentError)
-    (10.5 < @nan).should == false
-
-    (@infinity < @nan).should == nil
-    (@infinity_neg < @nan).should == nil
-    (@zero < @nan).should == nil
+  ruby_bug "redmine:2349", "1.8.7" do
+    it "properly handles NaN values" do
+      @values += [@infinity, @infinity_neg, @nan]
+      @values.each { |val|
+        (@nan < val).should == false
+        (val < @nan).should == false
+      }
+    end
   end
 
-  it "returns nil if the argument is nil" do
-    (@zero < nil).should == nil
-    (@infinity < nil).should == nil
-    (@infinity_neg < nil).should == nil
-    (@mixed < nil).should == nil
-    (@pos_int < nil).should == nil
-    (@neg_frac < nil).should == nil
+  ruby_bug "redmine:2349", "1.8.7" do
+    it "raises an ArgumentError if the argument can't be coerced into a BigDecimal" do
+      lambda {@zero         < nil }.should raise_error(ArgumentError)
+      lambda {@infinity     < nil }.should raise_error(ArgumentError)
+      lambda {@infinity_neg < nil }.should raise_error(ArgumentError)
+      lambda {@mixed        < nil }.should raise_error(ArgumentError)
+      lambda {@pos_int      < nil }.should raise_error(ArgumentError)
+      lambda {@neg_frac     < nil }.should raise_error(ArgumentError)
+    end
   end
 end

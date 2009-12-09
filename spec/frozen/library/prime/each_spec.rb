@@ -67,7 +67,7 @@ describe "Prime#each", "when an instance created via Prime.new" do
 
   it "returns an evaluated value of the given block" do
     expected = Object.new
-    Prime.new.each{ break expected }.should equal?(expected)
+    Prime.new.each{ break expected }.should equal(expected)
   end
 
   it "returns an enumerator (or a compatible object) if no block given" do

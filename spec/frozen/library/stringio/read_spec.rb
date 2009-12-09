@@ -57,6 +57,6 @@ describe "StringIO#read when passed length and a buffer" do
     result = @io.read(10, buf)
 
     buf.should == "abcdefghij"
-    result.should equal?(buf)
+    result.should equal(buf)
   end
 end

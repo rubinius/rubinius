@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/shared/enumeratorize'
 
 describe "Array#delete_if" do
   before do
@@ -16,11 +17,7 @@ describe "Array#delete_if" do
     @a.delete_if{ true }.equal?(@a).should be_true
   end
 
-  ruby_version_is "" ... "1.8.7" do
-    it "raises a LocalJumpError if no block given" do
-      lambda { @a.delete_if }.should raise_error(LocalJumpError)
-    end
-  end
+  it_behaves_like :enumeratorize, :delete_if
 
   ruby_version_is '1.8.7' do
     it "returns an Enumerator if no block given, and the enumerator can modify the original array" do

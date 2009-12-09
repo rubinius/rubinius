@@ -175,6 +175,18 @@ module KernelSpecs
     include InstEval
   end
 
+  class InstEvalConst
+    INST_EVAL_CONST_X = 2
+  end
+
+  module InstEvalOuter
+    module Inner
+      obj = InstEvalConst.new
+      X_BY_STR = obj.instance_eval("INST_EVAL_CONST_X") rescue nil
+      X_BY_BLOCK = obj.instance_eval { INST_EVAL_CONST_X } rescue nil
+    end
+  end
+
   class EvalTest
     def self.eval_yield_with_binding
       eval("yield", binding)
@@ -248,6 +260,25 @@ module KernelSpecs
 
       # We shouldn't be here, b should have unwinded through
       return :bad
+    end
+  end
+
+  class RespondViaMissing
+    def respond_to_missing?(method, priv=false)
+      case method
+        when :handled_publicly
+          true
+        when :handled_privately
+          priv
+        when :not_handled
+          false
+        else
+          raise "Typo in method name"
+      end
+    end
+
+    def method_missing(method, *args)
+      "Done #{method}(#{args})"
     end
   end
 end

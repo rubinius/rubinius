@@ -22,6 +22,6 @@ module SocketSpecs
   end
 
   def self.socket_path
-    "/tmp/unix_server_spec.socket"
+    tmp("unix_server_spec.socket")
   end
 end

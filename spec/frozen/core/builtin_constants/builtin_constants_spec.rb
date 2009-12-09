@@ -49,11 +49,9 @@ describe "RUBY_RELEASE_DATE" do
 end
 
 ruby_version_is "1.9" do
-  not_compliant_on :jruby, :rubinius, :ironruby do
-    describe "RUBY_REVISION" do
-      it "is a Fixnum" do
-        RUBY_REVISION.should be_kind_of(Fixnum)
-      end
+  describe "RUBY_REVISION" do
+    it "is a Fixnum" do
+      RUBY_REVISION.should be_kind_of(Fixnum)
     end
   end
 end

@@ -27,8 +27,9 @@ describe "Range#step" do
 
   it "raises a TypeError if the first element does not respond to #succ" do
     b = mock('x')
-    (a = mock('1')).should_receive(:method_missing).with(:<=>, b).and_return(1)
-
+    (a = mock('1')).should_receive(:<=>).with(b).and_return(1)
+    a.should_not respond_to(:succ)
+        
     lambda { (a..b).step(1) { |i| i } }.should raise_error(TypeError)
   end
 

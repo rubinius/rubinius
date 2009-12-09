@@ -44,10 +44,9 @@ ruby_version_is "1.9" do
     end
 
     it "can be passed superfluous arguments if created from a proc" do
-      lambda { @proc_add.curry[1,2,3,4].should == 6 }.should_not 
-        raise_error(ArgumentError)
-      lambda { @proc_add.curry[1,2].curry[3,4,5,6].should == 6 }.should_not 
-        raise_error(ArgumentError)
+      @proc_add.curry[1,2,3,4].should == 6
+
+      @proc_add.curry[1,2].curry[3,4,5,6].should == 6
     end
 
     it "raises an ArgumentError if passed superfluous arguments when created from a lambda" do

@@ -274,7 +274,7 @@ ruby_version_is "1.9" do
 
     it "raises a TypeError if the hash has a default proc" do
       hsh = new_hash
-      hsh.default_proc = lambda { 'lamb' }
+      hsh.default_proc = lambda { |k,v| 'lamb' }
       lambda do
         "food!".gsub(/./, hsh)
       end.should_not raise_error(TypeError)

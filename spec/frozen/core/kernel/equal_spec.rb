@@ -11,6 +11,9 @@ describe "Kernel#equal?" do
     (nil.equal? nil).should == true
     (o1.equal?  nil).should== false
     (nil.equal?  o2).should== false
+    ('stuff'.equal? 'stuff').should == false
+    (true.equal? true).should == true
+    (false.equal? false).should == true
   end  
 
   it "returns true if obj and anObject have the same value." do
@@ -27,6 +30,32 @@ describe "Kernel#equal?" do
     o2 = mock("object")
     o2.stub!(:object_id).and_return(10)
     o1.equal?(o2).should be_false
+  end
+
+  it "is unaffected by overriding ==" do
+    # different objects, overriding == to return true
+    o1 = mock("object")
+    o1.stub!(:==).and_return(true)
+    o2 = mock("object")
+    o1.equal?(o2).should be_false
+
+    # same objects, overriding == to return false
+    o3 = mock("object")
+    o3.stub!(:==).and_return(false)
+    o3.equal?(o3).should be_true
+  end
+
+  it "is unaffected by overriding eql?" do
+    # different objects, overriding eql? to return true
+    o1 = mock("object")
+    o1.stub!(:eql?).and_return(true)
+    o2 = mock("object")
+    o1.equal?(o2).should be_false
+
+    # same objects, overriding eql? to return false
+    o3 = mock("object")
+    o3.stub!(:eql?).and_return(false)
+    o3.equal?(o3).should be_true
   end
 
   it "is unaffected by overriding __id__" do

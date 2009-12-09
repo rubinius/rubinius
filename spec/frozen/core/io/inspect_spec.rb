@@ -7,13 +7,16 @@ describe "IO#inspect" do
   end
 
   after :each do
-    @file.close
+    @file.close if !@file.closed?
     File.unlink(tmp("inspect_spec"))
   end
 
   it "returns a string describing a stream" do
     # don't hardcode the tmp path 
     @file.inspect.should =~ /#<File.*inspect_spec>/
-    IO.new(@file.to_i).inspect.should =~ /<IO:[\w\s?\d]+>/
+    io = IO.new(@file.to_i)
+    io.inspect.should =~ /<IO:[\w\s?\d]+>/
+    io.close
+    lambda { @file.close }.should raise_error(Errno::EBADF)
   end
 end

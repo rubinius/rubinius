@@ -50,6 +50,7 @@ ruby_version_is "1.8.7" do
     end
   
     it "returns the blocks return value" do
+      Dir.stub!(:mkdir)
       Dir.mktmpdir { :test }.should equal(:test)
     end
   end

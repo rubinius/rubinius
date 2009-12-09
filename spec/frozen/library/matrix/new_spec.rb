@@ -3,8 +3,8 @@ require 'matrix'
 
 describe "Matrix#new" do
   
-  it "returns a Matrix" do
-    lambda { Matrix.new }.should raise_error
+  it "is not accessible" do
+    lambda { Matrix.new }.should raise_error(NoMethodError)
   end
   
 end

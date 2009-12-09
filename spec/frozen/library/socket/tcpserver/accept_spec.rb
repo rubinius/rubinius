@@ -24,6 +24,7 @@ describe "TCPServer#accept" do
     
     socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     socket.write('hello')
+    socket.shutdown(1) # we are done with sending
     socket.read.should == 'goodbye'
     t.join
     data.should == 'hello'

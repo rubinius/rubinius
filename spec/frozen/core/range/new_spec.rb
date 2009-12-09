@@ -28,7 +28,7 @@ describe "Range.new" do
     lambda { Range.new(mock('x'), mock('y')) }.should raise_error(ArgumentError)
     
     b = mock('x')
-    (a = mock('nil')).should_receive(:method_missing).with(:<=>, b).and_return(nil)
+    (a = mock('nil')).should_receive(:<=>).with(b).and_return(nil)
     lambda { Range.new(a, b) }.should raise_error(ArgumentError)
   end
 end

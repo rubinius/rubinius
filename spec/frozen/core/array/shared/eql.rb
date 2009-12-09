@@ -32,6 +32,10 @@ describe :array_eql, :shared => true do
       a       .send(@method,    [[a]]  ).should be_true
       [a]     .send(@method,    a      ).should be_true
       [[a]]   .send(@method,    a      ).should be_true
+      # These may be surprising, but no difference can be
+      # found between these arrays, so they are ==.
+      # There is no "path" that will lead to a difference
+      # (contrary to other examples below)
 
       a2 = ArraySpecs.empty_recursive_array
       a       .send(@method,    a2     ).should be_true
@@ -45,10 +49,10 @@ describe :array_eql, :shared => true do
       back   .send(@method,  a  ).should be_true
 
       x = []; x << x << x
-      x       .send(@method,    a                ).should be_false
-      x       .send(@method,    [a, a]           ).should be_false
-      x       .send(@method,    [x, a]           ).should be_false
-      [x, a]  .send(@method,    [a, x]           ).should be_false
+      x       .send(@method,    a                ).should be_false  # since x.size != a.size
+      x       .send(@method,    [a, a]           ).should be_false  # since x[0].size != [a, a][0].size
+      x       .send(@method,    [x, a]           ).should be_false  # since x[1].size != [x, a][1].size
+      [x, a]  .send(@method,    [a, x]           ).should be_false  # etc...
       x       .send(@method,    [x, x]           ).should be_true
       x       .send(@method,    [[x, x], [x, x]] ).should be_true
 
@@ -63,7 +67,7 @@ describe :array_eql, :shared => true do
       forest .send(@method,     [tree2, branch, :bird, a, forest2]).should be_true
 
       diffforest = [branch2, tree2, :bird, a2]; diffforest << forest2
-      forest .send(@method,     diffforest      ).should be_false
+      forest .send(@method,     diffforest      ).should be_false # since forest[0].size == 1 != 3 == diffforest[0]
       forest .send(@method,     [nil]           ).should be_false
       forest .send(@method,     [forest]        ).should be_false
     end

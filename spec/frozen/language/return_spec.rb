@@ -118,61 +118,99 @@ describe "The return keyword" do
   end
 
   describe "within a begin" do
-    it "executes ensure before returning from function" do
-      def f(a)
-        begin
-          return a
-        ensure
-          a << 1
-        end
-      end
-      f([]).should == [1]
+    before :each do
+      ScratchPad.record []
     end
 
-    it "executes return in ensure before returning from function" do
-      def f(a)
+    it "executes ensure before returning" do
+      def f()
         begin
-          return a
+          ScratchPad << :begin
+          return :begin
+          ScratchPad << :after_begin
         ensure
-          return [0]
-          a << 1
+          ScratchPad << :ensure
         end
+        ScratchPad << :function
       end
-      f([]).should == [0]
+      f().should == :begin
+      ScratchPad.recorded.should == [:begin, :ensure]
     end
 
-    it "executes ensures in stack order before returning from function" do
-      def f(a)
+    it "returns last value returned in ensure" do
+      def f()
+        begin
+          ScratchPad << :begin
+          return :begin
+          ScratchPad << :after_begin
+        ensure
+          ScratchPad << :ensure
+          return :ensure
+          ScratchPad << :after_ensure
+        end
+        ScratchPad << :function
+      end
+      f().should == :ensure
+      ScratchPad.recorded.should == [:begin, :ensure]
+    end
+
+    it "executes nested ensures before returning" do
+      def f()
         begin
           begin
-            return a
+            ScratchPad << :inner_begin
+            return :inner_begin
+            ScratchPad << :after_inner_begin
           ensure
-            a << 2
+            ScratchPad << :inner_ensure
           end
+          ScratchPad << :outer_begin
+          return :outer_begin
+          ScratchPad << :after_outer_begin
         ensure
-          a << 1
+          ScratchPad << :outer_ensure
         end
+        ScratchPad << :function
       end
-      f([]).should == [2,1]
+      f().should == :inner_begin
+      ScratchPad.recorded.should == [:inner_begin, :inner_ensure, :outer_ensure]
     end
 
-    it "executes return at base of ensure stack" do
-      def f(a)
+    it "returns last value returned in nested ensures" do
+      def f()
         begin
           begin
-            return a
+            ScratchPad << :inner_begin
+            return :inner_begin
+            ScratchPad << :after_inner_begin
           ensure
-            a << 2
-            return 2
+            ScratchPad << :inner_ensure
+            return :inner_ensure
+            ScratchPad << :after_inner_ensure
           end
+          ScratchPad << :outer_begin
+          return :outer_begin
+          ScratchPad << :after_outer_begin
         ensure
-          a << 1
-          return 1
+          ScratchPad << :outer_ensure
+          return :outer_ensure
+          ScratchPad << :after_outer_ensure
         end
+        ScratchPad << :function
       end
-      a = []
-      f(a).should == 1
-      a.should == [2, 1]
+      f().should == :outer_ensure
+      ScratchPad.recorded.should == [:inner_begin, :inner_ensure, :outer_ensure]
+    end
+
+    it "executes the ensure clause when begin/ensure are inside a lambda" do
+      lambda do
+        begin
+          return
+        ensure
+          ScratchPad.recorded << :ensure
+        end
+      end.call
+      ScratchPad.recorded.should == [:ensure]
     end
   end
 
@@ -214,6 +252,7 @@ describe "The return keyword" do
       ReturnSpecs::NestedBlocks.new.enclosing_method.should == :return_value
       ScratchPad.recorded.should == :before_return
     end
+
   end
 
   describe "within two blocks" do

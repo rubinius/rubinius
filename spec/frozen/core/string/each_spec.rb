@@ -8,7 +8,9 @@ describe "String#each" do
   end
 
   ruby_version_is '1.9' do
-    lambda { "gone in 1.9".each }.should raise_error(NoMethodError)
+    it "raises a NoMethodError" do
+      lambda { "gone in 1.9".each }.should raise_error(NoMethodError)
+    end
   end
 
 end

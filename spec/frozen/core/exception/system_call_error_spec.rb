@@ -14,6 +14,15 @@ describe "SystemCallError.new" do
     SystemCallError.new(42).errno.should == 42
     SystemCallError.new(2**24).errno.should == 2**24
   end
+
+  it "constructs the appropriate Errno class" do
+    # EINVAL should be more or less mortable across the platforms,
+    # so let's use it then.
+    SystemCallError.new(22).should be_kind_of(SystemCallError)
+    SystemCallError.new(22).should be_an_instance_of(Errno::EINVAL)
+
+    SystemCallError.new(2**28).should be_an_instance_of(SystemCallError)
+  end
 end
 
 describe "SystemCallError#errno" do

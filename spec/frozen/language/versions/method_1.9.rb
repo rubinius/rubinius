@@ -16,6 +16,43 @@ describe "Calling a method" do
      fooP1O1RQ1(1,2).should == [1, 9, [], 2]
      fooP1O1RQ1(1,2,3).should == [1, 2, [], 3]
      fooP1O1RQ1(1,2,3,4).should == [1, 2, [3], 4]
+
+     def fooP1O1RQ2(a, b=9, *r, q, t); [a, b, r, q, t]; end
+     fooP1O1RQ2(1,2,3).should == [1, 9, [], 2, 3]
+     fooP1O1RQ2(1,2,3,4).should == [1, 2, [], 3, 4]
+     fooP1O1RQ2(1,2,3,4,5).should == [1, 2, [3], 4, 5]
+  end
+
+  it "works with optional arguments not at the end" do
+    def fooO1P1(a=1, b); [a,b]; end
+    fooO1P1(0,1).should == [0,1]
+    fooO1P1(2).should == [1,2]
+
+    def fooP1O1P1(a,b=2,c); [a,b,c]; end
+    fooP1O1P1(2,3,4).should == [2,3,4]
+    fooP1O1P1(1,3).should == [1,2,3]
+
+    def fooP2O1P1(a,b,c=3,d); [a,b,c,d]; end
+    fooP2O1P1(1,2,4).should == [1,2,3,4]
+
+    def fooP2O2P1(a,b,c=3,d=4,e); [a,b,c,d,e]; end
+    fooP2O2P1(1,2,3,4,5).should == [1,2,3,4,5]
+    fooP2O2P1(1,2,3,5).should == [1,2,3,4,5]
+    fooP2O2P1(1,2,5).should == [1,2,3,4,5]
+
+    def fooO4P1(a=1,b=2,c=3,d=4,e); [a,b,c,d,e]; end
+    fooO4P1(1,2,3,4,5).should == [1,2,3,4,5]
+    fooO4P1(1,2,3,5).should == [1,2,3,4,5]
+    fooO4P1(1,2,5).should == [1,2,3,4,5]
+    fooO4P1(1,5).should == [1,2,3,4,5]
+    fooO4P1(5).should == [1,2,3,4,5]
+
+    def fooO4P2(a=1,b=2,c=3,d=4,e,f); [a,b,c,d,e,f]; end
+    fooO4P2(1,2,3,4,5,6).should == [1,2,3,4,5,6]
+    fooO4P2(1,2,3,5,6).should == [1,2,3,4,5,6]
+    fooO4P2(1,2,5,6).should == [1,2,3,4,5,6]
+    fooO4P2(1,5,6).should == [1,2,3,4,5,6]
+    fooO4P2(5,6).should == [1,2,3,4,5,6]
   end
 
   it "works with block arguments" do

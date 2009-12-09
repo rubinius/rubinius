@@ -11,9 +11,12 @@ describe "File#path" do
     File.delete(@file2) if File.exist?(@file2)
   end
 
-  it "returns the pathname used to create file as a string" do
-    File.open(@file1,'w'){|file| file.path.should == "testfile"}
-    File.open(@file2, 'w'){|file| file.path.should == tmp("../tmp/xxx")}
+  # MRI fails this when /var path has symlinks, as on OS X
+  quarantine! do
+    it "returns the pathname used to create file as a string" do
+      File.open(@file1,'w'){|file| file.path.should == "testfile"}
+      File.open(@file2, 'w'){|file| file.path.should == tmp("../tmp/xxx")}
+    end
   end
 end
 

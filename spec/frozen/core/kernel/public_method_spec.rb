@@ -23,5 +23,15 @@ ruby_version_is "1.9" do
         @obj.public_method(:protected_method)
        end.should raise_error(NameError)
     end
+
+    ruby_version_is "1.9.2" do
+      it "raises a NameError if we only repond_to_missing? method, true" do
+        obj = KernelSpecs::RespondViaMissing.new
+        lambda do
+          obj.public_method(:handled_privately)
+        end.should raise_error(NameError)
+      end
+    end
+
   end
 end

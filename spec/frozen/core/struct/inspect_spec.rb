@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/shared/inspect'
 
 describe "Struct#inspect" do
   it "returns a string representation of some kind" do
@@ -12,4 +13,6 @@ describe "Struct#inspect" do
     ::Whiskey = Struct.new(:name, :ounces)
     ::Whiskey.new('Jack', 100).inspect.should == '#<struct Whiskey name="Jack", ounces=100>'
   end
+ 
+  it_behaves_like(:struct_inspect, :inspect)
 end

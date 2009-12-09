@@ -22,6 +22,7 @@ describe "Socket::IPSocket#recvfrom" do
     end
 
     @client.send('hello', 0)
+    @client.shutdown
     t.join
 
     data.first.should == 'hello'
@@ -36,6 +37,7 @@ describe "Socket::IPSocket#recvfrom" do
     end
 
     @client.send('hello', 0)
+    @client.shutdown
     t.join
 
     data.first.should == 'hel'
@@ -50,6 +52,7 @@ describe "Socket::IPSocket#recvfrom" do
     end
 
     @client.send('hello', 0)
+    @client.shutdown
     t.join
 
     data.size.should == 2

@@ -1,5 +1,5 @@
 describe :enumerable_collect, :shared => true do
-  it "collect should return a new array with the results of passing each element to block" do
+  it "returns a new array with the results of passing each element to block" do
     entries = [0, 1, 3, 4, 5, 6]
     numerous = EnumerableSpecs::Numerous.new(*entries)
     numerous.send(@method) { |i| i % 2 }.should == [0, 1, 1, 0, 1, 0]
@@ -31,34 +31,6 @@ describe :enumerable_collect, :shared => true do
       enum = EnumerableSpecs::Numerous.new.send(@method)
       enum.should be_kind_of(enumerator_class)
       enum.each { |i| -i }.should == [-2, -5, -3, -6, -1, -4]
-    end
-  end
-end
-
-describe :enumerable_collect_to_proc, :shared => true do    
-  ruby_version_is "1.8.7" do
-    it "calls obj.to_proc" do 
-      EnumerableSpecs::Numerous.new.send(@method, &:succ).should == [3, 6, 4, 7, 2, 5]
-    end 
-
-    it "does not call obj.to_proc if obj is a lambda" do
-      f = lambda{ |x| x + 1 }
-      class << f
-        def to_proc
-          lambda{ |x| 42 }
-        end
-      end
-       EnumerableSpecs::Numerous.new.send(@method, &f).should == [3, 6, 4, 7, 2, 5]
-    end
-
-    it "does not call obj.to_proc if obj is a Proc" do
-      myproc = Class.new Proc do
-        def to_proc
-          lambda{ |x| 42 }
-        end
-      end
-      inc = myproc.new{ |x| x + 1 }
-      EnumerableSpecs::Numerous.new.send(@method, &inc).should == [3, 6, 4, 7, 2, 5]
     end
   end
 end

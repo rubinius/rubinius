@@ -18,4 +18,10 @@ describe "IO#<<" do
     io = IOSpecs.closed_file
     lambda { io << "test" }.should raise_error(IOError)
   end
+
+  it "returns self" do
+    lambda {
+      ($stderr << "to_stderr").should == $stderr
+    }.should output(nil, "to_stderr")
+  end
 end

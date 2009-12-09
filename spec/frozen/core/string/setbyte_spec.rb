@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-ruby_version_is "1.9" do
+ruby_version_is "1.8.8" do
   describe "String#setbyte" do
     it "returns an Integer" do
       "a".setbyte(0,1).should be_kind_of(Integer)

@@ -12,7 +12,7 @@ describe :bigdecimal_eql, :shared => true do
     @infinity_minus = BigDecimal("-Infinity")
   end
 
-  it "test for equality" do
+  it "tests for equality" do
     @bg6543_21.send(@method, @bg6543_21).should == true
     @a.send(@method, @a).should == true
     @a.send(@method, @b).should == false
@@ -20,14 +20,16 @@ describe :bigdecimal_eql, :shared => true do
     @bigint.send(@method, 1000).should == true
   end
 
-  it "NaN is never equal to any number" do
-    @nan.send(@method, @nan).should_not == true
-    @a.send(@method, @nan).should_not == true
-    @nan.send(@method, @a).should_not == true
-    @nan.send(@method, @infinity).should_not == true
-    @nan.send(@method, @infinity_minus).should_not == true
-    @infinity.send(@method, @nan).should_not == true
-    @infinity_minus.send(@method, @nan).should_not == true
+  ruby_bug "redmine:2349", "1.8.7" do
+    it "NaN is never equal to any number" do
+      @nan.send(@method, @nan).should == false
+      @a.send(@method, @nan).should == false
+      @nan.send(@method, @a).should == false
+      @nan.send(@method, @infinity).should == false
+      @nan.send(@method, @infinity_minus).should == false
+      @infinity.send(@method, @nan).should == false
+      @infinity_minus.send(@method, @nan).should == false
+    end
   end
 
   it "returns true for infinity values with the same sign" do
@@ -40,16 +42,24 @@ describe :bigdecimal_eql, :shared => true do
     BigDecimal("-Infinity").send(@method, @infinity_minus).should == true
   end
 
-  it "does not return true for infinity values with different signs" do
-    @infinity.send(@method, @infinity_minus).should_not == true
-    @infinity_minus.send(@method, @infinity).should_not == true
+  it "returns false for infinity values with different signs" do
+    @infinity.send(@method, @infinity_minus).should == false
+    @infinity_minus.send(@method, @infinity).should == false
   end
 
-  it "does not return true when ininite value compared to finite one" do
-    @infinity.send(@method, @a).should_not == true
-    @infinity_minus.send(@method, @a).should_not == true
+  it "returns false when infinite value compared to finite one" do
+    @infinity.send(@method, @a).should == false
+    @infinity_minus.send(@method, @a).should == false
 
-    @a.send(@method, @infinity).should_not == true
-    @a.send(@method, @infinity_minus).should_not == true
+    @a.send(@method, @infinity).should == false
+    @a.send(@method, @infinity_minus).should == false
+  end
+
+  ruby_bug "redmine:2349", "1.8.7" do
+    it "returns false when compared objects that can not be coerced into BigDecimal" do
+      @infinity.send(@method, nil).should == false
+      @bigint.send(@method, nil).should == false
+      @nan.send(@method, nil).should == false
+    end
   end
 end

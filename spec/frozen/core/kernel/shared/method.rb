@@ -3,12 +3,29 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 describe :kernel_method, :shared => true do
   it "returns a method object for a valid method" do
     class KernelSpecs::Foo; def bar; 'done'; end; end
-    KernelSpecs::Foo.new.send(@method, :bar).class.should == Method
+    m = KernelSpecs::Foo.new.send(@method, :bar)
+    m.should be_an_instance_of Method
+    m.call.should == 'done'
   end
 
   it "returns a method object for a valid singleton method" do
-    class KernelSpecs::Foo; def self.bar; 'done'; end; end
-    KernelSpecs::Foo.send(@method, :bar).class.should == Method
+    class KernelSpecs::Foo; def self.bar; 'class done'; end; end
+    m = KernelSpecs::Foo.send(@method, :bar)
+    m.should be_an_instance_of Method
+    m.call.should == 'class done'
+  end
+
+  ruby_version_is "1.9.2" do
+    it "returns a method object if we repond_to_missing? method" do
+      class KernelSpecs::Foo;
+        def respond_to_missing?(method, priv=false)
+          method == :we_handle_this
+        end
+      end
+      m = KernelSpecs::RespondViaMissing.new.method(:handled_publicly)
+      m.should be_an_instance_of Method
+      m.call(42).should == "Done handled_publicly([42])"
+    end
   end
 
   it "raises a NameError for an invalid method name" do
@@ -23,8 +40,7 @@ describe :kernel_method, :shared => true do
     lambda { KernelSpecs::Foo.send(@method, :baz) }.should raise_error(NameError)
   end
 
-  # This may be a bug; see http://redmine.ruby-lang.org/issues/show/1151
-  ruby_version_is "" ... "1.9" do
+  ruby_bug "redmine:1151", "1.8.7" do
     it "changes the method called for super on a target aliased method" do
       c1 = Class.new do
         def a; 'a'; end
@@ -37,7 +53,7 @@ describe :kernel_method, :shared => true do
 
       c2.new.a.should == 'a'
       c2.new.b.should == 'a'
-      c2.new.send(@method, :b).call.should == 'b'
+      c2.new.send(@method, :b).call.should == 'a'
     end
   end
 end

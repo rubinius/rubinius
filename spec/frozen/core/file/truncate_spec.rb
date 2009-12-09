@@ -94,7 +94,7 @@ describe "File.truncate" do
 
   platform_is_not :windows do
     it "truncates an absolute pathname file" do
-      absolute_pathname_file = "/tmp/#{@name}"
+      absolute_pathname_file = tmp("#{@name}")
       File.open(absolute_pathname_file,"w") { |f| f.write("1234567890") }
       File.truncate(absolute_pathname_file, 5)
       File.size(absolute_pathname_file).should == 5

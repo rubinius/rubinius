@@ -14,17 +14,33 @@ describe "Enumerable#minmax" do
       @strs.minmax.should == ["1010", "60" ]
     end
 
-    it "return nil when error" do
+    it "returns [nil, nil] for an empty Enumerable" do
       EnumerableSpecs::Empty.new.minmax.should == [nil, nil]
-      lambda {
-        EnumerableSpecs::Numerous.new(Object.new, Object.new).minmax
-      }.should raise_error(NoMethodError)
-      lambda {
+    end
+
+    it "raises an ArgumentError when elements are incomparable" do
+      lambda do
         EnumerableSpecs::Numerous.new(11,"22").minmax
-      }.should raise_error(ArgumentError)
-      lambda {
+      end.should raise_error(ArgumentError)
+      lambda do
         EnumerableSpecs::Numerous.new(11,12,22,33).minmax{|a, b| nil}
-      }.should raise_error(ArgumentError)
+      end.should raise_error(ArgumentError)
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "raises a NoMethodError for elements without #<=>" do
+        lambda do
+          EnumerableSpecs::Numerous.new(Object.new, Object.new).minmax
+        end.should raise_error(NoMethodError)
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "raises a NoMethodError for elements without #<=>" do
+        lambda do
+          EnumerableSpecs::Numerous.new(BasicObject.new, BasicObject.new).minmax
+        end.should raise_error(NoMethodError)
+      end
     end
 
     it "return the minimun when using a block rule" do

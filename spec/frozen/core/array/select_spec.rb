@@ -1,7 +1,10 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/shared/enumeratorize'
 
 describe "Array#select" do
+  it_behaves_like :enumeratorize, :select
+
   it "returns a new array of elements for which block is true" do
     [1, 3, 4, 5, 6, 9].select { |i| i % ((i + 1) / 2) == 0}.should == [1, 4, 6]
   end
@@ -19,5 +22,4 @@ describe "Array#select" do
     array.select { true }.should == [1, 'two', 3.0, array, array, array, array, array]
     array.select { false }.should == []
   end
-
 end

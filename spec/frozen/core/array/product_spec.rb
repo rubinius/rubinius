@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#product" do
-  ruby_version_is "1.9" do
+  ruby_version_is "1.8.7" do
     it "returns converted arguments using :to_ary" do
       lambda{ [1].product(2..3) }.should raise_error(TypeError)
       ar = ArraySpecs::ArrayConvertable.new(2,3)
@@ -17,6 +17,10 @@ describe "Array#product" do
 
     it "has no required argument" do
       [1,2].product.should == [[1],[2]]
+    end
+
+    it "returns an empty array when the argument is an empty array" do
+      [1, 2].product([]).should == []
     end
   end
 end

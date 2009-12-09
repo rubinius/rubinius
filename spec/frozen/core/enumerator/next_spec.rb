@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-ruby_version_is "1.9" do  
+# TODO: enable for 1.8.7 as well
+ruby_version_is "1.9" do
   require File.dirname(__FILE__) + '/../../shared/enumerator/next'
   
   describe "Enumerator#next" do

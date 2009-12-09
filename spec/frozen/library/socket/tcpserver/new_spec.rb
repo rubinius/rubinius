@@ -53,4 +53,19 @@ describe "TCPServer.new" do
     # TODO: This should also accept strings like 'https', but I don't know how to
     # pick such a service port that will be able to reliably bind...
   end
+  
+  it "raises Errno::EADDRNOTAVAIL when the adress is unknown" do
+    lambda { TCPServer.new("1.2.3.4", 4000) }.should raise_error(Errno::EADDRNOTAVAIL)
+  end
+  
+  it "raises a SocketError when the host is unknown" do
+    lambda { TCPServer.new("http://asdffdsaasdfaasdfasdfgfdadsdfdsf.com", 4000) }.should raise_error(SocketError)
+  end
+
+  it "raises Errno::EADDRINUSE when address is already in use" do
+    lambda {
+      @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
+      @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
+    }.should raise_error(Errno::EADDRINUSE)
+  end
 end

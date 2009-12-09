@@ -26,5 +26,9 @@ describe "Array#combination" do
       [1,2,3].combination(0).to_a.should == [[]] # one combination of length 0
       [].combination(0).to_a.should == [[]] # one combination of length 0
     end
+    
+    it "yields a partition consisting of only singletons" do
+      [1,2,3,4].combination(1).to_a.should == [[1],[2],[3],[4]]
+    end
   end
 end

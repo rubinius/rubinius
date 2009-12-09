@@ -23,12 +23,17 @@ describe :rational_modulo, :shared => true do
   end
 
   it "raises ZeroDivisionError on zero denominator" do
-    lambda { Rational(3, 5).send(@method, Rational(0, 1)) }.should 
-      raise_error(ZeroDivisionError)
-    lambda { Rational(0, 1).send(@method, Rational(0, 1)) }.should 
-      raise_error(ZeroDivisionError)
-    lambda { Rational(3, 5).send(@method, 0) }.should 
-      raise_error(ZeroDivisionError)
+    lambda {
+      Rational(3, 5).send(@method, Rational(0, 1))
+    }.should raise_error(ZeroDivisionError)
+
+    lambda {
+      Rational(0, 1).send(@method, Rational(0, 1))
+    }.should raise_error(ZeroDivisionError)
+
+    lambda {
+      Rational(3, 5).send(@method, 0)
+    }.should raise_error(ZeroDivisionError)
   end
 
   ruby_version_is ""..."1.9" do
@@ -39,8 +44,9 @@ describe :rational_modulo, :shared => true do
 
   ruby_version_is "1.9" do
     it "raises a ZeroDivisionError when the argument is 0.0" do
-      lambda { Rational(3, 5).send(@method, 0.0) }.should 
-        raise_error(ZeroDivisionError)
+      lambda {
+        Rational(3, 5).send(@method, 0.0)
+      }.should raise_error(ZeroDivisionError)
     end
   end
 end

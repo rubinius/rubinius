@@ -8,22 +8,23 @@ describe "Matrix#square?" do
     Matrix[ [100,3,5], [9.5, 4.9, 8], [2,0,77] ].square?.should be_true
   end
 
-  # .square? should return false if the Matrix is non square. However, there
-  # is a bug whereby .square? will return true as long as the first row has
-  # the same number of columns as the Matrix has rows. Hence the awkward
-  # examples.
-  it "returns false when the Matrix is not square and the first row has a
-  different number of columns than the Matrix has rows" do
-    Matrix[ [1, 2] ].square?.should be_false
-    Matrix[ [1], [9,7], [2] ].square?.should be_false
+  it "returns true when the Matrix has only one element" do
+    Matrix[ [9] ].square?.should be_true
   end
 
-  # FIXME: Remove guard when bug is fixed.
-  ruby_bug "#1515", "1.9.1.192" do 
-    it "returns false when the Matrix is not square
-    and the first row has the same number of columns as the matrix has rows." do
-      Matrix[ [1,2,3], [4,5], [6] ].square?.should be_false 
-    end
-  end  
+  it "returns false when the Matrix is rectangular" do
+    Matrix[ [1, 2] ].square?.should be_false
+  end
 
+  it "returns false when the Matrix is rectangular" do
+    Matrix[ [1], [2] ].square?.should be_false
+  end
+
+  ruby_bug "redmine:1532", "1.8.7" do
+    it "returns handles empty matrices" do
+      Matrix[].square?.should be_true
+      Matrix[[]].square?.should be_false
+      Matrix.columns([[]]).square?.should be_false
+    end
+  end
 end  

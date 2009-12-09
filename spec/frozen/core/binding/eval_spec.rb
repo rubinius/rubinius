@@ -13,5 +13,7 @@ describe "Binding#eval" do
       bind.eval("class Inside; end")
       bind.eval("Inside.name").should == "BindingSpecs::Demo::Inside"
     end
+
+    it "needs to be completed"
   end
 end

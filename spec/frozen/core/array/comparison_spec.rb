@@ -92,4 +92,10 @@ describe "Array#<=>" do
     obj.should_not_receive(:to_ary)
     ([5, 6, 7] <=> obj).should == 0
   end
+
+  ruby_bug "redmine:2276", "1.9.1" do
+    it "returns nil when the argument is not array-like" do
+      ([] <=> false).should be_nil
+    end
+  end
 end

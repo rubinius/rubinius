@@ -24,6 +24,9 @@ describe "Struct#hash" do
       car[:make] = car
       similar_car[:make] = car
       car.hash.should == similar_car.hash
+      # This is because car.eql?(similar_car).
+      # Objects that are eql? must return the same hash.
+      # See the Struct#eql? specs
     end
   end
 

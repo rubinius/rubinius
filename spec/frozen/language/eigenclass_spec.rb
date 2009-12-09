@@ -306,3 +306,21 @@ describe "Class methods of an eigenclass" do
     end
   end
 end
+
+describe "Instantiating an eigenclass" do
+  it "raises a TypeError when new is called" do
+    x = Object.new
+    x_eigenclass = class << x; self; end
+    lambda do
+      x_eigenclass.new
+    end.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError when allocate is called" do
+    x = Object.new
+    x_eigenclass = class << x; self; end
+    lambda do
+      x_eigenclass.allocate
+    end.should raise_error(TypeError)
+  end
+end

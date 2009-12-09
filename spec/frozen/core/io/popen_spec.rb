@@ -32,6 +32,7 @@ describe "IO::popen" do
             lambda { io.read.should }.should \
               raise_error(IOError, 'not opened for reading')
           end
+          system 'sync' # sync to flush writes for File.read below
 
           File.read(tmp_file).should == 'bar'
 

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-ruby_version_is "1.9" do
+ruby_version_is "1.8.8" do
   describe "Range#cover?" do
 
     it "raises an ArgumentError without exactly one argument" do

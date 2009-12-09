@@ -9,6 +9,11 @@ describe "Matrix.diagonal" do
   it "returns an object of type Matrix" do
     @m.class.should == Matrix
   end
+
+  it "returns a square Matrix of the right size" do
+    @m.column_size.should == 5
+    @m.row_size.should == 5
+  end
   
   it "sets the diagonal to the arguments" do
     (0..4).each do |i|

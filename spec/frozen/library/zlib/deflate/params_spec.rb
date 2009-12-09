@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 require 'zlib'
 
 describe 'Zlib::Deflate#params' do
-  ruby_bug '293', '1.9.0' do
+  ruby_bug '239', '1.9.0' do
   it 'changes the deflate parameters' do
     data = 'abcdefghijklm'
 

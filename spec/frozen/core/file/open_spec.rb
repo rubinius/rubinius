@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/shared/open'
 
 describe "File.open" do
   before :all do
@@ -153,8 +154,9 @@ describe "File.open" do
   end
 
   it "opens the file when call with fd" do
-    @fh = File.open(@file)
-    @fh = File.open(@fh.fileno)
+    # store in an ivar so it doesn't GC before we go to close it in 'after'
+    @fh_orig = File.open(@file)
+    @fh = File.open(@fh_orig.fileno)
     @fh.should be_kind_of(File)
     File.exist?(@file).should == true
   end
@@ -542,4 +544,6 @@ describe "File.open" do
   it "raises an ArgumentError if passed an invalid string for mode" do
     lambda { File.open(@file, 'fake') }.should raise_error(ArgumentError)
   end
+  
+  it_behaves_like :open_directory, :open
 end

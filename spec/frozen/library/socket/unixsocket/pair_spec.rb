@@ -1,8 +1,11 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../fixtures/classes'
+require File.dirname(__FILE__) + '/../shared/partially_closable_sockets'
 
 describe "UNIXSocket#pair" do
   platform_is_not :windows do
+
+    it_should_behave_like "partially closable sockets"
 
     before :each do
       @s1, @s2 = UNIXSocket.pair

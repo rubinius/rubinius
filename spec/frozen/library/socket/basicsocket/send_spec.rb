@@ -16,16 +16,22 @@ describe "BasicSocket#send" do
   end
 
    it "sends a message to another socket and returns the number of bytes sent" do
-     data = nil
+     data = ""
      t = Thread.new do
        client = @server.accept
-       data = client.recv(5)
+       loop do
+         got = client.recv(5)
+         break if got.empty?
+         data << got
+       end
        client.close
      end
      Thread.pass while t.status and t.status != "sleep"
      t.status.should_not be_nil
 
      @socket.send('hello', 0).should == 5
+     @socket.shutdown(1) # indicate, that we are done sending
+     @socket.recv(10)
 
      t.join
      data.should == 'hello'
@@ -38,12 +44,14 @@ describe "BasicSocket#send" do
        client = @server.accept
        peek_data = client.recv(6, Socket::MSG_PEEK)
        data = client.recv(6)
+       client.recv(10) # this recv is important
        client.close
      end
      Thread.pass while t.status and t.status != "sleep"
      t.status.should_not be_nil
 
      @socket.send('helloU', Socket::MSG_PEEK | Socket::MSG_OOB).should == 6
+     @socket.shutdown # indicate, that we are done sending
 
      t.join
      peek_data.should == "hello"
@@ -51,10 +59,14 @@ describe "BasicSocket#send" do
    end
 
   it "accepts a sockaddr as recipient address" do
-     data = nil
+     data = ""
      t = Thread.new do
        client = @server.accept
-       data = client.recv(5)
+       loop do
+         got = client.recv(5)
+         break if got.empty?
+         data << got
+       end
        client.close
      end
      Thread.pass while t.status and t.status != "sleep"
@@ -62,6 +74,7 @@ describe "BasicSocket#send" do
 
      sockaddr = Socket.pack_sockaddr_in(SocketSpecs.port, "127.0.0.1")
      @socket.send('hello', 0, sockaddr).should == 5
+     @socket.shutdown # indicate, that we are done sending
 
      t.join
      data.should == 'hello'

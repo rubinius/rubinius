@@ -93,7 +93,7 @@ ruby_version_is "1.9" do
 
   describe "Random#rand with Bignum" do
     it "returns a Bignum" do
-      Random.new.rand(bignum_value).should be_an_instance_of(Bignum)
+      Random.new(1).rand(bignum_value).should be_an_instance_of(Bignum)
     end
 
     it "returns a Bignum greater than or equal to 0" do

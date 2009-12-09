@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/shared/enumeratorize'
 
 describe "Array#reject" do
   it "returns a new array without elements for which block is true" do
@@ -34,17 +35,7 @@ describe "Array#reject" do
     end
   end
   
-  ruby_version_is '' ... '1.8.7' do
-    it 'raises a LocalJumpError if no block given' do
-      lambda{ [1,2].reject }.should raise_error(LocalJumpError)
-    end
-  end
-  ruby_version_is '1.8.7' do
-    it 'returns an Enumerator if no block given' do
-      [1,2].reject.should be_kind_of(enumerator_class)
-    end
-  end
-  
+  it_behaves_like :enumeratorize, :reject 
 end
 
 describe "Array#reject!" do
@@ -105,15 +96,5 @@ describe "Array#reject!" do
     end
   end
   
-  ruby_version_is '' ... '1.8.7' do
-    it 'raises a LocalJumpError if no block given' do
-      lambda{ [1,2].reject! }.should raise_error(LocalJumpError)
-    end
-  end
-  ruby_version_is '1.8.7' do
-    it 'returns an Enumerator if no block given' do
-      [1,2].reject!.should be_kind_of(enumerator_class)
-    end
-  end
-  
+  it_behaves_like :enumeratorize, :reject!
 end

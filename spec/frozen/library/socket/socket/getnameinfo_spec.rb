@@ -28,7 +28,9 @@ describe "Socket#getnameinfo" do
   it "gets the name information and resolves the service" do
     sockaddr = Socket.sockaddr_in 80, '127.0.0.1'
     name_info = Socket.getnameinfo(sockaddr)
-    name_info.should == ["localhost", "http"]
+    name_info.size.should == 2
+    name_info[0].should == "localhost"
+    # see http://www.iana.org/assignments/port-numbers
+    name_info[1].should =~ /^(www|http|www-http)$/
   end
 end
-

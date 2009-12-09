@@ -78,4 +78,19 @@ describe "StringIO#initialize_copy" do
     @io.send(:initialize_copy, orig_io)
     @io.string.should == "not truncated"
   end
+
+  it "makes both StringIO objects to share position, eof status" do
+    @io.send(:initialize_copy, @orig_io)
+    @orig_io.pos.should == 0
+    @io.getc
+    @io.pos.should == 1
+    @orig_io.pos.should == 1
+    @orig_io.read(1).should == "r"
+    @io.read(1).should == "i"
+    @orig_io.pos.should == 3
+    @orig_io.pos.should == 3
+    @io.gets(nil)
+    @io.eof?.should == true
+    @orig_io.eof?.should == true
+  end
 end

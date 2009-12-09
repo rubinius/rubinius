@@ -31,7 +31,7 @@ module MethodSpecs
       true
     end
 
-    def respond_to_missing? method
+    def respond_to_missing? method, bool
       [:handled_via_method_missing, :also_handled].include? method
     end
 

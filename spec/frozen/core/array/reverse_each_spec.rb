@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/shared/enumeratorize'
 
 # Modifying a collection while the contents are being iterated
 # gives undefined behavior. See
@@ -32,15 +33,5 @@ describe "Array#reverse_each" do
     ScratchPad.recorded.should == [array, array, array, array, array, 3.0, 'two', 1]
   end
 
-  ruby_version_is '' ... '1.8.7' do
-    it 'raises a LocalJumpError if no block given' do
-      lambda{ [1,2].reverse_each }.should raise_error(LocalJumpError)
-    end
-  end
-
-  ruby_version_is '1.8.7' do
-    it 'returns an Enumerator if no block given' do
-      [1,2].reverse_each.should be_kind_of(enumerator_class)
-    end
-  end
+  it_behaves_like :enumeratorize, :reverse_each
 end

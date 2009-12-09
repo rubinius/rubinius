@@ -25,10 +25,8 @@ describe :bignum_modulo, :shared => true do
 
   ruby_version_is "1.9" do
     it "raises a ZeroDivisionError when the given argument is 0 and a Float" do
-      lambda { @bignum.send(@method, 0.0) }.should 
-        raise_error(ZeroDivisionError) 
-      lambda { -@bignum.send(@method, 0.0) }.should 
-        raise_error(ZeroDivisionError) 
+      lambda { @bignum.send(@method, 0.0) }.should raise_error(ZeroDivisionError)
+      lambda { -@bignum.send(@method, 0.0) }.should raise_error(ZeroDivisionError)
     end
   end
 

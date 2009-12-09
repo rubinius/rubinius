@@ -33,18 +33,33 @@ describe "Enumerable#max" do
     @e_ints.max.should == 1010101010
   end
 
-  it "return an error when introduce the wrong kind or number of parameters " do
-    # error cases
-    EnumerableSpecs::EachDefiner.new().max.should == nil
-    lambda {
-      EnumerableSpecs::EachDefiner.new(Object.new, Object.new).max
-    }.should raise_error(NoMethodError)
-    lambda {
+  it "returns nil for an empty Enumerable " do
+    EnumerableSpecs::EachDefiner.new.max.should == nil
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "raises a NoMethodError for elements without #<=>" do
+      lambda do
+        EnumerableSpecs::EachDefiner.new(Object.new, Object.new).max
+      end.should raise_error(NoMethodError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a NoMethodError for elements without #<=>" do
+      lambda do
+        EnumerableSpecs::EachDefiner.new(BasicObject.new, BasicObject.new).max
+      end.should raise_error(NoMethodError)
+    end
+  end
+
+  it "raises an ArgumentError for incomparable elements" do
+    lambda do
       EnumerableSpecs::EachDefiner.new(11,"22").max
-    }.should raise_error(ArgumentError)
-    lambda {
+    end.should raise_error(ArgumentError)
+    lambda do
       EnumerableSpecs::EachDefiner.new(11,12,22,33).max{|a, b| nil}
-    }.should raise_error(ArgumentError)
+    end.should raise_error(ArgumentError)
   end
 
   it "return the maximum element (with block" do

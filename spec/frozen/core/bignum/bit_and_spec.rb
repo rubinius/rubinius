@@ -27,8 +27,9 @@ describe "Bignum#&" do
   ruby_version_is "1.9" do
     it "raises a TypeError when passed a Float" do
       lambda { (@bignum & 3.4) }.should raise_error(TypeError)
-      lambda {(bignum_value & bignum_value(0xffff).to_f)}.should 
-        raise_error(TypeError)
+      lambda {
+        (bignum_value & bignum_value(0xffff).to_f)
+      }.should raise_error(TypeError)
     end
   end
 

@@ -20,9 +20,9 @@ describe "Matrix#-" do
   end
 
   it "raises a ExceptionForMatrix::ErrOperationNotDefined if other is a Numeric Type" do
-    lambda { @a - 2            }.should raise_error(ExceptionForMatrix::ErrOperationNotDefined)
-    lambda { @a - 1.2          }.should raise_error(ExceptionForMatrix::ErrOperationNotDefined)
-    lambda { @a - bignum_value }.should raise_error(ExceptionForMatrix::ErrOperationNotDefined)
+    lambda { @a - 2            }.should raise_error(Matrix::ErrOperationNotDefined)
+    lambda { @a - 1.2          }.should raise_error(Matrix::ErrOperationNotDefined)
+    lambda { @a - bignum_value }.should raise_error(Matrix::ErrOperationNotDefined)
   end
 
   it "raises an exception if other is not a Matrix" do

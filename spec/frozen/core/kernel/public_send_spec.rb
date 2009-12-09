@@ -40,8 +40,9 @@ ruby_version_is "1.9" do
           'done2'
         end
       end
-      lambda { KernelSpecs::Foo.new.public_send(:bar) }.should 
-        raise_error(NoMethodError)
+      lambda {
+        KernelSpecs::Foo.new.public_send(:bar)
+      }.should raise_error(NoMethodError)
     end
 
     it "raises a NoMethodError if the named method is an alias of a private method" do
@@ -52,8 +53,9 @@ ruby_version_is "1.9" do
           'done2'
         end
       end
-      lambda { KernelSpecs::Foo.new.public_send(:aka) }.should 
-        raise_error(NoMethodError)
+      lambda {
+        KernelSpecs::Foo.new.public_send(:aka)
+      }.should raise_error(NoMethodError)
     end
 
     it "raises a NoMethodError if the named method is an alias of a protected method" do
@@ -64,8 +66,9 @@ ruby_version_is "1.9" do
           'done2'
         end
       end
-      lambda { KernelSpecs::Foo.new.public_send(:aka) }.should 
-        raise_error(NoMethodError)
+      lambda {
+        KernelSpecs::Foo.new.public_send(:aka)
+      }.should raise_error(NoMethodError)
     end
 
   it_behaves_like(:kernel_send, :public_send)

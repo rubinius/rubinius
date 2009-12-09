@@ -5,6 +5,16 @@ describe "Mutex#try_lock" do
   it "returns true if lock can be aquired immediately" do
     m = Mutex.new
     m.try_lock.should be_true
+    m.try_lock.should be_false
+  end
+
+  it "actually locks" do
+    m = Mutex.new
+    m.try_lock
+
+    m.locked?.should be_true
+    lambda { m.lock }.should raise_error(ThreadError)
+    lambda { m.try_lock }.should_not raise_error(ThreadError)
   end
 
   it "returns false if lock can not be aquired immediately" do

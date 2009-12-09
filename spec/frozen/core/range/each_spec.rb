@@ -35,7 +35,7 @@ describe "Range#each" do
     lambda { (0.5..2.4).each { |i| i } }.should raise_error(TypeError)
 
     b = mock('x')
-    (a = mock('1')).should_receive(:method_missing).with(:<=>, b).and_return(1)
+    (a = mock('1')).should_receive(:<=>).with(b).and_return(1)
 
     lambda { (a..b).each { |i| i } }.should raise_error(TypeError)
   end

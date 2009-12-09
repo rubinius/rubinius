@@ -38,8 +38,10 @@ describe :time_params, :shared => true do
       platform_is :wordsize => 64 do
         darwin = false
         platform_is :darwin do
-          darwin = true
-          lambda { Time.send(@method, 1900, 12, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
+          not_compliant_on :jruby do # JRuby exhibits platform-independent behavior
+            darwin = true
+            lambda { Time.send(@method, 1900, 12, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
+          end
         end
 
         unless darwin

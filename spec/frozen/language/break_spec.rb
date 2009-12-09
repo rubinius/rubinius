@@ -133,8 +133,7 @@ describe "Executing break from within a block" do
 
     bt2 = BreakTest2.new
     bt2.three
-    ScratchPad.recorded.include? :three_post
-    ScratchPad.recorded.count(:three_ensure).should == 1
+    ScratchPad.recorded.should == [:two_ensure, :three_post, :three_ensure]
   end
 end
 

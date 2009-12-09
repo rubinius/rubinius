@@ -270,9 +270,242 @@ describe "Integer() given a String", :shared => true do
   end
 end
 
+describe "Integer() given a String and base", :shared => true do
+  it "raises an ArgumentError if the String is a null byte" do
+    lambda { Integer("\0", 2) }.should raise_error(ArgumentError)
+  end
+
+  it "raises an ArgumentError if the String starts with a null byte" do
+    lambda { Integer("\01", 3) }.should raise_error(ArgumentError)
+  end
+
+  it "raises an ArgumentError if the String ends with a null byte" do
+    lambda { Integer("1\0", 4) }.should raise_error(ArgumentError)
+  end
+
+  it "raises an ArgumentError if the String contains a null byte" do
+    lambda { Integer("1\01", 5) }.should raise_error(ArgumentError)
+  end
+
+  it "ignores leading whitespace" do
+    Integer(" 16", 16).should == 22
+    Integer("   16", 16).should == 22
+  end
+
+  it "ignores trailing whitespace" do
+    Integer("16 ", 16).should == 22
+    Integer("16   ", 16).should == 22
+  end
+
+  it "raises an ArgumentError if there are leading _s" do
+    lambda { Integer("_1", 7) }.should raise_error(ArgumentError)
+    lambda { Integer("___1", 7) }.should raise_error(ArgumentError)
+  end
+
+  it "raises an ArgumentError if there are trailing _s" do
+    lambda { Integer("1_", 12) }.should raise_error(ArgumentError)
+    lambda { Integer("1___", 12) }.should raise_error(ArgumentError)
+  end
+
+  it "ignores an embedded _" do
+    Integer("1_1", 4).should == 5
+  end
+
+  it "raises an ArgumentError if there are multiple embedded _s" do
+    lambda { Integer("1__1", 4) }.should raise_error(ArgumentError)
+    lambda { Integer("1___1", 4) }.should raise_error(ArgumentError)
+  end
+
+  it "ignores a single leading +" do
+    Integer("+10", 3).should == 3
+  end
+
+  it "raises an ArgumentError if there is a space between the + and number" do
+    lambda { Integer("+ 1", 3) }.should raise_error(ArgumentError)
+  end
+
+  it "raises an ArgumentError if there are multiple leading +s" do
+    lambda { Integer("++1", 3) }.should raise_error(ArgumentError)
+    lambda { Integer("+++1", 3) }.should raise_error(ArgumentError)
+  end
+
+  it "raises an ArgumentError if there are trailing +s" do
+    lambda { Integer("1+", 3) }.should raise_error(ArgumentError)
+    lambda { Integer("1+++", 12) }.should raise_error(ArgumentError)
+  end
+
+  it "makes the number negative if there's a leading -" do
+    Integer("-19", 20).should == -29
+  end
+
+  it "raises an ArgumentError if there are multiple leading -s" do
+    lambda { Integer("--1", 9) }.should raise_error(ArgumentError)
+    lambda { Integer("---1", 9) }.should raise_error(ArgumentError)
+  end
+
+  it "raises an ArgumentError if there are trailing -s" do
+    lambda { Integer("1-", 12) }.should raise_error(ArgumentError)
+    lambda { Integer("1---", 12) }.should raise_error(ArgumentError)
+  end
+
+  it "raises an ArgumentError if there is a period" do
+    lambda { Integer("0.0", 3) }.should raise_error(ArgumentError)
+  end
+
+  it "raises an ArgumentError for an empty String" do
+    lambda { Integer("", 12) }.should raise_error(ArgumentError)
+  end
+
+  it "raises an ArgumentError for a base of 1" do
+    lambda { Integer("1", 1) }.should raise_error(ArgumentError)
+  end
+
+  it "raises an ArgumentError for a base of 37" do
+    lambda { Integer("1", 37) }.should raise_error(ArgumentError)
+  end
+
+  it "accepts wholly lowercase alphabetic strings for bases > 10" do
+    Integer('ab',12).should == 131
+    Integer('af',20).should == 215
+    Integer('ghj',30).should == 14929
+  end
+
+  it "accepts wholly uppercase alphabetic strings for bases > 10" do
+    Integer('AB',12).should == 131
+    Integer('AF',20).should == 215
+    Integer('GHJ',30).should == 14929
+  end
+
+  it "accepts mixed-case alphabetic strings for bases > 10" do
+    Integer('Ab',12).should == 131
+    Integer('aF',20).should == 215
+    Integer('GhJ',30).should == 14929
+  end
+
+  it "accepts alphanumeric strings for bases > 10" do
+    Integer('a3e',19).should == 3681
+    Integer('12q',31).should == 1049
+    Integer('c00o',29).should == 292692
+  end
+
+  it "raises an ArgumentError for letters invalid in the given base" do
+    lambda { Integer('z',19) }.should raise_error(ArgumentError)
+    lambda { Integer('c00o',2) }.should raise_error(ArgumentError)
+  end
+
+  %w(x X).each do |x|
+    it "parses the value as a hex number if there's a leading 0#{x} and a base of 16" do
+      Integer("0#{x}10", 16).should == 16
+      Integer("0#{x}dd", 16).should == 221
+    end
+
+    it "is a positive hex number if there's a leading +0#{x} and base of 16" do
+      Integer("+0#{x}1", 16).should == 0x1
+      Integer("+0#{x}dd", 16).should == 0xdd
+    end
+
+    it "is a negative hex number if there's a leading -0#{x} and a base of 16" do
+      Integer("-0#{x}1", 16).should == -0x1
+      Integer("-0#{x}dd", 16).should == -0xdd
+    end
+
+    2.upto(15) do |base|
+      it "raises an ArgumentError if the number begins with 0#{x} and the base is #{base}" do
+        lambda { Integer("0#{x}1", base) }.should raise_error(ArgumentError)
+      end
+    end
+
+    it "raises an ArgumentError if the number cannot be parsed as hex and the base is 16" do
+      lambda { Integer("0#{x}g", 16) }.should raise_error(ArgumentError)
+    end
+  end
+
+  %w(b B).each do |b|
+    it "parses the value as a binary number if there's a leading 0#{b} and the base is 2" do
+      Integer("0#{b}1", 2).should == 0b1
+      Integer("0#{b}10", 2).should == 0b10
+    end
+
+    it "is a positive binary number if there's a leading +0#{b} and a base of 2" do
+      Integer("+0#{b}1", 2).should == 0b1
+      Integer("+0#{b}10", 2).should == 0b10
+    end
+
+    it "is a negative binary number if there's a leading -0#{b} and a base of 2" do
+      Integer("-0#{b}1", 2).should == -0b1
+      Integer("-0#{b}10", 2).should == -0b10
+    end
+
+    it "raises an ArgumentError if the number cannot be parsed as binary and the base is 2" do
+      lambda { Integer("0#{b}2", 2) }.should raise_error(ArgumentError)
+    end
+  end
+
+  ["o", "O"].each do |o|
+    it "parses the value as an octal number if there's a leading 0#{o} and a base of 8" do
+      Integer("0#{o}1", 8).should == 0O1
+      Integer("0#{o}10", 8).should == 0O10
+    end
+
+    it "is a positive octal number if there's a leading +0#{o} and a base of 8" do
+      Integer("+0#{o}1", 8).should == 0O1
+      Integer("+0#{o}10", 8).should == 0O10
+    end
+
+    it "is a negative octal number if there's a leading -0#{o} and a base of 8" do
+      Integer("-0#{o}1", 8).should == -0O1
+      Integer("-0#{o}10", 8).should == -0O10
+    end
+
+    it "raises an ArgumentError if the number cannot be parsed as octal and the base is 8" do
+      lambda { Integer("0#{o}9", 8) }.should raise_error(ArgumentError)
+    end
+
+    2.upto(7) do |base|
+      it "raises an ArgumentError if the number begins with 0#{o} and the base is #{base}" do
+        lambda { Integer("0#{o}1", base) }.should raise_error(ArgumentError)
+      end
+    end
+  end
+
+  %w(D d).each do |d|
+    it "parses the value as a decimal number if there's a leading 0#{d} and a base of 10" do
+      Integer("0#{d}1", 10).should == 1
+      Integer("0#{d}10",10).should == 10
+    end
+
+    it "is a positive decimal number if there's a leading +0#{d} and a base of 10" do
+      Integer("+0#{d}1", 10).should == 1
+      Integer("+0#{d}10", 10).should == 10
+    end
+
+    it "is a negative decimal number if there's a leading -0#{d} and a base of 10" do
+      Integer("-0#{d}1", 10).should == -1
+      Integer("-0#{d}10", 10).should == -10
+    end
+
+    it "raises an ArgumentError if the number cannot be parsed as decimal and the base is 10" do
+      lambda { Integer("0#{d}a", 10) }.should raise_error(ArgumentError)
+    end
+
+    2.upto(9) do |base|
+      it "raises an ArgumentError if the number begins with 0#{d} and the base is #{base}" do
+        lambda { Integer("0#{d}1", base) }.should raise_error(ArgumentError)
+      end
+    end
+
+    it "raises an ArgumentError if a base is given for a non-String value" do
+      lambda { Integer(98, 15) }.should raise_error(ArgumentError)
+    end
+  end
+end
+
 describe "Kernel.Integer" do
   it_behaves_like :kernel_integer, :Integer, Kernel
   it_behaves_like "Integer() given a String", :Integer
+  ruby_version_is "1.9" do
+    it_behaves_like "Integer() given a String and base", :Integer
+  end
 
   it "is a public method" do
     Kernel.Integer(10).should == 10
@@ -282,6 +515,9 @@ end
 describe "Kernel#Integer" do
   it_behaves_like :kernel_integer, :Integer, Object.new
   it_behaves_like "Integer() given a String", :Integer
+  ruby_version_is "1.9" do
+    it_behaves_like "Integer() given a String and base", :Integer
+  end
 
   it "is a private method" do
     Kernel.should have_private_instance_method(:Integer)

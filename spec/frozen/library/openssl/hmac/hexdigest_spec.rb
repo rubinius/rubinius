@@ -3,7 +3,6 @@ require File.dirname(__FILE__) + '/../shared/constants'
 require 'openssl'
 
 describe "OpenSSL::HMAC.hexdigest" do
-  include HMACConstants
   it 'returns an SHA1 hex digest' do
     cur_digest = OpenSSL::Digest::Digest.new('SHA1')
     cur_digest.hexdigest.should == HMACConstants::BlankSHA1HexDigest

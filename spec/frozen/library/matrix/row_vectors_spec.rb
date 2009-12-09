@@ -19,11 +19,8 @@ describe "Matrix#row_vectors" do
     @vectors.should == [Vector[1,2], Vector[3,4]]
   end
 
-  # Matrix[[]].row_vectors == [], Matrix[[]].column_vectors == [Vector[]].
-  # Whatever the correct output, they should at least be consistent.
-  ruby_bug "#1526", "1.9.1.129" do
-    it "returns an empty Array for empty matrices" do
-      Matrix[ [] ].row_vectors.should == []
-    end
+  it "returns an empty Array for empty matrices" do
+    Matrix[].row_vectors.should == []
+    Matrix[ [] ].row_vectors.should == [ Vector[] ]
   end
 end

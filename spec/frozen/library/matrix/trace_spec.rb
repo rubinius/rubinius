@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/shared/trace'
 require 'matrix'
 
 describe "Matrix#trace" do
-  it "needs to be reviewed for spec completeness"
+  it_behaves_like(:trace, :trace)
 end

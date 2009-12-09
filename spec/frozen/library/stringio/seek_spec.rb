@@ -36,6 +36,13 @@ describe "StringIO#seek" do
     lambda { @io.seek(-5, IO::SEEK_SET) }.should raise_error(Errno::EINVAL)
   end
 
+  it "raises an Errno::EINVAL error on incorrect whence argument" do
+    lambda { @io.seek(0, 3) }.should raise_error(Errno::EINVAL)
+    lambda { @io.seek(0, -1) }.should raise_error(Errno::EINVAL)
+    lambda { @io.seek(0, 2**16) }.should raise_error(Errno::EINVAL)
+    lambda { @io.seek(0, -2**16) }.should raise_error(Errno::EINVAL)
+  end
+
   it "tries to convert the passed Object to a String using #to_int" do
     obj = mock("to_int")
     obj.should_receive(:to_int).and_return(2)

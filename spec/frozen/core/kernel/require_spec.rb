@@ -379,24 +379,40 @@ describe "Kernel#require" do
     lambda { require "nonesuch#{$$}#{Time.now.to_f}" }.should raise_error LoadError
   end
 
-  it "raises a LoadError if the file exists but can't be read" do
-    abs_path = File.expand_path(
-      File.join($require_tmp_dir, 'require_spec_dummy.rb'))
-    File.exists?(abs_path).should be_true
-    File.new(abs_path).chmod(0000)
-    lambda {require(abs_path)}.should raise_error(LoadError)
+  platform_is_not :os => [:windows, :cygwin] do # can't make file unreadable
+    it "raises a LoadError if the file exists but can't be read" do
+      abs_path = File.expand_path(File.join($require_tmp_dir, 'require_spec_dummy.rb'))
+      File.exists?(abs_path).should be_true
+      file = File.new(abs_path)
+      begin
+        file.chmod(0000)
+        lambda {require(abs_path)}.should raise_error(LoadError)
+      ensure
+        file.close
+      end
+    end
   end
 
   ruby_version_is ""..."1.9" do
-    it "only accepts strings" do
+    it "only accepts strings and objects with #to_str" do
       lambda { require(nil) }.should raise_error(TypeError)
       lambda { require(42)  }.should raise_error(TypeError)
       lambda { require([])  }.should raise_error(TypeError)
+
+      # objects with to_s are not good enough
+      o = mock('require_spec_dummy');
+      o.should_receive(:to_s).any_number_of_times.and_return("require_spec_dummy")
+      lambda { require(o) }.should raise_error(TypeError)
+
+      # objects with to_path are not good enough
+      o = mock('require_spec_dummy');
+      o.should_receive(:to_path).any_number_of_times.and_return("require_spec_dummy")
+      lambda { require(o) }.should raise_error(TypeError)
     end
   end
 
   ruby_version_is "1.9" do
-    it "only accepts strings or objects with #to_path" do
+    it "only accepts string or objects with #to_path or #to_str" do
       lambda { require(nil) }.should raise_error(TypeError)
       lambda { require(42)  }.should raise_error(TypeError)
       lambda { require([])  }.should raise_error(TypeError)
@@ -405,11 +421,50 @@ describe "Kernel#require" do
     it "calls #to_path on non-String arguments" do
       abs_path = File.expand_path(
         File.join($require_fixture_dir, 'require_spec.rb'))
-      path = mock('path')
-      path.should_receive(:to_path).and_return('require_spec')
+      path = mock('abs_path')
+      path.should_receive(:to_path).and_return(abs_path)
       require(path).should be_true
       $LOADED_FEATURES.include?(abs_path).should be_true
-    end  
+    end
+
+    it "does not call #to_path on String arguments" do
+      abs_path = File.expand_path(
+        File.join($require_fixture_dir, 'require_spec.rb'))
+
+      def abs_path.to_path
+        'blah-non-existing-path'
+      end
+      require(abs_path).should be_true
+      $LOADED_FEATURES.include?(abs_path).should be_true
+    end
+
+    it "calls #to_str on non-String objects returned by #to_path" do
+      abs_path = File.expand_path(
+        File.join($require_fixture_dir, 'require_spec.rb'))
+
+      non_string_path = mock("non_string_path")
+      non_string_path.should_receive(:to_str).and_return(abs_path)
+
+      path = mock('path')
+      path.should_receive(:to_path).and_return(non_string_path)
+
+      require(path).should be_true
+      $LOADED_FEATURES.include?(abs_path).should be_true
+    end
+  end
+
+  it "calls #to_str on non-String arguments" do
+    abs_path = File.expand_path(
+        File.join($require_fixture_dir, 'require_spec.rb'))
+    o = mock('require_spec');
+    o.should_receive(:to_str).and_return(abs_path)
+    $LOADED_FEATURES.include?(abs_path).should be_false
+    require(o).should be_true
+    $LOADED_FEATURES.include?(abs_path).should be_true
+
+    nil_mock = mock('nil')
+    nil_mock.should_receive(:to_str).at_least(1).and_return(nil)
+    lambda { require(nil_mock) }.should raise_error(TypeError)
   end
 
   it "does not infinite loop on an rb file that requires itself" do

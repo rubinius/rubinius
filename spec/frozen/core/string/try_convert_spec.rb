@@ -15,7 +15,7 @@ describe "String.try_convert" do
       String.try_convert(obj).should equal(str)
     end
     
-    it "returns nil when there is no :to_ary" do
+    it "returns nil when there is no :to_str" do
       String.try_convert(-1).should be_nil
     end
     

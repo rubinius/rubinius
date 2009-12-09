@@ -301,16 +301,13 @@ describe "Marshal::load" do
   end
   
   it "raises EOFError on loading an empty file" do
-    temp_file = tmp("marshal.rubinius.tmp.#{Process.pid}")
+    temp_file = tmp("marshal.rubyspec.tmp.#{Process.pid}")
     file = File.new(temp_file, "w+")
     begin
-      # TODO: This should be in an ensure block, but because of a bug in
-      # Rubinius that can't be done yet.
-      File.unlink(temp_file)
-
       lambda { Marshal.load(file) }.should raise_error(EOFError)
     ensure
       file.close
+      File.unlink(temp_file)
     end
   end
 

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-ruby_version_is "1.9" do  
+ruby_version_is "1.9" do
   describe "Enumerator#peek" do
     before(:each) do
       @e = (1..5).to_a.to_enum

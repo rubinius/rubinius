@@ -12,8 +12,6 @@ describe "Process.wait" do
   platform_is_not :windows do
     it "returns its childs pid" do
       pid = Process.fork { Process.exit! }
-      pid.should > 0
-      pid.should_not == Process.pid
       Process.wait.should == pid
     end
 
@@ -26,19 +24,13 @@ describe "Process.wait" do
 
     it "waits for any child process if no pid is given" do
       pid = Process.fork { Process.exit! }
-      pid.should > 0
-      pid.should_not == Process.pid
       Process.wait.should == pid
       lambda { Process.kill(0, pid) }.should raise_error(Errno::ESRCH)
     end
 
     it "waits for a specific child if a pid is given" do
       pid1 = Process.fork { Process.exit! }
-      pid1.should > 0
-      pid1.should_not == Process.pid
       pid2 = Process.fork { Process.exit! }
-      pid2.should > 0
-      pid2.should_not == Process.pid
       Process.wait(pid2).should == pid2
       Process.wait(pid1).should == pid1
       lambda { Process.kill(0, pid1) }.should raise_error(Errno::ESRCH)
@@ -80,9 +72,6 @@ describe "Process.wait" do
         10.times { sleep(1) }
         Process.exit!
       end
-
-      pid.should > 0
-      pid.should_not == Process.pid
       Process.wait(pid, Process::WNOHANG).should == nil
 
       # sleep slightly to allow the child to at least start up and
@@ -94,8 +83,6 @@ describe "Process.wait" do
 
     it "always accepts flags=0" do
       pid = Process.fork { Process.exit! }
-      pid.should > 0
-      pid.should_not == Process.pid
       Process.wait(-1, 0).should == pid
       lambda { Process.kill(0, pid) }.should raise_error(Errno::ESRCH)
     end

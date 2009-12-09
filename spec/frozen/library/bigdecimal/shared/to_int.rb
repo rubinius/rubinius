@@ -1,9 +1,11 @@
 require 'bigdecimal'
 
 describe :bigdecimal_to_int , :shared => true do
-  it "returns nil if BigDecimal is infinity or NaN" do
-    BigDecimal("Infinity").send(@method).should == nil
-    BigDecimal("NaN").send(@method).should == nil
+  ruby_bug "fixed_in_ruby_1_8_7@25799", "1.8.7.202" do
+    it "returns nil if BigDecimal is infinity or NaN" do
+      BigDecimal("Infinity").send(@method).should == nil
+      BigDecimal("NaN").send(@method).should == nil
+    end
   end
 
   it "returns Integer or Bignum otherwise" do

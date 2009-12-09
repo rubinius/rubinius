@@ -99,6 +99,13 @@ describe "Module#module_function with specific method names" do
     o.should_receive(:to_str).and_return(123)
     lambda { Module.new { module_function(o) } }.should raise_error(TypeError)
   end
+
+  it "can make accessible private methods" do # JRUBY-4214
+    m = Module.new do
+      module_function :require
+    end
+    m.respond_to?(:require).should be_true 
+  end
 end
 
 describe "Module#module_function as a toggle (no arguments) in a Module body" do

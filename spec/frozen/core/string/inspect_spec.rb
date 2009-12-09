@@ -10,8 +10,12 @@ describe "String#inspect" do
     end
   end
   ruby_version_is "1.9" do
-    it "returns a string with nonprinting charaters replaced by \\x notation" do
+    it "returns a string with nonprinting characters replaced by \\x notation" do
       ("\000".."A").to_a.join('').should == "\x00\x01\x02\x03\x04\x05\x06\a\b\t\n\v\f\r\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\e\x1C\x1D\x1E\x1F !\"\#$%&'()*+,-./0123456789:;<=>?@A"
+    end
+
+    it "returns a string with nonprinting, non-ASCII characters replaced by \\u notation for Unicode strings" do
+      (127..150).map{|o| o.chr('utf-8')}.to_a.join('').inspect.should == "\"\\u007F\\u0080\\u0081\\u0082\\u0083\\u0084\\u0085\\u0086\\u0087\\u0088\\u0089\\u008A\\u008B\\u008C\\u008D\\u008E\\u008F\\u0090\\u0091\\u0092\\u0093\\u0094\\u0095\\u0096\""
     end
   end
 

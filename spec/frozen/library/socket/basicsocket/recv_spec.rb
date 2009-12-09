@@ -17,6 +17,7 @@ describe "BasicSocket#recv" do
     t = Thread.new do
       client = @server.accept
       data = client.recv(10)
+      client.recv(1) # this recv is important
       client.close
     end
     Thread.pass while t.status and t.status != "sleep"
@@ -35,6 +36,7 @@ describe "BasicSocket#recv" do
     t = Thread.new do
       client = @server.accept
       data = client.recv(10)    # in-band data (TCP), doesn't receive the flag.
+      client.recv(10)           # this recv is important
       client.close
     end
     Thread.pass while t.status and t.status != "sleep"
@@ -42,7 +44,9 @@ describe "BasicSocket#recv" do
     
     socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     socket.send('helloU', Socket::MSG_OOB)
+    socket.shutdown(1)
     t.join
+    socket.close
     data.should == 'hello'
   end
 end

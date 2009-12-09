@@ -1470,9 +1470,15 @@ describe "Array#pack with format 'l!'" do
   end
   platform_is :wordsize => 64 do
     # TODO: Is there anything other LLP64 platform which ruby can run on?
-    platform_is :os => :mswin do 
-      big_endian    { it_behaves_like "Array#pack with integer format (32bit, big endian)", 'l!'    }
-      little_endian { it_behaves_like "Array#pack with integer format (32bit, little endian)", 'l!' }
+    platform_is :os => :mswin do
+      not_compliant_on :jruby do
+        big_endian    { it_behaves_like "Array#pack with integer format (32bit, big endian)", 'l!'    }
+        little_endian { it_behaves_like "Array#pack with integer format (32bit, little endian)", 'l!' }
+      end
+      deviates_on :jruby do
+        big_endian    { it_behaves_like "Array#pack with integer format (64bit, big endian)", 'l!'    }
+        little_endian { it_behaves_like "Array#pack with integer format (64bit, little endian)", 'l!' }
+      end
     end
     platform_is_not :os => :mswin do
       big_endian    { it_behaves_like "Array#pack with integer format (64bit, big endian)", 'l!'    }
@@ -1487,9 +1493,15 @@ describe "Array#pack with format 'l_'" do
   end
   platform_is :wordsize => 64 do
     # TODO: Is there anything other LLP64 platform which ruby can run on?
-    platform_is :os => :mswin do 
-      big_endian    { it_behaves_like "Array#pack with integer format (32bit, big endian)", 'l_'    }
-      little_endian { it_behaves_like "Array#pack with integer format (32bit, little endian)", 'l_' }
+    platform_is :os => :mswin do
+      not_compliant_on :jruby do
+        big_endian    { it_behaves_like "Array#pack with integer format (32bit, big endian)", 'l_'    }
+        little_endian { it_behaves_like "Array#pack with integer format (32bit, little endian)", 'l_' }
+      end
+      deviates_on :jruby do
+        big_endian    { it_behaves_like "Array#pack with integer format (64bit, big endian)", 'l_'    }
+        little_endian { it_behaves_like "Array#pack with integer format (64bit, little endian)", 'l_' }
+      end
     end
     platform_is_not :os => :mswin do
       big_endian    { it_behaves_like "Array#pack with integer format (64bit, big endian)", 'l_'    }
@@ -1506,9 +1518,17 @@ describe "Array#pack with format 'L!'" do
   end
   platform_is :wordsize => 64 do
     # TODO: Is there anything other LLP64 platform which ruby can run on?
-    platform_is :os => :mswin do 
-      big_endian    { it_behaves_like "Array#pack with integer format (32bit, big endian)", 'L!'    }
-      little_endian { it_behaves_like "Array#pack with integer format (32bit, little endian)", 'L!' }
+    platform_is :os => :mswin do
+      not_compliant_on :jruby do
+        # I'm not sure that this is sensible behavior for MRI,
+        # being 64bit but treating long as 32 bit, and only on Windows.
+        big_endian    { it_behaves_like "Array#pack with integer format (32bit, big endian)", 'L!'    }
+        little_endian { it_behaves_like "Array#pack with integer format (32bit, little endian)", 'L!' }
+      end
+      deviates_on :jruby do
+        big_endian    { it_behaves_like "Array#pack with integer format (64bit, big endian)", 'L!'    }
+        little_endian { it_behaves_like "Array#pack with integer format (64bit, little endian)", 'L!' }
+      end
     end
     platform_is_not :os => :mswin do
       big_endian    { it_behaves_like "Array#pack with integer format (64bit, big endian)", 'L!'    }
@@ -1523,9 +1543,15 @@ describe "Array#pack with format 'L_'" do
   end
   platform_is :wordsize => 64 do
     # TODO: Is there anything other LLP64 platform which ruby can run on?
-    platform_is :os => :mswin do 
-      big_endian    { it_behaves_like "Array#pack with integer format (32bit, big endian)", 'L_'    }
-      little_endian { it_behaves_like "Array#pack with integer format (32bit, little endian)", 'L_' }
+    platform_is :os => :mswin do
+      not_compliant_on :jruby do
+        big_endian    { it_behaves_like "Array#pack with integer format (32bit, big endian)", 'L_'    }
+        little_endian { it_behaves_like "Array#pack with integer format (32bit, little endian)", 'L_' }
+      end
+      deviates_on :jruby do
+        big_endian    { it_behaves_like "Array#pack with integer format (64bit, big endian)", 'L_'    }
+        little_endian { it_behaves_like "Array#pack with integer format (64bit, little endian)", 'L_' }
+      end
     end
     platform_is_not :os => :mswin do
       big_endian    { it_behaves_like "Array#pack with integer format (64bit, big endian)", 'L_'    }

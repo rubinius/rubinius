@@ -7,8 +7,10 @@ describe "Fixnum#**" do
     (2 ** 1.2).should be_close(2.2973967, TOLERANCE)
   end
 
-  it "returns a complex number when negative and raised to a fractional power" do
-    ((-8) ** (1/3)).should be_close(Complex(1, 1.73205), TOLERANCE)
-    ((-8) ** (1.0/3)).should be_close(Complex(1, 1.73205), TOLERANCE)
+  ruby_version_is '1.9' do
+    it "returns a complex number when negative and raised to a fractional power" do
+      ((-8) ** (1/3)).should be_close(Complex(1, 1.73205), TOLERANCE)
+      ((-8) ** (1.0/3)).should be_close(Complex(1, 1.73205), TOLERANCE)
+    end
   end
 end

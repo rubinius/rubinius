@@ -25,4 +25,19 @@ describe "Socket::BasicSocket#close_write" do
     @server.close_write
     @server.closed?.should be_false
   end
+
+  it "fully closes the socket if it was already closed for reading" do
+    @server.close_read
+    @server.close_write
+    @server.closed?.should be_true
+  end
+
+  it "raises IOError on closed socket" do
+    @server.close
+    lambda { @server.close_write }.should raise_error(IOError)
+  end
+
+  it "returns nil" do
+    @server.close_write.should be_nil
+  end
 end
