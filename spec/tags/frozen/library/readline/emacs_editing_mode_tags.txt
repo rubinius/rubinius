@@ -1,1 +1,2 @@
 incomplete:Readline.emacs_editing_mode needs to be reviewed for spec completeness
+fails:Readline.emacs_editing_mode returns nil

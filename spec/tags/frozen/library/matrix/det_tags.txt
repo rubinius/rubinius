@@ -1,1 +1,2 @@
 incomplete:Matrix#det needs to be reviewed for spec completeness
+fails:Matrix#det returns 1 for an empty Matrix

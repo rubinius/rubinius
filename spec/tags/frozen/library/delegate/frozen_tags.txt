@@ -1,0 +1,7 @@
+fails:SimpleDelegator when frozen is still readable
+fails:SimpleDelegator when frozen is frozen
+fails:SimpleDelegator when frozen is not writeable
+fails:SimpleDelegator when frozen creates a frozen clone
+fails:SimpleDelegator when frozen creates an unfrozen dup
+fails:SimpleDelegator when frozen causes mutative calls to raise TypeError
+fails:SimpleDelegator when frozen returns false if only the delegated object is frozen

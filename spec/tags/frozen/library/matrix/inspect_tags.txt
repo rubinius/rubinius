@@ -1,1 +1,2 @@
 incomplete:Matrix#inspect needs to be reviewed for spec completeness
+fails:Matrix#inspect returns 'Matrix.empty(...)' for empty matrices

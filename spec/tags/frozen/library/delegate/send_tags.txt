@@ -1,0 +1,3 @@
+fails:SimpleDelegator.new forwards public method calls
+fails:SimpleDelegator.new doesn't forward private method calls
+fails:SimpleDelegator.new forwards private method calls made via send or __send__

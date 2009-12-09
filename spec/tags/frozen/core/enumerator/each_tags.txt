@@ -1,0 +1,1 @@
+unstable:Enumerator#each raises a NoMethodError if the object doesn't respond to #each

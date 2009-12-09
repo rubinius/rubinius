@@ -3,3 +3,5 @@ fails:Class methods of an eigenclass includes ones of the object's class
 fails:Class methods of an eigenclass includes class methods of Class, for a class
 fails:Class methods of an eigenclass includes instance methods of the metaclass of Class, for a class
 fails:Class methods of an eigenclass includes instance methods of the metaclass of Class, for a metaclass
+fails:Instantiating an eigenclass raises a TypeError when new is called
+fails:Instantiating an eigenclass raises a TypeError when allocate is called

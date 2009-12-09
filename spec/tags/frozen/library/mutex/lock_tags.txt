@@ -1,0 +1,1 @@
+critical:Mutex#lock raises ThreadError if the current thread already locks this monitor

@@ -1,0 +1,4 @@
+fails:GC.disable can be invoked without any exceptions
+fails:GC.disable doesn't accept any arguments
+fails:GC.disable ignores the supplied block
+fails:GC.disable returns true iff the garbage collection was previously disabled

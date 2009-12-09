@@ -1,0 +1,1 @@
+fails:Ruby character strings interpolates the return value of Object#inspect, without ivars, if Object#to_s does not return a String instance

@@ -1,1 +1,2 @@
 incomplete:Matrix#tr needs to be reviewed for spec completeness
+fails:Matrix#tr returns the sum of diagonal elements in a rectangular Matrix

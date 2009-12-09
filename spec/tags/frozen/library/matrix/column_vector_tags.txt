@@ -1,1 +1,2 @@
 incomplete:Matrix.column_vector needs to be reviewed for spec completeness
+fails:Matrix.column_vector returns an empty Matrix when called with an empty Array

@@ -1,2 +1,4 @@
 incomplete:Kernel.exit needs to be reviewed for spec completeness
 incomplete:Kernel.exit! needs to be reviewed for spec completeness
+fails:Kernel.exit tries to convert the passed argument to an Integer using #to_int
+fails:Kernel.exit raises TypeError if can't convert the argument to an Integer

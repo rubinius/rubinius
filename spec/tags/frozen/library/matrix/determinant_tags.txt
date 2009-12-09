@@ -1,1 +1,2 @@
 incomplete:Matrix#determinant needs to be reviewed for spec completeness
+fails:Matrix#determinant returns 1 for an empty Matrix
