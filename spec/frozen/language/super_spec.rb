@@ -113,7 +113,7 @@ describe "The super keyword" do
 
       sub = Class.new(sup) do
         define_method :a do
-          #super
+          super
         end
       end
 
@@ -125,7 +125,7 @@ describe "The super keyword" do
     it "can't be used with implicit arguments from a method defined with define_method" do
       Class.new do
         define_method :a do
-          #super
+          super
         end.should raise_error(RuntimeError) 
       end
     end
