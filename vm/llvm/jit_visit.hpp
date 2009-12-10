@@ -1628,7 +1628,7 @@ namespace rubinius {
       };
 
       flush_ip();
-      Value* ret = sig.call("rbx_zsuper_send", call_args, 3, "super_send", b());
+      Value* ret = sig.call("rbx_zsuper_send", call_args, 4, "super_send", b());
       check_for_exception(ret);
       stack_set_top(ret);
     }

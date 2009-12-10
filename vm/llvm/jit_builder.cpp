@@ -456,6 +456,8 @@ namespace jit {
     }
 
     void visit_zsuper(opcode which) {
+      // HACK. zsuper accesses scope.
+      calls_evalish_ = true;
       number_of_sends_++;
     }
   };
