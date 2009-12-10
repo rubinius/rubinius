@@ -1,3 +1,2 @@
-fails:The predefined global constants includes DATA when main script contains __END__
 fails:Execution variable $: does not include on the taint check level > 1fails:Execution variable $: does not include '.' when the taint check level > 1
 fails:Execution variable $: does not include '.' when the taint check level > 1

@@ -1,1 +1,0 @@
-fails:The unpacking splat operator (*) when applied to a value with no other items in the containing array, coerces the passed value to an array and returns it unchanged
