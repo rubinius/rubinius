@@ -1610,6 +1610,29 @@ namespace rubinius {
       stack_push(ret);
     }
 
+    void visit_zsuper(opcode which) {
+      set_has_side_effects();
+      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
+
+      Signature sig(ls_, ObjType);
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << ObjType;
+      sig << ObjType;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        constant(cache->name),
+        stack_top()
+      };
+
+      flush_ip();
+      Value* ret = sig.call("rbx_zsuper_send", call_args, 3, "super_send", b());
+      check_for_exception(ret);
+      stack_set_top(ret);
+    }
+
     void visit_add_scope() {
       std::vector<const Type*> types;
 

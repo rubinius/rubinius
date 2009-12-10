@@ -352,6 +352,7 @@ module Rubinius
         blk.close
         blk.pop_state
 
+        blk.splat_index = @arguments.splat_index
         blk.local_count = local_count
         blk.local_names = local_names
 
@@ -361,10 +362,15 @@ module Rubinius
 
     class IterArguments < Node
       attr_accessor :prelude, :arity, :optional, :arguments, :splat_index
+      attr_accessor :required_args
 
       def initialize(line, arguments)
         @line = line
         @optional = 0
+
+        @splat_index = -1
+        @required_args = 0
+        @splat = nil
 
         array = []
         case arguments
@@ -375,12 +381,13 @@ module Rubinius
           arguments.iter_arguments
 
           if arguments.splat
-            arguments.splat = arguments.splat.value
+            @splat = arguments.splat = arguments.splat.value
 
             @optional = 1
             if arguments.left
               @prelude = :multi
               @arity = -(arguments.left.body.size + 1)
+              @required_args = arguments.left.body.size
             else
               @prelude = :splat
               @arity = -1
@@ -388,6 +395,7 @@ module Rubinius
           elsif arguments.left
             @prelude = :multi
             @arity = arguments.left.body.size
+            @required_args = arguments.left.body.size
           else
             @prelude = :multi
             @arity = -1
@@ -396,18 +404,17 @@ module Rubinius
           @arguments = arguments
         when nil
           @arity = -1
+          @splat_index = -2 # -2 means accept the splat, but don't store it anywhere
           @prelude = nil
         else # Assignment
           @arguments = arguments
           @arity = 1
+          @required_args = 1
           @prelude = :single
         end
       end
 
-      # TODO: decide whether to use #arity or #required_args uniformly
-      # see FormalArguments
-      alias_method :required_args, :arity
-      alias_method :total_args, :arity
+      alias_method :total_args, :required_args
 
       def names
         case @arguments
@@ -434,6 +441,10 @@ module Rubinius
         g.state.push_masgn
         @arguments.bytecode(g) if @arguments
         g.state.pop_masgn
+
+        if @splat
+          @splat_index = @splat.variable.slot
+        end
       end
 
       def bytecode(g)
@@ -615,16 +626,13 @@ module Rubinius
       end
 
       def bytecode(g)
-        if g.state.super?
-          arguments = g.state.super.arguments
-          @arguments = arguments.to_actual @line
+        pos(g)
 
-          # Don't use arguments.block_arg, it's actually the setter
-          # for the block arg, not a retrieval for it. Anyway, we don't
-          # need it anyway, using g.push_block has the same effect.
-        end
+        @name = g.state.super.name if g.state.super?
 
-        super(g)
+        block_bytecode(g)
+
+        g.zsuper @name
       end
     end
   end

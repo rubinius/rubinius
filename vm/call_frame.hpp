@@ -125,6 +125,8 @@ namespace rubinius {
       return promote_scope_full(state);
     }
 
+    VariableScope* method_scope(STATE);
+
     void print_backtrace(STATE);
     int line(STATE);
 

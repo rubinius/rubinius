@@ -59,7 +59,6 @@ module Rubinius
 
         blk.required_args = arguments.required_args
         blk.total_args = arguments.total_args
-        blk.splat_index = arguments.splat_index
 
         blk
       end

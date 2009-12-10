@@ -943,9 +943,8 @@ describe "An Iter node" do
         d.push :self
 
         d.in_block_send :bar, :none do |e|
-          e.push_local_depth 1, 0
           e.push_block
-          e.send_super :x, 1
+          e.zsuper :x
         end
       end
     end

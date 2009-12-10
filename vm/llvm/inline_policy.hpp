@@ -41,6 +41,10 @@ namespace rubinius {
       throw Unsupported();
     }
 
+    void visit_zsuper(opcode which) {
+      throw Unsupported();
+    }
+
     void visit_yield_splat(opcode count) {
       throw Unsupported();
     }

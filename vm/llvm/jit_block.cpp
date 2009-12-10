@@ -98,18 +98,18 @@ namespace jit {
 
     b().CreateStore(self, get_field(vars, offset::vars_self));
 
-
     Value* inv_mod = b().CreateLoad(
         get_field(block_inv, offset::blockinv_module),
         "invocation.module");
 
-    Value* ts_mod = b().CreateLoad(get_field(top_scope, offset::varscope_module),
-        "top_scope.module");
+    Value* creation_mod = b().CreateLoad(
+        get_field(block_env, offset::blockenv_module),
+        "env.module");
 
     Value* mod = b().CreateSelect(
         b().CreateICmpNE(inv_mod, ConstantExpr::getNullValue(inv_mod->getType())),
         inv_mod,
-        ts_mod);
+        creation_mod);
 
     b().CreateStore(mod, get_field(vars, offset::vars_module));
 

@@ -54,8 +54,9 @@ namespace offset {
   const static int blockenv_top_scope = 2;
   const static int blockenv_local_count = 3;
   const static int blockenv_method = 4;
-  const static int blockenv_vmm = 5;
-  const static int blockenv_execute = 6;
+  const static int blockenv_module = 5;
+  const static int blockenv_vmm = 6;
+  const static int blockenv_execute = 7;
 };
 
 #endif

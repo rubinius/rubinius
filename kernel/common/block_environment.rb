@@ -4,14 +4,10 @@
 
 module Rubinius
   class BlockEnvironment
-    attr_accessor :local_count
-    attr_accessor :method # The CompiledMethod object that we were called from
-
-    attr_accessor :initial_ip
-    attr_accessor :last_ip
-    attr_accessor :post_send
     attr_accessor :scope
     attr_accessor :top_scope
+    attr_accessor :local_count
+    attr_accessor :method # The CompiledMethod object that we were called from
 
     attr_accessor :proc_environment
     attr_accessor :metadata_container
@@ -56,11 +52,11 @@ module Rubinius
     end
 
     def arity
-      method.required_args
-    end
-
-    def disable_long_return!
-      @post_send = nil
+      if method.splat >= 0 or method.splat == -2
+        -(method.required_args + 1)
+      else
+        method.required_args
+      end
     end
 
     # TODO: are file,line actually used?

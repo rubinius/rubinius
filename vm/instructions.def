@@ -2324,3 +2324,63 @@ instruction push_my_offset(index) [ -- offset ]
       reinterpret_cast<uintptr_t>(call_frame->self()) + index);
   stack_push(val);
 end
+
+instruction zsuper(literal) [ block -- value ]
+  flush_ip();
+  Object* block = stack_pop();
+  Object* const recv = call_frame->self();
+
+  VariableScope* scope = call_frame->method_scope(state);
+  assert(scope);
+
+  VMMethod* v = scope->method()->backend_method();
+  Object* splat_obj = 0;
+  Array* splat = 0;
+
+  size_t arg_count = v->total_args;
+
+  if(v->splat_position >= 0) {
+    splat_obj = scope->get_local(state, v->splat_position);
+    splat = try_as<Array>(splat_obj);
+    if(splat) {
+      arg_count += splat->size();
+    } else {
+      arg_count++;
+    }
+  }
+
+  Tuple* tup = Tuple::create(state, arg_count);
+  for(int i = 0; i < v->total_args; i++) {
+    tup->put(state, i, scope->get_local(state, i));
+  }
+
+  if(splat) {
+    for(size_t i = 0; i < splat->size(); i++) {
+      tup->put(state, i + v->total_args, splat->get(state, i));
+    }
+  } else if(splat_obj) {
+    tup->put(state, v->total_args, splat_obj);
+  }
+
+  Arguments new_args(recv, block, arg_count, 0);
+  new_args.use_tuple(tup, arg_count);
+
+  SET_ALLOW_PRIVATE(false);
+
+  Object* ret;
+
+  Symbol* current_name = scope->method()->name();
+
+  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+  if(cache->name != current_name) {
+    cache->name = current_name;
+
+    ret = InlineCache::empty_cache_super(state, cache, call_frame, new_args);
+  } else {
+    ret = cache->execute(state, call_frame, new_args);
+  }
+
+  HANDLE_EXCEPTION(ret);
+  stack_push(ret);
+
+end

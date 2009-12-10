@@ -16,6 +16,23 @@ namespace rubinius {
     return scope->create_heap_alias(state, this, !has_closed_scope_p());
   }
 
+  VariableScope* CallFrame::method_scope(STATE) {
+    VariableScope* current = promote_scope(state);
+    if(!multiple_scopes_p()) return current;
+
+    for(;;) {
+      if(current->block_as_method_p()) return current;
+      VariableScope* parent = current->parent();
+      if(!parent->nil_p()) {
+        current = parent;
+      } else {
+        return current;
+      }
+    }
+
+    assert("should not be here" && 0);
+  }
+
   void CallFrame::print_backtrace(STATE) {
     CallFrame* cf = this;
 

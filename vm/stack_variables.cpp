@@ -35,6 +35,8 @@ namespace rubinius {
       scope->point_locals_to(scope->heap_locals_);
     }
 
+    scope->set_block_as_method(call_frame->block_as_method_p());
+
     on_heap_ = scope;
 
     return scope;

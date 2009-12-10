@@ -121,6 +121,50 @@ extern "C" {
     return dis.send(state, call_frame, lookup, out_args);
   }
 
+  Object* rbx_zsuper_send(STATE, CallFrame* call_frame, Symbol* name, Object* block) {
+    Object* const recv = call_frame->self();
+
+    VariableScope* scope = call_frame->method_scope(state);
+    assert(scope);
+
+    VMMethod* v = scope->method()->backend_method();
+    Object* splat_obj = 0;
+    Array* splat = 0;
+
+    size_t arg_count = v->total_args;
+
+    if(v->splat_position >= 0) {
+      splat_obj = scope->get_local(state, v->splat_position);
+      splat = try_as<Array>(splat_obj);
+      if(splat) {
+        arg_count += splat->size();
+      } else {
+        arg_count++;
+      }
+    }
+
+    Tuple* tup = Tuple::create(state, arg_count);
+    for(int i = 0; i < v->total_args; i++) {
+      tup->put(state, i, scope->get_local(state, i));
+    }
+
+    if(splat) {
+      for(size_t i = 0; i < splat->size(); i++) {
+        tup->put(state, i + v->total_args, splat->get(state, i));
+      }
+    } else if(splat_obj) {
+      tup->put(state, v->total_args, splat_obj);
+    }
+
+    Arguments out_args(recv, block, arg_count, 0);
+    out_args.use_tuple(tup, arg_count);
+
+    LookupData lookup(recv, call_frame->module()->superclass(), true);
+    Dispatch dis(name);
+
+    return dis.send(state, call_frame, lookup, out_args);
+  }
+
   Object* rbx_arg_error(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args,
                         int required) {
     Exception* exc =

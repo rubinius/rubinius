@@ -454,6 +454,10 @@ namespace jit {
     void visit_send_super_stack_with_splat(opcode which, opcode args) {
       number_of_sends_++;
     }
+
+    void visit_zsuper(opcode which) {
+      number_of_sends_++;
+    }
   };
 
   void Builder::pass_one(BasicBlock* body) {

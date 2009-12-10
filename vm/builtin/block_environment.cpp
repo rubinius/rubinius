@@ -103,7 +103,7 @@ namespace rubinius {
       reinterpret_cast<StackVariables*>(alloca(scope_size));
 
     Module* mod = invocation.module;
-    if(!mod) mod = env->top_scope_->module();
+    if(!mod) mod = env->module();
     scope->initialize(invocation.self, env->top_scope_->block(),
                       mod, vmm->number_of_locals);
     scope->set_parent(env->scope_);
@@ -205,6 +205,7 @@ namespace rubinius {
     be->scope(state, call_frame->promote_scope(state));
     be->top_scope(state, call_frame->top_scope(state));
     be->method(state, cm);
+    be->module(state, call_frame->module());
     be->local_count(state, cm->local_count());
     be->vmm = vmm;
     BlockExecutor native = reinterpret_cast<BlockExecutor>(vmm->native_function);

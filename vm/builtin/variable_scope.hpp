@@ -32,6 +32,9 @@ namespace rubinius {
     int number_of_locals_;
     bool isolated_;
     Object** locals_;
+    int block_as_method_;
+
+    // MUST BE LAST
     Object* heap_locals_[];
 
   public: /* Accessors */
@@ -52,6 +55,14 @@ namespace rubinius {
       if(isolated_) {
         locals_ = heap_locals_;
       }
+    }
+
+    bool block_as_method_p() {
+      return block_as_method_ == 1;
+    }
+
+    void set_block_as_method(bool val) {
+      block_as_method_ = (val ? 1 : 0);
     }
 
     /**

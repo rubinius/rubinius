@@ -128,10 +128,8 @@ describe "A Super node" do
 
     compile do |g|
       in_method :f do |d|
-        d.push_local 0
-        d.cast_array
         d.push_block
-        d.send_super :f, 0, true
+        d.zsuper :f
       end
     end
   end

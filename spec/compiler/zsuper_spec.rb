@@ -10,7 +10,7 @@ describe "A Zsuper node" do
     compile do |g|
       in_method :x do |d|
         d.push_block
-        d.send_super :x, 0
+        d.zsuper :x
       end
     end
   end
@@ -23,9 +23,8 @@ describe "A Zsuper node" do
 
     compile do |g|
       in_method :x do |d|
-        d.push_local 0
         d.push_block
-        d.send_super :x, 1
+        d.zsuper :x
       end
     end
   end
@@ -55,7 +54,7 @@ describe "A Zsuper node" do
         d.pop
 
         d.push_block
-        d.send_super :x, 0
+        d.zsuper :x
       end
     end
   end
@@ -68,11 +67,8 @@ describe "A Zsuper node" do
 
     compile do |g|
       in_method :x do |d|
-        d.push_local 0
-        d.push_local 1
-        d.cast_array
         d.push_block
-        d.send_super :x, 1, true
+        d.zsuper :x
       end
     end
   end

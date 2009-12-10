@@ -260,6 +260,7 @@ StructTy_struct_rubinius__VariableScope_fields.push_back(IntegerType::get(getGlo
 StructTy_struct_rubinius__VariableScope_fields.push_back(IntegerType::get(getGlobalContext(), 8));
 StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_0);
 StructTy_struct_rubinius__VariableScope_fields.push_back(ArrayTy_12);
+StructTy_struct_rubinius__VariableScope_fields.push_back(IntegerType::get(getGlobalContext(), 32));
 StructType* StructTy_struct_rubinius__VariableScope = StructType::get(mod->getContext(), StructTy_struct_rubinius__VariableScope_fields, /*isPacked=*/false);
 mod->addTypeName("struct.rubinius::VariableScope", StructTy_struct_rubinius__VariableScope);
 
@@ -272,6 +273,7 @@ StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_13);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_13);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_1);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_14);
+StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_7);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_26);
 std::vector<const Type*>FuncTy_28_args;
 FuncTy_28_args.push_back(PointerTy_17);

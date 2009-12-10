@@ -460,6 +460,10 @@ module Rubinius
       end
     end
 
+    def zsuper(meth)
+      add :zsuper, find_literal(meth)
+    end
+
     def check_serial(sym, serial)
       add :check_serial, find_literal(sym), serial.to_i
     end
