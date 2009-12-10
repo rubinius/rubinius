@@ -180,17 +180,19 @@ namespace rubinius {
 
     // If we have execinfo, setup some crash handlers
 #ifdef USE_EXECINFO
-    signal(SIGSEGV, segv_handler);
-    signal(SIGBUS,  segv_handler);
-    signal(SIGILL,  segv_handler);
-    signal(SIGFPE,  segv_handler);
-    signal(SIGABRT, segv_handler);
+    if(!getenv("DISABLE_SEGV")) {
+      signal(SIGSEGV, segv_handler);
+      signal(SIGBUS,  segv_handler);
+      signal(SIGILL,  segv_handler);
+      signal(SIGFPE,  segv_handler);
+      signal(SIGABRT, segv_handler);
 
-    // Force glibc to load the shared library containing backtrace()
-    // now, so that we don't have to try and load it in the signal
-    // handler.
-    void* ary[1];
-    backtrace(ary, 1);
+      // Force glibc to load the shared library containing backtrace()
+      // now, so that we don't have to try and load it in the signal
+      // handler.
+      void* ary[1];
+      backtrace(ary, 1);
+    }
 #endif
 
     // Setup some other signal that normally just cause the process
