@@ -111,11 +111,13 @@ namespace {
 
     void erase_gep_users(GetElementPtrInst* gep) {
       for(Value::use_iterator u = gep->use_begin();
-          u != gep->use_end();
-          u++) {
+          u != gep->use_end(); /* nothing */)
+      {
         if(Instruction* inst = dyn_cast<Instruction>(*u)) {
+          u++;
           inst->eraseFromParent();
         } else {
+          u++;
           assert(0);
         }
       }
@@ -167,11 +169,12 @@ namespace {
           i++) {
         CallInst* call = *i;
         for(Value::use_iterator u = call->use_begin();
-            u != call->use_end();
-            u++) {
+            u != call->use_end(); /* nothing */)
+        {
           if(GetElementPtrInst* gep = dyn_cast<GetElementPtrInst>(*u)) {
             llvm::outs() << "erasing: " << *gep << "\n";
             erase_gep_users(gep);
+            u++;
             gep->eraseFromParent();
           } else {
             assert(0);
@@ -218,8 +221,8 @@ namespace {
 
           // Now, update the extracts
           for(Value::use_iterator i = call->use_begin();
-              i != call->use_end();
-              i++) {
+              i != call->use_end(); /* nothing */)
+          {
             if(ExtractValueInst* extract = dyn_cast<ExtractValueInst>(*i)) {
               Value* result = 0;
 
@@ -235,9 +238,14 @@ namespace {
               if(result) {
                 extract->replaceAllUsesWith(result);
                 result->takeName(extract);
+                // I uses the element itself to find the next, so we have
+                // to increment before we remove it.
+                i++;
                 extract->eraseFromParent();
+                continue;
               }
             }
+            i++;
           }
 
           changed = true;
