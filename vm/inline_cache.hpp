@@ -108,7 +108,7 @@ namespace rubinius {
     static Object* disabled_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
                                   Arguments& args);
 
-    bool fill_public(STATE, Object* self, Symbol* name);
+    MethodMissingReason fill_public(STATE, Object* self, Symbol* name);
     bool fill_private(STATE, Symbol* name, Module* start);
     bool fill_method_missing(STATE, Module* start);
 

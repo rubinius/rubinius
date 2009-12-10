@@ -43,11 +43,24 @@ module Kernel
   module_function :fail
 
   def method_missing(meth, *args)
-    if __kind_of__(Module)
-      Kernel.raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.class})", meth, args)
+    case Rubinius.method_missing_reason
+    when :private
+      msg = "private method '#{meth}'"
+    when :protected
+      msg = "protected method '#{meth}'"
+    when :super
+      msg = "no superclass method '#{meth}'"
     else
-      Kernel.raise NoMethodError.new("No method '#{meth}' on an instance of #{self.class}.", meth, args)
+      msg = "no method '#{meth}'"
     end
+
+    if __kind_of__(Module)
+      msg << " on #{self} (#{self.class})"
+    else
+      msg << " on an instance of #{self.class}."
+    end
+
+    Kernel.raise NoMethodError.new(msg, meth, args)
   end
 
   private :method_missing

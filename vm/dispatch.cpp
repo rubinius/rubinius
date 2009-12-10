@@ -9,20 +9,28 @@
 #include "builtin/executable.hpp"
 
 namespace rubinius {
-  Object* Dispatch::send(STATE, CallFrame* call_frame, Arguments& args) {
+  Object* Dispatch::send(STATE, CallFrame* call_frame, Arguments& args,
+                         MethodMissingReason reason)
+  {
     LookupData lookup(args.recv(), args.recv()->lookup_begin(state));
 
-    return send(state, call_frame, lookup, args);
+    return send(state, call_frame, lookup, args, reason);
   }
 
   Object* Dispatch::send(STATE, CallFrame* call_frame, LookupData& lookup,
-                         Arguments& args) {
+                         Arguments& args, MethodMissingReason reason)
+  {
     Symbol* original_name = name;
 
     if(!GlobalCacheResolver::resolve(state, name, *this, lookup)) {
+      state->set_method_missing_reason(reason);
+
       method_missing = true;
       lookup.priv = true;
-      assert(GlobalCacheResolver::resolve(state, G(sym_method_missing), *this, lookup));
+      if(!GlobalCacheResolver::resolve(state, G(sym_method_missing), *this, lookup)) {
+        Exception::internal_error(state, call_frame, "no method_missing");
+        return 0;
+      }
     }
 
     if(method_missing) {

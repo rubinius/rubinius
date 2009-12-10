@@ -10,7 +10,7 @@
 
 namespace rubinius {
 
-  bool InlineCache::fill_public(STATE, Object* self, Symbol* name) {
+  MethodMissingReason InlineCache::fill_public(STATE, Object* self, Symbol* name) {
     MethodTableBucket* entry;
 
     Module* module = klass_;
@@ -25,7 +25,7 @@ namespace rubinius {
       this->method = global_entry->method;
       this->module = global_entry->module;
 
-      return true;
+      return eNone;
     }
 
     bool skip_vis_check = false;
@@ -37,17 +37,17 @@ namespace rubinius {
       if(entry) {
         /* A 'false' method means to terminate method lookup.
          * (eg. undef_method) */
-        if(entry->undef_p(state)) return false;
+        if(entry->undef_p(state)) return eNormal;
 
         if(!skip_vis_check) {
           /* The method is private, but this wasn't a private send. */
           if(entry->private_p(state)) {
-            return false;
+            return ePrivate;
           } else if(entry->protected_p(state)) {
             /* The method is protected, but it's not being called from
              * the same module */
             if(!self->kind_of_p(state, module)) {
-              return false;
+              return eProtected;
             }
           }
         }
@@ -68,14 +68,14 @@ namespace rubinius {
           state->global_cache->retain(state, klass_, name, this->module,
                                       this->method, false,
                                       !entry->public_p(state));
-          return true;
+          return eNone;
         }
       }
 
       module = module->superclass();
 
       /* No more places to look, we couldn't find it. */
-      if(module->nil_p()) return false;
+      if(module->nil_p()) return eNormal;
     } while(1);
 
     // Shouldn't be here!
@@ -187,9 +187,8 @@ namespace rubinius {
 
     set_klass(recv->lookup_begin(state));
 
-    if(!fill_public(state, call_frame->self(), name)) {
-      return false;
-    }
+    MethodMissingReason reason = fill_public(state, call_frame->self(), name);
+    if(reason != eNone) return false;
 
     update_seen_classes();
     run_wb(state, call_frame->cm);
@@ -218,9 +217,16 @@ namespace rubinius {
     Object* const recv = args.recv();
     cache->set_klass(recv->lookup_begin(state));
 
-    if(!cache->fill_public(state, call_frame->self(), cache->name)) {
-      assert(cache->fill_method_missing(state, cache->klass())
-             && "no method_missing!");
+    MethodMissingReason reason = 
+      cache->fill_public(state, call_frame->self(), cache->name);
+
+    if(reason != eNone) {
+      state->set_method_missing_reason(reason);
+
+      if(!cache->fill_method_missing(state, cache->klass())) {
+        Exception::internal_error(state, call_frame, "no method_missing");
+        return 0;
+      }
 
       args.unshift(state, cache->name);
       cache->execute_backend_ = check_cache_mm;
@@ -264,8 +270,12 @@ namespace rubinius {
     cache->set_klass(recv->lookup_begin(state));
 
     if(!cache->fill_private(state, cache->name, cache->klass())) {
-      assert(cache->fill_method_missing(state, cache->klass())
-             && "no method_missing!");
+      state->set_method_missing_reason(eNormal);
+
+      if(!cache->fill_method_missing(state, cache->klass())) {
+        Exception::internal_error(state, call_frame, "no method_missing");
+        return 0;
+      }
 
       args.unshift(state, cache->name);
       cache->execute_backend_ = check_cache_mm;
@@ -295,8 +305,12 @@ namespace rubinius {
     Module* const start = call_frame->module()->superclass();
 
     if(!cache->fill_private(state, cache->name, start)) {
-      assert(cache->fill_method_missing(state,  start)
-             && "no method_missing!");
+      state->set_method_missing_reason(eSuper);
+
+      if(!cache->fill_method_missing(state,  start)) {
+        Exception::internal_error(state, call_frame, "no method_missing");
+        return 0;
+      }
 
       args.unshift(state, cache->name);
       cache->execute_backend_ = check_cache_mm;
@@ -378,9 +392,16 @@ namespace rubinius {
   Object* InlineCache::disabled_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                       Arguments& args)
   {
-    if(!cache->fill_public(state, call_frame->self(), cache->name)) {
-      assert(cache->fill_method_missing(state, cache->klass())
-             && "no method_missing!");
+    MethodMissingReason reason = 
+      cache->fill_public(state, call_frame->self(), cache->name);
+
+    if(reason != eNone) {
+      state->set_method_missing_reason(reason);
+
+      if(!cache->fill_method_missing(state, cache->klass())) {
+        Exception::internal_error(state, call_frame, "no method_missing");
+        return 0;
+      }
 
       args.unshift(state, cache->name);
     }
@@ -394,8 +415,10 @@ namespace rubinius {
                                       Arguments& args)
   {
     if(!cache->fill_private(state, cache->name, cache->klass())) {
-      assert(cache->fill_method_missing(state, cache->klass())
-             && "no method_missing!");
+      if(!cache->fill_method_missing(state, cache->klass())) {
+        Exception::internal_error(state, call_frame, "no method_missing");
+        return 0;
+      }
 
       args.unshift(state, cache->name);
     }
@@ -411,8 +434,12 @@ namespace rubinius {
     Module* const start = call_frame->module()->superclass();
 
     if(!cache->fill_private(state, cache->name, start)) {
-      assert(cache->fill_method_missing(state,  start)
-             && "no method_missing!");
+      state->set_method_missing_reason(eSuper);
+
+      if(!cache->fill_method_missing(state,  start)) {
+        Exception::internal_error(state, call_frame, "no method_missing");
+        return 0;
+      }
 
       args.unshift(state, cache->name);
     }

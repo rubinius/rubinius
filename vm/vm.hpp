@@ -76,6 +76,10 @@ namespace rubinius {
     {}
   };
 
+  enum MethodMissingReason {
+    eNone, ePrivate, eProtected, eSuper, eNormal
+  };
+
   class VM {
 
   private:
@@ -85,6 +89,8 @@ namespace rubinius {
     bool alive_;
     profiler::Profiler* profiler_;
     bool run_signals_;
+
+    MethodMissingReason method_missing_reason_;
 
   public:
     /* Data members */
@@ -182,6 +188,16 @@ namespace rubinius {
 
       return true;
     }
+
+    MethodMissingReason method_missing_reason() {
+      return method_missing_reason_;
+    }
+
+    void set_method_missing_reason(MethodMissingReason reason) {
+      method_missing_reason_ = reason;
+    }
+
+  public:
 
     /* Prototypes */
     VM(SharedState& shared);

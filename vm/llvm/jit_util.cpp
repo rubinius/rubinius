@@ -162,7 +162,7 @@ extern "C" {
     LookupData lookup(recv, call_frame->module()->superclass(), true);
     Dispatch dis(name);
 
-    return dis.send(state, call_frame, lookup, out_args);
+    return dis.send(state, call_frame, lookup, out_args, eSuper);
   }
 
   Object* rbx_arg_error(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args,

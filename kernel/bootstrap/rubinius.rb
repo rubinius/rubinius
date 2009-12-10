@@ -49,6 +49,11 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.catch failed"
   end
 
+  def self.method_missing_reason
+    Ruby.primitive :vm_method_missing_reason
+    :unknown
+  end
+
   module Unsafe
     def self.set_class(obj, cls)
       Ruby.primitive :vm_set_class

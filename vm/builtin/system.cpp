@@ -648,4 +648,19 @@ namespace rubinius {
     obj->klass(state, cls);
     return obj;
   }
+
+  Object* System::vm_method_missing_reason(STATE) {
+    switch(state->method_missing_reason()) {
+    case ePrivate:
+      return state->symbol("private");
+    case eProtected:
+      return state->symbol("protected");
+    case eSuper:
+      return state->symbol("super");
+    case eNormal:
+      return state->symbol("normal");
+    default:
+      return state->symbol("none");
+    }
+  }
 }

@@ -223,6 +223,9 @@ namespace rubinius {
     // Ruby.primitive :vm_set_class
     static Object* vm_set_class(STATE, Object* obj, Class* cls);
 
+    // Ruby.primitive :vm_method_missing_reason
+    static Object* vm_method_missing_reason(STATE);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {
