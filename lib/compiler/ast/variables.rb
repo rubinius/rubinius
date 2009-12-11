@@ -364,13 +364,14 @@ module Rubinius
     end
 
     class MAsgn < Node
-      attr_accessor :left, :right, :splat
+      attr_accessor :left, :right, :splat, :block
 
       def initialize(line, left, right, splat)
         @line = line
         @left = left
         @right = right
         @splat = nil
+        @block = nil # support for |&b|
 
         @fixed = right.kind_of?(ArrayLiteral) ? true : false
 

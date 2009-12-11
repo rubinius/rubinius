@@ -378,7 +378,11 @@ namespace melbourne {
     }
     case NODE_BLOCK_PASS: {
       VALUE body = process_parse_tree(parse_state, ptp, node->nd_body, locals);
-      VALUE iter = process_parse_tree(parse_state, ptp, node->nd_iter, locals);
+      VALUE iter = Qnil;
+      if(node->nd_iter != (NODE*)1) {
+        iter = process_parse_tree(parse_state, ptp, node->nd_iter, locals);
+      }
+
       tree = rb_funcall(ptp, rb_sBlockPass, 3, line, iter, body);
       break;
     }

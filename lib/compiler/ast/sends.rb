@@ -196,11 +196,8 @@ module Rubinius
         @body = body
       end
 
-      def bytecode(g)
+      def convert(g)
         nil_block = g.new_label
-
-        @body.bytecode(g)
-
         g.dup
         g.is_nil
         g.git nil_block
@@ -212,6 +209,17 @@ module Rubinius
         g.send :__from_block__, 1
 
         nil_block.set!
+      end
+
+      def bytecode(g)
+        @body.bytecode(g)
+        convert(g)
+      end
+
+      def assignment_bytecode(g)
+        g.push_block_arg
+        convert(g)
+        @body.bytecode(g)
       end
     end
 
@@ -371,6 +379,7 @@ module Rubinius
         @splat_index = -1
         @required_args = 0
         @splat = nil
+        @block = nil
 
         array = []
         case arguments
@@ -401,11 +410,18 @@ module Rubinius
             @arity = -1
           end
 
+          @block = arguments.block
+
           @arguments = arguments
         when nil
           @arity = -1
           @splat_index = -2 # -2 means accept the splat, but don't store it anywhere
           @prelude = nil
+        when BlockPass
+          @arity = -1
+          @splat_index = -2
+          @prelude = nil
+          @block = arguments
         else # Assignment
           @arguments = arguments
           @arity = 1
@@ -463,6 +479,10 @@ module Rubinius
           g.cast_array
           arguments_bytecode(g)
           g.pop
+        end
+
+        if @block
+          @block.assignment_bytecode(g)
         end
       end
     end

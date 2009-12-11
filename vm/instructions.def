@@ -2384,3 +2384,7 @@ instruction zsuper(literal) [ block -- value ]
   stack_push(ret);
 
 end
+
+instruction push_block_arg() [ -- block ]
+  stack_push(args.block());
+end

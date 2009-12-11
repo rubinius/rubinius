@@ -72,8 +72,13 @@ module Rubinius
     end
 
     def process_block_pass(line, method_send, body)
-      method_send.block = AST::BlockPass.new line, body
-      method_send
+      node = AST::BlockPass.new line, body
+      if method_send
+        method_send.block = node
+        method_send
+      else
+        node
+      end
     end
 
     def process_break(line, value)

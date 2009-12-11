@@ -277,6 +277,8 @@ static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_tab
 #define nd_paren(node) (char)((node)->u2.id >> (CHAR_BIT*2))
 #define nd_nest u3.id
 
+#define NEW_BLOCK_VAR(b, v) NEW_NODE(NODE_BLOCK_PASS, 0, b, v)
+
 /* Older versions of Yacc set YYMAXDEPTH to a very low value by default (150,
    for instance).  This is too low for Ruby to parse some files, such as
    date/format.rb, therefore bump the value up to at least Bison's default. */
@@ -364,7 +366,8 @@ static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_tab
 %type <node> mrhs superclass block_call block_command
 %type <node> f_arglist f_args f_optarg f_opt f_block_arg opt_f_block_arg
 %type <node> assoc_list assocs assoc undef_list backref string_dvar
-%type <node> block_var opt_block_var brace_block cmd_brace_block do_block lhs none fitem
+%type <node> for_var block_var opt_block_var block_par
+%type <node> brace_block cmd_brace_block do_block lhs none fitem
 %type <node> mlhs mlhs_head mlhs_basic mlhs_entry mlhs_item mlhs_node
 %type <id>   fsym variable sym symbol operation operation2 operation3
 %type <id>   cname fname op f_rest_arg
@@ -1715,7 +1718,7 @@ primary         : literal
                         POP_LINE();
                         $$ = $4;
                     }
-                | kCASE opt_terms { 
+                | kCASE opt_terms {
                     push_start_line((rb_parse_state*)parse_state, ruby_sourceline - 1, "case");
                   } kELSE compstmt kEND
                     {
@@ -1724,7 +1727,7 @@ primary         : literal
                     }
                 | kFOR {
                     PUSH_LINE("for");
-                  } block_var kIN {COND_PUSH(1);} expr_value do {COND_POP();}
+                  } for_var kIN {COND_PUSH(1);} expr_value do {COND_POP();}
                   compstmt
                   kEND
                     {
@@ -1882,8 +1885,73 @@ opt_else        : none
                     }
                 ;
 
-block_var       : lhs
+for_var         : lhs
                 | mlhs
+                ;
+
+block_par       : mlhs_item
+                    {
+                        $$ = NEW_LIST($1);
+                    }
+                | block_par ',' mlhs_item
+                    {
+                        $$ = list_append(vps, $1, $3);
+                    }
+                ;
+
+block_var       : block_par
+                    {
+                        if ($1->nd_alen == 1) {
+                            $$ = $1->nd_head;
+                        }
+                        else {
+                            $$ = NEW_MASGN($1, 0);
+                        }
+                    }
+                | block_par ','
+                    {
+                        $$ = NEW_MASGN($1, 0);
+                    }
+                | block_par ',' tAMPER lhs
+                    {
+                        $$ = NEW_BLOCK_VAR($4, NEW_MASGN($1, 0));
+                    }
+                | block_par ',' tSTAR lhs ',' tAMPER lhs
+                    {
+                        $$ = NEW_BLOCK_VAR($7, NEW_MASGN($1, $4));
+                    }
+                | block_par ',' tSTAR ',' tAMPER lhs
+                    {
+                        $$ = NEW_BLOCK_VAR($6, NEW_MASGN($1, -1));
+                    }
+                | block_par ',' tSTAR lhs
+                    {
+                        $$ = NEW_MASGN($1, $4);
+                    }
+                | block_par ',' tSTAR
+                    {
+                        $$ = NEW_MASGN($1, -1);
+                    }
+                | tSTAR lhs ',' tAMPER lhs
+                    {
+                        $$ = NEW_BLOCK_VAR($5, NEW_MASGN(0, $2));
+                    }
+                | tSTAR ',' tAMPER lhs
+                    {
+                        $$ = NEW_BLOCK_VAR($4, NEW_MASGN(0, -1));
+                    }
+                | tSTAR lhs
+                    {
+                        $$ = NEW_MASGN(0, $2);
+                    }
+                | tSTAR
+                    {
+                        $$ = NEW_MASGN(0, -1);
+                    }
+                | tAMPER lhs
+                    {
+                        $$ = NEW_BLOCK_VAR($2, (NODE*)1);
+                    }
                 ;
 
 opt_block_var   : none
