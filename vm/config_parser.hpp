@@ -30,7 +30,6 @@ namespace rubinius {
     virtual ~ConfigParser();
 
     bool   load_file(std::string path);
-    void   process_argv(int argc, char** argv);
     Entry* parse_line(const char* line);
     void   import_line(const char* line);
     void   import_many(std::string string);

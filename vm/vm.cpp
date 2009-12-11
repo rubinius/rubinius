@@ -342,43 +342,6 @@ namespace rubinius {
     abort();
   }
 
-  // Trampoline to call scheduler_loop()
-  static void* __thread_tramp__(void* arg) {
-    VM* state = static_cast<VM*>(arg);
-    state->scheduler_loop();
-    return NULL;
-  }
-
-  // Create the preemption thread and call scheduler_loop() in the new thread
-  void VM::setup_preemption() {
-    if(pthread_create(&preemption_thread, NULL, __thread_tramp__, this) != 0) {
-      std::cout << "Unable to create preemption thread!\n";
-    }
-  }
-
-  // Runs forever, telling the VM to reschedule threads ever 10 milliseconds
-  void VM::scheduler_loop() {
-    // First off, we don't want this thread ever receiving a signal.
-    sigset_t mask;
-    sigfillset(&mask);
-    if(pthread_sigmask(SIG_SETMASK, &mask, NULL) != 0) {
-      abort();
-    }
-
-    struct timespec requested;
-    struct timespec actual;
-
-    requested.tv_sec = 0;
-    requested.tv_nsec = 10000000; // 10 milliseconds
-
-    for(;;) {
-      nanosleep(&requested, &actual);
-      if(interrupts.enable_preempt) {
-        interrupts.set_timer();
-      }
-    }
-  }
-
   void VM::install_waiter(Waiter& waiter) {
     waiter_ = &waiter;
   }

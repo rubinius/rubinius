@@ -121,9 +121,6 @@ namespace rubinius {
 
     bool reuse_llvm;
 
-    // The thread used to trigger preemptive thread switching
-    pthread_t preemption_thread;
-
     static int cStackDepthMax;
 
   public: /* Inline methods */
@@ -198,6 +195,17 @@ namespace rubinius {
     }
 
   public:
+    static void init_stack_size();
+
+    // Returns the current VM state object.
+    static VM* current_state();
+
+    // Registers a VM* object as the current state.
+    static void register_state(VM*);
+
+    static void discard(VM*);
+
+  public:
 
     /* Prototypes */
     VM(SharedState& shared);
@@ -208,14 +216,6 @@ namespace rubinius {
 
     // Initialize the basic objects and the execution machinery
     void boot();
-
-    // Returns the current VM state object.
-    static VM* current_state();
-
-    // Registers a VM* object as the current state.
-    static void register_state(VM*);
-
-    static void discard(VM*);
 
     void bootstrap_class();
     void bootstrap_ontology();
@@ -229,7 +229,6 @@ namespace rubinius {
     void boot_threads();
 
     void raise_stack_error(CallFrame* call_frame);
-    void init_stack_size();
 
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
@@ -298,11 +297,6 @@ namespace rubinius {
 
     void print_backtrace();
 
-    void setup_preemption();
-
-    // Run in a seperate thread to provide preemptive thread
-    // scheduling.
-    void scheduler_loop();
 
     // Run the garbage collectors as soon as you can
     void run_gc_soon();

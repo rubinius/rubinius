@@ -14,39 +14,7 @@
 using namespace std;
 using namespace rubinius;
 
-/* Loads the runtime kernel files. They're stored in /kernel.
- * These files consist of classes needed to bootstrap the kernel
- * and just get things started in general.
- *
- * @param root [String] The file root for /kernel. This expects to find
- *                      alpha.rbc (will compile if not there).
- * @param env  [Environment&] The environment for Rubinius. It is the uber
- *                      manager for multiple VMs and process-Ruby interaction. 
- */
-static void load_runtime_kernel(Environment& env, std::string root) {
-  std::string dirs = root + "/index";
-  std::ifstream stream(dirs.c_str());
-  if(!stream) {
-    std::cout << "It appears that " << root << "/index is missing.\n";
-    exit(1);
-  }
-
-  // Load the ruby file to prepare for bootstrapping Ruby!
-  // The bootstrapping for the VM is already done by the time we're here.
-  env.run_file(root + "/alpha.rbc");
-
-  while(!stream.eof()) {
-    std::string line;
-
-    stream >> line;
-    stream.get(); // eat newline
-
-    // skip empty lines
-    if(line.size() == 0) continue;
-
-    env.load_directory(root + "/" + line);
-  }
-}
+static void check_directory(std::string root);
 
 /* The main function here handles the CL arguments passed to it.
  * It then boots the VM, runs the appropriate file (`loader`),
@@ -62,11 +30,8 @@ static void load_runtime_kernel(Environment& env, std::string root) {
  *       function does not deal with that subject.
  */
 int main(int argc, char** argv) {
-  Environment env;
+  Environment env(argc, argv);
   env.setup_cpp_terminate();
-
-  env.state->init_stack_size();
-  env.state->set_stack_start(&env);
 
   try {
     if(const char* var = getenv("RBX_OPTIONS")) {
@@ -77,47 +42,12 @@ int main(int argc, char** argv) {
       env.load_conf(path);
     }
 
-    env.load_config_argv(argc, argv);
-
     const char* runtime = getenv("RBX_RUNTIME");
 
-    if(!runtime) {
-      struct stat st;
+    if(!runtime) runtime = RBX_RUNTIME;
 
-      runtime = RBX_RUNTIME;
-      if(stat(runtime, &st) == -1 || !S_ISDIR(st.st_mode)) {
-
-        std::cerr << "ERROR: unable to find runtime directory" << std::endl;
-        std::cerr << std::endl;
-        std::cerr << "Rubinius was configured to find the runtime directory at:" << std::endl;
-        std::cerr << std::endl << "  " << runtime << std::endl;
-        std::cerr << std::endl;
-        std::cerr << "but that directory does not exist." << std::endl;
-        std::cerr << std::endl;
-        std::cerr << "Set the environment variable RBX_RUNTIME to the location" << std::endl;
-        std::cerr << "of the directory with the compiled Rubinius kernel files." << std::endl;
-        std::cerr << std::endl;
-        std::cerr << "You may have configured Rubinius for a different install" << std::endl;
-        std::cerr << "directory but you have not run \'rake install\' yet." << std::endl;
-        std::cerr << std::endl;
-
-        exit(1);
-      }
-    }
-
-    std::string root = std::string(runtime);
-
-    env.load_platform_conf(root);
-    env.boot_vm();
-    env.load_argv(argc, argv);
-
-    load_runtime_kernel(env, std::string(root));
-
-    std::string loader = root + "/loader.rbc";
-
-    env.enable_preemption();
-    env.start_signals();
-    env.run_file(loader);
+    check_directory(runtime);
+    env.run_from_filesystem(runtime);
 
   } catch(Assertion *e) {
     std::cout << "VM Assertion:" << std::endl;
@@ -172,4 +102,27 @@ int main(int argc, char** argv) {
 
   env.halt();
   return env.exit_code();
+}
+
+static void check_directory(std::string runtime) {
+  struct stat st;
+
+  if(stat(runtime.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) {
+
+    std::cerr << "ERROR: unable to find runtime directory" << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "Rubinius was configured to find the runtime directory at:" << std::endl;
+    std::cerr << std::endl << "  " << runtime << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "but that directory does not exist." << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "Set the environment variable RBX_RUNTIME to the location" << std::endl;
+    std::cerr << "of the directory with the compiled Rubinius kernel files." << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "You may have configured Rubinius for a different install" << std::endl;
+    std::cerr << "directory but you have not run \'rake install\' yet." << std::endl;
+    std::cerr << std::endl;
+
+    exit(1);
+  }
 }

@@ -39,8 +39,10 @@
 
 namespace rubinius {
 
-  Environment::Environment()
-    : agent(0)
+  Environment::Environment(int argc, char** argv)
+    : argc_(argc)
+    , argv_(argv)
+    , agent(0)
   {
 #ifdef ENABLE_LLVM
     assert(llvm::llvm_start_multithreaded() && "llvm doesn't support threading!");
@@ -48,24 +50,13 @@ namespace rubinius {
 
     shared = new SharedState(config, config_parser);
     state = shared->new_vm();
+
+    VM::init_stack_size();
   }
 
   Environment::~Environment() {
     VM::discard(state);
     SharedState::discard(shared);
-  }
-
-  void Environment::load_config_argv(int argc, char** argv) {
-    config_parser.process_argv(argc, argv);
-    config_parser.update_configuration(config);
-
-    if(config.print_config > 1) {
-      std::cout << "========= Configuration =========\n";
-      config.print(true);
-      std::cout << "=================================\n";
-    } else if(config.print_config) {
-      config.print();
-    }
   }
 
   void cpp_exception_bug() {
@@ -83,8 +74,44 @@ namespace rubinius {
     std::set_terminate(cpp_exception_bug);
   }
 
+  // Trampoline to call scheduler_loop()
+  static void* __thread_tramp__(void* arg) {
+    Environment* env = static_cast<Environment*>(arg);
+    env->scheduler_loop();
+    return NULL;
+  }
+
+  // Runs forever, telling the VM to reschedule threads ever 10 milliseconds
+  void Environment::scheduler_loop() {
+    // First off, we don't want this thread ever receiving a signal.
+    sigset_t mask;
+    sigfillset(&mask);
+    if(pthread_sigmask(SIG_SETMASK, &mask, NULL) != 0) {
+      abort();
+    }
+
+    struct timespec requested;
+    struct timespec actual;
+
+    requested.tv_sec = 0;
+    requested.tv_nsec = 10000000; // 10 milliseconds
+
+    Interrupts& interrupts = shared->interrupts;
+
+    for(;;) {
+      nanosleep(&requested, &actual);
+      if(interrupts.enable_preempt) {
+        interrupts.set_timer();
+      }
+    }
+  }
+
+  // Create the preemption thread and call scheduler_loop() in the new thread
   void Environment::enable_preemption() {
-    state->setup_preemption();
+    if(pthread_create(&preemption_thread_, NULL, __thread_tramp__, this) != 0) {
+      std::cerr << "Unable to create preemption thread!\n";
+      exit(1);
+    }
   }
 
   static void null_func(int sig) {}
@@ -216,12 +243,33 @@ namespace rubinius {
         process_xflags = false;
       }
 
-      if(!process_xflags || strncmp(arg, "-X", 2) != 0) {
+      if(process_xflags && strncmp(arg, "-X", 2) == 0) {
+        config_parser.import_line(arg + 2);
+      } else {
         ary->set(state, which_arg++, String::create(state, arg)->taint(state));
       }
     }
 
     state->set_const("ARGV", ary);
+
+    // Now finish up with the config
+    //
+    // Respect -Xint
+    if(config.jit_force_off) {
+      config.jit_enabled.set("no");
+    }
+
+    if(config.qa_port > 0) start_agent(config.qa_port);
+
+    config_parser.update_configuration(config);
+
+    if(config.print_config > 1) {
+      std::cout << "========= Configuration =========\n";
+      config.print(true);
+      std::cout << "=================================\n";
+    } else if(config.print_config) {
+      config.print();
+    }
   }
 
   void Environment::load_directory(std::string dir) {
@@ -269,13 +317,6 @@ namespace rubinius {
   }
 
   void Environment::boot_vm() {
-    if(config.qa_port > 0) start_agent(config.qa_port);
-
-    // Respect -Xint
-    if(config.jit_force_off) {
-      config.jit_enabled.set("no");
-    }
-
     state->initialize();
     state->boot();
 
@@ -356,5 +397,54 @@ namespace rubinius {
     agent = new QueryAgent(*shared, port);
     if(config.qa_verbose) agent->set_verbose();
     agent->run();
+  }
+
+  /* Loads the runtime kernel files. They're stored in /kernel.
+   * These files consist of classes needed to bootstrap the kernel
+   * and just get things started in general.
+   *
+   * @param root [String] The file root for /kernel. This expects to find
+   *                      alpha.rbc (will compile if not there).
+   * @param env  [Environment&] The environment for Rubinius. It is the uber
+   *                      manager for multiple VMs and process-Ruby interaction. 
+   */
+  void Environment::load_kernel(std::string root) {
+    std::string dirs = root + "/index";
+    std::ifstream stream(dirs.c_str());
+    if(!stream) {
+      std::cerr << "It appears that " << root << "/index is missing.\n";
+      exit(1);
+    }
+
+    // Load the ruby file to prepare for bootstrapping Ruby!
+    // The bootstrapping for the VM is already done by the time we're here.
+    run_file(root + "/alpha.rbc");
+
+    while(!stream.eof()) {
+      std::string line;
+
+      stream >> line;
+      stream.get(); // eat newline
+
+      // skip empty lines
+      if(line.size() == 0) continue;
+
+      load_directory(root + "/" + line);
+    }
+  }
+
+  void Environment::run_from_filesystem(std::string root) {
+    int i = 0;
+    state->set_stack_start(&i);
+
+    load_platform_conf(root);
+    boot_vm();
+    load_argv(argc_, argv_);
+
+    load_kernel(root);
+
+    enable_preemption();
+    start_signals();
+    run_file(root + "/loader.rbc");
   }
 }
