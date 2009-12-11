@@ -646,7 +646,10 @@ module Enumerable
     max_object, max_result = nil, Rubinius::FakeComparator.new(-1)
     each do |object|
       result = yield object
-      max_object, max_result = object, result if Type.coerce_to_comparison(max_result, result) < 0
+
+      if Type.coerce_to_comparison(max_result, result) < 0
+        max_object, max_result = object, result
+      end
     end
     max_object
   end
@@ -669,7 +672,10 @@ module Enumerable
     min_object, min_result = nil, Rubinius::FakeComparator.new(1)
     each do |object|
       result = yield object
-      min_object, min_result = object, result if Type.coerce_to_comparison(min_result, result) > 0
+
+      if Type.coerce_to_comparison(min_result, result) > 0
+        min_object, min_result = object, result
+      end
     end
     min_object
   end
@@ -679,16 +685,25 @@ module Enumerable
   # the second uses the block to return a <=> b.
 
   def minmax(&block)
-    block = Proc.new{|a,b| a <=> b} unless block_given?
+    block = Sort.sort_proc unless block
     first_time = true
     min, max = nil
+
     each do |object|
       if first_time
         min = max = object
         first_time = false
       else
-        min = object if Type.coerce_to_comparison(min, object, block.call(min, object)) > 0
-        max = object if Type.coerce_to_comparison(max, object, block.call(max, object)) < 0
+        unless min_cmp = block.call(min, object)
+          raise ArgumentError, "comparison failed"
+        end
+        min = object if min_cmp > 0
+
+        unless max_cmp = block.call(max, object)
+          raise ArgumentError, "comparison failed"
+        end
+
+        max = object if max_cmp < 0
       end
     end
     [min, max]
@@ -703,8 +718,13 @@ module Enumerable
     max_object, max_result = nil, Rubinius::FakeComparator.new(-1)
     each do |object|
       result = yield object
-      min_object, min_result = object, result if Type.coerce_to_comparison(min_result, result) > 0
-      max_object, max_result = object, result if Type.coerce_to_comparison(max_result, result) < 0
+      if Type.coerce_to_comparison(min_result, result) > 0
+        min_object, min_result = object, result
+      end
+
+      if Type.coerce_to_comparison(max_result, result) < 0
+        max_object, max_result = object, result
+      end
     end
     [min_object, max_object]
   end

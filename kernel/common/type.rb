@@ -37,9 +37,11 @@ module Type
 
     coerce_to(obj, Symbol, :to_sym)
   end
-  
-  def self.coerce_to_comparison(a, b, cmp = (a <=> b))
-    raise ArgumentError, "comparison of #{a} with #{b} failed" if cmp.nil?
+
+  def self.coerce_to_comparison(a, b)
+    unless cmp = (a <=> b)
+      raise ArgumentError, "comparison of #{a} with #{b} failed"
+    end
     cmp
   end
 end
