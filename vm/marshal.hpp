@@ -10,7 +10,6 @@ namespace rubinius {
 
   class Object;
 
-  class SendSite;
   class InstructionSequence;
   class CompiledMethod;
   class String;
@@ -33,7 +32,6 @@ namespace rubinius {
     Object* get_int();
     String* get_string();
     Symbol* get_symbol();
-    SendSite* get_sendsite();
     Tuple* get_tuple();
 
     Float* get_float();

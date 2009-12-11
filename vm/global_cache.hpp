@@ -11,6 +11,9 @@ namespace rubinius {
   #define CPU_CACHE_MASK 0xfff
   #define CPU_CACHE_HASH(c,m) ((((uintptr_t)(c)>>3)^((uintptr_t)m)) & CPU_CACHE_MASK)
 
+  class LookupData;
+  class Dispatch;
+
   class GlobalCache {
   public:
     struct cache_entry {
@@ -23,6 +26,10 @@ namespace rubinius {
     };
 
     struct cache_entry entries[CPU_CACHE_SIZE];
+
+  public:
+
+    static bool resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup);
 
     GlobalCache() {
       clear();

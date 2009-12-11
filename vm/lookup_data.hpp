@@ -2,6 +2,9 @@
 #define RBX_LOOKUP_DATA_HPP
 
 namespace rubinius {
+  class Object;
+  class Module;
+
   struct LookupData {
     Object* recv;
     Module* from;

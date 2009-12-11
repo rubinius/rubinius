@@ -117,9 +117,7 @@ field_extract_headers = %w[
   vm/builtin/nativefunction.hpp
   vm/builtin/packed_object.hpp
   vm/builtin/regexp.hpp
-  vm/builtin/selector.hpp
   vm/builtin/staticscope.hpp
-  vm/builtin/sendsite.hpp
   vm/builtin/string.hpp
   vm/builtin/symbol.hpp
   vm/builtin/thread.hpp

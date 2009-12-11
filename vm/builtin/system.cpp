@@ -33,7 +33,6 @@
 #include "builtin/lookuptable.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/selector.hpp"
 #include "builtin/taskprobe.hpp"
 #include "builtin/float.hpp"
 #include "builtin/methodtable.hpp"
@@ -44,7 +43,6 @@
 #include "builtin/system.hpp"
 #include "signal.hpp"
 #include "lookup_data.hpp"
-#include "builtin/sendsite.hpp"
 
 #include "instruments/stats.hpp"
 
@@ -514,7 +512,7 @@ namespace rubinius {
 
     Dispatch dis(name);
 
-    if(!GlobalCacheResolver::resolve(state, name, dis, lookup)) {
+    if(!GlobalCache::resolve(state, name, dis, lookup)) {
       return (Tuple*)Qnil;
     }
 

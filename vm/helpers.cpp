@@ -16,7 +16,6 @@
 #include "builtin/channel.hpp"
 #include "builtin/global_cache_entry.hpp"
 #include "builtin/methodtable.hpp"
-#include "builtin/sendsite.hpp"
 
 #include "vm.hpp"
 #include "object_utils.hpp"
@@ -150,7 +149,7 @@ namespace rubinius {
 
       Dispatch dis(name);
 
-      if(!GlobalCacheResolver::resolve(state, dis.name, dis, lookup)) {
+      if(!GlobalCache::resolve(state, dis.name, dis, lookup)) {
         return (Tuple*)Qnil;
       }
 

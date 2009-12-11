@@ -2,7 +2,6 @@
 
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/sendsite.hpp"
 #include "builtin/global_cache_entry.hpp"
 #include "inline_cache.hpp"
 

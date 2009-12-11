@@ -11,7 +11,6 @@
 #include <tommath.h>
 #include <gdtoa.h>
 
-#include "builtin/sendsite.hpp"
 #include "builtin/array.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/fixnum.hpp"
@@ -62,20 +61,6 @@ namespace rubinius {
     data[count] = 0; // clamp
 
     return state->symbol(data);
-  }
-
-  SendSite* UnMarshaller::get_sendsite() {
-    char data[1024];
-    size_t count;
-
-    stream >> count;
-    stream.get();
-    stream.read(data, count + 1);
-    data[count] = 0; // clamp
-
-    Symbol* sym = state->symbol(data);
-
-    return SendSite::create(state, sym);
   }
 
   Tuple* UnMarshaller::get_tuple() {
@@ -198,8 +183,6 @@ namespace rubinius {
       return get_string();
     case 'x':
       return get_symbol();
-    case 'S':
-      return get_sendsite();
     case 'p':
       return get_tuple();
     case 'd':

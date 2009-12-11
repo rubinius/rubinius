@@ -1,7 +1,6 @@
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/iseq.hpp"
-#include "builtin/sendsite.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/taskprobe.hpp"

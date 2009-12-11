@@ -25,8 +25,6 @@
 #include "builtin/nativefunction.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/regexp.hpp"
-#include "builtin/selector.hpp"
-#include "builtin/sendsite.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
@@ -228,8 +226,6 @@ namespace rubinius {
     Float::init(this);
     InstructionSequence::init(this);
     List::init(this);
-    SendSite::init(this);
-    Selector::init(this);
     init_ffi();
     init_native_libraries();
     Thread::init(this);

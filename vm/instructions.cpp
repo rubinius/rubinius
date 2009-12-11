@@ -6,7 +6,6 @@
 #include "builtin/compiledmethod.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/sendsite.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/taskprobe.hpp"

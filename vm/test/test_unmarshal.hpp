@@ -105,15 +105,6 @@ public:
     TS_ASSERT_EQUALS(obj, state->symbol("blah"));
   }
 
-  void test_sendsite() {
-    mar->sstream.str(std::string("S\n4\nblah\n"));
-    Object* obj = mar->unmarshal();
-
-    TS_ASSERT(kind_of<SendSite>(obj));
-
-    TS_ASSERT_EQUALS(as<SendSite>(obj)->name(), state->symbol("blah"));
-  }
-
   void test_tuple() {
     mar->sstream.str(std::string("p\n2\nI\n2\nI\n2f\n"));
 

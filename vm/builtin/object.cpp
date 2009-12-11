@@ -13,8 +13,6 @@
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/array.hpp"
-#include "builtin/selector.hpp"
-#include "builtin/sendsite.hpp"
 #include "builtin/float.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/system.hpp"
@@ -26,6 +24,7 @@
 #include "dispatch.hpp"
 #include "lookup_data.hpp"
 #include "primitives.hpp"
+#include "global_cache.hpp"
 
 #include "vm/object_utils.hpp"
 
@@ -661,7 +660,7 @@ namespace rubinius {
 
     Dispatch dis(name);
 
-    if(!GlobalCacheResolver::resolve(state, name, dis, lookup)) {
+    if(!GlobalCache::resolve(state, name, dis, lookup)) {
       return Qfalse;
     }
 
@@ -684,7 +683,7 @@ namespace rubinius {
 
     Dispatch dis(name);
 
-    if(!GlobalCacheResolver::resolve(state, name, dis, lookup)) {
+    if(!GlobalCache::resolve(state, name, dis, lookup)) {
       return Qfalse;
     }
 

@@ -1,8 +1,8 @@
 #include "dispatch.hpp"
 #include "arguments.hpp"
 #include "lookup_data.hpp"
+#include "global_cache.hpp"
 
-#include "builtin/sendsite.hpp"
 #include "builtin/module.hpp"
 #include "builtin/class.hpp"
 #include "builtin/symbol.hpp"
@@ -22,12 +22,12 @@ namespace rubinius {
   {
     Symbol* original_name = name;
 
-    if(!GlobalCacheResolver::resolve(state, name, *this, lookup)) {
+    if(!GlobalCache::resolve(state, name, *this, lookup)) {
       state->set_method_missing_reason(reason);
 
       method_missing = true;
       lookup.priv = true;
-      if(!GlobalCacheResolver::resolve(state, G(sym_method_missing), *this, lookup)) {
+      if(!GlobalCache::resolve(state, G(sym_method_missing), *this, lookup)) {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
       }

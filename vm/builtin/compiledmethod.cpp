@@ -8,7 +8,6 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
-#include "builtin/sendsite.hpp"
 
 #include "ffi.hpp"
 #include "marshal.hpp"
@@ -127,12 +126,6 @@ namespace rubinius {
 
   void CompiledMethod::post_marshal(STATE) {
     formalize(state); // side-effect, populates backend_method_
-    // Set the sender attribute of all SendSites in this method to this CM
-    Tuple *lit = literals();
-    for(std::size_t i = 0; i < lit->num_fields(); i++) {
-      SendSite *ss = try_as<SendSite>(lit->at(state, i));
-      if(ss != NULL) ss->sender(state, this);
-    }
   }
 
   size_t CompiledMethod::number_of_locals() {
