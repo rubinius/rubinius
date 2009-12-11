@@ -30,6 +30,7 @@ namespace autogen_types {
 }
 
 #include <sstream>
+#include <fstream>
 
 #include "llvm/jit_compiler.hpp"
 #include "llvm/jit_method.hpp"
@@ -340,8 +341,24 @@ namespace rubinius {
     , shared_(state->shared)
     , include_profiling_(state->shared.config.jit_profile)
     , code_bytes_(0)
+    , log_(0)
     , time_spent(0)
   {
+
+    if(state->shared.config.jit_log.value.size() == 0) {
+      log_ = &std::cerr;
+    } else {
+      std::ofstream* s = new std::ofstream(
+          state->shared.config.jit_log.value.c_str(), std::ios::out);
+
+      if(s->fail()) {
+        delete s;
+        log_ = &std::cerr;
+      } else {
+        log_ = s;
+      }
+    }
+
     llvm::NoFramePointerElim = true;
     llvm::InitializeNativeTarget();
 
@@ -459,7 +476,7 @@ namespace rubinius {
     // Ignore it!
     if(vmm->call_count < 0) {
       if(config().jit_inline_debug) {
-        llvm::errs() << "JIT: ignoring candidate! "
+        log() << "JIT: ignoring candidate! "
           << symbol_cstr(vmm->original->scope()->module()->name())
           << "#"
           << symbol_cstr(vmm->original->name()) << "\n";
@@ -468,7 +485,7 @@ namespace rubinius {
     }
 
     if(config().jit_inline_debug) {
-      llvm::errs() << "JIT: queueing method: "
+      log() << "JIT: queueing method: "
         << symbol_cstr(vmm->original->scope()->module()->name())
         << "#"
         << symbol_cstr(vmm->original->name()) << "\n";
@@ -561,19 +578,19 @@ namespace rubinius {
                                     int primitive) {
     if(config().jit_inline_debug) {
       if(start) {
-        llvm::errs() << "JIT: target search from "
+        log() << "JIT: target search from "
           << symbol_cstr(start->original->scope()->module()->name())
           << "#"
           << symbol_cstr(start->original->name()) << "\n";
       } else {
-        llvm::errs() << "JIT: target search from primitive\n";
+        log() << "JIT: target search from primitive\n";
       }
     }
 
     VMMethod* candidate = find_candidate(start, call_frame);
     if(!candidate) {
       if(config().jit_inline_debug) {
-        llvm::errs() << "JIT: unable to find candidate\n";
+        log() << "JIT: unable to find candidate\n";
       }
       return;
     }

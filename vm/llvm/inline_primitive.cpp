@@ -528,7 +528,7 @@ namespace rubinius {
           set_result(res);
 
           if(ops_.state()->config().jit_inline_debug) {
-            std::cerr << "inlining: "
+            ops_.state()->log() << "inlining: "
               << ops_.state()->symbol_cstr(cm->scope()->module()->name())
               << "#"
               << ops_.state()->symbol_cstr(cm->name())
@@ -545,7 +545,7 @@ namespace rubinius {
 
     if(inlined_prim) {
       if(ops_.state()->config().jit_inline_debug) {
-        std::cerr << "inlining: "
+        ops_.state()->log() << "inlining: "
           << ops_.state()->symbol_cstr(cm->scope()->module()->name())
           << "#"
           << ops_.state()->symbol_cstr(cm->name())
@@ -559,7 +559,7 @@ namespace rubinius {
 
     // Add more primitive inlining!
     if(ops_.state()->config().jit_inline_debug) {
-      std::cerr << "NOT inlining: "
+      ops_.state()->log() << "NOT inlining: "
         << ops_.state()->symbol_cstr(cm->scope()->module()->name())
         << "#"
         << ops_.state()->symbol_cstr(cm->name())
@@ -595,7 +595,7 @@ namespace rubinius {
     }
 
     if(ops_.state()->config().jit_inline_debug) {
-      std::cerr << "inlining: "
+      ops_.state()->log() << "inlining: "
         << ops_.state()->symbol_cstr(cm->scope()->module()->name())
         << "#"
         << ops_.state()->symbol_cstr(cm->name())

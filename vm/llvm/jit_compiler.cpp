@@ -63,7 +63,7 @@ namespace jit {
       VMMethod* parent = vmm->parent();
       assert(parent);
 
-      llvm::errs() << "JIT: compiling block in "
+      ls->log() << "JIT: compiling block in "
         << ls->symbol_cstr(parent->original->scope()->module()->name())
         << "#"
         << ls->symbol_cstr(vmm->original->name())
@@ -83,7 +83,7 @@ namespace jit {
 
   void Compiler::compile_method(LLVMState* ls, VMMethod* vmm) {
     if(ls->config().jit_inline_debug) {
-      llvm::errs() << "JIT: compiling "
+      ls->log() << "JIT: compiling "
         << ls->symbol_cstr(vmm->original->scope()->module()->name())
         << "#"
         << ls->symbol_cstr(vmm->original->name()) << "\n";

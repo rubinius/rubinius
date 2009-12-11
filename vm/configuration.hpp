@@ -24,6 +24,7 @@ namespace rubinius {
     config::Bool    jit_inline_generic;
     config::Bool    jit_inline_debug;
     config::Bool    jit_inline_blocks;
+    config::String  jit_log;
     config::Bool    jit_disabled;
 
     // Query Agent
@@ -63,6 +64,7 @@ namespace rubinius {
       , jit_inline_generic(this, "jit.inline.generic", true)
       , jit_inline_debug(this, "jit.inline.debug")
       , jit_inline_blocks(this, "jit.inline.blocks")
+      , jit_log(this,        "jit.log")
       , jit_disabled(this,   "int")
       , qa_port(this,         "agent.port")
       , qa_verbose(this,      "agent.verbose")
@@ -105,6 +107,9 @@ namespace rubinius {
 
       jit_inline_blocks.set_description(
           "Have the JIT try and inline methods and their literal blocks");
+
+      jit_log.set_description(
+          "Send JIT debugging output to this file rather than stdout");
 
       jit_disabled.set_description(
           "Force the JIT to never turn on");

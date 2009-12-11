@@ -732,7 +732,7 @@ namespace rubinius {
         set_has_side_effects();
 
         if(state()->config().jit_inline_debug) {
-          std::cerr << "inlining: primitive fixnum_equal"
+          ls_->log() << "inlining: primitive fixnum_equal"
             << " into "
             << state()->symbol_cstr(vmmethod()->original->name())
             << ".\n";
@@ -817,7 +817,7 @@ namespace rubinius {
       InlineCache* cache = reinterpret_cast<InlineCache*>(name);
       if(cache->classes_seen() == 0) {
         if(state()->config().jit_inline_debug) {
-          std::cerr << "inlining: primitive fixnum_lt"
+          ls_->log() << "inlining: primitive fixnum_lt"
             << " into "
             << state()->symbol_cstr(vmmethod()->original->name())
             << ".\n";

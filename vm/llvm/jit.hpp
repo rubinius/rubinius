@@ -379,6 +379,8 @@ namespace rubinius {
 
     int code_bytes_;
 
+    std::ostream* log_;
+
   public:
 
     uint64_t time_spent;
@@ -468,6 +470,10 @@ namespace rubinius {
     SharedState& shared() { return shared_; }
 
     llvm::LLVMContext& ctx() { return ctx_; }
+
+    std::ostream& log() {
+      return *log_;
+    }
 
     const llvm::Type* ptr_type(std::string name);
     const llvm::Type* type(std::string name);

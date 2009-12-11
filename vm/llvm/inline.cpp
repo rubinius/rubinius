@@ -17,12 +17,12 @@ namespace rubinius {
     Class* klass = cache_->dominating_class();
     if(!klass) {
       if(ops_.state()->config().jit_inline_debug) {
-        std::cerr << "NOT inlining: "
+        ops_.state()->log() << "NOT inlining: "
           << ops_.state()->symbol_cstr(cache_->name)
           << ". Cache contains " << cache_->classes_seen() << "\n";
 
         for(int i = 0; i < cache_->classes_seen(); i++) {
-          std::cerr << "  " << ops_.state()->symbol_cstr(cache_->tracked_class(i)->name())
+          ops_.state()->log() << "  " << ops_.state()->symbol_cstr(cache_->tracked_class(i)->name())
             << " " << cache_->tracked_class_hits(i) << "\n";
         }
       }
@@ -37,7 +37,7 @@ namespace rubinius {
 
     if(!meth) {
       if(ops_.state()->config().jit_inline_debug) {
-        std::cerr << "NOT inlining: "
+        ops_.state()->log() << "NOT inlining: "
           << ops_.state()->symbol_cstr(cache_->name)
           << ". Inliner error, method missing.\n";
       }
@@ -46,7 +46,7 @@ namespace rubinius {
 
     if(instance_of<Module>(defined_in)) {
       if(ops_.state()->config().jit_inline_debug) {
-        std::cerr << "NOT inlining: "
+        ops_.state()->log() << "NOT inlining: "
           << ops_.state()->symbol_cstr(cache_->name)
           << ". Not inlining methods defined in Modules.\n";
       }
@@ -76,7 +76,7 @@ namespace rubinius {
         if(decision != cInline) {
           if(ops_.state()->config().jit_inline_debug) {
 
-            std::cerr << "NOT inlining: "
+            ops_.state()->log() << "NOT inlining: "
               << ops_.state()->symbol_cstr(cm->scope()->module()->name())
               << "#"
               << ops_.state()->symbol_cstr(cm->name())
@@ -85,21 +85,21 @@ namespace rubinius {
               << ". ";
 
             if(decision == cTooBig) {
-              std::cerr << policy->current_size() << " + "
+              ops_.state()->log() << policy->current_size() << " + "
                 << vmm->total << " > "
                 << policy->max_size();
             } else if(decision == cTooComplex) {
-              std::cerr << "too complex";
+              ops_.state()->log() << "too complex";
             } else {
-              std::cerr << "no policy";
+              ops_.state()->log() << "no policy";
             }
-            std::cerr << "\n";
+            ops_.state()->log() << "\n";
           }
           return false;
         }
 
         if(ops_.state()->config().jit_inline_debug) {
-          std::cerr << "inlining: "
+          ops_.state()->log() << "inlining: "
             << ops_.state()->symbol_cstr(cm->scope()->module()->name())
             << "#"
             << ops_.state()->symbol_cstr(cm->name())
@@ -117,7 +117,7 @@ namespace rubinius {
         return true;
       } else {
         if(ops_.state()->config().jit_inline_debug) {
-          std::cerr << "NOT inlining: "
+          ops_.state()->log() << "NOT inlining: "
             << ops_.state()->symbol_cstr(cm->scope()->module()->name())
             << "#"
             << ops_.state()->symbol_cstr(cm->name())
@@ -131,7 +131,7 @@ namespace rubinius {
     } else if(NativeFunction* nf = try_as<NativeFunction>(meth)) {
       if(inline_ffi(klass, nf)) {
         if(ops_.state()->config().jit_inline_debug) {
-          std::cerr << "inlining: FFI call to "
+          ops_.state()->log() << "inlining: FFI call to "
             << ops_.state()->symbol_cstr(nf->name())
             << "() into "
             << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
@@ -142,7 +142,7 @@ namespace rubinius {
       }
     } else {
       if(ops_.state()->config().jit_inline_debug) {
-        std::cerr << "NOT inlining: "
+        ops_.state()->log() << "NOT inlining: "
           << ops_.state()->symbol_cstr(klass->name())
           << "#"
           << ops_.state()->symbol_cstr(cache_->name)
@@ -165,7 +165,7 @@ namespace rubinius {
 
     if(detect_trivial_method(cm)) {
       if(ops_.state()->config().jit_inline_debug) {
-        std::cerr << "inlining trivial block into: "
+        ops_.state()->log() << "inlining trivial block into: "
           << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
           << "\n";
       }
@@ -173,7 +173,7 @@ namespace rubinius {
       inline_trivial_method(0, cm);
     } else {
       if(ops_.state()->config().jit_inline_debug) {
-        std::cerr << "inlining block into: "
+        ops_.state()->log() << "inlining block into: "
           << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
           << "\n";
       }
@@ -218,7 +218,7 @@ namespace rubinius {
 
   void Inliner::inline_trivial_method(Class* klass, CompiledMethod* cm) {
     if(ops_.state()->config().jit_inline_debug) {
-      std::cerr << "inlining: "
+      ops_.state()->log() << "inlining: "
         << ops_.state()->symbol_cstr(cm->scope()->module()->name())
         << "#"
         << ops_.state()->symbol_cstr(cm->name())
@@ -280,7 +280,7 @@ namespace rubinius {
     if(count_ != 1) return;
 
     if(ops_.state()->config().jit_inline_debug) {
-      std::cerr << "inlining: writer to '"
+      ops_.state()->log() << "inlining: writer to '"
         << ops_.state()->symbol_cstr(acc->name())
         << "' on "
         << ops_.state()->symbol_cstr(klass->name())
@@ -332,7 +332,7 @@ namespace rubinius {
     if(count_ != 0) return;
 
     if(ops_.state()->config().jit_inline_debug) {
-      std::cerr << "inlining: read to '"
+      ops_.state()->log() << "inlining: read to '"
         << ops_.state()->symbol_cstr(acc->name())
         << "' on "
         << ops_.state()->symbol_cstr(klass->name())
