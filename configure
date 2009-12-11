@@ -59,9 +59,10 @@ class Configure
 
     o.doc " LLVM settings"
 
-    o.on("--enable-llvm", "[MODE]",
-         "Build with LLVM") do |which|
-      @llvm = (which || "auto").to_sym
+    @use_llvm = true
+
+    o.on "--disable-llvm", "Don't build with LLVM" do
+      @use_llvm = false
     end
 
     o.on "--llvm-path", "PATH", "Where to find LLVM" do |dir|
@@ -139,15 +140,33 @@ class Configure
     unless File.exists?(full_path)
       dir = File.dirname(full_path)
       Dir.mkdir dir unless File.directory?(dir)
-      puts "Fetching #{url}..."
+      puts "    Fetching #{url}..."
 
-      system "curl -# -f -o \"#{full_path}\" #{url}"
-      if $?.exitstatus == 22
+      require 'net/http'
+
+      begin
+        Net::HTTP.get_response(URI(url)) do |res|
+          size, total = 0, res.header['Content-Length'].to_i
+          File.open full_path, "w" do |f|
+            res.read_body do |chunk|
+              f << chunk
+              size += chunk.size
+              print "\r    [ %d%% (%d of %d) ]" % [(size * 100) / total, size, total]
+            end
+          end
+          puts ": done!"
+        end
+      rescue Exception => e
+        File.unlink full_path if File.exists?(full_path)
+      end
+
+      unless File.exists? full_path
         puts "ERROR. No #{file} available on server."
+        return false
       end
     end
 
-    puts "Prebuilt packages updated."
+    puts "    Prebuilt packages updated."
 
   end
 
@@ -157,18 +176,25 @@ class Configure
   def setup_svn
     unless File.directory?(@llvm_svn_dir)
       print "  Checking out LLVM from svn: #{LLVM_SVN_URL}"
-      system "svn co -q #{LLVM_SVN_URL} #{@llvm_svn_dir}"
+      unless system("svn co -q #{LLVM_SVN_URL} #{@llvm_svn_dir}")
+        puts "    Unable to checkout from svn."
+        return false
+      end
     end
 
     if File.exists?(File.join(@llvm_svn_dir, "include"))
       puts "  Code appears to be proper svn tree."
+      @llvm = :svn
     else
       puts "  Code in #{@llvm_svn_dir} doesn't appear to be proper LLVM tree!"
-      exit 1
+      return false
     end
+
+    return true
   end
 
   def setup_prebuilt
+    puts "  Checking for prebuilt LLVM build..."
     file = "vm/external_libs/prebuilt/llvm-#{@host}.tar.bz2"
 
     update_prebuilt unless File.exists?(file)
@@ -198,6 +224,7 @@ class Configure
       end
 
       puts "ERROR. Doesn't appear to be built already!"
+      return false
     end
 
     puts "ERROR. Path doesn't exist."
@@ -219,6 +246,7 @@ class Configure
       puts "not found."
     end
 
+    # If they explicitly said where LLVM is, use that and fail hard.
     if @llvm_path
       unless setup_path
         puts "ABORT: Path '#{@llvm_path}' not a proper LLVM path"
@@ -228,11 +256,12 @@ class Configure
       return
     end
 
-    return if setup_prebuilt
     return if setup_config
+    return if setup_prebuilt
+    return if setup_svn
 
-    @llvm = :svn
-    setup_svn
+    puts "WARNING: Unable to configure for LLVM, disabling support."
+    @use_llvm = false
   end
 
   def setup_config
@@ -245,7 +274,9 @@ class Configure
       config = File.join(which, "llvm-config")
       version = `#{config} --version`.strip
       parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
-      if parts[0] < 2 or parts[1] < 6
+
+      # 2.6svn is an unknown beast, don't trust it.
+      if version == "2.6svn" or parts[0] < 2 or parts[1] < 6
         puts "too old of a version"
       else
         puts "found! (version #{version})"
@@ -309,30 +340,14 @@ class Configure
   end
 
   def process
-    print "Using LLVM: "
-    case @llvm
-    when :svn
-      puts "svn"
-      setup_svn
-    when :auto
-      puts "auto"
+    if @use_llvm
+      puts "Configuring LLVM..."
       setup_auto
-    when :config
-      puts "config"
-      exit 1 unless setup_config
-    when :prebuilt
-      unless setup_prebuilt
-        puts "No prebuilt LLVM available for #{@host}"
-        exit 1
-      end
-    when :path
-      puts "existing build"
-      exit 1 unless setup_path
-    when :no
-      puts "no"
     else
-      puts "unknown value '#{@llvm}'"
+      print "WARNING: LLVM disabled."
     end
+
+    puts
 
     detect_features
   end
@@ -342,6 +357,11 @@ class Configure
   end
 
   def write_config
+    unless @use_llvm
+      @llvm = :no
+      @llvm_configure = ""
+    end
+
     File.open @config, "w" do |f|
       f.puts <<-EOC
 module Rubinius
