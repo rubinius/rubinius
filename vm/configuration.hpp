@@ -16,7 +16,6 @@ namespace rubinius {
 
     // JIT/Interpreter
     config::Bool    dynamic_interpreter_enabled;
-    config::Bool    jit_enabled;
     config::Integer jit_dump_code;
     config::Integer jit_call_til_compile;
     config::Integer jit_max_method_size;
@@ -25,9 +24,7 @@ namespace rubinius {
     config::Bool    jit_inline_generic;
     config::Bool    jit_inline_debug;
     config::Bool    jit_inline_blocks;
-    config::Bool    jit_force_off;
-
-    config::BoolSet jit_defaults;
+    config::Bool    jit_disabled;
 
     // Query Agent
     config::Integer qa_port;
@@ -56,7 +53,6 @@ namespace rubinius {
       , gc_show(this,         "gc.show")
       , gc_immix_debug(this,  "gc.immix.debug")
       , dynamic_interpreter_enabled(this, "interpreter.dynamic")
-      , jit_enabled(this,     "jit.enabled", default_jit_on)
       , jit_dump_code(this,   "jit.dump_code", default_jit_dump_code)
       , jit_call_til_compile(this, "jit.call_til_compile",
                              default_jit_call_til_compile)
@@ -67,8 +63,7 @@ namespace rubinius {
       , jit_inline_generic(this, "jit.inline.generic", true)
       , jit_inline_debug(this, "jit.inline.debug")
       , jit_inline_blocks(this, "jit.inline.blocks")
-      , jit_force_off(this,   "int")
-      , jit_defaults(this,    "J")
+      , jit_disabled(this,   "int")
       , qa_port(this,         "agent.port")
       , qa_verbose(this,      "agent.verbose")
       , gil_debug(this,       "vm.gil.debug")
@@ -86,9 +81,6 @@ namespace rubinius {
 
       gc_autotune.set_description(
           "Set whether or not the GC should adjust itself for performance");
-
-      jit_enabled.set_description(
-          "Whether or not to use the dynamic JIT");
 
       jit_dump_code.set_description(
           "1 == show simple IR, 2 == show optimized IR, 4 == show machine code");
@@ -114,14 +106,8 @@ namespace rubinius {
       jit_inline_blocks.set_description(
           "Have the JIT try and inline methods and their literal blocks");
 
-      jit_force_off.set_description(
+      jit_disabled.set_description(
           "Force the JIT to never turn on");
-
-      jit_defaults.set_description(
-          "Enable the JIT and generic inlining");
-
-      jit_defaults.add(jit_enabled);
-      jit_defaults.add(jit_inline_generic);
 
       print_config.set_description(
           "blank or 1 == names and values, 2 == description as well");

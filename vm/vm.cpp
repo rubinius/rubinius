@@ -128,6 +128,37 @@ namespace rubinius {
     GlobalLock::debug_locking = shared.config.gil_debug;
   }
 
+  void VM::initialize_config() {
+#ifdef USE_DYNAMIC_INTERPRETER
+    if(shared.config.dynamic_interpreter_enabled) {
+      G(rubinius)->set_const(this, "INTERPRETER", symbol("dynamic"));
+    } else {
+      G(rubinius)->set_const(this, "INTERPRETER", symbol("static"));
+    }
+#else
+    G(rubinius)->set_const(this, "INTERPRETER", symbol("static"));
+#endif
+
+#ifdef ENABLE_LLVM
+    if(!shared.config.jit_disabled) {
+      Array* ary = Array::create(this, 3);
+      ary->append(this, symbol("usage"));
+      if(shared.config.jit_inline_generic) {
+        ary->append(this, symbol("inline_generic"));
+      }
+
+      if(shared.config.jit_inline_blocks) {
+        ary->append(this, symbol("inline_blocks"));
+      }
+      G(rubinius)->set_const(this, "JIT", ary);
+    } else {
+      G(rubinius)->set_const(this, "JIT", Qfalse);
+    }
+#else
+    G(rubinius)->set_const(this, "JIT", Qnil);
+#endif
+  }
+
   // HACK so not thread safe or anything!
   static VM* __state = NULL;
 

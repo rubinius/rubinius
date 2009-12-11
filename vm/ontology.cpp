@@ -362,35 +362,6 @@ namespace rubinius {
     G(rubinius)->set_const(state, "SIZEOF_SHORT", Fixnum::from(sizeof(short)));
     G(rubinius)->set_const(state, "SIZEOF_INT", Fixnum::from(sizeof(int)));
     G(rubinius)->set_const(state, "SIZEOF_LONG", Fixnum::from(sizeof(long)));
-
-#ifdef USE_DYNAMIC_INTERPRETER
-    if(shared.config.dynamic_interpreter_enabled) {
-      G(rubinius)->set_const(state, "INTERPRETER", symbol("dynamic"));
-    } else {
-      G(rubinius)->set_const(state, "INTERPRETER", symbol("static"));
-    }
-#else
-    G(rubinius)->set_const(state, "INTERPRETER", symbol("static"));
-#endif
-
-#ifdef ENABLE_LLVM
-    if(shared.config.jit_enabled) {
-      Array* ary = Array::create(state, 3);
-      ary->append(state, symbol("usage"));
-      if(shared.config.jit_inline_generic) {
-        ary->append(state, symbol("inline_generic"));
-      }
-
-      if(shared.config.jit_inline_blocks) {
-        ary->append(state, symbol("inline_blocks"));
-      }
-      G(rubinius)->set_const(state, "JIT", ary);
-    } else {
-      G(rubinius)->set_const(state, "JIT", Qfalse);
-    }
-#else
-    G(rubinius)->set_const(state, "JIT", Qnil);
-#endif
   }
 
   void VM::bootstrap_symbol() {

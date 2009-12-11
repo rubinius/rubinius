@@ -220,6 +220,7 @@ namespace rubinius {
     void bootstrap_class();
     void bootstrap_ontology();
     void bootstrap_symbol();
+    void initialize_config();
 
     void setup_errno(int num, const char* name, Class* sce, Module* ern);
     void bootstrap_exceptions();

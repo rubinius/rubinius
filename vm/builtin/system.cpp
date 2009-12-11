@@ -360,9 +360,7 @@ namespace rubinius {
   }
 
   Object* System::vm_jit_info(STATE) {
-    if(!state->shared.config.jit_enabled) {
-      return Qnil;
-    }
+    if(state->shared.config.jit_disabled) return Qnil;
 
 #ifdef ENABLE_LLVM
     LLVMState* ls = LLVMState::get(state);

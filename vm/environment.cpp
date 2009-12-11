@@ -253,11 +253,6 @@ namespace rubinius {
     state->set_const("ARGV", ary);
 
     // Now finish up with the config
-    //
-    // Respect -Xint
-    if(config.jit_force_off) {
-      config.jit_enabled.set("no");
-    }
 
     if(config.qa_port > 0) start_agent(config.qa_port);
 
@@ -440,6 +435,8 @@ namespace rubinius {
     load_platform_conf(root);
     boot_vm();
     load_argv(argc_, argv_);
+
+    state->initialize_config();
 
     load_kernel(root);
 
