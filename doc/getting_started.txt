@@ -61,6 +61,19 @@ help</tt> and http://www.rubygems.org for more information.
 ### System-dependent requirements
 
 
+#### OS X
+
+In order to view backtrace information in the case of
+a crash, you need to have:
+
+* XCode + Tools/Utilities
+
+Then, to enable "developer mode" for crash reporting,
+the program to use is usually located at:
+
+    /Developer/Applications/Utilities/CrashReporterPrefs.app
+
+
 #### Debian/Ubuntu family systems
 
 For the build to succeed you will need these packages:
