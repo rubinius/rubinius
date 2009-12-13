@@ -69,8 +69,9 @@ class Module
         end
       else
         mod.send :append_features, self
-        mod.send :included, self
       end
+
+      mod.send :included, self
     end
   end
 
