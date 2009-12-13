@@ -336,6 +336,16 @@ describe "String#%" do
       ("%04#{f}" % 10).should == "0010"
       ("%*#{f}" % [10, 4]).should == "         4"
     end
+
+    it "supports negative integers using #{format}" do
+      ("%#{f}" % -5).should == "-5"
+      ("%3#{f}" % -5).should == " -5"
+      ("%03#{f}" % -5).should == "-05"
+      ("%+03#{f}" % -5).should == "-05"
+      ("%-3#{f}" % -5).should == "-5 "
+      ("%-03#{f}" % -5).should == "-05"
+      ("%+-03#{f}" % -5).should == "-05"
+    end
   end
 
   it "supports float formats using %e" do
@@ -417,7 +427,7 @@ describe "String#%" do
         ("%E" % (-0e0/0)).should == "NAN"
       end
     end
-    
+
     # TODO: If http://redmine.ruby-lang.org/issues/show/1566 is confirmed, we
     # can guard the behaviour of capitalising Inf and NaN as a bug, and
     # removed the compliance guards.
@@ -438,7 +448,7 @@ describe "String#%" do
         end
       end
     end
-    
+
     ruby_version_is "1.9" do
       it "pads with spaces for %E with Inf, -Inf, and NaN" do
         ("%010E" % -1e1020).should == "      -Inf"
@@ -655,7 +665,7 @@ describe "String#%" do
       ("%d" % -(2 ** 64 + 5)).should == "-18446744073709551621"
     end
   end
-  
+
   it "supports hex formats using %x for positive numbers" do
     ("%x" % 10).should == "a"
     ("% x" % 10).should == " a"
@@ -788,7 +798,7 @@ describe "String#%" do
       obj.should_receive(:to_int).and_return(6)
       (format % obj).should == (format % 6)
     end
-    
+
     # 1.9 raises a TypeError for Kernel.Integer(nil), so we version guard this
     # case
     ruby_version_is ""..."1.9" do
@@ -797,7 +807,7 @@ describe "String#%" do
           format = "%" + f
           (format % nil).should == (format % Kernel.Integer(nil))
         end
-      end   
+      end
     end
 
     it "doesn't taint the result for #{format} when argument is tainted" do

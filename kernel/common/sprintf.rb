@@ -283,6 +283,8 @@ module Rubinius
       ret = val.to_s
       modded_width = width.to_i + (flags[:plus] ? 1 : 0)
       width = nil if modded_width <= val.to_s.size
+      sign = plus_char
+
       if precision || flags[:zero]
         ret.gsub!("..", "")
       end
@@ -290,16 +292,22 @@ module Rubinius
         if precision > PrecisionMax
           raise ArgumentError, "precision too big"
         end
-        ret = plus_char + ret.send(direction, precision, pad_override || "0")
+        ret = sign + ret.send(direction, precision, pad_override || "0")
         flags[:zero] = flags[:plus] = flags[:space] = nil
       end
       if width
-        ret = ret.send(direction, width, pad_char)
-        ret[0] = plus_char unless plus_char.empty?
-      else
-        ret = plus_char + ret
+        if pad_char != " " && ret[0] == ?-
+          ret.slice!(0)
+          sign = "-"
+          width -= 1
+          ret = ret.rjust(width, pad_char)
+        else
+          ret = ret.send(direction, width, pad_char)
+          ret[0] = sign unless sign.empty?
+          return ret
+        end
       end
-      ret
+      sign + ret
     end
 
     def pad_char
