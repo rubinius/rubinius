@@ -9,20 +9,31 @@ describe "Kernel#freeze" do
     o.frozen?.should == true
   end
 
-  # 1.9 allows immediate's to be frozen; reported as bug #1747
+  it "returns the immediate when called on an immediate" do
+    nil.freeze.should == nil
+    true.freeze.should == true
+    false.freeze.should == false
+    1.freeze.should == 1
+    :sym.freeze.should == :sym
+  end
+
+  # 1.9 allows immediates to be frozen; reported as bug #1747
   it "has no effect on immediate values" do
     a = nil
     b = true
     c = false
     d = 1
+    e = :sym
     a.freeze
     b.freeze
     c.freeze
     d.freeze
+    e.freeze
     a.frozen?.should == false
     b.frozen?.should == false
     c.frozen?.should == false
     d.frozen?.should == false
+    e.frozen?.should == false
   end
 
   ruby_version_is "" ... "1.9" do

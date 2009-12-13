@@ -19,7 +19,7 @@ module ImmediateValue
   end
 
   def taint
-    false
+    self
   end
 
   def tainted?
@@ -27,7 +27,7 @@ module ImmediateValue
   end
 
   def freeze
-    false
+    self
   end
 
   def frozen?
