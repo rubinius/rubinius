@@ -36,9 +36,4 @@ describe "Mutex#unlock" do
     lambda { mutex.unlock }.should raise_error(ThreadError)
   end
 
-  it "returns nil if successful" do
-    mutex = Mutex.new
-    mutex.lock
-    mutex.unlock.should be_nil
-  end
 end

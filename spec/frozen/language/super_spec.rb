@@ -103,8 +103,6 @@ describe "The super keyword" do
     sub.new.a.should == "a"
   end
 
-  # TODO: the commented calls to super cause compilation errors
-
   ruby_version_is ""..."1.9" do
     it "can be used with implicit arguments from a method defined with define_method" do
       sup = Class.new do

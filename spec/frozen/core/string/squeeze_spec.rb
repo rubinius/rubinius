@@ -31,8 +31,6 @@ describe "String#squeeze" do
     s.squeeze("---").should == "-subbookkeeper-"
     "ook--001122".squeeze("--2").should == "ook-012"
     "ook--(())".squeeze("(--").should == "ook-()"
-    s.squeeze("e-b").should == s
-    s.squeeze("^e-b").should == s.squeeze
     s.squeeze("^b-e").should == "-subbokeeper-"
     "^^__^^".squeeze("^^-^").should == "^^_^^"
     "^^--^^".squeeze("^---").should == "^--^"
@@ -45,6 +43,22 @@ describe "String#squeeze" do
     s.squeeze("^bc-e").should == "-subbokeeper-"
 
     "AABBCCaabbcc[[]]".squeeze("A-a").should == "ABCabbcc[]"
+  end
+
+  ruby_version_is "1.8" ... "1.9" do
+    it "doesn't change chars when the parameter is out of the sequence" do
+      s = "--subbookkeeper--"
+      s.squeeze("e-b").should == s
+      s.squeeze("^e-b").should == s.squeeze
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises an error when the parameter is out of the sequence" do
+      s = "--subbookkeeper--"
+      lambda { s.squeeze("e-b") }.should raise_error(ArgumentError)
+      lambda { s.squeeze("^e-b") }.should raise_error(ArgumentError)
+    end
   end
 
   it "taints the result when self is tainted" do

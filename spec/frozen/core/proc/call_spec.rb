@@ -6,7 +6,7 @@ language_version __FILE__, "call"
 describe "Proc#call" do
   it_behaves_like :proc_call, :call
 
-  ruby_version_is "1.9" do
+  ruby_version_is "1.8.7" do
     it_behaves_like :proc_call_block_args, :call
   end
 end

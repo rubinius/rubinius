@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module#private" do
-  it "should make the target method uncallable from other types" do
+  it "makes the target method uncallable from other types" do
     obj = Object.new
     class << obj
       def foo; true; end

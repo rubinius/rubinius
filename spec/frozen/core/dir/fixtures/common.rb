@@ -1,86 +1,108 @@
 require 'fileutils'
 
 module DirSpecs
-  def DirSpecs.mock_dir(dirs = ['mock'])
-    File.expand_path(tmp(File.join(dirs)))
+  def self.mock_dir(dirs = ['mock'])
+    @mock_dir ||= File.expand_path("../", __FILE__)
+    File.join @mock_dir, dirs
   end
 
-  def DirSpecs.nonexistent
-    name = mock_dir + "/nonexistent00"
+  def self.nonexistent
+    name = File.join mock_dir, "nonexistent00"
     name = name.next while File.exist? name
-    name
+    File.join mock_dir, name
   end
 
-  def DirSpecs.clear_dirs
-    old_kcode, $KCODE = $KCODE, 'u'
-    ['nonexisting', 'default_perms','reduced', 'always_returns_0', '???', [0xe9].pack('U')].each do |dir|
-      begin
-        Dir.rmdir dir
-      rescue
+  # TODO: make these relative to the mock_dir
+  def self.clear_dirs
+    begin
+      kcode, $KCODE = $KCODE, 'u'
+      [ 'nonexisting',
+        'default_perms',
+        'reduced',
+        'always_returns_0',
+        '???',
+        [0xe9].pack('U')
+      ].each do |dir|
+        begin
+          Dir.rmdir dir
+        rescue
+        end
+      end
+    ensure
+      $KCODE = kcode
+    end
+  end
+
+  # The names of the fixture directories and files used by
+  # various Dir specs.
+  def self.mock_dir_files
+    unless @mock_dir_files
+      @mock_dir_files = %w[
+        .dotfile
+        .dotsubdir/.dotfile
+        .dotsubdir/nondotfile
+
+        deeply/.dotfile
+        deeply/nested/.dotfile.ext
+        deeply/nested/directory/structure/.ext
+        deeply/nested/directory/structure/bar
+        deeply/nested/directory/structure/baz
+        deeply/nested/directory/structure/file_one
+        deeply/nested/directory/structure/file_one.ext
+        deeply/nested/directory/structure/foo
+        deeply/nondotfile
+
+        file_one.ext
+        file_two.ext
+
+        dir_filename_ordering
+        dir/filename_ordering
+
+        nondotfile
+
+        subdir_one/.dotfile
+        subdir_one/nondotfile
+        subdir_two/nondotfile
+        subdir_two/nondotfile.ext
+
+        special/+
+
+        special/^
+        special/$
+
+        special/(
+        special/)
+        special/[
+        special/]
+        special/{
+        special/}
+      ]
+
+      platform_is_not :windows do
+        @mock_dir_files += %w[
+          special/*
+          special/?
+
+          special/|
+        ]
       end
     end
+
+    @mock_dir_files
   end
 
-  def DirSpecs.create_mock_dirs
-    mock_dir = self.mock_dir
-    files = %w[
-      .dotfile
-      .dotsubdir/.dotfile
-      .dotsubdir/nondotfile
-
-      deeply/.dotfile
-      deeply/nested/.dotfile.ext
-      deeply/nested/directory/structure/.ext
-      deeply/nested/directory/structure/bar
-      deeply/nested/directory/structure/baz
-      deeply/nested/directory/structure/file_one
-      deeply/nested/directory/structure/file_one.ext
-      deeply/nested/directory/structure/foo
-      deeply/nondotfile
-
-      file_one.ext
-      file_two.ext
-
-      dir_filename_ordering
-      dir/filename_ordering
-
-      nondotfile
-
-      subdir_one/.dotfile
-      subdir_one/nondotfile
-      subdir_two/nondotfile
-      subdir_two/nondotfile.ext
-
-      special/+
-
-      special/^
-      special/$
-
-      special/(
-      special/)
-      special/[
-      special/]
-      special/{
-      special/}
-    ]
-
-    platform_is_not :windows do
-      files += %w[
-        special/*
-        special/?
-
-        special/|
-      ]
-    end
-    
+  def self.create_mock_dirs
     umask = File.umask 0
-    FileUtils.rm_rf mock_dir
-    files.each do |file|
-      file = File.join mock_dir, file
+    mock_dir_files.each do |name|
+      file = File.join mock_dir, name
       FileUtils.mkdir_p File.dirname(file)
       FileUtils.touch file
     end
     File.umask umask
+  end
+
+  def self.delete_mock_dirs
+    FileUtils.rm_r mock_dir
   end
 
   def self.mock_rmdir(*dirs)
@@ -135,8 +157,4 @@ module DirSpecs
       subdir_two
     ]
   end
-
 end
-
-# Create the fixture directories every time the specs are run
-DirSpecs.create_mock_dirs

@@ -8,6 +8,7 @@ describe "Tempfile#initialize" do
 
   after(:each) do
     @tempfile.close
+    @tempfile.unlink if @tempfile.path
   end
 
   it "opens a new tempfile with the passed name in the passed directory" do

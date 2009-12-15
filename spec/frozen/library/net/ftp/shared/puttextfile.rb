@@ -15,10 +15,8 @@ describe :net_ftp_puttextfile, :shared => true do
     @ftp.quit rescue nil
     @ftp.close
     @server.stop
-  end
 
-  after :all do
-    File.unlink(tmp("textfile")) if File.exists?(tmp("textfile"))
+    File.delete @remote_tmp_file if File.exists? @remote_tmp_file
   end
 
   it "sends the STOR command to the server" do

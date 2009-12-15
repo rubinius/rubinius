@@ -15,6 +15,8 @@ describe :net_ftp_putbinaryfile, :shared => :true do
     @ftp.quit rescue nil
     @ftp.close
     @server.stop
+
+    File.delete @remote_tmp_file if File.exists? @remote_tmp_file
   end
 
   it "sends the STOR command to the server" do
@@ -56,7 +58,7 @@ describe :net_ftp_putbinaryfile, :shared => :true do
       
       @ftp.resume = true
     end
-    
+
     it "sends the remaining content of the passed local_file to the passed remote_file" do
       @ftp.send(@method, @local_fixture_file, "binary")
       File.read(@remote_tmp_file).should == File.read(@local_fixture_file)

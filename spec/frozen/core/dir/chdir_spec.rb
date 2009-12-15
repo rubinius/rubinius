@@ -2,11 +2,19 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/common'
 
 describe "Dir.chdir" do
-  before(:each) do
+  before :all do
+    DirSpecs.create_mock_dirs
+  end
+
+  after :all do
+    DirSpecs.delete_mock_dirs
+  end
+
+  before :each do
     @original = Dir.pwd
   end
 
-  after(:each) do
+  after :each do
     Dir.chdir(@original)
   end
 

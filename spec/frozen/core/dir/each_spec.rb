@@ -3,11 +3,19 @@ require File.dirname(__FILE__) + '/fixtures/common'
 require File.dirname(__FILE__) + '/shared/closed'
 
 describe "Dir#each" do
-  before(:each) do
+  before :all do
+    DirSpecs.create_mock_dirs
+  end
+
+  after :all do
+    DirSpecs.delete_mock_dirs
+  end
+
+  before :each do
     @dir = Dir.open DirSpecs.mock_dir
   end
   
-  after(:each) do
+  after :each do
     @dir.close
   end
 
@@ -43,5 +51,13 @@ describe "Dir#each" do
 end
 
 describe "Dir#each" do
+  before :all do
+    DirSpecs.create_mock_dirs
+  end
+
+  after :all do
+    DirSpecs.delete_mock_dirs
+  end
+
   it_behaves_like :dir_closed, :each
 end

@@ -3,8 +3,8 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#shuffle" do
   ruby_version_is "1.8.7" do
-    it "should return the same values, in a usually different order" do
-      a = [1,2,3,4]
+    it "returns the same values, in a usually different order" do
+      a = [1, 2, 3, 4]
       different = false
       10.times do
         s = a.shuffle
@@ -15,9 +15,9 @@ describe "Array#shuffle" do
     end
 
     it "returns subclass instances with Array subclass" do
-      ArraySpecs::MyArray[1, 2, 3].shuffle.class.should == ArraySpecs::MyArray
+      ArraySpecs::MyArray[1, 2, 3].shuffle.should be_an_instance_of(ArraySpecs::MyArray)
     end
-  
+
     it "is not destructive" do
       a = [1, 2, 3]
       10.times do
@@ -25,20 +25,19 @@ describe "Array#shuffle" do
         a.should == [1, 2, 3]
       end
     end
-
   end
 end
 
 describe "Array#shuffle!" do
   ruby_version_is "1.8.7" do
-    it "should return the same values, in a usually different order" do
-      a = [1,2,3,4]
+    it "returns the same values, in a usually different order" do
+      a = [1, 2, 3, 4]
       original = a
       different = false
       10.times do
         a = a.shuffle!
-        a.sort.should == [1,2,3,4]
-        different ||= (a != [1,2,3,4])
+        a.sort.should == [1, 2, 3, 4]
+        different ||= (a != [1, 2, 3, 4])
       end
       different.should be_true # Will fail once in a blue moon (4!^10)
       a.should equal(original)

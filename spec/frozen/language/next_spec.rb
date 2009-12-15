@@ -87,49 +87,103 @@ describe "Assignment via next" do
     r([1]){next [*[1]]}
     r([1,2]){next [*[1,2]]}
   end
-  
-  it "assigns splatted objects" do
-    def r(val); a = yield(); val.should == a; end
-    r(nil){next *nil}
-    r(1){next *1}
-    r(nil){next *[]}
-    r(1){next *[1]}
-    r(nil){next *[nil]}
-    r([]){next *[[]]}
-    r(nil){next *[*[]]}
-    r(1){next *[*[1]]}
-    r([1,2]){next *[*[1,2]]}
+
+  ruby_version_is ""..."1.9" do
+    it "assigns splatted objects" do
+      def r(val); a = yield(); val.should == a; end
+      r(nil){next *nil}
+      r(1){next *1}
+      r(nil){next *[]}
+      r(1){next *[1]}
+      r(nil){next *[nil]}
+      r([]){next *[[]]}
+      r(nil){next *[*[]]}
+      r(1){next *[*[1]]}
+      r([1,2]){next *[*[1,2]]}
+    end
   end
-  
-  it "assigns objects to a splatted reference" do
-    def r(val); *a = yield(); val.should == a; end
-    r([nil]){next}
-    r([nil]){next nil}
-    r([1]){next 1}
-    r([[]]){next []}
-    r([[1]]){next [1]}
-    r([[nil]]){next [nil]}
-    r([[[]]]){next [[]]}
-    r([[1,2]]){next [1,2]}
-    r([[]]){next [*[]]}
-    r([[1]]){next [*[1]]}
-    r([[1,2]]){next [*[1,2]]}
+
+  ruby_version_is "1.9" do
+    it "assigns splatted objects" do
+      def r(val); a = yield(); val.should == a; end
+      r([]){next *nil}
+      r([1]){next *1}
+      r([]){next *[]}
+      r([1]){next *[1]}
+      r([nil]){next *[nil]}
+      r([[]]){next *[[]]}
+      r([]){next *[*[]]}
+      r([1]){next *[*[1]]}
+      r([1,2]){next *[*[1,2]]}
+    end
   end
-  
-  it "assigns splatted objects to a splatted reference via a splatted yield" do
-    def r(val); *a = *yield(); val.should == a; end
-    r([nil]){next *nil}
-    r([1]){next *1}
-    r([nil]){next *[]}
-    r([1]){next *[1]}
-    r([nil]){next *[nil]}
-    r([]){next *[[]]}
-    r([1,2]){next *[1,2]}
-    r([nil]){next *[*[]]}
-    r([1]){next *[*[1]]}
-    r([1,2]){next *[*[1,2]]}
+
+  ruby_version_is ""..."1.9" do
+    it "assigns objects to a splatted reference" do
+      def r(val); *a = yield(); val.should == a; end
+      r([nil]){next}
+      r([nil]){next nil}
+      r([1]){next 1}
+      r([[]]){next []}
+      r([[1]]){next [1]}
+      r([[nil]]){next [nil]}
+      r([[[]]]){next [[]]}
+      r([[1,2]]){next [1,2]}
+      r([[]]){next [*[]]}
+      r([[1]]){next [*[1]]}
+      r([[1,2]]){next [*[1,2]]}
+    end
   end
-  
+
+  ruby_version_is "1.9" do
+    it "assigns objects to a splatted reference" do
+      def r(val); *a = yield(); val.should == a; end
+      r([nil]){next}
+      r([nil]){next nil}
+      r([1]){next 1}
+      r([]){next []}
+      r([1]){next [1]}
+      r([nil]){next [nil]}
+      r([[]]){next [[]]}
+      r([1,2]){next [1,2]}
+      r([]){next [*[]]}
+      r([1]){next [*[1]]}
+      r([1,2]){next [*[1,2]]}
+    end
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "assigns splatted objects to a splatted reference via a splatted yield" do
+      def r(val); *a = *yield(); val.should == a; end
+      r([nil]){next *nil}
+      r([1]){next *1}
+      r([nil]){next *[]}
+      r([1]){next *[1]}
+      r([nil]){next *[nil]}
+      r([]){next *[[]]}
+      r([1,2]){next *[1,2]}
+      r([nil]){next *[*[]]}
+      r([1]){next *[*[1]]}
+      r([1,2]){next *[*[1,2]]}
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "assigns splatted objects to a splatted reference via a splatted yield" do
+      def r(val); *a = *yield(); val.should == a; end
+      r([]){next *nil}
+      r([1]){next *1}
+      r([]){next *[]}
+      r([1]){next *[1]}
+      r([nil]){next *[nil]}
+      r([[]]){next *[[]]}
+      r([1,2]){next *[1,2]}
+      r([]){next *[*[]]}
+      r([1]){next *[*[1]]}
+      r([1,2]){next *[*[1,2]]}
+    end
+  end
+
   it "assigns objects to multiple variables" do
     def r(val); a,b,*c = yield(); val.should == [a,b,c]; end
     r([nil,nil,[]]){next}
@@ -145,19 +199,37 @@ describe "Assignment via next" do
     r([1,2,[]]){next [*[1,2]]}
   end
 
-  it "assigns splatted objects to multiple variables" do
-   def r(val); a,b,*c = *yield(); val.should == [a,b,c]; end
-   r([nil,nil,[]]){next *nil}
-   r([1,nil,[]]){next *1}
-   r([nil,nil,[]]){next *[]}
-   r([1,nil,[]]){next *[1]}
-   r([nil,nil,[]]){next *[nil]}
-   r([nil,nil,[]]){next *[[]]}
-   r([1,2,[]]){next *[1,2]}
-   r([nil,nil,[]]){next *[*[]]}
-   r([1,nil,[]]){next *[*[1]]}
-   r([1,2,[]]){next *[*[1,2]]}
- end
+  ruby_version_is ""..."1.9" do
+    it "assigns splatted objects to multiple variables" do
+      def r(val); a,b,*c = *yield(); val.should == [a,b,c]; end
+      r([nil,nil,[]]){next *nil}
+      r([1,nil,[]]){next *1}
+      r([nil,nil,[]]){next *[]}
+      r([1,nil,[]]){next *[1]}
+      r([nil,nil,[]]){next *[nil]}
+      r([nil,nil,[]]){next *[[]]}
+      r([1,2,[]]){next *[1,2]}
+      r([nil,nil,[]]){next *[*[]]}
+      r([1,nil,[]]){next *[*[1]]}
+      r([1,2,[]]){next *[*[1,2]]}
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "assigns splatted objects to multiple variables" do
+      def r(val); a,b,*c = *yield(); val.should == [a,b,c]; end
+      r([nil,nil,[]]){next *nil}
+      r([1,nil,[]]){next *1}
+      r([nil,nil,[]]){next *[]}
+      r([1,nil,[]]){next *[1]}
+      r([nil,nil,[]]){next *[nil]}
+      r([[],nil,[]]){next *[[]]}
+      r([1,2,[]]){next *[1,2]}
+      r([nil,nil,[]]){next *[*[]]}
+      r([1,nil,[]]){next *[*[1]]}
+      r([1,2,[]]){next *[*[1,2]]}
+    end
+  end
 end
 
 language_version __FILE__, "next"

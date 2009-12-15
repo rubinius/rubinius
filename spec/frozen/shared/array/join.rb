@@ -4,15 +4,29 @@ describe :array_join, :shared => true do
     a.send(@method, ':').should == ''
   end
 
-  it "returns a string formed by concatenating each element.to_s separated by separator without trailing separator" do
-    obj = mock('foo')
-    def obj.to_s() 'foo' end
-    @object.new(1, 2, 3, 4, obj).send(@method, ' | ').should == '1 | 2 | 3 | 4 | foo'
+  ruby_version_is ""..."1.9" do
+    it "returns a string formed by concatenating each element.to_s separated by separator without trailing separator" do
+      obj = mock('foo')
+      def obj.to_s() 'foo' end
+      @object.new(1, 2, 3, 4, obj).send(@method, ' | ').should == '1 | 2 | 3 | 4 | foo'
 
-    obj = mock('o')
-    class << obj; undef :to_s; end
-    obj.should_receive(:method_missing).with(:to_s).and_return("o")
-    @object.new(1, obj).send(@method, ":").should == "1:o"
+      obj = mock('o')
+      class << obj; undef :to_s; end
+      obj.should_receive(:method_missing).with(:to_s).and_return("o")
+      @object.new(1, obj).send(@method, ":").should == "1:o"
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns a string formed by concatenating each element.to_str separated by separator without trailing separator" do
+      obj = mock('foo')
+      def obj.to_s() 'foo' end
+      @object.new(1, 2, 3, 4, obj).send(@method, ' | ').should == '1 | 2 | 3 | 4 | foo'
+
+      obj = mock('o')
+      obj.should_receive(:method_missing).with(:to_str).and_return("o")
+      @object.new(1, obj).send(@method, ":").should == "1:o"
+    end
   end
 
   it "raises a NoMethodError if an element does not respond to #to_s" do

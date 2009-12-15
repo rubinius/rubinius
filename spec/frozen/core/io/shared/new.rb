@@ -23,7 +23,7 @@ describe :io_new, :shared => true do
     ensure
       io.close
     end
-    io.class.should == IO
+    io.should be_an_instance_of(IO)
   end
 
   it "takes an Integer or #to_int argument as the descriptor to open" do

@@ -2,6 +2,14 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/common'
 
 describe "Dir.mkdir" do
+  before :all do
+    DirSpecs.create_mock_dirs
+  end
+
+  after :all do
+    DirSpecs.delete_mock_dirs
+  end
+
   it "creates the named directory with the given permissions" do
     DirSpecs.clear_dirs
 

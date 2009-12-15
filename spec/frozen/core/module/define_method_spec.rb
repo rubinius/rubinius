@@ -95,7 +95,7 @@ describe "Module#define_method" do
     lambda{o.other_inspect}.should raise_error(NoMethodError)
   end
 
-  it "should maintain the Proc's scope" do
+  it "maintains the Proc's scope" do
     class DefineMethodByProcClass
       in_scope = true
       method_proc = proc { in_scope }
@@ -104,6 +104,6 @@ describe "Module#define_method" do
     end
 
     o = DefineMethodByProcClass.new
-    o.proc_test.should == true
+    o.proc_test.should be_true
   end
 end

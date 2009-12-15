@@ -5,7 +5,9 @@ platform_is_not :windows do
   not_supported_on :jruby do
     as_superuser do
       describe "Dir.chroot as root" do
-        before(:all) do
+        before :all do
+          DirSpecs.create_mock_dirs
+
           @real_root = "../" * (File.dirname(__FILE__).count('/') - 1)
           @ref_dir = File.join("/", Dir.new('/').entries.first)
         end
@@ -14,6 +16,8 @@ platform_is_not :windows do
           until File.exists?(@ref_dir)
             Dir.chroot("../") or break
           end
+
+          DirSpecs.delete_mock_dirs
         end
 
         it "can be used to change the process' root directory" do
@@ -47,6 +51,14 @@ platform_is_not :windows do
 
     as_user do
       describe "Dir.chroot as regular user" do
+        before :all do
+          DirSpecs.create_mock_dirs
+        end
+
+        after :all do
+          DirSpecs.delete_mock_dirs
+        end
+
         it "raises an Errno::EPERM exception if the directory exists" do
           lambda { Dir.chroot('.') }.should raise_error(Errno::EPERM)
         end

@@ -8,6 +8,7 @@ describe "Net::FTP#storbinary" do
     @server.serve_once
 
     @local_fixture_file  = File.dirname(__FILE__) + "/fixtures/putbinaryfile"
+    @tmp_file = tmp("binaryfile")
 
     @ftp = Net::FTP.new
     @ftp.connect("localhost", 9921)
@@ -17,6 +18,8 @@ describe "Net::FTP#storbinary" do
     @ftp.quit rescue nil
     @ftp.close
     @server.stop
+
+    File.delete @tmp_file if File.exists? @tmp_file
   end
   
   it "sends the passed command and the passed File object's content to the server" do

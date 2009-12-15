@@ -43,6 +43,10 @@ describe "Kernel#require" do
     $require_spec_recursive = nil
   end
 
+  after :each do
+    FileUtils.rm_r $require_tmp_dir
+  end
+
   # The files used below just contain code that assigns
   # Time.now to the respective global variable so that
   # reloads can easily be verified.

@@ -15,6 +15,8 @@ describe :net_ftp_getbinaryfile, :shared => :true do
     @ftp.quit rescue nil
     @ftp.close
     @server.stop
+
+    File.delete @tmp_file if File.exists? @tmp_file
   end
   
   it "sends the RETR command to the server" do

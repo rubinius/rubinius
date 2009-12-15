@@ -3,18 +3,22 @@ require "tmpdir"
 
 ruby_version_is "1.8.7" do
   describe "Dir.mktmpdir when passed no arguments" do
+    after :each do
+      Dir.rmdir @tmpdir if File.directory? @tmpdir
+    end
+
     it "returns the path to the created tmp-dir" do
       Dir.stub!(:mkdir)
       Dir.should_receive(:tmpdir).and_return("/tmp")
-      path = Dir.mktmpdir
-      path.should =~ /^\/tmp\//
+      @tmpdir = Dir.mktmpdir
+      @tmpdir.should =~ /^\/tmp\//
     end
   
     it "creates a new writable directory in the path provided by Dir.tmpdir" do
       Dir.should_receive(:tmpdir).and_return(tmp(""))
-      path = Dir.mktmpdir
-      File.directory?(path).should be_true
-      File.writable?(path).should be_true
+      @tmpdir = Dir.mktmpdir
+      File.directory?(@tmpdir).should be_true
+      File.writable?(@tmpdir).should be_true
     end
   end
 
@@ -24,10 +28,15 @@ ruby_version_is "1.8.7" do
       FileUtils.stub!(:remove_entry_secure)
     end
   
+    after :each do
+      Dir.rmdir @tmpdir if File.directory? @tmpdir
+    end
+
     it "yields the path to the passed block" do
       Dir.stub!(:mkdir)
       called = nil
       Dir.mktmpdir do |path|
+        @tmpdir = path
         called = true
         path.should =~ /^\/tmp\//
       end
@@ -37,6 +46,7 @@ ruby_version_is "1.8.7" do
     it "creates the tmp-dir before yielding" do
       Dir.should_receive(:tmpdir).and_return(tmp(""))
       Dir.mktmpdir do |path|
+        @tmpdir = path
         File.directory?(path).should be_true
         File.writable?(path).should be_true
       end
@@ -45,42 +55,55 @@ ruby_version_is "1.8.7" do
     it "removes the tmp-dir after executing the block" do
       Dir.stub!(:mkdir)
       Dir.mktmpdir do |path|
+        @tmpdir = path
         FileUtils.should_receive(:remove_entry_secure).with(path)
       end
     end
   
     it "returns the blocks return value" do
       Dir.stub!(:mkdir)
-      Dir.mktmpdir { :test }.should equal(:test)
+      result = Dir.mktmpdir do |path|
+        @tmpdir = path
+        :test
+      end
+      result.should equal(:test)
     end
   end
 
   describe "Dir.mktmpdir when passed [String]" do
-    before(:each) do
+    before :each do
       Dir.stub!(:mkdir)
       Dir.stub!(:tmpdir).and_return("/tmp")
+    end
+
+    after :each do
+      Dir.rmdir @tmpdir if File.directory? @tmpdir
     end
 
     it "uses the passed String as a prefix to the tmp-directory" do
       prefix = "before"
-      path = Dir.mktmpdir(prefix)
-      path.should =~ /^\/tmp\/#{prefix}/
+      @tmpdir = Dir.mktmpdir(prefix)
+      @tmpdir.should =~ /^\/tmp\/#{prefix}/
     end
   end
 
   describe "Dir.mktmpdir when passed [Array]" do
-    before(:each) do
+    before :each do
       Dir.stub!(:mkdir)
       Dir.stub!(:tmpdir).and_return("/tmp")
       FileUtils.stub!(:remove_entry_secure)
+    end
+
+    after :each do
+      Dir.rmdir @tmpdir if File.directory? @tmpdir
     end
 
     it "uses the first element of the passed Array as a prefix and the scond element as a suffix to the tmp-directory" do
       prefix = "before"
       suffix = "after"
     
-      path = Dir.mktmpdir([prefix, suffix])
-      path.should =~ /#{suffix}$/
+      @tmpdir = Dir.mktmpdir([prefix, suffix])
+      @tmpdir.should =~ /#{suffix}$/
     end
   end
 

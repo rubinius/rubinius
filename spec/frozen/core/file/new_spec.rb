@@ -10,7 +10,7 @@ describe "File.new" do
   end
 
   after :each do
-   @fh.close if @fh 
+    @fh.close if @fh
     File.delete(@file) if File.exists?(@file)
     @fh    = nil
     @file  = nil
@@ -150,10 +150,6 @@ describe "File.new" do
   
   it "raises an Errno::EBADF if the first parameter is an invalid file descriptor" do
     lambda { File.new(-1) }.should raise_error(Errno::EBADF)
-  end
-
-  it "raises an ArgumentError when it receives more than three parameters" do
-    lambda { File.new(@file, File::CREAT, 0755, 'test') }.should raise_error(ArgumentError)
   end
 
   ruby_bug "#1582", "1.9.2" do

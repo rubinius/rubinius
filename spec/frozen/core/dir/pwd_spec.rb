@@ -3,6 +3,14 @@ require File.dirname(__FILE__) + '/fixtures/common'
 require File.dirname(__FILE__) + '/shared/pwd'
 
 describe "Dir.pwd" do
+  before :all do
+    DirSpecs.create_mock_dirs
+  end
+
+  after :all do
+    DirSpecs.delete_mock_dirs
+  end
+
   it_behaves_like :dir_pwd, :pwd
   
   ruby_version_is ""..."1.9" do

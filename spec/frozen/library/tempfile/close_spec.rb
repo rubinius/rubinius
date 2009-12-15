@@ -5,6 +5,10 @@ describe "Tempfile#close when passed no argument or [false]" do
   before(:each) do
     @tempfile = Tempfile.new("specs", tmp(""))
   end
+
+  after(:each) do
+    @tempfile.unlink if @tempfile.path
+  end
   
   it "closes self" do
     @tempfile.close
@@ -18,7 +22,7 @@ describe "Tempfile#close when passed [true]" do
   end
   
   after(:each) do
-    @tempfile.unlink unless @tempfile.path.nil?
+    @tempfile.unlink if @tempfile.path
   end
   
   it "closes self" do
@@ -39,7 +43,7 @@ describe "Tempfile#close!" do
   end
   
   after(:each) do
-    @tempfile.unlink unless @tempfile.path.nil?
+    @tempfile.unlink if @tempfile.path
   end
   
   it "closes self" do
