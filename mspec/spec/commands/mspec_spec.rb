@@ -270,11 +270,11 @@ describe "The -D, --gdb option" do
     @script.options
   end
 
-  it "sets flags to --gdb" do
+  it "sets use_gdb to true" do
     ["-D", "--gdb"].each do |opt|
-      @config[:flags] = []
+      @config[:use_gdb] = false
       @script.options [opt]
-      @config[:flags].should include("--gdb")
+      @config[:use_gdb].should be_true
     end
   end
 end

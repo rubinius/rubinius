@@ -141,18 +141,6 @@ class MSpecScript
   def signals
     if config[:abort]
       Signal.trap "INT" do
-        if $MSPEC_DEBUG
-          begin
-            raise Interrupt, "Mspec has been interrupted"
-          rescue Interrupt => e
-            STDOUT.puts "\n-----"
-            if e.respond_to? :render
-              e.render
-            else
-              puts e.backtrace
-            end
-          end
-        end
         puts "\nProcess aborted!"
         exit! 1
       end

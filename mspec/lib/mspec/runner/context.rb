@@ -32,9 +32,9 @@ class ContextState
     @parents  = [self]
     @children = []
 
-    @mock_verify         = lambda { Mock.verify_count }
-    @mock_cleanup        = lambda { Mock.cleanup }
-    @expectation_missing = lambda { raise SpecExpectationNotFoundError }
+    @mock_verify         = Proc.new { Mock.verify_count }
+    @mock_cleanup        = Proc.new { Mock.cleanup }
+    @expectation_missing = Proc.new { raise SpecExpectationNotFoundError }
   end
 
   # Returns true if this is a shared +ContextState+. Essentially, when
@@ -55,6 +55,12 @@ class ContextState
       parents.unshift state
       state = state.parent
     end
+  end
+
+  def replace_parent(parent)
+    @parents[0] = parent
+
+    children.each { |child| child.replace_parent parent }
   end
 
   # Add the ContextState instance +child+ to the list of nested
@@ -124,6 +130,14 @@ class ContextState
     state.before(:each).each { |b| before :each, &b }
     state.after(:each).each { |b| after :each, &b }
     state.after(:all).each { |b| after :all, &b }
+
+    # There is a potential race here if mspec ever implements concurrency
+    # in process. Right now, the only way to run specs concurrently is
+    # with multiple processes, so we ignore this for the sake of simplicity.
+    state.children.each do |child|
+      child.replace_parent self
+      @children << child
+    end
   end
 
   # Evaluates each block in +blocks+ using the +MSpec.protect+ method

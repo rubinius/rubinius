@@ -1,32 +1,32 @@
-# The #tmp method provides a similar functionality
-# to that of Dir.tmpdir. This helper can be overridden
-# by different implementations to provide a more useful
-# behavior if needed.
-#
-# Usage in a spec:
-#
-#   File.open(tmp("tags.txt"), "w") { |f| f.puts "" }
-#
-# The order of directories below with "/private/tmp"
-# preceding "/tmp" is significant. On OS X, the directory
-# "/tmp" is a symlink to "private/tmp" with no leading
-# "/". Rather than futzing with what constitutes an
-# absolute path, we just look for "/private/tmp" first.
+# Creates a temporary directory in the current working directory
+# for temporary files created while running the specs. All specs
+# should clean up any temporary files created so that the temp
+# directory is empty when the process exits.
+
+SPEC_TEMP_DIR = "#{File.expand_path(Dir.pwd)}/rubyspec_temp"
+
+at_exit do
+  begin
+    Dir.delete SPEC_TEMP_DIR if File.directory? SPEC_TEMP_DIR
+  rescue SystemCallError
+    STDERR.puts <<-EOM
+
+-----------------------------------------------------
+The rubyspec temp directory is not empty. Ensure that
+all specs are cleaning up temporary files.
+-----------------------------------------------------
+
+    EOM
+  rescue Object => e
+    STDERR.puts "failed to remove spec temp directory"
+    STDERR.puts e.message
+  end
+end
 
 class Object
   def tmp(name)
-    unless @spec_temp_directory
-      [ "/private/tmp", "/tmp", "/var/tmp", ENV["TMPDIR"], ENV["TMP"],
-        ENV["TEMP"], ENV["USERPROFILE"] ].each do |dir|
-        if dir and File.directory?(dir) and File.writable?(dir)
-          temp = File.expand_path dir
-          temp = File.readlink temp if File.symlink? temp
-          @spec_temp_directory = temp
-          break
-        end
-      end
-    end
+    Dir.mkdir SPEC_TEMP_DIR unless File.exists? SPEC_TEMP_DIR
 
-    File.join @spec_temp_directory, name
+    File.join SPEC_TEMP_DIR, name
   end
 end

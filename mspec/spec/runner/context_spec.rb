@@ -910,7 +910,8 @@ end
 
 describe ContextState, "#it_should_behave_like" do
   before :each do
-    @shared = ContextState.new("", :shared => true)
+    @shared_desc = "shared context"
+    @shared = ContextState.new(@shared_desc, :shared => true)
     MSpec.stub!(:retrieve_shared).and_return(@shared)
 
     @state = ContextState.new ""
@@ -923,10 +924,30 @@ describe ContextState, "#it_should_behave_like" do
     lambda { @state.it_should_behave_like "this" }.should raise_error(Exception)
   end
 
+  describe "for nested ContextState instances" do
+    before :each do
+      @nested = ContextState.new ""
+      @nested.parents.unshift @shared
+      @shared.children << @nested
+    end
+
+    it "adds nested describe blocks to the invoking ContextState" do
+      @state.it_should_behave_like @shared_desc
+      @shared.children.should_not be_empty
+      @state.children.should include(*@shared.children)
+    end
+
+    it "changes the parent ContextState" do
+      @shared.children.first.parents.first.should equal(@shared)
+      @state.it_should_behave_like @shared_desc
+      @shared.children.first.parents.first.should equal(@state)
+    end
+  end
+
   it "adds examples from the shared ContextState" do
     @shared.it "some", &@a
     @shared.it "thing", &@b
-    @state.it_should_behave_like ""
+    @state.it_should_behave_like @shared_desc
     @state.examples.should include(*@shared.examples)
   end
 
@@ -934,34 +955,34 @@ describe ContextState, "#it_should_behave_like" do
     @shared.it "some", &@a
     @shared.it "thing", &@b
     @shared.examples.each { |ex| ex.should_receive(:context=).with(@state) }
-    @state.it_should_behave_like ""
+    @state.it_should_behave_like @shared_desc
   end
 
   it "adds before(:all) blocks from the shared ContextState" do
     @shared.before :all, &@a
     @shared.before :all, &@b
-    @state.it_should_behave_like ""
+    @state.it_should_behave_like @shared_desc
     @state.before(:all).should include(*@shared.before(:all))
   end
 
   it "adds before(:each) blocks from the shared ContextState" do
     @shared.before :each, &@a
     @shared.before :each, &@b
-    @state.it_should_behave_like ""
+    @state.it_should_behave_like @shared_desc
     @state.before(:each).should include(*@shared.before(:each))
   end
 
   it "adds after(:each) blocks from the shared ContextState" do
     @shared.after :each, &@a
     @shared.after :each, &@b
-    @state.it_should_behave_like ""
+    @state.it_should_behave_like @shared_desc
     @state.after(:each).should include(*@shared.after(:each))
   end
 
   it "adds after(:all) blocks from the shared ContextState" do
     @shared.after :all, &@a
     @shared.after :all, &@b
-    @state.it_should_behave_like ""
+    @state.it_should_behave_like @shared_desc
     @state.after(:all).should include(*@shared.after(:all))
   end
 end
