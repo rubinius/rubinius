@@ -29,6 +29,8 @@ class's metaclass. The method +honk+ exists in the metaclass for the class
 
 In Rubinius, metaclasses are all instances of the class MetaClass. The
 metaclass for an object can be obtained by calling the +metaclass+ method.
+The overall arrangement of concepts involved here is sometimes referred to
+as the 'Meta-Object Protocol' or +MOP+.
 
 ## method lookup or method resolution
 
