@@ -69,7 +69,7 @@ public:
     int one = 1;
     void *addr = &one;
     MemoryPointer* ptr = MemoryPointer::create(state, addr);
-    TS_ASSERT(Integer::from(state, 1)->equal(state, ptr->read_int(state)));
+    TS_ASSERT(Integer::from(state, 1)->equal(state, ptr->read_int(state, Qtrue)));
   }
 
   void test_write_int() {
@@ -77,7 +77,7 @@ public:
     void *addr = &one;
     MemoryPointer* ptr = MemoryPointer::create(state, addr);
     ptr->write_int(state, Integer::from(state, 0xfffffffa));
-    TS_ASSERT(Integer::from(state, 0xfffffffa)->equal(state, ptr->read_int(state)));
+    TS_ASSERT(Integer::from(state, 0xfffffffa)->equal(state, ptr->read_int(state, Qtrue)));
   }
 
   void test_read_long() {

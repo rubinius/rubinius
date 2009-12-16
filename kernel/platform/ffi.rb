@@ -43,6 +43,11 @@ module FFI
 
     def type_size(type)
       Ruby.primitive :nativefunction_type_size
+
+      if type.kind_of? Symbol
+        return type_size(find_type(type))
+      end
+
       raise PrimitiveFailure, "Unable to find type size for #{type}"
     end
 

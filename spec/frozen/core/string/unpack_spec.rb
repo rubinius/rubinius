@@ -337,6 +337,28 @@ describe "String#unpack with 'IiLlSs' directives" do
       end
     end
   end
+
+  it "uses sizeof(int) as an integer" do
+    little_endian do
+      "\000\000\001\000".unpack("i").should == [65536]
+      "\000\000\001\000\000\000\001\000".unpack("i2").should == [65536, 65536]
+      "\000\000\001\000\000\000\001\000hello".unpack("i2a5").should == [65536, 65536, "hello"]
+      "\377\377\377\377".unpack("i").should == [-1]
+      "\377\377\377\377".unpack("I").should == [4294967295]
+    end
+  end
+end
+
+describe "String#unpack with 'lL'" do
+  it "uses 4 bytes for an integer" do
+    little_endian do
+      "\000\000\001\000".unpack("l").should == [65536]
+      "\000\000\001\000\000\000\001\000".unpack("l2").should == [65536, 65536]
+      "\000\000\001\000\000\000\001\000hello".unpack("l2a5").should == [65536, 65536, "hello"]
+      "\377\377\377\377".unpack("l").should == [-1]
+      "\377\377\377\377".unpack("L").should == [4294967295]
+    end
+  end
 end
 
 describe "String#unpack with 'U' directive" do

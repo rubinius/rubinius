@@ -490,6 +490,10 @@ class String::Unpacker
     @schema = schema
   end
 
+  def ptr
+    @ptr ||= FFI::MemoryPointer.new(64) # enough for all uses
+  end
+
   def parse_schema
     raise TypeError, "can't convert nil into String" unless @schema
 
@@ -604,13 +608,59 @@ class String::Unpacker
     return i
   end
 
+  INT_SIZE = FFI.type_size :int
+
+  def int(i, count, elements, signed)
+    # TODO honor _.
+    int_size = INT_SIZE
+
+    if count == "*"
+      count = @length / int_size
+    end
+
+    count.times do
+      if i + int_size <= @length
+        ptr.write_string(@source[i, int_size], int_size)
+        elements << ptr.read_int(signed)
+      else
+        elements << nil
+      end
+
+      i += int_size
+    end
+
+    return i
+  end
+
+  # Like int, but always does 4 bytes.
+  def long(i, count, elements, signed)
+    # TODO honor _.
+    long_size = 4
+
+    if count == "*"
+      count = @length / long_size
+    end
+
+    count.times do
+      if i + long_size <= @length
+        ptr.write_string(@source[i, long_size], long_size)
+        elements << ptr.read_int(signed)
+      else
+        elements << nil
+      end
+
+      i += long_size
+    end
+
+    return i
+  end
+
   def number(code, i, count, elements)
     num_bytes = case code
                 when /[DdEGQq]/ then 8
                 when /[eFfgNV]/ then 4
                 when /[nSsv]/   then 2
                 when /[Cc]/     then 1
-                when /[IiLl]/   then 1.size
                 end
 
     size = case code
@@ -856,7 +906,15 @@ class String::Unpacker
         i = string(i, count, elements)
       when 'B', 'b', 'H', 'h'
         i = bits_nibbles(code, i, count, elements)
-      when /[CcDdEeFfGgIiLlNnQqSsVv]/
+      when 'i'
+        i = int(i, count, elements, true)
+      when 'I'
+        i = int(i, count, elements, false)
+      when 'l'
+        i = long(i, count, elements, true)
+      when 'L'
+        i = long(i, count, elements, false)
+      when /[CcDdEeFfGgNnQqSsVv]/
         i = number(code, i, count, elements)
       when 'M'
         i = quotable_printed(i, count, elements)
@@ -891,6 +949,7 @@ class String::Unpacker
       end
     end
 
+    @ptr.free if @ptr
     elements
   end
 end

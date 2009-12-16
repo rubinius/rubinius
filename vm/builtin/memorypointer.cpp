@@ -92,8 +92,12 @@ namespace rubinius {
     return val;
   }
 
-  Integer* MemoryPointer::read_int(STATE) {
-    return Integer::from(state, *(int*)pointer);
+  Integer* MemoryPointer::read_int(STATE, Object* sign) {
+    if(RTEST(sign)) {
+      return Integer::from(state, *(int*)pointer);
+    } else {
+      return Integer::from(state, *(unsigned int*)pointer);
+    }
   }
 
   Integer* MemoryPointer::write_long(STATE, Integer* val) {

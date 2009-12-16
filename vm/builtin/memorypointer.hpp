@@ -38,7 +38,7 @@ namespace rubinius {
     Integer* write_int(STATE, Integer* val);
 
     // Ruby.primitive :memorypointer_read_int
-    Integer* read_int(STATE);
+    Integer* read_int(STATE, Object* sign);
 
     // Ruby.primitive :memorypointer_write_long
     Integer* write_long(STATE, Integer* val);

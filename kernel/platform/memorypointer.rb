@@ -144,8 +144,12 @@ module FFI
       raise PrimitiveFailure, "Unable to write integer"
     end
 
+    def read_int(sign=true)
+      read_int_signed(sign)
+    end
+
     # Read a C int from the memory pointed to.
-    def read_int
+    def read_int_signed(sign)
       Ruby.primitive :memorypointer_read_int
       raise PrimitiveFailure, "Unable to read integer"
     end
