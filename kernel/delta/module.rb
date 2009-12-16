@@ -22,8 +22,8 @@ class Module
       @method_table.store new_name, entry.method, entry.visibility
       Rubinius::VM.reset_method_cache(new_name)
     else
-      if kind_of? MetaClass
-        raise NameError, "Unable to find '#{current_name}' for object #{self.attached_instance.inspect}"
+      if ai = __metaclass_object__
+        raise NameError, "Unable to find '#{current_name}' for object #{ai.inspect}"
       else
         thing = kind_of?(Class) ? "class" : "module"
         raise NameError, "undefined method `#{current_name}' for #{thing} `#{self.name}'"

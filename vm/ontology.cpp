@@ -61,8 +61,8 @@ namespace rubinius {
        recursion. */
     Class *cls = (Class*)om->allocate_object_raw(sizeof(Class));
 
-    /* We create these 9 classes in a particular way and in a particular
-     * order. We need all 9 to create fully initialized Classes and
+    /* We create these 8 classes in a particular way and in a particular
+     * order. We need all 8 to create fully initialized Classes and
      * Modules, so we just create them all uninitialized, then initialize
      * them all at once */
 
@@ -91,10 +91,6 @@ namespace rubinius {
     /* Fixup Class's superclass to be Module */
     cls->superclass(state, G(module));
 
-    /* Create MetaClass */
-    GO(metaclass).set(new_basic_class(cls));
-    G(metaclass)->set_object_type(state, MetaClassType);
-
     /* Create Tuple */
     GO(tuple).set(new_basic_class(object));
     G(tuple)->set_object_type(state, TupleType);
@@ -118,7 +114,6 @@ namespace rubinius {
     /* Now, we have:
      *  Class
      *  Module
-     *  MetaClass
      *  Object
      *  Tuple
      *  LookupTable
@@ -132,12 +127,19 @@ namespace rubinius {
     /* Hook up the MetaClass protocols.
      * MetaClasses of subclasses point to the MetaClass of the
      * superclass. */
-    Object* mc = MetaClass::attach(this, object, cls);
+    MetaClass* mc = MetaClass::attach(this, object, cls);
     mc = MetaClass::attach(this, G(module), mc);
     MetaClass::attach(this, cls, mc);
 
+    // Sanity.
+    assert(object->klass()->superclass() == cls);
+    assert(cls->superclass() == G(module));
+    assert(G(module)->superclass() == object);
+
+    assert(cls->klass()->superclass() == G(module)->klass());
+    assert(G(module)->klass()->superclass() == object->klass());
+
     // TODO not sure these are being setup properly
-    MetaClass::attach(this, G(metaclass), cls->metaclass(this));
     MetaClass::attach(this, G(tuple), G(object)->metaclass(this));
     MetaClass::attach(this, G(lookuptable), G(object)->metaclass(this));
     MetaClass::attach(this, G(lookuptablebucket), G(object)->metaclass(this));
@@ -148,7 +150,6 @@ namespace rubinius {
     G(object)->setup(this, "Object");
     G(klass)->setup(this, "Class");
     G(module)->setup(this, "Module");
-    G(metaclass)->setup(this, "MetaClass");
 
     // Create the namespace for various implementation classes
     GO(rubinius).set(new_module("Rubinius"));
@@ -412,7 +413,6 @@ namespace rubinius {
 #define dexc(name, sup) new_class(#name, sup)
 
     exc = G(exception);
-    dexc(fatal, exc);
     scp = dexc(ScriptError, exc);
     std = dexc(StandardError, exc);
     type = dexc(TypeError, std);

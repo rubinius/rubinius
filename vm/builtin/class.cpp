@@ -56,11 +56,6 @@ namespace rubinius {
                              G(rubinius), true,
                              state->symbol("attach_method"),
                              state->symbol("vm_attach_method"));
-
-    System::attach_primitive(state,
-                             G(metaclass), false,
-                             state->symbol("attach_method"),
-                             state->symbol("metaclass_attach_method"));
   }
 
   Class* Class::create(STATE, Class* super) {
@@ -140,6 +135,8 @@ namespace rubinius {
     packed_ivar_info(state, sup->packed_ivar_info());
     set_packed_size(sup->packed_size());
 
+    MetaClass::attach(state, this, sup->metaclass(state));
+
     return Qnil;
   }
 
@@ -171,10 +168,18 @@ namespace rubinius {
     return Qtrue;
   }
 
-  MetaClass* MetaClass::attach(STATE, Object* obj, Object* sup) {
+  Class* Class::real_class(STATE, Class* klass) {
+    if(MetaClass* mc = try_as<MetaClass>(klass)) {
+      return mc->true_superclass(state);
+    } else {
+      return klass;
+    }
+  }
+
+  MetaClass* MetaClass::attach(STATE, Object* obj, Class* sup) {
     MetaClass *meta;
 
-    meta = state->om->new_object_enduring<MetaClass>(G(metaclass));
+    meta = state->om->new_object_enduring<MetaClass>(G(klass));
     meta->set_class_id(state->shared.inc_class_count());
 
     if(!sup) { sup = obj->klass(); }
@@ -186,25 +191,30 @@ namespace rubinius {
     meta->set_packed_size(obj->klass()->packed_size());
     meta->packed_ivar_info(state, obj->klass()->packed_ivar_info());
 
-    obj->klass(state, meta);
+    /* Hook up the class of meta to point along the metaclass hierarchy of
+     * sup, not directly to sup itself */
+    if(MetaClass* obj_meta = try_as<MetaClass>(obj)) {
+      /* Ported from MRI, don't yet get exactly what it does. */
+      meta->klass(state, meta);
+      meta->superclass(state, obj_meta->true_superclass(state)->klass());
+    } else {
+      Class* meta_klass = Class::real_class(state, sup)->klass();
+      meta->klass(state, meta_klass);
+    }
 
     meta->name(state, state->symbol("<metaclass>"));
 
-    /** @todo   These fields from Class are not set. Need to? --rue
-    Fixnum* instance_type_;   // slot
-    */
+    obj->klass(state, meta);
 
     return meta;
   }
 
-  Object* MetaClass::attach_method(STATE, Symbol* name,
-                                   CompiledMethod* method, StaticScope* scope)
-  {
-    method->scope(state, scope);
-    method->serial(state, Fixnum::from(0));
-    add_method(state, name, method);
+  Object* Class::get_metaclass_attached(STATE) {
+    if(MetaClass* mc = try_as<MetaClass>(this)) {
+      return mc->attached_instance();
+    }
 
-    return method;
+    return Qnil;
   }
 
   void MetaClass::Info::show(STATE, Object* self, int level) {
@@ -219,7 +229,7 @@ namespace rubinius {
       name = "<some object>";
     }
 
-    std::cout << "#<" << self->class_object(state)->name()->c_str(state) <<
+    std::cout << "#<MetaClass:" << self->class_object(state)->name()->c_str(state) <<
       " " << name << ":" << (void*)self << ">" << std::endl;
   }
 }

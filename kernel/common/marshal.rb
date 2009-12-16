@@ -33,14 +33,19 @@ end
 
 class Class
   def to_marshal(ms)
-    raise TypeError, "can't dump anonymous class #{self}" if self.name == ''
+    if __metaclass_object__
+      raise TypeError, "singleton class can't be dumped"
+    elsif name.empty?
+      raise TypeError, "can't dump anonymous module #{self}"
+    end
+
     "c#{ms.serialize_integer(name.length)}#{name}"
   end
 end
 
 class Module
   def to_marshal(ms)
-    raise TypeError, "can't dump anonymous module #{self}" if self.name == ''
+    raise TypeError, "can't dump anonymous module #{self}" if name.empty?
     "m#{ms.serialize_integer(name.length)}#{name}"
   end
 end
@@ -647,15 +652,6 @@ module Marshal
     end
 
     def get_module_names(obj)
-      names = []
-      sup = obj.metaclass.superclass
-
-      while sup and [Module, Rubinius::IncludedModule].include? sup.class do
-        names << sup.name
-        sup = sup.superclass
-      end
-
-      names
     end
 
     def get_user_class
@@ -712,8 +708,10 @@ module Marshal
 
     def serialize_extended_object(obj)
       str = ''
-      get_module_names(obj).each do |mod_name|
-        str << "e#{serialize(mod_name.to_sym)}"
+      if mods = Rubinius.extended_modules(obj)
+        mods.each do |mod|
+          str << "e#{serialize(mod.name.to_sym)}"
+        end
       end
       str
     end

@@ -352,12 +352,8 @@ module Rubinius
       g.send :__class_init__, 0
     end
 
-    def in_method(name, singleton=false)
-      if singleton
-        g.send :metaclass, 0
-      else
-        g.push_const :Rubinius
-      end
+    def in_singleton_method(name, sing)
+      g.push_const :Rubinius
 
       g.push_literal name
 
@@ -370,13 +366,36 @@ module Rubinius
 
       g.push_scope
 
-      if singleton then
-        g.send :attach_method, 3
+      if sing.kind_of? Array
+        g.add *sing
       else
-        g.push_variables
-        g.send :method_visibility, 0
-        g.send :add_defn_method, 4
+        g.add sing
       end
+
+      g.send :attach_method, 4
+    end
+
+    def in_method(name, singleton=false)
+      if singleton
+        raise "use in_singleton_method"
+      end
+
+      g.push_const :Rubinius
+
+      g.push_literal name
+
+      d = new_generator(g, name)
+
+      yield d
+      d.ret
+
+      g.push_literal(d)
+
+      g.push_scope
+
+      g.push_variables
+      g.send :method_visibility, 0
+      g.send :add_defn_method, 4
     end
 
     def in_module(name)

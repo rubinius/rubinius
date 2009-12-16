@@ -226,6 +226,9 @@ namespace rubinius {
     // Ruby.primitive :vm_method_missing_reason
     static Object* vm_method_missing_reason(STATE);
 
+    // Ruby.primitive :vm_extended_modules
+    static Object* vm_extended_modules(STATE, Object* obj);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

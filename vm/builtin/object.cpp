@@ -406,8 +406,13 @@ namespace rubinius {
 
   Class* Object::metaclass(STATE) {
     if(reference_p()) {
-      if(kind_of<MetaClass>(klass_)) {
-        return as<MetaClass>(klass_);
+      if(MetaClass* mc = try_as<MetaClass>(klass())) {
+        // This test is very important! MetaClasses can get their
+        // klass() hooked up to the MetaClass of a parent class, so
+        // that the MOP works properly. BUT we should not return
+        // that parent metaclass, we need to only return a MetaClass
+        // that is for this!
+        if(mc->attached_instance() == this) return mc;
       }
       return MetaClass::attach(state, this);
     }

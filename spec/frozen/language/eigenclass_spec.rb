@@ -101,13 +101,6 @@ describe "self in an eigenclass body (class << obj)" do
     end
   end
 
-  deviates_on(:rubinius) do 
-    it "is a MetaClass instance" do
-      cls = class << mock('x'); self; end
-      cls.is_a?(MetaClass).should == true
-    end
-
-  end
 end
 
 describe "A constant on an eigenclass" do

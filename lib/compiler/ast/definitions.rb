@@ -216,8 +216,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        @receiver.bytecode(g)
-        @body.bytecode(g)
+        @body.bytecode(g, @receiver)
       end
     end
 
@@ -226,14 +225,16 @@ module Rubinius
         super line, name, block
       end
 
-      def bytecode(g)
+      def bytecode(g, recv)
         pos(g)
 
-        g.send :metaclass, 0
+        g.push_const :Rubinius
         g.push_literal @name
         g.push_generator compile_body(g)
         g.push_scope
-        g.send :attach_method, 3
+        recv.bytecode(g)
+
+        g.send :attach_method, 4
       end
     end
 

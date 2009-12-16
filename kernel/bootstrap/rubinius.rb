@@ -14,6 +14,11 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.object_class failed"
   end
 
+  def self.extended_modules(obj)
+    Ruby.primitive :vm_extended_modules
+    raise PrimitiveFailure, "Rubinius.extended_modules failed"
+  end
+
   def self.inc_global_serial
     Ruby.primitive :vm_inc_global_serial
     raise PrimitiveFailure, "Rubinius.vm_inc_global_serial failed"

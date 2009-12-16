@@ -24,8 +24,7 @@ describe "A Cvasgn node" do
     ruby
 
     compile do |g|
-      g.push :self
-      in_method :quiet_mode=, :singleton do |d|
+      in_singleton_method :quiet_mode=, [:push, :self] do |d|
         d.push_scope
         d.push_literal :@@quiet_mode
         d.push_local 0

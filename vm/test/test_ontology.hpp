@@ -49,17 +49,6 @@ public:
     check_const(module, "Module");
   }
 
-  void test_metaclass() {
-    Class *meta;
-
-    meta = G(metaclass);
-
-    TS_ASSERT_EQUALS(meta->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(meta->superclass(), G(klass));
-    TS_ASSERT_EQUALS(meta->instance_type(), Fixnum::from(MetaClassType));
-    check_const(metaclass, "MetaClass");
-  }
-
   void test_tuple() {
     Class *tup;
 

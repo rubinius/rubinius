@@ -537,6 +537,8 @@ namespace rubinius {
       }
     }
 
+    vm_reset_method_cache(state, name);
+
     return method;
   }
 
@@ -547,6 +549,8 @@ namespace rubinius {
     method->scope(state, scope);
     method->serial(state, Fixnum::from(0));
     mod->add_method(state, name, method);
+
+    vm_reset_method_cache(state, name);
 
     return method;
   }
@@ -658,5 +662,22 @@ namespace rubinius {
     default:
       return state->symbol("none");
     }
+  }
+
+  Object* System::vm_extended_modules(STATE, Object* obj) {
+    if(MetaClass* mc = try_as<MetaClass>(obj->klass())) {
+      Array* ary = Array::create(state, 3);
+
+      Module* mod = mc->superclass();
+      while(IncludedModule* im = try_as<IncludedModule>(mod)) {
+        ary->append(state, im->module());
+
+        mod = mod->superclass();
+      }
+
+      return ary;
+    }
+
+    return Qnil;
   }
 }

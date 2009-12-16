@@ -62,12 +62,6 @@ module ObjectSpace
       return 1
     end
 
-    # This is a singelton pattern, too.
-    if what.is_a? MetaClass
-      yield what.attached_instance
-      return 1
-    end
-
     # If this is a Singelton, check whether it already has an instance.
     if defined?(Singleton) and what.ancestors.include?(Singleton)
       return 0 unless what.instance_eval { _instantiate? }

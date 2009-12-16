@@ -8,8 +8,7 @@ describe "A Defs node" do
     ruby
 
     compile do |g|
-      g.push :self
-      in_method :x, true do |d|
+      in_singleton_method :x, [:push, :self] do |d|
         d.push_local 0
         d.push 1
         d.send :+, 1, false
@@ -26,8 +25,7 @@ describe "A Defs node" do
     ruby
 
     compile do |g|
-      g.push :self
-      g.in_method :setup, true do |d|
+      g.in_singleton_method :setup, [:push, :self] do |d|
         d.push :self
         d.send :allocate, 0, true
         d.set_local 1
@@ -53,8 +51,7 @@ describe "A Defs node" do
     ruby
 
     compile do |g|
-      g.push :self
-      in_method :empty, true do |d|
+      in_singleton_method :empty, [:push, :self] do |d|
         d.push :nil
       end
     end
@@ -66,8 +63,7 @@ describe "A Defs node" do
     ruby
 
     compile do |g|
-      g.push :self
-      in_method :empty, true do |d|
+      in_singleton_method :empty, [:push, :self] do |d|
         d.push :nil
       end
     end
@@ -79,13 +75,22 @@ describe "A Defs node" do
     ruby
 
     compile do |g|
+      g.push_const :Rubinius
+
+      g.push_literal :empty
+
+      d = new_generator(g, name)
+      d.push :nil
+      d.ret
+
+      g.push_literal(d)
+      g.push_scope
+
       g.push :self
       g.send :a, 0, true
       g.send :b, 0, false
 
-      in_method :empty, true do |d|
-        d.push :nil
-      end
+      g.send :attach_method, 4
     end
   end
 
@@ -101,9 +106,8 @@ describe "A Defs node" do
       g.string_dup
       g.set_local 0
       g.pop
-      g.push_local 0
 
-      in_method :m, true do |d|
+      in_singleton_method :m, [:push_local, 0] do |d|
         d.push_local 0
       end
     end

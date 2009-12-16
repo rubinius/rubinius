@@ -60,6 +60,8 @@ namespace rubinius {
     /** Returns actual superclass, skipping over IncludedModules */
     Class* true_superclass(STATE);
 
+    static Class* real_class(STATE, Class* klass);
+
     void set_object_type(STATE, size_t type);
 
     static Class* create(STATE, Class* super);
@@ -75,6 +77,9 @@ namespace rubinius {
 
     // Ruby.primitive :class_set_packed
     Object* set_packed(STATE, Array* info);
+
+    // Ruby.primitive :class_get_metaclass_attached
+    Object* get_metaclass_attached(STATE);
 
     class Info : public Module::Info {
     public:
@@ -99,10 +104,7 @@ namespace rubinius {
 
     /* interface */
 
-    static MetaClass* attach(STATE, Object* obj, Object* sup = NULL);
-
-    // Ruby.primitive :metaclass_attach_method
-    Object* attach_method(STATE, Symbol* name, CompiledMethod* method, StaticScope* scope);
+    static MetaClass* attach(STATE, Object* obj, Class* sup = NULL);
 
     class Info : public Class::Info {
     public:

@@ -17,8 +17,8 @@ module Rubinius
 
       if @method_module.equal?(Kernel)
         str = "Kernel."
-      elsif @method_module.kind_of?(MetaClass)
-        str = "#{@receiver}."
+      elsif @method_module.kind_of? Class and ao = @method_module.__metaclass_object__
+        str = "#{ao}."
       elsif @method_module and @method_module != klass
         str = "#{@method_module}(#{klass})#"
       else

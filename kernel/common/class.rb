@@ -59,11 +59,6 @@ class Class
 
     set_superclass sclass
 
-    if sclass
-      mc = self.metaclass
-      mc.set_superclass sclass.metaclass
-    end
-
     super()
 
     # Things (rails) depend on the fact that a normal class is in the constant
@@ -106,4 +101,14 @@ class Class
   def inherited(name)
   end
   private :inherited
+
+  def to_s
+    if obj = __metaclass_object__
+      "#<Class: #{obj.inspect}>"
+    else
+      @module_name ? @module_name.to_s : super
+    end
+  end
+
+  alias_method :inspect, :to_s
 end

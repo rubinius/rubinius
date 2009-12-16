@@ -27,18 +27,6 @@ describe "self in a metaclass body (class << obj)" do
     cls.is_a?(Class).should == true
     cls.should_not equal(Object)
   end
-
-  deviates_on(:rubinius) do
-    it "is a MetaClass instance" do
-      cls = class << mock('x'); self; end
-      cls.is_a?(MetaClass).should == true
-    end
-
-    it "has the object's class as superclass" do
-      cls = class << "blah"; self; end
-      cls.superclass.should == String
-    end
-  end
 end
 
 describe "A constant on a metaclass" do
