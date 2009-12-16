@@ -92,10 +92,6 @@ def git_push
   end
 end
 
-def spec_ruby
-  "./spec/ruby"
-end
-
 # Don't use -a (--archive) as it includes -t, --times which can
 # cause .rbc files to not be regenerated when they should.
 Rsync_options = "-rlpgoDvP --delete --exclude '*svn*' --exclude '*swp' " \

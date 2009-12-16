@@ -1,4 +1,4 @@
-cmd = "cd ../..; #{ENV['VM']} mspec/bin/mspec-ci spec/frozen/core"
+cmd = "cd ../..; #{ENV['VM']} mspec/bin/mspec-ci spec/ruby/core"
 
 # ensure everything is compiled
 system cmd

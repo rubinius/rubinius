@@ -3,13 +3,13 @@ require 'spec/custom/utils/script'
 class MSpecScript
   # Language features specs
   set :language, [
-    'spec/frozen/language',
+    'spec/ruby/language',
     'spec/language'
   ]
 
   # Core library specs
   set :core, [
-    'spec/frozen/core',
+    'spec/ruby/core',
     'spec/core',
 
     # 1.9
@@ -18,7 +18,7 @@ class MSpecScript
 
   # Standard library specs
   set :library, [
-    'spec/frozen/library',
+    'spec/ruby/library',
     'spec/library',
 
     # 1.9 features
@@ -74,13 +74,13 @@ class MSpecScript
   # An ordered list of the directories containing specs to run
   # as the CI process.
   set :ci_files, [
-    'spec/frozen/core',
-    'spec/frozen/language',
+    'spec/ruby/core',
+    'spec/ruby/language',
     'spec/core',
     'spec/compiler',
     'spec/command_line',
     'spec/capi',
-    'spec/frozen/library/digest',
+    'spec/ruby/library/digest',
 
     'spec/build',
 
@@ -99,15 +99,14 @@ class MSpecScript
   # The set of substitutions to transform a spec filename
   # into a tag filename.
   set :tags_patterns, [
-                        [%r(spec/ruby/), 'spec/frozen/'],
                         [%r(spec/), 'spec/tags/'],
                         [/_spec.rb$/, '_tags.txt']
                       ]
 
   # Prepended to file names when resolving spec files. Enables
   # commands like 'bin/mspec core/array' to be equivalent to
-  # 'bin/mspec spec/frozen/core/array'
-  set :prefix, 'spec/frozen'
+  # 'bin/mspec spec/ruby/core/array'
+  set :prefix, 'spec/ruby'
 
   # The default implementation to run the specs.
   set :target, 'bin/rbx'

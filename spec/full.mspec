@@ -4,13 +4,13 @@ class MSpecScript
   # An ordered list of the directories containing specs to run
   # as the CI process.
   set :ci_files, [
-    'spec/frozen/core',
-    'spec/frozen/language',
+    'spec/ruby/core',
+    'spec/ruby/language',
     'spec/core',
     'spec/compiler',
     'spec/command_line',
     'spec/capi',
-    'spec/frozen/library',
+    'spec/ruby/library',
     'spec/library',
 
     'spec/build',
@@ -23,21 +23,21 @@ class MSpecScript
     '^spec/capi/proc',
     '^spec/capi/struct',
 
-    '^spec/frozen/library/net/ftp',
-    '^spec/frozen/library/net/http',
-    '^spec/frozen/library/ping',
-    '^spec/frozen/library/syslog',
+    '^spec/ruby/library/net/ftp',
+    '^spec/ruby/library/net/http',
+    '^spec/ruby/library/ping',
+    '^spec/ruby/library/syslog',
 
     # 1.9 features
-    '^spec/frozen/library/cmath',
-    '^spec/frozen/library/continuation',
-    '^spec/frozen/library/coverage',
-    '^spec/frozen/library/fiber',
-    '^spec/frozen/library/json',
-    '^spec/frozen/library/minitest',
-    '^spec/frozen/library/prime',
-    '^spec/frozen/library/ripper',
-    '^spec/frozen/library/rake',
-    '^spec/frozen/library/rubygems',
+    '^spec/ruby/library/cmath',
+    '^spec/ruby/library/continuation',
+    '^spec/ruby/library/coverage',
+    '^spec/ruby/library/fiber',
+    '^spec/ruby/library/json',
+    '^spec/ruby/library/minitest',
+    '^spec/ruby/library/prime',
+    '^spec/ruby/library/ripper',
+    '^spec/ruby/library/rake',
+    '^spec/ruby/library/rubygems',
   ]
 end

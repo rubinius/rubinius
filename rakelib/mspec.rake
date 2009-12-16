@@ -3,10 +3,10 @@
 require 'rakelib/git'
 
 namespace :mspec do
-  desc "Synchronize mspec with another checkout"
+  desc "Synchronize ./mspec with a current clone of MSpec"
   task :sync do
     unless dir = ENV['DIR']
-      raise "Use DIR= to specify a checkout of mspec"
+      raise "Use DIR= to specify a clone of mspec"
     end
 
     unless is_git_project dir, "mspec.git"
