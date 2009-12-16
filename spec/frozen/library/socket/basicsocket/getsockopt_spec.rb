@@ -32,7 +32,6 @@ describe "BasicSocket#getsockopt" do
 
   it "gets a socket option Socket::SO_SNDBUF" do
     n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF)
-    p n
     n.unpack('i')[0].should > 0
   end
 
