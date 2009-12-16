@@ -345,6 +345,16 @@ describe "String#unpack with 'IiLlSs' directives" do
       "\000\000\001\000\000\000\001\000hello".unpack("i2a5").should == [65536, 65536, "hello"]
       "\377\377\377\377".unpack("i").should == [-1]
       "\377\377\377\377".unpack("I").should == [4294967295]
+      "\000\000\000\000\000\000\000\000".unpack("I*").should == [0,0]
+    end
+  end
+
+  it "ignores the result if there aren't 4 bytes" do
+    little_endian do
+      "\000".unpack("I").should == [nil]
+      "\000".unpack("I2").should == [nil, nil]
+      "\000".unpack("I*").should == []
+      "\000\000\000\000\000\000\000\000\000".unpack("I*").should == [0,0]
     end
   end
 end
@@ -357,6 +367,15 @@ describe "String#unpack with 'lL'" do
       "\000\000\001\000\000\000\001\000hello".unpack("l2a5").should == [65536, 65536, "hello"]
       "\377\377\377\377".unpack("l").should == [-1]
       "\377\377\377\377".unpack("L").should == [4294967295]
+    end
+  end
+
+  it "ignores the result if there aren't 4 bytes" do
+    little_endian do
+      "\000".unpack("L").should == [nil]
+      "\000".unpack("L2").should == [nil, nil]
+      "\000".unpack("L*").should == []
+      "\000\000\000\000\000\000\000\000\000".unpack("I*").should == [0,0]
     end
   end
 end
