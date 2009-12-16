@@ -15,6 +15,30 @@ module Enumerable
       @object.__send__(@iter, *@args, &block)
     end
 
+    ##
+    # :call-seq:
+    #   enum.each_with_index(*arg){ |obj, i| block }  -> enum or enumerator
+    #
+    # Calls +block+ with two arguments, the item and its index, for
+    # each item in +enum+.
+    #
+    #   hash = {}
+    #   %w[cat dog wombat].each_with_index { |item, index|
+    #     hash[item] = index
+    #   }
+    #
+    #   p hash   #=> {"cat"=>0, "wombat"=>2, "dog"=>1}
+
+    def each_with_index(*arg)
+      return to_enum :each_with_index, *arg unless block_given?
+      idx = 0
+      each(*arg) { |o| yield(o, idx); idx += 1 }
+      self
+    end
+
+    alias_method :enum_with_index, :each_with_index
+    alias_method :with_index, :each_with_index
+
     # Returns the next object in the enumerator
     # and move the internal position forward.
     # When the position reached at the end,
