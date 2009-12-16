@@ -32,7 +32,8 @@ describe "BasicSocket#getsockopt" do
 
   it "gets a socket option Socket::SO_SNDBUF" do
     n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF)
-    n.should_not == [0].pack("i")
+    p n
+    n.unpack('i')[0].should > 0
   end
 
   it "raises a SystemCallError with an invalid socket option" do

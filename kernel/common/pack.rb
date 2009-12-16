@@ -121,7 +121,7 @@ class Array::Packer
     case t
     when nil
       1
-    when '*' then
+    when '*'
       remaining
     else
       m = t.match(/(\d+)/)
@@ -164,14 +164,14 @@ class Array::Packer
 
       byte |= bit << (lsb ? i : 07 - i)
 
-      if i == 07 then
+      if i == 07
         @result << byte.chr
         byte = 0
       end
     end
 
     # always output an incomplete byte
-    if ((size & 07) != 0 || min != size) && item.size > 0 then
+    if ((size & 07) != 0 || min != size) && item.size > 0
       @result << byte.chr
     end
 
@@ -213,7 +213,7 @@ class Array::Packer
     size = parse_tail(t, kind, item.length)
     str = item[0, size].scan(/..?/)
 
-    numbers = if kind == "h" then
+    numbers = if kind == "h"
                 str.map { |b| b.reverse.hex }
               else
                 str.map { |b| b.        hex }
@@ -377,7 +377,7 @@ class Array::Packer
         raise RangeError, "bignum too big to convert into 'unsigned long'"
       end
 
-        @result << if little_endian then
+        @result << if little_endian
                      item += 2 ** (8 * bytes) if item < 0
                      (0...bytes).map { |b| ((item >> (b * 8)) & 0xFF).chr }
                    else # ugly
@@ -453,7 +453,7 @@ class Array::Packer
 
       raise RangeError, "pack(U): value out of range" if f.nil?
 
-      if bytes == 1 then
+      if bytes == 1
         @result << item
         bytes = 0
       end
@@ -461,7 +461,7 @@ class Array::Packer
       i = bytes
 
       buf = []
-      if i > 0 then
+      if i > 0
         (i-1).times do
           buf.unshift((item | 0x80) & 0xBF)
           item >>= 6
@@ -486,23 +486,362 @@ class String::Unpacker
 
   def initialize(source, schema)
     @source = source
+    @length = source.length
     @schema = schema
+  end
+
+  def parse_schema
+    raise TypeError, "can't convert nil into String" unless @schema
+
+    return @schema.scan(/([@a-zA-Z])(-?\d+|[\*_])?/).map { |c, n|
+      # n in (nil, -num, num, "*", "_")
+      [c, n.nil? || n =~ /\*|_/ ? n : Integer(n)]
+    }
+  end
+
+  def stripped_string(i, count, elements)
+    if i >= @length
+      new_pos = i
+      str = ''
+    elsif count == '*'
+      new_pos = @length
+      str = @source[i..-1]
+    else
+      new_pos = i + count
+      if new_pos <= @length
+        str = @source[i...new_pos]
+      else
+        str = @source[i..-1]
+      end
+    end
+
+    elements << str.sub(/[\x00\x20]+\Z/, '')
+    return new_pos
+  end
+
+  def null_term_string(i, count, elements)
+    if i >= @length
+      elements << ''
+    elsif count == '*'
+      @source[i..-1] =~ / \A ( [^\x00]* ) ( [\x00]? ) /x
+      elements << $1
+      i += $1.length
+      i += 1 if $2 == "\0"
+    else
+      str = i + count <= @length ? @source[i...(i + count)] : @source[i..-1]
+      str =~ / \A ( [^\x00]* ) /x
+      elements << $1
+      i += count
+    end
+
+    return i
+  end
+
+  def string(i, count, elements)
+    if i >= @length
+      elements << ''
+    elsif count == '*'
+      elements << @source[i..-1]
+      i = @length
+    else
+      nnd = i + count
+      if i + count <= @length
+        elements << @source[i...nnd]
+      else
+        elements << @source[i..-1]
+      end
+      i = nnd
+    end
+
+    return i
+  end
+
+  def bits_nibbles(code, i, count, elements)
+    lsb = (code =~ /[bh]/)
+    fmt = case code
+          when /[Bb]/ then "%08b"
+          when /[Hh]/ then "%02x"
+          end
+
+    if i >= @length
+      elements << ''
+    elsif count == '*'
+      a = @source[i..-1].split(//).map { |c| fmt % c[0] }
+      a.map! { |s| s.reverse } if lsb
+      elements << a.join
+      i = @length
+    else
+      case code
+      when /[Bb]/
+        num_bytes, r = count.divmod(8)
+        num_drop = r != 0 ? 8 - r : 0
+      when /[Hh]/
+        num_bytes, r = (count * 4).divmod(8)
+        num_drop = r != 0 ? 1 : 0
+      end
+      num_bytes += 1 if r != 0
+      str0 = if i + num_bytes <= @length
+               @source[i...(i + num_bytes)]
+             else
+               @source[i..-1]
+             end
+      len = str0.length
+      str1 = ''
+      str0.each_byte do |n|
+        len -= 1
+        s = fmt % n
+        if lsb
+          str1 << (len == 0 ? s[num_drop..-1].reverse : s.reverse)
+        else
+          str1 << (len == 0 ? s[0..-num_drop.succ]    : s)
+        end
+      end
+
+      elements << str1
+      i += num_bytes
+    end
+
+    return i
+  end
+
+  def number(code, i, count, elements)
+    num_bytes = case code
+                when /[DdEGQq]/ then 8
+                when /[eFfgNV]/ then 4
+                when /[nSsv]/   then 2
+                when /[Cc]/     then 1
+                when /[IiLl]/   then 1.size
+                end
+
+    size = case code
+           when /[NncGg]/          then :big
+           when /[CILQSilqsFfDd]/ then :native
+           when /[VveE]/          then :little
+           else
+             raise "huh? #{code.inspect}"
+           end
+
+    star = count == '*'
+    count = @length - i if star
+
+    count.times do |j|
+      if i + num_bytes > @length
+        break if star
+        elements << nil if code != 'Q'
+      else
+        start    = i
+        offset   = num_bytes - 1
+        endian   = size
+        n        = exp = 0
+        bytebits = 8
+
+        if :big == endian || (:native == endian && endian?(:big))
+          exp      =  bytebits * offset
+          bytebits = -bytebits
+        end
+
+        (start..start + offset).each do |x|
+          n   += (@source[x] * 2**exp)
+          exp += bytebits
+        end
+
+        case code
+        when /[NnCILQSVv]/
+          elements << n
+        when /[ilqsc]/
+          max = 2 ** (num_bytes * 8 - 1)
+          n = n >= max ? -(2**(num_bytes*8) - n) : n
+          elements << n
+        when /[eFfg]/
+          sign   = (2**31 & n != 0) ? -1 : 1
+          expo   = ((0xFF * 2**23) & n) >> 23
+          frac   = (2**23 - 1) & n
+          result = if expo == 0 and frac == 0
+                     sign.to_f * 0.0    # zero
+                   elsif expo == 0 then # denormalized
+                     sign * 2**(expo - 126) * (frac.to_f / 2**23.to_f)
+                   elsif expo == 0xFF and frac == 0
+                     sign.to_f / 0.0    # Infinity
+                   elsif expo == 0xFF
+                     0.0 / 0.0          # NaN
+                   else                 # normalized
+                     sign * 2**(expo - 127) * (1.0 + (frac.to_f / 2**23.to_f))
+                   end
+          elements << result
+        when /[DdEG]/
+          sign   = (2**63 & n != 0) ? -1 : 1
+          expo   = ((0x7FF * 2**52) & n) >> 52
+          frac   = (2**52 - 1) & n
+          result = if expo == 0 and frac == 0
+                     sign.to_f * 0.0    # zero
+                   elsif expo == 0 then # denormalized
+                     sign * 2**(expo - 1022) * (frac.to_f / 2**52.to_f)
+                   elsif expo == 0x7FF and frac == 0
+                     sign.to_f / 0.0    # Infinity
+                   elsif expo == 0x7FF
+                     0.0 / 0.0          # NaN
+                   else                 # normalized
+                     sign * 2**(expo-1023) * (1.0 + (frac.to_f / 2**52.to_f))
+                   end
+          elements << result
+        end
+        i += num_bytes
+      end
+    end
+
+    return i
+  end
+
+  def quotable_printed(i, count, elements)
+    if i >= @length
+      elements << ''
+    else
+      str              = ''
+      num_bytes        = 0
+      regex_permissive = / \= [0-9A-Fa-f]{2} | [^=]+ | [\x00-\xFF]+ /x
+      regex_junk       = / \A ( \= [0-9A-Fa-f]{0,1} )               /x
+      regex_strict     = / \A (?: \= [0-9A-Fa-f]{2} | [^=]+ )    \Z /x
+      regex_hex        = / \A \= ([0-9A-Fa-f]{2})                \Z /x
+
+      @source[i..-1].scan(regex_permissive) do |s|
+        if s =~ regex_strict
+          num_bytes += s.length
+          s = $1.hex.chr if s =~ regex_hex
+          str << s
+        elsif s =~ regex_junk
+          num_bytes += $1.length
+        end
+      end
+
+      elements << str
+      i += num_bytes
+    end
+
+    return i
+  end
+
+  def base64(i, count, elements)
+    if i >= @length
+      elements << ''
+    else
+      buffer    = ''
+      str       = ''
+      num_bytes = 0
+
+      b64_regex_permissive = /[A-Za-z0-9+\/]{4} |[A-Za-z0-9+\/]{3} \=?|[A-Za-z0-9+\/]{2}\={0,2} |[A-Za-z0-9+\/]\={0,3} |[^A-Za-z0-9+\/]+/x
+
+      @source[i..-1].scan(b64_regex_permissive) do |s|
+        num_bytes += s.length
+
+        b64_regex_strict = /\A (?:[A-Za-z0-9+\/]{4} |[A-Za-z0-9+\/]{3} \=?|[A-Za-z0-9+\/]{2} \={0,2} |[A-Za-z0-9+\/] \={0,3} ) \Z /x
+
+        if s =~ b64_regex_strict
+
+          s << '=' while s.length != 4 if s =~ /=\Z/
+
+            # TODO: WHY?
+            if buffer == '' and s =~ /\A([A-Za-z0-9+\/])\=+\Z/
+              buffer << $1
+            else
+              buffer << s
+            end
+
+          process = buffer.length >= 4
+
+          if process
+            s      = buffer[0..3]
+            buffer = buffer[4..-1]
+
+            a = BASE_64_A2B[s[0]]
+            b = BASE_64_A2B[s[1]]
+            c = BASE_64_A2B[s[2]]
+            d = BASE_64_A2B[s[3]]
+
+            # http://www.opengroup.org/onlinepubs/009695399/utilities/uuencode.html
+            decoded = [a << 2 | b >> 4,
+              (b & (2**4 - 1)) << 4 | c >> 2,
+              (c & (2**2 - 1)) << 6 | d].pack('CCC')
+
+            if s[3].chr == '='
+              num_bytes -= 1
+              decoded = decoded[0..-2]
+              decoded = decoded[0..-2] if s[2].chr == '='
+              str << decoded
+              break
+            else
+              str << decoded
+            end
+          end
+        end
+      end
+      elements << str
+      i += num_bytes
+    end
+
+    return i
+
+  end
+
+  def utf8(i, count, elements)
+    utf8_regex_strict = /\A(?:[\x00-\x7F]
+                             |[\xC2-\xDF][\x80-\xBF]
+                             |[\xE1-\xEF][\x80-\xBF]{2}
+                             |[\xF1-\xF7][\x80-\xBF]{3}
+                             |[\xF9-\xFB][\x80-\xBF]{4}
+                             |[\xFD-\xFD][\x80-\xBF]{5} )\Z/x
+
+    utf8_regex_permissive = / [\x00-\x7F]
+                             |[\xC0-\xDF][\x80-\xBF]
+                             |[\xE0-\xEF][\x80-\xBF]{2}
+                             |[\xF0-\xF7][\x80-\xBF]{3}
+                             |[\xF8-\xFB][\x80-\xBF]{4}
+                             |[\xFC-\xFD][\x80-\xBF]{5}
+                             |[\x00-\xFF]+ /x
+
+    if i >= @length
+      # do nothing?!?
+    else
+      num_bytes = 0
+      @source[i..-1].scan(utf8_regex_permissive) do |c|
+        raise ArgumentError, "malformed UTF-8 character" if
+        c !~ utf8_regex_strict
+
+        break if count == 0
+
+        len = c.length
+        if len == 1
+          result = c[0]
+        else
+          shift = (len - 1) * 2
+          result = (((2 ** (8 - len.succ) - 1) & c[0]) *
+                    2 ** ((len - 1) * 8)) >> shift
+          (1...(len - 1)).each do |x|
+            shift -= 2
+            result |= (((2 ** 6 - 1) & c[x]) *
+                       2 ** ((len - x.succ) * 8)) >> shift
+          end
+          result |= (2 ** 6 - 1) & c[-1]
+        end
+        elements << result
+        num_bytes += len
+
+        count -= 1 if count != '*'
+      end
+      i += num_bytes
+    end
+
+    return i
   end
 
   def dispatch
     # some of the directives work when repeat == 0 because of this behavior:
     # str[0...0] == '' and str[1..0] == ''
 
-    raise TypeError, "can't convert nil into String" if @schema.nil?
-
     i = 0
     elements = []
     length = @source.length
 
-    schema = @schema.scan(/([@a-zA-Z])(-?\d+|[\*_])?/).map { |c, n|
-      # n in (nil, -num, num, "*", "_")
-      [c, n.nil? || n =~ /\*|_/ ? n : Integer(n)]
-    }
+    schema = parse_schema()
 
     schema.each do |code, count|
 
@@ -511,324 +850,37 @@ class String::Unpacker
 
       # TODO: profile avg occurances and reorder case
       case code
-      when 'A' then
-        new_pos, str = if i >= length then
-                         [i, '']
-                       elsif count == '*' then
-                         [length, @source[i..-1]]
-                       else
-                         new_pos = i + count
-                         [new_pos,
-                          new_pos <= length ? @source[i...new_pos] : @source[i..-1]]
-                       end
-        i = new_pos
-        elements << str.sub(/[\x00\x20]+\Z/, '')
-      when 'a' then
-        if i >= length then
-          elements << ''
-        elsif count == '*' then
-          elements << @source[i..-1]
-          i = length
-        else
-          nnd = i + count
-          s = if i + count <= length then
-                @source[i...nnd]
-              else
-                @source[i..-1]
-              end
-          elements << s
-          i = nnd
-        end
-      when 'B', 'b', 'H', 'h' then
-        lsb = code =~ /[bh]/
-        fmt = case code
-              when /[Bb]/ then "%08b"
-              when /[Hh]/ then "%02x"
-              end
-
-        if i >= length then
-          elements << ''
-        elsif count == '*' then
-          a = @source[i..-1].split(//).map { |c| fmt % c[0] }
-          a.map! { |s| s.reverse } if lsb
-          elements << a.join
-          i = length
-        else
-          case code
-          when /[Bb]/ then
-            num_bytes, r = count.divmod(8)
-            num_drop = r != 0 ? 8 - r : 0
-          when /[Hh]/ then
-            num_bytes, r = (count * 4).divmod(8)
-            num_drop = r != 0 ? 1 : 0
-          end
-          num_bytes += 1 if r != 0
-          str0 = if i + num_bytes <= length then
-                   @source[i...(i + num_bytes)]
-                 else
-                   @source[i..-1]
-                 end
-          len = str0.length
-          str1 = ''
-          str0.each_byte { |n|
-            len -= 1
-            s = fmt % n
-            str1 << if lsb then
-                      len == 0 ? s[num_drop..-1].reverse : s.reverse
-                    else
-                      len == 0 ? s[0..-num_drop.succ]    : s
-                    end
-          }
-          elements << str1
-          i += num_bytes
-        end
-      when /[CcDdEeFfGgIiLlNnQqSsVv]/ then
-        num_bytes = case code
-                    when /[DdEGQq]/ then 8
-                    when /[eFfgNV]/ then 4
-                    when /[nSsv]/   then 2
-                    when /[Cc]/     then 1
-                    when /[IiLl]/   then 1.size
-                    end
-
-        size = case code
-               when /[NncGg]/          then :big
-               when /[CILQSilqsFfDd]/ then :native
-               when /[VveE]/          then :little
-               else
-                 raise "huh? #{code.inspect}"
-               end
-
-        star = count == '*'
-        count = length - i if star
-        count.times do |j|
-          if i + num_bytes > length
-            break if star
-            elements << nil if code != 'Q'
-          else
-            start    = i
-            offset   = num_bytes - 1
-            endian   = size
-            n        = exp = 0
-            bytebits = 8
-
-            if :big == endian || (:native == endian && endian?(:big)) then
-              exp      =  bytebits * offset
-              bytebits = -bytebits
-            end
-
-            (start..start + offset).each do |x|
-              n   += (@source[x] * 2**exp)
-              exp += bytebits
-            end
-
-            case code
-            when /[NnCILQSVv]/ then
-              elements << n
-            when /[ilqsc]/ then
-              max = 2 ** (num_bytes * 8 - 1)
-              n = n >= max ? -(2**(num_bytes*8) - n) : n
-              elements << n
-            when /[eFfg]/ then
-              sign   = (2**31 & n != 0) ? -1 : 1
-              expo   = ((0xFF * 2**23) & n) >> 23
-              frac   = (2**23 - 1) & n
-              result = if expo == 0 and frac == 0 then
-                         sign.to_f * 0.0    # zero
-                       elsif expo == 0 then # denormalized
-                         sign * 2**(expo - 126) * (frac.to_f / 2**23.to_f)
-                       elsif expo == 0xFF and frac == 0 then
-                         sign.to_f / 0.0    # Infinity
-                       elsif expo == 0xFF then
-                         0.0 / 0.0          # NaN
-                       else                 # normalized
-                         sign * 2**(expo - 127) * (1.0 + (frac.to_f / 2**23.to_f))
-                       end
-              elements << result
-            when /[DdEG]/ then
-              sign   = (2**63 & n != 0) ? -1 : 1
-              expo   = ((0x7FF * 2**52) & n) >> 52
-              frac   = (2**52 - 1) & n
-              result = if expo == 0 and frac == 0 then
-                         sign.to_f * 0.0    # zero
-                       elsif expo == 0 then # denormalized
-                         sign * 2**(expo - 1022) * (frac.to_f / 2**52.to_f)
-                       elsif expo == 0x7FF and frac == 0 then
-                         sign.to_f / 0.0    # Infinity
-                       elsif expo == 0x7FF then
-                         0.0 / 0.0          # NaN
-                       else                 # normalized
-                         sign * 2**(expo-1023) * (1.0 + (frac.to_f / 2**52.to_f))
-                       end
-              elements << result
-            end
-            i += num_bytes
-          end
-        end
-      when 'M' then
-        if i >= length then
-          elements << ''
-        else
-          str              = ''
-          num_bytes        = 0
-          regex_permissive = / \= [0-9A-Fa-f]{2} | [^=]+ | [\x00-\xFF]+ /x
-          regex_junk       = / \A ( \= [0-9A-Fa-f]{0,1} )               /x
-          regex_strict     = / \A (?: \= [0-9A-Fa-f]{2} | [^=]+ )    \Z /x
-          regex_hex        = / \A \= ([0-9A-Fa-f]{2})                \Z /x
-
-          @source[i..-1].scan(regex_permissive) do |s|
-            if s =~ regex_strict then
-              num_bytes += s.length
-              s = $1.hex.chr if s =~ regex_hex
-              str << s
-            elsif s =~ regex_junk
-              num_bytes += $1.length
-            end
-          end
-
-          elements << str
-          i += num_bytes
-        end
-      when 'm' then
-        if i >= length
-          elements << ''
-        else
-          buffer    = ''
-          str       = ''
-          num_bytes = 0
-
-          b64_regex_permissive = /[A-Za-z0-9+\/]{4} |[A-Za-z0-9+\/]{3} \=?
-            |[A-Za-z0-9+\/]{2}\={0,2} |[A-Za-z0-9+\/]\={0,3} |[^A-Za-z0-9+\/]+/x
-
-          @source[i..-1].scan(b64_regex_permissive) do |s|
-            num_bytes += s.length
-
-            b64_regex_strict = /\A (?:[A-Za-z0-9+\/]{4} |[A-Za-z0-9+\/]{3} \=?
-              |[A-Za-z0-9+\/]{2} \={0,2} |[A-Za-z0-9+\/] \={0,3} ) \Z /x
-
-            if s =~ b64_regex_strict then
-
-              s << '=' while s.length != 4 if s =~ /=\Z/
-
-                # TODO: WHY?
-                if buffer == '' and s =~ /\A([A-Za-z0-9+\/])\=+\Z/ then
-                  buffer << $1
-                else
-                  buffer << s
-                end
-
-              process = buffer.length >= 4
-
-              if process then
-                s      = buffer[0..3]
-                buffer = buffer[4..-1]
-
-                a = BASE_64_A2B[s[0]]
-                b = BASE_64_A2B[s[1]]
-                c = BASE_64_A2B[s[2]]
-                d = BASE_64_A2B[s[3]]
-
-                # http://www.opengroup.org/onlinepubs/009695399/utilities/uuencode.html
-                decoded = [a << 2 | b >> 4,
-                           (b & (2**4 - 1)) << 4 | c >> 2,
-                           (c & (2**2 - 1)) << 6 | d].pack('CCC')
-
-                if s[3].chr == '='
-                  num_bytes -= 1
-                  decoded = decoded[0..-2]
-                  decoded = decoded[0..-2] if s[2].chr == '='
-                  str << decoded
-                  break
-                else
-                  str << decoded
-                end
-              end
-            end
-          end
-          elements << str
-          i += num_bytes
-        end
-      when 'U' then
-        utf8_regex_strict = /\A(?:[\x00-\x7F]
-                                 |[\xC2-\xDF][\x80-\xBF]
-                                 |[\xE1-\xEF][\x80-\xBF]{2}
-                                 |[\xF1-\xF7][\x80-\xBF]{3}
-                                 |[\xF9-\xFB][\x80-\xBF]{4}
-                                 |[\xFD-\xFD][\x80-\xBF]{5} )\Z/x
-
-        utf8_regex_permissive = / [\x00-\x7F]
-                                 |[\xC0-\xDF][\x80-\xBF]
-                                 |[\xE0-\xEF][\x80-\xBF]{2}
-                                 |[\xF0-\xF7][\x80-\xBF]{3}
-                                 |[\xF8-\xFB][\x80-\xBF]{4}
-                                 |[\xFC-\xFD][\x80-\xBF]{5}
-                                 |[\x00-\xFF]+ /x
-
-        if i >= length then
-          # do nothing?!?
-        else
-          num_bytes = 0
-          @source[i..-1].scan(utf8_regex_permissive) do |c|
-            raise ArgumentError, "malformed UTF-8 character" if
-              c !~ utf8_regex_strict
-
-            break if count == 0
-
-            if false then
-              elements << c.utf8_code_value
-              num_bytes += c.length
-            else
-              len = c.length
-              if len == 1
-                result = c[0]
-              else
-                shift = (len - 1) * 2
-                result = (((2 ** (8 - len.succ) - 1) & c[0]) *
-                          2 ** ((len - 1) * 8)) >> shift
-                (1...(len - 1)).each do |x|
-                  shift -= 2
-                  result |= (((2 ** 6 - 1) & c[x]) *
-                             2 ** ((len - x.succ) * 8)) >> shift
-                end
-                result |= (2 ** 6 - 1) & c[-1]
-              end
-              elements << result
-              num_bytes += len
-            end
-
-            count -= 1 if count != '*'
-          end
-          i += num_bytes
-        end
-      when 'X' then
+      when 'A'
+        i = stripped_string(i, count, elements)
+      when 'a'
+        i = string(i, count, elements)
+      when 'B', 'b', 'H', 'h'
+        i = bits_nibbles(code, i, count, elements)
+      when /[CcDdEeFfGgIiLlNnQqSsVv]/
+        i = number(code, i, count, elements)
+      when 'M'
+        i = quotable_printed(i, count, elements)
+      when 'm'
+        i = base64(i, count, elements)
+      when 'U'
+        i = utf8(i, count, elements)
+      when 'X'
         count = length - i if count == '*'
 
         raise ArgumentError, "X outside of string" if count < 0 or i - count < 0
         i -= count
-      when 'x' then
-        if count == '*' then
+      when 'x'
+        if count == '*'
           raise ArgumentError, "x outside of string" if i > length
           i = length
         else
           raise ArgumentError, "x outside of string" if i + count > length
           i += count
         end
-      when 'Z' then
-        if i >= length then
-          elements << ''
-        elsif count == '*' then
-          @source[i..-1] =~ / \A ( [^\x00]* ) ( [\x00]? ) /x
-          elements << $1
-          i += $1.length
-          i += 1 if $2 == "\0"
-        else
-          str = i + count <= length ? @source[i...(i + count)] : @source[i..-1]
-          str =~ / \A ( [^\x00]* ) /x
-          elements << $1
-          i += count
-        end
-      when '@' then
-        if count == '*' then
+      when 'Z'
+        i = null_term_string(i, count, elements)
+      when '@'
+        if count == '*'
           i = length
         else
           raise ArgumentError, "@ outside of string" if count > length
