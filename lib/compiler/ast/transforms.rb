@@ -43,6 +43,20 @@ module Rubinius
       end
     end
 
+    class AccessUndefined < Send
+      transform :kernel, :access_undefined, "VM instruction for undefined"
+
+      def self.match?(line, receiver, name, arguments, privately)
+        if privately and name == :undefined
+          new line, receiver, name, privately
+        end
+      end
+
+      def bytecode(g)
+        g.push_undef
+      end
+    end
+
     ##
     # Handles Ruby.primitive
     class SendPrimitive < SendWithArguments

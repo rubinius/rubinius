@@ -6,9 +6,9 @@ module Kernel
   # raising forever blows)
   #++
 
-  def raise(exc=Undefined, msg=nil, ctx=nil)
+  def raise(exc=undefined, msg=nil, ctx=nil)
     skip = false
-    if exc.equal? Undefined
+    if exc.equal? undefined
       exc = $!
       if exc
         skip = true

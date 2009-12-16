@@ -18,12 +18,12 @@ class StringIO
   attr_reader :string, :pos
   attr_accessor :lineno
 
-  def initialize(string = "", mode = Undefined)
+  def initialize(string = "", mode = nil)
     @string = Type.coerce_to string, String, :to_str
     @pos = 0
     @lineno = 0
 
-    unless mode == Undefined
+    if mode
       if mode.is_a?(Integer)
         mode_from_integer(mode)
       else
@@ -295,21 +295,21 @@ class StringIO
     nil
   end
 
-  def read(length = Undefined, buffer = "")
+  def read(length = nil, buffer = "")
     raise IOError, "not opened for reading" unless @readable
 
     buffer = StringValue(buffer)
 
-    if length == Undefined or length.nil?
-      return "" if self.eof?
-      buffer.replace(@string[@pos..-1])
-      @pos = @string.size
-    else
+    if length
       return nil if self.eof?
       length = Type.coerce_to length, Integer, :to_int
       raise ArgumentError if length < 0
       buffer.replace(@string[@pos, length])
       @pos += buffer.length
+    else
+      return "" if self.eof?
+      buffer.replace(@string[@pos..-1])
+      @pos = @string.size
     end
 
     return buffer
@@ -336,16 +336,16 @@ class StringIO
     ary
   end
 
-  def reopen(string = Undefined, mode = Undefined)
-    unless string == Undefined
-      if !string.is_a?(String) && mode == Undefined
+  def reopen(string = nil, mode = nil)
+    if string
+      if !string.is_a?(String) and !mode
         string = Type.coerce_to(string, StringIO, :to_strio)
         self.taint if string.tainted?
         @string = string.string
       else
         @string = StringValue(string)
 
-        unless mode == Undefined
+        if mode
           if mode.is_a?(Integer)
             mode_from_integer(mode)
           else
@@ -406,7 +406,7 @@ class StringIO
     val
   end
 
-  def sysread(length = Undefined, buffer = "")
+  def sysread(length = nil, buffer = "")
     str = read(length, buffer)
     raise IO::EOFError, "end of file reached" if str.nil?
     str

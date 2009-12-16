@@ -462,7 +462,7 @@ namespace rubinius {
           ObjType, "const_obj");
     }
 
-    Value* constant(Object* obj, const Type* type) {
+    Value* constant(void* obj, const Type* type) {
       return b().CreateIntToPtr(
           ConstantInt::get(ls_->IntPtrTy, (intptr_t)obj),
           type, "const_of_type");

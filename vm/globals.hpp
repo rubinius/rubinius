@@ -81,7 +81,7 @@ namespace rubinius {
 
     TypedRoot<Module*> vm;
     TypedRoot<Thread*> current_thread;
-    TypedRoot<Object*> main;
+    TypedRoot<Object*> main, undefined;
     TypedRoot<Class*> dir;
     TypedRoot<Class*> compactlookuptable;
     TypedRoot<Class*> lookuptablebucket;
@@ -196,6 +196,7 @@ namespace rubinius {
       vm(&roots),
       current_thread(&roots),
       main(&roots),
+      undefined(&roots),
       dir(&roots),
       compactlookuptable(&roots),
       lookuptablebucket(&roots),

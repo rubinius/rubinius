@@ -1,1 +1,7 @@
-Undefined = Object.new
+class << undefined
+  def to_s
+    "undefined"
+  end
+
+  alias_method :inspect, :to_s
+end

@@ -2388,3 +2388,7 @@ end
 instruction push_block_arg() [ -- block ]
   stack_push(args.block());
 end
+
+instruction push_undef() [ -- value ]
+  stack_push(G(undefined));
+end

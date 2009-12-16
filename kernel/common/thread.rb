@@ -157,7 +157,7 @@ class Thread
     @critical = value
   end
 
-  def join(timeout = Undefined)
+  def join(timeout = undefined)
     join_inner(timeout) { @alive ? nil : self }
   end
 
@@ -173,7 +173,7 @@ class Thread
     join_inner { @result }
   end
 
-  def join_inner(timeout = Undefined)
+  def join_inner(timeout = undefined)
     result = nil
     @lock.receive
     begin
@@ -182,7 +182,7 @@ class Thread
         @joins << jc
         @lock.send nil
         begin
-          if timeout.equal? Undefined
+          if timeout.equal? undefined
             jc.receive
           else
             jc.receive_timeout timeout.to_f
@@ -300,7 +300,7 @@ class Thread
   # If there is one, it returns true.
   # Otherwise, it will yield once and return false.
   
-  def self.detect_recursion(obj, paired_obj = Undefined)
+  def self.detect_recursion(obj, paired_obj = undefined)
     id = obj.object_id
     pair_id = paired_obj.object_id
     objects = current.recursive_objects

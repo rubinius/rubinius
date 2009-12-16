@@ -253,7 +253,7 @@ class Module
       mod = mod.direct_superclass
     end
 
-    raise NameError, "Undefined method `#{name}' for #{self}"
+    raise NameError, "undefined method `#{name}' for #{self}"
   end
 
   def instance_methods(all=true)
@@ -623,11 +623,11 @@ class Module
   def recursive_const_get(name, missing=true)
     name = normalize_const_name(name)
 
-    current, constant = self, Undefined
+    current, constant = self, undefined
 
     while current
-      constant = current.constants_table.fetch name, Undefined
-      unless constant.equal?(Undefined)
+      constant = current.constants_table.fetch name, undefined
+      unless constant.equal?(undefined)
         constant = constant.call if constant.kind_of?(Autoload)
         return constant
       end
@@ -636,8 +636,8 @@ class Module
     end
 
     if instance_of?(Module)
-      constant = Object.constants_table.fetch name, Undefined
-      unless constant.equal?(Undefined)
+      constant = Object.constants_table.fetch name, undefined
+      unless constant.equal?(undefined)
         constant = constant.call if constant.kind_of?(Autoload)
         return constant
       end

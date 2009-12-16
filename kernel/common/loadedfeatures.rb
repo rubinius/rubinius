@@ -8,7 +8,7 @@ module Rubinius
   class LoadedFeatures < Array
     MIN_CAPACITY = 100
 
-    def initialize(size_or_array=Undefined, obj=Undefined)
+    def initialize(size_or_array=undefined, obj=undefined)
       super
       identity_map
     end

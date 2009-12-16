@@ -398,6 +398,13 @@ namespace rubinius {
       stack_push(constant(Qtrue));
     }
 
+    void visit_push_undef() {
+      Object** addr = ls_->shared().globals.undefined.object_address();
+      Value* l_addr = constant(addr, ObjArrayTy);
+
+      stack_push(b().CreateLoad(l_addr, "undefined"));
+    }
+
     void visit_push_false() {
       stack_push(constant(Qfalse));
     }

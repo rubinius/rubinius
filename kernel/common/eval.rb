@@ -196,11 +196,11 @@ class Module
   # intermediate binding.
   #++
 
-  def module_eval(string=Undefined, filename="(eval)", line=1, &prc)
+  def module_eval(string=undefined, filename="(eval)", line=1, &prc)
     # we have a custom version with the prc, rather than using instance_exec
     # so that we can setup the StaticScope properly.
     if prc
-      unless string.equal?(Undefined)
+      unless string.equal?(undefined)
         raise ArgumentError, "cannot pass both string and proc"
       end
 
@@ -208,7 +208,7 @@ class Module
       env = prc.block
       static_scope = env.method.scope.using_current_as(self)
       return env.call_under(self, static_scope, self)
-    elsif string.equal?(Undefined)
+    elsif string.equal?(undefined)
       raise ArgumentError, 'block not supplied'
     end
 

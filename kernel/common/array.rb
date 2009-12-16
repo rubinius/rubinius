@@ -33,8 +33,8 @@ class Array
   # will be run size times to fill the Array with its
   # result. The block supercedes any object given. If
   # neither is provided, the Array is filled with nil.
-  def initialize(size_or_array=Undefined, obj=Undefined)
-    if size_or_array.equal? Undefined
+  def initialize(size_or_array=undefined, obj=undefined)
+    if size_or_array.equal? undefined
       unless @total == 0
         @total = @start = 0
         @tuple = Rubinius::Tuple.new 8
@@ -43,7 +43,7 @@ class Array
       return self
     end
 
-    if obj.equal? Undefined
+    if obj.equal? undefined
       obj = nil
 
       if size_or_array.respond_to? :to_ary
@@ -140,11 +140,11 @@ class Array
 
   alias_method :slice, :[]
 
-  def set_index(index, ent, fin=Undefined)
+  def set_index(index, ent, fin=undefined)
     Ruby.primitive :array_aset
 
     ins_length = nil
-    unless fin.equal? Undefined
+    unless fin.equal? undefined
       ins_length = Type.coerce_to ent, Fixnum, :to_int
       ent = fin             # 2nd arg (ins_length) is the optional one!
     end
@@ -492,7 +492,7 @@ class Array
   # block is provided in which case the value of running it is
   # returned instead.
   def delete(obj)
-    key = Undefined
+    key = undefined
     i = to_iter
     while i.next
       self[i.index] = key if i.item == obj
@@ -536,7 +536,7 @@ class Array
   def delete_if(&block)
     return to_enum :delete_if unless block_given?
 
-    key = Undefined
+    key = undefined
     i = to_iter
     while i.next
       self[i.index] = key if yield i.item
@@ -708,8 +708,8 @@ class Array
   # If no argument is given, returns nil if the item
   # is not found. If there is an argument, an empty
   # Array is returned instead.
-  def first(n = Undefined)
-    return at(0) if n.equal? Undefined
+  def first(n = undefined)
+    return at(0) if n.equal? undefined
 
     n = Type.coerce_to n, Fixnum, :to_int
     raise ArgumentError, "Size must be positive" if n < 0
@@ -763,9 +763,9 @@ class Array
   # for which elem == obj is true or nil. If a block is
   # given instead of an argument, returns first object
   # for which block is true. Returns nil if no match is found.
-  def index(obj=Undefined)
+  def index(obj=undefined)
     i = to_iter
-    if obj.equal? Undefined
+    if obj.equal? undefined
       while i.next
         return i.index if yield(i.item)
       end
@@ -858,12 +858,12 @@ class Array
   # Returns the last element or n elements of self. If
   # the Array is empty, without a count nil is returned,
   # otherwise an empty Array. Always returns an Array.
-  def last(n=Undefined)
+  def last(n=undefined)
     if size < 1
-      return if n.equal? Undefined
+      return if n.equal? undefined
       return []
     end
-    return at(-1) if n.equal? Undefined
+    return at(-1) if n.equal? undefined
 
     unless n.respond_to?(:to_int)
       raise TypeError, "Can't convert #{n.class} into Integer"
@@ -958,8 +958,8 @@ class Array
   end
 
   # Removes and returns the last element from the Array.
-  def pop(many=Undefined)
-    if many.equal? Undefined
+  def pop(many=undefined)
+    if many.equal? undefined
       return nil if @total == 0
 
       @total -= 1
@@ -1086,8 +1086,8 @@ class Array
   # for which elem == obj is true.
   # If a block is given instead of an argument,
   # returns last object for which block is true.
-  def rindex(obj=Undefined)
-    if obj.equal? Undefined
+  def rindex(obj=undefined)
+    if obj.equal? undefined
       i = to_reverse_iter
       while i.rnext
         return i.index if yield(i.item)
@@ -1104,8 +1104,8 @@ class Array
   # Choose a random element, or the random n elements, from the array.
   # If the array is empty, the first form returns nil, and the second
   # form returns an empty array.
-  def choice(n=Undefined)
-    return at(rand(size)) if n.equal? Undefined
+  def choice(n=undefined)
+    return at(rand(size)) if n.equal? undefined
 
     n = Type.coerce_to(n, Fixnum, :to_int)
     raise ArgumentError, "negative array size" if n < 0
@@ -1125,8 +1125,8 @@ class Array
   # Removes and returns the first element in the
   # Array or nil if empty. All other elements are
   # moved down one index.
-  def shift(n=Undefined)
-    if n.equal? Undefined
+  def shift(n=undefined)
+    if n.equal? undefined
       return nil if @total == 0
 
       obj = @tuple.at @start
@@ -1148,8 +1148,8 @@ class Array
   # Deletes the element(s) given by an index (optionally with a length)
   # or by a range. Returns the deleted object, subarray, or nil if the
   # index is out of range. Equivalent to:
-  def slice!(start, length=Undefined)
-    if length.equal? Undefined
+  def slice!(start, length=undefined)
+    if length.equal? undefined
       out = self[start]
 
       if start.kind_of? Range

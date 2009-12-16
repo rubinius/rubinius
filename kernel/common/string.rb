@@ -26,8 +26,8 @@ class String
     raise PrimitiveFailure, "String.from_bytearray primitive failed"
   end
 
-  def initialize(arg = Undefined)
-    replace StringValue(arg) unless arg == Undefined
+  def initialize(arg = undefined)
+    replace StringValue(arg) unless arg == undefined
 
     self
   end
@@ -225,8 +225,8 @@ class String
   #    a[/[aeiou](.)\1/, 2]   #=> nil
   #    a["lo"]                #=> "lo"
   #    a["bye"]               #=> nil
-  def [](index, other = Undefined)
-    unless other.equal?(Undefined)
+  def [](index, other = undefined)
+    unless other.equal?(undefined)
       length = Type.coerce_to(other, Fixnum, :to_int)
 
       if index.kind_of? Regexp
@@ -809,12 +809,12 @@ class String
   #   "hello".gsub(/[aeiou]/, '*')              #=> "h*ll*"
   #   "hello".gsub(/([aeiou])/, '<\1>')         #=> "h<e>ll<o>"
   #   "hello".gsub(/./) {|s| s[0].to_s + ' '}   #=> "104 101 108 108 111 "
-  def gsub(pattern, replacement = Undefined, &prc)
-    return to_enum :gsub, pattern, replacement unless block_given? || replacement != Undefined
+  def gsub(pattern, replacement = undefined, &prc)
+    return to_enum :gsub, pattern, replacement unless block_given? || replacement != undefined
 
     tainted = false
 
-    unless replacement == Undefined
+    unless replacement == undefined
       tainted = replacement.tainted?
       replacement = StringValue(replacement)
       tainted ||= replacement.tainted?
@@ -835,7 +835,7 @@ class String
     while match do
       ret << (match.pre_match_from(last_end) || "")
 
-      unless replacement == Undefined
+      unless replacement == undefined
         ret << replacement.to_sub_replacement(match)
       else
         # We do this so that we always manipulate $~ in the context
@@ -874,7 +874,7 @@ class String
 
   # Performs the substitutions of <code>String#gsub</code> in place, returning
   # <i>self</i>, or <code>nil</code> if no substitutions were performed.
-  def gsub!(pattern, replacement = Undefined, &block)
+  def gsub!(pattern, replacement = undefined, &block)
     str = gsub(pattern, replacement, &block)
 
     if lm = $~
@@ -1159,10 +1159,10 @@ class String
   #   "hello".rindex('a')             #=> nil
   #   "hello".rindex(101)             #=> 1
   #   "hello".rindex(/[aeiou]/, -2)   #=> 1
-  def rindex(arg, finish = Undefined)
+  def rindex(arg, finish = undefined)
     arg = StringValue(arg) unless [Fixnum, String, Regexp].include?(arg.class)
     original_klass = arg.class
-    if !finish.equal?(Undefined)
+    if !finish.equal?(undefined)
       finish = Type.coerce_to(finish, Integer, :to_int)
       finish += @num_bytes if finish < 0
       return nil if finish < 0
@@ -1355,12 +1355,12 @@ class String
   #   "1,2,,3,4,,".split(',')         #=> ["1", "2", "", "3", "4"]
   #   "1,2,,3,4,,".split(',', 4)      #=> ["1", "2", "", "3,4,,"]
   #   "1,2,,3,4,,".split(',', -4)     #=> ["1", "2", "", "3", "4", "", ""]
-  def split(pattern = nil, limit = Undefined)
+  def split(pattern = nil, limit = undefined)
 
     # Odd edge case
     return [] if empty?
 
-    if limit == Undefined
+    if limit == undefined
       limited = false
     else
       limit = Type.coerce_to limit, Fixnum, :to_int
@@ -1385,7 +1385,7 @@ class String
     else
       pattern = StringValue(pattern) unless pattern.kind_of?(String)
 
-      if !limited and limit.equal? Undefined
+      if !limited and limit.equal? undefined
         if pattern.empty?
           return pull_apart
         else
@@ -1429,7 +1429,7 @@ class String
     end
 
     # Trim from end
-    if !ret.empty? and (limit == Undefined || limit == 0)
+    if !ret.empty? and (limit == undefined || limit == 0)
       while s = ret.last and s.empty?
         ret.pop
       end
@@ -1569,8 +1569,8 @@ class String
   #   "hello".sub(/[aeiou]/, '*')               #=> "h*llo"
   #   "hello".sub(/([aeiou])/, '<\1>')          #=> "h<e>llo"
   #   "hello".sub(/./) {|s| s[0].to_s + ' ' }   #=> "104 ello"
-  def sub(pattern, replacement = Undefined, &prc)
-    raise ArgumentError, "wrong number of arguments (1 for 2)" if replacement == Undefined && !block_given?
+  def sub(pattern, replacement = undefined, &prc)
+    raise ArgumentError, "wrong number of arguments (1 for 2)" if replacement == undefined && !block_given?
     raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
 
     if match = get_pattern(pattern, true).match_from(self, 0)
@@ -1578,7 +1578,7 @@ class String
 
       Rubinius::VariableScope.of_sender.last_match = match
 
-      unless replacement == Undefined
+      unless replacement == undefined
         out.taint if replacement.tainted?
         replacement = StringValue(replacement).to_sub_replacement(match)
       else
@@ -1612,7 +1612,7 @@ class String
   # Performs the substitutions of <code>String#sub</code> in place,
   # returning <i>self</i>, or <code>nil</code> if no substitutions were
   # performed.
-  def sub!(pattern, replacement = Undefined, &prc)
+  def sub!(pattern, replacement = undefined, &prc)
     if block_given?
       orig = self.dup
       str = sub(pattern, replacement, &prc)

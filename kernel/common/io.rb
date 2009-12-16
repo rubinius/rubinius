@@ -402,9 +402,9 @@ class IO
   #  IO.read("testfile")           #=> "This is line one\nThis is line two\nThis is line three\nAnd so on...\n"
   #  IO.read("testfile", 20)       #=> "This is line one\nThi"
   #  IO.read("testfile", 20, 10)   #=> "ne one\nThis is line "
-  def self.read(name, length = Undefined, offset = 0)
+  def self.read(name, length = undefined, offset = 0)
     name = StringValue(name)
-    length ||= Undefined
+    length ||= undefined
     offset ||= 0
 
     offset = Type.coerce_to(offset, Fixnum, :to_int)
@@ -413,7 +413,7 @@ class IO
       raise Errno::EINVAL, "offset must not be negative"
     end
 
-    unless length.equal?(Undefined)
+    unless length.equal?(undefined)
       length = Type.coerce_to(length, Fixnum, :to_int)
 
       if length < 0
@@ -424,7 +424,7 @@ class IO
     File.open(name) do |f|
       f.seek(offset) unless offset.zero?
 
-      if length.equal?(Undefined)
+      if length.equal?(undefined)
         f.read
       else
         f.read(length)
@@ -1413,14 +1413,14 @@ class IO
   #
   #  @todo  Improve reading into provided buffer.
   #
-  def sysread(number_of_bytes, buffer = Undefined)
+  def sysread(number_of_bytes, buffer = undefined)
     flush
     raise IOError unless @ibuffer.empty?
 
     str = read_primitive number_of_bytes
     raise EOFError if str.nil?
 
-    unless buffer.equal? Undefined
+    unless buffer.equal? undefined
       buffer.to_str.replace str
     end
 
