@@ -62,7 +62,7 @@ tmtags
 /vm/log
 /vm/.deps
 
-/kernel/delta/signature.rb
+/kernel/signature.rb
 
 /lib/compiler/opcodes.rb
 

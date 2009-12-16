@@ -15,6 +15,7 @@
 def kernel_clean
   rm_f Dir["**/*.rbc",
            "**/.*.rbc",
+           "kernel/**/signature.rb",
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
            "runtime/**/load_order.txt",
            "runtime/platform.conf"],
@@ -53,7 +54,7 @@ dir_names.each do |dir|
 end
 
 # Generate file tasks for all kernel files.
-compiler_signature = "kernel/delta/signature.rb"
+compiler_signature = "kernel/signature.rb"
 
 FileList[
   "kernel/**/*.rb",
@@ -127,7 +128,7 @@ namespace :compiler do
 
   task :load => [compiler_signature, melbourne] + compiler_files do
     require File.expand_path("../../lib/compiler", __FILE__)
-    require File.expand_path("../../kernel/delta/signature", __FILE__)
+    require File.expand_path("../../kernel/signature", __FILE__)
   end
 end
 
