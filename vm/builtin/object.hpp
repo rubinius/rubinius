@@ -268,7 +268,7 @@ namespace rubinius {
 
     /** Return object's MetaClass object. Created as needed. */
     // Ruby.primitive :object_metaclass
-    MetaClass*    metaclass(STATE);
+    Class*    metaclass(STATE);
 
     /**
      *  Ruby #instance_variable_set

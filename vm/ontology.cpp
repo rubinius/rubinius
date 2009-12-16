@@ -129,7 +129,7 @@ namespace rubinius {
      */
 
     // Object's MetaClass instance has Class for a superclass
-    MetaClass* mc = MetaClass::attach(this, object, cls);
+    Class* mc = MetaClass::attach(this, object, cls);
     // Module's metaclass's superclass is Object's metaclass
     mc = MetaClass::attach(this, G(module), mc);
     // Class's metaclass likewise has Module's metaclass above it
