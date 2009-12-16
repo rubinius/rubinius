@@ -178,32 +178,42 @@ namespace rubinius {
 
   MetaClass* MetaClass::attach(STATE, Object* obj, Class* sup) {
     MetaClass *meta;
-
     meta = state->om->new_object_enduring<MetaClass>(G(klass));
     meta->set_class_id(state->shared.inc_class_count());
 
-    if(!sup) { sup = obj->klass(); }
     meta->attached_instance(state, obj);
     meta->setup(state);
-    meta->superclass(state, (Module*)sup);
     meta->set_type_info(obj->klass()->type_info());
 
     meta->set_packed_size(obj->klass()->packed_size());
     meta->packed_ivar_info(state, obj->klass()->packed_ivar_info());
 
-    /* Hook up the class of meta to point along the metaclass hierarchy of
-     * sup, not directly to sup itself */
-    if(MetaClass* obj_meta = try_as<MetaClass>(obj)) {
-      /* Ported from MRI, don't yet get exactly what it does. */
+    /* The superclass hierarchy for metaclasses lives in parallel to that of classes.
+     * This code ensures that the superclasses of metaclasses are also metaclasses.
+     */
+    if(MetaClass* already_meta = try_as<MetaClass>(obj)) {
+      /* If we are attaching a metaclass to something that is already a MetaClass,
+       * make the metaclass's superclass be the attachee's superclass.
+       * klass and superclass are both metaclasses in this case.
+       */
       meta->klass(state, meta);
-      meta->superclass(state, obj_meta->true_superclass(state)->klass());
+      meta->superclass(state, already_meta->true_superclass(state)->metaclass(state));
     } else {
+      /* If we are attaching to anything but a MetaClass, the new
+       * metaclass's class is the same as its superclass.
+       * This is where the superclass chains for meta/non-meta classes diverge.
+       * If no superclass argument was provided, we use the klass we are replacing.
+       */
+      if(!sup) { sup = obj->klass(); }
+      /* Tell the new MetaClass about the attachee's existing hierarchy */
       Class* meta_klass = Class::real_class(state, sup)->klass();
       meta->klass(state, meta_klass);
+      meta->superclass(state, sup);
     }
 
     meta->name(state, state->symbol("<metaclass>"));
 
+    /* Finally, attach the new MetaClass */
     obj->klass(state, meta);
 
     return meta;

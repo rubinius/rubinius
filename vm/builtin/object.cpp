@@ -404,7 +404,7 @@ namespace rubinius {
     return kind_of_p(state, klass) ? Qtrue : Qfalse;
   }
 
-  Class* Object::metaclass(STATE) {
+  MetaClass* Object::metaclass(STATE) {
     if(reference_p()) {
       if(MetaClass* mc = try_as<MetaClass>(klass())) {
         // This test is very important! MetaClasses can get their
@@ -417,7 +417,7 @@ namespace rubinius {
       return MetaClass::attach(state, this);
     }
 
-    return class_object(state);
+    return (MetaClass*)class_object(state);
   }
 
   Object* Object::send(STATE, CallFrame* caller, Symbol* name, Array* ary,

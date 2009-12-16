@@ -66,7 +66,7 @@ namespace rubinius {
      * Modules, so we just create them all uninitialized, then initialize
      * them all at once */
 
-    /* Class's klass is Class */
+    // Class's klass is Class
     cls->klass(state, cls);
     cls->ivars(state, Qnil);
     cls->set_obj_type(ClassType);
@@ -75,39 +75,39 @@ namespace rubinius {
     cls->set_class_id(shared.inc_class_count());
     cls->set_packed_size(0);
 
-    /* Set Class into the globals */
+    // Set Class into the globals
     GO(klass).set(cls);
 
-    /* Now do Object */
+    // Now do Object
     Class *object = new_basic_class((Class*)Qnil);
     GO(object).set(object);
 
     object->set_object_type(state, ObjectType);
 
-    /* Now Module */
+    // Now Module
     GO(module).set(new_basic_class(object));
     G(module)->set_object_type(state, ModuleType);
 
-    /* Fixup Class's superclass to be Module */
+    // Fixup Class's superclass to be Module
     cls->superclass(state, G(module));
 
-    /* Create Tuple */
+    // Create Tuple
     GO(tuple).set(new_basic_class(object));
     G(tuple)->set_object_type(state, TupleType);
 
-    /* Create LookupTable */
+    // Create LookupTable
     GO(lookuptable).set(new_basic_class(object));
     G(lookuptable)->set_object_type(state, LookupTableType);
 
-    /* Create LookupTableBucket */
+    // Create LookupTableBucket
     GO(lookuptablebucket).set(new_basic_class(object));
     G(lookuptablebucket)->set_object_type(state, LookupTableBucketType);
 
-    /* Create MethodTable */
-    GO(methtbl).set(new_basic_class(G(object)));
+    // Create MethodTable
+    GO(methtbl).set(new_basic_class(object));
     G(methtbl)->set_object_type(state, MethodTableType);
 
-    /* Create MethodTableBucket */
+    // Create MethodTableBucket
     GO(methtblbucket).set(new_basic_class(object));
     G(methtblbucket)->set_object_type(state, MethodTableBucketType);
 
@@ -121,30 +121,37 @@ namespace rubinius {
      *  MethodTable
      *  MethodTableBucket
      *
-     *  With these 9 in place, we can now create fully initialized classes
-     *  and modules. */
+     *  With these 8 in place, we can now create fully initialized classes
+     *  and modules.
+     *
+     *  Next we need to finish up the MetaClass protocol (a.k.a. MOP).
+     *  The MetaClass of a subclass points to the MetaClass of the superclass.
+     */
 
-    /* Hook up the MetaClass protocols.
-     * MetaClasses of subclasses point to the MetaClass of the
-     * superclass. */
+    // Object's MetaClass instance has Class for a superclass
     MetaClass* mc = MetaClass::attach(this, object, cls);
+    // Module's metaclass's superclass is Object's metaclass
     mc = MetaClass::attach(this, G(module), mc);
+    // Class's metaclass likewise has Module's metaclass above it
     MetaClass::attach(this, cls, mc);
 
-    // Sanity.
+    // See?
+    assert(object->superclass() == Qnil);
     assert(object->klass()->superclass() == cls);
-    assert(cls->superclass() == G(module));
-    assert(G(module)->superclass() == object);
 
-    assert(cls->klass()->superclass() == G(module)->klass());
+    assert(G(module)->superclass() == object);
     assert(G(module)->klass()->superclass() == object->klass());
 
-    // TODO not sure these are being setup properly
-    MetaClass::attach(this, G(tuple), G(object)->metaclass(this));
-    MetaClass::attach(this, G(lookuptable), G(object)->metaclass(this));
-    MetaClass::attach(this, G(lookuptablebucket), G(object)->metaclass(this));
-    MetaClass::attach(this, G(methtbl), G(lookuptable)->metaclass(this));
-    MetaClass::attach(this, G(methtblbucket), G(object)->metaclass(this));
+    assert(cls->superclass() == G(module));
+    assert(cls->klass()->superclass() == G(module)->klass());
+
+    // The other builtin classes get MetaClasses wired to Object's metaclass
+    mc = G(object)->metaclass(this);
+    MetaClass::attach(this, G(tuple), mc);
+    MetaClass::attach(this, G(lookuptable), mc);
+    MetaClass::attach(this, G(lookuptablebucket), mc);
+    MetaClass::attach(this, G(methtbl), mc);
+    MetaClass::attach(this, G(methtblbucket), mc);
 
     // Now, finish initializing the basic Class/Module
     G(object)->setup(this, "Object");
@@ -154,7 +161,7 @@ namespace rubinius {
     // Create the namespace for various implementation classes
     GO(rubinius).set(new_module("Rubinius"));
 
-    // Finish initializing the rest of the special 9
+    // Finish initializing the rest of the special 8
     G(tuple)->setup(this, "Tuple", G(rubinius));
     G(tuple)->name(this, symbol("Rubinius::Tuple"));
 
