@@ -16,7 +16,6 @@ gc.rbc
 io.rbc
 kernel.rbc
 lookuptable.rbc
-metaclass.rbc
 methodtable.rbc
 nil.rbc
 object.rbc

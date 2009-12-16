@@ -11,7 +11,6 @@ filetest.rbc
 gem_prelude.rbc
 kernel.rbc
 math.rbc
-metaclass.rbc
 numeric.rbc
 objectspace.rbc
 options.rbc
