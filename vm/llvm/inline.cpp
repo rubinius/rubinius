@@ -713,16 +713,27 @@ namespace rubinius {
     case RBX_FFI_TYPE_USHORT:
     case RBX_FFI_TYPE_INT:
     case RBX_FFI_TYPE_UINT:
+#ifndef IS_X8664
     case RBX_FFI_TYPE_LONG:
-    case RBX_FFI_TYPE_ULONG: {
-      // TODO this won't promote to bignum, so we'll get
-      // invalidate results for large numbers!
-      result = ops_.fixnum_tag(ffi_result);
+    case RBX_FFI_TYPE_ULONG:
+#endif
+    {
+      Signature sig(ops_.state(), ops_.ObjType);
+      sig << "VM";
+      sig << ops_.state()->Int32Ty;
+
+      result = sig.call("rbx_ffi_from_int32", res_args, 2, "to_obj",
+                        ops_.b());
       break;
     }
 
     case RBX_FFI_TYPE_LONG_LONG:
-    case RBX_FFI_TYPE_ULONG_LONG: {
+    case RBX_FFI_TYPE_ULONG_LONG:
+#ifdef IS_X8664
+    case RBX_FFI_TYPE_LONG:
+    case RBX_FFI_TYPE_ULONG:
+#endif
+    {
       Signature sig(ops_.state(), ops_.ObjType);
       sig << "VM";
       sig << ops_.state()->Int64Ty;

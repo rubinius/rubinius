@@ -1004,6 +1004,10 @@ extern "C" {
     return 0;
   }
 
+  Object* rbx_ffi_from_int32(STATE, int32_t ll) {
+    return Integer::from(state, ll);
+  }
+
   Object* rbx_ffi_from_int64(STATE, int64_t ll) {
     return Integer::from(state, ll);
   }
