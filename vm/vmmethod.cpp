@@ -251,7 +251,7 @@ namespace rubinius {
   // For when the method expects no arguments at all (no splat, nothing)
   class NoArguments {
   public:
-    bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       return args.total() == 0;
     }
   };
@@ -259,7 +259,7 @@ namespace rubinius {
   // For when the method expects 1 and only 1 argument
   class OneArgument {
   public:
-    bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       if(args.total() != 1) return false;
       scope->set_local(0, args.get_argument(0));
       return true;
@@ -269,7 +269,7 @@ namespace rubinius {
   // For when the method expects 2 and only 2 arguments
   class TwoArguments {
   public:
-    bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       if(args.total() != 2) return false;
       scope->set_local(0, args.get_argument(0));
       scope->set_local(1, args.get_argument(1));
@@ -280,7 +280,7 @@ namespace rubinius {
   // For when the method expects 3 and only 3 arguments
   class ThreeArguments {
   public:
-    bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       if(args.total() != 3) return false;
       scope->set_local(0, args.get_argument(0));
       scope->set_local(1, args.get_argument(1));
@@ -292,7 +292,7 @@ namespace rubinius {
   // For when the method expects a fixed number of arguments (no splat)
   class FixedArguments {
   public:
-    bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       if((native_int)args.total() != vmm->total_args) return false;
 
       for(native_int i = 0; i < vmm->total_args; i++) {
@@ -306,7 +306,7 @@ namespace rubinius {
   // For when a method takes all arguments as a splat
   class SplatOnlyArgument {
   public:
-    bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       const size_t total = args.total();
       Array* ary = Array::create(state, total);
 
@@ -323,7 +323,7 @@ namespace rubinius {
   // The fallback, can handle all cases
   class GenericArguments {
   public:
-    bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
       const bool has_splat = (vmm->splat_position >= 0);
 
       // expecting 0, got 0.
@@ -521,8 +521,7 @@ namespace rubinius {
       InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
 
       // If argument handling fails..
-      ArgumentHandler arghandler;
-      if(arghandler.call(state, vmm, scope, args) == false) {
+      if(ArgumentHandler::call(state, vmm, scope, args) == false) {
         Exception* exc =
           Exception::make_argument_error(state, vmm->required_args, args.total(), msg.name);
         exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), previous));
