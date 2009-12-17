@@ -40,7 +40,7 @@ class StringIO
   def initialize_copy(from)
     from = Type.coerce_to(from, StringIO, :to_strio)
 
-    self.taint if from.tainted?
+    taint if from.tainted?
 
     @string = from.instance_variable_get(:@string).dup
     @append = from.instance_variable_get(:@append)
@@ -99,7 +99,7 @@ class StringIO
     return to_enum :each_byte, sep unless block_given?
     raise IOError, "not opened for reading" unless @readable
     sep = StringValue(sep) unless sep.nil?
-    while line = self.getline(sep)
+    while line = getline(sep)
       yield line
     end
     self
@@ -107,7 +107,7 @@ class StringIO
   alias_method :each_line, :each
 
   def <<(str)
-    self.write(str)
+    write(str)
     self
   end
 
@@ -190,13 +190,13 @@ class StringIO
   def getc
     raise IOError, "not opened for reading" unless @readable
     char = @string[@pos]
-    @pos += 1 unless self.eof?
+    @pos += 1 unless eof?
     char
   end
   alias_method :getbyte, :getc
 
   def gets(sep = $/)
-    $_ = self.getline(sep)
+    $_ = getline(sep)
   end
 
   def isatty
@@ -226,7 +226,7 @@ class StringIO
     raise IOError, "not opened for writing" unless @writable
     args << $_ if args.empty?
     args.map! { |x| x.nil? ? "nil" : x }
-    self.write((args << $\).flatten.join)
+    write((args << $\).flatten.join)
     nil
   end
 
@@ -234,9 +234,9 @@ class StringIO
     raise IOError, "not opened for writing" unless @writable
 
     if args.size > 1
-      self.write(args.shift % args)
+      write(args.shift % args)
     else
-      self.write(args.first)
+      write(args.first)
     end
 
     nil
@@ -268,7 +268,7 @@ class StringIO
 
   def puts(*args)
     if args.empty?
-      self.write(DEFAULT_RECORD_SEPARATOR)
+      write(DEFAULT_RECORD_SEPARATOR)
     else
       args.each do |arg|
         if arg.nil?
@@ -279,7 +279,7 @@ class StringIO
           begin
             arg = Type.coerce_to(arg, Array, :to_ary)
             Thread.recursion_guard arg do
-              arg.each { |a| self.puts a }
+              arg.each { |a| puts a }
             end
             next
           rescue
@@ -287,8 +287,8 @@ class StringIO
           end
         end
 
-        self.write(line)
-        self.write(DEFAULT_RECORD_SEPARATOR) if !line.empty? && line[-1] != ?\n
+        write(line)
+        write(DEFAULT_RECORD_SEPARATOR) if !line.empty? && line[-1] != ?\n
       end
     end
 
@@ -301,13 +301,13 @@ class StringIO
     buffer = StringValue(buffer)
 
     if length
-      return nil if self.eof?
+      return nil if eof?
       length = Type.coerce_to length, Integer, :to_int
       raise ArgumentError if length < 0
       buffer.replace(@string[@pos, length])
       @pos += buffer.length
     else
-      return "" if self.eof?
+      return "" if eof?
       buffer.replace(@string[@pos..-1])
       @pos = @string.size
     end
@@ -316,21 +316,21 @@ class StringIO
   end
 
   def readchar
-    raise IO::EOFError, "end of file reached" if self.eof?
+    raise IO::EOFError, "end of file reached" if eof?
     getc
   end
 
   alias_method :readbyte, :readchar
 
   def readline(sep = $/)
-    raise IO::EOFError, "end of file reached" if self.eof?
-    $_ = self.getline(sep)
+    raise IO::EOFError, "end of file reached" if eof?
+    $_ = getline(sep)
   end
 
   def readlines(sep = $/)
     raise IOError, "not opened for reading" unless @readable
     ary = []
-    while line = self.getline(sep)
+    while line = getline(sep)
       ary << line
     end
     ary
@@ -340,7 +340,7 @@ class StringIO
     if string
       if !string.is_a?(String) and !mode
         string = Type.coerce_to(string, StringIO, :to_strio)
-        self.taint if string.tainted?
+        taint if string.tainted?
         @string = string.string
       else
         @string = StringValue(string)
@@ -446,7 +446,7 @@ class StringIO
 
   protected
     def finalize
-      self.close
+      close
       @string = nil
       self
     end
@@ -501,7 +501,7 @@ class StringIO
 
       sep = StringValue(sep) unless sep.nil?
 
-      return nil if self.eof?
+      return nil if eof?
 
       if sep.nil?
         line = @string[@pos .. -1]
