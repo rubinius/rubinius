@@ -1,0 +1,115 @@
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'mspec/helpers/tmp'
+require 'mspec/helpers/fs'
+
+describe Object, "#touch" do
+  before :all do
+    @name = tmp("touched.txt")
+  end
+
+  after :each do
+    File.delete @name if File.exists? @name
+  end
+
+  it "creates a file" do
+    touch @name
+    File.exists?(@name).should be_true
+  end
+
+  it "overwrites an existing file" do
+    File.open(@name, "w") { |f| f.puts "used" }
+    File.size(@name).should > 0
+
+    touch @name
+    File.size(@name).should == 0
+  end
+
+  it "yields the open file if passed a block" do
+    touch(@name) { |f| f.write "touching" }
+    IO.read(@name).should == "touching"
+  end
+end
+
+describe Object, "#touch" do
+  before :all do
+    @dir = tmp("subdir")
+    @name = tmp("subdir/touched.txt")
+  end
+
+  after :each do
+    File.delete @name if File.exists? @name
+    Dir.rmdir @dir if File.directory? @dir
+  end
+
+  it "creates all the directories in the path to the file" do
+    touch @name
+    File.exists?(@name).should be_true
+  end
+end
+
+describe Object, "#mkdir_p" do
+  before :all do
+    @dir1 = tmp("/nested")
+    @dir2 = @dir1 + "/directory"
+    @paths = [ @dir2, @dir1 ]
+  end
+
+  after :each do
+    File.delete @dir1 if File.file? @dir1
+    @paths.each { |path| Dir.rmdir path if File.directory? path }
+  end
+
+  it "creates all the directories in a path" do
+    mkdir_p @dir2
+    File.directory?(@dir2).should be_true
+  end
+
+  it "raises an ArgumentError if a path component is a file" do
+    File.open(@dir1, "w") { |f| }
+    lambda { mkdir_p @dir2 }.should raise_error(ArgumentError)
+  end
+end
+
+describe Object, "#rm_r" do
+  before :all do
+    @topdir  = tmp("rm_r_tree")
+    @topfile = @topdir + "/file.txt"
+    @subdir1 = @topdir + "/subdir1"
+    @subdir2 = @subdir1 + "/subdir2"
+    @subfile = @subdir1 + "/subfile.txt"
+  end
+
+  before :each do
+    mkdir_p @subdir2
+    touch @topfile
+    touch @subfile
+  end
+
+  after :each do
+    File.delete @subfile if File.exists? @subfile
+    File.delete @topfile if File.exists? @topfile
+
+    Dir.rmdir @subdir2 if File.directory? @subdir2
+    Dir.rmdir @subdir1 if File.directory? @subdir1
+    Dir.rmdir @topdir if File.directory? @topdir
+  end
+
+  it "raises an ArgumentError if the path is not prefixed by MSPEC_RM_PREFIX" do
+    lambda { rm_r "some_file.txt" }.should raise_error(ArgumentError)
+  end
+
+  it "removes a single file" do
+    rm_r @subfile
+    File.exists?(@subfile).should be_false
+  end
+
+  it "removes a single directory" do
+    rm_r @subdir2
+    File.directory?(@subdir2).should be_false
+  end
+
+  it "recursively removes a directory tree" do
+    rm_r @topdir
+    File.directory?(@topdir).should be_false
+  end
+end
