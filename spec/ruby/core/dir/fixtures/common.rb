@@ -96,7 +96,7 @@ module DirSpecs
     mock_dir_files.each do |name|
       file = File.join mock_dir, name
       FileUtils.mkdir_p File.dirname(file)
-      FileUtils.touch file
+      touch file
     end
     File.umask umask
   end

@@ -7,7 +7,7 @@ describe "File.readlink" do
     @file3 = 'test.lnk'
     File.delete(@file3) if File.exists?(@file3)
 
-    File.open(@file1, 'w+') { } #
+    touch @file1
     File.symlink(@file1, @file3)
   end
 

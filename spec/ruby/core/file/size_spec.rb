@@ -20,7 +20,7 @@ ruby_version_is "1.9" do
 
     before :each do
       @file = tmp('i_exist')
-      File.open(@file,'w'){|f| f.write 'rubinius'}
+      touch(@file) { |f| f.write 'rubinius' }
       @file = File.new @file
     end
 

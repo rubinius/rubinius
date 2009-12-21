@@ -86,7 +86,7 @@ describe "Kernel#require" do
       File.directory?(dir).should be_true
       Dir.chdir(dir) do |tmp_dir|
         file = "#{$$}_#{Process.times.utime}.rb"
-        FileUtils.touch file
+        touch file
         File.exist?(file).should be_true
         lambda { require file }.should raise_error(LoadError)
         File.unlink(file)

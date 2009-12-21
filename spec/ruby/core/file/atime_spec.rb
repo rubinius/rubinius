@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 describe "File.atime" do
   before :each do
     @file = tmp('test.txt')
-    File.open(@file, "w") {} # touch
+    touch @file
   end
 
   after :each do

@@ -11,7 +11,7 @@ describe "File.open" do
   before :each do
     @fh = @fd = nil
     @flags = File::CREAT | File::TRUNC | File::WRONLY
-    File.open(@file, "w") {} # touch
+    touch @file
   end
 
   after :each do

@@ -3,8 +3,8 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 describe "File.umask" do
   before :each do
     @orig_umask = File.umask
-    @file = 'test.txt'
-    File.open(@file, 'w') {}
+    @file = tmp('test.txt')
+    touch @file
   end
 
   after :each do

@@ -11,7 +11,7 @@ describe :file_file, :shared => true do
     end
 
     @file = tmp("test.txt")
-    File.open(@file, "w"){} # touch
+    touch @file
   end
 
   after :each do

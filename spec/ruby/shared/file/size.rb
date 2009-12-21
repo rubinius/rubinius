@@ -51,8 +51,7 @@ end
 describe :file_size_0_when_empty, :shared => true do
   before :each do
     @empty = "i_am_empty"
-    File.delete @empty if File.exist? @empty
-    File.open(@empty,'w') { }
+    touch @empty
   end
 
   after :each do
@@ -67,8 +66,7 @@ end
 describe :file_size_nil_when_empty, :shared => true do
   before :each do
     @empty = "i_am_empty"
-    File.delete @empty if File.exist? @empty
-    File.open(@empty,'w') { }
+    touch @empty
   end
 
   after :each do

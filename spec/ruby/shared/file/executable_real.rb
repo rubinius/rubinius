@@ -3,8 +3,8 @@ describe :file_executable_real, :shared => true do
     @file1 = tmp('temp1.txt')
     @file2 = tmp('temp2.txt')
 
-    File.open(@file1, "w") {} # touch
-    File.open(@file2, "w") {}
+    touch @file1
+    touch @file2
 
     File.chmod(0755, @file1)
   end

@@ -4,7 +4,7 @@ describe "File::Stat#inspect" do
 
   before :each do
     @file = tmp('i_exist')
-    File.open(@file,'w'){|f| f.write 'rubinius'}
+    touch(@file) { |f| f.write "rubinius" }
   end
 
   after :each do

@@ -231,7 +231,7 @@ describe :dir_glob_recursive, :shared => true do
     ].each do |path|
       file = File.join @mock_dir, path
       FileUtils.mkdir_p File.dirname(file)
-      FileUtils.touch file
+      touch file
     end
 
     Dir.chdir @mock_dir

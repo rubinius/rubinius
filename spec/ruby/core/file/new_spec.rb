@@ -6,7 +6,7 @@ describe "File.new" do
     @file = tmp('test.txt')
     @fh = nil
     @flags = File::CREAT | File::TRUNC | File::WRONLY
-    File.open(@file, "w") {} # touch
+    touch @file
   end
 
   after :each do

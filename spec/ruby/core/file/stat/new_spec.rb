@@ -4,7 +4,7 @@ describe "File::Stat#initialize" do
 
   before :each do
     @file = tmp('i_exist')
-    File.open(@file,'w'){|f| f.write 'rubinius'}
+    touch(@file) { |f| f.write "rubinius" }
     File.chmod(0755, @file)
   end
 

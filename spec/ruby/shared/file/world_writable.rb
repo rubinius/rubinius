@@ -4,7 +4,7 @@ describe :file_world_writable, :shared => true do
 
   before(:each) do
     @file = tmp('world-writable')
-    File.open(@file,'w') {|f| f.puts }
+    touch @file
   end
 
   after(:each) do

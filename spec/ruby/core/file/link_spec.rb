@@ -6,7 +6,7 @@ describe "File.link" do
     @link = "test.lnk"
     File.delete(@link) if File.exist?(@link)
     File.delete(@file) if File.exist?(@file)
-    File.open(@file,"w+")
+    touch @file
   end
 
   after :each do

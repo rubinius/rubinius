@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 describe "File.mtime" do
   before :each do
     @filename = tmp('i_exist')
-    File.open(@filename, 'w') { @mtime = Time.now }
+    touch(@filename) { @mtime = Time.now }
   end
 
   after :each do

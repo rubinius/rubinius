@@ -3,8 +3,7 @@ describe :file_symlink, :shared => true do
     @file = "test.txt"
     @link = "test.lnk"
     File.delete(@link) if File.exist?(@link)
-    File.delete(@file) if File.exist?(@file)
-    File.open(@file,"w+")
+    touch @file
   end
 
   after :each do
@@ -32,8 +31,7 @@ describe :file_symlink_nonexistent, :shared => true do
     @file = "test.txt"
     @link = "test.lnk"
     File.delete(@link) if File.exist?(@link)
-    File.delete(@file) if File.exist?(@file)
-    File.open(@file,"w+")
+    touch @file
   end
 
   after :each do

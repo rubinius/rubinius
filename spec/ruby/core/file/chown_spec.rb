@@ -4,7 +4,7 @@ as_superuser do
   describe "File.chown" do
     before :each do
       @fname = tmp('file_chown_test')
-      File.open(@fname, 'w') { }
+      touch @fname
     end
 
     after :each do

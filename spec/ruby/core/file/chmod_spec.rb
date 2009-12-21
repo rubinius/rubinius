@@ -98,7 +98,7 @@ end
 describe "File.chmod" do
   before :each do
     @file = tmp('i_exist')
-    File.open(@file, 'w') {}
+    touch @file
     @count = File.chmod(0755, @file)
   end
 

@@ -4,7 +4,7 @@ describe "File::Stat#nlink" do
   before :each do
     @file = tmp("stat_nlink")
     @link = @file + ".lnk"
-    File.open(@file, "w") {}
+    touch @file
   end
 
   after :each do

@@ -5,8 +5,8 @@ describe :file_identical, :shared => true do
     @file3 = tmp('test.lnk')
     File.delete(@file3) if File.exists?(@file3)
 
-    File.open(@file1,"w+") { |f| f.puts "file1" }
-    File.open(@file2,"w+") { |f| f.puts "file2" }
+    touch(@file1) { |f| f.puts "file1" }
+    touch(@file2) { |f| f.puts "file2" }
     File.link(@file1, @file3)
   end
 
