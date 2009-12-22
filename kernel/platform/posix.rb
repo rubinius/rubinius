@@ -55,6 +55,7 @@ module FFI::Platform::POSIX
   attach_function :fcntl,    [:int, :int, :int], :int
 
   #   opening/closing
+  attach_function :open,     [:string, :int, :int], :int
   attach_function :fdopen,   [:int, :string], :pointer
   attach_function :fopen,    [:string, :string], :pointer
   attach_function :fclose,   [:pointer], :int

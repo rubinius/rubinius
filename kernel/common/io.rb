@@ -522,7 +522,7 @@ class IO
       mode = parse_mode StringValue(mode)
     end
 
-    open_with_mode path, mode, perm
+    FFI::Platform::POSIX.open path, mode, perm
   end
 
   #
