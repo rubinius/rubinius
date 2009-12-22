@@ -5,13 +5,31 @@
 #     and install the files with the 'install' command
 #
 
-install_dirs = [
-  BUILD_CONFIG[:bindir],
-  BUILD_CONFIG[:libdir],
-  BUILD_CONFIG[:includedir],
-  BUILD_CONFIG[:mandir],
-  BUILD_CONFIG[:gemsdir]
-]
+def install_dir(lib)
+  if fr = ENV['FAKEROOT']
+    return File.join(fr, lib)
+  end
+
+  lib
+end
+
+if fr = ENV['FAKEROOT']
+  install_dirs = [
+    File.join(fr, BUILD_CONFIG[:bindir]),
+    File.join(fr, BUILD_CONFIG[:libdir]),
+    File.join(fr, BUILD_CONFIG[:includedir]),
+    File.join(fr, BUILD_CONFIG[:mandir]),
+    File.join(fr, BUILD_CONFIG[:gemsdir])
+  ]
+else
+  install_dirs = [
+    BUILD_CONFIG[:bindir],
+    BUILD_CONFIG[:libdir],
+    BUILD_CONFIG[:includedir],
+    BUILD_CONFIG[:mandir],
+    BUILD_CONFIG[:gemsdir]
+  ]
+end
 
 # What the hell does this code do? We want to avoid sudo whenever
 # possible. This code is based on the assumption that if A is a
@@ -38,7 +56,7 @@ def need_sudo?(dirs)
 end
 
 def need_install?
-  File.expand_path(Dir.pwd) != BUILD_CONFIG[:libdir]
+  File.expand_path(Dir.pwd) != install_dir(BUILD_CONFIG[:libdir])
 end
 
 def precompile(dir)
@@ -48,7 +66,7 @@ end
 def install_file(source, pattern, dest)
   return if File.directory? source
 
-  dest_name = File.join(dest, source.sub(pattern, ""))
+  dest_name = install_dir File.join(dest, source.sub(pattern, ""))
   dir = File.dirname(dest_name)
   mkdir_p dir unless File.directory? dir
 
@@ -120,7 +138,7 @@ namespace :install do
 
       # Install the Rubinius executable
       exe = "#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
-      install "vm/vm", exe, :mode => 0755, :verbose => true
+      install "vm/vm", install_dir(exe), :mode => 0755, :verbose => true
     end
   end
 end
