@@ -13,23 +13,13 @@ def install_dir(lib)
   lib
 end
 
-if fr = ENV['FAKEROOT']
-  install_dirs = [
-    File.join(fr, BUILD_CONFIG[:bindir]),
-    File.join(fr, BUILD_CONFIG[:libdir]),
-    File.join(fr, BUILD_CONFIG[:includedir]),
-    File.join(fr, BUILD_CONFIG[:mandir]),
-    File.join(fr, BUILD_CONFIG[:gemsdir])
-  ]
-else
-  install_dirs = [
-    BUILD_CONFIG[:bindir],
-    BUILD_CONFIG[:libdir],
-    BUILD_CONFIG[:includedir],
-    BUILD_CONFIG[:mandir],
-    BUILD_CONFIG[:gemsdir]
-  ]
-end
+install_dirs = [
+  BUILD_CONFIG[:bindir],
+  BUILD_CONFIG[:libdir],
+  BUILD_CONFIG[:includedir],
+  BUILD_CONFIG[:mandir],
+  BUILD_CONFIG[:gemsdir]
+]
 
 # What the hell does this code do? We want to avoid sudo whenever
 # possible. This code is based on the assumption that if A is a
@@ -40,7 +30,7 @@ end
 # create A. Otherwise, we can't create A and sudo is required.
 def need_sudo?(dirs)
   dirs.each do |name|
-    dir = File.expand_path name
+    dir = install_dir(File.expand_path(name))
 
     until dir == "/"
       if File.directory? dir
@@ -95,7 +85,7 @@ namespace :install do
     elsif !need_install?
       puts "Install directory is the same as build directory, nothing to install"
     else
-      install_dirs.each { |name| mkdir_p name, :verbose => $verbose }
+      install_dirs.each { |name| mkdir_p install_dir(name), :verbose => $verbose }
 
       FileList["vm/capi/*.h"].each do |name|
         install_file name, %r[^vm/capi], BUILD_CONFIG[:includedir]
