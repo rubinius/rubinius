@@ -69,6 +69,8 @@ class Gem::DependencyInstaller
 
     @install_dir = options[:install_dir] || Gem.dir
     @cache_dir = options[:cache_dir] || @install_dir
+
+    @show_status = options[:status] || Gem.configuration.really_verbose
   end
 
   ##
@@ -124,6 +126,9 @@ class Gem::DependencyInstaller
     dependency_list.add(*specs)
 
     unless @ignore_dependencies then
+
+      say "Calculating dependencies to also install..." if @show_status
+
       to_do = specs.dup
       seen = {}
 
@@ -134,6 +139,8 @@ class Gem::DependencyInstaller
 
         deps = spec.runtime_dependencies
         deps |= spec.development_dependencies if @development
+
+        shown_header = false
 
         deps.each do |dep|
           results = find_gems_with_sources(dep).reverse
@@ -147,8 +154,15 @@ class Gem::DependencyInstaller
             end
           end
 
+          results.reject! { |dep_spec,| seen[dep_spec.name] }
+
+          if !shown_header and @show_status and !results.empty?
+            shown_header = true
+            say "Depedencies for #{spec.full_name}:"
+          end
+
           results.each do |dep_spec, source_uri|
-            next if seen[dep_spec.name]
+            say "  #{dep_spec.full_name}" if @show_status
             @specs_and_sources << [dep_spec, source_uri]
             dependency_list.add dep_spec
           end
@@ -225,7 +239,7 @@ class Gem::DependencyInstaller
       next if @source_index.any? { |n,_| n == spec.full_name } and not last
 
       # TODO: make this sorta_verbose so other users can benefit from it
-      say "Installing gem #{spec.full_name}" if Gem.configuration.really_verbose
+      say "Installing gem #{spec.full_name}" if @show_status
 
       _, source_uri = @specs_and_sources.assoc spec
       begin
