@@ -485,27 +485,30 @@ class IO
     end
 
     if readables
-      readables = Type.coerce_to(readables, Array, :to_ary).map {|obj|
-                    io = Type.coerce_to obj, IO, :to_io
-                    raise IOError, "closed stream" if io.closed?
-                    io
-                  }
+      readables =
+        Type.coerce_to(readables, Array, :to_ary).map do |obj|
+          io = Type.coerce_to obj, IO, :to_io
+          raise IOError, "closed stream" if io.closed?
+          io
+        end
     end
 
     if writables
-      writables = Type.coerce_to(writables, Array, :to_ary).map {|obj|
-                    io = Type.coerce_to obj, IO, :to_io
-                    raise IOError, "closed stream" if io.closed?
-                    io
-                    }
+      writables =
+        Type.coerce_to(writables, Array, :to_ary).map do |obj|
+          io = Type.coerce_to obj, IO, :to_io
+          raise IOError, "closed stream" if io.closed?
+          io
+        end
     end
 
     if errorables
-      errorables = Type.coerce_to(errorables, Array, :to_ary).map {|obj|
-                    io = Type.coerce_to obj, IO, :to_io
-                    raise IOError, "closed stream" if io.closed?
-                    io
-                    }
+      errorables =
+        Type.coerce_to(errorables, Array, :to_ary).map do |obj|
+          io = Type.coerce_to obj, IO, :to_io
+          raise IOError, "closed stream" if io.closed?
+          io
+        end
     end
 
     IO.select_primitive(readables, writables, errorables, timeout)
