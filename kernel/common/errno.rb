@@ -15,13 +15,7 @@ module Errno
 
     exc = Errno::Mapping[err]
     if exc
-      msg = FFI::Platform::POSIX.strerror(err)
-
-      if additional
-        msg << " - " << additional
-      end
-
-      raise exc.new(msg, err)
+      raise exc.new(additional, err)
     else
       raise "Unknown error: #{FFI::Platform::POSIX.strerror(err)} (#{err})"
     end
