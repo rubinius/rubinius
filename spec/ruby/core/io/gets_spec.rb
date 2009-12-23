@@ -186,30 +186,52 @@ describe "IO#gets" do
     b.should == "\nB\n"
     File.unlink(tmp("gets_specs"))
   end
-  
-  ruby_version_is "1.9" do
-    it "accepts an integer as first parameter to limit the output's size" do
-      f = File.open(tmp("gets_specs"), "w")
-      f.print("waduswadus")
-      f.close
-      
-      f = File.new(tmp("gets_specs"), "r")
-      b = f.gets(5)
-      b.should == 'wadus'
-      
-      File.unlink(tmp("gets_specs"))
+end
+
+ruby_version_is "1.9" do
+  describe "IO#gets" do
+    before :each do
+      @name = tmp("gets_specs")
     end
-    
+
+    after :each do
+      @file.close
+      rm_r @name
+    end
+
+    it "accepts an integer as first parameter to limit the output's size" do
+      touch(@name) { |f| f.print("waduswadus") }
+
+      @file = File.open(@name)
+      @file.gets(5).should == "wadus"
+    end
+
     it "accepts an integer as second parameter to limit the output's size" do
-      f = File.open(tmp("gets_specs"), "w")
-      f.print("wa\n\ndus\n\nwadus")
-      f.close
-      
-      f = File.new(tmp("gets_specs"), "r")
-      b = f.gets('\n\n', 5)
-      b.should == "wa\n\nd"
-      
-      File.unlink(tmp("gets_specs"))
+      touch(@file) { |f| f.print("wa\n\ndus\n\nwadus") }
+
+      @file = File.open(@name)
+      @file.gets('\n\n', 5).should == "wa\n\nd"
+    end
+
+    it "accepts an integer as limit parameter which is smaller than IO size" do
+      touch(@file) { |f| f.print("ABCD\n") }
+
+      @file = File.open(@name)
+      @file.gets("", 2).should == "AB"
+    end
+
+    it "accepts an integer as limit parameter which is same as IO size" do
+      touch(@file) { |f| f.print("ABC\n") }
+
+      @file = File.open(@name)
+      @file.gets("", 4).should == "ABC\n"
+    end
+
+    it "accepts an integer as limit parameter which is greater than IO size" do
+      touch(@file) { |f| f.print("A\n") }
+
+      @file = File.open(@name)
+      @file.gets("", 10).should == "A\n"
     end
   end
 end
