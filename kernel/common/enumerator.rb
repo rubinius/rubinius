@@ -29,11 +29,11 @@ module Enumerable
     #
     #   p hash   #=> {"cat"=>0, "wombat"=>2, "dog"=>1}
 
-    def each_with_index(*arg)
-      return to_enum :each_with_index, *arg unless block_given?
+    def each_with_index
+      return to_enum :each_with_index unless block_given?
       idx = 0
-      each(*arg) { |o| yield(o, idx); idx += 1 }
-      self
+      each { |o| yield(o, idx); idx += 1 }
+      @object
     end
 
     alias_method :enum_with_index, :each_with_index
