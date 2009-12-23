@@ -25,11 +25,11 @@ class Object
       raise ArgumentError, "#{path} is not prefixed by #{prefix}"
     end
 
-    if File.file? path
-      File.delete path
-    elsif File.directory? path
+    if File.directory? path
       Dir.entries(path).each { |x| rm_r "#{path}/#{x}" unless x =~ /^\.\.?$/ }
       Dir.rmdir path
+    elsif File.exists? path
+      File.delete path
     end
   end
 

@@ -74,6 +74,8 @@ describe Object, "#rm_r" do
   before :all do
     @topdir  = tmp("rm_r_tree")
     @topfile = @topdir + "/file.txt"
+    @link    = @topdir + "/file.lnk"
+    @socket  = @topdir + "/socket.sck"
     @subdir1 = @topdir + "/subdir1"
     @subdir2 = @subdir1 + "/subdir2"
     @subfile = @subdir1 + "/subfile.txt"
@@ -86,6 +88,8 @@ describe Object, "#rm_r" do
   end
 
   after :each do
+    File.delete @link if File.exists? @link
+    File.delete @socket if File.exists? @socket
     File.delete @subfile if File.exists? @subfile
     File.delete @topfile if File.exists? @topfile
 
@@ -101,6 +105,19 @@ describe Object, "#rm_r" do
   it "removes a single file" do
     rm_r @subfile
     File.exists?(@subfile).should be_false
+  end
+
+  it "removes a symlink" do
+    File.symlink @topfile, @link
+    rm_r @link
+    File.exists?(@link).should be_false
+  end
+
+  it "removes a socket" do
+    require 'socket'
+    UNIXServer.new(@socket).close
+    rm_r @socket
+    File.exists?(@socket).should be_false
   end
 
   it "removes a single directory" do
