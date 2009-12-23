@@ -107,6 +107,12 @@ describe Object, "#rm_r" do
     File.exists?(@subfile).should be_false
   end
 
+  it "removes multiple files" do
+    rm_r @topfile, @subfile
+    File.exists?(@topfile).should be_false
+    File.exists?(@subfile).should be_false
+  end
+
   it "removes a symlink" do
     File.symlink @topfile, @link
     rm_r @link

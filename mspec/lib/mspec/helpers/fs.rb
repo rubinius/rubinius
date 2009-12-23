@@ -17,19 +17,21 @@ class Object
   # Recursively removes all files and directories in +path+
   # if +path+ is a directory. Removes the file if +path+ is
   # a file.
-  def rm_r(path)
-    path = File.expand_path path
+  def rm_r(*paths)
+    paths.each do |path|
+      path = File.expand_path path
 
-    prefix = SPEC_TEMP_DIR
-    unless path[0, prefix.size] == prefix
-      raise ArgumentError, "#{path} is not prefixed by #{prefix}"
-    end
+      prefix = SPEC_TEMP_DIR
+      unless path[0, prefix.size] == prefix
+        raise ArgumentError, "#{path} is not prefixed by #{prefix}"
+      end
 
-    if File.directory? path
-      Dir.entries(path).each { |x| rm_r "#{path}/#{x}" unless x =~ /^\.\.?$/ }
-      Dir.rmdir path
-    elsif File.exists? path
-      File.delete path
+      if File.directory? path
+        Dir.entries(path).each { |x| rm_r "#{path}/#{x}" unless x =~ /^\.\.?$/ }
+        Dir.rmdir path
+      elsif File.exists? path
+        File.delete path
+      end
     end
   end
 
