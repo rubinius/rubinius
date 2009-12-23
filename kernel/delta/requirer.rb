@@ -7,6 +7,21 @@ module Rubinius
 
   CompiledMethodVersion = 6
 
+  def self.compile_file(file, save=true)
+    cm = Rubinius::CompilerNG.compile_file file, 1
+
+    if save
+      if file.suffix? ".rb"
+        rbc_path = "#{file}c"
+      else
+        rbc_path = "#{file}.rbc"
+      end
+
+      Rubinius::CompiledFile.dump cm, rbc_path
+    end
+
+    return cm
+  end
 end
 
 ##
