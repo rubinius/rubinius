@@ -1,4 +1,15 @@
 class Object
+  # Copies a file
+  def cp(source, dest)
+    File.open(dest, "w") do |d|
+      File.open(source, "r") do |s|
+        while data = s.read(1024)
+          d.write data
+        end
+      end
+    end
+  end
+
   # Creates each directory in path that does not exist.
   def mkdir_p(path)
     parts = File.expand_path(path).split %r[/|\\]

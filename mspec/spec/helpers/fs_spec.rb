@@ -2,6 +2,28 @@ require File.dirname(__FILE__) + '/../spec_helper'
 require 'mspec/helpers/tmp'
 require 'mspec/helpers/fs'
 
+describe Object, "#cp" do
+  before :each do
+    @source = tmp("source.txt")
+    @copy = tmp("copied.txt")
+
+    @contents = "This is a copy."
+    File.open(@source, "w") { |f| f.write @contents }
+  end
+
+  after :each do
+    File.delete @source if File.exists? @source
+    File.delete @copy if File.exists? @copy
+  end
+
+  it "copies a file" do
+    cp @source, @copy
+    data = IO.read(@copy)
+    data.should == @contents
+    data.should == IO.read(@source)
+  end
+end
+
 describe Object, "#touch" do
   before :all do
     @name = tmp("touched.txt")
