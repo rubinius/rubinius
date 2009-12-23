@@ -21,8 +21,8 @@ describe "IO#reopen" do
     @file2.close unless @file2.closed?
     @file1_w.close unless @file1_w.closed?
     @file2_w.close unless @file2_w.closed?
-    File.delete(@name1_w)
-    File.delete(@name2_w)
+    rm_r @name1_w
+    rm_r @name2_w
   end
 
   it "raises IOError on closed stream" do

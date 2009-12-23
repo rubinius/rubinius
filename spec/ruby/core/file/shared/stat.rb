@@ -5,7 +5,7 @@ describe :file_stat, :shared => true do
   end
 
   after :each do
-    File.delete(@file) if File.exist?(@file)
+    rm_r @file
   end
 
   it "returns a File::Stat object if the given file exists" do

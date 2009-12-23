@@ -19,7 +19,7 @@ describe "Net::FTP#storbinary" do
     @ftp.close
     @server.stop
 
-    File.delete @tmp_file if File.exists? @tmp_file
+    rm_r @tmp_file
   end
   
   it "sends the passed command and the passed File object's content to the server" do

@@ -8,8 +8,7 @@ describe "File.umask" do
   end
 
   after :each do
-    File.delete(@file) if File.exists?(@file)
-    @file = nil
+    rm_r @file
     File.umask(@orig_umask)
   end
 

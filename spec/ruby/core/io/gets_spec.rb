@@ -3,10 +3,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#gets" do
-  after :each do
-    File.delete IOSpecs.gets_output if File.exists?(IOSpecs.gets_output)
-  end
-
   it "returns the next line of string that were separated by $/" do
     File.open(IOSpecs.gets_fixtures, 'r') do |f|
       IOSpecs.lines.each {|line| line.should == f.gets}

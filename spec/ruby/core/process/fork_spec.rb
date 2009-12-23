@@ -14,11 +14,11 @@ describe "Process.fork" do
   not_supported_on :jruby, :windows do
     before :each do
       @file = tmp('i_exist')
-      File.delete(@file) if File.exist?(@file)
+      rm_r @file
     end
 
     after :each do
-      File.delete(@file) if File.exist?(@file)
+      rm_r @file
     end
 
     it "is implemented" do
@@ -28,7 +28,7 @@ describe "Process.fork" do
     it "return nil for the child process" do
       child_id = Process.fork
       if child_id == nil
-        File.open(@file,'w'){|f| f.write 'rubinius'}
+        touch(@file) { |f| f.write 'rubinius' }
         Process.exit!
       else
         Process.waitpid(child_id)
@@ -38,7 +38,7 @@ describe "Process.fork" do
 
     it "runs a block in a child process" do
       pid = Process.fork {
-        File.open(@file,'w'){|f| f.write 'rubinius'}
+        touch(@file) { |f| f.write 'rubinius' }
         Process.exit!
       }
       Process.waitpid(pid)

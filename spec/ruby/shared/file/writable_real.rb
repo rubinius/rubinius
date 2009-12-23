@@ -4,7 +4,7 @@ describe :file_writable_real, :shared => true do
   end
 
   after :each do
-    File.delete(@file) if File.exist?(@file)
+    rm_r @file
   end
 
   it "returns true if named file is writable by the real user id of the process, otherwise false" do

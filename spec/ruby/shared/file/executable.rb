@@ -10,11 +10,8 @@ describe :file_executable, :shared => true do
   end
 
   after :each do
-    File.delete(@file1) if File.exist?(@file1)
-    File.delete(@file2) if File.exist?(@file2)
-
-    @file1 = nil
-    @file2 = nil
+    rm_r @file1
+    rm_r @file2
   end
 
   platform_is_not :windows do

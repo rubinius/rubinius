@@ -1,16 +1,17 @@
 describe :file_zero, :shared => true do
   before :each do
-    @zero_file    = 'test.txt'
-    @nonzero_file = 'test2.txt'
-    @dir = File.dirname(__FILE__)
+    @zero_file    = tmp("test.txt")
+    @nonzero_file = tmp("test2.txt")
+
+    @dir = tmp("")
 
     touch @zero_file
     touch(@nonzero_file) { |f| f.puts "hello" }
   end
 
   after :each do
-    File.delete(@zero_file) if File.exists?(@zero_file)
-    File.delete(@nonzero_file) if File.exists?(@nonzero_file)
+    rm_r @zero_file
+    rm_r @nonzero_file
   end
 
   it "returns true if the file is empty" do

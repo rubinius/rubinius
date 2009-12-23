@@ -2,16 +2,16 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.rename" do
   before :each do
-    @old = "test.txt"
-    @new = "test.new"
-    File.delete(@old) if File.exist?(@old)
-    File.delete(@new) if File.exist?(@new)
-    File.open(@old,"w+") {|f| f.puts "hello" }
+    @old = tmp("file_rename.txt")
+    @new = tmp("file_rename.new")
+
+    rm_r @new
+    touch(@old) { |f| f.puts "hello" }
   end
 
   after :each do
-    File.delete(@old) if File.exist?(@old)
-    File.delete(@new) if File.exist?(@new)
+    rm_r @old
+    rm_r @new
   end
 
   it "renames a file " do
@@ -23,7 +23,7 @@ describe "File.rename" do
   end
 
   it "raises an Errno::ENOENT if the source does not exist" do
-    File.delete(@old)
+    rm_r @old
     lambda { File.rename(@old, @new) }.should raise_error(Errno::ENOENT)
   end
 

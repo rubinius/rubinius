@@ -13,7 +13,7 @@ describe "IO#sysread on a file" do
   
   after :each do
     @file.close
-    File.delete(@file_name)
+    rm_r @file_name
   end
   
   it "reads the specified number of bytes from the file" do

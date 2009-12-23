@@ -7,7 +7,7 @@ describe "File.mtime" do
   end
 
   after :each do
-    File.delete(@filename) if File.exist?(@filename)
+    rm_r @filename
   end
 
   it "returns the modification Time of the file" do
@@ -28,7 +28,7 @@ describe "File#mtime" do
 
   after :each do
     @f.close
-    File.delete(@filename) if File.exist?(@filename)
+    rm_r @filename
   end
 
   it "returns the modification Time of the file" do

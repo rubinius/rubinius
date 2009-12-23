@@ -13,7 +13,7 @@ describe :io_write, :shared => true do
   after :each do
     @file.close
     @readonly_file.close
-    File.delete(@filename)
+    rm_r @filename
   end
 
   it "coerces the argument to a string using to_s" do

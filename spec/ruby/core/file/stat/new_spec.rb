@@ -9,7 +9,7 @@ describe "File::Stat#initialize" do
   end
 
   after :each do
-    File.delete(@file) if File.exist?(@file)
+    rm_r @file
   end
 
   it "raises an exception if the file doesn't exist" do

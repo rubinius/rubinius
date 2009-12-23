@@ -15,9 +15,7 @@ describe :file_file, :shared => true do
   end
 
   after :each do
-    File.delete(@file) rescue nil
-    @null = nil
-    @file = nil
+    rm_r @file
   end
 
   it "returns true if the named file exists and is a regular file." do

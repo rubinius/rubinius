@@ -7,7 +7,7 @@ describe "File.basename" do
   end
 
   after :each do
-    File.delete(@name) if File.exist?(@name)
+    rm_r @name
   end
 
   it "return the basename of a path (basic cases)" do

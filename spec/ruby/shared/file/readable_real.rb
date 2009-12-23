@@ -4,7 +4,7 @@ describe :file_readable_real, :shared => true do
   end
 
   after :each do
-    File.delete(@file) if File.exists?(@file)
+    rm_r @file
   end
 
   it "returns true if named file is readable by the real user id of the process, otherwise false" do

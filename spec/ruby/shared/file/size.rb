@@ -5,7 +5,7 @@ describe :file_size, :shared => true do
   end
 
   after :each do
-    File.delete @exists if File.exist? @exists
+    rm_r @exists
   end
 
   it "returns the size of the file if it exists and is not empty" do
@@ -28,8 +28,9 @@ end
 
 describe :file_size_raise_when_missing, :shared => true do
   before :each do
-    @missing = "i_dont_exist"
-    File.delete @missing if File.exists? @missing
+    # TODO: missing_file
+    @missing = tmp("i_dont_exist")
+    rm_r @missing
   end
 
   it "raises an error if file_name doesn't exist" do
@@ -39,8 +40,9 @@ end
 
 describe :file_size_nil_when_missing, :shared => true do
   before :each do
-    @missing = "i_dont_exist"
-    File.delete @missing if File.exists? @missing
+    # TODO: missing_file
+    @missing = tmp("i_dont_exist")
+    rm_r @missing
   end
 
   it "returns nil if file_name doesn't exist or has 0 size" do
@@ -50,12 +52,12 @@ end
 
 describe :file_size_0_when_empty, :shared => true do
   before :each do
-    @empty = "i_am_empty"
+    @empty = tmp("i_am_empty")
     touch @empty
   end
 
   after :each do
-    File.delete @empty if File.exist? @empty
+    rm_r @empty
   end
 
   it "returns 0 if the file is empty" do
@@ -65,12 +67,12 @@ end
 
 describe :file_size_nil_when_empty, :shared => true do
   before :each do
-    @empty = "i_am_empty"
+    @empty = tmp("i_am_empt")
     touch @empty
   end
 
   after :each do
-    File.delete @empty if File.exist? @empty
+    rm_r @empty
   end
 
   it "returns nil if file_name is empty" do
@@ -81,11 +83,11 @@ end
 describe :file_size_with_file_argument, :shared => true do
   before :each do
     @exists = tmp('i_exist')
-    File.open(@exists,'w') { |f| f.write 'rubinius' }
+    touch(@exists) { |f| f.write 'rubinius' }
   end
 
   after :each do
-    File.delete @exists if File.exist? @exists
+    rm_r @exists
   end
 
   it "accepts a File argument" do

@@ -8,7 +8,7 @@ describe "File::Stat#gid" do
   end
 
   after :each do
-    File.delete(@file) if File.exist?(@file)
+    rm_r @file
   end
   
   it "should be able to determine the group owner through a File::Stat object" do

@@ -15,7 +15,7 @@ describe "IO#write on a file" do
   after :each do
     @file.close
     @readonly_file.close
-    File.delete(@filename)
+    rm_r @filename
   end
 
   # TODO: impl detail? discuss this with matz. This spec is useless. - rdavis

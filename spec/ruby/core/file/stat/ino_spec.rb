@@ -7,7 +7,7 @@ describe "File::Stat#ino" do
   end
 
   after :each do
-    File.delete(@file) if File.exist?(@file)
+    rm_r @file
   end
   
   it "should be able to determine the ino on a File::Stat object" do

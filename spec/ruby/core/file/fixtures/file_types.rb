@@ -56,10 +56,10 @@ module FileSpecs
   def self.socket()
     require 'socket'
     name = tmp("ftype_socket.socket")
-    File.delete name if File.exist? name
+    rm_r name
     socket = UNIXServer.new name
     yield name
     socket.close
-    File.delete name if File.exist? name
+    rm_r name
   end
 end

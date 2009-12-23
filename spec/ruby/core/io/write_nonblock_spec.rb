@@ -15,7 +15,7 @@ describe "IO#write_nonblock on a file" do
   after :each do
     @file.close
     @readonly_file.close
-    File.delete(@filename)
+    rm_r @filename
   end
 
   it "writes all of the string's bytes but does not buffer them" do

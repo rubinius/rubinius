@@ -7,7 +7,7 @@ describe "File::Stat#atime" do
   end
 
   after :each do
-    File.delete(@file) if File.exist?(@file)
+    rm_r @file
   end
   
   it "should be able to determine the atime on a File::Stat object" do

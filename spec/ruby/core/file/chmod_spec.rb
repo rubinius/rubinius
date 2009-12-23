@@ -8,7 +8,7 @@ describe "File#chmod" do
 
   after :each do
     @file.close
-    File.delete(@filename) if File.exist?(@filename)
+    rm_r @filename
   end
 
   it "returns 0 if successful" do
@@ -103,7 +103,7 @@ describe "File.chmod" do
   end
 
   after :each do
-    File.delete(@file) if File.exist?(@file)
+    rm_r @file
   end
 
   it "returns the number of files modified" do

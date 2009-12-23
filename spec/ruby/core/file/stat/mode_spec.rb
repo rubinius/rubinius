@@ -8,7 +8,7 @@ describe "File::Stat#mode" do
   end
 
   after :each do
-    File.delete(@file) if File.exist?(@file)
+    rm_r @file
   end
   
   it "should be able to determine the mode through a File::Stat object" do

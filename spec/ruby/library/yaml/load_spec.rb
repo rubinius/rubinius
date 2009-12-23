@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/strings'
 
 describe "YAML.load" do
   after :each do
-    File.delete $test_file if File.exist? $test_file
+    rm_r $test_file
   end
   
   it "returns a document from current io stream when io provided" do

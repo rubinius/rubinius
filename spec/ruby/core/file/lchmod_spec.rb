@@ -5,16 +5,16 @@ describe "File.lchmod" do
     before :each do
       @fname = tmp('file_chmod_test')
       @lname = @fname + '.lnk'
-      File.delete @fname rescue nil
-      File.delete @lname rescue nil
-      File.open(@fname, 'w') { |f| f.write "rubinius" }
+
+      touch(@fname) { |f| f.write "rubinius" }
+
+      rm_r @lname
       File.symlink @fname, @lname
     end
     
     after :each do
-      # the link should be removed first
-      File.delete @lname if File.exist? @lname
-      File.delete @fname if File.exist? @fname
+      rm_r @lname
+      rm_r @fname
     end
     
     it "changes the file mode of the link and not of the file" do

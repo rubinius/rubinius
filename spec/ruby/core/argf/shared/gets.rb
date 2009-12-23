@@ -74,11 +74,10 @@ describe :argf_gets_inplace_edit, :shared => true do
   end
 
   after :each do
-    File.delete @tmp1_name if File.exists? @tmp1_name
-    File.delete @tmp2_name if File.exists? @tmp2_name
-
-    File.delete @tmp1_name_bak if File.exists? @tmp1_name_bak
-    File.delete @tmp2_name_bak if File.exists? @tmp2_name_bak
+    rm_r @tmp1_name
+    rm_r @tmp2_name
+    rm_r @tmp1_name_bak
+    rm_r @tmp2_name_bak
   end
 
   it "modifies the files when in place edit mode is on" do

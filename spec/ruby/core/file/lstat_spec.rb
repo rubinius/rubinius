@@ -15,8 +15,8 @@ describe "File.lstat" do
   end
 
   after :each do
-    File.delete(@link) if File.exist?(@link)
-    File.delete(@file) if File.exist?(@file)
+    rm_r @link
+    rm_r @file
   end
   
   it "returns a File::Stat object with symlink properties for a symlink" do

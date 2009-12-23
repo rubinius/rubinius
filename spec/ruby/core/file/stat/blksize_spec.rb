@@ -7,7 +7,7 @@ describe "File::Stat#blksize" do
   end
 
   after :each do
-    File.delete(@file) if File.exist?(@file)
+    rm_r @file
   end
   
   it "should be able to determine the blksize on a File::Stat object" do

@@ -14,6 +14,7 @@ describe "Kernel#p" do
     Kernel.should have_private_instance_method(:p)
   end
   
+  # TODO: fix
   it "flushes output if receiver is a File" do
     filename = tmp("Kernel_p_flush") + $$.to_s
     begin
@@ -31,7 +32,7 @@ describe "Kernel#p" do
         end
       end
     ensure
-      File.delete(filename) rescue nil
+      rm_r filename
     end
   end
 

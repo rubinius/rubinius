@@ -4,13 +4,13 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO.read" do
   before :each do
-    @fname = "test.txt"
+    @fname = tmp("io_read.txt")
     @contents = "1234567890"
     File.open(@fname, "w") { |f| f.write @contents }
   end
 
   after :each do
-    File.delete @fname if File.exists? @fname
+    rm_r @fname
   end
 
   it "reads the contents of a file" do
@@ -48,7 +48,7 @@ describe "IO.read" do
   end
 
   it "raises an Errno::ENOENT when the requested file does not exist" do
-    File.delete(@fname) if File.exists?(@fname)
+    rm_r @fname
     lambda { IO.read @fname }.should raise_error(Errno::ENOENT)
   end
 
@@ -68,12 +68,12 @@ end
 
 describe "IO.read on an empty file" do
   before :each do
-    @fname = 'empty_test.txt'
+    @fname = tmp("io_read_empty.txt")
     File.open(@fname, 'w') {|f| 1 }
   end
 
   after :each do
-    File.delete @fname  if File.exists? @fname
+    rm_r @fname
   end
 
   it "returns nil when length is passed" do
@@ -88,15 +88,15 @@ end
 describe "IO#read" do
 
   before :each do
-    @fname = "test.txt"
+    @fname = tmp("io_read.txt")
     @contents = "1234567890"
-    open @fname, "w" do |io| io.write @contents end
+    touch(@fname) { |f| f.write @contents }
 
     @io = open @fname, "r+"
   end
 
   after :each do
-    File.delete(@fname) if File.exists?(@fname)
+    rm_r @fname
   end
 
   after :all do

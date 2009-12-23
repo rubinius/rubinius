@@ -8,7 +8,7 @@ describe "File::Stat#inspect" do
   end
 
   after :each do
-    File.delete(@file) if File.exist?(@file)
+    rm_r @file
   end
   
   it "produces a nicely formatted description of a File::Stat object" do

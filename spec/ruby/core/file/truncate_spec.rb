@@ -2,28 +2,20 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.truncate" do
   before :each do
-    @name = "test.txt"
-    @file  = File.open(@name, 'w')
-    File.open(@name,"w") { |f| f.write("1234567890") }
+    @name = tmp("test.txt")
+    touch(@name) { |f| f.write("1234567890") }
   end
 
   after :each do
-    @file.close
-    File.delete(@name) if File.exist?(@name)
-    @name = nil
+    rm_r @name
   end
 
   it "truncates a file" do
-    File.open(@name, "w") { |f| f.puts "123456789" }
-    platform_is :windows do
-      File.size(@name).should == 11
-    end
+    File.size(@name).should == 10
 
-    platform_is_not :windows do
-      File.size(@name).should == 10
-    end
     File.truncate(@name, 5)
     File.size(@name).should == 5
+
     File.open(@name, "r") do |f|
       f.read(99).should == "12345"
       f.eof?.should == true
@@ -55,6 +47,7 @@ describe "File.truncate" do
   end
 
   it "raises an Errno::ENOENT if the file does not exist" do
+    # TODO: missing_file
     not_existing_file = "file-does-not-exist-for-sure.txt"
 
     # make sure it doesn't exist for real
@@ -91,41 +84,25 @@ describe "File.truncate" do
       File.truncate(mock_to_path(@name), 0).should == 0
     end
   end
-
-  platform_is_not :windows do
-    it "truncates an absolute pathname file" do
-      absolute_pathname_file = tmp("#{@name}")
-      File.open(absolute_pathname_file,"w") { |f| f.write("1234567890") }
-      File.truncate(absolute_pathname_file, 5)
-      File.size(absolute_pathname_file).should == 5
-      File.delete(absolute_pathname_file) if File.exist?(absolute_pathname_file)
-    end
-  end
 end
 
 
 describe "File#truncate" do
   before :each do
-    @name = "test.txt"
-    @file  = File.open(@name, 'w')
-    File.open(@name,"w") { |f| f.write("1234567890") }
+    @name = tmp("test.txt")
+    @file = File.open @name, 'w'
+    @file.write "1234567890"
+    @file.flush
   end
 
   after :each do
     @file.close unless @file.closed?
-    File.delete(@name) if File.exist?(@name)
-    @name = nil
+    rm_r @name
   end
 
   it "truncates a file" do
-    File.open(@name, "w") { |f| f.puts "123456789" }
-    platform_is :windows do
-      File.size(@name).should == 11
-    end
+    File.size(@name).should == 10
 
-    platform_is_not :windows do
-      File.size(@name).should == 10
-    end
     @file.truncate(5)
     File.size(@name).should == 5
     File.open(@name, "r") do |f|

@@ -7,7 +7,7 @@ describe "File.atime" do
   end
 
   after :each do
-    File.delete(@file) if File.exist?(@file)
+    rm_r @file
   end
 
   it "returns the last access time for the named file as a Time object" do

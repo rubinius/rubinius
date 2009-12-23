@@ -15,14 +15,15 @@ describe "File.stat" do
   end
 
   after :each do
-    File.delete(@link) if File.exist?(@link)
-    File.delete(@file) if File.exist?(@file)
+    rm_r @link
+    rm_r @file
   end
 
-  it "should be able to call stat on an unlinked file" do
+  it "returns information for a file that has been deleted but is still open" do
     File.open(@file) do |f|
-      File.unlink(@link)
-      File.unlink(@file)
+      rm_r @link
+      rm_r @file
+
       st = f.stat
 
       st.file?.should == true

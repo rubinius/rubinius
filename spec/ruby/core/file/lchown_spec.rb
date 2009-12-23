@@ -6,15 +6,16 @@ as_superuser do
       before :each do
         @fname = tmp('file_chown_test')
         @lname = @fname + '.lnk'
-        File.delete @fname rescue nil
-        File.delete @lname rescue nil
-        File.open(@fname, 'w') { |f| f.chown 501, 501 }
+
+        touch(@fname) { |f| f.chown 501, 501 }
+
+        rm_r @lname
         File.symlink @fname, @lname
       end
 
       after :each do
-        File.delete @fname if File.exist? @fname
-        File.delete @lname if File.exist? @lname
+        rm_r @lname
+        rm_r @fname
       end
 
       it "changes the owner id of the file" do

@@ -1,14 +1,15 @@
 describe :file_symlink, :shared => true do
   before :each do
-    @file = "test.txt"
-    @link = "test.lnk"
-    File.delete(@link) if File.exist?(@link)
+    @file = tmp("test.txt")
+    @link = tmp("test.lnk")
+
+    rm_r @link
     touch @file
   end
 
   after :each do
-    File.delete(@link) if File.exist?(@link)
-    File.delete(@file) if File.exist?(@file)
+    rm_r @link
+    rm_r @file
   end
 
   platform_is_not :windows do
@@ -28,15 +29,16 @@ end
 
 describe :file_symlink_nonexistent, :shared => true do
   before :each do
-    @file = "test.txt"
-    @link = "test.lnk"
-    File.delete(@link) if File.exist?(@link)
+    @file = tmp("test.txt")
+    @link = tmp("test.lnk")
+
+    rm_r @link
     touch @file
   end
 
   after :each do
-    File.delete(@link) if File.exist?(@link)
-    File.delete(@file) if File.exist?(@file)
+    rm_r @link
+    rm_r @file
   end
 
   platform_is_not :windows do

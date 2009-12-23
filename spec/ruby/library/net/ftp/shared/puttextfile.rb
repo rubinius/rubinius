@@ -16,7 +16,7 @@ describe :net_ftp_puttextfile, :shared => true do
     @ftp.close
     @server.stop
 
-    File.delete @remote_tmp_file if File.exists? @remote_tmp_file
+    rm_r @remote_tmp_file
   end
 
   it "sends the STOR command to the server" do

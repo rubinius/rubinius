@@ -6,7 +6,7 @@ describe :file_grpowned, :shared => true do
   end
 
   after :each do
-    File.delete(@file) if File.exist?(@file)
+    rm_r @file
   end
 
   platform_is_not :windows do

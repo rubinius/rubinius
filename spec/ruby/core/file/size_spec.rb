@@ -19,13 +19,13 @@ ruby_version_is "1.9" do
   describe "File#size" do
 
     before :each do
-      @file = tmp('i_exist')
-      touch(@file) { |f| f.write 'rubinius' }
-      @file = File.new @file
+      @name = tmp('i_exist')
+      touch(@name) { |f| f.write 'rubinius' }
+      @file = File.new @name
     end
 
     after :each do
-      File.delete(@file.path) if File.exist?(@file.path)
+      rm_r @name
     end
 
     it "is an instance method" do
@@ -41,7 +41,7 @@ ruby_version_is "1.9" do
     end
 
     it "returns the cached size of the file if subsequently deleted" do
-      File.delete(@file)
+      rm_r @file
       @file.size.should == 8
     end
 
@@ -59,7 +59,8 @@ ruby_version_is "1.9" do
     platform_is_not :windows do
       it "follows symlinks if necessary" do
         ln_file = tmp('i_exist_ln')
-        File.delete(ln_file) if File.exists?(ln_file)
+        rm_r ln_file
+
         File.symlink(@file.path, ln_file).should == 0
         File.new(ln_file).size.should == 8
       end

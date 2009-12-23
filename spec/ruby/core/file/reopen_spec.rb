@@ -5,14 +5,12 @@ ruby_version_is "1.9" do
     before :each do
       @file = tmp('test.txt')
       @fh = nil
-      File.open(@file, "w") {|f| f << "1234567890"}
+      touch(@file) { |f| f << "1234567890" }
     end
 
     after :each do
       @fh.close if @fh
-      File.delete(@file) if File.exists?(@file)
-      @fh    = nil
-      @file  = nil
+      rm_r @file
     end
 
     it "resets the stream to a new file path" do

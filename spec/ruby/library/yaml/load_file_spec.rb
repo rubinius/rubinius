@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/common'
 
 describe "YAML.load_file" do
   after :each do
-    File.delete $test_file if File.exist? $test_file
+    rm_r $test_file
   end
   
   it "returns a hash" do

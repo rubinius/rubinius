@@ -18,7 +18,7 @@ process_is_foreground do
       end
 
       after :each do
-        File.delete(@file) if File.exists?(@file)
+        rm_r @file
         STDIN.reopen(@stdin_back)
         STDOUT.reopen(@stdout_back)
       end

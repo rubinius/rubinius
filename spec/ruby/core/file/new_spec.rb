@@ -11,10 +11,7 @@ describe "File.new" do
 
   after :each do
     @fh.close if @fh
-    File.delete(@file) if File.exists?(@file)
-    @fh    = nil
-    @file  = nil
-    @flags = nil
+    rm_r @file
   end
 
   it "returns a new File with mode string" do
