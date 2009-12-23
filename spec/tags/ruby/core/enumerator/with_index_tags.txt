@@ -1,4 +1,0 @@
-fails:Enumerator#with_index passes each element and its index to block
-fails:Enumerator#with_index returns the object being enumerated when given a block
-fails:Enumerator#with_index binds splat arguments properly
-fails:Enumerator#with_index returns an enumerator if no block is supplied
