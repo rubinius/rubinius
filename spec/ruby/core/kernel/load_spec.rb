@@ -31,13 +31,6 @@ describe "Kernel#load" do
     Kernel.should have_private_instance_method(:load)
   end
 
-  # Avoid storing .rbc in repo
-  before :all do
-    Dir.chdir($load_fixture_dir) do |dir|
-      Dir["*.rbc"].each { |d| rm_r d }
-    end
-  end
-
   it "loads a .rb from an absolute path and returns true" do
     path = File.expand_path(File.dirname(__FILE__) + '/../../fixtures/load/load_spec_1.rb')
 
