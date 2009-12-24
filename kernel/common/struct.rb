@@ -330,7 +330,7 @@ class Struct
     return "[...]" if Thread.guarding? self
   
     Thread.recursion_guard self do
-      "#<struct #{self.class.name} #{_attrs.zip(self.to_a).map{|o| o[1] = o[1].inspect; o.join('=')}.join(', ') }>"
+      "#<struct #{self.class.inspect} #{_attrs.zip(self.to_a).map{|o| o[1] = o[1].inspect; o.join('=')}.join(', ') }>"
     end
   end
 
