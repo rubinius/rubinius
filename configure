@@ -76,6 +76,13 @@ class Configure
     o.doc "\n File system paths for installing Rubinius"
 
     o.on "-P", "--prefix", "PATH", "Install Rubinius in subdirectories of PATH" do |dir|
+      dir = File.expand_path dir
+
+      if File.directory? dir and dir !~ /(rubinius|rbx)\/?$/
+        puts "The directory #{dir} already exists, installing to #{dir}/rubinius"
+        dir += "/rubinius"
+      end
+
       @bindir       = dir + "/bin"
       @includedir   = dir + "/include"
       @libdir       = dir
