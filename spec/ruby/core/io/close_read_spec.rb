@@ -1,6 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
-require 'fileutils'
 
 describe "IO#close_read" do
 

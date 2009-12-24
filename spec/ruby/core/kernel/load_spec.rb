@@ -1,7 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-require 'fileutils'
-
 $load_fixture_dir = (File.dirname(__FILE__) + '/../../fixtures/load')
 $LOAD_PATH << $load_fixture_dir
 
@@ -36,7 +34,7 @@ describe "Kernel#load" do
   # Avoid storing .rbc in repo
   before :all do
     Dir.chdir($load_fixture_dir) do |dir|
-      FileUtils.rm_f(Dir["*.rbc"])
+      Dir["*.rbc"].each { |d| rm_r d }
     end
   end
 

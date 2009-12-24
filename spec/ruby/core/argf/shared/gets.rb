@@ -66,8 +66,8 @@ describe :argf_gets_inplace_edit, :shared => true do
     @tmp1_name_bak = @tmp1_name + ".bak"
     @tmp2_name_bak = @tmp2_name + ".bak"
 
-    FileUtils.cp @file1_name, @tmp1_name
-    FileUtils.cp @file2_name, @tmp2_name
+    cp @file1_name, @tmp1_name
+    cp @file2_name, @tmp2_name
 
     method = "ARGF.send(#{@method.inspect})"
     @code = "begin while line = #{method} do puts 'x' end rescue EOFError; end"

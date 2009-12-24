@@ -1,8 +1,6 @@
-require 'fileutils'
-
 module DirSpecs
-  def self.mock_dir(dirs = ['mock'])
-    @mock_dir ||= File.expand_path("../", __FILE__)
+  def self.mock_dir(dirs = ['dir_specs_mock'])
+    @mock_dir ||= tmp("")
     File.join @mock_dir, dirs
   end
 
@@ -95,14 +93,14 @@ module DirSpecs
     umask = File.umask 0
     mock_dir_files.each do |name|
       file = File.join mock_dir, name
-      FileUtils.mkdir_p File.dirname(file)
+      mkdir_p File.dirname(file)
       touch file
     end
     File.umask umask
   end
 
   def self.delete_mock_dirs
-    FileUtils.rm_r mock_dir
+    rm_r mock_dir
   end
 
   def self.mock_rmdir(*dirs)
@@ -124,16 +122,16 @@ module DirSpecs
       dir = File.join base_dir, d
       if File.exists? dir
         File.chmod 0777, dir
-        FileUtils.rm_rf dir
+        rm_r dir
       end
     end
-    FileUtils.rm_rf base_dir
+    rm_r base_dir
 
     if create
       dirs.each do |d|
         dir = File.join base_dir, d
         unless File.exists? dir
-          FileUtils.mkdir_p dir
+          mkdir_p dir
           File.chmod 0777, dir
         end
       end

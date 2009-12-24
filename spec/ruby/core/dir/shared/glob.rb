@@ -230,7 +230,7 @@ describe :dir_glob_recursive, :shared => true do
       a/x/b/y/b/z/e
     ].each do |path|
       file = File.join @mock_dir, path
-      FileUtils.mkdir_p File.dirname(file)
+      mkdir_p File.dirname(file)
       touch file
     end
 
@@ -239,7 +239,7 @@ describe :dir_glob_recursive, :shared => true do
 
   after(:all) do
     Dir.chdir @cwd
-    FileUtils.rm_r @mock_dir
+    rm_r @mock_dir
   end
 
   it "matches multiple recursives" do

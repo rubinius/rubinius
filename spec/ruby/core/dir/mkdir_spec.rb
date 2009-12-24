@@ -52,29 +52,28 @@ describe "Dir.mkdir" do
     end
   end
 
-  # The permissions flag are not supported on Windows as stated in documentation:
-  # The permissions may be modified by the value of File::umask, and are ignored on NT.
-  platform_is_not :windows do
-    it "raises a SystemCallError when lacking adequate permissions in the parent dir" do
-      # In case something happened it it didn't get cleaned up.
-        FileUtils.rm_rf 'noperms' if File.directory? 'noperms'
-
-      Dir.mkdir 'noperms', 0000
-
-      lambda { Dir.mkdir 'noperms/subdir' }.should raise_error(SystemCallError)
-
-      system 'chmod 0777 noperms'
-      platform_is_not :windows do
-        File.chmod 0777, "noperms"
-      end
-      platform_is :windows do
-        File.chmod 0666, "noperms"
-      end
-      Dir.rmdir 'noperms'
-    end
-  end
-
   it "raises a SystemCallError if any of the directories in the path before the last does not exist" do
     lambda { Dir.mkdir "#{DirSpecs.nonexistent}/subdir" }.should raise_error(SystemCallError)
+  end
+end
+
+# The permissions flag are not supported on Windows as stated in documentation:
+# The permissions may be modified by the value of File::umask, and are ignored on NT.
+platform_is_not :windows do
+  describe "Dir.mkdir" do
+    before :each do
+      @dir = tmp "noperms"
+    end
+
+    after :each do
+      File.chmod 0777, @dir
+      rm_r @dir
+    end
+
+    it "raises a SystemCallError when lacking adequate permissions in the parent dir" do
+      Dir.mkdir @dir, 0000
+
+      lambda { Dir.mkdir "#{@dir}/subdir" }.should raise_error(SystemCallError)
+    end
   end
 end

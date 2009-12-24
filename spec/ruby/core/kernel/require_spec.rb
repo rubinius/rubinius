@@ -21,11 +21,11 @@ describe "Kernel#require" do
   before :each do
     # We explicitly delete and recreate our temporary directories every time
     # to avoid establishing dependencies between tests. 
-    FileUtils.rm_rf($require_tmp_dir)
+    rm_r $require_tmp_dir
     Dir.mkdir($require_tmp_dir)
     Dir.chdir($require_tmp_dir) { 
-      FileUtils.touch("require_spec_dummy.#{Config::CONFIG['DLEXT']}")
-      FileUtils.touch("require_spec_dummy.rb")
+      touch "require_spec_dummy.#{Config::CONFIG['DLEXT']}"
+      touch "require_spec_dummy.rb"
     }
     $LOADED_FEATURES.delete_if {|path| path =~ /require_spec/}
     $require_spec   = nil
@@ -44,7 +44,7 @@ describe "Kernel#require" do
   end
 
   after :each do
-    FileUtils.rm_r $require_tmp_dir
+    rm_r $require_tmp_dir
   end
 
   # The files used below just contain code that assigns
