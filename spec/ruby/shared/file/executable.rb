@@ -10,8 +10,7 @@ describe :file_executable, :shared => true do
   end
 
   after :each do
-    rm_r @file1
-    rm_r @file2
+    rm_r @file1, @file2
   end
 
   platform_is_not :windows do

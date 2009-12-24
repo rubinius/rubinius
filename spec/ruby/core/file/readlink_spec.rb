@@ -13,8 +13,7 @@ describe "File.readlink" do
   end
 
   after :each do
-    rm_r @link
-    rm_r @file
+    rm_r @link, @file
   end
 
   it "return the name of the file referenced by the given link" do

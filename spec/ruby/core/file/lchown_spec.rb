@@ -14,8 +14,7 @@ as_superuser do
       end
 
       after :each do
-        rm_r @lname
-        rm_r @fname
+        rm_r @lname, @fname
       end
 
       it "changes the owner id of the file" do

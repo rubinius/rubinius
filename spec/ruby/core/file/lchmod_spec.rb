@@ -13,8 +13,7 @@ describe "File.lchmod" do
     end
     
     after :each do
-      rm_r @lname
-      rm_r @fname
+      rm_r @lname, @fname
     end
     
     it "changes the file mode of the link and not of the file" do

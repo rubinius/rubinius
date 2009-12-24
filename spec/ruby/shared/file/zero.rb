@@ -10,8 +10,7 @@ describe :file_zero, :shared => true do
   end
 
   after :each do
-    rm_r @zero_file
-    rm_r @nonzero_file
+    rm_r @zero_file, @nonzero_file
   end
 
   it "returns true if the file is empty" do

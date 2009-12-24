@@ -11,8 +11,7 @@ describe "File::Stat#<=>" do
   after :each do
     @file1.close unless @file1.closed?
     @file2.close unless @file2.closed?
-    rm_r @name1
-    rm_r @name2
+    rm_r @name1, @name2
   end
 
   it "is able to compare files by the same modification times" do

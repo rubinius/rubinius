@@ -11,8 +11,7 @@ describe "File.symlink" do
   end
 
   after :each do
-    rm_r @link
-    rm_r @file
+    rm_r @link, @file
   end
 
   platform_is_not :windows do

@@ -15,8 +15,7 @@ describe "File.lstat" do
   end
 
   after :each do
-    rm_r @link
-    rm_r @file
+    rm_r @link, @file
   end
   
   it "returns a File::Stat object with symlink properties for a symlink" do

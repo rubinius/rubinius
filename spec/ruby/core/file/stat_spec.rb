@@ -15,14 +15,12 @@ describe "File.stat" do
   end
 
   after :each do
-    rm_r @link
-    rm_r @file
+    rm_r @link, @file
   end
 
   it "returns information for a file that has been deleted but is still open" do
     File.open(@file) do |f|
-      rm_r @link
-      rm_r @file
+      rm_r @link, @file
 
       st = f.stat
 

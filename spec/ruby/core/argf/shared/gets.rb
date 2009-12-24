@@ -74,10 +74,7 @@ describe :argf_gets_inplace_edit, :shared => true do
   end
 
   after :each do
-    rm_r @tmp1_name
-    rm_r @tmp2_name
-    rm_r @tmp1_name_bak
-    rm_r @tmp2_name_bak
+    rm_r @tmp1_name, @tmp2_name, @tmp1_name_bak, @tmp2_name_bak
   end
 
   it "modifies the files when in place edit mode is on" do

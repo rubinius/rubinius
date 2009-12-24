@@ -10,8 +10,7 @@ describe "File.rename" do
   end
 
   after :each do
-    rm_r @old
-    rm_r @new
+    rm_r @old, @new
   end
 
   it "renames a file " do

@@ -8,8 +8,7 @@ describe "File::Stat#nlink" do
   end
 
   after :each do
-    rm_r @link
-    rm_r @file
+    rm_r @link, @file
   end
 
   it "returns the number of links to a file" do

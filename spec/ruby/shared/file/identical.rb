@@ -13,9 +13,7 @@ describe :file_identical, :shared => true do
   end
 
   after :each do
-    rm_r @link
-    rm_r @file1
-    rm_r @file2
+    rm_r @link, @file1, @file2
   end
 
   it "return true if they are identical" do

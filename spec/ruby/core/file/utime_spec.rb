@@ -11,8 +11,7 @@ describe "File.utime" do
   end
 
   after :each do
-    rm_r @file1
-    rm_r @file2
+    rm_r @file1, @file2
   end
 
   it "sets the access and modification time of each file" do
