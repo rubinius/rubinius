@@ -1,3 +1,0 @@
-critical:Math.frexp returns the normalized fraction and exponent
-critical:Math.frexp accepts any argument that can be coerced with Float()
-critical:Math#frexp is accessible as a private instance method
