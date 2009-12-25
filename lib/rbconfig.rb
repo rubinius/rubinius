@@ -107,7 +107,7 @@ module Config
   CONFIG["MANTYPE"]            = "doc"
   CONFIG["MAKEFILES"]          = "Makefile"
   # compile tools flags
-  CONFIG["CFLAGS"]             = "-Wall -ggdb3 -O2"
+  CONFIG["CFLAGS"]             = "-ggdb3 -O2"
   CONFIG["LDFLAGS"]            = ""
   CONFIG["CPPFLAGS"]           = ""
   CONFIG["OBJEXT"]             = "o"
