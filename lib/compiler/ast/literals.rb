@@ -266,25 +266,48 @@ module Rubinius
         @array = array
       end
 
+      # This extensive logic is 100% for optimizing rather ridiculous edge
+      # cases for string interpolation and I (brixen) do not think it is
+      # worthwhile.
+      #
+      # Some examples:
+      #
+      #  "#{}"
+      #  "#{} foo"
+      #  "foo #{}"
+      #  "#{}#{}"
+      #  "#{bar}"
+      #
+      # Also, as Zocx pointed out in IRC, the following code is not compatible
+      # in Rubinius because we convert an empty evstr into "" directly in
+      # Melbourne parse tree to AST processor rather than calling #to_s on
+      # 'nil'.
+      #
+      # def nil.to_s; "hello"; end
+      # a = "#{}" # => "hello" in MRI
+      #
+      # We also do not handle any case where #to_s does not actually return a
+      # String instance.
+      #
       def bytecode(g)
         pos(g)
 
-        prefix = false
+        if @string.empty?
+          if @array.size == 1
+            case x = @array.first
+            when StringLiteral
+              x.bytecode(g)
+            else
+              x.bytecode(g)
+              g.string_dup
+            end
+            return
+          end
 
-        unless @string.empty?
+          prefix = false
+        else
           prefix = true
           g.push_literal @string
-        end
-
-        if @array.empty?
-          g.push_literal "" if total == 0
-          g.string_dup
-          return
-        end
-
-        if !prefix and @array.size == 1
-          @array.first.bytecode(g)
-          return
         end
 
         total = 0
@@ -307,6 +330,15 @@ module Rubinius
             return
           end
           total += 1
+        else
+          if total == 0
+            g.push_literal ""
+            g.string_dup
+            return
+          elsif total == 1
+            g.string_dup
+            return
+          end
         end
 
         g.string_build total
