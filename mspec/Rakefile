@@ -18,7 +18,7 @@ spec = Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors                   = ["Brian Ford"]
-  s.date                      = %q{2009-6-8}
+  s.date                      = %q{2009-12-25}
   s.email                     = %q{bford@engineyard.com}
   s.has_rdoc                  = true
   s.extra_rdoc_files          = %w[ README LICENSE ]
@@ -27,7 +27,7 @@ spec = Gem::Specification.new do |s|
   s.homepage                  = %q{http://rubyspec.org}
   s.rubyforge_project         = 'http://rubyforge.org/projects/mspec'
   s.require_paths             = ["lib"]
-  s.rubygems_version          = %q{1.1.1}
+  s.rubygems_version          = %q{1.3.5}
   s.summary                   = <<EOS
 MSpec is a specialized framework that is syntax-compatible
 with RSpec for basic things like describe, it blocks and
