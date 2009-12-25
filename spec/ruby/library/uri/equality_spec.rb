@@ -1,8 +1,10 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/normalization'
+require File.dirname(__FILE__) + '/shared/eql'
 require 'uri'
 
 describe "URI#==" do
-  it "ignores capitalization of host names and scheme names" do
+  it "ignores capitalization of host names" do
     URI("http://exAMPLE.cOm").should == URI("http://example.com")
   end
   
@@ -11,14 +13,30 @@ describe "URI#==" do
   end
   
   it "is case sensitive in all components of the URI but the host and scheme" do
-    URI("hTTp://example.com").should_not == URI("http://example.com")    
     URI("http://example.com/paTH").should_not == URI("http://example.com/path")
     URI("http://uSer@example.com").should_not == URI("http://user@example.com")            
-    URI("http://example.com/path?quERy").should_not == URI("http://example.com/?query")
-    URI("http://example.com/#fragMENT").should_not == URI("http://example.com#fragment")            
+    URI("http://example.com/path?quERy").should_not == URI("http://example.com/path?query")
+    URI("http://example.com/#fragMENT").should_not == URI("http://example.com/#fragment")
   end
   
   it "differentiates based on port number" do
     URI("http://example.com:8080").should_not == URI("http://example.com")
+  end
+
+  # Note: The previous tests are included in following ones
+
+  it_behaves_like :uri_eql, :==
+
+  it_behaves_like :uri_eql_against_other_types, :==
+
+  ruby_bug "redmine:2525", "1.8.7" do
+    it "returns true only if the normalized forms are equivalent" do
+      URISpec::NORMALIZED_FORMS.each do |form|
+        normal_uri = URI(form[:normalized])
+        form[:equivalent].each do |same|
+          URI(same).should == normal_uri
+        end
+      end
+    end
   end
 end

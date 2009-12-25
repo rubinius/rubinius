@@ -59,10 +59,6 @@ describe "String#count" do
     s.count("(--").should == s.count("()*+,-")
     s.count("A-a").should == s.count("A-Z[\\]^_`a")
     
-    # empty sequences (end before start)
-    s.count("h-e").should == 0
-    s.count("^h-e").should == s.size
-
     # negated sequences
     s.count("^e-h").should == s.size - s.count("e-h")
     s.count("^^-^").should == s.size - s.count("^")
@@ -74,6 +70,25 @@ describe "String#count" do
 
     "abcde".count("ac-e").should == 4
     "abcde".count("^ac-e").should == 1
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "regards invaid sequences as empty" do
+      s = "hel-[()]-lo012^"
+
+      # empty sequences (end before start)
+      s.count("h-e").should == 0
+      s.count("^h-e").should == s.size
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises if the given sequences are invaid" do
+      s = "hel-[()]-lo012^"
+
+      lambda { s.count("h-e") }.should raise_error(ArgumentError)
+      lambda { s.count("^h-e") }.should raise_error(ArgumentError)
+    end
   end
 
   it "calls #to_str to convert each set arg to a String" do

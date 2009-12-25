@@ -8,6 +8,8 @@ ruby_version_is "1.9" do
 
     # FIXME: Get this working on Windows
     platform_is :os => [:darwin, :linux] do
+      # FIXME: This spec fails on Mac OS X because it doesn't have ANSI_X3.4-1968 locale.
+      # FIXME: If ENV['LC_ALL'] is already set, it comes first.
       it "returns a value based on the LANG environment variable" do
         old_lang = ENV['LANG']
         ENV['LANG'] = 'C'

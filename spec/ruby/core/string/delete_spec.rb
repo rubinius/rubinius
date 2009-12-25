@@ -34,8 +34,6 @@ describe "String#delete" do
     "hel-lo".delete("---").should == "hello"
     "hel-012".delete("--2").should == "hel"
     "hel-()".delete("(--").should == "hel"
-    "hello".delete("h-e").should == "hello"
-    "hello".delete("^h-e").should == ""
     "hello".delete("^e-h").should == "he"
     "hello^".delete("^^-^").should == "^"
     "hel--lo".delete("^---").should == "--"
@@ -48,6 +46,20 @@ describe "String#delete" do
     "abcde".delete("^ac-e").should == "acde"
 
     "ABCabc[]".delete("A-a").should == "bc"
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "regards invalid ranges as nothing" do
+      "hello".delete("h-e").should == "hello"
+      "hello".delete("^h-e").should == ""
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises if the given ranges are invalid" do
+      lambda { "hello".delete("h-e") }.should raise_error(ArgumentError)
+      lambda { "hello".delete("^h-e") }.should raise_error(ArgumentError)
+    end
   end
 
   it "taints result when self is tainted" do

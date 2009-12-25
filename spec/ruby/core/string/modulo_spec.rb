@@ -343,8 +343,22 @@ describe "String#%" do
       ("%03#{f}" % -5).should == "-05"
       ("%+03#{f}" % -5).should == "-05"
       ("%-3#{f}" % -5).should == "-5 "
-      ("%-03#{f}" % -5).should == "-05"
-      ("%+-03#{f}" % -5).should == "-05"
+    end
+
+    # The following version inconsistency in negative-integers is explained in
+    # http://ujihisa.blogspot.com/2009/12/string-differs-between-ruby-18-and-19.html
+    ruby_version_is ""..."1.9" do
+      it "supports negative integers using #{format}, giving priority to `0`" do
+        ("%-03#{f}" % -5).should == "-05"
+        ("%+-03#{f}" % -5).should == "-05"
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "supports negative integers using #{format}, giving priority to `-`" do
+        ("%-03#{f}" % -5).should == "-5 "
+        ("%+-03#{f}" % -5).should == "-5 "
+      end
     end
   end
 

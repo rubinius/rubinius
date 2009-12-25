@@ -26,10 +26,13 @@ describe :dir_delete, :shared => true do
     end.should raise_error(SystemCallError)
   end
 
-  it "raises a SystemCallError if lacking adequate permissions to remove the directory" do
-    File.chmod(0000, DirSpecs.mock_rmdir("noperm"))
-    lambda do
-      Dir.send @method, DirSpecs.mock_rmdir("noperm", "child")
-    end.should raise_error(SystemCallError)
+  # this won't work on Windows, since chmod(0000) does not remove all permissions
+  platform_is_not :windows do
+    it "raises a SystemCallError if lacking adequate permissions to remove the directory" do
+      File.chmod(0000, DirSpecs.mock_rmdir("noperm"))
+      lambda do
+        Dir.send @method, DirSpecs.mock_rmdir("noperm", "child")
+      end.should raise_error(SystemCallError)
+    end
   end
 end

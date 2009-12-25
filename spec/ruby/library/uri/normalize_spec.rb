@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/normalization'
 require 'uri'
 
 describe "URI#normalize" do
@@ -12,5 +13,23 @@ describe "URI#normalize" do
     uri = URI("http://exAMPLE.cOm/")
     uri.to_s.should_not == "http://example.com/"
     uri.normalize.to_s.should == "http://example.com/"
+  end
+
+  # The previous tests are included by the one below
+
+  ruby_bug "redmine:2525", "1.8.7" do
+    it "respects RFC 3986" do
+      URISpec::NORMALIZED_FORMS.each do |form|
+        normal_uri = URI(form[:normalized])
+        normalized = normal_uri.normalize.to_s
+        normal_uri.to_s.should == normalized
+        form[:equivalent].each do |same|
+          URI(same).normalize.to_s.should == normalized
+        end
+        form[:different].each do |other|
+          URI(other).normalize.to_s.should_not == normalized
+        end
+      end
+    end
   end
 end

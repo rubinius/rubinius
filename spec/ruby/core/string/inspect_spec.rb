@@ -15,7 +15,7 @@ describe "String#inspect" do
     end
 
     it "returns a string with nonprinting, non-ASCII characters replaced by \\u notation for Unicode strings" do
-      (127..150).map{|o| o.chr('utf-8')}.to_a.join('').inspect.should == "\"\\u007F\\u0080\\u0081\\u0082\\u0083\\u0084\\u0085\\u0086\\u0087\\u0088\\u0089\\u008A\\u008B\\u008C\\u008D\\u008E\\u008F\\u0090\\u0091\\u0092\\u0093\\u0094\\u0095\\u0096\""
+      (127..150).map{|o| o.chr('utf-8')}.to_a.join('').inspect.should == "\u007F\u0080\u0081\u0082\u0083\u0084\u0085\u0086\u0087\u0088\u0089\u008A\u008B\u008C\u008D\u008E\u008F\u0090\u0091\u0092\u0093\u0094\u0095\u0096".inspect
     end
   end
 

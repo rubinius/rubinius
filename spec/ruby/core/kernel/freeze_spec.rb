@@ -4,36 +4,58 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Kernel#freeze" do
   it "prevents self from being further modified" do
     o = mock('o')
-    o.frozen?.should == false
+    o.frozen?.should be_false
     o.freeze
-    o.frozen?.should == true
+    o.frozen?.should be_true
   end
 
   it "returns the immediate when called on an immediate" do
-    nil.freeze.should == nil
-    true.freeze.should == true
-    false.freeze.should == false
+    nil.freeze.should be_nil
+    true.freeze.should be_true
+    false.freeze.should be_false
     1.freeze.should == 1
     :sym.freeze.should == :sym
   end
 
-  # 1.9 allows immediates to be frozen; reported as bug #1747
-  it "has no effect on immediate values" do
-    a = nil
-    b = true
-    c = false
-    d = 1
-    e = :sym
-    a.freeze
-    b.freeze
-    c.freeze
-    d.freeze
-    e.freeze
-    a.frozen?.should == false
-    b.frozen?.should == false
-    c.frozen?.should == false
-    d.frozen?.should == false
-    e.frozen?.should == false
+  ruby_version_is '' ... '1.9' do
+    it "has no effect on immediate values" do
+      a = nil
+      b = true
+      c = false
+      d = 1
+      e = :sym
+      a.freeze
+      b.freeze
+      c.freeze
+      d.freeze
+      e.freeze
+      a.frozen?.should be_false
+      b.frozen?.should be_false
+      c.frozen?.should be_false
+      d.frozen?.should be_false
+      e.frozen?.should be_false
+    end
+  end
+
+  ruby_version_is '1.9' do
+    # 1.9 allows immediates to be frozen #1747
+    it "freezes immediate values" do
+      a = nil
+      b = true
+      c = false
+      d = 1
+      e = :sym
+      a.freeze
+      b.freeze
+      c.freeze
+      d.freeze
+      e.freeze
+      a.frozen?.should be_true
+      b.frozen?.should be_true
+      c.frozen?.should be_true
+      d.frozen?.should be_true
+      e.frozen?.should be_true
+    end
   end
 
   ruby_version_is "" ... "1.9" do

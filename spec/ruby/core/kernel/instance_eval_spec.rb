@@ -5,26 +5,26 @@ describe "Kernel#instance_eval" do
   it "expects a block with no arguments" do
     lambda { "hola".instance_eval }.should raise_error(ArgumentError)
   end
-  
+
   it "takes no arguments with a block" do
-    lambda { "hola".instance_eval(4, 5) { |a,b| a + b } }.should raise_error(ArgumentError)
+    lambda { "hola".instance_eval(4, 5) {|a,b| a + b } }.should raise_error(ArgumentError)
   end
-  
+
   ruby_version_is ""..."1.9" do
     it "passes the object to the block" do
-      "hola".instance_eval { |o| o.size }.should == 4
+      "hola".instance_eval {|o| o.size }.should == 4
     end
   end
-  
+
   ruby_version_is "1.9" do
     it "doesn't pass the object to the block" do
-      "hola".instance_eval { |o| o }.should be_nil
+      "hola".instance_eval {|o| o }.should == "hola"
     end
   end
 
   it "only binds the eval to the receiver" do
     f = Object.new
-    f.instance_eval do 
+    f.instance_eval do
       def foo
         1
       end
@@ -36,7 +36,7 @@ describe "Kernel#instance_eval" do
   # TODO: This should probably be replaced with a "should behave like" that uses
   # the many scoping/binding specs from kernel/eval_spec, since most of those
   # behaviors are the same for instance_eval. See also module_eval/class_eval.
-  
+
   # Feature removed in 1.9
   ruby_version_is ""..."1.9" do
     it "shares a scope across sibling evals" do
@@ -53,11 +53,11 @@ describe "Kernel#instance_eval" do
 
   it "binds self to the receiver" do
     s = "hola"
-    (s == s.instance_eval { self }).should == true
+    (s == s.instance_eval { self }).should be_true
     o = mock('o')
-    (o == o.instance_eval("self")).should == true
+    (o == o.instance_eval("self")).should be_true
   end
-  
+
   it "executes in the context of the receiver" do
     "Ruby-fu".instance_eval { size }.should == 7
     "hola".instance_eval("size").should == 4
@@ -108,7 +108,7 @@ describe "Kernel#instance_eval" do
   end
 
   it "doesn't get constants in the receiver if a block given" do
-    KernelSpecs::InstEvalOuter::Inner::X_BY_BLOCK.should == nil
+    KernelSpecs::InstEvalOuter::Inner::X_BY_BLOCK.should be_nil
   end
 
   it "raises a TypeError when defining methods on an immediate" do
@@ -124,7 +124,7 @@ quarantine! do # Not clean, leaves cvars lying around to break other specs
   it "scopes class var accesses in the caller when called on a Fixnum" do
     # Fixnum can take instance vars
     Fixnum.class_eval "@@__tmp_instance_eval_spec = 1"
-    (defined? @@__tmp_instance_eval_spec).should == nil
+    (defined? @@__tmp_instance_eval_spec).should be_nil
 
     @@__tmp_instance_eval_spec = 2
     1.instance_eval { @@__tmp_instance_eval_spec }.should == 2
