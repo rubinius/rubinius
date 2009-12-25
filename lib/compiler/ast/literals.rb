@@ -343,20 +343,6 @@ module Rubinius
 
         g.string_build total
       end
-
-      def old_bytecode(g)
-        pos(g)
-
-        @array.reverse_each do |x|
-          x.bytecode(g)
-        end
-        g.push_literal @string
-        g.string_dup
-
-        @array.size.times do
-          g.string_append
-        end
-      end
     end
 
     class DynamicSymbol < DynamicString
