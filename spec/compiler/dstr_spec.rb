@@ -2,12 +2,90 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A Dstr node" do
   relates <<-ruby do
+      "\#{}"
+    ruby
+
+    compile do |g|
+      g.push_literal ""
+      g.string_dup
+    end
+  end
+
+  relates <<-ruby do
+      "\#{}\#{}"
+    ruby
+
+    compile do |g|
+      g.push_literal ""
+      g.string_dup
+    end
+  end
+
+  relates <<-ruby do
+      "\#{}hello\#{}"
+    ruby
+
+    compile do |g|
+      g.push_literal "hello"
+      g.string_dup
+    end
+  end
+
+  relates <<-ruby do
       "hello \#{}"
     ruby
 
     compile do |g|
       g.push_literal "hello "
       g.string_dup
+    end
+  end
+
+  relates <<-ruby do
+      "\#{} hello"
+    ruby
+
+    compile do |g|
+      g.push_literal " hello"
+      g.string_dup
+    end
+  end
+
+  relates <<-ruby do
+      "\#{a}"
+    ruby
+
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+      g.send :to_s, 0, true
+      g.string_dup
+    end
+  end
+
+  relates <<-ruby do
+      "hello \#{a}"
+    ruby
+
+    compile do |g|
+      g.push_literal "hello "
+      g.push :self
+      g.send :a, 0, true
+      g.send :to_s, 0, true
+      g.string_build 2
+    end
+  end
+
+  relates <<-ruby do
+      "\#{a} hello"
+    ruby
+
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+      g.send :to_s, 0, true
+      g.push_literal " hello"
+      g.string_build 2
     end
   end
 
