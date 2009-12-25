@@ -1,0 +1,1 @@
+fails:URI#normalize respects RFC 3986

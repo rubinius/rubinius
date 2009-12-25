@@ -1,0 +1,1 @@
+fails:URI#== returns true only if the normalized forms are equivalent
