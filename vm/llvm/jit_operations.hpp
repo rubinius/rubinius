@@ -338,9 +338,13 @@ namespace rubinius {
 
     // Stack manipulations
     //
+    Value* stack_slot_position(int which) {
+      assert(which >= 0 && which < vmmethod()->stack_size);
+      return b().CreateConstGEP1_32(stack_, which, "stack_pos");
+    }
+
     Value* stack_ptr() {
-      assert(sp_ >= 0 && sp_ < vmmethod()->stack_size);
-      return b().CreateConstGEP1_32(stack_, sp_, "stack_pos");
+      return stack_slot_position(sp_);
     }
 
     void set_sp(int sp) {

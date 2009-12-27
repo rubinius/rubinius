@@ -1119,6 +1119,16 @@ namespace rubinius {
       return b().CreateGEP(vars, idx2, idx2+3, "local_pos");
     }
 
+    void visit_push_stack_local(opcode which) {
+      Value* pos = stack_slot_position(vmmethod()->stack_size - which - 1);
+      stack_push(b().CreateLoad(pos, "stack_local"));
+    }
+
+    void visit_set_stack_local(opcode which) {
+      Value* pos = stack_slot_position(vmmethod()->stack_size - which - 1);
+      b().CreateStore(stack_top(), pos);
+    }
+
     void visit_push_local(opcode which) {
       Value* idx2[] = {
         ConstantInt::get(ls_->Int32Ty, 0),
@@ -2621,15 +2631,16 @@ namespace rubinius {
       std::vector<const Type*> types;
 
       types.push_back(VMTy);
+      types.push_back(CallFrameTy);
       types.push_back(ObjType);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
           module_->getOrInsertFunction("rbx_pop_exception", ft));
 
-      Value* call_args[] = { vm_, stack_pop() };
+      Value* call_args[] = { vm_, call_frame_, stack_pop() };
 
-      b().CreateCall(func, call_args, call_args+2);
+      b().CreateCall(func, call_args, call_args+3);
     }
 
     void visit_find_const(opcode which) {

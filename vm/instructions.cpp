@@ -52,6 +52,8 @@ using namespace rubinius;
 #define stack_position(where) (STACK_PTR = call_frame->stk + where)
 #define stack_calculate_sp() (STACK_PTR - call_frame->stk)
 
+#define stack_local(which) call_frame->stk[vmm->stack_size - which - 1]
+
 #define next_int ((opcode)(stream[call_frame->inc_ip()]))
 
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)

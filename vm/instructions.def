@@ -622,7 +622,7 @@ end
 instruction pop_exception() [ exception -- ]
     Object* top = stack_pop();
     if(top->nil_p()) {
-      state->thread_state()->clear_exception();
+      state->thread_state()->clear_exception(true);
     } else {
       state->thread_state()->set_exception(state, top);
     }
@@ -2391,4 +2391,12 @@ end
 
 instruction push_undef() [ -- value ]
   stack_push(G(undefined));
+end
+
+instruction push_stack_local(which) [ -- value ]
+  stack_push(stack_local(which));
+end
+
+instruction set_stack_local(which) [ value -- value ]
+  stack_local(which) = stack_top();
 end

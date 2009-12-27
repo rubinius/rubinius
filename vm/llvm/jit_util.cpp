@@ -726,7 +726,7 @@ extern "C" {
     return Qnil;
   }
 
-  Object* rbx_pop_exception(STATE, Object* top) {
+  Object* rbx_pop_exception(STATE, CallFrame* call_frame, Object* top) {
     if(top->nil_p()) {
       state->thread_state()->clear_exception();
     } else {

@@ -317,7 +317,8 @@ describe "A Rescue node" do
       body       = g.new_label
 
       g.push_modifiers
-      g.push_exception
+
+      saved = g.save_exception
 
       rr.set!
 
@@ -353,8 +354,7 @@ describe "A Rescue node" do
 
       last.set!
 
-      g.swap
-      g.pop_exception
+      g.restore_exception saved
       g.pop_modifiers
     end
   end
@@ -374,7 +374,7 @@ describe "A Rescue node" do
       body       = g.new_label
 
       g.push_modifiers
-      g.push_exception
+      saved = g.save_exception
 
       rr.set!
 
@@ -408,8 +408,7 @@ describe "A Rescue node" do
       fin.set!
       last.set!
 
-      g.swap
-      g.pop_exception
+      g.restore_exception saved
       g.pop_modifiers
     end
   end
@@ -429,7 +428,7 @@ describe "A Rescue node" do
       body       = g.new_label
 
       g.push_modifiers
-      g.push_exception
+      saved = g.save_exception
 
       rr.set!
 
@@ -468,8 +467,7 @@ describe "A Rescue node" do
       fin.set!
       last.set!
 
-      g.swap
-      g.pop_exception
+      g.restore_exception saved
       g.pop_modifiers
     end
   end
@@ -490,7 +488,7 @@ describe "A Rescue node" do
       body       = g.new_label
 
       g.push_modifiers
-      g.push_exception
+      saved = g.save_exception
 
       rr.set!
 
@@ -529,8 +527,7 @@ describe "A Rescue node" do
       fin.set!
       last.set!
 
-      g.swap
-      g.pop_exception
+      g.restore_exception saved
       g.pop_modifiers
     end
   end
@@ -551,7 +548,7 @@ describe "A Rescue node" do
       body       = g.new_label
 
       g.push_modifiers
-      g.push_exception
+      saved = g.save_exception
 
       rr.set!
 
@@ -593,8 +590,7 @@ describe "A Rescue node" do
       fin.set!
       last.set!
 
-      g.swap
-      g.pop_exception
+      g.restore_exception saved
       g.pop_modifiers
     end
   end
@@ -614,7 +610,7 @@ describe "A Rescue node" do
       body       = g.new_label
 
       g.push_modifiers
-      g.push_exception
+      saved = g.save_exception
 
       rr.set!
 
@@ -636,7 +632,7 @@ describe "A Rescue node" do
       g.goto rr
       body.set!
       g.push :nil
-      g.clear_exception
+      g.restore_exception saved
       g.ret
       g.clear_exception
       g.goto last
@@ -648,8 +644,7 @@ describe "A Rescue node" do
       fin.set!
       last.set!
 
-      g.swap
-      g.pop_exception
+      g.restore_exception saved
       g.pop_modifiers
     end
   end
@@ -678,7 +673,8 @@ describe "A Rescue node" do
               g.push 2
             when :StandardError
               g.push 3
-              g.clear_exception
+              g.push_stack_local 1
+              g.pop_exception
               g.ret
             end
           end
@@ -751,7 +747,7 @@ describe "A Rescue node" do
       bottom      = g.new_label
 
       g.push_modifiers
-      g.push_exception
+      saved = g.save_exception
 
       retry_lbl.set!
       g.setup_unwind exc_lbl
@@ -801,8 +797,8 @@ describe "A Rescue node" do
 
       noexc_lbl.set!
       done.set!
-      g.swap
-      g.pop_exception
+
+      g.restore_exception saved
       g.pop_modifiers
     end
   end
@@ -831,7 +827,7 @@ describe "A Rescue node" do
       bottom      = g.new_label
 
       g.push_modifiers
-      g.push_exception
+      saved = g.save_exception
 
       retry_lbl.set!          # 1
       g.setup_unwind exc_lbl
@@ -879,8 +875,9 @@ describe "A Rescue node" do
 
       cur_brk_lbl.set!        # 9
       g.clear_exception
-      g.swap
-      g.pop_exception
+
+      g.restore_exception saved
+
       g.raise_break
 
       reraise_lbl.set!        # 10
@@ -888,8 +885,7 @@ describe "A Rescue node" do
 
       noexc_lbl.set!          # 11
       done.set!               # 12
-      g.swap
-      g.pop_exception
+      g.restore_exception saved
       g.pop_modifiers
     end
   end

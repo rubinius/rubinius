@@ -93,6 +93,13 @@ module Rubinius
       @slot   = 0
       @g      = self
       @state = []
+      @stack_locals = 0
+    end
+
+    def new_stack_local
+      idx = @stack_locals
+      @stack_locals += 1
+      return idx
     end
 
     def state
@@ -115,6 +122,8 @@ module Rubinius
       ary.map do |item|
         if item.respond_to? :to_ary
           convert_to_ary item.to_ary
+        elsif item.kind_of? TestGenerator
+          item.to_a
         else
           item
         end
@@ -446,6 +455,20 @@ module Rubinius
       g.send :__module_init__, 0
     end
 
+    def save_exception
+      idx = new_stack_local
+      push_exception
+      set_stack_local idx
+      pop
+
+      return idx
+    end
+
+    def restore_exception(idx)
+      push_stack_local idx
+      pop_exception
+    end
+
     def in_rescue(*klasses)
       jump_retry   = g.new_label
       jump_else    = g.new_label
@@ -467,10 +490,13 @@ module Rubinius
 
         jump_top = g.new_label
         jump_top.set!
+
+        save_exception
       end
 
       g.push_modifiers
-      g.push_exception
+
+      r_saved = save_exception
 
       jump_retry.set!
 
@@ -514,8 +540,9 @@ module Rubinius
       yield :else
 
       jump_last.set!
-      g.swap
-      g.pop_exception
+
+      restore_exception r_saved
+
       g.pop_modifiers
 
       if has_ensure then

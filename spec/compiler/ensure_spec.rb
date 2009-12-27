@@ -20,6 +20,8 @@ describe "An Ensure node" do
 
       top.set!
 
+      g.save_exception
+
       g.push_modifiers
       g.push :nil
       g.pop_modifiers
@@ -128,6 +130,8 @@ describe "An Ensure node" do
       g.setup_unwind exc_lbl
 
       top.set!
+
+      saved = save_exception()
 
       g.push 14
       g.pop

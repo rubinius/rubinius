@@ -64,6 +64,8 @@ module Rubinius
 
       @state = []
       @generators = []
+
+      @stack_locals = 0
     end
 
     attr_reader   :ip, :stream, :iseq, :literals
@@ -147,7 +149,7 @@ module Rubinius
       cm.local_count    = @local_count
       cm.local_names    = @local_names.to_tuple if @local_names
 
-      cm.stack_size     = @stack_size
+      cm.stack_size     = @stack_size + @stack_locals
       cm.file           = @file
       cm.name           = @name
       cm.primitive      = @primitive
@@ -168,6 +170,12 @@ module Rubinius
     end
 
     # Helpers
+
+    def new_stack_local
+      idx = @stack_locals
+      @stack_locals += 1
+      return idx
+    end
 
     def add(instruction, arg1=nil, arg2=nil)
       @stream << InstructionSet[instruction].bytecode

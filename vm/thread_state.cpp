@@ -23,6 +23,17 @@ namespace rubinius {
     }
   }
 
+  void ThreadState::clear_exception(bool all) {
+    if(raise_reason_ == cNone) return;
+    if(!all && raise_reason_ != cException) {
+      std::cout << "WARNING: clearing non exception raise reason!\n";
+    }
+    raise_value_.set(Qnil);
+    raise_reason_ = cNone;
+    destination_scope_.set(Qnil);
+    throw_dest_.set(Qnil);
+  }
+
   void ThreadState::set_exception(STATE, Object* obj) {
     if(obj->kind_of_p(state, G(exc_vm_internal))) {
       Object* reason = obj->get_ivar(state, state->symbol("reason"));

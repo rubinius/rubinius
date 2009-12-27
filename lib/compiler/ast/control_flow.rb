@@ -461,8 +461,9 @@ module Rubinius
           g.push :nil
         end
 
-        if g.state.rescue?
-          g.clear_exception
+        if lcl = g.state.rescue?
+          g.push_stack_local lcl
+          g.pop_exception
         end
 
         if g.state.block?

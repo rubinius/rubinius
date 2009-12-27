@@ -41,16 +41,7 @@ namespace rubinius {
       return throw_dest_.get();
     }
 
-    void clear_exception(bool all = false) {
-      if(raise_reason_ == cNone) return;
-      if(!all && raise_reason_ != cException) {
-        std::cout << "WARNING: clearing non exception raise reason!\n";
-      }
-      raise_value_.set(Qnil);
-      raise_reason_ = cNone;
-      destination_scope_.set(Qnil);
-      throw_dest_.set(Qnil);
-    }
+    void clear_exception(bool all = false);
 
     Object* as_object(STATE);
     void set_exception(STATE, Object* obj);

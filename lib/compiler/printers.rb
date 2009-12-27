@@ -31,6 +31,7 @@ module Rubinius
       def print_header(cm)
         name = cm.name.inspect
         size = (SEPARATOR_SIZE - name.size - 2) / 2
+        size = 1 if size <= 0
         puts "\n#{"=" * size} #{name} #{"=" * (size + name.size % 2)}"
         print "Arguments:   "
         print "#{cm.required_args} required, #{cm.total_args} total"

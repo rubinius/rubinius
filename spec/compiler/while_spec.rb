@@ -285,7 +285,8 @@ describe "A While node" do
       # redo
       g.new_label.set!      # 2
       g.push_modifiers
-      g.push_exception
+      saved = g.save_exception
+
       retry_lbl.set!        # 3
       g.setup_unwind exc_lbl
 
@@ -301,8 +302,8 @@ describe "A While node" do
 
       cur_brk_lbl.set!      # 5
       g.pop_unwind
-      g.swap
-      g.pop_exception
+
+      g.restore_exception saved
       g.goto break_lbl
 
       exc_lbl.set!          # 6
@@ -322,8 +323,7 @@ describe "A While node" do
 
       noexc_lbl.set!        # 9
       done.set!             # 10
-      g.swap
-      g.pop_exception
+      g.restore_exception saved
       g.pop_modifiers
 
       g.pop
@@ -370,7 +370,7 @@ describe "A While node" do
       # redo
       g.new_label.set!      # 2
       g.push_modifiers
-      g.push_exception
+      saved = g.save_exception
       retry_lbl.set!        # 3
       g.setup_unwind exc_lbl
 
@@ -398,8 +398,8 @@ describe "A While node" do
 
       cur_brk_lbl.set!      # 7
       g.clear_exception
-      g.swap
-      g.pop_exception
+
+      g.restore_exception saved
       g.goto break_lbl
 
       reraise_lbl.set!      # 8
@@ -407,8 +407,7 @@ describe "A While node" do
 
       noexc_lbl.set!        # 9
       done.set!             # 10
-      g.swap
-      g.pop_exception
+      g.restore_exception saved
       g.pop_modifiers
 
       g.pop

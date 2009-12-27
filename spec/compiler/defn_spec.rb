@@ -29,7 +29,10 @@ describe "A Defn node" do
         ensure_noexc_lbl = d.new_label
 
         d.setup_unwind ensure_exc_lbl
+
         d.new_label.set!
+        exc = d.save_exception
+
         d.push_literal :a
         d.ensure_return
         d.pop_unwind
@@ -38,7 +41,9 @@ describe "A Defn node" do
         ensure_exc_lbl.set!
         d.push_exception
         d.push_literal :b
-        d.clear_exception
+
+        d.restore_exception exc
+
         d.ret
         d.pop
         d.pop_exception
