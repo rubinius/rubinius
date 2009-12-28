@@ -345,7 +345,7 @@ extern "C" {
     return string->size();
   }
 
-  void rb_str_clamp(VALUE self, size_t len) {
+  void rb_str_set_len(VALUE self, size_t len) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     String* string = capi_get_string(env, self);

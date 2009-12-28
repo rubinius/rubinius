@@ -92,6 +92,8 @@
 # endif
 #endif
 
+#define LONG_LONG long long
+
 #ifndef RUBY_EXTERN
 #define RUBY_EXTERN extern
 #endif
@@ -1266,8 +1268,7 @@ double rb_num2dbl(VALUE);
    */
   size_t  rb_str_len(VALUE self);
 
-  void    rb_str_clamp(VALUE self, size_t len);
-#define rb_str_set_len(s,l) rb_str_clamp(s,l)
+  void    rb_str_set_len(VALUE self, size_t len);
 
   /** Create a String using the designated length of given C string. */
   /* length is a long because MRI has it as a long, and it also has
