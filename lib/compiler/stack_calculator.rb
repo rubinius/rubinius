@@ -86,7 +86,8 @@ module Rubinius
             end
 
             return
-          when :ret, :raise_exc, :reraise
+          when :ret, :raise_exc, :raise_break, :raise_return, :ensure_return,
+               :reraise
             return
           end
           ip += opcode.size
