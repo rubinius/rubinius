@@ -124,7 +124,13 @@ module Rubinius
       @iseq = InstructionSequence.from @stream.to_tuple
 
       sdc = calculator.new @iseq, @lines
-      stack_size = sdc.run + @local_count
+      begin
+        stack_size = sdc.run + @local_count
+      rescue Exception => e
+        @iseq.show
+        raise e
+      end
+
       stack_size += 1 if @for_block
       @stack_size = stack_size
 

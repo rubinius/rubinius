@@ -303,5 +303,13 @@ module Rubinius
       enc = Encoder.new
       enc.decode_iseq(self, symbols_only)
     end
+
+    def show
+      ip = 0
+      decode.each do |inst|
+        puts "%4s: %s" % [ip, inst.join(" ")]
+        ip += inst.size
+      end
+    end
   end
 end
