@@ -9,7 +9,6 @@
 #include "field_offset.hpp"
 
 #include "call_frame.hpp"
-#include "assembler/jit.hpp"
 #include "configuration.hpp"
 
 #include "instruments/profiler.hpp"
@@ -27,6 +26,7 @@
 
 #include <sstream>
 
+#include "llvm/jit.hpp"
 #include "llvm/jit_compiler.hpp"
 #include "llvm/jit_method.hpp"
 #include "llvm/jit_block.hpp"
@@ -44,7 +44,7 @@ namespace jit {
 
   void Compiler::show_machine_code() {
     llvm::outs() << "[[[ JIT Machine Code: " << function_->getName() << " ]]]\n";
-    assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
+    LLVMState::show_machine_code(mci_->address(), mci_->size());
   }
 
   void* Compiler::generate_function(LLVMState* ls) {

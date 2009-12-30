@@ -9,7 +9,6 @@
 #include "field_offset.hpp"
 
 #include "call_frame.hpp"
-#include "assembler/jit.hpp"
 #include "configuration.hpp"
 
 #include "instruments/profiler.hpp"
@@ -29,14 +28,22 @@ namespace autogen_types {
   void makeLLVMModuleContents(llvm::Module* module);
 }
 
+#include <iostream>
 #include <sstream>
 #include <fstream>
+#include <iomanip>
+#include <cstdlib>
+#include <dlfcn.h>
 
 #include "llvm/jit_compiler.hpp"
 #include "llvm/jit_method.hpp"
 #include "llvm/jit_block.hpp"
 #include "llvm/passes.hpp"
 #include "instructions_util.hpp"
+
+#include <udis86.h>
+// for abi::__cxa_demangle
+#include <cxxabi.h>
 
 using namespace llvm;
 
@@ -677,8 +684,51 @@ namespace rubinius {
     return found;
   }
 
-  void LLVMState::show_machine_code(void* impl, size_t bytes) {
-    assembler_x86::AssemblerX86::show_buffer(impl, bytes, false, NULL);
+  void LLVMState::show_machine_code(void* buffer, size_t size) {
+    ud_t ud;
+
+    ud_init(&ud);
+#ifdef IS_X8664
+    ud_set_mode(&ud, 64);
+#else
+    ud_set_mode(&ud, 32);
+#endif
+    ud_set_syntax(&ud, UD_SYN_ATT);
+    ud_set_input_buffer(&ud, reinterpret_cast<uint8_t*>(buffer), size);
+
+    while(ud_disassemble(&ud)) {
+      void* address = reinterpret_cast<void*>(
+          reinterpret_cast<uintptr_t>(buffer) + ud_insn_off(&ud));
+
+      std::cout << std::setw(10) << std::right
+                << address
+                << "  ";
+
+      std::cout << std::setw(24) << std::left << ud_insn_asm(&ud);
+
+      if(ud.operand[0].type == UD_OP_JIMM) {
+        const void* addr = (const void*)((uintptr_t)buffer + ud.pc + (int)ud.operand[0].lval.udword);
+        std::cout << " ; " << addr;
+        if(ud.mnemonic == UD_Icall) {
+          Dl_info info;
+          if(dladdr(addr, &info)) {
+            int status = 0;
+            char* cpp_name = abi::__cxa_demangle(info.dli_sname, 0, 0, &status);
+            if(status >= 0) {
+              // Chop off the arg info from the signature output
+              char *paren = strstr(cpp_name, "(");
+              *paren = 0;
+              std::cout << " " << cpp_name;
+              free(cpp_name);
+            } else {
+              std::cout << " " << info.dli_sname;
+            }
+          }
+        }
+      }
+
+      std::cout << "\n";
+    }
   }
 
 }

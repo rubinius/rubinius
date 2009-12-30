@@ -54,14 +54,6 @@ dep_file    = "vm/.depends.mf"
 vm_objs     = %w[ vm/drivers/cli.o ]
 vm_srcs     = %w[ vm/drivers/cli.cpp ]
 
-jit_objs    = %w[ vm/assembler/jit.o vm/assembler/assembler_x86.o ]
-jit_srcs    = %w[ vm/assembler/jit.cpp vm/assembler/assembler_x86.cpp]
-
-if config.use_jit
-  objs += jit_objs
-  srcs += jit_srcs
-end
-
 EX_INC      = %w[ libtommath libgdtoa onig libffi/include
                   libltdl libev
                 ].map { |f| "vm/external_libs/#{f}" }
@@ -143,8 +135,7 @@ EXTERNALS   = %W[ vm/external_libs/libtommath/libtommath.a
                   vm/external_libs/libltdl/.libs/libltdl.a
                   vm/external_libs/libev/.libs/libev.a ]
 
-
-INCLUDES      = EX_INC + %w[vm/test/cxxtest vm . vm/assembler vm/assembler/udis86-1.7]
+INCLUDES      = EX_INC + %w[vm/test/cxxtest vm .]
 
 extra = %w!/usr/local/include /opt/local/include!
 
@@ -177,6 +168,8 @@ if RUBY_PLATFORM =~ /darwin/i
 end
 
 if LLVM_ENABLE
+  EXTERNALS << "vm/external_libs/udis86/libudis86/.libs/libudis86.a"
+  INCLUDES << "-Ivm/external_libs/udis86"
   FLAGS << "-DENABLE_LLVM"
   STDERR.puts "LLVM inclusion enabled."
 =begin
@@ -454,7 +447,6 @@ file  "vm/type_info.o"    => "vm/gen/typechecks.gen.cpp"
 file  "vm/primitives.hpp" => "vm/gen/primitives_declare.hpp"
 files Dir["vm/builtin/*.hpp"], INSN_GEN
 files vm_objs, vm_srcs
-files jit_objs, jit_srcs
 
 objs.zip(srcs).each do |obj, src|
   file obj => src
@@ -475,14 +467,6 @@ files EXTERNALS do |t|
   end
 end
 
-if config.use_jit
-  EXTERNALS << "vm/assembler/libudis86.a"
-end
-
-file "vm/assembler/libudis86.a" do
-  sh "cd vm/assembler; make libudis86.a"
-end
-
 file 'vm/primitives.o'                => 'vm/codegen/field_extract.rb'
 file 'vm/primitives.o'                => TYPE_GEN
 file 'vm/codegen/field_extract.rb'    => 'vm/gen'
@@ -492,14 +476,6 @@ task :run_field_extract do
 end
 
 files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] + [:run_field_extract] do
-end
-
-file 'vm/jit-test' => EXTERNALS + objs + jit_objs + ["vm/drivers/jit-test.o", "vm/assembler/libudis86.a"] do |t|
-  ld t
-end
-
-file "vm/drivers/jit-test.o" => "vm/drivers/jit-test.cpp" do
-  compile_c "vm/drivers/jit-test.o", "vm/drivers/jit-test.cpp"
 end
 
 file 'vm/vm' => EXTERNALS + objs + vm_objs do |t|
