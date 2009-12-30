@@ -957,6 +957,83 @@ class Array
     Packer.new(self,schema).dispatch
   end
 
+  ##
+  #  call-seq:
+  #     ary.permutation { |p| block }          -> array
+  #     ary.permutation                        -> enumerator
+  #     ary.permutation(n) { |p| block }       -> array
+  #     ary.permutation(n)                     -> enumerator
+  #
+  #  When invoked with a block, yield all permutations of length <i>n</i>
+  #  of the elements of <i>ary</i>, then return the array itself.
+  #  If <i>n</i> is not specified, yield all permutations of all elements.
+  #  The implementation makes no guarantees about the order in which
+  #  the permutations are yielded.
+  #
+  #  When invoked without a block, return an enumerator object instead.
+  #
+  #  Examples:
+  #
+  #     a = [1, 2, 3]
+  #     a.permutation.to_a     #=> [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+  #     a.permutation(1).to_a  #=> [[1],[2],[3]]
+  #     a.permutation(2).to_a  #=> [[1,2],[1,3],[2,1],[2,3],[3,1],[3,2]]
+  #     a.permutation(3).to_a  #=> [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+  #     a.permutation(0).to_a  #=> [[]] # one permutation of length 0
+  #     a.permutation(4).to_a  #=> []   # no permutations of length 4
+  #
+  def permutation(num=undefined, &block)
+    return to_enum(:permutation, num) unless block_given?
+    if num.equal? undefined
+      num = @total
+    else
+      num = Type.coerce_to num, Fixnum, :to_int
+    end
+
+    if num < 0 || @total < num
+      # no permutations, yield nothing
+    elsif num == 0
+      # exactly one permutation: the zero-length array
+      yield []
+    elsif num == 1
+      # this is a special, easy case
+      each { |val| yield [val] }
+    else
+      # this is the general case
+      p = Array.new(num)
+      used = Array.new(@total, false)
+      __permute__(num, p, 0, used, &block)
+    end
+
+    self
+  end
+
+  def __permute__(num, p, index, used, &block)
+    # Recursively compute permutations of r elements of the set [0..n-1].
+    # When we have a complete permutation of array indexes, copy the values
+    # at those indexes into a new array and yield that array.
+    #
+    # num: the number of elements in each permutation
+    # p: the array (of size num) that we're filling in
+    # index: what index we're filling in now
+    # used: an array of booleans: whether a given index is already used
+    #
+    # Note: not as efficient as could be for big num.
+    @total.times do |i|
+      unless used[i]
+        p[index] = i
+        if index < num-1
+          used[i] = true
+          __permute__(num, p, index+1, used, &block)
+          used[i] = false
+        else
+          yield values_at(*p)
+        end
+      end
+    end
+  end
+  private :__permute__
+
   # Removes and returns the last element from the Array.
   def pop(many=undefined)
     if many.equal? undefined
