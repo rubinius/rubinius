@@ -99,6 +99,10 @@
 #define RUBY_EXTERN extern
 #endif
 
+#ifndef EXTERN
+#define EXTERN RUBY_EXTERN  /* deprecated */
+#endif
+
 void* XMALLOC(size_t bytes);
 void  XFREE(void* ptr);
 void* XREALLOC(void* ptr, size_t bytes);
