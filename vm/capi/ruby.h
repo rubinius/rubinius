@@ -34,6 +34,7 @@
 #include <unistd.h>
 
 #include "intern.h"
+#include "defines.h"
 
 #define RUBY
 #define RUBINIUS
