@@ -1,1 +1,0 @@
-incomplete:Kernel#instance_variables needs to be reviewed for spec completeness
