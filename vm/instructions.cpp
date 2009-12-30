@@ -100,7 +100,7 @@ Object* VMMethod::interpreter(STATE,
 
   InterpreterState is;
 
-#ifdef __i386__
+#ifdef X86_ESI_SPEEDUP
   register void** ip_ptr asm ("esi") = vmm->addresses;
 #else
   register void** ip_ptr = vmm->addresses;
