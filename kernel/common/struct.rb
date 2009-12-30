@@ -48,10 +48,15 @@ class Struct
       end
     end
 
-    begin
-      attrs = attrs.map { |attr| attr.to_sym }
-    rescue NoMethodError => e
-      raise TypeError, e.message
+    attrs = attrs.map do |attr|
+      case attr
+      when Symbol
+        attr
+      when String
+        attr.to_sym
+      else
+        raise TypeError, "#{attr.inspect} is not a symbol"
+      end
     end
 
     raise ArgumentError if attrs.any? { |attr| attr.nil? }
@@ -221,9 +226,9 @@ class Struct
   # fields are equal (using <tt>eql?</tt>).
 
   def eql?(other)
-    return true if self == other
+    return true if equal? other
     return false if self.class != other.class
-    to_a.eql? other
+    to_a.eql? other.to_a
   end
 
   def each(&block)
