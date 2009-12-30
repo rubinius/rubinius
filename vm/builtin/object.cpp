@@ -267,18 +267,6 @@ namespace rubinius {
   Object* Object::ivar_names(STATE) {
     Array* ary = Array::create(state, 3);
 
-    if(!reference_p()) {
-      LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
-
-      if(tbl) return tbl;
-      return Qnil;
-    }
-
-    // Handle packed objects in a unique way.
-    if(PackedObject* po = try_as<PackedObject>(this)) {
-      po->add_packed_ivars(state, ary);
-    }
-
     // We don't check slots, because we don't advertise them
     // as normal ivars.
     class ivar_match : public ObjectMatcher {
@@ -291,6 +279,19 @@ namespace rubinius {
         return false;
       }
     } match;
+
+    if(!reference_p()) {
+      LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
+      if(tbl) {
+        ary->concat(state, tbl->filtered_keys(state, match));
+      }
+      return ary;
+    }
+
+    // Handle packed objects in a unique way.
+    if(PackedObject* po = try_as<PackedObject>(this)) {
+      po->add_packed_ivars(state, ary);
+    }
 
     if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
       ary->concat(state, tbl->filtered_keys(state, match));
