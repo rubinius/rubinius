@@ -77,5 +77,6 @@ module Kernel
     Ruby.primitive :yield_gdb
     raise PrimitiveFailure, "Kernel#yield_gdb primitive failed"
   end
+  private :yield_gdb
 
 end

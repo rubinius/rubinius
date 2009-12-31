@@ -45,6 +45,10 @@ module Digest
   end
 end
 
-def Digest(name)
-  Digest.const_get(name)
+class Object
+  def Digest(name)
+    Digest.const_get(name)
+  end
+
+  private :Digest
 end

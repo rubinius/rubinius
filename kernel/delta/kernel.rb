@@ -116,4 +116,6 @@ module Kernel
       m.const_defined?(n) ? m.const_get(n) : m.const_missing(n)
     end
   end
+
+  private :const_lookup
 end

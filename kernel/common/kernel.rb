@@ -413,18 +413,6 @@ module Kernel
     false
   end
 
-  def class_variable_get(sym)
-    self.class.class_variable_get sym
-  end
-
-  def class_variable_set(sym, value)
-    self.class.class_variable_set sym, value
-  end
-
-  def class_variables(symbols = false)
-    self.class.class_variables(symbols)
-  end
-
   def extend(*modules)
     modules.reverse_each do |mod|
       mod.extend_object(self)
