@@ -596,12 +596,9 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        g.dup
-        g.send :__verify_metaclass__, 0
-        g.pop
         g.push_const :Rubinius
         g.swap
-        g.send :open_metaclass, 1
+        g.send :object_metaclass, 1
 
         if @body
           attach_and_call g, :__metaclass_init__, true

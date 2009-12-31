@@ -377,7 +377,6 @@ namespace rubinius {
     add_sym(object_id);
     add_sym(method_missing);
     add_sym(inherited);
-    add_sym(opened_class);
     add_sym(from_literal);
     add_sym(method_added);
     add_sym(send);

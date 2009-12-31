@@ -23,13 +23,6 @@
 #       change it without consultation.
 
 
-# Hook called when class created or reopened.
-#
-def opened_class(created)
-  # No default behaviour.
-end
-
-
 # This class encapsulates primitives that involve the VM
 # itself rather than something in Ruby-land.
 #
@@ -67,6 +60,7 @@ class Object
   #
   def __show__
     Ruby.primitive :object_show
+    "<unknown>"
   end
 end
 
@@ -702,16 +696,4 @@ end
 
 class Object
   include Kernel
-
-  # :internal:
-  #
-  # Crude check for whether object can have a metaclass,
-  # raises if not.
-  #
-  # TODO - Improve this check for metaclass support
-  def __verify_metaclass__
-    if self.__kind_of__(Fixnum) or self.__kind_of__(Symbol)
-      raise TypeError, "no virtual class for #{self.class}"
-    end
-  end
 end

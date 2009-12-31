@@ -179,9 +179,6 @@ namespace rubinius {
     // Ruby.primitive :vm_open_module_under
     static Module* vm_open_module_under(STATE, Symbol* name, Module* under);
 
-    // Ruby.primitive :vm_open_metaclass
-    static Class* vm_open_metaclass(STATE, Object* recv);
-
     // Ruby.primitive :vm_find_method
     static Tuple* vm_find_method(STATE, Object* recv, Symbol* name);
 

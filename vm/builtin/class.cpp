@@ -44,8 +44,8 @@ namespace rubinius {
 
     System::attach_primitive(state,
                              G(rubinius), true,
-                             state->symbol("open_metaclass"),
-                             state->symbol("vm_open_metaclass"));
+                             state->symbol("object_metaclass"),
+                             state->symbol("vm_object_metaclass"));
 
     System::attach_primitive(state,
                              G(rubinius), true,
