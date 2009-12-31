@@ -16,7 +16,7 @@ module Rubinius
 
   def self.object_metaclass(obj)
     Ruby.primitive :vm_object_metaclass
-    raise PrimitiveFailure, "Rubinius.object_metaclass failed"
+    raise TypeError, "no metaclass available for a #{obj.class}"
   end
 
   def self.object_respond_to?(obj, name)

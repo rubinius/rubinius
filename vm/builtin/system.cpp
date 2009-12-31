@@ -560,7 +560,8 @@ namespace rubinius {
   }
 
   Object* System::vm_object_metaclass(STATE, Object* obj) {
-    return obj->metaclass(state);
+    if(obj->reference_p()) return obj->metaclass(state);
+    return Primitives::failure();
   }
 
   Object* System::vm_object_respond_to(STATE, Object* obj, Symbol* name) {
