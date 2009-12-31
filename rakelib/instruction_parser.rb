@@ -39,14 +39,14 @@
 #
 # Finally, for instructions that alter the normal sequential flow of execution,
 # the type of control flow change will be specified in curly braces, e.g.
-# {:branch}. The control flow behavior defaults to :next, but for those
+# {branch}. The control flow behavior defaults to next, but for those
 # instructions where control is (or may) change, one of the following flow
 # types must be specified:
-#   :branch - for instructions that branch within the same method
-#   :send   - for instructions that invoke another method
-#   :yield  - for instructions that yield to a block
-#   :return - for instructions that return to the calling method
-#   :raise  - for instructions that invoke exception handling
+#   branch - for instructions that branch within the same method
+#   send   - for instructions that invoke another method
+#   yield  - for instructions that yield to a block
+#   return - for instructions that return to the calling method
+#   raise  - for instructions that invoke exception handling
 
 class InstructionParser
   class ParseError < Exception; end
@@ -142,7 +142,7 @@ class InstructionParser
     end
 
     def parse_header
-      m = @header.match(/(\w+)\(([^)]*)\) \[ ([\w+ ]*)-- ([\w ]*)\]( \{:(\w+)\})?/)
+      m = @header.match(/(\w+)\(([^)]*)\) \[ ([\w+ ]*)-- ([\w ]*)\]( =>\s*(\w+))?/)
       unless m
         raise ParseError, "invalid instruction header '#{@header}' at #{@file.lineno}"
       end
