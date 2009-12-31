@@ -31,7 +31,6 @@ namespace rubinius {
 
   class CompiledMethod;
   class MethodContext;
-  class Opcode;
   class SendSite;
   class VMMethod;
   class InterpreterCallFrame;
@@ -43,12 +42,14 @@ namespace rubinius {
                                        Arguments& args);
 
   class VMMethod {
+  public:
+    static void** instructions;
+
   private:
     IndirectLiterals indirect_literals_;
     VMMethod* parent_;
 
   public:
-    static void** instructions;
     InterpreterRunner run;
 
     opcode* opcodes;
@@ -72,10 +73,8 @@ namespace rubinius {
     size_t number_of_caches_;
     InlineCache* caches;
 
-  private:
-    bool jitted_;
-
 #ifdef ENABLE_LLVM
+  private:
     llvm::Function* llvm_function_;
     size_t jitted_bytes_;
     void*  jitted_impl_;
@@ -87,16 +86,16 @@ namespace rubinius {
     VMMethod(STATE, CompiledMethod* meth);
     ~VMMethod();
 
-    bool jitted() {
-      return jitted_;
-    }
 
 #ifdef ENABLE_LLVM
+    bool jitted() {
+      return jitted_impl_ != 0;
+    }
+
     void set_jitted(llvm::Function* func, size_t bytes, void* impl) {
       llvm_function_ = func;
       jitted_impl_ = impl;
       jitted_bytes_ = bytes;
-      jitted_ = true;
     }
 
     llvm::Function* llvm_function() {
@@ -109,6 +108,10 @@ namespace rubinius {
 
     size_t jitted_bytes() {
       return jitted_bytes_;
+    }
+#else
+    bool jitted() {
+      return false;
     }
 #endif
 
@@ -185,8 +188,6 @@ namespace rubinius {
 
     void setup_argument_handler(CompiledMethod* meth);
 
-    std::vector<Opcode*> create_opcodes();
-
     bool validate_ip(STATE, size_t ip);
     void set_breakpoint_flags(STATE, size_t ip, bpflags flags);
     bpflags get_breakpoint_flags(STATE, size_t ip);
@@ -249,39 +250,6 @@ namespace rubinius {
       }
     };
 
-  };
-
-  class Opcode {
-  public:
-    opcode op;
-    int args;
-    int arg1;
-    int arg2;
-    bool start_block;
-    std::size_t block;
-
-    Opcode(opcode op, int o1 = -1, int o2 = -1) :
-      op(op), args(0), arg1(o1), arg2(o2), start_block(false), block(0) {
-        if(o1 >= 0) args++;
-        if(o2 >= 0) args++;
-      }
-
-    Opcode(VMMethod::Iterator& iter) : start_block(false), block(0) {
-      op = iter.op();
-      args = iter.args();
-
-      switch(args) {
-      case 2:
-        arg2 = iter.operand2();
-      case 1:
-        arg1 = iter.operand1();
-      }
-
-    }
-
-    bool is_goto();
-    bool is_terminator();
-    bool is_send();
   };
 };
 

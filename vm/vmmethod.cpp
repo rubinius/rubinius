@@ -87,10 +87,10 @@ namespace rubinius {
     , original(state, meth)
     , type(NULL)
     , native_function(NULL)
-    , jitted_(false)
 #ifdef ENABLE_LLVM
     , llvm_function_(NULL)
 #endif
+    , jitted_impl_(NULL)
   {
     meth->set_executor(&VMMethod::execute);
 
@@ -576,63 +576,6 @@ namespace rubinius {
   }
 
   /*
-   * Turns a VMMethod into a C++ vector of Opcodes.
-   */
-  std::vector<Opcode*> VMMethod::create_opcodes() {
-    std::vector<Opcode*> ops;
-    std::map<int, size_t> stream2opcode;
-
-    VMMethod::Iterator iter(this);
-
-    /* Fill +ops+ with all our Opcode objects, maintain
-     * the map from stream position to instruction. */
-    for(size_t ipos = 0; !iter.end(); ipos++, iter.inc()) {
-      stream2opcode[iter.position] = ipos;
-      Opcode* lop = new Opcode(iter);
-      ops.push_back(lop);
-    }
-
-    /* Iterate through the ops, fixing goto locations to point
-     * to opcodes and set start_block on any opcode that is
-     * the beginning of a block */
-    bool next_new = false;
-
-    for(std::vector<Opcode*>::iterator i = ops.begin(); i != ops.end(); i++) {
-      Opcode* op = *i;
-      if(next_new) {
-        op->start_block = true;
-        next_new = false;
-      }
-
-      /* We patch and mark where we branch to. */
-      if(op->is_goto()) {
-        op->arg1 = stream2opcode[op->arg1];
-        ops.at(op->arg1)->start_block = true;
-      }
-
-      /* This terminates the block. */
-      if(op->is_terminator()) {
-        /* this ends a block. */
-        next_new = true;
-      }
-    }
-
-    // TODO take the exception table into account here
-
-    /* Go through again and assign each opcode a block
-     * number. */
-    size_t block = 0;
-    for(std::vector<Opcode*>::iterator i = ops.begin(); i != ops.end(); i++) {
-      Opcode* op = *i;
-
-      if(op->start_block) block++;
-      op->block = block;
-    }
-
-    return ops;
-  }
-
-  /*
    * Ensures the specified IP value is a valid address.
    */
   bool VMMethod::validate_ip(STATE, size_t ip) {
@@ -669,53 +612,5 @@ namespace rubinius {
     *ptr = obj;
     indirect_literals_.push_back(ptr);
     return ptr;
-  }
-
-
-  bool Opcode::is_goto() {
-    switch(op) {
-    case InstructionSequence::insn_goto_if_false:
-    case InstructionSequence::insn_goto_if_true:
-    case InstructionSequence::insn_goto:
-      return true;
-    }
-
-    return false;
-  }
-
-  bool Opcode::is_terminator() {
-    switch(op) {
-    case InstructionSequence::insn_send_method:
-    case InstructionSequence::insn_send_stack:
-    case InstructionSequence::insn_send_stack_with_block:
-    case InstructionSequence::insn_send_stack_with_splat:
-    case InstructionSequence::insn_meta_send_op_plus:
-    case InstructionSequence::insn_meta_send_op_minus:
-    case InstructionSequence::insn_meta_send_op_equal:
-    case InstructionSequence::insn_meta_send_op_lt:
-    case InstructionSequence::insn_meta_send_op_gt:
-    case InstructionSequence::insn_meta_send_op_tequal:
-      return true;
-    }
-
-    return false;
-  }
-
-  bool Opcode::is_send() {
-    switch(op) {
-    case InstructionSequence::insn_send_method:
-    case InstructionSequence::insn_send_stack:
-    case InstructionSequence::insn_send_stack_with_block:
-    case InstructionSequence::insn_send_stack_with_splat:
-    case InstructionSequence::insn_meta_send_op_plus:
-    case InstructionSequence::insn_meta_send_op_minus:
-    case InstructionSequence::insn_meta_send_op_equal:
-    case InstructionSequence::insn_meta_send_op_lt:
-    case InstructionSequence::insn_meta_send_op_gt:
-    case InstructionSequence::insn_meta_send_op_tequal:
-      return true;
-    }
-
-    return false;
   }
 }
