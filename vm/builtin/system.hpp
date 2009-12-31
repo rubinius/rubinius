@@ -195,6 +195,15 @@ namespace rubinius {
     // Ruby.primitive :vm_object_class
     static Class* vm_object_class(STATE, Object* obj);
 
+    // A robust way to get the metaclass of an object.
+    // Ruby.primitive :vm_object_metaclass
+    static Object* vm_object_metaclass(STATE, Object* obj);
+
+    // A robust way to find out if an object responds to a method, since #respond_to?
+    // can be redefined.
+    // Ruby.primitive :vm_object_respond_to
+    static Object* vm_object_respond_to(STATE, Object* obj, Symbol* sym);
+
     // Increment the internal global serial number, used for caching
     // Ruby.primitive :vm_inc_global_serial
     static Object* vm_inc_global_serial(STATE);

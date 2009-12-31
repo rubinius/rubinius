@@ -559,6 +559,14 @@ namespace rubinius {
     return obj->class_object(state);
   }
 
+  Object* System::vm_object_metaclass(STATE, Object* obj) {
+    return obj->metaclass(state);
+  }
+
+  Object* System::vm_object_respond_to(STATE, Object* obj, Symbol* name) {
+    return obj->respond_to(state, name, Qfalse);
+  }
+
   Object* System::vm_inc_global_serial(STATE) {
     return Fixnum::from(state->shared.inc_global_serial());
   }

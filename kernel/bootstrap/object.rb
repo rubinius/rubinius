@@ -1,6 +1,6 @@
 class Object
   def metaclass
-    class << self;self;end
+    Rubinius.object_metaclass self
   end
   alias_method :__metaclass__, :metaclass
 
