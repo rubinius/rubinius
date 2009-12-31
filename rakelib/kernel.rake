@@ -107,8 +107,8 @@ file compiler_signature => compiler_files + parser_ext_files do |t|
 
   t.prerequisites.each do |name|
     File.open name, "r" do |file|
-      file.each_line do |line|
-        digest << line
+      while chunk = file.read(1024)
+        digest << chunk
       end
     end
   end
