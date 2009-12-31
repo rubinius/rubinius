@@ -65,6 +65,15 @@ class Configure
       @use_llvm = false
     end
 
+    o.on "--enable-llvm", "Enable llvm (default)" do
+      # noop
+    end
+
+    @force_prebuilt = false
+    o.on "--force-prebuilt", "Only use a prebuilt LLVM" do
+      @force_prebuilt = true
+    end
+
     o.on "--llvm-path", "PATH", "Where to find LLVM" do |dir|
       @llvm_path = dir
     end
@@ -261,6 +270,12 @@ class Configure
       end
 
       return
+    end
+
+    if @force_prebuilt
+      return if setup_prebuilt
+      STDERR.puts "Unable to find prebuilt."
+      exit 1
     end
 
     return if setup_config
