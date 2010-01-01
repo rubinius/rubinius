@@ -944,7 +944,9 @@ double rb_num2dbl(VALUE);
    *
    *  NOT supported in Rubinius.
    */
-  #define rb_obj_freeze(object_handle)
+
+  // Things use this as an expression, so be sure it expands to be the argument.
+  #define rb_obj_freeze(obj) obj
 
   /**
    *  Call method on receiver, args as varargs. Calls private methods.
