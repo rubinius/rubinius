@@ -238,7 +238,11 @@ class Regexp
 
   # Performs normal match and returns MatchData object from $~ or nil.
   def match(str)
-    return nil if str.nil?
+    if str.nil?
+      Rubinius::VariableScope.of_sender.last_match = nil
+      return nil
+    end
+
     Rubinius::VariableScope.of_sender.last_match = search_region(str, 0, str.size, true)
   end
 
