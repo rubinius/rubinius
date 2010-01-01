@@ -132,4 +132,24 @@ describe "An Sclass node" do
       end
     end
   end
+
+  relates <<-ruby do
+    x = "a"
+    class << x
+      self
+    end
+    ruby
+
+    compile do |g|
+      g.push_literal "a"
+      g.string_dup
+      g.set_local 0
+      g.pop
+
+      g.push_local 0
+      g.push_const :Rubinius
+      g.swap
+      g.send :object_metaclass, 1
+    end
+  end
 end

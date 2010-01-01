@@ -601,6 +601,13 @@ module Rubinius
         g.send :object_metaclass, 1
 
         if @body
+          # if @body just returns self, don't bother with it.
+          if @body.kind_of? Block
+            ary = @body.array
+            return if ary.size == 1 and ary[0].kind_of? Self
+          end
+
+          # Ok, emit it.
           attach_and_call g, :__metaclass_init__, true
         else
           g.pop
