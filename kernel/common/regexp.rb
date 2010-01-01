@@ -243,6 +243,8 @@ class Regexp
       return nil
     end
 
+    str = StringValue(str)
+
     Rubinius::VariableScope.of_sender.last_match = search_region(str, 0, str.size, true)
   end
 
