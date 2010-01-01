@@ -7,6 +7,11 @@ end
 
 describe "Regexp#match" do
   it_behaves_like(:regexp_match, :match)
+
+  it "should coerce Exceptions into strings" do
+    f = Exception.new("foo")
+    /foo/.match(f)[0].should == "foo"
+  end
 end
 
 describe "Regexp#~" do
