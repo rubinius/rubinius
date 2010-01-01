@@ -43,6 +43,16 @@ task :build => ["build:normal", "gem_bootstrap"]
 desc "Recompile all ruby system files"
 task :rebuild => %w[clean build]
 
+desc "Use to run Rubinius in CI"
+task :ci do
+  unless system("rake -q")
+    puts "<< ERROR IN CI, CLEANING AND RERUNNING >>"
+    system "rake -q clean"
+    system "find . -name *.rbc -delete"
+    sh "rake -q"
+  end
+end
+
 desc 'Remove rubinius build files'
 task :clean => %w[
   vm:clean
