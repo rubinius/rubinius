@@ -254,8 +254,10 @@ class Regexp
   class SourceParser
     class Part
       OPTIONS_MAP = {'m' => Regexp::MULTILINE, 'i' => Regexp::IGNORECASE, 'x' => Regexp::EXTENDED}
+
       attr_accessor :options
       attr_accessor :source
+
       def initialize(source = "")
         @source = source
         @options = []
@@ -333,14 +335,14 @@ class Regexp
       if parts.size == 1 && parts.first.has_options?
         parts.first.flatten
       end
-      parts.map{|part| part.to_s}.join
+      parts.map { |part| part.to_s }.join
     end
 
     def parts
       return @parts if @already_parsed
       @index = 0
       create_parts
-      @parts.reject!{|part| part.empty?}
+      @parts.reject! { |part| part.empty? }
       @already_parsed = true
       @parts
     end
@@ -366,7 +368,12 @@ class Regexp
     def process_group
       @index += 1
       @parts << group_part_class.new
-      (@index += 1) && process_group_options if in_group_with_options?
+
+      if in_group_with_options?
+        @index += 1
+        process_group_options
+      end
+
       process_look_ahead if in_lookahead_group?
       process_until_group_finished
       add_part!
@@ -445,10 +452,15 @@ class Regexp
       possible_options.each do |flag, identifier|
         chosen_options << identifier if @options & flag > 0
       end
+
       if parts.size == 1
         chosen_options.concat parts.first.options
       end
-      excluded_options = possible_options.map{|e| e.last}.select{|identifier| !chosen_options.include?(identifier)}
+
+      excluded_options = possible_options.map { |e| e.last }.select do |identifier|
+        !chosen_options.include?(identifier)
+      end
+
       options_to_return = chosen_options
       if !excluded_options.empty?
         options_to_return << "-" << excluded_options
