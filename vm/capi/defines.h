@@ -11,3 +11,4 @@
  * explicit defines for now.
  */
 #define HAVE_RB_STR_SET_LEN
+#define HAVE_RB_DEFINE_ALLOC_FUNC
