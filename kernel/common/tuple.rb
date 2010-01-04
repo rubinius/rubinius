@@ -112,5 +112,19 @@ module Rubinius
     def last
       at(fields-1)
     end
+
+    # Marshal support - _dump / _load are deprecated so eventually we should figure
+    # out a better way.
+    def _dump(depth)
+      # TODO use depth
+      Marshal.dump to_a
+    end
+
+    def self._load(str)
+      ary = Marshal.load(str)
+      t = new(ary.size)
+      ary.each_with_index { |obj, idx| t[idx] = obj }
+      return t
+    end
   end
 end
