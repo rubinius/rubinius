@@ -50,7 +50,9 @@ def need_install?
 end
 
 def precompile(dir)
-  ruby "lib/bin/compile.rb -V -T default #{dir}"
+  (Dir["#{dir}/*.rb"] + Dir["#{dir}/**/*.rb"]).each do |file|
+    Rubinius::CompilerNG.compile file, 1, "#{file}c", [:default]
+  end
 end
 
 def install_file(source, pattern, dest)
