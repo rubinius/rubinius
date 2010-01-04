@@ -60,6 +60,7 @@ describe "Logger::Application#log=" do
   end
 
   after :all do
+    @log_file.close
     File.unlink(@file_path) if File.exists?(@file_path)
   end
 

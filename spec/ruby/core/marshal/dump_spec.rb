@@ -272,9 +272,7 @@ describe "Marshal.dump" do
         "#{mv+nv}e:\nMethsS:\x11Struct::Ure2\a:\x06a[\a;\aI\"\ahi\x06:\x06EF:\x06b[\a;\x00@\a"
     end
   end
-end
-
-describe "Marshal.dump" do
+  
   ruby_version_is ""..."1.9" do
     MarshalSpec::DATA.each do |description, (object, marshal, attributes)|
       it "dumps a #{description}" do

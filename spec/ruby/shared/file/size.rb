@@ -91,6 +91,8 @@ describe :file_size_with_file_argument, :shared => true do
   end
 
   it "accepts a File argument" do
-    @object.send(@method,File.open(@exists)).should == 8
+    File.open(@exists) do |f|
+      @object.send(@method, f).should == 8
+    end
   end
 end

@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/common'
 require File.dirname(__FILE__) + '/shared/new'
 
 describe "Exception.exception" do
@@ -66,4 +67,5 @@ describe "Exception#exception" do
     e2.should be_an_instance_of(RuntimeError)
     e2.message.should == :message
   end
+
 end

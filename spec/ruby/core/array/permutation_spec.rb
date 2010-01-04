@@ -87,6 +87,14 @@ ruby_version_is "1.8.7" do
       @numbers.permutation(3.7).to_a.sort.should == 
         @numbers.permutation(3).to_a.sort
     end  
-  
+
+    it "returns an Enumerator which works as expected even when the array was modified" do
+      @numbers = [1, 2]
+      enum = @numbers.permutation
+      @numbers << 3
+      enum.to_a.sort.should == [
+        [1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]
+      ].sort
+    end
   end
 end

@@ -7,6 +7,12 @@ describe "URI#==" do
   it "ignores capitalization of host names" do
     URI("http://exAMPLE.cOm").should == URI("http://example.com")
   end
+
+  ruby_bug "redmine:2525", "1.8.7" do
+    it "ignores capitalization of scheme" do
+      URI("hTTp://example.com").should == URI("http://example.com")
+    end
+  end
   
   it "treats a blank path and a path of '/' as the same" do
     URI("http://example.com").should == URI("http://example.com/")
@@ -23,13 +29,13 @@ describe "URI#==" do
     URI("http://example.com:8080").should_not == URI("http://example.com")
   end
 
-  # Note: The previous tests are included in following ones
+  # Note: The previous tests will be included in following ones
 
   it_behaves_like :uri_eql, :==
 
   it_behaves_like :uri_eql_against_other_types, :==
 
-  ruby_bug "redmine:2525", "1.8.7" do
+  quarantine! do # Quarantined until redmine:2542 is accepted
     it "returns true only if the normalized forms are equivalent" do
       URISpec::NORMALIZED_FORMS.each do |form|
         normal_uri = URI(form[:normalized])

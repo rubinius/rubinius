@@ -17,7 +17,7 @@ describe "URI#normalize" do
 
   # The previous tests are included by the one below
 
-  ruby_bug "redmine:2525", "1.8.7" do
+  quarantine! do # Quarantined until redmine:2542 is accepted
     it "respects RFC 3986" do
       URISpec::NORMALIZED_FORMS.each do |form|
         normal_uri = URI(form[:normalized])

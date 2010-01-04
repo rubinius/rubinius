@@ -28,14 +28,11 @@ describe "Dir.chdir" do
     end
   end
 
-  # MRI fails this when /var path has symlinks, as on OS X
-  quarantine! do
-    it "changes to the specified directory" do
-      Dir.chdir DirSpecs.mock_dir
-      Dir.pwd.should == DirSpecs.mock_dir
-    end
+  it "changes to the specified directory" do
+    Dir.chdir DirSpecs.mock_dir
+    Dir.pwd.should == DirSpecs.mock_dir
   end
-  
+
   it "returns 0 when successfully changing directory" do
     Dir.chdir(@original).should == 0
   end
@@ -77,14 +74,11 @@ describe "Dir.chdir" do
     current_dir.should == Dir.pwd
   end
 
-  # MRI fails this when /var path has symlinks, as on OS X
-  quarantine! do
-    it "changes to the specified directory for the duration of the block" do
-      ar = Dir.chdir(DirSpecs.mock_dir) { |dir| [dir, Dir.pwd] }
-      ar.should == [DirSpecs.mock_dir, DirSpecs.mock_dir]
+  it "changes to the specified directory for the duration of the block" do
+    ar = Dir.chdir(DirSpecs.mock_dir) { |dir| [dir, Dir.pwd] }
+    ar.should == [DirSpecs.mock_dir, DirSpecs.mock_dir]
 
-      Dir.pwd.should == @original
-    end
+    Dir.pwd.should == @original
   end
 
   it "raises a SystemCallError if the directory does not exist" do

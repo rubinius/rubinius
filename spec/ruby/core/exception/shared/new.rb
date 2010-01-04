@@ -10,4 +10,9 @@ describe :exception_new, :shared => true do
   it "returns 'Exception' for message when no message given" do
     Exception.send(@method).message.should == "Exception"
   end
+
+  it "returns the exception when it has a custom constructor" do
+    ExceptionSpecs::ConstructorException.send(@method).should be_kind_of(ExceptionSpecs::ConstructorException)
+  end
+
 end

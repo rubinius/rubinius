@@ -9,6 +9,7 @@ describe "Logger#error?" do
   end
 
   after :each do
+    @logger.close
     @log_file.close unless @log_file.closed?
     File.unlink(@path) if File.exists?(@path)
   end
@@ -32,6 +33,7 @@ describe "Logger#error" do
   end
 
   after :each do
+    @logger.close
     @log_file.close unless @log_file.closed?
     File.unlink(@path) if File.exists?(@path)
   end

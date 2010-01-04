@@ -6,15 +6,19 @@ ruby_version_is ""..."1.9" do
 
   describe "File.syscopy" do
     before(:each) do
-      system "echo 'hello rubinius' > syscopy_test"
-      system "chmod a+x syscopy_test"
+      File.open('syscopy_test', 'w+') do |f|
+        f.puts('hello rubinius')
+      end
+      platform_is_not :windows do
+        system "chmod a+x syscopy_test"
+      end
     end
-    
+
     after(:each) do
       File.unlink "syscopy_test"
       File.unlink "syscopy_test_dest" rescue nil
     end
-    
+
     it "copies the file at 1st arg to the file at 2nd arg" do
       File.syscopy("syscopy_test", "syscopy_test_dest")
       fd = File.open("syscopy_test_dest")

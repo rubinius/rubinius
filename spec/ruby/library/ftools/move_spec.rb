@@ -6,15 +6,19 @@ ruby_version_is ""..."1.9" do
 
   describe "File.move" do
     before(:each) do
-      system "echo 'hello rubinius' > move_test"
-      system "chmod a+x move_test"
+      File.open('move_test', 'w+') do |f|
+        f.puts('hello rubinius')
+      end
+      platform_is_not :windows do
+        system "chmod a+x move_test"
+      end
     end
-    
+
     after(:each) do
       File.unlink "move_test_dest"
       File.unlink "move_test" rescue nil
     end
-    
+
     it "moves the file at 1st arg to the file at 2nd arg" do
       omode = File.stat("move_test").mode
       File.move("move_test", "move_test_dest")

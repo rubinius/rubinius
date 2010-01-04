@@ -14,13 +14,24 @@ describe "Tempfile#initialize" do
   it "opens a new tempfile with the passed name in the passed directory" do
     @tempfile.send(:initialize, "basename", tmp(""))
     File.exist?(@tempfile.path).should be_true
+
     tmpdir = tmp("")
-    @tempfile.path[0, tmpdir.length].should == tmpdir
-    @tempfile.path.should include("basename")
+    path = @tempfile.path
+
+    platform_is :windows do
+      # on Windows, both types of slashes are OK,
+      # but the tmp helper always uses '/'
+      path.gsub!('\\', '/')
+    end
+
+    path[0, tmpdir.length].should == tmpdir
+    path.should include("basename")
   end
 
-  it "sets the permisssions on the tempfile to 0600" do
-    @tempfile.send(:initialize, "basename", tmp(""))
-    File.stat(@tempfile.path).mode.should == 0100600
+  platform_is_not :windows do
+    it "sets the permisssions on the tempfile to 0600" do
+      @tempfile.send(:initialize, "basename", tmp(""))
+      File.stat(@tempfile.path).mode.should == 0100600
+    end
   end
 end

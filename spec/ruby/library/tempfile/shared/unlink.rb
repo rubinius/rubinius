@@ -4,11 +4,12 @@ describe :tempfile_unlink, :shared => true do
   end
 
   after(:each) do
-    @tempfile.close
+    @tempfile.close rescue nil
   end
 
   ruby_bug "", "1.8.6" do
     it "unlinks self" do
+      @tempfile.close
       path = @tempfile.path
       @tempfile.send(@method)
       File.exists?(path).should be_false

@@ -34,4 +34,11 @@ module ExceptionSpecs
       nil
     end
   end
+
+  class ConstructorException < Exception
+
+    def initialize
+    end
+
+  end
 end  

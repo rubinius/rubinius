@@ -24,16 +24,17 @@ describe "Logger#new" do
 
      @log_file.rewind
      LoggerSpecs::strip_date(@log_file.readline).should == "WARN -- : Test message\n"
+     l.close
    end
 
   it "receives a frequency rotation as second argument" do
-     lambda { Logger.new(@log_file, "daily")}.should_not raise_error
-     lambda { Logger.new(@log_file, "weekly")}.should_not raise_error
-     lambda { Logger.new(@log_file, "monthly")}.should_not raise_error
+     lambda { Logger.new(@log_file, "daily") }.should_not raise_error
+     lambda { Logger.new(@log_file, "weekly") }.should_not raise_error
+     lambda { Logger.new(@log_file, "monthly") }.should_not raise_error
   end
   
   it "also receives a number of log files to keep as second argument" do
-    lambda { Logger.new(@log_file, 1)}.should_not raise_error
+    lambda { Logger.new(@log_file, 1).close }.should_not raise_error
   end
 
   it "receivs a maximum logfile size as third argument" do
@@ -49,9 +50,14 @@ describe "Logger#new" do
     File.exists?(path + ".0").should be_true 
 
     # first line will be a comment so we'll have to skip it.
-    LoggerSpecs::strip_date(File.open(path + ".0").readlines.last).should == "WARN -- : foo\n"
-    LoggerSpecs::strip_date(File.open(path).readlines.last).should == "WARN -- : bar\n"
+    f = File.open(path)
+    f1 = File.open(path + ".0")
+    LoggerSpecs::strip_date(f1.readlines.last).should == "WARN -- : foo\n"
+    LoggerSpecs::strip_date(f.readlines.last).should == "WARN -- : bar\n"
 
+    l.close
+    f.close
+    f1.close
     File.unlink(path)
     File.unlink(path + ".0")
   end
