@@ -13,18 +13,20 @@ namespace rubinius {
   class CompiledFile {
   public:
     std::string magic;
-    long version;
+    uint64_t version;
     std::string sum;
 
   private:
     std::istream* stream;
 
   public:
-    CompiledFile(std::string magic, long version, std::string sum, 
-        std::istream* stream) : 
-          magic(magic), version(version), sum(sum), 
-          stream(stream) { }
-
+    CompiledFile(std::string magic, uint64_t version, std::string sum,
+                 std::istream* stream)
+      : magic(magic)
+      , version(version)
+      , sum(sum)
+      , stream(stream)
+    {}
 
     static CompiledFile* load(std::istream& stream);
     Object* body(STATE);

@@ -300,6 +300,13 @@ containing the Rubinius standard library files.
         puts
       end
 
+      # This will only trigger if it's not the first option, in which case
+      # we'll just tell the user to make it the first option.
+      options.on "--rebuild-compiler", "Rebuild the Rubinius compiler" do
+        puts "This must be the first and only option."
+        exit 1
+      end
+
       options.doc <<-DOC
 \nVM Options
    -X<variable>[=<value>]
@@ -329,7 +336,37 @@ containing the Rubinius standard library files.
     end
 
     def load_compiler
-      require "compiler"
+      # This happens before we parse ARGV, so we have to check ARGV ourselves
+      # here.
+
+      rebuild = (ARGV.last == "--rebuild-compiler")
+
+      begin
+        Requirer::Utils.loading_rbc_only(rebuild ? :force : true) do
+          require "compiler"
+        end
+      rescue Rubinius::InvalidRBC => e
+        STDERR.puts "There was an error loading the compiler."
+        STDERR.puts "It appears that your compiler is out of date with the VM."
+        STDERR.puts "\nPlease use 'rbx --rebuild-compiler' or 'rake [instal]' to"
+        STDERR.puts "bring the compiler back to date."
+        exit 1
+      end
+
+      if rebuild
+        STDOUT.puts "Rebuilding compiler..."
+        files =
+          ["#{@main_lib}/compiler.rb"] +
+          Dir["#{@main_lib}/compiler/*.rb"] +
+          Dir["#{@main_lib}/compiler/**/*.rb"]
+
+        files.each do |file|
+          puts "#{file}"
+          Rubinius.compile_file file, true
+        end
+
+        exit 0
+      end
     end
 
     # Require any -r arguments

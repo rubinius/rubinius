@@ -20,7 +20,7 @@
 namespace rubinius {
   CompiledFile* CompiledFile::load(std::istream& stream) {
     std::string magic, sum;
-    long ver;
+    uint64_t ver;
 
     stream >> magic;
     stream >> ver;

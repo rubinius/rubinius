@@ -34,7 +34,7 @@ namespace rubinius {
 
     /** Load a compiled file. */
     // Ruby.primitive :compiledfile_load
-    static Object*  compiledfile_load(STATE, String* path, Object* version);
+    static Object*  compiledfile_load(STATE, String* path, Integer* version);
 
     /**
      *  When running under GDB, stop here.

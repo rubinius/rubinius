@@ -42,6 +42,7 @@ namespace rubinius {
   Environment::Environment(int argc, char** argv)
     : argc_(argc)
     , argv_(argv)
+    , signature_(0)
     , agent(0)
   {
 #ifdef ENABLE_LLVM
@@ -331,6 +332,9 @@ namespace rubinius {
 
     CompiledFile* cf = CompiledFile::load(stream);
     if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
+    if(signature_ > 0) {
+      if(cf->version != signature_) throw BadKernelFile(file);
+    }
 
     /** @todo Redundant? CompiledFile::execute() does this. --rue */
     state->thread_state()->clear_exception(true);
@@ -413,8 +417,25 @@ namespace rubinius {
 
     // Load the ruby file to prepare for bootstrapping Ruby!
     // The bootstrapping for the VM is already done by the time we're here.
+
+    // First, pull in the signature file. This helps control when .rbc files need
+    // to be discarded.
+
+    std::string sig_path = root + "/signature";
+    std::ifstream sig_stream(sig_path.c_str());
+    if(sig_stream) {
+      sig_stream >> signature_;
+      state->globals.rubinius->set_const(state, "Signature",
+                       Integer::from(state, signature_));
+      sig_stream.close();
+    } else {
+      state->globals.rubinius->set_const(state, "Signature", Integer::from(state, 0));
+    }
+
+    // Load alpha
     run_file(root + "/alpha.rbc");
 
+    // Read the index and load the directories listed.
     while(!stream.eof()) {
       std::string line;
 
