@@ -70,8 +70,8 @@ class Exception
     "#<#{self.class.name}: #{self.to_s}>"
   end
 
-  def self.exception(message=nil)
-    self.new(message)
+  class << self
+    alias_method :exception, :new
   end
 
   def exception(message=nil)
@@ -237,21 +237,59 @@ class SystemCallError < StandardError
   # We use .new here because when errno is set, we attempt to
   # lookup and return a subclass of SystemCallError, specificly,
   # one of the Errno subclasses.
-  def self.new(message, errno=nil)
-    if message.kind_of? Integer
-      errno = message
-      message = nil
-    elsif message
-      message = StringValue message
-    end
+  def self.new(message=undefined, errno=undefined)
+    # This method is used 2 completely different ways. One is when it's called
+    # on SystemCallError, in which case it tries to construct a Errno subclass
+    # or makes a generic instead of itself.
+    #
+    # Otherwise it's called on a Errno subclass and just helps setup
+    # a instance of the subclass
+    if self.equal? SystemCallError
+      if message.equal? undefined
+        raise ArgumentError, "must supply at least a message/errno"
+      end
 
-    if errno and errno.kind_of? Fixnum
-      if error = SystemCallError.errno_error(message, errno)
+      if errno.equal?(undefined)
+        if message.kind_of?(Fixnum)
+          if inst = SystemCallError.errno_error(nil, message)
+            return inst
+          else # It's some random errno
+            errno = message
+            message = nil
+          end
+        else
+          errno = nil
+        end
+      else
+        message = StringValue(message) if message
+
+        if error = SystemCallError.errno_error(message, errno)
+          return error
+        end
+      end
+
+      return super(message, errno)
+    else
+      unless errno.equal? undefined
+        raise ArgumentError, "message is the only argument"
+      end
+
+      if message and !(message.equal?(undefined))
+        message = StringValue(message)
+      end
+
+      if error = SystemCallError.errno_error(message, self::Errno)
         return error
       end
-    end
 
-    super(message, errno)
+      raise TypeError, "invalid Errno subclass"
+    end
+  end
+
+  # Must do this here because we have a unique new and otherwise .exception will
+  # call Exception.new because of the alias in Exception.
+  class << self
+    alias_method :exception, :new
   end
 
   def initialize(message, errno)

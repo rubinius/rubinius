@@ -410,6 +410,11 @@ namespace rubinius {
       ern->set_const(state, symbol(name), current);
     } else {
       Class* cls = state->new_class(name, sce, ern);
+
+      // new_class has simply name setting logic that doesn't take into account
+      // being not under Object. So we set it again using the smart method.
+      cls->set_name(state, ern, state->symbol(name));
+
       cls->set_const(state, symbol("Errno"), key);
       cls->set_const(state, symbol("Strerror"), String::create(state, strerror(num)));
       state->globals.errno_mapping->store(state, key, cls);

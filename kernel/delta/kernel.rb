@@ -6,7 +6,7 @@ module Kernel
   # raising forever blows)
   #++
 
-  def raise(exc=undefined, msg=nil, ctx=nil)
+  def raise(exc=undefined, msg=undefined, ctx=nil)
     skip = false
     if exc.equal? undefined
       exc = $!
@@ -16,7 +16,11 @@ module Kernel
         exc = RuntimeError.new("No current exception")
       end
     elsif exc.respond_to? :exception
-      exc = exc.exception msg
+      if msg.equal? undefined
+        exc = exc.exception
+      else
+        exc = exc.exception msg
+      end
       raise ::TypeError, 'exception class/object expected' unless exc.kind_of?(::Exception)
     elsif exc.kind_of? String or !exc
       exc = ::RuntimeError.exception exc
