@@ -69,9 +69,9 @@ class Configure
       # noop
     end
 
-    @force_prebuilt = false
-    o.on "--force-prebuilt", "Only use a prebuilt LLVM" do
-      @force_prebuilt = true
+    @skip_system = false
+    o.on "--skip-system", "Don't consider a system LLVM installation" do
+      @skip_system = true
     end
 
     o.on "--llvm-path", "PATH", "Where to find LLVM" do |dir|
@@ -147,34 +147,42 @@ class Configure
     @options.parse ary
   end
 
+  require 'net/http'
+
+  def download(url, full_path)
+    begin
+      Net::HTTP.get_response(URI(url)) do |res|
+        size, total = 0, res.header['Content-Length'].to_i
+        File.open full_path, "w" do |f|
+          res.read_body do |chunk|
+            f << chunk
+            size += chunk.size
+            print "\r    [ %d%% (%d of %d) ]" % [(size * 100) / total, size, total]
+          end
+        end
+        puts ": done!"
+      end
+    rescue Exception => e
+      File.unlink full_path if File.exists?(full_path)
+      puts " ERROR"
+      return false
+    end
+
+    return true
+  end
+
   def update_prebuilt
     file = "llvm-#{@host}.tar.bz2"
     full_path = "vm/external_libs/prebuilt/#{file}"
 
+    dir = File.dirname full_path
+
+    Dir.mkdir dir unless File.exists? dir
+
     url = "http://asset.rubini.us/prebuilt/#{file}"
 
     unless File.exists?(full_path)
-      dir = File.dirname(full_path)
-      Dir.mkdir dir unless File.directory?(dir)
-      puts "    Fetching #{url}..."
-
-      require 'net/http'
-
-      begin
-        Net::HTTP.get_response(URI(url)) do |res|
-          size, total = 0, res.header['Content-Length'].to_i
-          File.open full_path, "w" do |f|
-            res.read_body do |chunk|
-              f << chunk
-              size += chunk.size
-              print "\r    [ %d%% (%d of %d) ]" % [(size * 100) / total, size, total]
-            end
-          end
-          puts ": done!"
-        end
-      rescue Exception => e
-        File.unlink full_path if File.exists?(full_path)
-      end
+      download url, full_path
 
       unless File.exists? full_path
         puts "ERROR. No #{file} available on server."
@@ -183,30 +191,31 @@ class Configure
     end
 
     puts "    Prebuilt packages updated."
-
   end
 
-  LLVM_SVN_DIR = %w!vm external_libs llvm!
-  LLVM_SVN_URL = "http://llvm.org/svn/llvm-project/llvm/branches/release_26/"
+  def setup_source
+    url = "http://asset.rubini.us/prebuilt/llvm-2.6-source.tar.bz2"
+    path = "vm/external_libs/prebuilt/llvm-2.6-source.tar.bz2"
 
-  def setup_svn
-    unless File.directory?(@llvm_svn_dir)
-      print "  Checking out LLVM from svn: #{LLVM_SVN_URL}"
-      unless system("svn co -q #{LLVM_SVN_URL} #{@llvm_svn_dir}")
-        puts "    Unable to checkout from svn."
+    puts "  Downloading #{url}..."
+    return false unless download(url, path)
+
+    if File.exists?(path)
+      print "  Unpacking prebuilt LLVM source: "
+      system "cd vm/external_libs; tar xjf prebuilt/llvm-2.6-source.tar.bz2"
+      puts "done!"
+
+      if File.exists?("vm/external_libs/llvm/include")
+        puts "  Code appears to be proper svn tree."
+      else
+        puts "  Code doesn't appear to be proper LLVM tree!"
         return false
       end
-    end
 
-    if File.exists?(File.join(@llvm_svn_dir, "include"))
-      puts "  Code appears to be proper svn tree."
       @llvm = :svn
-    else
-      puts "  Code in #{@llvm_svn_dir} doesn't appear to be proper LLVM tree!"
-      return false
+      return true
     end
 
-    return true
   end
 
   def setup_prebuilt
@@ -272,15 +281,12 @@ class Configure
       return
     end
 
-    if @force_prebuilt
-      return if setup_prebuilt
-      STDERR.puts "Unable to find prebuilt."
-      exit 1
+    unless @skip_system
+      return if setup_config
     end
 
-    return if setup_config
     return if setup_prebuilt
-    return if setup_svn
+    return if setup_source
 
     puts "WARNING: Unable to configure for LLVM, disabling support."
     @use_llvm = false
