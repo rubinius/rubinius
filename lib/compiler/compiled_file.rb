@@ -37,7 +37,7 @@ module Rubinius
     # Writes the CompiledFile +cm+ to +file+.
     def self.dump(cm, file)
       File.open(file, "w") do |f|
-        new("!RBIX", 0, "x").encode_to(f, cm)
+        new("!RBIX", Rubinius::Signature, "x").encode_to(f, cm)
       end
     rescue Errno::EACCES
       # just skip writing the compiled file if we don't have permissions

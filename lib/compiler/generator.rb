@@ -163,6 +163,8 @@ module Rubinius
       cm
     end
 
+    # Replace all Labels in the stream by dereferencing them to their integer
+    # position.
     def set_label_positions
       @stream.each_with_index do |op, index|
         if op.kind_of? Label

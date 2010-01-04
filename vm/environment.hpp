@@ -13,12 +13,22 @@ namespace rubinius {
   class ConfigParser;
   class QueryAgent;
 
+  // throw when there is a bad signature on a kernel .rbc file.
+  class BadKernelFile : public std::runtime_error {
+  public:
+    BadKernelFile(const std::string& str)
+      : std::runtime_error(str)
+    {}
+  };
+
   class Environment {
     // The thread used to trigger preemptive thread switching
     pthread_t preemption_thread_;
 
     int argc_;
     char** argv_;
+
+    uint64_t signature_;
 
   public:
     SharedState* shared;

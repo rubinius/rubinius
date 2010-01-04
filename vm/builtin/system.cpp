@@ -77,23 +77,24 @@ namespace rubinius {
   //
   // HACK: remove this when performance is better and compiled_file.rb
   // unmarshal_data method works.
-  Object* System::compiledfile_load(STATE, String* path, Object* version) {
+  Object* System::compiledfile_load(STATE, String* path, Integer* version) {
     if(!state->probe->nil_p()) {
       state->probe->load_runtime(state, std::string(path->c_str()));
     }
 
     std::ifstream stream(path->c_str());
     if(!stream) {
-      std::ostringstream msg;
-      msg << "unable to open file to run: " << path->c_str();
-      Exception::io_error(state, msg.str().c_str());
+      return Primitives::failure();
     }
 
     CompiledFile* cf = CompiledFile::load(stream);
     if(cf->magic != "!RBIX") {
-      std::ostringstream msg;
-      msg << "Invalid file: " << path->c_str();
-      Exception::io_error(state, msg.str().c_str());
+      return Primitives::failure();
+    }
+
+    uint64_t ver = version->to_ulong_long();
+    if(ver > 0 && cf->version > 0 && cf->version != ver) {
+      return Primitives::failure();
     }
 
     Object *body = cf->body(state);

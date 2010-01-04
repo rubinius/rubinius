@@ -89,13 +89,22 @@ int main(int argc, char** argv) {
 
     std::cout << "Ruby backtrace:" << std::endl;
     env.state->print_backtrace();
-  } catch(std::runtime_error& e) {
-    std::cout << "Runtime exception: " << e.what() << std::endl;
+  } catch(BadKernelFile& e) {
+    std::cout << "ERROR: BadKernelFile: " << e.what() << "\n\n";
+    std::cout << "An invalid kernel file has been detected.\n";
+    std::cout << "This is because the VM is out of sync with the kernel.\n";
+    std::cout << "Please recompile your kernel using:\n";
+    std::cout << "  rake kernel:clean clean\n";
+    std::cout << "  rake\n";
+    std::cout << "\nIf the problem persists, please open an issue at:\n";
+    std::cout << "  http://github.com/evanphx/rubinius\n";
+    std::cout << "\nThanks,\n  Management.\n";
+    return 1;
   } catch(VMException &e) {
     std::cout << "Unknown VM exception detected." << std::endl;
     e.print_backtrace();
-  } catch(std::string e) {
-    std::cout << e << std::endl;
+  } catch(std::runtime_error& e) {
+    std::cout << "Runtime exception: " << e.what() << std::endl;
   } catch(...) {
     std::cout << "Unknown exception detected." << std::endl;
   }
