@@ -32,7 +32,7 @@ class Configure
 
     # Essential settings
     @libversion = "1.0"
-    @version = "#{@libversion}.0-rc1"
+    @version = "#{@libversion}.0-rc2"
 
     if File.directory? root + "/.git"
       @buildrev = `git rev-list --all | head -n1`.chomp
