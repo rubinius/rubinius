@@ -651,9 +651,6 @@ module Marshal
       consume size
     end
 
-    def get_module_names(obj)
-    end
-
     def get_user_class
       cls = Module.const_lookup @user_class
       @user_class = nil
