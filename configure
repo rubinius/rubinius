@@ -34,6 +34,7 @@ class Configure
     @libversion = "1.0"
     @version = "#{@libversion}.0-rc2"
     @release_date = "2010-01-04"
+    @config_version = 1
 
     if File.directory? root + "/.git"
       @buildrev = `git rev-list --all | head -n1`.chomp
@@ -414,7 +415,8 @@ module Rubinius
     :program_name   => "#{@program_name}",
     :version        => "#{@version}",
     :libversion     => "#{@libversion}",
-    :release_date   => "#{@release_date}"
+    :release_date   => "#{@release_date}",
+    :config_version => #{@config_version}
   }
 end
       EOC
