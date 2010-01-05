@@ -221,7 +221,7 @@ class Requirer
           compile_feature(rb, requiring) do
             begin
               cm = load_from_rbc(rbc_path, version_number)
-            rescue InvalidRBC
+            rescue Rubinius::InvalidRBC
               if $DEBUG_LOADING
                 STDERR.puts "[Invalid .rbc #{rbc_path} detected, ignoring]"
               end
