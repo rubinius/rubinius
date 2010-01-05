@@ -73,7 +73,7 @@ module Kernel
     end
 
     cm = Rubinius::CompilerNG.compile_eval string, binding.variables, filename, lineno
-    cm.scope = binding.static_scope
+    cm.scope = binding.static_scope.dup
     cm.name = :__eval__
 
     yield cm if block_given?
