@@ -373,6 +373,8 @@ class Dir
   end
 
   def self.chdir(path = ENV['HOME'])
+    path = StringValue path
+
     if block_given?
       original_path = self.getwd
       error = FFI::Platform::POSIX.chdir path
@@ -387,7 +389,6 @@ class Dir
 
       return value
     else
-      path = StringValue path
       error = FFI::Platform::POSIX.chdir path
       if error != 0
         Errno.handle path
