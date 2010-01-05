@@ -294,6 +294,12 @@ class EvalSpecs
   def f
     yield
   end
+
+  def self.call_eval
+    f = __FILE__
+    eval "true", binding, "(eval)", 1
+    return f
+  end
 end
 
 # for Kernel#sleep to have Channel in it's specs

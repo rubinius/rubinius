@@ -274,6 +274,19 @@ describe "Kernel#eval" do
     end
   end
 
+  # Found via Rubinius bug github:#149
+  it "should not alter the value of __FILE__ in the binding" do
+    first_time =  EvalSpecs.call_eval
+    second_time = EvalSpecs.call_eval
+
+    # This bug is seen by calling the method twice and comparing the values
+    # of __FILE__ each time. If the bug is present, calling eval will set the
+    # value of __FILE__ to the eval's "filename" argument.
+
+    second_time.should_not == "(eval)"
+    first_time.should == second_time
+  end
+
   deviates_on "jruby" do
     it "can be aliased" do
       alias aliased_eval eval
