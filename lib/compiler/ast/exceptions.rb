@@ -94,7 +94,9 @@ module Rubinius
             @else.bytecode(g)
           end
         else
-          g.retry = g.new_label
+          outer_retry = g.retry
+
+          this_retry = g.new_label
           reraise = g.new_label
           els     = g.new_label
           done    = g.new_label
@@ -105,7 +107,7 @@ module Rubinius
           g.set_stack_local current_exc
           g.pop
 
-          g.retry.set!
+          this_retry.set!
           ex = g.new_label
           g.setup_unwind ex, RescueType
 
@@ -116,6 +118,12 @@ module Rubinius
             # Make a break available to use, which we'll use to
             # lazily generate a cleanup area
             g.break = g.new_label
+          end
+
+          # Use a lazy label to patch up prematuraly leaving a begin
+          # body via retry.
+          if outer_retry
+            g.retry = g.new_label
           end
 
           @body.bytecode(g)
@@ -137,7 +145,26 @@ module Rubinius
             g.break = current_break
           end
 
+          if outer_retry
+            if g.retry.used?
+              g.retry.set!
+              g.pop_unwind
+
+              # Reset the outer exception
+              g.push_stack_local current_exc
+              g.pop_exception
+
+              g.goto outer_retry
+            end
+
+            g.retry = outer_retry
+          end
+
           ex.set!
+
+          # Expose the retry label here only, not before this.
+          g.retry = this_retry
+
           @rescue.bytecode(g, reraise, done, current_exc)
           reraise.set!
           g.reraise
