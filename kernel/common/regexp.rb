@@ -330,7 +330,7 @@ class Regexp
 
 
     def string
-      ["(?", options_string, ":",  parts_string, ")"].join
+      "(?#{options_string}:#{parts_string})"
     end
 
     def parts_string
@@ -384,10 +384,8 @@ class Regexp
     def group_part_class
       if in_group_with_options?
         OptionsGroupPart
-      elsif in_lookahead_group?
-        LookAheadGroupPart
       else
-        raise "Couldn't determine Group part type to instantiate"
+        LookAheadGroupPart
       end
     end
 
