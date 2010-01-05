@@ -128,8 +128,6 @@ class Hash
 
     return false unless other.size == size
 
-    # Pickaxe claims that defaults are compared, but MRI 1.8.[46] doesn't actually do that
-    # return false unless other.default == default
     Thread.detect_recursion self, other do
       i = to_iter
       while entry = i.next(entry)
@@ -143,7 +141,7 @@ class Hash
 
   def hash
     val = size
-    Thread.detect_recursion self do
+    Thread.detect_outermost_recursion self do
       i = to_iter
       while entry = i.next(entry)
         val ^= entry.key.hash

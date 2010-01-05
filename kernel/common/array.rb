@@ -343,8 +343,9 @@ class Array
   # lengths are the same. The element comparison is the primary
   # and length is only checked if the former results in 0's.
   def <=>(other)
-    other = Type.coerce_to other, Array, :to_ary
+    other = Type.convert_to other, Array, :to_ary
     return 0 if equal? other
+    return nil if other.nil?
 
     Thread.detect_recursion self, other do
       max = other.total < @total ? other.total : @total
@@ -739,7 +740,7 @@ class Array
   # code (similar to #eql?)
   def hash
     hash_val = size
-    return size if Thread.detect_recursion self do
+    return size if Thread.detect_outermost_recursion self do
       i = to_iter
       while i.next
         hash_val ^= i.item.hash

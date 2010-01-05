@@ -124,9 +124,11 @@ class Struct
 
   def ==(other)
     return false if (self.class != other.class)
-    Thread.recursion_guard self do
-      self.values == other.values
+    Thread.detect_recursion self, other do
+      return self.values == other.values
     end
+    # Subtle: if we are here, we are recursing and haven't found any difference, so:
+    true
   end
 
   ##
@@ -228,7 +230,14 @@ class Struct
   def eql?(other)
     return true if equal? other
     return false if self.class != other.class
-    to_a.eql? other.to_a
+    Thread.detect_recursion self, other do
+      _attrs.each do |var|
+        return false unless instance_variable_get("@#{var}").eql? other.instance_variable_get("@#{var}")
+      end
+    end
+    # Subtle: if we are here, then no difference was found, or we are recursing
+    # In either case, return
+    true
   end
 
   def each(&block)
@@ -248,7 +257,11 @@ class Struct
   # Return a hash value based on this struct's contents.
 
   def hash
-    to_a.hash
+    hash_val = size
+    return _attrs.size if Thread.detect_outermost_recursion self do
+      _attrs.each { |var| hash_val ^= instance_variable_get("@#{var}").hash }
+    end
+    return hash_val
   end
 
   ##

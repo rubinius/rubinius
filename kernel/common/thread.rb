@@ -295,11 +295,11 @@ class Thread
     current.recursive_objects[obj.object_id]
   end
 
-  # check_recursion will return if there's a recursion
+  # detect_recursion will return if there's a recursion
   # on obj (or the pair obj+paired_obj).
   # If there is one, it returns true.
   # Otherwise, it will yield once and return false.
-  
+
   def self.detect_recursion(obj, paired_obj = undefined)
     id = obj.object_id
     pair_id = paired_obj.object_id
@@ -328,6 +328,27 @@ class Thread
         yield
       ensure
         objects[id] = previous
+      end
+    end
+    false
+  end
+
+  # Similar to detect_recursion, but will short circuit all inner recursion
+  # levels (using a throw)
+
+  def self.detect_outermost_recursion(obj, paired_obj = undefined, &block)
+    objects = current.recursive_objects
+    if objects[:__detect_outermost_recursion__.id] # then not outermost
+      throw :__detect_outermost_recursion__, :__detect_outermost_recursion__ if detect_recursion(obj, paired_obj, &block)
+    else
+      begin
+        objects[:__detect_outermost_recursion__.id] = true  # signal that there is an outermost
+        r = catch(:__detect_outermost_recursion__) do
+          throw objects, objects if detect_recursion(obj, paired_obj, &block)
+        end
+        return true if r == :__detect_outermost_recursion__
+      ensure
+        objects[:__detect_outermost_recursion__.id] = false
       end
     end
     false

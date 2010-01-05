@@ -29,6 +29,24 @@ module Type
     raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{ret.class})"
   end
 
+  ##
+  # Same as coerce_to but returns nil if conversion fails.
+  # Corresponds to MRI's rb_check_convert_type()
+  #
+  def self.convert_to(obj, cls, meth)
+    return obj if self.obj_kind_of?(obj, cls)
+
+    begin
+      ret = obj.__send__(meth)
+    rescue Exception
+      return nil
+    end
+
+    return ret if ret.nil? || self.obj_kind_of?(ret, cls)
+
+    raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{ret.class})"
+  end
+
   def self.coerce_to_symbol(obj)
     if obj.kind_of? Fixnum
       raise ArgumentError, "Fixnums (#{obj}) cannot be used as symbols"
