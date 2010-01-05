@@ -89,8 +89,8 @@ namespace rubinius {
     , native_function(NULL)
 #ifdef ENABLE_LLVM
     , llvm_function_(NULL)
-#endif
     , jitted_impl_(NULL)
+#endif
   {
     meth->set_executor(&VMMethod::execute);
 
