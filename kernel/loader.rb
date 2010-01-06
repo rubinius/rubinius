@@ -277,12 +277,8 @@ containing the Rubinius standard library files.
         @no_rbc = true
       end
 
-      options.on("-P", "[COLUMN]",
-                 "Run the profiler, optionally sort output by COLUMN") do |columns|
+      options.on("-P", "Run the profiler") do
         require 'profile'
-        if columns
-          Profiler__.options :sort => columns.split(/,/).map {|x| x.to_sym }
-        end
       end
 
       options.on "--vv", "Display version and extra info" do
