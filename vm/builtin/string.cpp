@@ -784,6 +784,48 @@ return_value:
     }
   }
 
+  Fixnum* String::rindex(STATE, String* pattern, Fixnum* start) {
+    native_int total = size();
+    native_int match_size = pattern->size();
+    native_int pos = start->to_native();
+
+    if(pos >= total) pos = total - 1;
+
+    switch(match_size) {
+    case 0:
+      return start;
+    case 1:
+      {
+        uint8_t* buf = byte_address();
+        uint8_t matcher = pattern->byte_address()[0];
+
+        while(pos >= 0) {
+          if(buf[pos] == matcher) return Fixnum::from(pos);
+          pos--;
+        }
+      }
+      return (Fixnum*)Qnil;
+    default:
+      {
+        uint8_t* buf = byte_address();
+        uint8_t* matcher = pattern->byte_address();
+
+        if(total - pos < match_size) {
+          pos = total - match_size;
+        }
+
+        uint8_t* right = buf + pos;
+        uint8_t* cur = right;
+
+        while(cur >= buf) {
+          if(memcmp(cur, matcher, match_size) == 0) return Fixnum::from(cur - buf);
+          cur--;
+        }
+      }
+      return (Fixnum*)Qnil;
+    }
+  }
+
   void String::Info::show(STATE, Object* self, int level) {
     String* str = as<String>(self);
     std::cout << "\"" << str->c_str() << "\"" << std::endl;

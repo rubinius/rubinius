@@ -159,6 +159,9 @@ namespace rubinius {
     // Ruby.primitive :string_index
     Fixnum* index(STATE, String* pattern, Fixnum* start);
 
+    // Ruby.primitive :string_rindex
+    Fixnum* rindex(STATE, String* pattern, Fixnum* start);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

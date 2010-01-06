@@ -55,10 +55,15 @@ class String
 
   def find_string(pattern, start)
     Ruby.primitive :string_index
-    raise PrimitiveFailure, "String#find_string failude"
+    raise PrimitiveFailure, "String#find_string failed"
   end
 
   private :find_string
+
+  def find_string_reverse(pattern, start)
+    Ruby.primitive :string_rindex
+    raise PrimitiveFailure, "String#find_string_reverse failed"
+  end
 
   def ==(other)
     Ruby.primitive :string_equal
