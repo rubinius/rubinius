@@ -30,6 +30,6 @@ def Bench.run
   @dirs = []
   @files = []
   recursive_dir("../")
-  puts "Directories", "---", @dirs
-  puts "Files", "---", @files
+  #puts "Directories", "---", @dirs
+  #puts "Files", "---", @files
 end
