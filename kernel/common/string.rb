@@ -1595,8 +1595,13 @@ class String
   #   "hello".sub(/([aeiou])/, '<\1>')          #=> "h<e>llo"
   #   "hello".sub(/./) {|s| s[0].to_s + ' ' }   #=> "104 ello"
   def sub(pattern, replacement = undefined, &prc)
-    raise ArgumentError, "wrong number of arguments (1 for 2)" if replacement == undefined && !block_given?
-    raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
+    if replacement.equal?(undefined) and !block_given?
+      raise ArgumentError, "wrong number of arguments (1 for 2)"
+    end
+
+    unless pattern
+      raise ArgumentError, "wrong number of arguments (0 for 2)"
+    end
 
     if match = get_pattern(pattern, true).match_from(self, 0)
       out = match.pre_match
