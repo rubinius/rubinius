@@ -1162,28 +1162,50 @@ class String
   #   "hello".rindex('a')             #=> nil
   #   "hello".rindex(101)             #=> 1
   #   "hello".rindex(/[aeiou]/, -2)   #=> 1
-  def rindex(arg, finish = undefined)
-    arg = StringValue(arg) unless [Fixnum, String, Regexp].include?(arg.class)
-    original_klass = arg.class
-    if !finish.equal?(undefined)
+  def rindex(sub, finish=undefined)
+    if finish.equal?(undefined)
+      finish = size
+    else
       finish = Type.coerce_to(finish, Integer, :to_int)
       finish += @num_bytes if finish < 0
       return nil if finish < 0
       finish = @num_bytes if finish >= @num_bytes
-    else
-      finish = size
-    end
-    case arg
-    when Fixnum
-      return nil if arg > 255 || arg < 0
-      arg = Regexp.new(Regexp.quote(arg.chr))
-    when String
-      arg = Regexp.new(Regexp.quote(arg))
     end
 
-    ret = arg.search_region(self, 0, finish, false)
-    Rubinius::VariableScope.of_sender.last_match = ret if original_klass == Regexp
-    ret && ret.begin(0)
+    case sub
+    when Fixnum
+      if finish == size
+        return nil if finish == 0
+        finish -= 1
+      end
+
+      begin
+        str = sub.chr
+      rescue RangeError
+        return nil
+      end
+
+      return find_string_reverse(str, finish)
+
+    when Regexp
+      ret = sub.search_region(self, 0, finish, false)
+      Rubinius::VariableScope.of_sender.last_match = ret
+      return ret.begin(0) if ret
+
+    else
+      needle = StringValue(sub)
+      needle_size = needle.size
+
+      # needle is bigger that haystack
+      return nil if size < needle_size
+
+      # Boundary case
+      return finish if needle_size == 0
+
+      return find_string_reverse(needle, finish)
+    end
+
+    return nil
   end
 
   def rpartition(pattern)
