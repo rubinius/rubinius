@@ -123,8 +123,15 @@ namespace rubinius {
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
+      Module* mod = scope->module();
+      if(MetaClass* mc = try_as<MetaClass>(mod)) {
+        if(Module* ma = try_as<Module>(mc->attached_instance())) {
+          mod = ma;
+        }
+      }
+
       profiler::MethodEntry method(state,
-          env->top_scope_->method()->name(), scope->module(), env->method_);
+          env->top_scope_->method()->name(), mod, env->method_);
       return (*vmm->run)(state, vmm, frame, args);
     } else {
       return (*vmm->run)(state, vmm, frame, args);
