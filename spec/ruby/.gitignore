@@ -1,0 +1,12 @@
+# Exclude implementation-specific byproducts.
+
+*.rba
+*.rbc
+
+# Do not exclude files needed by the specs.
+# This explicitly unmasks files that may be
+# masked by a parent dirs .gitignore file.
+!*.bundle
+!*.dylib
+!*.so
+!*.dll

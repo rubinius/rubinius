@@ -1,19 +1,33 @@
 require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/../fixtures/common'
+require File.dirname(__FILE__) + '/shared/__LINE__'
 
 describe "The __LINE__ constant" do
-  it "increments for each line" do    
-    cline = __LINE__
-    __LINE__.should == cline + 1
-    # comment is at cline + 2
-    __LINE__.should == cline + 3
+  before :each do
+    ScratchPad.record []
   end
 
-  it "is eval aware" do
-    eval("__LINE__").should == 1    
-    cmd =<<EOF
-# comment at line 1
-__LINE__
-EOF
-    eval(cmd).should == 2
+  after :each do
+    ScratchPad.clear
   end
+
+  it "equals the line number of the text inside an eval" do
+    eval <<-EOC
+ScratchPad << __LINE__
+
+# line 3
+
+ScratchPad << __LINE__
+    EOC
+
+    ScratchPad.recorded.should == [1, 5]
+  end
+
+  it_behaves_like :language___LINE__, :require, CodeLoadingSpecs::RequireMethod.new
+
+  it_behaves_like :language___LINE__, :require, Kernel
+
+  it_behaves_like :language___LINE__, :load, CodeLoadingSpecs::LoadMethod.new
+
+  it_behaves_like :language___LINE__, :load, Kernel
 end
