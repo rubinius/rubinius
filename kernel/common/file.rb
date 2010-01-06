@@ -408,25 +408,50 @@ class File < IO
   def self.join(*args)
     return '' if args.empty?
 
-    ret = ''
-    args.each_with_index do |el, i|
-      value = nil
-      recursion = Thread.detect_recursion(el) do
-        if el.kind_of? Array
-          value = join(*el)
-        else
-          value = el.to_str rescue raise(TypeError)
-        end
-      end
-      raise ArgumentError, "recursive array" if recursion
+    sep = SEPARATOR
 
-      if i > 0
-        if value =~ /^#{SEPARATOR}/
-          ret.gsub!(/#{SEPARATOR}+$/, '')
-        elsif not ret =~ /#{SEPARATOR}$/
-          ret << SEPARATOR
-        end
+    # The first one is unrolled out of the loop to remove a condition
+    # from the loop. It seems needless, but you'd be surprised how much hinges
+    # on the performance of File.join
+    #
+    first = args.shift
+    case first
+    when String
+      first = first.dup
+    when Array
+      recursion = Thread.detect_recursion(first) do
+        first = join(*first)
       end
+
+      raise ArgumentError, "recursive array" if recursion
+    else
+      first = StringValue(first)
+    end
+
+    ret = first
+
+    args.each do |el|
+      value = nil
+
+      case el
+      when String
+        value = el
+      when Array
+        recursion = Thread.detect_recursion(el) do
+          value = join(*el)
+        end
+
+        raise ArgumentError, "recursive array" if recursion
+      else
+        value = StringValue(el)
+      end
+
+      if value.prefix? sep
+        ret.gsub!(/#{SEPARATOR}+$/, '')
+      elsif not ret.suffix? sep
+        ret << sep
+      end
+
       ret << value
     end
     ret
