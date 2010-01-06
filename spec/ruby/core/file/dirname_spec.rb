@@ -21,6 +21,10 @@ describe "File.dirname" do
     x.should == "/usr/bin"
   end
 
+  it "ignores a trailing /" do
+    File.dirname("/foo/bar/").should == "/foo"
+  end
+
   it "returns the return all the components of filename except the last one (unix format)" do
     File.dirname("foo").should =="."
     File.dirname("/foo").should =="/"
