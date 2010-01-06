@@ -38,6 +38,11 @@ describe Object, "#touch" do
     File.exists?(@name).should be_true
   end
 
+  it "accepts an optional mode argument" do
+    touch @name, "wb"
+    File.exists?(@name).should be_true
+  end
+
   it "overwrites an existing file" do
     File.open(@name, "w") { |f| f.puts "used" }
     File.size(@name).should > 0

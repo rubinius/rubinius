@@ -48,10 +48,10 @@ class Object
 
   # Creates a file +name+. Creates the directory for +name+
   # if it does not exist.
-  def touch(name)
+  def touch(name, mode="w")
     mkdir_p File.dirname(name)
 
-    File.open(name, "w") do |f|
+    File.open(name, mode) do |f|
       yield f if block_given?
     end
   end

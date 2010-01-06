@@ -265,7 +265,7 @@ module MSpec
     tags = []
     file = tags_file
     if File.exist? file
-      File.open(file, "r") do |f|
+      File.open(file, "rb") do |f|
         f.each_line do |line|
           line.chomp!
           next if line.empty?
@@ -283,7 +283,7 @@ module MSpec
     file = tags_file
     path = File.dirname file
     FileUtils.mkdir_p path unless File.exist? path
-    File.open(file, "w") do |f|
+    File.open(file, "wb") do |f|
       tags.each { |t| f.puts t }
     end
   end
@@ -296,11 +296,11 @@ module MSpec
     path = File.dirname file
     FileUtils.mkdir_p path unless File.exist? path
     if File.exist? file
-      File.open(file, "r") do |f|
+      File.open(file, "rb") do |f|
         f.each_line { |line| return false if line.chomp == string }
       end
     end
-    File.open(file, "a") { |f| f.puts string }
+    File.open(file, "ab") { |f| f.puts string }
     return true
   end
 
@@ -313,7 +313,7 @@ module MSpec
     file = tags_file
     if File.exist? file
       lines = IO.readlines(file)
-      File.open(file, "w") do |f|
+      File.open(file, "wb") do |f|
         lines.each do |line|
           unless pattern =~ line.chomp
             f.puts line unless line.empty?
