@@ -6,32 +6,6 @@ module FFI::Platform::File
   ALT_SEPARATOR = nil
   PATH_SEPARATOR = ':'
 
-  def self.dirname(path)
-    if(!path.match(/#{SEPARATOR}/) || path.match(/^\.+#{SEPARATOR}+$/))
-      return "."
-    else
-      # strip the basename off the end and clean up the ending separators
-      path = path.sub(/#{SEPARATOR}*[^#{SEPARATOR}]*#{SEPARATOR}*$/,'')
-      if(path == '')
-        return SEPARATOR
-      else
-        return path
-      end
-    end
-  end
-
-  def self.basename(path,ext)
-    path.gsub!(/([^#{SEPARATOR}])#{SEPARATOR}\z/, "\\1")
-    basename = if(m = path.match(/#{SEPARATOR}+([^#{SEPARATOR}]*)#{SEPARATOR}*$/))
-                 m[1] == '' ? SEPARATOR : m[1]
-               else
-                 path
-               end
-    ext = Regexp.quote(ext) # convert everything to literal characters
-    ext.sub!(/\\\*/,'[^\.]+?') # convert .*'s back into a general match expression
-    return basename.sub(/#{ext}$/,'')
-  end
-
   # FIXME: this is awful
   def self.expand_path(path, dir_string = nil)
     path = StringValue(path)
