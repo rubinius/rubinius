@@ -10,6 +10,8 @@
 #include "builtin/string.hpp"
 #include "builtin/time.hpp"
 
+#include "util/time.h"
+
 #include <sys/time.h>
 #include <time.h>
 
@@ -124,6 +126,9 @@ namespace rubinius {
       Exception::argument_error(state, "mon must be in 0..11");
     }
 
+    tm.tm_wday = -1;
+    tm.tm_gmtoff = 0;
+    tm.tm_zone = 0;
     tm.tm_year = year->to_native() - 1900;
 
     /* In theory, we'd set the tm_isdst field to isdst->to_native().
@@ -150,6 +155,15 @@ namespace rubinius {
 
     time_t seconds = ::mktime(&tm);
 
+    if(seconds == -1) {
+      int err = 0;
+      seconds = mktime_extended(&tm, 1, &err);
+
+      if(err) {
+        seconds = -1;
+      }
+    }
+
     if(from_gmt->true_p()) {
       if(old_tz) {
         setenv("TZ", old_tz_buf, 1);
@@ -157,6 +171,7 @@ namespace rubinius {
         unsetenv("TZ");
       }
     }
+
 
     return Tuple::from(state, 2, Integer::from(state, seconds), usec);
   }
