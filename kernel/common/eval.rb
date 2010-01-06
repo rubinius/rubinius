@@ -12,7 +12,7 @@ module Kernel
       if scope.method.local_names
         scope.method.local_names.each do |name|
           name = name.to_s
-          locals << name unless name =~ /\A(@{1,2}|\$)/   # @todo Weed out "constants"? --rue
+          locals << name
         end
       end
 
