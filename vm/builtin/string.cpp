@@ -638,9 +638,14 @@ namespace rubinius {
       // If it's an underscore, remember that. An underscore is valid iff
       // it followed by a valid character for this base.
       if(chr == '_') {
-        // Double underscore is forbidden in strict mode.
-        if(underscore && strict == Qtrue) {
-          return (Integer*)Qnil;
+        if(underscore) {
+          // Double underscore is forbidden in strict mode.
+          if(strict == Qtrue) {
+            return (Integer*)Qnil;
+          } else {
+            // Stop parse number after two underscores in a row
+            goto return_value;
+          }
         }
         underscore = true;
         continue;
