@@ -371,9 +371,9 @@ describe :array_slice, :shared => true do
 
   it "returns a subclass instance when called on a subclass of Array" do
     ary = ArraySpecs::MyArray[1, 2, 3]
-    ary.send(@method, 0, 0).class.should == ArraySpecs::MyArray
-    ary.send(@method, 0, 2).class.should == ArraySpecs::MyArray
-    ary.send(@method, 0..10).class.should == ArraySpecs::MyArray
+    ary.send(@method, 0, 0).should be_kind_of(ArraySpecs::MyArray)
+    ary.send(@method, 0, 2).should be_kind_of(ArraySpecs::MyArray)
+    ary.send(@method, 0..10).should be_kind_of(ArraySpecs::MyArray)
   end
 
   not_compliant_on :rubinius do

@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/array'
 describe "Array literals" do
   it "[] should return a new array populated with the given elements" do
     array = [1, 'a', nil]
-    array.class.should == Array
+    array.should be_kind_of(Array)
     array[0].should == 1
     array[1].should == 'a'
     array[2].should == nil

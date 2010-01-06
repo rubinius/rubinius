@@ -62,9 +62,9 @@ describe "Array#&" do
   end
   
   it "does return subclass instances for Array subclasses" do
-    (ArraySpecs::MyArray[1, 2, 3] & []).class.should == Array
-    (ArraySpecs::MyArray[1, 2, 3] & ArraySpecs::MyArray[1, 2, 3]).class.should == Array
-    ([] & ArraySpecs::MyArray[1, 2, 3]).class.should == Array
+    (ArraySpecs::MyArray[1, 2, 3] & []).should be_kind_of(Array)
+    (ArraySpecs::MyArray[1, 2, 3] & ArraySpecs::MyArray[1, 2, 3]).should be_kind_of(Array)
+    ([] & ArraySpecs::MyArray[1, 2, 3]).should be_kind_of(Array)
   end
 
   it "does not call to_ary on array subclasses" do

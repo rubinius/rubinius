@@ -15,10 +15,10 @@ describe :regexp_new, :shared => true do
 
     class RegexpSpecsSubclassTwo < Regexp; end
 
-    RegexpSpecsSubclass.send(@method, "hi").class.should == RegexpSpecsSubclass
+    RegexpSpecsSubclass.send(@method, "hi").should be_kind_of(RegexpSpecsSubclass)
     RegexpSpecsSubclass.send(@method, "hi").args.first.should == "hi"
 
-    RegexpSpecsSubclassTwo.send(@method, "hi").class.should == RegexpSpecsSubclassTwo
+    RegexpSpecsSubclassTwo.send(@method, "hi").should be_kind_of(RegexpSpecsSubclassTwo)
   end
 end
 

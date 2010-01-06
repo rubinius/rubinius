@@ -169,7 +169,7 @@ describe "StringIO#initialize when passed no arguments" do
   end
 
   it "is private" do
-    @io.private_methods.should include("initialize")
+    StringIO.should have_private_instance_method(:initialize)
   end
 
   it "sets the mode to read-write" do

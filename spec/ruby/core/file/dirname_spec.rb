@@ -12,7 +12,7 @@ describe "File.dirname" do
   end
 
   it "returns a String" do
-    File.dirname("foo").class.should == String
+    File.dirname("foo").should be_kind_of(String)
   end
 
   it "does not modify its argument" do

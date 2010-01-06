@@ -20,13 +20,13 @@ describe "Kernel#`" do
     it "sets $? to the exit status of the executed sub-process" do
       ip = 'world'
       `echo disc #{ip}`
-      $?.class.should == Process::Status
+      $?.should be_kind_of(Process::Status)
       $?.stopped?.should == false
       $?.exited?.should == true
       $?.exitstatus.should == 0
       $?.success?.should == true
       `echo disc #{ip}; exit 99`
-      $?.class.should == Process::Status
+      $?.should be_kind_of(Process::Status)
       $?.stopped?.should == false
       $?.exited?.should == true
       $?.exitstatus.should == 99
@@ -38,13 +38,13 @@ describe "Kernel#`" do
     it "sets $? to the exit status of the executed sub-process" do
       ip = 'world'
       `echo disc #{ip}`
-      $?.class.should == Process::Status
+      $?.should be_kind_of(Process::Status)
       $?.stopped?.should == false
       $?.exited?.should == true
       $?.exitstatus.should == 0
       $?.success?.should == true
       `echo disc #{ip}& exit 99`
-      $?.class.should == Process::Status
+      $?.should be_kind_of(Process::Status)
       $?.stopped?.should == false
       $?.exited?.should == true
       $?.exitstatus.should == 99

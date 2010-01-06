@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Math.acosh" do
   it "returns a float" do
-    Math.acosh(1.0).class.should == Float
+    Math.acosh(1.0).should be_kind_of(Float)
   end
   
   it "returns the principle value of the inverse hyperbolic cosine of the argument" do

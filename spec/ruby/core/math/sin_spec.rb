@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 # sine : (-Inf, Inf) --> (-1.0, 1.0)
 describe "Math.sin" do 
   it "returns a float" do 
-    Math.sin(Math::PI).class.should == Float
+    Math.sin(Math::PI).should be_kind_of(Float)
   end 
   
   it "returns the sine of the argument expressed in radians" do    

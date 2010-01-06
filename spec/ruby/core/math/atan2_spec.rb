@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Math.atan2" do
   it "returns a float" do
-    Math.atan2(1.2, 0.5).class.should == Float
+    Math.atan2(1.2, 0.5).should be_kind_of(Float)
   end
   
   it "returns the arc tangent of y, x" do

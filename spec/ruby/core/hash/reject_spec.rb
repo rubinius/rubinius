@@ -21,8 +21,8 @@ describe "Hash#reject" do
   end
 
   it "returns subclass instance for subclasses" do
-    MyHash[1 => 2, 3 => 4].reject { false }.class.should == MyHash
-    MyHash[1 => 2, 3 => 4].reject { true }.class.should == MyHash
+    MyHash[1 => 2, 3 => 4].reject { false }.should be_kind_of(MyHash)
+    MyHash[1 => 2, 3 => 4].reject { true }.should be_kind_of(MyHash)
   end
 
   it "processes entries with the same order as reject!" do

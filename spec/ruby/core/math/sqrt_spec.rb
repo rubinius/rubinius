@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Math.sqrt" do
   it "returns a float" do
-    Math.sqrt(1).class.should == Float
+    Math.sqrt(1).should be_kind_of(Float)
   end
   
   it "returns the square root of the argument" do

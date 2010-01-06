@@ -7,7 +7,7 @@ ruby_version_is "1.8.7" do
     it "generates a random positive number smaller then the positive integer argument" do
       (1..64).each do |idx|
         num = SecureRandom.random_number(idx)
-        num.class.should == Fixnum
+        num.should be_kind_of(Fixnum)
         (0 <= num).should == true
         (num < idx).should == true
       end
@@ -16,7 +16,7 @@ ruby_version_is "1.8.7" do
     it "generates a random float number between 0.0 and 1.0 if no argument provided" do
       64.times do
         num = SecureRandom.random_number
-        num.class.should == Float
+        num.should be_kind_of(Float)
         (0.0 <= num).should == true
         (num < 1.0).should == true
       end
@@ -24,7 +24,7 @@ ruby_version_is "1.8.7" do
     
     it "generates a random float number between 0.0 and 1.0 if argument is negative" do
       num = SecureRandom.random_number(-10)
-      num.class.should == Float
+      num.should be_kind_of(Float)
       (0.0 <= num).should == true
       (num < 1.0).should == true
     end

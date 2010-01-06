@@ -46,8 +46,8 @@ describe "Array#transpose" do
 
   it "does not return subclass instance on Array subclasses" do
     result = ArraySpecs::MyArray[ArraySpecs::MyArray[1, 2, 3], ArraySpecs::MyArray[4, 5, 6]].transpose
-    result.class.should == Array
-    result[0].class.should == Array
-    result[1].class.should == Array
+    result.should be_kind_of(Array)
+    result[0].should be_kind_of(Array)
+    result[1].should be_kind_of(Array)
   end
 end

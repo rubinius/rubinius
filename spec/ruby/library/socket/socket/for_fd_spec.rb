@@ -10,7 +10,7 @@ describe "Socket.for_fd given a file descriptor" do
       new_sock = Socket.for_fd(client.fileno)
 
       new_sock.should_not be_nil
-      new_sock.class.should == Socket
+      new_sock.should be_kind_of(Socket)
       new_sock.fileno.should == client.fileno
 
       new_sock.send("foo", 0)

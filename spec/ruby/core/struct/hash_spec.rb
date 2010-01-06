@@ -6,7 +6,7 @@ describe "Struct#hash" do
   it "returns the same fixnum for structs with the same content" do
     [Struct::Ruby.new("1.8.6", "PPC"), Struct::Car.new("Hugo", "Foo", "1972")].each do |stc|
       stc.hash.should == stc.dup.hash
-      stc.hash.class.should == Fixnum
+      stc.hash.should be_kind_of(Fixnum)
     end
   end
   

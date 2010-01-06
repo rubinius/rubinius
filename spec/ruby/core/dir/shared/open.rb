@@ -1,7 +1,7 @@
 describe :dir_open, :shared => true do
   it "returns a Dir instance representing the specified directory" do
     dir = Dir.send(@method, DirSpecs.mock_dir)
-    dir.class.should == Dir
+    dir.should be_kind_of(Dir)
     dir.close
   end
 
@@ -12,7 +12,7 @@ describe :dir_open, :shared => true do
   end
 
   it "may take a block which is yielded to with the Dir instance" do
-    Dir.send(@method, DirSpecs.mock_dir) {|dir| dir.class.should == Dir }
+    Dir.send(@method, DirSpecs.mock_dir) {|dir| dir.should be_kind_of(Dir)}
   end
 
   it "returns the value of the block if a block is given" do

@@ -9,7 +9,7 @@ end
 describe "IO#pos=" do
 
   before :each do
-    @fname = 'test.txt'
+    @fname = tmp('test.txt')
     File.open @fname, 'w' do |f| f.write "123" end
   end
 

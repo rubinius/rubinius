@@ -31,14 +31,14 @@ describe "Process.waitall" do
       pids << Process.fork { Process.exit! 1 }
       pids << Process.fork { Process.exit! 0 }
       a = Process.waitall
-      a.class.should == Array
+      a.should be_kind_of(Array)
       a.size.should == 3
       pids.each { |pid|
         pid_status = a.assoc(pid)
-        pid_status.class.should == Array
+        pid_status.should be_kind_of(Array)
         pid_status.size.should == 2
         pid_status.first.should == pid
-        pid_status.last.class.should == Process::Status
+        pid_status.last.should be_kind_of(Process::Status)
       }
     end
   end

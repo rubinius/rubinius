@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Struct[]" do
   it "is a synonym for new" do
-    Struct::Ruby['2.0', 'i686'].class.should == Struct::Ruby
+    Struct::Ruby['2.0', 'i686'].should be_kind_of(Struct::Ruby)
   end
 end
 

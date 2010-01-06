@@ -14,14 +14,14 @@ describe "UnboundMethod#bind" do
   end
 
   it "returns Method for any object that is kind_of? the Module method was extracted from" do
-    @normal_um.bind(UnboundMethodSpecs::Methods.new).class.should == Method
+    @normal_um.bind(UnboundMethodSpecs::Methods.new).should be_kind_of(Method)
   end
 
   deviates_on :rubinius do
     it "returns Method for any object kind_of? the Module the method is defined in" do
-      @parent_um.bind(UnboundMethodSpecs::Child1.new).class.should == Method
-      @child1_um.bind(UnboundMethodSpecs::Parent.new).class.should == Method
-      @child2_um.bind(UnboundMethodSpecs::Child1.new).class.should == Method
+      @parent_um.bind(UnboundMethodSpecs::Child1.new).should be_kind_of(Method)
+      @child1_um.bind(UnboundMethodSpecs::Parent.new).should be_kind_of(Method)
+      @child2_um.bind(UnboundMethodSpecs::Child1.new).should be_kind_of(Method)
     end
   end
 

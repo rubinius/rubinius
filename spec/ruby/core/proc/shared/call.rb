@@ -23,19 +23,19 @@ describe :proc_call, :shared => true do
     it "sets self's single parameter to an Array of all given values" do
       [Proc.new { |x| [x] }, lambda { |x| [x] }, proc { |x| [x] }].each do |p|
         a = p.send(@method)
-        a.class.should == Array
+        a.should be_kind_of(Array)
         a.should == [nil]
         
         a = p.send(@method, 1)
-        a.class.should == Array
+        a.should be_kind_of(Array)
         a.should == [1]
         
         a = p.send(@method, 1, 2)
-        a.class.should == Array
+        a.should be_kind_of(Array)
         a.should == [[1, 2]]
         
         a = p.send(@method, 1, 2, 3)
-        a.class.should == Array
+        a.should be_kind_of(Array)
         a.should == [[1, 2, 3]]
       end
     end

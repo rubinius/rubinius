@@ -6,20 +6,20 @@ ruby_version_is "1.8.7" do
   describe "SecureRandom.random_bytes" do
     it "generates a random binary string of length 16 if no argument is provided" do
       bytes = SecureRandom.random_bytes
-      bytes.class.should == String
+      bytes.should be_kind_of(String)
       bytes.length.should == 16
     end
 
     it "generates a random binary string of length 16 if argument is nil" do
       bytes = SecureRandom.random_bytes(nil)
-      bytes.class.should == String
+      bytes.should be_kind_of(String)
       bytes.length.should == 16
     end
 
     it "generates a random binary string of specified length" do
       (1..64).each do |idx|
         bytes = SecureRandom.random_bytes(idx)
-        bytes.class.should == String
+        bytes.should be_kind_of(String)
         bytes.length.should == idx
       end
 

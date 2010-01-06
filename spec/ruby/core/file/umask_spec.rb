@@ -13,7 +13,7 @@ describe "File.umask" do
   end
 
   it "return a Fixnum" do
-    File.umask.class.should == Fixnum
+    File.umask.should be_kind_of(Fixnum)
   end
 
   it "umask should return the current umask value for the process" do

@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Math.ldexp" do
   it "returns a float" do
-    Math.ldexp(1.0, 2).class.should == Float
+    Math.ldexp(1.0, 2).should be_kind_of(Float)
   end
   
   it "returns the argument multiplied by 2**n" do

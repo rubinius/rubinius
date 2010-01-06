@@ -22,13 +22,13 @@ describe "String#+" do
   end
 
   it "doesn't return subclass instances" do
-    (StringSpecs::MyString.new("hello") + "").class.should == String
-    (StringSpecs::MyString.new("hello") + "foo").class.should == String
-    (StringSpecs::MyString.new("hello") + StringSpecs::MyString.new("foo")).class.should == String
-    (StringSpecs::MyString.new("hello") + StringSpecs::MyString.new("")).class.should == String
-    (StringSpecs::MyString.new("") + StringSpecs::MyString.new("")).class.should == String
-    ("hello" + StringSpecs::MyString.new("foo")).class.should == String
-    ("hello" + StringSpecs::MyString.new("")).class.should == String
+    (StringSpecs::MyString.new("hello") + "").should be_kind_of(String)
+    (StringSpecs::MyString.new("hello") + "foo").should be_kind_of(String)
+    (StringSpecs::MyString.new("hello") + StringSpecs::MyString.new("foo")).should be_kind_of(String)
+    (StringSpecs::MyString.new("hello") + StringSpecs::MyString.new("")).should be_kind_of(String)
+    (StringSpecs::MyString.new("") + StringSpecs::MyString.new("")).should be_kind_of(String)
+    ("hello" + StringSpecs::MyString.new("foo")).should be_kind_of(String)
+    ("hello" + StringSpecs::MyString.new("")).should be_kind_of(String)
   end
 
   it "taints the result when self or other is tainted" do

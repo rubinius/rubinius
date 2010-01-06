@@ -11,7 +11,7 @@ describe "Method#unbind" do
   end
 
   it "returns an UnboundMethod" do
-    @normal_um.class.should == UnboundMethod
+    @normal_um.should be_kind_of(UnboundMethod)
   end
 
   it "returns a String containing 'UnboundMethod'" do

@@ -16,13 +16,13 @@ describe "File.new" do
 
   it "returns a new File with mode string" do
     @fh = File.new(@file, 'w')
-    @fh.class.should == File
+    @fh.should be_kind_of(File)
     File.exists?(@file).should == true
   end
 
   it "returns a new File with mode num" do
     @fh = File.new(@file, @flags)
-    @fh.class.should == File
+    @fh.should be_kind_of(File)
     File.exists?(@file).should == true
   end
 
@@ -30,7 +30,7 @@ describe "File.new" do
     File.delete(@file)
     File.umask(0011)
     @fh = File.new(@file, @flags, 0755)
-    @fh.class.should == File
+    @fh.should be_kind_of(File)
     File.stat(@file).mode.to_s(8).should == "100744"
     File.exists?(@file).should == true
   end
@@ -69,7 +69,7 @@ describe "File.new" do
     begin
       @fh_orig = File.new(@file)
       @fh = File.new(@fh_orig.fileno)
-      @fh.class.should == File
+      @fh.should be_kind_of(File)
       File.exists?(@file).should == true
     ensure
       @fh.close rescue nil if @fh
@@ -81,7 +81,7 @@ describe "File.new" do
 
   it "creates a new file when use File::EXCL mode " do
     @fh = File.new(@file, File::EXCL)
-    @fh.class.should == File
+    @fh.should be_kind_of(File)
     File.exists?(@file).should == true
   end
 
@@ -91,7 +91,7 @@ describe "File.new" do
 
   it "creates a new file when use File::WRONLY|File::APPEND mode" do
     @fh = File.new(@file, File::WRONLY|File::APPEND)
-    @fh.class.should == File
+    @fh.should be_kind_of(File)
     File.exists?(@file).should == true
   end
 
@@ -109,14 +109,14 @@ describe "File.new" do
 
   it "raises an Errno::EINVAL error with File::RDONLY|File::WRONLY" do
     @fh = File.new(@file, File::RDONLY|File::WRONLY)
-    @fh.class.should == File
+    @fh.should be_kind_of(File)
     File.exists?(@file).should == true
   end
 
 
   it "creates a new file when use File::WRONLY|File::TRUNC mode" do
     @fh = File.new(@file, File::WRONLY|File::TRUNC)
-    @fh.class.should == File
+    @fh.should be_kind_of(File)
     File.exists?(@file).should == true
   end
 

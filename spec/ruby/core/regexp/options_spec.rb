@@ -2,8 +2,8 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Regexp#options" do
   it "returns a Fixnum bitvector of regexp options for the Regexp object" do
-    /cat/.options.class.should == Fixnum
-    /cat/ix.options.class.should == Fixnum
+    /cat/.options.should be_kind_of(Fixnum)
+    /cat/ix.options.should be_kind_of(Fixnum)
   end
 
   it "allows checking for presence of a certain option with bitwise &" do

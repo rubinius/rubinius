@@ -70,9 +70,9 @@ describe "Array#* with an integer" do
   end
   
   it "returns subclass instance with Array subclasses" do
-    (ArraySpecs::MyArray[1, 2, 3] * 0).class.should == ArraySpecs::MyArray
-    (ArraySpecs::MyArray[1, 2, 3] * 1).class.should == ArraySpecs::MyArray
-    (ArraySpecs::MyArray[1, 2, 3] * 2).class.should == ArraySpecs::MyArray
+    (ArraySpecs::MyArray[1, 2, 3] * 0).should be_kind_of(ArraySpecs::MyArray)
+    (ArraySpecs::MyArray[1, 2, 3] * 1).should be_kind_of(ArraySpecs::MyArray)
+    (ArraySpecs::MyArray[1, 2, 3] * 2).should be_kind_of(ArraySpecs::MyArray)
   end
 
   ruby_version_is '' ... '1.8' do

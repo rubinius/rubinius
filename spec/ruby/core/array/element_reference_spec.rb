@@ -39,6 +39,6 @@ describe "Array.[]" do
   
   it "returns an instance of the subtype when called on an Array subclass" do
     ArraySub = Class.new Array
-    ArraySub[1,2].class.should == ArraySub
+    ArraySub[1,2].should be_kind_of(ArraySub)
   end
 end

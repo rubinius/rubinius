@@ -29,7 +29,7 @@ describe "Bignum#<=>" do
   end
 
   # TODO: Remove duplicate bug guards when ruby_bug is updated.
-  ruby_bug "[ruby-dev:38672] [Bug #1645]", "1.8.7.174" do
+  ruby_bug "[ruby-dev:38672] [Bug #1645]", "1.8.7.248" do
     # The 4 tests below are taken from matz's revision 23730 for Ruby trunk
     #
     it "returns 1 when self is Infinity and other is a Bignum" do

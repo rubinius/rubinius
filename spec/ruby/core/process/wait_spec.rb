@@ -18,7 +18,7 @@ describe "Process.wait" do
     it "sets $? to a Process::Status" do
       pid = Process.fork { Process.exit! }
       Process.wait
-      $?.class.should == Process::Status
+      $?.should be_kind_of(Process::Status)
       $?.pid.should == pid
     end
 

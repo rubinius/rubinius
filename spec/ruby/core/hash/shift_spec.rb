@@ -8,7 +8,7 @@ describe "Hash#shift" do
 
     h.size.times do |i|
       r = h.shift
-      r.class.should == Array
+      r.should be_kind_of(Array)
       h2[r.first].should == r.last
       h.size.should == h2.size - i - 1
     end

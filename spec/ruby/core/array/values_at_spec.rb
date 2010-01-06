@@ -42,6 +42,6 @@ describe "Array#values_at" do
   end
 
   it "does not return subclass instance on Array subclasses" do
-    ArraySpecs::MyArray[1, 2, 3].values_at(0, 1..2, 1).class.should == Array
+    ArraySpecs::MyArray[1, 2, 3].values_at(0, 1..2, 1).should be_kind_of(Array)
   end  
 end

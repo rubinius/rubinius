@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Math.tan" do
   it "returns a float" do
-    Math.tan(1.35).class.should == Float
+    Math.tan(1.35).should be_kind_of(Float)
   end
   
   it "returns the tangent of the argument" do

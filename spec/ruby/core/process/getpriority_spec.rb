@@ -10,15 +10,15 @@ describe "Process.getpriority" do
     end
 
     it "gets the scheduling priority for a specified process" do
-      Process.getpriority(Process::PRIO_PROCESS, 0).class.should == Fixnum
+      Process.getpriority(Process::PRIO_PROCESS, 0).should be_kind_of(Fixnum)
     end
 
     it "gets the scheduling priority for a specified process group" do
-      Process.getpriority(Process::PRIO_PGRP, 0).class.should == Fixnum
+      Process.getpriority(Process::PRIO_PGRP, 0).should be_kind_of(Fixnum)
     end
 
     it "gets the scheduling priority for a specified user" do
-      Process.getpriority(Process::PRIO_USER, 0).class.should == Fixnum
+      Process.getpriority(Process::PRIO_USER, 0).should be_kind_of(Fixnum)
     end
   end
 end

@@ -8,7 +8,7 @@ describe "Math.acos" do
   end
   
   it "returns a float" do 
-    Math.acos(1).class.should == Float 
+    Math.acos(1).should be_kind_of(Float )
   end 
   
   it "returns the arccosine of the argument" do 

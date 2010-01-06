@@ -1,7 +1,7 @@
 describe :array_clone, :shared => true do
   it "returns an Array or a subclass instance" do
-    [].send(@method).class.should == Array
-    ArraySpecs::MyArray[1, 2].send(@method).class.should == ArraySpecs::MyArray
+    [].send(@method).should be_kind_of(Array)
+    ArraySpecs::MyArray[1, 2].send(@method).should be_kind_of(ArraySpecs::MyArray)
   end
 
   it "produces a shallow copy where the references are directly copied" do

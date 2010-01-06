@@ -25,13 +25,13 @@ describe "Array#reject" do
 
   not_compliant_on :rubinius, :ironruby do
     it "returns subclass instance on Array subclasses" do
-      ArraySpecs::MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.class.should == ArraySpecs::MyArray
+      ArraySpecs::MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.should be_kind_of(ArraySpecs::MyArray)
     end
   end
 
   deviates_on :rubinius, :ironruby do
     it "does not return subclass instance on Array subclasses" do
-      ArraySpecs::MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.class.should == Array
+      ArraySpecs::MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.should be_kind_of(Array)
     end
   end
   

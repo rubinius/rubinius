@@ -32,9 +32,9 @@ describe "Array#+" do
   end
 
   it "does return subclass instances with Array subclasses" do
-    (ArraySpecs::MyArray[1, 2, 3] + []).class.should == Array
-    (ArraySpecs::MyArray[1, 2, 3] + ArraySpecs::MyArray[]).class.should == Array
-    ([1, 2, 3] + ArraySpecs::MyArray[]).class.should == Array
+    (ArraySpecs::MyArray[1, 2, 3] + []).should be_kind_of(Array)
+    (ArraySpecs::MyArray[1, 2, 3] + ArraySpecs::MyArray[]).should be_kind_of(Array)
+    ([1, 2, 3] + ArraySpecs::MyArray[]).should be_kind_of(Array)
   end
 
   it "does not call to_ary on array subclasses" do

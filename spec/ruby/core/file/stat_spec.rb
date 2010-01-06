@@ -29,9 +29,9 @@ describe "File.stat" do
       st.size.should == 8
       st.size?.should == 8
       st.blksize.should > 0
-      st.atime.class.should == Time
-      st.ctime.class.should == Time
-      st.mtime.class.should == Time
+      st.atime.should be_kind_of(Time)
+      st.ctime.should be_kind_of(Time)
+      st.mtime.should be_kind_of(Time)
     end
   end
 

@@ -12,7 +12,7 @@ describe "File::Stat#mtime" do
   
   it "should be able to determine the mtime on a File::Stat object" do
     st = File.stat(@file)
-    st.mtime.class.should == Time
+    st.mtime.should be_kind_of(Time)
     st.mtime.should <= Time.now
   end
 end

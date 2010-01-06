@@ -43,6 +43,6 @@ describe "Hash.[]" do
 
   it "returns an instance of the class it's called on" do
     hash_class[MyHash[1, 2]].class.should == hash_class
-    MyHash[hash_class[1, 2]].class.should == MyHash
+    MyHash[hash_class[1, 2]].should be_kind_of(MyHash)
   end
 end

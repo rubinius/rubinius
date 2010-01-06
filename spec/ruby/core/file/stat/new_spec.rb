@@ -18,7 +18,7 @@ describe "File::Stat#initialize" do
 
   it "creates a File::Stat object for the given file" do
     st = File::Stat.new(@file)
-    st.class.should == File::Stat
+    st.should be_kind_of(File::Stat)
     st.ftype.should == 'file'
   end
 

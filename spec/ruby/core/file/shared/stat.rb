@@ -16,9 +16,9 @@ describe :file_stat, :shared => true do
     st.size.should == 8
     st.size?.should == 8
     st.blksize.should > 0
-    st.atime.class.should == Time
-    st.ctime.class.should == Time
-    st.mtime.class.should == Time
+    st.atime.should be_kind_of(Time)
+    st.ctime.should be_kind_of(Time)
+    st.mtime.should be_kind_of(Time)
   end
 
   it "should be able to use the instance methods" do
@@ -29,9 +29,9 @@ describe :file_stat, :shared => true do
     st.size.should == 8
     st.size?.should == 8
     st.blksize.should > 0
-    st.atime.class.should == Time
-    st.ctime.class.should == Time
-    st.mtime.class.should == Time
+    st.atime.should be_kind_of(Time)
+    st.ctime.should be_kind_of(Time)
+    st.mtime.should be_kind_of(Time)
   end
 
   ruby_version_is "1.9" do

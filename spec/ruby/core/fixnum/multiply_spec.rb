@@ -25,13 +25,13 @@ describe "Fixnum#*" do
       y = 0x4000
       result = y * y * y
       result.should == 0x40000000000
-      result.class.should == Bignum
+      result.should be_kind_of(Bignum)
     elsif 1.size == 8
       # 64-bit fixnums
       y = 0x40000000
       result = y * y * y
       result.should == 0x40000000000000000000000
-      result.class.should == Bignum
+      result.should be_kind_of(Bignum)
     end
   end
 end

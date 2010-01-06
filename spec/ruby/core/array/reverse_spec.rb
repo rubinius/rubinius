@@ -8,7 +8,7 @@ describe "Array#reverse" do
   end
 
   it "returns subclass instance on Array subclasses" do
-    ArraySpecs::MyArray[1, 2, 3].reverse.class.should == ArraySpecs::MyArray
+    ArraySpecs::MyArray[1, 2, 3].reverse.should be_kind_of(ArraySpecs::MyArray)
   end
 
   it "properly handles recursive arrays" do

@@ -1,7 +1,7 @@
 describe "A Symbol literal" do
   it "can be an empty string" do
     c = :''
-    c.class.should == Symbol
+    c.should be_kind_of(Symbol)
     c.inspect.should == ':""'
   end
 

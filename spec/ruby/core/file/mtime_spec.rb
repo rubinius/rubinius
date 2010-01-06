@@ -11,7 +11,7 @@ describe "File.mtime" do
   end
 
   it "returns the modification Time of the file" do
-    File.mtime(@filename).class.should == Time
+    File.mtime(@filename).should be_kind_of(Time)
     File.mtime(@filename).should be_close(@mtime, 2.0)
   end
 
@@ -32,7 +32,7 @@ describe "File#mtime" do
   end
 
   it "returns the modification Time of the file" do
-    @f.mtime.class.should == Time
+    @f.mtime.should be_kind_of(Time)
   end
 
 end

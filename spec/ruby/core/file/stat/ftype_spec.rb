@@ -4,7 +4,7 @@ require "#{File.dirname(__FILE__)}/../fixtures/file_types.rb"
 describe "File::Stat#ftype" do
   it "returns a String " do
     FileSpecs.normal_file do |file|
-      File.lstat(file).ftype.class.should == String
+      File.lstat(file).ftype.should be_kind_of(String)
     end
   end
 

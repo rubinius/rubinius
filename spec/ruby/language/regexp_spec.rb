@@ -13,7 +13,7 @@ describe "Literal Regexps" do
   end
 
   it "yields a Regexp" do
-    /Hello/.class.should == Regexp
+    /Hello/.should be_kind_of(Regexp)
   end
   
   it "caches the Regexp object" do

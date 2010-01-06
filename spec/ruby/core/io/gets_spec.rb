@@ -1,6 +1,7 @@
 # encoding: utf-8
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/shared/gets_ascii'
 
 describe "IO#gets" do
   it "returns the next line of string that were separated by $/" do
@@ -186,6 +187,8 @@ describe "IO#gets" do
     b.should == "\nB\n"
     File.unlink(tmp("gets_specs"))
   end
+
+  it_behaves_like(:io_gets_ascii, :gets)
 end
 
 ruby_version_is "1.9" do

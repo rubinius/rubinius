@@ -46,11 +46,11 @@ $~               MatchData       An object that encapsulates the results of a su
 describe "Predefined global $~" do
   it "is set to contain the MatchData object of the last match if successful" do
     md = /foo/.match 'foo'
-    $~.class.should == MatchData
+    $~.should be_kind_of(MatchData)
     $~.object_id.should == md.object_id
 
     /bar/ =~ 'bar'
-    $~.class.should == MatchData
+    $~.should be_kind_of(MatchData)
     $~.object_id.should_not == md.object_id
   end   
 
@@ -390,7 +390,7 @@ end
 
 describe "The predefined standard object nil" do
   it "is an instance of NilClass" do
-    nil.class.should == NilClass
+    nil.should be_kind_of(NilClass)
   end
   
   # this needs to be tested with a subprocess because
@@ -400,7 +400,7 @@ end
 
 describe "The predefined standard object true" do
   it "is an instance of TrueClass" do
-    true.class.should == TrueClass
+    true.should be_kind_of(TrueClass)
   end
   
   # this needs to be tested with a subprocess because
@@ -410,7 +410,7 @@ end
 
 describe "The predefined standard object false" do
   it "is an instance of FalseClass" do
-    false.class.should == FalseClass
+    false.should be_kind_of(FalseClass)
   end
   
   # this needs to be tested with a subprocess because

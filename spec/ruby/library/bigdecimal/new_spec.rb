@@ -4,7 +4,7 @@ require 'bigdecimal'
 describe "BigDecimal.new" do
 
   it "creates a new object of class BigDecimal" do
-    BigDecimal.new("3.14159").class.should == BigDecimal
+    BigDecimal.new("3.14159").should be_kind_of(BigDecimal)
     (0..9).each {|i|
       BigDecimal.new("1#{i}").should == 10 + i
       BigDecimal.new("-1#{i}").should == -10 - i

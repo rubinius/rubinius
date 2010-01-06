@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 # arctangent : (-Inf, Inf) --> (-PI/2, PI/2)
 describe "Math.atan" do     
   it "returns a float" do 
-    Math.atan(1).class.should == Float
+    Math.atan(1).should be_kind_of(Float)
   end 
   
   it "return the arctangent of the argument" do    

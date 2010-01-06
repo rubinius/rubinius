@@ -20,9 +20,9 @@ describe "BigDecimal#to_f" do
   end
 
   it "returns number of type float" do
-    BigDecimal("3.14159").to_f.class.should == Float
-    @vals.each { |val| val.to_f.class.should == Float }
-    @spec_vals.each { |val| val.to_f.class.should == Float }
+    BigDecimal("3.14159").to_f.should be_kind_of(Float)
+    @vals.each { |val| val.to_f.should be_kind_of(Float) }
+    @spec_vals.each { |val| val.to_f.should be_kind_of(Float) }
   end
 
   it "Floating point rounding occurs" do

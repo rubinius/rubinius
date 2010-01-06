@@ -40,11 +40,11 @@ describe "Marshal::load" do
 
   it "loads a user_object" do
     obj = UserObject.new
-    Marshal.load("\004\bo:\017UserObject\000").class.should == UserObject
+    Marshal.load("\004\bo:\017UserObject\000").should be_kind_of(UserObject)
   end
 
   it "loads a object" do
-    Marshal.load("\004\bo:\vObject\000").class.should == Object
+    Marshal.load("\004\bo:\vObject\000").should be_kind_of(Object)
   end
 
   it "loads an extended Object" do
@@ -316,4 +316,63 @@ describe "Marshal::load" do
       Marshal.load(marshal).should == object
     end
   end
+  
+  it "returns an untainted object if source is untainted" do
+    x = Object.new
+    y = Marshal.load(Marshal.dump(x))
+    y.tainted?.should be_false
+  end
+  
+  it "returns a tainted object if source is tainted" do
+    x = Object.new
+    x.taint
+    s = Marshal.dump(x)
+    y = Marshal.load(s)
+    y.tainted?.should be_true
+    
+    # note that round-trip via Marshal does not preserve
+    # the taintedness at each level of the nested structure
+    y = Marshal.load(Marshal.dump([[x]]))
+    y.tainted?.should be_true
+    y.first.tainted?.should be_true
+    y.first.first.tainted?.should be_true
+    
+  end
+  
+  it "preserves taintedness of nested structure" do
+    x = Object.new
+    a = [[x]]
+    x.taint
+    y = Marshal.load(Marshal.dump(a))
+    y.tainted?.should be_true
+    y.first.tainted?.should be_true
+    y.first.first.tainted?.should be_true
+  end
+
+  ruby_version_is "1.9" do
+    
+    it "returns a trusted object if source is trusted" do
+      x = Object.new
+      y = Marshal.load(Marshal.dump(x))
+      y.untrusted?.should be_false
+    end
+
+    it "returns an untrusted object if source is untrusted" do
+      x = Object.new
+      x.untrust
+      y = Marshal.load(Marshal.dump(x))
+      y.untrusted?.should be_true
+
+      # note that round-trip via Marshal does not preserve
+      # the untrustedness at each level of the nested structure
+      y = Marshal.load(Marshal.dump([[x]]))
+      y.untrusted?.should be_true
+      y.first.untrusted?.should be_true
+      y.first.first.untrusted?.should be_true
+
+    end
+    
+  end
+  
+
 end

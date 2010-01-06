@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Math.hypot" do
   it "returns a float" do
-    Math.hypot(3, 4).class.should == Float
+    Math.hypot(3, 4).should be_kind_of(Float)
   end
   
   it "returns the length of the hypotenuse of a right triangle with legs given by the arguments" do 

@@ -28,7 +28,7 @@ not_supported_on :ironruby do
       lambda { Continuation.new }.should raise_error(NoMethodError)
 
       cont = ContinuationSpecs.create_cc
-      cont.class.should == Continuation
+      cont.should be_kind_of(Continuation)
     end
   end
 end

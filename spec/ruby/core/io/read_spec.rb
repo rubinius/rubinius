@@ -6,7 +6,7 @@ describe "IO.read" do
   before :each do
     @fname = tmp("io_read.txt")
     @contents = "1234567890"
-    File.open(@fname, "w") { |f| f.write @contents }
+    touch(@fname) { |f| f.write @contents }
   end
 
   after :each do
@@ -69,7 +69,7 @@ end
 describe "IO.read on an empty file" do
   before :each do
     @fname = tmp("io_read_empty.txt")
-    File.open(@fname, 'w') {|f| 1 }
+    touch(@fname)
   end
 
   after :each do
@@ -96,16 +96,8 @@ describe "IO#read" do
   end
 
   after :each do
-    rm_r @fname
-  end
-
-  after :all do
-    # We originally closed @io after every example, but on 1.9 that led to a
-    # particularly bizarre bug where #close would raise an Errno::EBADF under
-    # certain conditions. I can't determine what these conditions are,
-    # unfortunately. I believe it's safe to only close @io here because it's
-    # instantiated anew before each example.
     @io.close
+    rm_r @fname
   end
 
   it "can be read from consecutively" do
@@ -113,37 +105,6 @@ describe "IO#read" do
     @io.read(2).should == '23'
     @io.read(3).should == '456'
     @io.read(4).should == '7890'
-  end
-
-  it "can read lots of data" do
-    data = "*" * (8096 * 2 + 1024) # HACK IO::BufferSize
-
-    File.open @fname, 'w' do |io| io.write data end
-
-    actual = nil
-
-    File.open @fname, 'r' do |io|
-      actual = io.read
-    end
-
-    actual.length.should == data.length
-    actual.split('').all? { |c| c == "*" }.should == true
-  end
-
-  it "can read lots of data with length" do
-    read_length = 8096 * 2 + 1024 # HACK IO::BufferSize
-    data = "*" * (read_length + 8096) # HACK same
-
-    File.open @fname, 'w' do |io| io.write data end
-
-    actual = nil
-
-    File.open @fname, 'r' do |io|
-      actual = io.read read_length
-    end
-
-    actual.length.should == read_length
-    actual.split('').all? { |c| c == "*" }.should == true
   end
 
   it "consumes zero bytes when reading zero bytes" do
@@ -243,32 +204,83 @@ describe "IO#read" do
   it "raises IOError on closed stream" do
     lambda { IOSpecs.closed_file.read }.should raise_error(IOError)
   end
+end
 
-  ruby_version_is "1.9" do
-    # Example derived from test/ruby/test_io_m17n.rb on MRI
-    it "strips the BOM when given 'rb:utf-7-bom' as the mode" do
-      text = "\uFEFFT"
-      %w/UTF-8 UTF-16BE UTF-16LE UTF-32BE UTF-32LE/.each do |name|
-        path = tmp('%s-bom.txt' % name)
-        content = text.encode(name)
-        File.open(path,'w') { |f| f.print content }
-        result = File.read(path, :mode => "rb:BOM|#{name}")
-        content[1].force_encoding("ascii-8bit").should == result.force_encoding("ascii-8bit")
-        File.unlink(path)
-      end
-    end
+describe "IO#read with encodings" do
+  before :each do
+    @kcode = $KCODE
+
+    @name = fixture __FILE__, "readlines.txt"
+  end
+
+  after :each do
+    $KCODE = @kcode
   end
 
   it "ignores unicode encoding" do
-    begin
-      old = $KCODE
-      $KCODE = "UTF-8"
-      File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r') do |io|
-        io.readline.should == "Voici la ligne une.\n"
-        io.read(5).should == "Qui " + [195].pack("C")
-      end
-    ensure
-      $KCODE = old
+    $KCODE = "UTF-8"
+
+    File.open(@name, 'r') do |io|
+      io.readline.should == "Voici la ligne une.\n"
+      io.read(5).should == "Qui " + [195].pack("C")
     end
+  end
+end
+
+ruby_version_is "1.9" do
+  describe "IO#read with 1.9 encodings" do
+    before :each do
+      @file = tmp("io_read_bom.txt")
+      @text = "\uFEFFT"
+    end
+
+    after :each do
+      rm_r @file
+    end
+
+    # Example derived from test/ruby/test_io_m17n.rb on MRI
+    it "strips the BOM when given 'rb:utf-7-bom' as the mode" do
+      %w/UTF-8 UTF-16BE UTF-16LE UTF-32BE UTF-32LE/.each do |encoding|
+        content = @text.encode(encoding)
+        content_ascii = content[1].force_encoding("ascii-8bit")
+        touch(@file) { |f| f.print content }
+
+        result = File.read(@file, :mode => "rb:BOM|#{encoding}")
+        result.force_encoding("ascii-8bit").should == content_ascii
+      end
+    end
+  end
+end
+
+describe "IO#read with large data" do
+  before :each do
+    # TODO: what is the significance of this mystery math?
+    @data_size = 8096 * 2 + 1024
+    @data = "*" * @data_size
+
+    @fname = tmp("io_read.txt")
+    touch(@fname) { |f| f.write @data }
+
+    @io = open @fname, "r"
+  end
+
+  after :each do
+    @io.close
+    rm_r @fname
+  end
+
+  it "reads all the data at once" do
+    File.open(@fname, 'r') { |io| ScratchPad.record io.read }
+
+    ScratchPad.recorded.size.should == @data_size
+    ScratchPad.recorded.should == @data
+  end
+
+  it "reads only the requested number of bytes" do
+    read_size = @data_size / 2
+    File.open(@fname, 'r') { |io| ScratchPad.record io.read(read_size) }
+
+    ScratchPad.recorded.size.should == read_size
+    ScratchPad.recorded.should == @data[0, read_size]
   end
 end

@@ -3,7 +3,7 @@ require 'prime'
 
 describe "Prime.instance" do
   it "returns a object representing the set of prime numbers" do
-    Prime.instance.class.should == Prime
+    Prime.instance.should be_kind_of(Prime)
   end
 
   it "returns a object with no obsolete features" do

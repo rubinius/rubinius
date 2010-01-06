@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Thread.current" do
   it "returns a thread" do
     current = Thread.current
-    current.class.should == Thread
+    current.should be_kind_of(Thread)
   end
 
   it "returns the current thread" do

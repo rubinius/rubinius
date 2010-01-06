@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Object.new" do
   it "creates a new Object" do
-    Object.new.class.should == Object
+    Object.new.should be_kind_of(Object)
   end
 
   ruby_version_is "1.9.2" do # Ref: [redmine:2451]

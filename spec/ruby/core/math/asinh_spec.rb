@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Math.asinh" do
   it "returns a float" do
-    Math.asinh(1.5).class.should == Float
+    Math.asinh(1.5).should be_kind_of(Float)
   end
   
   it "returns the inverse hyperbolic sin of the argument" do

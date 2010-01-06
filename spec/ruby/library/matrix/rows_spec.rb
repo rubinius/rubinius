@@ -9,7 +9,7 @@ describe "Matrix.rows" do
   end
 
   it "returns a Matrix" do
-    @m.class.should == Matrix
+    @m.should be_kind_of(Matrix)
   end
 
   it "creates a matrix from argument rows" do

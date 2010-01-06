@@ -3,11 +3,11 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array.new" do
   it "returns an instance of Array" do
-    Array.new.class.should == Array
+    Array.new.should be_kind_of(Array)
   end
 
   it "returns an instance of a subclass" do
-    ArraySpecs::MyArray.new.class.should == ArraySpecs::MyArray
+    ArraySpecs::MyArray.new.should be_kind_of(ArraySpecs::MyArray)
   end
 
   it "raise an ArgumentError if passed 3 or more arguments" do

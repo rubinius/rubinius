@@ -10,7 +10,7 @@ describe "Hash#to_a" do
       pairs << [key, value]
     end
 
-    h.to_a.class.should == Array
+    h.to_a.should be_kind_of(Array)
     h.to_a.should == pairs
   end
 end

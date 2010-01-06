@@ -151,15 +151,15 @@ describe "String#unpack with 'Q' and 'q' directives" do
     it "returns Bignums for big numeric values on big-endian platforms" do
       "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q')[0].class.should ==
         17344245288696546035.class
-      "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFE".unpack('q')[0].class.should == Fixnum
+      "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFE".unpack('q')[0].should be_kind_of(Fixnum)
     end
   end
 
   it "returns Fixnums for small numeric values" do
     "\x00\x00\x00\x00\x00\x00\x00\x00".unpack('Q').should == [0]
     "\x00\x00\x00\x00\x00\x00\x00\x00".unpack('q').should == [0]
-    "\x00\x00\x00\x00\x00\x00\x00\x00".unpack('Q')[0].class.should == Fixnum
-    "\x00\x00\x00\x00\x00\x00\x00\x00".unpack('q')[0].class.should == Fixnum
+    "\x00\x00\x00\x00\x00\x00\x00\x00".unpack('Q')[0].should be_kind_of(Fixnum)
+    "\x00\x00\x00\x00\x00\x00\x00\x00".unpack('q')[0].should be_kind_of(Fixnum)
   end
 end
 

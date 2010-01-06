@@ -17,7 +17,7 @@ describe "Kernel#open" do
   
   it "opens a file when given a valid filename" do
     @file = open(@name)
-    @file.class.should == File
+    @file.should be_kind_of(File)
   end
   
   it "opens a file when called with a block" do
@@ -64,7 +64,7 @@ describe "Kernel#open" do
       obj = mock('fileish')
       obj.should_receive(:to_open).and_return(File.open(@file))
       @file = open(obj)
-      @file.class.should == File
+      @file.should be_kind_of(File)
     end
     
     it "raises a TypeError if passed a non-String that does not respond to #to_open" do

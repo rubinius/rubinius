@@ -2,8 +2,8 @@ describe :kernel_object_id, :shared => true do
   # #object_id and #__id__ are aliases, so we only need one function
   # that tests both methods
   it "returns an integer" do
-    mock('fixnum').send(@method).class.should == Fixnum
-    nil.send(@method).class.should == Fixnum
+    mock('fixnum').send(@method).should be_kind_of(Fixnum)
+    nil.send(@method).should be_kind_of(Fixnum)
   end
 
   it "returns the same value on all calls to id for a given object" do

@@ -1,6 +1,6 @@
 describe :process_times, :shared => true do
   it "returns a Struct::Tms" do
-    @object.send(@method).class.should == Struct::Tms
+    @object.send(@method).should be_kind_of(Struct::Tms)
   end
 
   it "returns current cpu times" do

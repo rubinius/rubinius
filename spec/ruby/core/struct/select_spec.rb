@@ -13,6 +13,6 @@ describe "Struct#select" do
   
   it "returns an instance of Array" do
     struct = Struct::Car.new("Ford", "Escort", "1995")
-    struct.select { true }.class.should == Array
+    struct.select { true }.should be_kind_of(Array)
   end
 end

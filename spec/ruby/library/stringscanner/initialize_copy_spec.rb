@@ -8,7 +8,7 @@ describe "StringScanner#initialize_copy" do
   end
 
   it "is a private method" do
-    @s.private_methods.should include("initialize")
+    StringScanner.should have_private_instance_method(:initialize_copy)
   end
 
   it "copies the passed StringScanner's content to self" do

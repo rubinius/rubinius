@@ -108,11 +108,11 @@ describe "String#split with String" do
       ["", ".", " "].each do |pat|
         [-1, 0, 1, 2].each do |limit|
           StringSpecs::MyString.new(str).split(pat, limit).each do |x|
-            x.class.should == StringSpecs::MyString
+            x.should be_kind_of(StringSpecs::MyString)
           end
 
           str.split(StringSpecs::MyString.new(pat), limit).each do |x|
-            x.class.should == String
+            x.should be_kind_of(String)
           end
         end
       end
@@ -266,7 +266,7 @@ describe "String#split with Regexp" do
       [//, /:/, /\s+/].each do |pat|
         [-1, 0, 1, 2].each do |limit|
           StringSpecs::MyString.new(str).split(pat, limit).each do |x|
-            x.class.should == StringSpecs::MyString
+            x.should be_kind_of(StringSpecs::MyString)
           end
         end
       end

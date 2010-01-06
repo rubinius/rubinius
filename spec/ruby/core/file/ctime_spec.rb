@@ -11,7 +11,7 @@ describe "File.ctime" do
 
   it "Returns the change time for the named file (the time at which directory information about the file was changed, not the file itself)." do
     File.ctime(@file)
-    File.ctime(@file).class.should == Time
+    File.ctime(@file).should be_kind_of(Time)
   end
 
   ruby_version_is "1.9" do
@@ -37,6 +37,6 @@ describe "File#ctime" do
 
   it "Returns the change time for the named file (the time at which directory information about the file was changed, not the file itself)." do
     @file.ctime
-    @file.ctime.class.should == Time
+    @file.ctime.should be_kind_of(Time)
   end
 end

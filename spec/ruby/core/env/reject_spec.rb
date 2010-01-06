@@ -61,7 +61,7 @@ describe "ENV.reject" do
   end
 
   it "returns a Hash" do
-    ENV.reject { false }.class.should == Hash
+    ENV.reject { false }.should be_kind_of(Hash)
   end
 
   ruby_version_is "" ... "1.8.7" do

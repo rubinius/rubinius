@@ -81,10 +81,10 @@ describe "Array#flatten" do
   end
 
   it "returns subclass instance for Array subclasses" do
-    ArraySpecs::MyArray[].flatten.class.should == ArraySpecs::MyArray
-    ArraySpecs::MyArray[1, 2, 3].flatten.class.should == ArraySpecs::MyArray
-    ArraySpecs::MyArray[1, [2], 3].flatten.class.should == ArraySpecs::MyArray
-    [ArraySpecs::MyArray[1, 2, 3]].flatten.class.should == Array
+    ArraySpecs::MyArray[].flatten.should be_kind_of(ArraySpecs::MyArray)
+    ArraySpecs::MyArray[1, 2, 3].flatten.should be_kind_of(ArraySpecs::MyArray)
+    ArraySpecs::MyArray[1, [2], 3].flatten.should be_kind_of(ArraySpecs::MyArray)
+    [ArraySpecs::MyArray[1, 2, 3]].flatten.should be_kind_of(Array)
   end
 
   it "is not destructive" do
@@ -180,7 +180,7 @@ describe "Array#flatten!" do
 
     ary = [ArraySpecs::MyArray[1, 2, 3]]
     ary.flatten!
-    ary.class.should == Array
+    ary.should be_kind_of(Array)
     ary.should == [1, 2, 3]
   end
 

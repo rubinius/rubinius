@@ -46,7 +46,7 @@ describe "String#tr" do
   end
 
   it "returns subclass instances when called on a subclass" do
-    StringSpecs::MyString.new("hello").tr("e", "a").class.should == StringSpecs::MyString
+    StringSpecs::MyString.new("hello").tr("e", "a").should be_kind_of(StringSpecs::MyString)
   end
 
   it "taints the result when self is tainted" do

@@ -7,7 +7,7 @@ describe "Array#hash" do
 
     [[], [1, 2, 3]].each do |ary|
       ary.hash.should == ary.dup.hash
-      ary.hash.class.should == Fixnum
+      ary.hash.should be_kind_of(Fixnum)
     end
   end
 

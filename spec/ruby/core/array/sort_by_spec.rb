@@ -17,11 +17,11 @@ ruby_version_is "1.9.2" do
     it "completes when supplied a block that always returns the same result" do
       a = [2, 3, 5, 1, 4]
       a.sort_by!{  1 }
-      a.class.should == Array
+      a.should be_kind_of(Array)
       a.sort_by!{  0 }
-      a.class.should == Array
+      a.should be_kind_of(Array)
       a.sort_by!{ -1 }
-      a.class.should == Array
+      a.should be_kind_of(Array)
     end
 
     ruby_version_is '' ... '1.9' do

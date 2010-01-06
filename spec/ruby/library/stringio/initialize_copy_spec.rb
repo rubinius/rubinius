@@ -8,7 +8,7 @@ describe "StringIO#initialize_copy" do
   end
   
   it "is private" do
-    @io.private_methods.should include("initialize_copy")
+    StringIO.should have_private_instance_method(:initialize_copy)
   end
   
   it "returns self" do

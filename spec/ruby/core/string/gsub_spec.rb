@@ -206,10 +206,10 @@ describe "String#gsub with pattern and replacement" do
   end
   
   it "returns subclass instances when called on a subclass" do
-    StringSpecs::MyString.new("").gsub(//, "").class.should == StringSpecs::MyString
-    StringSpecs::MyString.new("").gsub(/foo/, "").class.should == StringSpecs::MyString
-    StringSpecs::MyString.new("foo").gsub(/foo/, "").class.should == StringSpecs::MyString
-    StringSpecs::MyString.new("foo").gsub("foo", "").class.should == StringSpecs::MyString
+    StringSpecs::MyString.new("").gsub(//, "").should be_kind_of(StringSpecs::MyString)
+    StringSpecs::MyString.new("").gsub(/foo/, "").should be_kind_of(StringSpecs::MyString)
+    StringSpecs::MyString.new("foo").gsub(/foo/, "").should be_kind_of(StringSpecs::MyString)
+    StringSpecs::MyString.new("foo").gsub("foo", "").should be_kind_of(StringSpecs::MyString)
   end
 
   # Note: $~ cannot be tested because mspec messes with it

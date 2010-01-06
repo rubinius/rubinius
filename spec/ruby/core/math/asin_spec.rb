@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 # arcsine : (-1.0, 1.0) --> (-PI/2, PI/2)
 describe "Math.asin" do
   it "return a float" do 
-    Math.asin(1).class.should == Float
+    Math.asin(1).should be_kind_of(Float)
   end 
   
   it "returns the arcsine of the argument" do   

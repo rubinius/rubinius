@@ -81,7 +81,7 @@ describe "Array#uniq" do
   end
 
   it "returns subclass instance on Array subclasses" do
-    ArraySpecs::MyArray[1, 2, 3].uniq.class.should == ArraySpecs::MyArray
+    ArraySpecs::MyArray[1, 2, 3].uniq.should be_kind_of(ArraySpecs::MyArray)
   end
 end
 

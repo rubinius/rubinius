@@ -90,7 +90,7 @@ describe "Calling a method" do
   it "with block argument converts the block to proc" do
     def makeproc(&b) b end
     makeproc { "hello" }.call.should == "hello"
-    makeproc { "hello" }.class.should == Proc
+    makeproc { "hello" }.should be_kind_of(Proc)
 
     # check that converted proc is indeed behaves like proc,
     # not like lambda

@@ -89,11 +89,11 @@ describe "String#center with length, padding" do
   end
   
   it "returns subclass instances when called on subclasses" do
-    StringSpecs::MyString.new("").center(10).class.should == StringSpecs::MyString
-    StringSpecs::MyString.new("foo").center(10).class.should == StringSpecs::MyString
-    StringSpecs::MyString.new("foo").center(10, StringSpecs::MyString.new("x")).class.should == StringSpecs::MyString
+    StringSpecs::MyString.new("").center(10).should be_kind_of(StringSpecs::MyString)
+    StringSpecs::MyString.new("foo").center(10).should be_kind_of(StringSpecs::MyString)
+    StringSpecs::MyString.new("foo").center(10, StringSpecs::MyString.new("x")).should be_kind_of(StringSpecs::MyString)
     
-    "".center(10, StringSpecs::MyString.new("x")).class.should == String
-    "foo".center(10, StringSpecs::MyString.new("x")).class.should == String
+    "".center(10, StringSpecs::MyString.new("x")).should be_kind_of(String)
+    "foo".center(10, StringSpecs::MyString.new("x")).should be_kind_of(String)
   end
 end

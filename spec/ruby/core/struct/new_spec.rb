@@ -30,13 +30,13 @@ describe "Struct.new" do
     it "creates a new anonymous class with nil first argument" do
       struct = Struct.new(nil, :foo)
       struct.new("bar").foo.should == "bar"
-      struct.class.should == Class
+      struct.should be_kind_of(Class)
       struct.name.should == ""
     end
 
     it "creates a new anonymous class with symbol arguments" do
       struct = Struct.new(:make, :model)
-      struct.class.should == Class
+      struct.should be_kind_of(Class)
       struct.name.should == ""
     end
   end
@@ -45,13 +45,13 @@ describe "Struct.new" do
     it "creates a new anonymous class with nil first argument" do
       struct = Struct.new(nil, :foo)
       struct.new("bar").foo.should == "bar"
-      struct.class.should == Class
+      struct.should be_kind_of(Class)
       struct.name.should be_nil
     end
 
     it "creates a new anonymous class with symbol arguments" do
       struct = Struct.new(:make, :model)
-      struct.class.should == Class
+      struct.should be_kind_of(Class)
       struct.name.should == nil
     end
   end

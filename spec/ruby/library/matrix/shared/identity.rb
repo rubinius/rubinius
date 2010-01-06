@@ -2,7 +2,7 @@ require 'matrix'
 
 describe :matrix_identity, :shared => true do
   it "returns a Matrix" do
-    Matrix.send(@method, 2).class.should == Matrix
+    Matrix.send(@method, 2).should be_kind_of(Matrix)
   end
 
   it "returns a n x n identity matrix" do

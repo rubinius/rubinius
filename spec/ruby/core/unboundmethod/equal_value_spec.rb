@@ -3,8 +3,8 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 context "Creating UnboundMethods" do
   specify "there is no difference between Method#unbind and Module#instance_method" do
-    UnboundMethodSpecs::Methods.instance_method(:foo).class.should == UnboundMethod
-    UnboundMethodSpecs::Methods.new.method(:foo).unbind.class.should == UnboundMethod
+    UnboundMethodSpecs::Methods.instance_method(:foo).should be_kind_of(UnboundMethod)
+    UnboundMethodSpecs::Methods.new.method(:foo).unbind.should be_kind_of(UnboundMethod)
   end
 end
 

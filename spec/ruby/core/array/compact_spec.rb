@@ -19,7 +19,7 @@ describe "Array#compact" do
   end
 
   it "returns subclass instance for Array subclasses" do
-    ArraySpecs::MyArray[1, 2, 3, nil].compact.class.should == ArraySpecs::MyArray
+    ArraySpecs::MyArray[1, 2, 3, nil].compact.should be_kind_of(ArraySpecs::MyArray)
   end
 
   it "keeps tainted status even if all elements are removed" do
