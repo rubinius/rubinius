@@ -124,8 +124,15 @@ describe "The super keyword" do
       Class.new do
         define_method :a do
           super
-        end.should raise_error(RuntimeError) 
+        end.should raise_error(RuntimeError)
       end
     end
+  end
+
+  # Rubinius ticket github#157
+  it "calls method_missing when a superclass method is not found" do
+    lambda {
+      Super::MM_B.new.is_a?(Hash).should == false
+    }.should_not raise_error(NoMethodError)
   end
 end

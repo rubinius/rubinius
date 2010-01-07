@@ -202,4 +202,19 @@ module Super
       public :example
     end
   end
+
+  class MM_A
+    undef_method :is_a?
+  end
+
+  class MM_B < MM_A
+    def is_a?(blah)
+      # should fire the method_missing below
+      super
+    end
+
+    def method_missing(*)
+      false
+    end
+  end
 end
