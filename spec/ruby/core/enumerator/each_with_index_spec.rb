@@ -10,6 +10,16 @@ ruby_version_is "1.8.7" do
       lambda do
         [1].to_enum.each_with_index(:glark)
       end.should raise_error(ArgumentError)
-    end    
+    end
+
+    it "passes on the given block's return value" do
+      arr = [1,2,3]
+      arr.delete_if.with_index { |a,b| false }
+      arr.should == [1,2,3]
+    end
+
+    it "returns the iterator's return value" do
+      [1,2,3].select.with_index { |a,b| false }.should == []
+    end
   end
 end
