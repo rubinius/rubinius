@@ -98,7 +98,7 @@ namespace rubinius {
    * regular expression via Regexp#initialize_copy
    */
   Regexp* Regexp::create(STATE) {
-    Regexp* o_reg = state->new_object_mature<Regexp>(G(regexp));
+    Regexp* o_reg = state->new_object<Regexp>(G(regexp));
 
     o_reg->onig_data = NULL;
 

@@ -11,7 +11,7 @@
 namespace rubinius {
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
 #ifdef IMMIX_DEBUG
-    std::cout << "Added a chunk: " << count << "\n";
+    std::cout << "[GC IMMIX: Added a chunk: " << count << "]\n";
 #endif
 
 #ifdef RBX_GC_STATS
@@ -20,9 +20,16 @@ namespace rubinius {
 
     if(object_memory_) {
       if(gc_->dec_chunks_left() <= 0) {
-        object_memory_->collect_mature_now = true;
+        // object_memory_->collect_mature_now = true;
         gc_->reset_chunks_left();
       }
+    }
+  }
+
+  // This means we're getting low on memory!
+  void ImmixGC::ObjectDescriber::last_block() {
+    if(object_memory_) {
+      object_memory_->collect_mature_now = true;
     }
   }
 
@@ -118,10 +125,14 @@ namespace rubinius {
     gc_.clear_lines();
 
     int via_handles_ = 0;
+    int via_roots = 0;
+    int via_stack = 0;
+    int callframes = 0;
 
     for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {
       tmp = i->get();
       if(tmp->reference_p()) saw_object(tmp);
+      via_roots++;
     }
 
     for(capi::Handles::Iterator i(*data.handles()); i.more(); i.advance()) {
@@ -145,6 +156,7 @@ namespace rubinius {
         Object** var = buffer[idx];
         Object* tmp = *var;
 
+        via_stack++;
         if(tmp->reference_p() && tmp->young_object_p()) {
           saw_object(tmp);
         }
@@ -155,6 +167,7 @@ namespace rubinius {
     for(CallFrameLocationList::const_iterator i = data.call_frames().begin();
         i != data.call_frames().end();
         i++) {
+      callframes++;
       CallFrame** loc = *i;
       walk_call_frame(*loc);
     }
@@ -189,9 +202,37 @@ namespace rubinius {
       }
     }
 
+    // Now, calculate how much space we're still using.
+    immix::Chunks& chunks = gc_.block_allocator().chunks();
+    immix::AllBlockIterator iter(chunks);
+
+    int live_bytes = 0;
+    int total_bytes = 0;
+
+    while(immix::Block* block = iter.next()) {
+      total_bytes += immix::cBlockSize;
+      live_bytes += block->bytes_from_lines();
+    }
+
+    double percentage_live = (double)live_bytes / (double)total_bytes;
+
     if(object_memory_->state->shared.config.gc_immix_debug) {
       std::cerr << "[GC IMMIX: " << clear_marked_objects() << " marked"
-                << ", " << via_handles_ << " handles]\n";
+                << ", "
+                << via_roots << " roots "
+                << via_handles_ << " handles "
+                << (int)(percentage_live * 100) << "% live"
+                << ", " << live_bytes << "/" << total_bytes
+                << "]\n";
+    }
+
+    if(percentage_live >= 0.90) {
+      if(object_memory_->state->shared.config.gc_immix_debug) {
+        std::cerr << "[GC IMMIX: expanding. "
+                   << (int)(percentage_live * 100)
+                   << "%]\n";
+      }
+      gc_.block_allocator().add_chunk();
     }
 
 #ifdef IMMIX_DEBUG

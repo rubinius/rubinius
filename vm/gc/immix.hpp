@@ -27,6 +27,7 @@ namespace rubinius {
       }
 
       void added_chunk(int count);
+      void last_block();
 
       void set_forwarding_pointer(immix::Address from, immix::Address to);
 

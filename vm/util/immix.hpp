@@ -72,7 +72,7 @@ namespace immix {
   const int cLineSize  = 1 << cLineBits;
   const int cLineMask  = cLineSize - 1;
   const int cLineTableSize = cBlockSize / cLineSize;
-  const int cChunkSize = 1024 * 1024;
+  const int cChunkSize = 10 * 1024 * 1024;
   const int cBlocksPerChunk = cChunkSize / cBlockSize;
   const int cMediumObjectLimit = cLineSize * 4; // TODO calculate this
 
@@ -227,13 +227,17 @@ namespace immix {
       }
 
       // 1 is always used for metadata
-      if(lines_used_ == 1) {
+      if(lines_used_ <= 1) {
         status_ = cFree;
-      } else if(holes_ > 1) {
+      } else if(holes_ >= 1) {
         status_ = cRecyclable;
       } else {
         status_ = cUnavailable;
       }
+    }
+
+    int bytes_from_lines() {
+      return lines_used_ * cLineSize;
     }
 
     bool usable() {
@@ -381,6 +385,7 @@ namespace immix {
   public:
     virtual ~Triggers() { }
     virtual void added_chunk(int count) = 0;
+    virtual void last_block() = 0;
   };
 
   class BlockAllocator {
@@ -440,6 +445,11 @@ namespace immix {
         }
 
         Block& block = current_chunk_->get_block(block_cursor_++);
+        if(chunk_cursor_ == chunks_.size() - 1 &&
+            block_cursor_ == (size_t)cBlocksPerChunk - 5) {
+          triggers_.last_block();
+        }
+
         if(block.usable()) return block;
       }
     }
@@ -733,6 +743,10 @@ namespace immix {
 
     void added_chunk(int count) {
       desc.added_chunk(count);
+    }
+
+    void last_block() {
+      desc.last_block();
     }
 
     void clear_lines() {

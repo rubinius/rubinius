@@ -65,6 +65,7 @@ public:
   }
 
   void added_chunk(int size) { }
+  void last_block() { }
 };
 
 class TestImmixGC : public CxxTest::TestSuite {
