@@ -31,9 +31,8 @@ module Enumerable
 
     def each_with_index
       return to_enum :each_with_index unless block_given?
-      idx = 0
-      each { |o| yield(o, idx); idx += 1 }
-      @object
+      idx = -1
+      each { |o| idx += 1; yield(o, idx) }
     end
 
     alias_method :enum_with_index, :each_with_index
