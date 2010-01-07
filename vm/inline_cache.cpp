@@ -217,7 +217,7 @@ namespace rubinius {
     Object* const recv = args.recv();
     cache->set_klass(recv->lookup_begin(state));
 
-    MethodMissingReason reason = 
+    MethodMissingReason reason =
       cache->fill_public(state, call_frame->self(), cache->name);
 
     if(reason != eNone) {
@@ -300,14 +300,18 @@ namespace rubinius {
                                    Arguments& args)
   {
     Object* const recv = args.recv();
-    cache->set_klass(recv->lookup_begin(state));
+    Class* const klass = recv->lookup_begin(state);
+    cache->set_klass(klass);
 
     Module* const start = call_frame->module()->superclass();
 
     if(!cache->fill_private(state, cache->name, start)) {
       state->set_method_missing_reason(eSuper);
 
-      if(!cache->fill_method_missing(state,  start)) {
+      // Don't use start when looking up method_missing!
+      // Always completely redispatch for method_missing.
+      // github#157
+      if(!cache->fill_method_missing(state,  klass)) {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
       }
@@ -436,7 +440,10 @@ namespace rubinius {
     if(!cache->fill_private(state, cache->name, start)) {
       state->set_method_missing_reason(eSuper);
 
-      if(!cache->fill_method_missing(state,  start)) {
+      // Don't use start when looking up method_missing!
+      // Always completely redispatch for method_missing.
+      // github#157
+      if(!cache->fill_method_missing(state,  args.recv()->lookup_begin(state))) {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
       }
