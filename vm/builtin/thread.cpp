@@ -66,7 +66,10 @@ namespace rubinius {
 
     assert(native_thread_);
     // Let it run.
-    native_thread_->run();
+    int error = native_thread_->run();
+    if(error) {
+      Exception::thread_error(state, strerror(error));
+    }
     return Qnil;
   }
 

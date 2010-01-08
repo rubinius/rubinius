@@ -158,6 +158,10 @@ namespace rubinius {
     system_call_error(state, reason.c_str());
   }
 
+  void Exception::thread_error(STATE, const char* reason) {
+    RubyException::raise(make_exception(state, get_thread_error(state), reason));
+  }
+
   void Exception::object_bounds_exceeded_error(STATE, Object* obj, size_t index) {
     TypeInfo* info = state->find_type(obj->type_id()); // HACK use object
     std::ostringstream msg;
@@ -293,6 +297,10 @@ namespace rubinius {
 
   Class* Exception::get_system_call_error(STATE) {
     return as<Class>(G(object)->get_const(state, "SystemCallError"));
+  }
+
+  Class* Exception::get_thread_error(STATE) {
+    return as<Class>(G(object)->get_const(state, "ThreadError"));
   }
 
   Class* Exception::get_errno_error(STATE, Fixnum* ern) {

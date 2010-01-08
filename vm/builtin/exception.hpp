@@ -59,6 +59,8 @@ namespace rubinius {
     static void system_call_error(STATE, const char* reason);
     static void system_call_error(STATE, const std::string& reason);
 
+    static void thread_error(STATE, const char* reason);
+
     static Exception* make_lje(STATE, CallFrame* frame);
 
     static void internal_error(STATE, CallFrame* frame, const char* reason);
@@ -92,6 +94,7 @@ namespace rubinius {
     static Class* get_object_bounds_exceeded_error(STATE);
     static Class* get_io_error(STATE);
     static Class* get_system_call_error(STATE);
+    static Class* get_thread_error(STATE);
     static Class* get_errno_error(STATE, Fixnum* ern);
 
     class Info : public TypeInfo {

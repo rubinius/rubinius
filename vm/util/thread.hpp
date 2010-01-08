@@ -105,14 +105,14 @@ namespace thread {
       return &native_;
     }
 
-    void run() {
+    int run() {
       pthread_attr_t attrs;
       pthread_attr_init(&attrs);
       if(stack_size_) {
         pthread_attr_setstacksize(&attrs, stack_size_);
       }
 
-      assert(pthread_create(&native_, &attrs, trampoline, (void*)this) == 0);
+      return pthread_create(&native_, &attrs, trampoline, (void*)this);
     }
 
     virtual void perform() { }
