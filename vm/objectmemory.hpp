@@ -13,6 +13,7 @@
 #include "call_frame_list.hpp"
 
 #include "builtin/object.hpp"
+#include "gc/code_manager.hpp"
 
 class TestObjectMemory; // So we can friend it properly
 
@@ -73,6 +74,7 @@ namespace rubinius {
 
     ObjectArray* remember_set_;
     unsigned int mark_;
+    CodeManager code_manager_;
 
   public:
     bool collect_young_now;
@@ -149,6 +151,9 @@ namespace rubinius {
     bool valid_object_p(Object* obj);
     void debug_marksweep(bool val);
     void add_type_info(TypeInfo* ti);
+
+    void add_code_resource(CodeResource* cr);
+    void memstats();
 
     void validate_handles(capi::Handles* handles);
     void prune_handles(capi::Handles* handles, bool check_forwards);

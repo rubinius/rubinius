@@ -78,11 +78,9 @@ module Rubinius
   class InstructionSequence
     def initialize(size)
       @opcodes = Tuple.new(size)
-      @stack_depth = 0
     end
 
     attr_reader :opcodes
-    attr_accessor :stack_depth
 
     def ==(other)
       other.kind_of?(InstructionSequence) and @opcodes == other.opcodes
@@ -105,8 +103,6 @@ module Rubinius
     # InstructionSequence
 
     class Encoder
-
-      attr_reader :stack_depth
 
       ##
       # Decodes an InstructionSequence (which is essentially a an array of ints)
@@ -156,8 +152,6 @@ module Rubinius
           acc + (ele.kind_of?(Array) ? ele.size : 1)
         end
 
-        @max_stack_depth = 0
-        @stack_depth = 0
         @iseq = InstructionSequence.new(sz)
         @offset = 0
 
@@ -170,8 +164,6 @@ module Rubinius
           STDERR.puts stream.inspect
           raise e
         end
-
-        @iseq.stack_depth = @max_stack_depth
 
         return @iseq
       end

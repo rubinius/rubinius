@@ -62,7 +62,8 @@ namespace jit {
         get_field(call_frame, offset::cf_msg));
 
     // cm
-    Value* obj_addr = constant(vmm_->original.object_address(),
+    Object** ptr = info_.root->vmm->add_indirect_literal(info_.method());
+    Value* obj_addr = constant(ptr,
         PointerType::getUnqual(ls_->ptr_type("CompiledMethod")));
 
     method = b().CreateLoad(obj_addr, "cm");

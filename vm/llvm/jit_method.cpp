@@ -24,9 +24,9 @@ namespace jit {
     FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), ftypes, false);
 
     std::string name = std::string("_X_") +
-                         ls_->symbol_cstr(vmm_->original->scope()->module()->name()) +
+                         ls_->symbol_cstr(info_.method()->scope()->module()->name()) +
                          "#" +
-                         ls_->symbol_cstr(vmm_->original->name());
+                         ls_->symbol_cstr(info_.method()->name());
 
     func = Function::Create(ft, GlobalValue::ExternalLinkage,
                             name.c_str(), ls_->module());

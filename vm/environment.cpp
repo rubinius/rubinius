@@ -4,6 +4,7 @@
 #include "environment.hpp"
 #include "config_parser.hpp"
 #include "compiled_file.hpp"
+#include "objectmemory.hpp"
 
 #include "vm/exception.hpp"
 

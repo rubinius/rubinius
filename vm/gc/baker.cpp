@@ -136,6 +136,16 @@ namespace rubinius {
       i->set(saw_object(i->get()));
     }
 
+    if(data.threads()) {
+      for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
+          i != data.threads()->end();
+          i++) {
+        for(Roots::Iterator ri((*i)->roots()); ri.more(); ri.advance()) {
+          ri->set(saw_object(ri->get()));
+        }
+      }
+    }
+
     for(capi::Handles::Iterator i(*data.handles()); i.more(); i.advance()) {
       if(!i->weak_p() && i->object()->young_object_p()) {
         i->set_object(saw_object(i->object()));

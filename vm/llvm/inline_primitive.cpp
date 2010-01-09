@@ -533,7 +533,7 @@ namespace rubinius {
               << "#"
               << ops_.state()->symbol_cstr(cm->name())
               << " into "
-              << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+              << ops_.state()->symbol_cstr(ops_.method_name())
               << ". generic primitive: " << stub_res.name() << "\n";
           }
           return true;
@@ -550,7 +550,7 @@ namespace rubinius {
           << "#"
           << ops_.state()->symbol_cstr(cm->name())
           << " into "
-          << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+          << ops_.state()->symbol_cstr(ops_.method_name())
           << ". primitive " << inlined_prim << "\n";
       }
 
@@ -564,7 +564,7 @@ namespace rubinius {
         << "#"
         << ops_.state()->symbol_cstr(cm->name())
         << " into "
-        << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+        << ops_.state()->symbol_cstr(ops_.method_name())
         << ". primitive: "
         << ops_.state()->symbol_cstr(cm->primitive())
         << "\n";
@@ -600,7 +600,7 @@ namespace rubinius {
         << "#"
         << ops_.state()->symbol_cstr(cm->name())
         << " into "
-        << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+        << ops_.state()->symbol_cstr(ops_.method_name())
         << ". intrinsic " << inlined_intrinsic << "\n";
     }
   }

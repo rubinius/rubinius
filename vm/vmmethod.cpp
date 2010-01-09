@@ -84,13 +84,15 @@ namespace rubinius {
   VMMethod::VMMethod(STATE, CompiledMethod* meth)
     : parent_(NULL)
     , run(standard_interpreter)
-    , original(state, meth)
     , type(NULL)
     , native_function(NULL)
+    , number_of_caches_(0)
+    , caches(0)
 #ifdef ENABLE_LLVM
     , llvm_function_(NULL)
     , jitted_impl_(NULL)
 #endif
+    , name_(meth->name())
   {
     meth->set_executor(&VMMethod::execute);
 
@@ -102,7 +104,7 @@ namespace rubinius {
     opcodes = new opcode[total];
     addresses = new void*[total];
 
-    fill_opcodes(state);
+    fill_opcodes(state, meth);
     stack_size =    meth->stack_size()->to_native();
     number_of_locals = meth->number_of_locals();
 
@@ -124,13 +126,40 @@ namespace rubinius {
     } else {
       call_count = -1;
     }
+
+    state->shared.om->add_code_resource(this);
   }
 
   VMMethod::~VMMethod() {
     delete[] opcodes;
+    delete[] addresses;
+
+    if(caches) {
+      delete[] caches;
+    }
   }
 
-  void VMMethod::fill_opcodes(STATE) {
+  void VMMethod::cleanup(CodeManager* cm) {
+    for(size_t i = 0; i < number_of_caches_; i++) {
+      InlineCache* cache = &caches[i];
+      cm->shared()->ic_registry()->remove_cache(cache->name, cache);
+    }
+
+    for(IndirectLiterals::iterator i = indirect_literals_.begin();
+        i != indirect_literals_.end();
+        i++) {
+      delete[] *i;
+    }
+  }
+
+  int VMMethod::size() {
+    return sizeof(VMMethod) +
+      (total * sizeof(opcode)) + // opcodes
+      (total * sizeof(void*)) + // addresses
+      (number_of_caches_ * sizeof(InlineCache)); // caches
+  }
+
+  void VMMethod::fill_opcodes(STATE, CompiledMethod* original) {
     Tuple* ops = original->iseq()->opcodes();
     Object* val;
 
@@ -181,10 +210,10 @@ namespace rubinius {
       }
     }
 
-    initialize_caches(state, sends);
+    initialize_caches(state, original, sends);
   }
 
-  void VMMethod::initialize_caches(STATE, int sends) {
+  void VMMethod::initialize_caches(STATE, CompiledMethod* original, int sends) {
     number_of_caches_ = sends;
     caches = new InlineCache[sends];
 
@@ -390,7 +419,7 @@ namespace rubinius {
    * index assigned.  Same for set_ivar/store_my_field.
    */
 
-  void VMMethod::specialize(STATE, TypeInfo* ti) {
+  void VMMethod::specialize(STATE, CompiledMethod* original, TypeInfo* ti) {
     type = ti;
     for(size_t i = 0; i < total;) {
       opcode op = opcodes[i];
@@ -499,7 +528,7 @@ namespace rubinius {
       if(vmm->call_count >= 0) {
         if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
           LLVMState* ls = LLVMState::get(state);
-          ls->compile_callframe(state, vmm, previous);
+          ls->compile_callframe(state, cm, previous);
         } else {
           vmm->call_count++;
         }
@@ -559,10 +588,10 @@ namespace rubinius {
   /* This is a noop for this class. */
   void VMMethod::compile(STATE) { }
 
-  void VMMethod::deoptimize(STATE) {
+  void VMMethod::deoptimize(STATE, CompiledMethod* original) {
 #ifdef ENABLE_LLVM
     // This resets execute to use the interpreter
-    setup_argument_handler(original.get());
+    setup_argument_handler(original);
 
     if(llvm_function_) {
       LLVMState::get(state)->remove(llvm_function_);

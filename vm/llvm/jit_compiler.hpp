@@ -40,8 +40,8 @@ namespace jit {
       llvm::BasicBlock* block, llvm::Value* call_frame,
       int stack_size, llvm::Value* stack, llvm::Value* vars);
 
-    void compile_method(LLVMState*, VMMethod* vmm);
-    void compile_block(LLVMState*, VMMethod* vmm);
+    void compile_method(LLVMState*, CompiledMethod* cm, VMMethod* vmm);
+    void compile_block(LLVMState*, CompiledMethod*cm, VMMethod* vmm);
     void compile_builder(LLVMState*, JITMethodInfo&, rubinius::jit::Builder&);
 
     void* function_pointer();

@@ -143,6 +143,19 @@ namespace rubinius {
     return strings.size();
   }
 
+  int SymbolTable::byte_size() {
+    int total = 0;
+
+    for(SymbolStrings::iterator i = strings.begin();
+        i != strings.end();
+        i++) {
+      total += i->size();
+      total += sizeof(std::string);
+    }
+
+    return total;
+  }
+
   Array* SymbolTable::all_as_array(STATE) {
     size_t idx = 0;
     Array* ary = Array::create(state, this->size());

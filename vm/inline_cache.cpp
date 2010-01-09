@@ -514,6 +514,18 @@ namespace rubinius {
     caches_[sym->index()].push_back(cache);
   }
 
+  void InlineCacheRegistry::remove_cache(Symbol* sym, InlineCache* cache) {
+    CacheVector& vec = caches_[sym->index()];
+    for(CacheVector::iterator i = vec.begin();
+        i != vec.end();
+        i++) {
+      if(*i == cache) {
+        vec.erase(i);
+        return;
+      }
+    }
+  }
+
   void InlineCacheRegistry::clear(Symbol* sym) {
     CacheVector& vec = caches_[sym->index()];
 

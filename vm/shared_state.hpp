@@ -31,6 +31,7 @@ namespace rubinius {
   class LLVMState;
   class WorldState;
   class InlineCacheRegistry;
+  class ManagedThread;
 
   struct Interrupts {
     bool check;
@@ -75,6 +76,7 @@ namespace rubinius {
     WorldState* world_;
     InlineCacheRegistry* ic_registry_;
     unsigned int class_count_;
+    std::list<ManagedThread*> threads_;
 
     int primitive_hits_[Primitives::cTotalPrimitives];
 
@@ -93,6 +95,8 @@ namespace rubinius {
     ~SharedState();
 
     static void discard(SharedState* ss);
+
+    int size();
 
     void set_initialized() {
       initialized_ = true;
@@ -117,6 +121,13 @@ namespace rubinius {
     CallFrameLocationList& call_frame_locations() {
       return cf_locations_;
     }
+
+    std::list<ManagedThread*>* threads() {
+      return &threads_;
+    }
+
+    void add_managed_thread(ManagedThread* thr);
+    void remove_managed_thread(ManagedThread* thr);
 
     VariableRootBuffers* variable_buffers() {
       return &root_buffers_;

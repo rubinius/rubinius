@@ -63,6 +63,8 @@ namespace rubinius {
 
     Kind kind(STATE, const Symbol* sym);
 
+    int byte_size();
+
   private:
     SymbolMap symbols;
     SymbolStrings strings;

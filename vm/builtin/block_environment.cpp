@@ -83,13 +83,13 @@ namespace rubinius {
               parent = next;
             }
 
-            if(parent->call_count >= 200) {
-              ls->compile_soon(state, parent);
-            }
+            //if(parent->call_count >= 200) {
+            //  ls->compile_soon(state, parent);
+            //}
           }
         }
 
-        ls->compile_soon(state, vmm, env);
+        ls->compile_soon(state, env->method(), env);
 
       } else {
         vmm->call_count++;
@@ -202,7 +202,7 @@ namespace rubinius {
     if(!vmm) {
       vmm = cm->formalize(state);
       if(caller->type) {
-        vmm->specialize(state, caller->type);
+        vmm->specialize(state, cm, caller->type);
       }
       caller->blocks[index] = vmm;
 

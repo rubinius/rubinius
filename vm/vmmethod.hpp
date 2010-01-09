@@ -9,6 +9,7 @@
 #include "type_info.hpp"
 
 #include "vm/builtin/compiledmethod.hpp"
+#include "gc/code_resource.hpp"
 
 #ifdef ENABLE_LLVM
 namespace llvm {
@@ -41,7 +42,7 @@ namespace rubinius {
                                        InterpreterCallFrame* const call_frame,
                                        Arguments& args);
 
-  class VMMethod {
+  class VMMethod : public CodeResource {
   public:
     static void** instructions;
 
@@ -56,7 +57,7 @@ namespace rubinius {
     void** addresses;
 
     std::size_t total;
-    TypedRoot<CompiledMethod*> original;
+    // TypedRoot<CompiledMethod*> original;
     TypeInfo* type;
     std::vector<VMMethod*> blocks;
 
@@ -80,12 +81,15 @@ namespace rubinius {
     void*  jitted_impl_;
 #endif
 
+    Symbol* name_;
+
   public: // Methods
     static void init(STATE);
 
     VMMethod(STATE, CompiledMethod* meth);
-    ~VMMethod();
-
+    virtual ~VMMethod();
+    virtual void cleanup(CodeManager* cm);
+    virtual int size();
 
 #ifdef ENABLE_LLVM
     bool jitted() {
@@ -146,7 +150,11 @@ namespace rubinius {
       return parent_ != 0;
     }
 
-    void specialize(STATE, TypeInfo* ti);
+    Symbol* name() {
+      return name_;
+    }
+
+    void specialize(STATE, CompiledMethod* original, TypeInfo* ti);
     void compile(STATE);
     static Object* execute(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
@@ -192,11 +200,11 @@ namespace rubinius {
     void set_breakpoint_flags(STATE, size_t ip, bpflags flags);
     bpflags get_breakpoint_flags(STATE, size_t ip);
 
-    void fill_opcodes(STATE);
-    void initialize_caches(STATE, int sends);
+    void fill_opcodes(STATE, CompiledMethod* original);
+    void initialize_caches(STATE, CompiledMethod* original, int sends);
     void find_super_instructions();
 
-    void deoptimize(STATE);
+    void deoptimize(STATE, CompiledMethod* original);
     Object** add_indirect_literal(Object* obj);
 
     /*

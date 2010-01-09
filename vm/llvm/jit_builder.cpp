@@ -125,7 +125,7 @@ namespace jit {
     int klass_id = 0;
     {
       AccessManagedMemory memguard(ls_);
-      if(Class* cls = try_as<Class>(vmm_->original.get()->scope()->module())) {
+      if(Class* cls = try_as<Class>(info_.method()->scope()->module())) {
         klass_id = cls->class_id();
       } else {
         return;

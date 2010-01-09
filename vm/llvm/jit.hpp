@@ -22,6 +22,8 @@
 #include "vmmethod.hpp"
 #include "configuration.hpp"
 
+#include "gc/managed.hpp"
+
 #include "builtin/block_environment.hpp"
 
 #include "instruments/timing.hpp"
@@ -40,20 +42,15 @@ namespace rubinius {
     llvm::PHINode* block_break_result_;
     llvm::BasicBlock* block_break_loc_;
     VMMethod* code_;
+    TypedRoot<CompiledMethod*> method_;
     JITMethodInfo* scope_;
     int which_;
     bool created_object_;
 
   public:
-    JITInlineBlock(llvm::PHINode* phi, llvm::BasicBlock* brk, VMMethod* code,
-                   JITMethodInfo* scope, int which)
-      : block_break_result_(phi)
-      , block_break_loc_(brk)
-      , code_(code)
-      , scope_(scope)
-      , which_(which)
-      , created_object_(false)
-    {}
+    JITInlineBlock(LLVMState* ls, llvm::PHINode* phi, llvm::BasicBlock* brk,
+                   CompiledMethod* cm, VMMethod* code,
+                   JITMethodInfo* scope, int which);
 
     llvm::PHINode* block_break_result() {
       return block_break_result_;
@@ -65,6 +62,10 @@ namespace rubinius {
 
     VMMethod* code() {
       return code_;
+    }
+
+    CompiledMethod* method() {
+      return method_.get();
     }
 
     JITMethodInfo* creation_scope() {
@@ -105,6 +106,8 @@ namespace rubinius {
     JITInlineBlock* inline_block_;
     JITInlineBlock* block_info_;
 
+    TypedRoot<CompiledMethod*> method_;
+
   public:
     VMMethod* vmm;
     bool is_block;
@@ -118,32 +121,8 @@ namespace rubinius {
     JITMethodInfo* root;
 
   public:
-    JITMethodInfo(VMMethod* v, JITMethodInfo* parent = 0)
-      : function_(0)
-      , entry_(0)
-      , call_frame_(0)
-      , stack_(0)
-      , vm_(0)
-      , args_(0)
-      , previous_(0)
-      , profiling_entry_(0)
-      , out_args_(0)
-      , counter_(0)
-      , parent_info_(parent)
-      , creator_info_(0)
-      , use_full_scope_(false)
-      , inline_block_(0)
-      , block_info_(0)
-      , vmm(v)
-      , is_block(false)
-      , inline_return(0)
-      , return_value(0)
-      , inline_policy(0)
-      , fin_block(0)
-      , called_args(-1)
-      , stack_args(0)
-      , root(0)
-    {}
+    JITMethodInfo(LLVMState* ls, CompiledMethod* cm, VMMethod* v,
+                  JITMethodInfo* parent = 0);
 
     void set_function(llvm::Function* func) {
       function_ = func;
@@ -217,6 +196,10 @@ namespace rubinius {
       return variables_;
     }
 
+    CompiledMethod* method() {
+      return method_.get();
+    }
+
     void set_parent_info(JITMethodInfo& info) {
       parent_info_ = &info;
       function_ = info.function();
@@ -267,7 +250,7 @@ namespace rubinius {
     void clear_inline_block() {
       inline_block_ = 0;
     }
-    
+
     void set_block_info(JITInlineBlock* block) {
       block_info_ = block;
     }
@@ -353,7 +336,7 @@ namespace rubinius {
 
   class BackgroundCompilerThread;
 
-  class LLVMState {
+  class LLVMState : public ManagedThread {
     llvm::LLVMContext& ctx_;
     llvm::Module* module_;
     llvm::ExistingModuleProvider* mp_;
@@ -404,6 +387,8 @@ namespace rubinius {
     static void unpause(STATE);
 
     LLVMState(STATE);
+    ~LLVMState();
+
     void add_internal_functions();
 
     int jit_dump_code() {
@@ -478,11 +463,11 @@ namespace rubinius {
     const llvm::Type* ptr_type(std::string name);
     const llvm::Type* type(std::string name);
 
-    void compile_soon(STATE, VMMethod* vmm, BlockEnvironment* block=0);
+    void compile_soon(STATE, CompiledMethod* cm, BlockEnvironment* block=0);
     void remove(llvm::Function* func);
 
-    VMMethod* find_candidate(VMMethod* start, CallFrame* call_frame);
-    void compile_callframe(STATE, VMMethod* start, CallFrame* call_frame,
+    CompiledMethod* find_candidate(CompiledMethod* start, CallFrame* call_frame);
+    void compile_callframe(STATE, CompiledMethod* start, CallFrame* call_frame,
                            int primitive = -1);
 
     Symbol* symbol(const char* sym);
@@ -562,21 +547,26 @@ namespace rubinius {
   };
 
   class BackgroundCompileRequest {
-    VMMethod* vmm_;
+    TypedRoot<CompiledMethod*> method_;
     TypedRoot<Object*> mm_;
     bool is_block_;
 
   public:
-    BackgroundCompileRequest(STATE, VMMethod* vmm, Object* mm, bool is_block=false)
-      : vmm_(vmm)
+    BackgroundCompileRequest(STATE, CompiledMethod* cm, Object* mm, bool is_block=false)
+      : method_(state)
       , mm_(state)
       , is_block_(is_block)
     {
+      method_.set(cm);
       mm_.set(mm);
     }
 
     VMMethod* vmmethod() {
-      return vmm_;
+      return method_->backend_method();
+    }
+
+    CompiledMethod* method() {
+      return method_.get();
     }
 
     BlockEnvironment* block_env() {

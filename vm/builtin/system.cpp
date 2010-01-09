@@ -579,7 +579,7 @@ namespace rubinius {
     VMMethod* vmm = env->vmmethod(state);
 
     jit::Compiler jit;
-    jit.compile_block(ls, vmm);
+    jit.compile_block(ls, env->method(), vmm);
 
     if(show->true_p()) {
       jit.show_machine_code();

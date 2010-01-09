@@ -11,6 +11,7 @@ namespace rubinius {
   class VariableScope;
   class GlobalCache;
   class StackVariables;
+  class ManagedThread;
 
   namespace capi {
     class Handles;
@@ -31,18 +32,20 @@ namespace rubinius {
     capi::Handles* handles_;
     capi::Handles* cached_handles_;
     GlobalCache* global_cache_;
+    std::list<ManagedThread*>* threads_;
 
   public:
     GCData(STATE);
     GCData(Roots& r, CallFrameLocationList& l, VariableRootBuffers& b,
            capi::Handles* handles = NULL, capi::Handles* cached_handles = NULL,
-           GlobalCache *cache = NULL)
+           GlobalCache *cache = NULL, std::list<ManagedThread*>* ths = NULL)
       : roots_(r)
       , call_frames_(l)
       , variable_buffers_(b)
       , handles_(handles)
       , cached_handles_(cached_handles)
       , global_cache_(cache)
+      , threads_(ths)
     {}
 
     Roots& roots() {
@@ -51,6 +54,10 @@ namespace rubinius {
 
     CallFrameLocationList& call_frames() {
       return call_frames_;
+    }
+
+    std::list<ManagedThread*>* threads() {
+      return threads_;
     }
 
     VariableRootBuffers& variable_buffers() {
@@ -112,6 +119,9 @@ namespace rubinius {
       }
 
       weak_refs_->push_back(obj);
+    }
+
+    void reset_stats() {
     }
 
     friend class ObjectMark;

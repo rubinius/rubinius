@@ -295,6 +295,8 @@ namespace rubinius {
     NativeFunction* func = NativeFunction::create(state, name->to_sym(state), arg_count);
     func->bind(state, tot, arg_types, ret_type, ep);
 
+    if(arg_types) XFREE(arg_types);
+
     return func;
   }
 

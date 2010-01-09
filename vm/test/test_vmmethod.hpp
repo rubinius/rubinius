@@ -47,7 +47,7 @@ public:
     ti.slots[state->symbol("@blah")->index()] = 5;
     ti.slot_locations.resize(6);
     ti.slot_locations[5] = 33;
-    vmm.specialize(state, &ti);
+    vmm.specialize(state, cm, &ti);
 
     TS_ASSERT_EQUALS(vmm.total, 3U);
     TS_ASSERT_EQUALS(vmm.opcodes[0], static_cast<unsigned int>(InstructionSequence::insn_push_my_offset));

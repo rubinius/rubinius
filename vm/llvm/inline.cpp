@@ -64,7 +64,7 @@ namespace rubinius {
 
       if(!cm->primitive()->nil_p()) {
         if(!inline_primitive(klass, cm, meth->execute)) return false;
-      } else if(detect_trivial_method(cm)) {
+      } else if(detect_trivial_method(vmm, cm)) {
         inline_trivial_method(klass, cm);
       } else if(int which = detect_jit_intrinsic(klass, cm)) {
         inline_intrinsic(klass, cm, which);
@@ -81,7 +81,7 @@ namespace rubinius {
               << "#"
               << ops_.state()->symbol_cstr(cm->name())
               << " into "
-              << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+              << ops_.state()->symbol_cstr(ops_.method_name())
               << ". ";
 
             if(decision == cTooBig) {
@@ -104,7 +104,7 @@ namespace rubinius {
             << "#"
             << ops_.state()->symbol_cstr(cm->name())
             << " into "
-            << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+            << ops_.state()->symbol_cstr(ops_.method_name())
             << " (" << ops_.state()->symbol_cstr(klass->name()) << ")\n";
         }
 
@@ -113,7 +113,7 @@ namespace rubinius {
 
         NoAccessManagedMemory unmemguard(ops_.state());
 
-        inline_generic_method(klass, vmm);
+        inline_generic_method(klass, cm, vmm);
         return true;
       } else {
         if(ops_.state()->config().jit_inline_debug) {
@@ -122,7 +122,7 @@ namespace rubinius {
             << "#"
             << ops_.state()->symbol_cstr(cm->name())
             << " into "
-            << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+            << ops_.state()->symbol_cstr(ops_.method_name())
             << ". generic inlining disabled\n";
         }
 
@@ -134,7 +134,7 @@ namespace rubinius {
           ops_.state()->log() << "inlining: FFI call to "
             << ops_.state()->symbol_cstr(nf->name())
             << "() into "
-            << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+            << ops_.state()->symbol_cstr(ops_.method_name())
             << " (" << ops_.state()->symbol_cstr(klass->name()) << ")\n";
         }
       } else {
@@ -147,7 +147,7 @@ namespace rubinius {
           << "#"
           << ops_.state()->symbol_cstr(cache_->name)
           << " into "
-          << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+          << ops_.state()->symbol_cstr(ops_.method_name())
           << ". unhandled executable type\n";
       }
       return false;
@@ -158,34 +158,20 @@ namespace rubinius {
     return true;
   }
 
-  void Inliner::inline_block(VMMethod* vmm, Value* self) {
+  void Inliner::inline_block(JITInlineBlock* ib, Value* self) {
     AccessManagedMemory memguard(ops_.state());
 
-    CompiledMethod* cm = vmm->original.get();
-
-    if(detect_trivial_method(cm)) {
-      if(ops_.state()->config().jit_inline_debug) {
-        ops_.state()->log() << "inlining trivial block into: "
-          << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
-          << "\n";
-      }
-
-      inline_trivial_method(0, cm);
-    } else {
-      if(ops_.state()->config().jit_inline_debug) {
-        ops_.state()->log() << "inlining block into: "
-          << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
-          << "\n";
-      }
-
-      NoAccessManagedMemory unmemguard(ops_.state());
-      emit_inline_block(vmm, self);
+    if(ops_.state()->config().jit_inline_debug) {
+      ops_.state()->log() << "inlining block into: "
+        << ops_.state()->symbol_cstr(ops_.method_name())
+        << "\n";
     }
+
+    NoAccessManagedMemory unmemguard(ops_.state());
+    emit_inline_block(ib, self);
   }
 
-  bool Inliner::detect_trivial_method(CompiledMethod* cm) {
-    VMMethod* vmm = cm->backend_method();
-
+  bool Inliner::detect_trivial_method(VMMethod* vmm, CompiledMethod* cm) {
     opcode* stream = vmm->opcodes;
     size_t size_max = 2;
     switch(stream[0]) {
@@ -193,7 +179,7 @@ namespace rubinius {
       size_max++;
       break;
     case InstructionSequence::insn_push_literal:
-      if(kind_of<Symbol>(cm->literals()->at(stream[1]))) {
+      if(cm && kind_of<Symbol>(cm->literals()->at(stream[1]))) {
         size_max++;
       } else {
         return false;
@@ -223,7 +209,7 @@ namespace rubinius {
         << "#"
         << ops_.state()->symbol_cstr(cm->name())
         << " into "
-        << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+        << ops_.state()->symbol_cstr(ops_.method_name())
         << " (" << ops_.state()->symbol_cstr(klass->name()) << ") trivial\n";
     }
 
@@ -286,7 +272,7 @@ namespace rubinius {
         << ops_.state()->symbol_cstr(klass->name())
         << " in "
         << "#"
-        << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+        << ops_.state()->symbol_cstr(ops_.method_name())
         << "\n";
     }
 
@@ -338,7 +324,7 @@ namespace rubinius {
         << ops_.state()->symbol_cstr(klass->name())
         << " in "
         << "#"
-        << ops_.state()->symbol_cstr(ops_.vmmethod()->original->name())
+        << ops_.state()->symbol_cstr(ops_.method_name())
         << "\n";
     }
 
@@ -379,11 +365,11 @@ namespace rubinius {
     set_result(ivar);
   }
 
-  void Inliner::inline_generic_method(Class* klass, VMMethod* vmm) {
+  void Inliner::inline_generic_method(Class* klass, CompiledMethod* cm, VMMethod* vmm) {
     Value* self = recv();
     ops_.check_class(self, klass, failure());
 
-    JITMethodInfo info(vmm);
+    JITMethodInfo info(ops_.state(), cm, vmm);
     info.set_parent_info(ops_.info());
 
     BasicBlock* on_return = ops_.new_block("inline_return");
@@ -429,8 +415,8 @@ namespace rubinius {
     set_result(info.return_value);
   }
 
-  void Inliner::emit_inline_block(VMMethod* vmm, Value* self) {
-    JITMethodInfo info(vmm);
+  void Inliner::emit_inline_block(JITInlineBlock* ib, Value* self) {
+    JITMethodInfo info(ops_.state(), ib->method(), ib->code());
     info.set_parent_info(ops_.info());
 
     BasicBlock* on_return = ops_.new_block("inline_return");
@@ -454,7 +440,7 @@ namespace rubinius {
 
     info.stack_args = &args;
 
-    if(vmm->call_count >= 0) vmm->call_count /= 2;
+    if(ib->code()->call_count >= 0) ib->code()->call_count /= 2;
 
     BasicBlock* entry = work.setup_inline_block(self,
         ops_.constant(Qnil, ops_.state()->ptr_type("Module")));

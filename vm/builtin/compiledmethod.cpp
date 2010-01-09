@@ -103,7 +103,7 @@ namespace rubinius {
   }
 
   void CompiledMethod::specialize(STATE, TypeInfo* ti) {
-    backend_method_->specialize(state, ti);
+    backend_method_->specialize(state, this, ti);
   }
 
   Object* CompiledMethod::compile(STATE) {
@@ -149,7 +149,7 @@ namespace rubinius {
     timer::Running timer(ls->time_spent);
 
     jit::Compiler jit;
-    jit.compile_method(ls, backend_method_);
+    jit.compile_method(ls, this, backend_method_);
 
     if(jit.generate_function(ls)) {
       backend_method_->set_jitted(jit.llvm_function(),
@@ -171,7 +171,7 @@ namespace rubinius {
       std::cout << "[[[ JIT queueing " << full_name(state)->c_str() << " ]]]\n";
     }
 
-    LLVMState::get(state)->compile_soon(state, backend_method_);
+    LLVMState::get(state)->compile_soon(state, this);
     return Qtrue;
 #else
     return Qfalse;
@@ -225,6 +225,8 @@ namespace rubinius {
     if(!cm->backend_method_) return;
 
     VMMethod* vmm = cm->backend_method_;
+    vmm->set_mark();
+
     Object* tmp;
 
     for(size_t i = 0; i < vmm->inline_cache_count(); i++) {

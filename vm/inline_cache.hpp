@@ -265,13 +265,14 @@ namespace rubinius {
 
   // Registry, used to clear ICs by method name
   class InlineCacheRegistry {
-    typedef std::vector<InlineCache*> CacheVector;
+    typedef std::list<InlineCache*> CacheVector;
     typedef std::tr1::unordered_map<native_int, CacheVector> CacheHash;
 
     CacheHash caches_;
 
   public:
     void add_cache(Symbol* sym, InlineCache* cache);
+    void remove_cache(Symbol* sym, InlineCache* cache);
     void clear(Symbol* sym);
 
     void print_stats(STATE);

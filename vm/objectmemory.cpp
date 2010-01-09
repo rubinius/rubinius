@@ -30,6 +30,9 @@ namespace rubinius {
     , immix_(new ImmixGC(this))
     , inflated_headers_(new InflatedHeaders)
     , mark_(1)
+    , code_manager_(&state->shared)
+    , collect_young_now(false)
+    , collect_mature_now(false)
     , state(state)
   {
     // TODO Not sure where this code should be...
@@ -140,6 +143,8 @@ namespace rubinius {
     // validate_handles(data.handles());
     // validate_handles(data.cached_handles());
 
+    young_->reset_stats();
+
     young_->collect(data, stats);
     prune_handles(data.handles(), true);
     prune_handles(data.cached_handles(), true);
@@ -158,7 +163,14 @@ namespace rubinius {
     // validate_handles(data.cached_handles());
 
     collect_mature_now = false;
+
+    code_manager_.clear_marks();
+
+    immix_->reset_stats();
+
     immix_->collect(data);
+
+    code_manager_.sweep();
 
     data.global_cache()->prune_unmarked(mark());
 
@@ -450,7 +462,49 @@ namespace rubinius {
   bool ObjectMemory::valid_young_object_p(Object* obj) {
     return obj->young_object_p() && young_->in_current_p(obj);
   }
+
+  void ObjectMemory::add_code_resource(CodeResource* cr) {
+    code_manager_.add_resource(cr);
+  }
+
+  void ObjectMemory::memstats() {
+    int total = 0;
+
+    int baker = state->shared.config.gc_bytes * 2;
+    total += baker;
+
+    int immix = immix_->bytes_allocated();
+    total += immix;
+
+    int large = mark_sweep_->allocated_bytes;
+    total += large;
+
+    int code = code_manager_.size();
+    total += code;
+
+    int shared = state->shared.size();
+    total += shared;
+
+    std::cout << "baker: " << baker << "\n";
+    std::cout << "immix: " << immix << "\n";
+    std::cout << "large: " << large << "\n";
+    std::cout << " code: " << code << "\n";
+    std::cout << "shared: " << shared << "\n";
+
+    std::cout << "total: "
+              << ((double)total / (1024 * 1024))
+              << " M\n";
+
+    std::cout << "CodeManager:\n";
+    std::cout << "  total allocated: " << code_manager_.total_allocated() << "\n";
+    std::cout << "      total freed: " << code_manager_.total_freed() << "\n";
+  }
 };
+
+// Used in gdb
+void x_memstat() {
+  rubinius::VM::current_state()->om->memstats();
+}
 
 #define DEFAULT_MALLOC_THRESHOLD 10000000
 

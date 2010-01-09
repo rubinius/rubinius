@@ -3,6 +3,7 @@
 
 #include "globals.hpp"
 #include "gc/object_mark.hpp"
+#include "gc/managed.hpp"
 #include "thread_state.hpp"
 
 #include "util/refcount.hpp"
@@ -80,7 +81,7 @@ namespace rubinius {
     eNone, ePrivate, eProtected, eSuper, eNormal
   };
 
-  class VM {
+  class VM : public ManagedThread {
 
   private:
     CallFrame* saved_call_frame_;
@@ -323,6 +324,9 @@ namespace rubinius {
     profiler::Profiler* profiler();
 
     void remove_profiler();
+
+    // For thread-local roots
+    static std::list<Roots*>* roots;
   };
 
   class StopTheWorld {

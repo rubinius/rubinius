@@ -147,6 +147,20 @@ namespace rubinius {
     delete cached_handles_;
   }
 
+  void SharedState::add_managed_thread(ManagedThread* thr) {
+    threads_.push_back(thr);
+  }
+
+  void SharedState::remove_managed_thread(ManagedThread* thr) {
+    threads_.remove(thr);
+  }
+
+  int SharedState::size() {
+    return sizeof(SharedState) +
+      sizeof(WorldState) +
+      symbols.byte_size();
+  }
+
   void SharedState::discard(SharedState* ss) {
     if(ss->deref()) delete ss;
   }
@@ -154,12 +168,15 @@ namespace rubinius {
   VM* SharedState::new_vm() {
     VM* vm = new VM(*this);
     cf_locations_.push_back(vm->call_frame_location());
+    threads_.push_back(vm);
+
     this->ref();
     return vm;
   }
 
   void SharedState::remove_vm(VM* vm) {
     cf_locations_.remove(vm->call_frame_location());
+    threads_.remove(vm);
     this->deref();
 
     // Don't delete ourself here, it's too problematic.

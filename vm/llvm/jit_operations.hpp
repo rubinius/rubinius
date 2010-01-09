@@ -135,6 +135,10 @@ namespace rubinius {
       return method_info_.vmm;
     }
 
+    Symbol* method_name() {
+      return vmmethod()->name();
+    }
+
     VMMethod* root_vmmethod() {
       if(method_info_.root) {
         return method_info_.root->vmm;

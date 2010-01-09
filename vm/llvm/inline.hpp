@@ -104,11 +104,11 @@ namespace rubinius {
     }
 
     bool consider();
-    void inline_block(VMMethod* vmm, Value* self);
+    void inline_block(JITInlineBlock* ib, Value* self);
 
-    void inline_generic_method(Class* klass, VMMethod* vmm);
+    void inline_generic_method(Class* klass, CompiledMethod* cm, VMMethod* vmm);
 
-    bool detect_trivial_method(CompiledMethod* cm);
+    bool detect_trivial_method(VMMethod* vmm, CompiledMethod* cm = 0);
 
     void inline_trivial_method(Class* klass, CompiledMethod* cm);
 
@@ -120,7 +120,7 @@ namespace rubinius {
 
     bool inline_ffi(Class* klass, NativeFunction* nf);
 
-    void emit_inline_block(VMMethod* vmm, Value* val);
+    void emit_inline_block(JITInlineBlock* ib, Value* val);
 
     int detect_jit_intrinsic(Class* klass, CompiledMethod* cm);
     void inline_intrinsic(Class* klass, CompiledMethod* cm, int which);

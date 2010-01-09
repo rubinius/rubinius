@@ -75,7 +75,9 @@ namespace rubinius {
     for(Inliners::const_iterator i = inliners_->begin();
         i != inliners_->end();
         i++) {
-      (*i)->deoptimize(state);
+      if(CompiledMethod* cm = try_as<CompiledMethod>(this)) {
+        (*i)->deoptimize(state, cm);
+      }
     }
 
     inliners_->clear();

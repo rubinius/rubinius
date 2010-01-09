@@ -13,13 +13,11 @@ namespace rubinius {
 
   private:
     Tuple* opcodes_;     // slot
-    Fixnum* stack_depth_; // slot
 
   public:
     /* accessors */
 
     attr_accessor(opcodes, Tuple);
-    attr_accessor(stack_depth, Fixnum);
 
     /* interface */
 

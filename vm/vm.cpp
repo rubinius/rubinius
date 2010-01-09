@@ -44,7 +44,8 @@ namespace rubinius {
   int VM::cStackDepthMax = 655300;
 
   VM::VM(SharedState& shared)
-    : saved_call_frame_(0)
+    : ManagedThread(shared)
+    , saved_call_frame_(0)
     , alive_(true)
     , profiler_(0)
     , run_signals_(false)

@@ -58,21 +58,19 @@ namespace jit {
     return mci_->address();
   }
 
-  void Compiler::compile_block(LLVMState* ls, VMMethod* vmm) {
+  void Compiler::compile_block(LLVMState* ls, CompiledMethod* cm, VMMethod* vmm) {
     if(ls->config().jit_inline_debug) {
       VMMethod* parent = vmm->parent();
       assert(parent);
 
       ls->log() << "JIT: compiling block in "
-        << ls->symbol_cstr(parent->original->scope()->module()->name())
-        << "#"
-        << ls->symbol_cstr(vmm->original->name())
+        << ls->symbol_cstr(cm->name())
         << " near "
-        << ls->symbol_cstr(vmm->original->file()) << ":"
-        << vmm->original->start_line() << "\n";
+        << ls->symbol_cstr(cm->file()) << ":"
+        << cm->start_line() << "\n";
     }
 
-    JITMethodInfo info(vmm);
+    JITMethodInfo info(ls, cm, vmm);
     info.is_block = true;
 
     jit::BlockBuilder work(ls, info);
@@ -81,15 +79,15 @@ namespace jit {
     compile_builder(ls, info, work);
   }
 
-  void Compiler::compile_method(LLVMState* ls, VMMethod* vmm) {
+  void Compiler::compile_method(LLVMState* ls, CompiledMethod* cm, VMMethod* vmm) {
     if(ls->config().jit_inline_debug) {
       ls->log() << "JIT: compiling "
-        << ls->symbol_cstr(vmm->original->scope()->module()->name())
+        << ls->symbol_cstr(cm->scope()->module()->name())
         << "#"
-        << ls->symbol_cstr(vmm->original->name()) << "\n";
+        << ls->symbol_cstr(cm->name()) << "\n";
     }
 
-    JITMethodInfo info(vmm);
+    JITMethodInfo info(ls, cm, vmm);
     info.is_block = false;
 
     jit::MethodBuilder work(ls, info);
@@ -153,7 +151,7 @@ namespace jit {
 
     if(ls->jit_dump_code() & cOptimized) {
       llvm::outs() << "[[[ LLVM Optimized IR: "
-        << ls->symbol_cstr(info.vmm->original->name()) << " ]]]\n";
+        << ls->symbol_cstr(info.method()->name()) << " ]]]\n";
       llvm::outs() << *func << "\n";
     }
 

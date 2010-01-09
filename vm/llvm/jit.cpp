@@ -7,6 +7,7 @@
 #include "builtin/staticscope.hpp"
 #include "builtin/module.hpp"
 #include "field_offset.hpp"
+#include "builtin/compiledmethod.hpp"
 
 #include "call_frame.hpp"
 #include "configuration.hpp"
@@ -55,6 +56,51 @@ namespace rubinius {
     return new AllocaInst(type, size, name,
         function_->getEntryBlock().getTerminator());
   }
+
+  JITMethodInfo::JITMethodInfo(LLVMState* ls, CompiledMethod* cm, VMMethod* v,
+                  JITMethodInfo* parent)
+    : function_(0)
+    , entry_(0)
+    , call_frame_(0)
+    , stack_(0)
+    , vm_(0)
+    , args_(0)
+    , previous_(0)
+    , profiling_entry_(0)
+    , out_args_(0)
+    , counter_(0)
+    , parent_info_(parent)
+    , creator_info_(0)
+    , use_full_scope_(false)
+    , inline_block_(0)
+    , block_info_(0)
+    , method_(&ls->roots())
+    , vmm(v)
+    , is_block(false)
+    , inline_return(0)
+    , return_value(0)
+    , inline_policy(0)
+    , fin_block(0)
+    , called_args(-1)
+    , stack_args(0)
+    , root(0)
+  {
+    method_.set(cm);
+  }
+
+  JITInlineBlock::JITInlineBlock(LLVMState* ls, llvm::PHINode* phi, llvm::BasicBlock* brk,
+                   CompiledMethod* cm, VMMethod* code,
+                   JITMethodInfo* scope, int which)
+      : block_break_result_(phi)
+      , block_break_loc_(brk)
+      , code_(code)
+      , method_(&ls->roots())
+      , scope_(scope)
+      , which_(which)
+      , created_object_(false)
+    {
+      method_.set(cm);
+    }
 
   LLVMState* LLVMState::get(STATE) {
     if(!state->shared.llvm_state) {
@@ -239,9 +285,9 @@ namespace rubinius {
           timer::Running timer(ls_->time_spent);
 
           if(req->is_block()) {
-            jit.compile_block(ls_, req->vmmethod());
+            jit.compile_block(ls_, req->method(), req->vmmethod());
           } else {
-            jit.compile_method(ls_, req->vmmethod());
+            jit.compile_method(ls_, req->method(), req->vmmethod());
           }
 
           func = jit.generate_function(ls_);
@@ -278,8 +324,7 @@ namespace rubinius {
             be->set_native_function(func);
           }
         } else {
-          req->vmmethod()->original.get()->execute =
-                           reinterpret_cast<executor>(func);
+          req->method()->execute = reinterpret_cast<executor>(func);
         }
 
         int which = ls_->add_jitted_method();
@@ -337,7 +382,8 @@ namespace rubinius {
   }
 
   LLVMState::LLVMState(STATE)
-    : ctx_(llvm::getGlobalContext())
+    : ManagedThread(state->shared)
+    , ctx_(llvm::getGlobalContext())
     , config_(state->shared.config)
     , global_lock_(state->global_lock())
     , symbols_(state->symbols)
@@ -351,6 +397,7 @@ namespace rubinius {
     , log_(0)
     , time_spent(0)
   {
+    state->shared.add_managed_thread(this);
 
     if(state->shared.config.jit_log.value.size() == 0) {
       log_ = &std::cerr;
@@ -452,6 +499,10 @@ namespace rubinius {
     background_thread_->run();
   }
 
+  LLVMState::~LLVMState() {
+    shared_.remove_managed_thread(this);
+  }
+
   void LLVMState::shutdown_i() {
     background_thread_->stop();
   }
@@ -476,28 +527,25 @@ namespace rubinius {
     return symbols_.lookup_cstring(sym);
   }
 
-  void LLVMState::compile_soon(STATE, VMMethod* vmm, BlockEnvironment* block) {
+  void LLVMState::compile_soon(STATE, CompiledMethod* cm, BlockEnvironment* block) {
     Object* placement;
     bool is_block = false;
 
     // Ignore it!
-    if(vmm->call_count < 0) {
+    if(cm->backend_method()->call_count < 0) {
       if(config().jit_inline_debug) {
         log() << "JIT: ignoring candidate! "
-          << symbol_cstr(vmm->original->scope()->module()->name())
-          << "#"
-          << symbol_cstr(vmm->original->name()) << "\n";
+          << symbol_cstr(cm->name()) << "\n";
       }
       return;
     }
 
     if(config().jit_inline_debug) {
       log() << "JIT: queueing method: "
-        << symbol_cstr(vmm->original->scope()->module()->name())
-        << "#"
-        << symbol_cstr(vmm->original->name()) << "\n";
+        << symbol_cstr(cm->name()) << "\n";
     }
-    vmm->call_count = -1;
+
+    cm->backend_method()->call_count = -1;
 
     if(block) {
       is_block = true;
@@ -509,7 +557,7 @@ namespace rubinius {
     state->stats.jitted_methods++;
 
     BackgroundCompileRequest* req =
-      new BackgroundCompileRequest(state, vmm, placement, is_block);
+      new BackgroundCompileRequest(state, cm, placement, is_block);
 
     queued_methods_++;
 
@@ -561,17 +609,16 @@ namespace rubinius {
   }
   */
 
-  static VMMethod* find_first_non_block(CallFrame* cf) {
-    VMMethod* vmm = cf->cm->backend_method();
-    while(vmm->parent()) {
+  static CompiledMethod* find_first_non_block(CallFrame* cf) {
+    while(cf->cm->backend_method()->parent()) {
       cf = cf->previous;
       if(!cf) return 0;
-      vmm = cf->cm->backend_method();
     }
 
-    return vmm;
+    return cf->cm;
   }
 
+  /*
   static CallFrame* validate_block_parent(CallFrame* cf, VMMethod* parent) {
     if(cf->previous && cf->previous->previous) {
       cf = cf->previous->previous;
@@ -580,21 +627,20 @@ namespace rubinius {
 
     return 0;
   }
+  */
 
-  void LLVMState::compile_callframe(STATE, VMMethod* start, CallFrame* call_frame,
+  void LLVMState::compile_callframe(STATE, CompiledMethod* start, CallFrame* call_frame,
                                     int primitive) {
     if(config().jit_inline_debug) {
       if(start) {
         log() << "JIT: target search from "
-          << symbol_cstr(start->original->scope()->module()->name())
-          << "#"
-          << symbol_cstr(start->original->name()) << "\n";
+          << symbol_cstr(start->name()) << "\n";
       } else {
         log() << "JIT: target search from primitive\n";
       }
     }
 
-    VMMethod* candidate = find_candidate(start, call_frame);
+    CompiledMethod* candidate = find_candidate(start, call_frame);
     if(!candidate) {
       if(config().jit_inline_debug) {
         log() << "JIT: unable to find candidate\n";
@@ -602,9 +648,9 @@ namespace rubinius {
       return;
     }
 
-    assert(!candidate->parent());
+    assert(!candidate->backend_method()->parent());
 
-    if(candidate->call_count < 0) {
+    if(candidate->backend_method()->call_count < 0) {
       if(!start) return;
       // Ignore it. compile this one.
       candidate = start;
@@ -613,16 +659,16 @@ namespace rubinius {
     compile_soon(state, candidate);
   }
 
-  VMMethod* LLVMState::find_candidate(VMMethod* start, CallFrame* call_frame) {
-    VMMethod* found = start;
+  CompiledMethod* LLVMState::find_candidate(CompiledMethod* start, CallFrame* call_frame) {
+    CompiledMethod* found = start;
     int depth = 0;
-    bool consider_block_parents = config_.jit_inline_blocks;
+    // bool consider_block_parents = config_.jit_inline_blocks;
 
     // No upper call_frames or generic inlining is off, use the start.
     // With generic inlining off, there is no way to inline back to start,
     // so we don't both trying.
     if(!config_.jit_inline_generic) {
-      if(!start) start = call_frame->cm->backend_method();
+      if(!start) start = call_frame->cm;
       return find_first_non_block(call_frame);
     }
 
@@ -636,20 +682,21 @@ namespace rubinius {
     }
     */
 
-    VMMethod* next = call_frame->cm->backend_method();
-    VMMethod* parent = 0;
+    CompiledMethod* next = call_frame->cm;
 
     while(depth < cInlineMaxDepth) {
       // show_method(this, next);
 
+      VMMethod* next_v = next->backend_method();
+
       // Basic requirements
-      if(next->required_args != next->total_args ||
-          next->call_count < 200 ||
-          next->jitted()) break;
+      if(next_v->required_args != next_v->total_args ||
+          next_v->call_count < 200 ||
+          next_v->jitted()) break;
 
       // Jump to defining methods of blocks?
-      parent = next->parent();
-      if(parent) {
+      if(next_v->parent()) {
+        /*
         if(consider_block_parents) {
           // See if parent is in this call_frame chain properly..
           if(CallFrame* pf = validate_block_parent(call_frame, parent)) {
@@ -664,9 +711,10 @@ namespace rubinius {
             call_frame = pf;
           }
         } else {
+        */
           // We hit a block, just bail.
           break;
-        }
+        // }
       } else {
         found = next;
       }
@@ -674,12 +722,12 @@ namespace rubinius {
       call_frame = call_frame->previous;
       if(!call_frame) break;
 
-      next = call_frame->cm->backend_method();
+      next = call_frame->cm;
 
       depth++;
     }
 
-    if(!found && !next->parent()) return next;
+    if(!found && !next->backend_method()->parent()) return next;
 
     return found;
   }

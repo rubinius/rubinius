@@ -28,6 +28,7 @@ namespace rubinius {
     , handles_(state->shared.global_handles())
     , cached_handles_(state->shared.cached_handles())
     , global_cache_(state->shared.global_cache)
+    , threads_(state->shared.threads())
   {}
 
   GarbageCollector::GarbageCollector(ObjectMemory *om)

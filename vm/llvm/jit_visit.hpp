@@ -740,7 +740,7 @@ namespace rubinius {
         if(state()->config().jit_inline_debug) {
           ls_->log() << "inlining: primitive fixnum_equal"
             << " into "
-            << state()->symbol_cstr(vmmethod()->original->name())
+            << state()->symbol_cstr(vmmethod()->name())
             << ".\n";
         }
 
@@ -825,7 +825,7 @@ namespace rubinius {
         if(state()->config().jit_inline_debug) {
           ls_->log() << "inlining: primitive fixnum_lt"
             << " into "
-            << state()->symbol_cstr(vmmethod()->original->name())
+            << state()->symbol_cstr(vmmethod()->name())
             << ".\n";
         }
 
@@ -1036,7 +1036,7 @@ namespace rubinius {
     }
 
     Object* literal(opcode which) {
-      return vmmethod()->original.get()->literals()->at(which);
+      return info().method()->literals()->at(which);
     }
 
     Value* get_literal(opcode which) {
@@ -1470,7 +1470,7 @@ namespace rubinius {
 
         VMMethod* code = 0;
         if(block_code) code = block_code->backend_method();
-        JITInlineBlock block_info(send_result, cleanup, code, &info(),
+        JITInlineBlock block_info(ls_, send_result, cleanup, block_code, code, &info(),
                                   current_block_);
 
         inl.set_inline_block(&block_info);
@@ -1670,7 +1670,7 @@ namespace rubinius {
     }
 
     Object* current_literal(opcode which) {
-      return vmmethod()->original.get()->literals()->at(which);
+      return info().method()->literals()->at(which);
     }
 
     void visit_push_const_fast(opcode name, opcode cache) {
@@ -2281,7 +2281,7 @@ namespace rubinius {
 
         inl.set_creator(creator);
 
-        inl.inline_block(ib->code(), get_self(creator->variables()));
+        inl.inline_block(ib, get_self(creator->variables()));
 
         stack_remove(count);
         if(inl.check_for_exception()) {
