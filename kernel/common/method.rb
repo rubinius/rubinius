@@ -89,6 +89,20 @@ class Method
     end
   end
 
+  def parameters
+    @executable.local_names.each_with_index.map do |name, i|
+      if i < @executable.required_args
+        [:req, name]
+      elsif i < @executable.total_args
+        [:opt, name]
+      elsif @executable.splat == i
+        [:rest, name]
+      else
+        [:block, name]
+      end
+    end
+  end
+
   def owner
     if @defined_in.class == Rubinius::IncludedModule
       @defined_in.module
@@ -212,6 +226,20 @@ class UnboundMethod
       [@executable.file.to_s, @executable.first_line]
     else
       nil
+    end
+  end
+
+  def parameters
+    @executable.local_names.each_with_index.map do |name, i|
+      if i < @executable.required_args
+        [:req, name]
+      elsif i < @executable.total_args
+        [:opt, name]
+      elsif @executable.splat == i
+        [:rest, name]
+      else
+        [:block, name]
+      end
     end
   end
 
