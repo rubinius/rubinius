@@ -337,23 +337,16 @@ class Thread
   # levels (using a throw)
 
   def self.detect_outermost_recursion(obj, paired_obj=undefined, &block)
-    objects = current.recursive_objects
-    if objects[:__detect_outermost_recursion__] # then not outermost
+    if Rubinius::ThrownValue.available? :__detect_outermost_recursion__
       if detect_recursion(obj, paired_obj, &block)
-        throw :__detect_outermost_recursion__, :__detect_outermost_recursion__
+        throw :__detect_outermost_recursion__, true
       end
+      false
     else
-      begin
-        objects[:__detect_outermost_recursion__] = true  # signal that there is an outermost
-        r = catch(:__detect_outermost_recursion__) do
-          throw objects, objects if detect_recursion(obj, paired_obj, &block)
-        end
-        return true if r == :__detect_outermost_recursion__
-      ensure
-        objects[:__detect_outermost_recursion__] = false
+      catch :__detect_outermost_recursion__ do
+        detect_recursion(obj, paired_obj, &block)
       end
     end
-    false
   end
 
   class Context
