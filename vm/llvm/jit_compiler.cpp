@@ -53,6 +53,13 @@ namespace jit {
       mci_ = new llvm::MachineCodeInfo();
       ls->engine()->runJITOnFunction(function_, mci_);
       ls->add_code_bytes(mci_->size());
+
+      // If we're not in JIT debug mode, delete the body IR, now that we're
+      // done with it.
+      // This saves us 100M+ of memory in a full spec run.
+      if(!ls->debug_p()) {
+        function_->dropAllReferences();
+      }
     }
 
     return mci_->address();

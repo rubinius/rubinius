@@ -395,6 +395,8 @@ namespace rubinius {
       return config_.jit_dump_code;
     }
 
+    bool debug_p();
+
     Configuration& config() {
       return config_;
     }

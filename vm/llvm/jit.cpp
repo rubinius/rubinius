@@ -503,6 +503,10 @@ namespace rubinius {
     shared_.remove_managed_thread(this);
   }
 
+  bool LLVMState::debug_p() {
+    return config_.jit_debug;
+  }
+
   void LLVMState::shutdown_i() {
     background_thread_->stop();
   }

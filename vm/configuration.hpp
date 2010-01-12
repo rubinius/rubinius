@@ -26,6 +26,7 @@ namespace rubinius {
     config::Bool    jit_inline_blocks;
     config::String  jit_log;
     config::Bool    jit_disabled;
+    config::Bool    jit_debug;
 
     // Query Agent
     config::Integer qa_port;
@@ -66,6 +67,7 @@ namespace rubinius {
       , jit_inline_blocks(this, "jit.inline.blocks")
       , jit_log(this,        "jit.log")
       , jit_disabled(this,   "int")
+      , jit_debug(this,      "jit.debug", false)
       , qa_port(this,         "agent.port")
       , qa_verbose(this,      "agent.verbose")
       , gil_debug(this,       "vm.gil.debug")
