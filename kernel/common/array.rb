@@ -1068,14 +1068,21 @@ class Array
     # responsible to append the values.
     #
     result = []
+
     arg.map!{|x| Type.coerce_to(x, Array, :to_ary)}
-    [self, *arg].reverse.inject(result.method(:push)) do |proc, values|
+    arg.reverse! # to get the results in the same order as in MRI, vary the last argument first
+    arg.push self
+
+    outer_lambda = arg.inject(result.method(:push)) do |proc, values|
       lambda do |partial|
         values.each do |val|
           proc.call(partial.dup << val)
         end
       end
-    end.call([])
+    end
+
+    outer_lambda.call([])
+
     result
   end
 
