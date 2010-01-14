@@ -74,12 +74,9 @@ namespace rubinius {
     /**
      *  Force garbage collection as soon as possible.
      *
-     *  The tenure flag is NOT USED currently, but its
-     *  intention is to indicate that all young objects
-     *  should be tenured now.
      */
     // Ruby.primitive :vm_gc_start
-    static Object*  vm_gc_start(STATE, Object* tenure);
+    static Object*  vm_gc_start(STATE, Object* force);
 
     /**
      *  Retrieve a value from VM configuration.

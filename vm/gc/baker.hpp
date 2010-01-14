@@ -126,27 +126,27 @@ namespace rubinius {
 
     int promoted_objects_;
     ObjectArray* promoted_;
-    ObjectArray::iterator promoted_insert, promoted_current;
+    ObjectArray::iterator promoted_insert_, promoted_current_;
 
     // Assume ObjectArray is a vector!
     void promoted_push(Object* obj) {
       promoted_objects_++;
 
-      if(promoted_insert == promoted_current) {
-        size_t i = promoted_insert - promoted_->begin(),
-               j = promoted_current - promoted_->begin();
+      if(promoted_insert_ == promoted_current_) {
+        size_t i = promoted_insert_ - promoted_->begin(),
+               j = promoted_current_ - promoted_->begin();
         promoted_->push_back(obj);
-        promoted_current = promoted_->begin() + j;
-        promoted_insert = promoted_->begin() + i;
+        promoted_current_ = promoted_->begin() + j;
+        promoted_insert_ = promoted_->begin() + i;
       } else {
-        *promoted_insert++ = obj;
+        *promoted_insert_++ = obj;
       }
     }
 
     void reset_promoted() {
       promoted_objects_ = 0;
       promoted_ = new ObjectArray(0);
-      promoted_current = promoted_insert = promoted_->begin();
+      promoted_current_ = promoted_insert_ = promoted_->begin();
     }
 
     void clear_promotion() {
@@ -182,6 +182,8 @@ namespace rubinius {
     void    collect(GCData& data, YoungCollectStats* stats = 0);
     void    clear_marks();
     void    find_lost_souls();
+    void    check_finalize();
+    void    handle_promotions();
 
     ObjectPosition validate_object(Object* obj);
     bool in_current_p(Object* obj);

@@ -82,6 +82,8 @@ namespace rubinius {
     virtual Object* saw_object(Object*);
     void collect(GCData& data);
 
+    void check_finalize();
+
     ObjectPosition validate_object(Object*);
 
   public: // Inline

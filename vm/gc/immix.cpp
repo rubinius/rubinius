@@ -184,6 +184,14 @@ namespace rubinius {
 
     gc_.process_mark_stack(allocator_);
 
+    // We've now finished marking the entire object graph.
+
+    check_finalize();
+
+    // Finalize can cause more things to continue to live, so we must
+    // check the mark_stack again.
+    gc_.process_mark_stack(allocator_);
+
     // Sweep up the garbage
     gc_.sweep_blocks();
 
@@ -294,6 +302,44 @@ namespace rubinius {
       }
     }
 #endif
+  }
+
+  void ImmixGC::check_finalize() {
+    for(std::list<FinalizeObject>::iterator i = object_memory_->finalize().begin();
+        i != object_memory_->finalize().end(); ) {
+      FinalizeObject& fi = *i;
+
+      switch(i->status) {
+      case FinalizeObject::eLive:
+        // We have to still keep it alive though until we finish with it.
+        i->object = saw_object(i->object);
+
+        if(!i->object->marked_p(object_memory_->mark())) {
+          i->status = FinalizeObject::eQueued;
+          object_memory_->to_finalize().push_back(&fi);
+        }
+        break;
+      case FinalizeObject::eQueued:
+        // Nothing, we haven't gotten to it yet.
+        // Keep waiting and keep i->object updated.
+        i->object = saw_object(i->object);
+        break;
+      case FinalizeObject::eFinalized:
+        if(!i->object->marked_p(object_memory_->mark())) {
+          // finalized and done with.
+          i = object_memory_->finalize().erase(i);
+          continue;
+        } else {
+          // RESURECTION!
+          i->status = FinalizeObject::eQueued;
+          i->object = saw_object(i->object);
+        }
+        break;
+      }
+
+      i++;
+    }
+
   }
 
 }

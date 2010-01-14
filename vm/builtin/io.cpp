@@ -42,6 +42,12 @@ namespace rubinius {
     io->ibuffer(state, IOBuffer::create(state));
     io->eof(state, Qfalse);
     io->lineno(state, Fixnum::from(0));
+
+    // Don't bother to add finalization for stdio
+    if(fd >= 3) {
+      state->om->needs_finalization(io);
+    }
+
     return io;
   }
 
@@ -55,6 +61,9 @@ namespace rubinius {
 
     // Ensure the instance's class is set (i.e. for subclasses of IO)
     io->klass(state, as<Class>(self));
+
+    state->om->needs_finalization(io);
+
     return io;
   }
 
@@ -278,7 +287,12 @@ namespace rubinius {
     native_int desc = to_fd();
 
     // Already closed, ignore.
-    if(desc == -1) return Qnil;
+    if(desc == -1) {
+      return Qnil;
+    }
+
+    // Invalid descriptor no matter what.
+    descriptor(state, Fixnum::from(-1));
 
     switch(::close(desc)) {
     case -1:
@@ -287,7 +301,6 @@ namespace rubinius {
 
     case 0:
       // state->events->clear_by_fd(desc);
-      descriptor(state, Fixnum::from(-1));
       break;
 
     default:
@@ -368,6 +381,18 @@ namespace rubinius {
   void IO::force_write_only(STATE) {
     int m = mode_->to_native();
     mode(state, Fixnum::from((m & ~O_ACCMODE) | O_WRONLY));
+  }
+
+  void IO::finalize(STATE) {
+    if(descriptor_->nil_p()) return;
+
+    native_int fd = descriptor_->to_native();
+
+    // don't close stdin, stdout, stderr (0, 1, 2)
+    if(fd >= 3) {
+      ::close(fd);
+      descriptor(state, Fixnum::from(-1));
+    }
   }
 
   Object* IO::sysread(STATE, Fixnum* number_of_bytes, CallFrame* calling_environment) {

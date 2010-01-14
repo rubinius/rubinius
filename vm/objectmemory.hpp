@@ -14,6 +14,7 @@
 
 #include "builtin/object.hpp"
 #include "gc/code_manager.hpp"
+#include "gc/finalize.hpp"
 
 class TestObjectMemory; // So we can friend it properly
 
@@ -75,6 +76,8 @@ namespace rubinius {
     ObjectArray* remember_set_;
     unsigned int mark_;
     CodeManager code_manager_;
+    std::list<FinalizeObject> finalize_;
+    std::list<FinalizeObject*> to_finalize_;
 
   public:
     bool collect_young_now;
@@ -100,6 +103,14 @@ namespace rubinius {
 
     void rotate_mark() {
       mark_ = (mark_ == 1 ? 2 : 1);
+    }
+
+    std::list<FinalizeObject>& finalize() {
+      return finalize_;
+    }
+
+    std::list<FinalizeObject*>& to_finalize() {
+      return to_finalize_;
     }
 
   public:
@@ -162,6 +173,9 @@ namespace rubinius {
     bool valid_young_object_p(Object* obj);
 
     int mature_bytes_allocated();
+
+    void needs_finalization(Object* obj);
+    void run_finalizers(STATE);
 
     InflatedHeader* inflate_header(ObjectHeader* obj);
 

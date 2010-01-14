@@ -69,7 +69,17 @@ class File < IO
       path = StringValue(path_or_fd)
 
       fd = IO.sysopen(path, mode, perm)
-      Errno.handle path if fd < 0
+      if fd < 0
+        begin
+          Errno.handle path
+        rescue Errno::EMFILE
+          # true means force to run, don't ignore it.
+          GC.run(true)
+
+          fd = IO.sysopen(path, mode, perm)
+          Errno.handle if fd < 0
+        end
+      end
 
       @path = path
       super(fd)

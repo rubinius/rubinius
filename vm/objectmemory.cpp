@@ -13,6 +13,7 @@
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/io.hpp"
 
 #include "capi/handle.hpp"
 #include "configuration.hpp"
@@ -146,6 +147,7 @@ namespace rubinius {
     young_->reset_stats();
 
     young_->collect(data, stats);
+
     prune_handles(data.handles(), true);
     prune_handles(data.cached_handles(), true);
     collect_times++;
@@ -170,13 +172,15 @@ namespace rubinius {
 
     immix_->collect(data);
 
+    immix_->clean_weakrefs();
+
     code_manager_.sweep();
 
     data.global_cache()->prune_unmarked(mark());
 
-    immix_->clean_weakrefs();
     prune_handles(data.handles(), false);
     prune_handles(data.cached_handles(), false);
+
 
     // Have to do this after all things that check for mark bits is
     // done, as it free()s objects, invalidating mark bits.
@@ -465,6 +469,31 @@ namespace rubinius {
 
   void ObjectMemory::add_code_resource(CodeResource* cr) {
     code_manager_.add_resource(cr);
+  }
+
+  void ObjectMemory::needs_finalization(Object* obj) {
+    FinalizeObject fi;
+    fi.object = obj;
+    fi.status = FinalizeObject::eLive;
+
+    // Makes a copy of fi.
+    finalize_.push_back(fi);
+  }
+
+  void ObjectMemory::run_finalizers(STATE) {
+    for(std::list<FinalizeObject*>::iterator i = to_finalize_.begin();
+        i != to_finalize_.end(); ) {
+      FinalizeObject* fi = *i;
+
+      if(IO* io = try_as<IO>(fi->object)) {
+        io->finalize(state);
+      }
+
+      fi->status = FinalizeObject::eFinalized;
+
+      i = to_finalize_.erase(i);
+    }
+
   }
 
   void ObjectMemory::memstats() {

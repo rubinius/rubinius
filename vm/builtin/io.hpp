@@ -43,7 +43,7 @@ namespace rubinius {
     void unsafe_set_descriptor(native_int fd);
     void force_read_only(STATE);
     void force_write_only(STATE);
-
+    void finalize(STATE);
 
   /* Class primitives */
 

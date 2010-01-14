@@ -256,10 +256,14 @@ namespace rubinius {
     return Fixnum::from(result);
   }
 
-  Object* System::vm_gc_start(STATE, Object* tenure) {
-    // Ignore tenure for now
+  Object* System::vm_gc_start(STATE, Object* force) {
+    // force is set if this is being called by the kernel (for instance
+    // in File#ininitialize). If we decided to ignore some GC.start calls
+    // by usercode trying to be clever, we can use force to know that we
+    // should NOT ignore it.
     state->om->collect_young_now = true;
     state->om->collect_mature_now = true;
+    state->interrupts.set_perform_gc();
     return Qnil;
   }
 

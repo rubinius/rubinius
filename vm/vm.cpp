@@ -287,6 +287,8 @@ namespace rubinius {
 
     om->collect_young(gc_data);
     om->collect_mature(gc_data);
+
+    om->run_finalizers(this);
   }
 
   void VM::collect_maybe(CallFrame* call_frame) {
@@ -360,6 +362,8 @@ namespace rubinius {
       }
 
     }
+
+    om->run_finalizers(this);
   }
 
   void VM::set_const(const char* name, Object* val) {

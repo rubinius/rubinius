@@ -7,6 +7,7 @@
 
 #include "builtin/tuple.hpp"
 #include "builtin/class.hpp"
+#include "builtin/io.hpp"
 
 #include "instruments/stats.hpp"
 
@@ -185,43 +186,24 @@ namespace rubinius {
       walk_call_frame(*loc);
     }
 
-    /* Ok, now handle all promoted objects. This is setup a little weird
-     * so I should explain.
-     *
-     * We want to scan each promoted object. But this scanning will likely
-     * cause more objects to be promoted. Adding to an ObjectArray that your
-     * iterating over blows up the iterators, so instead we rotate the
-     * current promoted set out as we iterator over it, and stick an
-     * empty ObjectArray in.
-     *
-     * This way, when there are no more objects that are promoted, the last
-     * ObjectArray will be empty.
-     * */
+    // Handle all promotions to non-young space that occured.
+    handle_promotions();
+    clear_promotion();
 
-    promoted_current = promoted_insert = promoted_->begin();
+    assert(fully_scanned_p());
+    // We're now done seeing the entire object graph of normal, live references.
+    // Now we get to handle the unusual references, like finalizers and such.
+    //
 
-    while(promoted_->size() > 0 || !fully_scanned_p()) {
-      if(promoted_->size() > 0) {
-        for(;promoted_current != promoted_->end();
-            ++promoted_current) {
-          tmp = *promoted_current;
-          assert(tmp->zone() == MatureObjectZone);
-          scan_object(tmp);
-          if(watched_p(tmp)) {
-            std::cout << "detected " << tmp << " during scan of promoted objects.\n";
-          }
-        }
+    reset_promoted();
+    /* Update finalizers. Doing so can cause objects that would have just died
+     * to continue life until we can get around to running the finalizer. That
+     * more promoted objects, etc. */
+    check_finalize();
 
-        promoted_->resize(promoted_insert - promoted_->begin());
-        promoted_current = promoted_insert = promoted_->begin();
-
-      }
-
-      /* As we're handling promoted objects, also handle unscanned objects.
-       * Scanning these unscanned objects (via the scan pointer) will
-       * cause more promotions. */
-      copy_unscanned();
-    }
+    // Run promotions again, because checking finalizers can keep more objects
+    // alive (and thus promoted).
+    handle_promotions();
 
     clear_promotion();
 
@@ -287,6 +269,45 @@ namespace rubinius {
 #endif
   }
 
+  void BakerGC::handle_promotions() {
+    /* Ok, now handle all promoted objects. This is setup a little weird
+     * so I should explain.
+     *
+     * We want to scan each promoted object. But this scanning will likely
+     * cause more objects to be promoted. Adding to an ObjectArray that your
+     * iterating over blows up the iterators, so instead we rotate the
+     * current promoted set out as we iterator over it, and stick an
+     * empty ObjectArray in.
+     *
+     * This way, when there are no more objects that are promoted, the last
+     * ObjectArray will be empty.
+     * */
+
+    promoted_current_ = promoted_insert_ = promoted_->begin();
+
+    while(promoted_->size() > 0 || !fully_scanned_p()) {
+      if(promoted_->size() > 0) {
+        for(;promoted_current_ != promoted_->end();
+            ++promoted_current_) {
+          Object* tmp = *promoted_current_;
+          assert(tmp->zone() == MatureObjectZone);
+          scan_object(tmp);
+          if(watched_p(tmp)) {
+            std::cout << "detected " << tmp << " during scan of promoted objects.\n";
+          }
+        }
+
+        promoted_->resize(promoted_insert_ - promoted_->begin());
+        promoted_current_ = promoted_insert_ = promoted_->begin();
+      }
+
+      /* As we're handling promoted objects, also handle unscanned objects.
+       * Scanning these unscanned objects (via the scan pointer) will
+       * cause more promotions. */
+      copy_unscanned();
+    }
+  }
+
   inline Object *BakerGC::next_object(Object * obj) {
     return reinterpret_cast<Object*>(reinterpret_cast<uintptr_t>(obj) +
       obj->size_in_bytes(object_memory_->state));
@@ -331,6 +352,53 @@ namespace rubinius {
 #endif
       }
       obj = next_object(obj);
+    }
+  }
+
+  void BakerGC::check_finalize() {
+    for(std::list<FinalizeObject>::iterator i = object_memory_->finalize().begin();
+        i != object_memory_->finalize().end(); ) {
+      FinalizeObject& fi = *i;
+
+      if(!i->object->young_object_p()) {
+        i++;
+        continue;
+      }
+
+      switch(i->status) {
+      case FinalizeObject::eLive:
+        if(!i->object->forwarded_p()) {
+          i->status = FinalizeObject::eQueued;
+
+          // We have to still keep it alive though until we finish with it.
+          i->object = saw_object(i->object);
+          object_memory_->to_finalize().push_back(&fi);
+        } else {
+          i->object = i->object->forward();
+        }
+        break;
+      case FinalizeObject::eQueued:
+        // Nothing, we haven't gotten to it yet.
+        // Keep waiting and keep i->object updated.
+        if(i->object->forwarded_p()) {
+          i->object = i->object->forward();
+        } else {
+          i->object = saw_object(i->object);
+        }
+        break;
+      case FinalizeObject::eFinalized:
+        if(!i->object->forwarded_p()) {
+          // finalized and done with.
+          i = object_memory_->finalize().erase(i);
+          continue;
+        } else {
+          // RESURECTION!
+          i->status = FinalizeObject::eQueued;
+        }
+        break;
+      }
+
+      i++;
     }
   }
 

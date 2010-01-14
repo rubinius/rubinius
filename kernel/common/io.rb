@@ -522,7 +522,8 @@ class IO
       mode = parse_mode StringValue(mode)
     end
 
-    FFI::Platform::POSIX.open path, mode, perm
+    open_with_mode path, mode, perm
+    # FFI::Platform::POSIX.open path, mode, perm
   end
 
   #
@@ -1519,8 +1520,13 @@ class IO
   end
 
   def close
-    flush
-    prim_close
+    begin
+      flush
+    ensure
+      prim_close
+    end
+
+    return nil
   end
 
   alias_method :write_nonblock, :write
