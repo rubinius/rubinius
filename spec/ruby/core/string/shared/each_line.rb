@@ -25,10 +25,14 @@ describe :string_each_line, :shared => true do
     a.should == ["one\ntwo\r\nthree"]
   end
 
-  it "appends multiple successive newlines together when the separator is an empty string" do
+  it "yields paragraphs (broken by 2 or more successive newlines) when passed ''" do
     a = []
     "hello\nworld\n\n\nand\nuniverse\n\n\n\n\n".send(@method, '') { |s| a << s }
     a.should == ["hello\nworld\n\n\n", "and\nuniverse\n\n\n\n\n"]
+
+    a = []
+    "hello\nworld\n\n\nand\nuniverse\n\n\n\n\ndog".send(@method, '') { |s| a << s }
+    a.should == ["hello\nworld\n\n\n", "and\nuniverse\n\n\n\n\n", "dog"]
   end
 
   it "uses $/ as the separator when none is given" do
