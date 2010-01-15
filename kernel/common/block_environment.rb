@@ -21,6 +21,7 @@ module Rubinius
       @scope = scope
       @method = cmethod
       @local_count = cmethod.local_count
+      @module = cmethod.scope.module
 
       return self
     end
