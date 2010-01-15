@@ -366,17 +366,29 @@ class File < IO
   #  File.extname("test")            #=> ""
   #  File.extname(".profile")        #=> ""
   def self.extname(path)
-    filename = File.basename(StringValue(path))
-    idx = filename.rindex '.'
-    have_dot = idx != nil
-    first_char = idx == 0
-    last_char = idx == filename.length - 1
-    only_dots = filename.match(/[^\.]/).nil?
+    path = StringValue(path)
+    path_size = path.size
 
-    return '' unless have_dot
-    return '' if first_char || last_char
-    return '' if only_dots
-    filename.slice idx..-1
+    dot_idx = path.find_string_reverse(".", path_size)
+
+    # No dots at all
+    return "" unless dot_idx
+
+    slash_idx = path.find_string_reverse("/", path_size)
+
+    # pretend there is / just to the left of the start of the string
+    slash_idx ||= -1
+
+    # no . in the last component of the path
+    return "" if dot_idx < slash_idx
+
+    # last component starts with a .
+    return "" if dot_idx == slash_idx + 1
+
+    # last component ends with a .
+    return "" if dot_idx == path_size - 1
+
+    return path.substring(dot_idx, path_size - dot_idx)
   end
 
   ##
