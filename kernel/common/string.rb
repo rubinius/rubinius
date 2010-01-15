@@ -708,55 +708,87 @@ class String
   #   Example three
   #   "hello\n\n\n"
   #   "world"
-  def each_line(sep = $/)
-    return to_enum :each_line, sep unless block_given?
+  def each_line(sep=$/)
+    return to_enum(:each_line, sep) unless block_given?
+
+    # weird edge case.
     if sep.nil?
       yield self
       return self
     end
 
-    sep = StringValue sep
+    sep = StringValue(sep)
 
-    orig = @data
+    pos = 0
+
     size = @num_bytes
-    ssize = sep.size
-    newline = ssize == 0 ? ?\n : sep[ssize-1]
+    orig_data = @data
 
-    last, i = 0, ssize
-    while i < size
-      if ssize == 0 && @data[i] == ?\n
-        if @data[i+=1] != ?\n
-          i += 1
-          next
+    # If the seperator is empty, we're actually in paragraph mode. This
+    # is used so infrequently, we'll handle it completely seperately from
+    # normal line breaking.
+    if sep.empty?
+      sep = "\n\n"
+      pat_size = 2
+
+      while pos < size
+        nxt = find_string(sep, pos)
+        break unless nxt
+
+        while @data[nxt] == ?\n and nxt < @num_bytes
+          nxt += 1
         end
-        i += 1 while i < size && @data[i] == ?\n
+
+        match_size = nxt - pos
+
+        # string ends with \n's
+        break if pos == @num_bytes
+
+        str = substring(pos, match_size)
+        yield str unless str.empty?
+
+        # detect mutation within the block
+        if !@data.equal?(orig_data) or @num_bytes != size
+          raise RuntimeError, "string modified while iterating"
+        end
+
+        pos = nxt
       end
 
-      if i > 0 && @data[i-1] == newline &&
-          (ssize < 2 || sep.compare_substring(self, i-ssize, ssize) == 0)
-        line = substring last, i-last
-        line.taint if tainted?
-        yield line
+      # No more seperates, but we need to grab the last part still.
+      fin = substring(pos, @num_bytes - pos)
+      yield fin if fin and !fin.empty?
 
-        unless orig.equal?(@data)
-          raise RuntimeError, "string has been modified"
+    else
+
+      # This is the normal case.
+      pat_size = sep.size
+
+      while pos < size
+        nxt = find_string(sep, pos)
+        break unless nxt
+
+        match_size = nxt - pos
+        str = substring(pos, match_size + pat_size)
+        yield str unless str.empty?
+
+        # detect mutation within the block
+        if !@data.equal?(orig_data) or @num_bytes != size
+          raise RuntimeError, "string modified while iterating"
         end
-        last = i
+
+        pos = nxt + pat_size
       end
 
-      i += 1
-    end
-
-    unless last == size
-      line = substring last, size-last+1
-      line.taint if tainted?
-      yield line
+      # No more seperates, but we need to grab the last part still.
+      fin = substring(pos, @num_bytes - pos)
+      yield fin unless fin.empty?
     end
 
     self
   end
-  alias_method :each, :each_line
 
+  alias_method :each, :each_line
   alias_method :lines, :each_line
 
 
@@ -935,9 +967,8 @@ class String
     # What are we searching for?
     case needle
     when Fixnum
-      (offset...self.size).each do |i|
-        return i if @data[i] == needle
-      end
+      return nil if needle > 255 or needle < 0
+      return find_string(needle.chr, offset)
     when String
       return offset if needle == ""
 
@@ -946,11 +977,7 @@ class String
       max = @num_bytes - needle_size
       return if max < 0 # <= 0 maybe?
 
-      offset.upto(max) do |i|
-        if @data[i] == needle.data[0]
-          return i if substring(i, needle_size) == needle
-        end
-      end
+      return find_string(needle, offset)
     when Regexp
       if match = needle.match_from(self[offset..-1], 0)
         Rubinius::VariableScope.of_sender.last_match = match
