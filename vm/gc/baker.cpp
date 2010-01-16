@@ -188,14 +188,12 @@ namespace rubinius {
 
     // Handle all promotions to non-young space that occured.
     handle_promotions();
-    clear_promotion();
 
     assert(fully_scanned_p());
     // We're now done seeing the entire object graph of normal, live references.
     // Now we get to handle the unusual references, like finalizers and such.
     //
 
-    reset_promoted();
     /* Update finalizers. Doing so can cause objects that would have just died
      * to continue life until we can get around to running the finalizer. That
      * more promoted objects, etc. */
