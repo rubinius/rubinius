@@ -9,22 +9,13 @@ module FFI::Platform::File
   # FIXME: this is awful
   def self.expand_path(path, dir_string = nil)
     path = StringValue(path)
+    path.gsub!(/~(#{ENV['USER']})/, "~/")
+    raise ArgumentError, "user #{path}" if path.match(/~([^\/])/)
+
     if(dir_string.nil?)
       dir_string = Dir.pwd
     else
-      dir_string = StringValue(dir_string)
-    end
-
-    path.gsub!(/~(#{ENV['USER']})/, "~/")
-
-    raise ArgumentError, "user #{path}" if path.match(/~([^\/])/)
-
-    if(dir_string.empty?)
-      dir_string = Dir.pwd
-    elsif(dir_string[0].chr == '~')
-      dir_string = ENV['HOME'] + dir_string[1..-1]
-    elsif(dir_string[0].chr != '/')
-      dir_string = Dir.pwd + "/" + dir_string
+      dir_string = expand_path(StringValue(dir_string))
     end
 
     dirs = path.split('/')
