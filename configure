@@ -159,7 +159,7 @@ class Configure
         proxy_user, proxy_pass = userinfo.split(/:/) if userinfo
         http = Net::HTTP::Proxy(host, port, proxy_user, proxy_pass)
       else
-        http = Net::HTTP.new
+        http = Net::HTTP
       end
 
       http.get_response(URI(url)) do |res|
