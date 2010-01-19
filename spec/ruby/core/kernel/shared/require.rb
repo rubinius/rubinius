@@ -1,4 +1,4 @@
-describe :kernel_require, :shared => true do
+describe :kernel_require_basic, :shared => true do
   before :each do
     CodeLoadingSpecs.spec_setup
   end
@@ -10,27 +10,27 @@ describe :kernel_require, :shared => true do
   describe "(path resolution)" do
     it "loads an absolute path" do
       path = File.expand_path "load_fixture.rb", CODE_LOADING_DIR
-      @object.require(path).should be_true
+      @object.send(@method, path).should be_true
       ScratchPad.recorded.should == [:loaded]
     end
 
     it "loads a non-canonical absolute path" do
       dir, file = File.split(File.expand_path("load_fixture.rb", CODE_LOADING_DIR))
       path = File.join dir, ["..", "code"], file
-      @object.require(path).should be_true
+      @object.send(@method, path).should be_true
       ScratchPad.recorded.should == [:loaded]
     end
 
     it "loads a file defining many methods" do
       path = File.expand_path "methods_fixture.rb", CODE_LOADING_DIR
-      @object.require(path).should be_true
+      @object.send(@method, path).should be_true
       ScratchPad.recorded.should == [:loaded]
     end
 
     it "raises a LoadError if the file does not exist" do
       path = File.expand_path "nonexistent.rb", CODE_LOADING_DIR
       File.exists?(path).should be_false
-      lambda { @object.require(path) }.should raise_error(LoadError)
+      lambda { @object.send(@method, path) }.should raise_error(LoadError)
       ScratchPad.recorded.should == []
     end
 
@@ -50,7 +50,7 @@ describe :kernel_require, :shared => true do
 
         it "raises a LoadError" do
           File.exists?(@path).should be_true
-          lambda { @object.require(@path) }.should raise_error(LoadError)
+          lambda { @object.send(@method, @path) }.should raise_error(LoadError)
         end
       end
     end
@@ -59,24 +59,24 @@ describe :kernel_require, :shared => true do
       path = File.expand_path "load_fixture.rb", CODE_LOADING_DIR
       name = mock("load_fixture.rb mock")
       name.should_receive(:to_str).and_return(path)
-      @object.require(name).should be_true
+      @object.send(@method, name).should be_true
       ScratchPad.recorded.should == [:loaded]
     end
 
     it "raises a TypeError if passed nil" do
-      lambda { @object.require(nil) }.should raise_error(TypeError)
+      lambda { @object.send(@method, nil) }.should raise_error(TypeError)
     end
 
     it "raises a TypeError if passed a Fixnum" do
-      lambda { @object.require(42) }.should raise_error(TypeError)
+      lambda { @object.send(@method, 42) }.should raise_error(TypeError)
     end
 
     it "raises a TypeError if passed an Array" do
-      lambda { @object.require([]) }.should raise_error(TypeError)
+      lambda { @object.send(@method, []) }.should raise_error(TypeError)
     end
 
     it "raises a TypeError if passed an object that does not provide #to_str" do
-      lambda { @object.require(mock("not a filename")) }.should raise_error(TypeError)
+      lambda { @object.send(@method, mock("not a filename")) }.should raise_error(TypeError)
     end
 
     it "raises a TypeError if passed an object that has #to_s but not #to_str" do
@@ -84,14 +84,14 @@ describe :kernel_require, :shared => true do
       name.stub!(:to_s).and_return("load_fixture.rb")
       $LOAD_PATH << "."
       Dir.chdir CODE_LOADING_DIR do
-        lambda { @object.require(name) }.should raise_error(TypeError)
+        lambda { @object.send(@method, name) }.should raise_error(TypeError)
       end
     end
 
     it "raises a TypeError if #to_str does not return a String" do
       name = mock("#to_str returns nil")
       name.should_receive(:to_str).at_least(1).times.and_return(nil)
-      lambda { @object.require(name) }.should raise_error(TypeError)
+      lambda { @object.send(@method, name) }.should raise_error(TypeError)
     end
 
     ruby_version_is "".."1.9" do
@@ -100,7 +100,7 @@ describe :kernel_require, :shared => true do
         name.stub!(:to_path).and_return("load_fixture.rb")
         $LOAD_PATH << "."
         Dir.chdir CODE_LOADING_DIR do
-          lambda { @object.require(name) }.should raise_error(TypeError)
+          lambda { @object.send(@method, name) }.should raise_error(TypeError)
         end
       end
     end
@@ -111,7 +111,7 @@ describe :kernel_require, :shared => true do
         name.stub!(:to_path).and_return("load_fixture.rb")
         $LOAD_PATH << "."
         Dir.chdir CODE_LOADING_DIR do
-          @object.require(name).should be_true
+          @object.send(@method, name).should be_true
         end
         ScratchPad.recorded.should == [:loaded]
       end
@@ -119,7 +119,7 @@ describe :kernel_require, :shared => true do
       it "does not call #to_path on a String" do
         path = File.expand_path "load_fixture.rb", CODE_LOADING_DIR
         path.should_not_receive(:to_path)
-        @object.require(path).should be_true
+        @object.send(@method, path).should be_true
         ScratchPad.recorded.should == [:loaded]
       end
 
@@ -129,7 +129,7 @@ describe :kernel_require, :shared => true do
         to_path = mock("load_fixture_rb #to_path mock")
         name.should_receive(:to_path).and_return(to_path)
         to_path.should_receive(:to_str).and_return(path)
-        @object.require(name).should be_true
+        @object.send(@method, name).should be_true
         ScratchPad.recorded.should == [:loaded]
       end
     end
@@ -137,14 +137,14 @@ describe :kernel_require, :shared => true do
     ruby_bug "http://redmine.ruby-lang.org/issues/show/2578", "1.8" do
       it "loads a ./ relative path from the current working directory with empty $LOAD_PATH" do
         Dir.chdir CODE_LOADING_DIR do
-          @object.require("./load_fixture.rb").should be_true
+          @object.send(@method, "./load_fixture.rb").should be_true
         end
         ScratchPad.recorded.should == [:loaded]
       end
 
       it "loads a ../ relative path from the current working directory with empty $LOAD_PATH" do
         Dir.chdir CODE_LOADING_DIR do
-          @object.require("../code/load_fixture.rb").should be_true
+          @object.send(@method, "../code/load_fixture.rb").should be_true
         end
         ScratchPad.recorded.should == [:loaded]
       end
@@ -153,7 +153,7 @@ describe :kernel_require, :shared => true do
     it "loads a ./ relative path from the current working directory with non-empty $LOAD_PATH" do
       $LOAD_PATH << "an_irrelevant_dir"
       Dir.chdir CODE_LOADING_DIR do
-        @object.require("./load_fixture.rb").should be_true
+        @object.send(@method, "./load_fixture.rb").should be_true
       end
       ScratchPad.recorded.should == [:loaded]
     end
@@ -161,7 +161,7 @@ describe :kernel_require, :shared => true do
     it "loads a ../ relative path from the current working directory with non-empty $LOAD_PATH" do
       $LOAD_PATH << "an_irrelevant_dir"
       Dir.chdir CODE_LOADING_DIR do
-        @object.require("../code/load_fixture.rb").should be_true
+        @object.send(@method, "../code/load_fixture.rb").should be_true
       end
       ScratchPad.recorded.should == [:loaded]
     end
@@ -169,41 +169,21 @@ describe :kernel_require, :shared => true do
     it "loads a non-canonical path from the current working directory with non-empty $LOAD_PATH" do
       $LOAD_PATH << "an_irrelevant_dir"
       Dir.chdir CODE_LOADING_DIR do
-        @object.require("../code/../code/load_fixture.rb").should be_true
+        @object.send(@method, "../code/../code/load_fixture.rb").should be_true
       end
       ScratchPad.recorded.should == [:loaded]
     end
 
-    ruby_version_is "1.9" do
-      # For reference see [ruby-core:24155] in which matz confirms this feature is
-      # intentional for security reasons.
-      it "does not load a bare filename unless the current working directory is in $LOAD_PATH" do
-        Dir.chdir CODE_LOADING_DIR do
-          lambda { @object.require "load_fixture.rb" }.should raise_error(LoadError)
-          ScratchPad.recorded.should == []
-        end
-      end
-
-      it "does not load a relative path unless the current working directory is in $LOAD_PATH" do
-        Dir.chdir File.dirname(CODE_LOADING_DIR) do
-          lambda do
-            @object.require "code/load_fixture.rb"
-          end.should raise_error(LoadError)
-          ScratchPad.recorded.should == []
-        end
-      end
-    end
-
     it "resolves a filename against $LOAD_PATH entries" do
       $LOAD_PATH << CODE_LOADING_DIR
-      @object.require("load_fixture.rb").should be_true
+      @object.send(@method, "load_fixture.rb").should be_true
       ScratchPad.recorded.should == [:loaded]
     end
 
     it "does not resolve a ./ relative path against $LOAD_PATH entries" do
       $LOAD_PATH << CODE_LOADING_DIR
       lambda do
-        @object.require "./load_fixture.rb"
+        @object.send(@method, "./load_fixture.rb")
       end.should raise_error(LoadError)
       ScratchPad.recorded.should == []
     end
@@ -211,14 +191,14 @@ describe :kernel_require, :shared => true do
     it "does not resolve a ../ relative path against $LOAD_PATH entries" do
       $LOAD_PATH << CODE_LOADING_DIR
       lambda do
-        @object.require "../code/load_fixture.rb"
+        @object.send(@method, "../code/load_fixture.rb")
       end.should raise_error(LoadError)
       ScratchPad.recorded.should == []
     end
 
     it "resolves a non-canonical path against $LOAD_PATH entries" do
       $LOAD_PATH << File.dirname(CODE_LOADING_DIR)
-      @object.require("code/../code/load_fixture.rb").should be_true
+      @object.send(@method, "code/../code/load_fixture.rb").should be_true
       ScratchPad.recorded.should == [:loaded]
     end
 
@@ -227,16 +207,48 @@ describe :kernel_require, :shared => true do
       sep = File::Separator + File::Separator
       path = ["..", "code", "load_fixture.rb"].join(sep)
       Dir.chdir CODE_LOADING_DIR do
-        @object.require(path).should be_true
+        @object.send(@method, path).should be_true
       end
       ScratchPad.recorded.should == [:loaded]
     end
   end
+end
 
-  it "loads a file that recursively requires itself" do
-    path = File.expand_path "recursive_require_fixture.rb", CODE_LOADING_DIR
-    @object.require(path).should be_true
-    ScratchPad.recorded.should == [:loaded]
+describe :kernel_require, :shared => true do
+  before :each do
+    CodeLoadingSpecs.spec_setup
+  end
+
+  after :each do
+    CodeLoadingSpecs.spec_cleanup
+  end
+
+  describe "(path resolution)" do
+    ruby_version_is "1.9" do
+      # For reference see [ruby-core:24155] in which matz confirms this feature is
+      # intentional for security reasons.
+      it "does not load a bare filename unless the current working directory is in $LOAD_PATH" do
+        Dir.chdir CODE_LOADING_DIR do
+          lambda { @object.require("load_fixture.rb") }.should raise_error(LoadError)
+          ScratchPad.recorded.should == []
+        end
+      end
+
+      it "does not load a relative path unless the current working directory is in $LOAD_PATH" do
+        Dir.chdir File.dirname(CODE_LOADING_DIR) do
+          lambda do
+            @object.require("code/load_fixture.rb")
+          end.should raise_error(LoadError)
+          ScratchPad.recorded.should == []
+        end
+      end
+    end
+
+    it "loads a file that recursively requires itself" do
+      path = File.expand_path "recursive_require_fixture.rb", CODE_LOADING_DIR
+      @object.require(path).should be_true
+      ScratchPad.recorded.should == [:loaded]
+    end
   end
 
   describe "(file extensions)" do
@@ -470,7 +482,6 @@ describe :kernel_require, :shared => true do
 
     ruby_version_is "".."1.9" do
       it "does not perform tilde expansion before storing paths in $LOADED_FEATURES" do
-        path = File.expand_path("load_fixture.rb", CODE_LOADING_DIR)
         @object.require("~/load_fixture.rb").should be_true
         $LOADED_FEATURES.should == ["~/load_fixture.rb"]
       end

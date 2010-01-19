@@ -2,13 +2,11 @@ module CodeLoadingSpecs
   # The #require instance method is private, so this class enables
   # calling #require like obj.require(file). This is used to share
   # specs between Kernel#require and Kernel.require.
-  class RequireMethod
+  class Method
     def require(name)
       super name
     end
-  end
 
-  class LoadMethod
     def load(name, wrap=false)
       super
     end
