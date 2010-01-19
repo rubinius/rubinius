@@ -69,16 +69,7 @@ describe "A Call node using SendLoop transform" do
         body = d.new_label
         call = d.new_label
 
-        d.push_block
-        d.dup
-        d.is_nil
-        d.git body
-        d.push_cpath_top
-        d.find_const :Proc
-        d.swap
-        d.send :__from_block__, 1
-
-        body.set!
+        d.push_proc
         d.set_local 0
         d.pop
         d.push :self

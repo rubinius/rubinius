@@ -559,7 +559,7 @@ module Rubinius
       end
     end
 
-    def optional_arg slot
+    def optional_arg(slot)
       if_set = g.new_label
       g.passed_arg slot
       g.git if_set
@@ -569,17 +569,8 @@ module Rubinius
       if_set.set!
     end
 
-    def block_arg slot
-      is_nil = g.new_label
-      g.push_block
-      g.dup
-      g.is_nil
-      g.git is_nil
-      g.push_cpath_top
-      g.find_const :Proc
-      g.swap
-      g.send :__from_block__, 1
-      is_nil.set!
+    def block_arg(slot)
+      g.push_proc
       g.set_local slot
       g.pop
     end

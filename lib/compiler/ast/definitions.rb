@@ -372,21 +372,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        g.push_block
-        g.dup
-        g.is_nil
-
-        after = g.new_label
-        g.git after
-
-        g.push_cpath_top
-        g.find_const :Proc
-
-        g.swap
-        g.send :__from_block__, 1
-
-        after.set!
-
+        g.push_proc
         g.set_local @variable.slot
         g.pop
       end

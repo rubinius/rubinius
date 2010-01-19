@@ -2,7 +2,7 @@
 
 #include "vmmethod.hpp"
 #include "llvm/jit.hpp"
-
+#include "llvm/jit_context.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/module.hpp"
@@ -57,9 +57,10 @@ namespace rubinius {
         function_->getEntryBlock().getTerminator());
   }
 
-  JITMethodInfo::JITMethodInfo(LLVMState* ls, CompiledMethod* cm, VMMethod* v,
+  JITMethodInfo::JITMethodInfo(jit::Context& ctx, CompiledMethod* cm, VMMethod* v,
                   JITMethodInfo* parent)
-    : function_(0)
+    : context_(ctx)
+    , function_(0)
     , entry_(0)
     , call_frame_(0)
     , stack_(0)
@@ -74,7 +75,7 @@ namespace rubinius {
     , use_full_scope_(false)
     , inline_block_(0)
     , block_info_(0)
-    , method_(&ls->roots())
+    , method_(&ctx.state()->roots())
     , vmm(v)
     , is_block(false)
     , inline_return(0)
@@ -86,6 +87,14 @@ namespace rubinius {
     , root(0)
   {
     method_.set(cm);
+  }
+
+  void JITMethodInfo::set_function(llvm::Function* func) {
+    function_ = func;
+
+    return_pad_ = llvm::BasicBlock::Create(context_.state()->ctx(), "return_pad", func);
+    return_phi_ = llvm::PHINode::Create(
+       context_.state()->ptr_type("Object"), "return_phi", return_pad_);
   }
 
   JITInlineBlock::JITInlineBlock(LLVMState* ls, llvm::PHINode* phi, llvm::BasicBlock* brk,
@@ -528,6 +537,7 @@ namespace rubinius {
   }
 
   const char* LLVMState::symbol_cstr(const Symbol* sym) {
+    if(sym == reinterpret_cast<const Symbol*>(Qnil)) return "<nil>";
     return symbols_.lookup_cstring(sym);
   }
 

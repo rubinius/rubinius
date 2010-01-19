@@ -21,6 +21,11 @@
 using namespace llvm;
 
 namespace rubinius {
+
+  namespace jit {
+    class Context;
+  }
+
   class JITOperations {
     llvm::Value* stack_;
     int sp_;
@@ -125,6 +130,10 @@ namespace rubinius {
 
     InlinePolicy* inline_policy() {
       return inline_policy_;
+    }
+
+    jit::Context& context() {
+      return method_info_.context();
     }
 
     JITMethodInfo& info() {

@@ -331,7 +331,8 @@ namespace jit {
       b().SetInsertPoint(cont);
     }
 
-    b().CreateRet(ret);
+    info_.add_return_value(ret, b().GetInsertBlock());
+    b().CreateBr(info_.return_pad());
   }
 
 

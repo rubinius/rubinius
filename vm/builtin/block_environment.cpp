@@ -78,6 +78,10 @@ namespace rubinius {
         LLVMState* ls = LLVMState::get(state);
 
         if(state->shared.config.jit_inline_blocks) {
+          CompiledMethod* creator = env->top_scope()->method();
+          ls->compile_soon(state, creator);
+
+          /*
           if(VMMethod* parent = vmm->parent()) {
             while(VMMethod* next = parent->parent()) {
               parent = next;
@@ -87,6 +91,7 @@ namespace rubinius {
             //  ls->compile_soon(state, parent);
             //}
           }
+          */
         }
 
         ls->compile_soon(state, env->method(), env);

@@ -6,7 +6,7 @@ describe "A Call node using BlockGiven transform" do
       no_blk = d.new_label
       done = d.new_label
 
-      d.push_block
+      d.push_has_block
       d.gif no_blk
 
       d.push 1

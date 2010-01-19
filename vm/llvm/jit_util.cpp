@@ -1059,6 +1059,21 @@ extern "C" {
     return obj->class_object(state);
   }
 
+  Object* rbx_make_proc(STATE, CallFrame* call_frame) {
+    Object* obj = call_frame->scope->block();
+    if(RTEST(obj)) {
+      Object* prc = Proc::from_env(state, obj);
+      if(prc == Primitives::failure()) {
+        Exception::internal_error(state, call_frame, "invalid block type");
+        return 0;
+      }
+
+      return prc;
+    } else {
+      return Qnil;
+    }
+  }
+
 }
 
 #endif

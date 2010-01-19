@@ -382,6 +382,11 @@ namespace rubinius {
   }
 
   int Environment::exit_code() {
+    std::ostream& jit_log = shared->llvm_state->log();
+    if(jit_log != std::cerr) {
+      dynamic_cast<std::ofstream&>(jit_log).close();
+    }
+
     if(state->thread_state()->raise_reason() == cExit) {
       if(Fixnum* fix = try_as<Fixnum>(state->thread_state()->raise_value())) {
         return fix->to_native();

@@ -39,7 +39,7 @@ module Rubinius
       end
 
       def bytecode(g)
-        g.push_block
+        g.push_has_block
       end
     end
 

@@ -68,18 +68,7 @@ describe "A Defn node" do
         no_proc  = d.new_label
         no_splat = d.new_label
 
-        d.push_block
-        d.dup
-        d.is_nil
-        d.git no_proc
-
-        d.push_cpath_top
-        d.find_const :Proc
-        d.swap
-        d.send :__from_block__, 1
-
-        no_proc.set!
-
+        d.push_proc
         d.set_local 1
         d.pop
 
@@ -115,18 +104,7 @@ describe "A Defn node" do
         no_proc  = d.new_label
         no_splat = d.new_label
 
-        d.push_block
-        d.dup
-        d.is_nil
-        d.git no_proc
-
-        d.push_cpath_top
-        d.find_const :Proc
-        d.swap
-        d.send :__from_block__, 1
-
-        no_proc.set!
-
+        d.push_proc
         d.set_local 1
         d.pop
 

@@ -73,6 +73,7 @@ namespace jit {
     void check_self_type();
 
     bool generate_body();
+    void generate_hard_return();
 
     llvm::Value* get_field(llvm::Value* val, int which);
 

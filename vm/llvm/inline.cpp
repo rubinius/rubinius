@@ -369,11 +369,9 @@ namespace rubinius {
     Value* self = recv();
     ops_.check_class(self, klass, failure());
 
-    JITMethodInfo info(ops_.state(), cm, vmm);
+    JITMethodInfo info(context_, cm, vmm);
     info.set_parent_info(ops_.info());
 
-    BasicBlock* on_return = ops_.new_block("inline_return");
-    info.inline_return = on_return;
     info.inline_policy = ops_.inline_policy();
     info.called_args = count_;
     info.root = ops_.root_method_info();
@@ -404,23 +402,21 @@ namespace rubinius {
 
     assert(work.generate_body());
 
-    on_return->moveAfter(info.fin_block);
-
+    // Branch to the inlined method!
     ops_.create_branch(entry);
 
-    ops_.set_block(on_return);
+    // Set the basic block to continue with being the return_pad!
+    ops_.set_block(info.return_pad());
 
-    ops_.b().Insert(cast<Instruction>(info.return_value));
-
-    set_result(info.return_value);
+    // Make the value available to the code that called inliner to
+    // check and use.
+    set_result(info.return_phi());
   }
 
   void Inliner::emit_inline_block(JITInlineBlock* ib, Value* self) {
-    JITMethodInfo info(ops_.state(), ib->method(), ib->code());
+    JITMethodInfo info(context_, ib->method(), ib->code());
     info.set_parent_info(ops_.info());
 
-    BasicBlock* on_return = ops_.new_block("inline_return");
-    info.inline_return = on_return;
     info.inline_policy = ops_.inline_policy();
     info.called_args = count_;
     info.root = ops_.root_method_info();
@@ -447,15 +443,15 @@ namespace rubinius {
 
     assert(work.generate_body());
 
-    on_return->moveAfter(info.fin_block);
-
+    // Branch to the inlined block!
     ops_.create_branch(entry);
 
-    ops_.set_block(on_return);
+    // Set the basic block to continue with being the return_pad!
+    ops_.set_block(info.return_pad());
 
-    ops_.b().Insert(cast<Instruction>(info.return_value));
-
-    set_result(info.return_value);
+    // Make the value available to the code that called inliner to
+    // check and use.
+    set_result(info.return_phi());
   }
 
   const Type* find_type(JITOperations& ops_, size_t type) {

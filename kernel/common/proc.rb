@@ -14,11 +14,13 @@ class Proc
     end
   end
 
-  def self.new(method = nil)
+  # This works because the VM implements &block using push_proc, which
+  # creates a Proc inside the VM.
+  def self.new(method=nil, &block)
     if method
       return Proc::Method.new(method)
-    elsif block_given?
-      env = block_given?
+    elsif block
+      return block
     else
       # Support for ancient pre-block-pass style:
       # def something; Proc.new; end

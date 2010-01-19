@@ -8,6 +8,7 @@
 #include "llvm/access_memory.hpp"
 #include "llvm/jit_operations.hpp"
 #include "llvm/inline.hpp"
+#include "llvm/jit_context.hpp"
 
 #include <llvm/DerivedTypes.h>
 
@@ -89,9 +90,6 @@ namespace rubinius {
     Value* vars_;
     bool use_full_scope_;
 
-    BasicBlock* inline_return_;
-    PHINode* return_value_;
-
     Value* global_serial_pos;
 
     // The single Arguments object on the stack, plus positions into it
@@ -137,8 +135,6 @@ namespace rubinius {
       , args_(info.args())
       , vars_(info.variables())
       , use_full_scope_(false)
-      , inline_return_(info.inline_return)
-      , return_value_(0)
       , called_args_(-1)
       , sends_done_(0)
       , has_side_effects_(false)
@@ -147,11 +143,11 @@ namespace rubinius {
       , current_jbb_(0)
     {}
 
-    void initialize() {
-      if(inline_return_) {
-        return_value_ = PHINode::Create(ObjType, "inline_return_val");
-      }
+    bool for_inlined_method() {
+      return info().for_inlined_method();
+    }
 
+    void initialize() {
       BasicBlock* start = b().GetInsertBlock();
 
       bail_out_ = new_block("bail_out");
@@ -177,23 +173,15 @@ namespace rubinius {
         flush_scope_to_heap(vars_);
       }
 
-      if(inline_return_) {
-        return_value_->addIncoming(Constant::getNullValue(ObjType), current_block());
-        b().CreateBr(inline_return_);
-      } else {
-        b().CreateRet(Constant::getNullValue(ObjType));
-      }
+      info().add_return_value(Constant::getNullValue(ObjType), current_block());
+      b().CreateBr(info().return_pad());
 
       set_block(ret_raise_val);
       Value* crv = f.clear_raise_value.call(&vm_, 1, "crv", b());
       if(use_full_scope_) flush_scope_to_heap(vars_);
 
-      if(inline_return_) {
-        return_value_->addIncoming(crv, current_block());
-        b().CreateBr(inline_return_);
-      } else {
-        b().CreateRet(crv);
-      }
+      info().add_return_value(crv, current_block());
+      b().CreateBr(info().return_pad());
 
       set_block(start);
 
@@ -212,10 +200,6 @@ namespace rubinius {
 
     bool has_side_effects() {
       return has_side_effects_;
-    }
-
-    Value* return_value() {
-      return return_value_;
     }
 
     void use_full_scope() {
@@ -455,12 +439,8 @@ namespace rubinius {
 
       if(use_full_scope_) flush_scope_to_heap(vars_);
 
-      if(inline_return_) {
-        return_value_->addIncoming(stack_top(), current_block());
-        b().CreateBr(inline_return_);
-      } else {
-        b().CreateRet(stack_top());
-      }
+      info().add_return_value(stack_top(), current_block());
+      b().CreateBr(info().return_pad());
     }
 
     void visit_swap_stack() {
@@ -1231,12 +1211,8 @@ namespace rubinius {
 
         Value* call = sig.call("rbx_continue_uncommon", call_args, 4, "", b());
 
-        if(inline_return_) {
-          return_value_->addIncoming(call, current_block());
-          b().CreateBr(inline_return_);
-        } else {
-          b().CreateRet(call);
-        }
+        info().add_return_value(call, current_block());
+        b().CreateBr(info().return_pad());
       }
     }
 
@@ -1247,7 +1223,7 @@ namespace rubinius {
         BasicBlock* failure = new_block("fallback");
         BasicBlock* cont = new_block("continue");
 
-        Inliner inl(*this, cache, args, failure);
+        Inliner inl(context(), *this, cache, args, failure);
         if(inl.consider()) {
           // Uncommon doesn't yet know how to synthesize UnwindInfos, so
           // don't do uncommon if there are handlers.
@@ -1316,7 +1292,7 @@ namespace rubinius {
     }
 
     bool in_inlined_block() {
-      return inline_return_ && info().is_block;
+      return for_inlined_method() && info().is_block;
     }
 
     void emit_delayed_create_block(bool always=false) {
@@ -1442,7 +1418,9 @@ namespace rubinius {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       CompiledMethod* block_code = 0;
 
-      if(cache->method && ls_->config().jit_inline_blocks) {
+      if(cache->method &&
+          ls_->config().jit_inline_blocks &&
+          !context().inlined_block()) {
         if(has_literal_block) {
           block_code = try_as<CompiledMethod>(literal(current_block_));
 
@@ -1451,14 +1429,10 @@ namespace rubinius {
           InlineDecision decision = inline_policy()->inline_p(
               block_code->backend_method(), false);
           if(decision != cInline) {
-            // We're not going to inline it, so emit the call to create it
-            emit_create_block(current_block_);
-            block_on_stack = true;
-            block_code = 0;
+            goto use_send;
           }
-        } else if(has_literal_block) {
-          block_on_stack = true;
-          emit_create_block(current_block_);
+        } else {
+          goto use_send;
         }
 
         BasicBlock* failure = new_block("fallback");
@@ -1466,7 +1440,7 @@ namespace rubinius {
         BasicBlock* cleanup = new_block("send_done");
         PHINode* send_result = b().CreatePHI(ObjType, "send_result");
 
-        Inliner inl(*this, cache, args, failure);
+        Inliner inl(context(), *this, cache, args, failure);
 
         VMMethod* code = 0;
         if(block_code) code = block_code->backend_method();
@@ -1549,6 +1523,8 @@ namespace rubinius {
         send_result->eraseFromParent();
       }
 
+use_send:
+
       // Detect a literal block being created and passed here.
       if(!block_on_stack) {
         emit_create_block(current_block_);
@@ -1605,6 +1581,46 @@ namespace rubinius {
 
     void visit_push_block() {
       stack_push(get_block());
+    }
+
+    void visit_push_has_block() {
+      // We're in an inlined method, we know if there is a block staticly.
+      if(info().for_inlined_method()) {
+        // Check for an inlined block being present, if so, this is a
+        // constant!
+        //
+        JITInlineBlock* ib = info().inline_block();
+
+        if(ib && ib->code()) {
+          stack_push(constant(Qtrue));
+        } else {
+          stack_push(constant(Qfalse));
+        }
+
+        return;
+      }
+
+      Value* cmp = b().CreateICmpNE(get_block(), constant(Qnil), "is_nil");
+      Value* imm_value = b().CreateSelect(cmp, constant(Qtrue),
+          constant(Qfalse), "select_bool");
+      stack_push(imm_value);
+    }
+
+    void visit_push_proc() {
+      set_has_side_effects();
+
+      Signature sig(ls_, ObjType);
+      sig << "VM";
+      sig << "CallFrame";
+
+      Value* args[] = {
+        vm_,
+        call_frame_
+      };
+
+      Value* prc = sig.call("rbx_make_proc", args, 2, "proc", b());
+      check_for_exception(prc);
+      stack_push(prc);
     }
 
     void visit_send_super_stack_with_block(opcode which, opcode args) {
@@ -2016,7 +2032,7 @@ namespace rubinius {
       set_has_side_effects();
 
       // We're inlinig a block...
-      if(inline_return_) {
+      if(for_inlined_method()) {
         JITMethodInfo* nfo = upscope_info(depth);
 
         if(nfo) {
@@ -2122,7 +2138,7 @@ namespace rubinius {
       set_has_side_effects();
 
       // We're in an inlined block..
-      if(inline_return_) {
+      if(for_inlined_method()) {
         JITMethodInfo* nfo = upscope_info(depth);
 
         // And we can see this scope depth directly because of inlining...
@@ -2264,6 +2280,15 @@ namespace rubinius {
       // Hey! Look at that! We know the block we'd be yielding to
       // staticly! woo! ok, lets just emit the code for it here!
       if(ib && ib->code()) {
+        context().set_inlined_block(true);
+        if(state()->config().jit_inline_debug) {
+          std::cout << "inlining block: "
+                    << ls_->symbol_cstr(info().method()->scope()->module()->name())
+                    << "#"
+                    << ls_->symbol_cstr(info().method()->name())
+                    << "\n";
+        }
+
         JITMethodInfo* creator = ib->creation_scope();
         assert(creator);
 
@@ -2273,7 +2298,7 @@ namespace rubinius {
         // We inline unconditionally here, since we make the decision
         // wrt the block when we are considering inlining the send that
         // has the block on it.
-        Inliner inl(*this, count);
+        Inliner inl(context(), *this, count);
         inl.set_inline_block(creator->inline_block());
 
         // Make it's inlining info available to itself
@@ -2516,7 +2541,7 @@ namespace rubinius {
 
     void visit_raise_return() {
       // Inlining a block!
-      if(inline_return_) {
+      if(for_inlined_method()) {
         // We have to flush scopes before we return.
         JITMethodInfo* nfo = &info();
         while(nfo) {
@@ -2527,7 +2552,11 @@ namespace rubinius {
           nfo = nfo->parent_info();
         }
 
-        b().CreateRet(stack_pop());
+        JITMethodInfo* creator = info().creator_info();
+        assert(creator);
+
+        creator->add_return_value(stack_pop(), b().GetInsertBlock());
+        b().CreateBr(creator->return_pad());
         return;
       }
 

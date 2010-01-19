@@ -33,6 +33,7 @@ namespace rubinius {
 
   namespace jit {
     class Builder;
+    class Context;
   }
 
   class InlinePolicy;
@@ -86,6 +87,7 @@ namespace rubinius {
   };
 
   class JITMethodInfo {
+    jit::Context& context_;
     llvm::Function* function_;
     llvm::BasicBlock* entry_;
     llvm::Value* call_frame_;
@@ -108,6 +110,9 @@ namespace rubinius {
 
     TypedRoot<CompiledMethod*> method_;
 
+    llvm::BasicBlock* return_pad_;
+    llvm::PHINode* return_phi_;
+
   public:
     VMMethod* vmm;
     bool is_block;
@@ -121,12 +126,14 @@ namespace rubinius {
     JITMethodInfo* root;
 
   public:
-    JITMethodInfo(LLVMState* ls, CompiledMethod* cm, VMMethod* v,
+    JITMethodInfo(jit::Context& ctx, CompiledMethod* cm, VMMethod* v,
                   JITMethodInfo* parent = 0);
 
-    void set_function(llvm::Function* func) {
-      function_ = func;
+    jit::Context& context() {
+      return context_;
     }
+
+    void set_function(llvm::Function* func);
 
     llvm::Function* function() {
       return function_;
@@ -200,12 +207,25 @@ namespace rubinius {
       return method_.get();
     }
 
+    llvm::BasicBlock* return_pad() {
+      return return_pad_;
+    }
+
+    llvm::PHINode* return_phi() {
+      return return_phi_;
+    }
+
+    void add_return_value(llvm::Value* val, llvm::BasicBlock* block) {
+      return_phi_->addIncoming(val, block);
+    }
+
     void set_parent_info(JITMethodInfo& info) {
       parent_info_ = &info;
-      function_ = info.function();
       vm_ = info.vm();
       out_args_ = info.out_args();
       counter_ = info.counter();
+
+      set_function(info.function());
     }
 
     llvm::Value* parent_call_frame() {
@@ -218,6 +238,10 @@ namespace rubinius {
 
     JITMethodInfo* parent_info() {
       return parent_info_;
+    }
+
+    bool for_inlined_method() {
+      return parent_info_ != 0;
     }
 
     JITMethodInfo* creator_info() {

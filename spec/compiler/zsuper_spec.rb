@@ -39,17 +39,7 @@ describe "A Zsuper node" do
       in_method :x do |d|
         proc_lbl = d.new_label
 
-        d.push_block
-        d.dup
-        d.is_nil
-        d.git proc_lbl
-
-        d.push_cpath_top
-        d.find_const :Proc
-        d.swap
-        d.send :__from_block__, 1
-
-        proc_lbl.set!
+        d.push_proc
         d.set_local 0
         d.pop
 

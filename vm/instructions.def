@@ -2400,3 +2400,25 @@ end
 instruction set_stack_local(which) [ value -- value ]
   stack_local(which) = stack_top();
 end
+
+# Used to implement block_given? without having to directly expose
+# the block object itself. This simplifies JIT inlining.
+instruction push_has_block() [ -- value ]
+  stack_push(RTEST(call_frame->scope->block()) ? Qtrue : Qfalse);
+end
+
+# Used to implement &block in a method signature
+instruction push_proc() [ -- value ]
+  Object* obj = call_frame->scope->block();
+  if(RTEST(obj)) {
+    Object* prc = Proc::from_env(state, obj);
+    if(prc == Primitives::failure()) {
+      Exception::internal_error(state, call_frame, "invalid block type");
+      RUN_EXCEPTION();
+    }
+    stack_push(prc);
+  } else {
+    stack_push(Qnil);
+  }
+end
+

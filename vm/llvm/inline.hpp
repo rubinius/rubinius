@@ -10,7 +10,12 @@ namespace rubinius {
 
   class NativeFunction;
 
+  namespace jit {
+    class Context;
+  }
+
   class Inliner {
+    jit::Context& context_;
     JITOperations& ops_;
     InlineCache* cache_;
     int count_;
@@ -27,8 +32,10 @@ namespace rubinius {
 
   public:
 
-    Inliner(JITOperations& ops, InlineCache* cache, int count, BasicBlock* failure)
-      : ops_(ops)
+    Inliner(jit::Context& ctx,
+            JITOperations& ops, InlineCache* cache, int count, BasicBlock* failure)
+      : context_(ctx)
+      , ops_(ops)
       , cache_(cache)
       , count_(count)
       , self_pos_(count)
@@ -41,8 +48,9 @@ namespace rubinius {
       , creator_info_(0)
     {}
 
-    Inliner(JITOperations& ops, int count)
-      : ops_(ops)
+    Inliner(jit::Context& ctx, JITOperations& ops, int count)
+      : context_(ctx)
+      , ops_(ops)
       , cache_(0)
       , count_(count)
       , failure_(0)

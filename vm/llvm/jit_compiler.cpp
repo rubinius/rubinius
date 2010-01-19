@@ -2,6 +2,7 @@
 
 #include "vmmethod.hpp"
 #include "llvm/jit.hpp"
+#include "llvm/jit_context.hpp"
 
 #include "builtin/fixnum.hpp"
 #include "builtin/staticscope.hpp"
@@ -77,8 +78,11 @@ namespace jit {
         << cm->start_line() << "\n";
     }
 
-    JITMethodInfo info(ls, cm, vmm);
+    jit::Context ctx(ls);
+    JITMethodInfo info(ctx, cm, vmm);
     info.is_block = true;
+
+    ctx.set_root(&info);
 
     jit::BlockBuilder work(ls, info);
     work.setup();
@@ -94,8 +98,11 @@ namespace jit {
         << ls->symbol_cstr(cm->name()) << "\n";
     }
 
-    JITMethodInfo info(ls, cm, vmm);
+    jit::Context ctx(ls);
+    JITMethodInfo info(ctx, cm, vmm);
     info.is_block = false;
+
+    ctx.set_root(&info);
 
     jit::MethodBuilder work(ls, info);
     work.setup();
@@ -114,6 +121,9 @@ namespace jit {
       // llvm::outs() << "not supported yet.\n";
       return;
     }
+
+    // Hook up the return pad and return phi.
+    work.generate_hard_return();
 
     if(ls->jit_dump_code() & cSimple) {
       llvm::outs() << "[[[ LLVM Simple IR ]]]\n";

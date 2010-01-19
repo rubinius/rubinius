@@ -29,6 +29,10 @@ namespace rubinius {
       throw Unsupported();
     }
 
+    void visit_push_proc() {
+      throw Unsupported();
+    }
+
     void visit_setup_unwind(opcode which, opcode type) {
       throw Unsupported();
     }

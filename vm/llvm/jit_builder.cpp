@@ -566,9 +566,15 @@ namespace jit {
     }
     */
 
-    info_.return_value = visitor.return_value();
+    info_.return_pad()->moveAfter(visitor.current_block());
+
     info_.fin_block = visitor.current_block();
     return true;
+  }
+
+  void Builder::generate_hard_return() {
+    b().SetInsertPoint(info_.return_pad());
+    b().CreateRet(info_.return_phi());
   }
 }
 }
