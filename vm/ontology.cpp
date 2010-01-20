@@ -291,7 +291,6 @@ namespace rubinius {
 
     Object* undef = new_object<Object>(G(object));
     GO(undefined).set(undef);
-    G(object)->set_const(this, "Undefined", undef);
 
     GO(vm).set(new_class_under("VM", G(rubinius)));
     G(vm)->name(state, state->symbol("Rubinius::VM"));
