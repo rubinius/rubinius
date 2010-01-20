@@ -398,7 +398,7 @@ class Dir
   end
 
   def self.mkdir(path, mode = 0777)
-    error = FFI::Platform::POSIX.mkdir(path, mode)
+    error = FFI::Platform::POSIX.mkdir(StringValue(path), mode)
     if error != 0
       Errno.handle path
     end
@@ -406,7 +406,7 @@ class Dir
   end
 
   def self.rmdir(path)
-    error = FFI::Platform::POSIX.rmdir(path)
+    error = FFI::Platform::POSIX.rmdir(StringValue(path))
     if error != 0
       Errno.handle path
     end
