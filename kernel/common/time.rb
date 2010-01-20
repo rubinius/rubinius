@@ -220,15 +220,17 @@ class Time
     @sec
   end
 
-  def +(other)
-    raise TypeError, 'time + time?' if other.kind_of?(Time)
-    other      = FloatValue(other) unless other.is_a?(Integer)
-    other_usec = 0
-    if other.kind_of?(Float) 
-      other_usec = (other % 1) * 1000000
-      other      = other.to_i
+  def +(arg)
+    raise TypeError, 'time + time?' if arg.kind_of?(Time)
+
+    if arg.kind_of?(Integer)
+      other_sec = arg
+      other_usec = 0
+    else
+      other_sec, usec_frac = FloatValue(arg).divmod(1)
+      other_usec = (usec_frac * 1_000_000 + 0.5).to_i
     end
-    dup.at_gmt(seconds + other, usec + other_usec, @is_gmt)
+    dup.at_gmt(seconds + other_sec, usec + other_usec, @is_gmt)
   end
 
   def -(other)
