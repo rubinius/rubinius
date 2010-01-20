@@ -10,6 +10,23 @@ describe "Time#+" do
     (Time.at(1.1) + 0.9).should == Time.at(0.9) + 1.1
   end
 
+  it "rounds micro seconds rather than truncates" do
+    # The use of 8.9999999 is intentional. This is because
+    # Time treats the fractional part as the number of micro seconds.
+    # Thusly it multiplies the result by 1_000_000 to go from
+    # seconds to microseconds. That conversion should be rounded
+    # properly. In this case, it's rounded up to 1,000,000, and thus
+    # contributes a full extra second to the Time object.
+    t = Time.at(0) + 8.9999999
+    t.should == Time.at(9)
+    t.usec.should == 0
+
+    # Check the non-edge case works properly, that the fractional part
+    # contributes to #usecs
+    t2 = Time.at(0) + 8.9
+    t2.usec.should == 900000
+  end
+
   ruby_version_is "" ... "1.9" do
     it "increments the time by the specified amount as float numbers" do
       (Time.at(1.1) + 0.9).should == Time.at(2)
@@ -44,7 +61,6 @@ describe "Time#+" do
     end
   end
 
-
   it "raises TypeError on Time argument" do
     lambda { Time.now + Time.now }.should raise_error(TypeError)
   end
@@ -60,6 +76,6 @@ describe "Time#+" do
       time.usec.should == 123456
       time += 0.654321
       time.usec.should == 777777
-    end  
+    end
   end
 end

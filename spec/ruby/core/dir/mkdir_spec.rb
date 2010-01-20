@@ -52,6 +52,16 @@ describe "Dir.mkdir" do
     end
   end
 
+  ruby_version_is "1.8" do
+    it "call #to_str on non-String arguments" do
+      DirSpecs.clear_dirs
+      p = mock('path')
+      p.should_receive(:to_str).and_return('nonexisting')
+      Dir.mkdir(p)
+      DirSpecs.clear_dirs
+    end
+  end
+
   it "raises a SystemCallError if any of the directories in the path before the last does not exist" do
     lambda { Dir.mkdir "#{DirSpecs.nonexistent}/subdir" }.should raise_error(SystemCallError)
   end
