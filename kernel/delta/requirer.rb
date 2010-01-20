@@ -142,7 +142,14 @@ class Requirer
       end
     end
 
-    raise LoadError, "no such file to load -- #{path}"
+    # Crazy special case.
+    # MRI does NOT use rb_f_raise(rb_eLoadError, msg),
+    # it does rb_exc_raise(rb_exc_new2(rb_eLoadError, msg)).
+    #
+    # This is significant because some versions of rails change LoadError.new
+    # but NOT LoadError.exception, so this code must use LoadError.new
+    # directly here to match the behavior.
+    raise LoadError.new("no such file to load -- #{path}")
   end
 
   def self.compile_feature(rb, requiring, &block)
