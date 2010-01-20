@@ -586,6 +586,10 @@ namespace rubinius {
   }
 
   void LLVMState::remove(llvm::Function* func) {
+    // COMPLETELY DISABLED.
+    // We're not clearing this properly at all and it causes crashes.
+    return;
+
     // Deallocate the JITed code
     engine_->freeMachineCodeForFunction(func);
 
