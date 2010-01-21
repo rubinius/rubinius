@@ -319,7 +319,7 @@ class Configure
         puts "too old of a version"
       else
         puts "found! (version #{version})"
-        @llvm_configure = which
+        @llvm_configure = config
         @llvm = :config
         return true
       end
