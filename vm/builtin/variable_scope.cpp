@@ -23,45 +23,6 @@ namespace rubinius {
                              state->symbol("variable_scope_method_visibility"));
   }
 
-  VariableScope* VariableScope::promote(STATE) {
-    VariableScope* scope = state->new_struct<VariableScope>(
-        G(variable_scope), number_of_locals_ * sizeof(Object*));
-
-    scope->block(state, block_);
-    scope->method(state, method_);
-    scope->module(state, module_);
-    if(parent_) {
-      scope->parent(state, parent_);
-    } else {
-      scope->parent(state, (VariableScope*)Qnil);
-    }
-    scope->self(state, self_);
-
-    scope->number_of_locals_ = number_of_locals_;
-
-    for(int i = 0; i < number_of_locals_; i++) {
-      scope->set_local(state, i, locals_[i]);
-    }
-
-    return scope;
-  }
-
-  void VariableScope::setup_as_block(VariableScope* top, VariableScope* parent, CompiledMethod* cm, int num, Object* self) {
-    init_header(UnspecifiedZone, InvalidType);
-
-    parent_ = parent;
-    self_ = self;
-
-    method_ = cm;
-    module_ = top->module();
-    block_ =  top->block();
-    number_of_locals_ = num;
-
-    for(int i = 0; i < num; i++) {
-      locals_[i] = Qnil;
-    }
-  }
-
   VariableScope* VariableScope::of_sender(STATE, CallFrame* call_frame) {
     CallFrame* dest = static_cast<CallFrame*>(call_frame->previous);
     return dest->promote_scope(state);
@@ -74,7 +35,7 @@ namespace rubinius {
   Tuple* VariableScope::locals(STATE) {
     Tuple* tup = Tuple::create(state, number_of_locals_);
     for(int i = 0; i < number_of_locals_; i++) {
-      tup->put(state, i, locals_[i]);
+      tup->put(state, i, get_local(state, i));
     }
 
     return tup;
@@ -85,12 +46,6 @@ namespace rubinius {
     return Qnil;
   }
 
-  size_t VariableScope::Info::object_size(const ObjectHeader* obj) {
-    const VariableScope* scope = reinterpret_cast<const VariableScope*>(obj);
-
-    return sizeof(VariableScope) + (scope->number_of_locals_ * sizeof(Object*));
-  }
-
   void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
 
@@ -98,13 +53,14 @@ namespace rubinius {
 
     vs->fixup();
 
+    if(!vs->isolated()) {
+      Object** ary = vs->stack_locals();
+      size_t locals = vs->number_of_locals();
 
-    Object* tmp;
-
-    size_t locals = vs->number_of_locals();
-    for(size_t i = 0; i < locals; i++) {
-      tmp = mark.call(vs->get_local(i));
-      if(tmp) vs->set_local(mark.state(), i, tmp);
+      for(size_t i = 0; i < locals; i++) {
+        Object* tmp = mark.call(ary[i]);
+        if(tmp) { ary[i] = tmp; }
+      }
     }
   }
 
@@ -113,11 +69,13 @@ namespace rubinius {
 
     VariableScope* vs = as<VariableScope>(obj);
 
-    size_t locals = vs->number_of_locals();
-    for(size_t i = 0; i < locals; i++) {
-      visit.call(vs->get_local(i));
+    if(!vs->isolated()) {
+      Object** ary = vs->stack_locals();
+      size_t locals = vs->number_of_locals();
+
+      for(size_t i = 0; i < locals; i++) {
+        visit.call(ary[i]);
+      }
     }
   }
-
-
 }

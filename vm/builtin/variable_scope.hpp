@@ -4,6 +4,7 @@
 #include "vm/object_utils.hpp"
 
 #include "builtin/object.hpp"
+#include "builtin/tuple.hpp"
 
 namespace rubinius {
 
@@ -25,6 +26,7 @@ namespace rubinius {
     CompiledMethod* method_;  // slot
     Module*         module_;  // slot
     VariableScope*  parent_;  // slot
+    Tuple*          heap_locals_; // slot
 
   public:
     Object* self_;    // slot
@@ -34,27 +36,25 @@ namespace rubinius {
     Object** locals_;
     int block_as_method_;
 
-    // MUST BE LAST
-    Object* heap_locals_[];
-
   public: /* Accessors */
     attr_accessor(block, Object);
     attr_accessor(method, CompiledMethod);
     attr_accessor(module, Module);
     attr_accessor(parent, VariableScope);
     attr_accessor(self, Object);
+    attr_accessor(heap_locals, Tuple);
 
     static void init(STATE);
     static void bootstrap_methods(STATE);
 
-    void point_locals_to(Object** locals) {
-      locals_ = locals;
+    void fixup() { }
+
+    bool isolated() {
+      return isolated_;
     }
 
-    void fixup() {
-      if(isolated_) {
-        locals_ = heap_locals_;
-      }
+    Object** stack_locals() {
+      return locals_;
     }
 
     bool block_as_method_p() {
@@ -85,40 +85,34 @@ namespace rubinius {
       }
     }
 
-    /**
-     *  Initialize scope for blocks.
-     */
-    void setup_as_block(VariableScope* top, VariableScope* parent, CompiledMethod* method, int num, Object* self = 0);
-
-    void update(Object* self, Object* cm, Object* mod, Object* block) {
-      self_ = self;
-      module_ = (Module*)mod; // safe? unsafe?
-      block_ = block;
-
-      method_ = reinterpret_cast<CompiledMethod*>(cm);
-    }
-
     void update_parent(VariableScope* vs) {
       parent_ = vs;
     }
 
     void set_local(STATE, int pos, Object* val) {
-      locals_[pos] = val;
-
-      if(locals_ == heap_locals_) {
-        write_barrier(state, val);
+      if(isolated_) {
+        heap_locals_->put(state, pos, val);
+      } else {
+        locals_[pos] = val;
       }
     }
 
     void set_local(int pos, Object* val) {
+      assert(isolated_ == false);
       locals_[pos] = val;
     }
 
     Object* get_local(STATE, int pos) {
+      if(isolated_) {
+        return heap_locals_->at(state, pos);
+      }
       return locals_[pos];
     }
 
     Object* get_local(int pos) {
+      if(isolated_) {
+        return heap_locals_->at(pos);
+      }
       return locals_[pos];
     }
 
@@ -151,7 +145,6 @@ namespace rubinius {
       virtual Object* get_field(STATE, Object*, size_t);
       virtual void auto_mark(Object*, ObjectMark&);
       virtual void auto_visit(Object*, ObjectVisitor&);
-      virtual size_t object_size(const ObjectHeader* object);
       virtual void populate_slot_locations();
     };
   };

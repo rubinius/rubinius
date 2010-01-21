@@ -2085,7 +2085,9 @@ use_send:
         std::cout << "why is depth 0 here?\n";
         visit_set_local(index);
         return;
-      } else if(depth == 1) {
+      }
+      /*
+      else if(depth == 1) {
         Value* idx[] = {
           ConstantInt::get(ls_->Int32Ty, 0),
           ConstantInt::get(ls_->Int32Ty, offset::vars_parent)
@@ -2097,6 +2099,7 @@ use_send:
         set_scope_local(parent, index);
         return;
       }
+      */
 
       // Handle depth > 1
 
@@ -2192,7 +2195,9 @@ use_send:
         std::cout << "why is depth 0 here?\n";
         visit_push_local(index);
         return;
-      } else if(depth == 1) {
+      }
+      /*
+      else if(depth == 1) {
         Value* idx[] = {
           ConstantInt::get(ls_->Int32Ty, 0),
           ConstantInt::get(ls_->Int32Ty, offset::vars_parent)
@@ -2204,6 +2209,7 @@ use_send:
         push_scope_local(parent, index);
         return;
       }
+      */
 
       // Handle depth > 1
       std::vector<const Type*> types;

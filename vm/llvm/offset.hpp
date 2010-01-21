@@ -28,11 +28,11 @@ namespace offset {
   const static int varscope_method = 2;
   const static int varscope_module = 3;
   const static int varscope_parent = 4;
-  const static int varscope_self = 5;
-  const static int varscope_num_locals = 6;
-  const static int varscope_isolated = 7;
-  const static int varscope_locals = 8;
-  const static int varscope_heap_locals = 9;
+  const static int varscope_heap_locals = 5;
+  const static int varscope_self = 6;
+  const static int varscope_num_locals = 7;
+  const static int varscope_isolated = 8;
+  const static int varscope_locals = 9;
 
   const static int tuple_full_size = 1;
   const static int tuple_field = 2;
