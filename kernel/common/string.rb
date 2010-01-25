@@ -1242,6 +1242,24 @@ class String
     return nil
   end
 
+  def partition(pattern = nil)
+    if block_given?
+      return super()
+    end
+
+    pattern = Type.coerce_to(pattern, String, :to_str) unless pattern.is_a? Regexp
+    i = index(pattern)
+    return [self, "", ""] unless i
+
+    if pattern.is_a? Regexp
+      match = Regexp.last_match
+      [match.pre_match, match[0], match.post_match]
+    else
+      last = i+pattern.length
+      [self[0...i], self[i...last], self[last...length]]
+    end
+  end
+
   def rpartition(pattern)
     pattern = Type.coerce_to(pattern, String, :to_str) unless pattern.is_a? Regexp
     i = rindex(pattern)
