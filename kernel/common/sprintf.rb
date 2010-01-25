@@ -179,8 +179,11 @@ module Rubinius
             raise ArgumentError, "invalid type (only Fixnum allowed)"
           end
 
-          val = (2**(2.size * 8)) + val
-          if !flags[:zero] and !precision
+          plus_or_space = flags[:space] || flags[:plus]
+          unless plus_or_space
+            val = (1 << (2.size * 8)) + val
+          end
+          unless flags[:zero] or precision or plus_or_space
             ret = "..#{pad(val, width, precision)}"
           else
             ret = pad(val, width, precision)
@@ -283,7 +286,11 @@ module Rubinius
       ret = val.to_s
       modded_width = width.to_i + (flags[:plus] ? 1 : 0)
       width = nil if modded_width <= val.to_s.size
-      sign = plus_char
+      if ret[0] != ?-
+        sign = plus_char
+      else
+        sign = ""
+      end
 
       if precision || flags[:zero]
         ret.gsub!("..", "")

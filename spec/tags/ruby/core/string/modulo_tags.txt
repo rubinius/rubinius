@@ -1,1 +1,0 @@
-fails:String#% formats negative values with a leading sign using %u
