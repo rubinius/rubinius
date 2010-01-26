@@ -91,6 +91,7 @@ class Module
 
     insert_at = klass
     mod = self
+    changed = false
 
     while mod
 
@@ -136,9 +137,17 @@ class Module
 
         im = Rubinius::IncludedModule.new(original_mod).attach_to insert_at
         insert_at = im
+
+        changed = true
       end
 
       mod = mod.direct_superclass
+    end
+
+    if changed
+      method_table.each do |meth, obj, vis|
+        Rubinius::VM.reset_method_cache meth
+      end
     end
 
     return self
