@@ -217,15 +217,19 @@ describe "Module#autoload" do
     end
   end
 
+  # This spec used autoload_w.rb which is TOTALLY WRONG. Both of these specs run on rubinius
+  # (only one on MRI), and autoload uses require logic, so we can only pull in
+  # autoload_w.rb ONCE. Thusly, it now uses autoload_w2.rb.
+
   ruby_version_is ""..."1.9" do
     # [ruby-core:19127]
     it "raises a NameError when the autoload file did not define the constant and a module is opened with the same name" do
       lambda do
-        module ModuleSpecs::Autoload
-          class W
-            autoload :Y, fixture(__FILE__, "autoload_w.rb")
+        module ModuleSpecs::Autoload2
+          class W2
+            autoload :Y2, fixture(__FILE__, "autoload_w2.rb")
 
-            class Y
+            class Y2
             end
           end
         end
