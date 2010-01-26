@@ -215,7 +215,39 @@ describe "Module#include" do
       K.ancestors.count(M).should == 1
       K.ancestors.count(M0).should == 1
     end
+  end
 
+  it "clears any caches" do
+    module ModuleSpecs::M3
+      module M1
+        def foo
+          :m1
+        end
+      end
+
+      module M2
+        def foo
+          :m2
+        end
+      end
+
+      class C
+        include M1
+
+        def get
+          foo
+        end
+      end
+
+      c = C.new
+      c.get.should == :m1
+
+      class C
+        include M2
+      end
+
+      c.get.should == :m2
+    end
   end
 end
 
