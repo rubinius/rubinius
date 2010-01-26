@@ -1,3 +1,0 @@
-fails:GC.stress returns current status of GC stress mode
-fails:GC.stress= can be invoked without any exceptions
-fails:GC.stress= returns a proper boolean result
