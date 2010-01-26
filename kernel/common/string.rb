@@ -1242,22 +1242,37 @@ class String
     return nil
   end
 
-  def partition(pattern = nil)
-    if block_given?
-      return super()
-    end
+  # call-seq: str.partition(sep) => [head, sep, tail]
+  #
+  # Searches the string for _sep_ and returns the part before it, the
+  # _sep_, and the part after it. If _sep_ is not found, returns _str_
+  # and two empty strings. If no argument is given,
+  # Enumerable#partition is called.
+  #
+  #    "hello".partition("l")         #=> ["he", "l", "lo"]
+  #    "hello".partition("x")         #=> ["hello", "", ""]
+  #
+  def partition(pattern=nil)
+    return super() if block_given?
 
-    pattern = Type.coerce_to(pattern, String, :to_str) unless pattern.is_a? Regexp
-    i = index(pattern)
-    return [self, "", ""] unless i
-
-    if pattern.is_a? Regexp
-      match = Regexp.last_match
-      [match.pre_match, match[0], match.post_match]
+    if pattern.kind_of? Regexp
+      if m = pattern.match(self)
+        return [m.pre_match, m[0], m.post_match]
+      end
     else
-      last = i+pattern.length
-      [self[0...i], self[i...last], self[last...length]]
+      pattern = StringValue(pattern)
+      if i = index(pattern)
+        post_start = i + pattern.length
+        post_len = size - post_start
+
+        return [self.substring(0, i),
+                pattern.dup,
+                self.substring(post_start, post_len)]
+      end
     end
+
+    # Nothing worked out, this is the default.
+    return [self, "", ""]
   end
 
   def rpartition(pattern)
