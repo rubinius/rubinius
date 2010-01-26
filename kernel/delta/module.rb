@@ -51,30 +51,6 @@ class Module
     return self
   end
 
-  def include(*modules)
-    modules.reverse_each do |mod|
-      if !mod.kind_of?(Module) or mod.kind_of?(Class)
-        raise TypeError, "wrong argument type #{mod.class} (expected Module)"
-      end
-
-      raise ArgumentError, "cyclic include detected" if mod == self
-
-      if ancestors.include? mod
-        ancestor = superclass_chain.find do |m|
-          m.module == mod if m.kind_of?(Rubinius::IncludedModule)
-        end
-        ancestor.module.included_modules.each do |included_mod|
-          included_mod.send :append_features, ancestor
-          included_mod.send :included, ancestor
-        end
-      else
-        mod.send :append_features, self
-      end
-
-      mod.send :included, self
-    end
-  end
-
   def private(*args)
     if args.empty?
       Rubinius::VariableScope.of_sender.method_visibility = :private
@@ -84,25 +60,88 @@ class Module
     args.each { |meth| set_visibility(meth, :private) }
   end
 
+  # Invokes <code>Module#append_features</code> and
+  # <code>Module#included</code> on each argument, passing in self.
+  #
+  def include(*modules)
+    modules.reverse_each do |mod|
+      if !mod.kind_of?(Module) or mod.kind_of?(Class)
+        raise TypeError, "wrong argument type #{mod.class} (expected Module)"
+      end
+
+      mod.send :append_features, self
+      mod.send :included, self
+    end
+  end
+
   # Called when this Module is being included in another Module.
-  # This may be overridden for custom behaviour, but the default
+  # This may be overridden for custom behaviour. The default
   # is to add constants, instance methods and module variables
-  # of this Module and all Modules that this one includes to the
-  # includer Module, which is passed in as the parameter +other+.
+  # of this Module and all Modules that this one includes to +klass+.
   #
   # See also #include.
   #
-  def append_features(other)
-    hierarchy = other.ancestors
-
-    superclass_chain.reverse_each do |ancestor|
-      if ancestor.instance_of? Rubinius::IncludedModule and
-          not hierarchy.include? ancestor.module
-        Rubinius::IncludedModule.new(ancestor.module).attach_to other
-      end
+  def append_features(klass)
+    unless klass.kind_of? Module
+      raise TypeError, "invalid argument class #{klass.class}, expected Module"
     end
 
-    Rubinius::IncludedModule.new(self).attach_to other
+    # check other.frozen
+    # taint other from self
+
+    insert_at = klass
+    mod = self
+
+    while mod
+
+      # Check for a cyclic include
+      if mod.equal? klass
+        raise ArgumentError, "cyclic include detected"
+      end
+
+      # Try and detect check_mod in klass's heirarchy, and where.
+      #
+      # I (emp) tried to use Module#< here, but we need to also know
+      # where in the heirarchy the module is to change the insertion point.
+      # Since Module#< doesn't report that, we're going to just search directly.
+      #
+      superclass_seen = false
+      add = true
+
+      k = klass.direct_superclass
+      while k
+        if k.kind_of? Rubinius::IncludedModule
+          # Oh, we found it.
+          if k == mod
+            # ok, if we're still within the directly included modules
+            # of klass, then put future things after mod, not at the
+            # beginning.
+            insert_at = k unless superclass_seen
+            add = false
+            break
+          end
+        else
+          superclass_seen = true
+        end
+
+        k = k.direct_superclass
+      end
+
+      if add
+        if mod.kind_of? Rubinius::IncludedModule
+          original_mod = mod.module
+        else
+          original_mod = mod
+        end
+
+        im = Rubinius::IncludedModule.new(original_mod).attach_to insert_at
+        insert_at = im
+      end
+
+      mod = mod.direct_superclass
+    end
+
+    return self
   end
 
   def attr_reader(*names)

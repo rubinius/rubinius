@@ -686,6 +686,17 @@ module Rubinius
     def to_s
       @module.to_s
     end
+
+    # Returns true if +other+ is the same object as self or if +other+
+    # is the module this IncludedModule is for.
+    #
+    def ==(other)
+      if other.kind_of? IncludedModule
+        super || other.module == @module
+      else
+        super || other == @module
+      end
+    end
   end
 end
 
