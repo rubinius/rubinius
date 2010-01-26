@@ -199,6 +199,10 @@ class Numeric
   #++
 
   def coerce(other)
+    if other.instance_of? self.class
+      return [other, self]
+    end
+
     [Float(other), Float(self)]
   end
 
