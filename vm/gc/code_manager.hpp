@@ -1,6 +1,8 @@
 #ifndef RBX_GC_CODE_MANAGER
 #define RBX_GC_CODE_MANAGER
 
+#include "util/thread.hpp"
+
 namespace rubinius {
   class CodeResource;
   class SharedState;
@@ -15,6 +17,8 @@ namespace rubinius {
       Chunk(int size);
       ~Chunk();
     };
+
+    thread::Mutex mutex_;
 
     SharedState* shared_;
 
@@ -52,7 +56,7 @@ namespace rubinius {
 
     void add_resource(CodeResource* cr);
     void clear_marks();
-    void sweep(int mark=1);
+    void sweep();
     int size();
 
   private:

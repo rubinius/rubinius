@@ -41,6 +41,8 @@ namespace rubinius {
   }
 
   void CodeManager::add_resource(CodeResource* cr) {
+    thread::Mutex::LockGuard guard(mutex_);
+
     total_allocated_ += cr->size();
 
     for(;;) {
@@ -60,7 +62,7 @@ namespace rubinius {
     }
   }
 
-  void CodeManager::sweep(int mark) {
+  void CodeManager::sweep() {
     Chunk* chunk = first_chunk_;
 
     freed_resources_ = 0;
@@ -68,14 +70,14 @@ namespace rubinius {
     while(chunk) {
       for(int i = 0; i < chunk_size_; i++) {
         if(CodeResource* cr = chunk->resources[i]) {
-          if(cr->mark() != mark) {
+          if(!cr->marked()) {
             total_freed_ += cr->size();
             freed_resources_++;
             cr->cleanup(this);
             delete cr;
             chunk->resources[i] = 0;
           } else {
-            cr->set_mark(0);
+            cr->clear_mark();
           }
         }
       }
@@ -108,7 +110,7 @@ namespace rubinius {
     while(chunk) {
       for(int i = 0; i < chunk_size_; i++) {
         if(CodeResource* cr = chunk->resources[i]) {
-          cr->set_mark(0);
+          cr->clear_mark();
         }
       }
 

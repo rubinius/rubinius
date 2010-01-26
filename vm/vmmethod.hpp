@@ -205,7 +205,6 @@ namespace rubinius {
     void find_super_instructions();
 
     void deoptimize(STATE, CompiledMethod* original);
-    Object** add_indirect_literal(Object* obj);
 
     /*
      * Helper class for iterating over an Opcode array.  Used to convert a

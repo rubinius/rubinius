@@ -4,6 +4,8 @@
 #include "llvm/inline.hpp"
 #include "llvm/jit_inline_method.hpp"
 #include "llvm/jit_inline_block.hpp"
+#include "llvm/jit_runtime.hpp"
+#include "llvm/jit_context.hpp"
 
 #include "builtin/methodtable.hpp"
 #include "builtin/nativefunction.hpp"
@@ -12,8 +14,6 @@
 
 namespace rubinius {
   bool Inliner::consider() {
-    AccessManagedMemory memguard(ops_.state());
-
     Class* klass = cache_->dominating_class();
     if(!klass) {
       if(ops_.state()->config().jit_inline_debug) {
@@ -109,11 +109,9 @@ namespace rubinius {
         }
 
         policy->increase_size(vmm);
-        meth->add_inliner(ops_.root_vmmethod());
+        meth->add_inliner(ops_.state()->shared().om, ops_.root_method_info()->method());
 
-        NoAccessManagedMemory unmemguard(ops_.state());
-
-        inline_generic_method(klass, cm, vmm);
+        inline_generic_method(klass, defined_in, cm, vmm);
         return true;
       } else {
         if(ops_.state()->config().jit_inline_debug) {
@@ -153,21 +151,18 @@ namespace rubinius {
       return false;
     }
 
-    meth->add_inliner(ops_.root_vmmethod());
+    meth->add_inliner(ops_.state()->shared().om, ops_.root_method_info()->method());
 
     return true;
   }
 
   void Inliner::inline_block(JITInlineBlock* ib, Value* self) {
-    AccessManagedMemory memguard(ops_.state());
-
     if(ops_.state()->config().jit_inline_debug) {
       ops_.state()->log() << "inlining block into: "
         << ops_.state()->symbol_cstr(ops_.method_name())
         << "\n";
     }
 
-    NoAccessManagedMemory unmemguard(ops_.state());
     emit_inline_block(ib, self);
   }
 
@@ -365,7 +360,8 @@ namespace rubinius {
     set_result(ivar);
   }
 
-  void Inliner::inline_generic_method(Class* klass, CompiledMethod* cm, VMMethod* vmm) {
+  void Inliner::inline_generic_method(Class* klass, Module* defined_in,
+                                      CompiledMethod* cm, VMMethod* vmm) {
     Value* self = recv();
     ops_.check_class(self, klass, failure());
 
@@ -377,7 +373,10 @@ namespace rubinius {
     info.root = ops_.root_method_info();
     info.set_inline_block(inline_block_);
 
-    jit::InlineMethodBuilder work(ops_.state(), info);
+    jit::RuntimeData* rd = new jit::RuntimeData(cm, cache_->name, defined_in);
+    context_.add_runtime_data(rd);
+
+    jit::InlineMethodBuilder work(ops_.state(), info, rd);
     work.valid_flag = ops_.valid_flag();
 
     Value* blk = 0;
@@ -397,8 +396,7 @@ namespace rubinius {
 
     if(vmm->call_count >= 0) vmm->call_count /= 2;
 
-    BasicBlock* entry = work.setup_inline(self, blk,
-        ops_.constant(Qnil, ops_.state()->ptr_type("Module")), args);
+    BasicBlock* entry = work.setup_inline(self, blk, args);
 
     assert(work.generate_body());
 
@@ -426,7 +424,10 @@ namespace rubinius {
     info.set_inline_block(inline_block_);
     info.set_block_info(block_info_);
 
-    jit::InlineBlockBuilder work(ops_.state(), info);
+    jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), cache_->name, (Module*)Qnil);
+    context_.add_runtime_data(rd);
+
+    jit::InlineBlockBuilder work(ops_.state(), info, rd);
     work.valid_flag = ops_.valid_flag();
 
     std::vector<Value*> args;

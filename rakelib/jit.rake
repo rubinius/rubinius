@@ -27,6 +27,7 @@ namespace :jit do
                  rubinius::BlockInvocation
                  rubinius::Numeric
                  rubinius::Float
+                 rubinius::jit::RuntimeData
                  jit_state!
     require 'tempfile'
 
@@ -36,7 +37,8 @@ namespace :jit do
                vm/inline_cache.hpp
                vm/builtin/block_environment.hpp
                vm/builtin/integer.hpp
-               vm/builtin/float.hpp!
+               vm/builtin/float.hpp
+               vm/llvm/jit_runtime.hpp!
     path = "llvm-type-temp.cpp"
 
     File.open(path, "w+") do |f|
@@ -54,6 +56,8 @@ namespace :jit do
 
     str = `llvm-g++ -I. -Ivm -Ivm/external_libs/libtommath -emit-llvm -S -o - "#{path}"`
 
+    return unless $?.exitstatus == 0
+
     File.unlink path
 
     types = []
@@ -66,7 +70,8 @@ namespace :jit do
       end
     end
 
-    opaque = %w!VM TypeInfo VMMethod Fixnum Symbol Selector LookupTable MethodTable!
+    opaque = %w!VM TypeInfo VMMethod Fixnum Symbol Selector LookupTable MethodTable
+                jit::RuntimeDataHolder!
 
     File.open("vm/gen/types.ll","w+") do |f|
       opaque.each do |o|

@@ -119,7 +119,7 @@ namespace rubinius {
     frame->previous = previous;
     frame->static_scope_ = invocation.static_scope;
 
-    frame->msg =      NULL;
+    frame->dispatch_data = NULL;
     frame->cm =       env->method_;
     frame->scope =    scope;
     frame->top_scope_ = env->top_scope_;

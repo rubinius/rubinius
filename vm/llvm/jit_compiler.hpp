@@ -42,7 +42,7 @@ namespace jit {
 
     void compile_method(LLVMState*, CompiledMethod* cm, VMMethod* vmm);
     void compile_block(LLVMState*, CompiledMethod*cm, VMMethod* vmm);
-    void compile_builder(LLVMState*, JITMethodInfo&, rubinius::jit::Builder&);
+    void compile_builder(jit::Context& ctx, LLVMState*, JITMethodInfo&, rubinius::jit::Builder&);
 
     void* function_pointer();
     void* generate_function(LLVMState* ls);

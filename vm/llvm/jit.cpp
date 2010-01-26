@@ -284,6 +284,10 @@ namespace rubinius {
           state = cRunning;
         }
 
+        // This isn't ideal, but it's the safest. Keep the GC from
+        // running while we're building the IR.
+        ls_->shared().gc_dependent();
+
         // mutex now unlock, allowing others to push more requests
         //
 
@@ -310,16 +314,14 @@ namespace rubinius {
           }
 
           delete req;
+
+          ls_->shared().gc_independent();
           continue; // for(;;)
         }
 
         if(show_machine_code_) {
           jit.show_machine_code();
         }
-
-        // Ok, now we are manipulating managed memory, so make
-        // sure the GC doesn't run.
-        ls_->shared().gc_dependent();
 
         req->vmmethod()->set_jitted(jit.llvm_function(),
                                     jit.code_bytes(),
@@ -334,6 +336,7 @@ namespace rubinius {
           }
         } else {
           req->method()->execute = reinterpret_cast<executor>(func);
+          assert(req->method()->jit_data());
         }
 
         int which = ls_->add_jitted_method();
@@ -441,6 +444,8 @@ namespace rubinius {
 
     FloatTy = Type::getFloatTy(ctx_);
     DoubleTy = Type::getDoubleTy(ctx_);
+
+    Int8PtrTy = PointerType::getUnqual(Int8Ty);
 
     bool fast_code_passes = false;
 
@@ -586,10 +591,6 @@ namespace rubinius {
   }
 
   void LLVMState::remove(llvm::Function* func) {
-    // COMPLETELY DISABLED.
-    // We're not clearing this properly at all and it causes crashes.
-    return;
-
     // Deallocate the JITed code
     engine_->freeMachineCodeForFunction(func);
 

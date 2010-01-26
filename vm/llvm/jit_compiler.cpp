@@ -13,6 +13,7 @@
 #include "configuration.hpp"
 
 #include "instruments/profiler.hpp"
+#include "objectmemory.hpp"
 
 #include <llvm/Target/TargetData.h>
 // #include <llvm/LinkAllPasses.h>
@@ -87,7 +88,7 @@ namespace jit {
     jit::BlockBuilder work(ls, info);
     work.setup();
 
-    compile_builder(ls, info, work);
+    compile_builder(ctx, ls, info, work);
   }
 
   void Compiler::compile_method(LLVMState* ls, CompiledMethod* cm, VMMethod* vmm) {
@@ -107,10 +108,10 @@ namespace jit {
     jit::MethodBuilder work(ls, info);
     work.setup();
 
-    compile_builder(ls, info, work);
+    compile_builder(ctx, ls, info, work);
   }
 
-  void Compiler::compile_builder(LLVMState* ls, JITMethodInfo& info,
+  void Compiler::compile_builder(jit::Context& ctx, LLVMState* ls, JITMethodInfo& info,
                                      jit::Builder& work)
   {
     llvm::Function* func = info.function();
@@ -171,6 +172,13 @@ namespace jit {
         << ls->symbol_cstr(info.method()->name()) << " ]]]\n";
       llvm::outs() << *func << "\n";
     }
+
+    // Inject the RuntimeData objects used into the original CompiledMethod
+    // Do this way after we've validated the IR so things are consistent.
+    ctx.runtime_data_holder()->set_function(func);
+
+    info.method()->set_jit_data(ctx.runtime_data_holder());
+    ls->shared().om->add_code_resource(ctx.runtime_data_holder());
 
     function_ = func;
 

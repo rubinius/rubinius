@@ -124,7 +124,6 @@ namespace jit {
   void Builder::check_self_type() {
     int klass_id = 0;
     {
-      AccessManagedMemory memguard(ls_);
       if(Class* cls = try_as<Class>(info_.method()->scope()->module())) {
         klass_id = cls->class_id();
       } else {

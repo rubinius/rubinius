@@ -1040,15 +1040,6 @@ namespace rubinius {
       Object* lit = literal(which);
       if(Symbol* sym = try_as<Symbol>(lit)) {
         stack_push(constant(sym));
-      } else if(kind_of<Float>(lit)) {
-        Object** ptr = vmmethod()->add_indirect_literal(lit);
-
-        Value* as_int = ConstantInt::get(ls_->IntPtrTy, reinterpret_cast<uintptr_t>(ptr));
-        Value* vptr = b().CreateIntToPtr(as_int,
-            PointerType::getUnqual(ptr_type("Float")));
-
-        Value* loaded = b().CreateLoad(vptr, "float_literal");
-        stack_push(loaded);
       } else if(kind_of<Fixnum>(lit)) {
         stack_push(constant(lit));
       } else {
@@ -1691,8 +1682,6 @@ use_send:
 
     void visit_push_const_fast(opcode name, opcode cache) {
       set_has_side_effects();
-
-      AccessManagedMemory memguard(ls_);
 
       BasicBlock* cont = 0;
 

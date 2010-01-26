@@ -563,7 +563,7 @@ namespace rubinius {
 
       frame->previous = previous;
       frame->flags =    0;
-      frame->msg =      &msg;
+      frame->dispatch_data = &msg;
       frame->cm =       cm;
       frame->scope =    scope;
 
@@ -593,10 +593,14 @@ namespace rubinius {
     // This resets execute to use the interpreter
     setup_argument_handler(original);
 
-    if(llvm_function_) {
-      LLVMState::get(state)->remove(llvm_function_);
-    }
+    // Don't call LLVMState::get(state)->remove(llvm_function_)
+    // here. We let the CodeManager do that later, when we're sure
+    // the llvm function is no longer used.
     llvm_function_ = 0;
+
+    // Remove any JIT data, which will be cleanup by the CodeManager
+    // later.
+    original->set_jit_data(0);
 
     // Don't reset call_count if it's -1
     // (why would it be -1, it shouldn't be if we got this far)
@@ -634,12 +638,5 @@ namespace rubinius {
       return opcodes[ip] & ~cBreakpointMask;
     }
     return 0;
-  }
-
-  Object** VMMethod::add_indirect_literal(Object* obj) {
-    Object** ptr = new Object*[1];
-    *ptr = obj;
-    indirect_literals_.push_back(ptr);
-    return ptr;
   }
 }

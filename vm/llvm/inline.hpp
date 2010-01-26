@@ -114,7 +114,7 @@ namespace rubinius {
     bool consider();
     void inline_block(JITInlineBlock* ib, Value* self);
 
-    void inline_generic_method(Class* klass, CompiledMethod* cm, VMMethod* vmm);
+    void inline_generic_method(Class* klass, Module* mod, CompiledMethod* cm, VMMethod* vmm);
 
     bool detect_trivial_method(VMMethod* vmm, CompiledMethod* cm = 0);
 

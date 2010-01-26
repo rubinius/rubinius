@@ -8,7 +8,7 @@ using namespace llvm;
 namespace rubinius {
 namespace jit {
   BasicBlock* InlineMethodBuilder::setup_inline(Value* self, Value* blk,
-      Value* mod, std::vector<Value*>& stack_args)
+      std::vector<Value*>& stack_args)
   {
     func = info_.function();
     vm = info_.vm();
@@ -52,21 +52,23 @@ namespace jit {
 
     info_.set_variables(vars);
 
+    Value* rd = constant(runtime_data_, ls_->ptr_type("jit::RuntimeData"));
+
     //  Setup the CallFrame
     //
     // previous
     b().CreateStore(prev, get_field(call_frame, offset::cf_previous));
 
     // msg
-    b().CreateStore(ConstantExpr::getNullValue(ls_->ptr_type("Dispatch")),
+    b().CreateStore(
+        b().CreatePointerCast(rd, ls_->Int8PtrTy),
         get_field(call_frame, offset::cf_msg));
 
     // cm
-    Object** ptr = info_.root->vmm->add_indirect_literal(info_.method());
-    Value* obj_addr = constant(ptr,
-        PointerType::getUnqual(ls_->ptr_type("CompiledMethod")));
+    method = b().CreateLoad(
+        b().CreateConstGEP2_32(rd, 0, offset::runtime_data_method, "method_pos"),
+        "cm");
 
-    method = b().CreateLoad(obj_addr, "cm");
     Value* cm_gep = get_field(call_frame, offset::cf_cm);
     b().CreateStore(method, cm_gep);
 
@@ -85,6 +87,10 @@ namespace jit {
     b().CreateStore(vars, get_field(call_frame, offset::cf_scope));
 
     nil_stack(vmm_->stack_size, constant(Qnil, obj_type));
+
+    Value* mod = b().CreateLoad(
+        b().CreateConstGEP2_32(rd, 0, offset::runtime_data_module, "module_pos"),
+        "module");
 
     setup_inline_scope(self, blk, mod);
 

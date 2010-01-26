@@ -13,6 +13,10 @@ namespace rubinius {
   class VMMethod;
   class StaticScope;
 
+  namespace jit {
+    class RuntimeDataHolder;
+  }
+
   class CompiledMethod : public Executable {
   public:
     const static object_type type = CompiledMethodType;
@@ -32,6 +36,8 @@ namespace rubinius {
 
     VMMethod* backend_method_;
 
+    jit::RuntimeDataHolder* jit_data_;
+
   public:
     // Access directly from assembly, so has to be public.
     Tuple* literals_;           // slot
@@ -40,6 +46,16 @@ namespace rubinius {
     VMMethod* backend_method() {
       return backend_method_;
     }
+
+#ifdef ENABLE_LLVM
+    jit::RuntimeDataHolder* jit_data() {
+      return jit_data_;
+    }
+
+    void set_jit_data(jit::RuntimeDataHolder* rds) {
+      jit_data_ = rds;
+    }
+#endif
 
     attr_accessor(name, Symbol);
     attr_accessor(iseq, InstructionSequence);

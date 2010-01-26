@@ -5,14 +5,20 @@
 
 namespace rubinius {
 namespace jit {
+  class RuntimeData;
+
   class InlineMethodBuilder : public MethodBuilder {
+  protected:
+    jit::RuntimeData* runtime_data_;
+
   public:
-    InlineMethodBuilder(LLVMState* ls, JITMethodInfo& info)
+    InlineMethodBuilder(LLVMState* ls, JITMethodInfo& info, jit::RuntimeData* rd)
       : MethodBuilder(ls, info)
+      , runtime_data_(rd)
     {}
 
     llvm::BasicBlock* setup_inline(llvm::Value* self, llvm::Value* blk,
-        llvm::Value* mod, std::vector<llvm::Value*>& args);
+        std::vector<llvm::Value*>& args);
     void setup_inline_scope(llvm::Value* self, llvm::Value* blk, llvm::Value* mod);
   };
 }

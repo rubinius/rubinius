@@ -25,6 +25,7 @@
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
 #include "llvm/jit_compiler.hpp"
+#include "llvm/jit_runtime.hpp"
 #endif
 
 namespace rubinius {
@@ -42,6 +43,10 @@ namespace rubinius {
     cm->backend_method_ = NULL;
     cm->inliners_ = NULL;
     cm->prim_index_ = -1;
+
+#ifdef ENABLE_LLVM
+    cm->jit_data_ = NULL;
+#endif
 
     return cm;
   }
@@ -221,6 +226,8 @@ namespace rubinius {
   void CompiledMethod::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
 
+    mark_inliners(obj, mark);
+
     CompiledMethod* cm = as<CompiledMethod>(obj);
     if(!cm->backend_method_) return;
 
@@ -228,6 +235,13 @@ namespace rubinius {
     vmm->set_mark();
 
     Object* tmp;
+
+#ifdef ENABLE_LLVM
+    if(cm->jit_data()) {
+      cm->jit_data()->set_mark();
+      cm->jit_data()->mark_all(cm, mark);
+    }
+#endif
 
     for(size_t i = 0; i < vmm->inline_cache_count(); i++) {
       InlineCache* cache = &vmm->caches[i];
@@ -282,10 +296,18 @@ namespace rubinius {
   void CompiledMethod::Info::visit(Object* obj, ObjectVisitor& visit) {
     auto_visit(obj, visit);
 
+    visit_inliners(obj, visit);
+
     CompiledMethod* cm = as<CompiledMethod>(obj);
     if(!cm->backend_method_) return;
 
     VMMethod* vmm = cm->backend_method_;
+
+#ifdef ENABLE_LLVM
+    if(cm->jit_data()) {
+      cm->jit_data()->visit_all(visit);
+    }
+#endif
 
     for(size_t i = 0; i < vmm->inline_cache_count(); i++) {
       InlineCache* cache = &vmm->caches[i];

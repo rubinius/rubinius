@@ -6,6 +6,7 @@
 #include "builtin/object.hpp"
 #include "type_info.hpp"
 #include "executor.hpp"
+#include "gc/code_resource.hpp"
 
 #include <list>
 
@@ -15,7 +16,16 @@ namespace rubinius {
   class Arguments;
 
   class VMMethod;
-  typedef std::list<VMMethod*> Inliners;
+  class CompiledMethod;
+
+  class Inliners : public CodeResource {
+    std::list<CompiledMethod*> inliners_;
+
+  public:
+    std::list<CompiledMethod*>& inliners() {
+      return inliners_;
+    }
+  };
 
   class Executable : public Object {
   public:
@@ -60,12 +70,18 @@ namespace rubinius {
 
     bool resolve_primitive(STATE);
 
-    void add_inliner(VMMethod* vmm);
+    void add_inliner(ObjectMemory* om, CompiledMethod* cm);
     void clear_inliners(STATE);
 
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
+
+      virtual void mark(Object* obj, ObjectMark& mark);
+      virtual void visit(Object* obj, ObjectVisitor& visit);
+
+      void mark_inliners(Object* obj, ObjectMark& mark);
+      void visit_inliners(Object* obj, ObjectVisitor& visit);
     };
 
     friend class Info;

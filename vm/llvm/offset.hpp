@@ -8,9 +8,10 @@ namespace offset {
   const static int cf_cm = 3;
   const static int cf_flags = 4;
   const static int cf_ip = 5;
-  const static int cf_top_scope = 6;
-  const static int cf_scope = 7;
-  const static int cf_stk = 8;
+  const static int cf_jit_data = 6;
+  const static int cf_top_scope = 7;
+  const static int cf_scope = 8;
+  const static int cf_stk = 9;
 
   const static int args_recv = 0;
   const static int args_block = 1;
@@ -37,7 +38,9 @@ namespace offset {
   const static int tuple_full_size = 1;
   const static int tuple_field = 2;
 
-  const static int cm_literals = 13;
+  const static int cm_backend_method = 12;
+  const static int cm_jit_data = 13;
+  const static int cm_literals = 14;
   const static int cm_static_scope = 11;
 
   const static int msg_name = 0;
@@ -57,6 +60,10 @@ namespace offset {
   const static int blockenv_module = 5;
   const static int blockenv_vmm = 6;
   const static int blockenv_execute = 7;
+
+  const static int runtime_data_method = 0;
+  const static int runtime_data_name = 1;
+  const static int runtime_data_module = 2;
 };
 
 #endif

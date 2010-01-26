@@ -8,12 +8,21 @@
 #include "builtin/variable_scope.hpp"
 #include "dispatch.hpp"
 
+#ifdef ENABLE_LLVM
+#include "llvm/jit_runtime.hpp"
+#endif
+
 namespace rubinius {
   class Object;
   class Symbol;
   class Module;
   class VMMethod;
   class VariableScope;
+
+  namespace jit {
+    class RuntimeData;
+    class RuntimeDataHolder;
+  }
 
   struct CallFrame {
     enum Flags {
@@ -22,18 +31,21 @@ namespace rubinius {
       cMultipleScopes =     1 << 2,
       cInlineFrame =        1 << 3,
       cClosedScope =        1 << 4,
-      cBlockAsMethod =      1 << 5
+      cBlockAsMethod =      1 << 5,
+      cJITed =              1 << 6,
+      cBlock =              1 << 7
     };
 
     CallFrame* previous;
     StaticScope* static_scope_;
 
-    Dispatch* msg;
+    void* dispatch_data;
     CompiledMethod* cm;
 
     int flags;
     int ip_;
 
+    void* optional_jit_data;
     VariableScope* top_scope_;
     StackVariables* scope;
 
@@ -50,10 +62,65 @@ namespace rubinius {
       return flags & cBlockAsMethod;
     }
 
+#ifdef ENABLE_LLVM
     Symbol* name() {
-      if(msg) return msg->name;
+      if(dispatch_data) {
+        if(inline_method_p()) {
+          return reinterpret_cast<jit::RuntimeData*>(dispatch_data)->name();
+        } else {
+          return reinterpret_cast<Dispatch*>(dispatch_data)->name;
+        }
+      }
+
       return reinterpret_cast<Symbol*>(Qnil);
     }
+#else
+    Symbol* name() {
+      if(dispatch_data) {
+        return reinterpret_cast<Dispatch*>(dispatch_data)->name;
+      }
+
+      return reinterpret_cast<Symbol*>(Qnil);
+    }
+#endif
+
+    Dispatch* dispatch() {
+      if(dispatch_data) {
+        if(!inline_method_p()) {
+          return reinterpret_cast<Dispatch*>(dispatch_data);
+        }
+      }
+
+      return NULL;
+    }
+
+#ifdef ENABLE_LLVM
+    jit::RuntimeData* runtime_data() {
+      if(dispatch_data) {
+        if(inline_method_p()) {
+          return reinterpret_cast<jit::RuntimeData*>(dispatch_data);
+        }
+      }
+
+      return NULL;
+    }
+
+    jit::RuntimeDataHolder* jit_data() {
+      if(jitted_p()) {
+        return reinterpret_cast<jit::RuntimeDataHolder*>(optional_jit_data);
+      }
+
+      return NULL;
+    }
+#else
+    jit::RuntimeData* runtime_data() {
+      return NULL;
+    }
+
+    jit::RuntimeDataHolder* jit_data() {
+      return NULL;
+    }
+#endif
 
     Symbol* original_name() {
       if(multiple_scopes_p()) {
@@ -66,6 +133,14 @@ namespace rubinius {
 
     bool custom_static_scope_p() {
       return flags & cCustomStaticScope;
+    }
+
+    bool inline_method_p() {
+      return flags & cInlineFrame;
+    }
+
+    bool jitted_p() {
+      return flags & cJITed;
     }
 
     StaticScope* static_scope() {

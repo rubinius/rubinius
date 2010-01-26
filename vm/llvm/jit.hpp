@@ -404,6 +404,8 @@ namespace rubinius {
     const llvm::Type* FloatTy;
     const llvm::Type* DoubleTy;
 
+    const llvm::Type* Int8PtrTy;
+
     static LLVMState* get(STATE);
     static void shutdown(STATE);
     static void on_fork(STATE);

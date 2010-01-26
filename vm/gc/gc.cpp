@@ -148,10 +148,25 @@ namespace rubinius {
         call_frame->top_scope_ = (VariableScope*)mark_object(call_frame->top_scope_);
       }
 
-      if(call_frame->msg) {
-        call_frame->msg->module = (Module*)mark_object(call_frame->msg->module);
-        call_frame->msg->method = (Executable*)mark_object(call_frame->msg->method);
+      if(Dispatch* msg = call_frame->dispatch()) {
+        msg->module = (Module*)mark_object(msg->module);
+        msg->method = (Executable*)mark_object(msg->method);
       }
+
+#ifdef ENABLE_LLVM
+      if(jit::RuntimeDataHolder* jd = call_frame->jit_data()) {
+        jd->set_mark();
+
+        ObjectMark mark(this);
+        jd->mark_all(0, mark);
+      }
+
+      if(jit::RuntimeData* rd = call_frame->runtime_data()) {
+        rd->method_ = (CompiledMethod*)mark_object(rd->method());
+        rd->name_ = (Symbol*)mark_object(rd->name());
+        rd->module_ = (Module*)mark_object(rd->module());
+      }
+#endif
 
       saw_variable_scope(call_frame, call_frame->scope);
 
@@ -217,6 +232,12 @@ namespace rubinius {
       }
 
       visit_variable_scope(call_frame, call_frame->scope, visit);
+
+#ifdef ENABLE_LLVM
+      if(jit::RuntimeDataHolder* jd = call_frame->jit_data()) {
+        jd->visit_all(visit);
+      }
+#endif
 
       call_frame = static_cast<CallFrame*>(call_frame->previous);
     }

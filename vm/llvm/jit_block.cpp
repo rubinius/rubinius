@@ -1,6 +1,8 @@
 #ifdef ENABLE_LLVM
 
 #include "llvm/jit_block.hpp"
+#include "llvm/jit_context.hpp"
+
 #include "call_frame.hpp"
 #include "stack_variables.hpp"
 
@@ -146,7 +148,7 @@ namespace jit {
     b().CreateStore(ss, get_field(call_frame, offset::cf_static_scope));
 
     // msg
-    b().CreateStore(Constant::getNullValue(ls_->ptr_type("Dispatch")),
+    b().CreateStore(Constant::getNullValue(ls_->Int8PtrTy),
         get_field(call_frame, offset::cf_msg));
 
     // cm
@@ -179,6 +181,11 @@ namespace jit {
         "env.top_scope");
 
     b().CreateStore(top_scope, get_field(call_frame, offset::cf_top_scope));
+
+    // jit_data
+    b().CreateStore(
+        constant(info_.context().runtime_data_holder(), ls_->Int8PtrTy),
+        get_field(call_frame, offset::cf_jit_data));
 
     if(ls_->include_profiling()) {
       Value* test = b().CreateLoad(ls_->profiling(), "profiling");

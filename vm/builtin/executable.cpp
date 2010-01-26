@@ -1,6 +1,8 @@
 #include "vm.hpp"
 #include "vm/object_utils.hpp"
 
+#include "gc/gc.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/symbol.hpp"
@@ -65,21 +67,72 @@ namespace rubinius {
     return dis.send(state, call_frame, args);
   }
 
-  void Executable::add_inliner(VMMethod* vmm) {
+  void Executable::add_inliner(ObjectMemory* om, CompiledMethod* cm) {
     if(!inliners_ || inliners_ == (Inliners*)Qnil) inliners_ = new Inliners;
-    inliners_->push_back(vmm);
+    inliners_->inliners().push_back(cm);
+
+    om->write_barrier(this, cm);
   }
 
   void Executable::clear_inliners(STATE) {
     if(!inliners_ || inliners_ == (Inliners*)Qnil) return;
-    for(Inliners::const_iterator i = inliners_->begin();
-        i != inliners_->end();
+    for(std::list<CompiledMethod*>::const_iterator i = inliners_->inliners().begin();
+        i != inliners_->inliners().end();
         i++) {
-      if(CompiledMethod* cm = try_as<CompiledMethod>(this)) {
-        (*i)->deoptimize(state, cm);
-      }
+      (*i)->backend_method()->deoptimize(state, *i);
     }
 
-    inliners_->clear();
+    inliners_->inliners().clear();
+  }
+
+  void Executable::Info::mark(Object* obj, ObjectMark& mark) {
+    auto_mark(obj, mark);
+    mark_inliners(obj, mark);
+  }
+
+  void Executable::Info::mark_inliners(Object* obj, ObjectMark& mark) {
+    Executable* exc = (Executable*)obj;
+    if(!exc->inliners_ || exc->inliners_ == (Inliners*)Qnil) return;
+
+    if(exc->inliners_) {
+      Inliners* inl = exc->inliners_;
+
+      // std::cout << "Marking inliners: " << inl->inliners().size() << "\n";
+
+      for(std::list<CompiledMethod*>::iterator i = inl->inliners().begin();
+          i != inl->inliners().end();
+          i++) {
+        CompiledMethod* cm = *i;
+        if(cm->forwarded_p()) {
+          assert(kind_of<CompiledMethod>(cm->forward()));
+        } else {
+          assert(kind_of<CompiledMethod>(cm));
+        }
+
+        Object* tmp = mark.call(cm);
+        if(tmp) {
+          *i = (CompiledMethod*)tmp;
+          mark.just_set(obj, tmp);
+        }
+      }
+    }
+  }
+
+  void Executable::Info::visit(Object* obj, ObjectVisitor& visit) {
+    auto_visit(obj, visit);
+    visit_inliners(obj, visit);
+  }
+
+  void Executable::Info::visit_inliners(Object* obj, ObjectVisitor& visit) {
+    Executable* exc = (Executable*)obj;
+    if(!exc->inliners_ || exc->inliners_ == (Inliners*)Qnil) return;
+
+    if(exc->inliners_) {
+      for(std::list<CompiledMethod*>::iterator i = exc->inliners_->inliners().begin();
+          i != exc->inliners_->inliners().end();
+          i++) {
+        visit.call(*i);
+      }
+    }
   }
 }

@@ -1,6 +1,7 @@
 #ifdef ENABLE_LLVM
 
 #include "llvm/jit_method.hpp"
+#include "llvm/jit_context.hpp"
 
 #include "call_frame.hpp"
 #include "vmmethod.hpp"
@@ -371,13 +372,15 @@ namespace jit {
     b().CreateStore(prev, get_field(call_frame, offset::cf_previous));
 
     // msg
-    b().CreateStore(msg, get_field(call_frame, offset::cf_msg));
+    b().CreateStore(
+        b().CreatePointerCast(msg, ls_->Int8PtrTy),
+        get_field(call_frame, offset::cf_msg));
 
     // cm
     b().CreateStore(method, cm_gep);
 
     // flags
-    int flags = 0;
+    int flags = CallFrame::cJITed;
     if(!use_full_scope_) flags |= CallFrame::cClosedScope;
 
     b().CreateStore(
@@ -391,6 +394,11 @@ namespace jit {
 
     // scope
     b().CreateStore(vars, get_field(call_frame, offset::cf_scope));
+
+    // jit_data
+    b().CreateStore(
+        constant(info_.context().runtime_data_holder(), ls_->Int8PtrTy),
+        get_field(call_frame, offset::cf_jit_data));
 
     if(ls_->include_profiling()) {
       Value* test = b().CreateLoad(ls_->profiling(), "profiling");

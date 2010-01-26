@@ -119,7 +119,7 @@ namespace rubinius {
 
     if(is_block_p(state)) {
       std::cout << "block ";
-    } else if(msg) {
+    } else if(dispatch_data) {
       std::cout << "name=" << name()->c_str(state) << " ";
     } else {
       std::cout << "name=" << cm->name()->c_str(state) << " ";
