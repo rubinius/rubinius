@@ -206,7 +206,19 @@ module Rubinius
     end
 
     class Script
+      def initialize(path=nil, for_eval=false)
+        @path = path
+        @for_eval = for_eval
+        @eval_binding = nil
+      end
+
       attr_accessor :path
+      attr_accessor :eval_binding
+
+      def eval?
+        @for_eval
+      end
+
       def root_script=(value); @root_script = value; end
       def root_script?; @root_script; end
     end

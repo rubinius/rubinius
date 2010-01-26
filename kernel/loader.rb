@@ -401,8 +401,7 @@ containing the Rubinius standard library files.
 
         # make sure that the binding has a script associated with it
         # and theat the script has a path
-        TOPLEVEL_BINDING.static_scope.script = CompiledMethod::Script.new
-        TOPLEVEL_BINDING.static_scope.script.path = @script
+        TOPLEVEL_BINDING.static_scope.script = CompiledMethod::Script.new(@script)
 
         Requirer::Utils.debug_script! if @debugging
         Requirer::Utils.load_from_extension @script,

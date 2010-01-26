@@ -33,9 +33,12 @@ class Module
 
   def module_function(*args)
     if args.empty?
-      # NOTE: Previously, we had special case code for whether this was
-      # called inside an eval. Investigate if problems arise. Otherwise
-      # remove this comment if all specs are passing
+      vs = Rubinius::VariableScope.of_sender
+      if scr = vs.method.scope.script
+        if scr.eval? and scr.eval_binding
+          scr.eval_binding.variables.method_visibility = :module
+        end
+      end
 
       Rubinius::VariableScope.of_sender.method_visibility = :module
     else

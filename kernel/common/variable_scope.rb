@@ -85,5 +85,15 @@ module Rubinius
 
       return false
     end
+
+    def method_visibility
+      if scr = method.scope.script
+        if scr.eval? and scr.eval_binding
+          return scr.eval_binding.variables.method_visibility
+        end
+      end
+
+      return @method_visibility
+    end
   end
 end
