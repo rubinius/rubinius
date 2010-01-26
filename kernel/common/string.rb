@@ -1123,12 +1123,19 @@ class String
   # optional sign) and returns the corresponding number. Returns 0 if the
   # conversion fails.
   #
-  #   "123".oct       #=> 83
-  #   "-377".oct      #=> -255
-  #   "bad".oct       #=> 0
-  #   "0377bad".oct   #=> 255
+  #   "123".oct       # => 83
+  #   "-377".oct      # => -255
+  #   "bad".oct       # => 0
+  #   "0377bad".oct   # => 255
+  #
+  # Any valid base identifier, if found, is honored though. For instance:
+  #
+  #   "0b1010".oct    # => 10
+  #   "0xff".oct      # => 256
+  #
+  # If a valid base identifier is not found, the string is assumed to be base 8.
   def oct
-    self.to_inum(8, false)
+    self.to_inum(-8, false)
   end
 
   # Replaces the contents and taintedness of <i>string</i> with the corresponding

@@ -530,7 +530,7 @@ namespace rubinius {
       if(size() > strlen(str)) return (Integer*)Qnil;
     }
 
-    if(base < 0 || base == 1 || base > 36) return (Integer*)Qnil;
+    if(base == 1 || base > 36) return (Integer*)Qnil;
     // Strict mode can only be invoked from Ruby via Kernel#Integer()
     // which does not allow bases other than 0.
     if(base != 0 && strict == Qtrue) return (Integer*)Qnil;
@@ -590,19 +590,32 @@ namespace rubinius {
       }
     }
 
-    // If 0 was passed in as the base, we use the detected base.
-    if(base == 0) {
-
-      // Default to 10 if there is no input and no detected base.
+    // If base is less than 0, then it's just a hint for how to process it
+    // if there is no base detected.
+    if(base < 0) {
       if(detected_base == 0) {
-        base = 10;
+        // Ok, no detected because, use the base hint and start over.
+        base = -base;
+        str = str_start;
       } else {
         base = detected_base;
       }
 
-      // If the passed in base and the detected base contradict
-      // each other, then rewind and process the whole string as
-      // digits of the passed in base.
+    // If 0 was passed in as the base, we use the detected base.
+    } else if(base == 0) {
+
+      // Default to 10 if there is no input and no detected base.
+      if(detected_base == 0) {
+        base = 10;
+        str = str_start;
+
+      } else {
+        base = detected_base;
+      }
+
+    // If the passed in base and the detected base contradict
+    // each other, then rewind and process the whole string as
+    // digits of the passed in base.
     } else if(base != detected_base) {
       // rewind the stream, and try and consume the prefix as
       // digits in the number.
