@@ -45,9 +45,12 @@ class Integer < Numeric
   def to_i
     self
   end
+
   alias_method :to_int, :to_i
   alias_method :round, :to_i
   alias_method :truncate, :to_i
+  alias_method :ceil, :to_i
+  alias_method :floor, :to_i
 
   def chr
     raise RangeError.new("#{self} is out of the valid character range") if self > 255 || self < 0

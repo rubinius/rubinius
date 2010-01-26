@@ -165,10 +165,26 @@ class Float < Numeric
 
   def to_packed(size)
     Ruby.primitive :float_to_packed
+    raise PrimitiveFailure, "float_to_packed failed"
   end
 
   def round
     Ruby.primitive :float_round
+    raise PrimitiveFailure, "float_round failed"
+  end
+
+  def ceil
+    int = to_i()
+
+    return int if self == int or self < 0
+    return int + 1
+  end
+
+  def floor
+    int = to_i()
+
+    return int if self > 0 or self == int
+    return int - 1
   end
 end
 

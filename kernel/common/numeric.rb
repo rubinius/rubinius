@@ -170,21 +170,11 @@ class Numeric
   end
 
   def floor
-    int = self.to_i
-    if self == int or self > 0
-      int
-    else
-      int - 1
-    end
+    FloatValue(self).floor
   end
 
   def ceil
-    int = self.to_i
-    if self == int or self < 0
-      int
-    else
-      int + 1
-    end
+    FloatValue(self).ceil
   end
 
   def remainder(other)
