@@ -21,41 +21,41 @@ class Fixnum < Integer
 
   def +(o)
     Ruby.primitive :fixnum_add
-    super(o)
+    redo_coerced :+, o
   end
 
   def -(o)
     Ruby.primitive :fixnum_sub
-    super(o)
+    redo_coerced :-, o
   end
 
   def *(o)
     Ruby.primitive :fixnum_mul
-    super(o)
+    redo_coerced :*, o
   end
 
   # this method is aliased to / in core
   # see README-DEVELOPERS regarding safe math compiler plugin
   def divide(o)
     Ruby.primitive :fixnum_div
-    super(o)
+    redo_coerced :divide, o
   end
 
   # Must be it's own method, so that super calls the correct method
   # on Numeric
   def div(o)
     Ruby.primitive :fixnum_div
-    super(o)
+    redo_coerced :div, o
   end
 
   def %(o)
     Ruby.primitive :fixnum_mod
-    super(o)
+    redo_coerced :%, o
   end
 
   def divmod(other)
     Ruby.primitive :fixnum_divmod
-    super(other)
+    redo_coerced :divmod, other
   end
 
   # bitwise binary operators
@@ -96,7 +96,7 @@ class Fixnum < Integer
 
   def **(o)
     Ruby.primitive :fixnum_pow
-    super(o)
+    redo_coerced :**, o
   end
 
   def __bignum_new__(value)
@@ -113,27 +113,44 @@ class Fixnum < Integer
 
   def <=>(other)
     Ruby.primitive :fixnum_compare
-    super(other)
+
+    # DO NOT super to Numeric#<=>. It does not contain the coerce
+    # protocol.
+
+    begin
+      b, a = math_coerce(other, :compare_error)
+      return a <=> b
+    rescue ArgumentError
+      return nil
+    end
   end
 
-  def <(o)
+  def <(other)
     Ruby.primitive :fixnum_lt
-    super(o)
+
+    b, a = math_coerce other, :compare_error
+    a < b
   end
 
-  def <=(o)
+  def <=(other)
     Ruby.primitive :fixnum_le
-    super(o)
+
+    b, a = math_coerce other, :compare_error
+    a <= b
   end
 
-  def >(o)
+  def >(other)
     Ruby.primitive :fixnum_gt
-    super(o)
+
+    b, a = math_coerce other, :compare_error
+    a > b
   end
 
-  def >=(o)
+  def >=(other)
     Ruby.primitive :fixnum_ge
-    super(o)
+
+    b, a = math_coerce other, :compare_error
+    a >= b
   end
 
   # predicates

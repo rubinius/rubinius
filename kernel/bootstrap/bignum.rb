@@ -16,17 +16,17 @@ class Bignum < Integer
 
   def +(o)
     Ruby.primitive :bignum_add
-    super(o)
+    redo_coerced :+, o
   end
 
   def -(o)
     Ruby.primitive :bignum_sub
-    super(o)
+    redo_coerced :-, o
   end
 
   def *(o)
     Ruby.primitive :bignum_mul
-    super(o)
+    redo_coerced :*, o
   end
 
   # this method is aliased to / in core
@@ -38,7 +38,7 @@ class Bignum < Integer
 
   def divmod(other)
     Ruby.primitive :bignum_divmod
-    super(other)
+    redo_coerced :divmod, other
   end
 
   def mod_primitive(other)
@@ -75,29 +75,33 @@ class Bignum < Integer
 
   def **(o)
     Ruby.primitive :bignum_pow
-    super(o)
+    redo_coerced :**, o
   end
 
   # comparison operators
 
-  def <(o)
+  def <(other)
     Ruby.primitive :bignum_lt
-    super(o)
+    b, a = math_coerce other, :compare_error
+    a < b
   end
 
-  def <=(o)
+  def <=(other)
     Ruby.primitive :bignum_le
-    super(o)
+    b, a = math_coerce other, :compare_error
+    a <= b
   end
 
-  def >(o)
+  def >(other)
     Ruby.primitive :bignum_gt
-    super(o)
+    b, a = math_coerce other, :compare_error
+    a > b
   end
 
-  def >=(o)
+  def >=(other)
     Ruby.primitive :bignum_ge
-    super(o)
+    b, a = math_coerce other, :compare_error
+    a >= b
   end
 
   def ==(o)

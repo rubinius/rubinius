@@ -9,27 +9,6 @@ class Numeric
     0 - self
   end
 
-  def +(other)
-    b, a = math_coerce other
-    a + b
-  end
-
-  def -(other)
-    b, a = math_coerce other
-    a - b
-  end
-
-  def *(other)
-    b, a = math_coerce other
-    a * b
-  end
-
-  def %(other)
-    b, a = math_coerce other
-    raise ZeroDivisionError, "divided by 0" unless b.__kind_of__(Float) or b != 0
-    a % b
-  end
-
   #--
   # see doc/compiler/plugins.txt regarding safe math compiler plugin
   #++
@@ -41,36 +20,19 @@ class Numeric
   end
   alias_method :/, :divide
 
-  def **(other)
-    b, a = math_coerce other
-    a ** b
-  end
-
   def divmod(other)
-    b, a = math_coerce other
-
-    if other == 0
-      raise FloatDomainError, "NaN" if other.__kind_of__ Float
-      raise ZeroDivisionError, "divided by 0"
-    end
-
-    a.divmod b
+    [div(other), self % other]
   end
 
   def div(other)
-    raise FloatDomainError, "NaN" if self == 0 && other.__kind_of__(Float) && other == 0
-    b, a = math_coerce other
-    (a / b).floor
+    (self / other).floor
   end
 
   def quo(other)
-    if other.__kind_of__ Integer
-      self / Float(other)
-    else
-      b, a = math_coerce other
-      a / b
-    end
+    self / other
   end
+
+  alias_method :fdiv, :quo
 
   def <(other)
     b, a = math_coerce other, :compare_error
@@ -108,12 +70,11 @@ class Numeric
   end
 
   def <=>(other)
-    begin
-      b, a = math_coerce other, :compare_error
-      return a <=> b
-    rescue ArgumentError
-      return nil
-    end
+    # It's important this method NOT contain the coercion protocols!
+    # MRI doesn't and doing so breaks stuff!
+
+    return 0 if self.equal? other
+    return nil
   end
 
   def step(limit, step=1, &block)
@@ -239,5 +200,17 @@ class Numeric
     raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
   end
   private :compare_error
+
+  def redo_coerced(meth, right)
+    b, a = math_coerce(right)
+    a.__send__ meth, b
+  end
+  private :redo_coecred
+
+  def redo_compare(meth, right)
+    b, a = math_coerce(right, :compare_error)
+    a.__send__ meth, b
+  end
+
 end
 
