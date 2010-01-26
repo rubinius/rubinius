@@ -128,13 +128,13 @@ describe "Module#include" do
       module M; end
       class A; include M; end
       class B < A; include M; end
-      
+
       all = [A,B,M]
-      
+
       (B.ancestors & all).should == [B, A, M]
     end
   end
-  
+
   it "recursively includes new mixins" do
     module ModuleSpecs::M1
       module U; end
@@ -144,21 +144,44 @@ describe "Module#include" do
       module Y; end
       class A; include X; end;
       class B < A; include U, V, W; end;
-      
-      all = [U,V,W,X,Y,A,B]
-      
+
       # update V
       module V; include X, U, Y; end
-      
-      (B.ancestors & all).should == [B, U, V, W, A, X]
-      
+
+      # This code used to use Array#& and then compare 2 arrays, but
+      # the ordering from Array#& is undefined, as it uses Hash internally.
+      #
+      # Loop is more verbose, but more explicit in what we're testing.
+
+      anc = B.ancestors
+      [B, U, V, W, A, X].each do |i|
+        anc.include?(i).should be_true
+      end
+
       class B; include V; end
-      
+
       # the only new module is Y, it is added after U since it follows U in V mixin list:
-      (B.ancestors & all).should == [B, U, Y, V, W, A, X]
+      anc = B.ancestors
+      [B, U, Y, V, W, A, X].each do |i|
+        anc.include?(i).should be_true
+      end
     end
   end
-  
+
+  it "preserves ancestor order" do
+    module ModuleSpecs::M2
+      module M1; end
+      module M2; end
+      module M3; include M2; end
+
+      module M2; include M1; end
+      module M3; include M2; end
+
+      M3.ancestors.should == [M3, M2, M1]
+
+    end
+  end
+
   it "detects cyclic includes" do
     lambda {
       module ModuleSpecs::M
@@ -173,6 +196,26 @@ describe "Module#include" do
         include
       end
     }.should_not raise_error
+  end
+
+  it "ignores modules it has already included via module mutual inclusion" do
+    module ModuleSpecs::AlreadyInc
+      module M0
+      end
+
+      module M
+        include M0
+      end
+
+      class K
+        include M
+        include M
+      end
+
+      K.ancestors.count(M).should == 1
+      K.ancestors.count(M0).should == 1
+    end
+
   end
 end
 
