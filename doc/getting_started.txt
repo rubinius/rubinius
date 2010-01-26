@@ -98,25 +98,15 @@ For more information on Rubinius' best practices for git, see
 
 First, we need to configure rubinius for your system.
 
-If you want to include LLVM for the JIT, you have a couple of choices.
-Easiest is to use a prebuilt LLVM if there is one available for your
-system. To try this, run:
+Just run:
 
-   ./configure --update-prebuilt
+   ./configure
 
-If you don't get an error, you're ready to go. If not, configure will
-try to use an installed version of LLVM by running the 'llvm-config'
-command. Rubinius require LLVM version 2.6 or higher. If an installed
-version of LLVM is not available, configure will
-automatically checkout LLVM from svn and build it for you.
+This will pull down either a prebuilt LLVM or a source copy that will
+be built. If you do not want LLVM (and therefore no JIT), run:
 
-Now, if you wanna go ahead and use LLVM, run:
+   ./configure --disable-llvm
 
-   ./configure --enable-llvm
-
-Or if you wanna do without it, run:
-
-  ./configure
 
 The C++ VM is compiled using Rake. Typically, it will be as simple as:
 
