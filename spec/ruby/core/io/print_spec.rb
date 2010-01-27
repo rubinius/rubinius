@@ -2,11 +2,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe IO, "#print" do
-  class IOSpecPrint
-    attr_accessor :message
-    def to_s; @message; end
-  end
-
   before :each do
     @old_separator = $\
     $\ = '->'
@@ -19,23 +14,21 @@ describe IO, "#print" do
   end
 
   it "writes $_.to_s followed by $\\ (if any) to the stream if no arguments given" do
-    o = IOSpecPrint.new
-    o.message = 'I know what you did last line!'
+    o = mock('o')
+    o.should_receive(:to_s).and_return("mockmockmock")
     $_ = o
-    l = lambda { $stdout.print }.should output_to_fd("#{o.message}#{$\}", STDOUT)
 
-    string = File.open(__FILE__) {|f| f.gets }  # Set $_ to something known
-    lambda { $stdout.print }.should output_to_fd("#{string}#{$\}", STDOUT)
+    touch(@name) { |f| f.print }
+    IO.read(@name).should == "mockmockmock#{$\}"
+
+    # Set $_ to something known
+    string = File.open(__FILE__) {|f| f.gets }
+
+    touch(@name) { |f| f.print }
+    IO.read(@name).should == "#{string}#{$\}"
   end
 
-  it "writes obj.to_s followed by $\\ (if any) to the stream when given one object" do
-    o = Object.new
-    def o.to_s(); 'I am an object'; end
-
-    lambda { $stdout.print(o) }.should output("#{o.to_s}#{$\}")
-  end
-
-  it "does not call obj.to_str" do
+  it "calls obj.to_s and not obj.to_str then writes the record seperator" do
     o = mock('o')
     o.should_not_receive(:to_str)
     o.should_receive(:to_s).and_return("hello")
@@ -50,7 +43,8 @@ describe IO, "#print" do
     def o.to_s(); 'o'; end
     def o2.to_s(); 'o2'; end
 
-    lambda { $stdout.print(o, o2) }.should output("#{o.to_s}#{o2.to_s}#{$\}")
+    touch(@name) { |f| f.print(o, o2) }
+    IO.read(@name).should == "#{o.to_s}#{o2.to_s}#{$\}"
   end
 
   it "raises IOError on closed stream" do
