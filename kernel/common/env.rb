@@ -114,6 +114,13 @@ module Rubinius
       to_hash.values_at(*params)
     end
 
+    def index(value)
+      each do |k, v|
+        return k if v == value
+      end
+      nil
+    end
+
     def invert
       to_hash.invert
     end
@@ -184,6 +191,6 @@ module Rubinius
       end
     end
 
-    # Missing and deprecated: index, indexes, indices
+    # Missing and deprecated: indexes, indices
   end
 end
