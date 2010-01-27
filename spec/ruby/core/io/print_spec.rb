@@ -10,10 +10,12 @@ describe IO, "#print" do
   before :each do
     @old_separator = $\
     $\ = '->'
+    @name = tmp("io_print")
   end
 
   after :each do
     $\ = @old_separator
+    rm_r @name
   end
 
   it "writes $_.to_s followed by $\\ (if any) to the stream if no arguments given" do
@@ -36,11 +38,11 @@ describe IO, "#print" do
   it "does not call obj.to_str" do
     o = mock('o')
     o.should_not_receive(:to_str)
-    o.should_receive(:to_s)
-    
-    require 'stringio'
+    o.should_receive(:to_s).and_return("hello")
 
-    StringIO.new.print(o)
+    touch(@name) { |f| f.print(o) }
+
+    IO.read(@name).should == "hello#{$\}"
   end
 
   it "writes each obj.to_s to the stream and appends $\\ (if any) given multiple objects" do
@@ -56,6 +58,3 @@ describe IO, "#print" do
   end
 end
 
-describe "IO#print" do
-  it "needs to be reviewed for spec completeness"
-end
