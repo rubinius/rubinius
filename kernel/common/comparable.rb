@@ -21,13 +21,13 @@
 #       @str
 #     end
 #   end
-#   
+#
 #   s1 = SizeMatters.new "Z"
 #   s2 = SizeMatters.new "YY"
 #   s3 = SizeMatters.new "XXX"
 #   s4 = SizeMatters.new "WWWW"
 #   s5 = SizeMatters.new "VVVVV"
-#   
+#
 #   s1 < s2                       #=> true
 #   s4.between? s1, s3            #=> false
 #   s4.between? s3, s5            #=> true
@@ -39,61 +39,74 @@ module Comparable
   # method, returning true if it returns 0. Also returns true if
   # _obj_ and _other_ are the same object.
   def ==(other)
-    return true if self.equal?(other)
-    
-    return unless c = (self <=> other)
-    return c == 0 if c.is_a?(Numeric)
+    return true if equal?(other)
 
-    raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
-  rescue StandardError
-    return nil
+    begin
+      unless comp = (self <=> other)
+        return nil
+      end
+
+      return Comparable.compare_int(comp) == 0
+    rescue StandardError
+      return nil
+    end
   end
 
   #  Compares two objects based on the receiver's <code><=></code>
   #  method, returning true if it returns 1.
   def >(other)
-    __internal_compare__(other) > 0
+    unless comp = (self <=> other)
+      raise ArgumentError, "comparison of #{self.class} with #{other.class}"
+    end
+
+    Comparable.compare_int(comp) > 0
   end
 
   #  Compares two objects based on the receiver's <code><=></code>
   #  method, returning true if it returns 0 or 1.
   def >=(other)
-    __internal_compare__(other) >= 0
+    unless comp = (self <=> other)
+      raise ArgumentError, "comparison of #{self.class} with #{other.class}"
+    end
+
+    Comparable.compare_int(comp) >= 0
   end
 
   #  Compares two objects based on the receiver's <code><=></code>
   #  method, returning true if it returns -1.
   def <(other)
-    __internal_compare__(other) < 0
+    unless comp = (self <=> other)
+      raise ArgumentError, "comparison of #{self.class} with #{other.class}"
+    end
+
+    Comparable.compare_int(comp) < 0
   end
 
   #  Compares two objects based on the receiver's <code><=></code>
   #  method, returning true if it returns -1 or 0.
   def <=(other)
-    __internal_compare__(other) <= 0
+    unless comp = (self <=> other)
+      raise ArgumentError, "comparison of #{self.class} with #{other.class}"
+    end
+
+    Comparable.compare_int(comp) <= 0
   end
-  
+
   #  Returns <code>false</code> if <i>obj</i> <code><=></code>
   #  <i>min</i> is less than zero or if <i>anObject</i> <code><=></code>
   #  <i>max</i> is greater than zero, <code>true</code> otherwise.
-  #     
+  #
   #     3.between?(1, 5)               #=> true
   #     6.between?(1, 5)               #=> false
   #     'cat'.between?('ant', 'dog')   #=> true
   #     'gnu'.between?('ant', 'dog')   #=> false
-  #     
+  #
   def between?(min, max)
-    (min <= self) && (self <= max)
-  end
-  
-  # TODO: mark as internal only
-  #private
-  def __internal_compare__(other)
-    unless result = (self <=> other)
-      raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
-    end
-    
-    return result
+    # This could be more elegant, but we need to use <= and => on self to match
+    # MRI.
+    return false if self < min
+    return false if self > max
+    return true
   end
 
   # A version of MRI's rb_cmpint (sort of)
