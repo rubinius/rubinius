@@ -141,7 +141,7 @@ module Kernel
     elsif code.equal? false
       code = 1
     else
-      code = code.to_i
+      code = Type.coerce_to code, Integer, :to_int
     end
 
     raise SystemExit.new(code)
