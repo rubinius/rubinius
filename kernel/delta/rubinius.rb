@@ -118,6 +118,15 @@ module Rubinius
     # added yet. (ActionMailer does this)
 
     if mod.kind_of? Class and obj = mod.__metaclass_object__
+      if obj.kind_of? Numeric
+
+        # Such a weird protocol. If :singleton_method_added exists, allow this.
+        # le sigh.
+        unless obj.respond_to? :singleton_method_added
+          raise TypeError, "Unable to define singleton methods on Numerics"
+        end
+      end
+
       if Rubinius.object_respond_to? obj, :singleton_method_added
         obj.singleton_method_added(name)
       end

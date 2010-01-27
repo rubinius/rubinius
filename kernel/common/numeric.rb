@@ -1,6 +1,11 @@
 class Numeric
   include Comparable
 
+  # Always raises TypeError, as dup'ing Numerics is not allowed.
+  def initialize_copy(other)
+    raise TypeError, "copy of #{self.class} is not allowed"
+  end
+
   def +@
     self
   end
@@ -128,11 +133,10 @@ class Numeric
   end
 
   def remainder(other)
-    b, a = math_coerce other
-    mod = a % b
+    mod = self % other
 
-    if mod != 0 && (a < 0 && b > 0 || a > 0 && b < 0)
-      mod - b
+    if mod != 0 and ((self < 0 and other > 0) or (self > 0 and other < 0))
+      mod - other
     else
       mod
     end
