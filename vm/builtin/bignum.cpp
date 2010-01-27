@@ -538,10 +538,6 @@ namespace rubinius {
     return divide(state, denominator, NULL);
   }
 
-  Float* Bignum::div(STATE, Float* other) {
-    return Float::coerce(state, this)->div(state, other);
-  }
-
   Array* Bignum::divmod(STATE, Fixnum* denominator) {
     Integer* mod = Fixnum::from(0);
     Integer* quotient = divide(state, denominator, &mod);

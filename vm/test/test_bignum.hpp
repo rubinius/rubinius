@@ -549,11 +549,6 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
         TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
   }
 
-  void test_div_with_float() {
-    Float* div = b1->div(state, Float::create(state, 1.5));
-    check_float(div, Float::create(state, 1431655764.6666667));
-  }
-
   void test_divmod() {
     Array* ary = b1->divmod(state, b1);
     TS_ASSERT_EQUALS(1, as<Fixnum>(ary->get(state, 0))->to_native());

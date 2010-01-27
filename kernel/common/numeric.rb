@@ -9,27 +9,16 @@ class Numeric
     0 - self
   end
 
-  #--
-  # see doc/compiler/plugins.txt regarding safe math compiler plugin
-  #++
-
-  def divide(other)
-    b, a = math_coerce other
-    raise ZeroDivisionError, "divided by 0" unless b.__kind_of__(Float) or b != 0
-    a / b
-  end
-  alias_method :/, :divide
-
   def divmod(other)
     [div(other), self % other]
   end
 
   def div(other)
-    (self / other).floor
+    Float(self.__slash__(other)).floor
   end
 
   def quo(other)
-    self / other
+    self.__slash__(other)
   end
 
   alias_method :fdiv, :quo

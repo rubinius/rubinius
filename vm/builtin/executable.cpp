@@ -103,14 +103,10 @@ namespace rubinius {
           i != inl->inliners().end();
           i++) {
         CompiledMethod* cm = *i;
-        if(cm->forwarded_p()) {
-          assert(kind_of<CompiledMethod>(cm->forward()));
-        } else {
-          assert(kind_of<CompiledMethod>(cm));
-        }
 
         Object* tmp = mark.call(cm);
         if(tmp) {
+          assert(kind_of<CompiledMethod>(tmp));
           *i = (CompiledMethod*)tmp;
           mark.just_set(obj, tmp);
         }

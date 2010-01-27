@@ -39,13 +39,7 @@ class Bignum < Integer
     value.is_a?(Bignum) && self == value
   end
 
-  def div(other)
-    (self / other).to_i
-  end
-
   alias_method :modulo, :%
-
-  #alias_method :div, :/
 
   def fdiv(n)
     to_f / n

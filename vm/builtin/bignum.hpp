@@ -81,8 +81,6 @@ namespace rubinius {
     Integer* div(STATE, Fixnum* b);
     // Ruby.primitive! :bignum_div
     Integer* div(STATE, Bignum* b);
-    // Ruby.primitive! :bignum_div
-    Float*  div(STATE, Float* b);
 
     // Ruby.primitive! :bignum_divmod
     Array* divmod(STATE, Fixnum* b);

@@ -11,8 +11,6 @@ class Float < Numeric
     end
   end
 
-  alias_method :fdiv, :/
-
   def coerce(other)
     return [other, self] if other.kind_of? Float
     [Float(other), self]
@@ -52,6 +50,8 @@ class Float < Numeric
   end
   alias_method :/, :divide
   alias_method :quo, :/
+  alias_method :fdiv, :/
+
 
   def divmod(other)
     Ruby.primitive :float_divmod

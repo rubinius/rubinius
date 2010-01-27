@@ -33,8 +33,18 @@ class Bignum < Integer
   # see README-DEVELOPERS regarding safe math compiler plugin
   def divide(o)
     Ruby.primitive :bignum_div
-    super(o)
+    redo_coerced :/, o
   end
+
+  # This is seperate from divide because it calls a different method
+  # if it has to coerce. This is important because Bignum#div(Float) and
+  # Bignum#/(Float) return different things.
+  #
+  def div(other)
+    Ruby.primitive :bignum_div
+    redo_coerced :div, other
+  end
+
 
   def divmod(other)
     Ruby.primitive :bignum_divmod

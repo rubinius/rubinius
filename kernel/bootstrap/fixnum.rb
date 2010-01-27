@@ -40,6 +40,7 @@ class Fixnum < Integer
     Ruby.primitive :fixnum_div
     redo_coerced :divide, o
   end
+  alias_method :/, :divide
 
   # Must be it's own method, so that super calls the correct method
   # on Numeric

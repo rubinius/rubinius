@@ -212,11 +212,13 @@ module Rubinius
 
       Methods = {
         :/      => :divide,
+        :__slash__ => :/,
         :class  => :__class__
       }
 
       Arguments = {
         :/      => 1,
+        :__slash__ => 1,
         :class  => 0
       }
 
