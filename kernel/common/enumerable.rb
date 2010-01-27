@@ -586,9 +586,11 @@ module Enumerable
         min = o
       else
         comp = block_given? ? yield(o, min) : o <=> min
-        if comp.nil?
+        unless comp
           raise ArgumentError, "comparison of #{o.class} with #{min} failed"
-        elsif comp < 0
+        end
+
+        if Comparable.compare_int(comp) < 0
           min = o
         end
       end
@@ -617,9 +619,11 @@ module Enumerable
         max = o
       else
         comp = block_given? ? yield(o, max) : o <=> max
-        if comp.nil?
+        unless comp
           raise ArgumentError, "comparison of #{o.class} with #{max} failed"
-        elsif comp > 0
+        end
+
+        if Comparable.compare_int(comp) > 0
           max = o
         end
       end
