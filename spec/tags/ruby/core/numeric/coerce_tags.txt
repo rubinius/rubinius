@@ -1,1 +1,0 @@
-fails:Numeric#coerce returns [other, self] if self and other are instances of the same class
