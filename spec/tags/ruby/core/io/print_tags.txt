@@ -1,2 +1,0 @@
-incomplete:IO#print needs to be reviewed for spec completeness
-fails:IO#print does not call obj.to_str
