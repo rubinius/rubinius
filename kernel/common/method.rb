@@ -161,9 +161,12 @@ class UnboundMethod
     @name        = name
   end
 
-  attr_reader :name
   attr_reader :executable
   attr_reader :defined_in
+
+  def name
+    @name.to_s
+  end
 
   ##
   # UnboundMethod objects are equal if and only if they refer to the same
