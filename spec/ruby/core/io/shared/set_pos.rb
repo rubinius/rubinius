@@ -28,11 +28,6 @@ describe :io_set_pos, :shared => true do
 
   it "does not accept Bignums that don't fit in a C long" do
     File.open @fname do |io|
-      # Positive test
-      io.send @method, 2**32
-      io.pos.should == 2**32
-
-      # Negative test
       lambda { io.send @method, 2**128 }.should raise_error(RangeError)
     end
   end
