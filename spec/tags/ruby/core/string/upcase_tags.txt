@@ -1,1 +1,0 @@
-fails:String#upcase! raises a TypeError when self is frozen

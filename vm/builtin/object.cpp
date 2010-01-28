@@ -155,19 +155,13 @@ namespace rubinius {
   }
 
   Object* Object::freeze(STATE) {
-    if(reference_p()) {
-      set_ivar(state, state->symbol("frozen"), Qtrue);
-    }
+    if(reference_p()) set_frozen();
     return this;
   }
 
   Object* Object::frozen_p(STATE) {
-    if(reference_p()) {
-      if(get_ivar(state, state->symbol("frozen"))->nil_p()) return Qfalse;
-      return Qtrue;
-    } else {
-      return Qfalse;
-    }
+    if(reference_p() && is_frozen_p()) return Qtrue;
+    return Qfalse;
   }
 
   Object* Object::get_field(STATE, size_t index) {
@@ -633,20 +627,13 @@ namespace rubinius {
   }
 
   Object* Object::taint(STATE) {
-    if(reference_p()) {
-      set_ivar(state, state->symbol("tainted"), Qtrue);
-    }
+    if(reference_p()) set_tainted();
     return this;
   }
 
   Object* Object::tainted_p(STATE) {
-    if(reference_p()) {
-      Object* b = get_ivar(state, state->symbol("tainted"));
-      if(b->nil_p()) return Qfalse;
-      return Qtrue;
-    } else {
-      return Qfalse;
-    }
+    if(reference_p() && is_tainted_p()) return Qtrue;
+    return Qfalse;
   }
 
   TypeInfo* Object::type_info(STATE) const {
@@ -654,9 +641,7 @@ namespace rubinius {
   }
 
   Object* Object::untaint(STATE) {
-    if(reference_p()) {
-      del_ivar(state, state->symbol("tainted"));
-    }
+    if(reference_p()) set_tainted(0);
     return this;
   }
 

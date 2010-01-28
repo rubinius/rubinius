@@ -1,2 +1,0 @@
-fails:String#[]= with index raises a TypeError when self is frozen
-fails:String#[]= with String raises a TypeError when self is frozen

@@ -28,6 +28,8 @@ namespace rubinius {
 
     clear_forwarded();
     set_requires_cleanup(other->requires_cleanup_p());
+
+    if(other->is_tainted_p()) set_tainted();
   }
 
   void ObjectHeader::copy_flags(Object* source) {

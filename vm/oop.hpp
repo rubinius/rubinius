@@ -131,18 +131,22 @@ const int cUndef = 0x22L;
   class VM;
 
   struct ObjectFlags {
-    unsigned int inflated   : 1;
-    object_type  obj_type   : 8;
-    gc_zone      zone       : 2;
-    unsigned int age        : 4;
+    // inflated MUST be first, because rest is used as a pointer
+    unsigned int inflated        : 1;
+    object_type  obj_type        : 8;
+    gc_zone      zone            : 2;
+    unsigned int age             : 4;
 
-    unsigned int Forwarded             : 1;
-    unsigned int Remember              : 1;
-    unsigned int Marked                : 2;
-    unsigned int RequiresCleanup       : 1;
+    unsigned int Forwarded       : 1;
+    unsigned int Remember        : 1;
+    unsigned int Marked          : 2;
+    unsigned int RequiresCleanup : 1;
 
-    unsigned int InImmix               : 1;
-    unsigned int Pinned                : 1;
+    unsigned int InImmix         : 1;
+    unsigned int Pinned          : 1;
+
+    unsigned int Frozen          : 1;
+    unsigned int Tainted         : 1;
   };
 
   union HeaderWord {
@@ -473,6 +477,22 @@ const int cUndef = 0x22L;
 
     bool requires_cleanup_p() {
       return flags().RequiresCleanup == 1;
+    }
+
+    bool is_frozen_p() {
+      return flags().Frozen == 1;
+    }
+
+    void set_frozen(int val=1) {
+      flags().Frozen = val;
+    }
+
+    bool is_tainted_p() {
+      return flags().Tainted == 1;
+    }
+
+    void set_tainted(int val=1) {
+      flags().Tainted = val;
     }
 
     bool nil_p() const {

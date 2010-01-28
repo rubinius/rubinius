@@ -2422,3 +2422,11 @@ instruction push_proc() [ -- value ]
   }
 end
 
+instruction check_frozen() [ value -- value ]
+  Object* value = stack_top();
+
+  if(value->reference_p() && value->is_frozen_p()) {
+    Exception::frozen_error(state, call_frame);
+    RUN_EXCEPTION();
+  }
+end

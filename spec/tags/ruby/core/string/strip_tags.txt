@@ -1,1 +1,0 @@
-fails:String#strip! raises a TypeError if self is frozen

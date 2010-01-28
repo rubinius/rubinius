@@ -88,6 +88,13 @@ namespace rubinius {
     state->thread_state()->raise_exception(exc);
   }
 
+  void Exception::frozen_error(STATE, CallFrame* call_frame) {
+    Exception* exc = Exception::make_exception(state, G(exc_type),
+                        "unable to modify frozen object");
+    exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    state->thread_state()->raise_exception(exc);
+  }
+
   void Exception::argument_error(STATE, int expected, int given) {
     std::ostringstream msg;
 

@@ -88,6 +88,8 @@ class String
   #   a << "world"   #=> "hello world"
   #   a.concat(33)   #=> "hello world!"
   def <<(other)
+    modify!
+
     unless other.kind_of? String
       if other.is_a?(Integer) && other >= 0 && other <= 255
         other = other.chr
@@ -383,8 +385,9 @@ class String
   #   a               #=> "Hello"
   #   a.capitalize!   #=> nil
   def capitalize!
-    return if @num_bytes == 0
     self.modify!
+
+    return if @num_bytes == 0
 
     modified = false
 
@@ -1147,6 +1150,8 @@ class String
     # If we're replacing with ourselves, then we have nothing to do
     return self if self.equal?(other)
 
+    Ruby.check_frozen
+
     other = StringValue(other)
 
     @shared = true
@@ -1752,13 +1757,13 @@ class String
   # Equivalent to <code>String#succ</code>, but modifies the receiver in
   # place.
   def succ!
+    self.modify!
+
     return self if @num_bytes == 0
 
     carry = nil
     last_alnum = 0
     start = @num_bytes - 1
-
-    self.modify!
 
     while start >= 0
       if (s = @data[start]).isalnum
@@ -2250,6 +2255,8 @@ class String
 
   # Unshares shared strings.
   def modify!
+    Ruby.check_frozen
+
     if @shared
       @data = @data.dup
       @shared = nil

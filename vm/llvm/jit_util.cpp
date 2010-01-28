@@ -41,6 +41,15 @@ extern "C" {
     return val;
   }
 
+  Object* rbx_check_frozen(STATE, CallFrame* call_frame, Object* obj) {
+    if(obj->reference_p() && obj->is_frozen_p()) {
+      Exception::frozen_error(state, call_frame);
+      return NULL;
+    }
+
+    return obj;
+  }
+
   void rbx_begin_profiling(STATE, void* data, Dispatch& msg, Arguments& args,
                            CompiledMethod* cm)
   {

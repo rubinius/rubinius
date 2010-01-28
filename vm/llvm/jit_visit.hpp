@@ -487,6 +487,20 @@ namespace rubinius {
       b().CreateStore(val, stack_back_position(positions));
     }
 
+    void visit_check_frozen() {
+      Signature sig(ls_, "Object");
+
+      sig << "VM";
+      sig << "CallFrame";
+      sig << "Object";
+
+      Value* call_args[] = { vm_, call_frame_, stack_top() };
+
+      Value* res = sig.call("rbx_check_frozen", call_args, 3, "", b());
+
+      check_for_exception(res);
+    }
+
     void check_fixnums(Value* left, Value* right, BasicBlock* if_true,
                        BasicBlock* if_false) {
       Value* mask = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM_MASK);
