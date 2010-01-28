@@ -109,6 +109,15 @@ namespace rubinius {
     return count;
   }
 
+  ByteArray* ByteArray::prepend(STATE, String* str) {
+    ByteArray* ba = ByteArray::create(state, size() + str->size());
+
+    memcpy(ba->bytes, str->data()->bytes, str->size());
+    memcpy(ba->bytes + str->size(), bytes, size());
+
+    return ba;
+  }
+
   ByteArray* ByteArray::fetch_bytes(STATE, Integer* start, Integer* count) {
     native_int src = start->to_native();
     native_int cnt = count->to_native();

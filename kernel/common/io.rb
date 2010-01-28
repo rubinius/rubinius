@@ -158,6 +158,30 @@ class IO
     end
 
     ##
+    # Returns one Fixnum as the start byte, used for #getc
+    def get_first
+      byte = @storage[@start]
+      @start += 1
+      return byte
+    end
+
+    ##
+    # Prepends the byte +chr+ to the internal buffer, so that future
+    # reads will return it.
+    def put_back(chr)
+      # A simple case, which is common and can be done efficiently
+      if @start > 0
+        @start -= 1
+        @storage[@start] = chr
+      else
+        @storage = @storage.prepend(chr.chr)
+        @start = 0
+        @total = @storage.size
+        @used += 1
+      end
+    end
+
+    ##
     # Returns the number of bytes available in the buffer.
     def size
       @used - @start
@@ -179,12 +203,15 @@ class IO
     new fd, mode
   end
 
-  def self.foreach(name, sep_string = $/, &block)
+  def self.foreach(name, sep_string = $/)
+    return to_enum(:foreach, name, sep_string) unless block_given?
+
     sep_string ||= ''
     io = File.open(StringValue(name), 'r')
     sep = StringValue(sep_string)
+
     begin
-      while(line = io.gets(sep))
+      while line = io.gets(sep)
         yield line
       end
     ensure
@@ -585,6 +612,7 @@ class IO
   # MS-DOS/Windows environments. Once a stream is in
   # binary mode, it cannot be reset to nonbinary mode.
   def binmode
+    ensure_open
     # HACK what to do?
   end
 
@@ -835,9 +863,15 @@ class IO
   #  f.getc   #=> 84
   #  f.getc   #=> 104
   def getc
-    char = read 1
-    return nil if char.nil?
-    char[0]
+    ensure_open
+
+    if @ibuffer.size == 0
+      if @ibuffer.fill_from(self) == 0
+        return nil
+      end
+    end
+
+    return @ibuffer.get_first
   end
 
   ##
@@ -940,9 +974,12 @@ class IO
   end
 
   ##
-  # 
+  #
   def pos
-    seek 0, SEEK_CUR
+    flush
+    @ibuffer.unseek! self
+
+    prim_seek 0, SEEK_CUR
   end
 
   alias_method :tell, :pos
@@ -954,8 +991,6 @@ class IO
   #  f.pos = 17
   #  f.gets   #=> "This is line two\n"
   def pos=(offset)
-    offset = Integer offset
-
     seek offset, SEEK_SET
   end
 
@@ -1367,7 +1402,9 @@ class IO
     @ibuffer.unseek! self
     @eof = false
 
-    prim_seek amount, whence
+    prim_seek Integer(amount), whence
+
+    return 0
   end
 
   ##
@@ -1489,8 +1526,10 @@ class IO
   #  f.ungetc(c)                #=> nil
   #  f.getc                     #=> 84
   def ungetc(chr)
-    # HACK this doc block was on #write
-    raise Exception, "IO#ungetc is not yet implemented"
+    ensure_open
+
+    @ibuffer.put_back chr
+    nil
   end
 
   def write(data)

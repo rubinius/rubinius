@@ -270,7 +270,14 @@ namespace rubinius {
   Integer* IO::seek(STATE, Integer* amount, Fixnum* whence) {
     ensure_open(state);
 
-    off_t position = lseek(to_fd(), amount->to_long_long(), whence->to_native());
+    if(Bignum* big = try_as<Bignum>(amount)) {
+      if((size_t)mp_count_bits(big->mp_val()) > (sizeof(off_t) * 8)) {
+        return (Integer*)Primitives::failure();
+      }
+    }
+
+    off_t offset = amount->to_long_long();
+    off_t position = lseek(to_fd(), offset, whence->to_native());
 
     if(position == -1) {
       Exception::errno_error(state);
@@ -717,6 +724,7 @@ failed: /* try next '*' position */
     buf->total(state, Fixnum::from(bytes));
     buf->used(state, Fixnum::from(0));
     buf->reset(state);
+    buf->write_synced(state, Qtrue);
 
     return buf;
   }

@@ -68,6 +68,9 @@ namespace rubinius {
     // Ruby.primitive :bytearray_locate
     Object* locate(STATE, String* pattern, Fixnum* start, Fixnum* max);
 
+    // Ruby.primitive :bytearray_prepend
+    ByteArray* prepend(STATE, String* other);
+
     char* to_chars(STATE);
 
     class Info : public TypeInfo {

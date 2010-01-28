@@ -1,2 +1,0 @@
-fails:IO::foreach can handle non-ASCII data as separator
-fails:IO::foreach returns an Enumerator when called without a block

@@ -1,1 +1,0 @@
-fails:IO for_fd takes two arguments

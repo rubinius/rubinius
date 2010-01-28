@@ -67,5 +67,17 @@ module Rubinius
       Ruby.primitive :bytearray_locate
       raise PrimitiveFailure, "ByteArray#locate primitive failed"
     end
+
+    # Return a new ByteArray by taking the bytes from +string+ and +self+
+    # together.
+    def prepend(string)
+      Ruby.primitive :bytearray_prepend
+
+      if string.kind_of? String
+        raise PrimitiveFailure, "ByteArray#prepend failed"
+      else
+        prepend(StringValue(string))
+      end
+    end
   end
 end

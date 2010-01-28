@@ -1,1 +1,0 @@
-fails:IO#inspect returns a string describing a stream

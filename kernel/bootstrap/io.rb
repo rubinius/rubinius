@@ -85,7 +85,7 @@ class IO
 
   def prim_seek(amount, whence)
     Ruby.primitive :io_seek
-    raise PrimitiveFailure, "IO#prim_seek primitive failed"
+    raise RangeError, "#{amount} is too big"
   end
 
   def query(which)
