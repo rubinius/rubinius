@@ -1,8 +1,11 @@
 # -*- encoding: utf-8 -*-
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/shared/set_pos'
 
 describe "IO#seek" do
+  it_behaves_like(:io_set_pos, :seek)
+
   before :each do
     @file = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r')
     @io = IO.open @file.fileno, 'r'
@@ -37,18 +40,6 @@ describe "IO#seek" do
     @io.tell.should == 134
     @io.seek(-25, IO::SEEK_END)
     @io.readline.should == "cinco.\n"
-  end
-
-  it "can handle any numerical argument without breaking" do
-    @io.seek(1.2).should == 0
-    @io.seek(2**32).should == 0
-    @io.seek(1.23423423432e12).should == 0
-    @io.seek(0.00000000000000000000001).should == 0
-    lambda { @io.seek(2**128) }.should raise_error(RangeError)
-  end
-
-  it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.seek(0) }.should raise_error(IOError)
   end
 
   it "moves the read position and clears EOF with SEEK_SET" do
