@@ -16,16 +16,13 @@ describe :io_set_pos, :shared => true do
     end
   end
 
-  it "converts Numeric arguments to Integers" do
+  it "converts arguments to Integers" do
     File.open @fname do |io|
-      io.send @method, 1.2
+      o = mock("o")
+      o.should_receive(:to_i).and_return(1)
+
+      io.send @method, o
       io.pos.should == 1
-
-      io.send @method, 1.23423423432e12
-      io.pos.should == Integer(1.23423423432e12)
-
-      io.send @method, Float::EPSILON
-      io.pos.should == 0
     end
   end
 
