@@ -35,7 +35,7 @@ class Array::Packer
       when 'X'
         size = (t || 1).to_i
         raise ArgumentError, "you're backing up too far" if size > @result.size
-        @result[-size..-1] = '' if size > 0
+        @result.shorten!(size) if size > 0
       when 'x'
         size = (t || 1).to_i
         @result << "\000" * size

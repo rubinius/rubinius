@@ -2340,6 +2340,12 @@ class String
     other.compare_substring(self, -size, size) == 0
   end
 
+  def shorten!(size)
+    self.modify!
+    return if @num_bytes == 0
+    @num_bytes = @characters = @num_bytes - size
+  end
+
   # TODO: inspect is NOT dump!
   def dump
     kcode = $KCODE
