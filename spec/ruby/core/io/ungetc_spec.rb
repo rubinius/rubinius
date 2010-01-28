@@ -14,10 +14,13 @@ describe "IO#ungetc" do
   before :each do
     @file_name = File.dirname(__FILE__) + '/fixtures/readlines.txt'
     @file = File.open(@file_name, 'r')
+
+    @empty = tmp('empty.txt')
   end
 
   after :each do
     @file.close unless @file.closed?
+    rm_r @empty
   end
 
   it "pushes back one character onto stream" do
@@ -51,22 +54,24 @@ describe "IO#ungetc" do
   end
 
   it "pushes back one character when invoked on empty stream" do
-    File.open(tmp('empty.txt'), "w+") { |empty|
+    touch(@empty)
+
+    File.open(@empty) { |empty|
       empty.getc().should == nil
       empty.ungetc(10)
       empty.getc.should == 10
     }
-    File.unlink(tmp("empty.txt"))
   end
 
   it "affects EOF state" do
-    File.open(tmp('empty.txt'), "w+") { |empty|
+    touch(@empty)
+
+    File.open(@empty) { |empty|
       empty.eof?.should == true
       empty.getc.should == nil
       empty.ungetc(100)
       empty.eof?.should == false
     }
-    File.unlink(tmp("empty.txt"))
   end
 
   it "adjusts the stream position" do
