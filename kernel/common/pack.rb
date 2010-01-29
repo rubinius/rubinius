@@ -632,6 +632,26 @@ class String::Unpacker
     return i
   end
 
+  def ber_decompress(i, count, elements)
+    count = @length - i if count == '*'
+
+    count.times do
+      n = 0
+      while i < @length do
+        item = @source[i]
+        i += 1
+        n <<= 7
+        n |= item & 0x7f
+        if item & 0x80 == 0
+          elements << n
+          break
+        end
+      end
+    end
+
+    return i
+  end
+
   # Like int, but always does 4 bytes.
   def long(i, count, elements, signed)
     # TODO honor _.
@@ -922,6 +942,8 @@ class String::Unpacker
         i = base64(i, count, elements)
       when 'U'
         i = utf8(i, count, elements)
+      when 'w'
+        i = ber_decompress(i, count, elements)
       when 'X'
         count = length - i if count == '*'
 
