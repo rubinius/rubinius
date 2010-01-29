@@ -41,7 +41,7 @@ namespace rubinius {
   }
 
   Integer* MemoryPointer::get_address(STATE) {
-    return Integer::from(state, (uintptr_t)pointer);
+    return Integer::from(state, (intptr_t)pointer);
   }
 
   Integer* MemoryPointer::set_address(STATE, Integer* ptr) {
