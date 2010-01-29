@@ -457,6 +457,7 @@ containing the Rubinius standard library files.
       AtExit.shift.call until AtExit.empty?
 
       @stage = "object finalizers"
+      GC.start
       ObjectSpace.run_finalizers
 
       # TODO: Fix these with better -X processing
@@ -467,6 +468,9 @@ containing the Rubinius standard library files.
       if Config['rbx.gc_stats']
         Stats::GC.new.show
       end
+    rescue Object => e
+      e.render "An exception occured #{@stage}"
+      @exit_code = 1
     end
 
     # Exit.
@@ -487,7 +491,6 @@ containing the Rubinius standard library files.
       evals
       script
       irb
-      epilogue
 
     rescue SystemExit => e
       @exit_code = e.status
@@ -500,22 +503,22 @@ containing the Rubinius standard library files.
       @exit_code = 1
 
     rescue Object => e
-      begin
-        e.render "An exception occurred #{@stage}"
-        @exit_code = 1
-
-      rescue Object => e2
-        puts "\n====================================="
-        puts "Exception occurred during top-level exception output! (THIS IS BAD)"
-        puts
-        puts "Original Exception: #{e.inspect} (#{e.class})"
-        puts "New Exception: #{e2.inspect} (#{e.class})"
-        @exit_code = 128
-      end
+      e.render "An exception occurred #{@stage}"
+      @exit_code = 1
     ensure
+      epilogue
       done
     end
   end
 end
 
-Rubinius::Loader.new.main
+begin
+  Rubinius::Loader.new.main
+rescue Object => exc
+  puts "\n====================================="
+  puts "Exception occurred during top-level exception output! (THIS IS BAD)"
+  puts
+  puts "Original Exception: #{e.inspect} (#{e.class})"
+  puts "New Exception: #{e2.inspect} (#{e.class})"
+  @exit_code = 128
+end

@@ -78,6 +78,7 @@ namespace rubinius {
     CodeManager code_manager_;
     std::list<FinalizeObject> finalize_;
     std::list<FinalizeObject*> to_finalize_;
+    bool allow_gc_;
 
   public:
     bool collect_young_now;
@@ -111,6 +112,18 @@ namespace rubinius {
 
     std::list<FinalizeObject*>& to_finalize() {
       return to_finalize_;
+    }
+
+    bool can_gc() {
+      return allow_gc_;
+    }
+
+    void allow_gc() {
+      allow_gc_ = true;
+    }
+
+    void inhibit_gc() {
+      allow_gc_ = false;
     }
 
   public:
@@ -197,6 +210,22 @@ namespace rubinius {
 
   public:
     friend class ::TestObjectMemory;
+
+
+    class GCInhibit {
+      ObjectMemory* om_;
+
+    public:
+      GCInhibit(ObjectMemory* om)
+        : om_(om)
+      {
+        om->inhibit_gc();
+      }
+
+      ~GCInhibit() {
+        om_->allow_gc();
+      }
+    };
   };
 
 #define FREE(obj) free(obj)

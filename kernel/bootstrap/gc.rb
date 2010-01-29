@@ -42,3 +42,10 @@ class GC
     GC.start
   end
 end
+
+module ObjectSpace
+  def self.find_object(query, callable)
+    Ruby.primitive :vm_find_object
+    raise PrimitiveFailure, "vm_each_object failed"
+  end
+end

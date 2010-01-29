@@ -252,6 +252,9 @@ namespace rubinius {
     // Ruby.primitive :object_id
     Integer*  id(STATE);
 
+    /** Indicates if this object has been assigned an object id. */
+    bool has_id(STATE);
+
     /**
      * Taints other if this is tainted.
      */

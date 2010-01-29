@@ -1,7 +1,12 @@
 module ObjectSpace
 
   def self._id2ref(id)
-    raise NotImplementedError
+    ary = []
+    if find_object([:object_id, Integer(id)], ary) > 0
+      return ary.first
+    end
+
+    return nil
   end
 
   # @todo rewrite each_object
@@ -10,98 +15,26 @@ module ObjectSpace
   def self.each_object(what=nil, &block)
     return to_enum :each_object, what unless block_given?
 
-    raise TypeError, "class or module required" if what and not what.is_a? Module
+    what ||= Object
 
-    # Any way to get a list of all objects?
-    if what == nil
-      raise ArgumentError, "ObjectSpace cannot loop through all objects yet"
+    unless what.kind_of? Object
+      raise TypeError, "class or module required"
     end
 
-    # Finds all classes by recursivly looping through subclasses.
-    if what == Class
-      return recursive_loop(Object, block) { |a_class| a_class.__subclasses__ }
-    end
-
-    # Finds all modules by looping through the constants of all classes (hence
-    # __subclasses__) and checking whether those are modules.
-    if  what == Module
-      return recursive_loop(Object, block) do |a_module|
-        # Get all modules that are helt in a_module.constants plus
-        # subclasses of a_module if a_module is a class.
-        a_module.constants.inject([]) do |list, const|
-          begin
-            const = a_module.const_get const
-            list << const if const.is_a? Module
-            list += const.__subclasses__ if const.is_a? Class
-          rescue NameError, LoadError # Handles autoloading.
-          end
-          list
-        end
-      end
-    end
-
-    # This is what MRI does:
-    return 0 if [Fixnum, Symbol].include? what
-
-    # Those are singeltons.
-    if [TrueClass, FalseClass, NilClass].include? what
-      yield what.new
+    case what
+    when Fixnum, Symbol
+      return 0
+    when TrueClass
+      yield true
       return 1
-    end
-
-    # This list is available.
-    if what == Thread
-      Thread.list.each(&block)
-      return Thread.list.size
-    end
-
-    # In the unlikely case that someone would create another instance
-    # of GlobalVariables, this wouldn't work.
-    if what == Rubinius::GlobalVariables
-      yield Rubinius::Globals
+    when FalseClass
+      yield false
       return 1
-    end
-
-    # If this is a Singelton, check whether it already has an instance.
-    if defined?(Singleton) and what.ancestors.include?(Singleton)
-      return 0 unless what.instance_eval { _instantiate? }
-      yield what.instance
+    when NilClass
+      yield nil
       return 1
-    end
-
-    # Simply loop through all instances of superclass and check.
-    # Note: Rescue may be removed as soon as each_object(Object) is supported,
-    # if ever.
-    begin
-      count = 0
-      return count unless what.superclass
-      each_object(what.superclass) do |obj|
-        if obj.is_a? what
-          count += 1
-          yield obj
-        end
-      end
-      count
-    rescue ArgumentError => e
-      if e.message =~ /^ObjectSpace/
-        e.message = "ObjectSpace doesn't support '#{what}' yet"
-      end
-      raise e
-    end
-
-  end
-  
-
-  def self.recursive_loop(start, each_block, skip = [], &grepper)
-    list = yield start
-    list -= skip
-    list.inject(0) do |count, element|
-      unless skip.include? element
-        each_block.call(element)
-        skip << element
-        count += 1 + recursive_loop(element, each_block, skip, &grepper)
-      end
-      count
+    else
+      return find_object([:kind_of, what], block)
     end
   end
 

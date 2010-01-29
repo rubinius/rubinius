@@ -367,6 +367,13 @@ namespace rubinius {
     }
   }
 
+  bool Object::has_id(STATE) {
+    if(!reference_p()) return true;
+
+    Object* id = get_ivar(state, G(sym_object_id));
+    return !id->nil_p();
+  }
+
   void Object::infect(STATE, Object* other) {
     if(this->tainted_p(state) == Qtrue) {
       other->taint(state);

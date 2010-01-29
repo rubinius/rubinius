@@ -32,6 +32,7 @@ namespace rubinius {
     , inflated_headers_(new InflatedHeaders)
     , mark_(1)
     , code_manager_(&state->shared)
+    , allow_gc_(true)
     , collect_young_now(false)
     , collect_mature_now(false)
     , state(state)

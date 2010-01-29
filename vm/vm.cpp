@@ -280,6 +280,9 @@ namespace rubinius {
   void VM::collect(CallFrame* call_frame) {
     this->set_call_frame(call_frame);
 
+    // Don't go any further unless we're allowed to GC.
+    if(!om->can_gc()) return;
+
     // Stops all other threads, so we're only here by ourselves.
     StopTheWorld guard(this);
 
@@ -293,6 +296,9 @@ namespace rubinius {
 
   void VM::collect_maybe(CallFrame* call_frame) {
     this->set_call_frame(call_frame);
+
+    // Don't go any further unless we're allowed to GC.
+    if(!om->can_gc()) return;
 
     // Stops all other threads, so we're only here by ourselves.
     StopTheWorld guard(this);

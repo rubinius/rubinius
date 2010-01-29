@@ -232,6 +232,9 @@ namespace rubinius {
     // Ruby.primitive :vm_extended_modules
     static Object* vm_extended_modules(STATE, Object* obj);
 
+    // Ruby.primitive :vm_find_object
+    static Object* vm_find_object(STATE, Array* arg, Object* callable, CallFrame* calling_environment);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {
