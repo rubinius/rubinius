@@ -26,6 +26,10 @@ namespace rubinius {
     klass_ = other->klass_;
     ivars_ = other->ivars_;
 
+#ifdef RBX_OBJECT_ID_IN_HEADER
+    set_object_id(other->object_id());
+#endif
+
     clear_forwarded();
     set_requires_cleanup(other->requires_cleanup_p());
 

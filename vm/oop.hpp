@@ -103,6 +103,12 @@ const int cUndef = 0x22L;
 #define SIZE_IN_BYTES(obj)              SIZE_IN_BYTES_FIELDS(obj->num_fields())
 #define SIZE_OF_BODY(obj)               (obj->num_fields() * SIZE_OF_OBJECT)
 
+// Some configuration flags
+//
+// This detects 64bit pointer platforms
+#if defined(__LONG_MAX__) && __LONG_MAX__ == 9223372036854775807L
+#define RBX_OBJECT_ID_IN_HEADER
+#endif
 
   /* rubinius_object gc zone, takes up two bits */
   typedef enum
@@ -147,6 +153,10 @@ const int cUndef = 0x22L;
 
     unsigned int Frozen          : 1;
     unsigned int Tainted         : 1;
+
+#ifdef RBX_OBJECT_ID_IN_HEADER
+    uint32_t object_id;
+#endif
   };
 
   union HeaderWord {
@@ -494,6 +504,16 @@ const int cUndef = 0x22L;
     void set_tainted(int val=1) {
       flags().Tainted = val;
     }
+
+#ifdef RBX_OBJECT_ID_IN_HEADER
+    uint32_t object_id() {
+      return flags().object_id;
+    }
+
+    void set_object_id(uint32_t id) {
+      flags().object_id = id;
+    }
+#endif
 
     bool nil_p() const {
       return this == reinterpret_cast<ObjectHeader*>(Qnil);

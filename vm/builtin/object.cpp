@@ -97,6 +97,11 @@ namespace rubinius {
   Object* Object::copy_object(STATE, Object* other) {
     initialize_copy(other, age());
 
+#ifdef RBX_OBJECT_ID_IN_HEADER
+    // Don't inherit the object_id from the original.
+    set_object_id(0);
+#endif
+
     /* C extensions use Data objects for various purposes. The object
      * usually is made an instance of some extension class. So, we
      * have to check the object type to ensure we don't clobber the
@@ -130,7 +135,9 @@ namespace rubinius {
         LookupTable* ld = as<LookupTable>(ivars_);
 
         // We store the object_id in the ivar table, so nuke it.
+#ifndef RBX_OBJECT_ID_IN_HEADER
         ld->remove(state, G(sym_object_id));
+#endif
         ld->remove(state, state->symbol("frozen"));
         ld->remove(state, state->symbol("capi_handle"));
       } else {
@@ -141,7 +148,9 @@ namespace rubinius {
         CompactLookupTable* ld = as<CompactLookupTable>(ivars_);
 
         // We store the object_id in the ivar table, so nuke it.
+#ifndef RBX_OBJECT_ID_IN_HEADER
         ld->remove(state, G(sym_object_id));
+#endif
         ld->remove(state, state->symbol("frozen"));
         ld->remove(state, state->symbol("capi_handle"));
       };
@@ -350,6 +359,16 @@ namespace rubinius {
 
   Integer* Object::id(STATE) {
     if(reference_p()) {
+#ifdef RBX_OBJECT_ID_IN_HEADER
+      if(object_id() == 0) {
+        set_object_id(++state->om->last_object_id);
+      }
+
+      // Shift it up so we don't waste the numeric range in the actual
+      // storage, but still present the id as always even, so it doesn't
+      // collide with the immediates.
+      return Integer::from(state, object_id() << 1);
+#else
       Object* id = get_ivar(state, G(sym_object_id));
 
       /* Lazy allocate object's ids, since most don't need them. */
@@ -361,6 +380,7 @@ namespace rubinius {
       }
 
       return as<Integer>(id);
+#endif
     } else {
       /* All non-references have an odd object_id */
       return Fixnum::from(((uintptr_t)this << 1) | 1);
@@ -370,8 +390,12 @@ namespace rubinius {
   bool Object::has_id(STATE) {
     if(!reference_p()) return true;
 
+#ifdef RBX_OBJECT_ID_IN_HEADER
+    return object_id() > 0;
+#else
     Object* id = get_ivar(state, G(sym_object_id));
     return !id->nil_p();
+#endif
   }
 
   void Object::infect(STATE, Object* other) {
