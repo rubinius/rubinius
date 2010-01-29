@@ -1,2 +1,1 @@
-incomplete:Matrix#inv needs to be reviewed for spec completeness
 fails:Matrix#inv raises a ErrDimensionMismatch if the Matrix is not square

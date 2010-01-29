@@ -1,4 +1,2 @@
 incomplete:Kernel.block_given? needs to be reviewed for spec completeness
-fails:Kernel#block_given? returns false when a method defined by define_method is called with a block
-fails:Kernel#block_given? returns false outside of a method
 fails:self.send(:block_given?) always returns false

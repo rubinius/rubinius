@@ -1,1 +1,0 @@
-fails:Rational.new! returns a Rational with the passed numerator and denominator not reduced to their lowest terms

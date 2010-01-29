@@ -1,4 +1,2 @@
-incomplete:Readline#readline needs to be reviewed for spec completeness
-incomplete:Readline.readline needs to be reviewed for spec completeness
 critical:Readline.readline returns the input string
 critical:Readline.readline taints the returned strings

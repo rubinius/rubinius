@@ -1,2 +1,0 @@
-fails:String#<< raises a TypeError when self is frozen
-fails:String#<< with Fixnum raises a TypeError when self is frozen

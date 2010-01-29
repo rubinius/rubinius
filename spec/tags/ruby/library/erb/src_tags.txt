@@ -1,1 +1,0 @@
-fails:ERB#src returns the compiled ruby code

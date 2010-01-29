@@ -1,2 +1,1 @@
-incomplete:Matrix#trace needs to be reviewed for spec completeness
 fails:Matrix#trace returns the sum of diagonal elements in a rectangular Matrix

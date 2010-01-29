@@ -1,3 +1,0 @@
-fails:Date#parse(.) parses a DD.MM.YYYY string into a Date object
-fails:Date#parse(.) parses a YY.MM.DD string into a Date object
-fails:Date#parse(.) parses a YY.MM.DD string into a Date object using the year digits as 20XX

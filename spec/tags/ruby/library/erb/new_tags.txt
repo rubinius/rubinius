@@ -1,1 +1,0 @@
-fails:ERB.new regard lines starting with '%' as '<% ... %>' and spaces around '<%- -%>' when trim_mode is '%-'

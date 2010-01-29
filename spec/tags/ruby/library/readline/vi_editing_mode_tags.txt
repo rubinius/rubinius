@@ -1,2 +1,1 @@
-incomplete:Readline.vi_editing_mode needs to be reviewed for spec completeness
 fails:Readline.vi_editing_mode returns nil

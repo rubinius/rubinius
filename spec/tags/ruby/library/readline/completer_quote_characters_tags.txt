@@ -1,2 +1,0 @@
-incomplete:Readline.completer_quote_characters needs to be reviewed for spec completeness
-incomplete:Readline.completer_quote_characters= needs to be reviewed for spec completeness
