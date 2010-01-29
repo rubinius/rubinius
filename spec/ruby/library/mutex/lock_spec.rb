@@ -27,9 +27,21 @@ describe "Mutex#lock" do
     v.should == 1
   end
 
-  it "raises ThreadError if the current thread already locks this monitor" do
-    mutex = Mutex.new
-    mutex.lock
-    lambda { mutex.lock }.should raise_error(ThreadError)
+  it "waits if the lock is not available, even by the same thread" do
+    m = Mutex.new
+
+    v = 0
+
+    th = Thread.new do
+      m.lock
+      m.lock
+      v = 1
+    end
+
+    Thread.pass while th.status and th.status != "sleep"
+
+    v.should == 0
+    th.kill
+    th.join
   end
 end
