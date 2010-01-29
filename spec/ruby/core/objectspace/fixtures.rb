@@ -27,4 +27,9 @@ module ObjectSpaceFixtures
     handler = lambda { |obj| ScratchPad.record :finalized }
     ObjectSpace.define_finalizer "#{rand 5}", handler
   end
+
+  def self.scoped(wr)
+    return Proc.new { wr.write "finalized"; wr.close }
+  end
+
 end

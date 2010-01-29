@@ -32,7 +32,7 @@ describe "ObjectSpace.define_finalizer" do
         rd.close
       else
         rd.close
-        handler = Proc.new { wr.write "finalized"; wr.close }
+        handler = ObjectSpaceFixtures.scoped(wr)
         obj = "Test"
         ObjectSpace.define_finalizer(obj, handler)
         exit 0
