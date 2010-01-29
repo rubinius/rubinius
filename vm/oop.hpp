@@ -105,8 +105,8 @@ const int cUndef = 0x22L;
 
 // Some configuration flags
 //
-// This detects 64bit pointer platforms
-#if defined(__LONG_MAX__) && __LONG_MAX__ == 9223372036854775807L
+// Store the object id in the header on 64 bit platforms
+#ifdef IS_X8664
 #define RBX_OBJECT_ID_IN_HEADER
 #endif
 
