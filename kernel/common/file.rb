@@ -537,7 +537,9 @@ class File < IO
 
       raise ArgumentError, "recursive array" if recursion
     else
-      first = StringValue(first)
+      # We need to use dup here, since it's possible that
+      # StringValue gives us a direct object we shouldn't mutate
+      first = StringValue(first).dup
     end
 
     ret = first
