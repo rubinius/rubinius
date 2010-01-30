@@ -102,6 +102,14 @@ describe "File.join" do
     File.join("usr", bin).should == "usr/bin"
   end
 
+  it "doesn't mutate the object when calling #to_str" do
+    usr = mock("usr")
+    usr_str = "usr"
+    usr.should_receive(:to_str).exactly(:once).and_return(usr_str)
+    File.join(usr, "bin").should == "usr/bin"
+    usr_str.should == "usr"
+  end
+
   ruby_version_is "1.9" do
     it "calls #to_path" do
       lambda { File.join(mock('x')) }.should raise_error(TypeError)
