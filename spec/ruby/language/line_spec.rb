@@ -22,12 +22,20 @@ ScratchPad << __LINE__
 
     ScratchPad.recorded.should == [1, 5]
   end
+end
 
-  it_behaves_like :language___LINE__, :require, CodeLoadingSpecs::RequireMethod.new
+describe "The __LINE__ constant" do
+  it_behaves_like :language___LINE__, :require, CodeLoadingSpecs::Method.new
+end
 
+describe "The __LINE__ constant" do
   it_behaves_like :language___LINE__, :require, Kernel
+end
 
-  it_behaves_like :language___LINE__, :load, CodeLoadingSpecs::LoadMethod.new
+describe "The __LINE__ constant" do
+  it_behaves_like :language___LINE__, :load, CodeLoadingSpecs::Method.new
+end
 
+describe "The __LINE__ constant" do
   it_behaves_like :language___LINE__, :load, Kernel
 end

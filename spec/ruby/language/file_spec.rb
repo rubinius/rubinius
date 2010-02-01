@@ -6,12 +6,20 @@ describe "The __FILE__ constant" do
   it "equals (eval) inside an eval" do
     eval("__FILE__").should == "(eval)"
   end
+end
 
-  it_behaves_like :language___FILE__, :require, CodeLoadingSpecs::RequireMethod.new
+describe "The __FILE__ constant" do
+  it_behaves_like :language___FILE__, :require, CodeLoadingSpecs::Method.new
+end
 
+describe "The __FILE__ constant" do
   it_behaves_like :language___FILE__, :require, Kernel
+end
 
-  it_behaves_like :language___FILE__, :load, CodeLoadingSpecs::LoadMethod.new
+describe "The __FILE__ constant" do
+  it_behaves_like :language___FILE__, :load, CodeLoadingSpecs::Method.new
+end
 
+describe "The __FILE__ constant" do
   it_behaves_like :language___FILE__, :load, Kernel
 end

@@ -1,12 +1,4 @@
 describe :kernel_require_basic, :shared => true do
-  before :each do
-    CodeLoadingSpecs.spec_setup
-  end
-
-  after :each do
-    CodeLoadingSpecs.spec_cleanup
-  end
-
   describe "(path resolution)" do
     it "loads an absolute path" do
       path = File.expand_path "load_fixture.rb", CODE_LOADING_DIR
@@ -215,14 +207,6 @@ describe :kernel_require_basic, :shared => true do
 end
 
 describe :kernel_require, :shared => true do
-  before :each do
-    CodeLoadingSpecs.spec_setup
-  end
-
-  after :each do
-    CodeLoadingSpecs.spec_cleanup
-  end
-
   describe "(path resolution)" do
     ruby_version_is "1.9" do
       # For reference see [ruby-core:24155] in which matz confirms this feature is
