@@ -4,6 +4,7 @@ require 'mspec/guards/guard'
 require 'mspec/runner/formatters/html'
 require 'mspec/runner/mspec'
 require 'mspec/runner/example'
+require 'mspec/utils/script'
 
 describe HtmlFormatter do
   before :each do

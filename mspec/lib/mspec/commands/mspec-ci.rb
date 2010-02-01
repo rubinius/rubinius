@@ -66,8 +66,11 @@ class MSpecCI < MSpecScript
   def run
     MSpec.register_tags_patterns config[:tags_patterns]
     MSpec.register_files @files
-    filter = TagFilter.new(:exclude,
-        "fails", "critical", "unstable", "incomplete", "unsupported")
+
+    tags = ["fails", "critical", "unstable", "incomplete", "unsupported"]
+    tags += Array(config[:ci_xtags])
+
+    filter = TagFilter.new(:exclude, *tags)
     filter.register
 
     MSpec.process

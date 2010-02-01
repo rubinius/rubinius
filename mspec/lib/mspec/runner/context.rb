@@ -37,6 +37,12 @@ class ContextState
     @expectation_missing = Proc.new { raise SpecExpectationNotFoundError }
   end
 
+  # Remove caching when a ContextState is dup'd for shared specs.
+  def initialize_copy(other)
+    @pre  = {}
+    @post = {}
+  end
+
   # Returns true if this is a shared +ContextState+. Essentially, when
   # created with: describe "Something", :shared => true { ... }
   def shared?
@@ -47,26 +53,49 @@ class ContextState
   # the +parents+ list.
   def parent=(parent)
     @description = nil
-    @parent = parent
-    parent.child self if parent and not shared?
 
-    state = parent
-    while state
-      parents.unshift state
-      state = state.parent
+    if shared?
+      @parent = nil
+    else
+      @parent = parent
+      parent.child self if parent
+
+      @parents = [self]
+      state = parent
+      while state
+        @parents.unshift state
+        state = state.parent
+      end
     end
-  end
-
-  def replace_parent(parent)
-    @parents[0] = parent
-
-    children.each { |child| child.replace_parent parent }
   end
 
   # Add the ContextState instance +child+ to the list of nested
   # describe blocks.
   def child(child)
     @children << child
+  end
+
+  # Adds a nested ContextState in a shared ContextState to a containing
+  # ContextState.
+  #
+  # Normal adoption is from the parent's perspective. But adopt is a good
+  # verb and it's reasonable for the child to adopt the parent as well. In
+  # this case, manipulating state from inside the child avoids needlessly
+  # exposing the state to manipulate it externally in the dup. (See
+  # #it_should_behave_like)
+  def adopt(parent)
+    self.parent = parent
+
+    @examples = @examples.map do |example|
+      example = example.dup
+      example.context = self
+      example
+    end
+
+    children = @children
+    @children = []
+
+    children.each { |child| child.dup.adopt self }
   end
 
   # Returns a list of all before(+what+) blocks from self and any parents.
@@ -113,7 +142,7 @@ class ContextState
 
   # Returns a description string generated from self and all parents
   def description
-    @description ||= parents.map { |p| p.to_s }.join(" ")
+    @description ||= parents.map { |p| p.to_s }.compact.join(" ")
   end
 
   # Injects the before/after blocks and examples from the shared
@@ -125,18 +154,19 @@ class ContextState
       raise Exception, "Unable to find shared 'describe' for #{desc}"
     end
 
-    state.examples.each { |ex| ex.context = self; @examples << ex }
     state.before(:all).each { |b| before :all, &b }
     state.before(:each).each { |b| before :each, &b }
     state.after(:each).each { |b| after :each, &b }
     state.after(:all).each { |b| after :all, &b }
 
-    # There is a potential race here if mspec ever implements concurrency
-    # in process. Right now, the only way to run specs concurrently is
-    # with multiple processes, so we ignore this for the sake of simplicity.
+    state.examples.each do |example|
+      example = example.dup
+      example.context = self
+      @examples << example
+    end
+
     state.children.each do |child|
-      child.replace_parent self
-      @children << child
+      child.dup.adopt self
     end
   end
 

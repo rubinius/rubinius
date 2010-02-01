@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'mspec/runner/formatters/dotted'
 require 'mspec/runner/mspec'
 require 'mspec/runner/example'
+require 'mspec/utils/script'
 
 describe DottedFormatter, "#initialize" do
   it "permits zero arguments" do
@@ -16,10 +17,10 @@ end
 describe DottedFormatter, "#register" do
   before :each do
     @formatter = DottedFormatter.new
+    MSpec.stub!(:register)
   end
 
   it "registers self with MSpec for appropriate actions" do
-    MSpec.stub!(:register)
     MSpec.should_receive(:register).with(:exception, @formatter)
     MSpec.should_receive(:register).with(:before, @formatter)
     MSpec.should_receive(:register).with(:after, @formatter)

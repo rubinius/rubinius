@@ -16,10 +16,10 @@ end
 describe SpinnerFormatter, "#register" do
   before :each do
     @formatter = SpinnerFormatter.new
+    MSpec.stub!(:register)
   end
 
   it "registers self with MSpec for appropriate actions" do
-    MSpec.stub!(:register)
     MSpec.should_receive(:register).with(:start, @formatter)
     MSpec.should_receive(:register).with(:load, @formatter)
     MSpec.should_receive(:register).with(:after, @formatter)

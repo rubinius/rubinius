@@ -107,6 +107,8 @@ describe MSpecCI, "#run" do
     TagFilter.stub!(:new).and_return(@filter)
     @filter.stub!(:register)
 
+    @tags = ["fails", "critical", "unstable", "incomplete", "unsupported"]
+
     @config = { :ci_files => ["one", "two"] }
     @script = MSpecCI.new
     @script.stub!(:exit)
@@ -128,8 +130,24 @@ describe MSpecCI, "#run" do
 
   it "registers a tag filter for 'fails', 'unstable', 'incomplete', 'critical', 'unsupported'" do
     filter = mock("fails filter")
+    TagFilter.should_receive(:new).with(:exclude, *@tags).and_return(filter)
+    filter.should_receive(:register)
+    @script.run
+  end
+
+  it "registers an additional exclude tag specified by :ci_xtags" do
+    @config[:ci_xtags] = "windows"
+    filter = mock("fails filter")
+    TagFilter.should_receive(:new).with(:exclude, *(@tags + ["windows"])).and_return(filter)
+    filter.should_receive(:register)
+    @script.run
+  end
+
+  it "registers additional exclude tags specified by a :ci_xtags array" do
+    @config[:ci_xtags] = ["windows", "windoze"]
+    filter = mock("fails filter")
     TagFilter.should_receive(:new).with(:exclude,
-        "fails", "critical", "unstable", "incomplete", "unsupported").and_return(filter)
+        *(@tags + ["windows", "windoze"])).and_return(filter)
     filter.should_receive(:register)
     @script.run
   end

@@ -262,6 +262,12 @@ describe ContextState, "#parent=" do
     state.parent = @parent
   end
 
+  it "does not set parents if shared" do
+    state = ContextState.new "", :shared => true
+    state.parent = @parent
+    state.parents.should == [state]
+  end
+
   it "sets self as a child of parent" do
     @parent.should_receive(:child).with(@state)
     @state.parent = @parent
@@ -910,11 +916,11 @@ end
 
 describe ContextState, "#it_should_behave_like" do
   before :each do
-    @shared_desc = "shared context"
+    @shared_desc = :shared_context
     @shared = ContextState.new(@shared_desc, :shared => true)
     MSpec.stub!(:retrieve_shared).and_return(@shared)
 
-    @state = ContextState.new ""
+    @state = ContextState.new "Top level"
     @a = lambda { }
     @b = lambda { }
   end
@@ -926,36 +932,57 @@ describe ContextState, "#it_should_behave_like" do
 
   describe "for nested ContextState instances" do
     before :each do
-      @nested = ContextState.new ""
+      @nested = ContextState.new "nested context"
       @nested.parents.unshift @shared
+
       @shared.children << @nested
+
+      @nested_dup = @nested.dup
+      @nested.stub!(:dup).and_return(@nested_dup)
     end
 
-    it "adds nested describe blocks to the invoking ContextState" do
+    it "duplicates the nested ContextState" do
       @state.it_should_behave_like @shared_desc
-      @shared.children.should_not be_empty
-      @state.children.should include(*@shared.children)
+      @state.children.first.should equal(@nested_dup)
     end
 
-    it "changes the parent ContextState" do
-      @shared.children.first.parents.first.should equal(@shared)
+    it "sets the parent of the nested ContextState to the containing ContextState" do
       @state.it_should_behave_like @shared_desc
-      @shared.children.first.parents.first.should equal(@state)
+      @nested_dup.parent.should equal(@state)
+    end
+
+    it "sets the context for nested examples to the nested ContextState's dup" do
+      @shared.it "an example", &@a
+      @shared.it "another example", &@b
+      @state.it_should_behave_like @shared_desc
+      @nested_dup.examples.each { |x| x.context.should equal(@nested_dup) }
+    end
+
+    it "omits the shored ContextState's description" do
+      @nested.it "an example", &@a
+      @nested.it "another example", &@b
+      @state.it_should_behave_like @shared_desc
+
+      @nested_dup.description.should == "Top level nested context"
+      @nested_dup.examples.first.description.should == "Top level nested context an example"
+      @nested_dup.examples.last.description.should == "Top level nested context another example"
     end
   end
 
-  it "adds examples from the shared ContextState" do
-    @shared.it "some", &@a
-    @shared.it "thing", &@b
+  it "adds duped examples from the shared ContextState" do
+    @shared.it "some method", &@a
+    ex_dup = @shared.examples.first.dup
+    @shared.examples.first.stub!(:dup).and_return(ex_dup)
+
     @state.it_should_behave_like @shared_desc
-    @state.examples.should include(*@shared.examples)
+    @state.examples.should == [ex_dup]
   end
 
-  it "sets the containing ContextState for the examples" do
-    @shared.it "some", &@a
-    @shared.it "thing", &@b
-    @shared.examples.each { |ex| ex.should_receive(:context=).with(@state) }
+  it "sets the context for examples to the containing ContextState" do
+    @shared.it "an example", &@a
+    @shared.it "another example", &@b
     @state.it_should_behave_like @shared_desc
+    @state.examples.each { |x| x.context.should equal(@state) }
   end
 
   it "adds before(:all) blocks from the shared ContextState" do

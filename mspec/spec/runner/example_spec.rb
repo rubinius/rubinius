@@ -71,6 +71,11 @@ describe ExampleState, "#filtered?" do
     @filter = mock("filter")
   end
 
+  after :each do
+    MSpec.store :include, nil
+    MSpec.store :exclude, nil
+  end
+
   it "returns false if MSpec include filters list is empty" do
     @state.filtered?.should == false
   end

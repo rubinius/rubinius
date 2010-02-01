@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'mspec/runner/formatters/method'
 require 'mspec/runner/mspec'
 require 'mspec/runner/example'
+require 'mspec/utils/script'
 
 describe MethodFormatter, "#method_type" do
   before :each do
