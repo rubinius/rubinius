@@ -454,7 +454,14 @@ containing the Rubinius standard library files.
     # Cleanup and at_exit processing.
     def epilogue
       @stage = "at_exit handler"
-      AtExit.shift.call until AtExit.empty?
+
+      until AtExit.empty?
+        begin
+          AtExit.shift.call
+        rescue SystemExit => e
+          @exit_code = e.status
+        end
+      end
 
       @stage = "object finalizers"
       GC.start
