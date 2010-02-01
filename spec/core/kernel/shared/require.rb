@@ -9,36 +9,9 @@ describe :rbx_kernel_require, :shared => true do
     rm_r @rb, @rbc
   end
 
-  it "loads a .rbc file directly" do
-    @object.require(@rbc).should be_true
-    ScratchPad.recorded.should == [:loaded]
-  end
-
   it "adds the .rb name to $LOADED_FEATURES when loading a .rbc file" do
     @object.require(@rbc).should be_true
     $LOADED_FEATURES.should == [@rb]
-  end
-
-  it "saves a .rbc file when loading a .rb file" do
-    rm_r @rbc
-    @object.require(@rb).should be_true
-    File.exists?(@rbc).should be_true
-  end
-
-  it "loads a .rbc file if it is newer than the related .rb file" do
-    touch(@rb) { |f| f.puts "ScratchPad << :not_loaded" }
-
-    now = Time.now
-    File.utime now, now, @rbc
-
-    @object.require(@rbc).should be_true
-    ScratchPad.recorded.should == [:loaded]
-  end
-
-  it "loads a .rbc file even if the related .rb file is missing" do
-    rm_r @rb
-    @object.require(@rbc).should be_true
-    ScratchPad.recorded.should == [:loaded]
   end
 end
 
@@ -47,7 +20,7 @@ describe :rbx_kernel_require_recursive, :shared => true do
     CodeLoadingSpecs.spec_setup
     @rb, @rbc = CodeLoadingSpecs.rbc_fixture("recursive_fixture.rb") do |rb, rbc, f|
       f.puts "ScratchPad << :loaded"
-      f.puts "#{@method} #{rbc.inspect}"
+      f.puts "require #{rbc.inspect}"
     end
   end
 
@@ -78,16 +51,6 @@ describe :rbx_kernel_require_rba_relative, :shared => true do
     rm_r @rba
   end
 
-  it "loads a .rb file from a .rba file that appears in $LOAD_PATH" do
-    @object.require("load_fixture.rb").should be_true
-    ScratchPad.recorded.should == [:loaded]
-  end
-
-  it "loads a .rbc file from a .rba file that appears in $LOAD_PATH" do
-    @object.require("load_fixture.rbc").should be_true
-    ScratchPad.recorded.should == [:loaded]
-  end
-
   it "adds a .rb file loaded from a .rba file to $LOADED_FEATURES" do
     @object.require("load_fixture.rb").should be_true
     $LOADED_FEATURES.should == ["load_fixture.rb"]
@@ -102,3 +65,5 @@ describe :rbx_kernel_require_rba_relative, :shared => true do
     ScratchPad.recorded.should be_nil
   end
 end
+
+# TODO: require from rba with absolute paths
