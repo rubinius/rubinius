@@ -15,6 +15,14 @@ class MSpecScript
 
     'spec/build',
 
+    # Disable until Kernel#require/load is rewritten
+    '^spec/core/kernel/require',
+    '^spec/core/kernel/load',
+    '^spec/ruby/language/file',
+    '^spec/ruby/language/line',
+    '^spec/ruby/core/kernel/require',
+    '^spec/ruby/core/kernel/load',
+
     # excluded because significantly broken
     '^spec/core/compiledmethod',
     '^spec/core/module',
