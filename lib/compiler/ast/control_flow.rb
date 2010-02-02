@@ -179,6 +179,7 @@ module Rubinius
       end
 
       def bytecode(g)
+        g.push :nil
       end
     end
 
@@ -190,6 +191,7 @@ module Rubinius
       end
 
       def bytecode(g)
+        g.push :nil
       end
     end
 
