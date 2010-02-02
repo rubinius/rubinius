@@ -93,10 +93,10 @@ namespace rubinius {
     static Fiber* current(STATE);
 
     // Ruby.primitive :fiber_resume
-    Object* resume(STATE, Object* obj, CallFrame* calling_environment);
+    Object* resume(STATE, Arguments& args, CallFrame* calling_environment);
 
     // Ruby.primitive :fiber_s_yield
-    static Object* s_yield(STATE, Object* obj, CallFrame* calling_environment);
+    static Object* s_yield(STATE, Arguments& args, CallFrame* calling_environment);
 
     void finalize(STATE);
 

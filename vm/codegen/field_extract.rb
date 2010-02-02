@@ -3,6 +3,7 @@ class BasicPrimitive
   attr_accessor :pass_self
   attr_accessor :pass_call_frame
   attr_accessor :pass_message
+  attr_accessor :pass_arguments
   attr_accessor :raw
   attr_accessor :safe
   attr_accessor :can_fail
@@ -25,18 +26,25 @@ class BasicPrimitive
   end
 
   def output_args(str, arg_types)
-    str << "  if(unlikely(args.total() != #{arg_types.size}))\n"
-    str << "    goto fail;\n\n"
+    unless @pass_arguments
+      str << "  if(unlikely(args.total() != #{arg_types.size}))\n"
+      str << "    goto fail;\n\n"
+    end
 
     args = []
     i = -1
     arg_types.each do |t|
       i += 1
-      str << "  #{t}* a#{i};\n"
-      str << "  a#{i} = try_as<#{t}>(args.get_argument(#{i}));\n"
-      str << "  if(unlikely(a#{i} == NULL))\n"
-      str << "    goto fail;\n\n"
-      args << "a#{i}"
+      case t
+      when :arguments
+        args << "args"
+      else
+        str << "  #{t}* a#{i};\n"
+        str << "  a#{i} = try_as<#{t}>(args.get_argument(#{i}));\n"
+        str << "  if(unlikely(a#{i} == NULL))\n"
+        str << "    goto fail;\n\n"
+        args << "a#{i}"
+      end
     end
     args.unshift "self" if @pass_self
     args.unshift "state" if @pass_state
@@ -135,7 +143,7 @@ class CPPPrimitive < BasicPrimitive
   end
 
   def generate_jit_stub
-    return if @raw or @pass_call_frame or @pass_message
+    return if @raw or @pass_call_frame or @pass_message or @pass_arguments
 
     # Default value, overriden below
     @can_fail = true
@@ -808,6 +816,7 @@ class CPPParser
           pass_self = false
           pass_call_frame = false
           pass_message = false
+          pass_arguments = false
 
           m = prototype_pattern.match(prototype)
           unless m
@@ -834,10 +843,22 @@ class CPPParser
             args.pop
           end
 
+          if i = args.index("Arguments& args")
+            pass_arguments = true
+            args[i] = :arguments
+          end
+
           if raw then
             arg_types = []
           else
-            arg_types = args.map { |a| strip_and_map(a.split(/\s+/, 2).first, @type_map) }
+            arg_types = args.map do |a|
+              case a
+              when Symbol
+                a
+              else
+                strip_and_map(a.split(/\s+/, 2).first, @type_map)
+              end
+            end
           end
 
           if m[1]
@@ -855,6 +876,7 @@ class CPPParser
           obj.pass_self = pass_self
           obj.pass_call_frame = pass_call_frame
           obj.pass_message = pass_message
+          obj.pass_arguments = pass_arguments
         elsif object_size_pattern.match(l)
           cpp.class_has_object_size
         end

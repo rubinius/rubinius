@@ -117,9 +117,16 @@ namespace rubinius {
 #endif
   }
 
-  Object* Fiber::resume(STATE, Object* val, CallFrame* calling_environment) {
+  Object* Fiber::resume(STATE, Arguments& args, CallFrame* calling_environment) {
 #ifdef FIBER_ENABLED
     if(!prev_->nil_p() || root_) return Primitives::failure();
+
+    Object* val = Qnil;
+    if(args.total() == 1) {
+      val = args.get_argument(0);
+    } else if(args.total() > 1) {
+      val = args.as_array(state);
+    }
 
     value(state, val);
 
@@ -145,7 +152,7 @@ namespace rubinius {
 #endif
   }
 
-  Object* Fiber::s_yield(STATE, Object* val, CallFrame* calling_environment) {
+  Object* Fiber::s_yield(STATE, Arguments& args, CallFrame* calling_environment) {
 #ifdef FIBER_ENABLED
     Fiber* cur = Fiber::current(state);
     Fiber* dest_fib = cur->prev();
@@ -153,6 +160,13 @@ namespace rubinius {
     assert(cur != dest_fib);
 
     cur->prev(state, (Fiber*)Qnil);
+
+    Object* val = Qnil;
+    if(args.total() == 1) {
+      val = args.get_argument(0);
+    } else if(args.total() > 1) {
+      val = args.as_array(state);
+    }
 
     dest_fib->value(state, val);
 
