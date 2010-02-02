@@ -71,13 +71,12 @@ namespace :jit do
     end
 
     opaque = %w!VM TypeInfo VMMethod Fixnum Symbol Selector LookupTable MethodTable
-                jit::RuntimeDataHolder!
+                jit::RuntimeDataHolder Inliners!
 
     File.open("vm/gen/types.ll","w+") do |f|
       opaque.each do |o|
         f.puts "%\"struct.rubinius::#{o}\" = type opaque"
       end
-      f.puts "%\"struct.std::Inliners\" = type opaque"
       f.puts(*types)
     end
 
