@@ -5,16 +5,14 @@
 
 namespace rubinius {
   ObjectWalker::~ObjectWalker() {
-    object_memory_->rotate_mark();
   }
 
   Object* ObjectWalker::saw_object(Object* obj) {
-    int mark = object_memory_->mark();
-
     if(obj->reference_p()) {
-      if(!obj->marked_p(mark)) {
+      std::map<Object*,bool>::iterator i = mark_bits_.find(obj);
+      if(i == mark_bits_.end()) {
         stack_.push_back(obj);
-        obj->mark(mark);
+        mark_bits_[obj] = true;
       }
     }
 

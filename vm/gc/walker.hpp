@@ -8,6 +8,7 @@
 namespace rubinius {
   class ObjectWalker : public GarbageCollector {
     std::vector<Object*> stack_;
+    std::map<Object*, bool> mark_bits_;
 
   public:
     ObjectWalker(ObjectMemory* om)
