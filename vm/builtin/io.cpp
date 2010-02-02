@@ -715,8 +715,43 @@ failed: /* try next '*' position */
     return Qfalse;
   }
 
-/* IOBuffer methods */
 
+  /** Socket methods */
+  Object* IO::accept(STATE, CallFrame* calling_environment) {
+    WaitingForSignal waiter;
+    int fd = descriptor()->to_native();
+    int new_fd = 0;
+    bool set = false;
+
+    struct sockaddr_storage socka;
+    socklen_t sock_len = sizeof(socka);
+
+  retry:
+    state->install_waiter(waiter);
+
+    {
+      GlobalLock::UnlockGuard lock(state->global_lock());
+      new_fd = ::accept(fd, (struct sockaddr*)&socka, &sock_len);
+      set = true;
+    }
+
+    state->clear_waiter();
+
+    if(new_fd == -1) {
+      if(errno == EAGAIN || errno == EINTR) {
+        if(state->check_async(calling_environment)) goto retry;
+      } else {
+        Exception::errno_error(state, "read(2) failed");
+      }
+
+      return NULL;
+    }
+
+    if(!set) return Qnil;
+    return Fixnum::from(new_fd);
+  }
+
+/* IOBuffer methods */
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
     IOBuffer* buf = state->new_object<IOBuffer>(G(iobuffer));
     buf->storage(state, ByteArray::create(state, bytes));

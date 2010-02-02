@@ -120,4 +120,11 @@ class IO
     raise PrimitiveFailure, "IO#shutdown primitive failed"
   end
 
+  module Socketable
+    def accept
+      Ruby.primitive :io_accept
+      raise PrimitiveFailure, "io_accept failed"
+    end
+  end
+
 end

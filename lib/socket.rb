@@ -431,6 +431,8 @@ class Socket < BasicSocket
   end
 
   module ListenAndAccept
+    include IO::Socketable
+
     def listen(backlog)
       backlog = Type.coerce_to backlog, Fixnum, :to_int
 
@@ -444,16 +446,7 @@ class Socket < BasicSocket
     def accept
       return if closed?
 
-      fd = nil
-      sockaddr = nil
-
-      FFI::MemoryPointer.new 1024 do |sockaddr_p| # HACK from MRI
-        FFI::MemoryPointer.new :int do |size_p|
-          fd = Socket::Foreign.accept descriptor, sockaddr_p, size_p
-        end
-      end
-
-      Errno.handle 'accept(2)' if fd < 0
+      fd = super
 
       socket = self.class.superclass.allocate
       IO.setup socket, fd, nil, true

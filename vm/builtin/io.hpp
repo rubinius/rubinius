@@ -95,6 +95,9 @@ namespace rubinius {
     // Ruby.primitive :io_close
     Object* close(STATE);
 
+    // Ruby.primitive :io_accept
+    Object* accept(STATE, CallFrame* calling_environment);
+
     /**
      *  Shutdown a full-duplex descriptor's read and/or write stream.
      *
