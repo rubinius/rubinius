@@ -50,10 +50,10 @@ namespace rubinius {
     assert(llvm::llvm_start_multithreaded() && "llvm doesn't support threading!");
 #endif
 
+    VM::init_stack_size();
+
     shared = new SharedState(config, config_parser);
     state = shared->new_vm();
-
-    VM::init_stack_size();
   }
 
   Environment::~Environment() {

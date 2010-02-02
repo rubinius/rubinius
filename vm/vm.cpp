@@ -46,6 +46,7 @@ namespace rubinius {
   VM::VM(SharedState& shared)
     : ManagedThread(shared)
     , saved_call_frame_(0)
+    , stack_start_(0)
     , alive_(true)
     , profiler_(0)
     , run_signals_(false)
@@ -63,6 +64,7 @@ namespace rubinius {
     , reuse_llvm(true)
   {
     probe.set(Qnil, &globals.roots);
+    set_stack_size(cStackDepthMax);
   }
 
 

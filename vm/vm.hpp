@@ -87,6 +87,8 @@ namespace rubinius {
     CallFrame* saved_call_frame_;
     ASyncMessageMailbox mailbox_;
     void* stack_start_;
+    intptr_t stack_limit_;
+    int stack_size_;
     bool alive_;
     profiler::Profiler* profiler_;
     bool run_signals_;
@@ -174,12 +176,23 @@ namespace rubinius {
 
     void set_stack_start(void* s) {
       stack_start_ = s;
+      // @TODO assumes stack growth direction
+      stack_limit_ = (reinterpret_cast<intptr_t>(s) - stack_size_) + 4096;
+    }
+
+    int stack_size() {
+      return stack_size_;
+    }
+
+    void set_stack_size(int s) {
+      stack_size_ = s;
+      // @TODO assumes stack growth direction
+      stack_limit_ = (reinterpret_cast<intptr_t>(stack_start_) - s) + 4096;
     }
 
     bool check_stack(CallFrame* call_frame, void* end) {
       // @TODO assumes stack growth direction
-      if(reinterpret_cast<intptr_t>(stack_start_) -
-          reinterpret_cast<intptr_t>(end) > cStackDepthMax) {
+      if(unlikely(reinterpret_cast<intptr_t>(end) < stack_limit_)) {
         raise_stack_error(call_frame);
         return false;
       }

@@ -107,15 +107,11 @@ Object* VMMethod::interpreter(STATE,
 #endif
 
   Object** stack_ptr = call_frame->stk - 1;
-  static int tick = 0;
 
   int current_unwind = 0;
   UnwindInfo unwinds[kMaxUnwindInfos];
 
-  if(unlikely(++tick > 0xff)) {
-    tick = 0;
-    if(!state->check_stack(call_frame, &state)) return NULL;
-  }
+  if(!state->check_stack(call_frame, &state)) return NULL;
 
   if(unlikely(state->interrupts.check)) {
     state->interrupts.checked();
@@ -248,15 +244,11 @@ Object* VMMethod::uncommon_interpreter(STATE,
   InterpreterState is;
 
   Object** stack_ptr = call_frame->stk + sp;
-  static int tick = 0;
 
   int current_unwind = 0;
   UnwindInfo unwinds[kMaxUnwindInfos];
 
-  if(unlikely(++tick > 0xff)) {
-    tick = 0;
-    if(!state->check_stack(call_frame, &state)) return NULL;
-  }
+  if(!state->check_stack(call_frame, &state)) return NULL;
 
   if(unlikely(state->interrupts.check)) {
     state->interrupts.checked();
@@ -405,12 +397,8 @@ Object* VMMethod::debugger_interpreter(STATE,
   // instructions.
 
   Object** stack_ptr = call_frame->stk - 1;
-  static int tick = 0;
 
-  if(unlikely(++tick > 0xff)) {
-    tick = 0;
-    if(!state->check_stack(call_frame, &state)) return NULL;
-  }
+  if(!state->check_stack(call_frame, &state)) return NULL;
 
   if(unlikely(state->interrupts.check)) {
     state->interrupts.checked();
