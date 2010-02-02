@@ -108,6 +108,7 @@ namespace rubinius {
     TypedRoot<Class*> global_cache_entry;
     TypedRoot<Class*> array_iterator;
     TypedRoot<Class*> cls_weakref;
+    TypedRoot<Class*> fiber;
 
     /* Add new globals above this line. */
 
@@ -219,7 +220,8 @@ namespace rubinius {
       exc_vm_internal(&roots),
       global_cache_entry(&roots),
       array_iterator(&roots),
-      cls_weakref(&roots)
+      cls_weakref(&roots),
+      fiber(&roots)
 
       /* Add initialize of globals above this line. */
     { }

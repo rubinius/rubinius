@@ -59,6 +59,7 @@ namespace rubinius {
   class LookupTable;
   class SymbolTable;
   class SharedState;
+  class Fiber;
 
   struct Stats {
     // How much time is spent running the JIT
@@ -116,6 +117,9 @@ namespace rubinius {
 
     // The Thread object for this VM state
     TypedRoot<Thread*> thread;
+
+    // The current fiber running on this thread
+    TypedRoot<Fiber*> current_fiber;
 
     Stats stats;
 
@@ -211,6 +215,10 @@ namespace rubinius {
   public:
     static void init_stack_size();
 
+    // Better than current_state, uses a pthread local.
+    static VM* current();
+    static void set_current(VM* vm);
+
     // Returns the current VM state object.
     static VM* current_state();
 
@@ -242,6 +250,8 @@ namespace rubinius {
     void initialize_builtin_classes();
     void initialize_platform_data();
     void boot_threads();
+
+    void set_current_fiber(Fiber* fib);
 
     void raise_stack_error(CallFrame* call_frame);
 

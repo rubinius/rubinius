@@ -23,6 +23,7 @@ namespace rubinius {
     GlobalLock::LockGuard x(vm_->global_lock());
 
     NativeMethod::init_thread(vm_);
+    VM::set_current(vm_);
 
     // Register that when the perform returns and the thread is exitting, to
     // run delete on this object to free up the memory.

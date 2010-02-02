@@ -14,6 +14,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/io.hpp"
+#include "builtin/fiber.hpp"
 
 #include "capi/handle.hpp"
 #include "configuration.hpp"
@@ -488,6 +489,8 @@ namespace rubinius {
 
       if(IO* io = try_as<IO>(fi->object)) {
         io->finalize(state);
+      } else if(Fiber* fib = try_as<Fiber>(fi->object)) {
+        fib->finalize(state);
       }
 
       fi->status = FinalizeObject::eFinalized;

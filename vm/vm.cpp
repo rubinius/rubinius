@@ -16,6 +16,7 @@
 #include "builtin/string.hpp"
 #include "builtin/taskprobe.hpp"
 #include "builtin/system.hpp"
+#include "builtin/fiber.hpp"
 
 #include "instruments/profiler.hpp"
 
@@ -26,6 +27,8 @@
 #include "call_frame.hpp"
 #include "signal.hpp"
 #include "configuration.hpp"
+
+#include "util/thread.hpp"
 
 #include <iostream>
 #include <iomanip>
@@ -60,6 +63,7 @@ namespace rubinius {
     , check_local_interrupts(false)
     , thread_state_(this)
     , thread(this, (Thread*)Qnil)
+    , current_fiber(this, (Fiber*)Qnil)
     , current_mark(NULL)
     , reuse_llvm(true)
   {
@@ -173,9 +177,21 @@ namespace rubinius {
     __state = vm;
   }
 
+  thread::ThreadData<VM*> _current_vm;
+
+  VM* VM::current() {
+    return _current_vm.get();
+  }
+
+  void VM::set_current(VM* vm) {
+    _current_vm.set(vm);
+  }
+
   void VM::boot_threads() {
     thread.set(Thread::create(this, this, pthread_self()), &globals.roots);
     thread->sleep(this, Qfalse);
+
+    VM::set_current(this);
   }
 
   Object* VM::new_object_typed(Class* cls, size_t bytes, object_type type) {
@@ -449,5 +465,11 @@ namespace rubinius {
 
   void VM::remove_profiler() {
     profiler_ = 0;
+  }
+
+  void VM::set_current_fiber(Fiber* fib) {
+    set_stack_start(fib->stack());
+    set_stack_size(fib->stack_size());
+    current_fiber.set(fib);
   }
 };

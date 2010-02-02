@@ -38,6 +38,7 @@
 #include "builtin/location.hpp"
 #include "builtin/global_cache_entry.hpp"
 #include "builtin/weakref.hpp"
+#include "builtin/fiber.hpp"
 
 #include "configuration.hpp"
 #include "config.h"
@@ -254,6 +255,7 @@ namespace rubinius {
 
     GlobalCacheEntry::init(this);
     WeakRef::init(this);
+    Fiber::init(this);
   }
 
   // @todo document all the sections of bootstrap_ontology

@@ -41,6 +41,7 @@ env.rbc
 errno.rbc
 eval.rbc
 false.rbc
+fiber.rbc
 io.rbc
 file.rbc
 filetest.rbc
