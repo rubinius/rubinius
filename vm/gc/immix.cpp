@@ -94,6 +94,8 @@ namespace rubinius {
       std::cout << "detected " << obj << " during immix scanning.\n";
     }
 
+    if(!obj->reference_p()) return obj;
+
     immix::Address fwd = gc_.mark_address(immix::Address(obj), allocator_);
     Object* copy = fwd.as<Object>();
 
