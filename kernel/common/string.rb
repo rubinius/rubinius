@@ -1280,17 +1280,38 @@ class String
     return [self, "", ""]
   end
 
+  # call-seq:
+  #
+  #    str.rpartition(sep)             => [head, sep, tail]
+  #    str.rpartition(regexp)          => [head, match, tail]
+  #
+  # Searches _sep_ or pattern (_regexp_) in the string from the end
+  # of the string, and returns the part before it, the match, and the part
+  # after it.
+  # If it is not found, returns two empty strings and _str_.
+  #
+  #    "hello".rpartition("l")         #=> ["hel", "l", "o"]
+  #    "hello".rpartition("x")         #=> ["", "", "hello"]
+  #    "hello".rpartition(/.l/)        #=> ["he", "ll", "o"]
+  #
   def rpartition(pattern)
-    pattern = Type.coerce_to(pattern, String, :to_str) unless pattern.is_a? Regexp
-    i = rindex(pattern)
-    return ["", "", self] unless i
-
-    if pattern.is_a? Regexp
-      match = Regexp.last_match
-      [match.pre_match, match[0], match.post_match]
+    if pattern.kind_of? Regexp
+      if m = pattern.search_region(self, 0, size, false)
+        [m.pre_match, m[0], m.post_match]
+      end
     else
-      last = i+pattern.length
-      [self[0...i], self[i...last], self[last...length]]
+      pattern = StringValue(pattern)
+      if i = rindex(pattern)
+        post_start = i + pattern.length
+        post_len = size - post_start
+
+        return [self.substring(0, i),
+                pattern.dup,
+                self.substring(post_start, post_len)]
+      end
+
+      # Nothing worked out, this is the default.
+      return ["", "", self]
     end
   end
 

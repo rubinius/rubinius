@@ -7,7 +7,7 @@ class Array::Packer
   BASE_64_B2A[63] = '/'
 
   POINTER_SIZE = Rubinius::L64 ? 8 : 4
-  def initialize(array,schema)
+  def initialize(array, schema)
     @source = array
     @schema = schema
     @index = 0
@@ -19,78 +19,106 @@ class Array::Packer
     @ptr ||= FFI::MemoryPointer.new(16) # enough for all uses
   end
 
-  def parse(schema)
-    # The schema is an array of arrays like [["A", "6"], ["u", "*"],
-    # ["X", ""]]. It represents the parsed form of "A6u*X".  Remove
-    # strings in the schema between # and \n
-    schema = schema.gsub(/#.*/, '')
-    schema.scan(/([^\s\d!_\*])([\d!_\*]*)/)
-  end
-
   def dispatch
-    parse(@schema).each do |kind, t|
-      t = nil if t.empty?
+    schema = @schema.gsub(/#.*/, '')
+    i = 0
+    length = schema.length
+    native_size = false
 
-      case kind # TODO: switch kind to ints
-      when 'X'
-        size = (t || 1).to_i
-        raise ArgumentError, "you're backing up too far" if size > @result.size
-        @result.shorten!(size) if size > 0
-      when 'x'
-        size = (t || 1).to_i
-        @result << "\000" * size
-      when 'a', 'A', 'Z'
-        ascii_string(kind, t)
-      when 'b', 'B'
-        bit_string(kind, t)
-      when 'c', 'C'
-        character(kind, t)
-      when 'M'
+    while i < length do
+      kind = schema[i]
+      i += 1
+
+      next if kind.isspace
+
+      if schema[i] == ?_ or schema[i] == ?!
+        if kind == ?s or kind == ?S or kind == ?i or kind == ?I or kind == ?l or kind == ?L
+          i += 1
+          native_size = true
+        else
+          raise ArgumentError, "#{schema[i]} allowed only after types sSiIlL"
+        end
+      end
+
+      if i == length
+        len = 1
+      elsif schema[i].isdigit
+        len = 0
+        begin
+          len = len * 10 + schema[i] - ?0
+          i += 1
+        end while i < length and schema[i].isdigit
+      elsif schema[i] == ?*
+        len = case kind
+              when ?@, ?X, ?x, ?u
+                0
+              when ?P, ?M, ?m
+                1
+              when ?u, ?m, ?H, ?h, ?B, ?b, ?A, ?a, ?Z
+                nil  # size depends on item
+              else
+                @source.size - @index
+              end
+        i += 1
+      else
+        len = 1
+      end
+      case kind
+      when ?X
+        raise ArgumentError, "you're backing up too far" if len > @result.size
+        @result.shorten!(len) if len > 0
+      when ?x
+        @result << "\000" * len
+      when ?a, ?A, ?Z
+        ascii_string(kind, len)
+      when ?b, ?B
+        bit_string(kind, len)
+      when ?c, ?C
+        character(kind, len)
+      when ?M
         # for some reason MRI responds to to_s here
         item = Type.coerce_to(fetch_item(), String, :to_s)
-        line_length = 72
-        if t && t =~ /^\d/ && t.to_i >= 3
-          line_length = t.to_i
+        if len >= 3
+          line_length = len
+        else
+          line_length = 72
         end
         line_length += 1 # bug compatibility with MRI
 
         @result << item.scan(/.{1,#{line_length}}/m).map { |line|
           line.gsub(/[^ -<>-~\t\n]/) { |m| "=%02X" % m[0] } + "=\n"
         }.join
-      when 'm'
-        @result << encode(kind, t, :base64).join.sub(/(A{1,2})\n\Z/) { "#{'=' * $1.size}\n" }
-      when 'w'
-        ber_compress(kind, t)
-      when 'u'
-        @result << encode(kind, t, :uuencode).join.gsub(/ /, '`')
-      when 'd', 'D', 'e', 'E', 'f', 'F', 'g', 'G'
-        decimal(kind, t)
-      when 'i', 'I', 's', 'S', 'l', 'L', 'v', 'V'
-        integer(kind, t)
-      when 'N'
-        net_long(t)
-      when 'n'
-        net_short(t)
-      when 'p', 'P'
-        pointer(kind, t)
-      when 'Q', 'q'
-        integer64(kind, t)
-      when 'H', 'h'
-        hex_string(kind, t)
-      when 'U'
-        utf_string(kind, t)
-      when '@'
-        pos = if(t.nil?)
-                raise ArgumentError
-              else
-                t.to_i
-              end
-        if(pos < @result.size)
-          @result = @result[0...pos]
-        elsif(pos > @result.size)
+      when ?m
+        @result << encode(kind, len, :base64).join.sub(/(A{1,2})\n\Z/) { "#{'=' * $1.size}\n" }
+      when ?w
+        ber_compress(kind, len)
+      when ?u
+        @result << encode(kind, len, :uuencode).join.gsub(/ /, '`')
+      when ?d, ?D, ?e, ?E, ?f, ?F, ?g, ?G
+        decimal(kind, len)
+      when ?i, ?I, ?s, ?S, ?l, ?L, ?v, ?V
+        integer(kind, len, native_size)
+        native_size = false
+      when ?N
+        net_long(len)
+      when ?n
+        net_short(len)
+      when ?p, ?P
+        pointer(kind, len)
+      when ?Q, ?q
+        integer64(kind, len)
+      when ?H, ?h
+        hex_string(kind, len)
+      when ?U
+        utf_string(kind, len)
+      when ?@
+        pos = len
+        if pos < @result.size
+          @result = @result.substring(0, pos)
+        elsif pos > @result.size
           @result << "\x00" * (pos - @result.size)
         end
-      when '%'
+      when ?%
         raise ArgumentError, "#{kind} not implemented"
       end
     end
@@ -110,63 +138,49 @@ class Array::Packer
     return item
   end
 
-  def parse_tail(t, kind, remaining = @source.size - @index)
-    if(t != nil && (t.include?('_') || t.include?('!')))
-      unless 'sSiIlL'.include?(kind)
-        raise ArgumentError, "#{t} allowed only after types sSiIlL"
-      end
-      t = t.delete("_!")
-    end
-
-    case t
-    when nil
-      1
-    when '*'
-      remaining
-    else
-      m = t.match(/(\d+)/)
-      m ? m[0].to_i : 1
-    end
-  end
-
   # A, a, Z
-  def ascii_string(kind, t)
+  def ascii_string(kind, size)
     item = fetch_item()
     # MRI nil compatibilty for string functions
-    item = "" if item.nil?
+    item = "" unless item
 
-    item = Type.coerce_to(item, String, :to_str)
-    size = parse_tail(t, kind, item.size + (kind == "Z" ? 1 : 0))
+    item = StringValue(item)
+    size = item.size + (kind == ?Z ? 1 : 0) unless size
 
     padsize = size - item.size
-    filler  = kind == "A" ? " " : "\0"
+    filler  = kind == ?A ? " " : "\0"
 
-    @result << item.split(//).first(size).join
+    @result << item.substring(0, size)
     @result << filler * padsize if padsize > 0
   end
 
   # B, b
-  def bit_string(kind, t)
+  def bit_string(kind, size)
     item = fetch_item()
     # MRI nil compatibilty for string functions
-    item = "" if item.nil?
+    item = "" unless item
 
-    item = Type.coerce_to(item, String, :to_str)
+    item = StringValue(item)
     byte = 0
-    lsb  = (kind == "b")
-    size = parse_tail(t, kind, item.size)
+    lsb  = (kind == ?b)
+    size = item.size unless size
 
-    bits = item.split(//).map { |c| c[0] & 01 }
-    min = [size, item.size].min
+    min = size < item.size ? size : item.size
 
-    bits.first(min).each_with_index do |bit, i| # TODO: this can be cleaner
-      i &= 07
+    if min > 0
+      i = 0
+      item.each_byte do |bit|
+        bit &= 01
+        j = i & 07
+        byte |= bit << (lsb ? j : 07 - j)
 
-      byte |= bit << (lsb ? i : 07 - i)
+        if j == 07
+          @result << byte.chr
+          byte = 0
+        end
 
-      if i == 07
-        @result << byte.chr
-        byte = 0
+        i += 1
+        break if i >= min
       end
     end
 
@@ -180,48 +194,48 @@ class Array::Packer
   end
 
   # C, c
-  def character(kind, t)
-    parse_tail(t, kind).times do
+  def character(kind, size)
+    size.times do
       @result << (Type.coerce_to(fetch_item(), Integer, :to_int) & 0xff).chr
     end
   end
 
   # P, p
-  def pointer(kind, t)
-    count = parse_tail(t, kind, kind == 'p' ? @source.size - @index : 1)
-    raise ArgumentError, "too few array elements" if
-      @index + count > @source.length && kind == 'p'
-
-    count.times do
+  def pointer(kind, size)
+    size.times do
       item = fetch_item()
-      if(item == nil)
-        @result << "\x00"*POINTER_SIZE
+      unless item
+        @result << "\x00" * POINTER_SIZE
       else
-        item = StringValue item
+        item = StringValue(item)
         raise ArgumentError, "not implemented"
       end
     end
   end
 
   # H, h
-  def hex_string(kind, t)
-    item = Type.coerce_to(fetch_item(), String, :to_str)
+  def hex_string(kind, size)
+    item = StringValue(fetch_item())
 
     # MRI nil compatibilty for string functions
-    item = "" if item.nil?
+    item = "" unless item
 
-    size = parse_tail(t, kind, item.length)
-    str = item[0, size].scan(/..?/)
+    size = item.length unless size
 
-    numbers = if kind == "h"
-                str.map { |b| b.reverse.hex }
-              else
-                str.map { |b| b.        hex }
-              end
-
-    if kind == 'H' && !numbers.empty? && numbers.last < 16
-      numbers[-1] *= 16
+    str = item.substring(0, size)
+    tail = nil
+    if kind == ?h
+      0.step(str.length-2, 2) do |i|
+        @result << "#{item[i+1].chr}#{item[i].chr}".hex.chr
+      end
+    else
+      0.step(str.length-2, 2) do |i|
+        @result << item.substring(i, 2).hex.chr
+      end
     end
+    tail = item.substring(str.length-1, 1).hex.chr if str.length % 2 == 1
+
+    @result << (kind == ?H ? (tail[0]*16).chr : tail) if tail
 
     diff = size - item.length
 
@@ -234,56 +248,37 @@ class Array::Packer
         left = diff / 2
       end
 
-      left.times do
-        numbers << 0
-      end
+      @result << "\000" * left
     end
-
-    @result << numbers.map { |n| n.chr }.join
   end
 
-  def decimal(kind, t)
-    size = parse_tail(t, kind)
-
+  def decimal(kind, size)
     want_double = case kind
-                  when 'E', 'D', 'd', 'G' then true
-                  when 'e', 'F', 'f', 'g' then false
+                  when ?E, ?D, ?d, ?G then true
+                  when ?e, ?F, ?f, ?g then false
                   end
 
     little_endian = case kind
-                    when 'e', 'E' then true
-                    when 'g', 'G' then false
+                    when ?e, ?E then true
+                    when ?g, ?G then false
                     else endian?(:little)
                     end
 
     size.times do
-      item = fetch_item()
-      item = FloatValue item
+      item = FloatValue(fetch_item())
       bytes = item.to_packed(want_double)
       bytes.reverse! if little_endian ^ endian?(:little)
       @result << bytes
     end
   end
 
-  QUAD_MAX = 2 ** 64
-  MAX = 2 ** Rubinius::WORDSIZE
+  QUAD_MAX = 1 << 64
+  MAX = 1 << Rubinius::WORDSIZE
 
   # Q, q
-  def integer64(kind, t)
-    size = parse_tail(t, kind)
-
-    bytes = 8
-
-    little_endian = true
-
-    if @index + size > @source.length
-      raise ArgumentError, "too few array elements"
-    end
-
+  def integer64(kind, size)
     size.times do |i|
       val = Type.coerce_to(fetch_item, Integer, :to_int)
-
-      max_wordsize = 64
 
       if val.abs >= QUAD_MAX
         raise RangeError, "bignum too big to convert into 'unsigned long'"
@@ -295,14 +290,8 @@ class Array::Packer
   end
 
   # N
-  def net_long(t)
-    size = parse_tail(t, 'N')
-
-    if @index + size > @source.length
-      raise ArgumentError, "too few array elements"
-    end
-
-    size.times do |i|
+  def net_long(size)
+    size.times do
       val = Type.coerce_to(fetch_item, Integer, :to_int)
 
       # These ranges checks are so stupid. They don't even check the actual
@@ -318,14 +307,8 @@ class Array::Packer
   end
 
   # n
-  def net_short(t)
-    size = parse_tail(t, 'n')
-
-    if @index + size > @source.length
-      raise ArgumentError, "too few array elements"
-    end
-
-    size.times do |i|
+  def net_short(size)
+    size.times do
       val = Type.coerce_to(fetch_item, Integer, :to_int)
 
       # These ranges checks are so stupid. They don't even check the actual
@@ -341,58 +324,50 @@ class Array::Packer
   end
 
   # i, s, l, I, S, L, V, v
-  def integer(kind, t)
-    size = parse_tail(t, kind)
-
-    if(t && (t.include?('_') || t.include?('!')))
+  def integer(kind, size, native_size)
+    if native_size
       # Native sizes
       bytes = case kind
-              when 'L', 'l' then Rubinius::SIZEOF_LONG
-              when 'I', 'i' then Rubinius::SIZEOF_INT
-              when 'S', 's' then Rubinius::SIZEOF_SHORT
+              when ?L, ?l then Rubinius::SIZEOF_LONG
+              when ?I, ?i then Rubinius::SIZEOF_INT
+              when ?S, ?s then Rubinius::SIZEOF_SHORT
               end
     else
       bytes = case kind
-              when 'L', 'l' then 4
-              when 'I', 'i' then 4
-              when 'S', 's' then 2
-              when 'V'      then 4
-              when 'v'      then 2
+              when ?L, ?l, ?I, ?i, ?V then 4
+              when ?S, ?s, ?v         then 2
               end
     end
 
-    unsigned      = (kind =~ /I|S|L/)
+    unsigned      = kind == ?I or kind == ?S or kind == ?L
     little_endian = case kind
-                    when 'V', 'v' then true
+                    when ?V, ?v then true
                     else endian?(:little)
                     end
 
-    raise ArgumentError, "too few array elements" if
-      @index + size > @source.length
-
-    size.times do |i|
+    size.times do
       item = Type.coerce_to(fetch_item(), Integer, :to_int)
 
       if item.abs >= MAX
         raise RangeError, "bignum too big to convert into 'unsigned long'"
       end
 
-        @result << if little_endian
-                     item += 2 ** (8 * bytes) if item < 0
-                     (0...bytes).map { |b| ((item >> (b * 8)) & 0xFF).chr }
-                   else # ugly
-                     (0...bytes).map {n=(item & 0xFF).chr;item >>= 8; n}.reverse
-                   end.join
+      if little_endian
+        item += 1 << (8 * bytes) if item < 0
+        bytes.times { |b| @result << ((item >> (b * 8)) & 0xFF).chr }
+      else # ugly
+        @result << (0...bytes).map {n=(item & 0xFF).chr;item >>= 8; n}.reverse.join
+      end
     end
   end
 
   # w
-  def ber_compress(kind, t)
-    parse_tail(t, kind).times do
-      chars = ''
+  def ber_compress(kind, size)
+    size.times do
       item = Type.coerce_to(fetch_item(), Integer, :to_int)
       raise ArgumentError, "can't compress negative numbers" if item < 0
 
+      chars = ''
       chars << (item & 0x7f)
       while (item >>= 7) > 0 do
         chars << ((item & 0x7f) | 0x80)
@@ -402,12 +377,12 @@ class Array::Packer
   end
 
   # u, m
-  def encode(kind, t, type = :base64)
-    item = Type.coerce_to(fetch_item(), String, :to_str)
+  def encode(kind, size, type = :base64)
+    item = StringValue(fetch_item())
 
     line_length = 45
-    if t && t =~ /^\d/ && t.to_i >= 3
-      line_length = t.to_i
+    if size >= 3
+      line_length = size
       line_length -= line_length % 3
     end
 
@@ -431,7 +406,7 @@ class Array::Packer
 
       l = "#{encoded.join}\n"
       if(type == :uuencode)
-        (line.size + ?\s).chr+l
+        (line.size + ?\s).chr + l
       else
         l
       end
@@ -439,38 +414,36 @@ class Array::Packer
   end
 
   # U
-  def utf_string(kind, t)
-    parse_tail(t, kind).times do
+  def utf_string(kind, size)
+    size.times do
       item = Type.coerce_to(fetch_item(), Integer, :to_i)
 
       raise RangeError, "pack(U): value out of range" if item < 0
 
       bytes = 0
-      f = [2 ** 7, 2 ** 11, 2 ** 16, 2 ** 21, 2 ** 26, 2 ** 31].find { |n|
+
+      f = [1 << 7, 1 << 11, 1 << 16, 1 << 21, 1 << 26, 1 << 31].find do |n|
         bytes += 1
         item < n
-      }
+      end
 
-      raise RangeError, "pack(U): value out of range" if f.nil?
+      raise RangeError, "pack(U): value out of range" unless f
 
       if bytes == 1
         @result << item
-        bytes = 0
-      end
+      else
+        i = bytes
+        buf = []
 
-      i = bytes
-
-      buf = []
-      if i > 0
         (i-1).times do
-          buf.unshift((item | 0x80) & 0xBF)
+          buf.unshift(((item | 0x80) & 0xBF).chr)
           item >>= 6
         end
         # catch the highest bits - the mask depends on the byte count
-        buf.unshift(item | ((0x3F00 >> bytes)) & 0xFC)
-      end
+        buf.unshift((item | ((0x3F00 >> bytes)) & 0xFC).chr)
 
-      @result << buf.map { |n| n.chr }.join
+        @result << buf.join
+      end
     end
   end
 end
