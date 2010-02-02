@@ -209,10 +209,10 @@ PointerType* PointerTy_15 = PointerType::get(FuncTy_16, 0);
 
 StructTy_struct_rubinius__Executable_fields.push_back(PointerTy_15);
 StructTy_struct_rubinius__Executable_fields.push_back(IntegerType::get(getGlobalContext(), 32));
-OpaqueType* OpaqueTy_struct_std__Inliners = OpaqueType::get(getGlobalContext());
-mod->addTypeName("struct.std::Inliners", OpaqueTy_struct_std__Inliners);
+OpaqueType* OpaqueTy_struct_rubinius__Inliners = OpaqueType::get(getGlobalContext());
+mod->addTypeName("struct.rubinius::Inliners", OpaqueTy_struct_rubinius__Inliners);
 
-PointerType* PointerTy_24 = PointerType::get(OpaqueTy_struct_std__Inliners, 0);
+PointerType* PointerTy_24 = PointerType::get(OpaqueTy_struct_rubinius__Inliners, 0);
 
 StructTy_struct_rubinius__Executable_fields.push_back(PointerTy_24);
 StructType* StructTy_struct_rubinius__Executable = StructType::get(mod->getContext(), StructTy_struct_rubinius__Executable_fields, /*isPacked=*/false);
@@ -374,6 +374,7 @@ StructTy_struct_rubinius__InlineCache = cast<StructType>(StructTy_struct_rubiniu
 
 
 mod->addTypeName("struct.rubinius::InlineCacheHit", StructTy_struct_rubinius__InlineCacheHit);
+mod->addTypeName("struct.rubinius::Inliners", OpaqueTy_struct_rubinius__Inliners);
 mod->addTypeName("struct.rubinius::InstructionSequence", OpaqueTy_struct_rubinius__InstructionSequence);
 mod->addTypeName("struct.rubinius::LookupTable", OpaqueTy_struct_rubinius__LookupTable);
 mod->addTypeName("struct.rubinius::MethodTable", OpaqueTy_struct_rubinius__MethodTable);
@@ -414,7 +415,6 @@ StructType* StructTy_struct_rubinius__jit__RuntimeData = StructType::get(mod->ge
 mod->addTypeName("struct.rubinius::jit::RuntimeData", StructTy_struct_rubinius__jit__RuntimeData);
 
 mod->addTypeName("struct.rubinius::jit::RuntimeDataHolder", OpaqueTy_struct_rubinius__jit__RuntimeDataHolder);
-mod->addTypeName("struct.std::Inliners", OpaqueTy_struct_std__Inliners);
 
 // Function Declarations
 
