@@ -4,7 +4,6 @@ describe :file_identical, :shared => true do
     @file2 = tmp('file_identical2.txt')
     @link  = tmp('file_identical.lnk')
 
-
     touch(@file1) { |f| f.puts "file1" }
     touch(@file2) { |f| f.puts "file2" }
 
@@ -16,9 +15,7 @@ describe :file_identical, :shared => true do
     rm_r @link, @file1, @file2
   end
 
-  it "return true if they are identical" do
-    @object.send(@method, @file1, @file1).should == true
-    @object.send(@method, @file1, @file2).should == false
+  it "returns true for a file and its link" do
     @object.send(@method, @file1, @link).should == true
   end
 
@@ -40,6 +37,7 @@ describe :file_identical, :shared => true do
 
   it "returns true if both named files are identical" do
     @object.send(@method, @file1, @file1).should be_true
+    @object.send(@method, @link, @link).should be_true
     @object.send(@method, @file1, @file2).should be_false
   end
 end

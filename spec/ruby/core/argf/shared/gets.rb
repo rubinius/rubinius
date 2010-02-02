@@ -77,13 +77,16 @@ describe :argf_gets_inplace_edit, :shared => true do
     rm_r @tmp1_name, @tmp2_name, @tmp1_name_bak, @tmp2_name_bak
   end
 
-  it "modifies the files when in place edit mode is on" do
-    ruby_exe(@code,
-             :options => "-i",
-             :args => "#{@tmp1_name} #{@tmp2_name}")
+  # -i with no backup extension is not supported on Windows
+  platform_is_not :os => :mswin do
+    it "modifies the files when in place edit mode is on" do
+      ruby_exe(@code,
+               :options => "-i",
+               :args => "#{@tmp1_name} #{@tmp2_name}")
 
-    File.read(@tmp1_name).should == "x\nx\n"
-    File.read(@tmp2_name).should == "x\nx\n"
+      File.read(@tmp1_name).should == "x\nx\n"
+      File.read(@tmp2_name).should == "x\nx\n"
+    end
   end
 
   it "modifies and backups two files when in place edit mode is on" do

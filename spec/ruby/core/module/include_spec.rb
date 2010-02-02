@@ -212,8 +212,9 @@ describe "Module#include" do
         include M
       end
 
-      K.ancestors.count(M).should == 1
-      K.ancestors.count(M0).should == 1
+      K.ancestors[0].should == K
+      K.ancestors[1].should == M
+      K.ancestors[2].should == M0
     end
   end
 

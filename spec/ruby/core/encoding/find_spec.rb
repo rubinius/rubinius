@@ -18,9 +18,9 @@ ruby_version_is "1.9" do
       end
     end
 
-    it "accepts encoding names as Symbols" do
+    it "does NOT accept encoding names as Symbols" do
       @encodings.each do |enc|
-        Encoding.find(enc.to_sym).should == Encoding.find(enc)
+        lambda { Encoding.find(enc.to_sym) }.should raise_error(TypeError)
       end
     end
 

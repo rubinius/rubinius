@@ -107,9 +107,12 @@ describe :string_each_line, :shared => true do
   end
 
   ruby_version_is '1.9' do
-    it "accept string-like separator" do
+    it "accept string separator" do
       "hello world".send(@method, ?o).to_a.should == ["hello", " wo", "rld"]
-      "hello world".send(@method, :o).to_a.should == ["hello", " wo", "rld"]
+    end
+
+    it "raises a TypeError when the separator is a symbol" do
+      lambda { "hello world".send(@method, :o).to_a }.should raise_error(TypeError)
     end
   end
 

@@ -36,18 +36,35 @@ describe "StringIO#ungetc when passed [char]" do
     end
   end
 
-  it "tries to convert the passed length to an Integer using #to_int" do
-    obj = mock("to_int")
-    obj.should_receive(:to_int).and_return(?A)
+  ruby_version_is "" ... "1.9" do
+    it "tries to convert the passed length to an Integer using #to_int" do
+      obj = mock("to_int")
+      obj.should_receive(:to_int).and_return(?A)
 
-    @io.pos = 1
-    @io.ungetc(obj)
-    @io.string.should == "A234"
+      @io.pos = 1
+      @io.ungetc(obj)
+      @io.string.should == "A234"
+    end
+
+    it "raises a TypeError when the passed length can't be converted to an Integer" do
+      lambda { @io.ungetc(Object.new) }.should raise_error(TypeError)
+      lambda { @io.ungetc("A") }.should raise_error(TypeError)
+    end
   end
 
-  it "raises a TypeError when the passed length can't be converted to an Integer" do
-    lambda { @io.ungetc(Object.new) }.should raise_error(TypeError)
-    lambda { @io.ungetc("A") }.should raise_error(TypeError)
+  ruby_version_is "1.9" do
+    it "tries to convert the passed argument to an String using #to_str" do
+      obj = mock("to_str")
+      obj.should_receive(:to_str).and_return(?A)
+
+      @io.pos = 1
+      @io.ungetc(obj)
+      @io.string.should == "A234"
+    end
+
+    it "raises a TypeError when the passed length can't be converted to an Integer or String" do
+      lambda { @io.ungetc(Object.new) }.should raise_error(TypeError)
+    end
   end
 end
 

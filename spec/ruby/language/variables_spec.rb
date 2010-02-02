@@ -227,6 +227,15 @@ describe "Assigning multiple values" do
     b.should == 1
   end
 
+  not_compliant_on :rubinius do
+    it "returns the rhs values used for assignment as an array" do
+      o = Object.new
+      def o.masgn; a, b, c = 1, 2, 3; end
+
+      o.masgn.should == [1,2,3]
+    end
+  end
+
   it "evaluates rhs left-to-right" do
     a = VariablesSpecs::ParAsgn.new
     d,e,f = a.inc, a.inc, a.inc

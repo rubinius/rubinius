@@ -58,7 +58,11 @@ describe "Kernel#system" do
 
   before :each do
     ENV['TEST_SH_EXPANSION'] = 'foo'
-    @shell_var = platform_is(:windows) ? '%TEST_SH_EXPANSION%' : '$TEST_SH_EXPANSION'
+    @shell_var = '$TEST_SH_EXPANSION'
+    platform_is :windows do
+      @shell_var = '%TEST_SH_EXPANSION%'
+    end
+
     @helper_script = KernelSpecs.helper_script
   end
 

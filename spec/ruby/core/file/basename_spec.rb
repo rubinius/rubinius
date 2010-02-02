@@ -70,8 +70,10 @@ describe "File.basename" do
     File.basename("").should == ""
     File.basename(".").should == "."
     File.basename("..").should == ".."
-    File.basename("//foo/").should == "foo"
-    File.basename("//foo//").should == "foo"
+    platform_is_not :windows do
+      File.basename("//foo/").should == "foo"
+      File.basename("//foo//").should == "foo"
+    end
     File.basename("foo/").should == "foo"
   end
 
@@ -112,25 +114,23 @@ describe "File.basename" do
   platform_is :windows do
     it "return the basename for windows" do
       File.basename("C:\\foo\\bar\\baz.txt").should == "baz.txt"
-      File.basename("C:\\foo\\bar").should == "baz"
-      File.basename("C:\\foo\\bar\\").should == "baz"
+      File.basename("C:\\foo\\bar").should == "bar"
+      File.basename("C:\\foo\\bar\\").should == "bar"
       File.basename("C:\\foo").should == "foo"
-      File.basename("C:\\").should == "C:\\"
+      File.basename("C:\\").should == "\\"
     end
 
     it "return basename windows unc" do
       File.basename("\\\\foo\\bar\\baz.txt").should == "baz.txt"
       File.basename("\\\\foo\\bar\\baz").should =="baz"
-      File.basename("\\\\foo").should == "\\\\foo"
-      File.basename("\\\\foo\\bar").should == "\\\\foo\\bar"
     end
 
     it "return basename windows forward slash" do
-      File.basename("C:/").should == "C:/"
+      File.basename("C:/").should == "/"
       File.basename("C:/foo").should == "foo"
       File.basename("C:/foo/bar").should == "bar"
-      File.basename("C:/foo/bar/").should "bar"
-      File.basename("C:/foo/bar//").shouldl == "bar"
+      File.basename("C:/foo/bar/").should == "bar"
+      File.basename("C:/foo/bar//").should == "bar"
     end
 
     it "return basename with windows suffix" do

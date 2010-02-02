@@ -21,9 +21,21 @@ describe "BigDecimal#ceil" do
     @zero_neg = BigDecimal("-0")
   end
   
-  it "returns a BigDecimal" do
-    @mixed.ceil.kind_of?(BigDecimal).should == true
-    @pos_int.ceil(2).kind_of?(BigDecimal).should == true
+  ruby_version_is "" ... "1.9" do
+    it "returns a BigDecimal" do
+      @mixed.ceil.kind_of?(BigDecimal).should == true
+      @pos_int.ceil(2).kind_of?(BigDecimal).should == true
+    end
+  end
+  
+  ruby_version_is "1.9" do
+    it "returns an Integer, if n is unspecified" do
+      @mixed.ceil.kind_of?(Integer).should == true
+    end
+
+    it "returns a BigDecimal, if n is specified" do
+      @pos_int.ceil(2).kind_of?(BigDecimal).should == true
+    end
   end
 
   it "returns the smallest integer greater or equal to self, if n is unspecified" do
@@ -31,9 +43,6 @@ describe "BigDecimal#ceil" do
     @neg_int.ceil.should == @neg_int
     @pos_frac.ceil.should == BigDecimal("1")
     @neg_frac.ceil.should == @zero
-    @infinity.ceil.should == @infinity
-    @infinity_neg.ceil.should == @infinity_neg
-    @nan.ceil.nan?.should == true
     @zero.ceil.should == 0
     @zero_pos.ceil.should == @zero_pos
     @zero_neg.ceil.should == @zero_neg
@@ -45,6 +54,22 @@ describe "BigDecimal#ceil" do
     BigDecimal('-2.3').ceil.should == -2
     BigDecimal('-2.5').ceil.should == -2
     BigDecimal('-2.9999').ceil.should == -2
+  end
+
+  ruby_version_is "" ... "1.9" do
+    it "returns the same value, if self is special value" do
+      @infinity.ceil.should == @infinity
+      @infinity_neg.ceil.should == @infinity_neg
+      @nan.ceil.nan?.should == true
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raise exception, if self is special value" do
+      lambda { @infinity.ceil }.should raise_error(FloatDomainError)
+      lambda { @infinity_neg.ceil }.should raise_error(FloatDomainError)
+      lambda { @nan.ceil }.should raise_error(FloatDomainError)
+    end
   end
 
   it "returns n digits right of the decimal point if given n > 0" do

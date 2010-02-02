@@ -151,8 +151,9 @@ describe "File#truncate" do
   end
 
   it "raises an IOError if file is not opened for writing" do
-    file = File.new(@name, 'r')
-    lambda { file.truncate(42) }.should raise_error(IOError)
+    File.open(@name, 'r') do |file|
+      lambda { file.truncate(42) }.should raise_error(IOError)
+    end
   end
 
   it "raises a TypeError if not passed an Integer type for the for the argument" do

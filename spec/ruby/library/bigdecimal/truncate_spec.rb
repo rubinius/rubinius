@@ -11,9 +11,19 @@ describe "BigDecimal#truncate" do
       @infinity_negative = BigDecimal('-Infinity')
   end
 
-  it "returns value of type Bigdecimal." do
-    @arr.each do |x|
-      BigDecimal(x).truncate.kind_of?(BigDecimal).should == true
+  ruby_version_is "" ... "1.9" do
+    it "returns value of type Bigdecimal." do
+      @arr.each do |x|
+        BigDecimal(x).truncate.kind_of?(BigDecimal).should == true
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns value of type Integer." do
+      @arr.each do |x|
+        BigDecimal(x).truncate.kind_of?(Integer).should == true
+      end
     end
   end
 
@@ -61,18 +71,31 @@ describe "BigDecimal#truncate" do
     @nan.truncate(-1).nan?.should == true
     @nan.truncate(+1).nan?.should == true
     @nan.truncate(0).nan?.should == true
-    @nan.truncate.nan?.should == true
   end
 
   it "returns Infinity if self is infinite" do
     @infinity.truncate(-1).should == @infinity
     @infinity.truncate(+1).should == @infinity
     @infinity.truncate(0).should == @infinity
-    @infinity.truncate.should == @infinity
 
     @infinity_negative.truncate(-1).should == @infinity_negative
     @infinity_negative.truncate(+1).should == @infinity_negative
     @infinity_negative.truncate(0).should == @infinity_negative
-    @infinity_negative.truncate.should == @infinity_negative
+  end
+
+  ruby_version_is "" ... "1.9" do
+    it "returns the same value if self is special value" do
+      @nan.truncate.nan?.should == true
+      @infinity.truncate.should == @infinity
+      @infinity_negative.truncate.should == @infinity_negative
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns the same value if self is special value" do
+      lambda { @nan.truncate }.should raise_error(FloatDomainError)
+      lambda { @infinity.truncate }.should raise_error(FloatDomainError)
+      lambda { @infinity_negative.truncate }.should raise_error(FloatDomainError)
+    end
   end
 end

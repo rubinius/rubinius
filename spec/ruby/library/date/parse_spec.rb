@@ -45,14 +45,28 @@ describe "Date#parse" do
     d.should == Date.civil(Date.today.year, 11, 8)
   end
 
-  it "can handle YYDDD as year and day number" do
-    d = Date.parse("10100")
-    d.should == Date.civil(10, 4, 10)
+  ruby_version_is "" ... "1.9" do
+    it "can handle YYDDD as year and day number" do
+      d = Date.parse("10100")
+      d.should == Date.civil(10, 4, 10)
+    end
+
+    it "can handle YYMMDD as year month and day" do
+      d = Date.parse("201023")
+      d.should == Date.civil(20, 10, 23)
+    end
   end
 
-  it "can handle YYMMDD as year month and day" do
-    d = Date.parse("201023")
-    d.should == Date.civil(20, 10, 23)
+  ruby_version_is "1.9" do
+    it "can handle YYDDD as year and day number in 1969--2068" do
+      d = Date.parse("10100")
+      d.should == Date.civil(2010, 4, 10)
+    end
+
+    it "can handle YYMMDD as year month and day in 1969--2068" do
+      d = Date.parse("201023")
+      d.should == Date.civil(2020, 10, 23)
+    end
   end
 
   it "can handle YYYYDDD as year and day number" do
@@ -132,11 +146,22 @@ ruby_version_is "1.8.7" do
       d.day.should   == 10
     end
 
-    it "parses a YY.MM.DD string into a Date object" do
-      d = Date.parse("10.01.07")
-      d.year.should  == 10
-      d.month.should == 1
-      d.day.should   == 7
+    ruby_version_is "" ... "1.9" do
+      it "parses a YY.MM.DD string into a Date object" do
+	d = Date.parse("10.01.07")
+	d.year.should  == 10
+	d.month.should == 1
+	d.day.should   == 7
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "parses a YY.MM.DD string into a Date object" do
+	d = Date.parse("10.01.07")
+	d.year.should  == 2010
+	d.month.should == 1
+	d.day.should   == 7
+      end
     end
 
     it "parses a YY.MM.DD string into a Date object using the year digits as 20XX" do

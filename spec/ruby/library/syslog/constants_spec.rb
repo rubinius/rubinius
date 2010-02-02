@@ -17,7 +17,7 @@ describe "Syslog::Constants" do
 
     it 'includes the Syslog constants' do
       @constants.each do |c|
-        Syslog::Constants.constants.include?(c).should be_true
+        Syslog::Constants.should have_constant(c)
       end
     end
 

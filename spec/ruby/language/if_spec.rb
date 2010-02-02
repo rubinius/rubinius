@@ -212,6 +212,36 @@ describe "The if expression" do
 
     if false then 123; else 456; end.should == 456
   end
+
+  describe "with a boolean range ('flip-flop' operator)" do
+    before :each do
+      ScratchPad.record []
+    end
+
+    after :each do
+      ScratchPad.clear
+    end
+
+    it "mimics an awk conditional with a single-element inclusive-end range" do
+      10.times { |i| ScratchPad << i if (i == 4)..(i == 4) }
+      ScratchPad.recorded.should == [4]
+    end
+
+    it "mimics an awk conditional with a many-element inclusive-end range" do
+      10.times { |i| ScratchPad << i if (i == 4)..(i == 7) }
+      ScratchPad.recorded.should == [4, 5, 6, 7]
+    end
+
+    it "mimics a sed conditional with a zero-element exclusive-end range" do
+      10.times { |i| ScratchPad << i if (i == 4)...(i == 4) }
+      ScratchPad.recorded.should == [4, 5, 6, 7, 8, 9]
+    end
+
+    it "mimics a sed conditional with a many-element exclusive-end range" do
+      10.times { |i| ScratchPad << i if (i == 4)...(i == 5) }
+      ScratchPad.recorded.should == [4, 5]
+    end
+  end
 end
 
 describe "The postfix if form" do

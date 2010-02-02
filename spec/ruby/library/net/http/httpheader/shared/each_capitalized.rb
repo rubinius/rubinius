@@ -31,7 +31,7 @@ describe :net_httpheader_each_capitalized, :shared => true do
           enumerator.should be_kind_of(enumerator_class)
     
           res = []
-          enumerator.each do |key|
+          enumerator.each do |*key|
             res << key
           end
           res.should == [["My-Header", "test"], ["My-Other-Header", "a, b"]]

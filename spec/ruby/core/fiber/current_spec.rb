@@ -2,8 +2,9 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 ruby_version_is "1.9" do
   describe "Fiber.current" do
-
-    require 'fiber'
+    not_supported_on :jruby do
+      require 'fiber'
+    end
 
     it "returns the root Fiber when called outside of a Fiber" do
       root = Fiber.current

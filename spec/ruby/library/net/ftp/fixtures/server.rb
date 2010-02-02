@@ -1,6 +1,7 @@
 module NetFTPSpecs
   class DummyFTP
     attr_accessor :connect_message
+    attr_reader :login_user, :login_pass, :login_acct
     
     def initialize(port = 9921) 
       @server = TCPServer.new("localhost", port)
@@ -89,6 +90,7 @@ module NetFTPSpecs
     end
     
     def acct(account)
+      @login_acct = account
       self.response("230 User '#{account}' logged in, proceed. (ACCT)")
     end
     
@@ -150,6 +152,7 @@ module NetFTPSpecs
     end
     
     def pass(password)
+      @login_pass = password
       self.response("230 User logged in, proceed. (PASS #{password})")
     end
     
@@ -233,6 +236,11 @@ module NetFTPSpecs
       #@datasocket.close()
       self.response("200 OK, Data received. (STOR #{file})")
     end
+
+    def appe(file)
+      @restart_at = true
+      stor(file)
+    end
     
     def syst
       self.response("215 FTP Dummy Server (SYST)")
@@ -243,6 +251,7 @@ module NetFTPSpecs
     end
     
     def user(name)
+      @login_user = name
       self.response("230 User logged in, proceed. (USER #{name})")
     end
   end

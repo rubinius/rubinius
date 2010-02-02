@@ -32,7 +32,7 @@ describe "Numeric#coerce" do
   it "calls #to_f to convert other if self responds to #to_f" do
     # Do not use NumericSub here, because coerce checks the classes of the receiver
     # and arguments before calling #to_f.
-    other = Object.new
+    other = mock("numeric")
     lambda { @obj.coerce(other) }.should raise_error(TypeError)
   end
 

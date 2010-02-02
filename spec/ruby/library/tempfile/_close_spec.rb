@@ -7,7 +7,7 @@ describe "Tempfile#_close" do
   end
   
   it "is protected" do
-    @tempfile.protected_methods.should include("_close")
+    Tempfile.should have_protected_instance_method(:_close)
   end
   
   it "closes self" do

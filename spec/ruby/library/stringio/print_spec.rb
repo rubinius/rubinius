@@ -6,14 +6,28 @@ describe "StringIO#print" do
     @io = StringIO.new('example')
   end
 
-  it "prints $_ when passed no arguments" do
-    $_ = nil
-    @io.print
-    @io.string.should == "nilmple"
+  ruby_version_is "" ... "1.9" do
+    it "prints $_ when passed no arguments" do
+      $_ = nil
+      @io.print
+      @io.string.should == "nilmple"
 
-    $_ = "blah"
-    @io.print
-    @io.string.should == "nilblah"
+      $_ = "blah"
+      @io.print
+      @io.string.should == "nilblah"
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "prints $_ when passed no arguments" do
+      $_ = nil
+      @io.print
+      @io.string.should == "example"
+
+      $_ = "blah"
+      @io.print
+      @io.string.should == "blahple"
+    end
   end
 
   it "prints the passed arguments to self" do

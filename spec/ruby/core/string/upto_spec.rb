@@ -86,8 +86,8 @@ describe "String#upto" do
   end
 
   ruby_version_is '1.9' do
-    it "works with symbols" do
-      "a".upto(:c).to_a.should == ["a", "b", "c"]
+    it "does not work with symbols" do
+      lambda { "a".upto(:c).to_a }.should raise_error(TypeError)
     end
 
     it "returns an enumerator when no block given" do

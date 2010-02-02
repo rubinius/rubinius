@@ -143,28 +143,30 @@ describe "CGI#initialize when CGI_PARAMS is set" do
   end
 
 
-  it "prints out a warning" do
-    begin
-      CGI_PARAMS = { "test" => "test" }
-      CGI_COOKIES = [ "cookie!" ]
-      lambda { @cgi.send(:initialize) }.should complain("do not use CGI_PARAMS and CGI_COOKIES\n")
-    ensure
-      Object.send(:remove_const, :CGI_PARAMS)
-      Object.send(:remove_const, :CGI_COOKIES)
+  ruby_version_is "" ... "1.9" do
+    it "prints out a warning" do
+      begin
+	CGI_PARAMS = { "test" => "test" }
+	CGI_COOKIES = [ "cookie!" ]
+	lambda { @cgi.send(:initialize) }.should complain("do not use CGI_PARAMS and CGI_COOKIES\n")
+      ensure
+	Object.send(:remove_const, :CGI_PARAMS)
+	Object.send(:remove_const, :CGI_COOKIES)
+      end
     end
-  end
 
-  it "sets #cookies and #params to the contents of CGI_PARAMS and CGI_COOKIES" do
-    begin
-      CGI_PARAMS = { "test" => "test" }
-      CGI_COOKIES = [ "cookie!" ]
+    it "sets #cookies and #params to the contents of CGI_PARAMS and CGI_COOKIES" do
+      begin
+	CGI_PARAMS = { "test" => "test" }
+	CGI_COOKIES = [ "cookie!" ]
       
-      @cgi.send(:initialize)
-      @cgi.params.should == CGI_PARAMS
-      @cgi.cookies.should == CGI_COOKIES
-    ensure
-      Object.send(:remove_const, :CGI_PARAMS)
-      Object.send(:remove_const, :CGI_COOKIES)
+	@cgi.send(:initialize)
+	@cgi.params.should == CGI_PARAMS
+	@cgi.cookies.should == CGI_COOKIES
+      ensure
+	Object.send(:remove_const, :CGI_PARAMS)
+	Object.send(:remove_const, :CGI_COOKIES)
+      end
     end
   end
 end

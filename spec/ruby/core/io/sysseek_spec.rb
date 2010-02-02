@@ -1,11 +1,13 @@
 # -*- encoding: utf-8 -*-
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
-require File.dirname(__FILE__) + '/shared/set_pos'
+require File.dirname(__FILE__) + '/shared/pos'
 
 describe "IO#sysseek on a file" do
-  it_behaves_like(:io_set_pos, :seek)
+  it_behaves_like :io_set_pos, :seek
+end
 
+describe "IO#sysseek on a file" do
   before :each do
     @file = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r')
     @io = IO.open @file.fileno, 'r'

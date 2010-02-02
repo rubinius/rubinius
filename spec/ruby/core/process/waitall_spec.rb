@@ -2,7 +2,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Process.waitall" do
   before :all do
-    Process.waitall
+    begin
+      Process.waitall
+    rescue NotImplementedError
+    end
   end
 
   it "returns an empty array when there are no children" do

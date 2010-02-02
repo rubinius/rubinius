@@ -11,17 +11,17 @@ describe :net_httpheader_set_form_data, :shared => true do
     
     it "sets self's body based on the passed form parameters" do
       @headers.send(@method, "cmd" => "search", "q" => "ruby", "max" => "50")
-      @headers.body.split("&").should == ["max=50", "cmd=search", "q=ruby"]
+      @headers.body.split("&").sort.should == ["cmd=search", "max=50", "q=ruby"]
     end
   end
 
   describe "when passed params, separator" do
     it "sets self's body based on the passed form parameters and the passed separator" do
       @headers.send(@method, {"cmd" => "search", "q" => "ruby", "max" => "50"}, "&")
-      @headers.body.split("&").should == ["max=50", "cmd=search", "q=ruby"]
+      @headers.body.split("&").sort.should == ["cmd=search", "max=50", "q=ruby"]
 
       @headers.send(@method, {"cmd" => "search", "q" => "ruby", "max" => "50"}, ";")
-      @headers.body.split(";").should == ["max=50", "cmd=search", "q=ruby"]
+      @headers.body.split(";").sort.should == ["cmd=search", "max=50", "q=ruby"]
     end
   end
 end

@@ -26,9 +26,6 @@ describe "BigDecimal#floor" do
     @neg_int.floor.should == @neg_int
     @pos_frac.floor.should == @zero
     @neg_frac.floor.should == BigDecimal("-1")
-    @infinity.floor.should == @infinity
-    @infinity_neg.floor.should == @infinity_neg
-    @nan.floor.nan?.should == true
     @zero.floor.should == 0
     @zero_pos.floor.should == @zero_pos
     @zero_neg.floor.should == @zero_neg
@@ -41,6 +38,22 @@ describe "BigDecimal#floor" do
     BigDecimal('-2.9999').floor.should == -3
     BigDecimal('0.8').floor.should == 0
     BigDecimal('-0.8').floor.should == -1
+  end
+
+  ruby_version_is "" ... "1.9" do
+    it "returns the same value, if self is special value" do
+      @infinity.floor.should == @infinity
+      @infinity_neg.floor.should == @infinity_neg
+      @nan.floor.nan?.should == true
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raise exception, if self is special value" do
+      lambda { @infinity.floor }.should raise_error(FloatDomainError)
+      lambda { @infinity_neg.floor }.should raise_error(FloatDomainError)
+      lambda { @nan.floor }.should raise_error(FloatDomainError)
+    end
   end
 
   it "returns n digits right of the decimal point if given n > 0" do

@@ -21,13 +21,14 @@ describe "CGI::QueryExtension#[]" do
     @cgi["two"].should == "b"
   end
   
-  it "returns a String that was extended with CGI::QueryExtension::Value" do
+  it "returns a String" do
     @cgi["one"].should be_kind_of(String)
-    @cgi["one"].should be_kind_of(CGI::QueryExtension::Value)
   end
 
-  it "sets the other values in the returned value" do
-    @cgi["one"].to_a.should == ["a"]
-    @cgi["two"].to_a.should == ["b", "c"]
+  ruby_version_is "" ... "1.9" do
+    it "sets the other values in the returned value" do
+      @cgi["one"].to_a.should == ["a"]
+      @cgi["two"].to_a.should == ["b", "c"]
+    end
   end
 end

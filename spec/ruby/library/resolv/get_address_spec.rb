@@ -13,7 +13,9 @@ describe "Resolv#getaddress" do
     lambda {
       address = Resolv.getaddress(localhost)
     }.should_not raise_error(Resolv::ResolvError)
-
+  end
+  
+  it 'raises ResolvError given a bogus address' do
     lambda {
       address = Resolv.getaddress("should.raise.error.")
     }.should raise_error(Resolv::ResolvError)

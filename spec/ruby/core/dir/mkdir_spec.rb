@@ -52,7 +52,7 @@ describe "Dir.mkdir" do
     end
   end
 
-  ruby_version_is "1.8" do
+  ruby_version_is ""..."1.9" do
     it "call #to_str on non-String arguments" do
       DirSpecs.clear_dirs
       p = mock('path')
@@ -64,6 +64,14 @@ describe "Dir.mkdir" do
 
   it "raises a SystemCallError if any of the directories in the path before the last does not exist" do
     lambda { Dir.mkdir "#{DirSpecs.nonexistent}/subdir" }.should raise_error(SystemCallError)
+  end
+
+  it "raises Errno::EEXIST if the specified directory already exists" do
+    lambda { Dir.mkdir(File.dirname(__FILE__)) }.should raise_error(Errno::EEXIST)
+  end
+
+  it "raises Errno::EEXIST if the argument points to the existing file" do
+    lambda { Dir.mkdir(__FILE__) }.should raise_error(Errno::EEXIST)
   end
 end
 

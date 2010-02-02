@@ -38,10 +38,12 @@ describe "StringIO#readline when passed [separator]" do
     @io.lineno.should eql(3)
   end
   
-  it "returns the next paragraph when the passed separator is an empty String" do
-    io = StringIO.new("this is\n\nan example")
-    io.readline("").should == "this is\n"
-    io.readline("").should == "an example"
+  ruby_bug "", "1.8.8" do
+    it "returns the next paragraph when the passed separator is an empty String" do
+      io = StringIO.new("this is\n\nan example")
+      io.readline("").should == "this is\n\n"
+      io.readline("").should == "an example"
+    end
   end
   
   it "returns the remaining content starting at the current position when passed nil" do

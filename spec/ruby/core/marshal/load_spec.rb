@@ -112,6 +112,11 @@ describe "Marshal::load" do
       obj
   end
 
+  it "raises an ArgumentError when the dumped data is truncated" do
+    obj = {:first => 1, :second => 2, :third => 3}
+    lambda { Marshal.load(Marshal.dump(obj)[0, 5]) }.should raise_error(ArgumentError)
+  end
+
   ruby_version_is "1.9" do
     it "returns the value of the proc when called with a proc" do
       Marshal.load(Marshal.dump([1,2]), proc { [3,4] }).should ==  [3,4]
@@ -284,6 +289,17 @@ describe "Marshal::load" do
     obj = Struct.new("Ure1", :a, :b).new
     Marshal.load("\004\bS:\021Struct::Ure1\a:\006a0:\006b0").should ==
       obj
+  end
+
+  it "preserves hash ivars when hash contains a string having ivar" do
+    s = 'string'
+    s.instance_variable_set :@string_ivar, 'string ivar'
+    h = { :key => s }
+    h.instance_variable_set :@hash_ivar, 'hash ivar'
+
+    unmarshalled = Marshal.load Marshal.dump(h)
+    unmarshalled.instance_variable_get(:@hash_ivar).should == 'hash ivar'
+    unmarshalled[:key].instance_variable_get(:@string_ivar).should == 'string ivar'
   end
 
   it "raises a TypeError with bad Marshal version" do

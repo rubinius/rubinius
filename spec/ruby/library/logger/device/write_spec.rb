@@ -35,8 +35,17 @@ describe "Logger::LogDevice#write" do
     File.unlink(path)
   end
 
-  it "fails if the device is already closed" do
-    @device.close
-    lambda { @device.write "foo" }.should raise_error
+  ruby_version_is "" ... "1.9" do
+    it "fails if the device is already closed" do
+      @device.close
+      lambda { @device.write "foo" }.should raise_error
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "fails if the device is already closed" do
+      @device.close
+      lambda { @device.write "foo" }.should complain(/\Alog writing failed\./)
+    end
   end
 end

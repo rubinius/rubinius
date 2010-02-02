@@ -12,7 +12,7 @@ describe "BigDecimal#inspect" do
   end
 
   it "returns String starting with #" do
-    @bigdec.inspect[0].should == 35
+    @bigdec.inspect[0].should == ?#
   end
 
   it "encloses information in angle brackets" do

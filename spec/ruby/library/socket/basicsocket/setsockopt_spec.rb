@@ -14,7 +14,7 @@ describe "BasicSocket#setsockopt" do
   it "sets the socket linger to 0" do
     linger = [0, 0].pack("ii")
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER, linger).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER).to_s
 
     if (n.size == 8) # linger struct on some platforms, not just a value
       n.should == [0, 0].pack("ii")
@@ -26,7 +26,7 @@ describe "BasicSocket#setsockopt" do
   it "sets the socket linger to some positive value" do
     linger = [64, 64].pack("ii")
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER, linger).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER).to_s
     if (n.size == 8) # linger struct on some platforms, not just a value
       n.should == [1, 64].pack("ii")
     else
@@ -36,23 +36,23 @@ describe "BasicSocket#setsockopt" do
 
   it "sets the socket option Socket::SO_OOBINLINE" do
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, true).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
     n.should == [1].pack("i")
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, false).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
     n.should == [0].pack("i")
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, 1).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
     n.should == [1].pack("i")
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, 0).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
     n.should == [0].pack("i")
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, 2).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
     n.should == [1].pack("i")
 
     platform_is_not :os => :windows do
@@ -62,7 +62,7 @@ describe "BasicSocket#setsockopt" do
     end
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, "blah").should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
     n.should == [1].pack("i")
 
     platform_is_not :os => :windows do
@@ -72,7 +72,7 @@ describe "BasicSocket#setsockopt" do
     end
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, "\x00\x00\x00\x00").should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
     n.should == [0].pack("i")
 
     platform_is_not :os => :windows do
@@ -88,26 +88,26 @@ describe "BasicSocket#setsockopt" do
     end
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, [1].pack('i')).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
     n.should == [1].pack("i")
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, [0].pack('i')).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
     n.should == [0].pack("i")
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, [1000].pack('i')).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
     n.should == [1].pack("i")
   end
 
   it "sets the socket option Socket::SO_SNDBUF" do
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF, 4000).should == 0
-    sndbuf = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF)
+    sndbuf = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
     # might not always be possible to set to exact size
     sndbuf.unpack('i')[0].should >= 4000
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF, true).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
     n.unpack('i')[0].should >= 1
 
     lambda {
@@ -115,11 +115,11 @@ describe "BasicSocket#setsockopt" do
     }.should raise_error(TypeError)
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF, 1).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
     n.unpack('i')[0].should >= 1
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF, 2).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
     n.unpack('i')[0].should >= 2
 
     lambda {
@@ -143,15 +143,15 @@ describe "BasicSocket#setsockopt" do
     }.should raise_error(SystemCallError)
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF, "\x00\x00\x01\x00").should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
     n.unpack('i')[0].should >= "\x00\x00\x01\x00".unpack('i')[0]
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF, [4000].pack('i')).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
     n.unpack('i')[0].should >= 4000
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF, [1000].pack('i')).should == 0
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
     n.unpack('i')[0].should >= 1000
   end
 end

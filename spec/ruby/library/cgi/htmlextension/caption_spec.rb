@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + "/fixtures/common"
 
 describe "CGI::HtmlExtension#caption" do
   before(:each) do
-    @html = CGISpecs::HtmlExtension.new
+    @html = CGISpecs.cgi_new
   end
   
   describe "when passed a String" do

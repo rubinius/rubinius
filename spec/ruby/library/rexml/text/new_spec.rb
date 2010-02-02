@@ -45,10 +45,5 @@ describe "REXML::Text.new" do
     t = REXML::Text.new("<&>", false, nil, false)
     t.should == "&lt;&amp;&gt;"
   end
-
-   it "can detect illegal expressions from a regex if raw is true" do
-    lambda{ REXML::Text.new("test text", false, nil, true, nil, /text/)}.should raise_error(Exception)
-    lambda{ REXML::Text.new("test", false, nil, true, nil, /text/)}.should_not raise_error(Exception)
-  end
 end
 

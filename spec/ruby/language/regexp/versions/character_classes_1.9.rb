@@ -22,8 +22,8 @@ it "matches Unicode digits with [[:alnum:]]" do
   "\u{0660}".match(/[[:alnum:]]/).to_a.should == ["\u{0660}"]
 end
 
-it "matches Unicode marks with [[:alnum:]]" do
-  "\u{36F}".match(/[[:alnum:]]/).to_a.should == ["\u{36F}"]
+it "doesn't matches Unicode marks with [[:alnum:]]" do
+  "\u{36F}".match(/[[:alnum:]]/).should be_nil
 end
 
 it "doesn't match Unicode control characters with [[:alnum:]]" do
@@ -42,8 +42,8 @@ it "doesn't match Unicode digits with [[:alpha:]]" do
   "\u{0660}".match(/[[:alpha:]]/).to_a.should == []
 end
 
-it "matches Unicode marks with [[:alpha:]]" do
-  "\u{36F}".match(/[[:alpha:]]/).to_a.should == ["\u{36F}"]
+it "doesn't matches Unicode marks with [[:alpha:]]" do
+  "\u{36F}".match(/[[:alpha:]]/).should be_nil
 end
 
 it "doesn't match Unicode control characters with [[:alpha:]]" do
@@ -161,12 +161,12 @@ it "doesn't match Unicode control characters with [[:graph:]]" do
   "\u{16}".match(/[[:graph:]]/).should be_nil
 end
 
-it "doesn't match Unicode format characters with [[:graph:]]" do
-  "\u{2060}".match(/[[:graph:]]/).should be_nil
+it "match Unicode format characters with [[:graph:]]" do
+  "\u{2060}".match(/[[:graph:]]/).to_a.should == ["\u2060"]
 end
 
-it "doesn't match Unicode private-use characters with [[:graph:]]" do
-  "\u{E001}".match(/[[:graph:]]/).should be_nil
+it "match Unicode private-use characters with [[:graph:]]" do
+  "\u{E001}".match(/[[:graph:]]/).to_a.should == ["\u{E001}"]
 end
 
 it "matches Unicode lowercase letter characters with [[:lower:]]" do
@@ -247,12 +247,12 @@ it "doesn't match Unicode control characters with [[:print:]]" do
   "\u{16}".match(/[[:print:]]/).should be_nil
 end
 
-it "doesn't match Unicode format characters with [[:print:]]" do
-  "\u{2060}".match(/[[:print:]]/).should be_nil
+it "match Unicode format characters with [[:print:]]" do
+  "\u{2060}".match(/[[:print:]]/).to_a.should == ["\u{2060}"]
 end
 
-it "doesn't match Unicode private-use characters with [[:print:]]" do
-  "\u{E001}".match(/[[:print:]]/).should be_nil
+it "match Unicode private-use characters with [[:print:]]" do
+  "\u{E001}".match(/[[:print:]]/).to_a.should == ["\u{E001}"]
 end
 
 
@@ -476,8 +476,8 @@ it "matches Unicode marks with [[:word:]]" do
   "\u{36F}".match(/[[:word:]]/).to_a.should == ["\u{36F}"]
 end
 
-it "doesn't match Unicode Nl characters with [[:word:]]" do
-  "\u{16EE}".match(/[[:word:]]/).should be_nil
+it "match Unicode Nl characters with [[:word:]]" do
+  "\u{16EE}".match(/[[:word:]]/).to_a.should == ["\u{16EE}"]
 end
 
 it "doesn't match Unicode No characters with [[:word:]]" do

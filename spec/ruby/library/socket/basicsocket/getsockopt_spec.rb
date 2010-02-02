@@ -12,17 +12,17 @@ describe "BasicSocket#getsockopt" do
   end
 
   it "gets a socket option Socket::SO_TYPE" do
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_TYPE)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_TYPE).to_s
     n.should == [Socket::SOCK_STREAM].pack("i")
   end
 
   it "gets a socket option Socket::SO_OOBINLINE" do
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
     n.should == [0].pack("i")
   end
 
   it "gets a socket option Socket::SO_LINGER" do
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER).to_s
     if (n.size == 8) # linger struct on some platforms, not just a value
       n.should == [0, 0].pack("ii")
     else
@@ -31,7 +31,7 @@ describe "BasicSocket#getsockopt" do
   end
 
   it "gets a socket option Socket::SO_SNDBUF" do
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF)
+    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
     n.unpack('i')[0].should > 0
   end
 

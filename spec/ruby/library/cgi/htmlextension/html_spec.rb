@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + "/fixtures/common"
 
 describe "CGI::HtmlExtension#html" do
   before(:each) do
-    @html = CGISpecs::HtmlExtension.new
+    @html = CGISpecs.cgi_new
     @html.stub!(:doctype).and_return("<!DOCTYPE SUPA-FUNKAY-RUBYSPEC-DOCTYPE>")
   end
 
@@ -41,6 +41,26 @@ describe "CGI::HtmlExtension#html" do
     it "omits the doctype when the Hash contains a 'DOCTYPE' entry that's false or nil" do
       @html.html("DOCTYPE" => false).should == "<HTML>"
       @html.html("DOCTYPE" => nil).should == "<HTML>"
+    end
+  end
+
+  describe "when each HTML generation" do
+    it "returns the doctype declaration for HTML3" do
+      expect = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">'
+      CGISpecs.cgi_new("html3").html.should == expect + "<HTML>"
+      CGISpecs.cgi_new("html3").html { "html body" }.should == expect + "<HTML>html body</HTML>"
+    end
+
+    it "returns the doctype declaration for HTML4" do
+      expect = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">'
+      CGISpecs.cgi_new("html4").html.should == expect + "<HTML>"
+      CGISpecs.cgi_new("html4").html { "html body" }.should == expect + "<HTML>html body</HTML>"
+    end
+
+    it "returns the doctype declaration for the Transitional version of HTML4" do
+      expect = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">'
+      CGISpecs.cgi_new("html4Tr").html.should == expect + "<HTML>"
+      CGISpecs.cgi_new("html4Tr").html { "html body" }.should == expect + "<HTML>html body</HTML>"
     end
   end
 end

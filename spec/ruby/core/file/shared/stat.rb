@@ -22,16 +22,18 @@ describe :file_stat, :shared => true do
   end
 
   it "should be able to use the instance methods" do
-    st = File.new(@file).send(@method)
+    File.open(@file) do |f|
+      st = f.send(@method)
 
-    st.file?.should == true
-    st.zero?.should == false
-    st.size.should == 8
-    st.size?.should == 8
-    st.blksize.should > 0
-    st.atime.should be_kind_of(Time)
-    st.ctime.should be_kind_of(Time)
-    st.mtime.should be_kind_of(Time)
+      st.file?.should == true
+      st.zero?.should == false
+      st.size.should == 8
+      st.size?.should == 8
+      st.blksize.should > 0
+      st.atime.should be_kind_of(Time)
+      st.ctime.should be_kind_of(Time)
+      st.mtime.should be_kind_of(Time)
+    end
   end
 
   ruby_version_is "1.9" do

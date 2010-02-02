@@ -11,7 +11,7 @@ describe "Integer#prime_division" do
     1.prime_division.should == []
   end
   it "returns an empty array for -1" do
-    -1.prime_division.should == []
+    -1.prime_division.should == [[-1, 1]]
   end
   it "raises ZeroDivisionError for 0" do
     lambda { 0.prime_division }.should raise_error(ZeroDivisionError)

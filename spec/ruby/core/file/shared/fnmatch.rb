@@ -60,7 +60,7 @@ describe :file_fnmatch, :shared => true do
 
   platform_is :windows do
     it "matches case sensitive characters on platfroms with case insensitive paths, when flags include FNM_SYSCASE" do
-      File.send(@method, 'cat', 'CAT', Filee::FNM_SYSCASE).should == true
+      File.send(@method, 'cat', 'CAT', File::FNM_SYSCASE).should == true
     end
   end
 

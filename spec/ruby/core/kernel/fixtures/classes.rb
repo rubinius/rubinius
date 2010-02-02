@@ -1,6 +1,12 @@
 require File.dirname(__FILE__) + '/caller_fixture1'
 
 module KernelSpecs
+  class AbortMethod
+    def abort(*msg)
+      super
+    end
+  end
+
   class Methods
     def self.ichi; end
     def ni; end

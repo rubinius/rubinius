@@ -1,6 +1,6 @@
 describe :cgi_htmlextension_popup_menu, :shared => true do
   before(:each) do
-    @html = CGISpecs::HtmlExtension.new
+    @html = CGISpecs.cgi_new
   end
   
   describe "when passed no arguments" do

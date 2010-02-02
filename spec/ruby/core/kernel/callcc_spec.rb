@@ -2,7 +2,9 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 ruby_version_is "1.9" do
-  require 'continuation'
+  not_supported_on :jruby do
+    require 'continuation'
+  end
 end
 
 describe "Kernel#callcc" do

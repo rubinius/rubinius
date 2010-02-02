@@ -8,7 +8,7 @@ describe "Net::FTP#initialize" do
   end
   
   it "is private" do
-    @ftp.private_methods.should include("initialize")
+    Net::FTP.should have_private_instance_method(:initialize)
   end
   
   it "sets self into binary mode" do

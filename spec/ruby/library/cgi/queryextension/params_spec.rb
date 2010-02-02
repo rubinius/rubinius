@@ -13,8 +13,16 @@ describe "CGI::QueryExtension#params" do
     ENV['REQUEST_METHOD'] = @old_request_method
   end
   
-  it "returns the parsed HTTP Query Params" do
-    @cgi.params.should == {"three"=>[nil], "two"=>["b", "c"], "one"=>["a"]}
+  ruby_version_is "" ... "1.9" do
+    it "returns the parsed HTTP Query Params" do
+      @cgi.params.should == {"three"=>[nil], "two"=>["b", "c"], "one"=>["a"]}
+    end
+  end
+  
+  ruby_version_is "1.9" do
+    it "returns the parsed HTTP Query Params" do
+      @cgi.params.should == {"three"=>[], "two"=>["b", "c"], "one"=>["a"]}
+    end
   end
 end
 

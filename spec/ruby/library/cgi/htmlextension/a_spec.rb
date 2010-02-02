@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + "/fixtures/common"
 
 describe "CGI::HtmlExtension#a" do
   before(:each) do
-    @html = CGISpecs::HtmlExtension.new
+    @html = CGISpecs.cgi_new
   end
   
   describe "when passed a String" do
@@ -28,6 +28,22 @@ describe "CGI::HtmlExtension#a" do
     it "includes the passed block's return value when passed a block" do
       attributes = {"HREF" => "http://www.example.com", "TARGET" => "_top"}
       @html.a(attributes) { "Example" }.should equal_element("A", attributes, "Example")
+    end
+  end
+
+  describe "when each HTML generation" do
+    it "returns the doctype declaration for HTML3" do
+      CGISpecs.cgi_new("html3").a.should == %(<A HREF=""></A>)
+      CGISpecs.cgi_new("html3").a { "link text" }.should == %(<A HREF="">link text</A>)
+    end
+
+    it "returns the doctype declaration for HTML4" do
+      CGISpecs.cgi_new("html4").a.should == %(<A HREF=""></A>)
+      CGISpecs.cgi_new("html4").a { "link text" }.should == %(<A HREF="">link text</A>)
+    end
+    it "returns the doctype declaration for the Transitional version of HTML4" do
+      CGISpecs.cgi_new("html4Tr").a.should == %(<A HREF=""></A>)
+      CGISpecs.cgi_new("html4Tr").a { "link text" }.should == %(<A HREF="">link text</A>)
     end
   end
 end

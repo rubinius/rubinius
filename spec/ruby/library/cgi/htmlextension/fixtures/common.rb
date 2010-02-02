@@ -1,10 +1,13 @@
 module CGISpecs
-  class HtmlExtension
-    def initialize
-      self.extend(CGI::Html4)
-      self.element_init
-      self.extend(CGI::HtmlExtension)
+  def self.cgi_new(html = "html4")
+    cgi = nil
+    ruby_version_is "" ... "1.9" do
+      cgi = CGI.new(html)
     end
+    ruby_version_is "1.9" do
+      cgi = CGI.new(:tag_maker => html)
+    end
+    cgi
   end
   
   def self.split(string)

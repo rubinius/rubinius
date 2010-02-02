@@ -1,7 +1,9 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 ruby_version_is "1.9" do
-  require 'fiber'
+  not_supported_on :jruby do
+    require 'fiber'
+  end
 
   describe "Fiber#alive?" do
 

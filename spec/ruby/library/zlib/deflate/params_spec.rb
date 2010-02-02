@@ -14,7 +14,7 @@ describe 'Zlib::Deflate#params' do
     d << data
 
     d.finish.should ==
-      "x\001\000\v\000\364\377abcdefghijk\002,'\027\000\#\364\005<"
+      "x\001\000\v\000\364\377abcdefghijk\000\000\000\377\377\313\311\005\000#\364\005<"
   end
   end
 end

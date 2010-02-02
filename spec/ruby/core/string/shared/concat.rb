@@ -37,10 +37,14 @@ describe :string_concat, :shared => true do
   end
 
   ruby_version_is "1.9" do
-    it "raises ArgumentError for negative length argument" do
+    it "raises RangeError for negative length argument" do
       lambda do
         'glark'.force_encoding('UTF-8').send(@method, -200) 
-      end.should raise_error(ArgumentError)
+      end.should raise_error(RangeError)
+
+      lambda do
+        'glark'.force_encoding('UTF-8').send(@method, -2**64) 
+      end.should raise_error(RangeError)
     end
   end
 

@@ -5,6 +5,32 @@ require File.dirname(__FILE__) + '/shared/eql'
 describe "Array#==" do
   it_behaves_like :array_eql, :==
 
+  it "compares with an equivalent Array-like object using #to_ary" do
+    # FIXME: Proper implementation, commented out due
+    # to mspec bugs (#194 and #195):
+    # obj = mock('array-like')
+    # obj.should_receive(:respond_to?).with(:to_ary).and_return(true)
+    # obj.should_receive(:==).with([1]).and_return(true)
+
+    obj = Object.new
+    def obj.to_ary; [1]; end
+    def obj.==(arg); to_ary == arg; end
+
+    ([1] == obj).should be_true
+    ([[1]] == [obj]).should be_true
+    ([[[1], 3], 2] == [[obj, 3], 2]).should be_true
+
+    ruby_version_is "1.9.1" do
+      # recursive arrays
+      arr1 = [[1]]
+      arr1 << arr1
+      arr2 = [obj]
+      arr2 << arr2
+      (arr1 == arr2).should be_true
+      (arr2 == arr1).should be_true
+    end
+  end
+
   it "returns false if any corresponding elements are not #==" do
     a = ["a", "b", "c"]
     b = ["a", "b", "not equal value"]

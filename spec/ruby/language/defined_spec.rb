@@ -165,10 +165,30 @@ describe "The defined? keyword" do
     ret = defined?(LanguageDefinedSpecs::SomeConst)
     ret.should == "constant"
   end
+  
+  it "returns nil when defined?(LanguageDefinedSpecs::MissingConst) is sent" do
+    ret = defined?(LanguageDefinedSpecs::MissingConst)
+    ret.should == nil
+  end
+
+  it "returns nil when defined?(LanguageDefinedSpecs::MissingConst::MissingConst) is sent" do
+    ret = defined?(LanguageDefinedSpecs::MissingConst::MissingConst)
+    ret.should == nil
+  end
 
   it "returns 'constant' when evaluating self::FOO in module AAA" do
     ret = defined?(AAA::FOO)
     ret.should == 'constant'
+  end
+
+  it "returns 'constant' when evaluating self::FOO in subclass's metaclass" do
+    o = Object.new
+    class << o
+      class Foo; Baz = 1; end
+      class Bar < Foo; def self.baz_defined?; defined? self::Baz; end; end
+      def bar; Bar; end
+    end
+    o.bar.baz_defined?.should == 'constant'
   end
 
   it "returns 'constant' when defined?(File) is sent" do

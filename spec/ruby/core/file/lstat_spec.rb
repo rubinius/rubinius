@@ -17,11 +17,13 @@ describe "File.lstat" do
   after :each do
     rm_r @link, @file
   end
-  
-  it "returns a File::Stat object with symlink properties for a symlink" do
-    st = File.lstat(@link)
 
-    st.symlink?.should == true
-    st.file?.should == false
+  platform_is_not :windows do
+    it "returns a File::Stat object with symlink properties for a symlink" do
+      st = File.lstat(@link)
+
+      st.symlink?.should == true
+      st.file?.should == false
+    end
   end
 end

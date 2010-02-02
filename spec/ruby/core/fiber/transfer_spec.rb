@@ -3,8 +3,9 @@ require File.dirname(__FILE__) + '/shared/resume'
 
 ruby_version_is "1.9" do
   describe "Fiber#transfer" do
-    
-    require 'fiber'
+    not_supported_on :jruby do
+      require 'fiber'
+    end
 
     it_behaves_like(:resume, :transfer)
 

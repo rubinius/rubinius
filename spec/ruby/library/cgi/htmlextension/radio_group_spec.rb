@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + "/fixtures/common"
 
 describe "CGI::HtmlExtension#radio_group" do
   before(:each) do
-    @html = CGISpecs::HtmlExtension.new
+    @html = CGISpecs.cgi_new
   end
 
   describe "when passed name, values ..." do

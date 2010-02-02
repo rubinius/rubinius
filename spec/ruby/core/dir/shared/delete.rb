@@ -20,7 +20,7 @@ describe :dir_delete, :shared => true do
     end
   end
 
-  ruby_version_is "1.8" do
+  ruby_version_is ""..."1.9" do
     it "calls #to_str on non-String arguments" do
       DirSpecs.rmdir_dirs
       p = mock('path')

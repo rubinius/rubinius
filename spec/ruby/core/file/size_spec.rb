@@ -61,8 +61,12 @@ ruby_version_is "1.9" do
         ln_file = tmp('i_exist_ln')
         rm_r ln_file
 
-        File.symlink(@file.path, ln_file).should == 0
-        File.new(ln_file).size.should == 8
+        begin
+          File.symlink(@file.path, ln_file).should == 0
+          File.new(ln_file).size.should == 8
+        ensure
+          File.unlink(ln_file) if File.exists?(ln_file)
+        end
       end
     end
   end

@@ -5,6 +5,7 @@
         <data xmlns="http://www.netbeans.org/ns/ruby-project/1">
             <name>RubySpec</name>
             <source-roots>
+                <root id="src.command_line.dir"/>
                 <root id="src.dir" name="core"/>
                 <root id="fixtures.dir"/>
                 <root id="language.dir"/>

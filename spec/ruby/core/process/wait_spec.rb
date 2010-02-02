@@ -2,7 +2,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Process.wait" do
   before :all do
-    Process.waitall
+    begin
+      Process.waitall
+    rescue NotImplementedError
+    end
   end
 
   it "raises a Errno::ECHILD if there are no child processes" do

@@ -1,6 +1,6 @@
 describe :file_executable_real, :shared => true do
   before :each do
-    @file1 = tmp('temp1.txt')
+    @file1 = tmp('temp1.txt.exe')
     @file2 = tmp('temp2.txt')
 
     touch @file1

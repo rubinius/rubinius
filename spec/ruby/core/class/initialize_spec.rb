@@ -36,3 +36,24 @@ describe "Class#new" do
     klass.new { break 42 }.should == 42
   end
 end
+
+describe "Class#initialize" do
+  it "raises a TypeError when called on already initialized classes" do
+    lambda{
+      Fixnum.send :initialize
+    }.should raise_error(TypeError)
+
+    lambda{
+      Object.send :initialize
+    }.should raise_error(TypeError)
+  end
+
+  ruby_version_is "1.9" do
+    # See [redmine:2601]
+    it "should raise a TypeError (even for BasicObject)" do
+      lambda{
+        BasicObject.send :initialize
+      }.should raise_error(TypeError)
+    end
+  end
+end
