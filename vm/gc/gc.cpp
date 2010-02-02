@@ -68,7 +68,7 @@ namespace rubinius {
       for(int i = 0; i < size; i++) {
         slot = tup->field[i];
         if(slot->reference_p()) {
-          slot = saw_object(tup->field[i]);
+          slot = saw_object(slot);
           if(slot) {
             tup->field[i] = slot;
             object_memory_->write_barrier(tup, slot);
