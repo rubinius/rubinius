@@ -344,6 +344,13 @@ module ModuleSpecs
       :after_redefinition
     end
   end
+
+  module CyclicAppendA
+  end
+
+  module CyclicAppendB
+    include CyclicAppendA
+  end
 end
 
 ModuleSpecs::Nesting[:root_level] = Module.nesting
