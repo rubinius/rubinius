@@ -7,17 +7,17 @@ describe "Resolv#getaddress" do
   end
 
   it 'resolves localhost' do
-
-    localhost = Socket.getaddrinfo("127.0.0.1", nil)[0][2]
+    res = Resolv.new([Resolv::Hosts.new])
 
     lambda {
-      address = Resolv.getaddress(localhost)
+      address = res.getaddress("localhost")
     }.should_not raise_error(Resolv::ResolvError)
   end
-  
-  it 'raises ResolvError given a bogus address' do
+
+  it 'raises ResolvError if the name can not be looked up' do
+    res = Resolv.new([])
     lambda {
-      address = Resolv.getaddress("should.raise.error.")
+      address = res.getaddress("should.raise.error.")
     }.should raise_error(Resolv::ResolvError)
   end
 

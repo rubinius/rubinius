@@ -7,14 +7,14 @@ describe "Resolv#getaddresses" do
   end
 
   it 'resolves localhost' do
-    localhost = Socket.getaddrinfo("127.0.0.1", nil)[0][2]
+    res = Resolv.new([Resolv::Hosts.new])
 
     addresses = nil
 
     lambda {
-      addresses = Resolv.getaddresses(localhost)
+      addresses = res.getaddresses("localhost")
     }.should_not raise_error(Resolv::ResolvError)
-    
+
     addresses.should_not == nil
     addresses.size.should > 0
   end
