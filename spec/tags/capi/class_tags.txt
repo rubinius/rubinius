@@ -1,5 +1,0 @@
-fails:C-API Class function rb_cvar_defined returns true if the class instance variable is defined
-fails:C-API Class function rb_cv_get returns the value of the class variable
-fails:C-API Class function rb_cv_get raises a NameError if the class variable is not defined
-fails:C-API Class function rb_cvar_get returns the value of the class variable
-fails:C-API Class function rb_cvar_get raises a NameError if the class variable is not defined
