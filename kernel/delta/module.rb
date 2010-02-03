@@ -99,7 +99,7 @@ class Module
     while mod
 
       # Check for a cyclic include
-      if mod.equal? klass
+      if mod == klass
         raise ArgumentError, "cyclic include detected"
       end
 
