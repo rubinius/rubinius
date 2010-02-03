@@ -56,15 +56,21 @@ extern "C" {
   VALUE rb_cvar_defined(VALUE module_handle, ID name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return rb_funcall(module_handle, rb_intern("class_variable_defined?"),
-                      1,
-                      env->get_handle(prefixed_by("@@", name)));
+    if (((Symbol *)name)->is_cvar_p(env->state())->true_p()) {
+       return rb_funcall(module_handle, rb_intern("class_variable_defined?"),
+                         1,
+                         env->get_handle(prefixed_by("@@", name)));
+     } else {
+      return rb_funcall(module_handle, rb_intern("instance_variable_defined?"),
+                        1,
+                        env->get_handle(prefixed_by("@", name)));
+     }
   }
 
   VALUE rb_cvar_get(VALUE module_handle, ID name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return rb_funcall(module_handle, rb_intern("class_variable_set"),
+    return rb_funcall(module_handle, rb_intern("class_variable_get"),
                       1,
                       env->get_handle(prefixed_by("@@", name)));
   }
