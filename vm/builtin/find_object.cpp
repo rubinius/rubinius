@@ -193,6 +193,7 @@ namespace rubinius {
     walker.seed(gc_data);
 
     Object* obj = walker.next();
+    Object* ret = Qnil;
 
     while(obj) {
       if(condition->perform(state, obj)) {
@@ -202,7 +203,9 @@ namespace rubinius {
           ary->append(state, obj);
         } else {
           args->set(state, 0, obj);
-          callable->send(state, calling_environment, G(sym_call), args, Qnil, false);
+          ret = callable->send(state, calling_environment, G(sym_call),
+                               args, Qnil, false);
+          if(!ret) break;
         }
       }
 
@@ -210,6 +213,8 @@ namespace rubinius {
     }
 
     delete condition;
+
+    if(!ret) return 0;
 
     return Integer::from(state, total);
   }
