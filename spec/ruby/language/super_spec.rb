@@ -135,4 +135,11 @@ describe "The super keyword" do
       Super::MM_B.new.is_a?(Hash).should == false
     }.should_not raise_error(NoMethodError)
   end
+
+  # Rubinius ticket github#180
+  it "respects the original module a method is aliased from" do
+    lambda {
+      Super::Alias3.new.name3.should == [:alias2, :alias1]
+    }.should_not raise_error(RuntimeError)
+  end
 end
