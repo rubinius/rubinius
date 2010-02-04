@@ -10,6 +10,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
+#include "builtin/alias.hpp"
 
 #include <iostream>
 
@@ -103,7 +104,11 @@ namespace rubinius {
     if(exec->nil_p()) {
       method = reinterpret_cast<Executable*>(Qnil);
     } else {
-      method = as<Executable>(exec);
+      if(Alias* alias = try_as<Alias>(exec)) {
+        method = alias->original_exec();
+      } else {
+        method = as<Executable>(exec);
+      }
     }
 
     num_entries = entries_->to_native();
@@ -136,6 +141,55 @@ namespace rubinius {
     return name;
   }
 
+  Object* MethodTable::alias(STATE, Symbol* name, Symbol* vis,
+                             Symbol* orig_name, Executable* orig_method,
+                             Module* orig_mod)
+  {
+    unsigned int num_entries, num_bins, bin;
+    MethodTableBucket* entry;
+    MethodTableBucket* last = NULL;
+
+    if(Alias* alias = try_as<Alias>(orig_method)) {
+      orig_method = alias->original_exec();
+      orig_mod = alias->original_module();
+      orig_name = alias->original_name();
+    }
+
+    if(IncludedModule* im = try_as<IncludedModule>(orig_mod)) {
+      orig_mod = im->module();
+    }
+
+    Alias* method = Alias::create(state, orig_name, orig_mod, orig_method);
+
+    num_entries = entries_->to_native();
+    num_bins = bins_->to_native();
+
+    if(max_density_p(num_entries, num_bins)) {
+      redistribute(state, num_bins <<= 1);
+    }
+
+    bin = find_bin(key_hash(name), num_bins);
+    entry = try_as<MethodTableBucket>(values_->at(state, bin));
+
+    while(entry) {
+      if(entry->name() == name) {
+        entry->method(state, method);
+        entry->visibility(state, vis);
+        return name;
+      }
+      last = entry;
+      entry = try_as<MethodTableBucket>(entry->next());
+    }
+
+    if(last) {
+      last->next(state, MethodTableBucket::create(state, name, method, vis));
+    } else {
+      values_->put(state, bin, MethodTableBucket::create(state, name, method, vis));
+    }
+
+    entries(state, Fixnum::from(num_entries + 1));
+    return name;
+  }
   MethodTableBucket* MethodTable::find_entry(STATE, Symbol* name) {
     unsigned int bin;
 
@@ -328,5 +382,4 @@ namespace rubinius {
   bool MethodTableBucket::undef_p(STATE) {
     return visibility_ == G(sym_undef);
   }
-
 }

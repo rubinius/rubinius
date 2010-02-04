@@ -91,6 +91,25 @@ class Module
 
   alias_method :inspect, :to_s
 
+  def lookup_method(sym)
+    mod = self
+
+    while mod
+      if entry = mod.method_table.lookup(sym.to_sym)
+        mod = mod.module if mod.kind_of? Rubinius::IncludedModule
+        return [mod, entry]
+      end
+
+      mod = mod.direct_superclass
+    end
+
+    # Always also search Object (and everything included in Object).
+    # This lets a module alias methods on Kernel.
+    if instance_of?(Module) and self != Kernel
+      return Object.lookup_method(sym)
+    end
+  end
+
   def find_method_in_hierarchy(sym)
     mod = self
 
@@ -243,10 +262,15 @@ class Module
       if entry = mod.method_table.lookup(name)
         break if entry.visibility == :undef
 
-        cm = entry.method
-        if cm
+        if meth = entry.method
+          if meth.kind_of? Rubinius::Alias
+            mod =  meth.original_module
+            meth = meth.original_exec
+          end
+
           mod = mod.module if mod.class == Rubinius::IncludedModule
-          return UnboundMethod.new(mod, cm, self, name)
+
+          return UnboundMethod.new(mod, meth, self, name)
         end
       end
 

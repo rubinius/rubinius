@@ -7,6 +7,7 @@
 #include "builtin/lookuptable.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/methodtable.hpp"
+#include "builtin/alias.hpp"
 
 namespace rubinius {
 
@@ -62,12 +63,18 @@ namespace rubinius {
         if(entry->method()->nil_p()) {
           skip_vis_check = true;
         } else {
-          this->method = entry->method();
-          this->module = module;
+          if(Alias* alias = try_as<Alias>(entry->method())) {
+            this->method = alias->original_exec();
+            this->module = alias->original_module();
+          } else {
+            this->method = entry->method();
+            this->module = module;
+          }
 
           state->global_cache->retain(state, klass_, name, this->module,
-                                      this->method, false,
-                                      !entry->public_p(state));
+                this->method, false,
+                !entry->public_p(state));
+
           return eNone;
         }
       }
@@ -116,8 +123,14 @@ namespace rubinius {
          * method as public. We don't move the method, we just put this
          * marker into the method table. */
         if(!entry->method()->nil_p()) {
-          this->method = entry->method();
-          this->module = module;
+          if(Alias* alias = try_as<Alias>(entry->method())) {
+            this->method = alias->original_exec();
+            this->module = alias->original_module();
+          } else {
+            this->method = entry->method();
+            this->module = module;
+          }
+
           state->global_cache->retain(state, start, name, this->module,
               this->method, false,
               !entry->public_p(state));
@@ -159,8 +172,13 @@ namespace rubinius {
          * method as public. We don't move the method, we just put this
          * marker into the method table. */
         if(!entry->method()->nil_p()) {
-          this->method = entry->method();
-          this->module = module;
+          if(Alias* alias = try_as<Alias>(entry->method())) {
+            this->method = alias->original_exec();
+            this->module = alias->original_module();
+          } else {
+            this->method = entry->method();
+            this->module = module;
+          }
 
           return true;
         }

@@ -1,3 +1,4 @@
+alias.rbc
 array.rbc
 bignum.rbc
 block_environment.rbc

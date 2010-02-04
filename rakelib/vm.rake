@@ -88,6 +88,7 @@ field_extract_headers = %w[
   vm/builtin/bignum.hpp
   vm/builtin/executable.hpp
   vm/builtin/access_variable.hpp
+  vm/builtin/alias.hpp
   vm/builtin/block_environment.hpp
   vm/builtin/block_as_method.hpp
   vm/builtin/bytearray.hpp

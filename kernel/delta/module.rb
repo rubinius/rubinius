@@ -17,9 +17,18 @@ class Module
   def alias_method(new_name, current_name)
     new_name = Type.coerce_to_symbol(new_name)
     current_name = Type.coerce_to_symbol(current_name)
-    entry = find_method_in_hierarchy(current_name)
+    mod, entry = lookup_method(current_name)
+
     if entry
-      @method_table.store new_name, entry.method, entry.visibility
+      # If we're aliasing a method we contain, just reference it directly, no
+      # need for the alias wrapper
+      if mod == self
+        @method_table.store new_name, entry.method, entry.visibility
+      else
+        @method_table.alias new_name, entry.visibility, current_name,
+                            entry.method, mod
+      end
+
       Rubinius::VM.reset_method_cache(new_name)
     else
       if ai = __metaclass_object__

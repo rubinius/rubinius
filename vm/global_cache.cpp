@@ -8,6 +8,7 @@
 #include "vm/builtin/module.hpp"
 #include "vm/builtin/object.hpp"
 #include "vm/builtin/methodtable.hpp"
+#include "builtin/alias.hpp"
 
 namespace rubinius {
   static bool hierarchy_resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup,
@@ -33,8 +34,14 @@ namespace rubinius {
         /* nil means that the actual method object is 'up' from here */
         if(entry->method()->nil_p()) goto keep_looking;
         *was_private = entry->private_p(state);
-        msg.method = entry->method();
-        msg.module = module;
+
+        if(Alias* alias = try_as<Alias>(entry->method())) {
+          msg.method = alias->original_exec();
+          msg.module = alias->original_module();
+        } else {
+          msg.method = entry->method();
+          msg.module = module;
+        }
         break;
       } else {
         /* The method is private, but this wasn't a private send. */
@@ -56,8 +63,13 @@ namespace rubinius {
           goto keep_looking;
         }
 
-        msg.method = entry->method();
-        msg.module = module;
+        if(Alias* alias = try_as<Alias>(entry->method())) {
+          msg.method = alias->original_exec();
+          msg.module = alias->original_module();
+        } else {
+          msg.method = entry->method();
+          msg.module = module;
+        }
         break;
       }
 

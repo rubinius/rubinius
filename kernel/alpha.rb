@@ -360,6 +360,13 @@ module Rubinius
       Ruby.primitive :methodtable_store
       raise PrimitiveFailure, "MethodTable#store primitive failed"
     end
+
+    # Make an alias from +original_name+ in +original_mod+ to +name+
+    # with visibility +vis+
+    def alias(name, visibility, original_name, original_exec, original_mod)
+      Ruby.primitive :methodtable_alias
+      raise PrimitiveFailure, "MethodTable#alias primitive failed"
+    end
   end
 end
 
@@ -570,19 +577,26 @@ class Module
   # Redefined in kernel/common/module.rb.
   #
   def alias_method(new_name, current_name)
-    unless entry = @method_table.lookup(current_name)
+    # If we're aliasing a method we contain, just reference it directly, no
+    # need for the alias wrapper
+    if entry = @method_table.lookup(current_name)
+      @method_table.store new_name, entry.method, entry.visibility
+    else
       mod = direct_superclass()
-      while !entry and mod
+      while mod
         entry = mod.method_table.lookup(current_name)
+        break if entry
         mod = mod.direct_superclass
       end
+
+      unless entry
+        raise NoMethodError, "No method '#{current_name}' to alias to '#{new_name}'"
+      end
+
+      @method_table.alias new_name, entry.visibility, current_name,
+                          entry.method, mod
     end
 
-    unless entry
-      raise NoMethodError, "No method '#{current_name}' to alias to '#{new_name}'"
-    end
-
-    @method_table.store new_name, entry.method, entry.visibility
     Rubinius::VM.reset_method_cache(new_name)
   end
 
@@ -659,6 +673,10 @@ module Rubinius
       @constants = mod.constant_table
       @encloser = mod.encloser
       @module = mod
+    end
+
+    def module
+      @module
     end
 
     # :internal:

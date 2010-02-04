@@ -109,6 +109,7 @@ namespace rubinius {
     TypedRoot<Class*> array_iterator;
     TypedRoot<Class*> cls_weakref;
     TypedRoot<Class*> fiber;
+    TypedRoot<Class*> alias;
 
     /* Add new globals above this line. */
 
@@ -221,7 +222,8 @@ namespace rubinius {
       global_cache_entry(&roots),
       array_iterator(&roots),
       cls_weakref(&roots),
-      fiber(&roots)
+      fiber(&roots),
+      alias(&roots)
 
       /* Add initialize of globals above this line. */
     { }
