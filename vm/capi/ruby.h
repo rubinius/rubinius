@@ -1025,6 +1025,9 @@ double rb_num2dbl(VALUE);
   /** Manually runs the garbage collector. */
   VALUE   rb_gc_start();
 
+  /** Yet another way to request to run the GC */
+  void    rb_gc();
+
   /** Mark variable global. Will not be GC'd. */
   void    rb_global_variable(VALUE* handle_address);
 

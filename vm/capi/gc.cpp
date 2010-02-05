@@ -13,6 +13,10 @@ extern "C" {
     return Qnil;
   }
 
+  void rb_gc() {
+    // Ignore this. It's almost always a hack.
+  }
+
   void rb_gc_mark(VALUE ptr) {
     Handle* handle = Handle::from(ptr);
     if(CAPI_REFERENCE_P(handle) && handle->object()->reference_p()) {
