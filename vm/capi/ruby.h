@@ -944,14 +944,8 @@ double rb_num2dbl(VALUE);
   /** Remove a previously declared global variable. */
   void    rb_free_global(VALUE global_handle);
 
-  /**
-   *  Freeze object and return it.
-   *
-   *  NOT supported in Rubinius.
-   */
-
-  // Things use this as an expression, so be sure it expands to be the argument.
-  #define rb_obj_freeze(obj) obj
+  /** Freeze object and return it. */
+  VALUE   rb_obj_freeze(VALUE obj);
 
   /**
    *  Call method on receiver, args as varargs. Calls private methods.
@@ -1294,6 +1288,9 @@ double rb_num2dbl(VALUE);
   VALUE   rb_str_new2(const char* string);
 
   void    rb_str_modify(VALUE str);
+
+  /** Deprecated alias for rb_obj_freeze */
+  void    rb_str_freeze(VALUE str);
 
   /** Returns a new String created from concatenating self with other. */
   VALUE   rb_str_plus(VALUE self_handle, VALUE other_handle);

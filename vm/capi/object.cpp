@@ -15,6 +15,12 @@ extern "C" {
     /* @todo  implement when rbx supports frozen objects. */
   }
 
+  VALUE rb_obj_freeze(VALUE hndl) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    env->get_object(hndl)->freeze(env->state());
+    return hndl;
+  }
+
   // Copied from MRI
   static struct types {
     int type;

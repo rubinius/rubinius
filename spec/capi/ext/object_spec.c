@@ -132,6 +132,10 @@ VALUE object_spec_rb_obj_id(VALUE self, VALUE obj) {
   return rb_obj_id(obj);
 }
 
+VALUE object_spec_rb_obj_freeze(VALUE self, VALUE obj) {
+  return rb_obj_freeze(obj);
+}
+
 void Init_object_spec() {
   VALUE cls;
   cls = rb_define_class("CApiObjectSpecs", rb_cObject);
@@ -163,4 +167,5 @@ void Init_object_spec() {
   rb_define_method(cls, "OBJ_TAINTED", object_spec_OBJ_TAINTED, 1);
 
   rb_define_method(cls, "rb_obj_id", object_spec_rb_obj_id, 1);
+  rb_define_method(cls, "rb_obj_freeze", object_spec_rb_obj_freeze, 1);
 }

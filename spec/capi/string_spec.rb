@@ -336,6 +336,14 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_str_freeze" do
+    it "freezes the string" do
+      s = ""
+      @s.rb_str_freeze(s)
+      s.frozen?.should be_true
+    end
+  end
+
   extended_on :rubinius do
     describe "rb_str_ptr" do
       it "returns struct with a pointer to the string's contents" do

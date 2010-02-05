@@ -194,6 +194,11 @@ VALUE string_spec_STR2CSTR_replace(VALUE self, VALUE str) {
   return Qnil;
 }
 
+VALUE string_spec_rb_str_freeze(VALUE self, VALUE str) {
+  rb_str_freeze(str);
+  return Qnil;
+}
+
 #ifdef RUBINIUS
 VALUE string_spec_rb_str_ptr_iterate(VALUE self, VALUE str) {
   int i;
@@ -314,6 +319,8 @@ void Init_string_spec() {
   rb_define_method(cls, "rb_str2cstr_replace", string_spec_rb_str2cstr_replace, 1);
   rb_define_method(cls, "STR2CSTR", string_spec_STR2CSTR, 1);
   rb_define_method(cls, "STR2CSTR_replace", string_spec_STR2CSTR_replace, 1);
+
+  rb_define_method(cls, "rb_str_freeze", string_spec_rb_str_freeze, 1);
 
 #ifdef RUBINIUS
   rb_define_method(cls, "rb_str_ptr_iterate", string_spec_rb_str_ptr_iterate, 1);

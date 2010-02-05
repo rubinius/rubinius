@@ -240,4 +240,12 @@ describe "CApiObject" do
       @o.OBJ_TAINTED(obj).should be_false
     end
   end
+
+  describe "rb_obj_freeze" do
+    it "freezes the object passed to it" do
+      obj = ""
+      @o.rb_obj_freeze(obj).should == obj
+      obj.frozen?.should be_true
+    end
+  end
 end
