@@ -397,15 +397,6 @@ namespace rubinius {
     waiter_ = NULL;
   }
 
-  void VM::send_async_signal(int sig) {
-    mailbox_.add(ASyncMessage(ASyncMessage::cSignal, sig));
-    check_local_interrupts = true;
-
-    // TODO I'm worried there might be a race calling
-    // wakeup without the lock held...
-    wakeup();
-  }
-
   bool VM::process_async(CallFrame* call_frame) {
     check_local_interrupts = false;
 

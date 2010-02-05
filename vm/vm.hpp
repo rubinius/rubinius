@@ -68,7 +68,6 @@ namespace rubinius {
   class VM : public ManagedThread {
   private:
     CallFrame* saved_call_frame_;
-    ASyncMessageMailbox mailbox_;
     void* stack_start_;
     intptr_t stack_limit_;
     int stack_size_;
@@ -304,9 +303,6 @@ namespace rubinius {
     bool wakeup();
 
     void register_raise(Exception* exc);
-
-    // Called when a thread should be delivered to this thread
-    void send_async_signal(int sig);
 
     bool process_async(CallFrame* call_frame);
 
