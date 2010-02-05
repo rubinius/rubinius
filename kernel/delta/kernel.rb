@@ -76,7 +76,7 @@ module Kernel
 
   # Same as $!, for any accesses we might miss.
   # HACK. I doubt this is correct, because of how it will be called.
-  get = proc { Regex.last_match }
+  get = proc { Regexp.last_match }
   Rubinius::Globals.set_hook(:$~, get, nil)
 
   get = proc { ARGV }

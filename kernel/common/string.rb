@@ -1297,6 +1297,7 @@ class String
   def rpartition(pattern)
     if pattern.kind_of? Regexp
       if m = pattern.search_region(self, 0, size, false)
+        Rubinius::VariableScope.of_sender.last_match = m
         [m.pre_match, m[0], m.post_match]
       end
     else
