@@ -16,6 +16,11 @@ ruby_version_is '1.8.7' do
       "hello!".rpartition(/l./).should == ["hel", "lo", "!"]
     end
 
+    it "affects $~" do
+      matched_string = "hello!".rpartition(/l./)[1]
+      matched_string.should == $~[0]
+    end
+
     ruby_bug "redmine #1510", '1.9.1' do
       it "converts its argument using :to_str" do
         find = mock('l')
