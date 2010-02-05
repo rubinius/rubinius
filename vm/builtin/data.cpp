@@ -5,6 +5,8 @@
 
 #include "gc/gc.hpp"
 
+#include "capi/capi.hpp"
+
 namespace rubinius {
 
   void Data::init(STATE) {
@@ -33,10 +35,12 @@ namespace rubinius {
     Data* data = as<Data>(t);
 
     if(data->mark()) {
-      ObjectMark* cur = VM::current_state()->current_mark;
-      VM::current_state()->current_mark = &mark;
+      ObjectMark* cur = capi::current_mark();
+      capi::set_current_mark(&mark);
+
       (*data->mark())(data->data());
-      VM::current_state()->current_mark = cur;
+
+      capi::set_current_mark(cur);
     }
 
     // Data's can be written to without write barriers running,

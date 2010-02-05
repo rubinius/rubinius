@@ -29,7 +29,7 @@ namespace rubinius {
       method->scope(state, call_frame->static_scope());
       method->serial(state, Fixnum::from(0));
       mod->method_table()->store(state, name, method, G(sym_public));
-      state->global_cache->clear(mod, name);
+      state->global_cache()->clear(mod, name);
 
       if(Class* cls = try_as<Class>(mod)) {
         method->formalize(state, false);

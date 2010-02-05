@@ -307,7 +307,6 @@ namespace rubinius {
       break;
 
     case 0:
-      // state->events->clear_by_fd(desc);
       break;
 
     default:
@@ -351,8 +350,6 @@ namespace rubinius {
         descriptor(state, Fixnum::from(-2));
       }
 
-      /** @todo   Fix when can only remove read or write events. --rue */
-      state->events->clear_by_fd(desc);
       break;
 
     default:

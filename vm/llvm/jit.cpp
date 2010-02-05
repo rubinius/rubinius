@@ -398,7 +398,7 @@ namespace rubinius {
     , ctx_(llvm::getGlobalContext())
     , config_(state->shared.config)
     , global_lock_(state->global_lock())
-    , symbols_(state->symbols)
+    , symbols_(state->shared.symbols)
     , jitted_methods_(0)
     , queued_methods_(0)
     , accessors_inlined_(0)
@@ -572,8 +572,6 @@ namespace rubinius {
     } else {
       placement = Qnil;
     }
-
-    state->stats.jitted_methods++;
 
     BackgroundCompileRequest* req =
       new BackgroundCompileRequest(state, cm, placement, is_block);

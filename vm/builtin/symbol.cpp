@@ -33,27 +33,27 @@ namespace rubinius {
   }
 
   String* Symbol::to_str(STATE) {
-    return state->symbols.lookup_string(state, this);
+    return state->shared.symbols.lookup_string(state, this);
   }
 
   const char* Symbol::c_str(STATE) const {
-    return state->symbols.lookup_cstring(state, this);
+    return state->shared.symbols.lookup_cstring(state, this);
   }
 
   Array* Symbol::all_symbols(STATE) {
-    return state->symbols.all_as_array(state);
+    return state->shared.symbols.all_as_array(state);
   }
 
   Object* Symbol::is_ivar_p(STATE) {
-    return state->symbols.kind(state, this) == SymbolTable::IVar ? Qtrue : Qfalse;
+    return state->shared.symbols.kind(state, this) == SymbolTable::IVar ? Qtrue : Qfalse;
   }
 
   Object* Symbol::is_cvar_p(STATE) {
-    return state->symbols.kind(state, this) == SymbolTable::CVar ? Qtrue : Qfalse;
+    return state->shared.symbols.kind(state, this) == SymbolTable::CVar ? Qtrue : Qfalse;
   }
 
   Object* Symbol::is_constant_p(STATE) {
-    return state->symbols.kind(state, this) == SymbolTable::Constant ? Qtrue : Qfalse;
+    return state->shared.symbols.kind(state, this) == SymbolTable::Constant ? Qtrue : Qfalse;
   }
 
   void Symbol::Info::show(STATE, Object* self, int level) {

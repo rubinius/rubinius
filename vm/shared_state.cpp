@@ -123,7 +123,7 @@ namespace rubinius {
     , ic_registry_(new InlineCacheRegistry)
     , class_count_(0)
     , om(0)
-    , global_cache(0)
+    , global_cache(new GlobalCache)
     , config(config)
     , user_variables(cp)
     , llvm_state(0)

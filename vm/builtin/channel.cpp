@@ -164,63 +164,6 @@ namespace rubinius {
     }
   };
 
-  Object* Channel::send_on_signal(STATE, Channel* chan, Fixnum* signal) {
-    SendToChannel* cb = new SendToChannel(state, chan);
-    event::Signal* sig = new event::Signal(state, cb, signal->to_native());
-    state->signal_events->start(sig);
-    return signal;
-  }
-
-  Object* Channel::send_on_readable(STATE, Channel* chan, IO* io,
-      Object* maybe_buffer, Fixnum* bytes) {
-
-    SendToChannel* cb = new SendToChannel(state, chan);
-    event::Read* sig = new event::Read(state, cb, io->to_fd());
-    sig->into_buffer(maybe_buffer, bytes->to_native());
-
-    state->events->start(sig);
-    return io;
-  }
-
-  Object* Channel::send_on_writable(STATE, Channel* chan, IO* io) {
-    SendToChannel* cb = new SendToChannel(state, chan);
-    event::Write* sig = new event::Write(state, cb, io->to_fd());
-
-    state->events->start(sig);
-    return io;
-  }
-
-  Object* Channel::send_in_microseconds(STATE, Channel* chan, Integer* useconds, Object* tag) {
-    double seconds = useconds->to_native() / 1000000.0;
-
-    return send_in_seconds(state, chan, seconds, tag);
-  }
-
-  Object* Channel::send_in_seconds(STATE, Channel* chan, Float* seconds, Object* tag) {
-    double secs = seconds->to_double(state);
-    return send_in_seconds(state, chan, secs, tag);
-  }
-
-  Object* Channel::send_in_seconds(STATE, Channel* chan, double seconds, Object* tag) {
-    SendToChannel* cb = new SendToChannel(state, chan);
-    event::Timer* sig = new event::Timer(state, cb, seconds, tag);
-    state->events->start(sig);
-    return Qnil;
-  }
-
-  Object* Channel::send_on_stopped(VM* state, Channel* channel, Fixnum* pid, Fixnum* flags)
-  {
-    event::Child::add(state,
-                      new SendToChannel(state, channel),
-                      static_cast<pid_t>(pid->to_int()),
-                      flags->to_int() );
-
-    /* @todo Figure out the cancellation by id method. */
-    return Qnil;
-  }
-
-
-
 /* ChannelCallback */
 
   ChannelCallback::ChannelCallback(STATE, Channel* chan) : ObjectCallback(state) {

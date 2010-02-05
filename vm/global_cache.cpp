@@ -87,7 +87,7 @@ keep_looking:
 
     Module* klass = lookup.from;
 
-    entry = state->global_cache->lookup(klass, name);
+    entry = state->global_cache()->lookup(klass, name);
     if(entry) {
       if(lookup.priv || entry->is_public) {
         msg.method = entry->method;
@@ -100,7 +100,7 @@ keep_looking:
 
     bool was_private = false;
     if(hierarchy_resolve(state, name, msg, lookup, &was_private)) {
-      state->global_cache->retain(state, lookup.from, name,
+      state->global_cache()->retain(state, lookup.from, name,
           msg.module, msg.method, msg.method_missing, was_private);
       return true;
     }

@@ -61,36 +61,17 @@ namespace rubinius {
   class SharedState;
   class Fiber;
 
-  struct Stats {
-    // How much time is spent running the JIT
-    uint64_t jit_timing;
-
-    // How many methods have been compiled by the JIT
-    uint64_t jitted_methods;
-
-    // How much time is spent in the GC
-    uint64_t time_in_gc;
-
-    Stats()
-      : jit_timing(0)
-      , jitted_methods(0)
-      , time_in_gc(0)
-    {}
-  };
-
   enum MethodMissingReason {
     eNone, ePrivate, eProtected, eSuper, eNormal
   };
 
   class VM : public ManagedThread {
-
   private:
     CallFrame* saved_call_frame_;
     ASyncMessageMailbox mailbox_;
     void* stack_start_;
     intptr_t stack_limit_;
     int stack_size_;
-    bool alive_;
     profiler::Profiler* profiler_;
     bool run_signals_;
 
@@ -104,12 +85,8 @@ namespace rubinius {
 
     Globals& globals;
     ObjectMemory* om;
-    event::Loop* events;
-    event::Loop* signal_events;
-    GlobalCache* global_cache;
     TypedRoot<TaskProbe*> probe;
     Interrupts& interrupts;
-    SymbolTable& symbols;
 
     bool check_local_interrupts;
 
@@ -121,13 +98,6 @@ namespace rubinius {
     // The current fiber running on this thread
     TypedRoot<Fiber*> current_fiber;
 
-    Stats stats;
-
-    // Temporary holder for rb_gc_mark() in subtend
-    ObjectMark* current_mark;
-
-    bool reuse_llvm;
-
     static int cStackDepthMax;
 
   public: /* Inline methods */
@@ -138,10 +108,6 @@ namespace rubinius {
 
     void set_run_signals(bool val) {
       run_signals_ = val;
-    }
-
-    bool alive_p() {
-      return alive_;
     }
 
     ThreadState* thread_state() {
@@ -172,6 +138,10 @@ namespace rubinius {
     // is removed.
     VariableRootBuffers* variable_buffers() {
       return shared.variable_buffers();
+    }
+
+    GlobalCache* global_cache() {
+      return shared.global_cache;
     }
 
     void* stack_start() {

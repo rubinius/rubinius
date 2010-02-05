@@ -50,30 +50,23 @@ namespace rubinius {
     : ManagedThread(shared)
     , saved_call_frame_(0)
     , stack_start_(0)
-    , alive_(true)
     , profiler_(0)
     , run_signals_(false)
     , shared(shared)
     , waiter_(NULL)
     , globals(shared.globals)
     , om(shared.om)
-    , global_cache(shared.global_cache)
     , interrupts(shared.interrupts)
-    , symbols(shared.symbols)
     , check_local_interrupts(false)
     , thread_state_(this)
     , thread(this, (Thread*)Qnil)
     , current_fiber(this, (Fiber*)Qnil)
-    , current_mark(NULL)
-    , reuse_llvm(true)
   {
     probe.set(Qnil, &globals.roots);
     set_stack_size(cStackDepthMax);
   }
 
-
   void VM::discard(VM* vm) {
-    vm->alive_ = false;
     vm->saved_call_frame_ = 0;
     if(vm->profiler_) {
       vm->shared.remove_profiler(vm, vm->profiler_);
@@ -88,9 +81,6 @@ namespace rubinius {
 
     om = new ObjectMemory(this, shared.config);
     shared.om = om;
-
-    global_cache = new GlobalCache;
-    shared.global_cache = global_cache;
 
     /** @todo Done by Environment::boot_vm(), and Thread::s_new()
      *        does not boot at all. Should this be removed? --rue */
@@ -110,18 +100,6 @@ namespace rubinius {
     TypeInfo::auto_learn_fields(this);
 
     bootstrap_ontology();
-
-    /* @todo Using a single default loop, revisit when many loops.
-     * @todo This needs to be handled through the environment.
-     * (disabled epoll backend as it frequently caused hangs on epoll_wait)
-     */
-    // signal_events = new event::Loop(EVFLAG_FORKCHECK | EVBACKEND_SELECT | EVBACKEND_POLL);
-    // events = signal_events;
-
-    // signal_events->start(new event::Child::Event(this));
-
-    events = 0;
-    signal_events = 0;
 
     VMMethod::init(this);
 
@@ -252,11 +230,11 @@ namespace rubinius {
 
 
   Symbol* VM::symbol(const char* str) {
-    return symbols.lookup(this, str);
+    return shared.symbols.lookup(this, str);
   }
 
   Symbol* VM::symbol(String* str) {
-    return symbols.lookup(this, str);
+    return shared.symbols.lookup(this, str);
   }
 
   void type_assert(STATE, Object* obj, object_type type, const char* reason) {

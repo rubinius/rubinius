@@ -107,7 +107,7 @@ namespace rubinius {
   void Module::add_method(STATE, Symbol* name, Executable* exec, Symbol* vis) {
     if(!vis) vis = G(sym_public);
     method_table_->store(state, name, exec, vis);
-    state->global_cache->clear(this, name);
+    state->global_cache()->clear(this, name);
   }
 
   Executable* Module::find_method(Symbol* name, Module** defined_in) {

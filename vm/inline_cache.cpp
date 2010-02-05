@@ -18,7 +18,7 @@ namespace rubinius {
 
     // Check the global cache first!
     GlobalCache::cache_entry* global_entry =
-      state->global_cache->lookup(module, name);
+      state->global_cache()->lookup(module, name);
 
     if(global_entry &&
         global_entry->is_public &&
@@ -71,7 +71,7 @@ namespace rubinius {
             this->module = module;
           }
 
-          state->global_cache->retain(state, klass_, name, this->module,
+          state->global_cache()->retain(state, klass_, name, this->module,
                 this->method, false,
                 !entry->public_p(state));
 
@@ -96,7 +96,7 @@ namespace rubinius {
 
     // Check the global cache first!
     GlobalCache::cache_entry* global_entry =
-      state->global_cache->lookup(module, name);
+      state->global_cache()->lookup(module, name);
 
     if(global_entry && !global_entry->method_missing) {
       this->method = global_entry->method;
@@ -131,7 +131,7 @@ namespace rubinius {
             this->module = module;
           }
 
-          state->global_cache->retain(state, start, name, this->module,
+          state->global_cache()->retain(state, start, name, this->module,
               this->method, false,
               !entry->public_p(state));
 

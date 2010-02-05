@@ -301,7 +301,7 @@ namespace rubinius {
 
   Object* System::vm_reset_method_cache(STATE, Symbol* name) {
     // 1. clear the global cache
-    state->global_cache->clear(name);
+    state->global_cache()->clear(name);
 
     state->shared.ic_registry()->clear(name);
     return name;

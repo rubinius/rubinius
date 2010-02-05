@@ -1,10 +1,26 @@
 #include "builtin/object.hpp"
+#include "util/thread.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;
+
+
+static thread::ThreadData<ObjectMark*> _current_mark;
+
+namespace rubinius {
+  namespace capi {
+    void set_current_mark(ObjectMark* mark) {
+      _current_mark.set(mark);
+    }
+
+    ObjectMark* current_mark() {
+      return _current_mark.get();
+    }
+  }
+}
 
 extern "C" {
   VALUE rb_gc_start() {
@@ -20,7 +36,7 @@ extern "C" {
   void rb_gc_mark(VALUE ptr) {
     Handle* handle = Handle::from(ptr);
     if(CAPI_REFERENCE_P(handle) && handle->object()->reference_p()) {
-      Object* res = VM::current_state()->current_mark->call(handle->object());
+      Object* res = capi::current_mark()->call(handle->object());
       if(res) {
         handle->set_object(res);
       }

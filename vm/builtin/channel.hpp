@@ -58,28 +58,6 @@ namespace rubinius {
 
     bool has_readers_p();
 
-    // Ruby.primitive :scheduler_send_on_signal
-    static Object* send_on_signal(STATE, Channel* chan, Fixnum* signal);
-
-    // Ruby.primitive :scheduler_send_on_readable
-    static Object* send_on_readable(STATE, Channel* chan, IO* io, Object* maybe_buffer, Fixnum* bytes);
-
-    // Ruby.primitive :scheduler_send_on_writable
-    static Object* send_on_writable(STATE, Channel* chan, IO* io);
-
-    // Ruby.primitive :scheduler_send_in_microseconds
-    static Object* send_in_microseconds(STATE, Channel* chan, Integer* useconds, Object* tag);
-
-    // Ruby.primitive :scheduler_send_in_seconds
-    static Object* send_in_seconds(STATE, Channel* chan, Float* seconds, Object* tag);
-    static Object* send_in_seconds(STATE, Channel* chan, double seconds, Object* tag);
-
-    /**
-     *  Event child process ending.
-     */
-    // Ruby.primitive :scheduler_send_on_stopped
-    static Object* send_on_stopped(STATE, Channel* channel, Fixnum* pid, Fixnum* flags);
-
 
     class Info : public TypeInfo {
     public:
