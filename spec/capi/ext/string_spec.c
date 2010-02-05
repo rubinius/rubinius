@@ -195,8 +195,7 @@ VALUE string_spec_STR2CSTR_replace(VALUE self, VALUE str) {
 }
 
 VALUE string_spec_rb_str_freeze(VALUE self, VALUE str) {
-  rb_str_freeze(str);
-  return Qnil;
+  return rb_str_freeze(str);
 }
 
 #ifdef RUBINIUS

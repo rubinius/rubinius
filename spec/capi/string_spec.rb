@@ -339,7 +339,7 @@ describe "C-API String function" do
   describe "rb_str_freeze" do
     it "freezes the string" do
       s = ""
-      @s.rb_str_freeze(s)
+      @s.rb_str_freeze(s).should == s
       s.frozen?.should be_true
     end
   end

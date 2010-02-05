@@ -102,8 +102,8 @@ extern "C" {
     self->unshare(env->state());
   }
 
-  void rb_str_freeze(VALUE str) {
-    rb_obj_freeze(str);
+  VALUE rb_str_freeze(VALUE str) {
+    return rb_obj_freeze(str);
   }
 
   VALUE rb_str_append(VALUE self_handle, VALUE other_handle) {

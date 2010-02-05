@@ -1290,7 +1290,7 @@ double rb_num2dbl(VALUE);
   void    rb_str_modify(VALUE str);
 
   /** Deprecated alias for rb_obj_freeze */
-  void    rb_str_freeze(VALUE str);
+  VALUE   rb_str_freeze(VALUE str);
 
   /** Returns a new String created from concatenating self with other. */
   VALUE   rb_str_plus(VALUE self_handle, VALUE other_handle);
