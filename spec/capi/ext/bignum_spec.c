@@ -4,6 +4,10 @@ static VALUE bignum_spec_rb_big2long(VALUE self, VALUE num) {
   return LONG2NUM(rb_big2long(num));
 }
 
+static VALUE bignum_spec_rb_big2ll(VALUE self, VALUE num) {
+  return rb_ll2inum(rb_big2ll(num));
+}
+
 static VALUE bignum_spec_rb_big2ulong(VALUE self, VALUE num) {
   return ULONG2NUM(rb_big2ulong(num));
 }
@@ -23,4 +27,5 @@ void Init_bignum_spec() {
   rb_define_method(cls, "rb_big2ulong", bignum_spec_rb_big2ulong, 1);
   rb_define_method(cls, "rb_big2dbl", bignum_spec_rb_big2dbl, 1);
   rb_define_method(cls, "rb_big2str", bignum_spec_rb_big2str, 2);
+  rb_define_method(cls, "rb_big2ll", bignum_spec_rb_big2ll, 1);
 }

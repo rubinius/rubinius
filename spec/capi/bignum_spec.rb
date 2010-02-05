@@ -27,6 +27,19 @@ describe "CApiBignumSpecs" do
     end
   end
 
+  describe "rb_big2ll" do
+    it "converts a Bignum" do
+      @s.rb_big2ll(@max_long).should == @max_long
+      @s.rb_big2ll(@min_long).should == @min_long
+      @s.rb_big2ll(ensure_bignum(0)).should == 0
+    end
+
+    it "raises RangeError if passed Bignum overflow long" do
+      lambda { @s.rb_big2ll(ensure_bignum(@max_long << 32)) }.should raise_error(RangeError)
+      lambda { @s.rb_big2ll(ensure_bignum(@min_long << 32)) }.should raise_error(RangeError)
+    end
+  end
+
   describe "rb_big2ulong" do
     it "converts a Bignum" do
       @s.rb_big2ulong(@max_ulong).should == @max_ulong
