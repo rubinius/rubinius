@@ -35,8 +35,8 @@ describe "CApiBignumSpecs" do
     end
 
     it "raises RangeError if passed Bignum overflow long" do
-      lambda { @s.rb_big2ll(ensure_bignum(@max_long << 32)) }.should raise_error(RangeError)
-      lambda { @s.rb_big2ll(ensure_bignum(@min_long << 32)) }.should raise_error(RangeError)
+      lambda { @s.rb_big2ll(ensure_bignum(@max_long << 40)) }.should raise_error(RangeError)
+      lambda { @s.rb_big2ll(ensure_bignum(@min_long << 40)) }.should raise_error(RangeError)
     end
   end
 
