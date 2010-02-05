@@ -18,6 +18,12 @@ describe "CApiModule" do
     (SubtendModuleTest::FOO != 5).should == true
   end
 
+  it "rb_define_global_const should define a constant on Object" do
+    @m.rb_define_global_const(7)
+    ::GC_FOO_TEST.should == 7
+    Object.send :remove_const, "GC_FOO_TEST"
+  end
+
   it "rb_define_const should define a constant on a module" do
     @m.rb_define_const(SubtendModuleTest, 7)
     SubtendModuleTest::FOO.should == 7

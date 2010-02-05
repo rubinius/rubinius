@@ -884,6 +884,9 @@ double rb_num2dbl(VALUE);
   /** Reopen or create new class with superclass and name under parent module. Returns the Class object. */
   VALUE   rb_define_class_under(VALUE parent_handle, const char* name, VALUE superclass_handle);
 
+  /** Define a toplevel constant */
+  void    rb_define_global_const(const char* name, VALUE obj);
+
   /** Define a constant in given Module's namespace. */
   void    rb_define_const(VALUE module_handle, const char* name, VALUE obj_handle);
 

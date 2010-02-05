@@ -91,6 +91,10 @@ extern "C" {
     module->set_const(env->state(), name,  object);
   }
 
+  void rb_define_global_const(const char* name, VALUE obj) {
+    rb_define_const(rb_cObject, name, obj);
+  }
+
   void rb_define_global_function(const char* name, CApiGenericFunction func, int argc) {
     rb_define_module_function(rb_mKernel, name, func, argc);
   }
