@@ -56,7 +56,7 @@ namespace rubinius {
         i++) {
       args->set(vm_, 0, Fixnum::from(*i));
 
-      vm_->globals.rubinius->send(vm_, call_frame,
+      vm_->globals().rubinius->send(vm_, call_frame,
           vm_->symbol("received_signal"), args, Qnil);
     }
 

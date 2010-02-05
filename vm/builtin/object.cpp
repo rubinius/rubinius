@@ -50,7 +50,7 @@ namespace rubinius {
       return as<Class>(mod);
     }
 
-    return state->globals.special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
+    return state->globals().special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
   }
 
   void Object::cleanup(STATE) {
@@ -408,7 +408,7 @@ namespace rubinius {
     Module* found = NULL;
 
     if(!reference_p()) {
-      found = state->globals.special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
+      found = state->globals().special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
     } else {
       found = try_as<Module>(klass_);
     }

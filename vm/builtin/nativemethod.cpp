@@ -136,8 +136,8 @@ namespace rubinius {
   }
 
   void NativeMethod::init(STATE) {
-    state->globals.nmethod.set(state->new_class("NativeMethod", G(executable), G(rubinius)));
-    state->globals.nmethod.get()->set_object_type(state, NativeMethodType);
+    GO(nmethod).set(state->new_class("NativeMethod", G(executable), G(rubinius)));
+    G(nmethod)->set_object_type(state, NativeMethodType);
 
     init_thread(state);
   }
@@ -215,7 +215,7 @@ namespace rubinius {
 
     NativeMethod* m = NativeMethod::create(state,
                                            path,
-                                           state->globals.rubinius.get(),
+                                           G(rubinius),
                                            name->to_sym(state),
                                            reinterpret_cast<GenericFunctor>(func),
                                            Fixnum::from(INIT_FUNCTION)

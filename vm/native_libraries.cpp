@@ -13,7 +13,8 @@
 namespace rubinius {
 
   void VM::init_native_libraries() {
-    globals.rubinius.get()->set_const(this, "LIBSUFFIX", String::create(this, RBX_LIBSUFFIX));
+    globals().rubinius.get()->set_const(this, "LIBSUFFIX",
+                                        String::create(this, RBX_LIBSUFFIX));
 
     rbx_dlinit();
   }

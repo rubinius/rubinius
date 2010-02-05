@@ -22,7 +22,7 @@
 namespace rubinius {
 
   GCData::GCData(STATE)
-    : roots_(state->globals.roots)
+    : roots_(state->globals().roots)
     , call_frames_(state->shared.call_frame_locations())
     , variable_buffers_(*state->variable_buffers())
     , handles_(state->shared.global_handles())

@@ -23,7 +23,7 @@ namespace rubinius {
 
   Root::Root(STATE)
     : LinkedList::Node()
-    , roots_(&state->globals.roots)
+    , roots_(&state->globals().roots)
     , object_(Qundef)
   {}
 
@@ -32,7 +32,7 @@ namespace rubinius {
     , roots_(NULL)
     , object_(Qundef)
   {
-    set(obj, &state->globals.roots);
+    set(obj, &state->globals().roots);
   }
 
   void Root::set(Object* obj, Roots* r) {

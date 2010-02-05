@@ -377,7 +377,7 @@ namespace rubinius {
       return klass_;
     }
 
-    return state->globals.special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
+    return state->globals().special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
   }
 
   inline bool Object::symbol_p() const {

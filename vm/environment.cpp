@@ -431,11 +431,11 @@ namespace rubinius {
     std::ifstream sig_stream(sig_path.c_str());
     if(sig_stream) {
       sig_stream >> signature_;
-      state->globals.rubinius->set_const(state, "Signature",
+      G(rubinius)->set_const(state, "Signature",
                        Integer::from(state, signature_));
       sig_stream.close();
     } else {
-      state->globals.rubinius->set_const(state, "Signature", Integer::from(state, 0));
+      G(rubinius)->set_const(state, "Signature", Integer::from(state, 0));
     }
 
     // Load alpha

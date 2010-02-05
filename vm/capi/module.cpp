@@ -39,7 +39,7 @@ extern "C" {
     }
 
     // Try from Object as well.
-    module = env->state()->globals.object.get();
+    module = env->state()->globals().object.get();
 
     while(!module->nil_p()) {
       Object* val = module->get_const(env->state(), name, &found);

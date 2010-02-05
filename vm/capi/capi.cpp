@@ -106,7 +106,7 @@ namespace rubinius {
 
       if(type < 0 || type >= cCApiMaxConstant) {
         NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-        rb_raise(env->get_handle(env->state()->globals.exception.get()),
+        rb_raise(env->get_handle(env->state()->globals().exception.get()),
               "C-API: invalid constant index");
       }
 
@@ -258,7 +258,7 @@ extern "C" {
     CApiConstantHandleMap::iterator entry = map.find(type);
     if(entry == map.end()) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-      Object* obj = env->state()->globals.object.get()->get_const(env->state(),
+      Object* obj = env->state()->globals().object.get()->get_const(env->state(),
           capi_get_constant_name(type).c_str());
 
       VALUE val = env->get_handle(obj);

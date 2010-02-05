@@ -38,8 +38,8 @@
 // Reset macros since we're inside state
 #undef G
 #undef GO
-#define G(whatever) globals.whatever.get()
-#define GO(whatever) globals.whatever
+#define G(whatever) globals().whatever.get()
+#define GO(whatever) globals().whatever
 
 namespace rubinius {
 
@@ -54,7 +54,6 @@ namespace rubinius {
     , run_signals_(false)
     , shared(shared)
     , waiter_(NULL)
-    , globals(shared.globals)
     , om(shared.om)
     , interrupts(shared.interrupts)
     , check_local_interrupts(false)
@@ -62,7 +61,7 @@ namespace rubinius {
     , thread(this, (Thread*)Qnil)
     , current_fiber(this, (Fiber*)Qnil)
   {
-    probe.set(Qnil, &globals.roots);
+    probe.set(Qnil, &globals().roots);
     set_stack_size(cStackDepthMax);
   }
 
@@ -166,7 +165,7 @@ namespace rubinius {
   }
 
   void VM::boot_threads() {
-    thread.set(Thread::create(this, this, pthread_self()), &globals.roots);
+    thread.set(Thread::create(this, this, pthread_self()), &globals().roots);
     thread->sleep(this, Qfalse);
 
     VM::set_current(this);
@@ -264,7 +263,7 @@ namespace rubinius {
   }
 
   Thread *VM::current_thread() {
-    return globals.current_thread.get();
+    return globals().current_thread.get();
   }
 
   void VM::run_gc_soon() {
@@ -369,7 +368,7 @@ namespace rubinius {
   }
 
   void VM::set_const(const char* name, Object* val) {
-    globals.object->set_const(this, (char*)name, val);
+    globals().object->set_const(this, (char*)name, val);
   }
 
   void VM::set_const(Module* mod, const char* name, Object* val) {

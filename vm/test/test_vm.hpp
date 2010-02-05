@@ -47,7 +47,7 @@ class TestVM : public CxxTest::TestSuite, public VMTest {
     std::map<int, Object*> objs;
 
     int index = 0;
-    Root* root = static_cast<Root*>(state->globals.roots.head());
+    Root* root = static_cast<Root*>(state->globals().roots.head());
     while(root) {
       Object* tmp = root->get();
       if(tmp->reference_p() && tmp->zone() == YoungObjectZone) {
@@ -65,7 +65,7 @@ class TestVM : public CxxTest::TestSuite, public VMTest {
     state->om->collect_young(gc_data);
 
     index = 0;
-    root = static_cast<Root*>(state->globals.roots.head());
+    root = static_cast<Root*>(state->globals().roots.head());
     while(root) {
       if(Object* tmp = objs[index]) {
         TS_ASSERT(root->get() != tmp);
@@ -76,7 +76,7 @@ class TestVM : public CxxTest::TestSuite, public VMTest {
     }
 
     HeapDebug hd(state->om);
-    hd.walk(state->globals.roots);
+    hd.walk(state->globals().roots);
 
     //std::cout << "total: " << hd.seen_objects << " (" <<
     //  state->om->young.total_objects << ")" << std::endl;

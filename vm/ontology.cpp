@@ -55,8 +55,8 @@ namespace rubinius {
   // Reset macros since we're inside state
 #undef G
 #undef GO
-#define G(whatever) globals.whatever.get()
-#define GO(whatever) globals.whatever
+#define G(whatever) globals().whatever.get()
+#define GO(whatever) globals().whatever
 
   void VM::bootstrap_class() {
     /* Class is created first by hand, and twiddle to setup the internal
@@ -200,17 +200,17 @@ namespace rubinius {
     // the classes for Fixnum's, nil, true and false.
     for(size_t i = 0; i < SPECIAL_CLASS_SIZE; i++) {
       if(SYMBOL_P(i)) {
-        globals.special_classes[i] = GO(symbol);
+        globals().special_classes[i] = GO(symbol);
       } else if(FIXNUM_P(i)) {
-        globals.special_classes[i] = GO(fixnum_class);
+        globals().special_classes[i] = GO(fixnum_class);
       } else {
-        globals.special_classes[i] = GO(object); /* unused slot */
+        globals().special_classes[i] = GO(object); /* unused slot */
       }
     }
 
-    globals.special_classes[(uintptr_t)Qfalse] = GO(false_class);
-    globals.special_classes[(uintptr_t)Qnil  ] = GO(nil_class);
-    globals.special_classes[(uintptr_t)Qtrue ] = GO(true_class);
+    globals().special_classes[(uintptr_t)Qfalse] = GO(false_class);
+    globals().special_classes[(uintptr_t)Qnil  ] = GO(nil_class);
+    globals().special_classes[(uintptr_t)Qtrue ] = GO(true_class);
 
     /* Create IncludedModule */
     GO(included_module).set(new_class("IncludedModule", G(module), G(rubinius)));
@@ -409,7 +409,7 @@ namespace rubinius {
 
     Object* key = Fixnum::from(num);
 
-    Object* current = state->globals.errno_mapping->fetch(state, key, &found);
+    Object* current = state->globals().errno_mapping->fetch(state, key, &found);
     if(found) {
       ern->set_const(state, symbol(name), current);
     } else {
@@ -421,7 +421,7 @@ namespace rubinius {
 
       cls->set_const(state, symbol("Errno"), key);
       cls->set_const(state, symbol("Strerror"), String::create(state, strerror(num)));
-      state->globals.errno_mapping->store(state, key, cls);
+      state->globals().errno_mapping->store(state, key, cls);
     }
   }
 

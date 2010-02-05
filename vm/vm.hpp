@@ -83,7 +83,6 @@ namespace rubinius {
     thread::Mutex local_lock_;
     Waiter* waiter_;
 
-    Globals& globals;
     ObjectMemory* om;
     TypedRoot<TaskProbe*> probe;
     Interrupts& interrupts;
@@ -142,6 +141,10 @@ namespace rubinius {
 
     GlobalCache* global_cache() {
       return shared.global_cache;
+    }
+
+    Globals& globals() {
+      return shared.globals;
     }
 
     void* stack_start() {
