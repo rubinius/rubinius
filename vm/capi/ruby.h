@@ -596,6 +596,7 @@ double rb_num2dbl(VALUE);
 #define UINT2FIX(i)       UINT2NUM((i))
 
 #define LL2NUM(val) rb_ll2inum(val)
+#define ULL2NUM(val) rb_ull2inum(val)
 
   VALUE rb_ll2inum(long long val);
   VALUE rb_ull2inum(unsigned long long val);
