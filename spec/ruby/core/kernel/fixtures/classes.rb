@@ -8,6 +8,12 @@ module KernelSpecs
   end
 
   class Methods
+
+    module MetaclassMethods
+      def peekaboo
+      end
+    end
+
     def self.ichi; end
     def ni; end
     class << self
