@@ -541,7 +541,7 @@ module Kernel
 
   def methods(all=true)
     methods = singleton_methods(all)
-    methods |= self.class.instance_methods(true) if all
+    methods |= self.metaclass.instance_methods(true) if all
 
     return methods if kind_of?(ImmediateValue)
 
