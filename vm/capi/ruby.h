@@ -1025,6 +1025,10 @@ double rb_num2dbl(VALUE);
 
   /** Mark variable global. Will not be GC'd. */
   void    rb_global_variable(VALUE* handle_address);
+  void    rb_gc_register_address(VALUE* address);
+
+  /** Unmark variable as global */
+  void rb_gc_unregister_address(VALUE* address);
 
   /** Retrieve global by name. Because of MRI, the leading $ is optional but recommended. */
   VALUE   rb_gv_get(const char* name);
