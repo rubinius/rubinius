@@ -457,7 +457,7 @@ namespace rubinius {
 
     } else if(prim == Primitives::float_equal && count_ == 1) {
       inlined_prim = "float_equal";
-      float_compare(cLessThan, klass, ops_, *this);
+      float_compare(cEqual, klass, ops_, *this);
     } else if(prim == Primitives::float_lt && count_ == 1) {
       inlined_prim = "float_lt";
       float_compare(cLessThan, klass, ops_, *this);
