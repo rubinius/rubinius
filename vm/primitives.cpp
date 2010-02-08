@@ -18,8 +18,8 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
   void Primitives::queue_for_jit(STATE, CallFrame* call_frame, int which) {
-    LLVMState* ls = LLVMState::get(state);
-    ls->compile_callframe(state, 0, call_frame, which);
+    // LLVMState* ls = LLVMState::get(state);
+    // ls->compile_callframe(state, 0, call_frame, which);
   }
 #endif
 

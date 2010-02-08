@@ -676,77 +676,46 @@ namespace rubinius {
     compile_soon(state, candidate);
   }
 
-  CompiledMethod* LLVMState::find_candidate(CompiledMethod* start, CallFrame* call_frame) {
-    CompiledMethod* found = start;
-    int depth = 0;
-    // bool consider_block_parents = config_.jit_inline_blocks;
+#define SMALL_METHOD_SIZE 20
 
-    // No upper call_frames or generic inlining is off, use the start.
-    // With generic inlining off, there is no way to inline back to start,
-    // so we don't both trying.
+  CompiledMethod* LLVMState::find_candidate(CompiledMethod* start, CallFrame* call_frame) {
     if(!config_.jit_inline_generic) {
-      if(!start) start = call_frame->cm;
       return find_first_non_block(call_frame);
     }
 
-    /*
-    std::cerr << "JIT target search:\n";
+    int depth = cInlineMaxDepth;
 
-    if(start) {
-      show_method(this, start);
-    } else {
-      std::cerr << "  <primitive>\n";
-    }
-    */
-
-    CompiledMethod* next = call_frame->cm;
-
-    while(depth < cInlineMaxDepth) {
-      // show_method(this, next);
-
-      VMMethod* next_v = next->backend_method();
-
-      // Basic requirements
-      if(next_v->required_args != next_v->total_args ||
-          next_v->call_count < 200 ||
-          next_v->jitted()) break;
-
-      // Jump to defining methods of blocks?
-      if(next_v->parent()) {
-        /*
-        if(consider_block_parents) {
-          // See if parent is in this call_frame chain properly..
-          if(CallFrame* pf = validate_block_parent(call_frame, parent)) {
-            depth++;
-
-            // Method parents are valuable, so always use them if we find them.
-            if(!parent->parent()) {
-              found = parent;
-            }
-            // show_method(this, parent, " parent!");
-
-            call_frame = pf;
-          }
-        } else {
-        */
-          // We hit a block, just bail.
-          break;
-        // }
-      } else {
-        found = next;
-      }
-
+    if(!start) {
+      start = call_frame->cm;
       call_frame = call_frame->previous;
-      if(!call_frame) break;
-
-      next = call_frame->cm;
-
-      depth++;
+      depth--;
     }
 
-    if(!found && !next->backend_method()->parent()) return next;
+    if(!call_frame || start->backend_method()->total > SMALL_METHOD_SIZE) {
+      return start;
+    }
 
-    return found;
+    CompiledMethod* caller = start;
+
+    while(depth-- > 0) {
+      CompiledMethod* cur = call_frame->cm;
+      VMMethod* vmm = cur->backend_method();
+
+      if(vmm->required_args != vmm->total_args // has a splat
+          || vmm->call_count < 200 // not called much
+          || vmm->jitted() // already jitted
+          || vmm->parent() // is a block
+        ) return caller;
+
+      CallFrame* next = call_frame->previous;
+
+      if(!next|| cur->backend_method()->total > SMALL_METHOD_SIZE) return cur;
+
+      caller = cur;
+      call_frame = next;
+    }
+
+    return caller;
   }
 
   void LLVMState::show_machine_code(void* buffer, size_t size) {
