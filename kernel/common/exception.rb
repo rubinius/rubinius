@@ -10,6 +10,10 @@ class Exception
     @backtrace = nil
   end
 
+  # Needed to properly implement #exception, which must clone and call
+  # #initialize again, BUT not a subclasses initialize.
+  alias_method :__initialize__, :initialize
+
   def backtrace
     if @backtrace
       if @backtrace.kind_of? Array
@@ -77,7 +81,13 @@ class Exception
   def exception(message=nil)
     if message
       unless message.equal? self
-        return self.class.new(message)
+        # As strange as this might seem, this IS actually the protocol
+        # that MRI implements for this. The explicit call to
+        # Exception#initialize (via __initialize__) is exactly what MRI
+        # does.
+        e = clone
+        e.__initialize__(message)
+        return e
       end
     end
 
