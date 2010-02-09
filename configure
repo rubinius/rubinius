@@ -163,6 +163,7 @@ class Configure
       end
 
       http.get_response(URI(url)) do |res|
+        return false if res.is_a?(Net::HTTPClientError)
         size, total = 0, res.header['Content-Length'].to_i
         File.open full_path, "w" do |f|
           res.read_body do |chunk|
