@@ -69,25 +69,20 @@ module Kernel
 
   # Add in $! in as a hook, to just do $!. This is for accesses to $!
   # that the compiler can't see.
-  get = proc { $! }
-  Rubinius::Globals.set_hook(:$!, get, nil)
+  Rubinius::Globals.set_hook(:$!) { $! }
 
   # Same as $!, for any accesses we might miss.
   # HACK. I doubt this is correct, because of how it will be called.
-  get = proc { Regexp.last_match }
-  Rubinius::Globals.set_hook(:$~, get, nil)
+  Rubinius::Globals.set_hook(:$~) { Regexp.last_match }
 
-  get = proc { ARGV }
-  Rubinius::Globals.set_hook(:$*, get, nil)
+  Rubinius::Globals.set_hook(:$*) { ARGV }
 
-  get = proc { $! ? $!.backtrace : nil }
-  Rubinius::Globals.set_hook(:$@, get, nil)
+  Rubinius::Globals.set_hook(:$@) { $! ? $!.backtrace : nil }
 
-  get = proc { Process.pid }
-  Rubinius::Globals.set_hook(:$$, get, nil)
+  Rubinius::Globals.set_hook(:$$) { Process.pid }
 
   get = proc { ::STDOUT }
-  set = proc do |io, key|
+  set = proc do |key, io|
     unless io.respond_to? :write
       raise ::TypeError, "#{key} must have write method, #{io.class} given"
     end
@@ -98,11 +93,11 @@ module Kernel
   Rubinius::Globals.set_hook(:$defout, get, set)
 
   get = proc { ::STDIN }
-  set = proc { |io| ::STDIN = io }
+  set = proc { |key, io| ::STDIN = io }
   Rubinius::Globals.set_hook(:$stdin, get, set)
 
   get = proc { ::STDERR }
-  set = proc do |io, key|
+  set = proc do |key, io|
     unless io.respond_to? :write
       raise ::TypeError, "#{key} must have write method, #{io.class} given"
     end
@@ -112,7 +107,7 @@ module Kernel
 
   # Proper kcode support
   get = proc { Rubinius.kcode.to_s }
-  set = proc { |val| Rubinius.kcode = val }
+  set = proc { |key, val| Rubinius.kcode = val }
   Rubinius::Globals.set_hook(:$KCODE, get, set)
 
   # Implements rb_path2name. Based on code from wycats

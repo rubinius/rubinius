@@ -59,11 +59,7 @@ module Rubinius
       if !@internal.key?(key) && alias_key = @alias[key]
         @internal[alias_key] = data
       elsif @hooks.key? key
-        if @hooks[key][1].arity == 1
-          @internal[key] = @hooks[key][1].call(data)
-        else
-          @internal[key] = @hooks[key][1].call(data, key)
-        end
+        @internal[key] = @hooks[key][1].call(key, data)
       else
         @internal[key] = data
       end
@@ -79,22 +75,30 @@ module Rubinius
       end
     end
 
-    def illegal_set
+    def illegal_set(*args)
       raise RuntimeError, "unable to set global"
     end
 
-    def set_hook(var, getter, setter)
-      unless getter.respond_to?(:call)
-        raise ArgumentError, "getter must respond to call"
-      end
+    def set_hook(var, getter=nil, setter=nil, &block)
+      if block
+        if getter or setter
+          raise ArgumentError, "duplicate procs provided with block"
+        end
 
-      if setter.nil?
-        setter = method(:illegal_set)
-      elsif not setter.respond_to?(:call)
-        raise ArgumentError, "setter must respond to call"
-      end
+        @hooks[var] = [block, method(:illegal_set)]
+      else
+        unless getter.respond_to?(:call)
+          raise ArgumentError, "getter must respond to call"
+        end
 
-      @hooks[var] = [getter, setter]
+        if !setter
+          setter = method(:illegal_set)
+        elsif !setter.respond_to?(:call)
+          raise ArgumentError, "setter must respond to call"
+        end
+
+        @hooks[var] = [getter, setter]
+      end
     end
   end
 
