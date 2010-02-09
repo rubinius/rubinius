@@ -1,3 +1,4 @@
+#include "vm.hpp"
 #include "shared_state.hpp"
 #include "config_parser.hpp"
 #include "config.h"

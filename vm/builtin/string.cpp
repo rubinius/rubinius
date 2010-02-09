@@ -6,6 +6,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/float.hpp"
 #include "builtin/integer.hpp"
+#include "builtin/tuple.hpp"
 
 #include "vm.hpp"
 #include "object_utils.hpp"
@@ -16,21 +17,13 @@
 
 #include <unistd.h>
 #include <iostream>
+#include <ctype.h>
 
 namespace rubinius {
 
   void String::init(STATE) {
     GO(string).set(state->new_class("String", G(object)));
     G(string)->set_object_type(state, StringType);
-  }
-
-  /* String::size returns the number of actual bytes in the string NOT
-   * including the trailing NULL byte.
-   *
-   * String::create(state, "foo")->size() is 3.
-   */
-  size_t String::size() {
-    return num_bytes_->to_native();
   }
 
   /* Creates a String instance with +num_bytes+ == +size+ and
@@ -48,6 +41,25 @@ namespace rubinius {
     so->shared(state, Qfalse);
 
     size_t bytes = size->to_native() + 1;
+    ByteArray* ba = ByteArray::create(state, bytes);
+    ba->raw_bytes()[bytes-1] = 0;
+
+    so->data(state, ba);
+
+    return so;
+  }
+
+  String* String::create_reserved(STATE, size_t bytes) {
+    String *so;
+
+    so = state->new_object<String>(G(string));
+
+    so->num_bytes(state, Fixnum::from(0));
+    so->characters(state, Fixnum::from(0));
+    so->encoding(state, Qnil);
+    so->hash_value(state, (Integer*)Qnil);
+    so->shared(state, Qfalse);
+
     ByteArray* ba = ByteArray::create(state, bytes);
     ba->raw_bytes()[bytes-1] = 0;
 
@@ -429,6 +441,84 @@ namespace rubinius {
     characters(state, num_bytes_);
 
     return Fixnum::from(tr_data->steps);
+  }
+
+  String* String::escape(STATE, Tuple* tbl, Object* respect_kcode) {
+    uint8_t* cur = byte_address();
+    uint8_t* fin = cur + size();
+
+    if(tbl->num_fields() < 256) {
+      return (String*)Primitives::failure();
+    }
+
+    Object** tbl_ptr = tbl->field;
+
+    kcode::table* kcode_tbl = 0;
+    if(RTEST(respect_kcode)) {
+      kcode_tbl = state->shared.kcode_table();
+    } else {
+      kcode_tbl = kcode::null_table();
+    }
+
+    // Calculate the final size of result
+    size_t size = 0;
+
+    while(cur < fin) {
+      uint8_t byte = *cur;
+      if(kcode::mbchar_p(kcode_tbl, byte)) {
+        size_t clen = kcode::mbclen(kcode_tbl, byte);
+        size += clen;
+        cur += clen;
+        continue;
+      } else {
+        size += as<String>(tbl_ptr[byte])->size();
+      }
+      cur++;
+    }
+
+    cur = byte_address();
+    String* result = String::create(state, Fixnum::from(size));
+
+    // Since we precalculated the size, we can write directly into result
+    uint8_t* output = result->byte_address();
+
+    while(cur < fin) {
+      uint8_t byte = *cur;
+      if(kcode::mbchar_p(kcode_tbl, byte)) {
+        size_t len = kcode::mbclen(kcode_tbl, byte);
+        memcpy(output, cur, len);
+        output += len;
+        cur += len;
+        continue;
+      } else {
+        // Not unsafe, because we've type checked tbl_ptr above
+        String* what = force_as<String>(tbl_ptr[byte]);
+        uint8_t* what_buf = what->byte_address();
+
+        switch(what->size()) {
+        case 1:
+          *output++ = *what_buf;
+          break;
+        case 2:
+          *output++ = *what_buf++;
+          *output++ = *what_buf;
+          break;
+        case 3:
+          *output++ = *what_buf++;
+          *output++ = *what_buf++;
+          *output++ = *what_buf;
+          break;
+        default:
+          memcpy(output, what_buf, what->size());
+          output += what->size();
+          break;
+        }
+      }
+      cur++;
+    }
+
+    if(tainted_p(state)) result->taint(state);
+    return result;
   }
 
   String* String::copy_from(STATE, String* other, Fixnum* start, Fixnum* size, Fixnum* dest) {

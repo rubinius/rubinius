@@ -223,6 +223,7 @@ namespace rubinius {
     ArrayIterator::init(this);
     ByteArray::init(this);
     String::init(this);
+    kcode::init(this);
     Executable::init(this);
     CompiledMethod::init(this);
     IO::init(this);

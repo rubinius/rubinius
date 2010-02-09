@@ -1,5 +1,8 @@
 TOPLEVEL_BINDING = binding()
 
+# Default kcode
+Rubinius.kcode = "ASCII"
+
 module Rubinius
   class Loader
     def initialize

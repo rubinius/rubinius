@@ -693,4 +693,45 @@ namespace rubinius {
     return Qnil;
   }
 
+  Symbol* System::vm_get_kcode(STATE) {
+    switch(state->shared.kcode_page()) {
+    case kcode::eEUC:
+      return state->symbol("EUC");
+    case kcode::eSJIS:
+      return state->symbol("SJIS");
+    case kcode::eUTF8:
+      return state->symbol("UTF8");
+    default:
+      return state->symbol("NONE");
+    }
+  }
+
+  Object* System::vm_set_kcode(STATE, String* what) {
+    if(what->size() < 1) {
+      kcode::set(state, kcode::eAscii);
+    } else {
+      const char* str = what->c_str();
+
+      switch(str[0]) {
+      case 'E':
+      case 'e':
+        kcode::set(state, kcode::eEUC);
+        break;
+      case 'S':
+      case 's':
+        kcode::set(state, kcode::eSJIS);
+        break;
+      case 'U':
+      case 'u':
+        kcode::set(state, kcode::eUTF8);
+        break;
+      default:
+        kcode::set(state, kcode::eAscii);
+        break;
+      }
+    }
+
+    return vm_get_kcode(state);
+  }
+
 }

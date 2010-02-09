@@ -1,8 +1,8 @@
 def Bench.run
   i = 0
+  str = random_string
   while @should_run
-    # string#inspect(...)
-    raise "string#inspect(...) benchmark is not implemented"
+    str.inspect
     i += 1
   end
 

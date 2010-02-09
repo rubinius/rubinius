@@ -62,6 +62,7 @@ namespace rubinius {
     static String* create(STATE, const char* str);
     static String* create(STATE, const char* str, size_t bytes);
     static String* create_pinned(STATE, Fixnum* size);
+    static String* create_reserved(STATE, size_t bytes);
 
     // Hash the NUL-terminated string _bp_.
     static hashval hash_str(const char *bp);
@@ -74,7 +75,9 @@ namespace rubinius {
     Object* equal(STATE, String* other);
 
     // Returns the number of bytes this String contains
-    size_t size();
+    size_t size() {
+      return num_bytes_->to_native();
+    }
 
     // Access the String as a char* directly. WARNING: doesn't necessarily
     // return a null terminated char*, so be sure to use size() with it.
@@ -161,6 +164,9 @@ namespace rubinius {
 
     // Ruby.primitive :string_rindex
     Fixnum* rindex(STATE, String* pattern, Fixnum* start);
+
+    // Ruby.primitive :string_escape
+    String* escape(STATE, Tuple* table, Object* respect_kcode);
 
     class Info : public TypeInfo {
     public:

@@ -6,6 +6,7 @@
 #include "maps.hpp"
 #include "call_frame_list.hpp"
 #include "gc/variable_buffer.hpp"
+#include "kcode.hpp"
 
 #include "globals.hpp"
 #include "symboltable.hpp"
@@ -77,6 +78,9 @@ namespace rubinius {
     InlineCacheRegistry* ic_registry_;
     unsigned int class_count_;
     std::list<ManagedThread*> threads_;
+
+    kcode::CodePage kcode_page_;
+    kcode::table* kcode_table_;
 
     int primitive_hits_[Primitives::cTotalPrimitives];
 
@@ -175,6 +179,19 @@ namespace rubinius {
 
     int& primitive_hits(int primitive) {
       return primitive_hits_[primitive];
+    }
+
+    kcode::table* kcode_table() {
+      return kcode_table_;
+    }
+
+    kcode::CodePage kcode_page() {
+      return kcode_page_;
+    }
+
+    void set_kcode_table(kcode::table* tbl, kcode::CodePage page) {
+      kcode_table_ = tbl;
+      kcode_page_ = page;
     }
 
     void enable_profiling(VM* vm);

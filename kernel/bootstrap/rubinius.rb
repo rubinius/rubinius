@@ -80,4 +80,14 @@ module Rubinius
       raise ArgumentError, "Class #{cls} is not compatible with #{obj.inspect}"
     end
   end
+
+  def self.kcode=(str)
+    Ruby.primitive :vm_set_kcode
+    raise PrimitiveFailure, "Rubinius.kcode= failed"
+  end
+
+  def self.kcode
+    Ruby.primitive :vm_get_kcode
+    raise PrimitiveFailure, "Rubinius.kcode failed"
+  end
 end

@@ -110,6 +110,11 @@ module Kernel
   end
   Rubinius::Globals.set_hook(:$stderr, get, set)
 
+  # Proper kcode support
+  get = proc { Rubinius.kcode.to_s }
+  set = proc { |val| Rubinius.kcode = val }
+  Rubinius::Globals.set_hook(:$KCODE, get, set)
+
   # Implements rb_path2name. Based on code from wycats
   def const_lookup(name)
     names = name.split '::'

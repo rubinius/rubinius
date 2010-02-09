@@ -76,4 +76,11 @@ class String
   end
 
   alias_method :size, :length
+
+  def escape(tbl, respect_kcode)
+    Ruby.primitive :string_escape
+    raise PrimitiveFailure, "String#escape failed"
+  end
+
+  private :escape
 end

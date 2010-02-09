@@ -1049,15 +1049,9 @@ class String
   #   str[3] = 8
   #   str.inspect       #=> "hel\010o"
   def inspect
-    if $KCODE == "UTF-8"
-      str = "\"#{self}\""
-    else
-      str = "\""
-      i = -1
-      str << @data[i].toprint while (i += 1) < @num_bytes
-      str << "\""
-    end
-    str.taint if tainted?
+    str = '"'
+    str << escape(CType::Printed, true)
+    str << '"'
     str
   end
 
@@ -1908,7 +1902,7 @@ class String
   # Returns self if self is an instance of String,
   # else returns self converted to a String instance.
   def to_s
-    self.class == String ? self : "".replace(self)
+    instance_of?(String) ? self : "".replace(self)
   end
   alias_method :to_str, :to_s
 
@@ -2368,13 +2362,10 @@ class String
     @num_bytes = @characters = @num_bytes - size
   end
 
-  # TODO: inspect is NOT dump!
   def dump
-    kcode = $KCODE
-    $KCODE = "NONE"
-    str = self.class.new self.inspect
-    $KCODE = kcode
-    str.taint if tainted?
+    str = self.class.new '"'
+    str << escape(CType::Printed, false)
+    str << '"'
     str
   end
 
