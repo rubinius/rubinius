@@ -28,7 +28,7 @@ namespace rubinius {
     // Lazily allocate a root fiber.
     if(fib->nil_p()) {
       fib = state->new_object<Fiber>(G(fiber));
-      fib->prev_ = (Fiber*)Qnil;
+      fib->prev_ = reinterpret_cast<Fiber*>(Qnil);
       fib->top_ = 0;
       fib->root_ = true;
       fib->status_ = Fiber::eRunning;
@@ -44,7 +44,7 @@ namespace rubinius {
 
     return fib;
 #else
-    return Qnil;
+    return reinterpret_cast<Fiber*>(Qnil);
 #endif
   }
 
@@ -113,7 +113,7 @@ namespace rubinius {
 
     return fib;
 #else
-    return Primitives::failure();
+    return reinterpret_cast<Fiber*>(Primitives::failure());
 #endif
   }
 
