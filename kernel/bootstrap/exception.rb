@@ -1,6 +1,5 @@
 class Exception
-  def fill_locations
-    Ruby.primitive :exception_fill_locations
-    raise PrimitiveFailure, "Unable to fill locations"
+  def capture_backtrace!(offset)
+    # replaced in delta with a real implementation
   end
 end

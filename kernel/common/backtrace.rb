@@ -31,6 +31,8 @@ class Backtrace
     @inline_effect = "\033[0;4m"
 
     @width = Rubinius::TERMINAL_WIDTH
+
+    @mri_backtrace = nil
   end
 
   def [](index)
@@ -157,11 +159,35 @@ class Backtrace
     self
   end
 
+  def self.detect_backtrace(obj)
+    if bt = obj.instance_variable_get(:@rbx_backtrace)
+      return bt if bt.same_mri_backtrace?(obj)
+    end
+
+    return nil
+  end
+
   # HACK: This should be MRI compliant-ish. --rue
   #
-  def to_mri()
-    @locations.map do |loc|
+  def to_mri
+    return @mri_backtrace if @mri_backtrace
+
+    @mri_backtrace = @locations.map do |loc|
       "#{loc.position}:in `#{loc.describe_method}'"
     end
+
+    # A little extra magic, so we can carry the backtrace along and reuse it
+
+    @mri_backtrace.instance_variable_set(:@rbx_backtrace, self)
+
+    return @mri_backtrace
+  end
+
+  def same_mri_backtrace?(obj)
+    currently = @locations.map do |loc|
+      "#{loc.position}:in `#{loc.describe_method}'"
+    end
+
+    currently == obj
   end
 end

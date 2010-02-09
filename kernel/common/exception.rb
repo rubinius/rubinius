@@ -8,6 +8,7 @@ class Exception
     @message = message
     @locations = nil
     @backtrace = nil
+    @custom_backtrace = nil
   end
 
   # Needed to properly implement #exception, which must clone and call
@@ -15,13 +16,7 @@ class Exception
   alias_method :__initialize__, :initialize
 
   def backtrace
-    if @backtrace
-      if @backtrace.kind_of? Array
-        return @backtrace
-      end
-
-      return @backtrace.to_mri
-    end
+    return @custom_backtrace if @custom_backtrace
 
     if @locations
       awesome_backtrace.to_mri
@@ -30,19 +25,40 @@ class Exception
     end
   end
 
+  # Indicates if the Exception has a backtrace set
+  def backtrace?
+    (@backtrace || @locations) ? true : false
+  end
+
   def awesome_backtrace
-    @backtrace = Backtrace.backtrace(@locations)
+    @backtrace ||= Backtrace.backtrace(@locations)
   end
 
   def render(header="An exception occurred", io=STDOUT)
     io.puts header
     io.puts "    #{message} (#{self.class})"
+
+    if @custom_backtrace
+      io.puts "\nUser defined backtrace:"
+      @custom_backtrace.each do |line|
+        io.puts "    #{line}"
+      end
+    end
+
     io.puts "\nBacktrace:"
     io.puts awesome_backtrace.show
 
     extra = @parent
     while extra
       io.puts "\nCaused by: #{extra.message} (#{extra.class})"
+
+      if @custom_backtrace
+        io.puts "\nUser defined backtrace:"
+        @custom_backtrace.each do |line|
+          io.puts "    #{line}"
+        end
+      end
+
       io.puts "\nBacktrace:"
       io.puts extra.awesome_backtrace.show
 
@@ -52,7 +68,16 @@ class Exception
   end
 
   def set_backtrace(bt)
-    @backtrace = bt
+    if bt.kind_of? Backtrace
+      @backtrace = bt
+    else
+      # See if we stashed a Backtrace object away, and use it.
+      if hidden_bt = Backtrace.detect_backtrace(bt)
+        @backtrace = hidden_bt
+      else
+        @custom_backtrace = bt
+      end
+    end
   end
 
   def set_context(ctx)

@@ -30,9 +30,7 @@ module Kernel
 
     unless skip
       exc.set_context ctx if ctx
-      unless exc.locations
-        exc.locations = Rubinius::VM.backtrace 1
-      end
+      exc.capture_backtrace!(2) unless exc.backtrace?
     end
 
     if $DEBUG and $VERBOSE != nil

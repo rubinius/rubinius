@@ -9,3 +9,9 @@
 
 class FatalError < Exception
 end
+
+class Exception
+  def capture_backtrace!(offset=1)
+    @locations = Rubinius::VM.backtrace offset
+  end
+end
