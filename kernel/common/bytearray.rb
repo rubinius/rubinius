@@ -22,5 +22,11 @@ module Rubinius
     def <=>(other)
       compare_bytes(other, size, other.size)
     end
+
+    # Sets the first character to be an ASCII capitalize letter
+    # if it's an ASCII lower case letter
+    def first_capitalize!
+      self[0] = self[0].toupper
+    end
   end
 end

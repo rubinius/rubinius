@@ -35,4 +35,12 @@ module CType
   def toprint
     Printed[self]
   end
+
+  Lowered = Rubinius::Tuple.new 256
+
+  i = 0
+  while i < 256
+    Lowered[i] = i.tolower.chr
+    i += 1
+  end
 end

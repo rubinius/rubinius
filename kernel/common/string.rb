@@ -373,7 +373,15 @@ class String
   #   "HELLO".capitalize    #=> "Hello"
   #   "123ABC".capitalize   #=> "123abc"
   def capitalize
-    (str = self.dup).capitalize! || str
+    return dup if @num_bytes == 0
+
+    str = escape(CType::Lowered, true)
+    str = self.class.new(str) unless instance_of?(String)
+
+    str.modify!
+    str.data.first_capitalize!
+
+    return str
   end
 
   # Modifies <i>self</i> by converting the first character to uppercase and the
@@ -385,29 +393,13 @@ class String
   #   a               #=> "Hello"
   #   a.capitalize!   #=> nil
   def capitalize!
-    self.modify!
+    Ruby.check_frozen
 
-    return if @num_bytes == 0
+    cap = capitalize()
+    return nil if cap == self
 
-    modified = false
-
-    c = @data[0]
-    if c.islower
-      @data[0] = c.toupper
-      modified = true
-    end
-
-    i = 1
-    while i < @num_bytes
-      c = @data[i]
-      if c.isupper
-        @data[i] = c.tolower
-        modified = true
-      end
-      i += 1
-    end
-
-    modified ? self : nil
+    replace(cap)
+    return self
   end
 
   # Case-insensitive version of <code>String#<=></code>.
