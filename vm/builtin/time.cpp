@@ -131,13 +131,7 @@ namespace rubinius {
     tm.tm_zone = 0;
     tm.tm_year = year->to_native() - 1900;
 
-    /* In theory, we'd set the tm_isdst field to isdst->to_native().
-     * But since that will break on at least FreeBSD,
-     * and I don't see the point of filling in that flag at all,
-     * we're telling the system here to figure the DST stuff
-     * out itmsg->recv.
-     */
-    tm.tm_isdst = -1;
+    tm.tm_isdst = isdst->to_native();
 
     if(from_gmt->true_p()) {
       old_tz = getenv("TZ");
@@ -157,7 +151,8 @@ namespace rubinius {
 
     if(seconds == -1) {
       int err = 0;
-      seconds = mktime_extended(&tm, 1, &err);
+      int utc_p = from_gmt->true_p() ? 1 : 0;
+      seconds = mktime_extended(&tm, utc_p, &err);
 
       if(err) {
         seconds = -1;
