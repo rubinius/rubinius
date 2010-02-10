@@ -50,14 +50,16 @@ class Backtrace
     max = 0
     lines = []
     last_method = nil
+    last_line = nil
     times = 0
 
     @locations.each do |loc|
-      if loc.method == last_method
+      if loc.method == last_method and loc.line == last_line
         times += 1
       else
         lines.last[-1] = times if lines.size > 0
         last_method = loc.method
+        last_line = loc.line
 
         str = loc.describe
         max = str.size if str.size > max
