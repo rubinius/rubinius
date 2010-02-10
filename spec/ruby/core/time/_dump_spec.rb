@@ -3,6 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/methods'
 
 describe "Time#_dump" do
   before :each do
+    @local = Time.at(946812800)
     @t = Time.at(946812800)
     @t = @t.gmtime
     @s = @t._dump
@@ -13,6 +14,10 @@ describe "Time#_dump" do
       @t.gmt?.should == true
       dump = @t._dump.unpack("VV").first
       ((dump >> 30) & 0x1).should == 1
+
+      @local.gmt?.should == false
+      dump = @local._dump.unpack("VV").first
+      ((dump >> 30) & 0x1).should == 0
     end
 
     it "dumps a Time object to a bytestring" do
