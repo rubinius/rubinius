@@ -15,4 +15,13 @@ describe :range_include, :shared => true do
     (0.5..2.4).send(@method, 2.4).should == true
     (0.5...2.4).send(@method, 2.4).should == false
   end
+
+  it "compares values using <=>" do
+    rng = (1..5)
+    m = mock("int")
+    m.should_receive(:coerce).and_return([1, 2])
+    m.should_receive(:<=>).and_return(1)
+
+    rng.send(@method, m).should be_false
+  end
 end
