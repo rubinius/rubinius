@@ -689,10 +689,11 @@ module Marshal
       else
         add_object obj
 
-        if obj.respond_to? :_dump then
-          str = serialize_user_defined obj
-        elsif obj.respond_to? :marshal_dump then
+        # ORDER MATTERS.
+        if obj.respond_to? :marshal_dump then
           str = serialize_user_marshal obj
+        elsif obj.respond_to? :_dump then
+          str = serialize_user_defined obj
         else
           str = obj.to_marshal self
         end
@@ -821,7 +822,7 @@ module Marshal
 
       add_object val
 
-      "U#{serialize(obj.class.name.to_sym)}#{val.to_marshal(self)}"
+      "U#{serialize(obj.class.__name__.to_sym)}#{val.to_marshal(self)}"
     end
 
     def set_instance_variables(obj)
