@@ -58,6 +58,13 @@ module Kernel
 
     if __kind_of__(Module)
       msg << " on #{self} (#{self.class})"
+
+    # A seperate case for nil, because people like to patch methods to
+    # nil, so we can't call methods on it reliably.
+    elsif nil.equal?(self)
+      msg << " on nil:NilClass."
+    elsif ImmediateValue === self
+      msg << " on #{self}:#{self.class}."
     else
       msg << " on an instance of #{self.class}."
     end
