@@ -105,7 +105,7 @@ namespace rubinius {
     if(getcontext(ctx) != 0) assert(0 && "fatal getcontext() error");
 
     ctx->uc_link = 0;
-    ctx->uc_stack.ss_sp = fib->stack_;
+    ctx->uc_stack.ss_sp = (char *) fib->stack_;
     ctx->uc_stack.ss_size = stack_size;
     ctx->uc_stack.ss_flags = 0;
 
