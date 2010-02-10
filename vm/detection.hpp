@@ -15,8 +15,18 @@
 
 #if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1050
 #define OS_X_10_5
+#define _XOPEN_SOURCE
+#define HAS_UCONTEXT
 #elif defined(__APPLE__) && defined(__APPLE_CC__)
 #define OS_X_ANCIENT
+#endif
+
+#if defined(__linux__)
+#define HAS_UCONTEXT
+#endif
+
+#if defined(__FreeBSD__)
+#define HAS_UCONTEXT
 #endif
 
 #if defined(i386) || defined(__i386) || defined(__i386__)

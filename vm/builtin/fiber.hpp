@@ -1,15 +1,10 @@
 #ifndef RBX_BUILTIN_FIBER
 #define RBX_BUILTIN_FIBER
 
-/* This MUST all be at the top */
-#ifdef linux
+#include "vm/config.h"
+
+#ifdef HAS_UCONTEXT
 #define FIBER_ENABLED
-#include <ucontext.h>
-typedef ucontext_t fiber_context_t;
-#elif defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) && \
-    (__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1050)
-#define FIBER_ENABLED
-#define _XOPEN_SOURCE
 #include <ucontext.h>
 typedef ucontext_t fiber_context_t;
 #else
@@ -17,7 +12,6 @@ struct fiber_context_t {
   int dummy;
 };
 #endif
-/* end must be at the top */
 
 #include <signal.h>
 #include <stdio.h>
