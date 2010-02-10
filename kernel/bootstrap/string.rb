@@ -77,10 +77,11 @@ class String
 
   alias_method :size, :length
 
-  def escape(tbl, respect_kcode)
-    Ruby.primitive :string_escape
-    raise PrimitiveFailure, "String#escape failed"
+  # In time, the JIT should be able to handle this as a ruby method.
+  def transform(tbl, respect_kcode)
+    Ruby.primitive :string_transform
+    raise PrimitiveFailure, "String#transform failed"
   end
 
-  private :escape
+  private :transform
 end

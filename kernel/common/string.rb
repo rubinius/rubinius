@@ -375,7 +375,7 @@ class String
   def capitalize
     return dup if @num_bytes == 0
 
-    str = escape(CType::Lowered, true)
+    str = transform(CType::Lowered, true)
     str = self.class.new(str) unless instance_of?(String)
 
     str.modify!
@@ -620,28 +620,27 @@ class String
   #
   # "hEllO".downcase   #=> "hello"
   def downcase
-    (str = self.dup).downcase! || str
+    return dup if @num_bytes == 0
+    str = transform(CType::Lowered, true)
+    str = self.class.new(str) unless instance_of?(String)
+
+    return str
   end
 
   # Downcases the contents of <i>self</i>, returning <code>nil</code> if no
   # changes were made.
   def downcase!
+    Ruby.check_frozen
+
     return if @num_bytes == 0
-    self.modify!
 
-    modified = false
+    str = transform(CType::Lowered, true)
 
-    i = 0
-    while i < @num_bytes
-      c = @data[i]
-      if c.isupper
-        @data[i] = c.tolower!
-        modified = true
-      end
-      i += 1
-    end
+    return nil if str == self
 
-    modified ? self : nil
+    replace(str)
+
+    return self
   end
 
   def each_char(&block)
@@ -1042,7 +1041,7 @@ class String
   #   str.inspect       #=> "hel\010o"
   def inspect
     str = '"'
-    str << escape(CType::Printed, true)
+    str << transform(CType::Printed, true)
     str << '"'
     str
   end
@@ -2356,7 +2355,7 @@ class String
 
   def dump
     str = self.class.new '"'
-    str << escape(CType::Printed, false)
+    str << transform(CType::Printed, false)
     str << '"'
     str
   end

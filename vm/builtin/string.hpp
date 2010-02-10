@@ -165,8 +165,8 @@ namespace rubinius {
     // Ruby.primitive :string_rindex
     Fixnum* rindex(STATE, String* pattern, Fixnum* start);
 
-    // Ruby.primitive :string_escape
-    String* escape(STATE, Tuple* table, Object* respect_kcode);
+    // Ruby.primitive :string_transform
+    String* transform(STATE, Tuple* table, Object* respect_kcode);
 
     class Info : public TypeInfo {
     public:

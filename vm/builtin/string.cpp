@@ -443,7 +443,7 @@ namespace rubinius {
     return Fixnum::from(tr_data->steps);
   }
 
-  String* String::escape(STATE, Tuple* tbl, Object* respect_kcode) {
+  String* String::transform(STATE, Tuple* tbl, Object* respect_kcode) {
     uint8_t* cur = byte_address();
     uint8_t* fin = cur + size();
 
