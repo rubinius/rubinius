@@ -1,12 +1,3 @@
-#--
-# _load
-# parse
-# --------------------
-# _dump
-# marshal_dump
-# marshal_load
-#++
-
 class Time
   include Comparable
 
@@ -110,10 +101,10 @@ class Time
       raise ArgumentError, "year too big to marshal: #{year}"
     end
 
-    gmt = @is_gmt ? 1 : 0
+    gmt = is_gmt ? 1 : 0
 
     major = 1                     << 31 | # 1 bit
-            (@is_gmt ? 1 : 0)     << 30 | # 1 bit
+            gmt                   << 30 | # 1 bit
             @tm[TM_FIELDS[:year]] << 14 | # 16 bits
             @tm[TM_FIELDS[:mon]]  << 10 | # 4 bits
             @tm[TM_FIELDS[:mday]] <<  5 | # 5 bits
@@ -441,14 +432,25 @@ class Time
     if sec.kind_of?(Integer) || usec
       sec  = Type.coerce_to sec, Integer, :to_i
       usec = usec ? usec.to_i : 0
-    else
-      sec  = Type.coerce_to sec, Float, :to_f
-      usec = ((sec % 1) * 1000000).to_i
-      sec  = sec.to_i
-    end
 
-    sec  = sec + (usec / 1000000)
-    usec = usec % 1000000
+      sec  = sec + (usec / 1000000)
+      usec = usec % 1000000
+    else
+      float = FloatValue(sec)
+      if float < 0
+        pos_sec, usec_frac = float.divmod(-1)
+        sec = -pos_sec
+
+        if usec_frac < 0
+          usec_frac += 1
+          sec -= 1
+        end
+      else
+        sec, usec_frac = float.divmod(1)
+      end
+
+      usec = (usec_frac * 1_000_000 + 0.5).to_i
+    end
 
     @sec = sec
     @usec = usec
