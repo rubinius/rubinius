@@ -80,6 +80,12 @@ class UserMarshal
   def ==(other) self.class === other and @data == other.data end
 end
 
+class UserMarshalWithClassName < UserMarshal
+  def self.name
+    "Never::A::Real::Class"
+  end
+end
+
 class UserMarshalWithIvar
   attr_reader :data
 

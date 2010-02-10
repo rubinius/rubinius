@@ -201,6 +201,21 @@ describe "Marshal.dump" do
     end
   end
 
+  it "favors marshal_dump over _dump" do
+    m = mock("marshaled")
+    m.should_receive(:marshal_dump).and_return(0)
+    m.should_not_receive(:_dump)
+
+    Marshal.dump(m)
+  end
+
+  it "does not use Class#name when using marshal_dump" do
+    u = UserMarshalWithClassName.new
+
+    m = Marshal.dump(u)
+    m.index(u.class.name).should be_nil
+  end
+
   ruby_version_is ""..."1.9" do
     it "dumps an array containing the same objects" do
       s = 'oh'; b = 'hi'; r = //; d = [b, :no, s, :go]; c = String
