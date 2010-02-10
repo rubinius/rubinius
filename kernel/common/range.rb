@@ -100,15 +100,20 @@ class Range
   #
   #   high
   def ===(value)
-    if @begin <= value
-      if self.exclude_end?
-        return true if value < @end
+    # MRI uses <=> to compare, so must we.
+
+    beg_compare = (@begin <=> value)
+    return false unless beg_compare
+
+    if Comparable.compare_int(beg_compare) <= 0
+      end_compare = (value <=> @end)
+      if @excl
+        return true if Comparable.compare_int(end_compare) < 0
       else
-        return true if value <= @end
+        return true if Comparable.compare_int(end_compare) <= 0
       end
     end
-    return false
-  rescue
+
     return false
   end
   alias_method :member?, :===
