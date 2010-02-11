@@ -15,44 +15,55 @@ namespace rubinius {
   class Array;
   class String;
 
+  typedef time_t int64_t;
+
   class Time : public Object {
   public:
     const static object_type type = TimeType;
 
   private:
-    Integer* sec_; // slot
-    Integer* usec_; // slot
-    Array* tm_;      // slot
+    time_t seconds_;
+    time_t microseconds_;
+
+    Array* decomposed_; // slot
     Object* is_gmt_;  // slot
 
   public:
     /* accessors */
-
-    attr_accessor(sec, Integer);
-    attr_accessor(usec, Integer);
-    attr_accessor(tm, Array);
+    attr_accessor(decomposed, Array);
     attr_accessor(is_gmt, Object);
 
     /* interface */
 
     static void init(STATE);
 
-    // Ruby.primitive :time_allocate
-    static Time* create(STATE);
+    // Ruby.primitive :time_s_specific
+    static Time* specific(STATE, Integer* sec, Integer* usec, Object* gmt);
 
-    Time* initialize_copy(STATE, Time* other);
+    // Ruby.primitive :time_s_now
+    static Time* now(STATE);
 
-    // Ruby.primitive :time_gettimeofday
-    Time* gettimeofday(STATE);
+    // Ruby.primitive :time_s_from_array
+    static Time* from_array(STATE, Fixnum* sec, Fixnum* min, Fixnum* hour, Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec, Fixnum* isdst, Object* from_gmt);
 
-    // Ruby.primitive :time_switch
-    Time* time_switch(STATE, Object* gmt);
+    // Ruby.primitive :time_dup
+    Time* dup(STATE);
 
-    // Ruby.primitive :time_mktime
-    static Tuple* mktime(STATE, Fixnum* sec, Fixnum* min, Fixnum* hour, Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec, Fixnum* isdst, Object* from_gmt);
+    // Ruby.primitive :time_seconds
+    Integer* seconds(STATE) {
+      return Integer::from(state, seconds_);
+    }
+
+    // Ruby.primitive :time_useconds
+    Integer* useconds(STATE) {
+      return Integer::from(state, microseconds_);
+    }
+
+    // Ruby.primitive :time_decompose
+    Array* calculate_decompose(STATE, Object* gmt);
 
     // Ruby.primitive :time_strftime
-    String* strftime(STATE, Array* ary, String* format);
+    String* strftime(STATE, String* format);
 
     class Info : public TypeInfo {
     public:

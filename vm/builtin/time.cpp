@@ -21,27 +21,7 @@ namespace rubinius {
     G(time_class)->set_object_type(state, TimeType);
   }
 
-  Time* Time::create(STATE) {
-    Time* tm = state->new_object<Time>(G(time_class));
-
-    tm->sec(state, Fixnum::from(0));
-    tm->usec(state, Fixnum::from(0));
-
-    tm->tm_ = (Array*)Qnil;
-    tm->is_gmt(state, Qfalse);
-
-    return tm;
-  }
-
-  Time* Time::initialize_copy(STATE, Time* other) {
-    this->sec(state, other->sec_);
-    this->usec(state, other->usec_);
-    this->tm(state, other->tm_);
-    this->is_gmt(state, other->is_gmt_);
-    return this;
-  }
-
-  Time* Time::gettimeofday(STATE) {
+  Time* Time::now(STATE) {
     struct timeval tv;
 
     /* don't fill in the 2nd argument here. getting the timezone here
@@ -49,57 +29,51 @@ namespace rubinius {
      */
     ::gettimeofday(&tv, NULL);
 
-    sec( state, Integer::from(state, tv.tv_sec));
-    usec(state, Integer::from(state, tv.tv_usec));
-    return this;
+    Time* tm = state->new_object<Time>(G(time_class));
+
+    tm->seconds_ = tv.tv_sec;
+    tm->microseconds_ = tv.tv_usec;
+
+    tm->is_gmt(state, Qfalse);
+
+    return tm;
   }
 
-  Time* Time::time_switch(STATE, Object* gmt) {
-    time_t seconds = sec_->to_native();
-    struct tm *tm;
+  // Taken from MRI
+#define NDIV(x,y) (-(-((x)+1)/(y))-1)
+#define NMOD(x,y) ((y)-(-((x)+1)%(y))-1)
 
-    if(gmt->true_p()) {
-      tm = gmtime(&seconds);
+  Time* Time::specific(STATE, Integer* sec, Integer* usec, Object* gmt) {
+    Time* tm = state->new_object<Time>(G(time_class));
+
+    if(sizeof(time_t) == sizeof(long long)) {
+      tm->seconds_ = sec->to_long_long();
+      tm->microseconds_ = usec->to_long_long();
     } else {
-      tm = localtime(&seconds);
+      tm->seconds_ = sec->to_native();
+      tm->microseconds_ = usec->to_native();
     }
 
-    /* update Time::TM_FIELDS when changing order of fields */
-    Array* ary = Array::create(state, 11);
-    ary->set(state, 0, Integer::from(state, tm->tm_sec));
-    ary->set(state, 1, Integer::from(state, tm->tm_min));
-    ary->set(state, 2, Integer::from(state, tm->tm_hour));
-    ary->set(state, 3, Integer::from(state, tm->tm_mday));
-    ary->set(state, 4, Integer::from(state, tm->tm_mon));
-    ary->set(state, 5, Integer::from(state, tm->tm_year));
-    ary->set(state, 6, Integer::from(state, tm->tm_wday));
-    ary->set(state, 7, Integer::from(state, tm->tm_yday));
-    ary->set(state, 8, Integer::from(state, tm->tm_isdst));
+    // Do a little overflow cleanup.
+    if(tm->microseconds_ >= 1000000) {
+      tm->seconds_ += tm->microseconds_ / 1000000;
+      tm->microseconds_ %= 1000000;
+    }
 
-#ifdef HAVE_STRUCT_TM_TM_GMTOFF
-    ary->set(state, 9, Integer::from(state, tm->tm_gmtoff));
-#else
-    ary->set(state, 9, Qnil);
-#endif
+    if(tm->microseconds_ < 0) {
+      tm->seconds_ += NDIV(tm->microseconds_,1000000);
+      tm->microseconds_ = NMOD(tm->microseconds_, 1000000);
+    }
 
-#ifdef HAVE_STRUCT_TM_TM_ZONE
-    ary->set(state, 10, String::create(state, tm->tm_zone));
-#else
-    ary->set(state, 10, Qnil);
-#endif
+    tm->is_gmt(state, RTEST(gmt) ? Qtrue : Qfalse);
 
-    this->tm(state, ary);
-    this->is_gmt(state, gmt);
-
-    return this;
+    return tm;
   }
 
-  Tuple* Time::mktime(STATE, Fixnum* sec, Fixnum* min, Fixnum* hour,
-                     Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec,
-                     Fixnum* isdst, Object* from_gmt) {
+  Time* Time::from_array(STATE, Fixnum* sec, Fixnum* min, Fixnum* hour,
+                      Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec,
+                      Fixnum* isdst, Object* from_gmt) {
     struct tm tm;
-    char *old_tz = NULL;
-    char old_tz_buf[128];
 
     tm.tm_sec = sec->to_native();
     if(tm.tm_sec < 0 || tm.tm_sec > 60) {
@@ -133,74 +107,94 @@ namespace rubinius {
 
     tm.tm_isdst = isdst->to_native();
 
-    if(from_gmt->true_p()) {
-      old_tz = getenv("TZ");
+    time_t seconds = -1;
 
-      /* We need to save old_tz to our own buffer here, because e.g.
-       * FreeBSD's setenv() will manipulate that string directly.
-       */
-      if(old_tz) {
-        strncpy(old_tz_buf, old_tz, sizeof(old_tz_buf));
-        old_tz_buf[sizeof(old_tz_buf) - 1] = 0;
-      }
-
-      setenv("TZ", "", 1);
+    if(RTEST(from_gmt)) {
+      seconds = ::timegm(&tm);
+    } else {
+      seconds = ::mktime(&tm);
     }
 
-    time_t seconds = ::mktime(&tm);
+    int err = 0;
 
     if(seconds == -1) {
-      int err = 0;
       int utc_p = from_gmt->true_p() ? 1 : 0;
       seconds = mktime_extended(&tm, utc_p, &err);
-
-      if(err) {
-        seconds = -1;
-      }
     }
 
-    if(from_gmt->true_p()) {
-      if(old_tz) {
-        setenv("TZ", old_tz_buf, 1);
-      } else {
-        unsetenv("TZ");
-      }
+    if(err) return (Time*)Primitives::failure();
+
+    Time* obj = state->new_object<Time>(G(time_class));
+    obj->seconds_ = seconds;
+    obj->microseconds_ = usec->to_native();
+    obj->is_gmt(state, RTEST(from_gmt) ? Qtrue : Qfalse);
+
+    return obj;
+  }
+
+  Time* Time::dup(STATE) {
+    Time* tm = state->new_object<Time>(G(time_class));
+    tm->seconds_ = seconds_;
+    tm->microseconds_ = microseconds_;
+    tm->is_gmt(state, is_gmt_);
+    return tm;
+  }
+
+  Array* Time::calculate_decompose(STATE, Object* use_gmt) {
+    if(!decomposed_->nil_p()) return decomposed_;
+
+    time_t seconds = seconds_;
+    struct tm tm;
+
+    if(RTEST(use_gmt)) {
+      gmtime_r(&seconds, &tm);
+    } else {
+      localtime_r(&seconds, &tm);
     }
 
+    /* update Time::TM_FIELDS when changing order of fields */
+    Array* ary = Array::create(state, 11);
+    ary->set(state, 0, Integer::from(state, tm.tm_sec));
+    ary->set(state, 1, Integer::from(state, tm.tm_min));
+    ary->set(state, 2, Integer::from(state, tm.tm_hour));
+    ary->set(state, 3, Integer::from(state, tm.tm_mday));
+    ary->set(state, 4, Integer::from(state, tm.tm_mon + 1));
+    ary->set(state, 5, Integer::from(state, tm.tm_year + 1900));
+    ary->set(state, 6, Integer::from(state, tm.tm_wday));
+    ary->set(state, 7, Integer::from(state, tm.tm_yday + 1));
+    ary->set(state, 8, tm.tm_isdst ? Qtrue : Qfalse);
 
-    return Tuple::from(state, 2, Integer::from(state, seconds), usec);
+#ifdef HAVE_STRUCT_TM_TM_ZONE
+    ary->set(state, 9, String::create(state, tm.tm_zone));
+#else
+    ary->set(state, 9, Qnil);
+#endif
+
+    // Cache it.
+    decomposed(state, ary);
+    return ary;
   }
 
 #define MAX_STRFTIME_OUTPUT 128
 
-  String* Time::strftime(STATE, Array* ary, String* format) {
+  String* Time::strftime(STATE, String* format) {
     struct tm tm;
     char str[MAX_STRFTIME_OUTPUT];
+    int is_gmt = 0;
 
-    tm.tm_sec = as<Fixnum>(ary->get(state, 0))->to_native();
-    tm.tm_min = as<Fixnum>(ary->get(state, 1))->to_native();
-    tm.tm_hour = as<Fixnum>(ary->get(state, 2))->to_native();
-    tm.tm_mday = as<Fixnum>(ary->get(state, 3))->to_native();
-    tm.tm_mon = as<Fixnum>(ary->get(state, 4))->to_native();
-    tm.tm_year = as<Fixnum>(ary->get(state, 5))->to_native();
-    tm.tm_wday = as<Fixnum>(ary->get(state, 6))->to_native();
-    tm.tm_yday = as<Fixnum>(ary->get(state, 7))->to_native();
-    tm.tm_isdst = as<Fixnum>(ary->get(state, 8))->to_native();
+    time_t seconds = seconds_;
 
-#ifdef HAVE_STRUCT_TM_TM_GMTOFF
-    tm.tm_gmtoff = as<Fixnum>(ary->get(state, 9))->to_native();
-#endif
+    if(RTEST(is_gmt_)) {
+      is_gmt = 1;
+      gmtime_r(&seconds, &tm);
+    } else {
+      localtime_r(&seconds, &tm);
+    }
 
-#ifdef HAVE_STRUCT_TM_TM_ZONE
-    /** @todo There are platform diffs here. The string should be copied
-     *        if (and only if) struct tm does not have a const tm_zone,
-     *        but for now, just reference the original. It *should* be
-     *        safe. --rue */
-    tm.tm_zone = const_cast<char*>(as<String>(ary->get(state, 10))->c_str());
-#endif
+    struct timespec ts = { seconds, 0 };
 
-    size_t chars = ::strftime(str, MAX_STRFTIME_OUTPUT,
-                              format->c_str(), &tm);
+    size_t chars = ::strftime_extended(str, MAX_STRFTIME_OUTPUT,
+                       format->c_str(), &tm, &ts, is_gmt);
     str[MAX_STRFTIME_OUTPUT-1] = 0;
 
     return String::create(state, str, chars);
