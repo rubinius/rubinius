@@ -53,7 +53,7 @@ module Rubinius
     end
 
     def arity
-      if method.splat >= 0 or method.splat == -2
+      if method.splat and (method.splat >= 0 or method.splat == -2)
         -(method.required_args + 1)
       else
         method.required_args

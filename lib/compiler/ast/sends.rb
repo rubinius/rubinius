@@ -384,6 +384,7 @@ module Rubinius
         array = []
         case arguments
         when Fixnum
+          @splat_index = nil
           @arity = 0
           @prelude = nil
         when MAsgn
@@ -402,10 +403,12 @@ module Rubinius
               @arity = -1
             end
           elsif arguments.left
+            @splat_index = nil
             @prelude = :multi
             @arity = arguments.left.body.size
             @required_args = arguments.left.body.size
           else
+            @splat_index = 0
             @prelude = :multi
             @arity = -1
           end
@@ -423,6 +426,7 @@ module Rubinius
           @prelude = nil
           @block = arguments
         else # Assignment
+          @splat_index = nil
           @arguments = arguments
           @arity = 1
           @required_args = 1
