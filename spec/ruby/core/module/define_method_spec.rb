@@ -106,4 +106,8 @@ describe "Module#define_method" do
     o = DefineMethodByProcClass.new
     o.proc_test.should be_true
   end
+
+  it "is private" do
+    lambda { Class.new.define_method(:foo, proc {}) }.should raise_error(NoMethodError)
+  end
 end
