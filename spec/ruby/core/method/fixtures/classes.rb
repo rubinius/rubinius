@@ -68,6 +68,11 @@ module MethodSpecs
     def one_req_one_opt_with_splat_and_block(a, b=nil, *c, &block); end
     def two_req_one_opt_with_splat_and_block(a, b, c=nil, *d, &block); end
     def one_req_two_opt_with_splat_and_block(a, b=nil, c=nil, *d, &block); end
+
+    define_method(:zero_defined_method, Proc.new {||})
+    define_method(:zero_with_splat_defined_method, Proc.new {|*x|})
+    define_method(:one_req_defined_method, Proc.new {|x|})
+    define_method(:two_req_defined_method, Proc.new {|x, y|})
   end
 
   module MyMod

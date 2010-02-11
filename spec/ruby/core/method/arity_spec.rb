@@ -14,6 +14,13 @@ describe "Method#arity" do
     @m.method(:two_req).arity.should == 2
   end
 
+  it "returns n, where n is the number of required arguments and method created via defined_method" do
+    @m.method(:zero_defined_method).arity.should    == 0
+    @m.method(:one_req_defined_method).arity.should == 1
+    @m.method(:two_req_defined_method).arity.should == 2
+    @m.method(:zero_with_splat_defined_method).arity.should == -1
+  end
+
   it "returns -(n+1), where n is the number of required arguments, when there is at least one optional argument" do
     @m.method(:one_opt).arity.should         == -1
     @m.method(:one_req_one_opt).arity.should == -2
