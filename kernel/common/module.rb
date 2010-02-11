@@ -342,6 +342,8 @@ class Module
     meth
   end
 
+  private :define_method
+
   def extend_object(obj)
     append_features obj.metaclass
   end
