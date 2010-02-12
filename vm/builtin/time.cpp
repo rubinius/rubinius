@@ -112,6 +112,7 @@ namespace rubinius {
     if(RTEST(from_gmt)) {
       seconds = ::timegm(&tm);
     } else {
+      tzset();
       seconds = ::mktime(&tm);
     }
 
@@ -149,6 +150,7 @@ namespace rubinius {
     if(RTEST(use_gmt)) {
       gmtime_r(&seconds, &tm);
     } else {
+      tzset();
       localtime_r(&seconds, &tm);
     }
 
@@ -188,6 +190,7 @@ namespace rubinius {
       is_gmt = 1;
       gmtime_r(&seconds, &tm);
     } else {
+      tzset();
       localtime_r(&seconds, &tm);
     }
 
