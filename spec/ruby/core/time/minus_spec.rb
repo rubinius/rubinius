@@ -14,6 +14,12 @@ ruby_version_is ""..."1.9" do
       (Time.at(1.1) - 0.2).should == Time.at(0.9)
     end
 
+    it "understands negative subtractions" do
+      t = Time.at(100) - -1.3
+      t.usec.should == 300000
+      t.to_i.should == 101
+    end
+
     it "accepts arguments that can be coerced into Float" do
       (obj = mock('9.5')).should_receive(:to_f).and_return(9.5)
       (Time.at(100) - obj).should == Time.at(90.5)    
