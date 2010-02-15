@@ -73,13 +73,7 @@ describe "#resolve_ruby_exe" do
   end
 
   before :each do
-    @ruby_platform = Object.const_get :RUBY_PLATFORM
-
     @script = RubyExeSpecs.new
-  end
-
-  after :each do
-    Object.const_set :RUBY_PLATFORM, @ruby_platform
   end
 
   after :all do
@@ -87,7 +81,7 @@ describe "#resolve_ruby_exe" do
   end
 
   it "returns the value returned by #ruby_exe_options if it exists and is executable" do
-    Object.const_set :RUBY_PLATFORM, "notwindows"
+    PlatformGuard.stub!(:windows?).and_return(false)
     @script.should_receive(:ruby_exe_options).and_return(@name)
     File.should_receive(:exists?).with(@name).and_return(true)
     File.should_receive(:executable?).with(@name).and_return(true)
@@ -95,7 +89,7 @@ describe "#resolve_ruby_exe" do
   end
 
   it "returns the value returned by #ruby_exe_options if it exists on Windows platforms" do
-    Object.const_set :RUBY_PLATFORM, "mswin"
+    PlatformGuard.stub!(:windows?).and_return(true)
     @script.should_receive(:ruby_exe_options).and_return(@name)
     File.should_receive(:exists?).with(@name).and_return(true)
     File.should_not_receive(:executable?)

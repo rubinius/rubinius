@@ -446,4 +446,15 @@ describe Mock, ".cleanup" do
     Mock.cleanup
     Mock.stubs.should == {}
   end
+
+  it "removes the replaced name for mocks" do
+    replaced_key = Mock.replaced_key(@mock, :method_call)
+    Mock.should_receive(:clear_replaced).with(replaced_key)
+
+    replaced_name = Mock.replaced_name(@mock, :method_call)
+    Mock.replaced?(replaced_name).should be_true
+
+    Mock.cleanup
+    Mock.replaced?(replaced_name).should be_false
+  end
 end

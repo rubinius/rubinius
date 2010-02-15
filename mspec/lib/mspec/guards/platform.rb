@@ -1,6 +1,10 @@
 require 'mspec/guards/guard'
 
 class PlatformGuard < SpecGuard
+  def self.windows?
+    PlatformGuard.new(:os => :windows).match?
+  end
+
   def initialize(*args)
     if args.last.is_a?(Hash)
       @options, @platforms = args.last, args[0..-2]

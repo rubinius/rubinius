@@ -15,6 +15,7 @@ class Object
   def fixture(dir, *args)
     path = File.dirname(dir)
     path = path[0..-7] if path[-7..-1] == "/shared"
-    File.expand_path(File.join(path, "fixtures", args))
+    dir = path[-9..-1] == "/fixtures" ? "" : "fixtures"
+    File.expand_path(File.join(path, dir, args))
   end
 end

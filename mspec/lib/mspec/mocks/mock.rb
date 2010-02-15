@@ -38,6 +38,11 @@ module Mock
     has_key?(mocks.keys, sym) or has_key?(stubs.keys, sym)
   end
 
+  def self.clear_replaced(key)
+    mocks.delete key
+    stubs.delete key
+  end
+
   def self.mock_respond_to?(obj, sym)
     name = replaced_name(obj, :respond_to?)
     if replaced? name
@@ -176,7 +181,10 @@ module Mock
       else
         meta.__send__ :remove_method, sym
       end
+
+      clear_replaced key
     end
+  ensure
     reset
   end
 end

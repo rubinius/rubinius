@@ -1,5 +1,5 @@
 require 'mspec/utils/ruby_name'
-require 'mspec/guards/guard'
+require 'mspec/guards/platform'
 
 # The ruby_exe helper provides a wrapper for invoking the
 # same Ruby interpreter as the one running the specs and
@@ -99,7 +99,7 @@ class Object
       # It has been reported that File.executable is not reliable
       # on Windows platforms (see commit 56bc555c). So, we check the
       # platform. 
-      if File.exists?(exe) and (SpecGuard.windows? or File.executable?(exe))
+      if File.exists?(exe) and (PlatformGuard.windows? or File.executable?(exe))
         return cmd
       end
     end

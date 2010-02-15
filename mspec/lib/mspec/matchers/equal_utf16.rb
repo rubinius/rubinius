@@ -1,19 +1,17 @@
+require 'mspec/helpers/encode'
+
 class EqualUtf16Matcher
   def initialize(expected)
-    @expected = expected
+    @expected = Array(expected).map { |x| encode x, "binary" }
   end
 
   def matches?(actual)
-    @actual = actual
+    @actual = Array(actual).map { |x| encode x, "binary" }
     @actual == @expected || @actual == expected_swapped
   end
 
   def expected_swapped
-    if @expected.respond_to?(:to_str)
-      @expected_swapped ||= @expected.to_str.gsub(/(.)(.)/, '\2\1')
-    else
-      @expected_swapped ||= @expected.collect { |s| s.to_str.gsub(/(.)(.)/, '\2\1') }
-    end
+    @expected_swapped ||= @expected.map { |x| x.to_str.gsub(/(.)(.)/, '\2\1') }
   end
 
   def failure_message

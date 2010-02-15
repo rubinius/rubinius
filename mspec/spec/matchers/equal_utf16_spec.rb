@@ -43,15 +43,15 @@ describe EqualUtf16Matcher do
     matcher = EqualUtf16Matcher.new("a\0b\0")
     matcher.matches?("a\0b\0c\0")
     matcher.failure_message.should == [
-      "Expected \"a#{@null}b#{@null}c#{@null}\"\n",
-      "to equal \"a#{@null}b#{@null}\"\n or \"#{@null}a#{@null}b\"\n"]
+      "Expected [\"a#{@null}b#{@null}c#{@null}\"]\n",
+      "to equal [\"a#{@null}b#{@null}\"]\n or [\"#{@null}a#{@null}b\"]\n"]
   end
 
   it "provides a useful negative failure message" do
     matcher = EqualUtf16Matcher.new("a\0b\0")
     matcher.matches?("\0a\0b")
     matcher.negative_failure_message.should == [
-      "Expected \"#{@null}a#{@null}b\"\n",
-      "not to equal \"a#{@null}b#{@null}\"\n nor \"#{@null}a#{@null}b\"\n"]
+      "Expected [\"#{@null}a#{@null}b\"]\n",
+      "not to equal [\"a#{@null}b#{@null}\"]\n nor [\"#{@null}a#{@null}b\"]\n"]
   end
 end

@@ -1,6 +1,8 @@
 require 'mspec/runner/mspec'
 require 'mspec/runner/actions/tally'
 
+require 'rbconfig'
+
 class SpecGuard
   def self.report
     @report ||= Hash.new { |h,k| h[k] = [] }
@@ -54,10 +56,6 @@ class SpecGuard
     patch = 0 if patch < 0
     version = "#{RUBY_VERSION}.#{patch}"
     version.split('.')[0,n].join('.')
-  end
-
-  def self.windows?(key = RUBY_PLATFORM)
-    !!key.match(/(mswin|mingw)/)
   end
 
   attr_accessor :name, :parameters
@@ -136,7 +134,7 @@ class SpecGuard
   end
 
   def windows?(sym, key)
-    sym == :windows && SpecGuard.windows?(key)
+    sym == :windows && !key.match(/(mswin|mingw)/).nil?
   end
 
   def platform?(*args)
@@ -154,7 +152,6 @@ class SpecGuard
   end
 
   def os?(*oses)
-    require 'rbconfig'
     oses.any? do |os|
       host_os = Config::CONFIG['host_os'] || RUBY_PLATFORM
       host_os.downcase!

@@ -21,6 +21,7 @@ module MSpec
   @modes   = []
   @shared  = {}
   @guarded = []
+  @features     = {}
   @exception    = nil
   @randomize    = nil
   @expectation  = nil
@@ -160,6 +161,18 @@ module MSpec
   # Returns +true+ if +mode+ is registered.
   def self.mode?(mode)
     retrieve(:modes).include? mode
+  end
+
+  def self.enable_feature(feature)
+    retrieve(:features)[feature] = true
+  end
+
+  def self.disable_feature(feature)
+    retrieve(:features)[feature] = false
+  end
+
+  def self.feature_enabled?(feature)
+    retrieve(:features)[feature] || false
   end
 
   def self.retrieve(symbol)
