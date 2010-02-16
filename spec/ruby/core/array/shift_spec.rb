@@ -66,6 +66,14 @@ describe "Array#shift" do
         a.should == []
       end
 
+      it "does not corrupt the array when shift without arguments is followed by shift with an argument" do
+        a = [1, 2, 3, 4, 5]
+
+        a.shift.should == 1
+        a.shift(3).should == [2, 3, 4]
+        a.should == [5]
+      end
+
       it "returns a new empty array if there are no more elements" do
         a = []
         popped1 = a.shift(1)

@@ -126,6 +126,14 @@ describe "Array#slice!" do
       a.slice!(10..10).should == nil
       a.should == [1, 2]
     end
+
+    it "does not expand array with negative indices out of bounds" do
+      a = [1, 2]
+      a.slice!(-3, 1).should == nil
+      a.should == [1, 2]
+      a.slice!(-3..2).should == nil
+      a.should == [1, 2]
+    end
   end
 
   ruby_version_is "" ... "1.9" do
