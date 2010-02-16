@@ -32,8 +32,8 @@ class Configure
 
     # Essential settings (modify these for creating releases)
     @libversion = "1.0"
-    @version = "#{@libversion}.0-rc2"
-    @release_date = "2010-01-04"
+    @version = "#{@libversion}.0-rc3"
+    @release_date = "2010-02-16"
     @config_version = 1
 
     if File.directory? root + "/.git"
