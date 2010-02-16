@@ -141,7 +141,7 @@ class Array
   # Array. If the index is out of range, nil is
   # returned. Slightly faster than +Array#[]+
   def at(idx)
-    idx = @total - idx if idx < 0
+    idx = @total + idx if idx < 0
     return nil if idx > @total
     @tuple[@start + idx]
   end
