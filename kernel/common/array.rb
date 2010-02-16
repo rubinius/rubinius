@@ -195,8 +195,9 @@ class Array
         reg_length = @total - reg_start
 
         if reg_start <= @total
-          @tuple.copy_from @tuple, reg_start, reg_length, index
+          @tuple.copy_from @tuple, reg_start + @start, reg_length, index
           @total -= ins_length
+          @start = 0
 
           return ent
         end
@@ -1237,7 +1238,7 @@ class Array
 
       if start.kind_of? Range
         s = Type.coerce_to start.begin, Fixnum, :to_int
-        unless s >= @total
+        unless s >= @total or -s > @total
           self[start] = nil
         end
       else
@@ -1256,10 +1257,10 @@ class Array
       start = Type.coerce_to start, Fixnum, :to_int
       length = Type.coerce_to length, Fixnum, :to_int
 
-      out = self[start,length]
+      out = self[start, length]
 
-      unless start >= @total
-        self[start,length] = nil
+      unless start >= @total or -start > @total
+        self[start, length] = nil
       end
     end
 
