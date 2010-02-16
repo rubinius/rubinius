@@ -36,7 +36,7 @@ class Configure
     @release_date = "2010-02-16"
     @config_version = 1
 
-    if File.directory? root + "/.git"
+    if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
     else
       @buildrev = "release"
@@ -89,7 +89,7 @@ class Configure
     o.on "-P", "--prefix", "PATH", "Install Rubinius in subdirectories of PATH" do |dir|
       dir = File.expand_path dir
 
-      if File.directory? dir and dir !~ /(rubinius|rbx)\/?$/
+      if !ENV['RELEASE'] and File.directory? dir and dir !~ /(rubinius|rbx)\/?$/
         puts "The directory #{dir} already exists, installing to #{dir}/rubinius"
         dir += "/rubinius"
       end

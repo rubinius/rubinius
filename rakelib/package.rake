@@ -13,7 +13,7 @@ namespace :package do
     Rake::Task['install'].invoke
 
     sh "mkdir -p pkgtmp/usr/local/bin"
-    sh "ln -sf /usr/local/rubinius/1.0.0-rc2/bin/rbx pkgtmp/usr/local/bin/rbx"
+    sh "ln -sf /usr/local/rubinius/#{Rubinius::BUILD_CONFIG[:version]}/bin/rbx pkgtmp/usr/local/bin/rbx"
 
     sh "/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker --root pkgtmp --id com.engineyard.rubinius -o rubinius-#{Rubinius::BUILD_CONFIG[:version]}.pkg -t Rubinius -v"
 
