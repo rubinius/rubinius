@@ -121,4 +121,12 @@ class MSpecScript
 
   # Leave out MSpec lines from backtraces
   set :backtrace_filter, %r[(mspec/bin|mspec/lib/mspec)]
+
+  # Enable language features
+  MSpec.enable_feature :fork
+
+  if Object.const_defined?(:Rubinius) && Rubinius.const_get(:Fiber)
+    ::Fiber = Rubinius::Fiber
+    MSpec.enable_feature :fiber
+  end
 end
