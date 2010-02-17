@@ -1,1 +1,2 @@
 fails:The defined? keyword follows normal lexical and hierarchical scoping for constants
+fails:The defined? keyword returns nil for defined?(super) when a superclass undef's the method
