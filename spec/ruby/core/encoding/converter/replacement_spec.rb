@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-ruby_version_is "1.9" do
+with_feature :encoding do
   describe "Encoding::Converter#replacement" do
     it "returns '?' in US-ASCII when the destination encoding is not UTF-8" do
       ec = Encoding::Converter.new("utf-8", "us-ascii")

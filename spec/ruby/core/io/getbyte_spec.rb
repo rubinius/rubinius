@@ -1,42 +1,46 @@
-# encoding: utf-8
+# -*- encoding: utf-8 -*-
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 ruby_version_is '1.8.7' do
   describe "IO#getbyte" do
     before :each do
-      @original = $KCODE
-      $KCODE = "UTF-8"
-      @file_name = File.dirname(__FILE__) + '/fixtures/readlines.txt'
-      @file = File.open(@file_name, 'r')
+      @kcode, $KCODE = $KCODE, "utf-8"
+      @io = IOSpecs.io_fixture "lines.txt"
     end
 
     after :each do
-      @file.close unless @file.closed?
-      $KCODE = @original
+      @io.close unless @io.closed?
+      $KCODE = @kcode
     end
 
     it "returns the next byte from the stream" do
-      @file.readline.should == "Voici la ligne une.\n"
-      letters = @file.getbyte, @file.getbyte, @file.getbyte, @file.getbyte, @file.getbyte
+      @io.readline.should == "Voici la ligne une.\n"
+      letters = @io.getbyte, @io.getbyte, @io.getbyte, @io.getbyte, @io.getbyte
       letters.should == [81, 117, 105, 32, 195]
     end
 
     it "returns nil when invoked at the end of the stream" do
-      # read entire content
-      @file.read
-      @file.getbyte.should == nil
+      @io.read
+      @io.getbyte.should == nil
+    end
+
+    it "raises an IOError on closed stream" do
+      lambda { IOSpecs.closed_file.getbyte }.should raise_error(IOError)
+    end
+  end
+
+  describe "IO#getbyte" do
+    before :each do
+      @io = IOSpecs.io_fixture "empty.txt"
+    end
+
+    after :each do
+      @io.close
     end
 
     it "returns nil on empty stream" do
-      File.open(tmp('empty.txt'), "w+") { |empty|
-        empty.getbyte.should == nil
-      }
-      File.unlink(tmp("empty.txt"))
-    end
-
-    it "raises IOError on closed stream" do
-      lambda { IOSpecs.closed_file.getbyte }.should raise_error(IOError)
+      @io.getbyte.should == nil
     end
   end
 end

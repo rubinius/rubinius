@@ -6,7 +6,7 @@ describe :enumeratorize, :shared => true do
   end
   ruby_version_is '1.8.7' do
     it 'returns an Enumerator if no block given' do
-      [1,2].send(@method).should be_kind_of(enumerator_class)
+      [1,2].send(@method).should be_an_instance_of(enumerator_class)
     end
   end
 end

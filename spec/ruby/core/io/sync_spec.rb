@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#sync=" do
   before :each do
-    @io = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt')
+    @io = IOSpecs.io_fixture "lines.txt"
   end
 
   after :each do
@@ -26,14 +26,14 @@ describe "IO#sync=" do
     @io.sync.should == true
   end
 
-  it "raises IOError on closed stream" do
+  it "raises an IOError on closed stream" do
     lambda { IOSpecs.closed_file.sync = true }.should raise_error(IOError)
   end
 end
 
 describe "IO#sync" do
   before :each do
-    @io = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt')
+    @io = IOSpecs.io_fixture "lines.txt"
   end
 
   after :each do
@@ -44,7 +44,7 @@ describe "IO#sync" do
     @io.sync.should == false
   end
 
-  it "raises IOError on closed stream" do
+  it "raises an IOError on closed stream" do
     lambda { IOSpecs.closed_file.sync }.should raise_error(IOError)
   end
 end

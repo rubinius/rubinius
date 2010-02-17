@@ -339,7 +339,7 @@ describe "String#sub! with pattern, replacement" do
   end
 
   ruby_version_is "1.9" do    
-    ruby_bug "[ruby-core:23666]", "1.9.2" do
+    ruby_bug "[ruby-core:23666]", "1.9" do
       it "raises a RuntimeError when self is frozen" do
         s = "hello"
         s.freeze

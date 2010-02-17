@@ -29,11 +29,6 @@ describe :bigdecimal_quo, :shared => true do
     @one.send(@method, BigDecimal('2E-5555'), *@object).should == BigDecimal('0.5E5555')
   end
 
-  it "returns NaN if NaN is involved" do
-    @one.send(@method, @nan, *@object).nan?.should == true
-    @nan.send(@method ,@one).nan?.should == true
-  end
-
   it "returns 0 if divided by Infinity" do
     @zero.send(@method, @infinity, *@object).should == 0
     @frac_2.send(@method, @infinity, *@object).should == 0

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-ruby_version_is "1.9" do
+with_feature :encoding do
   describe "Encoding::Converter#primitive_convert" do
     it "accepts a nil source buffer" do
       ec = Encoding::Converter.new("utf-8", "iso-8859-1")

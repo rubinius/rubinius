@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-describe "The || statement" do
+describe "The || operator" do
   it "evaluates to true if any of its operands are true" do
     if false || true || nil
       x = true
@@ -32,9 +32,22 @@ describe "The || statement" do
     (false || ()).should be_nil
     (() || ()).should be_nil
   end
+
+  it "has a higher precedence than 'break' in 'break true || false'" do
+    # see also 'break true or false' below
+    lambda { break false || true }.call.should be_true
+  end
+
+  it "has a higher precedence than 'next' in 'next true || false'" do
+    lambda { next false || true }.call.should be_true
+  end
+
+  it "has a higher precedence than 'return' in 'return true || false'" do
+    lambda { return false || true }.call.should be_true
+  end
 end
 
-describe "The or statement" do
+describe "The or operator" do
   it "evaluates to true if any of its operands are true" do
     x = nil
     if false or true
@@ -60,5 +73,18 @@ describe "The or statement" do
     (true or ()).should be_true
     (false or ()).should be_nil
     (() or ()).should be_nil
+  end
+
+  it "has a lower precedence than 'break' in 'break true or false'" do
+    # see also 'break true || false' above
+    lambda { eval "break true or false" }.should raise_error(SyntaxError, /void value expression/)
+  end
+
+  it "has a lower precedence than 'next' in 'next true or false'" do
+    lambda { eval "next true or false" }.should raise_error(SyntaxError, /void value expression/)
+  end
+
+  it "has a lower precedence than 'return' in 'return true or false'" do
+    lambda { eval "return true or false" }.should raise_error(SyntaxError, /void value expression/)
   end
 end

@@ -15,7 +15,7 @@ describe :kernel_method, :shared => true do
     m.call.should == 'class done'
   end
 
-  ruby_version_is "1.9.2" do
+  ruby_version_is "1.9" do
     it "returns a method object if we repond_to_missing? method" do
       class KernelSpecs::Foo;
         def respond_to_missing?(method, priv=false)

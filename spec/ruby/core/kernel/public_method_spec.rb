@@ -24,7 +24,7 @@ ruby_version_is "1.9" do
        end.should raise_error(NameError)
     end
 
-    ruby_version_is "1.9.2" do
+    ruby_version_is "1.9" do
       it "raises a NameError if we only repond_to_missing? method, true" do
         obj = KernelSpecs::RespondViaMissing.new
         lambda do

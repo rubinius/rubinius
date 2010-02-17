@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 describe :enum_new, :shared => true do
   it "creates a new custom enumerator with the given object, iterator and arguments" do
     enum = enumerator_class.new(1, :upto, 3)
-    enum.should be_kind_of(enumerator_class)
+    enum.should be_an_instance_of(enumerator_class)
   end
 
   it "creates a new custom enumerator that responds to #each" do
@@ -20,7 +20,7 @@ describe :enum_new, :shared => true do
   end
   
   it "doesn't check for the presence of the iterator method" do
-    enumerator_class.new(nil).should be_kind_of(enumerator_class)
+    enumerator_class.new(nil).should be_an_instance_of(enumerator_class)
   end
 
   it "uses the latest define iterator method" do

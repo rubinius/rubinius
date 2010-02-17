@@ -9,14 +9,11 @@ end
 
 describe "IO#seek" do
   before :each do
-    @file = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r')
-    @io = IO.open @file.fileno, 'r'
+    @io = IOSpecs.io_fixture "lines.txt"
   end
 
   after :each do
-    # we *must* close both in order to not leak descriptors
     @io.close unless @io.closed?
-    @file.close unless @file.closed? rescue Errno::EBADF
   end
 
   it "moves the read position relative to the current position with SEEK_CUR" do
@@ -31,15 +28,15 @@ describe "IO#seek" do
     @io.seek(1)
     @io.pos.should == 1
     @io.rewind
-    @io.seek(42, IO::SEEK_SET)
-    @io.readline.should == "quí está la línea tres.\n"
+    @io.seek(43, IO::SEEK_SET)
+    @io.readline.should == "Aquí está la línea tres.\n"
     @io.seek(5, IO::SEEK_SET)
     @io.readline.should == " la ligne une.\n"
   end
 
   it "moves the read position relative to the end with SEEK_END" do
     @io.seek(0, IO::SEEK_END)
-    @io.tell.should == 134
+    @io.tell.should == 137
     @io.seek(-25, IO::SEEK_END)
     @io.readline.should == "cinco.\n"
   end

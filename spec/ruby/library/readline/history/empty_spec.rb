@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
 process_is_foreground do
-
-  not_supported_on :ironruby do
+  with_feature :readline do
     require 'readline'
+
     describe "Readline::HISTORY.empty?" do
       it "returns true when the history is empty" do
         Readline::HISTORY.should be_empty

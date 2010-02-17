@@ -15,8 +15,21 @@ describe "BigDecimal.mode" do
     BigDecimal("NaN").add(BigDecimal("1"),0).nan?.should == true
     BigDecimal("0").add(BigDecimal("Infinity"),0).should == BigDecimal("Infinity")
     BigDecimal("1").quo(BigDecimal("0")).should == BigDecimal("Infinity")
-    BigDecimal("1E11111111111111111111").zero?.should == true
-    (BigDecimal("1E11111111111")*BigDecimal("1E11111111111")).zero?.should == true
+  end
+
+  ruby_version_is "" ... "1.9" do
+    it "returns zero when too big" do
+      BigDecimal("1E11111111111111111111").zero?.should == true
+      (BigDecimal("1E11111111111")*BigDecimal("1E11111111111")).zero?.should == true
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns Infinity when too big" do
+      BigDecimal("1E11111111111111111111").should == BigDecimal("Infinity")
+      (BigDecimal("1E11111111111")*BigDecimal("1E11111111111")).should ==
+        BigDecimal("Infinity")
+    end
   end
 
   it "raise an exception if the flag is true" do

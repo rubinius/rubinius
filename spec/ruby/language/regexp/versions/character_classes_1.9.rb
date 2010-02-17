@@ -1,5 +1,4 @@
-# coding: utf-8
-
+# -*- encoding: utf-8 -*-
 # The examples below are based on the definitions in
 # http://unicode.org/reports/tr18/ , which was deemed authoritative in
 # http://redmine.ruby-lang.org/issues/show/1889 .

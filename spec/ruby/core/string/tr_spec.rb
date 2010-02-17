@@ -1,4 +1,4 @@
-# coding: utf-8
+# -*- encoding: utf-8 -*-
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
@@ -60,7 +60,7 @@ describe "String#tr" do
     end
   end
 
-  ruby_version_is "1.9" do
+  with_feature :encoding do
     # http://redmine.ruby-lang.org/issues/show/1839
     it "can replace a 7-bit ASCII character with a multibyte one" do
       a = "uber"

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-ruby_version_is "1.9" do
+with_feature :encoding do
   describe "Encoding::InvalidByteSequenceError#incomplete_input?" do
     
     it "returns nil by default" do

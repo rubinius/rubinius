@@ -8,7 +8,7 @@ describe "Enumerable#take_while" do
     end
 
     it 'returns an Enumerator if no block given' do
-      @enum.take_while.should be_kind_of(enumerator_class)
+      @enum.take_while.should be_an_instance_of(enumerator_class)
     end
 
     it "returns no/all elements for {true/false} block" do

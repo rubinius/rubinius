@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/common'
 
 ruby_version_is "1.8.7" do
   describe "Dir#inspect" do

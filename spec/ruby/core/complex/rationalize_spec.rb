@@ -1,4 +1,4 @@
-ruby_version_is "1.9.2" do
+ruby_version_is "1.9" do
 
   describe "Complex#rationalize" do
 

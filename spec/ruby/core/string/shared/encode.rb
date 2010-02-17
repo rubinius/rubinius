@@ -1,4 +1,4 @@
-# coding: utf-8
+# -*- encoding: utf-8 -*-
 describe :encode_string, :shared => true do
   it "transcodes to the default internal encoding with no argument" do
     begin

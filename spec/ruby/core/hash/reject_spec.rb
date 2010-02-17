@@ -80,11 +80,12 @@ describe "Hash#reject!" do
   end
 
   ruby_version_is "1.9" do
-    ruby_bug "#1571", "1.9.2" do
-      it "raises a RuntimeError if called on a frozen instance" do
-        lambda { HashSpecs.frozen_hash.reject! { false } }.should raise_error(RuntimeError)
-        lambda { HashSpecs.empty_frozen_hash.reject! { true } }.should raise_error(RuntimeError)
-      end
+    it "raises a RuntimeError if called on a frozen instance that is modified" do
+      lambda { HashSpecs.empty_frozen_hash.reject! { true } }.should raise_error(RuntimeError)
+    end
+
+    it "raises a RuntimeError if called on a frozen instance that would not be modified" do
+      lambda { HashSpecs.frozen_hash.reject! { false } }.should raise_error(RuntimeError)
     end
   end
 
@@ -100,11 +101,11 @@ describe "Hash#reject!" do
 
   ruby_version_is "1.8.7" do
     it "returns an Enumerator when called on a non-empty hash without a block" do
-      @hsh.reject!.should be_kind_of(enumerator_class)
+      @hsh.reject!.should be_an_instance_of(enumerator_class)
     end
 
     it "returns an Enumerator when called on an empty hash without a block" do
-      @empty.reject!.should be_kind_of(enumerator_class)
+      @empty.reject!.should be_an_instance_of(enumerator_class)
     end
   end
 

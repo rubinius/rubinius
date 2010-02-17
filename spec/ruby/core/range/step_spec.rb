@@ -52,7 +52,7 @@ describe "Range#step" do
   ruby_version_is "1.8.7" do
     it "returns an enumerator when no block given" do
       enum = (1..10).step(4)
-      enum.should be_kind_of(enumerator_class)
+      enum.should be_an_instance_of(enumerator_class)
       enum.to_a.should == [1, 5, 9]
     end
   end

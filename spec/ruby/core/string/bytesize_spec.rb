@@ -2,7 +2,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
-ruby_version_is "1.9" do
+with_feature :encoding do
   describe "#String#bytesize" do
     it "needs to be reviewed for spec completeness"
 

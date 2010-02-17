@@ -22,9 +22,7 @@ class MSpecScript
 
     # 1.9 feature
     '^library/cmath',
-    '^library/continuation',
     '^library/coverage',
-    '^library/fiber',
     '^library/json',
     '^library/minitest',
     '^library/prime',
@@ -55,4 +53,21 @@ class MSpecScript
                         [%r(library/),      'tags/1.8/library/'],
                         [/_spec.rb$/,       '_tags.txt']
                       ]
+
+  # Enable features
+  MSpec.enable_feature :continuation
+  MSpec.enable_feature :fork
+
+  # The Readline specs are not enabled by default because the functionality
+  # depends heavily on the underlying library, including whether certain
+  # methods are implemented or not. This makes it extremely difficult to
+  # make the specs consistently pass. Until a suitable scheme to handle
+  # all these issues, the specs will not be enabled by default.
+  #
+  # MSpec.enable_feature :readline
+
+  if SpecVersion.new(RUBY_VERSION) >= "1.8.7"
+    # These are encoding-aware methods backported to 1.8.7+ (eg String#bytes)
+    MSpec.enable_feature :encoding_transition
+  end
 end

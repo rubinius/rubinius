@@ -12,45 +12,44 @@ end
 
 describe "IO#ungetc" do
   before :each do
-    @file_name = File.dirname(__FILE__) + '/fixtures/readlines.txt'
-    @file = File.open(@file_name, 'r')
+    @io = IOSpecs.io_fixture "lines.txt"
 
     @empty = tmp('empty.txt')
   end
 
   after :each do
-    @file.close unless @file.closed?
+    @io.close unless @io.closed?
     rm_r @empty
   end
 
   it "pushes back one character onto stream" do
-    @file.getc.should == 86
-    @file.ungetc(86)
-    @file.getc.should == 86
+    @io.getc.should == 86
+    @io.ungetc(86)
+    @io.getc.should == 86
 
-    @file.ungetc(10)
-    @file.getc.should == 10
+    @io.ungetc(10)
+    @io.getc.should == 10
 
-    @file.getc.should == 111
-    @file.getc.should == 105
+    @io.getc.should == 111
+    @io.getc.should == 105
     # read the rest of line
-    @file.readline.should == "ci la ligne une.\n"
-    @file.getc.should == 81
-    @file.ungetc(99)
-    @file.getc.should == 99
+    @io.readline.should == "ci la ligne une.\n"
+    @io.getc.should == 81
+    @io.ungetc(99)
+    @io.getc.should == 99
   end
 
   it "pushes back one character when invoked at the end of the stream" do
     # read entire content
-    @file.read
-    @file.ungetc(100)
-    @file.getc.should == 100
+    @io.read
+    @io.ungetc(100)
+    @io.getc.should == 100
   end
   
   it "pushes back one character when invoked at the start of the stream" do
-    @file.read(0)
-    @file.ungetc(100)
-    @file.getc.should == 100
+    @io.read(0)
+    @io.ungetc(100)
+    @io.getc.should == 100
   end
 
   it "pushes back one character when invoked on empty stream" do
@@ -75,19 +74,19 @@ describe "IO#ungetc" do
   end
 
   it "adjusts the stream position" do
-    @file.pos.should == 0
+    @io.pos.should == 0
 
     # read one char
-    c = @file.getc
-    @file.pos.should == 1
-    @file.ungetc(c)
-    @file.pos.should == 0
+    c = @io.getc
+    @io.pos.should == 1
+    @io.ungetc(c)
+    @io.pos.should == 0
 
     # read all
-    @file.read
-    pos = @file.pos
-    @file.ungetc(98)
-    @file.pos.should == pos - 1
+    @io.read
+    pos = @io.pos
+    @io.ungetc(98)
+    @io.pos.should == pos - 1
   end
 
   # TODO: file MRI bug
@@ -95,34 +94,34 @@ describe "IO#ungetc" do
   # "Has no effect with unbuffered reads (such as IO#sysread)."
   #
   #it "has no effect with unbuffered reads" do
-  #  length = File.size(@file_name)
-  #  content = @file.sysread(length)
-  #  @file.rewind
-  #  @file.ungetc(100)
-  #  @file.sysread(length).should == content
+  #  length = File.size(@io_name)
+  #  content = @io.sysread(length)
+  #  @io.rewind
+  #  @io.ungetc(100)
+  #  @io.sysread(length).should == content
   #end
 
   it "makes subsequent unbuffered operations to raise IOError" do
-    @file.getc
-    @file.ungetc(100)
-    lambda { @file.sysread(1) }.should raise_error(IOError)
+    @io.getc
+    @io.ungetc(100)
+    lambda { @io.sysread(1) }.should raise_error(IOError)
   end
 
   ruby_version_is "" ... "1.9" do
     it "raises IOError when invoked on stream that was not yet read" do
-      lambda { @file.ungetc(100) }.should raise_error(IOError)
+      lambda { @io.ungetc(100) }.should raise_error(IOError)
     end
   end
 
   ruby_version_is "1.9" do
     it "returns nil when invoked on stream that was not yet read" do
-      @file.ungetc(100).should be_nil
+      @io.ungetc(100).should be_nil
     end
   end
 
   it "raises IOError on closed stream" do
-    @file.getc
-    @file.close
-    lambda { @file.ungetc(100) }.should raise_error(IOError)
+    @io.getc
+    @io.close
+    lambda { @io.ungetc(100) }.should raise_error(IOError)
   end
 end

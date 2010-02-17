@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-ruby_version_is "1.9" do
+with_feature :encoding do
   describe "String#valid_encoding?" do
     it "returns true if the String's encoding is valid" do
       "a".valid_encoding?.should be_true

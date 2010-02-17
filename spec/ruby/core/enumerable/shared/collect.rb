@@ -29,7 +29,7 @@ describe :enumerable_collect, :shared => true do
   ruby_version_is "1.9" do
     it "returns an enumerator when no block given" do
       enum = EnumerableSpecs::Numerous.new.send(@method)
-      enum.should be_kind_of(enumerator_class)
+      enum.should be_an_instance_of(enumerator_class)
       enum.each { |i| -i }.should == [-2, -5, -3, -6, -1, -4]
     end
   end

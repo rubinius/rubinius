@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-ruby_version_is "1.8.8" do
+with_feature :encoding do
   describe "String#ord" do
     it "returns a Fixnum" do
       'a'.ord.should be_an_instance_of(Fixnum)

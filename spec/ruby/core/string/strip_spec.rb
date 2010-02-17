@@ -30,21 +30,25 @@ describe "String#strip!" do
   end
 
   ruby_version_is ""..."1.9" do
-    it "raises a TypeError if self is frozen" do
-      "hello".freeze.strip! # ok, nothing changed
-      "".freeze.strip! # ok, nothing changed
-
+    it "raises a TypeError on a frozen instance that is modified" do
       lambda { "  hello  ".freeze.strip! }.should raise_error(TypeError)
+    end
+
+    it "does not raise an exception on a frozen instance that would not be modified" do
+      "hello".freeze.strip!.should be_nil
+      "".freeze.strip!.should be_nil
     end
   end
 
   ruby_version_is "1.9" do
-    ruby_bug "#1552", "1.9.2" do
-      it "raises a RuntimeError if self is frozen" do
-        lambda {"hello".freeze.strip!      }.should raise_error(RuntimeError)
-        lambda {"".freeze.strip!           }.should raise_error(RuntimeError)
-        lambda { "  hello  ".freeze.strip! }.should raise_error(RuntimeError)
-      end
+    it "raises a RuntimeError on a frozen instance that is modified" do
+      lambda { "  hello  ".freeze.strip! }.should raise_error(RuntimeError)
+    end
+
+    # see #1552
+    it "raises a RuntimeError on a frozen instance that would not be modified" do
+      lambda {"hello".freeze.strip! }.should raise_error(RuntimeError)
+      lambda {"".freeze.strip!      }.should raise_error(RuntimeError)
     end
   end
 end

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-ruby_version_is "1.9" do
+with_feature :encoding do
   describe "Encoding.list" do
     it "returns an Array" do
       Encoding.list.should be_an_instance_of(Array)

@@ -7,7 +7,7 @@ describe "Kernel#abort" do
     Kernel.should have_private_instance_method(:abort)
   end
 
-  it_behaves_like :kernel_abort, :abort, KernelSpecs::AbortMethod.new
+  it_behaves_like :kernel_abort, :abort, KernelSpecs::Method.new
 end
 
 describe "Kernel.abort" do

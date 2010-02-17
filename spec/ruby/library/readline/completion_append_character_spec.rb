@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 process_is_foreground do
-
-  not_supported_on :ironruby do
+  with_feature :readline do
     require 'readline'
+
     describe "Readline.completion_append_character" do
       it "returns not nil" do
         Readline.completion_append_character.should_not be_nil

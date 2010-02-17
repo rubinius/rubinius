@@ -61,13 +61,13 @@ ruby_version_is "1.9" do
     it "returns a Fixnum greater than or equal to 0" do
       prng = Random.new
       ints = 20.times.map { prng.rand(5) }
-      ints.min.should == 0
+      ints.min.should >= 0
     end
 
     it "returns a Fixnum less than the argument" do
       prng = Random.new
       ints = 20.times.map { prng.rand(5) }
-      ints.max.should == 4
+      ints.max.should <= 4
     end
 
     it "returns the same sequence for a given seed" do

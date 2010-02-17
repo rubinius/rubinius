@@ -28,30 +28,16 @@ describe "String#crypt" do
     "hello world".crypt("aabc").should == "aayPz4hyPS1wI"
   end
 
-  platform_is_not :darwin do
-    not_compliant_on :jruby do
-      it "returns an empty string when the salt starts NULL bytes" do
-        "hello".crypt("\x00\x00").should == ""
-        "hello".crypt("\x00a").should == ""
-      end
-
-      it "ignores trailing NULL bytes in the salt but counts them for the 2 character minimum" do
-        "hello".crypt("a\x00").should == "aa1dYAU.hgL3A"
-      end
-    end
-
-    # TODO: verify this
-    deviates_on :jruby do
-      it "returns NULL bytes prepended to the string when the salt contains NULL bytes" do
-        "hello".crypt("\x00\x00").should == "\x00\x00dR0/E99ehpU"
-        "hello".crypt("\x00a").should == "\000aeipc4xPxhGY"
-        "hello".crypt("a\x00").should == "a\000GJVggM8eWwo"
-      end
+  platform_is :java do
+    it "returns NULL bytes prepended to the string when the salt contains NULL bytes" do
+      "hello".crypt("\x00\x00").should == "\x00\x00dR0/E99ehpU"
+      "hello".crypt("\x00a").should == "\x00aeipc4xPxhGY"
+      "hello".crypt("a\x00").should == "a\x00GJVggM8eWwo"
     end
   end
 
-  platform_is :darwin do
-    not_compliant_on :jruby do
+  platform_is_not :java do
+    platform_is :darwin, :netbsd, :openbsd do
       it "returns '.' prepended to the string for each NULL byte the salt contains" do
         "hello".crypt("\x00\x00").should == "..dR0/E99ehpU"
         "hello".crypt("\x00a").should == ".aeipc4xPxhGY"
@@ -59,11 +45,22 @@ describe "String#crypt" do
       end
     end
 
-    deviates_on :jruby do
-      it "returns NULL bytes prepended to the string when the salt contains NULL bytes" do
-        "hello".crypt("\x00\x00").should == "\x00\x00dR0/E99ehpU"
-        "hello".crypt("\x00a").should == "\000aeipc4xPxhGY"
-        "hello".crypt("a\x00").should == "a\000GJVggM8eWwo"
+    platform_is :freebsd do
+      # TODO: add specs for "hello".crypt("\x00\x00") and "hello".crypt("\x00a")
+
+      it "ignores trailing NULL bytes in the salt but counts them for the 2 character minimum" do
+        "hello".crypt("a\x00").should == "aaGJVggM8eWwo"
+      end
+    end
+
+    platform_is :linux do
+      it "returns an empty string when the salt starts with NULL bytes" do
+        "hello".crypt("\x00\x00").should == ""
+        "hello".crypt("\x00a").should == ""
+      end
+
+      it "ignores trailing NULL bytes in the salt but counts them for the 2 character minimum" do
+        "hello".crypt("a\x00").should == "aa1dYAU.hgL3A"
       end
     end
   end

@@ -10,7 +10,7 @@ ruby_version_is "1.9" do
     end
 
     it "returns an Enumerator if given a block" do
-      EnumerableSpecs::Numerous.new.chunk {}.should be_an_instance_of(Enumerator)
+      EnumerableSpecs::Numerous.new.chunk {}.should be_an_instance_of(enumerator_class)
     end
 
     it "yields each element of the Enumerable to the block" do

@@ -1,14 +1,14 @@
 # -*- encoding: utf-8 -*-
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-ruby_version_is "1.8.7" do
+with_feature :encoding_transition do
   describe "String#bytes" do
     before(:each) do
       @utf8 = "東京"
       @ascii = 'Tokyo'
       @utf8_ascii = @utf8 + @ascii
-    end  
-    
+    end
+
     it "returns an Enumerator when no block is given" do
       @utf8.bytes.should be_kind_of(Enumerable)
     end
@@ -18,7 +18,7 @@ ruby_version_is "1.8.7" do
       @utf8.bytes {|b| bytes << b}.should == @utf8
       bytes.should == @utf8.bytes.to_a
     end
-    
+
     it "returns #bytesize bytes" do
       @utf8_ascii.bytes.to_a.size.should == @utf8_ascii.bytesize
     end
@@ -28,7 +28,6 @@ ruby_version_is "1.8.7" do
       @utf8_ascii.bytes { |b| b.should be_an_instance_of(Fixnum) }
     end
 
-
     it "agrees with #unpack('C*')" do
       @utf8_ascii.bytes.to_a.should == @utf8_ascii.unpack("C*")
     end
@@ -37,17 +36,19 @@ ruby_version_is "1.8.7" do
       ''.bytes.to_a.should == []
     end
 
-    # #getbyte and #force_encoding are 1.9 methods
-    ruby_version_is "1.9" do
-      it "agrees with #getbyte" do
-        @utf8_ascii.bytes.to_a.each_with_index do |byte,index|
-          byte.should == @utf8_ascii.getbyte(index)
-        end
-      end  
-      
-      it "is unaffected by #force_encoding" do
-        @utf8.force_encoding('ASCII').bytes.to_a.should == @utf8.bytes.to_a
-      end    
+  end
+end
+
+with_feature :encoding do
+  describe "String#bytes" do
+    it "agrees with #getbyte" do
+      @utf8_ascii.bytes.to_a.each_with_index do |byte,index|
+        byte.should == @utf8_ascii.getbyte(index)
+      end
+    end
+
+    it "is unaffected by #force_encoding" do
+      @utf8.force_encoding('ASCII').bytes.to_a.should == @utf8.bytes.to_a
     end
   end
-end  
+end

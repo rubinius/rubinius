@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.dirname(__FILE__) + '/../fixtures/classes'
 require 'socket'
 
 describe "Socket#unpack_sockaddr_in" do

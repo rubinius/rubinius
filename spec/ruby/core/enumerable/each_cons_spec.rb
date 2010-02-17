@@ -50,7 +50,7 @@ describe "Enumerable#each_cons" do
   ruby_version_is '1.8.7' do
     it "returns an enumerator if no block" do 
       e = @enum.each_cons(3)
-      e.should be_kind_of(enumerator_class)
+      e.should be_an_instance_of(enumerator_class)
       e.to_a.should == @in_threes
     end
   end

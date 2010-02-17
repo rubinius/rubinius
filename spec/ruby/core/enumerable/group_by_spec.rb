@@ -13,7 +13,7 @@ describe "Enumerable#group_by" do
     end
   
     it "returns an Enumerator if called without a block" do
-      EnumerableSpecs::Numerous.new.group_by.should be_kind_of(enumerator_class)
+      EnumerableSpecs::Numerous.new.group_by.should be_an_instance_of(enumerator_class)
     end
   end
 end

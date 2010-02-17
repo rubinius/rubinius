@@ -119,7 +119,7 @@ describe :string_each_line, :shared => true do
   ruby_version_is "1.8.7" do
     it "returns an enumerator when no block given" do
       enum = "hello world".send(@method, ' ')
-      enum.should be_kind_of(enumerator_class)
+      enum.should be_an_instance_of(enumerator_class)
       enum.to_a.should == ["hello ", "world"]
     end
   end

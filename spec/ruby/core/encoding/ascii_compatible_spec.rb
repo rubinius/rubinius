@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-ruby_version_is "1.9" do
+with_feature :encoding do
   describe "Encoding#ascii_compatible?" do
     it "returns true if self represents an ASCII-compatible encoding" do
       Encoding::UTF_8.ascii_compatible?.should be_true

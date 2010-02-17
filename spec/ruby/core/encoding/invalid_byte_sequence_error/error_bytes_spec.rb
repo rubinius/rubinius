@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../fixtures/classes'
 
-ruby_version_is "1.9" do
+with_feature :encoding do
   describe "Encoding::InvalidByteSequenceError#error_bytes" do
     before(:each) do
       @exception, @errinfo = EncodingSpecs::InvalidByteSequenceError.exception

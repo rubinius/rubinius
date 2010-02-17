@@ -28,7 +28,7 @@ describe "ENV.reject!" do
 
   ruby_version_is "1.8.7" do
     it "returns an Enumerator if called without a block" do
-      ENV.reject!.should be_kind_of(enumerator_class)
+      ENV.reject!.should be_an_instance_of(enumerator_class)
     end
   end
 
@@ -72,7 +72,7 @@ describe "ENV.reject" do
 
   ruby_version_is "1.8.7" do
     it "returns an Enumerator if called without a block" do
-      ENV.reject.should be_kind_of(enumerator_class)
+      ENV.reject.should be_an_instance_of(enumerator_class)
     end
   end
 

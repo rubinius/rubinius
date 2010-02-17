@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-ruby_version_is "1.9.2" do
+ruby_version_is "1.9" do
 
   describe "Array#sort_by!" do
     it "sorts array in place by passing each element to the given block" do
@@ -11,7 +11,7 @@ ruby_version_is "1.9.2" do
     end
 
     it "returns an Enumerator if not given a block" do
-      (1..10).to_a.sort_by!.should be_kind_of(Enumerator)
+      (1..10).to_a.sort_by!.should be_an_instance_of(enumerator_class)
     end 
 
     it "completes when supplied a block that always returns the same result" do

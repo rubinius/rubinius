@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/caller_fixture1'
 
 module KernelSpecs
-  class AbortMethod
+  class Method
     def abort(*msg)
       super
     end
@@ -155,16 +155,6 @@ module KernelSpecs
         Kernel.block_given?
       end
     end
-  end
-
-  def self.before_and_after
-    i = "before"
-    cont = callcc { |c| c }
-    if cont # nil the second time
-      i = "after"
-      cont.call
-    end
-    i
   end
 
   class IVars

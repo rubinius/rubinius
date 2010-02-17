@@ -11,14 +11,14 @@ describe "Array#flatten" do
       [ 1, 2, [3, [4, 5] ] ].flatten(1).should == [1, 2, 3, [4, 5]]
     end
 
-    ruby_version_is ""..."1.9.2" do
+    ruby_version_is ""..."1.9" do
       it "returns self when the level of recursion is 0" do
         a = [ 1, 2, [3, [4, 5] ] ]
         a.flatten(0).should equal(a)
       end
     end
 
-    ruby_version_is "1.9.2" do
+    ruby_version_is "1.9" do
       it "returns dup when the level of recursion is 0" do
         a = [ 1, 2, [3, [4, 5] ] ]
         a.flatten(0).should == a
@@ -184,26 +184,28 @@ describe "Array#flatten!" do
     ary.should == [1, 2, 3]
   end
 
-  ruby_version_is '' ... '1.9' do
-    it "raises a TypeError on frozen arrays when modification would take place" do
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError on frozen arrays when the array is modified" do
       nested_ary = [1, 2, []]
       nested_ary.freeze
       lambda { nested_ary.flatten! }.should raise_error(TypeError)
     end
-  
-    it "does not raise on frozen arrays when no modification would take place" do
+
+    it "does not raise on frozen arrays when the array would not be modified" do
       ArraySpecs.frozen_array.flatten!.should be_nil
     end
   end
 
-  ruby_version_is '1.9' do
-    ruby_bug "[ruby-core:23663]", "1.9.2" do
-      it "raises a RuntimeError on frozen arrays" do
-        nested_ary = [1, 2, []]
-        nested_ary.freeze
-        lambda { nested_ary.flatten! }.should raise_error(RuntimeError)
-        lambda { ArraySpecs.frozen_array.flatten! }.should raise_error(RuntimeError)
-      end
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError on frozen arrays when the array is modified" do
+      nested_ary = [1, 2, []]
+      nested_ary.freeze
+      lambda { nested_ary.flatten! }.should raise_error(RuntimeError)
+    end
+
+    # see [ruby-core:23663]
+    it "raises a RuntimeError on frozen arrays when the array would not be modified" do
+      lambda { ArraySpecs.frozen_array.flatten! }.should raise_error(RuntimeError)
     end
   end
 end

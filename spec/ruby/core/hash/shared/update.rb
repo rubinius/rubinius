@@ -36,18 +36,27 @@ describe :hash_update, :shared => true do
 
   ruby_version_is ""..."1.9" do
     it "raises a TypeError if called on a non-empty, frozen instance" do
-      HashSpecs.frozen_hash.send(@method, HashSpecs.empty_frozen_hash) # ok, empty
       lambda { HashSpecs.frozen_hash.send(@method, 1 => 2) }.should raise_error(TypeError)
     end
+
+    it "does not raise an exception on a frozen instance that would not be modified" do
+      hash = HashSpecs.frozen_hash.send(@method, HashSpecs.empty_frozen_hash)
+      hash.should == HashSpecs.frozen_hash
+    end
   end
+
   ruby_version_is "1.9" do
-    ruby_bug "#1571", "1.9.2" do
-      it "raises a RuntimeError if called on a frozen instance" do
-        lambda { HashSpecs.frozen_hash.send(@method, HashSpecs.empty_frozen_hash) }.
-          should raise_error(RuntimeError)
-        lambda { HashSpecs.frozen_hash.send(@method, 1 => 2) }.
-          should raise_error(RuntimeError)
-      end
+    it "raises a RuntimeError on a frozen instance that is modified" do
+      lambda do
+        HashSpecs.frozen_hash.send(@method, 1 => 2)
+      end.should raise_error(RuntimeError)
+    end
+
+    # see redmine #1571
+    it "raises a RuntimeError on a frozen instance that would not be modified" do
+      lambda do
+        HashSpecs.frozen_hash.send(@method, HashSpecs.empty_frozen_hash)
+      end.should raise_error(RuntimeError)
     end
   end
 end

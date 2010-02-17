@@ -97,19 +97,21 @@ describe "File.new" do
     File.exists?(@file).should == true
   end
 
-  ruby_bug "#1582", "1.9.2" do
-    it "raises an Errno::EINVAL error with File::APPEND" do
-      lambda { @fh = File.new(@file, File::APPEND) }.should raise_error(Errno::EINVAL)
+  ruby_bug "[ruby-dev:40397]", "1.8.8" do 
+    it "returns a new File when use File::APPEND mode" do
+      @fh = File.new(@file, File::APPEND)
+      @fh.should be_kind_of(File)
+      File.exists?(@file).should == true
+    end
+
+    it "returns a new File when use File::RDONLY|File::APPEND mode" do
+      @fh = File.new(@file, File::RDONLY|File::APPEND)
+      @fh.should be_kind_of(File)
+      File.exists?(@file).should == true
     end
   end
 
-  ruby_bug "#1582", "1.9.2" do
-    it "raises an Errno::EINVAL error with File::RDONLY|File::APPEND" do
-      lambda { @fh = File.new(@file, File::RDONLY|File::APPEND) }.should raise_error(Errno::EINVAL)
-    end
-  end
-
-  it "raises an Errno::EINVAL error with File::RDONLY|File::WRONLY" do
+  it "returns a new File when use File::RDONLY|File::WRONLY mode" do
     @fh = File.new(@file, File::RDONLY|File::WRONLY)
     @fh.should be_kind_of(File)
     File.exists?(@file).should == true
@@ -151,13 +153,9 @@ describe "File.new" do
     lambda { File.new(-1) }.should raise_error(Errno::EBADF)
   end
 
-  ruby_bug "#1582", "1.9.2" do
-    # You can't alter mode or permissions when opening a file descriptor
-    #
-    it "can't alter mode or permissions when opening a file" do
-      @fh = File.new(@file)
-      lambda { File.new(@fh.fileno, @flags) }.should raise_error(Errno::EINVAL)
-    end
+  it "can't alter mode or permissions when opening a file" do
+    @fh = File.new(@file)
+    lambda { File.new(@fh.fileno, @flags) }.should raise_error(Errno::EINVAL)
   end
   
   it_behaves_like :open_directory, :new

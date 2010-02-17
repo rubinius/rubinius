@@ -66,8 +66,8 @@ describe :time_params, :shared => true do
     end
   end
 
-  # MRI 1.9.2 relaxes 1.8's restriction's on allowed years.
-  ruby_version_is "1.9.2" do
+  # MRI 1.9 relaxes 1.8's restriction's on allowed years.
+  ruby_version_is "1.9" do
     it "should accept various year ranges" do
       Time.send(@method, 1801, 12, 31, 23, 59, 59, 0).wday.should == 4
       Time.send(@method, 3000, 12, 31, 23, 59, 59, 0).wday.should == 3

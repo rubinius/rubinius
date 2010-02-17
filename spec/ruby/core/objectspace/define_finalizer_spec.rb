@@ -23,7 +23,8 @@ describe "ObjectSpace.define_finalizer" do
     ObjectSpace.define_finalizer("garbage", handler).should == [0, handler]
   end
 
-  ruby_bug "#1706", "1.9.2" do
+  # see [ruby-core:24095]
+  ruby_version_is "1.9" do
     it "calls finalizer on process termination" do
       rd, wr = IO.pipe
       if Kernel::fork then
@@ -39,11 +40,11 @@ describe "ObjectSpace.define_finalizer" do
       end
     end
 
-    it "doesn't call self-referencing finalizers" do
+    it "calls finalizer at exit even if it is self-referencing" do
       rd, wr = IO.pipe
       if Kernel::fork then
         wr.close
-        rd.read.should_not == "finalized"
+        rd.read.should == "finalized"
         rd.close
       else
         rd.close

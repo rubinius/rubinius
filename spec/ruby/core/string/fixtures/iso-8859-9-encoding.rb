@@ -1,4 +1,4 @@
-# coding: iso-8859-9
+# -*- encoding: iso-8859-9 -*-
 module StringSpecs
   class ISO88599Encoding
     def source_encoding; __ENCODING__; end

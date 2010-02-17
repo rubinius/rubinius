@@ -13,7 +13,7 @@ ruby_version_is "1.8.7" do
           yielder.yield 2
           yielder.yield 1
         end
-        enum.should be_kind_of(enumerator_class)
+        enum.should be_an_instance_of(enumerator_class)
         enum.to_a.should == [3,2,1]
       end
 

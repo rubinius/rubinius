@@ -41,7 +41,7 @@ describe "String#each_byte" do
   ruby_version_is "1.8.7" do
     it "returns an enumerator when no block given" do
       enum = "hello".each_byte
-      enum.should be_kind_of(enumerator_class)
+      enum.should be_an_instance_of(enumerator_class)
       enum.to_a.should == [104, 101, 108, 108, 111]
     end
   end

@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- encoding: utf-8 -*-
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../fixtures/classes'
 
@@ -18,7 +18,7 @@ describe :string_chars, :shared => true do
 
   it "returns an enumerator when no block given" do
     enum = "hello".send(@method)
-    enum.should be_kind_of(enumerator_class)
+    enum.should be_an_instance_of(enumerator_class)
     enum.to_a.should == ['h', 'e', 'l', 'l', 'o']
   end
 
@@ -30,7 +30,7 @@ describe :string_chars, :shared => true do
     $KCODE = before
   end
   
-  ruby_version_is "1.9" do
+  with_feature :encoding do
     it "returns characters in the same encoding as self" do
       "&%".force_encoding('Shift_JIS').chars.to_a.all? {|c| c.encoding.name.should == 'Shift_JIS'}
       "&%".encode('ASCII-8BIT').chars.to_a.all? {|c| c.encoding.name.should == 'ASCII-8BIT'}

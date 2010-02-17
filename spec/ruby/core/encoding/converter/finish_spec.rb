@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-ruby_version_is "1.9" do
+with_feature :encoding do
   describe "Encoding::Converter#finish" do
     before(:each) do
       @ec = Encoding::Converter.new("utf-8", "iso-2022-jp")

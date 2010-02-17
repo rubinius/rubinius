@@ -1,5 +1,6 @@
+require File.dirname(__FILE__) + '/../../spec_helper'
 
-ruby_version_is "1.9" do
+with_feature :encoding do
   describe "String#force_encoding" do
     it "requires exactly one argument" do
       lambda {

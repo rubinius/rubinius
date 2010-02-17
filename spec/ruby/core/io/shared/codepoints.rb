@@ -1,9 +1,9 @@
-# encoding: utf-8
+# -*- encoding: utf-8 -*-
 require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe :io_codepoints, :shared => true do
   before(:each) do
-    @io = File.open(IOSpecs.gets_fixtures)
+    @io = IOSpecs.io_fixture "lines.txt"
     @enum = @io.send(@method)
   end
 
@@ -16,7 +16,10 @@ describe :io_codepoints, :shared => true do
   end
 
   it "yields each codepoint" do
-    @enum.first(25).should == [86, 111, 105, 99, 105, 32, 108, 97, 32, 108, 105, 103, 110, 101, 32, 117, 110, 101, 46, 10, 81, 117, 105, 32, 232]
+    @enum.first(25).should == [
+      86, 111, 105, 99, 105, 32, 108, 97, 32, 108, 105, 103, 110,
+      101, 32, 117, 110, 101, 46, 10, 81, 117, 105, 32, 232
+    ]
   end
 
   it "yields each codepoint starting from the current position" do
@@ -38,5 +41,4 @@ describe :io_codepoints, :shared => true do
   it "raises an IOError when self is not readable" do
     lambda { IOSpecs.closed_file.send(@method).to_a }.should raise_error(IOError)
   end
-
 end

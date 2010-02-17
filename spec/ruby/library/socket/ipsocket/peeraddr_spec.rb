@@ -43,6 +43,7 @@ describe "Socket::IPSocket#peeraddr" do
 
     it "returns an array of information on the peer" do
       @client.do_not_reverse_lookup = false
+      BasicSocket.do_not_reverse_lookup = false
       addrinfo = @client.peeraddr
       addrinfo[0].should == "AF_INET"
       addrinfo[1].should == SocketSpecs.port
@@ -52,6 +53,7 @@ describe "Socket::IPSocket#peeraddr" do
 
     it "returns an IP instead of hostname if do_not_reverse_lookup is true" do
       @client.do_not_reverse_lookup = true
+      BasicSocket.do_not_reverse_lookup = true
       addrinfo = @client.peeraddr
       addrinfo[0].should == "AF_INET"
       addrinfo[1].should == SocketSpecs.port

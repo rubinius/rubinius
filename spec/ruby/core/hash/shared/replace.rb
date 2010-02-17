@@ -46,13 +46,16 @@ describe :hash_replace, :shared => true do
   end
 
   ruby_version_is "1.9" do
-    ruby_bug "#1571", "1.9.2" do
-      it "raises a RuntimeError if called on a frozen instance" do
-        lambda { HashSpecs.frozen_hash.send(@method, HashSpecs.frozen_hash) }.
-          should raise_error(RuntimeError)
-        lambda { HashSpecs.frozen_hash.send(@method, HashSpecs.empty_frozen_hash) }.
-          should raise_error(RuntimeError)
-      end
+    it "raises a RuntimeError if called on a frozen instance that is modified" do
+      lambda do
+        HashSpecs.frozen_hash.send(@method, HashSpecs.frozen_hash)
+      end.should raise_error(RuntimeError)
+    end
+
+    it "raises a RuntimeError if called on a frozen instance that would not be modified" do
+      lambda do
+        HashSpecs.frozen_hash.send(@method, HashSpecs.empty_frozen_hash)
+      end.should raise_error(RuntimeError)
     end
   end
 end

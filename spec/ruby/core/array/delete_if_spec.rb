@@ -22,7 +22,7 @@ describe "Array#delete_if" do
   ruby_version_is '1.8.7' do
     it "returns an Enumerator if no block given, and the enumerator can modify the original array" do
       enum = @a.delete_if
-      enum.should be_kind_of(enumerator_class)
+      enum.should be_an_instance_of(enumerator_class)
       @a.should_not be_empty
       enum.each { true }
       @a.should be_empty

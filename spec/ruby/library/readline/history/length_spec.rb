@@ -1,8 +1,7 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
 process_is_foreground do
-
-  not_supported_on :ironruby do
+  with_feature :readline do
     require 'readline'
     require File.dirname(__FILE__) + '/shared/size'
 

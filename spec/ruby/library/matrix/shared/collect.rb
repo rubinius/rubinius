@@ -13,7 +13,7 @@ describe :collect, :shared => true do
 
   ruby_bug "#1531", "1.8.7" do
     it "returns an enumerator if no block is given" do
-      @m.send(@method).should be_kind_of(enumerator_class)
+      @m.send(@method).should be_an_instance_of(enumerator_class)
     end
   end
 end

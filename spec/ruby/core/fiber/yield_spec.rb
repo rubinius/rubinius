@@ -1,8 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-ruby_version_is "1.9" do
+with_feature :fiber do
   describe "Fiber.yield" do
-
     it "passes control to the Fiber's caller" do
       step = 0
       fiber = Fiber.new { step = 1; Fiber.yield; step = 2; Fiber.yield; step = 3 }
@@ -15,7 +14,7 @@ ruby_version_is "1.9" do
     it "returns its arguments to the caller" do
       fiber = Fiber.new { true; Fiber.yield :glark; true }
       fiber.resume.should == :glark
-    end  
+    end
 
     it "returns nil to the caller if given no arguments" do
       fiber = Fiber.new { true; Fiber.yield; true }
@@ -27,9 +26,9 @@ ruby_version_is "1.9" do
       fiber.resume
       fiber.resume :caller
     end
-    
+
     it "raises a FiberError if called from the root Fiber" do
       lambda{ Fiber.yield }.should raise_error(FiberError)
-    end  
+    end
   end
 end

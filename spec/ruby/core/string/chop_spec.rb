@@ -2,37 +2,18 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
 describe "String#chop" do
-  ruby_version_is "".."1.9" do
-    it "returns a new string with the last character removed" do
-      "hello\n".chop.should == "hello"
-      "hello\x00".chop.should == "hello"
-      "hello".chop.should == "hell"
-      
-      ori_str = ""
-      256.times { |i| ori_str << i }
-      
-      str = ori_str
-      256.times do |i|
-        str = str.chop
-        str.should == ori_str[0, 255 - i]
-      end
-    end
-  end
+  it "returns a new string with the last character removed" do
+    "hello\n".chop.should == "hello"
+    "hello\x00".chop.should == "hello"
+    "hello".chop.should == "hell"
 
-  ruby_version_is "1.9" do
-    it "returns a new string with the last character removed" do
-      "hello\n".chop.should == "hello"
-      "hello\x00".chop.should == "hello"
-      "hello".chop.should == "hell"
-      
-      ori_str = ""
-      256.times { |i| ori_str.encode('UTF-8') << i }
-      
-      str = ori_str
-      256.times do |i|
-        str = str.chop
-        str.should == ori_str[0, 255 - i]
-      end
+    ori_str = encode("", "utf-8")
+    256.times { |i| ori_str << i }
+
+    str = ori_str
+    256.times do |i|
+      str = str.chop
+      str.should == ori_str[0, 255 - i]
     end
   end
 
@@ -84,27 +65,24 @@ describe "String#chop!" do
   
   ruby_version_is ""..."1.9" do
     it "raises a TypeError when self is frozen" do
-      a = "string\n\r"
-      a.freeze
-      lambda { a.chop! }.should raise_error(TypeError)
+      lambda { "string\n\r".freeze.chop! }.should raise_error(TypeError)
+    end
 
-      a = ""
-      a.freeze
-      a.chop! # ok, no change
+    it "does not raise an exception on a frozen instance that would not be modified" do
+      "".freeze.chop!.should be_nil
     end
   end
 
   ruby_version_is "1.9" do
-    ruby_bug "[ruby-core:23666]", "1.9.2" do
-      it "raises a RuntimeError when self is frozen" do
-        a = "string\n\r"
-        a.freeze
-        lambda { a.chop! }.should raise_error(RuntimeError)
+    it "raises a RuntimeError on a frozen instance that is modified" do
+      lambda { "string\n\r".freeze.chop! }.should raise_error(RuntimeError)
+    end
 
-        a = ""
-        a.freeze
-        lambda { a.chop! }.should raise_error(RuntimeError)
-      end
+    # see [ruby-core:23666]
+    it "raises a RuntimeError on a frozen instance that would not be modified" do
+      a = ""
+      a.freeze
+      lambda { a.chop! }.should raise_error(RuntimeError)
     end
   end
 end

@@ -44,16 +44,19 @@ ruby_version_is "1.9" do
 
     it "causes 'peeraddr' to avoid name lookups" do
       @socket.do_not_reverse_lookup = true
+      BasicSocket.do_not_reverse_lookup = true
       @socket.peeraddr.should == ["AF_INET", SocketSpecs.port, "127.0.0.1", "127.0.0.1"]
     end
 
     it "looks for hostnames when set to false" do
       @socket.do_not_reverse_lookup = false
+      BasicSocket.do_not_reverse_lookup = false
       @socket.peeraddr[2].should == SocketSpecs.hostname
     end
 
     it "looks for numeric addresses when set to true" do
       @socket.do_not_reverse_lookup = true
+      BasicSocket.do_not_reverse_lookup = true
       @socket.peeraddr[2].should == "127.0.0.1"
     end
   end

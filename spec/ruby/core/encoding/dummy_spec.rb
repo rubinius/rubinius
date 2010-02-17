@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-ruby_version_is "1.9" do
+with_feature :encoding do
   describe "Encoding#dummy?" do
     it "returns false for proper encodings" do
       Encoding::UTF_8.dummy?.should be_false

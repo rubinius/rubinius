@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/defined'
 
 describe "The defined? keyword" do
   class LanguageDefinedSpecs
@@ -154,6 +155,10 @@ describe "The defined? keyword" do
   it "returns nil when defined?(no_such_local) is sent" do
     ret = defined?(no_such_local)
     ret.should == nil
+  end
+
+  it "returns nil for defined?(super) when a superclass undef's the method" do
+    DefinedSpecs::ClassWithoutMethod.new.test.should be_nil
   end
 
   it "returns 'expression' when defined?(:File) is sent" do

@@ -12,7 +12,7 @@ ruby_version_is '1.8.7' do
 
     it 'returns an Enumerator if no block given' do
       enum = EnumerableSpecs::Numerous.new.reverse_each
-      enum.should be_kind_of(enumerator_class)
+      enum.should be_an_instance_of(enumerator_class)
       enum.to_a.should == [4, 1, 6, 3, 5, 2]
     end
   end

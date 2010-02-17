@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-ruby_version_is "1.9" do
+with_feature :encoding do
   describe "Encoding.locale_charmap" do
     it "returns a String" do
       Encoding.locale_charmap.should be_an_instance_of(String)

@@ -225,21 +225,23 @@ describe "String#slice! Range" do
     a.slice!(range_incl).should == "OO"
   end
 
-  ruby_version_is ""..."1.9" do 
-    it "raises a TypeError if self is frozen" do
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError on a frozen instance that would be modifed" do
       lambda { "hello".freeze.slice!(1..3) }.should raise_error(TypeError)
     end
 
-    ruby_bug "#1551", "1.9.2" do
-      it "doesn't raise a TypeError if self is frozen but the given range is out of self" do
-        "hello".freeze.slice!(10..20).should == nil
-      end
+    it "does not raise an exception on a frozen instance that would not be modified" do
+      "hello".freeze.slice!(10..20).should be_nil
     end
   end
 
-  ruby_version_is "1.9" do 
-    it "raises a RuntimeError if self is frozen" do
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError on a frozen instance that is modified" do
       lambda { "hello".freeze.slice!(1..3)  }.should raise_error(RuntimeError)
+    end
+
+    # see redmine #1551
+    it "raises a RuntimeError on a frozen instance that would not be modified" do
       lambda { "hello".freeze.slice!(10..20)}.should raise_error(RuntimeError)
     end
   end
@@ -290,8 +292,6 @@ describe "String#slice! with Regexp" do
     s.slice!(/../).should be_kind_of(StringSpecs::MyString)
   end
 
-  # This currently fails, but passes in a pure Rubinius environment (without mspec)
-  # probably because mspec uses match internally for its operation
   it "sets $~ to MatchData when there is a match and nil when there's none" do
     'hello'.slice!(/./)
     $~[0].should == 'h'
@@ -300,16 +300,22 @@ describe "String#slice! with Regexp" do
     $~.should == nil
   end
 
-  ruby_version_is ""..."1.9" do 
-    it "raises a TypeError if self is frozen" do
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError on a frozen instance that is modified" do
       lambda { "this is a string".freeze.slice!(/s.*t/) }.should raise_error(TypeError)
+    end
+
+    it "does not raise an exception on a frozen instance that would not be modified" do
+      "this is a string".freeze.slice!(/zzz/).should be_nil
     end
   end
 
-  ruby_version_is "1.9" do 
-    it "raises a RuntimeError if self is frozen" do
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError on a frozen instance that is modified" do
       lambda { "this is a string".freeze.slice!(/s.*t/) }.should raise_error(RuntimeError)
-      lambda { "this is a string".freeze.slice!(/zzz/)  }.should raise_error(RuntimeError)
+    end
+
+    it "raises a RuntimeError on a frozen instance that would not be modified" do
       lambda { "this is a string".freeze.slice!(/zzz/)  }.should raise_error(RuntimeError)
     end
   end

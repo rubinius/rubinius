@@ -3,51 +3,31 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "ERB#src" do
 
-  ruby_version_is "" ... "1.8.7" do
-    it "returns the compiled ruby code" do
-      input = <<'END'
+  it "returns the compiled ruby code evaluated to a String" do
+    # note that what concrete code is emitted is not guaranteed.
+
+    input = <<'END'
 <ul>
 <% for item in list %>
-<li><%= item %></li>
-<% end %>
-</ul>
-END
-      expected = <<'END'
-_erbout = ''; _erbout.concat "<ul>\n"
- for item in list ; _erbout.concat "\n"
-_erbout.concat "<li>"; _erbout.concat(( item ).to_s); _erbout.concat "</li>\n"
- end ; _erbout.concat "\n"
-_erbout.concat "</ul>\n"
-_erbout
-END
-
-      expected.chomp!
-      ERB.new(input).src.should == expected
-    end
-  end
-
-  ruby_version_is "1.8.7" do
-    it "returns the compiled ruby code" do
-      input = <<'END'
-<ul>
-<% for item in list %>
-<li><%= item %></li>
+  <li><%= item %>
 <% end %>
 </ul>
 END
 
-      expected = <<EOS
-_erbout = ''; _erbout.concat "<ul>\\n"
-;  for item in list ; _erbout.concat "\\n<li>"
-; _erbout.concat(( item ).to_s); _erbout.concat "</li>\\n"
-;  end ; _erbout.concat "\\n</ul>\\n"
+    expected = <<'END'
+<ul>
 
-; _erbout
-EOS
+  <li>AAA
 
-      expected.chomp!
-      ERB.new(input).src.should == expected
-    end
+  <li>BBB
+
+  <li>CCC
+
+</ul>
+END
+
+    list = %w[AAA BBB CCC]
+    eval(ERB.new(input).src).should == expected
   end
 
 end

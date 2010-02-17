@@ -16,7 +16,7 @@ describe :struct_equal_value, :shared => true do
     car.send(@method, different_car).should == false
   end
 
-  ruby_bug "redmine #1885", "1.9.2" do
+  ruby_bug "redmine #1885", "1.8" do
     it "handles recursive structures by returning false if a difference can be found " do
       MyClass = Struct.new(:foo)
       x = Struct::Car.new("Honda", "Accord", "1998")
@@ -30,5 +30,4 @@ describe :struct_equal_value, :shared => true do
       x.send(@method, stepping).should == false
     end
   end
-
 end

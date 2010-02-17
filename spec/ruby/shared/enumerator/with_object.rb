@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe :enum_with_object, :shared => true do
   it "returns an enumerator when not given a block" do
-    [].to_enum.send(@method, '').should be_an_instance_of(Enumerator)
+    [].to_enum.send(@method, '').should be_an_instance_of(enumerator_class)
   end
 
   it "returns the given object when given a block" do

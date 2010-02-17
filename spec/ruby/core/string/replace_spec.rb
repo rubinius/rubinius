@@ -28,24 +28,29 @@ describe "String#replace" do
   end
 
   ruby_version_is ""..."1.9" do
-    it "raises a TypeError if self is frozen" do
+    it "raises a TypeError on a frozen instance that is modified" do
       a = "hello".freeze
-
-      a.replace(a) # ok, no change
       lambda { a.replace("")      }.should raise_error(TypeError)
       lambda { a.replace("world") }.should raise_error(TypeError)
+    end
+
+    it "does not raise an exception on a frozen instance that would not be modified" do
+      a = "hello".freeze
+      a.freeze.replace(a).should equal(a)
     end
   end
 
   ruby_version_is "1.9" do
-    ruby_bug "[ruby-core:23666]", "1.9.2" do
-      it "raises a RuntimeError if self is frozen" do
-        a = "hello".freeze
+    it "raises a RuntimeError on a frozen instance that is modified" do
+      a = "hello".freeze
+      lambda { a.replace("")      }.should raise_error(RuntimeError)
+      lambda { a.replace("world") }.should raise_error(RuntimeError)
+    end
 
-        lambda { a.replace(a)       }.should raise_error(RuntimeError)
-        lambda { a.replace("")      }.should raise_error(RuntimeError)
-        lambda { a.replace("world") }.should raise_error(RuntimeError)
-      end
+    # see [ruby-core:23666]
+    it "raises a RuntimeError on a frozen instance that would not be modified" do
+      a = "hello".freeze
+      lambda { a.freeze.replace(a) }.should raise_error(RuntimeError)
     end
   end
 end

@@ -45,7 +45,7 @@ describe "Enumerable#find_index" do
     
     ruby_version_is '1.8.7' do
       it 'returns an Enumerator if no block given' do
-        @numerous.find_index.should be_kind_of(enumerator_class)
+        @numerous.find_index.should be_an_instance_of(enumerator_class)
       end
     end
 

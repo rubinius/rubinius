@@ -44,6 +44,7 @@ end
 describe "Socket#bind on SOCK_STREAM socket" do
   before :each do
     @sock = Socket.new(AF_INET, SOCK_STREAM, 0);
+    @sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, true)
     @sockaddr = Socket.pack_sockaddr_in(SocketSpecs.port, "127.0.0.1");
   end
 

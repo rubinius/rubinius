@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 process_is_foreground do
-
-  not_supported_on :ironruby do
+  with_feature :readline do
     require 'readline'
+
     describe "Readline.completion_case_fold" do
       it "returns nil" do
         Readline.completion_case_fold.should be_nil

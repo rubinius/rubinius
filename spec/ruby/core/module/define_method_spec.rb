@@ -108,6 +108,6 @@ describe "Module#define_method" do
   end
 
   it "is private" do
-    lambda { Class.new.define_method(:foo, proc {}) }.should raise_error(NoMethodError)
+    Module.should have_private_instance_method(:define_method)
   end
 end

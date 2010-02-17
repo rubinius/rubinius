@@ -3,20 +3,17 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 require File.dirname(__FILE__) + '/shared/pos'
 
-describe "IO#sysseek on a file" do
+describe "IO#sysseek" do
   it_behaves_like :io_set_pos, :seek
 end
 
-describe "IO#sysseek on a file" do
+describe "IO#sysseek" do
   before :each do
-    @file = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r')
-    @io = IO.open @file.fileno, 'r'
+    @io = IOSpecs.io_fixture "lines.txt"
   end
 
   after :each do
-    # we *must* close both in order to not leak descriptors
     @io.close unless @io.closed?
-    @file.close unless @file.closed? rescue Errno::EBADF
   end
 
   it "moves the read position relative to the current position with SEEK_CUR" do
@@ -29,24 +26,9 @@ describe "IO#sysseek on a file" do
     lambda { @io.sysseek(-5, IO::SEEK_CUR) }.should raise_error(IOError)
   end
 
-  it "warns if called immediately after a buffered IO#write" do
-    begin
-      # copy contents to a separate file
-      tmpfile = File.open(tmp("tmp_IO_sysseek"), "w")
-      tmpfile.write(@file.read)
-      tmpfile.seek(0, File::SEEK_SET)
-
-      tmpfile.write("abcde")
-      lambda { tmpfile.sysseek(10) }.should complain(/sysseek/)
-    ensure
-      tmpfile.close
-      File.unlink(tmpfile.path)
-    end
-  end
-
   it "moves the read position relative to the start with SEEK_SET" do
-    @io.sysseek(42, IO::SEEK_SET)
-    @io.readline.should == "quí está la línea tres.\n"
+    @io.sysseek(43, IO::SEEK_SET)
+    @io.readline.should == "Aquí está la línea tres.\n"
   end
 
   it "moves the read position relative to the end with SEEK_END" do
@@ -54,9 +36,7 @@ describe "IO#sysseek on a file" do
 
     # this is the safest way of checking the EOF when
     # sys-* methods are invoked
-    lambda {
-      @io.sysread(1)
-    }.should raise_error(EOFError)
+    lambda { @io.sysread(1) }.should raise_error(EOFError)
 
     @io.sysseek(-25, IO::SEEK_END)
     @io.sysread(7).should == "cinco.\n"

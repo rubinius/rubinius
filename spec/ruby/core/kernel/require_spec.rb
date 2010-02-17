@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../fixtures/common'
+require File.dirname(__FILE__) + '/../../fixtures/code_loading'
 require File.dirname(__FILE__) + '/shared/require'
 
 describe "Kernel#require" do

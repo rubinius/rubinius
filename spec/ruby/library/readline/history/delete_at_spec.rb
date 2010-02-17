@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
 process_is_foreground do
-
-  not_supported_on :ironruby do
+  with_feature :readline do
     require 'readline'
+
     describe "Readline::HISTORY.delete_at" do
       it "deletes and returns the history entry at the specified index" do
         Readline::HISTORY.push("1", "2", "3")

@@ -23,8 +23,8 @@ describe :range_eql, :shared => true do
     (1..10).send(@method, 'a').should == false
     (1..10).send(@method, mock('x')).should == false
   end
-  
-  ruby_bug "redmine #1165", "1.9.2" do
+
+  ruby_version_is "1.9" do
     it "returns true for subclasses to Range" do
       class MyRange < Range ; end
       Range.new(1, 2).send(@method, MyRange.new(1, 2)).should == true

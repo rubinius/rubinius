@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-ruby_version_is "1.9.2" do
+ruby_version_is "1.9" do
   describe "Array#rotate" do
     it "returns a copy of the array whose first n elements is moved to the last" do
       a = [1, 2, 3, 4, 5].freeze

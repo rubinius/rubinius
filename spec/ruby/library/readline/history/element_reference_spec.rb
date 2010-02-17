@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
 process_is_foreground do
-
-  not_supported_on :ironruby do
+  with_feature :readline do
     require 'readline'
+
     describe "Readline::HISTORY.[]" do
       before(:each) do
         Readline::HISTORY.push("1", "2", "3")

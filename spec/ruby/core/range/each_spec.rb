@@ -47,7 +47,7 @@ describe "Range#each" do
   ruby_version_is "1.8.7" do
     it "returns an enumerator when no block given" do
       enum = (1..3).each
-      enum.should be_kind_of(enumerator_class)
+      enum.should be_an_instance_of(enumerator_class)
       enum.to_a.should == [1, 2, 3]
     end
   end

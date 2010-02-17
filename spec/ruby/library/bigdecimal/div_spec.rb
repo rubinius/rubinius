@@ -42,14 +42,28 @@ describe "BigDecimal#div" do
     }
   end
 
-  it "returns NaN if NaN is involved" do
-    @one.div(@nan).nan?.should == true
-    @nan.div(@one).nan?.should == true
+  ruby_version_is "" ... "1.9" do
+    it "returns NaN if NaN is involved" do
+      @one.div(@nan).nan?.should == true
+      @nan.div(@one).nan?.should == true
+    end
+
+    it "returns NaN if divided by Infinity and no precision given" do
+      @zero.div(@infinity).nan?.should == true
+      @frac_2.div(@infinity).nan?.should == true
+    end
   end
 
-  it "returns NaN if divided by Infinity and no precision given" do
-    @zero.div(@infinity).nan?.should == true
-    @frac_2.div(@infinity).nan?.should == true
+  ruby_version_is "1.9" do
+    it "raises FloatDomainError if NaN is involved" do
+      lambda { @one.div(@nan) }.should raise_error(FloatDomainError)
+      lambda { @nan.div(@one) }.should raise_error(FloatDomainError)
+    end
+
+    it "returns 0 if divided by Infinity and no precision given" do
+      @zero.div(@infinity).should == 0
+      @frac_2.div(@infinity).should == 0
+    end
   end
 
   it "returns 0 if divided by Infinity with given precision" do
@@ -59,30 +73,60 @@ describe "BigDecimal#div" do
     @frac_2.div(@infinity, 100000).should == 0
   end
   
-  it "returns NaN if divided by zero and no precision given" do
-    @one.div(@zero).nan?.should == true
-    @one.div(@zero_plus).nan?.should == true
-    @one.div(@zero_minus).nan?.should == true
+  ruby_version_is "" ... "1.9" do
+    it "returns NaN if divided by zero and no precision given" do
+      @one.div(@zero).nan?.should == true
+      @one.div(@zero_plus).nan?.should == true
+      @one.div(@zero_minus).nan?.should == true
+    end
+
+    it "returns NaN if zero is divided by zero" do
+      @zero.div(@zero).nan?.should == true
+      @zero_minus.div(@zero_plus).nan?.should == true
+      @zero_plus.div(@zero_minus).nan?.should == true
+
+      @zero.div(@zero, 0).nan?.should == true
+      @zero_minus.div(@zero_plus, 0).nan?.should == true
+      @zero_plus.div(@zero_minus, 0).nan?.should == true
+
+      @zero.div(@zero, 10).nan?.should == true
+      @zero_minus.div(@zero_plus, 10).nan?.should == true
+      @zero_plus.div(@zero_minus, 10).nan?.should == true
+    end
+
+    it "returns NaN if (+|-) Infinity divided by 1 and no precision given" do
+      @infinity_minus.div(@one).nan?.should == true
+      @infinity.div(@one).nan?.should == true
+      @infinity_minus.div(@one_minus).nan?.should == true
+    end
   end
+  
+  ruby_version_is "1.9" do
+    it "raises ZeroDivisionError if divided by zero and no precision given" do
+      lambda { @one.div(@zero) }.should raise_error(ZeroDivisionError)
+      lambda { @one.div(@zero_plus) }.should raise_error(ZeroDivisionError)
+      lambda { @one.div(@zero_minus) }.should raise_error(ZeroDivisionError)
 
-  it "returns NaN if zero is divided by zero" do
-    @zero.div(@zero).nan?.should == true
-    @zero_minus.div(@zero_plus).nan?.should == true
-    @zero_plus.div(@zero_minus).nan?.should == true
+      lambda { @zero.div(@zero) }.should raise_error(ZeroDivisionError)
+      lambda { @zero_minus.div(@zero_plus) }.should raise_error(ZeroDivisionError)
+      lambda { @zero_plus.div(@zero_minus) }.should raise_error(ZeroDivisionError)
+    end
 
-    @zero.div(@zero, 0).nan?.should == true
-    @zero_minus.div(@zero_plus, 0).nan?.should == true
-    @zero_plus.div(@zero_minus, 0).nan?.should == true
+    it "returns NaN if zero is divided by zero" do
+      @zero.div(@zero, 0).nan?.should == true
+      @zero_minus.div(@zero_plus, 0).nan?.should == true
+      @zero_plus.div(@zero_minus, 0).nan?.should == true
 
-    @zero.div(@zero, 10).nan?.should == true
-    @zero_minus.div(@zero_plus, 10).nan?.should == true
-    @zero_plus.div(@zero_minus, 10).nan?.should == true
-  end
+      @zero.div(@zero, 10).nan?.should == true
+      @zero_minus.div(@zero_plus, 10).nan?.should == true
+      @zero_plus.div(@zero_minus, 10).nan?.should == true
+    end
 
-  it "returns NaN if (+|-) Infinity divided by 1 and no precision given" do
-    @infinity_minus.div(@one).nan?.should == true
-    @infinity.div(@one).nan?.should == true
-    @infinity_minus.div(@one_minus).nan?.should == true
+    it "raises FloatDomainError if (+|-) Infinity divided by 1 and no precision given" do
+      lambda { @infinity_minus.div(@one) }.should raise_error(FloatDomainError)
+      lambda { @infinity.div(@one) }.should raise_error(FloatDomainError)
+      lambda { @infinity_minus.div(@one_minus) }.should raise_error(FloatDomainError)
+    end
   end
 
   it "returns (+|-)Infinity if (+|-)Infinity by 1 and precision given" do

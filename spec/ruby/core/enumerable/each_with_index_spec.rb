@@ -38,7 +38,7 @@ describe "Enumerable#each_with_index" do
   ruby_version_is '1.8.7' do
     it "returns an enumerator if no block" do 
       e = @b.each_with_index
-      e.should be_kind_of(enumerator_class)
+      e.should be_an_instance_of(enumerator_class)
       e.to_a.should == [[2, 0], [5, 1], [3, 2], [6, 3], [1, 4], [4, 5]]
     end    
   end

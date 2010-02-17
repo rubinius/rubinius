@@ -1,14 +1,14 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/resume'
+require File.dirname(__FILE__) + '/../../shared/fiber/resume'
 
-ruby_version_is "1.9" do
+with_feature :fiber_library do
+  require 'fiber'
+
   describe "Fiber#transfer" do
-    not_supported_on :jruby do
-      require 'fiber'
-    end
+    it_behaves_like :fiber_resume, :transfer
+  end
 
-    it_behaves_like(:resume, :transfer)
-
+  describe "Fiber#transfer" do
     it "transfers control from one Fiber to another when called from a Fiber" do
       fiber1 = Fiber.new { :fiber1 }
       fiber2 = Fiber.new { fiber1.transfer; :fiber2 }
@@ -17,15 +17,15 @@ ruby_version_is "1.9" do
 
     it "can be invoked from the same Fiber it transfers control to" do
       states = []
-      fiber = Fiber.new { states << :start; fiber.transfer; states << :end } 
+      fiber = Fiber.new { states << :start; fiber.transfer; states << :end }
       fiber.transfer
       states.should == [:start, :end]
 
       states = []
-      fiber = Fiber.new { states << :start; fiber.transfer; states << :end } 
+      fiber = Fiber.new { states << :start; fiber.transfer; states << :end }
       fiber.resume
       states.should == [:start, :end]
-    end    
+    end
 
     it "can transfer control to a Fiber that has transfered to another Fiber" do
       states = []
@@ -35,11 +35,9 @@ ruby_version_is "1.9" do
       fiber2.transfer.should == [:fiber2_start, :fiber1, :fiber2_end]
     end
 
-    ruby_bug "#1548", "1.9.2" do
-      it "raises a FiberError when transferring to a Fiber which resumes itself" do
-        fiber = Fiber.new { fiber.resume }
-        lambda { fiber.transfer }.should raise_error(FiberError)
-      end
-    end  
+    it "raises a FiberError when transferring to a Fiber which resumes itself" do
+      fiber = Fiber.new { fiber.resume }
+      lambda { fiber.transfer }.should raise_error(FiberError)
+    end
   end
 end

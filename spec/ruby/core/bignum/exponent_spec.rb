@@ -16,7 +16,7 @@ describe "Bignum#**" do
     lambda { @bignum ** :symbol }.should raise_error
   end
   
-  ruby_version_is '1.9.2' do
+  ruby_version_is '1.9' do
     it "returns a complex number when negative and raised to a fractional power" do
       ((-@bignum) ** (1.0/3))      .should be_close(Complex(1048576,1816186.907597341), TOLERANCE)
       ((-@bignum) ** Rational(1,3)).should be_close(Complex(1048576,1816186.907597341), TOLERANCE)

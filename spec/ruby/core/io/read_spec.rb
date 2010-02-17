@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- encoding: utf-8 -*-
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
@@ -208,9 +208,8 @@ end
 
 describe "IO#read with encodings" do
   before :each do
-    @kcode = $KCODE
-
-    @name = fixture __FILE__, "readlines.txt"
+    @kcode, $KCODE = $KCODE, "utf-8"
+    @io = IOSpecs.io_fixture "lines.txt"
   end
 
   after :each do
@@ -218,12 +217,8 @@ describe "IO#read with encodings" do
   end
 
   it "ignores unicode encoding" do
-    $KCODE = "UTF-8"
-
-    File.open(@name, 'r') do |io|
-      io.readline.should == "Voici la ligne une.\n"
-      io.read(5).should == "Qui " + [195].pack("C")
-    end
+    @io.readline.should == "Voici la ligne une.\n"
+    @io.read(5).should == encode("Qui \303", "binary")
   end
 end
 

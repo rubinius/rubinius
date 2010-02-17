@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Enumerable#max_by" do
   ruby_version_is '1.8.7' do
     it "returns an enumerator if no block" do
-      EnumerableSpecs::Numerous.new(42).max_by.should be_kind_of(enumerator_class)
+      EnumerableSpecs::Numerous.new(42).max_by.should be_an_instance_of(enumerator_class)
     end
 
     it "returns nil if #each yields no objects" do

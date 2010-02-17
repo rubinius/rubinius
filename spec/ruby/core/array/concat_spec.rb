@@ -32,24 +32,24 @@ describe "Array#concat" do
     [].concat(obj).should == [5, 6, 7]
   end
 
-  ruby_version_is '' ... '1.9' do
+  ruby_version_is ""..."1.9" do
     it "raises a TypeError when Array is frozen and modification occurs" do
       lambda { ArraySpecs.frozen_array.concat [1] }.should raise_error(TypeError)
     end
-  end
 
-  ruby_version_is '1.9' do
-    ruby_bug "[ruby-core:23666]", "1.9.2" do
-      it "raises a RuntimeError when Array is frozen and modification occurs" do
-        lambda { ArraySpecs.frozen_array.concat [1] }.should raise_error(RuntimeError)
-        lambda { ArraySpecs.frozen_array.concat([]) }.should raise_error(RuntimeError)
-      end
+    it "does not raise a TypeError when Array is frozen but no modification occurs" do
+      ArraySpecs.frozen_array.concat([]).should == [1, 2, 3]
     end
   end
 
-  ruby_version_is ""..."1.9" do
-    it "does not raise a TypeError when Array is frozen but no modification occurs" do
-      ArraySpecs.frozen_array.concat([]).should == [1, 2, 3]
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError when Array is frozen and modification occurs" do
+      lambda { ArraySpecs.frozen_array.concat [1] }.should raise_error(RuntimeError)
+    end
+
+    # see [ruby-core:23666]
+    it "raises a RuntimeError when Array is frozen and no modification occurs" do
+      lambda { ArraySpecs.frozen_array.concat([]) }.should raise_error(RuntimeError)
     end
   end
 

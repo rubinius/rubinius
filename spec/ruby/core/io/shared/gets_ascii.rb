@@ -1,4 +1,4 @@
-# encoding: ASCII
+# -*- encoding: ascii -*-
 describe :io_gets_ascii, :shared => true do
   describe "with ASCII separator" do
     before :each do

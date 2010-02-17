@@ -6,7 +6,7 @@ describe "The -e command line option" do
   end
 
   it "joins multiple strings with newlines" do
-    ruby_exe(nil, :args => %Q{-e "puts 'hello" -e "world'"}).chomp.should == "hello\nworld"
+    ruby_exe(nil, :args => %Q{-e "puts 'hello" -e "world'" 2>&1}).chomp.should == "hello\nworld"
   end
 
   it "uses 'main' as self" do

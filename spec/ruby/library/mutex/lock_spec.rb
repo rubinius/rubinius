@@ -2,6 +2,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'thread'
 
 describe "Mutex#lock" do
+  before :each do
+    ScratchPad.clear
+  end
+
   it "returns self" do
     m = Mutex.new
     m.lock.should == m
@@ -12,36 +16,40 @@ describe "Mutex#lock" do
     m = Mutex.new
 
     m.lock
-    v = 0
 
     th = Thread.new do
       m.lock
-      v = 1
+      ScratchPad.record :after_lock
     end
 
     Thread.pass while th.status and th.status != "sleep"
 
-    v.should == 0
+    ScratchPad.recorded.should be_nil
     m.unlock
     th.join
-    v.should == 1
+    ScratchPad.recorded.should == :after_lock
   end
 
-  it "waits if the lock is not available, even by the same thread" do
-    m = Mutex.new
+  # Unable to find a specific ticket but behavior change may be
+  # related to this ML thread.
+  ruby_bug "[ruby-core:23457]", "1.8.7.174" do
+    it "raises a ThreadError when used recursively" do
+      m = Mutex.new
 
-    v = 0
+      th = Thread.new do
+        m.lock
+        m.lock
+        v = 1
+      end
 
-    th = Thread.new do
-      m.lock
-      m.lock
-      v = 1
+      Thread.pass while th.status and th.status != "sleep"
+
+      ScratchPad.recorded.should be_nil
+
+      lambda do
+        th.kill
+        th.join
+      end.should raise_error(ThreadError)
     end
-
-    Thread.pass while th.status and th.status != "sleep"
-
-    v.should == 0
-    th.kill
-    th.join
   end
 end
