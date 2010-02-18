@@ -3,6 +3,28 @@ require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
 describe "String#gsub with pattern and replacement" do
 
+  before :each do
+    @old_kcode = $KCODE
+  end
+
+  after :each do
+    if $KCODE != @old_kcode
+      $KCODE = @old_kcode
+    end
+  end
+
+  it "inserts the replacement around every character when the pattern collapses" do
+    "hello".gsub(//, ".").should == ".h.e.l.l.o."
+  end
+
+  it "respects $KCODE when the pattern collapses" do
+    str = "こにちわ"
+    reg = %r!!
+
+    $KCODE = "UTF8"
+    str.gsub(reg, ".").should == ".こ.に.ち.わ."
+  end
+
   it "doesn't freak out when replacing ^" do
     "Text\n".gsub(/^/, ' ').should == " Text\n"
     "Text\nFoo".gsub(/^/, ' ').should == " Text\n Foo"
@@ -13,8 +35,6 @@ describe "String#gsub with pattern and replacement" do
 
     str = "hello homely world. hah!"
     str.gsub(/\Ah\S+\s*/, "huh? ").should == "huh? homely world. hah!"
-
-    "hello".gsub(//, ".").should == ".h.e.l.l.o."
   end
   
   it "ignores a block if supplied" do
