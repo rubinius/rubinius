@@ -2,6 +2,17 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
 describe "String#split with String" do
+
+  before :each do
+    @old_kcode = $KCODE
+  end
+
+  after :each do
+    if $KCODE != @old_kcode
+      $KCODE = @old_kcode
+    end
+  end
+
   it "returns an array of substrings based on splitting on the given string" do
     "mellow yellow".split("ello").should == ["m", "w y", "w"]
   end
@@ -227,6 +238,16 @@ describe "String#split with Regexp" do
     "hi mom".split(/\s*/).should == ["h", "i", "m", "o", "m"]
   end
 
+  it "respects $KCODE when splitting between characters" do
+    str = "こにちわ"
+    reg = %r!!
+
+    $KCODE = "UTF8"
+    ary = str.split(reg)
+    ary.size.should == 4
+    ary.should == ["こ", "に", "ち", "わ"]
+  end
+
   it "includes all captures in the result array" do
     "hello".split(/(el)/).should == ["h", "el", "lo"]
     "hi!".split(/()/).should == ["h", "", "i", "", "!"]
@@ -285,12 +306,20 @@ describe "String#split with Regexp" do
     ["", "x:y:z:", "  x  y  "].each do |str|
       [//, /:/, /\s+/].each do |pat|
         [-1, 0, 1, 2].each do |limit|
-          str.dup.taint.split(pat).each do |x|
-            x.tainted?.should == true
+          str.dup.taint.split(pat, limit).each do |x|
+            x.tainted?.should be_true
           end
+        end
+      end
+    end
+  end
 
-          str.split(pat.dup.taint).each do |x|
-            x.tainted?.should == false
+  it "doesn't taints the resulting strings if the Regexp is tainted" do
+    ["", "x:y:z:", "  x  y  "].each do |str|
+      [//, /:/, /\s+/].each do |pat|
+        [-1, 0, 1, 2].each do |limit|
+          str.split(pat.dup.taint, limit).each do |x|
+            x.tainted?.should be_false
           end
         end
       end
