@@ -826,51 +826,22 @@ class String::Unpacker
   end
 
   def utf8(i, count, elements)
-    utf8_regex_strict = /\A(?:[\x00-\x7F]
-                             |[\xC2-\xDF][\x80-\xBF]
-                             |[\xE1-\xEF][\x80-\xBF]{2}
-                             |[\xF1-\xF7][\x80-\xBF]{3}
-                             |[\xF9-\xFB][\x80-\xBF]{4}
-                             |[\xFD-\xFD][\x80-\xBF]{5} )\Z/x
-
-    utf8_regex_permissive = / [\x00-\x7F]
-                             |[\xC0-\xDF][\x80-\xBF]
-                             |[\xE0-\xEF][\x80-\xBF]{2}
-                             |[\xF0-\xF7][\x80-\xBF]{3}
-                             |[\xF8-\xFB][\x80-\xBF]{4}
-                             |[\xFC-\xFD][\x80-\xBF]{5}
-                             |[\x00-\xFF]+ /x
-
-    if i >= @length
-      # do nothing?!?
+    if count == "*"
+      limit = nil
     else
-      num_bytes = 0
-      @source[i..-1].scan(utf8_regex_permissive) do |c|
-        raise ArgumentError, "malformed UTF-8 character" if
-        c !~ utf8_regex_strict
+      limit = count
+    end
 
-        break if count == 0
-
-        len = c.length
-        if len == 1
-          result = c[0]
-        else
-          shift = (len - 1) * 2
-          result = (((2 ** (8 - len.succ) - 1) & c[0]) *
-                    2 ** ((len - 1) * 8)) >> shift
-          (1...(len - 1)).each do |x|
-            shift -= 2
-            result |= (((2 ** 6 - 1) & c[x]) *
-                       2 ** ((len - x.succ) * 8)) >> shift
-          end
-          result |= (2 ** 6 - 1) & c[-1]
-        end
-        elements << result
-        num_bytes += len
-
-        count -= 1 if count != '*'
+    while i < @length
+      if limit
+        break if limit == 0
+        limit -= 1
       end
-      i += num_bytes
+
+      c, len = @source.data.utf8_char(i)
+      elements << c
+
+      i += len
     end
 
     return i

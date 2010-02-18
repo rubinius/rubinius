@@ -79,5 +79,10 @@ module Rubinius
         prepend(StringValue(string))
       end
     end
+
+    def utf8_char(offset)
+      Ruby.primitive :bytearray_get_utf8_char
+      raise ArgumentError, "unable to extract utf8 character"
+    end
   end
 end

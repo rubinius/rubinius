@@ -71,6 +71,9 @@ namespace rubinius {
     // Ruby.primitive :bytearray_prepend
     ByteArray* prepend(STATE, String* other);
 
+    // Ruby.primitive :bytearray_get_utf8_char
+    Object* get_utf8_char(STATE, Fixnum* offset);
+
     char* to_chars(STATE);
 
     class Info : public TypeInfo {
