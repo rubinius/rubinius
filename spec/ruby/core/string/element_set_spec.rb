@@ -138,12 +138,6 @@ describe "String#[]= with String" do
     str.should == "hello"
   end
 
-  it "raises IndexError if the regexp index doesn't match a position in the string" do
-    str = "hello"
-    lambda { str[/y/] = "bam" }.should raise_error(IndexError)
-    str.should == "hello"
-  end
-
   ruby_version_is ""..."1.9" do
     it "raises a TypeError when self is frozen" do
       a = "hello"
@@ -187,6 +181,41 @@ describe "String#[]= with String" do
     lambda { "test"[1] = mock('x') }.should raise_error(TypeError)
     lambda { "test"[1] = nil       }.should raise_error(TypeError)
   end
+end
+
+describe "String#[]= matching with a Regexp" do
+  it "replaces the matched text with the rhs" do
+    str = "hello"
+    str[/lo/] = "x"
+    str.should == "helx"
+  end
+
+  it "raises IndexError if the regexp index doesn't match a position in the string" do
+    str = "hello"
+    lambda { str[/y/] = "bam" }.should raise_error(IndexError)
+    str.should == "hello"
+  end
+
+  describe "with 3 arguments" do
+    it "uses the 2nd of 3 arguments as which capture should be replaced" do
+      str = "aaa bbb ccc"
+      str[/a (bbb) c/, 1] = "ddd"
+      str.should == "aaa ddd ccc"
+    end
+
+    it "allows the specified capture to be negative and count from the end" do
+      str = "abcd"
+      str[/(a)(b)(c)(d)/, -2] = "e"
+      str.should == "abed"
+    end
+
+    it "raises IndexError if the specified capture isn't available" do
+      str = "aaa bbb ccc"
+      lambda { str[/a (bbb) c/,  2] = "ddd" }.should raise_error(IndexError)
+      lambda { str[/a (bbb) c/, -2] = "ddd" }.should raise_error(IndexError)
+    end
+  end
+
 end
 
 describe "String#[]= with index, count" do
