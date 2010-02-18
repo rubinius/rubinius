@@ -2347,10 +2347,10 @@ class String
       raise IndexError, "regexp not matched"
     end
 
-    raise IndexError, "index #{index} out of regexp" if capture >= match.size
+    raise IndexError, "index #{capture} out of regexp" if capture >= match.size
 
     if capture < 0
-      raise IndexError, "index #{index} out of regexp" if -capture >= match.size
+      raise IndexError, "index #{capture} out of regexp" if -capture >= match.size
       capture += match.size
     end
 
