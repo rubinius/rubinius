@@ -63,6 +63,20 @@ namespace rubinius {
     return r;
   }
 
+  static OnigEncoding current_encoding(STATE) {
+    switch(state->shared.kcode_page()) {
+    default:
+    case kcode::eAscii:
+      return ONIG_ENCODING_ASCII;
+    case kcode::eEUC:
+      return ONIG_ENCODING_EUC_JP;
+    case kcode::eSJIS:
+      return ONIG_ENCODING_SJIS;
+    case kcode::eUTF8:
+      return ONIG_ENCODING_UTF8;
+    }
+  }
+
   int get_kcode_from_enc(OnigEncoding enc) {
     int r;
 
@@ -101,6 +115,7 @@ namespace rubinius {
     Regexp* o_reg = state->new_object<Regexp>(G(regexp));
 
     o_reg->onig_data = NULL;
+    o_reg->forced_encoding_ = false;
 
     return o_reg;
   }
@@ -173,6 +188,48 @@ namespace rubinius {
     onig_free(old_reg);
   }
 
+  void Regexp::maybe_recompile(STATE) {
+    const UChar *pat;
+    const UChar *end;
+    OnigEncoding enc;
+    OnigErrorInfo err_info;
+    int err;
+
+    if(forced_encoding_) return;
+
+    enc = current_encoding(state);
+    if(enc == onig_data->enc) return;
+
+    pat = (UChar*)source()->c_str();
+    end = pat + source()->size();
+
+    int options = onig_data->options;
+    OnigEncoding orig_enc = onig_data->enc;
+
+    err = onig_new(&this->onig_data, pat, end, options,
+                   enc, ONIG_SYNTAX_RUBY, &err_info);
+
+    // If it doesn't work out, then abort and reset the encoding back
+    // and say that it's forced.
+    if(err != ONIG_NORMAL) {
+
+      err = onig_new(&this->onig_data, pat, end, options,
+                     orig_enc, ONIG_SYNTAX_RUBY, &err_info);
+
+      // Ok, wtf. Well, no way to proceed now.
+      if(err != ONIG_NORMAL) {
+        OnigUChar buf[1024];
+        onig_error_code_to_str((UChar*)buf, err, &err_info);
+        std::cout << "Fatal ONIG error: " << buf << "\n";
+        assert(err == ONIG_NORMAL);
+      }
+
+      forced_encoding_ = true;
+    }
+
+    make_managed(state);
+  }
+
   /*
    * This is a primitive so #initialize_copy can work.
    */
@@ -190,8 +247,16 @@ namespace rubinius {
 
     opts  = options->to_native();
     kcode = opts & KCODE_MASK;
-    enc   = get_enc_from_kcode(kcode);
     opts &= OPTION_MASK;
+
+    if(kcode == 0) {
+      enc = current_encoding(state);
+    } else {
+      // Don't attempt to fix the encoding later, it's been specified by the
+      // user.
+      enc = get_enc_from_kcode(kcode);
+      forced_encoding_ = true;
+    }
 
     err = onig_new(&this->onig_data, pat, end, opts, enc, ONIG_SYNTAX_RUBY, &err_info);
 
@@ -234,15 +299,17 @@ namespace rubinius {
   }
 
   Object* Regexp::options(STATE) {
-    OnigEncoding   enc;
-    OnigOptionType option;
     regex_t*       reg;
 
     reg    = onig_data;
-    option = onig_get_options(reg);
-    enc    = onig_get_encoding(reg);
 
-    return Integer::from(state, ((int)(option & OPTION_MASK) | get_kcode_from_enc(enc)));
+    int result = ((int)onig_get_options(reg) & OPTION_MASK);
+
+    if(forced_encoding_) {
+      result |= get_kcode_from_enc(onig_get_encoding(reg));
+    }
+
+    return Integer::from(state, result);
   }
 
   static Tuple* _md_region_to_tuple(STATE, OnigRegion *region, int max) {
@@ -277,6 +344,8 @@ namespace rubinius {
     const UChar *str;
     OnigRegion *region;
     Object* md;
+
+    maybe_recompile(state);
 
     region = onig_region_new();
 
@@ -329,6 +398,7 @@ namespace rubinius {
     OnigRegion *region;
     Object* md = Qnil;
 
+    maybe_recompile(state);
     region = onig_region_new();
 
     max = string->size();

@@ -65,7 +65,7 @@ public:
     Regexp* re = Regexp::create(state);
     re->initialize(state, pat, Fixnum::from(0), Qnil);
 
-    TS_ASSERT_EQUALS(as<Integer>(re->options(state))->to_native(), 16);
+    TS_ASSERT_EQUALS(as<Integer>(re->options(state))->to_native(), 0);
   }
 
   void test_match_region() {

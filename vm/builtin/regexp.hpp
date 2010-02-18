@@ -26,6 +26,7 @@ namespace rubinius {
     String* source_;     // slot
     LookupTable* names_; // slot
     regex_t* onig_data;
+    bool forced_encoding_;
 
   public:
     /* accessors */
@@ -41,6 +42,7 @@ namespace rubinius {
 
     // Ruby.primitive :regexp_initialize
     Regexp* initialize(STATE, String* pattern, Integer* options, Object* lang);
+    void maybe_recompile(STATE);
 
     // Ruby.primitive :regexp_options
     Object* options(STATE);
