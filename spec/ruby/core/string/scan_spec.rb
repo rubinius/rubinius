@@ -2,6 +2,16 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
 describe "String#scan" do
+  before :each do
+    @old_kcode = $KCODE
+  end
+
+  after :each do
+    if $KCODE != @old_kcode
+      $KCODE = @old_kcode
+    end
+  end
+
   it "returns an array containing all matches" do
     "cruel world".scan(/\w+/).should == ["cruel", "world"]
     "cruel world".scan(/.../).should == ["cru", "el ", "wor"]
@@ -9,6 +19,15 @@ describe "String#scan" do
     # Edge case
     "hello".scan(//).should == ["", "", "", "", "", ""]
     "".scan(//).should == [""]
+  end
+
+  it "respects $KCODE when the pattern collapses to nothing" do
+    str = "こにちわ"
+    reg = %r!!
+
+    $KCODE = "UTF8"
+
+    str.scan(reg).should == ["", "", "", "", ""]
   end
 
   it "stores groups as arrays in the returned arrays" do
