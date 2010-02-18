@@ -77,6 +77,11 @@ class String
 
   alias_method :size, :length
 
+  def find_character(offset)
+    Ruby.primitive :string_find_character
+    raise PrimitiveFailure, "String#find_character failed"
+  end
+
   # In time, the JIT should be able to handle this as a ruby method.
   def transform(tbl, respect_kcode)
     Ruby.primitive :string_transform

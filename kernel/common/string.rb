@@ -1464,6 +1464,8 @@ class String
     # Odd edge case
     return [] if empty?
 
+    tail_empty = false
+
     if limit == undefined
       limited = false
     else
@@ -1473,6 +1475,7 @@ class String
         return [self.dup] if limit == 1
         limited = true
       else
+        tail_empty = true
         limited = false
       end
     end
@@ -1502,6 +1505,34 @@ class String
 
     start = 0
     ret = []
+
+    # Handle // as a special case.
+    if pattern.source.empty?
+      if limited
+        iterations = limit - 1
+        while c = self.find_character(start)
+          ret << c
+          start += c.size
+          iterations -= 1
+
+          break if iterations == 0
+        end
+
+        ret << self[start..-1]
+      else
+        while c = self.find_character(start)
+          ret << c
+          start += c.size
+        end
+
+        # Use #substring because it returns the right class and taints
+        # automatically. This is just appending a "", which is this
+        # strange protocol if a negative limit is passed in
+        ret << substring(0,0) if tail_empty
+      end
+
+      return ret
+    end
 
     last_match = nil
 

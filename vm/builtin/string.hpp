@@ -168,6 +168,9 @@ namespace rubinius {
     // Ruby.primitive :string_transform
     String* transform(STATE, Tuple* table, Object* respect_kcode);
 
+    // Ruby.primitive :string_find_character
+    String* find_character(STATE, Fixnum* offset);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

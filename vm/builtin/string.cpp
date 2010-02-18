@@ -929,6 +929,32 @@ return_value:
     }
   }
 
+  String* String::find_character(STATE, Fixnum* offset) {
+    size_t o = (size_t)offset->to_native();
+    if(o >= size()) return (String*)Qnil;
+
+    uint8_t* cur = byte_address() + o;
+
+    String* output = 0;
+
+    kcode::table* tbl = state->shared.kcode_table();
+    if(kcode::mbchar_p(tbl, *cur)) {
+      size_t clen = kcode::mbclen(tbl, *cur);
+      if(o + clen <= size()) {
+        output = String::create(state, reinterpret_cast<const char*>(cur), clen);
+      }
+    }
+
+    if(!output) {
+      output = String::create(state, reinterpret_cast<const char*>(cur), 1);
+    }
+
+    output->klass(state, class_object(state));
+    if(RTEST(tainted_p(state))) output->taint(state);
+
+    return output;
+  }
+
   void String::Info::show(STATE, Object* self, int level) {
     String* str = as<String>(self);
     std::cout << "\"" << str->c_str() << "\"" << std::endl;
