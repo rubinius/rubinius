@@ -878,7 +878,16 @@ class String
       tainted ||= val.tainted?
 
       last_end = match.end(0)
-      offset = match.collapsing? ? offset + 1 : match.end(0)
+
+      if match.collapsing?
+        if char = find_character(offset)
+          offset += char.size
+        else
+          offset += 1
+        end
+      else
+        offset = match.end(0)
+      end
 
       last_match = match
 
@@ -1387,7 +1396,18 @@ class String
     end
 
     while match = pattern.match_from(self, index)
-      index = match.collapsing? ? match.end(0) + 1 : match.end(0)
+      fin = match.end(0)
+
+      if match.collapsing?
+        if char = find_character(fin)
+          index = fin + char.size
+        else
+          index = fin + 1
+        end
+      else
+        index = fin
+      end
+
       last_match = match
       val = (match.length == 1 ? match[0] : match.captures)
       val.taint if taint
