@@ -38,7 +38,7 @@ class Fixnum < Integer
   # see README-DEVELOPERS regarding safe math compiler plugin
   def divide(o)
     Ruby.primitive :fixnum_div
-    redo_coerced :divide, o
+    redo_coerced :/, o
   end
   alias_method :/, :divide
 
