@@ -819,13 +819,17 @@ class Array
   # is constructed by calling #inspect on all elements.
   # Descends through contained Arrays, recursive ones
   # are indicated as [...].
-  def inspect()
-    out = []
+  def inspect
+    return "[]" if @total == 0
+    comma = ", "
+    result = "["
+
     return "[...]" if Thread.detect_recursion self do
-      each { |o| out << o.inspect }
+      each { |o| result << o.inspect << comma }
     end
 
-    "[#{out.join ', '}]"
+    result.shorten!(2)
+    result << "]"
   end
 
   # Generates a string from converting all elements of
