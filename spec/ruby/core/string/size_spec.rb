@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes.rb'
-require File.dirname(__FILE__) + '/shared/length'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../shared/length', __FILE__)
 
 describe "String#size" do
   it_behaves_like(:string_length, :size)

@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../fixtures/classes'
-require File.dirname(__FILE__) + '/../shared/partially_closable_sockets'
+require File.expand_path('../../../../spec_helper', __FILE__)
+require File.expand_path('../../fixtures/classes', __FILE__)
+require File.expand_path('../../shared/partially_closable_sockets', __FILE__)
 
 platform_is_not :windows do
   describe "UNIXSocket partial closability" do

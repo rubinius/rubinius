@@ -1,5 +1,5 @@
 require 'rexml/document'
-require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.expand_path('../../../../spec_helper', __FILE__)
 
 describe "REXML::Element#each_element_with_text" do
   before :each do

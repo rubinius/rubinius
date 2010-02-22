@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures', __FILE__)
 
 # NOTE: A call to define_finalizer does not guarantee that the
 # passed proc or callable will be called at any particular time.

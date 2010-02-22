@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../shared/complex/denominator'
+require File.expand_path('../../../shared/complex/denominator', __FILE__)
 
 ruby_version_is ""..."1.9" do
   

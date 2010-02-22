@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/../fixtures/class_variables'
+require File.expand_path('../../spec_helper', __FILE__)
+require File.expand_path('../../fixtures/class_variables', __FILE__)
 
 describe "A class variable" do
   it "can be accessed from a subclass" do

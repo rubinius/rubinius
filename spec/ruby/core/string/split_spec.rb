@@ -1,16 +1,15 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes.rb'
+# -*- encoding: utf-8 -*-
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes.rb', __FILE__)
 
 describe "String#split with String" do
 
   before :each do
-    @old_kcode = $KCODE
+    @kcode = $KCODE
   end
 
   after :each do
-    if $KCODE != @old_kcode
-      $KCODE = @old_kcode
-    end
+    $KCODE = @kcode
   end
 
   it "returns an array of substrings based on splitting on the given string" do
@@ -242,7 +241,7 @@ describe "String#split with Regexp" do
     str = "こにちわ"
     reg = %r!!
 
-    $KCODE = "UTF8"
+    $KCODE = "utf-8"
     ary = str.split(reg)
     ary.size.should == 4
     ary.should == ["こ", "に", "ち", "わ"]

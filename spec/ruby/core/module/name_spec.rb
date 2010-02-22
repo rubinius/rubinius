@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Module#name" do
   ruby_version_is ""..."1.9" do
@@ -15,7 +15,7 @@ describe "Module#name" do
       Class.new.name.should be_nil
     end
 
-    require File.dirname(__FILE__) + '/fixtures/name'
+    require File.expand_path('../fixtures/name', __FILE__)
     # http://redmine.ruby-lang.org/issues/show/1833
     it "preserves the encoding in which the class was defined" do
       ModuleSpecs::NameEncoding.new.name.encoding.should == Encoding::UTF_8

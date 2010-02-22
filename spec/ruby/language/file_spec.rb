@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/../fixtures/code_loading'
-require File.dirname(__FILE__) + '/shared/__FILE__'
+require File.expand_path('../../spec_helper', __FILE__)
+require File.expand_path('../../fixtures/code_loading', __FILE__)
+require File.expand_path('../shared/__FILE__', __FILE__)
 
 describe "The __FILE__ constant" do
   it "equals (eval) inside an eval" do

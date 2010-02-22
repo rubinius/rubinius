@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes.rb'
-require File.dirname(__FILE__) + '/shared/slice.rb'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../shared/slice.rb', __FILE__)
 
 describe "String#slice" do
   it_behaves_like :string_slice, :slice

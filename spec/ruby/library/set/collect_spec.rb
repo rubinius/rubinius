@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 require 'set'
-require File.dirname(__FILE__) + '/shared/collect'
+require File.expand_path('../shared/collect', __FILE__)
 
 describe "Set#collect!" do
   it_behaves_like :set_collect_bang, :collect!

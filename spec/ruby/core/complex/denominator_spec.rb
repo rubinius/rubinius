@@ -1,7 +1,7 @@
 
 ruby_version_is "1.9" do
   
-  require File.dirname(__FILE__) + '/../../shared/complex/denominator'
+  require File.expand_path('../../../shared/complex/denominator', __FILE__)
   
   describe "Complex#denominator" do
     it_behaves_like(:complex_denominator, :denominator)

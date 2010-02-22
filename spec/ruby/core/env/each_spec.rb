@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/each.rb'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/each.rb', __FILE__)
 
 describe "ENV.each" do
   it_behaves_like(:env_each, :each)

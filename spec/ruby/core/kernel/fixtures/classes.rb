@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/caller_fixture1'
+require File.expand_path('../caller_fixture1', __FILE__)
 
 module KernelSpecs
   class Method

@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../../../../spec_helper'
+require File.expand_path('../../../../../spec_helper', __FILE__)
 require 'net/http'
 require "stringio"
-require File.dirname(__FILE__) + '/fixtures/http_server'
+require File.expand_path('../fixtures/http_server', __FILE__)
 
 describe "Net::HTTP#set_debug_output when passed io" do
   before(:all) do

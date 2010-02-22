@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.expand_path('../../../../spec_helper', __FILE__)
 
 ["APPEND", "CREAT", "EXCL", "FNM_CASEFOLD",
   "FNM_DOTMATCH", "FNM_NOESCAPE", "FNM_PATHNAME",

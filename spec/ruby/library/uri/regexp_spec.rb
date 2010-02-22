@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 require 'uri'
 
 #I'm more or less ok with these limited tests, as the more extensive extract tests

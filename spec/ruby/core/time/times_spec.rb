@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../shared/process/times'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../../shared/process/times', __FILE__)
 
 describe 'Time.times' do
   ruby_version_is "" ... "1.9" do

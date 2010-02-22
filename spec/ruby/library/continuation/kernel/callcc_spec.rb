@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../fixtures/kernel/callcc'
-require File.dirname(__FILE__) + '/../../../shared/kernel/callcc'
+require File.expand_path('../../../../spec_helper', __FILE__)
+require File.expand_path('../../../../fixtures/kernel/callcc', __FILE__)
+require File.expand_path('../../../../shared/kernel/callcc', __FILE__)
 
 with_feature :continuation_library do
   require 'continuation'

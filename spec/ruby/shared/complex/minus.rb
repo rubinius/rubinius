@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe :complex_minus_complex, :shared => true do
   it "subtracts both the real and imaginary components" do

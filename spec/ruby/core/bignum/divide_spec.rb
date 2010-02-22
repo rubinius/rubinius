@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/divide'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/divide', __FILE__)
 
 describe "Bignum#/" do
   it_behaves_like(:bignum_divide, :/)

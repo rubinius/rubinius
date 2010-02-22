@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/quo'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/quo', __FILE__)
 require 'bigdecimal'
 
 describe "BigDecimal#/" do

@@ -1,5 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require 'rational'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe :rational_rational_two, :shared => true do
   before(:each) do

@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes.rb'
-require File.dirname(__FILE__) + '/shared/equal_value.rb'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../shared/equal_value.rb', __FILE__)
 
 describe "String#==" do
   it_behaves_like(:string_equal_value, :==)

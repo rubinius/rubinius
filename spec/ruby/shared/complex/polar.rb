@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe :complex_polar_class, :shared => true do
   it "returns a complex number in terms of radius and angle" do

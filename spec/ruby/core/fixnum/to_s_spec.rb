@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Fixnum#to_s when given a base" do
   it "returns self converted to a String in the given base" do

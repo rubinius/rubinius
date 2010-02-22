@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/reopen'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/reopen', __FILE__)
 require 'syslog'
 
 describe "Syslog.open" do

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../shared/rational/plus'
+require File.expand_path('../../../shared/rational/plus', __FILE__)
 
 ruby_version_is ""..."1.9" do
   describe "Rational#+" do

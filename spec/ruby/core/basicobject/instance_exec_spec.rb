@@ -1,8 +1,8 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 ruby_version_is "1.9" do
   
-  require File.dirname(__FILE__) + '/fixtures/classes'
+  require File.expand_path('../fixtures/classes', __FILE__)
   
   describe "BasicObject#instance_exec" do
     it "raises a LocalJumpError unless given a block" do

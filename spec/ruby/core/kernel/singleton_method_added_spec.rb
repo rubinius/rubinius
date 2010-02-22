@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
-require File.dirname(__FILE__) + '/../../shared/kernel/singleton_method_added'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../../../shared/kernel/singleton_method_added', __FILE__)
 
 ruby_version_is ""..."1.9" do
   describe "Kernel#singleton_method_added" do

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Exception#inspect" do
   it "returns '#<Exception: Exception>' when no message given" do

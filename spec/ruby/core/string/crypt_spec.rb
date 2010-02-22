@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes.rb'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes.rb', __FILE__)
 
 describe "String#crypt" do
   # Note: MRI's documentation just says that the C stdlib function crypt() is
@@ -46,7 +46,10 @@ describe "String#crypt" do
     end
 
     platform_is :freebsd do
-      # TODO: add specs for "hello".crypt("\x00\x00") and "hello".crypt("\x00a")
+      it "returns an empty string when the salt starts with NULL bytes" do
+        "hello".crypt("\x00\x00").should == ""
+        "hello".crypt("\x00a").should == ""
+      end
 
       it "ignores trailing NULL bytes in the salt but counts them for the 2 character minimum" do
         "hello".crypt("a\x00").should == "aaGJVggM8eWwo"

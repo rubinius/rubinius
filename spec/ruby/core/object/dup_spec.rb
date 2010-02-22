@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/dup_clone'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/dup_clone', __FILE__)
 
 describe "Object#dup" do
   it_behaves_like :object_dup_clone, :dup

@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../shared/rational/divmod'
-
 ruby_version_is "1.9" do
+  require File.expand_path('../../../shared/rational/divmod', __FILE__)
+
   describe "Rational#divmod when passed a Rational" do
     it_behaves_like(:rational_divmod_rat, :divmod)
   end

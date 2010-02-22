@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
-require File.dirname(__FILE__) + '/shared/codepoints'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/codepoints', __FILE__)
 
 # See redmine #1667
 describe "StringIO#each_codepoint" do

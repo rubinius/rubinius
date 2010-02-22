@@ -1,15 +1,14 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes.rb'
+# -*- encoding: utf-8 -*-
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes.rb', __FILE__)
 
 describe "String#scan" do
   before :each do
-    @old_kcode = $KCODE
+    @kcode = $KCODE
   end
 
   after :each do
-    if $KCODE != @old_kcode
-      $KCODE = @old_kcode
-    end
+    $KCODE = @kcode
   end
 
   it "returns an array containing all matches" do
@@ -25,7 +24,7 @@ describe "String#scan" do
     str = "こにちわ"
     reg = %r!!
 
-    $KCODE = "UTF8"
+    $KCODE = "utf-8"
 
     str.scan(reg).should == ["", "", "", "", ""]
   end

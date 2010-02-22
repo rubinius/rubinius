@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../shared/file/file'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../../shared/file/file', __FILE__)
 
 describe "File" do
   it "includes File::Constants" do

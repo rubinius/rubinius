@@ -1,6 +1,6 @@
-require File.dirname(__FILE__)+'/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 require 'thread'
-require File.dirname(__FILE__)+'/shared/deque'
+require File.expand_path('../shared/deque', __FILE__)
 
 describe "Queue#deq" do
   it_behaves_like :queue_deq, :deq

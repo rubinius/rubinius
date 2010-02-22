@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.expand_path('../../../../spec_helper', __FILE__)
 require 'complex'
-require File.dirname(__FILE__) + '/shared/log'
+require File.expand_path('../shared/log', __FILE__)
 
 describe "Math#log" do
   it_behaves_like :complex_math_log, :_, IncludesMath.new

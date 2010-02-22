@@ -1,5 +1,5 @@
 require 'erb'
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "ERB#filename" do
   # TODO: why does this fail on rubinius?

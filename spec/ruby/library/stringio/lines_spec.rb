@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 require 'stringio'
-require File.dirname(__FILE__) + '/shared/each'
+require File.expand_path('../shared/each', __FILE__)
 
 ruby_version_is "1.8.7" do
   describe "StringIO#lines when passed a separator" do

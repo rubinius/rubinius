@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/common'
+require File.expand_path('../../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/common', __FILE__)
 require 'cgi'
-require File.dirname(__FILE__) + "/shared/popup_menu"
+require File.expand_path('../shared/popup_menu', __FILE__)
 
 describe "CGI::HtmlExtension#scrolling_list" do
   it_behaves_like :cgi_htmlextension_popup_menu, :scrolling_list

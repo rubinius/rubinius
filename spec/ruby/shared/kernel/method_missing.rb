@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../fixtures/kernel/classes'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../../fixtures/kernel/classes', __FILE__)
 
 describe :method_missing, :shared => true do
   it "is a private method" do

@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes.rb'
-require File.dirname(__FILE__) + '/shared/succ.rb'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../shared/succ.rb', __FILE__)
 
 describe "String#succ" do
   it_behaves_like(:string_succ, :succ)

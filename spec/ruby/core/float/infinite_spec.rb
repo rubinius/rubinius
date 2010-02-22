@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Float#infinite?" do
   it "returns nil, -1, +1 when self is finite, -Infinity, +Infinity" do

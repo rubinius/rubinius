@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 require 'stringio'
-require File.dirname(__FILE__) + "/shared/each_byte"
+require File.expand_path('../shared/each_byte', __FILE__)
 
 describe "StringIO#each_byte" do
   it_behaves_like :stringio_each_byte, :each_byte

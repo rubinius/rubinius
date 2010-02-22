@@ -1,6 +1,6 @@
 require 'rexml/document'
 require 'rexml/formatters/transitive'
-require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.expand_path('../../../../spec_helper', __FILE__)
 
 # Maybe this can be cleaned
 describe "REXML::Document#write" do

@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/include'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/include', __FILE__)
 
 describe "Range#member?" do
   it_behaves_like(:range_include, :member?)

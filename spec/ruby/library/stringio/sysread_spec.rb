@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 require "stringio"
-require File.dirname(__FILE__) + '/shared/read'
+require File.expand_path('../shared/read', __FILE__)
 
 describe "StringIO#sysread when passed length, buffer" do
   it_behaves_like :stringio_read, :sysread

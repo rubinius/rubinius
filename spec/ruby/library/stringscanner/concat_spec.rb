@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/concat.rb'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/concat.rb', __FILE__)
 require 'strscan'
 
 describe "StringScanner#concat" do

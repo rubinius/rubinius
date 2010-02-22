@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/common'
-require File.dirname(__FILE__) + '/fixtures/example_class'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/common', __FILE__)
+require File.expand_path('../fixtures/example_class', __FILE__)
 
 describe "Object#to_yaml" do
 

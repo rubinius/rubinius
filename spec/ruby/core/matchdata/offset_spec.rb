@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "MatchData#offset" do
   it "returns a two element array with the begin and end of the nth match" do

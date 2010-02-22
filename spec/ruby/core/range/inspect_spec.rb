@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Range#inspect" do
   it "provides a printable form, using #inspect to convert the start and end objects" do

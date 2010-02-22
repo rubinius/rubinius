@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../shared/complex/polar'
+require File.expand_path('../../../shared/complex/polar', __FILE__)
 
 ruby_version_is ""..."1.9" do
 

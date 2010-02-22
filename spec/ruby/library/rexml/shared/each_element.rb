@@ -1,5 +1,5 @@
 require 'rexml/document'
-require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.expand_path('../../../../spec_helper', __FILE__)
 
 describe :rexml_each_element, :shared => true do
   before :each do

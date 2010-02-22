@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../../../../spec_helper'
+require File.expand_path('../../../../../spec_helper', __FILE__)
 require 'net/http'
-require File.dirname(__FILE__) + "/fixtures/classes"
-require File.dirname(__FILE__) + "/shared/set_content_type"
+require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/set_content_type', __FILE__)
 
 describe "Net::HTTPHeader#content_type" do
   before(:each) do

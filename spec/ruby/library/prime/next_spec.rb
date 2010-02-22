@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/next'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/next', __FILE__)
 require 'prime'
 
 describe "Prime#next" do

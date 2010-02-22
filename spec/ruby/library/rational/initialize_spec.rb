@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../shared/rational/initialize'
+require File.expand_path('../../../shared/rational/initialize', __FILE__)
 
 ruby_version_is ""..."1.9" do
   describe "Rational#initialize" do

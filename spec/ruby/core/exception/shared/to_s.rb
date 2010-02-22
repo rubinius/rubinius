@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../fixtures/common'
+require File.expand_path('../../fixtures/common', __FILE__)
 
 describe :to_s, :shared => true do
 

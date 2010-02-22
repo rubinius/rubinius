@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/fixtures/procs.rb'
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../fixtures/procs.rb', __FILE__)
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Proc.new with an associated block" do
   it "returns a proc that represents the block" do

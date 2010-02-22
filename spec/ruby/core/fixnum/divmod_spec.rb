@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Fixnum#divmod" do
   it "returns an Array containing quotient and modulus obtained from dividing self by the given argument" do

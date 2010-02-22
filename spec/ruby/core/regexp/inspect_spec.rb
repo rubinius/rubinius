@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Regexp#inspect" do
   it "returns a formatted string that would eval to the same regexp" do

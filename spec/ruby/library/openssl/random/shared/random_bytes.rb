@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../../../spec_helper'
+require File.expand_path('../../../../../spec_helper', __FILE__)
 require 'openssl'
 
 describe :openssl_random_bytes, :shared => true do |cmd|

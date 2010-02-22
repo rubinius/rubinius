@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/kind_of'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/kind_of', __FILE__)
 
 describe "Object#is_a?" do
   it_behaves_like(:object_kind_of , :is_a?)

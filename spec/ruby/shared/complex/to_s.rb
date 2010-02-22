@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe :complex_to_s_0, :shared => true do
   ruby_version_is ""..."1.9" do

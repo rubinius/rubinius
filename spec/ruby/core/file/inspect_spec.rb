@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../io/fixtures/classes'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../io/fixtures/classes', __FILE__)
 
 describe "File#inspect" do
   it "returns string that contains 'closed' when invoked on closed file" do

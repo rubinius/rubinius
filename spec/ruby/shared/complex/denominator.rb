@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe :complex_denominator, :shared => true do
   it "returns the least common multiple denominator of the real and imaginary parts" do

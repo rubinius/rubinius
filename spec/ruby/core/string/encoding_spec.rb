@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/iso-8859-9-encoding'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/iso-8859-9-encoding', __FILE__)
 
 with_feature :encoding do
   describe "String#encoding" do

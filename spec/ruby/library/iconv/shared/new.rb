@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/initialize_exceptions.rb'
-require File.dirname(__FILE__) + '/../fixtures/classes.rb'
+require File.expand_path('../initialize_exceptions.rb', __FILE__)
+require File.expand_path('../../fixtures/classes.rb', __FILE__)
 
 describe :iconv_new, :shared => true do
   it "creates a new encoding converter" do

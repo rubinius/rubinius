@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/eql.rb'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/eql.rb', __FILE__)
 
 
 describe "BigDecimal#===" do

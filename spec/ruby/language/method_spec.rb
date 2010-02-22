@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require File.expand_path('../../spec_helper', __FILE__)
 
 # Why so many fixed arg tests?  JRuby and I assume other Ruby impls have
 # separate call paths for simple fixed arity methods.  Testing up to five

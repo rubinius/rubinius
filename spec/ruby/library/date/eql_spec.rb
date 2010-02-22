@@ -1,5 +1,5 @@
 require 'date' 
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Date#eql?" do
   it "should be able determine equality between date objects" do

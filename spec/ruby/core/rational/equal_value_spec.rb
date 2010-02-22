@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../shared/rational/equal_value'
-
 ruby_version_is "1.9" do
+  require File.expand_path('../../../shared/rational/equal_value', __FILE__)
+
   describe "Rational#==" do
     it_behaves_like(:rational_equal_value, :==)
   end
@@ -16,4 +16,4 @@ ruby_version_is "1.9" do
   describe "Rational#== when passed an Integer" do
     it_behaves_like(:rational_equal_value_int, :==)
   end
-end  
+end

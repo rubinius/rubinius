@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
-require File.dirname(__FILE__) + '/shared/gets_ascii'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/gets_ascii', __FILE__)
 
 describe "IO#gets" do
   it_behaves_like :io_gets_ascii, :gets

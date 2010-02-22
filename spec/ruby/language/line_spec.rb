@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/../fixtures/code_loading'
-require File.dirname(__FILE__) + '/shared/__LINE__'
+require File.expand_path('../../spec_helper', __FILE__)
+require File.expand_path('../../fixtures/code_loading', __FILE__)
+require File.expand_path('../shared/__LINE__', __FILE__)
 
 describe "The __LINE__ constant" do
   before :each do

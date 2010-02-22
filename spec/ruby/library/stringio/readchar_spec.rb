@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 require 'stringio'
-require File.dirname(__FILE__) + "/shared/readchar"
+require File.expand_path('../shared/readchar', __FILE__)
 
 describe "StringIO#readchar" do
   it_behaves_like :stringio_readchar, :readchar

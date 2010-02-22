@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.expand_path('../../../../spec_helper', __FILE__)
 require 'set'
 
 # Note: Flatten make little sens on sorted sets, because SortedSets are not (by default)

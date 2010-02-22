@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/shared/chars'
+require File.expand_path('../shared/chars', __FILE__)
 
 ruby_version_is '1.8.7' do
   describe "String#chars" do

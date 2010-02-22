@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe :complex_Complex_complex_complex, :shared => true do
   it "returns a new Complex number based on the two given numbers" do

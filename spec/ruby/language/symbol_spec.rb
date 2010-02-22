@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require File.expand_path('../../spec_helper', __FILE__)
 
 describe "A Symbol literal" do
   it "is a ':' followed by any number of valid characters" do

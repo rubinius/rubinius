@@ -1,1 +1,1 @@
-require File.dirname(__FILE__) + '/../shared/call_arguments'
+require File.expand_path('../../shared/call_arguments', __FILE__)

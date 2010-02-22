@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe :complex_equal_value_complex, :shared => true do
   it "returns true when self and other have numerical equality" do

@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../shared/complex/Complex'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../../shared/complex/Complex', __FILE__)
 
 ruby_version_is "1.9" do
   describe "Complex when passed [Complex, Complex]" do

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../shared/complex/minus'
+require File.expand_path('../../../shared/complex/minus', __FILE__)
 
 ruby_version_is "1.9" do
   describe "Complex#- with Complex" do

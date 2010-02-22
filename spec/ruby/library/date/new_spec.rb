@@ -1,6 +1,6 @@
 require 'date' 
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/civil'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/civil', __FILE__)
 
 describe "Date#new" do
 

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../shared/kernel/method_missing'
+require File.expand_path('../../../shared/kernel/method_missing', __FILE__)
 
 ruby_version_is "1.9" do
   describe "BasicObject#method_missing" do

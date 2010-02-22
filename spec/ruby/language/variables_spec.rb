@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/variables'
+require File.expand_path('../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/variables', __FILE__)
 
 # TODO: partition these specs into distinct cases based on the
 # real parsed forms, not the superficial code forms.
@@ -1082,4 +1082,30 @@ describe "Scope of variables" do
     instance.check_each_block
   end
 end
+
+describe "A local variable in a #define_method scope" do
+  ruby_bug '#1322', '1.8.7.228' do
+    it "shares the lexical scope containing the call to #define_method" do
+      # We need a new scope to reproduce this bug.
+      handle = mock("handle for containing scope method")
+
+      def handle.produce_bug
+        local = 1
+
+        klass = Class.new
+        klass.send :define_method, :set_local do |arg|
+          lambda { local = 2 }.call
+        end
+
+        # We must call with at least one argument to reproduce the bug.
+        klass.new.set_local(nil)
+
+        local
+      end
+
+      handle.produce_bug.should == 2
+    end
+  end
+end
+
 language_version __FILE__, "variables"

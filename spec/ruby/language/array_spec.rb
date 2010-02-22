@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/array'
+require File.expand_path('../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/array', __FILE__)
 
 describe "Array literals" do
   it "[] should return a new array populated with the given elements" do

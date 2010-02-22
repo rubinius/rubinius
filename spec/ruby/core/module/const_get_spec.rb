@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../fixtures/constants'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../../fixtures/constants', __FILE__)
 
 describe "Module#const_get" do
   it "accepts a String or Symbol name" do

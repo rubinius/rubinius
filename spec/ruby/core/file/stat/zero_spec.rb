@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../shared/file/zero'
-require File.dirname(__FILE__) + '/fixtures/classes'
+require File.expand_path('../../../../spec_helper', __FILE__)
+require File.expand_path('../../../../shared/file/zero', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "File::Stat#zero?" do
   it_behaves_like :file_zero, :zero?, FileStat

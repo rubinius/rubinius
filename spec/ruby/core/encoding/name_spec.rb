@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/shared/name'
+require File.expand_path('../shared/name', __FILE__)
 
 with_feature :encoding do
   describe "Encoding#name" do

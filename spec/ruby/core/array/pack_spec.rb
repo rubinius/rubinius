@@ -3,8 +3,8 @@
 # Script encoding of this file should be neither ASCII-8BIT, US-ASCII nor UTF-8.
 # This makes it easier to verify that Strings are converted into correct encodings.
 
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 
 # general behavior
 

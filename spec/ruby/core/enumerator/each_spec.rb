@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../shared/enumerator/each'
+require File.expand_path('../../../shared/enumerator/each', __FILE__)
 
 ruby_version_is "1.8.7" do
   describe "Enumerator#each" do

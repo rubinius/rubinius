@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Regexp#options" do
   it "returns a Fixnum bitvector of regexp options for the Regexp object" do

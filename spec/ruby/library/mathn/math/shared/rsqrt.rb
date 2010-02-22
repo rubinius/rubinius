@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../fixtures/classes'
+require File.expand_path('../../fixtures/classes', __FILE__)
 require 'mathn'
 
 describe :mathn_math_rsqrt, :shared => true do

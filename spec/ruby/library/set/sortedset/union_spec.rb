@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/shared/union'
+require File.expand_path('../../../../spec_helper', __FILE__)
+require File.expand_path('../shared/union', __FILE__)
 require 'set'
 
 describe "SortedSet#union" do

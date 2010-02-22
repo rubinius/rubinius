@@ -1,8 +1,8 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 ruby_version_is ""..."1.9" do
   
-  require File.dirname(__FILE__) + '/fixtures/common'
+  require File.expand_path('../fixtures/common', __FILE__)
   
   describe "Generator#each" do
     it "enumerates the elements" do

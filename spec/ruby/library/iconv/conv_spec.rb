@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/initialize_exceptions'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/initialize_exceptions', __FILE__)
 require 'iconv'
 
 describe "Iconv.conv" do

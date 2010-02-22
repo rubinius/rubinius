@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-
 ruby_version_is "1.9" do
+  require File.expand_path('../../../spec_helper', __FILE__)
+
   describe "Rational#rationalize" do
     it "returns self with no argument" do
       Rational(12,3).rationalize.should == Rational(12,3)

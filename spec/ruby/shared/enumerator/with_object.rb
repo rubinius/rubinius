@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe :enum_with_object, :shared => true do
   it "returns an enumerator when not given a block" do

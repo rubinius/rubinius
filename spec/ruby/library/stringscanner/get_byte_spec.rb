@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/get_byte'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/get_byte', __FILE__)
 require 'strscan'
 
 describe "StringScanner#get_byte" do

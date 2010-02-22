@@ -1,6 +1,6 @@
 require 'date' 
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/commercial'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/commercial', __FILE__)
 
 describe "Date#commercial" do
 

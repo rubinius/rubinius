@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Process.maxgroups" do
   it "returns the maximum number of gids allowed in the supplemental group access list" do

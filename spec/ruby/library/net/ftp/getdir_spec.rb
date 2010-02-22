@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.expand_path('../../../../spec_helper', __FILE__)
 require 'net/ftp'
-require File.dirname(__FILE__) + "/shared/pwd"
+require File.expand_path('../shared/pwd', __FILE__)
 
 describe "Net::FTP#getdir" do
   it_behaves_like :net_ftp_pwd, :getdir

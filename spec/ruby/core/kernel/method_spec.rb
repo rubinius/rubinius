@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/method'
-require File.dirname(__FILE__) + '/fixtures/classes'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/method', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Kernel#method" do
   it_behaves_like(:kernel_method, :method)

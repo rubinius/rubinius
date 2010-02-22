@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/methods'
-require File.dirname(__FILE__) + '/shared/asctime'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/methods', __FILE__)
+require File.expand_path('../shared/asctime', __FILE__)
 
 describe "Time#ctime" do
   it_behaves_like(:time_asctime, :ctime)

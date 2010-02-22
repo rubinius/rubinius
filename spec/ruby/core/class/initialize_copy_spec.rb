@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Class#initialize_copy" do
   it "raises a TypeError when called on already initialized classes" do

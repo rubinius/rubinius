@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../shared/complex/image'
+require File.expand_path('../../../shared/complex/image', __FILE__)
 
 ruby_version_is "1.9" do
   describe "Complex#imag" do

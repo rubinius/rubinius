@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/shared/verbose'
+require File.expand_path('../../spec_helper', __FILE__)
+require File.expand_path('../shared/verbose', __FILE__)
 
 describe "The -W command line option" do
   it "with 0 sets $VERBOSE to nil" do

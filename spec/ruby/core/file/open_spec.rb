@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/open'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/open', __FILE__)
 
 describe "File.open" do
   before :all do

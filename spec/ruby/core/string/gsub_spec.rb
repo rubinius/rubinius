@@ -1,16 +1,15 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes.rb'
+# -*- encoding: utf-8 -*-
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes.rb', __FILE__)
 
 describe "String#gsub with pattern and replacement" do
 
   before :each do
-    @old_kcode = $KCODE
+    @kcode = $KCODE
   end
 
   after :each do
-    if $KCODE != @old_kcode
-      $KCODE = @old_kcode
-    end
+    $KCODE = @kcode
   end
 
   it "inserts the replacement around every character when the pattern collapses" do
@@ -21,7 +20,7 @@ describe "String#gsub with pattern and replacement" do
     str = "こにちわ"
     reg = %r!!
 
-    $KCODE = "UTF8"
+    $KCODE = "utf-8"
     str.gsub(reg, ".").should == ".こ.に.ち.わ."
   end
 

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Integer#downto [stop] when self and stop are Fixnums" do
   it "does not yield when stop is greater than self" do

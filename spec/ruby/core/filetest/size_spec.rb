@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../shared/file/size'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../../shared/file/size', __FILE__)
 
 describe "FileTest.size?" do
   it_behaves_like :file_size,                     :size?, FileTest

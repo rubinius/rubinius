@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../shared/array/join'
-require File.dirname(__FILE__) + '/../array/fixtures/classes'
+require File.expand_path('../../../shared/array/join', __FILE__)
+require File.expand_path('../../array/fixtures/classes', __FILE__)
 
 ruby_version_is "1.9" do
   describe "Enumerable#join" do

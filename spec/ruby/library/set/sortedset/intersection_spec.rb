@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/shared/intersection'
+require File.expand_path('../../../../spec_helper', __FILE__)
+require File.expand_path('../shared/intersection', __FILE__)
 require 'set'
 
 describe "SortedSet#intersection" do

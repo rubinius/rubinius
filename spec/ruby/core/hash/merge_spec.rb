@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
-require File.dirname(__FILE__) + '/shared/iteration'
-require File.dirname(__FILE__) + '/shared/update'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/iteration', __FILE__)
+require File.expand_path('../shared/update', __FILE__)
 
 describe "Hash#merge" do
   it "returns a new hash by combining self with the contents of other" do

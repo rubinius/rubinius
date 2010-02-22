@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../shared/continuation/new'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../../shared/continuation/new', __FILE__)
 
 with_feature :continuation do
   describe "Continuation.new" do

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Process.fork" do
   # As of 1.9 Process.respond_to?(:fork) returns false on platforms that do

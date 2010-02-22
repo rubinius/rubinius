@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.expand_path('../../../../spec_helper', __FILE__)
 require 'complex'
-require File.dirname(__FILE__) + '/shared/acos'
+require File.expand_path('../shared/acos', __FILE__)
 
 describe "Math#acos" do
   it_behaves_like :complex_math_acos, :_, IncludesMath.new

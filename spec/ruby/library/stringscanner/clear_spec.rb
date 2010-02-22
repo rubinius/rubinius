@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/shared/terminate.rb'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/terminate.rb', __FILE__)
 require 'strscan'
 
 describe "StringScanner#clear" do
