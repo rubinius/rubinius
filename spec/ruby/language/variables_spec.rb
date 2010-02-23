@@ -210,6 +210,148 @@ describe "Assignment using expansion" do
   end
 end
 
+describe "Basic multiple assignment" do
+  describe "with a single RHS value" do
+    it "does not call #to_ary on an Array instance" do
+      x = [1, 2]
+      x.should_not_receive(:to_ary)
+
+      a, b = x
+      a.should == 1
+      b.should == 2
+    end
+
+    it "does not call #to_a on an Array instance" do
+      x = [1, 2]
+      x.should_not_receive(:to_a)
+
+      a, b = x
+      a.should == 1
+      b.should == 2
+    end
+
+    it "does not call #to_ary on an Array subclass instance" do
+      x = VariablesSpecs::ArraySubclass.new [1, 2]
+      x.should_not_receive(:to_ary)
+
+      a, b = x
+      a.should == 1
+      b.should == 2
+    end
+
+    it "does not call #to_a on an Array subclass instance" do
+      x = VariablesSpecs::ArraySubclass.new [1, 2]
+      x.should_not_receive(:to_a)
+
+      a, b = x
+      a.should == 1
+      b.should == 2
+    end
+
+    it "does not call #to_a on an object" do
+      x = mock("single rhs value for masgn")
+      x.should_not_receive(:to_a)
+
+      a, b = x
+      a.should == x
+      b.should be_nil
+    end
+
+    it "does not call #to_a on a String" do
+      x = "one\ntwo"
+
+      a, b = x
+      a.should == x
+      b.should be_nil
+    end
+  end
+
+  describe "with a splatted single RHS value" do
+    it "does not call #to_ary on an Array instance" do
+      x = [1, 2]
+      x.should_not_receive(:to_ary)
+
+      a, b = *x
+      a.should == 1
+      b.should == 2
+    end
+
+    it "does not call #to_a on an Array instance" do
+      x = [1, 2]
+      x.should_not_receive(:to_a)
+
+      a, b = *x
+      a.should == 1
+      b.should == 2
+    end
+
+    it "does not call #to_ary on an Array subclass instance" do
+      x = VariablesSpecs::ArraySubclass.new [1, 2]
+      x.should_not_receive(:to_ary)
+
+      a, b = *x
+      a.should == 1
+      b.should == 2
+    end
+
+    it "does not call #to_a on an Array subclass instance" do
+      x = VariablesSpecs::ArraySubclass.new [1, 2]
+      x.should_not_receive(:to_a)
+
+      a, b = *x
+      a.should == 1
+      b.should == 2
+    end
+
+    it "calls #to_a on an object if #to_ary is not defined" do
+      x = mock("single splatted rhs value for masgn")
+      x.should_receive(:to_a).and_return([1, 2])
+
+      a, b = *x
+      a.should == 1
+      b.should == 2
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "calls #to_ary on an object" do
+        x = mock("single splatted rhs value for masgn")
+        x.should_receive(:to_ary).and_return([1, 2])
+
+        a, b = *x
+        a.should == 1
+        b.should == 2
+      end
+
+      it "calls #to_a on a String" do
+        x = "one\ntwo"
+
+        a, b = *x
+        a.should == "one\n"
+        b.should == "two"
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "does not call #to_ary on an object" do
+        x = mock("single splatted rhs value for masgn")
+        x.should_not_receive(:to_ary)
+
+        a, b = *x
+        a.should == x
+        b.should be_nil
+      end
+
+      it "does not call #to_a on a String" do
+        x = "one\ntwo"
+
+        a, b = *x
+        a.should == x
+        b.should be_nil
+      end
+    end
+  end
+end
+
 describe "Assigning multiple values" do
   it "allows parallel assignment" do
     a, b = 1, 2

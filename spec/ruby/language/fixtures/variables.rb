@@ -53,4 +53,6 @@ module VariablesSpecs
     end
   end
 
+  class ArraySubclass < Array
+  end
 end
