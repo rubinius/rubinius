@@ -21,6 +21,13 @@ namespace :release do
       raise "Please set VERSION to the same as RBX_VERSION to be released"
     end
 
+    STDOUT.sync = true
+    print "Did you update @config_version in configure? [y/n]"
+    unless STDIN.gets == "y"
+      puts "Well go change it then!"
+      exit
+    end
+
     puts "* Making tar.gz..."
     Rake::Task['release:tar'].invoke
 
