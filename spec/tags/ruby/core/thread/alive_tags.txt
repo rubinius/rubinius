@@ -1,1 +1,0 @@
-critical:Thread#alive? returns true as long as the thread is alive

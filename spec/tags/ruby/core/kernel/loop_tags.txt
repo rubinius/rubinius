@@ -1,3 +1,2 @@
-incomplete:Kernel#loop needs to be reviewed for spec completeness
 fails:Kernel.loop rescues StopIteration
 fails:Kernel.loop rescues StopIteration's subclasses

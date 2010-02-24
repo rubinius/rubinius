@@ -1,4 +1,3 @@
-incomplete:Kernel.callcc needs to be reviewed for spec completeness
 fails:Kernel#callcc is possible to exit a loop like a break
 fails:Kernel#callcc is possible to call a continuation multiple times
 fails:Kernel#callcc returns the arguments to call

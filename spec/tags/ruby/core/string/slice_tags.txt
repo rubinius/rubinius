@@ -1,1 +1,0 @@
-fails:String#slice! with index, length raises a TypeError if self is frozen

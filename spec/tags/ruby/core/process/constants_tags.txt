@@ -1,8 +1,3 @@
-fails:Process::Constants should have the correct constant values on Linux
-fails:Process::Constants should have the correct constant values on BSD-like systems
-fails:Process::Constants should have the correct constant values on Darwin
-fails:Process::Constants should have the correct constant values on BSD-like systems
-fails:Process::Constants should have the correct constant values on Darwin
 fails:Process::Constants has the correct constant values on BSD-like systems
 fails:Process::Constants has the correct constant values on Darwin
 fails:Process::Constants has the correct constant values on Linux

@@ -3,9 +3,3 @@ unstable(causes system time to spike for remainder of process):Thread#raise on a
 unstable(causes system time to spike for remainder of process):Thread#raise on a running thread raises the given exception
 unstable(causes system time to spike for remainder of process):Thread#raise on a running thread raises the given exception with the given message
 unstable(causes system time to spike for remainder of process):Thread#raise on a running thread can go unhandled
-unstable(causes system time to spike for remainder of process):Thread#raise on a running thread re-raises active exception
-unstable(causes system time to spike for remainder of process):Thread#raise on a sleeping thread re-raises active exception
-fails:Thread#raise on a sleeping thread re-raises active exception
-fails:Thread#raise on a running thread re-raises active exception
-fails:Thread#raise on a sleeping thread re-raises active exception
-fails:Thread#raise on a running thread re-raises active exception
