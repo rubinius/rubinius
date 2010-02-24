@@ -55,8 +55,7 @@ namespace rubinius {
 
     Object* copy = copy_addr.as<Object>();
 
-    copy->initialize_copy(orig, 0);
-    copy->copy_body(object_memory_->state, orig);
+    copy->initialize_full_state(object_memory_->state, orig, 0);
 
     copy->set_zone(MatureObjectZone);
     copy->set_in_immix();

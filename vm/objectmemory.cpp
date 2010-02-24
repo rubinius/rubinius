@@ -128,8 +128,7 @@ namespace rubinius {
     Object* copy = immix_->allocate(obj->size_in_bytes(state));
 
     copy->set_obj_type(obj->type_id());
-    copy->initialize_copy(obj, 0);
-    copy->copy_body(state, obj);
+    copy->initialize_full_state(state, obj, 0);
 
     if(watched_p(obj)) {
       std::cout << "detected object " << obj << " during promotion.\n";

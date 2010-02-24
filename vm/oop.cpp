@@ -36,6 +36,16 @@ namespace rubinius {
     if(other->is_tainted_p()) set_tainted();
   }
 
+  void ObjectHeader::initialize_full_state(STATE, Object* source, unsigned int age) {
+    initialize_copy(source, age);
+    copy_body(state, source);
+
+    // This method is only used by the GC to move an object, so must retain
+    // the settings flags.
+    flags().Frozen =  source->flags().Frozen;
+    flags().Tainted = source->flags().Tainted;
+  }
+
   void ObjectHeader::copy_flags(Object* source) {
     // TODO OH NO! Don't do this!!
     set_obj_type(source->type_id());

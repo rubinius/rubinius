@@ -320,6 +320,9 @@ const int cUndef = 0x22L;
     /* Copies the flags of +this+ into +other+ */
     void copy_flags(Object* other);
 
+    /* Used to make an exact state copy of +this+ into +other* */
+    void initialize_full_state(STATE, Object* other, unsigned int age);
+
     /* Clear the body of the object, by setting each field to Qnil */
     void clear_fields(size_t bytes);
 

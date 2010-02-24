@@ -83,8 +83,7 @@ namespace rubinius {
     bool collect;
     Object* obj = allocate(orig->size_in_bytes(object_memory_->state), &collect);
 
-    obj->initialize_copy(orig, 0);
-    obj->copy_body(object_memory_->state, orig);
+    obj->initialize_full_state(object_memory_->state, orig, 0);
 
     return obj;
   }

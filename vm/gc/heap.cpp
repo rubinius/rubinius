@@ -40,8 +40,7 @@ namespace rubinius {
     Object* tmp = (Object*)allocate(bytes);
     tmp->init_header(YoungObjectZone, orig->type_id());
 
-    tmp->initialize_copy(orig, orig->age());
-    tmp->copy_body(state, orig);
+    tmp->initialize_full_state(state, orig, orig->age());
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->objects_copied++;
