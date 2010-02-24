@@ -2,11 +2,3 @@ unstable(Causes mspec to exit with 'Hangup' on freebsd/ubuntu gutsy):Process.kil
 unstable(Causes mspec to exit with 'Hangup' on freebsd/ubuntu gutsy):Process.kill accepts integer signal numbers
 unstable(Causes mspec to exit with 'Hangup' on freebsd/ubuntu gutsy):Process.kill accepts POSIX signal names without 'SIG' prefix
 unstable(Causes mspec to exit with 'Hangup' on freebsd/ubuntu gutsy):Process.kill accepts POSIX signal names with 'SIG' prefix
-fails:Process.kill accepts integer signal numbers
-fails:Process.kill accepts POSIX signal names without 'SIG' prefix
-fails:Process.kill accepts POSIX signal names with 'SIG' prefix
-fails:Process.kill sends the given signal to the current process if pid is zero
-fails:Process.kill sends the given signal to the specified process
-fails:Process.kill kills process groups if signal is negative
-fails:Process.kill kills process groups if signal starts with a minus sign
-fails:Process.kill kills process groups if signal starts with a minus sign and 'SIG'
