@@ -33,7 +33,8 @@ def compile_ext(name, opts={})
   namespace :extensions do
     desc "Build #{name.capitalize} extension #{opts[:doc]}"
     task task_name do
-      rbx = File.expand_path "../bin/rbx", File.dirname(__FILE__)
+      # rbx-build can run even if prefix is used
+      rbx = File.expand_path "../bin/rbx-build", File.dirname(__FILE__)
 
       ext_helper = File.expand_path "../ext_helper.rb", __FILE__
       Dir.chdir ext_dir do
@@ -41,10 +42,6 @@ def compile_ext(name, opts={})
           ruby "-S rake #{'-t' if $verbose} -r #{ext_helper} #{ext_task_name}"
         else
           unless File.directory? BUILD_CONFIG[:runtime]
-            # Setting these enables the specs to run when rbx has been configured
-            # to be installed, but rake install has not been run yet.
-            ENV["RBX_RUNTIME"] = File.expand_path "../runtime", __FILE__
-            ENV["RBX_LIB"]     = File.expand_path "../lib", __FILE__
             ENV["CFLAGS"]      = "-Ivm/capi"
           end
 

@@ -1,0 +1,9 @@
+#!/bin/sh
+
+BIN_DIR=$(dirname $0)
+BASE_DIR=$(dirname $BIN_DIR)
+
+export RBX_RUNTIME="$BASE_DIR/runtime"
+export RBX_LIB="$BASE_DIR/lib"
+
+exec $BIN_DIR/rbx "$*"
