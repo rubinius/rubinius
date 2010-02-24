@@ -387,8 +387,8 @@ class Array::Packer
     end
 
     # http://www.opengroup.org/onlinepubs/009695399/utilities/uuencode.html
-    item.scan(/.{1,#{line_length}}/m).map { |line|
-      encoded = line.scan(/(.)(.?)(.?)/m).map { |a,b,c|
+    item.scan(/.{1,#{line_length}}/nm).map { |line|
+      encoded = line.scan(/(.)(.?)(.?)/nm).map { |a,b,c|
         a = a[0]
         b = b[0] || 0
         c = c[0] || 0
@@ -543,7 +543,12 @@ class String::Unpacker
     if i >= @length
       elements << ''
     elsif count == '*'
-      a = @source[i..-1].split(//).map { |c| fmt % c[0] }
+
+      a = []
+      @source[i..-1].each_byte do |b|
+        a << (fmt % b)
+      end
+
       a.map! { |s| s.reverse } if lsb
       elements << a.join
       i = @length
