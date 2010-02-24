@@ -248,7 +248,16 @@ describe "Basic multiple assignment" do
       b.should == 2
     end
 
-    it "does not call #to_a on an object" do
+    it "calls #to_ary on an object" do
+      x = mock("single rhs value for masgn")
+      x.should_receive(:to_ary).and_return([1, 2])
+
+      a, b = x
+      a.should == 1
+      b.should == 2
+    end
+
+    it "does not call #to_a on an object if #to_ary is not defined" do
       x = mock("single rhs value for masgn")
       x.should_not_receive(:to_a)
 
