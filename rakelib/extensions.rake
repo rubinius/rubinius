@@ -45,7 +45,7 @@ def compile_ext(name, opts={})
             ENV["CFLAGS"]      = "-Ivm/capi"
           end
 
-          unless File.exists?("Makefile")
+          unless File.exists?("Makefile") and File.exists?("extconf.h")
             sh "#{rbx} extconf.rb"
           end
 
