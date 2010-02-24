@@ -1,2 +1,4 @@
 fails:Basic assignment supports the {|r,| } form of block assignment
 fails:Basic assignment calls to_a on the given argument when using a splat
+fails:Basic multiple assignment with a single RHS value does not call #to_a on an object
+fails:Basic multiple assignment with a single RHS value does not call #to_a on a String
