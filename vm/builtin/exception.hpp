@@ -47,6 +47,7 @@ namespace rubinius {
     static void type_error(STATE, const char* reason);
     static void type_error(STATE, object_type type, Object* object,
                            const char* reason = NULL);
+    static void type_error(STATE, const char* reason, CallFrame* call_frame);
     static void float_domain_error(STATE, const char* reason = NULL);
     static void zero_division_error(STATE, const char* reason = NULL);
     static void io_error(STATE, const char* reason);

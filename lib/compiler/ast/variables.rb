@@ -449,7 +449,8 @@ module Rubinius
         else
           if @right
             @right.bytecode(g)
-            g.cast_array
+
+            g.cast_array unless @right.kind_of? ToArray
           end
 
           if @left

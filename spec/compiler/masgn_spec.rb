@@ -92,7 +92,7 @@ describe "A Masgn node" do
     compile do |g|
       g.push :self
       g.send :q, 0, true
-      g.cast_array
+      g.cast_multi_value
 
       g.shift_array
       g.push :self
@@ -203,7 +203,7 @@ describe "A Masgn node" do
       g.send :[]=, 2, false
       g.pop
 
-      g.cast_array
+      g.cast_multi_value
       g.shift_array
       g.set_local 4
       g.pop
@@ -647,7 +647,7 @@ describe "A Masgn node" do
       g.push 3
       g.make_array 2
       g.make_array 2
-      g.cast_array
+      g.cast_multi_value
 
       g.shift_array
       g.set_local 0
@@ -687,7 +687,7 @@ describe "A Masgn node" do
     compile do |g|
       g.push :self
       g.send :c, 0, true
-      g.cast_array
+      g.cast_multi_value
 
       g.shift_array
       g.set_local 0
@@ -707,7 +707,7 @@ describe "A Masgn node" do
     compile do |g|
       g.push :self
       g.send :c, 0, true
-      g.cast_array
+      g.cast_multi_value
 
       g.shift_array
       g.set_local 0
@@ -717,7 +717,7 @@ describe "A Masgn node" do
       g.set_local 1
       g.pop
 
-      g.pop # TODO: why?
+      g.pop # Remove the array we're shifting from
 
       g.push :true
     end
@@ -729,7 +729,7 @@ describe "A Masgn node" do
       g.push :self
       g.send :d, 0, true
       g.send :m, 1, true
-      g.cast_array
+      g.cast_multi_value
       g.shift_array
       g.set_local 0
       g.pop
@@ -780,7 +780,7 @@ describe "A Masgn node" do
       g.string_dup
       g.send :e, 1, false
 
-      g.cast_array
+      g.cast_multi_value
 
       g.shift_array
       g.set_local 0
@@ -803,7 +803,7 @@ describe "A Masgn node" do
       g.push :self
       g.send :d, 0, true
 
-      g.cast_array
+      g.cast_multi_value
 
       g.shift_array
       g.set_local 0
@@ -825,7 +825,7 @@ describe "A Masgn node" do
     compile do |g|
       g.push :self
       g.send :c, 0, true
-      g.cast_array
+      g.cast_multi_value
 
       g.shift_array
       g.set_local 0
@@ -868,7 +868,7 @@ describe "A Masgn node" do
   relates "a, (b, c) = 1" do
     compile do |g|
       g.push 1
-      g.cast_array
+      g.cast_multi_value
 
       g.shift_array
       g.set_local 0
@@ -1018,7 +1018,7 @@ describe "A Masgn node" do
   relates "a, (b, *c) = 1" do
     compile do |g|
       g.push 1
-      g.cast_array
+      g.cast_multi_value
 
       g.shift_array
       g.set_local 0
@@ -1161,7 +1161,7 @@ describe "A Masgn node" do
   relates "a, (*b) = 1" do
     compile do |g|
       g.push 1
-      g.cast_array
+      g.cast_multi_value
 
       g.shift_array
       g.set_local 0

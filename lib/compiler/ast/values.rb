@@ -71,7 +71,7 @@ module Rubinius
         pos(g)
 
         @value.bytecode(g)
-        g.cast_array
+        g.cast_multi_value
       end
     end
 

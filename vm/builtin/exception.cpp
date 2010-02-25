@@ -145,6 +145,12 @@ namespace rubinius {
     throw TypeError(type, object, reason);
   }
 
+  void Exception::type_error(STATE, const char* reason, CallFrame* call_frame) {
+    Exception* exc = Exception::make_exception(state, G(exc_type), reason);
+    exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    state->thread_state()->raise_exception(exc);
+  }
+
   void Exception::float_domain_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_float_domain_error(state), reason));
   }

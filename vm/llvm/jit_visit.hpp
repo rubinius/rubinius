@@ -1584,6 +1584,28 @@ use_send:
       stack_push(val);
     }
 
+    void visit_cast_multi_value() {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(ObjType);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_cast_multi_value", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        stack_pop()
+      };
+
+      Value* val = b().CreateCall(func, call_args, call_args+3, "cast_multi_value");
+      check_for_exception(val);
+      stack_push(val);
+    }
+
     void visit_push_block() {
       stack_push(get_block());
     }

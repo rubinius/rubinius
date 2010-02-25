@@ -32,6 +32,8 @@ namespace rubinius {
     static void init(STATE);
     static Array* create(STATE, size_t size);
     static Array* from_tuple(STATE, Tuple* tup);
+    static Array* to_ary(STATE, Object* obj, CallFrame* frame);
+
     void   setup(STATE, size_t size);
 
     // Ruby.primitive :array_allocate

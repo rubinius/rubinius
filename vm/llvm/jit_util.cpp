@@ -273,6 +273,11 @@ extern "C" {
     return dis.send(state, call_frame, args);
   }
 
+  Object* rbx_cast_multi_value(STATE, CallFrame* call_frame, Object* top) {
+    if(kind_of<Array>(top)) return top;
+    return Array::to_ary(state, top, call_frame);
+  }
+
   Object* rbx_add_scope(STATE, CallFrame* call_frame, Object* top) {
     Module* mod = as<Module>(top);
     StaticScope* scope = StaticScope::create(state);
