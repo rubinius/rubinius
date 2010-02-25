@@ -2,15 +2,31 @@ require File.expand_path("../../compiler", __FILE__)
 
 class CompilerScript
   def initialize
-    @files = []
-    @transforms = []
+    @print_ast    = nil
+    @pattern      = nil
+    @output_name  = nil
+    @transforms   = []
     @method_names = []
+    @files        = []
+    @strings      = []
+    @stdin        = false
   end
 
   def options(argv=ARGV)
-    @options = Rubinius::Options.new "Usage: rbx compile-ng [options] [files]", 28
+    @options = Rubinius::Options.new "Usage: rbx compile [options] [files] [dirs]", 28
 
-    @options.doc " How to specify the output file"
+    @options.doc " How to specify the input"
+
+    @options.on "-", "Read from STDIN" do
+      @stdin = true
+    end
+
+    @options.on "-e", "STRING", "Compile STRING" do |s|
+      @strings << s
+    end
+
+
+    @options.doc "\n How to specify the output file"
 
     @options.on "-o", "--output", "NAME", "Compile single input file to NAME" do |n|
       @output_name = n
@@ -60,7 +76,7 @@ class CompilerScript
     @options.doc " How to print representations of data structures"
 
     @options.on "-A", "--print-ast", "Print an ascii graph of the AST" do
-      @print_ast = true
+      @print_ast = Rubinius::CompilerNG::ASTPrinter
     end
 
     @options.on "-B", "--print-bytecode", "Print bytecode for compiled methods" do
@@ -76,6 +92,9 @@ class CompilerScript
     end
 
     @options.on "-P", "--print", "Enable all stage printers" do
+      @print_ast = true
+      @print_bytecode = true
+      @print_assembly = true
     end
 
 
@@ -98,20 +117,30 @@ class CompilerScript
     @sources = @options.parse argv
   end
 
-  def help(message=nil)
-    puts message, "\n" if message
-    puts @options
+  def enable_transforms(parser)
+    return if @no_transforms
+    if @transforms.empty?
+      parser.default_transforms
+    else
+      parser.transforms = @transforms
+    end
   end
 
-  def collect_files
-    @sources.each do |entry|
-      if File.directory? entry
-        spec = "#{entry}/**/*.rb"
-      else
-        spec = entry
-      end
+  def set_printers(compiler)
+    compiler.parser.print @print_ast if @print_ast
 
-      @files += Dir[spec]
+    if @print_bytecode or @print_assembly
+      packager = compiler.packager
+      printer = packager.print
+      printer.bytecode = @print_bytecode
+      printer.assembly = @print_assembly
+      printer.method_names = @method_names
+    end
+  end
+
+  def set_output(compiler, name)
+    if writer = compiler.writer
+      writer.name = name
     end
   end
 
@@ -128,25 +157,20 @@ class CompilerScript
     end
   end
 
-  def enable_transforms(parser)
-    return if @no_transforms
-    if @transforms.empty?
-      parser.default_transforms
-    else
-      parser.transforms = @transforms
+  def collect_files
+    @sources.each do |entry|
+      if File.directory? entry
+        spec = "#{entry}/**/*.rb"
+      else
+        spec = entry
+      end
+
+      @files += Dir[spec]
     end
   end
 
-  def run
-    if @files.empty?
-      help "No files given"
-      return
-    end
-
-    if @output_name and @files.size > 1
-      help "Cannot give output name for multiple input files."
-      return
-    end
+  def compile_files
+    collect_files
 
     @files.each do |file|
       puts file if @verbose
@@ -161,35 +185,52 @@ class CompilerScript
       protect file do
         compiler = Rubinius::CompilerNG.new :file, :compiled_file
 
-        if parser = compiler.parser
-          parser.root Rubinius::AST::Script
-          parser.input file
-          enable_transforms parser
-          parser.print if @print_ast
-        end
+        parser = compiler.parser
+        parser.root Rubinius::AST::Script
+        parser.input file
+        enable_transforms parser
 
-        if @print_bytecode or @print_assembly
-          if packager = compiler.packager
-            printer = packager.print
-            printer.bytecode = @print_bytecode
-            printer.assembly = @print_assembly
-            printer.method_names = @method_names
-          end
-        end
-
-        if writer = compiler.writer
-          writer.name = output
-        end
+        set_printers compiler
+        set_output compiler, output
 
         compiler.run
       end
     end
   end
 
+  def compile_string(string, origin)
+    if @output_name
+      compiler = Rubinius::CompilerNG.new :string, :compiled_file
+      set_output compiler, @output_name
+    else
+      compiler = Rubinius::CompilerNG.new :string, :compiled_method
+    end
+
+    parser = compiler.parser
+    parser.root Rubinius::AST::Script
+    enable_transforms parser
+    parser.input string, origin, 1
+
+    set_printers compiler
+
+    compiler.run
+  end
+
+  def compile_strings
+    @strings.each do |string|
+      compile_string string, "(snippit)"
+    end
+  end
+
+  def compile_stdin
+    compile_string $stdin.read, "(stdin)" if @stdin
+  end
+
   def main
     options
-    collect_files
-    run
+    compile_stdin
+    compile_strings
+    compile_files
   end
 end
 
