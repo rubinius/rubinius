@@ -357,7 +357,7 @@ module Enumerable
 
   def cycle(many=nil, &block)
     return to_enum :cycle, many unless block_given?
-    return loop(&block) unless many
+    return loop{each(&block)} unless many
 
     many = Type.coerce_to(many, Fixnum, :to_int)
     if many >= 1

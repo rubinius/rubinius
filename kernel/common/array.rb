@@ -480,8 +480,8 @@ class Array
   # does nothing. Returns nil if the loop has finished without getting interrupted.
   def cycle(n = nil, &block)
     return to_enum(:cycle, n) unless block_given?
-    if n.nil?
-      loop(&block)
+    unless n
+      loop{each(&block)}
     else
       n = Type.coerce_to n, Fixnum, :to_int
       n.times{each(&block)}
