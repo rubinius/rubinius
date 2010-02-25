@@ -54,6 +54,32 @@ module Rubinius
 
         done.set!
       end
+
+      def sexp_name
+        :call
+      end
+
+      def receiver_sexp
+        @receiver.kind_of?(Self) ? nil : @receiver.to_sexp
+      end
+
+      def arguments_sexp
+        sexp = [:arglist]
+        sexp << @block.to_sexp if @block.kind_of? BlockPass
+        sexp
+      end
+
+      def to_sexp
+        sexp = [sexp_name, receiver_sexp, @name, arguments_sexp]
+        case @block
+        when For
+          @block.to_sexp.insert 1, @receiver.to_sexp
+        when Iter
+          @block.to_sexp.insert 1, sexp
+        else
+          sexp
+        end
+      end
     end
 
     class SendWithArguments < Send
@@ -80,6 +106,12 @@ module Rubinius
         else
           g.send @name, @arguments.size, @privately
         end
+      end
+
+      def arguments_sexp(name=:arglist)
+        sexp = [name] + @arguments.to_sexp
+        sexp << @block.to_sexp if @block
+        sexp
       end
     end
 
@@ -116,6 +148,10 @@ module Rubinius
 
           g.pop
         end
+      end
+
+      def sexp_name
+        :attrasgn
       end
     end
 
@@ -163,6 +199,10 @@ module Rubinius
 
         g.pop
       end
+
+      def sexp_name
+        :attrasgn
+      end
     end
 
     class PushArgs < Node
@@ -185,6 +225,10 @@ module Rubinius
       def bytecode(g)
         @arguments.bytecode(g)
         @value.bytecode(g)
+      end
+
+      def to_sexp
+        [@arguments.to_sexp, @value.to_sexp]
       end
     end
 
@@ -220,6 +264,10 @@ module Rubinius
         g.push_block_arg
         convert(g)
         @body.bytecode(g)
+      end
+
+      def to_sexp
+        [:block_pass, @body.to_sexp]
       end
     end
 
@@ -265,6 +313,12 @@ module Rubinius
       def bytecode(g)
         @array.each { |x| x.bytecode(g) }
         @splat.bytecode(g) if @splat
+      end
+
+      def to_sexp
+        sexp = @array.map { |x| x.to_sexp }
+        sexp << @splat.to_sexp if @splat
+        sexp
       end
     end
 
@@ -365,6 +419,14 @@ module Rubinius
         blk.local_names = local_names
 
         g.create_block blk
+      end
+
+      def sexp_name
+        :iter
+      end
+
+      def to_sexp
+        [sexp_name, @arguments.to_sexp, @body.to_sexp]
       end
     end
 
@@ -489,6 +551,16 @@ module Rubinius
           @block.assignment_bytecode(g)
         end
       end
+
+      def to_sexp
+        if @arguments
+          @arguments.to_sexp
+        elsif @arity == 0
+          0
+        else
+          nil
+        end
+      end
     end
 
     class For < Iter
@@ -516,6 +588,10 @@ module Rubinius
 
         var.variable = reference
       end
+
+      def sexp_name
+        :for
+      end
     end
 
     class Negate < Node
@@ -535,6 +611,10 @@ module Rubinius
           @value.bytecode(g)
           g.send :"-@", 0
         end
+      end
+
+      def to_sexp
+        [:negate, @value.to_sexp]
       end
     end
 
@@ -589,6 +669,10 @@ module Rubinius
 
         done.set!
       end
+
+      def to_sexp
+        arguments_sexp :super
+      end
     end
 
     class Yield < SendWithArguments
@@ -641,6 +725,10 @@ module Rubinius
 
         f.set!
       end
+
+      def to_sexp
+        arguments_sexp :yield
+      end
     end
 
     class ZSuper < Super
@@ -657,6 +745,10 @@ module Rubinius
         block_bytecode(g)
 
         g.zsuper @name
+      end
+
+      def to_sexp
+        [:zsuper]
       end
     end
   end

@@ -18,6 +18,10 @@ module Rubinius
       def receiver_defined(g, f)
         g.push :self
       end
+
+      def to_sexp
+        [:self]
+      end
     end
   end
 end

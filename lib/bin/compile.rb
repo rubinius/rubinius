@@ -79,6 +79,10 @@ class CompilerScript
       @print_ast = Rubinius::CompilerNG::ASTPrinter
     end
 
+    @options.on "-S", "--print-sexp", "Print the AST as an S-expression" do
+      @print_ast = Rubinius::CompilerNG::SexpPrinter
+    end
+
     @options.on "-B", "--print-bytecode", "Print bytecode for compiled methods" do
       @print_bytecode = true
     end

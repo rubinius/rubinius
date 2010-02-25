@@ -24,6 +24,10 @@ module Rubinius
 
         g.last_match mode, 0
       end
+
+      def to_sexp
+        [:back_ref, @kind]
+      end
     end
 
     class NthRef < Node
@@ -43,6 +47,10 @@ module Rubinius
         # we start numbering the captures from 0.
         g.last_match Mode, @which - 1
       end
+
+      def to_sexp
+        [:nth_ref, @which]
+      end
     end
 
     class VariableAccess < Node
@@ -61,6 +69,12 @@ module Rubinius
         @line = line
         @name = name
         @value = value
+      end
+
+      def to_sexp
+        sexp = [sexp_name, @name]
+        sexp << @value.to_sexp if @value
+        sexp
       end
     end
 
@@ -122,6 +136,10 @@ module Rubinius
 
         f.set!
       end
+
+      def to_sexp
+        [:cvar, @name]
+      end
     end
 
     class ClassVariableAssignment < VariableAssignment
@@ -145,9 +163,16 @@ module Rubinius
 
         g.send :class_variable_set, 2
       end
+
+      def sexp_name
+        :cvasgn
+      end
     end
 
-    class CVarDeclare < ClassVariableAssignment
+    class ClassVariableDeclaration < ClassVariableAssignment
+      def sexp_name
+        :cvdecl
+      end
     end
 
     class GlobalVariableAccess < VariableAccess
@@ -184,6 +209,10 @@ module Rubinius
 
         f.set!
       end
+
+      def to_sexp
+        [:gvar, @name]
+      end
     end
 
     class GlobalVariableAssignment < VariableAssignment
@@ -213,6 +242,10 @@ module Rubinius
           end
           g.send :[]=, 2
         end
+      end
+
+      def sexp_name
+        :gasgn
       end
     end
 
@@ -245,6 +278,10 @@ module Rubinius
         g.make_array @size
         @value.bytecode(g)
       end
+
+      def to_sexp
+        [:splat, @value.to_sexp]
+      end
     end
 
     class SplatWrapped < SplatAssignment
@@ -264,6 +301,10 @@ module Rubinius
         assign.set!
         @value.bytecode(g)
       end
+
+      def to_sexp
+        [:splat, @value.to_sexp]
+      end
     end
 
     class EmptySplat < Node
@@ -276,6 +317,10 @@ module Rubinius
         pos(g)
 
         g.make_array @size
+      end
+
+      def to_sexp
+        [:splat]
       end
     end
 
@@ -303,6 +348,10 @@ module Rubinius
 
         f.set!
       end
+
+      def to_sexp
+        [:ivar, @name]
+      end
     end
 
     class InstanceVariableAssignment < VariableAssignment
@@ -311,6 +360,10 @@ module Rubinius
 
         @value.bytecode(g) if @value
         g.set_ivar @name
+      end
+
+      def sexp_name
+        :iasgn
       end
     end
 
@@ -344,6 +397,10 @@ module Rubinius
         assign_variable(g)
         @variable.get_bytecode(g)
       end
+
+      def to_sexp
+        [:lvar, @name]
+      end
     end
 
     class LocalVariableAssignment < VariableAssignment
@@ -370,6 +427,10 @@ module Rubinius
 
       def defined(g)
         g.push_literal "assignment"
+      end
+
+      def sexp_name
+        :lasgn
       end
     end
 
@@ -481,6 +542,16 @@ module Rubinius
           g.pop if !@fixed or @splat
           g.push :true
         end
+      end
+
+      def to_sexp
+        left = @left ? @left.to_sexp : [:array]
+        left << [:splat, @splat.to_sexp] if @splat
+        left << @block.to_sexp if @block
+
+        sexp = [:masgn, left]
+        sexp << @right.to_sexp if @right
+        sexp
       end
     end
   end

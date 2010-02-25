@@ -138,7 +138,7 @@ module Rubinius
     end
 
     def process_cvdecl(line, name, value)
-      AST::ClassVariableAssignment.new line, name, value
+      AST::ClassVariableDeclaration.new line, name, value
     end
 
     def process_data(line, data)

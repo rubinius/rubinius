@@ -11,6 +11,10 @@ module Rubinius
       def bytecode(g)
         @rescue.bytecode(g)
       end
+
+      def to_sexp
+        @rescue.to_sexp
+      end
     end
 
     EnsureType = 1
@@ -66,6 +70,10 @@ module Rubinius
         # exception generated.
         @ensure.bytecode(g)
         g.pop
+      end
+
+      def to_sexp
+        [:ensure, @body.to_sexp, @ensure.to_sexp]
       end
     end
 
@@ -181,6 +189,12 @@ module Rubinius
         end
         g.pop_modifiers
       end
+
+      def to_sexp
+        sexp = [:rescue, @body.to_sexp, @rescue.to_sexp]
+        sexp << @else.to_sexp if @else
+        sexp
+      end
     end
 
     class RescueCondition < Node
@@ -294,6 +308,26 @@ module Rubinius
           @next.bytecode(g, reraise, done, current_exc)
         end
       end
+
+      def to_sexp
+        array = @conditions.to_sexp
+        array << @assignment.to_sexp if @assignment
+        array << @splat.to_sexp if @splat
+
+        sexp = [:resbody, array]
+        case @body
+        when Block
+          sexp << (@body ? @body.array.map { |x| x.to_sexp } : nil)
+        when nil
+          sexp << nil
+        else
+          sexp << @body.to_sexp
+        end
+
+        sexp << @next.to_sexp if @next
+
+        sexp
+      end
     end
 
     class RescueSplat < Node
@@ -312,6 +346,10 @@ module Rubinius
         g.push_exception
         g.send :__rescue_match__, 1
         g.git body
+      end
+
+      def to_sexp
+        [:splat, @value.to_sexp]
       end
     end
   end

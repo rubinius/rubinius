@@ -17,6 +17,10 @@ module Rubinius
         @from.bytecode(g)
         g.send :alias_method, 2, true
       end
+
+      def to_sexp
+        [:alias, @to.to_sexp, @from.to_sexp]
+      end
     end
 
     class VAlias < Alias
@@ -29,6 +33,10 @@ module Rubinius
         g.push_literal @to
         # TODO: fix #add_alias arg order to match #alias_method
         g.send :add_alias, 2
+      end
+
+      def to_sexp
+        [:valias, @to, @from]
       end
     end
 
@@ -46,6 +54,10 @@ module Rubinius
         g.push_scope
         @name.bytecode(g)
         g.send :__undef_method__, 1
+      end
+
+      def to_sexp
+        [:undef, @name.to_sexp]
       end
     end
 
@@ -78,6 +90,10 @@ module Rubinius
           x.bytecode(g)
           g.pop unless start_ip == g.ip or i == count
         end
+      end
+
+      def to_sexp
+        @array.inject([:block]) { |s, x| s << x.to_sexp }
       end
     end
 
@@ -157,6 +173,12 @@ module Rubinius
 
         return meth
       end
+
+      def to_sexp
+        sexp = [:scope]
+        sexp << @body.to_sexp if @body
+        sexp
+      end
     end
 
     class Define < ClosedScope
@@ -202,6 +224,10 @@ module Rubinius
 
         g.send :add_defn_method, 4
       end
+
+      def to_sexp
+        [:defn, @name, @arguments.to_sexp, [:scope, @body.to_sexp]]
+      end
     end
 
     class DefineSingleton < Node
@@ -217,6 +243,11 @@ module Rubinius
         pos(g)
 
         @body.bytecode(g, @receiver)
+      end
+
+      def to_sexp
+        [:defs, @receiver.to_sexp, @body.name,
+          @body.arguments.to_sexp, [:scope, @body.body.to_sexp]]
       end
     end
 
@@ -325,6 +356,25 @@ module Rubinius
 
         arguments
       end
+
+      def to_sexp
+        sexp = [:args]
+
+        @required.each { |x| sexp << x }
+        sexp += @defaults.names if @defaults
+
+        if @splat == :@unnamed_splat
+          sexp << :*
+        elsif @splat
+          sexp << :"*#{@splat}"
+        end
+
+        sexp << :"&#{@block_arg.name}" if @block_arg
+
+        sexp << [:block] + @defaults.to_sexp if @defaults
+
+        sexp
+      end
     end
 
     class DefaultArguments < Node
@@ -352,6 +402,10 @@ module Rubinius
 
           done.set!
         end
+      end
+
+      def to_sexp
+        @arguments.map { |x| x.to_sexp }
       end
     end
 
@@ -403,6 +457,10 @@ module Rubinius
         @name.bytecode(g)
         @body.bytecode(g)
       end
+
+      def to_sexp
+        [:class, @name.to_sexp, @superclass.to_sexp, @body.to_sexp]
+      end
     end
 
     class ClassScope < ClosedScope
@@ -445,6 +503,10 @@ module Rubinius
         g.push_scope
         g.send :open_class, 3
       end
+
+      def to_sexp
+        @name
+      end
     end
 
     class ScopedClassName < ClassName
@@ -463,6 +525,10 @@ module Rubinius
         name_bytecode(g)
         @parent.bytecode(g)
         g.send :open_class_under, 3
+      end
+
+      def to_sexp
+        @parent.to_sexp
       end
     end
 
@@ -489,12 +555,20 @@ module Rubinius
         @name.bytecode(g)
         @body.bytecode(g)
       end
+
+      def to_sexp
+        [:module, @name.to_sexp, @body.to_sexp]
+      end
     end
 
     class EmptyBody < Node
       def bytecode(g)
         g.pop
         g.push :nil
+      end
+
+      def to_sexp
+        [:scope]
       end
     end
 
@@ -518,6 +592,10 @@ module Rubinius
         g.push_scope
         g.send :open_module, 2
       end
+
+      def to_sexp
+        @name
+      end
     end
 
     class ScopedModuleName < ModuleName
@@ -535,6 +613,10 @@ module Rubinius
         name_bytecode(g)
         @parent.bytecode(g)
         g.send :open_module_under, 2
+      end
+
+      def to_sexp
+        @parent.to_sexp
       end
     end
 
@@ -569,6 +651,10 @@ module Rubinius
         pos(g)
         @receiver.bytecode(g)
         @body.bytecode(g)
+      end
+
+      def to_sexp
+        [:sclass, @receiver.to_sexp, @body.to_sexp]
       end
     end
 
@@ -682,6 +768,10 @@ module Rubinius
           g.pop_state
         end
       end
+
+      def to_sexp
+        [:eval, @body.to_sexp]
+      end
     end
 
     class Snippit < Container
@@ -698,6 +788,10 @@ module Rubinius
           @body.bytecode(g)
           g.pop_state
         end
+      end
+
+      def to_sexp
+        [:snippit, @body.to_sexp]
       end
     end
 
@@ -719,6 +813,10 @@ module Rubinius
           g.pop_state
         end
       end
+
+      def to_sexp
+        [:script, @body.to_sexp]
+      end
     end
 
     class Defined < Node
@@ -733,6 +831,10 @@ module Rubinius
         pos(g)
 
         @expression.defined(g)
+      end
+
+      def to_sexp
+        [:defined, @expression.to_sexp]
       end
     end
   end

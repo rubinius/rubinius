@@ -48,6 +48,10 @@ module Rubinius
         @parent.bytecode(g)
         g.find_const @name
       end
+
+      def to_sexp
+        [:colon2, @parent.to_sexp, @name]
+      end
     end
 
     class ConstAtTop < Node
@@ -95,6 +99,10 @@ module Rubinius
         check_const(g)
         g.gif f
         bytecode(g)
+      end
+
+      def to_sexp
+        [:colon3, @name]
       end
     end
 
@@ -147,6 +155,10 @@ module Rubinius
         g.gif f
         bytecode(g)
       end
+
+      def to_sexp
+        [:const, @name]
+      end
     end
 
     class ConstSet < Node
@@ -183,6 +195,20 @@ module Rubinius
         @value.bytecode(g)
         g.send :const_set, 2
       end
+
+      def to_sexp
+        if @parent.kind_of?(TopLevel)
+          name = [:colon3, @name.to_sexp]
+        elsif @parent
+          name = [:colon2, @parent.to_sexp,  @name.to_sexp]
+        else
+          name = @name.to_sexp
+        end
+
+        sexp = [:cdecl, name]
+        sexp << @value.to_sexp if @value
+        sexp
+      end
     end
 
     class ConstName < Node
@@ -196,6 +222,10 @@ module Rubinius
       def bytecode(g)
         pos(g)
         g.push_literal @name
+      end
+
+      def to_sexp
+        @name
       end
     end
   end

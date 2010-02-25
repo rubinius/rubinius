@@ -118,6 +118,10 @@ module Rubinius
         yield
         found.set!
       end
+
+      def to_sexp
+        [:node, self.class.name]
+      end
     end
 
     # In a perfect world, each AST node would fully encapsulate its state. But

@@ -24,11 +24,23 @@ module Rubinius
         @right.bytecode(g)
         lbl.set!
       end
+
+      def sexp_name
+        :and
+      end
+
+      def to_sexp
+        [sexp_name, @left.to_sexp, @right.to_sexp]
+      end
     end
 
     class Or < And
       def bytecode(g)
         super(g, false)
+      end
+
+      def sexp_name
+        :or
       end
     end
 
@@ -53,6 +65,10 @@ module Rubinius
         true_label.set!
         g.push :false
         end_label.set!
+      end
+
+      def to_sexp
+        [:not, @value.to_sexp]
       end
     end
 
@@ -161,6 +177,12 @@ module Rubinius
           g.pop
         end
       end
+
+      def to_sexp
+        index = @index.inject([:arglist]) { |s, x| s << x.to_sexp }
+        op = @op == :or ? :"||" : :"&&"
+        [:op_asgn1, @receiver.to_sexp, index, op, @value.to_sexp]
+      end
     end
 
     class OpAssign2 < Node
@@ -234,6 +256,11 @@ module Rubinius
           g.pop
         end
       end
+
+      def to_sexp
+        op = @op == :or ? :"||" : :"&&"
+        [:op_asgn2, @receiver.to_sexp, :"#{@name}=", op, @value.to_sexp]
+      end
     end
 
     class OpAssignAnd < Node
@@ -260,6 +287,14 @@ module Rubinius
       def defined(g)
         g.push_literal "assignment"
       end
+
+      def sexp_name
+        :op_asgn_and
+      end
+
+      def to_sexp
+        [sexp_name, @left.to_sexp, @right.to_sexp]
+      end
     end
 
     class OpAssignOr < OpAssignAnd
@@ -269,6 +304,10 @@ module Rubinius
         @left.or_bytecode(g) do
           @right.bytecode(g)
         end
+      end
+
+      def sexp_name
+        :op_asgn_or
       end
     end
   end

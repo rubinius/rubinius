@@ -17,6 +17,10 @@ module Rubinius
 
         g.make_array @body.size
       end
+
+      def to_sexp
+        @body.inject([:array]) { |s, x| s << x.to_sexp }
+      end
     end
 
     class EmptyArray < Node
@@ -24,6 +28,10 @@ module Rubinius
         pos(g)
 
         g.make_array 0
+      end
+
+      def to_sexp
+        [:array]
       end
     end
 
@@ -37,6 +45,10 @@ module Rubinius
       def defined(g)
         g.push_literal "false"
       end
+
+      def to_sexp
+        [:false]
+      end
     end
 
     class True < Node
@@ -48,6 +60,10 @@ module Rubinius
 
       def defined(g)
         g.push_literal "true"
+      end
+
+      def to_sexp
+        [:true]
       end
     end
 
@@ -63,6 +79,10 @@ module Rubinius
         pos(g)
 
         g.push_unique_literal @value
+      end
+
+      def to_sexp
+        [:lit, @value]
       end
     end
 
@@ -98,6 +118,10 @@ module Rubinius
           i += 2
         end
       end
+
+      def to_sexp
+        @array.inject([:hash]) { |s, x| s << x.to_sexp }
+      end
     end
 
     class SymbolLiteral < Node
@@ -117,6 +141,10 @@ module Rubinius
       def defined(g)
         g.push_literal "expression"
       end
+
+      def to_sexp
+        [:lit, @value]
+      end
     end
 
     class Nil < Node
@@ -128,6 +156,10 @@ module Rubinius
 
       def defined(g)
         g.push_literal "nil"
+      end
+
+      def to_sexp
+        [:nil]
       end
     end
 
@@ -147,6 +179,10 @@ module Rubinius
 
       def defined(g)
         g.push_literal "expression"
+      end
+
+      def to_sexp
+        [:lit, @value]
       end
     end
 
@@ -181,6 +217,10 @@ module Rubinius
         @finish.bytecode(g)
         g.send :new, 2
       end
+
+      def to_sexp
+        [:dot2, @start.to_sexp, @finish.to_sexp]
+      end
     end
 
     class RangeExclude < Range
@@ -200,6 +240,10 @@ module Rubinius
         g.push :true
 
         g.send :new, 3
+      end
+
+      def to_sexp
+        [:dot3, @start.to_sexp, @finish.to_sexp]
       end
     end
 
@@ -234,6 +278,10 @@ module Rubinius
         g.set_literal idx
         lbl.set!
       end
+
+      def to_sexp
+        [:regex, @source, @options]
+      end
     end
 
     class StringLiteral < Node
@@ -254,6 +302,10 @@ module Rubinius
 
       def defined(g)
         g.push_literal "expression"
+      end
+
+      def to_sexp
+        [:str, @string]
       end
     end
 
@@ -343,12 +395,24 @@ module Rubinius
 
         g.string_build total
       end
+
+      def sexp_name
+        :dstr
+      end
+
+      def to_sexp
+        @array.inject([sexp_name, @string]) { |s, x| s << x.to_sexp }
+      end
     end
 
     class DynamicSymbol < DynamicString
       def bytecode(g)
         super(g)
         g.send :to_sym, 0, true
+      end
+
+      def sexp_name
+        :dsym
       end
     end
 
@@ -357,6 +421,10 @@ module Rubinius
         g.push :self
         super(g)
         g.send :`, 1, true #`
+      end
+
+      def sexp_name
+        :dxstr
       end
     end
 
@@ -371,6 +439,10 @@ module Rubinius
         super(g)
         g.push @options
         g.send :new, 2
+      end
+
+      def sexp_name
+        :dregx
       end
     end
 
@@ -392,6 +464,10 @@ module Rubinius
         g.set_literal idx
         lbl.set!
       end
+
+      def sexp_name
+        :dregx_once
+      end
     end
 
     class ExecuteString < StringLiteral
@@ -401,6 +477,10 @@ module Rubinius
         g.push :self
         super(g)
         g.send :`, 1, true # ` (silly vim/emacs)
+      end
+
+      def to_sexp
+        [:xstr, @string]
       end
     end
   end

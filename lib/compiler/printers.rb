@@ -13,6 +13,16 @@ module Rubinius
       end
     end
 
+    class SexpPrinter < Printer
+      def run
+        require 'pp'
+
+        puts @input.to_sexp.pretty_inspect
+        @output = @input
+        run_next
+      end
+    end
+
     class MethodPrinter < Printer
       attr_accessor :bytecode, :assembly
 

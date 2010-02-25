@@ -12,6 +12,10 @@ module Rubinius
         @value.bytecode(g)
         g.cast_array unless @value.kind_of? ArrayLiteral
       end
+
+      def to_sexp
+        [:splat, @value.to_sexp]
+      end
     end
 
     class ConcatArgs < Node
@@ -29,6 +33,10 @@ module Rubinius
         @rest.bytecode(g)
         g.cast_array
         g.send :+, 1
+      end
+
+      def to_sexp
+        [:argscat, @array.to_sexp, @rest.to_sexp]
       end
     end
 
@@ -57,6 +65,10 @@ module Rubinius
           done.set!
         end
       end
+
+      def to_sexp
+        [:svalue, @value.to_sexp]
+      end
     end
 
     class ToArray < Node
@@ -73,6 +85,10 @@ module Rubinius
         @value.bytecode(g)
         g.cast_multi_value
       end
+
+      def to_sexp
+        [:to_ary, @value.to_sexp]
+      end
     end
 
     class ToString < Node
@@ -88,6 +104,12 @@ module Rubinius
 
         @value.bytecode(g)
         g.send :to_s, 0, true
+      end
+
+      def to_sexp
+        sexp = [:evstr]
+        sexp << @value.to_sexp if @value
+        sexp
       end
     end
   end

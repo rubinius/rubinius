@@ -22,6 +22,18 @@ module Rubinius
 
         done.set!
       end
+
+      def receiver_sexp
+        nil
+      end
+
+      def to_sexp
+        else_sexp = @else.kind_of?(Nil) ? nil : @else.to_sexp
+        sexp = [:case, receiver_sexp]
+        sexp += @whens.map { |x| x.to_sexp }
+        sexp << else_sexp
+        sexp
+      end
     end
 
     class ReceiverCase < Case
@@ -49,6 +61,10 @@ module Rubinius
         @else.bytecode(g)
 
         done.set!
+      end
+
+      def receiver_sexp
+        @receiver.to_sexp
       end
     end
 
@@ -146,6 +162,16 @@ module Rubinius
 
         nxt.set!
       end
+
+      def to_sexp
+        if @single
+          conditions_sexp = [:array, @single.to_sexp]
+        else
+          conditions_sexp = @conditions.to_sexp
+          conditions_sexp << @splat.to_sexp if @splat
+        end
+        [:when, conditions_sexp, @body.to_sexp]
+      end
     end
 
     class SplatWhen < Node
@@ -168,6 +194,11 @@ module Rubinius
       end
 
       def bytecode(g, body, nxt)
+        # TODO: why is this empty?
+      end
+
+      def to_sexp
+        [:when, @condition.to_sexp, nil]
       end
     end
 
@@ -181,6 +212,10 @@ module Rubinius
       def bytecode(g)
         g.push :nil
       end
+
+      def to_sexp
+        [:flip2, @start.to_sexp, @finish.to_sexp]
+      end
     end
 
     class Flip3 < Node
@@ -192,6 +227,10 @@ module Rubinius
 
       def bytecode(g)
         g.push :nil
+      end
+
+      def to_sexp
+        [:flip3, @start.to_sexp, @finish.to_sexp]
       end
     end
 
@@ -221,6 +260,11 @@ module Rubinius
         @else.bytecode(g)
 
         done.set!
+      end
+
+      def to_sexp
+        else_sexp = @else.kind_of?(Nil) ? nil : @else.to_sexp
+        [:if, @condition.to_sexp, @body.to_sexp, else_sexp]
       end
     end
 
@@ -286,11 +330,23 @@ module Rubinius
 
         g.pop_modifiers
       end
+
+      def sexp_name
+        :while
+      end
+
+      def to_sexp
+        [sexp_name, @condition.to_sexp, @body.to_sexp, @check_first]
+      end
     end
 
     class Until < While
       def bytecode(g)
         super(g, false)
+      end
+
+      def sexp_name
+        :until
       end
     end
 
@@ -314,6 +370,10 @@ module Rubinius
 
         g.send :=~, 1
       end
+
+      def to_sexp
+        [:match, @pattern.to_sexp]
+      end
     end
 
     class Match2 < Node
@@ -332,6 +392,10 @@ module Rubinius
         @value.bytecode(g)
         g.send :=~, 1
       end
+
+      def to_sexp
+        [:match2, @pattern.to_sexp, @value.to_sexp]
+      end
     end
 
     class Match3 < Node
@@ -349,6 +413,10 @@ module Rubinius
         @value.bytecode(g)
         @pattern.bytecode(g)
         g.send :=~, 1
+      end
+
+      def to_sexp
+        [:match3, @pattern.to_sexp, @value.to_sexp]
       end
     end
 
@@ -380,6 +448,16 @@ module Rubinius
           jump_error g, :break
         end
       end
+
+      def sexp_name
+        :break
+      end
+
+      def to_sexp
+        sexp = [sexp_name]
+        sexp << @value.to_sexp if @value
+        sexp
+      end
     end
 
     class Next < Break
@@ -405,6 +483,10 @@ module Rubinius
           jump_error g, :next
         end
       end
+
+      def sexp_name
+        :next
+      end
     end
 
     class Redo < Break
@@ -421,6 +503,10 @@ module Rubinius
           jump_error g, :redo
         end
       end
+
+      def to_sexp
+        [:redo]
+      end
     end
 
     class Retry < Break
@@ -436,6 +522,10 @@ module Rubinius
         else
           jump_error g, :retry
         end
+      end
+
+      def to_sexp
+        [:retry]
       end
     end
 
@@ -475,6 +565,13 @@ module Rubinius
         else
           g.ret
         end
+      end
+
+      def to_sexp
+        sexp = [:return]
+        sexp << @value.to_sexp if @value
+        sexp << @splat.to_sexp if @splat
+        sexp
       end
     end
   end
