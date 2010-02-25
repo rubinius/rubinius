@@ -2,10 +2,12 @@ class Regexp
   ValidKcode    = [?n,?e,?s,?u]
   KcodeValue    = [16,32,48,64]
 
-  IGNORECASE    = 1
-  EXTENDED      = 2
-  MULTILINE     = 4
-  OPTION_MASK   = 7
+  IGNORECASE         = 1
+  EXTENDED           = 2
+  MULTILINE          = 4
+  DONT_CAPTURE_GROUP = 128
+  CAPTURE_GROUP      = 256
+  OPTION_MASK        = IGNORECASE | EXTENDED | MULTILINE | DONT_CAPTURE_GROUP | CAPTURE_GROUP
 
   KCODE_ASCII   = 0
   KCODE_NONE    = 16

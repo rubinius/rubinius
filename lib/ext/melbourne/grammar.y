@@ -254,17 +254,12 @@ static unsigned long scan_hex(const char *start, int len, int *retlen);
 static void reset_block(rb_parse_state *parse_state);
 static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table vars);
 
-#define RE_OPTION_ONCE 0x80
-#define RE_OPTION_IGNORECASE (1L)
-#define RE_OPTION_EXTENDED   (RE_OPTION_IGNORECASE<<1)
-#define RE_OPTION_MULTILINE  (RE_OPTION_EXTENDED<<1)
-#define RE_OPTION_SINGLELINE (RE_OPTION_MULTILINE<<1)
-#define RE_OPTION_LONGEST    (RE_OPTION_SINGLELINE<<1)
-#define RE_MAY_IGNORECASE    (RE_OPTION_LONGEST<<1)
-#define RE_OPTIMIZE_ANCHOR   (RE_MAY_IGNORECASE<<1)
-#define RE_OPTIMIZE_EXACTN   (RE_OPTIMIZE_ANCHOR<<1)
-#define RE_OPTIMIZE_NO_BM    (RE_OPTIMIZE_EXACTN<<1)
-#define RE_OPTIMIZE_BMATCH   (RE_OPTIMIZE_NO_BM<<1)
+#define RE_OPTION_IGNORECASE         (1L)
+#define RE_OPTION_EXTENDED           (2L)
+#define RE_OPTION_MULTILINE          (4L)
+#define RE_OPTION_DONT_CAPTURE_GROUP (128L)
+#define RE_OPTION_CAPTURE_GROUP      (256L)
+#define RE_OPTION_ONCE               (8192L)
 
 #define NODE_STRTERM NODE_ZARRAY        /* nothing to gc */
 #define NODE_HEREDOC NODE_ARRAY         /* 1, 3 to gc */
@@ -3160,6 +3155,12 @@ regx_options(rb_parse_state *parse_state)
             break;
           case 'o':
             options |= RE_OPTION_ONCE;
+            break;
+          case 'G':
+            options |= RE_OPTION_CAPTURE_GROUP;
+            break;
+          case 'g':
+            options |= RE_OPTION_DONT_CAPTURE_GROUP;
             break;
           case 'n':
             kcode = 16;
