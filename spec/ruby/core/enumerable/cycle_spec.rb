@@ -15,6 +15,15 @@ describe "Enumerable#cycle" do
       end
     end
 
+    it "yields successive elements of the array repeatedly" do
+      b = []
+      EnumerableSpecs::Numerous.new(1,2,3).cycle do |elem|
+        b << elem
+        break if b.size == 7
+      end
+      b.should == [1,2,3,1,2,3,1]
+    end
+
     describe "passed a number n as an argument" do
       it "returns nil and does nothing for non positive n" do
         EnumerableSpecs::ThrowingEach.new.cycle(0){}.should be_nil

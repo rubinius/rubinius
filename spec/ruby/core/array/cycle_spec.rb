@@ -17,5 +17,14 @@ describe "Enumerable#cycle" do
       end.should == 42
       bomb.should == 0
     end
+
+    it "yields successive elements of the array repeatedly" do
+      b = []
+      [1,2,3].cycle do |elem|
+        b << elem
+        break if b.size == 7
+      end
+      b.should == [1,2,3,1,2,3,1]
+    end
   end
 end
