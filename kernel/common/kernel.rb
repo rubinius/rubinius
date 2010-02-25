@@ -176,7 +176,6 @@ module Kernel
   alias_method :format, :sprintf
   module_function :sprintf
   module_function :format
-  module_function :abort
 
   def puts(*a)
     $stdout.puts(*a)
