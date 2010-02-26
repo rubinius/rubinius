@@ -23,4 +23,9 @@ describe "Enumerable#grep" do
     @a.grep(3..7).should == [4,6]
     @a.grep(3..7) {|a| a+1}.should == [5,7]
   end
+
+  it "can use $~ in the block when used with a Regexp" do
+    ary = ["aba", "aba"]
+    ary.grep(/a(b)a/) { $1 }.should == ["b", "b"]
+  end
 end

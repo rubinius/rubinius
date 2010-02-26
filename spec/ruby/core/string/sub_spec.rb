@@ -359,6 +359,24 @@ describe "String#sub! with pattern and block" do
     a.should == "h*llo"
   end
 
+  it "sets $~ for access from the block" do
+    str = "hello"
+    str.dup.sub!(/([aeiou])/) { "<#{$~[1]}>" }.should == "h<e>llo"
+    str.dup.sub!(/([aeiou])/) { "<#{$1}>" }.should == "h<e>llo"
+    str.dup.sub!("l") { "<#{$~[0]}>" }.should == "he<l>lo"
+
+    offsets = []
+
+    str.dup.sub!(/([aeiou])/) do
+       md = $~
+       md.string.should == str
+       offsets << md.offset(0)
+       str
+    end.should == "hhellollo"
+
+    offsets.should == [[1, 2]]
+  end
+
   it "taints self if block's result is tainted" do
     a = "hello"
     a.sub!(/./.taint) { "foo" }.tainted?.should == false
