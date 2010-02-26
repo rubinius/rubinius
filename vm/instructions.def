@@ -1,4 +1,4 @@
-#  vim: filetype=ruby
+#  vim: filetype=instructions
 
 # Definitions of the Rubinius VM instruction set.
 #
@@ -2442,4 +2442,16 @@ instruction cast_multi_value() [ value -- value ]
       stack_set_top(res);
     }
   }
+end
+
+instruction invoke_primitive(literal args) [ +args -- value ]
+  flush_ip();
+  InvokePrimitive ip = reinterpret_cast<InvokePrimitive>(literal);
+
+  Object* ret = (*ip)(state, call_frame, stack_back_position(args), args);
+
+  stack_clear(args);
+
+  HANDLE_EXCEPTION(ret);
+  stack_push(ret);
 end

@@ -109,6 +109,7 @@ module Enumerable
     ary = []
     each do |o|
       if pattern === o
+        Regexp.set_block_last_match
         ary << (block_given? ? yield(o) : o)
       end
     end

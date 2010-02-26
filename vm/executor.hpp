@@ -14,6 +14,8 @@ namespace rubinius {
   };
 
   typedef Object* (*executor)(VM*, CallFrame*, Dispatch& msg, Arguments& args);
+
+  typedef Object* (*InvokePrimitive)(VM*, CallFrame*, Object**, int);
 }
 
 #endif

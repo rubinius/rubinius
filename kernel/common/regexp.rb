@@ -103,23 +103,6 @@ class Regexp
     initialize other.source, other.options, other.kcode
   end
 
-  def self.last_match(field = nil)
-    match = Rubinius::VariableScope.of_sender.last_match
-    if match
-      return match if field.nil?
-      return match[field]
-    else
-      return nil
-    end
-  end
-
-  def self.last_match=(match)
-    unless match.nil? || match.kind_of?(MatchData)
-      raise ::TypeError, "wrong argument type #{match.class} (expected MatchData)"
-    end
-    Rubinius::VariableScope.of_sender.last_match = match
-  end
-
   def self.union(*patterns)
     if patterns.size == 1
       pat = patterns.first
@@ -142,7 +125,7 @@ class Regexp
   def ~
     line = $_
     if !line.is_a?(String)
-      Rubinius::VariableScope.of_sender.last_match = nil
+      Regexp.last_match = nil
       return nil
     end
     res = self.match(line)
@@ -158,10 +141,10 @@ class Regexp
 
     match = match_from(str, 0)
     if match
-      Rubinius::VariableScope.of_sender.last_match = match
+      Regexp.last_match = match
       return match.begin(0)
     else
-      Rubinius::VariableScope.of_sender.last_match = nil
+      Regexp.last_match = nil
       return nil
     end
   end
@@ -183,15 +166,15 @@ class Regexp
   def ===(other)
     if !other.is_a?(String)
       if !other.respond_to?(:to_str)
-        Rubinius::VariableScope.of_sender.last_match = nil
+        Regexp.last_match = nil
         return false
       end
     end
     if match = self.match_from(other.to_str, 0)
-      Rubinius::VariableScope.of_sender.last_match = match
+      Regexp.last_match = match
       return true
     else
-      Rubinius::VariableScope.of_sender.last_match = nil
+      Regexp.last_match = nil
       return false
     end
   end
@@ -239,13 +222,13 @@ class Regexp
   # Performs normal match and returns MatchData object from $~ or nil.
   def match(str)
     if str.nil?
-      Rubinius::VariableScope.of_sender.last_match = nil
+      Regexp.last_match = nil
       return nil
     end
 
     str = StringValue(str)
 
-    Rubinius::VariableScope.of_sender.last_match = search_region(str, 0, str.size, true)
+    Regexp.last_match = search_region(str, 0, str.size, true)
   end
 
   def match_from(str, count)

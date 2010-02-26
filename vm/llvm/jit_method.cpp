@@ -357,6 +357,8 @@ namespace jit {
     b().CreateStore(Constant::getNullValue(ls_->ptr_type("VariableScope")),
         get_field(vars, offset::vars_parent));
 
+    b().CreateStore(constant(Qnil, obj_type), get_field(vars, offset::vars_last_match));
+
     nil_locals();
   }
 

@@ -23,7 +23,8 @@ namespace offset {
   const static int vars_self = 2;
   const static int vars_block = 3;
   const static int vars_module = 4;
-  const static int vars_tuple = 5;
+  const static int vars_last_match = 5;
+  const static int vars_tuple = 6;
 
   const static int varscope_block = 1;
   const static int varscope_method = 2;

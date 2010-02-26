@@ -224,6 +224,17 @@ namespace rubinius {
     for(size_t ip = 0; ip < total;) {
       opcode op = opcodes[ip];
       switch(op) {
+      case InstructionSequence::insn_invoke_primitive: {
+        Symbol* name = try_as<Symbol>(original->literals()->at(opcodes[ip + 1]));
+        if(!name) {
+          name = state->symbol("__unknown__");
+        }
+
+        InvokePrimitive invoker = Primitives::get_invoke_stub(state, name);
+        opcodes[ip + 1] = reinterpret_cast<intptr_t>(invoker);
+        update_addresses(ip, 1);
+        break;
+      }
       case InstructionSequence::insn_allow_private:
         allow_private = true;
         break;

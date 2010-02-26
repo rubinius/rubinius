@@ -56,6 +56,21 @@ namespace rubinius {
     // Ruby.primitive :regexp_allocate
     static Regexp* allocate(STATE, Object* self);
 
+    // Ruby.primitive :regexp_last_match_result
+    static Object* last_match_result(STATE, Fixnum* mode, Fixnum* which, CallFrame* calling_environment);
+
+    // Ruby.primitive :regexp_last_match
+    static Object* last_match(STATE, Arguments& args, CallFrame* calling_environment);
+
+    // Ruby.primitive :regexp_set_last_match
+    static Object* set_last_match(STATE, Object* obj, CallFrame* calling_environment);
+
+    // Ruby.primitive :regexp_propagate_last_match
+    static Object* propagate_last_match(STATE, CallFrame* calling_environment);
+
+    // Ruby.primitive :regexp_set_block_last_match
+    static Object* set_block_last_match(STATE, CallFrame* calling_environment);
+
     void make_managed(STATE);
 
     class Info : public TypeInfo {
@@ -92,6 +107,12 @@ namespace rubinius {
     attr_accessor(regexp, Regexp);
     attr_accessor(full, Tuple);
     attr_accessor(region, Tuple);
+
+    String* matched_string(STATE);
+    String* pre_matched(STATE);
+    String* post_matched(STATE);
+    Object* last_capture(STATE);
+    Object* nth_capture(STATE, size_t which);
 
     /* interface */
 

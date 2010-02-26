@@ -42,5 +42,11 @@ namespace rubinius {
 #endif
   }
 
+extern "C" Object* invoke_unknown_primitive(STATE, CallFrame* call_frame,
+    Object** args, int arg_count)
+{
+  return Primitives::failure();
+}
+
 #include "gen/primitives_glue.gen.cpp"
 }

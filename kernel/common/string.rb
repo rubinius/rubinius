@@ -171,10 +171,10 @@ class String
     case pattern
     when Regexp
       if m = pattern.match_from(self, 0)
-        Rubinius::VariableScope.of_sender.last_match = m
+        Regexp.last_match = m
         return m.begin(0)
       end
-      Rubinius::VariableScope.of_sender.last_match = nil
+      Regexp.last_match = nil
       return nil
     when String
       raise TypeError, "type mismatch: String given"
@@ -233,7 +233,7 @@ class String
 
       if index.kind_of? Regexp
         match, str = subpattern(index, length)
-        Rubinius::VariableScope.of_sender.last_match = match
+        Regexp.last_match = match
         return str
       else
         start  = Type.coerce_to(index, Fixnum, :to_int)
@@ -244,7 +244,7 @@ class String
     case index
     when Regexp
       match, str = subpattern(index, 0)
-      Rubinius::VariableScope.of_sender.last_match = match
+      Regexp.last_match = match
       return str
     when String
       return include?(index) ? index.dup : nil
@@ -835,8 +835,10 @@ class String
   #   "hello".gsub(/[aeiou]/, '*')              #=> "h*ll*"
   #   "hello".gsub(/([aeiou])/, '<\1>')         #=> "h<e>ll<o>"
   #   "hello".gsub(/./) {|s| s[0].to_s + ' '}   #=> "104 101 108 108 111 "
-  def gsub(pattern, replacement = undefined, &prc)
-    return to_enum :gsub, pattern, replacement unless block_given? || replacement != undefined
+  def gsub(pattern, replacement=undefined)
+    unless block_given? or replacement != undefined
+      return to_enum :gsub, pattern, replacement
+    end
 
     tainted = false
 
@@ -858,21 +860,21 @@ class String
 
     offset = match.begin 0 if match
 
-    while match do
-      ret << (match.pre_match_from(last_end) || "")
+    while match
+      if str = match.pre_match_from(last_end)
+        ret << str
+      end
 
-      unless replacement == undefined
-        ret << replacement.to_sub_replacement(match)
-      else
-        # We do this so that we always manipulate $~ in the context
-        # of the passed block.
-        prc.block.top_scope.last_match = match
+      if replacement == undefined
+        Regexp.last_match = match
 
-        val = yield(match[0].dup)
+        val = yield(match[0]).to_s
         tainted ||= val.tainted?
-        ret << val.to_s
+        ret << val
 
         raise RuntimeError, "string modified" if self != copy
+      else
+        ret << replacement.to_sub_replacement(match)
       end
 
       tainted ||= val.tainted?
@@ -897,7 +899,7 @@ class String
       offset = match.begin 0
     end
 
-    Rubinius::VariableScope.of_sender.last_match = last_match
+    Regexp.last_match = last_match
 
     str = substring(last_end, @num_bytes-last_end+1)
     ret << str if str
@@ -906,18 +908,85 @@ class String
     return ret
   end
 
-
   # Performs the substitutions of <code>String#gsub</code> in place, returning
   # <i>self</i>, or <code>nil</code> if no substitutions were performed.
-  def gsub!(pattern, replacement = undefined, &block)
-    str = gsub(pattern, replacement, &block)
+  def gsub!(pattern, replacement=undefined)
+    # Because of the behavior of $~, this is duplicated from gsub! because
+    # if we call gsub! from gsub, the last_match can't be updated properly.
+    unless block_given? or replacement != undefined
+      return to_enum :gsub, pattern, replacement
+    end
 
-    if lm = $~
-      Rubinius::VariableScope.of_sender.last_match = lm
-      replace(str)
+    tainted = false
+
+    unless replacement == undefined
+      tainted = replacement.tainted?
+      replacement = StringValue(replacement)
+      tainted ||= replacement.tainted?
+    end
+
+    pattern = get_pattern(pattern, true)
+    copy = self.dup
+
+    last_end = 0
+    offset = nil
+    ret = self.class.pattern(0,0) # Empty string, or string subclass
+
+    last_match = nil
+    match = pattern.match_from self, last_end
+
+    offset = match.begin 0 if match
+
+    while match
+      if str = match.pre_match_from(last_end)
+        ret << str
+      end
+
+      if replacement == undefined
+        Regexp.last_match = match
+
+        val = yield(match[0]).to_s
+        tainted ||= val.tainted?
+        ret << val
+
+        raise RuntimeError, "string modified" if self != copy
+      else
+        ret << replacement.to_sub_replacement(match)
+      end
+
+      tainted ||= val.tainted?
+
+      last_end = match.end(0)
+
+      if match.collapsing?
+        if char = find_character(offset)
+          offset += char.size
+        else
+          offset += 1
+        end
+      else
+        offset = match.end(0)
+      end
+
+      last_match = match
+
+      match = pattern.match_from self, offset
+      break unless match
+
+      offset = match.begin 0
+    end
+
+    Regexp.last_match = last_match
+
+    str = substring(last_end, @num_bytes-last_end+1)
+    ret << str if str
+
+    ret.taint if tainted || self.tainted?
+
+    if last_match
+      replace(ret)
       return self
     else
-      Rubinius::VariableScope.of_sender.last_match = nil
       return nil
     end
   end
@@ -983,10 +1052,10 @@ class String
       return find_string(needle, offset)
     when Regexp
       if match = needle.match_from(self[offset..-1], 0)
-        Rubinius::VariableScope.of_sender.last_match = match
+        Regexp.last_match = match
         return (offset + match.begin(0))
       else
-        Rubinius::VariableScope.of_sender.last_match = nil
+        Regexp.last_match = nil
       end
     else
       raise TypeError, "type mismatch: #{needle.class} given"
@@ -1112,7 +1181,7 @@ class String
   #   'hello'.match('xx')         #=> nil
   def match(pattern)
     obj = get_pattern(pattern).match_from(self, 0)
-    Rubinius::VariableScope.of_sender.last_match = obj
+    Regexp.last_match = obj
     return obj
   end
 
@@ -1222,7 +1291,7 @@ class String
 
     when Regexp
       ret = sub.search_region(self, 0, finish, false)
-      Rubinius::VariableScope.of_sender.last_match = ret
+      Regexp.last_match = ret
       return ret.begin(0) if ret
 
     else
@@ -1291,7 +1360,7 @@ class String
   def rpartition(pattern)
     if pattern.kind_of? Regexp
       if m = pattern.search_region(self, 0, size, false)
-        Rubinius::VariableScope.of_sender.last_match = m
+        Regexp.last_match = m
         [m.pre_match, m[0], m.post_match]
       end
     else
@@ -1413,14 +1482,14 @@ class String
       val.taint if taint
 
       if block_given?
-        Rubinius::VariableScope.of_sender.last_match = match
+        Regexp.last_match = match
         yield(val)
       else
         ret << val
       end
     end
 
-    Rubinius::VariableScope.of_sender.last_match = last_match
+    Regexp.last_match = last_match
     return ret
   end
 
@@ -1440,7 +1509,7 @@ class String
     result = slice(*args)
     lm = Regexp.last_match
     self[*args] = '' unless result.nil?
-    Rubinius::VariableScope.of_sender.last_match = lm
+    Regexp.last_match = lm
     result
   end
 
@@ -1724,7 +1793,7 @@ class String
   #   "hello".sub(/[aeiou]/, '*')               #=> "h*llo"
   #   "hello".sub(/([aeiou])/, '<\1>')          #=> "h<e>llo"
   #   "hello".sub(/./) {|s| s[0].to_s + ' ' }   #=> "104 ello"
-  def sub(pattern, replacement = undefined, &prc)
+  def sub(pattern, replacement=undefined)
     if replacement.equal?(undefined) and !block_given?
       raise ArgumentError, "wrong number of arguments (1 for 2)"
     end
@@ -1736,28 +1805,24 @@ class String
     if match = get_pattern(pattern, true).match_from(self, 0)
       out = match.pre_match
 
-      Rubinius::VariableScope.of_sender.last_match = match
+      Regexp.last_match = match
 
-      unless replacement == undefined
-        out.taint if replacement.tainted?
-        replacement = StringValue(replacement).to_sub_replacement(match)
-      else
-        # We do this so that we always manipulate $~ in the context
-        # of the passed block.
-        prc.block.top_scope.last_match = match
-
+      if replacement == undefined
         replacement = yield(match[0].dup).to_s
         out.taint if replacement.tainted?
+      else
+        out.taint if replacement.tainted?
+        replacement = StringValue(replacement).to_sub_replacement(match)
       end
 
       # We have to reset it again to match the specs
-      Rubinius::VariableScope.of_sender.last_match = match
+      Regexp.last_match = match
 
       out << replacement << match.post_match
       out.taint if self.tainted?
     else
       out = self
-      Rubinius::VariableScope.of_sender.last_match = nil
+      Regexp.last_match = nil
     end
 
     # MRI behavior emulation. Sub'ing String subclasses doen't return the
@@ -1772,22 +1837,44 @@ class String
   # Performs the substitutions of <code>String#sub</code> in place,
   # returning <i>self</i>, or <code>nil</code> if no substitutions were
   # performed.
-  def sub!(pattern, replacement = undefined, &prc)
-    if block_given?
-      orig = self.dup
-      str = sub(pattern, replacement, &prc)
-    else
-      str = sub(pattern, replacement)
+  def sub!(pattern, replacement=undefined)
+    # Copied mostly from sub to keep Regexp.last_match= working right.
+
+    if replacement.equal?(undefined) and !block_given?
+      raise ArgumentError, "wrong number of arguments (1 for 2)"
     end
 
-    if lm = Regexp.last_match
-      Rubinius::VariableScope.of_sender.last_match = lm
-      replace(str)
-      return self
+    unless pattern
+      raise ArgumentError, "wrong number of arguments (0 for 2)"
+    end
+
+    if match = get_pattern(pattern, true).match_from(self, 0)
+      out = match.pre_match
+
+      Regexp.last_match = match
+
+      if replacement == undefined
+        replacement = yield(match[0].dup).to_s
+        out.taint if replacement.tainted?
+      else
+        out.taint if replacement.tainted?
+        replacement = StringValue(replacement).to_sub_replacement(match)
+      end
+
+      # We have to reset it again to match the specs
+      Regexp.last_match = match
+
+      out << replacement << match.post_match
+      out.taint if self.tainted?
     else
-      Rubinius::VariableScope.of_sender.last_match = nil
+      out = self
+      Regexp.last_match = nil
       return nil
     end
+
+    replace(out)
+
+    return self
   end
 
   # Returns the successor to <i>self</i>. The successor is calculated by
@@ -2415,17 +2502,18 @@ class String
     @shared = true
   end
 
-  def get_pattern(pattern, quote = false)
-    unless pattern.is_a?(String) || pattern.is_a?(Regexp)
-      if pattern.respond_to?(:to_str)
-        pattern = pattern.to_str
-      else
-        raise TypeError, "wrong argument type #{pattern.class} (expected Regexp)"
-      end
+  def get_pattern(pattern, quote=false)
+    case pattern
+    when Regexp
+      return pattern
+    when String
+      # nothing
+    else
+      pattern = StringValue(pattern)
     end
-    pattern = Regexp.quote(pattern) if quote && pattern.is_a?(String)
-    pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
-    pattern
+
+    pattern = Regexp.quote(pattern) if quote
+    Regexp.new(pattern)
   end
 
   def full_to_i

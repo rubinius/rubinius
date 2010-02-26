@@ -5,8 +5,8 @@
 
 namespace rubinius {
 
-  VariableScope* StackVariables::create_heap_alias(STATE,
-      CallFrame* call_frame, bool full)
+  VariableScope* StackVariables::create_heap_alias(STATE, CallFrame* call_frame,
+                                                   bool full)
   {
     if(on_heap_) return on_heap_;
 
@@ -24,6 +24,7 @@ namespace rubinius {
     scope->module(state, module_);
     scope->method(state, call_frame->cm);
     scope->heap_locals(state, Tuple::create(state, vmm->number_of_locals));
+    scope->last_match(state, last_match_);
 
     scope->number_of_locals_ = vmm->number_of_locals;
 
@@ -40,6 +41,53 @@ namespace rubinius {
     on_heap_ = scope;
 
     return scope;
+  }
+
+  void StackVariables::set_last_match(STATE, Object* obj) {
+    // For closures, get back to the top of the chain and set the
+    // last_match there. This means that the last_match is shared
+    // amongst all closures in a method, but thats how it's implemented
+    // in ruby.
+    if(parent_) {
+      VariableScope* scope = parent_;
+      while(RTEST(scope->parent())) {
+        scope = scope->parent();
+      }
+
+      return scope->last_match(state, obj);
+    }
+
+    // Use a heap alias if there is one.
+    if(on_heap_) {
+      on_heap_->last_match(state, obj);
+
+    // Otherwise, use the local one. This is where a last_match usually
+    // first appears.
+    } else {
+      last_match_ = obj;
+    }
+  }
+
+  Object* StackVariables::last_match(STATE) {
+    // For closures, get back to the top of the chain and get that
+    // last_match.
+    if(parent_) {
+      VariableScope* scope = parent_;
+      while(RTEST(scope->parent())) {
+        scope = scope->parent();
+      }
+
+      return scope->last_match();
+    }
+
+    // Otherwise, if this has a heap alias, get the last_match from there.
+    if(on_heap_) {
+      return on_heap_->last_match();
+
+    // Lastly, use the local one. This is where a last_match begins life.
+    } else {
+      return last_match_;
+    }
   }
 
   void StackVariables::flush_to_heap(STATE) {

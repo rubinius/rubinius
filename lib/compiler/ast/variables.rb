@@ -8,12 +8,21 @@ module Rubinius
         @kind = ref
       end
 
+      Kinds = {
+        :& => 1,
+        :"`" => 2,
+        :"'" => 3,
+        :+ => 4
+      }
+
       def bytecode(g)
         pos(g)
 
-        g.push_variables
-        g.push_literal @kind
-        g.send :back_ref, 1
+        unless mode = Kinds[@kind]
+          raise "Unknown backref: #{@kind}"
+        end
+
+        g.last_match mode, 0
       end
     end
 
@@ -25,12 +34,14 @@ module Rubinius
         @which = ref
       end
 
+      Mode = 5
+
       def bytecode(g)
         pos(g)
 
-        g.push_variables
-        g.push @which
-        g.send :nth_ref, 1
+        # These are for $1, $2, etc. We subtract 1 because
+        # we start numbering the captures from 0.
+        g.last_match Mode, @which - 1
       end
     end
 
@@ -146,8 +157,7 @@ module Rubinius
         if @name == :$!
           g.push_exception
         elsif @name == :$~
-          g.push_variables
-          g.send :last_match, 0
+          g.last_match 0, 0
         else
           g.push_const :Rubinius
           g.find_const :Globals

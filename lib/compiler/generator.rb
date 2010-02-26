@@ -427,6 +427,17 @@ module Rubinius
       end
     end
 
+    def invoke_primitive(name, count)
+      idx = find_literal(name)
+      add :invoke_primitive, idx, Integer(count)
+    end
+
+    def last_match(mode, which)
+      push_int Integer(mode)
+      push_int Integer(which)
+      invoke_primitive :regexp_last_match_result, 2
+    end
+
     def send(meth, count, priv=false)
       add :allow_private if priv
 

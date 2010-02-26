@@ -60,6 +60,8 @@ module Rubinius
      :push,
      :push_literal_at,
      :push_modifiers,
+     :invoke_primitive,
+     :last_match,
      :send,
      :send_super,
      :send_with_block,

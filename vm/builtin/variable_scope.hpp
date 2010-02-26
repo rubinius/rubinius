@@ -27,6 +27,7 @@ namespace rubinius {
     Module*         module_;  // slot
     VariableScope*  parent_;  // slot
     Tuple*          heap_locals_; // slot
+    Object*         last_match_; // slot
 
   public:
     Object* self_;    // slot
@@ -43,6 +44,7 @@ namespace rubinius {
     attr_accessor(parent, VariableScope);
     attr_accessor(self, Object);
     attr_accessor(heap_locals, Tuple);
+    attr_accessor(last_match, Object);
 
     static void init(STATE);
     static void bootstrap_methods(STATE);
@@ -69,6 +71,7 @@ namespace rubinius {
      *  Initialize scope for methods.
      */
     void prepare(Object* self, Module* mod, Object* block, CompiledMethod* method, int num) {
+      rubinius::abort();
       init_header(UnspecifiedZone, InvalidType);
       klass_ = 0;
       ivars_ = 0;
@@ -133,7 +136,6 @@ namespace rubinius {
 
     // Ruby.primitive :variable_scope_method_visibility
     Object* method_visibility(STATE);
-
 
   public: // Rubinius Type stuff
     class Info : public TypeInfo {

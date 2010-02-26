@@ -1221,6 +1221,30 @@ namespace rubinius {
       }
     }
 
+    void visit_invoke_primitive(opcode which, opcode args) {
+      InvokePrimitive invoker = reinterpret_cast<InvokePrimitive>(which);
+
+      Signature sig(ls_, "Object");
+      sig << "VM";
+      sig << "CallFrame";
+      sig << ObjArrayTy;
+      sig << ls_->Int32Ty;
+
+      Value* arg_ary = stack_objects(args);
+
+      Value* call_args[] = { vm_, call_frame_, arg_ary, cint(args) };
+
+      Value* ptr = b().CreateIntToPtr(
+          ConstantInt::get(ls_->IntPtrTy, reinterpret_cast<uintptr_t>(invoker)),
+          PointerType::getUnqual(sig.type()));
+
+      Value* call = b().CreateCall(ptr, call_args, call_args + 4, "invoked_prim");
+
+      stack_remove(args);
+      check_for_exception(call);
+      stack_push(call);
+    }
+
     void visit_send_stack(opcode which, opcode args) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
 

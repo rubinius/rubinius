@@ -8,10 +8,14 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/bytearray.hpp"
+#include "builtin/block_environment.hpp"
+#include "builtin/proc.hpp"
 
 #include "vm.hpp"
 #include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
+#include "call_frame.hpp"
+#include "arguments.hpp"
 
 #include "gc/gc.hpp"
 
@@ -430,6 +434,148 @@ namespace rubinius {
 
     onig_region_free(region, 1);
     return md;
+  }
+
+  String* MatchData::matched_string(STATE) {
+    Integer* beg = try_as<Integer>(full_->at(state, 0));
+    Integer* fin = try_as<Integer>(full_->at(state, 1));
+
+    if(!beg || !fin ||
+        (size_t)fin->to_native() > source_->size() ||
+        beg->to_native() < 0) {
+      return String::create(state, 0, 0);
+    }
+
+    const char* str = source_->c_str();
+    native_int sz = fin->to_native() - beg->to_native();
+
+    return String::create(state, str + beg->to_native(), sz);
+  }
+
+  String* MatchData::pre_matched(STATE) {
+    Integer* beg = try_as<Integer>(full_->at(state, 0));
+
+    if(!beg || beg->to_native() <= 0) {
+      return String::create(state, 0, 0);
+    }
+
+    const char* str = source_->c_str();
+    native_int sz = beg->to_native();
+
+    return String::create(state, str, sz);
+  }
+
+  String* MatchData::post_matched(STATE) {
+    Integer* fin = try_as<Integer>(full_->at(state, 1));
+
+    if(!fin || (size_t)fin->to_native() >= source_->size()) {
+      return String::create(state, 0, 0);
+    }
+
+    const char* str = source_->c_str();
+    native_int sz = (native_int)source_->size() - fin->to_native();
+
+    return String::create(state, str + fin->to_native(), sz);
+  }
+
+  Object* MatchData::nth_capture(STATE, size_t which) {
+    if(region_->num_fields() <= which) return Qnil;
+
+    Tuple* sub = try_as<Tuple>(region_->at(state, which));
+    if(!sub) return Qnil;
+
+    Integer* beg = try_as<Integer>(sub->at(state, 0));
+    Integer* fin = try_as<Integer>(sub->at(state, 1));
+
+    if(!beg || !fin ||
+        (size_t)fin->to_native() > source_->size() ||
+        beg->to_native() < 0) {
+      return Qnil;
+    }
+
+    const char* str = source_->c_str();
+    native_int sz = fin->to_native() - beg->to_native();
+
+    return String::create(state, str + beg->to_native(), sz);
+  }
+
+  Object* MatchData::last_capture(STATE) {
+    if(region_->num_fields() == 0) return Qnil;
+    return nth_capture(state, region_->num_fields() - 1);
+  }
+
+  Object* Regexp::last_match_result(STATE, Fixnum* mode, Fixnum* which,
+                                    CallFrame* call_frame)
+  {
+    Object* current_match = call_frame->scope->last_match(state);
+
+    if(MatchData* match = try_as<MatchData>(current_match)) {
+      switch(mode->to_native()) {
+      case 0:
+        return match;
+      case 1:
+        return match->matched_string(state);
+      case 2:
+        return match->pre_matched(state);
+      case 3:
+        return match->post_matched(state);
+      case 4:
+        return match->last_capture(state);
+      case 5:
+        return match->nth_capture(state, which->to_native());
+      }
+    }
+    return Qnil;
+  }
+
+  Object* Regexp::last_match(STATE, Arguments& args, CallFrame* call_frame) {
+    MatchData* match = try_as<MatchData>(call_frame->scope->last_match(state));
+    if(!match) return Qnil;
+
+    if(args.total() == 0) return match;
+    if(args.total() > 1) return Primitives::failure();
+
+    native_int which = as<Fixnum>(args.get_argument(0))->to_native();
+
+    if(which == 0) {
+      return match->matched_string(state);
+    } else {
+      return match->nth_capture(state, which - 1);
+    }
+  }
+
+  Object* Regexp::set_last_match(STATE, Object* obj, CallFrame* call_frame) {
+    if(!obj->nil_p() && !kind_of<MatchData>(obj)) {
+      return Primitives::failure();
+    }
+
+    if(CallFrame* parent = call_frame->previous) {
+      parent->scope->set_last_match(state, obj);
+    }
+
+    return obj;
+  }
+
+  Object* Regexp::propagate_last_match(STATE, CallFrame* call_frame) {
+    Object* obj = call_frame->scope->last_match(state);
+    if(RTEST(obj)) {
+      Regexp::set_last_match(state, obj, call_frame);
+    }
+    return obj;
+  }
+
+  Object* Regexp::set_block_last_match(STATE, CallFrame* call_frame) {
+    Object* blk = call_frame->scope->block();
+    MatchData* match = try_as<MatchData>(call_frame->scope->last_match(state));
+    if(!match) return Qnil;
+
+    if(BlockEnvironment* env = try_as<BlockEnvironment>(blk)) {
+      env->top_scope()->last_match(state, match);
+    } else if(Proc* proc = try_as<Proc>(blk)) {
+      proc->block()->top_scope()->last_match(state, match);
+    }
+
+    return match;
   }
 
   void Regexp::Info::mark(Object* obj, ObjectMark& mark) {
