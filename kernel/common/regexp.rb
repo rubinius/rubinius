@@ -639,7 +639,14 @@ class MatchData
   end
 
   def inspect
-    "#<MatchData:0x#{object_id.to_s(16)} \"#{matched_area}\">"
+    capts = captures
+    if capts.empty?
+      "#<MatchData \"#{matched_area}\">"
+    else
+      idx = 0
+      capts.map! {|capture| "#{idx += 1}:#{capture.inspect}"}
+      "#<MatchData \"#{matched_area}\" #{capts.join(" ")}>"
+    end
   end
 
   def select
