@@ -26,7 +26,7 @@ typedef char *d2i_of_void();
 
 #if !defined(PEM_read_bio_DSAPublicKey)
 # define PEM_read_bio_DSAPublicKey(bp,x,cb,u) (DSA *)PEM_ASN1_read_bio( \
-        (char *(*)())d2i_DSAPublicKey,PEM_STRING_DSA_PUBLIC,bp,(char **)x,cb,u)
+        (void *(*)())d2i_DSAPublicKey,PEM_STRING_DSA_PUBLIC,bp,(void **)x,cb,u)
 #endif
 
 #if !defined(PEM_write_bio_DSAPublicKey)
@@ -38,27 +38,27 @@ typedef char *d2i_of_void();
 
 #if !defined(DSAPrivateKey_dup)
 # define DSAPrivateKey_dup(dsa) (DSA *)ASN1_dup((int (*)())i2d_DSAPrivateKey, \
-	(char *(*)())d2i_DSAPrivateKey,(char *)dsa)
+	(void *(*)())d2i_DSAPrivateKey,(void *)dsa)
 #endif
 
 #if !defined(DSAPublicKey_dup)
 # define DSAPublicKey_dup(dsa) (DSA *)ASN1_dup((int (*)())i2d_DSAPublicKey, \
-	(char *(*)())d2i_DSAPublicKey,(char *)dsa)
+	(void *(*)())d2i_DSAPublicKey,(void *)dsa)
 #endif
 
 #if !defined(X509_REVOKED_dup)
 # define X509_REVOKED_dup(rev) (X509_REVOKED *)ASN1_dup((int (*)())i2d_X509_REVOKED, \
-	(char *(*)())d2i_X509_REVOKED, (char *)rev)
+	(void *(*)())d2i_X509_REVOKED, (char *)rev)
 #endif
 
 #if !defined(PKCS7_SIGNER_INFO_dup)
 #  define PKCS7_SIGNER_INFO_dup(si) (PKCS7_SIGNER_INFO *)ASN1_dup((int (*)())i2d_PKCS7_SIGNER_INFO, \
-	(char *(*)())d2i_PKCS7_SIGNER_INFO, (char *)si)
+	(void *(*)())d2i_PKCS7_SIGNER_INFO, (char *)si)
 #endif
 
 #if !defined(PKCS7_RECIP_INFO_dup)
 #  define PKCS7_RECIP_INFO_dup(ri) (PKCS7_RECIP_INFO *)ASN1_dup((int (*)())i2d_PKCS7_RECIP_INFO, \
-	(char *(*)())d2i_PKCS7_RECIP_INFO, (char *)ri)
+	(void *(*)())d2i_PKCS7_RECIP_INFO, (char *)ri)
 #endif
 
 #if !defined(HAVE_EVP_MD_CTX_INIT)

@@ -229,11 +229,11 @@ ossl_config_get_value_old(int argc, VALUE *argv, VALUE self)
     return ossl_config_get_value(self, section, name);
 }
 
-static VALUE
+static int
 set_conf_section_i(VALUE name, VALUE value, VALUE *arg)
 {
     ossl_config_add_value(arg[0], arg[1], name, value);
-    return Qnil;
+    return 0;
 }
 
 static VALUE

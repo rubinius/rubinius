@@ -93,13 +93,13 @@ ossl_x509attr_initialize(int argc, VALUE *argv, VALUE self)
 {
     VALUE oid, value;
     X509_ATTRIBUTE *attr;
-    unsigned char *p;
+    const unsigned char *p;
 
     GetX509Attr(self, attr);
     if(rb_scan_args(argc, argv, "11", &oid, &value) == 1){
 	oid = ossl_to_der_if_possible(oid);
 	StringValue(oid);
-	p = RSTRING_PTR(oid);
+	p = (const unsigned char*) RSTRING_PTR(oid);
 	if(!d2i_X509_ATTRIBUTE((X509_ATTRIBUTE**)&DATA_PTR(self),
 			       &p, RSTRING_LEN(oid))){
 	    ossl_raise(eX509AttrError, NULL);

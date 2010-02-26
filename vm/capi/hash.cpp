@@ -27,7 +27,7 @@ extern "C" {
   }
 
   void rb_hash_foreach(VALUE self,
-                       int (*func)(VALUE key, VALUE val, VALUE data),
+                       int (*func)(ANYARGS),
                        VALUE farg)
   {
     VALUE iter = rb_funcall(self, rb_intern("to_iter"), 0);

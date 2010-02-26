@@ -685,7 +685,7 @@ double rb_num2dbl(VALUE);
 
 #define   Data_Make_Struct(klass, type, mark, free, sval) (\
             sval = ALLOC(type), \
-            memset(sval, NULL, sizeof(type)), \
+            memset(sval, 0, sizeof(type)), \
             Data_Wrap_Struct(klass, mark, free, sval)\
           )
 
@@ -992,7 +992,7 @@ double rb_num2dbl(VALUE);
 
   /** Iterate over the hash, calling the function. */
   void rb_hash_foreach(VALUE self,
-                       int (*func)(VALUE key, VALUE val, VALUE data),
+                       int (*func)(ANYARGS),
                        VALUE farg);
 
   // A macro to access the size "directly"
