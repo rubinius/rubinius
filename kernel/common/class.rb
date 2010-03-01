@@ -89,13 +89,13 @@ class Class
   end
 
   def add_subclass(cls)
-    @subclasses ||= []
-    @subclasses << cls
+    @subclass_objects ||= []
+    @subclass_objects << cls
   end
   private :add_subclass
 
   def __subclasses__
-    @subclasses || []
+    @subclass_objects || []
   end
 
   def inherited(name)
