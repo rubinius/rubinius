@@ -122,6 +122,12 @@ describe "Module#autoload" do
     ModuleSpecs::Autoload::M.should == :autoload_m
   end
 
+  it "runs for an exception condition class and doesn't trample the exception" do
+    filename = fixture(__FILE__, "autoload_ex1.rb")
+    ModuleSpecs::Autoload.autoload :EX1, filename
+    ModuleSpecs::Autoload.use_ex1.should == :good
+  end
+
   ruby_version_is "" ... "1.9" do
     it "removes the constant from the constant table if load fails" do
       ModuleSpecs::Autoload.autoload :Fail, @non_existent

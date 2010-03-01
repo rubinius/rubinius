@@ -320,6 +320,16 @@ module ModuleSpecs
   module M2; end
 
   module Autoload
+    def self.use_ex1
+      begin
+        begin
+          raise "test exception"
+        rescue ModuleSpecs::Autoload::EX1
+        end
+      rescue RuntimeError
+        return :good
+      end
+    end
   end
 
   # This class isn't inherited from or included in anywhere. It exists to test
