@@ -518,7 +518,11 @@ class Regexp
   #     #=> []
   #
   def names
-    @names.keys
+    if @names
+      @names.keys.map { |x| x.to_s }
+    else
+      []
+    end
   end
 end
 
