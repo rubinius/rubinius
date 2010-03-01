@@ -32,6 +32,8 @@
 
 #include "vm/gen/instruction_defines.hpp"
 
+#define interp_assert(code) if(!(code)) { Exception::internal_error(state, call_frame, "assertion failed: " #code); RUN_EXCEPTION(); }
+
 using namespace rubinius;
 
 #define STACK_PTR stack_ptr

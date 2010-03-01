@@ -649,7 +649,7 @@ instruction raise_exc() [ -- ] => raise
 end
 
 instruction setup_unwind(ip type) [ -- ]
-  assert(current_unwind < kMaxUnwindInfos);
+  interp_assert(current_unwind < kMaxUnwindInfos);
   UnwindInfo& info = unwinds[current_unwind++];
   info.target_ip = ip;
   info.stack_depth = stack_calculate_sp();
@@ -657,7 +657,7 @@ instruction setup_unwind(ip type) [ -- ]
 end
 
 instruction pop_unwind() [ -- ]
-  assert(current_unwind > 0);
+  interp_assert(current_unwind > 0);
   --current_unwind;
 end
 
@@ -691,7 +691,7 @@ instruction raise_break() [ -- ] => raise
 end
 
 instruction reraise() [ -- ] => raise
-  assert(state->thread_state()->raise_reason() != cNone);
+  interp_assert(state->thread_state()->raise_reason() != cNone);
   RUN_EXCEPTION();
 end
 
@@ -2331,7 +2331,7 @@ instruction zsuper(literal) [ block -- value ]
   Object* const recv = call_frame->self();
 
   VariableScope* scope = call_frame->method_scope(state);
-  assert(scope);
+  interp_assert(scope);
 
   VMMethod* v = scope->method()->backend_method();
   Object* splat_obj = 0;
