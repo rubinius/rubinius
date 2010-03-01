@@ -10,8 +10,10 @@ extern "C" {
 
 namespace melbourne {
 
-/* max number of vars, made up. */
-#define DATA_MAX 128
+/* max number of vars */
+/* value is slightly less made up these days, turns out that */
+/* the old value of 128 was not enough to compile soap4r */
+#define DATA_MAX 1024
 
   struct var_table_t {
     struct var_table_t *next;
@@ -83,7 +85,11 @@ namespace melbourne {
   int var_table_add(var_table tbl, const quark item) {
     int idx;
     idx = tbl->size;
-    assert(idx < DATA_MAX);
+    if(idx >= DATA_MAX) {
+      var_table_destroy(tbl);
+      rb_raise(rb_eLoadError, "more than %i variables used", DATA_MAX);
+      return -1;
+    }
     tbl->data[idx] = item;
     tbl->size++;
     return idx;
