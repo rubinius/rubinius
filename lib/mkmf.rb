@@ -131,9 +131,9 @@ def map_dir(dir, map = nil)
 end
 
 # ---------------------- Changed for Rubinius --------------------------------
-$topdir     = Rubinius::HDR_PATH
+$topdir     = ENV['RBX_CAPI_DIR'] || Rubinius::HDR_PATH
 $top_srcdir = $topdir
-$hdrdir     = Rubinius::HDR_PATH
+$hdrdir     = $topdir
 
 unless File.exists?($hdrdir + "/ruby.h")
   abort "mkmf.rb can't find header files for ruby at #{$hdrdir}/ruby.h"
