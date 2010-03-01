@@ -160,7 +160,7 @@ class Hash
   end
 
   def []=(key, value)
-    redistribute @entries if @size > @max
+    redistribute @entries if @size > @max_entries
 
     key_hash = key.hash
     index = key_hash & @mask # key_index key_hash
@@ -435,7 +435,7 @@ class Hash
     capacity = @capacity
 
     # TODO: grow smaller too
-    setup @capacity * 2, @max * 2, @size
+    setup @capacity * 2, @max_entries * 2, @size
 
     i = -1
     while (i += 1) < capacity
@@ -546,18 +546,18 @@ class Hash
     end
   end
 
-  # packed! [:@capacity, :@mask, :@max, :@size, :@entries]
+  # packed! [:@capacity, :@mask, :@max_entries, :@size, :@entries]
 
   # Sets the underlying data structures.
   #
   # @capacity is the maximum number of +@entries+.
-  # @max is the maximum number of entries before redistributing.
+  # @max_entries is the maximum number of entries before redistributing.
   # @size is the number of pairs, equivalent to <code>hsh.size</code>.
   # @entrien is the vector of storage for the entry chains.
   def setup(capacity=MIN_SIZE, max=MAX_ENTRIES, size=0)
     @capacity = capacity
     @mask     = capacity - 1
-    @max      = max
+    @max_entries = max
     @size     = size
     @entries  = Entries.new capacity
   end
