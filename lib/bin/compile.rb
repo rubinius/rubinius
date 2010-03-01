@@ -222,7 +222,7 @@ class CompilerScript
 
   def compile_strings
     @strings.each do |string|
-      compile_string string, "(snippit)"
+      compile_string string, "(snippet)"
     end
   end
 

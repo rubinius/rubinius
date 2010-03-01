@@ -92,7 +92,7 @@ module Rubinius
       compiler = new :string, :bytecode
 
       parser = compiler.parser
-      parser.root AST::Snippit
+      parser.root AST::Snippet
       parser.input string
       transforms.each { |x| parser.enable_transform x }
 

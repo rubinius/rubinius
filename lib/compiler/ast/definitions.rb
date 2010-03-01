@@ -774,10 +774,10 @@ module Rubinius
       end
     end
 
-    class Snippit < Container
+    class Snippet < Container
       def initialize(body)
         super body
-        @name = :__snippit__
+        @name = :__snippet__
       end
 
       def bytecode(g)
@@ -791,7 +791,7 @@ module Rubinius
       end
 
       def to_sexp
-        [:snippit, @body.to_sexp]
+        [:snippet, @body.to_sexp]
       end
     end
 
