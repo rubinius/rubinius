@@ -650,12 +650,13 @@ describe "An Op_asgn_or node" do
       g.git t
       g.pop
 
-      in_rescue :StandardError, 1 do |section|
-        case section
-        when :body then
+      for_rescue do |rb|
+        rb.body do
           g.push :self
           g.send :b, 0, true
-        when :StandardError then
+        end
+
+        rb.condition :StandardError do
           g.push :self
           g.send :c, 0, true
         end

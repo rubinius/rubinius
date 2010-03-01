@@ -168,13 +168,23 @@ module Rubinius
             g.retry = outer_retry
           end
 
+          # We jump here if an exception has occured in the body
           ex.set!
 
           # Expose the retry label here only, not before this.
           g.retry = this_retry
 
+          # Save the current exception, so that calling #=== can't trample
+          # it.
+          g.push_exception
+
           @rescue.bytecode(g, reraise, done, current_exc)
           reraise.set!
+
+          # Restore the exception we saved and the reraise. The act
+          # of checking if an exception matches can run any code, which
+          # can easily trample on the current exception.
+          g.pop_exception
           g.reraise
 
           els.set!
@@ -252,10 +262,14 @@ module Rubinius
         pos(g)
         body = g.new_label
 
+        # Exception has left the current exception on the top
+        # of the stack, use it rather than using push_exception.
+
         if @conditions
           @conditions.body.each do |c|
+            g.dup
             c.bytecode(g)
-            g.push_exception
+            g.swap
             g.send :===, 1
             g.git body
           end
@@ -271,6 +285,10 @@ module Rubinius
         end
 
         body.set!
+
+        # Remove the current exception from the top of the stack now
+        # that we've hit a handler
+        g.pop
 
         if @assignment
           @assignment.bytecode(g)
@@ -341,9 +359,10 @@ module Rubinius
       def bytecode(g, body)
         pos(g)
 
+        g.dup
         @value.bytecode(g)
         g.cast_array
-        g.push_exception
+        g.swap
         g.send :__rescue_match__, 1
         g.git body
       end

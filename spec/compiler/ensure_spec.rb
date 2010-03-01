@@ -60,26 +60,37 @@ describe "An Ensure node" do
     ruby
 
     compile do |g|
-      in_rescue :SyntaxError, :Exception, :ensure, 2 do |section|
-        case section
-        when :body then
-          g.push 1
-          g.push 1
-          g.send :+, 1, false
-        when :SyntaxError then
-          g.push_exception
-          g.set_local 0
-          g.pop
-          g.push 2
-        when :Exception then
-          g.push_exception
-          g.set_local 1
-          g.pop
-          g.push 3
-        when :else then
-          g.pop         # TODO: should this be built in?
-          g.push 4
-        when :ensure then
+      g.for_ensure do |eb|
+        eb.body do
+          g.for_rescue do |rb|
+            rb.body do
+              g.push 1
+              g.push 1
+              g.send :+, 1, false
+            end
+
+            rb.condition :SyntaxError do
+              g.push_exception
+              g.set_local 0
+              g.pop
+              g.push 2
+            end
+
+            rb.condition :Exception do
+              g.push_exception
+              g.set_local 1
+              g.pop
+              g.push 3
+            end
+
+            rb.els do
+              g.pop         # TODO: should this be built in?
+              g.push 4
+            end
+          end
+        end
+
+        eb.handler do
           g.push 5
           g.pop
         end
@@ -98,14 +109,21 @@ describe "An Ensure node" do
     ruby
 
     compile do |g|
-      in_rescue :StandardError, :ensure do |section|
-        case section
-        when :body then
-          g.push :self
-          g.send :a, 0, true
-        when :StandardError then
-          g.push :nil
-        when :ensure then
+      g.for_ensure do |eb|
+        eb.body do
+          g.for_rescue do |rb|
+            rb.body do
+              g.push :self
+              g.send :a, 0, true
+            end
+
+            rb.condition :StandardError do
+              g.push :nil
+            end
+          end
+        end
+
+        eb.handler do
           g.push :nil
           g.pop
         end

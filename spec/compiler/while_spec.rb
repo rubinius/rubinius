@@ -265,77 +265,43 @@ describe "A While node" do
     ruby
 
     compile do |g|
-      top         = g.new_label
-      retry_lbl   = g.new_label
-      exc_lbl     = g.new_label
-      noexc_lbl   = g.new_label
-      rescue_lbl  = g.new_label
-      reraise_lbl = g.new_label
-      done        = g.new_label
-      bottom      = g.new_label
-      cur_brk_lbl = g.new_label
-      break_lbl   = g.new_label
+      top = g.new_label
+      bottom = g.new_label
+      brk = g.break = g.new_label
 
       g.push_modifiers
-      top.set!              # 1
+      top.set!
 
       g.push 1
       g.gif bottom
 
       # redo
-      g.new_label.set!      # 2
-      g.push_modifiers
-      saved = g.save_exception
+      g.new_label.set!
 
-      retry_lbl.set!        # 3
-      g.setup_unwind exc_lbl
+      g.for_rescue do |rb|
+        rb.body do
+          g.push 2
+          g.pop
+          g.push_literal :brk
+          rb.break
+        end
 
-      # redo
-      g.new_label.set!      # 4
-      g.push 2
-      g.pop
-      g.push_literal :brk
-      g.goto cur_brk_lbl
-
-      g.pop_unwind
-      g.goto noexc_lbl
-
-      cur_brk_lbl.set!      # 5
-      g.pop_unwind
-
-      g.restore_exception saved
-      g.goto break_lbl
-
-      exc_lbl.set!          # 6
-      g.push_const :StandardError
-      g.push_exception
-      g.send :===, 1
-      g.git rescue_lbl
-      g.goto reraise_lbl
-
-      rescue_lbl.set!       # 7
-      g.push 3
-      g.clear_exception
-      g.goto done
-
-      reraise_lbl.set!      # 8
-      g.reraise
-
-      noexc_lbl.set!        # 9
-      done.set!             # 10
-      g.restore_exception saved
-      g.pop_modifiers
+        rb.condition :StandardError do
+          g.push 3
+        end
+      end
 
       g.pop
       g.check_interrupts
       g.goto top
 
-      bottom.set!           # 11
+      bottom.set!
       g.push :nil
 
-      break_lbl.set!        # 12
+      brk.set!
       g.pop_modifiers
     end
+
   end
 
   relates <<-ruby do
@@ -350,74 +316,40 @@ describe "A While node" do
     ruby
 
     compile do |g|
-      top         = g.new_label
-      retry_lbl   = g.new_label
-      exc_lbl     = g.new_label
-      noexc_lbl   = g.new_label
-      rescue_lbl  = g.new_label
-      reraise_lbl = g.new_label
-      done        = g.new_label
-      bottom      = g.new_label
-      cur_brk_lbl = g.new_label
-      break_lbl   = g.new_label
+      top = g.new_label
+      bottom = g.new_label
+      brk = g.break = g.new_label
 
       g.push_modifiers
-      top.set!              # 1
+      top.set!
 
       g.push 1
       g.gif bottom
 
       # redo
-      g.new_label.set!      # 2
-      g.push_modifiers
-      saved = g.save_exception
-      retry_lbl.set!        # 3
-      g.setup_unwind exc_lbl
+      g.new_label.set!
 
-      # redo
-      g.new_label.set!      # 4
-      g.push 2
-      g.pop_unwind
-      g.goto noexc_lbl
+      g.for_rescue do |rb|
+        rb.body do
+          g.push 2
+        end
 
-      exc_lbl.set!          # 5
-      g.push_const :StandardError
-      g.push_exception
-      g.send :===, 1
-      g.git rescue_lbl
-      g.goto reraise_lbl
-
-      rescue_lbl.set!       # 6
-      g.push 3
-      g.pop
-      g.push_literal :brk
-      g.goto cur_brk_lbl
-
-      g.clear_exception
-      g.goto done
-
-      cur_brk_lbl.set!      # 7
-      g.clear_exception
-
-      g.restore_exception saved
-      g.goto break_lbl
-
-      reraise_lbl.set!      # 8
-      g.reraise
-
-      noexc_lbl.set!        # 9
-      done.set!             # 10
-      g.restore_exception saved
-      g.pop_modifiers
+        rb.condition :StandardError do
+          g.push 3
+          g.pop
+          g.push_literal :brk
+          rb.break
+        end
+      end
 
       g.pop
       g.check_interrupts
       g.goto top
 
-      bottom.set!           # 11
+      bottom.set!
       g.push :nil
 
-      break_lbl.set!        # 12
+      brk.set!
       g.pop_modifiers
     end
   end

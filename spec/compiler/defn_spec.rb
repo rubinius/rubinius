@@ -142,16 +142,19 @@ describe "A Defn node" do
 
     compile do |g|
       in_method :f do |d|
-        d.in_rescue :StandardError do |section|
-          case section
-          when :body then
+
+        d.for_rescue do |rb|
+          rb.body do
             d.push :self
             d.send :b, 0, true
-          when :StandardError then
+          end
+
+          rb.condition :StandardError do
             d.push :self
             d.send :c, 0, true
           end
         end
+
         d.pop
 
         d.push :self
@@ -177,16 +180,18 @@ describe "A Defn node" do
         d.send :a, 0, true
         d.pop
 
-        d.in_rescue :StandardError do |section|
-          case section
-          when :body then
+        d.for_rescue do |rb|
+          rb.body do
             d.push :self
             d.send :b, 0, true
-          when :StandardError
+          end
+
+          rb.condition :StandardError do
             d.push :self
             d.send :c, 0, true
           end
         end
+
       end
     end
   end
@@ -209,16 +214,18 @@ describe "A Defn node" do
         d.send :a, 0, true
         d.pop
 
-        d.in_rescue :StandardError do |section|
-          case section
-          when :body then
+        d.for_rescue do |rb|
+          rb.body do
             d.push :self
             d.send :b, 0, true
-          when :StandardError then
+          end
+
+          rb.condition :StandardError do
             d.push :self
             d.send :c, 0, true
           end
         end
+
         d.pop
 
         d.push :self
@@ -502,15 +509,17 @@ describe "A Defn node" do
 
     compile do |g|
       in_method :eql? do |d|
-        d.in_rescue :StandardError, 1 do |section|
-          case section
-          when :body then
+
+        d.for_rescue do |rb|
+          rb.body do
             d.push :self
             d.send :uuid, 0, false
             d.push_local 0
             d.send :uuid, 0, false
             d.send :==, 1, false
-          when :StandardError then
+          end
+
+          rb.condition :StandardError do
             d.push :false
           end
         end
@@ -613,12 +622,14 @@ describe "A Defn node" do
         d.push :self
 
         d.in_block_send :c, 0 do |d2|
-          d2.in_rescue :RuntimeError do |section|
-            case section
-            when :body then
+
+          d2.for_rescue do |rb|
+            rb.body do
               d2.push :self
               d2.send :do_stuff, 0, true
-            when :RuntimeError then
+            end
+
+            rb.condition :RuntimeError do
               d2.push_exception
               d2.set_local 0
               d2.pop

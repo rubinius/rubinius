@@ -22,7 +22,8 @@ module Rubinius
       end
 
       def to_sym
-        raise "Unset label!" unless @ip
+        return :UNSET_LABEL unless @ip
+        # raise "Unset label!" unless @ip
         :"label_#{@ip}"
       end
 
@@ -313,14 +314,14 @@ module Rubinius
 
     def in_class(name)
       case name
-      when Symbol then
+      when Symbol
         g.push_const :Rubinius
         g.push_literal name
         g.push :nil
 
         g.push_scope
         g.send :open_class, 3
-      when String then
+      when String
         g.push_const :Rubinius
 
         levels = name.split(/::/).map { |s| s.to_sym }
@@ -411,12 +412,12 @@ module Rubinius
 
     def in_module(name)
       case name
-      when Symbol then
+      when Symbol
         g.push_const :Rubinius
         g.push_literal name
         g.push_scope
         g.send :open_module, 2
-      when String then
+      when String
         levels = name.split(/::/).map { |s| s.to_sym }
         klass = levels.pop
 
@@ -471,34 +472,79 @@ module Rubinius
       pop_exception
     end
 
-    def in_rescue(*klasses)
-      jump_retry   = g.new_label
-      jump_else    = g.new_label
-      jump_last    = g.new_label
-
-      has_ensure = klasses.delete :ensure
-      saved_exception_index = klasses.detect { |a| a.instance_of?(Fixnum) }
-      if saved_exception_index
-        klasses.delete saved_exception_index
-      else
-        saved_exception_index = 0
+    class Break
+      def initialize(g)
+        @label = g.new_label
+        @original = g.break
+        @emit = false
       end
 
-      if has_ensure
-        ensure_good = g.new_label
-        ensure_bad = g.new_label
+      attr_accessor :label, :original, :emit
+    end
 
-        g.setup_unwind ensure_bad
-
-        jump_top = g.new_label
-        jump_top.set!
-
-        save_exception
+    class RescueBlock
+      def initialize(g)
+        @body = nil
+        @conditions = []
+        @else = nil
+        @break = nil
+        @g = g
       end
+
+      attr_reader :conditions, :current_break
+      attr_accessor :saved_exc
+
+      def set_break(b)
+        @break = b
+      end
+
+      def body(&block)
+        @body ||= block
+      end
+
+      def condition(klass, &block)
+        @conditions << [klass, block]
+      end
+
+      def raw_condition(&block)
+        @conditions << [nil, block]
+      end
+
+      def els(&block)
+        @else ||= block
+      end
+
+      def new_break
+        @break = Break.new(@g)
+      end
+
+      def clear_break
+        @break = nil
+      end
+
+      def break
+        raise "no break info" unless @break
+        @g.goto @break.label
+        @break.emit = true
+      end
+
+      def restore_exception
+        @g.restore_exception @saved_exc
+      end
+
+    end
+
+    def for_rescue
+      rb = RescueBlock.new(self)
+      yield rb
+
+      jump_retry = g.new_label
+      jump_else  = g.new_label
+      jump_last  = g.new_label
 
       g.push_modifiers
 
-      r_saved = save_exception
+      rb.saved_exc = save_exception
 
       jump_retry.set!
 
@@ -507,58 +553,126 @@ module Rubinius
 
       g.new_label.set!
 
-      yield :body
+      br = rb.new_break
+      rb.body.call
 
       g.pop_unwind
       g.goto jump_else
 
+      if br.emit
+        br.label.set!
+        g.pop_unwind
+
+        g.restore_exception rb.saved_exc
+
+        if br.original
+          g.goto br.original
+        else
+          g.goto jump_else
+        end
+      end
+
       exc_lbl.set!
 
-      klasses.flatten.each do |klass|
-        jump_body = self.new_label
-        jump_next = self.new_label
+      g.push_exception
 
-        self.push_const klass
-        self.push_exception
-        self.send :===, 1
-        self.git jump_body
+      rb.conditions.each do |klass, code|
+        jump_body = g.new_label
+        jump_next = g.new_label
 
-        self.goto jump_next
+        if klass
+          g.dup
+          g.push_const klass
+          g.swap
+          g.send :===, 1
+          g.git jump_body
 
-        jump_body.set!
+          g.goto jump_next
 
-        yield klass
+          jump_body.set!
 
-        self.clear_exception
-        self.goto jump_last
+          g.pop # remove the saved exception on the stack
+        end
+
+        br = rb.new_break
+        code.call(jump_body, jump_next)
+
+        g.clear_exception
+        g.goto jump_last
+
+        if br.emit
+          br.label.set!
+          g.clear_exception
+
+          g.restore_exception rb.saved_exc
+
+          if br.original
+            g.goto br.original
+          else
+            g.raise_break
+          end
+        end
 
         jump_next.set!
       end
 
+      g.pop_exception
       g.reraise
 
       jump_else.set!
 
-      yield :else
+      rb.els.call if rb.els
 
       jump_last.set!
 
-      restore_exception r_saved
+      restore_exception rb.saved_exc
 
       g.pop_modifiers
+    end
 
-      if has_ensure then
-        g.pop_unwind
-        g.goto ensure_good
-        ensure_bad.set!
-        g.push_exception
-        yield :ensure
-        g.pop_exception
-        g.reraise
-
-        ensure_good.set!
-        yield :ensure
+    class EnsureBlock
+      def initialize
+        @body = nil
+        @handler = nil
       end
+
+      def body(&block)
+        @body ||= block
+      end
+
+      def handler(&block)
+        @handler ||= block
+      end
+    end
+
+    def for_ensure
+      eb = EnsureBlock.new
+
+      yield eb
+
+      ensure_good = g.new_label
+      ensure_bad = g.new_label
+
+      g.setup_unwind ensure_bad
+
+      jump_top = g.new_label
+      jump_top.set!
+
+      g.save_exception
+
+      eb.body.call
+
+      g.pop_unwind
+      g.goto ensure_good
+      ensure_bad.set!
+      g.push_exception
+
+      eb.handler.call
+      g.pop_exception
+      g.reraise
+
+      ensure_good.set!
+      eb.handler.call
     end
 
     def optional_arg(slot)

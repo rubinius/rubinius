@@ -32,11 +32,12 @@ describe "A Hash node" do
       g.dup
       g.push 1
 
-      g.in_rescue :StandardError do |section|
-        case section
-        when :body then
+      g.for_rescue do |rb|
+        rb.body do
           g.push 2
-        when :StandardError then
+        end
+
+        rb.condition :StandardError do
           g.push 3
         end
       end

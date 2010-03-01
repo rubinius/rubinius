@@ -127,15 +127,17 @@ describe "An Lasgn node" do
       g.send :c, 0, true
       g.gif f
 
-      in_rescue :StandardError, 1 do |section|
-        case section
-        when :body then
+      for_rescue do |rb|
+        rb.body do
           g.push :self
           g.send :b, 0, true
-        when :StandardError then
+        end
+
+        rb.condition :StandardError do
           g.push :nil
         end
       end
+
       g.goto bottom
 
       f.set!

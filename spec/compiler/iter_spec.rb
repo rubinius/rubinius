@@ -367,100 +367,36 @@ describe "An Iter node" do
 
       d.cast_for_single_block_arg
       d.set_local 0
-
       d.pop
       d.push_modifiers
 
-      retry_lbl = d.new_label
-      else_lbl  = d.new_label
-      last_lbl  = d.new_label
+      redo_lbl = d.new_label
+      redo_lbl.set!
 
-      ensure_good_lbl = d.new_label
-      ensure_bad_lbl  = d.new_label
+      d.for_ensure do |eb|
+        eb.body do
+          d.for_rescue do |rb|
+            rb.body do
+              d.push_local_depth 1, 0
+            end
 
-      d.new_label.set!
+            rb.condition :Exception do
+              d.push_exception
+              d.set_local_depth 1, 0
+              d.pop
+              d.push :nil
 
-      d.setup_unwind ensure_bad_lbl
+              rb.break
+            end
+          end
+        end
 
-      top_lbl = d.new_label
-      top_lbl.set!
-
-      e_saved = d.save_exception
-      d.push_modifiers
-
-      r_saved = d.save_exception
-
-      retry_lbl.set!
-
-      exc_lbl = d.new_label
-      d.setup_unwind exc_lbl
-
-      d.new_label.set!
-
-      #body
-      d.push_local_depth 1, 0
-
-      d.pop_unwind
-      d.goto else_lbl
-
-      exc_lbl.set!
-
-      body_lbl = d.new_label
-      next_lbl = d.new_label
-      reraise_lbl = d.new_label
-
-      d.push_const :Exception
-      d.push_exception
-      d.send :===, 1
-      d.git body_lbl
-
-      d.goto next_lbl
-      body_lbl.set!
-
-      # Exception
-      d.push_exception
-      d.set_local_depth 1, 0
-      d.pop
-      d.push :nil
-      d.goto reraise_lbl
-
-      d.clear_exception
-      d.goto last_lbl
-
-      reraise_lbl.set!
-      d.clear_exception
-
-      d.restore_exception(r_saved)
-      d.raise_break
-
-      next_lbl.set!
-
-      d.reraise
-
-      else_lbl.set!
-      last_lbl.set!
-
-      d.restore_exception r_saved
-      d.pop_modifiers
-
-      d.pop_unwind
-      d.goto ensure_good_lbl
-
-      # ensure via exception
-      ensure_bad_lbl.set!
-      d.push_exception
-      d.push_local 0
-      d.set_local_depth 1, 0
-      d.pop
-      d.pop_exception
-      d.reraise
-
-      ensure_good_lbl.set!
-
-      # ensure via no exception
-      d.push_local 0
-      d.set_local_depth 1, 0
-      d.pop
+        eb.handler do
+          d.push_local 0
+          d.set_local_depth 1, 0
+          d.pop
+        end
+      end
 
       d.pop_modifiers
       d.ret
