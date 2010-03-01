@@ -122,7 +122,11 @@ class Backtrace
         str << new_pos
         str << clear
       else
-        str << "#{color} #{start}#{pos}#{clear}"
+        if start.size > @width - 20
+          str << "#{color} #{start}\\\n          #{pos}#{clear}"
+        else
+          str << "#{color} #{start}#{pos}#{clear}"
+        end
       end
 
       if rec_times > 1
