@@ -198,7 +198,7 @@ module Rubinius
     end
 
     def process_false(line)
-      AST::False.new line
+      AST::FalseLiteral.new line
     end
 
     def process_fcall(line, name, arguments)
@@ -232,7 +232,7 @@ module Rubinius
     end
 
     def process_float(line, str)
-      AST::Float.new line, str
+      AST::FloatLiteral.new line, str
     end
 
     def process_for(line, iter, arguments, body)
@@ -283,7 +283,7 @@ module Rubinius
     end
 
     def process_masgn(line, left, right, splat)
-      AST::MAsgn.new line, left, right, splat
+      AST::MultipleAssignment.new line, left, right, splat
     end
 
     def process_match(line, pattern, flags)
@@ -311,7 +311,7 @@ module Rubinius
     end
 
     def process_nil(line)
-      AST::Nil.new line
+      AST::NilLiteral.new line
     end
 
     def process_not(line, value)
@@ -417,7 +417,7 @@ module Rubinius
     end
 
     def process_true(line)
-      AST::True.new line
+      AST::TrueLiteral.new line
     end
 
     def process_undef(line, sym)

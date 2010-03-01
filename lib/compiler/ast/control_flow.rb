@@ -6,7 +6,7 @@ module Rubinius
       def initialize(line, whens, else_body)
         @line = line
         @whens = whens
-        @else = else_body || Nil.new(line)
+        @else = else_body || NilLiteral.new(line)
       end
 
       def bytecode(g)
@@ -28,7 +28,7 @@ module Rubinius
       end
 
       def to_sexp
-        else_sexp = @else.kind_of?(Nil) ? nil : @else.to_sexp
+        else_sexp = @else.kind_of?(NilLiteral) ? nil : @else.to_sexp
         sexp = [:case, receiver_sexp]
         sexp += @whens.map { |x| x.to_sexp }
         sexp << else_sexp
@@ -43,7 +43,7 @@ module Rubinius
         @line = line
         @receiver = receiver
         @whens = whens
-        @else = else_body || Nil.new(line)
+        @else = else_body || NilLiteral.new(line)
       end
 
       def bytecode(g)
@@ -73,7 +73,7 @@ module Rubinius
 
       def initialize(line, conditions, body)
         @line = line
-        @body = body || Nil.new(line)
+        @body = body || NilLiteral.new(line)
         @splat = nil
         @single = nil
 
@@ -240,8 +240,8 @@ module Rubinius
       def initialize(line, condition, body, else_body)
         @line = line
         @condition = condition
-        @body = body || Nil.new(line)
-        @else = else_body || Nil.new(line)
+        @body = body || NilLiteral.new(line)
+        @else = else_body || NilLiteral.new(line)
       end
 
       def bytecode(g)
@@ -263,7 +263,7 @@ module Rubinius
       end
 
       def to_sexp
-        else_sexp = @else.kind_of?(Nil) ? nil : @else.to_sexp
+        else_sexp = @else.kind_of?(NilLiteral) ? nil : @else.to_sexp
         [:if, @condition.to_sexp, @body.to_sexp, else_sexp]
       end
     end
@@ -274,7 +274,7 @@ module Rubinius
       def initialize(line, condition, body, check_first)
         @line = line
         @condition = condition
-        @body = body || Nil.new(line)
+        @body = body || NilLiteral.new(line)
         @check_first = check_first
       end
 
@@ -425,7 +425,7 @@ module Rubinius
 
       def initialize(line, expr)
         @line = line
-        @value = expr || Nil.new(line)
+        @value = expr || NilLiteral.new(line)
       end
 
       def jump_error(g, name)

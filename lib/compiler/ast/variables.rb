@@ -434,7 +434,7 @@ module Rubinius
       end
     end
 
-    class MAsgn < Node
+    class MultipleAssignment < Node
       attr_accessor :left, :right, :splat, :block
 
       def initialize(line, left, right, splat)
@@ -528,7 +528,7 @@ module Rubinius
             g.state.push_masgn
             @left.body.each do |x|
               g.shift_array
-              g.cast_array if x.kind_of? MAsgn and x.left
+              g.cast_array if x.kind_of? MultipleAssignment and x.left
               x.bytecode(g)
               g.pop
             end

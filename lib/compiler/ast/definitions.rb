@@ -188,7 +188,7 @@ module Rubinius
         @line = line
         @name = name
         @arguments = block.strip_arguments
-        block.array << Nil.new(line) if block.array.empty?
+        block.array << NilLiteral.new(line) if block.array.empty?
         @body = block
       end
 
@@ -438,7 +438,7 @@ module Rubinius
       def initialize(line, name, superclass, body)
         @line = line
 
-        @superclass = superclass ? superclass : Nil.new(line)
+        @superclass = superclass ? superclass : NilLiteral.new(line)
 
         if name.kind_of? Symbol
           @name = ClassName.new line, name, @superclass
@@ -692,7 +692,7 @@ module Rubinius
       attr_accessor :file, :name, :variable_scope
 
       def initialize(body)
-        @body = body || Nil.new(1)
+        @body = body || NilLiteral.new(1)
       end
 
       def container_bytecode(g)

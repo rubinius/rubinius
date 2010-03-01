@@ -330,7 +330,7 @@ module Rubinius
       def initialize(line, arguments, body)
         @line = line
         @arguments = IterArguments.new line, arguments
-        @body = body || Nil.new(line)
+        @body = body || NilLiteral.new(line)
       end
 
       def module?
@@ -449,7 +449,7 @@ module Rubinius
           @splat_index = nil
           @arity = 0
           @prelude = nil
-        when MAsgn
+        when MultipleAssignment
           arguments.iter_arguments
 
           if arguments.splat
@@ -500,7 +500,7 @@ module Rubinius
 
       def names
         case @arguments
-        when MAsgn
+        when MultipleAssignment
           if arguments = @arguments.left.body
             array = arguments.map { |x| x.name }
           else

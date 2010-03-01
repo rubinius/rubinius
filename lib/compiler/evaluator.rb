@@ -35,19 +35,19 @@ module Rubinius
       end
     end
 
-    class True
+    class TrueLiteral
       def execute(e)
         true
       end
     end
 
-    class False
+    class FalseLiteral
       def execute(e)
         false
       end
     end
 
-    class Nil
+    class NilLiteral
       def execute(e)
         nil
       end

@@ -35,7 +35,7 @@ module Rubinius
       end
     end
 
-    class False < Node
+    class FalseLiteral < Node
       def bytecode(g)
         pos(g)
 
@@ -51,7 +51,7 @@ module Rubinius
       end
     end
 
-    class True < Node
+    class TrueLiteral < Node
       def bytecode(g)
         pos(g)
 
@@ -67,7 +67,7 @@ module Rubinius
       end
     end
 
-    class Float < Node
+    class FloatLiteral < Node
       attr_accessor :value
 
       def initialize(line, str)
@@ -147,7 +147,7 @@ module Rubinius
       end
     end
 
-    class Nil < Node
+    class NilLiteral < Node
       def bytecode(g)
         pos(g)
 

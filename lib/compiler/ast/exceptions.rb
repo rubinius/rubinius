@@ -24,7 +24,7 @@ module Rubinius
 
       def initialize(line, body, ensr)
         @line = line
-        @body = body || Nil.new(line)
+        @body = body || NilLiteral.new(line)
         @ensure = ensr
       end
 
@@ -224,11 +224,11 @@ module Rubinius
           @assignment = body.array.shift if assignment? body.array.first
           @body = body
         when nil
-          @body = Nil.new line
+          @body = NilLiteral.new line
         else
           if assignment? body
             @assignment = body
-            @body = Nil.new line
+            @body = NilLiteral.new line
           else
             @body = body
           end
