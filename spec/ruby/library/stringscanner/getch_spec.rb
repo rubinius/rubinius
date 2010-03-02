@@ -39,10 +39,13 @@ describe "StringScanner#getch" do
     s.getch.should == nil
   end
 
-  it "does not accept any arguments" do
-    s = StringScanner.new('abc')
-    lambda {
-      s.getch(5)
-    }.should raise_error(ArgumentError, /wrong .* arguments/)
+  it "always returns instance of String, never a String subclass" do
+    cls = Class.new(String)
+    sub = cls.new("abc")
+
+    s = StringScanner.new(sub)
+    ch = s.getch
+    ch.should_not be_kind_of(cls)
+    ch.should == "a"
   end
 end
