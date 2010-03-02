@@ -1,12 +1,12 @@
 class ScanError < StandardError; end
 
 class StringScanner
-  Id = "bite me $Id".freeze
+  Id = "None$Id".freeze
   Version = "1.0.0".freeze
 
   attr_reader :pos, :match, :string
 
-  def pos= n
+  def pos=(n)
     raise RangeError, "xxx" if string && n > string.size
     @pos = n
   end
@@ -14,21 +14,21 @@ class StringScanner
   alias :pointer :pos
   alias :pointer= :pos=
 
-  def [] n
+  def [](n)
     raise TypeError, "Bad argument #{n.inspect}" unless n.respond_to? :to_int
     match[n]
   end
 
   def bol?
-    pos == 0 or string[pos-1..pos-1] == "\n"
+    pos == 0 or string[pos-1] == ?\n
   end
   alias :beginning_of_line? :bol?
 
-  def check pattern
+  def check(pattern)
     _scan pattern, false, true, true
   end
 
-  def check_until pattern
+  def check_until(pattern)
     _scan pattern, false, true, false
   end
 
@@ -37,8 +37,8 @@ class StringScanner
     terminate
   end
 
-  def concat str
-    self.string << str
+  def concat(str)
+    @string << str
     self
   end
   alias :<< :concat # TODO: reverse
@@ -49,10 +49,10 @@ class StringScanner
   end
 
   def eos?
-    self.pos >= self.string.size
+    @pos >= @string.size
   end
 
-  def exist? pattern
+  def exist?(pattern)
     _scan pattern, false, false, false
   end
 
@@ -69,19 +69,19 @@ class StringScanner
     scan(/./m)
   end
 
-  def initialize string, dup = false
-    self.string = string
-    self.reset
+  def initialize(string, dup=false)
+    @string = String.new(string)
+    reset
   end
 
-  def initialize_copy orig
+  def initialize_copy(orig)
     @match  = orig.match
     @pos    = orig.pos
     @string = orig.string
   end
 
   def inspect
-    if defined? @string then
+    if defined? @string
       rest = string.size > 5 ? string[pos..pos+4] + "..." : string
       r = if eos? then
             "#<StringScanner fin>"
@@ -98,7 +98,7 @@ class StringScanner
     end
   end
 
-  def match? pattern
+  def match?(pattern)
     _scan pattern, false, false, true
   end
 
@@ -128,7 +128,7 @@ class StringScanner
   end
 
   def reset
-    @prev_pos = self.pos = 0
+    @prev_pos = @pos = 0
     @match = nil
     self
   end
@@ -150,19 +150,19 @@ class StringScanner
     rest_size
   end
 
-  def scan pattern
+  def scan(pattern)
     _scan pattern, true, true, true
   end
 
-  def scan_until pattern
+  def scan_until(pattern)
     _scan pattern, true, true, false
   end
 
-  def scan_full pattern, succptr, getstr
+  def scan_full(pattern, succptr, getstr)
     _scan pattern, succptr, getstr, true
   end
 
-  def search_full pattern, succptr, getstr
+  def search_full(pattern, succptr, getstr)
     _scan pattern, succptr, getstr, false
   end
 
@@ -170,47 +170,53 @@ class StringScanner
     self
   end
 
-  def skip pattern
+  def skip(pattern)
     _scan pattern, true, false, true
   end
 
-  def skip_until pattern
+  def skip_until(pattern)
     _scan pattern, true, false, false
   end
 
-  def string= s
+  def string=(s)
     reset
     @string = s
   end
 
   def terminate
     @match = nil
-    self.pos = string.size
+    @pos = string.size
     self
   end
 
   def unscan
     raise ScanError if @match.nil?
-    self.pos = @prev_pos
+    @pos = @prev_pos
     @prev_pos = nil
     @match = nil
     self
   end
 
-  def peek len
+  def peek(len)
     raise ArgumentError if len < 0
     return "" if len.zero?
-    return string[pos, len]
+
+    begin
+      return @string[pos, len]
+    rescue TypeError
+      raise RangeError, "offset outside of possible range"
+    end
   end
 
-  def peep len
+  def peep(len)
     warn "StringScanner#peep is obsolete; use #peek instead" if $VERBOSE
     peek len
   end
 
-  def _scan pattern, succptr, getstr, headonly
-    raise TypeError, "bad pattern argument: #{pattern.inspect}" unless
-      String === pattern or Regexp === pattern or pattern.respond_to? :to_str
+  def _scan(pattern, succptr, getstr, headonly)
+    unless String === pattern or Regexp === pattern or pattern.respond_to? :to_str
+      raise TypeError, "bad pattern argument: #{pattern.inspect}"
+    end
 
     @match = nil
 
@@ -218,7 +224,7 @@ class StringScanner
 
     rest = self.rest
 
-    if headonly then
+    if headonly
       # NOTE - match_start is an Oniguruma feature that Rubinius exposes.
       # We use it here to avoid creating a new Regexp with '^' prepended.
       @match = pattern.match_start rest, 0
@@ -230,12 +236,12 @@ class StringScanner
 
     m = rest[0, @match.end(0)]
 
-    if succptr then
+    if succptr
       @prev_pos = pos
-      self.pos += m.size
+      @pos += m.size
     end
 
-    if getstr then
+    if getstr
       m
     else
       m.size
