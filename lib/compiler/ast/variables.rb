@@ -71,6 +71,10 @@ module Rubinius
         @value = value
       end
 
+      def defined(g)
+        g.push_literal "assignment"
+      end
+
       def to_sexp
         sexp = [sexp_name, @name]
         sexp << @value.to_sexp if @value
@@ -425,10 +429,6 @@ module Rubinius
         @variable.set_bytecode(g)
       end
 
-      def defined(g)
-        g.push_literal "assignment"
-      end
-
       def sexp_name
         :lasgn
       end
@@ -542,6 +542,10 @@ module Rubinius
           g.pop if !@fixed or @splat
           g.push :true
         end
+      end
+
+      def defined(g)
+        g.push_literal "assignment"
       end
 
       def to_sexp
