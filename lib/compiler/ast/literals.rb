@@ -18,6 +18,10 @@ module Rubinius
         g.make_array @body.size
       end
 
+      def defined(g)
+        g.push_literal "expression"
+      end
+
       def to_sexp
         @body.inject([:array]) { |s, x| s << x.to_sexp }
       end
@@ -28,6 +32,10 @@ module Rubinius
         pos(g)
 
         g.make_array 0
+      end
+
+      def defined(g)
+        g.push_literal "expression"
       end
 
       def to_sexp
@@ -81,6 +89,10 @@ module Rubinius
         g.push_unique_literal @value
       end
 
+      def defined(g)
+        g.push_literal "expression"
+      end
+
       def to_sexp
         [:lit, @value]
       end
@@ -117,6 +129,10 @@ module Rubinius
 
           i += 2
         end
+      end
+
+      def defined(g)
+        g.push_literal "expression"
       end
 
       def to_sexp
@@ -197,6 +213,10 @@ module Rubinius
 
         g.push @value
       end
+
+      def defined(g)
+        g.push_literal "expression"
+      end
     end
 
     class Range < Node
@@ -216,6 +236,10 @@ module Rubinius
         @start.bytecode(g)
         @finish.bytecode(g)
         g.send :new, 2
+      end
+
+      def defined(g)
+        g.push_literal "expression"
       end
 
       def to_sexp
@@ -277,6 +301,10 @@ module Rubinius
         g.send :new, 2
         g.set_literal idx
         lbl.set!
+      end
+
+      def defined(g)
+        g.push_literal "expression"
       end
 
       def to_sexp
