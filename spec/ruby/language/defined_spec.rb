@@ -350,8 +350,18 @@ describe "The defined? keyword for an expression" do
       end
 
       it "calls the method in the String" do
-        defined?("garble #{DefinedSpecs.side_effects}")
+        defined?("garble #{DefinedSpecs.side_effects}").should == "expression"
         ScratchPad.recorded.should == :defined_specs_side_effects
+      end
+
+      it "returns nil if any of the interpolated method calls are undefined" do
+        defined?("#{DefinedSpecs.side_effects} #{DefinedSpecs.undefined_method}").should be_nil
+        ScratchPad.recorded.should == :defined_specs_side_effects
+      end
+
+      it "returns nil and stops processing if any of the interpolated method calls are undefined" do
+        defined?("#{DefinedSpecs.undefined_method} #{DefinedSpecs.side_effects}").should be_nil
+        ScratchPad.recorded.should be_nil
       end
     end
 
@@ -361,7 +371,49 @@ describe "The defined? keyword for an expression" do
       end
 
       it "does not call the method in the String" do
-        defined?("garble #{DefinedSpecs.dynamic_string}")
+        defined?("garble #{DefinedSpecs.dynamic_string}").should == "expression"
+        ScratchPad.recorded.should be_nil
+      end
+    end
+  end
+
+  describe "with a dynamic Regexp" do
+    it "returns 'expression' when the Regexp contains a literal" do
+      defined?(/garble #{42}/).should == "expression"
+    end
+
+    it "returns 'expression' when the Regexp contains a call to a defined method" do
+      defined?(/garble #{DefinedSpecs.side_effects}/).should == "expression"
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "returns nil when the Regexp contains a call to an undefined method" do
+        defined?(/garble #{DefinedSpecs.undefined_method}/).should be_nil
+      end
+
+      it "calls the method in the Regexp" do
+        defined?(/garble #{DefinedSpecs.side_effects}/).should == "expression"
+        ScratchPad.recorded.should == :defined_specs_side_effects
+      end
+
+      it "returns nil if any of the interpolated method calls are undefined" do
+        defined?(/#{DefinedSpecs.side_effects} #{DefinedSpecs.undefined_method}/).should be_nil
+        ScratchPad.recorded.should == :defined_specs_side_effects
+      end
+
+      it "returns nil and stops processing if any of the interpolated method calls are undefined" do
+        defined?(/#{DefinedSpecs.undefined_method} #{DefinedSpecs.side_effects}/).should be_nil
+        ScratchPad.recorded.should be_nil
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "returns 'expression' when the Regexp contains a call to an undefined method" do
+        defined?(/garble #{DefinedSpecs.undefined_method}/).should == "expression"
+      end
+
+      it "does not call the method in the Regexp" do
+        defined?(/garble #{DefinedSpecs.dynamic_string}/).should == "expression"
         ScratchPad.recorded.should be_nil
       end
     end
@@ -425,6 +477,234 @@ describe "The defined? keyword for variables" do
     DefinedSpecs::Basic.new.global_variable_read.should be_nil
   end
 
+  # MRI appears to special case defined? for $! and $~ in that it returns
+  # 'global-variable' even when they are not set (or they are always "set"
+  # but the value may be nil). In other words, 'defined?($~)' will return
+  # 'global-variable' even if no match has been done.
+
+  it "returns 'global-variable' for $!" do
+    defined?($!).should == "global-variable"
+  end
+
+  it "returns 'global-variable for $~" do
+    defined?($~).should == "global-variable"
+  end
+
+  describe "when a String does not match a Regexp" do
+    before :each do
+      "mis-matched" =~ /z(z)z/
+    end
+
+    it "returns 'global-variable' for $~" do
+      defined?($~).should == "global-variable"
+    end
+
+    it "returns nil for $&" do
+      defined?($&).should be_nil
+    end
+
+    it "returns nil for $`" do
+      defined?($`).should be_nil
+    end
+
+    it "returns nil for $'" do
+      defined?($').should be_nil
+    end
+
+    it "returns nil for $+" do
+      defined?($+).should be_nil
+    end
+
+    it "returns nil for $1-$9" do
+      defined?($1).should be_nil
+      defined?($2).should be_nil
+      defined?($3).should be_nil
+      defined?($4).should be_nil
+      defined?($5).should be_nil
+      defined?($6).should be_nil
+      defined?($7).should be_nil
+      defined?($8).should be_nil
+      defined?($9).should be_nil
+    end
+  end
+
+  describe "when a String matches a Regexp" do
+    before :each do
+      "mis-matched" =~ /s(-)m(.)/
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "returns 'global-variable' for $~" do
+        defined?($~).should == "global-variable"
+      end
+
+      it "returns 'global-variable' for $&" do
+        defined?($&).should == "$&"
+      end
+
+      it "returns 'global-variable' for $`" do
+        defined?($`).should == "$`"
+      end
+
+      it "returns 'global-variable' for $'" do
+        defined?($').should == "$'"
+      end
+
+      it "returns 'global-variable' for $+" do
+        defined?($+).should == "$+"
+      end
+
+      it "returns 'global-variable' for the capture references" do
+        defined?($1).should == "$1"
+        defined?($2).should == "$2"
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "returns 'global-variable' for $~" do
+        defined?($~).should == "global-variable"
+      end
+
+      it "returns 'global-variable' for $&" do
+        defined?($&).should == "global-variable"
+      end
+
+      it "returns 'global-variable' for $`" do
+        defined?($`).should == "global-variable"
+      end
+
+      it "returns 'global-variable' for $'" do
+        defined?($').should == "global-variable"
+      end
+
+      it "returns 'global-variable' for $+" do
+        defined?($+).should == "global-variable"
+      end
+
+      it "returns 'global-variable' for the capture references" do
+        defined?($1).should == "global-variable"
+        defined?($2).should == "global-variable"
+      end
+    end
+
+    it "returns nil for non-captures" do
+      defined?($3).should be_nil
+      defined?($4).should be_nil
+      defined?($5).should be_nil
+      defined?($6).should be_nil
+      defined?($7).should be_nil
+      defined?($8).should be_nil
+      defined?($9).should be_nil
+    end
+  end
+
+  describe "when a Regexp does not match a String" do
+    before :each do
+      /z(z)z/ =~ "mis-matched"
+    end
+
+    it "returns 'global-variable' for $~" do
+      defined?($~).should == "global-variable"
+    end
+
+    it "returns nil for $&" do
+      defined?($&).should be_nil
+    end
+
+    it "returns nil for $`" do
+      defined?($`).should be_nil
+    end
+
+    it "returns nil for $'" do
+      defined?($').should be_nil
+    end
+
+    it "returns nil for $+" do
+      defined?($+).should be_nil
+    end
+
+    it "returns nil for $1-$9" do
+      defined?($1).should be_nil
+      defined?($2).should be_nil
+      defined?($3).should be_nil
+      defined?($4).should be_nil
+      defined?($5).should be_nil
+      defined?($6).should be_nil
+      defined?($7).should be_nil
+      defined?($8).should be_nil
+      defined?($9).should be_nil
+    end
+  end
+
+  describe "when a Regexp matches a String" do
+    before :each do
+      /s(-)m(.)/ =~ "mis-matched"
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "returns 'global-variable' for $~" do
+        defined?($~).should == "global-variable"
+      end
+
+      it "returns 'global-variable' for $&" do
+        defined?($&).should == "$&"
+      end
+
+      it "returns 'global-variable' for $`" do
+        defined?($`).should == "$`"
+      end
+
+      it "returns 'global-variable' for $'" do
+        defined?($').should == "$'"
+      end
+
+      it "returns 'global-variable' for $+" do
+        defined?($+).should == "$+"
+      end
+
+      it "returns 'global-variable' for the capture references" do
+        defined?($1).should == "$1"
+        defined?($2).should == "$2"
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "returns 'global-variable' for $~" do
+        defined?($~).should == "global-variable"
+      end
+
+      it "returns 'global-variable' for $&" do
+        defined?($&).should == "global-variable"
+      end
+
+      it "returns 'global-variable' for $`" do
+        defined?($`).should == "global-variable"
+      end
+
+      it "returns 'global-variable' for $'" do
+        defined?($').should == "global-variable"
+      end
+
+      it "returns 'global-variable' for $+" do
+        defined?($+).should == "global-variable"
+      end
+
+      it "returns 'global-variable' for the capture references" do
+        defined?($1).should == "global-variable"
+        defined?($2).should == "global-variable"
+      end
+    end
+
+    it "returns nil for non-captures" do
+      defined?($3).should be_nil
+      defined?($4).should be_nil
+      defined?($5).should be_nil
+      defined?($6).should be_nil
+      defined?($7).should be_nil
+      defined?($8).should be_nil
+      defined?($9).should be_nil
+    end
+  end
   it "returns 'global-variable' for a global variable that has been assigned" do
     DefinedSpecs::Basic.new.global_variable_defined.should == "global-variable"
   end
