@@ -106,6 +106,14 @@ module Rubinius
         g.send :to_s, 0, true
       end
 
+      def defined(g)
+        if @value
+          @value.call_defined(g)
+        else
+          g.push :nil
+        end
+      end
+
       def to_sexp
         sexp = [:evstr]
         sexp << @value.to_sexp if @value

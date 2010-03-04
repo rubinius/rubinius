@@ -124,13 +124,17 @@ module Rubinius
         g.send :class_variable_get, 1
       end
 
+      def check_variable(g)
+        g.push_scope
+        g.push_literal @name
+        g.send :class_variable_defined?, 1
+      end
+
       def defined(g)
         t = g.new_label
         f = g.new_label
 
-        g.push_scope
-        g.push_literal @name
-        g.send :class_variable_defined?, 1
+        check_variable(g)
         g.git t
         g.push :nil
         g.goto f
@@ -139,6 +143,12 @@ module Rubinius
         g.push_literal "class variable"
 
         f.set!
+      end
+
+      def receiver_defined(g, f)
+        check_variable(g)
+        g.gif f
+        bytecode(g)
       end
 
       def to_sexp
@@ -195,14 +205,20 @@ module Rubinius
         end
       end
 
-      def defined(g)
-        t = g.new_label
-        f = g.new_label
+      def check_variable(g, t)
+        g.goto t if @name == :$! or @name == :$~
 
         g.push_const :Rubinius
         g.find_const :Globals
         g.push_literal @name
         g.send :key?, 1
+      end
+
+      def defined(g)
+        t = g.new_label
+        f = g.new_label
+
+        check_variable(g, t)
         g.git t
 
         g.push :nil
@@ -214,6 +230,16 @@ module Rubinius
         f.set!
       end
 
+      def receiver_defined(g, f)
+        t = g.new_label
+
+        check_variable(g, t)
+        g.gif f
+
+        t.set!
+        bytecode(g)
+      end
+
       def to_sexp
         [:gvar, @name]
       end
@@ -223,7 +249,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        # @value can to be present if this is coming via an masgn, which means
+        # @value can be nil if this is coming via an masgn, which means
         # the value is already on the stack.
         if @name == :$!
           @value.bytecode(g) if @value
@@ -335,13 +361,17 @@ module Rubinius
         g.push_ivar @name
       end
 
+      def check_variable(g)
+        g.push :self
+        g.push_literal @name
+        g.send :instance_variable_defined?, 1
+      end
+
       def defined(g)
         t = g.new_label
         f = g.new_label
 
-        g.push :self
-        g.push_literal @name
-        g.send :__instance_variable_defined_eh__, 1
+        check_variable(g)
         g.git t
 
         g.push :nil
@@ -351,6 +381,12 @@ module Rubinius
         g.push_literal "instance-variable"
 
         f.set!
+      end
+
+      def receiver_defined(g, f)
+        check_variable(g)
+        g.gif f
+        bytecode(g)
       end
 
       def to_sexp

@@ -424,6 +424,26 @@ module Rubinius
         g.string_build total
       end
 
+      def defined(g)
+        f = g.new_label
+        done = g.new_label
+
+        @array.each do |x|
+          x.call_defined(g)
+          g.is_nil
+          g.git f
+        end
+
+        g.push_literal "expression"
+        g.goto done
+
+        f.set!
+        g.push :nil
+        g.goto done
+
+        done.set!
+      end
+
       def sexp_name
         :dstr
       end

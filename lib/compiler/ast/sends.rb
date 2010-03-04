@@ -36,6 +36,23 @@ module Rubinius
         bytecode(g)
       end
 
+      def call_defined(g)
+        ok = g.new_label
+        ex = g.new_label
+        g.setup_unwind ex, RescueType
+
+        bytecode(g)
+
+        g.pop_unwind
+        g.goto ok
+
+        ex.set!
+        g.clear_exception
+        g.push :nil
+
+        ok.set!
+      end
+
       def defined(g)
         if @receiver.kind_of? Self and (@check_for_local or g.state.eval?)
           if reference = g.state.scope.search_local(@name)
@@ -47,8 +64,20 @@ module Rubinius
         f = g.new_label
         done = g.new_label
 
+        ok = g.new_label
+        ex = g.new_label
+        g.setup_unwind ex, RescueType
+
         @receiver.receiver_defined(g, f)
 
+        g.pop_unwind
+        g.goto ok
+
+        ex.set!
+        g.clear_exception
+        g.goto f
+
+        ok.set!
         g.push_literal @name
         g.push :true
         g.send :__respond_to_eh__, 2

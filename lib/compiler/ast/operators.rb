@@ -67,6 +67,31 @@ module Rubinius
         end_label.set!
       end
 
+      def defined(g)
+        t = g.new_label
+        f = g.new_label
+        done = g.new_label
+
+        case @value
+        when GlobalVariableAccess, InstanceVariableAccess
+          g.goto t
+        else
+          @value.call_defined(g)
+        end
+
+        g.is_nil
+        g.git f
+
+        t.set!
+        g.push_literal "expression"
+        g.goto done
+
+        f.set!
+        g.push :nil
+
+        done.set!
+      end
+
       def to_sexp
         [:not, @value.to_sexp]
       end

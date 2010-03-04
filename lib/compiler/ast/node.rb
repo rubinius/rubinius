@@ -94,6 +94,10 @@ module Rubinius
         g.goto f
       end
 
+      def call_defined(g)
+        defined(g)
+      end
+
       def visit(arg=true, &block)
         instance_variables.each do |name|
           child = instance_variable_get name
