@@ -115,9 +115,30 @@ describe "The defined? keyword when called with a method name" do
       defined?(@@nonexistent_class_variable.some_method).should be_nil
     end
   end
+
+  describe "having a method call as a receiver" do
+    it "returns nil if evaluating the receiver raises an exception" do
+      defined?(DefinedSpecs.exception_method / 2).should be_nil
+      ScratchPad.recorded.should == :defined_specs_exception
+    end
+
+    it "returns nil if the method is not defined on the object the receiver returns" do
+      defined?(DefinedSpecs.side_effects / 2).should be_nil
+      ScratchPad.recorded.should == :defined_specs_side_effects
+    end
+
+    it "returns 'method' if the method is defined on the object the receiver returns" do
+      defined?(DefinedSpecs.fixnum_method / 2).should == "method"
+      ScratchPad.recorded.should == :defined_specs_fixnum_method
+    end
+  end
 end
 
 describe "The defined? keyword for an expression" do
+  before :each do
+    ScratchPad.clear
+  end
+
   it "returns 'assignment' for assigning a local variable" do
     defined?(x = 2).should == "assignment"
   end
@@ -132,6 +153,10 @@ describe "The defined? keyword for an expression" do
 
   it "returns 'assignment' for assigning a class variable" do
     defined?(@@defined_specs_x = 2).should == "assignment"
+  end
+
+  it "returns 'assignment' for assigning multiple variables" do
+    defined?((a, b = 1, 2)).should == "assignment"
   end
 
   it "returns 'assignment' for an expression with '%='" do
@@ -190,16 +215,16 @@ describe "The defined? keyword for an expression" do
     defined?(x **= 2).should == "assignment"
   end
 
-  it "returns nil for an expression with == and an undefined local variable" do
-    defined?(x == 2).should be_nil
+  it "returns nil for an expression with == and an undefined method" do
+    defined?(defined_specs_undefined_method == 2).should be_nil
   end
 
-  it "returns nil for an expression with != and an undefined local variable" do
-    defined?(x != 2).should be_nil
+  it "returns nil for an expression with != and an undefined method" do
+    defined?(defined_specs_undefined_method != 2).should be_nil
   end
 
-  it "returns nil for an expression with !~ and an undefined local variable" do
-    defined?(x !~ 2).should be_nil
+  it "returns nil for an expression with !~ and an undefined method" do
+    defined?(defined_specs_undefined_method !~ 2).should be_nil
   end
 
   it "returns 'method' for an expression with '=='" do
@@ -239,7 +264,17 @@ describe "The defined? keyword for an expression" do
     defined?(not @@defined_specs_undefined_class_variable).should be_nil
   end
 
+  it "does not propagate an exception raised by a method in a 'not' expression" do
+    defined?(not DefinedSpecs.exception_method).should be_nil
+    ScratchPad.recorded.should == :defined_specs_exception
+  end
+
   ruby_version_is ""..."1.9" do
+    it "calls a method in a 'not' expression and returns 'expression'" do
+      defined?(not DefinedSpecs.side_effects).should == "expression"
+      ScratchPad.recorded.should == :defined_specs_side_effects
+    end
+
     it "returns 'expression' for an expression with 'not' and an unset global variable" do
       defined?(not $defined_specs_undefined_global_variable).should == "expression"
     end
@@ -250,6 +285,15 @@ describe "The defined? keyword for an expression" do
   end
 
   ruby_version_is "1.9" do
+    it "returns 'method' for a 'not' expression with a method" do
+      defined?(not DefinedSpecs.side_effects).should == "method"
+    end
+
+    it "calls a method in a 'not' expression and returns 'method'" do
+      defined?(not DefinedSpecs.side_effects).should == "method"
+      ScratchPad.recorded.should == :defined_specs_side_effects
+    end
+
     it "returns nil for an expression with 'not' and an unset global variable" do
       defined?(not $defined_specs_undefined_global_variable).should be_nil
     end
@@ -292,16 +336,12 @@ describe "The defined? keyword for an expression" do
   end
 
   describe "with a dynamic String" do
-    before :each do
-      ScratchPad.clear
-    end
-
     it "returns 'expression' when the String contains a literal" do
       defined?("garble #{42}").should == "expression"
     end
 
     it "returns 'expression' when the String contains a call to a defined method" do
-      defined?("garble #{DefinedSpecs.dynamic_string}").should == "expression"
+      defined?("garble #{DefinedSpecs.side_effects}").should == "expression"
     end
 
     ruby_version_is ""..."1.9" do
@@ -310,8 +350,8 @@ describe "The defined? keyword for an expression" do
       end
 
       it "calls the method in the String" do
-        defined?("garble #{DefinedSpecs.dynamic_string}")
-        ScratchPad.recorded.should == :dynamic_string
+        defined?("garble #{DefinedSpecs.side_effects}")
+        ScratchPad.recorded.should == :defined_specs_side_effects
       end
     end
 

@@ -1,8 +1,18 @@
 module DefinedSpecs
   self::SelfScoped = 42
 
-  def self.dynamic_string
-    ScratchPad.record :dynamic_string
+  def self.side_effects
+    ScratchPad.record :defined_specs_side_effects
+  end
+
+  def self.fixnum_method
+    ScratchPad.record :defined_specs_fixnum_method
+    42
+  end
+
+  def self.exception_method
+    ScratchPad.record :defined_specs_exception
+    raise "defined? specs exception method"
   end
 
   class Basic
