@@ -417,6 +417,8 @@ module Zlib
     def ready?
       @flags & READY == READY
     end
+    alias :closed? :ready?
+    alias :ended? :ready?
 
     ##
     # Resets and initializes the stream. All data in both input and output
@@ -822,7 +824,6 @@ module Zlib
     def closed?
       @io.nil?
     end
-    alias :ended? :closed?
 
     ##
     # Returns comments recorded in the gzip file header, or nil if the
