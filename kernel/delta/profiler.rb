@@ -81,7 +81,7 @@ module Rubinius
 
       SHORT_LINES = 45
 
-      def show(out=STDOUT)
+      def show(out=$stdout)
         unless self.class.available? and @info
           out.puts "No profiling data was available"
           return
@@ -356,7 +356,7 @@ module Rubinius
         end
       end
 
-      def display(out=STDOUT)
+      def display(out=$stdout)
         @total_slices = 0
         @calls = Hash.new { |h,k| h[k] = Call.new(k) }
 
