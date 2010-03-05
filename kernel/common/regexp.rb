@@ -230,7 +230,10 @@ class Regexp
   end
 
   def inspect
-    str = '/' << source.gsub("/", "\\/") << '/' << option_to_string(options)
+    # the regexp matches any / that is after anything except for a \
+    # and also a / at the beginning of the string
+    escape = source.gsub(%r!(^|[^\\])/!) { "#{$1}\\/" }
+    str = "/#{escape}/#{option_to_string(options)}"
     k = kcode()
     str << k[0,1] if k and k != "none"
     return str
