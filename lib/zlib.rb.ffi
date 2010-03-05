@@ -822,6 +822,7 @@ module Zlib
     def closed?
       @io.nil?
     end
+    alias :ended? :closed?
 
     ##
     # Returns comments recorded in the gzip file header, or nil if the
