@@ -147,7 +147,8 @@ class String
   def ==(other)
     Ruby.primitive :string_equal
 
-    unless other.kind_of?(String)
+    # Use #=== rather than #kind_of? because other might redefine kind_of?
+    unless String === other
       if other.respond_to?(:to_str)
         return other == self
       end
@@ -853,7 +854,7 @@ class String
 
     last_end = 0
     offset = nil
-    ret = self.class.pattern(0,0) # Empty string, or string subclass
+    ret = substring(0,0) # Empty string and string subclass
 
     last_match = nil
     match = pattern.match_from self, last_end
@@ -862,7 +863,7 @@ class String
 
     while match
       if str = match.pre_match_from(last_end)
-        ret << str
+        ret.append str
       end
 
       if replacement == undefined
@@ -870,11 +871,11 @@ class String
 
         val = yield(match[0]).to_s
         tainted ||= val.tainted?
-        ret << val
+        ret.append val
 
         raise RuntimeError, "string modified" if self != copy
       else
-        ret << replacement.to_sub_replacement(match)
+        ret.append replacement.to_sub_replacement(match)
       end
 
       tainted ||= val.tainted?
@@ -902,7 +903,7 @@ class String
     Regexp.last_match = last_match
 
     str = substring(last_end, @num_bytes-last_end+1)
-    ret << str if str
+    ret.append str if str
 
     ret.taint if tainted || self.tainted?
     return ret
@@ -930,7 +931,7 @@ class String
 
     last_end = 0
     offset = nil
-    ret = self.class.pattern(0,0) # Empty string, or string subclass
+    ret = substring(0,0) # Empty string and string subclass
 
     last_match = nil
     match = pattern.match_from self, last_end
@@ -939,7 +940,7 @@ class String
 
     while match
       if str = match.pre_match_from(last_end)
-        ret << str
+        ret.append str
       end
 
       if replacement == undefined
@@ -947,11 +948,11 @@ class String
 
         val = yield(match[0]).to_s
         tainted ||= val.tainted?
-        ret << val
+        ret.append val
 
         raise RuntimeError, "string modified" if self != copy
       else
-        ret << replacement.to_sub_replacement(match)
+        ret.append replacement.to_sub_replacement(match)
       end
 
       tainted ||= val.tainted?
@@ -979,7 +980,7 @@ class String
     Regexp.last_match = last_match
 
     str = substring(last_end, @num_bytes-last_end+1)
-    ret << str if str
+    ret.append str if str
 
     ret.taint if tainted || self.tainted?
 
