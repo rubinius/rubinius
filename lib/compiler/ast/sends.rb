@@ -51,7 +51,7 @@ module Rubinius
 
         g.push_literal @name
         g.push :true
-        g.send :respond_to?, 2
+        g.send :__respond_to_eh__, 2
         g.gif f
         g.push_literal "method"
         g.goto done

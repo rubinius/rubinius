@@ -337,7 +337,7 @@ module Rubinius
 
         g.push :self
         g.push_literal @name
-        g.send :instance_variable_defined?, 1
+        g.send :__instance_variable_defined_eh__, 1
         g.git t
 
         g.push :nil
