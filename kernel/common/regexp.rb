@@ -519,7 +519,12 @@ class Regexp
   #
   def names
     if @names
-      @names.keys.map { |x| x.to_s }
+      ary = Array.new(@names.size)
+      @names.each do |k,v|
+        ary[v] = k.to_s
+      end
+
+      return ary
     else
       []
     end
