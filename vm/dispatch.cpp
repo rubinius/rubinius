@@ -31,6 +31,8 @@ namespace rubinius {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
       }
+
+      method_missing = true;
     }
 
     if(method_missing) {
