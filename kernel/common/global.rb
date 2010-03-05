@@ -11,7 +11,6 @@ module Rubinius
       @internal[:$;] = nil
       @internal[:$/] = "\n"             # Input record separator
       @internal[:$\] = nil              # Output record separator
-      @internal[:$>] = STDOUT
       @internal[:$<] = ARGF
       @internal[:$:] = load_path
       @internal[:$-I] = load_path
@@ -28,10 +27,10 @@ module Rubinius
       @internal[:$LOAD_PATH]       = load_path
       @internal[:$SAFE]            = 0
       @internal[:$FILENAME]        = '-'
+
       @internal[:$stderr]          = STDERR
       @internal[:$stdin]           = STDIN
       @internal[:$stdout]          = STDOUT
-      @internal[:$deferr]          = STDERR
 
       @alias = LookupTable.new
       @hooks = LookupTable.new
@@ -51,28 +50,37 @@ module Rubinius
       elsif @hooks.key? key
         @hooks[key][0].call(key)
       elsif @alias.key? key
-        @internal[@alias[key]]
+        self[@alias[key]]
       end
     end
 
     def []=(key, data)
-      if !@internal.key?(key) && alias_key = @alias[key]
-        @internal[alias_key] = data
+      if alias_key = @alias[key]
+        self[alias_key] = data
       elsif @hooks.key? key
-        @internal[key] = @hooks[key][1].call(key, data)
+        hook = @hooks[key]
+        val = hook[1].call(key, data)
+        if hook[2]
+          @internal[key] = val
+        end
       else
         @internal[key] = data
       end
     end
 
-    def add_alias(from, to)
-      if hook = @hooks[from]
-        @hooks[to] = hook
-      elsif alias_key = @alias[from]
-        @alias[to] = alias_key
-      else
-        @alias[to] = from
+    def add_alias(current_name, alias_name)
+      current_name = current_name.to_sym
+      alias_name = alias_name.to_sym
+
+      if @internal.key? alias_name
+        @internal.delete alias_name
       end
+
+      if @hooks.key? alias_name
+        @hooks.delete alias_name
+      end
+
+      @alias[alias_name] = current_name
     end
 
     def illegal_set(*args)
@@ -97,8 +105,16 @@ module Rubinius
           raise ArgumentError, "setter must respond to call"
         end
 
-        @hooks[var] = [getter, setter]
+        @hooks[var] = [getter, setter, false]
       end
+    end
+
+    def nil_return
+      nil
+    end
+
+    def set_filter(var, block)
+      @hooks[var] = [method(:nil_return), block, true]
     end
   end
 

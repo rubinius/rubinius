@@ -88,29 +88,40 @@ module Kernel
 
   Rubinius::Globals.set_hook(:$$) { Process.pid }
 
-  get = proc { ::STDOUT }
-  set = proc do |key, io|
+  write_filter = proc do |key, io|
     unless io.respond_to? :write
       raise ::TypeError, "#{key} must have write method, #{io.class} given"
     end
-    ::STDOUT = io
+    io
   end
-  Rubinius::Globals.set_hook(:$>, get, set)
-  Rubinius::Globals.set_hook(:$stdout, get, set)
+
+  Rubinius::Globals.add_alias :$stdout, :$>
+  Rubinius::Globals.set_filter(:$stdout, write_filter)
+  Rubinius::Globals.set_filter(:$stderr, write_filter)
+
+  get = proc do
+    warn "$defout is obsolete; it will be removed any day now"
+    $stdout
+  end
+
+  set = proc do |key, io|
+    warn "$defout is obsolete; it will be removed any day now"
+    $stdout = io
+  end
+
   Rubinius::Globals.set_hook(:$defout, get, set)
 
-  get = proc { ::STDIN }
-  set = proc { |key, io| ::STDIN = io }
-  Rubinius::Globals.set_hook(:$stdin, get, set)
-
-  get = proc { ::STDERR }
-  set = proc do |key, io|
-    unless io.respond_to? :write
-      raise ::TypeError, "#{key} must have write method, #{io.class} given"
-    end
-    ::STDERR = io
+  get = proc do
+    warn "$deferr is obsolete; it will be removed any day now"
+    $stderr
   end
-  Rubinius::Globals.set_hook(:$stderr, get, set)
+
+  set = proc do |key, io|
+    warn "$deferr is obsolete; it will be removed any day now"
+    $stderr = io
+  end
+
+  Rubinius::Globals.set_hook(:$deferr, get, set)
 
   # Proper kcode support
   get = proc { Rubinius.kcode.to_s }
