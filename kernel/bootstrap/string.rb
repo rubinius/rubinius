@@ -89,4 +89,14 @@ class String
   end
 
   private :transform
+
+  def self.base64_encode(str, line_length)
+    Ruby.primitive :string_base64_encode
+    raise PrimitiveFailure, "String.base64_encode failed"
+  end
+
+  def self.base64_decode(str)
+    Ruby.primitive :string_base64_decode
+    raise PrimitiveFailure, "String.base64_decode failed"
+  end
 end

@@ -89,7 +89,7 @@ class Array::Packer
           line.gsub(/[^ -<>-~\t\n]/) { |m| "=%02X" % m[0] } + "=\n"
         }.join
       when ?m
-        @result << encode(kind, len, :base64).join.sub(/(A{1,2})\n\Z/) { "#{'=' * $1.size}\n" }
+        base64(len)
       when ?w
         ber_compress(kind, len)
       when ?u
@@ -376,7 +376,13 @@ class Array::Packer
     end
   end
 
-  # u, m
+  # m
+  def base64(line_length)
+    line_length ||= 1
+    @result << String.base64_encode(StringValue(fetch_item), line_length)
+  end
+
+  # u
   def encode(kind, size, type = :base64)
     item = StringValue(fetch_item())
 
