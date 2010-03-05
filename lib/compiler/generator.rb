@@ -49,7 +49,7 @@ module Rubinius
       @redo = nil
       @next = nil
       @retry = nil
-      @last_line = 0
+      @last_line = nil
       @file = nil
       @lines = []
       @primitive = nil
@@ -244,7 +244,11 @@ module Rubinius
     def set_line(line)
       raise Exception, "source code line cannot be nil" unless line
 
-      if line > @last_line
+      if !@last_line
+        @lines << @ip
+        @lines << line
+        @last_line = line
+      elsif line > @last_line
         # Fold redundent line changes on the same ip into the same
         # entry, except for in the case where @ip is 0. Here's why:
         #

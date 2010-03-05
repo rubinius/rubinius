@@ -45,7 +45,7 @@ module Rubinius
 
     def initialize(name, line, transforms=[])
       @name = name
-      @line = line > 0 ? line : 1
+      @line = line
       @transforms = transforms
       @magic_handler = nil
     end
