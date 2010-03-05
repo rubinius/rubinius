@@ -303,21 +303,22 @@ class String
   # out of range; the <code>Range</code> form will raise a
   # <code>RangeError</code>, and the <code>Regexp</code> and <code>String</code>
   # forms will silently ignore the assignment.
-  def []=(*args)
-    if args.size == 3
-      if args.first.is_a? Regexp
-        subpattern_set args[0], Type.coerce_to(args[1], Integer, :to_int), args[2]
+  def []=(one, two, three=undefined)
+    unless three.equal? undefined
+      if one.is_a? Regexp
+        subpattern_set one, Type.coerce_to(two, Integer, :to_int), three
       else
-        splice! Type.coerce_to(args[0], Integer, :to_int), Type.coerce_to(args[1], Integer, :to_int), args[2]
+        start = Type.coerce_to(one, Integer, :to_int)
+        fin =   Type.coerce_to(two, Integer, :to_int)
+
+        splice! start, fin, three
       end
 
-      return args.last
-    elsif args.size != 2
-      raise ArgumentError, "wrong number of arguments (#{args.size} for 2)"
+      return three
     end
 
-    index = args[0]
-    replacement = args[1]
+    index = one
+    replacement = two
 
     case index
     when Regexp
@@ -1013,11 +1014,12 @@ class String
   def include?(needle)
     if needle.is_a? Fixnum
       needle = needle % 256
-      each_byte { |b| return true if b == needle }
-      return false
+      str_needle = needle.chr
+    else
+      str_needle = StringValue(needle)
     end
 
-    !self.index(StringValue(needle)).nil?
+    !!find_string(str_needle, 0)
   end
 
   # Returns the index of the first occurrence of the given <i>substring</i>,
@@ -1506,11 +1508,32 @@ class String
   #   string.slice!(/s.*t/)   #=> "sa st"
   #   string.slice!("r")      #=> "r"
   #   string                  #=> "thing"
-  def slice!(*args)
-    result = slice(*args)
-    lm = Regexp.last_match
-    self[*args] = '' unless result.nil?
-    Regexp.last_match = lm
+  def slice!(one, two=undefined)
+    # This is un-DRY, but it's a simple manual argument splitting. Keeps
+    # the code fast and clean since the sequence are pretty short.
+    #
+    if two.equal? undefined
+      result = slice(one)
+
+      if one.kind_of? Regexp
+        lm = Regexp.last_match
+        self[one] = '' if result
+        Regexp.last_match = lm
+      else
+        self[one] = '' if result
+      end
+    else
+      result = slice(one, two)
+
+      if one.kind_of? Regexp
+        lm = Regexp.last_match
+        self[one, two] = '' if result
+        Regexp.last_match = lm
+      else
+        self[one, two] = '' if result
+      end
+    end
+
     result
   end
 
