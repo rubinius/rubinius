@@ -34,7 +34,13 @@ module Kernel
     end
 
     if $DEBUG and $VERBOSE != nil
-      STDERR.puts "Exception: `#{exc.class}' #{exc.locations[1].position} - #{exc.message}"
+      if loc = exc.locations
+        pos = loc[1].position
+      else
+        pos = Rubinius::VM.backtrace(1)[0].position
+      end
+
+      STDERR.puts "Exception: `#{exc.class}' #{pos} - #{exc.message}"
     end
 
     Rubinius.raise_exception exc
