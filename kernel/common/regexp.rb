@@ -104,18 +104,44 @@ class Regexp
   end
 
   def self.union(*patterns)
-    if patterns.size == 1
+    case patterns.size
+    when 0
+      return %r/(?!)/
+    when 1
       pat = patterns.first
-      return Regexp.new(pat) unless pat.respond_to?(:to_ary)
-      patterns = Type.coerce_to(pat, Array, :to_ary)
+      case pat
+      when Array
+        return union(*pat)
+      when Regexp
+        return pat
+      else
+        return Regexp.new(Regexp.quote(StringValue(pat)))
+      end
     end
 
-    return %r/(?!)/ if patterns.empty?
-    patterns.map! do |pat|
-      pat = pat.to_s if pat.is_a? Regexp
-      Type.coerce_to(pat, String, :to_str)
+    kcode = nil
+    str = ""
+    patterns.each_with_index do |pat, idx|
+      str << "|" if idx != 0
+
+      if pat.kind_of? Regexp
+        if pat_kcode = pat.kcode
+          if kcode
+            if kcode != pat_kcode
+              raise ArgumentError, "Conflict kcodes: #{kcode} != #{pat_kcode}"
+            end
+          else
+            kcode = pat_kcode
+          end
+        end
+
+        str << pat.to_s
+      else
+        str << Regexp.quote(StringValue(pat))
+      end
     end
-    Regexp.new(patterns.join('|'))
+
+    Regexp.new(str, nil, kcode)
   end
 
   def source
