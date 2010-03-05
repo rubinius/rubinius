@@ -492,9 +492,9 @@ containing the Rubinius standard library files.
     def main
       preamble
       system_load_path
-      preload
       signals
       load_compiler
+      preload
       options
       load_paths
       requires
