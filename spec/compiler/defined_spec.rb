@@ -30,7 +30,7 @@ describe "A Defined node" do
       g.push :self
       g.push_literal :a
       g.push :true
-      g.send :respond_to?, 2
+      g.send :__respond_to_eh__, 2
       g.gif f
       g.push_literal "method"
       g.goto done
@@ -206,7 +206,7 @@ describe "A Defined node" do
 
       g.push :self
       g.push_literal :@var
-      g.send :instance_variable_defined?, 1
+      g.send :__instance_variable_defined_eh__, 1
       g.git t
       g.push :nil
       g.goto f
@@ -284,7 +284,7 @@ describe "A Defined node" do
       g.push_const :A
       g.push_literal :m
       g.push :true
-      g.send :respond_to?, 2
+      g.send :__respond_to_eh__, 2
       g.gif f
       g.push_literal "method"
       g.goto done
@@ -309,7 +309,7 @@ describe "A Defined node" do
       g.find_const :A
       g.push_literal :m
       g.push :true
-      g.send :respond_to?, 2
+      g.send :__respond_to_eh__, 2
       g.gif f
       g.push_literal "method"
       g.goto done
@@ -335,7 +335,7 @@ describe "A Defined node" do
       g.find_const :B
       g.push_literal :m
       g.push :true
-      g.send :respond_to?, 2
+      g.send :__respond_to_eh__, 2
       g.gif f
       g.push_literal "method"
       g.goto done
@@ -356,7 +356,7 @@ describe "A Defined node" do
       g.send :a, 0, true
       g.push_literal :b
       g.push :true
-      g.send :respond_to?, 2
+      g.send :__respond_to_eh__, 2
       g.gif f
       g.push_literal "method"
       g.goto done
@@ -384,7 +384,7 @@ describe "A Defined node" do
       g.push_local 0
       g.push_literal :to_s
       g.push :true
-      g.send :respond_to?, 2
+      g.send :__respond_to_eh__, 2
       g.gif f
       g.push_literal "method"
       g.goto done
