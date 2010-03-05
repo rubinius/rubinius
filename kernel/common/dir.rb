@@ -93,6 +93,7 @@ class Dir
       if char == ?} and nest - 1 <= 0 then
         rbrace = i
         nest -= 1
+        break
       end
 
       skip = true if char == ?\\ and escape
