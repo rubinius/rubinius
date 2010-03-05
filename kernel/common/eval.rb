@@ -30,7 +30,7 @@ module Kernel
 
   # Obtain binding here for future evaluation/execution context.
   #
-  def binding()
+  def binding
     return Binding.setup(
       Rubinius::VariableScope.of_sender,
       Rubinius::CompiledMethod.of_sender,
@@ -41,16 +41,28 @@ module Kernel
   # Evaluate and execute code given in the String.
   #
   def eval(string, binding=nil, filename=nil, lineno=1)
-    filename ||= binding ? binding.static_scope.active_path : "(eval)"
-
-    # shortcut for checking for a local in a binding!
-    # This speeds rails up quite a bit because it uses this in rendering
-    # a view A LOT.
-    #
-    # TODO eval the AST rather than compiling. Thats slightly slower than
-    # this, but handles infinitely more cases.
     if binding
-      if m = /^\s*defined\? ([a-z][A-Za-z0-9_]?)+\s*$/.match(string)
+      if binding.kind_of? Proc
+        binding = binding.binding
+      elsif binding.respond_to? :to_binding
+        binding = binding.to_binding
+      end
+
+      unless binding.kind_of? Binding
+        raise ArgumentError, "unknown type of binding"
+      end
+
+      # shortcut for checking for a local in a binding!
+      # This speeds rails up quite a bit because it uses this in rendering
+      # a view A LOT.
+      #
+      # Rails always does this passing in a binding, so thats why the check
+      # is here.
+      #
+      # TODO eval the AST rather than compiling. Thats slightly slower than
+      # this, but handles infinitely more cases.
+=begin
+      if m = /^\s*defined\? ([a-z_][A-Za-z0-9_]*)\s*$/.match(string)
         local = m[1].to_sym
         if binding.variables.local_defined?(local)
           return "local-variable"
@@ -58,18 +70,15 @@ module Kernel
           return nil
         end
       end
-    end
+=end
 
-    if !binding
+      filename ||= binding.static_scope.active_path
+    else
       binding = Binding.setup(Rubinius::VariableScope.of_sender,
                               Rubinius::CompiledMethod.of_sender,
                               Rubinius::StaticScope.of_sender)
 
-      # TODO why using __kind_of__ here?
-    elsif binding.__kind_of__ Proc
-      binding = binding.binding
-    elsif !binding.__kind_of__ Binding
-      raise ArgumentError, "unknown type of binding"
+      filename ||= "(eval)"
     end
 
     cm = Rubinius::CompilerNG.compile_eval string, binding.variables, filename, lineno
@@ -79,8 +88,7 @@ module Kernel
     yield cm if block_given?
 
     # This has to be setup so __FILE__ works in eval.
-    path = filename || binding.static_scope.active_path
-    script = Rubinius::CompiledMethod::Script.new(path, true)
+    script = Rubinius::CompiledMethod::Script.new(filename, true)
     script.eval_binding = binding
 
     cm.scope.script = script
