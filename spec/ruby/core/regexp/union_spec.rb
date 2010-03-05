@@ -4,11 +4,25 @@ describe "Regexp.union" do
   it "returns /(?!)/ when passed no arguments" do
     Regexp.union.should == /(?!)/
   end
-  
+
   it "returns a regular expression that will match passed arguments" do
     Regexp.union("penzance").should == /penzance/
     Regexp.union("skiing", "sledding").should == /skiing|sledding/
     Regexp.union(/dogs/, /cats/i).should == /(?-mix:dogs)|(?i-mx:cats)/
+  end
+
+  it "quotes any string arguments" do
+    Regexp.union("n", ".").should == /n|\./
+  end
+
+  it "propagates the kcode setting to the output Regexp" do
+    Regexp.union(/./u, "meow").kcode.should == "utf8"
+  end
+
+  it "raises ArgumentError if the kcodes conflict" do
+    lambda {
+      Regexp.union(/./u, /./e)
+    }.should raise_error(ArgumentError)
   end
 
   it "uses to_str to convert arguments (if not Regexp)" do
