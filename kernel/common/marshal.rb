@@ -449,7 +449,9 @@ module Marshal
       construct_integer.times do
         key = construct
         val = construct
-        obj[key] = val
+
+        # Use __store__ (an alias for []=) to get around subclass overrides
+        obj.__store__ key, val
       end
 
       obj

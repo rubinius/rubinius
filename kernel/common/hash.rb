@@ -192,6 +192,9 @@ class Hash
 
   alias_method :store, :[]=
 
+  # Used internally to get around subclasses redefining #[]=
+  alias_method :__store__, :[]=
+
   def clear
     setup
     self
@@ -404,9 +407,9 @@ class Hash
     while entry = i.next(entry)
       key = entry.key
       if block_given? and key? key
-        self[key] = yield key, self[key], entry.value
+        self.__store__ key, yield(key, self[key], entry.value)
       else
-        self[key] = entry.value
+        self.__store__ key, entry.value
       end
     end
     self
@@ -507,7 +510,7 @@ class Hash
     setup
     i = other.to_iter
     while entry = i.next(entry)
-      self[entry.key] = entry.value
+      __store__ entry.key, entry.value
     end
 
     if other.default_proc
