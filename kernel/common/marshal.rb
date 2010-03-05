@@ -750,22 +750,22 @@ module Marshal
       end
     end
 
-    def serialize_instance_variables_suffix(obj, force = false,
-                                            strip_ivars = false,
-                                            exclude_ivars = false)
+    def serialize_instance_variables_suffix(obj, force=false,
+                                            strip_ivars=false,
+                                            exclude_ivars=false)
       ivars = obj.instance_variables
 
       ivars -= exclude_ivars if exclude_ivars
 
-      if force or ivars.length > 0 then
-        str = serialize_integer(obj.instance_variables.length)
-        obj.instance_variables.each do |ivar|
+      if force or !ivars.empty?
+        str = serialize_integer(ivars.size)
+        ivars.each do |ivar|
           sym = ivar.to_sym
           val = obj.instance_variable_get(sym)
-          unless strip_ivars then
-            str << serialize(sym)
-          else
+          if strip_ivars
             str << serialize(ivar[1..-1].to_sym)
+          else
+            str << serialize(sym)
           end
           str << serialize(val)
         end
