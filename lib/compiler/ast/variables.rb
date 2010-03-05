@@ -15,14 +15,35 @@ module Rubinius
         :+ => 4
       }
 
-      def bytecode(g)
-        pos(g)
-
+      def mode
         unless mode = Kinds[@kind]
           raise "Unknown backref: #{@kind}"
         end
 
+        mode
+      end
+
+      def bytecode(g)
+        pos(g)
+
         g.last_match mode, 0
+      end
+
+      def defined(g)
+        f = g.new_label
+        done = g.new_label
+
+        g.last_match mode, 0
+        g.is_nil
+        g.git f
+
+        g.push_literal "$#{@kind}"
+        g.goto done
+
+        f.set!
+        g.push :nil
+
+        done.set!
       end
 
       def to_sexp
@@ -46,6 +67,23 @@ module Rubinius
         # These are for $1, $2, etc. We subtract 1 because
         # we start numbering the captures from 0.
         g.last_match Mode, @which - 1
+      end
+
+      def defined(g)
+        f = g.new_label
+        done = g.new_label
+
+        g.last_match Mode, @which - 1
+        g.is_nil
+        g.git f
+
+        g.push_literal "$#{@which}"
+        g.goto done
+
+        f.set!
+        g.push :nil
+
+        done.set!
       end
 
       def to_sexp
