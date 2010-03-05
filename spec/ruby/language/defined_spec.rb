@@ -70,13 +70,13 @@ describe "The defined? keyword when called with a method name" do
 
   describe "having an instance variable as receiver" do
     it "returns 'method' if the method is defined" do
-      @obj = DefinedSpecs::Basic.new
-      defined?(@obj.a_defined_method).should == "method"
+      @defined_specs_obj = DefinedSpecs::Basic.new
+      defined?(@defined_specs_obj.a_defined_method).should == "method"
     end
 
     it "returns nil if the method is not defined" do
-      @obj = DefinedSpecs::Basic.new
-      defined?(@obj.an_undefined_method).should be_nil
+      @defined_specs_obj = DefinedSpecs::Basic.new
+      defined?(@defined_specs_obj.an_undefined_method).should be_nil
     end
 
     it "returns nil if the variable does not exist" do
@@ -729,7 +729,7 @@ describe "The defined? keyword for variables" do
       end
     end
 
-    deviates_on :rubinius do
+  deviates_on :rubinius do
     # Rubinius does not care about dynamic vars
     it "returns 'local-variable' when called with the name of a block local" do
       block = Proc.new { |x| defined?(x) }
@@ -748,37 +748,18 @@ describe "The defined? keyword for variables" do
   end
 end
 
-describe "The defined? keyword for a constant" do
+describe "The defined? keyword for a simple constant" do
   it "returns 'constant' when the constant is defined" do
     defined?(DefinedSpecs).should == "constant"
-  end
-
-  it "returns 'constant' when passed the name of a top-level constant" do
-    defined?(::DefinedSpecs).should == "constant"
   end
 
   it "returns nil when the constant is not defined" do
     defined?(DefinedSpecsUndefined).should be_nil
   end
 
-  it "returns 'constant' when the scoped constant is defined" do
-    defined?(DefinedSpecs::Basic).should == "constant"
-  end
-
-  it "returns nil when the scoped constant is not defined" do
-    defined?(DefinedSpecs::Undefined).should be_nil
-  end
-
-  it "returns nil when the undefined constant is scoped to an undefined constant" do
-    defined?(DefinedSpecs::Undefined::Undefined).should be_nil
-  end
-
-  it "returns 'constant' for a constant explicitly scoped to self:: when set" do
-    defined?(DefinedSpecs::SelfScoped).should == "constant"
-  end
-
-  it "returns 'constant' for a constant explicitly scoped to self:: in subclass's metaclass" do
-    DefinedSpecs::Child.parent_constant_defined.should == "constant"
+  it "does not call Object.const_missing if the constant is not defined" do
+    Object.should_not_receive(:const_missing)
+    defined?(DefinedSpecsUndefined).should be_nil
   end
 
   it "returns 'constant' for an included module" do
@@ -787,6 +768,255 @@ describe "The defined? keyword for a constant" do
 
   it "returns 'constant' for a constant defined in an included module" do
     DefinedSpecs::Child.module_constant_defined.should == "constant"
+  end
+end
+
+describe "The defined? keyword for a top-level constant" do
+  it "returns 'constant' when passed the name of a top-level constant" do
+    defined?(::DefinedSpecs).should == "constant"
+  end
+
+  it "retuns nil if the constant is not defined" do
+    defined?(::DefinedSpecsUndefined).should be_nil
+  end
+
+  it "does not call Object.const_missing if the constant is not defined" do
+    Object.should_not_receive(:const_missing)
+    defined?(::DefinedSpecsUndefined).should be_nil
+  end
+end
+
+describe "The defined? keyword for a scoped constant" do
+  it "returns 'constant' when the scoped constant is defined" do
+    defined?(DefinedSpecs::Basic).should == "constant"
+  end
+
+  it "returns nil when the scoped constant is not defined" do
+    defined?(DefinedSpecs::Undefined).should be_nil
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "calls .const_missing if the constant is not defined" do
+      Object.should_receive(:const_missing).with(:DefinedSpecsUndefined).and_return(nil)
+      defined?(DefinedSpecsUndefined::A).should be_nil
+    end
+
+    it "calls .const_missing and uses the return constant for scope" do
+      Object.should_receive(:const_missing).with(:DefinedSpecsUndefined).and_return(DefinedSpecs)
+      defined?(DefinedSpecsUndefined::Child).should == "constant"
+    end
+  end
+
+  it "returns nil when an undefined constant is scoped to a defined constant" do
+    defined?(DefinedSpecs::Child::B).should be_nil
+  end
+
+  it "returns nil when the undefined constant is scoped to an undefined constant" do
+    defined?(DefinedSpecs::Undefined::Undefined).should be_nil
+  end
+
+  it "return 'constant' if the scoped-scoped constant is defined" do
+    defined?(DefinedSpecs::Child::A).should == "constant"
+  end
+
+  ruby_version_is ""..."1.9" do
+    describe "when the scope chain has undefined constants" do
+      it "calls .const_missing for each constant in the scope chain and returns nil if any are not defined" do
+        Object.should_receive(:const_missing).with(:DefinedSpecsUndefined).and_return(DefinedSpecs)
+        DefinedSpecs.should_receive(:const_missing).with(:Undefined).and_return(nil)
+        defined?(DefinedSpecsUndefined::Undefined::Undefined).should be_nil
+      end
+
+      it "calls .const_missing and returns 'constant' if all constants are defined" do
+        Object.should_receive(:const_missing).with(:DefinedSpecsUndefined).and_return(DefinedSpecs)
+        DefinedSpecs.should_receive(:const_missing).with(:Undefined).and_return(DefinedSpecs::Child)
+        defined?(DefinedSpecsUndefined::Undefined::A).should == "constant"
+      end
+    end
+  end
+end
+
+describe "The defined? keyword for a top-level scoped constant" do
+  it "returns 'constant' when the scoped constant is defined" do
+    defined?(::DefinedSpecs::Basic).should == "constant"
+  end
+
+  it "returns nil when the scoped constant is not defined" do
+    defined?(::DefinedSpecs::Undefined).should be_nil
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "calls .const_missing if the constant is not defined" do
+      Object.should_receive(:const_missing).with(:DefinedSpecsUndefined).and_return(nil)
+      defined?(::DefinedSpecsUndefined::A).should be_nil
+    end
+
+    it "calls .const_missing and uses the return constant for scope" do
+      Object.should_receive(:const_missing).with(:DefinedSpecsUndefined).and_return(DefinedSpecs)
+      defined?(::DefinedSpecsUndefined::Child).should == "constant"
+    end
+  end
+
+  it "returns nil when an undefined constant is scoped to a defined constant" do
+    defined?(::DefinedSpecs::Child::B).should be_nil
+  end
+
+  it "returns nil when the undefined constant is scoped to an undefined constant" do
+    defined?(::DefinedSpecs::Undefined::Undefined).should be_nil
+  end
+
+  it "return 'constant' if the scoped-scoped constant is defined" do
+    defined?(::DefinedSpecs::Child::A).should == "constant"
+  end
+
+  ruby_version_is ""..."1.9" do
+    describe "when the scope chain has undefined constants" do
+      it "calls .const_missing for each constant in the scope chain and returns nil if any are not defined" do
+        Object.should_receive(:const_missing).with(:DefinedSpecsUndefined).and_return(DefinedSpecs)
+        DefinedSpecs.should_receive(:const_missing).with(:Undefined).and_return(nil)
+        defined?(::DefinedSpecsUndefined::Undefined::Undefined).should be_nil
+      end
+
+      it "calls .const_missing and returns 'constant' if all constants are defined" do
+        Object.should_receive(:const_missing).with(:DefinedSpecsUndefined).and_return(DefinedSpecs)
+        DefinedSpecs.should_receive(:const_missing).with(:Undefined).and_return(DefinedSpecs::Child)
+        defined?(::DefinedSpecsUndefined::Undefined::A).should == "constant"
+      end
+    end
+  end
+end
+
+describe "The defined? keyword for a self-send method call scoped constant" do
+  it "returns nil if the constant is not defined in the scope of the method's value" do
+    defined?(defined_specs_method::Undefined).should be_nil
+  end
+
+  it "returns 'constant' if the constant is defined in the scope of the method's value" do
+    defined?(defined_specs_method::Basic).should == "constant"
+  end
+
+  it "returns nil if the last constant is not defined in the scope chain" do
+    defined?(defined_specs_method::Basic::Undefined).should be_nil
+  end
+
+  it "returns nil if the middle constant is not defined in the scope chain" do
+    defined?(defined_specs_method::Undefined::Undefined).should be_nil
+  end
+
+  it "returns 'constant' if all the constants in the scope chain are defined" do
+    defined?(defined_specs_method::Basic::A).should == "constant"
+  end
+end
+
+describe "The defined? keyword for a receiver method call scoped constant" do
+  it "returns nil if the constant is not defined in the scope of the method's value" do
+    defined?(defined_specs_receiver.defined_method::Undefined).should be_nil
+  end
+
+  it "returns 'constant' if the constant is defined in the scope of the method's value" do
+    defined?(defined_specs_receiver.defined_method::Basic).should == "constant"
+  end
+
+  it "returns nil if the last constant is not defined in the scope chain" do
+    defined?(defined_specs_receiver.defined_method::Basic::Undefined).should be_nil
+  end
+
+  it "returns nil if the middle constant is not defined in the scope chain" do
+    defined?(defined_specs_receiver.defined_method::Undefined::Undefined).should be_nil
+  end
+
+  it "returns 'constant' if all the constants in the scope chain are defined" do
+    defined?(defined_specs_receiver.defined_method::Basic::A).should == "constant"
+  end
+end
+
+describe "The defined? keyword for a module method call scoped constant" do
+  it "returns nil if the constant is not defined in the scope of the method's value" do
+    defined?(DefinedSpecs.defined_method::Undefined).should be_nil
+  end
+
+  it "returns 'constant' if the constant scoped by the method's value is defined" do
+    defined?(DefinedSpecs.defined_method::Basic).should == "constant"
+  end
+
+  it "returns nil if the last constant in the scope chain is not defined" do
+    defined?(DefinedSpecs.defined_method::Basic::Undefined).should be_nil
+  end
+
+  it "returns nil if the middle constant in the scope chain is not defined" do
+    defined?(DefinedSpecs.defined_method::Undefined::Undefined).should be_nil
+  end
+
+  it "returns 'constant' if all the constants in the scope chain are defined" do
+    defined?(DefinedSpecs.defined_method::Basic::A).should == "constant"
+  end
+
+  it "returns nil if the outer scope constant in the receiver is not defined" do
+    defined?(Undefined::DefinedSpecs.defined_method::Basic).should be_nil
+  end
+
+  it "returns nil if the scoped constant in the receiver is not defined" do
+    defined?(DefinedSpecs::Undefined.defined_method::Basic).should be_nil
+  end
+
+  it "returns 'constant' if all the constants in the receiver are defined" do
+    defined?(Object::DefinedSpecs.defined_method::Basic).should == "constant"
+  end
+
+  it "returns 'constant' if all the constants in the receiver and scope chain are defined" do
+    defined?(Object::DefinedSpecs.defined_method::Basic::A).should == "constant"
+  end
+end
+
+describe "The defined? keyword for a variable scoped constant" do
+  it "returns nil if the scoped constant is not defined" do
+    @defined_specs_obj = DefinedSpecs::Basic
+    defined?(@defined_specs_obj::Undefined).should be_nil
+  end
+
+  it "returns 'constant' if the constant is defined in the scope of the variable reference" do
+    @defined_specs_obj = DefinedSpecs::Basic
+    defined?(@defined_specs_obj::A).should == "constant"
+  end
+
+  it "returns nil if the scoped constant is not defined" do
+    $defined_specs_obj = DefinedSpecs::Basic
+    defined?($defined_specs_obj::Undefined).should be_nil
+  end
+
+  it "returns 'constant' if the constant is defined in the scope of the variable reference" do
+    $defined_specs_obj = DefinedSpecs::Basic
+    defined?($defined_specs_obj::A).should == "constant"
+  end
+
+  it "returns nil if the scoped constant is not defined" do
+    @@defined_specs_obj = DefinedSpecs::Basic
+    defined?(@@defined_specs_obj::Undefined).should be_nil
+  end
+
+  it "returns 'constant' if the constant is defined in the scope of the variable reference" do
+    @@defined_specs_obj = DefinedSpecs::Basic
+    defined?(@@defined_specs_obj::A).should == "constant"
+  end
+
+  it "returns nil if the scoped constant is not defined" do
+    defined_specs_obj = DefinedSpecs::Basic
+    defined?(defined_specs_obj::Undefined).should be_nil
+  end
+
+  it "returns 'constant' if the constant is defined in the scope of the variable reference" do
+    defined_specs_obj = DefinedSpecs::Basic
+    defined?(defined_specs_obj::A).should == "constant"
+  end
+end
+
+describe "The defined? keyword for a self:: scoped constant" do
+  it "returns 'constant' for a constant explicitly scoped to self:: when set" do
+    defined?(DefinedSpecs::SelfScoped).should == "constant"
+  end
+
+  it "returns 'constant' for a constant explicitly scoped to self:: in subclass's metaclass" do
+    DefinedSpecs::Child.parent_constant_defined.should == "constant"
   end
 end
 

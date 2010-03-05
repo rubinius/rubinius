@@ -15,7 +15,17 @@ module DefinedSpecs
     raise "defined? specs exception method"
   end
 
+  def self.defined_method
+    DefinedSpecs
+  end
+
   class Basic
+    A = 42
+
+    def defined_method
+      DefinedSpecs
+    end
+
     def a_defined_method
     end
 
@@ -96,6 +106,8 @@ module DefinedSpecs
 
   class Child < Parent
     include Mixin
+
+    A = 42
 
     def self.parent_constant_defined
       defined? self::ParentConstant
@@ -210,5 +222,15 @@ module DefinedSpecs
     def test
       defined?(super)
     end
+  end
+end
+
+class Object
+  def defined_specs_method
+    DefinedSpecs
+  end
+
+  def defined_specs_receiver
+    DefinedSpecs::Basic.new
   end
 end
