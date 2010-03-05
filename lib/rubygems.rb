@@ -98,7 +98,7 @@ require 'etc'
 # -The RubyGems Team
 
 module Gem
-  RubyGemsVersion = VERSION = '1.3.5'
+  RubyGemsVersion = VERSION = '1.3.6'
 
   ##
   # Raised when RubyGems is unable to load or activate a gem.  Contains the
@@ -129,6 +129,7 @@ module Gem
     :libdir            => RbConfig::CONFIG["libdir"],
     :ruby_install_name => RbConfig::CONFIG["ruby_install_name"],
     :ruby_version      => RbConfig::CONFIG["ruby_version"],
+    :rubylibprefix     => RbConfig::CONFIG["rubylibprefix"],
     :sitedir           => RbConfig::CONFIG["sitedir"],
     :sitelibdir        => RbConfig::CONFIG["sitelibdir"],
     :vendordir         => RbConfig::CONFIG["vendordir"] ,
@@ -203,11 +204,11 @@ module Gem
     end
 
     unless gem.respond_to?(:name) and
-           gem.respond_to?(:version_requirements) then
+           gem.respond_to?(:requirement) then
       gem = Gem::Dependency.new(gem, version_requirements)
     end
 
-    matches = Gem.source_index.find_name(gem.name, gem.version_requirements)
+    matches = Gem.source_index.find_name(gem.name, gem.requirement)
     report_activate_error(gem) if matches.empty?
 
     if @loaded_specs[gem.name] then
@@ -225,7 +226,7 @@ module Gem
 
          e = Gem::LoadError.new msg
          e.name = gem.name
-         e.version_requirement = gem.version_requirements
+         e.version_requirement = gem.requirement
 
          raise e
       end
@@ -301,7 +302,7 @@ module Gem
     requirements = Gem::Requirement.default if requirements.empty?
 
     unless gem.respond_to?(:name) and
-           gem.respond_to?(:version_requirements) then
+           gem.respond_to?(:requirement) then
       gem = Gem::Dependency.new gem, requirements
     end
 
@@ -699,14 +700,15 @@ module Gem
   # The directory prefix this RubyGems was installed at.
 
   def self.prefix
-    prefix = File.dirname File.expand_path(__FILE__)
+    dir = File.dirname File.expand_path(__FILE__)
+    prefix = File.dirname dir
 
-    if File.dirname(prefix) == File.expand_path(ConfigMap[:sitelibdir]) or
-       File.dirname(prefix) == File.expand_path(ConfigMap[:libdir]) or
-       'lib' != File.basename(prefix) then
+    if prefix == File.expand_path(ConfigMap[:sitelibdir]) or
+       prefix == File.expand_path(ConfigMap[:libdir]) or
+       'lib' != File.basename(dir) then
       nil
     else
-      File.dirname prefix
+      prefix
     end
   end
 
@@ -765,15 +767,15 @@ module Gem
 
     if matches.empty? then
       error = Gem::LoadError.new(
-          "Could not find RubyGem #{gem.name} (#{gem.version_requirements})\n")
+          "Could not find RubyGem #{gem.name} (#{gem.requirement})\n")
     else
       error = Gem::LoadError.new(
           "RubyGem version error: " +
-          "#{gem.name}(#{matches.first.version} not #{gem.version_requirements})\n")
+          "#{gem.name}(#{matches.first.version} not #{gem.requirement})\n")
     end
 
     error.name = gem.name
-    error.version_requirement = gem.version_requirements
+    error.version_requirement = gem.requirement
     raise error
   end
 
@@ -1024,6 +1026,8 @@ end
 
 module Kernel
 
+  undef gem if respond_to? :gem # defined in gem_prelude.rb on 1.9
+
   ##
   # Use Kernel#gem to activate a specific version of +gem_name+.
   #
@@ -1103,6 +1107,12 @@ Gem.clear_paths
 plugins = Gem.find_files 'rubygems_plugin'
 
 plugins.each do |plugin|
+
+  # Skip older versions of the GemCutter plugin: Its commands are in
+  # RubyGems proper now.
+
+  next if plugin =~ /gemcutter-0\.[0-3]/
+
   begin
     load plugin
   rescue => e

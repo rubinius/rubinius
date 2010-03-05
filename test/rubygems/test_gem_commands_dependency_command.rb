@@ -1,4 +1,4 @@
-require File.join(File.expand_path(File.dirname(__FILE__)), 'gemutilities')
+require File.expand_path('../gemutilities', __FILE__)
 require 'rubygems/commands/dependency_command'
 
 class TestGemCommandsDependencyCommand < RubyGemTestCase
@@ -9,12 +9,13 @@ class TestGemCommandsDependencyCommand < RubyGemTestCase
     @cmd = Gem::Commands::DependencyCommand.new
     @cmd.options[:domain] = :local
 
-    util_setup_fake_fetcher
+    util_setup_fake_fetcher true
   end
 
   def test_execute
     quick_gem 'foo' do |gem|
       gem.add_dependency 'bar', '> 1'
+      gem.add_dependency 'baz', '> 1'
     end
 
     Gem.source_index = nil
@@ -25,7 +26,8 @@ class TestGemCommandsDependencyCommand < RubyGemTestCase
       @cmd.execute
     end
 
-    assert_equal "Gem foo-2\n  bar (> 1, runtime)\n\n", @ui.output
+    assert_equal "Gem foo-2\n  bar (> 1, runtime)\n  baz (> 1, runtime)\n\n",
+                 @ui.output
     assert_equal '', @ui.error
   end
 
@@ -40,6 +42,8 @@ class TestGemCommandsDependencyCommand < RubyGemTestCase
 
     expected = <<-EOF
 Gem a-1
+
+Gem a-2.a
 
 Gem a-2
 
@@ -99,6 +103,8 @@ Gem pl-1-x86-linux
 
     expected = <<-EOF
 Gem a-1
+
+Gem a-2.a
 
 Gem a-2
 
@@ -183,6 +189,26 @@ ERROR:  Only reverse dependencies for local gems are supported.
     end
 
     assert_equal "Gem foo-2\n  bar (> 1, runtime)\n\n", @ui.output
+    assert_equal '', @ui.error
+  end
+
+  def test_execute_prerelease
+    @fetcher = Gem::FakeFetcher.new
+    Gem::RemoteFetcher.fetcher = @fetcher
+
+    util_setup_spec_fetcher @a2_pre
+
+    FileUtils.rm File.join(@gemhome, 'specifications', @a2_pre.spec_name)
+
+    @cmd.options[:args] = %w[a]
+    @cmd.options[:domain] = :remote
+    @cmd.options[:prerelease] = true
+
+    use_ui @ui do
+      @cmd.execute
+    end
+
+    assert_equal "Gem a-2.a\n\n", @ui.output
     assert_equal '', @ui.error
   end
 

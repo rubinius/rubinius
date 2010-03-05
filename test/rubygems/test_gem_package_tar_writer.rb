@@ -1,11 +1,4 @@
-#--
-# Copyright 2006 by Chad Fowler, Rich Kilmer, Jim Weirich and others.
-# All rights reserved.
-# See LICENSE.txt for permissions.
-#++
-
-require File.join(File.expand_path(File.dirname(__FILE__)),
-                  'gem_package_tar_test_case')
+require File.expand_path('../gem_package_tar_test_case', __FILE__)
 require 'rubygems/package/tar_writer'
 
 class TestTarWriter < TarTestCase
@@ -46,7 +39,7 @@ class TestTarWriter < TarTestCase
   def test_add_file_simple_padding
     @tar_writer.add_file_simple 'x', 0, 100
 
-    assert_headers_equal tar_file_header('x', '', 0, 100), 
+    assert_headers_equal tar_file_header('x', '', 0, 100),
                          @io.string[0, 512]
 
     assert_equal "\0" * 512, @io.string[512, 512]
@@ -61,7 +54,7 @@ class TestTarWriter < TarTestCase
   end
 
   def test_add_file_simple_size
-    assert_raises Gem::Package::TarWriter::FileOverflow do 
+    assert_raises Gem::Package::TarWriter::FileOverflow do
       @tar_writer.add_file_simple("lib/foo/bar", 0, 10) do |io|
         io.write "1" * 11
       end
@@ -69,7 +62,7 @@ class TestTarWriter < TarTestCase
   end
 
   def test_add_file_unseekable
-    assert_raises Gem::Package::NonSeekableIO do 
+    assert_raises Gem::Package::NonSeekableIO do
       Gem::Package::TarWriter.new(Object.new).add_file 'x', 0
     end
   end

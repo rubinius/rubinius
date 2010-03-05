@@ -19,8 +19,8 @@ class Gem::Commands::InstallCommand < Gem::Command
 
   def initialize
     defaults = Gem::DependencyInstaller::DEFAULT_OPTIONS.merge({
-      :generate_rdoc     => false,
-      :generate_ri       => false,
+      :generate_rdoc     => true,
+      :generate_ri       => true,
       :format_executable => false,
       :test              => false,
       :version           => Gem::Requirement.default,
@@ -32,6 +32,7 @@ class Gem::Commands::InstallCommand < Gem::Command
     add_local_remote_options
     add_platform_option
     add_version_option
+    add_prerelease_option "to be installed. (Only for listed gems)"
   end
 
   def arguments # :nodoc:
@@ -39,7 +40,7 @@ class Gem::Commands::InstallCommand < Gem::Command
   end
 
   def defaults_str # :nodoc:
-    "--both --version '#{Gem::Requirement.default}' --no-rdoc --no-ri --no-force\n" \
+    "--both --version '#{Gem::Requirement.default}' --rdoc --ri --no-force\n" \
     "--no-test --install-dir #{Gem.dir}"
   end
 

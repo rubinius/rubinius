@@ -58,7 +58,9 @@ class Gem::CommandManager
     register_command :lock
     register_command :mirror
     register_command :outdated
+    register_command :owner
     register_command :pristine
+    register_command :push
     register_command :query
     register_command :rdoc
     register_command :search
@@ -154,11 +156,12 @@ class Gem::CommandManager
 
   def load_and_instantiate(command_name)
     command_name = command_name.to_s
+    const_name = command_name.capitalize.gsub(/_(.)/) { $1.upcase } << "Command"
+    commands = Gem::Commands
     retried = false
 
     begin
-      const_name = command_name.capitalize.gsub(/_(.)/) { $1.upcase }
-      Gem::Commands.const_get("#{const_name}Command").new
+      commands.const_get const_name
     rescue NameError
       if retried then
         raise
@@ -167,7 +170,7 @@ class Gem::CommandManager
         require "rubygems/commands/#{command_name}_command"
         retry
       end
-    end
+    end.new
   end
 
 end

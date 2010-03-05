@@ -105,13 +105,6 @@ module Gem::InstallUpdateOptions
       options[:development] = true
     end
 
-    add_option(:"Install/Update", "--prerelease",
-               "Install prerelease versions of a gem if",
-               "available. Defaults to skipping",
-               "prereleases.") do |value, options|
-      options[:prerelease] = true
-    end
-
     add_option(:"Install/Update", "-s", "--status",
                "Print out the status of the command as",
                "it progresses") do |value, options|

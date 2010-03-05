@@ -1,5 +1,4 @@
-require File.join(File.expand_path(File.dirname(__FILE__)),
-                  'gem_installer_test_case')
+require File.expand_path('../gem_installer_test_case', __FILE__)
 require 'rubygems/install_update_options'
 require 'rubygems/command'
 
@@ -18,11 +17,6 @@ class TestGemInstallUpdateOptions < GemInstallerTestCase
               --ignore-dependencies --format-exec --include-dependencies]
 
     assert @cmd.handles?(args)
-  end
-
-  def test_prerelease
-    @cmd.handle_options %w[--prerelease]
-    assert_equal true, @cmd.options[:prerelease]
   end
 
   def test_security_policy

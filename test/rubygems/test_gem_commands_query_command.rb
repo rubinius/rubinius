@@ -1,4 +1,4 @@
-require File.join(File.expand_path(File.dirname(__FILE__)), 'gemutilities')
+require File.expand_path('../gemutilities', __FILE__)
 require 'rubygems/commands/query_command'
 
 class TestGemCommandsQueryCommand < RubyGemTestCase
@@ -51,6 +51,28 @@ pl (1)
 *** REMOTE GEMS ***
 
 a (2, 1)
+pl (1)
+    EOF
+
+    assert_equal expected, @ui.output
+    assert_equal '', @ui.error
+  end
+
+  def test_execute_all_prerelease
+    a1_name = @a1.full_name
+    a2_name = @a2.full_name
+
+    @cmd.handle_options %w[-r --all --prerelease]
+
+    use_ui @ui do
+      @cmd.execute
+    end
+
+    expected = <<-EOF
+
+*** REMOTE GEMS ***
+
+a (3.a, 2, 1)
 pl (1)
     EOF
 

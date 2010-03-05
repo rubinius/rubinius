@@ -1,9 +1,3 @@
-#--
-# Copyright 2006 by Chad Fowler, Rich Kilmer, Jim Weirich and others.
-# All rights reserved.
-# See LICENSE.txt for permissions.
-#++
-
 at_exit { $SAFE = 1 }
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
@@ -16,7 +10,7 @@ end
 require 'fileutils'
 begin
   gem 'minitest', '>= 1.3.1'
-  require 'minitest/unit'
+  require 'minitest/autorun'
 rescue Gem::LoadError
   warn "Install minitest gem >= 1.3.1"
   raise
@@ -74,6 +68,13 @@ class RubyGemTestCase < MiniTest::Unit::TestCase
     @usrcache = File.join(@gemhome, ".gem", "user_cache")
     @latest_usrcache = File.join(@gemhome, ".gem", "latest_user_cache")
     @userhome = File.join @tempdir, 'userhome'
+
+    Gem.ensure_gem_subdirectories @gemhome
+
+    @orig_ruby = if ruby = ENV['RUBY'] then
+                   Gem.class_eval { ruby, @ruby = @ruby, ruby }
+                   ruby
+                 end
 
     Gem.ensure_gem_subdirectories @gemhome
 
@@ -152,6 +153,8 @@ class RubyGemTestCase < MiniTest::Unit::TestCase
     ENV.delete 'GEM_PATH'
 
     Gem.clear_paths
+
+    Gem.class_eval { @ruby = ruby } if ruby = @orig_ruby
 
     if @orig_ENV_HOME then
       ENV['HOME'] = @orig_ENV_HOME
@@ -553,7 +556,34 @@ Also, a list:
              'rake'
            end
 
-end
+  ##
+  # Construct a new Gem::Dependency.
 
-MiniTest::Unit.autorun
+  def dep name, *requirements
+    Gem::Dependency.new name, *requirements
+  end
+
+  ##
+  # Construct a new Gem::Requirement.
+
+  def req *requirements
+    return requirements.first if Gem::Requirement === requirements.first
+    Gem::Requirement.create requirements
+  end
+
+  ##
+  # Construct a new Gem::Specification.
+
+  def spec name, version, &block
+    Gem::Specification.new name, v(version), &block
+  end
+
+  ##
+  # Construct a new Gem::Version.
+
+  def v string
+    Gem::Version.create string
+  end
+
+end
 
