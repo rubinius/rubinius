@@ -647,7 +647,7 @@ class String
 
   def each_char(&block)
     return to_enum :each_char unless block_given?
-    return scan(/./u, &block) if $KCODE == "UTF-8"
+    return scan(/./u, &block) if Rubinius.kcode == :UTF8
     i = 0
     while i < @num_bytes do
       yield @data.get_byte(i).chr
