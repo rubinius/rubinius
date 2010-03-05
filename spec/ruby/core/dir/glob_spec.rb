@@ -55,6 +55,7 @@ describe "Dir.glob" do
   it "recursively matches any subdirectories except './' or '../' with '**/' and option File::FNM_DOTMATCH" do
     expected = %w[
       .dotsubdir/
+      brace/
       deeply/
       deeply/nested/
       deeply/nested/directory/
