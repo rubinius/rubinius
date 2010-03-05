@@ -37,6 +37,13 @@ module Rubinius
       end
 
       def defined(g)
+        if @receiver.kind_of? Self and (@check_for_local or g.state.eval?)
+          if reference = g.state.scope.search_local(@name)
+            g.push_literal "local-variable"
+            return
+          end
+        end
+
         f = g.new_label
         done = g.new_label
 

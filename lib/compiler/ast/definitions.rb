@@ -718,7 +718,7 @@ module Rubinius
         while scope
           if slot = scope.method.local_slot(name)
             return CompilerNG::NestedLocalVariable.new(depth, slot)
-          elsif scope.dynamic_locals.key? name
+          elsif scope.eval_local_defined?(name, false)
             return CompilerNG::EvalLocalVariable.new(name)
           end
 
