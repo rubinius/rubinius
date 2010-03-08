@@ -9,7 +9,6 @@ ruby_constants.rbc
 rubinius.rbc
 module.rbc
 filetest.rbc
-gem_prelude.rbc
 kernel.rbc
 math.rbc
 numeric.rbc
