@@ -98,6 +98,11 @@ module Rubinius
         @line = line
         @name = name
       end
+
+      def value_defined(g, f)
+        variable_defined(g, f)
+        bytecode(g)
+      end
     end
 
     class VariableAssignment < Node
@@ -124,20 +129,12 @@ module Rubinius
       def or_bytecode(g)
         pos(g)
 
-        if g.state.scope.module?
-          g.push :self
-        else
-          g.push_scope
-        end
-
         done =     g.new_label
         notfound = g.new_label
 
-        g.push_literal @name
-        g.send :class_variable_defined?, 1
-        g.gif notfound
+        variable_defined(g, notfound)
 
-        # Ok, we the value exists, get it.
+        # Ok, we know the value exists, get it.
         bytecode(g)
         g.dup
         g.git done
@@ -153,40 +150,37 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
+        push_scope(g)
+        g.send :class_variable_get, 1
+      end
+
+      def push_scope(g)
         if g.state.scope.module?
           g.push :self
         else
           g.push_scope
         end
         g.push_literal @name
-        g.send :class_variable_get, 1
       end
 
-      def check_variable(g)
-        g.push_scope
-        g.push_literal @name
+      def variable_defined(g, f)
+        push_scope(g)
         g.send :class_variable_defined?, 1
+        g.gif f
       end
 
       def defined(g)
-        t = g.new_label
         f = g.new_label
+        done = g.new_label
 
-        check_variable(g)
-        g.git t
-        g.push :nil
-        g.goto f
-
-        t.set!
+        variable_defined(g, f)
         g.push_literal "class variable"
+        g.goto done
 
         f.set!
-      end
+        g.push :nil
 
-      def receiver_defined(g, f)
-        check_variable(g)
-        g.gif f
-        bytecode(g)
+        done.set!
       end
 
       def to_sexp
@@ -243,39 +237,28 @@ module Rubinius
         end
       end
 
-      def check_variable(g, t)
-        g.goto t if @name == :$! or @name == :$~
-
-        g.push_const :Rubinius
-        g.find_const :Globals
-        g.push_literal @name
-        g.send :key?, 1
+      def variable_defined(g, f)
+        unless @name == :$! or @name == :$~
+          g.push_const :Rubinius
+          g.find_const :Globals
+          g.push_literal @name
+          g.send :key?, 1
+          g.gif f
+        end
       end
 
       def defined(g)
-        t = g.new_label
         f = g.new_label
+        done = g.new_label
 
-        check_variable(g, t)
-        g.git t
-
-        g.push :nil
-        g.goto f
-
-        t.set!
+        variable_defined(g, f)
         g.push_literal "global-variable"
+        g.goto done
 
         f.set!
-      end
+        g.push :nil
 
-      def receiver_defined(g, f)
-        t = g.new_label
-
-        check_variable(g, t)
-        g.gif f
-
-        t.set!
-        bytecode(g)
+        done.set!
       end
 
       def to_sexp
@@ -399,32 +382,25 @@ module Rubinius
         g.push_ivar @name
       end
 
-      def check_variable(g)
+      def variable_defined(g, f)
         g.push :self
         g.push_literal @name
         g.send :instance_variable_defined?, 1
+        g.gif f
       end
 
       def defined(g)
-        t = g.new_label
         f = g.new_label
+        done = g.new_label
 
-        check_variable(g)
-        g.git t
-
-        g.push :nil
-        g.goto f
-
-        t.set!
+        variable_defined(g, f)
         g.push_literal "instance-variable"
+        g.goto done
 
         f.set!
-      end
+        g.push :nil
 
-      def receiver_defined(g, f)
-        check_variable(g)
-        g.gif f
-        bytecode(g)
+        done.set!
       end
 
       def to_sexp
@@ -454,16 +430,12 @@ module Rubinius
         @variable = nil
       end
 
-      def assign_variable(g)
-        unless @variable
-          g.state.scope.assign_local_reference self
-        end
-      end
-
       def bytecode(g)
         pos(g)
 
-        assign_variable(g)
+        unless @variable
+          g.state.scope.assign_local_reference self
+        end
         @variable.get_bytecode(g)
       end
 
@@ -471,9 +443,8 @@ module Rubinius
         g.push_literal "local-variable"
       end
 
-      def receiver_defined(g, f)
-        assign_variable(g)
-        @variable.get_bytecode(g)
+      def value_defined(g, f)
+        bytecode(g)
       end
 
       def to_sexp

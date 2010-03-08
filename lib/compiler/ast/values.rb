@@ -106,11 +106,9 @@ module Rubinius
         g.send :to_s, 0, true
       end
 
-      def defined(g)
+      def value_defined(g, f)
         if @value
-          @value.call_defined(g)
-        else
-          g.push :nil
+          @value.value_defined(g, f)
         end
       end
 

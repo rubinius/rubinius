@@ -90,12 +90,8 @@ module Rubinius
         g.push :nil
       end
 
-      def receiver_defined(g, f)
-        g.goto f
-      end
-
-      def call_defined(g)
-        defined(g)
+      def value_defined(g, f)
+        bytecode(g)
       end
 
       def visit(arg=true, &block)

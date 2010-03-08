@@ -76,11 +76,9 @@ module Rubinius
         when GlobalVariableAccess, InstanceVariableAccess
           g.goto t
         else
-          @value.call_defined(g)
+          @value.value_defined(g, f)
+          g.pop
         end
-
-        g.is_nil
-        g.git f
 
         t.set!
         g.push_literal "expression"

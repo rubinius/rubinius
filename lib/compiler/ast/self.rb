@@ -11,11 +11,7 @@ module Rubinius
         g.push_literal "self"
       end
 
-      def constant_defined(s)
-        s << "self"
-      end
-
-      def receiver_defined(g, f)
+      def value_defined(g, f)
         g.push :self
       end
 

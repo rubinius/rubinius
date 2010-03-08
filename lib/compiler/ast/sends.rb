@@ -32,11 +32,7 @@ module Rubinius
         end
       end
 
-      def receiver_defined(g, f)
-        bytecode(g)
-      end
-
-      def call_defined(g)
+      def value_defined(g, f)
         ok = g.new_label
         ex = g.new_label
         g.setup_unwind ex, RescueType
@@ -48,7 +44,7 @@ module Rubinius
 
         ex.set!
         g.clear_exception
-        g.push :nil
+        g.goto f
 
         ok.set!
       end
@@ -64,20 +60,8 @@ module Rubinius
         f = g.new_label
         done = g.new_label
 
-        ok = g.new_label
-        ex = g.new_label
-        g.setup_unwind ex, RescueType
+        @receiver.value_defined(g, f)
 
-        @receiver.receiver_defined(g, f)
-
-        g.pop_unwind
-        g.goto ok
-
-        ex.set!
-        g.clear_exception
-        g.goto f
-
-        ok.set!
         g.push_literal @name
         g.push :true
         g.send :__respond_to_eh__, 2

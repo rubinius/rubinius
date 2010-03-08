@@ -429,9 +429,8 @@ module Rubinius
         done = g.new_label
 
         @array.each do |x|
-          x.call_defined(g)
-          g.is_nil
-          g.git f
+          x.value_defined(g, f)
+          g.pop
         end
 
         g.push_literal "expression"
@@ -439,7 +438,6 @@ module Rubinius
 
         f.set!
         g.push :nil
-        g.goto done
 
         done.set!
       end

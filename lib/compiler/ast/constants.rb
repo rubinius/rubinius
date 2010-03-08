@@ -9,23 +9,13 @@ module Rubinius
         @name = name
       end
 
-      def constant_defined(s)
-        @parent.constant_defined s
-        s << "::#{@name}"
-      end
-
-      def check_const(g)
-        g.push_scope
-        g.push_literal constant_defined("")
-        g.send :const_path_defined?, 1
-      end
-
       def defined(g)
         f = g.new_label
         done = g.new_label
 
-        check_const(g)
-        g.gif f
+        value_defined(g, f)
+
+        g.pop
         g.push_literal "constant"
         g.goto done
 
@@ -35,11 +25,21 @@ module Rubinius
         done.set!
       end
 
-      def receiver_defined(g, f)
-        check_const(g)
-        g.gif f
+      def value_defined(g, f)
+        ex = g.new_label
+        ok = g.new_label
+        g.setup_unwind ex, RescueType
 
         bytecode(g)
+
+        g.pop_unwind
+        g.goto ok
+
+        ex.set!
+        g.clear_exception
+        g.goto f
+
+        ok.set!
       end
 
       def bytecode(g)
@@ -70,22 +70,13 @@ module Rubinius
         g.find_const @name
       end
 
-      def constant_defined(s)
-        s << "::#{@name}"
-      end
-
-      def check_const(g)
-        g.push_const :Object
-        g.push_literal @name.to_s
-        g.send :const_path_defined?, 1
-      end
-
       def defined(g)
         f = g.new_label
         done = g.new_label
 
-        check_const(g)
-        g.gif f
+        value_defined(g, f)
+
+        g.pop
         g.push_literal "constant"
         g.goto done
 
@@ -95,10 +86,21 @@ module Rubinius
         done.set!
       end
 
-      def receiver_defined(g, f)
-        check_const(g)
-        g.gif f
+      def value_defined(g, f)
+        ex = g.new_label
+        ok = g.new_label
+        g.setup_unwind ex, RescueType
+
         bytecode(g)
+
+        g.pop_unwind
+        g.goto ok
+
+        ex.set!
+        g.clear_exception
+        g.goto f
+
+        ok.set!
       end
 
       def to_sexp
@@ -125,22 +127,13 @@ module Rubinius
         g.push_const @name
       end
 
-      def constant_defined(s)
-        s << @name.to_s
-      end
-
-      def check_const(g)
-        g.push_scope
-        g.push_literal @name
-        g.send :const_defined?, 1
-      end
-
       def defined(g)
         f = g.new_label
         done = g.new_label
 
-        check_const(g)
-        g.gif f
+        value_defined(g, f)
+
+        g.pop
         g.push_literal "constant"
         g.goto done
 
@@ -150,10 +143,21 @@ module Rubinius
         done.set!
       end
 
-      def receiver_defined(g, f)
-        check_const(g)
-        g.gif f
+      def value_defined(g, f)
+        ex = g.new_label
+        ok = g.new_label
+        g.setup_unwind ex, RescueType
+
         bytecode(g)
+
+        g.pop_unwind
+        g.goto ok
+
+        ex.set!
+        g.clear_exception
+        g.goto f
+
+        ok.set!
       end
 
       def to_sexp
