@@ -383,10 +383,10 @@ extern "C" {
     bool found;
     Module* under = as<Module>(top);
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
-    Object* res = Helpers::const_get(state, under, sym, &found);
+    Object* res = Helpers::const_get_under(state, under, sym, &found);
 
     if(!found) {
-      res = Helpers::const_missing(state, under, sym, call_frame);
+      res = Helpers::const_missing_under(state, under, sym, call_frame);
     } else if(Autoload* autoload = try_as<Autoload>(res)) {
       res = autoload->resolve(state, call_frame);
     }
@@ -547,14 +547,7 @@ extern "C" {
     Object* res = Helpers::const_get(state, call_frame, sym, &found);
 
     if(!found) {
-      Module* under;
-      StaticScope* scope = call_frame->static_scope();
-      if(scope->nil_p()) {
-        under = G(object);
-      } else {
-        under = scope->module();
-      }
-      res = Helpers::const_missing(state, under, sym, call_frame);
+      res = Helpers::const_missing(state, sym, call_frame);
     } else if(Autoload* autoload = try_as<Autoload>(res)) {
       res = autoload->resolve(state, call_frame);
     }
@@ -584,14 +577,7 @@ extern "C" {
         cache = GlobalCacheEntry::create(state, res);
         call_frame->cm->literals()->put(state, association_index, cache);
       } else {
-        Module* under;
-        StaticScope* scope = call_frame->static_scope();
-        if(scope->nil_p()) {
-          under = G(object);
-        } else {
-          under = scope->module();
-        }
-        res = Helpers::const_missing(state, under, sym, call_frame);
+        res = Helpers::const_missing(state, sym, call_frame);
       }
     }
 

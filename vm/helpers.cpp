@@ -56,7 +56,7 @@ namespace rubinius {
       add_method(state, call_frame, recv->metaclass(state), name, method);
     }
 
-    Object* const_get(STATE, Module* mod, Symbol* name, bool* found) {
+    Object* const_get_under(STATE, Module* mod, Symbol* name, bool* found) {
       Object* res;
 
       *found = false;
@@ -136,7 +136,21 @@ namespace rubinius {
       return Qnil;
     }
 
-    Object* const_missing(STATE, Module* under, Symbol* sym, CallFrame* call_frame) {
+    Object* const_missing_under(STATE, Module* under, Symbol* sym, CallFrame* call_frame) {
+      Array* args = Array::create(state, 1);
+      args->set(state, 0, sym);
+      return under->send(state, call_frame, G(sym_const_missing), args);
+    }
+
+    Object* const_missing(STATE, Symbol* sym, CallFrame* call_frame) {
+      Module* under;
+      StaticScope* scope = call_frame->static_scope();
+      if(scope->nil_p()) {
+        under = G(object);
+      } else {
+        under = scope->module();
+      }
+
       Array* args = Array::create(state, 1);
       args->set(state, 0, sym);
       return under->send(state, call_frame, G(sym_const_missing), args);
@@ -238,7 +252,7 @@ namespace rubinius {
       Module* module;
       bool found;
 
-      Object* obj = const_get(state, under, name, &found);
+      Object* obj = const_get_under(state, under, name, &found);
 
       if(found) {
         if(Autoload* autoload = try_as<Autoload>(obj)) {

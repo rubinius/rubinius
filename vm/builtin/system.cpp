@@ -752,10 +752,10 @@ namespace rubinius {
   {
     bool found;
 
-    Object* res = Helpers::const_get(state, under, sym, &found);
+    Object* res = Helpers::const_get_under(state, under, sym, &found);
     if(!found) {
       if(send_const_missing->true_p()) {
-        res = Helpers::const_missing(state, under, sym, calling_environment);
+        res = Helpers::const_missing_under(state, under, sym, calling_environment);
       } else {
         res = Primitives::failure();
       }
