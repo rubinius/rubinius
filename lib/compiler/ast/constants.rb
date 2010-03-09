@@ -30,7 +30,10 @@ module Rubinius
         ok = g.new_label
         g.setup_unwind ex, RescueType
 
-        bytecode(g)
+        @parent.bytecode(g)
+        g.push_literal @name
+        g.push :true
+        g.invoke_primitive :vm_const_defined_under, 3
 
         g.pop_unwind
         g.goto ok
@@ -91,7 +94,10 @@ module Rubinius
         ok = g.new_label
         g.setup_unwind ex, RescueType
 
-        bytecode(g)
+        g.push_cpath_top
+        g.push_literal @name
+        g.push :false
+        g.invoke_primitive :vm_const_defined_under, 3
 
         g.pop_unwind
         g.goto ok
@@ -148,7 +154,8 @@ module Rubinius
         ok = g.new_label
         g.setup_unwind ex, RescueType
 
-        bytecode(g)
+        g.push_literal @name
+        g.invoke_primitive :vm_const_defined, 1
 
         g.pop_unwind
         g.goto ok

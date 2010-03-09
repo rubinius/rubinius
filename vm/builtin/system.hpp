@@ -241,6 +241,12 @@ namespace rubinius {
     // Ruby.primitive :vm_get_kcode
     static Symbol* vm_get_kcode(STATE);
 
+    // Ruby.primitive :vm_const_defined
+    static Object* vm_const_defined(STATE, Symbol* sym, CallFrame* calling_environment);
+
+    // Ruby.primitive :vm_const_defined_under
+    static Object* vm_const_defined_under(STATE, Module* under, Symbol* sym, Object* send_const_missing, CallFrame* calling_environment);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include "vm/call_frame.hpp"
+#include "vm/helpers.hpp"
 
 #include "vm/object_utils.hpp"
 #include "vm/vm.hpp"
@@ -734,4 +735,30 @@ namespace rubinius {
     return vm_get_kcode(state);
   }
 
+  Object* System::vm_const_defined(STATE, Symbol* sym, CallFrame* calling_environment) {
+    bool found;
+
+    Object* res = Helpers::const_get(state, calling_environment, sym, &found);
+    if(!found) return Primitives::failure();
+
+    return res;
+  }
+
+  Object* System::vm_const_defined_under(STATE, Module* under, Symbol* sym,
+                                         Object* send_const_missing,
+                                         CallFrame* calling_environment)
+  {
+    bool found;
+
+    Object* res = Helpers::const_get(state, under, sym, &found);
+    if(!found) {
+      if(send_const_missing->true_p()) {
+        res = Helpers::const_missing(state, under, sym, calling_environment);
+      } else {
+        res = Primitives::failure();
+      }
+    }
+
+    return res;
+  }
 }
