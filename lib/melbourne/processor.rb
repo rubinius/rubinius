@@ -106,7 +106,7 @@ module Rubinius
     end
 
     def process_cdecl(line, expr, value)
-      AST::ConstSet.new line, expr, value
+      AST::ConstantAssignment.new line, expr, value
     end
 
     def process_class(line, name, superclass, body)
@@ -115,18 +115,18 @@ module Rubinius
 
     def process_colon2(line, outer, name)
       if outer
-        AST::ConstAccess.new line, outer, name
+        AST::ScopedConstant.new line, outer, name
       else
-        AST::ConstFind.new line, name
+        AST::ConstantAccess.new line, name
       end
     end
 
     def process_colon3(line, name)
-      AST::ConstAtTop.new line, name
+      AST::ToplevelConstant.new line, name
     end
 
     def process_const(line, name)
-      AST::ConstFind.new line, name
+      AST::ConstantAccess.new line, name
     end
 
     def process_cvar(line, name)

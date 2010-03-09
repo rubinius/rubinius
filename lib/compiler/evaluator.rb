@@ -240,28 +240,22 @@ module Rubinius
       end
     end
 
-    class ConstFind
+    class ConstantAccess
       def execute(e)
         Object.const_get @name
       end
     end
 
-    class ConstAccess
+    class ScopedConstant
       def execute(e)
         parent = @parent.execute(e)
         parent.const_get @name
       end
     end
 
-    class ConstAtTop
+    class ToplevelConstant
       def execute(e)
         Object.const_get @name
-      end
-    end
-
-    class ConstName
-      def execute(e)
-        @name
       end
     end
 

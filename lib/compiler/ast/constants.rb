@@ -1,12 +1,26 @@
 module Rubinius
   module AST
-    class ConstAccess < Node
+    class ScopedConstant < Node
       attr_accessor :parent, :name
 
       def initialize(line, parent, name)
         @line = line
         @parent = parent
         @name = name
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        @parent.bytecode(g)
+        g.find_const @name
+      end
+
+      def assign_bytecode(g)
+        pos(g)
+
+        @parent.bytecode(g)
+        g.push_literal @name
       end
 
       def defined(g)
@@ -45,25 +59,19 @@ module Rubinius
         ok.set!
       end
 
-      def bytecode(g)
-        pos(g)
-
-        @parent.bytecode(g)
-        g.find_const @name
-      end
-
       def to_sexp
         [:colon2, @parent.to_sexp, @name]
       end
+
+      alias_method :assign_sexp, :to_sexp
     end
 
-    class ConstAtTop < Node
-      attr_accessor :parent, :name
+    class ToplevelConstant < Node
+      attr_accessor :name
 
       def initialize(line, name)
         @line = line
         @name = name
-        @parent = TopLevel.new line
       end
 
       def bytecode(g)
@@ -71,6 +79,13 @@ module Rubinius
 
         g.push_cpath_top
         g.find_const @name
+      end
+
+      def assign_bytecode(g)
+        pos(g)
+
+        g.push_cpath_top
+        g.push_literal @name
       end
 
       def defined(g)
@@ -112,15 +127,11 @@ module Rubinius
       def to_sexp
         [:colon3, @name]
       end
+
+      alias_method :assign_sexp, :to_sexp
     end
 
-    class TopLevel < Node
-      def bytecode(g)
-        g.push_cpath_top
-      end
-    end
-
-    class ConstFind < Node
+    class ConstantAccess < Node
       attr_accessor :name
 
       def initialize(line, name)
@@ -130,7 +141,15 @@ module Rubinius
 
       def bytecode(g)
         pos(g)
+
         g.push_const @name
+      end
+
+      def assign_bytecode(g)
+        pos(g)
+
+        g.push_scope
+        g.push_literal @name
       end
 
       def defined(g)
@@ -167,30 +186,32 @@ module Rubinius
         ok.set!
       end
 
+      def assign_sexp
+        @name
+      end
+
       def to_sexp
         [:const, @name]
       end
     end
 
-    class ConstSet < Node
-      attr_accessor :parent, :name, :value
+    class ConstantAssignment < Node
+      attr_accessor :constant, :value
 
-      def initialize(line, name, value)
+      def initialize(line, expr, value)
         @line = line
         @value = value
-        @parent = nil
 
-        if name.kind_of? Symbol
-          @name = ConstName.new line, name
+        if expr.kind_of? Symbol
+          @constant = ConstantAccess.new line, expr
         else
-          @parent = name.parent
-          @name = ConstName.new line, name.name
+          @constant = expr
         end
       end
 
       def masgn_bytecode(g)
         g.swap
-        @name.bytecode(g)
+        @constant.bytecode(g)
         g.swap
         g.send :const_set, 2
       end
@@ -198,45 +219,17 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        @parent ? @parent.bytecode(g) : g.push_scope
-
         return masgn_bytecode(g) if g.state.masgn?
 
-        @name.bytecode(g)
+        @constant.assign_bytecode(g)
         @value.bytecode(g)
         g.send :const_set, 2
       end
 
       def to_sexp
-        if @parent.kind_of?(TopLevel)
-          name = [:colon3, @name.to_sexp]
-        elsif @parent
-          name = [:colon2, @parent.to_sexp,  @name.to_sexp]
-        else
-          name = @name.to_sexp
-        end
-
-        sexp = [:cdecl, name]
+        sexp = [:cdecl, @constant.assign_sexp]
         sexp << @value.to_sexp if @value
         sexp
-      end
-    end
-
-    class ConstName < Node
-      attr_accessor :name
-
-      def initialize(line, name)
-        @line = line
-        @name = name
-      end
-
-      def bytecode(g)
-        pos(g)
-        g.push_literal @name
-      end
-
-      def to_sexp
-        @name
       end
     end
   end

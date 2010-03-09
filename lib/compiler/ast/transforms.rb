@@ -306,7 +306,7 @@ module Rubinius
         const = @arguments.array[1]
 
         if var.kind_of? LocalVariableAccess and
-           const.kind_of? ConstFind and const.name == :Fixnum
+           const.kind_of? ConstantAccess and const.name == :Fixnum
           done = g.new_label
 
           var.bytecode(g)

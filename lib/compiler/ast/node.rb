@@ -27,7 +27,7 @@ module Rubinius
       end
 
       def self.match_send?(node, receiver, method, name)
-        node.kind_of? ConstFind and
+        node.kind_of? ConstantAccess and
           node.name == receiver and
           method == name
       end

@@ -440,8 +440,11 @@ module Rubinius
 
         @superclass = superclass ? superclass : NilLiteral.new(line)
 
-        if name.kind_of? Symbol
+        case name
+        when Symbol
           @name = ClassName.new line, name, @superclass
+        when ToplevelConstant
+          @name = ToplevelClassName.new line, name, @superclass
         else
           @name = ScopedClassName.new line, name, @superclass
         end
@@ -509,13 +512,29 @@ module Rubinius
       end
     end
 
+    class ToplevelClassName < ClassName
+      def initialize(line, node, superclass)
+        @line = line
+        @name = node.name
+        @superclass = superclass
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        name_bytecode(g)
+        g.push_cpath_top
+        g.send :open_class_under, 3
+      end
+    end
+
     class ScopedClassName < ClassName
       attr_accessor :parent
 
-      def initialize(line, parent, superclass)
+      def initialize(line, node, superclass)
         @line = line
-        @name = parent.name
-        @parent = parent.parent
+        @name = node.name
+        @parent = node.parent
         @superclass = superclass
       end
 
@@ -538,8 +557,11 @@ module Rubinius
       def initialize(line, name, body)
         @line = line
 
-        if name.kind_of? Symbol
+        case name
+        when Symbol
           @name = ModuleName.new line, name
+        when ToplevelConstant
+          @name = ToplevelModuleName.new line, name
         else
           @name = ScopedModuleName.new line, name
         end
@@ -598,13 +620,28 @@ module Rubinius
       end
     end
 
+    class ToplevelModuleName < ModuleName
+      def initialize(line, node)
+        @line = line
+        @name = node.name
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        name_bytecode(g)
+        g.push_cpath_top
+        g.send :open_module_under, 2
+      end
+    end
+
     class ScopedModuleName < ModuleName
       attr_accessor :parent
 
-      def initialize(line, parent)
+      def initialize(line, node)
         @line = line
-        @name = parent.name
-        @parent = parent.parent
+        @name = node.name
+        @parent = node.parent
       end
 
       def bytecode(g)
