@@ -3,22 +3,21 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe "A Defined node" do
   relates "defined? $x" do
     compile do |g|
-      t = g.new_label
       f = g.new_label
+      done = g.new_label
 
       g.push_const :Rubinius
       g.find_const :Globals
       g.push_literal :$x
       g.send :key?, 1
-      g.git t
-
-      g.push :nil
-      g.goto f
-
-      t.set!
+      g.gif f
       g.push_literal "global-variable"
+      g.goto done
 
       f.set!
+      g.push :nil
+
+      done.set!
     end
   end
 
@@ -85,10 +84,21 @@ describe "A Defined node" do
       f = g.new_label
       done = g.new_label
 
-      g.push_scope
+      ex = g.new_label
+      ok = g.new_label
+      g.setup_unwind ex
+
       g.push_literal :X
-      g.send :const_defined?, 1
-      g.gif f
+      g.invoke_primitive :vm_const_defined, 1
+      g.pop_unwind
+      g.goto ok
+
+      ex.set!
+      g.clear_exception
+      g.goto f
+
+      ok.set!
+      g.pop
       g.push_literal "constant"
       g.goto done
 
@@ -104,10 +114,23 @@ describe "A Defined node" do
       f = g.new_label
       done = g.new_label
 
-      g.push_const :Object
-      g.push_literal "X"
-      g.send :const_path_defined?, 1
-      g.gif f
+      ex = g.new_label
+      ok = g.new_label
+      g.setup_unwind ex
+
+      g.push_cpath_top
+      g.push_literal :X
+      g.push :false
+      g.invoke_primitive :vm_const_defined_under, 3
+      g.pop_unwind
+      g.goto ok
+
+      ex.set!
+      g.clear_exception
+      g.goto f
+
+      ok.set!
+      g.pop
       g.push_literal "constant"
       g.goto done
 
@@ -123,10 +146,23 @@ describe "A Defined node" do
       f = g.new_label
       done = g.new_label
 
-      g.push_scope
-      g.push_literal "X::Y"
-      g.send :const_path_defined?, 1
-      g.gif f
+      ex = g.new_label
+      ok = g.new_label
+      g.setup_unwind ex
+
+      g.push_const :X
+      g.push_literal :Y
+      g.push :true
+      g.invoke_primitive :vm_const_defined_under, 3
+      g.pop_unwind
+      g.goto ok
+
+      ex.set!
+      g.clear_exception
+      g.goto f
+
+      ok.set!
+      g.pop
       g.push_literal "constant"
       g.goto done
 
@@ -142,10 +178,24 @@ describe "A Defined node" do
       f = g.new_label
       done = g.new_label
 
-      g.push_scope
-      g.push_literal "X::Y::Z"
-      g.send :const_path_defined?, 1
-      g.gif f
+      ex = g.new_label
+      ok = g.new_label
+      g.setup_unwind ex
+
+      g.push_const :X
+      g.find_const :Y
+      g.push_literal :Z
+      g.push :true
+      g.invoke_primitive :vm_const_defined_under, 3
+      g.pop_unwind
+      g.goto ok
+
+      ex.set!
+      g.clear_exception
+      g.goto f
+
+      ok.set!
+      g.pop
       g.push_literal "constant"
       g.goto done
 
@@ -161,10 +211,23 @@ describe "A Defined node" do
       f = g.new_label
       done = g.new_label
 
-      g.push_scope
-      g.push_literal "self::A"
-      g.send :const_path_defined?, 1
-      g.gif f
+      ex = g.new_label
+      ok = g.new_label
+      g.setup_unwind ex
+
+      g.push :self
+      g.push_literal :A
+      g.push :true
+      g.invoke_primitive :vm_const_defined_under, 3
+      g.pop_unwind
+      g.goto ok
+
+      ex.set!
+      g.clear_exception
+      g.goto f
+
+      ok.set!
+      g.pop
       g.push_literal "constant"
       g.goto done
 
@@ -201,39 +264,39 @@ describe "A Defined node" do
 
   relates "defined? @var" do
     compile do |g|
-      t = g.new_label
       f = g.new_label
+      done = g.new_label
 
       g.push :self
       g.push_literal :@var
       g.send :__instance_variable_defined_eh__, 1
-      g.git t
-      g.push :nil
-      g.goto f
-
-      t.set!
+      g.gif f
       g.push_literal "instance-variable"
+      g.goto done
 
       f.set!
+      g.push :nil
+
+      done.set!
     end
   end
 
   relates "defined? @@var" do
     compile do |g|
-      t = g.new_label
       f = g.new_label
+      done = g.new_label
 
       g.push_scope
       g.push_literal :@@var
       g.send :class_variable_defined?, 1
-      g.git t
-      g.push :nil
-      g.goto f
-
-      t.set!
+      g.gif f
       g.push_literal "class variable"
+      g.goto done
 
       f.set!
+      g.push :nil
+
+      done.set!
     end
   end
 
@@ -277,11 +340,21 @@ describe "A Defined node" do
       f = g.new_label
       done = g.new_label
 
-      g.push_scope
+      ex = g.new_label
+      ok = g.new_label
+      g.setup_unwind ex
+
       g.push_literal :A
-      g.send :const_defined?, 1
-      g.gif f
-      g.push_const :A
+      g.invoke_primitive :vm_const_defined, 1
+
+      g.pop_unwind
+      g.goto ok
+
+      ex.set!
+      g.clear_exception
+      g.goto f
+
+      ok.set!
       g.push_literal :m
       g.push :true
       g.send :__respond_to_eh__, 2
@@ -301,12 +374,23 @@ describe "A Defined node" do
       f = g.new_label
       done = g.new_label
 
-      g.push_const :Object
-      g.push_literal "A"
-      g.send :const_path_defined?, 1
-      g.gif f
+      ex = g.new_label
+      ok = g.new_label
+      g.setup_unwind ex
+
       g.push_cpath_top
-      g.find_const :A
+      g.push_literal :A
+      g.push :false
+      g.invoke_primitive :vm_const_defined_under, 3
+
+      g.pop_unwind
+      g.goto ok
+
+      ex.set!
+      g.clear_exception
+      g.goto f
+
+      ok.set!
       g.push_literal :m
       g.push :true
       g.send :__respond_to_eh__, 2
@@ -326,13 +410,23 @@ describe "A Defined node" do
       f = g.new_label
       done = g.new_label
 
-      g.push_scope
-      g.push_literal "A::B"
-      g.send :const_path_defined?, 1
-      g.gif f
+      ex = g.new_label
+      ok = g.new_label
+      g.setup_unwind ex
 
       g.push_const :A
-      g.find_const :B
+      g.push_literal :B
+      g.push :true
+      g.invoke_primitive :vm_const_defined_under, 3
+
+      g.pop_unwind
+      g.goto ok
+
+      ex.set!
+      g.clear_exception
+      g.goto f
+
+      ok.set!
       g.push_literal :m
       g.push :true
       g.send :__respond_to_eh__, 2
@@ -352,8 +446,21 @@ describe "A Defined node" do
       f = g.new_label
       done = g.new_label
 
+      ex = g.new_label
+      ok = g.new_label
+      g.setup_unwind ex
+
       g.push :self
       g.send :a, 0, true
+
+      g.pop_unwind
+      g.goto ok
+
+      ex.set!
+      g.clear_exception
+      g.goto f
+
+      ok.set!
       g.push_literal :b
       g.push :true
       g.send :__respond_to_eh__, 2
