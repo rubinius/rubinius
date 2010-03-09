@@ -11,6 +11,12 @@ describe "Array#hash" do
     end
   end
 
+  it "depends on the order of elements in the Array" do
+    [1, 2].hash.should_not == [2, 1].hash
+    [1, 2, 3, 3].hash.should_not == [3, 1, 2, 3].hash
+    ['jruby', 'ruby', 'rubinius'].hash.should_not == ['rubinius', 'jruby', 'ruby'].hash
+  end
+
   ruby_bug "#", "1.8.6.277" do
     it "properly handles recursive arrays" do
       empty = ArraySpecs.empty_recursive_array
