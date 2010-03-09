@@ -13,13 +13,17 @@ module Rubinius
         @check_for_local = false
       end
 
+      def check_local_reference(g)
+        if @receiver.kind_of? Self and (@check_for_local or g.state.eval?)
+          reference = g.state.scope.search_local(@name)
+        end
+      end
+
       def bytecode(g)
         pos(g)
 
-        if @receiver.kind_of? Self and (@check_for_local or g.state.eval?)
-          if reference = g.state.scope.search_local(@name)
-            return reference.get_bytecode(g)
-          end
+        if reference = check_local_reference(g)
+          return reference.get_bytecode(g)
         end
 
         @receiver.bytecode(g)
@@ -50,11 +54,9 @@ module Rubinius
       end
 
       def defined(g)
-        if @receiver.kind_of? Self and (@check_for_local or g.state.eval?)
-          if reference = g.state.scope.search_local(@name)
-            g.push_literal "local-variable"
-            return
-          end
+        if check_local_reference(g)
+          g.push_literal "local-variable"
+          return
         end
 
         f = g.new_label
