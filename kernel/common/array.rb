@@ -480,11 +480,11 @@ class Array
   # does nothing. Returns nil if the loop has finished without getting interrupted.
   def cycle(n = nil, &block)
     return to_enum(:cycle, n) unless block_given?
-    unless n
-      loop{each(&block)}
-    else
+    if n
       n = Type.coerce_to n, Fixnum, :to_int
       n.times{each(&block)}
+    else
+      loop{each(&block)}
     end
     nil
   end
@@ -743,8 +743,11 @@ class Array
     hash_val = size
     return size if Thread.detect_outermost_recursion self do
       i = to_iter
+      mask = Fixnum::MAX >> 1
       while i.next
-        hash_val ^= i.item.hash
+        hash_val  &= mask
+        hash_val <<= 1
+        hash_val  ^= i.item.hash
       end
     end
 
