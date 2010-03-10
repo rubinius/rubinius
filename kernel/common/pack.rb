@@ -746,29 +746,64 @@ class String::Unpacker
     return i
   end
 
-  def quotable_printed(i, count, elements)
+  def quoted_printable(i, count, elements)
     if i >= @length
       elements << ''
     else
-      str              = ''
-      num_bytes        = 0
-      regex_permissive = / \= [0-9A-Fa-f]{2} | [^=]+ | [\x00-\xFF]+ /x
-      regex_junk       = / \A ( \= [0-9A-Fa-f]{0,1} )               /x
-      regex_strict     = / \A (?: \= [0-9A-Fa-f]{2} | [^=]+ )    \Z /x
-      regex_hex        = / \A \= ([0-9A-Fa-f]{2})                \Z /x
+      bytes = i
+      out = ""
+      @source[i..-1].scan(/=(.?.?)|([^=]*)/nm) do |part|
+        if equal = part[0]
+          case equal.size
+          when 0
+            # nothing, ignore it.
+          when 1
+            if /^[A-Fa-f0-9]$/.match(equal)
+              # consume and ignore.
+              bytes += 2
+            else
+              # abort the whole thing if it's not a valid hex
+              # character
+              elements << out
 
-      @source[i..-1].scan(regex_permissive) do |s|
-        if s =~ regex_strict
-          num_bytes += s.length
-          s = $1.hex.chr if s =~ regex_hex
-          str << s
-        elsif s =~ regex_junk
-          num_bytes += $1.length
+              # The + 1 is to skip the =
+              return bytes + 1
+            end
+          when 2
+            if equal == "\r\n"
+              # consume and ignore.
+              bytes += 3
+            elsif m = /^[A-Fa-f0-9]{1,2}/.match(equal)
+              # See if we matched only one valid escape character,
+              # in which case, ignore the sequence but don't consume
+              # the unmatched character
+              if m[0].size == 1
+                elements << out
+                return bytes + 2
+              else
+                # finally! convert it to base 16 then back into character.
+                # Sadly, this is the most common case and it's buried.
+                bytes += 3
+                out << equal.to_i(16).chr
+              end
+            else
+              # abort
+              elements << out
+
+              # The + 1 is to skip the =
+              return bytes + 1
+            end
+          end
+        else
+          # A literal, non-equal-sign sequence. easy.
+          lit = part[1]
+          bytes += lit.size
+          out << lit
         end
       end
 
-      elements << str
-      i += num_bytes
+      elements << out
+      return bytes
     end
 
     return i
@@ -892,7 +927,7 @@ class String::Unpacker
       when /[CcDdEeFfGgNnQqSsVv]/
         i = number(code, i, count, elements)
       when 'M'
-        i = quotable_printed(i, count, elements)
+        i = quoted_printable(i, count, elements)
       when 'm'
         i = base64(i, count, elements)
       when 'U'
