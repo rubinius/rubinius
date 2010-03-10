@@ -433,7 +433,7 @@ describe "String#unpack with '@' directive" do
 end
 
 describe "String#unpack with 'M' directive" do
-  it "returns an array by decoding self according to the format string" do
+  it "decodes the rest of the string as MIMEs quoted-printable" do
     "".unpack('M').should == [""]
     "=5".unpack('Ma').should == ["", ""]
     "abc=".unpack('M').should == ["abc"]
@@ -450,6 +450,14 @@ describe "String#unpack with 'M' directive" do
     "=$$=4@=47".unpack('MMMMM').should == ["", "$$", "@G", "", ""]
     "=$$=4@=47".unpack('M5000').should == [""]
     "=4@".unpack('MMM').should == ["", "@", ""]
+  end
+
+  it "decodes across new lines" do
+    input = "A fax has arrived from remote ID ''.=0D=0A-----------------------=\r\n-------------------------------------=0D=0ATime: 3/9/2006 3:50:52=\r\n PM=0D=0AReceived from remote ID: =0D=0AInbound user ID XXXXXXXXXX, r=\r\nouting code XXXXXXXXX=0D=0AResult: (0/352;0/0) Successful Send=0D=0AP=\r\nage record: 1 - 1=0D=0AElapsed time: 00:58 on channel 11=0D=0A"
+
+    expected = "A fax has arrived from remote ID ''.\r\n------------------------------------------------------------\r\nTime: 3/9/2006 3:50:52 PM\r\nReceived from remote ID: \r\nInbound user ID XXXXXXXXXX, routing code XXXXXXXXX\r\nResult: (0/352;0/0) Successful Send\r\nPage record: 1 - 1\r\nElapsed time: 00:58 on channel 11\r\n"
+
+    input.unpack("M").first.should == expected
   end
 end
 
