@@ -28,11 +28,6 @@ describe "Enumerable#any?" do
     lambda { @enum2.any?(1, 2, 3) {} }.should raise_error(ArgumentError)
   end
 
-  it "raises NoMethodError if there is no #each method defined" do
-    lambda { EnumerableSpecs::NoEach.new.any? }.should raise_error(NoMethodError)
-    lambda { EnumerableSpecs::NoEach.new.any? {} }.should raise_error(NoMethodError)
-  end
-
   it "does not hide exceptions out of #each" do
     lambda {
       EnumerableSpecs::ThrowingEach.new.any?

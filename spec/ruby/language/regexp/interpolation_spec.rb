@@ -17,12 +17,7 @@ describe "Regexps with interpolation" do
     o = LanguageSpecs::ClassWith_to_s.new
     /#{o}/.should == /class_with_to_s/
   end
-  
-  it "throws NoMethodError on missing to_s" do
-    o = LanguageSpecs::ClassWithout_to_s.new
-    lambda { /#{o}/ }.should raise_error(NoMethodError)
-  end
-  
+
   it "allows interpolation which mixes modifiers" do
     re = /foo/i
     /#{re} bar/m.should == /(?i-mx:foo) bar/m

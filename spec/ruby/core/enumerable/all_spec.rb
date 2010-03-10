@@ -21,19 +21,6 @@ describe "Enumerable#all?" do
     {}.all? { nil }.should == true
   end
 
-  it "raises an ArgumentError when any arguments provided" do
-    lambda { @enum.all?(Proc.new {}) }.should raise_error(ArgumentError)
-    lambda { @enum.all?(nil) }.should raise_error(ArgumentError)
-    lambda { @empty.all?(1) }.should raise_error(ArgumentError)
-    lambda { @enum1.all?(1) {} }.should raise_error(ArgumentError)
-    lambda { @enum2.all?(1, 2, 3) {} }.should raise_error(ArgumentError)
-  end
-
-  it "raises NoMethodError if there is no #each method defined" do
-    lambda { EnumerableSpecs::NoEach.new.all? }.should raise_error(NoMethodError)
-    lambda { EnumerableSpecs::NoEach.new.all? {} }.should raise_error(NoMethodError)
-  end
-
   it "does not hide exceptions out of #each" do
     lambda {
       EnumerableSpecs::ThrowingEach.new.all?
