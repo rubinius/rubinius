@@ -1294,11 +1294,11 @@ class Array
   # whether the first parameter is smaller, equal or larger than the
   # second parameter.
   def sort(&block)
-    dup.sort!(&block)
+    dup.sort_inplace(&block)
   end
 
   # Sorts this Array in-place. See #sort.
-  def sort!(&block)
+  def sort_inplace(&block)
     return self unless @total > 1
 
     if (@total - @start) < 6
@@ -1317,6 +1317,15 @@ class Array
 
     self
   end
+
+  protected :sort_inplace
+
+  # Make a public alias. Only use sort_inplace internally to avoid
+  # subclass overrides.
+
+  # Alias used to avoid subclass overrides
+  alias_method :sort!, :sort_inplace
+  public :sort!
 
   # Returns self except on subclasses which are converted
   # or 'upcast' to Arrays.
