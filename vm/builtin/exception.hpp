@@ -15,16 +15,24 @@ namespace rubinius {
     const static object_type type = ExceptionType;
 
   private:
-    Object* message_;  // slot
+    Object* reason_message_;  // slot
     Array* locations_; // slot
     Exception* parent_; // slot
 
   public:
     /* accessors */
 
-    attr_accessor(message, Object);
+    attr_accessor(reason_message, Object);
     attr_accessor(locations, Array);
     attr_accessor(parent, Exception);
+
+    Object* message() {
+      return reason_message_;
+    }
+
+    void message(STATE, Object* obj) {
+      reason_message(state, obj);
+    }
 
     /* interface */
 

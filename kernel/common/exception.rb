@@ -1,14 +1,17 @@
 class Exception
 
-  attr_writer :message
   attr_accessor :locations
   attr_accessor :parent
 
   def initialize(message = nil)
-    @message = message
+    @reason_message = message
     @locations = nil
     @backtrace = nil
     @custom_backtrace = nil
+  end
+
+  def message
+    @reason_message
   end
 
   # Needed to properly implement #exception, which must clone and call
@@ -89,11 +92,16 @@ class Exception
   end
 
   def to_s
-    @message || self.class.to_s
+    @reason_message || self.class.to_s
   end
 
-  alias_method :message, :to_s
-  alias_method :to_str, :to_s
+  # This is important, because I subclass can just override #to_s and calling
+  # #message will call it. Using an alias doesn't achieve that.
+  def message
+    to_s
+  end
+
+  alias_method :to_str, :message
 
   def inspect
     "#<#{self.class.name}: #{self.to_s}>"
@@ -153,7 +161,7 @@ end
 
 class ArgumentError < StandardError
   def message
-    return @message if @message
+    return @reason_message if @reason_message
     if @method_name
       "method '#{@method_name}': given #{@given}, expected #{@expected}"
     else

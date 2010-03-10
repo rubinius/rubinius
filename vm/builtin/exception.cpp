@@ -49,9 +49,9 @@ namespace rubinius {
   }
 
   const char* Exception::message_c_str() {
-    if(message_->nil_p()) return "<no message>";
+    if(message()->nil_p()) return "<no message>";
 
-    if(String* str = try_as<String>(message_)) {
+    if(String* str = try_as<String>(message())) {
       return str->c_str();
     }
 
