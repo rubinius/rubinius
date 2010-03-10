@@ -41,4 +41,10 @@ module ExceptionSpecs
     end
 
   end
-end  
+
+  class OverrideToS < RuntimeError
+    def to_s
+      "this is from #to_s"
+    end
+  end
+end
