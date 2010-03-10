@@ -23,6 +23,14 @@ module Rubinius
         g.push_literal @name
       end
 
+      def masgn_bytecode(g)
+        pos(g)
+
+        @parent.bytecode(g)
+        g.swap
+        g.push_literal @name
+      end
+
       def defined(g)
         f = g.new_label
         done = g.new_label
@@ -85,6 +93,14 @@ module Rubinius
         pos(g)
 
         g.push_cpath_top
+        g.push_literal @name
+      end
+
+      def masgn_bytecode(g)
+        pos(g)
+
+        g.push_cpath_top
+        g.swap
         g.push_literal @name
       end
 
@@ -152,6 +168,14 @@ module Rubinius
         g.push_literal @name
       end
 
+      def masgn_bytecode(g)
+        pos(g)
+
+        g.push_scope
+        g.swap
+        g.push_literal @name
+      end
+
       def defined(g)
         f = g.new_label
         done = g.new_label
@@ -210,8 +234,7 @@ module Rubinius
       end
 
       def masgn_bytecode(g)
-        g.swap
-        @constant.bytecode(g)
+        @constant.masgn_bytecode(g)
         g.swap
         g.send :const_set, 2
       end
