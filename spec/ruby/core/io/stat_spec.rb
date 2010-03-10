@@ -6,8 +6,10 @@ describe "IO#stat" do
     lambda { IOSpecs.closed_file.stat }.should raise_error(IOError)
   end
 
-  it "returns a File::Stat object for the stream" do
-    io = IO.new $stderr.fileno
-    io.stat.should be_an_instance_of(File::Stat)
+  quarantine! do
+    it "returns a File::Stat object for the stream" do
+      io = IO.new $stderr.fileno
+      io.stat.should be_an_instance_of(File::Stat)
+    end
   end
 end
