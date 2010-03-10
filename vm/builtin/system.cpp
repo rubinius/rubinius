@@ -670,6 +670,8 @@ namespace rubinius {
       return state->symbol("protected");
     case eSuper:
       return state->symbol("super");
+    case eVCall:
+      return state->symbol("vcall");
     case eNormal:
       return state->symbol("normal");
     default:

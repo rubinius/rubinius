@@ -288,7 +288,7 @@ namespace rubinius {
     cache->set_klass(recv->lookup_begin(state));
 
     if(!cache->fill_private(state, cache->name, cache->klass())) {
-      state->set_method_missing_reason(eNormal);
+      state->set_method_missing_reason(eVCall);
 
       if(!cache->fill_method_missing(state, cache->klass())) {
         Exception::internal_error(state, call_frame, "no method_missing");

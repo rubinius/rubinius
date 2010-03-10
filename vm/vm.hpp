@@ -62,7 +62,7 @@ namespace rubinius {
   class Fiber;
 
   enum MethodMissingReason {
-    eNone, ePrivate, eProtected, eSuper, eNormal
+    eNone, ePrivate, eProtected, eSuper, eVCall, eNormal
   };
 
   class VM : public ManagedThread {

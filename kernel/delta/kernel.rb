@@ -51,6 +51,8 @@ module Kernel
   module_function :fail
 
   def method_missing(meth, *args)
+    cls = NoMethodError
+
     case Rubinius.method_missing_reason
     when :private
       msg = "private method '#{meth}'"
@@ -58,6 +60,9 @@ module Kernel
       msg = "protected method '#{meth}'"
     when :super
       msg = "no superclass method '#{meth}'"
+    when :vcall
+      msg = "no method or variable '#{meth}'"
+      cls = NameError
     else
       msg = "no method '#{meth}'"
     end
@@ -75,7 +80,7 @@ module Kernel
       msg << " on an instance of #{self.class}."
     end
 
-    Kernel.raise NoMethodError.new(msg, meth, args)
+    Kernel.raise cls.new(msg, meth, args)
   end
 
   private :method_missing
