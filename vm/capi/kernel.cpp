@@ -76,7 +76,7 @@ extern "C" {
         return Qnil;
       }
 
-      VALUE exc_handle = env->get_handle(env->state()->thread_state()->as_object(env->state()));
+      VALUE exc_handle = env->get_handle(env->state()->thread_state()->current_exception());
       bool handle_exc = false;
 
       va_start(exc_classes, arg2);
@@ -90,7 +90,7 @@ extern "C" {
 
       if(handle_exc) {
         ret = (*raise_func)(arg2, exc_handle);
-        env->state()->thread_state()->clear_exception();
+        env->state()->thread_state()->clear_raise();
       } else {
         env->current_ep()->return_to(env);
       }

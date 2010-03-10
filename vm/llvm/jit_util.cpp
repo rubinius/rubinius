@@ -719,7 +719,7 @@ extern "C" {
 
   Object* rbx_clear_raise_value(STATE) {
     Object* val = state->thread_state()->raise_value();
-    state->thread_state()->clear_exception(true);
+    state->thread_state()->clear_return();
     return val;
   }
 
@@ -728,23 +728,23 @@ extern "C" {
   }
 
   Object* rbx_current_exception(STATE) {
-    return state->thread_state()->as_object(state);
+    return state->thread_state()->current_exception();
   }
 
   Object* rbx_clear_exception(STATE) {
-    // Don't allow this code to clear non-exception raises
-    if(state->thread_state()->raise_reason() == cException) {
-      state->thread_state()->clear_exception();
-    }
-
+    state->thread_state()->clear_raise();
     return Qnil;
   }
 
-  Object* rbx_pop_exception(STATE, CallFrame* call_frame, Object* top) {
+  Object* rbx_push_exception_state(STATE) {
+    return state->thread_state()->state_as_object(state);
+  }
+
+  Object* rbx_restore_exception_state(STATE, CallFrame* call_frame, Object* top) {
     if(top->nil_p()) {
-      state->thread_state()->clear_exception();
+      state->thread_state()->clear();
     } else {
-      state->thread_state()->set_exception(state, top);
+      state->thread_state()->set_state(state, top);
     }
 
     return Qnil;

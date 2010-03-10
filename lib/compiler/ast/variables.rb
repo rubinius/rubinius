@@ -226,7 +226,7 @@ module Rubinius
         pos(g)
 
         if @name == :$!
-          g.push_exception
+          g.push_current_exception
         elsif @name == :$~
           g.last_match 0, 0
         else

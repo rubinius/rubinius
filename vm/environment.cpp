@@ -337,10 +337,6 @@ namespace rubinius {
       if(cf->version != signature_) throw BadKernelFile(file);
     }
 
-    /** @todo Redundant? CompiledFile::execute() does this. --rue */
-    state->thread_state()->clear_exception(true);
-
-    // TODO check version number
     cf->execute(state);
 
     if(state->thread_state()->raise_reason() == cException) {

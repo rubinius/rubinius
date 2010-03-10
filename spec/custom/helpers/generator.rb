@@ -460,7 +460,7 @@ module Rubinius
 
     def save_exception
       idx = new_stack_local
-      push_exception
+      push_exception_state
       set_stack_local idx
       pop
 
@@ -469,7 +469,7 @@ module Rubinius
 
     def restore_exception(idx)
       push_stack_local idx
-      pop_exception
+      restore_exception_state
     end
 
     class Break
@@ -574,7 +574,12 @@ module Rubinius
 
       exc_lbl.set!
 
-      g.push_exception
+      g.push_exception_state
+      raised_state = g.new_stack_local
+      g.set_stack_local raised_state
+      g.pop
+
+      g.push_current_exception
 
       rb.conditions.each do |klass, code|
         jump_body = g.new_label
@@ -616,7 +621,10 @@ module Rubinius
         jump_next.set!
       end
 
-      g.pop_exception
+      g.pop
+
+      g.push_stack_local raised_state
+      g.restore_exception_state
       g.reraise
 
       jump_else.set!
@@ -665,10 +673,10 @@ module Rubinius
       g.pop_unwind
       g.goto ensure_good
       ensure_bad.set!
-      g.push_exception
+      g.push_exception_state
 
       eb.handler.call
-      g.pop_exception
+      g.restore_exception_state
       g.reraise
 
       ensure_good.set!

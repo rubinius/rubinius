@@ -177,7 +177,7 @@ exception:
     // If we're trying to break to here, we're done!
     if(th->destination_scope() == call_frame->scope->on_heap()) {
       stack_push(th->raise_value());
-      th->clear_exception(true);
+      th->clear_break();
       goto continue_to_run;
       // Don't return here, because we want to loop back to the top
       // and keep running this method.
@@ -207,7 +207,7 @@ exception:
       // If we're trying to return to here, we're done!
       if(th->destination_scope() == call_frame->scope->on_heap()) {
         Object* val = th->raise_value();
-        th->clear_exception(true);
+        th->clear_return();
         return val;
       } else {
         // Give control of this exception to the caller.
@@ -314,7 +314,7 @@ exception:
     // If we're trying to break to here, we're done!
     if(th->destination_scope() == call_frame->scope->on_heap()) {
       stack_push(th->raise_value());
-      th->clear_exception(true);
+      th->clear_break();
       goto continue_to_run;
       // Don't return here, because we want to loop back to the top
       // and keep running this method.
@@ -344,7 +344,7 @@ exception:
       // If we're trying to return to here, we're done!
       if(th->destination_scope() == call_frame->scope->on_heap()) {
         Object* val = th->raise_value();
-        th->clear_exception(true);
+        th->clear_return();
         return val;
       } else {
         // Give control of this exception to the caller.
@@ -472,7 +472,7 @@ exception:
     // If we're trying to break to here, we're done!
     if(th->destination_scope() == call_frame->scope->on_heap()) {
       stack_push(th->raise_value());
-      th->clear_exception(true);
+      th->clear_break();
       goto continue_to_run;
       // Don't return here, because we want to loop back to the top
       // and keep running this method.
@@ -504,7 +504,7 @@ exception:
       // If we're trying to return to here, we're done!
       if(th->destination_scope() == call_frame->scope->on_heap()) {
         Object* val = th->raise_value();
-        th->clear_exception(true);
+        th->clear_return();
         return val;
       } else {
         // Give control of this exception to the caller.

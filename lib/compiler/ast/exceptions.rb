@@ -38,9 +38,9 @@ module Rubinius
         # TODO: ?
         g.new_label.set!
 
-        g.push_exception
-        current_exc = g.new_stack_local
-        g.set_stack_local current_exc
+        g.push_exception_state
+        outer_exc_state = g.new_stack_local
+        g.set_stack_local outer_exc_state
         g.pop
 
         g.state.push_ensure
@@ -52,14 +52,14 @@ module Rubinius
 
         ex.set!
 
-        g.push_exception
+        g.push_exception_state
 
-        g.state.push_rescue(current_exc)
+        g.state.push_rescue(outer_exc_state)
         @ensure.bytecode(g)
         g.state.pop_rescue
         g.pop
 
-        g.pop_exception
+        g.restore_exception_state
 
         # Re-raise the exception
         g.reraise
@@ -110,9 +110,9 @@ module Rubinius
           done    = g.new_label
 
           # Save the current exception into a stack local
-          g.push_exception
-          current_exc = g.new_stack_local
-          g.set_stack_local current_exc
+          g.push_exception_state
+          outer_exc_state = g.new_stack_local
+          g.set_stack_local outer_exc_state
           g.pop
 
           this_retry.set!
@@ -144,8 +144,8 @@ module Rubinius
               g.pop_unwind
 
               # Reset the outer exception
-              g.push_stack_local current_exc
-              g.pop_exception
+              g.push_stack_local outer_exc_state
+              g.restore_exception_state
 
               g.goto current_break
             end
@@ -159,8 +159,8 @@ module Rubinius
               g.pop_unwind
 
               # Reset the outer exception
-              g.push_stack_local current_exc
-              g.pop_exception
+              g.push_stack_local outer_exc_state
+              g.restore_exception_state
 
               g.goto outer_retry
             end
@@ -174,17 +174,30 @@ module Rubinius
           # Expose the retry label here only, not before this.
           g.retry = this_retry
 
+          # Save exception state to use in reraise
+          g.push_exception_state
+
+          raised_exc_state = g.new_stack_local
+          g.set_stack_local raised_exc_state
+          g.pop
+
           # Save the current exception, so that calling #=== can't trample
           # it.
-          g.push_exception
+          g.push_current_exception
 
-          @rescue.bytecode(g, reraise, done, current_exc)
+          @rescue.bytecode(g, reraise, done, outer_exc_state)
           reraise.set!
 
-          # Restore the exception we saved and the reraise. The act
+          # Restore the exception state we saved and the reraise. The act
           # of checking if an exception matches can run any code, which
           # can easily trample on the current exception.
-          g.pop_exception
+          #
+          # Remove the direct exception so we can get to the state
+          g.pop
+
+          # Restore the state and reraise
+          g.push_stack_local raised_exc_state
+          g.restore_exception_state
           g.reraise
 
           els.set!
@@ -192,10 +205,11 @@ module Rubinius
             g.pop
             @else.bytecode(g)
           end
+
           done.set!
 
-          g.push_stack_local current_exc
-          g.pop_exception
+          g.push_stack_local outer_exc_state
+          g.restore_exception_state
         end
         g.pop_modifiers
       end
@@ -258,12 +272,12 @@ module Rubinius
         return true if value.kind_of? GlobalVariableAccess and value.name == :$!
       end
 
-      def bytecode(g, reraise, done, current_exc)
+      def bytecode(g, reraise, done, outer_exc_state)
         pos(g)
         body = g.new_label
 
         # Exception has left the current exception on the top
-        # of the stack, use it rather than using push_exception.
+        # of the stack, use it rather than using push_current_exception.
 
         if @conditions
           @conditions.body.each do |c|
@@ -298,7 +312,7 @@ module Rubinius
         current_break = g.break
         g.break = g.new_label
 
-        g.state.push_rescue(current_exc)
+        g.state.push_rescue(outer_exc_state)
         @body.bytecode(g)
         g.state.pop_rescue
 
@@ -310,8 +324,8 @@ module Rubinius
           g.clear_exception
 
           # Reset the outer exception
-          g.push_stack_local current_exc
-          g.pop_exception
+          g.push_stack_local outer_exc_state
+          g.restore_exception_state
 
           if current_break
             g.goto current_break
@@ -323,7 +337,7 @@ module Rubinius
         g.break = current_break
         if @next
           if_false.set!
-          @next.bytecode(g, reraise, done, current_exc)
+          @next.bytecode(g, reraise, done, outer_exc_state)
         end
       end
 

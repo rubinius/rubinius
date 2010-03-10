@@ -2681,7 +2681,7 @@ use_send:
       visit_reraise();
     }
 
-    void visit_push_exception() {
+    void visit_push_current_exception() {
       std::vector<const Type*> types;
 
       types.push_back(VMTy);
@@ -2711,7 +2711,21 @@ use_send:
       b().CreateCall(func, call_args, call_args+1);
     }
 
-    void visit_pop_exception() {
+    void visit_push_exception_state() {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_push_exception_state", ft));
+
+      Value* call_args[] = { vm_ };
+
+      stack_push(b().CreateCall(func, call_args, call_args+1));
+    }
+
+    void visit_restore_exception_state() {
       std::vector<const Type*> types;
 
       types.push_back(VMTy);
@@ -2720,7 +2734,7 @@ use_send:
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
-          module_->getOrInsertFunction("rbx_pop_exception", ft));
+          module_->getOrInsertFunction("rbx_restore_exception_state", ft));
 
       Value* call_args[] = { vm_, call_frame_, stack_pop() };
 

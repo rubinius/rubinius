@@ -561,12 +561,12 @@ instruction passed_arg(index) [ -- boolean ]
   }
 end
 
-section "Manipulate execeptions"
+section "Manipulate exceptions"
 
 # [Operation]
 #   Pushes the current exception onto the stack
 # [Format]
-#   \push_exception
+#   \push_current_exception
 # [Stack Before]
 #   * ...
 # [Stack After]
@@ -587,8 +587,8 @@ section "Manipulate execeptions"
 #     end
 #   </code>
 
-instruction push_exception() [ -- exception ]
-  stack_push(state->thread_state()->as_object(state));
+instruction push_current_exception() [ -- exception ]
+  stack_push(state->thread_state()->current_exception());
 end
 
 # [Operation]
@@ -604,27 +604,45 @@ end
 #   untouched by this opcode.
 
 instruction clear_exception() [ -- ]
-  state->thread_state()->clear_exception(true);
+  state->thread_state()->clear_raise();
 end
 
 # [Operation]
-#   Pop the first item off the stack and fill $! with it.
+#   Pushes the current exception state onto the stack
 # [Format]
-#   \pop_exception
+#   \push_exception_state
 # [Stack Before]
+#   * ...
+# [Stack After]
 #   * exception
+#   * ...
+# [Description]
+#   Package up the current exception state into an object and push it. This
+#   is used to preserve the exception state around code that might mutate it.
+#   For instance, when handling an ensure while an exception is being raised
+
+instruction push_exception_state() [ -- exc_state ]
+  stack_push(state->thread_state()->state_as_object(state));
+end
+
+# [Operation]
+#   Pop the first item off the stack and set the exception state with it
+# [Format]
+#   \restore_exception_state
+# [Stack Before]
+#   * exc_state
 #   * ...
 # [Stack After]
 #   * ...
 # [Description]
-#   The top item on the stack becomes the current exception
+#   The top item on the stack becomes the current exception state
 
-instruction pop_exception() [ exception -- ]
+instruction restore_exception_state() [ exception -- ]
     Object* top = stack_pop();
     if(top->nil_p()) {
-      state->thread_state()->clear_exception(true);
+      state->thread_state()->clear();
     } else {
-      state->thread_state()->set_exception(state, top);
+      state->thread_state()->set_state(state, top);
     }
 end
 

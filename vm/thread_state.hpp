@@ -12,18 +12,18 @@ namespace rubinius {
   class VM;
 
   class ThreadState {
+    TypedRoot<Exception*> current_exception_;
     TypedRoot<Object*> raise_value_;
     TypedRoot<Object*> throw_dest_;
     RaiseReason raise_reason_;
     TypedRoot<VariableScope*> destination_scope_;
 
   public:
-    ThreadState(VM* vm)
-      : raise_value_(vm, Qnil)
-      , throw_dest_(vm, Qnil)
-      , raise_reason_(cNone)
-      , destination_scope_(vm, (VariableScope*)Qnil)
-    {}
+    ThreadState(VM* vm);
+
+    Exception* current_exception() {
+      return current_exception_.get();
+    }
 
     Object* raise_value() {
       return raise_value_.get();
@@ -41,10 +41,13 @@ namespace rubinius {
       return throw_dest_.get();
     }
 
-    void clear_exception(bool all = false);
+    void clear_break();
+    void clear_return();
+    void clear_raise();
+    void clear();
 
-    Object* as_object(STATE);
-    void set_exception(STATE, Object* obj);
+    Object* state_as_object(STATE);
+    void set_state(STATE, Object* obj);
 
     void raise_exception(Exception* exc);
     void raise_return(Object* value, VariableScope* dest);

@@ -381,7 +381,7 @@ describe "An Iter node" do
             end
 
             rb.condition :Exception do
-              d.push_exception
+              d.push_current_exception
               d.set_local_depth 1, 0
               d.pop
               d.push :nil

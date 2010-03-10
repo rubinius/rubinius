@@ -4,56 +4,80 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/class.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/exception.hpp"
 
 namespace rubinius {
-  Object* ThreadState::as_object(STATE) {
-    switch(raise_reason_) {
-    case cException:
-      return raise_value_.get();
-    case cNone:
-      return Qnil;
-    default:
-      Exception* exc = Exception::create(state);
-      exc->klass(state, G(exc_vm_internal));
-      exc->set_ivar(state, state->symbol("reason"), Fixnum::from(raise_reason_));
-      exc->set_ivar(state, state->symbol("value"),  raise_value_.get());
-      exc->set_ivar(state, state->symbol("destination"), destination_scope_.get());
-      exc->set_ivar(state, state->symbol("throw_dest"), throw_dest_.get());
-      return exc;
+  ThreadState::ThreadState(VM* vm)
+    : current_exception_(vm, (Exception*)Qnil)
+    , raise_value_(vm, Qnil)
+    , throw_dest_(vm, Qnil)
+    , raise_reason_(cNone)
+    , destination_scope_(vm, (VariableScope*)Qnil)
+  {}
+
+  Object* ThreadState::state_as_object(STATE) {
+    if(raise_reason_ == cNone) return Qnil;
+
+    Exception* exc = Exception::create(state);
+    exc->klass(state, G(exc_vm_internal));
+    exc->set_ivar(state, state->symbol("reason"), Fixnum::from(raise_reason_));
+    exc->set_ivar(state, state->symbol("destination"), destination_scope());
+    exc->set_ivar(state, state->symbol("throw_dest"), throw_dest());
+
+    if(raise_reason_ == cException) {
+      exc->set_ivar(state, state->symbol("value"),  current_exception());
+    } else {
+      exc->set_ivar(state, state->symbol("value"),  raise_value());
     }
+    return exc;
   }
 
-  void ThreadState::clear_exception(bool all) {
-    if(raise_reason_ == cNone) return;
-    if(!all && raise_reason_ != cException) {
-      std::cout << "WARNING: clearing non exception raise reason!\n";
+  void ThreadState::set_state(STATE, Object* obj) {
+    if(!obj->kind_of_p(state, G(exc_vm_internal))) return;
+
+    Object* reason = obj->get_ivar(state, state->symbol("reason"));
+    raise_reason_ = (RaiseReason)as<Fixnum>(reason)->to_native();
+
+    if(raise_reason_ == cException) {
+      current_exception_.set(obj->get_ivar(state, state->symbol("value")));
+    } else {
+      raise_value_.set(obj->get_ivar(state, state->symbol("value")));
     }
+
+    Object* vs = try_as<VariableScope>(
+        obj->get_ivar(state, state->symbol("destination")));
+    destination_scope_.set(vs ? vs : Qnil);
+    throw_dest_.set(obj->get_ivar(state, state->symbol("throw_dest")));
+  }
+
+  void ThreadState::clear() {
     raise_value_.set(Qnil);
     raise_reason_ = cNone;
     destination_scope_.set(Qnil);
     throw_dest_.set(Qnil);
+    current_exception_.set(Qnil);
   }
 
-  void ThreadState::set_exception(STATE, Object* obj) {
-    if(obj->kind_of_p(state, G(exc_vm_internal))) {
-      Object* reason = obj->get_ivar(state, state->symbol("reason"));
-      raise_reason_ = (RaiseReason)as<Fixnum>(reason)->to_native();
-      raise_value_.set(obj->get_ivar(state, state->symbol("value")));
-      Object* vs = try_as<VariableScope>(
-          obj->get_ivar(state, state->symbol("destination")));
-      destination_scope_.set(vs ? vs : Qnil);
-      throw_dest_.set(obj->get_ivar(state, state->symbol("throw_dest")));
-    } else {
-      raise_reason_ = cException;
-      raise_value_.set(obj);
-      destination_scope_.set(Qnil);
-      throw_dest_.set(Qnil);
-    }
+  void ThreadState::clear_break() {
+    raise_reason_ = cNone;
+    raise_value_.set(Qnil);
+    destination_scope_.set(Qnil);
+    throw_dest_.set(Qnil);
+  }
+
+  void ThreadState::clear_return() {
+    // Use the same logic as break
+    clear_break();
+  }
+
+  void ThreadState::clear_raise() {
+    clear_return();
+    current_exception_.set(Qnil);
   }
 
   void ThreadState::raise_exception(Exception* exc) {
     raise_reason_ = cException;
-    raise_value_.set(exc);
+    current_exception_.set(exc);
     destination_scope_.set(Qnil);
   }
 

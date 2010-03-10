@@ -555,7 +555,7 @@ module Rubinius
 
         if lcl = g.state.rescue?
           g.push_stack_local lcl
-          g.pop_exception
+          g.restore_exception_state
         end
 
         if g.state.block?

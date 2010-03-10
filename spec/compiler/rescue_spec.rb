@@ -83,7 +83,7 @@ describe "A Rescue node" do
         end
 
         rb.condition :StandardError do
-          g.push_exception
+          g.push_current_exception
           g.set_ivar :@e
           g.pop
           g.push :self
@@ -113,7 +113,7 @@ describe "A Rescue node" do
         end
 
         rb.condition :StandardError do
-          g.push_exception
+          g.push_current_exception
           g.set_local 0
           g.pop
           g.push :self
@@ -148,7 +148,7 @@ describe "A Rescue node" do
         end
 
         rb.condition :StandardError do
-          g.push_exception
+          g.push_current_exception
           g.set_local 0
           g.pop
           g.push :nil
@@ -164,7 +164,7 @@ describe "A Rescue node" do
         end
 
         rb.condition :StandardError do
-          g.push_exception
+          g.push_current_exception
           g.set_local 0
           g.pop
           g.push :nil
@@ -188,7 +188,7 @@ describe "A Rescue node" do
         end
 
         rb.condition :RuntimeError do
-          g.push_exception
+          g.push_current_exception
           g.set_local 0
           g.pop
           g.push :nil
@@ -211,7 +211,7 @@ describe "A Rescue node" do
         end
 
         rb.condition :StandardError do
-          g.push_exception
+          g.push_current_exception
           g.set_ivar :@e
           g.pop
           g.push :nil
@@ -256,7 +256,7 @@ describe "A Rescue node" do
         end
 
         rb.condition :StandardError do
-          g.push_exception
+          g.push_current_exception
           g.set_local 0
           g.pop
           g.push :nil
@@ -307,7 +307,7 @@ describe "A Rescue node" do
         end
 
         rb.condition :StandardError do
-          g.push_exception
+          g.push_current_exception
           g.set_local 0
           g.pop
           g.push 2
@@ -447,7 +447,7 @@ describe "A Rescue node" do
           body_label.set!
 
           g.pop
-          g.push_exception
+          g.push_current_exception
           g.set_local 0
           g.pop
 
@@ -492,7 +492,7 @@ describe "A Rescue node" do
           body_label.set!
           g.pop
 
-          g.push_exception
+          g.push_current_exception
           g.set_local 0
           g.pop
 
@@ -551,8 +551,8 @@ describe "A Rescue node" do
 
             rb2.condition :StandardError do
               g.push 3
-              g.push_stack_local 1
-              g.pop_exception
+              g.push_stack_local 2
+              g.restore_exception_state
               g.ret
             end
           end

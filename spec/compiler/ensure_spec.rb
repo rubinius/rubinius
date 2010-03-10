@@ -30,12 +30,12 @@ describe "An Ensure node" do
 
       dunno.set!
 
-      g.push_exception
+      g.push_exception_state
 
       g.push :nil
       g.pop
 
-      g.pop_exception
+      g.restore_exception_state
       g.reraise
 
       bottom.set!
@@ -70,14 +70,14 @@ describe "An Ensure node" do
             end
 
             rb.condition :SyntaxError do
-              g.push_exception
+              g.push_current_exception
               g.set_local 0
               g.pop
               g.push 2
             end
 
             rb.condition :Exception do
-              g.push_exception
+              g.push_current_exception
               g.set_local 1
               g.pop
               g.push 3
@@ -160,12 +160,12 @@ describe "An Ensure node" do
       g.goto noexc_lbl
 
       exc_lbl.set!
-      g.push_exception
+      g.push_exception_state
 
       g.push 13
       g.pop
 
-      g.pop_exception
+      g.restore_exception_state
       g.reraise
 
       noexc_lbl.set!

@@ -640,7 +640,7 @@ namespace rubinius {
     if(!ret && state->thread_state()->raise_reason() == cCatchThrow) {
       if(state->thread_state()->throw_dest() == dest) {
         Object* val = state->thread_state()->raise_value();
-        state->thread_state()->clear_exception(true);
+        state->thread_state()->clear_return();
         return val;
       }
     }

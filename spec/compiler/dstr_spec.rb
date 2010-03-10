@@ -311,13 +311,13 @@ EOF
 
       g.push_literal ": warning: " # 5
 
-      g.push_exception             # 6
+      g.push_current_exception             # 6
       g.send :message, 0, false
       g.send :to_s, 0, true
 
       g.push_literal " ("          # 7
 
-      g.push_exception             # 8
+      g.push_current_exception             # 8
       g.send :class, 0, false
       g.send :to_s, 0, true
 

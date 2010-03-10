@@ -39,14 +39,14 @@ describe "A Defn node" do
         d.goto ensure_noexc_lbl
 
         ensure_exc_lbl.set!
-        d.push_exception
+        d.push_exception_state
         d.push_literal :b
 
         d.restore_exception exc
 
         d.ret
         d.pop
-        d.pop_exception
+        d.restore_exception_state
         d.reraise
 
         ensure_noexc_lbl.set!
@@ -630,7 +630,7 @@ describe "A Defn node" do
             end
 
             rb.condition :RuntimeError do
-              d2.push_exception
+              d2.push_current_exception
               d2.set_local 0
               d2.pop
               d2.push :self

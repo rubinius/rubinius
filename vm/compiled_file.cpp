@@ -38,7 +38,7 @@ namespace rubinius {
   bool CompiledFile::execute(STATE) {
     TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
 
-    state->thread_state()->clear_exception(true);
+    state->thread_state()->clear();
 
     GlobalLock::LockGuard lock(state->global_lock());
 
