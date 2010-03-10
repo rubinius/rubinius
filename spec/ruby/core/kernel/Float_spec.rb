@@ -46,7 +46,7 @@ describe :kernel_float, :shared => true do
     @object.send(:Float, "10.0").should == 10.0
   end
 
-  it "raises and ArgumentError for a String of word characters" do
+  it "raises an ArgumentError for a String of word characters" do
     lambda { @object.send(:Float, "float") }.should raise_error(ArgumentError)
   end
 
@@ -54,12 +54,17 @@ describe :kernel_float, :shared => true do
     lambda { @object.send(:Float, "10.0.0") }.should raise_error(ArgumentError)
   end
 
-  it "raises and ArgumentError for a String of numbers followed by word characters" do
+  it "raises an ArgumentError for a String of numbers followed by word characters" do
     lambda { @object.send(:Float, "10D") }.should raise_error(ArgumentError)
   end
 
-  it "raises and ArgumentError for a String of word characters followed by numbers" do
+  it "raises an ArgumentError for a String of word characters followed by numbers" do
     lambda { @object.send(:Float, "D10") }.should raise_error(ArgumentError)
+  end
+
+  it "is strict about the string form even across newlines" do
+    lambda { @object.send(:Float, "not a number\n10") }.should raise_error(ArgumentError)
+    lambda { @object.send(:Float, "10\nnot a number") }.should raise_error(ArgumentError)
   end
 
   it "converts String subclasses to floats without calling #to_f" do
