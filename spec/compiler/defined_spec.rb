@@ -356,7 +356,7 @@ describe "A Defined node" do
 
       ok.set!
       g.push_literal :m
-      g.push :true
+      g.push :false
       g.send :__respond_to_eh__, 2
       g.gif f
       g.push_literal "method"
@@ -392,7 +392,7 @@ describe "A Defined node" do
 
       ok.set!
       g.push_literal :m
-      g.push :true
+      g.push :false
       g.send :__respond_to_eh__, 2
       g.gif f
       g.push_literal "method"
@@ -428,7 +428,7 @@ describe "A Defined node" do
 
       ok.set!
       g.push_literal :m
-      g.push :true
+      g.push :false
       g.send :__respond_to_eh__, 2
       g.gif f
       g.push_literal "method"
@@ -462,7 +462,7 @@ describe "A Defined node" do
 
       ok.set!
       g.push_literal :b
-      g.push :true
+      g.push :false
       g.send :__respond_to_eh__, 2
       g.gif f
       g.push_literal "method"
@@ -490,7 +490,7 @@ describe "A Defined node" do
 
       g.push_local 0
       g.push_literal :to_s
-      g.push :true
+      g.push :false
       g.send :__respond_to_eh__, 2
       g.gif f
       g.push_literal "method"
