@@ -65,7 +65,11 @@ module Rubinius
         @receiver.value_defined(g, f)
 
         g.push_literal @name
-        g.push :true
+        if @receiver.kind_of? Self
+          g.push :true
+        else
+          g.push :false
+        end
         g.send :__respond_to_eh__, 2
         g.gif f
         g.push_literal "method"
