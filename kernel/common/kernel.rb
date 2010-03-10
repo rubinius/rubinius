@@ -24,7 +24,11 @@ module Kernel
     if obj.is_a?(Float)
       return obj
     elsif obj.is_a?(String)
-      if obj !~ /^\s*[+-]?((\d+_?)*\d+(\.(\d+_?)*\d+)?|\.(\d+_?)*\d+)(\s*|([eE][+-]?(\d+_?)*\d+)\s*)$/
+      valid_re = /^\s*[+-]?((\d+_?)*\d+(\.(\d+_?)*\d+)?|\.(\d+_?)*\d+)(\s*|([eE][+-]?(\d+_?)*\d+)\s*)$/
+
+      m = valid_re.match(obj)
+
+      if !m or !m.pre_match.empty? or !m.post_match.empty?
         raise ArgumentError, "invalid value for Float(): #{obj.inspect}"
       end
       return obj.convert_float
