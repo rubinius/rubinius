@@ -1,7 +1,9 @@
 namespace :package do
   desc "Package up the LLVM build into a tar.gz"
   task :llvm do
-    sh "tar -c -C vm/external_libs/llvm --exclude .svn --exclude \"*.dylib\" --exclude \"*.so\" -f - Release/lib Release/bin/llvm-config include | bzip2 -9 > llvm-#{host_triple}.tar.bz2"
+    prebuilt_archive = "llvm-#{host_triple}.tar.bz2"
+    sh "tar -c -C vm/external_libs/llvm --exclude .svn --exclude \"*.dylib\" --exclude \"*.so\" -f - Release/lib Release/bin/llvm-config include | bzip2 -9 > #{prebuilt_archive}"
+    sh "md5sum #{prebuilt_archive} > #{prebuilt_archive}.md5"
   end
 
   desc "Build and package the result as an OS X .pkg"

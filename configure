@@ -149,6 +149,20 @@ class Configure
     @options.parse ary
   end
 
+  require 'digest/md5'
+
+  def md5_checksum(md5_path, full_path)
+    md5 = Digest::MD5.new
+
+    File.open full_path do |file|
+      until file.eof?
+        md5 << file.read(1024)
+      end
+    end
+
+    return md5.hexdigest == File.read(md5_path).split(" ").first
+  end
+
   require 'net/http'
 
   def download(url, full_path)
@@ -183,9 +197,14 @@ class Configure
     return true
   end
 
+  # Downloads a pre-built LLVM library for a platform if the file exists.  If
+  # an MD5 checksum file exists for the library, the checksum of the library
+  # is compared and the update fails if it does not match.  If no MD5 checksum
+  # file exists, the library is used without check.
   def update_prebuilt
     file = "llvm-#{@host}.tar.bz2"
     full_path = "vm/external_libs/prebuilt/#{file}"
+    md5_path = "#{full_path}.md5"
 
     dir = File.dirname full_path
 
@@ -193,13 +212,28 @@ class Configure
 
     url = "http://asset.rubini.us/prebuilt/#{file}"
 
-    unless File.exists?(full_path)
+    unless File.exists? full_path
       download url, full_path
 
       unless File.exists? full_path
         puts "ERROR. No #{file} available on server."
         return false
       end
+    end
+
+    md5_url = "#{url}.md5"
+    download md5_url, md5_path
+
+    if File.exists? md5_path
+      unless md5_checksum md5_path, full_path
+        puts "ERROR. #{file} was corrupted or MD5 checksum is outdated."
+        return false
+      else
+        puts "    MD5 checksum for prebuilt LLVM verified."
+      end
+    else
+      puts "   No MD5 checksum for #{file} available on server."
+      puts "   Using LLVM library without checksum validation."
     end
 
     puts "    Prebuilt packages updated."

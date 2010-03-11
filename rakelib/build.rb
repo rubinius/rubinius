@@ -40,7 +40,7 @@ def llvm_lib_files
 end
 
 def host_triple
-  Rubinius::BUILD_CONFIG[:arch]
+  Rubinius::BUILD_CONFIG[:host]
 end
 
 def llvm_config_flags
