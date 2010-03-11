@@ -462,7 +462,8 @@ module Rubinius
       end
 
       def to_sexp
-        [:class, @name.to_sexp, @superclass.to_sexp, @body.to_sexp]
+        superclass = @superclass.kind_of?(NilLiteral) ? nil : @superclass.to_sexp
+        [:class, @name.to_sexp, superclass, @body.to_sexp]
       end
     end
 
@@ -526,6 +527,10 @@ module Rubinius
         g.push_cpath_top
         g.send :open_class_under, 3
       end
+
+      def to_sexp
+        [:colon3, @name]
+      end
     end
 
     class ScopedClassName < ClassName
@@ -547,7 +552,7 @@ module Rubinius
       end
 
       def to_sexp
-        @parent.to_sexp
+        [:colon2, @parent.to_sexp, @name]
       end
     end
 
@@ -633,6 +638,10 @@ module Rubinius
         g.push_cpath_top
         g.send :open_module_under, 2
       end
+
+      def to_sexp
+        [:colon3, @name]
+      end
     end
 
     class ScopedModuleName < ModuleName
@@ -653,7 +662,7 @@ module Rubinius
       end
 
       def to_sexp
-        @parent.to_sexp
+        [:colon2, @parent.to_sexp, @name]
       end
     end
 
