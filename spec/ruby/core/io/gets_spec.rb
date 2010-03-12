@@ -30,7 +30,7 @@ describe "IO#gets" do
   end
 
   it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.gets }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.gets }.should raise_error(IOError)
   end
 
   describe "with no separator" do

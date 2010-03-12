@@ -41,7 +41,7 @@ describe :io_each, :shared => true do
       # method must have a block in order to raise the IOError.
       # MRI 1.8.7 returns enumerator if block is not provided.
       # See [ruby-core:16557].
-      lambda { IOSpecs.closed_file.send(@method){} }.should raise_error(IOError)
+      lambda { IOSpecs.closed_io.send(@method){} }.should raise_error(IOError)
     end
 
     ruby_version_is "" ... "1.8.7" do

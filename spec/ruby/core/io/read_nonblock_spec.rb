@@ -44,7 +44,7 @@ describe "IO#read_nonblock" do
   end
 
   it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.read_nonblock(5) }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.read_nonblock(5) }.should raise_error(IOError)
   end
 
   it "raises EOFError when the end is reached" do

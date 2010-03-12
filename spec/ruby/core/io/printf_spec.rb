@@ -13,6 +13,6 @@ describe "IO#printf" do
   end
 
   it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.printf("stuff") }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.printf("stuff") }.should raise_error(IOError)
   end
 end

@@ -19,7 +19,7 @@ describe :io_pos, :shared => true do
   end
 
   it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.send(@method) }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.send(@method) }.should raise_error(IOError)
   end
 
   it "resets #eof?" do
@@ -67,6 +67,6 @@ describe :io_set_pos, :shared => true do
   end
 
   it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.send @method, 0 }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.send @method, 0 }.should raise_error(IOError)
   end
 end

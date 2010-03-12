@@ -95,6 +95,6 @@ describe "IO#puts" do
   end
   
   it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.puts("stuff") }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.puts("stuff") }.should raise_error(IOError)
   end
 end

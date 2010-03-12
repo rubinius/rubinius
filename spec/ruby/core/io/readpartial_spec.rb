@@ -12,7 +12,7 @@ describe "IO#readpartial" do
   end
 
   it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.readpartial(10) }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.readpartial(10) }.should raise_error(IOError)
 
     @rd.close
     lambda { @rd.readpartial(10) }.should raise_error(IOError)

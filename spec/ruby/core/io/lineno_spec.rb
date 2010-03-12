@@ -11,7 +11,7 @@ describe "IO#lineno" do
   end
 
   it "raises an IOError on a closed stream" do
-    lambda { IOSpecs.closed_file.lineno }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.lineno }.should raise_error(IOError)
   end
 
   it "returns the current line number" do
@@ -37,7 +37,7 @@ describe "IO#lineno=" do
   end
 
   it "raises an IOError on a closed stream" do
-    lambda { IOSpecs.closed_file.lineno = 5 }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.lineno = 5 }.should raise_error(IOError)
   end
 
   it "calls #to_int on a non-numeric argument" do

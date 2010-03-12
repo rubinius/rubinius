@@ -86,6 +86,6 @@ describe "IO#sysread on a file" do
   end
 
   it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.sysread(5) }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.sysread(5) }.should raise_error(IOError)
   end
 end

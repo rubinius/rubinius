@@ -202,7 +202,7 @@ describe "IO#read" do
   end
 
   it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.read }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.read }.should raise_error(IOError)
   end
 end
 

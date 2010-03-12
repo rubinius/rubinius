@@ -39,6 +39,6 @@ describe :io_codepoints, :shared => true do
   end
 
   it "raises an IOError when self is not readable" do
-    lambda { IOSpecs.closed_file.send(@method).to_a }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.send(@method).to_a }.should raise_error(IOError)
   end
 end

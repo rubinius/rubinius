@@ -24,7 +24,7 @@ describe "IO#reopen" do
   end
 
   it "raises IOError on closed stream" do
-    lambda { @file1.reopen(IOSpecs.closed_file) }.should raise_error(IOError)
+    lambda { @file1.reopen(IOSpecs.closed_io) }.should raise_error(IOError)
   end
 
   it "raises IOError when called on closed stream" do

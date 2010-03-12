@@ -38,7 +38,7 @@ describe "IO#readchar" do
   end
 
   it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.readchar }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.readchar }.should raise_error(IOError)
   end
 end
 

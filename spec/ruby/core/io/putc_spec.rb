@@ -15,7 +15,7 @@ describe "IO#putc" do
   end
 
   it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.putc('a') }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.putc('a') }.should raise_error(IOError)
   end
 
   it "writes the first byte of a String" do

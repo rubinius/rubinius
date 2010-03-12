@@ -12,7 +12,7 @@ describe "IO.open" do
   end
 
   it "raises an IOError on closed stream" do
-    lambda { IO.open(IOSpecs.closed_file.fileno, 'w') }.should raise_error(IOError)
+    lambda { IO.open(IOSpecs.closed_io.fileno, 'w') }.should raise_error(IOError)
   end
 
   it "with a block invokes close on opened IO object when exiting the block" do

@@ -65,6 +65,6 @@ describe :io_write, :shared => true do
   end
 
   it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.send(@method, "hello") }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.send(@method, "hello") }.should raise_error(IOError)
   end
 end

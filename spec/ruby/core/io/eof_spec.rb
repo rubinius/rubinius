@@ -63,7 +63,7 @@ describe "IO#eof?" do
   end
 
   it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.eof? }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.eof? }.should raise_error(IOError)
   end
 
   it "raises IOError on stream not opened for reading" do

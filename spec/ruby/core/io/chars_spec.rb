@@ -28,11 +28,11 @@ ruby_version_is '1.8.7' do
     end
 
     it "returns an enumerator for a closed stream" do
-      IOSpecs.closed_file.chars.should be_an_instance_of(enumerator_class)
+      IOSpecs.closed_io.chars.should be_an_instance_of(enumerator_class)
     end
 
     it "raises an IOError when an enumerator created on a closed stream is accessed" do
-      lambda { IOSpecs.closed_file.chars.first }.should raise_error(IOError)
+      lambda { IOSpecs.closed_io.chars.first }.should raise_error(IOError)
     end
 
     it "raises an IOError when the stream for the enumerator is closed" do

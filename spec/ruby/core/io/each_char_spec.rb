@@ -16,7 +16,7 @@ ruby_version_is '1.8.7' do
     end
 
     it "raises IOError on closed stream" do
-      lambda { IOSpecs.closed_file.each_char {} }.should raise_error(IOError)
+      lambda { IOSpecs.closed_io.each_char {} }.should raise_error(IOError)
     end
 
     it "yields each character" do

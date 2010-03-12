@@ -33,7 +33,7 @@ describe "IO#readline" do
   end
 
   it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.readline }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.readline }.should raise_error(IOError)
   end
 
   it "assigns the returned line to $_" do

@@ -26,7 +26,7 @@ ruby_version_is '1.8.7' do
     end
 
     it "raises an IOError on closed stream" do
-      enum = IOSpecs.closed_file.bytes
+      enum = IOSpecs.closed_io.bytes
       lambda { enum.first }.should raise_error(IOError)
     end
 

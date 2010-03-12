@@ -3,7 +3,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "IO#fsync" do
    it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.fsync }.should raise_error(IOError)
+    lambda { IOSpecs.closed_io.fsync }.should raise_error(IOError)
   end
 
   it "writes the buffered data to permanent storage" do

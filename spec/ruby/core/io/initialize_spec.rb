@@ -26,7 +26,7 @@ describe "IO#initialize" do
   end
   
   it "raises IOError on closed stream" do
-    lambda { @io.send :initialize, IOSpecs.closed_file.fileno }.should raise_error(IOError)
+    lambda { @io.send :initialize, IOSpecs.closed_io.fileno }.should raise_error(IOError)
   end
 
   it "raises an Errno::EBADF when given an invalid file descriptor" do

@@ -15,7 +15,7 @@ describe "IO#to_io" do
   end
 
   it "returns self for closed stream" do
-    io = IOSpecs.closed_file
+    io = IOSpecs.closed_io
     io.to_io.should equal(io)
   end
 end

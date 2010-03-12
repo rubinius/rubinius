@@ -66,7 +66,7 @@ describe :io_new, :shared => true do
   end
 
   it "raises IOError on closed stream" do
-    lambda { IO.new(IOSpecs.closed_file.fileno, 'w') }.should raise_error(IOError)
+    lambda { IO.new(IOSpecs.closed_io.fileno, 'w') }.should raise_error(IOError)
   end
 
   # (1.9 behaviour verified as correct in bug #1582)
