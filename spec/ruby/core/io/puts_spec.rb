@@ -6,8 +6,14 @@ require File.expand_path('../fixtures/classes', __FILE__)
 # or write calls. Also, these tests do not make sure the ordering of the write calls
 # are correct.
 describe "IO#puts" do
-  before(:each) do
-    @io = IO.new(2, 'w')
+  before :each do
+    @name = tmp("io_puts.txt")
+    @io = new_io @name
+  end
+
+  after :each do
+    @io.close unless @io.closed?
+    rm_r @name
   end
 
   it "writes just a newline when given no args" do
@@ -38,12 +44,12 @@ describe "IO#puts" do
   it "calls to_s before writing non-string objects" do
     object = mock('hola')
     object.should_receive(:to_s).and_return("hola")
-    
+
     @io.should_receive(:write).with("hola")
     @io.should_receive(:write).with("\n")
     @io.puts(object).should == nil
   end
-  
+
   it "writes each arg if given several" do
     @io.should_receive(:write).with("1")
     @io.should_receive(:write).with("two")
@@ -51,7 +57,7 @@ describe "IO#puts" do
     @io.should_receive(:write).with("\n").exactly(3).times
     @io.puts(1, "two", 3).should == nil
   end
-  
+
   it "flattens a nested array before writing it" do
     @io.should_receive(:write).with("1")
     @io.should_receive(:write).with("2")
@@ -65,7 +71,7 @@ describe "IO#puts" do
     @io.should_receive(:write).exactly(0).times
     @io.puts(x).should == nil
   end
-  
+
   it "writes [...] for a recursive array arg" do
     x = []
     x << 2 << x
@@ -74,7 +80,7 @@ describe "IO#puts" do
     @io.should_receive(:write).with("\n").exactly(2).times
     @io.puts(x).should == nil
   end
-  
+
   it "writes a newline after objects that do not end in newlines" do
     @io.should_receive(:write).with("5")
     @io.should_receive(:write).with("\n")
@@ -85,7 +91,7 @@ describe "IO#puts" do
     @io.should_receive(:write).with("5\n")
     @io.puts("5\n").should == nil
   end
-  
+
   it "ignores the $/ separator global" do
     $/ = ":"
     @io.should_receive(:write).with("5")
@@ -93,7 +99,7 @@ describe "IO#puts" do
     @io.puts(5).should == nil
     $/ = "\n"
   end
-  
+
   it "raises IOError on closed stream" do
     lambda { IOSpecs.closed_io.puts("stuff") }.should raise_error(IOError)
   end

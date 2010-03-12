@@ -2,17 +2,20 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Kernel#puts" do
+  before :each do
+    @stdout = $stdout
+    @name = tmp("kernel_puts.txt")
+    $stdout = new_io @name
+  end
+
+  after :each do
+    $stdout.close
+    $stdout = @stdout
+    rm_r @name
+  end
+
   it "is a private method" do
     Kernel.should have_private_instance_method(:puts)
-  end
-
-  before(:each) do
-    @old_stdout = $stdout
-    $stdout = IO.new(2, 'w')
-  end
-
-  after(:each) do
-    $stdout = @old_stdout
   end
 
   it "writes just a newline when given no args" do
@@ -90,8 +93,4 @@ describe "Kernel#puts" do
     Kernel.puts(5).should == nil
     $/ = "\n"
   end
-end
-
-describe "Kernel.puts" do
-  it "needs to be reviewed for spec completeness"
 end

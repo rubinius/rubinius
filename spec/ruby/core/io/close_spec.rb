@@ -1,18 +1,19 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "IO#close" do
   before :each do
-    @path = tmp('io.close.txt')
-    @io = File.open @path, 'w'
+    @name = tmp('io_close.txt')
+    @io = new_io @name
   end
 
   after :each do
     @io.close unless @io.closed?
-    p = File.unlink(@path) 
+    rm_r @name
   end
 
   it "closes the stream" do
-    lambda { @io.close }.should_not raise_error
+    @io.close
     @io.closed?.should == true
   end
 
@@ -20,26 +21,20 @@ describe "IO#close" do
     @io.close.should == nil
   end
 
-  it "makes the stream unavailable for any further data operations" do
+  it "raises an IOError reading from a closed IO" do
     @io.close
-
-    lambda { @io.write "attempt to write" }.should raise_error(IOError)
     lambda { @io.read }.should raise_error(IOError)
   end
 
-  it "raises an IOError on subsequent invocations" do
+  it "raises an IOError writing to a closed IO" do
     @io.close
+    lambda { @io.write "data" }.should raise_error(IOError)
+  end
 
+  it "raises an IOError if closed" do
+    @io.close
     lambda { @io.close }.should raise_error(IOError)
   end
-
-  it "raises when a file descriptor is closed twice" do
-    io2 = IO.new @io.fileno
-    @io.close
-
-    lambda { io2.close }.should raise_error(Errno::EBADF)
-  end
-
 end
 
 describe "IO#close on an IO.popen stream" do

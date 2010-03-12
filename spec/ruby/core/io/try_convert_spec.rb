@@ -3,34 +3,45 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "IO.try_convert" do
   ruby_version_is "1.8.8" do
-    it "returns self for IO objects" do
-      fd_1 = IO.new(1)
-      IO.try_convert(fd_1).should equal(fd_1)
+    before :each do
+      @name = tmp("io_try_convert.txt")
+      @io = new_io @name
     end
-    
-    it "converts using :to_io" do
-      io = File.new(__FILE__)
-      obj = mock('ioish')
-      obj.should_receive(:to_io).and_return(io)
-      IO.try_convert(obj).should equal(io)
+
+    after :each do
+      @io.close unless @io.closed?
+      rm_r @name
     end
-    
-    it "returns nil when the argument doesn't respond to :to_io" do
-      IO.try_convert(-1).should be_nil
+
+    it "returns the passed IO object" do
+      IO.try_convert(@io).should equal(@io)
     end
-    
-    it "should not rescue errors" do
-      lambda{
-        IO.try_convert(IOSpecs::NotConvertible.new)
-      }.should raise_error
+
+    it "does not call #to_io on an IO instance" do
+      @io.should_not_receive(:to_io)
+      IO.try_convert(@io)
     end
-    
-    it "checks the result of the conversion" do
-      obj = mock('middle child')
-      obj.should_receive(:to_io).and_return(:confused)
-      lambda{
-        IO.try_convert(obj)
-      }.should raise_error(TypeError)
+
+    it "calls #to_io to coerce an object" do
+      obj = mock("io")
+      obj.should_receive(:to_io).and_return(@io)
+      IO.try_convert(obj).should equal(@io)
+    end
+
+    it "returns nil when the passed object does not respond to #to_io" do
+      IO.try_convert(mock("io")).should be_nil
+    end
+
+    it "raises a TypeError if the object does not return an IO from #to_io" do
+      obj = mock("io")
+      obj.should_receive(:to_io).and_return("io")
+      lambda { IO.try_convert(obj) }.should raise_error(TypeError)
+    end
+
+    it "propagates an exception raised by #to_io" do
+      obj = mock("io")
+      obj.should_receive(:to_io).and_raise(TypeError.new)
+      lambda{ IO.try_convert(obj) }.should raise_error(TypeError)
     end
   end
 end

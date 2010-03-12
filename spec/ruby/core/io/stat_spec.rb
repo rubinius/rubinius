@@ -7,7 +7,6 @@ describe "IO#stat" do
   end
 
   it "returns a File::Stat object for the stream" do
-    io = IO.new $stderr.fileno
-    io.stat.should be_an_instance_of(File::Stat)
+    STDOUT.stat.should be_an_instance_of(File::Stat)
   end
 end

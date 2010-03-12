@@ -158,31 +158,6 @@ describe "IO#gets" do
   end
 end
 
-describe "IO#gets" do
-  before :each do
-    @name = tmp("io_gets")
-  end
-
-  after :each do
-    @io.close unless @io.closed?
-    rm_r @name
-  end
-
-  it "raises an IOErro on the clone of a stream not open for reading" do
-    @io = File.open @name, fmode("w:utf-8")
-    @io.puts "data for a cloned IO"
-
-    dup_io = IO.new @io.fileno
-    @io.fileno.should == dup_io.fileno
-
-    lambda { dup_io.gets }.should raise_error(IOError)
-
-    # dup_io should not be closed because it may cause an
-    # Errno::EBADF. This should be implementation-defined
-    # so the expectation for this error has been removed.
-  end
-end
-
 ruby_version_is "1.9" do
   describe "IO#gets" do
     before :each do
@@ -190,43 +165,43 @@ ruby_version_is "1.9" do
     end
 
     after :each do
-      @file.close
+      @io.close
       rm_r @name
     end
 
     it "accepts an integer as first parameter to limit the output's size" do
       touch(@name) { |f| f.print("waduswadus") }
 
-      @file = File.open @name, fmode("r:utf-8")
-      @file.gets(5).should == "wadus"
+      @io = new_io @name, fmode("r:utf-8")
+      @io.gets(5).should == "wadus"
     end
 
     it "accepts an integer as second parameter to limit the output's size" do
-      touch(@file) { |f| f.print("wa\n\ndus\n\nwadus") }
+      touch(@name) { |f| f.print("wa\n\ndus\n\nwadus") }
 
-      @file = File.open @name, fmode("r:utf-8")
-      @file.gets('\n\n', 5).should == "wa\n\nd"
+      @io = new_io @name, fmode("r:utf-8")
+      @io.gets('\n\n', 5).should == "wa\n\nd"
     end
 
     it "accepts an integer as limit parameter which is smaller than IO size" do
-      touch(@file) { |f| f.print("ABCD\n") }
+      touch(@name) { |f| f.print("ABCD\n") }
 
-      @file = File.open @name, fmode("r:utf-8")
-      @file.gets("", 2).should == "AB"
+      @io = new_io @name, fmode("r:utf-8")
+      @io.gets("", 2).should == "AB"
     end
 
     it "accepts an integer as limit parameter which is same as IO size" do
-      touch(@file) { |f| f.print("ABC\n") }
+      touch(@name) { |f| f.print("ABC\n") }
 
-      @file = File.open @name, fmode("r:utf-8")
-      @file.gets("", 4).should == "ABC\n"
+      @io = new_io @name, fmode("r:utf-8")
+      @io.gets("", 4).should == "ABC\n"
     end
 
     it "accepts an integer as limit parameter which is greater than IO size" do
-      touch(@file) { |f| f.print("A\n") }
+      touch(@name) { |f| f.print("A\n") }
 
-      @file = File.open @name, fmode("r:utf-8")
-      @file.gets("", 10).should == "A\n"
+      @io = new_io @name, fmode("r:utf-8")
+      @io.gets("", 10).should == "A\n"
     end
   end
 end

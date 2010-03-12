@@ -3,133 +3,198 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "IO#reopen" do
   before :each do
-    # for reading
-    @name2 = fixture __FILE__,  "numbered_lines.txt"
-    @file1 = IOSpecs.io_fixture "lines.txt"
-    @file2 = IOSpecs.io_fixture @name2
+    @name = tmp("io_reopen.txt")
+    @other_name = tmp("io_reopen_other.txt")
 
-    # for writing
-    @name1_w = tmp("IO_reopen_file1") + $$.to_s
-    @name2_w = tmp("IO_reopen_file2") + $$.to_s
-    @file1_w = File.new(@name1_w, "w+")
-    @file2_w = File.new(@name2_w, "w+")
+    @io = new_io @name
+    @other_io = File.open @other_name, "w"
   end
 
   after :each do
-    @file1.close unless @file1.closed?
-    @file2.close unless @file2.closed?
-    @file1_w.close unless @file1_w.closed?
-    @file2_w.close unless @file2_w.closed?
-    rm_r @name1_w, @name2_w
+    @io.close unless @io.closed?
+    @other_io.close unless @other_io.closed?
+    rm_r @name, @other_name
   end
 
-  it "raises IOError on closed stream" do
-    lambda { @file1.reopen(IOSpecs.closed_io) }.should raise_error(IOError)
+  it "calls #to_io to convert an object" do
+    obj = mock("io")
+    obj.should_receive(:to_io).and_return(@other_io)
+    @io.reopen obj
   end
 
-  it "raises IOError when called on closed stream" do
-    @file1.close
-    lambda { @file1.reopen(@file2) }.should raise_error(IOError)
+  it "changes the class of the instance to the class of the object returned by #to_io" do
+    obj = mock("io")
+    obj.should_receive(:to_io).and_return(@other_io)
+    @io.reopen(obj).should be_an_instance_of(File)
   end
 
-  it "should not raise IOError when called on closed stream with path" do
-    @file1.close
-    lambda do
-      @file1.reopen(@name2, "r")
-    end.should_not raise_error(IOError)
-
-    @file1.closed?.should be_false
-    @file1.gets.should == "Line 1: One\n"
+  it "raises an IOError if the object returned by #to_io is closed" do
+    obj = mock("io")
+    obj.should_receive(:to_io).and_return(IOSpecs.closed_io)
+    lambda { @io.reopen obj }.should raise_error(IOError)
   end
 
-  it "reassociates self to another file/descriptor but returns self" do
-    @file1.reopen(@file2).should == @file1
-    @file2.reopen(@file1).should == @file2
-    @file1.reopen(@name2).should == @file1
-    @file2.reopen(@name2).should == @file2
-  end
-  
-  it "reassociates self with a new stream opened on path, when self in initial state" do
-    @file1.reopen(@name2)
-    @file1.gets.should == "Line 1: One\n"
+  it "raises an TypeError if #to_io does not return an IO instance" do
+    obj = mock("io")
+    obj.should_receive(:to_io).and_return("something else")
+    lambda { @io.reopen obj }.should raise_error(TypeError)
   end
 
-  it "reassociates self with a new stream opened on path, after some reads" do
-    # reade some first
-    4.times {@file1.gets; @file2.gets}
-
-    @file1.reopen(@name2)
-    @file1.gets.should == "Line 1: One\n"
+  it "raises an IOError when called on a closed stream with an object" do
+    @io.close
+    obj = mock("io")
+    obj.should_not_receive(:to_io)
+    lambda { @io.reopen(STDOUT) }.should raise_error(IOError)
   end
 
-  it "reassociates self with a new stream opened on path, after some writes" do
-    @file1_w.puts("line1-F1")
-    @file2_w.puts("line1-F2")
-    @file2_w.reopen(@name1_w)
-    @file1_w.puts("line2-F1")
-    @file2_w.puts("line2-F2")
-    @file1_w.close
-    @file2_w.close
-    File.readlines(@name1_w).should == ["line2-F2\n", "line2-F1\n"]
-    File.readlines(@name2_w).should == ["line1-F2\n"]
+  it "raises an IOError if the IO argument is closed" do
+    lambda { @io.reopen(IOSpecs.closed_io) }.should raise_error(IOError)
   end
 
-  # JRUBY-2071: File#reopen blows with IllegalArgumentException in some cases
-  it "reassociates self with the I/O stream specified as an argument, after some reads" do
-    length = 12 # length of first lines in numbered_lines.txt
+  it "raises an IOError when called on a closed stream with an IO" do
+    @io.close
+    lambda { @io.reopen(STDOUT) }.should raise_error(IOError)
+  end
+end
 
-    # read some first
-    @file1.gets
-    @file2.gets
-
-    pos = @file2.pos
-    @file1.reopen(@file2)
-    @file1.pos.should == pos
-
-    # MRI behavior: after reopen the buffers are not corrected,
-    # so we need the following line, or next gets wourd return nil.
-    @file1.pos = pos
-
-    @file1.gets.should == "Line 2: Two\n"
+describe "IO#reopen with a String" do
+  before :each do
+    @name = fixture __FILE__, "numbered_lines.txt"
+    @other_name = tmp("io_reopen.txt")
+    @io = IOSpecs.io_fixture "lines.txt"
   end
 
-  platform_is_not :darwin, :freebsd do
-    it "reassociates self with the I/O stream specified as an argument, after some sysreads" do
-      length = 12 # length of first lines in numbered_lines.txt
-
-      # reade some first
-      @file1.sysread(length)
-      @file2.sysread(length)
-
-      @file1.reopen(@file2)
-      @file1.sysread(length).should == "Line 2: Two\n"
-    end
+  after :each do
+    @io.close unless @io.closed?
+    rm_r @other_name
   end
 
-  it "reassociates self with the I/O stream specified as an argument, after some writes" do
-    @file1_w.puts("line1-F1")
-    @file2_w.puts("line1-F2")
-    @file2_w.reopen(@file1_w)
-    @file1_w.puts("line2-F1")
-    @file2_w.puts("line2-F2")
-    @file1_w.close
-    @file2_w.close
-    File.readlines(@name1_w).should == ["line1-F1\n", "line2-F1\n", "line2-F2\n"]
-    File.readlines(@name2_w).should == ["line1-F2\n"]
+  it "does not raise an exception when called on a closed stream with a path" do
+    @io.close
+    @io.reopen @name, "r"
+    @io.closed?.should be_false
+    @io.gets.should == "Line 1: One\n"
   end
 
-  it "reassociates self with a new stream after some reads" do
-    @file1.reopen(@file2)
-    @file1.gets
-    @file1.gets
-    @file1.reopen(@file2).gets.should == "Line 1: One\n"
+  it "returns self" do
+    @io.reopen(@name).should equal(@io)
+  end
+
+  it "positions a newly created instance at the beginning of the new stream" do
+    @io.reopen(@name)
+    @io.gets.should == "Line 1: One\n"
+  end
+
+  it "positions an instance that has been read from at the beginning of the new stream" do
+    @io.gets
+    @io.reopen(@name)
+    @io.gets.should == "Line 1: One\n"
   end
 
   ruby_version_is "1.9" do
     it "calls #to_path on non-String arguments" do
-      p = mock('path')
-      p.should_receive(:to_path).and_return(@file2.to_path)
-      @file1.reopen(p)
+      obj = mock('path')
+      obj.should_receive(:to_path).and_return(@other_name)
+      @io.reopen(obj)
     end
+  end
+end
+
+describe "IO#reopen with a String" do
+  before :each do
+    @name = tmp("io_reopen.txt")
+    @other_name = tmp("io_reopen_other.txt")
+
+    @io = new_io @name, "w"
+  end
+
+  after :each do
+    @io.close unless @io.closed?
+    rm_r @name, @other_name
+  end
+
+  it "opens a path after writing to the original file descriptor" do
+    @io.print "original data"
+    @io.reopen @other_name, "w"
+    @io.print "new data"
+    @io.flush
+
+    @name.should have_data("original data")
+    @other_name.should have_data("new data")
+  end
+end
+
+describe "IO#reopen with an IO" do
+  before :each do
+    @name = tmp("io_reopen.txt")
+    @other_name = tmp("io_reopen_other.txt")
+    touch(@other_name) do |f|
+      f.puts "Line 1"
+      f.puts "Line 2"
+    end
+
+    @io = new_io @name
+    @other_io = new_io @other_name, "r"
+  end
+
+  after :each do
+    @io.close unless @io.closed?
+    @other_io.close unless @other_io.closed?
+    rm_r @name, @other_name
+  end
+
+  it "does not call #to_io" do
+    # Why do we not use #should_not_receive(:to_io) here? Because
+    # MRI actually changes the class of @io in the call to #reopen
+    # but does not preserve the existing singleton class of @io.
+    def @io.to_io; flunk; end
+    @io.reopen(@other_io).should be_an_instance_of(IO)
+  end
+
+  it "does not change the object_id" do
+    obj_id = @io.object_id
+    @io.reopen @other_io
+    @io.object_id.should == obj_id
+  end
+
+  it "reads from the beginning if the other IO has not been read from" do
+    @io.reopen @other_io
+    @io.gets.should == "Line 1\n"
+  end
+
+  it "reads from the current position of the other IO's stream" do
+    @other_io.gets.should == "Line 1\n"
+    @io.reopen @other_io
+    @io.gets.should == "Line 2\n"
+  end
+end
+
+describe "IO#reopen with an IO" do
+  before :each do
+    @name = tmp("io_reopen.txt")
+    @other_name = tmp("io_reopen_other.txt")
+
+    @io = new_io @name
+    @other_io = File.open @other_name, "w"
+  end
+
+  after :each do
+    @io.close unless @io.closed?
+    @other_io.close unless @other_io.closed?
+    rm_r @name, @other_name
+  end
+
+  it "associates the IO instance with the other IO's stream" do
+    @other_name.should have_data("")
+    @io.reopen @other_io
+    @io.print "io data"
+    @io.flush
+    @name.should have_data("")
+    @other_name.should have_data("io data")
+  end
+
+  it "may change the class of the instance" do
+    @io.reopen @other_io
+    @io.should be_an_instance_of(File)
   end
 end

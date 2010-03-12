@@ -64,10 +64,4 @@ module IOSpecs
     io.close
     io
   end
-
-  class NotConvertable
-    def to_io
-      raise TypeError
-    end
-  end
 end
