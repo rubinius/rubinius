@@ -3,13 +3,11 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "IO.try_convert" do
   ruby_version_is "1.8.8" do
-    quarantine! do
-      it "returns self for IO objects" do
-        fd_1 = IO.new(1)
-        IO.try_convert(fd_1).should equal(fd_1)
-      end
+    it "returns self for IO objects" do
+      fd_1 = IO.new(1)
+      IO.try_convert(fd_1).should equal(fd_1)
     end
-      
+    
     it "converts using :to_io" do
       io = File.new(__FILE__)
       obj = mock('ioish')

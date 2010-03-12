@@ -33,13 +33,11 @@ describe "IO#close" do
     lambda { @io.close }.should raise_error(IOError)
   end
 
-  quarantine! do
-    it "raises when a file descriptor is closed twice" do
-      io2 = IO.new @io.fileno
-      @io.close
+  it "raises when a file descriptor is closed twice" do
+    io2 = IO.new @io.fileno
+    @io.close
 
-      lambda { io2.close }.should raise_error(Errno::EBADF)
-    end
+    lambda { io2.close }.should raise_error(Errno::EBADF)
   end
 
 end

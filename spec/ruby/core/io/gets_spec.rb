@@ -168,20 +168,18 @@ describe "IO#gets" do
     rm_r @name
   end
 
-  quarantine! do
-    it "raises an IOErro on the clone of a stream not open for reading" do
-      @io = File.open @name, fmode("w:utf-8")
-      @io.puts "data for a cloned IO"
+  it "raises an IOErro on the clone of a stream not open for reading" do
+    @io = File.open @name, fmode("w:utf-8")
+    @io.puts "data for a cloned IO"
 
-      dup_io = IO.new @io.fileno
-      @io.fileno.should == dup_io.fileno
+    dup_io = IO.new @io.fileno
+    @io.fileno.should == dup_io.fileno
 
-      lambda { dup_io.gets }.should raise_error(IOError)
+    lambda { dup_io.gets }.should raise_error(IOError)
 
-      # dup_io should not be closed because it may cause an
-      # Errno::EBADF. This should be implementation-defined
-      # so the expectation for this error has been removed.
-    end
+    # dup_io should not be closed because it may cause an
+    # Errno::EBADF. This should be implementation-defined
+    # so the expectation for this error has been removed.
   end
 end
 
