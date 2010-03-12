@@ -6,6 +6,11 @@ module Rubinius
       raise PrimitiveFailure, "CompiledMethod.allocate primitive failed"
     end
 
+    def dup
+      Ruby.primitive :compiledmethod_dup
+      raise PrimitiveFailure, "CompiledMethod#dup primitive failed"
+    end
+
     def compile
       Ruby.primitive :compiledmethod_compile
       raise PrimitiveFailure, "CompiledMethod#compile primitive failed"

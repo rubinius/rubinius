@@ -589,8 +589,6 @@ namespace rubinius {
     if(show->true_p()) {
       jit.show_machine_code();
     }
-
-    env->set_native_function(jit.generate_function(ls));
 #endif
 
     return show;

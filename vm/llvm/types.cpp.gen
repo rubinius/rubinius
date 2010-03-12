@@ -283,15 +283,9 @@ StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_13);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_1);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_14);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_7);
-StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_26);
-std::vector<const Type*>FuncTy_29_args;
-FuncTy_29_args.push_back(PointerTy_17);
-FuncTy_29_args.push_back(PointerTy_18);
-PATypeHolder StructTy_struct_rubinius__BlockEnvironment_fwd = OpaqueType::get(getGlobalContext());
-PointerType* PointerTy_30 = PointerType::get(StructTy_struct_rubinius__BlockEnvironment_fwd, 0);
+StructType* StructTy_struct_rubinius__BlockEnvironment = StructType::get(mod->getContext(), StructTy_struct_rubinius__BlockEnvironment_fields, /*isPacked=*/false);
+mod->addTypeName("struct.rubinius::BlockEnvironment", StructTy_struct_rubinius__BlockEnvironment);
 
-FuncTy_29_args.push_back(PointerTy_30);
-FuncTy_29_args.push_back(PointerTy_23);
 std::vector<const Type*>StructTy_struct_rubinius__BlockInvocation_fields;
 StructTy_struct_rubinius__BlockInvocation_fields.push_back(IntegerType::get(getGlobalContext(), 32));
 StructTy_struct_rubinius__BlockInvocation_fields.push_back(PointerTy_1);
@@ -300,24 +294,6 @@ StructTy_struct_rubinius__BlockInvocation_fields.push_back(PointerTy_7);
 StructType* StructTy_struct_rubinius__BlockInvocation = StructType::get(mod->getContext(), StructTy_struct_rubinius__BlockInvocation_fields, /*isPacked=*/false);
 mod->addTypeName("struct.rubinius::BlockInvocation", StructTy_struct_rubinius__BlockInvocation);
 
-PointerType* PointerTy_31 = PointerType::get(StructTy_struct_rubinius__BlockInvocation, 0);
-
-FuncTy_29_args.push_back(PointerTy_31);
-FunctionType* FuncTy_29 = FunctionType::get(
-  /*Result=*/PointerTy_1,
-  /*Params=*/FuncTy_29_args,
-  /*isVarArg=*/false);
-
-PointerType* PointerTy_28 = PointerType::get(FuncTy_29, 0);
-
-StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_28);
-StructType* StructTy_struct_rubinius__BlockEnvironment = StructType::get(mod->getContext(), StructTy_struct_rubinius__BlockEnvironment_fields, /*isPacked=*/false);
-mod->addTypeName("struct.rubinius::BlockEnvironment", StructTy_struct_rubinius__BlockEnvironment);
-cast<OpaqueType>(StructTy_struct_rubinius__BlockEnvironment_fwd.get())->refineAbstractTypeTo(StructTy_struct_rubinius__BlockEnvironment);
-StructTy_struct_rubinius__BlockEnvironment = cast<StructType>(StructTy_struct_rubinius__BlockEnvironment_fwd.get());
-
-
-mod->addTypeName("struct.rubinius::BlockInvocation", StructTy_struct_rubinius__BlockInvocation);
 mod->addTypeName("struct.rubinius::CallFrame", StructTy_struct_rubinius__CallFrame);
 mod->addTypeName("struct.rubinius::Class", StructTy_struct_rubinius__Class);
 mod->addTypeName("struct.rubinius::CompiledMethod", StructTy_struct_rubinius__CompiledMethod);
@@ -339,26 +315,26 @@ mod->addTypeName("struct.rubinius::HeaderWord", StructTy_struct_rubinius__Header
 std::vector<const Type*>StructTy_struct_rubinius__InlineCache_fields;
 StructTy_struct_rubinius__InlineCache_fields.push_back(StructTy_struct_rubinius__Dispatch);
 StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_3);
-std::vector<const Type*>FuncTy_33_args;
-FuncTy_33_args.push_back(PointerTy_17);
+std::vector<const Type*>FuncTy_29_args;
+FuncTy_29_args.push_back(PointerTy_17);
 PATypeHolder StructTy_struct_rubinius__InlineCache_fwd = OpaqueType::get(getGlobalContext());
-PointerType* PointerTy_34 = PointerType::get(StructTy_struct_rubinius__InlineCache_fwd, 0);
+PointerType* PointerTy_30 = PointerType::get(StructTy_struct_rubinius__InlineCache_fwd, 0);
 
-FuncTy_33_args.push_back(PointerTy_34);
-FuncTy_33_args.push_back(PointerTy_18);
-FuncTy_33_args.push_back(PointerTy_23);
-FunctionType* FuncTy_33 = FunctionType::get(
+FuncTy_29_args.push_back(PointerTy_30);
+FuncTy_29_args.push_back(PointerTy_18);
+FuncTy_29_args.push_back(PointerTy_23);
+FunctionType* FuncTy_29 = FunctionType::get(
   /*Result=*/PointerTy_1,
-  /*Params=*/FuncTy_33_args,
+  /*Params=*/FuncTy_29_args,
   /*isVarArg=*/false);
 
-PointerType* PointerTy_32 = PointerType::get(FuncTy_33, 0);
+PointerType* PointerTy_28 = PointerType::get(FuncTy_29, 0);
 
-StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_32);
-StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_32);
-PointerType* PointerTy_35 = PointerType::get(IntegerType::get(getGlobalContext(), 32), 0);
+StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_28);
+StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_28);
+PointerType* PointerTy_31 = PointerType::get(IntegerType::get(getGlobalContext(), 32), 0);
 
-StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_35);
+StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_31);
 StructTy_struct_rubinius__InlineCache_fields.push_back(IntegerType::get(getGlobalContext(), 32));
 std::vector<const Type*>StructTy_struct_rubinius__InlineCacheHit_fields;
 StructTy_struct_rubinius__InlineCacheHit_fields.push_back(PointerTy_3);
@@ -366,9 +342,9 @@ StructTy_struct_rubinius__InlineCacheHit_fields.push_back(IntegerType::get(getGl
 StructType* StructTy_struct_rubinius__InlineCacheHit = StructType::get(mod->getContext(), StructTy_struct_rubinius__InlineCacheHit_fields, /*isPacked=*/false);
 mod->addTypeName("struct.rubinius::InlineCacheHit", StructTy_struct_rubinius__InlineCacheHit);
 
-ArrayType* ArrayTy_36 = ArrayType::get(StructTy_struct_rubinius__InlineCacheHit, 3);
+ArrayType* ArrayTy_32 = ArrayType::get(StructTy_struct_rubinius__InlineCacheHit, 3);
 
-StructTy_struct_rubinius__InlineCache_fields.push_back(ArrayTy_36);
+StructTy_struct_rubinius__InlineCache_fields.push_back(ArrayTy_32);
 StructType* StructTy_struct_rubinius__InlineCache = StructType::get(mod->getContext(), StructTy_struct_rubinius__InlineCache_fields, /*isPacked=*/false);
 mod->addTypeName("struct.rubinius::InlineCache", StructTy_struct_rubinius__InlineCache);
 cast<OpaqueType>(StructTy_struct_rubinius__InlineCache_fwd.get())->refineAbstractTypeTo(StructTy_struct_rubinius__InlineCache);

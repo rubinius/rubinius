@@ -327,17 +327,10 @@ namespace rubinius {
                                     jit.code_bytes(),
                                     func);
 
-        if(req->is_block()) {
-          BlockEnvironment* be = req->block_env();
-          if(!be) {
-            llvm::outs() << "Fatal error in JIT. Expected a BlockEnvironment.\n";
-          } else {
-            be->set_native_function(func);
-          }
-        } else {
+        if(!req->is_block()) {
           req->method()->execute = reinterpret_cast<executor>(func);
-          assert(req->method()->jit_data());
         }
+        assert(req->method()->jit_data());
 
         int which = ls_->add_jitted_method();
         if(ls_->config().jit_show_compiling) {
@@ -589,6 +582,8 @@ namespace rubinius {
   }
 
   void LLVMState::remove(llvm::Function* func) {
+    engine_->getPointerToFunction(func);
+
     // Deallocate the JITed code
     engine_->freeMachineCodeForFunction(func);
 

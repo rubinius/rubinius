@@ -45,19 +45,12 @@ namespace rubinius {
     Module* module_;            // slot
 
   public:
-    // @todo fix up data members that aren't slots
-    VMMethod* vmm;
-    BlockExecutor execute;
-
-  public:
     /* accessors */
     attr_accessor(scope, VariableScope);
     attr_accessor(top_scope, VariableScope);
     attr_accessor(local_count, Object);
     attr_accessor(method, CompiledMethod);
     attr_accessor(module, Module);
-
-    void set_native_function(void*);
 
     /* interface */
 
@@ -66,6 +59,10 @@ namespace rubinius {
 
     // Ruby.primitive :blockenvironment_allocate
     static BlockEnvironment* allocate(STATE);
+
+    static Object* invoke(STATE, CallFrame* previous,
+                            BlockEnvironment* const env, Arguments& args,
+                            BlockInvocation& invocation);
 
     static BlockEnvironment* under_call_frame(STATE, CompiledMethod* cm,
       VMMethod* caller, CallFrame* call_frame, size_t index);

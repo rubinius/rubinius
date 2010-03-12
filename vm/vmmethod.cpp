@@ -85,7 +85,6 @@ namespace rubinius {
     : parent_(NULL)
     , run(standard_interpreter)
     , type(NULL)
-    , native_function(NULL)
     , number_of_caches_(0)
     , caches(0)
 #ifdef ENABLE_LLVM
@@ -97,9 +96,6 @@ namespace rubinius {
     meth->set_executor(&VMMethod::execute);
 
     total = meth->iseq()->opcodes()->num_fields();
-    if(Tuple* tup = try_as<Tuple>(meth->literals())) {
-      blocks.resize(tup->num_fields(), NULL);
-    }
 
     opcodes = new opcode[total];
     addresses = new void*[total];

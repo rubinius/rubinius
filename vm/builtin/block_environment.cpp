@@ -38,18 +38,22 @@ namespace rubinius {
 
   BlockEnvironment* BlockEnvironment::allocate(STATE) {
     BlockEnvironment* env = state->new_object<BlockEnvironment>(G(blokenv));
-    env->vmm = NULL;
-    env->execute = &BlockEnvironment::execute_interpreter;
     return env;
   }
 
   VMMethod* BlockEnvironment::vmmethod(STATE) {
-    if(!this->vmm) {
-      this->method_->formalize(state, false);
-      this->vmm = this->method_->backend_method();
+    return this->method_->formalize(state, false);
+  }
+
+  Object* BlockEnvironment::invoke(STATE, CallFrame* previous,
+                            BlockEnvironment* const env, Arguments& args,
+                            BlockInvocation& invocation)
+  {
+    if(void* ptr = env->vmmethod(state)->native_function()) {
+      return (*((BlockExecutor)ptr))(state, previous, env, args, invocation);
     }
 
-    return this->vmm;
+    return execute_interpreter(state, previous, env, args, invocation);
   }
 
   // Installed by default in BlockEnvironment::execute, it runs the bytecodes
@@ -61,16 +65,7 @@ namespace rubinius {
                             BlockEnvironment* const env, Arguments& args,
                             BlockInvocation& invocation)
   {
-    if(!env->vmm) {
-      env->method_->formalize(state, false);
-      env->vmm = env->method_->backend_method();
-
-      // Not sure why we hit this case currenly, so just disable the JIT
-      // for them all together.
-      env->vmm->call_count = -1;
-    }
-
-    VMMethod* const vmm = env->vmm;
+    VMMethod* const vmm = env->vmmethod(state);
 
 #ifdef ENABLE_LLVM
     if(vmm->call_count >= 0) {
@@ -146,14 +141,9 @@ namespace rubinius {
 #endif
   }
 
-  void BlockEnvironment::set_native_function(void* func) {
-    vmm->native_function = func;
-    execute = reinterpret_cast<BlockExecutor>(func);
-  }
-
   Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Arguments& args, int flags) {
     BlockInvocation invocation(scope_->self(), method_->scope(), flags);
-    return (*execute)(state, call_frame, this, args, invocation);
+    return invoke(state, call_frame, this, args, invocation);
   }
 
   Object* BlockEnvironment::call_prim(STATE, Executable* exec,
@@ -176,7 +166,7 @@ namespace rubinius {
     Object* recv = args.shift(state);
 
     BlockInvocation invocation(recv, method_->scope(), flags);
-    return (*execute)(state, call_frame, this, args, invocation);
+    return invoke(state, call_frame, this, args, invocation);
   }
 
   Object* BlockEnvironment::call_under(STATE, Executable* exec,
@@ -194,7 +184,7 @@ namespace rubinius {
     StaticScope* static_scope = as<StaticScope>(args.shift(state));
 
     BlockInvocation invocation(recv, static_scope, 0);
-    return (*execute)(state, call_frame, this, args, invocation);
+    return invoke(state, call_frame, this, args, invocation);
   }
 
 
@@ -203,41 +193,24 @@ namespace rubinius {
   {
     BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
 
-    VMMethod* vmm = caller->blocks.at(index);
-    if(!vmm) {
-      vmm = cm->formalize(state);
-      if(caller->type) {
-        vmm->specialize(state, cm, caller->type);
-      }
-      caller->blocks[index] = vmm;
-
-      vmm->set_parent(caller);
-    }
+    VMMethod* vmm = cm->formalize(state);
+    vmm->set_parent(caller);
 
     be->scope(state, call_frame->promote_scope(state));
     be->top_scope(state, call_frame->top_scope(state));
     be->method(state, cm);
     be->module(state, call_frame->module());
     be->local_count(state, cm->local_count());
-    be->vmm = vmm;
-    BlockExecutor native = reinterpret_cast<BlockExecutor>(vmm->native_function);
-    if(native) {
-      be->execute = native;
-    } else {
-      be->execute = &BlockEnvironment::execute_interpreter;
-    }
     return be;
   }
 
   BlockEnvironment* BlockEnvironment::dup(STATE) {
     BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
-    be->execute = &BlockEnvironment::execute_interpreter;
 
     be->scope(state, scope_);
     be->top_scope(state, top_scope_);
     be->method(state, method_);
     be->local_count(state, local_count_);
-    be->vmm = this->vmm;
 
     return be;
   }

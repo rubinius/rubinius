@@ -51,6 +51,18 @@ namespace rubinius {
     return cm;
   }
 
+  CompiledMethod* CompiledMethod::dup_cm(STATE) {
+    CompiledMethod* cm = CompiledMethod::create(state);
+    cm->copy_object(state, this);
+
+    cm->set_executor(CompiledMethod::default_executor);
+    cm->jit_data_ = NULL;
+    cm->backend_method_ = NULL;
+
+    cm->formalize(state);
+    return cm;
+  }
+
   int CompiledMethod::start_line(STATE) {
     if(lines_->nil_p()) return -1;
     if(lines_->num_fields() < 2) return -1;

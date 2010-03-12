@@ -13,6 +13,7 @@ namespace rubinius {
   BlockAsMethod* BlockAsMethod::create(STATE, Object* self, BlockEnvironment* be) {
     BlockAsMethod* pe = state->new_object<BlockAsMethod>(as<Class>(self));
     pe->block_env(state, be);
+
     pe->execute = block_executor;
     return pe;
   }
@@ -46,7 +47,7 @@ namespace rubinius {
 
     invocation.module = msg.module;
 
-    return (*bm->block_env()->execute)(state, call_frame,
-                                       bm->block_env(), args, invocation);
+    return bm->block_env()->invoke(state, call_frame,
+                                   bm->block_env(), args, invocation);
   }
 }
