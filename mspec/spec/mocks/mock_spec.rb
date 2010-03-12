@@ -207,6 +207,8 @@ describe Mock, ".install_method" do
   end
 end
 
+class MockAndRaiseError < Exception; end
+
 describe Mock, ".verify_call" do
   before :each do
     MSpec.stub!(:actions)
@@ -303,6 +305,13 @@ describe Mock, ".verify_call" do
     lambda {
       Mock.verify_call(@mock, :method_call) {|*a|}
     }.should_not raise_error(SpecExpectationNotMetError)
+  end
+
+  it "raises an exception when expected to" do
+    @proxy.and_raise(MockAndRaiseError)
+    lambda {
+      Mock.verify_call @mock, :method_call
+    }.should raise_error(MockAndRaiseError)
   end
 end
 

@@ -24,9 +24,12 @@ class NumericMockObject < Numeric
 end
 
 class MockProxy
+  attr_reader :raising, :yielding
+
   def initialize(type=nil)
     @multiple_returns = nil
     @returning = nil
+    @raising   = nil
     @yielding  = []
     @arguments = :any_args
     @type      = type || :mock
@@ -122,13 +125,21 @@ class MockProxy
     self
   end
 
+  def and_raise(exception)
+    if exception.kind_of? String
+      @raising = RuntimeError.new exception
+    else
+      @raising = exception
+    end
+  end
+
+  def raising?
+    @raising != nil
+  end
+
   def and_yield(*args)
     @yielding << args
     self
-  end
-
-  def yielding
-    @yielding
   end
 
   def yielding?

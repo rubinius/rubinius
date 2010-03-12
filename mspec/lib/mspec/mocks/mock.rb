@@ -156,7 +156,12 @@ module Mock
 
         if pass
           proxy.called
-          return proxy.returning
+
+          if proxy.raising?
+            raise proxy.raising
+          else
+            return proxy.returning
+          end
         end
       end
     end

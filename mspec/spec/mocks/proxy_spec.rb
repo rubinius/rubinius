@@ -330,6 +330,29 @@ describe MockProxy, "#and_yield" do
   end
 end
 
+describe MockProxy, "#raising" do
+  before :each do
+    @proxy = MockProxy.new
+  end
+
+  it "returns nil by default" do
+    @proxy.raising.should be_nil
+  end
+
+  it "returns the exception object passed to #and_raise" do
+    exc = mock("exception")
+    @proxy.and_raise(exc)
+    @proxy.raising.should equal(exc)
+  end
+
+  it "returns an instance of RuntimeError when a String is passed to #and_raise" do
+    @proxy.and_raise("an error")
+    exc = @proxy.raising
+    exc.should be_an_instance_of(RuntimeError)
+    exc.message.should == "an error"
+  end
+end
+
 describe MockProxy, "#yielding" do
   before :each do
     @proxy = MockProxy.new
