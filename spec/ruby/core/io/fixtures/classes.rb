@@ -48,17 +48,21 @@ module IOSpecs
       "Est\303\241 aqui a linha cinco.\nHere is line six.\n" ]
   end
 
+  # Creates an IO instance for an existing fixture file. The
+  # file should obviously not be deleted.
   def self.io_fixture(name, mode="r:utf-8")
     path = fixture __FILE__, name
-    if File.exists? path
-      File.open path, fmode(mode)
-    else
-      File.open name, fmode(mode)
-    end
+    name = path if File.exists? path
+    new_io name, fmode(mode)
   end
 
-  def self.closed_file
-    File.open(fixture(__FILE__, "lines.txt"), fmode("r:utf-8")) { |f| f }
+  # Returns a closed instance of IO that was opened to reference
+  # a fixture file (i.e. the IO instance was perfectly valid at
+  # one point but is now closed).
+  def self.closed_io
+    io = io_fixture "lines.txt"
+    io.close
+    io
   end
 
   class NotConvertable
