@@ -138,9 +138,7 @@ class IO
     def unseek!(io)
       # Unseek the still buffered amount
       return unless write_synced?
-      unless empty?
-        io.prim_seek(@start - @used, IO::SEEK_CUR)
-      end
+      io.prim_seek @start - @used, IO::SEEK_CUR unless empty?
       reset!
     end
 
@@ -1348,23 +1346,41 @@ class IO
     if other.respond_to? :to_io
       flush
 
-      other = other.to_io
-      other.ensure_open
+      if other.kind_of? IO
+        io = other
+      else
+        io = other.to_io
+        unless io.kind_of? IO
+          raise TypeError, "#to_io must return an instance of IO"
+        end
+      end
 
-      prim_reopen other
+      io.ensure_open
+      io.reset_buffering
+
+      prim_reopen io
+      Rubinius::Unsafe.set_class self, io.class
     else
       flush unless closed?
 
       path = StringValue(other)
-      other = File.new other, mode
-
       fd = IO.sysopen(path, mode, 0666)
       Errno.handle path if fd < 0
 
+      reset_buffering
       IO.setup self, fd, mode
+      seek 0, SEEK_SET
     end
 
     self
+  end
+
+  ##
+  # Internal method used to reset the state of the buffer, including the
+  # physical position in the stream.
+  def reset_buffering
+    @ibuffer.unseek! self
+    @ibuffer.reset!
   end
 
   ##
