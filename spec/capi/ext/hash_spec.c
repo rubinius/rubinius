@@ -13,6 +13,15 @@ VALUE hash_spec_rb_hash_aref_nil(VALUE self, VALUE hash, VALUE key) {
   return ret == Qnil ? Qtrue : Qfalse;
 }
 
+VALUE hash_spec_rb_hash_lookup(VALUE self, VALUE hash, VALUE key) {
+  return rb_hash_lookup(hash, key);
+}
+
+VALUE hash_spec_rb_hash_lookup_nil(VALUE self, VALUE hash, VALUE key) {
+  VALUE ret = rb_hash_lookup(hash, key);
+  return ret == Qnil ? Qtrue : Qfalse;
+}
+
 VALUE hash_spec_rb_hash_aset(VALUE self, VALUE hash, VALUE key, VALUE val) {
   return rb_hash_aset(hash, key, val);
 }
@@ -45,6 +54,8 @@ void Init_hash_spec() {
   rb_define_method(cls, "rb_hash_new", hash_spec_rb_hash_new, 0);
   rb_define_method(cls, "rb_hash_aref", hash_spec_rb_hash_aref, 2);
   rb_define_method(cls, "rb_hash_aref_nil", hash_spec_rb_hash_aref_nil, 2);
+  rb_define_method(cls, "rb_hash_lookup", hash_spec_rb_hash_lookup, 2);
+  rb_define_method(cls, "rb_hash_lookup_nil", hash_spec_rb_hash_lookup_nil, 2);
   rb_define_method(cls, "rb_hash_aset", hash_spec_rb_hash_aset, 3);
   rb_define_method(cls, "rb_hash_delete", hash_spec_rb_hash_delete, 2);
   rb_define_method(cls, "rb_hash_foreach", hash_spec_rb_hash_foreach, 1);

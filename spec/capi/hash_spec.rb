@@ -19,10 +19,35 @@ describe "C-API Hash function" do
       @s.rb_hash_aref(hsh, :chunky).should == 'bacon'
     end
 
+    it "returns the default value if it exists" do
+      hsh = Hash.new(0)
+      @s.rb_hash_aref(hsh, :chunky).should == 0
+      @s.rb_hash_aref_nil(hsh, :chunky).should be_false
+    end
+
     it "returns nil if the key does not exist" do
       hsh = { }
       @s.rb_hash_aref(hsh, :chunky).should be_nil
       @s.rb_hash_aref_nil(hsh, :chunky).should be_true
+    end
+  end
+
+  describe "rb_hash_lookup" do
+    it "returns the value associated with the key" do
+      hsh = {:chunky => 'bacon'}
+      @s.rb_hash_lookup(hsh, :chunky).should == 'bacon'
+    end
+
+    it "does not return the default value if it exists" do
+      hsh = Hash.new(0)
+      @s.rb_hash_lookup(hsh, :chunky).should be_nil
+      @s.rb_hash_lookup_nil(hsh, :chunky).should be_true
+    end
+
+    it "returns nil if the key does not exist" do
+      hsh = { }
+      @s.rb_hash_lookup(hsh, :chunky).should be_nil
+      @s.rb_hash_lookup_nil(hsh, :chunky).should be_true
     end
   end
 
