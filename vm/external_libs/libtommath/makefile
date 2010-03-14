@@ -11,6 +11,10 @@ ifndef MAKE
    MAKE=make
 endif
 
+ifeq ($(RANLIB),)
+  RANLIB=ranlib
+endif
+
 ifndef IGNORE_SPEED
 
 #for speed 
@@ -87,7 +91,7 @@ bn_mp_to_signed_bin_n.o bn_mp_to_unsigned_bin_n.o
 
 $(LIBNAME):  $(OBJECTS)
 	$(AR) $(ARFLAGS) $@ $(OBJECTS)
-	ranlib $@
+	$(RANLIB) $@
 
 #make a profiled library (takes a while!!!)
 #
@@ -96,10 +100,10 @@ $(LIBNAME):  $(OBJECTS)
 # 
 # So far I've seen improvements in the MP math
 profiled:
-	make CFLAGS="$(CFLAGS) -fprofile-arcs -DTESTING" timing
+	$(MAKE) CFLAGS="$(CFLAGS) -fprofile-arcs -DTESTING" timing
 	./ltmtest
 	rm -f *.a *.o ltmtest
-	make CFLAGS="$(CFLAGS) -fbranch-probabilities"
+	$(MAKE) CFLAGS="$(CFLAGS) -fbranch-probabilities"
 
 #make a single object profiled library 
 profiled_single:
@@ -110,7 +114,7 @@ profiled_single:
 	rm -f *.o ltmtest
 	$(CC) $(CFLAGS) -fbranch-probabilities -DTESTING -c mpi.c -o mpi.o
 	$(AR) $(ARFLAGS) $(LIBNAME) mpi.o
-	ranlib $(LIBNAME)	
+	$(RANLIB) $(LIBNAME)
 
 install: $(LIBNAME)
 	install -d -g $(GROUP) -o $(USER) $(DESTDIR)$(LIBPATH)
