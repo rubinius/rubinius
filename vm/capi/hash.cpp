@@ -26,6 +26,15 @@ extern "C" {
     return rb_funcall(self, rb_intern("size"), 0);
   }
 
+  VALUE rb_hash_lookup(VALUE self, VALUE key) {
+    VALUE entry = rb_funcall(self, rb_intern("find_entry"), 1, key);
+    if(entry != Qnil) {
+      return rb_funcall(entry, rb_intern("value"), 0);
+    } else {
+      return Qnil;
+    }
+  }
+
   void rb_hash_foreach(VALUE self,
                        int (*func)(ANYARGS),
                        VALUE farg)

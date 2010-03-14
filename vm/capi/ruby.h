@@ -978,8 +978,11 @@ double rb_num2dbl(VALUE);
   /** Create a new Hash object */
   VALUE   rb_hash_new();
 
-  /** Return the value associated with the key. */
+  /** Return the value associated with the key, including default values. */
   VALUE   rb_hash_aref(VALUE self, VALUE key);
+
+  /** Return the value associated with the key, excluding default values. */
+  VALUE   rb_hash_lookup(VALUE self, VALUE key);
 
   /** Set the value associated with the key. */
   VALUE   rb_hash_aset(VALUE self, VALUE key, VALUE value);
