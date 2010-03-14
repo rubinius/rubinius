@@ -1,4 +1,0 @@
-fails:CApiBlockSpecs identifies blocks using rb_block_given_p
-fails:CApiBlockSpecs correctly utilizes rb_yield
-fails:CApiCallSuperSpecs rb_call_super should call the method in the superclass
-fails:CApiCallSuperSpecs should create a subclass and create a new instance

@@ -1,2 +1,0 @@
-fails:CApiBignumSpecs rb_big2dbl returns Infinity if the number is too big for a double
-fails:CApiBignumSpecs rb_big2dbl prints a warning to $stderr if Bignum is too big for a double

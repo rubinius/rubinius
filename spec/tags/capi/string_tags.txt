@@ -1,2 +1,0 @@
-fails:C-API String function RSTRING returns struct with a pointer to the string's contents
-fails:C-API String function RSTRING_PTR returns a pointer to the string's contents

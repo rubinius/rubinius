@@ -1,2 +1,0 @@
-fails:C-API Array function RARRAY returns a struct with a pointer to a C array of the array's elements
-fails:C-API Array function RARRAY_PTR returns a pointer to a C array of the array's elements

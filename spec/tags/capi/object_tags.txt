@@ -1,1 +1,0 @@
-fails:CApiObject rb_respond_to should return 1 if respond_to? is true and 0 if respond_to? is false
