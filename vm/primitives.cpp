@@ -1,7 +1,6 @@
 #include "prelude.hpp"
 #include "vm.hpp"
 #include "primitives.hpp"
-#include "event.hpp"
 #include "gen/includes.hpp"
 #include "arguments.hpp"
 #include "call_frame.hpp"

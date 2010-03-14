@@ -7,8 +7,6 @@
 #include "builtin/symbol.hpp"
 #include "builtin/thread.hpp"
 
-#include "event.hpp"
-
 #include <sys/time.h>
 
 class TestChannel : public CxxTest::TestSuite, public VMTest {

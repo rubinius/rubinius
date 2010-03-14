@@ -16,8 +16,6 @@
 #include "builtin/bytearray.hpp"
 #include "primitives.hpp"
 
-#include "vm/event.hpp"
-
 #include "vm.hpp"
 #include "objectmemory.hpp"
 
