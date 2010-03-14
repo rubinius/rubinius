@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "File.lchmod" do
-  platform_is_not :os => [:linux, :windows, :openbsd] do
+  platform_is_not :os => [:linux, :windows, :openbsd, :solaris] do
     before :each do
       @fname = tmp('file_chmod_test')
       @lname = @fname + '.lnk'

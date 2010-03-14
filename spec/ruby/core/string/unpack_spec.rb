@@ -107,7 +107,6 @@ describe "String#unpack with 'Q' and 'q' directives" do
     it "returns an array in little-endian (native format) order by decoding self according to the format string" do
       "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q').should == [17344245288696546035]
       "\xF3\x02".unpack('Q*').should == []
-      "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [575263624658931]
       "\xF3\x02\xC0\x42\x3A\x87\xF3\x00\xFA\xFF\x00\x02\x32\x87\xF3\xEE".unpack('Q*').should ==
         [68547103638422259, 17218254449219272698]
       "\xF3\x02\x00\x42".unpack('q').should == [nil]
@@ -119,13 +118,24 @@ describe "String#unpack with 'Q' and 'q' directives" do
         [68547068192358922, -1228489624490278918]
       "\x7F\x77\x77\x77\x77\x77\x77\x77".unpack('q0Q*').should == [8608480567731124095]
     end
+
+    ruby_version_is "" ... "1.8.8" do
+      it "does NOT pad nil when the string is short" do
+        "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [575263624658931]
+      end
+    end
+
+    ruby_version_is "1.8.8" do
+      it "pads nil when the string is short" do
+        "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [575263624658931, nil]
+      end
+    end
   end
 
   big_endian do
     it "returns an array in big-endian (native format) order by decoding self according to the format string" do
       "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q').should == [17510558585478951920]
       "\xF3\x02".unpack('Q*').should == []
-      "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [17582052941799031296]
       "\xF3\x02\xC0\x42\x3A\x87\xF3\x00\xFA\xFF\x00\x02\x32\x87\xF3\xEE".unpack('Q*').should ==
         [17510769691852272384, 18086174637980906478]
       "\xF3\x02\x00\x42".unpack('q').should == [nil]
@@ -136,6 +146,18 @@ describe "String#unpack with 'Q' and 'q' directives" do
       "\x0A\x02\x00\x02\x32\x87\xF3\x00\xFA\xFF\x00\x02\x32\x87\xF3\xEE".unpack('q*').should ==
         [721138899770405632, -360569435728645138]
       "\x7F\x77\x77\x77\x77\x77\x77\x77".unpack('q0Q*').should == [9184941320034547575]
+    end
+
+    ruby_version_is "" ... "1.8.8" do
+      it "does NOT pad nil when the string is short" do
+        "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [17582052941799031296]
+      end
+    end
+
+    ruby_version_is "1.8.8" do
+      it "pads nil when the string is short" do
+        "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [17582052941799031296, nil]
+      end
     end
   end
 

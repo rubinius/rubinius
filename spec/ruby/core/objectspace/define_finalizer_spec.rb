@@ -25,33 +25,35 @@ describe "ObjectSpace.define_finalizer" do
 
   # see [ruby-core:24095]
   ruby_version_is "1.9" do
-    it "calls finalizer on process termination" do
-      rd, wr = IO.pipe
-      if Kernel::fork then
-        wr.close
-        rd.read.should == "finalized"
-        rd.close
-      else
-        rd.close
-        handler = ObjectSpaceFixtures.scoped(wr)
-        obj = "Test"
-        ObjectSpace.define_finalizer(obj, handler)
-        exit 0
+    with_feature :fork do
+      it "calls finalizer on process termination" do
+        rd, wr = IO.pipe
+        if Kernel::fork then
+          wr.close
+          rd.read.should == "finalized"
+          rd.close
+        else
+          rd.close
+          handler = ObjectSpaceFixtures.scoped(wr)
+          obj = "Test"
+          ObjectSpace.define_finalizer(obj, handler)
+          exit 0
+        end
       end
-    end
 
-    it "calls finalizer at exit even if it is self-referencing" do
-      rd, wr = IO.pipe
-      if Kernel::fork then
-        wr.close
-        rd.read.should == "finalized"
-        rd.close
-      else
-        rd.close
-        obj = "Test"
-        handler = Proc.new { wr.write "finalized"; wr.close }
-        ObjectSpace.define_finalizer(obj, handler)
-        exit 0
+      it "calls finalizer at exit even if it is self-referencing" do
+        rd, wr = IO.pipe
+        if Kernel::fork then
+          wr.close
+          rd.read.should == "finalized"
+          rd.close
+        else
+          rd.close
+          obj = "Test"
+          handler = Proc.new { wr.write "finalized"; wr.close }
+          ObjectSpace.define_finalizer(obj, handler)
+          exit 0
+        end
       end
     end
   end

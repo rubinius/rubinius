@@ -7,3 +7,9 @@ ruby_version_is "1.9" do
     it_behaves_like(:file_world_readable, :world_readable?, FileStat)
   end
 end
+
+ruby_version_is "1.9" do
+  describe "File::Stat#world_readable?" do
+    it "needs to be reviewed for spec completeness"
+  end
+end

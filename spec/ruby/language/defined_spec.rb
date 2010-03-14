@@ -70,6 +70,14 @@ describe "The defined? keyword when called with a method name" do
     it "returns nil if the variable does not exist" do
       defined?(nonexistent_local_variable.some_method).should be_nil
     end
+
+    ruby_version_is "1.9" do
+      it "calls #respond_to_missing?" do
+        obj = mock("respond_to_missing object")
+        obj.should_receive(:respond_to_missing?).and_return(true)
+        defined?(obj.something_undefined).should == "method"
+      end
+    end
   end
 
   describe "having an instance variable as receiver" do

@@ -76,3 +76,7 @@ describe "Kernel#system" do
     result.should be_false
   end
 end
+
+describe "Kernel.system" do
+  it "needs to be reviewed for spec completeness"
+end

@@ -145,7 +145,7 @@ end
 
 describe "StringIO#puts when passed an encoded string" do
   it "stores the bytes unmodified" do
-    io = StringIO.new
+    io = StringIO.new("")
     io.puts "\x00\x01\x02"
     io.puts "æåø"
 

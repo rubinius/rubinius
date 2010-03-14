@@ -392,3 +392,7 @@ describe "Marshal::load" do
   
 
 end
+
+describe "Marshal.load" do
+  it "needs to be reviewed for spec completeness"
+end

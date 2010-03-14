@@ -78,7 +78,7 @@ describe :argf_gets_inplace_edit, :shared => true do
   end
 
   # -i with no backup extension is not supported on Windows
-  platform_is_not :os => :mswin do
+  platform_is_not :os => :windows do
     it "modifies the files when in place edit mode is on" do
       ruby_exe(@code,
                :options => "-i",

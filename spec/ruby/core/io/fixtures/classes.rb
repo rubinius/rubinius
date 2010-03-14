@@ -64,4 +64,11 @@ module IOSpecs
     io.close
     io
   end
+
+  # Defines +method+ on +obj+ using the provided +block+. This
+  # special helper is needed for e.g. IO.open specs to avoid
+  # mock methods preventing IO#close from running.
+  def self.io_mock(obj, method, &block)
+    obj.metaclass.send(:define_method, method, &block)
+  end
 end

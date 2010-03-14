@@ -25,6 +25,12 @@ describe "The BEGIN keyword" do
         eval "BEGIN { outside_var }"
       }.should_not raise_error NameError
     end
+
+    it "must appear in a top-level context" do
+      lambda do
+        eval "1.times{ BEGIN{ :begun }}"
+      end.should raise_error(SyntaxError)
+    end
   end
 
   it "runs first in a given code unit" do

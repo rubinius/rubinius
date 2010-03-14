@@ -12,3 +12,7 @@ describe "Process.maxgroups" do
     Process.maxgroups = n
   end
 end
+
+describe "Process.maxgroups=" do
+  it "needs to be reviewed for spec completeness"
+end

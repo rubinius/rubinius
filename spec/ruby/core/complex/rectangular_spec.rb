@@ -7,4 +7,8 @@ ruby_version_is "1.9" do
   describe "Complex#rectangular" do
     it_behaves_like(:complex_rect, :rectangular)
   end
+
+  describe "Complex.rectangular" do
+    it "needs specs"
+  end
 end

@@ -13,3 +13,7 @@ describe "Process.egid" do
     Process::Sys.getegid.should == Process.egid
   end
 end
+
+describe "Process.egid=" do
+  it "needs to be reviewed for spec completeness"
+end

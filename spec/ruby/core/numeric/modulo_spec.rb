@@ -21,3 +21,15 @@ describe "Numeric#modulo" do
     end
   end
 end
+
+ruby_version_is "1.9" do
+  describe "Numeric#%" do
+    it "needs to be reviewed for spec completeness"
+  end
+end
+
+ruby_version_is "1.9" do
+  describe "Numeric#modulo" do
+    it "needs to be reviewed for spec completeness"
+  end
+end

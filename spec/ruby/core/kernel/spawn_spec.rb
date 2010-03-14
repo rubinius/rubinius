@@ -45,20 +45,22 @@ ruby_version_is "1.9" do
       File.read(@f).should == "yes"
     end
 
-    it "joins the current process group by default" do
-      pid = spawn("ruby -e 'print Process.getpgid(Process.pid)' >#{@f}")
-      Process.wait pid
-      File.exists?(@f).should be_true
-      pgid = File.read(@f).to_i
-      pgid.should == Process.getpgid(Process.pid)
-    end
+    platform_is_not :windows do
+      it "joins the current process group by default" do
+        pid = spawn("ruby -e 'print Process.getpgid(Process.pid)' >#{@f}")
+        Process.wait pid
+        File.exists?(@f).should be_true
+        pgid = File.read(@f).to_i
+        pgid.should == Process.getpgid(Process.pid)
+      end
 
-    it "joins a new process group if :pgroup => true" do
-      pid = spawn("ruby -e 'print Process.getpgid(Process.pid)' >#{@f}", {:pgroup => true})
-      Process.wait pid
-      File.exists?(@f).should be_true
-      pgid = File.read(@f).to_i
-      pgid.should_not == Process.getpgid(Process.pid)
+      it "joins a new process group if :pgroup => true" do
+        pid = spawn("ruby -e 'print Process.getpgid(Process.pid)' >#{@f}", {:pgroup => true})
+        Process.wait pid
+        File.exists?(@f).should be_true
+        pgid = File.read(@f).to_i
+        pgid.should_not == Process.getpgid(Process.pid)
+      end
     end
 
     it "uses the current working directory as its working directory" do
@@ -78,10 +80,12 @@ ruby_version_is "1.9" do
     end
 
     it "redirects STDERR to the given file descriptior if if :err => Fixnum" do
-      fd = File.open(@f,'w').fileno
+      file = File.open(@f,'w')
+      fd = file.fileno
       pid = spawn("ruby -e 'warn(:glark)'", {:err => fd})
       Process.wait pid
       File.read(@f).should =~ /glark/
+      file.close
     end
 
     it "redirects STDERR to the given file if :err => String" do

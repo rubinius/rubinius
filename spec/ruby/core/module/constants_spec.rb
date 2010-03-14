@@ -32,6 +32,21 @@ describe "Module.constants" do
                                       :Numeric, :Object, :Range, :Regexp, :String,
                                       :Symbol, :Thread, :Time, :TrueClass)
     end
+
+    it "returns Module's constants when given a parameter" do
+      direct = Module.constants(false)
+      indirect = Module.constants(true)
+      module ConstantSpecsIncludedModule
+        MODULE_CONSTANTS_SPECS_INDIRECT = :foo
+      end
+
+      class Module
+        MODULE_CONSTANTS_SPECS_DIRECT = :bar
+        include ConstantSpecsIncludedModule
+      end
+      (Module.constants(false) - direct).should == [:MODULE_CONSTANTS_SPECS_DIRECT]
+      (Module.constants(true) - indirect).sort.should == [:MODULE_CONSTANTS_SPECS_DIRECT, :MODULE_CONSTANTS_SPECS_INDIRECT]
+    end
   end
 end
 
@@ -56,11 +71,20 @@ describe "Module#constants" do
       ConstantSpecs::ContainerA.constants.sort.should == [
         :CS_CONST10, :CS_CONST23, :CS_CONST24, :CS_CONST5, :ChildA
       ]
+      ConstantSpecs::ContainerA.constants(true).sort.should == [
+        :CS_CONST10, :CS_CONST23, :CS_CONST24, :CS_CONST5, :ChildA
+      ]
     end
 
     it "includes names of constants defined after a module is included" do
       ConstantSpecs::ModuleM::CS_CONST251 = :const251
       ConstantSpecs::ContainerA.constants.should include(:CS_CONST251)
+    end
+
+    it "doesn't returns inherited constants when passed false" do
+      ConstantSpecs::ContainerA.constants(false).sort.should == [
+        :CS_CONST10, :CS_CONST23, :CS_CONST5, :ChildA
+      ]
     end
   end
 end

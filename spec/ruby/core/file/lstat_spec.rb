@@ -27,3 +27,7 @@ describe "File.lstat" do
     end
   end
 end
+
+describe "File#lstat" do
+  it "needs to be reviewed for spec completeness"
+end

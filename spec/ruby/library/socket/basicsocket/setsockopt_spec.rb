@@ -28,7 +28,9 @@ describe "BasicSocket#setsockopt" do
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER, linger).should == 0
     n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER).to_s
     if (n.size == 8) # linger struct on some platforms, not just a value
-      n.should == [1, 64].pack("ii")
+      a = n.unpack('ii')
+      a[0].should_not == 0
+      a[1].should == 64
     else
       n.should == [64].pack("i")
     end
@@ -37,7 +39,7 @@ describe "BasicSocket#setsockopt" do
   it "sets the socket option Socket::SO_OOBINLINE" do
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, true).should == 0
     n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
-    n.should == [1].pack("i")
+    n.should_not == [0].pack("i")
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, false).should == 0
     n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
@@ -45,7 +47,7 @@ describe "BasicSocket#setsockopt" do
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, 1).should == 0
     n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
-    n.should == [1].pack("i")
+    n.should_not == [0].pack("i")
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, 0).should == 0
     n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
@@ -53,7 +55,7 @@ describe "BasicSocket#setsockopt" do
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, 2).should == 0
     n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
-    n.should == [1].pack("i")
+    n.should_not == [0].pack("i")
 
     platform_is_not :os => :windows do
       lambda {
@@ -63,7 +65,7 @@ describe "BasicSocket#setsockopt" do
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, "blah").should == 0
     n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
-    n.should == [1].pack("i")
+    n.should_not == [0].pack("i")
 
     platform_is_not :os => :windows do
       lambda {
@@ -89,7 +91,7 @@ describe "BasicSocket#setsockopt" do
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, [1].pack('i')).should == 0
     n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
-    n.should == [1].pack("i")
+    n.should_not == [0].pack("i")
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, [0].pack('i')).should == 0
     n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
@@ -97,7 +99,7 @@ describe "BasicSocket#setsockopt" do
 
     @sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE, [1000].pack('i')).should == 0
     n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
-    n.should == [1].pack("i")
+    n.should_not == [0].pack("i")
   end
 
   it "sets the socket option Socket::SO_SNDBUF" do

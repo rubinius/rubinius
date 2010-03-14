@@ -13,8 +13,7 @@ ruby_version_is '1.8.7' do
     end
 
     it "returns an Enumerator" do
-      enum = @io.lines
-      enum.instance_of?(enumerator_class).should be_true
+      @io.lines.should be_an_instance_of(enumerator_class)
     end
 
     it "returns a line when accessed" do
@@ -22,8 +21,18 @@ ruby_version_is '1.8.7' do
       enum.first.should == IOSpecs.lines[0]
     end
 
-    it "ignores a given block" do
-      @io.lines{ raise "oups" }.should be_an_instance_of(enumerator_class)
+    ruby_version_is ''...'1.9' do
+      it "ignores a given block" do
+        @io.lines{ raise "oups" }.should be_an_instance_of(enumerator_class)
+      end
+    end
+
+    ruby_version_is '1.9' do
+      it "yields each line to the passed block" do
+        ScratchPad.record []
+        @io.lines { |s| ScratchPad << s }
+        ScratchPad.recorded.should == IOSpecs.lines
+      end
     end
   end
 end

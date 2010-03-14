@@ -11,8 +11,10 @@ describe "Process.setrlimit" do
 end
 
 describe "Process.getrlimit" do
-  it "requires one argument" do
-    lambda { Process.getrlimit }.should raise_error(ArgumentError)
+  platform_is_not :windows do
+    it "requires one argument" do
+      lambda { Process.getrlimit }.should raise_error(ArgumentError)
+    end
   end
 end
 
@@ -69,26 +71,28 @@ describe "Process.setrlimit and Process.getrlimit" do
       end
     end
 
-    it "limit and get total size for mlock(2) (bytes)" do
-      lim, max = Process.getrlimit(Process::RLIMIT_MEMLOCK)
-      lim.kind_of?(Integer).should == true
-      max.kind_of?(Integer).should == true
-      max = lim if lim > max # EINVAL is raised if this invariant is violated
-      Process.setrlimit(Process::RLIMIT_MEMLOCK, lim, max).should == nil
-    end
+    platform_is_not :solaris do
+      it "limit and get total size for mlock(2) (bytes)" do
+        lim, max = Process.getrlimit(Process::RLIMIT_MEMLOCK)
+        lim.kind_of?(Integer).should == true
+        max.kind_of?(Integer).should == true
+        max = lim if lim > max # EINVAL is raised if this invariant is violated
+        Process.setrlimit(Process::RLIMIT_MEMLOCK, lim, max).should == nil
+      end
 
-    it "limit and get number of processes for the user (number)" do
-      lim, max = Process.getrlimit(Process::RLIMIT_NPROC)
-      lim.kind_of?(Integer).should == true
-      max.kind_of?(Integer).should == true
-      Process.setrlimit(Process::RLIMIT_NPROC, lim, max).should == nil
-    end
+      it "limit and get number of processes for the user (number)" do
+        lim, max = Process.getrlimit(Process::RLIMIT_NPROC)
+        lim.kind_of?(Integer).should == true
+        max.kind_of?(Integer).should == true
+        Process.setrlimit(Process::RLIMIT_NPROC, lim, max).should == nil
+      end
 
-    it "limit and get resident memory size (bytes)" do
-      lim, max = Process.getrlimit(Process::RLIMIT_RSS)
-      lim.kind_of?(Integer).should == true
-      max.kind_of?(Integer).should == true
-      Process.setrlimit(Process::RLIMIT_RSS, lim, max).should == nil
+      it "limit and get resident memory size (bytes)" do
+        lim, max = Process.getrlimit(Process::RLIMIT_RSS)
+        lim.kind_of?(Integer).should == true
+        max.kind_of?(Integer).should == true
+        Process.setrlimit(Process::RLIMIT_RSS, lim, max).should == nil
+      end
     end
 
     platform_is :os => [:netbsd, :freebsd] do

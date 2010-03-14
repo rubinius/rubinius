@@ -25,3 +25,7 @@ describe "Thread::list" do
     end
   end
 end
+
+describe "Thread.list" do
+  it "needs to be reviewed for spec completeness"
+end

@@ -1,4 +1,4 @@
-describe "Enumerable#cycle" do
+describe "Array#cycle" do
   ruby_version_is '1.8.7' do
     it "returns nil and does nothing for non positive n or empty arrays" do
       [1,2,3].cycle(0){ throw "ball"}.should be_nil

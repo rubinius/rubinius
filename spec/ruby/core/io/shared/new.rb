@@ -23,16 +23,9 @@ describe :io_new, :shared => true do
     @io.should be_an_instance_of(IO)
   end
 
-  it "raises an Errno::EBADF if the file descriptor is not valid" do
-    lambda { IO.send(@method, -1, "w") }.should raise_error(Errno::EBADF)
-  end
-
   it "raises an Errno::EINVAL if the new mode is not compatible with the descriptor's current mode" do
     lambda { IO.send(@method, @fd, "r") }.should raise_error(Errno::EINVAL)
-  end
-
-  it "raises an IOError if passed a closed stream" do
-    lambda { IO.send(@method, IOSpecs.closed_io.fileno, 'w') }.should raise_error(IOError)
+    IO.new(@fd, "w").close
   end
 
   ruby_version_is "1.9" do
@@ -84,5 +77,23 @@ describe :io_new, :shared => true do
       @io.external_encoding.to_s.should == 'UTF-8'
       @io.internal_encoding.to_s.should == ''
     end
+  end
+end
+
+describe :io_new_errors, :shared => true do
+  before :each do
+    @name = tmp("io_new.txt")
+  end
+
+  after :each do
+    rm_r @name
+  end
+
+  it "raises an Errno::EBADF if the file descriptor is not valid" do
+    lambda { IO.send(@method, -1, "w") }.should raise_error(Errno::EBADF)
+  end
+
+  it "raises an IOError if passed a closed stream" do
+    lambda { IO.send(@method, IOSpecs.closed_io.fileno, 'w') }.should raise_error(IOError)
   end
 end

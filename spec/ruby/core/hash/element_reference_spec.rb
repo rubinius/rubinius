@@ -115,3 +115,7 @@ describe "Hash#[]" do
     x.tainted?.should == true
   end
 end
+
+describe "Hash.[]" do
+  it "needs to be reviewed for spec completeness"
+end

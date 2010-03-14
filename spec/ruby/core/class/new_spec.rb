@@ -88,3 +88,7 @@ describe "Class.new" do
     lambda { Class.new(Module.new) }.should raise_error(TypeError)
   end
 end
+
+describe "Class#new" do
+  it "needs to be reviewed for spec completeness"
+end

@@ -31,7 +31,6 @@ describe "File::Stat#<=>" do
   end
 
   it "should also include Comparable and thus == shows mtime equality between two File::Stat objects" do
-    (@file1.stat == @file2.stat).should == true
     (@file1.stat == @file1.stat).should == true
     (@file2.stat == @file2.stat).should == true
 

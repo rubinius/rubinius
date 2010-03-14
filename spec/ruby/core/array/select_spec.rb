@@ -1,6 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 require File.expand_path('../shared/enumeratorize', __FILE__)
+require File.expand_path('../shared/keep_if', __FILE__)
 
 describe "Array#select" do
   it_behaves_like :enumeratorize, :select
@@ -21,5 +22,15 @@ describe "Array#select" do
     array = ArraySpecs.recursive_array
     array.select { true }.should == [1, 'two', 3.0, array, array, array, array, array]
     array.select { false }.should == []
+  end
+end
+
+ruby_version_is "1.9" do
+  describe "Array#select!" do
+    it "returns nil if no changes were made in the array" do
+      [1, 2, 3].select! { true }.should be_nil
+    end
+
+    it_behaves_like :keep_if, :select!
   end
 end

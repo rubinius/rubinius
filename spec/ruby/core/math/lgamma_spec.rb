@@ -34,28 +34,46 @@ ruby_version_is "1.9" do
       lg2[1].should == 1
     end
 
-    it "returns [Infinity, 1] when passed -Infinity" do
-      Math.lgamma(-infinity_value).should == [infinity_value, 1]
+    ruby_version_is ""..."1.9" do
+      it "returns [Infinity, 1] when passed -Infinity" do
+        Math.lgamma(-infinity_value).should == [infinity_value, 1]
+      end
     end
 
-    # Note: see related issue http://redmine.ruby-lang.org/issues/show/2189
-    # If you would like to see simpler Ruby behavior, lobby for Ruby to
-    # have platform-independent Math functions.
-    platform_is_not :darwin do
-      it "returns [Infinity, 1] when passed Infinity" do
-        Math.lgamma(-infinity_value).should == [infinity_value, 1]
+    ruby_version_is "1.9" do
+      it "raises Math::DomainError when passed -Infinity" do
+        lambda { Math.lgamma(-infinity_value) }.should raise_error(Math::DomainError)
       end
     end
 
     # Note: see related issue http://redmine.ruby-lang.org/issues/show/2189
     # If you would like to see simpler Ruby behavior, lobby for Ruby to
     # have platform-independent Math functions.
-    platform_is :darwin do
-      # JRuby has platform-independent math and behaves as above
-      not_compliant_on :jruby do
-        it "raises an Errno::EDOM when passed Infinity" do
-          lambda { Math.lgamma(infinity_value) }.should raise_error(Errno::EDOM)
+    ruby_version_is ""..."1.9" do
+      platform_is_not :darwin do
+        it "returns [Infinity, 1] when passed Infinity" do
+          Math.lgamma(-infinity_value).should == [infinity_value, 1]
         end
+      end
+    end
+
+    # Note: see related issue http://redmine.ruby-lang.org/issues/show/2189
+    # If you would like to see simpler Ruby behavior, lobby for Ruby to
+    # have platform-independent Math functions.
+    ruby_version_is ""..."1.9" do
+      platform_is :darwin do
+        # JRuby has platform-independent math and behaves as above
+        not_compliant_on :jruby do
+          it "raises an Errno::EDOM when passed Infinity" do
+            lambda { Math.lgamma(infinity_value) }.should raise_error(Errno::EDOM)
+          end
+        end
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "returns [Infinity, 1] when passed Infinity" do
+        Math.lgamma(infinity_value).should == [infinity_value, 1]
       end
     end
 

@@ -17,8 +17,11 @@ ruby_version_is "1.9" do
       @io.close unless @io.closed?
     end
 
-    it "does not yield to a block" do
-      @io.codepoints{ flunk }.should be_an_instance_of(enumerator_class)
+    it "calls the given block" do
+      r = []
+      @io.codepoints { |c| r << c }
+      r[24].should == 232
+      r.last.should == 10
     end
   end
 end

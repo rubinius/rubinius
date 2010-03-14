@@ -21,3 +21,7 @@ ruby_version_is ""..."1.9.1" do
     end
   end
 end
+
+describe "Precision#prec" do
+  it "needs to be reviewed for spec completeness"
+end

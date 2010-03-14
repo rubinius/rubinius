@@ -42,8 +42,8 @@ describe "Process.kill" do
     end
   end
 
-  it "raises an EPERM if permission is denied" do
-    if Process.uid != 0
+  if Process.uid != 0
+    it "raises an EPERM if permission is denied" do
       lambda { Process.kill(1, 1) }.should raise_error(Errno::EPERM)
     end
   end

@@ -139,6 +139,19 @@ module EnumerableSpecs
     end
   end
 
+  class YieldsMixed
+    include Enumerable
+    def each
+      yield 1
+      yield [2]
+      yield 3,4
+      yield 5,6,7
+      yield [8,9]
+      yield nil
+      yield []
+    end
+  end
+
   class ReverseComparable
     include Comparable
     def initialize(num)
@@ -167,6 +180,25 @@ module EnumerableSpecs
   class Uncomparable
     def <=>(obj)
       nil
+    end
+  end
+
+  class Undupable
+    attr_reader :initialize_called, :initialize_dup_called
+    def dup
+      raise "Can't, sorry"
+    end
+
+    def clone
+      raise "Can't, either, sorry"
+    end
+
+    def initialize
+      @initialize_dup = true
+    end
+
+    def initialize_dup(arg)
+      @initialize_dup_called = true
     end
   end
 end # EnumerableSpecs utility classes

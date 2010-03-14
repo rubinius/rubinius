@@ -31,3 +31,9 @@ describe "IO#binmode" do
     lambda { @file.binmode }.should_not raise_error
   end
 end
+
+ruby_version_is "1.9" do
+  describe "IO#binmode?" do
+    it "needs to be reviewed for spec completeness"
+  end
+end

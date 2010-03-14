@@ -3,6 +3,14 @@ describe "Array literals" do
     ["foo", "bar" => :baz].should == ["foo", {"bar" => :baz}]
     [1, 2, 3 => 6, 4 => 24].should == [1, 2, {3 => 6, 4 => 24}]
   end
+
+  it "[] treats splatted nil as no element" do
+    [*nil].should == []
+    [1, *nil].should == [1]
+    [1, 2, *nil].should == [1, 2]
+    [1, *nil, 3].should == [1, 3]
+    [*nil, *nil, *nil].should == []
+  end
 end
 
 describe "The unpacking splat operator (*)" do

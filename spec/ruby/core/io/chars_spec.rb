@@ -22,8 +22,17 @@ ruby_version_is '1.8.7' do
     end
 
     ruby_version_is '1.9' do
-      it "ignores a block" do
-        @io.chars{ raise "oups" }.should be_an_instance_of(enumerator_class)
+      it "yields each character" do
+        @io.readline.should == "Voici la ligne une.\n"
+
+        count = 0
+        ScratchPad.record []
+        @io.each_char do |c|
+          ScratchPad << c
+          break if 4 < count += 1
+        end
+
+        ScratchPad.recorded.should == ["Q", "u", "i", " ", "è"]
       end
     end
 

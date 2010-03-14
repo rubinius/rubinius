@@ -225,7 +225,7 @@ module NetFTPSpecs
 
       mode = @restart_at ? "a" : "w"
 
-      File.open(tmp_file, mode) do |f|
+      File.open(tmp_file, mode + "b") do |f|
         loop do
           data = @datasocket.recv(1024)
           break if !data || data.empty?

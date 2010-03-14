@@ -16,3 +16,7 @@ describe "Process.uid" do
     Process::Sys.getuid.should == Process.uid
   end
 end
+
+describe "Process.uid=" do
+  it "needs to be reviewed for spec completeness"
+end

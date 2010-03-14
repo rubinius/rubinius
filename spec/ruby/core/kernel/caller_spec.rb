@@ -148,3 +148,7 @@ describe "Kernel#caller in a Proc or eval" do
     end
   end
 end
+
+describe "Kernel.caller" do
+  it "needs to be reviewed for spec completeness"
+end

@@ -21,8 +21,15 @@ ruby_version_is '1.8.7' do
       enum.first(5).should == [81, 117, 105, 32, 195]
     end
 
-    it "does not yield to a block" do
-      @io.bytes{ flunk }.should be_an_instance_of(enumerator_class)
+    it "yields each byte" do
+      count = 0
+      ScratchPad.record []
+      @io.each_byte do |byte|
+        ScratchPad << byte
+        break if 4 < count += 1
+      end
+
+      ScratchPad.recorded.should == [86, 111, 105, 99, 105]
     end
 
     it "raises an IOError on closed stream" do

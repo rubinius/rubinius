@@ -1,14 +1,16 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Process.setpriority" do
-  it "takes three arguments" do
-    lambda { Process.setpriority }.should raise_error(ArgumentError)
-    lambda {
-      Process.setpriority(Process::PRIO_PROCESS)
-    }.should raise_error(ArgumentError)
-    lambda {
-      Process.setpriority(Process::PRIO_PROCESS, 0)
-    }.should raise_error(ArgumentError)
+  platform_is_not :windows do
+    it "takes three arguments" do
+      lambda { Process.setpriority }.should raise_error(ArgumentError)
+      lambda {
+        Process.setpriority(Process::PRIO_PROCESS)
+      }.should raise_error(ArgumentError)
+      lambda {
+        Process.setpriority(Process::PRIO_PROCESS, 0)
+      }.should raise_error(ArgumentError)
+    end
   end
 
   # Needs a valid version written for Linux

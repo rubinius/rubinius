@@ -22,9 +22,11 @@ ruby_version_is "1.9" do
       @name = tmp('i_exist')
       touch(@name) { |f| f.write 'rubinius' }
       @file = File.new @name
+      @file_org = @file
     end
 
     after :each do
+      @file_org.close unless @file_org.closed?
       rm_r @name
     end
 
@@ -54,6 +56,7 @@ ruby_version_is "1.9" do
       @file = File.open(@file.path, 'w')
       @file.truncate(0)
       @file.size.should == 0
+      @file.close
     end
 
     platform_is_not :windows do
@@ -63,8 +66,10 @@ ruby_version_is "1.9" do
 
         begin
           File.symlink(@file.path, ln_file).should == 0
-          File.new(ln_file).size.should == 8
+          file = File.new(ln_file)
+          file.size.should == 8
         ensure
+          file.close if file && !file.closed?
           File.unlink(ln_file) if File.exists?(ln_file)
         end
       end

@@ -120,11 +120,23 @@ describe :math_atanh_private, :shared => true do
 end
 
 describe :math_atanh_no_complex, :shared => true do
-  it "raises an Errno::EDOM for arguments greater than 1.0" do
-    lambda { @object.send(@method, 1.0 + Float::EPSILON)  }.should raise_error(Errno::EDOM)
+  ruby_version_is ""..."1.9" do
+    it "raises an Errno::EDOM for arguments greater than 1.0" do
+      lambda { @object.send(@method, 1.0 + Float::EPSILON)  }.should raise_error(Errno::EDOM)
+    end
+
+    it "raises an Errno::EDOM for arguments less than -1.0" do
+      lambda { @object.send(@method, -1.0 - Float::EPSILON) }.should raise_error(Errno::EDOM)
+    end
   end
 
-  it "raises an Errno::EDOM for arguments less than -1.0" do
-    lambda { @object.send(@method, -1.0 - Float::EPSILON) }.should raise_error(Errno::EDOM)
+  ruby_version_is "1.9" do
+    it "raises an Math::DomainError for arguments greater than 1.0" do
+      lambda { @object.send(@method, 1.0 + Float::EPSILON)  }.should raise_error(Math::DomainError)
+    end
+
+    it "raises an Math::DomainError for arguments less than -1.0" do
+      lambda { @object.send(@method, -1.0 - Float::EPSILON) }.should raise_error(Math::DomainError)
+    end
   end
 end

@@ -66,7 +66,7 @@ describe "Array#pop" do
 
   describe "passed a number n as an argument" do
     ruby_version_is '1.8.7' do
-      it "removes and returns an array with the last n element of the array" do
+      it "removes and returns an array with the last n elements of the array" do
         a = [1, 2, 3, 4, 5, 6]
 
         a.pop(0).should == []
@@ -80,6 +80,12 @@ describe "Array#pop" do
 
         a.pop(3).should == [1, 2, 3]
         a.should == []
+      end
+
+      it "returns an array with the last n elements even if shift was invoked" do
+        a = [1, 2, 3, 4]
+        a.shift
+        a.pop(3).should == [2, 3, 4]
       end
 
       it "returns a new empty array if there are no more elements" do

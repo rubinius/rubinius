@@ -56,3 +56,7 @@ describe "IO::popen" do
   #end
 end
 
+
+describe "IO.popen" do
+  it "needs to be reviewed for spec completeness"
+end

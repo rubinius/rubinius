@@ -45,7 +45,7 @@ describe :net_ftp_getbinaryfile, :shared => :true do
     before(:each) do
       @tmp_file = tmp("getbinaryfile_resume")
       
-      File.open(@tmp_file, "w") do |f|
+      File.open(@tmp_file, "wb") do |f|
         f << "This is the content\n"
       end
       

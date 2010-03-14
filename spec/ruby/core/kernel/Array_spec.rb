@@ -49,3 +49,7 @@ describe "Kernel#Array" do
     lambda { Array(obj) }.should raise_error(TypeError)
   end
 end
+
+describe "Kernel.Array" do
+  it "needs to be reviewed for spec completeness"
+end

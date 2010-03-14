@@ -4,6 +4,8 @@ require File.expand_path('../fixtures/classes', __FILE__)
 describe "IO#readpartial" do
   before :each do
     @rd, @wr = IO.pipe
+    @rd.binmode
+    @wr.binmode
   end
 
   after :each do

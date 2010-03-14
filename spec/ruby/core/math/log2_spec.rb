@@ -29,3 +29,9 @@ extended_on :rubinius do
     end
   end
 end
+
+ruby_version_is "1.9" do
+  describe "Math.log2" do
+    it "needs to be reviewed for spec completeness"
+  end
+end

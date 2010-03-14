@@ -32,3 +32,7 @@ describe "Process.groups" do
     end
   end
 end
+
+describe "Process.groups=" do
+  it "needs to be reviewed for spec completeness"
+end

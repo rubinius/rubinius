@@ -61,6 +61,7 @@ describe "IO#reopen with a String" do
   before :each do
     @name = fixture __FILE__, "numbered_lines.txt"
     @other_name = tmp("io_reopen.txt")
+    touch @other_name
     @io = IOSpecs.io_fixture "lines.txt"
   end
 

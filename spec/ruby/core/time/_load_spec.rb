@@ -33,3 +33,7 @@ describe "Time#_load" do
     Time._load([high, low].pack("VV")).should == t
   end
 end
+
+describe "Time._load" do
+  it "needs to be reviewed for spec completeness"
+end

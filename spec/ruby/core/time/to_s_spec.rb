@@ -5,3 +5,7 @@ require File.expand_path('../shared/inspect', __FILE__)
 describe "Time.to_s" do
   it_behaves_like :inspect, :to_s
 end
+
+describe "Time#to_s" do
+  it "needs to be reviewed for spec completeness"
+end

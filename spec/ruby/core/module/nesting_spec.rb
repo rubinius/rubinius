@@ -25,3 +25,7 @@ describe "Module::Nesting" do
   end
 
 end
+
+describe "Module.nesting" do
+  it "needs to be reviewed for spec completeness"
+end

@@ -4,3 +4,7 @@ require File.expand_path('../../../shared/file/owned', __FILE__)
 describe "FileTest.owned?" do
   it_behaves_like :file_owned, :owned?, FileTest
 end
+
+describe "FileTest.owned?" do
+  it "needs to be reviewed for spec completeness"
+end

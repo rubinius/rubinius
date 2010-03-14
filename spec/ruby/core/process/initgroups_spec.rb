@@ -1,12 +1,12 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Process.initgroups" do
-  it "requires two arguments" do
-    lambda { Process.initgroups }.should raise_error(ArgumentError)
-    lambda { Process.initgroups("root") }.should raise_error(ArgumentError)
-  end
-
   platform_is_not :windows do
+    it "requires two arguments" do
+      lambda { Process.initgroups }.should raise_error(ArgumentError)
+      lambda { Process.initgroups("root") }.should raise_error(ArgumentError)
+    end
+
     it "initializes the supplemental group access list" do
       name = `id -un`.strip
       groups = Process.groups

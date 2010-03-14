@@ -14,14 +14,16 @@ describe :tcpsocket_new, :shared => true do
   end
 
   it "connects to a listening server" do
+    ready = false
     thread = Thread.new do
       server = TCPServer.new(SocketSpecs.port)
+      ready = true
       conn = server.accept
       conn.recv(50)
       conn.close
       server.close
     end
-    Thread.pass while thread.status and thread.status != 'sleep'
+    Thread.pass while (thread.status and thread.status != 'sleep') or !ready
     thread.status.should_not be_nil
     lambda {
       sock = TCPSocket.send(@method, @hostname, SocketSpecs.port)
@@ -31,14 +33,16 @@ describe :tcpsocket_new, :shared => true do
   end
 
   it "has an address once it has connected to a listening server" do
+    ready = false
     thread = Thread.new do
       server = TCPServer.new('127.0.0.1', SocketSpecs.port)
+      ready = true
       conn = server.accept
       conn.recv(50)
       conn.close
       server.close
     end
-    Thread.pass while thread.status and thread.status != 'sleep'
+    Thread.pass while (thread.status and thread.status != 'sleep') or !ready
     thread.status.should_not be_nil
     sock = TCPSocket.send(@method, '127.0.0.1', SocketSpecs.port)
     sock.addr[0].should == "AF_INET"

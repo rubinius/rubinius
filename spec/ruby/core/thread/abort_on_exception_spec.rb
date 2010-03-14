@@ -9,3 +9,15 @@ describe "Thread#abort_on_exception" do
     Thread.abort_on_exception.should == false
   end
 end
+
+describe "Thread#abort_on_exception=" do
+  it "needs to be reviewed for spec completeness"
+end
+
+describe "Thread.abort_on_exception" do
+  it "needs to be reviewed for spec completeness"
+end
+
+describe "Thread.abort_on_exception=" do
+  it "needs to be reviewed for spec completeness"
+end

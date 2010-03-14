@@ -9,3 +9,9 @@ ruby_version_is "1.9" do
 
   end
 end
+
+ruby_version_is "1.9" do
+  describe "File::Stat#world_writable?" do
+    it "needs to be reviewed for spec completeness"
+  end
+end

@@ -16,3 +16,7 @@ describe "Process.gid" do
     Process::Sys.getgid.should == Process.gid
   end
 end
+
+describe "Process.gid=" do
+  it "needs to be reviewed for spec completeness"
+end
