@@ -74,6 +74,30 @@ describe "The -r, --require LIBRARY option" do
   end
 end
 
+describe "The -V, --version-guard VERSION option" do
+  before :each do
+    @options = MSpecOptions.new
+    MSpecOptions.stub!(:new).and_return(@options)
+    @script = MkSpec.new
+    @config = @script.config
+  end
+
+  it "is enabled by #options" do
+    @options.stub!(:on)
+    @options.should_receive(:on).with("-V", "--version-guard", "VERSION",
+      an_instance_of(String))
+    @script.options
+  end
+
+  it "sets the version for the ruby_version_is guards to VERSION" do
+    ["-r", "--require"].each do |opt|
+      @config[:requires] = []
+      @script.options [opt, "libspec"]
+      @config[:requires].should include("libspec")
+    end
+  end
+end
+
 describe MkSpec, "#options" do
   before :each do
     @options = MSpecOptions.new
@@ -143,13 +167,13 @@ describe MkSpec, "#write_requires" do
   end
 
   it "writes the spec_helper require line" do
-    @file.should_receive(:puts).with("require File.dirname(__FILE__) + '/../../../spec_helper'")
+    @file.should_receive(:puts).with("require File.expand_path('../../../../spec_helper', __FILE__)")
     @script.write_requires("spec/core/tcejbo", "spec/core/tcejbo/inspect_spec.rb")
   end
 
   it "writes require lines for each library specified on the command line" do
     @file.stub!(:puts)
-    @file.should_receive(:puts).with("require File.dirname(__FILE__) + '/../../../spec_helper'")
+    @file.should_receive(:puts).with("require File.expand_path('../../../../spec_helper', __FILE__)")
     @file.should_receive(:puts).with("require 'complex'")
     @script.config[:requires] << 'complex'
     @script.write_requires("spec/core/tcejbo", "spec/core/tcejbo/inspect_spec.rb")
@@ -158,8 +182,7 @@ end
 
 describe MkSpec, "#write_spec" do
   before :each do
-    @file = mock("file")
-    @file.stub!(:puts)
+    @file = IOStub.new
     File.stub!(:open).and_yield(@file)
 
     @script = MkSpec.new
@@ -198,26 +221,40 @@ describe MkSpec, "#write_spec" do
   end
 
   it "writes a template spec to the file if the spec file does not exist" do
-    @file.should_receive(:puts)
+    @file.should_receive(:puts).twice
     @script.should_receive(:puts).with("spec/core/tcejbo/inspect_spec.rb")
     @script.write_spec("spec/core/tcejbo/inspect_spec.rb", "Object#inspect", false)
   end
 
   it "writes a template spec to the file if it exists but contains no spec for the method" do
     @response.should_receive(:=~).and_return(false)
-    @file.should_receive(:puts)
+    @file.should_receive(:puts).twice
     @script.should_receive(:puts).with("spec/core/tcejbo/inspect_spec.rb")
     @script.write_spec("spec/core/tcejbo/inspect_spec.rb", "Object#inspect", true)
   end
 
   it "writes a template spec" do
-    @file.should_receive(:puts).with(<<EOS)
+    @script.write_spec("spec/core/tcejbo/inspect_spec.rb", "Object#inspect", true)
+    @file.should == <<EOS
 
 describe "Object#inspect" do
   it "needs to be reviewed for spec completeness"
 end
 EOS
+  end
+
+  it "writes a template spec with version guard" do
+    @script.config[:version] = '""..."1.9"'
     @script.write_spec("spec/core/tcejbo/inspect_spec.rb", "Object#inspect", true)
+    @file.should == <<EOS
+
+ruby_version_is ""..."1.9" do
+  describe "Object#inspect" do
+    it "needs to be reviewed for spec completeness"
+  end
+end
+EOS
+
   end
 end
 
@@ -280,14 +317,6 @@ describe MkSpec, "#run" do
 
   it "creates a map of constants to methods" do
     @map.should_receive(:map).with({}, @script.config[:constants]).and_return({})
-    @script.run
-  end
-
-  it "creates a map of Object.constants if not constants are specified" do
-    @script.config[:constants] = []
-    Object.stub!(:constants).and_return(["Object"])
-    @map.should_receive(:filter).with(["Object"]).and_return(["Object"])
-    @map.should_receive(:map).with({}, ["Object"]).and_return({})
     @script.run
   end
 

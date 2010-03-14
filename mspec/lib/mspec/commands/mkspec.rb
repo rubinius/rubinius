@@ -16,13 +16,14 @@ class MkSpec
     @config = {
       :constants => [],
       :requires  => [],
-      :base      => "spec/ruby/1.8/core"
+      :base      => "core",
+      :version   => nil
     }
-    @map = NameMap.new
+    @map = NameMap.new true
   end
 
   def options(argv=ARGV)
-    options = MSpecOptions.new "mkspec [options]"
+    options = MSpecOptions.new "mkspec [options]", 32
 
     options.on("-c", "--constant", "CONSTANT",
                "Class or Module to generate spec stubs for") do |name|
@@ -36,6 +37,10 @@ class MkSpec
                "A library to require") do |file|
       config[:requires] << file
     end
+    options.on("-V", "--version-guard", "VERSION",
+               "Specify version for ruby_version_is guards") do |version|
+      config[:version] = version
+    end
     options.version MSpec::VERSION
     options.help
 
@@ -45,7 +50,7 @@ class MkSpec
     options.doc "   2. To create spec stubs for Fixnum\n"
     options.doc "     $ mkspec -c Fixnum\n"
     options.doc "   3. To create spec stubs for Complex in 'superspec/complex'\n"
-    options.doc "     $ mkspec -c Complex -rcomplex -b superspec"
+    options.doc "     $ mkspec -c Complex -r complex -b superspec"
     options.doc ""
 
     options.parse argv
@@ -71,10 +76,21 @@ class MkSpec
     parents = '../' * ($1.split('/').length + 1)
 
     File.open file, 'w' do |f|
-      f.puts "require File.dirname(__FILE__) + '/#{parents}spec_helper'"
+      f.puts "require File.expand_path('../#{parents}spec_helper', __FILE__)"
       config[:requires].each do |lib|
         f.puts "require '#{lib}'"
       end
+    end
+  end
+
+  def write_version(f)
+    f.puts ""
+    if version = config[:version]
+      f.puts "ruby_version_is #{version} do"
+      yield "  "
+      f.puts "end"
+    else
+      yield ""
     end
   end
 
@@ -85,12 +101,13 @@ class MkSpec
     end
 
     File.open file, 'a' do |f|
-      f.puts <<-EOS
-
-describe "#{meth}" do
-  it "needs to be reviewed for spec completeness"
-end
+      write_version(f) do |indent|
+        f.puts <<-EOS
+#{indent}describe "#{meth}" do
+#{indent}  it "needs to be reviewed for spec completeness"
+#{indent}end
 EOS
+      end
     end
 
     puts file
@@ -107,7 +124,7 @@ EOS
   def run
     config[:requires].each { |lib| require lib }
     constants = config[:constants]
-    constants = @map.filter(Object.constants) if constants.empty?
+    constants = Object.constants if constants.empty?
 
     @map.map({}, constants).each do |mod, methods|
       name = mod.chop

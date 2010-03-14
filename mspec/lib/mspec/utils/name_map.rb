@@ -60,8 +60,14 @@ class NameMap
     MSpecScript
     MkSpec
     DTracer
+    Etc
+    FileUtils
+    MSpecOption
+    MSpecOptions
     NameMap
     OptionParser
+    RbConfig
+    SpecVersion
     YAML
   ]
 
