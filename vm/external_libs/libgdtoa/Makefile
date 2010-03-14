@@ -9,6 +9,14 @@ ifeq ($(CC),)
   CC=gcc
 endif
 
+ifeq ($(AR),)
+  AR=ar
+endif
+
+ifeq ($(RANLIB),)
+  RANLIB=ranlib
+endif
+
 UNAME=$(shell uname)
 CPU=$(shell uname -p)
 MARCH=$(shell uname -m)
@@ -21,7 +29,6 @@ CFLAGS = $(WARNINGS) $(DEBUG) -fno-strict-aliasing
 NAME=libgdtoa
 VERSION = 1
 COMP=$(CC)
-RANLIB = ranlib
 
 ifndef VERBOSE
   COMP=@echo CC $@;$(CC)
