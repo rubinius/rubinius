@@ -92,6 +92,29 @@ module Rubinius
     end
 
     ##
+    # Handles Rubinius.invoke_primitive
+    #
+    class InvokePrimitive < SendWithArguments
+      transform :default, :invoke_primitive, "Rubinius.invoke_primitive"
+
+      def self.match?(line, receiver, name, arguments, privately)
+        match_send? receiver, :Rubinius, name, :invoke_primitive
+      end
+
+      def bytecode(g)
+        if @arguments.splat?
+          raise CompileError, "splat argument passed to invoke_primitive"
+        elsif @block
+          raise CompileError, "block passed to invoke_primitive"
+        end
+
+        selector = @arguments.array.shift
+        @arguments.bytecode(g)
+        g.invoke_primitive selector.value, @arguments.size
+      end
+    end
+
+    ##
     # Handles Rubinius.asm
     #
     class InlineAssembly < SendWithArguments

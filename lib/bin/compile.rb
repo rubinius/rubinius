@@ -66,7 +66,7 @@ class CompilerScript
     Rubinius::AST::Transforms.category_map.each do |category, transforms|
       @options.doc "       Category: #{category}"
       transforms.each do |t|
-        text = "         %-14s  %s" % [t.transform_name, t.transform_comment]
+        text = "         %-19s  %s" % [t.transform_name, t.transform_comment]
         @options.doc text
       end
       @options.doc ""
