@@ -141,10 +141,6 @@ module Rubinius
       AST::ClassVariableDeclaration.new line, name, value
     end
 
-    def process_data(line, data)
-      AST::EndData.new line, data
-    end
-
     def process_defined(line, expr)
       AST::Defined.new line, expr
     end

@@ -48,12 +48,17 @@ module Rubinius
       @line = line
       @transforms = transforms
       @magic_handler = nil
+      @data_offset = nil
     end
 
     def add_magic_comment(str)
       if @magic_handler
         @magic_handler.add_magic_comment str
       end
+    end
+
+    def process_data(offset)
+      @data_offset = offset
     end
 
     def syntax_error
@@ -71,6 +76,7 @@ module Rubinius
       end
 
       syntax_error unless ast = file_to_ast(@name, @line)
+      ast = AST::EndData.new @name, @data_offset, ast if @data_offset
       ast
     end
 

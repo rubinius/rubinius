@@ -216,9 +216,15 @@ module Rubinius
   end
 
   # Support for __END__ and DATA
-  def self.set_data(str)
-    require 'stringio'
-    Object.const_set :DATA, StringIO.new(str)
+  def self.set_data(name, offset)
+    if File.exists? name
+      file = File.open name, "r"
+      file.seek Integer(offset), IO::SEEK_SET
+      Object.const_set :DATA, file
+    else
+      # Instead of letting the Errno::ENOENT bubble, give a bit more info
+      raise "unable to open #{name} to set DATA, source .rb file does not exist."
+    end
   end
 end
 

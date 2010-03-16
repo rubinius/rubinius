@@ -118,7 +118,6 @@ namespace melbourne {
     "negate\0"
     "last\0"
     "file\0"
-    "end_data\0"
   };
 
   static const unsigned short node_types_offsets[] = {
@@ -234,8 +233,7 @@ namespace melbourne {
     697,
     703,
     710,
-    715,
-    720
+    715
   };
 
   const char *get_node_type_string(enum node_type nt) {

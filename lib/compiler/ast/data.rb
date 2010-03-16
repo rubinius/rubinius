@@ -3,30 +3,25 @@ module Rubinius
     class EndData < Node
       attr_accessor :data
 
-      def initialize(line, data)
-        @line = line
-        @data = data
+      def initialize(name, offset, body)
+        @name = name
+        @offset = offset
+        @body = body
       end
 
-      # if scope.root_script?
-      #   Rubinius.set_data(...)
-      # end
+      # When a script includes __END__, Ruby makes the data after it
+      # available as an IO instance via the DATA constant. Since code
+      # in the toplevel can access this constant, we have to set it up
+      # before any other code runs. This AST node wraps the top node
+      # returned by the file parser.
       def bytecode(g)
-        pos(g)
+        g.push_const :Rubinius
+        g.push_literal @name
+        g.push_literal @offset
+        g.send :set_data, 2
+        g.pop
 
-        not_root = g.new_label
-        done = g.new_label
-
-        g.push_scope
-        g.send :root_script?, 0
-        g.gif not_root
-        g.push_const(:Rubinius)
-        g.push_literal(data)
-        g.send :set_data, 1
-        g.goto done
-        not_root.set!
-        g.push_nil
-        done.set!
+        @body.bytecode(g)
       end
     end
   end

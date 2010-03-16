@@ -121,8 +121,7 @@ namespace melbourne {
     NODE_FLOAT,
     NODE_NEGATE,
     NODE_LAST,
-    NODE_FILE,
-    NODE_END_DATA
+    NODE_FILE
   };
 
   const char *get_node_type_string(enum node_type nt);

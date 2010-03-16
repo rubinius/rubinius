@@ -112,7 +112,6 @@ node_types = %w{
   negate
   last
   file
-  end_data
 }
 
 File.open("node_types.cpp", "w") do |f|
