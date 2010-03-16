@@ -13,10 +13,10 @@ describe :file_size, :shared => true do
   end
 
   it "accepts a String-like (to_str) parameter" do
-    o = [@exists]
-    def o.to_str; self[0]; end
+    obj = mock("file")
+    obj.should_receive(:to_str).and_return(@exists)
 
-    @object.send(@method, o).should == 8
+    @object.send(@method, obj).should == 8
   end
 
   ruby_version_is "1.9" do
@@ -33,6 +33,10 @@ describe :file_size_raise_when_missing, :shared => true do
     rm_r @missing
   end
 
+  after :each do
+    rm_r @missing
+  end
+
   it "raises an error if file_name doesn't exist" do
     lambda {@object.send(@method, @missing)}.should raise_error(Errno::ENOENT)
   end
@@ -42,6 +46,10 @@ describe :file_size_nil_when_missing, :shared => true do
   before :each do
     # TODO: missing_file
     @missing = tmp("i_dont_exist")
+    rm_r @missing
+  end
+
+  after :each do
     rm_r @missing
   end
 

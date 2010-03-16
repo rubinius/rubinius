@@ -3,15 +3,33 @@ require File.expand_path('../../../shared/file/size', __FILE__)
 
 describe "File.size?" do
   it_behaves_like :file_size,                     :size?, File
+end
+
+describe "File.size?" do
   it_behaves_like :file_size_nil_when_missing,    :size?, File
+end
+
+describe "File.size?" do
   it_behaves_like :file_size_nil_when_empty,      :size?, File
+end
+
+describe "File.size?" do
   it_behaves_like :file_size_with_file_argument,  :size?, File
 end
 
 describe "File.size" do
   it_behaves_like :file_size,                     :size,  File
+end
+
+describe "File.size" do
   it_behaves_like :file_size_raise_when_missing,  :size,  File
+end
+
+describe "File.size" do
   it_behaves_like :file_size_0_when_empty,        :size,  File
+end
+
+describe "File.size" do
   it_behaves_like :file_size_with_file_argument,  :size,  File
 end
 

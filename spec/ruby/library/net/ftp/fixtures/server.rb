@@ -219,7 +219,7 @@ module NetFTPSpecs
     end
     
     def stor(file)
-      tmp_file = tmp("#{file}file")
+      tmp_file = tmp("#{file}file", false)
       
       self.response("125 Data transfer starting.")
 

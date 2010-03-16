@@ -1,17 +1,9 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
+# TODO: Fix these
 describe "File.basename" do
-  before :each do
-    @name = tmp("test.txt")
-    touch @name
-  end
-
-  after :each do
-    rm_r @name
-  end
-
   it "return the basename of a path (basic cases)" do
-    File.basename(@name).should == "test.txt"
+    File.basename("/Some/path/to/test.txt").should == "test.txt"
     File.basename(File.join("/tmp")).should == "tmp"
     File.basename(File.join(*%w( g f d s a b))).should == "b"
     File.basename("/tmp", ".*").should == "tmp"

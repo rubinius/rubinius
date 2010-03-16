@@ -8,7 +8,7 @@ describe "Net::FTP#storbinary" do
     @server.serve_once
 
     @local_fixture_file  = File.dirname(__FILE__) + "/fixtures/putbinaryfile"
-    @tmp_file = tmp("binaryfile")
+    @tmp_file = tmp("binaryfile", false)
 
     @ftp = Net::FTP.new
     @ftp.connect("localhost", 9921)

@@ -4,7 +4,7 @@ describe :net_ftp_putbinaryfile, :shared => :true do
     @server.serve_once
 
     @local_fixture_file  = File.dirname(__FILE__) + "/../fixtures/putbinaryfile"
-    @remote_tmp_file = tmp("binaryfile")
+    @remote_tmp_file = tmp("binaryfile", false)
     
     @ftp = Net::FTP.new
     @ftp.connect("localhost", 9921)

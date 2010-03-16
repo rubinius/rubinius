@@ -3,6 +3,27 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "IO#eof?" do
   before :each do
+    @name = tmp("empty.txt")
+    touch @name
+  end
+
+  after :each do
+    rm_r @name
+  end
+
+  it "returns true on an empty stream that has just been opened" do
+    File.open(@name) { |empty| empty.eof?.should == true }
+  end
+
+  it "raises IOError on stream not opened for reading" do
+    lambda do
+      File.open(@name, "w") { |f| f.eof? }
+    end.should raise_error(IOError)
+  end
+end
+
+describe "IO#eof?" do
+  before :each do
     @name = fixture __FILE__, "lines.txt"
     @io = IOSpecs.io_fixture "lines.txt"
   end
@@ -36,14 +57,6 @@ describe "IO#eof?" do
     @io.eof?.should == true
   end
 
-  it "returns true on just opened empty stream" do
-    File.open(tmp('empty.txt'), "w") { |empty| } # ensure it exists
-    File.open(tmp('empty.txt')) { |empty|
-      empty.eof?.should == true
-    }
-    File.unlink(tmp("empty.txt"))
-  end
-
   it "returns false on just opened non-empty stream" do
     @io.eof?.should == false
   end
@@ -64,16 +77,6 @@ describe "IO#eof?" do
 
   it "raises IOError on closed stream" do
     lambda { IOSpecs.closed_io.eof? }.should raise_error(IOError)
-  end
-
-  it "raises IOError on stream not opened for reading" do
- 
-    File.open(tmp('empty.txt'), "w") { |empty|
-      lambda {
-        empty.eof?
-      }.should raise_error(IOError)
-    }
-    File.unlink(tmp("empty.txt"))
   end
 
   it "raises IOError on stream closed for reading by close_read" do

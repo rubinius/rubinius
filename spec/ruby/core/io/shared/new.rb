@@ -1,5 +1,7 @@
 require File.expand_path('../../fixtures/classes', __FILE__)
 
+# This group of specs may ONLY contain specs that do successfully create
+# an IO instance from the file descriptor returned by #new_fd helper.
 describe :io_new, :shared => true do
   before :each do
     @name = tmp("io_new.txt")
@@ -21,11 +23,6 @@ describe :io_new, :shared => true do
     obj.should_receive(:to_int).and_return(@fd)
     @io = IO.send(@method, obj, "w")
     @io.should be_an_instance_of(IO)
-  end
-
-  it "raises an Errno::EINVAL if the new mode is not compatible with the descriptor's current mode" do
-    lambda { IO.send(@method, @fd, "r") }.should raise_error(Errno::EINVAL)
-    IO.new(@fd, "w").close
   end
 
   ruby_version_is "1.9" do
@@ -80,12 +77,16 @@ describe :io_new, :shared => true do
   end
 end
 
+# This group of specs may ONLY contain specs that do not actually create
+# an IO instance from the file descriptor returned by #new_fd helper.
 describe :io_new_errors, :shared => true do
   before :each do
     @name = tmp("io_new.txt")
+    @fd = new_fd @name
   end
 
   after :each do
+    IO.new(@fd, "w").close
     rm_r @name
   end
 
@@ -95,5 +96,9 @@ describe :io_new_errors, :shared => true do
 
   it "raises an IOError if passed a closed stream" do
     lambda { IO.send(@method, IOSpecs.closed_io.fileno, 'w') }.should raise_error(IOError)
+  end
+
+  it "raises an Errno::EINVAL if the new mode is not compatible with the descriptor's current mode" do
+    lambda { IO.send(@method, @fd, "r") }.should raise_error(Errno::EINVAL)
   end
 end

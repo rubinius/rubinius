@@ -8,7 +8,7 @@ describe "Net::FTP#storlines" do
     @server.serve_once
 
     @local_fixture_file  = File.dirname(__FILE__) + "/fixtures/puttextfile"
-    @tmp_file = tmp("textfile")
+    @tmp_file = tmp("textfile", false)
 
     @ftp = Net::FTP.new
     @ftp.connect("localhost", 9921)
