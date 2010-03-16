@@ -229,14 +229,14 @@ class MSpecOptions
     end
 
     doc ""
-    doc "     r or ruby              invokes ruby in PATH"
-    doc "     r19, ruby19 or ruby1.9 invokes ruby1.9 in PATH"
-    doc "     x or rubinius          invokes ./bin/rbx"
-    doc "     X or rbx               invokes rbx in PATH"
-    doc "     j or jruby             invokes jruby in PATH"
-    doc "     i or ironruby          invokes ir in PATH"
-    doc "     m or maglev            invokes maglev-ruby in PATH"
-    doc "     full path to EXE       invokes EXE directly\n"
+    doc "     r or ruby        invokes ruby in PATH"
+    doc "     r19, ruby19      invokes ruby1.9 in PATH"
+    doc "     x or rubinius    invokes ./bin/rbx"
+    doc "     X or rbx         invokes rbx in PATH"
+    doc "     j or jruby       invokes jruby in PATH"
+    doc "     i or ironruby    invokes ir in PATH"
+    doc "     m or maglev      invokes maglev-ruby in PATH"
+    doc "     full path to EXE invokes EXE directly\n"
 
     on("-T", "--target-opt", "OPT",
        "Pass OPT as a flag to the target implementation") do |t|

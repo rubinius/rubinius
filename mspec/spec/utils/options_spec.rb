@@ -544,16 +544,20 @@ describe "The -t, --target TARGET option" do
     @options.targets
   end
 
-  it "sets the target to 'ruby' and flags to verbose with TARGET 'ruby'" do
+  it "sets the target to 'ruby' and flags to verbose with TARGET 'r' or 'ruby'" do
     ["-t", "--target"].each do |opt|
-      @options.parse [opt, "ruby"]
-      @config[:target].should == "ruby"
+      ["r", "ruby"].each do |t|
+        @config[:target] = nil
+        @options.parse [opt, t]
+        @config[:target].should == "ruby"
+      end
     end
   end
 
   it "sets the target to 'ruby1.9' with TARGET 'r19', 'ruby19' or 'ruby1.9'" do
     ["-t", "--target"].each do |opt|
-      ["r19", "ruby19", "ruby1.9"].each do |t|
+      ["r19", "ruby19"].each do |t|
+        @config[:target] = nil
         @options.parse [opt, t]
         @config[:target].should == "ruby1.9"
       end
@@ -563,6 +567,7 @@ describe "The -t, --target TARGET option" do
   it "sets the target to 'jruby' with TARGET 'j' or 'jruby'" do
     ["-t", "--target"].each do |opt|
       ["j", "jruby"].each do |t|
+        @config[:target] = nil
         @options.parse [opt, t]
         @config[:target].should == "jruby"
       end
@@ -572,6 +577,7 @@ describe "The -t, --target TARGET option" do
   it "sets the target to 'shotgun/rubinius' with TARGET 'x' or 'rubinius'" do
     ["-t", "--target"].each do |opt|
       ["x", "rubinius"].each do |t|
+        @config[:target] = nil
         @options.parse [opt, t]
         @config[:target].should == "./bin/rbx"
       end
@@ -581,6 +587,7 @@ describe "The -t, --target TARGET option" do
   it "set the target to 'rbx' with TARGET 'rbx'" do
     ["-t", "--target"].each do |opt|
       ["X", "rbx"].each do |t|
+        @config[:target] = nil
         @options.parse [opt, t]
         @config[:target].should == "rbx"
       end
@@ -590,6 +597,7 @@ describe "The -t, --target TARGET option" do
   it "sets the target to 'maglev' with TARGET 'm' or 'maglev'" do
     ["-t", "--target"].each do |opt|
       ["m", "maglev"].each do |t|
+        @config[:target] = nil
         @options.parse [opt, t]
         @config[:target].should == "maglev-ruby"
       end
@@ -598,6 +606,7 @@ describe "The -t, --target TARGET option" do
 
   it "sets the target to TARGET" do
     ["-t", "--target"].each do |opt|
+      @config[:target] = nil
       @options.parse [opt, "whateva"]
       @config[:target].should == "whateva"
     end

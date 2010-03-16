@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require 'mspec/helpers/tmp'
+require 'mspec/helpers/fs'
 require 'mspec/matchers/base'
 require 'mspec/runner/mspec'
 require 'mspec/runner/example'
@@ -418,12 +419,12 @@ end
 describe MSpec, ".read_tags" do
   before :each do
     @tag = SpecTag.new "fails:Some#method"
-    File.open(tmp("tags.txt"), "w") do |f|
+    File.open(tmp("tags.txt", false), "w") do |f|
       f.puts ""
       f.puts @tag
       f.puts ""
     end
-    MSpec.stub!(:tags_file).and_return(tmp("tags.txt"))
+    MSpec.stub!(:tags_file).and_return(tmp("tags.txt", false))
   end
 
   it "does not return a tag object for empty lines" do
@@ -433,24 +434,24 @@ end
 
 describe MSpec, ".write_tags" do
   before :each do
-    FileUtils.cp File.dirname(__FILE__) + "/tags.txt", tmp("tags.txt")
-    MSpec.stub!(:tags_file).and_return(tmp("tags.txt"))
+    FileUtils.cp File.dirname(__FILE__) + "/tags.txt", tmp("tags.txt", false)
+    MSpec.stub!(:tags_file).and_return(tmp("tags.txt", false))
     @tag1 = SpecTag.new "check(broken):Tag#rewrite works"
     @tag2 = SpecTag.new "broken:Tag#write_tags fails"
   end
 
   after :all do
-    File.delete tmp("tags.txt") rescue nil
+    rm_r tmp("tags.txt", false)
   end
 
   it "overwrites the tags in the tag file" do
-    IO.read(tmp("tags.txt")).should == %[fail(broken):Some#method? works
+    IO.read(tmp("tags.txt", false)).should == %[fail(broken):Some#method? works
 incomplete(20%):The#best method ever
 benchmark(0.01825):The#fastest method today
 extended():\"Multi-line\\ntext\\ntag\"
 ]
     MSpec.write_tags [@tag1, @tag2]
-    IO.read(tmp("tags.txt")).should == %[check(broken):Tag#rewrite works
+    IO.read(tmp("tags.txt", false)).should == %[check(broken):Tag#rewrite works
 broken:Tag#write_tags fails
 ]
   end
@@ -459,40 +460,40 @@ end
 describe MSpec, ".write_tag" do
   before :each do
     FileUtils.stub!(:mkdir_p)
-    MSpec.stub!(:tags_file).and_return(tmp("tags.txt"))
+    MSpec.stub!(:tags_file).and_return(tmp("tags.txt", false))
     @tag = SpecTag.new "fail(broken):Some#method works"
   end
 
   after :all do
-    File.delete tmp("tags.txt") rescue nil
+    rm_r tmp("tags.txt", false)
   end
 
   it "writes a tag to the tags file for the current spec file" do
     MSpec.write_tag @tag
-    IO.read(tmp("tags.txt")).should == "fail(broken):Some#method works\n"
+    IO.read(tmp("tags.txt", false)).should == "fail(broken):Some#method works\n"
   end
 
   it "does not write a duplicate tag" do
-    File.open(tmp("tags.txt"), "w") { |f| f.puts @tag }
+    File.open(tmp("tags.txt", false), "w") { |f| f.puts @tag }
     MSpec.write_tag @tag
-    IO.read(tmp("tags.txt")).should == "fail(broken):Some#method works\n"
+    IO.read(tmp("tags.txt", false)).should == "fail(broken):Some#method works\n"
   end
 end
 
 describe MSpec, ".delete_tag" do
   before :each do
-    FileUtils.cp File.dirname(__FILE__) + "/tags.txt", tmp("tags.txt")
-    MSpec.stub!(:tags_file).and_return(tmp("tags.txt"))
+    FileUtils.cp File.dirname(__FILE__) + "/tags.txt", tmp("tags.txt", false)
+    MSpec.stub!(:tags_file).and_return(tmp("tags.txt", false))
     @tag = SpecTag.new "fail(Comments don't matter):Some#method? works"
   end
 
   after :each do
-    File.delete tmp("tags.txt") rescue nil
+    rm_r tmp("tags.txt", false)
   end
 
   it "deletes the tag if it exists" do
     MSpec.delete_tag(@tag).should == true
-    IO.read(tmp("tags.txt")).should == %[incomplete(20%):The#best method ever
+    IO.read(tmp("tags.txt", false)).should == %[incomplete(20%):The#best method ever
 benchmark(0.01825):The#fastest method today
 extended():\"Multi-line\\ntext\\ntag\"
 ]
@@ -500,7 +501,7 @@ extended():\"Multi-line\\ntext\\ntag\"
 
   it "deletes a tag with escaped newlines" do
     MSpec.delete_tag(SpecTag.new('extended:"Multi-line\ntext\ntag"')).should == true
-    IO.read(tmp("tags.txt")).should == %[fail(broken):Some#method? works
+    IO.read(tmp("tags.txt", false)).should == %[fail(broken):Some#method? works
 incomplete(20%):The#best method ever
 benchmark(0.01825):The#fastest method today
 ]
@@ -509,7 +510,7 @@ benchmark(0.01825):The#fastest method today
   it "does not change the tags file contents if the tag doesn't exist" do
     @tag.tag = "failed"
     MSpec.delete_tag(@tag).should == false
-    IO.read(tmp("tags.txt")).should == %[fail(broken):Some#method? works
+    IO.read(tmp("tags.txt", false)).should == %[fail(broken):Some#method? works
 incomplete(20%):The#best method ever
 benchmark(0.01825):The#fastest method today
 extended():\"Multi-line\\ntext\\ntag\"
@@ -521,13 +522,13 @@ extended():\"Multi-line\\ntext\\ntag\"
     MSpec.delete_tag(SpecTag.new("incomplete:The#best method ever")).should == true
     MSpec.delete_tag(SpecTag.new("benchmark:The#fastest method today")).should == true
     MSpec.delete_tag(SpecTag.new("extended:\"Multi-line\ntext\ntag\"")).should == true
-    File.exist?(tmp("tags.txt")).should == false
+    File.exist?(tmp("tags.txt", false)).should == false
   end
 end
 
 describe MSpec, ".delete_tags" do
   before :each do
-    @tags = tmp("tags.txt")
+    @tags = tmp("tags.txt", false)
     FileUtils.cp File.dirname(__FILE__) + "/tags.txt", @tags
     MSpec.stub!(:tags_file).and_return(@tags)
   end

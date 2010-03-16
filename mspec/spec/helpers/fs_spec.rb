@@ -59,13 +59,11 @@ end
 
 describe Object, "#touch" do
   before :all do
-    @dir = tmp("subdir")
     @name = tmp("subdir/touched.txt")
   end
 
   after :each do
-    File.delete @name if File.exists? @name
-    Dir.rmdir @dir if File.directory? @dir
+    rm_r File.dirname(@name)
   end
 
   it "creates all the directories in the path to the file" do
