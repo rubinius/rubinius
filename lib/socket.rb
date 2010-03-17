@@ -507,7 +507,7 @@ class Socket < BasicSocket
         maxfnsize = self.size - (FFI.config("sockaddr_un.sun_family.size") + 1)
 
         if filename and filename.length > maxfnsize
-          raise ArgumentError, "too long unix socket path (max: #{fnsize}bytes)"
+          raise ArgumentError, "too long unix socket path (max: #{maxfnsize}bytes)"
         end
         @p = FFI::MemoryPointer.new self.size
         if filename
