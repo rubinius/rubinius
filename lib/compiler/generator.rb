@@ -16,25 +16,60 @@ module Rubinius
     CALL_FLAG_CONCAT = 2
 
     ##
-    # Jump label for the goto instructions.
+    # Jump label for the branch instructions. The use scenarios for labels:
+    #   1. Used and then set
+    #        g.gif label
+    #        ...
+    #        label.set!
+    #   2. Set and then used
+    #        label.set!
+    #        ...
+    #        g.git label
+    #   3. 1, 2
+    #
+    # Many labels are only used once. This class employs two small
+    # optimizations. First, for the case where a label is used once then set,
+    # the label merely records the point it was used and updates that location
+    # to the concrete IP when the label is set. In the case where the label is
+    # used multiple times, it records each location and updates them to an IP
+    # when the label is set. In both cases, once the label is set, each use
+    # after that updates the instruction stream with a concrete IP at the
+    # point the label is used. This avoids the need to ever record all the
+    # labels or search through the stream later to change symbolic labels into
+    # concrete IP's.
 
     class Label
-      def initialize(generator)
-        @generator = generator
-        @position = nil
-        @used = false
-      end
-
       attr_accessor :position
-
-      def set!
-        @position = @generator.ip
-      end
-
       attr_reader :used
       alias_method :used?, :used
 
-      def used!
+      def initialize(generator)
+        @generator = generator
+        @position  = nil
+        @used      = false
+        @location  = nil
+        @locations = nil
+      end
+
+      def set!
+        @position = @generator.ip
+        if @locations
+          @locations.each { |x| @generator.stream[x] = @position }
+        elsif @location
+          @generator.stream[@location] = @position
+        end
+      end
+
+      def used_at(ip)
+        if @position
+          @generator.stream[ip] = @position
+        elsif !@location
+          @location = ip
+        elsif @locations
+          @locations << ip
+        else
+          @locations = [@location, ip]
+        end
         @used = true
       end
     end
@@ -119,8 +154,6 @@ module Rubinius
     # Formalizers
 
     def encode(encoder, calculator)
-      set_label_positions
-
       @iseq = InstructionSequence.from @stream.to_tuple
 
       sdc = calculator.new @iseq, @lines
@@ -163,19 +196,6 @@ module Rubinius
       cm
     end
 
-    # Replace all Labels in the stream by dereferencing them to their integer
-    # position.
-    def set_label_positions
-      @stream.each_with_index do |op, index|
-        if op.kind_of? Label
-          unless position = op.position
-            raise "Label used but position is not set"
-          else
-            @stream[index] = position
-          end
-        end
-      end
-    end
 
     # Helpers
 
@@ -394,19 +414,24 @@ module Rubinius
       add :swap_stack
     end
 
-    def gif(lbl)
-      lbl.used!
-      add :goto_if_false, lbl
+    def gif(label)
+      add :goto_if_false, label
+      label.used_at @ip - 1
     end
 
-    def git(lbl)
-      lbl.used!
-      add :goto_if_true, lbl
+    def git(label)
+      add :goto_if_true, label
+      label.used_at @ip - 1
     end
 
-    def goto(lbl)
-      lbl.used!
-      add :goto, lbl
+    def goto(label)
+      add :goto, label
+      label.used_at @ip - 1
+    end
+
+    def setup_unwind(label, type)
+      add :setup_unwind, label, type
+      label.used_at @ip - 2
     end
 
     def set_local(index)
