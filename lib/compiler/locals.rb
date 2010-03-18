@@ -1,5 +1,5 @@
 module Rubinius
-  class CompilerNG
+  class Compiler
     module LocalVariables
       def variables
         @variables ||= {}

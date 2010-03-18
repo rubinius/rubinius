@@ -98,7 +98,7 @@ module Rubinius
     end
 
     class ClosedScope < Node
-      include CompilerNG::LocalVariables
+      include Compiler::LocalVariables
 
       attr_accessor :body
 
@@ -111,7 +111,7 @@ module Rubinius
       end
 
       def new_local(name)
-        variable = CompilerNG::LocalVariable.new allocate_slot
+        variable = Compiler::LocalVariable.new allocate_slot
         variables[name] = variable
       end
 
@@ -763,9 +763,9 @@ module Rubinius
         scope = @variable_scope
         while scope
           if slot = scope.method.local_slot(name)
-            return CompilerNG::NestedLocalVariable.new(depth, slot)
+            return Compiler::NestedLocalVariable.new(depth, slot)
           elsif scope.eval_local_defined?(name, false)
-            return CompilerNG::EvalLocalVariable.new(name)
+            return Compiler::EvalLocalVariable.new(name)
           end
 
           depth += 1
@@ -789,7 +789,7 @@ module Rubinius
       end
 
       def new_local(name)
-        variable = CompilerNG::EvalLocalVariable.new name
+        variable = Compiler::EvalLocalVariable.new name
         @variable_scope.dynamic_locals[name] = nil
         variables[name] = variable
       end

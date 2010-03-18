@@ -3,7 +3,7 @@ module Rubinius
   class CompileError < RuntimeError
   end
 
-  class CompilerNG
+  class Compiler
     attr_accessor :parser, :generator, :encoder, :packager, :writer
 
     def self.compiler_error(msg, orig)

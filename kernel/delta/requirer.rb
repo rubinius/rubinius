@@ -1,7 +1,7 @@
 module Rubinius
 
   def self.compile_file(file, save=true)
-    cm = Rubinius::CompilerNG.compile_file file, 1
+    cm = Rubinius::Compiler.compile_file file, 1
 
     if save
       if file.suffix? ".rb"
@@ -214,7 +214,7 @@ class Requirer
           end
 
           compile_feature(rb, requiring) do
-            cm = Rubinius::CompilerNG.compile_file_old(rb_path)
+            cm = Rubinius::Compiler.compile_file_old(rb_path)
             raise LoadError, "Unable to compile: #{rb_path}" unless cm
           end
 
@@ -244,7 +244,7 @@ class Requirer
               end
 
               compile_feature(rb, requiring) do
-                cm = Rubinius::CompilerNG.compile_file_old(rb_path)
+                cm = Rubinius::Compiler.compile_file_old(rb_path)
                 raise LoadError, "Unable to compile: #{rb_path}" unless cm
               end
 

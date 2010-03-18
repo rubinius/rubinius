@@ -607,7 +607,7 @@ module Kernel
 
   def compile(path, out=nil, flags=nil)
     out = "#{path}c" unless out
-    cm = Rubinius::CompilerNG.compile_file_old(path, flags)
+    cm = Rubinius::Compiler.compile_file_old(path, flags)
     raise LoadError, "Unable to compile '#{path}'" unless cm
     Rubinius::CompiledFile.dump cm, out
     return out

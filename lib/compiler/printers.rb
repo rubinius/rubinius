@@ -1,5 +1,5 @@
 module Rubinius
-  class CompilerNG
+  class Compiler
     class Printer < Stage
       def initialize
       end

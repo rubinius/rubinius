@@ -76,11 +76,11 @@ class CompilerScript
     @options.doc " How to print representations of data structures"
 
     @options.on "-A", "--print-ast", "Print an ascii graph of the AST" do
-      @print_ast = Rubinius::CompilerNG::ASTPrinter
+      @print_ast = Rubinius::Compiler::ASTPrinter
     end
 
     @options.on "-S", "--print-sexp", "Print the AST as an S-expression" do
-      @print_ast = Rubinius::CompilerNG::SexpPrinter
+      @print_ast = Rubinius::Compiler::SexpPrinter
     end
 
     @options.on "-B", "--print-bytecode", "Print bytecode for compiled methods" do
@@ -187,7 +187,7 @@ class CompilerScript
       end
 
       protect file do
-        compiler = Rubinius::CompilerNG.new :file, :compiled_file
+        compiler = Rubinius::Compiler.new :file, :compiled_file
 
         parser = compiler.parser
         parser.root Rubinius::AST::Script
@@ -204,10 +204,10 @@ class CompilerScript
 
   def compile_string(string, origin)
     if @output_name
-      compiler = Rubinius::CompilerNG.new :string, :compiled_file
+      compiler = Rubinius::Compiler.new :string, :compiled_file
       set_output compiler, @output_name
     else
-      compiler = Rubinius::CompilerNG.new :string, :compiled_method
+      compiler = Rubinius::Compiler.new :string, :compiled_method
     end
 
     parser = compiler.parser

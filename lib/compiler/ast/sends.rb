@@ -349,7 +349,7 @@ module Rubinius
     end
 
     class Iter < Node
-      include CompilerNG::LocalVariables
+      include Compiler::LocalVariables
 
       attr_accessor :parent, :arguments, :body
 
@@ -383,7 +383,7 @@ module Rubinius
       end
 
       def new_local(name)
-        variable = CompilerNG::LocalVariable.new allocate_slot
+        variable = Compiler::LocalVariable.new allocate_slot
         variables[name] = variable
       end
 

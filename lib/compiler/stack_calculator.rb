@@ -1,5 +1,5 @@
 module Rubinius
-  class CompilerNG
+  class Compiler
     class StackDepthCalculator
       def initialize(stream, lines)
         @iseq = stream

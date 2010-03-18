@@ -81,7 +81,7 @@ module Kernel
       filename ||= "(eval)"
     end
 
-    cm = Rubinius::CompilerNG.compile_eval string, binding.variables, filename, lineno
+    cm = Rubinius::Compiler.compile_eval string, binding.variables, filename, lineno
     cm.scope = binding.static_scope.dup
     cm.name = :__eval__
 
@@ -152,7 +152,7 @@ module Kernel
                               Rubinius::CompiledMethod.of_sender,
                               Rubinius::StaticScope.of_sender)
 
-      cm = Rubinius::CompilerNG.compile_eval string, binding.variables, filename, line
+      cm = Rubinius::Compiler.compile_eval string, binding.variables, filename, line
       cm.scope = binding.static_scope.using_current_as(metaclass)
       cm.name = :__instance_eval__
       cm.compile
@@ -228,7 +228,7 @@ class Module
 
     string = StringValue(string)
 
-    cm = Rubinius::CompilerNG.compile_eval string, variables, filename, line
+    cm = Rubinius::Compiler.compile_eval string, variables, filename, line
 
     # The staticscope of a module_eval CM is the receiver of module_eval
     ss = Rubinius::StaticScope.new self, Rubinius::StaticScope.of_sender
