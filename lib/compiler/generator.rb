@@ -108,43 +108,6 @@ module Rubinius
                   :required_args, :total_args, :splat_index,
                   :local_count, :local_names, :primitive, :for_block
 
-    # Temporary
-    attr_accessor :desc
-
-    def ===(pattern)
-
-      return false unless @stream.size == pattern.size
-
-      i = 0
-      @stream.each do |part|
-        pat = pattern[i]
-        j = 0
-
-        if pat == :any
-          j += 1
-          next
-        end
-
-        if part.kind_of? Array
-          part.each do |e|
-            s = pat[j]
-            next if s == :any
-            return false unless e == s
-
-            j += 1
-          end
-        else
-          next if pat[j] == :any
-          return false unless pat[j] == part
-          j += 1
-        end
-
-        i += 1
-      end
-
-      return true
-    end
-
     def execute(node)
       node.bytecode self
     end
