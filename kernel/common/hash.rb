@@ -158,6 +158,7 @@ class Hash
 
     return val
   end
+
   def [](key)
     if entry = find_entry(key)
       entry.value
@@ -167,6 +168,8 @@ class Hash
   end
 
   def []=(key, value)
+    Ruby.check_frozen
+
     redistribute @entries if @size > @max_entries
 
     key_hash = key.hash
@@ -227,6 +230,8 @@ class Hash
   end
 
   def delete(key)
+    Ruby.check_frozen
+
     key_hash = key.hash
 
     index = key_index key_hash
@@ -252,6 +257,8 @@ class Hash
   end
 
   def delete_if(&block)
+    Ruby.check_frozen
+
     return to_enum :delete_if unless block_given?
 
     select(&block).each { |k, v| delete k }
@@ -406,8 +413,10 @@ class Hash
     while entry = i.next(entry)
       key = entry.key
       if block_given? and key? key
+        Ruby.check_frozen
         self.__store__ key, yield(key, self[key], entry.value)
       else
+        Ruby.check_frozen
         self.__store__ key, entry.value
       end
     end
@@ -493,6 +502,8 @@ class Hash
   end
 
   def reject!
+    Ruby.check_frozen
+
     return to_enum :reject! unless block_given?
 
     rejected = select { |k, v| yield k, v }
@@ -503,6 +514,8 @@ class Hash
   end
 
   def replace(other)
+    Ruby.check_frozen
+
     other = Type.coerce_to other, Hash, :to_hash
     return self if self.equal? other
 
@@ -538,6 +551,8 @@ class Hash
   end
 
   def shift
+    Ruby.check_frozen
+
     return default(nil) if empty?
 
     i = to_iter
