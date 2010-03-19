@@ -1,14 +1,4 @@
 describe :hash_eql, :shared => true do
-
-  it "compares the values in self to values in other hash" do
-    l_val = mock("left")
-    r_val = mock("right")
-
-    l_val.should_receive(:eql?).with(r_val).and_return(true)
-
-    new_hash(1 => l_val).send(@method, new_hash(1 => r_val)).should be_true
-  end
-
   it "does not compare values when keys don't match" do
     value = mock('x')
     value.should_not_receive(:==)

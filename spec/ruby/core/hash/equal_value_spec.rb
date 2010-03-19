@@ -8,6 +8,11 @@ describe "Hash#==" do
   it_behaves_like :hash_eql_additional_more, :==
 
   it "compares values with == semantics" do
-    new_hash("x" => 1.0).should == new_hash("x" => 1)
+    l_val = mock("left")
+    r_val = mock("right")
+
+    l_val.should_receive(:==).with(r_val).and_return(true)
+
+    (new_hash(1 => l_val) == new_hash(1 => r_val)).should be_true
   end
 end
