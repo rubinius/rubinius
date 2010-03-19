@@ -58,7 +58,7 @@ module Type
 
   def self.coerce_to_comparison(a, b)
     unless cmp = (a <=> b)
-      raise ArgumentError, "comparison of #{a} with #{b} failed"
+      raise ArgumentError, "comparison of #{a.inspect} with #{b.inspect} failed"
     end
     cmp
   end
