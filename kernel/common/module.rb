@@ -525,7 +525,7 @@ class Module
   end
 
   def const_missing(name)
-    raise NameError, "Missing or uninitialized constant: #{name}"
+    raise NameError, "Missing or uninitialized constant: #{self.__name__}::#{name}"
   end
 
   def <(other)
