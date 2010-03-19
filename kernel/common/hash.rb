@@ -131,7 +131,14 @@ class Hash
     Thread.detect_recursion self, other do
       i = to_iter
       while entry = i.next(entry)
-        return false unless other[entry.key] == entry.value
+        other_entry = other.find_entry(entry.key)
+
+        # Other doesn't even have this key
+        return false unless other_entry
+
+        # Order of the comparison matters! We must compare our value with
+        # the other Hash's value and not the other way around.
+        return false unless entry.value.eql?(other_entry.value)
       end
     end
     true
@@ -319,7 +326,6 @@ class Hash
       entry = entry.next
     end
   end
-  private :find_entry
 
   def index(value)
     i = to_iter
