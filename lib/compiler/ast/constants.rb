@@ -35,7 +35,7 @@ module Rubinius
         f = g.new_label
         done = g.new_label
 
-        value_defined(g, f)
+        value_defined(g, f, false)
 
         g.pop
         g.push_literal "constant"
@@ -47,14 +47,14 @@ module Rubinius
         done.set!
       end
 
-      def value_defined(g, f)
+      def value_defined(g, f, const_missing=true)
         ex = g.new_label
         ok = g.new_label
         g.setup_unwind ex, RescueType
 
         @parent.bytecode(g)
         g.push_literal @name
-        g.push :true
+        g.push(const_missing ? :true : :false)
         g.invoke_primitive :vm_const_defined_under, 3
 
         g.pop_unwind

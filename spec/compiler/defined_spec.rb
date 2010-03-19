@@ -152,7 +152,7 @@ describe "A Defined node" do
 
       g.push_const :X
       g.push_literal :Y
-      g.push :true
+      g.push :false
       g.invoke_primitive :vm_const_defined_under, 3
       g.pop_unwind
       g.goto ok
@@ -185,7 +185,7 @@ describe "A Defined node" do
       g.push_const :X
       g.find_const :Y
       g.push_literal :Z
-      g.push :true
+      g.push :false
       g.invoke_primitive :vm_const_defined_under, 3
       g.pop_unwind
       g.goto ok
@@ -217,7 +217,7 @@ describe "A Defined node" do
 
       g.push :self
       g.push_literal :A
-      g.push :true
+      g.push :false
       g.invoke_primitive :vm_const_defined_under, 3
       g.pop_unwind
       g.goto ok
