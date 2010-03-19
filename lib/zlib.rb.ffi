@@ -456,7 +456,7 @@ module Zlib
 
       expand_output if self[:avail_out] == 0
 
-      loop do
+      while true
         err = Zlib.send @func_run, pointer, flush
 
         available = self[:avail_out]

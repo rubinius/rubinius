@@ -462,7 +462,7 @@ module Rubinius
     # Handles loop do ... end
     #
     class SendLoop < Send
-      transform :default, :loop, "loop do ... end"
+      transform :magic, :loop, "loop do ... end"
 
       def self.match?(line, receiver, name, arguments, privately)
         if receiver.kind_of? Self and name == :loop
