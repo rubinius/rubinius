@@ -808,15 +808,20 @@ describe "The defined? keyword for a scoped constant" do
   end
 
   ruby_version_is ""..."1.9" do
-    it "calls .const_missing if the constant is not defined" do
+    it "calls .const_missing if the parent to the constant is not defined" do
       Object.should_receive(:const_missing).with(:DefinedSpecsUndefined).and_return(nil)
       defined?(DefinedSpecsUndefined::A).should be_nil
     end
 
-    it "calls .const_missing and uses the return constant for scope" do
+    it "calls .const_missing for the parent and uses the return constant for scope" do
       Object.should_receive(:const_missing).with(:DefinedSpecsUndefined).and_return(DefinedSpecs)
       defined?(DefinedSpecsUndefined::Child).should == "constant"
     end
+  end
+
+  it "does not call .const_missing if the constant is not defined" do
+    DefinedSpecs.should_not_receive(:const_missing)
+    defined?(DefinedSpecs::UnknownChild).should be_nil
   end
 
   it "returns nil when an undefined constant is scoped to a defined constant" do
