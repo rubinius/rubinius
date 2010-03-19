@@ -497,7 +497,7 @@ class Array
     key = undefined
     i = to_iter
     while i.next
-      self[i.index] = key if i.item == obj
+      set_index(i.index, key) if i.item == obj
     end
 
     deleted = @tuple.delete @start, @total, key
@@ -541,7 +541,7 @@ class Array
     key = undefined
     i = to_iter
     while i.next
-      self[i.index] = key if yield i.item
+      set_index(i.index, key) if yield i.item
     end
 
     deleted = @tuple.delete @start, @total, key
@@ -1840,6 +1840,7 @@ class Array
 
   module Frozen
     def []=(*args) frozen_error; end
+    def set_index(*args) frozen_error; end
     def <<(*args) frozen_error; end
     def clear() frozen_error; end
     def compact!() frozen_error; end
