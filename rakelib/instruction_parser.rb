@@ -49,6 +49,276 @@
 #   raise  - for instructions that invoke exception handling
 
 class InstructionParser
+  # Processes an opcode definition from the instruction parser into a method
+  # called by the bytecode compiler's Generator to emit the instruction
+  # stream.
+  class GeneratorMethod
+    def initialize(file, opcode)
+      @file          = file
+      @opcode        = opcode
+      @method_name   = nil
+      @before_stream = nil
+      @after_stream  = nil
+      @before_stack  = nil
+      @after_stack   = nil
+    end
+
+    def method_name
+      @method_name || @opcode.name
+    end
+
+    def process
+      __send__ :"process_#{@opcode.name}"
+    end
+
+    # Define the method signature.
+    def method_signature
+      case @opcode.arguments.size
+      when 0
+        @file.puts "      def #{method_name}"
+      when 1
+        @file.puts "      def #{method_name}(arg1)"
+      when 2
+        @file.puts "      def #{method_name}(arg1, arg2)"
+      end
+    end
+
+    # Append to the opcode stream.
+    def method_append_stream
+      case @opcode.arguments.size
+      when 0
+        @file.puts "        @stream << #{@opcode.bytecode}"
+      when 1
+        @file.puts "        @stream << #{@opcode.bytecode} << arg1"
+      when 2
+        @file.puts "        @stream << #{@opcode.bytecode} << arg1 << arg2"
+      end
+      @file.puts "        @ip += #{@opcode.arguments.size + 1}"
+    end
+
+    # Calculate the full stack affect of this opcode.
+    def method_stack_effect
+      if @opcode.extra
+        variable = "-arg#{@opcode.extra+1}"
+        if @opcode.effect == 0
+          total = variable
+        else
+          total = "#{@opcode.effect}#{variable}"
+        end
+        @file.puts "        @current_block.add_stack(#{total})"
+      elsif @opcode.effect != 0
+        @file.puts "        @current_block.add_stack(#{@opcode.effect})"
+      end
+    end
+
+    def method_close
+      @file.puts "        @instruction = :#{@opcode.name}"
+      @file.puts "      end"
+      @file.puts ""
+    end
+
+    def method_definition
+      method_signature
+      @before_stream.call if @before_stream
+      method_append_stream
+      @after_stream.call if @after_stream
+      @before_stack.call if @before_stack
+      method_stack_effect
+      @after_stack.call if @after_stack
+      method_close
+    end
+
+    def literal_method
+      @before_stream = lambda { @file.puts "        arg1 = find_literal arg1" }
+      method_definition
+    end
+
+    def literal_count_method
+      @before_stream = lambda do
+        @file.puts "        arg1 = find_literal arg1"
+        @file.puts "        arg2 = Integer(arg2)"
+      end
+      method_definition
+    end
+
+    def method_missing(sym, *args)
+      method_definition
+    end
+
+    # Basic block creation, closing, transitions
+    def bb_unconditional_branch
+      @file.puts "        @current_block.add_edge arg1.basic_block"
+      @file.puts "        @current_block.close"
+      @file.puts "        @current_block = new_basic_block"
+    end
+
+    def bb_conditional_branch
+      @file.puts "        @current_block.add_edge arg1.basic_block"
+      @file.puts "        @current_block.close"
+      @file.puts "        block = new_basic_block"
+      @file.puts "        @current_block.add_edge block"
+      @file.puts "        @current_block = block"
+    end
+
+    def bb_exit
+      @file.puts "        @current_block.close"
+      @file.puts "        @current_block = new_basic_block"
+    end
+
+    # Categories of instructions. These could be done based on the control
+    # flow attributes added to the instructions for the debugger, but that
+    # would require more complicated parsing and contortions to work around
+    # potential special cases. Instead, the simple #process_<opcode> method
+    # is used and redundancy is factored out as needed.
+
+    def unconditional_branch
+      @before_stream = lambda { @file.puts "        location = @ip + 1" }
+      @after_stream = lambda { @file.puts "        arg1.used_at location" }
+      @after_stack = lambda { bb_unconditional_branch }
+      method_definition
+    end
+
+    def conditional_branch
+      @before_stream = lambda { @file.puts "        location = @ip + 1" }
+      @after_stream = lambda { @file.puts "        arg1.used_at location" }
+      @after_stack = lambda { bb_conditional_branch }
+      method_definition
+    end
+
+    def unconditional_exit
+      @after_stack = lambda { bb_exit }
+      method_definition
+    end
+
+    # Specific instruction methods
+
+    def process_goto
+      unconditional_branch
+    end
+
+    def process_goto_if_false
+      @method_name = :gif
+      conditional_branch
+    end
+
+    def process_goto_if_true
+      @method_name = :git
+      conditional_branch
+    end
+
+    def process_setup_unwind
+      conditional_branch
+    end
+
+    def process_ret
+      unconditional_exit
+    end
+
+    def process_raise_exc
+      unconditional_exit
+    end
+
+    def process_raise_return
+      unconditional_exit
+    end
+
+    def process_ensure_return
+      unconditional_exit
+    end
+
+    def process_raise_break
+      unconditional_exit
+    end
+
+    def process_reraise
+      unconditional_exit
+    end
+
+    def process_push_int
+      method_signature
+
+      # Integers greater than 256 are stored in the literals tuple.
+      @file.puts <<EOM
+        if arg1 > 2 and arg1 < 256
+          @stream << #{@opcode.bytecode} << arg1
+          @current_block.add_stack(1)
+          @ip += 2
+          @instruction = :#{@opcode.name}
+        else
+          case arg1
+          when -1
+            meta_push_neg_1
+          when 0
+            meta_push_0
+          when 1
+            meta_push_1
+          when 2
+            meta_push_2
+          else
+            push_literal arg1
+          end
+        end
+      end
+
+EOM
+    end
+
+    def process_push_literal
+      @method_name = :emit_push_literal
+      method_definition
+    end
+
+    def process_dup_top
+      @method_name = :dup
+      method_definition
+    end
+
+    def process_swap_stack
+      @method_name = :swap
+      method_definition
+    end
+
+    def process_push_const
+      # unused right now
+    end
+
+    def process_find_const
+      literal_method
+    end
+
+    def process_push_ivar
+      literal_method
+    end
+
+    def process_set_ivar
+      literal_method
+    end
+
+    def process_check_serial
+      literal_count_method
+    end
+
+    def process_check_serial_private
+      literal_count_method
+    end
+
+    def process_create_block
+      @before_stream = lambda do
+        @file.puts "        @generators << arg1"
+        @file.puts "        arg1 = add_literal arg1"
+      end
+      method_definition
+    end
+
+    def process_invoke_primitive
+      literal_count_method
+    end
+
+    def process_zsuper
+      literal_method
+    end
+  end
+
   class ParseError < Exception; end
 
   class Definition
@@ -118,7 +388,8 @@ class InstructionParser
   end
 
   class Instruction < Definition
-    attr_reader :name, :bytecode, :arguments, :consumed, :extra, :produced, :effect, :body, :control_flow
+    attr_reader :name, :bytecode, :arguments, :consumed, :extra,
+                :produced, :effect, :body, :control_flow
 
     def self.bytecodes
       @bytecodes
@@ -169,7 +440,7 @@ class InstructionParser
 
       @effect = @produced.size - @consumed.size
 
-      @control_flow = m[6] if m[6]
+      @control_flow = m[6].to_sym if m[6]
     end
 
     def parse_body
@@ -198,21 +469,7 @@ class InstructionParser
     end
 
     def opcode_method(file)
-      case @arguments.size
-      when 0
-        file.puts "      def #{@name}"
-        file.puts "        @stream << #{@bytecode}"
-      when 1
-        file.puts "      def #{@name}(arg)"
-        file.puts "        @stream << #{@bytecode} << arg"
-      when 2
-        file.puts "      def #{@name}(arg1, arg2)"
-        file.puts "        @stream << #{@bytecode} << arg1 << arg2"
-      end
-      file.puts "        @ip += #{@arguments.size + 1}"
-      file.puts "        @instruction = :#{@name}"
-      file.puts "      end"
-      file.puts ""
+      GeneratorMethod.new(file, self).process
     end
 
     def opcode_name

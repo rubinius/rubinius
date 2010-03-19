@@ -41,15 +41,16 @@ module Rubinius
 
     class Label
       attr_accessor :position
-      attr_reader :used
+      attr_reader :used, :basic_block
       alias_method :used?, :used
 
       def initialize(generator)
-        @generator = generator
-        @position  = nil
-        @used      = false
-        @location  = nil
-        @locations = nil
+        @generator   = generator
+        @basic_block = generator.new_basic_block
+        @position    = nil
+        @used        = false
+        @location    = nil
+        @locations   = nil
       end
 
       def set!
@@ -59,6 +60,11 @@ module Rubinius
         elsif @location
           @generator.stream[@location] = @position
         end
+
+        @generator.current_block.add_edge @basic_block
+        @generator.current_block.close
+        @generator.current_block = @basic_block
+        @basic_block.open
       end
 
       def used_at(ip)
@@ -72,6 +78,66 @@ module Rubinius
           @locations = [@location, ip]
         end
         @used = true
+      end
+    end
+
+    class BasicBlock
+      def initialize(generator)
+        @generator  = generator
+        @ip         = generator.ip
+        @closed_ip  = 0
+        @enter_size = 0
+        @max_size   = 0
+        @stack      = 0
+        @edges      = nil
+        @visited    = false
+        @closed     = false
+      end
+
+      def add_stack(size)
+        @stack += size
+        @max_size = @stack if @stack > @max_size
+      end
+
+      def add_edge(block)
+        @edges ||= []
+        @edges << block
+      end
+
+      def open
+        @ip = @generator.ip
+      end
+
+      def close
+        @closed = true
+        @closed_ip = @generator.ip
+      end
+
+      def location
+        line = @generator.ip_to_line @ip
+        "#{@generator.name}: line: #{line}, IP: #{@ip}"
+      end
+
+      def visit(stack_size)
+        if @visited
+          unless stack_size == @enter_size
+            raise CompileError, "unbalanced stack at #{location}"
+          end
+        else
+          @visited = true
+          @enter_size = stack_size
+
+          if not @closed
+            raise "control fails to exit properly at #{location}"
+          end
+
+          @generator.accumulate_stack(@enter_size + @max_size)
+
+          if @edges
+            net_size = stack_size + @stack
+            @edges.each { |e| e.visit net_size }
+          end
+        end
       end
     end
 
@@ -102,12 +168,16 @@ module Rubinius
       @generators = []
 
       @stack_locals = 0
+
+      @enter_block = new_basic_block
+      @current_block = @enter_block
+      @max_stack = 0
     end
 
     attr_reader   :ip, :stream, :iseq, :literals
     attr_accessor :break, :redo, :next, :retry, :file, :name,
                   :required_args, :total_args, :splat_index,
-                  :local_count, :local_names, :primitive, :for_block
+                  :local_count, :local_names, :primitive, :for_block, :current_block
 
     def execute(node)
       node.bytecode self
@@ -120,16 +190,13 @@ module Rubinius
     def encode(encoder, calculator)
       @iseq = InstructionSequence.from @stream.to_tuple
 
-      sdc = calculator.new @iseq, @lines
       begin
-        stack_size = sdc.run + @local_count
+        # Validate the stack and calculate the max depth
+        @enter_block.visit 0
       rescue Exception => e
         @iseq.show
         raise e
       end
-
-      stack_size += 1 if @for_block
-      @stack_size = stack_size
 
       @generators.each { |d| d.encode encoder, calculator }
     end
@@ -152,7 +219,7 @@ module Rubinius
       cm.local_count    = @local_count
       cm.local_names    = @local_names.to_tuple if @local_names
 
-      cm.stack_size     = @stack_size + @stack_locals
+      cm.stack_size     = max_stack_size
       cm.file           = @file
       cm.name           = @name
       cm.primitive      = @primitive
@@ -216,6 +283,19 @@ module Rubinius
       @last_line
     end
 
+    def ip_to_line(ip)
+      total = @lines.size - 2
+      i = 0
+
+      while i < total
+        if ip >= @lines[i] and ip <= @lines[i+2]
+          return @lines[i+1]
+        end
+
+        i += 2
+      end
+    end
+
     def close
       if @lines.empty?
         msg = "closing a method definition with no line info: #{file}:#{line}"
@@ -234,7 +314,21 @@ module Rubinius
     end
 
 
-    # Helpers and overrides
+    # Helpers
+
+    def new_basic_block
+      BasicBlock.new self
+    end
+
+    def accumulate_stack(size)
+      @max_stack = size if size > @max_stack
+    end
+
+    def max_stack_size
+      size = @max_stack + @local_count + @stack_locals
+      size += 1 if @for_block
+      size
+    end
 
     def new_stack_local
       idx = @stack_locals
@@ -259,26 +353,6 @@ module Rubinius
       end
     end
 
-    def push_int(int)
-      # Integers greater than 256 are stored in the literals tuple.
-      if int > 2 and int < 256
-        super int
-      else
-        case int
-        when -1
-          meta_push_neg_1
-        when 0
-          meta_push_0
-        when 1
-          meta_push_1
-        when 2
-          meta_push_2
-        else
-          push_literal int
-        end
-      end
-    end
-
     def push_generator(generator)
       @generators << generator
       push_literal generator
@@ -300,9 +374,9 @@ module Rubinius
     end
 
     # Pushes the specified literal value into the literal's tuple
-    def push_literal(literal_or_index, search=true)
-      index = search ? find_literal(literal_or_index) : literal_or_index
-      super index
+    def push_literal(literal)
+      index = find_literal literal
+      emit_push_literal index
       return index
     end
 
@@ -310,7 +384,7 @@ module Rubinius
     # something that is like +what+ is already there.
     def push_unique_literal(literal)
       index = add_literal literal
-      push_literal index, false
+      emit_push_literal index
       return index
     end
 
@@ -319,62 +393,22 @@ module Rubinius
     # method exists to support RegexLiteral, where the compiled literal value
     # (a Regex object) does not exist until runtime.
     def push_literal_at(index)
-      push_literal index, false
+      emit_push_literal index
       return index
     end
 
-    def push_ivar(name)
-      super find_literal(name)
-    end
-
-    def set_ivar(name)
-      super find_literal(name)
-    end
-
+    # The push_const instruction itself is unused right now. The instruction
+    # parser does not emit a GeneratorMethods#push_const. This method/opcode
+    # was used in the compiler before the push_const_fast instruction. Rather
+    # than changing the compiler code, this helper was used.
     def push_const(name)
       push_const_fast find_literal(name), add_literal(nil)
-    end
-
-    def find_const(name)
-      super find_literal(name)
-    end
-
-    def dup
-      dup_top
-    end
-
-    def swap
-      swap_stack
-    end
-
-    def gif(label)
-      goto_if_false label
-      label.used_at @ip - 1
-    end
-
-    def git(label)
-      goto_if_true label
-      label.used_at @ip - 1
-    end
-
-    def goto(label)
-      super label
-      label.used_at @ip - 1
-    end
-
-    def setup_unwind(label, type)
-      super label, type
-      label.used_at @ip - 2
     end
 
     def cast_array
       unless @instruction == :cast_array or @instruction == :make_array
         super()
       end
-    end
-
-    def invoke_primitive(name, count)
-      super find_literal(name), Integer(count)
     end
 
     def last_match(mode, which)
@@ -430,24 +464,6 @@ module Rubinius
       else
         send_super_stack_with_block idx, args
       end
-    end
-
-    def zsuper(meth)
-      super find_literal(meth)
-    end
-
-    def check_serial(sym, serial)
-      super find_literal(sym), serial.to_i
-    end
-
-    def check_serial_private(sym, serial)
-      super find_literal(sym), serial.to_i
-    end
-
-    def create_block(generator)
-      @generators << generator
-      index = add_literal generator
-      super index
     end
   end
 end
