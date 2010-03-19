@@ -138,14 +138,37 @@ class Hash
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        return false unless entry.value.eql?(other_entry.value)
+        return false unless entry.value == other_entry.value
       end
     end
     true
   end
 
-  alias_method :eql?, :==
+  def eql?(other)
+    # Just like ==, but uses eql? to compare values.
+    return true if self.equal? other
+    unless other.kind_of? Hash
+      return false unless other.respond_to? :to_hash
+      return other.eql?(self)
+    end
 
+    return false unless other.size == size
+
+    Thread.detect_recursion self, other do
+      i = to_iter
+      while entry = i.next(entry)
+        other_entry = other.find_entry(entry.key)
+
+        # Other doesn't even have this key
+        return false unless other_entry
+
+        # Order of the comparison matters! We must compare our value with
+        # the other Hash's value and not the other way around.
+        return false unless entry.value.eql?(other_entry.value)
+      end
+    end
+    true
+  end
   def hash
     val = size
     Thread.detect_outermost_recursion self do
