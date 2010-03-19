@@ -1302,9 +1302,9 @@ class Array
 
     if (@total - @start) < 6
       if block
-        isort_block! @start, (@total - 1), block
+        isort_block! @start, (@start + @total) - 1, block
       else
-        isort! @start, (@total - 1)
+        isort! @start, (@start + @total) - 1
       end
     else
       if block
