@@ -1331,17 +1331,14 @@ instruction send_super_stack_with_block(literal count) [ block +count -- value ]
 
   SET_ALLOW_PRIVATE(false);
 
-  Object* ret;
-
   Symbol* current_name = call_frame->original_name();
-
   if(cache->name != current_name) {
     cache->name = current_name;
-
-    ret = InlineCache::empty_cache_super(state, cache, call_frame, new_args);
-  } else {
-    ret = cache->execute(state, call_frame, new_args);
   }
+
+  Object* ret;
+
+  ret = InlineCache::empty_cache_super(state, cache, call_frame, new_args);
 
   stack_clear(count);
 
@@ -1377,21 +1374,26 @@ instruction send_super_stack_with_splat(literal count) [ block array +count -- v
   Object* const recv = call_frame->self();
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  Arguments args(recv, block, count,
+  Arguments new_args(recv, block, count,
                  stack_back_position(count));
 
   if(!ary->nil_p()) {
     if(CALL_FLAGS() & CALL_FLAG_CONCAT) {
-      args.prepend(state, as<Array>(ary));
+      new_args.prepend(state, as<Array>(ary));
     } else {
-      args.append(state, as<Array>(ary));
+      new_args.append(state, as<Array>(ary));
     }
   }
 
   SET_CALL_FLAGS(0);
   SET_ALLOW_PRIVATE(false);
 
-  Object* ret = cache->execute(state, call_frame, args);
+  Symbol* current_name = call_frame->original_name();
+  if(cache->name != current_name) {
+    cache->name = current_name;
+  }
+
+  Object* ret = InlineCache::empty_cache_super(state, cache, call_frame, new_args);
 
   stack_clear(count);
 
@@ -2377,16 +2379,14 @@ instruction zsuper(literal) [ block -- value ]
 
   Object* ret;
 
-  Symbol* current_name = scope->method()->name();
-
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+
+  Symbol* current_name = call_frame->original_name();
   if(cache->name != current_name) {
     cache->name = current_name;
-
-    ret = InlineCache::empty_cache_super(state, cache, call_frame, new_args);
-  } else {
-    ret = cache->execute(state, call_frame, new_args);
   }
+
+  ret = InlineCache::empty_cache_super(state, cache, call_frame, new_args);
 
   HANDLE_EXCEPTION(ret);
   stack_push(ret);
