@@ -75,7 +75,13 @@ class Method
   # it is defined in and the Module that it was extracted from.
 
   def inspect
-    "#<#{self.class}: #{@receiver.class}##{@name} (defined in #{@defined_in})>"
+    file, line = source_location()
+
+    if file
+      "#<#{self.class}: #{@receiver.class}##{@name} (defined in #{@defined_in} at #{file}:#{line})>"
+    else
+      "#<#{self.class}: #{@receiver.class}##{@name} (defined in #{@defined_in})>"
+    end
   end
 
   alias_method :to_s, :inspect
