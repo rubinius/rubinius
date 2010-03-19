@@ -262,7 +262,10 @@ module Kernel
   # if defined.
   #
   def clone
-    copy = dup
+    # Do not implement in terms of dup. It breaks rails.
+    copy = self.class.allocate
+    copy.copy_object self
+    copy.__send__ :initialize_copy, self
     copy.copy_metaclass self
     copy.freeze if frozen?
     copy

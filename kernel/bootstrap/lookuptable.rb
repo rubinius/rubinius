@@ -88,6 +88,8 @@ module Rubinius
       copy
     end
 
+    alias_method :clone, :dup
+
     def fetch(key, return_on_failure)
       Ruby.primitive :lookuptable_fetch
       raise PrimitiveFailure, "fetch failed"
