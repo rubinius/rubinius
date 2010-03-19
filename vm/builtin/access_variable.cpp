@@ -57,6 +57,11 @@ namespace rubinius {
 
     Object* recv = args.recv();
 
+    if(RTEST(recv->frozen_p(state))) {
+      Exception::frozen_error(state, call_frame);
+      return 0;
+    }
+
     // Handle packed objects in a unique way.
     if(PackedObject* po = try_as<PackedObject>(recv)) {
       return po->set_packed_ivar(state, access->name(), args.get_argument(0));
@@ -74,6 +79,11 @@ namespace rubinius {
 
     /* The writer case. */
     if(access->write()->true_p()) {
+      if(RTEST(self->frozen_p(state))) {
+        Exception::frozen_error(state, call_frame);
+        return 0;
+      }
+
       if(args.total() != 1) {
         Exception::argument_error(state, 1, args.total());
         return NULL;

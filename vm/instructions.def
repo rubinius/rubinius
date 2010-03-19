@@ -849,6 +849,10 @@ section "Manipulate instance variables"
 #   The value popped off the stack is then pushed back on again.
 
 instruction set_ivar(index) [ -- ]
+  if(RTEST(call_frame->self()->frozen_p(state))) {
+    Exception::frozen_error(state, call_frame);
+    RUN_EXCEPTION();
+  }
   Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
   call_frame->self()->set_ivar(state, sym, stack_top());
 end
