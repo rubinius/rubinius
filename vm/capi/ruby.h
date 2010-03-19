@@ -549,7 +549,7 @@ double rb_num2dbl(VALUE);
 #define RARRAY_PTR(ary)   (RARRAY(ary)->ptr)
 
 /** The source pattern for a regex. */
-#define RREGEXP_SOURCE(reg)  rb_reg_source(reg)
+#define RREGEXP_SRC(reg)  rb_reg_source(reg)
 
 /** The options of the regex. */
 #define RREGEXP_OPTIONS(reg) rb_reg_options(reg)
