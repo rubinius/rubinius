@@ -1119,8 +1119,7 @@ class Array
   # invoked on subclasses. See #reject!
   def reject(&block)
     return to_enum :reject unless block_given?
-
-    Array.new(self).reject!(&block) || self
+    dup.reject!(&block) || self
   end
 
   # Equivalent to #delete_if except that returns nil if
@@ -1129,7 +1128,7 @@ class Array
     return to_enum :reject! unless block_given?
 
     was = length
-    self.delete_if(&block)
+    delete_if(&block)
 
     self if was != length     # Too clever?
   end
