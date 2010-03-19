@@ -696,7 +696,8 @@ namespace rubinius {
       CompiledMethod* cur = call_frame->cm;
       VMMethod* vmm = cur->backend_method();
 
-      if(vmm->required_args != vmm->total_args // has a splat
+      if(call_frame->block_p()
+          || vmm->required_args != vmm->total_args // has a splat
           || vmm->call_count < 200 // not called much
           || vmm->jitted() // already jitted
           || vmm->parent() // is a block

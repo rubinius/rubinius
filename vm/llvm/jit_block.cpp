@@ -160,7 +160,8 @@ namespace jit {
         "invocation.flags");
 
     int block_flags = CallFrame::cCustomStaticScope |
-      CallFrame::cMultipleScopes;
+      CallFrame::cMultipleScopes |
+      CallFrame::cBlock;
 
     if(!use_full_scope_) block_flags |= CallFrame::cClosedScope;
 

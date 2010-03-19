@@ -143,6 +143,10 @@ namespace rubinius {
       return flags & cJITed;
     }
 
+    bool block_p() {
+      return flags & cBlock;
+    }
+
     StaticScope* static_scope() {
       if(custom_static_scope_p()) return static_scope_;
       return cm->scope();

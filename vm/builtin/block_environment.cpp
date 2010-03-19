@@ -119,7 +119,8 @@ namespace rubinius {
     frame->scope =    scope;
     frame->top_scope_ = env->top_scope_;
     frame->flags =    invocation.flags | CallFrame::cCustomStaticScope
-                     | CallFrame::cMultipleScopes;
+                     | CallFrame::cMultipleScopes
+                     | CallFrame::cBlock;
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
