@@ -337,6 +337,8 @@ class Module
       raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
     end
 
+    method_added(name)
+
     @method_table.store name.to_sym, cm, :public
     Rubinius::VM.reset_method_cache(name.to_sym)
     meth
