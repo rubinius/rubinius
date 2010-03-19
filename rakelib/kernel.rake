@@ -82,6 +82,7 @@ compiler_files = FileList[
   "lib/compiler.rb",
   "lib/compiler/**/*.rb",
   opcodes,
+  "lib/compiler/generator_methods.rb",
   "lib/melbourne.rb",
   "lib/melbourne/**/*.rb"
 ]

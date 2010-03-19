@@ -666,7 +666,7 @@ instruction raise_exc() [ -- ] => raise
   RUN_EXCEPTION();
 end
 
-instruction setup_unwind(ip type) [ -- ]
+instruction setup_unwind(ip type) [ -- ] => handler
   interp_assert(current_unwind < kMaxUnwindInfos);
   UnwindInfo& info = unwinds[current_unwind++];
   info.target_ip = ip;

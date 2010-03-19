@@ -527,6 +527,10 @@ file "lib/compiler/opcodes.rb" => insn_deps do |t|
   generate_instruction_file iparser, :generate_opcodes, t.name
 end
 
+file "lib/compiler/generator_methods.rb" => insn_deps do |t|
+  generate_instruction_file iparser, :generate_generator_methods, t.name
+end
+
 file "vm/gen/instruction_names.hpp" => insn_deps do |t|
   generate_instruction_file iparser, :generate_names_header, t.name
 end

@@ -11,6 +11,7 @@ module Rubinius
   end
 
   class Generator
+    include GeneratorMethods
 
     CALL_FLAG_PRIVATE = 1
     CALL_FLAG_CONCAT = 2
@@ -160,48 +161,6 @@ module Rubinius
     end
 
 
-    # Helpers
-
-    def new_stack_local
-      idx = @stack_locals
-      @stack_locals += 1
-      return idx
-    end
-
-    def add(instruction, arg1=nil, arg2=nil)
-      @stream << InstructionSet[instruction].bytecode
-      length = 1
-
-      if arg1
-        @stream << arg1
-        length = 2
-
-        if arg2
-          @stream << arg2
-          length = 3
-        end
-      end
-
-      @ip += length
-
-      @instruction = instruction
-    end
-
-    # Find the index for the specified literal, or create a new slot if the
-    # literal has not been encountered previously.
-    def find_literal(literal)
-      @literals_map[literal]
-    end
-
-    # Add literal exists to allow RegexLiteral's to create a new regex literal
-    # object at run-time. All other literals should be added via find_literal,
-    # which re-use an existing matching literal if one exists.
-    def add_literal(literal)
-      index = @literals.size
-      @literals << literal
-      return index
-    end
-
     # Commands (these don't generate data in the stream)
 
     def state
@@ -275,7 +234,13 @@ module Rubinius
     end
 
 
-    # Operations
+    # Helpers and overrides
+
+    def new_stack_local
+      idx = @stack_locals
+      @stack_locals += 1
+      return idx
+    end
 
     def push(what)
       case what
@@ -288,32 +253,26 @@ module Rubinius
       when :nil
         push_nil
       when Integer
-        push_int(what)
+        push_int what
       else
         raise Error, "Unknown push argument '#{what.inspect}'"
       end
     end
 
-    def push_symbol(what)
-      push_literal what
-    end
-
     def push_int(int)
-      case int
-      when -1
-        add :meta_push_neg_1
-      when 0
-        add :meta_push_0
-      when 1
-        add :meta_push_1
-      when 2
-        add :meta_push_2
+      # Integers greater than 256 are stored in the literals tuple.
+      if int > 2 and int < 256
+        super int
       else
-        # The max value we use for inline ints. Above this, they're
-        # stored in the literals tuple.
-        inline_cutoff = 256
-        if int > 0 and int < inline_cutoff
-          add :push_int, int
+        case int
+        when -1
+          meta_push_neg_1
+        when 0
+          meta_push_0
+        when 1
+          meta_push_1
+        when 2
+          meta_push_2
         else
           push_literal int
         end
@@ -325,10 +284,25 @@ module Rubinius
       push_literal generator
     end
 
+    # Find the index for the specified literal, or create a new slot if the
+    # literal has not been encountered previously.
+    def find_literal(literal)
+      @literals_map[literal]
+    end
+
+    # Add literal exists to allow RegexLiteral's to create a new regex literal
+    # object at run-time. All other literals should be added via find_literal,
+    # which re-use an existing matching literal if one exists.
+    def add_literal(literal)
+      index = @literals.size
+      @literals << literal
+      return index
+    end
+
     # Pushes the specified literal value into the literal's tuple
-    def push_literal(literal)
-      index = find_literal literal
-      add :push_literal, index
+    def push_literal(literal_or_index, search=true)
+      index = search ? find_literal(literal_or_index) : literal_or_index
+      super index
       return index
     end
 
@@ -336,7 +310,7 @@ module Rubinius
     # something that is like +what+ is already there.
     def push_unique_literal(literal)
       index = add_literal literal
-      add :push_literal, index
+      push_literal index, false
       return index
     end
 
@@ -345,83 +319,62 @@ module Rubinius
     # method exists to support RegexLiteral, where the compiled literal value
     # (a Regex object) does not exist until runtime.
     def push_literal_at(index)
-      add :push_literal, index
+      push_literal index, false
       return index
     end
 
-    def set_literal(index)
-      add :set_literal, index
-    end
-
     def push_ivar(name)
-      add :push_ivar, find_literal(name)
+      super find_literal(name)
     end
 
     def set_ivar(name)
-      add :set_ivar, find_literal(name)
+      super find_literal(name)
     end
 
     def push_const(name)
-      add :push_const_fast, find_literal(name), add_literal(nil)
+      push_const_fast find_literal(name), add_literal(nil)
     end
 
     def find_const(name)
-      add :find_const, find_literal(name)
+      super find_literal(name)
     end
 
     def dup
-      add :dup_top
+      dup_top
     end
 
     def swap
-      add :swap_stack
+      swap_stack
     end
 
     def gif(label)
-      add :goto_if_false, label
+      goto_if_false label
       label.used_at @ip - 1
     end
 
     def git(label)
-      add :goto_if_true, label
+      goto_if_true label
       label.used_at @ip - 1
     end
 
     def goto(label)
-      add :goto, label
+      super label
       label.used_at @ip - 1
     end
 
     def setup_unwind(label, type)
-      add :setup_unwind, label, type
+      super label, type
       label.used_at @ip - 2
-    end
-
-    def set_local(index)
-      add :set_local, index
-    end
-
-    def push_local(index)
-      add :push_local, index
-    end
-
-    def set_local_depth(depth, index)
-      add :set_local_depth, depth, index
-    end
-
-    def push_local_depth(depth, index)
-      add :push_local_depth, depth, index
     end
 
     def cast_array
       unless @instruction == :cast_array or @instruction == :make_array
-        add :cast_array
+        super()
       end
     end
 
     def invoke_primitive(name, count)
-      idx = find_literal(name)
-      add :invoke_primitive, idx, Integer(count)
+      super find_literal(name), Integer(count)
     end
 
     def last_match(mode, which)
@@ -431,7 +384,7 @@ module Rubinius
     end
 
     def send(meth, count, priv=false)
-      add :allow_private if priv
+      allow_private if priv
 
       unless count.kind_of? Fixnum
         raise Error, "count must be a number"
@@ -440,14 +393,14 @@ module Rubinius
       idx = find_literal(meth)
 
       if count == 0
-        add :send_method, idx
+        send_method idx
       else
-        add :send_stack, idx, count
+        send_stack idx, count
       end
     end
 
     def send_with_block(meth, count, priv=false)
-      add :allow_private if priv
+      allow_private if priv
 
       unless count.kind_of? Fixnum
         raise Error, "count must be a number"
@@ -455,50 +408,46 @@ module Rubinius
 
       idx = find_literal(meth)
 
-      add :send_stack_with_block, idx, count
+      send_stack_with_block idx, count
     end
 
     def send_with_splat(meth, args, priv=false, concat=false)
       val = 0
       val |= CALL_FLAG_CONCAT  if concat
-      add :set_call_flags, val unless val == 0
+      set_call_flags val unless val == 0
 
-      add :allow_private if priv
+      allow_private if priv
 
       idx = find_literal(meth)
-      add :send_stack_with_splat, idx, args
+      send_stack_with_splat idx, args
     end
 
     def send_super(meth, args, splat=false)
       idx = find_literal(meth)
 
       if splat
-        add :send_super_stack_with_splat, idx, args
+        send_super_stack_with_splat idx, args
       else
-        add :send_super_stack_with_block, idx, args
+        send_super_stack_with_block idx, args
       end
     end
 
     def zsuper(meth)
-      add :zsuper, find_literal(meth)
+      super find_literal(meth)
     end
 
     def check_serial(sym, serial)
-      add :check_serial, find_literal(sym), serial.to_i
+      super find_literal(sym), serial.to_i
     end
 
     def check_serial_private(sym, serial)
-      add :check_serial_private, find_literal(sym), serial.to_i
+      super find_literal(sym), serial.to_i
     end
 
     def create_block(generator)
       @generators << generator
       index = add_literal generator
-      add :create_block, index
-    end
-
-    def method_missing(instruction, arg1=nil, arg2=nil)
-      add instruction, arg1, arg2
+      super index
     end
   end
 end

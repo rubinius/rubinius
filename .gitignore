@@ -64,6 +64,7 @@ tmtags
 /kernel/signature.rb
 
 /lib/compiler/opcodes.rb
+/lib/compiler/generator_methods.rb
 
 /lib/etc.rb
 /lib/kernel.rb

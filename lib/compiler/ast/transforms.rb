@@ -196,7 +196,7 @@ module Rubinius
         @receiver.bytecode(g)
         @arguments.bytecode(g)
 
-        g.add @operator, g.find_literal(@name)
+        g.__send__ @operator, g.find_literal(@name)
       end
     end
 
@@ -309,7 +309,7 @@ module Rubinius
         @arguments.bytecode(g)
         @receiver.bytecode(g)
 
-        g.add @name
+        g.__send__ @name
       end
     end
 
