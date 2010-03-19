@@ -251,13 +251,6 @@ class Hash
     self
   end
 
-  def dup
-    hash = self.class.new
-    hash.send :initialize_copy, self
-    hash.taint if self.tainted?
-    hash
-  end
-
   def each
     return to_enum :each unless block_given?
 
