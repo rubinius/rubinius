@@ -347,7 +347,7 @@ class Module
   private :define_method
 
   def extend_object(obj)
-    append_features obj.metaclass
+    append_features Rubinius.object_metaclass(obj)
   end
 
   def include?(mod)
