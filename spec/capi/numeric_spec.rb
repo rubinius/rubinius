@@ -54,12 +54,20 @@ describe "CApiNumericSpecs" do
       @s.rb_num2ulong(obj).should == 2
     end
   end
-  
+
   describe "rb_Integer" do
     it "should create a new Integer from a String" do
       i = @s.rb_Integer("8675309")
       i.should be_kind_of(Integer)
       i.should eql(8675309)
+    end
+  end
+
+  describe "rb_ll2inum" do
+    it "should create a new Fixnum from a small signed long long" do
+      i = @s.rb_ll2inum_14()
+      i.should be_kind_of(Fixnum)
+      i.should eql(14)
     end
   end
 end

@@ -94,12 +94,12 @@ extern "C" {
 
   VALUE rb_ll2inum(long long val) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return env->get_handle(Bignum::from(env->state(), val));
+    return env->get_handle(Integer::from(env->state(), val));
   }
 
   VALUE rb_ull2inum(unsigned long long val) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return env->get_handle(Bignum::from(env->state(), val));
+    return env->get_handle(Integer::from(env->state(), val));
   }
 
   VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func) {
