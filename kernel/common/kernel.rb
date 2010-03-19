@@ -424,6 +424,8 @@ module Kernel
     self
   end
 
+  alias_method :__extend__, :extend
+
   def inspect
     return "..." if Thread.guarding? self
 
@@ -470,12 +472,16 @@ module Kernel
     instance_variable_get sym
   end
 
+  alias_method :__instance_variable_get__, :instance_variable_get
+
   def instance_variable_set(sym, value)
     Ruby.primitive :object_set_ivar
 
     sym = Rubinius.instance_variable_validate sym
     instance_variable_set sym, value
   end
+
+  alias_method :__instance_variable_set__, :instance_variable_set
 
   def remove_instance_variable(sym)
     Ruby.primitive :object_del_ivar
@@ -499,6 +505,8 @@ module Kernel
 
     return ary
   end
+
+  alias_method :__instance_variables__, :instance_variables
 
   def instance_variable_defined?(name)
     Ruby.primitive :object_ivar_defined

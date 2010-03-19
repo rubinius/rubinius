@@ -1,38 +1,39 @@
 class Object
-  def to_marshal(ms, strip_ivars = false)
+  def __marshal__(ms, strip_ivars = false)
     out = ms.serialize_extended_object self
     out << "o"
-    out << ms.serialize(self.class.name.to_sym)
+    name = self.__class__.__name__.to_sym
+    out << ms.serialize(name)
     out << ms.serialize_instance_variables_suffix(self, true, strip_ivars)
   end
 end
 
 class Range
-  def to_marshal(ms)
+  def __marshal__(ms)
     super(ms, true)
   end
 end
 
 class NilClass
-  def to_marshal(ms)
+  def __marshal__(ms)
     "0"
   end
 end
 
 class TrueClass
-  def to_marshal(ms)
+  def __marshal__(ms)
     "T"
   end
 end
 
 class FalseClass
-  def to_marshal(ms)
+  def __marshal__(ms)
     "F"
   end
 end
 
 class Class
-  def to_marshal(ms)
+  def __marshal__(ms)
     if __metaclass_object__
       raise TypeError, "singleton class can't be dumped"
     elsif name.empty?
@@ -44,14 +45,14 @@ class Class
 end
 
 class Module
-  def to_marshal(ms)
+  def __marshal__(ms)
     raise TypeError, "can't dump anonymous module #{self}" if name.empty?
     "m#{ms.serialize_integer(name.length)}#{name}"
   end
 end
 
 class Symbol
-  def to_marshal(ms)
+  def __marshal__(ms)
     if idx = ms.find_symlink(self) then
       ";#{ms.serialize_integer(idx)}"
     else
@@ -64,7 +65,7 @@ class Symbol
 end
 
 class String
-  def to_marshal(ms)
+  def __marshal__(ms)
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, String)
@@ -77,13 +78,13 @@ class String
 end
 
 class Fixnum
-  def to_marshal(ms)
+  def __marshal__(ms)
     "i#{ms.serialize_integer(self)}"
   end
 end
 
 class Bignum
-  def to_marshal(ms)
+  def __marshal__(ms)
     str = (self < 0 ? 'l-' : 'l+')
     cnt = 0
     num = self.abs
@@ -104,7 +105,7 @@ class Bignum
 end
 
 class Regexp
-  def to_marshal(ms)
+  def __marshal__(ms)
     str = self.source
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
@@ -119,8 +120,10 @@ class Regexp
 end
 
 class Struct
-  def to_marshal(ms)
-    out =  ms.serialize_instance_variables_prefix(self)
+  def __marshal__(ms)
+    exclude = _attrs.map { |a| "@#{a}" }
+
+    out =  ms.serialize_instance_variables_prefix(self, exclude)
     out << ms.serialize_extended_object(self)
 
     out << "S"
@@ -133,14 +136,14 @@ class Struct
       out << ms.serialize(value)
     end
 
-    out << ms.serialize_instance_variables_suffix(self)
+    out << ms.serialize_instance_variables_suffix(self, false, false, exclude)
 
     out
   end
 end
 
 class Array
-  def to_marshal(ms)
+  def __marshal__(ms)
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Array)
@@ -158,7 +161,7 @@ class Array
 end
 
 class Hash
-  def to_marshal(ms)
+  def __marshal__(ms)
     raise TypeError, "can't dump hash with default proc" if default_proc
 
     #excluded_ivars = %w[@bins @count @records]
@@ -184,7 +187,7 @@ class Hash
 end
 
 class Float
-  def to_marshal(ms)
+  def __marshal__(ms)
     str = if nan? then
             "nan"
           elsif zero? then
@@ -200,7 +203,7 @@ class Float
 end
 
 module Unmarshalable
-  def to_marshal(ms)
+  def __marshal__(ms)
     raise TypeError, "marshaling is undefined for class #{self.class}"
   end
 end
@@ -290,16 +293,16 @@ module Marshal
     end
 
     def add_object(obj)
-      return if obj.kind_of?(ImmediateValue)
+      return if obj.__kind_of__(ImmediateValue)
       sz = @links.size
       @objects[sz] = obj
-      @links[obj.object_id] = sz
+      @links[obj.__id__] = sz
     end
 
     def add_symlink(obj)
       sz = @symlinks.size
       @symbols[sz] = obj
-      @symlinks[obj.object_id] = sz
+      @symlinks[obj.__id__] = sz
     end
 
     def call(obj)
@@ -316,7 +319,9 @@ module Marshal
             when TYPE_FALSE
               false
             when TYPE_CLASS, TYPE_MODULE
-              name = construct_symbol
+              # Don't use construct_symbol, because we must not
+              # memoize this symbol.
+              name = get_byte_sequence.to_sym
               obj = Object.const_lookup name
 
               store_unique_object obj
@@ -637,15 +642,15 @@ module Marshal
     end
 
     def extend_object(obj)
-      obj.extend(@modules.pop) until @modules.empty?
+      obj.__extend__(@modules.pop) until @modules.empty?
     end
 
     def find_link(obj)
-      @links[obj.object_id]
+      @links[obj.__id__]
     end
 
     def find_symlink(obj)
-      @symlinks[obj.object_id]
+      @symlinks[obj.__id__]
     end
 
     def get_byte_sequence
@@ -697,7 +702,7 @@ module Marshal
         elsif obj.respond_to? :_dump then
           str = serialize_user_defined obj
         else
-          str = obj.to_marshal self
+          str = obj.__marshal__ self
         end
       end
 
@@ -739,7 +744,7 @@ module Marshal
     end
 
     def serialize_instance_variables_prefix(obj, exclude_ivars = false)
-      ivars = obj.instance_variables
+      ivars = obj.__instance_variables__
 
       ivars -= exclude_ivars if exclude_ivars
 
@@ -753,7 +758,7 @@ module Marshal
     def serialize_instance_variables_suffix(obj, force=false,
                                             strip_ivars=false,
                                             exclude_ivars=false)
-      ivars = obj.instance_variables
+      ivars = obj.__instance_variables__
 
       ivars -= exclude_ivars if exclude_ivars
 
@@ -761,7 +766,7 @@ module Marshal
         str = serialize_integer(ivars.size)
         ivars.each do |ivar|
           sym = ivar.to_sym
-          val = obj.instance_variable_get(sym)
+          val = obj.__instance_variable_get__(sym)
           if strip_ivars
             str << serialize(ivar[1..-1].to_sym)
           else
@@ -824,19 +829,19 @@ module Marshal
 
       add_object val
 
-      "U#{serialize(obj.class.__name__.to_sym)}#{val.to_marshal(self)}"
+      "U#{serialize(obj.class.__name__.to_sym)}#{val.__marshal__(self)}"
     end
 
     def set_instance_variables(obj)
       construct_integer.times do
         ivar = get_symbol
         value = construct
-        obj.instance_variable_set prepare_ivar(ivar), value
+        obj.__instance_variable_set__ prepare_ivar(ivar), value
       end
     end
 
     def store_unique_object(obj)
-      if obj.kind_of? Symbol
+      if Symbol === obj
         add_symlink obj
       else
         add_object obj
