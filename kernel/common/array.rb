@@ -1799,12 +1799,26 @@ class Array
   def isort!(left, right)
     i = left + 1
 
+    tup = @tuple
+
     while i <= right
       j = i
 
-      while j > @start and Type.coerce_to_comparison(@tuple.at(j - 1), @tuple.at(j)) > 0
-        @tuple.swap(j, (j - 1))
-        j -= 1
+      while j > @start
+        jp = j - 1
+        el1 = tup.at(jp)
+        el2 = tup.at(j)
+
+        unless cmp = (el1 <=> el2)
+          raise ArgumentError, "comparison of #{el1.inspect} with #{el2.inspect} failed (#{j})"
+        end
+
+        break unless cmp > 0
+
+        tup.put(j, el1)
+        tup.put(jp, el2)
+
+        j = jp
       end
 
       i += 1
