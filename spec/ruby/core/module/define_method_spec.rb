@@ -55,6 +55,14 @@ describe "Module#define_method" do
     o.test1.should == o.another_test
   end
 
+  it "calls #method_added after the method is added to the Module" do
+    DefineMethodSpecClass.should_receive(:method_added).with(:test_ma)
+
+    class DefineMethodSpecClass
+      define_method(:test_ma) { true }
+    end
+  end
+
   it "defines a new method with the given name and the given block as body in self" do
     class DefineMethodSpecClass
       define_method(:block_test1) { self }
