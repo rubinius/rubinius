@@ -237,6 +237,7 @@ Object* VMMethod::uncommon_interpreter(STATE,
                                        VMMethod* const vmm,
                                        CallFrame* const call_frame,
                                        Arguments& args,
+                                       int32_t entry_ip,
                                        native_int sp)
 {
 

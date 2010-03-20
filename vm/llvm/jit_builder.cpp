@@ -277,9 +277,6 @@ namespace jit {
 
       BlockMap::iterator i = map_.find(current_ip_);
       if(i != map_.end()) {
-        // Setup the exception handler for this block
-        i->second.exception_handler = exception_handlers_.back();
-
         if(i->second.sp == cUnknown) {
           if(cDebugStack) {
             std::cout << current_ip_ << ": " << sp_ << " (inherit)\n";
@@ -328,6 +325,12 @@ namespace jit {
         jbb.block = BasicBlock::Create(ls_->ctx(), ss.str().c_str(), function_);
         jbb.start_ip = ip;
         jbb.sp = sp_;
+
+        // Assign the new block the current handler. This works
+        // because code creates now blocks always within the
+        // scope of the current handler and it's illegal for code
+        // to generate a goto across a handler boundary
+        jbb.exception_handler = exception_handlers_.back();
 
         if(ip < current_ip_) {
           jbb.end_ip = current_ip_;

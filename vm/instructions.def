@@ -675,7 +675,10 @@ instruction setup_unwind(ip type) [ -- ]
 end
 
 instruction pop_unwind() [ -- ]
-  interp_assert(current_unwind > 0);
+  if(current_unwind <= 0) {
+    Exception::internal_error(state, call_frame, "unbalanced pop_unwind");
+    RUN_EXCEPTION();
+  }
   --current_unwind;
 end
 

@@ -1210,11 +1210,12 @@ namespace rubinius {
         sig << "VM";
         sig << "CallFrame";
         sig << "Arguments";
+        sig << ls_->Int32Ty;
         sig << ls_->IntPtrTy;
 
-        Value* call_args[] = { vm_, call_frame_, args_, sp };
+        Value* call_args[] = { vm_, call_frame_, args_, cint(current_ip_), sp };
 
-        Value* call = sig.call("rbx_continue_uncommon", call_args, 4, "", b());
+        Value* call = sig.call("rbx_continue_uncommon", call_args, 5, "", b());
 
         info().add_return_value(call, current_block());
         b().CreateBr(info().return_pad());
