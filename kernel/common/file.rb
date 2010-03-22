@@ -120,6 +120,8 @@ class File < IO
 
     slash = "/"
 
+    ext_not_present = ext.equal?(undefined)
+
     if pos = path.find_string_reverse(slash, path.size)
       # special case. If the string ends with a /, ignore it.
       if pos == path.size - 1
@@ -136,19 +138,20 @@ class File < IO
         end
 
         # edge case, it's all /'s, return "/"
-        return "/" unless found
+        return slash unless found
 
         # Now that we've trimmed the /'s at the end, search again
-        unless pos = path.find_string_reverse(slash, path.size)
-          # No /'s found, return path.
+        pos = path.find_string_reverse(slash, path.size)
+        if ext_not_present and !pos
+          # No /'s found and ext not present, return path.
           return path
         end
       end
 
-      path = path.substring(pos + 1, path.size - pos)
+      path = path.substring(pos + 1, path.size - pos) if pos
     end
 
-    return path if ext.equal?(undefined)
+    return path if ext_not_present
 
     # special case. if ext is ".*", remove any extension
 
@@ -217,13 +220,13 @@ class File < IO
   ##
   # Changes the owner and group of the
   # named file(s) to the given numeric owner
-  # and group id‘s. Only a process with superuser 
+  # and group id‘s. Only a process with superuser
   # privileges may change the owner of a file. The
   # current owner of a file may change the file‘s
   # group to any group to which the owner belongs.
   # A nil or -1 owner or group id is ignored.
   # Returns the number of files processed.
-  # 
+  #
   #  File.chown(nil, 100, "testfile")
   def self.chown(owner_int, group_int, *paths)
     owner_int = -1 if owner_int == nil
@@ -284,7 +287,7 @@ class File < IO
   # file_name except the last one. The filename must be
   # formed using forward slashes (``/’’) regardless of
   # the separator used on the local file system.
-  # 
+  #
   #  File.dirname("/home/gumby/work/ruby.rb")   #=> "/home/gumby/work"
   def self.dirname(path)
     path = StringValue(path)
@@ -350,7 +353,7 @@ class File < IO
   # may start with a ``~’’, which expands to the process owner‘s
   # home directory (the environment variable HOME must be set
   # correctly). "~user" expands to the named user‘s home directory.
-  # 
+  #
   #  File.expand_path("~oracle/bin")           #=> "/home/oracle/bin"
   #  File.expand_path("../../bin", "/tmp/x")   #=> "/bin"
   def self.expand_path(path, dir_string = nil)
@@ -403,14 +406,14 @@ class File < IO
   # is not a regular expression; instead it follows rules
   # similar to shell filename globbing. It may contain the
   # following metacharacters:
-  # 
+  #
   # *:	Matches any file. Can be restricted by other values in the glob. * will match all files; c* will match all files beginning with c; *c will match all files ending with c; and c will match all files that have c in them (including at the beginning or end). Equivalent to / .* /x in regexp.
   # **:	Matches directories recursively or files expansively.
   # ?:	Matches any one character. Equivalent to /.{1}/ in regexp.
   # [set]:	Matches any one character in set. Behaves exactly like character sets in Regexp, including set negation ([^a-z]).
   # <code></code>:	Escapes the next metacharacter.
   # flags is a bitwise OR of the FNM_xxx parameters. The same glob pattern and flags are used by Dir::glob.
-  # 
+  #
   #  File.fnmatch('cat',       'cat')        #=> true  : match entire string
   #  File.fnmatch('cat',       'category')   #=> false : only match partial string
   #  File.fnmatch('c{at,ub}s', 'cats')       #=> false : { } isn't supported
@@ -478,7 +481,7 @@ class File < IO
   end
 
   ##
-  # Returns true if the named file exists and the effective 
+  # Returns true if the named file exists and the effective
   # group id of the calling process is the owner of the file.
   # Returns false on Windows.
   def self.grpowned?(path)
@@ -515,7 +518,7 @@ class File < IO
 
   ##
   # Returns a new string formed by joining the strings using File::SEPARATOR.
-  # 
+  #
   #  File.join("usr", "mail", "gumby")   #=> "usr/mail/gumby"
   def self.join(*args)
     return '' if args.empty?
@@ -614,7 +617,7 @@ class File < IO
     st ? st.pipe? : false
   end
 
-  ## 
+  ##
   # Returns true if the named file is readable by the effective
   # user id of this process.
   def self.readable?(path)
@@ -660,7 +663,7 @@ class File < IO
     Errno.handle if n == -1
     n
   end
-  
+
   ##
   # Returns the size of file_name.
   def self.size(path)
@@ -692,7 +695,7 @@ class File < IO
 
   ##
   # Splits the given string into a directory and a file component and returns them in a two-element array. See also File::dirname and File::basename.
-  # 
+  #
   #  File.split("/home/gumby/.profile")   #=> ["/home/gumby", ".profile"]
   def self.split(path)
     p = StringValue(path)
@@ -701,7 +704,7 @@ class File < IO
 
   ##
   # Returns a File::Stat object for the named file (see File::Stat).
-  # 
+  #
   #  File.stat("testfile").mtime   #=> Tue Apr 08 12:58:04 CDT 2003
   def self.stat(path)
     Stat.new path
@@ -711,7 +714,7 @@ class File < IO
   # Creates a symbolic link called new_name for the
   # existing file old_name. Raises a NotImplemented
   # exception on platforms that do not support symbolic links.
-  # 
+  #
   #  File.symlink("testfile", "link2test")   #=> 0
   def self.symlink(from, to)
     to = StringValue(to)
@@ -729,12 +732,12 @@ class File < IO
   rescue Errno::ENOENT, Errno::ENODIR
     false
   end
-  
+
   ##
   # Copies a file from to to. If to is a directory, copies from to to/from.
   def self.syscopy(from, to)
     out = File.directory?(to) ? to + File.basename(from) : to
-    
+
     open(out, 'w') do |f|
       f.write read(from).read
     end
@@ -770,7 +773,7 @@ class File < IO
   # values are subtracted from the default permissions,
   # so a umask of 0222 would make a file read-only for
   # everyone.
-  # 
+  #
   #  File.umask(0006)   #=> 18
   #  File.umask         #=> 6
   def self.umask(mask = nil)
@@ -786,7 +789,7 @@ class File < IO
   ##
   # Deletes the named files, returning the number of names
   # passed as arguments. Raises an exception on any error.
-  # 
+  #
   # See also Dir::rmdir.
   def self.unlink(*paths)
     paths.each do |path|
@@ -824,7 +827,7 @@ class File < IO
   end
 
   ##
-  # Returns true if the named file is writable by the effective 
+  # Returns true if the named file is writable by the effective
   # user id of this process.
   def self.writable?(path)
     st = Stat.stat path
@@ -845,7 +848,7 @@ class File < IO
     st = Stat.stat path
     st ? st.zero? : false
   end
-  
+
   ##
   # Returns true if the named file exists and the effective
   # used id of the calling process is the owner of the file.
@@ -853,7 +856,7 @@ class File < IO
   def self.owned?(file_name)
     Stat.new(file_name).owned?
   end
-  
+
   ##
   # Returns true if the named file has the setgid bit set.
   def self.setgid?(file_name)
@@ -861,7 +864,7 @@ class File < IO
   rescue Errno::ENOENT
     return false
   end
-  
+
   ##
   # Returns true if the named file has the setuid bit set.
   def self.setuid?(file_name)
@@ -869,7 +872,7 @@ class File < IO
   rescue Errno::ENOENT
     return false
   end
-  
+
   ##
   # Returns true if the named file has the sticky bit set.
   def self.sticky?(file_name)
@@ -877,7 +880,7 @@ class File < IO
   rescue Errno::ENOENT
     return false
   end
-  
+
   ##
   # Returns true if the named file exists and the effective
   # used id of the calling process is the owner of the file.
