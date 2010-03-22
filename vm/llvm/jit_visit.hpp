@@ -1678,24 +1678,41 @@ use_send:
     void visit_send_super_stack_with_block(opcode which, opcode args) {
       set_has_side_effects();
 
+      if(current_block_ >= 0) {
+        emit_create_block(current_block_);
+      }
+
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       Value* ret = super_send(cache->name, args);
       stack_remove(args + 1);
       check_for_return(ret);
+
+      current_block_ = -1;
     }
 
     void visit_send_super_stack_with_splat(opcode which, opcode args) {
       set_has_side_effects();
+
+      if(current_block_ >= 0) {
+        emit_create_block(current_block_);
+      }
 
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       Value* ret = super_send(cache->name, args, true);
       stack_remove(args + 2);
       check_for_exception(ret);
       stack_push(ret);
+
+      current_block_ = -1;
     }
 
     void visit_zsuper(opcode which) {
       set_has_side_effects();
+
+      if(current_block_ >= 0) {
+        emit_create_block(current_block_);
+      }
+
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
 
       Signature sig(ls_, ObjType);
@@ -1715,6 +1732,8 @@ use_send:
       Value* ret = sig.call("rbx_zsuper_send", call_args, 4, "super_send", b());
       check_for_exception(ret);
       stack_set_top(ret);
+
+      current_block_ = -1;
     }
 
     void visit_add_scope() {
