@@ -69,6 +69,11 @@ describe "File.basename" do
     File.basename("foo/").should == "foo"
   end
 
+  it "ignores a trailing directory seperator" do
+    File.basename("foo.rb/", '.rb').should == "foo"
+    File.basename("bar.rb///", '.*').should == "bar"
+  end
+
   it "return the basename for unix suffix" do
     File.basename("bar.c", ".c").should == "bar"
     File.basename("bar.txt", ".txt").should == "bar"
