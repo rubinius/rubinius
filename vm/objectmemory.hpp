@@ -15,6 +15,7 @@
 #include "builtin/object.hpp"
 #include "gc/code_manager.hpp"
 #include "gc/finalize.hpp"
+#include "gc/write_barrier.hpp"
 
 class TestObjectMemory; // So we can friend it properly
 
@@ -66,19 +67,20 @@ namespace rubinius {
     {}
   };
 
-  class ObjectMemory {
+  class ObjectMemory : public gc::WriteBarrier {
     BakerGC* young_;
     MarkSweepGC* mark_sweep_;
 
     ImmixGC* immix_;
     InflatedHeaders* inflated_headers_;
 
-    ObjectArray* remember_set_;
     unsigned int mark_;
     CodeManager code_manager_;
     std::list<FinalizeObject> finalize_;
     std::list<FinalizeObject*> to_finalize_;
     bool allow_gc_;
+
+    std::list<gc::WriteBarrier*> aux_barriers_;
 
   public:
     bool collect_young_now;
@@ -92,12 +94,6 @@ namespace rubinius {
     size_t large_object_threshold;
 
   public:
-    ObjectArray* remember_set() {
-      return remember_set_;
-    }
-
-    ObjectArray* swap_remember_set();
-
     unsigned int mark() {
       return mark_;
     }
@@ -126,12 +122,21 @@ namespace rubinius {
       allow_gc_ = false;
     }
 
+    void add_aux_barrier(gc::WriteBarrier* wb) {
+      aux_barriers_.push_back(wb);
+    }
+
+    void del_aux_barrier(gc::WriteBarrier* wb) {
+      aux_barriers_.remove(wb);
+    }
+
+    std::list<gc::WriteBarrier*>& aux_barriers() {
+      return aux_barriers_;
+    }
+
   public:
     ObjectMemory(STATE, Configuration& config);
     ~ObjectMemory();
-
-    void remember_object(Object* target);
-    void unremember_object(Object* target);
 
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
@@ -191,15 +196,6 @@ namespace rubinius {
     void run_finalizers(STATE);
 
     InflatedHeader* inflate_header(ObjectHeader* obj);
-
-    void write_barrier(Object* target, Object* val) {
-      if(target->remembered_p()) return;
-      if(!REFERENCE_P(val)) return;
-      if(target->zone() == YoungObjectZone) return;
-      if(val->zone() != YoungObjectZone) return;
-
-      remember_object(target);
-    }
 
     // This only has one use! Don't use it!
     Object* allocate_object_raw(size_t bytes);

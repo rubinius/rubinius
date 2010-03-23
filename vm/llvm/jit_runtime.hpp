@@ -18,6 +18,10 @@ namespace rubinius {
   class ObjectMark;
   class ObjectVisitor;
 
+  namespace gc {
+    class WriteBarrier;
+  }
+
   namespace jit {
     class RuntimeData {
       CompiledMethod* method_;
@@ -77,6 +81,7 @@ namespace rubinius {
 
       void mark_all(Object* obj, ObjectMark& mark);
       void visit_all(ObjectVisitor& visit);
+      void run_write_barrier(gc::WriteBarrier* wb, Object* obj);
     };
   }
 }

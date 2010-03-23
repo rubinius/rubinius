@@ -110,7 +110,7 @@ namespace rubinius {
     /** Special-case write_barrier() for Symbols. */
     void        write_barrier(STATE, Symbol* obj);
 
-    void        write_barrier(ObjectMemory* om, void* obj);
+    void        write_barrier(gc::WriteBarrier* wb, void* obj);
 
 
   public:   /* Type information, field access, copy support &c. */

@@ -20,9 +20,9 @@ namespace rubinius {
       return object_;
     }
 
-    void set_object(ObjectMemory* om, Object* obj) {
+    void set_object(gc::WriteBarrier* wb, Object* obj) {
       object_ = obj;
-      write_barrier(om, obj);
+      write_barrier(wb, obj);
     }
 
     void set_object(STATE, Object* obj) {

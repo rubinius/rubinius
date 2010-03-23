@@ -32,6 +32,20 @@ namespace rubinius {
       if(tmp) saw_object(tmp);
     }
 
+    for(std::list<gc::WriteBarrier*>::iterator wbi = object_memory_->aux_barriers().begin();
+        wbi != object_memory_->aux_barriers().end();
+        wbi++) {
+      gc::WriteBarrier* wb = *wbi;
+      ObjectArray* rs = wb->remember_set();
+      for(ObjectArray::iterator oi = rs->begin();
+          oi != rs->end();
+          oi++) {
+        tmp = *oi;
+
+        if(tmp) saw_object(tmp);
+      }
+    }
+
     for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {
       saw_object(i->get());
     }

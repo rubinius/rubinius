@@ -8,6 +8,7 @@
 #include "builtin/module.hpp"
 #include "field_offset.hpp"
 #include "builtin/compiledmethod.hpp"
+#include "objectmemory.hpp"
 
 #include "call_frame.hpp"
 #include "configuration.hpp"
@@ -332,6 +333,8 @@ namespace rubinius {
         }
         assert(req->method()->jit_data());
 
+        req->method()->jit_data()->run_write_barrier(ls_->write_barrier(), req->method());
+
         int which = ls_->add_jitted_method();
         if(ls_->config().jit_show_compiling) {
           llvm::outs() << "[[[ JIT finished background compiling "
@@ -403,6 +406,7 @@ namespace rubinius {
     , time_spent(0)
   {
     state->shared.add_managed_thread(this);
+    state->shared.om->add_aux_barrier(&write_barrier_);
 
     if(state->shared.config.jit_log.value.size() == 0) {
       log_ = &std::cerr;
@@ -508,6 +512,7 @@ namespace rubinius {
 
   LLVMState::~LLVMState() {
     shared_.remove_managed_thread(this);
+    shared_.om->del_aux_barrier(&write_barrier_);
   }
 
   bool LLVMState::debug_p() {

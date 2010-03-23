@@ -23,6 +23,7 @@
 #include "configuration.hpp"
 
 #include "gc/managed.hpp"
+#include "gc/write_barrier.hpp"
 
 #include "builtin/block_environment.hpp"
 
@@ -380,13 +381,14 @@ namespace rubinius {
     int uncommons_taken_;
 
     SharedState& shared_;
-
     bool include_profiling_;
     llvm::GlobalVariable* profiling_;
 
     int code_bytes_;
 
     std::ostream* log_;
+
+    gc::WriteBarrier write_barrier_;
 
   public:
 
@@ -486,6 +488,10 @@ namespace rubinius {
 
     std::ostream& log() {
       return *log_;
+    }
+
+    gc::WriteBarrier* write_barrier() {
+      return &write_barrier_;
     }
 
     const llvm::Type* ptr_type(std::string name);

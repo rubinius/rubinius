@@ -39,6 +39,10 @@ namespace rubinius {
     class Profiler;
   }
 
+  namespace gc {
+    class WriteBarrier;
+  }
+
   class GlobalCache;
   class TaskProbe;
   class Primitives;

@@ -133,6 +133,23 @@ namespace rubinius {
 
     delete current_rs;
 
+    for(std::list<gc::WriteBarrier*>::iterator wbi = object_memory_->aux_barriers().begin();
+        wbi != object_memory_->aux_barriers().end();
+        wbi++) {
+      gc::WriteBarrier* wb = *wbi;
+      ObjectArray* rs = wb->swap_remember_set();
+      for(ObjectArray::iterator oi = rs->begin();
+          oi != rs->end();
+          oi++) {
+        tmp = *oi;
+
+        if(tmp) {
+          tmp->clear_remember();
+          scan_object(tmp);
+        }
+      }
+    }
+
     for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {
       i->set(saw_object(i->get()));
     }
