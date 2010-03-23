@@ -187,7 +187,7 @@ module Rubinius
 
     # Formalizers
 
-    def encode(encoder, calculator)
+    def encode(encoder)
       @iseq = InstructionSequence.from @stream.to_tuple
 
       begin
@@ -198,7 +198,7 @@ module Rubinius
         raise e
       end
 
-      @generators.each { |d| d.encode encoder, calculator }
+      @generators.each { |d| d.encode encoder }
     end
 
     def package(klass)
