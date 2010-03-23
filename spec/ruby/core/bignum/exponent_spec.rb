@@ -15,6 +15,12 @@ describe "Bignum#**" do
     lambda { @bignum ** "10" }.should raise_error
     lambda { @bignum ** :symbol }.should raise_error
   end
+
+  it "switch to a Float when the values is too big" do
+    flt = (@bignum ** @bignum)
+    flt.should be_kind_of(Float)
+    flt.infinite?.should == 1
+  end
   
   ruby_version_is '1.9' do
     it "returns a complex number when negative and raised to a fractional power" do

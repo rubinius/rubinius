@@ -12,6 +12,18 @@ describe "Fixnum#**" do
     (2 ** 40).should == 1099511627776
   end
 
+  it "can raise 1 to a Bignum safely" do
+    big = bignum_value(4611686018427387904)
+    (1 ** big).should == 1
+  end
+
+  it "switches to a Float when the number is too big" do
+    big = bignum_value(4611686018427387904)
+    flt = (2 ** big)
+    flt.should be_kind_of(Float)
+    flt.infinite?.should == 1
+  end
+
   conflicts_with :Rational do
     ruby_version_is ""..."1.9" do
       ruby_bug "ruby-dev:32084", "1.8.6.138" do
