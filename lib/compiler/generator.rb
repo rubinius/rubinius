@@ -128,7 +128,7 @@ module Rubinius
           @enter_size = stack_size
 
           if not @closed
-            raise "control fails to exit properly at #{location}"
+            raise CompileError, "control fails to exit properly at #{location}"
           end
 
           @generator.accumulate_stack(@enter_size + @max_size)
@@ -403,12 +403,6 @@ module Rubinius
     # than changing the compiler code, this helper was used.
     def push_const(name)
       push_const_fast find_literal(name), add_literal(nil)
-    end
-
-    def cast_array
-      unless @instruction == :cast_array or @instruction == :make_array
-        super()
-      end
     end
 
     def last_match(mode, which)

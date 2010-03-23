@@ -53,7 +53,8 @@ class InstructionParser
   # called by the bytecode compiler's Generator to emit the instruction
   # stream.
   class GeneratorMethod
-    def initialize(file, opcode)
+    def initialize(parser, file, opcode)
+      @parser        = parser
       @file          = file
       @opcode        = opcode
       @method_name   = nil
@@ -112,7 +113,7 @@ class InstructionParser
     end
 
     def method_close
-      @file.puts "        @instruction = :#{@opcode.name}"
+      @file.puts "        @instruction = #{@opcode.bytecode}"
       @file.puts "      end"
       @file.puts ""
     end
@@ -243,7 +244,7 @@ class InstructionParser
           @stream << #{@opcode.bytecode} << arg1
           @current_block.add_stack(1)
           @ip += 2
-          @instruction = :#{@opcode.name}
+          @instruction = #{@opcode.bytecode}
         else
           case arg1
           when -1
@@ -317,6 +318,16 @@ EOM
     def process_zsuper
       literal_method
     end
+
+    def process_cast_array
+      method_signature
+      make_array = @parser.find_opcode "make_array"
+      @file.puts "        unless @instruction == #{@opcode.bytecode} or @instruction == #{make_array.bytecode}"
+      @file.puts "          @stream << #{@opcode.bytecode}"
+      @file.puts "          @ip += 1"
+      @file.puts "        end"
+      method_close
+    end
   end
 
   class ParseError < Exception; end
@@ -325,7 +336,7 @@ EOM
     def opcode_definition(file)
     end
 
-    def opcode_method(file)
+    def opcode_method(parser, file)
     end
 
     def opcode_name
@@ -468,8 +479,8 @@ EOM
       file.puts  "              :control_flow => :#{@control_flow}"
     end
 
-    def opcode_method(file)
-      GeneratorMethod.new(file, self).process
+    def opcode_method(parser, file)
+      GeneratorMethod.new(parser, file, self).process
     end
 
     def opcode_name
@@ -575,6 +586,10 @@ EOM
     @parsed = true
   end
 
+  def find_opcode(name)
+    @objects.find { |x| x.kind_of? Instruction and x.name == name }
+  end
+
   # Generated output methods
 
   def generate_opcodes(filename)
@@ -598,7 +613,7 @@ EOM
       file.puts "module Rubinius"
       file.puts "  module GeneratorMethods"
 
-      objects.each { |obj| obj.opcode_method file }
+      objects.each { |obj| obj.opcode_method self, file }
 
       file.puts "  end"
       file.puts "end"
