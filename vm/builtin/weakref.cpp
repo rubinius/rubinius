@@ -12,7 +12,7 @@ namespace rubinius {
 
   WeakRef* WeakRef::create(STATE, Object* obj) {
     WeakRef* ref = state->new_object<WeakRef>(G(cls_weakref));
-    ref->set_object(obj);
+    ref->set_object(state, obj);
 
     return ref;
   }
