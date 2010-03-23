@@ -702,6 +702,10 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
+  Object* Bignum::pow(STATE, Bignum *exponent) {
+    return this->to_float(state)->fpow(state, exponent);
+  }
+
   Float* Bignum::pow(STATE, Float *exponent) {
     return this->to_float(state)->fpow(state, exponent);
   }

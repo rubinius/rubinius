@@ -190,6 +190,25 @@ namespace rubinius {
   }
 
   Object* Fixnum::pow(STATE, Fixnum* exponent) {
+    native_int i = to_native();
+    native_int j = exponent->to_native();
+
+    if(j == 0) return Fixnum::from(1);
+    if(j == 1) return this;
+
+    if(i == 0) {
+      if(j > 0) return Fixnum::from(0);
+      return Float::create(state, INFINITY);
+    }
+
+    if(i == 1) return Fixnum::from(1);
+
+    return Bignum::from(state, to_native())->pow(state, exponent);
+  }
+
+  Object* Fixnum::pow(STATE, Bignum* exponent) {
+    native_int i = to_native();
+    if(i == 0 || i == 1) return this;
     return Bignum::from(state, to_native())->pow(state, exponent);
   }
 

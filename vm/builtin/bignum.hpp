@@ -138,7 +138,9 @@ namespace rubinius {
     // Ruby.primitive! :bignum_pow
     Object* pow(STATE, Fixnum *exponent);
     // Ruby.primitive! :bignum_pow
-    Float* pow(STATE, Float *exponent);
+    Object* pow(STATE, Bignum* exponent);
+    // Ruby.primitive! :bignum_pow
+    Float*  pow(STATE, Float *exponent);
 
     // Ruby.primitive! :bignum_gt
     Object* gt(STATE, Fixnum* b);

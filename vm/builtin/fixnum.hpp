@@ -109,6 +109,9 @@ namespace rubinius {
     Object* pow(STATE, Fixnum *exponent);
 
     // Ruby.primitive! :fixnum_pow
+    Object* pow(STATE, Bignum *exponent);
+
+    // Ruby.primitive! :fixnum_pow
     Float* pow(STATE, Float *exponent);
 
     // Ruby.primitive! :fixnum_equal
