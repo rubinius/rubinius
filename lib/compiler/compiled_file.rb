@@ -262,41 +262,41 @@ module Rubinius
         when Tuple
           str = "p\n#{val.size}\n"
           val.each do |ele|
-            str << marshal(ele)
+            str.append marshal(ele)
           end
           str
         when Float
           str = "d\n"
           if val.infinite?
-            str << "-" if val < 0.0
-            str << "Infinity"
+            str.append "-" if val < 0.0
+            str.append "Infinity"
           elsif val.nan?
-            str << "NaN"
+            str.append "NaN"
           else
-            str << " %+.54f %5d" % Math.frexp(val)
+            str.append " %+.54f %5d" % Math.frexp(val)
           end
-          str << "\n"
+          str.append "\n"
         when InstructionSequence
           str = "i\n#{val.size}\n"
           val.opcodes.each do |op|
-            str << op.to_s << "\n"
+            str.append "#{op}\n"
           end
           str
         when CompiledMethod
           str = "M\n1\n"
-          str << marshal(val.__ivars__)
-          str << marshal(val.primitive)
-          str << marshal(val.name)
-          str << marshal(val.iseq)
-          str << marshal(val.stack_size)
-          str << marshal(val.local_count)
-          str << marshal(val.required_args)
-          str << marshal(val.total_args)
-          str << marshal(val.splat)
-          str << marshal(val.literals)
-          str << marshal(val.lines)
-          str << marshal(val.file)
-          str << marshal(val.local_names)
+          str.append marshal(val.__ivars__)
+          str.append marshal(val.primitive)
+          str.append marshal(val.name)
+          str.append marshal(val.iseq)
+          str.append marshal(val.stack_size)
+          str.append marshal(val.local_count)
+          str.append marshal(val.required_args)
+          str.append marshal(val.total_args)
+          str.append marshal(val.splat)
+          str.append marshal(val.literals)
+          str.append marshal(val.lines)
+          str.append marshal(val.file)
+          str.append marshal(val.local_names)
           str
         else
           raise ArgumentError, "Unknown type #{val.class}: #{val.inspect}"

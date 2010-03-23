@@ -16,6 +16,10 @@ class Array
   end
 end
 
+class String
+  alias_method :append, :<<
+end
+
 class SyntaxError
   def self.from(message, column, line, code, file)
     message << " #{file}:#{line}:#{column}\n  #{code}"
