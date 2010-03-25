@@ -194,7 +194,10 @@ module Rubinius
         # Validate the stack and calculate the max depth
         @enter_block.visit 0
       rescue Exception => e
-        @iseq.show
+        if $DEBUG
+          puts "Error computing stack for #{@name}: #{e.message} (#{e.class})"
+          @iseq.show
+        end
         raise e
       end
 

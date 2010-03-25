@@ -11,7 +11,10 @@ module Gem
 
     files = Dir["#{dir}/**/*.rb"]
 
-    STDERR.puts "  rbx: Precompiling #{files.size} files..."
+    if Gem.configuration.really_verbose
+      STDERR.puts "  rbx: Precompiling #{files.size} files..."
+    end
+
     error = 0
     files.each do |file|
       begin
