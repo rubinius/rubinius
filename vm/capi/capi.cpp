@@ -72,6 +72,7 @@ namespace rubinius {
         map[cCApiTime]       = "Time";
         map[cCApiTrue]       = "TrueClass";
         map[cCApiProc]       = "Proc";
+        map[cCApiGC]         = "GC";
 
         map[cCApiArgumentError]       = "ArgumentError";
         map[cCApiEOFError]            = "EOFError";

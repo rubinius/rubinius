@@ -227,6 +227,7 @@ extern "C" {
     cCApiTime,
     cCApiTrue,
     cCApiProc,
+    cCApiGC,
 
     cCApiArgumentError,
     cCApiEOFError,
@@ -413,6 +414,7 @@ struct RFloat {
 #define rb_mComparable        (capi_get_constant(cCApiComparable))
 #define rb_mEnumerable        (capi_get_constant(cCApiEnumerable))
 #define rb_mKernel            (capi_get_constant(cCApiKernel))
+#define rb_mGC                (capi_get_constant(cCApiGC))
 
 
 /* Exception classes. */
