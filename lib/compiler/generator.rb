@@ -201,15 +201,11 @@ module Rubinius
         raise e
       end
 
-      @generators.each { |d| d.encode encoder }
+      @generators.each { |x| @literals[x].encode encoder }
     end
 
     def package(klass)
-      @literals.each_with_index do |literal, index|
-        if literal.kind_of? self.class
-          @literals[index] = literal.package klass
-        end
-      end
+      @generators.each { |x| @literals[x] = @literals[x].package klass }
 
       cm = klass.new
       cm.iseq           = @iseq
@@ -357,8 +353,9 @@ module Rubinius
     end
 
     def push_generator(generator)
-      @generators << generator
-      push_literal generator
+      index = push_literal generator
+      @generators << index
+      index
     end
 
     # Find the index for the specified literal, or create a new slot if the

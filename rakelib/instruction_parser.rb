@@ -305,8 +305,8 @@ EOM
 
     def process_create_block
       @before_stream = lambda do
-        @file.puts "        @generators << arg1"
         @file.puts "        arg1 = add_literal arg1"
+        @file.puts "        @generators << arg1"
       end
       method_definition
     end
