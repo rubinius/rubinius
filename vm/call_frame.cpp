@@ -30,7 +30,8 @@ namespace rubinius {
       }
     }
 
-    assert("should not be here" && 0);
+    // Shouldn't ever get here.
+    return 0;
   }
 
   void CallFrame::print_backtrace(STATE) {

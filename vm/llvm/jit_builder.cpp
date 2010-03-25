@@ -6,6 +6,7 @@
 
 #include "llvm/jit_visit.hpp"
 #include "llvm/control_flow.hpp"
+#include "llvm/cfg.hpp"
 
 #include <llvm/Analysis/CaptureTracking.h>
 
@@ -206,10 +207,12 @@ namespace jit {
     Symbol* s_module_eval_;
 
     std::list<JITBasicBlock*> exception_handlers_;
+    CFGCalculator& cfg_;
 
   public:
 
-    PassOne(LLVMState* ls, BlockMap& map, Function* func, BasicBlock* start)
+    PassOne(LLVMState* ls, BlockMap& map, Function* func, BasicBlock* start,
+            CFGCalculator& cfg)
       : ls_(ls)
       , map_(map)
       , function_(func)
@@ -220,6 +223,7 @@ namespace jit {
       , loops_(false)
       , sp_(-1)
       , calls_evalish_(false)
+      , cfg_(cfg)
     {
       JITBasicBlock& jbb = map_[0];
       jbb.reachable = true;
@@ -326,11 +330,22 @@ namespace jit {
         jbb.start_ip = ip;
         jbb.sp = sp_;
 
+        CFGBlock* cfg_block = cfg_.find_block(ip);
+        assert(cfg_block);
+
+        if(CFGBlock* handler = cfg_block->exception_handler()) {
+          BlockMap::iterator hi = map_.find(handler->start_ip());
+          assert(hi != map_.end());
+
+          jbb.exception_handler = &hi->second;
+        }
         // Assign the new block the current handler. This works
         // because code creates now blocks always within the
         // scope of the current handler and it's illegal for code
         // to generate a goto across a handler boundary
-        jbb.exception_handler = exception_handlers_.back();
+        // if(exception_handlers_.size() > 0) {
+          // jbb.exception_handler = exception_handlers_.back();
+        // }
 
         if(ip < current_ip_) {
           jbb.end_ip = current_ip_;
@@ -465,8 +480,11 @@ namespace jit {
   };
 
   void Builder::pass_one(BasicBlock* body) {
+    CFGCalculator cfg(vmm_);
+    cfg.build();
+
     // Pass 1, detect BasicBlock boundaries
-    PassOne finder(ls_, block_map_, func, body);
+    PassOne finder(ls_, block_map_, func, body, cfg);
     finder.drive(vmm_);
 
     if(finder.creates_blocks() || finder.calls_evalish()) {

@@ -120,7 +120,6 @@ keep_looking:
       if(klass->young_object_p()) {
         if(klass->forwarded_p()) {
           Module* fwd = (Module*)klass->forward();
-          assert(rubinius::VM::current_state()->om->validate_object(fwd) != cUnknown);
           entry->klass = fwd;
         } else {
           clear = true;

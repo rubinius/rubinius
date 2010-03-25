@@ -622,9 +622,9 @@ namespace rubinius {
     /* Ensure ip is valid */
     VMMethod::Iterator iter(this);
     for(; !iter.end(); iter.inc()) {
-      if(iter.position >= ip) break;
+      if(iter.position() >= ip) break;
     }
-    return ip == iter.position;
+    return ip == iter.position();
   }
 
   /*
