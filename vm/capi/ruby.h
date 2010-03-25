@@ -146,7 +146,7 @@ void* XCALLOC(size_t items, size_t bytes);
 /**
  *  In MRI, ID represents an interned string, i.e. a Symbol.
  *
- *  In rbx, this is a Symbol pointer.
+ *  In rbx, this is a raw Symbol.
  */
 #define ID    intptr_t
 
@@ -350,7 +350,7 @@ struct RFloat {
 #define RFLOAT(d)       capi_rfloat_struct(d)
 
 // To provide nicer error reporting
-#define RHASH(obj) assert(???? && "RHASH() is not supported")
+#define RHASH(obj) assert("RHASH() is not supported")
 
 /*
  * The immediates.
@@ -497,7 +497,7 @@ struct RFloat {
 #define FIX2UINT(x)       ((unsigned int)FIX2ULONG(x))
 
 #ifndef SYMBOL_P
-#define SYMBOL_P(obj)     (((unsigned int)obj & 7) == 6)
+#define SYMBOL_P(obj)     (((unsigned int)(obj) & 7) == 6)
 #endif
 
 /** Get a handle for the Symbol object represented by ID. */
@@ -798,7 +798,7 @@ double rb_num2dbl(VALUE);
   /** Raises an exception if obj_handle is not the same type as 'type'. */
   void    rb_check_type(VALUE obj_handle, CApiType type);
 
-#define Check_Type(v,t) rb_check_type((VALUE)(v),t)
+#define Check_Type(v,t) rb_check_type((VALUE)(v),(t))
 
   /**
    *  Safe type conversion.
@@ -897,8 +897,8 @@ double rb_num2dbl(VALUE);
 
   /** Generate a NativeMethod to represent a method defined as a C function. Records file. */
   #define rb_define_method(mod, name, fptr, arity) \
-          capi_define_method(__FILE__, mod, name, \
-                                           (CApiGenericFunction)fptr, arity, \
+          capi_define_method(__FILE__, (mod), (name), \
+                                           (CApiGenericFunction)(fptr), (arity), \
                                            cCApiPublicMethod)
 
   /** Defines the method on Kernel. */
@@ -916,20 +916,20 @@ double rb_num2dbl(VALUE);
 
   /** Generate a NativeMethod to represent a private method defined in the C function. */
   #define rb_define_private_method(mod, name, fptr, arity) \
-          capi_define_method(__FILE__, mod, name, \
-                                           (CApiGenericFunction)fptr, arity, \
+          capi_define_method(__FILE__, (mod), (name), \
+                                           (CApiGenericFunction)(fptr), (arity), \
                                            cCApiPrivateMethod)
 
   /** Generate a NativeMethod to represent a protected method defined in the C function. */
   #define rb_define_protected_method(mod, name, fptr, arity) \
-          capi_define_method(__FILE__, mod, name, \
-                                           (CApiGenericFunction)fptr, arity, \
+          capi_define_method(__FILE__, (mod), (name), \
+                                           (CApiGenericFunction)(fptr), (arity), \
                                            cCApiProtectedMethod)
 
   /** Generate a NativeMethod to represent a singleton method. @see capi_define_method. */
   #define rb_define_singleton_method(mod, name, fptr, arity) \
-          capi_define_method(__FILE__, mod, name, \
-                                           (CApiGenericFunction)fptr, arity, \
+          capi_define_method(__FILE__, (mod), (name), \
+                                           (CApiGenericFunction)(fptr), (arity), \
                                            cCApiSingletonMethod)
 
   /** Create an Exception from a class, C string and length. */
@@ -1060,8 +1060,7 @@ double rb_num2dbl(VALUE);
   void    rb_obj_call_init(VALUE object_handle, int arg_count, VALUE* args);
 
   /** Returns the Class object this object is an instance of. */
-  #define rb_obj_class(object_handle) \
-          rb_class_of((object_handle))
+  #define rb_obj_class(object_handle) rb_class_of((object_handle))
 
   /** String representation of the object's class' name. You must free this string. */
   char*   rb_obj_classname(VALUE object_handle);
@@ -1384,9 +1383,9 @@ double rb_num2dbl(VALUE);
   VALUE   rb_marshal_load(VALUE string);
 
   VALUE   rb_float_new(double val);
-  
+
   VALUE   rb_Float(VALUE object_handle);
-  
+
   VALUE   rb_Integer(VALUE object_handle);
 
   void    rb_bug(const char *fmt, ...);
