@@ -88,6 +88,11 @@ extern "C" {
     return rb_define_class_under(rb_cObject, name, superclass_handle);
   }
 
+  void rb_define_class_variable(VALUE klass, const char* name, VALUE val) {
+    ID id = rb_intern(name);
+    rb_cvar_set(klass, id,  val, 0);
+  }
+
   /** @note   Shares code with rb_define_module_under, change there too. --rue */
   VALUE rb_define_class_under(VALUE outer, const char* name, VALUE super) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();

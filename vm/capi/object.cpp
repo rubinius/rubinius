@@ -11,8 +11,27 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 extern "C" {
+
+  void rb_error_frozen(const char* what) {
+    rb_raise(rb_eTypeError, "can't modify frozen %s", what);
+  }
+  
+  VALUE rb_obj_frozen_p(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    if(env->get_object(obj)->frozen_p(env->state()) == RBX_Qtrue) {
+      return Qtrue;
+    }
+
+    return Qfalse;
+  }
+
   void rb_check_frozen(VALUE obj_handle) {
     /* @todo  implement when rbx supports frozen objects. */
+    if(rb_obj_frozen_p(obj_handle)){
+      char *class_name = rb_obj_classname(obj_handle);
+      rb_error_frozen((const char*)class_name);
+      free(class_name);
+    }
   }
 
   VALUE rb_obj_freeze(VALUE hndl) {
@@ -281,4 +300,19 @@ extern "C" {
   VALUE rb_obj_id(VALUE self) {
     return rb_funcall(self, rb_intern("object_id"), 0);
   }
+
+  VALUE rb_obj_taint(VALUE obj) {
+    if(!OBJ_TAINTED(obj)) {
+      rb_check_frozen(obj);
+      OBJ_TAINT(obj);
+    }
+
+    return obj;
+  }
+
+  VALUE rb_any_to_s(VALUE obj) {
+    return rb_obj_as_string(obj);
+  }
+  
+  
 }

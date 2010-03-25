@@ -95,5 +95,4 @@ extern "C" {
     }
     return d;
   }
-
 }

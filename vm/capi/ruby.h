@@ -471,6 +471,12 @@ struct RFloat {
 
 /** True if the value is a Fixnum. */
 #define FIXNUM_P(f)       (((long)(f))&FIXNUM_FLAG)
+#define FIXNUM_WIDTH ((8 * sizeof(native_int)) - TAG_FIXNUM_SHIFT - 1)
+#define FIXNUM_MAX   (((native_int)1 << FIXNUM_WIDTH) - 1)
+#define FIXNUM_MIN   (-(FIXNUM_MAX))
+#define POSFIXABLE(f) ((f) <= FIXNUM_MAX)
+#define NEGFIXABLE(f) ((f) >= FIXNUM_MIN)
+#define FIXABLE(f) (POSFIXABLE(f) && NEGFIXABLE(f))
 
 /** Convert a Fixnum to a long int. */
 #define FIX2LONG(x)       (((long)(x)) >> 1)
@@ -602,6 +608,8 @@ double rb_num2dbl(VALUE);
 
 /** Convert unsigned int to a Ruby Integer. @todo Should we warn if overflowing? --rue */
 #define UINT2FIX(i)       UINT2NUM((i))
+
+#define LONG2FIX(i) INT2FIX(i)
 
 #define LL2NUM(val) rb_ll2inum(val)
 #define ULL2NUM(val) rb_ull2inum(val)
@@ -801,6 +809,12 @@ double rb_num2dbl(VALUE);
   /** Raises an exception if obj_handle is frozen. */
   void    rb_check_frozen(VALUE obj_handle);
 
+  /** check if obj_handle is frozen. */
+  VALUE     rb_obj_frozen_p(VALUE obj);
+
+  /** raise error on class */
+  void    rb_error_frozen(const char* what);
+
   /** Raises an exception if obj_handle is not the same type as 'type'. */
   void    rb_check_type(VALUE obj_handle, CApiType type);
 
@@ -875,6 +889,9 @@ double rb_num2dbl(VALUE);
 
   /** Set module's named class variable to given value. Returns the value. @@ is optional. */
   VALUE   rb_cvar_set(VALUE module_handle, ID name, VALUE value, int unused);
+  
+  /** Set module's named class variable to given value. */
+  void rb_define_class_variable(VALUE klass, const char* name, VALUE val);
 
   VALUE   rb_data_object_alloc(VALUE klass, void* sval,
       RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free);
@@ -956,6 +973,9 @@ double rb_num2dbl(VALUE);
   /** Freeze object and return it. */
   VALUE   rb_obj_freeze(VALUE obj);
 
+  /** Taint an object and return it */
+  VALUE rb_obj_taint(VALUE obj);
+
   /**
    *  Call method on receiver, args as varargs. Calls private methods.
    *
@@ -1019,6 +1039,9 @@ double rb_num2dbl(VALUE);
   void    rb_io_wait_writable(int fd);
   void    rb_thread_wait_fd(int fd);
 
+  /** convert a native int to */
+  VALUE rb_int2inum(long n);
+  
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);
 
@@ -1101,6 +1124,8 @@ double rb_num2dbl(VALUE);
   /** Call #to_s on object. */
   VALUE   rb_obj_as_string(VALUE obj_handle);
 
+  VALUE   rb_any_to_s(VALUE obj);
+  
   /** Return a clone of the object by calling the method bound
    * to Kernel#clone (i.e. does NOT call specialized #clone method
    * on obj_handle if one exists).
