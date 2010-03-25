@@ -208,12 +208,10 @@ namespace rubinius {
     }
 
     Class* tracked_class(int which) {
-      if(which < cTrackedICHits) return 0;
       return seen_classes_[which].klass();
     }
 
     int tracked_class_hits(int which) {
-      if(which < cTrackedICHits) return 0;
       return seen_classes_[which].hits();
     }
 
