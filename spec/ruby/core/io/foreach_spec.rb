@@ -106,4 +106,26 @@ describe "IO.foreach" do
       end
     end
   end
+
+  describe "when the filename starts with |" do
+    it "gets data from the standard out of the subprocess" do
+      IO.foreach("|sh -c 'echo hello;echo line2'") { |l| ScratchPad << l }
+      ScratchPad.recorded.should == ["hello\n", "line2\n"]
+    end
+
+    it "gets data from a fork when passed -" do
+      parent_pid = $$
+
+      ret = IO.foreach("|-") { |l| ScratchPad << l; true }
+
+      if $$ == parent_pid
+        ScratchPad.recorded.should == ["hello\n", "from a fork\n"]
+      else # child
+        puts "hello"
+        puts "from a fork"
+        exit!
+      end
+    end
+  end
+
 end

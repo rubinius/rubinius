@@ -97,6 +97,25 @@ describe "IO#readlines" do
       @io.readlines(obj).should == IOSpecs.lines_r_separator
     end
   end
+
+  describe "when passed a string that starts with a |" do
+    it "gets data from the standard out of the subprocess" do
+      lines = IO.readlines("|sh -c 'echo hello;echo line2'")
+      lines.should == ["hello\n", "line2\n"]
+    end
+
+    it "gets data from a fork when passed -" do
+      lines = IO.readlines("|-")
+
+      if lines # parent
+        lines.should == ["hello\n", "from a fork\n"]
+      else
+        puts "hello"
+        puts "from a fork"
+        exit!
+      end
+    end
+  end
 end
 
 describe "IO#readlines" do

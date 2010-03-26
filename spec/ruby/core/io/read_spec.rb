@@ -66,6 +66,32 @@ describe "IO.read" do
   end
 end
 
+describe "IO.read from a pipe" do
+  it "runs the rest as a subprocess and returns the standard output" do
+    IO.read("|sh -c 'echo hello'").should == "hello\n"
+  end
+
+  it "opens a pipe to a fork if the rest is -" do
+    str = IO.read("|-")
+    if str # parent
+      str.should == "hello from child\n"
+    else #child
+      puts "hello from child"
+      exit!
+    end
+  end
+
+  it "reads only the specified number of bytes requested" do
+    IO.read("|sh -c 'echo hello'", 1).should == "h"
+  end
+
+  it "raises Errno::ESPIPE if passed an offset" do
+    lambda {
+      IO.read("|sh -c 'echo hello'", 1, 1)
+    }.should raise_error(Errno::ESPIPE)
+  end
+end
+
 describe "IO.read on an empty file" do
   before :each do
     @fname = tmp("io_read_empty.txt")
