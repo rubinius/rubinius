@@ -205,7 +205,16 @@ class IO
     return to_enum(:foreach, name, sep_string) unless block_given?
 
     sep_string ||= ''
-    io = File.open(StringValue(name), 'r')
+
+    name = StringValue(name)
+
+    if name[0] == ?|
+      io = IO.popen(name[1..-1], "r")
+      return nil unless io
+    else
+      io = File.open(name, 'r')
+    end
+
     sep = StringValue(sep_string)
 
     begin
@@ -215,6 +224,8 @@ class IO
     ensure
       io.close
     end
+
+    return nil
   end
 
   ##
@@ -363,10 +374,6 @@ class IO
   #  26166 is here, f is #<IO:0x401b3d44>
   #  #<Process::Status: pid=26166,exited(0)>
   def self.popen(str, mode = "r")
-    if str == "+-+" and !block_given?
-      raise ArgumentError, "this mode requires a block currently"
-    end
-
     mode = parse_mode mode
 
     readable = false
@@ -384,7 +391,10 @@ class IO
     pa_read, ch_write = IO.pipe if readable
     ch_read, pa_write = IO.pipe if writable
 
-    pid = Process.fork do
+    pid = Process.fork
+
+    # child
+    if !pid
       if readable then
         pa_read.close
         STDOUT.reopen ch_write
@@ -395,8 +405,13 @@ class IO
         STDIN.reopen ch_read
       end
 
-      if str == "+-+"
-        yield nil
+      if str == "-"
+        if block_given?
+          yield nil
+          exit! 0
+        else
+          return nil
+        end
       else
         Process.perform_exec "/bin/sh", ["sh", "-c", str]
       end
@@ -408,14 +423,12 @@ class IO
     # See bottom for definition
     pipe = IO::BidirectionalPipe.new pid, pa_read, pa_write
 
-    if block_given? then
-      begin
-        yield pipe
-      ensure
-        pipe.close
-      end
-    else
-      return pipe
+    return pipe unless block_given?
+
+    begin
+      yield pipe
+    ensure
+      pipe.close
     end
   end
 
@@ -446,15 +459,28 @@ class IO
       end
     end
 
-    File.open(name) do |f|
-      f.seek(offset) unless offset.zero?
+    # Detect pipe mode
+    if name[0] == ?|
+      io = IO.popen(name[1..-1], "r")
+      return nil unless io # child process
+    else
+      io = File.new(name)
+    end
+
+    str = nil
+    begin
+      io.seek(offset) unless offset == 0
 
       if length.equal?(undefined)
-        f.read
+        str = io.read
       else
-        f.read(length)
+        str = io.read(length)
       end
+    ensure
+      io.close
     end
+
+    return str
   end
 
   ## 
@@ -466,8 +492,13 @@ class IO
   #  a[0]   #=> "This is line one\n"
   def self.readlines(name, sep_string = $/)
     name = StringValue name
-    io = File.open(name, 'r')
-    return if io.nil?
+
+    if name[0] == ?|
+      io = IO.popen(name[1..-1], "r")
+      return nil unless io
+    else
+      io = File.open(name, 'r')
+    end
 
     begin
       io.readlines(sep_string)
@@ -1605,6 +1636,7 @@ class IO::BidirectionalPipe < IO
     :readlines,
     :readpartial,
     :sysread,
+    :seek
   ]
 
   WRITE_METHODS = [
