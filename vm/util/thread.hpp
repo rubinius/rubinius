@@ -14,6 +14,8 @@
 #include <sstream>
 #include <iostream>
 
+#define pthread_check(expr) if((expr) != 0) { assert(0 && "failed: " #expr); }
+
 namespace thread {
   enum Code {
     cLocked,
@@ -63,11 +65,11 @@ namespace thread {
 
   public:
     ThreadData() {
-      assert(pthread_key_create(&native_, NULL) == 0);
+      pthread_check(pthread_key_create(&native_, NULL));
     }
 
     ~ThreadData() {
-      assert(pthread_key_delete(native_) == 0);
+      pthread_check(pthread_key_delete(native_));
     }
 
     T get() {
@@ -75,7 +77,7 @@ namespace thread {
     }
 
     void set(T val) {
-      assert(pthread_setspecific(native_, reinterpret_cast<void*>(val)) == 0);
+      pthread_check(pthread_setspecific(native_, reinterpret_cast<void*>(val)));
     }
   };
 
@@ -118,7 +120,7 @@ namespace thread {
     virtual void perform() { }
 
     void detach() {
-      assert(pthread_detach(native_) == 0);
+      pthread_check(pthread_detach(native_));
     }
 
     bool equal(Thread& other) {
@@ -144,18 +146,18 @@ namespace thread {
     }
 
     void cancel() {
-      assert(pthread_cancel(native_) == 0);
+      pthread_check(pthread_cancel(native_));
     }
 
     void kill(int sig) {
-      assert(pthread_kill(native_, sig) == 0);
+      pthread_check(pthread_kill(native_, sig));
     }
 
     int priority() {
       int _policy;
       struct sched_param params;
 
-      assert(pthread_getschedparam(native_, &_policy, &params) == 0);
+      pthread_check(pthread_getschedparam(native_, &_policy, &params));
 
       return params.sched_priority;
     }
@@ -164,7 +166,7 @@ namespace thread {
       int _policy;
       struct sched_param params;
 
-      assert(pthread_getschedparam(native_, &_policy, &params) == 0);
+      pthread_check(pthread_getschedparam(native_, &_policy, &params));
       int max = sched_get_priority_max(_policy);
       int min = sched_get_priority_min(_policy);
 
@@ -276,7 +278,7 @@ namespace thread {
       pthread_mutexattr_t attr;
       pthread_mutexattr_init(&attr);
       pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-      assert(pthread_mutex_init(&native_, &attr) == 0);
+      pthread_check(pthread_mutex_init(&native_, &attr));
     }
 
     Mutex() {
@@ -349,7 +351,7 @@ namespace thread {
 
   public:
     void init() {
-      assert(pthread_cond_init(&native_, NULL) == 0);
+      pthread_check(pthread_cond_init(&native_, NULL));
     }
 
     Condition() {
@@ -357,15 +359,15 @@ namespace thread {
     }
 
     ~Condition() {
-      assert(pthread_cond_destroy(&native_) == 0);
+      pthread_check(pthread_cond_destroy(&native_));
     }
 
     void signal() {
-      assert(pthread_cond_signal(&native_) == 0);
+      pthread_check(pthread_cond_signal(&native_));
     }
 
     void broadcast() {
-      assert(pthread_cond_broadcast(&native_) == 0);
+      pthread_check(pthread_cond_broadcast(&native_));
     }
 
     void wait(Mutex& mutex) {
@@ -373,7 +375,7 @@ namespace thread {
         std::cout << "[[ " << pthread_self() << "   CUnlocking " << mutex.describe() << " ]]\n";
       }
 
-      assert(pthread_cond_wait(&native_, mutex.native()) == 0);
+      pthread_check(pthread_cond_wait(&native_, mutex.native()));
 
       if(cDebugLockGuard) {
         std::cout << "[[ " << pthread_self() << "   CLocked " << mutex.describe() << " ]]\n";
