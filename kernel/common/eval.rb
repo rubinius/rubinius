@@ -192,7 +192,7 @@ module Kernel
   def instance_exec(*args, &prc)
     raise ArgumentError, "Missing block" unless block_given?
     env = prc.block
-    static_scope = Rubinius::StaticScope.of_sender.using_current_as(__metaclass__)
+    static_scope = env.method.scope.using_current_as(__metaclass__)
     return env.call_under(self, static_scope, *args)
   end
 end
