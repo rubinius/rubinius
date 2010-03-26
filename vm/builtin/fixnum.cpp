@@ -397,7 +397,7 @@ namespace rubinius {
     k = to_native();
 
     if(j < 2 || j > 36) {
-      Exception::argument_error(state, "invalid base");
+      Exception::argument_error(state, "base must be between 2 and 36");
     }
 
     /* Algorithm taken from 1.8.4 rb_fix2str */

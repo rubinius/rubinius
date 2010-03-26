@@ -36,12 +36,6 @@ class Fixnum < Integer
 
   alias_method :quo, :fdiv
 
-  def to_s(base=10)
-    raise ArgumentError, 'base must be between 2 and 36' unless base.between?(2, 36)
-    based_to_s(base)
-  end
-  private :base_to_s
-
   # taint and untaint are noops on Fixnum
   def taint
     self

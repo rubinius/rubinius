@@ -179,7 +179,7 @@ namespace rubinius {
     Array* coerce(STATE, Fixnum* other);
 
     // Ruby.primitive :bignum_to_s
-    String* to_s(STATE, Integer* radix);
+    String* to_s(STATE, Fixnum* base);
 
     // Format the bignum using +radix+ and store the result
     // in +buf+ of size +sz+. This will always NUL-terminate +buf+.

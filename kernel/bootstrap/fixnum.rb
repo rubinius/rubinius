@@ -168,12 +168,12 @@ class Fixnum < Integer
   end
 
   def to_s(base=10)
-    based_to_s(base)
+    Rubinius.invoke_primitive :fixnum_to_s, self, base
   end
 
-  def based_to_s(base)
-    Ruby.primitive :fixnum_to_s
-    raise PrimitiveFailure, "Fixnum#based_to_s primitive failed"
+  # We do not alias this to #to_s in case someone overrides #to_s.
+  def inspect
+    Rubinius.invoke_primitive :fixnum_to_s, self, 10
   end
 
   def to_f
@@ -184,9 +184,5 @@ class Fixnum < Integer
   def size
     Ruby.primitive :fixnum_size
     raise PrimitiveFailure, "Fixnum#size primitive failed"
-  end
-
-  def inspect
-    based_to_s(10)
   end
 end

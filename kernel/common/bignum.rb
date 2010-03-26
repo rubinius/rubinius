@@ -46,6 +46,4 @@ class Bignum < Integer
   end
 
   alias_method :quo, :fdiv
-
-  private :radix_to_s # in kernel/bootstrap/bignum.rb
 end

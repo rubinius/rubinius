@@ -141,20 +141,13 @@ class Bignum < Integer
     raise PrimitiveFailure, "Bignum#to_f primitive failed"
   end
 
-  def radix_to_s(radix)
-    Ruby.primitive :bignum_to_s
-    raise PrimitiveFailure, "Bignum#radix_to_s primitive failed"
+  def to_s(base=10)
+    Rubinius.invoke_primitive :bignum_to_s, self, base
   end
 
-  def to_s(radix=10)
-    unless radix.between?(2, 36)
-      raise ArgumentError, 'base must be between 2 and 36'
-    end
-    radix_to_s(radix)
-  end
-
+  # We do not alias this to #to_s in case someone overrides #to_s.
   def inspect
-    radix_to_s(10)
+    Rubinius.invoke_primitive :bignum_to_s, self, 10
   end
 
   def size

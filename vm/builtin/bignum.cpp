@@ -944,15 +944,21 @@ namespace rubinius {
     return Float::create(state, to_double(state));
   }
 
-  String* Bignum::to_s(STATE, Integer* radix) {
+  String* Bignum::to_s(STATE, Fixnum* base) {
     char *buf;
     int sz = 1024;
     int k;
+    native_int b;
     String* obj;
+
+    b = base->to_native();
+    if(b < 2 || b > 36) {
+      Exception::argument_error(state, "base must be between 2 and 36");
+    }
 
     for(;;) {
       buf = ALLOC_N(char, sz);
-      mp_toradix_nd(XST, mp_val(), buf, radix->to_native(), sz, &k);
+      mp_toradix_nd(XST, mp_val(), buf, b, sz, &k);
       if(k < sz - 2) {
         obj = String::create(state, buf);
         FREE(buf);
