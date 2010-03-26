@@ -70,4 +70,12 @@ describe "CApiNumericSpecs" do
       i.should eql(14)
     end
   end
+
+  describe "rb_int2inum" do
+    it "should create a new Fixnum from a long" do
+      i = @s.rb_int2inum_14()
+      i.should be_kind_of(Fixnum)
+      i.should eql(14)
+    end
+  end
 end

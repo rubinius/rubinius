@@ -38,6 +38,11 @@ static VALUE class_spec_cv_set(VALUE self, VALUE klass, VALUE name, VALUE val) {
   return Qnil;
 }
 
+static VALUE class_spec_define_class_variable(VALUE self, VALUE klass, VALUE name, VALUE val) {
+  rb_define_class_variable(klass, StringValuePtr(name), val);
+  return Qnil;
+}
+
 static VALUE class_spec_cvar_set(VALUE self, VALUE klass, VALUE name, VALUE val) {
 	rb_cvar_set(klass, rb_intern(StringValuePtr(name)), val, 0);
 
@@ -68,6 +73,7 @@ void Init_class_spec() {
   rb_define_method(cls, "rb_cv_set", class_spec_cv_set, 3);
   rb_define_method(cls, "rb_cv_get", class_spec_cv_get, 2);
   rb_define_method(cls, "rb_cvar_set", class_spec_cvar_set, 3);
+  rb_define_method(cls, "rb_define_class_variable", class_spec_define_class_variable, 3);
   rb_define_method(cls, "rb_cvar_get", class_spec_cvar_get, 2);
   rb_define_method(cls, "rb_cvar_defined", class_spec_cvar_defined, 2);
 }

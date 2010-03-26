@@ -39,6 +39,10 @@ class CApiClassSpecs
     def new_cvar
       @@new_cvar if defined? @@new_cvar
     end
+
+    def rbdcv_cvar
+      @@rbdcv_cvar if defined? @@rbdcv_cvar
+    end
   end
 end
 
@@ -142,6 +146,16 @@ describe "C-API Class function" do
       o.new_cvar.should be_nil
       @s.rb_cvar_set(CApiClassSpecs::CVars, "@@new_cvar", 1)
       o.new_cvar.should == 1
+    end
+    
+  end
+  
+  describe "rb_define_class_variable" do
+    it "sets a class variable" do 
+      o = CApiClassSpecs::CVars.new
+      o.rbdcv_cvar.should be_nil
+      @s.rb_define_class_variable(CApiClassSpecs::CVars, "@@rbdcv_cvar", 1)
+      o.rbdcv_cvar.should == 1
     end
   end
 

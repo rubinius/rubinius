@@ -136,6 +136,22 @@ VALUE object_spec_rb_obj_freeze(VALUE self, VALUE obj) {
   return rb_obj_freeze(obj);
 }
 
+VALUE object_spec_rb_obj_frozen_p(VALUE self, VALUE obj) {
+  return rb_obj_frozen_p(obj);
+}
+
+VALUE object_spec_rb_obj_taint(VALUE self, VALUE obj) {
+  return rb_obj_taint(obj);
+}
+
+void object_spec_rb_check_frozen(VALUE self, VALUE obj) {
+  rb_check_frozen(obj);
+}
+
+VALUE object_spec_rb_any_to_s(VALUE self, VALUE obj) {
+  return rb_any_to_s(obj);
+}
+
 void Init_object_spec() {
   VALUE cls;
   cls = rb_define_class("CApiObjectSpecs", rb_cObject);
@@ -168,4 +184,8 @@ void Init_object_spec() {
 
   rb_define_method(cls, "rb_obj_id", object_spec_rb_obj_id, 1);
   rb_define_method(cls, "rb_obj_freeze", object_spec_rb_obj_freeze, 1);
+  rb_define_method(cls, "rb_obj_frozen_p", object_spec_rb_obj_frozen_p, 1);
+  rb_define_method(cls, "rb_obj_taint", object_spec_rb_obj_taint, 1);
+  rb_define_method(cls, "rb_check_frozen", object_spec_rb_check_frozen, 1);
+  rb_define_method(cls, "rb_any_to_s", object_spec_rb_any_to_s, 1);
 }
