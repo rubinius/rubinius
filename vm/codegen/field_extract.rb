@@ -258,9 +258,9 @@ class CPPPrimitive < BasicPrimitive
     str << "  if(arg_count != #{arity}) goto fail;\n"
 
     if @type == "Object"
-      str << "  self = args[arg_count-1];\n"
+      str << "  self = args[0];\n"
     else
-      str << "  self = try_as<#{@type}>(args[arg_count-1]);\n"
+      str << "  self = try_as<#{@type}>(args[0]);\n"
       str << "  if(unlikely(self == NULL)) goto fail;\n"
     end
 
