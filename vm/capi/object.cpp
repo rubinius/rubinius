@@ -26,11 +26,9 @@ extern "C" {
   }
 
   void rb_check_frozen(VALUE obj_handle) {
-    /* @todo  implement when rbx supports frozen objects. */
     if(rb_obj_frozen_p(obj_handle)){
       char *class_name = rb_obj_classname(obj_handle);
       rb_error_frozen((const char*)class_name);
-      free(class_name);
     }
   }
 

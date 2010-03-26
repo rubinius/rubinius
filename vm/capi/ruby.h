@@ -809,7 +809,7 @@ double rb_num2dbl(VALUE);
   /** Raises an exception if obj_handle is frozen. */
   void    rb_check_frozen(VALUE obj_handle);
 
-  /** check if obj_handle is frozen. */
+  /** check if obj is frozen. */
   VALUE     rb_obj_frozen_p(VALUE obj);
 
   /** raise error on class */
@@ -1039,7 +1039,7 @@ double rb_num2dbl(VALUE);
   void    rb_io_wait_writable(int fd);
   void    rb_thread_wait_fd(int fd);
 
-  /** convert a native int to */
+  /** convert a native int to Fixnum */
   VALUE rb_int2inum(long n);
   
   /** Mark ruby object ptr. */
