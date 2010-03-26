@@ -8,7 +8,16 @@ namespace rubinius {
     };
 
   public:
+    FinalizeObject()
+      : queue_count(0)
+    {}
+
     Object* object;
     FinalizationStatus status;
+    int queue_count;
+
+    void queued() {
+      status = eQueued;
+    }
   };
 }

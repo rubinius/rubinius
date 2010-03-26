@@ -339,7 +339,7 @@ namespace rubinius {
         i->object = saw_object(i->object);
 
         if(!i->object->marked_p(object_memory_->mark())) {
-          i->status = FinalizeObject::eQueued;
+          i->queued();
           object_memory_->to_finalize().push_back(&fi);
         }
         break;
@@ -355,7 +355,7 @@ namespace rubinius {
           continue;
         } else {
           // RESURECTION!
-          i->status = FinalizeObject::eQueued;
+          i->queued();
           i->object = saw_object(i->object);
         }
         break;

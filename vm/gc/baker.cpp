@@ -29,7 +29,6 @@ namespace rubinius {
     , tune_threshold_(0)
     , original_lifetime_(1)
     , lifetime_(1)
-    , promoted_(0)
   {
     current = &heap_a;
     next = &heap_b;
@@ -220,8 +219,6 @@ namespace rubinius {
     // alive (and thus promoted).
     handle_promotions();
 
-    clear_promotion();
-
     assert(fully_scanned_p());
 
 #ifdef RBX_GC_STATS
@@ -285,40 +282,14 @@ namespace rubinius {
   }
 
   void BakerGC::handle_promotions() {
-    /* Ok, now handle all promoted objects. This is setup a little weird
-     * so I should explain.
-     *
-     * We want to scan each promoted object. But this scanning will likely
-     * cause more objects to be promoted. Adding to an ObjectArray that your
-     * iterating over blows up the iterators, so instead we rotate the
-     * current promoted set out as we iterator over it, and stick an
-     * empty ObjectArray in.
-     *
-     * This way, when there are no more objects that are promoted, the last
-     * ObjectArray will be empty.
-     * */
+    while(promoted_stack_.size() > 0 || !fully_scanned_p()) {
+      while(promoted_stack_.size() > 0) {
+        Object* obj = promoted_stack_.back();
+        promoted_stack_.pop_back();
 
-    promoted_current_ = promoted_insert_ = promoted_->begin();
-
-    while(promoted_->size() > 0 || !fully_scanned_p()) {
-      if(promoted_->size() > 0) {
-        for(;promoted_current_ != promoted_->end();
-            ++promoted_current_) {
-          Object* tmp = *promoted_current_;
-          assert(tmp->zone() == MatureObjectZone);
-          scan_object(tmp);
-          if(watched_p(tmp)) {
-            std::cout << "detected " << tmp << " during scan of promoted objects.\n";
-          }
-        }
-
-        promoted_->resize(promoted_insert_ - promoted_->begin());
-        promoted_current_ = promoted_insert_ = promoted_->begin();
+        scan_object(obj);
       }
 
-      /* As we're handling promoted objects, also handle unscanned objects.
-       * Scanning these unscanned objects (via the scan pointer) will
-       * cause more promotions. */
       copy_unscanned();
     }
   }
@@ -375,45 +346,44 @@ namespace rubinius {
         i != object_memory_->finalize().end(); ) {
       FinalizeObject& fi = *i;
 
-      if(!i->object->young_object_p()) {
-        i++;
-        continue;
-      }
+      bool remove = false;
 
-      switch(i->status) {
-      case FinalizeObject::eLive:
-        if(!i->object->forwarded_p()) {
-          i->status = FinalizeObject::eQueued;
+      if(i->object->young_object_p()) {
+        Object* orig = i->object;
+        switch(i->status) {
+        case FinalizeObject::eLive:
+          if(!i->object->forwarded_p()) {
+            i->queued();
+            object_memory_->to_finalize().push_back(&fi);
+          }
 
           // We have to still keep it alive though until we finish with it.
+          i->object = saw_object(orig);
+          break;
+        case FinalizeObject::eQueued:
+          // Nothing, we haven't gotten to it yet.
+          // Keep waiting and keep i->object updated.
           i->object = saw_object(i->object);
-          object_memory_->to_finalize().push_back(&fi);
-        } else {
-          i->object = i->object->forward();
+
+          i->queue_count++;
+          break;
+        case FinalizeObject::eFinalized:
+          if(!i->object->forwarded_p()) {
+            // finalized and done with.
+            remove = true;
+          } else {
+            // RESURECTION!
+            i->queued();
+          }
+          break;
         }
-        break;
-      case FinalizeObject::eQueued:
-        // Nothing, we haven't gotten to it yet.
-        // Keep waiting and keep i->object updated.
-        if(i->object->forwarded_p()) {
-          i->object = i->object->forward();
-        } else {
-          i->object = saw_object(i->object);
-        }
-        break;
-      case FinalizeObject::eFinalized:
-        if(!i->object->forwarded_p()) {
-          // finalized and done with.
-          i = object_memory_->finalize().erase(i);
-          continue;
-        } else {
-          // RESURECTION!
-          i->status = FinalizeObject::eQueued;
-        }
-        break;
       }
 
-      i++;
+      if(remove) {
+        i = object_memory_->finalize().erase(i);
+      } else {
+        i++;
+      }
     }
   }
 

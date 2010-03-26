@@ -125,34 +125,15 @@ namespace rubinius {
     size_t lifetime_;
 
     int promoted_objects_;
-    ObjectArray* promoted_;
-    ObjectArray::iterator promoted_insert_, promoted_current_;
+    ObjectArray promoted_stack_;
 
-    // Assume ObjectArray is a vector!
     void promoted_push(Object* obj) {
       promoted_objects_++;
-
-      if(promoted_insert_ == promoted_current_) {
-        size_t i = promoted_insert_ - promoted_->begin(),
-               j = promoted_current_ - promoted_->begin();
-        promoted_->push_back(obj);
-        promoted_current_ = promoted_->begin() + j;
-        promoted_insert_ = promoted_->begin() + i;
-      } else {
-        *promoted_insert_++ = obj;
-      }
+      promoted_stack_.push_back(obj);
     }
 
     void reset_promoted() {
       promoted_objects_ = 0;
-      promoted_ = new ObjectArray(0);
-      promoted_current_ = promoted_insert_ = promoted_->begin();
-    }
-
-    void clear_promotion() {
-      assert(promoted_->size() == 0);
-      if(promoted_) delete promoted_;
-      promoted_ = 0;
     }
 
   public:
