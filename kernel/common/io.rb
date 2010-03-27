@@ -1585,11 +1585,15 @@ class IO
 
     ensure_open_and_writable
 
-    @ibuffer.unseek! self
-    bytes_to_write = data.size
-    while bytes_to_write > 0
-      bytes_to_write -= @ibuffer.unshift(data, data.size - bytes_to_write)
-      @ibuffer.empty_to self if @ibuffer.full? or sync
+    if @sync
+      prim_write(data)
+    else
+      @ibuffer.unseek! self
+      bytes_to_write = data.size
+      while bytes_to_write > 0
+        bytes_to_write -= @ibuffer.unshift(data, data.size - bytes_to_write)
+        @ibuffer.empty_to self if @ibuffer.full? or sync
+      end
     end
 
     data.size
@@ -1600,7 +1604,7 @@ class IO
     return 0 if data.length == 0
 
     ensure_open_and_writable
-    @ibuffer.unseek! self
+    @ibuffer.unseek!(self) unless @sync
 
     prim_write(data)
   end
