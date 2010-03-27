@@ -39,6 +39,7 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
         g.push_has_block
       end
     end
@@ -53,6 +54,7 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
         g.push_undef
       end
     end
@@ -81,6 +83,7 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
         if @arguments.array.size == 0
           g.push_self
           g.check_frozen
@@ -108,6 +111,7 @@ module Rubinius
           raise CompileError, "block passed to invoke_primitive"
         end
 
+        pos(g)
         selector = @arguments.array.shift
         @arguments.bytecode(g)
         g.invoke_primitive selector.value, @arguments.size
@@ -160,6 +164,7 @@ module Rubinius
       def bytecode(g)
         map_sends
 
+        pos(g)
         @block.bytecode(g)
       end
     end
@@ -215,6 +220,8 @@ module Rubinius
 
       def bytecode(g)
         return super(g) if @block or @arguments.splat?
+
+        pos(g)
 
         slow = g.new_label
         done = g.new_label
@@ -273,6 +280,7 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
         @receiver.bytecode(g)
         @arguments.bytecode(g)
 
@@ -306,6 +314,7 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
         @arguments.bytecode(g)
         @receiver.bytecode(g)
 
@@ -325,6 +334,7 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
         var = @arguments.array[0]
         const = @arguments.array[1]
 
@@ -479,6 +489,7 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
         if @block
           g.push_modifiers
 
