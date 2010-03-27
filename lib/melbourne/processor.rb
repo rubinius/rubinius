@@ -431,7 +431,7 @@ module Rubinius
         return node
       end
 
-      AST::Send.new line, receiver, name, true
+      AST::Send.new line, receiver, name, true, true
     end
 
     def process_valias(line, to, from)

@@ -4,13 +4,14 @@ module Rubinius
       attr_accessor :receiver, :name, :privately, :block, :variable
       attr_accessor :check_for_local
 
-      def initialize(line, receiver, name, privately=false)
+      def initialize(line, receiver, name, privately=false, vcall_style=false)
         @line = line
         @receiver = receiver
         @name = name
         @privately = privately
         @block = nil
         @check_for_local = false
+        @vcall_style = vcall_style
       end
 
       def check_local_reference(g)
@@ -22,7 +23,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        if reference = check_local_reference(g)
+        if @vcall_style and reference = check_local_reference(g)
           return reference.get_bytecode(g)
         end
 
@@ -54,7 +55,7 @@ module Rubinius
       end
 
       def defined(g)
-        if check_local_reference(g)
+        if @vcall_style and check_local_reference(g)
           g.push_literal "local-variable"
           return
         end
@@ -86,10 +87,12 @@ module Rubinius
       end
 
       def receiver_sexp
-        @receiver.kind_of?(Self) ? nil : @receiver.to_sexp
+        @privately ? nil : @receiver.to_sexp
       end
 
       def arguments_sexp
+        return nil if @vcall_style
+
         sexp = [:arglist]
         sexp << @block.to_sexp if @block.kind_of? BlockPass
         sexp
