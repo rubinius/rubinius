@@ -210,8 +210,13 @@ class UnboundMethod
 
   def bind(receiver)
     unless receiver.__kind_of__ @defined_in
+      if @defined_in.kind_of?(Class) and @defined_in.__metaclass_object__
+        raise TypeError, "illegal attempt to rebind a singleton method to another object"
+      end
+
       raise TypeError, "Must be bound to an object of kind #{@defined_in}"
     end
+
     Method.new receiver, @defined_in, @executable, @name
   end
 
@@ -220,7 +225,8 @@ class UnboundMethod
   # it with the optionally supplied arguments.
 
   def call_on_instance(obj, *args, &block)
-    @executable.invoke(@name, @defined_in, obj, args, block)
+    # Use bind so that we get the validation logic.
+    bind(obj).call(*args, &block)
   end
 
   ##
