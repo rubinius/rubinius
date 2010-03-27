@@ -18,12 +18,15 @@ module Rubinius
     #
     def self.load_extension(library_path, extension_name)
       library = library_path.sub /#{Rubinius::LIBSUFFIX}$/, ''
-      symbol = "Init_#{extension_name}"
+      name = "Init_#{extension_name}"
 
-      entry_point = load_entry_point library, symbol
+      entry_point = load_entry_point library, name
 
-      Rubinius.metaclass.method_table.store symbol.to_sym, entry_point, :public
-      Rubinius.send symbol.to_sym
+      symbol = name.to_sym
+
+      Rubinius.object_metaclass(self).method_table.store symbol, entry_point, :public
+      Rubinius::VM.reset_method_cache(symbol)
+      __send__ symbol
 
       true
     end

@@ -232,7 +232,7 @@ module Rubinius
       ss.script = script
       @scope = ss
 
-      mc = MAIN.metaclass
+      mc = Rubinius.object_metaclass(MAIN)
       mc.method_table.store :__script__, self, :public
       compile
       VM.reset_method_cache :__script__

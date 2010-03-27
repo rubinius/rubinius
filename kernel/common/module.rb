@@ -161,7 +161,7 @@ class Module
   end
 
   def find_class_method_in_hierarchy(sym)
-    self.metaclass.find_method_in_hierarchy(sym)
+    Rubinius.object_metaclass(self).find_method_in_hierarchy(sym)
   end
 
   def remote_alias(new_name, mod, current_name)
@@ -392,7 +392,7 @@ class Module
   end
 
   def set_class_visibility(meth, vis)
-    metaclass.set_visibility meth, vis, "class "
+    Rubinius.object_metaclass(self).set_visibility meth, vis, "class "
   end
 
   def protected(*args)
@@ -694,7 +694,7 @@ class Module
 
   def initialize_copy(other)
     @method_table = other.method_table.dup
-    metaclass.method_table = other.metaclass.method_table.dup
+    Rubinius.object_metaclass(self).method_table = Rubinius.object_metaclass(other).method_table.dup
 
     @constants = Rubinius::LookupTable.new
 

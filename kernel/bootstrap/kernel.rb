@@ -11,7 +11,7 @@ module Kernel
   end
 
   def extend(*mods)
-    metaclass.include(*mods)
+    Rubinius.object_metaclass(self).include(*mods)
     self
   end
 

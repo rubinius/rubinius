@@ -51,7 +51,7 @@ class Module
 
       Rubinius::VariableScope.of_sender.method_visibility = :module
     else
-      mc = self.metaclass
+      mc = Rubinius.object_metaclass(self)
       args.each do |meth|
         method_name = Type.coerce_to_symbol meth
         method = find_method_in_hierarchy(method_name)

@@ -552,12 +552,12 @@ module Kernel
 
   def methods(all=true)
     methods = singleton_methods(all)
-    methods |= self.metaclass.instance_methods(true) if all
+    methods |= Rubinius.object_metaclass(self).instance_methods(true) if all
 
     return methods if kind_of?(ImmediateValue)
 
     undefs = []
-    metaclass.method_table.filter_entries do |entry|
+    Rubinius.object_metaclass(self).method_table.filter_entries do |entry|
       undefs << entry.name.to_s if entry.visibility == :undef
     end
 
@@ -569,7 +569,7 @@ module Kernel
   end
 
   def private_singleton_methods
-    Rubinius.convert_to_names metaclass.method_table.private_names
+    Rubinius.convert_to_names Rubinius.object_metaclass(self).method_table.private_names
   end
 
   def protected_methods(all=true)
@@ -577,7 +577,7 @@ module Kernel
   end
 
   def protected_singleton_methods
-    Rubinius.convert_to_names metaclass.method_table.protected_names
+    Rubinius.convert_to_names Rubinius.object_metaclass(self).method_table.protected_names
   end
 
   def public_methods(all=true)
@@ -585,7 +585,7 @@ module Kernel
   end
 
   def singleton_methods(all=true)
-    mt = metaclass.method_table
+    mt = Rubinius.object_metaclass(self).method_table
     methods = (all ? mt.names : mt.public_names + mt.protected_names)
 
     Rubinius.convert_to_names methods

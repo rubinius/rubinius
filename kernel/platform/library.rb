@@ -95,7 +95,7 @@ module FFI
         if func = create_backend(lib, cname, args, ret)
 
           # Make it available as a method callable directly..
-          metaclass.method_table.store mname, func, :public
+          Rubinius.object_metaclass(self).method_table.store mname, func, :public
 
           # and expose it as a private method for people who
           # want to include this module.
