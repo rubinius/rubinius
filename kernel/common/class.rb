@@ -67,10 +67,6 @@ class Class
     under.const_set name, self if under
 
     if sclass
-      # add class to sclass's subclass list, for ObjectSpace.each_object(Class)
-      # NOTE: This is non-standard; Ruby does not normally track subclasses
-      sclass.__send__ :add_subclass, self
-
       sclass.__send__ :inherited, self
     end
   end
@@ -86,16 +82,6 @@ class Class
       cls = cls.direct_superclass
     end
     return cls
-  end
-
-  def add_subclass(cls)
-    @subclass_objects ||= []
-    @subclass_objects << cls
-  end
-  private :add_subclass
-
-  def __subclasses__
-    @subclass_objects || []
   end
 
   def inherited(name)
