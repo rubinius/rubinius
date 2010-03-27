@@ -19,11 +19,11 @@ ruby_version_is ""..."1.9" do
       end
 
       it "changes the mode to 1st arg for files in 2nd arg" do
-        `ls -l chmod_test_1`.should =~ /^-rwxrwxrwx /
-        `ls -l chmod_test_2`.should =~ /^-rwxrwxrwx /
+        `ls -l chmod_test_1`.should =~ /^-rwxrwxrwx/
+        `ls -l chmod_test_2`.should =~ /^-rwxrwxrwx/
         File.chmod 0644, "chmod_test_1", "chmod_test_2"
-        `ls -l chmod_test_1`.should =~ /^-rw-r--r-- /
-        `ls -l chmod_test_2`.should =~ /^-rw-r--r-- /
+        `ls -l chmod_test_1`.should =~ /^-rw-r--r--/
+        `ls -l chmod_test_2`.should =~ /^-rw-r--r--/
       end
     end
   end

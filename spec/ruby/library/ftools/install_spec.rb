@@ -17,9 +17,9 @@ ruby_version_is ""..."1.9" do
       end
 
       it "changes the mode to 1st arg for files in 2nd arg" do
-        `ls -l install_test_1`.should =~ /^-rwxrwxrwx /
+        `ls -l install_test_1`.should =~ /^-rwxrwxrwx/
         File.install "install_test_1", "install_test_2", 0644
-        `ls -l install_test_2`.should =~ /^-rw-r--r-- /
+        `ls -l install_test_2`.should =~ /^-rw-r--r--/
       end
     end
   end
