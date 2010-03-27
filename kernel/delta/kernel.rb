@@ -67,17 +67,19 @@ module Kernel
       msg = "no method '#{meth}'"
     end
 
+    object_class = Rubinius.object_class(self)
+
     if __kind_of__(Module)
-      msg << " on #{self} (#{self.class})"
+      msg << " on #{self} (#{object_class})"
 
     # A seperate case for nil, because people like to patch methods to
     # nil, so we can't call methods on it reliably.
     elsif nil.equal?(self)
       msg << " on nil:NilClass."
     elsif ImmediateValue === self
-      msg << " on #{self}:#{self.class}."
+      msg << " on #{self}:#{object_class}."
     else
-      msg << " on an instance of #{self.class}."
+      msg << " on an instance of #{object_class}."
     end
 
     Kernel.raise cls.new(msg, meth, args)
