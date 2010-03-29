@@ -1,3 +1,5 @@
+require 'rake/loaders/makefile'
+
 # Setup project files
 project_files = common_headers + headers + sources + objects
 
@@ -6,6 +8,10 @@ add_rbx_capi
 syck = "syck.#{$DLEXT}"
 
 file syck => project_files
+
+graph_dependencies sources
+
+import dependency_file
 
 desc "Build Syck extension"
 task :build => syck

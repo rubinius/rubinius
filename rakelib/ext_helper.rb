@@ -201,6 +201,22 @@ def objects(dir=nil)
   @objects ||= dir ? sources.pathmap("#{dir}/%X.o") : sources.ext(".o")
 end
 
+def dependency_file
+  ".depends.mf"
+end
+
+def graph_dependencies(sources, directories=[])
+  directories = Array(directories)
+  directories.concat [".", File.expand_path("../../vm/capi", __FILE__)]
+
+  grapher = DependencyGrapher.new sources, directories
+  grapher.process
+
+  File.open dependency_file, "w" do |file|
+    grapher.print_dependencies file
+  end
+end
+
 # Helper methods for invoking and reporting on commands
 #
 def report_command(notice)
@@ -229,6 +245,7 @@ class String
     strip.upcase.tr_s("^A-Z0-9_", "_")
   end
 end
+
 class Array
   # Wraps all strings in escaped quotes if they contain whitespace.
   def quote

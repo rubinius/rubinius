@@ -37,9 +37,10 @@ def compile_ext(name, opts={})
       rbx = File.expand_path "../bin/rbx-build", File.dirname(__FILE__)
 
       ext_helper = File.expand_path "../ext_helper.rb", __FILE__
+      dep_grapher = File.expand_path "../dependency_grapher.rb", __FILE__
       Dir.chdir ext_dir do
         if File.exists? "Rakefile"
-          ruby "-S rake #{'-t' if $verbose} -r #{ext_helper} #{ext_task_name}"
+          ruby "-S rake #{'-t' if $verbose} -r #{ext_helper} -r #{dep_grapher} #{ext_task_name}"
         else
           unless File.directory? BUILD_CONFIG[:runtime]
             ENV["CFLAGS"]      = "-Ivm/capi"

@@ -1,3 +1,5 @@
+require 'rake/loaders/makefile'
+
 # Setup project files
 project_files = common_headers + headers + sources + objects
 
@@ -9,6 +11,10 @@ add_shared_lib "crypto"
 sha1 = "sha1.#{$DLEXT}"
 
 file sha1 => project_files
+
+graph_dependencies sources, "./../"
+
+import dependency_file
 
 desc "Build Digest/sha1 extension"
 task :build => sha1

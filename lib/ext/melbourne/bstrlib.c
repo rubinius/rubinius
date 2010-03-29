@@ -22,7 +22,11 @@
 /* Optionally include a mechanism for debugging memory */
 
 #if defined(MEMORY_DEBUG) || defined(BSTRLIB_MEMORY_DEBUG)
-#include "memdbg.h"
+/* TODO: temporarily disable include until dependency grapher
+ * properly parses expressions.
+ *
+ * #include "memdbg.h"
+ */
 #endif
 
 #ifndef bstr__alloc

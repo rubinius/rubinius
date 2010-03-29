@@ -1,3 +1,5 @@
+require 'rake/loaders/makefile'
+
 # Special rule for putting .o files in the implementation-specific
 # subdirectory so this single extension can be built for both MRI
 # and Rubinius
@@ -18,9 +20,13 @@ def ext_dir
   @ext_dir
 end
 
+def source_files
+  sources("grammar.cpp")
+end
+
 # Setup project files
 def add_objects(files, dir)
-  sources("grammar.cpp").zip(objects(dir)).each do |source, obj|
+  source_files.zip(objects(dir)).each do |source, obj|
     file obj => source
     file obj => __FILE__ # depend on the Rakefile, it might change
     files << source << obj
@@ -55,6 +61,10 @@ directory "ruby"
 melbourne_mri = "ruby/melbourne.#{$DLEXT}"
 
 file melbourne_mri => project_files
+
+graph_dependencies source_files
+
+import dependency_file
 
 # Build tasks
 namespace :build do

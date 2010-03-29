@@ -21,7 +21,6 @@
 #include <errno.h>
 #include <float.h>
 #include <math.h>
-#include "math.h"
 
 /* #define ENABLE_NUMERIC_STRING */
 

@@ -1,3 +1,5 @@
+require 'rake/loaders/makefile'
+
 # Setup project files
 project_files = common_headers + headers + sources + objects
 
@@ -9,6 +11,10 @@ add_shared_lib "crypto"
 bubblebabble = "bubblebabble.#{$DLEXT}"
 
 file bubblebabble => project_files
+
+graph_dependencies sources, "./../"
+
+import dependency_file
 
 desc "Build Digest/bubblebabble extension"
 task :build => bubblebabble

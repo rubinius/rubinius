@@ -21,6 +21,7 @@
 .hgignore
 .libs
 .spec/bm.yml
+.depends.mf
 /rubinius_tasks.dot
 /nbproject
 CI-specs

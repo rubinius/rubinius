@@ -1,3 +1,5 @@
+require 'rake/loaders/makefile'
+
 # Setup project files
 project_files = common_headers + headers + sources + objects
 
@@ -9,6 +11,10 @@ add_shared_lib "crypto"
 rmd160 = "rmd160.#{$DLEXT}"
 
 file rmd160 => project_files
+
+graph_dependencies sources, "./../"
+
+import dependency_file
 
 desc "Build Digest/rmd160 extension"
 task :build => rmd160
