@@ -63,7 +63,7 @@ namespace rubinius {
 
 #define SQRT_LONG_MAX ((native_int)1<<((sizeof(native_int)*CHAR_BIT-1)/2))
 /*tests if N*N would overflow*/
-#define FIT_SQRT(n) (((n)<SQRT_LONG_MAX)&&((n)>=-SQRT_LONG_MAX))
+#define FIT_SQRT(n) (((n)<SQRT_LONG_MAX)&&((n)>-SQRT_LONG_MAX))
 
   Integer* Fixnum::mul(STATE, Fixnum* other) {
     native_int a  = to_native();
@@ -76,29 +76,7 @@ namespace rubinius {
       return Fixnum::from(a * b);
     }
 
-    if(a > 0) {
-      if(b > 0) {
-        if(a > (FIXNUM_MAX / b)) {
-          return Bignum::from(state, a)->mul(state, other);
-        }
-      } else {
-        if (b < (FIXNUM_MIN / a)) {
-          return Bignum::from(state, a)->mul(state, other);
-        }
-      }
-    } else {
-      if(b > 0) {
-        if(a < (FIXNUM_MIN / b)) {
-          return Bignum::from(state, a)->mul(state, other);
-        }
-      } else {
-        if(b < (FIXNUM_MAX / a)) {
-          return Bignum::from(state, a)->mul(state, other);
-        }
-      }
-    }
-
-    return Fixnum::from(a * b);
+    return Bignum::from(state, a)->mul(state, other);
   }
 
   Integer* Fixnum::mul(STATE, Bignum* other) {
