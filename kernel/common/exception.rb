@@ -10,6 +10,16 @@ class Exception
     @custom_backtrace = nil
   end
 
+  # This is here rather than in yaml.rb because it contains "private"
+  # information, ie, the list of ivars. Putting it over in the yaml
+  # sounce means it's easy to forget about.
+  def to_yaml_properties
+    list = super
+    list.delete "@backtrace"
+    list.delete "@custom_backtrace"
+    return list
+  end
+
   def message
     @reason_message
   end
