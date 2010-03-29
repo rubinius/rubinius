@@ -653,6 +653,7 @@ module Kernel
       end
 
       Process.waitpid(pid)
+      read.close
       return output
     else
       read.close
