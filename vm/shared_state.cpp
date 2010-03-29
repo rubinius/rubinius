@@ -123,6 +123,7 @@ namespace rubinius {
     , world_(new WorldState)
     , ic_registry_(new InlineCacheRegistry)
     , class_count_(0)
+    , timer_thread_started_(false)
     , om(0)
     , global_cache(new GlobalCache)
     , config(config)
@@ -210,6 +211,52 @@ namespace rubinius {
     if(profiler_collection_) {
       profiler_collection_->remove_profiler(vm, profiler);
     }
+  }
+
+  // Trampoline to call scheduler_loop()
+  static void* __thread_tramp__(void* arg) {
+    SharedState* ss = static_cast<SharedState*>(arg);
+    ss->scheduler_loop();
+    return NULL;
+  }
+
+  // Runs forever, telling the VM to reschedule threads ever 10 milliseconds
+  void SharedState::scheduler_loop() {
+    // First off, we don't want this thread ever receiving a signal.
+    sigset_t mask;
+    sigfillset(&mask);
+    if(pthread_sigmask(SIG_SETMASK, &mask, NULL) != 0) {
+      abort();
+    }
+
+    struct timespec requested;
+    struct timespec actual;
+
+    requested.tv_sec = 0;
+    requested.tv_nsec = 10000000; // 10 milliseconds
+
+    Interrupts& ints = interrupts;
+
+    for(;;) {
+      nanosleep(&requested, &actual);
+      if(ints.enable_preempt) {
+        ints.set_timer();
+      }
+    }
+  }
+
+  // Create the preemption thread and call scheduler_loop() in the new thread
+  void SharedState::enable_preemption() {
+    if(timer_thread_started_) return;
+
+    timer_thread_started_ = true;
+
+    if(pthread_create(&timer_thread_, NULL, __thread_tramp__, this) != 0) {
+      std::cerr << "Unable to create timer thread!\n";
+      exit(1);
+    }
+
+    interrupts.enable_preempt = true;
   }
 
   void SharedState::reinit() {

@@ -62,7 +62,7 @@ namespace rubinius {
 /* Instance primitives */
 
   Object* Thread::fork(STATE) {
-    state->interrupts.enable_preempt = true;
+    state->shared.enable_preemption();
 
     assert(native_thread_);
     // Let it run.

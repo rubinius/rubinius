@@ -22,9 +22,6 @@ namespace rubinius {
   };
 
   class Environment {
-    // The thread used to trigger preemptive thread switching
-    pthread_t preemption_thread_;
-
     int argc_;
     char** argv_;
 
@@ -54,11 +51,6 @@ namespace rubinius {
     void run_file(std::string path);
     void run_from_filesystem(std::string root);
     void boot_vm();
-
-    void enable_preemption();
-    // Run in a seperate thread to provide preemptive thread
-    // scheduling.
-    void scheduler_loop();
 
     void halt();
     int exit_code();

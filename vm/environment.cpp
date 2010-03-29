@@ -77,46 +77,6 @@ namespace rubinius {
     std::set_terminate(cpp_exception_bug);
   }
 
-  // Trampoline to call scheduler_loop()
-  static void* __thread_tramp__(void* arg) {
-    Environment* env = static_cast<Environment*>(arg);
-    env->scheduler_loop();
-    return NULL;
-  }
-
-  // Runs forever, telling the VM to reschedule threads ever 10 milliseconds
-  void Environment::scheduler_loop() {
-    // First off, we don't want this thread ever receiving a signal.
-    sigset_t mask;
-    sigfillset(&mask);
-    if(pthread_sigmask(SIG_SETMASK, &mask, NULL) != 0) {
-      abort();
-    }
-
-    struct timespec requested;
-    struct timespec actual;
-
-    requested.tv_sec = 0;
-    requested.tv_nsec = 10000000; // 10 milliseconds
-
-    Interrupts& interrupts = shared->interrupts;
-
-    for(;;) {
-      nanosleep(&requested, &actual);
-      if(interrupts.enable_preempt) {
-        interrupts.set_timer();
-      }
-    }
-  }
-
-  // Create the preemption thread and call scheduler_loop() in the new thread
-  void Environment::enable_preemption() {
-    if(pthread_create(&preemption_thread_, NULL, __thread_tramp__, this) != 0) {
-      std::cerr << "Unable to create preemption thread!\n";
-      exit(1);
-    }
-  }
-
   static void null_func(int sig) {}
 
 #ifdef USE_EXECINFO
@@ -466,7 +426,6 @@ namespace rubinius {
 
     load_kernel(root);
 
-    enable_preemption();
     start_signals();
     run_file(root + "/loader.rbc");
   }

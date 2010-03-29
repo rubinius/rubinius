@@ -101,12 +101,9 @@ namespace rubinius {
 
     VMMethod::init(this);
 
-    /** @todo Should a thread be starting a VM or is it the other way around? */
+    // Setup the main Thread, which is a reflect of the pthread_self()
+    // when the VM boots.
     boot_threads();
-
-    // Force these back to false because creating the default Thread
-    // sets them to true.
-    interrupts.enable_preempt = false;
 
     GlobalLock::debug_locking = shared.config.gil_debug;
   }

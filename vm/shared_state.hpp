@@ -82,6 +82,9 @@ namespace rubinius {
     kcode::CodePage kcode_page_;
     kcode::table* kcode_table_;
 
+    bool timer_thread_started_;
+    pthread_t timer_thread_;
+
     int primitive_hits_[Primitives::cTotalPrimitives];
 
   public:
@@ -193,6 +196,9 @@ namespace rubinius {
       kcode_table_ = tbl;
       kcode_page_ = page;
     }
+
+    void scheduler_loop();
+    void enable_preemption();
 
     void enable_profiling(VM* vm);
     LookupTable* disable_profiling(VM* vm);
