@@ -550,6 +550,12 @@ double rb_num2dbl(VALUE);
 /** The pointer to the array's data. */
 #define RARRAY_PTR(ary)   (RARRAY(ary)->ptr)
 
+/** The source pattern for a regex. */
+#define RREGEXP_SRC(reg)  rb_reg_source(reg)
+
+/** The options of the regex. */
+#define RREGEXP_OPTIONS(reg) rb_reg_options(reg)
+
 /** The length of string str. */
 #define RSTRING_LEN(str)  rb_str_len(str)
 
@@ -1148,6 +1154,16 @@ double rb_num2dbl(VALUE);
    * Continue raising a pending exception if status is not 0
    */
   void rb_jump_tag(int status);
+  
+  /**
+   * Retrieve the source pattern for the regular expression.
+   */
+  VALUE rb_reg_source(VALUE r);
+  
+  /**
+   * Retrieve the pattern options for the regular expression.
+   */
+  int rb_reg_options(VALUE r);
 
   /**
    *  Require a Ruby file.
