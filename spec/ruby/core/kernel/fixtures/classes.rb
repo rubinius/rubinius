@@ -304,6 +304,13 @@ class EvalSpecs
   end
 end
 
+module CallerSpecs
+  def self.recurse(n)
+    return caller if n <= 0
+    recurse(n-1)
+  end
+end
+
 # for Kernel#sleep to have Channel in it's specs
 # TODO: switch directly to queue for both Kernel#sleep and Thread specs?
 unless defined? Channel

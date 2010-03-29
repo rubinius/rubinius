@@ -29,7 +29,7 @@ describe "IO.open" do
   it "calls #close after yielding to the block" do
     IO.open(@fd, "w") do |io|
       IOSpecs.io_mock(io, :close) do
-        super
+        super()
         ScratchPad.record :called
       end
       io.closed?.should be_false
@@ -41,7 +41,7 @@ describe "IO.open" do
     lambda do
       IO.open(@fd, "w") do |io|
         IOSpecs.io_mock(io, :close) do
-          super
+          super()
           ScratchPad.record :called
           raise Exception
         end
@@ -53,7 +53,7 @@ describe "IO.open" do
   it "does not propagate a StandardError raised by #close" do
     IO.open(@fd, "w") do |io|
       IOSpecs.io_mock(io, :close) do
-        super
+        super()
         ScratchPad.record :called
         raise StandardError
       end

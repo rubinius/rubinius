@@ -56,10 +56,10 @@ describe "Dir.chdir" do
       Dir.chdir(obj)
     end
 
-    it "prefers #to_str over #to_path" do
+    it "prefers #to_path over #to_str" do
       obj = Class.new do
-        def to_path; DirSpecs.mock_dir; end
-        def to_str;  Dir.pwd; end
+        def to_path; Dir.pwd; end
+        def to_str;  DirSpecs.mock_dir; end
       end
       Dir.chdir(obj.new)
       Dir.pwd.should == @original

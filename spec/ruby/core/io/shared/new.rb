@@ -64,7 +64,7 @@ describe :io_new, :shared => true do
     end
 
     it "uses the encoding specified via the :mode option hash" do
-      @io = IO.send(@method, @fd, {:mode => 'W:utf-8:ISO-8859-1'})
+      @io = IO.send(@method, @fd, {:mode => 'w:utf-8:ISO-8859-1'})
       @io.external_encoding.to_s.should == 'UTF-8'
       @io.internal_encoding.to_s.should == 'ISO-8859-1'
     end

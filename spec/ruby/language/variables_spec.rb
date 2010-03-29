@@ -596,7 +596,7 @@ describe "Conditional assignment" do
   end
 end
 
-describe "Operator assignment 'var op= expr'" do
+describe "Unconditional operator assignment 'var op= expr'" do
   it "is equivalent to 'var = var op expr'" do
     x = 13
     (x += 5).should == 18
@@ -652,7 +652,11 @@ describe "Operator assignment 'var op= expr'" do
     x = 5
     (x >>= 1).should == 2
     x.should == 2
+  end
+end
 
+describe "Conditional operator assignment 'var op= expr'" do
+  it "assigns the lhs if its truthiness is false for ||, true for &&" do
     x = nil
     (x ||= 17).should == 17
     x.should == 17
@@ -671,7 +675,17 @@ describe "Operator assignment 'var op= expr'" do
     x.should == false
   end
 
-  it "uses short-circuit arg evaluation for operators ||= and &&=" do
+  it "may not assign at all, depending on the truthiness of lhs" do
+    Object.new.instance_eval do
+      @falsey = false
+      @truthy = true
+      freeze
+      lambda{ @truthy ||= 42 }.should_not raise_error
+      lambda{ @falsey &&= 42 }.should_not raise_error
+    end
+  end
+
+  it "uses short-circuit arg evaluation" do
     x = 8
     y = VariablesSpecs::OpAsgn.new
     (x ||= y.do_side_effect).should == 8
@@ -687,7 +701,7 @@ describe "Operator assignment 'var op= expr'" do
   end
 end
 
-describe "Operator assignment 'obj.meth op= expr'" do
+describe "Unconditional operator assignment 'obj.meth op= expr'" do
   it "is equivalent to 'obj.meth = obj.meth op expr'" do
     @x = VariablesSpecs::OpAsgn.new
     @x.a = 13
@@ -742,9 +756,14 @@ describe "Operator assignment 'obj.meth op= expr'" do
     @x.a = 5
     (@x.a >>= 1).should == 2
     @x.a.should == 2
+  end
+end
 
+describe "Conditional operator assignment 'obj.meth op= expr'" do
+  it "is equivalent to 'obj.meth op obj.meth = expr'" do
+    @x = VariablesSpecs::OpAsgn.new
     @x.a = nil
-     (@x.a ||= 17).should == 17
+    (@x.a ||= 17).should == 17
     @x.a.should == 17
     (@x.a ||= 2).should == 17
     @x.a.should == 17
@@ -761,7 +780,18 @@ describe "Operator assignment 'obj.meth op= expr'" do
     @x.a.should == false
   end
 
-  it "uses short-circuit arg evaluation for operators ||= and &&=" do
+  it "may not assign at all, depending on the truthiness of lhs" do
+    m = mock("object")
+    m.should_receive(:foo).and_return(:truthy)
+    m.should_not_receive(:foo=)
+    m.foo ||= 42
+
+    m.should_receive(:bar).and_return(false)
+    m.should_not_receive(:bar=)
+    m.bar &&= 42
+  end
+
+  it "uses short-circuit arg evaluation" do
     x = 8
     y = VariablesSpecs::OpAsgn.new
     (x ||= y.do_side_effect).should == 8
@@ -775,7 +805,9 @@ describe "Operator assignment 'obj.meth op= expr'" do
     (x ||= y.do_side_effect).should == 5
     y.side_effect.should == true
   end
+end
 
+describe "Operator assignment 'obj.meth op= expr'" do
   it "evaluates lhs one time" do
     x = VariablesSpecs::OpAsgn.new
     x.a = 5
@@ -848,7 +880,7 @@ describe "Operator assignment 'obj.meth op= expr'" do
   end
 end
 
-describe "Operator assignment 'obj[idx] op= expr'" do
+describe "Unconditional operator assignment 'obj[idx] op= expr'" do
   it "is equivalent to 'obj[idx] = obj[idx] op expr'" do
     x = [2,13,7]
     (x[1] += 5).should == 18
@@ -902,7 +934,11 @@ describe "Operator assignment 'obj[idx] op= expr'" do
     x = [nil,5,8]
     (x[1] >>= 1).should == 2
     x.should == [nil,2,8]
+  end
+end
 
+describe "Conditional operator assignment 'obj[idx] op= expr'" do
+  it "is equivalent to 'obj[idx] op obj[idx] = expr'" do
     x = [1,nil,12]
     (x[1] ||= 17).should == 17
     x.should == [1,17,12]
@@ -920,7 +956,19 @@ describe "Operator assignment 'obj[idx] op= expr'" do
     x.should == [false, false, false]
   end
 
-  it "uses short-circuit arg evaluation for operators ||= and &&=" do
+  it "may not assign at all, depending on the truthiness of lhs" do
+    m = mock("object")
+    m.should_receive(:[]).and_return(:truthy)
+    m.should_not_receive(:[]=)
+    m[:foo] ||= 42
+
+    m = mock("object")
+    m.should_receive(:[]).and_return(false)
+    m.should_not_receive(:[]=)
+    m[:bar] &&= 42
+  end
+
+  it "uses short-circuit arg evaluation" do
     x = 8
     y = VariablesSpecs::OpAsgn.new
     (x ||= y.do_side_effect).should == 8
@@ -934,7 +982,9 @@ describe "Operator assignment 'obj[idx] op= expr'" do
     (x ||= y.do_side_effect).should == 5
     y.side_effect.should == true
   end
+end
 
+describe "Operator assignment 'obj[idx] op= expr'" do
   it "handles complex index (idx) arguments" do
     x = [1,2,3,4]
     (x[0,2] += [5]).should == [1,2,5]

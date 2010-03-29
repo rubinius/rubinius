@@ -108,10 +108,11 @@ describe :kernel_require_basic, :shared => true do
         ScratchPad.recorded.should == [:loaded]
       end
 
-      it "does not call #to_path on a String" do
+      it "calls #to_path on a String" do
         path = File.expand_path "load_fixture.rb", CODE_LOADING_DIR
-        path.should_not_receive(:to_path)
-        @object.send(@method, path).should be_true
+        str = mock("load_fixture.rb mock")
+        str.should_receive(:to_path).and_return(path)
+        @object.send(@method, str).should be_true
         ScratchPad.recorded.should == [:loaded]
       end
 
