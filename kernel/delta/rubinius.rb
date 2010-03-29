@@ -96,7 +96,11 @@ module Rubinius
   def self.add_method(name, executable, mod, vis)
     vis ||= :public
 
-    if vis == :module or name == :initialize or name == :initialize_copy
+    # Don't change the visibility for methods added to singleton
+    # classes
+    if Class === mod and mod.__metaclass_object__
+      visibility = vis
+    elsif vis == :module or name == :initialize or name == :initialize_copy
       visibility = :private
     else
       visibility = vis
@@ -117,7 +121,7 @@ module Rubinius
     # commonly can't run yet because it requires methods that haven't been
     # added yet. (ActionMailer does this)
 
-    if mod.kind_of? Class and obj = mod.__metaclass_object__
+    if Class === mod and obj = mod.__metaclass_object__
       if obj.kind_of? Numeric
 
         # Such a weird protocol. If :singleton_method_added exists, allow this.
@@ -127,11 +131,11 @@ module Rubinius
         end
       end
 
-      if Rubinius.object_respond_to? obj, :singleton_method_added
+      Rubinius.privately do
         obj.singleton_method_added(name)
       end
     else
-      if Rubinius.object_respond_to? mod, :method_added
+      Rubinius.privately do
         mod.method_added(name)
       end
     end

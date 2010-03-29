@@ -1,19 +1,4 @@
 class Module
-  #--
-  # HACK: This should work after after the bootstrap is loaded,
-  # but it seems to blow things up, so it's only used after
-  # core is loaded. I think it's because the bootstrap Class#new
-  # doesn't use a privileged send.
-  #++
-
-  def __method_added__(name)
-    if name == :initialize
-      private :initialize
-    end
-
-    method_added(name) if self.respond_to? :method_added
-  end
-
   def alias_method(new_name, current_name)
     new_name = Type.coerce_to_symbol(new_name)
     current_name = Type.coerce_to_symbol(current_name)
