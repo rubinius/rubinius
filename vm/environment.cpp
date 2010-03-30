@@ -47,8 +47,9 @@ namespace rubinius {
     , agent(0)
   {
 #ifdef ENABLE_LLVM
-    bool started_llvm = llvm::llvm_start_multithreaded();
-    assert(started_llvm && "llvm doesn't support threading!");
+    if(!llvm::llvm_start_multithreaded()) {
+      assert(0 && "llvm doesn't support threading!");
+    }
 #endif
 
     VM::init_stack_size();

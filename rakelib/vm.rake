@@ -291,6 +291,9 @@ namespace :build do
   desc "Build to enforce coding practices. See build:help for info."
   task :ridiculous  => %w[ build:ridiculous_flags build:build ]
 
+  desc "Build without any debug code"
+  task :nodebug => %w[ build:nodebug_flags build:build ]
+
   desc "Generate dependency file"
   task :depends     => dep_file
 
@@ -329,6 +332,10 @@ namespace :build do
   task :debug_flags => "build:normal_flags" do
     FLAGS.delete "-O2"
     FLAGS.concat %w[ -O0 -fno-inline -DRBX_DEBUG ]
+  end
+
+  task :nodebug_flags => "build:normal_flags" do
+    FLAGS << "-DNDEBUG"
   end
 
   task :stats_flags do

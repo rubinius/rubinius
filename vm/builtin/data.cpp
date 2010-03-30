@@ -20,7 +20,7 @@ namespace rubinius {
     // Construct this object pinned, so that we can pass out address to the
     // inside of it to C code without worry about object movement.
     data = state->new_object_mature<Data>(G(data));
-    assert(data->pin());
+    if(!data->pin()) { abort(); }
 
     data->data(state, data_ptr);
     data->mark(state, mark);

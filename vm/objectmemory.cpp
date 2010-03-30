@@ -202,6 +202,7 @@ namespace rubinius {
   }
 
   void ObjectMemory::validate_handles(capi::Handles* handles) {
+#ifndef NDEBUG
     capi::Handle* handle = handles->front();
     capi::Handle* current;
 
@@ -217,6 +218,7 @@ namespace rubinius {
       assert(ih->handle() == current);
       assert(ih->object() == obj);
     }
+#endif
   }
 
   void ObjectMemory::prune_handles(capi::Handles* handles, bool check_forwards) {

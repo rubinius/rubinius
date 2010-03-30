@@ -184,9 +184,11 @@ namespace jit {
             current_->add_child(add_block(iter.operand1()));
             start_new_block(iter);
           } else {
+#ifndef NDEBUG
             CFGBlock* loop_header = find_block(iter.operand1());
             assert(loop_header);
             assert(loop_header->exception_handler() == current_->exception_handler());
+#endif
           }
           break;
 

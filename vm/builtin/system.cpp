@@ -69,7 +69,7 @@ namespace rubinius {
 
     Executable* oc = Executable::allocate(state, Qnil);
     oc->primitive(state, prim);
-    assert(oc->resolve_primitive(state));
+    oc->resolve_primitive(state);
 
     tbl->store(state, name, oc, G(sym_public));
   }
@@ -207,7 +207,7 @@ namespace rubinius {
     GlobalLock& lock = state->global_lock();
 
     // Unlock the lock here, before fork.
-    assert(lock.unlock() == thread::cUnlocked);
+    if(lock.unlock() != thread::cUnlocked) { abort(); }
 
     // ok, now fork!
     result = ::fork();

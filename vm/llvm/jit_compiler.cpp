@@ -69,8 +69,7 @@ namespace jit {
 
   void Compiler::compile_block(LLVMState* ls, CompiledMethod* cm, VMMethod* vmm) {
     if(ls->config().jit_inline_debug) {
-      VMMethod* parent = vmm->parent();
-      assert(parent);
+      assert(vmm->parent());
 
       ls->log() << "JIT: compiling block in "
         << ls->symbol_cstr(cm->name())

@@ -164,7 +164,7 @@ namespace rubinius {
 
       // Get the current time to be used if select is interrupted and we
       // have to recalculate the sleep time
-      assert(gettimeofday(&future, NULL) == 0);
+      gettimeofday(&future, NULL);
       timeradd(&future, &limit, &future);
     }
 
@@ -192,7 +192,7 @@ namespace rubinius {
         // Recalculate the limit and go again.
         if(maybe_limit) {
           struct timeval now;
-          assert(gettimeofday(&now, NULL) == 0);
+          gettimeofday(&now, NULL);
           timersub(&future, &now, &limit);
         }
 

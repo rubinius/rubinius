@@ -33,7 +33,7 @@ namespace rubinius {
     ByteArray* ba = state->om->new_object_bytes_mature<ByteArray>(G(bytearray), body);
     ba->full_size_ = body;
     memset(ba->bytes, 0, bytes);
-    assert(ba->pin());
+    if(!ba->pin()) { abort(); }
 
     return ba;
   }

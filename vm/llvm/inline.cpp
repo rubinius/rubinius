@@ -398,7 +398,7 @@ namespace rubinius {
 
     BasicBlock* entry = work.setup_inline(self, blk, args);
 
-    assert(work.generate_body());
+    if(!work.generate_body()) { abort(); }
 
     // Branch to the inlined method!
     ops_.create_branch(entry);
@@ -442,7 +442,7 @@ namespace rubinius {
     BasicBlock* entry = work.setup_inline_block(self,
         ops_.constant(Qnil, ops_.state()->ptr_type("Module")));
 
-    assert(work.generate_body());
+    if(work.generate_body()) { abort(); }
 
     // Branch to the inlined block!
     ops_.create_branch(entry);

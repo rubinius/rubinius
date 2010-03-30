@@ -42,7 +42,7 @@ namespace rubinius {
     action.sa_flags = 0;
     sigfillset(&action.sa_mask);
 
-    assert(sigaction(sig, &action, NULL) == 0);
+    sigaction(sig, &action, NULL);
   }
 
   void SignalHandler::deliver_signals(CallFrame* call_frame) {
