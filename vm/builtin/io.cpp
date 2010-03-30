@@ -750,7 +750,7 @@ failed: /* try next '*' position */
     int flags = fcntl(descriptor_->to_native(), F_GETFL);
     if(flags == -1) return;
 
-    if(flags & O_NONBLOCK == 0) {
+    if((flags & O_NONBLOCK) == 0) {
       flags |= O_NONBLOCK;
       fcntl(descriptor_->to_native(), F_SETFL, flags);
     }
