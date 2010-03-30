@@ -86,9 +86,18 @@ static VALUE ossl_ssl_session_eq(VALUE val1, VALUE val2)
 	GetSSLSession(val1, ctx1);
 	SafeGetSSLSession(val2, ctx2);
 
-	switch (SSL_SESSION_cmp(ctx1, ctx2)) {
-	case 0:		return Qtrue;
-	default:	return Qfalse;
+	/*
+	 * OpenSSL 1.0.0betas do not have non-static SSL_SESSION_cmp.
+	 * ssl_session_cmp (was SSL_SESSION_cmp in 0.9.8) is for lhash
+	 * comparing so we should not depend on it.  Just compare sessions
+	 * by version and id.
+	 */
+	if ((ctx1->ssl_version == ctx2->ssl_version) &&
+	    (ctx1->session_id_length == ctx2->session_id_length) &&
+	    (memcmp(ctx1->session_id, ctx2->session_id, ctx1->session_id_length) == 0)) {
+	    return Qtrue;
+	} else {
+	    return Qfalse;
 	}
 }
 
@@ -100,7 +109,7 @@ static VALUE ossl_ssl_session_eq(VALUE val1, VALUE val2)
 static VALUE ossl_ssl_session_get_time(VALUE self)
 {
 	SSL_SESSION *ctx;
-	time_t t;
+	long t;
 
 	GetSSLSession(self, ctx);
 
@@ -122,20 +131,20 @@ static VALUE ossl_ssl_session_get_time(VALUE self)
 static VALUE ossl_ssl_session_get_timeout(VALUE self)
 {
 	SSL_SESSION *ctx;
-	time_t t;
+  long t;
 
 	GetSSLSession(self, ctx);
 
 	t = SSL_SESSION_get_timeout(ctx);
 
-	return ULONG2NUM(t);
+	return LONG2NUM(t);
 }
 
 #define SSLSESSION_SET_TIME(func)						\
 	static VALUE ossl_ssl_session_set_##func(VALUE self, VALUE time_v)	\
 	{									\
 		SSL_SESSION *ctx;						\
-		time_t t;							\
+		long t;							\
 										\
 		GetSSLSession(self, ctx);					\
 										\
@@ -147,7 +156,7 @@ static VALUE ossl_ssl_session_get_timeout(VALUE self)
 			rb_raise(rb_eArgError, "unknown type");			\
 		}								\
 										\
-		t = NUM2ULONG(time_v);						\
+		t = NUM2LONG(time_v);						\
 										\
 		SSL_SESSION_set_##func(ctx, t);					\
 										\
@@ -266,7 +275,7 @@ static VALUE ossl_ssl_session_to_text(VALUE self)
 
 	return str;
 }
-                                                     
+
 
 void Init_ossl_ssl_session(void)
 {

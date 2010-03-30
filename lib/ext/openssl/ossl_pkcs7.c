@@ -570,12 +570,11 @@ ossl_pkcs7_add_certificate(VALUE self, VALUE cert)
     return self;
 }
 
-static STACK *
-pkcs7_get_certs_or_crls(VALUE self, int want_certs)
+static STACK_OF(X509) *
+pkcs7_get_certs(VALUE self)
 {
     PKCS7 *pkcs7;
     STACK_OF(X509) *certs;
-    STACK_OF(X509_CRL) *crls;
     int i;
 
     GetPKCS7(self, pkcs7);
@@ -583,17 +582,38 @@ pkcs7_get_certs_or_crls(VALUE self, int want_certs)
     switch(i){
     case NID_pkcs7_signed:
         certs = pkcs7->d.sign->cert;
-        crls = pkcs7->d.sign->crl;
         break;
     case NID_pkcs7_signedAndEnveloped:
         certs = pkcs7->d.signed_and_enveloped->cert;
+        break;
+    default:
+        certs = NULL;
+    }
+
+    return certs;
+}
+
+static STACK_OF(X509_CRL) *
+pkcs7_get_crls(VALUE self)
+{
+    PKCS7 *pkcs7;
+    STACK_OF(X509_CRL) *crls;
+    int i;
+
+    GetPKCS7(self, pkcs7);
+    i = OBJ_obj2nid(pkcs7->type);
+    switch(i){
+    case NID_pkcs7_signed:
+        crls = pkcs7->d.sign->crl;
+        break;
+    case NID_pkcs7_signedAndEnveloped:
         crls = pkcs7->d.signed_and_enveloped->crl;
         break;
     default:
-        certs = crls = NULL;
+        crls = NULL;
     }
 
-    return want_certs ? certs : crls;
+    return crls;
 }
 
 static VALUE
@@ -608,7 +628,7 @@ ossl_pkcs7_set_certificates(VALUE self, VALUE ary)
     STACK_OF(X509) *certs;
     X509 *cert;
 
-    certs = pkcs7_get_certs_or_crls(self, 1);
+    certs = pkcs7_get_certs(self);
     while((cert = sk_X509_pop(certs))) X509_free(cert);
 
     size_t i;
@@ -622,7 +642,7 @@ ossl_pkcs7_set_certificates(VALUE self, VALUE ary)
 static VALUE
 ossl_pkcs7_get_certificates(VALUE self)
 {
-    return ossl_x509_sk2ary(pkcs7_get_certs_or_crls(self, 1));
+    return ossl_x509_sk2ary(pkcs7_get_certs(self));
 }
 
 static VALUE
@@ -652,7 +672,7 @@ ossl_pkcs7_set_crls(VALUE self, VALUE ary)
     STACK_OF(X509_CRL) *crls;
     X509_CRL *crl;
 
-    crls = pkcs7_get_certs_or_crls(self, 0);
+    crls = pkcs7_get_crls(self);
     while((crl = sk_X509_CRL_pop(crls))) X509_CRL_free(crl);
 
     size_t i;
@@ -666,7 +686,7 @@ ossl_pkcs7_set_crls(VALUE self, VALUE ary)
 static VALUE
 ossl_pkcs7_get_crls(VALUE self)
 {
-    return ossl_x509crl_sk2ary(pkcs7_get_certs_or_crls(self, 0));
+    return ossl_x509crl_sk2ary(pkcs7_get_crls(self));
 }
 
 static VALUE
