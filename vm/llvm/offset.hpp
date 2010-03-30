@@ -11,12 +11,14 @@ namespace offset {
   const static int cf_jit_data = 6;
   const static int cf_top_scope = 7;
   const static int cf_scope = 8;
-  const static int cf_stk = 9;
+  const static int cf_arguments = 9;
+  const static int cf_stk = 10;
 
   const static int args_recv = 0;
   const static int args_block = 1;
   const static int args_total = 2;
   const static int args_ary = 3;
+  const static int args_container = 4;
 
   const static int vars_on_heap = 0;
   const static int vars_parent = 1;

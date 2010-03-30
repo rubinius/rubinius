@@ -8,12 +8,15 @@
 namespace rubinius {
   class Array;
 
+  class GarbageCollector;
+
   class Arguments {
     Object* recv_;
     Object* block_;
 
     uint32_t total_;
     Object** arguments_;
+    Tuple* argument_container_;
 
   public:
     Arguments(Object* recv, Object* block, uint32_t total, Object** buffer)
@@ -21,6 +24,7 @@ namespace rubinius {
       , block_(block)
       , total_(total)
       , arguments_(buffer)
+      , argument_container_(0)
     {}
 
     Arguments(Object* recv, uint32_t total, Object** buffer)
@@ -28,6 +32,7 @@ namespace rubinius {
       , block_(Qnil)
       , total_(total)
       , arguments_(buffer)
+      , argument_container_(0)
     {}
 
     Arguments(uint32_t total, Object** buffer)
@@ -35,11 +40,13 @@ namespace rubinius {
       , block_(Qnil)
       , total_(total)
       , arguments_(buffer)
+      , argument_container_(0)
     {}
 
     Arguments()
       : total_(0)
       , arguments_(0)
+      , argument_container_(0)
     {}
 
     Arguments(Array* ary) {
@@ -66,18 +73,28 @@ namespace rubinius {
       return arguments_[which];
     }
 
+    Object** arguments() {
+      return arguments_;
+    }
+
+    Tuple* argument_container() {
+      return argument_container_;
+    }
+
+    void update_argument_container(Tuple* obj);
+
     uint32_t total() {
       return total_;
     }
 
     void use_array(Array* ary) {
-      total_ = ary->size();
-      arguments_ = ary->tuple()->field + ary->start()->to_native();
+      use_tuple(ary->tuple(), ary->size());
     }
 
     void use_tuple(Tuple* tup, int size) {
       total_ = size;
       arguments_ = tup->field;
+      argument_container_ = tup;
     }
 
     Array* as_array(STATE);

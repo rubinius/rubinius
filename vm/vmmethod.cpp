@@ -48,8 +48,7 @@ namespace rubinius {
 
   void VMMethod::init(STATE) {
     // Seed the instructions table
-    Arguments args;
-    interpreter(0, 0, 0, args);
+    interpreter(0, 0, 0);
 
 #ifdef USE_DYNAMIC_INTERPRETER
     if(!state->shared.config.dynamic_interpreter_enabled) {
@@ -570,6 +569,7 @@ namespace rubinius {
 
       frame->previous = previous;
       frame->flags =    0;
+      frame->arguments = &args;
       frame->dispatch_data = &msg;
       frame->cm =       cm;
       frame->scope =    scope;
@@ -578,12 +578,12 @@ namespace rubinius {
 #ifdef RBX_PROFILER
       if(unlikely(state->shared.profiling())) {
         profiler::MethodEntry method(state, msg, args, cm);
-        return (*vmm->run)(state, vmm, frame, args);
+        return (*vmm->run)(state, vmm, frame);
       } else {
-        return (*vmm->run)(state, vmm, frame, args);
+        return (*vmm->run)(state, vmm, frame);
       }
 #else
-      return (*vmm->run)(state, vmm, frame, args);
+      return (*vmm->run)(state, vmm, frame);
 #endif
     }
 

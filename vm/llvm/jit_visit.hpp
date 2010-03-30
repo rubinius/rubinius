@@ -99,6 +99,7 @@ namespace rubinius {
     Value* out_args_block_;
     Value* out_args_total_;
     Value* out_args_arguments_;
+    Value* out_args_container_;
 
     int called_args_;
     int sends_done_;
@@ -120,6 +121,8 @@ namespace rubinius {
       out_args_block_= ptr_gep(out_args_, 1, "out_args_block");
       out_args_total_= ptr_gep(out_args_, 2, "out_args_total");
       out_args_arguments_ = ptr_gep(out_args_, 3, "out_args_arguments");
+      out_args_container_ = ptr_gep(out_args_, offset::args_container,
+                                    "out_args_container");
     }
 
     JITVisit(LLVMState* ls, JITMethodInfo& info, BlockMap& bm,
@@ -595,6 +598,8 @@ namespace rubinius {
       b().CreateStore(constant(Qnil), out_args_block_);
       b().CreateStore(ConstantInt::get(ls_->Int32Ty, args),
                     out_args_total_);
+      b().CreateStore(Constant::getNullValue(ptr_type("Tuple")),
+                      out_args_container_);
       if(args > 0) {
         b().CreateStore(stack_objects(args), out_args_arguments_);
       }
@@ -605,6 +610,8 @@ namespace rubinius {
       b().CreateStore(stack_top(), out_args_block_);
       b().CreateStore(ConstantInt::get(ls_->Int32Ty, args),
                     out_args_total_);
+      b().CreateStore(Constant::getNullValue(ptr_type("Tuple")),
+                      out_args_container_);
       if(args > 0) {
         b().CreateStore(stack_objects(args + 1), out_args_arguments_);
       }
@@ -1209,13 +1216,12 @@ namespace rubinius {
 
         sig << "VM";
         sig << "CallFrame";
-        sig << "Arguments";
         sig << ls_->Int32Ty;
         sig << ls_->IntPtrTy;
 
-        Value* call_args[] = { vm_, call_frame_, args_, cint(current_ip_), sp };
+        Value* call_args[] = { vm_, call_frame_, cint(current_ip_), sp };
 
-        Value* call = sig.call("rbx_continue_uncommon", call_args, 5, "", b());
+        Value* call = sig.call("rbx_continue_uncommon", call_args, 4, "", b());
 
         info().add_return_value(call, current_block());
         b().CreateBr(info().return_pad());

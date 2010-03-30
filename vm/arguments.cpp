@@ -66,9 +66,25 @@ namespace rubinius {
   }
 
   Object* Arguments::shift(STATE) {
-    total_--;
     Object* first = arguments_[0];
-    arguments_++;
+
+    if(argument_container_) {
+      Tuple* tup = Tuple::create(state, total() - 1);
+      for(uint32_t i = 1; i < total_; i++) {
+        tup->put(state, i - 1, get_argument(i));
+      }
+
+      use_tuple(tup, total_ - 1);
+    } else {
+      total_--;
+      arguments_++;
+    }
+
     return first;
+  }
+
+  void Arguments::update_argument_container(Tuple* tup) {
+    arguments_ = tup->field;
+    argument_container_ = tup;
   }
 }

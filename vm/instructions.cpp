@@ -89,8 +89,7 @@ extern "C" {
 
 Object* VMMethod::interpreter(STATE,
                               VMMethod* const vmm,
-                              InterpreterCallFrame* const call_frame,
-                              Arguments& args)
+                              InterpreterCallFrame* const call_frame)
 {
 
 #include "vm/gen/instruction_locations.hpp"
@@ -236,7 +235,6 @@ exception:
 Object* VMMethod::uncommon_interpreter(STATE,
                                        VMMethod* const vmm,
                                        CallFrame* const call_frame,
-                                       Arguments& args,
                                        int32_t entry_ip,
                                        native_int sp)
 {
@@ -379,8 +377,7 @@ exception:
  */
 Object* VMMethod::debugger_interpreter(STATE,
                                        VMMethod* const vmm,
-                                       InterpreterCallFrame* const call_frame,
-                                       Arguments& args)
+                                       InterpreterCallFrame* const call_frame)
 {
 
 #include "vm/gen/instruction_locations.hpp"

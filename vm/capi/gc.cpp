@@ -1,5 +1,6 @@
 #include "builtin/object.hpp"
 #include "util/thread.hpp"
+#include "objectmemory.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
@@ -30,7 +31,14 @@ extern "C" {
   }
 
   void rb_gc() {
-    // Ignore this. It's almost always a hack.
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    // Normally ignore this. It's almost always a hack.
+    if(getenv("RBX_RESPECT_RB_GC")) {
+      env->state()->om->collect_young_now = true;
+      env->state()->om->collect_mature_now = true;
+      env->state()->interrupts.set_perform_gc();
+    }
   }
 
   void rb_gc_mark(VALUE ptr) {

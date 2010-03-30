@@ -373,6 +373,9 @@ namespace jit {
     // previous
     b().CreateStore(prev, get_field(call_frame, offset::cf_previous));
 
+    // arguments
+    b().CreateStore(args, get_field(call_frame, offset::cf_arguments));
+
     // msg
     b().CreateStore(
         b().CreatePointerCast(msg, ls_->Int8PtrTy),

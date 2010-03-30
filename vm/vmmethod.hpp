@@ -39,8 +39,7 @@ namespace rubinius {
 
   typedef Object* (*Runner)(STATE, VMMethod* const vmm, CallFrame* const call_frame);
   typedef Object* (*InterpreterRunner)(STATE, VMMethod* const vmm,
-                                       InterpreterCallFrame* const call_frame,
-                                       Arguments& args);
+                                       InterpreterCallFrame* const call_frame);
 
   class VMMethod : public CodeResource {
   public:
@@ -176,8 +175,7 @@ namespace rubinius {
      *  Dispatch method on the defined interpreter.
      */
     static Object* run_interpreter(STATE, VMMethod* const vmm,
-                                   InterpreterCallFrame* const call_frame,
-                                   Arguments& args);
+                                   InterpreterCallFrame* const call_frame);
 
     /**
      *  Interpreting implementation.
@@ -185,15 +183,13 @@ namespace rubinius {
      *  @see  vm/llvm/instructions.cpp for the code.
      */
     static Object* interpreter(STATE, VMMethod* const vmm,
-                               InterpreterCallFrame* const call_frame,
-                               Arguments& args);
+                               InterpreterCallFrame* const call_frame);
 
     static Object* debugger_interpreter(STATE, VMMethod* const vmm,
-                                        InterpreterCallFrame* const call_frame,
-                                        Arguments& args);
+                                        InterpreterCallFrame* const call_frame);
 
     static Object* uncommon_interpreter(STATE, VMMethod* const vmm,
-      CallFrame* const call_frame, Arguments& args, int32_t entry_ip, native_int sp);
+      CallFrame* const call_frame, int32_t entry_ip, native_int sp);
 
     void setup_argument_handler(CompiledMethod* meth);
 

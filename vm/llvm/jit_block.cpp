@@ -148,6 +148,9 @@ namespace jit {
 
     b().CreateStore(ss, get_field(call_frame, offset::cf_static_scope));
 
+    // arguments
+    b().CreateStore(args, get_field(call_frame, offset::cf_arguments));
+
     // msg
     b().CreateStore(Constant::getNullValue(ls_->Int8PtrTy),
         get_field(call_frame, offset::cf_msg));

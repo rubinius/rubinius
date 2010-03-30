@@ -17,6 +17,8 @@
 #include "builtin/staticscope.hpp"
 #include "capi/handle.hpp"
 
+#include "arguments.hpp"
+
 #include "object_watch.hpp"
 
 namespace rubinius {
@@ -153,6 +155,21 @@ namespace rubinius {
         msg->method = (Executable*)mark_object(msg->method);
       }
 
+      Arguments* args = call_frame->arguments;
+      if(!call_frame->inline_method_p() && args) {
+        args->set_recv(mark_object(args->recv()));
+        args->set_block(mark_object(args->block()));
+
+        if(Tuple* tup = args->argument_container()) {
+          args->update_argument_container((Tuple*)mark_object(tup));
+        } else {
+          Object** ary = args->arguments();
+          for(uint32_t i = 0; i < args->total(); i++) {
+            ary[i] = mark_object(ary[i]);
+          }
+        }
+      }
+
 #ifdef ENABLE_LLVM
       if(jit::RuntimeDataHolder* jd = call_frame->jit_data()) {
         jd->set_mark();
@@ -229,6 +246,22 @@ namespace rubinius {
       if(call_frame->multiple_scopes_p() &&
           call_frame->top_scope_) {
         call_frame->top_scope_ = (VariableScope*)visit.call(call_frame->top_scope_);
+      }
+
+      if(Dispatch* msg = call_frame->dispatch()) {
+        msg->module = (Module*)visit.call(msg->module);
+        msg->method = (Executable*)visit.call(msg->method);
+      }
+
+      Arguments* args = call_frame->arguments;
+      if(!call_frame->inline_method_p() && args) {
+        args->set_recv(visit.call(args->recv()));
+        args->set_block(visit.call(args->block()));
+
+        Object** ary = args->arguments();
+        for(uint32_t i = 0; i < args->total(); i++) {
+          ary[i] = visit.call(ary[i]);
+        }
       }
 
       visit_variable_scope(call_frame, call_frame->scope, visit);

@@ -103,12 +103,6 @@ StructTy_struct_rubinius__Arguments_fields.push_back(PointerTy_1);
 StructTy_struct_rubinius__Arguments_fields.push_back(PointerTy_1);
 StructTy_struct_rubinius__Arguments_fields.push_back(IntegerType::get(getGlobalContext(), 32));
 StructTy_struct_rubinius__Arguments_fields.push_back(PointerTy_0);
-StructType* StructTy_struct_rubinius__Arguments = StructType::get(mod->getContext(), StructTy_struct_rubinius__Arguments_fields, /*isPacked=*/false);
-mod->addTypeName("struct.rubinius::Arguments", StructTy_struct_rubinius__Arguments);
-
-std::vector<const Type*>StructTy_struct_rubinius__Array_fields;
-StructTy_struct_rubinius__Array_fields.push_back(StructTy_struct_rubinius__Object);
-StructTy_struct_rubinius__Array_fields.push_back(PointerTy_8);
 std::vector<const Type*>StructTy_struct_rubinius__Tuple_fields;
 StructTy_struct_rubinius__Tuple_fields.push_back(StructTy_struct_rubinius__Object);
 StructTy_struct_rubinius__Tuple_fields.push_back(IntegerType::get(getGlobalContext(), 32));
@@ -120,6 +114,13 @@ mod->addTypeName("struct.rubinius::Tuple", StructTy_struct_rubinius__Tuple);
 
 PointerType* PointerTy_11 = PointerType::get(StructTy_struct_rubinius__Tuple, 0);
 
+StructTy_struct_rubinius__Arguments_fields.push_back(PointerTy_11);
+StructType* StructTy_struct_rubinius__Arguments = StructType::get(mod->getContext(), StructTy_struct_rubinius__Arguments_fields, /*isPacked=*/false);
+mod->addTypeName("struct.rubinius::Arguments", StructTy_struct_rubinius__Arguments);
+
+std::vector<const Type*>StructTy_struct_rubinius__Array_fields;
+StructTy_struct_rubinius__Array_fields.push_back(StructTy_struct_rubinius__Object);
+StructTy_struct_rubinius__Array_fields.push_back(PointerTy_8);
 StructTy_struct_rubinius__Array_fields.push_back(PointerTy_11);
 StructTy_struct_rubinius__Array_fields.push_back(PointerTy_8);
 StructTy_struct_rubinius__Array_fields.push_back(PointerTy_1);
@@ -174,6 +175,9 @@ mod->addTypeName("struct.rubinius::StackVariables", StructTy_struct_rubinius__St
 PointerType* PointerTy_20 = PointerType::get(StructTy_struct_rubinius__StackVariables, 0);
 
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_20);
+PointerType* PointerTy_21 = PointerType::get(StructTy_struct_rubinius__Arguments, 0);
+
+StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_21);
 StructTy_struct_rubinius__CallFrame_fields.push_back(ArrayTy_12);
 StructType* StructTy_struct_rubinius__CallFrame = StructType::get(mod->getContext(), StructTy_struct_rubinius__CallFrame_fields, /*isPacked=*/false);
 mod->addTypeName("struct.rubinius::CallFrame", StructTy_struct_rubinius__CallFrame);
@@ -188,19 +192,17 @@ std::vector<const Type*>StructTy_struct_rubinius__Dispatch_fields;
 StructTy_struct_rubinius__Dispatch_fields.push_back(PointerTy_5);
 StructTy_struct_rubinius__Dispatch_fields.push_back(PointerTy_7);
 PATypeHolder StructTy_struct_rubinius__Executable_fwd = OpaqueType::get(getGlobalContext());
-PointerType* PointerTy_22 = PointerType::get(StructTy_struct_rubinius__Executable_fwd, 0);
+PointerType* PointerTy_23 = PointerType::get(StructTy_struct_rubinius__Executable_fwd, 0);
 
-StructTy_struct_rubinius__Dispatch_fields.push_back(PointerTy_22);
+StructTy_struct_rubinius__Dispatch_fields.push_back(PointerTy_23);
 StructTy_struct_rubinius__Dispatch_fields.push_back(IntegerType::get(getGlobalContext(), 8));
 StructType* StructTy_struct_rubinius__Dispatch = StructType::get(mod->getContext(), StructTy_struct_rubinius__Dispatch_fields, /*isPacked=*/false);
 mod->addTypeName("struct.rubinius::Dispatch", StructTy_struct_rubinius__Dispatch);
 
-PointerType* PointerTy_21 = PointerType::get(StructTy_struct_rubinius__Dispatch, 0);
+PointerType* PointerTy_22 = PointerType::get(StructTy_struct_rubinius__Dispatch, 0);
 
+FuncTy_16_args.push_back(PointerTy_22);
 FuncTy_16_args.push_back(PointerTy_21);
-PointerType* PointerTy_23 = PointerType::get(StructTy_struct_rubinius__Arguments, 0);
-
-FuncTy_16_args.push_back(PointerTy_23);
 FunctionType* FuncTy_16 = FunctionType::get(
   /*Result=*/PointerTy_1,
   /*Params=*/FuncTy_16_args,
@@ -322,7 +324,7 @@ PointerType* PointerTy_30 = PointerType::get(StructTy_struct_rubinius__InlineCac
 
 FuncTy_29_args.push_back(PointerTy_30);
 FuncTy_29_args.push_back(PointerTy_18);
-FuncTy_29_args.push_back(PointerTy_23);
+FuncTy_29_args.push_back(PointerTy_21);
 FunctionType* FuncTy_29 = FunctionType::get(
   /*Result=*/PointerTy_1,
   /*Params=*/FuncTy_29_args,

@@ -49,6 +49,8 @@ namespace rubinius {
     VariableScope* top_scope_;
     StackVariables* scope;
 
+    Arguments* arguments;
+
     // Stack
     Object* stk[];
 
