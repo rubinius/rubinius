@@ -36,7 +36,7 @@ namespace rubinius {
     {}
 
     Arguments(uint32_t total, Object** buffer)
-      : recv_(0)
+      : recv_(Qnil)
       , block_(Qnil)
       , total_(total)
       , arguments_(buffer)
@@ -44,12 +44,17 @@ namespace rubinius {
     {}
 
     Arguments()
-      : total_(0)
+      : recv_(Qnil)
+      , block_(Qnil)
+      , total_(0)
       , arguments_(0)
       , argument_container_(0)
     {}
 
-    Arguments(Array* ary) {
+    Arguments(Array* ary)
+      : recv_(Qnil)
+      , block_(Qnil)
+    {
       use_array(ary);
     }
 
