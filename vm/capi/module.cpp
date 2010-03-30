@@ -72,6 +72,13 @@ extern "C" {
     rb_define_singleton_method(class_handle, "allocate", allocator, 0);
   }
 
+  void rb_undef_alloc_func(VALUE class_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    rb_undef_method(
+        env->get_handle(env->get_object(class_handle)->metaclass(env->state())),
+        "allocate");
+  }
+
   void rb_define_attr(VALUE module_handle, const char* attr_name, int readable, int writable) {
     if(readable) {
       rb_funcall(module_handle, rb_intern("attr_reader"), 1, rb_intern(attr_name));
@@ -128,5 +135,25 @@ extern "C" {
 
   void rb_undef_method(VALUE module_handle, const char* name) {
     rb_funcall(module_handle, rb_intern("undef_method!"), 1, ID2SYM(rb_intern(name)));
+  }
+
+  VALUE rb_mod_ancestors(VALUE mod) {
+    return rb_funcall(mod, rb_intern("ancestors"), 0);
+  }
+
+  VALUE rb_mod_name(VALUE mod) {
+    return rb_funcall(mod, rb_intern("name"), 0);
+  }
+
+  VALUE rb_module_new(void) {
+    return rb_funcall(rb_cModule, rb_intern("new"), 0);
+  }
+
+  VALUE rb_mod_remove_const(VALUE mod, VALUE name) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Module* module = c_as<Module>(env->get_object(mod));
+    module->del_const(env->state(), reinterpret_cast<Symbol*>(name));
+    return Qnil;
   }
 }

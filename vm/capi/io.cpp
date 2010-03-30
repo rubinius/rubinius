@@ -86,4 +86,12 @@ extern "C" {
 
     lock.lock();
   }
+
+  void rb_io_set_nonblock(rb_io_t* dummy) {
+    VALUE io_handle = (VALUE)dummy;
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    IO* io = c_as<IO>(env->get_object(io_handle));
+    io->set_nonblock(env->state());
+  }
 }

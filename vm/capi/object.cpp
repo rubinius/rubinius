@@ -70,7 +70,8 @@ extern "C" {
   };
 
   // Copied from MRI
-  void rb_check_type(VALUE x, CApiType t) {
+  void rb_check_type(VALUE x, int i) {
+    CApiType t = (CApiType)i;
     struct types *type = builtin_types;
 
     if (x == Qundef) {
@@ -311,6 +312,8 @@ extern "C" {
   VALUE rb_any_to_s(VALUE obj) {
     return rb_obj_as_string(obj);
   }
-  
-  
+
+  VALUE rb_obj_instance_eval(int argc, VALUE* argv, VALUE self) {
+    return rb_funcall2(self, rb_intern("instance_eval"), argc, (const VALUE*)argv);
+  }
 }

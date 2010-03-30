@@ -70,6 +70,8 @@ namespace rubinius {
     Object* get_const(STATE, Symbol* sym, bool* found);
     Object* get_const(STATE, const char* sym);
 
+    void del_const(STATE, Symbol* sym);
+
     void set_name(STATE, Module* under, Symbol* name);
 
     void add_method(STATE, Symbol* name, Executable* exec, Symbol* vis = 0);

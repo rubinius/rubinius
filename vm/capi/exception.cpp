@@ -24,4 +24,15 @@ extern "C" {
     Exception *exc = capi::c_as<Exception>(env->get_object(exc_handle));
     capi::capi_raise_backend(exc);
   }
+
+  VALUE rb_errinfo() {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    return env->get_handle(env->state()->thread_state()->current_exception());
+  }
+
+  void rb_set_errinfo(VALUE err) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Exception *exc = capi::c_as<Exception>(env->get_object(err));
+    env->state()->thread_state()->set_current_exception(exc);
+  }
 }

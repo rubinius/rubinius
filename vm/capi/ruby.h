@@ -352,6 +352,16 @@ struct RFloat {
 // To provide nicer error reporting
 #define RHASH(obj) assert("RHASH() is not supported")
 
+typedef struct {
+  void* dummy;
+} rb_io_t;
+
+#define HAVE_RB_IO_T 1
+
+// Fake it out, just make the ptr be the val
+// MRI checks also that it's not closed...
+#define GetOpenFile(val, ptr) (ptr) = ((rb_io_t*)(val))
+
 /*
  * The immediates.
  */
@@ -638,16 +648,6 @@ double rb_num2dbl(VALUE);
                                            int arity,
                                            CApiMethodKind kind);
 
-  /** Call method on receiver, args as varargs. */
-  VALUE   capi_rb_funcall(const char* file, int line,
-                                        VALUE receiver, ID method_name,
-                                        int arg_count, ...);
-
-  /** Call the method with args provided in a C array. */
-  VALUE   capi_rb_funcall2(const char* file, int line,
-                                         VALUE receiver, ID method_name,
-                                         int arg_count, VALUE* args);
-
   /** Retrieve a Handle to a globally available object. @internal. */
   VALUE   capi_get_constant(CApiConstant type);
 
@@ -811,12 +811,13 @@ double rb_num2dbl(VALUE);
 
   /** check if obj is frozen. */
   VALUE     rb_obj_frozen_p(VALUE obj);
+#define OBJ_FROZEN(obj) (RTEST(rb_obj_frozen_p(obj)))
 
   /** raise error on class */
   void    rb_error_frozen(const char* what);
 
   /** Raises an exception if obj_handle is not the same type as 'type'. */
-  void    rb_check_type(VALUE obj_handle, CApiType type);
+  void    rb_check_type(VALUE obj_handle, int type);
 
 #define Check_Type(v,t) rb_check_type((VALUE)(v),(t))
 
@@ -866,6 +867,11 @@ double rb_num2dbl(VALUE);
   /** Set constant on the given module */
   void rb_const_set(VALUE module_handle, ID name, VALUE const_handle);
 
+  VALUE rb_mod_remove_const(VALUE mod, VALUE name);
+  VALUE rb_mod_ancestors(VALUE mod);
+  VALUE rb_mod_name(VALUE mod);
+  VALUE rb_module_new(void);
+
   /** Parses a string into a double value. If badcheck is true, raises an
    * exception if the string contains non-digit or '.' characters.
    */
@@ -901,6 +907,9 @@ double rb_num2dbl(VALUE);
 
   /** Define an .allocate for the given class. Should take no args and return a VALUE. */
   void    rb_define_alloc_func(VALUE class_handle, CApiAllocFunction allocator);
+
+  /** Undefine the .allocate for the given class. */
+  void    rb_undef_alloc_func(VALUE class_handle);
 
   /** Ruby's attr_* for given name. Nonzeros to toggle read/write. */
   void    rb_define_attr(VALUE module_handle, const char* attr_name,
@@ -967,6 +976,16 @@ double rb_num2dbl(VALUE);
   /** Raises passed exception handle */
   void    rb_exc_raise(VALUE exc_handle);
 
+  /** Return the current exception */
+  VALUE   rb_errinfo();
+#define ruby_errinfo rb_errinfo()
+
+  /** Set the current exception */
+  void    rb_set_errinfo(VALUE err);
+
+  // To advertise we have rb_errinfo to extensions
+#define HAVE_RB_ERRINFO 1
+
   /** Remove a previously declared global variable. */
   void    rb_free_global(VALUE global_handle);
 
@@ -978,25 +997,14 @@ double rb_num2dbl(VALUE);
 
   /**
    *  Call method on receiver, args as varargs. Calls private methods.
-   *
-   *  @todo Requires C99, change later for production code if needed.
-   *        Pretty much all C++ compilers support this too.  It can be
-   *        done by introducing an intermediary function to grab the
-   *        debug info, but it is far uglier. --rue
-   *
-   *  See http://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
-   *  regarding use of ##__VA_ARGS__.
    */
-  #define rb_funcall(receiver, method_name, arg_count, ...) \
-          capi_rb_funcall(__FILE__, __LINE__, \
-                                        (receiver), (method_name), \
-                                        (arg_count) , ##__VA_ARGS__)
+  VALUE   rb_funcall(VALUE receiver, ID method_name,
+                     int arg_count, ...);
+
 
   /** Call the method with args provided in a C array. Calls private methods. */
-  #define rb_funcall2(receiver, method_name, arg_count, args) \
-          capi_rb_funcall2(__FILE__, __LINE__, \
-                                         (receiver), (method_name), \
-                                         (arg_count), (args) )
+  VALUE   rb_funcall2(VALUE receiver, ID method_name,
+                      int arg_count, const VALUE* args);
 
   /** @todo define rb_funcall3, which is the same as rb_funcall2 but
    * will not call private methods.
@@ -1011,6 +1019,10 @@ double rb_num2dbl(VALUE);
 
   /** Return the value associated with the key, excluding default values. */
   VALUE   rb_hash_lookup(VALUE self, VALUE key);
+
+  // There is code that uses RHASH_TBL to detect if rb_hash_lookup
+  // is available. I know, silly.
+#define RHASH_TBL 1
 
   /** Set the value associated with the key. */
   VALUE   rb_hash_aset(VALUE self, VALUE key, VALUE value);
@@ -1035,8 +1047,13 @@ double rb_num2dbl(VALUE);
   VALUE   rb_io_write(VALUE io, VALUE str);
 
   int     rb_io_fd(VALUE io);
+#define HAVE_RB_IO_FD 1
+
   void    rb_io_wait_readable(int fd);
   void    rb_io_wait_writable(int fd);
+
+  void    rb_io_set_nonblock(rb_io_t *dummy);
+
   void    rb_thread_wait_fd(int fd);
 
   /** convert a native int to Fixnum */
@@ -1123,6 +1140,8 @@ double rb_num2dbl(VALUE);
 
   /** Call #to_s on object. */
   VALUE   rb_obj_as_string(VALUE obj_handle);
+
+  VALUE   rb_obj_instance_eval(int argc, VALUE* argv, VALUE self);
 
   VALUE   rb_any_to_s(VALUE obj);
   

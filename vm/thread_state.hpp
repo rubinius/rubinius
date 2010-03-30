@@ -25,6 +25,10 @@ namespace rubinius {
       return current_exception_.get();
     }
 
+    void set_current_exception(Exception* exc) {
+      current_exception_.set((Object*)exc);
+    }
+
     Object* raise_value() {
       return raise_value_.get();
     }

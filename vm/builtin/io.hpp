@@ -114,6 +114,8 @@ namespace rubinius {
     // Ruby.primitive :io_query
     Object* query(STATE, Symbol* op);
 
+    void set_nonblock(STATE);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

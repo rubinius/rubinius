@@ -20,7 +20,6 @@
 #include "dispatch.hpp"
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
-
 #include <string>
 #include <vector>
 #include <tr1/unordered_map>
@@ -282,8 +281,7 @@ extern "C" {
     return capi_call_super_native(env, argc, args);
   }
 
-  VALUE capi_rb_funcall(const char* file, int line,
-      VALUE receiver, ID method_name, int arg_count, ...) {
+  VALUE rb_funcall(VALUE receiver, ID method_name, int arg_count, ...) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     va_list varargs;
@@ -297,14 +295,13 @@ extern "C" {
 
     va_end(varargs);
 
-    return capi_funcall_backend_native(env, file, line,
+    return capi_funcall_backend_native(env, "", 0,
         env->get_object(receiver),
         reinterpret_cast<Symbol*>(method_name),
         arg_count, args);
   }
 
-  VALUE capi_rb_funcall2(const char* file, int line,
-      VALUE receiver, ID method_name, int arg_count, VALUE* v_args) {
+  VALUE rb_funcall2(VALUE receiver, ID method_name, int arg_count, const VALUE* v_args) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Object** args = reinterpret_cast<Object**>(alloca(sizeof(Object**) * arg_count));
@@ -313,7 +310,7 @@ extern "C" {
       args[i] = env->get_object(v_args[i]);
     }
 
-    return capi_funcall_backend_native(env, file, line,
+    return capi_funcall_backend_native(env, "", 0,
         env->get_object(receiver),
         reinterpret_cast<Symbol*>(method_name),
         arg_count, args);

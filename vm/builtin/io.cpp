@@ -746,6 +746,16 @@ failed: /* try next '*' position */
     return Fixnum::from(new_fd);
   }
 
+  void IO::set_nonblock(STATE) {
+    int flags = fcntl(descriptor_->to_native(), F_GETFL);
+    if(flags == -1) return;
+
+    if(flags & O_NONBLOCK == 0) {
+      flags |= O_NONBLOCK;
+      fcntl(descriptor_->to_native(), F_SETFL, flags);
+    }
+  }
+
 /* IOBuffer methods */
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
     IOBuffer* buf = state->new_object<IOBuffer>(G(iobuffer));
