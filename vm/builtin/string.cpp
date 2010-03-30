@@ -881,7 +881,13 @@ return_value:
         uint8_t* pos = buf + start->to_native();
 
         while(pos <= last) {
-          if(memcmp(pos, matcher, match_size) == 0) return Fixnum::from(pos - buf);
+          // Checking *pos directly then also checking memcmp is an
+          // optimization. It's about 10x faster than just calling memcmp
+          // everytime.
+          if(*pos == *matcher &&
+              memcmp(pos, matcher, match_size) == 0) {
+            return Fixnum::from(pos - buf);
+          }
           pos++;
         }
       }
