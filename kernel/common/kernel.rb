@@ -227,9 +227,12 @@ module Kernel
   # We don't seed the RNG by default with a combination of time, pid and
   # sequence number
   #++
+  #
 
-  def srand(seed=0)
-    cur = Kernel.current_srand
+  @current_seed = 0
+
+  def self.srand(seed=0)
+    cur = @current_srand
     if seed == 0
       begin
         File.open("/dev/urandom", "r") do |f|
@@ -240,19 +243,17 @@ module Kernel
       end
     end
     FFI::Platform::POSIX.srand(seed.to_i)
-    Kernel.current_srand = seed.to_i
+    @current_srand = seed.to_i
     cur
   end
-  module_function :srand
 
-  @current_seed = 0
-  def self.current_srand
-    @current_seed
+  # Redispatch to Kernel so we can store @current_srand as an ivar
+  # on Kernel without an accessor.
+  def srand(seed=0)
+    Kernel.srand(seed)
   end
 
-  def self.current_srand=(val)
-    @current_seed = val
-  end
+  private :srand
 
   def rand(max=0)
     max = max.to_i.abs
@@ -261,10 +262,12 @@ module Kernel
     # scale result of rand to a domain between 0 and max
     if max == 0
       x.to_f / 2147483647.0
-    elsif max < 0x7fffffff
-      x / (0x7fffffff / max)
+    elsif max == 1
+      0
+    elsif x < max
+      x
     else
-      x * (max / 0x7fffffff)
+      x % max
     end
   end
   module_function :rand

@@ -19,7 +19,7 @@ module FFI::Platform::POSIX
 
   # rand
   attach_function :srand,    [:uint], :void
-  attach_function :rand,     [], :int
+  attach_function :rand,     [], :uint
 
   # file system
   attach_function :access,   [:string, :int], :int
