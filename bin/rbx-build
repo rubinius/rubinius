@@ -7,4 +7,4 @@ export RBX_RUNTIME="$BASE_DIR/runtime"
 export RBX_LIB="$BASE_DIR/lib"
 export RBX_CAPI_DIR="$BASE_DIR/vm/capi"
 
-exec $BIN_DIR/rbx "$*"
+exec $BIN_DIR/../vm/vm "$*"
