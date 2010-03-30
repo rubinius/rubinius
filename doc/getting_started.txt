@@ -36,6 +36,7 @@ needed and then any platform-specific requirements.
 * [RubyGems (Ruby package manager)](http://www.rubygems.org/)
 * [Git (source control used by rubinius)](http://git.or.cz/)
 * [zlib compression library](http://www.zlib.net/)
+* pthread library (provided by the OS)
 
 Most systems already use GNU Make as their default, but for those using a BSD
 Make:
@@ -203,15 +204,6 @@ To run a ruby file named 'code.rb':
 To use the interactive prompt (similar to Ruby's IRB):
 
     bin/rbx
-
-## Rubinius Configuration
-
-Rubinius provides a -X command line switch for manipulating the internal
-configuration options. For example,
-
-    -Xrbx.jit enables the jit if it's supported by the platform
-    -Xrbx.dyni enables the dynamic interpreter if it's supported
-
 
 ## Troubleshooting
 
