@@ -807,15 +807,21 @@ extern "C" {
 
     // Figure out the total size
     for(int i = 0; i < count; i++) {
-      if(String* str = try_as<String>(parts[i])) {
+      Object* obj = parts[i];
+      String* str = try_as<String>(obj);
+
+      if(str) {
         size += str->size();
       } else {
-        Exception* exc =
-          Exception::make_type_error(state, String::type, parts[i], "not a string");
-        exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+        // This isn't how MRI does this. If sub isn't a String, it converts the
+        // the original object via any_to_s, not the bad value returned from #to_s.
+        // This quite a bit harder to implement in rubinius atm, so i'm opting for
+        // this way instead.
 
-        state->thread_state()->raise_exception(exc);
-        return NULL;
+        str = obj->to_s(state, false);
+        size += str->size();
+
+        parts[i] = str;
       }
     }
 
