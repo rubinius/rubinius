@@ -84,20 +84,15 @@ class MSpecScript
 
     'spec/build',
 
-    # Disable until Kernel#require/load is rewritten
-    '^spec/core/kernel/require',
-    '^spec/core/kernel/load',
-    '^spec/ruby/language/file',
-    '^spec/ruby/language/line',
-    '^spec/ruby/core/kernel/require',
-    '^spec/ruby/core/kernel/load',
-
     '^spec/core/compiledmethod',
     '^spec/core/module',
     '^spec/capi/globals',
     '^spec/capi/module',
     '^spec/capi/proc',
     '^spec/capi/struct',
+
+    '^spec/core/kernel/require',
+    '^spec/core/kernel/load',
 
     # These additional directories will be enabled as the
     # specs in them are updated for the C++ VM.

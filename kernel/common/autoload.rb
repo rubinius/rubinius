@@ -9,13 +9,11 @@ class Autoload
   attr_reader :name
   attr_reader :scope
   attr_reader :path
-  attr_reader :original_path
 
   def initialize(name, scope, path)
     @name = name
     @scope = scope
-    @original_path = path
-    @path, @rbc, @ext = Requirer::Utils.split_path(path)
+    @path = path
     Autoload.add(self)
   end
 
@@ -23,8 +21,7 @@ class Autoload
   # When any code that finds a constant sees an instance of Autoload as its match,
   # it calls this method on us
   def call
-    self.class.remove @path
-    Requirer::Utils.unified_load path, @path, @rbc, @ext, true
+    Rubinius::CodeLoader.require @path
     scope.const_get @name
   end
 

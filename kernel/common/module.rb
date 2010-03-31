@@ -619,7 +619,7 @@ class Module
     raise TypeError, "autoload filename must be a String" unless path.kind_of? String
     raise ArgumentError, "empty file name" if path.empty?
 
-    return if Requirer::Utils.provided?(path)
+    return if Rubinius::CodeLoader.feature_provided?(path)
 
     name = normalize_const_name(name)
 
@@ -644,7 +644,7 @@ class Module
     return unless constants_table.key?(name)
     trigger = constants_table[name]
     return unless trigger.kind_of?(Autoload)
-    trigger.original_path
+    trigger.path
   end
 
   def remove_const(name)
@@ -729,7 +729,7 @@ class Module
 
     other.constants_table.each do |name, val|
       if val.kind_of? Autoload
-        val = Autoload.new(val.name, self, val.original_path)
+        val = Autoload.new(val.name, self, val.path)
       end
 
       @constants[name] = val

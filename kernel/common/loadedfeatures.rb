@@ -31,6 +31,11 @@ module Rubinius
       super
     end
 
+    def clear
+      super
+      identity_map
+    end
+
     def delete(obj)
       @identity_map.delete obj
       super

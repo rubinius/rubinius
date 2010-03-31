@@ -143,7 +143,7 @@ containing the Rubinius standard library files.
       options.on "-", "Read and evaluate code from STDIN" do
         @run_irb = false
         $0 = "-"
-        Requirer::Utils.execute STDIN.read
+        CodeLoader.execute_script STDIN.read
       end
 
       options.on "--", "Stop processing command line arguments" do
@@ -363,9 +363,7 @@ containing the Rubinius standard library files.
       rebuild = (ARGV.last == "--rebuild-compiler")
 
       begin
-        Requirer::Utils.loading_rbc_only(rebuild ? :force : true) do
-          require "compiler"
-        end
+        CodeLoader.require_compiled "compiler", rebuild ? false : true
       rescue Rubinius::InvalidRBC => e
         STDERR.puts "There was an error loading the compiler."
         STDERR.puts "It appears that your compiler is out of date with the VM."
@@ -424,13 +422,7 @@ containing the Rubinius standard library files.
       if File.exist?(@script)
         $0 = @script
 
-        # make sure that the binding has a script associated with it
-        # and theat the script has a path
-        TOPLEVEL_BINDING.static_scope.script = CompiledMethod::Script.new(@script)
-
-        Requirer::Utils.debug_script! if @debugging
-        Requirer::Utils.load_from_extension @script,
-          :no_rbc => @no_rbc, :root_script => true
+        CodeLoader.load_script @script, @debugging
       else
         if @script.suffix?(".rb")
           puts "Unable to find '#{@script}'"
@@ -472,7 +464,7 @@ containing the Rubinius standard library files.
         end
       else
         $0 = "(eval)"
-        Requirer::Utils.execute "p #{STDIN.read}"
+        CodeLoader.execute_script "p #{STDIN.read}"
       end
     end
 

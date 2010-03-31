@@ -15,7 +15,7 @@ module Rubinius
       end
     end
 
-    def self.compile(file, line=1, output=nil, transforms=:default)
+    def self.compile(file, output=nil, line=1, transforms=:default)
       compiler = new :file, :compiled_file
 
       parser = compiler.parser
@@ -34,8 +34,6 @@ module Rubinius
 
       begin
         compiler.run
-      rescue LoadError => e
-        raise e
       rescue Exception => e
         compiler_error "Error trying to compile #{file}", e
       end
@@ -57,8 +55,6 @@ module Rubinius
 
       begin
         compiler.run
-      rescue LoadError => e
-        raise e
       rescue Exception => e
         compiler_error "Error trying to compile #{file}", e
       end

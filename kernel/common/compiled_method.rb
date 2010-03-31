@@ -206,41 +206,37 @@ module Rubinius
     end
 
     class Script
+      attr_accessor :file_path
+      attr_accessor :data_path
+      attr_accessor :eval_binding
+
       def initialize(path=nil, for_eval=false)
-        @path = path
+        @file_path = path
         @for_eval = for_eval
         @eval_binding = nil
       end
 
-      attr_accessor :path
-      attr_accessor :file_path
-      attr_accessor :eval_binding
-
       def eval?
         @for_eval
       end
-
-      def root_script=(value); @root_script = value; end
-      def root_script?; @root_script; end
     end
 
-    def as_script(script=nil)
-      script ||= CompiledMethod::Script.new
-      yield script if block_given?
+    # Creates the Script instance for a toplevel compiled method.
+    def create_script
+      script = CompiledMethod::Script.new
 
       # Setup the scoping.
       ss = StaticScope.new(Object)
       ss.script = script
       @scope = ss
 
+      compile
+
       mc = Rubinius.object_metaclass(MAIN)
       mc.method_table.store :__script__, self, :public
-      compile
       VM.reset_method_cache :__script__
 
-      # HACK we use __send__ here so that the method inliner
-      # doesn't accidentally inline a script body into here!
-      MAIN.__send__ :__script__
+      script
     end
 
     ##

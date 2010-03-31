@@ -580,15 +580,6 @@ module Kernel
     "#<#{self.class}:0x#{self.__id__.to_s(16)}>"
   end
 
-  def compile(path, out=nil, flags=nil)
-    out = "#{path}c" unless out
-    cm = Rubinius::Compiler.compile_file_old(path, flags)
-    raise LoadError, "Unable to compile '#{path}'" unless cm
-    Rubinius::CompiledFile.dump cm, out
-    return out
-  end
-  module_function :compile
-
   ##
   # Loads the given file as executable code and returns true. If
   # the file cannot be found, cannot be compiled or some other
@@ -633,32 +624,12 @@ module Kernel
   #
   # TODO: The anonymous module wrapping is not implemented at all.
   #
-  def load(path, opts = {:wrap => false, :recompile => false})
-    path = StringValue(path)
-    # Remap all library extensions behind the scenes, just like MRI
-    path.gsub!(/\.(so|bundle|dll|dylib)$/, "#{Rubinius::LIBSUFFIX}")
+  def load(name, wrap=false)
+    Rubinius::CodeLoader.new(name).load
 
-    opts = {:wrap => !!opts, :recompile => false} unless Hash === opts
-
-    if path.suffix? '.rbc'
-      rb, rbc, ext = nil, path, nil
-    elsif path.suffix? '.rb'
-      rb, rbc, ext = path, "#{path}c", nil
-    elsif path.suffix? "#{Rubinius::LIBSUFFIX}"
-      rb, rbc, ext = nil, nil, path
-    else
-      dir, name = File.split(path)
-      rb = path
-      ext = nil
-
-      if name[0] == ?.
-        rbc = nil
-      else
-        rbc = "#{dir}/#{name}.compiled.rbc"
-      end
-    end
-
-    Requirer::Utils.unified_load path, rb, rbc, ext, nil, opts
+    # HACK we use __send__ here so that the method inliner
+    # doesn't accidentally inline a script body into here!
+    MAIN.__send__ :__script__
   end
   module_function :load
 
@@ -704,11 +675,8 @@ module Kernel
   # ($"), using the original unexpanded filename (with the
   # exception that the file extension is added.)
   #
-  def require(path)
-    path = StringValue(path)
-    rb, rbc, ext = Requirer::Utils.split_path path
-    Autoload.remove(rb)
-    Requirer::Utils.unified_load path, rb, rbc, ext, true
+  def require(name)
+    Rubinius::CodeLoader.require name
   end
   module_function :require
 

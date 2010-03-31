@@ -15,14 +15,6 @@ class MSpecScript
 
     'spec/build',
 
-    # Disable until Kernel#require/load is rewritten
-    '^spec/core/kernel/require',
-    '^spec/core/kernel/load',
-    '^spec/ruby/language/file',
-    '^spec/ruby/language/line',
-    '^spec/ruby/core/kernel/require',
-    '^spec/ruby/core/kernel/load',
-
     # excluded because significantly broken
     '^spec/core/compiledmethod',
     '^spec/core/module',
@@ -33,6 +25,9 @@ class MSpecScript
 
     '^spec/ruby/library/ping',
     '^spec/ruby/library/syslog',
+
+    '^spec/core/kernel/require',
+    '^spec/core/kernel/load',
 
     # 1.9 features
     '^spec/ruby/library/cmath',

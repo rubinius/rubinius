@@ -26,7 +26,7 @@ end
 rule ".rbc" do |t|
   source = t.prerequisites.first
   puts "RBC #{source}"
-  Rubinius::Compiler.compile source, 1, t.name, [:default, :kernel]
+  Rubinius::Compiler.compile source, t.name, 1, [:default, :kernel]
 end
 
 # Collection of all files in the kernel runtime. Modified by

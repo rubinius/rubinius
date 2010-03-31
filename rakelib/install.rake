@@ -51,7 +51,7 @@ end
 
 def precompile(dir)
   (Dir["#{dir}/*.rb"] + Dir["#{dir}/**/*.rb"]).each do |file|
-    Rubinius::Compiler.compile file, 1, "#{file}c", [:default]
+    Rubinius::Compiler.compile file, "#{file}c", 1, [:default]
   end
 end
 

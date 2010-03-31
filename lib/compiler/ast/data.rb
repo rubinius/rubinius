@@ -16,7 +16,7 @@ module Rubinius
       def bytecode(g)
         g.push_const :Rubinius
         g.push_scope
-        g.send :file_path, 0
+        g.send :data_path, 0
         g.push_literal @offset
         g.send :set_data, 2
         g.pop
