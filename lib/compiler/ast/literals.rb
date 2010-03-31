@@ -379,7 +379,8 @@ module Rubinius
               x.bytecode(g)
             else
               x.bytecode(g)
-              g.string_dup
+              # string_build has some auto-conversion logic, use it.
+              g.string_build 1
             end
             return
           end
@@ -416,7 +417,7 @@ module Rubinius
             g.string_dup
             return
           elsif total == 1
-            g.string_dup
+            g.string_build 1
             return
           end
         end

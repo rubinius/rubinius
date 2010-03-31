@@ -34,7 +34,7 @@ describe "A Match3 node" do
       g.push_const :Regexp
       g.push_local 0
       g.send :to_s, 0, true
-      g.string_dup
+      g.string_build 1
 
       g.push 0
       g.send :new, 2

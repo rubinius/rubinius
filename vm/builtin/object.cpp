@@ -612,19 +612,29 @@ namespace rubinius {
   String* Object::to_s(STATE, bool address) {
     std::stringstream name;
 
-    name << "#<";
-    if(Module* mod = try_as<Module>(this)) {
-      if(mod->name()->nil_p()) {
-        name << "Class";
-      } else {
-        name << mod->name()->c_str(state);
-      }
-      name << "(" << this->class_object(state)->name()->c_str(state) << ")";
+    if(Fixnum* fix = try_as<Fixnum>(this)) {
+      name << fix->to_native();
+      return String::create(state, name.str().c_str());
+    } else if(Symbol* sym = try_as<Symbol>(this)) {
+      name << ":\"" << sym->c_str(state) << "\"";
+      return String::create(state, name.str().c_str());
+    } else if(String* str = try_as<String>(this)) {
+      return str;
     } else {
-      if(this->class_object(state)->name()->nil_p()) {
-        name << "Object";
+      name << "#<";
+      if(Module* mod = try_as<Module>(this)) {
+        if(mod->name()->nil_p()) {
+          name << "Class";
+        } else {
+          name << mod->name()->c_str(state);
+        }
+        name << "(" << this->class_object(state)->name()->c_str(state) << ")";
       } else {
-        name << this->class_object(state)->name()->c_str(state);
+        if(this->class_object(state)->name()->nil_p()) {
+          name << "Object";
+        } else {
+          name << this->class_object(state)->name()->c_str(state);
+        }
       }
     }
 

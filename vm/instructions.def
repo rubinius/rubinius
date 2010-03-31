@@ -1675,14 +1675,32 @@ instruction string_build(count) [ +count -- string ]
 
   // Figure out the total size
   for(int i = 0; i < count; i++) {
-    size += as<String>(stack_back(i))->size();
+    Object* obj = stack_back(i);
+    String* str = try_as<String>(obj);
+
+    if(str) {
+      size += str->size();
+    } else {
+      // This isn't how MRI does this. If sub isn't a String, it converts the
+      // the original object via any_to_s, not the bad value returned from #to_s.
+      // This quite a bit harder to implement in rubinius atm, so i'm opting for
+      // this way instead.
+
+      str = obj->to_s(state, false);
+      size += str->size();
+
+      // TRICKY! Reuse the stack to store our new String value.
+      stack_back(i) = str;
+    }
   }
 
   String* str = String::create(state, 0, size);
   uint8_t* pos = str->byte_address();
 
   for(int i = count - 1; i >= 0; i--) {
-    String* sub = as<String>(stack_back(i));
+    Object* obj = stack_back(i);
+    String* sub = as<String>(obj);
+
     memcpy(pos, sub->byte_address(), sub->size());
     pos += sub->size();
   }

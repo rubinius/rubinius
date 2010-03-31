@@ -27,7 +27,7 @@ describe "A Dstr node" do
 
     compile do |g|
       g.push_literal "hello"
-      g.string_dup
+      g.string_build 1
     end
   end
 
@@ -47,7 +47,7 @@ describe "A Dstr node" do
 
     compile do |g|
       g.push_literal " hello"
-      g.string_dup
+      g.string_build 1
     end
   end
 
@@ -59,7 +59,7 @@ describe "A Dstr node" do
       g.push :self
       g.send :a, 0, true
       g.send :to_s, 0, true
-      g.string_dup
+      g.string_build 1
     end
   end
 

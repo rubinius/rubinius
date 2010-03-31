@@ -54,7 +54,7 @@ describe "A Dregx node" do
 
       g.push_ivar :@rakefile
       g.send :to_s, 0, true
-      g.string_dup
+      g.string_build 1
 
       g.push 0
       g.send :new, 2
@@ -67,7 +67,7 @@ describe "A Dregx node" do
 
       g.push 1
       g.send :to_s, 0, true
-      g.string_dup
+      g.string_build 1
 
       g.push 16
       g.send :new, 2
