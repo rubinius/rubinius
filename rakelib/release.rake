@@ -23,7 +23,7 @@ namespace :release do
 
     STDOUT.sync = true
     print "Did you update @config_version in configure? [y/n]"
-    unless STDIN.gets == "y"
+    unless STDIN.gets.strip == "y"
       puts "Well go change it then!"
       exit
     end
