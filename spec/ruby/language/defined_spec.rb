@@ -43,6 +43,10 @@ describe "The defined? keyword when called with a method name" do
       defined?(Object.print).should be_nil
     end
 
+    it "returns nil if the method is protected" do
+      defined?(DefinedSpecs::Basic.new.protected_method).should be_nil
+    end
+
     it "returns nil if the method is not defined" do
       defined?(Kernel.defined_specs_undefined_method).should be_nil
     end

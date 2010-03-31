@@ -29,6 +29,10 @@ module DefinedSpecs
     def a_defined_method
     end
 
+    def protected_method
+    end
+    protected :protected_method
+
     def local_variable_defined
       x = 2
       defined? x

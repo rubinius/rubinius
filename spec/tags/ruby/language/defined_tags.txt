@@ -1,1 +1,2 @@
 fails:The defined? keyword for super returns nil when a superclass undef's the method
+fails:The defined? keyword when called with a method name having a module as receiver returns nil if the method is protected
