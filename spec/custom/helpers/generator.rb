@@ -668,10 +668,33 @@ module Rubinius
 
       g.save_exception
 
+      old_break = g.break
+      new_break = g.new_label
+      g.break = new_break
+
       eb.body.call
+
+      g.break = old_break
 
       g.pop_unwind
       g.goto ensure_good
+
+      check_break = nil
+
+      if new_break.used?
+        used_break_local = g.new_stack_local
+        check_break = g.new_label
+
+        new_break.set!
+        g.pop_unwind
+
+        g.push :true
+        g.set_stack_local used_break_local
+        g.pop
+
+        g.goto check_break
+      end
+
       ensure_bad.set!
       g.push_exception_state
 
@@ -680,7 +703,31 @@ module Rubinius
       g.reraise
 
       ensure_good.set!
+
+      if check_break
+        g.push :false
+        g.set_stack_local used_break_local
+        g.pop
+
+        check_break.set!
+      end
+
       eb.handler.call
+
+      if check_break
+        post = g.new_label
+
+        g.push_stack_local used_break_local
+        g.gif post
+
+        if g.break
+          g.goto g.break
+        else
+          g.raise_break
+        end
+
+        post.set!
+      end
     end
 
     def optional_arg(slot)
