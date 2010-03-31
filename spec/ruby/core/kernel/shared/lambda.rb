@@ -10,7 +10,7 @@ describe :kernel_lambda, :shared => true do
 end
 
 describe :kernel_lambda_return_like_method, :shared => true do
-  it "returns from the #{@method} itself; not the creation site of the #{@method}" do
+  it "returns from the #{@method} itself, not the creation site of the #{@method}" do
     @reached_end_of_method = nil
     def test
       send(@method) { return }.call
