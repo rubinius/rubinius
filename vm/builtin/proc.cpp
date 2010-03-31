@@ -40,7 +40,7 @@ namespace rubinius {
   }
 
   Object* Proc::call(STATE, CallFrame* call_frame, Arguments& args) {
-    bool lambda_style = !lambda_->nil_p();
+    bool lambda_style = RTEST(lambda_);
     int flags = 0;
 
     // Check the arity in lambda mode
@@ -48,7 +48,17 @@ namespace rubinius {
       flags = CallFrame::cIsLambda;
       int required = block_->method()->required_args()->to_native();
 
-      if(required >= 0 && (size_t)required != args.total()) {
+      bool check_arity = true;
+      if(Fixnum* fix = try_as<Fixnum>(block_->method()->splat())) {
+        if(fix->to_native() == -2) check_arity = false;
+      }
+
+      // Bug-to-bug compatibility: when required is 1, we accept any number of
+      // args. Why? No fucking clue. I guess perhaps you then get all the arguments
+      // as an array?
+      if(required == 1) check_arity = false;
+
+      if(check_arity && ((size_t)required != args.total())) {
         Exception* exc =
           Exception::make_argument_error(state, required, args.total(),
               state->symbol("__block__"));
@@ -81,7 +91,7 @@ namespace rubinius {
 
   Object* Proc::call_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg,
                           Arguments& args) {
-    bool lambda_style = !lambda_->nil_p();
+    bool lambda_style = RTEST(lambda_);
     int flags = 0;
 
     // Check the arity in lambda mode
@@ -89,9 +99,24 @@ namespace rubinius {
       flags = CallFrame::cIsLambda;
       int required = block_->method()->required_args()->to_native();
 
-      // Bug-to-bug compatibility: when required is 0 or 1, we accept any number of
-      // args. Why? No fucking clue. So thats why we test for 2 here.
-      if(required >= 2 && (size_t)required != args.total()) {
+      bool arity_ok = false;
+      if(Fixnum* fix = try_as<Fixnum>(block_->method()->splat())) {
+        if(fix->to_native() == -2) {
+          arity_ok = true;
+        } else if(args.total() >= (size_t)required) {
+          arity_ok = true;
+        }
+
+      // Bug-to-bug compatibility: when required is 1, we accept any number of
+      // args. Why? No fucking clue. I guess perhaps you then get all the arguments
+      // as an array?
+      } else if(required == 1) {
+        arity_ok = true;
+      } else {
+        arity_ok = ((size_t)required == args.total());
+      }
+
+      if(!arity_ok) {
         Exception* exc =
           Exception::make_argument_error(state, required, args.total(), state->symbol("__block__"));
         exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
