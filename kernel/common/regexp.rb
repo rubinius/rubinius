@@ -157,7 +157,7 @@ class Regexp
       return nil
     end
     res = self.match(line)
-    return res.nil? ? nil : res.begin(0)
+    return res ? res.begin(0) : nil
   end
 
   # Returns the index of the first character in the region that
@@ -252,7 +252,7 @@ class Regexp
 
   # Performs normal match and returns MatchData object from $~ or nil.
   def match(str)
-    if str.nil?
+    unless str
       Regexp.last_match = nil
       return nil
     end
@@ -263,7 +263,7 @@ class Regexp
   end
 
   def match_from(str, count)
-    return nil if str.nil?
+    return nil unless str
     search_region(str, count, str.size, true)
   end
 
@@ -582,7 +582,7 @@ class MatchData
   end
 
   def end(idx)
-    return full.at(1) if idx == 0
+    return @full.at(1) if idx == 0
     @region.at(idx - 1).at(1)
   end
 
@@ -598,24 +598,30 @@ class MatchData
   end
 
   def captures
-    out = []
+    out = Array.new(@region.fields)
+
+    idx = 0
     @region.each do |tup|
       x = tup.at(0)
 
       if x == -1
-        out << nil
+        val = nil
       else
         y = tup.at(1)
-        out << @source[x, y-x]
+        val = @source.substring(x, y-x)
       end
+
+      out[idx] = val
+      idx += 1
     end
+
     return out
   end
 
   def pre_match
     return @source.substring(0, 0) if full.at(0) == 0
     nd = full.at(0) - 1
-    @source[0, nd+1]
+    @source.substring(0, nd+1)
   end
 
   def pre_match_from(idx)
@@ -625,7 +631,7 @@ class MatchData
   end
 
   def collapsing?
-    self.begin(0) == self.end(0)
+    @full[0] == @full[1]
   end
 
   def post_match
@@ -639,19 +645,26 @@ class MatchData
 
     case idx
     when Fixnum
-      if idx == 0
-        return matched_area()
-      elsif 0 < idx and idx < size
-        return get_capture(idx - 1)
+      if idx <= 0
+        return matched_area() if idx == 0
+        return to_a[idx]
+      elsif idx <= @region.size
+        tup = @region[idx - 1]
+
+        x = tup.at(0)
+        return nil if x == -1
+
+        y = tup.at(1)
+        return @source.substring(x, y-x)
       end
     when Symbol
       num = @regexp.name_table[idx]
       raise ArgumentError, "Unknown named group '#{idx}'" unless num
-      return get_capture(num)
+      return self[num + 1]
     when String
       num = @regexp.name_table[idx.to_sym]
       raise ArgumentError, "Unknown named group '#{idx}'" unless num
-      return get_capture(num)
+      return self[num + 1]
     end
 
     return to_a[idx]
@@ -713,7 +726,7 @@ class MatchData
     x, y = @region[num]
     return nil if !y or x == -1
 
-    return @source[x, y-x]
+    return @source.substring(x, y-x)
   end
 
   private :get_capture

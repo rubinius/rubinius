@@ -324,8 +324,8 @@ namespace rubinius {
     Tuple* tup = Tuple::create(state, region->num_regs - 1);
     for(i = 1; i < region->num_regs; i++) {
       sub = Tuple::from(state, 2,
-			Integer::from(state, region->beg[i]),
-			Integer::from(state, region->end[i]));
+			                  Integer::from(state, region->beg[i]),
+			                  Integer::from(state, region->end[i]));
       tup->put(state, i - 1, sub);
     }
     return tup;
