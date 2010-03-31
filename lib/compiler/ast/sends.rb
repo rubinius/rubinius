@@ -653,6 +653,7 @@ module Rubinius
       def initialize(line, arguments)
         @line = line
         @block = nil
+        @name = nil
         @arguments = ActualArguments.new line, arguments
       end
 

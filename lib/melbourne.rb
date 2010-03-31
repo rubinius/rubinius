@@ -49,6 +49,7 @@ module Rubinius
       @transforms = transforms
       @magic_handler = nil
       @data_offset = nil
+      @exc = nil
     end
 
     def add_magic_comment(str)
