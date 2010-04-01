@@ -687,8 +687,7 @@ module Rubinius
         nope = g.new_label
         done = g.new_label
 
-        g.push_variables
-        g.send :super_method_defined?, 0
+        g.invoke_primitive :vm_check_super_callable, 0
 
         g.gif nope
 

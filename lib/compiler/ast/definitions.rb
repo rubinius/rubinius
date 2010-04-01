@@ -138,8 +138,9 @@ module Rubinius
         false
       end
 
-      def attach_and_call(g, name, scoped=false)
-        meth = new_generator(g, @name || name)
+      def attach_and_call(g, arg_name, scoped=false)
+        name = @name || arg_name
+        meth = new_generator(g, name)
 
         meth.push_state self
 
@@ -148,7 +149,11 @@ module Rubinius
           meth.add_scope
         end
 
+        meth.state.push_name name
+
         @body.bytecode meth
+
+        meth.state.pop_name
 
         meth.ret
         meth.close
@@ -161,7 +166,7 @@ module Rubinius
         g.dup
         g.push_const :Rubinius
         g.swap
-        g.push_literal name
+        g.push_literal arg_name
         g.swap
         g.push_generator meth
         g.swap
@@ -169,7 +174,7 @@ module Rubinius
         g.swap
         g.send :attach_method, 4
         g.pop
-        g.send name, 0
+        g.send arg_name, 0
 
         return meth
       end
@@ -199,8 +204,12 @@ module Rubinius
         meth.state.push_super self
         pos(meth)
 
+        meth.state.push_name @name
+
         @arguments.bytecode(meth)
         @body.bytecode(meth)
+
+        meth.state.pop_name
 
         meth.local_count = local_count
         meth.local_names = local_names

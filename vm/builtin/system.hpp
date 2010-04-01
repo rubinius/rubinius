@@ -250,6 +250,9 @@ namespace rubinius {
     // Ruby.primitive :vm_check_callable
     static Object* vm_check_callable(STATE, Object* obj, Symbol* sym, Object* self);
 
+    // Ruby.primitive :vm_check_super_callable
+    static Object* vm_check_super_callable(STATE, CallFrame* calling_environment);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

@@ -794,4 +794,29 @@ namespace rubinius {
 
     return Qfalse;
   }
+
+  Object* System::vm_check_super_callable(STATE, CallFrame* call_frame) {
+    Module* mod = call_frame->module()->superclass();
+
+    MethodTableBucket* entry;
+    Symbol* sym = call_frame->original_name();
+
+    while(!mod->nil_p()) {
+      entry = mod->method_table()->find_entry(state, sym);
+
+      if(entry) {
+        if(entry->undef_p(state)) return Qfalse;
+
+        // It's callable, ok, but see if we should see if it's just a stub
+        // to change the visibility of another method.
+        if(!entry->method()->nil_p()) {
+          return Qtrue;
+        }
+      }
+
+      mod = mod->superclass();
+    }
+
+    return Qfalse;
+  }
 }

@@ -5,6 +5,14 @@ module Kernel
     # unless where are called from a DelegatedMethod
     # For the later, we check to see if the next location
     # was a call from a delegated method
+    easy_name =  Rubinius::VariableScope.of_sender.method.name
+
+    # A toplevel block.
+    return nil if easy_name == :__block__
+
+    # __eval__ is weird, use the complicated logic.
+    return easy_name unless easy_name == :__eval__
+
     scope_of_sender = Rubinius::StaticScope.of_sender
     trace = Rubinius::VM.backtrace(1)
     trace.each_with_index do |loc, i|

@@ -327,8 +327,7 @@ class Module
       cm = Rubinius::DelegatedMethod.new(name, :call, meth, false)
     when Proc
       be = meth.block.dup
-      meth = be.method.dup
-      meth.name = name.to_sym
+      meth = be.method.change_name name.to_sym
       be.method = meth
       cm = Rubinius::BlockEnvironment::AsMethod.new(be)
     when Method

@@ -125,11 +125,6 @@ namespace rubinius {
 #endif
 
     Symbol* original_name() {
-      if(multiple_scopes_p()) {
-        if(block_as_method_p()) return cm->name();
-        return top_scope_->method()->name();
-      }
-
       return cm->name();
     }
 
@@ -155,7 +150,7 @@ namespace rubinius {
     }
 
     bool is_block_p(STATE) {
-      return cm->name() == state->symbol("__block__");
+      return block_p();
     }
 
     Object* self() {

@@ -53,7 +53,7 @@ module Rubinius
 
       def new_block_generator(g, arguments)
         blk = g.class.new
-        blk.name = :__block__
+        blk.name = g.state.name || :__block__
         blk.file = g.file
         blk.for_block = true
 
@@ -141,6 +141,19 @@ module Rubinius
         @block = 0
         @masgn = 0
         @rescue = []
+        @name = []
+      end
+
+      def push_name(name)
+        @name.push name
+      end
+
+      def pop_name
+        @name.pop
+      end
+
+      def name
+        @name.last
       end
 
       def push_rescue(val)

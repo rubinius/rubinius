@@ -335,6 +335,23 @@ module Rubinius
       literals.select {|lit| lit.kind_of? CompiledMethod }
     end
 
+    def change_name(name)
+      cm = dup
+      cm.name = name
+
+      lits = Tuple.new(cm.literals.size)
+      cm.literals.each_with_index do |lit, idx|
+        if lit.kind_of? CompiledMethod
+          lit = lit.change_name name
+        end
+
+        lits[idx] = lit
+      end
+
+      cm.literals = lits
+      return cm
+    end
+
     ##
     # Convenience method to return an array of the SendSites from
     # this CompiledMethod's literals.
