@@ -247,6 +247,9 @@ namespace rubinius {
     // Ruby.primitive :vm_const_defined_under
     static Object* vm_const_defined_under(STATE, Module* under, Symbol* sym, Object* send_const_missing, CallFrame* calling_environment);
 
+    // Ruby.primitive :vm_check_callable
+    static Object* vm_check_callable(STATE, Object* obj, Symbol* sym, Object* self);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

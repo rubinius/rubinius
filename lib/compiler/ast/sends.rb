@@ -66,12 +66,14 @@ module Rubinius
         @receiver.value_defined(g, f)
 
         g.push_literal @name
-        if @receiver.kind_of? Self
+
+        if @vcall_style
           g.push :true
+          g.send :__respond_to_eh__, 2
         else
-          g.push :false
+          g.push_self
+          g.invoke_primitive :vm_check_callable, 3
         end
-        g.send :__respond_to_eh__, 2
         g.gif f
         g.push_literal "method"
         g.goto done

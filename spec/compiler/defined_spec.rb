@@ -356,8 +356,8 @@ describe "A Defined node" do
 
       ok.set!
       g.push_literal :m
-      g.push :false
-      g.send :__respond_to_eh__, 2
+      g.push_self
+      g.invoke_primitive :vm_check_callable, 3
       g.gif f
       g.push_literal "method"
       g.goto done
@@ -392,8 +392,8 @@ describe "A Defined node" do
 
       ok.set!
       g.push_literal :m
-      g.push :false
-      g.send :__respond_to_eh__, 2
+      g.push_self
+      g.invoke_primitive :vm_check_callable, 3
       g.gif f
       g.push_literal "method"
       g.goto done
@@ -428,8 +428,8 @@ describe "A Defined node" do
 
       ok.set!
       g.push_literal :m
-      g.push :false
-      g.send :__respond_to_eh__, 2
+      g.push_self
+      g.invoke_primitive :vm_check_callable, 3
       g.gif f
       g.push_literal "method"
       g.goto done
@@ -462,8 +462,8 @@ describe "A Defined node" do
 
       ok.set!
       g.push_literal :b
-      g.push :false
-      g.send :__respond_to_eh__, 2
+      g.push_self
+      g.invoke_primitive :vm_check_callable, 3
       g.gif f
       g.push_literal "method"
       g.goto done
@@ -490,8 +490,8 @@ describe "A Defined node" do
 
       g.push_local 0
       g.push_literal :to_s
-      g.push :false
-      g.send :__respond_to_eh__, 2
+      g.push_self
+      g.invoke_primitive :vm_check_callable, 3
       g.gif f
       g.push_literal "method"
       g.goto done
