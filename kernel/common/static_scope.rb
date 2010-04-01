@@ -29,6 +29,9 @@ module Rubinius
     # definition.
     attr_accessor :current_module
 
+    # Set to indicate that no methods may be add to this scope
+    attr_accessor :disabled_for_methods
+
     def inspect
       "#<#{self.class.name}:0x#{self.object_id.to_s(16)} parent=#{@parent.inspect} module=#{@module}>"
     end
@@ -55,7 +58,17 @@ module Rubinius
       return ss
     end
 
+    def using_disabled_scope
+      ss = using_current_as(@module)
+      ss.disabled_for_methods = true
+      return ss
+    end
+
     def for_method_definition
+      if @disabled_for_methods
+        raise TypeError, "unable to create methods in this scope"
+      end
+
       return @current_module if @current_module
       return @module
     end

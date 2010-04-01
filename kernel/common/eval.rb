@@ -136,7 +136,11 @@ module Kernel
   #   k.instance_eval { @secret }   #=> 99
 
   def instance_eval(string=nil, filename="(eval)", line=1, &prc)
-    mc = Rubinius.object_metaclass(self)
+    if ImmediateValue === self
+      mc = nil
+    else
+      mc = Rubinius.object_metaclass(self)
+    end
 
     if prc
       if string
@@ -144,7 +148,13 @@ module Kernel
       end
       # Return a copy of the BlockEnvironment with the receiver set to self
       env = prc.block
-      static_scope = env.method.scope.using_current_as(mc)
+
+      if mc
+        static_scope = env.method.scope.using_current_as(mc)
+      else
+        static_scope = env.method.scope.using_disabled_scope
+      end
+
       return env.call_under(self, static_scope, self)
     elsif string
       string = StringValue(string)
@@ -155,7 +165,16 @@ module Kernel
                               Rubinius::StaticScope.of_sender)
 
       cm = Rubinius::Compiler.compile_eval string, binding.variables, filename, line
-      cm.scope = binding.static_scope.using_current_as(mc)
+
+      static_scope = binding.static_scope
+
+      if mc
+        static_scope = static_scope.using_current_as(mc)
+      else
+        static_scope = static_scope.using_disabled_scope
+      end
+
+      cm.scope = static_scope
       cm.name = :__instance_eval__
       cm.compile
 
@@ -194,8 +213,15 @@ module Kernel
   def instance_exec(*args, &prc)
     raise ArgumentError, "Missing block" unless block_given?
     env = prc.block
-    mc = Rubinius.object_metaclass(self)
-    static_scope = env.method.scope.using_current_as(mc)
+
+    static_scope = env.method.scope
+    if ImmediateValue === self
+      static_scope = static_scope.using_disabled_scope
+    else
+      mc = Rubinius.object_metaclass(self)
+      static_scope = static_scope.using_current_as(mc)
+    end
+
     return env.call_under(self, static_scope, *args)
   end
 end
