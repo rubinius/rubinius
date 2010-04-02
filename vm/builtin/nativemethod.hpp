@@ -308,6 +308,9 @@ namespace rubinius {
     // local data.
     static void init_thread(VM* state);
 
+    // Called when a thread is exitting, to cleanup the thread local data.
+    static void cleanup_thread(VM* state);
+
 
   public:   /* Ctors */
 

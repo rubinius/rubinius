@@ -147,6 +147,11 @@ namespace rubinius {
     native_method_environment.set(env);
   }
 
+  void NativeMethod::cleanup_thread(STATE) {
+    delete native_method_environment.get();
+    native_method_environment.set(NULL);
+  }
+
   NativeMethod* NativeMethod::allocate(STATE) {
     return create<GenericFunctor>(state);
   }

@@ -29,6 +29,11 @@ namespace rubinius {
     return data;
   }
 
+  void Data::finalize(STATE) {
+    FreeFunctor f = this->free();
+    if(f) f(data());
+  }
+
   void Data::Info::mark(Object* t, ObjectMark& mark) {
     auto_mark(t, mark);
 

@@ -37,6 +37,7 @@ namespace rubinius {
     MemoryPointer* obj = state->new_struct<MemoryPointer>(G(memory_pointer));
     obj->pointer = ptr;
     obj->autorelease = false;
+    obj->set_finalizer = false;
     return obj;
   }
 
@@ -56,7 +57,18 @@ namespace rubinius {
   Object* MemoryPointer::set_autorelease(STATE, Object* val) {
     autorelease = val->true_p() ? true : false;
 
+    if(autorelease && !set_finalizer) {
+      state->om->needs_finalization(this);
+      set_finalizer = true;
+    }
+
     return val;
+  }
+
+  void MemoryPointer::finalize(STATE) {
+    if(autorelease && pointer) {
+      ::free(pointer);
+    }
   }
 
   String* MemoryPointer::read_string(STATE, Fixnum* len) {

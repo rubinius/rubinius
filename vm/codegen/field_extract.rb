@@ -1094,7 +1094,7 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
       f.puts "    TypeInfo::instance_sizes[#{n}::type] = ObjectHeader::align(sizeof(#{n}));"
     end
     f.puts "    ti->instance_size = ObjectHeader::align(sizeof(#{n}));"
-    f.puts "    om->type_info[#{n}::type] = ti;"
+    f.puts "    om->add_type_info(ti);"
     f.puts "  }"
     f.puts
   end

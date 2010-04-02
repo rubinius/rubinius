@@ -60,6 +60,12 @@ extern "C" {
     // track them.
     env->state()->om->remember_object(data);
 
+    // If this Data requires a free function, register this object
+    // as needing finalization.
+    if(free) {
+      env->state()->om->needs_finalization(data);
+    }
+
     return env->get_handle(data);
   }
 }

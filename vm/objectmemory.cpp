@@ -16,6 +16,10 @@
 #include "builtin/tuple.hpp"
 #include "builtin/io.hpp"
 #include "builtin/fiber.hpp"
+#include "builtin/string.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/memorypointer.hpp"
+#include "builtin/data.hpp"
 
 #include "capi/handle.hpp"
 #include "configuration.hpp"
@@ -282,6 +286,9 @@ namespace rubinius {
   }
 
   void ObjectMemory::add_type_info(TypeInfo* ti) {
+    if(TypeInfo* current = type_info[ti->type]) {
+      delete current;
+    }
     type_info[ti->type] = ti;
   }
 
@@ -462,6 +469,13 @@ namespace rubinius {
         io->finalize(state);
       } else if(Fiber* fib = try_as<Fiber>(fi->object)) {
         fib->finalize(state);
+      } else if(MemoryPointer* ptr = try_as<MemoryPointer>(fi->object)) {
+        ptr->finalize(state);
+      } else if(Data* data = try_as<Data>(fi->object)) {
+        data->finalize(state);
+      } else {
+        std::cerr << "Unsupported object to be finalized: "
+                  << fi->object->to_s(state)->c_str() << "\n";
       }
 
       fi->status = FinalizeObject::eFinalized;

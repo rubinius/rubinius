@@ -53,6 +53,8 @@ namespace rubinius {
       }
     }
 
+    NativeMethod::cleanup_thread(vm_);
+
     vm_->thread.get()->detach_native_thread();
     VM::discard(vm_);
     vm_ = NULL;

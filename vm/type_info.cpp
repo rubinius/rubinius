@@ -16,11 +16,6 @@ namespace rubinius {
   void TypeInfo::init(ObjectMemory* om) {
     // Call the automatically generated function
     auto_init(om);
-
-    // Give Object a TypeInfo entry
-    TypeInfo* object_type_info = new Object::Info(ObjectType);
-    object_type_info->type_name = std::string("Object");
-    om->type_info[ObjectType] = object_type_info;
   }
 
 

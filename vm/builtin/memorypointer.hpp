@@ -11,10 +11,13 @@ namespace rubinius {
 
     void* pointer;
     bool autorelease;
+    bool set_finalizer;
 
     static void init(STATE);
 
     static MemoryPointer* create(STATE, void* ptr);
+
+    void finalize(STATE);
 
     // Ruby.primitive :memorypointer_address
     Integer* get_address(STATE);
