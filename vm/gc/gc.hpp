@@ -86,7 +86,10 @@ namespace rubinius {
 
   public:
     GarbageCollector(ObjectMemory *om);
-    virtual ~GarbageCollector()  { }
+
+    virtual ~GarbageCollector() {
+      if(weak_refs_) delete weak_refs_;
+    }
 
     virtual Object* saw_object(Object*) = 0;
     void scan_object(Object* obj);
