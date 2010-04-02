@@ -7,6 +7,7 @@
 
 #include "object_types.hpp"
 #include "type_info.hpp"
+#include "detection.hpp"
 
 namespace rubinius {
 
