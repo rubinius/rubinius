@@ -69,18 +69,18 @@ module FFI
       if block_given?
         begin
           value = yield ptr
-
-          return value
         ensure
           ptr.free
         end
+
+        return value
       else
         ptr.autorelease = true
         ptr
       end
     end
 
-    def dup
+    def copy
       other = FFI::Platform::POSIX.malloc total
       other.total = total
       other.type_size = type_size

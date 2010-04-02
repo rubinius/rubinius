@@ -961,7 +961,9 @@ class String::Unpacker
       end
     end
 
-    @ptr.free if @ptr
     elements
+
+  ensure
+    @ptr.free if @ptr
   end
 end

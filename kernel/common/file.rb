@@ -808,22 +808,21 @@ class File < IO
   # of file names in the argument list.
   #  #=> Integer
   def self.utime(a_in, m_in, *paths)
-    ptr = FFI::MemoryPointer.new(POSIX::TimeVal, 2)
-    atime = POSIX::TimeVal.new ptr
-    mtime = POSIX::TimeVal.new ptr[1]
-    atime[:tv_sec] = a_in.to_i
-    atime[:tv_usec] = 0
+    FFI::MemoryPointer.new(POSIX::TimeVal, 2) do |ptr|
+      atime = POSIX::TimeVal.new ptr
+      mtime = POSIX::TimeVal.new ptr[1]
+      atime[:tv_sec] = a_in.to_i
+      atime[:tv_usec] = 0
 
-    mtime[:tv_sec] = m_in.to_i
-    mtime[:tv_usec] = 0
+      mtime[:tv_sec] = m_in.to_i
+      mtime[:tv_usec] = 0
 
-    paths.each do |path|
-      if POSIX.utimes(path, ptr) != 0
-        Errno.handle
+      paths.each do |path|
+        if POSIX.utimes(path, ptr) != 0
+          Errno.handle
+        end
       end
     end
-
-    ptr.free
   end
 
   ##
