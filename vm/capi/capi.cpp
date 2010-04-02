@@ -211,8 +211,7 @@ namespace rubinius {
         name.assign(str.str());
       }
 
-      /* @todo Need to strdup here to not point to junk but can it leak? */
-      return env->state()->symbol(strdup(name.c_str()));
+      return env->state()->symbol(name.c_str());
     }
 
     /** Make sure the name has the given prefix. */
