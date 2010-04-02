@@ -442,8 +442,10 @@ Init_ossl_config()
     eConfigError = rb_define_class_under(mOSSL, "ConfigError", eOSSLError);
     cConfig = rb_define_class_under(mOSSL, "Config", rb_cObject);
 
-    rb_define_const(cConfig, "DEFAULT_CONFIG_FILE",
-		    rb_str_new2(CONF_get1_default_config_file()));
+    char* config_file = CONF_get1_default_config_file();
+    rb_define_const(cConfig, "DEFAULT_CONFIG_FILE", rb_str_new2(config_file));
+    free(config_file);
+
     rb_include_module(cConfig, rb_mEnumerable);
     rb_define_singleton_method(cConfig, "parse", ossl_config_s_parse, 1);
     rb_define_alias(CLASS_OF(cConfig), "load", "new");
