@@ -2,12 +2,13 @@ class ThreadGroup
   def initialize
     @threads = []
   end
-  
+
   def add(thread)
     if thread.group
       thread.group.remove(thread)
     end
     thread.add_to_group self
+    prune
     @threads << WeakRef.new(thread)
     self
   end
@@ -17,12 +18,12 @@ class ThreadGroup
   end
 
   private :prune
-  
+
   def remove(thread)
     prune
     @threads.delete_if { |w| w.object == thread }
   end
-  
+
   def list
     prune
     @threads.map { |w| w.object }
