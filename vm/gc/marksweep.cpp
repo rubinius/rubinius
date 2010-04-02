@@ -5,20 +5,26 @@
 #include "object_utils.hpp"
 
 #include "builtin/tuple.hpp"
+#include "builtin/string.hpp"
+#include "builtin/class.hpp"
+#include "builtin/symbol.hpp"
 
 #include "instruments/stats.hpp"
 
 #include <iostream>
+#include <algorithm>
 
 namespace rubinius {
 
   MarkSweepGC::MarkSweepGC(ObjectMemory *om)
-              :GarbageCollector(om) {
-    allocated_objects = 0;
-    allocated_bytes = 0;
-    next_collection_bytes = MS_COLLECTION_BYTES;
-    free_entries = true;
-  }
+    : GarbageCollector(om)
+    , allocated_bytes(0)
+    , allocated_objects(0)
+    , next_collection_bytes(MS_COLLECTION_BYTES)
+    , free_entries(true)
+    , times_collected(0)
+    , last_freed(0)
+  {}
 
   MarkSweepGC::~MarkSweepGC() { }
 
@@ -69,8 +75,11 @@ namespace rubinius {
       delete_object(obj);
     }
 
+    last_freed++;
+
     allocated_objects--;
     allocated_bytes -= obj->size_in_bytes(object_memory_->state);
+    obj->set_zone(UnspecifiedZone);
 
 #ifdef USE_DLMALLOC
     malloc_.release(reinterpret_cast<void*>(obj));
@@ -131,6 +140,9 @@ namespace rubinius {
   }
 
   void MarkSweepGC::after_marked() {
+    times_collected++;
+    last_freed = 0;
+
     // Cleanup all weakrefs seen
     clean_weakrefs();
 
@@ -150,6 +162,96 @@ namespace rubinius {
         i = entries.erase(i);
       }
     }
+  }
+
+  /*
+  static bool sort_by_size(Object* a, Object* b) {
+    STATE = rubinius::VM::current_state();
+    size_t a_size = a->size_in_bytes(state);
+    size_t b_size = b->size_in_bytes(state);
+
+    return b_size < a_size;
+  }
+  */
+
+  struct PerClass {
+    int objects;
+    int bytes;
+
+    PerClass()
+      : objects(0)
+      , bytes(0)
+    {}
+  };
+
+  void MarkSweepGC::profile() {
+
+    std::map<Class*, PerClass> stats;
+
+    for(std::list<Object*>::iterator i = entries.begin();
+        i != entries.end();
+        i++) {
+      Object* obj = *i;
+      Class* cls = obj->class_object(object_memory_->state);
+
+      std::map<Class*,PerClass>::iterator i = stats.find(cls);
+      if(i == stats.end()) {
+        PerClass pc;
+        pc.objects++;
+        pc.bytes += obj->size_in_bytes(object_memory_->state);
+
+        stats[cls] = pc;
+      } else {
+        i->second.objects++;
+        i->second.bytes += obj->size_in_bytes(object_memory_->state);
+      }
+    }
+
+    std::cout << stats.size() << " classes:\n";
+
+    for(std::map<Class*,PerClass>::iterator i = stats.begin();
+        i != stats.end();
+        i++) {
+      std::cout << i->first->name()->c_str(object_memory_->state) << "\n"
+                << "  objects: " << i->second.objects << "\n"
+                << "    bytes: " << i->second.bytes << "\n";
+    }
+
+    /*
+    int count = 0;
+
+    for(std::list<Object*>::reverse_iterator i = entries.rbegin();
+        i != entries.rend();
+        i++) {
+      Object* obj = *i;
+      if(ByteArray* ba = try_as<ByteArray>(obj)) {
+        ba->show(object_memory_->state);
+        if(++count == 10) break;
+      }
+    }
+    */
+
+    /*
+    std::list<Object*> sorted = entries;
+    sorted.sort(sort_by_size);
+
+    std::list<Object*>::iterator i;
+
+    std::cout << "Top 30:\n";
+
+    int count = 0;
+
+    for(i = sorted.begin(); i != sorted.end();) {
+      Object* obj = *i;
+
+      size_t sz = obj->size_in_bytes(object_memory_->state);
+
+      std::cout << obj->to_s(object_memory_->state, true)->c_str() << " bytes=" << sz << "\n";
+      if(++count == 30) break;
+
+      i++;
+    }
+    */
   }
 
   ObjectPosition MarkSweepGC::validate_object(Object* obj) {

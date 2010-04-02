@@ -41,6 +41,8 @@ namespace rubinius {
     size_t allocated_objects;
     int    next_collection_bytes;
     bool   free_entries;
+    int    times_collected;
+    int    last_freed;
 
     /* Prototypes */
 
@@ -54,6 +56,8 @@ namespace rubinius {
     virtual Object* saw_object(Object* obj);
     void   collect(Roots &roots, CallFrameLocationList& call_frame);
     void after_marked();
+
+    void profile();
 
     ObjectPosition validate_object(Object* obj);
   };

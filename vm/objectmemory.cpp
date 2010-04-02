@@ -7,6 +7,7 @@
 #include "gc/baker.hpp"
 #include "gc/immix.hpp"
 #include "gc/inflated_headers.hpp"
+#include "gc/walker.hpp"
 
 #include "config_parser.hpp"
 
@@ -490,7 +491,10 @@ namespace rubinius {
 
     std::cout << "baker: " << baker << "\n";
     std::cout << "immix: " << immix << "\n";
-    std::cout << "large: " << large << "\n";
+    std::cout << "large: " << large << "\n"
+              << "        objects: " << mark_sweep_->allocated_objects << "\n"
+              << "        times: " << mark_sweep_->times_collected << "\n"
+              << "        last_freed: " << mark_sweep_->last_freed << "\n";
     std::cout << " code: " << code << "\n";
     std::cout << "shared: " << shared << "\n";
 
@@ -502,11 +506,164 @@ namespace rubinius {
     std::cout << "  total allocated: " << code_manager_.total_allocated() << "\n";
     std::cout << "      total freed: " << code_manager_.total_freed() << "\n";
   }
+
+  class RefererFinder : public GarbageCollector {
+    Object* target_;
+    bool found_;
+
+  public:
+    RefererFinder(ObjectMemory* om, Object* obj)
+      : GarbageCollector(om)
+      , target_(obj)
+      , found_(false)
+    {}
+
+    virtual Object* saw_object(Object* obj) {
+      if(obj == target_) {
+        found_ = true;
+      }
+
+      return obj;
+    }
+
+    void reset() {
+      found_ = false;
+    }
+
+    bool found_p() {
+      return found_;
+    }
+  };
+
+  void ObjectMemory::find_referers(Object* target, ObjectArray& result) {
+    ObjectMemory::GCInhibit inhibitor(state->om);
+
+    ObjectWalker walker(state->om);
+    GCData gc_data(state);
+
+    // Seed it with the root objects.
+    walker.seed(gc_data);
+
+    Object* obj = walker.next();
+
+    RefererFinder rf(this, target);
+
+    while(obj) {
+      rf.reset();
+
+      rf.scan_object(obj);
+
+      if(rf.found_p()) {
+        result.push_back(obj);
+      }
+
+      obj = walker.next();
+    }
+  }
+
+  void ObjectMemory::snapshot() {
+    // Assign all objects an object id...
+    ObjectMemory::GCInhibit inhibitor(state->om);
+
+    // Walk the heap over and over until we don't create
+    // any more objects...
+
+    size_t last_seen = 0;
+
+    while(last_object_id != last_seen) {
+      last_seen = last_object_id;
+
+      ObjectWalker walker(state->om);
+      GCData gc_data(state);
+
+      // Seed it with the root objects.
+      walker.seed(gc_data);
+
+      Object* obj = walker.next();
+
+      while(obj) {
+        obj->id(state);
+        obj = walker.next();
+      }
+    }
+
+    // Now, save the current value of last_object_id, since thats
+    // so we can compare later to find all new objects.
+    last_snapshot_id = last_object_id;
+
+    std::cout << "Snapshot taken: " << last_snapshot_id << "\n";
+  }
+
+  void ObjectMemory::print_new_since_snapshot() {
+    // Assign all objects an object id...
+    ObjectMemory::GCInhibit inhibitor(state->om);
+
+    ObjectWalker walker(state->om);
+    GCData gc_data(state);
+
+    // Seed it with the root objects.
+    walker.seed(gc_data);
+
+    Object* obj = walker.next();
+
+    // All reference ids are shifted up
+    native_int check_id = (native_int)last_snapshot_id << 1;
+
+    int count = 0;
+    int bytes = 0;
+
+    while(obj) {
+      if(!obj->has_id(state) || obj->id(state)->to_native() > check_id) {
+        count++;
+        bytes += obj->size_in_bytes(state);
+
+        if(kind_of<String>(obj)) {
+          std::cout << "#<String:" << obj << ">\n";
+        } else {
+          std::cout << obj->to_s(state, true)->c_str() << "\n";
+        }
+      }
+
+      obj = walker.next();
+    }
+
+    std::cout << count << " objects since snapshot.\n";
+    std::cout << bytes << " bytes since snapshot.\n";
+  }
+
+  void ObjectMemory::print_references(Object* obj) {
+    ObjectArray ary;
+
+    find_referers(obj, ary);
+
+    int count = 0;
+
+    std::cout << ary.size() << " total references:\n";
+    for(ObjectArray::iterator i = ary.begin();
+        i != ary.end();
+        i++) {
+      std::cout << "  " << (*i)->to_s(state, true)->c_str() << "\n";
+
+      if(++count == 100) break;
+    }
+  }
 };
 
 // Used in gdb
 void x_memstat() {
   rubinius::VM::current_state()->om->memstats();
+}
+
+void print_references(void* obj) {
+  rubinius::VM::current_state()->om->print_references((rubinius::Object*)obj);
+}
+
+void x_snapshot() {
+  rubinius::VM::current_state()->om->snapshot();
+}
+
+void x_print_snapshot() {
+  rubinius::VM::current_state()->om->print_new_since_snapshot();
 }
 
 #define DEFAULT_MALLOC_THRESHOLD 10000000

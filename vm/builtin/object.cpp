@@ -375,7 +375,7 @@ namespace rubinius {
       if(id->nil_p()) {
         /* All references have an even object_id. last_object_id starts out at 0
          * but we don't want to use 0 as an object_id, so we just add before using */
-        id = Fixnum::from(state->om->last_object_id += 2);
+        id = Fixnum::from(++state->om->last_object_id << 1);
         set_ivar(state, G(sym_object_id), id);
       }
 

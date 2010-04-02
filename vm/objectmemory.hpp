@@ -88,6 +88,7 @@ namespace rubinius {
 
     STATE;
     size_t last_object_id;
+    size_t last_snapshot_id;
     TypeInfo* type_info[(int)LastObjectType];
 
     /* Config variables */
@@ -194,6 +195,12 @@ namespace rubinius {
 
     void needs_finalization(Object* obj);
     void run_finalizers(STATE);
+
+    void find_referers(Object* obj, ObjectArray& result);
+    void print_references(Object* obj);
+
+    void snapshot();
+    void print_new_since_snapshot();
 
     InflatedHeader* inflate_header(ObjectHeader* obj);
 
