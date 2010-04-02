@@ -123,7 +123,7 @@ namespace rubinius {
 
   };
 
-#define IOBUFFER_SIZE 32384U
+#define IOBUFFER_SIZE 1024U
 
   class IOBuffer : public Object {
   public:
