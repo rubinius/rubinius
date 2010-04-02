@@ -1355,7 +1355,8 @@ class IO
     buffer = '' if buffer.nil?
 
     if @ibuffer.size > 0
-      return @ibuffer.shift size
+      buffer.replace @ibuffer.shift(size)
+      return buffer
     end
 
     buffer.replace(sysread(size)) if size > 0
