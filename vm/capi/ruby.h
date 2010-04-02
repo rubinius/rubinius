@@ -1428,6 +1428,9 @@ double rb_num2dbl(VALUE);
   int     rb_thread_select(int max, fd_set* read, fd_set* write, fd_set* except,
                            struct timeval *timeval);
 
+  /** Get current thread */
+  VALUE   rb_thread_current(void);
+
   /** Returns an integer value representing the object's type. */
   int     rb_type(VALUE object_handle);
 

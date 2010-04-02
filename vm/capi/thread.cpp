@@ -1,5 +1,6 @@
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
+#include "builtin/thread.hpp"
 
 using namespace rubinius;
 
@@ -15,6 +16,15 @@ extern "C" {
 
     return select(max, read, write, except, timeval);
   }
+
+  VALUE rb_thread_current(void) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    GlobalLock::UnlockGuard guard(env->state()->global_lock());
+    Thread* thread = env->state()->thread.get();
+    
+    return env->get_handle(thread);
+  }
+  
 
   int rb_thread_alone() {
     return 0;

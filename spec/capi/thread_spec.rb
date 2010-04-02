@@ -38,4 +38,10 @@ describe "CApiThreadSpecs" do
       @t.rb_thread_alone.should == 0
     end
   end
+
+  describe "rb_thread_current" do
+    it "equals Thread.current" do
+      @t.rb_thread_current.should == Thread.current
+    end
+  end
 end
