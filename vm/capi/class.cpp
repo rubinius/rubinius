@@ -38,7 +38,8 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Class* class_object = c_as<Class>(env->get_object(class_handle));
 
-    return ::strdup(class_object->name()->c_str(env->state()));
+    String* str = class_object->name()->to_str(env->state());
+    return RSTRING_PTR(env->get_handle(str));
   }
 
   VALUE rb_path2class(const char* name) {

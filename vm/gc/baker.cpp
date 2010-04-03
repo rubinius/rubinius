@@ -147,6 +147,8 @@ namespace rubinius {
           scan_object(tmp);
         }
       }
+
+      delete rs;
     }
 
     for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {

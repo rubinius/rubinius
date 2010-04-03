@@ -104,6 +104,11 @@ namespace jit {
       return i->second;
     }
 
+    void set_block(int ip, CFGBlock* blk) {
+      assert(!blocks_[ip]);
+      blocks_[ip] = blk;
+    }
+
     CFGBlock* add_block(int ip, bool loop=false) {
       CFGBlock* blk = find_block(ip);
       if(blk) return blk;
@@ -113,7 +118,7 @@ namespace jit {
       // Inherit the current exception handler
       blk->set_exception_handler(current_->exception_handler());
 
-      blocks_[ip] = blk;
+      set_block(ip, blk);
       return blk;
     }
 
@@ -128,7 +133,7 @@ namespace jit {
           if(iter.operand1() < iter.position()) {
             if(!find_block(iter.operand1())) {
               CFGBlock* blk = new CFGBlock(iter.operand1(), true);
-              blocks_[iter.operand1()] = blk;
+              set_block(iter.operand1(), blk);
             }
           }
           break;
@@ -158,8 +163,12 @@ namespace jit {
       find_backward_gotos();
 
       // Construct the root block specially.
-      root_ = new CFGBlock(0);
-      blocks_[0] = root_;
+      if(blocks_[0]) {
+        root_ = blocks_[0];
+      } else {
+        root_ = new CFGBlock(0);
+        blocks_[0] = root_;
+      }
 
       current_ = root_;
 

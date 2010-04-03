@@ -263,15 +263,13 @@ namespace rubinius {
     }
 
     case ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER: {
-      VALUE* ary = new VALUE[args.total()];
+      VALUE* ary = (VALUE*)alloca(sizeof(VALUE) * args.total());
 
       for (std::size_t i = 0; i < args.total(); ++i) {
         ary[i] = env->get_handle(args.get_argument(i));
       }
 
       VALUE ret = functor_as<ArgcFunctor>()(args.total(), ary, receiver);
-
-      delete[] ary;
 
       return env->get_object(ret);
     }
