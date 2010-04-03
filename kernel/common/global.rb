@@ -18,7 +18,6 @@ module Rubinius
       @internal[:$,] = ''               # Output field separator
       @internal[:$.] = 0                # TODO: Last line number of IO read.
       @internal[:$_] = nil              # HACK: bunk for now.
-      @internal[:$<] = nil              # HACK: should be ARGF
       @internal[:$?] = nil              # Process status. nil until set
       @internal[:$=] = false            # ignore case, whatever that is
       @internal[:$CONSOLE]         = STDOUT
