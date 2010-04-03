@@ -9,6 +9,8 @@
 #include "builtin/memorypointer.hpp"
 #include "builtin/string.hpp"
 
+#include "object_utils.hpp"
+
 #include <sys/types.h>
 #include <dirent.h>
 
@@ -20,47 +22,70 @@ namespace rubinius {
 
   Dir* Dir::create(STATE) {
     Dir* d = state->new_object<Dir>(G(dir));
-    d->data(state, (MemoryPointer*)Qnil);
+    d->os_ = 0;
+
+    state->om->needs_finalization(d);
 
     return d;
   }
 
+  Dir* Dir::allocate(STATE, Object* self) {
+    Dir* dir = create(state);
+
+    if(Class* cls = try_as<Class>(self)) {
+      dir->klass(state, cls);
+    }
+
+    return dir;
+  }
+
+  void Dir::finalize(STATE) {
+    if(os_) {
+      closedir(os_);
+      os_ = 0;
+    }
+  }
+
   void Dir::guard(STATE) {
-    if(data_->nil_p()) {
+    if(!os_) {
       Exception::io_error(state, "closed directory");
     }
   }
 
   Object* Dir::open(STATE, String* path) {
-    DIR* d = opendir(path->c_str());
+    if(os_) closedir(os_);
 
-    if(!d) Exception::errno_error(state, "Unable to open directory");
-    data(state, MemoryPointer::create(state, d));
+    os_ = opendir(path->c_str());
 
-    return Qnil;
+    if(!os_) {
+      Exception::errno_error(state, "Unable to open directory", errno, path->c_str());
+      return 0;
+    }
+
+    this->path(state, path);
+
+    return Qtrue;
   }
 
   Object* Dir::close(STATE) {
     guard(state);
 
-    DIR* d = (DIR*)data_->pointer;
-    if(d) {
-      data(state, (MemoryPointer*)Qnil);
-      closedir(d);
+    if(os_) {
+      closedir(os_);
+      os_ = 0;
     }
 
     return Qnil;
   }
 
   Object* Dir::closed_p(STATE) {
-    return data_->nil_p() ? Qtrue : Qfalse;
+    return os_ ? Qfalse : Qtrue;
   }
 
   Object* Dir::read(STATE) {
     guard(state);
 
-    DIR* d = (DIR*)data_->pointer;
-    struct dirent *ent = readdir(d);
+    struct dirent *ent = readdir(os_);
 
     if(!ent) return Qnil;
 
@@ -70,17 +95,15 @@ namespace rubinius {
   Object* Dir::control(STATE, Fixnum* kind, Integer* pos) {
     guard(state);
 
-    DIR* d = (DIR*)data_->pointer;
-
     switch(kind->to_native()) {
     case 0:
-      seekdir(d, pos->to_native());
+      seekdir(os_, pos->to_native());
       return Qtrue;
     case 1:
-      rewinddir(d);
+      rewinddir(os_);
       return Qtrue;
     case 2:
-      return Integer::from(state, telldir(d));
+      return Integer::from(state, telldir(os_));
     }
     return Qnil;
   }

@@ -1,8 +1,15 @@
 class Dir
-  def __open__(path)
-    Ruby.primitive :dir_open
-    raise PrimitiveFailure, "Dir#__open__ primitive failed"
+  def self.allocate
+    Ruby.primitive :dir_allocate
+    raise PrimitiveFailure, "Dir.allocate primitive failed"
   end
+
+  def initialize(path)
+    Ruby.primitive :dir_open
+    raise PrimitiveFailure, "Dir#open primitive failed"
+  end
+
+  private :initialize
 
   def close
     Ruby.primitive :dir_close
@@ -19,8 +26,10 @@ class Dir
     raise PrimitiveFailure, "Dir#read primitive failed"
   end
 
-  def __control__(kind, pos)
+  def control(kind, pos)
     Ruby.primitive :dir_control
     raise PrimitiveFailure, "Dir#__control__ primitive failed"
   end
+
+  private :control
 end

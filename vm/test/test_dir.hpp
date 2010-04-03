@@ -33,33 +33,17 @@ public:
 
   void test_create() {
     TS_ASSERT(kind_of<Dir>(d));
-    TS_ASSERT(d->data()->nil_p());
   }
 
   void test_open() {
     String* path = String::create(state, ".");
-    TS_ASSERT_EQUALS(d->open(state, path), Qnil);
-    TS_ASSERT(!d->data()->nil_p());
+    TS_ASSERT_EQUALS(d->open(state, path), Qtrue);
   }
-
-  /*
-  void _test_open_nonexistent() {
-    String* path = String::create(state, "nonexistent");
-    // TODO: change to TS_ASSERT_RAISES(d->open(state, path), {Ruby IOError});
-  }
-  */
-
-  /*
-  void _test_close_closed() {
-    // TODO: TS_ASSERT_RAISES(d->close(state), {Ruby IOError});
-  }
-  */
 
   void test_close() {
     String* path = String::create(state, ".");
     d->open(state, path);
     TS_ASSERT_EQUALS(d->close(state), Qnil);
-    TS_ASSERT(d->data()->nil_p());
   }
 
   void test_closed_p() {
@@ -73,7 +57,7 @@ public:
     char *dir = make_directory();
     String* path = String::create(state, dir);
     d->open(state, path);
-    String* name = (String*)d->read(state);
+    String* name = as<String>(d->read(state));
     TS_ASSERT_EQUALS(name->c_str()[0], '.');
     remove_directory(dir);
   }
@@ -87,12 +71,6 @@ public:
     TS_ASSERT(d->read(state)->nil_p());
     remove_directory(dir);
   }
-
-  /*
-  void _test_read_raises_exception_if_closed() {
-    // TODO: TS_ASSERT_RAISES(d->read(state), {Ruby IOError});
-  }
-  */
 
   void test_control_rewinds_read_location() {
     char *dir = make_directory();

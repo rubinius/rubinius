@@ -452,17 +452,6 @@ class Dir
     return ret
   end
 
-  def initialize(path)
-    begin
-      __open__ path
-    rescue SystemCallError => e
-      e.message << " - '#{path}'"
-      raise e
-    end
-
-    @path = path
-  end
-
   def each
     return to_enum unless block_given?
 
@@ -480,7 +469,7 @@ class Dir
   TellKind = 2
 
   def pos
-    __control__ TellKind, 0
+    control TellKind, 0
   end
 
   alias_method :tell, :pos
@@ -492,17 +481,21 @@ class Dir
   end
 
   def seek(position)
-    __control__ SeekKind, position
+    control SeekKind, position
 
     self
   end
 
   def rewind
-    __control__ RewindKind, 0
+    control RewindKind, 0
 
     self
   end
-  
+
+  def inspect
+    "#<#{self.class}:#{object_id.to_s(16)} @path=#{@path}>"
+  end
+
   class << self
     alias_method :pwd, :getwd
     alias_method :delete, :rmdir

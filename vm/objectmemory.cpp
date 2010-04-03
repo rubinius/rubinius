@@ -20,6 +20,7 @@
 #include "builtin/lookuptable.hpp"
 #include "builtin/memorypointer.hpp"
 #include "builtin/data.hpp"
+#include "builtin/dir.hpp"
 
 #include "capi/handle.hpp"
 #include "configuration.hpp"
@@ -473,6 +474,8 @@ namespace rubinius {
         ptr->finalize(state);
       } else if(Data* data = try_as<Data>(fi->object)) {
         data->finalize(state);
+      } else if(Dir* dir = try_as<Dir>(fi->object)) {
+        dir->finalize(state);
       } else {
         std::cerr << "Unsupported object to be finalized: "
                   << fi->object->to_s(state)->c_str() << "\n";

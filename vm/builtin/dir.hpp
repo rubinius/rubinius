@@ -4,6 +4,8 @@
 #include "builtin/object.hpp"
 #include "type_info.hpp"
 
+#include <dirent.h>
+
 namespace rubinius {
   class MemoryPointer;
   class String;
@@ -13,25 +15,37 @@ namespace rubinius {
     const static object_type type = DirType;
 
   private:
-    MemoryPointer* data_; // slot
+    DIR *os_;
+    String *path_; // slot
 
   public:
-    /* accessors */
 
-    attr_accessor(data, MemoryPointer);
+    attr_accessor(path, String);
 
     /* interface */
 
     static void init(STATE);
+
+
     static Dir* create(STATE);
+
+    void finalize(STATE);
+
+    // Ruby.primitive :dir_allocate
+    static Dir* allocate(STATE, Object* self);
+
     // Ruby.primitive :dir_open
     Object* open(STATE, String *path);
+
     // Ruby.primitive :dir_close
     Object* close(STATE);
+
     // Ruby.primitive :dir_closed_p
     Object* closed_p(STATE);
+
     // Ruby.primitive :dir_read
     Object* read(STATE);
+
     // Ruby.primitive :dir_control
     Object* control(STATE, Fixnum* kind, Integer* pos);
     void guard(STATE);

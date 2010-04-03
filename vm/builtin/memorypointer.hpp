@@ -92,7 +92,6 @@ namespace rubinius {
     // Ruby.primitive :memorypointer_network_order
     Object* network_order(STATE, Fixnum* offset, Fixnum* intsize);
 
-    /** @todo Need cleanup here? */
     class Info : public TypeInfo {
     public:
       Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }

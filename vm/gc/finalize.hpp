@@ -1,4 +1,5 @@
 namespace rubinius {
+
   struct FinalizeObject {
   public:
     enum FinalizationStatus {
