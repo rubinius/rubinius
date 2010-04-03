@@ -2,7 +2,7 @@
   iso8859_5.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2007  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2008  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -166,7 +166,7 @@ static const OnigPairCaseFoldCodes CaseFoldMap[] = {
  { 0xbb, 0xdb },
  { 0xbc, 0xdc },
  { 0xbd, 0xdd },
- { 0xbe, 0xdf },
+ { 0xbe, 0xde },
  { 0xbf, 0xdf },
 
  { 0xc0, 0xe0 },

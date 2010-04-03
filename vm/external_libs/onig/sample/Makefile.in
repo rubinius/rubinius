@@ -52,47 +52,47 @@ PROGRAMS = $(noinst_PROGRAMS)
 crnl_SOURCES = crnl.c
 crnl_OBJECTS = crnl.$(OBJEXT)
 crnl_LDADD = $(LDADD)
-am__DEPENDENCIES_1 = $(top_builddir)/libonig.la
-crnl_DEPENDENCIES = $(am__DEPENDENCIES_1)
+crnl_DEPENDENCIES = $(libname)
 am_encode_OBJECTS = encode.$(OBJEXT)
 encode_OBJECTS = $(am_encode_OBJECTS)
 encode_LDADD = $(LDADD)
-encode_DEPENDENCIES = $(am__DEPENDENCIES_1)
+encode_DEPENDENCIES = $(libname)
 am_listcap_OBJECTS = listcap.$(OBJEXT)
 listcap_OBJECTS = $(am_listcap_OBJECTS)
 listcap_LDADD = $(LDADD)
-listcap_DEPENDENCIES = $(am__DEPENDENCIES_1)
+listcap_DEPENDENCIES = $(libname)
 am_names_OBJECTS = names.$(OBJEXT)
 names_OBJECTS = $(am_names_OBJECTS)
 names_LDADD = $(LDADD)
-names_DEPENDENCIES = $(am__DEPENDENCIES_1)
+names_DEPENDENCIES = $(libname)
 am_posix_OBJECTS = posix.$(OBJEXT)
 posix_OBJECTS = $(am_posix_OBJECTS)
 posix_LDADD = $(LDADD)
-posix_DEPENDENCIES = $(am__DEPENDENCIES_1)
+posix_DEPENDENCIES = $(libname)
 am_simple_OBJECTS = simple.$(OBJEXT)
 simple_OBJECTS = $(am_simple_OBJECTS)
 simple_LDADD = $(LDADD)
-simple_DEPENDENCIES = $(am__DEPENDENCIES_1)
+simple_DEPENDENCIES = $(libname)
 am_sql_OBJECTS = sql.$(OBJEXT)
 sql_OBJECTS = $(am_sql_OBJECTS)
 sql_LDADD = $(LDADD)
-sql_DEPENDENCIES = $(am__DEPENDENCIES_1)
+sql_DEPENDENCIES = $(libname)
 am_syntax_OBJECTS = syntax.$(OBJEXT)
 syntax_OBJECTS = $(am_syntax_OBJECTS)
 syntax_LDADD = $(LDADD)
-syntax_DEPENDENCIES = $(am__DEPENDENCIES_1)
-DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
+syntax_DEPENDENCIES = $(libname)
+DEFAULT_INCLUDES = -I. -I$(top_builddir)@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 SOURCES = crnl.c $(encode_SOURCES) $(listcap_SOURCES) $(names_SOURCES) \
 	$(posix_SOURCES) $(simple_SOURCES) $(sql_SOURCES) \
 	$(syntax_SOURCES)
@@ -104,8 +104,6 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
-AMDEP_FALSE = @AMDEP_FALSE@
-AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
@@ -263,28 +261,28 @@ clean-noinstPROGRAMS:
 	done
 crnl$(EXEEXT): $(crnl_OBJECTS) $(crnl_DEPENDENCIES) 
 	@rm -f crnl$(EXEEXT)
-	$(LINK) $(crnl_LDFLAGS) $(crnl_OBJECTS) $(crnl_LDADD) $(LIBS)
+	$(LINK) $(crnl_OBJECTS) $(crnl_LDADD) $(LIBS)
 encode$(EXEEXT): $(encode_OBJECTS) $(encode_DEPENDENCIES) 
 	@rm -f encode$(EXEEXT)
-	$(LINK) $(encode_LDFLAGS) $(encode_OBJECTS) $(encode_LDADD) $(LIBS)
+	$(LINK) $(encode_OBJECTS) $(encode_LDADD) $(LIBS)
 listcap$(EXEEXT): $(listcap_OBJECTS) $(listcap_DEPENDENCIES) 
 	@rm -f listcap$(EXEEXT)
-	$(LINK) $(listcap_LDFLAGS) $(listcap_OBJECTS) $(listcap_LDADD) $(LIBS)
+	$(LINK) $(listcap_OBJECTS) $(listcap_LDADD) $(LIBS)
 names$(EXEEXT): $(names_OBJECTS) $(names_DEPENDENCIES) 
 	@rm -f names$(EXEEXT)
-	$(LINK) $(names_LDFLAGS) $(names_OBJECTS) $(names_LDADD) $(LIBS)
+	$(LINK) $(names_OBJECTS) $(names_LDADD) $(LIBS)
 posix$(EXEEXT): $(posix_OBJECTS) $(posix_DEPENDENCIES) 
 	@rm -f posix$(EXEEXT)
-	$(LINK) $(posix_LDFLAGS) $(posix_OBJECTS) $(posix_LDADD) $(LIBS)
+	$(LINK) $(posix_OBJECTS) $(posix_LDADD) $(LIBS)
 simple$(EXEEXT): $(simple_OBJECTS) $(simple_DEPENDENCIES) 
 	@rm -f simple$(EXEEXT)
-	$(LINK) $(simple_LDFLAGS) $(simple_OBJECTS) $(simple_LDADD) $(LIBS)
+	$(LINK) $(simple_OBJECTS) $(simple_LDADD) $(LIBS)
 sql$(EXEEXT): $(sql_OBJECTS) $(sql_DEPENDENCIES) 
 	@rm -f sql$(EXEEXT)
-	$(LINK) $(sql_LDFLAGS) $(sql_OBJECTS) $(sql_LDADD) $(LIBS)
+	$(LINK) $(sql_OBJECTS) $(sql_LDADD) $(LIBS)
 syntax$(EXEEXT): $(syntax_OBJECTS) $(syntax_DEPENDENCIES) 
 	@rm -f syntax$(EXEEXT)
-	$(LINK) $(syntax_LDFLAGS) $(syntax_OBJECTS) $(syntax_LDADD) $(LIBS)
+	$(LINK) $(syntax_OBJECTS) $(syntax_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -302,22 +300,22 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/syntax.Po@am__quote@
 
 .c.o:
-@am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ `$(CYGPATH_W) '$<'`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	if $(LTCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Plo"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
@@ -327,10 +325,6 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-
-distclean-libtool:
-	-rm -f libtool
-uninstall-info-am:
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -381,22 +375,21 @@ distclean-tags:
 	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
 
 distdir: $(DISTFILES)
-	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
-	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
-	list='$(DISTFILES)'; for file in $$list; do \
-	  case $$file in \
-	    $(srcdir)/*) file=`echo "$$file" | sed "s|^$$srcdirstrip/||"`;; \
-	    $(top_srcdir)/*) file=`echo "$$file" | sed "s|^$$topsrcdirstrip/|$(top_builddir)/|"`;; \
-	  esac; \
+	@srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
+	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
+	list='$(DISTFILES)'; \
+	  dist_files=`for file in $$list; do echo $$file; done | \
+	  sed -e "s|^$$srcdirstrip/||;t" \
+	      -e "s|^$$topsrcdirstrip/|$(top_builddir)/|;t"`; \
+	case $$dist_files in \
+	  */*) $(MKDIR_P) `echo "$$dist_files" | \
+			   sed '/\//!d;s|^|$(distdir)/|;s,/[^/]*$$,,' | \
+			   sort -u` ;; \
+	esac; \
+	for file in $$dist_files; do \
 	  if test -f $$file || test -d $$file; then d=.; else d=$(srcdir); fi; \
-	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \
-	  if test "$$dir" != "$$file" && test "$$dir" != "."; then \
-	    dir="/$$dir"; \
-	    $(mkdir_p) "$(distdir)$$dir"; \
-	  else \
-	    dir=''; \
-	  fi; \
 	  if test -d $$d/$$file; then \
+	    dir=`echo "/$$file" | sed -e 's,/[^/]*$$,,'`; \
 	    if test -d $(srcdir)/$$file && test $$d != $(srcdir); then \
 	      cp -pR $(srcdir)/$$file $(distdir)$$dir || exit 1; \
 	    fi; \
@@ -444,7 +437,7 @@ distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-libtool distclean-tags
+	distclean-tags
 
 dvi: dvi-am
 
@@ -458,11 +451,19 @@ info-am:
 
 install-data-am:
 
+install-dvi: install-dvi-am
+
 install-exec-am:
+
+install-html: install-html-am
 
 install-info: install-info-am
 
 install-man:
+
+install-pdf: install-pdf-am
+
+install-ps: install-ps-am
 
 installcheck-am:
 
@@ -484,19 +485,22 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-info-am
+uninstall-am:
+
+.MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
 	clean-libtool clean-noinstPROGRAMS ctags distclean \
 	distclean-compile distclean-generic distclean-libtool \
 	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-exec \
-	install-exec-am install-info install-info-am install-man \
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
 	install-strip installcheck installcheck-am installdirs \
 	maintainer-clean maintainer-clean-generic mostlyclean \
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags uninstall uninstall-am \
-	uninstall-info-am
+	pdf pdf-am ps ps-am tags uninstall uninstall-am
 
 
 test: encode listcap names posix simple sql syntax

@@ -2,7 +2,7 @@
   koi8.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2006  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2008  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,23 +103,16 @@ static const unsigned short EncKOI8_CtypeTable[256] = {
   0x34a2, 0x34a2, 0x34a2, 0x34a2, 0x34a2, 0x34a2, 0x34a2, 0x34a2
 };
 
-static int
-koi8_mbc_case_fold(OnigAmbigType flag, const OnigUChar** pp,
-		   const OnigUChar* end, OnigUChar* lower)
-{
-  const OnigUChar* p = *pp;
 
-  if (((flag & ONIGENC_CASE_FOLD_ASCII_CASE) != 0 &&
-       ONIGENC_IS_MBC_ASCII(p)) ||
-      ((flag & ONIGENC_CASE_FOLD_NONASCII_CASE) != 0 &&
-       !ONIGENC_IS_MBC_ASCII(p))) {
-    *lower = ENC_KOI8_TO_LOWER_CASE(*p);
-  }
-  else {
-    *lower = *p;
-  }
+static int
+koi8_mbc_case_fold(OnigCaseFoldType flag ARG_UNUSED,
+	   const UChar** pp, const UChar* end ARG_UNUSED, UChar* lower)
+{
+  const UChar* p = *pp;
+
+  *lower = ENC_KOI8_TO_LOWER_CASE(*p);
   (*pp)++;
-  return 1; /* return byte length of converted char to lower */
+  return 1;
 }
 
 #if 0
@@ -150,81 +143,91 @@ koi8_is_code_ctype(OnigCodePoint code, unsigned int ctype)
     return FALSE;
 }
 
+static const OnigPairCaseFoldCodes CaseFoldMap[] = {
+ { 0xc0, 0xe0 },
+ { 0xc1, 0xe1 },
+ { 0xc2, 0xe2 },
+ { 0xc3, 0xe3 },
+ { 0xc4, 0xe4 },
+ { 0xc5, 0xe5 },
+ { 0xc6, 0xe6 },
+ { 0xc7, 0xe7 },
+ { 0xc8, 0xe8 },
+ { 0xc9, 0xe9 },
+ { 0xca, 0xea },
+ { 0xcb, 0xeb },
+ { 0xcc, 0xec },
+ { 0xcd, 0xed },
+ { 0xce, 0xee },
+ { 0xcf, 0xef },
+
+ { 0xd0, 0xf0 },
+ { 0xd1, 0xf1 },
+ { 0xd2, 0xf2 },
+ { 0xd3, 0xf3 },
+ { 0xd4, 0xf4 },
+ { 0xd5, 0xf5 },
+ { 0xd6, 0xf6 },
+ { 0xd7, 0xf7 },
+ { 0xd8, 0xf8 },
+ { 0xd9, 0xf9 },
+ { 0xda, 0xfa },
+ { 0xdb, 0xfb },
+ { 0xdc, 0xfc },
+ { 0xdd, 0xfd },
+ { 0xde, 0xfe },
+ { 0xdf, 0xff },
+
+ { 0xe0, 0xc0 },
+ { 0xe1, 0xc1 },
+ { 0xe2, 0xc2 },
+ { 0xe3, 0xc3 },
+ { 0xe4, 0xc4 },
+ { 0xe5, 0xc5 },
+ { 0xe6, 0xc6 },
+ { 0xe7, 0xc7 },
+ { 0xe8, 0xc8 },
+ { 0xe9, 0xc9 },
+ { 0xea, 0xca },
+ { 0xeb, 0xcb },
+ { 0xec, 0xcc },
+ { 0xed, 0xcd },
+ { 0xee, 0xce },
+ { 0xef, 0xcf },
+
+ { 0xf0, 0xd0 },
+ { 0xf1, 0xd1 },
+ { 0xf2, 0xd2 },
+ { 0xf3, 0xd3 },
+ { 0xf4, 0xd4 },
+ { 0xf5, 0xd5 },
+ { 0xf6, 0xd6 },
+ { 0xf7, 0xd7 },
+ { 0xf8, 0xd8 },
+ { 0xf9, 0xd9 },
+ { 0xfa, 0xda },
+ { 0xfb, 0xdb },
+ { 0xfc, 0xdc },
+ { 0xfe, 0xde },
+ { 0xff, 0xdf }
+};
+
 static int
-koi8_get_all_pair_ambig_codes(OnigAmbigType flag,
-                              const OnigPairAmbigCodes** ccs)
+koi8_apply_all_case_fold(OnigCaseFoldType flag,
+			 OnigApplyAllCaseFoldFunc f, void* arg)
 {
-  static const OnigPairAmbigCodes cc[] = {
-    { 0xc0, 0xe0 },
-    { 0xc1, 0xe1 },
-    { 0xc2, 0xe2 },
-    { 0xc3, 0xe3 },
-    { 0xc4, 0xe4 },
-    { 0xc5, 0xe5 },
-    { 0xc6, 0xe6 },
-    { 0xc7, 0xe7 },
-    { 0xc8, 0xe8 },
-    { 0xc9, 0xe9 },
-    { 0xca, 0xea },
-    { 0xcb, 0xeb },
-    { 0xcc, 0xec },
-    { 0xcd, 0xed },
-    { 0xce, 0xee },
-    { 0xcf, 0xef },
+  return onigenc_apply_all_case_fold_with_map(
+             sizeof(CaseFoldMap)/sizeof(OnigPairCaseFoldCodes), CaseFoldMap, 0,
+             flag, f, arg);
+}
 
-    { 0xd0, 0xf0 },
-    { 0xd1, 0xf1 },
-    { 0xd2, 0xf2 },
-    { 0xd3, 0xf3 },
-    { 0xd4, 0xf4 },
-    { 0xd5, 0xf5 },
-    { 0xd6, 0xf6 },
-    { 0xd7, 0xf7 },
-    { 0xd8, 0xf8 },
-    { 0xd9, 0xf9 },
-    { 0xda, 0xfa },
-    { 0xdb, 0xfb },
-    { 0xdc, 0xfc },
-    { 0xdd, 0xfd },
-    { 0xde, 0xfe },
-    { 0xdf, 0xff },
-
-    { 0xe0, 0xc0 },
-    { 0xe1, 0xc1 },
-    { 0xe2, 0xc2 },
-    { 0xe3, 0xc3 },
-    { 0xe4, 0xc4 },
-    { 0xe5, 0xc5 },
-    { 0xe6, 0xc6 },
-    { 0xe7, 0xc7 },
-    { 0xe8, 0xc8 },
-    { 0xe9, 0xc9 },
-    { 0xea, 0xca },
-    { 0xeb, 0xcb },
-    { 0xec, 0xcc },
-    { 0xed, 0xcd },
-    { 0xee, 0xce },
-    { 0xef, 0xcf },
-
-    { 0xf0, 0xd0 },
-    { 0xf1, 0xd1 },
-    { 0xf2, 0xd2 },
-    { 0xf3, 0xd3 },
-    { 0xf4, 0xd4 },
-    { 0xf5, 0xd5 },
-    { 0xf6, 0xd6 },
-    { 0xf7, 0xd7 },
-    { 0xf8, 0xd8 },
-    { 0xf9, 0xd9 },
-    { 0xfa, 0xda },
-    { 0xfb, 0xdb },
-    { 0xfc, 0xdc },
-    { 0xfe, 0xde },
-    { 0xff, 0xdf }
-  };
-
-  *ccs = cc;
-  return sizeof(cc) / sizeof(OnigPairAmbigCodes);
+static int
+koi8_get_case_fold_codes_by_str(OnigCaseFoldType flag,
+    const OnigUChar* p, const OnigUChar* end, OnigCaseFoldCodeItem items[])
+{
+  return onigenc_get_case_fold_codes_by_str_with_map(
+	     sizeof(CaseFoldMap)/sizeof(OnigPairCaseFoldCodes), CaseFoldMap, 0,
+	     flag, p, end, items);
 }
 
 OnigEncodingType OnigEncodingKOI8 = {
@@ -232,15 +235,13 @@ OnigEncodingType OnigEncodingKOI8 = {
   "KOI8",        /* name */
   1,             /* max enc length */
   1,             /* min enc length */
-  (ONIGENC_CASE_FOLD_ASCII_CASE |
-   ONIGENC_CASE_FOLD_NONASCII_CASE ),
   onigenc_is_mbc_newline_0x0a,
   onigenc_single_byte_mbc_to_code,
   onigenc_single_byte_code_to_mbclen,
   onigenc_single_byte_code_to_mbc,
   koi8_mbc_case_fold,
-  koi8_get_all_pair_ambig_codes,
-  onigenc_nothing_get_all_comp_ambig_codes,
+  koi8_apply_all_case_fold,
+  koi8_get_case_fold_codes_by_str,
   onigenc_minimum_property_name_to_ctype,
   koi8_is_code_ctype,
   onigenc_not_support_get_ctype_code_range,

@@ -2,7 +2,7 @@
   reggnu.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2007  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2008  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -125,10 +125,13 @@ re_free_pattern(regex_t* reg)
 extern int
 re_alloc_pattern(regex_t** reg)
 {
-  return onig_alloc_init(reg, ONIG_OPTION_DEFAULT,
-                         ONIGENC_CASE_FOLD_DEFAULT,
-                         OnigEncDefaultCharEncoding,
-			 OnigDefaultSyntax);
+  *reg = (regex_t* )xmalloc(sizeof(regex_t));
+  if (IS_NULL(*reg)) return ONIGERR_MEMORY;
+
+  return onig_reg_init(*reg, ONIG_OPTION_DEFAULT,
+		       ONIGENC_CASE_FOLD_DEFAULT,
+		       OnigEncDefaultCharEncoding,
+		       OnigDefaultSyntax);
 }
 
 extern void

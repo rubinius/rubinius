@@ -2,7 +2,7 @@
   euc_jp.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2007  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2008  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -207,15 +207,15 @@ init_property_list(void)
 static int
 property_name_to_ctype(OnigEncoding enc, UChar* p, UChar* end)
 {
-  int ctype;
+  hash_data_type ctype;
 
   PROPERTY_LIST_INIT_CHECK;
 
-  if (onig_st_lookup_strend(PropertyNameTable, p, end, (void*)&ctype) == 0) {
+  if (onig_st_lookup_strend(PropertyNameTable, p, end, &ctype) == 0) {
     return onigenc_minimum_property_name_to_ctype(enc, p, end);
   }
 
-  return ctype;
+  return (int )ctype;
 }
 
 static int

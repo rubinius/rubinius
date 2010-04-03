@@ -2,7 +2,7 @@
   unicode.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2007  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2008  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10816,7 +10816,8 @@ static int init_name_ctype_table(void)
 extern int
 onigenc_unicode_property_name_to_ctype(OnigEncoding enc, UChar* name, UChar* end)
 {
-  int len, ctype;
+  int len;
+  hash_data_type ctype;
   UChar buf[PROPERTY_NAME_MAX_SIZE];
   UChar *p;
   OnigCodePoint code;
@@ -10839,12 +10840,11 @@ onigenc_unicode_property_name_to_ctype(OnigEncoding enc, UChar* name, UChar* end
 
   if (NameTableInited == 0)  init_name_ctype_table();
 
-  if (onig_st_lookup_strend(NameCtypeTable, buf, buf + len,
-			    (void*)&ctype) == 0) {
+  if (onig_st_lookup_strend(NameCtypeTable, buf, buf + len, &ctype) == 0) {
     return ONIGERR_INVALID_CHAR_PROPERTY_NAME;
   }
 
-  return ctype;
+  return (int )ctype;
 }
 
 

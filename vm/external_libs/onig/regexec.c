@@ -2,7 +2,7 @@
   regexec.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2007  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2008  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -2897,11 +2897,10 @@ bm_search_notrev(regex_t* reg, const UChar* target, const UChar* target_end,
     while (s < end) {
       p = se = s + tlen1;
       t = tail;
-      while (t >= target && *p == *t) {
-        p--; t--;
+      while (*p == *t) {
+	if (t == target) return (UChar* )s;
+	p--; t--;
       }
-      if (t < target) return (UChar* )s;
-
       skip = reg->map[*se];
       t = s;
       do {
@@ -2913,11 +2912,10 @@ bm_search_notrev(regex_t* reg, const UChar* target, const UChar* target_end,
     while (s < end) {
       p = se = s + tlen1;
       t = tail;
-      while (t >= target && *p == *t) {
-        p--; t--;
+      while (*p == *t) {
+	if (t == target) return (UChar* )s;
+	p--; t--;
       }
-      if (t < target) return (UChar* )s;
-
       skip = reg->int_map[*se];
       t = s;
       do {
@@ -2946,10 +2944,10 @@ bm_search(regex_t* reg, const UChar* target, const UChar* target_end,
     while (s < end) {
       p = s;
       t = tail;
-      while (t >= target && *p == *t) {
+      while (*p == *t) {
+	if (t == target) return (UChar* )p;
 	p--; t--;
       }
-      if (t < target) return (UChar* )(p + 1);
       s += reg->map[*s];
     }
   }
@@ -2957,10 +2955,10 @@ bm_search(regex_t* reg, const UChar* target, const UChar* target_end,
     while (s < end) {
       p = s;
       t = tail;
-      while (t >= target && *p == *t) {
+      while (*p == *t) {
+	if (t == target) return (UChar* )p;
 	p--; t--;
       }
-      if (t < target) return (UChar* )(p + 1);
       s += reg->int_map[*s];
     }
   }

@@ -1,4 +1,4 @@
-鬼車インターフェース Version 5.9.0   2007/06/26
+鬼車インターフェース Version 5.9.2   2008/02/19
 
 #include <oniguruma.h>
 
@@ -134,6 +134,19 @@
               onig_error_code_to_str()の三番目の引数として使用する
 
 
+
+# int onig_new_without_alloc(regex_t* reg, const UChar* pattern,
+            const UChar* pattern_end,
+            OnigOptionType option, OnigEncoding enc, OnigSyntaxType* syntax,
+            OnigErrorInfo* err_info)
+
+  正規表現オブジェクト(regex)を作成する。
+  regの領域を内部で割り当てない。
+
+  正常終了戻り値: ONIG_NORMAL
+
+
+
 # int onig_new_deluxe(regex_t** reg, const UChar* pattern, const UChar* pattern_end,
                       OnigCompileInfo* ci, OnigErrorInfo* einfo)
 
@@ -179,6 +192,14 @@
 # void onig_free(regex_t* reg)
 
   正規表現オブジェクトのメモリを解放する。
+
+  引数
+  1 reg: 正規表現オブジェクト
+
+
+# void onig_free_body(regex_t* reg)
+
+  正規表現オブジェクトのメモリを解放する。(reg自身の領域を除いて)
 
   引数
   1 reg: 正規表現オブジェクト

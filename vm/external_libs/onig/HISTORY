@@ -1,5 +1,23 @@
 History
 
+2010/01/09: Version 5.9.2
+
+2010/01/05: [bug]  fix utf16be_code_to_mbc() and utf16le_code_to_mbc().
+2008/09/16: [bug]  fix memory leaks in parse_exp().
+2008/08/01: [bug]  fix memory leaks.
+2008/06/17: [bug]  invalid type of argument was used
+                   in onig_st_lookup_strend().
+2008/06/16: [bug]  invalid CaseFoldMap entry in ISO-8859-5. 0xdf -> 0xde
+2008/02/19: [new]  add: onig_reg_init().
+2008/02/19: [new]  add: onig_free_body().
+2008/02/19: [new]  add: onig_new_without_alloc().
+2008/02/19: [API]  rename onig_alloc_init() to onig_reg_init(),
+                   and argument type changed.
+2008/01/31: [impl] move UTF16_IS_SURROGATE_XXX() to regenc.h.
+2008/01/30: [bug]  (thanks akr)
+                   fix euctw_islead().
+2008/01/23: [bug]  update enc/koi8.c.
+
 2007/12/22: Version 5.9.1
 
 2007/12/21: [impl] add sprint_byte().
@@ -2016,7 +2034,7 @@ cvs rtag "VERSION_X_X_X" oniguruma
 <GNU Autotools: bootstrap>
 * write Makefile.am and configure.in.
 > aclocal
-> libtoolize
+> libtoolize   or   glibtoolize
 > automake --foreign --add-missing
 > autoconf
 > configure --with-rubydir=... CFLAGS="-O2 -Wall"

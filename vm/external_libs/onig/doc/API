@@ -1,4 +1,4 @@
-Oniguruma API  Version 5.9.0  2007/06/26
+Oniguruma API  Version 5.9.2  2008/02/19
 
 #include <oniguruma.h>
 
@@ -134,6 +134,18 @@ Oniguruma API  Version 5.9.0  2007/06/26
 
 
 
+# int onig_new_without_alloc(regex_t* reg, const UChar* pattern,
+            const UChar* pattern_end,
+            OnigOptionType option, OnigEncoding enc, OnigSyntaxType* syntax,
+            OnigErrorInfo* err_info)
+
+  Create a regex object.
+  reg object area is not allocated in this function.
+
+  normal return: ONIG_NORMAL
+
+
+
 # int onig_new_deluxe(regex_t** reg, const UChar* pattern, const UChar* pattern_end,
                       OnigCompileInfo* ci, OnigErrorInfo* einfo)
 
@@ -180,6 +192,14 @@ Oniguruma API  Version 5.9.0  2007/06/26
 # void onig_free(regex_t* reg)
 
   Free memory used by regex object.
+
+  arguments
+  1 reg: regex object.
+
+
+# void onig_free_body(regex_t* reg)
+
+  Free memory used by regex object. (Except reg oneself.)
 
   arguments
   1 reg: regex object.

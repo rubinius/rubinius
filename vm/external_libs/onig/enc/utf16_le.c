@@ -2,7 +2,7 @@
   utf16_le.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2007  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2008  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,6 @@
  */
 
 #include "regenc.h"
-
-#define UTF16_IS_SURROGATE_FIRST(c)    (c >= 0xd8 && c <= 0xdb)
-#define UTF16_IS_SURROGATE_SECOND(c)   (c >= 0xdc && c <= 0xdf)
 
 static const int EncLen_UTF16[] = {
   2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -109,13 +106,13 @@ utf16le_code_to_mbc(OnigCodePoint code, UChar *buf)
   if (code > 0xffff) {
     unsigned int plane, high;
 
-    plane = code >> 16;
+    plane = (code >> 16) - 1;
     high = (code & 0xff00) >> 8;
 
     *p++ = ((plane & 0x03) << 6) + (high >> 2);
     *p++ = (plane >> 2) + 0xd8;
     *p++ = (UChar )(code & 0xff);
-    *p   = (high & 0x02) + 0xdc;
+    *p   = (high & 0x03) + 0xdc;
     return 4;
   }
   else {
