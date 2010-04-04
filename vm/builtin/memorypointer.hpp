@@ -17,7 +17,7 @@ namespace rubinius {
 
     static MemoryPointer* create(STATE, void* ptr);
 
-    void finalize(STATE);
+    static void finalize(STATE, MemoryPointer* ptr);
 
     // Ruby.primitive :memorypointer_address
     Integer* get_address(STATE);

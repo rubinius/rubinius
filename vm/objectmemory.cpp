@@ -452,10 +452,11 @@ namespace rubinius {
     code_manager_.add_resource(cr);
   }
 
-  void ObjectMemory::needs_finalization(Object* obj) {
+  void ObjectMemory::needs_finalization(Object* obj, FinalizerFunction func) {
     FinalizeObject fi;
     fi.object = obj;
     fi.status = FinalizeObject::eLive;
+    fi.finalizer = func;
 
     // Makes a copy of fi.
     finalize_.push_back(fi);
@@ -466,16 +467,8 @@ namespace rubinius {
         i != to_finalize_.end(); ) {
       FinalizeObject* fi = *i;
 
-      if(IO* io = try_as<IO>(fi->object)) {
-        io->finalize(state);
-      } else if(Fiber* fib = try_as<Fiber>(fi->object)) {
-        fib->finalize(state);
-      } else if(MemoryPointer* ptr = try_as<MemoryPointer>(fi->object)) {
-        ptr->finalize(state);
-      } else if(Data* data = try_as<Data>(fi->object)) {
-        data->finalize(state);
-      } else if(Dir* dir = try_as<Dir>(fi->object)) {
-        dir->finalize(state);
+      if(fi->finalizer) {
+        (*fi->finalizer)(state, fi->object);
       } else {
         std::cerr << "Unsupported object to be finalized: "
                   << fi->object->to_s(state)->c_str() << "\n";

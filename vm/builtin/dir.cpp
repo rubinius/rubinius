@@ -24,7 +24,7 @@ namespace rubinius {
     Dir* d = state->new_object<Dir>(G(dir));
     d->os_ = 0;
 
-    state->om->needs_finalization(d);
+    state->om->needs_finalization(d, (FinalizerFunction)&Dir::finalize);
 
     return d;
   }
@@ -39,10 +39,10 @@ namespace rubinius {
     return dir;
   }
 
-  void Dir::finalize(STATE) {
-    if(os_) {
-      closedir(os_);
-      os_ = 0;
+  void Dir::finalize(STATE, Dir* dir) {
+    if(dir->os_) {
+      closedir(dir->os_);
+      dir->os_ = 0;
     }
   }
 

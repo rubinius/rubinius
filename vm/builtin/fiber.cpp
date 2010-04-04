@@ -37,7 +37,7 @@ namespace rubinius {
       fib->stack_ = state->stack_start();
       fib->context_ = new ucontext_t;
 
-      state->om->needs_finalization(fib);
+      state->om->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
 
       state->current_fiber.set(fib);
     }
@@ -98,7 +98,7 @@ namespace rubinius {
     fib->stack_ = malloc(stack_size);
     fib->context_ = new ucontext_t;
 
-    state->om->needs_finalization(fib);
+    state->om->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
 
     ucontext_t* ctx = fib->ucontext();
 
@@ -189,10 +189,10 @@ namespace rubinius {
 #endif
   }
 
-  void Fiber::finalize(STATE) {
+  void Fiber::finalize(STATE, Fiber* fib) {
 #ifdef FIBER_ENABLED
-    delete context_;
-    if(stack_ && !root_) free(stack_);
+    delete fib->context_;
+    if(fib->stack_ && !fib->root_) free(fib->stack_);
 #endif
   }
 

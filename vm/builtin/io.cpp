@@ -43,7 +43,7 @@ namespace rubinius {
 
     // Don't bother to add finalization for stdio
     if(fd >= 3) {
-      state->om->needs_finalization(io);
+      state->om->needs_finalization(io, (FinalizerFunction)&IO::finalize);
     }
 
     return io;
@@ -60,7 +60,7 @@ namespace rubinius {
     // Ensure the instance's class is set (i.e. for subclasses of IO)
     io->klass(state, as<Class>(self));
 
-    state->om->needs_finalization(io);
+    state->om->needs_finalization(io, (FinalizerFunction)&IO::finalize);
 
     return io;
   }
@@ -385,15 +385,15 @@ namespace rubinius {
     mode(state, Fixnum::from((m & ~O_ACCMODE) | O_WRONLY));
   }
 
-  void IO::finalize(STATE) {
-    if(descriptor_->nil_p()) return;
+  void IO::finalize(STATE, IO* io) {
+    if(io->descriptor()->nil_p()) return;
 
-    native_int fd = descriptor_->to_native();
+    native_int fd = io->descriptor()->to_native();
 
     // don't close stdin, stdout, stderr (0, 1, 2)
     if(fd >= 3) {
       ::close(fd);
-      descriptor(state, Fixnum::from(-1));
+      io->descriptor(state, Fixnum::from(-1));
     }
   }
 

@@ -29,7 +29,7 @@ namespace rubinius {
 
     static Dir* create(STATE);
 
-    void finalize(STATE);
+    static void finalize(STATE, Dir* dir);
 
     // Ruby.primitive :dir_allocate
     static Dir* allocate(STATE, Object* self);

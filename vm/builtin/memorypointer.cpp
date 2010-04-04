@@ -58,16 +58,17 @@ namespace rubinius {
     autorelease = val->true_p() ? true : false;
 
     if(autorelease && !set_finalizer) {
-      state->om->needs_finalization(this);
+      state->om->needs_finalization(this,
+          (FinalizerFunction)&MemoryPointer::finalize);
       set_finalizer = true;
     }
 
     return val;
   }
 
-  void MemoryPointer::finalize(STATE) {
-    if(autorelease && pointer) {
-      ::free(pointer);
+  void MemoryPointer::finalize(STATE, MemoryPointer* ptr) {
+    if(ptr->autorelease && ptr->pointer) {
+      ::free(ptr->pointer);
     }
   }
 

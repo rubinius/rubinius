@@ -92,7 +92,7 @@ namespace rubinius {
     // Ruby.primitive :fiber_s_yield
     static Object* s_yield(STATE, Arguments& args, CallFrame* calling_environment);
 
-    void finalize(STATE);
+    static void finalize(STATE, Fiber* fib);
 
   public:   /* TypeInfo */
 
