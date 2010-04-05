@@ -302,7 +302,7 @@ namespace rubinius {
     cf->execute(state);
 
     if(state->thread_state()->raise_reason() == cException) {
-      Exception* exc = as<Exception>(state->thread_state()->raise_value());
+      Exception* exc = as<Exception>(state->thread_state()->current_exception());
       std::ostringstream msg;
 
       msg << "exception detected at toplevel: ";
