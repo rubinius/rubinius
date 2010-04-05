@@ -128,6 +128,7 @@ field_extract_headers = %w[
   vm/builtin/global_cache_entry.hpp
   vm/builtin/weakref.hpp
   vm/builtin/fiber.hpp
+  vm/builtin/thunk.hpp
 ]
 
 EXTERNALS   = %W[ vm/external_libs/libtommath/libtommath.a

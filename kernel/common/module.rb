@@ -338,14 +338,26 @@ class Module
       raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
     end
 
-    method_added(name)
-
     @method_table.store name.to_sym, cm, :public
     Rubinius::VM.reset_method_cache(name.to_sym)
+
+    method_added(name)
+
     meth
   end
 
   private :define_method
+
+  def thunk_method(name, value)
+    thunk = Rubinius::Thunk.new(value)
+
+    @method_table.store name.to_sym, thunk, :public
+    Rubinius::VM.reset_method_cache(name.to_sym)
+
+    method_added(name)
+
+    name
+  end
 
   def extend_object(obj)
     append_features Rubinius.object_metaclass(obj)

@@ -31,6 +31,7 @@ string.rbc
 symbol.rbc
 taskprobe.rbc
 thread.rbc
+thunk.rbc
 time.rbc
 true.rbc
 tuple.rbc
