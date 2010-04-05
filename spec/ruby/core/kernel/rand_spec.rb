@@ -30,43 +30,6 @@ describe "Kernel.rand" do
     [0, 1, 2, 3].should include(rand(-4))
   end
 
-  it "can return a bignum when given a large enough limit" do
-    # Probability of random failure:
-    #   64-bit: 1 in 10**42
-    #   32-bit: 1 in 10**139
-
-    values = []
-    10.times do
-      values << rand(0x12345678901234567890)
-    end
-    values.max.should be_kind_of(Bignum)
-  end
-
-  it "can return a large bignum when given a large enough limit" do
-    # Probability of random failure: 1 in 10**80
-
-    values = []
-    10.times do
-      values << rand(0x123456789012345678901234567890)
-    end
-    values.max.should > (0x123456789012345678901234567890 / 100_000_000)
-  end
-
-  it "can return a fixnum even when given a bignum limit" do
-    # Probability of random failure: 1 in 10**60
-
-    small_bignum = 1
-    small_bignum *= 2 until small_bignum.is_a? Bignum
-    small_bignum *= 2 # for good measure
-
-    values = []
-    200.times do
-      values << rand(small_bignum)
-    end
-    values.min.should be_kind_of(Fixnum)
-    values.max.should be_kind_of(Bignum)
-  end
-
   it "produces a vaguely even distribution" do
     # Like several other rand specs, this one is based on probabilities;
     # with a sufficiently high quality RNG, this spec should fail
