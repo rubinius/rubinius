@@ -1,3 +1,5 @@
+require 'rubinius/build_config'
+
 module Config
   unless defined? RUBY_ENGINE and RUBY_ENGINE == "rbx" then
     raise "Looks like you loaded the Rubinius rbconfig, but this is not Rubinius."
@@ -8,17 +10,13 @@ module Config
   CONFIG = {}
 
   CONFIG["prefix"]             = prefix
-  CONFIG["install_prefix"]     = '/Users/brian/devel/rubinius'
+  CONFIG["install_prefix"]     = ''
   CONFIG["DLEXT"]              = Rubinius::LIBSUFFIX[1..-1]
   CONFIG["EXEEXT"]             = ""
   CONFIG["ruby_install_name"]  = RUBY_ENGINE.dup
   CONFIG["RUBY_INSTALL_NAME"]  = RUBY_ENGINE.dup
   CONFIG["exec_prefix"]        = "$(prefix)"
-  if File.exists?(File.join(prefix, "bin", "rbx"))
-    CONFIG["bindir"]             = "$(exec_prefix)/bin"
-  else
-    CONFIG["bindir"]           = '/Users/brian/devel/rubinius/bin'
-  end
+  CONFIG["bindir"]             = Rubinius::BUILD_CONFIG[:bindir]
   CONFIG["sbindir"]            = "$(exec_prefix)/sbin"
   CONFIG["libexecdir"]         = "$(exec_prefix)/libexec"
   CONFIG["datarootdir"]        = "$(prefix)/share"
@@ -99,7 +97,7 @@ module Config
   CONFIG["OBJDUMP"]            = ""
   CONFIG["LN_S"]               = "ln -s"
   CONFIG["NM"]                 = ""
-  CONFIG["INSTALL"]            = "/usr/bin/install -c"
+  CONFIG["INSTALL"]            = "install -c"
   CONFIG["INSTALL_PROGRAM"]    = "$(INSTALL)"
   CONFIG["INSTALL_SCRIPT"]     = "$(INSTALL)"
   CONFIG["INSTALL_DATA"]       = "$(INSTALL) -m 644"

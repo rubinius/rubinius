@@ -2,6 +2,7 @@
 
 require 'rbconfig'
 require 'tempfile'
+require 'fileutils'
 
 root = File.expand_path File.dirname(__FILE__)
 
@@ -465,6 +466,9 @@ module Rubinius
 end
       EOC
     end
+
+    Dir.mkdir "lib/rubinius" unless File.directory? "lib/rubinius"
+    FileUtils.cp @config, "lib/rubinius/build_config.rb"
 
     Dir.mkdir "vm/gen" unless File.directory? "vm/gen"
 
