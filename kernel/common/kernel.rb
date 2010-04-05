@@ -231,9 +231,10 @@ module Kernel
 
   @current_seed = 0
 
-  def self.srand(seed=0)
+  def self.srand(seed=undefined)
     cur = @current_srand
-    if seed == 0
+
+    if seed.equal? undefined
       begin
         File.open("/dev/urandom", "r") do |f|
           seed = f.read(10).unpack("I*")[0]
@@ -241,15 +242,19 @@ module Kernel
       rescue Errno::ENOENT, Errno::EPERM, Errno::EACCES
         seed = Time.now.to_i
       end
+    else
+      seed = Type.coerce_to(seed, Integer, :to_int)
     end
-    FFI::Platform::POSIX.srand(seed.to_i)
-    @current_srand = seed.to_i
+
+    FFI::Platform::POSIX.srand(seed)
+    @current_srand = seed
+
     cur
   end
 
   # Redispatch to Kernel so we can store @current_srand as an ivar
   # on Kernel without an accessor.
-  def srand(seed=0)
+  def srand(seed=undefined)
     Kernel.srand(seed)
   end
 
