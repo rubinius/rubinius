@@ -96,22 +96,14 @@ namespace rubinius {
       return res;
   }
 
-  static void twos_complement(mp_int *a)
+  static void twos_complement MPA(mp_int *a)
   {
     long i = a->used;
-    BDIGIT_DBL num;
 
     while (i--) {
       DIGIT(a,i) = (~DIGIT(a,i)) & (DIGIT_RADIX-1);
     }
-
-    i = 0; num = 1;
-    do {
-      num += DIGIT(a,i);
-      DIGIT(a,i++) = num & (DIGIT_RADIX-1);
-      num = num >> DIGIT_BIT;
-    } while (i < a->used);
-
+    mp_sub_d(MPST, a, 1, a);
   }
 
 #define BITWISE_OP_AND 1
@@ -123,19 +115,21 @@ namespace rubinius {
     mp_int   a,   b;
     mp_int *d1, *d2;
     int i, sign,  l1,  l2;
+    char origin_sign_x = x->sign;
+    char origin_sign_y = y->sign;
 
     mp_init(&a);
     mp_init(&b);
 
     if (y->sign == MP_NEG) {
       mp_copy(MPST, y, &b);
-      twos_complement(&b);
+      twos_complement(MPST, &b);
       y = &b;
     }
 
     if (x->sign == MP_NEG) {
       mp_copy(MPST, x, &a);
-      twos_complement(&a);
+      twos_complement(MPST, &a);
       x = &a;
     }
 
@@ -158,7 +152,7 @@ namespace rubinius {
     n->sign = MP_ZPOS;
     switch(op) {
       case BITWISE_OP_AND:
-        if (x->sign == MP_NEG && y->sign == MP_NEG) n->sign = MP_NEG;
+        if (origin_sign_x == MP_NEG && origin_sign_y == MP_NEG) n->sign = MP_NEG;
         for (i=0; i < l1; i++) {
           DIGIT(n,i) = DIGIT(d1,i) & DIGIT(d2,i);
         }
@@ -167,7 +161,7 @@ namespace rubinius {
         }
         break;
       case BITWISE_OP_OR:
-        if (x->sign == MP_NEG || y->sign == MP_NEG) n->sign = MP_NEG;
+        if (origin_sign_x == MP_NEG || origin_sign_y == MP_NEG) n->sign = MP_NEG;
         for (i=0; i < l1; i++) {
           DIGIT(n,i) = DIGIT(d1,i) | DIGIT(d2,i);
         }
@@ -176,17 +170,19 @@ namespace rubinius {
         }
         break;
       case BITWISE_OP_XOR:
-        if (x->sign != y->sign) n->sign = MP_NEG;
+        if (origin_sign_x != origin_sign_y) n->sign = MP_NEG;
         for (i=0; i < l1; i++) {
           DIGIT(n,i) = DIGIT(d1,i) ^ DIGIT(d2,i);
         }
         for (; i < l2; i++) {
-          DIGIT(n,i) = (sign == MP_ZPOS)?DIGIT(d2,i):~DIGIT(d2,i);
+          DIGIT(n,i) = (sign == MP_ZPOS)?DIGIT(d2,i): (~DIGIT(d2,i) & (DIGIT_RADIX-1));
         }
         break;
     }
 
-    if (n->sign == MP_NEG) twos_complement(n);
+    if (n->sign == MP_NEG) {
+      twos_complement(MPST, n);
+    }
 
     /* free allocated resources for twos complement copies */
     mp_clear(&a);
