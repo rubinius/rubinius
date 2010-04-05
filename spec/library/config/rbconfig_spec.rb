@@ -57,7 +57,8 @@ describe "Config::CONFIG" do
     "datadir",
     "rubyhdrdir",
     "wordsize",
-    "arch"
+    "arch",
+    "bindir"
   ]
 
   it_has_keys 'Config::CONFIG', keys
@@ -78,7 +79,6 @@ describe "Config::MAKEFILE_CONFIG" do
 
   entries = {
     "exec_prefix"        => "$(prefix)",
-    "bindir"             => "$(exec_prefix)/bin",
     "sbindir"            => "$(exec_prefix)/sbin",
     "libexecdir"         => "$(exec_prefix)/libexec",
     "datarootdir"        => "$(prefix)/share",
