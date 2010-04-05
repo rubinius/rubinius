@@ -148,20 +148,12 @@ module Kernel
   module_function :warning
 
   def exit(code=0)
-    if code.equal? true
-      code = 0
-    elsif code.equal? false
-      code = 1
-    else
-      code = Type.coerce_to code, Integer, :to_int
-    end
-
-    raise SystemExit.new(code)
+    Process.exit(code)
   end
   module_function :exit
 
-  def exit!(code=0)
-    Process.exit(code)
+  def exit!(code=1)
+    Process.exit!(code)
   end
   module_function :exit!
 

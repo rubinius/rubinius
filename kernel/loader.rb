@@ -418,7 +418,7 @@ containing the Rubinius standard library files.
       else
         if @script.suffix?(".rb")
           puts "Unable to find '#{@script}'"
-          exit! 1
+          exit 1
         else
           prog = File.join @main_lib, "bin", "#{@script}.rb"
           if File.exist? prog
@@ -491,7 +491,7 @@ containing the Rubinius standard library files.
 
     # Exit.
     def done
-      Process.exit @exit_code
+      Process.exit! @exit_code
     end
 
     # Orchestrate everything.
@@ -522,6 +522,7 @@ containing the Rubinius standard library files.
     rescue Object => e
       e.render "An exception occurred #{@stage}"
       @exit_code = 1
+
     ensure
       epilogue
       done
@@ -535,7 +536,6 @@ rescue Object => exc
   puts "\n====================================="
   puts "Exception occurred during top-level exception output! (THIS IS BAD)"
   puts
-  puts "Original Exception: #{e.inspect} (#{e.class})"
-  puts "New Exception: #{e2.inspect} (#{e.class})"
+  puts "Exception: #{exc.inspect} (#{exc.class})"
   @exit_code = 128
 end

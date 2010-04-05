@@ -102,9 +102,6 @@ module Process
     $stderr.puts(msg) if(msg)
     exit 1
   end
-  def self.exit!(code=0)
-    exit(code)
-  end
 
   def self.getpgid(pid)
     ret = FFI::Platform::POSIX.getpgid(pid)

@@ -165,7 +165,7 @@ module Kernel
     Rubinius::VM.write_error str
     Rubinius::VM.write_error "\n"
     Rubinius::VM.show_backtrace
-    Process.exit 1
+    Process.exit! 1
   end
 
   # Returns true if the given Class is either the class or superclass of the
@@ -423,9 +423,30 @@ end
 class Process
   # Terminate with given status code.
   #
-  def self.exit(code)
+  def self.exit(code=0)
+    case code
+    when true
+      code = 0
+    when false
+      code = 1
+    else
+      code = Type.coerce_to code, Integer, :to_int
+    end
+
+    raise SystemExit.new(code)
+  end
+
+  def self.exit!(code=1)
     Ruby.primitive :vm_exit
-    raise PrimitiveFailure, "exit() failed. Wow, something is screwed."
+
+    case code
+    when true
+      exit! 0
+    when false
+      exit! 1
+    else
+      exit! Type.coerce_to(code, Integer, :to_int)
+    end
   end
 end
 
