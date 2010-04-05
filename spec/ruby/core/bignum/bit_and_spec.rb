@@ -12,9 +12,21 @@ describe "Bignum#&" do
     (@bignum & bignum_value(9921)).should == 9223372036854775809
 
     ((2*bignum_value) & 1).should == 0
+    ((2*bignum_value) & (2*bignum_value)).should == 18446744073709551616
+  end
+
+  it "returns self bitwise AND other when one operand is negative" do
     ((2*bignum_value) & -1).should == 18446744073709551616
     ((4*bignum_value) & -1).should == 36893488147419103232
-    ((2*bignum_value) & (2*bignum_value)).should == 18446744073709551616
+    (@bignum & -0xffffffffffffff5).should == 9223372036854775809
+    (@bignum & -@bignum).should == 1
+    (@bignum & -0x8000000000000000).should == 9223372036854775808
+  end
+
+  it "returns self bitwise AND other when both operands are negative" do
+    (-@bignum & -0x4000000000000005).should == -13835058055282163717
+    (-@bignum & -@bignum).should == -9223372036854775813
+    (-@bignum & -0x4000000000000000).should == -13835058055282163712
   end
 
   ruby_version_is ""..."1.9" do
