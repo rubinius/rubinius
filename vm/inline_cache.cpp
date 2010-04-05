@@ -31,6 +31,8 @@ namespace rubinius {
 
     bool skip_vis_check = false;
 
+    MethodTableBucket* vis_entry = 0;
+
     do {
       entry = module->method_table()->find_entry(state, name);
 
@@ -61,6 +63,7 @@ namespace rubinius {
          * method as public. We don't move the method, we just put this
          * marker into the method table. */
         if(entry->method()->nil_p()) {
+          vis_entry = entry;
           skip_vis_check = true;
         } else {
           if(Alias* alias = try_as<Alias>(entry->method())) {
@@ -71,9 +74,11 @@ namespace rubinius {
             this->module = module;
           }
 
+          if(!vis_entry) vis_entry = entry;
+
           state->global_cache()->retain(state, klass_, name, this->module,
                 this->method, false,
-                !entry->public_p(state));
+                !vis_entry->public_p(state));
 
           return eNone;
         }
@@ -105,6 +110,8 @@ namespace rubinius {
       return true;
     }
 
+    MethodTableBucket* vis_entry = 0;
+
     do {
       entry = module->method_table()->find_entry(state, name);
 
@@ -131,11 +138,16 @@ namespace rubinius {
             this->module = module;
           }
 
+          if(!vis_entry) vis_entry = entry;
+
           state->global_cache()->retain(state, start, name, this->module,
               this->method, false,
-              !entry->public_p(state));
+              !vis_entry->public_p(state));
 
           return true;
+        } else {
+          // Remember this entry as defining the visibility
+          vis_entry = entry;
         }
       }
 
