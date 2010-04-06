@@ -197,9 +197,12 @@ class Gem::Dependency
     end
 
     pattern = name
-    pattern = /\A#{Regexp.escape pattern}\Z/ unless Regexp === pattern
 
-    return false unless pattern =~ other.name
+    if Regexp === pattern
+      return false unless pattern =~ other.name
+    else
+      return false unless pattern == other.name
+    end
 
     reqs = other.requirement.requirements
 
@@ -209,6 +212,20 @@ class Gem::Dependency
     version = reqs.first.last
 
     requirement.satisfied_by? version
+  end
+
+  def match?(spec_name, spec_version)
+    pattern = name
+
+    if Regexp === pattern
+      return false unless pattern =~ spec_name
+    else
+      return false unless pattern == spec_name
+    end
+
+    return true if requirement.none?
+
+    requirement.satisfied_by? Gem::Version.new(spec_version)
   end
 
 end
