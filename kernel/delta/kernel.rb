@@ -140,6 +140,9 @@ module Kernel
   get = proc { Rubinius.kcode.to_s }
   set = proc { |key, val| Rubinius.kcode = val }
   Rubinius::Globals.set_hook(:$KCODE, get, set)
+  
+  # Alias $0 $PROGRAM_NAME
+  Rubinius::Globals.add_alias(:$0, :$PROGRAM_NAME)
 
   # Implements rb_path2name. Based on code from wycats
   def const_lookup(name)
