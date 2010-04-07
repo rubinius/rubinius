@@ -36,7 +36,7 @@ extern "C" {
     return rb_funcall(Globals,
                       rb_intern("[]"),
                       1,
-                      env->get_handle(prefixed_by("$", name)));
+                      env->get_handle(prefixed_by(env->state(), '$', rb_intern(name))));
   }
 
   VALUE rb_gv_set(const char* name, VALUE value) {
@@ -47,7 +47,7 @@ extern "C" {
     return rb_funcall(Globals,
                       rb_intern("[]="),
                       2,
-                      env->get_handle(prefixed_by("$", name)),
+                      env->get_handle(prefixed_by(env->state(), '$', rb_intern(name))),
                       value);
   }
 

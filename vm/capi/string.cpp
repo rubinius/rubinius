@@ -264,9 +264,10 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     VALUE str = rb_string_value(object_variable);
-    String* string = c_as<String>(env->get_object(str));
+    // Type check.
+    (void)c_as<String>(env->get_object(str));
 
-    return const_cast<char*>(string->c_str());
+    return RSTRING_PTR(str);
   }
 
   char* rb_string_value_cstr(VALUE* object_variable) {
@@ -279,7 +280,7 @@ extern "C" {
       rb_raise(rb_eArgError, "string contains NULL byte");
     }
 
-    return const_cast<char*>(string->c_str());
+    return RSTRING_PTR(str);
   }
 
   VALUE rb_tainted_str_new2(const char* string) {
@@ -321,6 +322,19 @@ extern "C" {
 
     return rstring->ptr;
   }
+
+  char* rb_str_copied_ptr(VALUE self) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    String* str = c_as<String>(env->get_object(self));
+
+    char* data = (char*)malloc(sizeof(char) * str->size() + 1);
+    memcpy(data, str->c_str(), str->size());
+    data[str->size()] = 0;
+
+    return data;
+  }
+#define HAVE_RB_STR_COPIED_PTR 1
 
   void rb_str_flush(VALUE self) {
     // Using pinned ByteArray, we don't need this anymore.

@@ -234,8 +234,10 @@ namespace rubinius {
 
     Object*   table_ivar_defined(STATE, Symbol* sym);
 
+    Object*   ivar_defined(STATE, Symbol* sym);
+
     // Ruby.primitive :object_ivar_defined
-    Object* ivar_defined(STATE, Symbol* sym);
+    Object*   ivar_defined_prim(STATE, Symbol* sym);
 
     /** Returns the structure containing this object's instance variables. */
     // Ruby.primitive :object_ivar_names

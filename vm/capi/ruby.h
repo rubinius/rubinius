@@ -1300,6 +1300,7 @@ double rb_num2dbl(VALUE);
    * @note This is NOT an MRI C-API function.
    */
   char* rb_str_ptr_readonly(VALUE self);
+#define HAVE_RB_STR_PTR_READONLY 1
 
   /** Appends other String to self and returns the modified self. */
   VALUE   rb_str_append(VALUE self_handle, VALUE other_handle);
@@ -1395,8 +1396,6 @@ double rb_num2dbl(VALUE);
   char*   rb_string_value_ptr(VALUE* object_variable);
   /**
    *  As rb_string_value but also returns a C string of the new String.
-   *
-   *  You must free the string.
    */
   char*   rb_string_value_cstr(VALUE* object_variable);
 

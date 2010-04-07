@@ -237,11 +237,15 @@ namespace rubinius {
     return get_table_ivar(state, sym);
   }
 
-  Object* Object::ivar_defined(STATE, Symbol* sym) {
+  Object* Object::ivar_defined_prim(STATE, Symbol* sym) {
     if(!sym->is_ivar_p(state)->true_p()) {
       return reinterpret_cast<Object*>(kPrimitiveFailed);
     }
 
+    return ivar_defined(state, sym);
+  }
+
+  Object* Object::ivar_defined(STATE, Symbol* sym) {
     /* Implements the external ivars table for objects that don't
        have their own space for ivars. */
     if(!reference_p()) {

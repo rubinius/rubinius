@@ -25,8 +25,8 @@ namespace rubinius {
     void set_current_mark(ObjectMark* mark);
     ObjectMark* current_mark();
 
-    Symbol* prefixed_by(std::string prefix, std::string name);
-    Symbol* prefixed_by(std::string prefix, ID name);
+    Symbol* prefixed_by(STATE, const char* prefix, size_t len, ID name);
+    Symbol* prefixed_by(STATE, const char prefix, ID name);
 
     /** Return constant name mapping to 'type' */
     std::string& capi_get_constant_name(int type);

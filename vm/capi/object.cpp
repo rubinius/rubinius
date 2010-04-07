@@ -257,8 +257,8 @@ extern "C" {
 
     Object* object = env->get_object(self_handle);
 
-    return env->get_handle(object->get_ivar(env->state(),
-                               prefixed_by("@", ivar_name)));
+    Symbol* sym = reinterpret_cast<Symbol*>(ivar_name);
+    return env->get_handle(object->get_ivar(env->state(), sym));
   }
 
   VALUE rb_ivar_set(VALUE self_handle, ID ivar_name, VALUE value) {
@@ -266,8 +266,8 @@ extern "C" {
 
     Object* receiver = env->get_object(self_handle);
 
-    receiver->set_ivar(env->state(),
-                       prefixed_by("@", ivar_name),
+    Symbol* sym = reinterpret_cast<Symbol*>(ivar_name);
+    receiver->set_ivar(env->state(), sym,
                        env->get_object(value));
 
     return value;
@@ -276,7 +276,7 @@ extern "C" {
   VALUE rb_ivar_defined(VALUE obj_handle, ID ivar_name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Symbol* ivar = prefixed_by("@", ivar_name);
+    Symbol* ivar = reinterpret_cast<Symbol*>(ivar_name);
     Object* obj = env->get_object(obj_handle);
     Object* ret = obj->ivar_defined(env->state(), ivar);
 
