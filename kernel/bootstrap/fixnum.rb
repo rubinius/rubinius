@@ -112,6 +112,8 @@ class Fixnum < Integer
     super(o)
   end
 
+  alias_method :===, :==
+
   def <=>(other)
     Ruby.primitive :fixnum_compare
 

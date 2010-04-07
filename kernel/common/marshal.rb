@@ -231,6 +231,7 @@ module Marshal
 
   VERSION_STRING = "\x04\x08"
 
+  # Here only for reference
   TYPE_NIL = ?0
   TYPE_TRUE = ?T
   TYPE_FALSE = ?F
@@ -312,13 +313,13 @@ module Marshal
     def construct(ivar_index = nil, call_proc = true)
       type = consume_byte()
       obj = case type
-            when TYPE_NIL
+            when ?0
               nil
-            when TYPE_TRUE
+            when ?T
               true
-            when TYPE_FALSE
+            when ?F
               false
-            when TYPE_CLASS, TYPE_MODULE
+            when ?c, ?m
               # Don't use construct_symbol, because we must not
               # memoize this symbol.
               name = get_byte_sequence.to_sym
@@ -327,47 +328,47 @@ module Marshal
               store_unique_object obj
 
               obj
-            when TYPE_FIXNUM
+            when ?i
               construct_integer
-            when TYPE_BIGNUM
+            when ?l
               construct_bignum
-            when TYPE_FLOAT
+            when ?f
               construct_float
-            when TYPE_SYMBOL
+            when ?:
               construct_symbol
-            when TYPE_STRING
+            when ?"
               construct_string
-            when TYPE_REGEXP
+            when ?/
               construct_regexp
-            when TYPE_ARRAY
+            when ?[
               construct_array
-            when TYPE_HASH
+            when ?{
               construct_hash
-            when TYPE_HASH_DEF
+            when ?}
               construct_hash_def
-            when TYPE_STRUCT
+            when ?S
               construct_struct
-            when TYPE_OBJECT
+            when ?o
               construct_object
-            when TYPE_USERDEF
+            when ?u
               construct_user_defined ivar_index
-            when TYPE_USRMARSHAL
+            when ?U
               construct_user_marshal
-            when TYPE_LINK
+            when ?@
               num = construct_integer
               obj = @objects[num]
 
               raise ArgumentError, "dump format error (unlinked)" unless obj
 
               return obj
-            when TYPE_SYMLINK
+            when ?;
               num = construct_integer
               sym = @symbols[num]
 
               raise ArgumentError, "bad symbol" unless sym
 
               return sym
-            when TYPE_EXTENDED
+            when ?e
               @modules ||= []
 
               name = get_symbol
@@ -378,13 +379,13 @@ module Marshal
               extend_object obj
 
               obj
-            when TYPE_UCLASS
+            when ?C
               name = get_symbol
               @user_class = name
 
               construct nil, false
 
-            when TYPE_IVAR
+            when ?I
               ivar_index = @has_ivar.length
               @has_ivar.push true
 

@@ -1577,7 +1577,10 @@ class Array
     else
       max_levels -= 1
       recursion = Thread.detect_recursion(array) do
-        array.each do |o|
+        i = array.to_iter
+
+        while i.next
+          o = i.item
           if o.respond_to? :to_ary
             ary = Type.coerce_to o, Array, :to_ary
             recursively_flatten(ary, out, max_levels)

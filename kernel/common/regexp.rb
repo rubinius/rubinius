@@ -17,6 +17,14 @@ class Regexp
   KCODE_MASK    = 112
 
   ESCAPE_TABLE  = Rubinius::Tuple.new(256)
+
+  # Seed it with direct replacements
+  i = 0
+  while i < 256
+    ESCAPE_TABLE[i] = i.chr
+    i += 1
+  end
+
   ESCAPE_TABLE[?\ ] = '\\ ' # '?\ ' is a space
   ESCAPE_TABLE[?[ ] = '\\['
   ESCAPE_TABLE[?] ] = '\\]'
@@ -38,6 +46,7 @@ class Regexp
   ESCAPE_TABLE[?\r] = '\\r'
   ESCAPE_TABLE[?\f] = '\\f'
   ESCAPE_TABLE[?\t] = '\\t'
+  ESCAPE_TABLE[?\v] = '\\v'
 
   ##
   # Constructs a new regular expression from the given pattern. The pattern
@@ -85,15 +94,7 @@ class Regexp
   end
 
   def self.escape(str)
-    quoted = ""
-    StringValue(str).each_byte do |c|
-      if escaped = ESCAPE_TABLE[c]
-        quoted.append escaped
-      else
-        quoted.append c.chr
-      end
-    end
-    quoted
+    StringValue(str).transform(ESCAPE_TABLE, true)
   end
 
   class << self
