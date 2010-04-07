@@ -741,13 +741,59 @@ class Array
   # code (similar to #eql?)
   def hash
     hash_val = size
-    return size if Thread.detect_outermost_recursion self do
-      i = to_iter
-      mask = Fixnum::MAX >> 1
-      while i.next
-        hash_val  &= mask
-        hash_val <<= 1
-        hash_val  ^= i.item.hash
+    mask = Fixnum::MAX >> 1
+
+    # This is duplicated and manually inlined code from Thread for performance
+    # reasons. Before refactoring it, please benchmark it and compare your
+    # refactoring against the original.
+
+    id = object_id
+    objects = Thread.current.recursive_objects
+
+    # If there is already an our version running...
+    if objects.key? :__detect_outermost_recursion__
+
+      # If we've seen self, unwind back to the outer version
+      if objects.key? id
+        raise Thread::InnerRecursionDetected
+      end
+
+      # .. or compute the hash value like normal
+      begin
+        objects[id] = true
+
+        i = to_iter
+        while i.next
+          hash_val  &= mask
+          hash_val <<= 1
+          hash_val  ^= i.item.hash
+        end
+      ensure
+        objects.delete id
+      end
+
+      return hash_val
+    else
+      # Otherwise, we're the outermost version of this code..
+      begin
+        objects[:__detect_outermost_recursion__] = true
+        objects[id] = true
+
+        i = to_iter
+        while i.next
+          hash_val  &= mask
+          hash_val <<= 1
+          hash_val  ^= i.item.hash
+        end
+
+        # An inner version will raise to return back here, indicating that
+        # the whole structure is recursive. In which case, abondon most of
+        # the work and return a simple hash value.
+      rescue Thread::InnerRecursionDetected
+        return size
+      ensure
+        objects.delete :__detect_outermost_recursion__
+        objects.delete id
       end
     end
 
