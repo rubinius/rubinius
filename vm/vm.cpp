@@ -360,7 +360,18 @@ namespace rubinius {
 
     }
 
-    om->run_finalizers(this);
+    // Count the finalizers toward running the mature gc. Not great,
+    // but better than not seeing the time at all.
+#ifdef RBX_PROFILER
+      if(unlikely(shared.profiling())) {
+        profiler::MethodEntry method(this, profiler::kMatureGC);
+        om->run_finalizers(this);
+      } else {
+        om->run_finalizers(this);
+      }
+#else
+      om->run_finalizers(this);
+#endif
   }
 
   void VM::set_const(const char* name, Object* val) {
