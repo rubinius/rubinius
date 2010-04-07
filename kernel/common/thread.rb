@@ -300,7 +300,7 @@ class Thread
   # If there is one, it returns true.
   # Otherwise, it will yield once and return false.
 
-  def self.detect_recursion(obj, paired_obj = undefined)
+  def self.detect_recursion(obj, paired_obj=undefined)
     id = obj.object_id
     pair_id = paired_obj.object_id
     objects = current.recursive_objects
@@ -336,15 +336,29 @@ class Thread
   # Similar to detect_recursion, but will short circuit all inner recursion
   # levels (using a throw)
 
+  class InnerRecursionDetected < Exception; end
+
   def self.detect_outermost_recursion(obj, paired_obj=undefined, &block)
-    if Rubinius::ThrownValue.available? :__detect_outermost_recursion__
+    rec = current.recursive_objects
+
+    if rec[:__detect_outermost_recursion__]
       if detect_recursion(obj, paired_obj, &block)
-        throw :__detect_outermost_recursion__, true
+        raise InnerRecursionDetected.new
       end
       false
     else
-      catch :__detect_outermost_recursion__ do
-        detect_recursion(obj, paired_obj, &block)
+      begin
+        rec[:__detect_outermost_recursion__] = true
+
+        begin
+          detect_recursion(obj, paired_obj, &block)
+        rescue InnerRecursionDetected
+          return true
+        end
+
+        return nil
+      ensure
+        rec.delete :__detect_outermost_recursion__
       end
     end
   end
