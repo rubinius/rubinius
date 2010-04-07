@@ -304,7 +304,10 @@ class Thread
     id = obj.object_id
     pair_id = paired_obj.object_id
     objects = current.recursive_objects
+
     case objects[id]
+
+      # Default case, we haven't seen +obj+ yet, so we add it and run the block.
     when nil
       objects[id] = pair_id
       begin
@@ -312,24 +315,37 @@ class Thread
       ensure
         objects.delete id
       end
+
+      # We've seen +obj+ before and it's got multiple paired objects associated
+      # with it, so check the pair and yield if there is no recursion.
     when Rubinius::LookupTable
       return true if objects[id][pair_id]
       objects[id][pair_id] = true
+
       begin
         yield
       ensure
         objects[id].delete pair_id
       end
+
+      # We've seen +obj+ with one paired object, so check the stored one for
+      # recursion.
+      #
+      # This promotes the value to a LookupTable since there is another new paired
+      # object.
     else
       previous = objects[id]
       return true if previous == pair_id
+
       objects[id] = Rubinius::LookupTable.new(previous => true, pair_id => true)
+
       begin
         yield
       ensure
         objects[id] = previous
       end
     end
+
     false
   end
 
