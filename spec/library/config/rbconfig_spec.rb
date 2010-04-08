@@ -73,8 +73,8 @@ describe "Config::CONFIG" do
 end
 
 describe "Config::MAKEFILE_CONFIG" do
-  sitedir    = "#{Rubinius::LIB_PATH}/rubinius"
-  sitelibdir = "#{sitedir}/#{Rubinius::LIB_VERSION}"
+  sitedir    = Rubinius::SITE_PATH
+  sitelibdir = Rubinius::SITE_PATH
   arch       = "#{Rubinius::CPU}-#{Rubinius::OS}"
 
   entries = {

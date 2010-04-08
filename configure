@@ -29,13 +29,18 @@ class Configure
     @ext_path     = @libdir + "/lib/ext"
     @mandir       = root + "/man"
     @gemsdir      = root + "/gems"
+
+    # Some simple defaults for when running directly out of the build dir
+    @sitedir      = @lib_path + "/site"
+    @vendordir    = @lib_path + "/vendor"
+
     @program_name = "rbx"
 
     # Essential settings (modify these for creating releases)
     @libversion = "1.0"
     @version = "#{@libversion}.0-rc4"
     @release_date = "2010-03-31"
-    @config_version = 4
+    @config_version = 5
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
@@ -54,6 +59,10 @@ class Configure
     else
       @ldshared = "cc -shared"
     end
+  end
+
+  def expand(path)
+    File.expand_path(path)
   end
 
   def options
@@ -91,8 +100,9 @@ class Configure
       dir = File.expand_path dir
 
       if !ENV['RELEASE'] and File.directory? dir and dir !~ /(rubinius|rbx)\/?$/
-        puts "The directory #{dir} already exists, installing to #{dir}/rubinius"
-        dir += "/rubinius"
+        old = dir
+        dir += "/rubinius/#{@libversion}"
+        puts "The directory #{old} already exists, installing to #{dir}"
       end
 
       @bindir       = dir + "/bin"
@@ -103,29 +113,43 @@ class Configure
       @ext_path     = @libdir + "/lib/ext"
       @mandir       = dir + "/man"
       @gemsdir      = dir + "/gems"
+
+      @sitedir      = dir + "/site"
+      @vendordir    = dir + "/vendor"
     end
 
     o.on "-B", "--bindir", "PATH", "Install Rubinius executable in PATH" do |dir|
-      @bindir = dir
+      @bindir = expand dir
     end
 
     o.on "-I", "--includedir", "PATH", "Install Rubinius C-API include files in PATH" do |dir|
-      @includedir = dir
+      @includedir = expand dir
     end
 
     o.on "-L", "--libdir", "PATH", "Install Ruby library in PATH" do |dir|
-      @libdir   = dir + "/rubinius/#{@libversion}"
+      @libdir   = expand(dir) + "/rubinius/#{@libversion}"
       @runtime  = @libdir + "/runtime"
       @lib_path = @libdir + "/lib"
       @ext_path = @libdir + "/lib/ext"
+
+      @sitedir   = @libdir + "/site"
+      @vendordir = @libdir + "/vendor"
     end
 
     o.on "-M", "--mandir", "PATH", "Install man pages in PATH" do |dir|
-      @mandir = dir
+      @mandir = expand dir
     end
 
     o.on "-G", "--gemsdir", "PATH", "Install gems in PATH" do |dir|
-      @gemsdir = dir
+      @gemsdir = expand dir
+    end
+
+    o.on "--sitedir", "PATH", "Where site specific ruby code goes" do |dir|
+      @sitedir = expand dir
+    end
+
+    o.on "--vendordir", "PATH", "Where vendor specific ruby code goes" do |dir|
+      @vendordir = expand dir
     end
 
     o.doc "\n Help!"
@@ -457,6 +481,8 @@ module Rubinius
     :includedir     => "#{@includedir}",
     :mandir         => "#{@mandir}",
     :gemsdir        => "#{@gemsdir}",
+    :sitedir        => "#{@sitedir}",
+    :vendordir      => "#{@vendordir}",
     :program_name   => "#{@program_name}",
     :version        => "#{@version}",
     :libversion     => "#{@libversion}",
@@ -484,6 +510,8 @@ end
 #define RBX_LIB_PATH      "#{@lib_path}"
 #define RBX_EXT_PATH      "#{@ext_path}"
 #define RBX_HDR_PATH      "#{@includedir}"
+#define RBX_SITE_PATH     "#{@sitedir}"
+#define RBX_VENDOR_PATH   "#{@vendordir}"
 #define RBX_VERSION       "#{@version}"
 #define RBX_LIB_VERSION   "#{@libversion}"
 #define RBX_BUILD_REV     "#{@buildrev}"

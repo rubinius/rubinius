@@ -47,7 +47,7 @@ module Rubinius
     def system_load_path
       @stage = "setting up system load path"
 
-      @main_lib = File.expand_path(Rubinius::LIB_PATH)
+      @main_lib = Rubinius::LIB_PATH
 
       unless File.exists? @main_lib
         if ENV['RBX_LIB']
@@ -69,10 +69,10 @@ containing the Rubinius standard library files.
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
       additions = []
-      #additions << SITELIBDIR
-      #additions << SITEARCHDIR
-      #additions << SITEDIR
-      #additions << RUBYLIBDIR
+      additions << Rubinius::SITE_PATH
+      additions << "#{Rubinius::SITE_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}"
+      additions << Rubinius::VENDOR_PATH
+      additions << "#{Rubinius::VENDOR_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}"
       additions << @main_lib
       additions.uniq!
 

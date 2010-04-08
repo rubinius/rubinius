@@ -351,6 +351,8 @@ namespace rubinius {
     G(rubinius)->set_const(state, "EXT_PATH", String::create(state, RBX_EXT_PATH));
     G(rubinius)->set_const(state, "HDR_PATH", String::create(state, RBX_HDR_PATH));
     G(rubinius)->set_const(state, "GEMS_PATH", String::create(state, RBX_GEMS_PATH));
+    G(rubinius)->set_const(state, "SITE_PATH", String::create(state, RBX_SITE_PATH));
+    G(rubinius)->set_const(state, "VENDOR_PATH", String::create(state, RBX_VENDOR_PATH));
 
     G(rubinius)->set_const(state, "VERSION", String::create(state, RBX_VERSION));
     G(rubinius)->set_const(state, "LIB_VERSION", String::create(state, RBX_LIB_VERSION));

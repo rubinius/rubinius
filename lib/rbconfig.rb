@@ -43,8 +43,8 @@ module Config
   CONFIG["RUBY_SO_NAME"]       = "rubinius-#{Rubinius::VERSION}"
   CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR_PATH}"
 
-  sitedir                      = "#{Rubinius::LIB_PATH}/rubinius"
-  sitelibdir                   = "#{sitedir}/#{Rubinius::LIB_VERSION}"
+  sitedir                      = Rubinius::SITE_PATH
+  sitelibdir                   = sitedir
   arch                         = "#{Rubinius::CPU}-#{Rubinius::OS}"
 
   CONFIG["sitedir"]            = sitedir
