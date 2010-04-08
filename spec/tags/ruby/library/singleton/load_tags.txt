@@ -1,2 +1,0 @@
-fails:Singleton._load returns the singleton instance for anything passed in
-fails:Singleton._load returns the singleton instance for anything passed in to subclass

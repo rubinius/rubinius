@@ -1,1 +1,0 @@
-fails:Singleton.new is a private method
