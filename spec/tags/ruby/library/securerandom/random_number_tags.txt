@@ -1,2 +1,0 @@
-critical:SecureRandom.random_number generates a random positive number smaller then the positive integer argument
-fails:SecureRandom.random_number generates different float numbers with subsequent invocations

@@ -1,1 +1,0 @@
-fails:Tempfile.open is passed an array [base,suffix] as first argument

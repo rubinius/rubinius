@@ -1,3 +1,0 @@
-fails:Tempfile#make_tmpname is private
-fails:Tempfile#make_tmpname when passed [String, num] uses the passed String as a prefix to the filename
-fails:Tempfile#make_tmpname when passed [String, num] includes the passed num in the filename

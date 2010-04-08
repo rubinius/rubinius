@@ -1,3 +1,0 @@
-fails:SecureRandom.base64 generates a random base64 string out of specified number of random bytes
-fails:SecureRandom.base64 generates different base64 strings with subsequent invocations
-fails:SecureRandom.base64 tries to convert the passed argument to an Integer using #to_int

@@ -1,2 +1,1 @@
-fails:URI#== returns true only if the normalized forms are equivalent
 fails:URI#== ignores capitalization of scheme

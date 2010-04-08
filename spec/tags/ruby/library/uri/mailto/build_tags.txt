@@ -1,1 +1,0 @@
-fails:URI::Mailto.build conforms to the MatzRuby tests
