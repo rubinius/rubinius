@@ -273,7 +273,7 @@ namespace rubinius {
     if(!ent) return Qnil;
 
     if(ent->is_number()) {
-      return Fixnum::from(atoi(ent->value.c_str()));
+      return Integer::from(state, strtol(ent->value.c_str(), (char **)NULL, 10));
     } else if(ent->is_true()) {
       return Qtrue;
     }
