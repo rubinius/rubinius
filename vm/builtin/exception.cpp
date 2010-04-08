@@ -117,10 +117,10 @@ namespace rubinius {
     TypeInfo* wanted = state->find_type(type);
 
     if(!object->reference_p()) {
-      msg << "  Tried to use non-reference value " << object;
+      msg << "Tried to use non-reference value " << object;
     } else {
       TypeInfo* was = state->find_type(object->type_id());
-      msg << "  Tried to use object of type " <<
+      msg << "Tried to use object of type " <<
         was->type_name << " (" << was->type << ")";
     }
 

@@ -82,7 +82,7 @@ namespace rubinius {
   }
 
   Object* Object::copy_object_prim(STATE, Object* other, CallFrame* call_frame) {
-    if(type_id() != other->type_id() ||
+    if(!reference_p() || !other->reference_p() || type_id() != other->type_id() ||
         class_object(state) != other->class_object(state)) {
       Exception* exc =
         Exception::make_type_error(state, type_id(), other);
