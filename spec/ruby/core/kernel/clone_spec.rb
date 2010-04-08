@@ -44,4 +44,10 @@ describe "Kernel#clone" do
       CLONE.should == :clone
     end
   end
+
+  it "raises TypeError when called on nil" do
+    lambda {
+      nil.clone
+    }.should raise_error(TypeError)
+  end
 end
