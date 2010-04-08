@@ -273,7 +273,7 @@ namespace rubinius {
     if(!ent) return Qnil;
 
     if(ent->is_number()) {
-      return Integer::from(state, strtol(ent->value.c_str(), (char **)NULL, 10));
+      return Bignum::from_string(state, ent->value.c_str(), 10);
     } else if(ent->is_true()) {
       return Qtrue;
     }
