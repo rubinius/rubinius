@@ -114,6 +114,18 @@ describe "Module#autoload" do
     ScratchPad.recorded.should be_nil
   end
 
+  it "ignores the autoload request if the file is already loaded" do
+    filename = fixture(__FILE__, "autoload_s.rb")
+
+    require filename
+
+    ScratchPad.recorded.should == :loaded
+    ScratchPad.clear
+
+    ModuleSpecs::Autoload.autoload :S, filename
+    ModuleSpecs::Autoload.autoload?(:S).should be_nil
+  end
+
   it "allows multiple autoload constants for a single file" do
     filename = fixture(__FILE__, "autoload_lm.rb")
     ModuleSpecs::Autoload.autoload :L, filename
