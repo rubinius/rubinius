@@ -105,6 +105,14 @@ describe "String#%" do
     lambda { "%1$1$s" % "foo" }.should raise_error(ArgumentError)
   end
 
+  it "respects positional arguments and precision tokens given for one format specifier" do
+    lambda { "%2$1d" % [1, 0] }.should == "0"
+    lambda { "%2$1d" % [0, 1] }.should == "1"
+
+    lambda { "%2$.2f" % [1, 0] }.should == "0.00"
+    lambda { "%2$.2f" % [0, 1] }.should == "1.00"
+  end
+
   it "raises an ArgumentError when multiple width star tokens are given for one format specifier" do
     lambda { "%**s" % [5, 5, 5] }.should raise_error(ArgumentError)
   end
