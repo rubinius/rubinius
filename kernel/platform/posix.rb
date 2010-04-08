@@ -35,7 +35,7 @@ module FFI::Platform::POSIX
   attach_function :umask,    [:mode_t], :int
   attach_function :link,     [:string, :string], :int
   attach_function :symlink,  [:string, :string], :int
-  attach_function :readlink, [:string, :string, :int], :int
+  attach_function :readlink, [:string, :pointer, :int], :int
   attach_function :rename,   [:string, :string], :int
   attach_function :utimes,   [:string, :pointer], :int
 
