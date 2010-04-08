@@ -162,6 +162,28 @@ class Requirer
     end
   end
 
+  # Indicate if +feature+ is already provied. Inspects the extension
+  # to figure out all possible things +feature+ could be.
+  def self.provided?(feature)
+    rb, rbc, ext = split_path(feature)
+
+    if rb
+      return true if $LOADED_FEATURES.include? rb
+    end
+
+    # Only check rbc also if we didn't just check rb
+    if rbc and !rb
+      rb = rbc.chomp 'c'
+      return true if $LOADED_FEATURES.include?(rb)
+    end
+
+    if ext
+      return true if $LOADED_FEATURES.include?(ext)
+    end
+
+    return false
+  end
+
   # Internally used by #unified_load. This attempts to load the
   # designated file from a single prefix path.
   def self.single_load(dir, rb, rbc, ext, requiring, options)

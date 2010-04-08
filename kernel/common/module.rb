@@ -601,9 +601,12 @@ class Module
   # Install a new Autoload object into the constants table
   # See kernel/common/autoload.rb
   def autoload(name, path)
-    name = normalize_const_name(name)
     raise TypeError, "autoload filename must be a String" unless path.kind_of? String
     raise ArgumentError, "empty file name" if path.empty?
+
+    return if Requirer::Utils.provided?(path)
+
+    name = normalize_const_name(name)
 
     if existing = constant_table[name]
       if existing.kind_of? Autoload
