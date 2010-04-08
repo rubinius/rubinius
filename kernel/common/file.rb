@@ -642,12 +642,12 @@ class File < IO
   def self.readlink(path)
     StringValue(path)
 
-    buf = " " * 1024
+    FFI::MemoryPointer.new(1024) do |ptr|
+      n = POSIX.readlink(path, ptr, 1024)
+      Errno.handle if n == -1
 
-    n = POSIX.readlink(path, buf, buf.length)
-    Errno.handle if n == -1
-
-    buf[0, n]
+      return ptr.read_string(n)
+    end
   end
 
   ##
