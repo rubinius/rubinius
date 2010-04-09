@@ -152,10 +152,6 @@ class BasicSocket < IO
 #    shutdown Socket::SHUT_WR
 #  end
 
-  def shutdown how
-    close
-  end
-
 end
 
 class Socket < BasicSocket

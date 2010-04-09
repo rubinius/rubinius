@@ -723,6 +723,7 @@ failed: /* try next '*' position */
 
   retry:
     state->install_waiter(waiter);
+    state->thread->sleep(state, Qtrue);
 
     {
       GlobalLock::UnlockGuard lock(state->global_lock());
@@ -730,6 +731,7 @@ failed: /* try next '*' position */
       set = true;
     }
 
+    state->thread->sleep(state, Qfalse);
     state->clear_waiter();
 
     if(new_fd == -1) {
