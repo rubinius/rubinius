@@ -39,12 +39,12 @@ describe "TCPServer#accept" do
     # kill thread, ensure it dies in a reasonable amount of time
     t.kill
     a = 1
-    while a < 1000
+    while a < 2000
       break unless t.alive?
       Thread.pass
       a += 1
     end
-    a.should < 1000
+    a.should < 2000
   end
 
   it "can be interrupted by Thread#raise" do
