@@ -15,6 +15,10 @@ class Array::Packer
     @ptr = nil
   end
 
+  def endian?(order)
+    order == Rubinius::ENDIAN
+  end
+
   def ptr
     @ptr ||= FFI::MemoryPointer.new(16) # enough for all uses
   end
@@ -467,6 +471,10 @@ class String::Unpacker
     @source = source
     @length = source.length
     @schema = schema
+  end
+
+  def endian?(order)
+    order == Rubinius::ENDIAN
   end
 
   def ptr
