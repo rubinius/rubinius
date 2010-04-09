@@ -159,7 +159,7 @@ namespace rubinius {
   void Environment::start_signals() {
     struct sigaction action;
     action.sa_handler = null_func;
-    action.sa_flags = SA_RESTART;
+    action.sa_flags = 0;
     sigfillset(&action.sa_mask);
     sigaction(NativeThread::cWakeupSignal, &action, NULL);
 
