@@ -598,7 +598,7 @@ BigDecimal_to_f(VALUE self)
     if(VpVtoD(&d, &e, p)!=1) return rb_float_new(d);
     if (e > DBL_MAX_10_EXP) goto erange;
     str = rb_str_new(0, VpNumOfChars(p,"E"));
-    buf = rb_str_ptr_readonly(str);
+    buf = RSTRING_PTR(str);
     VpToString(p, buf, 0, 0);
     errno = 0;
     d = strtod(buf, 0);
@@ -3822,7 +3822,7 @@ VpToString(Real *a,char *psz,int fFmt,int fPlus)
 /* fPlus =0:default, =1: set ' ' before digits , =2:set '+' before digits. */
 {
     U_LONG i, ZeroSup;
-    U_LONG n, e;
+    U_LONG n, m, e, nn;
     char *pszSav = psz;
     S_LONG ex;
 
@@ -3838,12 +3838,18 @@ VpToString(Real *a,char *psz,int fFmt,int fPlus)
     *psz++ = '.';
     n = a->Prec;
     for(i=0;i < n;++i) {
+        m = BASE1;
         e = a->frac[i];
-	if((!ZeroSup) || e) {
-	    sprintf(psz, "%lu", e);    /* The reading zero(s) */
-	    psz += strlen(psz);
-	    /* as 0.00xx will be ignored. */
-	    ZeroSup = 0;    /* Set to print succeeding zeros */
+        while(m) {
+            nn = e / m;
+            if((!ZeroSup) || nn) {
+                sprintf(psz, "%lu", nn);    /* The reading zero(s) */
+                psz += strlen(psz);
+                /* as 0.00xx will be ignored. */
+                ZeroSup = 0;    /* Set to print succeeding zeros */
+            }
+            e = e - nn * m;
+            m /= 10;
         }
     }
     ex =(a->exponent) * BASE_FIG;
