@@ -63,7 +63,7 @@ class StringIO
     if @pos < @string.length
       @string[@pos..-1].each_byte { |b| @pos += 1; yield b}
     end
-    nil
+    self
   end
 
   alias_method :bytes, :each_byte

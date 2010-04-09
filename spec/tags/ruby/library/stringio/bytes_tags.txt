@@ -1,4 +1,0 @@
-fails:StringIO#bytes yields each character code in turn
-fails:StringIO#bytes updates the position before each yield
-fails:StringIO#bytes returns self
-fails:StringIO#bytes when self is not readable raises an IOError
