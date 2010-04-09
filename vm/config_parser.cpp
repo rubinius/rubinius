@@ -9,6 +9,8 @@
 namespace rubinius {
   /* utility: checks whether string contains only digits */
   static bool is_number(const char *str) {
+    if(*str == '-') str++;
+
     while(*str) {
       if(!isdigit(*str)) return false;
       str++;
@@ -17,13 +19,17 @@ namespace rubinius {
     return true;
   }
 
+  static bool valid_char(char c) {
+    return isalnum(c) || c == '-';
+  }
+
 
   /* utility: strips trailing non-alnum chars from string */
   static char *trim_str(char *str) {
     int i;
-    while(*str && !isalnum(*str) && *str != '/') str++;
+    while(*str && !valid_char(*str) && *str != '/') str++;
 
-    for(i = strlen(str); i-- && !isalnum(str[i]) && str[i] != '/';) {
+    for(i = strlen(str); i-- && !valid_char(str[i]) && str[i] != '/';) {
       str[i] = 0;
     }
 
