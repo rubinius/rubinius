@@ -27,6 +27,14 @@ class TestConfig : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(std::string("8"), e->value);
   }
 
+  void test_parse_line_with_negative() {
+    ConfigParser cfg;
+
+    ConfigParser::Entry* e = cfg.parse_line("rbx.blah = -3");
+    TS_ASSERT_EQUALS(std::string("rbx.blah"), e->variable);
+    TS_ASSERT_EQUALS(std::string("-3"), e->value);
+  }
+
   void test_parse_stream() {
     std::istringstream stream;
 
@@ -54,6 +62,10 @@ class TestConfig : public CxxTest::TestSuite {
     TS_ASSERT(!ent->is_number());
 
     ent->value = std::string("8");
+
+    TS_ASSERT(ent->is_number());
+
+    ent->value = std::string("-8");
 
     TS_ASSERT(ent->is_number());
   }
