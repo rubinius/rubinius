@@ -1,1 +1,0 @@
-fails:REXML::Document#new clones source attributes
