@@ -803,17 +803,21 @@ class IPSocket < BasicSocket
           Errno.handle 'recvfrom(2)' if bytes_read < 0
 
           mesg = buffer_p.read_string
-          sockaddr = sockaddr_storage_p.read_string(len_p.read_int)
 
-          sockaddr_in = Socket::SockAddr_In.new(sockaddr)
+          # Not every platform (i.e. OS X) returns a sender result for
+          # recvfrom, so we need to handle that case
+          if (sockaddr_len = len_p.read_int) > 0
+            sockaddr = sockaddr_storage_p.read_string(sockaddr_len)
+            sockaddr_in = Socket::SockAddr_In.new(sockaddr)
 
-          # @todo *sigh* --rue
-          if sockaddr_in[:sin_family] == Socket::Constants::AF_UNSPEC
-            sockaddr_in[:sin_family] = Socket::Constants::AF_INET
+            # @todo *sigh* --rue
+            if sockaddr_in[:sin_family] == Socket::Constants::AF_UNSPEC
+              sockaddr_in[:sin_family] = Socket::Constants::AF_INET
+            end
+
+            sockaddr = Socket::Foreign.unpack_sockaddr_in(sockaddr_in.to_s, false)
+            sender_sockaddr = [ "AF_INET", sockaddr[2], sockaddr[0], sockaddr[1] ]
           end
-
-					sockaddr = Socket::Foreign.unpack_sockaddr_in(sockaddr_in.to_s, false)
-          sender_sockaddr = [ "AF_INET", sockaddr[2], sockaddr[0], sockaddr[1] ]
         end
       end
     end
