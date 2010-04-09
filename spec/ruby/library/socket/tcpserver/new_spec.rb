@@ -59,7 +59,9 @@ describe "TCPServer.new" do
   end
   
   it "raises a SocketError when the host is unknown" do
-    lambda { TCPServer.new("http://asdffdsaasdfaasdfasdfgfdadsdfdsf.com", 4000) }.should raise_error(SocketError)
+    lambda {
+      TCPServer.new("--notavalidname", 4000)
+    }.should raise_error(SocketError)
   end
 
   it "raises Errno::EADDRINUSE when address is already in use" do
