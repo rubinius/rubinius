@@ -1,2 +1,0 @@
-fails:SortedSet#each returns self
-fails:SortedSet#each returns an Enumerator when not passed a block
