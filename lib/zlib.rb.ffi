@@ -1356,6 +1356,7 @@ module Zlib
       else
         run string, Zlib::SYNC_FLUSH
       end
+      self
     end
 
     ##
