@@ -1,1 +1,0 @@
-unstable:TCPSocket#gethostbyname returns the address type as the third value

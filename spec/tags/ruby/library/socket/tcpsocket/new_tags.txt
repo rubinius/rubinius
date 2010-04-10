@@ -1,5 +1,0 @@
-unstable:TCPSocket.new connects to a listening server
-unstable:TCPSocket.new has an address once it has connected to a listening server
-fails:TCPSocket.new refuses the connection when there is no server to connect to
-critical:TCPSocket.new connects to a listening server
-critical:TCPSocket.new has an address once it has connected to a listening server
