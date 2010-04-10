@@ -53,10 +53,6 @@ class StringIO
     self
   end
 
-  def chars
-    to_enum :each_char
-  end
-
   def each_byte
     return to_enum :each_byte unless block_given?
     raise IOError, "not opened for reading" unless @readable
@@ -94,6 +90,8 @@ class StringIO
 
     self
   end
+
+  alias_method :chars, :each_char
 
   def each(sep = $/)
     return to_enum :each_byte, sep unless block_given?
