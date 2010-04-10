@@ -1,3 +1,2 @@
-fails:StringIO#initialize when passed [Object, mode] raises a TypeError when passed a frozen String in truncate mode as StringIO backend
 fails:StringIO#initialize when passed [Object, mode] raises an Errno::EACCES error when passed a frozen string with a write-mode
 fails:StringIO#initialize when passed [Object] automatically sets the mode to read-only when passed a frozen string
