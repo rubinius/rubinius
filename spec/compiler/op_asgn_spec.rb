@@ -24,14 +24,14 @@ describe "An Op_asgn1 node" do
 
       g.push :self
       g.send :hsh, 0, true
-      g.dup
       g.push_literal :blah
+      g.dup_many 2
+
       g.send :[], 1
       g.dup
       g.git found
 
       g.pop
-      g.push_literal :blah
       g.push 8
       g.dup
       g.move_down 3
@@ -41,9 +41,8 @@ describe "An Op_asgn1 node" do
 
       found.set!
 
-      # Remove the object from the stack
-      g.swap
-      g.pop
+      g.move_down 2
+      g.pop_many 2
 
       fin.set!
     end
@@ -64,14 +63,14 @@ describe "An Op_asgn1 node" do
 
       g.push :self
       g.send :hsh, 0, true
-      g.dup
       g.push_local 0
+      g.dup_many 2
+
       g.send :[], 1
       g.dup
       g.git found
 
       g.pop
-      g.push_local 0
       g.push 8
       g.dup
       g.move_down 3
@@ -81,9 +80,8 @@ describe "An Op_asgn1 node" do
 
       found.set!
 
-      # Remove the object from the stack
-      g.swap
-      g.pop
+      g.move_down 2
+      g.pop_many 2
 
       fin.set!
     end
@@ -96,14 +94,14 @@ describe "An Op_asgn1 node" do
 
       g.push :self
       g.send :hsh, 0, true
-      g.dup
       g.push_literal :blah
+      g.dup_many 2
+
       g.send :[], 1
       g.dup
       g.gif found
 
       g.pop
-      g.push_literal :blah
       g.push 8
       g.dup
       g.move_down 3
@@ -113,9 +111,8 @@ describe "An Op_asgn1 node" do
 
       found.set!
 
-      # Remove the object from the stack
-      g.swap
-      g.pop
+      g.move_down 2
+      g.pop_many 2
 
       fin.set!
     end
@@ -128,13 +125,12 @@ describe "An Op_asgn1 node" do
 
       g.push :self
       g.send :hsh, 0, true
-      g.dup
       g.push_literal :blah
+      g.dup_many 2
+
       g.send :[], 1
       g.push 8
       g.send :"^", 1
-      g.push_literal :blah
-      g.swap
       g.dup
       g.move_down 3
       g.send :[]=, 2
@@ -146,17 +142,15 @@ describe "An Op_asgn1 node" do
     compile do |g|
       g.push :self
       g.send :ary, 0, true
-      g.dup
       g.push 0
       g.push 1
+      g.dup_many 3
+
       g.send :[], 2
+
       g.push 4
       g.make_array 1
       g.send :"+", 1
-      g.push 0
-      g.swap
-      g.push 1
-      g.swap
       g.dup
       g.move_down 4
       g.send :[]=, 3
@@ -218,173 +212,6 @@ describe "An Op_asgn1 node" do
     end
   end
 
-  relates <<-ruby do
-      @b = []
-      @b[1] ||= 10
-      @b[2] &&= 11
-      @b[3] += 12
-    ruby
-
-    compile do |g|
-      l_or = g.new_label
-      l_and = g.new_label
-      l_idx = g.new_label
-      l_rhs = g.new_label
-
-      g.make_array 0
-      g.set_ivar :@b
-      g.pop
-
-      g.push_ivar :@b
-      g.dup
-      g.push 1
-      g.send :[], 1
-
-      g.dup
-      g.git l_or
-      g.pop
-
-      g.push 1
-      g.push 10
-      g.dup
-      g.move_down 3
-      g.send :[]=, 2
-      g.pop
-
-      g.goto l_and
-
-      l_or.set!
-
-      g.swap
-      g.pop
-
-      l_and.set!
-
-      g.pop
-      g.push_ivar :@b
-      g.dup
-      g.push 2
-      g.send :[], 1
-      g.dup
-      g.gif l_idx
-
-      g.pop
-      g.push 2
-      g.push 11
-      g.dup
-      g.move_down 3
-      g.send :[]=, 2
-      g.pop
-      g.goto l_rhs
-
-      l_idx.set!
-
-      g.swap
-      g.pop
-
-      l_rhs.set!
-
-      g.pop
-      g.push_ivar :@b
-      g.dup
-      g.push 3
-      g.send :[], 1
-
-      g.push 12
-      g.send :+, 1
-
-      g.push 3
-      g.swap
-      g.dup
-      g.move_down 3
-      g.send :[]=, 2
-      g.pop
-    end
-  end
-
-  relates <<-ruby do
-      b = []
-      b[1] ||= 10
-      b[2] &&= 11
-      b[3] += 12
-    ruby
-
-    compile do |g|
-      l_or = g.new_label
-      l_and = g.new_label
-      l_idx = g.new_label
-      l_rhs = g.new_label
-
-      g.make_array 0
-      g.set_local 0
-      g.pop
-
-      g.push_local 0
-      g.dup
-      g.push 1
-      g.send :[], 1
-
-      g.dup
-      g.git l_or
-      g.pop
-
-      g.push 1
-      g.push 10
-      g.dup
-      g.move_down 3
-      g.send :[]=, 2
-      g.pop
-
-      g.goto l_and
-
-      l_or.set!
-
-      g.swap
-      g.pop
-
-      l_and.set!
-
-      g.pop
-      g.push_local 0
-      g.dup
-      g.push 2
-      g.send :[], 1
-      g.dup
-      g.gif l_idx
-
-      g.pop
-      g.push 2
-      g.push 11
-      g.dup
-      g.move_down 3
-      g.send :[]=, 2
-      g.pop
-      g.goto l_rhs
-
-      l_idx.set!
-
-      g.swap
-      g.pop
-
-      l_rhs.set!
-
-      g.pop
-      g.push_local 0
-      g.dup
-      g.push 3
-      g.send :[], 1
-
-      g.push 12
-      g.send :+, 1
-
-      g.push 3
-      g.swap
-      g.dup
-      g.move_down 3
-      g.send :[]=, 2
-      g.pop
-    end
-  end
 end
 
 describe "An Op_asgn2 node" do

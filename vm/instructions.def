@@ -304,6 +304,13 @@ instruction dup_top() [ -- value ]
   stack_push(t1);
 end
 
+instruction dup_many(count) [ +count -- ++count ]
+  Object** objs = stack_back_position(count);
+  for(intptr_t i = 0; i < count; i++) {
+    stack_push(objs[i]);
+  }
+end
+
 # [Operation]
 #   Pop an item off the stack and discard
 # [Format]
@@ -321,6 +328,12 @@ end
 
 instruction pop() [ value -- ]
   stack_pop();
+end
+
+instruction pop_many(count) [ +count -- ]
+  for(intptr_t i = 0; i < count; i++) {
+    stack_pop();
+  }
 end
 
 # [Operation]

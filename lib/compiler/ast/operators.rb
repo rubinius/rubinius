@@ -113,11 +113,16 @@ module Rubinius
         # X: given h = { :a => 2 }
         # X: Pull h onto the stack
         @receiver.bytecode(g)
-        g.dup
         # X: Pull :a in
         @index.each do |idx|
           idx.bytecode(g)
         end
+
+        recv_stack = @index.size + 1
+
+        # Dup the receiver and index to use later
+        g.dup_many recv_stack
+
         #
         # X: Call [](:a) on h
         #
@@ -145,28 +150,25 @@ module Rubinius
           # Ok, take the extra copy off and pull the value onto the stack
           g.pop
 
-          # Pull the index onto the stack again, swaping to push
-          # @value to the top of the stack (last argument)
-          @index.each do |idx|
-            idx.bytecode(g)
-          end
+          # The receiver and index are still on the stack
 
           @value.bytecode(g)
 
           # retain the rhs as the expression value
           g.dup
-          g.move_down @index.size + 2
+          g.move_down recv_stack + 1
 
           g.send :[]=, @index.size + 1
           g.pop
+
+          # Leaves the value we moved down the stack on the top
           g.goto fin
 
           fnd.set!
 
-          # Clean up the stack by swaping, allowing us to pop of the extra
-          # copy of @object we left on the stack
-          g.swap
-          g.pop
+          # Clean up the stack but retain return value from :[]
+          g.move_down recv_stack
+          g.pop_many recv_stack
 
           fin.set!
         else
@@ -182,18 +184,12 @@ module Rubinius
           g.send @op, 1
           # X: 5 TOS
 
-          # The new value is on the stack now. It needs to be the last argument
-          # when we call []=, so we call the index again, swapping each time to
-          # move the new value up to the top of the stack (where the last
-          # argument lives)
-          @index.each do |idx|
-            idx.bytecode(g)
-            g.swap
-          end
+          # The new value is on the stack now. It is the last argument to the call
+          # to []= because your dupd versions of recv and index are still on the stack.
 
           # retain the rhs as the expression value
           g.dup
-          g.move_down @index.size + 2
+          g.move_down recv_stack + 1
 
           # X: Call []=(:a, 5) on h
           g.send :[]=, @index.size + 1

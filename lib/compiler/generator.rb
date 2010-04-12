@@ -121,7 +121,7 @@ module Rubinius
       def visit(stack_size)
         if @visited
           unless stack_size == @enter_size
-            raise CompileError, "unbalanced stack at #{location}"
+            raise CompileError, "unbalanced stack at #{location}: #{stack_size} != #{@enter_size}"
           end
         else
           @visited = true

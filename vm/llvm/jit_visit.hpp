@@ -377,6 +377,10 @@ namespace rubinius {
       stack_remove(1);
     }
 
+    void visit_pop_many(opcode count) {
+      stack_remove(count);
+    }
+
     void visit_push_nil() {
       stack_push(constant(Qnil));
     }
@@ -456,6 +460,14 @@ namespace rubinius {
 
     void visit_dup_top() {
       stack_push(stack_top());
+    }
+
+    void visit_dup_many(opcode count) {
+      Value* pos = stack_objects(count);
+      for(opcode i = 0; i < count; i++) {
+        stack_push(b().CreateLoad(
+              b().CreateConstGEP1_32(pos, i)));
+      }
     }
 
     void visit_rotate(opcode count) {

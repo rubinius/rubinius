@@ -99,13 +99,30 @@ class InstructionParser
 
     # Calculate the full stack affect of this opcode.
     def method_stack_effect
-      if @opcode.extra
-        variable = "-arg#{@opcode.extra+1}"
-        if @opcode.effect == 0
-          total = variable
-        else
-          total = "#{@opcode.effect}#{variable}"
+      if @opcode.extra or @opcode.produced_extra
+
+        total = nil
+
+        if @opcode.extra
+          variable = "-arg#{@opcode.extra+1}"
+          if @opcode.effect == 0
+            total = variable
+          else
+            total = "#{@opcode.effect}#{variable}"
+          end
         end
+
+
+        if @opcode.produced_extra
+          variable = "(arg#{@opcode.produced_extra+1} * #{@opcode.produced_times})"
+
+          if total
+            total = "(#{total}) + #{variable}"
+          else
+            total = "#{opcode.effect} + #{variable}"
+          end
+        end
+
         @file.puts "        @current_block.add_stack(#{total})"
       elsif @opcode.effect != 0
         @file.puts "        @current_block.add_stack(#{@opcode.effect})"
@@ -400,7 +417,8 @@ EOM
 
   class Instruction < Definition
     attr_reader :name, :bytecode, :arguments, :consumed, :extra,
-                :produced, :effect, :body, :control_flow
+                :produced, :produced_extra, :effect, :body, :control_flow,
+                :produced_times
 
     def self.bytecodes
       @bytecodes
@@ -417,6 +435,7 @@ EOM
       @header = header
       @body = []
       @extra = nil
+      @produced_extra = nil
       @bytecode = self.class.bytecode
       @control_flow = :next
     end
@@ -427,7 +446,7 @@ EOM
     end
 
     def parse_header
-      m = @header.match(/(\w+)\(([^)]*)\) \[ ([\w+ ]*)-- ([\w ]*)\]( =>\s*(\w+))?/)
+      m = @header.match(/(\w+)\(([^)]*)\) \[ ([\w+ ]*)-- ([\w+ ]*)\]( =>\s*(\w+))?/)
       unless m
         raise ParseError, "invalid instruction header '#{@header}' at #{@file.lineno}"
       end
@@ -448,6 +467,21 @@ EOM
       @consumed = consumed
 
       @produced = m[4].strip.split
+      last = @produced.last
+      if last and last[0] == ?+
+        @produced_times = 0
+
+        while last[0] == ?+
+          @produced_times += 1
+          last = last[1..-1]
+        end
+
+        arguments = last[1..-1]
+        unless @produced_extra = @arguments.index(argument)
+          raise ParseError, "no argument named '#{arg}' at #{@file.lineno}"
+        end
+        @produced.pop
+      end
 
       @effect = @produced.size - @consumed.size
 
@@ -468,12 +502,19 @@ EOM
         consumed = "#{@consumed.size}"
       end
 
+      if @produced_extra
+        produced = "[#{@produced.size}, #{@produced_extra+1}, #{@produced_times}]"
+      else
+        produced = "#{@produced.size}"
+      end
+
       file.print "    opcode %2d, :%-28s " % [@bytecode, @name + ","]
 
-      stack = "[#{consumed}, #{@produced.size}],"
+      stack = "[#{consumed}, #{produced}],"
       file.print ":stack => %-12s" % stack
 
-      args = "[#{@arguments.map { |x| ":#{x}" }.join(", ")}],"
+      syms = @arguments.map { |x| ":#{x}" }.join(", ")
+      args = "[#{syms}],"
       file.print ":args => %-20s" % args
 
       file.puts  "              :control_flow => :#{@control_flow}"
@@ -533,9 +574,17 @@ EOM
     def opcode_stack_effect(file)
       file.puts "case InstructionSequence::insn_#{@name}:"
       if @extra
-        file.puts "  return #{@effect} - operand#{@extra+1};"
+        if @produced_extra
+          file.puts "  return (#{@effect} - operand#{@extra+1}) + (operand#{@produced_extra+1} * #{@produced_times});"
+        else
+          file.puts "  return #{@effect} - operand#{@extra+1};"
+        end
       else
-        file.puts "  return #{@effect};"
+        if @produced_extra
+          file.puts "  return #{@effect} + (operand#{@produced_extra+1} * #{@produced_times});"
+        else
+          file.puts "  return #{@effect};"
+        end
       end
     end
   end
