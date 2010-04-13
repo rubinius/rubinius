@@ -160,7 +160,16 @@ class Socket < BasicSocket
   module Constants
     all_valid = FFI.config_hash("socket").reject {|name, value| value.empty? }
 
-    all_valid.each {|name, value| const_set name, value.to_i }
+    all_valid.each {|name, value| const_set name, Integer(value) }
+
+    # MRI compat. socket is a pretty screwed up API. All the constants in Constants
+    # must also be directly accessible on Socket itself. This means it's not enough
+    # to include Constants into Socket, because Socket#const_defined? must be able
+    # to see constants like AF_INET6 directly on Socket, but #const_defined? doesn't
+    # check inherited constants. O_o
+    #
+    all_valid.each {|name, value| Socket.const_set name, Integer(value) }
+
 
     afamilies = all_valid.select { |name,| name =~ /^AF_/ }
     afamilies.map! {|name, value| [value.to_i, name] }
@@ -477,7 +486,6 @@ class Socket < BasicSocket
   end
 
   include Socket::ListenAndAccept
-  include Socket::Constants
 
   class SockAddr_In < FFI::Struct
     config("rbx.platform.sockaddr_in", :sin_family, :sin_port, :sin_addr, :sin_zero)
