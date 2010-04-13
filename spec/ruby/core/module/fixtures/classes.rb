@@ -7,6 +7,9 @@ module ModuleSpecs
   class SubclassSpec
   end
 
+  class RemoveClassVariable
+  end
+
   module LookupModInMod
     INCS = :ethereal
   end
