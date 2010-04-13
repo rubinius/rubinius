@@ -14,7 +14,9 @@ describe "Socket::IPSocket#getaddress" do
   end
 
   it "raises an error on unknown hostnames" do
-    lambda { IPSocket.getaddress("imfakeidontexistanditrynottobeslow.com") }.should raise_error(SocketError)
+    lambda {
+      IPSocket.getaddress("rubyspecdoesntexist.fallingsnow.net")
+    }.should raise_error(SocketError)
   end
 
 end
