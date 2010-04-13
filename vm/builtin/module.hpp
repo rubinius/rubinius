@@ -61,6 +61,9 @@ namespace rubinius {
     // Ruby.primitive :module_cvar_get_or_set
     Object* cvar_get_or_set(STATE, Symbol* name, Object* val);
 
+    // Ruby.primitive :module_cvar_remove
+    Object* cvar_remove(STATE, Symbol* name);
+
     void setup(STATE);
     void setup(STATE, const char* name, Module* under = NULL);
     void setup(STATE, Symbol* name, Module* under = NULL);

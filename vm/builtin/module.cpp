@@ -311,7 +311,60 @@ namespace rubinius {
 
     mod_to_query->set_table_ivar(state, name, value);
     return value;
+  }
 
+  Object* Module::cvar_remove(STATE, Symbol* name) {
+    if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
+
+    Module* mod = this;
+    Module* mod_to_query;
+
+    if(MetaClass* mc = try_as<MetaClass>(mod)) {
+      mod_to_query = as<Module>(mc->attached_instance());
+    } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
+      mod_to_query = im->module();
+    } else {
+      mod_to_query = mod;
+    }
+
+    if(mod_to_query->table_ivar_defined(state, name)->true_p()) {
+      Object* value = mod_to_query->get_table_ivar(state, name);
+      mod_to_query->del_table_ivar(state, name);
+      return value;
+    }
+
+    std::stringstream ss;
+    mod = this;
+    if(MetaClass* mc = try_as<MetaClass>(mod)) {
+      mod = as<Module>(mc->attached_instance());
+    }
+
+    if (this->cvar_defined(state, name) == Qtrue) {
+      ss << "cannot remove ";
+      ss << name->c_str(state);
+      ss << " for ";
+    } else {
+      ss << "uninitialized class variable ";
+      ss << name->c_str(state);
+      ss << " in module ";
+    }
+
+    if(mod->name()->nil_p()) {
+      if(kind_of<Class>(mod)) {
+        ss << "#<Class>";
+      } else {
+        ss << "#<Module>";
+      }
+    } else {
+      ss << mod->name()->c_str(state);
+    }
+
+    RubyException::raise(
+        Exception::make_exception(state,
+          as<Class>(G(object)->get_const(state, "NameError")),
+          ss.str().c_str()));
+
+    return NULL;
   }
 
   void Module::Info::show(STATE, Object* self, int level) {
