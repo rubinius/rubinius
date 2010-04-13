@@ -1992,7 +1992,11 @@ class String
     bits = Type.coerce_to bits, Integer, :to_int unless bits.__kind_of__ Fixnum
     i, sum = -1, 0
     sum += @data[i] while (i += 1) < @num_bytes
-    sum & ((1 << bits) - 1)
+    if bits > 0
+      sum & ((1 << bits) - 1)
+    else
+      sum
+    end
   end
 
   # Returns a copy of <i>self</i> with uppercase alphabetic characters converted to
