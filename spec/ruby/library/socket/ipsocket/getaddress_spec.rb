@@ -13,10 +13,15 @@ describe "Socket::IPSocket#getaddress" do
     IPSocket.getaddress("0.0.0.0").should == "0.0.0.0"
   end
 
-  it "raises an error on unknown hostnames" do
-    lambda {
-      IPSocket.getaddress("rubyspecdoesntexist.fallingsnow.net")
-    }.should raise_error(SocketError)
+  # There is no way to make this fail-proof on all machines, because
+  # DNS servers like opendns return A records for ANY host, including
+  # traditionally invalidly named ones.
+  quarantine! do
+    it "raises an error on unknown hostnames" do
+      lambda {
+        IPSocket.getaddress("rubyspecdoesntexist.fallingsnow.net")
+      }.should raise_error(SocketError)
+    end
   end
 
 end

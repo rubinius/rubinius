@@ -57,11 +57,16 @@ describe "TCPServer.new" do
   it "raises Errno::EADDRNOTAVAIL when the adress is unknown" do
     lambda { TCPServer.new("1.2.3.4", 4000) }.should raise_error(Errno::EADDRNOTAVAIL)
   end
-  
-  it "raises a SocketError when the host is unknown" do
-    lambda {
-      TCPServer.new("--notavalidname", 4000)
-    }.should raise_error(SocketError)
+
+  # There is no way to make this fail-proof on all machines, because
+  # DNS servers like opendns return A records for ANY host, including
+  # traditionally invalidly named ones.
+  quarantine! do
+    it "raises a SocketError when the host is unknown" do
+      lambda {
+        TCPServer.new("--notavalidname", 4000)
+      }.should raise_error(SocketError)
+    end
   end
 
   it "raises Errno::EADDRINUSE when address is already in use" do
