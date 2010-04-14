@@ -517,8 +517,8 @@ namespace rubinius {
 
   Array* ipaddr(STATE, struct sockaddr* addr, socklen_t len) {
     String* family;
-    char buf[1024];
-    char pbuf[1024];
+    char buf[NI_MAXHOST];
+    char pbuf[NI_MAXSERV];
 
     switch(addr->sa_family) {
     case AF_UNSPEC:
@@ -547,7 +547,7 @@ namespace rubinius {
       break;
     }
 
-    int e = getnameinfo(addr, len, buf, 1024, pbuf, 1024,
+    int e = getnameinfo(addr, len, buf, NI_MAXHOST, pbuf, NI_MAXSERV,
                         NI_NUMERICHOST | NI_NUMERICSERV);
 
     // TODO this doesn't support doing the DNS bound lookup at all.
