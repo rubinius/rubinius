@@ -24,7 +24,7 @@ describe "UDPSocket.send" do
     @socket.send("ad hoc", 0, SocketSpecs.hostname,SocketSpecs.port)
     @socket.close
     @server_thread.join
-      
+
     @msg[0].should == "ad hoc"
     @msg[1][0].should == "AF_INET"
     @msg[1][1].should be_kind_of(Fixnum)

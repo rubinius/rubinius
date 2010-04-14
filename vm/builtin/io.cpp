@@ -178,6 +178,8 @@ namespace rubinius {
     /* And the main event, pun intended */
     retry:
     state->install_waiter(waiter);
+    state->thread->sleep(state, Qtrue);
+
     {
       GlobalLock::UnlockGuard lock(state->global_lock());
 
@@ -186,6 +188,8 @@ namespace rubinius {
                                                   maybe_error_set,
                                                   maybe_limit);
     }
+
+    state->thread->sleep(state, Qfalse);
     state->clear_waiter();
 
     if(events == -1) {
@@ -413,12 +417,14 @@ namespace rubinius {
 
   retry:
     state->install_waiter(waiter);
+    state->thread->sleep(state, Qtrue);
 
     {
       GlobalLock::UnlockGuard lock(state->global_lock());
       bytes_read = ::read(fd, buffer->byte_address(), count);
     }
 
+    state->thread->sleep(state, Qfalse);
     state->clear_waiter();
 
     buffer->unpin();
@@ -595,6 +601,7 @@ namespace rubinius {
 
   retry:
     state->install_waiter(waiter);
+    state->thread->sleep(state, Qtrue);
 
     {
       GlobalLock::UnlockGuard lock(state->global_lock());
@@ -604,6 +611,7 @@ namespace rubinius {
                             (struct sockaddr*)buf, &alen);
     }
 
+    state->thread->sleep(state, Qfalse);
     state->clear_waiter();
 
     buffer->unpin();
@@ -946,12 +954,14 @@ failed: /* try next '*' position */
 
   retry:
     state->install_waiter(waiter);
+    state->thread->sleep(state, Qtrue);
 
     {
       GlobalLock::UnlockGuard lock(state->global_lock());
       bytes_read = read(fd, temp_buffer, count);
     }
 
+    state->thread->sleep(state, Qfalse);
     state->clear_waiter();
 
     if(bytes_read == -1) {
