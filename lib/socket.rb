@@ -225,7 +225,7 @@ class Socket < BasicSocket
         FFI::MemoryPointer.new :socklen_t do |length|
           length.write_int 256 # HACK magic number
 
-          err = Socket::Foreign._getsockopt descriptor, level, optname, val, length
+          err = _getsockopt descriptor, level, optname, val, length
 
           Errno.handle "Unable to get socket option" unless err == 0
 
@@ -235,7 +235,7 @@ class Socket < BasicSocket
     end
 
     def self.getaddrinfo(host, service = nil, family = 0, socktype = 0,  protocol = 0, flags = 0)
-      hints = Socket::Foreign::AddrInfo.new
+      hints = AddrInfo.new
       hints[:ai_family] = family
       hints[:ai_socktype] = socktype
       hints[:ai_protocol] = protocol
@@ -244,9 +244,9 @@ class Socket < BasicSocket
 
       if host.empty?
         if (flags & Socket::AI_PASSIVE == 1) # Passive socket
-          family == Socket::AF_INET6 ? (host = "::") : (host = "0.0.0.0") # IPv6 or IPv4
+          host = (family == Socket::AF_INET6 ? "::"  : "0.0.0.0") # IPv6 or IPv4
         else
-          family == Socket::AF_INET6 ? (host = "::1") : (host = "127.0.0.1")
+          host = (family == Socket::AF_INET6 ? "::1" : "127.0.0.1")
         end
       end
 
@@ -254,17 +254,17 @@ class Socket < BasicSocket
 
       err = _getaddrinfo host, service, hints.pointer, res_p
 
-      raise SocketError, Socket::Foreign.gai_strerror(err) unless err == 0
+      raise SocketError, gai_strerror(err) unless err == 0
 
       ptr = res_p.read_pointer
 
       return [] unless ptr
 
-      res = Socket::Foreign::AddrInfo.new ptr
+      res = AddrInfo.new ptr
 
       addrinfos = []
 
-      loop do
+      while true
         addrinfo = []
         addrinfo << res[:ai_flags]
         addrinfo << res[:ai_family]
@@ -277,27 +277,27 @@ class Socket < BasicSocket
 
         break unless res[:ai_next]
 
-        res = Socket::Foreign::AddrInfo.new res[:ai_next]
+        res = AddrInfo.new res[:ai_next]
       end
 
       return addrinfos
     ensure
       hints.free if hints
 
-      if res_p then
+      if res_p
         ptr = res_p.read_pointer
 
         # Be sure to feed a legit pointer to freeaddrinfo
         if ptr and !ptr.null?
-          Socket::Foreign.freeaddrinfo ptr
+          freeaddrinfo ptr
         end
         res_p.free
       end
     end
 
     def self.getaddress(host)
-      addrinfos = Socket::Foreign.getaddrinfo(host)
-      Socket::Foreign.unpack_sockaddr_in(addrinfos.first[4], false).first
+      addrinfos = getaddrinfo(host)
+      unpack_sockaddr_in(addrinfos.first[4], false).first
     end
 
     def self.getnameinfo(sockaddr,
@@ -315,7 +315,7 @@ class Socket < BasicSocket
                                  node, Socket::Constants::NI_MAXHOST, nil, 0, 0)
 
               unless err == 0 then
-                raise SocketError, Socket::Foreign.gai_strerror(err)
+                raise SocketError, gai_strerror(err)
               end
 
               name_info[2] = node.read_string
@@ -328,7 +328,7 @@ class Socket < BasicSocket
                                  Socket::Constants::NI_NUMERICSERV)
 
             unless err == 0 then
-              raise SocketError, Socket::Foreign.gai_strerror(err)
+              raise SocketError, gai_strerror(err)
             end
 
             sa_family = SockAddr_In.new(sockaddr)[:sin_family]
@@ -373,7 +373,7 @@ class Socket < BasicSocket
     end
 
     def self.pack_sockaddr_in(name, port, type, flags)
-      hints = Socket::Foreign::AddrInfo.new
+      hints = AddrInfo.new
       hints[:ai_family] = Socket::AF_INET
       hints[:ai_socktype] = type
       hints[:ai_flags] = flags
@@ -382,11 +382,11 @@ class Socket < BasicSocket
 
       err = _getaddrinfo name, port, hints.pointer, res_p
 
-      raise SocketError, Socket::Foreign.gai_strerror(err) unless err == 0
+      raise SocketError, gai_strerror(err) unless err == 0
 
       return [] if res_p.read_pointer.null?
 
-      res = Socket::Foreign::AddrInfo.new res_p.read_pointer
+      res = AddrInfo.new res_p.read_pointer
 
       return res[:ai_addr].read_string(res[:ai_addrlen])
 
@@ -502,10 +502,15 @@ class Socket < BasicSocket
     end
   end
 
-  def self.getaddrinfo(host, service = nil, family = nil, socktype = nil,
+  def self.getaddrinfo(host, service, family = nil, socktype = nil,
                        protocol = nil, flags = nil)
-    host = '' if host.nil?
-    service = service.to_s if service
+    if service
+      if service.kind_of? Fixnum
+        service = service.to_s
+      else
+        service = StringValue(service)
+      end
+    end
 
     family ||= 0
     socktype ||= 0
@@ -519,7 +524,7 @@ class Socket < BasicSocket
       addrinfo = []
       addrinfo << Socket::Constants::AF_TO_FAMILY[ai[1]]
 
-      sockaddr = Socket::Foreign::unpack_sockaddr_in ai[4], true
+      sockaddr = Foreign.unpack_sockaddr_in ai[4], true
 
       addrinfo << sockaddr.pop # port
       addrinfo.concat sockaddr # hosts
@@ -883,7 +888,7 @@ end
 class TCPSocket < IPSocket
 
   def self.gethostbyname(hostname)
-    addrinfos = Socket.getaddrinfo(hostname)
+    addrinfos = Socket.getaddrinfo(hostname, nil)
 
     hostname     = addrinfos.first[2]
     family       = addrinfos.first[4]
