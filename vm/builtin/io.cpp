@@ -509,16 +509,59 @@ namespace rubinius {
     return str;
   }
 
-  String* ipaddr(STATE, struct sockaddr* addr, socklen_t len) {
+  Array* ipaddr(STATE, struct sockaddr* addr, socklen_t len) {
+    String* family;
     char buf[1024];
-    int e = getnameinfo(addr, len, buf, 1024, NULL, 0,
-                        NI_NUMERICHOST | NI_NUMERICSERV);
+    char pbuf[1024];
 
-    if(e) {
-      return String::create(state, (char*)addr, len);
+    switch(addr->sa_family) {
+    case AF_UNSPEC:
+      family = String::create(state, "AF_UNSPEC");
+      break;
+    case AF_INET:
+      family = String::create(state, "AF_INET");
+      break;
+#ifdef INET6
+    case AF_INET6:
+      family = String::create(state, "AF_INET6");
+      break;
+#endif
+#ifdef AF_LOCAL
+    case AF_LOCAL:
+      family = String::create(state, "AF_LOCAL");
+      break;
+#elif  AF_UNIX
+    case AF_UNIX:
+      family = String::create(state, "AF_UNIX");
+      break;
+#endif
+    default:
+      sprintf(pbuf, "unknown:%d", addr->sa_family);
+      family = String::create(state, pbuf);
+      break;
     }
 
-    return String::create(state, buf);
+    int e = getnameinfo(addr, len, buf, 1024, pbuf, 1024,
+                        NI_NUMERICHOST | NI_NUMERICSERV);
+
+    // TODO this doesn't support doing the DNS bound lookup at all.
+    //      Not doing it better than doing it badly, thats why it's
+    //      not here.
+    //
+    String* host;
+    if(e) {
+      host = String::create(state, (char*)addr, len);
+    } else {
+      host = String::create(state, buf);
+    }
+
+    Array* ary = Array::create(state, 4);
+    ary->set(state, 0, family);
+    ary->set(state, 1, Fixnum::from(atoi(pbuf)));
+    ary->set(state, 2, host);
+    ary->set(state, 3, host);
+
+    return ary;
   }
 
   static const char* unixpath(struct sockaddr_un *sockaddr, socklen_t len) {
