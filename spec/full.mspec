@@ -31,8 +31,6 @@ class MSpecScript
     '^spec/capi/proc',
     '^spec/capi/struct',
 
-    '^spec/ruby/library/net/ftp',
-    '^spec/ruby/library/net/http',
     '^spec/ruby/library/ping',
     '^spec/ruby/library/syslog',
 
