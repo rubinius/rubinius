@@ -537,6 +537,22 @@ class Socket < BasicSocket
     end
   end
 
+  def self.gethostbyname(hostname)
+    addrinfos = Socket.getaddrinfo(hostname, nil)
+
+    hostname     = addrinfos.first[2]
+    family       = addrinfos.first[4]
+    addresses    = []
+    alternatives = []
+    addrinfos.each do |a|
+      alternatives << a[2] unless a[2] == hostname
+      addresses    << a[3] if a[4] == family
+    end
+
+    [hostname, alternatives.uniq, family] + addresses.uniq
+  end
+
+
   class Servent < FFI::Struct
     config("rbx.platform.servent", :s_name, :s_aliases, :s_port, :s_proto)
 
