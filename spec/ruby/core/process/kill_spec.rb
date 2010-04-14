@@ -20,6 +20,10 @@ describe "Process.kill" do
     lambda { Process.kill("HUP ", 0) }.should raise_error(ArgumentError)
   end
 
+  it "accepts symbols as signal names" do
+    Process.kill(:INFO, Process.pid).should == 1
+  end
+
   platform_is_not :windows do
     it "tests for the existence of a process without sending a signal" do
       Process.kill(0, 0).should == 1
