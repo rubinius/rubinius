@@ -5,6 +5,9 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <netdb.h>
+#include <sys/un.h>
 
 #include "builtin/io.hpp"
 #include "builtin/bytearray.hpp"
@@ -421,7 +424,7 @@ namespace rubinius {
     buffer->unpin();
 
     if(bytes_read == -1) {
-      if(errno == EAGAIN || errno == EINTR) {
+      if(errno == EINTR) {
         if(state->check_async(calling_environment)) goto retry;
       } else {
         Exception::errno_error(state, "read(2) failed");
@@ -504,6 +507,99 @@ namespace rubinius {
     str->num_bytes(state, Fixnum::from(cnt));
 
     return str;
+  }
+
+  String* ipaddr(STATE, struct sockaddr* addr, socklen_t len) {
+    char buf[256]; // big enough for a ipv6 address
+    int e = getnameinfo(addr, len, buf, 1024, NULL, 0,
+                        NI_NUMERICHOST | NI_NUMERICSERV);
+
+    if(e) {
+      return String::create(state, (char*)addr, len);
+    }
+
+    return String::create(state, buf);
+  }
+
+  static const char* unixpath(struct sockaddr_un *sockaddr, socklen_t len) {
+    if (sockaddr->sun_path < (char*)sockaddr + len) {
+      return sockaddr->sun_path;
+    }
+    return "";
+  }
+
+  Array* unixaddr(STATE, struct sockaddr_un* addr, socklen_t len) {
+    Array* ary = Array::create(state, 2);
+    ary->set(state, 0, String::create(state, "AF_UNIX"));
+    ary->set(state, 1, String::create(state, unixpath(addr, len)));
+    return ary;
+  }
+
+  Object* IO::socket_read(STATE, Fixnum* bytes, Fixnum* flags, Fixnum* type,
+                          CallFrame* calling_environment) {
+    char buf[1024];
+    socklen_t alen = sizeof(buf);
+    size_t size = (size_t)bytes->to_native();
+
+    String* buffer = String::create_pinned(state, bytes);
+
+    OnStack<1> variables(state, buffer);
+
+    ssize_t bytes_read;
+    native_int t = type->to_native();
+
+    WaitingForSignal waiter;
+
+  retry:
+    state->install_waiter(waiter);
+
+    {
+      GlobalLock::UnlockGuard lock(state->global_lock());
+      bytes_read = recvfrom(descriptor()->to_native(),
+                            buffer->byte_address(), size,
+                            flags->to_native(),
+                            (struct sockaddr*)buf, &alen);
+    }
+
+    state->clear_waiter();
+
+    buffer->unpin();
+
+    if(bytes_read == -1) {
+      if(errno == EINTR) {
+        if(state->check_async(calling_environment)) goto retry;
+      } else {
+        Exception::errno_error(state, "read(2) failed");
+      }
+
+      return NULL;
+    }
+
+    buffer->num_bytes(state, Fixnum::from(bytes_read));
+
+    if(t == 0) return buffer; // none
+
+    Array* ary = Array::create(state, 2);
+    ary->set(state, 0, buffer);
+
+    switch(type->to_native()) {
+    case 1: // ip
+      // Hack from MRI:
+      // OSX doesn't return a 'from' result from recvfrom for connection-oriented sockets
+      if(alen && alen != sizeof(buf)) {
+        ary->set(state, 1, ipaddr(state, (struct sockaddr*)buf, alen));
+      } else {
+        ary->set(state, 1, Qnil);
+      }
+      break;
+    case 2: // unix
+      ary->set(state, 1, unixaddr(state, (struct sockaddr_un*)buf, alen));
+      break;
+    default:
+      ary->set(state, 1, String::create(state, buf, alen));
+    }
+
+    return ary;
   }
 
   Object* IO::query(STATE, Symbol* op) {

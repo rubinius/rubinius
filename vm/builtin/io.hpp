@@ -83,6 +83,9 @@ namespace rubinius {
     // Ruby.primitive :io_read_if_available
     Object* read_if_available(STATE, Fixnum* number_of_bytes);
 
+    // Ruby.primitive :io_socket_read
+    Object* socket_read(STATE, Fixnum* bytes, Fixnum* flags, Fixnum* type, CallFrame* calling_environment);
+
     // Ruby.primitive :io_seek
     Integer* seek(STATE, Integer* amount, Fixnum* whence);
 
