@@ -795,18 +795,22 @@ failed: /* try next '*' position */
   Object* IOBuffer::fill(STATE, IO* io, CallFrame* calling_environment) {
     ssize_t bytes_read;
     WaitingForSignal waiter;
+    native_int fd = io->descriptor()->to_native();
 
     IOBuffer* self = this;
     OnStack<1> os(state, self);
+
+    char temp_buffer[512];
+    size_t count = 512;
+
+    if(self->left() < count) count = self->left();
 
   retry:
     state->install_waiter(waiter);
 
     {
       GlobalLock::UnlockGuard lock(state->global_lock());
-      bytes_read = read(io->descriptor()->to_native(),
-                        self->at_unused(),
-                        self->left());
+      bytes_read = read(fd, temp_buffer, count);
     }
 
     state->clear_waiter();
@@ -822,6 +826,7 @@ failed: /* try next '*' position */
     }
 
     if(bytes_read > 0) {
+      memcpy(self->at_unused(), temp_buffer, bytes_read);
       self->read_bytes(state, bytes_read);
     }
 
