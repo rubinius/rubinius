@@ -510,7 +510,7 @@ namespace rubinius {
   }
 
   String* ipaddr(STATE, struct sockaddr* addr, socklen_t len) {
-    char buf[256]; // big enough for a ipv6 address
+    char buf[1024];
     int e = getnameinfo(addr, len, buf, 1024, NULL, 0,
                         NI_NUMERICHOST | NI_NUMERICSERV);
 
