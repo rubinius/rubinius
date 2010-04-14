@@ -1,3 +1,0 @@
-unstable:Net::HTTP#do_finish is private
-unstable:Net::HTTP#do_finish closes the tcp connection
-unstable:Net::HTTP#do_finish raises no error when self has not been started yet

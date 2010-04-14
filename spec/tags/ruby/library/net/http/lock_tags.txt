@@ -1,1 +1,0 @@
-unstable(start_server causes random hangs, especially on amd64):Net::HTTP#lock sends a LOCK request to the passed path and returns the response

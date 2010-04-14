@@ -1,4 +1,0 @@
-unstable(start_server causes random hangs, especially on amd64):Net::HTTP.get when passed URI returns the body of the specified uri
-unstable(start_server causes random hangs, especially on amd64):Net::HTTP.get when passed host, path, port returns the body of the specified host-path-combination
-unstable(start_server causes random hangs, especially on amd64):Net::HTTP#get when passed path in version 1.1 mode returns the response and the body for the passed path
-unstable(start_server causes random hangs, especially on amd64):Net::HTTP#get when passed path in version 1.1 mode yields each read part of the body to the passed block when passed a block

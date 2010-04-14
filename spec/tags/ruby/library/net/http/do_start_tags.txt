@@ -1,2 +1,0 @@
-unstable:Net::HTTP#do_start is private
-unstable:Net::HTTP#do_start opens the tcp connection to the current host
