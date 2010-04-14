@@ -41,6 +41,7 @@ platform_is_not :windows do
       while a < 2000
         break unless t.alive?
         Thread.pass
+        sleep 0.2
         a += 1
       end
       a.should < 2000
