@@ -69,6 +69,7 @@ namespace rubinius {
     static void system_call_error(STATE, const std::string& reason);
 
     static void thread_error(STATE, const char* reason);
+    static void memory_error(STATE);
 
     static Exception* make_lje(STATE, CallFrame* frame);
 

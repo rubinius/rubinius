@@ -23,6 +23,9 @@ namespace rubinius {
   ByteArray* ByteArray::create(STATE, size_t bytes) {
     size_t body = bytes;
     ByteArray* ba = state->om->new_object_bytes<ByteArray>(G(bytearray), body);
+    if(unlikely(!ba)) {
+      Exception::memory_error(state);
+    }
     ba->full_size_ = body;
     memset(ba->bytes, 0, bytes);
     return ba;
@@ -31,6 +34,9 @@ namespace rubinius {
   ByteArray* ByteArray::create_pinned(STATE, size_t bytes) {
     size_t body = bytes;
     ByteArray* ba = state->om->new_object_bytes_mature<ByteArray>(G(bytearray), body);
+    if(unlikely(!ba)) {
+      Exception::memory_error(state);
+    }
     ba->full_size_ = body;
     memset(ba->bytes, 0, bytes);
     if(!ba->pin()) { abort(); }

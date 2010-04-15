@@ -298,6 +298,8 @@ namespace rubinius {
 
     if(unlikely(bytes > large_object_threshold)) {
       obj = mark_sweep_->allocate(bytes, &collect_mature_now);
+      if(unlikely(!obj)) return NULL;
+
       if(collect_mature_now) {
         state->interrupts.set_perform_gc();
       }
@@ -334,6 +336,8 @@ namespace rubinius {
 
     if(bytes > large_object_threshold) {
       obj = mark_sweep_->allocate(bytes, &collect_mature_now);
+      if(unlikely(!obj)) return NULL;
+
       if(collect_mature_now) {
         state->interrupts.set_perform_gc();
       }
@@ -367,6 +371,8 @@ namespace rubinius {
 #endif
 
     obj = allocate_object(bytes);
+    if(unlikely(!obj)) return NULL;
+
     obj->klass(this, cls);
 
     obj->set_obj_type(type);
@@ -383,6 +389,8 @@ namespace rubinius {
 #endif
 
     obj = allocate_object_mature(bytes);
+    if(unlikely(!obj)) return NULL;
+
     obj->klass(this, cls);
 
     obj->set_obj_type(type);

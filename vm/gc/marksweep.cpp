@@ -50,6 +50,9 @@ namespace rubinius {
     obj = reinterpret_cast<Object*>(malloc(bytes));
 #endif
 
+    // If the allocation failed, we return a NULL pointer
+    if(unlikely(!obj)) return NULL;
+
     entries.push_back(obj);
 
     allocated_objects++;
