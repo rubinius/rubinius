@@ -43,6 +43,9 @@ namespace rubinius {
     static Integer* from_string_detect(STATE, const char* str);
     static Integer* from_string(STATE, const char* str, size_t radix);
     static Integer* from_double(STATE, double d);
+    static Integer* from_array(STATE, uint32_t *ary, size_t sz);
+
+    Integer* abs(STATE);
 
     // Ruby.primitive :bignum_new
     static Bignum* create(STATE, Fixnum* f);
@@ -184,6 +187,8 @@ namespace rubinius {
     // Format the bignum using +radix+ and store the result
     // in +buf+ of size +sz+. This will always NUL-terminate +buf+.
     void   into_string(STATE, size_t radix, char* buf, size_t sz);
+
+    size_t into_array(STATE, uint32_t *ary, size_t sz);
 
     double to_double(STATE);
 

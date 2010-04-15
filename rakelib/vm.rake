@@ -109,6 +109,7 @@ field_extract_headers = %w[
   vm/builtin/methodtable.hpp
   vm/builtin/nativefunction.hpp
   vm/builtin/packed_object.hpp
+  vm/builtin/randomizer.hpp
   vm/builtin/regexp.hpp
   vm/builtin/staticscope.hpp
   vm/builtin/string.hpp

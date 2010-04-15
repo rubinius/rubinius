@@ -64,6 +64,7 @@ rubinius.rbc
 pack.rbc
 struct.rbc
 process.rbc
+random.rbc
 regexp.rbc
 selector.rbc
 signal.rbc

@@ -405,6 +405,14 @@ namespace rubinius {
     return b;
   }
 
+  Integer* Bignum::abs(STATE) {
+    if (mp_val()->sign == MP_NEG) {
+      return Bignum::from(state, 0)->sub(state, this);
+    } else {
+      return this;
+    }
+  }
+
   Integer* Bignum::add(STATE, Fixnum* b) {
     NMP;
     native_int bi = b->to_native();
@@ -1039,6 +1047,60 @@ namespace rubinius {
   void Bignum::into_string(STATE, size_t radix, char *buf, size_t sz) {
     int k;
     mp_toradix_nd(XST, mp_val(), buf, radix, sz, &k);
+  }
+
+  Integer* Bignum::from_array(STATE, uint32_t *ary, size_t sz) {
+    /*
+     * Read the values from the given array to populate a bignum.
+     *
+     * ary[0] contains the least significant sizeof(ary[0]) * 8 bits;
+     * ary[1] the next least significant, etc.
+     *
+     * See also Bignum::into_array()
+     */
+
+    Bignum* big = Bignum::create(state);
+
+    for (int i = sz - 1; i >= 0; i--) {
+      Integer* tmp = big->left_shift(state, Fixnum::from(32));
+      big = tmp->fixnum_p() ? Bignum::from(state, tmp->to_native()) : as<Bignum>(tmp);
+      tmp = big->bit_or(state, Bignum::from(state, ary[i]));
+      big = tmp->fixnum_p() ? Bignum::from(state, tmp->to_native()) : as<Bignum>(tmp);
+    }
+
+    return Bignum::normalize(state, big);
+  }
+
+  size_t Bignum::into_array(STATE, uint32_t *ary, size_t sz) {
+    /*
+     * Split the bignum's value into an array of unsigned integers.
+     *
+     * After execution, ary[0] contains the least significant
+     * sizeof(ary[0]) * 8 bits; ary[1] the next least significant, etc.
+     *
+     * See also Bignum::from_array()
+     */
+
+    if (ary) ary[0] = 0;
+
+    uint32_t n = 0;
+    Integer* rest_i = this->abs(state);
+    Bignum* rest = rest_i->fixnum_p() ? Bignum::from(state, rest_i->to_native()) : as<Bignum>(rest_i);
+    while (true) {
+      if (ary && n < sz) ary[n] = rest->to_ulong() & 0xffffffff;
+      n++;
+      rest_i = rest->right_shift(state, Fixnum::from(32));
+      if (rest_i->fixnum_p()) {
+        native_int rest_n = rest_i->to_native();
+        if (rest_i->to_native() == 0)
+          break;
+        rest = Bignum::from(state, rest_n);
+      } else {
+        rest = as<Bignum>(rest_i);
+      }
+    }
+
+    return n;
   }
 
   double Bignum::to_double(STATE) {

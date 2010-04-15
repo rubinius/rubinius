@@ -93,6 +93,7 @@ namespace rubinius {
     TypedRoot<Class*> numeric;
     TypedRoot<Class*> memory_pointer;
     TypedRoot<Class*> taskprobe;
+    TypedRoot<Class*> randomizer;
 
     TypedRoot<Class*> nmethod;        /**< NativeMethod */
 
@@ -209,6 +210,7 @@ namespace rubinius {
       numeric(&roots),
       memory_pointer(&roots),
       taskprobe(&roots),
+      randomizer(&roots),
 
       nmethod(&roots),
       data(&roots),

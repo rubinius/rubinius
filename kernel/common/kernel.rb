@@ -222,57 +222,29 @@ module Kernel
   end
   module_function :open
 
-  #--
-  # NOTE: This isn't quite MRI compatible.
-  # We don't seed the RNG by default with a combination of time, pid and
-  # sequence number
-  #++
-  #
-
-  @current_seed = 0
-
-  def self.srand(seed=undefined)
-    cur = @current_srand
-
+  def srand(seed=undefined)
     if seed.equal? undefined
-      begin
-        File.open("/dev/urandom", "r") do |f|
-          seed = f.read(10).unpack("I*")[0]
-        end
-      rescue Errno::ENOENT, Errno::EPERM, Errno::EACCES
-        seed = Time.now.to_i
-      end
-    else
-      seed = Type.coerce_to(seed, Integer, :to_int)
+      seed = Rubinius::Randomizer.instance.generate_seed
     end
 
-    FFI::Platform::POSIX.srand(seed)
-    @current_srand = seed
+    unless seed.respond_to?(:to_int)
+      raise TypeError, "can't convert #{seed.class} into Integer"
+    end
 
-    cur
+    Rubinius::Randomizer.instance.swap_seed seed.to_int
   end
+  module_function :srand
 
-  # Redispatch to Kernel so we can store @current_srand as an ivar
-  # on Kernel without an accessor.
-  def srand(seed=undefined)
-    Kernel.srand(seed)
-  end
+  def rand(limit=0)
+    limit = Integer(limit).abs
 
-  private :srand
-
-  def rand(max=0)
-    max = max.to_i.abs
-    x = FFI::Platform::POSIX.rand
-
-    # scale result of rand to a domain between 0 and max
-    if max == 0
-      x.to_f / 2147483647.0
-    elsif max == 1
-      0
-    elsif x < max
-      x
+    case limit
+    when 0
+      Rubinius::Randomizer.instance.random_float
+    when Integer
+      Rubinius::Randomizer.instance.random_integer(limit - 1)
     else
-      x % max
+      raise TypeError, "Integer() returned a non-integer"
     end
   end
   module_function :rand
