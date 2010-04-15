@@ -271,7 +271,6 @@ module Rubinius
         @positional = true
         ret = args[slot.position - 1]
       when slot.value
-        raise ArgumentError, "unnumbered mixed with numbered" if @positional
         @relative = true
         ret = slot.value
       else
