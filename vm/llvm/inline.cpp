@@ -64,7 +64,14 @@ namespace rubinius {
 
       if(!cm->primitive()->nil_p()) {
         if(!inline_primitive(klass, cm, meth->execute)) return false;
-      } else if(detect_trivial_method(vmm, cm)) {
+        goto remember;
+      }
+
+      // Not yet sure why we'd hit a CompiledMethod that hasn't been
+      // internalized, but protect against that case none the less.
+      if(!vmm) return false;
+
+      if(detect_trivial_method(vmm, cm)) {
         inline_trivial_method(klass, cm);
       } else if(int which = detect_jit_intrinsic(klass, cm)) {
         inline_intrinsic(klass, cm, which);
@@ -151,6 +158,7 @@ namespace rubinius {
       return false;
     }
 
+remember:
     meth->add_inliner(ops_.state()->shared().om, ops_.root_method_info()->method());
 
     return true;
