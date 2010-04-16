@@ -948,6 +948,24 @@ module Zlib
 
   class GzipReader < GzipFile # HACK use a buffer class
 
+    def self.open(*args)
+      if args.size < 1
+        raise ArgumentError, "requires at least 1 argument"
+      end
+
+      args[0] = File.new StringValue(args[0]), "rb"
+
+      obj = new(*args)
+
+      return obj unless block_given?
+
+      begin
+        yield obj
+      ensure
+        obj.close if obj.zstream.ready?
+      end
+    end
+
     ##
     # Creates a GzipReader object associated with +io+. The GzipReader object
     # reads gzipped data from +io+, and parses/decompresses them.  At least,
@@ -1148,6 +1166,25 @@ module Zlib
     # Set the original name
 
     attr_writer :orig_name
+
+    def self.open(*args)
+      if args.size < 1
+        raise ArgumentError, "requires at least 1 argument"
+      end
+
+      args[0] = File.new StringValue(args[0]), "wb"
+
+      obj = new(*args)
+
+      return obj unless block_given?
+
+      begin
+        yield obj
+      ensure
+        obj.close if obj.zstream.ready?
+      end
+    end
+
 
     ##
     # Creates a GzipWriter object associated with +io+. +level+ and +strategy+
