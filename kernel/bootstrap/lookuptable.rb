@@ -77,6 +77,8 @@ module Rubinius
       end
     end
 
+    private :initialize
+
     def duplicate
       Ruby.primitive :lookuptable_duplicate
       raise PrimitiveFailure, "LookupTable#duplicate primitive failed"

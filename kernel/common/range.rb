@@ -71,6 +71,8 @@ class Range
     @excl = exclude_end
   end
 
+  private :initialize
+
   # Returns <tt>true</tt> only if <em>obj</em> is a Range, has
   # equivalent beginning and end items (by comparing them with
   # <tt>==</tt>), and has the same #exclude_end? setting as <i>rng</t>.
