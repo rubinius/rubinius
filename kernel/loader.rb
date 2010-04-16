@@ -132,7 +132,7 @@ containing the Rubinius standard library files.
         if @script.nil? and @evals.empty?
           @script = x
         else
-          ARGV.unshift x
+          argv.unshift x
         end
         options.stop_parsing
       end
@@ -252,7 +252,7 @@ containing the Rubinius standard library files.
 
       options.on "--remote-debug", "Run the program under the control of a remote debugger" do
         require 'debugger/debug_server'
-        if port = (ARGV.first =~ /^\d+$/ and ARGV.shift)
+        if port = (argv.first =~ /^\d+$/ and argv.shift)
           $DEBUG_SERVER = Rubinius::Debugger::Server.new(port.to_i)
         else
           $DEBUG_SERVER = Rubinius::Debugger::Server.new
@@ -320,6 +320,12 @@ containing the Rubinius standard library files.
       DOC
 
       options.parse ARGV
+
+      if ENV['RUBYOPT']
+        options.start_parsing
+        env_opts = ENV['RUBYOPT'].strip.split(/\s+/)
+        options.parse env_opts
+      end
     end
 
     # Update the load paths with any -I arguments.

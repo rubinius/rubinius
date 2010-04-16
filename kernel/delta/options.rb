@@ -216,6 +216,10 @@ module Rubinius
       exit 1
     end
 
+    def start_parsing
+      @parse = true
+    end
+
     def stop_parsing
       @parse = false
     end
