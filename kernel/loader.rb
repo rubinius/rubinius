@@ -381,12 +381,6 @@ containing the Rubinius standard library files.
       @requires.each { |file| require file }
     end
 
-    # Require rubygems.
-    # TODO: add option to not load rubygems
-    def rubygems
-      require "gem_prelude"
-    end
-
     # Evaluate any -e arguments
     def evals
       @stage = "evaluating command line code"
@@ -509,7 +503,6 @@ containing the Rubinius standard library files.
       preload
       options
       load_paths
-      rubygems
       requires
       evals
       script
