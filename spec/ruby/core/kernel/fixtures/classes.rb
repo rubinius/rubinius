@@ -52,6 +52,18 @@ module KernelSpecs
     def juu_san; end
   end
 
+  class PrivateSup
+    def public_in_sub
+    end
+
+    private :public_in_sub
+  end
+
+  class PublicSub < PrivateSup
+    def public_in_sub
+    end
+  end
+
   class A
     # 1.9 as Kernel#public_method, so we don't want this one to clash:
     def pub_method; :public_method; end
