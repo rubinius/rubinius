@@ -465,17 +465,16 @@ describe :kernel_require, :shared => true do
       ENV["HOME"] = @env_home
     end
 
-    ruby_version_is "".."1.9" do
-      it "does not perform tilde expansion before storing paths in $LOADED_FEATURES" do
-        @object.require("~/load_fixture.rb").should be_true
-        $LOADED_FEATURES.should == ["~/load_fixture.rb"]
-      end
-    end
-
-    ruby_version_is "1.9" do
-      it "performs tilde expansion before storing paths in $LOADED_FEATURES" do
+    ruby_bug "#3171", "1.8.7.249" do
+      it "performs tilde expansion on a .rb file before storing paths in $LOADED_FEATURES" do
         path = File.expand_path("load_fixture.rb", CODE_LOADING_DIR)
         @object.require("~/load_fixture.rb").should be_true
+        $LOADED_FEATURES.should == [path]
+      end
+
+      it "performs tilde expansion on a non-extensioned file before storing paths in $LOADED_FEATURES" do
+        path = File.expand_path("load_fixture.rb", CODE_LOADING_DIR)
+        @object.require("~/load_fixture").should be_true
         $LOADED_FEATURES.should == [path]
       end
     end
