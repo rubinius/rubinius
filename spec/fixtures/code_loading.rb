@@ -9,17 +9,7 @@ module CodeLoadingSpecs
       touch(rb) { |f| f.puts "ScratchPad << :loaded" }
     end
 
-    Kernel.compile rb
+    Rubinius::Compiler.compile rb
     return rb, rbc
-  end
-
-  def self.rba_fixture(name, file)
-    rba = tmp("rba_fixture.rba")
-
-    ar = Ar.new rba
-    st = File.stat file
-    ar.replace name, st.mtime, st.uid, st.gid, st.mode, IO.read(file)
-
-    return rba
   end
 end

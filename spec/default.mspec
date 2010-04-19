@@ -91,9 +91,6 @@ class MSpecScript
     '^spec/capi/proc',
     '^spec/capi/struct',
 
-    '^spec/core/kernel/require',
-    '^spec/core/kernel/load',
-
     # These additional directories will be enabled as the
     # specs in them are updated for the C++ VM.
     # 'spec/debugger',

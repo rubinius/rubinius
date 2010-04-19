@@ -26,9 +26,6 @@ class MSpecScript
     '^spec/ruby/library/ping',
     '^spec/ruby/library/syslog',
 
-    '^spec/core/kernel/require',
-    '^spec/core/kernel/load',
-
     # 1.9 features
     '^spec/ruby/library/cmath',
     '^spec/ruby/library/continuation',
