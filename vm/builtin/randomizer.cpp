@@ -300,7 +300,7 @@ namespace rubinius {
 
       data = (uint32_t*)alloca(longs * 4);
       size_t output_count = big->into_array(state, data, longs);
-      assert(longs >= output_count);
+      if(longs < output_count) { abort(); }
     }
 
     init_by_array(data, longs);
@@ -320,7 +320,7 @@ namespace rubinius {
 
     uint32_t* max_data = (uint32_t*)alloca(longs * 4);
     size_t output_count = max_big->into_array(state, max_data, longs);
-    assert(longs >= output_count);
+    if(longs < output_count) { abort(); }
 
     uint32_t* result_data = (uint32_t*)alloca(longs * 4);
 
