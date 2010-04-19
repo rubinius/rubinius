@@ -3,8 +3,7 @@ module Rubinius
     class EndData < Node
       attr_accessor :data
 
-      def initialize(name, offset, body)
-        @name = name
+      def initialize(offset, body)
         @offset = offset
         @body = body
       end
@@ -16,7 +15,8 @@ module Rubinius
       # returned by the file parser.
       def bytecode(g)
         g.push_const :Rubinius
-        g.push_literal @name
+        g.push_scope
+        g.send :file_path, 0
         g.push_literal @offset
         g.send :set_data, 2
         g.pop

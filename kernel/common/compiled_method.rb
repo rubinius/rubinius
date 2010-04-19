@@ -213,6 +213,7 @@ module Rubinius
       end
 
       attr_accessor :path
+      attr_accessor :file_path
       attr_accessor :eval_binding
 
       def eval?

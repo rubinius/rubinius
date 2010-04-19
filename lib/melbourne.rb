@@ -77,7 +77,7 @@ module Rubinius
       end
 
       syntax_error unless ast = file_to_ast(@name, @line)
-      ast = AST::EndData.new @name, @data_offset, ast if @data_offset
+      ast = AST::EndData.new @data_offset, ast if @data_offset
       ast
     end
 

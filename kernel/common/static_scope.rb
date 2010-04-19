@@ -93,6 +93,17 @@ module Rubinius
       return "__unknown__.rb"
     end
 
+    def file_path
+      script = current_script
+      if script
+        if path = script.file_path
+          return path.dup
+        end
+      end
+
+      return "__unknown__.rb"
+    end
+
     def root_script?
       script = current_script
       return script && script.root_script?

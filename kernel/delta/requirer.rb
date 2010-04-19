@@ -125,6 +125,7 @@ class Requirer
             cm.hints = { :source => :rba }
             cm.as_script do |script|
               script.path = rb
+              script.file_path = File.expand_path rb
             end
 
             $LOADED_FEATURES << rb if requiring
@@ -288,6 +289,7 @@ class Requirer
           end
           cm.as_script do |script|
             script.path = rb_path
+            script.file_path = File.expand_path rb_path
             script.root_script = options[:root_script]
           end
         rescue Exception => e
@@ -316,6 +318,7 @@ class Requirer
           cm.hints = { :source => :rbc }
           cm.as_script do |script|
             script.path = rb_path
+            script.file_path = File.expand_path rb_path
           end
         rescue Exception => e
           $LOADED_FEATURES.delete(rb) if requiring
