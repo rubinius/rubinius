@@ -311,6 +311,7 @@ namespace melbourne {
     }
     case NODE_CASE: {
       VALUE expr = Qnil, els = Qnil;
+      NODE* else_node = 0;
 
       case_level++;
       if(node->nd_head) {
@@ -324,11 +325,20 @@ namespace melbourne {
           rb_ary_push(whens, process_parse_tree(parse_state, ptp, node, locals));
           node = node->nd_next;
         } else {
-          els = process_parse_tree(parse_state, ptp, node, locals);
+          else_node = node;
           break;                                          /* else */
         }
       }
+
       case_level--;
+
+      // Be sure to decrease the case_level before processing the else.
+      // See http://github.com/evanphx/rubinius/issues#issue/240 for an example of
+      // why.
+      if(else_node) {
+        els = process_parse_tree(parse_state, ptp, else_node, locals);
+      }
+
       tree = rb_funcall(ptp, rb_sCase, 4, line, expr, whens, els);
       break;
     }

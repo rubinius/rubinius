@@ -30,7 +30,7 @@ module Rubinius
       def to_sexp
         else_sexp = @else.kind_of?(NilLiteral) ? nil : @else.to_sexp
         sexp = [:case, receiver_sexp]
-        sexp += @whens.map { |x| x.to_sexp }
+        sexp << [:whens] + @whens.map { |x| x.to_sexp }
         sexp << else_sexp
         sexp
       end
