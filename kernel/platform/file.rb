@@ -9,8 +9,8 @@ module FFI::Platform::File
   # FIXME: this is awful
   def self.expand_path(path, dir_string = nil)
     path = StringValue(path)
-    path.gsub!(/~(#{ENV['USER']})/, "~/")
-    raise ArgumentError, "user #{path}" if path.match(/~([^\/])/)
+    path.gsub!(/^~(#{ENV['USER']})/, "~/")
+    raise ArgumentError, "user #{path}" if path.match(/^~([^\/])/)
 
     if(dir_string.nil?)
       dir_string = Dir.pwd
