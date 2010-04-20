@@ -123,10 +123,10 @@ module Rubinius
       end
 
       def bytecode(g)
-        pos(g)
-
         @receiver.bytecode(g)
         @arguments.bytecode(g)
+
+        pos(g)
 
         if @arguments.splat?
           @block ? @block.bytecode(g) : g.push(:nil)

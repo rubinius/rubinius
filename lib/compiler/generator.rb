@@ -256,7 +256,7 @@ module Rubinius
         @lines << @ip
         @lines << line
         @last_line = line
-      elsif line > @last_line
+      elsif line != @last_line
         # Fold redundent line changes on the same ip into the same
         # entry, except for in the case where @ip is 0. Here's why:
         #
