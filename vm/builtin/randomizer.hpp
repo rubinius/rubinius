@@ -2,13 +2,11 @@
 #define RBX_BUILTIN_RANDOMIZER_HPP
 
 #include "builtin/object.hpp"
-#include "builtin/bignum.hpp"
-#include "builtin/bytearray.hpp"
-#include "builtin/integer.hpp"
 #include "type_info.hpp"
 
 namespace rubinius {
   class ByteArray;
+  class Float;
   class Integer;
 
   class Randomizer : public Object {
@@ -26,7 +24,7 @@ namespace rubinius {
     void init_by_array(uint32_t init_key[], int key_length);
     void next_state();
     uint32_t rb_genrand_int32();
-    uintptr_t limited_rand(uintptr_t limit);
+    native_uint limited_rand(native_uint limit);
     double rb_genrand_real();
 
   public:

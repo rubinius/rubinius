@@ -1,25 +1,23 @@
 #include "builtin/randomizer.hpp"
-#include "ffi.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
-#include "builtin/array.hpp"
+#include "builtin/bytearray.hpp"
 #include "builtin/bignum.hpp"
 #include "builtin/class.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/integer.hpp"
-#include "builtin/memorypointer.hpp"
-#include "builtin/string.hpp"
-#include "builtin/tuple.hpp"
 
 #include "object_utils.hpp"
 
+/*
+ * For gen_seed:
+ */
 #include <time.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
 
 /*
 
@@ -177,14 +175,12 @@ namespace rubinius {
     return y;
   }
 
-  uintptr_t Randomizer::limited_rand(uintptr_t limit) {
-    uintptr_t mask = make_mask(limit);
-    int i;
-    uintptr_t val;
+  native_uint Randomizer::limited_rand(native_uint limit) {
+    native_uint mask = make_mask(limit);
 
   retry:
-    val = 0;
-    for (i = sizeof(uintptr_t)/4-1; 0 <= i; i--) {
+    native_uint val = 0;
+    for (int i = sizeof(native_uint)/4-1; 0 <= i; i--) {
       if (mask >> (i * 32)) {
         val |= rb_genrand_int32() << (i * 32);
         val &= mask;
@@ -278,40 +274,41 @@ namespace rubinius {
       seed = as<Bignum>(seed)->abs(state);
 
     if (seed->fixnum_p()) {
-      uintptr_t s = seed->to_native();
+      native_uint s = seed->to_native();
 
       // Remove the sign bit, for no good reason... but that's what MRI
       // does.
-      s &= ~((uintptr_t)1 << (sizeof(uintptr_t) * 8 - 1));
+      s &= ~((native_uint)1 << (sizeof(native_uint) * 8 - 1));
 
       if (s <= 0xffffffffUL) {
         init_genrand((uint32_t)s);
         return Qnil;
       }
 
-      longs = sizeof(uintptr_t) / 4;
+      longs = sizeof(native_uint) / 4;
       data = (uint32_t*)alloca(longs * 4);
       for (unsigned int i = 0; i < longs; i++)
         data[i] = (uint32_t)(s >> (i * 32));
+
+      init_by_array(data, longs);
     } else {
       big = as<Bignum>(seed);
 
       longs = big->into_array(state, NULL, 0);
 
       data = (uint32_t*)alloca(longs * 4);
-      size_t output_count = big->into_array(state, data, longs);
-      if(longs < output_count) { abort(); }
-    }
+      big->into_array(state, data, longs);
 
-    init_by_array(data, longs);
+      init_by_array(data, longs);
+    }
 
     return Qnil;
   }
 
   Integer* Randomizer::rand_int(STATE, Integer* max) {
     if (max->fixnum_p()) {
-      native_int max_i = max->to_native();
-      uintptr_t result = limited_rand((uintptr_t)(max_i));
+      native_uint max_i = max->to_native();
+      native_uint result = limited_rand(max_i);
       return Integer::from(state, result);
     }
 
@@ -319,8 +316,7 @@ namespace rubinius {
     size_t longs = max_big->into_array(state, NULL, 0);
 
     uint32_t* max_data = (uint32_t*)alloca(longs * 4);
-    size_t output_count = max_big->into_array(state, max_data, longs);
-    if(longs < output_count) { abort(); }
+    max_big->into_array(state, max_data, longs);
 
     uint32_t* result_data = (uint32_t*)alloca(longs * 4);
 
