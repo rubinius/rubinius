@@ -1124,7 +1124,7 @@ class IO
   #   f.read(16)   #=> "This is line one"
   def read(length=nil, buffer=nil)
     ensure_open
-    buffer = StringValue buffer if buffer
+    buffer = StringValue(buffer) if buffer
 
     unless length
       str = read_all
@@ -1150,8 +1150,13 @@ class IO
 
     return str unless buffer
 
-    buffer.replace str
-    buffer
+    if str
+      buffer.replace str
+      buffer
+    else
+      buffer.replace ''
+      nil
+    end
   end
 
   ##
