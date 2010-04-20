@@ -133,6 +133,16 @@ describe "IO#read" do
     @io.read(4).should == '7890'
   end
 
+  it "clears the output buffer if there is nothing to read" do
+    @io.pos = 10
+
+    buf = 'non-empty string'
+
+    @io.read(10, buf).should == nil
+
+    buf.should == ''
+  end
+
   it "consumes zero bytes when reading zero bytes" do
     pre_pos = @io.pos
 
