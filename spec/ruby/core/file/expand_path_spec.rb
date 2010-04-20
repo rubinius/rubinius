@@ -96,6 +96,10 @@ describe "File.expand_path" do
       File.expand_path("~#{ENV['USER']}/a").should == "#{ENV['HOME']}/a"
     end
 
+    it "does not expand ~ENV['USER'] when it's not at the start" do
+      File.expand_path("/~#{ENV['USER']}/a").should == "/~#{ENV['USER']}/a"
+    end
+
     it "expands ../foo with ~/dir as base dir to /path/to/user/home/foo" do
       File.expand_path('../foo', '~/dir').should == "#{ENV['HOME']}/foo"
     end
