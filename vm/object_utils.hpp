@@ -165,6 +165,15 @@ namespace rubinius {
     }
 
   /**
+   *  Returns Qnil cast to another type of rubinius::Object. Useful in
+   *  cases where e.g. a String* would be returned but Qnil is returned
+   *  as an exceptional value.
+   *
+   */
+  template <class T>
+    static inline T* nil() { return static_cast<T*>(Qnil); }
+
+  /**
    *  Converts one type into another without a type check. This is
    *  like reinterprete_cast<>(), but we use it so we can easily
    *  find where we're doing explicit force casts.
@@ -178,7 +187,6 @@ namespace rubinius {
     static inline const T* force_as(const ObjectHeader* obj) {
       return reinterpret_cast<const T*>(obj);
     }
-
 
   void type_assert(STATE, Object* obj, object_type type, const char* reason);
 
