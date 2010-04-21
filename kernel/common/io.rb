@@ -56,6 +56,8 @@ class IO
     #
     # Returns the number of bytes in the buffer.
     def fill_from(io, skip = nil)
+      @channel.receive # lock
+
       empty_to io
       discard skip if skip
       return size unless empty?
@@ -72,6 +74,8 @@ class IO
       end
 
       return size
+    ensure
+      @channel << true
     end
 
     def empty_to(io)
@@ -118,12 +122,6 @@ class IO
     end
 
     ##
-    # Blocks until the buffer receives more data.
-    def process
-      @channel.receive
-    end
-
-    ##
     # Resets the buffer state so the buffer can be filled again.
     def reset!
       @start = @used = 0
@@ -136,31 +134,44 @@ class IO
     end
 
     def unseek!(io)
+      @channel.receive
+
       # Unseek the still buffered amount
       return unless write_synced?
       io.prim_seek @start - @used, IO::SEEK_CUR unless empty?
       reset!
+    ensure
+      @channel << true
     end
 
     ##
     # Returns +count+ bytes from the +start+ of the buffer as a new String.
     # If +count+ is +nil+, returns all available bytes in the buffer.
     def shift(count = nil)
+      @channel.receive
+
       total = size
       total = count if count and count < total
 
       str = String.from_bytearray @storage, @start, total
       @start += total
 
-      return str
+      str
+    ensure
+      @channel << true
     end
 
     ##
     # Returns one Fixnum as the start byte, used for #getc
     def get_first
+      @channel.receive
+
       byte = @storage[@start]
       @start += 1
-      return byte
+
+      byte
+    ensure
+      @channel << true
     end
 
     ##

@@ -915,6 +915,9 @@ failed: /* try next '*' position */
     buf->reset(state);
     buf->write_synced(state, Qtrue);
 
+    // Prime the channel
+    buf->channel()->send(state, Qtrue);
+
     return buf;
   }
 
