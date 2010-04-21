@@ -80,10 +80,9 @@ describe "File.expand_path" do
       File.expand_path('~/a','~/b').should == "#{ENV['HOME']}/a"
     end
 
-    not_compliant_on :macruby do
-      it "leaves multiple prefixed slashes untouched" do
-        File.expand_path('//').should == '//'
-        File.expand_path('////').should == '////'
+    ruby_bug "#3185", "1.8" do
+      it "replaces multiple '/' at the beginning of the path with a single '/'" do
+        File.expand_path('////some/path').should == "/some/path"
       end
     end
 
