@@ -97,6 +97,9 @@ namespace rubinius {
   Object* Object::copy_object(STATE, Object* other) {
     initialize_copy(other, age());
 
+    write_barrier(state, klass());
+    write_barrier(state, ivars());
+
 #ifdef RBX_OBJECT_ID_IN_HEADER
     // Don't inherit the object_id from the original.
     set_object_id(0);
@@ -125,14 +128,14 @@ namespace rubinius {
     }
 
     // Copy ivars.
-    if(other->ivars_->reference_p()) {
+    if(other->ivars()->reference_p()) {
       // NOTE Don't combine these 2 branches even though they both just call
       // ::copy. There is a special LookupTable::copy that can only be seen
       // when the receiver is of LookupTable* type. Without the explicit cast
       // and call, the wrong one will be called.
-      if(LookupTable* lt = try_as<LookupTable>(other->ivars_)) {
-        ivars_ = lt->duplicate(state);
-        LookupTable* ld = as<LookupTable>(ivars_);
+      if(LookupTable* lt = try_as<LookupTable>(other->ivars())) {
+        ivars(state, lt->duplicate(state));
+        LookupTable* ld = as<LookupTable>(ivars());
 
         // We store the object_id in the ivar table, so nuke it.
 #ifndef RBX_OBJECT_ID_IN_HEADER
@@ -143,9 +146,9 @@ namespace rubinius {
       } else {
         // Use as<> so that we throw a TypeError if there is something else
         // here.
-        CompactLookupTable* clt = as<CompactLookupTable>(other->ivars_);
-        ivars_ = clt->duplicate(state);
-        CompactLookupTable* ld = as<CompactLookupTable>(ivars_);
+        CompactLookupTable* clt = as<CompactLookupTable>(other->ivars());
+        ivars(state, clt->duplicate(state));
+        CompactLookupTable* ld = as<CompactLookupTable>(ivars());
 
         // We store the object_id in the ivar table, so nuke it.
 #ifndef RBX_OBJECT_ID_IN_HEADER
@@ -178,9 +181,9 @@ namespace rubinius {
   }
 
   Object* Object::get_table_ivar(STATE, Symbol* sym) {
-    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars())) {
       return tbl->fetch(state, sym);
-    } else if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
+    } else if(LookupTable* tbl = try_as<LookupTable>(ivars())) {
       return tbl->fetch(state, sym);
     }
 
@@ -189,9 +192,9 @@ namespace rubinius {
 
   Object* Object::table_ivar_defined(STATE, Symbol* sym) {
     bool found = false;
-    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars())) {
       tbl->fetch(state, sym, &found);
-    } else if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
+    } else if(LookupTable* tbl = try_as<LookupTable>(ivars())) {
       tbl->fetch(state, sym, &found);
     }
 
@@ -300,9 +303,9 @@ namespace rubinius {
       po->add_packed_ivars(state, ary);
     }
 
-    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars())) {
       ary->concat(state, tbl->filtered_keys(state, match));
-    } else if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
+    } else if(LookupTable* tbl = try_as<LookupTable>(ivars())) {
       ary->concat(state, tbl->filtered_keys(state, match));
     }
 
@@ -505,14 +508,14 @@ namespace rubinius {
 
   Object* Object::set_table_ivar(STATE, Symbol* sym, Object* val) {
     /* Lazy creation of a lookuptable to store instance variables. */
-    if(ivars_->nil_p()) {
+    if(ivars()->nil_p()) {
       CompactLookupTable* tbl = CompactLookupTable::create(state);
       ivars(state, tbl);
       tbl->store(state, sym, val);
       return val;
     }
 
-    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars())) {
       if(tbl->store(state, sym, val) == Qtrue) {
         return val;
       }
@@ -521,7 +524,7 @@ namespace rubinius {
       ivars(state, tbl->to_lookuptable(state));
     }
 
-    if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
+    if(LookupTable* tbl = try_as<LookupTable>(ivars())) {
       tbl->store(state, sym, val);
     }
     /* else.. what? */
@@ -603,11 +606,11 @@ namespace rubinius {
 
   Object* Object::del_table_ivar(STATE, Symbol* sym) {
     /* No ivars, we're done! */
-    if(ivars_->nil_p()) return this;
+    if(ivars()->nil_p()) return this;
 
-    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars())) {
       tbl->remove(state, sym);
-    } else if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
+    } else if(LookupTable* tbl = try_as<LookupTable>(ivars())) {
       tbl->remove(state, sym);
     }
     return this;

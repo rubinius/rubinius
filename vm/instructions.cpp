@@ -149,6 +149,11 @@ continue_to_run:
     state->thread_state()->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
+  } catch(const RubyException& exc) {
+    exc.exception->locations(state,
+          System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    state->thread_state()->raise_exception(exc.exception);
+    return NULL;
   }
 
   // There is no reason to be here. Either the bytecode loop exits,
@@ -287,6 +292,11 @@ continue_to_run:
 
     state->thread_state()->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
+    return NULL;
+  } catch(const RubyException& exc) {
+    exc.exception->locations(state,
+          System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    state->thread_state()->raise_exception(exc.exception);
     return NULL;
   }
 
@@ -443,6 +453,11 @@ continue_to_run:
 
     state->thread_state()->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
+    return NULL;
+  } catch(const RubyException& exc) {
+    exc.exception->locations(state,
+          System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    state->thread_state()->raise_exception(exc.exception);
     return NULL;
   }
 

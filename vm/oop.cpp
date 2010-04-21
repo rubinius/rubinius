@@ -40,6 +40,9 @@ namespace rubinius {
     initialize_copy(source, age);
     copy_body(state, source);
 
+    state->om->write_barrier((Object*)this, ivars_);
+    state->om->write_barrier((Object*)this, klass_);
+
     // This method is only used by the GC to move an object, so must retain
     // the settings flags.
     flags().Frozen =  source->flags().Frozen;
