@@ -321,11 +321,27 @@ containing the Rubinius standard library files.
 
       options.parse ARGV
 
+      handle_rubyopt(options)
+    end
+
+    def handle_rubyopt(options)
       if ENV['RUBYOPT']
         options.start_parsing
         env_opts = ENV['RUBYOPT'].strip.split(/\s+/)
-        options.parse env_opts
+
+        until env_opts.empty?
+          entry = env_opts.shift
+
+          unless entry[0] == ?-
+            entry = "-#{entry}"
+          end
+
+          opt, arg, rest = options.split entry, 2
+
+          options.process env_opts, entry, opt, arg
+        end
       end
+
     end
 
     # Update the load paths with any -I arguments.
