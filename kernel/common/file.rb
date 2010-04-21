@@ -356,8 +356,67 @@ class File < IO
   #
   #  File.expand_path("~oracle/bin")           #=> "/home/oracle/bin"
   #  File.expand_path("../../bin", "/tmp/x")   #=> "/bin"
-  def self.expand_path(path, dir_string = nil)
-    FFI::Platform::File.expand_path(path, dir_string)
+  def self.expand_path(path, dir=nil)
+    path = StringValue(path)
+
+    first = path[0]
+    if first == ?~
+      case path[1]
+      when ?/
+        path[0, 1] = ENV["HOME"]
+      when nil
+        return ENV["HOME"]
+      else
+        unless length = path.index("/", 1)
+          length = path.length
+        end
+
+        name = path.substring 1, length - 1
+        unless dir = Rubinius.get_user_home(name)
+          raise ArgumentError, "user #{name} does not exist"
+        end
+
+        path[0, length] = dir
+      end
+    elsif first != ?/
+      if dir
+        dir = File.expand_path dir
+      else
+        dir = Dir.pwd
+      end
+
+      path = "#{dir}/#{path}"
+    end
+
+    items = []
+    start = 0
+    size = path.size
+
+    while index = path.index("/", start) or (start < size and index = size)
+      length = index - start
+
+      if length > 0
+        item = path.substring start, length
+
+        if item == ".."
+          items.pop
+        elsif item != "."
+          items << item
+        end
+      end
+
+      start = index + 1
+    end
+
+    return "/" if items.empty?
+
+    str = ""
+    iter = items.to_iter
+    while iter.next
+      str.append "/#{iter.item}"
+    end
+
+    return str
   end
 
   ##
