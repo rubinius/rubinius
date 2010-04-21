@@ -450,7 +450,7 @@ namespace rubinius {
     uint8_t* fin = cur + size();
 
     if(tbl->num_fields() < 256) {
-      return (String*)Primitives::failure();
+      return force_as<String>(Primitives::failure());
     }
 
     Object** tbl_ptr = tbl->field;
@@ -828,14 +828,14 @@ return_value:
     native_int count = count_f->to_native();
     native_int total = num_bytes_->to_native();
 
-    if(count < 0) return (String*)Qnil;
+    if(count < 0) return nil<String>();
 
     if(start < 0) {
       start += total;
-      if(start < 0) return (String*)Qnil;
+      if(start < 0) return nil<String>();
     }
 
-    if(start > total) return (String*)Qnil;
+    if(start > total) return nil<String>();
 
     if(start + count > total) {
       count = total - start;
@@ -939,7 +939,7 @@ return_value:
 
   String* String::find_character(STATE, Fixnum* offset) {
     size_t o = (size_t)offset->to_native();
-    if(o >= size()) return (String*)Qnil;
+    if(o >= size()) return nil<String>();
 
     uint8_t* cur = byte_address() + o;
 

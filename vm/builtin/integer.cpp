@@ -9,7 +9,7 @@
 namespace rubinius {
   native_int Integer::slow_to_native() {
     if(fixnum_p()) {
-      return ((Fixnum*)this)->to_native();
+      return (force_as<Fixnum>(this))->to_native();
     }
 
     return as<Bignum>(this)->to_native();
@@ -17,7 +17,7 @@ namespace rubinius {
 
   long long Integer::to_long_long() {
     if(fixnum_p()) {
-      return ((Fixnum*)this)->to_long_long();
+      return (force_as<Fixnum>(this))->to_long_long();
     }
 
     return as<Bignum>(this)->to_long_long();
@@ -25,7 +25,7 @@ namespace rubinius {
 
   unsigned long long Integer::to_ulong_long() {
     if(fixnum_p()) {
-      return ((Fixnum*)this)->to_ulong_long();
+      return (force_as<Fixnum>(this))->to_ulong_long();
     }
 
     return as<Bignum>(this)->to_ulong_long();

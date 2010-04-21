@@ -287,7 +287,7 @@ namespace rubinius {
         if(mod) {
           tmp = mark.call(mod);
           if(tmp) {
-            cache->seen_classes_[i].set_klass((Class*)tmp);
+            cache->seen_classes_[i].set_klass(force_as<Class>(tmp));
             mark.just_set(obj, tmp);
           }
         }
