@@ -50,6 +50,12 @@ namespace rubinius {
 
   void Module::setup(STATE, const char* str, Module* under) {
     setup(state, state->symbol(str), under);
+
+    if(under && under != G(object)) {
+      std::ostringstream ss;
+      ss << under->name()->c_str(state) << "::" << str;
+      this->name(state, state->symbol(ss.str().c_str()));
+    }
   }
 
   void Module::setup(STATE, Symbol* name, Module* under) {
