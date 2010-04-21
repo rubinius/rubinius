@@ -9,6 +9,7 @@
 
 #include <sys/wait.h>
 #include <unistd.h>
+#include <pwd.h>
 
 #include "vm/call_frame.hpp"
 #include "vm/helpers.hpp"
@@ -818,5 +819,19 @@ namespace rubinius {
     }
 
     return Qfalse;
+  }
+
+  String* System::vm_get_user_home(STATE, String* name) {
+    struct passwd *pwd;
+    String* home = 0;
+
+    if((pwd = getpwnam(name->c_str()))) {
+      home = String::create(state, pwd->pw_dir);
+    } else {
+      home = nil<String>();
+    }
+
+    endpwent();
+    return home;
   }
 }

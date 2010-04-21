@@ -90,4 +90,9 @@ module Rubinius
     Ruby.primitive :vm_get_kcode
     raise PrimitiveFailure, "Rubinius.kcode failed"
   end
+
+  def self.get_user_home(name)
+    Ruby.primitive :vm_get_user_home
+    raise PrimitiveFailure, "Rubinius.get_user_home failed"
+  end
 end
