@@ -1430,6 +1430,9 @@ double rb_num2dbl(VALUE);
   /** Get current thread */
   VALUE   rb_thread_current(void);
 
+  /** Return a new time object based on the given offset from the epoch */
+  VALUE   rb_time_new(time_t sec, time_t usec);
+
   /** Returns an integer value representing the object's type. */
   int     rb_type(VALUE object_handle);
 
