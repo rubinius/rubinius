@@ -31,6 +31,6 @@ class Object
   # Creates an IO instance for a temporary file name. The file
   # must be deleted.
   def new_io(name, mode="w:utf-8")
-    IO.new new_fd(name, fmode(mode))
+    IO.new new_fd(name, fmode(mode)), fmode(mode)
   end
 end
