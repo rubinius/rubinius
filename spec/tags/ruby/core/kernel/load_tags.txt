@@ -1,5 +1,3 @@
 incomplete:Kernel.load needs to be reviewed for spec completeness
 fails:Kernel#load returns __FILE__ as an absolute path
 fails:Kernel#load allows wrapping the code in the file in an anonymous module
-fails:Kernel#load sets the enclosing scope to an anonymous module if passed true for 'wrap'
-fails:Kernel.load sets the enclosing scope to an anonymous module if passed true for 'wrap'

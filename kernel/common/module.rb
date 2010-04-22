@@ -92,6 +92,11 @@ class Module
 
   alias_method :__name__, :name
 
+  def __path__
+    return @module_name if @module_name
+    inspect
+  end
+
   def to_s
     @module_name ? @module_name.to_s : super
   end
@@ -609,7 +614,7 @@ class Module
     if mod == Object
       @module_name = name.to_sym
     else
-      @module_name = "#{mod.__name__}::#{name}".to_sym
+      @module_name = "#{mod.__path__}::#{name}".to_sym
     end
   end
 

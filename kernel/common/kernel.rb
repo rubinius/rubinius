@@ -625,7 +625,7 @@ module Kernel
   # TODO: The anonymous module wrapping is not implemented at all.
   #
   def load(name, wrap=false)
-    Rubinius::CodeLoader.new(name).load
+    Rubinius::CodeLoader.new(name).load(wrap)
 
     # HACK we use __send__ here so that the method inliner
     # doesn't accidentally inline a script body into here!

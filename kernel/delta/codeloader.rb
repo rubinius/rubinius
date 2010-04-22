@@ -96,7 +96,7 @@ module Rubinius
     #
     # TODO: Make the compiled version checking logic available as a Compiler
     # convenience method.
-    def load_file
+    def load_file(wrap=false)
       version = CodeLoader.check_version ? Signature : 0
 
       if CodeLoader.load_compiled
@@ -117,7 +117,7 @@ module Rubinius
         end
       end
 
-      script = cm.create_script
+      script = cm.create_script(wrap)
       script.file_path = @file_path
       script.data_path = @load_path
     end

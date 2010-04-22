@@ -26,8 +26,10 @@ class << MAIN
   def const_set(name, value)
     Object.const_set name, value
   end
-end
 
-def self.to_s
-  "main"
+  def to_s
+    "main"
+  end
+
+  alias_method :inspect, :to_s
 end

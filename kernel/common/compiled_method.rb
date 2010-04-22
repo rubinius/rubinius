@@ -222,13 +222,18 @@ module Rubinius
     end
 
     # Creates the Script instance for a toplevel compiled method.
-    def create_script
+    def create_script(wrap=false)
       script = CompiledMethod::Script.new
 
       # Setup the scoping.
       ss = StaticScope.new(Object)
       ss.script = script
-      @scope = ss
+
+      if wrap
+        @scope = StaticScope.new(Module.new, ss)
+      else
+        @scope = ss
+      end
 
       compile
 

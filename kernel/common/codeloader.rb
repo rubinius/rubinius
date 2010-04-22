@@ -45,9 +45,9 @@ module Rubinius
 
     # Searches for and loads Ruby source files only. The files may have any
     # extension. Called by Kernel#load.
-    def load
+    def load(wrap=false)
       resolve_load_path
-      load_file
+      load_file(wrap)
     end
 
     # Adds a feature name to $LOADED_FEATURES, where a feature may be a Ruby
