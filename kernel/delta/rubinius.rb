@@ -230,6 +230,10 @@ module Rubinius
       raise "unable to open #{name} to set DATA, source .rb file does not exist."
     end
   end
+
+  def self.compile_file(name)
+    Compiler.compile name
+  end
 end
 
 # A wierd place for it, but it works.
