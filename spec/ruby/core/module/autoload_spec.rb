@@ -126,6 +126,19 @@ describe "Module#autoload" do
     ModuleSpecs::Autoload.autoload?(:S).should be_nil
   end
 
+  it "retains the autoload even if the request to require fails" do
+    filename = fixture(__FILE__, "a_path_that_should_not_exist.rb")
+
+    ModuleSpecs::Autoload.autoload :NotThere, filename
+    ModuleSpecs::Autoload.autoload?(:NotThere).should == filename
+
+    lambda {
+      require filename
+    }.should raise_error(LoadError)
+
+    ModuleSpecs::Autoload.autoload?(:NotThere).should == filename
+  end
+
   it "allows multiple autoload constants for a single file" do
     filename = fixture(__FILE__, "autoload_lm.rb")
     ModuleSpecs::Autoload.autoload :L, filename
