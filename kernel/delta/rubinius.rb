@@ -15,7 +15,15 @@ module Rubinius
     else
       obj = tbl[name]
       if obj.kind_of? Autoload
-        obj = obj.call
+        obj = obj.call(true)
+
+        # nil is returned if the autoload was abort, usually because
+        # the file to be required has already been loaded. In which case
+        # act like the autoload wasn't there.
+        unless obj
+          supr = Object unless sup
+          obj = Class.new supr, name, mod
+        end
       end
 
       if obj.kind_of? Class
@@ -26,6 +34,7 @@ module Rubinius
         raise TypeError, "#{name} is not a class"
       end
     end
+
     return obj
   end
 
@@ -53,7 +62,14 @@ module Rubinius
     else
       obj = tbl[name]
       if obj.kind_of? Autoload
-        obj = obj.call
+        obj = obj.call(true)
+
+        # See commend above about autoload returning nil
+        unless obj
+          obj = Module.new
+          obj.set_name_if_necessary name, mod
+          mod.const_set name, obj
+        end
       end
 
       unless obj.kind_of? Module
