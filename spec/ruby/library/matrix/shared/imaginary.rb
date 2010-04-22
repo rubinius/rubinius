@@ -1,0 +1,13 @@
+require 'matrix'
+
+describe :matrix_imaginary, :shared => true do
+  it "returns a matrix with the imaginary part of the elements of the receiver" do
+    Matrix[ [1,   2], [3, 4] ].send(@method).should == Matrix[ [0,   0], [0, 0] ]
+    Matrix[ [1.9, Complex(1,1)], [Complex(-2,0.42), 4] ].send(@method).should == Matrix[ [0, 1], [0.42, 0] ]
+  end
+
+  it "returns empty matrices on the same size if empty" do
+    Matrix.empty(0, 3).send(@method).should == Matrix.empty(0, 3)
+    Matrix.empty(3, 0).send(@method).should == Matrix.empty(3, 0)
+  end
+end

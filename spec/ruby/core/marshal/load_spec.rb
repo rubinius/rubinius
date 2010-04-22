@@ -327,12 +327,21 @@ describe "Marshal::load" do
     end
   end
 
+  # Note: Ruby 1.9 should be compatible with older marshal format
   MarshalSpec::DATA.each do |description, (object, marshal, attributes)|
     it "loads a #{description}" do
       Marshal.load(marshal).should == object
     end
   end
-  
+
+  ruby_version_is "1.9" do
+    MarshalSpec::DATA_19.each do |description, (object, marshal, attributes)|
+      it "loads a #{description}" do
+        Marshal.load(marshal).should == object
+      end
+    end
+  end
+
   it "returns an untainted object if source is untainted" do
     x = Object.new
     y = Marshal.load(Marshal.dump(x))

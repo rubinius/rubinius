@@ -145,6 +145,16 @@ describe "Time#strftime" do
     time.strftime('%w').should == '5'
   end
   
+  it "returns the date alone with %x" do
+    time = Time.local(2009, 9, 18, 12, 0, 6)
+    time.strftime('%x').should == '09/18/09'
+  end
+  
+  it "returns the time alone with %X" do
+    time = Time.local(2009, 9, 18, 12, 0, 6)
+    time.strftime('%X').should == '12:00:06'
+  end
+  
   it "returns the year wihout a century with %y" do
     time = Time.local(2009, 9, 18, 12, 0, 0)
     time.strftime('%y').should == '09'
@@ -153,8 +163,14 @@ describe "Time#strftime" do
   it "returns the year with %Y" do
     time = Time.local(2009, 9, 18, 12, 0, 0)
     time.strftime('%Y').should == '2009'
-  end  
-
+  end
+  
+  it "returns the timezone with %Z" do
+    time = Time.local(2009, 9, 18, 12, 0, 0)
+    zone = time.zone
+    time.strftime("%Z").should == zone
+  end
+  
   ruby_version_is "1.9" .. "" do
     it "supports am/pm formatting with %P" do
       time = Time.local(2004, 8, 26, 22, 38, 3)

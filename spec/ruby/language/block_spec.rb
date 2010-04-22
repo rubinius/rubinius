@@ -7,6 +7,13 @@ describe "A block with mismatched arguments" do
     BlockSpecs::Yield.new.two_args {|one, two, three| ret = [one, two, three]}
     ret.should == [1, 2, nil]
   end
+  
+  it "raises ArgumentError if argument is passed, but the block takes none" do
+    lambda{
+      lambda{ || p "block with no argument" }.call(:arg)
+    }.should raise_error(ArgumentError)
+  end
+  
 end
 
 describe "A block with a 'rest' arg" do

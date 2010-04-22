@@ -65,6 +65,33 @@ end
 
 ruby_version_is "1.9" do
   describe "Hash#select!" do
-    it "needs to be reviewed for spec completeness"
+    before(:each) do
+      @hsh = new_hash(1 => 2, 3 => 4, 5 => 6)
+      @empty = new_hash
+    end
+
+    it "is equivalent to keep_if if changes are made" do
+      new_hash(:a => 2).select! { |k,v| v <= 1 }.should ==
+        new_hash(:a => 2).keep_if { |k, v| v <= 1 }
+
+      h = new_hash(1 => 2, 3 => 4)
+      all_args_select = []
+      all_args_keep_if = []
+      h.dup.select! { |*args| all_args_select << args }
+      h.dup.keep_if { |*args| all_args_keep_if << args }
+      all_args_select.should == all_args_keep_if
+    end
+
+    it "returns nil if no changes were made" do
+      new_hash(:a => 1).select! { |k,v| v <= 1 }.should == nil
+    end
+
+    it "raises a RuntimeError if called on a frozen instance that is modified" do
+      lambda { HashSpecs.empty_frozen_hash.select! { false } }.should raise_error(RuntimeError)
+    end
+
+    it "raises a RuntimeError if called on a frozen instance that would not be modified" do
+      lambda { HashSpecs.frozen_hash.select! { true } }.should raise_error(RuntimeError)
+    end
   end
 end

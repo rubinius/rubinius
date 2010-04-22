@@ -51,4 +51,13 @@ describe "Matrix#*" do
       (Matrix.columns([[], [], []]) * Matrix[[1,2],[3,4],[5,6]]).should == Matrix.columns([[],[]])
     end
   end
+
+  ruby_bug "redmine:2365", "1.8.7" do
+    it "raises a TypeError if other is of wrong type" do
+      lambda { @a * nil        }.should raise_error(TypeError)
+      lambda { @a * "a"        }.should raise_error(TypeError)
+      lambda { @a * [ [1, 2] ] }.should raise_error(TypeError)
+      lambda { @a * Object.new }.should raise_error(TypeError)
+    end
+  end
 end

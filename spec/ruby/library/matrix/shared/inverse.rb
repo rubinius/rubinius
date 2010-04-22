@@ -27,7 +27,7 @@ describe :inverse, :shared => true do
 
   it "raises a ErrDimensionMismatch if the Matrix is not square" do
     lambda{
-      Matrix[ [1,2], [1] ].send(@method)
+      Matrix[ [1,2,3], [1,2,3] ].send(@method)
     }.should raise_error(Matrix::ErrDimensionMismatch)
   end
 

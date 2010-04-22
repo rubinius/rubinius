@@ -77,7 +77,12 @@ ruby_version_is "1.9" do
       b = 20.times.map { prng.rand(90) }
       a.should == b
     end
-    
+
+    it "eventually returns all possible values" do
+      prng = Random.new 33
+      100.times.map{ prng.rand(10) }.uniq.sort.should == (0...10).to_a
+    end
+
     it "raises an ArgumentError when the argument is 0" do
       lambda do
         Random.new.rand(0)
@@ -92,8 +97,9 @@ ruby_version_is "1.9" do
   end
 
   describe "Random#rand with Bignum" do
-    it "returns a Bignum" do
-      Random.new(1).rand(bignum_value).should be_an_instance_of(Bignum)
+    it "typically returns a Bignum" do
+      rnd = Random.new(1)
+      10.times.map{ rnd.rand(bignum_value) }.max.should be_an_instance_of(Bignum)
     end
 
     it "returns a Bignum greater than or equal to 0" do
@@ -186,6 +192,12 @@ ruby_version_is "1.9" do
       a.should == b
     end
     
+    it "eventually returns all possible values" do
+      prng = Random.new 33
+      100.times.map{ prng.rand(10..20) }.uniq.sort.should == (10..20).to_a
+      100.times.map{ prng.rand(10...20) }.uniq.sort.should == (10...20).to_a
+    end
+
     it "allows the startpoint to be an object of a different class to the endpoint" do
       lambda do
         Random.new.rand(89..100.87)

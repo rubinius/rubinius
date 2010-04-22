@@ -32,8 +32,8 @@ with_feature :encoding do
       Encoding.aliases['external'].should == Encoding.default_external.name
     end
 
-    it "has a 'locale' key with the locale charmap encoding as its value" do
-      Encoding.aliases['locale'].should == Encoding.locale_charmap
+    it "has a 'locale' key and its value equals to the name of the encoding finded by the locale charmap" do
+      Encoding.aliases['locale'].should == Encoding.find(Encoding.locale_charmap).name
     end
 
     it "only contains valid aliased encodings" do

@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/extract_range_matched', __FILE__)
 require 'strscan'
 
 describe "StringScanner#post_match" do
@@ -22,4 +23,6 @@ describe "StringScanner#post_match" do
     @s.scan(/\s+/)
     @s.post_match.should == nil
   end
+
+  it_behaves_like :extract_range_matched, :post_match
 end

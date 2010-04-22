@@ -41,7 +41,8 @@ describe "Range#each" do
   end
 
   it "returns self" do
-    (1..10).each {}.should == (1..10)
+    range = 1..10
+    range.each{}.should equal(range)
   end
 
   ruby_version_is "1.8.7" do

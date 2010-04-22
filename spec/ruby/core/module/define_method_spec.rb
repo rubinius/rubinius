@@ -115,6 +115,16 @@ describe "Module#define_method" do
     o.proc_test.should be_true
   end
 
+  it "accepts a String method name" do
+    klass = Class.new do
+      define_method("string_test") do
+        "string_test result"
+      end
+    end
+
+    klass.new.string_test.should == "string_test result"
+  end
+
   it "is private" do
     Module.should have_private_instance_method(:define_method)
   end

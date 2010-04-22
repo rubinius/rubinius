@@ -34,8 +34,20 @@ describe :determinant, :shared => true do
   end
 
   ruby_bug "#1531", "1.8.7" do
-    it "returns the determinant of a Matrices containing 0 as first entry" do
+    it "returns the determinant even for Matrices containing 0 as first entry" do
       Matrix[[0,1],[1,0]].send(@method).should == -1
+    end
+  end
+
+  ruby_bug "#2770", "1.8.7" do
+    it "raises an error for rectangular matrices" do
+      lambda {
+        Matrix[[1], [2], [3]].send(@method)
+      }.should raise_error(Matrix::ErrDimensionMismatch)
+
+      lambda {
+        Matrix.empty(3,0).send(@method)
+      }.should raise_error(Matrix::ErrDimensionMismatch)
     end
   end
 end

@@ -23,4 +23,28 @@ describe "Array#product" do
       [1, 2].product([]).should == []
     end
   end
+
+  ruby_version_is "1.9" do
+    describe "when given a block" do
+      it "yields all combinations in turn" do
+        acc = []
+        [1,2].product([3,4,5],[6,8]){|array| acc << array}
+        acc.should == [[1, 3, 6], [1, 3, 8], [1, 4, 6], [1, 4, 8], [1, 5, 6], [1, 5, 8],
+                       [2, 3, 6], [2, 3, 8], [2, 4, 6], [2, 4, 8], [2, 5, 6], [2, 5, 8]]
+
+        acc = []
+        [1,2].product([3,4,5],[],[6,8]){|array| acc << array}
+        acc.should be_empty
+      end
+
+      it "returns self" do
+        arr = [1,2]
+        arr.product([3,4,5],[6,8]){}.should equal(arr)
+        arr = []
+        arr.product([3,4,5],[6,8]){}.should equal(arr)
+        arr = [1,2]
+        arr.product([]){}.should equal(arr)
+      end
+    end
+  end
 end

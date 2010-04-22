@@ -480,6 +480,8 @@ describe "String#unpack with 'M' directive" do
     expected = "A fax has arrived from remote ID ''.\r\n------------------------------------------------------------\r\nTime: 3/9/2006 3:50:52 PM\r\nReceived from remote ID: \r\nInbound user ID XXXXXXXXXX, routing code XXXXXXXXX\r\nResult: (0/352;0/0) Successful Send\r\nPage record: 1 - 1\r\nElapsed time: 00:58 on channel 11\r\n"
 
     input.unpack("M").first.should == expected
+
+    "abc=02def=\ncat=\n=01=\n".unpack("M9M3M4").should == ["abc\002defcat\001", "", ""]
   end
 end
 

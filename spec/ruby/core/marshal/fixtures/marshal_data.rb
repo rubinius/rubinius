@@ -140,6 +140,15 @@ Struct.new "Pyramid"
 Struct.new "Useful", :a, :b
 
 module MarshalSpec
+  def self.random_data
+    randomizer = Random.new(42)
+    1000.times{randomizer.rand} # Make sure we exhaust his first state of 624 random words
+    dump_data = File.binread(fixture(__FILE__, 'random.dump'))
+    [randomizer, dump_data]
+  rescue => e
+    ["Error when building Random marshal data #{e}", ""]
+  end
+
   DATA = {
     "nil" => [nil, "\004\b0"],
     "1..2" => [(1..2),
@@ -342,6 +351,7 @@ module MarshalSpec
                      "\004\bC:\016UserArray[\000"],
     "Struct" => [Struct::Pyramid.new,
                  "\004\bS:\024Struct::Pyramid\000"],
+    "Random" => random_data,
   }
 end
 

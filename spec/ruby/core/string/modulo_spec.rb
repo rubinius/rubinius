@@ -864,7 +864,6 @@ describe "String#%" do
       lambda { format % "." }.should raise_error(ArgumentError)
       lambda { format % "10." }.should raise_error(ArgumentError)
       lambda { format % "5x" }.should raise_error(ArgumentError)
-      lambda { format % "0xA" }.should raise_error(ArgumentError)
       lambda { format % "0b1" }.should raise_error(ArgumentError)
       lambda { format % "10e10.5" }.should raise_error(ArgumentError)
       lambda { format % "10__10" }.should raise_error(ArgumentError)
@@ -873,6 +872,16 @@ describe "String#%" do
       obj = mock('5.0')
       obj.should_receive(:to_f).and_return(5.0)
       (format % obj).should == (format % 5.0)
+    end
+    ruby_version_is ""..."1.9.2" do
+      it "behaves as if calling Kernel#Float for #{format} arguments, when the passed argument is hexadecimal string" do
+        lambda { format % "0xA" }.should raise_error(ArgumentError)
+      end
+    end
+    ruby_version_is "1.9.2" do
+      it "behaves as if calling Kernel#Float for #{format} arguments, when the passed argument is hexadecimal string" do
+        (format % "0xA").should == (format % 0xA)
+      end
     end
 
     it "doesn't taint the result for #{format} when argument is tainted" do

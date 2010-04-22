@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../shared/get_byte', __FILE__)
+require File.expand_path('../shared/extract_range', __FILE__)
 require 'strscan'
 
 describe "StringScanner#getbyte" do
@@ -22,4 +23,6 @@ describe "StringScanner#getbyte" do
       $VERBOSE = old
     end
   end
+
+  it_behaves_like :extract_range, :getbyte
 end

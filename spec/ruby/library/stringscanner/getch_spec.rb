@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../shared/extract_range', __FILE__)
 require 'strscan'
 
 describe "StringScanner#getch" do
@@ -39,13 +40,5 @@ describe "StringScanner#getch" do
     s.getch.should == nil
   end
 
-  it "always returns instance of String, never a String subclass" do
-    cls = Class.new(String)
-    sub = cls.new("abc")
-
-    s = StringScanner.new(sub)
-    ch = s.getch
-    ch.should_not be_kind_of(cls)
-    ch.should == "a"
-  end
+  it_behaves_like :extract_range, :getch
 end

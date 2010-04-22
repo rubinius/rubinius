@@ -79,8 +79,31 @@ ruby_version_is "1.9" do
       File.read(@f).should == dir
     end
 
-    it "redirects STDERR to the given file descriptior if if :err => Fixnum" do
-      file = File.open(@f,'w')
+    it "redirects STDOUT to the given file descriptior if :out => Fixnum" do
+      file = File.open(@f, 'w')
+      fd = file.fileno
+      pid = spawn("ruby -e 'print(:glark)'", {:out => fd})
+      Process.wait pid
+      file.close
+      File.read(@f).should =~ /glark/
+    end
+
+    it "redirects STDOUT to the given file if :out => String" do
+      pid = spawn("ruby -e 'print(:glark)'", {:out => @f})
+      Process.wait pid
+      File.read(@f).should =~ /glark/
+    end
+
+    it "redirects STDOUT to the given file if :out => IO" do
+      r, w = IO.pipe
+      pid = spawn("ruby -e 'print(:glark)'", {:out => w})
+      Process.wait pid
+      w.close
+      r.read.should =~ /glark/
+    end
+
+    it "redirects STDERR to the given file descriptior if :err => Fixnum" do
+      file = File.open(@f, 'w')
       fd = file.fileno
       pid = spawn("ruby -e 'warn(:glark)'", {:err => fd})
       Process.wait pid
@@ -94,5 +117,39 @@ ruby_version_is "1.9" do
       File.read(@f).should =~ /glark/
     end
 
+    it "redirects STDOUT to the given file if :err => IO" do
+      r, w = IO.pipe
+      pid = spawn("ruby -e 'warn(:glark)'", {:err => w})
+      Process.wait pid
+      w.close
+      r.read.should =~ /glark/
+    end
+
+    it "redirects both STDERR and STDOUT to the given file descriptior, name or IO" do
+      file = File.open(@f, 'w')
+      pid = spawn("ruby -e 'print(:glark); warn(:bang)'", {[:out, :err] => file.fileno})
+      Process.wait pid
+      file.close
+      File.read(@f).should =~ /glark/
+      File.read(@f).should =~ /bang/
+
+      pid = spawn("ruby -e 'print(:glark); warn(:bang)'", {[:out, :err] => @f})
+      Process.wait pid
+      File.read(@f).should =~ /glark/
+      File.read(@f).should =~ /bang/
+
+      r, w = IO.pipe
+      pid = spawn("ruby -e 'print(:glark); warn(:bang)'", {[:out, :err] => w})
+      Process.wait pid
+      w.close
+      tmp = r.read
+      tmp.should =~ /glark/
+      tmp.should =~ /bang/
+    end
+
+    it 'generates a process of a command based on the given set of strings, regarding the first as the command and the others as the arguments' do
+      Process.wait spawn('echo', 'a b', :out => @f)
+      File.read(@f).should == "a b\n"
+    end
   end
 end

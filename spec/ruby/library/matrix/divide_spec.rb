@@ -38,4 +38,13 @@ describe "Matrix#/" do
   it "returns an instance of Matrix" do
     (@a /@b).should be_kind_of(Matrix)
   end
+
+  ruby_bug "redmine:2365", "1.8.7" do
+    it "raises a TypeError if other is of wrong type" do
+      lambda { @a / nil        }.should raise_error(TypeError)
+      lambda { @a / "a"        }.should raise_error(TypeError)
+      lambda { @a / [ [1, 2] ] }.should raise_error(TypeError)
+      lambda { @a / Object.new }.should raise_error(TypeError)
+    end
+  end
 end

@@ -25,15 +25,12 @@ describe "Matrix#+" do
     lambda { @a + bignum_value }.should raise_error(ExceptionForMatrix::ErrOperationNotDefined)
   end
 
-  it "raises an exception if other is not a Matrix" do
-    # Note that MRI raises NoMethodError because #coerce is called
-    # on objects that don't provide it. This appears to be more of
-    # an "oops" rather than an aspect of the interface. We don't
-    # spec the exception class.
-
-    lambda { @a + nil        }.should raise_error
-    lambda { @a + "a"        }.should raise_error
-    lambda { @a + [ [1, 2] ] }.should raise_error
-    lambda { @a + Object.new }.should raise_error
+  ruby_bug "redmine:2365", "1.8.7" do
+    it "raises a TypeError if other is of wrong type" do
+      lambda { @a + nil        }.should raise_error(TypeError)
+      lambda { @a + "a"        }.should raise_error(TypeError)
+      lambda { @a + [ [1, 2] ] }.should raise_error(TypeError)
+      lambda { @a + Object.new }.should raise_error(TypeError)
+    end
   end
 end
