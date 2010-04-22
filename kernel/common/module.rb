@@ -625,12 +625,15 @@ class Module
 
     if existing = constant_table[name]
       if existing.kind_of? Autoload
-        existing.destroy!
+        # If there is already an Autoload here, just change the path to
+        # autoload!
+        existing.set_path(path)
       else
         # Trying to register an autoload for a constant that already exists,
         # ignore the request entirely.
-        return
       end
+
+      return
     end
 
     constants_table[name] = Autoload.new(name, self, path)

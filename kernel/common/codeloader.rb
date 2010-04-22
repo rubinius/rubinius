@@ -129,7 +129,6 @@ module Rubinius
       # Loads a Ruby source file or shared library extension. Called by
       # Kernel#require and when an autoload-registered constant is accessed.
       def require(name)
-        Autoload.remove name
         loader = new name
 
         case loader.require
