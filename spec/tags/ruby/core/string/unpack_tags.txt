@@ -1,0 +1,1 @@
+fails:String#unpack with 'M' directive decodes across new lines

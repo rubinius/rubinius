@@ -1,0 +1,2 @@
+fails:Matrix#/ returns the result of dividing self by another Matrix
+fails:Matrix#/ raises a TypeError if other is of wrong type

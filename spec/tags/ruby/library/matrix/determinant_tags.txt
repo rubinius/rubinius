@@ -1,1 +1,3 @@
 fails:Matrix#determinant returns 1 for an empty Matrix
+fails:Matrix#determinant returns the determinant of a square Matrix
+fails:Matrix#determinant raises an error for rectangular matrices
