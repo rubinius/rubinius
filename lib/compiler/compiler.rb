@@ -15,6 +15,14 @@ module Rubinius
       end
     end
 
+    def self.compiled_name(file)
+      if file.suffix? ".rb"
+        file + "c"
+      else
+        file + ".compiled.rbc"
+      end
+    end
+
     def self.compile(file, output=nil, line=1, transforms=:default)
       compiler = new :file, :compiled_file
 
@@ -30,7 +38,7 @@ module Rubinius
       parser.input file, line
 
       writer = compiler.writer
-      writer.name = output
+      writer.name = output ? output : compiled_name(file)
 
       begin
         compiler.run

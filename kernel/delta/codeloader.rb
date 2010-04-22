@@ -102,18 +102,20 @@ module Rubinius
       if CodeLoader.load_compiled
         cm = load_compiled_file @load_path, version
       else
+        compiled_name = Compiler.compiled_name @load_path
+
         if File.exists? compiled_name
           if @stat.mtime > File.mtime(compiled_name)
-            cm = compile_file
+            cm = compile_file @load_path, compiled_name
           else
             begin
               cm = load_compiled_file compiled_name, version
             rescue InvalidRBC
-              cm = compile_file
+              cm = compile_file @load_path, compiled_name
             end
           end
         else
-          cm = compile_file
+          cm = compile_file @load_path, compiled_name
         end
       end
 
@@ -122,25 +124,10 @@ module Rubinius
       script.data_path = @load_path
     end
 
-    # Returns the name for the compiled file that corresponds to a Ruby source
-    # file.
-    #
-    # TODO: put this logic in the compiler
-    def compiled_name
-      unless @compiled_path
-        if @load_path.suffix? ".rb"
-          @compiled_path = @load_path + "c"
-        else
-          @compiled_path = @load_path + ".compiled.rbc"
-        end
-      end
-      @compiled_path
-    end
-
     # Compile a Ruby source file and save the compiled file. Return the
     # internal representation (CompiledMethod) of the Ruby source file.
-    def compile_file
-      Compiler.compile @load_path, compiled_name
+    def compile_file(file, compiled)
+      Compiler.compile file, compiled
     end
 
     # Load a compiled version of a Ruby source file.
