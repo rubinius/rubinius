@@ -21,7 +21,7 @@ module Rubinius
         # the file to be required has already been loaded. In which case
         # act like the autoload wasn't there.
         unless obj
-          supr = Object unless sup
+          supr = sup ? sup : Object
           obj = Class.new supr, name, mod
         end
       end
