@@ -73,6 +73,9 @@ module Rubinius
       $LOADED_FEATURES << name
     end
 
+    # Default check_version flag to true
+    @check_version = true
+
     class << self
       attr_accessor :load_compiled
       attr_accessor :check_version
