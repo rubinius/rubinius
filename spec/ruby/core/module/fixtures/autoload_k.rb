@@ -1,5 +1,7 @@
 module ModuleSpecs::Autoload
-  K = :autoload_k
+  class KHash < Hash
+    K = :autoload_k
+  end
 end
 
 ScratchPad.record :loaded

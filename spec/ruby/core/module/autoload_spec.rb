@@ -104,13 +104,14 @@ describe "Module#autoload" do
 
   it "does not load the file if the file is manually required" do
     filename = fixture(__FILE__, "autoload_k.rb")
-    ModuleSpecs::Autoload.autoload :K, filename
+    ModuleSpecs::Autoload.autoload :KHash, filename
 
     require filename
     ScratchPad.recorded.should == :loaded
     ScratchPad.clear
 
-    ModuleSpecs::Autoload::K.should == :autoload_k
+    ModuleSpecs::Autoload::KHash.should be_kind_of(Class)
+    ModuleSpecs::Autoload::KHash::K.should == :autoload_k
     ScratchPad.recorded.should be_nil
   end
 
