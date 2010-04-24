@@ -35,7 +35,7 @@ namespace rubinius {
     char data[8];
     long bytes;
 
-    bzero(data, 8);
+    memset(data, 0, 8);
 
     bytes = read(fd, data, 8);
 
@@ -86,8 +86,8 @@ namespace rubinius {
 
     if(fd < 0) return false;
 
-    bzero(data_size, 11);
-    bzero(name_data, 17);
+    memset(data_size, 0, 11);
+    memset(name_data, 0, 17);
 
     for(;;) {
       bytes = read(fd, name_data, 16);
