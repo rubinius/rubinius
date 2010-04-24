@@ -340,12 +340,15 @@ namespace rubinius {
   }
 
   int Environment::exit_code() {
+
+#ifdef ENABLE_LLVM
     if(LLVMState* ls = shared->llvm_state) {
       std::ostream& jit_log = ls->log();
       if(jit_log != std::cerr) {
         dynamic_cast<std::ofstream&>(jit_log).close();
       }
     }
+#endif
 
     if(state->thread_state()->raise_reason() == cExit) {
       if(Fixnum* fix = try_as<Fixnum>(state->thread_state()->raise_value())) {

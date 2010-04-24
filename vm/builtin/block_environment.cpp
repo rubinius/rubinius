@@ -49,9 +49,12 @@ namespace rubinius {
                             BlockEnvironment* const env, Arguments& args,
                             BlockInvocation& invocation)
   {
+
+#ifdef ENABLE_LLVM
     if(void* ptr = env->vmmethod(state)->native_function()) {
       return (*((BlockExecutor)ptr))(state, previous, env, args, invocation);
     }
+#endif
 
     return execute_interpreter(state, previous, env, args, invocation);
   }

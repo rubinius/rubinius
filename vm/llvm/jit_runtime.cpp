@@ -1,3 +1,4 @@
+#ifdef ENABLE_LLVM
 #include "llvm/jit_runtime.hpp"
 #include "gc/code_manager.hpp"
 #include "llvm/jit.hpp"
@@ -72,3 +73,4 @@ namespace jit {
 
   }
 }}
+#endif
