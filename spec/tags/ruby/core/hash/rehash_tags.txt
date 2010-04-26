@@ -1,3 +1,1 @@
-fails:Hash#rehash raises a TypeError if called on a frozen instance
-frozen:Hash#rehash raises a TypeError if called on a frozen instance
 fails:Hash#rehash causes a RuntimeError to be raised if called inside an iterator block

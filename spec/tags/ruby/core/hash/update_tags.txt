@@ -1,2 +1,0 @@
-fails:Hash#update raises a TypeError if called on a non-empty, frozen instance
-frozen:Hash#update raises a TypeError if called on a non-empty, frozen instance

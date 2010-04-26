@@ -1,3 +1,1 @@
-fails:Hash#[]= raises a TypeError if called on a frozen instance
-frozen:Hash#[]= raises a TypeError if called on a frozen instance
 fails:Hash#[]= raises a RuntimeError if a new key is added during iteration

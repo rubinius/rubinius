@@ -1,2 +1,0 @@
-fails:Hash#clear raises a TypeError if called on a frozen instance
-frozen:Hash#clear raises a TypeError if called on a frozen instance

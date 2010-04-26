@@ -1,2 +1,0 @@
-fails:Hash#delete_if raises an TypeError if called on a frozen instance
-frozen:Hash#delete_if raises an TypeError if called on a frozen instance

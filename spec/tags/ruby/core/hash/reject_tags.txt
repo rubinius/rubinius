@@ -1,2 +1,0 @@
-fails:Hash#reject! raises a TypeError if called on a frozen instance
-frozen:Hash#reject! raises a TypeError if called on a frozen instance

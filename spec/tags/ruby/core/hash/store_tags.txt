@@ -1,3 +1,1 @@
-fails:Hash#store raises a TypeError if called on a frozen instance
-frozen:Hash#store raises a TypeError if called on a frozen instance
 fails:Hash#store raises a RuntimeError if a new key is added during iteration

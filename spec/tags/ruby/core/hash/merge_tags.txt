@@ -1,3 +1,1 @@
-fails:Hash#merge! raises a TypeError if called on a non-empty, frozen instance
-frozen:Hash#merge! raises a TypeError if called on a non-empty, frozen instance
 fails:Hash#merge! raises a RuntimeError if a new key is added during iteration
