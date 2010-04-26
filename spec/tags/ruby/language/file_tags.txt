@@ -1,1 +1,0 @@
-fails:The __FILE__ constant equals an absolute path when required using a relative path
