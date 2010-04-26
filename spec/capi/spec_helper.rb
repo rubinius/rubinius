@@ -9,21 +9,6 @@ def compile_extension(path, name)
   lib       = "#{ext}.#{Config::CONFIG['DLEXT']}"
   signature = "#{ext}.sig"
 
-  if Object.const_defined?(:RUBY_ENGINE) && RUBY_ENGINE == "rbx"
-    header = "#{Config::CONFIG['rubyhdrdir']}/ruby.h"
-    header = "vm/capi/ruby.h" unless File.exists? header
-  else
-    header = "#{Config::CONFIG['archdir']}/ruby.h"
-  end
-
-  return lib if File.exists?(signature) and
-                IO.read(signature).chomp == RUBY_NAME and
-                File.exists?(lib) and File.mtime(lib) > File.mtime(source) and
-                File.mtime(lib) > File.mtime(header)
-
-  # avoid problems where compilation failed but previous shlib exists
-  File.delete lib if File.exists? lib
-
   # TODO use rakelib/ext_helper.rb?
   if RUBY_NAME == 'rbx'
     hdrdir = Rubinius::HDR_PATH
@@ -32,6 +17,16 @@ def compile_extension(path, name)
   else
     raise "Don't know how to build C extensions with #{RUBY_NAME}"
   end
+
+  header = hdrdir + "/ruby.h"
+
+  return lib if File.exists?(signature) and
+                IO.read(signature).chomp == RUBY_NAME and
+                File.exists?(lib) and File.mtime(lib) > File.mtime(source) and
+                File.mtime(lib) > File.mtime(header)
+
+  # avoid problems where compilation failed but previous shlib exists
+  File.delete lib if File.exists? lib
 
   cc        = Config::CONFIG["CC"]
   cflags    = (ENV["CFLAGS"] || Config::CONFIG["CFLAGS"]).dup
