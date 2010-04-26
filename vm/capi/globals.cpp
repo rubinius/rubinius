@@ -9,14 +9,18 @@ using namespace rubinius::capi;
 extern "C" {
   void rb_free_global(VALUE global_handle) {
     capi::Handle* handle = capi::Handle::from(global_handle);
-    handle->deref();
+    if(CAPI_REFERENCE_P(handle) && handle->object()->reference_p()) {
+      handle->deref();
+    }
   }
 
   /** @todo This impl is wrong. address itself needs to be registered and
    *        deref'd at GC time to mark the object. */
   void rb_global_variable(VALUE* address) {
     capi::Handle* handle = capi::Handle::from(*address);
-    if(handle) handle->ref();
+    if(CAPI_REFERENCE_P(handle) && handle->object()->reference_p()) {
+      handle->ref();
+    }
   }
 
   void rb_gc_register_address(VALUE* address) {
@@ -25,7 +29,9 @@ extern "C" {
 
   void rb_gc_unregister_address(VALUE* address) {
     capi::Handle* handle = capi::Handle::from(*address);
-    if(handle) handle->deref();
+    if(CAPI_REFERENCE_P(handle) && handle->object()->reference_p()) {
+      handle->deref();
+    }
   }
 
   VALUE rb_gv_get(const char* name) {
