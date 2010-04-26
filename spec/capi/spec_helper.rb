@@ -8,12 +8,12 @@ def compile_extension(path, name)
   obj       = "#{ext}.o"
   lib       = "#{ext}.#{Config::CONFIG['DLEXT']}"
   signature = "#{ext}.sig"
-  header    = "#{Config::CONFIG['rubyhdrdir']}/ruby.h"
 
-  unless File.exists? header
-    if Object.const_defined?(:RUBY_ENGINE) && RUBY_ENGINE == "rbx"
-      header = "vm/capi/ruby.h"
-    end
+  if Object.const_defined?(:RUBY_ENGINE) && RUBY_ENGINE == "rbx"
+    header = "#{Config::CONFIG['rubyhdrdir']}/ruby.h"
+    header = "vm/capi/ruby.h" unless File.exists? header
+  else
+    header = "#{Config::CONFIG['archdir']}/ruby.h"
   end
 
   return lib if File.exists?(signature) and
