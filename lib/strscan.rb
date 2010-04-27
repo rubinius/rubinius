@@ -71,7 +71,7 @@ class StringScanner
 
   def initialize(string, dup=false)
     @string = String.new(string)
-    reset
+    reset_state
   end
 
   def initialize_copy(orig)
@@ -127,9 +127,14 @@ class StringScanner
     string[0...(pos - match.to_s.size)] if matched?
   end
 
-  def reset
+  def reset_state
     @prev_pos = @pos = 0
     @match = nil
+  end
+  private :reset_state
+
+  def reset
+    reset_state
     self
   end
 
