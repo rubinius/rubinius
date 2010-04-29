@@ -226,7 +226,7 @@ end
 # Quiet the eff up already. Rakes barfing sh is maddening
 #
 def qsh(cmd)
-  cmd << " > /dev/null 2>&1" unless $verbose
+  cmd << " > /dev/null" unless $verbose
   puts cmd if $verbose
   unless result = rake_system(cmd)
     fail "Command failed with status (#{$?.exitstatus}): [#{cmd}]"
