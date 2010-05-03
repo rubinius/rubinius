@@ -538,6 +538,8 @@ class Array
   def delete_if(&block)
     return to_enum :delete_if unless block_given?
 
+    return self if empty?
+
     key = undefined
     i = to_iter
     while i.next
