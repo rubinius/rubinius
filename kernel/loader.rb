@@ -357,6 +357,8 @@ containing the Rubinius standard library files.
     end
 
     def load_compiler
+      @stage = "loading the compiler"
+
       # This happens before we parse ARGV, so we have to check ARGV ourselves
       # here.
 
@@ -412,7 +414,7 @@ containing the Rubinius standard library files.
       @exit_code = e.status
     end
 
-    # Run all scripts passed on the command line
+    # Run the script passed on the command line
     def script
       return unless @script and @evals.empty?
 
@@ -534,15 +536,21 @@ containing the Rubinius standard library files.
       epilogue
       done
     end
+
+    # Creates an instance of the Loader and runs it. We catch any uncaught
+    # exceptions here and report them before exiting.
+    def self.main
+      begin
+        new.main
+      rescue Object => exc
+        puts "\n====================================="
+        puts "Exception occurred during top-level exception output! (THIS IS BAD)"
+        puts
+        puts "Exception: #{exc.inspect} (#{exc.class})"
+        @exit_code = 128
+      end
+    end
   end
 end
 
-begin
-  Rubinius::Loader.new.main
-rescue Object => exc
-  puts "\n====================================="
-  puts "Exception occurred during top-level exception output! (THIS IS BAD)"
-  puts
-  puts "Exception: #{exc.inspect} (#{exc.class})"
-  @exit_code = 128
-end
+Rubinius::Loader.main
