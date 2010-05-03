@@ -3,6 +3,8 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Method#to_proc" do
   before(:each) do
+    ScratchPad.record []
+
     @m = MethodSpecs::Methods.new
     @meth = @m.method(:foo)
   end
@@ -46,5 +48,14 @@ describe "Method#to_proc" do
     m = x.method :foo
     x.bar(&m).should == []
     x.baz(1,2,3,&m).should == [1,2,3]
+  end
+
+  it "returns a proc that accepts passed arguments like a block would" do
+    obj = MethodSpecs::ToProc.new
+
+    array = [["text", :comment], ["space", :chunk]]
+    array.each(&obj)
+
+    ScratchPad.recorded.should == array = [["text", :comment], ["space", :chunk]]
   end
 end
