@@ -91,6 +91,10 @@ module Rubinius
       def execute_script(script)
         eval(script, TOPLEVEL_BINDING)
       end
+
+      def save_compiled?
+        @save_compiled ||= Config["compiler.no_rbc"] == nil
+      end
     end
 
     # Given a path to a Ruby source file to load (i.e. @load_path), determines
@@ -130,7 +134,11 @@ module Rubinius
     # Compile a Ruby source file and save the compiled file. Return the
     # internal representation (CompiledMethod) of the Ruby source file.
     def compile_file(file, compiled)
-      Compiler.compile file, compiled
+      if CodeLoader.save_compiled?
+        Compiler.compile file, compiled
+      else
+        Compiler.compile_file file
+      end
     end
 
     # Load a compiled version of a Ruby source file.
