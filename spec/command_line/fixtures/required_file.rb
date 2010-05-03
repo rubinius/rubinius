@@ -1,2 +1,0 @@
-puts "In required file"
-
