@@ -13,6 +13,12 @@ describe "Array#reject" do
     ary.reject { |i| i % 2 == 0 }.should == [1, 3, 5]
   end
 
+  it "returns self when called on an Array emptied with #shift" do
+    array = [1]
+    array.shift
+    array.reject { |x| true }.should == []
+  end
+
   it "properly handles recursive arrays" do
     empty = ArraySpecs.empty_recursive_array
     empty.reject { false }.should == [empty]
@@ -73,6 +79,12 @@ describe "Array#reject!" do
     array = ArraySpecs.recursive_array
     array.reject! { true }.should == []
     array.should == []
+  end
+
+  it "returns nil when called on an Array emptied with #shift" do
+    array = [1]
+    array.shift
+    array.reject! { |x| true }.should == nil
   end
 
   it "returns nil if no changes are made" do

@@ -19,6 +19,12 @@ describe "Array#delete_if" do
 
   it_behaves_like :enumeratorize, :delete_if
 
+  it "returns self when called on an Array emptied with #shift" do
+    array = [1]
+    array.shift
+    array.delete_if { |x| true }.should equal(array)
+  end
+
   ruby_version_is '1.8.7' do
     it "returns an Enumerator if no block given, and the enumerator can modify the original array" do
       enum = @a.delete_if
