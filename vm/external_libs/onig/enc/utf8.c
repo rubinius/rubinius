@@ -66,6 +66,20 @@ mbc_enc_len(const UChar* p)
 }
 
 static int
+mbc_validate_prefix(const UChar* s, const UChar* end, int char_len) {
+  UChar* cur = s + 1; // skip the prefix
+  char_len--;
+
+  while(char_len-- > 0) {
+    const UChar byte = *cur++;
+    if((byte & 0xc0) != 0x80) return 0; // the high bits aren't 1 and 0
+    if(cur > end) return 0; // overrun the end
+  }
+
+  return 1;
+}
+
+static int
 is_mbc_newline(const UChar* p, const UChar* end)
 {
   if (p < end) {
@@ -301,5 +315,6 @@ OnigEncodingType OnigEncodingUTF8 = {
   onigenc_unicode_is_code_ctype,
   get_ctype_code_range,
   left_adjust_char_head,
-  onigenc_always_true_is_allowed_reverse_match
+  onigenc_always_true_is_allowed_reverse_match,
+  mbc_validate_prefix
 };

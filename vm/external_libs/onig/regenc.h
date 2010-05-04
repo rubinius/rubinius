@@ -72,6 +72,11 @@ typedef struct {
 #define ONIG_CHECK_NULL_RETURN_VAL(p,val)  if (ONIG_IS_NULL(p)) return (val)
 
 #define enclen(enc,p)      ONIGENC_MBC_ENC_LEN(enc,p)
+#define validate_prefix(enc,s,e,len) ONIGENC_VALIDATE_PREFIX(enc,s,e,len)
+
+#define enclen2(enc,s,e) \
+    ({ const UChar* _s = (s); const UChar* _e = (e); int len = enclen(enc, _s); \
+       validate_prefix(enc,_s,_e,len) ? len : 1; })
 
 /* character types bit flag */
 #define BIT_CTYPE_NEWLINE  (1<< ONIGENC_CTYPE_NEWLINE)

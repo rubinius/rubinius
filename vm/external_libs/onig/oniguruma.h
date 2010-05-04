@@ -159,6 +159,7 @@ typedef struct OnigEncodingTypeST {
   int    (*get_ctype_code_range)(OnigCtype ctype, OnigCodePoint* sb_out, const OnigCodePoint* ranges[]);
   OnigUChar* (*left_adjust_char_head)(const OnigUChar* start, const OnigUChar* p);
   int    (*is_allowed_reverse_match)(const OnigUChar* p, const OnigUChar* end);
+  int    (*validate_prefix)(const OnigUChar* s, const OnigUChar* e, int len);
 } OnigEncodingType;
 
 typedef OnigEncodingType* OnigEncoding;
@@ -292,6 +293,8 @@ ONIG_EXTERN OnigEncodingType OnigEncodingGB18030;
   (enc)->property_name_to_ctype(enc,p,end)
 
 #define ONIGENC_IS_CODE_CTYPE(enc,code,ctype)  (enc)->is_code_ctype(code,ctype)
+
+#define ONIGENC_VALIDATE_PREFIX(enc, start,end,len) ((enc)->validate_prefix ? (enc)->validate_prefix(start, end, len) : 1)
 
 #define ONIGENC_IS_CODE_NEWLINE(enc,code) \
         ONIGENC_IS_CODE_CTYPE(enc,code,ONIGENC_CTYPE_NEWLINE)
