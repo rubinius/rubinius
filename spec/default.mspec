@@ -80,20 +80,34 @@ class MSpecScript
     'spec/compiler',
     'spec/command_line',
     'spec/capi',
-    'spec/ruby/library/digest',
+    'spec/ruby/library',
+    'spec/library',
 
     'spec/build',
 
+    # excluded because significantly broken
     '^spec/core/compiledmethod',
     '^spec/core/module',
+
     '^spec/capi/globals',
     '^spec/capi/module',
     '^spec/capi/proc',
     '^spec/capi/struct',
 
-    # These additional directories will be enabled as the
-    # specs in them are updated for the C++ VM.
-    # 'spec/debugger',
+    '^spec/ruby/library/ping',
+    '^spec/ruby/library/syslog',
+
+    # 1.9 features
+    '^spec/ruby/library/cmath',
+    '^spec/ruby/library/continuation',
+    '^spec/ruby/library/coverage',
+    '^spec/ruby/library/fiber',
+    '^spec/ruby/library/json',
+    '^spec/ruby/library/minitest',
+    '^spec/ruby/library/prime',
+    '^spec/ruby/library/ripper',
+    '^spec/ruby/library/rake',
+    '^spec/ruby/library/rubygems',
   ]
 
   # The set of substitutions to transform a spec filename
