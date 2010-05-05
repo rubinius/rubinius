@@ -1,7 +1,11 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
 describe "The -d command line option" do
+  before :each do
+    @script = fixture __FILE__, "debug.rb"
+  end
+
   it "sets $DEBUG to true" do
-    ruby_exe("fixtures/debug.rb", :options => "-d", :dir => File.dirname(__FILE__)).chomp.should == "true"
+    ruby_exe(@script, :options => "-d").chomp.should == "true"
   end
 end
