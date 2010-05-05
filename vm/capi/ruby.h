@@ -1268,6 +1268,9 @@ double rb_num2dbl(VALUE);
   /** Tries to return a String using #to_str. Error raised if no or invalid conversion. */
   VALUE   rb_String(VALUE object_handle);
 
+  /** Returns a Struct with the specified fields. */
+  VALUE rb_struct_define(const char *name, ...);
+
   /** Returns a pointer to a persistent char [] that contains the same data as
    * that contained in the Ruby string. The buffer is flushed to the string
    * when control returns to Ruby code. The buffer is updated with the string

@@ -92,9 +92,7 @@ class MSpecScript
     '^spec/core/module',
 
     '^spec/capi/globals',
-    '^spec/capi/module',
     '^spec/capi/proc',
-    '^spec/capi/struct',
 
     '^spec/ruby/library/ping',
     '^spec/ruby/library/syslog',

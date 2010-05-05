@@ -88,6 +88,10 @@ class Struct
     super
   end
 
+  def self.make_struct(name, attrs)
+    new name, *attrs
+  end
+
   def _attrs # :nodoc:
     return self.class.const_get(:STRUCT_ATTRS)
   end
