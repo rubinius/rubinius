@@ -1,1 +1,0 @@
-fails:Method#to_proc returns a proc that accepts passed arguments like a block would

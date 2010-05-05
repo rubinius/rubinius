@@ -82,6 +82,11 @@ class Proc
     end
 
     def call(*args, &block)
+      # do a block style unwrap..
+      if args.size == 1 and args.first.kind_of? Array
+        args = args.first
+      end
+
       @bound_method.call(*args, &block)
     end
     alias_method :[], :call
