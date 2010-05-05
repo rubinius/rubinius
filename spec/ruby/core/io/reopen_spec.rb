@@ -92,6 +92,16 @@ describe "IO#reopen with a String" do
     @io.gets.should == "Line 1: One\n"
   end
 
+  it "creates the file if it doesn't exist" do
+    rm_r @other_name
+
+    File.exists?(@other_name).should be_false
+
+    @io.reopen(@other_name)
+
+    File.exists?(@other_name).should be_true
+  end
+
   ruby_version_is "1.9" do
     it "calls #to_path on non-String arguments" do
       obj = mock('path')
