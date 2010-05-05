@@ -76,7 +76,9 @@ class MSpecScript
   set :ci_files, [
     'spec/ruby/core',
     'spec/ruby/language',
+    'spec/ruby/command_line',
     'spec/core',
+    'spec/language',
     'spec/compiler',
     'spec/command_line',
     'spec/capi',
