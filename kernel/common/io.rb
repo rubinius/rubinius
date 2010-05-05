@@ -1390,8 +1390,8 @@ class IO
   #  f2.readlines[0]   #=> "This is line one\n"
   #  f2.reopen(f1)     #=> #<File:testfile>
   #  f2.readlines[0]   #=> "This is line one\n"
-  def reopen(other, mode="r+")
-    if other.respond_to? :to_io
+  def reopen(other, mode=undefined)
+    if other.respond_to?(:to_io)
       flush
 
       if other.kind_of? IO
@@ -1411,12 +1411,19 @@ class IO
     else
       flush unless closed?
 
+      # If a mode isn't passed in, use the mode that the IO is already in.
+      if mode.equal? undefined
+        mode = @mode
+      else
+        mode = IO.parse_mode(mode) & ACCMODE
+      end
+
       path = StringValue(other)
-      fd = IO.sysopen(path, mode, 0666)
+      fd = IO.sysopen(path, mode | CREAT, 0666)
       Errno.handle path if fd < 0
 
       reset_buffering
-      IO.setup self, fd, mode
+      IO.setup self, fd
       seek 0, SEEK_SET
     end
 
