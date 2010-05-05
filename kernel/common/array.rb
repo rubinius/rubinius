@@ -34,6 +34,8 @@ class Array
   # result. The block supercedes any object given. If
   # neither is provided, the Array is filled with nil.
   def initialize(size_or_array=undefined, obj=undefined)
+    Ruby.check_frozen
+
     if size_or_array.equal? undefined
       unless @total == 0
         @total = @start = 0
@@ -143,6 +145,8 @@ class Array
   def set_index(index, ent, fin=undefined)
     Ruby.primitive :array_aset
 
+    Ruby.check_frozen
+
     ins_length = nil
     unless fin.equal? undefined
       ins_length = Type.coerce_to ent, Fixnum, :to_int
@@ -250,6 +254,8 @@ class Array
   # Appends the object to the end of the Array.
   # Returns self so several appends can be chained.
   def <<(obj)
+    Ruby.check_frozen
+
     set_index(@total, obj)
     self
   end
@@ -423,6 +429,8 @@ class Array
 
   # Removes all elements in the Array and leaves it empty
   def clear()
+    Ruby.check_frozen
+
     @tuple = Rubinius::Tuple.new(1)
     @total = 0
     @start = 0
@@ -459,6 +467,8 @@ class Array
 
   # Removes all nil elements from self, returns nil if no changes
   def compact!
+    Ruby.check_frozen
+
     if (deleted = @tuple.delete(@start,@total,nil)) > 0
       @total -= deleted
       reallocate_shrink()
@@ -472,7 +482,12 @@ class Array
   def concat(other)
     Ruby.primitive :array_concat
 
-    concat Type.coerce_to(other, Array, :to_ary)
+    other = Type.coerce_to(other, Array, :to_ary)
+    return self if other.empty?
+
+    Ruby.check_frozen
+
+    concat other
   end
 
   # Calls block for each element repeatedly n times or forever if none
@@ -518,6 +533,8 @@ class Array
   # the deleted element or nil if the index is out of
   # range. Negative indices count backwards from end.
   def delete_at(idx)
+    Ruby.check_frozen
+
     idx = Type.coerce_to idx, Fixnum, :to_int
 
     # Flip to positive and weed out out of bounds
@@ -536,6 +553,8 @@ class Array
 
   # Deletes every element from self for which block evaluates to true
   def delete_if(&block)
+    Ruby.check_frozen
+
     return to_enum :delete_if unless block_given?
 
     return self if empty?
@@ -630,6 +649,8 @@ class Array
 
   # TODO: rewrite this method
   def fill(*args)
+    Ruby.check_frozen
+
     raise ArgumentError, "Wrong number of arguments" if block_given? and args.size > 2
     raise ArgumentError, "Wrong number of arguments" if !block_given? and args.size == 0
     raise ArgumentError, "Wrong number of arguments" if args.size > 3
@@ -856,6 +877,8 @@ class Array
   # after them.
   def insert(idx, *items)
     return self if items.length == 0
+
+    Ruby.check_frozen
 
     # Adjust the index for correct insertion
     idx = Type.coerce_to idx, Fixnum, :to_int
@@ -1093,6 +1116,8 @@ class Array
 
   # Removes and returns the last element from the Array.
   def pop(many=undefined)
+    Ruby.check_frozen
+
     if many.equal? undefined
       return nil if @total == 0
 
@@ -1145,6 +1170,8 @@ class Array
   # Appends the given object(s) to the Array and returns
   # the modified self.
   def push(*args)
+    return self if args.empty?
+
     concat args
   end
 
@@ -1173,6 +1200,8 @@ class Array
   # Equivalent to #delete_if except that returns nil if
   # no changes were made.
   def reject!(&block)
+    Ruby.check_frozen
+
     return to_enum :reject! unless block_given?
 
     was = length
@@ -1184,6 +1213,8 @@ class Array
   # Replaces contents of self with contents of other,
   # adjusting size as needed.
   def replace(other)
+    Ruby.check_frozen
+
     other = Type.coerce_to other, Array, :to_ary
 
     @tuple = other.tuple.dup
@@ -1201,6 +1232,8 @@ class Array
   # Reverses the order of elements in self. Returns self
   # even if no changes are made
   def reverse!
+    Ruby.check_frozen
+
     return self unless @total > 1
 
     @tuple.reverse! @start, @total
@@ -1264,6 +1297,8 @@ class Array
   # Array or nil if empty. All other elements are
   # moved down one index.
   def shift(n=undefined)
+    Ruby.check_frozen
+
     if n.equal? undefined
       return nil if @total == 0
 
@@ -1287,6 +1322,8 @@ class Array
   # or by a range. Returns the deleted object, subarray, or nil if the
   # index is out of range. Equivalent to:
   def slice!(start, length=undefined)
+    Ruby.check_frozen
+
     if length.equal? undefined
       out = self[start]
 
@@ -1346,6 +1383,8 @@ class Array
 
   # Sorts this Array in-place. See #sort.
   def sort_inplace(&block)
+    Ruby.check_frozen
+
     return self unless @total > 1
 
     if (@total - @start) < 6
@@ -1427,6 +1466,8 @@ class Array
   def uniq!
     im = IdentityMap.new self
     return if im.size == size
+
+    Ruby.check_frozen
     im.to_array self
   end
 
@@ -1501,6 +1542,10 @@ class Array
   end
 
   def unshift(*values)
+    return self if values.empty?
+
+    Ruby.check_frozen
+
     if @start > values.size
       # fit the new values in between 0 and @start if possible
       @start -= values.size
@@ -1900,47 +1945,5 @@ class Array
       return true if i.item === exception
     end
     false
-  end
-
-  module Frozen
-    def []=(*args) frozen_error; end
-    def set_index(*args) frozen_error; end
-    def <<(*args) frozen_error; end
-    def clear() frozen_error; end
-    def compact!() frozen_error; end
-    def concat(other) frozen_error unless other.empty?; self; end
-    def delete_if(*args) frozen_error; end
-    def delete_at(*args) frozen_error; end
-    def fill(*args) frozen_error; end
-    def initialize(*args) frozen_error; end
-    def insert(idx, *args) frozen_error unless args.empty?; self; end
-    def map!() frozen_error; end
-    def pop(*args) frozen_error; end
-    def push(*args) frozen_error unless args.empty?; self; end
-    def reject!(*args) frozen_error; end
-    def replace(*args) frozen_error; end
-    def reverse!() frozen_error; end
-    def shift(*args) frozen_error; end
-    def slice!(*args) frozen_error; end
-    def sort!() frozen_error; end
-    def unshift(*args); frozen_error unless args.empty?; self; end
-
-    def uniq!
-      im = IdentityMap.new self
-      return if im.size == size
-
-      frozen_error
-    end
-
-    def frozen_error
-      raise TypeError, "can't modify frozen array"
-    end
-    private :frozen_error
-  end
-
-  def freeze
-    super
-    extend Frozen
-    self
   end
 end

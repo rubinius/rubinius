@@ -123,6 +123,8 @@ class Array
   end
 
   def []=(idx, ent)
+    Ruby.check_frozen
+
     if idx >= @tuple.fields
       new_tuple = Rubinius::Tuple.new(idx + 10)
       new_tuple.copy_from @tuple, @start, @total, 0
@@ -182,6 +184,8 @@ class Array
   # Replaces each element in self with the return value
   # of passing that element to the supplied block.
   def map!
+    Ruby.check_frozen
+
     return to_enum :map! unless block_given?
 
     i = to_iter

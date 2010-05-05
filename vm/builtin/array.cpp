@@ -109,6 +109,8 @@ namespace rubinius {
   }
 
   Object* Array::aset(STATE, Fixnum* idx, Object* val) {
+    if(is_frozen_p()) return Primitives::failure();
+
     native_int index = idx->to_native();
 
     if(index < 0) {
@@ -122,11 +124,13 @@ namespace rubinius {
   Array* Array::concat(STATE, Array* other) {
     size_t osize = other->size();
 
+    if(osize == 0) return this;
+    if(is_frozen_p()) return force_as<Array>(Primitives::failure());
+
     if(osize == 1) {
       set(state, size(), other->get(state, 0));
       return this;
     }
-    if(osize == 0) return this;
 
     size_t new_size = size() + osize;
     Tuple* nt = Tuple::create(state, new_size);
