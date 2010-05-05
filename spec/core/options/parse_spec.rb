@@ -50,7 +50,7 @@ describe "Rubinius::Options#parse" do
     ScratchPad.recorded.should == [:parsed, "ARG"]
   end
 
-  it "parses a short option group with optional argument missing" do
+  it "parses a short option with optional argument instead of option group" do
     ScratchPad.record []
     @opt.on("-a", "[ARG]", "desc") { |o| ScratchPad << [:a, o] }
     @opt.on("-b", "desc") { |o| ScratchPad << :b }
@@ -58,12 +58,12 @@ describe "Rubinius::Options#parse" do
     ScratchPad.recorded.should == [[:a, "b"]]
   end
 
-  it "parses a short option group with optional argument" do
+  it "parses a short option group with optional argument without consuming the next entry" do
     ScratchPad.record []
     @opt.on("-a", "[ARG]", "desc") { |o| ScratchPad << [:a, o] }
     @opt.on("-b", "desc") { |o| ScratchPad << :b }
-    @opt.parse ["-ba", "ARG"]
-    ScratchPad.recorded.should == [:b, [:a, "ARG"]]
+    @opt.parse(["-ba", "ARG"]).should == ["ARG"]
+    ScratchPad.recorded.should == [:b, [:a, nil]]
   end
 
   it "parses a short option group with attached optional argument" do
@@ -88,13 +88,13 @@ describe "Rubinius::Options#parse" do
     ScratchPad.recorded.should == [[:a, nil], :b]
   end
 
-  it "parses a short option with an optional argument" do
+  it "parses a short option with an optional argument without consuming the next entry" do
     @opt.on "-a", "[ARG]", "desc", &@arg_prc
-    @opt.parse ["-a", "ARG"]
-    ScratchPad.recorded.should == [:parsed, "ARG"]
+    @opt.parse(["-a", "ARG"]).should == ["ARG"]
+    ScratchPad.recorded.should == [:parsed, nil]
   end
 
-  it "parses a short option with a connected optional argument" do
+  it "parses a short option with an attached optional argument" do
     @opt.on "-a", "[ARG]", "desc", &@arg_prc
     @opt.parse ["-aARG"]
     ScratchPad.recorded.should == [:parsed, "ARG"]
@@ -106,10 +106,10 @@ describe "Rubinius::Options#parse" do
     ScratchPad.recorded.should == [:parsed, "ARG"]
   end
 
-  it "parses a long option with an optional argument" do
+  it "parses a long option with an optional argument without consuming the next entry" do
     @opt.on "--abdc", "[ARG]", "desc", &@arg_prc
-    @opt.parse ["--abdc", "ARG"]
-    ScratchPad.recorded.should == [:parsed, "ARG"]
+    @opt.parse(["--abdc", "ARG"]).should == ["ARG"]
+    ScratchPad.recorded.should == [:parsed, nil]
   end
 
   it "parses a long option with an optional '=' argument" do

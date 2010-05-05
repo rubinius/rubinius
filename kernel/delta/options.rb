@@ -84,10 +84,10 @@ module Rubinius
     #  on "-a", "--abdc", "ARG", "description"
     #  on "-a", "[ARG]", "description"
     #
-    # The [ARG] form specifies an optional argument. When parsing,
-    # if an option having an optional argument is followed by a
-    # registered option, +nil+ will be passed to the option having
-    # an optional argument.
+    # The [ARG] form specifies an optional argument. The argument
+    # must be attached to the option. In the case of a short option,
+    # the form "-aARG" must be used. For a long option, the form
+    # '--opt=ARG' must be used.
     #
     # If an block is passed, it will be invoked when the option is
     # matched. Not passing a block is permitted, but nonsensical.
@@ -136,19 +136,7 @@ module Rubinius
       else
         if option.arg?
           if arg.nil?
-            if option.optional?
-              arg = argv.first
-
-              if arg
-                arg, equal_arg = arg.split("=",2)
-              end
-
-              if arg and arg[0] == ?-
-                arg = match?(arg) ? nil : argv.shift
-              else
-                arg = argv.shift
-              end
-            else
+            unless option.optional?
               arg = argv.shift
             end
           end
