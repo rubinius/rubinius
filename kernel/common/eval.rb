@@ -169,7 +169,7 @@ module Kernel
       static_scope = binding.static_scope
 
       if mc
-        static_scope = static_scope.using_current_as(mc)
+        static_scope = Rubinius::StaticScope.new(mc, static_scope)
       else
         static_scope = static_scope.using_disabled_scope
       end

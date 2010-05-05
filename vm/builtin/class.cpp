@@ -211,8 +211,6 @@ namespace rubinius {
       meta->superclass(state, sup);
     }
 
-    meta->name(state, state->symbol("<metaclass>"));
-
     /* Finally, attach the new MetaClass */
     obj->klass(state, meta);
 
