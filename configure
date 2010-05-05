@@ -152,6 +152,14 @@ class Configure
       @vendordir = expand dir
     end
 
+    o.doc "\n Optional features"
+
+    @options = o
+
+    @features = {}
+
+    feature "execinfo"
+
     o.doc "\n Help!"
 
     o.on "--show", "Print the current configuration and exit" do
@@ -167,7 +175,18 @@ class Configure
 
     o.doc ""
 
-    @options = o
+  end
+
+  def feature(name, on_by_default=true)
+    @features[name] = on_by_default
+
+    @options.on "--with-#{name}", "Enable #{name}" do
+      @features[name] = true
+    end
+
+    @options.on "--without-#{name}", "Disable #{name}" do
+      @features[name] = false
+    end
   end
 
   def parse(ary)
@@ -433,7 +452,7 @@ class Configure
   end
 
   def detect_features
-    if has_function("backtrace", ["execinfo.h"])
+    if @features["execinfo"] and has_function("backtrace", ["execinfo.h"])
       @defines << "HAS_EXECINFO"
     end
   end
