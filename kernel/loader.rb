@@ -234,7 +234,23 @@ containing the Rubinius standard library files.
       end
 
       options.on "-w", "Enable warnings" do
-        # TODO: implement
+        $VERBOSE = true
+      end
+
+      options.on("-W", "[level]",
+                 "Set warning level: 0=silence, 1=medium, 2=verbose (default)") do |l|
+        case l
+        when "0"
+          $VERBOSE = nil
+        when "1"
+          $VERBOSE = false
+        when nil
+          $VERBOSE = true
+        else
+          # MRI -h says -W2 sets $VERBOSE to true, but behaviorally
+          # any value >= 2 sets $VERBOSE to true.
+          $VERBOSE = true
+        end
       end
 
       options.on "--version", "Display the version" do
@@ -401,15 +417,7 @@ containing the Rubinius standard library files.
     def evals
       @stage = "evaluating command line code"
 
-      @evals.each do |code|
-        eval(code, TOPLEVEL_BINDING) do |compiled_method|
-          if @verbose_eval
-# Disabled until and if generating sexps is re-enabled. --rue
-#            p code.to_sexp("(eval)", 1)
-            puts compiled_method.decode
-          end
-        end
-      end
+      eval(@evals.join("\n"), TOPLEVEL_BINDING, "-e", 1)
     rescue SystemExit => e
       @exit_code = e.status
     end
