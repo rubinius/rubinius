@@ -1,3 +1,4 @@
+# vim: filetype=ruby
 require 'spec/custom/utils/script'
 
 class MSpecScript
@@ -50,7 +51,7 @@ class MSpecScript
 
   # An ordered list of the directories containing specs to run
   set :files, get(:language) + get(:core) + get(:library) +
-              get(:capi) + get(:compiler) + get(:build)
+              get(:capi) + get(:compiler) + get(:build) + get(:command_line)
 
   set :ruby, [
     'spec/ruby/language',
@@ -87,14 +88,12 @@ class MSpecScript
 
     'spec/build',
 
-    # excluded because significantly broken
-    '^spec/core/compiledmethod',
-    '^spec/core/module',
-
+    # Excluded because these require access to raw C functions,
+    # which is not implemented at this time.
     '^spec/capi/globals',
     '^spec/capi/proc',
 
-    '^spec/ruby/library/ping',
+    # Excluded because the specs are extremely system dependent.
     '^spec/ruby/library/syslog',
 
     # 1.9 features
