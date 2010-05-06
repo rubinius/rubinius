@@ -15,7 +15,7 @@ module Rubinius
     # being used.
 
     attr_accessor :hints         # added by the VM to indicate how it's being used.
-    attr_accessor :__ivars__
+    attr_accessor :metadata      # [Tuple]   extra data
     attr_accessor :name          # [Symbol]  name of the method
     attr_accessor :iseq          # [Tuple]   instructions to execute
     attr_accessor :stack_size    # [Integer] size of stack at compile time
@@ -317,7 +317,7 @@ module Rubinius
     #
     # @return [Boolean]
     def is_block?
-      @name =~ /__(?:(?:\w|_)+)?block__/
+      get_metadata(:for_block)
     end
 
     def describe
@@ -343,7 +343,7 @@ module Rubinius
 
       lits = Tuple.new(cm.literals.size)
       cm.literals.each_with_index do |lit, idx|
-        if lit.kind_of? CompiledMethod
+        if lit.kind_of? CompiledMethod and lit.is_block?
           lit = lit.change_name name
         end
 
@@ -470,6 +470,60 @@ module Rubinius
       end
     end
 
+    def add_metadata(key, val)
+      raise TypeError, "key must be a symbol" unless key.kind_of? Symbol
+
+      case val
+      when true, false, Symbol, Fixnum, String
+        # ok
+      else
+        raise TypeError, "invalid type of value"
+      end
+
+      @metadata ||= nil # to deal with MRI seeing @metadata as not set
+
+      unless @metadata
+        @metadata = Tuple.new(2)
+        @metadata[0] = key
+        @metadata[1] = val
+        return val
+      end
+
+      i = 0
+      fin = @metadata.size
+
+      while i < fin
+        if @metadata[i] == key
+          @metadata[i + 1] = val
+          return val
+        end
+
+        i += 2
+      end
+
+      tup = Tuple.create(fin + 2)
+      tup.copy_from @metadata, 0, fin, 0
+      tup[fin] = key
+      tup[fin + 1] = val
+
+      return val
+    end
+
+    def get_metadata(key)
+      return nil unless @metadata.kind_of? Tuple
+
+      i = 0
+      while i < @metadata.size
+        if @metadata[i] == key
+          return @metadata[i + 1]
+        end
+
+        i += 2
+      end
+
+      return nil
+    end
+
     ##
     # Represents virtual machine's CPU instruction.
     # Instructions are organized into instruction
@@ -490,7 +544,7 @@ module Rubinius
           when :local
             # TODO: Blocks should be able to retrieve local names as well,
             # but need access to method corresponding to home context
-            if cm.local_names and cm.name != :__block__
+            if cm.local_names and !cm.is_block?
               @comment = cm.local_names[args[i]].to_s
             end
           when :block_local

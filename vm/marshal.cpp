@@ -146,7 +146,7 @@ namespace rubinius {
 
     CompiledMethod* cm = CompiledMethod::create(state);
 
-    cm->ivars(state, unmarshal());
+    cm->metadata(state, unmarshal());
     cm->primitive(state, (Symbol*)unmarshal());
     cm->name(state, (Symbol*)unmarshal());
     cm->iseq(state, (InstructionSequence*)unmarshal());

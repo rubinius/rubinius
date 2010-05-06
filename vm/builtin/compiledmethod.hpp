@@ -22,6 +22,7 @@ namespace rubinius {
     const static object_type type = CompiledMethodType;
 
   private:
+    Object* metadata_;           // slot
     Symbol* name_;               // slot
     InstructionSequence* iseq_; // slot
     Fixnum* stack_size_;         // slot
@@ -57,6 +58,7 @@ namespace rubinius {
     }
 #endif
 
+    attr_accessor(metadata, Object);
     attr_accessor(name, Symbol);
     attr_accessor(iseq, InstructionSequence);
     attr_accessor(stack_size, Fixnum);

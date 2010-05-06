@@ -41,10 +41,10 @@ namespace offset {
   const static int tuple_full_size = 1;
   const static int tuple_field = 2;
 
-  const static int cm_backend_method = 12;
-  const static int cm_jit_data = 13;
-  const static int cm_literals = 14;
-  const static int cm_static_scope = 11;
+  const static int cm_backend_method = 13;
+  const static int cm_jit_data = 14;
+  const static int cm_literals = 15;
+  const static int cm_static_scope = 12;
 
   const static int msg_name = 0;
   const static int msg_module = 1;

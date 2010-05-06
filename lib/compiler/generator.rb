@@ -223,6 +223,10 @@ module Rubinius
       cm.name           = @name
       cm.primitive      = @primitive
 
+      if @for_block
+        cm.add_metadata :for_block, true
+      end
+
       cm
     end
 

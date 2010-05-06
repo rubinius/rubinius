@@ -164,7 +164,7 @@ module Rubinius
             raise "Unknown CompiledMethod version #{version}"
           end
           cm = CompiledMethod.new
-          cm.__ivars__     = unmarshal_data
+          cm.metadata      = unmarshal_data
           cm.primitive     = unmarshal_data
           cm.name          = unmarshal_data
           cm.iseq          = unmarshal_data
@@ -284,7 +284,7 @@ module Rubinius
           str
         when CompiledMethod
           str = "M\n1\n"
-          str.append marshal(val.__ivars__)
+          str.append marshal(val.metadata)
           str.append marshal(val.primitive)
           str.append marshal(val.name)
           str.append marshal(val.iseq)
