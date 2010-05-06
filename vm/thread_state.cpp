@@ -16,7 +16,7 @@ namespace rubinius {
   {}
 
   Object* ThreadState::state_as_object(STATE) {
-    if(raise_reason_ == cNone) return Qnil;
+    if(raise_reason_ == cNone && current_exception_.get()->nil_p()) return Qnil;
 
     Exception* exc = Exception::create(state);
     exc->klass(state, G(exc_vm_internal));
@@ -24,11 +24,8 @@ namespace rubinius {
     exc->set_ivar(state, state->symbol("destination"), destination_scope());
     exc->set_ivar(state, state->symbol("throw_dest"), throw_dest());
 
-    if(raise_reason_ == cException) {
-      exc->set_ivar(state, state->symbol("value"),  current_exception());
-    } else {
-      exc->set_ivar(state, state->symbol("value"),  raise_value());
-    }
+    exc->set_ivar(state, state->symbol("exception"),  current_exception());
+    exc->set_ivar(state, state->symbol("value"),  raise_value());
     return exc;
   }
 
@@ -38,11 +35,8 @@ namespace rubinius {
     Object* reason = obj->get_ivar(state, state->symbol("reason"));
     raise_reason_ = (RaiseReason)as<Fixnum>(reason)->to_native();
 
-    if(raise_reason_ == cException) {
-      current_exception_.set(obj->get_ivar(state, state->symbol("value")));
-    } else {
-      raise_value_.set(obj->get_ivar(state, state->symbol("value")));
-    }
+    current_exception_.set(obj->get_ivar(state, state->symbol("exception")));
+    raise_value_.set(obj->get_ivar(state, state->symbol("value")));
 
     Object* vs = try_as<VariableScope>(
         obj->get_ivar(state, state->symbol("destination")));
