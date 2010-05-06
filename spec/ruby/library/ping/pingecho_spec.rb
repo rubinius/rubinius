@@ -16,16 +16,16 @@ ruby_version_is ""..."1.9" do
       Ping.pingecho('127.0.0.1').should be_true
     end
 
-    it "raises ArgumentError for wrong number of arguments" do
-      lambda { Ping.pingecho }.should raise_error(ArgumentError)
-      lambda { Ping.pingecho 'one', 'two', 'three', 'four' }.should raise_error(ArgumentError)
-    end
-
-    it "returns false for invalid parameters" do
+    it "returns false if the port is invalid" do
       Ping.pingecho('127.0.0.1', 5, 'invalid port').should be_false
-      Ping.pingecho('127.0.0.1', 'invalid timeout').should be_false
-      Ping.pingecho(123).should be_false
     end
 
+    it "returns false if the timeout value is invalid" do
+      Ping.pingecho('127.0.0.1', 'invalid timeout').should be_false
+    end
+
+    it "returns false if the host is invalid" do
+      Ping.pingecho(0).should be_false
+    end
   end
 end
