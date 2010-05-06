@@ -298,18 +298,20 @@ remember:
     } else {
       Signature sig2(ops_.state(), "Object");
       sig2 << "VM";
+      sig2 << "CallFrame";
       sig2 << "Object";
       sig2 << "Object";
       sig2 << "Object";
 
       Value* call_args2[] = {
         ops_.vm(),
+        ops_.call_frame(),
         self,
         ops_.constant(acc->name()),
         val
       };
 
-      sig2.call("rbx_set_ivar", call_args2, 4, "ivar",
+      sig2.call("rbx_set_ivar", call_args2, 5, "ivar",
           ops_.b());
     }
 

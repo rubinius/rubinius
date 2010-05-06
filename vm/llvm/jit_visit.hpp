@@ -2975,6 +2975,7 @@ use_send:
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
+      sig << "CallFrame";
       sig << ObjType;
       sig << ObjType;
       sig << ObjType;
@@ -2983,12 +2984,14 @@ use_send:
 
       Value* call_args[] = {
         vm_,
+        call_frame_,
         self,
         constant(as<Symbol>(literal(which))),
         stack_top()
       };
 
-      sig.call("rbx_set_ivar", call_args, 4, "ivar", b());
+      Value* ret = sig.call("rbx_set_ivar", call_args, 5, "ivar", b());
+      check_for_exception(ret);
     }
 
     void visit_push_my_field(opcode which) {

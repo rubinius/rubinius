@@ -749,7 +749,12 @@ extern "C" {
     return self->get_ivar(state, name);
   }
 
-  Object* rbx_set_ivar(STATE, Object* self, Symbol* name, Object* val) {
+  Object* rbx_set_ivar(STATE, CallFrame* call_frame, Object* self, Symbol* name, Object* val) {
+    if(self->reference_p() && self->is_frozen_p()) {
+      Exception::frozen_error(state, call_frame);
+      return NULL;
+    }
+
     return self->set_ivar(state, name, val);
   }
 
