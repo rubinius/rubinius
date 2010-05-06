@@ -1,3 +1,0 @@
-fails:MethodContext#reload_method modifying the CompiledMethod bytecodes without compiling does not effect the context
-fails:MethodContext#reload_method modifying the CompiledMethod bytecodes and compiling updates the context
-fails:MethodContext#reload_method reloads the compiled instruction sequence from the context's CompiledMethod

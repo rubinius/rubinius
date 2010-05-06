@@ -1,4 +1,0 @@
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#blockquote when passed a String returns a 'blockquote'-element, using the passed String for the 'cite'-attribute
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#blockquote when passed a String includes the passed block's return value when passed a block
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#blockquote when passed a Hash returns a 'blockquote'-element, using the passed Hash for attributes
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#blockquote when passed a Hash includes the passed block's return value when passed a block

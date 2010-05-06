@@ -1,1 +1,0 @@
-incomplete:CGI#env_table needs to be reviewed for spec completeness

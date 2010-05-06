@@ -1,4 +1,0 @@
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#html when passed 'PRETTY' returns pretty output when the passed String is 'PRETTY
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#html when passed 'PRETTY' includes the passed block when passed a block
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#html when passed a Hash returns an 'html'-element using the passed Hash for attributes
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#html when passed a Hash omits the doctype when the Hash contains a 'DOCTYPE' entry that's false or nil

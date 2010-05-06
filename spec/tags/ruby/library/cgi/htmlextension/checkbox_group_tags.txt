@@ -1,9 +1,1 @@
 fails:CGI::HtmlExtension#checkbox_group when passed name, values ... allows passing a value as an Array containing the value, a label and the checked state
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox_group when passed name, values ... returns a sequence of 'checkbox'-elements with the passed name and the passed values
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox_group when passed name, values ... allows passing a value inside an Array
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox_group when passed name, values ... allows passing a value as an Array containing the value and the checked state or a label
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox_group when passed name, values ... allows passing a value as an Array containing the value, a label and the checked state
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox_group when passed name, values ... returns an empty String when passed no values
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox_group when passed name, values ... ignores a passed block
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox_group when passed Hash uses the passed Hash to generate the checkbox sequence
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox_group when passed Hash ignores a passed block

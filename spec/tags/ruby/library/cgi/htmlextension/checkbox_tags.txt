@@ -1,8 +1,0 @@
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox when passed no arguments returns a checkbox-'input'-element without a name
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox when passed no arguments ignores a passed block
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox when passed name returns a checkbox-'input'-element with the passed name
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox when passed name ignores a passed block
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox when passed name, value, checked returns a checked checkbox-'input'-element with the passed name and value when checked is true
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox when passed name, value, checked ignores a passed block
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox when passed Hash returns a checkbox-'input'-element using the passed Hash for attributes
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#checkbox when passed Hash ignores a passed block

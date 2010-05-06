@@ -1,2 +1,0 @@
-incomplete:CGI::QueryExtension#cookies needs to be reviewed for spec completeness
-incomplete:CGI::QueryExtension#cookies= needs to be reviewed for spec completeness

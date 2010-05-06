@@ -1,1 +1,0 @@
-incomplete:CGI#stdoutput needs to be reviewed for spec completeness

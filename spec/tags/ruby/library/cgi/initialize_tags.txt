@@ -1,5 +1,0 @@
-unstable:CGI#initialize when passed type extends self with CGI::QueryExtension, CGI::Html4Tr, CGI::Html4Fr and CGI::HtmlExtension when the passed type is 'html4Fr'
-unstable:CGI#initialize when passed type extends self with CGI::QueryExtension, CGI::Html4 and CGI::HtmlExtension when the passed type is 'html4'
-unstable:CGI#initialize when passed type extends self with CGI::QueryExtension
-unstable:CGI#initialize when passed type extends self with CGI::QueryExtension, CGI::Html3 and CGI::HtmlExtension when the passed type is 'html3'
-unstable:CGI#initialize when passed type extends self with CGI::QueryExtension, CGI::Html4Tr and CGI::HtmlExtension when the passed type is 'html4Tr'

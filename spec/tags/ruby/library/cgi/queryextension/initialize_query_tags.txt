@@ -1,1 +1,0 @@
-incomplete:CGI::QueryExtension#initialize_query needs to be reviewed for spec completeness

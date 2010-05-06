@@ -1,2 +1,0 @@
-fails:MethodContext#stack_at returns the value on the context operand stack at the specified depth
-fails:MethodContext#stack_at throws an ArgumentError if depth is out of range

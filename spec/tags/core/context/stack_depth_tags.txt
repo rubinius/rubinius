@@ -1,1 +1,0 @@
-fails:MethodContext#stack_depth returns the depth of the bytecode operand stack

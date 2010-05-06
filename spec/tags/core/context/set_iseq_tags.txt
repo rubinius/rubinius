@@ -1,4 +1,0 @@
-fails:MethodContext#set_iseq changes the iseq for the receiving context only
-fails:MethodContext#set_iseq insulates the receiving context from changes to the compiled method
-fails:MethodContext#set_iseq changes to the iseq persist across calls to blocks
-fails:MethodContext#set_iseq changes to the iseq persist across calls to other methods

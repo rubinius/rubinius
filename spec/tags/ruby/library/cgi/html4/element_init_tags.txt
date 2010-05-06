@@ -1,2 +1,0 @@
-fails:CGI::Html4#element_init initializes the HTML Generation methods for HTML4
-fails:CGI::Html4#element_init should extend self with CGI::TagMaker
