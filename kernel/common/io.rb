@@ -654,6 +654,7 @@ class IO
   def binmode
     ensure_open
     # HACK what to do?
+    return self
   end
 
   def bytes
@@ -1664,7 +1665,8 @@ class IO::BidirectionalPipe < IO
     :readlines,
     :readpartial,
     :sysread,
-    :seek
+    :seek,
+    :binmode
   ]
 
   WRITE_METHODS = [
