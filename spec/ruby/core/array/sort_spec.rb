@@ -121,6 +121,12 @@ describe "Array#sort" do
     a=[ArraySpecs::Uncomparable.new, ArraySpecs::Uncomparable.new]
     lambda {a.sort}.should raise_error(ArgumentError)
   end
+
+  # From a strange Rubinius bug
+  it "handles a large array that has been pruned" do
+    pruned = ArraySpecs::LargeArray.dup.delete_if { |n| n !~ /^test./ }
+    pruned.sort.should == ArraySpecs::LargeTestArraySorted
+  end
 end
 
 describe "Array#sort!" do
