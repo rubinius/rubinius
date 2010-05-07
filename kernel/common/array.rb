@@ -1651,7 +1651,7 @@ class Array
   def qsort!
     # Stack stores the indexes that still need sorting
     stack = []
-    left_end, right_end = @start, (@total - 1)
+    left_end, right_end = @start, @start + (@total - 1)
 
     # We are either processing a 'new' partition or one that
     # was saved to stack earlier.
@@ -1773,7 +1773,7 @@ class Array
   def qsort_block!(block)
     # Stack stores the indexes that still need sorting
     stack = []
-    left_end, right_end = @start, (@total - 1)
+    left_end, right_end = @start, @start + (@total - 1)
 
     # We are either processing a 'new' partition or one that
     # was saved to stack earlier.
