@@ -25,8 +25,12 @@ namespace rubinius {
 
     Object* fetch(STATE, Object* key, bool* found);
 
+    Object* remove(STATE, Object* key, bool* removed = 0);
+
     // Ruby.primitive :compactlookuptable_remove
-    Object* remove(STATE, Object* key);
+    Object* remove_prim(STATE, Object* key) {
+      return remove(state, key);
+    }
 
     // Ruby.primitive :compactlookuptable_store
     Object* store(STATE, Object* key, Object* val);

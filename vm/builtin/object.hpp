@@ -230,7 +230,7 @@ namespace rubinius {
 
     // Ruby.primitive :object_del_ivar
     Object*   del_ivar(STATE, Symbol* sym);
-    Object*   del_table_ivar(STATE, Symbol* sym);
+    Object*   del_table_ivar(STATE, Symbol* sym, bool* removed = 0);
 
     Object*   table_ivar_defined(STATE, Symbol* sym);
 

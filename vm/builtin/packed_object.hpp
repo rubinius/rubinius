@@ -17,7 +17,7 @@ namespace rubinius {
     Object* get_packed_ivar(STATE, Symbol* sym);
     Object* set_packed_ivar(STATE, Symbol* sym, Object* val);
     Object* packed_ivar_defined(STATE, Symbol* sym);
-    Object* packed_ivar_delete(STATE, Symbol* sym);
+    Object* packed_ivar_delete(STATE, Symbol* sym, bool* removed = 0);
 
     void add_packed_ivars(STATE, Array* ary);
 

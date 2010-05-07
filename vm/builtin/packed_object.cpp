@@ -54,17 +54,21 @@ namespace rubinius {
     return val;
   }
 
-  Object* PackedObject::packed_ivar_delete(STATE, Symbol* sym) {
+  Object* PackedObject::packed_ivar_delete(STATE, Symbol* sym, bool* removed) {
     LookupTable* tbl = this->reference_class()->packed_ivar_info();
     assert(tbl && !tbl->nil_p());
 
     Fixnum* which = try_as<Fixnum>(tbl->fetch(state, sym));
     if(!which) {
-      return del_table_ivar(state, sym);
+      return del_table_ivar(state, sym, removed);
     }
 
+    if(removed) *removed = true;
+
+    Object* val = body_as_array()[which->to_native()];
     body_as_array()[which->to_native()] = Qundef;
-    return this;
+
+    return val;
   }
 
   void PackedObject::add_packed_ivars(STATE, Array* ary) {

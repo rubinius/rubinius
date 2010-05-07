@@ -461,6 +461,12 @@ module Kernel
   def remove_instance_variable(sym)
     Ruby.primitive :object_del_ivar
 
+    # If it's already a symbol, then we're here because it doesn't exist.
+    if sym.kind_of? Symbol
+      raise NameError, "instance variable '#{sym}' not defined"
+    end
+
+    # Otherwise because sym isn't a symbol, coerce it and try again.
     remove_instance_variable Rubinius.instance_variable_validate(sym)
   end
   private :remove_instance_variable

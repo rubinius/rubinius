@@ -79,8 +79,12 @@ namespace rubinius {
     LookupTableBucket* find_entry(STATE, Object* key);
     Object* find(STATE, Object* key);
 
+    Object* remove(STATE, Object* key, bool* removed = 0);
+
     // Ruby.primitive :lookuptable_delete
-    Object* remove(STATE, Object* key);
+    Object* delete_prim(STATE, Object* key) {
+      return remove(state, key, 0);
+    }
 
     // Ruby.primitive :lookuptable_has_key
     Object* has_key(STATE, Object* key);

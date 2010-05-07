@@ -42,13 +42,14 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* CompactLookupTable::remove(STATE, Object* key) {
+  Object* CompactLookupTable::remove(STATE, Object* key, bool* removed) {
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
       if(at(state, i) == key) {
         Object* val = at(state, i + 1);
 
         put(state, i, Qnil);
         put(state, i + 1, Qnil);
+        *removed = true;
         return val;
       }
     }

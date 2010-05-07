@@ -333,11 +333,9 @@ namespace rubinius {
       mod_to_query = mod;
     }
 
-    if(mod_to_query->table_ivar_defined(state, name)->true_p()) {
-      Object* value = mod_to_query->get_table_ivar(state, name);
-      mod_to_query->del_table_ivar(state, name);
-      return value;
-    }
+    bool removed = false;
+    Object* value = mod_to_query->del_table_ivar(state, name, &removed);
+    if(removed) return value;
 
     std::stringstream ss;
     mod = this;

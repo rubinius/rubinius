@@ -196,7 +196,7 @@ namespace rubinius {
     return entry->value();
   }
 
-  Object* LookupTable::remove(STATE, Object* key) {
+  Object* LookupTable::remove(STATE, Object* key, bool* removed) {
     hashval bin;
     LookupTableBucket* entry;
     LookupTableBucket* last = NULL;
@@ -221,6 +221,7 @@ namespace rubinius {
           values_->put(state, bin, entry->next());
         }
         entries(state, Fixnum::from(entries_->to_native() - 1));
+        if(removed) *removed = true;
         return val;
       }
 

@@ -578,19 +578,26 @@ namespace rubinius {
 
   Object* Object::del_ivar(STATE, Symbol* sym) {
     LookupTable* tbl;
+    bool removed = false;
 
     /* Implements the external ivars table for objects that don't
        have their own space for ivars. */
     if(!reference_p()) {
       tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
 
-      if(tbl) tbl->remove(state, sym);
-      return this;
+      if(tbl) {
+        Object* val = tbl->remove(state, sym, &removed);
+        if(removed) return val;
+      }
+
+      return Primitives::failure();
     }
 
     // Handle packed objects in a unique way.
     if(PackedObject* po = try_as<PackedObject>(this)) {
-      return po->packed_ivar_delete(state, sym);
+      Object* val = po->packed_ivar_delete(state, sym, &removed);
+      if(removed) return val;
+      return Primitives::failure();
     }
 
     /* We might be trying to access a field, so check there first. */
@@ -598,22 +605,24 @@ namespace rubinius {
     if(ti) {
       TypeInfo::Slots::iterator it = ti->slots.find(sym->index());
       // Can't remove a slot, so just bail.
-      if(it != ti->slots.end()) return this;
+      if(it != ti->slots.end()) return Qnil;
     }
 
-    return del_table_ivar(state, sym);
+    Object* val = del_table_ivar(state, sym, &removed);
+    if(removed) return val;
+    return Primitives::failure();
   }
 
-  Object* Object::del_table_ivar(STATE, Symbol* sym) {
+  Object* Object::del_table_ivar(STATE, Symbol* sym, bool* removed) {
     /* No ivars, we're done! */
-    if(ivars()->nil_p()) return this;
+    if(ivars()->nil_p()) return Qnil;
 
     if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars())) {
-      tbl->remove(state, sym);
+      return tbl->remove(state, sym, removed);
     } else if(LookupTable* tbl = try_as<LookupTable>(ivars())) {
-      tbl->remove(state, sym);
+      return tbl->remove(state, sym, removed);
     }
-    return this;
+    return Qnil;
   }
 
   String* Object::to_s(STATE, bool address) {
