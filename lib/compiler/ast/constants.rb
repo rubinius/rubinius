@@ -48,6 +48,12 @@ module Rubinius
       end
 
       def value_defined(g, f, const_missing=true)
+        # Save the current exception into a stack local
+        g.push_exception_state
+        outer_exc_state = g.new_stack_local
+        g.set_stack_local outer_exc_state
+        g.pop
+
         ex = g.new_label
         ok = g.new_label
         g.setup_unwind ex, RescueType
@@ -62,6 +68,8 @@ module Rubinius
 
         ex.set!
         g.clear_exception
+        g.push_stack_local outer_exc_state
+        g.restore_exception_state
         g.goto f
 
         ok.set!
@@ -121,6 +129,12 @@ module Rubinius
       end
 
       def value_defined(g, f)
+        # Save the current exception into a stack local
+        g.push_exception_state
+        outer_exc_state = g.new_stack_local
+        g.set_stack_local outer_exc_state
+        g.pop
+
         ex = g.new_label
         ok = g.new_label
         g.setup_unwind ex, RescueType
@@ -135,6 +149,8 @@ module Rubinius
 
         ex.set!
         g.clear_exception
+        g.push_stack_local outer_exc_state
+        g.restore_exception_state
         g.goto f
 
         ok.set!
@@ -193,6 +209,12 @@ module Rubinius
       end
 
       def value_defined(g, f)
+        # Save the current exception into a stack local
+        g.push_exception_state
+        outer_exc_state = g.new_stack_local
+        g.set_stack_local outer_exc_state
+        g.pop
+
         ex = g.new_label
         ok = g.new_label
         g.setup_unwind ex, RescueType
@@ -205,6 +227,8 @@ module Rubinius
 
         ex.set!
         g.clear_exception
+        g.push_stack_local outer_exc_state
+        g.restore_exception_state
         g.goto f
 
         ok.set!

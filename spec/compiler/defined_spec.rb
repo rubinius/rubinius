@@ -81,6 +81,11 @@ describe "A Defined node" do
 
   relates "defined? X" do
     compile do |g|
+      g.push_exception_state
+      outer_exc_state = g.new_stack_local
+      g.set_stack_local outer_exc_state
+      g.pop
+
       f = g.new_label
       done = g.new_label
 
@@ -95,6 +100,8 @@ describe "A Defined node" do
 
       ex.set!
       g.clear_exception
+      g.push_stack_local outer_exc_state
+      g.restore_exception_state
       g.goto f
 
       ok.set!
@@ -111,6 +118,11 @@ describe "A Defined node" do
 
   relates "defined? ::X" do
     compile do |g|
+      g.push_exception_state
+      outer_exc_state = g.new_stack_local
+      g.set_stack_local outer_exc_state
+      g.pop
+
       f = g.new_label
       done = g.new_label
 
@@ -127,6 +139,8 @@ describe "A Defined node" do
 
       ex.set!
       g.clear_exception
+      g.push_stack_local outer_exc_state
+      g.restore_exception_state
       g.goto f
 
       ok.set!
@@ -143,6 +157,11 @@ describe "A Defined node" do
 
   relates "defined? X::Y" do
     compile do |g|
+      g.push_exception_state
+      outer_exc_state = g.new_stack_local
+      g.set_stack_local outer_exc_state
+      g.pop
+
       f = g.new_label
       done = g.new_label
 
@@ -159,6 +178,8 @@ describe "A Defined node" do
 
       ex.set!
       g.clear_exception
+      g.push_stack_local outer_exc_state
+      g.restore_exception_state
       g.goto f
 
       ok.set!
@@ -175,6 +196,11 @@ describe "A Defined node" do
 
   relates "defined? X::Y::Z" do
     compile do |g|
+      g.push_exception_state
+      outer_exc_state = g.new_stack_local
+      g.set_stack_local outer_exc_state
+      g.pop
+
       f = g.new_label
       done = g.new_label
 
@@ -192,6 +218,8 @@ describe "A Defined node" do
 
       ex.set!
       g.clear_exception
+      g.push_stack_local outer_exc_state
+      g.restore_exception_state
       g.goto f
 
       ok.set!
@@ -208,6 +236,11 @@ describe "A Defined node" do
 
   relates "defined? self::A" do
     compile do |g|
+      g.push_exception_state
+      outer_exc_state = g.new_stack_local
+      g.set_stack_local outer_exc_state
+      g.pop
+
       f = g.new_label
       done = g.new_label
 
@@ -224,6 +257,8 @@ describe "A Defined node" do
 
       ex.set!
       g.clear_exception
+      g.push_stack_local outer_exc_state
+      g.restore_exception_state
       g.goto f
 
       ok.set!
@@ -337,6 +372,11 @@ describe "A Defined node" do
 
   relates "defined? A.m" do
     compile do |g|
+      g.push_exception_state
+      outer_exc_state = g.new_stack_local
+      g.set_stack_local outer_exc_state
+      g.pop
+
       f = g.new_label
       done = g.new_label
 
@@ -352,6 +392,8 @@ describe "A Defined node" do
 
       ex.set!
       g.clear_exception
+      g.push_stack_local outer_exc_state
+      g.restore_exception_state
       g.goto f
 
       ok.set!
@@ -371,6 +413,11 @@ describe "A Defined node" do
 
   relates "defined? ::A.m" do
     compile do |g|
+      g.push_exception_state
+      outer_exc_state = g.new_stack_local
+      g.set_stack_local outer_exc_state
+      g.pop
+
       f = g.new_label
       done = g.new_label
 
@@ -388,6 +435,8 @@ describe "A Defined node" do
 
       ex.set!
       g.clear_exception
+      g.push_stack_local outer_exc_state
+      g.restore_exception_state
       g.goto f
 
       ok.set!
@@ -407,6 +456,11 @@ describe "A Defined node" do
 
   relates "defined? A::B.m" do
     compile do |g|
+      g.push_exception_state
+      outer_exc_state = g.new_stack_local
+      g.set_stack_local outer_exc_state
+      g.pop
+
       f = g.new_label
       done = g.new_label
 
@@ -424,6 +478,8 @@ describe "A Defined node" do
 
       ex.set!
       g.clear_exception
+      g.push_stack_local outer_exc_state
+      g.restore_exception_state
       g.goto f
 
       ok.set!
@@ -443,6 +499,11 @@ describe "A Defined node" do
 
   relates "defined? a.b" do
     compile do |g|
+      g.push_exception_state
+      outer_exc_state = g.new_stack_local
+      g.set_stack_local outer_exc_state
+      g.pop
+
       f = g.new_label
       done = g.new_label
 
@@ -458,6 +519,8 @@ describe "A Defined node" do
 
       ex.set!
       g.clear_exception
+      g.push_stack_local outer_exc_state
+      g.restore_exception_state
       g.goto f
 
       ok.set!
