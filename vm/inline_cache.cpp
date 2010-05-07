@@ -49,7 +49,14 @@ namespace rubinius {
           } else if(entry->protected_p(state)) {
             /* The method is protected, but it's not being called from
              * the same module */
-            if(!self->kind_of_p(state, module)) {
+            Module* check_mod;
+            if(IncludedModule* im = try_as<IncludedModule>(module)) {
+              check_mod = im->module();
+            } else {
+              check_mod = module;
+            }
+
+            if(!self->kind_of_p(state, check_mod)) {
               return eProtected;
             }
           }
