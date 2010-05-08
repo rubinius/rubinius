@@ -49,7 +49,7 @@ namespace rubinius {
 
         put(state, i, Qnil);
         put(state, i + 1, Qnil);
-        *removed = true;
+        if(removed) *removed = true;
         return val;
       }
     }
