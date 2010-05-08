@@ -65,8 +65,8 @@ class Struct
 
       attr_accessor(*attrs)
 
-      def self.new(*args)
-        return subclass_new(*args)
+      def self.new(*args, &block)
+        return subclass_new(*args, &block)
       end
 
       def self.[](*args)
