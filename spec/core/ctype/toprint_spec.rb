@@ -15,8 +15,9 @@ describe "CType#toprint" do
     ?\\.toprint.should == "\\\\"
   end
 
-  it "returns '\\#' for '?#'" do
-    ?#.toprint.should == "\\#"
+  it "returns a table of transforms for '?#'" do
+    table = Rubinius::Tuple['#$', '\#$', '#@', '\#@', '#{', '\#{', '#', '#']
+    ?#.toprint.to_a.should == table.to_a
   end
 
   it "returns an octal value for values 0..31 except for control characters" do
