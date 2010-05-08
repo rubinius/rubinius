@@ -1,17 +1,17 @@
 module CType
   def self.toprint(num)
     case num
-    when ?\n: "\\n"
-    when ?\t: "\\t"
-    when ?\a: "\\a"
-    when ?\v: "\\v"
-    when ?\f: "\\f"
-    when ?\r: "\\r"
-    when ?\e: "\\e"
-    when ?\b: "\\b"
-    when ?":  "\\\""
-    when ?\\: "\\\\"
-    when ?#:  "\\#"
+    when ?\n: '\n'
+    when ?\t: '\t'
+    when ?\a: '\a'
+    when ?\v: '\v'
+    when ?\f: '\f'
+    when ?\r: '\r'
+    when ?\e: '\e'
+    when ?\b: '\b'
+    when ?":  '\"'
+    when ?\\: '\\\\'
+    when ?#:  Rubinius::Tuple['#$', '\#$', '#@', '\#@', '#{', '\#{', '#', '#']
     else
       if num < 32 || num > 126
         str = "\\000"

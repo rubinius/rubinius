@@ -18,6 +18,7 @@
 #include <gdtoa.h>
 
 #include <unistd.h>
+#include <cstring>
 #include <iostream>
 #include <ctype.h>
 
@@ -446,9 +447,6 @@ namespace rubinius {
   }
 
   String* String::transform(STATE, Tuple* tbl, Object* respect_kcode) {
-    uint8_t* cur = byte_address();
-    uint8_t* fin = cur + size();
-
     if(tbl->num_fields() < 256) {
       return force_as<String>(Primitives::failure());
     }
@@ -462,62 +460,94 @@ namespace rubinius {
       kcode_tbl = kcode::null_table();
     }
 
-    // Calculate the final size of result
-    size_t size = 0;
+    // Pointers to iterate input bytes.
+    uint8_t* in_p = byte_address();
+    uint8_t* in_end = in_p + size();
 
-    while(cur < fin) {
-      uint8_t byte = *cur;
+    // Optimistic estimate that output size will be 1.25 x input.
+    size_t out_chunk = size() * 5 / 4;
+    size_t out_size = out_chunk;
+    uint8_t* output = (uint8_t*)malloc(out_size);
+
+    uint8_t* out_p = output;
+    uint8_t* out_end = out_p + out_size;
+
+    while(in_p < in_end) {
+      size_t len = 0;
+      uint8_t byte = *in_p;
+      uint8_t* cur_p = 0;
+
       if(kcode::mbchar_p(kcode_tbl, byte)) {
-        size_t clen = kcode::mbclen(kcode_tbl, byte);
-        size += clen;
-        cur += clen;
-        continue;
+        len = kcode::mbclen(kcode_tbl, byte);
+        size_t rem = in_end - in_p;
+        if(rem < len) len = rem;
+        cur_p = in_p;
+        in_p += len;
+      } else if(String* str = try_as<String>(tbl_ptr[byte])) {
+        cur_p = str->byte_address();
+        len = str->size();
+        in_p++;
       } else {
-        size += as<String>(tbl_ptr[byte])->size();
-      }
-      cur++;
-    }
+        Tuple* tbl = as<Tuple>(tbl_ptr[byte]);
 
-    cur = byte_address();
-    String* result = String::create(state, Fixnum::from(size));
+        for(size_t i = 0; i < tbl->num_fields(); i += 2) {
+          String* key = as<String>(tbl->at(i));
 
-    // Since we precalculated the size, we can write directly into result
-    uint8_t* output = result->byte_address();
+          size_t rem = in_end - in_p;
+          size_t klen = key->size();
+          if(rem < klen) continue;
 
-    while(cur < fin) {
-      uint8_t byte = *cur;
-      if(kcode::mbchar_p(kcode_tbl, byte)) {
-        size_t len = kcode::mbclen(kcode_tbl, byte);
-        memcpy(output, cur, len);
-        output += len;
-        cur += len;
-        continue;
-      } else {
-        // Not unsafe, because we've type checked tbl_ptr above
-        String* what = force_as<String>(tbl_ptr[byte]);
-        uint8_t* what_buf = what->byte_address();
+          if(std::memcmp(in_p, key->byte_address(), klen) == 0) {
+            String* str = as<String>(tbl->at(i+1));
+            cur_p = str->byte_address();
+            len = str->size();
+            in_p += klen;
+            break;
+          }
+        }
 
-        switch(what->size()) {
-        case 1:
-          *output++ = *what_buf;
-          break;
-        case 2:
-          *output++ = *what_buf++;
-          *output++ = *what_buf;
-          break;
-        case 3:
-          *output++ = *what_buf++;
-          *output++ = *what_buf++;
-          *output++ = *what_buf;
-          break;
-        default:
-          memcpy(output, what_buf, what->size());
-          output += what->size();
-          break;
+        /* If we did not find a map, we have two options:
+         * 1) copy the byte as is; 2) ignore the byte.
+         * Right now, we copy the byte.
+         */
+        if(!cur_p) {
+          cur_p = in_p++;
+          len = 1;
         }
       }
-      cur++;
+
+      if(out_p + len > out_end) {
+        size_t pos = out_p - output;
+        out_size += out_chunk;
+        output = (uint8_t*)realloc(output, out_size);
+        out_p = output + pos;
+        out_end = output + out_size;
+      }
+
+      switch(len) {
+      case 1:
+        *out_p++ = *cur_p;
+        break;
+      case 2:
+        *out_p++ = *cur_p++;
+        *out_p++ = *cur_p;
+        break;
+      case 3:
+        *out_p++ = *cur_p++;
+        *out_p++ = *cur_p++;
+        *out_p++ = *cur_p;
+        break;
+      default:
+        memcpy(out_p, cur_p, len);
+        out_p += len;
+        break;
+      }
     }
+
+    String* result = String::create(state,
+                                    reinterpret_cast<const char*>(output),
+                                    out_p - output);
+    free(output);
 
     if(tainted_p(state)) result->taint(state);
     return result;
