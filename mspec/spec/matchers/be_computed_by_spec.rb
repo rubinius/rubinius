@@ -1,0 +1,36 @@
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'mspec/matchers/be_computed_by'
+
+describe BeComputedByMatcher do
+  it "matches when all entries in the Array compute" do
+    array = [ [65, "A"],
+              [90, "Z"] ]
+    BeComputedByMatcher.new(:chr).matches?(array).should be_true
+  end
+
+  it "matches when all entries in the Array with arguments compute" do
+    array = [ [1, 2, 3],
+              [2, 4, 6] ]
+    BeComputedByMatcher.new(:+).matches?(array).should be_true
+  end
+
+  it "does not match when any entry in the Array does not compute" do
+    array = [ [65, "A" ],
+              [91, "Z" ] ]
+    BeComputedByMatcher.new(:chr).matches?(array).should be_false
+  end
+
+  it "does not match when any entry in the Array with arguments does not compute" do
+    array = [ [1, 2, 3],
+              [2, 4, 7] ]
+    BeComputedByMatcher.new(:+).matches?(array).should be_false
+  end
+
+  it "provides a useful failure message" do
+    array = [ [65, "A" ],
+              [91, "Z" ] ]
+    matcher = BeComputedByMatcher.new(:chr)
+    matcher.matches?(array)
+    matcher.failure_message.should == ["Expected Z", "to be computed by 91.chr"]
+  end
+end
