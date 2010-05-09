@@ -1,1 +1,1 @@
-fails:String#inspect can handle malformed UTF-8 string when $KCODE is UTF-8
+fails:String#inspect with $KCODE can handle malformed UTF-8 string when $KCODE is UTF-8
