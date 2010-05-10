@@ -105,10 +105,10 @@ module Config
   CONFIG["MANTYPE"]            = "doc"
   CONFIG["MAKEFILES"]          = "Makefile"
   # compile tools flags
-  CONFIG["CFLAGS"]             = "-ggdb3 -O2"
-  if RUBY_PLATFORM =~ /linux/
-    CONFIG["CFLAGS"] << " -fPIC"
-  end
+  # since we hardcode using gcc, and this flag is only
+  # used by mkmf to compile extensions, be sure PIC is in
+  # there
+  CONFIG["CFLAGS"]             = "-ggdb3 -O2 -fPIC"
   CONFIG["LDFLAGS"]            = ""
   CONFIG["CPPFLAGS"]           = ""
   CONFIG["OBJEXT"]             = "o"
