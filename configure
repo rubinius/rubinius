@@ -38,9 +38,9 @@ class Configure
 
     # Essential settings (modify these for creating releases)
     @libversion = "1.0"
-    @version = "#{@libversion}.0-rc4"
-    @release_date = "2010-03-31"
-    @config_version = 5
+    @version = "#{@libversion}.0-rc5"
+    @release_date = "2010-05-10"
+    @config_version = 6
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
