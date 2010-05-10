@@ -151,7 +151,7 @@ containing the Rubinius standard library files.
       end
 
       options.on "-c", "FILE", "Check the syntax of FILE" do |file|
-        mel = Rubinius::Melbourne.new file, 0, []
+        mel = Rubinius::Melbourne.new file, 1, []
         begin
           mel.parse_file
         rescue SyntaxError => e

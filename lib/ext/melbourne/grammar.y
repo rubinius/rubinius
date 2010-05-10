@@ -4717,6 +4717,9 @@ yylex(void *yylval_v, void *vstate)
                     parse_state->lex_state = kw->state;
                     if (state == EXPR_FNAME) {
                         pslval->id = rb_parser_sym(kw->name);
+                        // Hack. Ignore the different variants of do
+                        // if we're just trying to match a FNAME
+                        if(kw->id[0] == kDO) return kDO;
                     }
                     if (kw->id[0] == kDO) {
                         if (COND_P()) return kDO_COND;
