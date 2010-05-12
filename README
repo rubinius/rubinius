@@ -1,41 +1,55 @@
 1. What is Rubinius
 
-Rubinius is an execution environment for the Ruby programming language.  It is
-comprised of three major pieces: a compiler, a 'kernel' (otherwise known as
-the Ruby Core Library), and a virtual machine. The project's goal is to create
-a top-of-the-line Ruby implementation.
+Rubinius is an implementation of the Ruby programming language. Rubinius
+includes a bytecode virtual machine, parser, bytecode compiler, garbage
+collector, JIT native machine code compiler, and Ruby core and standard
+libraries. Rubinius currently implements Ruby version 1.8.7.
+
 
 2. License
 
 Rubinius uses the BSD license. See LICENSE for details.
 
-3. Running Rubinius
 
-See doc/getting_started.txt.
+3. Installing Rubinius
 
-3.1. For the impatient
+Rubinius runs on many *nix operating systems. Rubinius does not yet run on
+Microsoft Windows.
 
-Now to configure with LLVM: "./configure --enable-llvm"
+To install Rubinius, use the following steps. For more information about
+building and running Rubinius, see doc/getting_started.txt.
 
-This will try to download a prebuilt version of llvm for your system. If it
-can't find a prebuilt version, then it will at the very least checkout LLVM
-from svn and built it during the next step (this takes a lot of time).
+Before installing Rubinius, ensure you have MRI version 1.8.7, rubygems, and
+git installed.
 
-  or
+  1. git clone git://github.com/evanphx/rubinius.git
+  2. cd rubinius
+  3. ./configure --prefix=/path/to/install/dir
+        OR if you have LLVM installed
+     ./configure --skip-system --prefix=/path/to/install/dir
+  4. rake install
+  5. Add /path/to/install/dir/bin to your PATH
+  6. Run rbx some_script.rb or just rbx to launch irb.
 
-To configure without the JIT: "./configure"
 
-Now: "rake"
+4. Version 1.0
 
-4. Status
+Rubinius has been under development as a public open-source project since
+November 2006. Rubinius development is sponsored by Engine Yard, Inc. and
+assisted by the generous work of over 100 contributors.
 
-Rubinius is under heavy development and currently supports the core Ruby
-classes and kernel methods. The majority of the existing Ruby libraries should
-run without modification.  If your MRI 1.8.6-compatible code does not run
-under Rubinius, please open a bug ticket. See doc/howto/write_a_ticket.txt.
+At version 1.0, Rubinius is significantly feature-complete. It is expected
+that your Ruby code will run correctly. Additionally, many MRI C extensions
+are expected to work, as long as they do not depend on MRI-specific object
+internals or the MRI interpreter internals.
 
-As Rubinius becomes more and more compatible with Ruby 1.8, the development
-effort is shifting toward performance, rather than completeness.
+With the JIT, Rubinius performance is quite good, sometimes faster than MRI
+and sometimes slower. Rubinius is generally executes Ruby code very fast as
+compared to MRI. However, since the majority of the Ruby core library is also
+implemented in Ruby rather than C as it is in MRI, code that depends heavily
+on Array, Hash, String, etc. may run slower in Rubinius right now. As the JIT
+improves, overall performance of your code under Rubinius will improve.
+
 
 5. Goals
 
@@ -46,24 +60,16 @@ effort is shifting toward performance, rather than completeness.
 
 * Reliable, rock-solid code. Valgrind is used to help verify correctness.
 
-* Bring modern techniques to the Ruby runtime. Pluggable garbage collectors and
-  code optimizers are possible examples.
+* Bring modern research in virtual machines, garbage collectors, and compilers
+  to the Ruby programming language.
+
 
 6. Tickets
 
-See doc/howto/write_a_ticket.txt
+Please file tickets for bugs or problems that you encounter. The issue tracker
+is: http://github.com/evanphx/rubinius/issues. See doc/howto/write_a_ticket.txt
+
 
 7. Contributing
 
-The Rubinius team welcomes contributions, bug reports, test cases, and
-monetary support. One possible way to help is implement Ruby library classes.
-See doc/contributing.txt to get started.
-
-8. Architecture
-
-While most of the Rubinius features are implemented in Ruby, the VM itself is
-written in C++. This is likely to continue to be the case in the coming
-months, partly to ease the integration of LLVM into the Rubinius system.
-
-The compiler, assembler, and bytecode generators are all written in Ruby, and
-can be found under the ./kernel/compiler directory.
+The Rubinius team welcomes contributions. See doc/contributing.txt.
