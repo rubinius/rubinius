@@ -95,4 +95,12 @@ extern "C" {
     }
     return d;
   }
+
+  int rb_big_bytes_used(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Bignum* big = c_as<Bignum>(env->get_object(obj));
+
+    return big->size(env->state())->to_native();
+  }
 }
