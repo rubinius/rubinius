@@ -44,7 +44,7 @@ are expected to work, as long as they do not depend on MRI-specific object
 internals or the MRI interpreter internals.
 
 With the JIT, Rubinius performance is quite good, sometimes faster than MRI
-and sometimes slower. Rubinius is generally executes Ruby code very fast as
+and sometimes slower. Rubinius generally executes Ruby code very fast as
 compared to MRI. However, since the majority of the Ruby core library is also
 implemented in Ruby rather than C as it is in MRI, code that depends heavily
 on Array, Hash, String, etc. may run slower in Rubinius right now. As the JIT
