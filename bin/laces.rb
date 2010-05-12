@@ -2,7 +2,7 @@ target = "bin/rbx"
 
 STDOUT.sync = true
 
-Dir["test/laces/*.rb"].each do |file|
+Dir["spec/laces/*.rb"].each do |file|
   lines = File.readlines(file)
 
   line = lines.shift
