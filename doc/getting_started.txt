@@ -1,211 +1,113 @@
-# Quick Start
+1. Getting Started
 
-The following is a quick summary for building Rubinius. It assumes that you
-already have required libraries installed. For a more complete guide, see the
-next section.
+This guide will help you get Rubinius running. It assumes you know something
+about Ruby and about installing software on your system.
 
-1. Install [ruby 1.8](http://www.ruby-lang.org/en/downloads/)
-1. Install [RubyGems](http://rubyforge.org/projects/rubygems)
-1. Install Git
-1. Clone rubinius: <tt>git clone git://github.com/evanphx/rubinius.git</tt>
-1. cd to your rubinius checkout
-1. `./configure`
-1. `rake`
-1. `bin/rbx -v`
+If you have trouble following the directions here, visit the #rubinius IRC
+channel on irc.freenode.net for help.
 
 
-# Getting Started
+2. Requirements
 
-If you are having trouble getting or building Rubinius, the #rubinius IRC
-channel on irc://irc.freenode.net can help. You can also ask on the [mailing
-list](http://groups.google.com/group/rubinius-dev).
+Ensure you have the following installed. Also see the subsections below for
+special requirements for your particular operating system. See the footnotes
+for more information about each requirement.
 
+  * GCC 4.x [1]
+  * GNU Bison [2]
+  * MRI 1.8.7 [3]
+  * Rubygems [4]
+  * Git [5]
+  * ZLib [6]
+  * pthread [7]
+  * gmake [8]
+  * rake [9]
 
-## Installing Required Libraries
+2.1 Apple OS X
 
-There are a few things that you need in order to be able to build and run
-Rubinius.  Once you have installed the general requirements, install the Gems
-needed and then any platform-specific requirements.
+The easiest way to get a build environment on Apple OS X is to install the
+XCode Tools and Utilities. Once installed, you can enable developer mode crash
+reporting at:
 
+  /Developer/Applications/Utilities/CrashReporterPrefs.app
 
-### General requirements
+2.2 Debian/Ubuntu
 
-* [GCC 4.x (both g++ and gcc)](http://gcc.gnu.org/)
-* [GNU Bison](http://www.gnu.org/software/bison/)
-* [Ruby version >= 1.8.4 (the Ruby language)](http://www.ruby-lang.org/)
-* [RubyGems (Ruby package manager)](http://www.rubygems.org/)
-* [Git (source control used by rubinius)](http://git.or.cz/)
-* [zlib compression library](http://www.zlib.net/)
-* pthread library (provided by the OS)
+  * ruby-dev or ruby1.8-dev
+  * libreadline5-dev
+  * zlib1g-dev
+  * libssl-dev
 
-Most systems already use GNU Make as their default, but for those using a BSD
-Make:
 
-* [gmake (GNU Make)](http://savannah.gnu.org/projects/make/
+3. Building Rubinius
 
-Each package may have requirements of its own, of course.
+You can build and run Rubinius from the source directory. You do not need to
+install Rubinius to run it. The directions below will detail both installing
+Rubinius and running it from the source directory.
 
-If you want to avoid overriding your existing environment, you may want to
-install everything under its own prefix (such as /usr/local) and to name
-programs so they don't collide with your existing installation (such as naming
-gmake 'gmake').  You can then adjust your PATH environment variable as needed
-for rubinius development.
+Rubinius uses LLVM for the JIT compiler. Rubinius depends on a particular
+version of LLVM. If you have installed LLVM on your system, pass the
+'--skip-system' flag to the configure script in the directions below.
 
+The Rubinius source code is on Github:
 
-### Requirements through RubyGems
+  git://github.com/evanphx/rubinius.git
 
-* rake
+3.1 Installing Rubinius
 
-Rake may be obtained with the <tt>gem install</tt> command. See <tt>gem
-help</tt> and http://www.rubygems.org for more information.
+  1. ./configure --prefix=/path/to/install/dir
+  2. rake install
+  3. Add /path/to/install/dir/bin to your PATH
 
-### System-dependent requirements
+3.2 Running from the Source Directory
 
+If you plan to work on Rubinius itself, this is the simplest option.
 
-#### OS X
+  1. ./configure
+  2. rake
+  3. Add /path/to/source/dir/bin to your PATH
 
-In order to view backtrace information in the case of
-a crash, you need to have:
 
-* XCode + Tools/Utilities
+4. Running Rubinius
 
-Then, to enable "developer mode" for crash reporting,
-the program to use is usually located at:
+Once you have followed the steps for building (and possibly installing)
+Rubinius, you can verify it is working:
 
-    /Developer/Applications/Utilities/CrashReporterPrefs.app
-
-
-#### Debian/Ubuntu family systems
-
-For the build to succeed you will need these packages:
-
-* ruby-dev (or ruby1.8-dev)
-* libreadline5-dev
-* zlib1g-dev
-* libssl-dev
-
-
-## Getting Rubinius
-
-You need to clone the Rubinius source from the Github repository:
-
-  git clone git://github.com/evanphx/rubinius.git
-
-For more information on Rubinius' best practices for git, see
-[Using Git](/using_git.html)
-
-
-## Compiling Rubinius
-
-First, we need to configure rubinius for your system.
-
-Just run:
-
-   ./configure
-
-This will pull down either a prebuilt LLVM or a source copy that will
-be built. If you do not want LLVM (and therefore no JIT), run:
-
-   ./configure --disable-llvm
-
-
-The C++ VM is compiled using Rake. Typically, it will be as simple as:
-
-    rake
-      OR
-    rake build
-
-If you plan on doing development work, or otherwise need debug access,
-use the +debug+ subtask:
-
-    rake build:debug
-
-
-## Running VM Tests
-
-Build and run the tests:
-
-  rake vm:test
-
-To run only one test suite, use:
-
-  rake vm:test[SomeClass]
-
-If you want to run a single test suite under gdb, use:
-
-  SUITE="SomeClass" gdb vm/test/runner
-
-
-## Running the Specs
-
-Rubinius includes a stable copy of the RubySpecs that is tagged so that a
-clean set (i.e. passing 100%) of specs can be run as part of the continuous
-integration (CI) process. To run the CI specs:
-
-    rake spec
-
-OR
-
-    bin/mspec ci
-
-To run the most current version of RubySpec:
-
-    rake rubyspec:update
-    bin/mspec spec/ruby
-
-To run a particular spec file, for example, the Array specs:
-
-    bin/mspec spec/ruby/1.8/core/array
-
-
-## Installing Rubinius
-
-NOTE: You do NOT need to install Rubinius. Rubinius will run perfectly
-from the source directory. If you just want to take Rubinius for a test
-run, build in the source directory and either run ./bin/rbx directly or
-create a symlink to that file somewhere in your PATH directories.
-
-Now, assuming you really want to install Rubinius...
-
-You can configure Rubinius to install into a single directory, or install
-the executable, the core and standard libraries, gems, etc. in multiple
-directories.
-
-The simplest is the single-directory install. Run
-
-    ./configure [--enable-llvm] --prefix=/some/path/to/base/dir
-    rake install
-
-The rake install task depends on the build task, so rake install will
-build and then install.
-
-See `./configure --help` for options for setting the other directories.
-
-NOTE: When Rubinius is built, the path to the directory in which it finds
-the core and standard library files is compiled into the exectuable. You
-should not move the install (or development) directory after you build
-Rubinius. If you do, however, you should get a friendly message about how
-to run Rubinius by setting the RBX_RUNTIME and RBX_LIB environment variables.
-
-## Running Rubinius
-
-Once compiled, you can verify the VM works:
-
-    bin/rbx -v
+    rbx -v
 
 Rubinius generally works like Ruby from the command-line. For example:
 
-    bin/rbx -e 'puts "Hello!"'
+    rbx -e 'puts "Hello!"'
 
 To run a ruby file named 'code.rb':
 
-    bin/rbx code.rb
+    rbx code.rb
 
-To use the interactive prompt (similar to Ruby's IRB):
+To run IRB:
 
-    bin/rbx
+    rbx
 
-## Troubleshooting
 
-See [Common Problems](/common_problems.html) or ask questions in the #rubinius
-IRC channel on irc.freenode.net.
+5. Troubleshooting
+
+See doc/common_problems.txt and visit us in the #rubinius IRC channel on
+irc.freenode.net.
+
+---------
+Footnotes
+
+The following are suggestions for getting more information about the programs
+and libraries needed to build Rubinius. Your operating system or package
+manager may have other packages available.
+
+[1] Both g++ and gcc. http://gcc.gnu.org/
+[2] http://www.gnu.org/software/bison/
+[3] If your system does not have Ruby 1.8.7 installed, consider using rvm
+    to install it. http://rvm.beginrescueend.com/
+    The official MRI website http://www.ruby-lang.org/
+[4] http://www.rubygems.org/
+[5] http://git.or.cz/
+[6] http://www.zlib.net/
+[7] The pthread library should be provided by your operating system.
+[8] http://savannah.gnu.org/projects/make/
+[9] [sudo] gem install rake
