@@ -1,8 +1,0 @@
-For use in tracking down a problem which depends on using the latest BFTS:
-
-   after a svn co -r<starting-revision> and a "rake build", recompile each time using:
-      svn up -r<revision-t-test>; rake build:shotgun bk; mkdir -p code-cache
-
-   in your bfts checkout:
-      RUBINIUS_PATH=~/nrbrev199 ruby overlay/test_stuff.rb
-
