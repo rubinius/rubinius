@@ -1483,6 +1483,12 @@ double rb_num2dbl(VALUE);
   VALUE   rb_range_new(VALUE begin, VALUE end, int exclude_end);
 
   VALUE   rb_range_beg_len(VALUE range, long* begp, long* lenp, long len, int err);
+
+  // include an extconf.h if one is provided
+#ifdef RUBY_EXTCONF_H
+#include RUBY_EXTCONF_H
+#endif
+
 #ifdef __cplusplus
 }
 #endif
