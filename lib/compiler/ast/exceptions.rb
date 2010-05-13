@@ -179,6 +179,11 @@ module Rubinius
             g.retry = g.new_label
           end
 
+          # Also handle redo unwinding through the rescue
+          if current_redo = g.redo
+            g.redo = g.new_label
+          end
+
           @body.bytecode(g)
           g.pop_unwind
           g.goto els
@@ -196,6 +201,21 @@ module Rubinius
             end
 
             g.break = current_break
+          end
+
+          if current_redo
+            if g.redo.used?
+              g.redo.set!
+              g.pop_unwind
+
+              # Reset the outer exception
+              g.push_stack_local outer_exc_state
+              g.restore_exception_state
+
+              g.goto current_redo
+            end
+
+            g.redo = current_redo
           end
 
           if outer_retry
