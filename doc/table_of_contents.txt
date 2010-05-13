@@ -1,0 +1,87 @@
+Table of Contents
+
+The documents in the top level of the doc/ directory are focused more on
+user-level tasks and information (e.g. building and installing). The documents
+in the subdirectories like vm/ are focused more on implementation details.
+
+
+actors.txt
+
+  Documents Actor API in Rubinius (partly outdated).
+
+bootstrapping.txt
+
+  How the Rubinius virtual machine boots up and loads the Ruby core libraries
+  in preparation for running Ruby code.
+
+build_system.txt
+
+  How the build system works.
+
+common_problems.txt
+
+  Solutions to problems that people have commonly encountered.
+
+compiler.txt
+
+  Overview of the bytecode compiler and plugin system.
+
+contributing.txt
+
+  Suggestions for contributing to Rubinius.
+
+experiments/
+
+  Directory of documented experiments conducted for implementing various
+  aspecs of Ruby.
+
+faq.txt
+
+  List of frequently asked questions and some answers.
+
+getting_started.txt
+
+  How to build and install Rubinius.
+
+glossary.txt
+
+  Definitions for special terms used to explain Rubinius.
+
+howto/
+
+  Directory of short guides for accomplishing various tasks related to
+  developing with Rubinius.
+
+illustrations/
+
+  Directory of various visual aids for understanding Rubinius.
+
+manifest.txt
+
+  Brief summary of all the important directories in the source tree.
+
+profiling.txt
+
+  How to use the Rubinius profiler.
+
+reading_list.txt
+
+  A number of resources for learning about Rubinius or other technology
+  relevant to Rubinius.
+
+specs.txt
+
+  How RubySpec and other specs work in Rubinius.
+
+style_guide.txt
+
+  Guidelines for writing code for Rubinius.
+
+table_of_contents.txt
+
+  This document.
+
+todo/
+
+  Directory of ideas submitted by community members for work that needs to be
+  done on Rubinius.

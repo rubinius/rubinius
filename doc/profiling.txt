@@ -1,4 +1,4 @@
-# Profiling
+1. Profiling
 
 Rubinius has both an instrumenting profiler and a sampling profiler. (TODO:
 The sampling profiler has Ruby code left over from shotgun but no VM support
@@ -7,7 +7,7 @@ every call. Calls can be to regular Ruby methods, Procs, blocks, FFI
 functions, and native C-API functions. A sampling profiler takes a snapshot of
 what method is executing at regular intervals.
 
-## VM Profiler
+2. VM Profiler
 
 The cast of characters involved in creating and maintaining the profiler
 include VM, SharedState, ProfilerCollection, and Profiler. The VM class is a
@@ -31,7 +31,7 @@ to register or remove profilers.
 The ProfilerCollection instance requests that the VM instance mapped to a
 profiler removes the profiler when the profiler will be deleted.
 
-## Ruby Profiler
+3. Ruby Profiler
 
 In Ruby land, the Rubinius::Profiler::Instrumenter instance exposes nothing
 about the multi-threaded reality in the VM. The individual C++ Profiler
@@ -76,16 +76,16 @@ the profile data by default. Pass 'false' to #profile to not print the data.
 Either way, the profile data itself is returned by #profile.
 
 
-## How to Read the Flat Profiler Output
+4. How to Read the Flat Profiler Output
 
 The flat profiler output has the following columns:
 
-### % time
+4.1. % time
 
 The amount of time spent in this method as a percentage of the total time
 spent in all methods.
 
-### cumulative seconds
+4.2. cumulative seconds
 
 The total amount of time spent in this method and all its direct callees and
 their callees all the way to every leaf method called along a path from this
@@ -93,24 +93,24 @@ method. Consider this method as the root of a call tree. The sum of all the
 time spent in methods in this call tree is the cumulative seconds for this
 method.
 
-### self seconds
+4.3. self seconds
 
 The total time spent in this method less the total time spent in all this
 method's callees.
 
-### calls
+4.4. calls
 
 The total number of times this method was called.
 
-### self ms/call
+4.5. self ms/call
 
 The self seconds as milliseconds divided by the total number of calls.
 
-### total ms/call
+4.6. total ms/call
 
 The cumulative seconds as milliseconds divided by the total number of calls.
 
-### Example of Flat Output
+4.7 Example of Flat Output
 
 The following script is the basis of both profile examples below.
 
@@ -135,7 +135,7 @@ The following script is the basis of both profile examples below.
     }
 
 
-Running the script with `bin/rbx script.rb` should give the following flat
+Running the script with 'bin/rbx script.rb' should give the following flat
 output.
 
 
@@ -156,7 +156,7 @@ output.
     10 methods called a total of 57 times
 
 
-## How to Read the Graph Output
+5. How to Read the Graph Output
 
 The graph output is enabled with the configuration option:
 
@@ -170,30 +170,30 @@ part of the entry.
 
 For the primary line, the fields are as follows:
 
-### index
+5.1. index
 
 An index assigned to each method in the graph to facilitate cross-referencing
 the entries.
 
-### % time
+5.2. % time
 
 The amount of time spent in this method as a percentage of the total time
 spent in all methods. This is the same as the flat output.
 
-### self
+5.3. self
 
 The total time spent in this method less the total time spent in all this
 method's callees. This is the same as self seconds in the flat output.
 
-### children
+5.4. children
 
 The total time spent in all the methods called by this method.
 
-### called
+5.5. called
 
 The total number of times this method was called.
 
-### name
+5.6. name
 
 The name of the method followed be the index number.
 
@@ -201,16 +201,16 @@ The name of the method followed be the index number.
 The lines above the primary line are methods that call the primary method. The
 callers' fields have the following interpretation:
 
-### self
+5.7. self
 
 The total time spent in this method less the total time spent in all this
 method's callees. This is the same as self seconds in the flat output.
 
-### children
+5.8. children
 
 The time spent in the method's call to the primary method.
 
-### called
+5.9. called
 
 The called field has two parts separated by a forward slash. The left is the
 number of times this method called the primary method. The right is the total
@@ -218,7 +218,7 @@ number of calls this method made. In other words, the two numbers together
 show a ratio of the calls to the primary method versus all calls made by the
 caller.
 
-### name
+5.10. name
 
 The name of the caller followed by its index number. If the index is [0], the
 method does not appear in the graph.
@@ -227,25 +227,25 @@ method does not appear in the graph.
 The lines below the primary line are methods that the primary method called.
 The fields for the called methods are as follows:
 
-### self
+5.11. self
 
 The total time spent in this method less the total time spent in all this
 method's callees. This is the same as self seconds in the flat output.
 
-### children
+5.12. children
 
 This is an estimate of the amount of time this method's callees spent when
 this method was called by the primary method. The estimate is based on the
 ration of the time this method spent when called by the primary method to the
 total time spent in this method.
 
-### called
+5.13. called
 
 The called field has two parts separated by a forward slash. The left is the
 number of times this method was called by the primary method. The right is the
 total number of times this method was called.
 
-### name
+5.14. name
 
 The name of the called method followed by its index number. If the index is
 [0], the method does not appear in the graph.

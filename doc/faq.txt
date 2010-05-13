@@ -1,45 +1,44 @@
-# FAQ
+1. Frequently Asked Questions
 
-1. What is Rubinius?
+Q. What is Rubinius?
 
-    It is an implementation of the Ruby programming language.
+A. It is an implementation of the Ruby programming language.
 
-1. What license does Rubinius use?
+Q. What license does Rubinius use?
 
-    BSD. See the LICENSE file in the source code.
+A. BSD. See the LICENSE file in the source code.
 
-1. Who contributes to Rubinius?
+Q. Does it run Rails?
 
-    See [Community](/community.html)
+A. Yes.
 
-1. Does it run Rails?
+Q. Does it run RubyGems?
 
-    Not yet.
+A. Yes.
 
-1. Does it run RubyGems?
+Q. Should it run all my Ruby code.
 
-    Yes.
+A. Yes, as long as your Ruby code runs under MRI 1.8.7.
 
-1. Does it run Rake?
-
-    Maybe.
-
-1. Does it run the RubySpecs?
-
-    Yes. See [The Rubinius Specs](/specs.html)
-
-1. What platforms are supported?
+Q. What platforms are supported?
 
     Various x86 and x86_64 systems, both in 32-bit and 64-bit mode. The main
     development platforms--and thereby the most stable--are x86 Mac OS X
     (Leopard usually), x86[_64] GNU/Linux (anything from Arch to Gentoo to
     Ubuntu) and x86[_64] *BSD (mainly FreeBSD).
 
-1. Does it run on Windows?
+Q. Does it run on Windows?
 
-    Not yet, but it will eventually. If you are interested in helping, try
-    compiling under Cygwin or MSys and report issues.
+A. Not yet, but it will eventually. If you are interested in helping, chat
+   with us about it in #rubinius IRC channel on irc.freenode.net
 
-1. Can I contribute?
+Q. Will it run my C extension.
 
-    Yes, please do. See [Contributing](/contributing.html)
+A. It should run your C extension if you do not use anything that depends on
+   MRI internals (e.g. RHASH(obj)->tbl). We will attempt to support any
+   function from the MRI C-API that we can support. If you depend on a
+   function we do not yet implement, file a ticket.
+
+Q. Can I contribute?
+
+A. Yes, please do. See doc/contributing.txt

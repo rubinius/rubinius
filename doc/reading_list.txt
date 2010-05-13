@@ -1,4 +1,4 @@
-# Reading List
+1. Reading List
 
 Building virtual machines in general and programming language implementations
 in particular requires some knowledge. Rubinius' goal is to lower the barrier
@@ -6,10 +6,11 @@ by keeping as much as possible in Ruby but to hack on garbage collector you
 have to understand what' going on behind the curtains.
 
 This page contains references to books, online lectures, blog posts and any
-other publications you may find especially useful for work on Rubinius and
-Shotgun in particular.
+other publications you may find useful for working on Rubinius.
 
-## Virtual machine
+NOTE that some of these links refer to outdated information about Rubinius.
+
+2. Virtual machine
 
 *   [Smalltalk-80: language and its implementation](http://tinyurl.com/3a2pdq)
     by Goldberg, Robson, Harrison (aka "The Blue Book"), implementation
@@ -19,14 +20,14 @@ Shotgun in particular.
     [How send sites work](http://tinyurl.com/34c6e8)
 
 
-## Garbage collection:
+3. Garbage collection:
 
 *   [Garbage Collection: Algorithms for Automatic Dynamic Memory
     Management](http://tinyurl.com/3dygmo) by Richard Jones
 *   [Garbage collection lectures](http://tinyurl.com/2mhek4)
 
 
-## Primitive methods
+4. Primitive methods
 
 *   [Ruby extensions and Smalltalk
     primitives](http://talklikeaduck.denhaven2.com/articles/2007/06/04/ruby-extensions-vs-smalltalk-primitives)
@@ -34,7 +35,7 @@ Shotgun in particular.
     primitives](http://www.fit.vutbr.cz/study/courses/OMP/public/software/sqcdrom2/Tutorials/SqOnlineBook_(SOB)/englisch/sqk/sqk00083.htm)
 
 
-## FFI
+5. FFI
 
 *   [Implementing File#link using
     FFI](http://redartisan.com/2007/10/11/rubinius-coding)

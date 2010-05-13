@@ -1,6 +1,9 @@
-# Actors - Concurrent Rubinius
+1. Actors - Concurrent Rubinius
 
-## Background
+NOTE this document is outdated in parts referencing the older implementation
+of Rubinius that was based on the stackless execution model.
+
+2. Background
 
 Rubinius is shaping up to be quite a nice platform for networking and
 distributed computing.  The virtual machine uses
@@ -11,7 +14,7 @@ the Channel class, an elegant mechanism that comes from the
 [π-calculus](http://en.wikipedia.org/wiki/Pi-calculus) that serves a number of
 roles in Rubinius.
 
-## Channel
+3. Channel
 
 First, you can treat a Channel like a thread safe queue that lets you push an
 item onto the tail from any thread, and then receive the item at the head from
@@ -70,7 +73,7 @@ resources between threads it's not so tricky, but for more complex occasions
 threads can get really tough.  Beyond that, if you try to uses multiple
 threaded libraries you can run into extremely difficult to debug problems.
 
-## Actors
+4. Actors
 
 One answer to this problem is the [actor
 model](http://en.wikipedia.org/wiki/Actor_model).  In this model an actor is a
@@ -82,7 +85,7 @@ simplifies the concurrency problems that can arise.  Additionally, it makes it
 easy to run actors in parallel on multi-core machines, or across a network on
 multiple boxes.  
 
-### Current Status
+4.1. Current Status
 
 Rubinius has initial support for local actors now, and we are working on
 building them up to be the foundation for a full fledged distributed computing
@@ -90,7 +93,7 @@ framework.  This is an outline of the currently envisioned design:
 
 ![actors.png](images/actors.png)
 
-## Glossary
+5. Glossary
 
 *Actor*
 

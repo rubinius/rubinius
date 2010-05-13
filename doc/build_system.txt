@@ -1,4 +1,4 @@
-# Rubinius Build System
+1. Rubinius Build System
 
 TODO: Many details are missing.
 
@@ -6,7 +6,7 @@ Rubinius uniformly uses Rake as the build system for its own files. However
 Rubinius also includes the source for several external libraries and these
 typically use makefiles.
 
-## Development versus Install Builds
+2. Development versus Install Builds
 
 Rubinius is comprised of the executable and various support files like the core
 and standard libraries. The executable needs to know where to find these files
@@ -31,27 +31,15 @@ function, *even if the executable is in the directory*. The executable checks a
 single, hard-coded path. If this ends up being very painful for some reason,
 we'll revise it.
 
-## Installing Rubinius
+3. Installing Rubinius
 
-As detailed in _Development versus Install Builds_, a specific version of the
-Rubinius executable is built to be installed. The install task is a bit of a
-kludge because of the way that Rake resolves dependencies.
+To install Rubinius, you must first configure it with an install prefix:
 
-The install task first cleans, then configures, then builds, and finally
-installs. However, when Rake begins running, it resolves the dependencies for
-build, but the dependencies may already exist, so Rake does not expect to build
-them. Then the clean task removes these files. After clean runs, the build task
-runs but will fail because dependencies have not been built.
+  ./configure --prefix=/path/to/install/dir
 
-To handle this, the install task shells out to another invocation of Rake to
-build. It may be possible to force Rake to re-resolve the build dependencies.
-However, a better approach may be to convert the build system to Tap (see
-http://tap.rubyforge.org).
-
-To install Rubinius, run
-
-    [sudo] rake install
-
-To uninstall Rubinius, run
-
-    [sudo] rake uninstall
+The configure process creates a 'config.rb' file that specifies the key file
+paths that Rubinius uses. Once configured, run 'rake install' to build and
+install. The install procedure builds all the files, including compiling the
+Ruby standard library files in the lib/ directory, then copies them into the
+install location using the 'install' program. The install tasks are located in
+'rakelib/install.rake'.

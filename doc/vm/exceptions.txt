@@ -12,3 +12,5 @@ example, to raise an ArgumentError:
   Exception::argument_error(state, "this failed for some reason");
 
 See also vm/builtin/exception.hpp.
+
+TODO: Document Ruby exception handling in the VM.

@@ -1,23 +1,16 @@
-# Howto - Write a Ruby Spec
+1. Howto - Write a Ruby Spec
 
 Make sure you have read:
 
-*   [Getting Started](/getting_started.html)
-*   [The Rubinius Specs](/rubinius_specs.html)
+  *  doc/getting_started.txt
+  *  doc/specs.txt
 
 Then, follow these steps to write a spec for a Ruby method:
 
-1.  Edit a file under `spec/ruby/1.8/...`
-1.  Run `bin/mspec -tr spec/ruby/1.8/some/spec_file.rb`
-1.  Repeat until the spec passes on MatzRuby
-1.  Run `rake git:status` OR `cd spec/ruby; git status`
-1.  Change directory to `spec/ruby`
-1.  Run `git status`, `git add`, `git commit`, etc.
-1.  Run `git format-patch`
-1.  Upload the patch in a ticket on the
-    [rubyspec.org](http://rubyspec.org/projects/show/rubyspec) website
-
-You're done. When your patch is accepted, you will get a commit bit to the
-RubySpecs repository. However, while you're on a roll, why not add a patch for
-Rubinius as well. See [Howto - Fix a failing
-spec](/howto/fix_a_failing_spec.html)
+  1. Edit a file under 'spec/ruby/...'
+  2. Run 'bin/mspec -tr spec/ruby/some/spec_file.rb'
+  3. Repeat until the spec passes on MatzRuby
+  4. Commit your changes
+  7. Use 'git format-patch'
+  8. Create a gist with your patch and link to it in a ticket on the issue
+     tracker at http://github.com/evanphx/rubinius/issues.

@@ -1,73 +1,43 @@
-# Common Build Problems and Solutions
+1. Common Build Problems and Solutions
 
-TODO: Imported from Lighthouse wiki. Likely outdated
+The following are errors that you may encounter while building, installing, or
+running Rubinius along with suggested solutions.
 
-These are typical error messages / scenarios that you may encounter at various
-stages of building Rubinius, along with the typical causes and solutions. 
+For any error, a first step is to ensure you have a current, clean checkout of
+Rubinius. Before going further, consider running the following steps:
 
-## Before anything else 
-
-*Make certain that you do not have an old version of Rubinius installed
-somewhere.* Executing new code using the old libraries will end in tears. The
-name should be `librubinius-*` and the typical location is `/usr/local/lib/`
-or `/usr/lib` but you can use `find` to make sure you get everything in case
-your install location is strange.
-
-Old .rbc files may be getting in the way. 'rake clean build' should eliminate
-these problems.
+  $ git co master
+  $ git reset --hard
+  $ git pull
+  $ rake distclean
+  $ rake
 
 
-## C Compilation Errors
+Error:
 
-### "undefined reference to '[some symbol]"
+  ERROR: unable to find runtime directory
 
-Try `rake distclean build` to make sure the entire C codebase is rebuilt.
+  Rubinius was configured to find the runtime directory at:
 
-### "error: IN_DONT_FOLLOW not declared"
+    /Users/brian/devel/rubinius/runtime
 
-On Linux at least, the inotify library may be used but for some reason, some
-distributions' sys/inotify.h does not have the necessary constants. You can
-either disable it in the configuration or try to use updated header files at
-least from
-[here](http://inotify.aiken.cz/?section=inotify&page=download&lang=en).
+  but that directory does not exist.
 
-### "Unable to compile [extension].so/dylib/etc."
+  Set the environment variable RBX_RUNTIME to the location
+  of the directory with the compiled Rubinius kernel files.
 
-First, even if an extension fails to build, you should still be OK. Try
-`shotgun/rubinius -v` to verify that Rubinius itself works. 
+  You may have configured Rubinius for a different install
+  directory but you have not run 'rake install' yet.
 
-### "glibtool: link: cannot build libtool library `librubinius.la' from
-non-libtool objects: ..." (Mac OS X)
+Solution:
 
-Make sure your `glibtool` is at least version 1.5. You may also have multiple
-versions installed, use `` `which glibtool` `` to locate the one that is
-currently being picked up. Typically this problem occurs if you have an
-outdated version in `/sw/bin/glibtool` and a newer one in `/usr/bin/glibtool`.
+  If you configured rubinius with a --prefix, run rake install.
 
-### "MACOSX_DEPLOYMENT_TARGET ..."
+  If you configured rubinius with a --prefix and renamed the install directory
+  after installing Rubinius, re-configure Rubinius and reinstall it.
 
-The error message is probably complaining that it is supposedly set to 10.1 or
-something; you can override this by giving the env explicitly on the command
-line. The Rubinius code seems to be correct though so it is likely you have
-that invalid #define in your system headers somewhere. 
+  If you renamed the source directory after building Rubinius, re-configure
+  and rebuild it.
 
-## Ruby Build Errors
-
-### "... in `initialize': uninitialized constant Mutex::Channel"
-
-Unset `$RUBYOPT` (usually set for Gems.)
-
-### "Unable to find [ClassName]"
-
-These are caused by some load order dependency not being properly constructed.
-Determine which file needs which other file and insert a "depends on
-[file].rb", then `rake build : load_order`.
-
-### "Unable to find 'kernel/bootstrap/archive.rbc'" -- "Unable to run
-runtime/stable/bootstrap.rba"
-
-Either:
-
-1. You have accidentally deleted/moved/etc. something in `runtime/` and you
-can probably restore it with a quick `git checkout runtime/` ; or
-1. Something is breaking in the loader, break out the GDB.
+  In general, do not rename the source or build directory after building
+  Rubinius.

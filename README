@@ -19,8 +19,8 @@ Microsoft Windows.
 To install Rubinius, use the following steps. For more information about
 building and running Rubinius, see doc/getting_started.txt.
 
-Before installing Rubinius, ensure you have MRI version 1.8.7, rubygems, and
-git installed.
+Before installing Rubinius, ensure you have MRI version 1.8.7, rubygems, rake,
+and git installed.
 
   1. git clone git://github.com/evanphx/rubinius.git
   2. cd rubinius

@@ -1,4 +1,4 @@
-# Manifest
+1. Manifest
 
 The following are interesting directories in the Rubinius source tree along
 with a brief description of the contents of each.
@@ -96,29 +96,12 @@ with a brief description of the contents of each.
 *   spec/
 
     Spec files for Rubinius and import of a stable version of the RubySpecs
-    for the CI process. Except for spec/frozen/ and spec/ruby/, the specs in
-    the subdirectories are Rubinius-specific.
-
-*   spec/frozen/
-
-    Imported copy of RubySpecs that has been tagged for the CI process.
+    for the CI process. Except for spec/ruby/, the specs in the subdirectories
+    are Rubinius-specific.
 
 *   spec/ruby
 
-    Running 'rake rubyspec:update` will create a clone of the RubySpecs in
-    this directory to facilitate running against Rubinius. If running
-    `bin/mspec ci spec/ruby`, the tags for spec/frozen/ will be used.
-
-*   stdlib/
-
-    This is the Ruby standard library, copied straight from the MRI source.
-    Working code has been migrated to the lib/ directory. The stdlib/
-    directory is temporary.
-
-*   test/
-
-    Same legacy tests that need to be migrated to specs and some new tests,
-    particularly laces.rb.
+    Imported copy of RubySpecs that has been tagged for the CI process.
 
 *   vm/
 

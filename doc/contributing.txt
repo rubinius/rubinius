@@ -1,95 +1,67 @@
-# Contributing to Rubinius
+1. Contributing to Rubinius
 
-There are as many ways to help with Rubinius as there are people. The
-following are just some ideas. Understand that Rubinius is a large,
-fast-moving project, so you will likely need to coordinate your efforts with
-others. A great deal of communication occurs on the #rubinius IRC channel.
-There are logs for the channel and a mailing list. See link:community.txt
+The Rubinius project welcomes your contributions. There are many things to do
+to help out. Most importantly, you should do something that interests you.
+That is the best way to have enthusiasm and energy for your work.
 
+If you have questions about Rubinius, the best way to get answers is to chat
+with us in the #rubinius IRC channel on irc.freenode.net.
 
-## Triage Tickets
-
-  * Revive or close old tickets.
-  * Build minimalist cases that reproduce the bugs
+Below are several ideas for things to do on Rubinius.
 
 
-## Write docs
-
-Annoy people on the channel by asking how things work. Then write them down so
-that the next doc writer can be annoying with other questions.
-
-
-## Fix Failing Specs
-
-1.  Run `bin/mspec tag --list fails` to show specs tagged as failing
-1.  Run `bin/mspec spec/frozen/1.8/<some dir>`
-
-
-## Write Specs
-
-1.  Run `bin/mspec tag --list incomplete` to show specs that have been tagged
-    as incomplete. These specs may simply need review, or there could be specs
-    missing for a particular class.
-1.  Find unspecified behaviors. Be vicious! Once you found a nice
-    corner-case, write a spec. See 0Howto - Write a
-    spec](/howto/write_a_spec.html)
-1.  Fix the specs by running them against MatzRuby. Use `rake
-    spec:check` OR `bin/mspec -t ruby spec/ruby` to run all the specs that
-    should pass on MatzRuby
-
-
-## Run Your Code
+2. Run Your Code
 
 Your code it often more vicious than the specs. Run your pet project under
-rubinius and report crashes! See [Howto - Write a
-ticket](/howto/write_a_ticket.html)
+rubinius and report issues. See doc/howto/write_a_ticket.html.
 
 
-## Cleanup Code
-
-Search for tags like TODO, HACK, FIXME in the code and fix them. Once you're
-finished, submit a ticket with the [PATCH] tag and a small description. See
-[Howto - Write a ticket](/howto/write_a_ticket.html)
-
-I use : `grep -re "@todo\|TODO\|HACK\|FIXME" .`
-
-You can also run failing specs and try to fix them. I use `bin/mspec
-spec/frozen`, `rake todo`, or `bin/mspec tag --list fails spec/frozen`.
-
-
-## Ask For Help
+3. Ask For Help
 
 Anything that we can do to help, we will. Make sure to do your own research
-too, if possible. We will certainly accept and appreciate simple bug reports,
-but it is extremely helpful if you can actively help us identify (and maybe
-even fix) the problem. Again, see [Howto - Write a
-ticket](/howto/write_a_ticket.html)
+too, if possible. Rubinius attempts to be a project that you can easily study,
+learn from, and hopefully extend.
 
-Q.  It is all so confusing! There is the VM, the kernel, the libraries, the
-    specs, polymorphic caches, pneumatic stegosauruses... How can I possibly
-    understand all of this?
+We will certainly accept and appreciate simple bug reports, but we can give
+priority to tickets that include simple steps to reproduce the issue. Even
+better are tickets that include RubySpecs that demonstrate the bug and a patch
+that fixes it.
 
-A.  You do not need to know or understand everything immediately. You should
-    just have a great time exploring the codebase, not feel like it is some
-    kind of an exam cram. In fact, it is highly recommended that you start off
-    focusing on a narrow area and work your way to how it fits in the big
-    picture. While Rubinius is actually an exceptionally straightforward and
-    elegant VM and language implementation (MatzRuby 1.9, for example, is two
-    orders of magnitude larger), there is still a lot of information to
-    discover and absorb. Ask questions!
 
-Q.  I don't like the style of the specs or the kernel or the vm, can I clean
-    it up and you'll accept the patch?
+3. Write Specs
 
-A.  That depends. The implementation is pretty straightforward and idiomatic
-    Ruby (or C++.) However, out of necessity many parts of the kernel are
-    implemented using simple constructs and could perhaps be expressed more
-    succintly. There is almost always a good reason for this, ranging from
-    compiler support to maybe not having a certain method or class available
-    yet.  If it really bothers you, ask us first, we'll discuss it.
+  1. Run 'bin/mspec tag --list incomplete' to show specs that have been tagged
+     as incomplete. These specs may simply need review, or there could be
+     specs missing for a particular class.
+  2. Find unspecified behaviors. See doc/howto/write_a_ruby_spec.txt
 
-Q.  Will you reject my patch if my style is "more Rubyesque"?
 
-A.  If the patch works (e.g. does not use features that cannot be guaranteed
-    to exist in all cases), it will not be rejected based on a stylistic
-    qualm.  The code is most welcome. But "clever" or obscure code is not.
+4. Fix Failing Specs
+
+  1. Run 'bin/mspec tag --list fails' to show specs tagged as failing
+  2. Pick a spec that looks interesting and see if you can write a patch that
+     will make it pass.
+
+
+5. Write Docs
+
+Study how Rubinius works and write highlevel documentation that will help
+others learn about the implementation details. See documents under doc/vm for
+examples.
+
+
+6. Cleanup Code
+
+Search for tags like TODO, HACK, FIXME in the code and submit patches to fix
+them. Here's a command to search the code:
+
+  'grep -re "@todo\|TODO\|HACK\|FIXME" .'
+
+Review doc/style_guide.txt for coding guidelines.
+
+
+7. Triage Tickets
+
+  * Revive or close old tickets.
+  * Build minimal test cases that reproduce the bugs. Then see if there are
+    already RubySpecs for the issue. If not, consider writing some.

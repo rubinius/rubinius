@@ -21,13 +21,10 @@ some of those.
     http://lighterest.com/shared/ryanlowe/rubyspecresults
 * Add IRC channel bot that listens to something like rubyspecresults.org for
   particular implementations (configuable) and reports updated results.
-* Add IO write buffering.
-* Get Camping/Merb/Rails/Sinatra/Ramaze running on C++ VM.
 * Add storing .rbc files outside of the directory containing the .rb file if
   the directory is not writable. Store the rbc at
   '~/.rubinius/<full_path_to.rb>c'. Should not save the file if 'Process.euid
   == 0' since ENV["HOME"] may not be updated under sudo.
 * Investigate using pathname3 as the default pathname implementation. See:
-
     http://github.com/stouset/pathname3/tree/master
 * Run Tinderbox against Rubinius.

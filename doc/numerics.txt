@@ -1,7 +1,0 @@
-# Rubinius Numeric Tower
-
-The way that the numeric tower is implemented in Rubinius, each basic class
-(e.g. Fixnum, Bignum) implements specific versions of methods like #== as
-primitives. If the primitive code fails (typically because it is unable to
-coerce to a basic type -- see docs on primitives in general), the method on
-the basic type delegates 'up' with a call to super.
