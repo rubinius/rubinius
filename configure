@@ -396,6 +396,8 @@ class Configure
       # 2.6svn is an unknown beast, don't trust it.
       if version == "2.6svn" or parts[0] < 2 or parts[1] < 6
         puts "too old of a version"
+      elsif parts[0] != 2 or parts[1] != 6
+        puts "only 2.6 is supported"
       else
         puts "found! (version #{version})"
         @llvm_configure = config
