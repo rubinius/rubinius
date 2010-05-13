@@ -153,7 +153,7 @@ namespace rubinius {
       break;
     }
 
-    exit(1);
+    _exit(1);
   }
 
   void Environment::start_signals() {
