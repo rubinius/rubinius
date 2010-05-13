@@ -140,26 +140,34 @@ class Module
     end
   end
 
-  def ancestors
+  def _each_ancestor
     if kind_of? Class and __metaclass_object__
-      out = []
+      # nothing
     else
-      out = [self]
+      yield self
     end
 
     sup = direct_superclass()
     while sup
       if sup.kind_of? Rubinius::IncludedModule
-        out << sup.module
+        yield sup.module
       elsif sup.kind_of? Class
-        out << sup unless sup.__metaclass_object__
+        yield sup unless sup.__metaclass_object__
       else
-        out << sup
+        yield sup
       end
       sup = sup.direct_superclass()
     end
+  end
+
+  private :_each_ancestor
+
+  def ancestors
+    out = []
+    _each_ancestor { |mod| out << mod }
     return out
   end
+
 
   def superclass_chain
     out = []
@@ -387,7 +395,10 @@ class Module
     if !mod.kind_of?(Module) or mod.kind_of?(Class)
       raise TypeError, "wrong argument type #{mod.class} (expected Module)"
     end
-    ancestors.include? mod
+
+    _each_ancestor { |m| return true if mod.equal?(m) }
+
+    false
   end
 
   def included_modules
@@ -565,8 +576,13 @@ class Module
     unless other.kind_of? Module
       raise TypeError, "compared with non class/module"
     end
+
+    # We're not an ancestor of ourself
     return false if self.equal? other
-    ancestors.index(other) && true
+
+    _each_ancestor { |mod| return true if mod.equal?(other) }
+
+    nil
   end
 
   def <=(other)
