@@ -630,7 +630,7 @@ double rb_num2dbl(VALUE);
 
 /* Secret extra stuff */
 
-  typedef VALUE (*CApiAllocFunction)(ANYARGS);
+  typedef VALUE (*CApiAllocFunction)(VALUE);
   typedef VALUE (*CApiGenericFunction)(ANYARGS);
 
 
