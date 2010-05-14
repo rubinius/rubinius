@@ -795,6 +795,8 @@ double rb_num2dbl(VALUE);
 
   long long rb_big2ll(VALUE obj);
 
+  unsigned long long rb_big2ull(VALUE);
+
   double  rb_big2dbl(VALUE obj);
 
   int     rb_big_bytes_used(VALUE obj);
