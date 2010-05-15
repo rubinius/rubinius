@@ -1001,6 +1001,7 @@ double rb_num2dbl(VALUE);
 
   /** Freeze object and return it. */
   VALUE   rb_obj_freeze(VALUE obj);
+#define OBJ_FREEZE(obj) (rb_obj_freeze(obj))
 
   /** Taint an object and return it */
   VALUE rb_obj_taint(VALUE obj);
