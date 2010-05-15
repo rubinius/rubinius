@@ -144,7 +144,8 @@ namespace stats {
       if(min_ == 0 || min_ > last_) min_ = last_;
       if(max_ == 0 || max_ < last_) max_ = last_;
 
-      moving_average_ = (last_ + timings_ * moving_average_) / ++timings_;
+      moving_average_ = (last_ + timings_ * moving_average_) / (timings_ + 1);
+      ++timings_;
     }
 
     /* Creates a Ruby object representation of the data. */
@@ -244,7 +245,8 @@ namespace stats {
       if(min_ == 0 || min_ > set_) min_ = set_;
       if(max_ == 0 || max_ < set_) max_ = set_;
 
-      moving_average_ = (set_ + sets_ * moving_average_) / ++sets_;
+      moving_average_ = (set_ + sets_ * moving_average_) / (sets_ + 1);
+      ++sets_;
     }
 
     uint64_t operator()() {
