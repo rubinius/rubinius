@@ -396,6 +396,8 @@ class Module
       raise TypeError, "wrong argument type #{mod.class} (expected Module)"
     end
 
+    return false if self.equal?(mod)
+
     _each_ancestor { |m| return true if mod.equal?(m) }
 
     false
