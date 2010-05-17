@@ -293,7 +293,9 @@ class Regexp
       end
 
       def to_s
-        source
+        # Put in the proper \'s to escape /'s
+        # This is the same regexp used by #inspect
+        source.gsub(%r!(^|[^\\])/!) { "#{$1}\\/" }
       end
 
       def has_options!
