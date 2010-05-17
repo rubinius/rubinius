@@ -355,7 +355,62 @@ describe "Execution variable $:" do
     $: << "foo"
     $:.should include("foo")
   end
+
+  it "is read-only" do
+    lambda {
+      $: = []
+    }.should raise_error(NameError)
+
+    lambda {
+      $LOAD_PATH = []
+    }.should raise_error(NameError)
+
+    lambda {
+      $-I = []
+    }.should raise_error(NameError)
+  end
 end
+
+describe "Global variable $\"" do
+  it "is an alias for $LOADED_FEATURES" do
+    $".object_id.should == $LOADED_FEATURES.object_id
+  end
+
+  it "is read-only" do
+    lambda {
+      $" = []
+    }.should raise_error(NameError)
+
+    lambda {
+      $LOADED_FEATURES = []
+    }.should raise_error(NameError)
+  end
+end
+
+describe "Global variable $<" do
+  it "is read-only" do
+    lambda {
+      $< = nil
+    }.should raise_error(NameError)
+  end
+end
+
+describe "Global variable $FILENAME" do
+  it "is read-only" do
+    lambda {
+      $FILENAME = "-"
+    }.should raise_error(NameError)
+  end
+end
+
+describe "Global variable $?" do
+  it "is read-only" do
+    lambda {
+      $? = nil
+    }.should raise_error(NameError)
+  end
+end
+
 =begin
 Standard Objects 
 ---------------------------------------------------------------------------------------------------
