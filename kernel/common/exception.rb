@@ -47,7 +47,7 @@ class Exception
     @backtrace ||= Backtrace.backtrace(@locations)
   end
 
-  def render(header="An exception occurred", io=STDOUT)
+  def render(header="An exception occurred", io=STDERR)
     io.puts header
     io.puts "    #{message} (#{self.class})"
 

@@ -111,12 +111,12 @@ containing the Rubinius standard library files.
     end
 
     def show_syntax_error(e)
-      puts "A syntax error has occured:"
-      puts "    #{e.message}"
-      puts "    near line #{e.file}:#{e.line}, column #{e.column}"
-      puts "\nCode:\n#{e.code}"
+      STDERR.puts "A syntax error has occured:"
+      STDERR.puts "    #{e.message}"
+      STDERR.puts "    near line #{e.file}:#{e.line}, column #{e.column}"
+      STDERR.puts "\nCode:\n#{e.code}"
       if e.column
-        puts((" " * (e.column - 1)) + "^")
+        STDERR.puts((" " * (e.column - 1)) + "^")
       end
     end
 
@@ -532,8 +532,8 @@ containing the Rubinius standard library files.
     rescue SyntaxError => e
       show_syntax_error(e)
 
-      puts "\nBacktrace:"
-      puts e.awesome_backtrace.show
+      STDERR.puts "\nBacktrace:"
+      STDERR.puts e.awesome_backtrace.show
       @exit_code = 1
 
     rescue Object => e
