@@ -110,6 +110,10 @@ namespace rubinius {
       }
     }
 
+    if(scope->last_match_ && scope->last_match_->reference_p()) {
+      scope->last_match_ = mark_object(scope->last_match_);
+    }
+
     VariableScope* parent = scope->parent();
     if(parent) {
       scope->parent_ = (VariableScope*)mark_object(parent);
@@ -206,6 +210,10 @@ namespace rubinius {
       if(local->reference_p()) {
         scope->set_local(i, visit.call(local));
       }
+    }
+
+    if(scope->last_match_ && scope->last_match_->reference_p()) {
+      scope->last_match_ = visit.call(scope->last_match_);
     }
 
     VariableScope* parent = scope->parent();
