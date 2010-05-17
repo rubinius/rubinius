@@ -65,7 +65,7 @@ class IO
       reset!
 
       if fill(io) < 0
-        raise IOError, "error occured while filling buffer (#{obj})"
+        raise IOError, "error occurred while filling buffer (#{obj})"
       end
 
       if @used == 0

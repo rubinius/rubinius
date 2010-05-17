@@ -709,7 +709,7 @@ module Rubinius
         begin
           @callback.call(@thread, ctx, @bp_list)
         rescue Exception => e
-          STDERR.puts "An exception occured in a breakpoint handler:"
+          STDERR.puts "An exception occurred in a breakpoint handler:"
           STDERR.puts e.to_s
           STDERR.puts e.awesome_backtrace
         end

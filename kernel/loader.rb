@@ -111,7 +111,7 @@ containing the Rubinius standard library files.
     end
 
     def show_syntax_error(e)
-      STDERR.puts "A syntax error has occured:"
+      STDERR.puts "A syntax error has occurred:"
       STDERR.puts "    #{e.message}"
       STDERR.puts "    near line #{e.file}:#{e.line}, column #{e.column}"
       STDERR.puts "\nCode:\n#{e.code}"
@@ -503,7 +503,7 @@ containing the Rubinius standard library files.
         Stats::GC.new.show
       end
     rescue Object => e
-      e.render "An exception occured #{@stage}"
+      e.render "An exception occurred #{@stage}"
       @exit_code = 1
     end
 
