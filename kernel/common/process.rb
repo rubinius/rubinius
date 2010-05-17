@@ -272,7 +272,7 @@ module Process
     end
 
     status = Process::Status.new(pid, status)
-    $? = status
+    Rubinius::Globals.set! :$?, status
     [pid, status]
   end
 

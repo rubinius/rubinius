@@ -101,6 +101,9 @@ module Kernel
 
   Rubinius::Globals.set_hook(:$$) { Process.pid }
 
+  prc = proc { ARGF.filename }
+  Rubinius::Globals.set_hook(:$FILENAME, prc, :raise_readonly)
+
   write_filter = proc do |key, io|
     unless io.respond_to? :write
       raise ::TypeError, "#{key} must have write method, #{io.class} given"
@@ -140,9 +143,14 @@ module Kernel
   get = proc { Rubinius.kcode.to_s }
   set = proc { |key, val| Rubinius.kcode = val }
   Rubinius::Globals.set_hook(:$KCODE, get, set)
-  
+
   # Alias $0 $PROGRAM_NAME
   Rubinius::Globals.add_alias(:$0, :$PROGRAM_NAME)
+
+  Rubinius::Globals.read_only :$:, :$LOAD_PATH, :$-I
+  Rubinius::Globals.read_only :$", :$LOADED_FEATURES
+  Rubinius::Globals.read_only :$<
+  Rubinius::Globals.read_only :$?
 
   # Implements rb_path2name. Based on code from wycats
   def const_lookup(name)

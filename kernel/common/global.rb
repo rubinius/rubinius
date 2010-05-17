@@ -25,7 +25,6 @@ module Rubinius
       @internal[:$LOADED_FEATURES] = loaded_features
       @internal[:$LOAD_PATH]       = load_path
       @internal[:$SAFE]            = 0
-      @internal[:$FILENAME]        = '-'
 
       @internal[:$stderr]          = STDERR
       @internal[:$stdin]           = STDIN
@@ -67,6 +66,16 @@ module Rubinius
       end
     end
 
+    # Respects internal and alias, but not hooks. Useful to bypass
+    # normal read only checks.
+    def set!(key, data)
+      if alias_key = @alias[key]
+        set! alias_key, data
+      else
+        @internal[key] = data
+      end
+    end
+
     def add_alias(current_name, alias_name)
       current_name = current_name.to_sym
       alias_name = alias_name.to_sym
@@ -83,7 +92,7 @@ module Rubinius
     end
 
     def illegal_set(*args)
-      raise RuntimeError, "unable to set global"
+      raise NameError, "unable to set global"
     end
 
     def set_hook(var, getter=nil, setter=nil, &block)
@@ -100,7 +109,11 @@ module Rubinius
 
         if !setter
           setter = method(:illegal_set)
-        elsif !setter.respond_to?(:call)
+        elsif setter.kind_of? Symbol
+          setter = method(setter)
+        end
+
+        unless setter.respond_to?(:call)
           raise ArgumentError, "setter must respond to call"
         end
 
@@ -114,6 +127,17 @@ module Rubinius
 
     def set_filter(var, block)
       @hooks[var] = [method(:nil_return), block, true]
+    end
+
+    def raise_readonly(key, data)
+      raise NameError, "#{key} is a read-only global variable"
+    end
+
+    def read_only(*vars)
+      mo = method(:raise_readonly)
+      vars.each do |v|
+        set_filter v, mo
+      end
     end
   end
 

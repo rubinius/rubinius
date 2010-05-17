@@ -503,7 +503,7 @@ module Rubinius
 
       file = ARGV.shift
       @stream = (file == "-" ? STDIN : File.open(file, "r"))
-      $FILENAME = @filename = file
+      @filename = file
 
       return true
     end
