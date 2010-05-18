@@ -14,24 +14,24 @@ describe "Kernel#caller" do
       b(skip)
     end
   end
-  
+
   it "is a private method" do
     Kernel.should have_private_instance_method(:caller)
   end
-  
+
   it "returns the current call stack" do
     stack = c 0
     stack[0].should =~ /caller_spec.rb.*?8.*?`a'/
     stack[1].should =~ /caller_spec.rb.*?11.*?`b'/
     stack[2].should =~ /caller_spec.rb.*?14.*?`c'/
   end
-  
+
   it "omits a number of frames corresponding to the parameter" do
     c(0)[1..-1].should == c(1)
     c(0)[2..-1].should == c(2)
     c(0)[3..-1].should == c(3)
   end
-  
+
   it "defaults to omitting one frame" do
     caller.should == caller(1)
   end
@@ -89,7 +89,7 @@ describe "Kernel#caller in a Proc or eval" do
       stack[3].should =~/caller_spec\.rb:85/
     end
   end
-  
+
   ruby_version_is "1.9" do
     it "returns the definition trace of a block when evaluated in a Proc binding" do
       stack = CallerFixture.caller_of(CallerFixture.block)
@@ -140,7 +140,7 @@ describe "Kernel#caller in a Proc or eval" do
 
     it "shows the current line in the calling block twice when evaled" do
       stack = CallerFixture.eval_caller(0)
-      
+
       stack[0].should == "(eval):1:in `eval_caller'"
       stack[1].should =~/caller_fixture2\.rb:23:in `eval'/
       stack[2].should =~/caller_fixture2\.rb:23:in `eval_caller'/
@@ -150,8 +150,6 @@ describe "Kernel#caller in a Proc or eval" do
 end
 
 describe "Kernel.caller" do
-  it "needs to be reviewed for spec completeness"
-
   ruby_bug("redmine:3011", "1.8.7") do
     it "returns one entry per call, even for recursive methods" do
       two   = CallerSpecs::recurse(2)
