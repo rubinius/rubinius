@@ -424,11 +424,16 @@ module Rubinius
 
       idx = find_literal(meth)
 
-      if count == 0
-        send_method idx
-      else
-        send_stack idx, count
-      end
+      # Don't use send_method, it's only for when the syntax
+      # specified no arguments and no parens.
+      send_stack idx, count
+    end
+
+    # Do a private send to self with no arguments specified, ie, a vcall
+    # style send.
+    def send_vcall(meth)
+      idx = find_literal(meth)
+      send_method idx
     end
 
     def send_with_block(meth, count, priv=false)

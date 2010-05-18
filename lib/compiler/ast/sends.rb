@@ -32,6 +32,8 @@ module Rubinius
         if @block
           @block.bytecode(g)
           g.send_with_block @name, 0, @privately
+        elsif @vcall_style
+          g.send_vcall @name
         else
           g.send @name, 0, @privately
         end

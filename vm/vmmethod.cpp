@@ -265,6 +265,10 @@ namespace rubinius {
         if(allow_private) cache->set_is_private();
         if(is_super) cache->set_is_super();
 
+        if(op == InstructionSequence::insn_send_method) {
+          cache->set_is_vcall();
+        }
+
         state->shared.ic_registry()->add_cache(name, cache);
 
         opcodes[ip + 1] = reinterpret_cast<intptr_t>(cache);

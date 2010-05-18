@@ -307,6 +307,39 @@ namespace rubinius {
     cache->set_klass(recv->lookup_begin(state));
 
     if(!cache->fill_private(state, cache->name, cache->klass())) {
+      state->set_method_missing_reason(eNormal);
+
+      if(!cache->fill_method_missing(state, cache->klass())) {
+        Exception::internal_error(state, call_frame, "no method_missing");
+        return 0;
+      }
+
+      args.unshift(state, cache->name);
+      cache->execute_backend_ = check_cache_mm;
+    } else {
+      cache->execute_backend_ = check_cache;
+    }
+
+    cache->update_seen_classes();
+    cache->run_wb(state, call_frame->cm);
+
+    /*
+    // If we overflow, disable the cache.
+    if(cache->seen_classes_overflow() > 0) {
+      cache->execute_backend_ = disabled_cache_private;
+    }
+    */
+
+    return cache->method->execute(state, call_frame, *cache, args);
+  }
+
+  Object* InlineCache::empty_cache_vcall(STATE, InlineCache* cache, CallFrame* call_frame,
+                                         Arguments& args)
+  {
+    Object* const recv = args.recv();
+    cache->set_klass(recv->lookup_begin(state));
+
+    if(!cache->fill_private(state, cache->name, cache->klass())) {
       state->set_method_missing_reason(eVCall);
 
       if(!cache->fill_method_missing(state, cache->klass())) {

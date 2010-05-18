@@ -81,6 +81,10 @@ module Rubinius
       add :goto_if_false, lbl
     end
 
+    def send_vcall(meth)
+      send meth, 0, true
+    end
+
     # The :g accessor is provided to make the code in the
     # utility methods below clearer
     attr_reader   :g
