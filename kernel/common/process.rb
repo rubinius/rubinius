@@ -61,6 +61,8 @@ module Process
       begin
         yield nil
         status = 0
+      rescue SystemExit => e
+        status = e.status
       rescue Exception => e
         e.render "An exception occured in a forked block"
         status = 1
@@ -113,8 +115,8 @@ module Process
   end
 
   def self.abort(msg=nil)
-    $stderr.puts(msg) if(msg)
-    exit 1
+    $stderr.puts(msg) if msg
+    raise SystemExit.new(1)
   end
 
   def self.getpgid(pid)
