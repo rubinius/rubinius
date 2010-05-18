@@ -1,0 +1,1 @@
+require 'ext/nkf/nkf'

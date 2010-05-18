@@ -1,0 +1,17 @@
+require 'rake/loaders/makefile'
+
+# Setup project files
+project_files = common_headers + headers + sources + objects
+
+add_rbx_capi
+
+nkf = "nkf.#{$DLEXT}"
+
+file nkf => project_files
+
+graph_dependencies sources, "./nkf-utf8"
+
+import dependency_file
+
+desc "Build NKF extension"
+task :build => nkf
