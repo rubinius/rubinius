@@ -144,7 +144,7 @@ module Config
   CONFIG["LIBRUBY"]            = "$(LIBRUBY_SO)"
   CONFIG["LIBRUBYARG"]         = "$(LIBRUBYARG_STATIC)"
   CONFIG["LIBRUBYARG_STATIC"]  = ""
-  CONFIG["LIBRUBYARG_SHARED"]  = "-l$(RUBY_SO_NAME)"
+  CONFIG["LIBRUBYARG_SHARED"]  = ""
   CONFIG["configure_args"]     = ""
   CONFIG["ALLOCA"]             = ""
   CONFIG["LIBEXT"]             = "a"
