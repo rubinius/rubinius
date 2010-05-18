@@ -57,6 +57,9 @@ extern "C" {
     Exception* exc = Exception::make_exception(
           env->state(), as<Class>(env->get_object(error_handle)), reason);
     capi::capi_raise_backend(exc);
+
+    printf("rb_raise broken!\n");
+    exit(1);
   }
 
   VALUE rb_rescue2(VALUE (*func)(ANYARGS), VALUE arg1,

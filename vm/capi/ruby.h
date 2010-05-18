@@ -50,6 +50,10 @@
 # endif
 #endif
 
+#ifndef NORETURN
+#define NORETURN(x) __attribute__ ((noreturn)) x
+#endif
+
 #undef _
 #ifdef HAVE_PROTOTYPES
 # define _(args) args
@@ -1177,7 +1181,7 @@ double rb_num2dbl(VALUE);
    *
    *  @todo Implement for real. --rue
    */
-  void    rb_raise(VALUE error_handle, const char* format_string, ...);
+  NORETURN(void rb_raise(VALUE error_handle, const char* format_string, ...));
 
   /**
    * Calls the function 'func', with arg1 as the argument.  If an exception
