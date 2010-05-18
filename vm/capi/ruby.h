@@ -1052,13 +1052,14 @@ double rb_num2dbl(VALUE);
   /** Returns the number of entries as a Fixnum. */
   VALUE   rb_hash_size(VALUE self);
 
+  // macros to access the size "directly"
+#define RHASH_SIZE(obj) FIX2INT(rb_hash_size(obj))
+#define RHASH_LEN(val)  FIX2INT(rb_hash_size(val))
+
   /** Iterate over the hash, calling the function. */
   void rb_hash_foreach(VALUE self,
                        int (*func)(ANYARGS),
                        VALUE farg);
-
-  // A macro to access the size "directly"
-#define RHASH_SIZE(obj) FIX2INT(rb_hash_size(obj))
 
   void    rb_eof_error();
 
@@ -1077,7 +1078,8 @@ double rb_num2dbl(VALUE);
 
   /** convert a native int to Fixnum */
   VALUE rb_int2inum(long n);
-  
+#define rb_int_new(v) rb_int2inum(v)
+
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);
 
@@ -1468,6 +1470,7 @@ double rb_num2dbl(VALUE);
 
   /** Module#undefine_method. Objects of class will not respond to name. @see rb_remove_method */
   void    rb_undef_method(VALUE module_handle, const char* name);
+  void    rb_undef(VALUE handle, ID name);
 
   /** Call block with given argument or raise error if no block given. */
   VALUE   rb_yield(VALUE argument_handle);

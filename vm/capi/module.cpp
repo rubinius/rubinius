@@ -137,6 +137,14 @@ extern "C" {
     rb_funcall(module_handle, rb_intern("undef_method!"), 1, ID2SYM(rb_intern(name)));
   }
 
+  void rb_undef(VALUE handle, ID name) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Symbol* sym = reinterpret_cast<Symbol*>(name);
+    rb_undef_method(handle, sym->c_str(env->state()));
+    // In MRI, rb_undef also calls the undef_method hooks, maybe we should?
+  }
+
   VALUE rb_mod_ancestors(VALUE mod) {
     return rb_funcall(mod, rb_intern("ancestors"), 0);
   }
