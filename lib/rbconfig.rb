@@ -42,6 +42,7 @@ module Config
   CONFIG["ruby_version"]       = "$(MAJOR).$(MINOR)"
   CONFIG["RUBY_SO_NAME"]       = "rubinius-#{Rubinius::VERSION}"
   CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR_PATH}"
+  CONFIG["LIBS"]               = ""
 
   sitedir                      = Rubinius::SITE_PATH
   sitelibdir                   = sitedir
