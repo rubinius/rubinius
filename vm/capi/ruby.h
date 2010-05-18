@@ -1225,6 +1225,11 @@ double rb_num2dbl(VALUE);
   int rb_reg_options(VALUE r);
 
   /**
+   * Compile the String object into a regexp.
+   */
+  VALUE rb_reg_regcomp(VALUE str);
+
+  /**
    *  Require a Ruby file.
    *
    *  Returns true on first load, false if already loaded or raises.
