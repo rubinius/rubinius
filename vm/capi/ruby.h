@@ -1475,6 +1475,10 @@ double rb_num2dbl(VALUE);
 
 #define HAVE_RB_THREAD_BLOCKING_REGION 1
 
+  /* 1.9 provides these, so we will too: */
+#define RUBY_UBF_IO ((rb_unblock_function_t *)-1)
+#define RUBY_UBF_PROCESS ((rb_unblock_function_t *)-1)
+
   /** Return a new time object based on the given offset from the epoch */
   VALUE   rb_time_new(time_t sec, time_t usec);
 
