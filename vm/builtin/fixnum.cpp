@@ -288,9 +288,10 @@ namespace rubinius {
     }
 
     native_int self = to_native();
+    native_int check = self < 0 ? -self : self;
 
     if(shift >= (native_int)FIXNUM_WIDTH
-        || self >> ((native_int)FIXNUM_WIDTH - shift) > 0) {
+        || check >> ((native_int)FIXNUM_WIDTH - shift) > 0) {
       return Bignum::from(state, self)->left_shift(state, bits);
     }
 
