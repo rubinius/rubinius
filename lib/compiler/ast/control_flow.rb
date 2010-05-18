@@ -470,6 +470,21 @@ module Rubinius
         pos(g)
 
         if g.next
+          # From "The Ruby Programming Lanuage"
+          #  "When next is used in a loop, any values following the next
+          #   are ignored"
+          #
+          # By ignored, it must mean evaluated and the value of the expression
+          # is thrown away, because 1.8 evaluates them even though it doesn't
+          # use them.
+          if @value
+            @value.bytecode(g)
+            g.pop
+          end
+
+          # Be sure to check interrupts so that next can't get
+          # us into a busy, uninterruptable loop
+          g.check_interrupts
           g.goto g.next
         elsif g.state.block?
           if @value
@@ -479,7 +494,11 @@ module Rubinius
           end
           g.ret
         else
-          @value.bytecode(g) if @value # next(raise("foo")) ha ha ha
+          if @value
+            @value.bytecode(g)
+            g.pop
+          end
+
           jump_error g, :next
         end
       end
