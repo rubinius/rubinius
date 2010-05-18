@@ -48,16 +48,6 @@ class Numeric
     a >= b
   end
 
-  def ==(other)
-    return true if other.equal?(self)
-    if other.kind_of? Numeric
-      b, a = other.coerce self
-      a == b
-    else
-      !!(other == self)
-    end
-  end
-
   def eql?(other)
     return false unless other.instance_of? self.class
     self == other

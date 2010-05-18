@@ -109,7 +109,7 @@ class Fixnum < Integer
 
   def ==(o)
     Ruby.primitive :fixnum_equal
-    super(o)
+    o == self
   end
 
   alias_method :===, :==

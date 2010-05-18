@@ -116,7 +116,9 @@ class Bignum < Integer
 
   def ==(o)
     Ruby.primitive :bignum_equal
-    super(o)
+    # This is to make sure the return value is true or false
+    return true if o == self
+    false
   end
 
   def <=>(other)
