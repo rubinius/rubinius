@@ -244,6 +244,16 @@ module Rubinius
       script
     end
 
+    def active_path
+      if @scope and script = @scope.current_script
+        if fp = script.file_path
+          return fp.dup
+        end
+      end
+
+      @file.to_s
+    end
+
     ##
     # Return the line of source code at +ip+.
     #

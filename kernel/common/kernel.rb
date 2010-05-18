@@ -273,11 +273,14 @@ module Kernel
         next
       end
 
+      pos = l.position
       meth = l.describe_method
-      if meth == "__script__"
-        ary << "#{l.position(Dir.getwd)}"
+
+      case l.name
+      when :__script__, :__class_init__, :__module_init__
+        ary << pos
       else
-        ary << "#{l.position}:in `#{meth}'"
+        ary << "#{pos}:in `#{meth}'"
       end
     end
 

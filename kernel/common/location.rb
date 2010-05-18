@@ -55,22 +55,24 @@ module Rubinius
     end
 
     def file(relative_to=nil)
+      path = @method.active_path
+
       if relative_to
         # Be sure we can bail out if something doesn't work and still
         # show something.
         begin
-          full = File.expand_path @method.file.to_s
+          full = File.expand_path path
           if full.prefix? relative_to
             return full[relative_to.size+1..-1]
           else
-            return @method.file
+            return path
           end
         rescue Object => e
-          return @method.file
+          return path
         end
       end
 
-      @method.file
+      path
     end
 
     ##
