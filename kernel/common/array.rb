@@ -19,7 +19,9 @@ class Array
 
   # Returns a new Array populated with the given objects
   def self.[](*args)
-    new args
+    ary = allocate
+    ary.replace args
+    ary
   end
 
   # Creates a new Array. Without arguments, an empty
@@ -110,14 +112,14 @@ class Array
     if start_idx < 0 or start_idx >= @total
       # ONE past end only, MRI compat
       if start_idx == @total
-        return self.class.new
+        return self.class.allocate
       else
         return nil
       end
     end
 
     if count
-      return self.class.new if count == 0
+      return self.class.allocate if count == 0
       finish_idx = start_idx + count - 1
     else # from a range
       finish_idx = Type.coerce_to arg1.end, Fixnum, :to_int
@@ -126,13 +128,13 @@ class Array
     end
 
     if finish_idx < start_idx
-      return self.class.new
+      return self.class.allocate
     else
       # Going past the end is ignored (sort of)
       finish_idx = (@total - 1) if finish_idx >= @total
 
       tot = finish_idx - start_idx + 1
-      out = self.class.new
+      out = self.class.allocate
       out.tuple = Rubinius::Tuple.new(tot)
       out.total = tot
       out.tuple.copy_from(@tuple, @start + start_idx, tot, 0)
@@ -305,7 +307,7 @@ class Array
       new_total = multiplier * @total
       new_tuple = Rubinius::Tuple.new(new_total)
 
-      out = self.class.new()
+      out = self.class.allocate
       out.tuple = new_tuple
       out.total = new_total
       out.taint if self.tainted? && multiplier > 0
@@ -1562,18 +1564,7 @@ class Array
     self
   end
 
-  # Exactly the same as #replace but private
-  def initialize_copy(other)
-    raise TypeError, "array is frozen" if frozen?
-
-    other = Type.coerce_to other, Array, :to_ary
-
-    @tuple = other.tuple.dup
-    @total = other.total
-    @start = other.start
-    self
-  end
-
+  alias_method :initialize_copy, :replace
   private :initialize_copy
 
   # Reallocates the internal Tuple to accommodate at least given size
