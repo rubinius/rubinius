@@ -28,6 +28,19 @@ static VALUE thread_spec_rb_thread_current() {
   return rb_thread_current();
 }
 
+static VALUE do_unlocked(void* data) {
+  if(data == (void*)1) return (VALUE)1;
+  return (VALUE)0;
+}
+
+// There is really no way to know we're unlocked. So just make sure the arguments
+// go through fine.
+static VALUE thread_spec_rb_thread_blocking_region() {
+  VALUE ret = rb_thread_blocking_region(do_unlocked, (void*)1, 0, 0);
+  if(ret == (VALUE)1) return Qtrue;
+  return Qfalse;
+}
+
 void Init_thread_spec() {
   VALUE cls;
   cls = rb_define_class("CApiThreadSpecs", rb_cObject);
@@ -35,4 +48,5 @@ void Init_thread_spec() {
   rb_define_method(cls, "rb_thread_select", thread_spec_rb_thread_select, 1);
   rb_define_method(cls, "rb_thread_alone", thread_spec_rb_thread_alone, 0);
   rb_define_method(cls, "rb_thread_current", thread_spec_rb_thread_current, 0);
+  rb_define_method(cls, "rb_thread_blocking_region", thread_spec_rb_thread_blocking_region, 0);
 }

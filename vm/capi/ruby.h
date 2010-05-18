@@ -1459,6 +1459,22 @@ double rb_num2dbl(VALUE);
   /** Get current thread */
   VALUE   rb_thread_current(void);
 
+  /** Release the GIL and let func run in a parallel.
+   *
+   * Seriously, crazy restriction here. While the return value is the
+   * value returned by func, it MUST not be a VALUE for a reference
+   * object, since that means that reference objects were mutated
+   * in an unmanaged way.
+   *
+   * The ubf function is not supported at all, so it can be anything.
+   */
+  typedef VALUE rb_blocking_function_t(void *);
+  typedef void rb_unblock_function_t(void *);
+  VALUE rb_thread_blocking_region(rb_blocking_function_t* func, void* data,
+                                  rb_unblock_function_t* ubf, void* ubf_data);
+
+#define HAVE_RB_THREAD_BLOCKING_REGION 1
+
   /** Return a new time object based on the given offset from the epoch */
   VALUE   rb_time_new(time_t sec, time_t usec);
 

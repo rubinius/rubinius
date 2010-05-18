@@ -44,4 +44,10 @@ describe "CApiThreadSpecs" do
       @t.rb_thread_current.should == Thread.current
     end
   end
+
+  describe "rb_thread_blocking_region" do
+    it "runs a C function with the global lock unlocked" do
+      @t.rb_thread_blocking_region.should be_true
+    end
+  end
 end
