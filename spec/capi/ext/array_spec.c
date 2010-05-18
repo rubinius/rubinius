@@ -146,6 +146,18 @@ static VALUE array_spec_rb_ary_aref(int argc, VALUE *argv, VALUE self) {
   return rb_ary_aref(RARRAY(args)->len, RARRAY_PTR(args), ary);
 }
 
+static VALUE copy_ary(VALUE el, VALUE new_ary) {
+  rb_ary_push(new_ary, el);
+}
+
+static VALUE array_spec_rb_iterate(VALUE self, VALUE ary) {
+  VALUE new_ary = rb_ary_new();
+
+  rb_iterate(rb_each, ary, copy_ary, new_ary);
+
+  return new_ary;
+}
+
 void Init_array_spec() {
   VALUE cls;
   cls = rb_define_class("CApiArraySpecs", rb_cObject);
@@ -174,6 +186,7 @@ void Init_array_spec() {
   rb_define_method(cls, "rb_assoc_new", array_spec_rb_assoc_new, 2);
   rb_define_method(cls, "rb_ary_includes", array_spec_rb_ary_includes, 2);
   rb_define_method(cls, "rb_ary_aref", array_spec_rb_ary_aref, -1);
+  rb_define_method(cls, "rb_iterate", array_spec_rb_iterate, 1);
 }
 
 #ifdef __cplusplus

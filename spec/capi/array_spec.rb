@@ -229,4 +229,16 @@ describe "C-API Array function" do
       @s.rb_ary_aref([1, 2, 3, 4], 4..10).should == []
     end
   end
+
+  describe "rb_iterate" do
+    it "calls an callback function as a block passed to an method" do
+      s = [1,2,3,4]
+      s2 = @s.rb_iterate(s)
+
+      s2.should == s
+
+      # Make sure they're different objects
+      s2.equal?(s).should be_false
+    end
+  end
 end

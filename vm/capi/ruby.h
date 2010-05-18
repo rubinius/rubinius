@@ -787,6 +787,10 @@ double rb_num2dbl(VALUE);
   /* Converts implicit block into a new Proc. */
   VALUE   rb_block_proc();
 
+  VALUE   rb_each(VALUE);
+
+  VALUE   rb_iterate(VALUE (*ifunc)(VALUE), VALUE ary, VALUE(*cb)(ANYARGS), VALUE cb_data);
+
   VALUE   rb_big2str(VALUE self, int base);
 
   long    rb_big2long(VALUE obj);
