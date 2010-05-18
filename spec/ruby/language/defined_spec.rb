@@ -272,78 +272,210 @@ describe "The defined? keyword for an expression" do
     end
   end
 
-  it "returns nil for an expression with 'not' and an undefined method" do
-    defined?(not defined_specs_undefined_method).should be_nil
-  end
-
-  it "returns nil for an expression with 'not' and an unset class variable" do
-    defined?(not @@defined_specs_undefined_class_variable).should be_nil
-  end
-
-  it "does not propagate an exception raised by a method in a 'not' expression" do
-    defined?(not DefinedSpecs.exception_method).should be_nil
-    ScratchPad.recorded.should == :defined_specs_exception
-  end
-
-  ruby_version_is ""..."1.9" do
-    it "calls a method in a 'not' expression and returns 'expression'" do
-      defined?(not DefinedSpecs.side_effects).should == "expression"
-      ScratchPad.recorded.should == :defined_specs_side_effects
+  describe "with logical connectives" do
+    it "returns nil for an expression with '!' and an undefined method" do
+      defined?(!defined_specs_undefined_method).should be_nil
     end
 
-    it "returns 'expression' for an expression with 'not' and an unset global variable" do
-      defined?(not $defined_specs_undefined_global_variable).should == "expression"
+    it "returns nil for an expression with '!' and an unset class variable" do
+      defined?(!@@defined_specs_undefined_class_variable).should be_nil
     end
 
-    it "returns 'expression' for an expression with 'not' and an unset instance variable" do
-      defined?(not @defined_specs_undefined_global_variable).should == "expression"
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "returns 'method' for a 'not' expression with a method" do
-      defined?(not DefinedSpecs.side_effects).should == "method"
+    it "returns nil for an expression with 'not' and an undefined method" do
+      defined?(not defined_specs_undefined_method).should be_nil
     end
 
-    it "calls a method in a 'not' expression and returns 'method'" do
-      defined?(not DefinedSpecs.side_effects).should == "method"
-      ScratchPad.recorded.should == :defined_specs_side_effects
+    it "returns nil for an expression with 'not' and an unset class variable" do
+      defined?(not @@defined_specs_undefined_class_variable).should be_nil
     end
 
-    it "returns nil for an expression with 'not' and an unset global variable" do
-      defined?(not $defined_specs_undefined_global_variable).should be_nil
+    it "does not propagate an exception raised by a method in a 'not' expression" do
+      defined?(not DefinedSpecs.exception_method).should be_nil
+      ScratchPad.recorded.should == :defined_specs_exception
     end
 
-    it "returns nil for an expression with 'not' and an unset instance variable" do
-      defined?(not @defined_specs_undefined_global_variable).should be_nil
-    end
-  end
-
-  it "returns nil for an expression with '!' and an undefined method" do
-    defined?(!defined_specs_undefined_method).should be_nil
-  end
-
-  it "returns nil for an expression with '!' and an unset class variable" do
-    defined?(!@@defined_specs_undefined_class_variable).should be_nil
-  end
-
-  ruby_version_is ""..."1.9" do
-    it "returns 'expression' for an expression with '!' and an unset global variable" do
-      defined?(!$defined_specs_undefined_global_variable).should == "expression"
+    it "returns 'expression' for an expression with '&&/and' and an unset global variable" do
+      defined?($defined_specs_undefined_global_variable && true).should == "expression"
+      defined?(true && $defined_specs_undefined_global_variable).should == "expression"
+      defined?($defined_specs_undefined_global_variable and true).should == "expression"
     end
 
-    it "returns 'expression' for an expression with '!' and an unset instance variable" do
-      defined?(!@defined_specs_undefined_global_variable).should == "expression"
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "returns nil for an expression with '!' and an unset global variable" do
-      defined?(!$defined_specs_undefined_global_variable).should be_nil
+    it "returns 'expression' for an expression with '&&/and' and an unset instance variable" do
+      defined?(@defined_specs_undefined_instance_variable && true).should == "expression"
+      defined?(true && @defined_specs_undefined_instance_variable).should == "expression"
+      defined?(@defined_specs_undefined_instance_variable and true).should == "expression"
     end
 
-    it "returns nil for an expression with '!' and an unset instance variable" do
-      defined?(!@defined_specs_undefined_global_variable).should be_nil
+    it "returns 'expression' for an expression '&&/and' regardless of its truth value" do
+      defined?(true && false).should == "expression"
+      defined?(true and false).should == "expression"
+    end
+
+    it "returns 'expression' for an expression with '||/or' and an unset global variable" do
+      defined?($defined_specs_undefined_global_variable || true).should == "expression"
+      defined?(true || $defined_specs_undefined_global_variable).should == "expression"
+      defined?($defined_specs_undefined_global_variable or true).should == "expression"
+    end
+
+    it "returns 'expression' for an expression with '||/or' and an unset instance variable" do
+      defined?(@defined_specs_undefined_instance_variable || true).should == "expression"
+      defined?(true || @defined_specs_undefined_instance_variable).should == "expression"
+      defined?(@defined_specs_undefined_instance_variable or true).should == "expression"
+    end
+
+    it "returns 'expression' for an expression '||/or' regardless of its truth value" do
+      defined?(true || false).should == "expression"
+      defined?(true or false).should == "expression"
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "returns 'expression' for an expression with '!' and an unset global variable" do
+        defined?(!$defined_specs_undefined_global_variable).should == "expression"
+      end
+
+      it "returns 'expression' for an expression with '!' and an unset instance variable" do
+        defined?(!@defined_specs_undefined_instance_variable).should == "expression"
+      end
+
+      it "calls a method in a 'not' expression and returns 'expression'" do
+        defined?(not DefinedSpecs.side_effects).should == "expression"
+        ScratchPad.recorded.should == :defined_specs_side_effects
+      end
+
+      it "returns 'expression' for an expression with 'not' and an unset global variable" do
+        defined?(not $defined_specs_undefined_global_variable).should == "expression"
+      end
+
+      it "returns 'expression' for an expression with 'not' and an unset instance variable" do
+        defined?(not @defined_specs_undefined_instance_variable).should == "expression"
+      end
+
+      it "returns nil for an expression with '&&/and' and an undefined method" do
+        defined?(defined_specs_undefined_method && true).should be_nil
+        defined?(defined_specs_undefined_method or true).should be_nil
+      end
+
+      it "returns nil for an expression with '&&/and' and an unset class variable" do
+        defined?(@@defined_specs_undefined_class_variable && true).should be_nil
+        defined?(@@defined_specs_undefined_class_variable or true).should be_nil
+      end
+
+      it "does not propagate an exception raised by a method in an '&&' expression" do
+        defined?(DefinedSpecs.exception_method && true).should be_nil
+        ScratchPad.recorded.should == :defined_specs_exception
+      end
+
+      it "calls a method in an '&&' expression and returns 'expression'" do
+        defined?(DefinedSpecs.side_effects && true).should == "expression"
+        ScratchPad.recorded.should == :defined_specs_side_effects
+      end
+
+      it "does not propagate an exception raised by a method in an 'and' expression" do
+        defined?(DefinedSpecs.exception_method and true).should be_nil
+        ScratchPad.recorded.should == :defined_specs_exception
+      end
+
+      it "calls a method in an 'and' expression and returns 'expression'" do
+        defined?(DefinedSpecs.side_effects and true).should == "expression"
+        ScratchPad.recorded.should == :defined_specs_side_effects
+      end
+
+      it "returns nil for an expression with '||/or' and an undefined method" do
+        defined?(defined_specs_undefined_method || true).should be_nil
+        defined?(defined_specs_undefined_method or true).should be_nil
+      end
+
+      it "returns nil for an expression with '||/or' and an unset class variable" do
+        defined?(@@defined_specs_undefined_class_variable || true).should be_nil
+        defined?(@@defined_specs_undefined_class_variable or true).should be_nil
+      end
+
+      it "does not propagate an exception raised by a method in an '||' expression" do
+        defined?(DefinedSpecs.exception_method || true).should be_nil
+        ScratchPad.recorded.should == :defined_specs_exception
+      end
+
+      it "calls a method in an '||' expression and returns 'expression'" do
+        defined?(DefinedSpecs.side_effects || true).should == "expression"
+        ScratchPad.recorded.should == :defined_specs_side_effects
+      end
+
+      it "does not propagate an exception raised by a method in an 'or' expression" do
+        defined?(DefinedSpecs.exception_method or true).should be_nil
+        ScratchPad.recorded.should == :defined_specs_exception
+      end
+
+      it "calls a method in an 'or' expression and returns 'expression'" do
+        defined?(DefinedSpecs.side_effects or true).should == "expression"
+        ScratchPad.recorded.should == :defined_specs_side_effects
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "returns nil for an expression with '!' and an unset global variable" do
+        defined?(!$defined_specs_undefined_global_variable).should be_nil
+      end
+
+      it "returns nil for an expression with '!' and an unset instance variable" do
+        defined?(!@defined_specs_undefined_instance_variable).should be_nil
+      end
+
+      it "returns 'method' for a 'not' expression with a method" do
+        defined?(not DefinedSpecs.side_effects).should == "method"
+      end
+
+      it "calls a method in a 'not' expression and returns 'method'" do
+        defined?(not DefinedSpecs.side_effects).should == "method"
+        ScratchPad.recorded.should == :defined_specs_side_effects
+      end
+
+      it "returns nil for an expression with 'not' and an unset global variable" do
+        defined?(not $defined_specs_undefined_global_variable).should be_nil
+      end
+
+      it "returns nil for an expression with 'not' and an unset instance variable" do
+        defined?(not @defined_specs_undefined_instance_variable).should be_nil
+      end
+
+      it "returns 'expression' for an expression with '&&/and' and an undefined method" do
+        defined?(defined_specs_undefined_method && true).should == "expression"
+        defined?(defined_specs_undefined_method and true).should == "expression"
+      end
+
+      it "returns 'expression' for an expression with '&&/and' and an unset class variable" do
+        defined?(@@defined_specs_undefined_class_variable && true).should == "expression"
+        defined?(@@defined_specs_undefined_class_variable and true).should == "expression"
+      end
+
+      it "does not call a method in an '&&' expression and returns 'expression'" do
+        defined?(DefinedSpecs.side_effects && true).should == "expression"
+        ScratchPad.recorded.should be_nil
+      end
+
+      it "does not call a method in an 'and' expression and returns 'expression'" do
+        defined?(DefinedSpecs.side_effects and true).should == "expression"
+        ScratchPad.recorded.should be_nil
+      end
+
+      it "returns 'expression' for an expression with '||/or' and an undefined method" do
+        defined?(defined_specs_undefined_method || true).should == "expression"
+        defined?(defined_specs_undefined_method or true).should == "expression"
+      end
+
+      it "returns 'expression' for an expression with '||/or' and an unset class variable" do
+        defined?(@@defined_specs_undefined_class_variable || true).should == "expression"
+        defined?(@@defined_specs_undefined_class_variable or true).should == "expression"
+      end
+
+      it "does not call a method in an '&&' expression and returns 'expression'" do
+        defined?(DefinedSpecs.side_effects || true).should == "expression"
+        ScratchPad.recorded.should be_nil
+      end
+
+      it "does not call a method in an 'and' expression and returns 'expression'" do
+        defined?(DefinedSpecs.side_effects or true).should == "expression"
+        ScratchPad.recorded.should be_nil
+      end
     end
   end
 
