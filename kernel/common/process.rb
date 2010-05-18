@@ -58,8 +58,21 @@ module Process
     pid = perform_fork
     pid = nil if pid == 0
     if block_given? and pid.nil?
-      yield nil
-      Kernel.exit
+      begin
+        yield nil
+        status = 0
+      rescue Exception => e
+        e.render "An exception occured in a forked block"
+        status = 1
+      end
+
+      # Do not use Kernel.exit. This raises a SystemExit exception, which
+      # will run ensure blocks. This is not what MRI does and causes bugs
+      # in programs. See issue http://github.com/evanphx/rubinius/issues#issue/289 for
+      # an example
+
+      # TODO should we call back into the Loader to run finalizers and such?
+      Kernel.exit! status
     end
     pid
   end
