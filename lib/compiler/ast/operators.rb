@@ -25,6 +25,37 @@ module Rubinius
         lbl.set!
       end
 
+      def defined(g)
+        t = g.new_label
+        f = g.new_label
+        done = g.new_label
+
+        case @left
+        when GlobalVariableAccess, InstanceVariableAccess
+          g.goto t
+        else
+          @left.value_defined(g, f)
+          g.pop
+        end
+
+        case @right
+        when GlobalVariableAccess, InstanceVariableAccess
+          g.goto t
+        else
+          @right.value_defined(g, f)
+          g.pop
+        end
+
+        t.set!
+        g.push_literal "expression"
+        g.goto done
+
+        f.set!
+        g.push :nil
+
+        done.set!
+      end
+
       def sexp_name
         :and
       end
