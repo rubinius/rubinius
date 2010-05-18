@@ -269,14 +269,15 @@ module Kernel
   def caller(start=1, exclude_kernel=true)
     ary = []
     Rubinius::VM.backtrace(1)[start..-1].each do |l|
-      pos = l.position
-      if !exclude_kernel or !%r!^kernel/!.match(pos)
-        meth = l.describe_method
-        if meth == "__script__"
-          ary << "#{pos}"
-        else
-          ary << "#{pos}:in `#{meth}'"
-        end
+      if exclude_kernel and l.method.file.to_s.prefix?("kernel/")
+        next
+      end
+
+      meth = l.describe_method
+      if meth == "__script__"
+        ary << "#{l.position(Dir.getwd)}"
+      else
+        ary << "#{l.position}:in `#{meth}'"
       end
     end
 
