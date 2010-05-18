@@ -7,7 +7,7 @@ describe "Array.new" do
   end
 
   it "returns an instance of a subclass" do
-    ArraySpecs::MyArray.new.should be_kind_of(ArraySpecs::MyArray)
+    ArraySpecs::MyArray.new(1, 2).should be_an_instance_of(ArraySpecs::MyArray)
   end
 
   it "raise an ArgumentError if passed 3 or more arguments" do

@@ -1,6 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
-require  File.dirname(__FILE__) + '/../../shared/array/join'
+require File.expand_path('../shared/join', __FILE__)
 
 describe "Array#join" do
 

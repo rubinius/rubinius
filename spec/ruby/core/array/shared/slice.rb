@@ -343,7 +343,7 @@ describe :array_slice, :shared => true do
     [1, 2, 3, 4, 5].send(@method, 0...-1).should == [1, 2, 3, 4]
   end
 
-  it "returns [3] for [2..-1] out of [1, 2, 3] <Specifies bug found by brixen, Defiler, mae>" do
+  it "returns [3] for [2..-1] out of [1, 2, 3]" do
     [1,2,3].send(@method, 2..-1).should == [3]
   end
 
@@ -369,11 +369,72 @@ describe :array_slice, :shared => true do
     a.should == [1, 2]
   end
 
-  it "returns a subclass instance when called on a subclass of Array" do
-    ary = ArraySpecs::MyArray[1, 2, 3]
-    ary.send(@method, 0, 0).should be_kind_of(ArraySpecs::MyArray)
-    ary.send(@method, 0, 2).should be_kind_of(ArraySpecs::MyArray)
-    ary.send(@method, 0..10).should be_kind_of(ArraySpecs::MyArray)
+  describe "with a subclass of Array" do
+    before :each do
+      ScratchPad.clear
+
+      @array = ArraySpecs::MyArray[1, 2, 3, 4, 5]
+    end
+
+    it "returns a subclass instance with [n, m]" do
+      @array.send(@method, 0, 2).should be_an_instance_of(ArraySpecs::MyArray)
+    end
+
+    it "returns a subclass instance with [-n, m]" do
+      @array.send(@method, -3, 2).should be_an_instance_of(ArraySpecs::MyArray)
+    end
+
+    it "returns a subclass instance with [n..m]" do
+      @array.send(@method, 1..3).should be_an_instance_of(ArraySpecs::MyArray)
+    end
+
+    it "returns a subclass instance with [n...m]" do
+      @array.send(@method, 1...3).should be_an_instance_of(ArraySpecs::MyArray)
+    end
+
+    it "returns a subclass instance with [-n..-m]" do
+      @array.send(@method, -3..-1).should be_an_instance_of(ArraySpecs::MyArray)
+    end
+
+    it "returns a subclass instance with [-n...-m]" do
+      @array.send(@method, -3...-1).should be_an_instance_of(ArraySpecs::MyArray)
+    end
+
+    it "returns an empty array when m == n with [m...n]" do
+      @array.send(@method, 1...1).should == []
+      ScratchPad.recorded.should be_nil
+    end
+
+    it "returns an empty array with [0...0]" do
+      @array.send(@method, 0...0).should == []
+      ScratchPad.recorded.should be_nil
+    end
+
+    it "returns an empty array when m > n and m, n are positive with [m..n]" do
+      @array.send(@method, 3..2).should == []
+      ScratchPad.recorded.should be_nil
+    end
+
+    it "returns an empty array when m > n and m, n are negative with [m..n]" do
+      @array.send(@method, -2..-3).should == []
+      ScratchPad.recorded.should be_nil
+    end
+
+    it "returns [] if index == array.size with [index, length]" do
+      @array.send(@method, 5, 2).should == []
+      ScratchPad.recorded.should be_nil
+    end
+
+    it "returns [] if the index is valid but length is zero with [index, length]" do
+      @array.send(@method, 0, 0).should == []
+      @array.send(@method, 2, 0).should == []
+      ScratchPad.recorded.should be_nil
+    end
+
+    it "does not call #initialize on the subclass instance" do
+      @array.send(@method, 0, 3).should == [1, 2, 3]
+      ScratchPad.recorded.should be_nil
+    end
   end
 
   not_compliant_on :rubinius do

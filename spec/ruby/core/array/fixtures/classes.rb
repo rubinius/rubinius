@@ -44,7 +44,15 @@ module ArraySpecs
     a
   end
 
-  class MyArray < Array; end
+  class MyArray < Array
+    # The #initialize method has a different signature than Array to help
+    # catch places in the specs that do not assert the #initialize is not
+    # called when Array methods make new instances.
+    def initialize(a, b)
+      self << a << b
+      ScratchPad.record :my_array_initialize
+    end
+  end
 
   class Sexp < Array
     def initialize(*args)

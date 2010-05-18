@@ -9,10 +9,9 @@ describe "Array#to_a" do
   end
   
   it "does not return subclass instance on Array subclasses" do
-    e = ArraySpecs::MyArray.new
-    e << 1
+    e = ArraySpecs::MyArray.new(1, 2)
     e.to_a.should be_kind_of(Array)
-    e.to_a.should == [1]
+    e.to_a.should == [1, 2]
   end
 
   it "properly handles recursive arrays" do

@@ -36,9 +36,19 @@ describe "Array.[]" do
       EOS
     end
   end
-  
-  it "returns an instance of the subtype when called on an Array subclass" do
-    ArraySub = Class.new Array
-    ArraySub[1,2].should be_kind_of(ArraySub)
+
+  describe "with a subclass of Array" do
+    before :each do
+      ScratchPad.clear
+    end
+
+    it "returns an instance of the subclass" do
+      ArraySpecs::MyArray[1, 2, 3].should be_an_instance_of(ArraySpecs::MyArray)
+    end
+
+    it "does not call #initialize on the subclass instance" do
+      ArraySpecs::MyArray[1, 2, 3].should == [1, 2, 3]
+      ScratchPad.recorded.should be_nil
+    end
   end
 end
