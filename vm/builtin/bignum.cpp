@@ -654,7 +654,7 @@ namespace rubinius {
 
   Integer* Bignum::left_shift(STATE, Fixnum* bits) {
     NMP;
-    int shift = bits->to_native();
+    native_int shift = bits->to_native();
     if(shift < 0) {
       return right_shift(state, Fixnum::from(-bits->to_native()));
     }
@@ -667,7 +667,7 @@ namespace rubinius {
 
   Integer* Bignum::right_shift(STATE, Fixnum* bits) {
     NMP;
-    int shift = bits->to_native();
+    native_int shift = bits->to_native();
     if(shift < 0) {
       return left_shift(state, Fixnum::from(-bits->to_native()));
     }
