@@ -45,7 +45,6 @@ class Bignum < Integer
     redo_coerced :div, other
   end
 
-
   def divmod(other)
     Ruby.primitive :bignum_divmod
     redo_coerced :divmod, other

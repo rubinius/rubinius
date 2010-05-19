@@ -522,8 +522,9 @@ namespace rubinius {
 
     NMP;
     MMP;
+
     mp_div(XST, mp_val(), b->mp_val(), n, m);
-    if(mp_cmp_d(n, 0) == MP_LT && mp_cmp_d(m, 0) != MP_EQ) {
+    if(mp_val()->sign != b->mp_val()->sign && mp_cmp_d(m, 0) != MP_EQ) {
       mp_sub_d(XST, n, 1, n);
       mp_mul(XST, b->mp_val(), n, m);
       mp_sub(XST, mp_val(), m, m);
