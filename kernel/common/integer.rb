@@ -25,23 +25,6 @@ class Integer < Numeric
     self ^ Type.coerce_to(other, Integer, :to_int)
   end
 
-  def <<(other)
-    other = Type.coerce_to(other, Integer, :to_int)
-    unless other.is_a?(Fixnum)
-      raise RangeError, "Object is out of range for a Fixnum"
-    end
-    self << other
-  end
-
-  def >>(other)
-    other = Type.coerce_to(other, Integer, :to_int)
-    if other > self.abs || other.is_a?(Bignum)
-      return  0 if self >= 0
-      return -1 if self <  0
-    end
-    self >> other
-  end
-
   def to_i
     self
   end
@@ -58,8 +41,8 @@ class Integer < Numeric
   end
   
   def [](index)
-    return 0 if index.is_a?(Bignum)
     index = Type.coerce_to(index, Integer, :to_int)
+    return 0 if index.is_a?(Bignum)
     index < 0 ? 0 : (self >> index) & 1
   end
 

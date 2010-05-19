@@ -73,14 +73,26 @@ class Bignum < Integer
     super(o)
   end
 
-  def <<(o)
+  def <<(other)
     Ruby.primitive :bignum_left_shift
-    super(o)
+
+    other = Type.coerce_to other, Integer, :to_int
+    unless other.kind_of? Fixnum
+      raise RangeError, "argument is out of range for a Fixnum"
+    end
+
+    self << other
   end
 
-  def >>(o)
+  def >>(other)
     Ruby.primitive :bignum_right_shift
-    super(o)
+
+    other = Type.coerce_to other, Integer, :to_int
+    unless other.kind_of? Fixnum
+      raise RangeError, "argument is out of range for a Fixnum"
+    end
+
+    self >> other
   end
 
   def **(o)
