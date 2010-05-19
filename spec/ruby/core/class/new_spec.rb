@@ -37,7 +37,6 @@ describe "Class.new with a block given" do
     klass.superclass.should == sc
     klass.new.message.should == "text"
     klass.new.message2.should == "hello"
-    klass.dup.body.should == klass
   end
 end
 
