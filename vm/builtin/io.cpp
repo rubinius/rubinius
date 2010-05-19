@@ -490,14 +490,21 @@ namespace rubinius {
   }
 
   Object* IO::write(STATE, String* buf) {
-    ssize_t cnt = ::write(this->to_fd(), buf->byte_address(), buf->size());
+    uint8_t* bytes = buf->byte_address();
+    size_t left = buf->size();
 
-    if(cnt == -1) {
-      Exception::errno_error(state);
-      return NULL;
+    while(left > 0) {
+      ssize_t cnt = ::write(this->to_fd(), bytes, left);
+      if(cnt == -1) {
+        Exception::errno_error(state);
+        return NULL;
+      }
+
+      left -= cnt;
+      bytes += cnt;
     }
 
-    return Integer::from(state, cnt);
+    return Integer::from(state, buf->size() - left);
   }
 
   Object* IO::blocking_read(STATE, Fixnum* bytes) {
