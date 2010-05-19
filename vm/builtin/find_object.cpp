@@ -93,7 +93,7 @@ namespace rubinius {
       native_int id = id_->to_native();
 
       // immediates have an odd object id, references even
-      if(id & 1 == 1) {
+      if((id & 1) == 1) {
         Object* obj = reinterpret_cast<Object*>(id >> 1);
 
         // Be sure to not leak a bad reference leak out here.
