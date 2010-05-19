@@ -5,6 +5,8 @@ require 'ffi/types_generator'
 deps = %w[Rakefile rakelib/platform.rake] + Dir['lib/ffi/*rb']
 
 file 'runtime/platform.conf' => deps do |task|
+  puts "GEN runtime/platform.conf"
+
   addrinfo = FFI::StructGenerator.new 'addrinfo' do |s|
     s.include 'sys/socket.h'
     s.include 'netdb.h'
@@ -66,6 +68,8 @@ file 'runtime/platform.conf' => deps do |task|
   stat = FFI::StructGenerator.new 'stat' do |s|
     s.include "sys/types.h"
     s.include "sys/stat.h"
+    s.include "unistd.h"
+    s.include "time.h"
     s.name 'struct stat'
     s.field :st_dev, :dev_t
     s.field :st_ino, :ino_t
