@@ -85,6 +85,25 @@ namespace rubinius {
       : id_(id)
     {}
 
+    Fixnum* id() {
+      return id_;
+    }
+
+    Object* immediate() {
+      native_int id = id_->to_native();
+
+      // immediates have an odd object id, references even
+      if(id & 1 == 1) {
+        Object* obj = reinterpret_cast<Object*>(id >> 1);
+
+        // Be sure to not leak a bad reference leak out here.
+        if(obj->reference_p()) return Qnil;
+        return obj;
+      }
+
+      return 0;
+    }
+
     virtual bool perform(STATE, Object* obj) {
       return obj->has_id(state) && obj->id(state) == id_;
     }
@@ -186,6 +205,25 @@ namespace rubinius {
     QueryCondition* condition = create_condition(state, arg);
     if(!condition) return Fixnum::from(0);
 
+    Object* ret = Qnil;
+
+    // Special case for looking for an object_id of an immediate
+    if(ObjectIdCondition* oic = dynamic_cast<ObjectIdCondition*>(condition)) {
+      if(Object* obj = oic->immediate()) {
+        if(ary) {
+          ary->append(state, obj);
+        } else {
+          args->set(state, 0, obj);
+          ret = callable->send(state, calling_environment, G(sym_call),
+                               args, Qnil, false);
+        }
+
+        delete condition;
+        if(!ret) return 0;
+        return Fixnum::from(1);
+      }
+    }
+
     ObjectWalker walker(state->om);
     GCData gc_data(state);
 
@@ -193,7 +231,6 @@ namespace rubinius {
     walker.seed(gc_data);
 
     Object* obj = walker.next();
-    Object* ret = Qnil;
 
     while(obj) {
       if(condition->perform(state, obj)) {
