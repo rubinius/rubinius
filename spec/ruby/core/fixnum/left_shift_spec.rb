@@ -33,6 +33,18 @@ describe "Fixnum#<< with n << m" do
     (4 << -3).should == 0
   end
 
+  not_compliant_on :rubinius do
+    it "returns 0 when m < 0 and m is a Bignum" do
+      (3 << -bignum_value()).should == 0
+    end
+  end
+
+  deviates_on :rubinius do
+    it "raises a RangeError when m < 0 and m is a Bignum" do
+      lambda { 3 << -bignum_value() }.should raise_error(RangeError)
+    end
+  end
+
   it "returns a Bignum == fixnum_max() * 2 when fixnum_max() << 1 and n > 0" do
     result = fixnum_max() << 1
     result.should be_an_instance_of(Bignum)
@@ -45,7 +57,7 @@ describe "Fixnum#<< with n << m" do
     result.should == fixnum_min() * 2
   end
 
-  it "it calls #to_int to convert the argument to an Integer" do
+  it "calls #to_int to convert the argument to an Integer" do
     obj = mock("4")
     obj.should_receive(:to_int).and_return(4)
 
@@ -65,10 +77,5 @@ describe "Fixnum#<< with n << m" do
 
   it "raises a TypeError when passed a String" do
     lambda { 3 << "4" }.should raise_error(TypeError)
-  end
-
-  it "raises a RangeError when the argument is greater than fixnum_max()" do
-    lambda { 3 << bignum_value() }.should raise_error(RangeError)
-    lambda { 3 << bignum_value().to_f }.should raise_error(RangeError)
   end
 end

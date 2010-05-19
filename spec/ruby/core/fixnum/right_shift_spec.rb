@@ -1,53 +1,81 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
-describe "Fixnum#>>" do
-  it "returns self shifted the given amount of bits to the right" do
-    (7 >> 1).should == 3
-    (4095 >> 3).should == 511
-    (9245278 >> 1).should == 4622639
+describe "Fixnum#>> with n >> m" do
+  it "returns n shifted right m bits when n > 0, m > 0" do
+    (2 >> 1).should == 1
   end
 
-  it "performs a left-shift if given a negative value" do
-    (7 >> -1).should == (7 << 1)
-    (4095 >> -3).should == (4095 << 3)
+  it "returns n shifted right m bits when n < 0, m > 0" do
+    (-2 >> 1).should == -1
   end
-  
-  it "performs a right-shift if given a negative value" do
-    (-7 >> 1).should == -4
-    (-4095 >> 3).should == -512
+
+  it "returns n shifted left m bits when n > 0, m < 0" do
+    (1 >> -1).should == 2
   end
-  
-  it "tries to convert it's argument to an Integer using to_int" do
-    (7 >> 1.3).should == 3
-    
-    (obj = mock('1')).should_receive(:to_int).and_return(1)
-    (7 >> obj).should == 3
+
+  it "returns n shifted left m bits when n < 0, m < 0" do
+    (-1 >> -1).should == -2
   end
-  
-  it "raises a TypeError when the given argument can't be converted to Integer" do
-    obj = mock('asdf')
-    lambda { 3 >> obj }.should raise_error(TypeError)
-    
+
+  it "returns 0 when n == 0" do
+    (0 >> 1).should == 0
+  end
+
+  it "returns n when n > 0, m == 0" do
+    (1 >> 0).should == 1
+  end
+
+  it "returns n when n < 0, m == 0" do
+    (-1 >> 0).should == -1
+  end
+
+  it "returns 0 when m > 0 and m == p where 2**p > n >= 2**(p-1)" do
+    (4 >> 3).should == 0
+  end
+
+  not_compliant_on :rubinius do
+    it "returns 0 when m is a Bignum" do
+      (3 >> bignum_value()).should == 0
+    end
+  end
+
+  deviates_on :rubinius do
+    it "raises a RangeError when m is a Bignum" do
+      lambda { 3 >> bignum_value() }.should raise_error(RangeError)
+    end
+  end
+
+  it "returns a Bignum == fixnum_max() * 2 when fixnum_max() >> -1 and n > 0" do
+    result = fixnum_max() >> -1
+    result.should be_an_instance_of(Bignum)
+    result.should == fixnum_max() * 2
+  end
+
+  it "returns a Bignum == fixnum_min() * 2 when fixnum_min() >> -1 and n < 0" do
+    result = fixnum_min() >> -1
+    result.should be_an_instance_of(Bignum)
+    result.should == fixnum_min() * 2
+  end
+
+  it "calls #to_int to convert the argument to an Integer" do
+    obj = mock("2")
+    obj.should_receive(:to_int).and_return(2)
+
+    (8 >> obj).should == 2
+  end
+
+  it "raises a TypeError when #to_int does not return an Integer" do
+    obj = mock("a string")
     obj.should_receive(:to_int).and_return("asdf")
+
     lambda { 3 >> obj }.should raise_error(TypeError)
   end
 
-  it "does not raise RangeError when the given argument is out of range of Fixnum" do
-    (obj1 = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
-    (obj2 = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
-    (3 >> obj1).should == 0
-    (-3 >> obj2).should == -1
-
-    obj = 8e19
-    (3 >> obj).should == 0
-    (-3 >> obj).should == -1
+  it "raises a TypeError when passed nil" do
+    lambda { 3 >> nil }.should raise_error(TypeError)
   end
 
-  it "wraps to 0 when shifting all bits off" do
-    # test for both Fixnum size boundaries
-    (5 >> 32).should == 0
-    (5 >> 64).should == 0
+  it "raises a TypeError when passed a String" do
+    lambda { 3 >> "4" }.should raise_error(TypeError)
   end
-
-
 end
