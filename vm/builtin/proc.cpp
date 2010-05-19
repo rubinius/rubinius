@@ -72,7 +72,7 @@ namespace rubinius {
     if(bound_method_->nil_p()) {
       ret= block_->call(state, call_frame, args, flags);
     } else {
-      Dispatch dis(G(sym_call));
+      Dispatch dis(state->symbol("__yield__"));
       ret = dis.send(state, call_frame, args);
     }
 
@@ -129,7 +129,7 @@ namespace rubinius {
     if(bound_method_->nil_p()) {
       ret = block_->call(state, call_frame, args, flags);
     } else {
-      Dispatch dis(G(sym_call));
+      Dispatch dis(state->symbol("__yield__"));
       ret = dis.send(state, call_frame, args);
     }
 
