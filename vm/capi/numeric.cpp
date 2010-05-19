@@ -67,6 +67,14 @@ extern "C" {
     return (unsigned long long)rb_num2long(obj);
   }
 
+  VALUE rb_int2big(long number) {
+    return capi_native2num<long>(number);
+  }
+
+  VALUE rb_uint2big(unsigned long number) {
+    return capi_native2num<unsigned long>(number);
+  }
+
   VALUE INT2NUM(int number) {
     return capi_native2num<int>(number);
   }

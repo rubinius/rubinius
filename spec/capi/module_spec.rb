@@ -46,4 +46,11 @@ describe "CApiModule" do
     @m.rb_const_get(SubtendModuleTest, :Fixnum).should == Fixnum
   end
 
+  it "rb_const_get_from should lookup a constant" do
+    @m.rb_const_get_from(SubtendModuleTest, :BAR).should == 7
+  end
+
+  it "rb_const_get_from should not lookup a constant at toplevel" do
+    @m.rb_const_get_from(SubtendModuleTest, :Fixnum).should == nil
+  end
 end

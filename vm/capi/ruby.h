@@ -32,6 +32,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "intern.h"
 #include "defines.h"
@@ -356,15 +357,25 @@ struct RFloat {
 // To provide nicer error reporting
 #define RHASH(obj) assert("RHASH() is not supported")
 
-typedef struct {
-  void* dummy;
-} rb_io_t;
+struct RIO {
+  VALUE handle;
+  int fd;
+  FILE* stdio_file;
+};
+
+#define RIO(d)          capi_rio_struct(d)
+
+typedef struct RIO OpenFile;
+typedef struct RIO rb_io_t;
 
 #define HAVE_RB_IO_T 1
 
 // Fake it out, just make the ptr be the val
 // MRI checks also that it's not closed...
-#define GetOpenFile(val, ptr) (ptr) = ((rb_io_t*)(val))
+#define GetOpenFile(val, ptr) (ptr) = (capi_rio_struct(val))
+
+#define GetReadFile(ptr)  (ptr->stdio_file)
+#define GetWriteFile(ptr) (ptr->stdio_file)
 
 /*
  * The immediates.
@@ -530,7 +541,7 @@ typedef struct {
 #define OBJ_TAINT(obj)    capi_taint((obj))
 
 /** Returns 1 if the object is tainted, 0 otherwise. */
-#define OBJ_TAINTED(obj)  capi_tainted_p((obj))
+#define OBJ_TAINTED(obj)  rb_obj_tainted((obj))
 
 /** Convert int to a Ruby Integer. */
 #define INT2FIX(i)        ((VALUE)(((long)(i))<<1 | FIXNUM_FLAG))
@@ -546,6 +557,9 @@ unsigned long long rb_num2ull(VALUE);
 /** Convert from a Float to a double */
 double rb_num2dbl(VALUE);
 #define NUM2DBL(x) rb_num2dbl((VALUE)(x))
+
+VALUE rb_int2big(long number);
+VALUE rb_uint2big(unsigned long number);
 
 /** Zero out N elements of type starting at given pointer. */
 #define MEMZERO(p,type,n) memset((p), 0, (sizeof(type) * (n)))
@@ -668,7 +682,7 @@ double rb_num2dbl(VALUE);
   void    capi_taint(VALUE obj);
 
   /** Returns 1 if obj is tainted, 0 otherwise. @internal. */
-  int     capi_tainted_p(VALUE obj);
+  int     rb_obj_tainted(VALUE obj);
 
   /** Returns the superclass of klass or NULL. This is not the same as
    * rb_class_superclass. See MRI's rb_class_s_alloc which returns a
@@ -682,6 +696,7 @@ double rb_num2dbl(VALUE);
   struct RData* capi_rdata_struct(VALUE data_handle);
   struct RString* capi_rstring_struct(VALUE str_handle);
   struct RFloat* capi_rfloat_struct(VALUE data_handle);
+  struct RIO* capi_rio_struct(VALUE handle);
 
 /* Real API */
 
@@ -882,6 +897,9 @@ double rb_num2dbl(VALUE);
   /** Retrieve constant from given module. */
   VALUE   rb_const_get(VALUE module_handle, ID name);
 
+  /** Retrieve constant from given module. */
+  VALUE rb_const_get_from(VALUE module_handle, ID id_name);
+
   /** Set constant on the given module */
   void rb_const_set(VALUE module_handle, ID name, VALUE const_handle);
 
@@ -913,7 +931,7 @@ double rb_num2dbl(VALUE);
 
   /** Set module's named class variable to given value. Returns the value. @@ is optional. */
   VALUE   rb_cvar_set(VALUE module_handle, ID name, VALUE value, int unused);
-  
+
   /** Set module's named class variable to given value. */
   void rb_define_class_variable(VALUE klass, const char* name, VALUE val);
 
@@ -1025,6 +1043,14 @@ double rb_num2dbl(VALUE);
   VALUE   rb_funcall2(VALUE receiver, ID method_name,
                       int arg_count, const VALUE* args);
 
+  /** Call the method with args provided in a C array and block.
+   *  Calls private methods. */
+  VALUE   rb_funcall2b(VALUE receiver, ID method_name, int arg_count,
+                       const VALUE* v_args, VALUE block);
+
+  /** Return name of the function being called */
+  ID rb_frame_last_func();
+
   /** @todo define rb_funcall3, which is the same as rb_funcall2 but
    * will not call private methods.
    */
@@ -1072,7 +1098,9 @@ double rb_num2dbl(VALUE);
   void    rb_io_wait_readable(int fd);
   void    rb_io_wait_writable(int fd);
 
-  void    rb_io_set_nonblock(rb_io_t *dummy);
+  void    rb_io_set_nonblock(rb_io_t* io);
+  void    rb_io_check_readable(rb_io_t* io);
+  void    rb_io_check_writable(rb_io_t* io);
 
   void    rb_thread_wait_fd(int fd);
 
@@ -1165,7 +1193,7 @@ double rb_num2dbl(VALUE);
   VALUE   rb_obj_instance_eval(int argc, VALUE* argv, VALUE self);
 
   VALUE   rb_any_to_s(VALUE obj);
-  
+
   /** Return a clone of the object by calling the method bound
    * to Kernel#clone (i.e. does NOT call specialized #clone method
    * on obj_handle if one exists).
@@ -1219,12 +1247,12 @@ double rb_num2dbl(VALUE);
    * Continue raising a pending exception if status is not 0
    */
   void rb_jump_tag(int status);
-  
+
   /**
    * Retrieve the source pattern for the regular expression.
    */
   VALUE rb_reg_source(VALUE r);
-  
+
   /**
    * Retrieve the pattern options for the regular expression.
    */
@@ -1420,13 +1448,13 @@ double rb_num2dbl(VALUE);
   VALUE   rb_str_to_str(VALUE object_handle);
 
   /** Call #to_s on object pointed to and _replace_ it with the String. */
-  VALUE   rb_string_value(VALUE* object_variable);
+  VALUE   rb_string_value(volatile VALUE* object_variable);
 
-  char*   rb_string_value_ptr(VALUE* object_variable);
+  char*   rb_string_value_ptr(volatile VALUE* object_variable);
   /**
    *  As rb_string_value but also returns a C string of the new String.
    */
-  char*   rb_string_value_cstr(VALUE* object_variable);
+  char*   rb_string_value_cstr(volatile VALUE* object_variable);
 
   /**
    * Returns an editable pointer to the String, the length is returned

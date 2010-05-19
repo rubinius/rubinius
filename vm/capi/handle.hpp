@@ -13,6 +13,7 @@ struct RArray;
 struct RString;
 struct RData;
 struct RFloat;
+struct RIO;
 
 namespace rubinius {
   class NativeMethodEnvironment;
@@ -24,7 +25,8 @@ namespace rubinius {
       cRArray,
       cRString,
       cRData,
-      cRFloat
+      cRFloat,
+      cRIO
     };
 
     class Handle : public LinkedList::Node {
@@ -44,6 +46,7 @@ namespace rubinius {
         RString*  rstring;
         RData*    rdata;
         RFloat*   rfloat;
+        RIO*      rio;
         intptr_t  cache_data;
       } as_;
 
@@ -126,6 +129,10 @@ namespace rubinius {
         return type_ == cRFloat;
       }
 
+      bool is_rio() {
+        return type_ == cRIO;
+      }
+
       HandleType type() {
          return type_;
       }
@@ -134,6 +141,7 @@ namespace rubinius {
       RData*  as_rdata(NativeMethodEnvironment* env);
       RString* as_rstring(NativeMethodEnvironment* env);
       RFloat* as_rfloat(NativeMethodEnvironment* env);
+      RIO* as_rio(NativeMethodEnvironment* env);
 
       void free_data();
     };

@@ -18,6 +18,8 @@ namespace rubinius {
         case cRFloat:
           delete as_.rfloat;
           break;
+        case cRIO:
+          delete as_.rio;
         default:
           break;
         }

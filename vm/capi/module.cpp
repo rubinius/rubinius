@@ -3,6 +3,7 @@
 #include "builtin/symbol.hpp"
 
 #include "helpers.hpp"
+#include "call_frame.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
@@ -22,6 +23,30 @@ extern "C" {
     }
 
     return ret;
+  }
+
+  ID rb_frame_last_func() {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    return reinterpret_cast<ID>(env->current_call_frame()->name());
+  }
+
+  VALUE rb_const_get_from(VALUE module_handle, ID id_name) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Symbol* name = reinterpret_cast<Symbol*>(id_name);
+    Module* module = c_as<Module>(env->get_object(module_handle));
+
+    bool found = false;
+    while(!module->nil_p()) {
+      Object* val = module->get_const(env->state(), name, &found);
+      if(found) return env->get_handle(val);
+
+      module = module->superclass();
+    }
+
+    // BUG should call const missing here.
+    return Qnil;
   }
 
   VALUE rb_const_get(VALUE module_handle, ID id_name) {

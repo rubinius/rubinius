@@ -50,5 +50,9 @@ module Rubinius
     def line_from_ip(i)
       0
     end
+
+    def first_line
+      0
+    end
   end
 end

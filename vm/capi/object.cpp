@@ -314,6 +314,10 @@ extern "C" {
   }
 
   VALUE rb_obj_instance_eval(int argc, VALUE* argv, VALUE self) {
-    return rb_funcall2(self, rb_intern("instance_eval"), argc, (const VALUE*)argv);
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    VALUE block = env->get_handle(env->block());
+
+    return rb_funcall2b(self, rb_intern("instance_eval"), argc,
+                        (const VALUE*)argv, block);
   }
 }
