@@ -67,6 +67,7 @@ module Singleton
   def clone
     raise TypeError, "can't clone instance of singleton #{self.class}"
   end
+
   def dup
     raise TypeError, "can't dup instance of singleton #{self.class}"
   end
@@ -124,10 +125,10 @@ class << Singleton
   end
 
   module SingletonClassMethods
-    # properly clone the Singleton pattern - did you know
-    # that duping doesn't copy class methods?
+    # cloning a Singleton class/module makes no sense, so just
+    # return self!
     def clone
-      Singleton.__init__(super)
+      self
     end
 
     def _load(str)

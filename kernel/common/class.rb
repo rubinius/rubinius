@@ -75,7 +75,7 @@ class Class
   # Returns the Class object that this Class inherits from. Included Modules
   # are not considered for this purpose.
 
-  def superclass()
+  def superclass
     cls = direct_superclass
     return nil unless cls
     while cls and cls.kind_of? Rubinius::IncludedModule
@@ -97,4 +97,10 @@ class Class
   end
 
   alias_method :inspect, :to_s
+
+  def clone
+    raise TypeError, "Unable to clone/dup Class objects"
+  end
+
+  alias_method :dup, :clone
 end
