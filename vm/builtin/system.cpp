@@ -401,7 +401,13 @@ namespace rubinius {
   Object* System::vm_watch_signal(STATE, Fixnum* sig) {
     SignalHandler* h = state->shared.signal_handler();
     if(h) {
-      h->add_signal(sig->to_native());
+      native_int i = sig->to_native();
+      if(i < 0) {
+        h->add_signal(-i, true);
+      } else {
+        h->add_signal(i);
+      }
+
       return Qtrue;
     } else {
       return Qfalse;

@@ -15,7 +15,7 @@ module Signal
       end
 
       if sig == "EXIT"
-        at_exit { block.call }
+        at_exit(&block)
         return
       end
 
@@ -24,12 +24,34 @@ module Signal
       end
     else
       number = sig.to_i
+
+      if number == 0
+        at_exit(&block)
+        return
+      end
     end
 
     if prc and block
-      raise ArgumentError, "Either a Proc or a block, not both."
+      raise ArgumentError, "Either a Proc/String or a block, not both."
     elsif block
       prc = block
+    end
+
+    case prc
+    when "DEFAULT", "_DFL"
+      old = @handlers.delete(number)
+      Rubinius.watch_signal -number
+      return old
+    when "IGNORE", "_IGN"
+      prc = nil
+    when "EXIT"
+      prc = proc { exit }
+    when String
+      raise ArgumentError, "Unsupported command '#{prc}'"
+    else
+      unless prc.respond_to? :call
+        raise ArgumentError, "Handler must respond to #call"
+      end
     end
 
     old = @handlers[number]
@@ -41,7 +63,10 @@ module Signal
   end
 
   def self.run_handler(sig)
-    @handlers[sig].call(sig)
+    # Ignore nil handlers
+    if handler = @handlers[sig]
+      handler.call(sig)
+    end
   end
 
   def self.list

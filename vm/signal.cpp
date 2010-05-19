@@ -29,7 +29,7 @@ namespace rubinius {
     vm_->wakeup();
   }
 
-  void SignalHandler::add_signal(int sig) {
+  void SignalHandler::add_signal(int sig, bool def) {
     thread::SpinLock::LockGuard guard(lock_);
 
     sigset_t sigs;
@@ -38,7 +38,13 @@ namespace rubinius {
     sigprocmask(SIG_UNBLOCK, &sigs, NULL);
 
     struct sigaction action;
-    action.sa_handler = signal_tramp;
+
+    if(def) {
+      action.sa_handler = SIG_DFL;
+    } else {
+      action.sa_handler = signal_tramp;
+    }
+
     action.sa_flags = 0;
     sigfillset(&action.sa_mask);
 

@@ -16,7 +16,7 @@ namespace rubinius {
 
   public:
     SignalHandler(VM* vm);
-    void add_signal(int sig);
+    void add_signal(int sig, bool def=false);
     void handle_signal(int sig);
     static void signal_tramp(int sig);
 
