@@ -58,4 +58,9 @@ describe "Method#to_proc" do
 
     ScratchPad.recorded.should == array = [["text", :comment], ["space", :chunk]]
   end
+
+  it "can be called directly and not unwrap arguments like a block" do
+    obj = MethodSpecs::ToProcBeta.new
+    obj.to_proc.call([1]).should == [1]
+  end
 end
