@@ -8,6 +8,7 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
+#include "builtin/location.hpp"
 
 #include "lookup_data.hpp"
 #include "dispatch.hpp"
@@ -256,8 +257,8 @@ namespace rubinius {
 
     void capi_raise_backend(Exception* exception) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-      exception->locations(env->state(), System::vm_backtrace(env->state(),
-          Fixnum::from(0), env->current_call_frame()));
+      exception->locations(env->state(), Location::from_call_stack(env->state(),
+                           env->current_call_frame()));
       env->state()->thread_state()->raise_exception(exception);
 
       env->current_ep()->return_to(env);

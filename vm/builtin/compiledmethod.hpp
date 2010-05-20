@@ -34,6 +34,7 @@ namespace rubinius {
     Tuple* local_names_;        // slot
     Symbol* file_;               // slot
     StaticScope* scope_;        // slot
+    LookupTable* breakpoints_;  // slot
 
     VMMethod* backend_method_;
 
@@ -71,6 +72,7 @@ namespace rubinius {
     attr_accessor(local_names, Tuple);
     attr_accessor(file, Symbol);
     attr_accessor(scope, StaticScope);
+    attr_accessor(breakpoints, LookupTable);
 
     /* interface */
 
@@ -102,7 +104,7 @@ namespace rubinius {
     Object* jit_soon(STATE);
 
     // Ruby.primitive :compiledmethod_set_breakpoint
-    Object* set_breakpoint(STATE, Fixnum* ip);
+    Object* set_breakpoint(STATE, Fixnum* ip, Object* bp);
 
     // Ruby.primitive :compiledmethod_clear_breakpoint
     Object* clear_breakpoint(STATE, Fixnum* ip);

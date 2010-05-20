@@ -6,6 +6,8 @@
 #include "builtin/block_environment.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/system.hpp"
+#include "builtin/location.hpp"
+
 #include "arguments.hpp"
 
 #include "vmmethod.hpp"
@@ -62,7 +64,7 @@ namespace rubinius {
         Exception* exc =
           Exception::make_argument_error(state, required, args.total(),
               state->symbol("__block__"));
-        exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+        exc->locations(state, Location::from_call_stack(state, call_frame));
         state->thread_state()->raise_exception(exc);
         return NULL;
       }
@@ -119,7 +121,7 @@ namespace rubinius {
       if(!arity_ok) {
         Exception* exc =
           Exception::make_argument_error(state, required, args.total(), state->symbol("__block__"));
-        exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+        exc->locations(state, Location::from_call_stack(state, call_frame));
         state->thread_state()->raise_exception(exc);
         return NULL;
       }
@@ -149,7 +151,7 @@ namespace rubinius {
       if(args.total() < 1 || (required >= 0 && (size_t)required != args.total() - 1)) {
         Exception* exc =
           Exception::make_argument_error(state, required, args.total(), state->symbol("__block__"));
-        exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+        exc->locations(state, Location::from_call_stack(state, call_frame));
         state->thread_state()->raise_exception(exc);
         return NULL;
       }
@@ -160,7 +162,7 @@ namespace rubinius {
     if(block_->nil_p()) {
       Exception* exc =
         Exception::make_type_error(state, BlockEnvironment::type, block_, "Invalid proc style");
-      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
       return NULL;
     }

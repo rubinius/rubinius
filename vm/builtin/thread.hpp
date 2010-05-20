@@ -45,6 +45,8 @@ namespace rubinius {
 
     LookupTable* recursive_objects_;  // slot
 
+    Thread* debugger_thread_; // slot
+
     /**
      *  Actual OS backend thread associated with this Thread.
      *
@@ -71,6 +73,8 @@ namespace rubinius {
 
     /** LookupTable of objects that contain themselves. */
     attr_accessor(recursive_objects, LookupTable);
+
+    attr_accessor(debugger_thread, Thread);
 
     /** OS thread associated with this Thread, if any. */
     NativeThread* native_thread() {

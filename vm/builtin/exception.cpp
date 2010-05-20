@@ -78,20 +78,20 @@ namespace rubinius {
 
   Exception* Exception::make_lje(STATE, CallFrame* call_frame) {
     Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
-    exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    exc->locations(state, Location::from_call_stack(state, call_frame));
     return exc;
   }
 
   void Exception::internal_error(STATE, CallFrame* call_frame, const char* reason) {
     Exception* exc = Exception::make_exception(state, G(exc_vm_internal), reason);
-    exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    exc->locations(state, Location::from_call_stack(state, call_frame));
     state->thread_state()->raise_exception(exc);
   }
 
   void Exception::frozen_error(STATE, CallFrame* call_frame) {
     Exception* exc = Exception::make_exception(state, G(exc_type),
                         "unable to modify frozen object");
-    exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    exc->locations(state, Location::from_call_stack(state, call_frame));
     state->thread_state()->raise_exception(exc);
   }
 
@@ -147,7 +147,7 @@ namespace rubinius {
 
   void Exception::type_error(STATE, const char* reason, CallFrame* call_frame) {
     Exception* exc = Exception::make_exception(state, G(exc_type), reason);
-    exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    exc->locations(state, Location::from_call_stack(state, call_frame));
     state->thread_state()->raise_exception(exc);
   }
 

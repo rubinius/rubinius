@@ -1,7 +1,9 @@
 class Rubinius::VM
-  def self.backtrace(frames_to_skip)
+  def self.backtrace(frames_to_skip, include_vars=false)
     Ruby.primitive :vm_backtrace
-    raise PrimitiveFailure, "Unable to create backtrace!"
+
+    # Add the + 1 to skip this frame
+    backtrace(Integer(frames_to_skip) + 1, include_vars)
   end
 
   def self.stats

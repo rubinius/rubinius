@@ -116,7 +116,7 @@ namespace rubinius {
      *  Backtrace as an Array.
      */
     // Ruby.primitive :vm_backtrace
-    static Array* vm_backtrace(STATE, Fixnum* skip, CallFrame* calling_environment);
+    static Array* vm_backtrace(STATE, Fixnum* skip, Object* inc_vars, CallFrame* calling_environment);
 
     /** Return true if the profiler is available. */
     // Ruby.primitive :vm_profiler_instrumenter_available_p

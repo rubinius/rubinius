@@ -18,6 +18,7 @@
 #include "builtin/memorypointer.hpp"
 #include "builtin/integer.hpp"
 #include "builtin/float.hpp"
+#include "builtin/location.hpp"
 
 #include "instruments/profiler.hpp"
 
@@ -178,7 +179,7 @@ extern "C" {
                         int required) {
     Exception* exc =
         Exception::make_argument_error(state, required, args.total(), msg.name);
-    exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    exc->locations(state, Location::from_call_stack(state, call_frame));
     state->thread_state()->raise_exception(exc);
 
     return NULL;
@@ -190,7 +191,7 @@ extern "C" {
     } catch(TypeError& e) {
       Exception* exc =
         Exception::make_type_error(state, e.type, e.object, e.reason);
-      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      exc->locations(state, Location::from_call_stack(state, call_frame));
 
       state->thread_state()->raise_exception(exc);
       return NULL;
@@ -847,7 +848,7 @@ extern "C" {
     if(!(call_frame->flags & CallFrame::cIsLambda) &&
        !call_frame->scope_still_valid(call_frame->scope->parent())) {
       Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
-      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
     } else {
       state->thread_state()->raise_return(top, call_frame->top_scope(state));

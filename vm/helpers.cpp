@@ -16,6 +16,7 @@
 #include "builtin/channel.hpp"
 #include "builtin/global_cache_entry.hpp"
 #include "builtin/methodtable.hpp"
+#include "builtin/location.hpp"
 
 #include "vm.hpp"
 #include "object_utils.hpp"
@@ -207,7 +208,7 @@ namespace rubinius {
                 << cls->true_superclass(state)->name()->c_str(state);
         Exception* exc =
           Exception::make_type_error(state, Class::type, super, message.str().c_str());
-        exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+        exc->locations(state, Location::from_call_stack(state, call_frame));
         state->thread_state()->raise_exception(exc);
         return NULL;
       }
@@ -270,27 +271,65 @@ namespace rubinius {
       return module;
     }
 
-    void yield_debugger(STATE, CallFrame* call_frame) {
-      Channel* chan;
+    bool yield_debugger(STATE, CallFrame* call_frame, Object* bp) {
+      Thread* cur = Thread::current(state);
+      Thread* debugger = cur->debugger_thread();
+
+      // No debugger, bail.
+      if(debugger->nil_p()) {
+        std::cout << "no debugger\n";
+        return true;
+      }
+
+      Channel* debugger_chan = debugger->control_channel();
+
+      // Debugger not initialized? bail.
+      if(debugger_chan->nil_p()) {
+        std::cout << "no debugger channel\n";
+        return true;
+      }
+
+      // No one waiting on it? Well, nevermind then.
+      if(!debugger_chan->has_readers_p()) {
+        std::cout << "no waiters\n";
+        return true;
+      }
 
       state->set_call_frame(call_frame);
 
-      chan = try_as<Channel>(G(vm)->get_ivar(state,
-            state->symbol("@debug_channel")));
+      Channel* my_control = cur->control_channel();
 
-      if(!chan) return;
-
-      Channel* control = state->thread->control_channel();
-
-      if(control->nil_p()) {
-        control = Channel::create(state);
-        state->thread->control_channel(state, control);
+      // Lazily create our own control channel.
+      if(my_control->nil_p()) {
+        my_control = Channel::create(state);
+        cur->control_channel(state, my_control);
       }
 
-      sassert(chan->has_readers_p());
+      // To get the backtrace right, we have to inc the ip, get the backtrace,
+      // then dec it. This is because all backtrace code expects that a CallFrame's
+      // ip points to one past the currently executing instruction.
 
-      chan->send(state, state->thread.get());
-      control->receive(state, call_frame);
+      call_frame->inc_ip();
+
+      debugger_chan->send(state,
+          Tuple::from(state, 4, bp, cur, my_control,
+                      Location::from_call_stack(state,  call_frame, true)
+                    ));
+
+      call_frame->dec_ip();
+
+      // Block until the debugger wakes us back up.
+      Object* ret = my_control->receive(state, call_frame);
+
+      // Do not access any locals other than ret beyond here unless you add OnStack<>
+      // to them! The GC has probably run and moved things.
+
+      // if ret is null, then receive was interrupted and there is an exception
+      // to propagate.
+      if(!ret) return false;
+
+      // All done!
+      return true;
     }
   }
 }

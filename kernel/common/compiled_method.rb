@@ -144,7 +144,7 @@ module Rubinius
     #
     # @raise [ArgumentError]
     # @param [Fixnum] ip where exactly to place the breakpoint
-    def set_breakpoint(ip)
+    def set_breakpoint(ip, obj)
       Ruby.primitive :compiledmethod_set_breakpoint
       raise ArgumentError, "Unable to set breakpoint on #{inspect} at invalid bytecode address #{ip}"
     end

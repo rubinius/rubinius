@@ -18,6 +18,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/system.hpp"
 #include "builtin/staticscope.hpp"
+#include "builtin/location.hpp"
 
 #include "instruments/profiler.hpp"
 #include "configuration.hpp"
@@ -163,7 +164,7 @@ namespace rubinius {
     if(args.total() < 1) {
       Exception* exc =
         Exception::make_argument_error(state, 1, args.total(), state->symbol("__block__"));
-      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
       return NULL;
     }
@@ -180,7 +181,7 @@ namespace rubinius {
     if(args.total() < 2) {
       Exception* exc =
         Exception::make_argument_error(state, 2, args.total(), state->symbol("__block__"));
-      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
       return NULL;
     }

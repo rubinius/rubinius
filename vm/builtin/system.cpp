@@ -312,25 +312,17 @@ namespace rubinius {
    /*  @todo Could possibly capture the system backtrace at this
    *        point. --rue
    */
-  Array* System::vm_backtrace(STATE, Fixnum* skip, CallFrame* calling_environment) {
+  Array* System::vm_backtrace(STATE, Fixnum* skip, Object* inc_vars,
+                              CallFrame* calling_environment) {
     CallFrame* call_frame = calling_environment;
+
+    bool include_vars = RTEST(inc_vars);
 
     for(native_int i = skip->to_native(); call_frame && i > 0; --i) {
       call_frame = static_cast<CallFrame*>(call_frame->previous);
     }
 
-    Array* bt = Array::create(state, 5);
-
-    while(call_frame) {
-      // Ignore synthetic frames
-      if(call_frame->cm) {
-        bt->append(state, Location::create(state, call_frame));
-      }
-
-      call_frame = static_cast<CallFrame*>(call_frame->previous);
-    }
-
-    return bt;
+    return Location::from_call_stack(state, call_frame, include_vars);
   }
 
   Object* System::vm_show_backtrace(STATE, CallFrame* calling_environment) {
