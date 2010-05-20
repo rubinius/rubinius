@@ -46,7 +46,7 @@ describe HavePrivateInstanceMethodMatcher do
     ]
   end
 
-  it "provides a failure messoge for #should_not" do
+  it "provides a failure message for #should_not" do
     matcher = HavePrivateInstanceMethodMatcher.new :some_method
     matcher.matches?(HPIMMSpecs)
     matcher.negative_failure_message.should == [
