@@ -27,26 +27,26 @@ describe "Bignum#divmod" do
     (10**50).divmod(-(10**40 + 1)).should == [-10000000000, -10000000000]
   end
 
-  describe "returns [q,r], given q = floor(x/y), a = q*b + r," do
-    it "a < 0, b > 0 and |a| < b" do
+  describe "with q = floor(x/y), a = q*b + r," do
+    it "returns [q,r] when a < 0, b > 0 and |a| < b" do
       a = -@bignum + 1
       b =  @bignum
       a.divmod(b).should == [-1, 1]
     end
 
-    it "a > 0, b < 0 and a > |b|" do
+    it "returns [q,r] when a > 0, b < 0 and a > |b|" do
       b = -@bignum + 1
       a =  @bignum
       a.divmod(b).should == [-2, -@bignum + 2]
     end
 
-    it "a > 0, b < 0 and a < |b|" do
+    it "returns [q,r] when a > 0, b < 0 and a < |b|" do
       a =  @bignum - 1
       b = -@bignum
       a.divmod(b).should == [-1, -1]
     end
 
-    it "a < 0, b < 0 and |a| < |b|" do
+    it "returns [q,r] when a < 0, b < 0 and |a| < |b|" do
       a = -@bignum + 1
       b = -@bignum
       a.divmod(b).should == [0, -@bignum + 1]

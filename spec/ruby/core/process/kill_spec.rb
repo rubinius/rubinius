@@ -20,11 +20,19 @@ describe "Process.kill" do
     lambda { Process.kill("HUP ", 0) }.should raise_error(ArgumentError)
   end
 
-  it "accepts symbols as signal names" do
-    Process.kill(:INFO, Process.pid).should == 1
-  end
-
   platform_is_not :windows do
+    it "accepts symbols as signal names" do
+      begin
+        flag = false
+        @saved_trap = Signal.trap("HUP") { flag = true }
+        Process.kill(:HUP, Process.pid).should == 1
+        sleep 0.5
+        flag.should == true
+      ensure
+        Signal.trap("HUP", @saved_trap)
+      end
+    end
+
     it "tests for the existence of a process without sending a signal" do
       Process.kill(0, 0).should == 1
       pid = Process.fork {

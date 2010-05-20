@@ -93,7 +93,7 @@ describe "Kernel#caller in a Proc or eval" do
   ruby_version_is "1.9" do
     it "returns the definition trace of a block when evaluated in a Proc binding" do
       stack = CallerFixture.caller_of(CallerFixture.block)
-      stack[0].should == "(eval):1:in `<top (required)>'"
+      stack[0].should =~ /caller_fixture1\.rb:4:in `<top \(required\)>'/
       stack[1].should =~ /caller_fixture2\.rb:18:in `eval'/
       stack[2].should =~ /caller_fixture2\.rb:18:in `caller_of'/
       stack[3].should =~ /caller_spec\.rb:95:in `block \(3 levels\) in <top \(required\)>'/
@@ -101,7 +101,7 @@ describe "Kernel#caller in a Proc or eval" do
 
     it "returns the definition trace of a Proc" do
       stack = CallerFixture.caller_of(CallerFixture.example_proc)
-      stack[0].should == "(eval):1:in `example_proc'"
+      stack[0].should =~ /caller_fixture1\.rb:14:in `example_proc'/
       stack[1].should =~ /caller_fixture2\.rb:18:in `eval'/
       stack[2].should =~ /caller_fixture2\.rb:18:in `caller_of'/
       stack[3].should =~ /caller_spec\.rb:103:in `block \(3 levels\) in <top \(required\)>'/
@@ -119,7 +119,7 @@ describe "Kernel#caller in a Proc or eval" do
     # the correct behaviour
     it "returns the correct definition line for a complex Proc trace" do
       stack = CallerFixture.caller_of(CallerFixture.entry_point)
-      stack[0].should == "(eval):1:in `third'"
+      stack[0].should =~ /caller_fixture1\.rb:29:in `third'/
       stack[1].should =~ /caller_fixture2\.rb:18:in `eval'/
       stack[2].should =~ /caller_fixture2\.rb:18:in `caller_of'/
       stack[3].should =~ /caller_spec.rb:121:in `block \(3 levels\) in <top \(required\)>'/

@@ -92,16 +92,6 @@ describe "IO#reopen with a String" do
     @io.gets.should == "Line 1: One\n"
   end
 
-  it "creates the file if it doesn't exist" do
-    rm_r @other_name
-
-    File.exists?(@other_name).should be_false
-
-    @io.reopen(@other_name)
-
-    File.exists?(@other_name).should be_true
-  end
-
   ruby_version_is "1.9" do
     it "calls #to_path on non-String arguments" do
       obj = mock('path')
@@ -116,7 +106,7 @@ describe "IO#reopen with a String" do
     @name = tmp("io_reopen.txt")
     @other_name = tmp("io_reopen_other.txt")
 
-    @io = new_io @name, "w"
+    rm_r @other_name
   end
 
   after :each do
@@ -125,13 +115,50 @@ describe "IO#reopen with a String" do
   end
 
   it "opens a path after writing to the original file descriptor" do
+    @io = new_io @name, "w"
+
     @io.print "original data"
-    @io.reopen @other_name, "w"
+    @io.reopen @other_name
     @io.print "new data"
     @io.flush
 
     @name.should have_data("original data")
     @other_name.should have_data("new data")
+  end
+
+  it "creates the file if it doesn't exist if the IO is opened in write mode" do
+    @io = new_io @name, "w"
+
+    @io.reopen(@other_name)
+    File.exists?(@other_name).should be_true
+  end
+
+  it "creates the file if it doesn't exist if the IO is opened in write mode" do
+    @io = new_io @name, "a"
+
+    @io.reopen(@other_name)
+    File.exists?(@other_name).should be_true
+  end
+end
+
+describe "IO#reopen with a String" do
+  before :each do
+    @name = tmp("io_reopen.txt")
+    @other_name = tmp("io_reopen_other.txt")
+
+    touch @name
+    rm_r @other_name
+  end
+
+  after :each do
+    # Do not close @io, the exception leaves MRI with an invalid
+    # IO and an Errno::EBADF will be raised on #close.
+    rm_r @name, @other_name
+  end
+
+  it "raises an Errno::ENOENT if the file does not exist and the IO is not opened in write mode" do
+    @io = new_io @name, "r"
+    lambda { @io.reopen(@other_name) }.should raise_error(Errno::ENOENT)
   end
 end
 

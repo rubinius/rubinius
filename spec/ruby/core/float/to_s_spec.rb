@@ -29,6 +29,18 @@ describe "Float#to_s" do
     end
   end
 
+  ruby_bug "#3273", "1.8.7" do
+    it "outputs the necessary number of digits to represent the float" do
+      0.21611564636388508.to_s.to_f.should == 0.21611564636388508
+    end
+  end
+
+  ruby_bug "#3273", "1.8" do
+    it "outputs a minimal form to represent the float" do
+      0.56.to_s.should == "0.56"
+    end
+  end
+
   platform_is_not :openbsd do
     it "returns the correct values for -0.0" do
       -0.0.to_s.should == "-0.0"

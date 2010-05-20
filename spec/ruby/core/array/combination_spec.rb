@@ -40,7 +40,7 @@ describe "Array#combination" do
     end
     
     it "yields a partition consisting of only singletons" do
-      @array.combination(1).to_a.should == [[1],[2],[3],[4]]
+      @array.combination(1).to_a.sort.should == [[1],[2],[3],[4]]
     end
   end
 end

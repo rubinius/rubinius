@@ -13,8 +13,7 @@ describe 'Zlib::Deflate#params' do
     d.params Zlib::BEST_COMPRESSION, Zlib::DEFAULT_STRATEGY
     d << data
 
-    d.finish.should ==
-      "x\001\000\v\000\364\377abcdefghijk\000\000\000\377\377\313\311\005\000#\364\005<"
+    Zlib::Inflate.inflate(d.finish).should == 'abcdefghijklm'
   end
   end
 end

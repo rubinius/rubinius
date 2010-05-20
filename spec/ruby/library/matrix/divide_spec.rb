@@ -9,7 +9,7 @@ describe "Matrix#/" do
     @c = Matrix[ [1.2, 2.4], [3.6, 4.8] ]
   end
 
-  ruby_bug "?", "1.9" do
+  ruby_bug "?", "1.8.7" do
     it "returns the result of dividing self by another Matrix" do
       (@a / @b).should be_close_to_matrix([[2.5, -1.5], [1.5, -0.5]])
     end

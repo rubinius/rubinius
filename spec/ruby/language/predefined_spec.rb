@@ -447,30 +447,36 @@ describe "The predefined standard object nil" do
   it "is an instance of NilClass" do
     nil.should be_kind_of(NilClass)
   end
-  
-  # this needs to be tested with a subprocess because
-  # MRI aborts reading in the file
-  it "raises a SyntaxError if assigned to"
+
+  it "raises a SyntaxError if assigned to" do
+    lambda { eval("nil = true") }.should raise_error(SyntaxError)
+  end
 end
 
 describe "The predefined standard object true" do
   it "is an instance of TrueClass" do
     true.should be_kind_of(TrueClass)
   end
-  
-  # this needs to be tested with a subprocess because
-  # MRI aborts reading in the file
-  it "raises a SyntaxError if assigned to"
+
+  it "raises a SyntaxError if assigned to" do
+    lambda { eval("true = false") }.should raise_error(SyntaxError)
+  end
 end
 
 describe "The predefined standard object false" do
   it "is an instance of FalseClass" do
     false.should be_kind_of(FalseClass)
   end
-  
-  # this needs to be tested with a subprocess because
-  # MRI aborts reading in the file
-  it "raises a SyntaxError if assigned to"
+
+  it "raises a SyntaxError if assigned to" do
+    lambda { eval("false = nil") }.should raise_error(SyntaxError)
+  end
+end
+
+describe "The self psuedo-variable" do
+  it "raises a SyntaxError if assigned to" do
+    lambda { eval("self = 1") }.should raise_error(SyntaxError)
+  end
 end
 
 =begin

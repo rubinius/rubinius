@@ -88,16 +88,15 @@ describe "self in an eigenclass body (class << obj)" do
       cls.superclass.should == class << Class; self end
     end
 
-    it "has the object's class as superclass" do
+    it "has class String as the superclass of a String instance" do
       cls = class << "blah"; self; end
       cls.superclass.should == String
     end
 
-    ruby_bug("#601", "1.9") do
-      it "raises a TypeError for Bignum's" do
-        (1<<1024).should be_kind_of(Bignum)
-        lambda { class << (1<<1024); self; end }.should raise_error(TypeError)
-      end
+    it "has class Bignum as the superclass of a Bignum instance" do
+      # This behavior may be changed in the future, though.  [Feature #3222]
+      cls = class << bignum_value; self; end
+      cls.superclass.should == Bignum
     end
   end
 

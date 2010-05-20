@@ -14,7 +14,12 @@ ruby_version_is "1.9" do
 
     it "returns false if one element is a Complex" do
       Matrix[ [Complex(1,1), 2], [3, 4] ].real?.should be_false
-      Matrix[ [Complex(1,0), 2], [3, 4] ].real?.should be_false
+    end
+
+    conflicts_with :CMath do
+      it "returns false if one element is a Complex whose imaginary part is 0" do
+        Matrix[ [Complex(1,0), 2], [3, 4] ].real?.should be_false
+      end
     end
   end
 

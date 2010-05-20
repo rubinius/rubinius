@@ -80,10 +80,20 @@ describe "File.expand_path" do
       File.expand_path('~/a','~/b').should == "#{ENV['HOME']}/a"
     end
 
-    ruby_bug "#3185", "1.8" do
-      it "replaces multiple '/' at the beginning of the path with a single '/'" do
+    not_compliant_on :rubinius, :macruby do
+      it "does not replace multiple '/' at the beginning of the path" do
+        File.expand_path('////some/path').should == "////some/path"
+      end
+    end
+
+    deviates_on :rubinius, :macruby do
+      it "replaces multiple '/' with a single '/' at the beginning of the path" do
         File.expand_path('////some/path').should == "/some/path"
       end
+    end
+
+    it "replaces multiple '/' with a single '/'" do
+      File.expand_path('/some////path').should == "/some/path"
     end
 
     it "raises an ArgumentError if the path is not valid" do

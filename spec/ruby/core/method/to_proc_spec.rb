@@ -50,13 +50,15 @@ describe "Method#to_proc" do
     x.baz(1,2,3,&m).should == [1,2,3]
   end
 
-  it "returns a proc that accepts passed arguments like a block would" do
-    obj = MethodSpecs::ToProc.new
+  ruby_version_is ""..."1.9" do
+    it "returns a proc that accepts passed arguments like a block would" do
+      obj = MethodSpecs::ToProc.new
 
-    array = [["text", :comment], ["space", :chunk]]
-    array.each(&obj)
+      array = [["text", :comment], ["space", :chunk]]
+      array.each(&obj)
 
-    ScratchPad.recorded.should == array = [["text", :comment], ["space", :chunk]]
+      ScratchPad.recorded.should == array = [["text", :comment], ["space", :chunk]]
+    end
   end
 
   it "can be called directly and not unwrap arguments like a block" do

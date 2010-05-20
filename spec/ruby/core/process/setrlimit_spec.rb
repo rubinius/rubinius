@@ -97,11 +97,10 @@ describe "Process.setrlimit and Process.getrlimit" do
 
     platform_is :os => [:netbsd, :freebsd] do
       it "limit and get all socket buffers (bytes)" do
-        #TODO
-        # lim = Process.setrlimit(Process::RLIMIT_SBSIZE, )
-        # lim.kind_of?(Integer).should == true
-        # max.kind_of?(Integer).should == true
-        # Process.setrlimit(Process::RLIMIT_SBSIZE , ).should == nil
+        lim, max = Process.getrlimit(Process::RLIMIT_SBSIZE)
+        lim.kind_of?(Integer).should == true
+        max.kind_of?(Integer).should == true
+        Process.setrlimit(Process::RLIMIT_SBSIZE , lim, max).should == nil
       end
     end
   end

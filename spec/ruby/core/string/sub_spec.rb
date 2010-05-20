@@ -339,15 +339,13 @@ describe "String#sub! with pattern, replacement" do
   end
 
   ruby_version_is "1.9" do    
-    ruby_bug "[ruby-core:23666]", "1.9" do
-      it "raises a RuntimeError when self is frozen" do
-        s = "hello"
-        s.freeze
+    it "raises a RuntimeError when self is frozen" do
+      s = "hello"
+      s.freeze
 
-        lambda { s.sub!(/ROAR/, "x")    }.should raise_error(RuntimeError)
-        lambda { s.sub!(/e/, "e")       }.should raise_error(RuntimeError)
-        lambda { s.sub!(/[aeiou]/, '*') }.should raise_error(RuntimeError)
-      end
+      lambda { s.sub!(/ROAR/, "x")    }.should raise_error(RuntimeError)
+      lambda { s.sub!(/e/, "e")       }.should raise_error(RuntimeError)
+      lambda { s.sub!(/[aeiou]/, '*') }.should raise_error(RuntimeError)
     end
   end    
 end
@@ -397,12 +395,25 @@ describe "String#sub! with pattern and block" do
     end
   end
 
-  it "raises a RuntimeError when self is frozen" do
-    s = "hello"
-    s.freeze
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError when self is frozen" do
+      s = "hello"
+      s.freeze
 
-    s.sub!(/ROAR/) { "x" } # ok
-    lambda { s.sub!(/e/) { "e" } }.should raise_error(RuntimeError)
-    lambda { s.sub!(/[aeiou]/) { '*' } }.should raise_error(RuntimeError)
+      s.sub!(/ROAR/) { "x" } # ok
+      lambda { s.sub!(/e/) { "e" }       }.should raise_error(TypeError)
+      lambda { s.sub!(/[aeiou]/) { '*' } }.should raise_error(TypeError)
+    end
   end
+
+  ruby_version_is "1.9" do    
+    it "raises a RuntimeError when self is frozen" do
+      s = "hello"
+      s.freeze
+
+      lambda { s.sub!(/ROAR/) { "x" }    }.should raise_error(RuntimeError)
+      lambda { s.sub!(/e/) { "e" }       }.should raise_error(RuntimeError)
+      lambda { s.sub!(/[aeiou]/) { '*' } }.should raise_error(RuntimeError)
+    end
+  end    
 end
