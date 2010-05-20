@@ -404,9 +404,6 @@ containing the Rubinius standard library files.
 
         exit 0
       end
-
-      # Now that the compiler is loaded, specialize Struct::Tms initialize.
-      Struct::Tms.specialize_initialize
     end
 
     # Require any -r arguments
