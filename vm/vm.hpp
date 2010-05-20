@@ -170,6 +170,13 @@ namespace rubinius {
       stack_limit_ = (reinterpret_cast<intptr_t>(stack_start_) - s) + 4096;
     }
 
+    void set_stack_bounds(void* start, int length) {
+      stack_start_ = start;
+      stack_size_ = length;
+      // @TODO assumes stack growth direction
+      stack_limit_ = (reinterpret_cast<intptr_t>(start) - length) + (4096 * 3);
+    }
+
     bool check_stack(CallFrame* call_frame, void* end) {
       // @TODO assumes stack growth direction
       if(unlikely(reinterpret_cast<intptr_t>(end) < stack_limit_)) {

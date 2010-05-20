@@ -107,6 +107,10 @@ namespace thread {
       return &native_;
     }
 
+    size_t stack_size() {
+      return stack_size_;
+    }
+
     int run() {
       pthread_attr_t attrs;
       pthread_attr_init(&attrs);
