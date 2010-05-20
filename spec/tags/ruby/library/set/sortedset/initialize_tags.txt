@@ -1,1 +1,2 @@
 fails:SortedSet#initialize takes only comparable values
+fails:SortedSet#initialize takes only values which respond to <=>

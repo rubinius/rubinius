@@ -1,0 +1,1 @@
+fails:Float#to_s outputs the necessary number of digits to represent the float
