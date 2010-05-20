@@ -73,11 +73,11 @@ class Struct
         return new(*args)
       end
 
+      const_set :STRUCT_ATTRS, attrs
+      specialize_initialize
     end
 
     Struct.const_set klass_name, klass if klass_name
-
-    klass.const_set :STRUCT_ATTRS, attrs
 
     klass.module_eval(&block) if block
 
@@ -88,12 +88,17 @@ class Struct
     super
   end
 
+  # Don't specialize any thing created in the kernel. We hook up
+  # better form of this in delta.
+  def self.specialize_initialize
+  end
+
   def self.make_struct(name, attrs)
     new name, *attrs
   end
 
   def _attrs # :nodoc:
-    return self.class.const_get(:STRUCT_ATTRS)
+    return self.class::STRUCT_ATTRS
   end
 
   def instance_variables
@@ -102,9 +107,14 @@ class Struct
   end
 
   def initialize(*args)
-    raise ArgumentError unless args.length <= _attrs.length
-    _attrs.each_with_index do |attr, i|
-      instance_variable_set "@#{attr}", args[i]
+    attrs = self.class::STRUCT_ATTRS
+
+    unless args.length <= attrs.length
+      raise ArgumentError, "Expected #{attrs.size}, got #{args.size}"
+    end
+
+    attrs.each_with_index do |attr, i|
+      instance_variable_set :"@#{attr}", args[i]
     end
   end
 
@@ -127,10 +137,12 @@ class Struct
   #    joe == jane    #=> false
 
   def ==(other)
-    return false if (self.class != other.class)
+    return false if self.class != other.class
+
     Thread.detect_recursion self, other do
       return self.values == other.values
     end
+
     # Subtle: if we are here, we are recursing and haven't found any difference, so:
     true
   end
@@ -153,28 +165,25 @@ class Struct
 
   def [](var)
     case var
-    when Numeric then
-      var = var.to_i
+    when Symbol, String
+      # ok
+    else
+      var = Integer(var)
       a_len = _attrs.length
-      if var > a_len - 1 then
+      if var > a_len - 1
         raise IndexError, "offset #{var} too large for struct(size:#{a_len})"
       end
-      if var < -a_len then
+      if var < -a_len
         raise IndexError, "offset #{var + a_len} too small for struct(size:#{a_len})"
       end
       var = _attrs[var]
-    when Symbol, String then
-      42 # HACK
-      # ok
-    else
-      raise TypeError
     end
 
-    unless _attrs.include? var.to_sym then
+    unless _attrs.include? var.to_sym
       raise NameError, "no member '#{var}' in struct"
     end
 
-    return instance_variable_get("@#{var}")
+    return instance_variable_get(:"@#{var}")
   end
 
   ##
@@ -196,36 +205,30 @@ class Struct
 
   def []=(var, obj)
     case var
-    when Numeric then
-      var = var.to_i
-      a_len = _attrs.length
-      if var > a_len - 1 then
-        raise IndexError, "offset #{var} too large for struct(size:#{a_len})"
-      end
-      if var < -a_len then
-        raise IndexError, "offset #{var + a_len} too small for struct(size:#{a_len})"
-      end
-      var = _attrs[var]
-    when Symbol, String then
-      42 # HACK
+    when Symbol, String
       # ok
     else
-      raise TypeError
+      var = Integer(var)
+      a_len = _attrs.length
+      if var > a_len - 1
+        raise IndexError, "offset #{var} too large for struct(size:#{a_len})"
+      end
+      if var < -a_len
+        raise IndexError, "offset #{var + a_len} too small for struct(size:#{a_len})"
+      end
+
+      var = _attrs[var]
     end
 
     unless _attrs.include? var.to_s.intern then
       raise NameError, "no member '#{var}' in struct"
     end
 
-    return instance_variable_set("@#{var}", obj)
+    return instance_variable_set(:"@#{var}", obj)
   end
 
   ##
   # call-seq:
-  #   (p1)
-  #
-  # code-seq:
-  #
   #   struct.eql?(other)   => true or false
   #
   # Two structures are equal if they are the same object, or if all their
@@ -234,11 +237,15 @@ class Struct
   def eql?(other)
     return true if equal? other
     return false if self.class != other.class
+
     Thread.detect_recursion self, other do
       _attrs.each do |var|
-        return false unless instance_variable_get("@#{var}").eql? other.instance_variable_get("@#{var}")
+        unless instance_variable_get(:"@#{var}").eql? other.instance_variable_get(:"@#{var}")
+          return false
+        end
       end
     end
+
     # Subtle: if we are here, then no difference was found, or we are recursing
     # In either case, return
     true
@@ -251,7 +258,7 @@ class Struct
 
   def each_pair
     return to_enum :each_pair unless block_given?
-    _attrs.map { |var| yield var, instance_variable_get("@#{var}") }
+    _attrs.map { |var| yield var, instance_variable_get(:"@#{var}") }
   end
 
   ##
@@ -263,7 +270,7 @@ class Struct
   def hash
     hash_val = size
     return _attrs.size if Thread.detect_outermost_recursion self do
-      _attrs.each { |var| hash_val ^= instance_variable_get("@#{var}").hash }
+      _attrs.each { |var| hash_val ^= instance_variable_get(:"@#{var}").hash }
     end
     return hash_val
   end
@@ -297,7 +304,7 @@ class Struct
   #    joe.members   #=> ["name", "address", "zip"]
 
   def self.members
-    return const_get(:STRUCT_ATTRS).map { |member| member.to_s }
+    return self::STRUCT_ATTRS.map { |member| member.to_s }
   end
 
   def members
@@ -338,7 +345,7 @@ class Struct
   #    joe.to_a[1]   #=> "123 Maple, Anytown NC"
 
   def to_a
-    return _attrs.map { |var| instance_variable_get "@#{var}" }
+    return _attrs.map { |var| instance_variable_get :"@#{var}" }
   end
 
   ##
@@ -350,9 +357,10 @@ class Struct
 
   def to_s
     return "[...]" if Thread.guarding? self
-  
+
     Thread.recursion_guard self do
-      "#<struct #{self.class.inspect} #{_attrs.zip(self.to_a).map{|o| o[1] = o[1].inspect; o.join('=')}.join(', ') }>"
+      values = _attrs.zip(self.to_a).map { |o| o[1] = o[1].inspect; o.join('=') }
+      "#<struct #{self.class.inspect} #{values.join(', ')}>"
     end
   end
 
