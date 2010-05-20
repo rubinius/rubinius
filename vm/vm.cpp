@@ -16,6 +16,7 @@
 #include "builtin/taskprobe.hpp"
 #include "builtin/system.hpp"
 #include "builtin/fiber.hpp"
+#include "builtin/location.hpp"
 
 #include "instruments/profiler.hpp"
 
@@ -240,7 +241,7 @@ namespace rubinius {
   }
 
   void VM::raise_stack_error(CallFrame* call_frame) {
-    G(stack_error)->locations(this, System::vm_backtrace(this, Fixnum::from(0), call_frame));
+    G(stack_error)->locations(this, Location::from_call_stack(this, call_frame));
     thread_state()->raise_exception(G(stack_error));
   }
 

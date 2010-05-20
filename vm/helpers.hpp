@@ -30,7 +30,7 @@ namespace rubinius {
     Module*   open_module(VM*, CallFrame* call_frame, Symbol* name);
     Module*   open_module(VM*, CallFrame* call_frame, Module* under, Symbol* name);
 
-    void yield_debugger(VM*, CallFrame* call_frame);
+    bool yield_debugger(VM*, CallFrame* call_frame, Object* bp);
   };
 }
 

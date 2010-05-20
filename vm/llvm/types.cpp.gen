@@ -242,6 +242,7 @@ StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_11);
 StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_11);
 StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_5);
 StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_19);
+StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_6);
 OpaqueType* OpaqueTy_struct_rubinius__VMMethod = OpaqueType::get(getGlobalContext());
 mod->addTypeName("struct.rubinius::VMMethod", OpaqueTy_struct_rubinius__VMMethod);
 

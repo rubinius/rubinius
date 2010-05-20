@@ -21,6 +21,7 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
+#include "builtin/location.hpp"
 
 #include "ffi_util.hpp"
 #include "arguments.hpp"
@@ -63,7 +64,7 @@ namespace rubinius {
     } catch(TypeError &e) {
       Exception* exc =
         Exception::make_type_error(state, e.type, e.object, e.reason);
-      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      exc->locations(state, Location::from_call_stack(state, call_frame));
 
       state->thread_state()->raise_exception(exc);
       return NULL;

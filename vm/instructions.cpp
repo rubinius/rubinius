@@ -18,6 +18,7 @@
 #include "builtin/thread.hpp"
 #include "builtin/system.hpp"
 #include "builtin/global_cache_entry.hpp"
+#include "builtin/location.hpp"
 
 #include "call_frame.hpp"
 
@@ -144,14 +145,14 @@ continue_to_run:
     flush_ip();
     Exception* exc =
       Exception::make_type_error(state, e.type, e.object, e.reason);
-    exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    exc->locations(state, Location::from_call_stack(state, call_frame));
 
     state->thread_state()->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
-          System::vm_backtrace(state, Fixnum::from(0), call_frame));
+          Location::from_call_stack(state, call_frame));
     state->thread_state()->raise_exception(exc.exception);
     return NULL;
   }
@@ -288,14 +289,14 @@ continue_to_run:
     flush_ip();
     Exception* exc =
       Exception::make_type_error(state, e.type, e.object, e.reason);
-    exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    exc->locations(state, Location::from_call_stack(state, call_frame));
 
     state->thread_state()->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
-          System::vm_backtrace(state, Fixnum::from(0), call_frame));
+          Location::from_call_stack(state, call_frame));
     state->thread_state()->raise_exception(exc.exception);
     return NULL;
   }
@@ -398,8 +399,6 @@ Object* VMMethod::debugger_interpreter(STATE,
   int current_unwind = 0;
   UnwindInfo unwinds[kMaxUnwindInfos];
 
-  opcode op;
-
   // TODO: ug, cut and paste of the whole interpreter above. Needs to be fast,
   // maybe could use a function template?
   //
@@ -426,14 +425,11 @@ continue_to_run:
   try {
 
 #undef DISPATCH
-#define DISPATCH op = stream[call_frame->inc_ip()]; \
-    if(unlikely(op & cBreakpoint)) { \
-      call_frame->dec_ip(); \
-      Helpers::yield_debugger(state, call_frame); \
-      call_frame->inc_ip(); \
-      op &= 0x00ffffff; \
+#define DISPATCH \
+    if(Object* bp = call_frame->find_breakpoint(state)) { \
+      if(!Helpers::yield_debugger(state, call_frame, bp)) goto exception; \
     } \
-    goto *insn_locations[op];
+    goto *insn_locations[stream[call_frame->inc_ip()]];
 
 #undef next_int
 #undef cache_ip
@@ -449,14 +445,14 @@ continue_to_run:
     flush_ip();
     Exception* exc =
       Exception::make_type_error(state, e.type, e.object, e.reason);
-    exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+    exc->locations(state, Location::from_call_stack(state, call_frame));
 
     state->thread_state()->raise_exception(exc);
     call_frame->scope->flush_to_heap(state);
     return NULL;
   } catch(const RubyException& exc) {
     exc.exception->locations(state,
-          System::vm_backtrace(state, Fixnum::from(0), call_frame));
+          Location::from_call_stack(state, call_frame));
     state->thread_state()->raise_exception(exc.exception);
     return NULL;
   }

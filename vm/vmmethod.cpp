@@ -14,7 +14,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/class.hpp"
-#include "builtin/system.hpp"
+#include "builtin/location.hpp"
 #include "instructions.hpp"
 
 #include "instruments/profiler.hpp"
@@ -563,7 +563,7 @@ namespace rubinius {
       if(ArgumentHandler::call(state, vmm, scope, args) == false) {
         Exception* exc =
           Exception::make_argument_error(state, vmm->required_args, args.total(), msg.name);
-        exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), previous));
+        exc->locations(state, Location::from_call_stack(state, previous));
         state->thread_state()->raise_exception(exc);
 
         return NULL;

@@ -209,6 +209,8 @@ namespace rubinius {
     bool scope_still_valid(VariableScope* scope);
 
     void dump();
+
+    Object* find_breakpoint(STATE);
   };
 
   class InterpreterCallFrame : public CallFrame {

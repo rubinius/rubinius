@@ -256,7 +256,17 @@ class Thread
     raise "nope!"
   end
 
-  attr_reader :control_channel
+  def set_debugger_thread(thr)
+    raise TypeError, "Must be another Thread" unless thr.kind_of?(Thread)
+
+    @debugger_thread = thr
+  end
+
+  def setup_control!(chan=nil)
+    chan ||= Rubinius::Channel.new
+    @control_channel = chan
+    return chan
+  end
 
   def self.main
     @main_thread

@@ -18,6 +18,7 @@
 #include "builtin/system.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/capi_handle.hpp"
+#include "builtin/location.hpp"
 
 #include "instruments/profiler.hpp"
 
@@ -164,7 +165,7 @@ namespace rubinius {
     if(arity >= 0 && (size_t)arity != args.total()) {
       Exception* exc = Exception::make_argument_error(
           state, arity, args.total(), msg.name);
-      exc->locations(state, System::vm_backtrace(state, Fixnum::from(1), call_frame));
+      exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
 
       return NULL;

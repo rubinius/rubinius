@@ -8,6 +8,7 @@
 #include "builtin/compiledmethod.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/staticscope.hpp"
+#include "builtin/lookuptable.hpp"
 
 #include "object_utils.hpp"
 
@@ -131,6 +132,18 @@ namespace rubinius {
     std::cout << "line=" << line(state);
 
     std::cout << ">\n";
+  }
+
+  Object* CallFrame::find_breakpoint(STATE) {
+    LookupTable* tbl = cm->breakpoints();
+    if(tbl->nil_p()) return 0;
+
+    bool found = false;
+
+    Object* obj = tbl->fetch(state, Fixnum::from(ip()), &found);
+    if(found) return obj;
+
+    return 0;
   }
 
   /* For debugging. */
