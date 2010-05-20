@@ -712,8 +712,6 @@ class Matrix
         return z if (other >>= 1).zero?
         x *= x
       end
-    when Float, Rational
-      Matrix.Raise ErrOperationNotImplemented, "**", self.class, other.class
     else
       Matrix.Raise ErrOperationNotDefined, "**", self.class, other.class
     end
