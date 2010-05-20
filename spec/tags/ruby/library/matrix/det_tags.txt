@@ -1,3 +1,0 @@
-fails:Matrix#det returns 1 for an empty Matrix
-fails:Matrix#det returns the determinant of a square Matrix
-fails:Matrix#det raises an error for rectangular matrices

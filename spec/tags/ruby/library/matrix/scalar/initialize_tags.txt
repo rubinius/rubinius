@@ -1,1 +1,0 @@
-incomplete:Matrix::Scalar#initialize needs to be reviewed for spec completeness

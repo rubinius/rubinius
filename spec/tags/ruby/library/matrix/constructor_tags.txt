@@ -1,5 +1,0 @@
-fails:Matrix.[] requires arrays as parameters
-fails:Matrix.[] creates an empty Matrix with no arguments
-fails:Matrix.[] raises for non-rectangular matrices
-fails:Matrix.[] accepts vector arguments
-fails:Matrix.[] tries to calls :to_ary on arguments

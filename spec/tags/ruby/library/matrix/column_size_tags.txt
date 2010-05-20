@@ -1,1 +1,0 @@
-fails:Matrix#column_size returns 0 for empty matrices

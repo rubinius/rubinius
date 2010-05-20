@@ -1,1 +1,0 @@
-incomplete:Matrix#init_rows needs to be reviewed for spec completeness

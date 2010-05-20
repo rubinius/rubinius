@@ -1,1 +1,0 @@
-incomplete:Matrix#to_a needs to be reviewed for spec completeness
