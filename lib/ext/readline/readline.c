@@ -1,5 +1,8 @@
 /* readline.c -- GNU Readline module
-   Copyright (C) 1997-2001  Shugo Maeda */
+   Copyright (C) 1997-2001  Shugo Maeda
+
+   Modified for Rubinius by Evan Phoenix and others
+*/
 
 #include <errno.h>
 #include <stdio.h>
@@ -24,18 +27,9 @@ static ID completion_proc, completion_case_fold;
 static char **readline_attempted_completion_function(const char *text,
                                                      int start, int end);
 
-
-/* Unused.   --rue
-static int readline_event(void);
-
-static int
-readline_event()
-{
-    CHECK_INTS;
-    rb_thread_schedule();
-    return 0;
+static VALUE readline_unlocked(void* prompt) {
+  return (VALUE)readline((char*)prompt);
 }
-*/
 
 static VALUE
 readline_readline(VALUE self, VALUE tmp, VALUE add_hist)
@@ -43,47 +37,26 @@ readline_readline(VALUE self, VALUE tmp, VALUE add_hist)
     VALUE result;
     char *prompt = NULL;
     char *buff;
-    /* Unused. --rue
-    int status;
-    */
 
     rb_secure(4);
     SafeStringValue(tmp);
-    // TODO: Free
     prompt = RSTRING_PTR(tmp);
 
-    if (!isatty(0) && errno == EBADF) rb_raise(rb_eIOError, "stdin closed");
+    if(!isatty(0) && errno == EBADF) rb_raise(rb_eIOError, "stdin closed");
 
-    buff = readline(prompt);
+    buff = (char*)rb_thread_blocking_region(readline_unlocked, prompt, 0, 0);
 
-#if 0
-    buff = (char*)rb_protect((VALUE(*)_((VALUE)))readline, (VALUE)prompt,
-                              &status);
-    if (status) {
-#if defined HAVE_RL_CLEANUP_AFTER_SIGNAL
-        /* restore terminal mode and signal handler*/
-        rl_cleanup_after_signal();
-#elif defined HAVE_RL_DEPREP_TERM_FUNCTION
-        /* restore terminal mode */
-        (*rl_deprep_term_function)();
-#else
-        rl_deprep_terminal();
-#endif
-        rb_jump_tag(status);
-    }
-#endif
-
-    if (RTEST(add_hist) && buff) {
+    if(RTEST(add_hist) && buff) {
       add_history(buff);
     }
-    
-    if (buff) {
+
+    if(buff) {
       result = rb_tainted_str_new2(buff);
       free(buff);
     } else {
       result = Qnil;
     }
-    
+
     return result;
 }
 
@@ -212,10 +185,6 @@ static VALUE
 readline_s_get_completion_append_character(self)
     VALUE self;
 {
-    /* Unused. --rue
-    VALUE str;
-    */
-
     rb_secure(4);
     if (rl_completion_append_character == '\0')
         return Qnil;
@@ -492,9 +461,6 @@ hist_delete_at(self, index)
 void
 Init_readline()
 {
-    /* Latter two unused. --rue
-    VALUE history, fcomp, ucomp;
-    */
     VALUE history;
 
     /* Allow conditional parsing of the ~/.inputrc file. */
