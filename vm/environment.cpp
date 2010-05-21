@@ -376,8 +376,10 @@ namespace rubinius {
   void Environment::start_agent(int port) {
     agent = new QueryAgent(*shared, state, port);
     if(config.qa_verbose) agent->set_verbose();
-    agent->run();
 
+    if(!agent->bind()) return;
+
+    agent->run();
     // Create a tmp file containing the information to be used
     // by console to find us.
 
@@ -391,7 +393,7 @@ namespace rubinius {
 
       if(stream) {
         stream << pid << "\n";
-        stream << port << "\n";
+        stream << agent->port() << "\n";
 
         for(int i = 0; i < argc_; i++) {
           stream << argv_[i] << " ";

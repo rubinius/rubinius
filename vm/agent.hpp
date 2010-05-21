@@ -36,6 +36,10 @@ namespace rubinius {
       verbose_ = true;
     }
 
+    int port() {
+      return port_;
+    }
+
     bool bind();
     virtual void perform();
     bool process_commands(int client);

@@ -31,6 +31,11 @@ namespace rubinius {
     int on = 1;
     setsockopt(server_fd_, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
+    // if port_ is 1, the user wants to use a randomly assigned local
+    // port which will be written to the temp file for console to pick
+    // up.
+    if(port_ == 1) port_ = 0;
+
     struct sockaddr_in sin = {0};
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = INADDR_ANY;
@@ -39,6 +44,15 @@ namespace rubinius {
     if(::bind(server_fd_, (struct sockaddr*)&sin, sizeof(sin)) == -1) {
       std::cerr << "[QA: Unable to bind socket: " << strerror(errno) << "]\n";
       return false;
+    }
+
+    if(port_ == 0) {
+      socklen_t len = sizeof(sin);
+      if(getsockname(server_fd_, (struct sockaddr*)&sin, &len) == -1) {
+        std::cerr << "[QA: Unable to resolve random local port]\n";
+        return false;
+      }
+      port_ = ntohs(sin.sin_port);
     }
 
     if(::listen(server_fd_, cBackLog) == -1) {
@@ -131,7 +145,7 @@ namespace rubinius {
         return true;
       } else if(cmd->equal_atom("backtrace")) {
         if(verbose_) {
-          std::cerr << "[QA: Gathering backtraces, halting threads]\n";
+          std::cerr << "[QA: Gathering backtraces, pausing threads]\n";
         }
 
         encoder.write_tuple(2);
@@ -139,12 +153,6 @@ namespace rubinius {
 
         {
           GlobalLock::LockGuard guard(shared_.global_lock());
-
-          if(verbose_) {
-            std::cerr << "[QA: Threads halted, gathering: "
-                      << shared_.call_frame_locations().size()
-                      <<"]\n";
-          }
 
           encoder.write_tuple(shared_.call_frame_locations().size());
 
@@ -176,8 +184,6 @@ namespace rubinius {
   }
 
   void QueryAgent::perform() {
-    if(!bind()) return;
-
     while(1) {
       fd_set read_fds = fds_;
 
