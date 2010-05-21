@@ -7,7 +7,7 @@
 
 namespace rubinius {
   class VM;
-  class CallFrame;
+  struct CallFrame;
 
   class SignalHandler {
     VM* vm_;

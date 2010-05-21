@@ -7,7 +7,7 @@
 namespace rubinius {
 
   class ObjectMemory;
-  class CallFrame;
+  struct CallFrame;
   class VariableScope;
   class GlobalCache;
   class StackVariables;

@@ -21,7 +21,7 @@ namespace rubinius {
   /* Forwards */
   class Object;
   class ObjectMemory;
-  class CallFrame;
+  struct CallFrame;
 
   class MarkSweepGC : public GarbageCollector {
   public:

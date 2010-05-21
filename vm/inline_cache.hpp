@@ -14,7 +14,7 @@
 
 namespace rubinius {
   class InlineCache;
-  class CallFrame;
+  struct CallFrame;
   class Arguments;
 
   // How many receiver class have been seen to keep track of inside an IC

@@ -54,10 +54,10 @@ namespace rubinius {
   class ConfigParser;
   class TypeError;
   class Assertion;
-  class CallFrame;
+  struct CallFrame;
   class Object;
   class Configuration;
-  class Interrupts;
+  struct Interrupts;
   class VMManager;
   class Waiter;
   class LookupTable;

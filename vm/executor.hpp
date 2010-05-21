@@ -5,7 +5,7 @@ namespace rubinius {
   class VM;
   class Dispatch;
   class Arguments;
-  class CallFrame;
+  struct CallFrame;
   class Object;
 
   enum ExecuteStatus {

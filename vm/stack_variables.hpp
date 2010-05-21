@@ -14,7 +14,7 @@ namespace rubinius {
     Object* block_;
     Module* module_;
     Object* last_match_;
-    Object* locals_[];
+    Object* locals_[0];
 
   public:
     void initialize(Object* self, Object* block, Module* module, int locals) {

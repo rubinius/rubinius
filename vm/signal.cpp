@@ -8,7 +8,7 @@
 #include <sys/select.h>
 
 namespace rubinius {
-  class CallFrame;
+  struct CallFrame;
 
   static SignalHandler* handler_ = 0;
 

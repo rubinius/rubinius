@@ -1,7 +1,7 @@
 #include "builtin/executable.hpp"
 
 namespace rubinius {
-  class CallFrame;
+  struct CallFrame;
   class Dispatch;
   class Arguments;
   class BlockEnvironment;

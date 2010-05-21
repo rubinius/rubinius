@@ -8,7 +8,7 @@
 namespace rubinius {
   class CompiledMethod;
   class VariableScope;
-  class CallFrame;
+  struct CallFrame;
   class Message;
   class VMMethod;
   class VMExecutable;

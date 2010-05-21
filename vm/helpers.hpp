@@ -2,7 +2,7 @@
 #define RBX_HELPERS_HPP
 
 namespace rubinius {
-  class CallFrame;
+  struct CallFrame;
   class Module;
   class Class;
   class Symbol;

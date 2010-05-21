@@ -41,7 +41,7 @@ namespace rubinius {
    *
    */
 
-  class CallFrame;
+  struct CallFrame;
   class GCData;
   class Configuration;
   class BakerGC;

@@ -7,9 +7,9 @@ namespace rubinius {
   class Symbol;
   class Module;
   class Executable;
-  class CallFrame;
+  struct CallFrame;
   class Arguments;
-  class LookupData;
+  struct LookupData;
 
   class Dispatch {
   public:

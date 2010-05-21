@@ -238,7 +238,7 @@ const int cUndef = 0x22L;
   private:
     // Defined so ObjectHeader can easily access the data just beyond
     // it.
-    void* __body__[];
+    void* __body__[0];
 
   public:
 

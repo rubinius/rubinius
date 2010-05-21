@@ -23,7 +23,7 @@ namespace rubinius {
 
   class ObjectMemory;
   class GCData;
-  class YoungCollectStats;
+  struct YoungCollectStats;
 
   class BakerGC : public GarbageCollector {
     Heap eden;

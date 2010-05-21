@@ -11,7 +11,7 @@ namespace rubinius {
   #define CPU_CACHE_MASK 0xfff
   #define CPU_CACHE_HASH(c,m) ((((uintptr_t)(c)>>3)^((uintptr_t)m)) & CPU_CACHE_MASK)
 
-  class LookupData;
+  struct LookupData;
   class Dispatch;
 
   class GlobalCache {

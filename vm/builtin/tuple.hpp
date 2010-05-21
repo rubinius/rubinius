@@ -16,7 +16,7 @@ namespace rubinius {
     int full_size_;
 
     /* Body access */
-    Object* field[];
+    Object* field[0];
 
   public:
     uint32_t num_fields() const {

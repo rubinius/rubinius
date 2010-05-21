@@ -197,16 +197,16 @@ namespace rubinius {
       Object* obj = *i;
       Class* cls = obj->class_object(object_memory_->state);
 
-      std::map<Class*,PerClass>::iterator i = stats.find(cls);
-      if(i == stats.end()) {
+      std::map<Class*,PerClass>::iterator j = stats.find(cls);
+      if(j == stats.end()) {
         PerClass pc;
         pc.objects++;
         pc.bytes += obj->size_in_bytes(object_memory_->state);
 
         stats[cls] = pc;
       } else {
-        i->second.objects++;
-        i->second.bytes += obj->size_in_bytes(object_memory_->state);
+        j->second.objects++;
+        j->second.bytes += obj->size_in_bytes(object_memory_->state);
       }
     }
 

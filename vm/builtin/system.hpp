@@ -15,7 +15,7 @@ namespace rubinius {
   class CompiledMethod;
   class StaticScope;
 
-  class CallFrame;
+  struct CallFrame;
 
   /**
    *  VM primitives etc.

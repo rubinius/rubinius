@@ -5,7 +5,7 @@
 #include "type_info.hpp"
 
 namespace rubinius {
-  class CallFrame;
+  struct CallFrame;
 
   class Autoload : public Object {
   public:

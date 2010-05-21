@@ -5,7 +5,7 @@
 #include <list>
 
 namespace rubinius {
-  class CallFrame;
+  struct CallFrame;
 
   typedef PointerList<CallFrame> CallFrameList;
   typedef std::list<CallFrame**> CallFrameLocationList;

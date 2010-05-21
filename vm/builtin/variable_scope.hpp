@@ -10,7 +10,7 @@ namespace rubinius {
 
   class CompiledMethod;
   class Module;
-  class CallFrame;
+  struct CallFrame;
 
   /**
    *  Variable information.

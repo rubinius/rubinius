@@ -16,7 +16,7 @@ namespace rubinius {
     native_int full_size_;
 
     // Body access
-    uint8_t bytes[];
+    uint8_t bytes[0];
 
   public:
     static void init(STATE);

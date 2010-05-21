@@ -122,9 +122,9 @@ namespace rubinius {
         Edge* edge = i->second;
         Fixnum* key = edge->find_key(keys);
 
-        size_t i;
-        for(i = 0; i < edges->size(); i++) {
-          Array* ary = try_as<Array>(edges->get(state, i));
+        size_t j;
+        for(j = 0; j < edges->size(); j++) {
+          Array* ary = try_as<Array>(edges->get(state, j));
           if(!ary) continue;
 
           Fixnum* fix = try_as<Fixnum>(ary->get(state, 0));
@@ -150,7 +150,7 @@ namespace rubinius {
         }
 
         // We did not find an existing entry to update, create a new one
-        if(i == edges->size()) {
+        if(j == edges->size()) {
           Array* ary = Array::create(state, 3);
           edges->append(state, ary);
 

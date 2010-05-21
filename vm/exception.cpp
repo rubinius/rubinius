@@ -49,8 +49,9 @@ namespace rubinius {
   static VMException::Backtrace get_trace(size_t skip, size_t max_depth=100) {
 #ifdef USE_EXECINFO
     size_t stack_depth;
-    void *stack_addrs[max_depth];
     char **stack_strings;
+
+    void **stack_addrs = (void **) calloc(max_depth, sizeof(void*));
 
     stack_depth = backtrace(stack_addrs, max_depth);
     stack_strings = backtrace_symbols(stack_addrs, stack_depth);
@@ -61,6 +62,7 @@ namespace rubinius {
       s.push_back(std::string(stack_strings[i]));
     }
     free(stack_strings); // malloc()ed by backtrace_symbols
+    free(stack_addrs);
 #else
     VMException::Backtrace s;
     s.push_back(std::string("C++ backtrace not available"));

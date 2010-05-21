@@ -24,11 +24,12 @@ namespace rubinius {
 
   namespace jit {
     class RuntimeData {
+
+    public:
       CompiledMethod* method_;
       Symbol* name_;
       Module* module_;
 
-    public:
       RuntimeData(CompiledMethod* method, Symbol* name, Module* mod)
         : method_(method)
         , name_(name)
