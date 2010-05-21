@@ -112,7 +112,11 @@ namespace config {
     }
 
     virtual void print_value(std::ostream& stream) {
-      stream << value;
+      if(value.size() == 0) {
+        stream << "\"\"";
+      } else {
+        stream << value;
+      }
     }
 
     operator const char*() {

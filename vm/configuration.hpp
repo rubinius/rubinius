@@ -36,6 +36,7 @@ namespace rubinius {
     config::Bool    gil_debug;
     config::Integer print_config;
     config::Bool    ic_stats;
+    config::Bool    profile;
 
     // defaults
     static const int default_gc_bytes = 1048576 * 3;
@@ -73,6 +74,7 @@ namespace rubinius {
       , gil_debug(this,       "vm.gil.debug")
       , print_config(this,    "config.print")
       , ic_stats(this,        "ic.stats")
+      , profile(this,         "profile")
     {
       gc_bytes.set_description(
           "The number of bytes the young generation of the GC should use");
@@ -136,6 +138,15 @@ namespace rubinius {
 
       qa_verbose.set_description(
           "Whether or not the query agent should print out status to stderr");
+
+      profile.set_description(
+          "Configure the system to profile ruby code");
+    }
+
+    void finalize() {
+      if(profile) {
+        jit_disabled.value = true;
+      }
     }
   };
 }

@@ -280,8 +280,11 @@ containing the Rubinius standard library files.
         @no_rbc = true
       end
 
-      options.on("-P", "Run the profiler") do
-        require 'profile'
+      @profile = Rubinius::Config['profile']
+
+      options.on "-P", "Run the profiler" do
+        puts "[WARN] -P is deprecated, please use -Xprofile"
+        @profile = true
       end
 
       options.on "--vv", "Display version and extra info" do
@@ -322,6 +325,10 @@ containing the Rubinius standard library files.
       options.parse ARGV
 
       handle_rubyopt(options)
+
+      if @profile
+        require 'profile'
+      end
     end
 
     def handle_rubyopt(options)

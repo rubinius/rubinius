@@ -39,7 +39,7 @@ namespace rubinius {
     }
 
     String* Method::to_s(STATE) {
-      const char *module = "";
+      const char *module = "<anonymous>";
       const char *method_name = name()->c_str(state);
 
       if(Symbol* klass = try_as<Symbol>(container())) {

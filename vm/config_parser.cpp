@@ -181,5 +181,7 @@ namespace rubinius {
         }
       }
     }
+
+    config.finalize();
   }
 }
