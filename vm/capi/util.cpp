@@ -5,12 +5,6 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 extern "C" {
-  const char *rb_id2name(ID sym) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    return reinterpret_cast<Symbol*>(sym)->c_str(env->state());
-  }
-
   int rb_scan_args(int argc, const VALUE* argv, const char* spec, ...) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 

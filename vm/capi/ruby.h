@@ -736,6 +736,15 @@ VALUE rb_uint2big(unsigned long number);
   /** Return Qtrue if obj is an immediate, Qfalse or Qnil. */
   int     rb_special_const_p(VALUE obj);
 
+  /** Return Qtrue if sym is suitable as a name of a constant. */
+  int     rb_is_const_id(ID sym);
+
+  /** Return Qtrue if sym is suitable as a name of an instance variable. */
+  int     rb_is_instance_id(ID sym);
+
+  /** Return Qtrue if sym is suitable as a name of a class variable. */
+  int     rb_is_class_id(ID sym);
+
   /** Return obj if it is an Array, or return wrapped (i.e. [obj]) */
   VALUE   rb_Array(VALUE obj_handle);
 
