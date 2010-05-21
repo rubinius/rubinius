@@ -127,6 +127,10 @@ extern "C" {
     return rb_funcall2(self_handle, rb_intern("clear"), 0, NULL);
   }
 
+  VALUE rb_ary_delete(VALUE self_handle, VALUE item) {
+    return rb_funcall(self_handle, rb_intern("delete"), 1, item);
+  }
+
   VALUE rb_ary_dup(VALUE self_handle) {
     return rb_funcall2(self_handle, rb_intern("dup"), 0, NULL);
   }
