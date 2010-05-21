@@ -69,7 +69,7 @@ namespace rubinius {
       , jit_log(this,        "jit.log")
       , jit_disabled(this,   "int")
       , jit_debug(this,      "jit.debug", false)
-      , qa_port(this,         "agent.port")
+      , qa_port(this,         "agent.start")
       , qa_verbose(this,      "agent.verbose")
       , gil_debug(this,       "vm.gil.debug")
       , print_config(this,    "config.print")
@@ -134,7 +134,7 @@ namespace rubinius {
           "Print out stats about the InlineCaches before exiting");
 
       qa_port.set_description(
-          "The TCP port for the query agent to listen on");
+          "Start the QueryAgent on a TCP port. Default port is a random port");
 
       qa_verbose.set_description(
           "Whether or not the query agent should print out status to stderr");
