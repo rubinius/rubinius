@@ -12,7 +12,7 @@ def compile_extension(path, name)
   # TODO use rakelib/ext_helper.rb?
   if RUBY_NAME == 'rbx'
     hdrdir = Rubinius::HDR_PATH
-  elsif RUBY_NAME == 'ruby'
+  elsif RUBY_NAME =~ /^ruby/
     hdrdir = Config::CONFIG["archdir"]
   else
     raise "Don't know how to build C extensions with #{RUBY_NAME}"
