@@ -24,6 +24,10 @@ static VALUE array_spec_rb_ary_pop(VALUE self, VALUE array) {
   return rb_ary_pop(array);
 }
 
+static VALUE array_spec_rb_ary_delete(VALUE self, VALUE array, VALUE item) {
+  return rb_ary_delete(array, item);
+}
+
 static VALUE array_spec_rb_ary_entry(VALUE self, VALUE array, VALUE offset) {
   return rb_ary_entry(array, FIX2INT(offset));
 }
@@ -166,6 +170,7 @@ void Init_array_spec() {
   rb_define_method(cls, "rb_ary_push", array_spec_rb_ary_push, 2);
   rb_define_method(cls, "rb_ary_entry", array_spec_rb_ary_entry, 2);
   rb_define_method(cls, "rb_ary_clear", array_spec_rb_ary_clear, 1);
+  rb_define_method(cls, "rb_ary_delete", array_spec_rb_ary_delete, 2);
   rb_define_method(cls, "rb_ary_dup", array_spec_rb_ary_dup, 1);
   rb_define_method(cls, "rb_ary_join", array_spec_rb_ary_join, 2);
   rb_define_method(cls, "rb_ary_reverse", array_spec_rb_ary_reverse, 1);

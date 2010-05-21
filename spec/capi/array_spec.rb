@@ -241,4 +241,18 @@ describe "C-API Array function" do
       s2.equal?(s).should be_false
     end
   end
+
+  describe "rb_ary_delete" do
+    it "removes an element from an array and returns it" do
+      ary = [1, 2, 3, 4]
+      @s.rb_ary_delete(ary, 3).should == 3
+      ary.should == [1, 2, 4]
+    end
+
+    it "returns nil if the element is not in the array" do
+      ary = [1, 2, 3, 4]
+      @s.rb_ary_delete(ary, 5).should be_nil
+      ary.should == [1, 2, 3, 4]
+    end
+  end
 end
