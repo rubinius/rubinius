@@ -14,6 +14,19 @@ class Debugger
     @frames = []
 
     @variables = { :show_ip => false }
+
+    @loaded_hook = proc { |file|
+      check_defered_breakpoints
+    }
+
+    @added_hook = proc { |mod, name, exec|
+      check_defered_breakpoints
+    }
+
+    Rubinius::CodeLoader.loaded_hook.add @loaded_hook
+    Rubinius.add_method_hook.add @added_hook
+
+    @defered_breakpoints = []
   end
 
   attr_reader :variables
@@ -198,6 +211,10 @@ class Debugger
     puts "* #{str}"
   end
 
+  def ask(str)
+    Readline.readline("| #{str}")
+  end
+
   def eval_code(args)
     str = @current_frame.run(args).inspect
     puts "=> #{str}\n"
@@ -306,22 +323,71 @@ class Debugger
     end
   end
 
+  class DeferedBreakPoint
+    def initialize(debugger, frame, klass, which, name, line=nil)
+      @debugger = debugger
+      @frame = frame
+      @klass_name = klass
+      @which = which
+      @name = name
+      @line = line
+    end
+
+    def resolve!
+      begin
+        klass = @frame.run(@klass_name)
+      rescue NameError
+        return false
+      end
+
+      begin
+        if @which == "#"
+          method = klass.instance_method(@name)
+        else
+          method = klass.method(@name)
+        end
+      rescue NameError
+        return false
+      end
+
+      @debugger.info "Resolved breakpoint for #{@klass_name}#{@which}#{@name}"
+
+      @debugger.set_breakpoint_method method, @line
+
+      return true
+    end
+  end
+
+  def ask_defered(klass_name, which, name, line)
+    answer = ask "Would you like to defer this breakpoint to later? [y/n] "
+
+    if answer.strip.downcase[0] == ?y
+      dbp = DeferedBreakPoint.new(self, @current_frame, klass_name, which, name, line)
+      @defered_breakpoints << dbp
+
+      info "Defered breakpoint created."
+    end
+  end
+
   def set_breakpoint(args)
-    m = /([A-Z]\w*)([.#])(\w+)(?:([:+])(\d+))?/.match(args)
+    m = /([A-Z]\w*)([.#])(\w+)(?:[:](\d+))?/.match(args)
     unless m
       error "Unrecognized position: '#{args}'"
       return
     end
 
-    begin
-      klass = eval(m[1], @binding)
-    rescue NameError
-      error "Unable to find class/module: #{m[1]}"
-      return
-    end
-
+    klass_name = m[1]
     which = m[2]
     name  = m[3]
+    line =  m[4] ? m[4].to_i : nil
+
+    begin
+      klass = @current_frame.run(klass_name)
+    rescue NameError
+      error "Unable to find class/module: #{m[1]}"
+      ask_defered klass_name, which, name, line
+      return
+    end
 
     begin
       if which == "#"
@@ -331,9 +397,14 @@ class Debugger
       end
     rescue NameError
       error "Unable to find method: #{name}"
+      ask_defered klass_name, which, name, line
       return
     end
 
+    set_breakpoint_method method, line
+  end
+
+  def set_breakpoint_method(method, line=nil)
     exec = method.executable
 
     unless exec.kind_of?(Rubinius::CompiledMethod)
@@ -341,18 +412,12 @@ class Debugger
       return
     end
 
-    if m[4]
-      if m[4] == ":"
-        line = m[5].to_i
-        ip = exec.first_ip_on_line(line)
+    if line
+      ip = exec.first_ip_on_line(line)
 
-        if ip == -1
-          error "Unknown line '#{line}' in method"
-          return
-        end
-      else
-        ip = m[5].to_i
-        line = exec.line_from_ip(ip)
+      if ip == -1
+        error "Unknown line '#{line}' in method '#{method.name}'"
+        return
       end
     else
       line = exec.first_line
@@ -363,6 +428,12 @@ class Debugger
     exec.set_breakpoint ip, bp
 
     info "Set breakpoint: #{bp.location}"
+  end
+
+  def check_defered_breakpoints
+    @defered_breakpoints.delete_if do |bp|
+      bp.resolve!
+    end
   end
 
   def show_code(line=@current_frame.line)

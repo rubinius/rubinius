@@ -8,6 +8,7 @@
 module Rubinius
   class CodeLoader
     attr_reader :feature
+    attr_reader :path
 
     # The CodeLoader instance variables have the following uses:
     #
@@ -63,7 +64,12 @@ module Rubinius
       CodeLoader.loaded @load_path
     end
 
+    # Hook support. This allows code to be told when a file was just loaded
+    @loaded_hook = Rubinius::Hook.new
+
     class << self
+      attr_reader :loaded_hook
+
       attr_writer :source_extension
 
       # Abstracts the extension for a Ruby source file.
@@ -148,6 +154,7 @@ module Rubinius
         end
 
         loader.add_feature
+        @loaded_hook.trigger! loader.path
         return true
       end
     end

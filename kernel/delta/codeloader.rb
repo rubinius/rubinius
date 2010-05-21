@@ -38,6 +38,8 @@ module Rubinius
       # doesn't accidentally inline a script body into here!
       MAIN.__send__ :__script__
 
+      CodeLoader.loaded_hook.trigger!(@path)
+
       return true
     ensure
       add_feature
@@ -63,6 +65,7 @@ module Rubinius
       # HACK we use __send__ here so that the method inliner
       # doesn't accidentally inline a script body into here!
       MAIN.__send__ :__script__
+      CodeLoader.loaded_hook.trigger!(@path)
     end
 
     # Overrides the version of #add_feature provided in kernel/common. When

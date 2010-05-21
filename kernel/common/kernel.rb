@@ -640,6 +640,10 @@ module Kernel
     # HACK we use __send__ here so that the method inliner
     # doesn't accidentally inline a script body into here!
     MAIN.__send__ :__script__
+
+    Rubinius::CodeLoader.loaded_hook.trigger!(name)
+
+    return true
   end
   module_function :load
 

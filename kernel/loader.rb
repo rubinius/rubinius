@@ -260,22 +260,6 @@ containing the Rubinius standard library files.
 
       # TODO: convert all these to -X options
       options.doc "\nRubinius options"
-      options.on "--debug", "Launch the debugger" do
-        require 'debugger/interface'
-        Rubinius::Debugger::CmdLineInterface.new
-        @debugging = true
-      end
-
-      options.on "--remote-debug", "Run the program under the control of a remote debugger" do
-        require 'debugger/debug_server'
-        if port = (argv.first =~ /^\d+$/ and argv.shift)
-          $DEBUG_SERVER = Rubinius::Debugger::Server.new(port.to_i)
-        else
-          $DEBUG_SERVER = Rubinius::Debugger::Server.new
-        end
-        $DEBUG_SERVER.listen
-        @debugging = true
-      end
 
       options.on "--dc", "Display debugging information for the compiler" do
         puts "[Compiler debugging enabled]"
@@ -406,6 +390,15 @@ containing the Rubinius standard library files.
       end
     end
 
+    def debugger
+      @stage = "running the debugger"
+
+      if Rubinius::Config['debug']
+        require 'debugger'
+        Debugger.start
+      end
+    end
+
     # Require any -r arguments
     def requires
       @stage = "requiring command line files"
@@ -521,6 +514,7 @@ containing the Rubinius standard library files.
       preload
       options
       load_paths
+      debugger
       requires
       evals
       script

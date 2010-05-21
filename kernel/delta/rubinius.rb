@@ -2,6 +2,12 @@ module Rubinius
   Terminal = STDIN.tty?
   AtExit = []
 
+  @add_method_hook = Rubinius::Hook.new
+
+  class << self
+    attr_reader :add_method_hook
+  end
+
   def self.open_class_under(name, sup, mod)
     unless mod.kind_of? Module
       raise TypeError, "'#{mod.inspect}' is not a class/module"
@@ -155,6 +161,8 @@ module Rubinius
         mod.method_added(name)
       end
     end
+
+    @add_method_hook.trigger! mod, name, executable
 
     return executable
   end
