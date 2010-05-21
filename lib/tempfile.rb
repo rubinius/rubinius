@@ -34,16 +34,16 @@ class Tempfile < DelegateClass(File)
 
     lock = nil
     n = failure = 0
-    
+
     begin
       Thread.critical = true
 
       begin
-	tmpname = File.join(tmpdir, make_tmpname(basename, n))
-	lock = tmpname + '.lock'
-	n += 1
+        tmpname = File.join(tmpdir, make_tmpname(basename, n))
+        lock = tmpname + '.lock'
+        n += 1
       end while @@cleanlist.include?(tmpname) or
-	File.exist?(lock) or File.exist?(tmpname)
+                File.exist?(lock) or File.exist?(tmpname)
 
       Dir.mkdir(lock)
     rescue
@@ -79,7 +79,7 @@ class Tempfile < DelegateClass(File)
     else
       prefix, suffix = basename, ''
     end
- 
+
     t = Time.now.strftime("%Y%m%d")
     path = "#{prefix}#{t}-#{$$}-#{rand(0x100000000).to_s(36)}-#{n}#{suffix}"
   end
@@ -97,7 +97,7 @@ class Tempfile < DelegateClass(File)
     @tmpfile.close if @tmpfile
     @tmpfile = nil
     @data[1] = nil if @data
-  end    
+  end
   protected :_close
 
   # Closes the file.  If the optional flag is true, unlinks the file
@@ -158,20 +158,20 @@ class Tempfile < DelegateClass(File)
   class << self
     def callback(data)	# :nodoc:
       pid = $$
-      lambda{
-	if pid == $$ 
-	  path, tmpfile, cleanlist = *data
+      lambda {
+        if pid == $$
+          path, tmpfile, cleanlist = *data
 
-	  print "removing ", path, "..." if $DEBUG
+          print "removing ", path, "..." if $DEBUG
 
-	  tmpfile.close if tmpfile
+          tmpfile.close if tmpfile
 
-	  # keep this order for thread safeness
-	  File.unlink(path) if File.exist?(path)
-	  cleanlist.delete(path) if cleanlist
+          # keep this order for thread safeness
+          File.unlink(path) if File.exist?(path)
+          cleanlist.delete(path) if cleanlist
 
-	  print "done\n" if $DEBUG
-	end
+          print "done\n" if $DEBUG
+        end
       }
     end
 
@@ -184,15 +184,15 @@ class Tempfile < DelegateClass(File)
       tempfile = new(*args)
 
       if block_given?
-	begin
-	  yield(tempfile)
-	ensure
-	  tempfile.close
-	end
+        begin
+          yield(tempfile)
+        ensure
+          tempfile.close
+        end
 
-	nil
+        nil
       else
-	tempfile
+        tempfile
       end
     end
   end
