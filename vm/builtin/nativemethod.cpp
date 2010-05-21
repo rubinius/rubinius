@@ -213,6 +213,10 @@ namespace rubinius {
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
 
+    // Handle any signals that occurred while the native method
+    // was running.
+    if(!state->check_async(call_frame)) return NULL;
+
     return ret;
   }
 
