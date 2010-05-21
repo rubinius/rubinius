@@ -12,8 +12,12 @@
 #include "configuration.hpp"
 #include "agent.hpp"
 #include "exception.hpp"
+#include "call_frame.hpp"
 
 #include "config.h"
+
+#include <ostream>
+#include <sstream>
 
 namespace rubinius {
   bool QueryAgent::bind() {
@@ -88,7 +92,7 @@ namespace rubinius {
           bert::Value* key = val->get_element(1);
           bert::Value* value = val->get_element(2);
 
-          if(key->type() == bert::Binary ||
+          if(key->type() == bert::Binary &&
               value->type() == bert::Binary) {
             if(shared_.config.import(key->string(), value->string())) {
               encoder.write_atom("ok");
@@ -125,7 +129,42 @@ namespace rubinius {
 
         encoder.write_atom("error");
         return true;
+      } else if(cmd->equal_atom("backtrace")) {
+        if(verbose_) {
+          std::cerr << "[QA: Gathering backtraces, halting threads]\n";
+        }
+
+        encoder.write_tuple(2);
+        encoder.write_atom("ok");
+
+        {
+          GlobalLock::LockGuard guard(shared_.global_lock());
+
+          if(verbose_) {
+            std::cerr << "[QA: Threads halted, gathering: "
+                      << shared_.call_frame_locations().size()
+                      <<"]\n";
+          }
+
+          encoder.write_tuple(shared_.call_frame_locations().size());
+
+          for(CallFrameLocationList::iterator i = shared_.call_frame_locations().begin();
+              i != shared_.call_frame_locations().end();
+              i++) {
+            CallFrame* loc = *(*i);
+
+            std::ostringstream ss;
+            loc->print_backtrace(state_, ss);
+            encoder.write_binary(ss.str().c_str());
+          }
+        }
+
+        if(verbose_) {
+          std::cerr << "[QA: Threads restarted]\n";
+        }
       }
+
+      return true;
     } else if(val->equal_atom("close")) {
       encoder.write_atom("bye");
       return false;

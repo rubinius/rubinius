@@ -8,6 +8,7 @@ namespace rubinius {
 
   class QueryAgent : public thread::Thread {
     SharedState& shared_;
+    VM* state_;
     int port_;
     int server_fd_;
     bool verbose_;
@@ -19,9 +20,10 @@ namespace rubinius {
     const static int cBackLog = 10;
 
   public:
-    QueryAgent(SharedState& shared, int port)
+    QueryAgent(SharedState& shared, VM* state, int port)
       : Thread()
       , shared_(shared)
+      , state_(state)
       , port_(port)
       , server_fd_(0)
       , verbose_(false)

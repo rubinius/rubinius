@@ -36,6 +36,10 @@ namespace rubinius {
   }
 
   void CallFrame::print_backtrace(STATE) {
+    print_backtrace(state, std::cout);
+  }
+
+  void CallFrame::print_backtrace(STATE, std::ostream& stream) {
     CallFrame* cf = this;
 
     while(cf) {
@@ -44,16 +48,16 @@ namespace rubinius {
         continue;
       }
 
-      std::cout << static_cast<void*>(cf) << ": ";
+      stream << static_cast<void*>(cf) << ": ";
 
       if(cf->is_block_p(state)) {
-        std::cout << "__block__";
+        stream << "__block__";
       } else {
         if(MetaClass* meta = try_as<MetaClass>(cf->module())) {
           if(Module* mod = try_as<Module>(meta->attached_instance())) {
-            std::cout << mod->name()->c_str(state) << ".";
+            stream << mod->name()->c_str(state) << ".";
           } else {
-            std::cout << "#<" <<
+            stream << "#<" <<
               meta->attached_instance()->class_object(state)->name()->c_str(state) <<
               ":" << (void*)meta->attached_instance() << ">.";
           }
@@ -66,31 +70,31 @@ namespace rubinius {
           } else {
             mod_name = cf->module()->name()->c_str(state);
           }
-          std::cout << mod_name << "#";
+          stream << mod_name << "#";
         }
 
         Symbol* name = try_as<Symbol>(cf->name());
         if(name) {
-          std::cout << name->c_str(state);
+          stream << name->c_str(state);
         } else {
-          std::cout << cf->cm->name()->c_str(state);
+          stream << cf->cm->name()->c_str(state);
         }
       }
 
-      std::cout << " in ";
+      stream << " in ";
       if(Symbol* file_sym = try_as<Symbol>(cf->cm->file())) {
-        std::cout << file_sym->c_str(state) << ":" << cf->line(state);
+        stream << file_sym->c_str(state) << ":" << cf->line(state);
       } else {
-        std::cout << "<unknown>";
+        stream << "<unknown>";
       }
 
-      std::cout << " (+" << cf->ip();
+      stream << " (+" << cf->ip();
       if(cf->is_inline_frame()) {
-        std::cout << " inline";
+        stream << " inline";
       }
-      std::cout << ")";
+      stream << ")";
 
-      std::cout << std::endl;
+      stream << std::endl;
       cf = static_cast<CallFrame*>(cf->previous);
     }
 

@@ -8,6 +8,8 @@
 #include "builtin/variable_scope.hpp"
 #include "dispatch.hpp"
 
+#include <ostream>
+
 #ifdef ENABLE_LLVM
 #include "llvm/jit_runtime.hpp"
 #endif
@@ -204,6 +206,7 @@ namespace rubinius {
     VariableScope* method_scope(STATE);
 
     void print_backtrace(STATE);
+    void print_backtrace(STATE, std::ostream& stream);
     int line(STATE);
 
     bool scope_still_valid(VariableScope* scope);
