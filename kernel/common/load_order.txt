@@ -30,6 +30,7 @@ bytearray.rbc
 channel.rbc
 executable.rbc
 static_scope.rbc
+hook.rbc
 codeloader.rbc
 compiled_method.rbc
 continuation.rbc
