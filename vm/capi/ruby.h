@@ -899,6 +899,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Print the value to $stdout */
   void    rb_p(VALUE);
 
+  /** Return an array containing the names of all global variables */
+  VALUE   rb_f_global_variables();
+
   /** Returns object returned by invoking method on object if right type, or raises error. */
   VALUE   rb_convert_type(VALUE object_handle, int type,
       const char* type_name, const char* method_name);
@@ -1425,6 +1428,9 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Create a String from a C string. */
   VALUE   rb_str_new2(const char* string);
+
+  /** Create a String from an existing string. */
+  VALUE   rb_str_new3(VALUE string);
 
   void    rb_str_modify(VALUE str);
 

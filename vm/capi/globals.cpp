@@ -57,6 +57,10 @@ extern "C" {
                       value);
   }
 
+  VALUE rb_f_global_variables() {
+    return rb_funcall(rb_mKernel, rb_intern("global_variables"), 0);
+  }
+
   void rb_define_readonly_variable(const char* name, VALUE* addr) {
     // This is pretty much wrong, because when name is accessed, the VALUE
     // at addr should be retrieved. We're going to just do it once, since almost

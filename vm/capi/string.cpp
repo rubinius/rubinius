@@ -202,6 +202,10 @@ extern "C" {
     return rb_str_new(string, std::strlen(string));
   }
 
+  VALUE rb_str_new3(VALUE string) {
+    return rb_str_dup(string);
+  }
+
   VALUE rb_str_plus(VALUE self_handle, VALUE other_handle) {
     return rb_str_append(rb_str_dup(self_handle), other_handle);
   }
