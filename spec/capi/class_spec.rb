@@ -44,6 +44,18 @@ class CApiClassSpecs
       @@rbdcv_cvar if defined? @@rbdcv_cvar
     end
   end
+
+  class Inherited
+    def self.inherited(klass)
+      klass
+    end
+  end
+
+  class NewClass
+    def self.inherited(klass)
+      raise "#{name}.inherited called"
+    end
+  end
 end
 
 describe "C-API Class function" do
@@ -168,6 +180,39 @@ describe "C-API Class function" do
       lambda {
         @s.rb_cvar_get(CApiClassSpecs::CVars, "@@no_cvar")
       }.should raise_error(NameError)
+    end
+  end
+
+  describe "rb_class_inherited" do
+    before :each do
+      @subclass = Class.new
+    end
+
+    it "calls superclass.inherited(subclass)" do
+      @s.rb_class_inherited(CApiClassSpecs::Inherited, @subclass).should equal(@subclass)
+    end
+
+    it "calls Object.inherited(subclass) if superclass is C NULL" do
+      Object.should_receive(:inherited).with(@subclass)
+
+      # Pass false to have the specs helper C function pass NULL
+      @s.rb_class_inherited(false, @subclass)
+    end
+  end
+
+  describe "rb_class_new" do
+    it "returns an new subclass of the superclass" do
+      subclass = @s.rb_class_new(CApiClassSpecs::NewClass)
+      CApiClassSpecs::NewClass.should be_ancestor_of(subclass)
+    end
+
+    it "raises a TypeError if passed Class as the superclass" do
+      lambda { @s.rb_class_new(Class) }.should raise_error(TypeError)
+    end
+
+    it "raises a TypeError if passed a singleton class as the superclass" do
+      metaclass = Object.new.metaclass
+      lambda { @s.rb_class_new(metaclass) }.should raise_error(TypeError)
     end
   end
 end

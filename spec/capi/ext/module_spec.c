@@ -1,30 +1,38 @@
 #include "ruby.h"
 
-VALUE sm_define_const(VALUE self, VALUE klass, VALUE val) {
-  rb_define_const(klass, "FOO", val);
+static VALUE module_specs_define_const(VALUE self, VALUE klass, VALUE str_name, VALUE val) {
+  rb_define_const(klass, RSTRING_PTR(str_name), val);
   return Qnil;
 }
 
-VALUE sm_define_global_const(VALUE self, VALUE obj) {
-  rb_define_global_const("GC_FOO_TEST", obj);
+static VALUE module_specs_define_global_const(VALUE self, VALUE str_name, VALUE obj) {
+  rb_define_global_const(RSTRING_PTR(str_name), obj);
   return Qnil;
 }
 
-VALUE sm_const_set(VALUE self, VALUE klass, VALUE val) {
-  rb_const_set(klass, rb_intern("FOO"), val);
+static VALUE module_specs_const_set(VALUE self, VALUE klass, VALUE name, VALUE val) {
+  rb_const_set(klass, SYM2ID(name), val);
   return Qnil;
 }
 
-VALUE sm_const_get(VALUE self, VALUE klass, VALUE val) {
-  return rb_const_get(klass, val);
+static VALUE module_specs_const_get(VALUE self, VALUE klass, VALUE val) {
+  return rb_const_get(klass, SYM2ID(val));
 }
 
-VALUE sm_const_get_from(VALUE self, VALUE klass, VALUE val) {
-  return rb_const_get_from(klass, val);
+static VALUE module_specs_const_get_from(VALUE self, VALUE klass, VALUE val) {
+  return rb_const_get_from(klass, SYM2ID(val));
 }
 
-VALUE sm_const_defined(VALUE self, VALUE klass, VALUE id) {
+static VALUE module_specs_const_get_at(VALUE self, VALUE klass, VALUE val) {
+  return rb_const_get_at(klass, SYM2ID(val));
+}
+
+static VALUE module_specs_const_defined(VALUE self, VALUE klass, VALUE id) {
   return rb_const_defined(klass, SYM2ID(id)) ? Qtrue : Qfalse;
+}
+
+static VALUE module_specs_const_defined_at(VALUE self, VALUE klass, VALUE id) {
+  return rb_const_defined_at(klass, SYM2ID(id)) ? Qtrue : Qfalse;
 }
 
 static VALUE sa_define_alias(VALUE self, VALUE obj,
@@ -47,12 +55,14 @@ void Init_module_spec() {
   VALUE cls, mod;
 
   cls = rb_define_class("CApiModuleSpecs", rb_cObject);
-  rb_define_method(cls, "rb_const_set", sm_const_set, 2);
-  rb_define_method(cls, "rb_const_get", sm_const_get, 2);
-  rb_define_method(cls, "rb_const_get_from", sm_const_get_from, 2);
-  rb_define_method(cls, "rb_define_const", sm_define_const, 2);
-  rb_define_method(cls, "rb_define_global_const", sm_define_global_const, 1);
-  rb_define_method(cls, "rb_const_defined", sm_const_defined, 2);
+  rb_define_method(cls, "rb_const_set", module_specs_const_set, 3);
+  rb_define_method(cls, "rb_const_get", module_specs_const_get, 2);
+  rb_define_method(cls, "rb_const_get_from", module_specs_const_get_from, 2);
+  rb_define_method(cls, "rb_const_get_at", module_specs_const_get_at, 2);
+  rb_define_method(cls, "rb_define_const", module_specs_define_const, 3);
+  rb_define_method(cls, "rb_define_global_const", module_specs_define_global_const, 2);
+  rb_define_method(cls, "rb_const_defined", module_specs_const_defined, 2);
+  rb_define_method(cls, "rb_const_defined_at", module_specs_const_defined_at, 2);
 
   cls = rb_define_class("CApiDefineAliasSpecs", rb_cObject);
   rb_define_method(cls, "rb_define_alias", sa_define_alias, 3);

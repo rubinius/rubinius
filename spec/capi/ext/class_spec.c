@@ -62,10 +62,23 @@ static VALUE class_spec_cvar_defined(VALUE self, VALUE klass, VALUE id) {
   return rb_cvar_defined(klass, as_id);
 }
 
+static VALUE class_spec_rb_class_inherited(VALUE self, VALUE super, VALUE klass) {
+  if(super == Qfalse) {
+    return rb_class_inherited((VALUE)(0), klass);
+  } else {
+    return rb_class_inherited(super, klass);
+  }
+}
+
+static VALUE class_spec_rb_class_new(VALUE self, VALUE super) {
+  return rb_class_new(super);
+}
+
 void Init_class_spec() {
   VALUE cls;
   cls = rb_define_class("CApiClassSpecs", rb_cObject);
 
+  rb_define_method(cls, "rb_class_new", class_spec_rb_class_new, 1);
   rb_define_method(cls, "rb_class_new_instance", class_spec_rb_class_new_instance, 3);
   rb_define_method(cls, "rb_include_module", class_spec_include_module, 2);
   rb_define_method(cls, "rb_define_attr", class_spec_define_attr, 4);
@@ -76,4 +89,5 @@ void Init_class_spec() {
   rb_define_method(cls, "rb_define_class_variable", class_spec_define_class_variable, 3);
   rb_define_method(cls, "rb_cvar_get", class_spec_cvar_get, 2);
   rb_define_method(cls, "rb_cvar_defined", class_spec_cvar_defined, 2);
+  rb_define_method(cls, "rb_class_inherited", class_spec_rb_class_inherited, 2);
 }
