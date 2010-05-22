@@ -40,6 +40,15 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_str_new3" do
+    it "returns a copy of the string" do
+      str1 = "hi"
+      str2 = @s.rb_str_new3 str1
+      str1.should == str2
+      str1.object_id.should_not == str2.object_id
+    end
+  end
+
   describe "rb_str_dup" do
     it "returns a copy of the string" do
       str1 = "hi"

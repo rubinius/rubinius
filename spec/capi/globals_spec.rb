@@ -19,6 +19,10 @@ describe "CApiGlobalSpecs" do
     @f.sb_gv_get("$BLAH").should == 10
   end
 
+  it "lists all global variables" do
+    @f.rb_f_global_variables.should == Kernel.global_variables
+  end
+
   it "rb_define_variable should define a new global variable" do
     @f.rb_define_variable("my_gvar", "ABC")
     $my_gvar.should == "ABC"

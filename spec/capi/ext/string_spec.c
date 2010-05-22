@@ -13,6 +13,10 @@ VALUE string_spec_rb_str_new2_with_null(VALUE self) {
   return rb_str_new2(NULL);
 }
 
+VALUE string_spec_rb_str_new3(VALUE self, VALUE str) {
+  return rb_str_new3(str);
+}
+
 VALUE string_spec_rb_str_dup(VALUE self, VALUE str) {
   return rb_str_dup(str);
 }
@@ -286,6 +290,7 @@ void Init_string_spec() {
   rb_define_method(cls, "rb_str_new", string_spec_rb_str_new, 2);
   rb_define_method(cls, "rb_str_new2", string_spec_rb_str_new2, 0);
   rb_define_method(cls, "rb_str_new2_with_null", string_spec_rb_str_new2_with_null, 0);
+  rb_define_method(cls, "rb_str_new3", string_spec_rb_str_new3, 1);
   rb_define_method(cls, "rb_str_dup", string_spec_rb_str_dup, 1);
   rb_define_method(cls, "rb_str_append", string_spec_rb_str_append, 2);
   rb_define_method(cls, "rb_str_plus", string_spec_rb_str_plus, 2);
