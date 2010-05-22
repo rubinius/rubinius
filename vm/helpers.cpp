@@ -253,7 +253,7 @@ namespace rubinius {
       Module* module;
       bool found;
 
-      Object* obj = const_get_under(state, under, name, &found);
+      Object* obj = under->get_const(state, name, &found);
 
       if(found) {
         if(Autoload* autoload = try_as<Autoload>(obj)) {
