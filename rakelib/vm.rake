@@ -238,6 +238,7 @@ def ld(t)
 
   link_opts += ' -Wl,--export-dynamic' if RUBY_PLATFORM =~ /linux/i
   link_opts += ' -rdynamic'            if RUBY_PLATFORM =~ /bsd/
+  link_opts += ' -lstdc++'
 
   # Include LDFLAGS
   if str = ENV['LDFLAGS']

@@ -157,14 +157,14 @@ when /openbsd/
 when /darwin/
   # on Unix we need a g++ link, not gcc.
   # Ff line contributed by Daniel Harple.
-  $LDSHARED = "#{$CXX} -dynamic -bundle -undefined suppress -flat_namespace"
+  $LDSHARED = "#{$CXX} -dynamic -bundle -undefined suppress -flat_namespace -lstdc++"
 
 when /aix/
   $LDSHARED = "#{$CXX} -shared -Wl,-G -Wl,-brtl"
 
 else
   # on Unix we need a g++ link, not gcc.
-  $LDSHARED = "#{$CXX} -shared"
+  $LDSHARED = "#{$CXX} -shared -lstdc++"
   add_flag "-fPIC"
 end
 
