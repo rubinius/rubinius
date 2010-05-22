@@ -247,6 +247,7 @@ class Time
   end
 
   def eql?(other)
+    return false unless other.kind_of?(Time)
     seconds == other.seconds and usec == other.usec
   end
 
