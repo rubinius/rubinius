@@ -1253,7 +1253,7 @@ VALUE rb_uint2big(unsigned long number);
    * *status to 1, otherwise the return of func is returned and *status
    * is 0.
    */
-  VALUE rb_protect(VALUE (*func)(ANYARGS), VALUE data, int* status);
+  VALUE rb_protect(VALUE (*func)(VALUE), VALUE data, int* status);
 
   /**
    * Continue raising a pending exception if status is not 0

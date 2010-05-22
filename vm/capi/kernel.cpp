@@ -113,7 +113,7 @@ extern "C" {
     return rb_rescue2(func, arg1, raise_func, arg2, rb_eStandardError,  0);
   }
 
-  VALUE rb_protect(VALUE (*func)(ANYARGS), VALUE data, int* status) {
+  VALUE rb_protect(VALUE (*func)(VALUE), VALUE data, int* status) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     VALUE ret = Qnil;
 
