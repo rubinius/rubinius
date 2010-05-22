@@ -31,6 +31,10 @@ THIS SOFTWARE.
 
 #include "gdtoaimp.h"
 
+#ifdef USE_LOCALE
+#include "locale.h"
+#endif
+
  char*
 #ifdef KR_headers
 g_dfmt(buf, d, ndig, bufsize) char *buf; double *d; int ndig; unsigned bufsize;
@@ -42,6 +46,12 @@ g_dfmt(char *buf, double *d, int ndig, unsigned bufsize)
 	char *b, *s, *se;
 	ULong bits[2], *L, sign;
 	int decpt, ex, i, mode;
+
+#ifdef USE_LOCALE
+	char decimalpoint = *localeconv()->decimal_point;
+#else
+#define decimalpoint '.'
+#endif
 
 	if (ndig < 0)
 		ndig = 0;
@@ -66,6 +76,8 @@ g_dfmt(char *buf, double *d, int ndig, unsigned bufsize)
 		if (L[_0] & 0x80000000L)
 			*b++ = '-';
 #endif
+		*b++ = '0';
+		*b++ = decimalpoint;
 		*b++ = '0';
 		*b = 0;
 		return b;

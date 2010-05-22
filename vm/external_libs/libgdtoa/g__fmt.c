@@ -42,7 +42,7 @@ g__fmt(b, s, se, decpt, sign) char *b; char *s; char *se; int decpt; ULong sign;
 g__fmt(char *b, char *s, char *se, int decpt, ULong sign)
 #endif
 {
-	int i, j, k;
+	int i, j, k, decpt_set = 0;
 	char *s0 = s;
 #ifdef USE_LOCALE
 	char decimalpoint = *localeconv()->decimal_point;
@@ -51,12 +51,15 @@ g__fmt(char *b, char *s, char *se, int decpt, ULong sign)
 #endif
 	if (sign)
 		*b++ = '-';
-	if (decpt <= -4 || decpt > se - s + 5) {
+	if (decpt <= -4 || decpt >= se - s + 14 ) {
 		*b++ = *s++;
 		if (*s) {
 			*b++ = decimalpoint;
 			while((*b = *s++) !=0)
 				b++;
+			} else {
+				*b++ = decimalpoint;
+				*b++ = '0';
 			}
 		*b++ = 'e';
 		/* sprintf(b, "%+.2d", decpt - 1); */
@@ -78,6 +81,7 @@ g__fmt(char *b, char *s, char *se, int decpt, ULong sign)
 		*b = 0;
 		}
 	else if (decpt <= 0) {
+		*b++ = '0';
 		*b++ = decimalpoint;
 		for(; decpt < 0; decpt++)
 			*b++ = '0';
@@ -87,13 +91,19 @@ g__fmt(char *b, char *s, char *se, int decpt, ULong sign)
 	else {
 		while((*b = *s++) !=0) {
 			b++;
-			if (--decpt == 0 && *s)
+			if (--decpt == 0 && *s) {
 				*b++ = decimalpoint;
+				decpt_set = 1;
+				}
 			}
 		for(; decpt > 0; decpt--)
 			*b++ = '0';
+		if(!decpt_set) {
+			*b++ = decimalpoint;
+			*b++ = '0';
+			}
 		*b = 0;
 		}
 	freedtoa(s0);
 	return b;
- 	}
+	}
