@@ -9,7 +9,8 @@ describe "A Match node" do
       g.send :[], 1
 
       g.memoize do
-        g.push_const :Regexp
+        g.push_cpath_top
+        g.find_const :Regexp
         g.push_literal "x"
         g.push 0
         g.send :new, 2

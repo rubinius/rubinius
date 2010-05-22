@@ -4,7 +4,8 @@ describe "A Match2 node" do
   relates '/x/ =~ "blah"' do
     compile do |g|
       g.memoize do
-        g.push_const :Regexp
+        g.push_cpath_top
+        g.find_const :Regexp
         g.push_literal "x"
         g.push 0
         g.send :new, 2
@@ -27,7 +28,8 @@ describe "A Match2 node" do
       g.set_local 0
       g.pop
 
-      g.push_const :Regexp
+      g.push_cpath_top
+      g.find_const :Regexp
       g.push_local 0
       g.send :to_s, 0, true
       g.string_build 1

@@ -6,7 +6,8 @@ describe "A Dregx node" do
     ruby
 
     compile do |g|
-      g.push_const :Regexp
+      g.push_cpath_top
+      g.find_const :Regexp
       g.push_literal "("
       g.push_literal ")"
       g.string_build 2
@@ -17,7 +18,8 @@ describe "A Dregx node" do
 
   relates "/x\#{(1 + 1)}y/" do
     compile do |g|
-      g.push_const :Regexp
+      g.push_cpath_top
+      g.find_const :Regexp
 
       g.push_literal "x"    # 1
 
@@ -37,7 +39,8 @@ describe "A Dregx node" do
 
   relates "/a\#{}b/" do
     compile do |g|
-      g.push_const :Regexp
+      g.push_cpath_top
+      g.find_const :Regexp
 
       g.push_literal "a"
       g.push_literal "b"
@@ -50,7 +53,8 @@ describe "A Dregx node" do
 
   relates "/\#{@rakefile}/" do
     compile do |g|
-      g.push_const :Regexp
+      g.push_cpath_top
+      g.find_const :Regexp
 
       g.push_ivar :@rakefile
       g.send :to_s, 0, true
@@ -63,7 +67,8 @@ describe "A Dregx node" do
 
   relates "/\#{1}/n" do
     compile do |g|
-      g.push_const :Regexp
+      g.push_cpath_top
+      g.find_const :Regexp
 
       g.push 1
       g.send :to_s, 0, true
@@ -77,7 +82,8 @@ describe "A Dregx node" do
   relates "/\#{IAC}\#{SB}/no" do
     compile do |g|
       memoize do
-        g.push_const :Regexp
+        g.push_cpath_top
+        g.find_const :Regexp
 
         g.push_const :IAC     # 1
         g.send :to_s, 0, true
@@ -96,7 +102,8 @@ describe "A Dregx node" do
   relates "/x\#{(1 + 1)}y/o" do
     compile do |g|
       memoize do
-        g.push_const :Regexp
+        g.push_cpath_top
+        g.find_const :Regexp
 
         g.push_literal "x"    # 1
 

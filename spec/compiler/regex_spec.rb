@@ -7,7 +7,8 @@ describe "A Regex node" do
       g.send :str, 0, true
 
       g.memoize do
-        g.push_const :Regexp
+        g.push_cpath_top
+        g.find_const :Regexp
         g.push_literal ""
         g.push 1
         g.send :new, 2
@@ -20,7 +21,8 @@ describe "A Regex node" do
   relates "/x/n" do
     compile do |g|
       g.memoize do
-        g.push_const :Regexp
+        g.push_cpath_top
+        g.find_const :Regexp
         g.push_literal "x"
         g.push 16
         g.send :new, 2
@@ -31,7 +33,8 @@ describe "A Regex node" do
   relates "/x/o" do
     compile do |g|
       g.memoize do
-        g.push_const :Regexp
+        g.push_cpath_top
+        g.find_const :Regexp
         g.push_literal "x"
         g.push 0
         g.send :new, 2
@@ -42,7 +45,8 @@ describe "A Regex node" do
   relates "/x/" do
     compile do |g|
       g.memoize do
-        g.push_const :Regexp
+        g.push_cpath_top
+        g.find_const :Regexp
         g.push_literal "x"
         g.push 0
         g.send :new, 2

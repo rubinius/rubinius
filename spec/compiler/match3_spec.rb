@@ -7,7 +7,8 @@ describe "A Match3 node" do
       g.string_dup
 
       g.memoize do
-        g.push_const :Regexp
+        g.push_cpath_top
+        g.find_const :Regexp
         g.push_literal "x"
         g.push 0
         g.send :new, 2
@@ -31,7 +32,8 @@ describe "A Match3 node" do
       g.pop
       g.push_local 0
 
-      g.push_const :Regexp
+      g.push_cpath_top
+      g.find_const :Regexp
       g.push_local 0
       g.send :to_s, 0, true
       g.string_build 1

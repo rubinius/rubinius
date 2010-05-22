@@ -295,7 +295,8 @@ module Rubinius
         lbl = g.new_label
         g.gif lbl
         g.pop
-        g.push_const :Regexp
+        g.push_cpath_top
+        g.find_const :Regexp
         g.push_literal @source
         g.push @options
         g.send :new, 2
@@ -482,7 +483,8 @@ module Rubinius
       end
 
       def bytecode(g)
-        g.push_const :Regexp
+        g.push_cpath_top
+        g.find_const :Regexp
         super(g)
         g.push @options
         g.send :new, 2
