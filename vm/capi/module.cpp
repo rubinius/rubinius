@@ -25,10 +25,32 @@ extern "C" {
     return ret;
   }
 
+  int rb_const_defined_at(VALUE module_handle, ID const_id) {
+    return rb_funcall(module_handle,
+        rb_intern("const_defined?"), 1, ID2SYM(const_id));
+  }
+
   ID rb_frame_last_func() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return reinterpret_cast<ID>(env->current_call_frame()->name());
+  }
+
+  static VALUE const_missing(VALUE klass, ID id) {
+    return rb_funcall(klass, rb_intern("const_missing"), 1, ID2SYM(id));
+  }
+
+  VALUE rb_const_get_at(VALUE module_handle, ID id_name) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Symbol* name = reinterpret_cast<Symbol*>(id_name);
+    Module* module = c_as<Module>(env->get_object(module_handle));
+
+    bool found = false;
+    Object* val = module->get_const(env->state(), name, &found);
+    if(found) return env->get_handle(val);
+
+    return const_missing(module_handle, id_name);
   }
 
   VALUE rb_const_get_from(VALUE module_handle, ID id_name) {
@@ -45,8 +67,7 @@ extern "C" {
       module = module->superclass();
     }
 
-    // BUG should call const missing here.
-    return Qnil;
+    return const_missing(module_handle, id_name);
   }
 
   VALUE rb_const_get(VALUE module_handle, ID id_name) {
@@ -73,8 +94,7 @@ extern "C" {
       module = module->superclass();
     }
 
-    // BUG should call const missing here.
-    return Qnil;
+    return const_missing(module_handle, id_name);
   }
 
   void rb_const_set(VALUE module_handle, ID name, VALUE obj_handle) {

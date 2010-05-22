@@ -880,6 +880,14 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns String representation of the class' name. */
   VALUE   rb_class_name(VALUE class_handle);
 
+  /** Calls the class method 'inherited' on super passing the class.
+   *  If super is NULL, calls Object.inherited. */
+  VALUE   rb_class_inherited(VALUE super_handle, VALUE class_handle);
+
+  /** Returns a new, anonymous class inheriting from super_handle.
+   *  Does NOT call inherited() on the superclass. */
+  VALUE   rb_class_new(VALUE super_handle);
+
   /** As Ruby's .new, with the given arguments. Returns the new object. */
   VALUE   rb_class_new_instance(int arg_count, VALUE* args, VALUE class_handle);
 
@@ -909,8 +917,16 @@ VALUE rb_uint2big(unsigned long number);
   /** Nonzero if constant corresponding to Symbol exists in the Module. */
   int     rb_const_defined(VALUE module_handle, ID const_id);
 
+  /** Returns non-zero if the constant is defined in the module. Does
+   *  not search outside of the module itself. */
+  int     rb_const_defined_at(VALUE module_handle, ID const_id);
+
   /** Retrieve constant from given module. */
-  VALUE   rb_const_get(VALUE module_handle, ID name);
+  VALUE   rb_const_get(VALUE module_handle, ID id_name);
+
+  /** Returns a constant defined in module only. Does not search
+   *  outside of the module itself. */
+  VALUE   rb_const_get_at(VALUE module_handle, ID id_name);
 
   /** Retrieve constant from given module. */
   VALUE rb_const_get_from(VALUE module_handle, ID id_name);

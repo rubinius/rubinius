@@ -42,6 +42,28 @@ extern "C" {
     return RSTRING_PTR(env->get_handle(str));
   }
 
+  VALUE rb_class_inherited(VALUE super_handle, VALUE class_handle)
+  {
+    if(!super_handle) super_handle = rb_cObject;
+    return rb_funcall(super_handle, rb_intern("inherited"), 1, class_handle);
+  }
+
+  VALUE rb_class_new(VALUE super_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    if(super_handle == rb_cClass) {
+      rb_raise(rb_eTypeError, "can't make subclass of Class");
+    }
+
+    if(try_as<MetaClass>(env->get_object(super_handle))) {
+      rb_raise(rb_eTypeError, "can't make subclass of virtual class");
+    }
+
+    Class* klass = Class::create(env->state(), c_as<Class>(env->get_object(super_handle)));
+
+    return env->get_handle(klass);
+  }
+
   VALUE rb_path2class(const char* name) {
     return rb_funcall(rb_mKernel, rb_intern("const_lookup"), 1, rb_str_new2(name));
   }
