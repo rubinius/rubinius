@@ -6,7 +6,7 @@ describe "A Defined node" do
       f = g.new_label
       done = g.new_label
 
-      g.push_const :Rubinius
+      g.push_rubinius
       g.find_const :Globals
       g.push_literal :$x
       g.send :key?, 1

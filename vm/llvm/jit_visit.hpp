@@ -2948,6 +2948,21 @@ use_send:
       stack_push(val);
     }
 
+    void visit_push_rubinius() {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << ls_->Int32Ty;
+
+      Value* call_args[] = {
+        vm_,
+        ConstantInt::get(ls_->Int32Ty, 1)
+      };
+
+      Value* val = sig.call("rbx_push_system_object", call_args, 2, "so", b());
+      stack_push(val);
+    }
+
     void visit_push_ivar(opcode which) {
       Signature sig(ls_, ObjType);
 

@@ -385,13 +385,13 @@ describe "An Lasgn node" do
       g.set_local 0
       g.pop
 
-      g.push_const :Rubinius
+      g.push_rubinius
       g.push_literal :F
       g.push :nil
       g.push_local 0
       g.send :open_class_under, 3
       g.dup
-      g.push_const :Rubinius
+      g.push_rubinius
       g.swap
       g.push_literal :__class_init__
       g.swap
@@ -428,14 +428,14 @@ describe "An Lasgn node" do
       g.set_local 0
       g.pop
 
-      g.push_const :Rubinius
+      g.push_rubinius
       g.push_literal :F
       g.push_local 0
       g.push_scope
       g.send :open_class, 3
 
       g.dup
-      g.push_const :Rubinius
+      g.push_rubinius
       g.swap
       g.push_literal :__class_init__
       g.swap
@@ -533,12 +533,12 @@ describe "An Lasgn node" do
       g.set_local 0
       g.pop
 
-      g.push_const :Rubinius
+      g.push_rubinius
       g.push_literal :M
       g.push_local 0
       g.send :open_module_under, 2
       g.dup
-      g.push_const :Rubinius
+      g.push_rubinius
       g.swap
       g.push_literal :__module_init__
       g.swap

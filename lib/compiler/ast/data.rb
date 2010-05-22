@@ -14,7 +14,7 @@ module Rubinius
       # before any other code runs. This AST node wraps the top node
       # returned by the file parser.
       def bytecode(g)
-        g.push_const :Rubinius
+        g.push_rubinius
         g.push_scope
         g.send :data_path, 0
         g.push_literal @offset

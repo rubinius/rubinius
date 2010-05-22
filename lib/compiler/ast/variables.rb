@@ -230,7 +230,7 @@ module Rubinius
         elsif @name == :$~
           g.last_match 0, 0
         else
-          g.push_const :Rubinius
+          g.push_rubinius
           g.find_const :Globals
           g.push_literal @name
           g.send :[], 1
@@ -239,7 +239,7 @@ module Rubinius
 
       def variable_defined(g, f)
         unless @name == :$! or @name == :$~
-          g.push_const :Rubinius
+          g.push_rubinius
           g.find_const :Globals
           g.push_literal @name
           g.send :key?, 1
@@ -281,7 +281,7 @@ module Rubinius
           @value ?  @value.bytecode(g) : g.swap
           g.send :last_match=, 1
         else
-          g.push_const :Rubinius
+          g.push_rubinius
           g.find_const :Globals
           if @value
             g.push_literal @name

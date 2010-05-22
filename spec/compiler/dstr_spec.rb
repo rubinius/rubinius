@@ -193,7 +193,7 @@ describe "A Dstr node" do
     compile do |g|
       g.push_literal "a "           # 1
 
-      g.push_const :Rubinius        # 2
+      g.push_rubinius        # 2
       g.find_const :Globals
       g.push_literal :$global
       g.send :[], 1

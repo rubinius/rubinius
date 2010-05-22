@@ -24,12 +24,12 @@ describe "A Module node" do
     ruby
 
     compile do |g|
-      g.push_const :Rubinius
+      g.push_rubinius
       g.push_literal :Y
       g.push_cpath_top
       g.send :open_module_under, 2
       g.dup
-      g.push_const :Rubinius
+      g.push_rubinius
       g.swap
       g.push_literal :__module_init__
       g.swap

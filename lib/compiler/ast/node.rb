@@ -81,7 +81,7 @@ module Rubinius
       end
 
       def defined(g)
-        g.push_const :Rubinius
+        g.push_rubinius
         g.push_scope
         g.send :active_path, 0
         g.push @line

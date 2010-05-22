@@ -9,12 +9,12 @@ describe "An Sclass node" do
 
     compile do |g|
       g.push :self
-      g.push_const :Rubinius
+      g.push_rubinius
       g.swap
       g.send :object_metaclass, 1
       g.dup
 
-      g.push_const :Rubinius
+      g.push_rubinius
       g.swap
       g.push_literal :__metaclass_init__
       g.swap
@@ -51,12 +51,12 @@ describe "An Sclass node" do
     compile do |g|
       in_class :A do |d|
         d.push :self
-        d.push_const :Rubinius
+        d.push_rubinius
         d.swap
         d.send :object_metaclass, 1
         d.dup
 
-        d.push_const :Rubinius
+        d.push_rubinius
         d.swap
         d.push_literal :__metaclass_init__
         d.swap
@@ -98,7 +98,7 @@ describe "An Sclass node" do
       g.set_local 0
       g.pop
       g.push_local 0
-      g.push_const :Rubinius
+      g.push_rubinius
       g.swap
       g.send :object_metaclass, 1
       g.pop
@@ -124,7 +124,7 @@ describe "An Sclass node" do
 
       g.in_block_send :m, :none do |d|
         d.push_local_depth 1, 0
-        d.push_const :Rubinius
+        d.push_rubinius
         d.swap
         d.send :object_metaclass, 1
         d.pop
@@ -147,7 +147,7 @@ describe "An Sclass node" do
       g.pop
 
       g.push_local 0
-      g.push_const :Rubinius
+      g.push_rubinius
       g.swap
       g.send :object_metaclass, 1
     end

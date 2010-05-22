@@ -840,7 +840,7 @@ describe "An Iter node" do
     compile do |g|
       g.push :nil
       g.pop
-      g.push_const :Rubinius
+      g.push_rubinius
       g.push_literal :break
       g.send :jump_error, 1
     end
@@ -848,7 +848,7 @@ describe "An Iter node" do
 
   relates "redo" do
     compile do |g|
-      g.push_const :Rubinius
+      g.push_rubinius
       g.push_literal :redo
       g.send :jump_error, 1
     end
@@ -856,7 +856,7 @@ describe "An Iter node" do
 
   relates "retry" do
     compile do |g|
-      g.push_const :Rubinius
+      g.push_rubinius
       g.push_literal :retry
       g.send :jump_error, 1
     end
@@ -864,7 +864,7 @@ describe "An Iter node" do
 
   relates "next" do
     compile do |g|
-      g.push_const :Rubinius
+      g.push_rubinius
       g.push_literal :next
       g.send :jump_error, 1
     end

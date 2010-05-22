@@ -579,7 +579,7 @@ describe "A Rescue node" do
         end
 
         rb.condition :StandardError do
-          g.push_const :Rubinius
+          g.push_rubinius
           g.push_literal :x
 
           d = new_generator(g, :x)

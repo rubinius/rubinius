@@ -27,7 +27,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        g.push_const :Rubinius
+        g.push_rubinius
         g.find_const :Globals
         g.push_literal @from
         g.push_literal @to
@@ -164,7 +164,7 @@ module Rubinius
         meth.pop_state
 
         g.dup
-        g.push_const :Rubinius
+        g.push_rubinius
         g.swap
         g.push_literal arg_name
         g.swap
@@ -224,7 +224,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        g.push_const :Rubinius
+        g.push_rubinius
         g.push_literal @name
         g.push_generator compile_body(g)
         g.push_scope
@@ -268,7 +268,7 @@ module Rubinius
       def bytecode(g, recv)
         pos(g)
 
-        g.push_const :Rubinius
+        g.push_rubinius
         g.push_literal @name
         g.push_generator compile_body(g)
         g.push_scope
@@ -504,7 +504,7 @@ module Rubinius
       end
 
       def name_bytecode(g)
-        g.push_const :Rubinius
+        g.push_rubinius
         g.push_literal @name
         @superclass.bytecode(g)
       end
@@ -617,7 +617,7 @@ module Rubinius
       end
 
       def name_bytecode(g)
-        g.push_const :Rubinius
+        g.push_rubinius
         g.push_literal @name
       end
 
@@ -723,7 +723,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        g.push_const :Rubinius
+        g.push_rubinius
         g.swap
         g.send :object_metaclass, 1
 

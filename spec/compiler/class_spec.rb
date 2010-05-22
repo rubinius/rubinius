@@ -36,13 +36,13 @@ describe "A Class node" do
     ruby
 
     compile do |g|
-      g.push_const :Rubinius
+      g.push_rubinius
       g.push_literal :Y
       g.push :nil
       g.push_cpath_top
       g.send :open_class_under, 3
       g.dup
-      g.push_const :Rubinius
+      g.push_rubinius
       g.swap
       g.push_literal :__class_init__
       g.swap
@@ -86,7 +86,7 @@ describe "A Class node" do
     ruby
 
     compile do |g|
-      g.push_const :Rubinius
+      g.push_rubinius
       g.push_literal :X
       g.push_const :Array
       g.push_scope
@@ -102,7 +102,7 @@ describe "A Class node" do
     ruby
 
     compile do |g|
-      g.push_const :Rubinius
+      g.push_rubinius
       g.push_literal :X
       g.push :self
       g.send :expr, 0, true
@@ -120,7 +120,7 @@ describe "A Class node" do
     ruby
 
     compile do |g|
-      g.push_const :Rubinius
+      g.push_rubinius
       g.push_literal :X
       g.push_const :Object
       g.push_scope

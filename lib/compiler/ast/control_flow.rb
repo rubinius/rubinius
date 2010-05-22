@@ -361,7 +361,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        g.push_const :Rubinius
+        g.push_rubinius
         g.find_const :Globals
         g.push_literal :$_
         g.send :[], 1
@@ -429,7 +429,7 @@ module Rubinius
       end
 
       def jump_error(g, name)
-        g.push_const :Rubinius
+        g.push_rubinius
         g.push_literal name
         g.send :jump_error, 1
       end

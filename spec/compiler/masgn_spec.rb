@@ -326,7 +326,7 @@ describe "A Masgn node" do
       g.send :b, 0, true
 
       g.make_array 1
-      g.push_const :Rubinius
+      g.push_rubinius
       g.find_const :Globals
       g.swap
       g.push_literal :$a
@@ -342,7 +342,7 @@ describe "A Masgn node" do
       g.push :self
       g.send :b, 0, true
       g.cast_array
-      g.push_const :Rubinius
+      g.push_rubinius
       g.find_const :Globals
       g.swap
       g.push_literal :$a
@@ -404,7 +404,7 @@ describe "A Masgn node" do
       g.rotate 2
       g.set_ivar :@a
       g.pop
-      g.push_const :Rubinius
+      g.push_rubinius
       g.find_const :Globals
       g.swap
       g.push_literal :$b

@@ -2508,3 +2508,20 @@ instruction invoke_primitive(literal args) [ +args -- value ]
   HANDLE_EXCEPTION(ret);
   stack_push(ret);
 end
+
+# [Operation]
+#   Pushes the Rubinius module onto the stack.
+# [Format]
+#   \push_rubinius
+# [Stack Before]
+#   * ...
+# [Stack After]
+#   * rubinius module
+#   * ...
+# [Description]
+#   Pushes the top-level global Rubinius constant onto the stack.
+#   Generally this is done to call a utility method.
+
+instruction push_rubinius() [ -- constant ]
+  stack_push(G(rubinius));
+end

@@ -741,6 +741,8 @@ extern "C" {
     switch(which) {
     case 0:
       return G(object);
+    case 1:
+      return G(rubinius);
     default:
       return Qnil;
     }
@@ -1087,7 +1089,6 @@ extern "C" {
       return Qnil;
     }
   }
-
 }
 
 #endif

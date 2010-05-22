@@ -75,7 +75,7 @@ describe "A Defs node" do
     ruby
 
     compile do |g|
-      g.push_const :Rubinius
+      g.push_rubinius
 
       g.push_literal :empty
 
