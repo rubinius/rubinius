@@ -9,6 +9,9 @@
 #include "vm/object_utils.hpp"
 #include "primitives.hpp"
 
+#include <gdtoa.h>
+
+#include <cstring>
 #include <cmath>
 #include <iostream>
 #include <sstream>
@@ -261,6 +264,16 @@ namespace rubinius {
     }
 
     return String::create(state, str, size);
+  }
+
+  String* Float::to_s_minimal(STATE) {
+    char str[FLOAT_TO_S_STRLEN];
+
+    if(g_dfmt(str, &val, 0, FLOAT_TO_S_STRLEN) == 0) {
+      return reinterpret_cast<String*>(kPrimitiveFailed);
+    }
+
+    return String::create(state, str);
   }
 
   String* Float::to_packed(STATE, Object* want_double) {

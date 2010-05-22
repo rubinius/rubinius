@@ -144,18 +144,14 @@ class Float < Numeric
   alias_method :truncate, :to_i
 
   def to_s
-    return (self < 0 ? "-Infinity" : "Infinity") if infinite?
-    return "NaN" if nan?
-
-    str = to_s_formatted "%#.15g"
-    e = str.index('e') || str.size
-    unless str[e-1].isdigit
-      str = to_s_formatted "%#.14e"
-      e = str.index('e') || str.size
-    end
-    str.gsub(/(\.\d+?)(0+)($|e[+-]\d*)/, '\1\3')
+    to_s_minimal
   end
   alias_method :inspect, :to_s
+
+  def to_s_minimal
+    Ruby.primitive :float_to_s_minimal
+    raise PrimitiveFailure, "minimally formatted string exceeds character buffer size"
+  end
 
   def to_s_formatted(fmt)
     Ruby.primitive :float_to_s_formatted
