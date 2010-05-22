@@ -132,6 +132,11 @@ field_extract_headers = %w[
   vm/builtin/thunk.hpp
 ]
 
+# TODO: all external libraries should have proper dependencies.
+libgdtoa_files = FileList["vm/external_libs/libgdtoa/*.[ch]"]
+
+file "vm/external_libs/libgdtoa/libgdtoa.a" => libgdtoa_files
+
 EXTERNALS   = %W[ vm/external_libs/libtommath/libtommath.a
                   vm/external_libs/libgdtoa/libgdtoa.a
                   vm/external_libs/onig/.libs/libonig.a
