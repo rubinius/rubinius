@@ -37,7 +37,7 @@ class Console
         set_config(args)
       when "get"
         get_config(args)
-      when "quit"
+      when "q", "quit", "exit"
         quit
         return
       when "bt", "backtrace"
@@ -70,8 +70,12 @@ class Console
   end
 
   def quit
-    @encoder.write_any :close
-    response = @decoder.read_any
+    begin
+      @encoder.write_any :close
+      response = @decoder.read_any
+    rescue Errno::EPIPE, IOError
+      return
+    end
 
     unless response == :bye
       puts "Unexpected response: #{response.inspect}"
