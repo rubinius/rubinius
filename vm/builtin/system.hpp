@@ -60,7 +60,7 @@ namespace rubinius {
     static Object*  vm_exec(STATE, String* path, Array* args);
 
     // Ruby.primitive :vm_wait_pid
-    static Object*  vm_wait_pid(STATE, Fixnum* pid, Object* no_hang);
+    static Object*  vm_wait_pid(STATE, Fixnum* pid, Object* no_hang, CallFrame* calling_environment);
 
     // Ruby.primitive :vm_exit
     static Object*  vm_exit(STATE, Fixnum* code);

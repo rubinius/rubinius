@@ -53,12 +53,12 @@ namespace rubinius {
 #ifdef RBX_PROFILER
       if(unlikely(state->shared.profiling())) {
         profiler::MethodEntry method(state, msg, args);
-        return nfunc->call(state, args);
+        return nfunc->call(state, args, call_frame);
       } else {
-        return nfunc->call(state, args);
+        return nfunc->call(state, args, call_frame);
       }
 #else
-      return nfunc->call(state, args);
+      return nfunc->call(state, args, call_frame);
 #endif
 
     } catch(TypeError &e) {
@@ -301,7 +301,7 @@ namespace rubinius {
     return func;
   }
 
-  Object* NativeFunction::call(STATE, Arguments& args) {
+  Object* NativeFunction::call(STATE, Arguments& args, CallFrame* call_frame) {
     Object* ret;
     Object* obj;
 
@@ -478,6 +478,8 @@ namespace rubinius {
       }
       }
     }
+
+    state->set_call_frame(call_frame);
 
     GlobalLock& lock = state->global_lock();
     lock.unlock();

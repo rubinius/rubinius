@@ -149,7 +149,8 @@ namespace rubinius {
     return NULL;
   }
 
-  Object* System::vm_wait_pid(STATE, Fixnum* pid_obj, Object* no_hang) {
+  Object* System::vm_wait_pid(STATE, Fixnum* pid_obj, Object* no_hang,
+                              CallFrame* calling_environment) {
     pid_t input_pid = pid_obj->to_native();
     int options = 0;
     int status;
@@ -162,7 +163,7 @@ namespace rubinius {
   retry:
 
     {
-      GlobalLock::UnlockGuard lock(state->global_lock());
+      GlobalLock::UnlockGuard lock(state, calling_environment);
       pid = waitpid(input_pid, &status, options);
     }
 

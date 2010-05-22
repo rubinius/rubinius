@@ -44,7 +44,7 @@ namespace rubinius {
     static NativeFunction* bind(STATE, Object* library, String* name, Array* args, Object* ret);
 
     void bind(STATE, int arg_count, int *arg_types, int ret_type, void* func);
-    Object* call(STATE, Arguments& args);
+    Object* call(STATE, Arguments& args, CallFrame* call_frame);
 
     class Info : public Executable::Info {
     public:

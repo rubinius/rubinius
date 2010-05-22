@@ -12,14 +12,14 @@ extern "C" {
   int rb_thread_select(int max, fd_set* read, fd_set* write, fd_set* except,
                        struct timeval *timeval) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    GlobalLock::UnlockGuard guard(env->state()->global_lock());
+    GlobalLock::UnlockGuard guard(env);
 
     return select(max, read, write, except, timeval);
   }
 
   VALUE rb_thread_current(void) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    GlobalLock::UnlockGuard guard(env->state()->global_lock());
+    GlobalLock::UnlockGuard guard(env);
     Thread* thread = env->state()->thread.get();
     
     return env->get_handle(thread);
@@ -39,12 +39,12 @@ extern "C" {
   // as soon as possible to the castle of the managed.
   VALUE rb_thread_blocking_region(rb_blocking_function_t func, void* data,
                                   rb_unblock_function_t ubf, void* ubf_data) {
-    VALUE ret = Qnil;
-
-    // ubf is ignored entirely.
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    VALUE ret = Qnil;
+    // ubf is ignored entirely.
     {
-      GlobalLock::UnlockGuard guard(env->state()->global_lock());
+      GlobalLock::UnlockGuard guard(env);
       ret = (*func)(data);
     }
 

@@ -109,14 +109,11 @@ extern "C" {
     int ready = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    GlobalLock& lock = env->state()->global_lock();
-    lock.unlock();
+    GlobalLock::UnlockGuard guard(env);
 
     while(!ready) {
       ready = select(fd+1, &fds, 0, 0, 0);
     }
-
-    lock.lock();
   }
 
   void rb_io_wait_writable(int fd) {
@@ -128,14 +125,11 @@ extern "C" {
     int ready = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    GlobalLock& lock = env->state()->global_lock();
-    lock.unlock();
+    GlobalLock::UnlockGuard guard(env);
 
     while(!ready) {
       ready = select(fd+1, 0, &fds, 0, 0);
     }
-
-    lock.lock();
   }
 
   void rb_thread_wait_fd(int fd) {
@@ -147,14 +141,11 @@ extern "C" {
     int ready = 0;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    GlobalLock& lock = env->state()->global_lock();
-    lock.unlock();
+    GlobalLock::UnlockGuard guard(env);
 
     while(!ready) {
       ready = select(fd+1, &fds, &fds, 0, 0);
     }
-
-    lock.lock();
   }
 
   void rb_io_set_nonblock(rb_io_t* iot) {

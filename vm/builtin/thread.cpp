@@ -73,8 +73,8 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* Thread::pass(STATE) {
-    GlobalLock::UnlockGuard x(state->global_lock());
+  Object* Thread::pass(STATE, CallFrame* calling_environment) {
+    GlobalLock::UnlockGuard x(state, calling_environment);
 
     return Qnil;
   }

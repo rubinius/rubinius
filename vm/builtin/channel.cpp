@@ -115,6 +115,8 @@ namespace rubinius {
     }
 
     for(;;) {
+      state->set_call_frame(call_frame);
+
       if(use_timed_wait) {
         if(condition_.wait_until(state->global_lock(), &ts) == thread::cTimedOut) break;
       } else {

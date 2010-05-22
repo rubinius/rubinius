@@ -665,7 +665,7 @@ extern "C" {
     if(state->interrupts.timer) {
       state->interrupts.timer = false;
       state->set_call_frame(call_frame);
-      state->global_lock().yield();
+      state->global_lock().yield(state, call_frame);
     }
 
     return Qtrue;
@@ -683,7 +683,7 @@ extern "C" {
       if(state->interrupts.timer) {
         state->interrupts.timer = false;
         state->set_call_frame(call_frame);
-        state->global_lock().yield();
+        state->global_lock().yield(state, call_frame);
       }
     }
     if(!state->check_async(call_frame)) return NULL;

@@ -4,12 +4,16 @@
 #include "util/thread.hpp"
 
 namespace rubinius {
+  class VM;
+  class CallFrame;
+  class NativeMethodEnvironment;
+
   class GlobalLock : public thread::Mutex {
   public:
 
     static bool debug_locking;
 
-    void yield();
+    void yield(VM* vm, CallFrame* call_frame);
 
     class LockGuard : public thread::LockGuardTemplate<GlobalLock> {
     public:
@@ -29,12 +33,8 @@ namespace rubinius {
 
     class UnlockGuard : public thread::LockGuardTemplate<GlobalLock> {
     public:
-      UnlockGuard(GlobalLock& in_lock)
-        : thread::LockGuardTemplate<GlobalLock>(in_lock, true)
-      {
-        this->unlock();
-        if(debug_locking) std::cout << "[ Unlocked GIL ] " << pthread_self() << "\n";
-      }
+      UnlockGuard(VM* state, CallFrame* call_frame);
+      UnlockGuard(NativeMethodEnvironment* nme);
 
       ~UnlockGuard() {
         if(debug_locking) std::cout << "[  Locking GIL ] " << pthread_self() << "\n";

@@ -120,7 +120,7 @@ namespace rubinius {
      *  is over.
      */
     // Ruby.primitive :thread_pass
-    static Object* pass(STATE);
+    static Object* pass(STATE, CallFrame* calling_environment);
 
 
   public:   /* Instance primitives */
