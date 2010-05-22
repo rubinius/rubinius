@@ -50,6 +50,12 @@ static VALUE language_spec_rb_define_class_under(VALUE self,
   return rb_define_class_under(outer, class_name, super);
 }
 
+static VALUE language_spec_rb_define_module_under(VALUE self,
+    VALUE outer, VALUE name) {
+  const char* module_name = StringValuePtr(name);
+  return rb_define_module_under(outer, module_name);
+}
+
 // @todo: fix all these specs to follow the style guide
 void Init_language_spec() {
   VALUE cls;
@@ -65,4 +71,6 @@ void Init_language_spec() {
   cls = rb_define_class("CApiLanguageSpecs", rb_cObject);
   rb_define_method(cls, "rb_define_class_under",
       language_spec_rb_define_class_under, 3);
+  rb_define_method(cls, "rb_define_module_under",
+      language_spec_rb_define_module_under, 2);
 }

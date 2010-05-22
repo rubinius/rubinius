@@ -67,11 +67,28 @@ class CApiLanguageSpecs
 
   module Container
   end
+
+  class Inner < CApiLanguageSpecs
+  end
 end
 
 describe "CApiLanguageSpecs" do
   before :each do
     @s = CApiLanguageSpecs.new
+  end
+
+  describe "rb_define_module_under" do
+    it "creates a new module inside the inner class" do
+      mod = @s.rb_define_module_under(CApiLanguageSpecs::Inner,
+                                     "Container")
+      mod.should be_kind_of(Module)
+      CApiLanguageSpecs::Container.should_not == CApiLanguageSpecs::Inner::Container
+    end
+
+    it "sets the module name" do
+      mod = @s.rb_define_module_under(CApiLanguageSpecs::Inner, "Named")
+      mod.name.should == "CApiLanguageSpecs::Inner::Named"
+    end
   end
 
   describe "rb_define_class_under" do
