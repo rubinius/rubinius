@@ -120,13 +120,18 @@ extern "C" {
 
   double rb_num2dbl(VALUE val) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    if(try_as<Float>(env->get_object(val))) {
-      return capi_get_float(env, val)->val;
+
+    Object* object = env->get_object(val);
+
+    if(object->nil_p()) {
+      rb_raise(rb_eTypeError, "no implicit conversion from nil to Float");
+    } else if(try_as<String>(object)) {
+      rb_raise(rb_eTypeError, "no implicit conversion from String to Float");
+    } else if(!try_as<Float>(object)) {
+      val = rb_Float(val);
     }
 
-    // @todo should coerce other types
-
-    return 0.0;
+    return capi_get_float(env, val)->val;
   }
 
   // Imported from MRI
