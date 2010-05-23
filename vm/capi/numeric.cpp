@@ -12,6 +12,23 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 extern "C" {
+  char rb_num2chr(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object* object = env->get_object(obj);
+
+    String* str;
+    char chr;
+
+    if((str = try_as<String>(object)) && str->size() >= 1) {
+      chr = str->c_str()[0];
+    } else {
+      chr = (char)(NUM2INT(obj) & 0xff);
+    }
+
+    return chr;
+  }
+
   long rb_num2long(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
@@ -25,9 +42,21 @@ extern "C" {
       return big->to_long();
     } else if(try_as<Float>(object)) {
       return (long)capi_get_float(env, obj)->val;
+    } else if(object->true_p()) {
+      rb_raise(rb_eTypeError, "can't convert true to Integer");
+    } else if(object->false_p()) {
+      rb_raise(rb_eTypeError, "can't convert false to Integer");
     }
 
-    obj = rb_funcall(obj, rb_intern("to_int"), 0);
+    ID to_int_id = rb_intern("to_int");
+
+    if(!rb_respond_to(obj, to_int_id)) {
+	    rb_raise(rb_eTypeError, "can't convert %s into Integer",
+		     rb_obj_classname(obj));
+    }
+
+    obj = rb_funcall(obj, to_int_id, 0);
+
     return rb_num2long(obj);
   }
 

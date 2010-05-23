@@ -309,6 +309,15 @@ extern "C" {
     return obj;
   }
 
+  void rb_check_safe_obj(VALUE obj) {
+  }
+
+  void rb_check_safe_str(VALUE obj) {
+  }
+
+  void rb_secure_update(VALUE obj) {
+  }
+
   VALUE rb_any_to_s(VALUE obj) {
     return rb_obj_as_string(obj);
   }

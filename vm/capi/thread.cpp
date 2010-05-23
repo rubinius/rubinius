@@ -30,6 +30,14 @@ extern "C" {
     return 0;
   }
 
+  VALUE rb_thread_local_aref(VALUE thread, ID id) {
+    return rb_funcall(thread, rb_intern("[]"), 1, ID2SYM(id));
+  }
+
+  VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE value) {
+    return rb_funcall(thread, rb_intern("[]="), 2, ID2SYM(id), value);
+  }
+
   // THAR BE DRAGONS.
   //
   // When venturing through the valleys of the unmanaged, our hero must

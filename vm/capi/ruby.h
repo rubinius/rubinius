@@ -360,7 +360,7 @@ struct RFloat {
 struct RIO {
   VALUE handle;
   int fd;
-  FILE* stdio_file;
+  FILE* f;
 };
 
 #define RIO(d)          capi_rio_struct(d)
@@ -374,8 +374,8 @@ typedef struct RIO rb_io_t;
 // MRI checks also that it's not closed...
 #define GetOpenFile(val, ptr) (ptr) = (capi_rio_struct(val))
 
-#define GetReadFile(ptr)  (ptr->stdio_file)
-#define GetWriteFile(ptr) (ptr->stdio_file)
+#define GetReadFile(ptr)  (ptr->f)
+#define GetWriteFile(ptr) (ptr->f)
 
 /*
  * The immediates.
@@ -546,8 +546,14 @@ typedef struct RIO rb_io_t;
 /** Convert int to a Ruby Integer. */
 #define INT2FIX(i)        ((VALUE)(((long)(i))<<1 | FIXNUM_FLAG))
 
+/** Convert a char to a Ruby Integer. */
+#define CHR2FIX(x)        INT2FIX((long)((x)&0xff))
+
 /** Convert long to a Ruby Integer. @todo Should we warn if overflowing? --rue */
 #define LONG2FIX(i)       INT2FIX(i)
+
+char rb_num2chr(VALUE);
+#define NUM2CHR(x)        rb_num2chr((VALUE)x)
 
 long long rb_num2ll(VALUE);
 unsigned long long rb_num2ull(VALUE);
@@ -876,6 +882,15 @@ VALUE rb_uint2big(unsigned long number);
    */
   VALUE   rb_check_convert_type(VALUE object_handle, int type,
       const char* type_name, const char* method_name);
+
+  /** No-op. */
+  void    rb_check_safe_obj(VALUE obj);
+
+  /** No-op. */
+  void    rb_check_safe_str(VALUE obj);
+
+  /** No-op. */
+  void    rb_secure_update(VALUE obj);
 
   /** Returns String representation of the class' name. */
   VALUE   rb_class_name(VALUE class_handle);
@@ -1520,6 +1535,12 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Get current thread */
   VALUE   rb_thread_current(void);
+
+  /** Returns a thread-local value. */
+  VALUE rb_thread_local_aref(VALUE thread, ID id);
+
+  /** Sets a thread-local value. */
+  VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE value);
 
   /** Release the GIL and let func run in a parallel.
    *
