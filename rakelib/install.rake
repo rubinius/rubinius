@@ -89,8 +89,8 @@ namespace :install do
     else
       install_dirs.each { |name| mkdir_p install_dir(name), :verbose => $verbose }
 
-      FileList["vm/capi/*.h"].each do |name|
-        install_file name, %r[^vm/capi], BUILD_CONFIG[:includedir]
+      FileList["vm/capi/include/*.h"].each do |name|
+        install_file name, %r[^vm/capi/include], BUILD_CONFIG[:includedir]
       end
 
       FileList[

@@ -6,7 +6,7 @@
 #include "builtin/string.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/ruby.h"
+#include "capi/include/ruby.h"
 
 #include <cstring>
 

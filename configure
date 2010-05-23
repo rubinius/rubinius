@@ -22,7 +22,7 @@ class Configure
 
     # File system paths
     @bindir       = root + "/bin"
-    @includedir   = root + "/vm/capi"
+    @includedir   = root + "/vm/capi/include"
     @libdir       = root
     @runtime      = @libdir + "/runtime"
     @lib_path     = @libdir + "/lib"
@@ -40,7 +40,7 @@ class Configure
     @libversion = "1.0"
     @version = "#{@libversion}.0"
     @release_date = "2010-05-14"
-    @config_version = 7
+    @config_version = 8
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp

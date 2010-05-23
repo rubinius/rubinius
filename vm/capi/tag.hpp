@@ -3,14 +3,14 @@
 
     /* VALUE and ID are defined here rather than including ruby.h to allow
      * for sharing C-API function prototypes between the VM proper and the
-     * C-API code. @see vm/capi/ruby.h for explanations of VALUE and ID.
+     * C-API code. @see vm/capi/include/ruby.h for explanations of VALUE and ID.
      */
 #define VALUE intptr_t
 #define ID    intptr_t
 
     /**
      * These values must be the same as the values given to Qfalse, etc in
-     * vm/capi/ruby.h
+     * vm/capi/include/ruby.h
      */
 #define cCApiHandleQfalse         ((VALUE)(0x00))
 #define cCApiHandleQtrue          ((VALUE)(0x22))

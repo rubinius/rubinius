@@ -5,7 +5,7 @@
 #include "helpers.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/ruby.h"
+#include "capi/include/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;

@@ -622,9 +622,6 @@ namespace :vm do
     end
   end
 
-  # TODO: for ryan: fix up dependencies between rubypp and the source files now that they're persistent
-  # TODO: for ryan: dependencies on vm/test/test_instructions.hpp causes rebuild of vm/*.cpp files. lame
-
   desc "Clean up vm build files"
   task :clean do
     files = FileList[
@@ -686,7 +683,7 @@ object_sources = srcs + vm_srcs + generated
 file dep_file => hdrs + object_sources do |t|
   warn "Updating dependencies..."
 
-  directories = ".", "vm", "vm/capi"
+  directories = ".", "vm", "vm/capi/include"
   defines = FLAGS.join ' '
   defines.slice!(/-Wno-deprecated/)
 

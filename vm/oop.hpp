@@ -70,7 +70,7 @@ namespace rubinius {
  * to be a simple test for that bit pattern.
  */
 
-/* NOTE if these change, be sure to update vm/capi/ruby.h, it contains
+/* NOTE if these change, be sure to update vm/capi/include/ruby.h, it contains
  * a private copy of these constants */
 
 /* NOTE ALSO! the special clases array uses this bit pattern, so

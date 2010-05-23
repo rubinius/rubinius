@@ -1,5 +1,5 @@
 #include "capi/capi.hpp"
-#include "capi/ruby.h"
+#include "capi/include/ruby.h"
 
 #include "builtin/float.hpp"
 

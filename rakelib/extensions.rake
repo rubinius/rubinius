@@ -43,7 +43,7 @@ def compile_ext(name, opts={})
           ruby "-S rake #{'-t' if $verbose} -r #{ext_helper} -r #{dep_grapher} #{ext_task_name}"
         else
           unless File.directory? BUILD_CONFIG[:runtime]
-            ENV["CFLAGS"]      = "-Ivm/capi"
+            ENV["CFLAGS"]      = "-Ivm/capi/include"
           end
 
           unless File.exists?("Makefile") and File.exists?("extconf.h")
@@ -67,9 +67,12 @@ compile_ext "digest:rmd160"
 compile_ext "digest:sha1"
 compile_ext "digest:sha2"
 compile_ext "digest:bubblebabble"
-compile_ext "dl"
 compile_ext "syck"
 compile_ext "melbourne", :task => "rbx", :doc => "for Rubinius"
 compile_ext "melbourne", :task => "mri", :doc => "for MRI"
 compile_ext "nkf"
+
+# rbx must be able to run to build these because they use
+# extconf.rb, so they must be after melbourne for Rubinius.
 compile_ext "openssl"
+compile_ext "dl"
