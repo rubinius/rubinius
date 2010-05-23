@@ -145,8 +145,8 @@ extern "C" {
     VALUE klass = rb_const_get(rb_cObject, rb_intern(type_name));
 
     if(!RTEST(rb_obj_is_kind_of(return_handle, klass))) {
-      rb_raise(rb_eTypeError, "%s#to_str should return %s",
-               rb_obj_classname(return_handle), type_name);
+      rb_raise(rb_eTypeError, "%s#%s should return %s",
+               rb_obj_classname(object_handle), method_name, type_name);
     }
 
     return return_handle;
