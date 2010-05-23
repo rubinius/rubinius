@@ -252,6 +252,12 @@ namespace rubinius {
   typedef VALUE (*FourArgFunctor)  (VALUE, VALUE, VALUE, VALUE);
   typedef VALUE (*FiveArgFunctor)  (VALUE, VALUE, VALUE, VALUE, VALUE);
   typedef VALUE (*SixArgFunctor)   (VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
+  typedef VALUE (*SevenArgFunctor) (VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
+  typedef VALUE (*EightArgFunctor) (VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
+  typedef VALUE (*NineArgFunctor)  (VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE,
+                                    VALUE);
+  typedef VALUE (*TenArgFunctor)   (VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE,
+                                    VALUE, VALUE);
 
 
   /**

@@ -351,6 +351,68 @@ namespace rubinius {
       return env->get_object(ret);
     }
 
+    case 6: {
+      SevenArgFunctor functor = functor_as<SevenArgFunctor>();
+      VALUE a1 = env->get_handle(args.get_argument(0));
+      VALUE a2 = env->get_handle(args.get_argument(1));
+      VALUE a3 = env->get_handle(args.get_argument(2));
+      VALUE a4 = env->get_handle(args.get_argument(3));
+      VALUE a5 = env->get_handle(args.get_argument(4));
+      VALUE a6 = env->get_handle(args.get_argument(5));
+
+      VALUE ret = functor(receiver, a1, a2, a3, a4, a5, a6);
+
+      return env->get_object(ret);
+    }
+
+    case 7: {
+      EightArgFunctor functor = functor_as<EightArgFunctor>();
+      VALUE a1 = env->get_handle(args.get_argument(0));
+      VALUE a2 = env->get_handle(args.get_argument(1));
+      VALUE a3 = env->get_handle(args.get_argument(2));
+      VALUE a4 = env->get_handle(args.get_argument(3));
+      VALUE a5 = env->get_handle(args.get_argument(4));
+      VALUE a6 = env->get_handle(args.get_argument(5));
+      VALUE a7 = env->get_handle(args.get_argument(6));
+
+      VALUE ret = functor(receiver, a1, a2, a3, a4, a5, a6, a7);
+
+      return env->get_object(ret);
+    }
+
+    case 8: {
+      NineArgFunctor functor = functor_as<NineArgFunctor>();
+      VALUE a1 = env->get_handle(args.get_argument(0));
+      VALUE a2 = env->get_handle(args.get_argument(1));
+      VALUE a3 = env->get_handle(args.get_argument(2));
+      VALUE a4 = env->get_handle(args.get_argument(3));
+      VALUE a5 = env->get_handle(args.get_argument(4));
+      VALUE a6 = env->get_handle(args.get_argument(5));
+      VALUE a7 = env->get_handle(args.get_argument(6));
+      VALUE a8 = env->get_handle(args.get_argument(7));
+
+      VALUE ret = functor(receiver, a1, a2, a3, a4, a5, a6, a7, a8);
+
+      return env->get_object(ret);
+    }
+
+    case 9: {
+      TenArgFunctor functor = functor_as<TenArgFunctor>();
+      VALUE a1 = env->get_handle(args.get_argument(0));
+      VALUE a2 = env->get_handle(args.get_argument(1));
+      VALUE a3 = env->get_handle(args.get_argument(2));
+      VALUE a4 = env->get_handle(args.get_argument(3));
+      VALUE a5 = env->get_handle(args.get_argument(4));
+      VALUE a6 = env->get_handle(args.get_argument(5));
+      VALUE a7 = env->get_handle(args.get_argument(6));
+      VALUE a8 = env->get_handle(args.get_argument(7));
+      VALUE a9 = env->get_handle(args.get_argument(8));
+
+      VALUE ret = functor(receiver, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+      return env->get_object(ret);
+    }
+
       /* Extension entry point, should never occur for user code. */
     case INIT_FUNCTION: {
       InitFunctor functor = functor_as<InitFunctor>();
