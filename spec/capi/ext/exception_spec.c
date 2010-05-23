@@ -21,6 +21,13 @@ VALUE exception_spec_rb_exc_raise(VALUE self, VALUE exc) {
   return Qnil;
 }
 
+#if defined(RUBINIUS) || (RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR >= 9)
+VALUE exception_spec_rb_set_errinfo(VALUE self, VALUE exc) {
+  rb_set_errinfo(exc);
+  return Qnil;
+}
+#endif
+
 void Init_exception_spec() {
   VALUE cls;
   cls = rb_define_class("CApiExceptionSpecs", rb_cObject);
@@ -28,4 +35,7 @@ void Init_exception_spec() {
   rb_define_method(cls, "rb_exc_new2", exception_spec_rb_exc_new2, 1);
   rb_define_method(cls, "rb_exc_new3", exception_spec_rb_exc_new3, 1);
   rb_define_method(cls, "rb_exc_raise", exception_spec_rb_exc_raise, 1);
+#if defined(RUBINIUS) || (RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR >= 9)
+  rb_define_method(cls, "rb_set_errinfo", exception_spec_rb_set_errinfo, 1);
+#endif
 }
