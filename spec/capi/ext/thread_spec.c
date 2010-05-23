@@ -41,6 +41,14 @@ static VALUE thread_spec_rb_thread_blocking_region() {
   return Qfalse;
 }
 
+static VALUE thread_spec_rb_thread_local_aref(VALUE self, VALUE thr, VALUE sym) {
+  return rb_thread_local_aref(thr, SYM2ID(sym));
+}
+
+static VALUE thread_spec_rb_thread_local_aset(VALUE self, VALUE thr, VALUE sym, VALUE value) {
+  return rb_thread_local_aset(thr, SYM2ID(sym), value);
+}
+
 void Init_thread_spec() {
   VALUE cls;
   cls = rb_define_class("CApiThreadSpecs", rb_cObject);
@@ -49,4 +57,6 @@ void Init_thread_spec() {
   rb_define_method(cls, "rb_thread_alone", thread_spec_rb_thread_alone, 0);
   rb_define_method(cls, "rb_thread_current", thread_spec_rb_thread_current, 0);
   rb_define_method(cls, "rb_thread_blocking_region", thread_spec_rb_thread_blocking_region, 0);
+  rb_define_method(cls, "rb_thread_local_aref", thread_spec_rb_thread_local_aref, 2);
+  rb_define_method(cls, "rb_thread_local_aset", thread_spec_rb_thread_local_aset, 3);
 }

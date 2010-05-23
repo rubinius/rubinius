@@ -106,4 +106,22 @@ describe "CApiNumericSpecs" do
       @s.rb_num2dbl(obj).should == 2.0
     end
   end
+
+  describe "NUM2CHR" do
+    it "returns the first character of a String" do
+      @s.NUM2CHR("Abc").should == 65
+    end
+
+    it "returns the least significant byte of an Integer" do
+      @s.NUM2CHR(0xa7c).should == 0x07c
+    end
+
+    it "returns the least significant byte of a Float converted to an Integer" do
+      @s.NUM2CHR(0xa7c.to_f).should == 0x07c
+    end
+
+    it "raises a TypeError when passed an empty String" do
+      lambda { @s.NUM2CHR("") }.should raise_error(TypeError)
+    end
+  end
 end

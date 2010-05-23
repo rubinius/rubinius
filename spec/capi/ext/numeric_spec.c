@@ -24,6 +24,10 @@ static VALUE numeric_spec_rb_num2dbl(VALUE self, VALUE num) {
   return rb_float_new(rb_num2dbl(num));
 }
 
+static VALUE numeric_spec_NUM2CHR(VALUE self, VALUE value) {
+  return INT2FIX(NUM2CHR(value));
+}
+
 void Init_numeric_spec() {
   VALUE cls;
   cls = rb_define_class("CApiNumericSpecs", rb_cObject);
@@ -33,4 +37,5 @@ void Init_numeric_spec() {
   rb_define_method(cls, "rb_ll2inum_14", numeric_spec_rb_ll2inum_14, 0);
   rb_define_method(cls, "rb_int2inum_14", numeric_spec_rb_int2inum_14, 0);
   rb_define_method(cls, "rb_num2dbl", numeric_spec_rb_num2dbl, 1);
+  rb_define_method(cls, "NUM2CHR", numeric_spec_NUM2CHR, 1);
 }

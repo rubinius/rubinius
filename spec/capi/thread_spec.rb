@@ -45,6 +45,28 @@ describe "CApiThreadSpecs" do
     end
   end
 
+  describe "rb_thread_local_aref" do
+    it "returns the value of a thread-local variable" do
+      thr = Thread.current
+      sym = :thread_capi_specs_aref
+      thr[sym] = 1
+      @t.rb_thread_local_aref(thr, sym).should == 1
+    end
+
+    it "returns nil if the value has not been set" do
+      @t.rb_thread_local_aref(Thread.current, :thread_capi_specs_undefined).should be_nil
+    end
+  end
+
+  describe "rb_thread_local_aset" do
+    it "sets the value of a thread-local variable" do
+      thr = Thread.current
+      sym = :thread_capi_specs_aset
+      @t.rb_thread_local_aset(thr, sym, 2).should == 2
+      thr[sym].should == 2
+    end
+  end
+
   describe "rb_thread_blocking_region" do
     it "runs a C function with the global lock unlocked" do
       @t.rb_thread_blocking_region.should be_true
