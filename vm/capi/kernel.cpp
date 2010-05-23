@@ -121,10 +121,10 @@ extern "C" {
     PLACE_EXCEPTION_POINT(ep);
 
     if(unlikely(ep.jumped_to())) {
-      *status = 1;
+      if(status) *status = 1;
     } else {
       ret = (*func)(data);
-      *status = 0;
+      if(status) *status = 0;
     }
 
     ep.pop(env);
