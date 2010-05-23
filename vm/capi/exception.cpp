@@ -32,7 +32,16 @@ extern "C" {
 
   void rb_set_errinfo(VALUE err) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Exception *exc = capi::c_as<Exception>(env->get_object(err));
+
+    Exception* exc = 0;
+    Object* object = env->get_object(err);
+
+    if(object->nil_p()) {
+      exc = nil<Exception>();
+    } else {
+      exc = capi::c_as<Exception>(object);
+    }
+
     env->state()->thread_state()->set_current_exception(exc);
   }
 }
