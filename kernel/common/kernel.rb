@@ -397,8 +397,8 @@ module Kernel
 
   def extend(*modules)
     modules.reverse_each do |mod|
-      mod.extend_object(self)
-      mod.send(:extended, self)
+      mod.__send__(:extend_object, self)
+      mod.__send__(:extended, self)
     end
     self
   end
