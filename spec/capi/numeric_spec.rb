@@ -78,4 +78,32 @@ describe "CApiNumericSpecs" do
       i.should eql(14)
     end
   end
+
+  describe "rb_num2dbl" do
+    it "raises an TypeError if passed nil" do
+      lambda { @s.rb_num2dbl(nil) }.should raise_error(TypeError)
+    end
+
+    it "raises an TypeError if passed a String" do
+      lambda { @s.rb_num2dbl("1.2") }.should raise_error(TypeError)
+    end
+
+    it "converts a Float" do
+      @s.rb_num2dbl(4.2).should == 4.2
+    end
+
+    it "converts a Bignum" do
+      @s.rb_num2dbl(2**70).should == (2**70).to_f
+    end
+
+    it "converts a Fixnum" do
+      @s.rb_num2dbl(5).should == 5.0
+    end
+
+    it "calls #to_f to coerce the value" do
+      obj = mock("number")
+      obj.should_receive(:to_f).and_return(2.0)
+      @s.rb_num2dbl(obj).should == 2.0
+    end
+  end
 end
