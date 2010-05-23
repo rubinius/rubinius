@@ -42,6 +42,9 @@ stats
 tmp
 tmtags
 /tags
+/lib/site
+/share
+/work
 
 # ignore gems and commands installed by gems
 /gems/*
