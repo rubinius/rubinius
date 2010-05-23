@@ -364,6 +364,22 @@ module ModuleSpecs
   module CyclicAppendB
     include CyclicAppendA
   end
+
+  module ExtendObject
+    C = :test
+    def test_method
+      "hello test"
+    end
+  end
+
+  module ExtendObjectPrivate
+    class << self
+      def extend_object(obj)
+        ScratchPad.record :extended
+      end
+      private :extend_object
+    end
+  end
 end
 
 ModuleSpecs::Nesting[:root_level] = Module.nesting

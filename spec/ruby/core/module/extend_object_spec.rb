@@ -2,32 +2,27 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Module#extend_object" do
-  it "extends the given object with constants and methods of self" do
-    m = Module.new do
-      const_set :C, "test"
-      def test() "hello" end
-    end
-    
-    o = mock('test')
-    m.send(:extend_object, o)
-    
-    o.test.should == "hello"
-    (class << o; C; end).should == "test"
+  before :each do
+    ScratchPad.clear
   end
-  
-  it "is called when an object gets extended with self" do
-    begin
-      m = Module.new do
-        def self.extend_object(o)
-          $extended_object = o
-        end
-      end
-      
-      (o = mock('x')).extend(m)
-      
-      $extended_object.should == o
-    ensure
-      $extended_object = nil
-    end
+
+  it "is called when #extend is called on an object" do
+    ModuleSpecs::ExtendObject.should_receive(:extend_object)
+    obj = mock("extended object")
+    obj.extend ModuleSpecs::ExtendObject
+  end
+
+  it "extends the given object with its constants and methods by default" do
+    obj = mock("extended direct")
+    ModuleSpecs::ExtendObject.send :extend_object, obj
+
+    obj.test_method.should == "hello test"
+    obj.metaclass.const_get(:C).should == :test
+  end
+
+  it "is called even when private" do
+    obj = mock("extended private")
+    obj.extend ModuleSpecs::ExtendObjectPrivate
+    ScratchPad.recorded.should == :extended
   end
 end
