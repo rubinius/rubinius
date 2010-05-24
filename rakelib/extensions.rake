@@ -78,4 +78,4 @@ compile_ext "nkf"
 # rbx must be able to run to build these because they use
 # extconf.rb, so they must be after melbourne for Rubinius.
 compile_ext "openssl"
-compile_ext "dl"
+# compile_ext "dl"
