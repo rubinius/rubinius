@@ -44,7 +44,12 @@
 namespace rubinius {
 
   bool GlobalLock::debug_locking = false;
-  int VM::cStackDepthMax = 655300;
+  unsigned long VM::cStackDepthMax = 655300;
+
+  // getrlimit can report there is 4G of stack (ie, unlimited).
+  // Even when there is unlimited stack, we clamp the max to
+  // this value (currently 128M)
+  static rlim_t cMaxStack = (1024 * 1024 * 128);
 
   VM::VM(SharedState& shared)
     : ManagedThread(shared)
@@ -247,11 +252,17 @@ namespace rubinius {
 
   void VM::init_stack_size() {
     struct rlimit rlim;
-    if (getrlimit(RLIMIT_STACK, &rlim) == 0) {
-      unsigned int space = rlim.rlim_cur/5;
+    if(getrlimit(RLIMIT_STACK, &rlim) == 0) {
+      rlim_t space = rlim.rlim_cur/5;
 
-      if (space > 1024*1024) space = 1024*1024;
-      cStackDepthMax = (rlim.rlim_cur - space);
+      if(space > 1024*1024) space = 1024*1024;
+      rlim_t adjusted = (rlim.rlim_cur - space);
+
+      if(adjusted > cMaxStack) {
+        cStackDepthMax = cMaxStack;
+      } else {
+        cStackDepthMax = adjusted;
+      }
     }
   }
 

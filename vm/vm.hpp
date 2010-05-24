@@ -73,7 +73,7 @@ namespace rubinius {
   private:
     CallFrame* saved_call_frame_;
     void* stack_start_;
-    intptr_t stack_limit_;
+    uintptr_t stack_limit_;
     int stack_size_;
     profiler::Profiler* profiler_;
     bool run_signals_;
@@ -100,7 +100,7 @@ namespace rubinius {
     // The current fiber running on this thread
     TypedRoot<Fiber*> current_fiber;
 
-    static int cStackDepthMax;
+    static unsigned long cStackDepthMax;
 
   public: /* Inline methods */
 
@@ -157,7 +157,7 @@ namespace rubinius {
     void set_stack_start(void* s) {
       stack_start_ = s;
       // @TODO assumes stack growth direction
-      stack_limit_ = (reinterpret_cast<intptr_t>(s) - stack_size_) + 4096;
+      stack_limit_ = (reinterpret_cast<uintptr_t>(s) - stack_size_) + 4096;
     }
 
     int stack_size() {
@@ -167,19 +167,19 @@ namespace rubinius {
     void set_stack_size(int s) {
       stack_size_ = s;
       // @TODO assumes stack growth direction
-      stack_limit_ = (reinterpret_cast<intptr_t>(stack_start_) - s) + 4096;
+      stack_limit_ = (reinterpret_cast<uintptr_t>(stack_start_) - s) + 4096;
     }
 
     void set_stack_bounds(void* start, int length) {
       stack_start_ = start;
       stack_size_ = length;
       // @TODO assumes stack growth direction
-      stack_limit_ = (reinterpret_cast<intptr_t>(start) - length) + (4096 * 3);
+      stack_limit_ = (reinterpret_cast<uintptr_t>(start) - length) + (4096 * 3);
     }
 
     bool check_stack(CallFrame* call_frame, void* end) {
       // @TODO assumes stack growth direction
-      if(unlikely(reinterpret_cast<intptr_t>(end) < stack_limit_)) {
+      if(unlikely(reinterpret_cast<uintptr_t>(end) < stack_limit_)) {
         raise_stack_error(call_frame);
         return false;
       }
