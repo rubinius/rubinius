@@ -171,12 +171,9 @@ class String
   def =~(pattern)
     case pattern
     when Regexp
-      if m = pattern.match_from(self, 0)
-        Regexp.last_match = m
-        return m.begin(0)
-      end
-      Regexp.last_match = nil
-      return nil
+      match_data = pattern.search_region(self, 0, @num_bytes, true)
+      Regexp.last_match = match_data
+      return match_data.full[0] if match_data
     when String
       raise TypeError, "type mismatch: String given"
     else
@@ -244,9 +241,13 @@ class String
 
     case index
     when Regexp
-      match, str = subpattern(index, 0)
-      Regexp.last_match = match
-      return str
+      match_data = index.search_region(self, 0, @num_bytes, true)
+      Regexp.last_match = match_data
+      if match_data
+        result = match_data.to_s
+        result.taint if index.tainted?
+        return result
+      end
     when String
       return include?(index) ? index.dup : nil
     when Range
@@ -1183,9 +1184,9 @@ class String
   #   'hello'.match(/(.)\1/)[0]   #=> "ll"
   #   'hello'.match('xx')         #=> nil
   def match(pattern)
-    obj = get_pattern(pattern).match_from(self, 0)
-    Regexp.last_match = obj
-    return obj
+    match_data = get_pattern(pattern).search_region(self, 0, @num_bytes, true)
+    Regexp.last_match = match_data
+    return match_data
   end
 
   # Treats leading characters of <i>self</i> as a string of octal digits (with an
@@ -1293,9 +1294,9 @@ class String
       return find_string_reverse(str, finish)
 
     when Regexp
-      ret = sub.search_region(self, 0, finish, false)
-      Regexp.last_match = ret
-      return ret.begin(0) if ret
+      match_data = sub.search_region(self, 0, finish, false)
+      Regexp.last_match = match_data
+      return match_data.begin(0) if match_data
 
     else
       needle = StringValue(sub)
@@ -1328,7 +1329,7 @@ class String
 
     if pattern.kind_of? Regexp
       if m = pattern.match(self)
-        return [m.pre_match, m[0], m.post_match]
+        return [m.pre_match, m.to_s, m.post_match]
       end
     else
       pattern = StringValue(pattern)

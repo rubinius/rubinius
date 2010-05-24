@@ -673,10 +673,6 @@ class MatchData
     return to_a[idx]
   end
 
-  def to_s
-    matched_area()
-  end
-
   def inspect
     capts = captures
     if capts.empty?
@@ -718,11 +714,12 @@ class MatchData
   end
 
   def matched_area
-    x = full[0]
-    y = full[1]
-    @source[x, y-x]
+    x = @full.at(0)
+    y = @full.at(1)
+    @source.substring(x, y-x)
   end
 
+  alias_method :to_s, :matched_area
   private :matched_area
 
   def get_capture(num)
