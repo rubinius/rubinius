@@ -35,6 +35,12 @@ describe "Literal (A::X) constant resolution" do
       CS_CONST10.should == :const10_1
     end
 
+    it "searches Object after searching other scopes" do
+      module ConstantSpecs::SpecAdded1
+        CS_CONST10.should == :const10_1
+      end
+    end
+
     it "searches Object if a toplevel qualifier (::X) is given" do
       ::CS_CONST1.should == :const1
       ::CS_CONST10.should == :const10_1
