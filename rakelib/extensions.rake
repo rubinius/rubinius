@@ -13,6 +13,9 @@ namespace :extensions do
   desc "Clean all lib/ext files"
   task :clean do
     rm_f FileList["lib/ext/**/*.{o,#{$dlext}}"], :verbose => $verbose
+    # TODO: implement per extension cleaning. This hack is for
+    # openssl and dl, which use extconf.rb and create Makefile.
+    rm_f FileList["lib/ext/**/Makefile"], :verbose => $verbose
   end
 end
 
