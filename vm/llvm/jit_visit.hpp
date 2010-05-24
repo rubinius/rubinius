@@ -367,6 +367,26 @@ namespace rubinius {
       flush_stack();
     }
 
+    /* push a global constant onto the stack */
+    /* 0:cpath_top, 1:rubinius */
+    void push_system_object(int which) {
+      // we're calling something that returns an Object
+      Signature sig(ls_, ObjType);
+      // given a system state and a 32bit int
+      sig << VMTy;
+      sig << ls_->Int32Ty;
+
+      // the actual values of which are the calling arguments
+      Value* call_args[] = {
+        vm_,
+        ConstantInt::get(ls_->Int32Ty, which)
+      };
+
+      // call the function we just described using the builder
+      Value* val = sig.call("rbx_push_system_object", call_args, 2, "so", b());
+      stack_push(val);
+    }
+
     // visitors.
 
     void visit(opcode op, opcode arg1, opcode arg2) {
@@ -2934,33 +2954,11 @@ use_send:
     }
 
     void visit_push_cpath_top() {
-      Signature sig(ls_, ObjType);
-
-      sig << VMTy;
-      sig << ls_->Int32Ty;
-
-      Value* call_args[] = {
-        vm_,
-        ConstantInt::get(ls_->Int32Ty, 0)
-      };
-
-      Value* val = sig.call("rbx_push_system_object", call_args, 2, "so", b());
-      stack_push(val);
+      push_system_object(0);
     }
 
     void visit_push_rubinius() {
-      Signature sig(ls_, ObjType);
-
-      sig << VMTy;
-      sig << ls_->Int32Ty;
-
-      Value* call_args[] = {
-        vm_,
-        ConstantInt::get(ls_->Int32Ty, 1)
-      };
-
-      Value* val = sig.call("rbx_push_system_object", call_args, 2, "so", b());
-      stack_push(val);
+      push_system_object(1);
     }
 
     void visit_push_ivar(opcode which) {
