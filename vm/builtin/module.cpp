@@ -102,8 +102,20 @@ namespace rubinius {
     set_const(state, state->symbol(name), val);
   }
 
-  Object* Module::get_const(STATE, Symbol* sym, bool* found) {
-    return constants_->fetch(state, sym, found);
+  Object* Module::get_const(STATE, Symbol* sym, bool* found, bool check_super) {
+    Module* mod = this;
+
+    while(!mod->nil_p()) {
+      Object* obj = mod->constants()->fetch(state, sym, found);
+
+      if(*found) return obj;
+
+      if(!check_super) break;
+
+      mod = mod->superclass();
+    }
+
+    return Qnil;
   }
 
   Object* Module::get_const(STATE, Symbol* sym) {

@@ -131,7 +131,7 @@ namespace rubinius {
       }
 
       // Lastly, check Object specificly
-      result = G(object)->get_const(state, name, found);
+      result = G(object)->get_const(state, name, found, true);
       if(*found) return result;
 
       return Qnil;

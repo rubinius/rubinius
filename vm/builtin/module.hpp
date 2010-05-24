@@ -70,7 +70,7 @@ namespace rubinius {
     void set_const(STATE, Object* sym, Object* val);
     void set_const(STATE, const char* name, Object* val);
     Object* get_const(STATE, Symbol* sym);
-    Object* get_const(STATE, Symbol* sym, bool* found);
+    Object* get_const(STATE, Symbol* sym, bool* found, bool check_super=false);
     Object* get_const(STATE, const char* sym);
 
     void del_const(STATE, Symbol* sym);
