@@ -16,6 +16,7 @@ namespace :extensions do
     # TODO: implement per extension cleaning. This hack is for
     # openssl and dl, which use extconf.rb and create Makefile.
     rm_f FileList["lib/ext/**/Makefile"], :verbose => $verbose
+    rm_f FileList["lib/ext/dl/*.func"], :verbose => $verbose
   end
 end
 
@@ -78,4 +79,4 @@ compile_ext "nkf"
 # rbx must be able to run to build these because they use
 # extconf.rb, so they must be after melbourne for Rubinius.
 compile_ext "openssl"
-# compile_ext "dl"
+compile_ext "dl"
