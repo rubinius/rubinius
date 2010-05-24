@@ -206,11 +206,13 @@ module Rubinius
     end
 
     class Script
+      attr_accessor :compiled_method
       attr_accessor :file_path
       attr_accessor :data_path
       attr_accessor :eval_binding
 
-      def initialize(path=nil, for_eval=false)
+      def initialize(method, path=nil, for_eval=false)
+        @compiled_method = method
         @file_path = path
         @for_eval = for_eval
         @eval_binding = nil
@@ -223,7 +225,7 @@ module Rubinius
 
     # Creates the Script instance for a toplevel compiled method.
     def create_script(wrap=false)
-      script = CompiledMethod::Script.new
+      script = CompiledMethod::Script.new(self)
 
       # Setup the scoping.
       ss = StaticScope.new(Object)

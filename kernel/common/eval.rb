@@ -88,7 +88,7 @@ module Kernel
     yield cm if block_given?
 
     # This has to be setup so __FILE__ works in eval.
-    script = Rubinius::CompiledMethod::Script.new(filename, true)
+    script = Rubinius::CompiledMethod::Script.new(cm, filename, true)
     script.eval_binding = binding
 
     cm.scope.script = script
@@ -179,7 +179,7 @@ module Kernel
       cm.compile
 
       # This has to be setup so __FILE__ works in eval.
-      script = Rubinius::CompiledMethod::Script.new(filename, true)
+      script = Rubinius::CompiledMethod::Script.new(cm, filename, true)
       cm.scope.script = script
 
       be = Rubinius::BlockEnvironment.new
@@ -263,7 +263,7 @@ class Module
     ss = Rubinius::StaticScope.new self, Rubinius::StaticScope.of_sender
 
     # This has to be setup so __FILE__ works in eval.
-    script = Rubinius::CompiledMethod::Script.new(filename, true)
+    script = Rubinius::CompiledMethod::Script.new(cm, filename, true)
     ss.script = script
 
     cm.scope = ss
