@@ -356,6 +356,7 @@ struct RFloat {
 
 // To provide nicer error reporting
 #define RHASH(obj) assert("RHASH() is not supported")
+#define RHASH_TBL(obj) assert("RHASH_TBL() is not supported")
 
 struct RIO {
   VALUE handle;
@@ -1110,10 +1111,6 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Return the value associated with the key, excluding default values. */
   VALUE   rb_hash_lookup(VALUE self, VALUE key);
-
-  // There is code that uses RHASH_TBL to detect if rb_hash_lookup
-  // is available. I know, silly.
-#define RHASH_TBL 1
 
   /** Set the value associated with the key. */
   VALUE   rb_hash_aset(VALUE self, VALUE key, VALUE value);

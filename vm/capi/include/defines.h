@@ -14,3 +14,6 @@
  */
 #define HAVE_RB_STR_SET_LEN
 #define HAVE_RB_DEFINE_ALLOC_FUNC
+
+#define HAVE_RB_HASH_FOREACH
+#define HAVE_RB_HASH_ASET
