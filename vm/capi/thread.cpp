@@ -12,9 +12,32 @@ extern "C" {
   int rb_thread_select(int max, fd_set* read, fd_set* write, fd_set* except,
                        struct timeval *timeval) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    GlobalLock::UnlockGuard guard(env);
+    int ret = 0;
 
-    return select(max, read, write, except, timeval);
+    {
+      GlobalLock::UnlockGuard guard(env);
+      ret = select(max, read, write, except, timeval);
+    }
+
+    // Ok, now check if there were async events that happened while
+    // we were waiting on select...
+
+    if(!env->state()->check_async(env->current_call_frame())) {
+      // Ok, there was an exception raised by an async event. We need
+      // to unwind through the caller back the entrance to the native
+      // method.
+
+      // Only handle true exceptions being raised, eat all other requests
+      // for now.
+
+      if(env->state()->thread_state()->raise_reason() == cException) {
+        capi::capi_raise_backend(env->state()->thread_state()->current_exception());
+      } else {
+        env->state()->thread_state()->clear();
+      }
+    }
+
+    return ret;
   }
 
   VALUE rb_thread_current(void) {
