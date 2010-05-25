@@ -16,7 +16,7 @@ class Module
 
       Rubinius::VM.reset_method_cache(new_name)
     else
-      if ai = __metaclass_object__
+      if kind_of?(Class) && ai = __metaclass_object__
         raise NameError, "Unable to find '#{current_name}' for object #{ai.inspect}"
       else
         thing = kind_of?(Class) ? "class" : "module"
