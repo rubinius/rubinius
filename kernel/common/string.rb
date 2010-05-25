@@ -1622,27 +1622,37 @@ class String
 
     # Handle // as a special case.
     if pattern.source.empty?
-      if limited
-        iterations = limit - 1
-        while c = self.find_character(start)
-          ret << c
-          start += c.size
-          iterations -= 1
+      kcode = $KCODE
+      begin
 
-          break if iterations == 0
+        if pattern.options and kc = pattern.kcode
+          $KCODE = kc
         end
 
-        ret << self[start..-1]
-      else
-        while c = self.find_character(start)
-          ret << c
-          start += c.size
-        end
+        if limited
+          iterations = limit - 1
+          while c = self.find_character(start)
+            ret << c
+            start += c.size
+            iterations -= 1
 
-        # Use #substring because it returns the right class and taints
-        # automatically. This is just appending a "", which is this
-        # strange protocol if a negative limit is passed in
-        ret << substring(0,0) if tail_empty
+            break if iterations == 0
+          end
+
+          ret << self[start..-1]
+        else
+          while c = self.find_character(start)
+            ret << c
+            start += c.size
+          end
+
+          # Use #substring because it returns the right class and taints
+          # automatically. This is just appending a "", which is this
+          # strange protocol if a negative limit is passed in
+          ret << substring(0,0) if tail_empty
+        end
+      ensure
+        $KCODE = kcode
       end
 
       return ret
