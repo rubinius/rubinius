@@ -4,6 +4,11 @@ require 'rbconfig'
 require 'tempfile'
 require 'fileutils'
 
+unless !defined?(RUBY_ENGINE) || (RUBY_ENGINE == 'ruby' && RUBY_VERSION < '1.9.0')
+  STDERR.puts "Sorry, for now please build rubinius using ruby 1.8"
+  exit 1
+end
+
 root = File.expand_path File.dirname(__FILE__)
 
 require File.join(root, "kernel", "delta", "options")
