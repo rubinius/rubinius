@@ -78,9 +78,19 @@ class IO
     raise PrimitiveFailure, "IO#read_if_available primitive failed"
   end
 
-  def prim_reopen(other)
+  def reopen_io(other)
     Ruby.primitive :io_reopen
     raise ArgumentError, "IO#prim_reopen only accepts an IO object"
+  end
+
+  def reopen_path(string, mode)
+    Ruby.primitive :io_reopen_path
+
+    if mode.kind_of? Bignum
+      raise ArgumentError, "Bignum too big for mode"
+    end
+
+    reopen_path StringValue(string), Integer(mode)
   end
 
   def prim_seek(amount, whence)
@@ -94,7 +104,7 @@ class IO
   end
 
   def reopen(other)
-    prim_reopen other
+    reopen_io other
   end
 
   def tty?

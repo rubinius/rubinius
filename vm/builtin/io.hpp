@@ -95,6 +95,9 @@ namespace rubinius {
     // Ruby.primitive :io_reopen
     Object* reopen(STATE, IO* other);
 
+    // Ruby.primitive :io_reopen_path
+    Object* reopen_path(STATE, String* other, Fixnum * mode);
+
     // Ruby.primitive :io_close
     Object* close(STATE);
 

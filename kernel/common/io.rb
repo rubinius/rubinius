@@ -1407,7 +1407,7 @@ class IO
       io.ensure_open
       io.reset_buffering
 
-      prim_reopen io
+      reopen_io io
       Rubinius::Unsafe.set_class self, io.class
     else
       flush unless closed?
@@ -1419,12 +1419,7 @@ class IO
         mode = IO.parse_mode(mode) & ACCMODE
       end
 
-      path = StringValue(other)
-      fd = IO.sysopen(path, mode | CREAT, 0666)
-      Errno.handle path if fd < 0
-
-      reset_buffering
-      IO.setup self, fd
+      reopen_path(StringValue(other), mode | CREAT)
       seek 0, SEEK_SET
     end
 

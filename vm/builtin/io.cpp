@@ -244,6 +244,29 @@ namespace rubinius {
     return Qtrue;
   }
 
+  Object* IO::reopen_path(STATE, String* path, Fixnum* mode) {
+    native_int cur_fd   = to_fd();
+
+    int other_fd = ::open(path->c_str(), mode->to_native(), 0666);
+
+    if(dup2(other_fd, cur_fd) == -1) {
+      if(errno == EBADF) { // this means cur_fd is closed
+        // Just set ourselves to use the new fd and go on with life.
+        descriptor(state, Fixnum::from(other_fd));
+      } else {
+        Exception::errno_error(state, "reopen");
+        return NULL;
+      }
+    }
+
+    set_mode(state);
+    if(IOBuffer* ibuf = try_as<IOBuffer>(ibuffer())) {
+      ibuf->reset(state);
+    }
+
+    return Qtrue;
+  }
+
   Object* IO::ensure_open(STATE) {
     if(descriptor_->nil_p()) {
       Exception::io_error(state, "uninitialized stream");
