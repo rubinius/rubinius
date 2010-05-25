@@ -104,16 +104,24 @@ extern "C" {
     return capi_native2num<unsigned long>(number);
   }
 
-  VALUE INT2NUM(int number) {
-    return capi_native2num<int>(number);
+  VALUE rb_int2inum(long int number) {
+    return capi_native2num<long int>(number);
+  }
+
+  VALUE INT2NUM(long int number) {
+    return capi_native2num<long int>(number);
   }
 
   VALUE LONG2NUM(long int number) {
     return capi_native2num<long int>(number);
   }
 
-  VALUE UINT2NUM(unsigned int number) {
-    return capi_native2num<unsigned int>(number);
+  VALUE rb_uint2inum(unsigned long number) {
+    return capi_native2num<unsigned long>(number);
+  }
+
+  VALUE UINT2NUM(unsigned long number) {
+    return capi_native2num<unsigned long>(number);
   }
 
   VALUE ULONG2NUM(unsigned long number) {
@@ -237,8 +245,4 @@ extern "C" {
     return rb_convert_type(object_handle, 0, "Integer", "to_i");
   }
 
-  VALUE rb_int2inum(long n) 
-  {
-    return INT2NUM(n);
-  }
 }

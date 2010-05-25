@@ -713,17 +713,16 @@ VALUE rb_uint2big(unsigned long number);
   /** Convert a VALUE to an unsigned long int. */
   unsigned long rb_num2ulong(VALUE obj);
 
-  /** Convert an int into an Integer. */
-  VALUE   INT2NUM(int number);
-
   /** Convert a long int into an Integer. */
-  VALUE   LONG2NUM(long int number);
+  VALUE rb_int2inum(long n);
+#define rb_int_new(v) rb_int2inum(v)
+  VALUE INT2NUM(long n);
+  VALUE LONG2NUM(long n);
 
-  /** Convert an unsigned long to an Integer. */
-  VALUE   ULONG2NUM(unsigned long);
-
-  /** Convert unsigned int into a Numeric. */
-  VALUE   UINT2NUM(unsigned int number);
+  /** Convert a unsigned long int into an Integer. */
+  VALUE rb_uint2inum(unsigned long n);
+  VALUE UINT2NUM(unsigned long n);
+  VALUE ULONG2NUM(unsigned long n);
 
 #define   Data_Make_Struct(klass, type, mark, free, sval) (\
             sval = ALLOC(type), \
@@ -1146,10 +1145,6 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_io_check_writable(rb_io_t* io);
 
   void    rb_thread_wait_fd(int fd);
-
-  /** convert a native int to Fixnum */
-  VALUE rb_int2inum(long n);
-#define rb_int_new(v) rb_int2inum(v)
 
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);
