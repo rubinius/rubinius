@@ -6,10 +6,6 @@ describe "The -d command line option" do
   end
 
   it "sets $DEBUG to true" do
-    if PlatformGuard.windows?
-      ruby_exe(@script, :options => "-d").chomp.should == "true"
-    else
-      ruby_exe(@script, :options => "-d", :args => "2>/dev/null").chomp.should == "true"
-    end
+    ruby_exe(@script, :options => "-d", :args => "2> #{dev_null()}").chomp.should == "true"
   end
 end

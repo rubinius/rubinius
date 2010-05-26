@@ -5,9 +5,9 @@ ruby_version_is "1.9" do
 
   describe "Array#sort_by!" do
     it "sorts array in place by passing each element to the given block" do
-      a = [1, -2, 3, 9, 1, 5, -5, 1000, -5, 2, -10, 14, 6, 23, 0]
+      a = [-100, -2, 1, 200, 30000]
       a.sort_by!{ |e| e.to_s.size }
-      a.should == [1, 6, 3, 9, 1, 5, 2, 0, -5, -5, 23, -2, 14, -10, 1000]
+      a.should == [1, -2, 200, -100, 30000]
     end
 
     it "returns an Enumerator if not given a block" do

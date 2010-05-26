@@ -60,4 +60,14 @@ describe "IO.open" do
     end
     ScratchPad.recorded.should == :called
   end
+
+  it "does not set last error when a StandardError raised by #close" do
+    IO.open(@fd, "w") do |io|
+      IOSpecs.io_mock(io, :close) do
+        super()
+        raise StandardError
+      end
+    end
+    $!.should == nil
+  end
 end

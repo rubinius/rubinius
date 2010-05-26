@@ -33,7 +33,7 @@ describe "Bignum#<< with n << m" do
     (@bignum << -68).should == 0
   end
 
-  not_compliant_on :rubinius do
+  not_compliant_on :rubinius, :jruby do
     it "returns 0 when m < 0 and m is a Bignum" do
       (@bignum << -bignum_value()).should == 0
     end

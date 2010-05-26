@@ -33,7 +33,7 @@ describe "Fixnum#<< with n << m" do
     (4 << -3).should == 0
   end
 
-  not_compliant_on :rubinius do
+  not_compliant_on :rubinius, :jruby do
     it "returns 0 when m < 0 and m is a Bignum" do
       (3 << -bignum_value()).should == 0
     end

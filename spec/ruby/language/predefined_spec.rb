@@ -473,7 +473,7 @@ describe "The predefined standard object false" do
   end
 end
 
-describe "The self psuedo-variable" do
+describe "The self pseudo-variable" do
   it "raises a SyntaxError if assigned to" do
     lambda { eval("self = 1") }.should raise_error(SyntaxError)
   end

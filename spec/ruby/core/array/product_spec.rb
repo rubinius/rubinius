@@ -36,7 +36,9 @@ describe "Array#product" do
         [1,2].product([3,4,5],[],[6,8]){|array| acc << array}
         acc.should be_empty
       end
+    end
 
+    describe "when given an empty block" do
       it "returns self" do
         arr = [1,2]
         arr.product([3,4,5],[6,8]){}.should equal(arr)
