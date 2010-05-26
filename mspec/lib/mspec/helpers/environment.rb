@@ -13,7 +13,7 @@ class Object
 
   def windows_env_echo(var)
     `cmd.exe /C ECHO %#{var}%`.strip
-  end  
+  end
 
   def username
     user = ""
@@ -28,5 +28,13 @@ class Object
   def home_directory
     return ENV['HOME'] unless PlatformGuard.windows?
     windows_env_echo('HOMEDRIVE') + windows_env_echo('HOMEPATH')
-  end  
+  end
+
+  def dev_null
+    if PlatformGuard.windows?
+      "NUL"
+    else
+      "/dev/null"
+    end
+  end
 end
