@@ -453,7 +453,7 @@ class Array
     max = ((size-num)...size).to_a           # max (index for a given pick) is [4, 5, 6]
     pick_max_pairs = picks.zip(max).reverse  # pick_max_pairs = [[2, 6], [1, 5], [0, 4]]
 
-    return_proc = proc { return self }
+    return_proc = Proc.new { return self }
     lookup = pick_max_pairs.find(return_proc)
 
     while true
