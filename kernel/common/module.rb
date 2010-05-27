@@ -122,7 +122,7 @@ class Module
     end
   end
 
-  def find_method_in_hierarchy(sym)
+  def find_method_in_hierarchy(sym, check_object_too=true)
     mod = self
 
     while mod
@@ -133,9 +133,9 @@ class Module
       mod = mod.direct_superclass
     end
 
-    # Always also search Object (and everything included in Object).
-    # This lets a module alias methods on Kernel.
-    if instance_of?(Module) and self != Kernel
+    # Optionally also search Object (and everything included in Object);
+    # this lets a module alias methods on Object or Kernel.
+    if check_object_too and instance_of?(Module)
       return Object.find_method_in_hierarchy(sym)
     end
   end
@@ -244,26 +244,26 @@ class Module
   end
 
   def public_method_defined?(sym)
-    sym = Type.coerce_to_symbol sym
-    m = find_method_in_hierarchy sym
+    sym = Type.coerce_to_symbol(sym)
+    m = find_method_in_hierarchy(sym, false)
     m ? m.public? : false
   end
 
   def private_method_defined?(sym)
-    sym = Type.coerce_to_symbol sym
-    m = find_method_in_hierarchy sym
+    sym = Type.coerce_to_symbol(sym)
+    m = find_method_in_hierarchy(sym, false)
     m ? m.private? : false
   end
 
   def protected_method_defined?(sym)
-    sym = Type.coerce_to_symbol sym
-    m = find_method_in_hierarchy sym
+    sym = Type.coerce_to_symbol(sym)
+    m = find_method_in_hierarchy(sym, false)
     m ? m.protected? : false
   end
 
   def method_defined?(sym)
     sym = Type.coerce_to_symbol(sym)
-    m = find_method_in_hierarchy sym
+    m = find_method_in_hierarchy(sym, false)
     m ? m.public? || m.protected? : false
   end
 
