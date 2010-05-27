@@ -1,10 +1,20 @@
-require File.dirname(__FILE__) + '/spec_helper'
+require File.expand_path('../spec_helper', __FILE__)
 
 load_extension("kernel")
 
 describe "C-API Kernel function" do
   before :each do
     @s = CApiKernelSpecs.new
+  end
+
+  describe "rb_block_given_p" do
+    it "returns false if no block is passed" do
+      @s.rb_block_given_p.should == false
+    end
+
+    it "returns true if a block is passed" do
+      (@s.rb_block_given_p { puts "FOO" } ).should == true
+    end
   end
 
   describe "rb_raise" do

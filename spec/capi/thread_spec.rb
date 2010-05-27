@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/spec_helper'
+require File.expand_path('../spec_helper', __FILE__)
 
 load_extension("thread")
 
@@ -34,8 +34,9 @@ describe "CApiThreadSpecs" do
   end
 
   describe "rb_thread_alone" do
-    it "returns 0" do
-      @t.rb_thread_alone.should == 0
+    it "returns true if there is only one thread" do
+      pred = Thread.list.size == 1
+      @t.rb_thread_alone.should == pred
     end
   end
 

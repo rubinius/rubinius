@@ -1,115 +1,13 @@
 #include "ruby.h"
+#include "rubyspec.h"
+
 #include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-static VALUE array_spec_rb_ary_new(VALUE self) {
-  VALUE ret;
-  ret = rb_ary_new();
-  return ret;
-}
-
-static VALUE array_spec_rb_ary_new2(VALUE self, VALUE length) {
-  return rb_ary_new2(NUM2LONG(length));
-}
-
-static VALUE array_spec_rb_ary_push(VALUE self, VALUE array, VALUE item) {
-  rb_ary_push(array, item);
-  return array;
-}
-
-static VALUE array_spec_rb_ary_pop(VALUE self, VALUE array) {
-  return rb_ary_pop(array);
-}
-
-static VALUE array_spec_rb_ary_delete(VALUE self, VALUE array, VALUE item) {
-  return rb_ary_delete(array, item);
-}
-
-static VALUE array_spec_rb_ary_entry(VALUE self, VALUE array, VALUE offset) {
-  return rb_ary_entry(array, FIX2INT(offset));
-}
-
-static VALUE array_spec_rb_ary_clear(VALUE self, VALUE array) {
-  return rb_ary_clear(array);
-}
-
-static VALUE array_spec_rb_ary_dup(VALUE self, VALUE array) {
-  return rb_ary_dup(array);
-}
-
-static VALUE array_spec_rb_ary_join(VALUE self, VALUE array1, VALUE array2) {
-  return rb_ary_join(array1, array2);
-}
-
-static VALUE array_spec_rb_ary_reverse(VALUE self, VALUE array) {
-  return rb_ary_reverse(array);
-}
-
-static VALUE array_spec_rb_ary_unshift(VALUE self, VALUE array, VALUE val) {
-  return rb_ary_unshift(array, val);
-}
-
-static VALUE array_spec_rb_ary_shift(VALUE self, VALUE array) {
-  return rb_ary_shift(array);
-}
-
-static VALUE array_spec_rb_ary_store(VALUE self, VALUE array, VALUE offset, VALUE value) {
-  rb_ary_store(array, FIX2INT(offset), value);
-
-  return Qnil;
-}
-
-static VALUE array_spec_RARRAY_PTR_iterate(VALUE self, VALUE array) {
-  int i;
-  VALUE* ptr;
-
-  ptr = RARRAY_PTR(array);
-  for(i = 0; i < RARRAY_LEN(array); i++) {
-    rb_yield(ptr[i]);
-  }
-  return Qnil;
-}
-
-static VALUE array_spec_RARRAY_PTR_assign(VALUE self, VALUE array, VALUE value) {
-  int i;
-  VALUE* ptr;
-
-  ptr = RARRAY_PTR(array);
-  for(i = 0; i < RARRAY_LEN(array); i++) {
-    ptr[i] = value;
-  }
-  return Qnil;
-}
-
-static VALUE array_spec_RARRAY_LEN(VALUE self, VALUE array) {
-  return INT2FIX(RARRAY_LEN(array));
-}
-
-static VALUE array_spec_RARRAY_ptr_iterate(VALUE self, VALUE array) {
-  int i;
-  VALUE* ptr;
-
-  ptr = RARRAY(array)->ptr;
-  for(i = 0; i < RARRAY_LEN(array); i++) {
-    rb_yield(ptr[i]);
-  }
-  return Qnil;
-}
-
-static VALUE array_spec_RARRAY_ptr_assign(VALUE self, VALUE array, VALUE value) {
-  int i;
-  VALUE* ptr;
-
-  ptr = RARRAY(array)->ptr;
-  for(i = 0; i < RARRAY_LEN(array); i++) {
-    ptr[i] = value;
-  }
-  return array;
-}
-
+#ifdef HAVE_RARRAY
 static VALUE array_spec_RARRAY_ptr_assign_call(VALUE self, VALUE array) {
   VALUE* ptr;
 
@@ -136,20 +34,161 @@ static VALUE array_spec_RARRAY_len(VALUE self, VALUE array) {
   return INT2FIX(RARRAY(array)->len);
 }
 
-static VALUE array_spec_rb_assoc_new(VALUE self, VALUE first, VALUE second) {
-  return rb_assoc_new(first, second);
+static VALUE array_spec_RARRAY_ptr_iterate(VALUE self, VALUE array) {
+  int i;
+  VALUE* ptr;
+
+  ptr = RARRAY(array)->ptr;
+  for(i = 0; i < RARRAY_LEN(array); i++) {
+    rb_yield(ptr[i]);
+  }
+  return Qnil;
 }
 
-static VALUE array_spec_rb_ary_includes(VALUE self, VALUE ary, VALUE item) {
-  return rb_ary_includes(ary, item);
+static VALUE array_spec_RARRAY_ptr_assign(VALUE self, VALUE array, VALUE value) {
+  int i;
+  VALUE* ptr;
+
+  ptr = RARRAY(array)->ptr;
+  for(i = 0; i < RARRAY_LEN(array); i++) {
+    ptr[i] = value;
+  }
+  return array;
+}
+#endif
+
+#if defined(HAVE_RARRAY_LEN) && defined(HAVE_RARRAY_PTR)
+static VALUE array_spec_RARRAY_PTR_iterate(VALUE self, VALUE array) {
+  int i;
+  VALUE* ptr;
+
+  ptr = RARRAY_PTR(array);
+  for(i = 0; i < RARRAY_LEN(array); i++) {
+    rb_yield(ptr[i]);
+  }
+  return Qnil;
 }
 
+static VALUE array_spec_RARRAY_PTR_assign(VALUE self, VALUE array, VALUE value) {
+  int i;
+  VALUE* ptr;
+
+  ptr = RARRAY_PTR(array);
+  for(i = 0; i < RARRAY_LEN(array); i++) {
+    ptr[i] = value;
+  }
+  return Qnil;
+}
+
+static VALUE array_spec_RARRAY_LEN(VALUE self, VALUE array) {
+  return INT2FIX(RARRAY_LEN(array));
+}
+#endif
+
+#ifdef HAVE_RB_ARY_AREF
 static VALUE array_spec_rb_ary_aref(int argc, VALUE *argv, VALUE self) {
   VALUE ary, args;
   rb_scan_args(argc, argv, "1*", &ary, &args);
-  return rb_ary_aref(RARRAY(args)->len, RARRAY_PTR(args), ary);
+  return rb_ary_aref(RARRAY_LEN(args), RARRAY_PTR(args), ary);
 }
+#endif
 
+#ifdef HAVE_RB_ARY_CLEAR
+static VALUE array_spec_rb_ary_clear(VALUE self, VALUE array) {
+  return rb_ary_clear(array);
+}
+#endif
+
+#ifdef HAVE_RB_ARY_DELETE
+static VALUE array_spec_rb_ary_delete(VALUE self, VALUE array, VALUE item) {
+  return rb_ary_delete(array, item);
+}
+#endif
+
+#ifdef HAVE_RB_ARY_DUP
+static VALUE array_spec_rb_ary_dup(VALUE self, VALUE array) {
+  return rb_ary_dup(array);
+}
+#endif
+
+#ifdef HAVE_RB_ARY_ENTRY
+static VALUE array_spec_rb_ary_entry(VALUE self, VALUE array, VALUE offset) {
+  return rb_ary_entry(array, FIX2INT(offset));
+}
+#endif
+
+#ifdef HAVE_RB_ARY_INCLUDES
+static VALUE array_spec_rb_ary_includes(VALUE self, VALUE ary, VALUE item) {
+  return rb_ary_includes(ary, item);
+}
+#endif
+
+#ifdef HAVE_RB_ARY_JOIN
+static VALUE array_spec_rb_ary_join(VALUE self, VALUE array1, VALUE array2) {
+  return rb_ary_join(array1, array2);
+}
+#endif
+
+#ifdef HAVE_RB_ARY_NEW
+static VALUE array_spec_rb_ary_new(VALUE self) {
+  VALUE ret;
+  ret = rb_ary_new();
+  return ret;
+}
+#endif
+
+#ifdef HAVE_RB_ARY_NEW2
+static VALUE array_spec_rb_ary_new2(VALUE self, VALUE length) {
+  return rb_ary_new2(NUM2LONG(length));
+}
+#endif
+
+#ifdef HAVE_RB_ARY_POP
+static VALUE array_spec_rb_ary_pop(VALUE self, VALUE array) {
+  return rb_ary_pop(array);
+}
+#endif
+
+#ifdef HAVE_RB_ARY_PUSH
+static VALUE array_spec_rb_ary_push(VALUE self, VALUE array, VALUE item) {
+  rb_ary_push(array, item);
+  return array;
+}
+#endif
+
+#ifdef HAVE_RB_ARY_REVERSE
+static VALUE array_spec_rb_ary_reverse(VALUE self, VALUE array) {
+  return rb_ary_reverse(array);
+}
+#endif
+
+#ifdef HAVE_RB_ARY_SHIFT
+static VALUE array_spec_rb_ary_shift(VALUE self, VALUE array) {
+  return rb_ary_shift(array);
+}
+#endif
+
+#ifdef HAVE_RB_ARY_STORE
+static VALUE array_spec_rb_ary_store(VALUE self, VALUE array, VALUE offset, VALUE value) {
+  rb_ary_store(array, FIX2INT(offset), value);
+
+  return Qnil;
+}
+#endif
+
+#ifdef HAVE_RB_ARY_UNSHIFT
+static VALUE array_spec_rb_ary_unshift(VALUE self, VALUE array, VALUE val) {
+  return rb_ary_unshift(array, val);
+}
+#endif
+
+#ifdef HAVE_RB_ASSOC_NEW
+static VALUE array_spec_rb_assoc_new(VALUE self, VALUE first, VALUE second) {
+  return rb_assoc_new(first, second);
+}
+#endif
+
+#if defined(HAVE_RB_ITERATE) && defined(HAVE_RB_EACH)
 static VALUE copy_ary(VALUE el, VALUE new_ary) {
   rb_ary_push(new_ary, el);
 }
@@ -161,26 +200,13 @@ static VALUE array_spec_rb_iterate(VALUE self, VALUE ary) {
 
   return new_ary;
 }
+#endif
 
 void Init_array_spec() {
   VALUE cls;
   cls = rb_define_class("CApiArraySpecs", rb_cObject);
-  rb_define_method(cls, "rb_ary_new", array_spec_rb_ary_new, 0);
-  rb_define_method(cls, "rb_ary_new2", array_spec_rb_ary_new2, 1);
-  rb_define_method(cls, "rb_ary_push", array_spec_rb_ary_push, 2);
-  rb_define_method(cls, "rb_ary_entry", array_spec_rb_ary_entry, 2);
-  rb_define_method(cls, "rb_ary_clear", array_spec_rb_ary_clear, 1);
-  rb_define_method(cls, "rb_ary_delete", array_spec_rb_ary_delete, 2);
-  rb_define_method(cls, "rb_ary_dup", array_spec_rb_ary_dup, 1);
-  rb_define_method(cls, "rb_ary_join", array_spec_rb_ary_join, 2);
-  rb_define_method(cls, "rb_ary_reverse", array_spec_rb_ary_reverse, 1);
-  rb_define_method(cls, "rb_ary_unshift", array_spec_rb_ary_unshift, 2);
-  rb_define_method(cls, "rb_ary_shift", array_spec_rb_ary_shift, 1);
-  rb_define_method(cls, "rb_ary_store", array_spec_rb_ary_store, 3);
-  rb_define_method(cls, "rb_ary_pop", array_spec_rb_ary_pop, 1);
-  rb_define_method(cls, "RARRAY_PTR_iterate", array_spec_RARRAY_PTR_iterate, 1);
-  rb_define_method(cls, "RARRAY_PTR_assign", array_spec_RARRAY_PTR_assign, 2);
-  rb_define_method(cls, "RARRAY_LEN", array_spec_RARRAY_LEN, 1);
+
+#ifdef HAVE_RARRAY
   rb_define_method(cls, "RARRAY_ptr_iterate", array_spec_RARRAY_ptr_iterate, 1);
   rb_define_method(cls, "RARRAY_ptr_assign", array_spec_RARRAY_ptr_assign, 2);
   rb_define_method(cls, "RARRAY_ptr_assign_call",
@@ -188,10 +214,81 @@ void Init_array_spec() {
   rb_define_method(cls, "RARRAY_ptr_assign_funcall",
       array_spec_RARRAY_ptr_assign_funcall, 1);
   rb_define_method(cls, "RARRAY_len", array_spec_RARRAY_len, 1);
-  rb_define_method(cls, "rb_assoc_new", array_spec_rb_assoc_new, 2);
-  rb_define_method(cls, "rb_ary_includes", array_spec_rb_ary_includes, 2);
+#endif
+
+#if defined(HAVE_RARRAY_LEN) && defined(HAVE_RARRAY_PTR)
+  rb_define_method(cls, "RARRAY_LEN", array_spec_RARRAY_LEN, 1);
+  rb_define_method(cls, "RARRAY_PTR_iterate", array_spec_RARRAY_PTR_iterate, 1);
+  rb_define_method(cls, "RARRAY_PTR_assign", array_spec_RARRAY_PTR_assign, 2);
+#endif
+
+#ifdef HAVE_RB_ARY_AREF
   rb_define_method(cls, "rb_ary_aref", array_spec_rb_ary_aref, -1);
+#endif
+
+#ifdef HAVE_RB_ARY_CLEAR
+  rb_define_method(cls, "rb_ary_clear", array_spec_rb_ary_clear, 1);
+#endif
+
+#ifdef HAVE_RB_ARY_DELETE
+  rb_define_method(cls, "rb_ary_delete", array_spec_rb_ary_delete, 2);
+#endif
+
+#ifdef HAVE_RB_ARY_DUP
+  rb_define_method(cls, "rb_ary_dup", array_spec_rb_ary_dup, 1);
+#endif
+
+#ifdef HAVE_RB_ARY_ENTRY
+  rb_define_method(cls, "rb_ary_entry", array_spec_rb_ary_entry, 2);
+#endif
+
+#ifdef HAVE_RB_ARY_INCLUDES
+  rb_define_method(cls, "rb_ary_includes", array_spec_rb_ary_includes, 2);
+#endif
+
+#ifdef HAVE_RB_ARY_JOIN
+  rb_define_method(cls, "rb_ary_join", array_spec_rb_ary_join, 2);
+#endif
+
+#ifdef HAVE_RB_ARY_NEW
+  rb_define_method(cls, "rb_ary_new", array_spec_rb_ary_new, 0);
+#endif
+
+#ifdef HAVE_RB_ARY_NEW2
+  rb_define_method(cls, "rb_ary_new2", array_spec_rb_ary_new2, 1);
+#endif
+
+#ifdef HAVE_RB_ARY_POP
+  rb_define_method(cls, "rb_ary_pop", array_spec_rb_ary_pop, 1);
+#endif
+
+#ifdef HAVE_RB_ARY_PUSH
+  rb_define_method(cls, "rb_ary_push", array_spec_rb_ary_push, 2);
+#endif
+
+#ifdef HAVE_RB_ARY_REVERSE
+  rb_define_method(cls, "rb_ary_reverse", array_spec_rb_ary_reverse, 1);
+#endif
+
+#ifdef HAVE_RB_ARY_SHIFT
+  rb_define_method(cls, "rb_ary_shift", array_spec_rb_ary_shift, 1);
+#endif
+
+#ifdef HAVE_RB_ARY_STORE
+  rb_define_method(cls, "rb_ary_store", array_spec_rb_ary_store, 3);
+#endif
+
+#ifdef HAVE_RB_ARY_UNSHIFT
+  rb_define_method(cls, "rb_ary_unshift", array_spec_rb_ary_unshift, 2);
+#endif
+
+#ifdef HAVE_RB_ASSOC_NEW
+  rb_define_method(cls, "rb_assoc_new", array_spec_rb_assoc_new, 2);
+#endif
+
+#if defined(HAVE_RB_ITERATE) && defined(HAVE_RB_EACH)
   rb_define_method(cls, "rb_iterate", array_spec_rb_iterate, 1);
+#endif
 }
 
 #ifdef __cplusplus

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/spec_helper'
+require File.expand_path('../spec_helper', __FILE__)
 
 load_extension('module')
 
@@ -16,6 +16,9 @@ class CApiModuleSpecs
   end
 
   module M
+  end
+
+  class Super
   end
 end
 
@@ -42,6 +45,44 @@ describe "CApiModule" do
     it "sets an existing constant's value" do
       @m.rb_const_set(CApiModuleSpecs::C, :Z, 8)
       CApiModuleSpecs::C::Z.should == 8
+    end
+  end
+
+  describe "rb_define_class_under" do
+    it "creates a subclass of the superclass contained in a module" do
+      cls = @m.rb_define_class_under(CApiModuleSpecs,
+                                     "ModuleSpecsClassUnder1",
+                                     CApiModuleSpecs::Super)
+      cls.should be_kind_of(Class)
+      CApiModuleSpecs::Super.should be_ancestor_of(CApiModuleSpecs::ModuleSpecsClassUnder1)
+    end
+
+    it "uses Object as the superclass if NULL is passed" do
+      @m.rb_define_class_under(CApiModuleSpecs, "ModuleSpecsClassUnder2", nil)
+      Object.should be_ancestor_of(CApiModuleSpecs::ModuleSpecsClassUnder2)
+    end
+
+    it "sets the class name" do
+      cls = @m.rb_define_class_under(CApiModuleSpecs, "ModuleSpecsClassUnder3", nil)
+      cls.name.should == "CApiModuleSpecs::ModuleSpecsClassUnder3"
+    end
+
+    it "call #inherited on the superclass" do
+      CApiModuleSpecs::Super.should_receive(:inherited)
+      cls = @m.rb_define_class_under(CApiModuleSpecs,
+                                     "ModuleSpecsClassUnder4", CApiModuleSpecs::Super)
+    end
+  end
+
+  describe "rb_define_module_under" do
+    it "creates a new module inside the inner class" do
+      mod = @m.rb_define_module_under(CApiModuleSpecs, "ModuleSpecsModuleUnder1")
+      mod.should be_kind_of(Module)
+    end
+
+    it "sets the module name" do
+      mod = @m.rb_define_module_under(CApiModuleSpecs, "ModuleSpecsModuleUnder2")
+      mod.name.should == "CApiModuleSpecs::ModuleSpecsModuleUnder2"
     end
   end
 
@@ -125,6 +166,114 @@ describe "CApiModule" do
     it "calls #const_missing if the constant is not defined in the module" do
       CApiModuleSpecs::B.should_receive(:const_missing).with(:X)
       @m.rb_const_get_at(CApiModuleSpecs::B, :X)
+    end
+  end
+
+  describe "rb_define_alias" do
+    it "defines an alias for an existing method" do
+      cls = Class.new do
+        def method_to_be_aliased
+          :method_to_be_aliased
+        end
+      end
+
+      @m.rb_define_alias cls, "method_alias", "method_to_be_aliased"
+      cls.new.method_alias.should == :method_to_be_aliased
+    end
+  end
+
+  describe "rb_define_global_function" do
+    it "defines a method on Object" do
+      @m.rb_define_global_function("module_specs_global_function")
+      Kernel.should have_method(:module_specs_global_function)
+      module_specs_global_function.should == :test_method
+    end
+  end
+
+  describe "rb_define_method" do
+    it "defines a method on a class" do
+      cls = Class.new
+      @m.rb_define_method(cls, "test_method")
+      cls.should have_instance_method(:test_method)
+      cls.new.test_method.should == :test_method
+    end
+
+    it "defines a method on a module" do
+      mod = Module.new
+      @m.rb_define_method(mod, "test_method")
+      mod.should have_instance_method(:test_method)
+    end
+  end
+
+  describe "rb_define_module_function" do
+    before :each do
+      @mod = Module.new
+      @m.rb_define_module_function @mod, "test_module_function"
+    end
+
+    it "defines a module function" do
+      @mod.test_module_function.should == :test_method
+    end
+
+    it "defines a private instance method" do
+      cls = Class.new
+      cls.send :include, @mod
+
+      cls.should have_private_instance_method(:test_module_function)
+    end
+  end
+
+  describe "rb_define_private_method" do
+    it "defines a private method on a class" do
+      cls = Class.new
+      @m.rb_define_private_method(cls, "test_method")
+      cls.should have_private_instance_method(:test_method)
+      cls.new.send(:test_method).should == :test_method
+    end
+
+    it "defines a private method on a module" do
+      mod = Module.new
+      @m.rb_define_private_method(mod, "test_method")
+      mod.should have_private_instance_method(:test_method)
+    end
+  end
+
+  describe "rb_define_protected_method" do
+    it "defines a protected method on a class" do
+      cls = Class.new
+      @m.rb_define_protected_method(cls, "test_method")
+      cls.should have_protected_instance_method(:test_method)
+      cls.new.send(:test_method).should == :test_method
+    end
+
+    it "defines a protected method on a module" do
+      mod = Module.new
+      @m.rb_define_protected_method(mod, "test_method")
+      mod.should have_protected_instance_method(:test_method)
+    end
+  end
+
+  describe "rb_define_singleton_method" do
+    it "defines a method on the singleton class" do
+      cls = Class.new
+      a = cls.new
+      @m.rb_define_singleton_method a, "module_specs_singleton_method"
+      a.module_specs_singleton_method.should == :test_method
+      lambda { cls.new.module_specs_singleton_method }.should raise_error(NoMethodError)
+    end
+  end
+
+  describe "rb_undef_method" do
+    it "undef'ines a method on a class" do
+      cls = Class.new do
+        def ruby_test_method
+          :ruby_test_method
+        end
+      end
+
+      cls.new.ruby_test_method.should == :ruby_test_method
+      @m.rb_undef_method cls, "ruby_test_method"
+      cls.should_not have_instance_method(:ruby_test_method)
     end
   end
 end

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/spec_helper'
+require File.expand_path('../spec_helper', __FILE__)
 
 load_extension("class")
 
@@ -56,6 +56,18 @@ class CApiClassSpecs
       raise "#{name}.inherited called"
     end
   end
+
+  class Super
+    def call_super_method
+      :super_method
+    end
+  end
+
+  class Sub < Super
+    def call_super_method
+      :subclass_method
+    end
+  end
 end
 
 describe "C-API Class function" do
@@ -108,6 +120,14 @@ describe "C-API Class function" do
       @a.baz.should == 3
       @a.baz = 6
       @a.baz.should == 6
+    end
+  end
+
+  describe "rb_call_super" do
+    it "calls the method in the superclass" do
+      @s.define_call_super_method CApiClassSpecs::Sub, "call_super_method"
+      obj = CApiClassSpecs::Sub.new
+      obj.call_super_method.should == :super_method
     end
   end
 

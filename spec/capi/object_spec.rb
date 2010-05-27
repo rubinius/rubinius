@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/spec_helper'
+require File.expand_path('../spec_helper', __FILE__)
 
 load_extension("object")
 
@@ -249,16 +249,18 @@ describe "CApiObject" do
     end
   end
 
-  describe "rb_obj_frozen_p" do
-    it "returns true if object passed to it is frozen" do
-      obj = ""
-      obj.freeze
-      @o.rb_obj_frozen_p(obj).should == true
-    end
+  extended_on :rubinius do
+    describe "rb_obj_frozen_p" do
+      it "returns true if object passed to it is frozen" do
+        obj = ""
+        obj.freeze
+        @o.rb_obj_frozen_p(obj).should == true
+      end
 
-    it "returns false if object passed to it is not frozen" do
-      obj = ""
-      @o.rb_obj_frozen_p(obj).should == false
+      it "returns false if object passed to it is not frozen" do
+        obj = ""
+        @o.rb_obj_frozen_p(obj).should == false
+      end
     end
   end
 

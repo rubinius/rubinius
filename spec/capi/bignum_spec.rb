@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/spec_helper'
+require File.expand_path('../spec_helper', __FILE__)
 
 load_extension("bignum")
 
@@ -75,9 +75,14 @@ describe "CApiBignumSpecs" do
 
     it "returns Infinity if the number is too big for a double" do
       huge_bignum = ensure_bignum(Float::MAX.to_i * 2)
-      infinity = 1.0 / 0.0
-      @s.rb_big2dbl(huge_bignum).should == infinity
-      @s.rb_big2dbl(-huge_bignum).should == infinity
+      @s.rb_big2dbl(huge_bignum).should == infinity_value
+    end
+
+    ruby_bug "#3362", "1.8.7.249" do
+      it "returns -Infinity if the number is negative and too big for a double" do
+        huge_bignum = -ensure_bignum(Float::MAX.to_i * 2)
+        @s.rb_big2dbl(huge_bignum).should == -infinity_value
+      end
     end
 
     it "prints a warning to $stderr if Bignum is too big for a double" do
