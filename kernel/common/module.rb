@@ -116,8 +116,8 @@ class Module
     end
 
     # Always also search Object (and everything included in Object).
-    # This lets a module alias methods on Kernel.
-    if instance_of?(Module) and self != Kernel
+    # This lets a module alias methods on Object or Kernel.
+    if instance_of?(Module)
       return Object.lookup_method(sym)
     end
   end
