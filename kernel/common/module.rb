@@ -115,8 +115,8 @@ class Module
       mod = mod.direct_superclass
     end
 
-    # Always also search Object (and everything included in Object).
-    # This lets a module alias methods on Object or Kernel.
+    # Optionally also search Object (and everything included in Object);
+    # this lets a module alias methods on Object or Kernel.
     if check_object_too and instance_of?(Module)
       return Object.lookup_method(sym)
     end
