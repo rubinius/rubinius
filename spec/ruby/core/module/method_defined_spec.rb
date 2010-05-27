@@ -23,6 +23,13 @@ describe "Module#method_defined?" do
     ModuleSpecs::Child.method_defined?(:private_super_module).should == false
   end
 
+  # unlike alias_method, module_function, public, and friends,
+  it "does not search Object or Kernel when called on a module" do
+    m = Module.new
+
+    m.method_defined?(:module_specs_public_method_on_kernel).should be_false
+  end
+
   it "raises a TypeError when the given object is not a string/symbol/fixnum" do
     c = Class.new
     o = mock('123')
