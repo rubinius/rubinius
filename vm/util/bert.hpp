@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
+#include <string.h>
 
 #include <cstdio>
 #include <ostream>
