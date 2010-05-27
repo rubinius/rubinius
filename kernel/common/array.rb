@@ -563,15 +563,22 @@ class Array
 
     key = undefined
     i = to_iter
-    while i.next
-      set_index(i.index, key) if yield i.item
+
+    begin
+      while i.next
+        set_index(i.index, key) if yield i.item
+      end
+    ensure
+      # The yield'd block might raise an exception, in which case we
+      # need to clean up the work we've done thus far, otherwise the
+      # Array is left in a corrupted state.
+      deleted = @tuple.delete @start, @total, key
+      if deleted > 0
+        @total -= deleted
+        reallocate_shrink()
+      end
     end
 
-    deleted = @tuple.delete @start, @total, key
-    if deleted > 0
-      @total -= deleted
-      reallocate_shrink()
-    end
     return self
   end
 
