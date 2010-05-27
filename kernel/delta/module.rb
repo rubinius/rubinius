@@ -39,7 +39,7 @@ class Module
       mc = Rubinius.object_metaclass(self)
       args.each do |meth|
         method_name = Type.coerce_to_symbol meth
-        method = find_method_in_hierarchy(method_name)
+        mod, method = lookup_method(method_name)
         mc.method_table.store method_name, method.method, :public
         set_visibility method_name, :private
       end

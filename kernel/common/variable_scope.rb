@@ -80,7 +80,7 @@ module Rubinius
 
       if sup = @module.direct_superclass
         # This will probably break for define_method
-        return sup.find_method_in_hierarchy(@method.name) != nil
+        return sup.lookup_method(@method.name) != nil
       end
 
       return false

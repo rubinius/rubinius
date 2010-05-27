@@ -103,7 +103,7 @@ class Module
 
   alias_method :inspect, :to_s
 
-  def lookup_method(sym)
+  def lookup_method(sym, check_object_too=true)
     mod = self
 
     while mod
@@ -117,26 +117,8 @@ class Module
 
     # Always also search Object (and everything included in Object).
     # This lets a module alias methods on Object or Kernel.
-    if instance_of?(Module)
-      return Object.lookup_method(sym)
-    end
-  end
-
-  def find_method_in_hierarchy(sym, check_object_too=true)
-    mod = self
-
-    while mod
-      if entry = mod.method_table.lookup(sym.to_sym)
-        return entry
-      end
-
-      mod = mod.direct_superclass
-    end
-
-    # Optionally also search Object (and everything included in Object);
-    # this lets a module alias methods on Object or Kernel.
     if check_object_too and instance_of?(Module)
-      return Object.find_method_in_hierarchy(sym)
+      return Object.lookup_method(sym)
     end
   end
 
@@ -178,24 +160,6 @@ class Module
     end
 
     return out
-  end
-
-  def find_class_method_in_hierarchy(sym)
-    Rubinius.object_metaclass(self).find_method_in_hierarchy(sym)
-  end
-
-  def remote_alias(new_name, mod, current_name)
-    entry = mod.find_method_in_hierarchy(current_name)
-    unless entry
-      raise NameError, "Unable to find method '#{current_name}' under #{mod}"
-    end
-
-    meth = entry.method
-
-    @method_table.store new_name, entry.method, entry.visibility
-    Rubinius::VM.reset_method_cache(new_name)
-
-    return new_name
   end
 
   def undef_method(*names)
@@ -245,26 +209,26 @@ class Module
 
   def public_method_defined?(sym)
     sym = Type.coerce_to_symbol(sym)
-    m = find_method_in_hierarchy(sym, false)
-    m ? m.public? : false
+    mod, meth = lookup_method(sym, false)
+    meth ? meth.public? : false
   end
 
   def private_method_defined?(sym)
     sym = Type.coerce_to_symbol(sym)
-    m = find_method_in_hierarchy(sym, false)
-    m ? m.private? : false
+    mod, meth = lookup_method(sym, false)
+    meth ? meth.private? : false
   end
 
   def protected_method_defined?(sym)
     sym = Type.coerce_to_symbol(sym)
-    m = find_method_in_hierarchy(sym, false)
-    m ? m.protected? : false
+    mod, meth = lookup_method(sym, false)
+    meth ? meth.protected? : false
   end
 
   def method_defined?(sym)
     sym = Type.coerce_to_symbol(sym)
-    m = find_method_in_hierarchy(sym, false)
-    m ? m.public? || m.protected? : false
+    mod, meth = lookup_method(sym, false)
+    meth ? meth.public? || meth.protected? : false
   end
 
   ##
@@ -424,7 +388,7 @@ class Module
 
     if entry = @method_table.lookup(name)
       entry.visibility = vis
-    elsif find_method_in_hierarchy(name)
+    elsif lookup_method(name)
       @method_table.store name, nil, vis
     else
       raise NoMethodError, "Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})"
