@@ -452,10 +452,13 @@ class Array
     picks = (0...num).to_a                   # picks start at 0, 1, 2
     max = ((size-num)...size).to_a           # max (index for a given pick) is [4, 5, 6]
     pick_max_pairs = picks.zip(max).reverse  # pick_max_pairs = [[2, 6], [1, 5], [0, 4]]
-    lookup = pick_max_pairs.find(Proc.new{return self})
-    loop do
+
+    return_proc = proc { return self }
+    lookup = pick_max_pairs.find(return_proc)
+
+    while true
       yield values_at(*picks)
-      move = lookup.each{|pick, max| picks[pick] < max}.first
+      move = lookup.each{ |pick, max| picks[pick] < max }.first
       new_index = picks[move] + 1
       picks[move...num] = (new_index...(new_index+num-move)).to_a
     end
@@ -499,9 +502,19 @@ class Array
     return to_enum(:cycle, n) unless block_given?
     if n
       n = Type.coerce_to n, Fixnum, :to_int
-      n.times{each(&block)}
+      n.times do
+        i = to_iter
+        while i.next
+          yield i.item
+        end
+      end
     else
-      loop{each(&block)}
+      while true
+        i = to_iter
+        while i.next
+          yield i.item
+        end
+      end
     end
     nil
   end
