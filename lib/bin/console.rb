@@ -10,7 +10,7 @@ class Console
     @path = path
   end
 
-  def connect
+  def connect(notice=true)
     @socket = TCPSocket.new("localhost", @port)
     @decoder = BERT::Decode.new(@socket)
     @encoder = BERT::Encode.new(@socket)
@@ -21,7 +21,9 @@ class Console
       return
     end
 
-    puts "Connected to localhost:#{@port}, host type: #{tuple[1]}"
+    if notice
+      puts "Connected to localhost:#{@port}, host type: #{tuple[1]}"
+    end
   end
 
   def take_commands
@@ -31,12 +33,12 @@ class Console
       cmd, args = str.split(/\s+/, 2)
 
       case cmd
-      when "uname", "info"
-        uname(args)
       when "set"
         set_config(args)
       when "get"
         get_config(args)
+      when "memory", "mem"
+        show_memory
       when "q", "quit", "exit"
         quit
         return
@@ -48,25 +50,13 @@ class Console
         puts "Unknown command: #{cmd}"
       end
     end
+  rescue Errno::EPIPE, IOError
+    puts "VM has disconnected"
   end
 
   def request(*args)
     @encoder.write_any t[*args]
     @decoder.read_any
-  end
-
-  def uname(args)
-    response = request :uname
-
-    os, hostname, os_version, full_version, arch = *response
-
-    puts "      OS: #{os} #{os_version}"
-    puts "Hostname: #{hostname}"
-    puts " Machine: #{arch}"
-
-    if args =~ /-v/
-      puts "\n#{full_version}"
-    end
   end
 
   def quit
@@ -100,28 +90,91 @@ class Console
   def get_config(args)
     var = args.strip
 
-    response = request :get_config, var
+    begin
+      kind, val = get(var)
+    rescue GetError => e
+      puts "Error: #{e.message}"
+      return
+    end
 
-    if response == :unknown_key
-      puts "Unknown variable '#{var}'."
+    if val.kind_of? Array
+      puts "var #{var} = ["
+      val.each do |x|
+        puts "  #{x.inspect},"
+      end
+      puts "]"
     else
-      ok, val = *response
       puts "var #{var} = #{val.inspect}"
     end
+  end
+
+  class GetError < RuntimeError
+    def initialize(var, code, msg)
+      super("#{code} - #{msg} (#{var})")
+    end
+  end
+
+  def get(var)
+    @encoder.write_any t[:get_config, var]
+    code, kind, val = @decoder.read_any
+
+    if code != :ok
+      raise GetError.new(var, code, kind)
+    end
+
+    return [kind, val]
+  end
+
+  def human_number(number)
+    k = number >> 10
+    if k > 1024
+      "%.2fMb" % (number.to_f / (1024 * 1024))
+    elsif k == 0
+      "#{number}b"
+    else
+      "#{k}Kb"
+    end
+  end
+
+  def show_memory
+    code, val = get "system.memory.young"
+    puts "  Young: #{val}"
+
+    total = val
+
+    code, val = get "system.memory.mature"
+    puts " Mature: #{val}"
+
+    total += val
+
+    code, val = get "system.memory.large"
+    puts "  Large: #{val}"
+
+    total += val
+
+    code, val = get "system.memory.code"
+    puts "   Code: #{val}"
+
+    total += val
+
+    code, val = get "system.memory.symbols"
+    puts "Symbols: #{val}"
+
+    total += val
+
+    puts " Total: #{human_number(total)} (#{total})"
   end
 
   def backtrace(args)
     if args =~ /--vm/
       run_gdb "thread apply all bt"
     else
-      response = request :backtrace
+      kind, val = get "system.backtrace"
 
-      if response[0] == :ok
-        response[1].each_with_index do |str, idx|
-          puts "Thread #{idx}:"
-          puts str
-          puts
-        end
+      val.each_with_index do |str, idx|
+        puts "Thread #{idx}:"
+        puts str
+        puts
       end
     end
   end
@@ -160,7 +213,7 @@ class Console
   end
 end
 
-if port = ARGV.shift
+if false # port = ARGV.shift
   port = port.to_i
   pid = nil
   cmd = nil
@@ -173,14 +226,18 @@ else
     exit 1
   end
 
-  puts "VM: #{cmd}"
-
 end
 
-puts "Connecting to VM on port #{port}"
+if ARGV.empty?
+  con = Console.new(port, pid, path)
 
-con = Console.new(port, pid, path)
+  puts "VM: #{cmd}"
+  puts "Connecting to VM on port #{port}"
 
-con.connect
-
-con.take_commands
+  con.connect
+  con.take_commands
+else
+  con = Console.new(port, pid, path)
+  con.connect(false)
+  con.get_config(ARGV[0])
+end

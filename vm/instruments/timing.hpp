@@ -56,19 +56,20 @@ namespace timer {
     return (double)get_current_time() * 1000000000;
   }
 
+  template <typename RT, int factor=1>
   class Running {
-    uint64_t& result_;
+    RT& result_;
     uint64_t start_;
 
   public:
-    Running(uint64_t& result)
+    Running(RT& result)
       : result_(result)
     {
       start_ = get_current_time();
     }
 
     ~Running() {
-      result_ += (get_current_time() - start_);
+      result_ += ((get_current_time() - start_) / factor);
     }
   };
 }

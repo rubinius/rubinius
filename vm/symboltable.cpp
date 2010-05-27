@@ -49,6 +49,8 @@ namespace rubinius {
   }
 
   size_t SymbolTable::add(std::string str) {
+    bytes_used_ += (str.size() + sizeof(str));
+
     strings.push_back(str);
     kinds.push_back(detect_kind(str.c_str(), str.size()));
     return strings.size() - 1;

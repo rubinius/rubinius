@@ -1,10 +1,6 @@
 #ifndef RBX_OBJECTMEMORY_H
 #define RBX_OBJECTMEMORY_H
 
-// #include "gc/marksweep.hpp"
-// #include "gc/baker.hpp"
-// #include "gc/immix.hpp"
-
 #include "prelude.hpp"
 #include "type_info.hpp"
 
@@ -201,6 +197,10 @@ namespace rubinius {
 
     void snapshot();
     void print_new_since_snapshot();
+
+    size_t& loe_usage();
+    size_t& immix_usage();
+    size_t& code_usage();
 
     InflatedHeader* inflate_header(ObjectHeader* obj);
 

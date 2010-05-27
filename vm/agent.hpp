@@ -6,6 +6,10 @@
 namespace rubinius {
   class SharedState;
 
+  namespace agent {
+    class VariableAccess;
+  }
+
   class QueryAgent : public thread::Thread {
     SharedState& shared_;
     VM* state_;
@@ -17,20 +21,12 @@ namespace rubinius {
 
     std::vector<int> sockets_;
 
+    agent::VariableAccess* vars_;
+
     const static int cBackLog = 10;
 
   public:
-    QueryAgent(SharedState& shared, VM* state, int port)
-      : Thread()
-      , shared_(shared)
-      , state_(state)
-      , port_(port)
-      , server_fd_(0)
-      , verbose_(false)
-      , max_fd_(0)
-    {
-      FD_ZERO(&fds_);
-    }
+    QueryAgent(SharedState& shared, VM* state, int port);
 
     void set_verbose() {
       verbose_ = true;

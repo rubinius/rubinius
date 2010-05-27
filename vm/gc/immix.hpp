@@ -87,7 +87,7 @@ namespace rubinius {
     ObjectPosition validate_object(Object*);
 
   public: // Inline
-    int bytes_allocated() {
+    size_t& bytes_allocated() {
       return gc_.bytes_allocated();
     }
 

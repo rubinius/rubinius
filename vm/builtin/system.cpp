@@ -579,7 +579,6 @@ namespace rubinius {
   Object* System::vm_jit_block(STATE, BlockEnvironment* env, Object* show) {
 #ifdef ENABLE_LLVM
     LLVMState* ls = LLVMState::get(state);
-    timer::Running timer(ls->time_spent);
 
     VMMethod* vmm = env->vmmethod(state);
 

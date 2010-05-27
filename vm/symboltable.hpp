@@ -51,7 +51,18 @@ namespace rubinius {
 
     typedef std::vector<Kind> SymbolKinds;
 
+  private:
+    SymbolMap symbols;
+    SymbolStrings strings;
+    SymbolKinds kinds;
+    thread::SpinLock lock_;
+    size_t bytes_used_;
+
   public:
+    size_t& bytes_used() {
+      return bytes_used_;
+    }
+
     Symbol* lookup(const char* str);
     Symbol* lookup(STATE, const char* str);
     Symbol* lookup(STATE, String* str);
@@ -67,12 +78,6 @@ namespace rubinius {
     Kind kind(STATE, const Symbol* sym);
 
     int byte_size();
-
-  private:
-    SymbolMap symbols;
-    SymbolStrings strings;
-    SymbolKinds kinds;
-    thread::SpinLock lock_;
 
     size_t add(std::string str);
     Kind   detect_kind(const char* str, int size);

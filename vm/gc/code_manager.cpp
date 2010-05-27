@@ -25,6 +25,7 @@ namespace rubinius {
     , freed_resources_(0)
     , total_allocated_(0)
     , total_freed_(0)
+    , bytes_used_(0)
   {
     first_chunk_ = new Chunk(chunk_size_);
     last_chunk_ = first_chunk_;
@@ -44,6 +45,7 @@ namespace rubinius {
     thread::Mutex::LockGuard guard(mutex_);
 
     total_allocated_ += cr->size();
+    bytes_used_ += cr->size();
 
     for(;;) {
       while(current_index_ < chunk_size_) {
@@ -72,6 +74,8 @@ namespace rubinius {
         if(CodeResource* cr = chunk->resources[i]) {
           if(!cr->marked()) {
             total_freed_ += cr->size();
+            bytes_used_ -= cr->size();
+
             freed_resources_++;
             cr->cleanup(this);
             delete cr;
@@ -86,7 +90,7 @@ namespace rubinius {
     }
   }
 
-  int CodeManager::size() {
+  int CodeManager::calculate_size() {
     Chunk* chunk = first_chunk_;
 
     int total = 0;

@@ -398,6 +398,9 @@ namespace immix {
     // Used when allocating free-only blocks.
     size_t free_chunk_cursor_;
     size_t free_block_cursor_;
+
+    // Stats
+    size_t bytes_allocated_;
   public:
 
     BlockAllocator(Triggers& trig)
@@ -407,6 +410,7 @@ namespace immix {
       , block_cursor_(0)
       , free_chunk_cursor_(0)
       , free_block_cursor_(0)
+      , bytes_allocated_(0)
     {}
 
     ~BlockAllocator() {
@@ -416,6 +420,10 @@ namespace immix {
         Chunk* chunk = *i;
         chunk->free();
       }
+    }
+
+    size_t& bytes_allocated() {
+      return bytes_allocated_;
     }
 
     Chunks& chunks() {
@@ -475,6 +483,8 @@ namespace immix {
       chunk_cursor_ = chunks_.size() - 1;
       block_cursor_ = 1;
       current_chunk_ = chunk;
+
+      bytes_allocated_ += chunk->size();
 
       triggers_.added_chunk(chunks_.size());
       return chunk;
@@ -757,16 +767,8 @@ namespace immix {
       }
     }
 
-    int bytes_allocated() {
-      int bytes = 0;
-      Chunks& chunks = block_allocator_.chunks();
-      for(Chunks::iterator i = chunks.begin();
-          i != chunks.end();
-          i++) {
-        bytes += (*i)->size();
-      }
-
-      return bytes;
+    size_t& bytes_allocated() {
+      return block_allocator_.bytes_allocated();
     }
 
     bool allocated_address(Address addr) {

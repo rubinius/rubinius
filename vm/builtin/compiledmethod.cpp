@@ -164,7 +164,6 @@ namespace rubinius {
     }
 
     LLVMState* ls = LLVMState::get(state);
-    timer::Running timer(ls->time_spent);
 
     jit::Compiler jit;
     jit.compile_method(ls, this, backend_method_);

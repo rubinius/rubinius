@@ -489,6 +489,18 @@ namespace rubinius {
 
   }
 
+  size_t& ObjectMemory::loe_usage() {
+    return mark_sweep_->allocated_bytes;
+  }
+
+  size_t& ObjectMemory::immix_usage() {
+    return immix_->bytes_allocated();
+  }
+
+  size_t& ObjectMemory::code_usage() {
+    return (size_t&)code_manager_.size();
+  }
+
   void ObjectMemory::memstats() {
     int total = 0;
 

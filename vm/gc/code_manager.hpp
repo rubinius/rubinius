@@ -33,6 +33,8 @@ namespace rubinius {
     int total_allocated_;
     int total_freed_;
 
+    int bytes_used_;
+
   public:
     int freed_resources() {
       return freed_resources_;
@@ -50,6 +52,10 @@ namespace rubinius {
       return shared_;
     }
 
+    int& size() {
+      return bytes_used_;
+    }
+
   public:
     CodeManager(SharedState* shared, int chunk_size=cDefaultChunkSize);
     ~CodeManager();
@@ -57,7 +63,7 @@ namespace rubinius {
     void add_resource(CodeResource* cr);
     void clear_marks();
     void sweep();
-    int size();
+    int  calculate_size();
 
   private:
     void add_chunk();

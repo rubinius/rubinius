@@ -4,7 +4,6 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-#include <sys/utsname.h>
 
 #include "util/bert.hpp"
 
@@ -16,10 +15,25 @@
 
 #include "config.h"
 
+#include "agent_components.hpp"
+
 #include <ostream>
 #include <sstream>
 
 namespace rubinius {
+  QueryAgent::QueryAgent(SharedState& shared, VM* state, int port)
+    : Thread()
+    , shared_(shared)
+    , state_(state)
+    , port_(port)
+    , server_fd_(0)
+    , verbose_(false)
+    , max_fd_(0)
+  {
+    FD_ZERO(&fds_);
+    vars_ = new agent::VariableAccess(state, shared);
+  }
+
   bool QueryAgent::bind() {
     server_fd_ = ::socket(AF_INET, SOCK_STREAM, 0);
     if(server_fd_ == -1) {
@@ -87,21 +101,7 @@ namespace rubinius {
 
     if(val->type() == bert::Tuple) {
       bert::Value* cmd = val->get_element(0);
-      if(cmd->equal_atom("uname")) {
-        struct utsname name;
-        if(uname(&name)) {
-          encoder.write_atom("error");
-          return true;
-        } else {
-          encoder.write_tuple(5);
-          encoder.write_binary(name.sysname);
-          encoder.write_binary(name.nodename);
-          encoder.write_binary(name.release);
-          encoder.write_binary(name.version);
-          encoder.write_binary(name.machine);
-          return true;
-        }
-      } else if(cmd->equal_atom("set_config")) {
+      if(cmd->equal_atom("set_config")) {
         if(val->elements()->size() == 3) {
           bert::Value* key = val->get_element(1);
           bert::Value* value = val->get_element(2);
@@ -123,56 +123,17 @@ namespace rubinius {
         if(val->elements()->size() == 2) {
           bert::Value* key = val->get_element(1);
           if(key->type() == bert::Binary) {
-            if(config::ConfigItem* item = shared_.config.find(key->string())) {
-              std::stringstream ss;
-              item->print_value(ss);
+            agent::Output output(writer);
 
-              encoder.write_tuple(2);
-              encoder.write_atom("ok");
-              if(config::Integer* i = dynamic_cast<config::Integer*>(item)) {
-                encoder.write_integer(i->value);
-              } else {
-                encoder.write_binary(ss.str().c_str());
-              }
-            } else {
-              encoder.write_atom("unknown_key");
-            }
+            vars_->read_path(output, key->string());
+
             return true;
           }
         }
 
         encoder.write_atom("error");
         return true;
-      } else if(cmd->equal_atom("backtrace")) {
-        if(verbose_) {
-          std::cerr << "[QA: Gathering backtraces, pausing threads]\n";
-        }
-
-        encoder.write_tuple(2);
-        encoder.write_atom("ok");
-
-        {
-          GlobalLock::LockGuard guard(shared_.global_lock());
-
-          encoder.write_tuple(shared_.call_frame_locations().size());
-
-          for(CallFrameLocationList::iterator i = shared_.call_frame_locations().begin();
-              i != shared_.call_frame_locations().end();
-              i++) {
-            CallFrame* loc = *(*i);
-
-            std::ostringstream ss;
-            loc->print_backtrace(state_, ss);
-            encoder.write_binary(ss.str().c_str());
-          }
-        }
-
-        if(verbose_) {
-          std::cerr << "[QA: Threads restarted]\n";
-        }
       }
-
-      return true;
     } else if(val->equal_atom("close")) {
       encoder.write_atom("bye");
       return false;

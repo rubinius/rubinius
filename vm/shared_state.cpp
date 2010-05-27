@@ -73,7 +73,7 @@ namespace rubinius {
       // For ourself..
       pending_threads_--;
 
-      timer::Running timer(time_waiting_);
+      timer::Running<uint64_t> timer(time_waiting_);
 
       while(pending_threads_ > 0) {
         waiting_to_stop_.wait(mutex_);

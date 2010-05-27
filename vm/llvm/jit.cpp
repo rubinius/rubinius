@@ -296,7 +296,7 @@ namespace rubinius {
 
         void* func = 0;
         {
-          timer::Running timer(ls_->time_spent);
+          timer::Running<size_t, 1000000> timer(ls_->shared().stats.jit_time_spent);
 
           if(req->is_block()) {
             jit.compile_block(ls_, req->method(), req->vmmethod());
@@ -334,6 +334,8 @@ namespace rubinius {
         assert(req->method()->jit_data());
 
         req->method()->jit_data()->run_write_barrier(ls_->write_barrier(), req->method());
+
+        ls_->shared().stats.jitted_methods++;
 
         int which = ls_->add_jitted_method();
         if(ls_->config().jit_show_compiling) {
@@ -390,7 +392,7 @@ namespace rubinius {
   }
 
   LLVMState::LLVMState(STATE)
-    : ManagedThread(state->shared)
+    : ManagedThread(state->shared, ManagedThread::eSystem)
     , ctx_(llvm::getGlobalContext())
     , config_(state->shared.config)
     , global_lock_(state->global_lock())
@@ -405,6 +407,8 @@ namespace rubinius {
     , log_(0)
     , time_spent(0)
   {
+
+    set_name("Background Compiler");
     state->shared.add_managed_thread(this);
     state->shared.om->add_aux_barrier(&write_barrier_);
 
@@ -587,6 +591,8 @@ namespace rubinius {
   }
 
   void LLVMState::remove(llvm::Function* func) {
+    shared_.stats.jitted_methods--;
+
     engine_->getPointerToFunction(func);
 
     // Deallocate the JITed code

@@ -8,6 +8,8 @@
 #include "gc/variable_buffer.hpp"
 #include "kcode.hpp"
 
+#include "stats.hpp"
+
 #include "globals.hpp"
 #include "symboltable.hpp"
 
@@ -96,6 +98,7 @@ namespace rubinius {
     Interrupts interrupts;
     SymbolTable symbols;
     LLVMState* llvm_state;
+    Stats stats;
 
   public:
     SharedState(Configuration& config, ConfigParser& cp);

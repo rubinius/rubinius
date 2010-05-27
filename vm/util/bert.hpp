@@ -1,3 +1,6 @@
+#ifndef RBX_UTIL_BERT
+#define RBX_UTIL_BERT
+
 #include <errno.h>
 #include <unistd.h>
 #include <assert.h>
@@ -1124,6 +1127,11 @@ namespace bert {
       bzr_.write_binary(data, size);
     }
 
+    void raw_write(const char* data, int size = -1) {
+      if(size == -1) size = strlen(data);
+      writer_.write(size, data);
+    }
+
     void write_tuple(int size) {
       bzr_.write_tuple(size);
     }
@@ -1167,3 +1175,5 @@ namespace bert {
     }
   };
 }
+
+#endif

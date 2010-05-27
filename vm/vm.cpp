@@ -52,7 +52,7 @@ namespace rubinius {
   static rlim_t cMaxStack = (1024 * 1024 * 128);
 
   VM::VM(SharedState& shared)
-    : ManagedThread(shared)
+    : ManagedThread(shared, ManagedThread::eRuby)
     , saved_call_frame_(0)
     , stack_start_(0)
     , profiler_(0)
