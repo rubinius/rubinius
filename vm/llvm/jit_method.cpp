@@ -79,7 +79,7 @@ namespace jit {
 
     call_frame = b().CreateBitCast(
         cfstk,
-        PointerType::getUnqual(cf_type), "call_frame");
+        llvm::PointerType::getUnqual(cf_type), "call_frame");
 
     info_.set_call_frame(call_frame);
 
@@ -89,7 +89,7 @@ namespace jit {
 
     vars = b().CreateBitCast(
         var_mem,
-        PointerType::getUnqual(stack_vars_type), "vars");
+        llvm::PointerType::getUnqual(stack_vars_type), "vars");
 
     info_.set_variables(vars);
 
@@ -319,7 +319,7 @@ namespace jit {
       b().SetInsertPoint(end_profiling);
 
       Signature sig(ls_, ls_->VoidTy);
-      sig << PointerType::getUnqual(ls_->Int8Ty);
+      sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
 
       Value* call_args[] = {
         method_entry_
@@ -338,7 +338,7 @@ namespace jit {
 
 
   void MethodBuilder::setup_scope() {
-    Value* heap_null = ConstantExpr::getNullValue(PointerType::getUnqual(vars_type));
+    Value* heap_null = ConstantExpr::getNullValue(llvm::PointerType::getUnqual(vars_type));
     Value* heap_pos = get_field(vars, offset::vars_on_heap);
 
     b().CreateStore(heap_null, heap_pos);
@@ -368,7 +368,7 @@ namespace jit {
     Value* exec = b().CreateLoad(get_field(msg, 2), "msg.exec");
     Value* cm_gep = get_field(call_frame, offset::cf_cm);
     method = b().CreateBitCast(
-        exec, cast<PointerType>(cm_gep->getType())->getElementType(), "cm");
+        exec, cast<llvm::PointerType>(cm_gep->getType())->getElementType(), "cm");
 
     // previous
     b().CreateStore(prev, get_field(call_frame, offset::cf_previous));
@@ -417,7 +417,7 @@ namespace jit {
 
       Signature sig(ls_, ls_->VoidTy);
       sig << "VM";
-      sig << PointerType::getUnqual(ls_->Int8Ty);
+      sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
       sig << "Dispatch";
       sig << "Arguments";
       sig << "CompiledMethod";

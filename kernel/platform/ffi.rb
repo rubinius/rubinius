@@ -14,7 +14,7 @@ module FFI
   #
   # Use this constant instead of nil directly.
   #
-  USE_THIS_PROCESS_AS_LIBRARY = nil
+  CURRENT_PROCESS = nil
 
   TypeDefs = Rubinius::LookupTable.new
 

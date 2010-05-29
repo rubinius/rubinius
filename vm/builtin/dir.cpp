@@ -6,7 +6,6 @@
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/memorypointer.hpp"
 #include "builtin/string.hpp"
 
 #include "object_utils.hpp"

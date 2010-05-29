@@ -7,7 +7,6 @@
 
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
-#include "builtin/memorypointer.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
@@ -285,8 +284,9 @@ namespace rubinius {
     Symbol* name_;                                    // slot
     /** Module on which created. */
     Module* module_;                                  // slot
+
     /** Function object that implements this method. */
-    MemoryPointer* functor_;                          // slot
+    void* functor_;
 
   public:   /* Accessors */
 
@@ -298,9 +298,6 @@ namespace rubinius {
     attr_accessor(name, Symbol);
     /** Module on which created. */
     attr_accessor(module, Module);
-    /** Function object that implements this method. */
-    attr_accessor(functor, MemoryPointer);
-
 
   public:   /* Ruby bookkeeping */
 
@@ -345,7 +342,7 @@ namespace rubinius {
         nmethod->name(state, method_name);
         nmethod->module(state, module);
 
-        nmethod->functor(state, MemoryPointer::create(state, reinterpret_cast<void*>(functor)));
+        nmethod->functor_ = reinterpret_cast<void*>(functor);
 
         nmethod->set_executor(&NativeMethod::executor_implementation);
 
@@ -396,7 +393,7 @@ namespace rubinius {
     template <typename FunctorType>
       FunctorType functor_as() const
       {
-        return reinterpret_cast<FunctorType>(functor_->pointer);
+        return reinterpret_cast<FunctorType>(functor_);
       }
 
   public:   /* Type information */

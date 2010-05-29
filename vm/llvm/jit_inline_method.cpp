@@ -34,7 +34,7 @@ namespace jit {
 
     call_frame = b().CreateBitCast(
         cfstk,
-        PointerType::getUnqual(cf_type), "call_frame");
+        llvm::PointerType::getUnqual(cf_type), "call_frame");
 
     stk = b().CreateConstGEP1_32(cfstk, sizeof(CallFrame) / sizeof(Object*), "stack");
 
@@ -48,7 +48,7 @@ namespace jit {
 
     vars = b().CreateBitCast(
         var_mem,
-        PointerType::getUnqual(stack_vars_type), "vars");
+        llvm::PointerType::getUnqual(stack_vars_type), "vars");
 
     info_.set_variables(vars);
 
@@ -123,7 +123,7 @@ namespace jit {
   }
 
   void InlineMethodBuilder::setup_inline_scope(Value* self, Value* blk, Value* mod) {
-    Value* heap_null = ConstantExpr::getNullValue(PointerType::getUnqual(vars_type));
+    Value* heap_null = ConstantExpr::getNullValue(llvm::PointerType::getUnqual(vars_type));
     Value* heap_pos = get_field(vars, offset::vars_on_heap);
     b().CreateStore(heap_null, heap_pos);
 

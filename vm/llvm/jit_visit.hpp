@@ -192,7 +192,7 @@ namespace rubinius {
 
       global_serial_pos = b().CreateIntToPtr(
           ConstantInt::get(ls_->IntPtrTy, (intptr_t)ls_->shared().global_serial_address()),
-          PointerType::getUnqual(ls_->IntPtrTy), "cast_to_intptr");
+          llvm::PointerType::getUnqual(ls_->IntPtrTy), "cast_to_intptr");
 
       init_out_args();
     }
@@ -451,7 +451,7 @@ namespace rubinius {
         set_block(end_profiling);
 
         Signature sig(ls_, ls_->VoidTy);
-        sig << PointerType::getUnqual(ls_->Int8Ty);
+        sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
 
         Value* call_args[] = {
           method_entry_
@@ -1275,7 +1275,7 @@ namespace rubinius {
 
       Value* ptr = b().CreateIntToPtr(
           ConstantInt::get(ls_->IntPtrTy, reinterpret_cast<uintptr_t>(invoker)),
-          PointerType::getUnqual(sig.type()));
+          llvm::PointerType::getUnqual(sig.type()));
 
       Value* call = b().CreateCall(ptr, call_args, call_args + 4, "invoked_prim");
 
@@ -1814,7 +1814,7 @@ use_send:
 
         Value* current_serial_pos = b().CreateIntToPtr(
             ConstantInt::get(ls_->IntPtrTy, (intptr_t)entry->serial_location()),
-            PointerType::getUnqual(ls_->IntPtrTy), "cast_to_intptr");
+            llvm::PointerType::getUnqual(ls_->IntPtrTy), "cast_to_intptr");
 
         Value* current_serial = b().CreateLoad(current_serial_pos, "serial");
 
@@ -1830,7 +1830,7 @@ use_send:
 
         Value* value_pos = b().CreateIntToPtr(
             ConstantInt::get(ls_->IntPtrTy, (intptr_t)entry->value_location()),
-            PointerType::getUnqual(ObjType), "cast_to_objptr");
+            llvm::PointerType::getUnqual(ObjType), "cast_to_objptr");
 
         cached_value = b().CreateLoad(value_pos, "cached_value");
         cached_block = b().GetInsertBlock();
@@ -2583,7 +2583,7 @@ use_send:
 
       Value* cst = b().CreateBitCast(
           self,
-          PointerType::getUnqual(ObjType), "obj_array");
+          llvm::PointerType::getUnqual(ObjType), "obj_array");
 
       Value* idx2[] = {
         ConstantInt::get(ls_->Int32Ty, i / sizeof(Object*))

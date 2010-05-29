@@ -4,7 +4,7 @@
 class Iconv
   extend FFI::Library
 
-  ffi_lib FFI::USE_THIS_PROCESS_AS_LIBRARY, "libiconv"
+  ffi_lib FFI::CURRENT_PROCESS, "libiconv"
 
   attach_function :create,  "iconv_open", [:string, :string], :pointer
   attach_function :close,   "iconv_close", [:pointer], :int

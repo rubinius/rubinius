@@ -142,7 +142,7 @@ namespace rubinius {
 
   const llvm::Type* LLVMState::ptr_type(std::string name) {
     std::string full_name = std::string("struct.rubinius::") + name;
-    return PointerType::getUnqual(
+    return llvm::PointerType::getUnqual(
         module_->getTypeByName(full_name.c_str()));
   }
 
@@ -446,7 +446,7 @@ namespace rubinius {
     FloatTy = Type::getFloatTy(ctx_);
     DoubleTy = Type::getDoubleTy(ctx_);
 
-    Int8PtrTy = PointerType::getUnqual(Int8Ty);
+    Int8PtrTy = llvm::PointerType::getUnqual(Int8Ty);
 
     bool fast_code_passes = false;
 

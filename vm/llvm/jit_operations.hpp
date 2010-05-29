@@ -94,7 +94,7 @@ namespace rubinius {
       Zero = ConstantInt::get(NativeIntTy, 0);
 
       ObjType = ptr_type("Object");
-      ObjArrayTy = PointerType::getUnqual(ObjType);
+      ObjArrayTy = llvm::PointerType::getUnqual(ObjType);
 
       VMTy = ptr_type("VM");
       CallFrameTy = ptr_type("CallFrame");
@@ -192,7 +192,7 @@ namespace rubinius {
     //
     const llvm::Type* ptr_type(std::string name) {
       std::string full_name = std::string("struct.rubinius::") + name;
-      return PointerType::getUnqual(
+      return llvm::PointerType::getUnqual(
           module_->getTypeByName(full_name.c_str()));
     }
 
@@ -412,7 +412,7 @@ namespace rubinius {
       stack_ptr_adjust(1);
       Value* stack_pos = stack_ptr();
 
-      if(val->getType() == cast<PointerType>(stack_pos->getType())->getElementType()) {
+      if(val->getType() == cast<llvm::PointerType>(stack_pos->getType())->getElementType()) {
         b().CreateStore(val, stack_pos);
       } else {
         Value* cst = b().CreateBitCast(
@@ -610,7 +610,7 @@ namespace rubinius {
 
       Value* cst = b().CreateBitCast(
           obj,
-          PointerType::getUnqual(ObjType), "obj_array");
+          llvm::PointerType::getUnqual(ObjType), "obj_array");
 
       Value* idx2[] = {
         ConstantInt::get(ls_->Int32Ty, offset / sizeof(Object*))
@@ -626,7 +626,7 @@ namespace rubinius {
 
       Value* cst = b().CreateBitCast(
           obj,
-          PointerType::getUnqual(ObjType), "obj_array");
+          llvm::PointerType::getUnqual(ObjType), "obj_array");
 
       Value* idx2[] = {
         ConstantInt::get(ls_->Int32Ty, offset / sizeof(Object*))

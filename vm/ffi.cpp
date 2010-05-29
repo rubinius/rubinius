@@ -14,7 +14,7 @@
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
-#include "builtin/memorypointer.hpp"
+#include "builtin/ffi_pointer.hpp"
 #include "builtin/nativefunction.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"

@@ -142,6 +142,10 @@ int ffi_type_size(int type) {
   }
 }
 
+int ffi_cb_test(int (*thing)(int)) {
+  return (*thing)(42);
+}
+
 unsigned int ffi_cast(unsigned int val) {
   return val;
 }

@@ -5,7 +5,6 @@
 #include "type_info.hpp"
 
 #include <ctype.h>
-#include "object_types.hpp"
 
 namespace rubinius {
   class ByteArray : public Object {

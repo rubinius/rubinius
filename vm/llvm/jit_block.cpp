@@ -54,7 +54,7 @@ namespace jit {
 
     call_frame = b().CreateBitCast(
         cfstk,
-        PointerType::getUnqual(cf_type), "call_frame");
+        llvm::PointerType::getUnqual(cf_type), "call_frame");
 
     info_.set_out_args(b().CreateAlloca(ls_->type("Arguments"), 0, "out_args"));
 
@@ -77,7 +77,7 @@ namespace jit {
 
     vars = b().CreateBitCast(
         var_mem,
-        PointerType::getUnqual(stack_vars_type), "vars");
+        llvm::PointerType::getUnqual(stack_vars_type), "vars");
 
     info_.set_variables(vars);
 
@@ -92,7 +92,7 @@ namespace jit {
   }
 
   void BlockBuilder::setup_block_scope() {
-    b().CreateStore(ConstantExpr::getNullValue(PointerType::getUnqual(vars_type)),
+    b().CreateStore(ConstantExpr::getNullValue(llvm::PointerType::getUnqual(vars_type)),
         get_field(vars, offset::vars_on_heap));
     Value* self = b().CreateLoad(
         get_field(block_inv, offset::blockinv_self),
@@ -204,7 +204,7 @@ namespace jit {
 
       Signature sig(ls_, ls_->VoidTy);
       sig << "VM";
-      sig << PointerType::getUnqual(ls_->Int8Ty);
+      sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
       sig << "Dispatch";
       sig << "Arguments";
       sig << "CompiledMethod";

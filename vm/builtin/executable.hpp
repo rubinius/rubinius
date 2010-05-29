@@ -11,7 +11,6 @@
 #include <list>
 
 namespace rubinius {
-  class MemoryPointer;
   class Dispatch;
   class Arguments;
 

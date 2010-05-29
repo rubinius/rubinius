@@ -105,7 +105,7 @@ field_extract_headers = %w[
   vm/builtin/iseq.hpp
   vm/builtin/list.hpp
   vm/builtin/lookuptable.hpp
-  vm/builtin/memorypointer.hpp
+  vm/builtin/ffi_pointer.hpp
   vm/builtin/methodtable.hpp
   vm/builtin/nativefunction.hpp
   vm/builtin/packed_object.hpp
@@ -305,7 +305,10 @@ namespace :build do
   desc "Generate dependency file"
   task :depends     => dep_file
 
-  import dep_file
+  # Stupid rake.
+  unless Rake.application.top_level_tasks.include? "clean"
+    import dep_file
+  end
 
   desc "Build LLVM"
   task :llvm do

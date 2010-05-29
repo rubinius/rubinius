@@ -21,3 +21,4 @@ static_scope.rbc
 struct.rbc
 thread.rbc
 codeloader.rbc
+ffi.rbc

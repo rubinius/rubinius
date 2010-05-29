@@ -502,7 +502,7 @@ remember:
       case RBX_FFI_TYPE_STRPTR:
       case RBX_FFI_TYPE_PTR:
       case RBX_FFI_TYPE_VOID:
-        return PointerType::getUnqual(ops_.state()->Int8Ty);
+        return llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
     }
 
     assert(0 && "unknown type to return!");
@@ -524,11 +524,11 @@ remember:
     struct_types.push_back(ops_.state()->Int32Ty);
     struct_types.push_back(ops_.state()->Int1Ty);
 
-    for(size_t i = 0; i < nf->arg_count; i++) {
+    for(size_t i = 0; i < nf->ffi_data->arg_count; i++) {
       Value* current_arg = arg(i);
       Value* call_args[] = { ops_.vm(), current_arg, ops_.valid_flag() };
 
-      switch(nf->arg_types[i]) {
+      switch(nf->ffi_data->arg_types[i]) {
       case RBX_FFI_TYPE_CHAR:
       case RBX_FFI_TYPE_UCHAR:
       case RBX_FFI_TYPE_SHORT:
@@ -540,12 +540,12 @@ remember:
         Signature sig(ops_.state(), ops_.NativeIntTy);
         sig << "VM";
         sig << "Object";
-        sig << PointerType::getUnqual(ops_.state()->Int1Ty);
+        sig << llvm::PointerType::getUnqual(ops_.state()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_int", call_args, 3, "to_int",
                               ops_.b());
 
-        const Type* type = find_type(ops_, nf->arg_types[i]);
+        const Type* type = find_type(ops_, nf->ffi_data->arg_types[i]);
         ffi_type.push_back(type);
 
         if(type != ops_.NativeIntTy) {
@@ -567,7 +567,7 @@ remember:
         Signature sig(ops_.state(), ops_.state()->FloatTy);
         sig << "VM";
         sig << "Object";
-        sig << PointerType::getUnqual(ops_.state()->Int1Ty);
+        sig << llvm::PointerType::getUnqual(ops_.state()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_float", call_args, 3, "to_float",
                               ops_.b());
@@ -588,7 +588,7 @@ remember:
         Signature sig(ops_.state(), ops_.state()->DoubleTy);
         sig << "VM";
         sig << "Object";
-        sig << PointerType::getUnqual(ops_.state()->Int1Ty);
+        sig << llvm::PointerType::getUnqual(ops_.state()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_double", call_args, 3, "to_double",
                               ops_.b());
@@ -609,7 +609,7 @@ remember:
         Signature sig(ops_.state(), ops_.state()->Int64Ty);
         sig << "VM";
         sig << "Object";
-        sig << PointerType::getUnqual(ops_.state()->Int1Ty);
+        sig << llvm::PointerType::getUnqual(ops_.state()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_int64", call_args, 3, "to_int64",
                               ops_.b());
@@ -636,12 +636,12 @@ remember:
         break;
 
       case RBX_FFI_TYPE_PTR: {
-        const Type* type = PointerType::getUnqual(ops_.state()->Int8Ty);
+        const Type* type = llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
 
         Signature sig(ops_.state(), type);
         sig << "VM";
         sig << "Object";
-        sig << PointerType::getUnqual(ops_.state()->Int1Ty);
+        sig << llvm::PointerType::getUnqual(ops_.state()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_ptr", call_args, 3, "to_ptr",
                               ops_.b());
@@ -659,12 +659,12 @@ remember:
       }
 
       case RBX_FFI_TYPE_STRING: {
-        const Type* type = PointerType::getUnqual(ops_.state()->Int8Ty);
+        const Type* type = llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
 
         Signature sig(ops_.state(), type);
         sig << "VM";
         sig << "Object";
-        sig << PointerType::getUnqual(ops_.state()->Int1Ty);
+        sig << llvm::PointerType::getUnqual(ops_.state()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_string", call_args, 3, "to_string",
                               ops_.b());
@@ -686,12 +686,12 @@ remember:
       }
     }
 
-    const Type* return_type = find_type(ops_, nf->ret_type);
+    const Type* return_type = find_type(ops_, nf->ffi_data->ret_type);
 
     FunctionType* ft = FunctionType::get(return_type, ffi_type, false);
     Value* ep_ptr = ops_.b().CreateIntToPtr(
-            ConstantInt::get(ops_.state()->IntPtrTy, (intptr_t)nf->ep),
-            PointerType::getUnqual(ft), "cast_to_function");
+            ConstantInt::get(ops_.state()->IntPtrTy, (intptr_t)nf->ffi_data->ep),
+            llvm::PointerType::getUnqual(ft), "cast_to_function");
 
     Value* ffi_result = ops_.b().CreateCall(ep_ptr, ffi_args.begin(),
                            ffi_args.end(), "ffi_result");
@@ -699,7 +699,7 @@ remember:
     Value* res_args[] = { ops_.vm(), ffi_result };
 
     Value* result;
-    switch(nf->ret_type) {
+    switch(nf->ffi_data->ret_type) {
     case RBX_FFI_TYPE_CHAR:
     case RBX_FFI_TYPE_UCHAR:
     case RBX_FFI_TYPE_SHORT:
@@ -759,7 +759,7 @@ remember:
     case RBX_FFI_TYPE_PTR: {
       Signature sig(ops_.state(), ops_.ObjType);
       sig << "VM";
-      sig << PointerType::getUnqual(ops_.state()->Int8Ty);
+      sig << llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
 
       result = sig.call("rbx_ffi_from_ptr", res_args, 2, "to_obj",
                         ops_.b());
@@ -773,7 +773,7 @@ remember:
     case RBX_FFI_TYPE_STRING: {
       Signature sig(ops_.state(), ops_.ObjType);
       sig << "VM";
-      sig << PointerType::getUnqual(ops_.state()->Int8Ty);
+      sig << llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
 
       result = sig.call("rbx_ffi_from_string", res_args, 2, "to_obj",
                         ops_.b());
@@ -783,7 +783,7 @@ remember:
     case RBX_FFI_TYPE_STRPTR: {
       Signature sig(ops_.state(), ops_.ObjType);
       sig << "VM";
-      sig << PointerType::getUnqual(ops_.state()->Int8Ty);
+      sig << llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
 
       result = sig.call("rbx_ffi_from_string_with_pointer", res_args, 2, "to_obj",
                         ops_.b());

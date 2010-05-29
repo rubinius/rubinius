@@ -15,7 +15,7 @@
 #include "builtin/autoload.hpp"
 #include "builtin/global_cache_entry.hpp"
 #include "builtin/iseq.hpp"
-#include "builtin/memorypointer.hpp"
+#include "builtin/ffi_pointer.hpp"
 #include "builtin/integer.hpp"
 #include "builtin/float.hpp"
 #include "builtin/location.hpp"
@@ -990,7 +990,7 @@ extern "C" {
   }
 
   void* rbx_ffi_to_ptr(STATE, Object* obj, bool* valid) {
-    if(MemoryPointer* ptr = try_as<MemoryPointer>(obj)) {
+    if(Pointer* ptr = try_as<Pointer>(obj)) {
       *valid = true;
       return ptr->pointer;
     } else if(obj->nil_p()) {
@@ -1038,7 +1038,7 @@ extern "C" {
 
   Object* rbx_ffi_from_ptr(STATE, void* ptr) {
     if(!ptr) return Qnil;
-    return MemoryPointer::create(state, ptr);
+    return Pointer::create(state, ptr);
   }
 
   Object* rbx_ffi_from_string(STATE, char* ptr) {
@@ -1055,7 +1055,7 @@ extern "C" {
     if(ptr) {
       s = String::create(state, ptr);
       s->taint(state);
-      p = MemoryPointer::create(state, ptr);
+      p = Pointer::create(state, ptr);
     } else {
       s = p = Qnil;
     }

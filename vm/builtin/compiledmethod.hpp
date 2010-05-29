@@ -9,7 +9,6 @@
 namespace rubinius {
 
   class InstructionSequence;
-  class MemoryPointer;
   class VMMethod;
   class StaticScope;
 

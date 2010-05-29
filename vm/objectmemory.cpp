@@ -18,7 +18,7 @@
 #include "builtin/fiber.hpp"
 #include "builtin/string.hpp"
 #include "builtin/lookuptable.hpp"
-#include "builtin/memorypointer.hpp"
+#include "builtin/ffi_pointer.hpp"
 #include "builtin/data.hpp"
 #include "builtin/dir.hpp"
 

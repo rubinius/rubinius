@@ -16,7 +16,7 @@
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
-#include "builtin/memorypointer.hpp"
+#include "builtin/ffi_pointer.hpp"
 #include "builtin/nativefunction.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
@@ -27,85 +27,123 @@
 
 namespace rubinius {
 
-  void MemoryPointer::init(STATE) {
+  void Pointer::init(STATE) {
     Module* ffi = as<Module>(G(object)->get_const(state, "FFI"));
-    GO(memory_pointer).set(state->new_class_under("MemoryPointer", ffi));
-    G(memory_pointer)->set_object_type(state, MemoryPointerType);
+    GO(ffi_pointer).set(state->new_class_under("Pointer", ffi));
+    G(ffi_pointer)->set_object_type(state, PointerType);
+
+    G(ffi_pointer)->set_const(state, "CURRENT_PROCESS",
+      Pointer::create(state, dlopen(NULL, 0)));
+
+    G(ffi_pointer)->set_const(state, "DLSYM",
+      Pointer::create(state, (void*)dlsym));
+
+    // Not exactly the right place, but FFI needs this and this is the main
+    // FFI file atm.
+    Array* suffix = Array::create(state, 2);
+#ifdef _WIN32
+    suffix->set(state, 0, String::create(state, "dll"));
+#else
+  #ifdef __APPLE_CC__
+    suffix->set(state, 0, String::create(state, "bundle"));
+    suffix->set(state, 1, String::create(state, "dylib"));
+  #else
+    suffix->set(state, 0, String::create(state, "so"));
+  #endif
+#endif
+
+    ffi->set_const(state, "LIB_SUFFIXES", suffix);
   }
 
-  MemoryPointer* MemoryPointer::create(STATE, void* ptr) {
-    MemoryPointer* obj = state->new_struct<MemoryPointer>(G(memory_pointer));
+  Pointer* Pointer::create(STATE, void* ptr) {
+    Pointer* obj = state->new_struct<Pointer>(G(ffi_pointer));
     obj->pointer = ptr;
     obj->autorelease = false;
     obj->set_finalizer = false;
     return obj;
   }
 
-  Integer* MemoryPointer::get_address(STATE) {
+  Pointer* Pointer::allocate(STATE, Object* self) {
+    Pointer* obj = state->new_struct<Pointer>(as<Class>(self));
+    obj->pointer = 0;
+    obj->autorelease = false;
+    obj->set_finalizer = false;
+    return obj;
+  }
+
+  Pointer* Pointer::allocate_memory(STATE, Object* self, Fixnum* size) {
+    Pointer* obj = state->new_struct<Pointer>(as<Class>(self));
+    obj->pointer = malloc(size->to_native());;
+    obj->autorelease = false;
+    obj->set_finalizer = false;
+    return obj;
+  }
+
+  Integer* Pointer::get_address(STATE) {
     return Integer::from(state, (intptr_t)pointer);
   }
 
-  Integer* MemoryPointer::set_address(STATE, Integer* ptr) {
+  Integer* Pointer::set_address(STATE, Integer* ptr) {
     pointer = (void*)ptr->to_native();
     return ptr;
   }
 
-  MemoryPointer* MemoryPointer::add(STATE, Integer* amount) {
-    return MemoryPointer::create(state, (char*)pointer + amount->to_native());
+  Pointer* Pointer::add(STATE, Integer* amount) {
+    return Pointer::create(state, (char*)pointer + amount->to_native());
   }
 
-  Object* MemoryPointer::set_autorelease(STATE, Object* val) {
+  Object* Pointer::set_autorelease(STATE, Object* val) {
     autorelease = val->true_p() ? true : false;
 
     if(autorelease && !set_finalizer) {
       state->om->needs_finalization(this,
-          (FinalizerFunction)&MemoryPointer::finalize);
+          (FinalizerFunction)&Pointer::finalize);
       set_finalizer = true;
     }
 
     return val;
   }
 
-  void MemoryPointer::finalize(STATE, MemoryPointer* ptr) {
+  void Pointer::finalize(STATE, Pointer* ptr) {
     if(ptr->autorelease && ptr->pointer) {
       ::free(ptr->pointer);
     }
   }
 
-  String* MemoryPointer::read_string(STATE, Fixnum* len) {
+  String* Pointer::read_string(STATE, Fixnum* len) {
     // HM. This is pretty dangerous. Should we figure out how to
     // protect this?
     return String::create(state, (char*)pointer, len->to_native());
   }
 
-  String* MemoryPointer::read_string_to_null(STATE) {
+  String* Pointer::read_string_to_null(STATE) {
     // Danger!
     // This operation might be too dangerous! You can read into any
     // memory using it!
     return String::create(state, (char*)pointer);
   }
 
-  MemoryPointer* MemoryPointer::write_string(STATE, String* str, Fixnum* len) {
+  Pointer* Pointer::write_string(STATE, String* str, Fixnum* len) {
     memcpy(pointer, (void*)str->byte_address(), len->to_native());
     return this;
   }
 
-  Integer* MemoryPointer::write_short(STATE, Integer* val) {
+  Integer* Pointer::write_short(STATE, Integer* val) {
     unsigned short s = val->to_native();
     *(unsigned short*)pointer = s;
     return val;
   }
 
-  Integer* MemoryPointer::read_short(STATE) {
+  Integer* Pointer::read_short(STATE) {
     return Integer::from(state, *(short*)pointer);
   }
 
-  Integer* MemoryPointer::write_int(STATE, Integer* val) {
+  Integer* Pointer::write_int(STATE, Integer* val) {
     *(int*)pointer = val->to_native();
     return val;
   }
 
-  Integer* MemoryPointer::read_int(STATE, Object* sign) {
+  Integer* Pointer::read_int(STATE, Object* sign) {
     if(RTEST(sign)) {
       return Integer::from(state, *(int*)pointer);
     } else {
@@ -113,47 +151,47 @@ namespace rubinius {
     }
   }
 
-  Integer* MemoryPointer::write_long(STATE, Integer* val) {
+  Integer* Pointer::write_long(STATE, Integer* val) {
     *(long*)pointer = val->to_native();
     return val;
   }
 
-  Integer* MemoryPointer::read_long(STATE) {
+  Integer* Pointer::read_long(STATE) {
     return Integer::from(state, *(long*)pointer);
   }
 
-  Integer* MemoryPointer::write_long_long(STATE, Integer* val) {
+  Integer* Pointer::write_long_long(STATE, Integer* val) {
     *(long long*)pointer = val->to_long_long();
     return val;
   }
 
-  Integer* MemoryPointer::read_long_long(STATE) {
+  Integer* Pointer::read_long_long(STATE) {
     return Integer::from(state, *(long long*)pointer);
   }
 
-  Float* MemoryPointer::write_float(STATE, Float* flt) {
+  Float* Pointer::write_float(STATE, Float* flt) {
     *(float*)pointer = (float)flt->val;
     return flt;
   }
 
-  Float* MemoryPointer::read_float(STATE) {
+  Float* Pointer::read_float(STATE) {
     return Float::create(state, (double)(*(float*)pointer));
   }
   
-  Float* MemoryPointer::write_double(STATE, Float* flt) {
+  Float* Pointer::write_double(STATE, Float* flt) {
     *(double*)pointer = flt->val;
     return flt;
   }
   
-  Float* MemoryPointer::read_double(STATE) {
+  Float* Pointer::read_double(STATE) {
     return Float::create(state, *(double*)pointer);
   }
 
-  MemoryPointer* MemoryPointer::read_pointer(STATE) {
-    return MemoryPointer::create(state, *(void**)pointer);
+  Pointer* Pointer::read_pointer(STATE) {
+    return Pointer::create(state, *(void**)pointer);
   }
 
-  Object* MemoryPointer::network_order(STATE, Fixnum* offset, Fixnum* intsize) {
+  Object* Pointer::network_order(STATE, Fixnum* offset, Fixnum* intsize) {
     native_int size = intsize->to_native();
 
     char* pos = ((char*)pointer) + offset->to_native();
@@ -177,11 +215,11 @@ namespace rubinius {
     return Primitives::failure();
   }
 
-  Object* MemoryPointer::get_at_offset(STATE, Fixnum* offset, Fixnum* type) {
+  Object* Pointer::get_at_offset(STATE, Fixnum* offset, Fixnum* type) {
     return get_field(state, offset->to_native(), type->to_native());
   }
 
-  Object* MemoryPointer::get_field(STATE, int offset, int type) {
+  Object* Pointer::get_field(STATE, int offset, int type) {
     Object* ret;
     char* ptr = (char*)pointer;
 
@@ -234,7 +272,7 @@ namespace rubinius {
       if(!lptr) {
         ret = Qnil;
       } else {
-        ret = MemoryPointer::create(state, lptr);
+        ret = Pointer::create(state, lptr);
       }
       break;
     }
@@ -258,7 +296,7 @@ namespace rubinius {
         s = p = Qnil;
       } else {
         s = String::create(state, result);
-        p = MemoryPointer::create(state, result);
+        p = Pointer::create(state, result);
       }
 
       Array* ary = Array::create(state, 2);
@@ -276,12 +314,12 @@ namespace rubinius {
     return ret;
   }
 
-  Object* MemoryPointer::set_at_offset(STATE, Fixnum* offset, Fixnum* type, Object* val) {
+  Object* Pointer::set_at_offset(STATE, Fixnum* offset, Fixnum* type, Object* val) {
     set_field(state, offset->to_native(), type->to_native(), val);
     return val;
   }
 
-  void MemoryPointer::set_field(STATE, int offset, int type, Object* val) {
+  void Pointer::set_field(STATE, int offset, int type, Object* val) {
     char* ptr = (char*)pointer;
 
     ptr += offset;
@@ -372,8 +410,8 @@ namespace rubinius {
       if(NIL_P(val)) {
         WRITE(void*, NULL);
       } else {
-        MemoryPointer *mp = as<MemoryPointer>(val);
-        type_assert(state, val, MemoryPointerType, "converting to pointer");
+        Pointer *mp = as<Pointer>(val);
+        type_assert(state, val, PointerType, "converting to pointer");
         WRITE(void*, mp->pointer);
       }
       break;
@@ -397,7 +435,7 @@ namespace rubinius {
     }
   }
 
-  void MemoryPointer::Info::mark(Object* obj, ObjectMark& mark) {
+  void Pointer::Info::mark(Object* obj, ObjectMark& mark) {
     // @todo implement
   }
 }

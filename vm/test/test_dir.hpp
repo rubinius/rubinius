@@ -1,7 +1,6 @@
 #include "vm/test/test.hpp"
 
 #include "builtin/dir.hpp"
-#include "builtin/memorypointer.hpp"
 #include "builtin/string.hpp"
 
 #include <cstdio>

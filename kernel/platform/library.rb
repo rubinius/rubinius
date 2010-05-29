@@ -1,4 +1,14 @@
 module FFI
+  def self.generate_function(ptr, name, args, ret)
+    Ruby.primitive :nativefunction_generate
+    raise PrimitiveFailure, "FFI.generate_function failed"
+  end
+
+  def self.generate_trampoline(obj, name, args, ret)
+    Ruby.primitive :nativefunction_generate_tramp
+    raise PrimitiveFailure, "FFI.generate_function_tramp failed"
+  end
+
   module Library
 
     # Set which library or libraries +attach_function+ should
@@ -8,56 +18,39 @@ module FFI
     # The libraries are tried in the order given.
     #
     def ffi_lib(*names)
-      @ffi_lib = names
+      @ffi_lib = names.map do |x|
+        if x == FFI::CURRENT_PROCESS
+          DynamicLibrary::CURRENT_PROCESS
+
+          # When the element is an array, it's an ordered choice,
+          # ie, pick the first library that works.
+        elsif x.kind_of? Array
+          lib = nil
+
+          x.each do |name|
+            begin
+              lib = DynamicLibrary.new(name)
+              break
+            rescue LoadError
+            end
+          end
+
+          # If .new worked, then lib is set and we can use it.
+          unless lib
+            raise LoadError, "Unable to find libary among: #{x.inspect}"
+          end
+
+          lib
+        else
+          DynamicLibrary.new(x)
+        end
+      end
     end
 
     def ffi_libraries
-      @ffi_lib or [FFI::USE_THIS_PROCESS_AS_LIBRARY]
+      @ffi_lib or [DynamicLibrary::CURRENT_PROCESS]
     end
     private :ffi_libraries
-
-    def ffi_library_names
-      libraries = ffi_libraries
-      this_process = "this process"
-
-      names = libraries[0] || this_process
-
-      i = 1
-      size = libraries.size
-      while i < size
-        names.append ", "
-        names.append libraries[i] || this_process
-        i += 1
-      end
-
-      names
-    end
-    private :ffi_library_names
-
-    def create_backend(library, name, args, ret)
-      Ruby.primitive :nativefunction_bind
-      # Do not raise an exception if this primitive fails to bind an external
-      # function because #attach_function may be attempting to bind to a
-      # function in more than one library
-      raise PrimitiveFailure, "create_backend failed"
-    end
-    private :create_backend
-
-    # Setup the LD_LIBRARY_PATH
-    # @todo   Not using LTDL currently.
-    def setup_ld_library_path(library)
-      # If we have a specific reference to the library, we load it here
-      specific_library = FFI.config("ld_library_path.#{library}")
-      library = specific_library if specific_library
-
-      # This adds general paths to the search
-      if path = FFI.config("ld_library_path.default")
-        ENV['LTDL_LIBRARY_PATH'] = [ENV['LTDL_LIBRARY_PATH'], path].compact.join(":")
-      end
-
-      library
-    end
-    private :setup_ld_library_path
 
     # Attach a C function to this module. The arguments can have two forms:
     #
@@ -77,36 +70,143 @@ module FFI
     def attach_function(name, a3, a4, a5=nil)
       if a5
         cname = a3.to_s
+        if a3.kind_of? Pointer
+          cname = a3
+          int_name = name.to_sym
+        else
+          cname = a3.to_s
+          int_name = cname.to_sym
+        end
+
         args = a4
         ret = a5
       else
         cname = name.to_s
+        int_name = cname.to_sym
         args = a3
         ret = a4
       end
+
       mname = name.to_sym
 
-      args.map! { |a| FFI.find_type a }
-      ret = FFI.find_type ret
-
       ffi_libraries.each do |lib|
-        lib = setup_ld_library_path lib if lib
-
-        if func = create_backend(lib, cname, args, ret)
-
-          # Make it available as a method callable directly..
-          Rubinius.object_metaclass(self).method_table.store mname, func, :public
-
-          # and expose it as a private method for people who
-          # want to include this module.
-          method_table.store mname, func, :private
-
-
-          return func
+        if ptr = lib.find_symbol(cname)
+          return pointer_as_function(mname, ptr, args, ret)
         end
       end
 
-      raise FFI::NotFoundError, "Unable to find FFI '#{cname}' in: #{ffi_library_names}"
+      raise FFI::NotFoundError, "Unable to find '#{cname}'"
     end
+
+    def pointer_as_function(name, ptr, args, ret)
+      args.map! { |a| find_type a }
+
+      if func = FFI.generate_function(ptr, name.to_sym, args, find_type(ret))
+
+        # Make it available as a method callable directly..
+        Rubinius.object_metaclass(self).method_table.store name, func, :public
+
+        # and expose it as a private method for people who
+        # want to include this module.
+        method_table.store name, func, :private
+
+        return func
+      end
+
+      raise FFI::NotFoundError, "Unable to attach pointer"
+    end
+
+    def callback(a1, a2, a3=nil)
+      if a3
+        name, params, ret =  a1, a2, a3
+      else
+        name, params, ret = nil, a1, a2
+      end
+
+      args = params.map { |x| find_type(x) }
+
+      func, ptr = FFI.generate_trampoline(nil, :ffi_tramp, args, find_type(ret))
+
+      if name
+        @ffi_callbacks ||= {}
+        @ffi_callbacks[name] = func
+      end
+
+      return func
+    end
+
+    def find_type(name)
+      return FFI.find_type(name)
+    end
+  end
+
+  class DynamicLibrary
+    extend FFI::Library
+
+    # Bootstrap dlsym, dlopen, and dlerror
+    pointer_as_function :find_symbol, FFI::Pointer::DLSYM, [:pointer, :string], :pointer
+
+    dlopen = find_symbol(FFI::Pointer::CURRENT_PROCESS, "dlopen")
+
+    pointer_as_function :open_library, dlopen, [:string, :int], :pointer
+
+    dlerror = find_symbol(FFI::Pointer::CURRENT_PROCESS, "dlerror")
+
+    pointer_as_function :last_error, dlerror, [], :string
+
+    RTLD_LAZY = 0x1
+    RTLD_NOW  = 0x2
+    RTLD_GLOBAL = 0x4
+    RTLD_LOCAL  = 0x8
+
+    class << self
+      alias_method :open, :new
+    end
+
+    def initialize(name, flags=nil)
+      # Accept nil and check for ruby-ffi API compat
+      flags ||= RTLD_LAZY
+
+      if name
+        @name = name
+        @handle = DynamicLibrary.open_library name, flags
+
+        unless @handle
+          orig_error = last_error
+
+          # Try with suffixes
+          FFI::LIB_SUFFIXES.detect do |suffix|
+            @name = "#{name}.#{suffix}"
+            @handle = DynamicLibrary.open_library @name, flags
+          end
+
+          unless @handle
+            # API Compat. LoadError is wrong here.
+            raise LoadError, "Could not open library #{name} - #{orig_error}"
+          end
+        end
+      else
+        @name = "[current process]"
+        @handle = FFI::Pointer::CURRENT_PROCESS
+      end
+    end
+
+    attr_reader :name
+
+    def find_symbol(name)
+      ptr = DynamicLibrary.find_symbol @handle, name
+
+      # defined in kernel/platform/pointer.rb
+      FFI::DynamicLibrary::Symbol.new(self, ptr, name)
+    end
+
+    alias_method :find_function, :find_symbol
+    alias_method :find_variable, :find_symbol
+
+    def last_error
+      DynamicLibrary.last_error
+    end
+
+    CURRENT_PROCESS = DynamicLibrary.new(nil)
   end
 end

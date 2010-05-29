@@ -92,6 +92,7 @@ namespace rubinius {
     TypedRoot<Class*> integer;
     TypedRoot<Class*> numeric;
     TypedRoot<Class*> memory_pointer;
+    TypedRoot<Class*> ffi_pointer;
     TypedRoot<Class*> taskprobe;
     TypedRoot<Class*> randomizer;
 
@@ -209,6 +210,7 @@ namespace rubinius {
       integer(&roots),
       numeric(&roots),
       memory_pointer(&roots),
+      ffi_pointer(&roots),
       taskprobe(&roots),
       randomizer(&roots),
 

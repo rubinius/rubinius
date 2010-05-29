@@ -21,7 +21,7 @@
 #include "builtin/list.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/methodtable.hpp"
-#include "builtin/memorypointer.hpp"
+#include "builtin/ffi_pointer.hpp"
 #include "builtin/nativefunction.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/regexp.hpp"
@@ -241,7 +241,7 @@ namespace rubinius {
     init_native_libraries();
     Thread::init(this);
     AccessVariable::init(this);
-    MemoryPointer::init(this);
+    Pointer::init(this);
     NativeFunction::init(this);
     TaskProbe::init(this);
     Exception::init(this);

@@ -7,7 +7,6 @@
 #include <dirent.h>
 
 namespace rubinius {
-  class MemoryPointer;
   class String;
 
   class Dir : public Object {

@@ -1,8 +1,8 @@
 ffi.rbc
 library.rbc
+pointer.rbc
 env.rbc
 file.rbc
 math.rbc
-memorypointer.rbc
 posix.rbc
 struct.rbc

@@ -27,7 +27,7 @@ namespace jit {
     vars_type = mod->getTypeByName("struct.rubinius::VariableScope");
     stack_vars_type = mod->getTypeByName("struct.rubinius::StackVariables");
     obj_type = ls->ptr_type("Object");
-    obj_ary_type = PointerType::getUnqual(obj_type);
+    obj_ary_type = llvm::PointerType::getUnqual(obj_type);
   }
 
   Value* Builder::get_field(Value* val, int which) {
