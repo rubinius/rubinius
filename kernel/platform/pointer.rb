@@ -45,6 +45,7 @@ module FFI
       "#<#{self.class.name} address=#{sign}0x#{addr.to_s(16)}>"
     end
 
+    # Return the address pointed to as an Integer
     def address
       Ruby.primitive :pointer_address
       raise PrimitiveFailure, "Unable to find address"
@@ -52,6 +53,7 @@ module FFI
 
     alias_method :to_i, :address
 
+    # Set the address pointed to from an Integer
     def address=(address)
       Ruby.primitive :pointer_set_address
       raise PrimitiveFailure, "MemoryPointer#address= primitive failed"
@@ -61,11 +63,13 @@ module FFI
       address == 0x0
     end
 
+    # Add +value+ to the address pointed to and return a new Pointer
     def +(value)
       Ruby.primitive :pointer_add
       raise PrimitiveFailure, "Unable to add"
     end
 
+    # Indicates if +self+ and +other+ point to the same address
     def ==(other)
       return false unless other.kind_of? Pointer
       return address == other.address
@@ -91,6 +95,7 @@ module FFI
       raise PrimitiveFailure, "Unable to write integer"
     end
 
+    # Read a C int from the memory pointed to.
     def read_int(sign=true)
       read_int_signed(sign)
     end
@@ -134,16 +139,21 @@ module FFI
       raise PrimitiveFailure, "Unable to convert to network order"
     end
 
+    # Read +len+ bytes from the memory pointed to and return them as
+    # a String
     def read_string_length(len)
       Ruby.primitive :pointer_read_string
       raise PrimitiveFailure, "Unable to read string"
     end
 
+    # Read bytes from the memory pointed to until a NULL is seen, return
+    # the bytes as a String
     def read_string_to_null
       Ruby.primitive :pointer_read_string_to_null
       raise PrimitiveFailure, "Unable to read string to null"
     end
 
+    # Read bytes as a String from the memory pointed to
     def read_string(len=nil)
       if len
         read_string_length(len)
@@ -152,58 +162,73 @@ module FFI
       end
     end
 
+    # Write String +str+ as bytes into the memory pointed to. Only
+    # write up to +len+ bytes.
     def write_string_length(str, len)
       Ruby.primitive :pointer_write_string
       raise PrimitiveFailure, "Unable to write string"
     end
 
+    # Write a String +str+ as bytes to the memory pointed to.
     def write_string(str, len=nil)
       len = str.size unless len
 
       write_string_length(str, len);
     end
 
+    # Read bytes from the memory pointed to and return them as a Pointer
     def read_pointer
       Ruby.primitive :pointer_read_pointer
       raise PrimitiveFailure, "Unable to read pointer"
     end
 
+    # Write +obj+ as a C float
     def write_float(obj)
       Ruby.primitive :pointer_write_float
       raise PrimitiveFailure, "Unable to write float"
     end
 
+    # Read bytes as a C float
     def read_float
       Ruby.primitive :pointer_read_float
       raise PrimitiveFailure, "Unable to read float"
     end
-    
+
+    # Write +obj+ as a C double
     def write_double(obj)
       Ruby.primitive :pointer_write_double
       raise PrimitiveFailure, "Unable to write double"
     end
-    
+
+    # Read bytes as a C double
     def read_double
       Ruby.primitive :pointer_read_double
       raise PrimitiveFailure, "Unable to read double"
     end
 
+    # Read memory as an array of C ints of length +length+, returned
+    # as an Array of Integers
     def read_array_of_int(length)
       read_array_of_type(:int, :read_int, length)
     end
 
+    # Write ary to the memory pointed to as a sequence of ints
     def write_array_of_int(ary)
       write_array_of_type(:int, :write_int, ary)
     end
 
+    # Read memory as an array of C longs of length +length+, returned
+    # as an Array of Integers
     def read_array_of_long(length)
       read_array_of_type(:long, :read_long, length)
     end
 
+    # Write ary to the memory pointed to as a sequence of longs
     def write_array_of_long(ary)
       write_array_of_type(:long, :write_long, ary)
     end
 
+    # Read a sequence of types +type+, length +length+, using method +reader+
     def read_array_of_type(type, reader, length)
       ary = []
       size = FFI.type_size(FFI.find_type type)
@@ -215,6 +240,7 @@ module FFI
       ary
     end
 
+    # Write a sequence of types +type+  using method +reader+ from +ary+
     def write_array_of_type(type, writer, ary)
       size = FFI.type_size(FFI.find_type type)
       tmp = self
@@ -225,11 +251,13 @@ module FFI
       self
     end
 
+    # Read bytes from +offset+ from the memory pointed to as type +type+
     def get_at_offset(offset, type)
       Ruby.primitive :pointer_get_at_offset
       raise PrimitiveFailure, "get_field failed"
     end
 
+    # Write +val+ as type +type+ to bytes from +offset+
     def set_at_offset(offset, type, val)
       Ruby.primitive :pointer_set_at_offset
       raise PrimitiveFailure, "set_field failed"
@@ -260,7 +288,7 @@ module FFI
     # The form without a block returns the MemoryPointer instance. The form
     # with a block yields the MemoryPointer instance and frees the memory
     # when the block returns. The value returned is the value of the block.
-
+    #
     def self.new(type, count=nil, clear=true)
       if type.kind_of? Fixnum
         size = type
@@ -345,7 +373,6 @@ module FFI
     ##
     # If +val+ is true, this MemoryPointer object will call
     # free() on it's address when it is garbage collected.
-
     def autorelease=(val)
       Ruby.primitive :pointer_set_autorelease
       raise PrimitiveFailure, "Unable to change autorelease"
@@ -388,11 +415,14 @@ module FFI
         raise ArgumentError, "value wasn't a FFI::Pointer and didn't respond to call"
       end
 
+      # Hook the created function into the method_table so that #call goes
+      # straight to it.
       Rubinius.object_metaclass(self).method_table.store :call, @function, :public
     end
 
     attr_reader :function
 
+    # Hook this Function up to be an instance/class method +name+ on +mod+
     def attach(mod, name)
       unless mod.kind_of?(Module)
         raise TypeError, "mod must be a Module"
