@@ -37,9 +37,6 @@
 #include "intern.h"
 #include "defines.h"
 
-#define RUBY
-#define RUBINIUS
-
 #define RUBY_COMPAT_LEVEL 2
 
 #ifdef __cplusplus

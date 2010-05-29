@@ -2,9 +2,10 @@
  * defines and prototypes are in ruby.h
  */
 
-#define RUBY
+#define RUBY                               1
+#define RUBINIUS                           1
 
-#define HAVE_STDARG_PROTOTYPES
+#define HAVE_STDARG_PROTOTYPES             1
 
 /* These are defines directly related to MRI C-API symbols that the
  * mkmf.rb discovery code (e.g. have_func("rb_str_set_len")) would
@@ -12,8 +13,8 @@
  * have an appropriate lib to link against, so we are adding these
  * explicit defines for now.
  */
-#define HAVE_RB_STR_SET_LEN
-#define HAVE_RB_DEFINE_ALLOC_FUNC
+#define HAVE_RB_STR_SET_LEN                1
+#define HAVE_RB_DEFINE_ALLOC_FUNC          1
 
-#define HAVE_RB_HASH_FOREACH
-#define HAVE_RB_HASH_ASET
+#define HAVE_RB_HASH_FOREACH               1
+#define HAVE_RB_HASH_ASET                  1
