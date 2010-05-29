@@ -111,7 +111,11 @@ extern "C" {
     double d = big->to_double(env->state());
     if(std::isinf(d)) {
       rb_warn("Bignum out of Float range");
-      d = HUGE_VAL;
+      if(big->mp_val()->sign == MP_NEG) {
+        d = -HUGE_VAL;
+      } else {
+        d = HUGE_VAL;
+      }
     }
     return d;
   }
