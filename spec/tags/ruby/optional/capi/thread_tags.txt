@@ -1,0 +1,1 @@
+fails:CApiThreadSpecs rb_thread_alone returns true if there is only one thread
