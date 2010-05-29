@@ -195,6 +195,7 @@ module FFI
 
     def find_symbol(name)
       ptr = DynamicLibrary.find_symbol @handle, name
+      return nil unless ptr
 
       # defined in kernel/platform/pointer.rb
       FFI::DynamicLibrary::Symbol.new(self, ptr, name)
