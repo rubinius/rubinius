@@ -361,7 +361,7 @@ module FFI
     end
 
     def inspect
-      "#<FFI::Library::Symbol name=#{name} address=#{address.to_s(16)}>"
+      "#<FFI::Library::Symbol name=#{@name} address=#{address.to_s(16)}>"
     end
   end
 
