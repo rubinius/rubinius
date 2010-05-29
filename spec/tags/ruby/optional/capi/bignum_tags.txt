@@ -1,1 +1,0 @@
-fails:CApiBignumSpecs rb_big2dbl returns -Infinity if the number is negative and too big for a double
