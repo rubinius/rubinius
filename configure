@@ -83,7 +83,7 @@ class Configure
     end
 
     o.on "--enable-llvm", "Enable llvm (default)" do
-      # noop
+      @use_llvm = true
     end
 
     @skip_system = false
