@@ -1,7 +1,8 @@
 class Dir
   module Glob
     class Node
-      def initialize(nxt)
+      def initialize(nxt, flags)
+        @flags = flags
         @next = nxt
       end
 
@@ -16,8 +17,8 @@ class Dir
     end
 
     class ConstantDirectory < Node
-      def initialize(nxt, dir)
-        super nxt
+      def initialize(nxt, flags, dir)
+        super nxt, flags
         @dir = dir
       end
 
@@ -38,6 +39,8 @@ class Dir
 
     class RecursiveDirectories < Node
       def call(env, start)
+        allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
+
         if start.nil? or File.exists? start
           @next.call env, start
         end
@@ -51,7 +54,7 @@ class Dir
             next if ent == "." || ent == ".."
             full = path_join(path, ent)
 
-            if File.directory? full
+            if File.directory? full and ent[0] != ?.
               stack << full
               @next.call env, full
             end
@@ -72,11 +75,9 @@ class Dir
     end
 
     class Match < Node
-      def initialize(nxt, glob)
-        super nxt
+      def initialize(nxt, flags, glob)
+        super nxt, flags
         @glob = glob
-        # @pattern = to_regex glob
-        # p @pattern
       end
 
       Escape = %w!+ | ^ $ ( ) [ ]!
@@ -93,12 +94,13 @@ class Dir
       end
 
       def match?(str)
-        FFI::Platform::POSIX.fnmatch(@glob, str, 4) == 0
+        File.fnmatch @glob, str, @flags
+        # FFI::Platform::POSIX.fnmatch(@glob, str, 4) == 0
       end
     end
 
     class DirectoryMatch < Match
-      def initialize(nxt, glob)
+      def initialize(nxt, flags, glob)
         super
 
         @glob.gsub! "**", "*"
@@ -138,8 +140,18 @@ class Dir
 
     class DirectoriesOnly < Match
       def call(env, path)
+        allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
+        all_dots = (@glob[0] == ?.)
+
         dir = Dir.new(path ? path : ".")
         while ent = dir.read
+          unless all_dots
+            if ent[0] == ?.
+              next if ent.size == 1 or ent[1] == ?.
+              next unless allow_dots
+            end
+          end
+
           full = path_join(path, ent)
 
           if File.directory? full and match? ent
@@ -158,32 +170,32 @@ class Dir
       end
     end
 
-    def self.compile(glob)
+    def self.compile(glob, flags=0)
       parts = glob.split("/")
 
       file = parts.pop
 
       if glob[-1] == ?/
-        last = DirectoriesOnly.new nil, file
+        last = DirectoriesOnly.new nil, flags, file
         if parts.empty?
-          last = RecursiveDirectories.new last
+          last = RecursiveDirectories.new last, flags
         end
       else
-        last = EntryMatch.new nil, file
+        last = EntryMatch.new nil, flags, file
       end
 
       parts.reverse_each do |dir|
         if dir == "**"
-          last = RecursiveDirectories.new last
+          last = RecursiveDirectories.new last, flags
         elsif /[a-zA-Z0-9.]+/.match(dir)
-          last = ConstantDirectory.new last, dir
+          last = ConstantDirectory.new last, flags, dir
         elsif !dir.empty?
-          last = DirectoryMatch.new last, dir
+          last = DirectoryMatch.new last, flags, dir
         end
       end
 
       if glob[0] == ?/
-        last = RootDirectory.new last
+        last = RootDirectory.new last, flags
       end
 
       last

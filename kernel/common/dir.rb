@@ -25,10 +25,10 @@ class Dir
 
     # The new glob impl doesn't handle flags or curly expansion, so
     # use the old glob if those are used.
-    if flags != 0 or pattern.include? "{"
+    if pattern.include? "{"
       old_glob(pattern, flags)
     else
-      node = Dir::Glob.compile pattern
+      node = Dir::Glob.compile pattern, flags
       Dir::Glob.run node
     end
   end
@@ -128,7 +128,8 @@ class Dir
       end
 
     else
-      glob0 pattern, flags, matches
+      node = Dir::Glob.compile pattern, flags
+      matches.concat(Dir::Glob.run(node))
     end
   end
 
