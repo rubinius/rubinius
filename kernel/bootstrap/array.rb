@@ -149,13 +149,19 @@ class Array
   end
 
   # Passes each element in the Array to the given block
-  # and returns self.  We re-evaluate @total each time
-  # through the loop in case the array has changed.
+  # and returns self.
   def each
     return to_enum :each unless block_given?
-    i = to_iter
-    while i.next
-      yield i.item
+
+    # This uses the raw @tuple access rather than to_iter
+    # for speed.
+    i = @start
+    tot = @total + @start
+    tup = @tuple
+
+    while i < tot
+      yield tup.at(i)
+      i += 1
     end
     self
   end
