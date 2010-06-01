@@ -111,8 +111,18 @@ namespace rubinius {
             << "#"
             << ops_.state()->symbol_cstr(cm->name())
             << " into "
-            << ops_.state()->symbol_cstr(ops_.method_name())
-            << " (" << ops_.state()->symbol_cstr(klass->name()) << ")\n";
+            << ops_.state()->symbol_cstr(ops_.method_name());
+
+          if(klass != cm->scope()->module() && !klass->name()->nil_p()) {
+            ops_.state()->log() << " ("
+              << ops_.state()->symbol_cstr(klass->name()) << ")";
+          }
+
+          if(inline_block_) {
+            ops_.state()->log() << " (w/ inline block)";
+          }
+
+          ops_.state()->log() << "\n";
         }
 
         policy->increase_size(vmm);
@@ -434,7 +444,7 @@ remember:
     info.set_inline_block(inline_block_);
     info.set_block_info(block_info_);
 
-    jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), cache_->name, (Module*)Qnil);
+    jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), (Symbol*)Qnil, (Module*)Qnil);
     context_.add_runtime_data(rd);
 
     jit::InlineBlockBuilder work(ops_.state(), info, rd);
@@ -452,7 +462,7 @@ remember:
     BasicBlock* entry = work.setup_inline_block(self,
         ops_.constant(Qnil, ops_.state()->ptr_type("Module")));
 
-    if(work.generate_body()) { abort(); }
+    if(!work.generate_body()) { abort(); }
 
     // Branch to the inlined block!
     ops_.create_branch(entry);

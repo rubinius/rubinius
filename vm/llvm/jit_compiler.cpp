@@ -28,6 +28,8 @@
 
 #include <sstream>
 
+#include <sys/time.h>
+
 #include "llvm/jit.hpp"
 #include "llvm/jit_compiler.hpp"
 #include "llvm/jit_method.hpp"
@@ -71,11 +73,15 @@ namespace jit {
     if(ls->config().jit_inline_debug) {
       assert(vmm->parent());
 
+      struct timeval tv;
+      gettimeofday(&tv, NULL);
+
       ls->log() << "JIT: compiling block in "
         << ls->symbol_cstr(cm->name())
         << " near "
         << ls->symbol_cstr(cm->file()) << ":"
-        << cm->start_line() << "\n";
+        << cm->start_line()
+        << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";
     }
 
     jit::Context ctx(ls);
@@ -92,10 +98,14 @@ namespace jit {
 
   void Compiler::compile_method(LLVMState* ls, CompiledMethod* cm, VMMethod* vmm) {
     if(ls->config().jit_inline_debug) {
+      struct timeval tv;
+      gettimeofday(&tv, NULL);
+
       ls->log() << "JIT: compiling "
         << ls->symbol_cstr(cm->scope()->module()->name())
         << "#"
-        << ls->symbol_cstr(cm->name()) << "\n";
+        << ls->symbol_cstr(cm->name())
+        << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";
     }
 
     jit::Context ctx(ls);

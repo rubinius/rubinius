@@ -52,8 +52,6 @@ namespace jit {
     info_.set_variables(vars);
 
     Value* rd = constant(runtime_data_, ls_->ptr_type("jit::RuntimeData"));
-    ls_->ptr_type("jit::RuntimeData)")->dump();
-    rd->dump();
 
     //  Setup the CallFrame
     //
