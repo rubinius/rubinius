@@ -76,7 +76,12 @@ namespace rubinius {
   public: // Rubinius Type stuff
     class Info : public TypeInfo {
     public:
-      Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
+      Info(object_type type, bool cleanup = false)
+        : TypeInfo(type, cleanup)
+      {
+        allow_user_allocate = false;
+      }
+
       virtual void mark(Object* obj, ObjectMark& mark);
       virtual void auto_mark(Object* obj, ObjectMark& mark) {}
       virtual void visit(Object* obj, ObjectVisitor& visit);

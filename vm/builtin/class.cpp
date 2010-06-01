@@ -14,6 +14,7 @@
 #include "builtin/system.hpp"
 #include "builtin/packed_object.hpp"
 #include "builtin/array.hpp"
+#include "builtin/exception.hpp"
 
 #include "builtin/executable.hpp"
 
@@ -100,6 +101,9 @@ namespace rubinius {
       }
 
       return obj;
+    } else if(!type_info_->allow_user_allocate) {
+      Exception::type_error(state, "direct allocation disabled");
+      return Qnil;
     } else {
       return state->om->new_object_fast(this,
           type_info_->instance_size, type_info_->type);

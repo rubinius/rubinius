@@ -51,6 +51,7 @@ namespace rubinius {
     SlotLocations slot_locations;
     object_type type;
     std::string type_name;
+    bool        allow_user_allocate;
 
   public: /* Class initializers */
 

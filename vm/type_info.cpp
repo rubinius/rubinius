@@ -26,6 +26,7 @@ namespace rubinius {
     , slots()
     , type(type)
     , type_name()
+    , allow_user_allocate(true)
   {}
 
   TypeInfo::~TypeInfo() { }
