@@ -206,5 +206,97 @@ class Dir
       node.call env, nil
       env.matches
     end
+
+    def self.glob(pattern, flags)
+      if pattern.include? "{"
+        return brace_glob(pattern, flags)
+      end
+
+      if node = compile(pattern, flags)
+        run node
+      else
+        []
+      end
+    end
+
+    def self.brace_glob(pattern, flags, matches=[])
+      escape = (flags & File::FNM_NOESCAPE) == 0
+
+      rbrace = nil
+      lbrace = nil
+
+      # Do a quick search for a { to start the search better
+      i = pattern.index("{")
+
+      # If there was a { found, then search
+      if i
+        nest = 0
+        data = pattern.data
+        total = pattern.size
+
+        while i < total
+          char = data.get_byte(i)
+
+          if char == ?{ and nest == 0
+            lbrace = i
+            nest += 1
+          end
+
+          if char == ?} and nest - 1 <= 0
+            rbrace = i
+            nest -= 1
+            break
+          end
+
+          if char == ?\\ and escape
+            i += 1
+          end
+
+          i += 1
+        end
+      end
+
+      # There was a full {} expression detected, expand each part of it
+      # recursively.
+      if lbrace and rbrace
+        pos = lbrace
+        front = pattern[0...lbrace]
+        back = pattern[(rbrace + 1)..-1]
+
+        while pos < rbrace
+          nest = 0
+          pos += 1
+          last = pos
+
+          while pos < rbrace and not (pattern[pos] == ?, and nest == 0)
+            nest += 1 if pattern[pos] == ?{
+              nest -= 1 if pattern[pos] == ?}
+
+              if pattern[pos] == ?\\ and escape
+                pos += 1
+                break if pos == rbrace
+              end
+
+              pos += 1
+          end
+
+          brace_pattern = "#{front}#{pattern[last...pos]}#{back}"
+
+          brace_glob brace_pattern, flags, matches
+        end
+
+        # No braces found, match the pattern normally
+      else
+        # Don't use .glob here because this code can detect properly
+        # if a { is a brace or a just a normal character, but .glob can't.
+        # if .glob is used and there is a { as a normal character, it will
+        # recurse forever.
+        if node = compile(pattern, flags)
+          matches.concat run(node)
+        end
+      end
+
+      return matches
+    end
   end
 end
