@@ -42,6 +42,8 @@ module Rubinius
 
       begin
         compiler.run
+      rescue SyntaxError => e
+        raise e
       rescue Exception => e
         compiler_error "Error trying to compile #{file}", e
       end
