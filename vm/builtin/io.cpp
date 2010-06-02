@@ -512,19 +512,74 @@ namespace rubinius {
     return buffer;
   }
 
-  Object* IO::write(STATE, String* buf) {
+  Object* IO::write(STATE, String* buf, CallFrame* call_frame) {
     uint8_t* bytes = buf->byte_address();
     size_t left = buf->size();
 
     while(left > 0) {
       ssize_t cnt = ::write(this->to_fd(), bytes, left);
       if(cnt == -1) {
+        if(call_frame) {
+          switch(errno) {
+          case EINTR:
+          case EAGAIN:
+            return unlocked_write(state, buf, call_frame);
+          }
+        }
         Exception::errno_error(state);
         return NULL;
       }
 
       left -= cnt;
       bytes += cnt;
+    }
+
+    return Integer::from(state, buf->size() - left);
+  }
+
+  Object* IO::unlocked_write(STATE, String* buf, CallFrame* call_frame) {
+    size_t left = buf->size();
+    uint8_t* bytes = new uint8_t[left];
+    memcpy(bytes, buf->byte_address(), left);
+    int fd = this->to_fd();
+    bool error = false;
+
+    {
+      GlobalLock::UnlockGuard guard(state, call_frame);
+
+      uint8_t* cur = bytes;
+      while(left > 0) {
+        ssize_t cnt = ::write(fd, cur, left);
+
+        if(cnt == -1) {
+          switch(errno) {
+          case EINTR:
+          case EAGAIN: {
+            // Pause before continuing
+            fd_set fds;
+            FD_ZERO(&fds);
+            FD_SET(fd, &fds);
+
+            ::select(fd+1, &fds, NULL, NULL, NULL);
+
+            continue;
+          }
+          default:
+            error = true;
+            break;
+          }
+        }
+
+        left -= cnt;
+        cur  += cnt;
+      }
+    }
+
+    delete[] bytes;
+
+    if(error) {
+      Exception::errno_error(state);
+      return NULL;
     }
 
     return Integer::from(state, buf->size() - left);

@@ -112,7 +112,7 @@ public:
     char buf[4];
 
     String* s = String::create(state, "abdc");
-    io->write(state, s);
+    io->write(state, s, 0);
 
     lseek(fd, 0, SEEK_SET);
     TS_ASSERT_EQUALS(::read(fd, buf, 4U), 4);
