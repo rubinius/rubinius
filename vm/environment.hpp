@@ -39,6 +39,14 @@ namespace rubinius {
     Environment(int argc, char** argv);
     ~Environment();
 
+    int argc() {
+      return argc_;
+    }
+
+    char** argv() {
+      return argv_;
+    }
+
     void setup_cpp_terminate();
 
     void load_config_argv(int argc, char** argv);

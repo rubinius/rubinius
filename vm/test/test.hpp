@@ -21,7 +21,7 @@ public:
 
   void create() {
     config_parser = new ConfigParser;
-    shared = new SharedState(config, *config_parser);
+    shared = new SharedState(0, config, *config_parser);
     state = shared->new_vm();
     state->initialize();
     state->boot();

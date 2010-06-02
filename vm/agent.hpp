@@ -69,6 +69,9 @@ namespace rubinius {
 
     bool setup_local();
     bool bind(int port);
+
+    void make_discoverable();
+
     virtual void perform();
     bool process_commands(int client);
   };

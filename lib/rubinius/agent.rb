@@ -63,5 +63,10 @@ module Rubinius
       rescue IOError
       end
     end
+
+    def bind(port)
+      @encoder.write_any t[:bind, Integer(port)]
+      @decoder.read_any
+    end
   end
 end

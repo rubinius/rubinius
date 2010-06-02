@@ -16,9 +16,16 @@
 #include "config.h"
 
 #include "agent_components.hpp"
+#include "environment.hpp"
 
 #include <ostream>
 #include <sstream>
+#include <fstream>
+
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
 
 namespace rubinius {
   QueryAgent::QueryAgent(SharedState& shared, VM* state)
@@ -58,6 +65,8 @@ namespace rubinius {
   }
 
   bool QueryAgent::bind(int port) {
+    if(server_fd_ > 0) return false;
+
     server_fd_ = ::socket(AF_INET, SOCK_STREAM, 0);
     if(server_fd_ == -1) {
       std::cerr << "[QA: Unable to create socket: " << strerror(errno) << "]\n";
@@ -99,6 +108,8 @@ namespace rubinius {
     }
 
     add_fd(server_fd_);
+
+    make_discoverable();
 
     return true;
   }
@@ -152,6 +163,24 @@ namespace rubinius {
 
         encoder.write_atom("error");
         return true;
+
+      // If the client ask is the loopback client, give it some extra
+      // commands.
+      } else if(client == loopback_[0]) {
+        if(cmd->equal_atom("bind")) {
+          if(val->elements()->size() == 2) {
+            bert::Value* port = val->get_element(1);
+
+            if(port->integer_p()) {
+              if(bind(port->integer())) {
+                encoder.write_atom("ok");
+                return true;
+              }
+            }
+          }
+          encoder.write_atom("error");
+          return true;
+        }
       }
     } else if(val->equal_atom("close")) {
       encoder.write_atom("bye");
@@ -244,6 +273,87 @@ namespace rubinius {
           running_ = false;
           return;
         }
+      }
+    }
+  }
+
+  static char tmp_path[PATH_MAX];
+
+  static void remove_tmp_path(void) {
+    unlink(tmp_path);
+    // Ignore any errors, this is happening at shutdown.
+  }
+
+  void QueryAgent::make_discoverable() {
+    // Create a tmp file containing the information to be used
+    // by console to find us.
+
+    const char* tmpdir = 0;
+
+    if(shared_.config.qa_tmpdir.value.size() > 0) {
+      tmpdir = shared_.config.qa_tmpdir.value.c_str();
+    } else {
+      tmpdir = getenv("TMPDIR");
+    }
+
+    if(tmpdir) {
+      std::ostringstream ss;
+      pid_t pid = getpid();
+      ss << tmpdir << "/rubinius-agent." << pid;
+
+      strcpy(tmp_path, ss.str().c_str());
+      std::ofstream stream(tmp_path);
+
+      // Couldn't open the path, for whatever reason.
+      if(!stream) return;
+
+      int argc = shared_.env()->argc();
+      char** argv = shared_.env()->argv();
+
+      if(stream) {
+        stream << pid << "\n";
+        stream << port() << "\n";
+
+        for(int i = 0; i < argc; i++) {
+          stream << argv[i] << " ";
+        }
+        stream << "\n";
+
+        char buf[PATH_MAX];
+#ifdef __APPLE__
+        uint32_t size = PATH_MAX;
+        if(_NSGetExecutablePath(buf, &size) == 0) {
+          stream << buf << "\n";
+        } else if(realpath(argv[0], buf)) {
+          stream << buf << "\n";
+        } else {
+          stream << argv[0] << "\n";
+        }
+#elif defined(__linux__)
+        {
+          std::ifstream exe("/proc/self/exe");
+          if(exe) {
+            char buf[PATH_MAX];
+            exe.get(buf, PATH_MAX);
+
+            stream << buf << "\n";
+          } else if(realpath(argv[0], buf)) {
+            stream << buf << "\n";
+          } else {
+            stream << argv[0] << "\n";
+          }
+        }
+#else
+        if(realpath(argv[0], buf)) {
+          stream << buf << "\n";
+        } else {
+          stream << argv[0] << "\n";
+        }
+#endif
+
+        stream.close();
+
+        atexit(remove_tmp_path);
       }
     }
   }

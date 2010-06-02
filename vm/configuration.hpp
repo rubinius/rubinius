@@ -31,6 +31,7 @@ namespace rubinius {
     // Query Agent
     config::Integer qa_port;
     config::Bool    qa_verbose;
+    config::String  qa_tmpdir;
 
     // Debug
     config::Bool    gil_debug;
@@ -71,6 +72,7 @@ namespace rubinius {
       , jit_debug(this,      "jit.debug", false)
       , qa_port(this,         "agent.start")
       , qa_verbose(this,      "agent.verbose")
+      , qa_tmpdir(this,       "agent.tmpdir")
       , gil_debug(this,       "vm.gil.debug")
       , print_config(this,    "config.print")
       , ic_stats(this,        "ic.stats")
@@ -138,6 +140,9 @@ namespace rubinius {
 
       qa_verbose.set_description(
           "Whether or not the query agent should print out status to stderr");
+
+      qa_tmpdir.set_description(
+          "Where to store files used to discover running query agents");
 
       profile.set_description(
           "Configure the system to profile ruby code");

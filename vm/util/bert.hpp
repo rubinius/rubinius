@@ -585,12 +585,24 @@ namespace bert {
       return term_;
     }
 
+    bool integer_p() {
+      return type_ == Integer;
+    }
+
     int integer() {
       return term_->integer();
     }
 
+    bool float_p() {
+      return type_ == Float;
+    }
+
     double float_number() {
       return term_->float_number();
+    }
+
+    bool string_p() {
+      return type_ == Binary;
     }
 
     char* string() {

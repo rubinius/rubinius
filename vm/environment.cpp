@@ -25,10 +25,6 @@
 #include <execinfo.h>
 #endif
 
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#endif
-
 #include "signal.hpp"
 #include "object_utils.hpp"
 
@@ -58,7 +54,7 @@ namespace rubinius {
 
     VM::init_stack_size();
 
-    shared = new SharedState(config, config_parser);
+    shared = new SharedState(this, config, config_parser);
     state = shared->new_vm();
   }
 
@@ -374,13 +370,6 @@ namespace rubinius {
     return 0;
   }
 
-  static char tmp_path[PATH_MAX];
-
-  static void remove_tmp_path(void) {
-    unlink(tmp_path);
-    // Ignore any errors, this is happening at shutdown.
-  }
-
   void Environment::start_agent(int port) {
     agent = new QueryAgent(*shared, state);
     if(config.qa_verbose) agent->set_verbose();
@@ -390,63 +379,6 @@ namespace rubinius {
     shared->set_agent(agent);
 
     agent->run();
-    // Create a tmp file containing the information to be used
-    // by console to find us.
-
-    if(char* tmpdir = getenv("TMPDIR")) {
-      std::ostringstream ss;
-      pid_t pid = getpid();
-      ss << tmpdir << "/rubinius-agent." << pid;
-
-      strcpy(tmp_path, ss.str().c_str());
-      std::ofstream stream(tmp_path);
-
-      if(stream) {
-        stream << pid << "\n";
-        stream << agent->port() << "\n";
-
-        for(int i = 0; i < argc_; i++) {
-          stream << argv_[i] << " ";
-        }
-        stream << "\n";
-
-        char buf[PATH_MAX];
-#ifdef __APPLE__
-        uint32_t size = PATH_MAX;
-        if(_NSGetExecutablePath(buf, &size) == 0) {
-          stream << buf << "\n";
-        } else if(realpath(argv_[0], buf)) {
-          stream << buf << "\n";
-        } else {
-          stream << argv_[0] << "\n";
-        }
-#elif defined(__linux__)
-        {
-          std::ifstream exe("/proc/self/exe");
-          if(exe) {
-            char buf[PATH_MAX];
-            exe.get(buf, PATH_MAX);
-
-            stream << buf << "\n";
-          } else if(realpath(argv_[0], buf)) {
-            stream << buf << "\n";
-          } else {
-            stream << argv_[0] << "\n";
-          }
-        }
-#else
-        if(realpath(argv_[0], buf)) {
-          stream << buf << "\n";
-        } else {
-          stream << argv_[0] << "\n";
-        }
-#endif
-
-        stream.close();
-
-        atexit(remove_tmp_path);
-      }
-    }
   }
 
   /* Loads the runtime kernel files. They're stored in /kernel.

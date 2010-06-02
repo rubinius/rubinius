@@ -36,6 +36,7 @@ namespace rubinius {
   class InlineCacheRegistry;
   class ManagedThread;
   class QueryAgent;
+  class Environment;
 
   struct Interrupts {
     bool check;
@@ -91,6 +92,7 @@ namespace rubinius {
     int primitive_hits_[Primitives::cTotalPrimitives];
     QueryAgent* agent_;
     VM* root_vm_;
+    Environment* env_;
 
   public:
     Globals globals;
@@ -104,7 +106,7 @@ namespace rubinius {
     Stats stats;
 
   public:
-    SharedState(Configuration& config, ConfigParser& cp);
+    SharedState(Environment* env, Configuration& config, ConfigParser& cp);
     ~SharedState();
 
     static void discard(SharedState* ss);
@@ -212,6 +214,10 @@ namespace rubinius {
     }
 
     QueryAgent* autostart_agent();
+
+    Environment* env() {
+      return env_;
+    }
 
     void scheduler_loop();
     void enable_preemption();
