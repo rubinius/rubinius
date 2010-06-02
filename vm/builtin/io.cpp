@@ -1053,13 +1053,20 @@ failed: /* try next '*' position */
     state->clear_waiter();
 
     if(bytes_read == -1) {
-      if(errno == EAGAIN || errno == EINTR) {
+      switch(errno) {
+      case ECONNRESET:
+      case ETIMEDOUT:
+        // Treat as seeing eof
+        bytes_read = 0;
+        break;
+      case EAGAIN:
+      case EINTR:
         if(state->check_async(calling_environment)) goto retry;
-      } else {
+        return NULL;
+      default:
         Exception::errno_error(state, "read(2) failed");
+        return NULL;
       }
-
-      return NULL;
     }
 
     if(bytes_read > 0) {
