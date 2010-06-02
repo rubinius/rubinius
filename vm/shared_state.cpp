@@ -12,6 +12,8 @@
 #include "inline_cache.hpp"
 #include "configuration.hpp"
 
+#include "agent.hpp"
+
 namespace rubinius {
 
   class WorldState {
@@ -124,6 +126,8 @@ namespace rubinius {
     , ic_registry_(new InlineCacheRegistry)
     , class_count_(0)
     , timer_thread_started_(false)
+    , agent_(0)
+    , root_vm_(0)
     , om(0)
     , global_cache(new GlobalCache)
     , config(config)
@@ -173,6 +177,9 @@ namespace rubinius {
     threads_.push_back(vm);
 
     this->ref();
+
+    // If there is no root vm, then the first on created becomes it.
+    if(!root_vm_) root_vm_ = vm;
     return vm;
   }
 
@@ -182,6 +189,12 @@ namespace rubinius {
     this->deref();
 
     // Don't delete ourself here, it's too problematic.
+  }
+
+  QueryAgent* SharedState::autostart_agent() {
+    if(agent_) return agent_;
+    agent_ = new QueryAgent(*this, root_vm_);
+    return agent_;
   }
 
   void SharedState::enable_profiling(VM* vm) {

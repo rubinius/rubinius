@@ -95,4 +95,9 @@ module Rubinius
     Ruby.primitive :vm_get_user_home
     raise PrimitiveFailure, "Rubinius.get_user_home failed"
   end
+
+  def self.agent_io
+    Ruby.primitive :vm_agent_io
+    raise PrimitiveFailure, "Rubinius.agent_io failed"
+  end
 end

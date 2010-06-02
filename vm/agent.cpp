@@ -21,20 +21,43 @@
 #include <sstream>
 
 namespace rubinius {
-  QueryAgent::QueryAgent(SharedState& shared, VM* state, int port)
+  QueryAgent::QueryAgent(SharedState& shared, VM* state)
     : Thread()
     , shared_(shared)
     , state_(state)
-    , port_(port)
-    , server_fd_(0)
+    , running_(false)
+    , port_(0)
+    , server_fd_(-1)
     , verbose_(false)
     , max_fd_(0)
+    , vars_(0)
   {
     FD_ZERO(&fds_);
     vars_ = new agent::VariableAccess(state, shared);
+
+    if(pipe(control_) != 0) {
+      perror("pipe");
+      rubinius::abort();
+    }
+
+    add_fd(read_control());
+
+    loopback_[0] = -1;
+    loopback_[1] = -1;
   }
 
-  bool QueryAgent::bind() {
+  bool QueryAgent::setup_local() {
+    if(socketpair(AF_UNIX, SOCK_STREAM, 0, loopback_)) {
+      return false;
+    }
+
+    add_fd(loopback_[0]);
+    sockets_.push_back(loopback_[0]);
+
+    return true;
+  }
+
+  bool QueryAgent::bind(int port) {
     server_fd_ = ::socket(AF_INET, SOCK_STREAM, 0);
     if(server_fd_ == -1) {
       std::cerr << "[QA: Unable to create socket: " << strerror(errno) << "]\n";
@@ -45,28 +68,25 @@ namespace rubinius {
     int on = 1;
     setsockopt(server_fd_, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
-    // if port_ is 1, the user wants to use a randomly assigned local
-    // port which will be written to the temp file for console to pick
-    // up.
-    if(port_ == 1) port_ = 0;
-
     struct sockaddr_in sin = {0};
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = INADDR_ANY;
-    sin.sin_port = htons(port_);
+    sin.sin_port = htons(port);
 
     if(::bind(server_fd_, (struct sockaddr*)&sin, sizeof(sin)) == -1) {
       std::cerr << "[QA: Unable to bind socket: " << strerror(errno) << "]\n";
       return false;
     }
 
-    if(port_ == 0) {
+    if(port == 0) {
       socklen_t len = sizeof(sin);
       if(getsockname(server_fd_, (struct sockaddr*)&sin, &len) == -1) {
         std::cerr << "[QA: Unable to resolve random local port]\n";
         return false;
       }
       port_ = ntohs(sin.sin_port);
+    } else {
+      port_ = port;
     }
 
     if(::listen(server_fd_, cBackLog) == -1) {
@@ -78,8 +98,7 @@ namespace rubinius {
       std::cerr << "[QA: Bound to port " << ntohs(sin.sin_port) << "]\n";
     }
 
-    FD_SET(server_fd_, &fds_);
-    if(server_fd_ > max_fd_) max_fd_ = server_fd_;
+    add_fd(server_fd_);
 
     return true;
   }
@@ -144,7 +163,14 @@ namespace rubinius {
     return true;
   }
 
+  void QueryAgent::wakeup() {
+    char buf = '!';
+    write(write_control(), &buf, 1);
+  }
+
   void QueryAgent::perform() {
+    running_ = true;
+
     while(1) {
       fd_set read_fds = fds_;
 
@@ -153,12 +179,19 @@ namespace rubinius {
       if(ret < 0) {
         if(errno == EINTR || errno == EAGAIN) continue;
         std::cerr << "[QA: Select error: " << strerror(errno) << "]\n";
+        running_ = false;
         return;
       } else if(ret == 0) {
         continue;
       }
 
-      if(FD_ISSET(server_fd_, &read_fds)) {
+      if(FD_ISSET(read_control(), &read_fds)) {
+        // Noop, just a wake up!
+        // Read the one byte written though so we don't clog up the
+        // pipe and have to use the ponies later.
+        char buf;
+        read(read_control(), &buf, 1);
+      } else if(server_fd_ > 0 && FD_ISSET(server_fd_, &read_fds)) {
         // now accept an incoming connection
         struct sockaddr_in sin;
         socklen_t addr_size = sizeof(sin);
@@ -166,7 +199,7 @@ namespace rubinius {
 
         if(verbose_) {
           std::cerr << "[QA: Connection from " << inet_ntoa(sin.sin_addr)
-            << ":" << ntohs(sin.sin_port) << "]\n";
+                    << ":" << ntohs(sin.sin_port) << "]\n";
         }
 
         bert::IOWriter writer(client);
@@ -177,15 +210,16 @@ namespace rubinius {
         encoder.write_atom("hello_query_agent");
         encoder.write_binary(RBX_HOST);
 
-        FD_SET(client, &fds_);
-        if(max_fd_ < client) max_fd_ = client;
+        add_fd(client);
 
         sockets_.push_back(client);
       } else {
+        bool found = false;
         for(std::vector<int>::iterator i = sockets_.begin();
             i != sockets_.end(); /* nothing */) {
           int client = *i;
           if(FD_ISSET(client, &read_fds)) {
+            found = true;
             if(!process_commands(client)) {
               if(verbose_) {
                 struct sockaddr_in sin;
@@ -195,7 +229,7 @@ namespace rubinius {
                 std::cerr << "[QA: Disconnected " << inet_ntoa(sin.sin_addr)
                           << ":" << ntohs(sin.sin_port) << "]\n";
               }
-              FD_CLR(client, &fds_);
+              remove_fd(client);
               close(client);
 
               i = sockets_.erase(i);
@@ -203,6 +237,12 @@ namespace rubinius {
             }
           }
           i++;
+        }
+
+        if(!found) {
+          std::cerr << "[QA: Corruption in select set detected.]\n";
+          running_ = false;
+          return;
         }
       }
     }

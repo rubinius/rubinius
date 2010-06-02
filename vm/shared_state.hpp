@@ -35,6 +35,7 @@ namespace rubinius {
   class WorldState;
   class InlineCacheRegistry;
   class ManagedThread;
+  class QueryAgent;
 
   struct Interrupts {
     bool check;
@@ -88,6 +89,8 @@ namespace rubinius {
     pthread_t timer_thread_;
 
     int primitive_hits_[Primitives::cTotalPrimitives];
+    QueryAgent* agent_;
+    VM* root_vm_;
 
   public:
     Globals globals;
@@ -199,6 +202,16 @@ namespace rubinius {
       kcode_table_ = tbl;
       kcode_page_ = page;
     }
+
+    QueryAgent* agent() {
+      return agent_;
+    }
+
+    void set_agent(QueryAgent* agent) {
+      agent_ = agent;
+    }
+
+    QueryAgent* autostart_agent();
 
     void scheduler_loop();
     void enable_preemption();

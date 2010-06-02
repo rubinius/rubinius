@@ -1,4 +1,4 @@
-require 'rubinius/bert'
+require 'rubinius/agent'
 require 'socket'
 require 'readline'
 require 'tempfile'
@@ -11,18 +11,10 @@ class Console
   end
 
   def connect(notice=true)
-    @socket = TCPSocket.new("localhost", @port)
-    @decoder = BERT::Decode.new(@socket)
-    @encoder = BERT::Encode.new(@socket)
-
-    tuple = @decoder.read_any
-    unless tuple[0] == :hello_query_agent
-      puts "Error receiving hello: #{tuple.inspect}"
-      return
-    end
+    @agent = Rubinius::Agent.connect "localhost", @port
 
     if notice
-      puts "Connected to localhost:#{@port}, host type: #{tuple[1]}"
+      puts "Connected to localhost:#{@port}, host type: #{@agent.handshake[1]}"
     end
   end
 
@@ -46,26 +38,34 @@ class Console
         backtrace(args)
       when "gdb"
         start_gdb(args)
+      when "help"
+        help
       else
-        puts "Unknown command: #{cmd}"
+        if cmd
+          if !args or args.empty?
+            get_config(cmd)
+          else
+            puts "Unknown command: #{cmd}"
+          end
+        end
       end
     end
   rescue Errno::EPIPE, IOError
     puts "VM has disconnected"
   end
 
-  def request(*args)
-    @encoder.write_any t[*args]
-    @decoder.read_any
+  def help
+    puts <<-STR
+set <var> <value> - Set a variable
+get <var>         - Get a variable
+backtrace         - Show backtraces of all Threads
+gdb               - Connect to process via gdb
+help              - You're lookin' at it
+    STR
   end
 
   def quit
-    begin
-      @encoder.write_any :close
-      response = @decoder.read_any
-    rescue Errno::EPIPE, IOError
-      return
-    end
+    response = @agent.close
 
     unless response == :bye
       puts "Unexpected response: #{response.inspect}"
@@ -75,7 +75,7 @@ class Console
   def set_config(args)
     var, val = args.split(/\s+/, 2)
 
-    response = request :set_config, var, val
+    response = @agent.request :set_config, var, val
 
     case response
     when :ok
@@ -92,7 +92,7 @@ class Console
 
     begin
       kind, val = get(var)
-    rescue GetError => e
+    rescue Rubinius::Agent::GetError => e
       puts "Error: #{e.message}"
       return
     end
@@ -108,21 +108,8 @@ class Console
     end
   end
 
-  class GetError < RuntimeError
-    def initialize(var, code, msg)
-      super("#{code} - #{msg} (#{var})")
-    end
-  end
-
   def get(var)
-    @encoder.write_any t[:get_config, var]
-    code, kind, val = @decoder.read_any
-
-    if code != :ok
-      raise GetError.new(var, code, kind)
-    end
-
-    return [kind, val]
+    @agent.get(var)
   end
 
   def human_number(number)

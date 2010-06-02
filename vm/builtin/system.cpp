@@ -38,6 +38,7 @@
 #include "builtin/taskprobe.hpp"
 #include "builtin/float.hpp"
 #include "builtin/methodtable.hpp"
+#include "builtin/io.hpp"
 
 #include "builtin/staticscope.hpp"
 #include "builtin/block_environment.hpp"
@@ -51,6 +52,8 @@
 #include "configuration.hpp"
 
 #include "inline_cache.hpp"
+
+#include "agent.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
@@ -831,5 +834,23 @@ namespace rubinius {
 
     endpwent();
     return home;
+  }
+
+  IO* System::vm_agent_io(STATE) {
+    QueryAgent* agent = state->shared.autostart_agent();
+    int sock = agent->loopback_socket();
+    if(sock < 0) {
+      if(!agent->setup_local()) return (IO*)Qnil;
+      if(agent->running()) {
+        agent->wakeup();
+      } else {
+        agent->run();
+      }
+
+      sock = agent->loopback_socket();
+    }
+
+    // dup the descriptor so the lifetime of socket is properly controlled.
+    return IO::create(state, dup(sock));
   }
 }

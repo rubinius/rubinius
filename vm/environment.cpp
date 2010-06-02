@@ -232,7 +232,15 @@ namespace rubinius {
       config.print();
     }
 
-    if(config.qa_port > 0) start_agent(config.qa_port);
+    if(config.qa_port > 0) {
+      // if port_ is 1, the user wants to use a randomly assigned local
+      // port which will be written to the temp file for console to pick
+      // up.
+
+      int port = config.qa_port;
+      if(port == 1) port = 0;
+      start_agent(port);
+    }
 
   }
 
@@ -366,7 +374,7 @@ namespace rubinius {
     return 0;
   }
 
-  static char tmp_path[1024];
+  static char tmp_path[PATH_MAX];
 
   static void remove_tmp_path(void) {
     unlink(tmp_path);
@@ -374,10 +382,12 @@ namespace rubinius {
   }
 
   void Environment::start_agent(int port) {
-    agent = new QueryAgent(*shared, state, port);
+    agent = new QueryAgent(*shared, state);
     if(config.qa_verbose) agent->set_verbose();
 
-    if(!agent->bind()) return;
+    if(!agent->bind(port)) return;
+
+    shared->set_agent(agent);
 
     agent->run();
     // Create a tmp file containing the information to be used

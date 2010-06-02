@@ -13,6 +13,7 @@ namespace rubinius {
   class BlockEnvironment;
   class CompiledMethod;
   class StaticScope;
+  class IO;
 
   struct CallFrame;
 
@@ -254,6 +255,9 @@ namespace rubinius {
 
     // Ruby.primitive :vm_get_user_home
     static String* vm_get_user_home(STATE, String* name);
+
+    // Ruby.primitive :vm_agent_io
+    static IO*     vm_agent_io(STATE);
 
   public:   /* Type info */
 
