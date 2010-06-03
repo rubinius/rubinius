@@ -26,6 +26,14 @@ class String
     raise PrimitiveFailure, "String.from_bytearray primitive failed"
   end
 
+  class << self
+    def clone
+      raise TypeError, "Unable to clone/dup String class"
+    end
+
+    alias_method :dup, :clone
+  end
+
   def initialize(arg = undefined)
     replace StringValue(arg) unless arg == undefined
 

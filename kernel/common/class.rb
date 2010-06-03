@@ -97,10 +97,4 @@ class Class
   end
 
   alias_method :inspect, :to_s
-
-  def clone
-    raise TypeError, "Unable to clone/dup Class objects"
-  end
-
-  alias_method :dup, :clone
 end
