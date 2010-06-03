@@ -195,7 +195,9 @@ namespace rubinius {
 
   void QueryAgent::wakeup() {
     char buf = '!';
-    write(write_control(), &buf, 1);
+    if(write(write_control(), &buf, 1) < 0) {
+      std::cerr << "[QA: Write error: " << strerror(errno) << "]\n";
+    }
   }
 
   void QueryAgent::perform() {
@@ -220,7 +222,9 @@ namespace rubinius {
         // Read the one byte written though so we don't clog up the
         // pipe and have to use the ponies later.
         char buf;
-        read(read_control(), &buf, 1);
+        if(read(read_control(), &buf, 1) < 0) {
+          std::cerr << "[QA: Read error: " << strerror(errno) << "]\n";
+        }
       } else if(server_fd_ > 0 && FD_ISSET(server_fd_, &read_fds)) {
         // now accept an incoming connection
         struct sockaddr_in sin;
