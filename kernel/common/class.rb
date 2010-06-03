@@ -90,7 +90,7 @@ class Class
 
   def to_s
     if obj = __metaclass_object__
-      "#<Class: #{obj.inspect}>"
+      "#<Class: #<#{obj.class.__name__}:#{obj.object_id}>>"
     else
       @module_name ? @module_name.to_s : super
     end
