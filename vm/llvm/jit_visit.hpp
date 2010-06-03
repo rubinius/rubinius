@@ -678,54 +678,8 @@ namespace rubinius {
     Value* inline_cache_send(int args, InlineCache* cache) {
       sends_done_++;
 
-      Class* klass = cache->dominating_class();
-      if(klass && cache->method == info().method()) {
-        if(state()->config().jit_inline_debug) {
-          ls_->log() << "inlining: self recursion direct call\n";
-        }
-
-        Value* self = stack_back(args);
-        setup_out_args(args);
-
-        BasicBlock* failure = new_block("rec_check_failed");
-        check_class(self, klass, failure);
-
-        Value* cache_const = b().CreateIntToPtr(
-          ConstantInt::get(ls_->IntPtrTy, reinterpret_cast<uintptr_t>(cache)),
-          ptr_type("Dispatch"), "cast_to_ptr");
-
-        Value* rec_args[] = {
-          vm_,
-          call_frame_,
-          cache_const,
-          out_args_
-        };
-
-        flush_ip();
-        Value* rec = b().CreateCall(info().function(), rec_args, rec_args+4, "rec_send");
-        BasicBlock* rec_block = current_block();
-
-        BasicBlock* cont = new_block("continue");
-        b().CreateBr(cont);
-
-        set_block(failure);
-
-        Value* ic = invoke_inline_cache(cache);
-        BasicBlock* ic_block = current_block();
-
-        b().CreateBr(cont);
-
-        set_block(cont);
-
-        PHINode* phi = b().CreatePHI(ic->getType(), "rec_or_ic");
-        phi->addIncoming(rec, rec_block);
-        phi->addIncoming(ic, ic_block);
-
-        return phi;
-      } else {
-        setup_out_args(args);
-        return invoke_inline_cache(cache);
-      }
+      setup_out_args(args);
+      return invoke_inline_cache(cache);
     }
 
     Value* block_send(InlineCache* cache, int args, bool priv=false) {
