@@ -345,6 +345,11 @@ namespace rubinius {
                     << " ]]]\n";
         }
 
+        // If someone was waiting on this, wake them up.
+        if(thread::Condition* cond = req->waiter()) {
+          cond->signal();
+        }
+
         delete req;
 
         // We don't depend on the GC here, so let it run independent
@@ -551,6 +556,7 @@ namespace rubinius {
   void LLVMState::compile_soon(STATE, CompiledMethod* cm, BlockEnvironment* block) {
     Object* placement;
     bool is_block = false;
+    bool wait = config().jit_sync;
 
     // Ignore it!
     if(cm->backend_method()->call_count < 0) {
@@ -580,13 +586,31 @@ namespace rubinius {
 
     queued_methods_++;
 
-    background_thread_->add(req);
+    if(wait) {
+      thread::Condition cond;
+      req->set_waiter(&cond);
 
-    if(state->shared.config.jit_show_compiling) {
-      llvm::outs() << "[[[ JIT Queued"
-                << (block ? " block " : " method ")
-                << queued_methods() << "/"
-                << jitted_methods() << " ]]]\n";
+      thread::Mutex mux;
+      mux.lock();
+
+      background_thread_->add(req);
+      cond.wait(mux);
+
+      mux.unlock();
+
+      if(config().jit_inline_debug) {
+        log() << "JIT: compiled method: "
+              << symbol_cstr(cm->name()) << "\n";
+      }
+    } else {
+      background_thread_->add(req);
+
+      if(state->shared.config.jit_show_compiling) {
+        llvm::outs() << "[[[ JIT Queued"
+          << (block ? " block " : " method ")
+          << queued_methods() << "/"
+          << jitted_methods() << " ]]]\n";
+      }
     }
   }
 

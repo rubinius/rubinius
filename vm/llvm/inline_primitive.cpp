@@ -248,6 +248,37 @@ namespace rubinius {
     i.set_result(ops.as_obj(tagged));
   }
 
+  static void fixnum_le(JITOperations& ops, Inliner& i) {
+    Value* lint = ops.cast_int(i.recv());
+    Value* rint = ops.cast_int(i.arg(0));
+
+    Value* anded = BinaryOperator::CreateAnd(lint, rint, "fixnums_anded",
+                                             ops.current_block());
+
+    Value* fix_mask = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM_MASK);
+    Value* fix_tag  = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM);
+
+    Value* masked = BinaryOperator::CreateAnd(anded, fix_mask, "masked",
+                                              ops.current_block());
+
+    Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
+
+    BasicBlock* push = ops.new_block("push_le");
+    BasicBlock* send = i.failure();
+
+    ops.create_conditional_branch(push, send, cmp);
+
+    ops.set_block(push);
+
+    Value* le = ops.b().CreateSelect(
+                   ops.b().CreateICmpSLE(lint, rint, "fixnums_le_p"),
+                   ops.constant(Qtrue),
+                   ops.constant(Qfalse));
+
+    i.exception_safe();
+    i.set_result(ops.as_obj(le));
+  }
+
   enum FloatOperation {
     cAdd, cSub, cMultiply, cDivide, cMod,
     cEqual, cLessThan, cLessThanEqual, cGreaterThan, cGreaterThanEqual
@@ -436,6 +467,9 @@ namespace rubinius {
     } else if(prim == Primitives::fixnum_neg && count_ == 0) {
       inlined_prim = "fixnum_neg";
       fixnum_neg(ops_, *this);
+    } else if(prim == Primitives::fixnum_le && count_ == 1) {
+      inlined_prim = "fixnum_le";
+      fixnum_le(ops_, *this);
     } else if(prim == Primitives::object_equal && count_ == 1) {
       inlined_prim = "object_equal";
       object_equal(klass, ops_, *this);

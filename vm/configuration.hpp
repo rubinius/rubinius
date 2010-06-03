@@ -27,6 +27,7 @@ namespace rubinius {
     config::String  jit_log;
     config::Bool    jit_disabled;
     config::Bool    jit_debug;
+    config::Bool    jit_sync;
 
     // Query Agent
     config::Integer qa_port;
@@ -70,6 +71,7 @@ namespace rubinius {
       , jit_log(this,        "jit.log")
       , jit_disabled(this,   "int")
       , jit_debug(this,      "jit.debug", false)
+      , jit_sync(this,       "jit.sync", false)
       , qa_port(this,         "agent.start")
       , qa_verbose(this,      "agent.verbose")
       , qa_tmpdir(this,       "agent.tmpdir")
@@ -119,6 +121,9 @@ namespace rubinius {
 
       jit_disabled.set_description(
           "Force the JIT to never turn on");
+
+      jit_sync.set_description(
+          "Wait for the JIT to finish compiling each method");
 
       print_config.set_description(
           "blank or 1 == names and values, 2 == description as well");

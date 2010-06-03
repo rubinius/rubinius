@@ -584,12 +584,14 @@ namespace rubinius {
     TypedRoot<CompiledMethod*> method_;
     TypedRoot<Object*> mm_;
     bool is_block_;
+    thread::Condition* waiter_;
 
   public:
     BackgroundCompileRequest(STATE, CompiledMethod* cm, Object* mm, bool is_block=false)
       : method_(state)
       , mm_(state)
       , is_block_(is_block)
+      , waiter_(0)
     {
       method_.set(cm);
       mm_.set(mm);
@@ -609,6 +611,14 @@ namespace rubinius {
 
     bool is_block() {
       return is_block_;
+    }
+
+    void set_waiter(thread::Condition* cond) {
+      waiter_ = cond;
+    }
+
+    thread::Condition* waiter() {
+      return waiter_;
     }
   };
 
