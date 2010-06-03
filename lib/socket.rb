@@ -9,6 +9,20 @@ end
 
 class BasicSocket < IO
 
+  class << self
+    def from_descriptor(fixnum)
+      sock = allocate()
+      sock.from_descriptor(fixnum)
+      return sock
+    end
+
+    alias :for_fd :from_descriptor
+  end
+
+  def from_descriptor(fixnum)
+    IO.setup self, fixnum, nil, true
+    return self
+  end
 
   def self.do_not_reverse_lookup=(setting)
     @no_reverse_lookup = setting
@@ -93,6 +107,38 @@ class BasicSocket < IO
     return socket_recv(bytes_to_read, flags, 0)
   end
 
+  def close_read
+    ensure_open_and_readable
+
+    # If we were only in readonly mode, close it all together
+    if @mode & ACCMODE == RDONLY
+      return close
+    end
+
+    # MRI doesn't check if shutdown worked, so we don't.
+    Socket::Foreign.shutdown @descriptor, 0
+
+    @mode = @mode & ~RDONLY
+
+    nil
+  end
+
+  def close_write
+    ensure_open_and_writable
+
+    # If we were only in writeonly mode, close it all together
+    if @mode & ACCMODE == WRONLY
+      return close
+    end
+
+    Socket::Foreign.shutdown @descriptor, 1
+
+    # Remove write from the mode bits
+    @mode = @mode & ~WRONLY
+
+    nil
+  end
+
   #
   # Sets socket nonblocking and reads up to given number of bytes.
   #
@@ -108,25 +154,6 @@ class BasicSocket < IO
 
 
 #
-# @todo   Fix. This is horrible. --rue
-#
-#  #
-#  # Only close the read stream.
-#  #
-#  # This affects all processes using this stream!
-#  #
-#  def close_read()
-#    shutdown Socket::SHUT_RD
-#  end
-#
-#  #
-#  # Only close the write stream.
-#  #
-#  # This affects all processes using this stream!
-#  #
-#  def close_write()
-#    shutdown Socket::SHUT_WR
-#  end
 
 end
 
@@ -170,6 +197,7 @@ class Socket < BasicSocket
 
     attach_function :accept,   [:int, :pointer, :pointer], :int
     attach_function :close,    [:int], :int
+    attach_function :shutdown, [:int, :int], :int
     attach_function :listen,   [:int, :int], :int
     attach_function :socket,   [:int, :int, :int], :int
     attach_function :send,     [:int, :pointer, :int, :int], :int
@@ -609,12 +637,36 @@ class Socket < BasicSocket
     end
   end
 
-  def self.socketpair(domain, type, protocol)
+  def self.socketpair(domain, type, protocol, klass=self)
+    if domain.kind_of? String
+      if domain.prefix? "AF_" or domain.prefix? "PF_"
+        begin
+          domain = Socket::Constants.const_get(domain)
+        rescue NameError
+          raise SocketError, "unknown socket domain #{domani}"
+        end
+      else
+        raise SocketError, "unknown socket domain #{domani}"
+      end
+    end
+
+    if type.kind_of? String
+      if type.prefix? "SOCK_"
+        begin
+          type = Socket::Constants.const_get(type)
+        rescue NameError
+          raise SocketError, "unknown socket type #{type}"
+        end
+      else
+        raise SocketError, "unknown socket type #{type}"
+      end
+    end
+
     FFI::MemoryPointer.new :int, 2 do |mp|
       Socket::Foreign.socketpair(domain, type, protocol, mp)
       fd0, fd1 = mp.read_array_of_int(2)
 
-      [ from_descriptor(fd0), from_descriptor(fd1) ]
+      [ klass.from_descriptor(fd0), klass.from_descriptor(fd1) ]
     end
   end
 
@@ -654,21 +706,6 @@ class Socket < BasicSocket
     IO.setup self, descriptor, nil, true
   end
 
-  class << self
-    def from_descriptor(fixnum)
-      sock = allocate()
-      sock.from_descriptor(fixnum)
-      return sock
-    end
-
-    alias :for_fd :from_descriptor
-  end
-
-  def from_descriptor(fixnum)
-    IO.setup self, fixnum, nil, true
-    return self
-  end
-
   def bind(server_sockaddr)
     err = Socket::Foreign.bind(descriptor, server_sockaddr)
     Errno.handle 'bind(2)' unless err == 0
@@ -692,7 +729,6 @@ class Socket < BasicSocket
 
     return 0
   end
-
 end
 
 class UNIXSocket < BasicSocket
@@ -710,6 +746,11 @@ class UNIXSocket < BasicSocket
     @path = ""  # Client
   end
   private :initialize
+
+  def from_descriptor(fixnum)
+    super
+    @path = ""
+  end
 
   def unix_setup(server = false)
     status = nil
@@ -757,12 +798,13 @@ class UNIXSocket < BasicSocket
     ["AF_UNIX", sock_path]
   end
 
-  def from_descriptor(descriptor)
-    IO.setup self, descriptor, nil, true
+  class << self
+    def socketpair(type=Socket::SOCK_STREAM, protocol=0)
+      Socket.socketpair(Socket::PF_UNIX, type, protocol, self)
+    end
 
-    self
+    alias_method :pair, :socketpair
   end
-  private :from_descriptor
 
 end
 
