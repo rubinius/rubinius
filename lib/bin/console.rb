@@ -63,6 +63,7 @@ get <var>         - Get a variable
 backtrace         - Show backtraces of all Threads
 gdb               - Connect to process via gdb
 pid               - Show process ID
+memory, mem       - Show memory statistics
 help              - You're lookin' at it
     STR
   end
@@ -157,7 +158,7 @@ help              - You're lookin' at it
 
     total += val
 
-    puts " Total: #{human_number(total)} (#{total})"
+    puts "  Total: #{human_number(total)} (#{total})"
   end
 
   def backtrace(args)
