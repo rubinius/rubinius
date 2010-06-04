@@ -133,27 +133,27 @@ help              - You're lookin' at it
   end
 
   def show_memory
-    code, val = get "system.memory.young"
+    code, val = get "system.memory.young.bytes"
     puts "  Young: #{val}"
 
     total = val
 
-    code, val = get "system.memory.mature"
+    code, val = get "system.memory.mature.bytes"
     puts " Mature: #{val}"
 
     total += val
 
-    code, val = get "system.memory.large"
+    code, val = get "system.memory.large.bytes"
     puts "  Large: #{val}"
 
     total += val
 
-    code, val = get "system.memory.code"
+    code, val = get "system.memory.code.bytes"
     puts "   Code: #{val}"
 
     total += val
 
-    code, val = get "system.memory.symbols"
+    code, val = get "system.memory.symbols.bytes"
     puts "Symbols: #{val}"
 
     total += val

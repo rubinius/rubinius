@@ -332,11 +332,21 @@ namespace agent {
     system_->add(new Backtrace(state, ss, "backtrace"));
 
     Tree* mem = system_->get_tree("memory");
-    mem->add(new StaticInteger<int>("young", ss.config.gc_bytes * 2));
-    mem->add(new ReadInteger<size_t>("mature", &state->om->immix_usage()));
-    mem->add(new ReadInteger<size_t>("large", &state->om->loe_usage()));
-    mem->add(new ReadInteger<size_t>("code",  &state->om->code_usage()));
-    mem->add(new ReadInteger<size_t>("symbols",  &ss.symbols.bytes_used()));
+
+    Tree* young = mem->get_tree("young");
+    young->add(new StaticInteger<int>("bytes", ss.config.gc_bytes * 2));
+
+    Tree* mature = mem->get_tree("mature");
+    mature->add(new ReadInteger<size_t>("bytes", &state->om->immix_usage()));
+
+    Tree* large = mem->get_tree("large");
+    large->add(new ReadInteger<size_t>("bytes", &state->om->loe_usage()));
+
+    Tree* code = mem->get_tree("code");
+    code->add(new ReadInteger<size_t>("bytes", &state->om->code_usage()));
+
+    Tree* symbols = mem->get_tree("symbols");
+    symbols->add(new ReadInteger<size_t>("bytes", &ss.symbols.bytes_used()));
 
     Tree* jit = system_->get_tree("jit");
     jit->add(new ReadInteger<size_t>("methods", &ss.stats.jitted_methods));
