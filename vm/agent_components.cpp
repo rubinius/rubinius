@@ -346,6 +346,10 @@ namespace agent {
   }
 
   void VariableAccess::read_path(Output& output, const char* ipath) {
-    root_->read_path(output, ipath);
+    if(strlen(ipath) == 1 && ipath[0] == '.') {
+      root_->read(output);
+    } else {
+      root_->read_path(output, ipath);
+    }
   }
 }}
