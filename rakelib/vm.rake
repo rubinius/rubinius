@@ -200,7 +200,7 @@ if ENV['DEV']
 end
 
 def compile_c(obj, src, output_kind="c")
-  flags = INCLUDES + FLAGS + llvm_flags
+  flags = llvm_flags + INCLUDES + FLAGS
 
   if CONFIG.compile_with_llvm
     flags << "-emit-llvm"
