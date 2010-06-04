@@ -375,7 +375,7 @@ namespace rubinius {
 
     Module* const start = call_frame->module()->superclass();
 
-    if(!cache->fill_private(state, cache->name, start)) {
+    if(start->nil_p() || !cache->fill_private(state, cache->name, start)) {
       state->set_method_missing_reason(eSuper);
 
       // Don't use start when looking up method_missing!
