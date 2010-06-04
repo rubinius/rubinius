@@ -163,6 +163,20 @@ namespace agent {
     }
   };
 
+  class ProcessId : public DynamicVariable {
+  public:
+    ProcessId(const char* name)
+      : DynamicVariable(name)
+    {}
+
+    virtual void read(Output& output) {
+      pid_t pid = getpid();
+      output.ok("value");
+      output.e().write_tuple(1);
+      output.e().write_integer(pid);
+    }
+  };
+
   class VMConfig : public DynamicVariable {
     SharedState& shared_;
 
@@ -314,6 +328,7 @@ namespace agent {
 
     system_ = root_->get_tree("system");
     system_->add(new SystemName("name"));
+    system_->add(new ProcessId("pid"));
     system_->add(new Backtrace(state, ss, "backtrace"));
 
     Tree* mem = system_->get_tree("memory");

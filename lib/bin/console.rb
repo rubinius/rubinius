@@ -31,6 +31,8 @@ class Console
         get_config(args)
       when "memory", "mem"
         show_memory
+      when "pid"
+        show_pid
       when "q", "quit", "exit"
         quit
         return
@@ -60,6 +62,7 @@ set <var> <value> - Set a variable
 get <var>         - Get a variable
 backtrace         - Show backtraces of all Threads
 gdb               - Connect to process via gdb
+pid               - Show process ID
 help              - You're lookin' at it
     STR
   end
@@ -121,6 +124,11 @@ help              - You're lookin' at it
     else
       "#{k}Kb"
     end
+  end
+
+  def show_pid
+    code, val = get "system.pid"
+    puts "PID: #{val}"
   end
 
   def show_memory
