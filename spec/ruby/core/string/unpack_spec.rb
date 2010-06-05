@@ -100,6 +100,10 @@ describe "String#unpack with 'C' and 'c' directives" do
     "\x80\x02\x00\x42\xFF\x87\xF3\x00".unpack('c*').should == [-128, 2, 0, 66, -1, -121, -13, 0]
     "\xF3\x02\x00\x42\x32\x87\xF3\x02".unpack('c0C*').should == [243, 2, 0, 66, 50, 135, 243, 2]
   end
+
+  it "decodes respective of the already decoded data" do
+    "\0\0\0\1hello".unpack("iC5").last.should == 111
+  end
 end
 
 describe "String#unpack with 'Q' and 'q' directives" do

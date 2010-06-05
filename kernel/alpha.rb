@@ -729,6 +729,10 @@ module Rubinius
       @module.to_s
     end
 
+    def inspect
+      "#<IncludedModule #{@module.to_s}>"
+    end
+
     # Returns true if +other+ is the same object as self or if +other+
     # is the module this IncludedModule is for.
     #

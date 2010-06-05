@@ -2,7 +2,7 @@ class Module
   def alias_method(new_name, current_name)
     new_name = Type.coerce_to_symbol(new_name)
     current_name = Type.coerce_to_symbol(current_name)
-    mod, entry = lookup_method(current_name)
+    mod, entry = lookup_method(current_name, true, false)
 
     if entry
       # If we're aliasing a method we contain, just reference it directly, no

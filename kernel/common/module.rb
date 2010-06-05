@@ -103,12 +103,12 @@ class Module
 
   alias_method :inspect, :to_s
 
-  def lookup_method(sym, check_object_too=true)
+  def lookup_method(sym, check_object_too=true, trim_im=true)
     mod = self
 
     while mod
       if entry = mod.method_table.lookup(sym.to_sym)
-        mod = mod.module if mod.kind_of? Rubinius::IncludedModule
+        mod = mod.module if trim_im and mod.kind_of? Rubinius::IncludedModule
         return [mod, entry]
       end
 
@@ -118,7 +118,7 @@ class Module
     # Optionally also search Object (and everything included in Object);
     # this lets a module alias methods on Object or Kernel.
     if check_object_too and instance_of?(Module)
-      return Object.lookup_method(sym)
+      return Object.lookup_method(sym, true, trim_im)
     end
   end
 

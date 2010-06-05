@@ -155,10 +155,6 @@ namespace rubinius {
       orig_name = alias->original_name();
     }
 
-    if(IncludedModule* im = try_as<IncludedModule>(orig_mod)) {
-      orig_mod = im->module();
-    }
-
     Alias* method = Alias::create(state, orig_name, orig_mod, orig_method);
 
     num_entries = entries_->to_native();
