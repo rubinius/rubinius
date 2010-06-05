@@ -259,4 +259,35 @@ module Super
     # Otherwise, Alias2 is next, which is where name was to begin with,
     # causing the wrong #name method to be called.
   end
+
+  module AliasWithSuper
+    module AS1
+      def foo
+        :a
+      end
+    end
+
+    module BS1
+      def foo
+        [:b, super]
+      end
+    end
+
+    class Base
+      extend AS1
+      extend BS1
+    end
+
+    class Trigger < Base
+      class << self
+        def foo_quux
+          foo_baz
+        end
+
+        alias_method :foo_baz, :foo
+        alias_method :foo, :foo_quux
+      end
+    end
+  end
+
 end

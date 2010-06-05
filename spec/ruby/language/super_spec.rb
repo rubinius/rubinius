@@ -142,4 +142,10 @@ describe "The super keyword" do
       Super::Alias3.new.name3.should == [:alias2, :alias1]
     }.should_not raise_error(RuntimeError)
   end
+
+  it "sees the included version of a module a method is alias from" do
+    lambda {
+      Super::AliasWithSuper::Trigger.foo.should == [:b, :a]
+    }.should_not raise_error(NoMethodError)
+  end
 end
