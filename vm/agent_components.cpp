@@ -246,12 +246,12 @@ namespace agent {
     }
   };
 
-  class ThreadInfo : public DynamicVariable {
+  class ThreadBacktrace : public DynamicVariable {
     SharedState& shared_;
     VM* state_;
 
   public:
-    ThreadInfo(STATE, SharedState& ss, const char* name)
+    ThreadBacktrace(STATE, SharedState& ss, const char* name)
       : DynamicVariable(name)
       , shared_(ss)
       , state_(state)
@@ -286,6 +286,29 @@ namespace agent {
           output.e().write_binary(thr->name());
         }
       }
+    }
+  };
+
+  class ThreadCount : public DynamicVariable {
+    SharedState& shared_;
+    VM* state_;
+
+  public:
+    ThreadCount(STATE, SharedState& ss, const char* name)
+      : DynamicVariable(name)
+      , shared_(ss)
+      , state_(state)
+    {}
+
+    virtual void read(Output& output) {
+      shared_.interrupts.set_timer();
+      GlobalLock::LockGuard guard(shared_.global_lock());
+
+      output.ok("value");
+
+      std::list<ManagedThread*>* thrs = shared_.threads();
+
+      output.e().write_integer(thrs->size());
     }
   };
 
@@ -352,7 +375,9 @@ namespace agent {
     jit->add(new ReadInteger<size_t>("methods", &ss.stats.jitted_methods));
     jit->add(new ReadInteger<size_t>("time", &ss.stats.jit_time_spent));
 
-    system_->add(new ThreadInfo(state, ss, "threads"));
+    Tree* threads = system_->get_tree("threads");
+    threads->add(new ThreadBacktrace(state, ss, "backtrace"));
+    threads->add(new ThreadCount(state, ss, "count"));
   }
 
   void VariableAccess::read_path(Output& output, const char* ipath) {
