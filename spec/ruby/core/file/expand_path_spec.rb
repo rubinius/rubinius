@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/common', __FILE__)
 
 describe "File.expand_path" do
   before :each do
@@ -150,5 +151,24 @@ describe "File.expand_path" do
       File.expand_path("./a").encoding.should == Encoding::SHIFT_JIS
       Encoding.default_external = old_external
     end
+  end
+
+  it "does not modify the string argument" do
+    str = "./a/b/../c"
+    File.expand_path(str, "/dir").should == "/dir/a/c"
+    str.should == "./a/b/../c"
+  end
+
+  it "does not modify a HOME string argument" do
+    str = "~/a"
+    File.expand_path(str).should == "#{home_directory}/a"
+    str.should == "~/a"
+  end
+
+  it "returns a String when passed a String subclass" do
+    str = FileSpecs::SubString.new "./a/b/../c"
+    path = File.expand_path(str, "/dir")
+    path.should == "/dir/a/c"
+    path.should be_an_instance_of(String)
   end
 end
