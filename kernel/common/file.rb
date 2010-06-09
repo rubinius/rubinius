@@ -363,12 +363,12 @@ class File < IO
     if first == ?~
       case path[1]
       when ?/
-        path[0, 1] = ENV["HOME"]
+        path = ENV["HOME"] + path.substring(1, path.size - 1)
       when nil
         return ENV["HOME"]
       else
         unless length = path.index("/", 1)
-          length = path.length
+          length = path.size
         end
 
         name = path.substring 1, length - 1
@@ -376,7 +376,7 @@ class File < IO
           raise ArgumentError, "user #{name} does not exist"
         end
 
-        path[0, length] = dir
+        path = dir + path.substring(length, path.size - length)
       end
     elsif first != ?/
       if dir
