@@ -557,6 +557,7 @@ long long rb_num2ll(VALUE);
 unsigned long long rb_num2ull(VALUE);
 #define NUM2LL(x) (FIXNUM_P(x)?FIX2LONG(x):rb_num2ll((VALUE)x))
 #define NUM2ULL(x) rb_num2ull((VALUE)x)
+#define NUM2OFFT(x) ((off_t)NUM2LL(x))
 
 /** Convert from a Float to a double */
 double rb_num2dbl(VALUE);
