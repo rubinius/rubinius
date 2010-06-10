@@ -232,22 +232,24 @@ module Rubinius
         out.puts "index  % time     self  children         called       name"
         out.puts "----------------------------------------------------------"
 
-        primary   = "%-7s%6s %8.2f %9.2f   %8d           %s [%d]\n"
-        secondary = "              %8.2f %9.2f   %8d/%-8d       %s [%d]\n"
+        primary   = "%-7s%6s %8.2f %9.2f   %8d           %s\n"
+        secondary = "              %8.2f %9.2f   %8d/%-8d       %s"
 
         indexes.each do |id|
           method = data[id]
 
           method[:callers].each do |c_id, calls, time|
             caller = data[c_id]
-            out.printf secondary, sec(caller[:self_total]),
-                                  sec(time),
-                                  calls,
-                                  caller[:edges_calls],
-                                  caller[:name],
-                                  caller[:index]
+            secondary_line = caller[:index] ? secondary + " [%d]\n" : secondary + "\n"
+            out.printf secondary_line, sec(caller[:self_total]),
+                                       sec(time),
+                                       calls,
+                                       caller[:edges_calls],
+                                       caller[:name],
+                                       caller[:index]
           end
 
+          primary_line = method[:index]
           out.printf primary, ("[%d]" % method[:index]),
                               percentage(method[:total], total, 1, nil),
                               sec(method[:self_total]),
@@ -260,12 +262,13 @@ module Rubinius
             if edge = data[e_id]
               ratio = time.to_f / edge[:self_total]
               ratio = 0.0 if ratio < 0
-              out.printf secondary, sec(edge[:self_total]),
-                                    sec(ratio * edge[:edges_total]),
-                                    calls,
-                                    edge[:called],
-                                    edge[:name],
-                                    edge[:index]
+              secondary_line = edge[:index] ? secondary + " [%d]\n" : secondary + "\n"
+              out.printf secondary_line, sec(edge[:self_total]),
+                                         sec(ratio * edge[:edges_total]),
+                                         calls,
+                                         edge[:called],
+                                         edge[:name],
+                                         edge[:index]
             end
           end
 
