@@ -2525,3 +2525,22 @@ end
 instruction push_rubinius() [ -- constant ]
   stack_push(G(rubinius));
 end
+
+
+instruction call_custom(literal count) [ receiver +count -- value ] => send
+  flush_ip();
+  Object* recv = stack_back(count);
+  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+
+  SET_ALLOW_PRIVATE(false);
+
+  Arguments args(recv, Qnil, count,
+                 stack_back_position(count));
+
+  Object* ret = cache->execute(state, call_frame, args);
+
+  stack_clear(count + 1);
+
+  HANDLE_EXCEPTION(ret);
+  stack_push(ret);
+end

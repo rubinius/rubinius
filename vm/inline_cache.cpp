@@ -8,6 +8,7 @@
 #include "builtin/executable.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/alias.hpp"
+#include "builtin/call_unit.hpp"
 
 namespace rubinius {
 
@@ -247,6 +248,45 @@ namespace rubinius {
 
     return true;
   }
+
+  Object* InlineCache::empty_cache_custom(STATE, InlineCache* cache, CallFrame* call_frame,
+                                          Arguments& args)
+  {
+    Object* const recv = args.recv();
+    Array*  ary = Array::create(state, args.total() + 2);
+    ary->set(state, 0, recv);
+    ary->set(state, 1, cache->name);
+
+    for(size_t i = 0; i < args.total(); i++) {
+      ary->set(state, i + 2, args.get_argument(i));
+    }
+
+    Object* ret = G(rubinius)->send(state, call_frame, state->symbol("bind_call"),
+                                    ary, Qnil, true);
+
+    if(!ret) return 0;
+
+    if(CallUnit* cu = try_as<CallUnit>(ret)) {
+      cache->call_unit_ = cu;
+      // kludge.
+      call_frame->cm->write_barrier(state, cu);
+
+      cache->execute_backend_ = check_cache_custom;
+
+      return cu->execute(state, call_frame, cu, *cache, args);
+    } else {
+      Exception::internal_error(state, call_frame, "bind_call must return CallUnit");
+      return 0;
+    }
+  }
+
+  Object* InlineCache::check_cache_custom(STATE, InlineCache* cache,
+      CallFrame* call_frame, Arguments& args)
+  {
+    return cache->call_unit_->execute(state, call_frame, cache->call_unit_, *cache, args);
+  }
+
+
 
   Object* InlineCache::empty_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)

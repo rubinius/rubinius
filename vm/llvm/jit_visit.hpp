@@ -1351,6 +1351,23 @@ namespace rubinius {
       allow_private_ = false;
     }
 
+    void visit_call_custom(opcode which, opcode args) {
+      if(state()->config().jit_inline_debug) {
+        ls_->log() << "generate: call_custom\n";
+      }
+
+      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
+
+      set_has_side_effects();
+
+      Value* ret = inline_cache_send(args, cache);
+      stack_remove(args + 1);
+      check_for_exception(ret);
+      stack_push(ret);
+
+      allow_private_ = false;
+    }
+
     void visit_send_method(opcode which) {
       visit_send_stack(which, 0);
     }

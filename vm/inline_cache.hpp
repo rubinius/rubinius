@@ -16,6 +16,7 @@ namespace rubinius {
   class InlineCache;
   struct CallFrame;
   class Arguments;
+  class CallUnit;
 
   // How many receiver class have been seen to keep track of inside an IC
   const static int cTrackedICHits = 3;
@@ -58,6 +59,7 @@ namespace rubinius {
 
   class InlineCache : public Dispatch {
     Class* klass_;
+    CallUnit* call_unit_;
 
     typedef Object* (*CacheExecutor)(STATE, InlineCache*, CallFrame*, Arguments& args);
 
@@ -89,6 +91,9 @@ namespace rubinius {
     static Object* empty_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
                                Arguments& args);
 
+    static Object* empty_cache_custom(STATE, InlineCache* cache, CallFrame* call_frame,
+                                          Arguments& args);
+
     static Object* check_cache_symbol(STATE, InlineCache* cache, CallFrame* call_frame,
                                Arguments& args);
 
@@ -103,6 +108,9 @@ namespace rubinius {
 
     static Object* check_cache_mm(STATE, InlineCache* cache, CallFrame* call_frame,
                                   Arguments& args);
+
+    static Object* check_cache_custom(STATE, InlineCache* cache, CallFrame* call_frame,
+                               Arguments& args);
 
     static Object* disabled_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                   Arguments& args);
@@ -123,6 +131,7 @@ namespace rubinius {
     InlineCache()
       : Dispatch()
       , klass_(0)
+      , call_unit_(0)
       , initial_backend_(empty_cache)
       , execute_backend_(empty_cache)
       , hits_(0)
@@ -174,6 +183,11 @@ namespace rubinius {
     void set_is_vcall() {
       initial_backend_ = empty_cache_vcall;
       execute_backend_ = empty_cache_vcall;
+    }
+
+    void set_call_custom() {
+      initial_backend_ = empty_cache_custom;
+      execute_backend_ = empty_cache_custom;
     }
 
     Object* execute(STATE, CallFrame* call_frame, Arguments& args) {

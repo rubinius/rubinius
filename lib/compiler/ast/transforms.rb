@@ -119,6 +119,33 @@ module Rubinius
     end
 
     ##
+    # Handles Rubinius.call_custom
+    #
+    class CallCustom < SendWithArguments
+      transform :default, :call_custom, "Rubinius.call_custom"
+
+      def self.match?(line, receiver, name, arguments, privately)
+        match_send? receiver, :Rubinius, name, :call_custom
+      end
+
+      def bytecode(g)
+        if @arguments.splat?
+          raise CompileError, "splat argument passed to invoke_primitive"
+        elsif @block
+          raise CompileError, "block passed to invoke_primitive"
+        end
+
+        pos(g)
+        rec = @arguments.array.shift
+        rec.bytecode(g)
+
+        selector = @arguments.array.shift
+        @arguments.bytecode(g)
+        g.call_custom selector.value, @arguments.size
+      end
+    end
+
+    ##
     # Handles Rubinius.asm
     #
     class InlineAssembly < SendWithArguments

@@ -9,6 +9,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
 #include "builtin/lookuptable.hpp"
+#include "builtin/call_unit.hpp"
 
 #include "ffi.hpp"
 #include "marshal.hpp"
@@ -290,6 +291,14 @@ namespace rubinius {
         tmp = mark.call(cache->klass_);
         if(tmp) {
           cache->klass_ = (Class*)tmp;
+          mark.just_set(obj, tmp);
+        }
+      }
+
+      if(cache->call_unit_) {
+        tmp = mark.call(cache->call_unit_);
+        if(tmp) {
+          cache->call_unit_ = (CallUnit*)tmp;
           mark.just_set(obj, tmp);
         }
       }

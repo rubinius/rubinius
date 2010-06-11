@@ -198,6 +198,7 @@ namespace rubinius {
         case InstructionSequence::insn_meta_send_op_gt:
         case InstructionSequence::insn_check_serial:
         case InstructionSequence::insn_check_serial_private:
+        case InstructionSequence::insn_call_custom:
           sends++;
         }
 
@@ -240,6 +241,7 @@ namespace rubinius {
         // fall through
       case InstructionSequence::insn_check_serial:
       case InstructionSequence::insn_check_serial_private:
+      case InstructionSequence::insn_call_custom:
       case InstructionSequence::insn_send_method:
       case InstructionSequence::insn_send_stack:
       case InstructionSequence::insn_send_stack_with_block:
@@ -262,11 +264,15 @@ namespace rubinius {
 
         cache->set_name(name);
 
-        if(allow_private) cache->set_is_private();
-        if(is_super) cache->set_is_super();
+        if(op == InstructionSequence::insn_call_custom) {
+          cache->set_call_custom();
+        } else {
+          if(allow_private) cache->set_is_private();
+          if(is_super) cache->set_is_super();
 
-        if(op == InstructionSequence::insn_send_method) {
-          cache->set_is_vcall();
+          if(op == InstructionSequence::insn_send_method) {
+            cache->set_is_vcall();
+          }
         }
 
         state->shared.ic_registry()->add_cache(name, cache);

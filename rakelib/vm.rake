@@ -130,6 +130,8 @@ field_extract_headers = %w[
   vm/builtin/weakref.hpp
   vm/builtin/fiber.hpp
   vm/builtin/thunk.hpp
+  vm/builtin/call_unit.hpp
+  vm/builtin/call_unit_adapter.hpp
 ]
 
 # TODO: all external libraries should have proper dependencies.

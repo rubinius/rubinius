@@ -332,6 +332,10 @@ EOM
       literal_count_method
     end
 
+    def process_call_custom
+      literal_count_method
+    end
+
     def process_zsuper
       literal_method
     end
