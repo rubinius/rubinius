@@ -247,8 +247,10 @@ total number of times this method was called.
 
 5.14. name
 
-The name of the called method followed by its index number. If the index is
-[0], the method does not appear in the graph.
+The name of the called method followed by its index number [N]. If there is no
+index present, there is no primary entry for the method in the graph. Use the
+-Xprofiler.full_report option to print the entire graph if you need to view
+the entry.
 
 
     index  % time     self  children         called       name
