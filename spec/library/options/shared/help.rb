@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../fixtures/string'
+require File.expand_path('../../fixtures/string', __FILE__)
 require 'options'
 
 describe :lib_options_usage_help, :shared => true do

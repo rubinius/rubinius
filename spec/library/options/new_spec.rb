@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/string'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/string', __FILE__)
 require 'options'
 
 describe "Options.new" do

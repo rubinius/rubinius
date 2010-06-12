@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Rubinius::Tuple#to_a" do
   it "returns an array containing the elements of the tuple" do

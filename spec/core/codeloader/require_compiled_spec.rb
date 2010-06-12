@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../ruby/fixtures/code_loading'
-require File.dirname(__FILE__) + '/../../fixtures/code_loading'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../../ruby/fixtures/code_loading', __FILE__)
+require File.expand_path('../../../fixtures/code_loading', __FILE__)
 
 describe "Rubinius::CodeLoader#require_compiled" do
   before :each do

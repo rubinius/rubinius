@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "A Call node using SendInstructionMethod transform" do
   relates "a.__kind_of__ b" do

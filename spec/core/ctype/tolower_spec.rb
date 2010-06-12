@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "CType#tolower" do
   it "returns self in range a..z if self is between A..Z, otherwise return self" do

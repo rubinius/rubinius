@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Integer#bits" do
   it "returns the minimum bits of storage needed for the number as a signed int" do

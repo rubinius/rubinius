@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.expand_path('../../../../spec_helper', __FILE__)
 
 describe "Hash::Iterator#index" do
   it "returns the index of the last object returned by #next" do

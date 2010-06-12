@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require File.expand_path('../../spec_helper', __FILE__)
 
 # TODO: This method no longer exists. Rework appropriate specs for
 # #attach_function and remove this file

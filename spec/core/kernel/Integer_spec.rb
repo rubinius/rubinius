@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Kernel.Integer" do
   it "calls to_inum on strings with a base of 0 and with checks on" do

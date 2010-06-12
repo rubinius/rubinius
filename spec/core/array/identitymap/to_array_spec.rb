@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.expand_path('../../../../spec_helper', __FILE__)
 
 describe "Array::IdentityMap#to_array" do
   it "returns an empty Array if the map is empty" do

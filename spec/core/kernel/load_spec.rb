@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../ruby/fixtures/code_loading'
-require File.dirname(__FILE__) + '/../../fixtures/code_loading'
-require File.dirname(__FILE__) + '/shared/load'
+require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../../ruby/fixtures/code_loading', __FILE__)
+require File.expand_path('../../../fixtures/code_loading', __FILE__)
+require File.expand_path('../shared/load', __FILE__)
 
 describe "Kernel#load" do
   it_behaves_like :rbx_kernel_load, :load, CodeLoadingSpecs::Method.new

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.expand_path('../../../../spec_helper', __FILE__)
 
 describe "Hash::Iterator#next" do
   it "returns each non-nil entry from the storage vector" do

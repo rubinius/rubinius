@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 # These specs are not intended to be a complete example of the
 # strings recognized by the String#count algorithm. See also

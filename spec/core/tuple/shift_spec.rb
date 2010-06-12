@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Rubinius::Tuple#shift" do
   it "returns the tuple after removing the first value" do

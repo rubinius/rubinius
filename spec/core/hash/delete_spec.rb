@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 # These specs do not replace the RubySpec Hash#delete specs. These
 # are specifically describing the chained bucket implementation.

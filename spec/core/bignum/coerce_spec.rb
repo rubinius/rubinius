@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Bignum#coerce" do
   it "returns [Bignum, Bignum] if other is a Fixnum" do

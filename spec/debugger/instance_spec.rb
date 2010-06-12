@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + "/spec_helper"
+require File.expand_path('../spec_helper', __FILE__)
 
 describe "Debugger.new" do
   it "is private to prevent multiple instances being instantiated" do

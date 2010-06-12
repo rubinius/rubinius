@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.expand_path('../../../../spec_helper', __FILE__)
 
 describe "Rubinius::Options::Option#arg?" do
   it "returns true if the argument has form [ARG]" do

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Kernel#dup" do
   it "does not raise a NoMethodError when #send is undefined in the object" do

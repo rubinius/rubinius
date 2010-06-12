@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "String#rstrip" do
   it "returns a string with all trailing \\000 and whitespace characters removed" do
