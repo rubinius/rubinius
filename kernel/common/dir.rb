@@ -78,8 +78,6 @@ class Dir
   end
 
   def self.open(path)
-    path = StringValue path
-
     dir = new path
     if block_given?
       begin

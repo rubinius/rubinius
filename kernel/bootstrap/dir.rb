@@ -5,8 +5,8 @@ class Dir
   end
 
   def initialize(path)
-    Ruby.primitive :dir_open
-    raise PrimitiveFailure, "Dir#open primitive failed"
+    path = StringValue path
+    Rubinius.invoke_primitive :dir_open, self, path
   end
 
   private :initialize
