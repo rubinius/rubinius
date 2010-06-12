@@ -1,0 +1,1 @@
+fails:Delegator#protected_methods includes protected methods of the delegate object

@@ -1,0 +1,1 @@
+fails:DelegateClass.instance_methods includes all protected methods of the delegated class
