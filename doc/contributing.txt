@@ -30,18 +30,27 @@ that fixes it.
 
 3. Write Specs
 
-  1. Run 'bin/mspec tag --list incomplete .' to show specs that have been tagged
-     as incomplete. NOTE: You can specify a specific directory instead of '.' to
-     see incomplete specs in a specific directory. These specs may simply need
-     review, or there could be specs missing for a particular class.
+  1. Run 'bin/mspec tag --list incomplete <dir>' to show specs that have been
+     tagged as incomplete. These specs may simply need review, or there could
+     be specs missing for a particular class.
+
+     NOTE: You can specify the pseudo-directory ':files' for <dir>, which will
+     show tags for all the specs that should run on Rubinius. Or you can
+     specify any subdirectory of the spec/ directory to list tags for specs in
+     that subdirectory.
+
   2. Find unspecified behaviors. See doc/howto/write_a_ruby_spec.txt
 
 
 4. Fix Failing Specs
 
-  1. Run 'bin/mspec tag --list fails .' to show specs tagged as failing.
-     NOTE: You can specify a specific directory instead of '.' to see incomplete
-     specs in a specific directory.
+  1. Run 'bin/mspec tag --list fails <dir>' to show specs tagged as failing.
+
+     NOTE: You can specify the pseudo-directory ':files' for <dir>, which will
+     show tags for all the specs that should run on Rubinius. Or you can
+     specify any subdirectory of the spec/ directory to list tags for specs in
+     that subdirectory.
+
   2. Pick a spec that looks interesting and see if you can write a patch that
      will make it pass.
 
