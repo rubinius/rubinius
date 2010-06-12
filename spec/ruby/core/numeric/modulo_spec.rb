@@ -4,7 +4,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 describe "Numeric#modulo" do 
   ruby_version_is "".."1.9" do
     it "returns the result of calling self#% with other" do
-      obj = NumericSub.new
+      obj = NumericSpecs::Subclass.new
       obj.should_receive(:%).with(20).and_return(:result)
       
       obj.modulo(20).should == :result
@@ -13,7 +13,7 @@ describe "Numeric#modulo" do
 
   ruby_version_is "1.9" do
     it "returns the result of self#- (self#/ other) * other" do
-      obj = NumericSub.new
+      obj = NumericSpecs::Subclass.new
       obj.should_receive(:/).with(15).and_return(13)
       obj.should_receive(:-).with(195).and_return(5)
       # 200 % 15 == 5

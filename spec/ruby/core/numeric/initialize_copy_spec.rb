@@ -4,7 +4,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 describe "Numeric#singleton_method_added" do
   it "raises a TypeError when trying to #dup a Numeric" do
     lambda do
-      a = NumericSub.new
+      a = NumericSpecs::Subclass.new
       a.dup
     end.should raise_error(TypeError)
     

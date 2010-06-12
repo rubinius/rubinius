@@ -3,7 +3,7 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 
 describe :numeric_abs, :shared => true do
   before(:each) do
-    @obj = NumericSub.new
+    @obj = NumericSpecs::Subclass.new
   end
   
   it "returns self when self is greater than 0" do

@@ -3,13 +3,13 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Numeric#coerce" do
   before(:each) do
-    @obj = NumericSub.new
+    @obj = NumericSpecs::Subclass.new
     @obj.should_receive(:to_f).any_number_of_times.and_return(10.5)
   end
 
   it "returns [other, self] if self and other are instances of the same class" do
-    a = NumericSub.new
-    b = NumericSub.new
+    a = NumericSpecs::Subclass.new
+    b = NumericSpecs::Subclass.new
 
     a.coerce(b).should == [b, a]
   end
@@ -18,8 +18,8 @@ describe "Numeric#coerce" do
   # of the behavior until we find out if it's a bug.
   quarantine! do
     it "considers the presense of a metaclass when checking the class of the objects" do
-      a = NumericSub.new
-      b = NumericSub.new
+      a = NumericSpecs::Subclass.new
+      b = NumericSpecs::Subclass.new
 
       # inject a metaclass on a
       class << a; true; end
@@ -30,7 +30,7 @@ describe "Numeric#coerce" do
   end
 
   it "calls #to_f to convert other if self responds to #to_f" do
-    # Do not use NumericSub here, because coerce checks the classes of the receiver
+    # Do not use NumericSpecs::Subclass here, because coerce checks the classes of the receiver
     # and arguments before calling #to_f.
     other = mock("numeric")
     lambda { @obj.coerce(other) }.should raise_error(TypeError)

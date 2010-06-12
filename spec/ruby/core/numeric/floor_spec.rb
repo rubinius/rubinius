@@ -3,7 +3,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Numeric#floor" do
   before(:each) do
-    @obj = NumericSub.new
+    @obj = NumericSpecs::Subclass.new
   end
   
   it "converts self to a Float (using #to_f) and returns the #floor'ed result" do

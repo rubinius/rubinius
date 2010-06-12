@@ -3,7 +3,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Numeric#<=>" do
   before(:each) do
-    @obj = NumericSub.new
+    @obj = NumericSpecs::Subclass.new
   end
 
   it "returns 0 if self equals other" do
@@ -11,7 +11,7 @@ describe "Numeric#<=>" do
   end
 
   it "returns nil if self does not equal other" do
-    (@obj <=> NumericSub.new).should == nil
+    (@obj <=> NumericSpecs::Subclass.new).should == nil
     (@obj <=> 10).should == nil
     (@obj <=> -3.5).should == nil
     (@obj <=> bignum_value).should == nil

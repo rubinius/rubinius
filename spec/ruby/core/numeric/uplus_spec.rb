@@ -3,7 +3,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Numeric#+@" do    
   it "returns self" do
-    obj = NumericSub.new
+    obj = NumericSpecs::Subclass.new
     obj.send(:+@).should == obj
   end
 end

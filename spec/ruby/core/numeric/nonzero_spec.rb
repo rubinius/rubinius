@@ -3,7 +3,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Numeric#nonzero?" do 
   before(:each) do
-    @obj = NumericSub.new
+    @obj = NumericSpecs::Subclass.new
   end
   
   it "returns self if self#zero? is false" do

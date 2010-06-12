@@ -3,7 +3,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Numeric#remainder" do
   before(:each) do
-    @obj    = NumericSub.new
+    @obj    = NumericSpecs::Subclass.new
     @result = mock("Numeric#% result")
     @other  = mock("Passed Object")
   end
