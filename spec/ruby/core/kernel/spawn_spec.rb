@@ -126,11 +126,13 @@ ruby_version_is "1.9" do
       @name.should have_data("glarkbang")
     end
 
-    it "redirects both STDERR and STDOUT to the given name" do
+    it "does NOT redirect both STDERR and STDOUT at the time to the given name" do
+      # this behavior is not guaranteed; it may be changed after 1.9.3 or later.  [ruby-dev:41433]
+      File.open(@name, "w").close  # touch @name
       pid = spawn("#{RUBY_EXE} -e 'print(:glark); STDOUT.flush; STDERR.print(:bang)'",
                   {[:out, :err] => @name})
       Process.wait pid
-      @name.should have_data("glarkbang")
+      @name.should have_data("")
     end
 
     it "redirects both STDERR and STDOUT to the given IO" do

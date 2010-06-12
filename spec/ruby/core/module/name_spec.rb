@@ -15,10 +15,12 @@ describe "Module#name" do
       Class.new.name.should be_nil
     end
 
-    require File.expand_path('../fixtures/name', __FILE__)
-    # http://redmine.ruby-lang.org/issues/show/1833
-    it "preserves the encoding in which the class was defined" do
-      ModuleSpecs::NameEncoding.new.name.encoding.should == Encoding::UTF_8
+    not_compliant_on :jruby do
+      require File.expand_path('../fixtures/name', __FILE__)
+      # http://redmine.ruby-lang.org/issues/show/1833
+      it "preserves the encoding in which the class was defined" do
+        ModuleSpecs::NameEncoding.new.name.encoding.should == Encoding::UTF_8
+      end
     end
   end
 

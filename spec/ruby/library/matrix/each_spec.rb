@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require 'matrix'
 
-ruby_version_is "1.9" do
+ruby_version_is "1.8.8" do
   describe "Matrix#each" do
     before :all do
       @m = Matrix[ [1, 2, 3], [4, 5, 6] ]

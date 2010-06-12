@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require 'matrix'
 
-ruby_version_is "1.9" do
+ruby_version_is "1.8.8" do
   describe "Matrix.build" do
 
     it "returns a Matrix object of the given size" do

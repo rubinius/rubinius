@@ -13,10 +13,10 @@ describe "Matrix#minor" do
     end
 
     ruby_bug "redmine:1532", "1.8.7" do
-      it "returns an empty Matrix unless nrows and ncols are greater than 0" do
+      it "returns an empty Matrix if nrows or ncols is 0" do
         @matrix.minor(0,0,0,0).should == Matrix[]
         @matrix.minor(1,0,1,0).should == Matrix[]
-        @matrix.minor(1,0,1,1).should == Matrix.columns([])
+        @matrix.minor(1,0,1,1).should == Matrix.columns([[]])
         @matrix.minor(1,1,1,0).should == Matrix[[]]
       end
 
@@ -43,7 +43,7 @@ describe "Matrix#minor" do
     it "returns empty matrices for extreme start_row/col" do
       @matrix.minor(3,10,1,10).should == Matrix.columns([[]])
       @matrix.minor(1,10,2,10).should == Matrix[[], []]
-      @matrix.minor(3,0,0,10).should == Matrix[]
+      @matrix.minor(3,0,0,10).should == Matrix.columns([[], []])
     end
 
     it "ignores big nrows or ncols" do

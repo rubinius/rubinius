@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require 'matrix'
 
-ruby_version_is "1.9" do
+ruby_version_is "1.8.8" do
   describe "Matrix#empty?" do
     it "returns true when the Matrix is empty" do
       Matrix[ ].empty?.should be_true

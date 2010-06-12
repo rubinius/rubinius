@@ -42,7 +42,7 @@ describe "Vector.each2" do
       end
     end
 
-    ruby_version_is "1.9" do
+    ruby_version_is "1.8.8" do
       it "returns an enumerator if no block given" do
         enum = @v.each2(@v2)
         enum.should be_an_instance_of(enumerator_class)

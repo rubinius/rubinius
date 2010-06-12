@@ -19,6 +19,7 @@ describe "Signal.trap" do
   it "accepts a block in place of a proc/command argument" do
     Signal.trap(:HUP) { ScratchPad.record :block_trap }
     Process.kill :HUP, Process.pid
+    sleep 0.5
     ScratchPad.recorded.should == :block_trap
   end
 

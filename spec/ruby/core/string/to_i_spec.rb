@@ -132,4 +132,26 @@ describe "String#to_i" do
     lambda { "".to_i(-1) }.should raise_error(ArgumentError)
     lambda { "".to_i(37) }.should raise_error(ArgumentError)
   end
+
+  it "returns a Fixnum for long strings with trailing spaces" do
+    "0                             ".to_i.should == 0
+    "0                             ".to_i.should be_an_instance_of(Fixnum)
+
+    "10                             ".to_i.should == 10
+    "10                             ".to_i.should be_an_instance_of(Fixnum)
+
+    "-10                            ".to_i.should == -10
+    "-10                            ".to_i.should be_an_instance_of(Fixnum)
+  end
+
+  it "returns a Fixnum for long strings with leading spaces" do
+    "                             0".to_i.should == 0
+    "                             0".to_i.should be_an_instance_of(Fixnum)
+
+    "                             10".to_i.should == 10
+    "                             10".to_i.should be_an_instance_of(Fixnum)
+
+    "                            -10".to_i.should == -10
+    "                            -10".to_i.should be_an_instance_of(Fixnum)
+  end
 end

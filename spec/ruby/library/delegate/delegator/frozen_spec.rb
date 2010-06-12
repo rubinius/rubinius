@@ -1,10 +1,10 @@
-require File.expand_path('../../../spec_helper', __FILE__)
-require 'delegate'
+require File.expand_path('../../../../spec_helper', __FILE__)
+require File.expand_path('../../fixtures/classes', __FILE__)
 
-describe "SimpleDelegator when frozen" do
+describe "Delegator when frozen" do
   before :each do
     @array = [42, :hello]
-    @delegate = SimpleDelegator.new(@array)
+    @delegate = DelegateSpecs::Delegator.new(@array)
     @delegate.freeze
   end
 
@@ -44,6 +44,6 @@ describe "SimpleDelegator when frozen" do
   end
 
   it "returns false if only the delegated object is frozen" do
-    SimpleDelegator.new([1,2,3].freeze).frozen?.should be_false
+    DelegateSpecs::Delegator.new([1,2,3].freeze).frozen?.should be_false
   end
 end

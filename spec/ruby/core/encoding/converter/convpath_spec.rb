@@ -28,8 +28,9 @@ with_feature :encoding do
     it "returns multiple encoding pairs when direct conversion is impossible" do
       ec = Encoding::Converter.new('ascii','Big5')
       ec.convpath.size.should == 2
-      ec.convpath.first.should == [Encoding::US_ASCII, Encoding::UTF_8]
-      ec.convpath.last.should == [Encoding::UTF_8, Encoding::Big5]
+      ec.convpath.first.first.should == Encoding::US_ASCII
+      ec.convpath.first.last.should == ec.convpath.last.first
+      ec.convpath.last.last.should == Encoding::Big5
     end
 
     it "sets the last element of each pair to the first element of the next" do
