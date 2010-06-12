@@ -28,26 +28,6 @@ class Numeric
 
   alias_method :fdiv, :quo
 
-  def <(other)
-    b, a = math_coerce other, :compare_error
-    a < b
-  end
-
-  def <=(other)
-    b, a = math_coerce other, :compare_error
-    a <= b
-  end
-
-  def >(other)
-    b, a = math_coerce other, :compare_error
-    a > b
-  end
-
-  def >=(other)
-    b, a = math_coerce other, :compare_error
-    a >= b
-  end
-
   def eql?(other)
     return false unless other.instance_of? self.class
     self == other
