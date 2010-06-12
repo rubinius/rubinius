@@ -1,0 +1,8 @@
+require File.expand_path('../../../spec_helper', __FILE__)
+
+describe "Bignum#<< with n << m" do
+  it "returns n shifted left m bits when n > 0, m > 0, n is at a representation boundary" do
+    ((2**217) << 1).should == 421249166674228746791672110734681729275580381602196445017243910144
+    ((2**441) << 1).should == 11356855067118857664833184498250070849275646260739344691898284362197488876771842551971735167402555711886914400097909030211478150447104
+  end
+end
