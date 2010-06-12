@@ -1221,7 +1221,7 @@ namespace rubinius {
     a->managed = reinterpret_cast<void*>(storage);
 
     // Be sure to use the smaller value!
-    size_t current_bytes = (size_t)a->alloc;
+    size_t current_bytes = sizeof(mp_digit) * (size_t)a->alloc;
     size_t to_copy = bytes;
 
     if(current_bytes < bytes) to_copy = current_bytes;
