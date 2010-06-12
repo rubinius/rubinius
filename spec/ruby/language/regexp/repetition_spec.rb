@@ -1,5 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
-require File.expand_path(File.dirname(__FILE__) + '/../fixtures/classes')
+require File.expand_path('../../fixtures/classes', __FILE__)
 
 describe "Regexps with repetition" do
   it 'supports * (0 or more of previous subexpression)' do

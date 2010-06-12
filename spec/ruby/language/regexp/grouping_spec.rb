@@ -1,5 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
-require File.expand_path(File.dirname(__FILE__) + '/../fixtures/classes')
+require File.expand_path('../../fixtures/classes', __FILE__)
 
 describe "Regexps with grouping" do
   it 'support ()' do
