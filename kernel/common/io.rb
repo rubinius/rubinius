@@ -1409,6 +1409,9 @@ class IO
 
       reopen_io io
       Rubinius::Unsafe.set_class self, io.class
+      if io.respond_to?(:path)
+        @path = io.path
+      end
     else
       flush unless closed?
 

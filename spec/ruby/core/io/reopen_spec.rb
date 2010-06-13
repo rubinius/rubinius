@@ -249,4 +249,9 @@ describe "IO#reopen with an IO" do
     @io.reopen @other_io
     @io.should be_an_instance_of(File)
   end
+
+  it "sets path equals to the other IO's path if other IO is File" do
+    @io.reopen @other_io
+    @io.path.should == @other_io.path
+  end
 end
