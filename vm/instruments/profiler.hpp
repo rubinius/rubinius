@@ -19,7 +19,7 @@ namespace rubinius {
   }
 }
 
-#if (__GNUC__ <= 4 && __GNUC_MINOR__ < 1)
+#if (__GNUC__ <= 4 && __GNUC_MINOR__ <= 1)
 namespace std {
   namespace tr1 {
     template <>
