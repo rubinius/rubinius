@@ -2,6 +2,8 @@ require 'rubinius/agent'
 require 'socket'
 require 'readline'
 require 'tempfile'
+require 'optparse'
+require 'ostruct'
 
 class Console
   def initialize(port, pid, path)
@@ -161,7 +163,7 @@ help              - You're lookin' at it
     puts "  Total: #{human_number(total)} (#{total})"
   end
 
-  def backtrace(args)
+  def backtrace(args="")
     if args =~ /--vm/
       run_gdb "thread apply all bt"
     else
@@ -197,43 +199,127 @@ help              - You're lookin' at it
     end
   end
 
-  def self.find_agents
-    agents = Dir["#{ENV['TMPDIR']}/rubinius-agent.*"]
+  class Agent
+    def initialize(pid, port, cmd, path)
+      @pid = pid
+      @port = port
+      @command = cmd
+      @path = path
+    end
 
-    if agents.size == 1
-      pid, port, cmd, path = File.readlines(agents.first)
-      return [pid.to_i, port.to_i, cmd.strip, path.strip]
-    else
-      return nil
+    attr_reader :pid, :port, :command, :path
+
+    def self.find_all
+      agents = Dir["#{ENV['TMPDIR']}/rubinius-agent.*"]
+
+      return [] unless agents
+
+      agents.map do |path|
+        pid, port, cmd, exec = File.readlines(path)
+        Agent.new(pid.to_i, port.to_i, cmd.strip, exec.strip)
+      end
     end
   end
 end
 
-if false # port = ARGV.shift
-  port = port.to_i
-  pid = nil
-  cmd = nil
-  path = nil
+options = OpenStruct.new
 
-else
-  pid, port, cmd, path = Console.find_agents
-  unless pid
-    puts "Unable to find any agents to connect to please specify one"
-    exit 1
+opt = OptionParser.new do |o|
+  o.on "--ps" do
+    agents = Console::Agent.find_all
+    puts "Agents found: #{agents.size}"
+    agents.each do |agent|
+      puts "#{agent.pid} - #{agent.command} (port:#{agent.port})"
+    end
+    exit 0
   end
 
+  o.on "-v", "--vm NUM" do |val|
+    options.vm = val.to_i
+  end
+
+  o.on "-p", "--port NUM" do |val|
+    options.port = val.to_i
+  end
+
+  o.on "-g", "--get NAME" do |val|
+    options.get = val
+    options.quiet = true
+  end
+
+  o.on "--bt", "--backtrace" do
+    options.backtrace = true
+    options.quiet = true
+  end
 end
 
-if ARGV.empty?
-  con = Console.new(port, pid, path)
+opt.parse! ARGV
 
-  puts "VM: #{cmd}"
-  puts "Connecting to VM on port #{port}"
+if options.port
+  unless options.quiet
+    puts "Connecting to port #{options.port}"
+  end
+  con = Console.new(options.port, nil, nil)
+else
+  agents = Console::Agent.find_all
 
+  if options.vm
+    agent = agents.detect { |a| a.pid == options.vm }
+    unless agent
+      puts "Unable to find agent '#{options.vm}'"
+      exit 1
+    end
+  else
+    case agents.size
+    when 0
+      puts "Unable to find any agents to connect to please specify one"
+      exit 1
+    when 1
+      agent = agents.first
+    else
+      puts "Please select which agent:"
+      i = 1
+      agents.each do |a|
+        puts "#{i}: #{a.pid} - #{a.command}"
+        i += 1
+      end
+
+      which = Readline.readline.strip.to_i
+
+      unless agent = agents[which - 1]
+        puts "Invalid choise"
+        exit 1
+      end
+    end
+  end
+
+  con = Console.new(agent.port, agent.pid, agent.path)
+
+  unless options.quiet
+    puts "VM: #{agent.command}"
+    puts "Connecting to VM on port #{agent.port}"
+  end
+end
+
+if options.get
+  con.connect(false)
+  kind, var = con.get(options.get)
+  case var
+  when String
+    puts var
+  when Integer
+    puts var.to_i
+  when BERT::Tuple
+    print "[\n"
+    puts var.map { |v| "  #{v}" }.join(",\n")
+    puts "]"
+  else
+    p var
+  end
+elsif options.backtrace
+  con.connect(false)
+  con.backtrace
+else
   con.connect
   con.take_commands
-else
-  con = Console.new(port, pid, path)
-  con.connect(false)
-  con.get_config(ARGV[0])
 end
