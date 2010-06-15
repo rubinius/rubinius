@@ -585,6 +585,14 @@ namespace rubinius {
     return Integer::from(state, buf->size() - left);
   }
 
+  Object* IO::write_nonblock(STATE, String* buf) {
+    set_nonblock(state);
+
+    int n = ::write(descriptor_->to_native(), buf->c_str(), buf->size());
+    if(n == -1) Exception::errno_error(state, "write_nonblock");
+    return Fixnum::from(n);
+  }
+
   Object* IO::blocking_read(STATE, Fixnum* bytes) {
     String* str = String::create(state, bytes);
 

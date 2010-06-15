@@ -1639,8 +1639,6 @@ class IO
     return nil
   end
 
-  alias_method :write_nonblock, :write
-
 end
 
 ##

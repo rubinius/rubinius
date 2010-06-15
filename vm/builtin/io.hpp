@@ -122,6 +122,9 @@ namespace rubinius {
     // Ruby.primitive :io_query
     Object* query(STATE, Symbol* op);
 
+    // Ruby.primitive :io_write_nonblock
+    Object* write_nonblock(STATE, String* buf);
+
     void set_nonblock(STATE);
 
     class Info : public TypeInfo {
