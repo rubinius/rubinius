@@ -329,4 +329,8 @@ extern "C" {
     return rb_funcall2b(self, rb_intern("instance_eval"), argc,
                         (const VALUE*)argv, block);
   }
+
+  VALUE rb_to_int(VALUE object_handle) {
+    return rb_convert_type(object_handle, 0, "Integer", "to_int");
+  }
 }

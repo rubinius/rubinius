@@ -1561,6 +1561,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Call #to_sym on object. */
   ID      rb_to_id(VALUE object_handle);
 
+  /** Converts an object to an Integer by calling #to_int. */
+  VALUE   rb_to_int(VALUE object_handle);
+
   /** Module#undefine_method. Objects of class will not respond to name. @see rb_remove_method */
   void    rb_undef_method(VALUE module_handle, const char* name);
   void    rb_undef(VALUE handle, ID name);
