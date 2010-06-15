@@ -57,9 +57,19 @@ namespace rubinius {
           if(Module* mod = try_as<Module>(meta->attached_instance())) {
             stream << mod->name()->c_str(state) << ".";
           } else {
-            stream << "#<" <<
-              meta->attached_instance()->class_object(state)->name()->c_str(state) <<
-              ":" << (void*)meta->attached_instance() << ">.";
+            if(meta->attached_instance() == G(main)) {
+              stream << "MAIN.";
+            } else {
+              stream << "#<" <<
+                meta->attached_instance()->class_object(state)->name()->c_str(state) <<
+                ":" << (void*)meta->attached_instance()->id(state)->to_native() << ">.";
+            }
+          }
+        } else if(IncludedModule* im = try_as<IncludedModule>(cf->module())) {
+          if(im->module()->name()->nil_p()) {
+            stream << "<anonymous module>#";
+          } else {
+            stream << im->module()->name()->c_str(state) << "#";
           }
         } else {
           const char* mod_name;
