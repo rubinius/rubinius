@@ -25,9 +25,11 @@ namespace rubinius {
       write_barrier(wb, obj);
     }
 
-    void set_object(STATE, Object* obj) {
+    // Ruby.primitive :weakref_set_object
+    Object* set_object(STATE, Object* obj) {
       object_ = obj;
       write_barrier(state, obj);
+      return obj;
     }
 
     static void init(STATE);
