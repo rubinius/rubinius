@@ -59,6 +59,7 @@ namespace rubinius {
     , run_signals_(false)
     , shared(shared)
     , waiter_(NULL)
+    , interrupt_with_signal_(false)
     , om(shared.om)
     , interrupts(shared.interrupts)
     , check_local_interrupts(false)
@@ -402,9 +403,16 @@ namespace rubinius {
     waiter_ = &waiter;
   }
 
+  void VM::interrupt_with_signal() {
+    interrupt_with_signal_ = true;
+  }
+
   bool VM::wakeup() {
-    if(waiter_) {
-      waiter_->run();
+    // Use a local here because waiter_ can get reset to NULL by another thread
+    // We can't use a mutex here because this is called from inside a
+    // signal handler.
+    if(Waiter* w = waiter_) {
+      w->run();
       waiter_ = NULL;
       return true;
     }
@@ -413,6 +421,7 @@ namespace rubinius {
   }
 
   void VM::clear_waiter() {
+    interrupt_with_signal_ = false;
     waiter_ = NULL;
   }
 

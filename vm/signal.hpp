@@ -9,18 +9,28 @@ namespace rubinius {
   class VM;
   struct CallFrame;
 
-  class SignalHandler {
+  class SignalHandler : public thread::Thread {
     VM* vm_;
-    std::list<int> pending_signals_;
+    int pending_signals_[NSIG];
+    int running_signals_[NSIG];
+    int queued_signals_;
+    bool executing_signal_;
     thread::SpinLock lock_;
+    int read_fd_;
+    int write_fd_;
 
   public:
     SignalHandler(VM* vm);
+
+    void perform();
+
     void add_signal(int sig, bool def=false);
     void handle_signal(int sig);
     static void signal_tramp(int sig);
 
     void deliver_signals(CallFrame* call_frame);
+
+    static void on_fork();
   };
 }
 

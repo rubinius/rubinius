@@ -85,6 +85,7 @@ namespace rubinius {
     SharedState& shared;
     thread::Mutex local_lock_;
     Waiter* waiter_;
+    bool interrupt_with_signal_;
 
     ObjectMemory* om;
     TypedRoot<TaskProbe*> probe;
@@ -312,6 +313,15 @@ namespace rubinius {
     void install_waiter(Waiter& waiter);
     void clear_waiter();
     bool wakeup();
+
+    void interrupt_with_signal();
+    bool should_interrupt_with_signal() {
+      return interrupt_with_signal_;
+    }
+
+    bool waiting_p() {
+      return interrupt_with_signal_ || waiter_ != NULL;
+    }
 
     void register_raise(Exception* exc);
 

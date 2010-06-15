@@ -244,6 +244,11 @@ namespace rubinius {
     }
 
     virtual void perform() {
+      sigset_t set;
+      sigfillset(&set);
+
+      pthread_sigmask(SIG_SETMASK, &set, NULL);
+
       for(;;) { // forever
 
         BackgroundCompileRequest* req = 0;

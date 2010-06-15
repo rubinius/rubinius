@@ -171,13 +171,12 @@ namespace rubinius {
       timeradd(&future, &limit, &future);
     }
 
-    WaitingForSignal waiter;
     native_int events;
 
 
     /* And the main event, pun intended */
     retry:
-    state->install_waiter(waiter);
+    state->interrupt_with_signal();
     state->thread->sleep(state, Qtrue);
 
     {
@@ -436,10 +435,8 @@ namespace rubinius {
 
     OnStack<1> variables(state, buffer);
 
-    WaitingForSignal waiter;
-
   retry:
-    state->install_waiter(waiter);
+    state->interrupt_with_signal();
     state->thread->sleep(state, Qtrue);
 
     {
@@ -450,17 +447,20 @@ namespace rubinius {
     state->thread->sleep(state, Qfalse);
     state->clear_waiter();
 
-    buffer->unpin();
-
     if(bytes_read == -1) {
       if(errno == EINTR) {
         if(state->check_async(calling_environment)) goto retry;
+
       } else {
         Exception::errno_error(state, "read(2) failed");
       }
 
+      buffer->unpin();
+
       return NULL;
     }
+
+    buffer->unpin();
 
     if(bytes_read == 0) {
       return Qnil;
@@ -682,10 +682,8 @@ namespace rubinius {
     ssize_t bytes_read;
     native_int t = type->to_native();
 
-    WaitingForSignal waiter;
-
   retry:
-    state->install_waiter(waiter);
+    state->interrupt_with_signal();
     state->thread->sleep(state, Qtrue);
 
     {
@@ -945,7 +943,6 @@ failed: /* try next '*' position */
 
   /** Socket methods */
   Object* IO::accept(STATE, CallFrame* calling_environment) {
-    WaitingForSignal waiter;
     int fd = descriptor()->to_native();
     int new_fd = 0;
     bool set = false;
@@ -954,7 +951,7 @@ failed: /* try next '*' position */
     socklen_t sock_len = sizeof(socka);
 
   retry:
-    state->install_waiter(waiter);
+    state->interrupt_with_signal();
     state->thread->sleep(state, Qtrue);
 
     {
@@ -1029,7 +1026,6 @@ failed: /* try next '*' position */
 
   Object* IOBuffer::fill(STATE, IO* io, CallFrame* calling_environment) {
     ssize_t bytes_read;
-    WaitingForSignal waiter;
     native_int fd = io->descriptor()->to_native();
 
     IOBuffer* self = this;
@@ -1041,7 +1037,7 @@ failed: /* try next '*' position */
     if(self->left() < count) count = self->left();
 
   retry:
-    state->install_waiter(waiter);
+    state->interrupt_with_signal();
     state->thread->sleep(state, Qtrue);
 
     {

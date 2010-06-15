@@ -185,6 +185,8 @@ namespace rubinius {
     Object* output;
     if(WIFEXITED(status)) {
       output = Fixnum::from(WEXITSTATUS(status));
+    } else if(WIFSIGNALED(status)) {
+      output = Fixnum::from(1000 + WTERMSIG(status));
     } else {
       output = Qnil;
     }
@@ -243,6 +245,8 @@ namespace rubinius {
       /*  @todo any other re-initialisation needed? */
 
       state->shared.reinit();
+
+      SignalHandler::on_fork();
 
       // Re-initialize LLVM
 #ifdef ENABLE_LLVM

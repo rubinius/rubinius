@@ -164,7 +164,9 @@ namespace rubinius {
     sigaction(NativeThread::cWakeupSignal, &action, NULL);
 
     state->set_run_signals(true);
-    shared->set_signal_handler(new SignalHandler(state));
+    SignalHandler* handler = new SignalHandler(state);
+    shared->set_signal_handler(handler);
+    handler->run();
 
     // Ignore sigpipe.
     signal(SIGPIPE, SIG_IGN);
