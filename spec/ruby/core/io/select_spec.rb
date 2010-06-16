@@ -34,6 +34,14 @@ describe "IO.select" do
     result.should == [[@rd], [], []]
   end
 
+  it "leaves out IO objects for which there is no I/O ready" do
+    @wr.write "be ready"
+    # Order matters here. We want to see that @wr doesn't expand the size
+    # of the returned array, so it must be 1st.
+    result = IO.select [@wr, @rd], nil, nil, nil
+    result.should == [[@rd], [], []]
+  end
+
   it "returns supplied objects correctly even when monitoring the same object in different arrays" do
     filename = tmp("IO_select_pipe_file") + $$.to_s
     io = File.open(filename, 'w+')
