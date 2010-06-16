@@ -288,9 +288,11 @@ namespace rubinius {
     // in File#ininitialize). If we decided to ignore some GC.start calls
     // by usercode trying to be clever, we can use force to know that we
     // should NOT ignore it.
-    state->om->collect_young_now = true;
-    state->om->collect_mature_now = true;
-    state->interrupts.set_perform_gc();
+    if(RTEST(force) || state->shared.config.gc_honor_start) {
+      state->om->collect_young_now = true;
+      state->om->collect_mature_now = true;
+      state->interrupts.set_perform_gc();
+    }
     return Qnil;
   }
 

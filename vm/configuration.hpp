@@ -13,6 +13,7 @@ namespace rubinius {
     config::Bool    gc_autotune;
     config::Bool    gc_show;
     config::Bool    gc_immix_debug;
+    config::Bool    gc_honor_start;
 
     // JIT/Interpreter
     config::Bool    dynamic_interpreter_enabled;
@@ -57,6 +58,8 @@ namespace rubinius {
       , gc_autotune(this,     "gc.autotune", default_gc_autotune)
       , gc_show(this,         "gc.show")
       , gc_immix_debug(this,  "gc.immix.debug")
+      , gc_honor_start(this,  "gc.honor_start", false)
+
       , dynamic_interpreter_enabled(this, "interpreter.dynamic")
       , jit_dump_code(this,   "jit.dump_code", default_jit_dump_code)
       , jit_call_til_compile(this, "jit.call_til_compile",
@@ -91,6 +94,9 @@ namespace rubinius {
 
       gc_autotune.set_description(
           "Set whether or not the GC should adjust itself for performance");
+
+      gc_honor_start.set_description(
+          "Control whether or not GC.start is honored when called");
 
       jit_dump_code.set_description(
           "1 == show simple IR, 2 == show optimized IR, 4 == show machine code");
