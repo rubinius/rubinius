@@ -138,7 +138,8 @@ public:
 
     flt = as<Float>(obj);
 
-    TS_ASSERT_EQUALS(flt->val, DBL_MAX);
+    double diff = flt->val - DBL_MAX;
+    TS_ASSERT(diff < 0.00000001 && diff > - 0.00000001);
   }
 
   void test_float_infinity() {
