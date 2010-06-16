@@ -76,7 +76,7 @@ namespace rubinius {
 
   namespace {
     /** Utility function used by IO::select, returns highest descriptor. */
-    static inline native_int hidden_fd_set_from_array(VM* state,
+    static inline native_int fd_set_from_array(VM* state,
                                Object* maybe_descriptors, fd_set* set)
     {
       if(NULL == set) {
@@ -99,22 +99,22 @@ namespace rubinius {
     }
 
     /** Utility function used by IO::select, returns Array of IOs that were set. */
-    static inline Array* hidden_reject_unset_fds(VM* state,
+    static inline Array* reject_unset_fds(VM* state,
                            Object* maybe_originals, fd_set* set)
     {
-      if(NULL == set) {
-        return Array::create(state, 0);
-      }
+      if(NULL == set) return Array::create(state, 0);
 
       Array* originals = as<Array>(maybe_originals);
-      Array* selected = Array::create(state, originals->size());
+
+      // A single value is the most common, so prime for that.
+      Array* selected = Array::create(state, 1);
 
       for(std::size_t i = 0; i < originals->size(); ++i) {
         IO* io = as<IO>(originals->get(state, i));
 
         int fd = io->to_fd();
         if(fd < 0 || FD_ISSET(fd, set)) {
-          selected->set(state, i, io);
+          selected->append(state, io);
         }
       }
 
@@ -147,12 +147,12 @@ namespace rubinius {
     native_int candidate = 0;
 
     /* Build the sets, track the highest descriptor number. These handle NULLs */
-    highest = hidden_fd_set_from_array(state, readables, maybe_read_set);
+    highest = fd_set_from_array(state, readables, maybe_read_set);
 
-    candidate = hidden_fd_set_from_array(state, writables, maybe_write_set);
+    candidate = fd_set_from_array(state, writables, maybe_write_set);
     highest = candidate > highest ? candidate : highest;
 
-    candidate = hidden_fd_set_from_array(state, errorables, maybe_error_set);
+    candidate = fd_set_from_array(state, errorables, maybe_error_set);
     highest = candidate > highest ? candidate : highest;
 
     struct timeval future;
@@ -216,9 +216,9 @@ namespace rubinius {
     Array* output = Array::create(state, 3);
 
     /* These handle NULL sets. */
-    output->set(state, 0, hidden_reject_unset_fds(state, readables, maybe_read_set));
-    output->set(state, 1, hidden_reject_unset_fds(state, writables, maybe_write_set));
-    output->set(state, 2, hidden_reject_unset_fds(state, errorables, maybe_error_set));
+    output->set(state, 0, reject_unset_fds(state, readables, maybe_read_set));
+    output->set(state, 1, reject_unset_fds(state, writables, maybe_write_set));
+    output->set(state, 2, reject_unset_fds(state, errorables, maybe_error_set));
 
     return output;
   }
