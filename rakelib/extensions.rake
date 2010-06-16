@@ -44,8 +44,10 @@ def compile_ext(name, opts={})
       dep_grapher = File.expand_path "../dependency_grapher.rb", __FILE__
       Dir.chdir ext_dir do
         if File.exists? "Rakefile"
-          ruby "-S rake #{'-t' if $verbose} -r #{ext_helper} -r #{dep_grapher} #{ext_task_name}"
+          sh "#{BUILD_CONFIG[:build_ruby]} -S rake #{'-t' if $verbose} -r #{ext_helper} -r #{dep_grapher} #{ext_task_name}"
         else
+          ENV["BUILD_RUBY"] = BUILD_CONFIG[:build_ruby]
+
           unless File.directory? BUILD_CONFIG[:runtime]
             ENV["CFLAGS"]      = "-Ivm/capi/include"
           end
@@ -73,7 +75,9 @@ compile_ext "digest:sha2"
 compile_ext "digest:bubblebabble"
 compile_ext "syck"
 compile_ext "melbourne", :task => "rbx", :doc => "for Rubinius"
-compile_ext "melbourne", :task => "mri", :doc => "for MRI"
+if BUILD_CONFIG[:which_ruby] == :ruby
+  compile_ext "melbourne", :task => "mri", :doc => "for MRI"
+end
 compile_ext "nkf"
 
 # rbx must be able to run to build these because they use

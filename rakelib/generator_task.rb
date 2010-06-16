@@ -2,9 +2,9 @@ require 'rake'
 require 'rake/tasklib'
 require 'tempfile'
 
-require 'ffi/struct_generator'
-require 'ffi/const_generator'
-require 'ffi/generator'
+require 'lib/ffi/struct_generator'
+require 'lib/ffi/const_generator'
+require 'lib/ffi/generator'
 
 
 ##

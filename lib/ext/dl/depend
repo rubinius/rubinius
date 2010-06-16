@@ -3,15 +3,15 @@ LDSHARED_TEST = $(LDSHARED) $(LDFLAGS) test/test.o -o test/libtest.so $(LOCAL_LI
 libtest.so: test/libtest.so
 
 test/libtest.so: test/test.o $(srcdir)/test/libtest.def
-	ruby -rftools -e 'ARGV.each do|d|File.mkpath(File.dirname(d))end' $@
+	$(BUILD_RUBY) -rftools -e 'ARGV.each do|d|File.mkpath(File.dirname(d))end' $@
 	$(LDSHARED_TEST:dl.def=test/libtest.def)
 
 test/test.o: $(srcdir)/test/test.c
-	@ruby -rftools -e 'File.mkpath(*ARGV)' test
+	@$(BUILD_RUBY) -rftools -e 'File.mkpath(*ARGV)' test
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(srcdir)/test/test.c -o $@
 
 test:: dl.so libtest.so force
-	ruby -I. -I$(srcdir)/lib $(srcdir)/test/test.rb
+	$(BUILD_RUBY) -I. -I$(srcdir)/lib $(srcdir)/test/test.rb
 
 force:
 
@@ -32,15 +32,15 @@ handle.o: ruby.h dl.h
 
 call.func: $(srcdir)/mkcall.rb ./dlconfig.rb
 	@echo "Generating call.func"
-	@ruby $(srcdir)/mkcall.rb > $@
+	@$(BUILD_RUBY) $(srcdir)/mkcall.rb > $@
 
 callback.func: $(srcdir)/mkcallback.rb ./dlconfig.rb
 	@echo "Generating callback.func"
-	@ruby $(srcdir)/mkcallback.rb > $@
+	@$(BUILD_RUBY) $(srcdir)/mkcallback.rb > $@
 
 cbtable.func: $(srcdir)/mkcbtable.rb ./dlconfig.rb
 	@echo "Generating cbtable.func"
-	@ruby $(srcdir)/mkcbtable.rb > $@
+	@$(BUILD_RUBY) $(srcdir)/mkcbtable.rb > $@
 
 debug:
 	$(MAKE) CPPFLAGS="$(CPPFLAGS) -DDEBUG"

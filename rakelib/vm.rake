@@ -1,11 +1,10 @@
 require 'rakelib/rubinius'
 require 'rakelib/build'
 require 'rakelib/instruction_parser'
+require 'rakelib/generator_task'
 
 require 'tmpdir'
 require 'ostruct'
-
-require 'lib/ffi/generator_task.rb'
 
 config = OpenStruct.new
 config.use_jit = true

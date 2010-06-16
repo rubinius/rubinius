@@ -9,6 +9,8 @@ if !$verbose and respond_to?(:verbose)
   verbose(false) if verbose() == :default
 end
 
+$:.unshift File.expand_path("../", __FILE__)
+
 config_rb = File.expand_path "../config.rb", __FILE__
 config_h  = File.expand_path "../vm/gen/config.h", __FILE__
 
@@ -20,14 +22,18 @@ end
 require config_rb
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 
-unless BUILD_CONFIG[:config_version] == 9
+# Yes, this is duplicated from the configure script for now.
+unless BUILD_CONFIG[:which_ruby] == :ruby or BUILD_CONFIG[:which_ruby] == :rbx
+  STDERR.puts "Sorry, building Rubinius requires MRI or Rubinius"
+  exit 1
+end
+
+unless BUILD_CONFIG[:config_version] == 10
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
 
 $dlext = Config::CONFIG["DLEXT"]
-
-$: << "lib"
 
 task :default => %w[build vm:test] do
   unless File.directory? BUILD_CONFIG[:runtime]

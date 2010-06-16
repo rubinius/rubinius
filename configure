@@ -4,11 +4,6 @@ require 'rbconfig'
 require 'tempfile'
 require 'fileutils'
 
-unless !defined?(RUBY_ENGINE) || (RUBY_ENGINE == 'ruby' && RUBY_VERSION < '1.9.0')
-  STDERR.puts "Sorry, for now please build rubinius using ruby 1.8"
-  exit 1
-end
-
 root = File.expand_path File.dirname(__FILE__)
 
 require File.join(root, "kernel", "delta", "options")
@@ -70,7 +65,7 @@ class Configure
     @libversion = "1.0"
     @version = "#{@libversion}.1"
     @release_date = "2010-06-03"
-    @config_version = 9
+    @config_version = 10
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
@@ -524,6 +519,23 @@ class Configure
     detect_features
   end
 
+  def which_ruby
+    if Object.const_defined?(:RUBY_ENGINE)
+      @which_ruby = RUBY_ENGINE.to_sym
+    else
+      @which_ruby = :ruby
+    end
+  end
+
+  # Records the full path to the ruby executable that runs this configure
+  # script. That path will be made available to the rest of the build system
+  # so the same version of ruby is invoked as needed.
+  def build_ruby
+    bin = Config::CONFIG["RUBY_INSTALL_NAME"] || Config::CONFIG["ruby_install_name"]
+    bin << (Config::CONFIG['EXEEXT'] || Config::CONFIG['exeext'] || '')
+    File.join(Config::CONFIG['bindir'], bin)
+  end
+
   def write_config
     unless @use_llvm
       @llvm = :no
@@ -534,6 +546,8 @@ class Configure
       f.puts <<-EOC
 module Rubinius
   BUILD_CONFIG = {
+    :which_ruby     => :#{which_ruby},
+    :build_ruby     => "#{build_ruby}",
     :llvm           => :#{@llvm},
     :llvm_configure => "#{@llvm_configure}",
     :compiler       => "#{@compiler}",
@@ -600,6 +614,11 @@ end
   end
 
   def run
+    unless which_ruby == :ruby or which_ruby == :rbx
+      STDERR.puts "Sorry, building Rubinius requires MRI or Rubinius"
+      exit 1
+    end
+
     options
     parse ARGV
     process

@@ -131,13 +131,19 @@ file compiler_signature => compiler_files + parser_ext_files do |t|
 end
 
 namespace :compiler do
-  melbourne = "lib/ext/melbourne/ruby/melbourne.#{$dlext}"
+  if BUILD_CONFIG[:which_ruby] == :ruby
+    melbourne = "lib/ext/melbourne/ruby/melbourne.#{$dlext}"
 
-  file melbourne => "extensions:melbourne_mri"
+    file melbourne => "extensions:melbourne_mri"
 
-  task :load => [compiler_signature, melbourne] + compiler_files do
-    require File.expand_path("../../lib/compiler", __FILE__)
-    require File.expand_path("../../kernel/signature", __FILE__)
+    task :load => [compiler_signature, melbourne] + compiler_files do
+      require File.expand_path("../../lib/compiler", __FILE__)
+      require File.expand_path("../../kernel/signature", __FILE__)
+    end
+  else
+    task :load => compiler_signature do
+      require File.expand_path("../../kernel/signature", __FILE__)
+    end
   end
 end
 

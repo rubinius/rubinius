@@ -1,3 +1,6 @@
 #!/usr/bin/env ruby
 
+paths = ENV["RUBYLIB"]
+ENV["RUBYLIB"] = paths ? paths + ":." : "."
+
 exec 'mspec/bin/mspec', *ARGV
