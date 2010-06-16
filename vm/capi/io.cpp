@@ -100,9 +100,30 @@ extern "C" {
     return io->descriptor()->to_native();
   }
 
-  void rb_io_wait_readable(int fd) {
-    fd_set fds;
+  int rb_io_wait_readable(int fd) {
+    bool retry = false;
 
+    switch(errno) {
+    case EINTR:
+#ifdef ERESTART
+    case ERESTART:
+#endif
+      retry = true;
+      break;
+
+    case EAGAIN:
+#if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
+    case EWOULDBLOCK:
+#endif
+      break;
+
+    default:
+      // this is the MRI api. If errno is not on of these, say to the caller
+      // "um, i guess nothing more to do?"
+      return 0;
+    }
+
+    fd_set fds;
     FD_ZERO(&fds);
     FD_SET(fd, &fds);
 
@@ -113,12 +134,36 @@ extern "C" {
 
     while(!ready) {
       ready = select(fd+1, &fds, 0, 0, 0);
+      if(!retry) break;
     }
+
+    return 1;
   }
 
-  void rb_io_wait_writable(int fd) {
-    fd_set fds;
+  int rb_io_wait_writable(int fd) {
+    bool retry = false;
 
+    switch(errno) {
+    case EINTR:
+#ifdef ERESTART
+    case ERESTART:
+#endif
+      retry = true;
+      break;
+
+    case EAGAIN:
+#if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
+    case EWOULDBLOCK:
+#endif
+      break;
+
+    default:
+      // this is the MRI api. If errno is not on of these, say to the caller
+      // "um, i guess nothing more to do?"
+      return 0;
+    }
+
+    fd_set fds;
     FD_ZERO(&fds);
     FD_SET(fd, &fds);
 
@@ -129,7 +174,10 @@ extern "C" {
 
     while(!ready) {
       ready = select(fd+1, 0, &fds, 0, 0);
+      if(!retry) break;
     }
+
+    return 1;
   }
 
   void rb_thread_wait_fd(int fd) {
