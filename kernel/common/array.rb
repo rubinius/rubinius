@@ -574,23 +574,20 @@ class Array
 
     return self if empty?
 
-    key = undefined
-    i = to_iter
+    i  = to_iter
+    insert_pos = 0
 
-    begin
-      while i.next
-        set_index(i.index, key) if yield i.item
-      end
-    ensure
-      # The yield'd block might raise an exception, in which case we
-      # need to clean up the work we've done thus far, otherwise the
-      # Array is left in a corrupted state.
-      deleted = @tuple.delete @start, @total, key
-      if deleted > 0
-        @total -= deleted
-        reallocate_shrink()
-      end
+    while i.next
+      v = i.item
+      next if yield(v)
+
+      # Ok, keep the value, so stick it back into the array at
+      # the insert position
+      set_index(insert_pos, v)
+      insert_pos += 1
     end
+
+    @total = insert_pos
 
     return self
   end
