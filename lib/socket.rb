@@ -732,8 +732,6 @@ class Socket < BasicSocket
 end
 
 class UNIXSocket < BasicSocket
-  attr_accessor :path
-
   # Coding to the lowest standard here.
   def recvfrom(bytes_read, flags = 0)
     # FIXME 2 is hardcoded knowledge from io.cpp
@@ -745,11 +743,19 @@ class UNIXSocket < BasicSocket
     unix_setup
     @path = ""  # Client
   end
-  private :initialize
+
+  def path
+    unless @path
+      sockaddr = Socket::Foreign.getsockname descriptor
+      _, @path = sockaddr.unpack('SZ*')
+    end
+
+    return @path
+  end
 
   def from_descriptor(fixnum)
     super
-    @path = ""
+    @path = nil
   end
 
   def unix_setup(server = false)
@@ -816,7 +822,6 @@ class UNIXServer < UNIXSocket
     @path = path
     unix_setup(true)
   end
-  private :initialize
 end
 
 class IPSocket < BasicSocket
@@ -959,7 +964,6 @@ class TCPSocket < IPSocket
 
     tcp_setup @host, @port
   end
-  private :initialize
 
   def tcp_setup(remote_host, remote_service, local_host = nil,
                 local_service = nil, server = false)
@@ -1036,8 +1040,6 @@ class TCPSocket < IPSocket
 
     self
   end
-  private :from_descriptor
-
 end
 
 class TCPServer < TCPSocket
