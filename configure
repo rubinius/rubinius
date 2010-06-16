@@ -19,11 +19,33 @@ class Configure
     @defines = []
     @config = File.join(root, "config.rb")
 
+    # TODO: conditionalize for Windows
+    @host = `./rakelib/config.guess`.chomp
+    /([^-]+)-([^-]+)-(.*)/ =~ @host
+    @cpu, @vendor, @os = $1, $2, $3
+
     # LLVM settings
+    @use_llvm       = true
     @llvm           = :no
     @llvm_path      = nil
     @llvm_configure = nil
-    @llvm_svn_dir   = File.join(root, "vm", "external_libs", "llvm")
+    @llvm_default   = File.join(root, "vm", "external_libs", "llvm")
+
+    if @os =~ /linux/
+      @llvm_system_name = `lsb_release -irs`.split.join("-").downcase
+    else
+      @llvm_system_name = nil
+    end
+
+    @llvm_skip_system       = false
+    @llvm_skip_prebuilt     = false
+    @llvm_prebuilt_name     = nil
+    @llvm_source            = "llvm-2.6-source.tar.bz2"
+    @llvm_asset_path        = "http://asset.rubini.us/prebuilt"
+    @llvm_generic_prebuilt  = "llvm-#{@host}.tar.bz2"
+    @llvm_parent_path       = File.join(root, "vm", "external_libs")
+    @llvm_prebuilt_path     = File.join(@llvm_parent_path, "prebuilt")
+    @llvm_include_path      = File.join(@llvm_default, "include")
 
     # File system paths
     @bindir       = root + "/bin"
@@ -53,11 +75,6 @@ class Configure
       @buildrev = "release"
     end
 
-    # TODO: conditionalize for Windows
-    @host = `./rakelib/config.guess`.chomp
-    /([^-]+)-([^-]+)-(.*)/ =~ @host
-    @cpu, @vendor, @os = $1, $2, $3
-
     # TODO: add conditionals for platforms
     if Config::CONFIG["build_os"] =~ /darwin/
       @ldshared = "cc -dynamic -bundle -undefined suppress -flat_namespace"
@@ -76,8 +93,6 @@ class Configure
 
     o.doc " LLVM settings"
 
-    @use_llvm = true
-
     o.on "--disable-llvm", "Don't build with LLVM" do
       @use_llvm = false
     end
@@ -86,12 +101,23 @@ class Configure
       @use_llvm = true
     end
 
-    @skip_system = false
     o.on "--skip-system", "Don't consider a system LLVM installation" do
-      @skip_system = true
+      @llvm_skip_system = true
     end
 
-    o.on "--llvm-path", "PATH", "Where to find LLVM" do |dir|
+    o.on "--skip-prebuilt", "Don't try to use a prebuilt version of LLVM" do
+      @llvm_skip_prebuilt = true
+    end
+
+    o.on "--system-name", "NAME", "Name of OS (eg fedora-8, ubuntu-10.04)" do |name|
+      @llvm_system_name = name
+    end
+
+    o.on "--prebuilt-name", "NAME", "Full name of LLVM prebuilt archive" do |name|
+      @llvm_prebuilt_name = name
+    end
+
+    o.on "--llvm-path", "PATH", "File system path to the directory containing LLVM" do |dir|
       @llvm_path = dir
     end
 
@@ -250,16 +276,15 @@ class Configure
   # an MD5 checksum file exists for the library, the checksum of the library
   # is compared and the update fails if it does not match.  If no MD5 checksum
   # file exists, the library is used without check.
-  def update_prebuilt
-    file = "llvm-#{@host}.tar.bz2"
-    full_path = "vm/external_libs/prebuilt/#{file}"
+  def update_prebuilt(file)
+    full_path = File.join @llvm_prebuilt_path, file
     md5_path = "#{full_path}.md5"
 
     dir = File.dirname full_path
 
     Dir.mkdir dir unless File.exists? dir
 
-    url = "http://asset.rubini.us/prebuilt/#{file}"
+    url = File.join @llvm_asset_path, file
 
     unless File.exists? full_path
       download url, full_path
@@ -289,18 +314,18 @@ class Configure
   end
 
   def setup_source
-    url = "http://asset.rubini.us/prebuilt/llvm-2.6-source.tar.bz2"
-    path = "vm/external_libs/prebuilt/llvm-2.6-source.tar.bz2"
+    url = File.join @llvm_asset_path, @llvm_source
+    path = File.join @llvm_prebuilt_path, @llvm_source
 
     puts "  Downloading #{url}..."
     return false unless download(url, path)
 
     if File.exists?(path)
       print "  Unpacking prebuilt LLVM source: "
-      system "cd vm/external_libs; tar xjf prebuilt/llvm-2.6-source.tar.bz2"
+      system "cd #{@llvm_parent_path}; tar xjf #{path}"
       puts "done!"
 
-      if File.exists?("vm/external_libs/llvm/include")
+      if File.exists?(@llvm_include_path)
         puts "  Code appears to be proper svn tree."
       else
         puts "  Code doesn't appear to be proper LLVM tree!"
@@ -313,18 +338,36 @@ class Configure
 
   end
 
+  def prebuilt_files
+    files = [@llvm_generic_prebuilt]
+
+    # If we have a system name, try to find a prebuilt specifically
+    # for this system first.
+    if @llvm_system_name
+      files.unshift "llvm-#{@host}-#{@llvm_system_name}.tar.bz2"
+    end
+
+    # If the user specified a name, try that before anything.
+    files.unshift @llvm_prebuilt_name if @llvm_prebuilt_name
+
+    files
+  end
+
   def setup_prebuilt
     puts "  Checking for prebuilt LLVM build..."
-    file = "vm/external_libs/prebuilt/llvm-#{@host}.tar.bz2"
 
-    update_prebuilt unless File.exists?(file)
+    prebuilt_files.each do |file|
+      path = File.join @llvm_prebuilt_path, file
 
-    if File.exists?(file)
-      print "  Unpacking prebuilt LLVM for #{@host}: "
-      system "cd vm/external_libs; mkdir llvm; cd llvm; tar xjf ../prebuilt/llvm-#{@host}.tar.bz2"
-      puts "done!"
-      @llvm = :prebuilt
-      return true
+      update_prebuilt file unless File.exists?(path)
+
+      if File.exists?(path)
+        print "  Unpacking prebuilt LLVM: #{file}: "
+        system "cd #{@llvm_parent_path}; mkdir llvm; cd llvm; tar xjf #{path}"
+        puts "done!"
+        @llvm = :prebuilt
+        return true
+      end
     end
 
     return false
@@ -353,9 +396,9 @@ class Configure
 
   def setup_auto
     print "  Checking for existing LLVM tree: "
-    if File.directory?(@llvm_svn_dir)
+    if File.directory?(@llvm_default)
       puts "found!"
-      if File.exists?(File.join(@llvm_svn_dir, "Makefile.common"))
+      if File.exists?(File.join(@llvm_default, "Makefile.common"))
         @llvm = :svn
       else
         @llvm = :prebuilt
@@ -376,11 +419,8 @@ class Configure
       return
     end
 
-    unless @skip_system
-      return if setup_config
-    end
-
-    return if setup_prebuilt
+    return if !@llvm_skip_system && setup_config
+    return if !@llvm_skip_prebuilt && setup_prebuilt
     return if setup_source
 
     puts "WARNING: Unable to configure for LLVM, disabling support."
