@@ -1416,7 +1416,7 @@ class IO
       if mode.equal? undefined
         mode = @mode
       else
-        mode = IO.parse_mode(mode) & ACCMODE
+        mode = IO.parse_mode(mode)
       end
 
       reopen_path(StringValue(other), mode | CREAT)
