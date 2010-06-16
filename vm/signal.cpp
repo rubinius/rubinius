@@ -28,6 +28,10 @@ namespace rubinius {
       running_signals_[i] = 0;
     }
 
+    reopen_pipes();
+  }
+
+  void SignalHandler::reopen_pipes() {
     int f[2];
     pipe(f);
     read_fd_ = f[0];
@@ -35,7 +39,10 @@ namespace rubinius {
   }
 
   void SignalHandler::on_fork() {
-    if(handler_) handler_->run();
+    if(handler_) {
+      handler_->reopen_pipes();
+      handler_->run();
+    }
   }
 
   void SignalHandler::perform() {
@@ -54,25 +61,12 @@ namespace rubinius {
         char buf[512];
         read(read_fd_, buf, sizeof(buf));
 
-        vm_->global_lock().lock();
+        {
+          GlobalLock::LockGuard guard(vm_->global_lock());
 
-        vm_->check_local_interrupts = true;
-        vm_->wakeup();
-
-        vm_->global_lock().unlock();
-
-        // Spin until we see that vm_ has actually picked things up
-        struct timespec ts = { 0, 1000000 };
-        nanosleep(&ts, NULL);
-
-        while(vm_->check_local_interrupts) {
-          vm_->global_lock().lock();
-
+          vm_->check_local_interrupts = true;
           vm_->wakeup();
 
-          vm_->global_lock().unlock();
-
-          nanosleep(&ts, NULL);
         }
       }
     }

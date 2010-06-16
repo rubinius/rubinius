@@ -100,12 +100,6 @@ namespace rubinius {
     // us moving it.
     this->pin();
 
-    WaitingOnCondition waiter(condition_);
-
-    state->install_waiter(waiter);
-    waiters_++;
-    state->thread->sleep(state, Qtrue);
-
     struct timeval tv = {0,0};
     if(use_timed_wait) {
       gettimeofday(&tv, 0);
@@ -114,8 +108,14 @@ namespace rubinius {
       ts.tv_nsec  = nano % NANOSECONDS;
     }
 
+    waiters_++;
+    state->thread->sleep(state, Qtrue);
+
     for(;;) {
       state->set_call_frame(call_frame);
+
+      WaitingOnCondition waiter(condition_);
+      state->install_waiter(waiter);
 
       if(use_timed_wait) {
         if(condition_.wait_until(state->global_lock(), &ts) == thread::cTimedOut) break;

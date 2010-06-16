@@ -30,6 +30,7 @@ namespace rubinius {
 
     void deliver_signals(CallFrame* call_frame);
 
+    void reopen_pipes();
     static void on_fork();
   };
 }

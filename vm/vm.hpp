@@ -86,6 +86,7 @@ namespace rubinius {
     thread::Mutex local_lock_;
     Waiter* waiter_;
     bool interrupt_with_signal_;
+    pthread_t os_thread_;
 
     ObjectMemory* om;
     TypedRoot<TaskProbe*> probe;

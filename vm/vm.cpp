@@ -69,6 +69,7 @@ namespace rubinius {
   {
     probe.set(Qnil, &globals().roots);
     set_stack_size(cStackDepthMax);
+    os_thread_ = pthread_self(); // initial value
   }
 
   void VM::discard(VM* vm) {
@@ -164,6 +165,7 @@ namespace rubinius {
   }
 
   void VM::set_current(VM* vm) {
+    vm->os_thread_ = pthread_self();
     _current_vm.set(vm);
   }
 
@@ -408,16 +410,20 @@ namespace rubinius {
   }
 
   bool VM::wakeup() {
-    // Use a local here because waiter_ can get reset to NULL by another thread
-    // We can't use a mutex here because this is called from inside a
-    // signal handler.
-    if(Waiter* w = waiter_) {
-      w->run();
-      waiter_ = NULL;
+    if(interrupt_with_signal_) {
+      pthread_kill(os_thread_, SIGVTALRM);
       return true;
-    }
+    } else {
+      // Use a local here because waiter_ can get reset to NULL by another thread
+      // We can't use a mutex here because this is called from inside a
+      // signal handler.
+      if(Waiter* w = waiter_) {
+        w->run();
+        return true;
+      }
 
-    return false;
+      return false;
+    }
   }
 
   void VM::clear_waiter() {
