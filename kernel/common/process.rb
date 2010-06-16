@@ -87,6 +87,7 @@ module Process
   def self.kill(sig, pid)
     use_process_group = false
     sig = sig.to_s if sig.kind_of?(Symbol)
+
     if sig.kind_of?(String)
       if sig[0] == ?-
         sig = sig[1..-1]
@@ -103,9 +104,12 @@ module Process
         use_process_group = true
       end
     end
-    pid = -pid if use_process_group
+
     raise ArgumentError unless number
+
+    pid = -pid if use_process_group
     ret = FFI::Platform::POSIX.kill(pid, number)
+
     case ret
     when 0
       return 1

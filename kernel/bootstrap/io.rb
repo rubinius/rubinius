@@ -78,13 +78,8 @@ class IO
     raise PrimitiveFailure, "IO#read_if_available primitive failed"
   end
 
-  def write_nonblock(str)
+  def raw_write(str)
     Ruby.primitive :io_write_nonblock
-
-    unless str.kind_of? String
-      return write_nonblock(StringValue(str))
-    end
-
     raise PrimitiveFailure, "IO#write_nonblock primitive failed"
   end
 

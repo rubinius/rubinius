@@ -1629,6 +1629,16 @@ class IO
     prim_write(data)
   end
 
+  def write_nonblock(data)
+    data = String data
+    return 0 if data.length == 0
+
+    ensure_open_and_writable
+    @ibuffer.unseek!(self) unless @sync
+
+    raw_write(data)
+  end
+
   def close
     begin
       flush
