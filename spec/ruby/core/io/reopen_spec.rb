@@ -1,6 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
+require 'fcntl'
+
 describe "IO#reopen" do
   before :each do
     @name = tmp("io_reopen.txt")
@@ -92,6 +94,11 @@ describe "IO#reopen with a String" do
     @io.gets
     @io.reopen(@name)
     @io.gets.should == "Line 1: One\n"
+  end
+
+  it "passes all mode flags through" do
+    @io.reopen(@name, "ab")
+    (@io.fcntl(Fcntl::F_GETFL) & File::APPEND).should == File::APPEND
   end
 
   it "effects exec/system/fork performed after it" do
