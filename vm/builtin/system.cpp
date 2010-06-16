@@ -131,23 +131,38 @@ namespace rubinius {
     // We haven't run into this because exec is almost always called
     // after fork(), which pulls over just one thread anyway.
 
-    std::size_t argc = args->size();
+    size_t argc = args->size();
+
+    char** argv = new char*[argc + 1];
 
     /* execvp() requires a NULL as last element */
-    std::vector<char*> argv((argc + 1), NULL);
+    argv[argc] = NULL;
 
-    for (std::size_t i = 0; i < argc; ++i) {
+    for(size_t i = 0; i < argc; i++) {
       /* strdup should be OK. Trying to exec with strings containing NUL == bad. --rue */
-      argv[i] = ::strdup(as<String>(args->get(state, i))->c_str());
+      argv[i] = strdup(as<String>(args->get(state, i))->c_str());
     }
+
+    void* old_handlers[NSIG];
 
     // Reset all signal handlers to the defaults, so any we setup in Rubinius
     // won't leak through.
     for(int i = 0; i < NSIG; i++) {
-      signal(i, SIG_DFL);
+      old_handlers[i] = (void*)signal(i, SIG_DFL);
     }
 
-    (void) ::execvp(path->c_str(), &argv[0]); /* std::vector is contiguous. --rue */
+    (void)::execvp(path->c_str(), argv);
+
+    // UG. Disaster.
+    //
+    // Clean up and let the caller know their unix system is
+    // crumbling around them.
+
+    for(int i = 0; i < NSIG; i++) {
+      signal(i, (void(*)(int))old_handlers[i]);
+    }
+
+    delete[] argv;
 
     /* execvp() returning means it failed. */
     Exception::errno_error(state, "execvp(2) failed");
