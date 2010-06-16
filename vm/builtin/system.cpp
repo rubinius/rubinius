@@ -125,6 +125,8 @@ namespace rubinius {
     LLVMState::shutdown(state);
 #endif
 
+    SignalHandler::shutdown();
+
     // TODO Need to stop and kill off any ruby threads!
     // We haven't run into this because exec is almost always called
     // after fork(), which pulls over just one thread anyway.

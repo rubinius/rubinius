@@ -19,6 +19,7 @@ namespace rubinius {
     , vm_(vm)
     , queued_signals_(0)
     , executing_signal_(false)
+    , exit_(false)
   {
     handler_ = this;
     main_thread = pthread_self();
@@ -45,6 +46,19 @@ namespace rubinius {
     }
   }
 
+  void SignalHandler::shutdown() {
+    if(handler_) handler_->shutdown_i();
+  }
+
+  void SignalHandler::shutdown_i() {
+    exit_ = true;
+    write(write_fd_, "!", 1);
+
+    // Very unlikely we'd call this from inside the signal thread, but
+    // you can never be too careful with thread programming.
+    if(!in_self_p()) join();
+  }
+
   void SignalHandler::perform() {
     sigset_t set;
     sigfillset(&set);
@@ -56,6 +70,8 @@ namespace rubinius {
       FD_SET(read_fd_, &fds);
 
       int n = select(read_fd_ + 1, &fds, NULL, NULL, NULL);
+      if(exit_) return;
+
       if(n == 1) {
         // drain a bunch
         char buf[512];

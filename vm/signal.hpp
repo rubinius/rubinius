@@ -18,6 +18,7 @@ namespace rubinius {
     thread::SpinLock lock_;
     int read_fd_;
     int write_fd_;
+    bool exit_;
 
   public:
     SignalHandler(VM* vm);
@@ -32,6 +33,8 @@ namespace rubinius {
 
     void reopen_pipes();
     static void on_fork();
+    static void shutdown();
+    void shutdown_i();
   };
 }
 

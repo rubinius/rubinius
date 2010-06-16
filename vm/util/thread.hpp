@@ -149,6 +149,10 @@ namespace thread {
       }
     }
 
+    bool in_self_p() {
+      return pthread_self() == native_;
+    }
+
     void cancel() {
       pthread_check(pthread_cancel(native_));
     }
