@@ -24,6 +24,9 @@ class Configure
     /([^-]+)-([^-]+)-(.*)/ =~ @host
     @cpu, @vendor, @os = $1, $2, $3
 
+    # Compiler to use
+    @compiler = ENV['CC'] || 'gcc'
+
     # LLVM settings
     @use_llvm       = true
     @llvm           = :no
@@ -91,7 +94,11 @@ class Configure
     o = Rubinius::Options.new "Usage: configure [options]", 30
     o.left_align
 
-    o.doc " LLVM settings"
+    o.doc " Compiler settings"
+
+    o.on "--cc", "COMPILER", "Compiler to use (eg gcc, clang)" do |cc|
+      @compiler = cc
+    end
 
     o.on "--disable-llvm", "Don't build with LLVM" do
       @use_llvm = false
@@ -484,7 +491,7 @@ class Configure
 
     tf.close
 
-    `#{compiler} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} 2>&1`
+    `#{@compiler} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} 2>&1`
     status = ($?.exitstatus == 0)
 
     tf.unlink
@@ -517,10 +524,6 @@ class Configure
     detect_features
   end
 
-  def compiler
-    ENV['CC'] || "gcc"
-  end
-
   def write_config
     unless @use_llvm
       @llvm = :no
@@ -533,7 +536,7 @@ module Rubinius
   BUILD_CONFIG = {
     :llvm           => :#{@llvm},
     :llvm_configure => "#{@llvm_configure}",
-    :compiler       => "#{compiler()}",
+    :compiler       => "#{@compiler}",
     :defines        => #{@defines.inspect},
     :host           => "#{@host}",
     :cpu            => "#{@cpu}",
