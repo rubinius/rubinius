@@ -28,6 +28,7 @@ namespace :jit do
                  rubinius::Numeric
                  rubinius::Float
                  rubinius::jit::RuntimeData
+                 rubinius::CallUnit
                  jit_state!
     require 'tempfile'
 

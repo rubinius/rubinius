@@ -110,6 +110,8 @@ module Rubinius
           raise TypeError, "Unable to define singleton methods on Numerics"
         end
       end
+    elsif mod.kind_of? Class and executable.kind_of? CompiledMethod
+      mod.add_ivars(executable)
     end
 
     add_method name, executable, mod, vis

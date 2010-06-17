@@ -16,17 +16,20 @@ namespace rubinius {
   private:
     Fixnum* instance_type_;   // slot
     LookupTable* packed_ivar_info_; // slot
+    Array* seen_ivars_; // slot
 
     TypeInfo* type_info_;
 
     int class_id_;
     uint32_t packed_size_;
+    bool building_;
 
   public:
     /* accessors */
 
     attr_accessor(packed_ivar_info, LookupTable);
     attr_accessor(instance_type, Fixnum);
+    attr_accessor(seen_ivars, Array);
 
     TypeInfo* type_info() {
       return type_info_;
@@ -57,6 +60,8 @@ namespace rubinius {
 
     /* interface */
 
+    void init(int id);
+
     /** Returns actual superclass, skipping over IncludedModules */
     Class* true_superclass(STATE);
 
@@ -77,6 +82,8 @@ namespace rubinius {
 
     // Ruby.primitive :class_set_packed
     Object* set_packed(STATE, Array* info);
+
+    bool auto_pack(STATE);
 
     // Ruby.primitive :class_get_metaclass_attached
     Object* get_metaclass_attached(STATE);

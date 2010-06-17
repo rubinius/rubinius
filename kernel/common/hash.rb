@@ -12,12 +12,11 @@ class Hash
     attr_accessor :value
     attr_accessor :next
 
-    packed! [:@key, :@key_hash, :@value, :@next]
-
     def initialize(key, key_hash, value)
       @key      = key
       @key_hash = key_hash
       @value    = value
+      @next     = nil
     end
 
     def match?(key, key_hash)
