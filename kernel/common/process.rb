@@ -68,12 +68,22 @@ module Process
         status = 1
       end
 
+      # TODO should we call back into the Loader to run finalizers and such?
+      until Rubinius::AtExit.empty?
+        begin
+          Rubinius::AtExit.shift.call
+        rescue SystemExit => e
+          status = e.status
+        end
+      end
+
+      ObjectSpace.run_finalizers
+
       # Do not use Kernel.exit. This raises a SystemExit exception, which
       # will run ensure blocks. This is not what MRI does and causes bugs
       # in programs. See issue http://github.com/evanphx/rubinius/issues#issue/289 for
       # an example
 
-      # TODO should we call back into the Loader to run finalizers and such?
       Kernel.exit! status
     end
     pid
