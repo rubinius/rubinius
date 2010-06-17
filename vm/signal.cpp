@@ -34,7 +34,9 @@ namespace rubinius {
 
   void SignalHandler::reopen_pipes() {
     int f[2];
-    pipe(f);
+    if(pipe(f) < 0) {
+      // should we perror() here?
+    }
     read_fd_ = f[0];
     write_fd_ = f[1];
   }
@@ -52,7 +54,9 @@ namespace rubinius {
 
   void SignalHandler::shutdown_i() {
     exit_ = true;
-    write(write_fd_, "!", 1);
+    if(write(write_fd_, "!", 1) < 0) {
+      // should we perror() here?
+    }
 
     // Very unlikely we'd call this from inside the signal thread, but
     // you can never be too careful with thread programming.
@@ -75,7 +79,9 @@ namespace rubinius {
       if(n == 1) {
         // drain a bunch
         char buf[512];
-        read(read_fd_, buf, sizeof(buf));
+        if(read(read_fd_, buf, sizeof(buf)) < 0) {
+          // should we perror() here?
+        }
 
         {
           GlobalLock::LockGuard guard(vm_->global_lock());
@@ -112,7 +118,9 @@ namespace rubinius {
       return;
     }
 
-    write(write_fd_, "!", 1);
+    if(write(write_fd_, "!", 1) < 0) {
+      // should we perror() here?
+    }
   }
 
   void SignalHandler::add_signal(int sig, bool def) {
