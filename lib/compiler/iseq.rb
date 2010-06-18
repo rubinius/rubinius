@@ -94,8 +94,6 @@ module Rubinius
       @opcodes = Tuple.new(size)
     end
 
-    attr_reader :opcodes
-
     def ==(other)
       other.kind_of?(InstructionSequence) and @opcodes == other.opcodes
     end

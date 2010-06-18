@@ -393,15 +393,15 @@ module Rubinius
         end
 
         total = 0
-        @array.each do |x|
-          case x
+        @array.each do |e|
+          case e
           when StringLiteral
-            unless x.string.empty?
-              g.push_literal x.string
+            unless e.string.empty?
+              g.push_literal e.string
               total += 1
             end
           else
-            x.bytecode(g)
+            e.bytecode(g)
             total += 1
           end
         end

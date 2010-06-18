@@ -38,9 +38,9 @@ module Rubinius
           end
         end
 
-        nodes.each do |name, node|
+        nodes.each do |name, n|
           puts "#{" " * level}#{name}: \\"
-          graph_node node, level
+          graph_node n, level
         end
       end
 
