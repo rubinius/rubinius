@@ -276,10 +276,6 @@ containing the Rubinius standard library files.
         at_exit { stats.show }
       end
 
-      options.on "--no-rbc", "Don't create .rbc files" do
-        @no_rbc = true
-      end
-
       @profile = Rubinius::Config['profile']
 
       options.on "-P", "Run the profiler" do
