@@ -35,7 +35,7 @@ namespace rubinius {
   void SignalHandler::reopen_pipes() {
     int f[2];
     if(pipe(f) < 0) {
-      // should we perror() here?
+      perror("SignalHandler::reopen_pipes failed");
     }
     read_fd_ = f[0];
     write_fd_ = f[1];
@@ -55,7 +55,7 @@ namespace rubinius {
   void SignalHandler::shutdown_i() {
     exit_ = true;
     if(write(write_fd_, "!", 1) < 0) {
-      // should we perror() here?
+      perror("SignalHandler::shutdown_i failed to write");
     }
 
     // Very unlikely we'd call this from inside the signal thread, but
@@ -80,7 +80,7 @@ namespace rubinius {
         // drain a bunch
         char buf[512];
         if(read(read_fd_, buf, sizeof(buf)) < 0) {
-          // should we perror() here?
+          perror("SignalHandler::perform failed to read");
         }
 
         {
@@ -119,7 +119,7 @@ namespace rubinius {
     }
 
     if(write(write_fd_, "!", 1) < 0) {
-      // should we perror() here?
+      perror("SignalHandler::handle_signal failed to write");
     }
   }
 
