@@ -60,7 +60,7 @@ namespace rubinius {
       , gc_show(this,         "gc.show")
       , gc_immix_debug(this,  "gc.immix.debug")
       , gc_honor_start(this,  "gc.honor_start", false)
-      , gc_autopack(this,     "gc.autopack", false)
+      , gc_autopack(this,     "gc.autopack", true)
 
       , dynamic_interpreter_enabled(this, "interpreter.dynamic")
       , jit_dump_code(this,   "jit.dump_code", default_jit_dump_code)
