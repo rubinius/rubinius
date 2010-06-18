@@ -351,9 +351,9 @@ struct RFloat {
 
 #define RFLOAT(d)       capi_rfloat_struct(d)
 
-// To provide nicer error reporting
-#define RHASH(obj) assert("RHASH() is not supported")
-#define RHASH_TBL(obj) assert("RHASH_TBL() is not supported")
+// Do not define these messages as strings. We want a syntax error.
+#define RHASH(obj)      ({ C-API RHASH() is not supported in Rubinius })
+#define RHASH_TBL(obj)  ({ C-API RHASH_TBL() is not supported in Rubinius })
 
 struct RIO {
   VALUE handle;
