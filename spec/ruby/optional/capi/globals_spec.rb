@@ -45,4 +45,19 @@ describe "CApiGlobalSpecs" do
       $hooked_gvar.should == 4
     end
   end
+
+  describe "rb_set_kcode" do
+    before :each do
+      @kcode = $KCODE
+    end
+
+    after :each do
+      $KCODE = @kcode
+    end
+
+    it "sets the value of $KCODE" do
+      @f.rb_set_kcode("U")
+      $KCODE.should == "UTF8"
+    end
+  end
 end

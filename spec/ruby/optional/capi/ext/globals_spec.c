@@ -60,6 +60,13 @@ static VALUE sb_gv_set(VALUE self, VALUE var, VALUE val) {
 }
 #endif
 
+#ifdef HAVE_RB_SET_KCODE
+static VALUE global_spec_rb_set_kcode(VALUE self, VALUE code) {
+  rb_set_kcode(RSTRING_PTR(code));
+  return Qnil;
+}
+#endif
+
 void Init_globals_spec() {
   VALUE cls;
   cls = rb_define_class("CApiGlobalSpecs", rb_cObject);
@@ -87,6 +94,10 @@ void Init_globals_spec() {
 
 #ifdef HAVE_RB_GV_SET
   rb_define_method(cls, "sb_gv_set", sb_gv_set, 2);
+#endif
+
+#ifdef HAVE_RB_SET_KCODE
+  rb_define_method(cls, "rb_set_kcode", global_spec_rb_set_kcode, 1);
 #endif
 }
 

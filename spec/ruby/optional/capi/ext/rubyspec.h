@@ -128,6 +128,7 @@
 #define HAVE_RB_F_GLOBAL_VARIABLES         1
 #define HAVE_RB_GV_GET                     1
 #define HAVE_RB_GV_SET                     1
+#define HAVE_RB_SET_KCODE                  1
 
 // Hash
 #define HAVE_RB_HASH_AREF                  1
