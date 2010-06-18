@@ -1,4 +1,5 @@
 #include "builtin/object.hpp"
+#include "builtin/system.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/include/ruby.h"
@@ -66,5 +67,11 @@ extern "C" {
     // at addr should be retrieved. We're going to just do it once, since almost
     // no one uses this (just SWIG, and sets it before it uses it anyway)
     rb_gv_set(name, *addr);
+  }
+
+  void rb_set_kcode(const char *code) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    System::vm_set_kcode(env->state(), String::create(env->state(), code));
   }
 }

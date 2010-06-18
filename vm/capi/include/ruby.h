@@ -1361,6 +1361,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns a Struct with the specified fields. */
   VALUE rb_struct_define(const char *name, ...);
 
+  /** Sets the $KCODE variable. */
+  void    rb_set_kcode(const char *code);
+
   /** Returns a pointer to a persistent char [] that contains the same data as
    * that contained in the Ruby string. The buffer is flushed to the string
    * when control returns to Ruby code. The buffer is updated with the string
