@@ -3592,7 +3592,7 @@ yylex(void *yylval_v, void *vstate)
 {
     register int c;
     int space_seen = 0;
-    int cmd_state, comment_column;
+    int cmd_state;
     struct rb_parse_state *parse_state;
     bstring cur_line;
     enum lex_state last_state;

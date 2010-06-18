@@ -44,17 +44,14 @@ namespace melbourne {
   }
 
   int var_table_find(const var_table tbl, const quark needle) {
-    int i;
-    for(i = 0; i < tbl->quarks->size(); i++) {
+    for(size_t i = 0; i < tbl->quarks->size(); i++) {
       if(tbl->quarks->at(i) == needle) return i;
     }
     return -1;
   }
 
   int var_table_find_chained(const var_table tbl, const quark needle) {
-    int i;
-
-    for(i = 0; i < tbl->quarks->size(); i++) {
+    for(size_t i = 0; i < tbl->quarks->size(); i++) {
       if(tbl->quarks->at(i) == needle) return i;
     }
 
