@@ -15,7 +15,7 @@
 #define LOOKUPTABLE_MAX_DENSITY 0.75
 #define LOOKUPTABLE_MIN_DENSITY 0.3
 
-#define key_hash(obj) (((unsigned int)(uintptr_t)obj))
+#define key_hash(obj) (((unsigned int)(uintptr_t)obj) >> 2)
 #define find_bin(hash, bins) (hash & ((bins) - 1))
 #define max_density_p(ents,bins) (ents >= LOOKUPTABLE_MAX_DENSITY * bins)
 #define min_density_p(ents,bins) (ents < LOOKUPTABLE_MIN_DENSITY * bins)

@@ -14,10 +14,10 @@
 namespace rubinius {
   Object* PackedObject::get_packed_ivar(STATE, Symbol* sym) {
     LookupTable* tbl = this->reference_class()->packed_ivar_info();
-    assert(tbl && !tbl->nil_p());
+    bool found = false;
 
-    Fixnum* which = try_as<Fixnum>(tbl->fetch(state, sym));
-    if(!which) {
+    Fixnum* which = try_as<Fixnum>(tbl->fetch(state, sym, &found));
+    if(!found) {
       return get_table_ivar(state, sym);
     }
 
@@ -28,10 +28,10 @@ namespace rubinius {
 
   Object* PackedObject::packed_ivar_defined(STATE, Symbol* sym) {
     LookupTable* tbl = this->reference_class()->packed_ivar_info();
-    assert(tbl && !tbl->nil_p());
+    bool found = false;
 
-    Fixnum* which = try_as<Fixnum>(tbl->fetch(state, sym));
-    if(!which) {
+    Fixnum* which = try_as<Fixnum>(tbl->fetch(state, sym, &found));
+    if(!found) {
       return table_ivar_defined(state, sym);
     }
 
@@ -42,10 +42,10 @@ namespace rubinius {
 
   Object* PackedObject::set_packed_ivar(STATE, Symbol* sym, Object* val) {
     LookupTable* tbl = this->reference_class()->packed_ivar_info();
-    assert(tbl && !tbl->nil_p());
+    bool found = false;
 
-    Fixnum* which = try_as<Fixnum>(tbl->fetch(state, sym));
-    if(!which) {
+    Fixnum* which = try_as<Fixnum>(tbl->fetch(state, sym, &found));
+    if(!found) {
       return set_table_ivar(state, sym, val);
     }
 
@@ -56,10 +56,10 @@ namespace rubinius {
 
   Object* PackedObject::packed_ivar_delete(STATE, Symbol* sym, bool* removed) {
     LookupTable* tbl = this->reference_class()->packed_ivar_info();
-    assert(tbl && !tbl->nil_p());
+    bool found = false;
 
-    Fixnum* which = try_as<Fixnum>(tbl->fetch(state, sym));
-    if(!which) {
+    Fixnum* which = try_as<Fixnum>(tbl->fetch(state, sym, &found));
+    if(!found) {
       return del_table_ivar(state, sym, removed);
     }
 
@@ -73,7 +73,6 @@ namespace rubinius {
 
   void PackedObject::add_packed_ivars(STATE, Array* ary) {
     LookupTable* tbl = this->reference_class()->packed_ivar_info();
-    assert(tbl && !tbl->nil_p());
 
     Array* keys = tbl->all_keys(state);
 

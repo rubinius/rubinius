@@ -221,12 +221,35 @@ namespace rubinius {
       return Qnil;
     }
 
-    if(type_id() == Object::type) return get_table_ivar(state, sym);
+    switch(type_id()) {
+    case Object::type:
+      return get_table_ivar(state, sym);
+    case PackedObject::type:
+      {
+        LookupTable* tbl = this->reference_class()->packed_ivar_info();
 
+        LookupTableBucket* entry = tbl->find_entry(state, sym);
+        if(entry->nil_p()) {
+          return get_table_ivar(state, sym);
+        }
+
+        Fixnum* which = try_as<Fixnum>(entry->value());
+
+        Object** baa = reinterpret_cast<Object**>(pointer_to_body());
+        Object* obj = baa[which->to_native()];
+        if(obj == Qundef) return Qnil;
+        return obj;
+      }
+    default:
+      break;
+    }
+
+    /*
     // Handle packed objects in a unique way.
     if(PackedObject* po = try_as<PackedObject>(this)) {
       return po->get_packed_ivar(state, sym);
     }
+    */
 
     // We might be trying to access a slot, so try that first.
 
