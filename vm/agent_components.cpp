@@ -371,6 +371,18 @@ namespace agent {
     Tree* symbols = mem->get_tree("symbols");
     symbols->add(new ReadInteger<size_t>("bytes", &ss.symbols.bytes_used()));
 
+    Tree* counter = mem->get_tree("counter");
+    counter->add(new ReadInteger<size_t>("objects", &state->om->objects_allocated));
+    counter->add(new ReadInteger<size_t>("bytes", &state->om->bytes_allocated));
+
+    Tree* gc_young = system_->get_tree("gc")->get_tree("young");
+    gc_young->add(new ReadInteger<size_t>("count", &state->om->young_collections));
+    gc_young->add(new ReadInteger<size_t>("wallclock", &state->om->young_collection_time));
+
+    Tree* gc_full = system_->get_tree("gc")->get_tree("full");
+    gc_full->add(new ReadInteger<size_t>("count", &state->om->full_collections));
+    gc_full->add(new ReadInteger<size_t>("wallclock", &state->om->full_collection_time));
+
     Tree* jit = system_->get_tree("jit");
     jit->add(new ReadInteger<size_t>("methods", &ss.stats.jitted_methods));
     jit->add(new ReadInteger<size_t>("time", &ss.stats.jit_time_spent));
@@ -378,6 +390,7 @@ namespace agent {
     Tree* threads = system_->get_tree("threads");
     threads->add(new ThreadBacktrace(state, ss, "backtrace"));
     threads->add(new ThreadCount(state, ss, "count"));
+
   }
 
   void VariableAccess::read_path(Output& output, const char* ipath) {

@@ -90,6 +90,16 @@ namespace rubinius {
     /* Config variables */
     size_t large_object_threshold;
 
+    /* Stats */
+    size_t objects_allocated;
+    size_t bytes_allocated;
+
+    size_t young_collections;
+    size_t full_collections;
+
+    size_t young_collection_time;
+    size_t full_collection_time;
+
   public:
     unsigned int mark() {
       return mark_;

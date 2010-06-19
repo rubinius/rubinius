@@ -43,6 +43,13 @@ namespace rubinius {
     , collect_young_now(false)
     , collect_mature_now(false)
     , state(state)
+
+    , objects_allocated(0)
+    , bytes_allocated(0)
+    , young_collections(0)
+    , full_collections(0)
+    , young_collection_time(0)
+    , full_collection_time(0)
   {
     // TODO Not sure where this code should be...
     if(char* num = getenv("RBX_WATCH")) {
@@ -82,6 +89,9 @@ namespace rubinius {
 
   Object* ObjectMemory::new_object_fast(Class* cls, size_t bytes, object_type type) {
     if(Object* obj = young_->raw_allocate(bytes, &collect_young_now)) {
+      objects_allocated++;
+      bytes_allocated += bytes;
+
       if(collect_young_now) state->interrupts.set_perform_gc();
       obj->init_header(cls, YoungObjectZone, type);
       obj->clear_fields(bytes);
@@ -121,7 +131,11 @@ namespace rubinius {
     stats::GCStats::get()->objects_promoted++;
 #endif
 
-    Object* copy = immix_->allocate(obj->size_in_bytes(state));
+    objects_allocated++;
+    size_t sz = obj->size_in_bytes(state);
+    bytes_allocated += sz;
+
+    Object* copy = immix_->allocate(sz);
 
     copy->set_obj_type(obj->type_id());
     copy->initialize_full_state(state, obj, 0);
@@ -136,7 +150,7 @@ namespace rubinius {
   void ObjectMemory::collect_young(GCData& data, YoungCollectStats* stats) {
     collect_young_now = false;
 
-    static int collect_times = 0;
+    timer::Running<size_t, 1000000> timer(young_collection_time);
 
     // validate_handles(data.handles());
     // validate_handles(data.cached_handles());
@@ -147,7 +161,7 @@ namespace rubinius {
 
     prune_handles(data.handles(), true);
     prune_handles(data.cached_handles(), true);
-    collect_times++;
+    young_collections++;
 
     data.global_cache()->prune_young();
   }
@@ -160,6 +174,8 @@ namespace rubinius {
 
     // validate_handles(data.handles());
     // validate_handles(data.cached_handles());
+
+    timer::Running<size_t, 1000000> timer(full_collection_time);
 
     collect_mature_now = false;
 
@@ -192,6 +208,7 @@ namespace rubinius {
     // immix_->unmark_all(data);
 
     rotate_mark();
+    full_collections++;
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->collect_mature.stop();
@@ -294,6 +311,9 @@ namespace rubinius {
   }
 
   Object* ObjectMemory::allocate_object(size_t bytes) {
+    objects_allocated++;
+    bytes_allocated += bytes;
+
     Object* obj;
 
     if(unlikely(bytes > large_object_threshold)) {
@@ -332,6 +352,9 @@ namespace rubinius {
   }
 
   Object* ObjectMemory::allocate_object_mature(size_t bytes) {
+    objects_allocated++;
+    bytes_allocated += bytes;
+
     Object* obj;
 
     if(bytes > large_object_threshold) {
@@ -401,6 +424,9 @@ namespace rubinius {
 
   /* ONLY use to create Class, the first object. */
   Object* ObjectMemory::allocate_object_raw(size_t bytes) {
+    objects_allocated++;
+    bytes_allocated += bytes;
+
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
     obj->clear_fields(bytes);
     return obj;
@@ -410,6 +436,9 @@ namespace rubinius {
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->mature_object_types[type]++;
 #endif
+
+    objects_allocated++;
+    bytes_allocated += bytes;
 
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
     if(collect_mature_now) {
