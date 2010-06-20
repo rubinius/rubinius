@@ -23,25 +23,19 @@ class Configure
     @compiler = ENV['CC'] || 'gcc'
 
     # LLVM settings
-    @use_llvm       = true
-    @llvm           = :no
-    @llvm_path      = nil
-    @llvm_configure = nil
-    @llvm_default   = File.join(root, "vm", "external_libs", "llvm")
-
-    if @os =~ /linux/
-      @llvm_system_name = `lsb_release -irs`.split.join("-").downcase
-    else
-      @llvm_system_name = nil
-    end
-
+    @use_llvm               = true
+    @llvm                   = :no
+    @llvm_path              = nil
+    @llvm_configure         = nil
     @llvm_skip_system       = false
     @llvm_skip_prebuilt     = false
     @llvm_prebuilt_name     = nil
+    @llvm_system_name       = get_system_name
     @llvm_source            = "llvm-2.6-source.tar.bz2"
     @llvm_asset_path        = "http://asset.rubini.us/prebuilt"
     @llvm_generic_prebuilt  = "llvm-#{@host}.tar.bz2"
     @llvm_parent_path       = File.join(root, "vm", "external_libs")
+    @llvm_default           = File.join(@llvm_parent_path, "llvm")
     @llvm_prebuilt_path     = File.join(@llvm_parent_path, "prebuilt")
     @llvm_include_path      = File.join(@llvm_default, "include")
 
@@ -534,6 +528,23 @@ class Configure
     bin = Config::CONFIG["RUBY_INSTALL_NAME"] || Config::CONFIG["ruby_install_name"]
     bin << (Config::CONFIG['EXEEXT'] || Config::CONFIG['exeext'] || '')
     File.join(Config::CONFIG['bindir'], bin)
+  end
+
+  def get_system_name
+    return unless @os =~ /linux/
+    return unless File.exists? "/etc/issue"
+
+    data = IO.readlines("/etc/issue").first
+    data =~ /([^ ]+)[^\d\.]*([\d\.]*)/
+
+    name = $1.downcase
+    version = $2
+
+    if name == "debian" and File.exists? "/etc/debian_version"
+      version = IO.read("/etc/debian_version").split.first.gsub(/\W/, "-")
+    end
+
+    return "#{name}-#{version}"
   end
 
   def write_config
