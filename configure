@@ -118,7 +118,7 @@ class Configure
     end
 
     o.on "--update-prebuilt", "Update prebuilt LLVM packages from the internet" do
-      update_prebuilt
+      update_prebuilt @llvm_generic_prebuilt, true
     end
 
     o.doc "\n File system paths for installing Rubinius"
@@ -272,7 +272,7 @@ class Configure
   # an MD5 checksum file exists for the library, the checksum of the library
   # is compared and the update fails if it does not match.  If no MD5 checksum
   # file exists, the library is used without check.
-  def update_prebuilt(file)
+  def update_prebuilt(file, warn)
     full_path = File.join @llvm_prebuilt_path, file
     md5_path = "#{full_path}.md5"
 
@@ -286,7 +286,7 @@ class Configure
       download url, full_path
 
       unless File.exists? full_path
-        puts "ERROR. No #{file} available on server."
+        puts "ERROR. No #{file} available on server." if warn
         return false
       end
     end
@@ -350,12 +350,12 @@ class Configure
   end
 
   def setup_prebuilt
-    puts "  Checking for prebuilt LLVM build..."
+    puts "  Checking for prebuilt LLVM package..."
 
     prebuilt_files.each do |file|
       path = File.join @llvm_prebuilt_path, file
 
-      update_prebuilt file unless File.exists?(path)
+      update_prebuilt file, false unless File.exists?(path)
 
       if File.exists?(path)
         print "  Unpacking prebuilt LLVM: #{file}: "
@@ -366,6 +366,7 @@ class Configure
       end
     end
 
+    puts "  Unable to download any LLVM prebuilt"
     return false
   end
 
