@@ -21,9 +21,12 @@
 #include "object_utils.hpp"
 
 #include <fcntl.h>
+#include <arpa/inet.h>
 
 #include <map>
 #include <vector>
+#include <algorithm>
+#include <iostream>
 
 namespace rubinius {
   typedef std::map<Object*, int> Identities;
