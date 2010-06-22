@@ -48,5 +48,6 @@ namespace agent {
     }
 
     void read_path(Output& output, const char* ipath);
+    void set_path(Output& output, const char* ipath, bert::Value* val);
   };
 }}

@@ -239,13 +239,14 @@ namespace rubinius {
     return Qtrue;
   }
 
-  Array* LookupTable::collect(STATE, LookupTable* tbl, CollectAction& action)
+  Array* LookupTable::collect(STATE, LookupTable* tbl, CollectAction& action, Array* ary)
   {
     size_t i, j;
     Tuple* values;
     LookupTableBucket* entry;
 
-    Array* ary = Array::create(state, tbl->entries()->to_native());
+    if(!ary) ary = Array::create(state, tbl->entries()->to_native());
+
     size_t num_bins = tbl->bins()->to_native();
     values = tbl->values();
 
@@ -254,7 +255,7 @@ namespace rubinius {
 
       while(entry) {
         Object* ret = action.call(state, entry);
-        if(ret) ary->set(state, j++, ret);
+        if(ret) ary->append(state, ret);
         entry = try_as<LookupTableBucket>(entry->next());
       }
     }
@@ -298,7 +299,7 @@ namespace rubinius {
     return collect(state, this, match);
   }
 
-  Array* LookupTable::filtered_keys(STATE, ObjectMatcher& matcher) {
+  Array* LookupTable::filtered_keys(STATE, ObjectMatcher& matcher, Array* ary) {
     class filtered_keys : public CollectAction {
       ObjectMatcher& m_;
 
@@ -313,7 +314,7 @@ namespace rubinius {
       }
     } match(matcher);
 
-    return collect(state, this, match);
+    return collect(state, this, match, ary);
   }
 
   Object* LookupTable::get_value(STATE, LookupTableBucket* entry) {

@@ -11,6 +11,11 @@ class Rubinius::VM
     raise PrimitiveFailure, "Rubinius::VM.stats primitive failed"
   end
 
+  def self.dump_heap(path)
+    Ruby.primitive :vm_dump_heap
+    raise PrimitiveFailure, "Rubinius::VM.dump_heap failed"
+  end
+
   def self.__jit_info__
     Ruby.primitive :vm_jit_info
     raise PrimitiveFailure, "Rubinius::VM.jit_info primitive failed"

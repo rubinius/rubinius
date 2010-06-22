@@ -6,6 +6,8 @@
 #include "objectmemory.hpp"
 
 #include "builtin/thread.hpp"
+#include "builtin/string.hpp"
+#include "builtin/system.hpp"
 
 namespace rubinius {
 namespace agent {
@@ -49,6 +51,14 @@ namespace agent {
 
     virtual void read_path(Output& output, const char* ipath) {
       output.error("unimplemented");
+    }
+
+    virtual void set(Output& output, bert::Value* val) {
+      output.error("unimplemneted");
+    }
+
+    virtual void set_path(Output& output, const char* path, bert::Value* val) {
+      output.error("unimplemneted");
     }
   };
 
@@ -139,6 +149,29 @@ namespace agent {
 
       free(path);
     }
+
+    virtual void set_path(Output& output, const char* ipath, bert::Value* val) {
+      char* path = strdup(ipath);
+      char* pos = strchr(path, '.');
+
+      if(pos) *pos = 0;
+
+      Item* item = get(path);
+
+      if(item) {
+        if(pos) {
+          item->set_path(output, pos+1, val);
+        } else {
+          item->set(output, val);
+        }
+      } else {
+        output.e().write_tuple(2);
+        output.e().write_atom("unknown_variable");
+        output.e().write_binary(ipath);
+      }
+
+      free(path);
+    }
   };
 
   class SystemName : public DynamicVariable {
@@ -212,6 +245,19 @@ namespace agent {
         }
       } else {
         output.error("unknown key");
+      }
+    }
+
+    virtual void set_path(Output& output, const char* path, bert::Value* val) {
+      if(val->string_p()) {
+        output.ok("value");
+        if(shared_.config.import(path, val->string())) {
+          output.e().write_atom("ok");
+        } else {
+          output.e().write_atom("unknown_key");
+        }
+      } else {
+        output.error("format");
       }
     }
   };
@@ -312,6 +358,33 @@ namespace agent {
     }
   };
 
+  class DumpHeap: public DynamicVariable {
+    VM* state_;
+
+  public:
+    DumpHeap(STATE, const char* name)
+      : DynamicVariable(name)
+      , state_(state)
+    {}
+
+    virtual void set(Output& output, bert::Value* val) {
+      GlobalLock::LockGuard guard(state_->global_lock());
+
+      if(val->string_p()) {
+        output.ok("value");
+        String* path = String::create(state_, val->string());
+        if(RTEST(System::vm_dump_heap(state_, path))) {
+          output.e().write_atom("ok");
+        } else {
+          output.e().write_atom("error");
+        }
+      } else {
+        output.error("format");
+      }
+    }
+  };
+
+
   template <typename T>
   class ReadInteger : public DynamicVariable {
     T* ptr_;
@@ -356,6 +429,8 @@ namespace agent {
 
     Tree* mem = system_->get_tree("memory");
 
+    mem->add(new DumpHeap(state, "dump"));
+
     Tree* young = mem->get_tree("young");
     young->add(new StaticInteger<int>("bytes", ss.config.gc_bytes * 2));
 
@@ -398,6 +473,14 @@ namespace agent {
       root_->read(output);
     } else {
       root_->read_path(output, ipath);
+    }
+  }
+
+  void VariableAccess::set_path(Output& output, const char* ipath, bert::Value* val) {
+    if(strlen(ipath) == 1 && ipath[0] == '.') {
+      root_->set(output, val);
+    } else {
+      root_->set_path(output, ipath, val);
     }
   }
 }}

@@ -83,8 +83,8 @@ namespace rubinius {
     return filtered_keys(state, matcher);
   }
 
-  Array* CompactLookupTable::filtered_keys(STATE, ObjectMatcher& match) {
-    Array* ary = Array::create(state, COMPACTLOOKUPTABLE_SIZE / 2);
+  Array* CompactLookupTable::filtered_keys(STATE, ObjectMatcher& match, Array* ary) {
+    if(!ary) ary = Array::create(state, COMPACTLOOKUPTABLE_SIZE / 2);
 
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
       Object* key = at(state, i);

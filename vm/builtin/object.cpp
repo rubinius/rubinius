@@ -298,9 +298,11 @@ namespace rubinius {
     return table_ivar_defined(state, sym);
   }
 
-  Object* Object::ivar_names(STATE) {
-    Array* ary = Array::create(state, 3);
+  Array* Object::ivar_names(STATE) {
+    return ivar_names(state, Array::create(state, 3));
+  }
 
+  Array* Object::ivar_names(STATE, Array* ary) {
     // We don't check slots, because we don't advertise them
     // as normal ivars.
     class ivar_match : public ObjectMatcher {
@@ -317,7 +319,7 @@ namespace rubinius {
     if(!reference_p()) {
       LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
       if(tbl) {
-        ary->concat(state, tbl->filtered_keys(state, match));
+        tbl->filtered_keys(state, match, ary);
       }
       return ary;
     }
@@ -328,9 +330,9 @@ namespace rubinius {
     }
 
     if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars())) {
-      ary->concat(state, tbl->filtered_keys(state, match));
+      tbl->filtered_keys(state, match, ary);
     } else if(LookupTable* tbl = try_as<LookupTable>(ivars())) {
-      ary->concat(state, tbl->filtered_keys(state, match));
+      tbl->filtered_keys(state, match, ary);
     }
 
     return ary;

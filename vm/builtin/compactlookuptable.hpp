@@ -41,7 +41,7 @@ namespace rubinius {
     // Ruby.primitive :compactlookuptable_keys
     Array* keys(STATE);
 
-    Array* filtered_keys(STATE, ObjectMatcher& matcher);
+    Array* filtered_keys(STATE, ObjectMatcher& matcher, Array* ary=0);
 
     // Ruby.primitive :compactlookuptable_values
     Array* values(STATE);

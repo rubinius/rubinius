@@ -137,13 +137,9 @@ namespace rubinius {
           bert::Value* key = val->get_element(1);
           bert::Value* value = val->get_element(2);
 
-          if(key->type() == bert::Binary &&
-              value->type() == bert::Binary) {
-            if(shared_.config.import(key->string(), value->string())) {
-              encoder.write_atom("ok");
-            } else {
-              encoder.write_atom("unknown_key");
-            }
+          if(key->type() == bert::Binary) {
+            agent::Output output(writer);
+            vars_->set_path(output, key->string(), value);
             return true;
           }
         }

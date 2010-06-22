@@ -259,6 +259,9 @@ namespace rubinius {
     // Ruby.primitive :vm_agent_io
     static IO*     vm_agent_io(STATE);
 
+    // Ruby.primitive :vm_dump_heap
+    static Object* vm_dump_heap(STATE, String* path);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

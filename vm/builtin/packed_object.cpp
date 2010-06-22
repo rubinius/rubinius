@@ -74,10 +74,10 @@ namespace rubinius {
   void PackedObject::add_packed_ivars(STATE, Array* ary) {
     LookupTable* tbl = this->reference_class()->packed_ivar_info();
 
-    Array* keys = tbl->all_keys(state);
+    LookupTable::iterator i(tbl);
 
-    for(size_t i = 0; i < keys->size(); i++) {
-      Object* key = keys->get(state, i);
+    while(i.advance()) {
+      Object* key = i.key();
       if(Fixnum* which = try_as<Fixnum>(tbl->fetch(state, key))) {
         if(body_as_array()[which->to_native()] != Qundef) {
           ary->append(state, key);

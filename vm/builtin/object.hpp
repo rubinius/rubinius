@@ -241,7 +241,9 @@ namespace rubinius {
 
     /** Returns the structure containing this object's instance variables. */
     // Ruby.primitive :object_ivar_names
-    Object*   ivar_names(STATE);
+    Array*   ivar_names(STATE);
+
+    Array*   ivar_names(STATE, Array* ary);
 
     /** Calculate a hash value for this object. */
     hashval   hash(STATE);
