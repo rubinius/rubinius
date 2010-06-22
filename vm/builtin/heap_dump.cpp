@@ -43,7 +43,6 @@ namespace rubinius {
   const static int cBytesCode =  'b';
   const static int cFooterCode = '-';
 
-
   class Encoder {
     int fd_;
     Symbols symbols_;
@@ -57,21 +56,21 @@ namespace rubinius {
     {}
 
     void write1(uint8_t num) {
-      write(fd_, &num, 1);
+      if(write(fd_, &num, 1) == -1) perror("write(2)");
     }
 
     void write2(uint16_t num) {
       num = htons(num);
-      write(fd_, &num, 2);
+      if(write(fd_, &num, 2) == -1) perror("write(2)");
     }
 
     void write4(uint32_t num) {
       num = htonl(num);
-      write(fd_, &num, 4);
+      if(write(fd_, &num, 4) == -1) perror("write(2)");
     }
 
     void write_raw(const char* str, int count) {
-      write(fd_, str, count);
+      if(write(fd_, str, count) == -1) perror("write(2)");
     }
 
     void start_object(uint32_t id) {
