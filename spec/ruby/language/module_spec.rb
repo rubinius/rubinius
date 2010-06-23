@@ -16,6 +16,24 @@ describe "module" do
     LangModuleSpec::Anon = Module.new
     LangModuleSpec::Anon.name.should == "LangModuleSpec::Anon"
   end
+
+  it "raises a TypeError if the constant is a class" do
+    class LangModuleSpec::C1; end
+
+    lambda {
+      module LangModuleSpec::C1; end
+    }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError if the constant is not a module" do
+    module LangModuleSpec
+      C2 = 2
+    end
+
+    lambda {
+      module LangModuleSpec::C2; end
+    }.should raise_error(TypeError)
+  end
 end
 
 describe "An anonymous module" do
