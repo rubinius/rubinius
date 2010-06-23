@@ -22,14 +22,14 @@ end
 require config_rb
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 
-# Yes, this is duplicated from the configure script for now.
-unless BUILD_CONFIG[:which_ruby] == :ruby or BUILD_CONFIG[:which_ruby] == :rbx
-  STDERR.puts "Sorry, building Rubinius requires MRI or Rubinius"
+unless BUILD_CONFIG[:config_version] == 11
+  STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
 
-unless BUILD_CONFIG[:config_version] == 10
-  STDERR.puts "Your configuration is outdated, please run ./configure first"
+# Yes, this is duplicated from the configure script for now.
+unless BUILD_CONFIG[:which_ruby] == :ruby or BUILD_CONFIG[:which_ruby] == :rbx
+  STDERR.puts "Sorry, building Rubinius requires MRI or Rubinius"
   exit 1
 end
 
