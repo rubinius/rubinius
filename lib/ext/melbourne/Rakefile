@@ -46,6 +46,7 @@ when ["build:mri"]
   puts "Building Melbourne for MRI"
   add_mri_capi
   set_ext_dir "ruby"
+  add_ldflag Config::CONFIG["LIBRUBYARG"]
 end
 
 add_objects project_files, ext_dir
