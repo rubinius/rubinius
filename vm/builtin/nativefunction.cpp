@@ -32,8 +32,6 @@
 
 #include "instruments/profiler.hpp"
 
-#include "native_libraries.hpp"
-
 namespace rubinius {
 
   void NativeFunction::init(STATE) {

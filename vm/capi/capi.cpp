@@ -381,7 +381,9 @@ extern "C" {
   }
 
   void capi_define_method(const char* file, VALUE target,
-      const char* name, CApiGenericFunction fptr, int arity, CApiMethodKind kind) {
+                          const char* name, CApiGenericFunction fptr,
+                          int arity, CApiMethodKind kind)
+  {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     VM* state = env->state();
@@ -389,20 +391,16 @@ extern "C" {
 
     Module* module = NULL;
 
-    if (kind == cCApiSingletonMethod) {
+    if(kind == cCApiSingletonMethod) {
       module = c_as<Module>(env->get_object(target)->metaclass(env->state()));
-    }
-    else {
+    } else {
       module = c_as<Module>(env->get_object(target));
     }
 
     NativeMethod* method = NULL;
-    method = NativeMethod::create(state,
-                                  String::create(state, file),
-                                  module,
-                                  method_name,
-                                  fptr,
-                                  Fixnum::from(arity));
+    method = NativeMethod::create(state, String::create(state, file),
+                                  module, method_name,
+                                  (void*)fptr, Fixnum::from(arity));
 
     Symbol* visibility;
 

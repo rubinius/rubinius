@@ -12,21 +12,32 @@ module Rubinius
     attr_reader :name
 
     #
-    # Returns true if library loads successfully.
+    # Load a dynamic library at path +library+, having name +extension_name+.
     #
-    # TODO: Fix up to properly add method, clear cache etc.
+    # +extension_name+ is used to calculate what Init_ function to call.
     #
-    def self.load_extension(library_path, extension_name)
-      library = library_path.sub /#{Rubinius::LIBSUFFIX}$/, ''
+    def self.load_extension(library, extension_name)
       name = "Init_#{extension_name}"
 
-      entry_point = load_entry_point library, name
+      begin
+        lib = FFI::DynamicLibrary.new(library)
+      rescue LoadError => e
+        some_mri_globals = /rb_c\w|rb_m\w/
 
-      symbol = name.to_sym
+        if e.message =~ some_mri_globals
+          raise LoadError::MRIExtensionError, "Extension compiled for MRI - #{library}"
+        end
+      end
 
-      Rubinius.object_metaclass(self).method_table.store symbol, entry_point, :public
-      Rubinius::VM.reset_method_cache(symbol)
-      __send__ symbol
+      sym = lib.find_symbol(name)
+
+      unless sym
+        raise LoadError::InvalidExtensionError, "Missing Init_ function (#{name})"
+      end
+
+      entry_point = load_entry_point(sym)
+
+      entry_point.invoke(:init, Rubinius, self, [], nil)
 
       true
     end
@@ -34,7 +45,9 @@ module Rubinius
     #
     # Load extension and generate a NativeMethod for its entry point.
     #
-    def self.load_entry_point(library_path, name)
+    # +ptr+ is an FFI::Pointer to a C function.
+    #
+    def self.load_entry_point(ptr)
       Ruby.primitive :nativemethod_load_extension_entry_point
       raise PrimitiveFailure, "Unable to load #{library_path}"
     end

@@ -232,6 +232,11 @@ class RegexpError < StandardError
 end
 
 class LoadError < ScriptError
+  class InvalidExtensionError < LoadError
+  end
+
+  class MRIExtensionError < InvalidExtensionError
+  end
 end
 
 class NotImplementedError < ScriptError

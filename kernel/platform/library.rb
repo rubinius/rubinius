@@ -181,6 +181,7 @@ module FFI
           end
 
           unless @handle
+            orig_error = orig_error.split("\n").first
             # API Compat. LoadError is wrong here.
             raise LoadError, "Could not open library #{name} - #{orig_error}"
           end

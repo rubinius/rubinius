@@ -155,10 +155,7 @@ module Rubinius
     def load_library
       name = File.basename @load_path, LIBSUFFIX
 
-      # TODO: fix NativeMethod.load_extension API
-      if true != NativeMethod.load_extension(@load_path, name)
-        load_error "invalid extension '#{@load_path}' (did you define Init_#{name}?)"
-      end
+      NativeMethod.load_extension(@load_path, name)
     end
   end
 end

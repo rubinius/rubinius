@@ -6,7 +6,6 @@
 #include "exception_point.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"
-#include "native_libraries.hpp"
 #include "primitives.hpp"
 #include "call_frame.hpp"
 #include "objectmemory.hpp"
@@ -19,6 +18,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/capi_handle.hpp"
 #include "builtin/location.hpp"
+#include "builtin/ffi_pointer.hpp"
 
 #include "instruments/profiler.hpp"
 
@@ -153,8 +153,25 @@ namespace rubinius {
     native_method_environment.set(NULL);
   }
 
-  NativeMethod* NativeMethod::allocate(STATE) {
-    return create<GenericFunctor>(state);
+  NativeMethod* NativeMethod::create(VM* state, String* file_name,
+                                     Module* module, Symbol* method_name,
+                                     void* func, Fixnum* arity)
+  {
+    NativeMethod* nmethod = state->new_object<NativeMethod>(G(nmethod));
+
+    nmethod->arity(state, arity);
+    nmethod->file(state, file_name);
+    nmethod->name(state, method_name);
+    nmethod->module(state, module);
+
+    nmethod->func_ = func;
+
+    nmethod->set_executor(&NativeMethod::executor_implementation);
+
+    nmethod->primitive(state, state->symbol("nativemethod_call"));
+    nmethod->serial(state, Fixnum::from(0));
+
+    return nmethod;
   }
 
   Object* NativeMethod::executor_implementation(STATE,
@@ -220,17 +237,12 @@ namespace rubinius {
     return ret;
   }
 
-  NativeMethod* NativeMethod::load_extension_entry_point(STATE, String* path, String* name) {
-    void* func = NativeLibrary::find_symbol(state, name, path);
+  NativeMethod* NativeMethod::load_extension_entry_point(STATE, Pointer* ptr) {
+    void* func = ptr->pointer;
 
-    NativeMethod* m = NativeMethod::create(state,
-                                           path,
-                                           G(rubinius),
-                                           name->to_sym(state),
-                                           reinterpret_cast<GenericFunctor>(func),
-                                           Fixnum::from(INIT_FUNCTION)
-                                          );
-    return m;
+    return NativeMethod::create(state, force_as<String>(Qnil), G(rubinius),
+                                state->symbol("__init__"), func,
+                                Fixnum::from(INIT_FUNCTION));
   }
 
   /**
@@ -242,10 +254,8 @@ namespace rubinius {
    *  There is also a special-case arity, INIT_FUNCTION, which corresponds
    *  to void (*)(void) and should never appear in user code.
    *
-   *  @note   Currently supports functions with up to receiver + 5 (separate) arguments only!
+   *  @note   Currently supports functions with up to receiver + 10 (separate) arguments only!
    *          Anything beyond that should use one of the special arities instead.
-   *
-   *  @todo   Check for inefficiencies.
    */
   Object* NativeMethod::call(STATE, NativeMethodEnvironment* env, Arguments& args) {
     VALUE receiver = env->get_handle(args.recv());

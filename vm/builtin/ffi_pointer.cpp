@@ -53,6 +53,20 @@ namespace rubinius {
 #endif
 
     ffi->set_const(state, "LIB_SUFFIXES", suffix);
+
+    // Legacy. Fix the kernel to not need this.
+    String* main_suffix;
+#ifdef _WIN32
+    main_suffix = String::create(state, ".dll");
+#else
+  #ifdef __APPLE_CC__
+    main_suffix = String::create(state, ".bundle");
+  #else
+    main_suffix = String::create(state, ".so");
+  #endif
+#endif
+
+    G(rubinius)->set_const(state, "LIBSUFFIX", main_suffix);
   }
 
   Pointer* Pointer::create(STATE, void* ptr) {

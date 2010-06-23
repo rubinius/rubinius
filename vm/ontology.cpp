@@ -241,7 +241,6 @@ namespace rubinius {
     InstructionSequence::init(this);
     List::init(this);
     init_ffi();
-    init_native_libraries();
     Thread::init(this);
     AccessVariable::init(this);
     Pointer::init(this);
