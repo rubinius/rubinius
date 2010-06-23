@@ -70,7 +70,7 @@ module Rubinius
       if obj.kind_of? Autoload
         obj = obj.call(true)
 
-        # See commend above about autoload returning nil
+        # See comment above about autoload returning nil
         unless obj
           obj = Module.new
           obj.set_name_if_necessary name, mod
@@ -78,8 +78,8 @@ module Rubinius
         end
       end
 
-      unless obj.kind_of? Module
-        raise TypeError, "#{name} is not a class"
+      unless obj.instance_of? Module
+        raise TypeError, "#{name} is not a module"
       end
     end
     return obj
