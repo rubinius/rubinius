@@ -12,84 +12,6 @@
 # these methods can be written *in those classes* to override these.
 
 module Enumerable
-
-  class Sort
-
-    def initialize(sorter = nil)
-      @sorter = sorter
-    end
-
-    def self.sort_proc
-      @sort_proc ||= Proc.new do |a,b|
-        unless ret = a <=> b
-          raise ArgumentError, "Improper spaceship value"
-        end
-        ret
-      end
-    end
-
-    def sort(xs, &prc)
-      prc = Sort.sort_proc unless block_given?
-
-      if @sorter
-        @sorter = method(@sorter) unless @sorter.respond_to?(:call)
-        @sorter.call(xs, &prc)
-      else
-        quicksort(xs, &prc)
-      end
-    end
-
-    alias_method :call, :sort
-
-    class SortedElement
-      def initialize(val, sort_id)
-        @value, @sort_id = val, sort_id
-      end
-
-      attr_reader :value
-      attr_reader :sort_id
-
-      def <=>(other)
-        @sort_id <=> other.sort_id
-      end
-    end
-
-    def sort_by(xs)
-      # The ary and its elements sould be inmutable while sorting
-
-      elements = xs.map { |x| SortedElement.new(x, yield(x)) }
-      sort(elements).map { |e| e.value }
-    end
-
-    ##
-    # Sort an Enumerable using simple quicksort (not optimized)
-
-    def quicksort(xs, &prc)
-      return [] unless xs
-
-      pivot = undefined
-      xs.each { |o| pivot = o; break }
-      return xs if pivot.equal? undefined
-
-      lmr = Hash.new { |hash, key|
-        # if ever the result of the block is not simply -1, 0 or 1, compare it with 0
-        cmp = (key <=> 0) || raise(ArgumentError, "Comparison of #{key.class} with 0 failed.")
-        hash.fetch(cmp, [])
-      }.merge(-1 => [], 0 => [], 1 => [])
-      xs.each do |o|
-        comparison = if o.equal?(pivot)
-          0
-        else
-          yield(o, pivot)
-        end
-        lmr[comparison] << o
-      end
-
-      quicksort(lmr[-1], &prc) + lmr[0] + quicksort(lmr[1], &prc)
-    end
-
-  end
-
   ##
   # :call-seq:
   #   enum.grep(pattern)                   => array
@@ -116,11 +38,6 @@ module Enumerable
     ary
   end
 
-  def sorter
-    Enumerable::Sort.new
-  end
-  private :sorter
-
   ##
   # :call-seq:
   #   enum.sort                     => array
@@ -137,7 +54,7 @@ module Enumerable
   #   (1..10).sort { |a,b| b <=> a}  #=> [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
 
   def sort(&prc)
-    sorter.sort(self, &prc)
+    to_a.sort!(&prc)
   end
 
   ##
@@ -156,9 +73,9 @@ module Enumerable
   #
   #   require 'benchmark'
   #   include Benchmark
-  #   
+  #
   #   a = (1..100000).map {rand(100000)}
-  #   
+  #
   #   bm(10) do |b|
   #     b.report("Sort")    { a.sort }
   #     b.report("Sort by") { a.sort_by { |a| a} }
@@ -205,9 +122,30 @@ module Enumerable
   #   sorted = Dir["#"].sort_by { |f| test(?M, f)}
   #   sorted   #=> ["mon", "tues", "wed", "thurs"]
 
-  def sort_by(&prc)
+  class SortedElement
+    def initialize(val, sort_id)
+      @value, @sort_id = val, sort_id
+    end
+
+    attr_reader :value
+    attr_reader :sort_id
+
+    def <=>(other)
+      @sort_id <=> other.sort_id
+    end
+  end
+
+  def sort_by
     return to_enum :sort unless block_given?
-    sorter.sort_by(self, &prc)
+
+    # Transform each value to a tuple with the value and it's sort by value
+    sort_values = map { |x| SortedElement.new(x, yield(x)) }
+
+    # Now sort the tuple according to the sort by value
+    sort_values.sort!
+
+    # Now strip of the tuple leaving the original value
+    sort_values.map! { |ary| ary.value }
   end
 
   ##
@@ -685,12 +623,20 @@ module Enumerable
     min_object
   end
 
+  def self.sort_proc
+    @sort_proc ||= Proc.new do |a,b|
+      unless ret = a <=> b
+        raise ArgumentError, "Improper spaceship value"
+      end
+      ret
+    end
+  end
+
   # Returns two elements array which contains the minimum and the maximum value
   # in the enumerable. The first form assumes all objects implement Comparable;
   # the second uses the block to return a <=> b.
-
   def minmax(&block)
-    block = Sort.sort_proc unless block
+    block = Enumerable.sort_proc unless block
     first_time = true
     min, max = nil
 
