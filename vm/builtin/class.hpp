@@ -16,7 +16,6 @@ namespace rubinius {
   private:
     Fixnum* instance_type_;   // slot
     LookupTable* packed_ivar_info_; // slot
-    Array* seen_ivars_; // slot
 
     TypeInfo* type_info_;
 
@@ -29,7 +28,6 @@ namespace rubinius {
 
     attr_accessor(packed_ivar_info, LookupTable);
     attr_accessor(instance_type, Fixnum);
-    attr_accessor(seen_ivars, Array);
 
     TypeInfo* type_info() {
       return type_info_;

@@ -729,4 +729,30 @@ class Module
   end
 
   private :initialize_copy
+
+  def add_ivars(cm)
+    case cm
+    when Rubinius::CompiledMethod
+      new_ivars = cm.literals.select { |l| l.kind_of?(Symbol) and l.is_ivar? }
+      return if new_ivars.empty?
+
+      if @seen_ivars
+        new_ivars.each do |x|
+          unless @seen_ivars.include?(x)
+            @seen_ivars << x
+          end
+        end
+      else
+        @seen_ivars = new_ivars
+      end
+    when Rubinius::AccessVariable
+      if @seen_ivars
+        @seen_ivars << cm.name
+      else
+        @seen_ivars = [cm.name]
+      end
+    else
+      raise "Unknown type of method to learn ivars - #{cm.class}"
+    end
+  end
 end

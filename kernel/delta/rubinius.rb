@@ -110,8 +110,6 @@ module Rubinius
           raise TypeError, "Unable to define singleton methods on Numerics"
         end
       end
-    elsif mod.kind_of? Class and executable.kind_of? CompiledMethod
-      mod.add_ivars(executable)
     end
 
     add_method name, executable, mod, vis
@@ -159,6 +157,11 @@ module Rubinius
         obj.singleton_method_added(name)
       end
     else
+      case executable
+      when CompiledMethod, AccessVariable
+        mod.add_ivars(executable)
+      end
+
       Rubinius.privately do
         mod.method_added(name)
       end
@@ -259,6 +262,10 @@ module Rubinius
 
   def self.compile_file(name)
     Compiler.compile name
+  end
+
+  class AccessVariable
+    attr_reader :name
   end
 end
 

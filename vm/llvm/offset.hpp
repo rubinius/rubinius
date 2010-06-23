@@ -68,7 +68,7 @@ namespace offset {
   const static int runtime_data_name = 1;
   const static int runtime_data_module = 2;
 
-  const static int class_class_id = 5;
+  const static int class_class_id = 4;
 };
 
 #endif

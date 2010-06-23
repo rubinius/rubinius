@@ -122,9 +122,7 @@ use_packed:
           type_info_->instance_size, type_info_->type);
     } else {
       if(type_info_->type == Object::type) {
-        if(!seen_ivars_->nil_p()) {
-          if(auto_pack(state)) goto use_packed;
-        }
+        if(auto_pack(state)) goto use_packed;
       }
 
       building_ = false;
@@ -194,20 +192,27 @@ use_packed:
       int slot = 0;
 
       while(!mod->nil_p()) {
+        Array* info = 0;
+
         if(Class* cls = try_as<Class>(mod)) {
-          Array* info = cls->seen_ivars();
+          info = cls->seen_ivars();
+        } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
+          info = im->module()->seen_ivars();
+        }
 
-          if(!info->nil_p()) {
-            for(size_t i = 0; i < info->size(); i++) {
-              if(Symbol* sym = try_as<Symbol>(info->get(state, i))) {
-                bool found = false;
-                lt->fetch(state, sym, &found);
+        if(info && !info->nil_p()) {
+          for(size_t i = 0; i < info->size(); i++) {
+            if(Symbol* sym = try_as<Symbol>(info->get(state, i))) {
+              bool found = false;
+              lt->fetch(state, sym, &found);
 
-                if(!found) {
-                  lt->store(state, sym, Fixnum::from(slot++));
-                }
+              if(!found) {
+                lt->store(state, sym, Fixnum::from(slot++));
               }
             }
+
+            // Limit the number of packed ivars to 25.
+            if(slot > 25) break;
           }
         }
 

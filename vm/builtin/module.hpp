@@ -18,6 +18,7 @@ namespace rubinius {
     Symbol* module_name_;       // slot
     LookupTable* constants_;    // slot
     Module* superclass_;        // slot
+    Array* seen_ivars_;         // slot
 
   public:
     /* accessors */
@@ -26,6 +27,7 @@ namespace rubinius {
     attr_accessor(module_name, Symbol);
     attr_accessor(constants, LookupTable);
     attr_accessor(superclass, Module);
+    attr_accessor(seen_ivars, Array);
 
     Symbol* name() { return module_name_; }
     void name(STATE, Symbol* sym) {

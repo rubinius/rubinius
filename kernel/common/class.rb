@@ -98,19 +98,4 @@ class Class
 
   alias_method :inspect, :to_s
 
-  def add_ivars(cm)
-    new_ivars = cm.literals.select { |l| l.kind_of?(Symbol) and l.is_ivar? }
-    return if new_ivars.empty?
-
-    if @seen_ivars
-      new_ivars.each do |x|
-        unless @seen_ivars.include?(x)
-          @seen_ivars << x
-        end
-      end
-    else
-      @seen_ivars = new_ivars
-    end
-
-  end
 end

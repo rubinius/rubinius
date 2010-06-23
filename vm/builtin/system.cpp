@@ -564,20 +564,26 @@ namespace rubinius {
       }
     }
 
-    if(Class* cls = try_as<Class>(mod)) {
-      if(!kind_of<MetaClass>(cls) && cls->type_info()->type == Object::type) {
-        Array* ary = cls->seen_ivars();
-        if(ary->nil_p()) {
-          ary = Array::create(state, 5);
-          cls->seen_ivars(state, ary);
-        }
+    bool add_ivars = false;
 
-        Tuple* lits = method->literals();
-        for(size_t i = 0; i < lits->num_fields(); i++) {
-          if(Symbol* sym = try_as<Symbol>(lits->at(state, i))) {
-            if(RTEST(sym->is_ivar_p(state))) {
-              if(!ary->includes_p(state, sym)) ary->append(state, sym);
-            }
+    if(Class* cls = try_as<Class>(mod)) {
+      add_ivars = !kind_of<MetaClass>(cls) && cls->type_info()->type == Object::type;
+    } else {
+      add_ivars = true;
+    }
+
+    if(add_ivars) {
+      Array* ary = mod->seen_ivars();
+      if(ary->nil_p()) {
+        ary = Array::create(state, 5);
+        mod->seen_ivars(state, ary);
+      }
+
+      Tuple* lits = method->literals();
+      for(size_t i = 0; i < lits->num_fields(); i++) {
+        if(Symbol* sym = try_as<Symbol>(lits->at(state, i))) {
+          if(RTEST(sym->is_ivar_p(state))) {
+            if(!ary->includes_p(state, sym)) ary->append(state, sym);
           }
         }
       }
