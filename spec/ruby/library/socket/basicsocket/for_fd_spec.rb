@@ -4,6 +4,7 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 describe "BasicSocket#for_fd" do
   before :each do
     @server = TCPServer.new(SocketSpecs.port)
+    @s2 = nil
   end
 
   after :each do
@@ -19,11 +20,19 @@ describe "BasicSocket#for_fd" do
     rescue Errno::EBADF
       # I hate this API
     end
+
+    begin
+      if @s2
+        @s2.close unless @s2.closed?
+      end
+    rescue Errno::EBADF
+      # I hate this API
+    end
   end
 
   it "return a Socket instance wrapped around the descriptor" do
-    s2 = TCPServer.for_fd(@server.fileno)
-    s2.should be_kind_of(TCPServer)
-    s2.fileno.should == @server.fileno
+    @s2 = TCPServer.for_fd(@server.fileno)
+    @s2.should be_kind_of(TCPServer)
+    @s2.fileno.should == @server.fileno
   end
 end
