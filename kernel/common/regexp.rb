@@ -234,8 +234,8 @@ class Regexp
 
   def inspect
     # the regexp matches any / that is after anything except for a \
-    # and also a / at the beginning of the string
-    escape = source.gsub(%r!(^|[^\\])/!) { "#{$1}\\/" }
+    escape = source.gsub(%r!(\\.)|/!) { $1 || '\/' }
+
     str = "/#{escape}/#{option_to_string(options)}"
     k = kcode()
     str << k[0,1] if k and k != "none"
@@ -295,7 +295,7 @@ class Regexp
       def to_s
         # Put in the proper \'s to escape /'s
         # This is the same regexp used by #inspect
-        source.gsub(%r!(^|[^\\])/!) { "#{$1}\\/" }
+        source.gsub(%r!(\\.)|/!) { $1 || '\/' }
       end
 
       def has_options!
