@@ -1,4 +1,4 @@
-class Process
+module Process
   def self.perform_fork
     Ruby.primitive :vm_fork
     raise PrimitiveFailure, "vm_fork primitive failed"

@@ -420,7 +420,7 @@ class String
 end
 
 
-class Process
+module Process
   # Terminate with given status code.
   #
   def self.exit(code=0)
