@@ -17,4 +17,12 @@ describe "Regexp#inspect" do
   it "doesn't over escape forward slashes" do
     /\/foo\/bar/.inspect.should == '/\/foo\/bar/'
   end
+
+  it "escapes 2 slashes in a row properly" do
+    Regexp.new("//").inspect.should == '/\/\//'
+  end
+
+  it "does not over escape" do
+    Regexp.new('\\\/').inspect.should == "/\\\\\\//"
+  end
 end
