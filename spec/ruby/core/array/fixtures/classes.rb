@@ -1,3 +1,13 @@
+class Object
+  # This helper is defined here rather than in MSpec because
+  # it is only used in #pack specs.
+  def pack_format(count=nil, repeat=nil)
+    format = "#{instance_variable_get(:@method)}#{count}"
+    format *= repeat if repeat
+    format
+  end
+end
+
 module ArraySpecs
   not_compliant_on :rubinius do
     def self.max_32bit_size
