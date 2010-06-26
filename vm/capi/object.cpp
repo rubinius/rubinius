@@ -179,6 +179,8 @@ extern "C" {
       return T_REGEXP;
     case StringType:
       return T_STRING;
+    case TimeType:
+      return T_DATA;
     default:
       // This is in the default branch to avoid compiler warnings
       // about other enum values for type_id() not being present.
