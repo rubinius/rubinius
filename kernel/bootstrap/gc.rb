@@ -1,4 +1,4 @@
-class GC
+module GC
   def self.start
     run(false)
   end
