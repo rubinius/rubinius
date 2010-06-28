@@ -441,7 +441,7 @@ namespace rubinius {
     }
 
     void visit_ret() {
-      if(ls_->include_profiling()) {
+      if(ls_->include_profiling() && method_entry_) {
         Value* test = b().CreateLoad(ls_->profiling(), "profiling");
         BasicBlock* end_profiling = new_block("end_profiling");
         BasicBlock* cont = new_block("continue");

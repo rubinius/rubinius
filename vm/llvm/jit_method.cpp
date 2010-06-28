@@ -71,6 +71,8 @@ namespace jit {
       method_entry_ = b().CreateAlloca(ls_->Int8Ty,
           ConstantInt::get(ls_->Int32Ty, sizeof(profiler::MethodEntry)),
           "method_entry");
+
+      info_.set_profiling_entry(method_entry_);
     }
 
     check_arity();

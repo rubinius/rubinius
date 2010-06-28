@@ -62,6 +62,8 @@ namespace jit {
       method_entry_ = b().CreateAlloca(ls_->Int8Ty,
           ConstantInt::get(ls_->Int32Ty, sizeof(profiler::MethodEntry)),
           "method_entry");
+
+      info_.set_profiling_entry(method_entry_);
     }
 
     info_.set_call_frame(call_frame);
@@ -86,6 +88,38 @@ namespace jit {
     nil_stack(vmm_->stack_size, constant(Qnil, obj_type));
 
     setup_block_scope();
+
+    if(ls_->include_profiling()) {
+      Value* test = b().CreateLoad(ls_->profiling(), "profiling");
+
+      BasicBlock* setup_profiling = BasicBlock::Create(ls_->ctx(), "setup_profiling", func);
+      BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "continue", func);
+
+      b().CreateCondBr(test, setup_profiling, cont);
+
+      b().SetInsertPoint(setup_profiling);
+
+      Signature sig(ls_, ls_->VoidTy);
+      sig << "VM";
+      sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
+      sig << "BlockEnvironment";
+      sig << "Module";
+      sig << "CompiledMethod";
+
+      Value* call_args[] = {
+        vm,
+        method_entry_,
+        block_env,
+        module_,
+        method
+      };
+
+      sig.call("rbx_begin_profiling_block", call_args, 5, "", b());
+
+      b().CreateBr(cont);
+
+      b().SetInsertPoint(cont);
+    }
     b().CreateBr(body);
 
     b().SetInsertPoint(body);
@@ -112,6 +146,8 @@ namespace jit {
         b().CreateICmpNE(inv_mod, ConstantExpr::getNullValue(inv_mod->getType())),
         inv_mod,
         creation_mod);
+
+    module_ = mod;
 
     b().CreateStore(mod, get_field(vars, offset::vars_module));
 
@@ -192,37 +228,6 @@ namespace jit {
         constant(info_.context().runtime_data_holder(), ls_->Int8PtrTy),
         get_field(call_frame, offset::cf_jit_data));
 
-    if(ls_->include_profiling()) {
-      Value* test = b().CreateLoad(ls_->profiling(), "profiling");
-
-      BasicBlock* setup_profiling = BasicBlock::Create(ls_->ctx(), "setup_profiling", func);
-      BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "continue", func);
-
-      b().CreateCondBr(test, setup_profiling, cont);
-
-      b().SetInsertPoint(setup_profiling);
-
-      Signature sig(ls_, ls_->VoidTy);
-      sig << "VM";
-      sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
-      sig << "Dispatch";
-      sig << "Arguments";
-      sig << "CompiledMethod";
-
-      Value* call_args[] = {
-        vm,
-        method_entry_,
-        msg,
-        args,
-        method
-      };
-
-      sig.call("rbx_begin_profiling", call_args, 5, "", b());
-
-      b().CreateBr(cont);
-
-      b().SetInsertPoint(cont);
-    }
   }
 }
 }

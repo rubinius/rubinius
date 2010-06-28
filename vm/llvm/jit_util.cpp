@@ -56,7 +56,15 @@ extern "C" {
   {
     // Use placement new to stick the class into data, which is on the callers
     // stack.
-    new(data) profiler::MethodEntry(state, msg, args, cm);
+    new(data) profiler::MethodEntry(state, msg, args, cm, true);
+  }
+
+  void rbx_begin_profiling_block(STATE, void* data, BlockEnvironment* env,
+                                 Module* mod, CompiledMethod* cm)
+  {
+    // Use placement new to stick the class into data, which is on the callers
+    // stack.
+    new(data) profiler::MethodEntry(state, env->top_scope()->method()->name(), mod, cm, true);
   }
 
   void rbx_end_profiling(profiler::MethodEntry* entry) {

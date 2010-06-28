@@ -3,6 +3,8 @@
 namespace rubinius {
 namespace jit {
   class BlockBuilder : public Builder {
+    llvm::Value* module_;
+
   public:
     BlockBuilder(LLVMState* ls, JITMethodInfo& info)
       : Builder(ls, info)

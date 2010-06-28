@@ -53,16 +53,31 @@ namespace rubinius {
         name->append(state, "#");
         name->append(state, method_name);
         break;
+      case kNormalJIT:
+        name->append(state, "#");
+        name->append(state, method_name);
+        name->append(state, " <jit>");
+        break;
       case kSingleton:
       case kYoungGC:
       case kMatureGC:
         name->append(state, ".");
         name->append(state, method_name);
         break;
+      case kSingletonJIT:
+        name->append(state, ".");
+        name->append(state, method_name);
+        name->append(state, "<jit>");
+        break;
       case kBlock:
         name->append(state, "#");
         name->append(state, method_name);
         name->append(state, " {}");
+        break;
+      case kBlockJIT:
+        name->append(state, "#");
+        name->append(state, method_name);
+        name->append(state, " {} <jit>");
         break;
       }
 
@@ -166,23 +181,23 @@ namespace rubinius {
       , edge_(0)
     {
       method_ = state->profiler()->enter_method(
-          msg, args, reinterpret_cast<CompiledMethod*>(Qnil));
+          msg, args, reinterpret_cast<CompiledMethod*>(Qnil), false);
       start();
     }
 
-    MethodEntry::MethodEntry(STATE, Dispatch& msg, Arguments& args, CompiledMethod* cm)
+    MethodEntry::MethodEntry(STATE, Dispatch& msg, Arguments& args, CompiledMethod* cm, bool jit)
       : state_(state)
       , edge_(0)
     {
-      method_ = state->profiler()->enter_method(msg, args, cm);
+      method_ = state->profiler()->enter_method(msg, args, cm, jit);
       start();
     }
 
-    MethodEntry::MethodEntry(STATE, Symbol* name, Module* module, CompiledMethod* cm)
+    MethodEntry::MethodEntry(STATE, Symbol* name, Module* module, CompiledMethod* cm, bool jit)
       : state_(state)
       , edge_(0)
     {
-      method_ = state->profiler()->enter_block(name, module, cm);
+      method_ = state->profiler()->enter_block(name, module, cm, jit);
       start();
     }
 
@@ -243,22 +258,22 @@ namespace rubinius {
       }
     }
 
-    Method* Profiler::enter_block(Symbol* name, Module* module, CompiledMethod* cm) {
-      return get_method(cm, name, module_name(module), kBlock);
+    Method* Profiler::enter_block(Symbol* name, Module* module, CompiledMethod* cm, bool jit) {
+      return get_method(cm, name, module_name(module), jit ? kBlockJIT : kBlock);
     }
 
-    Method* Profiler::enter_method(Dispatch &msg, Arguments& args, CompiledMethod* cm) {
+    Method* Profiler::enter_method(Dispatch &msg, Arguments& args, CompiledMethod* cm, bool jit) {
       if(MetaClass* mc = try_as<MetaClass>(msg.module)) {
         Object* attached = mc->attached_instance();
 
         if(Module* mod = try_as<Module>(attached)) {
-          return get_method(cm, msg.name, mod->name(), kSingleton);
+          return get_method(cm, msg.name, mod->name(), jit ? kSingletonJIT : kSingleton);
         } else {
           Symbol* name = args.recv()->to_s(state_)->to_sym(state_);
-          return get_method(cm, msg.name, name, kSingleton);
+          return get_method(cm, msg.name, name, jit ? kSingletonJIT : kSingleton);
         }
       } else {
-        return get_method(cm, msg.name, module_name(msg.module), kNormal);
+        return get_method(cm, msg.name, module_name(msg.module), jit ? kNormalJIT : kNormal);
       }
     }
 
@@ -275,7 +290,7 @@ namespace rubinius {
 
     method_id Profiler::create_id(Symbol* container, Symbol* name, Kind kind) {
       return ((uint64_t)(((intptr_t)container & 0xffffffff)) << 32)
-              | ((intptr_t)name & 0xfffffff8) | kind;
+              | ((intptr_t)name & 0xfffffff0) | kind;
     }
 
     Method* Profiler::find_method(Symbol* container, Symbol* name, Kind kind) {

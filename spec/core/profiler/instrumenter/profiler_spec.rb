@@ -31,7 +31,7 @@ with_profiler do
       end
 
       exceptional = ProfilerSpecs.find_method(data, "ProfilerSpecs.exceptional")
-      exceptional[:called].should == 1
+      exceptional[:called].should > 0
       exceptional[:total].should > 0
     end
 

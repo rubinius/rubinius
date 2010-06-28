@@ -276,7 +276,7 @@ containing the Rubinius standard library files.
         at_exit { stats.show }
       end
 
-      @profile = Rubinius::Config['profile']
+      @profile = Rubinius::Config['profile'] || Rubinius::Config['jit.profile']
 
       options.on "-P", "Run the profiler" do
         puts "[WARN] -P is deprecated, please use -Xprofile"
