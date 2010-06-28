@@ -507,7 +507,7 @@ namespace jit {
     {}
 
     void call(OpcodeIterator& iter) {
-      v_.dispatch(iter.stream(), iter.ip());
+      v_.dispatch(iter.ip());
 
       if(v_.b().GetInsertBlock()->getTerminator() == NULL) {
         BlockMap::iterator i = map_.find(iter.next_ip());
@@ -534,6 +534,7 @@ namespace jit {
     if(use_full_scope_) visitor.use_full_scope();
 
     visitor.initialize();
+    visitor.set_stream(info_.vmm);
 
     // Pass 2, compile!
     // Drive by following the control flow.

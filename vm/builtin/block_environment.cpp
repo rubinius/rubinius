@@ -119,7 +119,7 @@ namespace rubinius {
     frame->static_scope_ = invocation.static_scope;
 
     frame->arguments = &args;
-    frame->dispatch_data = NULL;
+    frame->dispatch_data = reinterpret_cast<BlockEnvironment*>(env);
     frame->cm =       env->method_;
     frame->scope =    scope;
     frame->top_scope_ = env->top_scope_;
@@ -137,7 +137,8 @@ namespace rubinius {
       }
 
       profiler::MethodEntry method(state,
-          env->top_scope_->method()->name(), mod, env->method_);
+                              env->top_scope_->method()->name(),
+                              mod, env->method_);
       return (*vmm->run)(state, vmm, frame);
     } else {
       return (*vmm->run)(state, vmm, frame);

@@ -66,11 +66,27 @@ namespace rubinius {
       return flags & cBlockAsMethod;
     }
 
+    BlockEnvironment* block_env() {
+      if(block_p()) {
+        return reinterpret_cast<BlockEnvironment*>(dispatch_data);
+      }
+
+      return NULL;
+    }
+
+    void set_block_env(BlockEnvironment* env) {
+      if(block_p()) {
+        dispatch_data = reinterpret_cast<void*>(env);
+      }
+    }
+
 #ifdef ENABLE_LLVM
     Symbol* name() {
       if(dispatch_data) {
         if(inline_method_p()) {
           return reinterpret_cast<jit::RuntimeData*>(dispatch_data)->name();
+        } else if(block_p()) {
+          return reinterpret_cast<Symbol*>(Qnil);
         } else {
           return reinterpret_cast<Dispatch*>(dispatch_data)->name;
         }
@@ -80,7 +96,7 @@ namespace rubinius {
     }
 #else
     Symbol* name() {
-      if(dispatch_data) {
+      if(dispatch_data && !block_p()) {
         return reinterpret_cast<Dispatch*>(dispatch_data)->name;
       }
 
@@ -90,7 +106,7 @@ namespace rubinius {
 
     Dispatch* dispatch() {
       if(dispatch_data) {
-        if(!inline_method_p()) {
+        if(!inline_method_p() && !block_p()) {
           return reinterpret_cast<Dispatch*>(dispatch_data);
         }
       }

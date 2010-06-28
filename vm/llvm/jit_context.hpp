@@ -12,6 +12,7 @@ namespace jit {
     LLVMState* ls_;
     JITMethodInfo* root_info_;
     bool inlined_block_;
+    int inline_depth_;
 
     RuntimeDataHolder* rds_;
 
@@ -34,6 +35,18 @@ namespace jit {
       inlined_block_ = val;
     }
 
+    int enter_inline() {
+      return ++inline_depth_;
+    }
+
+    int leave_inline() {
+      return --inline_depth_;
+    }
+
+    int inline_depth() {
+      return inline_depth_;
+    }
+
     bool inlined_block() {
       return inlined_block_;
     }
@@ -43,6 +56,8 @@ namespace jit {
     }
 
     void add_runtime_data(jit::RuntimeData* rd);
+
+    std::ostream& inline_log(const char* header);
   };
 
 }}

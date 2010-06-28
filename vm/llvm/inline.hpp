@@ -27,6 +27,7 @@ namespace rubinius {
     JITInlineBlock* block_info_;
 
     bool block_on_stack_;
+    bool from_unboxed_array_;
 
     JITMethodInfo* creator_info_;
 
@@ -45,6 +46,7 @@ namespace rubinius {
       , inline_block_(0)
       , block_info_(0)
       , block_on_stack_(false)
+      , from_unboxed_array_(false)
       , creator_info_(0)
     {}
 
@@ -59,6 +61,7 @@ namespace rubinius {
       , inline_block_(0)
       , block_info_(0)
       , block_on_stack_(false)
+      , from_unboxed_array_(false)
       , creator_info_(0)
     {}
 
@@ -101,6 +104,10 @@ namespace rubinius {
     void set_block_on_stack() {
       self_pos_++;
       block_on_stack_ = true;
+    }
+
+    void set_from_unboxed_array() {
+      from_unboxed_array_ = true;
     }
 
     void set_creator(JITMethodInfo* home) {

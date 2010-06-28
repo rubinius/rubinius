@@ -538,19 +538,6 @@ namespace rubinius {
       CompiledMethod* cm = as<CompiledMethod>(msg.method);
       VMMethod* vmm = cm->backend_method();
 
-#ifdef ENABLE_LLVM
-      // A negative call_count means we've disabled usage based JIT
-      // for this method.
-      if(vmm->call_count >= 0) {
-        if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
-          LLVMState* ls = LLVMState::get(state);
-          ls->compile_callframe(state, cm, previous);
-        } else {
-          vmm->call_count++;
-        }
-      }
-#endif
-
       size_t scope_size = sizeof(StackVariables) +
         (vmm->number_of_locals * sizeof(Object*));
       StackVariables* scope =
@@ -584,6 +571,18 @@ namespace rubinius {
       frame->cm =       cm;
       frame->scope =    scope;
 
+#ifdef ENABLE_LLVM
+      // A negative call_count means we've disabled usage based JIT
+      // for this method.
+      if(vmm->call_count >= 0) {
+        if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
+          LLVMState* ls = LLVMState::get(state);
+          ls->compile_callframe(state, cm, frame);
+        } else {
+          vmm->call_count++;
+        }
+      }
+#endif
 
 #ifdef RBX_PROFILER
       if(unlikely(state->shared.profiling())) {

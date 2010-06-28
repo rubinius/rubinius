@@ -2,6 +2,7 @@
 
 #include "llvm/jit.hpp"
 #include "llvm/inline.hpp"
+#include "llvm/jit_context.hpp"
 
 namespace rubinius {
 
@@ -596,7 +597,7 @@ namespace rubinius {
           set_result(res);
 
           if(ops_.state()->config().jit_inline_debug) {
-            ops_.state()->log() << "inlining: "
+            context_.inline_log("inlining")
               << ops_.state()->symbol_cstr(cm->scope()->module()->name())
               << "#"
               << ops_.state()->symbol_cstr(cm->name())
@@ -613,7 +614,7 @@ namespace rubinius {
 
     if(inlined_prim) {
       if(ops_.state()->config().jit_inline_debug) {
-        ops_.state()->log() << "inlining: "
+        context_.inline_log("inlining")
           << ops_.state()->symbol_cstr(cm->scope()->module()->name())
           << "#"
           << ops_.state()->symbol_cstr(cm->name())
@@ -627,7 +628,7 @@ namespace rubinius {
 
     // Add more primitive inlining!
     if(ops_.state()->config().jit_inline_debug) {
-      ops_.state()->log() << "NOT inlining: "
+      context_.inline_log("NOT inlining")
         << ops_.state()->symbol_cstr(cm->scope()->module()->name())
         << "#"
         << ops_.state()->symbol_cstr(cm->name())
@@ -663,7 +664,7 @@ namespace rubinius {
     }
 
     if(ops_.state()->config().jit_inline_debug) {
-      ops_.state()->log() << "inlining: "
+      context_.inline_log("inlining")
         << ops_.state()->symbol_cstr(cm->scope()->module()->name())
         << "#"
         << ops_.state()->symbol_cstr(cm->name())

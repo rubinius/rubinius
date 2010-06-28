@@ -15,6 +15,7 @@
 #include "call_frame.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/staticscope.hpp"
+#include "builtin/block_environment.hpp"
 #include "capi/handle.hpp"
 
 #include "arguments.hpp"
@@ -159,6 +160,10 @@ namespace rubinius {
         msg->method = (Executable*)mark_object(msg->method);
       }
 
+      if(BlockEnvironment* env = call_frame->block_env()) {
+        call_frame->set_block_env((BlockEnvironment*)mark_object(env));
+      }
+
       Arguments* args = call_frame->arguments;
       if(!call_frame->inline_method_p() && args) {
         args->set_recv(mark_object(args->recv()));
@@ -259,6 +264,10 @@ namespace rubinius {
       if(Dispatch* msg = call_frame->dispatch()) {
         msg->module = (Module*)visit.call(msg->module);
         msg->method = (Executable*)visit.call(msg->method);
+      }
+
+      if(BlockEnvironment* env = call_frame->block_env()) {
+        call_frame->set_block_env((BlockEnvironment*)visit.call(env));
       }
 
       Arguments* args = call_frame->arguments;

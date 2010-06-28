@@ -87,6 +87,45 @@ namespace rubinius {
     }
   };
 
+  class JITStackArgs {
+    bool from_unboxed_array_;
+    size_t count_;
+    std::vector<llvm::Value*> args_;
+
+  public:
+    JITStackArgs(size_t count)
+      : from_unboxed_array_(false)
+      , count_(count)
+      , args_(count)
+    {}
+
+    void set_from_unboxed_array() {
+      from_unboxed_array_ = true;
+    }
+
+    bool from_unboxed_array() {
+      return from_unboxed_array_;
+    }
+
+    void put(size_t idx, llvm::Value* val) {
+      if(idx < count_) {
+        args_[idx] = val;
+      }
+    }
+
+    llvm::Value* at(size_t idx) {
+      if(idx < count_) {
+        return args_[idx];
+      }
+
+      return 0;
+    }
+
+    size_t size() {
+      return count_;
+    }
+  };
+
   class JITMethodInfo {
     jit::Context& context_;
     llvm::Function* function_;
@@ -122,7 +161,7 @@ namespace rubinius {
     InlinePolicy* inline_policy;
     llvm::BasicBlock* fin_block;
     int called_args;
-    std::vector<llvm::Value*>* stack_args;
+    JITStackArgs* stack_args;
 
     JITMethodInfo* root;
 
@@ -500,7 +539,7 @@ namespace rubinius {
     void compile_soon(STATE, CompiledMethod* cm, BlockEnvironment* block=0);
     void remove(llvm::Function* func);
 
-    CompiledMethod* find_candidate(CompiledMethod* start, CallFrame* call_frame);
+    CallFrame* find_candidate(CompiledMethod* start, CallFrame* call_frame);
     void compile_callframe(STATE, CompiledMethod* start, CallFrame* call_frame,
                            int primitive = -1);
 

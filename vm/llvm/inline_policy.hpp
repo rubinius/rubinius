@@ -5,16 +5,36 @@
 #include "instructions_util.hpp"
 
 namespace rubinius {
+  struct InlineOptions {
+    bool check_size;
+    bool allow_blocks;
+    bool allow_raise_flow;
+    bool allow_splat;
+
+    InlineOptions()
+      : check_size(true)
+      , allow_blocks(true)
+      , allow_raise_flow(true)
+      , allow_splat(false)
+    {}
+
+    void inlining_block() {
+      allow_blocks = false;
+      allow_raise_flow = false;
+      allow_splat = true;
+    }
+  };
+
   class InlineEvaluator : public VisitInstructions<InlineEvaluator> {
   public:
 
     class Unsupported {};
 
-    static bool can_inline_p(VMMethod* vmm) {
+    static bool can_inline_p(VMMethod* vmm, InlineOptions& opts) {
       // Reject methods with splat arguments
-      if(vmm->splat_position >= 0) return false;
+      if(!opts.allow_splat && vmm->splat_position >= 0) return false;
 
-      InlineEvaluator eval;
+      InlineEvaluator eval(opts);
 
       try {
         eval.drive(vmm);
@@ -25,12 +45,22 @@ namespace rubinius {
       return true;
     }
 
+    InlineOptions options_;
+
+    InlineEvaluator(InlineOptions& opts)
+      : options_(opts)
+    {}
+
     void visit_push_block() {
       throw Unsupported();
     }
 
     void visit_push_proc() {
       throw Unsupported();
+    }
+
+    void visit_create_block(opcode which) {
+      if(!options_.allow_blocks) throw Unsupported();
     }
 
     void visit_setup_unwind(opcode which, opcode type) {
@@ -51,6 +81,14 @@ namespace rubinius {
 
     void visit_yield_splat(opcode count) {
       throw Unsupported();
+    }
+
+    void visit_raise_return() {
+      if(!options_.allow_raise_flow) throw Unsupported();
+    }
+
+    void visit_raise_break() {
+      if(!options_.allow_raise_flow) throw Unsupported();
     }
   };
 
@@ -91,9 +129,12 @@ namespace rubinius {
       return true;
     }
 
-    InlineDecision inline_p(VMMethod* vmm, bool check_size=true) {
-      if(!InlineEvaluator::can_inline_p(vmm)) return cTooComplex;
-      if(check_size && !check_size_p(vmm)) return cTooBig;
+    InlineDecision inline_p(VMMethod* vmm, InlineOptions& opts) {
+      if(!InlineEvaluator::can_inline_p(vmm, opts)) {
+        return cTooComplex;
+      }
+
+      if(opts.check_size && !check_size_p(vmm)) return cTooBig;
       return cInline;
     }
 
@@ -105,12 +146,12 @@ namespace rubinius {
   class SmallMethodInlinePolicy : public InlinePolicy {
   public:
     const static bool is_small_p(VMMethod* vmm) {
-      if(vmm->total < 20) return true;
+      if(vmm->total < 100) return true;
       return false;
     }
 
     SmallMethodInlinePolicy(VMMethod* vmm)
-      : InlinePolicy(vmm, 200) // Random number!
+      : InlinePolicy(vmm, 300) // Random number!
     {}
 
   };
@@ -120,7 +161,7 @@ namespace rubinius {
 
   public:
     const static bool is_normal_p(VMMethod* vmm) {
-      if(vmm->total < 200) return true;
+      if(vmm->total < 300) return true;
       return false;
     }
 

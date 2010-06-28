@@ -26,12 +26,22 @@ namespace rubinius {
     class Context;
   }
 
+  struct ValueHint {
+    int hint;
+    std::vector<Value*> data;
+
+    ValueHint()
+      : hint(0)
+    {}
+  };
+
   class JITOperations {
     llvm::Value* stack_;
     int sp_;
     int last_sp_;
 
     llvm::IRBuilder<> builder_;
+    std::vector<ValueHint> hints_;
 
   protected:
     JITMethodInfo& method_info_;
@@ -156,7 +166,7 @@ namespace rubinius {
       }
     }
 
-    std::vector<Value*>* incoming_args() {
+    JITStackArgs* incoming_args() {
       return method_info_.stack_args;
     }
 
@@ -419,6 +429,38 @@ namespace rubinius {
           val,
           ObjType, "casted");
         b().CreateStore(cst, stack_pos);
+      }
+
+      clear_hint();
+    }
+
+    void set_hint(int hint) {
+      if((int)hints_.size() <= sp_) {
+        hints_.resize(sp_ + 1);
+      }
+
+      hints_[sp_].hint = hint;
+    }
+
+    int current_hint() {
+      if(hints_.size() <= (size_t)sp_) {
+        return 0;
+      }
+
+      return hints_[sp_].hint;
+    }
+
+    ValueHint* current_hint_value() {
+      if((int)hints_.size() <= sp_) {
+        hints_.resize(sp_ + 1);
+      }
+
+      return &hints_[sp_];
+    }
+
+    void clear_hint() {
+      if(hints_.size() > (size_t)sp_) {
+        hints_[sp_].hint = 0;
       }
     }
 
