@@ -287,9 +287,16 @@ module Rubinius
         end
       end
 
-      def body_bytecode(g)
+      def body_bytecode(g, lbl)
+        g.state.push_loop
         @body.bytecode(g)
+        g.state.pop_loop
+
+        # This is a loop epilogue. Nothing that changes
+        # computation should be put here.
+        lbl.set!
         g.pop
+        g.check_interrupts
       end
 
       def bytecode(g, use_gif=true)
@@ -298,30 +305,28 @@ module Rubinius
         g.push_modifiers
 
         top = g.new_label
+        post = g.next = g.new_label
         bottom = g.new_label
+
         g.break = g.new_label
 
         if @check_first
           g.redo = g.new_label
-          g.next = top
 
           top.set!
           condition_bytecode(g, bottom, use_gif)
 
           g.redo.set!
-          body_bytecode(g)
+          body_bytecode(g, post)
         else
-          g.next = g.new_label
           g.redo = top
 
           top.set!
-          body_bytecode(g)
+          body_bytecode(g, post)
 
-          g.next.set!
           condition_bytecode(g, bottom, use_gif)
         end
 
-        g.check_interrupts
         g.goto top
 
         bottom.set!
@@ -469,35 +474,29 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        if g.next
-          # From "The Ruby Programming Lanuage"
-          #  "When next is used in a loop, any values following the next
-          #   are ignored"
-          #
-          # By ignored, it must mean evaluated and the value of the expression
-          # is thrown away, because 1.8 evaluates them even though it doesn't
-          # use them.
-          if @value
-            @value.bytecode(g)
-            g.pop
-          end
+        # From "The Ruby Programming Lanuage"
+        #  "When next is used in a loop, any values following the next
+        #   are ignored"
+        #
+        # By ignored, it must mean evaluated and the value of the expression
+        # is thrown away, because 1.8 evaluates them even though it doesn't
+        # use them.
+        if @value
+          @value.bytecode(g)
+        else
+          g.push :nil
+        end
 
-          # Be sure to check interrupts so that next can't get
-          # us into a busy, uninterruptable loop
-          g.check_interrupts
+        if g.state.loop?
           g.goto g.next
         elsif g.state.block?
-          if @value
-            @value.bytecode(g)
+          if g.next
+            g.goto g.next
           else
-            g.push :nil
+            g.ret
           end
-          g.ret
         else
-          if @value
-            @value.bytecode(g)
-            g.pop
-          end
+          g.pop
 
           jump_error g, :next
         end

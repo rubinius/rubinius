@@ -140,6 +140,7 @@ module Rubinius
         @ensure = 0
         @block = 0
         @masgn = 0
+        @loop = 0
         @rescue = []
         @name = []
       end
@@ -215,6 +216,18 @@ module Rubinius
       end
 
       alias_method :eval?, :eval
+
+      def push_loop
+        @loop += 1
+      end
+
+      def pop_loop
+        @loop -= 1 if loop?
+      end
+
+      def loop?
+        @loop > 0
+      end
     end
   end
 end
