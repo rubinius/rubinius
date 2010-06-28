@@ -12,6 +12,7 @@ describe "An Until node" do
     top    = g.new_label
     rdo    = g.new_label
     brk    = g.new_label
+    post   = g.new_label
     bottom = g.new_label
 
     g.push_modifiers
@@ -26,8 +27,9 @@ describe "An Until node" do
     g.send :b, 0, true
     g.push 1
     g.send :+, 1, false
-    g.pop
 
+    post.set!
+    g.pop
     g.check_interrupts
     g.goto top
 
@@ -73,8 +75,8 @@ describe "An Until node" do
 
   post_until = lambda do |g|
     top    = g.new_label
-    rdo    = g.new_label
     brk    = g.new_label
+    post   = g.new_label
     bottom = g.new_label
 
     g.push_modifiers
@@ -85,15 +87,15 @@ describe "An Until node" do
     g.send :b, 0, true
     g.push 1
     g.send :+, 1, false
-    g.pop
 
-    rdo.set!
+    post.set!
+    g.pop
+    g.check_interrupts
 
     g.push :self
     g.send :a, 0, true
     g.git bottom
 
-    g.check_interrupts
     g.goto top
 
     bottom.set!
@@ -128,6 +130,7 @@ describe "An Until node" do
     top    = g.new_label
     rdo    = g.new_label
     brk    = g.new_label
+    post   = g.new_label
     bottom = g.new_label
 
     g.push_modifiers
@@ -139,8 +142,9 @@ describe "An Until node" do
     rdo.set!
     g.push :self
     g.send :a, 0, true
-    g.pop
 
+    post.set!
+    g.pop
     g.check_interrupts
     g.goto top
 

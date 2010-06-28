@@ -864,6 +864,8 @@ describe "An Iter node" do
 
   relates "next" do
     compile do |g|
+      g.push :nil
+      g.pop
       g.push_rubinius
       g.push_literal :next
       g.send :jump_error, 1

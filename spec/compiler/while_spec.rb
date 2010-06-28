@@ -12,6 +12,7 @@ describe "A While node" do
     top    = g.new_label
     rdo    = g.new_label
     brk    = g.new_label
+    post   = g.new_label
     bottom = g.new_label
 
     g.push_modifiers
@@ -26,8 +27,9 @@ describe "A While node" do
     g.send :b, 0, true
     g.push 1
     g.send :+, 1, false
-    g.pop
 
+    post.set!
+    g.pop
     g.check_interrupts
     g.goto top
 
@@ -57,6 +59,7 @@ describe "A While node" do
       top    = g.new_label
       rdo    = g.new_label
       brk    = g.new_label
+      post   = g.new_label
       bottom = g.new_label
 
       g.push_modifiers
@@ -67,12 +70,10 @@ describe "A While node" do
 
       rdo.set!
       g.push 2
-      g.pop
+      g.goto post
 
-      g.check_interrupts
-      g.goto top
+      post.set!
       g.pop
-
       g.check_interrupts
       g.goto top
 
@@ -95,6 +96,7 @@ describe "A While node" do
       top    = g.new_label
       rdo    = g.new_label
       brk    = g.new_label
+      post   = g.new_label
       bottom = g.new_label
 
       g.push :self
@@ -111,8 +113,9 @@ describe "A While node" do
 
       rdo.set!
       g.push 1
-      g.pop
 
+      post.set!
+      g.pop
       g.check_interrupts
       g.goto top
 
@@ -150,8 +153,8 @@ describe "A While node" do
 
   post_while = lambda do |g|
     top    = g.new_label
-    rdo    = g.new_label
     brk    = g.new_label
+    post   = g.new_label
     bottom = g.new_label
 
     g.push_modifiers
@@ -162,15 +165,15 @@ describe "A While node" do
     g.send :b, 0, true
     g.push 1
     g.send :+, 1, false
-    g.pop
 
-    rdo.set!
+    post.set!
+    g.pop
+    g.check_interrupts
 
     g.push :self
     g.send :a, 0, true
     g.gif bottom
 
-    g.check_interrupts
     g.goto top
 
     bottom.set!
@@ -204,6 +207,7 @@ describe "A While node" do
     top    = g.new_label
     rdo    = g.new_label
     brk    = g.new_label
+    post   = g.new_label
     bottom = g.new_label
 
     g.push_modifiers
@@ -215,8 +219,9 @@ describe "A While node" do
     rdo.set!
     g.push :self
     g.send :a, 0, true
-    g.pop
 
+    post.set!
+    g.pop
     g.check_interrupts
     g.goto top
 
@@ -264,6 +269,7 @@ describe "A While node" do
       top    = g.new_label
       rdo    = g.new_label
       brk    = g.new_label
+      post   = g.new_label
       bottom = g.new_label
 
       g.push_modifiers
@@ -278,6 +284,7 @@ describe "A While node" do
       g.push_literal :brk
       g.goto brk
 
+      post.set!
       g.pop
       g.check_interrupts
       g.goto top
@@ -303,6 +310,7 @@ describe "A While node" do
 
     compile do |g|
       top = g.new_label
+      post = g.new_label
       bottom = g.new_label
       brk = g.break = g.new_label
 
@@ -328,6 +336,7 @@ describe "A While node" do
         end
       end
 
+      post.set!
       g.pop
       g.check_interrupts
       g.goto top
@@ -354,6 +363,7 @@ describe "A While node" do
 
     compile do |g|
       top = g.new_label
+      post = g.new_label
       bottom = g.new_label
       brk = g.break = g.new_label
 
@@ -379,6 +389,7 @@ describe "A While node" do
         end
       end
 
+      post.set!
       g.pop
       g.check_interrupts
       g.goto top

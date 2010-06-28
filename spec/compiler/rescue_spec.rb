@@ -618,6 +618,7 @@ describe "A Rescue node" do
       g.for_rescue do |rb|
         rb.body do
           top = g.new_label
+          post = g.new_label
           bottom = g.new_label
           brk = g.new_label
 
@@ -635,6 +636,7 @@ describe "A Rescue node" do
           g.push_literal :brk
           g.goto brk
 
+          post.set!
           g.pop
           g.check_interrupts
           g.goto top
@@ -672,6 +674,7 @@ describe "A Rescue node" do
 
         rb.condition :StandardError do
           top = g.new_label
+          post = g.new_label
           bottom = g.new_label
           brk = g.new_label
 
@@ -689,6 +692,7 @@ describe "A Rescue node" do
           g.push_literal :brk
           rb.break
 
+          post.set!
           g.pop
           g.check_interrupts
           g.goto top
