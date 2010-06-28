@@ -90,7 +90,7 @@ class Array::Packer
         line_length += 1 # bug compatibility with MRI
 
         @result << item.scan(/.{1,#{line_length}}/m).map { |line|
-          line.gsub(/[^ -<>-~\t\n]/) { |m| "=%02X" % m[0] } + "=\n"
+          line.gsub(/[^ -<>-~\t\n]/) { |m| m.each_byte.map {|c| "=%02X" % c}.join } + "=\n"
         }.join
       when ?m
         base64(len)
