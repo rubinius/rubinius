@@ -380,7 +380,13 @@ remember:
         if(found) {
           int index = which->to_native();
           int offset = sizeof(Object) + (sizeof(Object*) * index);
-          ivar = ops_.get_object_slot(self, offset);
+          Value* slot_val = ops_.get_object_slot(self, offset);
+
+          Value* cmp = ops_.b().CreateICmpEQ(slot_val, ops_.constant(Qundef), "prune_undef");
+
+          ivar = ops_.b().CreateSelect(cmp,
+                                       ops_.constant(Qnil), slot_val,
+                                       "select ivar");
 
           if(ops_.state()->config().jit_inline_debug) {
             ops_.state()->log() << " (packed index: " << index << ")";
