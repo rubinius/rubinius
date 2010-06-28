@@ -286,7 +286,6 @@ module Rubinius
 
       if count
         d.cast_for_multi_block_arg
-        d.cast_array
 
         (0...count).each do |n|
           d.shift_array

@@ -53,7 +53,6 @@ describe "A Call node using InlineAssembly transform" do
         e = new_block_generator(g)
 
         e.cast_for_multi_block_arg
-        e.cast_array
         e.shift_array
 
         e.set_local_depth 1, 0

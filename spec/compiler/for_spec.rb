@@ -77,7 +77,6 @@ describe "A For node" do
       d = new_block_generator(g)
 
       d.cast_for_multi_block_arg
-      d.cast_array
       d.shift_array
       d.set_local_depth 1, 0
       d.pop

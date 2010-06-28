@@ -562,9 +562,15 @@ module Rubinius
         end
       end
 
-      def arguments_bytecode(g)
+      def arguments_bytecode(g, is_array=false)
         g.state.push_masgn
-        @arguments.bytecode(g) if @arguments
+
+        if @arguments.kind_of? MultipleAssignment
+          @arguments.bytecode(g, is_array)
+        else
+          @arguments.bytecode(g) if @arguments
+        end
+
         g.state.pop_masgn
 
         if @splat
@@ -580,8 +586,7 @@ module Rubinius
           g.pop
         when :multi
           g.cast_for_multi_block_arg
-          g.cast_array
-          arguments_bytecode(g)
+          arguments_bytecode(g, true)
           g.pop
         when :splat
           g.cast_for_splat_block_arg

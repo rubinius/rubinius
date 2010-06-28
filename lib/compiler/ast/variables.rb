@@ -541,8 +541,10 @@ module Rubinius
         @iter_arguments = true
       end
 
-      def bytecode(g)
-        g.cast_array unless @right or (@splat and not @left)
+      def bytecode(g, array_on_stack=false)
+        unless array_on_stack
+          g.cast_array unless @right or (@splat and not @left)
+        end
 
         if @fixed
           pad_short(g) if @left and !@splat
