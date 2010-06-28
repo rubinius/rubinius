@@ -1,6 +1,7 @@
 class BeComputedByMatcher
-  def initialize(sym)
+  def initialize(sym, *args)
     @method = sym
+    @args = args
   end
 
   def matches?(array)
@@ -8,6 +9,7 @@ class BeComputedByMatcher
       @receiver = line.shift
       @value = line.pop
       @arguments = line
+      @arguments += @args
       return false unless @receiver.send(@method, *@arguments) == @value
     end
 
@@ -28,7 +30,7 @@ class BeComputedByMatcher
 end
 
 class Object
-  def be_computed_by(sym)
-    BeComputedByMatcher.new(sym)
+  def be_computed_by(sym, *args)
+    BeComputedByMatcher.new(sym, *args)
   end
 end
