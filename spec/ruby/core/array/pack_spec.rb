@@ -1942,6 +1942,24 @@ describe "Array#pack with format 'M'" do
       ["abcd"].pack('M').encoding.should == Encoding::US_ASCII
     end
   end
+
+  ruby_version_is ""..."1.9" do
+
+    describe "with a multibyte $KCODE" do
+      before :each do
+        @kcode = $KCODE
+      end
+
+      after :each do
+        $KCODE = @kcode
+      end
+
+      it "encodes multibyte characters" do
+        $KCODE = "UTF8"
+        ["あ"].pack('M').should == "=E3=81=82=\n"
+      end
+    end
+  end
 end
 
 describe "Array#pack with format 'm'" do
