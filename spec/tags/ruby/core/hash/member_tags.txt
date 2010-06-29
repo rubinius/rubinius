@@ -1,1 +1,0 @@
-fails:Hash#member? returns false for objects with the same hash

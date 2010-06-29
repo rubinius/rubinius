@@ -1,1 +1,0 @@
-fails:Hash#has_key? returns false for objects with the same hash

@@ -1,2 +1,0 @@
-fails:Hash#[] does not compare key with unknown hash codes via eql?
-fails:Hash#[] compares key with found hash code via eql?
