@@ -2,10 +2,14 @@
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/array.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/string.hpp"
 
 #include "vm.hpp"
 
 #include "call_frame.hpp"
+
+#include <sstream>
 
 namespace rubinius {
   void Location::init(STATE) {
@@ -52,6 +56,60 @@ namespace rubinius {
       // Ignore synthetic frames
       if(call_frame->cm) {
         bt->append(state, Location::create(state, call_frame, include_vars));
+      }
+
+      call_frame = static_cast<CallFrame*>(call_frame->previous);
+    }
+
+    return bt;
+  }
+
+  Array* Location::mri_backtrace(STATE, CallFrame* call_frame) {
+    size_t count = 0;
+
+    CallFrame* c = call_frame;
+    while(c) {
+      if(c->cm) count++;
+      c = c->previous;
+    }
+
+    Array* bt = Array::create(state, count);
+
+    while(call_frame) {
+      // Ignore synthetic frames
+      if(call_frame->cm) {
+        std::stringstream ss;
+        ss << call_frame->cm->file()->c_str(state)
+           << ":"
+           << call_frame->line(state)
+           << ":in `";
+
+        if(call_frame->block_p()) {
+          ss << call_frame->top_scope(state)->method()->name()->c_str(state)
+             << " {}'";
+        } else {
+          Symbol* current_name = call_frame->name();
+          Symbol* method_name  = call_frame->cm->name();
+
+          if(current_name->nil_p()) {
+            if(method_name->nil_p()) {
+              ss << "<unknown>";
+            } else {
+              ss << method_name->c_str(state);
+            }
+          } else if(current_name != method_name) {
+            ss << current_name->c_str(state)
+               << " ("
+               << method_name->c_str(state)
+               << ")";
+          } else {
+            ss << current_name->c_str(state);
+          }
+
+          ss << "'";
+        }
+
+        bt->append(state, String::create(state, ss.str().c_str()));
       }
 
       call_frame = static_cast<CallFrame*>(call_frame->previous);

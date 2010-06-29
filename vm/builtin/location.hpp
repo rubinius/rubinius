@@ -34,6 +34,7 @@ namespace rubinius {
     static void init(STATE);
     static Location* create(STATE, CallFrame* call_frame, bool include_variables=false);
     static Array* from_call_stack(STATE, CallFrame* call_frame, bool include_vars=false);
+    static Array* mri_backtrace(STATE, CallFrame* call_frame);
 
     class Info : public TypeInfo {
     public:

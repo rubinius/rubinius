@@ -69,6 +69,11 @@ module Rubinius
     :unknown
   end
 
+  def self.mri_backtrace(skip)
+    Ruby.primitive :vm_mri_backtrace
+    raise PrimitiveFailure, "Rubinius.mri_backtrace failed"
+  end
+
   module Unsafe
     def self.set_class(obj, cls)
       Ruby.primitive :vm_set_class

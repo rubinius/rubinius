@@ -267,24 +267,8 @@ module Kernel
   module_function :proc
 
   def caller(start=1, exclude_kernel=true)
-    ary = []
-    Rubinius::VM.backtrace(1)[start..-1].each do |l|
-      if exclude_kernel and l.method.file.to_s.prefix?("kernel/")
-        next
-      end
-
-      pos = l.position
-      meth = l.describe_method
-
-      case l.name
-      when :__script__, :__class_init__, :__module_init__
-        ary << pos
-      else
-        ary << "#{pos}:in `#{meth}'"
-      end
-    end
-
-    ary
+    # The + 1 is to skip this frame
+    return Rubinius.mri_backtrace(start + 1)
   end
   module_function :caller
 
