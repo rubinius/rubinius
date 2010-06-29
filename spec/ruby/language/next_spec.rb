@@ -81,6 +81,24 @@ describe "The next statement from within the block" do
 
     ScratchPad.recorded.should == [:begin, :ensure]
   end
+
+  it "skips following code outside an exception block" do
+    3.times do |i|
+      begin
+        ScratchPad << :begin
+        next if i == 0
+        break if i == 2
+        ScratchPad << :begin_end
+      ensure
+        ScratchPad << :ensure
+      end
+
+      ScratchPad << :after
+    end
+
+    ScratchPad.recorded.should == [
+      :begin, :ensure, :begin, :begin_end, :ensure, :after, :begin, :ensure]
+  end
 end
 
 describe "The next statement" do
