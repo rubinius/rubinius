@@ -382,6 +382,8 @@ class Hash
   end
 
   def initialize(default = undefined, &block)
+    Ruby.check_frozen
+
     if !default.equal?(undefined) and block
       raise ArgumentError, "Specify a default or a block, not both"
     end
