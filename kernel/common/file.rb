@@ -726,7 +726,11 @@ class File < IO
   ##
   # Returns the size of file_name.
   def self.size(path)
-    stat(path).size
+    if path.is_a? File
+      Stat.from_fd(path.fileno).size
+    else
+      stat(path).size
+    end
   end
 
   ##
