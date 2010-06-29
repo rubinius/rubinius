@@ -15,7 +15,7 @@
 #include "builtin/string.hpp"
 #include "builtin/class.hpp"
 #include "builtin/tuple.hpp"
-
+#include "builtin/variable_scope.hpp"
 #include "builtin/system.hpp"
 
 #include "object_utils.hpp"
@@ -326,6 +326,16 @@ namespace rubinius {
 
         for(size_t i = 0; i < tup->num_fields(); i++) {
           dump_reference(state, tup->at(i));
+        }
+      } else if(VariableScope* vs = try_as<VariableScope>(obj)) {
+        enc.write2(syms.size() + 1);
+        dump_ivars(state, obj, syms);
+
+        enc.write1(cTupleCode);
+        enc.write4(vs->number_of_locals());
+
+        for(int i = 0; i < vs->number_of_locals(); i++) {
+          dump_reference(state, vs->get_local(i));
         }
       } else if(ByteArray* ba = try_as<ByteArray>(obj)) {
         enc.write2(syms.size() + 1);

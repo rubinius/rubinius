@@ -12,6 +12,9 @@
 #include "builtin/array.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
+#include "builtin/class.hpp"
+#include "builtin/tuple.hpp"
+#include "builtin/variable_scope.hpp"
 
 #include "builtin/system.hpp"
 
@@ -135,6 +138,63 @@ namespace rubinius {
     }
   };
 
+  class ReferencesCondition : public QueryCondition {
+    Object* target_;
+    Array* tmp_;
+
+  public:
+    ReferencesCondition(Object* obj)
+      : target_(obj)
+      , tmp_(0)
+    {}
+
+    virtual bool perform(STATE, Object* obj) {
+      // Check class and ivars.
+      if(obj->reference_class() == target_) return true;
+      if(obj->ivars() == target_) return true;
+
+      // Check slots.
+      TypeInfo* ti = state->om->type_info[obj->type_id()];
+      for(TypeInfo::Slots::iterator i = ti->slots.begin();
+          i != ti->slots.end();
+          i++) {
+        Symbol* sym = Symbol::from_index(i->first);
+        if(obj->get_ivar(state, sym) == target_) return true;
+      }
+
+      // Check normal (which include packed) ivars.
+      if(!tmp_) tmp_ = Array::create(state, 20);
+
+      // Reset the array. We use the same array each time to keep from
+      // allocating an array and tuple per object.
+      tmp_->total(state, Fixnum::from(0));
+
+      obj->ivar_names(state, tmp_);
+
+      for(size_t i = 0; i < tmp_->size(); i++) {
+        if(Symbol* sym = try_as<Symbol>(tmp_->get(state, i))) {
+          if(obj->get_ivar(state, sym) == target_) return true;
+        }
+      }
+
+      // Check a tuples body.
+      if(Tuple* tup = try_as<Tuple>(obj)) {
+        for(size_t i = 0; i < tup->num_fields(); i++) {
+          if(tup->at(i) == target_) return true;
+        }
+      }
+
+      // Check a VariableScope's locals
+      if(VariableScope* vs = try_as<VariableScope>(obj)) {
+        for(int i = 0; i < vs->number_of_locals(); i++) {
+          if(vs->get_local(state, i) == target_) return true;
+        }
+      }
+
+      return false;
+    }
+  };
+
   static QueryCondition* create_condition(STATE, Array* ary) {
     if(ary->size() < 2) return 0;
 
@@ -157,6 +217,8 @@ namespace rubinius {
       if(Symbol* method = try_as<Symbol>(arg)) {
         return new HasMethodCondition(method);
       }
+    } else if(what == state->symbol("references")) {
+      return new ReferencesCondition(arg);
     } else if(what == state->symbol("and") ||
               what == state->symbol("or")) {
       if(ary->size() != 3) return 0;
@@ -224,6 +286,7 @@ namespace rubinius {
       }
     }
 
+    state->set_call_frame(calling_environment);
     ObjectWalker walker(state->om);
     GCData gc_data(state);
 

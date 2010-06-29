@@ -9,6 +9,12 @@ module ObjectSpace
     return nil
   end
 
+  def self.find_references(obj)
+    ary = []
+    find_object([:references, obj], ary)
+    return ary
+  end
+
   # @todo rewrite each_object
 
   # Tryes to handle as much as it can.
