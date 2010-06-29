@@ -50,7 +50,7 @@ describe :hash_store, :shared => true do
   end
 
   # see http://redmine.ruby-lang.org/issues/show/1535
-  ruby_bug "#1535", "1.8.7.248" do
+  ruby_bug "#1535", "1.8.8" do
     it "raises a RuntimeError if a new key is added during iteration" do
       hash = {1 => 2, 3 => 4, 5 => 6}
       lambda{

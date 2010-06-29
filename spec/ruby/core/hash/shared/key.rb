@@ -22,11 +22,13 @@ describe :hash_key_p, :shared => true do
     new_hash(nil => nil).send(@method, nil).should == true
   end
 
-  it "returns false for objects with the same hash" do
+  it "compares keys with the same #hash value via #eql?" do
     x = mock('x')
+    x.stub!(:hash).and_return(42)
+
     y = mock('y')
-    x.should_receive(:hash).and_return(0)
-    y.should_receive(:hash).and_return(0)
+    y.stub!(:hash).and_return(42)
+    y.should_receive(:eql?).and_return(false)
 
     new_hash(x => nil).send(@method, y).should == false
   end
