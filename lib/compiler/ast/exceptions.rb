@@ -150,7 +150,7 @@ module Rubinius
           g.push_stack_local used_next_local
           g.gif post
 
-          g.goto g.next if g.next
+          g.next ? g.goto(g.next) : g.ret
           post.set!
         end
       end
