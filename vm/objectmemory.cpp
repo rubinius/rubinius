@@ -489,6 +489,14 @@ namespace rubinius {
     code_manager_.add_resource(cr);
   }
 
+  void* ObjectMemory::young_start() {
+    return young_->start_address();
+  }
+
+  void* ObjectMemory::yound_end() {
+    return young_->last_address();
+  }
+
   void ObjectMemory::needs_finalization(Object* obj, FinalizerFunction func) {
     FinalizeObject fi;
     fi.object = obj;

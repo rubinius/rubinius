@@ -26,6 +26,7 @@ namespace rubinius {
   struct YoungCollectStats;
 
   class BakerGC : public GarbageCollector {
+    Heap full;
     Heap eden;
     Heap heap_a;
     Heap heap_b;
@@ -151,6 +152,14 @@ namespace rubinius {
 
     bool autotune() {
       return autotune_;
+    }
+
+    void* start_address() {
+      return full.start();
+    }
+
+    void* last_address() {
+      return full.last();
     }
 
   public:

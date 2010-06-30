@@ -215,6 +215,7 @@ namespace rubinius {
   }
 
   void InlineCache::run_wb(STATE, CompiledMethod* exec) {
+    if(exec->remembered_p()) return;
     exec->write_barrier(state, module);
     exec->write_barrier(state, method);
     exec->write_barrier(state, klass_);

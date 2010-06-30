@@ -79,6 +79,8 @@ namespace rubinius {
     bool run_signals_;
 
     MethodMissingReason method_missing_reason_;
+    void* young_start_;
+    void* young_end_;
 
   public:
     /* Data members */
@@ -195,6 +197,10 @@ namespace rubinius {
 
     void set_method_missing_reason(MethodMissingReason reason) {
       method_missing_reason_ = reason;
+    }
+
+    bool young_object_p(Object* obj) {
+      return obj >= young_start_ && obj <= young_end_;
     }
 
   public:

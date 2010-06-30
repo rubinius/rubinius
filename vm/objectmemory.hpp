@@ -205,6 +205,9 @@ namespace rubinius {
     void find_referers(Object* obj, ObjectArray& result);
     void print_references(Object* obj);
 
+    void* young_start();
+    void* yound_end();
+
     void snapshot();
     void print_new_since_snapshot();
 

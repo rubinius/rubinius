@@ -20,9 +20,10 @@
 namespace rubinius {
   BakerGC::BakerGC(ObjectMemory *om, size_t bytes)
     : GarbageCollector(om)
-    , eden(bytes)
-    , heap_a(bytes / 2)
-    , heap_b(bytes / 2)
+    , full(bytes * 2)
+    , eden(full.allocate(bytes), bytes)
+    , heap_a(full.allocate(bytes / 2), bytes / 2)
+    , heap_b(full.allocate(bytes / 2), bytes / 2)
     , total_objects(0)
     , copy_spills_(0)
     , autotune_(false)

@@ -57,6 +57,7 @@ namespace rubinius {
     , stack_start_(0)
     , profiler_(0)
     , run_signals_(false)
+
     , shared(shared)
     , waiter_(NULL)
     , interrupt_with_signal_(false)
@@ -70,6 +71,11 @@ namespace rubinius {
     probe.set(Qnil, &globals().roots);
     set_stack_size(cStackDepthMax);
     os_thread_ = pthread_self(); // initial value
+
+    if(shared.om) {
+      young_start_ = shared.om->young_start();
+      young_end_ = shared.om->yound_end();
+    }
   }
 
   void VM::discard(VM* vm) {
@@ -87,6 +93,9 @@ namespace rubinius {
 
     om = new ObjectMemory(this, shared.config);
     shared.om = om;
+
+    young_start_ = shared.om->young_start();
+    young_end_ = shared.om->yound_end();
 
     /** @todo Done by Environment::boot_vm(), and Thread::s_new()
      *        does not boot at all. Should this be removed? --rue */

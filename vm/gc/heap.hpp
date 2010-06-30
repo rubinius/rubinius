@@ -15,6 +15,7 @@ namespace rubinius {
     address limit_;
 
     size_t size_;
+    bool owner_;
 
   public:
     /* Inline methods */
@@ -24,6 +25,10 @@ namespace rubinius {
 
     address last() {
       return last_;
+    }
+
+    address start() {
+      return start_;
     }
 
     address allocate(size_t size) {
@@ -97,6 +102,7 @@ namespace rubinius {
 
     /* Prototypes */
     Heap(size_t size);
+    Heap(void* start, size_t size);
     ~Heap();
     void reset();
     size_t remaining();

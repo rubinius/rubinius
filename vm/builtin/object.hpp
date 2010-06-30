@@ -105,6 +105,8 @@ namespace rubinius {
 
     /** Provides access to the GC write barrier from any object. */
     void        write_barrier(STATE, void* obj);
+    void        inline_write_barrier_passed(STATE, void* obj);
+
     /** Special-case write_barrier() for Fixnums. */
     void        write_barrier(STATE, Fixnum* obj);
     /** Special-case write_barrier() for Symbols. */
@@ -394,6 +396,15 @@ namespace rubinius {
 
   inline void Object::write_barrier(STATE, Symbol* obj) {
     /* No-op */
+  }
+
+  inline void Object::write_barrier(STATE, void* ptr) {
+    Object* obj = reinterpret_cast<Object*>(ptr);
+    if(!REFERENCE_P(obj) ||
+        state->young_object_p(this) ||
+        !state->young_object_p(obj)) return;
+
+    inline_write_barrier_passed(state, ptr);
   }
 
   // Used in filtering APIs

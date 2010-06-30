@@ -771,8 +771,10 @@ namespace rubinius {
    *  write_barrier versions, which we do), or we have to include
    *  every header up front. We opt for the former.
    */
-  void Object::write_barrier(STATE, void* obj) {
-    state->om->write_barrier(this, reinterpret_cast<Object*>(obj));
+  void Object::inline_write_barrier_passed(STATE, void* obj) {
+    if(!remembered_p()) {
+      state->om->remember_object(this);
+    }
   }
 
   void Object::write_barrier(gc::WriteBarrier* wb, void* obj) {
