@@ -725,24 +725,28 @@ class File < IO
 
   ##
   # Returns the size of file_name.
-  def self.size(path)
-    if path.is_a? File
-      Stat.from_fd(path.fileno).size
+  def self.size(io_or_path)
+    io = Type.convert_to io_or_path, IO, :to_io
+
+    if io.is_a? IO
+      Stat.from_fd(io.fileno).size
     else
-      stat(path).size
+      stat(io_or_path).size
     end
   end
 
   ##
   # Returns nil if file_name doesn‘t exist or has zero size,
   # the size of the file otherwise.
-  def self.size?(path_or_file)
+  def self.size?(io_or_path)
     s = 0
 
-    if path_or_file.is_a? File
-      s = Stat.from_fd(path_or_file.fileno).size
+    io = Type.convert_to io_or_path, IO, :to_io
+
+    if io.is_a? IO
+      s = Stat.from_fd(io.fileno).size
     else
-      st = Stat.stat path_or_file
+      st = Stat.stat io_or_path
       s = st.size if st
     end
 
