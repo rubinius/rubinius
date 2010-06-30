@@ -2726,6 +2726,8 @@ class String
   #     -------+---------+-----------------------------------------
 
   def unpack(format)
+    Ruby.primitive :string_unpack
+
     # see pack.rb for String::Unpacker
     Unpacker.new(self,format).dispatch
   end

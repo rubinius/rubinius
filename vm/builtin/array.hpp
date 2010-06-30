@@ -48,6 +48,9 @@ namespace rubinius {
     // Ruby.primitive :array_concat
     Array* concat(STATE, Array* other);
 
+    // Ruby.primitive :array_pack
+    String* pack(STATE, String* directives, CallFrame* calling_environment);
+
     Object* get(STATE, size_t idx);
     Object* set(STATE, size_t idx, Object* val);
     void   unshift(STATE, Object* val);

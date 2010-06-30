@@ -267,6 +267,10 @@ module Rubinius
   class AccessVariable
     attr_reader :name
   end
+
+  def self.pack_to_int(obj)
+    Type.coerce_to obj, Integer, :to_int
+  end
 end
 
 # A wierd place for it, but it works.

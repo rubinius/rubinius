@@ -177,6 +177,9 @@ namespace rubinius {
     // Ruby.primitive :string_base64_decode
     static String* base64_decode(STATE, String* str);
 
+    // Ruby.primitive :string_unpack
+    Array* unpack(STATE, String *directives);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

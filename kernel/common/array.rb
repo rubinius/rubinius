@@ -1051,9 +1051,11 @@ class Array
   #       x     |  Null byte
   #       Z     |  Same as ``a'', except that null is added with *
 
-  def pack schema
+  def pack(directives)
+    Ruby.primitive :array_pack
+
     # see pack.rb for Array::Packer
-    Packer.new(self,schema).dispatch
+    Packer.new(self, directives).dispatch
   end
 
   ##
