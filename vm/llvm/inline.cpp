@@ -20,10 +20,11 @@ namespace rubinius {
       if(ops_.state()->config().jit_inline_debug) {
         context_.inline_log("NOT inlining")
           << ops_.state()->symbol_cstr(cache_->name)
-          << ". Cache contains " << cache_->classes_seen() << "\n";
+          << ". Cache contains " << cache_->classes_seen() << " entries\n";
 
         for(int i = 0; i < cache_->classes_seen(); i++) {
-          ops_.state()->log() << "  " << ops_.state()->symbol_cstr(cache_->tracked_class(i)->name())
+          context_.inline_log("class")
+            << ops_.state()->symbol_cstr(cache_->tracked_class(i)->name())
             << " " << cache_->tracked_class_hits(i) << "\n";
         }
       }

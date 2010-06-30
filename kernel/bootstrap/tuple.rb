@@ -92,8 +92,13 @@ module Rubinius
 
     def dup
       obj = self.class.new(self.size)
-      obj.copy_object self
-      obj.send :initialize_copy, self
+
+      Rubinius.invoke_primitive :object_copy_object, obj, self
+
+      Rubinius.privately do
+        obj.initialize_copy self
+      end
+
       obj
     end
 

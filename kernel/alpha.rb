@@ -202,28 +202,6 @@ module Kernel
   def initialize_copy(other)
   end
 
-  # :internal:
-  #
-  # Primitive for creating a copy of object.
-  #
-  # Used by .dup and .clone.
-  #
-  def copy_object(other)
-    Ruby.primitive :object_copy_object
-    raise PrimitiveFailure, "Kernel#copy_object primitive failed"
-  end
-
-  # :internal:
-  #
-  # Primitive for properly copying metaclass when copying object.
-  #
-  # Used by .clone.
-  #
-  def copy_metaclass(other)
-    Ruby.primitive :object_copy_metaclass
-    raise PrimitiveFailure, "Kernel#copy_metaclass primitive failed"
-  end
-
   # Generic shallow copy of object.
   #
   # Copies instance variables, but does not recursively copy the
@@ -240,9 +218,14 @@ module Kernel
   # if defined.
   #
   def dup
-    copy = self.class.allocate
-    copy.copy_object self
-    copy.__send__ :initialize_copy, self
+    cls = Rubinius.invoke_primitive :object_class, self
+    copy = cls.allocate
+
+    Rubinius.invoke_primitive :object_copy_object, copy, self
+
+    Rubinius.privately do
+      copy.initialize_copy self
+    end
     copy
   end
 
@@ -263,10 +246,17 @@ module Kernel
   #
   def clone
     # Do not implement in terms of dup. It breaks rails.
-    copy = self.class.allocate
-    copy.copy_object self
-    copy.__send__ :initialize_copy, self
-    copy.copy_metaclass self
+    #
+    cls = Rubinius.invoke_primitive :object_class, self
+    copy = cls.allocate
+
+    Rubinius.invoke_primitive :object_copy_object, copy, self
+    Rubinius.invoke_primitive :object_copy_metaclass, copy, self
+
+    Rubinius.privately do
+      copy.initialize_copy self
+    end
+
     copy.freeze if frozen?
     copy
   end

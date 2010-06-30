@@ -136,27 +136,23 @@ namespace rubinius {
       // and call, the wrong one will be called.
       if(LookupTable* lt = try_as<LookupTable>(other->ivars())) {
         ivars(state, lt->duplicate(state));
-        LookupTable* ld = as<LookupTable>(ivars());
 
         // We store the object_id in the ivar table, so nuke it.
 #ifndef RBX_OBJECT_ID_IN_HEADER
+        LookupTable* ld = as<LookupTable>(ivars());
         ld->remove(state, G(sym_object_id));
 #endif
-        ld->remove(state, state->symbol("frozen"));
-        ld->remove(state, state->symbol("capi_handle"));
       } else {
         // Use as<> so that we throw a TypeError if there is something else
         // here.
         CompactLookupTable* clt = as<CompactLookupTable>(other->ivars());
         ivars(state, clt->duplicate(state));
-        CompactLookupTable* ld = as<CompactLookupTable>(ivars());
 
         // We store the object_id in the ivar table, so nuke it.
 #ifndef RBX_OBJECT_ID_IN_HEADER
+        CompactLookupTable* ld = as<CompactLookupTable>(ivars());
         ld->remove(state, G(sym_object_id));
 #endif
-        ld->remove(state, state->symbol("frozen"));
-        ld->remove(state, state->symbol("capi_handle"));
       };
     }
 

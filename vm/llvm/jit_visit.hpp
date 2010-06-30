@@ -23,6 +23,8 @@
 #endif
 
 namespace rubinius {
+  extern "C" Object* invoke_object_class(STATE, CallFrame* call_frame, Object** args, int arg_count);
+
 
   typedef std::list<llvm::BasicBlock*> EHandlers;
 
@@ -1304,6 +1306,40 @@ namespace rubinius {
     void visit_invoke_primitive(opcode which, opcode args) {
       InvokePrimitive invoker = reinterpret_cast<InvokePrimitive>(which);
 
+      BasicBlock* fin = 0;
+      Value* inline_klass = 0;
+      BasicBlock* inline_body = 0;
+
+      if(invoker == invoke_object_class && args == 1) {
+        if(state()->config().jit_inline_debug) {
+          context().inline_log("inlining") << "custom object_class invoker\n";
+        }
+        Value* obj = stack_back(0);
+        Value* is_ref = check_is_reference(obj);
+
+        BasicBlock* cont = new_block("check_class");
+        BasicBlock* failure = new_block("use_call");
+        inline_body = new_block("found_class");
+        fin = new_block("got_class");
+
+        b().CreateCondBr(is_ref, cont, failure);
+
+        set_block(cont);
+
+        inline_klass = b().CreateBitCast(reference_class(obj), ObjType);
+
+        Value* is_class = check_type_bits(inline_klass, rubinius::Class::type, "is_class");
+
+        b().CreateCondBr(is_class, inline_body, failure);
+
+        set_block(inline_body);
+
+        b().CreateBr(fin);
+
+        set_block(failure);
+        failure->moveAfter(inline_body);
+      }
+
       Signature sig(ls_, "Object");
       sig << "VM";
       sig << "CallFrame";
@@ -1319,10 +1355,24 @@ namespace rubinius {
           llvm::PointerType::getUnqual(sig.type()));
 
       Value* call = b().CreateCall(ptr, call_args, call_args + 4, "invoked_prim");
-
-      stack_remove(args);
       check_for_exception(call);
-      stack_push(call);
+      stack_remove(args);
+
+      if(fin) {
+        BasicBlock* cur = current_block();
+
+        b().CreateBr(fin);
+
+        set_block(fin);
+
+        PHINode* phi = b().CreatePHI(ObjType, "object_class");
+        phi->addIncoming(inline_klass, inline_body);
+        phi->addIncoming(call, cur);
+
+        stack_push(phi);
+      } else {
+        stack_push(call);
+      }
     }
 
     void visit_send_stack(opcode which, opcode args) {

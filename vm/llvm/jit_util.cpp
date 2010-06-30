@@ -36,6 +36,11 @@
 using namespace rubinius;
 
 extern "C" {
+
+  void rbx_jit_debug_spot(int spot) {
+    std::cout << "JIT DEBUG: hit spot: " << spot << "\n";
+  }
+
   Object* rbx_write_barrier(STATE, Object* obj, Object* val) {
     if(obj->zone() == UnspecifiedZone) return val;
     state->om->write_barrier(obj, val);

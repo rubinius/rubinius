@@ -225,7 +225,7 @@ namespace rubinius {
       return b().CreateBitCast(rec, ptr_type("Object"), "downcast");
     }
 
-    Value* check_type_bits(Value* obj, int type) {
+    Value* check_type_bits(Value* obj, int type, const char* name = "is_type") {
       Value* word_idx[] = {
         ConstantInt::get(ls_->Int32Ty, 0),
         ConstantInt::get(ls_->Int32Ty, 0),
@@ -233,16 +233,26 @@ namespace rubinius {
         ConstantInt::get(ls_->Int32Ty, 0)
       };
 
+      if(obj->getType() != ObjType) {
+        obj = b().CreateBitCast(obj, ObjType);
+      }
+
+      // This checks 2 things, not just the type bits. It also checks
+      // that the inflated flag is 0, because if it's a 1, then the type
+      // bits have nothing to do with the type.
+      //
+      // We don't handle checking the type bits in the inflated header also.
+
       Value* gep = create_gep(obj, word_idx, 4, "word_pos");
       Value* word = create_load(gep, "flags");
-
-      Value* mask = ConstantInt::get(ls_->Int32Ty, ((1 << 8) - 1) << 1);
       Value* flags = b().CreatePtrToInt(word, ls_->Int32Ty, "word2flags");
+
+      Value* mask = ConstantInt::get(ls_->Int32Ty, ((1 << 9) - 1));
       Value* obj_type = b().CreateAnd(flags, mask, "mask");
 
       Value* tag = ConstantInt::get(ls_->Int32Ty, type << 1);
 
-      return b().CreateICmpEQ(obj_type, tag, "is_tuple");
+      return b().CreateICmpEQ(obj_type, tag, name);
     }
 
     Value* check_is_reference(Value* obj) {
@@ -736,6 +746,24 @@ namespace rubinius {
 
       Value* call_args[] = { vm_, obj, val };
       wb.call("rbx_write_barrier", call_args, 3, "", b());
+    }
+
+    void call_debug_spot(int spot) {
+      Signature sig(ls_, ObjType);
+      sig << ls_->Int32Ty;
+
+      Value* call_args[] = { cint(spot) };
+
+      sig.call("rbx_jit_debug_spot", call_args, 1, "", b());
+    }
+
+    void call_debug_spot(Value* val) {
+      Signature sig(ls_, ObjType);
+      sig << ls_->Int32Ty;
+
+      Value* call_args[] = { val };
+
+      sig.call("rbx_jit_debug_spot", call_args, 1, "", b());
     }
 
     virtual void check_for_exception(llvm::Value* val) = 0;
