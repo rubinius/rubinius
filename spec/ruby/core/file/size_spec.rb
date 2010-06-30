@@ -6,6 +6,10 @@ describe "File.size?" do
 end
 
 describe "File.size?" do
+  it_behaves_like :file_size_to_io,               :size?, File
+end
+
+describe "File.size?" do
   it_behaves_like :file_size_nil_when_missing,    :size?, File
 end
 
@@ -19,6 +23,10 @@ end
 
 describe "File.size" do
   it_behaves_like :file_size,                     :size,  File
+end
+
+describe "File.size" do
+  it_behaves_like :file_size_to_io,               :size, File
 end
 
 describe "File.size" do

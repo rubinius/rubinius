@@ -1,7 +1,7 @@
 describe :file_size, :shared => true do
   before :each do
     @exists = tmp('i_exist')
-    File.open(@exists,'w') { |f| f.write 'rubinius' }
+    touch(@exists) { |f| f.write 'rubinius' }
   end
 
   after :each do
@@ -23,6 +23,26 @@ describe :file_size, :shared => true do
     it "accepts an object that has a #to_path method" do
       @object.send(@method, mock_to_path(@exists)).should == 8
     end
+  end
+end
+
+describe :file_size_to_io, :shared => true do
+  before :each do
+    @exists = tmp('i_exist')
+    touch(@exists) { |f| f.write 'rubinius' }
+    @file = File.open(@exists, 'r')
+  end
+
+  after :each do
+    @file.close unless @file.closed?
+    rm_r @exists
+  end
+
+  it "calls #to_io to convert the argument to an IO" do
+    obj = mock("io like")
+    obj.should_receive(:to_io).and_return(@file)
+
+    @object.send(@method, obj).should == 8
   end
 end
 
