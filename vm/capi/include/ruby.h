@@ -33,6 +33,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include "intern.h"
 #include "defines.h"
