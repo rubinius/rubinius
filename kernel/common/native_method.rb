@@ -26,6 +26,8 @@ module Rubinius
 
         if e.message =~ some_mri_globals
           raise LoadError::MRIExtensionError, "Extension compiled for MRI - #{library}"
+        else
+          raise e
         end
       end
 
