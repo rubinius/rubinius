@@ -108,6 +108,12 @@ static VALUE kernel_spec_rb_yield(VALUE self, VALUE obj) {
 }
 #endif
 
+#ifdef HAVE_RB_YIELD_VALUES
+static VALUE kernel_spec_rb_yield_values(VALUE self, VALUE obj1, VALUE obj2) {
+  return rb_yield_values(2, obj1, obj2);
+}
+#endif
+
 void Init_kernel_spec() {
   VALUE cls;
   cls = rb_define_class("CApiKernelSpecs", rb_cObject);
@@ -150,6 +156,10 @@ void Init_kernel_spec() {
 
 #ifdef HAVE_RB_YIELD
   rb_define_method(cls, "rb_yield", kernel_spec_rb_yield, 1);
+#endif
+
+#ifdef HAVE_RB_YIELD_VALUES
+  rb_define_method(cls, "rb_yield_values", kernel_spec_rb_yield_values, 2);
 #endif
 }
 
