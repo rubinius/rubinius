@@ -19,9 +19,8 @@ namespace rubinius {
   }
 
 
-  TypeInfo::TypeInfo(object_type type, bool cleanup)
+  TypeInfo::TypeInfo(object_type type)
     : state_(NULL)
-    , instances_need_cleanup(cleanup)
     , instance_size(sizeof(Object))
     , slots()
     , type(type)
@@ -30,23 +29,6 @@ namespace rubinius {
   {}
 
   TypeInfo::~TypeInfo() { }
-
-  /**
-   *  Default resource cleanup.
-   *
-   *  This method is and should remain empty so that it is safe
-   *  for subclasses to call super without knowing whether the
-   *  superclass implements a cleanup since it is possible to
-   *  get "skipped" classes, i.e. A < B < C < Object where A
-   *  and C have a cleanup but B does not.
-   *
-   *  The method is still only called on objects who have at
-   *  least one superclass requiring cleanup.
-   */
-  void TypeInfo::cleanup(Object* obj)
-  {
-    /* Nada */
-  }
 
   void TypeInfo::set_field(STATE, Object* target, size_t index, Object* val) {
     throw std::runtime_error("field access denied");

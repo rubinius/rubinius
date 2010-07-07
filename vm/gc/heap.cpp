@@ -11,7 +11,7 @@ namespace rubinius {
     start_ = reinterpret_cast<address>(std::malloc(size_));
     last_ = (void*)((uintptr_t)start_ + bytes - 1);
 
-    int red_zone = bytes / 1000;
+    int red_zone = bytes / 1024;
     limit_ = (address)((uintptr_t)last_ - red_zone);
 
     reset();
@@ -24,7 +24,7 @@ namespace rubinius {
   {
     last_ = (void*)((uintptr_t)start_ + bytes - 1);
 
-    int red_zone = bytes / 1000;
+    int red_zone = bytes / 1024;
     limit_ = (address)((uintptr_t)last_ - red_zone);
 
     reset();

@@ -43,7 +43,7 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
+      Info(object_type type) : TypeInfo(type) { }
       virtual void mark(Object* obj, ObjectMark& mark);
       virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };

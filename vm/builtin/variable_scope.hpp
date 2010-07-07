@@ -140,7 +140,7 @@ namespace rubinius {
   public: // Rubinius Type stuff
     class Info : public TypeInfo {
     public:
-      Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
+      Info(object_type type) : TypeInfo(type) { }
       virtual void mark(Object* t, ObjectMark& mark);
       virtual void visit(Object*, ObjectVisitor&);
       virtual void set_field(STATE, Object*, size_t, Object*);

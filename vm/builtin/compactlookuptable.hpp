@@ -50,8 +50,8 @@ namespace rubinius {
 
     class Info : public Tuple::Info {
     public:
-      Info(object_type type, bool cleanup = false)
-        : Tuple::Info(type, cleanup)
+      Info(object_type type)
+        : Tuple::Info(type)
       {}
 
       virtual void show(STATE, Object* self, int level);

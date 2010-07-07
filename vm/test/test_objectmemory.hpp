@@ -402,60 +402,6 @@ public:
     TS_ASSERT(!om.valid_object_p(obj));
   }
 
-  /* Resource cleanup tests */
-
-  void test_new_object_sets_cleanup_flag_if_class_so_indicates()
-  {
-    TypeInfo* ti = state->om->type_info[ObjectType];
-
-    TS_ASSERT_EQUALS(ti->instances_need_cleanup, false);
-
-    Object* obj = state->new_object<Object>(G(object));
-
-    TS_ASSERT_EQUALS(obj->requires_cleanup_p(), false);
-
-    ti->instances_need_cleanup = true;
-
-    Object* obj2 = state->new_object<Object>(G(object));
-
-    TS_ASSERT_EQUALS(obj2->requires_cleanup_p(), true);
-    TS_ASSERT_EQUALS(obj->requires_cleanup_p(), false);
-
-    ti->instances_need_cleanup = false;
-  }
-
-  /* TODO: Move this to test_gc when such exists. */
-
-  /* eep */
-  class Cleanupper : public TypeInfo {
-  public:
-    Object* squeaky;
-
-    Cleanupper() : TypeInfo(ObjectType, true), squeaky(NULL) {}
-
-    virtual void cleanup(Object* obj) { squeaky = obj; }
-    virtual void auto_mark(Object* obj, ObjectMark& mark) {}
-  };
-
-  void test_gc_calls_cleanup_function_if_object_requires_cleanup()
-  {
-    /* Double eep */
-    Cleanupper* c = new Cleanupper();
-
-    TypeInfo* ti = state->om->type_info[ObjectType];
-    state->om->type_info[ObjectType] = c;
-
-    Object* obj = state->new_object<Object>(G(object));
-
-    TS_ASSERT_EQUALS(obj->requires_cleanup_p(), true);
-
-    state->om->mark_sweep_->delete_object(obj);
-
-    TS_ASSERT_EQUALS(c->squeaky, obj);
-
-    state->om->type_info[ObjectType] = ti;
-  }
-
   void test_xmalloc_causes_gc() {
     // Knows that the threshold is 10M
     state->interrupts.check = false;

@@ -45,6 +45,10 @@ namespace rubinius {
   class ImmixGC;
   class InflatedHeaders;
 
+  namespace gc {
+    class Slab;
+  }
+
   typedef std::vector<Object*> ObjectArray;
 
   struct YoungCollectStats {
@@ -77,6 +81,7 @@ namespace rubinius {
     bool allow_gc_;
 
     std::list<gc::WriteBarrier*> aux_barriers_;
+    size_t slab_size_;
 
   public:
     bool collect_young_now;
@@ -184,6 +189,9 @@ namespace rubinius {
     void collect_young(GCData& data, YoungCollectStats* stats = 0);
     void collect_mature(GCData& data);
     Object* promote_object(Object* obj);
+
+    bool refill_slab(gc::Slab& slab);
+
     bool valid_object_p(Object* obj);
     void debug_marksweep(bool val);
     void add_type_info(TypeInfo* ti);

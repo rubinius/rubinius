@@ -54,10 +54,6 @@ namespace rubinius {
     return state->globals().special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
   }
 
-  void Object::cleanup(STATE) {
-    type_info(state)->cleanup(this);
-  }
-
   Object* Object::duplicate(STATE) {
     if(!reference_p()) return this;
 

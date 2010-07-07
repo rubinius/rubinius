@@ -75,6 +75,7 @@ namespace rubinius {
     if(shared.om) {
       young_start_ = shared.om->young_start();
       young_end_ = shared.om->yound_end();
+      shared.om->refill_slab(local_slab_);
     }
   }
 
@@ -96,6 +97,8 @@ namespace rubinius {
 
     young_start_ = shared.om->young_start();
     young_end_ = shared.om->yound_end();
+
+    om->refill_slab(local_slab_);
 
     /** @todo Done by Environment::boot_vm(), and Thread::s_new()
      *        does not boot at all. Should this be removed? --rue */
@@ -185,8 +188,25 @@ namespace rubinius {
     VM::set_current(this);
   }
 
-  Object* VM::new_object_typed(Class* cls, size_t bytes, object_type type) {
-    return om->new_object_typed(cls, bytes, type);
+  Object* VM::new_object_typed(Class* cls, size_t size, object_type type) {
+    Object* obj = reinterpret_cast<Object*>(local_slab().allocate(size));
+
+    if(unlikely(!obj)) {
+      if(shared.om->refill_slab(local_slab())) {
+        obj = reinterpret_cast<Object*>(local_slab().allocate(size));
+      }
+
+      // If refill_slab fails, obj will still be NULL.
+
+      if(!obj) {
+        return om->new_object_typed(cls, size, type);
+      }
+    }
+
+    obj->init_header(cls, YoungObjectZone, type);
+    obj->clear_fields(size);
+
+    return obj;
   }
 
   Object* VM::new_object_typed_mature(Class* cls, size_t bytes, object_type type) {
@@ -194,7 +214,7 @@ namespace rubinius {
   }
 
   Object* VM::new_object_from_type(Class* cls, TypeInfo* ti) {
-    return om->new_object_typed(cls, ti->instance_size, ti->type);
+    return new_object_typed(cls, ti->instance_size, ti->type);
   }
 
   Class* VM::new_basic_class(Class* sup) {

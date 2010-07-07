@@ -40,6 +40,8 @@ namespace rubinius {
     , mark_(1)
     , code_manager_(&state->shared)
     , allow_gc_(true)
+    , slab_size_(4096)
+
     , collect_young_now(false)
     , collect_mature_now(false)
     , state(state)
@@ -88,7 +90,8 @@ namespace rubinius {
   }
 
   Object* ObjectMemory::new_object_fast(Class* cls, size_t bytes, object_type type) {
-    if(Object* obj = young_->raw_allocate(bytes, &collect_young_now)) {
+    bool blah;
+    if(Object* obj = young_->raw_allocate(bytes, &blah)) {
       objects_allocated++;
       bytes_allocated += bytes;
 
@@ -101,6 +104,17 @@ namespace rubinius {
     }
   }
 
+  bool ObjectMemory::refill_slab(gc::Slab& slab) {
+    void* addr = young_->allocate_for_slab(slab_size_);
+
+    if(!addr) return false;
+
+    objects_allocated += slab.allocations();
+
+    slab.refill(addr, slab_size_);
+
+    return true;
+  }
 
   void ObjectMemory::set_young_lifetime(size_t age) {
     young_->set_lifetime(age);
@@ -164,6 +178,15 @@ namespace rubinius {
     young_collections++;
 
     data.global_cache()->prune_young();
+
+    if(data.threads()) {
+      for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
+          i != data.threads()->end();
+          i++) {
+        assert(refill_slab((*i)->local_slab()));
+      }
+    }
+
   }
 
   void ObjectMemory::collect_mature(GCData& data) {
@@ -329,7 +352,7 @@ namespace rubinius {
 #endif
 
     } else {
-      obj = young_->allocate(bytes);
+      obj = young_->allocate(bytes, &collect_young_now);
       if(unlikely(obj == NULL)) {
         collect_young_now = true;
         state->interrupts.set_perform_gc();
@@ -399,7 +422,6 @@ namespace rubinius {
     obj->klass(this, cls);
 
     obj->set_obj_type(type);
-    obj->set_requires_cleanup(type_info[type]->instances_need_cleanup);
 
     return obj;
   }
@@ -417,7 +439,6 @@ namespace rubinius {
     obj->klass(this, cls);
 
     obj->set_obj_type(type);
-    obj->set_requires_cleanup(type_info[type]->instances_need_cleanup);
 
     return obj;
   }
@@ -460,7 +481,6 @@ namespace rubinius {
     obj->klass(this, cls);
 
     obj->set_obj_type(type);
-    obj->set_requires_cleanup(type_info[type]->instances_need_cleanup);
 
     return obj;
   }

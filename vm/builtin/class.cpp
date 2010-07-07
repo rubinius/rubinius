@@ -2,6 +2,7 @@
 #include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 #include "configuration.hpp"
+#include "on_stack.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
@@ -99,15 +100,57 @@ namespace rubinius {
     building_ = true;
   }
 
-  Object* Class::allocate(STATE) {
+  Object* Class::allocate(STATE, CallFrame* calling_environment) {
     if(type_info_->type == PackedObject::type) {
 use_packed:
       assert(packed_size_ > 0);
+
+      // Pull the size out into a local to deal with this moving later on.
+      uint32_t size = packed_size_;
+
       PackedObject* obj = reinterpret_cast<PackedObject*>(
-          state->om->new_object_fast(this, packed_size_, type_info_->type));
+                            state->local_slab().allocate(size));
+
+      if(likely(obj)) {
+        obj->init_header(this, YoungObjectZone, PackedObject::type);
+      } else {
+        if(state->shared.om->refill_slab(state->local_slab())) {
+          obj = reinterpret_cast<PackedObject*>(state->local_slab().allocate(size));
+
+          if(likely(obj)) {
+            obj->init_header(this, YoungObjectZone, PackedObject::type);
+          } else {
+            obj = reinterpret_cast<PackedObject*>(
+                state->om->new_object_fast(this,
+                  type_info_->instance_size, PackedObject::type));
+          }
+        } else {
+          state->shared.om->collect_young_now = true;
+
+          Class* self = this;
+
+          OnStack<1> os(state, self);
+
+          state->collect_maybe(calling_environment);
+
+          // Don't use 'this' after here! it's been moved! use 'self'!
+
+          obj = reinterpret_cast<PackedObject*>(state->local_slab().allocate(size));
+
+          if(likely(obj)) {
+            obj->init_header(self, YoungObjectZone, PackedObject::type);
+          } else {
+            obj = reinterpret_cast<PackedObject*>(
+                state->om->new_object_fast(self,
+                  self->type_info_->instance_size, PackedObject::type));
+          }
+        }
+      }
+
+      // Don't use 'this' !!! The above code might have GC'd
 
       uintptr_t body = reinterpret_cast<uintptr_t>(obj->body_as_array());
-      for(size_t i = 0; i < packed_size_ - sizeof(ObjectHeader);
+      for(size_t i = 0; i < size - sizeof(ObjectHeader);
           i += sizeof(Object*)) {
         Object** pos = reinterpret_cast<Object**>(body + i);
         *pos = Qundef;

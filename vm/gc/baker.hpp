@@ -40,6 +40,24 @@ namespace rubinius {
   public:
     size_t total_objects;
 
+    void* allocate_for_slab(size_t bytes) {
+      if(!eden.enough_space_p(bytes)) {
+        return NULL;
+      }
+
+      void* addr = 0;
+
+      lock_.lock();
+
+      addr = eden.allocate(bytes);
+
+      lock_.unlock();
+
+      if(eden.over_limit_p(addr)) return NULL;
+
+      return addr;
+    }
+
     /* Inline methods */
     Object* raw_allocate(size_t bytes, bool* limit_hit) {
       Object* obj;
@@ -80,7 +98,7 @@ namespace rubinius {
       return obj;
     }
 
-    Object* allocate(size_t bytes) {
+    Object* allocate(size_t bytes, bool* limit_hit) {
       Object* obj;
 
 #ifdef RBX_GC_STATS
@@ -100,6 +118,10 @@ namespace rubinius {
         obj = (Object*)eden.allocate(bytes);
 
         lock_.unlock();
+
+        if(eden.over_limit_p(obj)) {
+          *limit_hit = true;
+        }
       }
 
 #ifdef ENABLE_OBJECT_WATCH

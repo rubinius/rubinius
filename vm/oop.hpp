@@ -147,7 +147,6 @@ const int cUndef = 0x22L;
     unsigned int Forwarded       : 1;
     unsigned int Remember        : 1;
     unsigned int Marked          : 2;
-    unsigned int RequiresCleanup : 1;
 
     unsigned int InImmix         : 1;
     unsigned int Pinned          : 1;
@@ -318,9 +317,6 @@ const int cUndef = 0x22L;
     /* Copies the body of +other+ into +this+ */
     void copy_body(VM* state, Object* other);
 
-    /* Copies the flags of +this+ into +other+ */
-    void copy_flags(Object* other);
-
     /* Used to make an exact state copy of +this+ into +other* */
     void initialize_full_state(STATE, Object* other, unsigned int age);
 
@@ -483,14 +479,6 @@ const int cUndef = 0x22L;
 
     void clear_remember() {
       flags().Remember = 0;
-    }
-
-    void set_requires_cleanup(int val) {
-      flags().RequiresCleanup = val;
-    }
-
-    bool requires_cleanup_p() {
-      return flags().RequiresCleanup == 1;
     }
 
     bool is_frozen_p() {

@@ -31,7 +31,6 @@ namespace rubinius {
 #endif
 
     clear_forwarded();
-    set_requires_cleanup(other->requires_cleanup_p());
 
     if(other->is_tainted_p()) set_tainted();
   }
@@ -47,12 +46,6 @@ namespace rubinius {
     // the settings flags.
     flags().Frozen =  source->flags().Frozen;
     flags().Tainted = source->flags().Tainted;
-  }
-
-  void ObjectHeader::copy_flags(Object* source) {
-    // TODO OH NO! Don't do this!!
-    set_obj_type(source->type_id());
-    set_requires_cleanup(source->requires_cleanup_p());
   }
 
   void ObjectHeader::copy_body(STATE, Object* other) {

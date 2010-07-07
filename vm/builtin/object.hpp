@@ -100,9 +100,6 @@ namespace rubinius {
 
   public:   /* GC support, bookkeeping &c. */
 
-    /** Calls cleanup() on the TypeInfo for this object's type. */
-    void        cleanup(STATE);
-
     /** Provides access to the GC write barrier from any object. */
     void        write_barrier(STATE, void* obj);
     void        inline_write_barrier_passed(STATE, void* obj);
@@ -362,8 +359,8 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       virtual ~Info() {}
-      Info(object_type type, bool cleanup = false)
-        : TypeInfo(type, cleanup)
+      Info(object_type type)
+        : TypeInfo(type)
       {}
 
       virtual void auto_mark(Object* obj, ObjectMark& mark) {}

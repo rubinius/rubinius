@@ -43,7 +43,6 @@ namespace rubinius {
 
   public:
 
-    bool        instances_need_cleanup;
     size_t      instance_size;
     static size_t instance_sizes[(int)LastObjectType];
     Slots       slots;
@@ -71,7 +70,7 @@ namespace rubinius {
      *  will set the cleanup flag if _any_ of the classes in
      *  the chain request it.
      */
-    TypeInfo(object_type type, bool cleanup = false);
+    TypeInfo(object_type type);
 
     virtual ~TypeInfo();
 
@@ -84,22 +83,6 @@ namespace rubinius {
     VM* state() {
       return state_;
     }
-
-    /**
-     *  Internal resource cleanup.
-     *
-     *  This method is called with an object being collected if it is
-     *  marked as needing cleanup.
-     *
-     *  There are two things of note:
-     *
-     *  1.  Cleanup methods in subclasses MUST be marked virtual; and
-     *  2.  Each cleanup method MUST call its "super". In C++, this
-     *      means explicitly qualifying the method name as, e.g.
-     *
-     *          MySuperTypeInfo::cleanup(obj);
-     */
-    virtual void cleanup(Object* obj);
 
     virtual void mark(Object* obj, ObjectMark& mark);
     virtual void visit(Object* obj, ObjectVisitor& visit);
@@ -174,27 +157,9 @@ namespace rubinius {
 
 
 #define BASIC_TYPEINFO(super) \
-  Info(object_type type, bool cleanup = false) : super(type, cleanup) { } \
+  Info(object_type type) : super(type) { } \
   virtual void auto_mark(Object* obj, ObjectMark& mark); \
   virtual void auto_visit(Object* obj, ObjectVisitor& visit); \
-  virtual void set_field(STATE, Object* target, size_t index, Object* val); \
-  virtual Object* get_field(STATE, Object* target, size_t index); \
-  virtual void populate_slot_locations();
-
-/**
- *  Generate TypeInfo declaration contents.
- *
- *  This version marks any object that has this type info in
- *  its type info hierarchy as needing some internal resource
- *  cleanup.
- *
- *  @see  doc/builtin_internal_resource_releasing.txt
- */
-#define BASIC_TYPEINFO_WITH_CLEANUP(super) \
-  Info(object_type type, bool cleanup = true) : super(type, true) { } \
-  virtual void auto_mark(Object* obj, ObjectMark& mark); \
-  virtual void auto_visit(Object* obj, ObjectVisitor& visit); \
-  virtual void cleanup(Object* obj); \
   virtual void set_field(STATE, Object* target, size_t index, Object* val); \
   virtual Object* get_field(STATE, Object* target, size_t index); \
   virtual void populate_slot_locations();

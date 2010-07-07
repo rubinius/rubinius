@@ -15,6 +15,7 @@
 
 #include "async_message.hpp"
 #include "gc/variable_buffer.hpp"
+#include "gc/slab.hpp"
 
 #include "shared_state.hpp"
 

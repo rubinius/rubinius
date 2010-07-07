@@ -357,7 +357,6 @@ namespace agent {
       output.e().write_integer(thrs->size());
     }
   };
-
   class DumpHeap: public DynamicVariable {
     VM* state_;
 

@@ -1,6 +1,8 @@
 #ifndef RBX_GC_MANAGED_THREAD
 #define RBX_GC_MANAGED_THREAD
 
+#include "gc/slab.hpp"
+
 namespace rubinius {
   class SharedState;
   class VM;
@@ -17,6 +19,9 @@ namespace rubinius {
     Kind kind_;
     const char* name_;
 
+  protected:
+    gc::Slab local_slab_;
+
   public:
     ManagedThread(SharedState& ss, Kind kind)
       : shared_(ss)
@@ -26,6 +31,10 @@ namespace rubinius {
 
     Roots& roots() {
       return roots_;
+    }
+
+    gc::Slab& local_slab() {
+      return local_slab_;
     }
 
     Kind kind() {
