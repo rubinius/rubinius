@@ -461,22 +461,6 @@ namespace rubinius {
     return vm_open_class_under(state, name, sup, under);
   }
 
-  // HACK: Internal helper for tracking subclasses for
-  // ObjectSpace.each_object(Class)
-  static void add_subclass(STATE, Object* super, Class* sub) {
-    Symbol* subclasses = state->symbol("@subclasses");
-    Object* ivar = super->get_ivar(state, subclasses);
-
-    Array* ary = try_as<Array>(ivar);
-    if(!ary) {
-      ary = Array::create(state, 1);
-      ary->set(state, 0, sub);
-      super->set_ivar(state, subclasses, ary);
-    } else {
-      ary->append(state, sub);
-    }
-  }
-
   Class* System::vm_open_class_under(STATE, Symbol* name, Object* super, Module* under) {
     bool found = false;
 
@@ -513,9 +497,6 @@ namespace rubinius {
     }
 
     under->set_const(state, name, cls);
-
-    // HACK for ObjectSpace.each_object(Class)
-    add_subclass(state, super, cls);
 
     return cls;
   }
