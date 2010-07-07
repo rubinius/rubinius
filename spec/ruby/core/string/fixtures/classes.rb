@@ -1,3 +1,13 @@
+class Object
+  # This helper is defined here rather than in MSpec because
+  # it is only used in #unpack specs.
+  def unpack_format(count=nil, repeat=nil)
+    format = "#{instance_variable_get(:@method)}#{count}"
+    format *= repeat if repeat
+    format
+  end
+end
+
 module StringSpecs
   class MyString < String; end
   class MyArray < Array; end
