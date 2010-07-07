@@ -1576,6 +1576,7 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Call block with given argument or raise error if no block given. */
   VALUE   rb_yield(VALUE argument_handle);
+  VALUE   rb_yield_values(int n, ...);
 
   VALUE   rb_apply(VALUE recv, ID mid, VALUE args);
 

@@ -21,6 +21,29 @@ extern "C" {
     return rb_funcall(block_handle, rb_intern("call"), 1, argument_handle);
   }
 
+  VALUE rb_yield_values(int n, ...) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    if (!rb_block_given_p()) {
+      rb_raise(rb_eLocalJumpError, "no block given", 0);
+    }
+
+    VALUE* vars = reinterpret_cast<VALUE*>(alloca(sizeof(VALUE) * n));
+
+    va_list args;
+    va_start(args, n);
+
+    for(int i = 0; i < n; ++i) {
+      vars[i] = va_arg(args, VALUE);
+    }
+
+    va_end(args);
+
+    VALUE block_handle = env->get_handle(env->block());
+
+    return rb_funcall2(block_handle, rb_intern("call"), n, vars);
+  }
+
   int rb_block_given_p() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     return RBX_RTEST(env->block());
