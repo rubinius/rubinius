@@ -76,12 +76,13 @@ namespace rubinius {
   void MarkSweepGC::free_object(Object* obj, bool fast) {
     if(!fast) {
       delete_object(obj);
+
+      last_freed++;
+
+      allocated_objects--;
+      allocated_bytes -= obj->size_in_bytes(object_memory_->state);
     }
 
-    last_freed++;
-
-    allocated_objects--;
-    allocated_bytes -= obj->size_in_bytes(object_memory_->state);
     obj->set_zone(UnspecifiedZone);
 
 #ifdef USE_DLMALLOC

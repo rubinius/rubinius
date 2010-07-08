@@ -75,7 +75,6 @@ namespace rubinius {
   }
 
   ObjectMemory::~ObjectMemory() {
-
     mark_sweep_->free_objects();
 
     // TODO free immix data
@@ -87,6 +86,10 @@ namespace rubinius {
     delete immix_;
     delete mark_sweep_;
     delete young_;
+
+    // Must be last
+    // delete inflated_headers_;
+
   }
 
   Object* ObjectMemory::new_object_fast(Class* cls, size_t bytes, object_type type) {
@@ -543,7 +546,28 @@ namespace rubinius {
 
       i = to_finalize_.erase(i);
     }
+  }
 
+  void ObjectMemory::run_all_finalizers(STATE) {
+    for(std::list<FinalizeObject>::iterator i = finalize_.begin();
+        i != finalize_.end(); )
+    {
+      FinalizeObject& fi = *i;
+
+      // Only finalize things that haven't been finalized.
+      if(fi.status != FinalizeObject::eFinalized) {
+        if(fi.finalizer) {
+          (*fi.finalizer)(state, fi.object);
+        } else {
+          std::cerr << "During shutdown, unsupported object to be finalized: "
+                    << fi.object->to_s(state)->c_str() << "\n";
+        }
+      }
+
+      fi.status = FinalizeObject::eFinalized;
+
+      i = finalize_.erase(i);
+    }
   }
 
   size_t& ObjectMemory::loe_usage() {

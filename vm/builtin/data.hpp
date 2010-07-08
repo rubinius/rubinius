@@ -5,9 +5,9 @@
 #include "type_info.hpp"
 
 namespace rubinius {
-
-  // HACK manually copied here from ruby.h
-  struct RDataExposed {
+  // Copied from here because you can't include capi/include/ruby.h into
+  // our C++ files.
+  struct RDataShadow {
     void (*dmark)(void*);
     void (*dfree)(void*);
     void *data;
@@ -25,7 +25,9 @@ namespace rubinius {
     typedef   void (*FreeFunctor)(void*);
 
   private:
-    RDataExposed exposed_;
+    void (*dmark_)(void*);
+    void (*dfree_)(void*);
+    void *data_;
 
   public:   /* Interface */
 
@@ -37,37 +39,10 @@ namespace rubinius {
 
     static void finalize(STATE, Data* data);
 
-    RDataExposed* exposed() {
-      return &exposed_;
-    }
-
-    void* data() {
-      return exposed_.data;
-    }
-
-    FreeFunctor free() {
-      return exposed_.dfree;
-    }
-
-    MarkFunctor mark() {
-      return exposed_.dmark;
-    }
-
-    void** data_address() {
-      return &exposed_.data;
-    }
-
-    void data(STATE, void* data) {
-      exposed_.data = data;
-    }
-
-    void free(STATE, FreeFunctor free) {
-      exposed_.dfree = free;
-    }
-
-    void mark(STATE, MarkFunctor mark) {
-      exposed_.dmark = mark;
-    }
+    RDataShadow* rdata(STATE);
+    void* data(STATE);
+    FreeFunctor free(STATE);
+    MarkFunctor mark(STATE);
 
   public:   /* TypeInfo */
 

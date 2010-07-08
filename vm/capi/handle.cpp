@@ -20,6 +20,10 @@ namespace rubinius {
           break;
         case cRIO:
           delete as_.rio;
+          break;
+        case cRData:
+          delete as_.rdata;
+          break;
         default:
           break;
         }
@@ -39,12 +43,22 @@ namespace rubinius {
     }
 
     Handle::~Handle() {
-      InflatedHeader* ih = object_->inflated_header();
-      assert(ih);
-      ih->set_handle(0);
-
       free_data();
       invalidate();
+    }
+
+    Handles::~Handles() {
+      return;
+      capi::Handle* handle = front();
+
+      while(handle) {
+        capi::Handle* next = static_cast<capi::Handle*>(handle->next());
+
+        remove(handle);
+        delete handle;
+
+        handle = next;
+      }
     }
   }
 }

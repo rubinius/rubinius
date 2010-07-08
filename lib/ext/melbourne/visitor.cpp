@@ -97,13 +97,6 @@ namespace melbourne {
     free(st->token_buffer);
     delete st->variables;
 
-    if(!st->memory_pools) return;
-
-    for(i = 0; i <= st->current_pool; i++) {
-      free(st->memory_pools[i]);
-    }
-    free(st->memory_pools);
-
     for(std::vector<bstring>::iterator i = st->magic_comments->begin();
         i != st->magic_comments->end();
         i++) {
@@ -112,6 +105,14 @@ namespace melbourne {
 
     delete st->magic_comments;
     delete st->start_lines;
+
+    if(!st->memory_pools) return;
+
+    for(i = 0; i <= st->current_pool; i++) {
+      free(st->memory_pools[i]);
+    }
+    free(st->memory_pools);
+
   }
 
   extern long mel_sourceline;

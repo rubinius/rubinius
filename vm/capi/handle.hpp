@@ -78,7 +78,6 @@ namespace rubinius {
       }
 
       void invalidate() {
-        assert(references_ <= 0);
         checksum_ = 0;
       }
 
@@ -148,6 +147,9 @@ namespace rubinius {
 
     class Handles : public LinkedList {
     public:
+
+      ~Handles();
+
       Handle* front() {
         return static_cast<Handle*>(head());
       }

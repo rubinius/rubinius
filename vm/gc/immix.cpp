@@ -335,13 +335,14 @@ namespace rubinius {
 
       switch(i->status) {
       case FinalizeObject::eLive:
-        // We have to still keep it alive though until we finish with it.
-        i->object = saw_object(i->object);
-
         if(!i->object->marked_p(object_memory_->mark())) {
           i->queued();
           object_memory_->to_finalize().push_back(&fi);
         }
+
+        // We have to still keep it alive though until we finish with it.
+        i->object = saw_object(i->object);
+
         break;
       case FinalizeObject::eQueued:
         // Nothing, we haven't gotten to it yet.

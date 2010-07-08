@@ -207,8 +207,9 @@ namespace rubinius {
 
     int mature_bytes_allocated();
 
-    void needs_finalization(Object* obj, FinalizerFunction func = 0);
+    void needs_finalization(Object* obj, FinalizerFunction func);
     void run_finalizers(STATE);
+    void run_all_finalizers(STATE);
 
     void find_referers(Object* obj, ObjectArray& result);
     void print_references(Object* obj);

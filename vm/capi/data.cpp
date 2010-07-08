@@ -11,27 +11,17 @@ using namespace rubinius::capi;
 
 namespace rubinius {
   namespace capi {
-
-    void flush_cached_rdata(NativeMethodEnvironment* env, Handle* handle) {
-      if(handle->is_rdata()) {
-        Data* data = c_as<Data>(handle->object());
-        RData* rdata = handle->as_rdata(env);
-
-        data->mark(env->state(), rdata->dmark);
-        data->free(env->state(), rdata->dfree);
-        data->data(env->state(), rdata->data);
-      }
-    }
-
     RData* Handle::as_rdata(NativeMethodEnvironment* env) {
       if(type_ != cRData) {
-        Data* data = c_as<Data>(object());
         type_ = cRData;
 
-        as_.rdata = reinterpret_cast<RData*>(data->exposed());
-      }
+        RData* rdata = new RData;
+        // Yes, we initialize it with garbage data. This is because when
+        // Data creates this, it makes sure to initialize it before
+        // anyone sees it.
 
-      env->state()->om->remember_object(object());
+        as_.rdata = rdata;
+      }
 
       return as_.rdata;
     }
@@ -55,16 +45,6 @@ extern "C" {
     Data* data = Data::create(env->state(), ptr, mark, free);
 
     data->klass(env->state(), data_klass);
-
-    // Data objects are directly manipulated, so we have to always
-    // track them.
-    env->state()->om->remember_object(data);
-
-    // If this Data requires a free function, register this object
-    // as needing finalization.
-    if(free) {
-      env->state()->om->needs_finalization(data);
-    }
 
     return env->get_handle(data);
   }

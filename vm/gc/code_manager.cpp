@@ -32,7 +32,22 @@ namespace rubinius {
     current_chunk_ = first_chunk_;
   }
 
-  CodeManager::~CodeManager() { }
+  CodeManager::~CodeManager() {
+    Chunk* chunk = first_chunk_;
+
+    while(chunk) {
+      for(int i = 0; i < chunk_size_; i++) {
+        if(CodeResource* cr = chunk->resources[i]) {
+          delete cr;
+          chunk->resources[i] = 0;
+        }
+      }
+
+      Chunk* next = chunk->next;
+      delete chunk;
+      chunk = next;
+    }
+  }
 
   void CodeManager::add_chunk() {
     Chunk* c = new Chunk(chunk_size_);

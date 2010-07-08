@@ -170,6 +170,13 @@ namespace rubinius {
       if(!i->weak_p() && i->object()->young_object_p()) {
         i->set_object(saw_object(i->object()));
         assert(i->object()->inflated_header_p());
+
+      // Users manipulate values accessible from the data* within an
+      // RData without running a write barrier. Thusly if we see a mature
+      // rdata, we must always scan it because it could contain
+      // young pointers.
+      } else if(!i->object()->young_object_p() && i->is_rdata()) {
+        scan_object(i->object());
       }
 
       assert(i->object()->type_id() != InvalidType);
@@ -179,6 +186,13 @@ namespace rubinius {
       if(!i->weak_p() && i->object()->young_object_p()) {
         i->set_object(saw_object(i->object()));
         assert(i->object()->inflated_header_p());
+
+      // Users manipulate values accessible from the data* within an
+      // RData without running a write barrier. Thusly if we see a mature
+      // rdata, we must always scan it because it could contain
+      // young pointers.
+      } else if(!i->object()->young_object_p() && i->is_rdata()) {
+        scan_object(i->object());
       }
 
       assert(i->object()->type_id() != InvalidType);
@@ -346,7 +360,8 @@ namespace rubinius {
 
   void BakerGC::check_finalize() {
     for(std::list<FinalizeObject>::iterator i = object_memory_->finalize().begin();
-        i != object_memory_->finalize().end(); ) {
+        i != object_memory_->finalize().end(); )
+    {
       FinalizeObject& fi = *i;
 
       bool remove = false;
