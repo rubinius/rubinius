@@ -17,12 +17,12 @@ describe :array_pack_8bit, :shared => true do
   end
 
   it "reduces value to fit in byte" do
-    [ [[2**8-1],  encode("\xFF", "binary")],
-      [[2**8  ],  encode("\x00", "binary")],
-      [[2**8+1],  encode("\x01", "binary")],
-      [[-2**8+1], encode("\x01", "binary")],
-      [[-2**8  ], encode("\x00", "binary")],
-      [[-2**8-1], encode("\xFF", "binary")]
+    [ [[0b11111111],   encode("\xFF", "binary")],
+      [[0b100000000],  encode("\x00", "binary")],
+      [[0b100000001],  encode("\x01", "binary")],
+      [[-0b11111111],  encode("\x01", "binary")],
+      [[-0b100000000], encode("\x00", "binary")],
+      [[-0b100000001], encode("\xFF", "binary")]
     ].should be_computed_by(:pack, pack_format)
   end
 
@@ -63,6 +63,14 @@ describe :array_pack_8bit, :shared => true do
 
   it "with star parameter processes all remaining array items" do
     [1, 2, 3, 4, 5].pack(pack_format('*')).should == encode("\x01\x02\x03\x04\x05", "binary")
+  end
+
+  it "ignores NULL bytes between directives" do
+    [1, 2, 3].pack(pack_format("\000", 2)).should == encode("\x01\x02", "binary")
+  end
+
+  it "ignores spaces between directives" do
+    [1, 2, 3].pack(pack_format(' ', 2)).should == encode("\x01\x02", "binary")
   end
 
   ruby_version_is '1.9' do
