@@ -25,7 +25,7 @@ class BeComputedByMatcher
   end
 
   def failure_message
-    ["Expected #{@value}", "to be computed by #{method_call}"]
+    ["Expected #{@value.inspect}", "to be computed by #{method_call}"]
   end
 end
 

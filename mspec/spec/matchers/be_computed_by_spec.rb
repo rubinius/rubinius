@@ -37,6 +37,6 @@ describe BeComputedByMatcher do
               [91, "Z" ] ]
     matcher = BeComputedByMatcher.new(:chr)
     matcher.matches?(array)
-    matcher.failure_message.should == ["Expected Z", "to be computed by 91.chr"]
+    matcher.failure_message.should == ["Expected \"Z\"", "to be computed by 91.chr"]
   end
 end
