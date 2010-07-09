@@ -29,6 +29,14 @@ describe Object, "#it_behaves_like" do
     ScratchPad.recorded.should == object
   end
 
+  it "creates @object if the passed false" do
+    object = false
+    @shared.it("an example") { ScratchPad.record @object }
+    @state.it_behaves_like :shared_spec, :some_method, object
+    @state.process
+    ScratchPad.recorded.should == object
+  end
+
   it "sends :it_should_behave_like" do
     @state.should_receive(:it_should_behave_like)
     @state.it_behaves_like :shared_spec, :some_method

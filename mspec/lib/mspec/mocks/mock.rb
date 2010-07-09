@@ -118,7 +118,8 @@ module Mock
 
   def self.verify_call(obj, sym, *args, &block)
     compare = *args
-    if (behaves_like_ruby_1_9 = *[])
+    behaves_like_ruby_1_9 = *[]
+    if (behaves_like_ruby_1_9)
       compare = compare.first if compare.length <= 1
     end
 

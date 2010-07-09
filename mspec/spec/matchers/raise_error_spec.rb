@@ -53,4 +53,12 @@ describe RaiseErrorMatcher do
     matcher.negative_failure_message.should ==
       ["Expected to not get ExpectedException (expected)", ""]
   end
+
+  it "provides a useful negative failure message for strict subclasses of the matched exception class" do
+    proc = Proc.new { raise UnexpectedException, "unexpected" }
+    matcher = RaiseErrorMatcher.new(Exception, nil)
+    matcher.matches?(proc)
+    matcher.negative_failure_message.should ==
+      ["Expected to not get Exception", "but got UnexpectedException (unexpected)"]
+  end
 end
