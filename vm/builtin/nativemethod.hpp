@@ -240,25 +240,14 @@ namespace rubinius {
   /* The various function signatures needed since C++ requires strict typing here. */
 
   /** Generic function pointer used to store any type of functor. */
-  typedef void (*GenericFunctor)(void);
+
+  typedef VALUE (*VariableFunction)(VALUE, ...);
 
   /* Actual functor types. */
 
-  typedef void (*InitFunctor)      (void);   /**< The Init_<name> function. */
+  typedef void (*InitFunction)      (void);   /**< The Init_<name> function. */
 
-  typedef VALUE (*ArgcFunctor)     (int, VALUE*, VALUE);
-  typedef VALUE (*OneArgFunctor)   (VALUE);
-  typedef VALUE (*TwoArgFunctor)   (VALUE, VALUE);
-  typedef VALUE (*ThreeArgFunctor) (VALUE, VALUE, VALUE);
-  typedef VALUE (*FourArgFunctor)  (VALUE, VALUE, VALUE, VALUE);
-  typedef VALUE (*FiveArgFunctor)  (VALUE, VALUE, VALUE, VALUE, VALUE);
-  typedef VALUE (*SixArgFunctor)   (VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
-  typedef VALUE (*SevenArgFunctor) (VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
-  typedef VALUE (*EightArgFunctor) (VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
-  typedef VALUE (*NineArgFunctor)  (VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE,
-                                    VALUE);
-  typedef VALUE (*TenArgFunctor)   (VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE, VALUE,
-                                    VALUE, VALUE);
+  typedef VALUE (*ArgcFunction)     (int, VALUE*, VALUE);
 
 
   /**
@@ -320,12 +309,8 @@ namespace rubinius {
     /**
      *  Create a NativeMethod object.
      *
-     *  May take one of several types of functors but the calling
-     *  code is responsible for figuring out which type to cast
-     *  the functor back to for use, that information is not
-     *  stored here.
-     *
-     *  @see  functor_as() for the cast back.
+     *  Takes a function to call in the form of a void*. +arity+ is used
+     *  to figure out how to call the function properly.
      */
     static NativeMethod* create(VM* state, String* file_name,
                                 Module* module, Symbol* method_name,
@@ -334,6 +319,7 @@ namespace rubinius {
   public:   /* Class Interface */
 
     /** Set up and call native method. */
+    template <class ArgumentHandler>
     static Object* executor_implementation(STATE, CallFrame* call_frame, Dispatch& msg,
                                            Arguments& message);
 
@@ -354,13 +340,14 @@ namespace rubinius {
 
   public:   /* Instance methods */
 
-    /** Call the C function. */
-    Object* call(STATE, NativeMethodEnvironment* env, Arguments& msg);
+    VariableFunction func() {
+      return reinterpret_cast<VariableFunction>(func_);
+    }
 
     /** Return the functor cast into the specified type. */
-    template <typename FunctorType>
-      FunctorType functor_as() const {
-        return reinterpret_cast<FunctorType>(func_);
+    template <typename FunctionType>
+      FunctionType func_as() const {
+        return reinterpret_cast<FunctionType>(func_);
       }
 
   public:   /* Type information */

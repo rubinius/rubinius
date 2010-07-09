@@ -153,32 +153,368 @@ namespace rubinius {
     native_method_environment.set(NULL);
   }
 
-  NativeMethod* NativeMethod::create(VM* state, String* file_name,
-                                     Module* module, Symbol* method_name,
-                                     void* func, Fixnum* arity)
-  {
-    NativeMethod* nmethod = state->new_object<NativeMethod>(G(nmethod));
+  /**
+   *    Arity -3:   VALUE func(VALUE argument_array);
+   *    Arity -2:   VALUE func(VALUE receiver, VALUE argument_array);
+   *    Arity -1:   VALUE func(int argument_count, VALUE*, VALUE receiver);
+   *    Otherwise:  VALUE func(VALUE receiver, [VALUE arg1, VALUE arg2, ...]);
+   *
+   *  There is also a special-case arity, INIT_FUNCTION, which corresponds
+   *  to void (*)(void) and should never appear in user code.
+   *
+   *  @note   Currently supports functions with up to receiver + 15 (separate) arguments only!
+   *          Anything beyond that should use one of the special arities instead.
+   *          15 is the limit in MRI as well.
+   */
 
-    nmethod->arity(state, arity);
-    nmethod->file(state, file_name);
-    nmethod->name(state, method_name);
-    nmethod->module(state, module);
+  class ZeroArguments {
+  public:
+    static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
+                          Arguments& args)
+    {
+      VALUE receiver = env->get_handle(args.recv());
+      return env->get_object(nm->func()(receiver));
+    }
+  };
 
-    nmethod->func_ = func;
+  class OneArgument {
+  public:
+    static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
+                          Arguments& args)
+    {
+      VALUE receiver = env->get_handle(args.recv());
+      VALUE a1 = env->get_handle(args.get_argument(0));
 
-    nmethod->set_executor(&NativeMethod::executor_implementation);
+      return env->get_object(nm->func()(receiver, a1));
+    }
+  };
 
-    nmethod->primitive(state, state->symbol("nativemethod_call"));
-    nmethod->serial(state, Fixnum::from(0));
+  class TwoArguments {
+  public:
+    static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
+                          Arguments& args)
+    {
+      VALUE receiver = env->get_handle(args.recv());
+      VALUE a1 = env->get_handle(args.get_argument(0));
+      VALUE a2 = env->get_handle(args.get_argument(1));
 
-    return nmethod;
-  }
+      return env->get_object(nm->func()(receiver, a1, a2));
+    }
+  };
 
+  class ThreeArguments {
+  public:
+    static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
+                          Arguments& args)
+    {
+      VALUE receiver = env->get_handle(args.recv());
+      VALUE a1 = env->get_handle(args.get_argument(0));
+      VALUE a2 = env->get_handle(args.get_argument(1));
+      VALUE a3 = env->get_handle(args.get_argument(2));
+
+      return env->get_object(nm->func()(receiver, a1, a2, a3));
+    }
+  };
+
+  class GenericArguments {
+  public:
+    static Object* invoke(STATE, NativeMethod* nm, NativeMethodEnvironment* env,
+                          Arguments& args)
+    {
+      VALUE receiver = env->get_handle(args.recv());
+
+      switch(nm->arity()->to_int()) {
+
+        // This one is not in MRI.
+      case ARGS_IN_RUBY_ARRAY: {  /* Braces required to create objects in a switch */
+        VALUE ary = env->get_handle(args.as_array(state));
+
+        VALUE ret = nm->func()(ary);
+
+        return env->get_object(ret);
+      }
+
+      case RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY: {
+        VALUE ary = env->get_handle(args.as_array(state));
+
+        VALUE ret = nm->func()(receiver, ary);
+
+        return env->get_object(ret);
+      }
+
+      case ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER: {
+        VALUE* ary = (VALUE*)alloca(sizeof(VALUE) * args.total());
+
+        for (std::size_t i = 0; i < args.total(); ++i) {
+          ary[i] = env->get_handle(args.get_argument(i));
+        }
+
+        VALUE ret = nm->func_as<ArgcFunction>()(args.total(), ary, receiver);
+
+        return env->get_object(ret);
+      }
+
+        /*
+         *  Normal arg counts
+         *
+         */
+
+      case 0:
+        return env->get_object(nm->func()(receiver));
+
+      case 1: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+
+        VALUE ret = nm->func()(receiver, a1);
+
+        return env->get_object(ret);
+      }
+
+      case 2: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a2 = env->get_handle(args.get_argument(1));
+
+        VALUE ret = nm->func()(receiver, a1, a2);
+
+        return env->get_object(ret);
+      }
+
+      case 3: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a2 = env->get_handle(args.get_argument(1));
+        VALUE a3 = env->get_handle(args.get_argument(2));
+
+        VALUE ret = nm->func()(receiver, a1, a2, a3);
+
+        return env->get_object(ret);
+      }
+
+      case 4: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a2 = env->get_handle(args.get_argument(1));
+        VALUE a3 = env->get_handle(args.get_argument(2));
+        VALUE a4 = env->get_handle(args.get_argument(3));
+
+        VALUE ret = nm->func()(receiver, a1, a2, a3, a4);
+
+        return env->get_object(ret);
+      }
+
+      case 5: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a2 = env->get_handle(args.get_argument(1));
+        VALUE a3 = env->get_handle(args.get_argument(2));
+        VALUE a4 = env->get_handle(args.get_argument(3));
+        VALUE a5 = env->get_handle(args.get_argument(4));
+
+        VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5);
+
+        return env->get_object(ret);
+      }
+
+      case 6: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a2 = env->get_handle(args.get_argument(1));
+        VALUE a3 = env->get_handle(args.get_argument(2));
+        VALUE a4 = env->get_handle(args.get_argument(3));
+        VALUE a5 = env->get_handle(args.get_argument(4));
+        VALUE a6 = env->get_handle(args.get_argument(5));
+
+        VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6);
+
+        return env->get_object(ret);
+      }
+
+      case 7: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a2 = env->get_handle(args.get_argument(1));
+        VALUE a3 = env->get_handle(args.get_argument(2));
+        VALUE a4 = env->get_handle(args.get_argument(3));
+        VALUE a5 = env->get_handle(args.get_argument(4));
+        VALUE a6 = env->get_handle(args.get_argument(5));
+        VALUE a7 = env->get_handle(args.get_argument(6));
+
+        VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7);
+
+        return env->get_object(ret);
+      }
+
+      case 8: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a2 = env->get_handle(args.get_argument(1));
+        VALUE a3 = env->get_handle(args.get_argument(2));
+        VALUE a4 = env->get_handle(args.get_argument(3));
+        VALUE a5 = env->get_handle(args.get_argument(4));
+        VALUE a6 = env->get_handle(args.get_argument(5));
+        VALUE a7 = env->get_handle(args.get_argument(6));
+        VALUE a8 = env->get_handle(args.get_argument(7));
+
+        VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7, a8);
+
+        return env->get_object(ret);
+      }
+
+      case 9: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a2 = env->get_handle(args.get_argument(1));
+        VALUE a3 = env->get_handle(args.get_argument(2));
+        VALUE a4 = env->get_handle(args.get_argument(3));
+        VALUE a5 = env->get_handle(args.get_argument(4));
+        VALUE a6 = env->get_handle(args.get_argument(5));
+        VALUE a7 = env->get_handle(args.get_argument(6));
+        VALUE a8 = env->get_handle(args.get_argument(7));
+        VALUE a9 = env->get_handle(args.get_argument(8));
+
+        VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+        return env->get_object(ret);
+      }
+
+      case 10: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a2 = env->get_handle(args.get_argument(1));
+        VALUE a3 = env->get_handle(args.get_argument(2));
+        VALUE a4 = env->get_handle(args.get_argument(3));
+        VALUE a5 = env->get_handle(args.get_argument(4));
+        VALUE a6 = env->get_handle(args.get_argument(5));
+        VALUE a7 = env->get_handle(args.get_argument(6));
+        VALUE a8 = env->get_handle(args.get_argument(7));
+        VALUE a9 = env->get_handle(args.get_argument(8));
+        VALUE a10 = env->get_handle(args.get_argument(9));
+
+        VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7,
+                               a8, a9, a10);
+
+        return env->get_object(ret);
+      }
+
+      case 11: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a2 = env->get_handle(args.get_argument(1));
+        VALUE a3 = env->get_handle(args.get_argument(2));
+        VALUE a4 = env->get_handle(args.get_argument(3));
+        VALUE a5 = env->get_handle(args.get_argument(4));
+        VALUE a6 = env->get_handle(args.get_argument(5));
+        VALUE a7 = env->get_handle(args.get_argument(6));
+        VALUE a8 = env->get_handle(args.get_argument(7));
+        VALUE a9 = env->get_handle(args.get_argument(8));
+        VALUE a10 = env->get_handle(args.get_argument(9));
+        VALUE a11 = env->get_handle(args.get_argument(10));
+
+        VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7,
+                               a8, a9, a10, a11);
+
+        return env->get_object(ret);
+      }
+
+      case 12: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a2 = env->get_handle(args.get_argument(1));
+        VALUE a3 = env->get_handle(args.get_argument(2));
+        VALUE a4 = env->get_handle(args.get_argument(3));
+        VALUE a5 = env->get_handle(args.get_argument(4));
+        VALUE a6 = env->get_handle(args.get_argument(5));
+        VALUE a7 = env->get_handle(args.get_argument(6));
+        VALUE a8 = env->get_handle(args.get_argument(7));
+        VALUE a9 = env->get_handle(args.get_argument(8));
+        VALUE a10 = env->get_handle(args.get_argument(9));
+        VALUE a11 = env->get_handle(args.get_argument(10));
+        VALUE a12 = env->get_handle(args.get_argument(11));
+
+        VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7,
+                               a8, a9, a10, a11, a12);
+
+        return env->get_object(ret);
+      }
+
+      case 13: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a2 = env->get_handle(args.get_argument(1));
+        VALUE a3 = env->get_handle(args.get_argument(2));
+        VALUE a4 = env->get_handle(args.get_argument(3));
+        VALUE a5 = env->get_handle(args.get_argument(4));
+        VALUE a6 = env->get_handle(args.get_argument(5));
+        VALUE a7 = env->get_handle(args.get_argument(6));
+        VALUE a8 = env->get_handle(args.get_argument(7));
+        VALUE a9 = env->get_handle(args.get_argument(8));
+        VALUE a10 = env->get_handle(args.get_argument(9));
+        VALUE a11 = env->get_handle(args.get_argument(10));
+        VALUE a12 = env->get_handle(args.get_argument(11));
+        VALUE a13 = env->get_handle(args.get_argument(12));
+
+        VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7,
+                               a8, a9, a10, a11, a12, a13);
+
+        return env->get_object(ret);
+      }
+
+      case 14: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a2 = env->get_handle(args.get_argument(1));
+        VALUE a3 = env->get_handle(args.get_argument(2));
+        VALUE a4 = env->get_handle(args.get_argument(3));
+        VALUE a5 = env->get_handle(args.get_argument(4));
+        VALUE a6 = env->get_handle(args.get_argument(5));
+        VALUE a7 = env->get_handle(args.get_argument(6));
+        VALUE a8 = env->get_handle(args.get_argument(7));
+        VALUE a9 = env->get_handle(args.get_argument(8));
+        VALUE a10 = env->get_handle(args.get_argument(9));
+        VALUE a11 = env->get_handle(args.get_argument(10));
+        VALUE a12 = env->get_handle(args.get_argument(11));
+        VALUE a13 = env->get_handle(args.get_argument(12));
+        VALUE a14 = env->get_handle(args.get_argument(13));
+
+        VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7,
+                               a8, a9, a10, a11, a12, a13, a14);
+
+        return env->get_object(ret);
+      }
+
+      case 15: {
+        VALUE a1 = env->get_handle(args.get_argument(0));
+        VALUE a2 = env->get_handle(args.get_argument(1));
+        VALUE a3 = env->get_handle(args.get_argument(2));
+        VALUE a4 = env->get_handle(args.get_argument(3));
+        VALUE a5 = env->get_handle(args.get_argument(4));
+        VALUE a6 = env->get_handle(args.get_argument(5));
+        VALUE a7 = env->get_handle(args.get_argument(6));
+        VALUE a8 = env->get_handle(args.get_argument(7));
+        VALUE a9 = env->get_handle(args.get_argument(8));
+        VALUE a10 = env->get_handle(args.get_argument(9));
+        VALUE a11 = env->get_handle(args.get_argument(10));
+        VALUE a12 = env->get_handle(args.get_argument(11));
+        VALUE a13 = env->get_handle(args.get_argument(12));
+        VALUE a14 = env->get_handle(args.get_argument(13));
+        VALUE a15 = env->get_handle(args.get_argument(14));
+
+        VALUE ret = nm->func()(receiver, a1, a2, a3, a4, a5, a6, a7,
+                               a8, a9, a10, a11, a12, a13, a14, a15);
+
+        return env->get_object(ret);
+      }
+        /* Extension entry point, should never occur for user code. */
+      case INIT_FUNCTION: {
+        nm->func_as<InitFunction>()();
+
+        return Qnil;
+      }
+
+      default:
+        capi::capi_raise_runtime_error("unrecognized arity for NativeMethod call");
+        return Qnil;
+      }
+
+    }
+
+  };
+
+  template <class ArgumentHandler>
   Object* NativeMethod::executor_implementation(STATE,
       CallFrame* call_frame, Dispatch& msg, Arguments& args) {
     NativeMethod* nm = as<NativeMethod>(msg.method);
 
     int arity = nm->arity()->to_int();
+
     if(arity >= 0 && (size_t)arity != args.total()) {
       Exception* exc = Exception::make_argument_error(
           state, arity, args.total(), msg.name);
@@ -217,12 +553,12 @@ namespace rubinius {
 #ifdef RBX_PROFILER
       if(unlikely(state->shared.profiling())) {
         profiler::MethodEntry method(state, msg, args);
-        ret = nm->call(state, env, args);
+        ret = ArgumentHandler::invoke(state, nm, env, args);
       } else {
-        ret = nm->call(state, env, args);
+        ret = ArgumentHandler::invoke(state, nm, env, args);
       }
 #else
-      ret = nm->call(state, env, args);
+      ret = ArgumentHandler::invoke(state, nm, env, args);
 #endif
     }
 
@@ -245,197 +581,46 @@ namespace rubinius {
                                 Fixnum::from(INIT_FUNCTION));
   }
 
-  /**
-   *    Arity -3:   VALUE func(VALUE argument_array);
-   *    Arity -2:   VALUE func(VALUE receiver, VALUE argument_array);
-   *    Arity -1:   VALUE func(int argument_count, VALUE*, VALUE receiver);
-   *    Otherwise:  VALUE func(VALUE receiver, VALUE arg1[, VALUE arg2, ...]);
-   *
-   *  There is also a special-case arity, INIT_FUNCTION, which corresponds
-   *  to void (*)(void) and should never appear in user code.
-   *
-   *  @note   Currently supports functions with up to receiver + 10 (separate) arguments only!
-   *          Anything beyond that should use one of the special arities instead.
-   */
-  Object* NativeMethod::call(STATE, NativeMethodEnvironment* env, Arguments& args) {
-    VALUE receiver = env->get_handle(args.recv());
+  NativeMethod* NativeMethod::create(VM* state, String* file_name,
+                                     Module* module, Symbol* method_name,
+                                     void* func, Fixnum* arity)
+  {
+    NativeMethod* nmethod = state->new_object<NativeMethod>(G(nmethod));
 
-    switch(arity()->to_int()) {
-    case ARGS_IN_RUBY_ARRAY: {  /* Braces required to create objects in a switch */
-      VALUE ary = env->get_handle(args.as_array(state));
+    nmethod->arity(state, arity);
+    nmethod->file(state, file_name);
+    nmethod->name(state, method_name);
+    nmethod->module(state, module);
 
-      VALUE ret = functor_as<OneArgFunctor>()(ary);
+    nmethod->func_ = func;
 
-      return env->get_object(ret);
-    }
+    switch(arity->to_native()) {
+    case 0:
+      nmethod->set_executor(&NativeMethod::executor_implementation<ZeroArguments>);
+      break;
 
-    case RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY: {
-      VALUE ary = env->get_handle(args.as_array(state));
+    case 1:
+      nmethod->set_executor(&NativeMethod::executor_implementation<OneArgument>);
+      break;
 
-      VALUE ret = functor_as<TwoArgFunctor>()(receiver, ary);
+    case 2:
+      nmethod->set_executor(&NativeMethod::executor_implementation<TwoArguments>);
+      break;
 
-      return env->get_object(ret);
-    }
-
-    case ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER: {
-      VALUE* ary = (VALUE*)alloca(sizeof(VALUE) * args.total());
-
-      for (std::size_t i = 0; i < args.total(); ++i) {
-        ary[i] = env->get_handle(args.get_argument(i));
-      }
-
-      VALUE ret = functor_as<ArgcFunctor>()(args.total(), ary, receiver);
-
-      return env->get_object(ret);
-    }
-
-      /*
-       *  Normal arg counts
-       *
-       *  Yes, it is ugly as fuck. It is intended as an encouragement
-       *  to get rid of the concept of a separate VALUE and Object.
-       */
-
-    case 0: {
-      OneArgFunctor functor = functor_as<OneArgFunctor>();
-
-      VALUE ret = functor(receiver);
-
-      return env->get_object(ret);
-    }
-
-    case 1: {
-      TwoArgFunctor functor = functor_as<TwoArgFunctor>();
-
-      VALUE a1 = env->get_handle(args.get_argument(0));
-
-      VALUE ret = functor(receiver, a1);
-
-      return env->get_object(ret);
-    }
-
-    case 2: {
-      ThreeArgFunctor functor = functor_as<ThreeArgFunctor>();
-
-      VALUE a1 = env->get_handle(args.get_argument(0));
-      VALUE a2 = env->get_handle(args.get_argument(1));
-
-      VALUE ret = functor(receiver, a1, a2);
-
-      return env->get_object(ret);
-    }
-
-    case 3: {
-      FourArgFunctor functor = functor_as<FourArgFunctor>();
-      VALUE a1 = env->get_handle(args.get_argument(0));
-      VALUE a2 = env->get_handle(args.get_argument(1));
-      VALUE a3 = env->get_handle(args.get_argument(2));
-
-      VALUE ret = functor(receiver, a1, a2, a3);
-
-      return env->get_object(ret);
-    }
-
-    case 4: {
-      FiveArgFunctor functor = functor_as<FiveArgFunctor>();
-      VALUE a1 = env->get_handle(args.get_argument(0));
-      VALUE a2 = env->get_handle(args.get_argument(1));
-      VALUE a3 = env->get_handle(args.get_argument(2));
-      VALUE a4 = env->get_handle(args.get_argument(3));
-
-      VALUE ret = functor(receiver, a1, a2, a3, a4);
-
-      return env->get_object(ret);
-    }
-
-    case 5: {
-      SixArgFunctor functor = functor_as<SixArgFunctor>();
-      VALUE a1 = env->get_handle(args.get_argument(0));
-      VALUE a2 = env->get_handle(args.get_argument(1));
-      VALUE a3 = env->get_handle(args.get_argument(2));
-      VALUE a4 = env->get_handle(args.get_argument(3));
-      VALUE a5 = env->get_handle(args.get_argument(4));
-
-      VALUE ret = functor(receiver, a1, a2, a3, a4, a5);
-
-      return env->get_object(ret);
-    }
-
-    case 6: {
-      SevenArgFunctor functor = functor_as<SevenArgFunctor>();
-      VALUE a1 = env->get_handle(args.get_argument(0));
-      VALUE a2 = env->get_handle(args.get_argument(1));
-      VALUE a3 = env->get_handle(args.get_argument(2));
-      VALUE a4 = env->get_handle(args.get_argument(3));
-      VALUE a5 = env->get_handle(args.get_argument(4));
-      VALUE a6 = env->get_handle(args.get_argument(5));
-
-      VALUE ret = functor(receiver, a1, a2, a3, a4, a5, a6);
-
-      return env->get_object(ret);
-    }
-
-    case 7: {
-      EightArgFunctor functor = functor_as<EightArgFunctor>();
-      VALUE a1 = env->get_handle(args.get_argument(0));
-      VALUE a2 = env->get_handle(args.get_argument(1));
-      VALUE a3 = env->get_handle(args.get_argument(2));
-      VALUE a4 = env->get_handle(args.get_argument(3));
-      VALUE a5 = env->get_handle(args.get_argument(4));
-      VALUE a6 = env->get_handle(args.get_argument(5));
-      VALUE a7 = env->get_handle(args.get_argument(6));
-
-      VALUE ret = functor(receiver, a1, a2, a3, a4, a5, a6, a7);
-
-      return env->get_object(ret);
-    }
-
-    case 8: {
-      NineArgFunctor functor = functor_as<NineArgFunctor>();
-      VALUE a1 = env->get_handle(args.get_argument(0));
-      VALUE a2 = env->get_handle(args.get_argument(1));
-      VALUE a3 = env->get_handle(args.get_argument(2));
-      VALUE a4 = env->get_handle(args.get_argument(3));
-      VALUE a5 = env->get_handle(args.get_argument(4));
-      VALUE a6 = env->get_handle(args.get_argument(5));
-      VALUE a7 = env->get_handle(args.get_argument(6));
-      VALUE a8 = env->get_handle(args.get_argument(7));
-
-      VALUE ret = functor(receiver, a1, a2, a3, a4, a5, a6, a7, a8);
-
-      return env->get_object(ret);
-    }
-
-    case 9: {
-      TenArgFunctor functor = functor_as<TenArgFunctor>();
-      VALUE a1 = env->get_handle(args.get_argument(0));
-      VALUE a2 = env->get_handle(args.get_argument(1));
-      VALUE a3 = env->get_handle(args.get_argument(2));
-      VALUE a4 = env->get_handle(args.get_argument(3));
-      VALUE a5 = env->get_handle(args.get_argument(4));
-      VALUE a6 = env->get_handle(args.get_argument(5));
-      VALUE a7 = env->get_handle(args.get_argument(6));
-      VALUE a8 = env->get_handle(args.get_argument(7));
-      VALUE a9 = env->get_handle(args.get_argument(8));
-
-      VALUE ret = functor(receiver, a1, a2, a3, a4, a5, a6, a7, a8, a9);
-
-      return env->get_object(ret);
-    }
-
-      /* Extension entry point, should never occur for user code. */
-    case INIT_FUNCTION: {
-      InitFunctor functor = functor_as<InitFunctor>();
-
-      functor();
-
-      return Qnil;
-    }
+    case 3:
+      nmethod->set_executor(&NativeMethod::executor_implementation<ThreeArguments>);
+      break;
 
     default:
-      capi::capi_raise_runtime_error("unrecognized arity for NativeMethod call");
-      return Qnil;
+      nmethod->set_executor(&NativeMethod::executor_implementation<GenericArguments>);
+      break;
     }
+
+    nmethod->primitive(state, state->symbol("nativemethod_call"));
+    nmethod->serial(state, Fixnum::from(0));
+
+    return nmethod;
   }
+
 
 }
