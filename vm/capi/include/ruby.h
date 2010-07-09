@@ -1253,6 +1253,13 @@ VALUE rb_uint2big(unsigned long number);
   NORETURN(void rb_raise(VALUE error_handle, const char* format_string, ...));
 
   /**
+   *  Transfer control to the end of the innermost catch block
+   *  waiting for the given symbol.
+   *  The given value is returned by the catch block.
+   */
+  NORETURN(void rb_throw(const char* symbol, VALUE result));
+
+  /**
    * Calls the function 'func', with arg1 as the argument.  If an exception
    * occurs during 'func', it calls 'raise_func' with arg2 as the argument.  The
    * return value of rb_rescue() is the return value from 'func' if no

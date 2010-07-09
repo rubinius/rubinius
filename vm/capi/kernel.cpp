@@ -85,6 +85,13 @@ extern "C" {
     exit(1);
   }
 
+  void rb_throw(const char* symbol, VALUE result) {
+    rb_funcall(rb_mKernel, rb_intern("throw"), 2, ID2SYM(rb_intern(symbol)), result);
+
+    printf("rb_throw broken!\n");
+    exit(1);
+  }
+
   VALUE rb_rescue2(VALUE (*func)(ANYARGS), VALUE arg1,
                    VALUE (*raise_func)(ANYARGS), VALUE arg2, ...)
   {
