@@ -632,8 +632,6 @@ namespace rubinius {
   void LLVMState::remove(llvm::Function* func) {
     shared_.stats.jitted_methods--;
 
-    engine_->getPointerToFunction(func);
-
     // Deallocate the JITed code
     engine_->freeMachineCodeForFunction(func);
 

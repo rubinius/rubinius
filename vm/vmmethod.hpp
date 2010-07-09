@@ -66,6 +66,7 @@ namespace rubinius {
     native_int number_of_locals;
 
     native_int call_count;
+    native_int uncommon_count;
 
     size_t number_of_caches_;
     InlineCache* caches;
@@ -78,7 +79,6 @@ namespace rubinius {
 #endif
 
     Symbol* name_;
-
   public: // Methods
     static void init(STATE);
 
@@ -189,7 +189,8 @@ namespace rubinius {
                                         InterpreterCallFrame* const call_frame);
 
     static Object* uncommon_interpreter(STATE, VMMethod* const vmm,
-      CallFrame* const call_frame, int32_t entry_ip, native_int sp);
+      CallFrame* const call_frame, int32_t entry_ip, native_int sp,
+      CallFrame* const method_call_frame);
 
     void setup_argument_handler(CompiledMethod* meth);
 

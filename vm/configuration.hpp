@@ -30,6 +30,7 @@ namespace rubinius {
     config::Bool    jit_disabled;
     config::Bool    jit_debug;
     config::Bool    jit_sync;
+    config::Bool    jit_show_uncommon;
 
     // Query Agent
     config::Integer qa_port;
@@ -77,6 +78,7 @@ namespace rubinius {
       , jit_disabled(this,   "int")
       , jit_debug(this,      "jit.debug", false)
       , jit_sync(this,       "jit.sync", false)
+      , jit_show_uncommon(this, "jit.uncommon.print", false)
       , qa_port(this,         "agent.start")
       , qa_verbose(this,      "agent.verbose")
       , qa_tmpdir(this,       "agent.tmpdir")

@@ -2205,8 +2205,11 @@ end
 #   is called on +value1+, passing +value2+ as the argument.
 
 instruction meta_send_op_equal(literal) [ value1 value2 -- boolean ] => send
+  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+
   Object* t1 = stack_back(1);
   Object* t2 = stack_back(0);
+
   /* If both are not references, compare them directly. */
   if(!t1->reference_p() && !t2->reference_p()) {
     (void)stack_pop();
@@ -2215,7 +2218,6 @@ instruction meta_send_op_equal(literal) [ value1 value2 -- boolean ] => send
     flush_ip();
 
     Arguments out_args(t1, 1, stack_back_position(1));
-    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 

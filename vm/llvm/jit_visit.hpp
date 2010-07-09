@@ -587,50 +587,6 @@ namespace rubinius {
       sig << ObjArrayTy;
     }
 
-    Function* rbx_simple_send() {
-      if(rbx_simple_send_) return rbx_simple_send_;
-
-      Signature sig(ls_, ObjType);
-      add_send_args(sig);
-
-      rbx_simple_send_ = sig.function("rbx_simple_send");
-
-      return rbx_simple_send_;
-    }
-
-    Function* rbx_simple_send_private() {
-      if(rbx_simple_send_private_) return rbx_simple_send_private_;
-
-      Signature sig(ls_, ObjType);
-      add_send_args(sig);
-
-      rbx_simple_send_private_ = sig.function("rbx_simple_send");
-
-      return rbx_simple_send_private_;
-    }
-
-    Value* simple_send(Symbol* name, int args, bool priv=false) {
-      sends_done_++;
-      Function* func;
-      if(priv) {
-        func = rbx_simple_send_private();
-      } else {
-        func = rbx_simple_send();
-      }
-
-      Value* call_args[] = {
-        vm_,
-        call_frame_,
-        constant(name),
-        ConstantInt::get(ls_->IntPtrTy, args),
-        stack_objects(args + 1)
-      };
-
-      flush_ip();
-
-      return b().CreateCall(func, call_args, call_args+5, "simple_send");
-    }
-
     void setup_out_args(int args) {
       b().CreateStore(stack_back(args), out_args_recv_);
       b().CreateStore(constant(Qnil), out_args_block_);
@@ -777,49 +733,38 @@ namespace rubinius {
 
     void visit_meta_send_op_equal(opcode name) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(name);
-      if(cache->classes_seen() == 0) {
-        set_has_side_effects();
+      set_has_side_effects();
 
-        if(state()->config().jit_inline_debug) {
-          context().inline_log("inlining")
-            << "primitive fixnum_equal into "
-            << state()->symbol_cstr(vmmethod()->name())
-            << ".\n";
-        }
+      Value* recv = stack_back(1);
+      Value* arg =  stack_top();
 
-        Value* recv = stack_back(1);
-        Value* arg =  stack_top();
+      BasicBlock* fast = new_block("fast");
+      BasicBlock* dispatch = new_block("dispatch");
+      BasicBlock* cont = new_block();
 
-        BasicBlock* fast = new_block("fast");
-        BasicBlock* dispatch = new_block("dispatch");
-        BasicBlock* cont = new_block();
+      check_both_not_references(recv, arg, fast, dispatch);
 
-        check_both_not_references(recv, arg, fast, dispatch);
+      set_block(dispatch);
 
-        set_block(dispatch);
+      Value* called_value = inline_cache_send(1, cache);
+      check_for_exception_then(called_value, cont);
 
-        Value* called_value = simple_send(ls_->symbol("=="), 1);
-        check_for_exception_then(called_value, cont);
+      set_block(fast);
 
-        set_block(fast);
+      Value* cmp = b().CreateICmpEQ(recv, arg, "imm_cmp");
+      Value* imm_value = b().CreateSelect(cmp,
+          constant(Qtrue), constant(Qfalse), "select_bool");
 
-        Value* cmp = b().CreateICmpEQ(recv, arg, "imm_cmp");
-        Value* imm_value = b().CreateSelect(cmp,
-            constant(Qtrue), constant(Qfalse), "select_bool");
+      b().CreateBr(cont);
 
-        b().CreateBr(cont);
+      set_block(cont);
 
-        set_block(cont);
+      PHINode* phi = b().CreatePHI(ObjType, "equal_value");
+      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(imm_value, fast);
 
-        PHINode* phi = b().CreatePHI(ObjType, "equal_value");
-        phi->addIncoming(called_value, dispatch);
-        phi->addIncoming(imm_value, fast);
-
-        stack_remove(2);
-        stack_push(phi);
-      } else {
-        visit_send_stack(name, 1);
-      }
+      stack_remove(2);
+      stack_push(phi);
     }
 
     void visit_meta_send_op_tequal(opcode name) {
@@ -838,7 +783,7 @@ namespace rubinius {
 
         set_block(dispatch);
 
-        Value* called_value = simple_send(ls_->symbol("==="), 1);
+        Value* called_value = inline_cache_send(1, cache);
         check_for_exception_then(called_value, cont);
 
         set_block(fast);
@@ -858,7 +803,7 @@ namespace rubinius {
         stack_remove(2);
         stack_push(phi);
       } else {
-        visit_send_stack(name, 1);
+        invoke_inline_cache(cache, 1);
       }
     }
 
@@ -885,7 +830,7 @@ namespace rubinius {
 
         set_block(dispatch);
 
-        Value* called_value = simple_send(ls_->symbol("<"), 1);
+        Value* called_value = inline_cache_send(1, cache);
         check_for_exception_then(called_value, cont);
 
         set_block(fast);
@@ -905,7 +850,7 @@ namespace rubinius {
         stack_remove(2);
         stack_push(phi);
       } else {
-        visit_send_stack(name, 1);
+        invoke_inline_cache(cache, 1);
       }
     }
 
@@ -925,7 +870,7 @@ namespace rubinius {
 
         set_block(dispatch);
 
-        Value* called_value = simple_send(ls_->symbol(">"), 1);
+        Value* called_value = inline_cache_send(1, cache);
         check_for_exception_then(called_value, cont);
 
         set_block(fast);
@@ -945,7 +890,7 @@ namespace rubinius {
         stack_remove(2);
         stack_push(phi);
       } else {
-        visit_send_stack(name, 1);
+        invoke_inline_cache(cache, 1);
       }
     }
 
@@ -965,7 +910,7 @@ namespace rubinius {
 
         set_block(dispatch);
 
-        Value* called_value = simple_send(ls_->symbol("+"), 1);
+        Value* called_value = inline_cache_send(1, cache);
         check_for_exception_then(called_value, cont);
 
         set_block(fast);
@@ -1009,7 +954,7 @@ namespace rubinius {
         stack_remove(2);
         stack_push(phi);
       } else {
-        visit_send_stack(name, 1);
+        invoke_inline_cache(cache, 1);
       }
     }
 
@@ -1029,7 +974,7 @@ namespace rubinius {
 
         set_block(dispatch);
 
-        Value* called_value = simple_send(ls_->symbol("-"), 1);
+        Value* called_value = inline_cache_send(1, cache);
         check_for_exception_then(called_value, cont);
 
         set_block(fast);
@@ -1074,7 +1019,7 @@ namespace rubinius {
         stack_remove(2);
         stack_push(phi);
       } else {
-        visit_send_stack(name, 1);
+        invoke_inline_cache(cache, 1);
       }
     }
 
@@ -1293,10 +1238,13 @@ namespace rubinius {
         sig << "CallFrame";
         sig << ls_->Int32Ty;
         sig << ls_->IntPtrTy;
+        sig << "CallFrame";
 
-        Value* call_args[] = { vm_, call_frame_, cint(current_ip_), sp };
+        Value* root_callframe = info().top_parent_call_frame();
 
-        Value* call = sig.call("rbx_continue_uncommon", call_args, 4, "", b());
+        Value* call_args[] = { vm_, call_frame_, cint(current_ip_), sp, root_callframe };
+
+        Value* call = sig.call("rbx_continue_uncommon", call_args, 5, "", b());
 
         info().add_return_value(call, current_block());
         b().CreateBr(info().return_pad());
@@ -1373,6 +1321,17 @@ namespace rubinius {
       } else {
         stack_push(call);
       }
+    }
+
+    void invoke_inline_cache(InlineCache* cache, opcode args) {
+      set_has_side_effects();
+
+      Value* ret = inline_cache_send(args, cache);
+      stack_remove(args + 1);
+      check_for_exception(ret);
+      stack_push(ret);
+
+      allow_private_ = false;
     }
 
     void visit_send_stack(opcode which, opcode args) {
@@ -3090,7 +3049,7 @@ use_send:
         check_for_exception(val);
         stack_push(val);
       } else {
-        visit_send_stack(name, count);
+        invoke_inline_cache(cache, count);
       }
     }
 

@@ -280,6 +280,17 @@ namespace rubinius {
       return parent_info_;
     }
 
+    llvm::Value* top_parent_call_frame() {
+      if(!parent_info_) return call_frame();
+
+      JITMethodInfo* info = parent_info_;
+      while(info->parent_info()) {
+        info = info->parent_info();
+      }
+
+      return info->call_frame();
+    }
+
     bool for_inlined_method() {
       return parent_info_ != 0;
     }

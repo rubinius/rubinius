@@ -84,6 +84,7 @@ namespace rubinius {
     : parent_(NULL)
     , run(standard_interpreter)
     , type(NULL)
+    , uncommon_count(0)
     , number_of_caches_(0)
     , caches(0)
 #ifdef ENABLE_LLVM
@@ -613,14 +614,14 @@ namespace rubinius {
     // here. We let the CodeManager do that later, when we're sure
     // the llvm function is no longer used.
     llvm_function_ = 0;
+    jitted_impl_ = 0;
+    jitted_bytes_ = 0;
 
     // Remove any JIT data, which will be cleanup by the CodeManager
     // later.
     original->set_jit_data(0);
 
-    // Don't reset call_count if it's -1
-    // (why would it be -1, it shouldn't be if we got this far)
-    if(call_count >= 0) call_count = 0;
+    call_count = 0;
 #endif
   }
 

@@ -27,6 +27,7 @@
 #include "dispatch.hpp"
 #include "instructions.hpp"
 #include "instruments/profiler.hpp"
+#include "configuration.hpp"
 
 #include "helpers.hpp"
 #include "inline_cache.hpp"
@@ -54,16 +55,13 @@ using namespace rubinius;
 
 #define stack_position(where) (STACK_PTR = call_frame->stk + where)
 #define stack_calculate_sp() (STACK_PTR - call_frame->stk)
+#define stack_back_position(count) (STACK_PTR - (count - 1))
 
 #define stack_local(which) call_frame->stk[vmm->stack_size - which - 1]
 
 #define next_int ((opcode)(stream[call_frame->inc_ip()]))
 
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
-
-extern "C" {
-  Object* send_slowly(STATE, VMMethod* vmm, InterpreterCallFrame* const call_frame,
-                      Symbol* name, Object** stk_pos, size_t args);
 
 #define HANDLE_EXCEPTION(val) if(val == NULL) goto exception
 #define RUN_EXCEPTION() goto exception
@@ -73,20 +71,6 @@ extern "C" {
 
 #define SET_ALLOW_PRIVATE(val) is.allow_private = (val)
 #define ALLOW_PRIVATE() is.allow_private
-
-#define stack_back_position(count) (STACK_PTR - (count - 1))
-
-  Object* send_slowly(STATE, VMMethod* vmm, InterpreterCallFrame* const call_frame,
-                      Symbol* name, Object** stk_pos, size_t count)
-  {
-    Object* recv = stk_pos[0];
-    Arguments args(recv, count, stk_pos+1);
-    Dispatch dis(name);
-
-    return dis.send(state, call_frame, args);
-  }
-}
-
 
 Object* VMMethod::interpreter(STATE,
                               VMMethod* const vmm,
@@ -242,8 +226,26 @@ Object* VMMethod::uncommon_interpreter(STATE,
                                        VMMethod* const vmm,
                                        CallFrame* const call_frame,
                                        int32_t entry_ip,
-                                       native_int sp)
+                                       native_int sp,
+                                       CallFrame* const method_call_frame)
 {
+
+  VMMethod* method_vmm = method_call_frame->cm->backend_method();
+
+  // 500 is a number picked after doing some tuning on a specific benchmark.
+  // Not sure if it's the right value, but it seems to work fine.
+  if(++method_vmm->uncommon_count > 500) {
+    if(state->shared.config.jit_show_uncommon) {
+      std::cerr << "[[[ Deoptimizing uncommon method ]]]\n";
+      call_frame->print_backtrace(state);
+
+      std::cerr << "Method Call Frame:\n";
+      method_call_frame->print_backtrace(state);
+    }
+
+    method_vmm->uncommon_count = 0;
+    method_vmm->deoptimize(state, method_call_frame->cm);
+  }
 
 #include "vm/gen/instruction_locations.hpp"
 
