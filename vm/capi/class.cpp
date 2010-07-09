@@ -34,14 +34,6 @@ extern "C" {
     return env->get_handle(class_object->name()->to_str(env->state()));
   }
 
-  char* rb_class2name(VALUE class_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Class* class_object = c_as<Class>(env->get_object(class_handle));
-
-    String* str = class_object->name()->to_str(env->state());
-    return RSTRING_PTR(env->get_handle(str));
-  }
-
   VALUE rb_class_inherited(VALUE super_handle, VALUE class_handle)
   {
     if(!super_handle) super_handle = rb_cObject;

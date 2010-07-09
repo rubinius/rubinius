@@ -209,4 +209,12 @@ extern "C" {
     module->del_const(env->state(), reinterpret_cast<Symbol*>(name));
     return Qnil;
   }
+
+  char* rb_class2name(VALUE module_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Module* module_object = c_as<Module>(env->get_object(module_handle));
+
+    String* str = module_object->name()->to_str(env->state());
+    return RSTRING_PTR(env->get_handle(str));
+  }
 }
