@@ -132,6 +132,12 @@ static VALUE module_specs_rb_undef_method(VALUE self, VALUE cls, VALUE str_name)
 }
 #endif
 
+#ifdef HAVE_RB_CLASS2NAME
+static VALUE module_specs_rbclass2name(VALUE self, VALUE klass) {
+  return rb_str_new2(rb_class2name(klass));
+}
+#endif
+
 void Init_module_spec() {
   VALUE cls;
 
@@ -212,6 +218,10 @@ void Init_module_spec() {
 
 #ifdef HAVE_RB_UNDEF_METHOD
   rb_define_method(cls, "rb_undef_method", module_specs_rb_undef_method, 2);
+#endif
+
+#ifdef HAVE_RB_CLASS2NAME
+  rb_define_method(cls, "rb_class2name", module_specs_rbclass2name, 1);
 #endif
 }
 

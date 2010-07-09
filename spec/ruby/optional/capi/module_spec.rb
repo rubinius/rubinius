@@ -276,4 +276,10 @@ describe "CApiModule" do
       cls.should_not have_instance_method(:ruby_test_method)
     end
   end
+
+  describe "rb_class2name" do
+    it "returns the module name" do
+      @m.rb_class2name(CApiModuleSpecs::M).should == "CApiModuleSpecs::M"
+    end
+  end
 end
