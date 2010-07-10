@@ -36,11 +36,7 @@ class MSpecScript
   ]
 
   set :capi, [
-    'spec/capi',
-    '^spec/capi/globals',
-    '^spec/capi/module',
-    '^spec/capi/proc',
-    '^spec/capi/struct'
+    'spec/ruby/optional/capi'
   ]
 
   set :command_line, [ 'spec/command_line' ]
@@ -82,16 +78,11 @@ class MSpecScript
     'spec/language',
     'spec/compiler',
     'spec/command_line',
-    'spec/capi',
+    'spec/ruby/optional/capi',
     'spec/ruby/library',
     'spec/library',
 
     'spec/build',
-
-    # Excluded because these require access to raw C functions,
-    # which is not implemented at this time.
-    '^spec/capi/globals',
-    '^spec/capi/proc',
 
     # Excluded because the specs are extremely system dependent.
     '^spec/ruby/library/syslog',
