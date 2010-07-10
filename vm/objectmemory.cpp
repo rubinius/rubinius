@@ -537,6 +537,15 @@ namespace rubinius {
 
       if(fi->finalizer) {
         (*fi->finalizer)(state, fi->object);
+        // Unhook any handle used by fi->object so that we don't accidentally
+        // try and mark it later (after we've finalized it)
+        if(fi->object->inflated_header_p()) {
+          InflatedHeader* ih = fi->object->inflated_header();
+
+          if(capi::Handle* handle = ih->handle()) {
+            handle->free_data();
+          }
+        }
       } else {
         std::cerr << "Unsupported object to be finalized: "
                   << fi->object->to_s(state)->c_str() << "\n";
