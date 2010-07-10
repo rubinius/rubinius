@@ -56,6 +56,13 @@ VALUE kernel_spec_rb_raise(VALUE self, VALUE hash) {
 }
 #endif
 
+#ifdef HAVE_RB_THROW
+VALUE kernel_spec_rb_throw(VALUE self, VALUE result) {
+  rb_throw("foo", result);
+  return ID2SYM(rb_intern("broken"));
+}
+#endif
+
 #ifdef HAVE_RB_RESCUE
 VALUE kernel_spec_rb_rescue(VALUE self, VALUE main_proc, VALUE arg,
                             VALUE raise_proc, VALUE arg2) {
@@ -136,6 +143,10 @@ void Init_kernel_spec() {
 
 #ifdef HAVE_RB_RAISE
   rb_define_method(cls, "rb_raise", kernel_spec_rb_raise, 1);
+#endif
+
+#ifdef HAVE_RB_THROW
+  rb_define_method(cls, "rb_throw", kernel_spec_rb_throw, 1);
 #endif
 
 #ifdef HAVE_RB_RESCUE

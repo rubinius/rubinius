@@ -29,6 +29,26 @@ describe "C-API Kernel function" do
     end
   end
 
+  describe "rb_throw" do
+    it "sets the return value of the catch block to the specified value" do
+      res = catch :foo do
+        @s.rb_throw(:return_value)
+      end
+      res.should == :return_value
+    end
+
+    it "terminates the function at the point it was called" do
+      catch(:foo) do
+        @s.rb_throw(nil)
+        fail("throw didn't transfer control")
+      end.should_not == :broken
+    end
+
+    it "raises a NameError if there is no catch block for the symbol" do
+      lambda { @s.rb_throw(nil) }.should raise_error(NameError)
+    end
+  end
+
   describe "rb_warn" do
     before :each do
       @stderr, $stderr = $stderr, IOStub.new
