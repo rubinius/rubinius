@@ -513,10 +513,12 @@ module Rubinius
         i += 2
       end
 
-      tup = Tuple.create(fin + 2)
+      tup = Tuple.new(fin + 2)
       tup.copy_from @metadata, 0, fin, 0
       tup[fin] = key
       tup[fin + 1] = val
+
+      @metadata = tup
 
       return val
     end
