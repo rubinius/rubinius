@@ -85,6 +85,10 @@ namespace rubinius {
         return object_;
       }
 
+      bool in_use_p() {
+        return object_ != 0;
+      }
+
       void set_object(Object* obj) {
         object_ = obj;
       }
@@ -134,6 +138,11 @@ namespace rubinius {
 
       HandleType type() {
          return type_;
+      }
+
+      void forget_object() {
+        free_data();
+        object_ = 0;
       }
 
       RArray* as_rarray(NativeMethodEnvironment* env);

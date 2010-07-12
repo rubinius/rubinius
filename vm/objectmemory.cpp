@@ -259,6 +259,8 @@ namespace rubinius {
       current = handle;
       handle = static_cast<capi::Handle*>(handle->next());
 
+      if(!handle->in_use_p()) continue;
+
       Object* obj = current->object();
 
       assert(obj->inflated_header_p());
@@ -283,6 +285,13 @@ namespace rubinius {
 
       Object* obj = current->object();
       total++;
+
+      if(!current->in_use_p()) {
+        count++;
+        handles->remove(current);
+        delete current;
+        continue;
+      }
 
       // Strong references will already have been updated.
       if(!current->weak_p()) {
@@ -543,7 +552,8 @@ namespace rubinius {
           InflatedHeader* ih = fi->object->inflated_header();
 
           if(capi::Handle* handle = ih->handle()) {
-            handle->free_data();
+            handle->forget_object();
+            ih->set_handle(0);
           }
         }
       } else {

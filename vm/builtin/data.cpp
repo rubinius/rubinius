@@ -53,7 +53,7 @@ namespace rubinius {
     InflatedHeader* ih = state->om->inflate_header(this);
     capi::Handle* handle = ih->handle();
 
-    assert(handle && "invalid initialized Data object");
+    assert(handle && handle->is_rdata() && "invalid initialized Data object");
 
     return reinterpret_cast<RDataShadow*>(handle->as_rdata(0));
   }
