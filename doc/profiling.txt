@@ -160,7 +160,7 @@ output.
 
 The graph output is enabled with the configuration option:
 
-    -Xrbx.profiler.graph
+    -Xprofiler.graph
 
 Given the same script above, the graph output is shown below. Each "entry" in
 the graph has three sections: 1) the method for the entry, called the
