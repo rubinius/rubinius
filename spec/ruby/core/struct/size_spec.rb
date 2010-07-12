@@ -3,6 +3,6 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Struct#size" do
   it "is a synonym for length" do
-    Struct::Car.new.size.should == Struct::Car.new.length
+    StructClasses::Car.new.size.should == StructClasses::Car.new.length
   end
 end

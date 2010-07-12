@@ -3,7 +3,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Struct#[]=" do
   it "assigns the passed value" do
-    car = Struct::Car.new('Ford', 'Ranger')
+    car = StructClasses::Car.new('Ford', 'Ranger')
 
     car[:model] = 'Escape'
     car[:model].should == 'Escape'
@@ -19,7 +19,7 @@ describe "Struct#[]=" do
   end
 
   it "fails when trying to assign attributes which don't exist" do
-    car = Struct::Car.new('Ford', 'Ranger')
+    car = StructClasses::Car.new('Ford', 'Ranger')
 
     lambda { car[:something] = true }.should raise_error(NameError)
     lambda { car[3] = true          }.should raise_error(IndexError)

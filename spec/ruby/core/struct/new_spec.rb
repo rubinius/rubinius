@@ -57,8 +57,8 @@ describe "Struct.new" do
   end
 
   it "does not create a constant with symbol as first argument" do
-    struct = Struct.new(:Animal, :name, :legs, :eyeballs)
-    struct.should_not == Struct::Animal
+    struct = Struct.new(:Animal2, :name, :legs, :eyeballs)
+    Struct.const_defined?("Animal2").should be_false
   end
 
 
@@ -113,25 +113,25 @@ describe "Struct.new" do
   end
 
   it "creates a constant in subclass' namespace" do
-    struct = Apple.new('Computer', :size)
-    struct.should == Apple::Computer
+    struct = StructClasses::Apple.new('Computer', :size)
+    struct.should == StructClasses::Apple::Computer
   end
 
   it "creates an instance" do
-    Struct::Ruby.new.kind_of?(Struct::Ruby).should == true
+    StructClasses::Ruby.new.kind_of?(StructClasses::Ruby).should == true
   end
 
   it "creates reader methods" do
-    Struct::Ruby.new.should have_method(:version)
-    Struct::Ruby.new.should have_method(:platform)
+    StructClasses::Ruby.new.should have_method(:version)
+    StructClasses::Ruby.new.should have_method(:platform)
   end
 
   it "creates writer methods" do
-    Struct::Ruby.new.should have_method(:version=)
-    Struct::Ruby.new.should have_method(:platform=)
+    StructClasses::Ruby.new.should have_method(:version=)
+    StructClasses::Ruby.new.should have_method(:platform=)
   end
 
   it "fails with too many arguments" do
-    lambda { Struct::Ruby.new('2.0', 'i686', true) }.should raise_error(ArgumentError)
+    lambda { StructClasses::Ruby.new('2.0', 'i686', true) }.should raise_error(ArgumentError)
   end
 end

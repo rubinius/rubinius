@@ -3,13 +3,13 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Struct[]" do
   it "is a synonym for new" do
-    Struct::Ruby['2.0', 'i686'].should be_kind_of(Struct::Ruby)
+    StructClasses::Ruby['2.0', 'i686'].should be_kind_of(StructClasses::Ruby)
   end
 end
 
 describe "Struct#[]" do
   it "returns the attribute referenced" do
-    car = Struct::Car.new('Ford', 'Ranger', 1983)
+    car = StructClasses::Car.new('Ford', 'Ranger', 1983)
     car['make'].should == 'Ford'
     car['model'].should == 'Ranger'
     car['year'].should == 1983
@@ -25,7 +25,7 @@ describe "Struct#[]" do
   end
 
   it "fails when it does not know about the requested attribute" do
-    car = Struct::Car.new('Ford', 'Ranger')
+    car = StructClasses::Car.new('Ford', 'Ranger')
     lambda { car[3]        }.should raise_error(IndexError)
     lambda { car[-4]       }.should raise_error(IndexError)
     lambda { car[:body]    }.should raise_error(NameError)
@@ -33,12 +33,12 @@ describe "Struct#[]" do
   end
 
   it "fails if passed too many arguments" do
-    car = Struct::Car.new('Ford', 'Ranger')
+    car = StructClasses::Car.new('Ford', 'Ranger')
     lambda { car[:make, :model] }.should raise_error(ArgumentError)
   end
 
   it "fails if not passed a string, symbol, or integer" do
-    car = Struct::Car.new('Ford', 'Ranger')
+    car = StructClasses::Car.new('Ford', 'Ranger')
     lambda { car[Object.new] }.should raise_error(TypeError)
   end
 end

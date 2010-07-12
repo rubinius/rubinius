@@ -10,7 +10,7 @@ describe "Struct#values_at" do
   end
 
   it "fails when passed unsupported types" do
-    car = Struct::Car.new('Ford', 'Ranger')
+    car = StructClasses::Car.new('Ford', 'Ranger')
     lambda { car.values_at('make') }.should raise_error(TypeError)
   end
 end
