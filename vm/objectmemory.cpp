@@ -556,6 +556,11 @@ namespace rubinius {
             ih->set_handle(0);
           }
         }
+
+        // If the object was remembered, unremember it.
+        if(fi->object->remembered_p()) {
+          unremember_object(fi->object);
+        }
       } else {
         std::cerr << "Unsupported object to be finalized: "
                   << fi->object->to_s(state)->c_str() << "\n";
