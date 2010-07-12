@@ -333,26 +333,39 @@ namespace rubinius {
         i != object_memory_->finalize().end(); ) {
       FinalizeObject& fi = *i;
 
+      bool remove = false;
+
       switch(i->status) {
       case FinalizeObject::eLive:
         if(!i->object->marked_p(object_memory_->mark())) {
-          i->queued();
-          object_memory_->to_finalize().push_back(&fi);
-        }
+          // Run C finalizers now rather that queue them.
+          if(i->finalizer) {
+            (*i->finalizer)(state(), i->object);
+            i->status = FinalizeObject::eFinalized;
+            remove = true;
+          } else {
+            i->queued();
+            object_memory_->to_finalize().push_back(&fi);
 
-        // We have to still keep it alive though until we finish with it.
-        i->object = saw_object(i->object);
+            // We have to still keep it alive though until we finish with it.
+            i->object = saw_object(i->object);
+          }
+        } else {
+          // Update the reference
+          i->object = saw_object(i->object);
+        }
 
         break;
       case FinalizeObject::eQueued:
         // Nothing, we haven't gotten to it yet.
         // Keep waiting and keep i->object updated.
         i->object = saw_object(i->object);
+        i->queue_count++;
         break;
       case FinalizeObject::eFinalized:
         if(!i->object->marked_p(object_memory_->mark())) {
           // finalized and done with.
-          i = object_memory_->finalize().erase(i);
+          remove = true;
           continue;
         } else {
           // RESURECTION!
@@ -362,9 +375,12 @@ namespace rubinius {
         break;
       }
 
-      i++;
+      if(remove) {
+        i = object_memory_->finalize().erase(i);
+      } else {
+        i++;
+      }
     }
-
   }
 
 }

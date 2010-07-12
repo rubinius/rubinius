@@ -1,5 +1,6 @@
 namespace rubinius {
 
+  class Object;
   typedef void (*FinalizerFunction)(STATE, Object*);
 
   struct FinalizeObject {

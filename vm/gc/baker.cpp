@@ -375,18 +375,27 @@ namespace rubinius {
         switch(i->status) {
         case FinalizeObject::eLive:
           if(!i->object->forwarded_p()) {
-            i->queued();
-            object_memory_->to_finalize().push_back(&fi);
-          }
+            // Run C finalizers now rather that queue them.
+            if(i->finalizer) {
+              (*i->finalizer)(state(), i->object);
+              i->status = FinalizeObject::eFinalized;
+              remove = true;
+            } else {
+              i->queued();
+              object_memory_->to_finalize().push_back(&fi);
 
-          // We have to still keep it alive though until we finish with it.
-          i->object = saw_object(orig);
+              // We need to keep it alive still.
+              i->object = saw_object(orig);
+            }
+          } else {
+            // Still alive, update the reference.
+            i->object = saw_object(orig);
+          }
           break;
         case FinalizeObject::eQueued:
           // Nothing, we haven't gotten to it yet.
           // Keep waiting and keep i->object updated.
           i->object = saw_object(i->object);
-
           i->queue_count++;
           break;
         case FinalizeObject::eFinalized:
@@ -396,6 +405,7 @@ namespace rubinius {
           } else {
             // RESURECTION!
             i->queued();
+            i->object = saw_object(i->object);
           }
           break;
         }
