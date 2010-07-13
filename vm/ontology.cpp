@@ -367,13 +367,11 @@ namespace rubinius {
     G(rubinius)->set_const(state, "VENDOR", String::create(state, RBX_VENDOR));
     G(rubinius)->set_const(state, "OS", String::create(state, RBX_OS));
 
-    // Crazy? yep.
-    int one = 1;
-    if(*((char*)&one) == 1) {
-      G(rubinius)->set_const(state, "ENDIAN", symbol("little"));
-    } else {
-      G(rubinius)->set_const(state, "ENDIAN", symbol("big"));
-    }
+#ifdef RBX_LITTLE_ENDIAN
+    G(rubinius)->set_const(state, "ENDIAN", symbol("little"));
+#else
+    G(rubinius)->set_const(state, "ENDIAN", symbol("big"));
+#endif
 
     // Used in Array.pack
     G(rubinius)->set_const(state, "SIZEOF_SHORT", Fixnum::from(sizeof(short)));
