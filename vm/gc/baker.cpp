@@ -423,7 +423,7 @@ namespace rubinius {
             // finalized and done with.
             remove = true;
           } else {
-            // RESURECTION!
+            // RESURRECTION!
             i->queued();
             i->object = saw_object(i->object);
           }

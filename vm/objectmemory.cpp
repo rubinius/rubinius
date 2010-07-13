@@ -562,7 +562,15 @@ namespace rubinius {
     FinalizeObject fi;
     fi.object = obj;
     fi.status = FinalizeObject::eLive;
-    fi.ruby_finalizer = fin;
+
+    // Rubinius specific API. If the finalizer is the object, we're going to send
+    // the object __finalize__. We mark that the user wants this by putting Qtrue
+    // as the ruby_finalizer.
+    if(obj == fin) {
+      fi.ruby_finalizer = Qtrue;
+    } else {
+      fi.ruby_finalizer = fin;
+    }
 
     // Makes a copy of fi.
     finalize_.push_back(fi);
@@ -594,12 +602,18 @@ namespace rubinius {
           unremember_object(fi->object);
         }
       } else if(fi->ruby_finalizer) {
-        Array* ary = Array::create(state, 1);
-        ary->set(state, 0, fi->object->id(state));
+        // Rubinius specific code. If the finalizer is Qtrue, then
+        // send the object the finalize message
+        if(fi->ruby_finalizer == Qtrue) {
+          fi->object->send(state, call_frame, state->symbol("__finalize__"), true);
+        } else {
+          Array* ary = Array::create(state, 1);
+          ary->set(state, 0, fi->object->id(state));
 
-        OnStack<1> os(state, ary);
+          OnStack<1> os(state, ary);
 
-        fi->ruby_finalizer->send(state, call_frame, state->symbol("call"), ary, Qnil, true);
+          fi->ruby_finalizer->send(state, call_frame, state->symbol("call"), ary, Qnil, true);
+        }
       } else {
         std::cerr << "Unsupported object to be finalized: "
                   << fi->object->to_s(state)->c_str() << "\n";
@@ -627,12 +641,18 @@ namespace rubinius {
         if(fi.finalizer) {
           (*fi.finalizer)(state, fi.object);
         } else if(fi.ruby_finalizer) {
-          Array* ary = Array::create(state, 1);
-          ary->set(state, 0, fi.object->id(state));
+          // Rubinius specific code. If the finalizer is Qtrue, then
+          // send the object the finalize message
+          if(fi.ruby_finalizer == Qtrue) {
+            fi.object->send(state, 0, state->symbol("__finalize__"), true);
+          } else {
+            Array* ary = Array::create(state, 1);
+            ary->set(state, 0, fi.object->id(state));
 
-          OnStack<1> os(state, ary);
+            OnStack<1> os(state, ary);
 
-          fi.ruby_finalizer->send(state, 0, state->symbol("call"), ary, Qnil, true);
+            fi.ruby_finalizer->send(state, 0, state->symbol("call"), ary, Qnil, true);
+          }
         } else {
           std::cerr << "During shutdown, unsupported object to be finalized: "
                     << fi.object->to_s(state)->c_str() << "\n";

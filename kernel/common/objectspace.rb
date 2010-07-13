@@ -47,7 +47,13 @@ module ObjectSpace
   def self.define_finalizer(obj, prc=nil, &block)
     prc ||= block
 
-    if prc.nil? or !prc.respond_to?(:call)
+    if obj.equal? prc
+      # This is allowed. This is the Rubinius specific API that calls
+      # __finalize__ when the object is finalized.
+    elsif !prc and obj.respond_to?(:__finalize__)
+      # Allowed. Same thing as above
+      prc = obj
+    elsif !prc or !prc.respond_to?(:call)
       raise ArgumentError, "action must respond to call"
     end
 
