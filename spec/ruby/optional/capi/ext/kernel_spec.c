@@ -59,7 +59,7 @@ VALUE kernel_spec_rb_raise(VALUE self, VALUE hash) {
 #ifdef HAVE_RB_THROW
 VALUE kernel_spec_rb_throw(VALUE self, VALUE result) {
   rb_throw("foo", result);
-  return ID2SYM(rb_intern("broken"));
+  return ID2SYM(rb_intern("rb_throw_failed"));
 }
 #endif
 

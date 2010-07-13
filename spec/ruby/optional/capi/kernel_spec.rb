@@ -30,18 +30,23 @@ describe "C-API Kernel function" do
   end
 
   describe "rb_throw" do
+    before :each do
+      ScratchPad.record []
+    end
+
     it "sets the return value of the catch block to the specified value" do
-      res = catch :foo do
+      catch(:foo) do
         @s.rb_throw(:return_value)
-      end
-      res.should == :return_value
+      end.should == :return_value
     end
 
     it "terminates the function at the point it was called" do
       catch(:foo) do
-        @s.rb_throw(nil)
-        fail("throw didn't transfer control")
-      end.should_not == :broken
+        ScratchPad << :before_throw
+        @s.rb_throw(:thrown_value)
+        ScratchPad << :after_throw
+      end.should == :thrown_value
+      ScratchPad.recorded.should == [:before_throw]
     end
 
     it "raises a NameError if there is no catch block for the symbol" do
