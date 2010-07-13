@@ -82,6 +82,7 @@ namespace rubinius {
 
     std::list<gc::WriteBarrier*> aux_barriers_;
     size_t slab_size_;
+    bool running_finalizers_;
 
   public:
     bool collect_young_now;
@@ -146,6 +147,10 @@ namespace rubinius {
       return aux_barriers_;
     }
 
+    bool running_finalizers() {
+      return running_finalizers_;
+    }
+
   public:
     ObjectMemory(STATE, Configuration& config);
     ~ObjectMemory();
@@ -208,7 +213,8 @@ namespace rubinius {
     int mature_bytes_allocated();
 
     void needs_finalization(Object* obj, FinalizerFunction func);
-    void run_finalizers(STATE);
+    void set_ruby_finalizer(Object* obj, Object* fin);
+    void run_finalizers(STATE, CallFrame* call_frame);
     void run_all_finalizers(STATE);
 
     void find_referers(Object* obj, ObjectArray& result);

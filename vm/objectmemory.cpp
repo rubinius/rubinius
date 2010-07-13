@@ -8,6 +8,7 @@
 #include "gc/immix.hpp"
 #include "gc/inflated_headers.hpp"
 #include "gc/walker.hpp"
+#include "on_stack.hpp"
 
 #include "config_parser.hpp"
 
@@ -21,6 +22,7 @@
 #include "builtin/ffi_pointer.hpp"
 #include "builtin/data.hpp"
 #include "builtin/dir.hpp"
+#include "builtin/array.hpp"
 
 #include "capi/handle.hpp"
 #include "configuration.hpp"
@@ -41,6 +43,7 @@ namespace rubinius {
     , code_manager_(&state->shared)
     , allow_gc_(true)
     , slab_size_(4096)
+    , running_finalizers_(false)
 
     , collect_young_now(false)
     , collect_mature_now(false)
@@ -539,7 +542,36 @@ namespace rubinius {
     finalize_.push_back(fi);
   }
 
-  void ObjectMemory::run_finalizers(STATE) {
+  void ObjectMemory::set_ruby_finalizer(Object* obj, Object* fin) {
+    // See if there already one.
+    for(std::list<FinalizeObject>::iterator i = finalize_.begin();
+        i != finalize_.end(); i++)
+    {
+      if(i->object == obj) {
+        if(fin->nil_p()) {
+          finalize_.erase(i);
+        } else {
+          i->ruby_finalizer = fin;
+        }
+        return;
+      }
+    }
+
+    // Ok, create it.
+
+    FinalizeObject fi;
+    fi.object = obj;
+    fi.status = FinalizeObject::eLive;
+    fi.ruby_finalizer = fin;
+
+    // Makes a copy of fi.
+    finalize_.push_back(fi);
+  }
+
+  void ObjectMemory::run_finalizers(STATE, CallFrame* call_frame) {
+    if(running_finalizers_) return;
+    running_finalizers_ = true;
+
     for(std::list<FinalizeObject*>::iterator i = to_finalize_.begin();
         i != to_finalize_.end(); ) {
       FinalizeObject* fi = *i;
@@ -561,6 +593,13 @@ namespace rubinius {
         if(fi->object->remembered_p()) {
           unremember_object(fi->object);
         }
+      } else if(fi->ruby_finalizer) {
+        Array* ary = Array::create(state, 1);
+        ary->set(state, 0, fi->object->id(state));
+
+        OnStack<1> os(state, ary);
+
+        fi->ruby_finalizer->send(state, call_frame, state->symbol("call"), ary, Qnil, true);
       } else {
         std::cerr << "Unsupported object to be finalized: "
                   << fi->object->to_s(state)->c_str() << "\n";
@@ -570,9 +609,14 @@ namespace rubinius {
 
       i = to_finalize_.erase(i);
     }
+
+    running_finalizers_ = false;
   }
 
   void ObjectMemory::run_all_finalizers(STATE) {
+    if(running_finalizers_) return;
+    running_finalizers_ = true;
+
     for(std::list<FinalizeObject>::iterator i = finalize_.begin();
         i != finalize_.end(); )
     {
@@ -582,6 +626,13 @@ namespace rubinius {
       if(fi.status != FinalizeObject::eFinalized) {
         if(fi.finalizer) {
           (*fi.finalizer)(state, fi.object);
+        } else if(fi.ruby_finalizer) {
+          Array* ary = Array::create(state, 1);
+          ary->set(state, 0, fi.object->id(state));
+
+          OnStack<1> os(state, ary);
+
+          fi.ruby_finalizer->send(state, 0, state->symbol("call"), ary, Qnil, true);
         } else {
           std::cerr << "During shutdown, unsupported object to be finalized: "
                     << fi.object->to_s(state)->c_str() << "\n";
@@ -592,6 +643,8 @@ namespace rubinius {
 
       i = finalize_.erase(i);
     }
+
+    running_finalizers_ = false;
   }
 
   size_t& ObjectMemory::loe_usage() {

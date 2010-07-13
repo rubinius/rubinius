@@ -894,4 +894,9 @@ namespace rubinius {
     // dup the descriptor so the lifetime of socket is properly controlled.
     return IO::create(state, dup(sock));
   }
+
+  Object* System::vm_set_finalizer(STATE, Object* obj, Object* fin) {
+    state->om->set_ruby_finalizer(obj, fin);
+    return obj;
+  }
 }

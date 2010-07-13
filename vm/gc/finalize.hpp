@@ -15,12 +15,14 @@ namespace rubinius {
     FinalizeObject()
       : queue_count(0)
       , finalizer(0)
+      , ruby_finalizer(0)
     {}
 
     Object* object;
     FinalizationStatus status;
     int queue_count;
     FinalizerFunction finalizer;
+    Object* ruby_finalizer;
 
     void queued() {
       status = eQueued;

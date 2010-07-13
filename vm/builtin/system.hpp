@@ -265,6 +265,9 @@ namespace rubinius {
     // Ruby.primitive :vm_dump_heap
     static Object* vm_dump_heap(STATE, String* path);
 
+    // Ruby.primitive :vm_set_finalizer
+    static Object* vm_set_finalizer(STATE, Object* obj, Object* fin);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

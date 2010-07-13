@@ -325,7 +325,7 @@ namespace rubinius {
     om->collect_young(gc_data);
     om->collect_mature(gc_data);
 
-    om->run_finalizers(this);
+    om->run_finalizers(this, call_frame);
   }
 
   void VM::collect_maybe(CallFrame* call_frame) {
@@ -408,12 +408,12 @@ namespace rubinius {
 #ifdef RBX_PROFILER
       if(unlikely(shared.profiling())) {
         profiler::MethodEntry method(this, profiler::kMatureGC);
-        om->run_finalizers(this);
+        om->run_finalizers(this, call_frame);
       } else {
-        om->run_finalizers(this);
+        om->run_finalizers(this, call_frame);
       }
 #else
-      om->run_finalizers(this);
+      om->run_finalizers(this, call_frame);
 #endif
   }
 

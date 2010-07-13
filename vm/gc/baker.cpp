@@ -363,10 +363,30 @@ namespace rubinius {
   }
 
   void BakerGC::check_finalize() {
+    // If finalizers are running right now, just fixup any finalizer references
+    if(object_memory_->running_finalizers()) {
+      for(std::list<FinalizeObject>::iterator i = object_memory_->finalize().begin();
+          i != object_memory_->finalize().end();
+          i++) {
+        if(i->object) {
+          i->object = saw_object(i->object);
+        }
+
+        if(i->ruby_finalizer) {
+          i->ruby_finalizer = saw_object(i->ruby_finalizer);
+        }
+      }
+      return;
+    }
+
     for(std::list<FinalizeObject>::iterator i = object_memory_->finalize().begin();
         i != object_memory_->finalize().end(); )
     {
       FinalizeObject& fi = *i;
+
+      if(i->ruby_finalizer) {
+        i->ruby_finalizer = saw_object(i->ruby_finalizer);
+      }
 
       bool remove = false;
 
