@@ -121,8 +121,7 @@ use_packed:
             obj->init_header(this, YoungObjectZone, PackedObject::type);
           } else {
             obj = reinterpret_cast<PackedObject*>(
-                state->om->new_object_fast(this,
-                  type_info_->instance_size, PackedObject::type));
+                state->om->new_object_fast(this, size, PackedObject::type));
           }
         } else {
           state->shared.om->collect_young_now = true;
@@ -141,8 +140,7 @@ use_packed:
             obj->init_header(self, YoungObjectZone, PackedObject::type);
           } else {
             obj = reinterpret_cast<PackedObject*>(
-                state->om->new_object_fast(self,
-                  self->type_info_->instance_size, PackedObject::type));
+                state->om->new_object_fast(self, size, PackedObject::type));
           }
         }
       }
