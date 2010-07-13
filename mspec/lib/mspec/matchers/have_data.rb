@@ -2,8 +2,9 @@ require 'mspec/guards/feature'
 require 'mspec/helpers/fmode'
 
 class HaveDataMatcher
-  def initialize(data)
+  def initialize(data, mode="rb:binary")
     @data = data
+    @mode = mode
   end
 
   def matches?(name)
@@ -15,7 +16,7 @@ class HaveDataMatcher
       size = @data.size
     end
 
-    File.open @name, fmode("rb:binary") do |f|
+    File.open @name, fmode(@mode) do |f|
       return f.read(size) == @data
     end
   end
@@ -42,7 +43,7 @@ class Object
   # passes if the file @name has "123" as the first 3 bytes. The
   # file can contain more bytes than +data+. The extra bytes do not
   # affect the result.
-  def have_data(data)
-    HaveDataMatcher.new(data)
+  def have_data(data, mode="rb:binary")
+    HaveDataMatcher.new(data, mode)
   end
 end

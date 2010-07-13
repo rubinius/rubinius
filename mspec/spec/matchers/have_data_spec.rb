@@ -26,11 +26,14 @@ describe HaveDataMatcher do
 
   it "does not match when the named file begins with fewer bytes than data" do
     HaveDataMatcher.new("123abcPQR").matches?(@name).should be_false
-
   end
 
   it "does not match when the named file begins with different bytes than data" do
     HaveDataMatcher.new("abc1").matches?(@name).should be_false
+  end
+
+  it "accepts an optional mode argument to open the data file" do
+    HaveDataMatcher.new("123a", "r").matches?(@name).should be_true
   end
 
   it "provides a useful failure message" do
