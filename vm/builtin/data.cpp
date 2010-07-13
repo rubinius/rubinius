@@ -72,7 +72,16 @@ namespace rubinius {
 
   void Data::finalize(STATE, Data* data) {
     Data::FreeFunctor f = data->free(state);
-    if(f) f(data->data(state));
+    if(f) {
+      // If the user specifies -1, then we call free. We check here rather
+      // than when Data_Make_Struct is called because the user is allowed to
+      // change dfree.
+      if(reinterpret_cast<intptr_t>(f) == -1) {
+        ::free(data->data(state));
+      } else {
+        f(data->data(state));
+      }
+    }
   }
 
   void Data::Info::mark(Object* t, ObjectMark& mark) {
