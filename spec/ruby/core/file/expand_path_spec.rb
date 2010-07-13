@@ -155,20 +155,20 @@ describe "File.expand_path" do
 
   it "does not modify the string argument" do
     str = "./a/b/../c"
-    File.expand_path(str, "/dir").should == "/dir/a/c"
+    File.expand_path(str, @base).should == "#{@base}/a/c"
     str.should == "./a/b/../c"
   end
 
   it "does not modify a HOME string argument" do
     str = "~/a"
-    File.expand_path(str).should == "#{home_directory}/a"
+    File.expand_path(str).should == "#{home_directory.tr('\\', '/')}/a"
     str.should == "~/a"
   end
 
   it "returns a String when passed a String subclass" do
     str = FileSpecs::SubString.new "./a/b/../c"
-    path = File.expand_path(str, "/dir")
-    path.should == "/dir/a/c"
+    path = File.expand_path(str, @base)
+    path.should == "#{@base}/a/c"
     path.should be_an_instance_of(String)
   end
 end

@@ -467,12 +467,12 @@ describe "The defined? keyword for an expression" do
         defined?(@@defined_specs_undefined_class_variable or true).should == "expression"
       end
 
-      it "does not call a method in an '&&' expression and returns 'expression'" do
+      it "does not call a method in an '||' expression and returns 'expression'" do
         defined?(DefinedSpecs.side_effects || true).should == "expression"
         ScratchPad.recorded.should be_nil
       end
 
-      it "does not call a method in an 'and' expression and returns 'expression'" do
+      it "does not call a method in an 'or' expression and returns 'expression'" do
         defined?(DefinedSpecs.side_effects or true).should == "expression"
         ScratchPad.recorded.should be_nil
       end

@@ -60,11 +60,20 @@ ruby_version_is "1.9" do
       @a.respond_to?(:pub_method, true).should be_true
     end
 
-    it "isn't called when obj responds to the given protected method" do
-      @a.should_not_receive(:respond_to_missing?)
-      @a.respond_to?(:protected_method, false).should be_true
+    ruby_version_is ""..."1.9.3" do
+      it "isn't called when obj responds to the given protected method, include_private = false" do
+        @a.should_not_receive(:respond_to_missing?)
+        @a.respond_to?(:protected_method, false).should be_true
+      end
     end
-    
+
+    ruby_version_is "1.9.3" do
+      it "is called when obj responds to the given protected method, include_private = false" do
+        @a.should_receive(:respond_to_missing?).with(:protected_method, false)
+        @a.respond_to?(:protected_method, false).should be_false
+      end
+    end
+
     it "isn't called when obj responds to the given protected method, include_private = true" do 
       @a.should_not_receive(:respond_to_missing?)
       @a.respond_to?(:protected_method, true).should be_true

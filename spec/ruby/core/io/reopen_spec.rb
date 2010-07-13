@@ -96,14 +96,16 @@ describe "IO#reopen with a String" do
     @io.gets.should == "Line 1: One\n"
   end
 
-  it "passes all mode flags through" do
-    @io.reopen(@name, "ab")
-    (@io.fcntl(Fcntl::F_GETFL) & File::APPEND).should == File::APPEND
+  platform_is_not :windows do
+    it "passes all mode flags through" do
+      @io.reopen(@name, "ab")
+      (@io.fcntl(Fcntl::F_GETFL) & File::APPEND).should == File::APPEND
+    end
   end
 
   it "effects exec/system/fork performed after it" do
-    ruby_exe("STDOUT.reopen('#{@tmp_file}'); system 'echo \"from system\"'; exec 'echo \"from exec\"'")
-    File.read(@tmp_file).should == "from system\nfrom exec\n"
+    ruby_exe fixture(__FILE__, "reopen_stdout.rb"), :args => @tmp_file
+    @tmp_file.should have_data("from system\nfrom exec", "r")
   end
 
   ruby_version_is "1.9" do

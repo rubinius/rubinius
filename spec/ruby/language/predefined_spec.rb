@@ -411,6 +411,24 @@ describe "Global variable $?" do
   end
 end
 
+describe "Global variable $-a" do
+  it "is read-only" do
+    lambda { $-a = true }.should raise_error(NameError)
+  end
+end
+
+describe "Global variable $-l" do
+  it "is read-only" do
+    lambda { $-l = true }.should raise_error(NameError)
+  end
+end
+
+describe "Global variable $-p" do
+  it "is read-only" do
+    lambda { $-p = true }.should raise_error(NameError)
+  end
+end
+
 =begin
 Standard Objects 
 ---------------------------------------------------------------------------------------------------

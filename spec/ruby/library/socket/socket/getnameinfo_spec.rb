@@ -18,7 +18,7 @@ describe "Socket#getnameinfo" do
     name_info = Socket.getnameinfo(sockaddr, Socket::NI_NUMERICHOST | Socket::NI_NUMERICSERV)
     name_info.should == ['127.0.0.1', "#{SocketSpecs.port}"]
   end
-
+  
   it "gets the name information and resolve the host" do
     sockaddr = Socket.sockaddr_in SocketSpecs.port, '127.0.0.1'
     name_info = Socket.getnameinfo(sockaddr, Socket::NI_NUMERICSERV)
@@ -33,4 +33,25 @@ describe "Socket#getnameinfo" do
     # see http://www.iana.org/assignments/port-numbers
     name_info[1].should =~ /^(www|http|www-http)$/
   end
+  
+  it "gets a 3-element array and doesn't resolve hostname" do
+    name_info = Socket.getnameinfo(["AF_INET", SocketSpecs.port, '127.0.0.1'], Socket::NI_NUMERICHOST | Socket::NI_NUMERICSERV)
+    name_info.should == ['127.0.0.1', "#{SocketSpecs.port}"]
+  end
+
+  it "gets a 3-element array and esolves the service" do
+    name_info = Socket.getnameinfo ["AF_INET", 80, '127.0.0.1']
+    name_info[1].should =~ /^(www|http|www-http)$/
+  end
+  
+  it "gets a 4-element array and doesn't resolve hostname" do
+    name_info = Socket.getnameinfo(["AF_INET", SocketSpecs.port, 'foo', '127.0.0.1'], Socket::NI_NUMERICHOST | Socket::NI_NUMERICSERV)
+    name_info.should == ['127.0.0.1', "#{SocketSpecs.port}"]
+  end
+
+  it "gets a 4-element array and esolves the service" do
+    name_info = Socket.getnameinfo ["AF_INET", 80, 'foo', '127.0.0.1']
+    name_info[1].should =~ /^(www|http|www-http)$/
+  end
+  
 end

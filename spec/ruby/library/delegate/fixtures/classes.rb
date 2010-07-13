@@ -44,6 +44,8 @@ module DelegateSpecs
   end
 
   class Delegator < ::Delegator
+    attr_accessor :data
+
     attr_reader :__getobj__
     def __setobj__(o)
       @__getobj__ = o

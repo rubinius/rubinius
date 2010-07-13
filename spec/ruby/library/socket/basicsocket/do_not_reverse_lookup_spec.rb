@@ -12,6 +12,10 @@ ruby_version_is ""..."1.9" do
       @socket.close unless @socket.closed?
       @server.close unless @server.closed?
     end
+    
+    it "defaults to false" do
+      BasicSocket.do_not_reverse_lookup.should be_false
+    end
 
     it "causes 'peeraddr' to avoid name lookups" do
       BasicSocket.do_not_reverse_lookup = true
@@ -40,6 +44,10 @@ ruby_version_is "1.9" do
     after(:each) do
       @server.close unless @server.closed?
       @socket.close unless @socket.closed?
+    end
+    
+    it "defaults to true" do
+      BasicSocket.do_not_reverse_lookup.should be_true
     end
 
     it "causes 'peeraddr' to avoid name lookups" do
