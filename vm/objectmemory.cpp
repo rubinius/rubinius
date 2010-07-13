@@ -95,15 +95,15 @@ namespace rubinius {
 
   }
 
+  // WARNING: This returns an object who's body may not have been initialized.
+  // It is the callers duty to initialize it.
   Object* ObjectMemory::new_object_fast(Class* cls, size_t bytes, object_type type) {
-    bool blah;
-    if(Object* obj = young_->raw_allocate(bytes, &blah)) {
+    if(Object* obj = young_->raw_allocate(bytes, &collect_young_now)) {
       objects_allocated++;
       bytes_allocated += bytes;
 
       if(collect_young_now) state->interrupts.set_perform_gc();
       obj->init_header(cls, YoungObjectZone, type);
-      obj->clear_fields(bytes);
       return obj;
     } else {
       return new_object_typed(cls, bytes, type);

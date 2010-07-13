@@ -159,7 +159,7 @@ use_packed:
       Exception::type_error(state, "direct allocation disabled");
       return Qnil;
     } else if(!building_) {
-      return state->om->new_object_fast(this,
+      return state->om->new_object_typed(this,
           type_info_->instance_size, type_info_->type);
     } else {
       if(type_info_->type == Object::type) {
@@ -168,7 +168,7 @@ use_packed:
 
       building_ = false;
 
-      return state->om->new_object_fast(this,
+      return state->om->new_object_typed(this,
           type_info_->instance_size, type_info_->type);
     }
   }
