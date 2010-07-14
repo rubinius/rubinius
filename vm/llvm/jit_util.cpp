@@ -312,9 +312,13 @@ extern "C" {
     return ary;
   }
 
-  Object* rbx_cast_for_multi_block_arg(STATE, Arguments& args) {
-    /* If there is only one argument and that thing is an array... */
-    if(args.total() == 1 && kind_of<Array>(args.get_argument(0))) {
+  Object* rbx_cast_for_multi_block_arg(STATE, CallFrame* call_frame, Arguments& args) {
+    /* If there is only one argument and that thing is an array...
+     AND the thing being invoked is not a lambda... */
+    if(!(call_frame->flags & CallFrame::cIsLambda) &&
+         args.total() == 1 &&
+         kind_of<Array>(args.get_argument(0)))
+    {
       return args.get_argument(0);
     }
 

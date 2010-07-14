@@ -1561,9 +1561,12 @@ end
 #   </code>
 
 instruction cast_for_multi_block_arg() [ -- array ]
-  /* If there is only one argument and that thing is an array... */
-  if(call_frame->arguments->total() == 1 &&
-          kind_of<Array>(call_frame->arguments->get_argument(0))) {
+  /* If there is only one argument and that thing is an array...
+     AND the thing being invoked is not a lambda... */
+  if(!(call_frame->flags & CallFrame::cIsLambda) &&
+       call_frame->arguments->total() == 1 &&
+       kind_of<Array>(call_frame->arguments->get_argument(0)))
+  {
     stack_push(call_frame->arguments->get_argument(0));
   } else {
     Array* ary = Array::create(state, call_frame->arguments->total());

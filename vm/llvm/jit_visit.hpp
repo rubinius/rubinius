@@ -2162,14 +2162,16 @@ use_send:
       } else {
         Signature sig(ls_, ObjType);
         sig << VMTy;
+        sig << CallFrameTy;
         sig << ptr_type("Arguments");
 
         Value* call_args[] = {
           vm_,
+          call_frame_,
           args_
         };
 
-        Value* val = sig.call("rbx_cast_for_multi_block_arg", call_args, 2,
+        Value* val = sig.call("rbx_cast_for_multi_block_arg", call_args, 3,
             "cfmba", b());
         stack_push(val);
       }
