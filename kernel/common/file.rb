@@ -1002,8 +1002,8 @@ class File < IO
   def truncate(length)
     length = Type.coerce_to(length, Integer, :to_int)
 
+    ensure_open_and_writable
     raise Errno::EINVAL, "Can't truncate a file to a negative length" if length < 0
-    raise IOError, "File is closed" if closed?
 
     n = POSIX.ftruncate(@descriptor, length)
     Errno.handle if n == -1
