@@ -254,9 +254,8 @@ describe "The return keyword" do
     end
 
     it "causes the method to return even when the immediate parent has already returned" do
-      lambda {
-        ReturnSpecs::SavedInnerBlock.new.start.should be_true
-      }.should_not raise_error(LocalJumpError)
+      ReturnSpecs::SavedInnerBlock.new.start.should == :return_value
+      ScratchPad.recorded.should == :before_return
     end
 
   end

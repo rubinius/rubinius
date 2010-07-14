@@ -63,9 +63,14 @@ module ReturnSpecs
     def start
       outer do
         inner do
-          add { return true }
+          add do
+            ScratchPad.record :before_return
+            return :return_value
+          end
         end
       end
+
+      ScratchPad.record :bottom_of_start
 
       return false
     end
