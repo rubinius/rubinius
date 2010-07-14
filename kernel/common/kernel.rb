@@ -390,11 +390,24 @@ module Kernel
   alias_method :__extend__, :extend
 
   def inspect
-    return "..." if Thread.guarding? self
+    # The protocol here seems odd, but it's to match MRI.
 
     ivars = instance_variables
 
-    prefix = "#{self.class}:0x#{self.__id__.to_s(16)}"
+    # If this object has no ivars, then we call to_s and return that.
+    # NOTE MRI has an additional check for when to call to_s. It also does:
+    # "if (TYPE(obj) == T_OBJECT ..." ie, for all builtin types, don't run
+    # this code. I'm going to ignore that for now, since the builtin types
+    # generally have their own inspect anyway, and if for some reason things
+    # get here, thats ok.
+    return to_s if ivars.empty?
+
+    prefix = "#<#{self.class}:0x#{self.__id__.to_s(16)}"
+
+    # Otherwise, if it's already been inspected, return the ...
+    return "#{prefix} ...>" if Thread.guarding? self
+
+    # Otherwise, gather the ivars and show them.
     parts = []
 
     Thread.recursion_guard self do
@@ -404,9 +417,9 @@ module Kernel
     end
 
     if parts.empty?
-      "#<#{prefix}>"
+      "#{prefix}>"
     else
-      "#<#{prefix} #{parts.join(' ')}>"
+      "#{prefix} #{parts.join(' ')}>"
     end
   end
 
