@@ -414,8 +414,6 @@ containing the Rubinius standard library files.
       @stage = "evaluating command line code"
 
       eval(@evals.join("\n"), TOPLEVEL_BINDING, "-e", 1)
-    rescue SystemExit => e
-      @exit_code = e.status
     end
 
     # Run the script passed on the command line
@@ -443,8 +441,6 @@ containing the Rubinius standard library files.
           end
         end
       end
-    rescue SystemExit => e
-      @exit_code = e.status
     end
 
     # Run IRB unless we were passed -e, -S arguments or a script to run.
@@ -510,36 +506,49 @@ containing the Rubinius standard library files.
 
     # Orchestrate everything.
     def main
-      preamble
-      system_load_path
-      signals
-      load_compiler
-      preload
-      options
-      load_paths
-      debugger
-      requires
-      evals
-      script
-      irb
+      begin
+        begin
+          preamble
+          system_load_path
+          signals
+          load_compiler
+          preload
+          options
+          load_paths
+          debugger
+          requires
+          evals
+          script
+          irb
 
-    rescue SystemExit => e
-      @exit_code = e.status
+        rescue SystemExit => e
+          # Let the outer rescue grab it
+          raise e
 
-    rescue SyntaxError => e
-      show_syntax_error(e)
+        rescue SyntaxError => e
+          show_syntax_error(e)
 
-      STDERR.puts "\nBacktrace:"
-      STDERR.puts e.awesome_backtrace.show
-      @exit_code = 1
+          STDERR.puts "\nBacktrace:"
+          STDERR.puts e.awesome_backtrace.show
+          @exit_code = 1
 
-    rescue Object => e
-      e.render "An exception occurred #{@stage}"
-      @exit_code = 1
+        rescue Object => e
+          e.render "An exception occurred #{@stage}"
+          @exit_code = 1
+        end
 
-    ensure
-      epilogue
-      done
+      # We do this, run epilogue both on catching SystemExit and
+      # if there was no exception so that the at_exit handlers
+      # can see $! as the SystemExit object the system is going to
+      # exit with.
+      rescue SystemExit => e
+        @exit_code = e.status
+        epilogue
+      else
+        epilogue
+      ensure
+        done
+      end
     end
 
     # Creates an instance of the Loader and runs it. We catch any uncaught
