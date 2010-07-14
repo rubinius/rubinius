@@ -64,6 +64,21 @@ VALUE kernel_spec_rb_throw(VALUE self, VALUE result) {
 #endif
 
 #ifdef HAVE_RB_RESCUE
+VALUE kernel_spec_call_proc_with_raised_exc(VALUE arg_array, VALUE raised_exc) {
+  VALUE argv[2];
+  int argc;
+
+  VALUE arg = rb_ary_pop(arg_array);
+  VALUE proc = rb_ary_pop(arg_array);
+
+  argv[0] = arg;
+  argv[1] = raised_exc;
+
+  argc = 2;
+
+  return rb_funcall2(proc, rb_intern("call"), argc, argv);
+}
+
 VALUE kernel_spec_rb_rescue(VALUE self, VALUE main_proc, VALUE arg,
                             VALUE raise_proc, VALUE arg2) {
   VALUE main_array = rb_ary_new();
@@ -75,7 +90,7 @@ VALUE kernel_spec_rb_rescue(VALUE self, VALUE main_proc, VALUE arg,
   rb_ary_push(raise_array, arg2);
 
   return rb_rescue(kernel_spec_call_proc, main_array,
-      kernel_spec_call_proc, raise_array);
+      kernel_spec_call_proc_with_raised_exc, raise_array);
 }
 #endif
 

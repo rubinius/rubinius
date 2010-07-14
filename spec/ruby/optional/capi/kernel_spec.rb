@@ -123,22 +123,40 @@ describe "C-API Kernel function" do
   describe "rb_rescue" do
     before :each do
       @proc = lambda { |x| x }
+      @raise_proc_returns_sentinel = lambda {|arg| :raise_proc_executed }
+      @raise_proc_returns_arg = lambda {|arg| arg }
       @arg_error_proc = lambda { raise ArgumentError, '' }
       @std_error_proc = lambda { raise StandardError, '' }
       @exc_error_proc = lambda { raise Exception, '' }
     end
 
     it "executes passed function" do
-      @s.rb_rescue(@proc, :no_exc, @proc, :exc).should == :no_exc
+      @s.rb_rescue(@proc, :no_exc, @raise_proc_returns_arg, :exc).should == :no_exc
     end
 
-    it "executes passed 'raise function' if a StardardError exception is raised" do
-      @s.rb_rescue(@arg_error_proc, nil, @proc, :exc).should == :exc
-      @s.rb_rescue(@std_error_proc, nil, @proc, :exc).should == :exc
+    it "executes passed 'raise function' if a StandardError exception is raised" do
+      @s.rb_rescue(@arg_error_proc, nil, @raise_proc_returns_sentinel, :exc).should == :raise_proc_executed
+      @s.rb_rescue(@std_error_proc, nil, @raise_proc_returns_sentinel, :exc).should == :raise_proc_executed
     end
 
-    it "raises an exception if passed function raises an exception other than StardardError" do
-      lambda { @s.rb_rescue(@exc_error_proc, nil, @proc, nil) }.should raise_error(Exception)
+    it "passes the user supplied argument to the 'raise function' if a StandardError exception is raised" do
+      arg1, _ = @s.rb_rescue(@arg_error_proc, nil, @raise_proc_returns_arg, :exc1)
+      arg1.should == :exc1
+
+      arg2, _ = @s.rb_rescue(@std_error_proc, nil, @raise_proc_returns_arg, :exc2)
+      arg2.should == :exc2
+    end
+
+    it "passes the raised exception to the 'raise function' if a StandardError exception is raised" do
+      _, exc1 = @s.rb_rescue(@arg_error_proc, nil, @raise_proc_returns_arg, :exc)
+      exc1.class.should == ArgumentError
+
+      _, exc2 = @s.rb_rescue(@std_error_proc, nil, @raise_proc_returns_arg, :exc)
+      exc2.class.should == StandardError
+    end
+
+    it "raises an exception if passed function raises an exception other than StandardError" do
+      lambda { @s.rb_rescue(@exc_error_proc, nil, @raise_proc_returns_arg, nil) }.should raise_error(Exception)
     end
 
     it "raises an exception if any exception is raised inside 'raise function'" do
