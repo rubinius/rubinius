@@ -534,7 +534,17 @@ module Kernel
 
   def methods(all=true)
     methods = singleton_methods(all)
-    methods |= Rubinius.object_metaclass(self).instance_methods(true) if all
+
+    if all
+      # We have to special case these because unlike true, false, nil,
+      # .object_metaclass raises a TypeError.
+      case self
+      when Fixnum, Symbol
+        methods |= self.class.instance_methods(true)
+      else
+        methods |= Rubinius.object_metaclass(self).instance_methods(true)
+      end
+    end
 
     return methods if kind_of?(ImmediateValue)
 
