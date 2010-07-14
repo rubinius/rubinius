@@ -70,6 +70,16 @@ class String
     raise PrimitiveFailure, "String#== failed"
   end
 
+  def secure_compare(other)
+    Ruby.primitive :string_secure_compare
+
+    if other.kind_of?(String)
+      raise PrimitiveFailure, "String#secure_compare failed"
+    else
+      secure_compare StringValue(other)
+    end
+  end
+
   # Returns the length of <i>self</i>.
   def length
     @num_bytes
