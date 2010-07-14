@@ -46,6 +46,31 @@ module ReturnSpecs
     end
   end
 
+  class SavedInnerBlock
+    def add(&b)
+      @block = b
+    end
+
+    def outer
+      yield
+      @block.call
+    end
+
+    def inner
+      yield
+    end
+
+    def start
+      outer do
+        inner do
+          add { return true }
+        end
+      end
+
+      return false
+    end
+  end
+
   class ThroughDefineMethod
     lamb = proc { |x| x.call }
     define_method :foo, lamb
