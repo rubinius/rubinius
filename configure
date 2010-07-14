@@ -19,6 +19,7 @@ class Configure
     /([^-]+)-([^-]+)-(.*)/ =~ @host
     @cpu, @vendor, @os = $1, $2, $3
     @little_endian = false
+    @sizeof_long = 0
 
     # Compiler to use
     @compiler = ENV['CC'] || 'gcc'
@@ -60,7 +61,7 @@ class Configure
     @libversion = "1.0"
     @version = "#{@libversion}.1"
     @release_date = "2010-06-03"
-    @config_version = 12
+    @config_version = 13
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
@@ -471,27 +472,45 @@ class Configure
     ENV[which] || ""
   end
 
-  def detect_endian
-    print "Checking platform endianness: "
-
+  def run_program
     begin
-      name = "rbx-endian-test.c"
-      File.open name, "w" do |f|
-        f.puts "int main() { int one = 1; return (*((char*)&one)) == 1 ? 0 : 1; }"
+      basename = "rbx-configure-test"
+      File.open basename+".c", "w" do |f|
+        yield f
       end
 
-      `#{@compiler} -o rbx-endian-test #{env('CFLAGS')} #{name} 2>&1`
+      `#{@compiler} -o #{basename} #{env('CFLAGS')} #{basename}.c 2>&1`
       unless $?.exitstatus == 0
-        STDERR.puts "compiling program to test endianness failed"
+        STDERR.puts "compiling configure test program failed"
         exit 1
       end
 
-      `./rbx-endian-test`
-      @little_endian = ($?.exitstatus == 0)
-      puts @little_endian ? "little endian" : "big endian"
+      `./#{basename}`
+      return $?.exitstatus
     ensure
-      File.delete *Dir["rbx-endian-test*"]
+      File.delete *Dir["#{basename}*"]
     end
+  end
+
+  def detect_sizeof_long
+    print "Checking sizeof(long): "
+
+    @sizeof_long = run_program do |f|
+      f.puts "int main() { return sizeof(long); }"
+    end
+
+    puts "#{@sizeof_long} bytes"
+  end
+
+  def detect_endian
+    print "Checking platform endianness: "
+
+    status = run_program do |f|
+      f.puts "int main() { int one = 1; return (*((char*)&one)) == 1 ? 0 : 1; }"
+    end
+
+    @little_endian = (status == 0)
+    puts @little_endian ? "little endian" : "big endian"
   end
 
   def has_function(name, includes=[])
@@ -535,6 +554,7 @@ class Configure
 
     puts
 
+    detect_sizeof_long
     detect_endian
     detect_features
   end
@@ -594,6 +614,7 @@ module Rubinius
     :vendor         => "#{@vendor}",
     :os             => "#{@os}",
     :little_endian  => #{@little_endian},
+    :sizeof_long    => #{@sizeof_long},
     :bindir         => "#{@bindir}",
     :libdir         => "#{@libdir}",
     :runtime        => "#{@runtime}",
@@ -638,6 +659,7 @@ end
 #define RBX_BUILD_REV     "#{@buildrev}"
 #define RBX_LDSHARED      "#{@ldshared}"
 #define RBX_RELEASE_DATE  "#{@release_date}"
+#define RBX_SIZEOF_LONG   #{@sizeof_long}
       EOC
 
       if @little_endian
