@@ -155,6 +155,10 @@ namespace rubinius {
     RubyException::raise(make_exception(state, get_float_domain_error(state), reason));
   }
 
+  void Exception::range_error(STATE, const char* reason) {
+    RubyException::raise(make_exception(state, get_range_error(state), reason));
+  }
+
   void Exception::zero_division_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_zero_division_error(state), reason));
   }
@@ -312,6 +316,10 @@ namespace rubinius {
 
   Class* Exception::get_float_domain_error(STATE) {
     return as<Class>(G(object)->get_const(state, "FloatDomainError"));
+  }
+
+  Class* Exception::get_range_error(STATE) {
+    return as<Class>(G(object)->get_const(state, "RangeError"));
   }
 
   Class* Exception::get_assertion_error(STATE) {

@@ -59,6 +59,7 @@ namespace rubinius {
     static void float_domain_error(STATE, const char* reason = NULL);
     static void zero_division_error(STATE, const char* reason = NULL);
     static void io_error(STATE, const char* reason);
+    static void range_error(STATE, const char* reason);
 
     static void assertion_error(STATE, const char* reason = NULL);
     static void object_bounds_exceeded_error(STATE, Object* obj, size_t index);
@@ -103,6 +104,7 @@ namespace rubinius {
     static Class* get_type_error(STATE);
     static Class* get_zero_division_error(STATE);
     static Class* get_float_domain_error(STATE);
+    static Class* get_range_error(STATE);
     static Class* get_assertion_error(STATE);
     static Class* get_object_bounds_exceeded_error(STATE);
     static Class* get_io_error(STATE);

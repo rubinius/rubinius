@@ -4,6 +4,7 @@
 #include <math.h>
 #include <cmath>
 #include <iostream>
+#include <sstream>
 
 #include "gc/gc.hpp"
 #include "vm/object_utils.hpp"
@@ -1199,6 +1200,16 @@ namespace rubinius {
     /* MRI returns this in words, but thats an implementation detail as far
        as I'm concerned. */
     return Fixnum::from(bytes);
+  }
+
+  void Bignum::verify_size(STATE, size_t size) {
+    size_t bits = mp_count_bits(mp_val());
+
+    if(bits > size) {
+      std::ostringstream msg;
+      msg << "Bignum too large to fit in " << size << " bits";
+      Exception::range_error(state, msg.str().c_str());
+    }
   }
 
   hashval Bignum::hash_bignum(STATE)

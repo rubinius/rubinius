@@ -196,6 +196,8 @@ namespace rubinius {
     Integer* size(STATE);
     hashval hash_bignum(STATE);
 
+    void verify_size(STATE, size_t size);
+
     class Info : public TypeInfo {
     public:
       Info(object_type type)
