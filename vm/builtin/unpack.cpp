@@ -41,6 +41,11 @@ namespace rubinius {
     Array* array = Array::create(state, 0);
 
 
+static const char _unpack_eof_actions[] = {
+	0, 0, 2, 7, 8, 8, 11, 8, 
+	2, 15, 2
+};
+
 static const int unpack_start = 1;
 static const int unpack_first_final = 2;
 static const int unpack_error = 0;
@@ -55,136 +60,24 @@ static const int unpack_en_main = 1;
 	{
 	if ( p == pe )
 		goto _test_eof;
-	switch ( cs )
-	{
+	if ( cs == 0 )
+		goto _out;
+_resume:
+	switch ( cs ) {
 case 1:
 	switch( (*p) ) {
 		case 67: goto tr0;
 		case 99: goto tr2;
 	}
-	goto st0;
-st0:
-cs = 0;
+	goto tr1;
+case 0:
 	goto _out;
-tr0:
-	{
-    count = 1;
-    rest = false;
-  }
-	goto st2;
-tr7:
-	{
-    width = 1;
-  }
-	{
-    stop = rest ? size() + 1 : index + width * count;
-    if(stop > size()) {
-      stop = index + ((size() - index) / width) * width;
-    }
-  }
-	{
-    UNPACK_ELEMENTS(UBYTE);
-  }
-	{
-    while(count > 0) {
-      array->append(state, Qnil);
-      count--;
-    }
-  }
-	{
-    count = 1;
-    rest = false;
-  }
-	goto st2;
-tr14:
-	{
-    width = 1;
-  }
-	{
-    stop = rest ? size() + 1 : index + width * count;
-    if(stop > size()) {
-      stop = index + ((size() - index) / width) * width;
-    }
-  }
-	{
-    UNPACK_ELEMENTS(BYTE);
-  }
-	{
-    while(count > 0) {
-      array->append(state, Qnil);
-      count--;
-    }
-  }
-	{
-    count = 1;
-    rest = false;
-  }
-	goto st2;
-tr17:
-	{
-    count = 0;
-    rest = true;
-  }
-	{
-    width = 1;
-  }
-	{
-    stop = rest ? size() + 1 : index + width * count;
-    if(stop > size()) {
-      stop = index + ((size() - index) / width) * width;
-    }
-  }
-	{
-    UNPACK_ELEMENTS(BYTE);
-  }
-	{
-    while(count > 0) {
-      array->append(state, Qnil);
-      count--;
-    }
-  }
-	{
-    count = 1;
-    rest = false;
-  }
-	goto st2;
-tr21:
-	{
-    count = 0;
-    rest = true;
-  }
-	{
-    width = 1;
-  }
-	{
-    stop = rest ? size() + 1 : index + width * count;
-    if(stop > size()) {
-      stop = index + ((size() - index) / width) * width;
-    }
-  }
-	{
-    UNPACK_ELEMENTS(UBYTE);
-  }
-	{
-    while(count > 0) {
-      array->append(state, Qnil);
-      count--;
-    }
-  }
-	{
-    count = 1;
-    rest = false;
-  }
-	goto st2;
-st2:
-	if ( ++p == pe )
-		goto _test_eof2;
 case 2:
 	switch( (*p) ) {
 		case 0: goto tr3;
 		case 32: goto tr3;
 		case 33: goto tr4;
-		case 42: goto st9;
+		case 42: goto tr5;
 		case 67: goto tr7;
 		case 95: goto tr4;
 		case 99: goto tr8;
@@ -194,227 +87,23 @@ case 2:
 			goto tr6;
 	} else if ( (*p) >= 9 )
 		goto tr3;
-	goto st0;
-tr3:
-	{
-    width = 1;
-  }
-	{
-    stop = rest ? size() + 1 : index + width * count;
-    if(stop > size()) {
-      stop = index + ((size() - index) / width) * width;
-    }
-  }
-	{
-    UNPACK_ELEMENTS(UBYTE);
-  }
-	{
-    while(count > 0) {
-      array->append(state, Qnil);
-      count--;
-    }
-  }
-	goto st3;
-tr10:
-	{
-    width = 1;
-  }
-	{
-    stop = rest ? size() + 1 : index + width * count;
-    if(stop > size()) {
-      stop = index + ((size() - index) / width) * width;
-    }
-  }
-	{
-    UNPACK_ELEMENTS(BYTE);
-  }
-	{
-    while(count > 0) {
-      array->append(state, Qnil);
-      count--;
-    }
-  }
-	goto st3;
-tr16:
-	{
-    count = 0;
-    rest = true;
-  }
-	{
-    width = 1;
-  }
-	{
-    stop = rest ? size() + 1 : index + width * count;
-    if(stop > size()) {
-      stop = index + ((size() - index) / width) * width;
-    }
-  }
-	{
-    UNPACK_ELEMENTS(BYTE);
-  }
-	{
-    while(count > 0) {
-      array->append(state, Qnil);
-      count--;
-    }
-  }
-	goto st3;
-tr20:
-	{
-    count = 0;
-    rest = true;
-  }
-	{
-    width = 1;
-  }
-	{
-    stop = rest ? size() + 1 : index + width * count;
-    if(stop > size()) {
-      stop = index + ((size() - index) / width) * width;
-    }
-  }
-	{
-    UNPACK_ELEMENTS(UBYTE);
-  }
-	{
-    while(count > 0) {
-      array->append(state, Qnil);
-      count--;
-    }
-  }
-	goto st3;
-st3:
-	if ( ++p == pe )
-		goto _test_eof3;
+	goto tr1;
 case 3:
 	switch( (*p) ) {
-		case 0: goto st3;
-		case 32: goto st3;
+		case 0: goto tr9;
+		case 32: goto tr9;
 		case 67: goto tr0;
 		case 99: goto tr2;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto st3;
-	goto st0;
-tr2:
-	{
-    count = 1;
-    rest = false;
-  }
-	goto st4;
-tr8:
-	{
-    width = 1;
-  }
-	{
-    stop = rest ? size() + 1 : index + width * count;
-    if(stop > size()) {
-      stop = index + ((size() - index) / width) * width;
-    }
-  }
-	{
-    UNPACK_ELEMENTS(UBYTE);
-  }
-	{
-    while(count > 0) {
-      array->append(state, Qnil);
-      count--;
-    }
-  }
-	{
-    count = 1;
-    rest = false;
-  }
-	goto st4;
-tr15:
-	{
-    width = 1;
-  }
-	{
-    stop = rest ? size() + 1 : index + width * count;
-    if(stop > size()) {
-      stop = index + ((size() - index) / width) * width;
-    }
-  }
-	{
-    UNPACK_ELEMENTS(BYTE);
-  }
-	{
-    while(count > 0) {
-      array->append(state, Qnil);
-      count--;
-    }
-  }
-	{
-    count = 1;
-    rest = false;
-  }
-	goto st4;
-tr18:
-	{
-    count = 0;
-    rest = true;
-  }
-	{
-    width = 1;
-  }
-	{
-    stop = rest ? size() + 1 : index + width * count;
-    if(stop > size()) {
-      stop = index + ((size() - index) / width) * width;
-    }
-  }
-	{
-    UNPACK_ELEMENTS(BYTE);
-  }
-	{
-    while(count > 0) {
-      array->append(state, Qnil);
-      count--;
-    }
-  }
-	{
-    count = 1;
-    rest = false;
-  }
-	goto st4;
-tr22:
-	{
-    count = 0;
-    rest = true;
-  }
-	{
-    width = 1;
-  }
-	{
-    stop = rest ? size() + 1 : index + width * count;
-    if(stop > size()) {
-      stop = index + ((size() - index) / width) * width;
-    }
-  }
-	{
-    UNPACK_ELEMENTS(UBYTE);
-  }
-	{
-    while(count > 0) {
-      array->append(state, Qnil);
-      count--;
-    }
-  }
-	{
-    count = 1;
-    rest = false;
-  }
-	goto st4;
-st4:
-	if ( ++p == pe )
-		goto _test_eof4;
+		goto tr9;
+	goto tr1;
 case 4:
 	switch( (*p) ) {
 		case 0: goto tr10;
 		case 32: goto tr10;
 		case 33: goto tr11;
-		case 42: goto st6;
+		case 42: goto tr12;
 		case 67: goto tr14;
 		case 95: goto tr11;
 		case 99: goto tr15;
@@ -424,20 +113,7 @@ case 4:
 			goto tr13;
 	} else if ( (*p) >= 9 )
 		goto tr10;
-	goto st0;
-tr11:
-	{
-#define NON_NATIVE_ERROR_SIZE 36
-
-    char non_native_msg[NON_NATIVE_ERROR_SIZE];
-    snprintf(non_native_msg, NON_NATIVE_ERROR_SIZE,
-             "'%c' allowed only after types sSiIlL", *p);
-    Exception::argument_error(state, non_native_msg);
-  }
-	goto st5;
-st5:
-	if ( ++p == pe )
-		goto _test_eof5;
+	goto tr1;
 case 5:
 	switch( (*p) ) {
 		case 0: goto tr10;
@@ -447,10 +123,7 @@ case 5:
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
 		goto tr10;
-	goto st0;
-st6:
-	if ( ++p == pe )
-		goto _test_eof6;
+	goto tr1;
 case 6:
 	switch( (*p) ) {
 		case 0: goto tr16;
@@ -460,20 +133,7 @@ case 6:
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
 		goto tr16;
-	goto st0;
-tr13:
-	{
-    count = (*p) - '0';
-  }
-	goto st7;
-tr19:
-	{
-    count = count * 10 + ((*p) - '0');
-  }
-	goto st7;
-st7:
-	if ( ++p == pe )
-		goto _test_eof7;
+	goto tr1;
 case 7:
 	switch( (*p) ) {
 		case 0: goto tr10;
@@ -486,20 +146,7 @@ case 7:
 			goto tr19;
 	} else if ( (*p) >= 9 )
 		goto tr10;
-	goto st0;
-tr4:
-	{
-#define NON_NATIVE_ERROR_SIZE 36
-
-    char non_native_msg[NON_NATIVE_ERROR_SIZE];
-    snprintf(non_native_msg, NON_NATIVE_ERROR_SIZE,
-             "'%c' allowed only after types sSiIlL", *p);
-    Exception::argument_error(state, non_native_msg);
-  }
-	goto st8;
-st8:
-	if ( ++p == pe )
-		goto _test_eof8;
+	goto tr1;
 case 8:
 	switch( (*p) ) {
 		case 0: goto tr3;
@@ -509,10 +156,7 @@ case 8:
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
 		goto tr3;
-	goto st0;
-st9:
-	if ( ++p == pe )
-		goto _test_eof9;
+	goto tr1;
 case 9:
 	switch( (*p) ) {
 		case 0: goto tr20;
@@ -522,20 +166,7 @@ case 9:
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
 		goto tr20;
-	goto st0;
-tr6:
-	{
-    count = (*p) - '0';
-  }
-	goto st10;
-tr23:
-	{
-    count = count * 10 + ((*p) - '0');
-  }
-	goto st10;
-st10:
-	if ( ++p == pe )
-		goto _test_eof10;
+	goto tr1;
 case 10:
 	switch( (*p) ) {
 		case 0: goto tr3;
@@ -548,30 +179,268 @@ case 10:
 			goto tr23;
 	} else if ( (*p) >= 9 )
 		goto tr3;
-	goto st0;
+	goto tr1;
 	}
-	_test_eof2: cs = 2; goto _test_eof; 
-	_test_eof3: cs = 3; goto _test_eof; 
-	_test_eof4: cs = 4; goto _test_eof; 
-	_test_eof5: cs = 5; goto _test_eof; 
-	_test_eof6: cs = 6; goto _test_eof; 
-	_test_eof7: cs = 7; goto _test_eof; 
-	_test_eof8: cs = 8; goto _test_eof; 
-	_test_eof9: cs = 9; goto _test_eof; 
-	_test_eof10: cs = 10; goto _test_eof; 
 
+	tr1: cs = 0; goto _again;
+	tr0: cs = 2; goto f0;
+	tr7: cs = 2; goto f5;
+	tr14: cs = 2; goto f9;
+	tr17: cs = 2; goto f12;
+	tr21: cs = 2; goto f16;
+	tr9: cs = 3; goto _again;
+	tr3: cs = 3; goto f2;
+	tr10: cs = 3; goto f8;
+	tr16: cs = 3; goto f11;
+	tr20: cs = 3; goto f15;
+	tr2: cs = 4; goto f0;
+	tr8: cs = 4; goto f5;
+	tr15: cs = 4; goto f9;
+	tr18: cs = 4; goto f12;
+	tr22: cs = 4; goto f16;
+	tr11: cs = 5; goto f3;
+	tr12: cs = 6; goto _again;
+	tr13: cs = 7; goto f4;
+	tr19: cs = 7; goto f13;
+	tr4: cs = 8; goto f3;
+	tr5: cs = 9; goto _again;
+	tr6: cs = 10; goto f4;
+	tr23: cs = 10; goto f13;
+
+f0:
+	{
+    count = 1;
+    rest = false;
+  }
+	goto _again;
+f4:
+	{
+    count = (*p) - '0';
+  }
+	goto _again;
+f13:
+	{
+    count = count * 10 + ((*p) - '0');
+  }
+	goto _again;
+f3:
+	{
+#define NON_NATIVE_ERROR_SIZE 36
+
+    char non_native_msg[NON_NATIVE_ERROR_SIZE];
+    snprintf(non_native_msg, NON_NATIVE_ERROR_SIZE,
+             "'%c' allowed only after types sSiIlL", *p);
+    Exception::argument_error(state, non_native_msg);
+  }
+	goto _again;
+f2:
+	{
+    width = 1;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(UBYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	goto _again;
+f8:
+	{
+    width = 1;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(BYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	goto _again;
+f15:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 1;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(UBYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	goto _again;
+f11:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 1;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(BYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	goto _again;
+f5:
+	{
+    width = 1;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(UBYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+  }
+	goto _again;
+f9:
+	{
+    width = 1;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(BYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+  }
+	goto _again;
+f16:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 1;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(UBYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+  }
+	goto _again;
+f12:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 1;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(BYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+  }
+	goto _again;
+
+_again:
+	if ( cs == 0 )
+		goto _out;
+	if ( ++p != pe )
+		goto _resume;
 	_test_eof: {}
 	if ( p == eof )
 	{
-	switch ( cs ) {
-	case 3: 
+	switch ( _unpack_eof_actions[cs] ) {
+	case 7:
 	{
     return array;
   }
 	break;
-	case 2: 
-	case 8: 
-	case 10: 
+	case 2:
 	{
     width = 1;
   }
@@ -594,9 +463,7 @@ case 10:
     return array;
   }
 	break;
-	case 4: 
-	case 5: 
-	case 7: 
+	case 8:
 	{
     width = 1;
   }
@@ -619,7 +486,7 @@ case 10:
     return array;
   }
 	break;
-	case 9: 
+	case 15:
 	{
     count = 0;
     rest = true;
@@ -646,7 +513,7 @@ case 10:
     return array;
   }
 	break;
-	case 6: 
+	case 11:
 	{
     count = 0;
     rest = true;

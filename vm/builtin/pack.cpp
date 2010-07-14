@@ -6,6 +6,8 @@
  * vim: filetype=cpp
  */
 
+#include "vm/config.h"
+
 #include "vm.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
@@ -26,19 +28,99 @@ namespace rubinius {
     }
   }
 
-#define PACK_ELEMENTS(T, coerce, format)      \
-  for(; index < stop; index++) {              \
-    Object* item = self->get(state, index);   \
-    T* value = try_as<T>(item);               \
-    if(!value) {                              \
-      item = coerce(state, call_frame, item); \
-      if(!item) return 0;                     \
-      value = as<T>(item);                    \
-    }                                         \
-    str.push_back(format(value));             \
+#define BITS_LONG   (RBX_SIZEOF_LONG * 8)
+#define BITS_64     (64)
+
+#define CONVERT(T, v, m, b, n)    \
+  if((n)->fixnum_p()) {           \
+    v = (T)STRIP_FIXNUM_TAG(n);   \
+  } else {                        \
+    Bignum* big = as<Bignum>(n);  \
+    big->verify_size(state, b);   \
+    v = big->m();                 \
   }
 
-#define MASK_BYTE(x) ((x)->to_native() & 0xff)
+#define CONVERT_TO_INT(n)   CONVERT(int, int_value, to_int, BITS_LONG, n)
+#define CONVERT_TO_LONG(n)  CONVERT(long long, long_value, to_long_long, BITS_64, n)
+
+#define PACK_INT_ELEMENTS(mask)   PACK_ELEMENTS(Integer, pack::integer, INT, mask)
+#define PACK_LONG_ELEMENTS(mask)  PACK_ELEMENTS(Integer, pack::integer, LONG, mask)
+
+#define PACK_ELEMENTS(T, coerce, size, format)  \
+  for(; index < stop; index++) {                \
+    Object* item = self->get(state, index);     \
+    T* value = try_as<T>(item);                 \
+    if(!value) {                                \
+      item = coerce(state, call_frame, item);   \
+      if(!item) return 0;                       \
+      value = as<T>(item);                      \
+    }                                           \
+    CONVERT_TO_ ## size(value);                 \
+    format;                                     \
+  }
+
+#define BYTE1(x)        (((x) & 0x00000000000000ff))
+#define BYTE2(x)        (((x) & 0x000000000000ff00) >> 8)
+#define BYTE3(x)        (((x) & 0x0000000000ff0000) >> 16)
+#define BYTE4(x)        (((x) & 0x00000000ff000000) >> 24)
+
+#define BYTE5(x)        (((x) & 0x000000ff00000000LL) >> 32)
+#define BYTE6(x)        (((x) & 0x0000ff0000000000LL) >> 40)
+#define BYTE7(x)        (((x) & 0x00ff000000000000LL) >> 48)
+#define BYTE8(x)        (((x) & 0xff00000000000000LL) >> 56)
+
+#ifdef RBX_LITTLE_ENDIAN
+# define MASK_16BITS     LE_MASK_16BITS
+# define MASK_32BITS     LE_MASK_32BITS
+# define MASK_64BITS     LE_MASK_64BITS
+#else
+# define MASK_16BITS     BE_MASK_16BITS
+# define MASK_32BITS     BE_MASK_32BITS
+# define MASK_64BITS     BE_MASK_64BITS
+#endif
+
+#define LE_MASK_64BITS              \
+  str.push_back(BYTE1(long_value)); \
+  str.push_back(BYTE2(long_value)); \
+  str.push_back(BYTE3(long_value)); \
+  str.push_back(BYTE4(long_value)); \
+  str.push_back(BYTE5(long_value)); \
+  str.push_back(BYTE6(long_value)); \
+  str.push_back(BYTE7(long_value)); \
+  str.push_back(BYTE8(long_value)); \
+
+#define BE_MASK_64BITS              \
+  str.push_back(BYTE8(long_value)); \
+  str.push_back(BYTE7(long_value)); \
+  str.push_back(BYTE6(long_value)); \
+  str.push_back(BYTE5(long_value)); \
+  str.push_back(BYTE4(long_value)); \
+  str.push_back(BYTE3(long_value)); \
+  str.push_back(BYTE2(long_value)); \
+  str.push_back(BYTE1(long_value)); \
+
+#define LE_MASK_32BITS             \
+  str.push_back(BYTE1(int_value)); \
+  str.push_back(BYTE2(int_value)); \
+  str.push_back(BYTE3(int_value)); \
+  str.push_back(BYTE4(int_value)); \
+
+#define BE_MASK_32BITS             \
+  str.push_back(BYTE4(int_value)); \
+  str.push_back(BYTE3(int_value)); \
+  str.push_back(BYTE2(int_value)); \
+  str.push_back(BYTE1(int_value)); \
+
+#define LE_MASK_16BITS             \
+  str.push_back(BYTE1(int_value)); \
+  str.push_back(BYTE2(int_value)); \
+
+#define BE_MASK_16BITS             \
+  str.push_back(BYTE2(int_value)); \
+  str.push_back(BYTE1(int_value)); \
+
+#define MASK_BYTE                  \
+  str.push_back(BYTE1(int_value));
 
   String* Array::pack(STATE, String* directives, CallFrame* call_frame) {
     // Ragel-specific variables
@@ -56,8 +138,20 @@ namespace rubinius {
     size_t count = 0;
     size_t stop = 0;
     bool rest = false;
+    bool platform = false;
+
+    int int_value = 0;
+    long long long_value = 0;
     std::string str("");
 
+
+static const short _pack_eof_actions[] = {
+	0, 0, 2, 7, 8, 11, 16, 19, 
+	22, 25, 28, 28, 31, 31, 34, 37, 
+	40, 43, 43, 46, 46, 49, 49, 52, 
+	49, 56, 46, 59, 43, 34, 62, 31, 
+	65, 28, 19, 8, 2, 68, 2
+};
 
 static const int pack_start = 1;
 static const int pack_first_final = 2;
@@ -73,114 +167,1226 @@ static const int pack_en_main = 1;
 	{
 	if ( p == pe )
 		goto _test_eof;
-	switch ( cs )
-	{
+	if ( cs == 0 )
+		goto _out;
+_resume:
+	switch ( cs ) {
 case 1:
 	switch( (*p) ) {
 		case 67: goto tr0;
+		case 73: goto tr2;
+		case 76: goto tr3;
+		case 78: goto tr4;
+		case 81: goto tr5;
+		case 83: goto tr6;
+		case 86: goto tr7;
 		case 99: goto tr0;
+		case 105: goto tr2;
+		case 108: goto tr3;
+		case 110: goto tr8;
+		case 113: goto tr5;
+		case 115: goto tr6;
+		case 118: goto tr9;
 	}
-	goto st0;
-st0:
-cs = 0;
+	goto tr1;
+case 0:
 	goto _out;
-tr0:
-	{
-    count = 1;
-    rest = false;
-  }
-	goto st2;
-tr6:
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_ELEMENTS(Integer, pack::integer, MASK_BYTE);
-  }
-	{
-    count = 1;
-    rest = false;
-  }
-	goto st2;
-tr9:
-	{
-    rest = true;
-  }
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_ELEMENTS(Integer, pack::integer, MASK_BYTE);
-  }
-	{
-    count = 1;
-    rest = false;
-  }
-	goto st2;
-st2:
-	if ( ++p == pe )
-		goto _test_eof2;
 case 2:
 	switch( (*p) ) {
-		case 0: goto tr2;
-		case 32: goto tr2;
-		case 33: goto tr3;
-		case 42: goto st5;
-		case 67: goto tr6;
-		case 95: goto tr3;
-		case 99: goto tr6;
+		case 0: goto tr10;
+		case 32: goto tr10;
+		case 33: goto tr11;
+		case 42: goto tr12;
+		case 67: goto tr14;
+		case 73: goto tr15;
+		case 76: goto tr16;
+		case 78: goto tr17;
+		case 81: goto tr18;
+		case 83: goto tr19;
+		case 86: goto tr20;
+		case 95: goto tr11;
+		case 99: goto tr14;
+		case 105: goto tr15;
+		case 108: goto tr16;
+		case 110: goto tr21;
+		case 113: goto tr18;
+		case 115: goto tr19;
+		case 118: goto tr22;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr5;
+			goto tr13;
 	} else if ( (*p) >= 9 )
-		goto tr2;
-	goto st0;
-tr2:
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_ELEMENTS(Integer, pack::integer, MASK_BYTE);
-  }
-	goto st3;
-tr8:
-	{
-    rest = true;
-  }
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_ELEMENTS(Integer, pack::integer, MASK_BYTE);
-  }
-	goto st3;
-st3:
-	if ( ++p == pe )
-		goto _test_eof3;
+		goto tr10;
+	goto tr1;
 case 3:
 	switch( (*p) ) {
-		case 0: goto st3;
-		case 32: goto st3;
+		case 0: goto tr23;
+		case 32: goto tr23;
 		case 67: goto tr0;
+		case 73: goto tr2;
+		case 76: goto tr3;
+		case 78: goto tr4;
+		case 81: goto tr5;
+		case 83: goto tr6;
+		case 86: goto tr7;
 		case 99: goto tr0;
+		case 105: goto tr2;
+		case 108: goto tr3;
+		case 110: goto tr8;
+		case 113: goto tr5;
+		case 115: goto tr6;
+		case 118: goto tr9;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto st3;
-	goto st0;
-tr3:
+		goto tr23;
+	goto tr1;
+case 4:
+	switch( (*p) ) {
+		case 0: goto tr24;
+		case 32: goto tr24;
+		case 33: goto tr25;
+		case 42: goto tr26;
+		case 67: goto tr28;
+		case 73: goto tr29;
+		case 76: goto tr30;
+		case 78: goto tr31;
+		case 81: goto tr32;
+		case 83: goto tr33;
+		case 86: goto tr34;
+		case 95: goto tr25;
+		case 99: goto tr28;
+		case 105: goto tr29;
+		case 108: goto tr30;
+		case 110: goto tr35;
+		case 113: goto tr32;
+		case 115: goto tr33;
+		case 118: goto tr36;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr27;
+	} else if ( (*p) >= 9 )
+		goto tr24;
+	goto tr1;
+case 5:
+	switch( (*p) ) {
+		case 0: goto tr37;
+		case 32: goto tr37;
+		case 42: goto tr38;
+		case 67: goto tr40;
+		case 73: goto tr41;
+		case 76: goto tr42;
+		case 78: goto tr43;
+		case 81: goto tr44;
+		case 83: goto tr45;
+		case 86: goto tr46;
+		case 99: goto tr40;
+		case 105: goto tr41;
+		case 108: goto tr42;
+		case 110: goto tr47;
+		case 113: goto tr44;
+		case 115: goto tr45;
+		case 118: goto tr48;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr39;
+	} else if ( (*p) >= 9 )
+		goto tr37;
+	goto tr1;
+case 6:
+	switch( (*p) ) {
+		case 0: goto tr49;
+		case 32: goto tr49;
+		case 67: goto tr50;
+		case 73: goto tr51;
+		case 76: goto tr52;
+		case 78: goto tr53;
+		case 81: goto tr54;
+		case 83: goto tr55;
+		case 86: goto tr56;
+		case 99: goto tr50;
+		case 105: goto tr51;
+		case 108: goto tr52;
+		case 110: goto tr57;
+		case 113: goto tr54;
+		case 115: goto tr55;
+		case 118: goto tr58;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr49;
+	goto tr1;
+case 7:
+	switch( (*p) ) {
+		case 0: goto tr59;
+		case 32: goto tr59;
+		case 33: goto tr60;
+		case 42: goto tr61;
+		case 67: goto tr63;
+		case 73: goto tr64;
+		case 76: goto tr65;
+		case 78: goto tr66;
+		case 81: goto tr67;
+		case 83: goto tr68;
+		case 86: goto tr69;
+		case 95: goto tr60;
+		case 99: goto tr63;
+		case 105: goto tr64;
+		case 108: goto tr65;
+		case 110: goto tr70;
+		case 113: goto tr67;
+		case 115: goto tr68;
+		case 118: goto tr71;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr62;
+	} else if ( (*p) >= 9 )
+		goto tr59;
+	goto tr1;
+case 8:
+	switch( (*p) ) {
+		case 0: goto tr72;
+		case 32: goto tr72;
+		case 42: goto tr73;
+		case 67: goto tr75;
+		case 73: goto tr76;
+		case 76: goto tr77;
+		case 78: goto tr78;
+		case 81: goto tr79;
+		case 83: goto tr80;
+		case 86: goto tr81;
+		case 99: goto tr75;
+		case 105: goto tr76;
+		case 108: goto tr77;
+		case 110: goto tr82;
+		case 113: goto tr79;
+		case 115: goto tr80;
+		case 118: goto tr83;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr74;
+	} else if ( (*p) >= 9 )
+		goto tr72;
+	goto tr1;
+case 9:
+	switch( (*p) ) {
+		case 0: goto tr84;
+		case 32: goto tr84;
+		case 67: goto tr85;
+		case 73: goto tr86;
+		case 76: goto tr87;
+		case 78: goto tr88;
+		case 81: goto tr89;
+		case 83: goto tr90;
+		case 86: goto tr91;
+		case 99: goto tr85;
+		case 105: goto tr86;
+		case 108: goto tr87;
+		case 110: goto tr92;
+		case 113: goto tr89;
+		case 115: goto tr90;
+		case 118: goto tr93;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr84;
+	goto tr1;
+case 10:
+	switch( (*p) ) {
+		case 0: goto tr94;
+		case 32: goto tr94;
+		case 33: goto tr95;
+		case 42: goto tr96;
+		case 67: goto tr98;
+		case 73: goto tr99;
+		case 76: goto tr100;
+		case 78: goto tr101;
+		case 81: goto tr102;
+		case 83: goto tr103;
+		case 86: goto tr104;
+		case 95: goto tr95;
+		case 99: goto tr98;
+		case 105: goto tr99;
+		case 108: goto tr100;
+		case 110: goto tr105;
+		case 113: goto tr102;
+		case 115: goto tr103;
+		case 118: goto tr106;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr97;
+	} else if ( (*p) >= 9 )
+		goto tr94;
+	goto tr1;
+case 11:
+	switch( (*p) ) {
+		case 0: goto tr94;
+		case 32: goto tr94;
+		case 67: goto tr98;
+		case 73: goto tr99;
+		case 76: goto tr100;
+		case 78: goto tr101;
+		case 81: goto tr102;
+		case 83: goto tr103;
+		case 86: goto tr104;
+		case 99: goto tr98;
+		case 105: goto tr99;
+		case 108: goto tr100;
+		case 110: goto tr105;
+		case 113: goto tr102;
+		case 115: goto tr103;
+		case 118: goto tr106;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr94;
+	goto tr1;
+case 12:
+	switch( (*p) ) {
+		case 0: goto tr107;
+		case 32: goto tr107;
+		case 33: goto tr108;
+		case 42: goto tr109;
+		case 67: goto tr111;
+		case 73: goto tr112;
+		case 76: goto tr113;
+		case 78: goto tr114;
+		case 81: goto tr115;
+		case 83: goto tr116;
+		case 86: goto tr117;
+		case 95: goto tr108;
+		case 99: goto tr111;
+		case 105: goto tr112;
+		case 108: goto tr113;
+		case 110: goto tr118;
+		case 113: goto tr115;
+		case 115: goto tr116;
+		case 118: goto tr119;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr110;
+	} else if ( (*p) >= 9 )
+		goto tr107;
+	goto tr1;
+case 13:
+	switch( (*p) ) {
+		case 0: goto tr107;
+		case 32: goto tr107;
+		case 67: goto tr111;
+		case 73: goto tr112;
+		case 76: goto tr113;
+		case 78: goto tr114;
+		case 81: goto tr115;
+		case 83: goto tr116;
+		case 86: goto tr117;
+		case 99: goto tr111;
+		case 105: goto tr112;
+		case 108: goto tr113;
+		case 110: goto tr118;
+		case 113: goto tr115;
+		case 115: goto tr116;
+		case 118: goto tr119;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr107;
+	goto tr1;
+case 14:
+	switch( (*p) ) {
+		case 0: goto tr120;
+		case 32: goto tr120;
+		case 33: goto tr121;
+		case 42: goto tr122;
+		case 67: goto tr124;
+		case 73: goto tr125;
+		case 76: goto tr126;
+		case 78: goto tr127;
+		case 81: goto tr128;
+		case 83: goto tr129;
+		case 86: goto tr130;
+		case 95: goto tr121;
+		case 99: goto tr124;
+		case 105: goto tr125;
+		case 108: goto tr126;
+		case 110: goto tr131;
+		case 113: goto tr128;
+		case 115: goto tr129;
+		case 118: goto tr132;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr123;
+	} else if ( (*p) >= 9 )
+		goto tr120;
+	goto tr1;
+case 15:
+	switch( (*p) ) {
+		case 0: goto tr133;
+		case 32: goto tr133;
+		case 42: goto tr134;
+		case 67: goto tr136;
+		case 73: goto tr137;
+		case 76: goto tr138;
+		case 78: goto tr139;
+		case 81: goto tr140;
+		case 83: goto tr141;
+		case 86: goto tr142;
+		case 99: goto tr136;
+		case 105: goto tr137;
+		case 108: goto tr138;
+		case 110: goto tr143;
+		case 113: goto tr140;
+		case 115: goto tr141;
+		case 118: goto tr144;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr135;
+	} else if ( (*p) >= 9 )
+		goto tr133;
+	goto tr1;
+case 16:
+	switch( (*p) ) {
+		case 0: goto tr145;
+		case 32: goto tr145;
+		case 67: goto tr146;
+		case 73: goto tr147;
+		case 76: goto tr148;
+		case 78: goto tr149;
+		case 81: goto tr150;
+		case 83: goto tr151;
+		case 86: goto tr152;
+		case 99: goto tr146;
+		case 105: goto tr147;
+		case 108: goto tr148;
+		case 110: goto tr153;
+		case 113: goto tr150;
+		case 115: goto tr151;
+		case 118: goto tr154;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr145;
+	goto tr1;
+case 17:
+	switch( (*p) ) {
+		case 0: goto tr155;
+		case 32: goto tr155;
+		case 33: goto tr156;
+		case 42: goto tr157;
+		case 67: goto tr159;
+		case 73: goto tr160;
+		case 76: goto tr161;
+		case 78: goto tr162;
+		case 81: goto tr163;
+		case 83: goto tr164;
+		case 86: goto tr165;
+		case 95: goto tr156;
+		case 99: goto tr159;
+		case 105: goto tr160;
+		case 108: goto tr161;
+		case 110: goto tr166;
+		case 113: goto tr163;
+		case 115: goto tr164;
+		case 118: goto tr167;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr158;
+	} else if ( (*p) >= 9 )
+		goto tr155;
+	goto tr1;
+case 18:
+	switch( (*p) ) {
+		case 0: goto tr155;
+		case 32: goto tr155;
+		case 67: goto tr159;
+		case 73: goto tr160;
+		case 76: goto tr161;
+		case 78: goto tr162;
+		case 81: goto tr163;
+		case 83: goto tr164;
+		case 86: goto tr165;
+		case 99: goto tr159;
+		case 105: goto tr160;
+		case 108: goto tr161;
+		case 110: goto tr166;
+		case 113: goto tr163;
+		case 115: goto tr164;
+		case 118: goto tr167;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr155;
+	goto tr1;
+case 19:
+	switch( (*p) ) {
+		case 0: goto tr168;
+		case 32: goto tr168;
+		case 33: goto tr169;
+		case 42: goto tr170;
+		case 67: goto tr172;
+		case 73: goto tr173;
+		case 76: goto tr174;
+		case 78: goto tr175;
+		case 81: goto tr176;
+		case 83: goto tr177;
+		case 86: goto tr178;
+		case 95: goto tr169;
+		case 99: goto tr172;
+		case 105: goto tr173;
+		case 108: goto tr174;
+		case 110: goto tr179;
+		case 113: goto tr176;
+		case 115: goto tr177;
+		case 118: goto tr180;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr171;
+	} else if ( (*p) >= 9 )
+		goto tr168;
+	goto tr1;
+case 20:
+	switch( (*p) ) {
+		case 0: goto tr168;
+		case 32: goto tr168;
+		case 67: goto tr172;
+		case 73: goto tr173;
+		case 76: goto tr174;
+		case 78: goto tr175;
+		case 81: goto tr176;
+		case 83: goto tr177;
+		case 86: goto tr178;
+		case 99: goto tr172;
+		case 105: goto tr173;
+		case 108: goto tr174;
+		case 110: goto tr179;
+		case 113: goto tr176;
+		case 115: goto tr177;
+		case 118: goto tr180;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr168;
+	goto tr1;
+case 21:
+	switch( (*p) ) {
+		case 0: goto tr181;
+		case 32: goto tr181;
+		case 33: goto tr182;
+		case 42: goto tr183;
+		case 67: goto tr185;
+		case 73: goto tr186;
+		case 76: goto tr187;
+		case 78: goto tr188;
+		case 81: goto tr189;
+		case 83: goto tr190;
+		case 86: goto tr191;
+		case 95: goto tr182;
+		case 99: goto tr185;
+		case 105: goto tr186;
+		case 108: goto tr187;
+		case 110: goto tr192;
+		case 113: goto tr189;
+		case 115: goto tr190;
+		case 118: goto tr193;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr184;
+	} else if ( (*p) >= 9 )
+		goto tr181;
+	goto tr1;
+case 22:
+	switch( (*p) ) {
+		case 0: goto tr181;
+		case 32: goto tr181;
+		case 67: goto tr185;
+		case 73: goto tr186;
+		case 76: goto tr187;
+		case 78: goto tr188;
+		case 81: goto tr189;
+		case 83: goto tr190;
+		case 86: goto tr191;
+		case 99: goto tr185;
+		case 105: goto tr186;
+		case 108: goto tr187;
+		case 110: goto tr192;
+		case 113: goto tr189;
+		case 115: goto tr190;
+		case 118: goto tr193;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr181;
+	goto tr1;
+case 23:
+	switch( (*p) ) {
+		case 0: goto tr194;
+		case 32: goto tr194;
+		case 67: goto tr195;
+		case 73: goto tr196;
+		case 76: goto tr197;
+		case 78: goto tr198;
+		case 81: goto tr199;
+		case 83: goto tr200;
+		case 86: goto tr201;
+		case 99: goto tr195;
+		case 105: goto tr196;
+		case 108: goto tr197;
+		case 110: goto tr202;
+		case 113: goto tr199;
+		case 115: goto tr200;
+		case 118: goto tr203;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr194;
+	goto tr1;
+case 24:
+	switch( (*p) ) {
+		case 0: goto tr181;
+		case 32: goto tr181;
+		case 67: goto tr185;
+		case 73: goto tr186;
+		case 76: goto tr187;
+		case 78: goto tr188;
+		case 81: goto tr189;
+		case 83: goto tr190;
+		case 86: goto tr191;
+		case 99: goto tr185;
+		case 105: goto tr186;
+		case 108: goto tr187;
+		case 110: goto tr192;
+		case 113: goto tr189;
+		case 115: goto tr190;
+		case 118: goto tr193;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr204;
+	} else if ( (*p) >= 9 )
+		goto tr181;
+	goto tr1;
+case 25:
+	switch( (*p) ) {
+		case 0: goto tr205;
+		case 32: goto tr205;
+		case 67: goto tr206;
+		case 73: goto tr207;
+		case 76: goto tr208;
+		case 78: goto tr209;
+		case 81: goto tr210;
+		case 83: goto tr211;
+		case 86: goto tr212;
+		case 99: goto tr206;
+		case 105: goto tr207;
+		case 108: goto tr208;
+		case 110: goto tr213;
+		case 113: goto tr210;
+		case 115: goto tr211;
+		case 118: goto tr214;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr205;
+	goto tr1;
+case 26:
+	switch( (*p) ) {
+		case 0: goto tr168;
+		case 32: goto tr168;
+		case 67: goto tr172;
+		case 73: goto tr173;
+		case 76: goto tr174;
+		case 78: goto tr175;
+		case 81: goto tr176;
+		case 83: goto tr177;
+		case 86: goto tr178;
+		case 99: goto tr172;
+		case 105: goto tr173;
+		case 108: goto tr174;
+		case 110: goto tr179;
+		case 113: goto tr176;
+		case 115: goto tr177;
+		case 118: goto tr180;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr215;
+	} else if ( (*p) >= 9 )
+		goto tr168;
+	goto tr1;
+case 27:
+	switch( (*p) ) {
+		case 0: goto tr216;
+		case 32: goto tr216;
+		case 67: goto tr217;
+		case 73: goto tr218;
+		case 76: goto tr219;
+		case 78: goto tr220;
+		case 81: goto tr221;
+		case 83: goto tr222;
+		case 86: goto tr223;
+		case 99: goto tr217;
+		case 105: goto tr218;
+		case 108: goto tr219;
+		case 110: goto tr224;
+		case 113: goto tr221;
+		case 115: goto tr222;
+		case 118: goto tr225;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr216;
+	goto tr1;
+case 28:
+	switch( (*p) ) {
+		case 0: goto tr155;
+		case 32: goto tr155;
+		case 67: goto tr159;
+		case 73: goto tr160;
+		case 76: goto tr161;
+		case 78: goto tr162;
+		case 81: goto tr163;
+		case 83: goto tr164;
+		case 86: goto tr165;
+		case 99: goto tr159;
+		case 105: goto tr160;
+		case 108: goto tr161;
+		case 110: goto tr166;
+		case 113: goto tr163;
+		case 115: goto tr164;
+		case 118: goto tr167;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr226;
+	} else if ( (*p) >= 9 )
+		goto tr155;
+	goto tr1;
+case 29:
+	switch( (*p) ) {
+		case 0: goto tr120;
+		case 32: goto tr120;
+		case 67: goto tr124;
+		case 73: goto tr125;
+		case 76: goto tr126;
+		case 78: goto tr127;
+		case 81: goto tr128;
+		case 83: goto tr129;
+		case 86: goto tr130;
+		case 99: goto tr124;
+		case 105: goto tr125;
+		case 108: goto tr126;
+		case 110: goto tr131;
+		case 113: goto tr128;
+		case 115: goto tr129;
+		case 118: goto tr132;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr227;
+	} else if ( (*p) >= 9 )
+		goto tr120;
+	goto tr1;
+case 30:
+	switch( (*p) ) {
+		case 0: goto tr228;
+		case 32: goto tr228;
+		case 67: goto tr229;
+		case 73: goto tr230;
+		case 76: goto tr231;
+		case 78: goto tr232;
+		case 81: goto tr233;
+		case 83: goto tr234;
+		case 86: goto tr235;
+		case 99: goto tr229;
+		case 105: goto tr230;
+		case 108: goto tr231;
+		case 110: goto tr236;
+		case 113: goto tr233;
+		case 115: goto tr234;
+		case 118: goto tr237;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr228;
+	goto tr1;
+case 31:
+	switch( (*p) ) {
+		case 0: goto tr107;
+		case 32: goto tr107;
+		case 67: goto tr111;
+		case 73: goto tr112;
+		case 76: goto tr113;
+		case 78: goto tr114;
+		case 81: goto tr115;
+		case 83: goto tr116;
+		case 86: goto tr117;
+		case 99: goto tr111;
+		case 105: goto tr112;
+		case 108: goto tr113;
+		case 110: goto tr118;
+		case 113: goto tr115;
+		case 115: goto tr116;
+		case 118: goto tr119;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr238;
+	} else if ( (*p) >= 9 )
+		goto tr107;
+	goto tr1;
+case 32:
+	switch( (*p) ) {
+		case 0: goto tr239;
+		case 32: goto tr239;
+		case 67: goto tr240;
+		case 73: goto tr241;
+		case 76: goto tr242;
+		case 78: goto tr243;
+		case 81: goto tr244;
+		case 83: goto tr245;
+		case 86: goto tr246;
+		case 99: goto tr240;
+		case 105: goto tr241;
+		case 108: goto tr242;
+		case 110: goto tr247;
+		case 113: goto tr244;
+		case 115: goto tr245;
+		case 118: goto tr248;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr239;
+	goto tr1;
+case 33:
+	switch( (*p) ) {
+		case 0: goto tr94;
+		case 32: goto tr94;
+		case 67: goto tr98;
+		case 73: goto tr99;
+		case 76: goto tr100;
+		case 78: goto tr101;
+		case 81: goto tr102;
+		case 83: goto tr103;
+		case 86: goto tr104;
+		case 99: goto tr98;
+		case 105: goto tr99;
+		case 108: goto tr100;
+		case 110: goto tr105;
+		case 113: goto tr102;
+		case 115: goto tr103;
+		case 118: goto tr106;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr249;
+	} else if ( (*p) >= 9 )
+		goto tr94;
+	goto tr1;
+case 34:
+	switch( (*p) ) {
+		case 0: goto tr59;
+		case 32: goto tr59;
+		case 67: goto tr63;
+		case 73: goto tr64;
+		case 76: goto tr65;
+		case 78: goto tr66;
+		case 81: goto tr67;
+		case 83: goto tr68;
+		case 86: goto tr69;
+		case 99: goto tr63;
+		case 105: goto tr64;
+		case 108: goto tr65;
+		case 110: goto tr70;
+		case 113: goto tr67;
+		case 115: goto tr68;
+		case 118: goto tr71;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr250;
+	} else if ( (*p) >= 9 )
+		goto tr59;
+	goto tr1;
+case 35:
+	switch( (*p) ) {
+		case 0: goto tr24;
+		case 32: goto tr24;
+		case 67: goto tr28;
+		case 73: goto tr29;
+		case 76: goto tr30;
+		case 78: goto tr31;
+		case 81: goto tr32;
+		case 83: goto tr33;
+		case 86: goto tr34;
+		case 99: goto tr28;
+		case 105: goto tr29;
+		case 108: goto tr30;
+		case 110: goto tr35;
+		case 113: goto tr32;
+		case 115: goto tr33;
+		case 118: goto tr36;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr251;
+	} else if ( (*p) >= 9 )
+		goto tr24;
+	goto tr1;
+case 36:
+	switch( (*p) ) {
+		case 0: goto tr10;
+		case 32: goto tr10;
+		case 67: goto tr14;
+		case 73: goto tr15;
+		case 76: goto tr16;
+		case 78: goto tr17;
+		case 81: goto tr18;
+		case 83: goto tr19;
+		case 86: goto tr20;
+		case 99: goto tr14;
+		case 105: goto tr15;
+		case 108: goto tr16;
+		case 110: goto tr21;
+		case 113: goto tr18;
+		case 115: goto tr19;
+		case 118: goto tr22;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr10;
+	goto tr1;
+case 37:
+	switch( (*p) ) {
+		case 0: goto tr252;
+		case 32: goto tr252;
+		case 67: goto tr253;
+		case 73: goto tr254;
+		case 76: goto tr255;
+		case 78: goto tr256;
+		case 81: goto tr257;
+		case 83: goto tr258;
+		case 86: goto tr259;
+		case 99: goto tr253;
+		case 105: goto tr254;
+		case 108: goto tr255;
+		case 110: goto tr260;
+		case 113: goto tr257;
+		case 115: goto tr258;
+		case 118: goto tr261;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr252;
+	goto tr1;
+case 38:
+	switch( (*p) ) {
+		case 0: goto tr10;
+		case 32: goto tr10;
+		case 67: goto tr14;
+		case 73: goto tr15;
+		case 76: goto tr16;
+		case 78: goto tr17;
+		case 81: goto tr18;
+		case 83: goto tr19;
+		case 86: goto tr20;
+		case 99: goto tr14;
+		case 105: goto tr15;
+		case 108: goto tr16;
+		case 110: goto tr21;
+		case 113: goto tr18;
+		case 115: goto tr19;
+		case 118: goto tr22;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr262;
+	} else if ( (*p) >= 9 )
+		goto tr10;
+	goto tr1;
+	}
+
+	tr1: cs = 0; goto _again;
+	tr0: cs = 2; goto f0;
+	tr14: cs = 2; goto f5;
+	tr28: cs = 2; goto f9;
+	tr40: cs = 2; goto f14;
+	tr50: cs = 2; goto f17;
+	tr63: cs = 2; goto f20;
+	tr75: cs = 2; goto f23;
+	tr85: cs = 2; goto f26;
+	tr98: cs = 2; goto f29;
+	tr111: cs = 2; goto f32;
+	tr124: cs = 2; goto f35;
+	tr136: cs = 2; goto f38;
+	tr146: cs = 2; goto f41;
+	tr159: cs = 2; goto f44;
+	tr172: cs = 2; goto f47;
+	tr185: cs = 2; goto f50;
+	tr195: cs = 2; goto f53;
+	tr206: cs = 2; goto f57;
+	tr217: cs = 2; goto f60;
+	tr229: cs = 2; goto f63;
+	tr240: cs = 2; goto f66;
+	tr253: cs = 2; goto f69;
+	tr23: cs = 3; goto _again;
+	tr10: cs = 3; goto f2;
+	tr24: cs = 3; goto f8;
+	tr37: cs = 3; goto f11;
+	tr49: cs = 3; goto f16;
+	tr59: cs = 3; goto f19;
+	tr72: cs = 3; goto f22;
+	tr84: cs = 3; goto f25;
+	tr94: cs = 3; goto f28;
+	tr107: cs = 3; goto f31;
+	tr120: cs = 3; goto f34;
+	tr133: cs = 3; goto f37;
+	tr145: cs = 3; goto f40;
+	tr155: cs = 3; goto f43;
+	tr168: cs = 3; goto f46;
+	tr181: cs = 3; goto f49;
+	tr194: cs = 3; goto f52;
+	tr205: cs = 3; goto f56;
+	tr216: cs = 3; goto f59;
+	tr228: cs = 3; goto f62;
+	tr239: cs = 3; goto f65;
+	tr252: cs = 3; goto f68;
+	tr2: cs = 4; goto f0;
+	tr15: cs = 4; goto f5;
+	tr29: cs = 4; goto f9;
+	tr41: cs = 4; goto f14;
+	tr51: cs = 4; goto f17;
+	tr64: cs = 4; goto f20;
+	tr76: cs = 4; goto f23;
+	tr86: cs = 4; goto f26;
+	tr99: cs = 4; goto f29;
+	tr112: cs = 4; goto f32;
+	tr125: cs = 4; goto f35;
+	tr137: cs = 4; goto f38;
+	tr147: cs = 4; goto f41;
+	tr160: cs = 4; goto f44;
+	tr173: cs = 4; goto f47;
+	tr186: cs = 4; goto f50;
+	tr196: cs = 4; goto f53;
+	tr207: cs = 4; goto f57;
+	tr218: cs = 4; goto f60;
+	tr230: cs = 4; goto f63;
+	tr241: cs = 4; goto f66;
+	tr254: cs = 4; goto f69;
+	tr25: cs = 5; goto _again;
+	tr26: cs = 6; goto _again;
+	tr38: cs = 6; goto f12;
+	tr3: cs = 7; goto f0;
+	tr16: cs = 7; goto f5;
+	tr30: cs = 7; goto f9;
+	tr42: cs = 7; goto f14;
+	tr52: cs = 7; goto f17;
+	tr65: cs = 7; goto f20;
+	tr77: cs = 7; goto f23;
+	tr87: cs = 7; goto f26;
+	tr100: cs = 7; goto f29;
+	tr113: cs = 7; goto f32;
+	tr126: cs = 7; goto f35;
+	tr138: cs = 7; goto f38;
+	tr148: cs = 7; goto f41;
+	tr161: cs = 7; goto f44;
+	tr174: cs = 7; goto f47;
+	tr187: cs = 7; goto f50;
+	tr197: cs = 7; goto f53;
+	tr208: cs = 7; goto f57;
+	tr219: cs = 7; goto f60;
+	tr231: cs = 7; goto f63;
+	tr242: cs = 7; goto f66;
+	tr255: cs = 7; goto f69;
+	tr60: cs = 8; goto _again;
+	tr61: cs = 9; goto _again;
+	tr73: cs = 9; goto f12;
+	tr4: cs = 10; goto f0;
+	tr17: cs = 10; goto f5;
+	tr31: cs = 10; goto f9;
+	tr43: cs = 10; goto f14;
+	tr53: cs = 10; goto f17;
+	tr66: cs = 10; goto f20;
+	tr78: cs = 10; goto f23;
+	tr88: cs = 10; goto f26;
+	tr101: cs = 10; goto f29;
+	tr114: cs = 10; goto f32;
+	tr127: cs = 10; goto f35;
+	tr139: cs = 10; goto f38;
+	tr149: cs = 10; goto f41;
+	tr162: cs = 10; goto f44;
+	tr175: cs = 10; goto f47;
+	tr188: cs = 10; goto f50;
+	tr198: cs = 10; goto f53;
+	tr209: cs = 10; goto f57;
+	tr220: cs = 10; goto f60;
+	tr232: cs = 10; goto f63;
+	tr243: cs = 10; goto f66;
+	tr256: cs = 10; goto f69;
+	tr95: cs = 11; goto f3;
+	tr5: cs = 12; goto f0;
+	tr18: cs = 12; goto f5;
+	tr32: cs = 12; goto f9;
+	tr44: cs = 12; goto f14;
+	tr54: cs = 12; goto f17;
+	tr67: cs = 12; goto f20;
+	tr79: cs = 12; goto f23;
+	tr89: cs = 12; goto f26;
+	tr102: cs = 12; goto f29;
+	tr115: cs = 12; goto f32;
+	tr128: cs = 12; goto f35;
+	tr140: cs = 12; goto f38;
+	tr150: cs = 12; goto f41;
+	tr163: cs = 12; goto f44;
+	tr176: cs = 12; goto f47;
+	tr189: cs = 12; goto f50;
+	tr199: cs = 12; goto f53;
+	tr210: cs = 12; goto f57;
+	tr221: cs = 12; goto f60;
+	tr233: cs = 12; goto f63;
+	tr244: cs = 12; goto f66;
+	tr257: cs = 12; goto f69;
+	tr108: cs = 13; goto f3;
+	tr6: cs = 14; goto f0;
+	tr19: cs = 14; goto f5;
+	tr33: cs = 14; goto f9;
+	tr45: cs = 14; goto f14;
+	tr55: cs = 14; goto f17;
+	tr68: cs = 14; goto f20;
+	tr80: cs = 14; goto f23;
+	tr90: cs = 14; goto f26;
+	tr103: cs = 14; goto f29;
+	tr116: cs = 14; goto f32;
+	tr129: cs = 14; goto f35;
+	tr141: cs = 14; goto f38;
+	tr151: cs = 14; goto f41;
+	tr164: cs = 14; goto f44;
+	tr177: cs = 14; goto f47;
+	tr190: cs = 14; goto f50;
+	tr200: cs = 14; goto f53;
+	tr211: cs = 14; goto f57;
+	tr222: cs = 14; goto f60;
+	tr234: cs = 14; goto f63;
+	tr245: cs = 14; goto f66;
+	tr258: cs = 14; goto f69;
+	tr121: cs = 15; goto _again;
+	tr122: cs = 16; goto _again;
+	tr134: cs = 16; goto f12;
+	tr7: cs = 17; goto f0;
+	tr20: cs = 17; goto f5;
+	tr34: cs = 17; goto f9;
+	tr46: cs = 17; goto f14;
+	tr56: cs = 17; goto f17;
+	tr69: cs = 17; goto f20;
+	tr81: cs = 17; goto f23;
+	tr91: cs = 17; goto f26;
+	tr104: cs = 17; goto f29;
+	tr117: cs = 17; goto f32;
+	tr130: cs = 17; goto f35;
+	tr142: cs = 17; goto f38;
+	tr152: cs = 17; goto f41;
+	tr165: cs = 17; goto f44;
+	tr178: cs = 17; goto f47;
+	tr191: cs = 17; goto f50;
+	tr201: cs = 17; goto f53;
+	tr212: cs = 17; goto f57;
+	tr223: cs = 17; goto f60;
+	tr235: cs = 17; goto f63;
+	tr246: cs = 17; goto f66;
+	tr259: cs = 17; goto f69;
+	tr156: cs = 18; goto f3;
+	tr8: cs = 19; goto f0;
+	tr21: cs = 19; goto f5;
+	tr35: cs = 19; goto f9;
+	tr47: cs = 19; goto f14;
+	tr57: cs = 19; goto f17;
+	tr70: cs = 19; goto f20;
+	tr82: cs = 19; goto f23;
+	tr92: cs = 19; goto f26;
+	tr105: cs = 19; goto f29;
+	tr118: cs = 19; goto f32;
+	tr131: cs = 19; goto f35;
+	tr143: cs = 19; goto f38;
+	tr153: cs = 19; goto f41;
+	tr166: cs = 19; goto f44;
+	tr179: cs = 19; goto f47;
+	tr192: cs = 19; goto f50;
+	tr202: cs = 19; goto f53;
+	tr213: cs = 19; goto f57;
+	tr224: cs = 19; goto f60;
+	tr236: cs = 19; goto f63;
+	tr247: cs = 19; goto f66;
+	tr260: cs = 19; goto f69;
+	tr169: cs = 20; goto f3;
+	tr9: cs = 21; goto f0;
+	tr22: cs = 21; goto f5;
+	tr36: cs = 21; goto f9;
+	tr48: cs = 21; goto f14;
+	tr58: cs = 21; goto f17;
+	tr71: cs = 21; goto f20;
+	tr83: cs = 21; goto f23;
+	tr93: cs = 21; goto f26;
+	tr106: cs = 21; goto f29;
+	tr119: cs = 21; goto f32;
+	tr132: cs = 21; goto f35;
+	tr144: cs = 21; goto f38;
+	tr154: cs = 21; goto f41;
+	tr167: cs = 21; goto f44;
+	tr180: cs = 21; goto f47;
+	tr193: cs = 21; goto f50;
+	tr203: cs = 21; goto f53;
+	tr214: cs = 21; goto f57;
+	tr225: cs = 21; goto f60;
+	tr237: cs = 21; goto f63;
+	tr248: cs = 21; goto f66;
+	tr261: cs = 21; goto f69;
+	tr182: cs = 22; goto f3;
+	tr183: cs = 23; goto _again;
+	tr184: cs = 24; goto f4;
+	tr204: cs = 24; goto f54;
+	tr170: cs = 25; goto _again;
+	tr171: cs = 26; goto f4;
+	tr215: cs = 26; goto f54;
+	tr157: cs = 27; goto _again;
+	tr158: cs = 28; goto f4;
+	tr226: cs = 28; goto f54;
+	tr123: cs = 29; goto f4;
+	tr135: cs = 29; goto f13;
+	tr227: cs = 29; goto f54;
+	tr109: cs = 30; goto _again;
+	tr110: cs = 31; goto f4;
+	tr238: cs = 31; goto f54;
+	tr96: cs = 32; goto _again;
+	tr97: cs = 33; goto f4;
+	tr249: cs = 33; goto f54;
+	tr62: cs = 34; goto f4;
+	tr74: cs = 34; goto f13;
+	tr250: cs = 34; goto f54;
+	tr27: cs = 35; goto f4;
+	tr39: cs = 35; goto f13;
+	tr251: cs = 35; goto f54;
+	tr11: cs = 36; goto f3;
+	tr12: cs = 37; goto _again;
+	tr13: cs = 38; goto f4;
+	tr262: cs = 38; goto f54;
+
+f0:
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f4:
+	{
+    count = (*p) - '0';
+  }
+	goto _again;
+f54:
+	{
+    count = count * 10 + ((*p) - '0');
+  }
+	goto _again;
+f12:
+	{
+    platform = true;
+  }
+	goto _again;
+f3:
 	{
 #define NON_NATIVE_ERROR_SIZE 36
 
@@ -189,78 +1395,16 @@ tr3:
              "'%c' allowed only after types sSiIlL", *p);
     Exception::argument_error(state, non_native_msg);
   }
-	goto st4;
-st4:
-	if ( ++p == pe )
-		goto _test_eof4;
-case 4:
-	switch( (*p) ) {
-		case 0: goto tr2;
-		case 32: goto tr2;
-		case 67: goto tr6;
-		case 99: goto tr6;
-	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr2;
-	goto st0;
-st5:
-	if ( ++p == pe )
-		goto _test_eof5;
-case 5:
-	switch( (*p) ) {
-		case 0: goto tr8;
-		case 32: goto tr8;
-		case 67: goto tr9;
-		case 99: goto tr9;
-	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr8;
-	goto st0;
-tr5:
+	goto _again;
+f13:
+	{
+    platform = true;
+  }
 	{
     count = (*p) - '0';
   }
-	goto st6;
-tr10:
-	{
-    count = count * 10 + ((*p) - '0');
-  }
-	goto st6;
-st6:
-	if ( ++p == pe )
-		goto _test_eof6;
-case 6:
-	switch( (*p) ) {
-		case 0: goto tr2;
-		case 32: goto tr2;
-		case 67: goto tr6;
-		case 99: goto tr6;
-	}
-	if ( (*p) > 13 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr10;
-	} else if ( (*p) >= 9 )
-		goto tr2;
-	goto st0;
-	}
-	_test_eof2: cs = 2; goto _test_eof; 
-	_test_eof3: cs = 3; goto _test_eof; 
-	_test_eof4: cs = 4; goto _test_eof; 
-	_test_eof5: cs = 5; goto _test_eof; 
-	_test_eof6: cs = 6; goto _test_eof; 
-
-	_test_eof: {}
-	if ( p == eof )
-	{
-	switch ( cs ) {
-	case 3: 
-	{
-    return String::create(state, str.c_str(), str.size());
-  }
-	break;
-	case 2: 
-	case 4: 
-	case 6: 
+	goto _again;
+f2:
 	{
     stop = rest ? size() : index + count;
     if(stop > size()) {
@@ -268,13 +1412,106 @@ case 6:
     }
   }
 	{
-    PACK_ELEMENTS(Integer, pack::integer, MASK_BYTE);
+    PACK_INT_ELEMENTS(MASK_BYTE);
+  }
+	goto _again;
+f34:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    PACK_INT_ELEMENTS(MASK_16BITS);
   }
-	break;
-	case 5: 
+	goto _again;
+f8:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_32BITS);
+  }
+	goto _again;
+f19:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    if(platform) {
+#if RBX_SIZEOF_LONG == 4
+      PACK_INT_ELEMENTS(MASK_32BITS);
+#else
+      PACK_LONG_ELEMENTS(MASK_64BITS);
+#endif
+    } else {
+      PACK_INT_ELEMENTS(MASK_32BITS);
+    }
+  }
+	goto _again;
+f46:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(BE_MASK_16BITS);
+  }
+	goto _again;
+f28:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(BE_MASK_32BITS);
+  }
+	goto _again;
+f49:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_16BITS);
+  }
+	goto _again;
+f43:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_32BITS);
+  }
+	goto _again;
+f31:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_LONG_ELEMENTS(MASK_64BITS);
+  }
+	goto _again;
+f68:
 	{
     rest = true;
   }
@@ -285,7 +1522,939 @@ case 6:
     }
   }
 	{
-    PACK_ELEMENTS(Integer, pack::integer, MASK_BYTE);
+    PACK_INT_ELEMENTS(MASK_BYTE);
+  }
+	goto _again;
+f40:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_16BITS);
+  }
+	goto _again;
+f16:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_32BITS);
+  }
+	goto _again;
+f25:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    if(platform) {
+#if RBX_SIZEOF_LONG == 4
+      PACK_INT_ELEMENTS(MASK_32BITS);
+#else
+      PACK_LONG_ELEMENTS(MASK_64BITS);
+#endif
+    } else {
+      PACK_INT_ELEMENTS(MASK_32BITS);
+    }
+  }
+	goto _again;
+f56:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(BE_MASK_16BITS);
+  }
+	goto _again;
+f65:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(BE_MASK_32BITS);
+  }
+	goto _again;
+f52:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_16BITS);
+  }
+	goto _again;
+f59:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_32BITS);
+  }
+	goto _again;
+f62:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_LONG_ELEMENTS(MASK_64BITS);
+  }
+	goto _again;
+f37:
+	{
+    platform = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_16BITS);
+  }
+	goto _again;
+f11:
+	{
+    platform = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_32BITS);
+  }
+	goto _again;
+f22:
+	{
+    platform = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    if(platform) {
+#if RBX_SIZEOF_LONG == 4
+      PACK_INT_ELEMENTS(MASK_32BITS);
+#else
+      PACK_LONG_ELEMENTS(MASK_64BITS);
+#endif
+    } else {
+      PACK_INT_ELEMENTS(MASK_32BITS);
+    }
+  }
+	goto _again;
+f5:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_BYTE);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f35:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_16BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f9:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_32BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f20:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    if(platform) {
+#if RBX_SIZEOF_LONG == 4
+      PACK_INT_ELEMENTS(MASK_32BITS);
+#else
+      PACK_LONG_ELEMENTS(MASK_64BITS);
+#endif
+    } else {
+      PACK_INT_ELEMENTS(MASK_32BITS);
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f47:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(BE_MASK_16BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f29:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(BE_MASK_32BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f50:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_16BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f44:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_32BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f32:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_LONG_ELEMENTS(MASK_64BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f69:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_BYTE);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f41:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_16BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f17:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_32BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f26:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    if(platform) {
+#if RBX_SIZEOF_LONG == 4
+      PACK_INT_ELEMENTS(MASK_32BITS);
+#else
+      PACK_LONG_ELEMENTS(MASK_64BITS);
+#endif
+    } else {
+      PACK_INT_ELEMENTS(MASK_32BITS);
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f57:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(BE_MASK_16BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f66:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(BE_MASK_32BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f53:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_16BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f60:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_32BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f63:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_LONG_ELEMENTS(MASK_64BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f38:
+	{
+    platform = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_16BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f14:
+	{
+    platform = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_32BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f23:
+	{
+    platform = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    if(platform) {
+#if RBX_SIZEOF_LONG == 4
+      PACK_INT_ELEMENTS(MASK_32BITS);
+#else
+      PACK_LONG_ELEMENTS(MASK_64BITS);
+#endif
+    } else {
+      PACK_INT_ELEMENTS(MASK_32BITS);
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+
+_again:
+	if ( cs == 0 )
+		goto _out;
+	if ( ++p != pe )
+		goto _resume;
+	_test_eof: {}
+	if ( p == eof )
+	{
+	switch ( _pack_eof_actions[cs] ) {
+	case 7:
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 2:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_BYTE);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 34:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_16BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 8:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_32BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 19:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    if(platform) {
+#if RBX_SIZEOF_LONG == 4
+      PACK_INT_ELEMENTS(MASK_32BITS);
+#else
+      PACK_LONG_ELEMENTS(MASK_64BITS);
+#endif
+    } else {
+      PACK_INT_ELEMENTS(MASK_32BITS);
+    }
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 46:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(BE_MASK_16BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 28:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(BE_MASK_32BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 49:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_16BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 43:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_32BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 31:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_LONG_ELEMENTS(MASK_64BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 68:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_BYTE);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 40:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_16BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 16:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_32BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 25:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    if(platform) {
+#if RBX_SIZEOF_LONG == 4
+      PACK_INT_ELEMENTS(MASK_32BITS);
+#else
+      PACK_LONG_ELEMENTS(MASK_64BITS);
+#endif
+    } else {
+      PACK_INT_ELEMENTS(MASK_32BITS);
+    }
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 56:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(BE_MASK_16BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 65:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(BE_MASK_32BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 52:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_16BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 59:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_32BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 62:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_LONG_ELEMENTS(MASK_64BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 37:
+	{
+    platform = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_16BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 11:
+	{
+    platform = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_32BITS);
+  }
+	{
+    return String::create(state, str.c_str(), str.size());
+  }
+	break;
+	case 22:
+	{
+    platform = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    if(platform) {
+#if RBX_SIZEOF_LONG == 4
+      PACK_INT_ELEMENTS(MASK_32BITS);
+#else
+      PACK_LONG_ELEMENTS(MASK_64BITS);
+#endif
+    } else {
+      PACK_INT_ELEMENTS(MASK_32BITS);
+    }
   }
 	{
     return String::create(state, str.c_str(), str.size());
