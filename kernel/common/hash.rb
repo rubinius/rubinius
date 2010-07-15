@@ -114,7 +114,7 @@ class Hash
   # Creates a fully-formed instance of Hash.
   def self.allocate
     hash = super()
-    Rubinius.privately { hash.setup }
+    Rubinius.privately { hash.__setup__ }
     hash
   end
 
@@ -225,7 +225,7 @@ class Hash
   alias_method :__store__, :[]=
 
   def clear
-    setup
+    __setup__
     self
   end
 
@@ -484,7 +484,7 @@ class Hash
     capacity = @capacity
 
     # TODO: grow smaller too
-    setup @capacity * 2, @max_entries * 2, @size
+    __setup__ @capacity * 2, @max_entries * 2, @size
 
     i = -1
     while (i += 1) < capacity
@@ -557,7 +557,7 @@ class Hash
     other = Type.coerce_to other, Hash, :to_hash
     return self if self.equal? other
 
-    setup
+    __setup__
 
     other.each_entry do |entry|
       __store__ entry.key, entry.value
@@ -609,14 +609,14 @@ class Hash
   # @max_entries is the maximum number of entries before redistributing.
   # @size is the number of pairs, equivalent to <code>hsh.size</code>.
   # @entrien is the vector of storage for the entry chains.
-  def setup(capacity=MIN_SIZE, max=MAX_ENTRIES, size=0)
+  def __setup__(capacity=MIN_SIZE, max=MAX_ENTRIES, size=0)
     @capacity = capacity
     @mask     = capacity - 1
     @max_entries = max
     @size     = size
     @entries  = Entries.new capacity
   end
-  private :setup
+  private :__setup__
 
   def sort(&block)
     to_a.sort(&block)
