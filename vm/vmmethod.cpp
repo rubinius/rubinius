@@ -92,6 +92,7 @@ namespace rubinius {
     , jitted_impl_(NULL)
 #endif
     , name_(meth->name())
+    , debugging(false)
   {
     meth->set_executor(&VMMethod::execute);
 

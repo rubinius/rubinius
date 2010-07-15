@@ -206,6 +206,7 @@ namespace rubinius {
     }
 
     breakpoints_->store(state, ip, bp);
+    backend_method_->debugging = true;
     backend_method_->run = VMMethod::debugger_interpreter;
     return ip;
   }
@@ -221,6 +222,7 @@ namespace rubinius {
 
       // No more breakpoints, switch back to the normal interpreter
       if(breakpoints_->entries()->to_native() == 0) {
+        backend_method_->debugging = false;
         backend_method_->run = VMMethod::interpreter;
       }
     }

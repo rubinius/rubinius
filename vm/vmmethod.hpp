@@ -7,6 +7,7 @@
 #include "gc/root.hpp"
 #include "primitives.hpp"
 #include "type_info.hpp"
+#include "unwind_info.hpp"
 
 #include "vm/builtin/compiledmethod.hpp"
 #include "gc/code_resource.hpp"
@@ -79,6 +80,8 @@ namespace rubinius {
 #endif
 
     Symbol* name_;
+  public:
+    bool debugging;
   public: // Methods
     static void init(STATE);
 
@@ -187,6 +190,13 @@ namespace rubinius {
 
     static Object* debugger_interpreter(STATE, VMMethod* const vmm,
                                         InterpreterCallFrame* const call_frame);
+    static Object* debugger_interpreter_continue(STATE,
+                                       VMMethod* const vmm,
+                                       CallFrame* const call_frame,
+                                       int sp,
+                                       InterpreterState& is,
+                                       int current_unwind,
+                                       UnwindInfo* unwinds);
 
     static Object* uncommon_interpreter(STATE, VMMethod* const vmm,
       CallFrame* const call_frame, int32_t entry_ip, native_int sp,

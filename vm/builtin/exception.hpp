@@ -62,7 +62,7 @@ namespace rubinius {
     static void range_error(STATE, const char* reason);
 
     static void assertion_error(STATE, const char* reason = NULL);
-    static void object_bounds_exceeded_error(STATE, Object* obj, size_t index);
+    static void object_bounds_exceeded_error(STATE, Object* obj, int index);
     static void object_bounds_exceeded_error(STATE, const char* reason);
 
     /** Raise a SystemCallError with given message. */

@@ -183,7 +183,7 @@ namespace rubinius {
     RubyException::raise(make_exception(state, get_errno_error(state, Fixnum::from(errno)), strerror(errno)));
   }
 
-  void Exception::object_bounds_exceeded_error(STATE, Object* obj, size_t index) {
+  void Exception::object_bounds_exceeded_error(STATE, Object* obj, int index) {
     TypeInfo* info = state->find_type(obj->type_id()); // HACK use object
     std::ostringstream msg;
 
