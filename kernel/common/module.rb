@@ -645,7 +645,7 @@ class Module
 
     sym = name.to_sym
     unless constants_table.has_key?(sym)
-      return const_missing(name)
+      raise NameError, "Missing or uninitialized constant: #{self.__name__}::#{name}"
     end
 
     val = constants_table.delete(sym)
