@@ -390,10 +390,10 @@ class IO
     readable = false
     writable = false
 
-    if mode & IO::RDWR != 0 then
+    if mode & IO::RDWR != 0
       readable = true
       writable = true
-    elsif mode & IO::WRONLY != 0 then
+    elsif mode & IO::WRONLY != 0
       writable = true
     else # IO::RDONLY
       readable = true
@@ -406,12 +406,12 @@ class IO
 
     # child
     if !pid
-      if readable then
+      if readable
         pa_read.close
         STDOUT.reopen ch_write
       end
 
-      if writable then
+      if writable
         pa_write.close
         STDIN.reopen ch_read
       end
@@ -431,15 +431,34 @@ class IO
     ch_write.close if readable
     ch_read.close  if writable
 
-    # See bottom for definition
-    pipe = IO::BidirectionalPipe.new pid, pa_read, pa_write
+    # We only need the Bidirectional pipe if we're reading and writing.
+    # If we're only doing one, we can just return the IO object for
+    # the proper half.
+    #
+    if readable and writable
+      # Transmogrify pa_read into a BidirectionalPipe object,
+      # and then tell it abou it's pid and pa_write
+
+      Rubinius::Unsafe.set_class pa_read, IO::BidirectionalPipe
+
+      pipe = pa_read
+      pipe.set_pipe_info(pa_write)
+    elsif readable
+      pipe = pa_read
+    elsif writable
+      pipe = pa_write
+    else
+      raise ArgumentError, "IO is neither readable nor writable"
+    end
+
+    pipe.pid = pid
 
     return pipe unless block_given?
 
     begin
       yield pipe
     ensure
-      pipe.close
+      pipe.close unless pipe.closed?
     end
   end
 
@@ -1011,8 +1030,11 @@ class IO
   #  In child, pid is 26209
   #  In parent, child pid is 26209
   def pid
-    nil
+    raise IOError, 'closed stream' if closed?
+    @pid
   end
+
+  attr_writer :pid
 
   ##
   #
@@ -1135,7 +1157,7 @@ class IO
   #   f = File.new("testfile")
   #   f.read(16)   #=> "This is line one"
   def read(length=nil, buffer=nil)
-    ensure_open
+    ensure_open_and_readable
     buffer = StringValue(buffer) if buffer
 
     unless length
@@ -1649,6 +1671,11 @@ class IO
       prim_close
     end
 
+    if @pid and @pid != 0
+      Process.wait @pid
+      @pid = nil
+    end
+
     return nil
   end
 
@@ -1659,46 +1686,9 @@ end
 
 class IO::BidirectionalPipe < IO
 
-  READ_METHODS = [
-    :each,
-    :each_line,
-    :getc,
-    :gets,
-    :read,
-    :read_nonblock,
-    :readchar,
-    :readline,
-    :readlines,
-    :readpartial,
-    :sysread,
-    :seek,
-    :binmode
-  ]
-
-  WRITE_METHODS = [
-    :<<,
-    :print,
-    :printf,
-    :putc,
-    :puts,
-    :syswrite,
-    :write,
-    :write_nonblock,
-  ]
-
-  def initialize(pid, read, write)
-    @pid = pid
-    @read = read
+  def set_pipe_info(write)
     @write = write
     @sync = true
-  end
-
-  def check_read
-    raise IOError, 'not opened for reading' if @read.nil?
-  end
-
-  def check_write
-    raise IOError, 'not opened for writing' if @write.nil?
   end
 
   ##
@@ -1711,57 +1701,74 @@ class IO::BidirectionalPipe < IO
   #
   # If ios is opened by IO.popen, close sets $?.
   def close
-    @read.close  if @read  and not @read.closed?
-    @write.close if @write and not @write.closed?
+    @write.close unless @write.closed?
 
-    if @pid != 0 then
-      Process.wait @pid
-
-      @pid = 0
-    end
+    super unless closed?
 
     nil
   end
 
   def closed?
-    if @read and @write then
-      @read.closed? and @write.closed?
-    elsif @read then
-      @read.closed?
-    else
-      @write.closed?
-    end
+    super and @write.closed?
   end
 
   def close_read
-    raise IOError, 'closed stream' if @read.closed?
+    raise IOError, 'closed stream' if closed?
 
-    @read.close if @read
+    close
   end
 
   def close_write
     raise IOError, 'closed stream' if @write.closed?
 
-    @write.close if @write
+    @write.close
   end
 
-  def method_missing(message, *args, &block)
-    if READ_METHODS.include? message then
-      check_read
+  WRITE_METHODS = [
+    :<<,
+    :print,
+    :printf,
+    :putc,
+    :puts,
+    :syswrite,
+    :write,
+    :write_nonblock,
+  ]
 
-      @read.send(message, *args, &block)
-    elsif WRITE_METHODS.include? message then
-      check_write
-
-      @write.send(message, *args, &block)
-    else
-      super
-    end
+  # Expand these out rather than using some metaprogramming because it's a fixed
+  # set and it's faster to have them as normal methods because then InlineCaches
+  # work right.
+  #
+  def <<(obj)
+    @write << obj
   end
 
-  def pid
-    raise IOError, 'closed stream' if closed?
-
-    @pid
+  def print(*args)
+    @write.print(*args)
   end
+
+  def printf(fmt, *args)
+    @write.printf(fmt, *args)
+  end
+
+  def putc(obj)
+    @write.putc(obj)
+  end
+
+  def puts(*args)
+    @write.puts(*args)
+  end
+
+  def syswrite(data)
+    @write.syswrite(data)
+  end
+
+  def write(data)
+    @write.write(data)
+  end
+
+  def write_nonblock(data)
+    @write.write_nonblock(data)
+  end
+
 end
