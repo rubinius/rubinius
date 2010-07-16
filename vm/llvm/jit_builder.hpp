@@ -1,9 +1,10 @@
 #ifndef RBX_LLVM_BUILDER_HPP
 #define RBX_LLVM_BUILDER_HPP
 
+#include "unwind_info.hpp"
+
 #include "llvm/jit.hpp"
 #include "llvm/offset.hpp"
-
 #include <llvm/Support/IRBuilder.h>
 
 namespace rubinius {

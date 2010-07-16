@@ -139,6 +139,7 @@ namespace rubinius {
     llvm::Value* profiling_entry_;
     llvm::Value* out_args_;
     llvm::Value* counter_;
+    llvm::Value* unwind_info_;
 
     JITMethodInfo* parent_info_;
     JITMethodInfo* creator_info_;
@@ -211,6 +212,14 @@ namespace rubinius {
       return profiling_entry_;
     }
 
+    llvm::Value* unwind_info() {
+      return unwind_info_;
+    }
+
+    void set_unwind_info(llvm::Value* unwind) {
+      unwind_info_ = unwind;
+    }
+
     void set_entry(llvm::BasicBlock* entry) {
       entry_ = entry;
     }
@@ -264,6 +273,7 @@ namespace rubinius {
       vm_ = info.vm();
       out_args_ = info.out_args();
       counter_ = info.counter();
+      unwind_info_ = info.unwind_info();
 
       set_function(info.function());
     }
@@ -380,6 +390,7 @@ namespace rubinius {
     int end_ip;
     bool reachable;
     bool landing_pad;
+    int exception_type;
 
   public:
     JITBasicBlock()
@@ -391,6 +402,7 @@ namespace rubinius {
       , end_ip(0)
       , reachable(false)
       , landing_pad(false)
+      , exception_type(-1)
     {}
 
     llvm::BasicBlock* entry() {

@@ -1,6 +1,8 @@
 #ifndef RBX_UNWIND_INFO_HPP
 #define RBX_UNWIND_INFO_HPP
 
+#include <stdint.h>
+
 namespace rubinius {
   // TODO figure out if this is a good number
   const int kMaxUnwindInfos = 20;

@@ -63,10 +63,6 @@ namespace rubinius {
       if(!options_.allow_blocks) throw Unsupported();
     }
 
-    void visit_setup_unwind(opcode which, opcode type) {
-      throw Unsupported();
-    }
-
     void visit_send_super_stack_with_block(opcode which, opcode args) {
       throw Unsupported();
     }

@@ -206,7 +206,6 @@ namespace jit {
     Symbol* s_class_eval_;
     Symbol* s_module_eval_;
 
-    std::list<JITBasicBlock*> exception_handlers_;
     CFGCalculator& cfg_;
 
   public:
@@ -235,9 +234,6 @@ namespace jit {
       s_binding_ = ls->symbol("binding");
       s_class_eval_ = ls->symbol("class_eval");
       s_module_eval_ = ls->symbol("module_eval");
-
-      // By default, there is no handler.
-      exception_handlers_.push_back(0);
     }
 
     bool calls_evalish() {
@@ -258,14 +254,6 @@ namespace jit {
 
     void at_ip(int ip) {
       current_ip_ = ip;
-
-      // If this is a new block, reset sp here
-      /*
-      BlockMap::iterator i = map_.find(ip);
-      if(i != map_.end()) {
-        sp_ = i->second.sp;
-      }
-      */
     }
 
     const static int cUnknown = -10;
@@ -274,11 +262,6 @@ namespace jit {
 #include "gen/instruction_effects.hpp"
 
     bool before(opcode op, opcode arg1=0, opcode arg2=0) {
-      // Handle pop_unwind specially, so we always see it.
-      if(op == InstructionSequence::insn_pop_unwind) {
-        exception_handlers_.pop_back();
-      }
-
       BlockMap::iterator i = map_.find(current_ip_);
       if(i != map_.end()) {
         if(i->second.sp == cUnknown) {
@@ -333,19 +316,14 @@ namespace jit {
         CFGBlock* cfg_block = cfg_.find_block(ip);
         assert(cfg_block);
 
+        jbb.exception_type = cfg_block->exception_type();
+
         if(CFGBlock* handler = cfg_block->exception_handler()) {
           BlockMap::iterator hi = map_.find(handler->start_ip());
           assert(hi != map_.end());
 
           jbb.exception_handler = &hi->second;
         }
-        // Assign the new block the current handler. This works
-        // because code creates now blocks always within the
-        // scope of the current handler and it's illegal for code
-        // to generate a goto across a handler boundary
-        // if(exception_handlers_.size() > 0) {
-          // jbb.exception_handler = exception_handlers_.back();
-        // }
 
         if(ip < current_ip_) {
           jbb.end_ip = current_ip_;
@@ -398,10 +376,7 @@ namespace jit {
       // on in the stream
       assert(current_ip_ < which);
 
-      JITBasicBlock* jbb = break_at(which);
-
-      // Install the handler...
-      exception_handlers_.push_back(jbb);
+      break_at(which);
 
       // Break at the next IP. When we advance to it, the logic
       // above will install the handler we just installed on it.

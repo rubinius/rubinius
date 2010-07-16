@@ -45,6 +45,11 @@ namespace jit {
 
     info_.set_counter(b().CreateAlloca(ls_->Int32Ty, 0, "counter_alloca"));
 
+    // The 3 here is because we store {ip, sp, type} per unwind.
+    info_.set_unwind_info(b().CreateAlloca(ls_->Int32Ty,
+          ConstantInt::get(ls_->Int32Ty, rubinius::kMaxUnwindInfos * 3),
+          "unwind_info"));
+
     valid_flag = b().CreateAlloca(ls_->Int1Ty, 0, "valid_flag");
 
     Value* cfstk = b().CreateAlloca(obj_type,

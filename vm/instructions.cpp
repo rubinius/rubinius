@@ -231,7 +231,9 @@ Object* VMMethod::uncommon_interpreter(STATE,
                                        CallFrame* const call_frame,
                                        int32_t entry_ip,
                                        native_int sp,
-                                       CallFrame* const method_call_frame)
+                                       CallFrame* const method_call_frame,
+                                       int32_t unwind_count,
+                                       int32_t* input_unwinds)
 {
 
   VMMethod* method_vmm = method_call_frame->cm->backend_method();
@@ -258,8 +260,15 @@ Object* VMMethod::uncommon_interpreter(STATE,
 
   Object** stack_ptr = call_frame->stk + sp;
 
-  int current_unwind = 0;
+  int current_unwind = unwind_count;
   UnwindInfo unwinds[kMaxUnwindInfos];
+
+  for(int i = 0, j = 0; j < unwind_count; i += 3, j++) {
+    UnwindInfo& uw = unwinds[j];
+    uw.target_ip = input_unwinds[i];
+    uw.stack_depth = input_unwinds[i + 1];
+    uw.type = (UnwindType)input_unwinds[i + 2];
+  }
 
   if(!state->check_stack(call_frame, &state)) return NULL;
 

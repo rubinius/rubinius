@@ -1209,46 +1209,80 @@ namespace rubinius {
       call_flags_ = flag;
     }
 
+    int emit_unwinds() {
+      int count = 0;
+
+      JITBasicBlock* jbb = current_jbb_;
+
+      if(!jbb->exception_handler) return 0;
+
+      while(jbb->exception_handler) {
+        count++;
+        jbb = jbb->exception_handler;
+      }
+
+      jbb = current_jbb_->exception_handler;
+      Value* unwinds = info().unwind_info();
+
+      for(int slice = (count - 1) * 3; slice >= 0; slice -= 3) {
+        /*
+        std::cout << "unwind: " << jbb->start_ip
+                  << " sp: " << jbb->sp
+                  << " type: " << jbb->exception_type
+                  << "\n";
+        */
+
+        b().CreateStore(
+            cint(jbb->start_ip),
+            b().CreateConstGEP1_32(unwinds, slice, "unwind_ip"));
+        b().CreateStore(
+            cint(jbb->sp),
+            b().CreateConstGEP1_32(unwinds, slice + 1, "unwind_sp"));
+        b().CreateStore(
+            cint(jbb->exception_type),
+            b().CreateConstGEP1_32(unwinds, slice + 2, "unwind_type"));
+
+        jbb = jbb->exception_handler;
+      }
+
+      return count;
+    }
+
     void emit_uncommon() {
       emit_delayed_create_block(true);
 
-      if(false) { // !inline_return_ && !has_side_effects()) {
-        Signature sig(ls_, "Object");
+      Value* sp = last_sp_as_int();
 
-        sig << "VM";
-        sig << "CallFrame";
-        sig << "Dispatch";
-        sig << "Arguments";
+      flush();
 
-        Function::arg_iterator ai = function_->arg_begin();
-        Value* call_args[] = { ai++, ai++, ai++, ai++ };
+      Signature sig(ls_, "Object");
 
-        Value* call = sig.call("rbx_restart_interp", call_args, 4, "", b());
+      sig << "VM";
+      sig << "CallFrame";
+      sig << ls_->Int32Ty;
+      sig << ls_->IntPtrTy;
+      sig << "CallFrame";
+      sig << ls_->Int32Ty;
+      sig << llvm::PointerType::getUnqual(ls_->Int32Ty);
 
-        b().CreateRet(call);
+      int unwinds = emit_unwinds();
 
-      } else {
-        Value* sp = last_sp_as_int();
+      Value* root_callframe = info().top_parent_call_frame();
 
-        flush();
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        cint(current_ip_),
+        sp,
+        root_callframe,
+        cint(unwinds),
+        info().unwind_info()
+      };
 
-        Signature sig(ls_, "Object");
+      Value* call = sig.call("rbx_continue_uncommon", call_args, 7, "", b());
 
-        sig << "VM";
-        sig << "CallFrame";
-        sig << ls_->Int32Ty;
-        sig << ls_->IntPtrTy;
-        sig << "CallFrame";
-
-        Value* root_callframe = info().top_parent_call_frame();
-
-        Value* call_args[] = { vm_, call_frame_, cint(current_ip_), sp, root_callframe };
-
-        Value* call = sig.call("rbx_continue_uncommon", call_args, 5, "", b());
-
-        info().add_return_value(call, current_block());
-        b().CreateBr(info().return_pad());
-      }
+      info().add_return_value(call, current_block());
+      b().CreateBr(info().return_pad());
     }
 
     void visit_invoke_primitive(opcode which, opcode args) {
@@ -1345,7 +1379,7 @@ namespace rubinius {
         if(inl.consider()) {
           // Uncommon doesn't yet know how to synthesize UnwindInfos, so
           // don't do uncommon if there are handlers.
-          if(!in_inlined_block() && !has_exception_handler()) {
+          if(!in_inlined_block()) {
             BasicBlock* cur = b().GetInsertBlock();
 
             set_block(failure);
@@ -1598,7 +1632,7 @@ namespace rubinius {
         if(inl.consider()) {
           // Uncommon doesn't yet know how to synthesize UnwindInfos, so
           // don't do uncommon if there are handlers.
-          if(!in_inlined_block() && !has_exception_handler()) {
+          if(!in_inlined_block()) {
             send_result->addIncoming(inl.result(), b().GetInsertBlock());
 
             b().CreateBr(cleanup);

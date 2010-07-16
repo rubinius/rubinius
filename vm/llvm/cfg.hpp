@@ -14,6 +14,7 @@ namespace jit {
     bool loop_;
     bool detached_;
     CFGBlock* exception_handler_;
+    int exception_type_;
 
   public:
     CFGBlock(int start, bool loop=false)
@@ -22,6 +23,7 @@ namespace jit {
       , loop_(loop)
       , detached_(true)
       , exception_handler_(0)
+      , exception_type_(-1)
     {}
 
     int start_ip() {
@@ -57,6 +59,14 @@ namespace jit {
 
     void set_exception_handler(CFGBlock* blk) {
       exception_handler_ = blk;
+    }
+
+    int exception_type() {
+      return exception_type_;
+    }
+
+    void set_exception_type(int type) {
+      exception_type_ = type;
     }
   };
 
@@ -204,6 +214,8 @@ namespace jit {
         case InstructionSequence::insn_setup_unwind: {
           assert(iter.operand1() > iter.position());
           CFGBlock* handler = add_block(iter.operand1());
+          handler->set_exception_type(iter.operand2());
+
           current_->add_child(handler);
 
           CFGBlock* body = start_new_block(iter);
