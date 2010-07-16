@@ -53,6 +53,7 @@ class Class
   protected :instance_type
 
   def initialize(sclass=Object, name=nil, under=nil)
+    raise TypeError, "already initialized class" if @instance_type
     if !sclass.kind_of?(Class) and !sclass.nil?
       raise TypeError, "superclass must be a Class (#{sclass.class} given)"
     end
