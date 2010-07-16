@@ -61,7 +61,7 @@ module Rubinius
           @generator.stream[@location] = @position
         end
 
-        @generator.current_block.add_edge @basic_block
+        @generator.current_block.left = @basic_block
         @generator.current_block.close
         @generator.current_block = @basic_block
         @basic_block.open
@@ -82,14 +82,18 @@ module Rubinius
     end
 
     class BasicBlock
+      attr_accessor :left
+      attr_accessor :right
+
       def initialize(generator)
         @generator  = generator
         @ip         = generator.ip
         @closed_ip  = 0
-        @enter_size = 0
+        @enter_size = nil
         @max_size   = 0
         @stack      = 0
-        @edges      = nil
+        @left       = nil
+        @right      = nil
         @visited    = false
         @closed     = false
       end
@@ -97,11 +101,6 @@ module Rubinius
       def add_stack(size)
         @stack += size
         @max_size = @stack if @stack > @max_size
-      end
-
-      def add_edge(block)
-        @edges ||= []
-        @edges << block
       end
 
       def open
@@ -118,25 +117,52 @@ module Rubinius
         "#{@generator.name}: line: #{line}, IP: #{@ip}"
       end
 
-      def visit(stack_size)
-        if @visited
+      def visited?
+        @visited
+      end
+
+      def validate_stack
+        @enter_size = 0
+
+        stack = [self]
+        until stack.empty?
+          bb = stack.shift
+          bb.flow_stack_size stack
+        end
+      end
+
+      def flow_stack_size(stack)
+        unless @visited
+          @visited = true
+
+          @generator.accumulate_stack(@enter_size + @max_size)
+
+          net_size = @enter_size + @stack
+
+          if @left
+            @left.check_stack net_size
+            stack.push @left unless @left.visited?
+          end
+
+          if @right
+            @right.check_stack net_size
+            stack.push @right unless @right.visited?
+          end
+        end
+      end
+
+      def check_stack(stack_size)
+        if @enter_size
           unless stack_size == @enter_size
-            raise CompileError, "unbalanced stack at #{location}: #{stack_size} != #{@enter_size}"
+            msg = "unbalanced stack at #{location}: #{stack_size} != #{@enter_size}"
+            raise CompileError, msg
           end
         else
-          @visited = true
-          @enter_size = stack_size
-
           if not @closed
             raise CompileError, "control fails to exit properly at #{location}"
           end
 
-          @generator.accumulate_stack(@enter_size + @max_size)
-
-          if @edges
-            net_size = stack_size + @stack
-            @edges.each { |e| e.visit net_size }
-          end
+          @enter_size = stack_size
         end
       end
     end
@@ -192,7 +218,7 @@ module Rubinius
 
       begin
         # Validate the stack and calculate the max depth
-        @enter_block.visit 0
+        @enter_block.validate_stack
       rescue Exception => e
         if $DEBUG
           puts "Error computing stack for #{@name}: #{e.message} (#{e.class})"

@@ -165,16 +165,16 @@ class InstructionParser
 
     # Basic block creation, closing, transitions
     def bb_unconditional_branch
-      @file.puts "        @current_block.add_edge arg1.basic_block"
+      @file.puts "        @current_block.left = arg1.basic_block"
       @file.puts "        @current_block.close"
       @file.puts "        @current_block = new_basic_block"
     end
 
     def bb_conditional_branch
-      @file.puts "        @current_block.add_edge arg1.basic_block"
+      @file.puts "        @current_block.left = arg1.basic_block"
       @file.puts "        @current_block.close"
       @file.puts "        block = new_basic_block"
-      @file.puts "        @current_block.add_edge block"
+      @file.puts "        @current_block.right = block"
       @file.puts "        @current_block = block"
     end
 
