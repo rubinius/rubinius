@@ -73,6 +73,13 @@ class Class
   end
 
   ##
+  # Specialized initialize_copy because Class needs additional protection
+  def initialize_copy(other)
+    raise TypeError, "already initialized class" unless @method_table == other.method_table
+    super
+  end
+
+  ##
   # Returns the Class object that this Class inherits from. Included Modules
   # are not considered for this purpose.
 
