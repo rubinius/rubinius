@@ -289,8 +289,15 @@ namespace rubinius {
     }
 
     method_id Profiler::create_id(Symbol* container, Symbol* name, Kind kind) {
-      return ((uint64_t)(((intptr_t)container & 0xffffffff)) << 32)
-              | ((intptr_t)name & 0xfffffff0) | kind;
+      // | -- 32 bits of container -- | -- 30 bits of name -- | -- 2 bits of kind -- |
+
+      uint32_t c = container->index() & 0xffffffff;
+      uint32_t n = name->index()      & 0x3fffffff;
+      uint32_t k = kind               & 0x3;
+
+      return (((uint64_t)c) << 32) |
+             (n << 2) |
+             k;
     }
 
     Method* Profiler::find_method(Symbol* container, Symbol* name, Kind kind) {
