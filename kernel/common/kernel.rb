@@ -380,6 +380,8 @@ module Kernel
   end
 
   def extend(*modules)
+    Ruby.check_frozen
+
     modules.reverse_each do |mod|
       mod.__send__(:extend_object, self)
       mod.__send__(:extended, self)
