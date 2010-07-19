@@ -434,7 +434,9 @@ namespace rubinius {
       chr = str[i];
       seq = ++i < bytes ? str[i] : -1;
 
-      if(seq == '-') {
+      if(chr == '\\' && seq >= 0) {
+        continue;
+      } else if(seq == '-') {
         max = ++i < bytes ? str[i] : -1;
         if(max >= 0) {
           while(chr <= max) {
@@ -446,8 +448,6 @@ namespace rubinius {
           if(tr_data.assign(chr)) return tr_replace(state, &tr_data);
           if(tr_data.assign(seq)) return tr_replace(state, &tr_data);
         }
-      } else if(chr == '\\' && seq >= 0) {
-        continue;
       } else {
         if(tr_data.assign(chr)) return tr_replace(state, &tr_data);
       }
