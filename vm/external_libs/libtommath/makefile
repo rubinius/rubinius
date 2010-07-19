@@ -18,7 +18,7 @@ endif
 ifndef IGNORE_SPEED
 
 #for speed 
-CFLAGS += -O3 -funroll-loops
+CFLAGS += -O3 -funroll-loops -ggdb3
 
 #for size 
 #CFLAGS += -Os
