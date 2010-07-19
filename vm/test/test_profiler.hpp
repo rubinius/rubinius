@@ -42,7 +42,7 @@ public:
     profiler::Method method(0U, meth, klass, profiler::kBlock);
     String* name = method.to_s(state);
 
-    TS_ASSERT_SAME_DATA("Object#meth {}", name->byte_address(), 14);
+    TS_ASSERT_EQUALS(std::string("Object::meth<0> {}"), std::string(name->c_str()));
   }
 
   void test_module_name() {

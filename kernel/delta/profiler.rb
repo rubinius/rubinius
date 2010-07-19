@@ -207,13 +207,14 @@ module Rubinius
           m[:edges_total] = edges_total
           m[:edges_calls] = edges_calls
           m[:name]        = "#toplevel" if m[:name] == "<metaclass>#__script__ {}"
-          total          += m[:total]
+          total          += self_total
           total_calls    += m[:called]
         end
 
         indexes = data.keys.sort do |a, b|
-          data[b][:self_total] <=> data[a][:self_total]
+          data[b][:cumulative] <=> data[a][:cumulative]
         end
+
         indexes = indexes.first(SHORT_LINES) unless options[:full_report]
 
         indexes.each_with_index do |id, index|
@@ -229,6 +230,7 @@ module Rubinius
           method[:edges] = method[:edges].first(10) unless options[:full_report]
         end
 
+        out.puts "Total running time: #{sec(@info[:runtime])}s"
         out.puts "index  % time     self  children         called       name"
         out.puts "----------------------------------------------------------"
 
@@ -238,30 +240,67 @@ module Rubinius
         indexes.each do |id|
           method = data[id]
 
-          method[:callers].each do |c_id, calls, time|
+          # The idea is to report information about caller as a ratio of the
+          # time it called method.
+          #
+
+          callers = method[:callers].sort_by do |c_id, calls, time|
             caller = data[c_id]
-            out.printf secondary, sec(caller[:self_total]),
-                                  sec(time),
+            ratio = time.to_f / caller[:total]
+            ratio = 0.0 if ratio < 0
+
+            caller[:cumulative] * ratio
+          end
+
+          callers.each do |c_id, calls, time|
+            caller = data[c_id]
+            ratio = time.to_f / caller[:total]
+            ratio = 0.0 if ratio < 0
+            out.printf secondary, sec(caller[:self_total] * ratio),
+                                  sec((caller[:cumulative] - caller[:self_total]) * ratio),
                                   calls,
                                   caller[:edges_calls],
                                   caller[:name],
                                   graph_method_index(caller[:index])
           end
 
+          # Now the primary line.
+
+          children = method[:cumulative] * (method[:edges_total].to_f / method[:total])
+
           out.printf primary, ("[%d]" % method[:index]),
-                              percentage(method[:total], total, 1, nil),
+                              percentage(method[:cumulative], total, 1, nil),
                               sec(method[:self_total]),
-                              sec(method[:edges_total]),
+                              sec(children),
                               method[:called],
                               method[:name],
                               method[:index]
 
-          method[:edges].each do |e_id, calls, time|
+          # Same as caller, the idea is to report information about callee methods
+          # as a ratio of the time it was called from method.
+          #
+
+          edges = method[:edges].sort_by do |e_id, calls, time|
             if edge = data[e_id]
-              ratio = time.to_f / edge[:self_total]
+              ratio = time.to_f / edge[:total]
               ratio = 0.0 if ratio < 0
-              out.printf secondary, sec(edge[:self_total]),
-                                    sec(ratio * edge[:edges_total]),
+
+              edge[:cumulative] * ratio
+            else
+              0.0
+            end
+          end
+
+          edges.reverse_each do |e_id, calls, time|
+            if edge = data[e_id]
+              ratio = time.to_f / edge[:total]
+              ratio = 0.0 if ratio < 0
+
+              grandchildren = (edge[:cumulative] - edge[:self_total]) * ratio
+              grandchildren = 0 if grandchildren < 0
+
+              out.printf secondary, sec(edge[:self_total] * ratio),
+                                    sec(grandchildren),
                                     calls,
                                     edge[:called],
                                     edge[:name],

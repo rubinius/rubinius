@@ -80,6 +80,7 @@ namespace rubinius {
 #endif
 
     Symbol* name_;
+    uint64_t method_id_;
   public:
     bool debugging;
   public: // Methods
@@ -155,6 +156,10 @@ namespace rubinius {
 
     Symbol* name() {
       return name_;
+    }
+
+    uint64_t method_id() {
+      return method_id_;
     }
 
     void specialize(STATE, CompiledMethod* original, TypeInfo* ti);

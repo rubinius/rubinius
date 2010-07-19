@@ -13,6 +13,7 @@
 #include "detection.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"
+#include "vmmethod.hpp"
 
 #include "instruments/timing.hpp"
 
@@ -39,6 +40,8 @@ namespace rubinius {
     }
 
     String* Method::to_s(STATE) {
+      std::stringstream ss;
+
       const char *module = "<anonymous>";
       const char *method_name = name()->c_str(state);
 
@@ -46,42 +49,32 @@ namespace rubinius {
         module = klass->c_str(state);
       }
 
-      String* name = String::create(state, module);
+      ss << module;
 
       switch(kind()) {
       case kNormal:
-        name->append(state, "#");
-        name->append(state, method_name);
+        ss << "#" << method_name;
         break;
       case kNormalJIT:
-        name->append(state, "#");
-        name->append(state, method_name);
-        name->append(state, " <jit>");
+        ss << "#" << method_name << " <jit>";
         break;
       case kSingleton:
       case kYoungGC:
       case kMatureGC:
-        name->append(state, ".");
-        name->append(state, method_name);
+        ss << "." << method_name;
         break;
       case kSingletonJIT:
-        name->append(state, ".");
-        name->append(state, method_name);
-        name->append(state, "<jit>");
+        ss << "." << method_name << " <jit>";
         break;
       case kBlock:
-        name->append(state, "#");
-        name->append(state, method_name);
-        name->append(state, " {}");
+        ss << "::" << method_name << "<" << line_ << "> {}";
         break;
       case kBlockJIT:
-        name->append(state, "#");
-        name->append(state, method_name);
-        name->append(state, " {} <jit>");
+        ss << "::" << method_name << " {" << line_ << "} <jit>";
         break;
       }
 
-      return name;
+      return String::create(state, ss.str().c_str());
     }
 
     Edge* Method::find_edge(Method* method) {
@@ -218,7 +211,8 @@ namespace rubinius {
         name = state_->symbol("unknown");
       }
 
-      method_ = state->profiler()->find_method(state_->symbol("GC"), name, kind);
+      CompiledMethod* cm = reinterpret_cast<CompiledMethod*>(Qnil);
+      method_ = state->profiler()->find_method(cm, state_->symbol("GC"), name, kind);
       start();
     }
 
@@ -279,7 +273,7 @@ namespace rubinius {
 
     Method* Profiler::get_method(CompiledMethod* cm, Symbol* name,
                                  Symbol* container, Kind kind) {
-      Method* method = find_method(container, name, kind);
+      Method* method = find_method(cm, container, name, kind);
 
       if(!method->file() && !cm->nil_p()) {
         method->set_position(cm->file(), cm->start_line(state_));
@@ -288,20 +282,31 @@ namespace rubinius {
       return method;
     }
 
-    method_id Profiler::create_id(Symbol* container, Symbol* name, Kind kind) {
-      // | -- 32 bits of container -- | -- 30 bits of name -- | -- 2 bits of kind -- |
+    method_id Profiler::create_id(CompiledMethod* cm, Symbol* container,
+                                  Symbol* name, Kind kind)
+    {
+      // If we have a CompiledMethod, use it's method id.
+      if(!cm->nil_p()) {
+        if(VMMethod* vmm = cm->backend_method()) {
+          return (vmm->method_id() << 1) | 1;
+        }
+      }
+
+      // | -- 32 bits of container -- | -- 29 bits of name -- | -- 2 bits of kind -- | 0
 
       uint32_t c = container->index() & 0xffffffff;
-      uint32_t n = name->index()      & 0x3fffffff;
+      uint32_t n = name->index()      & 0x1fffffff;
       uint32_t k = kind               & 0x3;
 
       return (((uint64_t)c) << 32) |
-             (n << 2) |
-             k;
+             (n << 3) |
+             k << 1;
     }
 
-    Method* Profiler::find_method(Symbol* container, Symbol* name, Kind kind) {
-      method_id id = create_id(container, name, kind);
+    Method* Profiler::find_method(CompiledMethod* cm, Symbol* container,
+                                  Symbol* name, Kind kind)
+    {
+      method_id id = create_id(cm, container, name, kind);
 
       Method* method;
       MethodMap::iterator iter = methods_.find(id);

@@ -111,7 +111,7 @@ namespace rubinius {
       stats::StackTimer  timer;
 
     public:
-      Method(method_id id, Symbol* name, Symbol* container, Kind kind = kNormal)
+      Method(method_id id, Symbol* name, Symbol* container, Kind kind=kNormal)
         : id_(id)
         , name_(name)
         , container_(container)
@@ -217,8 +217,8 @@ namespace rubinius {
         current_ = method;
       }
 
-      method_id create_id(Symbol* container, Symbol* name, Kind kind);
-      Method* find_method(Symbol* container, Symbol* name, Kind kind);
+      method_id create_id(CompiledMethod* cm, Symbol* container, Symbol* name, Kind kind);
+      Method* find_method(CompiledMethod* cm, Symbol* container, Symbol* name, Kind kind);
 
       Symbol* module_name(Module* module);
       Method* enter_method(Dispatch&, Arguments& args, CompiledMethod* cm, bool jit);

@@ -81,6 +81,7 @@ namespace rubinius {
     WorldState* world_;
     InlineCacheRegistry* ic_registry_;
     unsigned int class_count_;
+    uint64_t method_count_;
     std::list<ManagedThread*> threads_;
 
     kcode::CodePage kcode_page_;
@@ -182,6 +183,10 @@ namespace rubinius {
 
     unsigned int inc_class_count() {
       return ++class_count_;
+    }
+
+    uint64_t inc_method_count() {
+      return ++method_count_;
     }
 
     int inc_primitive_hit(int primitive) {

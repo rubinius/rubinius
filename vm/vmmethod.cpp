@@ -92,6 +92,7 @@ namespace rubinius {
     , jitted_impl_(NULL)
 #endif
     , name_(meth->name())
+    , method_id_(state->shared.inc_method_count())
     , debugging(false)
   {
     meth->set_executor(&VMMethod::execute);
