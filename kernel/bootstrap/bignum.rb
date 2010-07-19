@@ -45,14 +45,14 @@ class Bignum < Integer
     redo_coerced :div, other
   end
 
+  def %(other)
+    Ruby.primitive :bignum_mod
+    redo_coerced :%, other
+  end
+
   def divmod(other)
     Ruby.primitive :bignum_divmod
     redo_coerced :divmod, other
-  end
-
-  def mod_primitive(other)
-    Ruby.primitive :bignum_mod
-    raise PrimitiveFailure, "primitive failed"
   end
 
   # bitwise binary operators
