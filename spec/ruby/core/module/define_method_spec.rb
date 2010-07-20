@@ -55,6 +55,20 @@ describe "Module#define_method" do
     o.test1.should == o.another_test
   end
 
+  it "supports being called with a splat" do
+    class DefineMethodSpecClass
+      define_method(:splat_test) { |a,b,*c| c }
+    end
+
+    o = DefineMethodSpecClass.new
+
+    lambda {
+      o.splat_test
+    }.should raise_error(ArgumentError)
+
+    o.splat_test(1,2,3,4).should == [3,4]
+  end
+
   it "calls #method_added after the method is added to the Module" do
     DefineMethodSpecClass.should_receive(:method_added).with(:test_ma)
 
