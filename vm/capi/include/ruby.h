@@ -822,6 +822,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Return 1 if this send has a block, 0 otherwise. */
   int     rb_block_given_p();
 
+  /* raises a LocalJumpError if no block was given */
+  void    rb_need_block();
+
   /* Converts implicit block into a new Proc. */
   VALUE   rb_block_proc();
 

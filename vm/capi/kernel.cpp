@@ -49,6 +49,12 @@ extern "C" {
     return RBX_RTEST(env->block());
   }
 
+  void rb_need_block() {
+    if (!rb_block_given_p()) {
+      rb_raise(rb_eLocalJumpError, "no block given", 0);
+    }
+  }
+
   VALUE rb_apply(VALUE recv, ID mid, VALUE args) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     env->flush_cached_data();
