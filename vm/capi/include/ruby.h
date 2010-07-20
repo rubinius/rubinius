@@ -1325,6 +1325,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns the current $SAFE level. */
   int     rb_safe_level();
 
+  /* Marshals an object, optionally writing output to an IO */
+  VALUE   rb_marshal_dump(VALUE obj, VALUE io);
+
   /**
    *  Process arguments using a template rather than manually.
    *
