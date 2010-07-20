@@ -41,7 +41,10 @@ namespace rubinius {
     }
 
     if(include_variables) {
-      loc->variables(state, call_frame->scope->create_heap_alias(state, call_frame));
+      // Use promote_scope because it can figure out of the generated
+      // VariableScope should be isolated by default (true atm for JITd
+      // frames)
+      loc->variables(state, call_frame->promote_scope(state));
     }
 
     loc->static_scope(state, call_frame->static_scope());
