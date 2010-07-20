@@ -68,7 +68,7 @@ describe "Dir.glob" do
 
     Dir.glob('**/', File::FNM_DOTMATCH).sort.should == expected
   end
-  
+
   platform_is_not(:windows) do
     it "matches the literal character '\\' with option File::FNM_NOESCAPE" do
       Dir.mkdir 'foo?bar'
