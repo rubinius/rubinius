@@ -34,7 +34,7 @@ namespace rubinius {
     //   (this is handled by the bytecode prologue of the block)
     // Otherwise, it's strict arg checking.
     //
-    if(required > 1 && (size_t)required != args.total()) {
+    if(required > 1 && (size_t)required > args.total()) {
       Exception* exc =
         Exception::make_argument_error(state, required, args.total(), msg.name);
       exc->locations(state, Location::from_call_stack(state, call_frame));
