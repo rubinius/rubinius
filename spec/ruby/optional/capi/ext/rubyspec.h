@@ -144,6 +144,7 @@
 
 // Kernel
 #define HAVE_RB_BLOCK_GIVEN_P              1
+#define HAVE_RB_NEED_BLOCK                 1
 #define HAVE_RB_BLOCK_PROC                 1
 #define HAVE_RB_ENSURE                     1
 #define HAVE_RB_EVAL_STRING                1

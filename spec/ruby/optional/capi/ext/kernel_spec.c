@@ -19,6 +19,13 @@ static VALUE kernel_spec_rb_block_given_p(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_NEED_BLOCK
+VALUE kernel_spec_rb_need_block(VALUE self) {
+  rb_need_block();
+  return Qnil;
+}
+#endif
+
 #ifdef HAVE_RB_BLOCK_PROC
 VALUE kernel_spec_rb_block_proc(VALUE self) {
   return rb_block_proc();
@@ -142,6 +149,10 @@ void Init_kernel_spec() {
 
 #ifdef HAVE_RB_BLOCK_GIVEN_P
   rb_define_method(cls, "rb_block_given_p", kernel_spec_rb_block_given_p, 0);
+#endif
+
+#ifdef HAVE_RB_NEED_BLOCK
+  rb_define_method(cls, "rb_need_block", kernel_spec_rb_need_block, 0);
 #endif
 
 #ifdef HAVE_RB_BLOCK_PROC

@@ -17,6 +17,16 @@ describe "C-API Kernel function" do
     end
   end
 
+  describe "rb_need_block" do
+    it "raises a LocalJumpError if no block is given" do
+      lambda { @s.rb_need_block }.should raise_error(LocalJumpError)
+    end
+
+    it "does not raise a LocalJumpError if a block is given" do
+      @s.rb_need_block { }.should == nil
+    end
+  end
+
   describe "rb_raise" do
     it "raises an exception" do
       lambda { @s.rb_raise({}) }.should raise_error(TypeError)
