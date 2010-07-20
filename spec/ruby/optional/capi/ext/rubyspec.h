@@ -159,6 +159,9 @@
 // GC
 #define HAVE_RB_GC_REGISTER_ADDRESS        1
 
+// Marshal
+#define HAVE_RB_MARSHAL_DUMP               1
+
 // Module
 #define HAVE_RB_CONST_DEFINED              1
 #define HAVE_RB_CONST_DEFINED_AT           1
