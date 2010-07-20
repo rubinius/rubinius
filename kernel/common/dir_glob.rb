@@ -4,6 +4,13 @@ class Dir
       def initialize(nxt, flags)
         @flags = flags
         @next = nxt
+        @seperator = nil
+      end
+
+      attr_writer :seperator
+
+      def seperator
+        @seperator || "/"
       end
 
       def path_join(parent, ent)
@@ -11,7 +18,7 @@ class Dir
         if parent == "/"
           "/#{ent}"
         else
-          "#{parent}/#{ent}"
+          "#{parent}#{seperator}#{ent}"
         end
       end
     end
@@ -80,22 +87,8 @@ class Dir
         @glob = glob
       end
 
-      Escape = %w!+ | ^ $ ( ) [ ]!
-      def to_regex(glob)
-        str = glob.gsub ".", "\\."
-        Escape.each do |char|
-          str.gsub! char, "\\#{char}"
-        end
-        str.gsub! /[^\\]\*/, ".+"
-        str.gsub! /[^\\]\?/, "."
-        # handle {}
-
-        Regexp.new "^#{str}$"
-      end
-
       def match?(str)
         File.fnmatch @glob, str, @flags
-        # FFI::Platform::POSIX.fnmatch(@glob, str, 4) == 0
       end
     end
 
@@ -171,20 +164,23 @@ class Dir
     end
 
     def self.compile(glob, flags=0)
-      parts = glob.split("/")
-
-      file = parts.pop
+      parts = glob.split(%r!(/+)!)
 
       if glob[-1] == ?/
-        last = DirectoriesOnly.new nil, flags, file
+        parts.pop # remove /+
+
+        last = DirectoriesOnly.new nil, flags, parts.pop
         if parts.empty?
           last = RecursiveDirectories.new last, flags
         end
       else
-        last = EntryMatch.new nil, flags, file
+        last = EntryMatch.new nil, flags, parts.pop
       end
 
-      parts.reverse_each do |dir|
+      until parts.empty?
+        last.seperator = parts.pop
+        dir = parts.pop
+
         if dir == "**"
           last = RecursiveDirectories.new last, flags
         elsif /[a-zA-Z0-9.]+/.match(dir)
