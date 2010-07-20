@@ -3,7 +3,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require 'rbconfig'
 
 def compile_extension(path, name)
-  ext       = "#{path}#{name}_spec"
+  ext       = File.join(path, "#{name}_spec")
   source    = "#{ext}.c"
   obj       = "#{ext}.o"
   lib       = "#{ext}.#{Config::CONFIG['DLEXT']}"
@@ -18,12 +18,14 @@ def compile_extension(path, name)
     raise "Don't know how to build C extensions with #{RUBY_NAME}"
   end
 
-  header = hdrdir + "/ruby.h"
+  ruby_header     = File.join(hdrdir, "ruby.h")
+  rubyspec_header = File.join(path, "rubyspec.h")
 
   return lib if File.exists?(signature) and
                 IO.read(signature).chomp == RUBY_NAME and
                 File.exists?(lib) and File.mtime(lib) > File.mtime(source) and
-                File.mtime(lib) > File.mtime(header)
+                File.mtime(lib) > File.mtime(ruby_header) and
+                File.mtime(lib) > File.mtime(rubyspec_header)
 
   # avoid problems where compilation failed but previous shlib exists
   File.delete lib if File.exists? lib
@@ -51,7 +53,7 @@ def compile_extension(path, name)
 end
 
 def load_extension(name)
-  path = File.dirname(__FILE__) + '/ext/'
+  path = File.join(File.dirname(__FILE__), 'ext')
 
   ext = compile_extension path, name
   require ext
