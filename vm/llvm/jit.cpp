@@ -318,11 +318,18 @@ namespace rubinius {
           if(ls_->config().jit_show_compiling) {
             llvm::outs() << "[[[ JIT error in background compiling ]]]\n";
           }
+          // If someone was waiting on this, wake them up.
+          if(thread::Condition* cond = req->waiter()) {
+            cond->signal();
+          }
 
           delete req;
 
+          // We don't depend on the GC here, so let it run independent
+          // of us.
           ls_->shared().gc_independent();
-          continue; // for(;;)
+
+          continue;
         }
 
         if(show_machine_code_) {

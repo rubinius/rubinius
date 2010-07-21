@@ -31,6 +31,7 @@ namespace rubinius {
     config::Bool    jit_debug;
     config::Bool    jit_sync;
     config::Bool    jit_show_uncommon;
+    config::Bool    jit_show_remove;
 
     // Query Agent
     config::Integer qa_port;
@@ -79,6 +80,7 @@ namespace rubinius {
       , jit_debug(this,      "jit.debug", false)
       , jit_sync(this,       "jit.sync", false)
       , jit_show_uncommon(this, "jit.uncommon.print", false)
+      , jit_show_remove(this, "jit.removal.print", false)
       , qa_port(this,         "agent.start")
       , qa_verbose(this,      "agent.verbose")
       , qa_tmpdir(this,       "agent.tmpdir")
@@ -137,6 +139,12 @@ namespace rubinius {
 
       jit_sync.set_description(
           "Wait for the JIT to finish compiling each method");
+
+      jit_show_uncommon.set_description(
+          "Print out information on when methods are deoptimized due to uncommon traps");
+
+      jit_show_remove.set_description(
+          "Print out whenever the JIT is removing unused code");
 
       print_config.set_description(
           "blank or 1 == names and values, 2 == description as well");

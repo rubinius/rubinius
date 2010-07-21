@@ -759,7 +759,7 @@ namespace rubinius {
 
     void call_debug_spot(Value* val) {
       Signature sig(ls_, ObjType);
-      sig << ls_->Int32Ty;
+      sig << val->getType();
 
       Value* call_args[] = { val };
 

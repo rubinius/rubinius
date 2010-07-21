@@ -182,14 +182,16 @@ namespace jit {
       llvm::outs() << *func << "\n";
     }
 
+    function_ = func;
+
+    generate_function(ls);
+
     // Inject the RuntimeData objects used into the original CompiledMethod
     // Do this way after we've validated the IR so things are consistent.
-    ctx.runtime_data_holder()->set_function(func);
+    ctx.runtime_data_holder()->set_function(func, mci_->address(), mci_->size());
 
     info.method()->set_jit_data(ctx.runtime_data_holder());
     ls->shared().om->add_code_resource(ctx.runtime_data_holder());
-
-    function_ = func;
 
   }
 }

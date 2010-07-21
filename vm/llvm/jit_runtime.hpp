@@ -56,10 +56,14 @@ namespace rubinius {
     class RuntimeDataHolder : public CodeResource {
       std::list<RuntimeData*> runtime_data_;
       llvm::Function* function_;
+      void* native_func_;
+      int  native_size_;
 
     public:
       RuntimeDataHolder()
         : function_(0)
+        , native_func_(0)
+        , native_size_(0)
       {}
 
       virtual void cleanup(CodeManager* cm);
@@ -76,8 +80,10 @@ namespace rubinius {
         runtime_data_.push_back(rd);
       }
 
-      void set_function(llvm::Function* func) {
+      void set_function(llvm::Function* func, void* native, int size) {
         function_ = func;
+        native_func_ = native;
+        native_size_ = size;
       }
 
       void mark_all(Object* obj, ObjectMark& mark);
