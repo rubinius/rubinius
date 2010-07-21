@@ -30,6 +30,12 @@ describe "Array#delete" do
     [].delete('a') {:not_found}.should == :not_found
   end
 
+  it "returns nil if the array is empty due to a shift" do
+    a = [1]
+    a.shift
+    a.delete(nil).should == nil
+  end
+
   ruby_version_is '' ... '1.9' do
     it "raises a TypeError on a frozen array if a modification would take place" do
       lambda { [1, 2, 3].freeze.delete(1) }.should raise_error(TypeError)
