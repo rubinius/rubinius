@@ -769,258 +769,231 @@ namespace rubinius {
 
     void visit_meta_send_op_tequal(opcode name) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(name);
-      if(cache->classes_seen() == 0) {
-        set_has_side_effects();
+      set_has_side_effects();
 
-        Value* recv = stack_back(1);
-        Value* arg =  stack_top();
+      Value* recv = stack_back(1);
+      Value* arg =  stack_top();
 
-        BasicBlock* fast = new_block("fast");
-        BasicBlock* dispatch = new_block("dispatch");
-        BasicBlock* cont = new_block();
+      BasicBlock* fast = new_block("fast");
+      BasicBlock* dispatch = new_block("dispatch");
+      BasicBlock* cont = new_block();
 
-        check_fixnums(recv, arg, fast, dispatch);
+      check_fixnums(recv, arg, fast, dispatch);
 
-        set_block(dispatch);
+      set_block(dispatch);
 
-        Value* called_value = inline_cache_send(1, cache);
-        check_for_exception_then(called_value, cont);
+      Value* called_value = inline_cache_send(1, cache);
+      check_for_exception_then(called_value, cont);
 
-        set_block(fast);
+      set_block(fast);
 
-        Value* cmp = b().CreateICmpEQ(recv, arg, "imm_cmp");
-        Value* imm_value = b().CreateSelect(cmp,
-            constant(Qtrue), constant(Qfalse), "select_bool");
+      Value* cmp = b().CreateICmpEQ(recv, arg, "imm_cmp");
+      Value* imm_value = b().CreateSelect(cmp,
+          constant(Qtrue), constant(Qfalse), "select_bool");
 
-        b().CreateBr(cont);
+      b().CreateBr(cont);
 
-        set_block(cont);
+      set_block(cont);
 
-        PHINode* phi = b().CreatePHI(ObjType, "equal_value");
-        phi->addIncoming(called_value, dispatch);
-        phi->addIncoming(imm_value, fast);
+      PHINode* phi = b().CreatePHI(ObjType, "equal_value");
+      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(imm_value, fast);
 
-        stack_remove(2);
-        stack_push(phi);
-      } else {
-        invoke_inline_cache(cache, 1);
-      }
+      stack_remove(2);
+      stack_push(phi);
     }
 
     void visit_meta_send_op_lt(opcode name) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(name);
-      if(cache->classes_seen() == 0) {
-        if(state()->config().jit_inline_debug) {
-          context().inline_log("inlining")
-            << "primitive fixnum_lt into "
-            << state()->symbol_cstr(vmmethod()->name())
-            << ".\n";
-        }
+      set_has_side_effects();
 
-        set_has_side_effects();
+      Value* recv = stack_back(1);
+      Value* arg =  stack_top();
 
-        Value* recv = stack_back(1);
-        Value* arg =  stack_top();
+      BasicBlock* fast = new_block("fast");
+      BasicBlock* dispatch = new_block("dispatch");
+      BasicBlock* cont = new_block("cont");
 
-        BasicBlock* fast = new_block("fast");
-        BasicBlock* dispatch = new_block("dispatch");
-        BasicBlock* cont = new_block("cont");
+      check_fixnums(recv, arg, fast, dispatch);
 
-        check_fixnums(recv, arg, fast, dispatch);
+      set_block(dispatch);
 
-        set_block(dispatch);
+      Value* called_value = inline_cache_send(1, cache);
+      check_for_exception_then(called_value, cont);
 
-        Value* called_value = inline_cache_send(1, cache);
-        check_for_exception_then(called_value, cont);
+      set_block(fast);
 
-        set_block(fast);
+      Value* cmp = b().CreateICmpSLT(recv, arg, "imm_cmp");
+      Value* imm_value = b().CreateSelect(cmp,
+          constant(Qtrue), constant(Qfalse), "select_bool");
 
-        Value* cmp = b().CreateICmpSLT(recv, arg, "imm_cmp");
-        Value* imm_value = b().CreateSelect(cmp,
-            constant(Qtrue), constant(Qfalse), "select_bool");
+      b().CreateBr(cont);
 
-        b().CreateBr(cont);
+      set_block(cont);
 
-        set_block(cont);
+      PHINode* phi = b().CreatePHI(ObjType, "addition");
+      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(imm_value, fast);
 
-        PHINode* phi = b().CreatePHI(ObjType, "addition");
-        phi->addIncoming(called_value, dispatch);
-        phi->addIncoming(imm_value, fast);
-
-        stack_remove(2);
-        stack_push(phi);
-      } else {
-        invoke_inline_cache(cache, 1);
-      }
+      stack_remove(2);
+      stack_push(phi);
     }
 
     void visit_meta_send_op_gt(opcode name) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(name);
-      if(cache->classes_seen() == 0) {
-        set_has_side_effects();
+      set_has_side_effects();
 
-        Value* recv = stack_back(1);
-        Value* arg =  stack_top();
+      Value* recv = stack_back(1);
+      Value* arg =  stack_top();
 
-        BasicBlock* fast = new_block("fast");
-        BasicBlock* dispatch = new_block("dispatch");
-        BasicBlock* cont = new_block("cont");
+      BasicBlock* fast = new_block("fast");
+      BasicBlock* dispatch = new_block("dispatch");
+      BasicBlock* cont = new_block("cont");
 
-        check_fixnums(recv, arg, fast, dispatch);
+      check_fixnums(recv, arg, fast, dispatch);
 
-        set_block(dispatch);
+      set_block(dispatch);
 
-        Value* called_value = inline_cache_send(1, cache);
-        check_for_exception_then(called_value, cont);
+      Value* called_value = inline_cache_send(1, cache);
+      check_for_exception_then(called_value, cont);
 
-        set_block(fast);
+      set_block(fast);
 
-        Value* cmp = b().CreateICmpSGT(recv, arg, "imm_cmp");
-        Value* imm_value = b().CreateSelect(cmp,
-            constant(Qtrue), constant(Qfalse), "select_bool");
+      Value* cmp = b().CreateICmpSGT(recv, arg, "imm_cmp");
+      Value* imm_value = b().CreateSelect(cmp,
+          constant(Qtrue), constant(Qfalse), "select_bool");
 
-        b().CreateBr(cont);
+      b().CreateBr(cont);
 
-        set_block(cont);
+      set_block(cont);
 
-        PHINode* phi = b().CreatePHI(ObjType, "compare");
-        phi->addIncoming(called_value, dispatch);
-        phi->addIncoming(imm_value, fast);
+      PHINode* phi = b().CreatePHI(ObjType, "compare");
+      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(imm_value, fast);
 
-        stack_remove(2);
-        stack_push(phi);
-      } else {
-        invoke_inline_cache(cache, 1);
-      }
+      stack_remove(2);
+      stack_push(phi);
     }
 
     void visit_meta_send_op_plus(opcode name) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(name);
-      if(cache->classes_seen() == 0) {
-        set_has_side_effects();
-        Value* recv = stack_back(1);
-        Value* arg =  stack_top();
+      set_has_side_effects();
+      Value* recv = stack_back(1);
+      Value* arg =  stack_top();
 
-        BasicBlock* fast = new_block("fast");
-        BasicBlock* dispatch = new_block("dispatch");
-        BasicBlock* tagnow = new_block("tagnow");
-        BasicBlock* cont = new_block("cont");
+      BasicBlock* fast = new_block("fast");
+      BasicBlock* dispatch = new_block("dispatch");
+      BasicBlock* tagnow = new_block("tagnow");
+      BasicBlock* cont = new_block("cont");
 
-        check_fixnums(recv, arg, fast, dispatch);
+      check_fixnums(recv, arg, fast, dispatch);
 
-        set_block(dispatch);
+      set_block(dispatch);
 
-        Value* called_value = inline_cache_send(1, cache);
-        check_for_exception_then(called_value, cont);
+      Value* called_value = inline_cache_send(1, cache);
+      check_for_exception_then(called_value, cont);
 
-        set_block(fast);
+      set_block(fast);
 
-        std::vector<const Type*> types;
-        types.push_back(FixnumTy);
-        types.push_back(FixnumTy);
+      std::vector<const Type*> types;
+      types.push_back(FixnumTy);
+      types.push_back(FixnumTy);
 
-        std::vector<const Type*> struct_types;
-        struct_types.push_back(FixnumTy);
-        struct_types.push_back(ls_->Int1Ty);
+      std::vector<const Type*> struct_types;
+      struct_types.push_back(FixnumTy);
+      struct_types.push_back(ls_->Int1Ty);
 
-        StructType* st = StructType::get(ls_->ctx(), struct_types);
+      StructType* st = StructType::get(ls_->ctx(), struct_types);
 
-        FunctionType* ft = FunctionType::get(st, types, false);
-        Function* func = cast<Function>(
-            module_->getOrInsertFunction(ADD_WITH_OVERFLOW, ft));
+      FunctionType* ft = FunctionType::get(st, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction(ADD_WITH_OVERFLOW, ft));
 
-        Value* recv_int = tag_strip(recv);
-        Value* arg_int = tag_strip(arg);
-        Value* call_args[] = { recv_int, arg_int };
-        Value* res = b().CreateCall(func, call_args, call_args+2, "add.overflow");
+      Value* recv_int = tag_strip(recv);
+      Value* arg_int = tag_strip(arg);
+      Value* call_args[] = { recv_int, arg_int };
+      Value* res = b().CreateCall(func, call_args, call_args+2, "add.overflow");
 
-        Value* sum = b().CreateExtractValue(res, 0, "sum");
-        Value* dof = b().CreateExtractValue(res, 1, "did_overflow");
+      Value* sum = b().CreateExtractValue(res, 0, "sum");
+      Value* dof = b().CreateExtractValue(res, 1, "did_overflow");
 
-        b().CreateCondBr(dof, dispatch, tagnow);
+      b().CreateCondBr(dof, dispatch, tagnow);
 
-        set_block(tagnow);
+      set_block(tagnow);
 
-        Value* imm_value = fixnum_tag(sum);
+      Value* imm_value = fixnum_tag(sum);
 
-        b().CreateBr(cont);
+      b().CreateBr(cont);
 
-        set_block(cont);
+      set_block(cont);
 
-        PHINode* phi = b().CreatePHI(ObjType, "addition");
-        phi->addIncoming(called_value, dispatch);
-        phi->addIncoming(imm_value, tagnow);
+      PHINode* phi = b().CreatePHI(ObjType, "addition");
+      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(imm_value, tagnow);
 
-        stack_remove(2);
-        stack_push(phi);
-      } else {
-        invoke_inline_cache(cache, 1);
-      }
+      stack_remove(2);
+      stack_push(phi);
     }
 
     void visit_meta_send_op_minus(opcode name) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(name);
-      if(cache->classes_seen() == 0) {
-        set_has_side_effects();
+      set_has_side_effects();
 
-        Value* recv = stack_back(1);
-        Value* arg =  stack_top();
+      Value* recv = stack_back(1);
+      Value* arg =  stack_top();
 
-        BasicBlock* fast = new_block("fast");
-        BasicBlock* dispatch = new_block("dispatch");
-        BasicBlock* cont = new_block("cont");
+      BasicBlock* fast = new_block("fast");
+      BasicBlock* dispatch = new_block("dispatch");
+      BasicBlock* cont = new_block("cont");
 
-        check_fixnums(recv, arg, fast, dispatch);
+      check_fixnums(recv, arg, fast, dispatch);
 
-        set_block(dispatch);
+      set_block(dispatch);
 
-        Value* called_value = inline_cache_send(1, cache);
-        check_for_exception_then(called_value, cont);
+      Value* called_value = inline_cache_send(1, cache);
+      check_for_exception_then(called_value, cont);
 
-        set_block(fast);
+      set_block(fast);
 
-        std::vector<const Type*> types;
-        types.push_back(FixnumTy);
-        types.push_back(FixnumTy);
+      std::vector<const Type*> types;
+      types.push_back(FixnumTy);
+      types.push_back(FixnumTy);
 
-        std::vector<const Type*> struct_types;
-        struct_types.push_back(FixnumTy);
-        struct_types.push_back(ls_->Int1Ty);
+      std::vector<const Type*> struct_types;
+      struct_types.push_back(FixnumTy);
+      struct_types.push_back(ls_->Int1Ty);
 
-        StructType* st = StructType::get(ls_->ctx(), struct_types);
+      StructType* st = StructType::get(ls_->ctx(), struct_types);
 
-        FunctionType* ft = FunctionType::get(st, types, false);
-        Function* func = cast<Function>(
-            module_->getOrInsertFunction(SUB_WITH_OVERFLOW, ft));
+      FunctionType* ft = FunctionType::get(st, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction(SUB_WITH_OVERFLOW, ft));
 
-        Value* recv_int = tag_strip(recv);
-        Value* arg_int = tag_strip(arg);
-        Value* call_args[] = { recv_int, arg_int };
-        Value* res = b().CreateCall(func, call_args, call_args+2, "sub.overflow");
+      Value* recv_int = tag_strip(recv);
+      Value* arg_int = tag_strip(arg);
+      Value* call_args[] = { recv_int, arg_int };
+      Value* res = b().CreateCall(func, call_args, call_args+2, "sub.overflow");
 
-        Value* sum = b().CreateExtractValue(res, 0, "sub");
-        Value* dof = b().CreateExtractValue(res, 1, "did_overflow");
+      Value* sum = b().CreateExtractValue(res, 0, "sub");
+      Value* dof = b().CreateExtractValue(res, 1, "did_overflow");
 
-        BasicBlock* tagnow = new_block("tagnow");
+      BasicBlock* tagnow = new_block("tagnow");
 
-        b().CreateCondBr(dof, dispatch, tagnow);
+      b().CreateCondBr(dof, dispatch, tagnow);
 
-        set_block(tagnow);
-        Value* imm_value = fixnum_tag(sum);
+      set_block(tagnow);
+      Value* imm_value = fixnum_tag(sum);
 
-        b().CreateBr(cont);
+      b().CreateBr(cont);
 
-        set_block(cont);
+      set_block(cont);
 
-        PHINode* phi = b().CreatePHI(ObjType, "subtraction");
-        phi->addIncoming(called_value, dispatch);
-        phi->addIncoming(imm_value, tagnow);
+      PHINode* phi = b().CreatePHI(ObjType, "subtraction");
+      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(imm_value, tagnow);
 
-        stack_remove(2);
-        stack_push(phi);
-      } else {
-        invoke_inline_cache(cache, 1);
-      }
+      stack_remove(2);
+      stack_push(phi);
     }
 
     Object* literal(opcode which) {
@@ -1379,7 +1352,7 @@ namespace rubinius {
         if(inl.consider()) {
           // Uncommon doesn't yet know how to synthesize UnwindInfos, so
           // don't do uncommon if there are handlers.
-          if(!in_inlined_block()) {
+          if(!inl.fail_to_send() && !in_inlined_block()) {
             BasicBlock* cur = b().GetInsertBlock();
 
             set_block(failure);
@@ -1632,7 +1605,7 @@ namespace rubinius {
         if(inl.consider()) {
           // Uncommon doesn't yet know how to synthesize UnwindInfos, so
           // don't do uncommon if there are handlers.
-          if(!in_inlined_block()) {
+          if(!inl.fail_to_send() && !in_inlined_block()) {
             send_result->addIncoming(inl.result(), b().GetInsertBlock());
 
             b().CreateBr(cleanup);

@@ -303,6 +303,7 @@ namespace rubinius {
                    ops.constant(Qtrue),
                    ops.constant(Qfalse));
 
+    i.use_send_for_failure();
     i.exception_safe();
     i.set_result(ops.as_obj(le));
   }
@@ -590,6 +591,8 @@ namespace rubinius {
           Value* as_i = ops_.ptrtoint(res);
           Value* icmp = ops_.b().CreateICmpEQ(as_i,
               ConstantInt::get(ops_.state()->IntPtrTy, reinterpret_cast<intptr_t>(Qundef)));
+
+          use_send_for_failure();
 
           ops_.b().CreateCondBr(icmp, failure(), cont);
           ops_.set_block(cont);

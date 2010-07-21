@@ -919,10 +919,10 @@ extern "C" {
       cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
     }
 
-    if(cache) {
-      if(cache->name->symbol_p()) {
-        std::cout << "Uncommon trap for send: " << cache->name->c_str(state) << "\n";
-      }
+    if(cache && cache->name->symbol_p()) {
+      std::cout << "Uncommon trap for send: " << cache->name->c_str(state) << "\n";
+    } else {
+      std::cout << "Unknown uncommon try reason.\n";
     }
     */
 

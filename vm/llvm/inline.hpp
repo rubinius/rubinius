@@ -31,6 +31,8 @@ namespace rubinius {
 
     JITMethodInfo* creator_info_;
 
+    bool fail_to_send_;
+
   public:
 
     Inliner(jit::Context& ctx,
@@ -48,6 +50,7 @@ namespace rubinius {
       , block_on_stack_(false)
       , from_unboxed_array_(false)
       , creator_info_(0)
+      , fail_to_send_(false)
     {}
 
     Inliner(jit::Context& ctx, JITOperations& ops, int count)
@@ -116,6 +119,14 @@ namespace rubinius {
 
     void set_block_info(JITInlineBlock* ib) {
       block_info_ = ib;
+    }
+
+    bool fail_to_send() {
+      return fail_to_send_;
+    }
+
+    void use_send_for_failure() {
+      fail_to_send_ = true;
     }
 
     bool consider();
