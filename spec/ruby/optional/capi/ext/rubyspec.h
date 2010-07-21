@@ -161,6 +161,7 @@
 
 // Marshal
 #define HAVE_RB_MARSHAL_DUMP               1
+#define HAVE_RB_MARSHAL_LOAD               1
 
 // Module
 #define HAVE_RB_CONST_DEFINED              1

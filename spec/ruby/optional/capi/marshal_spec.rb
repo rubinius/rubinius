@@ -31,4 +31,16 @@ describe "CApiMarshalSpecs" do
 
   end
 
+  describe "rb_marshal_dump" do
+    before(:each) do
+      @obj = "foo"
+      @data = Marshal.dump(@obj)
+    end
+
+    it "unmarshals an object" do
+      @s.rb_marshal_load(@data).should == @obj
+    end
+
+  end
+
 end
