@@ -378,7 +378,7 @@ module Rubinius
       when Integer
         push_int what
       else
-        raise Error, "Unknown push argument '#{what.inspect}'"
+        raise CompileError, "Unknown push argument '#{what.inspect}'"
       end
     end
 
@@ -445,7 +445,7 @@ module Rubinius
       allow_private if priv
 
       unless count.kind_of? Fixnum
-        raise Error, "count must be a number"
+        raise CompileError, "count must be a number"
       end
 
       idx = find_literal(meth)
@@ -466,7 +466,7 @@ module Rubinius
       allow_private if priv
 
       unless count.kind_of? Fixnum
-        raise Error, "count must be a number"
+        raise CompileError, "count must be a number"
       end
 
       idx = find_literal(meth)
