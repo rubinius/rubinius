@@ -19,4 +19,9 @@ extern "C" {
 
     return rb_funcall2(marshal, rb_intern("dump"), argc, argv);
   }
+
+  VALUE rb_marshal_load(VALUE data) {
+    return rb_funcall(rb_path2class("Marshal"), rb_intern("load"), 1, data);
+  }
+
 }

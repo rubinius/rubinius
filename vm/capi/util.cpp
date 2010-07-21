@@ -107,10 +107,6 @@ extern "C" {
     }
   }
 
-  VALUE rb_marshal_load(VALUE string) {
-    return rb_funcall(rb_path2class("Marshal"), rb_intern("load"), 1, string);
-  }
-
   int rb_special_const_p(VALUE obj) {
     return SPECIAL_CONST_P(obj) ? Qtrue : Qfalse;
   }
