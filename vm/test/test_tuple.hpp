@@ -170,7 +170,7 @@ public:
     TS_ASSERT_THROWS_ASSERT(count = tuple->delete_inplace(state, Fixnum::from(0), Fixnum::from(-1), Qnil),
 			    const RubyException &e,
 			    TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
-    TS_ASSERT_THROWS_ASSERT(count = tuple->delete_inplace(state, Fixnum::from(3), Fixnum::from(0), Qnil),
+    TS_ASSERT_THROWS_ASSERT(count = tuple->delete_inplace(state, Fixnum::from(3), Fixnum::from(1), Qnil),
 			    const RubyException &e,
 			    TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
   }

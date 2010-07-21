@@ -113,10 +113,11 @@ namespace rubinius {
 
   Fixnum* Tuple::delete_inplace(STATE, Fixnum *start, Fixnum *length, Object *obj) {
     int size = this->num_fields();
+    int len  = length->to_native();
     int lend = start->to_native();
-    int rend = lend + length->to_native();
+    int rend = lend + len;
 
-    if(size == 0) return Fixnum::from(0);
+    if(size == 0 || len == 0) return Fixnum::from(0);
     if(lend < 0 || lend >= size) {
       Exception::object_bounds_exceeded_error(state, this, lend);
     }
