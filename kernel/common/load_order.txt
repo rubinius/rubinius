@@ -1,4 +1,3 @@
-ar.rbc
 object.rbc
 class.rbc
 binding.rbc

@@ -1,4 +1,3 @@
-ar.rbc
 breakpoint.rbc
 ctype.rbc
 class.rbc
