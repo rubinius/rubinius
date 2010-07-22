@@ -51,7 +51,7 @@ describe "IO.select" do
     rm_r filename
   end
 
-  it "invokes to_io on supplied objects that are not IO" do
+  it "invokes to_io on supplied objects that are not IO and returns the supplied objects" do
     # make some data available
     @wr.write("foobar")
 
