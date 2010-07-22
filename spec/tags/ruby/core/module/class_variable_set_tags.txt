@@ -1,1 +1,0 @@
-fails:Module#class_variable_set raises a TypeError when self is frozen
