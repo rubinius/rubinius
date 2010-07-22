@@ -1,1 +1,0 @@
-fails:IO.foreach with nil as the separator argument yields a single string with entire content
