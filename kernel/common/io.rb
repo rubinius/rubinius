@@ -1403,6 +1403,9 @@ class IO
     buffer.replace(sysread(size)) if size > 0
 
     buffer
+  rescue
+    buffer.replace('') if buffer
+    raise
   end
 
   ##
