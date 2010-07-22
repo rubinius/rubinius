@@ -6,6 +6,10 @@ module Rubinius
     end
 
     def self.new(size=0, &block)
+      if block.nil?
+        raise ArgumentError, "Fiber.new requires a block"
+      end
+
       create(size, block)
     end
 
