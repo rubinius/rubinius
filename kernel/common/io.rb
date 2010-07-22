@@ -215,8 +215,6 @@ class IO
   def self.foreach(name, sep_string = $/)
     return to_enum(:foreach, name, sep_string) unless block_given?
 
-    sep_string ||= ''
-
     name = StringValue(name)
 
     if name[0] == ?|
@@ -226,7 +224,11 @@ class IO
       io = File.open(name, 'r')
     end
 
-    sep = StringValue(sep_string)
+    if sep_string.nil?
+      sep = sep_string
+    else
+      sep = StringValue(sep_string)
+    end
 
     begin
       while line = io.gets(sep)
