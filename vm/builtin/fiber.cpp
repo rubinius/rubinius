@@ -4,9 +4,11 @@
 
 
 #include "builtin/object.hpp"
+#include "builtin/array.hpp"
 #include "vm/vm.hpp"
 #include "builtin/class.hpp"
 #include "builtin/integer.hpp"
+#include "builtin/exception.hpp"
 
 #include "objectmemory.hpp"
 #include "gc/gc.hpp"
@@ -57,7 +59,7 @@ namespace rubinius {
     // Affix this fiber to this thread now.
     fib->state_ = state;
 
-    fib->starter()->send(state, NULL, G(sym_call));
+    Object* result = fib->starter()->send(state, NULL, G(sym_call), as<Array>(fib->value()), Qnil, false);
     // GC has run! Don't use stack vars!
 
     fib = Fiber::current(state);
@@ -67,7 +69,7 @@ namespace rubinius {
     assert(!dest->nil_p());
 
     dest->run();
-    dest->value(state, Qnil);
+    dest->value(state, result);
     state->set_current_fiber(dest);
 
     if(setcontext(dest->ucontext()) != 0)
@@ -119,15 +121,13 @@ namespace rubinius {
 
   Object* Fiber::resume(STATE, Arguments& args, CallFrame* calling_environment) {
 #ifdef FIBER_ENABLED
-    if(!prev_->nil_p() || root_) return Primitives::failure();
-
-    Object* val = Qnil;
-    if(args.total() == 1) {
-      val = args.get_argument(0);
-    } else if(args.total() > 1) {
-      val = args.as_array(state);
+    if(status_ == Fiber::eDead) {
+      Exception::fiber_error(state, "dead fiber called");
     }
 
+    if(!prev_->nil_p() || root_) return Primitives::failure();
+
+    Array* val = args.as_array(state);
     value(state, val);
 
     Fiber* cur = Fiber::current(state);
@@ -159,6 +159,10 @@ namespace rubinius {
 
     assert(cur != dest_fib);
 
+    if(cur->root_) {
+      Exception::fiber_error(state, "can't yield from root fiber");
+    }
+
     cur->prev(state, (Fiber*)Qnil);
 
     Object* val = Qnil;
@@ -183,7 +187,13 @@ namespace rubinius {
     // can't be accessed.
 
     cur = Fiber::current(state);
-    return cur->value();
+    Array *ret = as<Array>(cur->value());
+
+    if(ret->size() == 1) {
+      return ret->get(state, 0);
+    } else {
+      return ret;
+    }
 #else
     return Primitives::failure();
 #endif

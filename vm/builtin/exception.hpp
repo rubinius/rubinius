@@ -70,6 +70,7 @@ namespace rubinius {
     static void system_call_error(STATE, const std::string& reason);
 
     static void thread_error(STATE, const char* reason);
+    static void fiber_error(STATE, const char* reason);
     static void memory_error(STATE);
 
     static Exception* make_lje(STATE, CallFrame* frame);
@@ -110,6 +111,7 @@ namespace rubinius {
     static Class* get_io_error(STATE);
     static Class* get_system_call_error(STATE);
     static Class* get_thread_error(STATE);
+    static Class* get_fiber_error(STATE);
     static Class* get_errno_error(STATE, Fixnum* ern);
 
     class Info : public TypeInfo {

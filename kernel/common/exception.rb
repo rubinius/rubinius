@@ -222,6 +222,9 @@ end
 class ThreadError < StandardError
 end
 
+class FiberError < StandardError
+end
+
 class TypeError < StandardError
 end
 

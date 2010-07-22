@@ -179,6 +179,10 @@ namespace rubinius {
     RubyException::raise(make_exception(state, get_thread_error(state), reason));
   }
 
+  void Exception::fiber_error(STATE, const char* reason) {
+    RubyException::raise(make_exception(state, get_fiber_error(state), reason));
+  }
+
   void Exception::memory_error(STATE) {
     RubyException::raise(make_exception(state, get_errno_error(state, Fixnum::from(errno)), strerror(errno)));
   }
@@ -336,6 +340,10 @@ namespace rubinius {
 
   Class* Exception::get_thread_error(STATE) {
     return as<Class>(G(object)->get_const(state, "ThreadError"));
+  }
+
+  Class* Exception::get_fiber_error(STATE) {
+    return as<Class>(G(object)->get_const(state, "FiberError"));
   }
 
   Class* Exception::get_errno_error(STATE, Fixnum* ern) {
