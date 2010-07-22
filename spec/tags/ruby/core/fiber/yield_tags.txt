@@ -1,1 +1,0 @@
-fails:Fiber.yield raises a FiberError if called from the root Fiber
