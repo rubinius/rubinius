@@ -263,6 +263,10 @@ namespace rubinius {
   Object* Module::cvar_set(STATE, Symbol* name, Object* value) {
     if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
 
+    if(RTEST(frozen_p(state))) {
+      Exception::type_error(state, "unable to change frozen object");
+    }
+
     Module* mod = this;
     Module* mod_to_query;
 
