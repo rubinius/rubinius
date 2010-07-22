@@ -1,1 +1,0 @@
-critical:Process.getpgid returns the process group ID for the calling process id when passed 0

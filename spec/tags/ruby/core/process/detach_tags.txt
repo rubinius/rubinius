@@ -1,1 +1,0 @@
-critical:Process#detach reaps the child process's status automatically

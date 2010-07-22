@@ -1,1 +1,0 @@
-critical:BasicSocket#recv gets lines delimited with a custom separator
