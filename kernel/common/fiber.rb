@@ -27,5 +27,9 @@ module Rubinius
       Ruby.primitive :fiber_resume
       raise PrimitiveFailure, "fiber_resume failed"
     end
+
+    def alive?
+      !@dead
+    end
   end
 end

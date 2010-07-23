@@ -66,6 +66,7 @@ namespace rubinius {
 
     fib = Fiber::current(state);
     fib->status_ = Fiber::eDead;
+    fib->set_ivar(state, state->symbol("@dead"), Qtrue);
 
     Fiber* dest = fib->prev();
     assert(!dest->nil_p());
