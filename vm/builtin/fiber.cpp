@@ -62,6 +62,8 @@ namespace rubinius {
     Object* result = fib->starter()->send(state, NULL, G(sym_call), as<Array>(fib->value()), Qnil, false);
     // GC has run! Don't use stack vars!
 
+    if(!result) result = Qnil;
+
     fib = Fiber::current(state);
     fib->status_ = Fiber::eDead;
 
