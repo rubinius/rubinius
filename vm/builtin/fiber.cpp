@@ -60,16 +60,16 @@ namespace rubinius {
     // Affix this fiber to this thread now.
     fib->state_ = state;
 
-    Array* result = (Array*) fib->starter()->send(state, NULL, G(sym_call), fib->value(), Qnil, false);
+    Array* result = (Array*)Qnil;
+    Object* obj = fib->starter()->send(state, NULL, G(sym_call), fib->value(), Qnil, false);
     // GC has run! Don't use stack vars!
 
     // Box this up so it's in a standard format at the point
     // of returning, so we can deal with it in the same way
     // as *args from #yield, #resume, and #transfer
-    if(result) {
-      Array* container = Array::create(state, 1);
-      container->set(state, 0, result);
-      result = container;
+    if(obj) {
+      result = Array::create(state, 1);
+      result->set(state, 0, obj);
     }
 
     fib = Fiber::current(state);
@@ -160,21 +160,14 @@ namespace rubinius {
 
     cur = Fiber::current(state);
 
-    // If the send() to the fiber block returns 0, we need to pass it on to
-    // indicate an exception, but we can't leave 'value' as 0 because GC will
-    // try to mark it.
+    Array* ret = cur->value();
 
-    if(!cur->value()) {
-      cur->value(state, (Array*)Qnil);
-      return 0;
-    }
-
-    Array *ret = cur->value();
+    if(ret->nil_p()) return Qnil;
 
     switch(ret->size()) {
-      case 0:  return Qnil;
-      case 1:  return ret->get(state, 0);
-      default: return ret;
+    case 0:  return Qnil;
+    case 1:  return ret->get(state, 0);
+    default: return ret;
     }
 #else
     return Primitives::failure();
@@ -210,21 +203,14 @@ namespace rubinius {
 
     cur = Fiber::current(state);
 
-    // If the send() to the fiber block returns 0, we need to pass it on to
-    // indicate an exception, but we can't leave 'value' as 0 because GC will
-    // try to mark it.
+    Array* ret = cur->value();
 
-    if(!cur->value()) {
-      cur->value(state, (Array*)Qnil);
-      return 0;
-    }
-
-    Array *ret = cur->value();
+    if(ret->nil_p()) return Qnil;
 
     switch(ret->size()) {
-      case 0:  return Qnil;
-      case 1:  return ret->get(state, 0);
-      default: return ret;
+    case 0:  return Qnil;
+    case 1:  return ret->get(state, 0);
+    default: return ret;
     }
 #else
     return Primitives::failure();
@@ -261,12 +247,14 @@ namespace rubinius {
 
     cur = Fiber::current(state);
 
-    Array *ret = cur->value();
+    Array* ret = cur->value();
+
+    if(ret->nil_p()) return Qnil;
 
     switch(ret->size()) {
-      case 0:  return Qnil;
-      case 1:  return ret->get(state, 0);
-      default: return ret;
+    case 0:  return Qnil;
+    case 1:  return ret->get(state, 0);
+    default: return ret;
     }
 #else
     return Primitives::failure();
