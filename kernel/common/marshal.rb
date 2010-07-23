@@ -195,8 +195,7 @@ class Float
           elsif infinite? then
             self < 0 ? "-inf" : "inf"
           else
-            # HACK shouldn't ignore the mantissa.
-            ("%.*g" % [17, self]) #  + ms.serialize_mantissa(self)
+            ("%.*g" % [17, self]) + ms.serialize_mantissa(self)
           end
     "f#{ms.serialize_integer(str.length)}#{str}"
   end
@@ -726,22 +725,19 @@ module Marshal
       str = "\0" * 32
 
       flt = Math.modf(Math.ldexp(Math.frexp(flt.abs)[0], 37))[0]
-      p :inner => flt
       if flt > 0
-        i = 1
+        i = 0
         while flt > 0
           flt, n = Math.modf(Math.ldexp(flt, 32))
           n = n.to_i
-          p :mant => n
           str[i += 1] = (n >> 24) & 0xff
           str[i += 1] = (n >> 16) & 0xff
           str[i += 1] = (n >> 8) & 0xff
           str[i += 1] = (n & 0xff)
         end
 
-        str.chomp!("\0")
       end
-      str
+      str.rstrip
     end
 
     def serialize_instance_variables_prefix(obj, exclude_ivars = false)

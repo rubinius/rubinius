@@ -147,7 +147,7 @@ module Math
   def modf(x)
     FFI::MemoryPointer.new :double do |integral|
       fractional = FFI::Platform::Math.modf x, integral
-      [fractional, integral.read_float]
+      [fractional, integral.read_double]
     end
   end
 
