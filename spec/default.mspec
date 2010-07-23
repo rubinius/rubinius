@@ -124,5 +124,6 @@ class MSpecScript
   if Object.const_defined?(:Rubinius) && Rubinius.const_get(:Fiber)
     ::Fiber = Rubinius::Fiber
     MSpec.enable_feature :fiber
+    MSpec.enable_feature :fiber_library
   end
 end
