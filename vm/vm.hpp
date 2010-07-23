@@ -105,6 +105,9 @@ namespace rubinius {
     // The current fiber running on this thread
     TypedRoot<Fiber*> current_fiber;
 
+    // Root fiber, if any (lazily initialized)
+    TypedRoot<Fiber*> root_fiber;
+
     static unsigned long cStackDepthMax;
 
   public: /* Inline methods */

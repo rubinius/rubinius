@@ -67,6 +67,7 @@ namespace rubinius {
     , thread_state_(this)
     , thread(this, (Thread*)Qnil)
     , current_fiber(this, (Fiber*)Qnil)
+    , root_fiber(this, (Fiber*)Qnil)
   {
     probe.set(Qnil, &globals().roots);
     set_stack_size(cStackDepthMax);
