@@ -1,3 +1,1 @@
-fails:Fiber#transfer raises a LocalJumpError if the block includes a return statement
 fails:Fiber#transfer raises a LocalJumpError if the block includes a break statement
-fails:Fiber#transfer raises a FiberError when transferring to a Fiber which resumes itself

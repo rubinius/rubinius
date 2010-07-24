@@ -64,20 +64,24 @@ namespace rubinius {
     Object* obj = fib->starter()->send(state, NULL, G(sym_call), fib->value(), Qnil, false);
     // GC has run! Don't use stack vars!
 
-    // Box this up so it's in a standard format at the point
-    // of returning, so we can deal with it in the same way
-    // as *args from #yield, #resume, and #transfer
-    if(obj) {
-      result = Array::create(state, 1);
-      result->set(state, 0, obj);
-    }
-
     fib = Fiber::current(state);
     fib->status_ = Fiber::eDead;
     fib->set_ivar(state, state->symbol("@dead"), Qtrue);
 
     Fiber* dest = fib->prev();
     assert(!dest->nil_p());
+
+    // Box this up so it's in a standard format at the point
+    // of returning, so we can deal with it in the same way
+    // as *args from #yield, #resume, and #transfer
+    if(obj) {
+      result = Array::create(state, 1);
+      result->set(state, 0, obj);
+    } else {
+      if(state->thread_state()->raise_reason() == cException) {
+        dest->exception(state, state->thread_state()->current_exception());
+      }
+    }
 
     dest->run();
     dest->value(state, result);
@@ -160,6 +164,12 @@ namespace rubinius {
 
     cur = Fiber::current(state);
 
+    if(!cur->exception()->nil_p()) {
+      state->thread_state()->raise_exception(cur->exception());
+      cur->exception(state, (Exception*)Qnil);
+      return 0;
+    }
+
     Array* ret = cur->value();
 
     if(ret->nil_p()) return Qnil;
@@ -202,6 +212,12 @@ namespace rubinius {
     // can't be accessed.
 
     cur = Fiber::current(state);
+
+    if(!cur->exception()->nil_p()) {
+      state->thread_state()->raise_exception(cur->exception());
+      cur->exception(state, (Exception*)Qnil);
+      return 0;
+    }
 
     Array* ret = cur->value();
 

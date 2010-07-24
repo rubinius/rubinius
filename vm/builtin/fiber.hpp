@@ -32,6 +32,7 @@ namespace rubinius {
     Object* starter_; // slot
     Array* value_; // slot
     Fiber* prev_; // slot
+    Exception* exception_; // slot
     CallFrame* top_;
     Status status_;
     VM* state_;
@@ -45,6 +46,7 @@ namespace rubinius {
     attr_accessor(starter, Object);
     attr_accessor(value, Array);
     attr_accessor(prev, Fiber);
+    attr_accessor(exception, Exception)
 
     CallFrame* call_frame() {
       return top_;

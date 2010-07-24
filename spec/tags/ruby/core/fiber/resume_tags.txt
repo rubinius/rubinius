@@ -1,3 +1,2 @@
 fails:Fiber#resume executes the ensure clause
-fails:Fiber#resume raises a LocalJumpError if the block includes a return statement
 fails:Fiber#resume raises a LocalJumpError if the block includes a break statement
