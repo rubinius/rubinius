@@ -1445,11 +1445,16 @@ class IO
       # If a mode isn't passed in, use the mode that the IO is already in.
       if mode.equal? undefined
         mode = @mode
+        # If this IO was already opened for writing, we should
+        # create the target file if it doesn't already exist.
+        if (mode & RDWR == RDWR) || (mode & WRONLY == WRONLY)
+          mode |= CREAT
+        end
       else
         mode = IO.parse_mode(mode)
       end
 
-      reopen_path(StringValue(other), mode | CREAT)
+      reopen_path(StringValue(other), mode)
       seek 0, SEEK_SET
     end
 

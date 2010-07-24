@@ -248,6 +248,10 @@ namespace rubinius {
 
     int other_fd = ::open(path->c_str(), mode->to_native(), 0666);
 
+    if(other_fd == -1) {
+      Exception::errno_error(state, "reopen");
+    }
+
     if(dup2(other_fd, cur_fd) == -1) {
       if(errno == EBADF) { // this means cur_fd is closed
         // Just set ourselves to use the new fd and go on with life.
