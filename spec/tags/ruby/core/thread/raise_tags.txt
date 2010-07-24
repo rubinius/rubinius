@@ -1,5 +1,0 @@
-unstable(causes system time to spike for remainder of process):Thread#raise on a sleeping thread can go unhandled
-unstable(causes system time to spike for remainder of process):Thread#raise on a running thread raises a RuntimeError if no exception class is given
-unstable(causes system time to spike for remainder of process):Thread#raise on a running thread raises the given exception
-unstable(causes system time to spike for remainder of process):Thread#raise on a running thread raises the given exception with the given message
-unstable(causes system time to spike for remainder of process):Thread#raise on a running thread can go unhandled
