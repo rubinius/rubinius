@@ -722,10 +722,10 @@ module Marshal
     end
 
     def serialize_mantissa(flt)
-      str = "\0" * 32
-
+      str = ""
       flt = Math.modf(Math.ldexp(Math.frexp(flt.abs)[0], 37))[0]
       if flt > 0
+        str = "\0" * 32
         i = 0
         while flt > 0
           flt, n = Math.modf(Math.ldexp(flt, 32))
@@ -735,9 +735,9 @@ module Marshal
           str[i += 1] = (n >> 8) & 0xff
           str[i += 1] = (n & 0xff)
         end
-
+        str.gsub!(/(\000)*\Z/, '')
       end
-      str.rstrip
+      str
     end
 
     def serialize_instance_variables_prefix(obj, exclude_ivars = false)
