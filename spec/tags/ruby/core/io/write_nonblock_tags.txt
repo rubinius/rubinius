@@ -1,2 +1,0 @@
-fails:IO#write_nonblock on a file checks if the file is writable if writing zero bytes
-fails:IO#write_nonblock on a file writes all of the string's bytes but does not buffer them
