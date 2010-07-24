@@ -1,1 +1,0 @@
-fails:IO#reopen with a String raises an Errno::ENOENT if the file does not exist and the IO is not opened in write mode
