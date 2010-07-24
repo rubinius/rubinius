@@ -568,7 +568,7 @@ end
 class MatchData
 
   def string
-    @source
+    @source.dup.freeze
   end
 
   def source
