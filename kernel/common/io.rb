@@ -628,8 +628,12 @@ class IO
     cur_mode &= ACCMODE
 
     if mode
-      str_mode = StringValue mode
-      mode = IO.parse_mode(str_mode) & ACCMODE
+      if !Type.obj_kind_of?(mode, Integer)
+        str_mode = StringValue mode
+        mode = IO.parse_mode(str_mode)
+      end
+
+      mode &= ACCMODE
 
       if (cur_mode == RDONLY or cur_mode == WRONLY) and mode != cur_mode
         raise Errno::EINVAL, "Invalid new mode '#{str_mode}' for existing descriptor #{fd}"
