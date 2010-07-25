@@ -1,14 +1,17 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/common', __FILE__)
 require File.expand_path('../shared/open', __FILE__)
 
 describe "File.open" do
   before :all do
     @file = tmp("test.txt")
-    File.delete(@file) if File.exist?(@file)
-    File.delete("fake") if File.exist?("fake")
+    @nonexistent = tmp("fake.txt")
+    rm_r @file, @nonexistent
   end
 
   before :each do
+    ScratchPad.record []
+
     @fh = @fd = nil
     @flags = File::CREAT | File::TRUNC | File::WRONLY
     touch @file
@@ -16,56 +19,34 @@ describe "File.open" do
 
   after :each do
     @fh.close if @fh and not @fh.closed?
-    File.delete(@file) if File.exist?(@file)
-    File.delete("fake") if File.exist?("fake")
+    rm_r @file, @nonexistent
   end
 
-  it "with block does not raise error when file is closed inside the block" do
-    lambda {
+  describe "with a block" do
+    it "does not raise error when file is closed inside the block" do
       @fh = File.open(@file) { |fh| fh.close; fh }
-    }.should_not raise_error
-    @fh.closed?.should == true
-  end
-
-  it "with a block invokes close on opened file when exiting the block" do
-    file = File.open(@file, 'r') do |f|
-      class << f
-        @res = "close was not invoked"
-        alias_method(:close_orig, :close)
-        def close; close_orig; @res = "close was invoked"; end
-        def to_s;  @res; end
-      end
-      f
+      @fh.closed?.should == true
     end
-    file.to_s.should == "close was invoked"
-  end
 
-  it "with a block propagates non-StandardErrors produced by close" do
-    lambda {
-      File.open(@file, 'r') do |f|
-        class << f
-          alias_method(:close_orig, :close)
-          def close
-            close_orig
-            raise Exception, "exception out of close"
-          end
-        end
-      end
-    }.should raise_error(Exception)
-  end
+    it "invokes close on an opened file when exiting the block" do
+      File.open(@file, 'r') { |f| FileSpecs.make_closer f }
 
-  it "with a block swallows StandardErrors produced by close" do
-    lambda {
-      File.open(@file, 'r') do |f|
-        class << f
-          alias_method(:close_orig, :close)
-          def close
-            close_orig
-            raise IOError
-          end
-        end
-      end
-    }.should_not raise_error
+      ScratchPad.recorded.should == [:file_opened, :file_closed]
+    end
+
+    it "propagates non-StandardErrors produced by close" do
+      lambda {
+        File.open(@file, 'r') { |f| FileSpecs.make_closer f, Exception }
+      }.should raise_error(Exception)
+
+      ScratchPad.recorded.should == [:file_opened, :file_closed]
+    end
+
+    it "does not propagate StandardErrors produced by close" do
+      File.open(@file, 'r') { |f| FileSpecs.make_closer f, IOError }
+
+      ScratchPad.recorded.should == [:file_opened, :file_closed]
+    end
   end
 
   it "opens the file (basic case)" do
@@ -106,7 +87,7 @@ describe "File.open" do
 
   # For this test we delete the file first to reset the perms
   it "opens the file when passed mode, num and permissions" do
-    File.delete(@file)
+    rm_r @file
     File.umask(0011)
     @fh = File.open(@file, @flags, 0755)
     @fh.should be_kind_of(File)
@@ -118,7 +99,7 @@ describe "File.open" do
 
   # For this test we delete the file first to reset the perms
   it "opens the file when passed mode, num, permissions and block" do
-    File.delete(@file)
+    rm_r @file
     File.umask(0022)
     File.open(@file, "w", 0755){ |fh| @fd = fh.fileno }
     lambda { File.open(@fd) }.should raise_error(SystemCallError)
@@ -132,30 +113,22 @@ describe "File.open" do
     # it should be possible to write to such a file via returned descriptior,
     # even though the file permissions are r-r-r.
 
-    File.delete(@file) if File.exists?(@file)
-    File.open(@file, "w", 0444){ |f|
-      lambda { f.puts("test") }.should_not raise_error(IOError)
-    }
-    File.exist?(@file).should == true
-    File.read(@file).should == "test\n"
+    File.open(@file, "w", 0444) { |f| f.puts("test") }
+    @file.should have_data("test\n")
   end
 
   it "opens the existing file, does not change permissions even when they are specified" do
-    File.chmod(0664, @file)           # r-w perms
+    File.chmod(0664, @file)
     orig_perms = File.stat(@file).mode.to_s(8)
-    File.open(@file, "w", 0444){ |f|  # r-o perms, but they should be ignored
-      lambda { f.puts("test") }.should_not raise_error(IOError)
-    }
-    # check that original permissions preserved
-    File.stat(@file).mode.to_s(8).should == orig_perms
+    File.open(@file, "w", 0444) { |f| f.puts("test") }
 
-    # it should be still possible to read from the file
-    File.read(@file).should == "test\n"
+    File.stat(@file).mode.to_s(8).should == orig_perms
+    @file.should have_data("test\n")
   end
 
   platform_is_not :windows do
     it "creates a new write-only file when invoked with 'w' and '0222'" do
-      File.delete(@file) if File.exists?(@file)
+      rm_r @file
       File.open(@file, 'w', 0222) {}
       File.readable?(@file).should == false
       File.writable?(@file).should == true
@@ -179,55 +152,55 @@ describe "File.open" do
   end
 
   it "opens a file that no exists when use File::WRONLY mode" do
-    lambda { File.open("fake", File::WRONLY) }.should raise_error(Errno::ENOENT)
+    lambda { File.open(@nonexistent, File::WRONLY) }.should raise_error(Errno::ENOENT)
   end
 
   it "opens a file that no exists when use File::RDONLY mode" do
-    lambda { File.open("fake", File::RDONLY) }.should raise_error(Errno::ENOENT)
+    lambda { File.open(@nonexistent, File::RDONLY) }.should raise_error(Errno::ENOENT)
   end
 
   it "opens a file that no exists when use 'r' mode" do
-    lambda { File.open("fake", 'r') }.should raise_error(Errno::ENOENT)
+    lambda { File.open(@nonexistent, 'r') }.should raise_error(Errno::ENOENT)
   end
 
   it "opens a file that no exists when use File::EXCL mode" do
-    lambda { File.open("fake", File::EXCL) }.should raise_error(Errno::ENOENT)
+    lambda { File.open(@nonexistent, File::EXCL) }.should raise_error(Errno::ENOENT)
   end
 
   it "opens a file that no exists when use File::NONBLOCK mode" do
-    lambda { File.open("fake", File::NONBLOCK) }.should raise_error(Errno::ENOENT)
+    lambda { File.open(@nonexistent, File::NONBLOCK) }.should raise_error(Errno::ENOENT)
   end
 
   platform_is_not :openbsd do
     it "opens a file that no exists when use File::TRUNC mode" do
-      lambda { File.open("fake", File::TRUNC) }.should raise_error(Errno::ENOENT)
+      lambda { File.open(@nonexistent, File::TRUNC) }.should raise_error(Errno::ENOENT)
     end
   end
 
   platform_is :openbsd do
     it "opens a file that no exists when use File::TRUNC mode" do
-      lambda { File.open("fake", File::TRUNC) }.should raise_error(Errno::EINVAL)
+      lambda { File.open(@nonexistent, File::TRUNC) }.should raise_error(Errno::EINVAL)
     end
   end
 
   it "opens a file that no exists when use File::NOCTTY mode" do
-    lambda { File.open("fake", File::NOCTTY) }.should raise_error(Errno::ENOENT)
+    lambda { File.open(@nonexistent, File::NOCTTY) }.should raise_error(Errno::ENOENT)
   end
 
   it "opens a file that no exists when use File::CREAT mode" do
-    @fh = File.open("fake", File::CREAT) { |f| f }
+    @fh = File.open(@nonexistent, File::CREAT) { |f| f }
     @fh.should be_kind_of(File)
     File.exist?(@file).should == true
   end
 
   it "opens a file that no exists when use 'a' mode" do
-    @fh = File.open("fake", 'a') { |f| f }
+    @fh = File.open(@nonexistent, 'a') { |f| f }
     @fh.should be_kind_of(File)
     File.exist?(@file).should == true
   end
 
   it "opens a file that no exists when use 'w' mode" do
-    @fh = File.open("fake", 'w') { |f| f }
+    @fh = File.open(@nonexistent, 'w') { |f| f }
     @fh.should be_kind_of(File)
     File.exist?(@file).should == true
   end
@@ -559,6 +532,8 @@ describe "File.open" do
   it "raises an ArgumentError if passed an invalid string for mode" do
     lambda { File.open(@file, 'fake') }.should raise_error(ArgumentError)
   end
-  
+end
+
+describe "File.open" do
   it_behaves_like :open_directory, :open
 end
