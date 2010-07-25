@@ -31,7 +31,7 @@ class StringIO
         mode_from_string(mode)
       end
     else
-      mode_from_string("r+")
+      mode_from_string(@string.frozen? ? "r" : "r+")
     end
 
     self
@@ -451,7 +451,7 @@ class StringIO
     end
 
     def mode_from_string(mode)
-      @readable = @writable = @append = false
+      @readable = @writable = @append = truncate = false
 
       case mode
       when "r", "rb"
@@ -460,12 +460,12 @@ class StringIO
         @readable = true
         @writable = true
       when "w", "wb"
-        @string.replace("")
+        truncate = true
         @writable = true
       when "w+", "wb+"
+        truncate = true
         @readable = true
         @writable = true
-        @string.replace("")
       when "a", "ab"
         @writable = true
         @append   = true
@@ -474,6 +474,8 @@ class StringIO
         @writable = true
         @append   = true
       end
+      raise Errno::EACCES, "Permission denied" if @writable && @string.frozen?
+      @string.replace("") if truncate
     end
 
     def mode_from_integer(mode)
@@ -484,9 +486,11 @@ class StringIO
         @readable = true
         @writable = false
       when IO::WRONLY
+        raise Errno::EACCES, "Permission denied" if @string.frozen?
         @readable = false
         @writable = true
       when IO::RDWR
+        raise Errno::EACCES, "Permission denied" if @string.frozen?
         @readable = true
         @writable = true
       end
