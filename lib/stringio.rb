@@ -371,7 +371,7 @@ class StringIO
   end
 
   def seek(to, whence = IO::SEEK_SET)
-    #raise IOError if self.closed?
+    raise IOError, "closed stream" if self.closed?
     to = Type.coerce_to to, Integer, :to_int
 
     case whence
