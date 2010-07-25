@@ -1,1 +1,0 @@
-fails:BigDecimal#power powers of self
