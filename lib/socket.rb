@@ -709,6 +709,7 @@ class Socket < BasicSocket
   def bind(server_sockaddr)
     err = Socket::Foreign.bind(descriptor, server_sockaddr)
     Errno.handle 'bind(2)' unless err == 0
+    err
   end
 
   # @todo  Should this be closing the descriptor? --rue
