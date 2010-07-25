@@ -1,3 +1,2 @@
-fails:File.open with a block swallows StandardErrors produced by close
 fails:File.open raises an Errno::EINVAL when read in a block opened with File::RDONLY|File::APPEND mode
 fails:File.open raises an Errno::EEXIST if the file exists when open with File::RDONLY|File::APPEND
