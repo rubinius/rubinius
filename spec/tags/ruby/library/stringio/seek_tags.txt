@@ -1,1 +1,0 @@
-fails:StringIO#seek when self is closed raises an IOError
