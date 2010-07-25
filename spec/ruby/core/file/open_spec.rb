@@ -55,15 +55,17 @@ describe "File.open" do
   end
 
   it "with a block swallows StandardErrors produced by close" do
-    File.open(@file, 'r') do |f|
-      class << f
-        alias_method(:close_orig, :close)
-        def close
-          close_orig
-          raise IOError
+    lambda {
+      File.open(@file, 'r') do |f|
+        class << f
+          alias_method(:close_orig, :close)
+          def close
+            close_orig
+            raise IOError
+          end
         end
       end
-    end.should be_nil
+    }.should_not raise_error
   end
 
   it "opens the file (basic case)" do
