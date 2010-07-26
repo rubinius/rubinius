@@ -63,6 +63,8 @@ namespace rubinius {
         as_.cache_data = 0;
       }
 
+      static bool valid_handle_p(STATE, Handle* handle);
+
       ~Handle();
 
       void flush(NativeMethodEnvironment* env) {

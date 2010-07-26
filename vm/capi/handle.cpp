@@ -5,6 +5,22 @@
 
 namespace rubinius {
   namespace capi {
+
+    bool Handle::valid_handle_p(STATE, Handle* handle) {
+      Handles* global_handles = state->shared.global_handles();
+      Handles* cached_handles = state->shared.cached_handles();
+
+      for(Handles::Iterator i(*global_handles); i.more(); i.advance()) {
+        if(i.current() == handle) return true;
+      }
+
+      for(Handles::Iterator i(*cached_handles); i.more(); i.advance()) {
+        if(i.current() == handle) return true;
+      }
+
+      return false;
+    }
+
     void Handle::free_data() {
       if(as_.cache_data) {
         switch(type_) {

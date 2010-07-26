@@ -55,6 +55,11 @@ extern "C" {
    * to be in the heap.
    */
   void rb_gc_mark_maybe(VALUE ptr) {
-    rb_gc_mark(ptr);
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Handle* handle = Handle::from(ptr);
+
+    if(capi::Handle::valid_handle_p(env->state(), handle)) {
+      rb_gc_mark(ptr);
+    }
   }
 }
