@@ -49,8 +49,12 @@ module Rubinius
       @transforms = transforms
       @magic_handler = nil
       @data_offset = nil
-      @exc = nil
+
+      # There can be multiple reported, we need to track them all.
+      @syntax_errors = []
     end
+
+    attr_reader :syntax_errors
 
     def add_magic_comment(str)
       if @magic_handler
@@ -63,7 +67,7 @@ module Rubinius
     end
 
     def syntax_error
-      raise @exc if @exc
+      raise @syntax_errors[0] unless @syntax_errors.empty?
     end
 
     def parse_string(string)

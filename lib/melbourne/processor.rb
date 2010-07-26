@@ -1,7 +1,7 @@
 module Rubinius
   class Melbourne
     def process_parse_error(message, column, line, source)
-      @exc = SyntaxError.from message, column, line, source, @name
+      @syntax_errors << SyntaxError.from(message, column, line, source, @name)
     end
 
     def process_dangling_node

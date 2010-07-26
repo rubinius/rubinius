@@ -112,11 +112,17 @@ containing the Rubinius standard library files.
 
     def show_syntax_error(e)
       STDERR.puts "A syntax error has occurred:"
-      STDERR.puts "    #{e.message}"
+      STDERR.puts "    #{e.reason}"
       STDERR.puts "    near line #{e.file}:#{e.line}, column #{e.column}"
       STDERR.puts "\nCode:\n#{e.code}"
       if e.column
         STDERR.puts((" " * (e.column - 1)) + "^")
+      end
+    end
+
+    def show_syntax_errors(syns)
+      syns.each do |e|
+        STDERR.puts "#{e.file}:#{e.line}: #{e.reason}"
       end
     end
 
@@ -155,7 +161,7 @@ containing the Rubinius standard library files.
         begin
           mel.parse_file
         rescue SyntaxError => e
-          show_syntax_error(e)
+          show_syntax_errors(mel.syntax_errors)
           exit 1
         end
 

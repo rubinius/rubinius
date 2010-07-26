@@ -279,6 +279,10 @@ class SyntaxError < ScriptError
     @code = code
   end
 
+  def reason
+    @reason_message
+  end
+
   def message
     msg = super
     msg = "#{file}:#{@line}: #{msg}" if file && @line
