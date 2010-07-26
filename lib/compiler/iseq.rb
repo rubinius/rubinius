@@ -153,6 +153,19 @@ module Rubinius
         return stream
       end
 
+      def decode_between(iseq, start, fin)
+        @iseq = iseq
+        @offset = start
+
+        stream = []
+
+        while @offset < fin
+          stream << decode
+        end
+
+        return stream
+      end
+
       ##
       # Encodes a stream of instructions into an InstructionSequence. The stream
       # supplied must be an array of arrays, with the inner array consisting of
@@ -306,6 +319,11 @@ module Rubinius
     def decode(symbols_only=true)
       enc = Encoder.new
       enc.decode_iseq(self, symbols_only)
+    end
+
+    def decode_between(start, fin)
+      enc = Encoder.new
+      enc.decode_between(self, start, fin)
     end
 
     def show

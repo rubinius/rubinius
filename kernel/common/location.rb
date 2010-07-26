@@ -14,37 +14,38 @@ module Rubinius
       @name.nil?
     end
 
-    def describe
+    def describe_receiver
       # We can't call @receiver.class because it might be overriden (or in
       # the case of Mocha, mocked out) and easily causes stack overflows
       klass = Rubinius.object_class @receiver
 
       if @method_module.equal?(Kernel)
-        str = "Kernel."
+        "Kernel."
       elsif @method_module.kind_of? Class and ao = @method_module.__metaclass_object__
-        str = "#{ao}."
+        "#{ao}."
       elsif @method_module and @method_module != klass
-        str = "#{@method_module}(#{klass})#"
+        "#{@method_module}(#{klass})#"
       else
-        str = "#{klass}#"
+        "#{klass}#"
       end
+    end
 
-      str << describe_method
-
-      return str
+    def describe
+      if @is_block
+        "{ } in #{describe_receiver}#{describe_method}"
+      else
+        "#{describe_receiver}#{describe_method}"
+      end
     end
 
     def describe_method
-      if @is_block
-        "#{@name} {}"
-      elsif @name == @method.name
-        "#{@name}"
+      if @is_block or @name == @method.name
+        @name.to_s
       elsif !@name # inlined methods have no name
-        "#{@method.name}"
+        @method.name.to_s
       else
         "#{@name} (#{@method.name})"
       end
-
     end
 
     # Current line being executed by the VM.

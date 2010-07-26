@@ -27,6 +27,23 @@ class Debugger
     Rubinius.add_method_hook.add @added_hook
 
     @defered_breakpoints = []
+
+    @user_variables = 0
+
+    @breakpoints = []
+
+    @history_path = File.expand_path("~/.rbx_debug")
+
+    if File.exists?(@history_path)
+      File.readlines(@history_path).each do |line|
+        Readline::HISTORY << line.strip
+      end
+      @history_io = File.new(@history_path, "a")
+    else
+      @history_io = File.new(@history_path, "w")
+    end
+
+    @history_io.sync = true
   end
 
   attr_reader :variables
@@ -80,7 +97,7 @@ class Debugger
 
     method = Rubinius::CompiledMethod.of_sender
 
-    bp = BreakPoint.new method, 0, 0
+    bp = BreakPoint.new "<start>", method, 0, 0
     channel = Rubinius::Channel.new
 
     @local_channel.send Rubinius::Tuple[bp, Thread.current, channel, locs]
@@ -167,7 +184,21 @@ class Debugger
 
       loc = @location
 
-      str = "#{loc.describe}(#{arg_str}) at #{loc.method.active_path}:#{loc.line} (#{loc.ip})"
+      if loc.is_block
+        if arg_str.empty?
+          recv = "{ } in #{loc.describe_receiver}#{loc.name}"
+        else
+          recv = "{|#{arg_str}| } in #{loc.describe_receiver}#{loc.name}"
+        end
+      else
+        if arg_str.empty?
+          recv = loc.describe
+        else
+          recv = "#{loc.describe}(#{arg_str})"
+        end
+      end
+
+      str = "#{recv} at #{loc.method.active_path}:#{loc.line} (#{loc.ip})"
       if @debugger.variables[:show_ip]
         str << " (+#{loc.ip})"
       end
@@ -194,6 +225,14 @@ class Debugger
     case command
     when "b", "break", "brk"
       set_breakpoint(args)
+    when "tb", "tbreak"
+      set_breakpoint(args, true)
+    when "d", "delete"
+      delete_breakpoint(args)
+    when "dis", "disassemble"
+      disassemble(args)
+    when "i", "info"
+      show_info(args)
     when "n", "next"
       step_over(args)
     when "p"
@@ -210,6 +249,39 @@ class Debugger
       show_variable(args)
     else
       puts "Unrecognized command: #{command}"
+      return
+    end
+
+    # Save it to the history.
+    @history_io.puts cmd
+  end
+
+  def show_info(args)
+    case args.strip
+    when "break", "breakpoints", "bp"
+      section "Breakpoints"
+      if @breakpoints.empty?
+        info "No breakpoints set"
+      end
+
+      @breakpoints.each_with_index do |bp, i|
+        if bp
+          info "%3d: %s" % [i+1, bp.describe]
+        end
+      end
+    when "bytecode", "bc"
+      show_bytecode
+    else
+      error "Unknown info: '#{args}'"
+    end
+  end
+
+  def disassemble(args)
+    if args and args.strip == "all"
+      section "Bytecode for #{@current_frame.method.name}"
+      puts @current_frame.method.decode
+    else
+      show_bytecode
     end
   end
 
@@ -225,13 +297,23 @@ class Debugger
     puts "* #{str}"
   end
 
+  def section(str)
+    puts "==== #{str} ===="
+  end
+
   def ask(str)
     Readline.readline("| #{str}")
   end
 
   def eval_code(args)
-    str = @current_frame.run(args).inspect
-    puts "=> #{str}\n"
+    obj = @current_frame.run(args)
+
+    idx = @user_variables
+    @user_variables += 1
+
+    str = "$d#{idx}"
+    Rubinius::Globals[str.to_sym] = obj
+    puts "#{str} = #{obj.inspect}\n"
   end
 
   def backtrace(args)
@@ -313,6 +395,15 @@ class Debugger
       @variables.each do |name, val|
         info "var '#{name}' = #{val.inspect}"
       end
+
+      if @user_variables > 0
+        section "User variables"
+        (0...@user_variables).each do |i|
+          str = "$d#{i}"
+          val = Rubinius::Globals[str.to_sym]
+          info "var #{str} = #{val.inspect}"
+        end
+      end
     else
       var = args.strip.to_sym
       if @variables.key?(var)
@@ -324,22 +415,33 @@ class Debugger
   end
 
   class BreakPoint
-    def initialize(method, ip, line)
+    def initialize(descriptor, method, ip, line)
+      @descriptor = descriptor
       @method = method
       @ip = ip
       @line = line
       @for_step = false
       @paired_bp = nil
+      @temp = false
     end
 
-    attr_reader :method, :ip, :line, :paired_bp
+    attr_reader :method, :ip, :line, :paired_bp, :descriptor
 
     def location
       "#{@method.active_path}:#{@line} (+#{ip})"
     end
 
+    def describe
+      "#{descriptor} - #{location}"
+    end
+
     def for_step!
+      @temp = true
       @for_step = true
+    end
+
+    def set_temp!
+      @temp = true
     end
 
     def for_step?
@@ -355,22 +457,31 @@ class Debugger
     end
 
     def hit!
-      return unless @for_step
+      return unless @temp
 
       remove!
 
       @paired_bp.remove! if @paired_bp
     end
+
+    def delete!
+      remove!
+    end
   end
 
   class DeferedBreakPoint
-    def initialize(debugger, frame, klass, which, name, line=nil)
+    def initialize(debugger, frame, klass, which, name, line=nil, list=nil)
       @debugger = debugger
       @frame = frame
       @klass_name = klass
       @which = which
       @name = name
       @line = line
+      @list = list
+    end
+
+    def descriptor
+      "#{@klass_name}#{@which}#{@name}"
     end
 
     def resolve!
@@ -392,9 +503,19 @@ class Debugger
 
       @debugger.info "Resolved breakpoint for #{@klass_name}#{@which}#{@name}"
 
-      @debugger.set_breakpoint_method method, @line
+      @debugger.set_breakpoint_method descriptor, method, @line
 
       return true
+    end
+
+    def describe
+      "#{descriptor} - unknown location (defered)"
+    end
+
+    def delete!
+      if @list
+        @list.delete self
+      end
     end
   end
 
@@ -402,15 +523,42 @@ class Debugger
     answer = ask "Would you like to defer this breakpoint to later? [y/n] "
 
     if answer.strip.downcase[0] == ?y
-      dbp = DeferedBreakPoint.new(self, @current_frame, klass_name, which, name, line)
+      dbp = DeferedBreakPoint.new(self, @current_frame, klass_name, which, name,
+                                  line, @defered_breakpoints)
       @defered_breakpoints << dbp
+      @breakpoints << dbp
 
       info "Defered breakpoint created."
     end
   end
 
-  def set_breakpoint(args)
-    m = /([A-Z]\w*)([.#])(\w+)(?:[:](\d+))?/.match(args)
+  def delete_breakpoint(args)
+    if !args or args.empty?
+      error "Please specify which breakpoint by number"
+      return
+    end
+
+    begin
+      i = Integer(args.strip)
+    rescue ArgumentError
+      error "'#{args}' is not a number"
+      return
+    end
+
+    bp = @breakpoints[i-1]
+
+    unless bp
+      error "Unknown breakpoint '#{i}'"
+      return
+    end
+
+    bp.delete!
+
+    @breakpoints[i-1] = nil
+  end
+
+  def set_breakpoint(args, temp=false)
+    m = /([A-Z]\w*(?:::[A-Z]\w*)*)([.#])(\w+)(?:[:](\d+))?/.match(args)
     unless m
       error "Unrecognized position: '#{args}'"
       return
@@ -436,15 +584,19 @@ class Debugger
         method = klass.method(name)
       end
     rescue NameError
-      error "Unable to find method: #{name}"
+      error "Unable to find method '#{name}' in #{klass}"
       ask_defered klass_name, which, name, line
       return
     end
 
-    set_breakpoint_method method, line
+    bp = set_breakpoint_method args.strip, method, line
+
+    bp.set_temp! if temp
+
+    return bp
   end
 
-  def set_breakpoint_method(method, line=nil)
+  def set_breakpoint_method(descriptor, method, line=nil)
     exec = method.executable
 
     unless exec.kind_of?(Rubinius::CompiledMethod)
@@ -464,10 +616,14 @@ class Debugger
       ip = 0
     end
 
-    bp = BreakPoint.new(exec, ip, line)
+    bp = BreakPoint.new(descriptor, exec, ip, line)
     exec.set_breakpoint ip, bp
 
-    info "Set breakpoint: #{bp.location}"
+    @breakpoints << bp
+
+    info "Set breakpoint #{@breakpoints.size}: #{bp.location}"
+
+    return bp
   end
 
   def check_defered_breakpoints
@@ -597,6 +753,43 @@ class Debugger
 
     if str = @file_lines[path][line - 1]
       info "#{line}: #{str}"
+    else
+      show_bytecode(line)
+    end
+  end
+
+  def show_bytecode(line=@current_frame.line)
+    meth = @current_frame.method
+    start = meth.first_ip_on_line(line)
+    fin = meth.first_ip_on_line(line+1)
+
+    if fin == -1
+      fin = meth.iseq.size
+    end
+
+    section "Bytecode between #{start} and #{fin-1}"
+
+    partial = meth.iseq.decode_between(start, fin)
+
+    ip = start
+
+    partial.each do |ins|
+      op = ins.shift
+
+      ins.each_index do |i|
+        case op.args[i]
+        when :literal
+          ins[i] = meth.literals[ins[i]].inspect
+        when :local
+          if meth.local_names
+            ins[i] = meth.local_names[ins[i]]
+          end
+        end
+      end
+
+      info " %4d: #{op.opcode} #{ins.join(', ')}" % ip
+
+      ip += (ins.size + 1)
     end
   end
 end
