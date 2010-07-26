@@ -1071,18 +1071,19 @@ instruction push_const_fast(literal association) [ -- constant ]
   Object* res = 0;
 
   Object* val = call_frame->cm->literals()->at(state, association);
+  StaticScope* sc = call_frame->static_scope();
 
   // See if the cache is present, if so, validate it and use the value
   GlobalCacheEntry* cache;
   if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
-    if(cache->valid_p(state)) {
+    if(cache->valid_p(state, sc)) {
       res = cache->value();
     } else {
       Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, literal));
       flush_ip();
       res = Helpers::const_get(state, call_frame, sym, &found);
       if(found) {
-        cache->update(state, res);
+        cache->update(state, res, sc);
       }
     }
   } else {
@@ -1090,7 +1091,7 @@ instruction push_const_fast(literal association) [ -- constant ]
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, literal));
     res = Helpers::const_get(state, call_frame, sym, &found);
     if(found) {
-      cache = GlobalCacheEntry::create(state, res);
+      cache = GlobalCacheEntry::create(state, res, sc);
       call_frame->cm->literals()->put(state, association, cache);
     } else {
       res = Helpers::const_missing(state, sym, call_frame);
@@ -1103,7 +1104,15 @@ instruction push_const_fast(literal association) [ -- constant ]
     flush_ip();
     res = autoload->resolve(state, call_frame);
     if(cache && res) {
-      cache->update(state, res);
+      // ->resolve might run the GC, so we need to refetch cache
+      // and the scope.
+      val = call_frame->cm->literals()->at(state, association);
+      cache = try_as<GlobalCacheEntry>(val);
+      sc = call_frame->static_scope();
+
+      if(cache) {
+        cache->update(state, res, sc);
+      }
     }
   }
 

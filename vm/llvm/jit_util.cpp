@@ -579,20 +579,21 @@ extern "C" {
     Object* res = 0;
 
     Object* val = call_frame->cm->literals()->at(state, association_index);
+    StaticScope* sc = call_frame->static_scope();
 
     // See if the cache is present, if so, validate it and use the value
     GlobalCacheEntry* cache;
     if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
-      if(cache->valid_p(state)) {
+      if(cache->valid_p(state, sc)) {
         res = cache->value();
       } else {
         res = Helpers::const_get(state, call_frame, sym, &found);
-        if(found) cache->update(state, res);
+        if(found) cache->update(state, res, sc);
       }
     } else {
       res = Helpers::const_get(state, call_frame, sym, &found);
       if(found) {
-        cache = GlobalCacheEntry::create(state, res);
+        cache = GlobalCacheEntry::create(state, res, sc);
         call_frame->cm->literals()->put(state, association_index, cache);
       } else {
         res = Helpers::const_missing(state, sym, call_frame);
@@ -604,7 +605,14 @@ extern "C" {
     if(Autoload* autoload = try_as<Autoload>(res)) {
       res = autoload->resolve(state, call_frame);
       if(cache && res) {
-        cache->update(state, res);
+        // Past a GC point, reload values.
+        val = call_frame->cm->literals()->at(state, association_index);
+        sc = call_frame->static_scope();
+        cache = try_as<GlobalCacheEntry>(val);
+
+        if(cache) {
+          cache->update(state, res, sc);
+        }
       }
     }
 
