@@ -59,7 +59,7 @@ module Rubinius
           puts "#{" " * level}#{name}: \\"
           nodes = []
           value.each do |v|
-            if v.kind_of? Node
+            if v.kind_of? @node_kind
               nodes << v
             else
               graph_value "-", v, level + 2
