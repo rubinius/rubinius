@@ -138,7 +138,7 @@ module Rubinius
         false
       end
 
-      def attach_and_call(g, arg_name, scoped=false)
+      def attach_and_call(g, arg_name, scoped=false, pass_block=false)
         name = @name || arg_name
         meth = new_generator(g, name)
 
@@ -174,7 +174,13 @@ module Rubinius
         g.swap
         g.send :attach_method, 4
         g.pop
-        g.send arg_name, 0
+
+        if pass_block
+          g.push_block
+          g.send_with_block arg_name, 0
+        else
+          g.send arg_name, 0
+        end
 
         return meth
       end
@@ -735,7 +741,7 @@ module Rubinius
           end
 
           # Ok, emit it.
-          attach_and_call g, :__metaclass_init__, true
+          attach_and_call g, :__metaclass_init__, true, true
         else
           g.pop
           g.push :nil

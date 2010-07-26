@@ -34,7 +34,8 @@ describe "An Sclass node" do
       g.send :attach_method, 4
 
       g.pop
-      g.send :__metaclass_init__, 0
+      g.push_block
+      g.send_with_block :__metaclass_init__, 0
     end
   end
 
@@ -77,7 +78,8 @@ describe "An Sclass node" do
         d.send :attach_method, 4
 
         d.pop
-        d.send :__metaclass_init__, 0
+        d.push_block
+        d.send_with_block :__metaclass_init__, 0
         d.pop
         d.in_class :B
         d.pop
