@@ -8,6 +8,7 @@
 
 #include "vm.hpp"
 #include "object_utils.hpp"
+#include "vm/config.h"
 
 #include "builtin/array.hpp"
 #include "builtin/exception.hpp"
@@ -15,14 +16,34 @@
 
 namespace rubinius {
 
-#define UNPACK_ELEMENTS(format)                   \
-  for(; index < stop; count--, index += width) {  \
-    array->append(state, format(bytes + index));  \
+#define UNPACK_ELEMENTS(format, bits)                   \
+  for(; index < stop; count--, index += width) {        \
+    array->append(state, format(bits(bytes + index)));  \
   }
 
-#define BYTE(p)  (Fixnum::from(*((signed char*)p)))
+#define FIXNUM(b)         (Fixnum::from(b))
+#define INTEGER(b)        (Integer::from(state, b))
 
-#define UBYTE(p) (Fixnum::from(*((unsigned char*)p)))
+#define BYTE(p, n, m)     ((*(((uint8_t*)(p))+n)) << (m*8))
+
+#define SBYTE(p)          ((int8_t)BYTE(p, 0, 0))
+#define UBYTE(p)          ((uint8_t)BYTE(p, 0, 0))
+
+#define LE_16BITS(p)      (BYTE(p, 0, 0) | BYTE(p, 1, 1))
+#define LE_S16BITS(p)     ((int16_t)LE_16BITS(p))
+#define LE_U16BITS(p)     ((uint16_t)LE_16BITS(p))
+
+#define BE_16BITS(p)      (BYTE(p, 0, 1) | BYTE(p, 1, 0))
+#define BE_S16BITS(p)     ((int16_t)BE_16BITS(p))
+#define BE_U16BITS(p)     ((uint16_t)BE_16BITS(p))
+
+#ifdef RBX_LITTLE_ENDIAN
+# define S16BITS           LE_S16BITS
+# define U16BITS           LE_U16BITS
+#else
+# define S16BITS           BE_S16BITS
+# define U16BITS           BE_U16BITS
+#endif
 
   Array* String::unpack(STATE, String* directives) {
     // Ragel-specific variables
@@ -38,12 +59,15 @@ namespace rubinius {
     size_t width = 0;
     int count = 0;
     bool rest = false;
+    bool platform = false;
     Array* array = Array::create(state, 0);
 
 
-static const char _unpack_eof_actions[] = {
-	0, 0, 2, 7, 8, 8, 11, 8, 
-	2, 15, 2
+static const short _unpack_eof_actions[] = {
+	0, 0, 2, 7, 8, 11, 16, 19, 
+	19, 22, 22, 25, 28, 31, 34, 34, 
+	37, 34, 25, 41, 22, 44, 19, 8, 
+	2, 47, 2
 };
 
 static const int unpack_start = 1;
@@ -67,150 +91,569 @@ _resume:
 case 1:
 	switch( (*p) ) {
 		case 67: goto tr0;
-		case 99: goto tr2;
+		case 83: goto tr2;
+		case 99: goto tr3;
+		case 110: goto tr4;
+		case 115: goto tr5;
+		case 118: goto tr6;
 	}
 	goto tr1;
 case 0:
 	goto _out;
 case 2:
 	switch( (*p) ) {
-		case 0: goto tr3;
-		case 32: goto tr3;
-		case 33: goto tr4;
-		case 42: goto tr5;
-		case 67: goto tr7;
-		case 95: goto tr4;
-		case 99: goto tr8;
+		case 0: goto tr7;
+		case 32: goto tr7;
+		case 33: goto tr8;
+		case 42: goto tr9;
+		case 67: goto tr11;
+		case 83: goto tr12;
+		case 95: goto tr8;
+		case 99: goto tr13;
+		case 110: goto tr14;
+		case 115: goto tr15;
+		case 118: goto tr16;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr6;
+			goto tr10;
 	} else if ( (*p) >= 9 )
-		goto tr3;
+		goto tr7;
 	goto tr1;
 case 3:
 	switch( (*p) ) {
-		case 0: goto tr9;
-		case 32: goto tr9;
+		case 0: goto tr17;
+		case 32: goto tr17;
 		case 67: goto tr0;
-		case 99: goto tr2;
+		case 83: goto tr2;
+		case 99: goto tr3;
+		case 110: goto tr4;
+		case 115: goto tr5;
+		case 118: goto tr6;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr9;
+		goto tr17;
 	goto tr1;
 case 4:
 	switch( (*p) ) {
-		case 0: goto tr10;
-		case 32: goto tr10;
-		case 33: goto tr11;
-		case 42: goto tr12;
-		case 67: goto tr14;
-		case 95: goto tr11;
-		case 99: goto tr15;
+		case 0: goto tr18;
+		case 32: goto tr18;
+		case 33: goto tr19;
+		case 42: goto tr20;
+		case 67: goto tr22;
+		case 83: goto tr23;
+		case 95: goto tr19;
+		case 99: goto tr24;
+		case 110: goto tr25;
+		case 115: goto tr26;
+		case 118: goto tr27;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr13;
+			goto tr21;
 	} else if ( (*p) >= 9 )
-		goto tr10;
+		goto tr18;
 	goto tr1;
 case 5:
 	switch( (*p) ) {
-		case 0: goto tr10;
-		case 32: goto tr10;
-		case 67: goto tr14;
-		case 99: goto tr15;
+		case 0: goto tr28;
+		case 32: goto tr28;
+		case 42: goto tr29;
+		case 67: goto tr31;
+		case 83: goto tr32;
+		case 99: goto tr33;
+		case 110: goto tr34;
+		case 115: goto tr35;
+		case 118: goto tr36;
 	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr10;
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr30;
+	} else if ( (*p) >= 9 )
+		goto tr28;
 	goto tr1;
 case 6:
 	switch( (*p) ) {
-		case 0: goto tr16;
-		case 32: goto tr16;
-		case 67: goto tr17;
-		case 99: goto tr18;
+		case 0: goto tr37;
+		case 32: goto tr37;
+		case 67: goto tr38;
+		case 83: goto tr39;
+		case 99: goto tr40;
+		case 110: goto tr41;
+		case 115: goto tr42;
+		case 118: goto tr43;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr16;
+		goto tr37;
 	goto tr1;
 case 7:
 	switch( (*p) ) {
-		case 0: goto tr10;
-		case 32: goto tr10;
-		case 67: goto tr14;
-		case 99: goto tr15;
+		case 0: goto tr44;
+		case 32: goto tr44;
+		case 33: goto tr45;
+		case 42: goto tr46;
+		case 67: goto tr48;
+		case 83: goto tr49;
+		case 95: goto tr45;
+		case 99: goto tr50;
+		case 110: goto tr51;
+		case 115: goto tr52;
+		case 118: goto tr53;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr19;
+			goto tr47;
 	} else if ( (*p) >= 9 )
-		goto tr10;
+		goto tr44;
 	goto tr1;
 case 8:
 	switch( (*p) ) {
-		case 0: goto tr3;
-		case 32: goto tr3;
-		case 67: goto tr7;
-		case 99: goto tr8;
+		case 0: goto tr44;
+		case 32: goto tr44;
+		case 67: goto tr48;
+		case 83: goto tr49;
+		case 99: goto tr50;
+		case 110: goto tr51;
+		case 115: goto tr52;
+		case 118: goto tr53;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr3;
+		goto tr44;
 	goto tr1;
 case 9:
 	switch( (*p) ) {
-		case 0: goto tr20;
-		case 32: goto tr20;
-		case 67: goto tr21;
-		case 99: goto tr22;
-	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr20;
-	goto tr1;
-case 10:
-	switch( (*p) ) {
-		case 0: goto tr3;
-		case 32: goto tr3;
-		case 67: goto tr7;
-		case 99: goto tr8;
+		case 0: goto tr54;
+		case 32: goto tr54;
+		case 33: goto tr55;
+		case 42: goto tr56;
+		case 67: goto tr58;
+		case 83: goto tr59;
+		case 95: goto tr55;
+		case 99: goto tr60;
+		case 110: goto tr61;
+		case 115: goto tr62;
+		case 118: goto tr63;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr23;
+			goto tr57;
 	} else if ( (*p) >= 9 )
-		goto tr3;
+		goto tr54;
+	goto tr1;
+case 10:
+	switch( (*p) ) {
+		case 0: goto tr54;
+		case 32: goto tr54;
+		case 67: goto tr58;
+		case 83: goto tr59;
+		case 99: goto tr60;
+		case 110: goto tr61;
+		case 115: goto tr62;
+		case 118: goto tr63;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr54;
+	goto tr1;
+case 11:
+	switch( (*p) ) {
+		case 0: goto tr64;
+		case 32: goto tr64;
+		case 33: goto tr65;
+		case 42: goto tr66;
+		case 67: goto tr68;
+		case 83: goto tr69;
+		case 95: goto tr65;
+		case 99: goto tr70;
+		case 110: goto tr71;
+		case 115: goto tr72;
+		case 118: goto tr73;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr67;
+	} else if ( (*p) >= 9 )
+		goto tr64;
+	goto tr1;
+case 12:
+	switch( (*p) ) {
+		case 0: goto tr74;
+		case 32: goto tr74;
+		case 42: goto tr75;
+		case 67: goto tr77;
+		case 83: goto tr78;
+		case 99: goto tr79;
+		case 110: goto tr80;
+		case 115: goto tr81;
+		case 118: goto tr82;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr76;
+	} else if ( (*p) >= 9 )
+		goto tr74;
+	goto tr1;
+case 13:
+	switch( (*p) ) {
+		case 0: goto tr83;
+		case 32: goto tr83;
+		case 67: goto tr84;
+		case 83: goto tr85;
+		case 99: goto tr86;
+		case 110: goto tr87;
+		case 115: goto tr88;
+		case 118: goto tr89;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr83;
+	goto tr1;
+case 14:
+	switch( (*p) ) {
+		case 0: goto tr90;
+		case 32: goto tr90;
+		case 33: goto tr91;
+		case 42: goto tr92;
+		case 67: goto tr94;
+		case 83: goto tr95;
+		case 95: goto tr91;
+		case 99: goto tr96;
+		case 110: goto tr97;
+		case 115: goto tr98;
+		case 118: goto tr99;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr93;
+	} else if ( (*p) >= 9 )
+		goto tr90;
+	goto tr1;
+case 15:
+	switch( (*p) ) {
+		case 0: goto tr90;
+		case 32: goto tr90;
+		case 67: goto tr94;
+		case 83: goto tr95;
+		case 99: goto tr96;
+		case 110: goto tr97;
+		case 115: goto tr98;
+		case 118: goto tr99;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr90;
+	goto tr1;
+case 16:
+	switch( (*p) ) {
+		case 0: goto tr100;
+		case 32: goto tr100;
+		case 67: goto tr101;
+		case 83: goto tr102;
+		case 99: goto tr103;
+		case 110: goto tr104;
+		case 115: goto tr105;
+		case 118: goto tr106;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr100;
+	goto tr1;
+case 17:
+	switch( (*p) ) {
+		case 0: goto tr90;
+		case 32: goto tr90;
+		case 67: goto tr94;
+		case 83: goto tr95;
+		case 99: goto tr96;
+		case 110: goto tr97;
+		case 115: goto tr98;
+		case 118: goto tr99;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr107;
+	} else if ( (*p) >= 9 )
+		goto tr90;
+	goto tr1;
+case 18:
+	switch( (*p) ) {
+		case 0: goto tr64;
+		case 32: goto tr64;
+		case 67: goto tr68;
+		case 83: goto tr69;
+		case 99: goto tr70;
+		case 110: goto tr71;
+		case 115: goto tr72;
+		case 118: goto tr73;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr108;
+	} else if ( (*p) >= 9 )
+		goto tr64;
+	goto tr1;
+case 19:
+	switch( (*p) ) {
+		case 0: goto tr109;
+		case 32: goto tr109;
+		case 67: goto tr110;
+		case 83: goto tr111;
+		case 99: goto tr112;
+		case 110: goto tr113;
+		case 115: goto tr114;
+		case 118: goto tr115;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr109;
+	goto tr1;
+case 20:
+	switch( (*p) ) {
+		case 0: goto tr54;
+		case 32: goto tr54;
+		case 67: goto tr58;
+		case 83: goto tr59;
+		case 99: goto tr60;
+		case 110: goto tr61;
+		case 115: goto tr62;
+		case 118: goto tr63;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr116;
+	} else if ( (*p) >= 9 )
+		goto tr54;
+	goto tr1;
+case 21:
+	switch( (*p) ) {
+		case 0: goto tr117;
+		case 32: goto tr117;
+		case 67: goto tr118;
+		case 83: goto tr119;
+		case 99: goto tr120;
+		case 110: goto tr121;
+		case 115: goto tr122;
+		case 118: goto tr123;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr117;
+	goto tr1;
+case 22:
+	switch( (*p) ) {
+		case 0: goto tr44;
+		case 32: goto tr44;
+		case 67: goto tr48;
+		case 83: goto tr49;
+		case 99: goto tr50;
+		case 110: goto tr51;
+		case 115: goto tr52;
+		case 118: goto tr53;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr124;
+	} else if ( (*p) >= 9 )
+		goto tr44;
+	goto tr1;
+case 23:
+	switch( (*p) ) {
+		case 0: goto tr18;
+		case 32: goto tr18;
+		case 67: goto tr22;
+		case 83: goto tr23;
+		case 99: goto tr24;
+		case 110: goto tr25;
+		case 115: goto tr26;
+		case 118: goto tr27;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr125;
+	} else if ( (*p) >= 9 )
+		goto tr18;
+	goto tr1;
+case 24:
+	switch( (*p) ) {
+		case 0: goto tr7;
+		case 32: goto tr7;
+		case 67: goto tr11;
+		case 83: goto tr12;
+		case 99: goto tr13;
+		case 110: goto tr14;
+		case 115: goto tr15;
+		case 118: goto tr16;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr7;
+	goto tr1;
+case 25:
+	switch( (*p) ) {
+		case 0: goto tr126;
+		case 32: goto tr126;
+		case 67: goto tr127;
+		case 83: goto tr128;
+		case 99: goto tr129;
+		case 110: goto tr130;
+		case 115: goto tr131;
+		case 118: goto tr132;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr126;
+	goto tr1;
+case 26:
+	switch( (*p) ) {
+		case 0: goto tr7;
+		case 32: goto tr7;
+		case 67: goto tr11;
+		case 83: goto tr12;
+		case 99: goto tr13;
+		case 110: goto tr14;
+		case 115: goto tr15;
+		case 118: goto tr16;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr133;
+	} else if ( (*p) >= 9 )
+		goto tr7;
 	goto tr1;
 	}
 
 	tr1: cs = 0; goto _again;
 	tr0: cs = 2; goto f0;
-	tr7: cs = 2; goto f5;
-	tr14: cs = 2; goto f9;
-	tr17: cs = 2; goto f12;
-	tr21: cs = 2; goto f16;
-	tr9: cs = 3; goto _again;
-	tr3: cs = 3; goto f2;
-	tr10: cs = 3; goto f8;
-	tr16: cs = 3; goto f11;
-	tr20: cs = 3; goto f15;
+	tr11: cs = 2; goto f5;
+	tr22: cs = 2; goto f9;
+	tr31: cs = 2; goto f14;
+	tr38: cs = 2; goto f17;
+	tr48: cs = 2; goto f20;
+	tr58: cs = 2; goto f23;
+	tr68: cs = 2; goto f26;
+	tr77: cs = 2; goto f29;
+	tr84: cs = 2; goto f32;
+	tr94: cs = 2; goto f35;
+	tr101: cs = 2; goto f38;
+	tr110: cs = 2; goto f42;
+	tr118: cs = 2; goto f45;
+	tr127: cs = 2; goto f48;
+	tr17: cs = 3; goto _again;
+	tr7: cs = 3; goto f2;
+	tr18: cs = 3; goto f8;
+	tr28: cs = 3; goto f11;
+	tr37: cs = 3; goto f16;
+	tr44: cs = 3; goto f19;
+	tr54: cs = 3; goto f22;
+	tr64: cs = 3; goto f25;
+	tr74: cs = 3; goto f28;
+	tr83: cs = 3; goto f31;
+	tr90: cs = 3; goto f34;
+	tr100: cs = 3; goto f37;
+	tr109: cs = 3; goto f41;
+	tr117: cs = 3; goto f44;
+	tr126: cs = 3; goto f47;
 	tr2: cs = 4; goto f0;
-	tr8: cs = 4; goto f5;
-	tr15: cs = 4; goto f9;
-	tr18: cs = 4; goto f12;
-	tr22: cs = 4; goto f16;
-	tr11: cs = 5; goto f3;
-	tr12: cs = 6; goto _again;
-	tr13: cs = 7; goto f4;
-	tr19: cs = 7; goto f13;
-	tr4: cs = 8; goto f3;
-	tr5: cs = 9; goto _again;
-	tr6: cs = 10; goto f4;
-	tr23: cs = 10; goto f13;
+	tr12: cs = 4; goto f5;
+	tr23: cs = 4; goto f9;
+	tr32: cs = 4; goto f14;
+	tr39: cs = 4; goto f17;
+	tr49: cs = 4; goto f20;
+	tr59: cs = 4; goto f23;
+	tr69: cs = 4; goto f26;
+	tr78: cs = 4; goto f29;
+	tr85: cs = 4; goto f32;
+	tr95: cs = 4; goto f35;
+	tr102: cs = 4; goto f38;
+	tr111: cs = 4; goto f42;
+	tr119: cs = 4; goto f45;
+	tr128: cs = 4; goto f48;
+	tr19: cs = 5; goto _again;
+	tr20: cs = 6; goto _again;
+	tr29: cs = 6; goto f12;
+	tr3: cs = 7; goto f0;
+	tr13: cs = 7; goto f5;
+	tr24: cs = 7; goto f9;
+	tr33: cs = 7; goto f14;
+	tr40: cs = 7; goto f17;
+	tr50: cs = 7; goto f20;
+	tr60: cs = 7; goto f23;
+	tr70: cs = 7; goto f26;
+	tr79: cs = 7; goto f29;
+	tr86: cs = 7; goto f32;
+	tr96: cs = 7; goto f35;
+	tr103: cs = 7; goto f38;
+	tr112: cs = 7; goto f42;
+	tr120: cs = 7; goto f45;
+	tr129: cs = 7; goto f48;
+	tr45: cs = 8; goto f3;
+	tr4: cs = 9; goto f0;
+	tr14: cs = 9; goto f5;
+	tr25: cs = 9; goto f9;
+	tr34: cs = 9; goto f14;
+	tr41: cs = 9; goto f17;
+	tr51: cs = 9; goto f20;
+	tr61: cs = 9; goto f23;
+	tr71: cs = 9; goto f26;
+	tr80: cs = 9; goto f29;
+	tr87: cs = 9; goto f32;
+	tr97: cs = 9; goto f35;
+	tr104: cs = 9; goto f38;
+	tr113: cs = 9; goto f42;
+	tr121: cs = 9; goto f45;
+	tr130: cs = 9; goto f48;
+	tr55: cs = 10; goto f3;
+	tr5: cs = 11; goto f0;
+	tr15: cs = 11; goto f5;
+	tr26: cs = 11; goto f9;
+	tr35: cs = 11; goto f14;
+	tr42: cs = 11; goto f17;
+	tr52: cs = 11; goto f20;
+	tr62: cs = 11; goto f23;
+	tr72: cs = 11; goto f26;
+	tr81: cs = 11; goto f29;
+	tr88: cs = 11; goto f32;
+	tr98: cs = 11; goto f35;
+	tr105: cs = 11; goto f38;
+	tr114: cs = 11; goto f42;
+	tr122: cs = 11; goto f45;
+	tr131: cs = 11; goto f48;
+	tr65: cs = 12; goto _again;
+	tr66: cs = 13; goto _again;
+	tr75: cs = 13; goto f12;
+	tr6: cs = 14; goto f0;
+	tr16: cs = 14; goto f5;
+	tr27: cs = 14; goto f9;
+	tr36: cs = 14; goto f14;
+	tr43: cs = 14; goto f17;
+	tr53: cs = 14; goto f20;
+	tr63: cs = 14; goto f23;
+	tr73: cs = 14; goto f26;
+	tr82: cs = 14; goto f29;
+	tr89: cs = 14; goto f32;
+	tr99: cs = 14; goto f35;
+	tr106: cs = 14; goto f38;
+	tr115: cs = 14; goto f42;
+	tr123: cs = 14; goto f45;
+	tr132: cs = 14; goto f48;
+	tr91: cs = 15; goto f3;
+	tr92: cs = 16; goto _again;
+	tr93: cs = 17; goto f4;
+	tr107: cs = 17; goto f39;
+	tr67: cs = 18; goto f4;
+	tr76: cs = 18; goto f13;
+	tr108: cs = 18; goto f39;
+	tr56: cs = 19; goto _again;
+	tr57: cs = 20; goto f4;
+	tr116: cs = 20; goto f39;
+	tr46: cs = 21; goto _again;
+	tr47: cs = 22; goto f4;
+	tr124: cs = 22; goto f39;
+	tr21: cs = 23; goto f4;
+	tr30: cs = 23; goto f13;
+	tr125: cs = 23; goto f39;
+	tr8: cs = 24; goto f3;
+	tr9: cs = 25; goto _again;
+	tr10: cs = 26; goto f4;
+	tr133: cs = 26; goto f39;
 
 f0:
 	{
     count = 1;
     rest = false;
+    platform = false;
   }
 	goto _again;
 f4:
@@ -218,9 +661,14 @@ f4:
     count = (*p) - '0';
   }
 	goto _again;
-f13:
+f39:
 	{
     count = count * 10 + ((*p) - '0');
+  }
+	goto _again;
+f12:
+	{
+    platform = true;
   }
 	goto _again;
 f3:
@@ -231,6 +679,14 @@ f3:
     snprintf(non_native_msg, NON_NATIVE_ERROR_SIZE,
              "'%c' allowed only after types sSiIlL", *p);
     Exception::argument_error(state, non_native_msg);
+  }
+	goto _again;
+f13:
+	{
+    platform = true;
+  }
+	{
+    count = (*p) - '0';
   }
 	goto _again;
 f2:
@@ -244,7 +700,67 @@ f2:
     }
   }
 	{
-    UNPACK_ELEMENTS(UBYTE);
+    UNPACK_ELEMENTS(FIXNUM, UBYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	goto _again;
+f19:
+	{
+    width = 1;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, SBYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	goto _again;
+f22:
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, BE_U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	goto _again;
+f34:
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, LE_U16BITS);
   }
 	{
     while(count > 0) {
@@ -255,7 +771,7 @@ f2:
 	goto _again;
 f8:
 	{
-    width = 1;
+    width = 2;
   }
 	{
     stop = rest ? size() + 1 : index + width * count;
@@ -264,7 +780,7 @@ f8:
     }
   }
 	{
-    UNPACK_ELEMENTS(BYTE);
+    UNPACK_ELEMENTS(FIXNUM, U16BITS);
   }
 	{
     while(count > 0) {
@@ -273,7 +789,27 @@ f8:
     }
   }
 	goto _again;
-f15:
+f25:
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, S16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	goto _again;
+f47:
 	{
     count = 0;
     rest = true;
@@ -288,7 +824,127 @@ f15:
     }
   }
 	{
-    UNPACK_ELEMENTS(UBYTE);
+    UNPACK_ELEMENTS(FIXNUM, UBYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	goto _again;
+f44:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 1;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, SBYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	goto _again;
+f41:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, BE_U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	goto _again;
+f37:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, LE_U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	goto _again;
+f16:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	goto _again;
+f31:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, S16BITS);
   }
 	{
     while(count > 0) {
@@ -299,11 +955,10 @@ f15:
 	goto _again;
 f11:
 	{
-    count = 0;
-    rest = true;
+    platform = true;
   }
 	{
-    width = 1;
+    width = 2;
   }
 	{
     stop = rest ? size() + 1 : index + width * count;
@@ -312,7 +967,30 @@ f11:
     }
   }
 	{
-    UNPACK_ELEMENTS(BYTE);
+    UNPACK_ELEMENTS(FIXNUM, U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	goto _again;
+f28:
+	{
+    platform = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, S16BITS);
   }
 	{
     while(count > 0) {
@@ -332,7 +1010,7 @@ f5:
     }
   }
 	{
-    UNPACK_ELEMENTS(UBYTE);
+    UNPACK_ELEMENTS(FIXNUM, UBYTE);
   }
 	{
     while(count > 0) {
@@ -343,11 +1021,87 @@ f5:
 	{
     count = 1;
     rest = false;
+    platform = false;
+  }
+	goto _again;
+f20:
+	{
+    width = 1;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, SBYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f23:
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, BE_U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f35:
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, LE_U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
   }
 	goto _again;
 f9:
 	{
-    width = 1;
+    width = 2;
   }
 	{
     stop = rest ? size() + 1 : index + width * count;
@@ -356,7 +1110,7 @@ f9:
     }
   }
 	{
-    UNPACK_ELEMENTS(BYTE);
+    UNPACK_ELEMENTS(FIXNUM, U16BITS);
   }
 	{
     while(count > 0) {
@@ -367,9 +1121,35 @@ f9:
 	{
     count = 1;
     rest = false;
+    platform = false;
   }
 	goto _again;
-f16:
+f26:
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, S16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f48:
 	{
     count = 0;
     rest = true;
@@ -384,7 +1164,7 @@ f16:
     }
   }
 	{
-    UNPACK_ELEMENTS(UBYTE);
+    UNPACK_ELEMENTS(FIXNUM, UBYTE);
   }
 	{
     while(count > 0) {
@@ -395,9 +1175,10 @@ f16:
 	{
     count = 1;
     rest = false;
+    platform = false;
   }
 	goto _again;
-f12:
+f45:
 	{
     count = 0;
     rest = true;
@@ -412,7 +1193,7 @@ f12:
     }
   }
 	{
-    UNPACK_ELEMENTS(BYTE);
+    UNPACK_ELEMENTS(FIXNUM, SBYTE);
   }
 	{
     while(count > 0) {
@@ -423,6 +1204,179 @@ f12:
 	{
     count = 1;
     rest = false;
+    platform = false;
+  }
+	goto _again;
+f42:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, BE_U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f38:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, LE_U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f17:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f32:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, S16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f14:
+	{
+    platform = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f29:
+	{
+    platform = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, S16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
   }
 	goto _again;
 
@@ -451,7 +1405,76 @@ _again:
     }
   }
 	{
-    UNPACK_ELEMENTS(UBYTE);
+    UNPACK_ELEMENTS(FIXNUM, UBYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    return array;
+  }
+	break;
+	case 19:
+	{
+    width = 1;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, SBYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    return array;
+  }
+	break;
+	case 22:
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, BE_U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    return array;
+  }
+	break;
+	case 34:
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, LE_U16BITS);
   }
 	{
     while(count > 0) {
@@ -465,7 +1488,7 @@ _again:
 	break;
 	case 8:
 	{
-    width = 1;
+    width = 2;
   }
 	{
     stop = rest ? size() + 1 : index + width * count;
@@ -474,7 +1497,7 @@ _again:
     }
   }
 	{
-    UNPACK_ELEMENTS(BYTE);
+    UNPACK_ELEMENTS(FIXNUM, U16BITS);
   }
 	{
     while(count > 0) {
@@ -486,7 +1509,30 @@ _again:
     return array;
   }
 	break;
-	case 15:
+	case 25:
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, S16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    return array;
+  }
+	break;
+	case 47:
 	{
     count = 0;
     rest = true;
@@ -501,7 +1547,142 @@ _again:
     }
   }
 	{
-    UNPACK_ELEMENTS(UBYTE);
+    UNPACK_ELEMENTS(FIXNUM, UBYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    return array;
+  }
+	break;
+	case 44:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 1;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, SBYTE);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    return array;
+  }
+	break;
+	case 41:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, BE_U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    return array;
+  }
+	break;
+	case 37:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, LE_U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    return array;
+  }
+	break;
+	case 16:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    return array;
+  }
+	break;
+	case 31:
+	{
+    count = 0;
+    rest = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, S16BITS);
   }
 	{
     while(count > 0) {
@@ -515,11 +1696,10 @@ _again:
 	break;
 	case 11:
 	{
-    count = 0;
-    rest = true;
+    platform = true;
   }
 	{
-    width = 1;
+    width = 2;
   }
 	{
     stop = rest ? size() + 1 : index + width * count;
@@ -528,7 +1708,33 @@ _again:
     }
   }
 	{
-    UNPACK_ELEMENTS(BYTE);
+    UNPACK_ELEMENTS(FIXNUM, U16BITS);
+  }
+	{
+    while(count > 0) {
+      array->append(state, Qnil);
+      count--;
+    }
+  }
+	{
+    return array;
+  }
+	break;
+	case 28:
+	{
+    platform = true;
+  }
+	{
+    width = 2;
+  }
+	{
+    stop = rest ? size() + 1 : index + width * count;
+    if(stop > size()) {
+      stop = index + ((size() - index) / width) * width;
+    }
+  }
+	{
+    UNPACK_ELEMENTS(FIXNUM, S16BITS);
   }
 	{
     while(count > 0) {
