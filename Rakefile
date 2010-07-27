@@ -44,7 +44,7 @@ task :default => %w[build vm:test] do
     ENV["CFLAGS"]      = "-Ivm/capi"
   end
 
-  sh "bin/mspec ci --background"
+  sh "bin/mspec ci --background --agent"
 end
 
 # See vm.rake for more information

@@ -38,17 +38,25 @@ class MSpecMain < MSpecScript
     options.on("-D", "--gdb", "Run under gdb") do
       config[:use_gdb] = true
     end
+
     options.on("-A", "--valgrind", "Run under valgrind") do
       config[:flags] << '--valgrind'
     end
+
     options.on("--warnings", "Don't supress warnings") do
       config[:flags] << '-w'
       ENV['OUTPUT_WARNINGS'] = '1'
     end
+
     options.on("-j", "--multi", "Run multiple (possibly parallel) subprocesses") do
       config[:multi] = true
       config[:options] << "-fy"
     end
+
+    options.on("--agent", "Start the Rubinius agent") do
+      config[:agent] = true
+    end
+
     options.version MSpec::VERSION do
       if config[:command]
         config[:options] << "-v"
@@ -57,6 +65,7 @@ class MSpecMain < MSpecScript
         exit
       end
     end
+
     options.help do
       if config[:command]
         config[:options] << "-h"
@@ -140,6 +149,11 @@ class MSpecMain < MSpecScript
     ENV['RUBY_FLAGS']   = config[:flags].join " "
 
     argv = []
+
+    if config[:agent]
+      argv << "-Xagent.start"
+    end
+
     argv.concat config[:flags]
     argv.concat config[:includes]
     argv.concat config[:requires]
