@@ -1,2 +1,0 @@
-unstable:Rational#to_i converts self to an Integer by truncation
-unstable:Rational#to_i converts self to an Integer by truncation
