@@ -1,5 +1,12 @@
 class Debugger
   class BreakPoint
+
+    def self.for_ip(exec, ip, name=:anon)
+      line = exec.line_from_ip(ip)
+
+      BreakPoint.new(name, exec, ip, line)
+    end
+
     def initialize(descriptor, method, ip, line)
       @descriptor = descriptor
       @method = method
@@ -9,7 +16,7 @@ class Debugger
       @paired_bp = nil
       @temp = false
 
-      @set = true
+      @set = false
     end
 
     attr_reader :method, :ip, :line, :paired_bp, :descriptor
@@ -37,6 +44,11 @@ class Debugger
 
     def paired_with(bp)
       @paired_bp = bp
+    end
+
+    def activate
+      @set = true
+      @method.set_breakpoint @ip, self
     end
 
     def remove!

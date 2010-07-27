@@ -253,11 +253,10 @@ at the current position of the caller.
 
         exec = f.method
         ip = f.ip
-        line = exec.line_from_ip(ip)
 
-        bp = BreakPoint.new(:next, exec, ip, line)
+        bp = BreakPoint.for_ip(exec, ip)
         bp.for_step!
-        exec.set_breakpoint ip, bp
+        bp.activate
 
         return bp
       end
@@ -268,8 +267,8 @@ at the current position of the caller.
           ip = ips
         else
           one, two = ips
-          bp1 = BreakPoint.new(:next, exec, one, exec.first_ip_on_line(one))
-          bp2 = BreakPoint.new(:next, exec, two, exec.first_ip_on_line(two))
+          bp1 = BreakPoint.for_ip(exec, one)
+          bp2 = BreakPoint.for_ip(exec, two)
 
           bp1.paired_with(bp2)
           bp2.paired_with(bp1)
@@ -277,8 +276,8 @@ at the current position of the caller.
           bp1.for_step!
           bp2.for_step!
 
-          exec.set_breakpoint one, bp1
-          exec.set_breakpoint two, bp2
+          bp1.activate
+          bp2.activate
 
           return bp1
         end
@@ -288,12 +287,9 @@ at the current position of the caller.
           return nil
         end
 
-        line = exec.line_from_ip(ip)
-
-        bp = BreakPoint.new(:next, exec, ip, line)
+        bp = BreakPoint.for_ip(exec, ip)
         bp.for_step!
-
-        exec.set_breakpoint ip, bp
+        bp.activate
 
         return bp
       end
@@ -382,10 +378,9 @@ Does not step into send instructions.
         else
           line = exec.line_from_ip(next_ip)
 
-          bp = BreakPoint.new(:next, exec, next_ip, line)
+          bp = BreakPoint.for_ip(exec, next_ip)
           bp.for_step!
-
-          exec.set_breakpoint next_ip, bp
+          bp.activate
         end
 
         listen

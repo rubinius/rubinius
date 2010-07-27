@@ -235,7 +235,7 @@ class Debugger
     end
 
     bp = BreakPoint.new(descriptor, exec, ip, line)
-    exec.set_breakpoint ip, bp
+    bp.activate
 
     @breakpoints << bp
 
