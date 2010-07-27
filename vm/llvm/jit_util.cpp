@@ -676,8 +676,8 @@ extern "C" {
   }
 
   Object* rbx_prologue_check(STATE, CallFrame* call_frame) {
-    if(!state->check_stack(call_frame, &state)) return NULL;
-    if(!state->check_async(call_frame)) return NULL;
+    if(!state->check_interrupts(call_frame, &state)) return NULL;
+
     if(!state->interrupts.check) return Qtrue;
 
     state->interrupts.checked();

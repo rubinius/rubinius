@@ -58,6 +58,7 @@ namespace rubinius {
     , stack_start_(0)
     , profiler_(0)
     , run_signals_(false)
+    , thread_step_(false)
 
     , shared(shared)
     , waiter_(NULL)
