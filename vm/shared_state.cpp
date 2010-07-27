@@ -273,6 +273,10 @@ namespace rubinius {
     interrupts.enable_preempt = true;
   }
 
+  void SharedState::pre_exec() {
+    if(agent_) agent_->cleanup();
+  }
+
   void SharedState::reinit() {
     // For now, we disable inline debugging here. This makes inspecting
     // it much less confusing.
@@ -280,6 +284,12 @@ namespace rubinius {
     config.jit_inline_debug.set("no");
 
     world_->reinit();
+
+    if(agent_) {
+      agent_->on_fork();
+      delete agent_;
+      agent_ = 0;
+    }
   }
 
   void SharedState::stop_the_world() {

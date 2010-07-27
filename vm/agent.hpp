@@ -74,5 +74,8 @@ namespace rubinius {
 
     virtual void perform();
     bool process_commands(int client);
+
+    void on_fork();
+    void cleanup();
   };
 }

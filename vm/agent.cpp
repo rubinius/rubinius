@@ -281,8 +281,17 @@ namespace rubinius {
   static char tmp_path[PATH_MAX];
 
   static void remove_tmp_path(void) {
-    unlink(tmp_path);
+    if(tmp_path[0]) unlink(tmp_path);
     // Ignore any errors, this is happening at shutdown.
+  }
+
+  void QueryAgent::on_fork() {
+    // "clear" tmp_path
+    tmp_path[0] = 0;
+  }
+
+  void QueryAgent::cleanup() {
+    remove_tmp_path();
   }
 
   void QueryAgent::make_discoverable() {
