@@ -102,10 +102,6 @@ namespace rubinius {
 
     om->refill_slab(local_slab_);
 
-    /** @todo Done by Environment::boot_vm(), and Thread::s_new()
-     *        does not boot at all. Should this be removed? --rue */
-//    this->boot();
-
     shared.set_initialized();
 
     // This seems like we should do this in VM(), ie, for every VM and
