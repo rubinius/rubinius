@@ -123,13 +123,7 @@ describe "String#unpack with 'Q' and 'q' directives" do
       "\x7F\x77\x77\x77\x77\x77\x77\x77".unpack('q0Q*').should == [8608480567731124095]
     end
 
-    ruby_version_is "" ... "1.8.8" do
-      it "does NOT pad nil when the string is short" do
-        "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [575263624658931]
-      end
-    end
-
-    ruby_version_is "1.8.8" do
+    ruby_bug "#", "1.8.7" do
       it "pads nil when the string is short" do
         "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [575263624658931, nil]
       end
