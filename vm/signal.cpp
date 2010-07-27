@@ -87,6 +87,7 @@ namespace rubinius {
           GlobalLock::LockGuard guard(vm_->global_lock());
 
           vm_->check_local_interrupts = true;
+          vm_->get_attention();
           vm_->wakeup();
 
         }

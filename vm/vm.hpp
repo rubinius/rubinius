@@ -73,7 +73,7 @@ namespace rubinius {
   class VM : public ManagedThread {
   private:
     CallFrame* saved_call_frame_;
-    void* stack_start_;
+    uintptr_t stack_start_;
     uintptr_t stack_limit_;
     int stack_size_;
     profiler::Profiler* profiler_;
@@ -82,6 +82,7 @@ namespace rubinius {
     MethodMissingReason method_missing_reason_;
     void* young_start_;
     void* young_end_;
+    bool thread_step_;
 
   public:
     /* Data members */
@@ -159,30 +160,39 @@ namespace rubinius {
     }
 
     void* stack_start() {
-      return stack_start_;
-    }
-
-    void set_stack_start(void* s) {
-      stack_start_ = s;
-      // @TODO assumes stack growth direction
-      stack_limit_ = (reinterpret_cast<uintptr_t>(s) - stack_size_) + 4096;
+      return reinterpret_cast<void*>(stack_start_);
     }
 
     int stack_size() {
       return stack_size_;
     }
 
-    void set_stack_size(int s) {
-      stack_size_ = s;
+    void reset_stack_limit() {
       // @TODO assumes stack growth direction
-      stack_limit_ = (reinterpret_cast<uintptr_t>(stack_start_) - s) + 4096;
+      stack_limit_ = (stack_start_ - stack_size_) + (4096 * 3);
     }
 
-    void set_stack_bounds(void* start, int length) {
+    void set_stack_bounds(uintptr_t start, int length) {
       stack_start_ = start;
       stack_size_ = length;
+      reset_stack_limit();
+    }
+
+    void set_stack_start(void* s) {
+      set_stack_bounds(reinterpret_cast<uintptr_t>(s), stack_size_);
+    }
+
+    void set_stack_size(int s) {
+      set_stack_bounds(stack_start_, s);
+    }
+
+    void get_attention() {
+      stack_limit_ = stack_start_;
+    }
+
+    bool detect_stack_condition(void* end) {
       // @TODO assumes stack growth direction
-      stack_limit_ = (reinterpret_cast<uintptr_t>(start) - length) + (4096 * 3);
+      return reinterpret_cast<uintptr_t>(end) < stack_limit_;
     }
 
     bool check_stack(CallFrame* call_frame, void* end) {
@@ -195,6 +205,8 @@ namespace rubinius {
       return true;
     }
 
+    bool check_interrupts(CallFrame* call_frame, void* end);
+
     MethodMissingReason method_missing_reason() {
       return method_missing_reason_;
     }
@@ -205,6 +217,18 @@ namespace rubinius {
 
     bool young_object_p(Object* obj) {
       return obj >= young_start_ && obj <= young_end_;
+    }
+
+    bool thread_step() {
+      return thread_step_;
+    }
+
+    void clear_thread_step() {
+      thread_step_ = false;
+    }
+
+    void set_thread_step() {
+      thread_step_ = true;
     }
 
   public:

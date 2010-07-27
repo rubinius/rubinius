@@ -101,20 +101,6 @@ Object* VMMethod::interpreter(STATE,
   int current_unwind = 0;
   UnwindInfo unwinds[kMaxUnwindInfos];
 
-  if(!state->check_stack(call_frame, &state)) return NULL;
-
-  if(unlikely(state->interrupts.check)) {
-    state->interrupts.checked();
-    if(state->interrupts.perform_gc) {
-      state->interrupts.perform_gc = false;
-      state->collect_maybe(call_frame);
-    }
-  }
-
-  if(unlikely(state->check_local_interrupts)) {
-    if(!state->process_async(call_frame)) return NULL;
-  }
-
 continue_to_run:
   try {
 
@@ -270,20 +256,6 @@ Object* VMMethod::uncommon_interpreter(STATE,
     uw.type = (UnwindType)input_unwinds[i + 2];
   }
 
-  if(!state->check_stack(call_frame, &state)) return NULL;
-
-  if(unlikely(state->interrupts.check)) {
-    state->interrupts.checked();
-    if(state->interrupts.perform_gc) {
-      state->interrupts.perform_gc = false;
-      state->collect_maybe(call_frame);
-    }
-  }
-
-  if(unlikely(state->check_local_interrupts)) {
-    if(!state->process_async(call_frame)) return NULL;
-  }
-
 continue_to_run:
   try {
 
@@ -424,20 +396,6 @@ Object* VMMethod::debugger_interpreter(STATE,
 
   Object** stack_ptr = call_frame->stk - 1;
 
-  if(!state->check_stack(call_frame, &state)) return NULL;
-
-  if(unlikely(state->interrupts.check)) {
-    state->interrupts.checked();
-    if(state->interrupts.perform_gc) {
-      state->interrupts.perform_gc = false;
-      state->collect_maybe(call_frame);
-    }
-  }
-
-  if(unlikely(state->check_local_interrupts)) {
-    if(!state->process_async(call_frame)) return NULL;
-  }
-
 continue_to_run:
   try {
 
@@ -570,20 +528,6 @@ Object* VMMethod::debugger_interpreter_continue(STATE,
   opcode* stream = vmm->opcodes;
 
   Object** stack_ptr = call_frame->stk + sp;
-
-  if(!state->check_stack(call_frame, &state)) return NULL;
-
-  if(unlikely(state->interrupts.check)) {
-    state->interrupts.checked();
-    if(state->interrupts.perform_gc) {
-      state->interrupts.perform_gc = false;
-      state->collect_maybe(call_frame);
-    }
-  }
-
-  if(unlikely(state->check_local_interrupts)) {
-    if(!state->process_async(call_frame)) return NULL;
-  }
 
 continue_to_run:
   try {

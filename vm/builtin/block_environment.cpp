@@ -127,6 +127,21 @@ namespace rubinius {
                      | CallFrame::cMultipleScopes
                      | CallFrame::cBlock;
 
+    // Check the stack and interrupts here rather than in the interpreter
+    // loop itself.
+
+    if(state->detect_stack_condition(frame)) {
+      if(!state->check_interrupts(frame, frame)) return NULL;
+    }
+
+    if(unlikely(state->interrupts.check)) {
+      state->interrupts.checked();
+      if(state->interrupts.perform_gc) {
+        state->interrupts.perform_gc = false;
+        state->collect_maybe(frame);
+      }
+    }
+
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
       Module* mod = scope->module();

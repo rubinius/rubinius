@@ -295,6 +295,10 @@ namespace rubinius {
         return true;
       }
 
+      // If we're hitting here, clear any chance that step would be used
+      // without being explicitly requested.
+      state->clear_thread_step();
+
       state->set_call_frame(call_frame);
 
       Channel* my_control = cur->control_channel();
@@ -305,18 +309,10 @@ namespace rubinius {
         cur->control_channel(state, my_control);
       }
 
-      // To get the backtrace right, we have to inc the ip, get the backtrace,
-      // then dec it. This is because all backtrace code expects that a CallFrame's
-      // ip points to one past the currently executing instruction.
-
-      call_frame->inc_ip();
-
       debugger_chan->send(state,
           Tuple::from(state, 4, bp, cur, my_control,
                       Location::from_call_stack(state,  call_frame, true)
                     ));
-
-      call_frame->dec_ip();
 
       // Block until the debugger wakes us back up.
       Object* ret = my_control->receive(state, call_frame);
@@ -327,6 +323,12 @@ namespace rubinius {
       // if ret is null, then receive was interrupted and there is an exception
       // to propagate.
       if(!ret) return false;
+
+      // Process a few commands...
+      if(ret == state->symbol("step")) {
+        state->get_attention();
+        state->set_thread_step();
+      }
 
       // All done!
       return true;

@@ -1,19 +1,30 @@
 require 'readline'
 
 class Debugger
+  ROOT_DIR = File.expand_path(File.dirname(__FILE__) + "/..")
+
   def initialize
     @file_lines = Hash.new do |hash, path|
       if File.exists? path
         hash[path] = File.readlines(path)
       else
-        hash[path] = ["<missing>"]
+        ab_path = File.join(@root_dir, path)
+        if File.exists? ab_path
+          hash[path] = File.readlines(ab_path)
+        else
+          hash[path] = []
+        end
       end
     end
 
     @thread = nil
     @frames = []
 
-    @variables = { :show_ip => false }
+    @variables = {
+      :show_ip => false,
+      :show_bytecode => false,
+      :highlight => false
+    }
 
     @loaded_hook = proc { |file|
       check_defered_breakpoints
@@ -44,6 +55,8 @@ class Debugger
     end
 
     @history_io.sync = true
+
+    @root_dir = ROOT_DIR
   end
 
   attr_reader :variables
@@ -109,9 +122,13 @@ class Debugger
     self
   end
 
-  def listen
+  def listen(step_into=false)
     if @channel
-      @channel << true
+      if step_into
+        @channel << :step
+      else
+        @channel << true
+      end
     end
 
     # Wait for someone to stop
@@ -127,11 +144,16 @@ class Debugger
 
     @current_frame = frame(0)
 
-    bp.hit!
+    bp.hit! if bp
 
     puts
     info "Breakpoint: #{@current_frame.describe}"
     show_code
+
+    if @variables[:show_bytecode]
+      decode_one
+    end
+
   end
 
   class Frame
@@ -235,6 +257,10 @@ class Debugger
       show_info(args)
     when "n", "next"
       step_over(args)
+    when "ni", "nexti"
+      next_insn(args)
+    when "s", "step"
+      step_into(args)
     when "p"
       eval_code args
     when "c", "cont", "continue"
@@ -287,6 +313,10 @@ class Debugger
 
   def info(str)
     puts "| #{str}"
+  end
+
+  def display(str)
+    puts "=> #{str}"
   end
 
   def crit(str)
@@ -423,6 +453,8 @@ class Debugger
       @for_step = false
       @paired_bp = nil
       @temp = false
+
+      @set = true
     end
 
     attr_reader :method, :ip, :line, :paired_bp, :descriptor
@@ -453,6 +485,9 @@ class Debugger
     end
 
     def remove!
+      return unless @set
+
+      @set = false
       @method.clear_breakpoint(@ip)
     end
 
@@ -642,6 +677,45 @@ class Debugger
     return ip
   end
 
+  def send_between(exec, start, fin)
+    ss   = Rubinius::InstructionSet.opcodes_map[:send_stack]
+    sm   = Rubinius::InstructionSet.opcodes_map[:send_method]
+    sb   = Rubinius::InstructionSet.opcodes_map[:send_stack_with_block]
+
+    iseq = exec.iseq
+
+    fin = iseq.size if fin < 0
+
+    i = start
+    while i < fin
+      op = iseq[i]
+      case op
+      when ss, sm, sb
+        return exec.literals[iseq[i + 1]]
+      else
+        op = Rubinius::InstructionSet[op]
+        i += (op.arg_count + 1)
+      end
+    end
+
+    return nil
+  end
+
+  def is_a_goto(exec, ip)
+    goto = Rubinius::InstructionSet.opcodes_map[:goto]
+    git  = Rubinius::InstructionSet.opcodes_map[:goto_if_true]
+    gif  = Rubinius::InstructionSet.opcodes_map[:goto_if_false]
+
+    i = exec.iseq[ip]
+
+    case i
+    when goto, git, gif
+      return true
+    end
+
+    return false
+  end
+
   def goto_between(exec, start, fin)
     goto = Rubinius::InstructionSet.opcodes_map[:goto]
     git  = Rubinius::InstructionSet.opcodes_map[:goto_if_true]
@@ -679,11 +753,48 @@ class Debugger
     ip = f.ip + 1
     line = exec.line_from_ip(ip)
 
-    bp = BreakPoint.new(exec, ip, line)
+    bp = BreakPoint.new(:next, exec, ip, line)
     bp.for_step!
     exec.set_breakpoint ip, bp
 
+    return bp
+  end
+
+  def next_insn(args)
+    if args and !args.empty?
+      step = args.to_i
+    else
+      step = 1
+    end
+
+    exec = @current_frame.method
+    insn = Rubinius::InstructionSet[exec.iseq[@current_frame.ip]]
+
+    next_ip = @current_frame.ip + insn.width
+
+    if next_ip >= exec.iseq.size
+      step_to_parent
+    elsif is_a_goto(exec, @current_frame.ip)
+      set_breakpoints_between(exec, @current_frame.ip, next_ip)
+    else
+      line = exec.line_from_ip(next_ip)
+
+      bp = BreakPoint.new(:next, exec, next_ip, line)
+      bp.for_step!
+
+      exec.set_breakpoint next_ip, bp
+    end
+
     listen
+  end
+
+  def step_into(args)
+    max = step_over_by(1)
+
+    listen(true)
+
+    # We remove the max position breakpoint no matter what
+    max.remove! if max
   end
 
   def step_over(args)
@@ -698,27 +809,34 @@ class Debugger
       return
     end
 
+    step_over_by(step)
+    listen
+  end
+
+  def step_over_by(step)
     f = @current_frame
 
     ip = -1
-
 
     exec = f.method
     possible_line = f.line + step
     fin_ip = exec.first_ip_on_line possible_line
 
     if fin_ip == -1
-      step_to_parent
-      return
+      return step_to_parent
     end
 
-    ips = goto_between(exec, f.ip, fin_ip)
+    set_breakpoints_between(exec, f.ip, fin_ip)
+  end
+
+  def set_breakpoints_between(exec, start_ip, fin_ip)
+    ips = goto_between(exec, start_ip, fin_ip)
     if ips.kind_of? Fixnum
       ip = ips
     else
       one, two = ips
-      bp1 = BreakPoint.new(exec, one, exec.first_ip_on_line(one))
-      bp2 = BreakPoint.new(exec, two, exec.first_ip_on_line(two))
+      bp1 = BreakPoint.new(:next, exec, one, exec.first_ip_on_line(one))
+      bp2 = BreakPoint.new(:next, exec, two, exec.first_ip_on_line(two))
 
       bp1.paired_with(bp2)
       bp2.paired_with(bp1)
@@ -729,32 +847,63 @@ class Debugger
       exec.set_breakpoint one, bp1
       exec.set_breakpoint two, bp2
 
-      listen
-      return
+      return bp1
     end
 
     if ip == -1
       error "No place to step to"
-      return
+      return nil
     end
 
     line = exec.line_from_ip(ip)
 
-    bp = BreakPoint.new(exec, ip, line)
+    bp = BreakPoint.new(:next, exec, ip, line)
     bp.for_step!
 
     exec.set_breakpoint ip, bp
 
-    listen
+    return bp
   end
 
   def show_code(line=@current_frame.line)
     path = @current_frame.method.active_path
 
     if str = @file_lines[path][line - 1]
+      if @variables[:highlight]
+        fin = @current_frame.method.first_ip_on_line(line + 1)
+        name = send_between(@current_frame.method, @current_frame.ip, fin)
+
+        if name
+          str = str.gsub name.to_s, "\033[0;4m#{name}\033[0m"
+        end
+      end
       info "#{line}: #{str}"
     else
       show_bytecode(line)
+    end
+  end
+
+  def decode_one
+    ip = @current_frame.ip
+
+    meth = @current_frame.method
+    partial = meth.iseq.decode_between(ip, ip+1)
+
+    partial.each do |ins|
+      op = ins.shift
+
+      ins.each_index do |i|
+        case op.args[i]
+        when :literal
+          ins[i] = meth.literals[ins[i]].inspect
+        when :local
+          if meth.local_names
+            ins[i] = meth.local_names[ins[i]]
+          end
+        end
+      end
+
+      display "ip #{ip} = #{op.opcode} #{ins.join(', ')}"
     end
   end
 

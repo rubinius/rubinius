@@ -32,6 +32,7 @@ describe "Signal.trap" do
     it "uses the command argument when passed both a command and block" do
       Signal.trap(:HUP, @proc) { ScratchPad.record :block_trap }
       Process.kill :HUP, Process.pid
+      sleep 0.5
       ScratchPad.recorded.should == :proc_trap
     end
   end

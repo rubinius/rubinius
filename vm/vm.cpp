@@ -27,6 +27,7 @@
 #include "call_frame.hpp"
 #include "signal.hpp"
 #include "configuration.hpp"
+#include "helpers.hpp"
 
 #include "util/thread.hpp"
 
@@ -483,6 +484,33 @@ namespace rubinius {
       call_frame->print_backtrace(this);
       rubinius::abort();
     }
+  }
+
+  bool VM::check_interrupts(CallFrame* call_frame, void* end) {
+    // First, we might be here because someone reset the stack_limit_ so that
+    // we'd fall into here to check interrupts even if the stack is fine,
+    //
+    // So fix up the stack_limit_ if thats the case first.
+
+    // If this is true, stack_limit_ was just changed to get our attention, reset
+    // it now.
+    if(stack_limit_ == stack_start_) {
+      reset_stack_limit();
+    } else {
+      if(!check_stack(call_frame, end)) return false;
+    }
+
+    if(unlikely(check_local_interrupts)) {
+      if(!process_async(call_frame)) return false;
+    }
+
+    // If the current thread is trying to step, debugger wise, then assist!
+    if(thread_step()) {
+      clear_thread_step();
+      if(!Helpers::yield_debugger(this, call_frame, Qnil)) return false;
+    }
+
+    return true;
   }
 
   profiler::Profiler* VM::profiler() {
