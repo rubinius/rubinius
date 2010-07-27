@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+# -*- encoding: ascii-8bit -*-
 require File.expand_path('../../../../spec_helper', __FILE__)
 require File.expand_path('../../fixtures/classes', __FILE__)
 
@@ -11,7 +11,7 @@ describe :string_unpack_8bit, :shared => true do
     "abc".unpack(unpack_format(nil, 2)).should == [97, 98]
   end
 
-  it "decods the number of bytes requested by the count modifier" do
+  it "decodes the number of bytes requested by the count modifier" do
     "abc".unpack(unpack_format(2)).should == [97, 98]
   end
 
