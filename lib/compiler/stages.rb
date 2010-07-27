@@ -104,15 +104,10 @@ module Rubinius
       def initialize(compiler, last)
         super
         compiler.encoder = self
-        @encoder = InstructionSequence::Encoder
-      end
-
-      def processor(encoder)
-        @encoder = encoder
       end
 
       def run
-        @input.encode @encoder
+        @input.encode
         @output = @input
         run_next
       end

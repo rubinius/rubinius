@@ -22,6 +22,8 @@ def kernel_clean
     :verbose => $verbose
 end
 
+require 'kernel/bootstrap/iseq.rb'
+
 # The rule for compiling all kernel Ruby files
 rule ".rbc" do |t|
   source = t.prerequisites.first

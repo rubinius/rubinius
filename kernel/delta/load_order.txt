@@ -1,9 +1,7 @@
-breakpoint.rbc
 ctype.rbc
 class.rbc
 exception.rbc
 file.rbc
-io.rbc
 ruby_constants.rbc
 rubinius.rbc
 module.rbc

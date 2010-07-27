@@ -15,6 +15,7 @@ false.rbc
 fixnum.rbc
 gc.rbc
 io.rbc
+iseq.rbc
 kernel.rbc
 lookuptable.rbc
 methodtable.rbc

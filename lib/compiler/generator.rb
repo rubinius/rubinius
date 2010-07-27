@@ -1,15 +1,4 @@
 module Rubinius
-  # Temporary
-  class InstructionSequence
-    attr_accessor :opcodes
-
-    def self.from(opcodes)
-      is = allocate
-      is.opcodes = opcodes
-      is
-    end
-  end
-
   class Generator
     include GeneratorMethods
 
@@ -213,8 +202,8 @@ module Rubinius
 
     # Formalizers
 
-    def encode(encoder)
-      @iseq = InstructionSequence.from @stream.to_tuple
+    def encode
+      @iseq = InstructionSequence.new @stream.to_tuple
 
       begin
         # Validate the stack and calculate the max depth
@@ -227,7 +216,7 @@ module Rubinius
         raise e
       end
 
-      @generators.each { |x| @literals[x].encode encoder }
+      @generators.each { |x| @literals[x].encode }
     end
 
     def package(klass)
