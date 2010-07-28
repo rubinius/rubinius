@@ -155,10 +155,12 @@ namespace rubinius {
   }
 
   void SharedState::add_managed_thread(ManagedThread* thr) {
+    LOCK_ME;
     threads_.push_back(thr);
   }
 
   void SharedState::remove_managed_thread(ManagedThread* thr) {
+    LOCK_ME;
     threads_.remove(thr);
   }
 
@@ -173,6 +175,7 @@ namespace rubinius {
   }
 
   VM* SharedState::new_vm() {
+    LOCK_ME;
     VM* vm = new VM(*this);
     cf_locations_.push_back(vm->call_frame_location());
     threads_.push_back(vm);
@@ -185,6 +188,7 @@ namespace rubinius {
   }
 
   void SharedState::remove_vm(VM* vm) {
+    LOCK_ME;
     cf_locations_.remove(vm->call_frame_location());
     threads_.remove(vm);
     this->deref();
@@ -193,17 +197,20 @@ namespace rubinius {
   }
 
   QueryAgent* SharedState::autostart_agent() {
+    LOCK_ME;
     if(agent_) return agent_;
     agent_ = new QueryAgent(*this, root_vm_);
     return agent_;
   }
 
   void SharedState::enable_profiling(VM* vm) {
+    LOCK_ME;
     profiler_collection_ = new profiler::ProfilerCollection(vm);
     profiling_ = true;
   }
 
   LookupTable* SharedState::disable_profiling(VM* vm) {
+    LOCK_ME;
     if(profiler_collection_) {
       LookupTable* profile = profiler_collection_->results(vm);
       delete profiler_collection_;
@@ -216,12 +223,14 @@ namespace rubinius {
   }
 
   void SharedState::add_profiler(VM* vm, profiler::Profiler* profiler) {
+    LOCK_ME;
     if(profiler_collection_) {
       profiler_collection_->add_profiler(vm, profiler);
     }
   }
 
   void SharedState::remove_profiler(VM* vm, profiler::Profiler* profiler) {
+    LOCK_ME;
     if(profiler_collection_) {
       profiler_collection_->remove_profiler(vm, profiler);
     }
@@ -274,6 +283,7 @@ namespace rubinius {
   }
 
   void SharedState::pre_exec() {
+    LOCK_ME;
     if(agent_) agent_->cleanup();
   }
 

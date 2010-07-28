@@ -66,7 +66,7 @@ namespace rubinius {
     }
   };
 
-  class SharedState : public RefCount {
+  class SharedState : public RefCount, thread::Lockable {
   private:
     bool initialized_;
     GlobalLock lock_;
@@ -170,6 +170,7 @@ namespace rubinius {
     }
 
     int inc_global_serial() {
+      LOCK_ME;
       return ++global_serial_;
     }
 
@@ -182,10 +183,12 @@ namespace rubinius {
     }
 
     unsigned int inc_class_count() {
+      LOCK_ME;
       return ++class_count_;
     }
 
     uint64_t inc_method_count() {
+      LOCK_ME;
       return ++method_count_;
     }
 
