@@ -1829,12 +1829,6 @@ instruction check_interrupts() [ -- ]
   if(unlikely(state->interrupts.check)) {
     state->interrupts.checked();
 
-    if(state->interrupts.timer) {
-      state->interrupts.timer = false;
-      state->set_call_frame(call_frame);
-      state->global_lock().yield(state, call_frame);
-    }
-
     if(state->interrupts.perform_gc) {
       state->interrupts.perform_gc = false;
       state->collect_maybe(call_frame);

@@ -8,7 +8,6 @@
 
 #include "util/refcount.hpp"
 
-#include "global_lock.hpp"
 #include "maps.hpp"
 
 #include "call_frame_list.hpp"
@@ -123,10 +122,6 @@ namespace rubinius {
 
     ThreadState* thread_state() {
       return &thread_state_;
-    }
-
-    GlobalLock& global_lock() {
-      return shared.global_lock();
     }
 
     thread::Mutex& local_lock() {

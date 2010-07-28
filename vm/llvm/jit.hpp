@@ -434,7 +434,6 @@ namespace rubinius {
     Configuration& config_;
 
     BackgroundCompilerThread* background_thread_;
-    GlobalLock& global_lock_;
     SymbolTable& symbols_;
 
     int jitted_methods_;
@@ -489,10 +488,6 @@ namespace rubinius {
 
     Configuration& config() {
       return config_;
-    }
-
-    GlobalLock& global_lock() {
-      return global_lock_;
     }
 
     llvm::GlobalVariable* profiling() {

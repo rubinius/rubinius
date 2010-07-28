@@ -412,7 +412,6 @@ namespace rubinius {
     : ManagedThread(state->shared, ManagedThread::eSystem)
     , ctx_(llvm::getGlobalContext())
     , config_(state->shared.config)
-    , global_lock_(state->global_lock())
     , symbols_(state->shared.symbols)
     , jitted_methods_(0)
     , queued_methods_(0)

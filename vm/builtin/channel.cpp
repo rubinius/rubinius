@@ -36,6 +36,8 @@ namespace rubinius {
 
     // Using placement new to call the constructor of condition_
     new(&chan->condition_) thread::Condition();
+    new(&chan->mutex_) thread::Mutex();
+
     chan->value(state, List::create(state));
 
     return chan;
@@ -67,6 +69,8 @@ namespace rubinius {
 
 #define NANOSECONDS 1000000000
   Object* Channel::receive_timeout(STATE, Object* duration, CallFrame* call_frame) {
+    thread::Mutex::LockGuard lg(mutex_);
+
     if(!value_->empty_p()) return value_->shift(state);
 
     // Otherwise, we need to wait for a value.
@@ -118,9 +122,9 @@ namespace rubinius {
       state->install_waiter(waiter);
 
       if(use_timed_wait) {
-        if(condition_.wait_until(state->global_lock(), &ts) == thread::cTimedOut) break;
+        if(condition_.wait_until(mutex_, &ts) == thread::cTimedOut) break;
       } else {
-        condition_.wait(state->global_lock());
+        condition_.wait(mutex_);
       }
 
       // Stop waiting if...

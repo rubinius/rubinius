@@ -180,7 +180,6 @@ namespace rubinius {
     state->thread->sleep(state, Qtrue);
 
     {
-      GlobalLock::UnlockGuard lock(state, calling_environment);
 
       events = ::select((highest + 1), maybe_read_set,
                                                   maybe_write_set,
@@ -444,7 +443,6 @@ namespace rubinius {
     state->thread->sleep(state, Qtrue);
 
     {
-      GlobalLock::UnlockGuard lock(state, calling_environment);
       bytes_read = ::read(fd, buffer->byte_address(), count);
     }
 
@@ -549,8 +547,6 @@ namespace rubinius {
     bool error = false;
 
     {
-      GlobalLock::UnlockGuard guard(state, call_frame);
-
       uint8_t* cur = bytes;
       while(left > 0) {
         ssize_t cnt = ::write(fd, cur, left);
@@ -699,7 +695,6 @@ namespace rubinius {
     state->thread->sleep(state, Qtrue);
 
     {
-      GlobalLock::UnlockGuard lock(state, calling_environment);
       bytes_read = recvfrom(descriptor()->to_native(),
                             buffer->byte_address(), size,
                             flags->to_native(),
@@ -967,7 +962,6 @@ failed: /* try next '*' position */
     state->thread->sleep(state, Qtrue);
 
     {
-      GlobalLock::UnlockGuard lock(state, calling_environment);
       new_fd = ::accept(fd, (struct sockaddr*)&socka, &sock_len);
       set = true;
     }
@@ -1053,7 +1047,6 @@ failed: /* try next '*' position */
     state->thread->sleep(state, Qtrue);
 
     {
-      GlobalLock::UnlockGuard lock(state, calling_environment);
       bytes_read = read(fd, temp_buffer, count);
     }
 

@@ -1,7 +1,6 @@
 #ifndef RBX_NATIVE_THREAD_HPP
 #define RBX_NATIVE_THREAD_HPP
 
-#include "global_lock.hpp"
 #include "vm.hpp"
 
 #include "builtin/array.hpp"

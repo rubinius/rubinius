@@ -140,12 +140,6 @@ namespace rubinius {
         state->interrupts.perform_gc = false;
         state->collect_maybe(frame);
       }
-
-      if(state->interrupts.timer) {
-        state->interrupts.timer = false;
-        state->set_call_frame(frame);
-        state->global_lock().yield(state, frame);
-      }
     }
 
 #ifdef RBX_PROFILER

@@ -40,8 +40,6 @@ namespace rubinius {
 
     state->thread_state()->clear();
 
-    GlobalLock::LockGuard lock(state->global_lock());
-
     Dispatch msg(cm->name(), G(object), cm.get());
     Arguments args(G(main), 0, 0);
 

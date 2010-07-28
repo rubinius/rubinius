@@ -275,7 +275,7 @@ namespace agent {
 
     virtual void read(Output& output) {
       shared_.interrupts.set_timer();
-      GlobalLock::LockGuard guard(shared_.global_lock());
+      // GlobalLock::LockGuard guard(shared_.global_lock());
 
       output.ok("value");
       output.e().write_tuple(shared_.call_frame_locations().size());
@@ -305,7 +305,7 @@ namespace agent {
 
     virtual void read(Output& output) {
       shared_.interrupts.set_timer();
-      GlobalLock::LockGuard guard(shared_.global_lock());
+      // GlobalLock::LockGuard guard(shared_.global_lock());
 
       output.ok("list");
 
@@ -348,7 +348,7 @@ namespace agent {
 
     virtual void read(Output& output) {
       shared_.interrupts.set_timer();
-      GlobalLock::LockGuard guard(shared_.global_lock());
+      // GlobalLock::LockGuard guard(shared_.global_lock());
 
       output.ok("value");
 
@@ -367,7 +367,7 @@ namespace agent {
     {}
 
     virtual void set(Output& output, bert::Value* val) {
-      GlobalLock::LockGuard guard(state_->global_lock());
+      // GlobalLock::LockGuard guard(state_->global_lock());
 
       if(val->string_p()) {
         output.ok("value");

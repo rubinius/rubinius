@@ -18,10 +18,7 @@ namespace rubinius {
   {}
 
   void NativeThread::perform() {
-    // Grab the GIL
-    // (automatically unlocked at the end of this function)
-    GlobalLock::LockGuard x(vm_->global_lock());
-
+    int calculate_stack = 0;
     NativeMethod::init_thread(vm_);
     VM::set_current(vm_);
 
@@ -29,7 +26,8 @@ namespace rubinius {
     // run delete on this object to free up the memory.
     set_delete_on_exit();
 
-    vm_->set_stack_bounds(reinterpret_cast<uintptr_t>(&x), stack_size());
+    vm_->set_stack_bounds(reinterpret_cast<uintptr_t>(&calculate_stack),
+                          stack_size());
 
     Object* ret = vm_->thread.get()->send(vm_, NULL, vm_->symbol("__run__"));
 

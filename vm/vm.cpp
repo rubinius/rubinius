@@ -44,7 +44,6 @@
 
 namespace rubinius {
 
-  bool GlobalLock::debug_locking = false;
   unsigned long VM::cStackDepthMax = 655300;
 
   // getrlimit can report there is 4G of stack (ie, unlimited).
@@ -123,8 +122,6 @@ namespace rubinius {
     // Setup the main Thread, which is a reflect of the pthread_self()
     // when the VM boots.
     boot_threads();
-
-    GlobalLock::debug_locking = shared.config.gil_debug;
   }
 
   void VM::initialize_config() {

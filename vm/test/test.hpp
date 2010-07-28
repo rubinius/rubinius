@@ -25,12 +25,9 @@ public:
     state = shared->new_vm();
     state->initialize();
     state->boot();
-
-    state->global_lock().lock();
   }
 
   void destroy() {
-    state->global_lock().unlock();
     VM::discard(state);
     SharedState::discard(shared);
   }

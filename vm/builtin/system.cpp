@@ -185,7 +185,6 @@ namespace rubinius {
   retry:
 
     {
-      GlobalLock::UnlockGuard lock(state, calling_environment);
       pid = waitpid(input_pid, &status, options);
     }
 
@@ -230,34 +229,8 @@ namespace rubinius {
     LLVMState::pause(state);
 #endif
 
-    GlobalLock& lock = state->global_lock();
-
-    // Unlock the lock here, before fork.
-    if(lock.unlock() != thread::cUnlocked) { abort(); }
-
     // ok, now fork!
     result = ::fork();
-
-    // Ok, now in the child, reinitialize the lock and lock it.
-    // We can't lock it without reinitializing it, because it's
-    // associated with the parent resources, and we're in the child!
-    if(result == 0) {
-      lock.init();
-
-      // When we lock in the child, provide a little debugging so
-      // we don't deadlock. There have been bugs here.
-      if(lock.try_lock() == thread::cLockBusy) {
-        std::cerr << "[Lock Error: GIL locking error in child]\n";
-
-        // There is really nothing else we can do! If we call lock(),
-        // we'll just block forever, there is no one else to unlock it.
-        rubinius::abort();
-      }
-
-    // otherwise, we're locking in the parent, so we can just lock as normal.
-    } else {
-      lock.lock();
-    }
 
     // We're in the child...
     if(result == 0) {
