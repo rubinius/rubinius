@@ -18,4 +18,9 @@ module Process
     Ruby.primitive :vm_time
     raise PrimitiveFailure, "vm_time primitive failed"
   end
+
+  def self.cpu_times
+    Ruby.primitive :vm_times
+    raise PrimitiveFailure, "vm_times primitive failed"
+  end
 end

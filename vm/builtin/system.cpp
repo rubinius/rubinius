@@ -451,6 +451,26 @@ namespace rubinius {
     return Integer::from(state, time(0));
   }
 
+  static inline double tv_to_dbl(struct timeval* tv) {
+    return (double)tv->tv_sec + ((double)tv->tv_usec / 1000000.0);
+  }
+
+  Array* System::vm_times(STATE) {
+    struct rusage buf;
+
+    Array* ary = Array::create(state, 4);
+
+    getrusage(RUSAGE_SELF, &buf);
+    ary->set(state, 0, Float::create(state, tv_to_dbl(&buf.ru_utime)));
+    ary->set(state, 1, Float::create(state, tv_to_dbl(&buf.ru_stime)));
+
+    getrusage(RUSAGE_CHILDREN, &buf);
+    ary->set(state, 2, Float::create(state, tv_to_dbl(&buf.ru_utime)));
+    ary->set(state, 3, Float::create(state, tv_to_dbl(&buf.ru_stime)));
+
+    return ary;
+  }
+
   Class* System::vm_open_class(STATE, Symbol* name, Object* sup, StaticScope* scope) {
     Module* under;
 

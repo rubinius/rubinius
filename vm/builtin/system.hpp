@@ -167,6 +167,9 @@ namespace rubinius {
     // Ruby.primitive :vm_time
     static Object*  vm_time(STATE);
 
+    // Ruby.primitive :vm_times
+    static Array*   vm_times(STATE);
+
     // Ruby.primitive :vm_open_class
     static Class* vm_open_class(STATE, Symbol* name, Object* super, StaticScope* scope);
 
