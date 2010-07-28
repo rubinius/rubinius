@@ -73,6 +73,7 @@ namespace rubinius {
         map[cCApiTrue]       = "TrueClass";
         map[cCApiProc]       = "Proc";
         map[cCApiGC]         = "GC";
+        map[cCApiCAPI]       = "Rubinius::CAPI";
 
         map[cCApiArgumentError]       = "ArgumentError";
         map[cCApiEOFError]            = "EOFError";
@@ -121,7 +122,9 @@ namespace rubinius {
      *  @todo   Stricter action check?
      */
     VALUE capi_funcall_backend(const char* file, int line,
-        VALUE receiver, ID method_name, std::size_t arg_count, VALUE* arg_array) {
+                               VALUE receiver, ID method_name,
+                               size_t arg_count, VALUE* arg_array)
+    {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
       env->flush_cached_data();
 
@@ -141,12 +144,11 @@ namespace rubinius {
       return env->get_handle(ret);
     }
 
-    VALUE capi_funcall_backend_native(
-        NativeMethodEnvironment* env,
-        const char* file, int line,
-        Object* recv, Symbol* method, std::size_t arg_count,
-        Object** args,
-        Object* block)
+    VALUE capi_funcall_backend_native(NativeMethodEnvironment* env,
+                                      const char* file, int line,
+                                      Object* recv, Symbol* method,
+                                      size_t arg_count,
+                                      Object** args, Object* block)
     {
       int marker = 0;
       if(!env->state()->check_stack(env->current_call_frame(), &marker)) {
@@ -170,10 +172,8 @@ namespace rubinius {
       return env->get_handle(ret);
     }
 
-    VALUE capi_call_super_native(
-        NativeMethodEnvironment* env,
-        std::size_t arg_count,
-        Object** args)
+    VALUE capi_call_super_native(NativeMethodEnvironment* env,
+                                 size_t arg_count, Object** args)
     {
       int marker = 0;
       if(!env->state()->check_stack(env->current_call_frame(), &marker)) {
@@ -276,11 +276,7 @@ extern "C" {
 
     CApiConstantHandleMap::iterator entry = map.find(type);
     if(entry == map.end()) {
-      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-      Object* obj = env->state()->globals().object.get()->get_const(env->state(),
-          capi_get_constant_name(type).c_str());
-
-      VALUE val = env->get_handle(obj);
+      VALUE val = rb_path2class(capi_get_constant_name(type).c_str());
       capi::Handle::from(val)->ref(); // Extra ref, since we save it in the map
       map[type] = val;
       return val;
@@ -336,7 +332,8 @@ extern "C" {
   }
 
   VALUE rb_funcall2b(VALUE receiver, ID method_name, int arg_count,
-                     const VALUE* v_args, VALUE block) {
+                     const VALUE* v_args, VALUE block)
+  {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Object** args = reinterpret_cast<Object**>(alloca(sizeof(Object**) * arg_count));

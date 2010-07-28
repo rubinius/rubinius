@@ -112,6 +112,10 @@ module Rubinius
       return scope && scope.script
     end
 
+    def const_set(name, value)
+      @module.const_set name, value
+    end
+
     def const_defined?(name)
       scope = self
       while scope and scope.module != Object

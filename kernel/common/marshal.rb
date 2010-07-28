@@ -292,6 +292,16 @@ module Marshal
       @call = true
     end
 
+    def const_lookup(name)
+      mod = Object
+
+      parts = String(name).split '::'
+      parts.each { |part| mod = mod.const_get(part) }
+
+      mod
+    end
+
+
     def add_object(obj)
       return if obj.__kind_of__(ImmediateValue)
       sz = @links.size
@@ -322,7 +332,7 @@ module Marshal
               # Don't use construct_symbol, because we must not
               # memoize this symbol.
               name = get_byte_sequence.to_sym
-              obj = Object.const_lookup name
+              obj = const_lookup name
 
               store_unique_object obj
 
@@ -371,7 +381,7 @@ module Marshal
               @modules ||= []
 
               name = get_symbol
-              @modules << Object.const_lookup(name)
+              @modules << const_lookup(name)
 
               obj = construct nil, false
 
@@ -528,7 +538,7 @@ module Marshal
 
     def construct_object
       name = get_symbol
-      klass = Object.const_lookup name
+      klass = const_lookup name
       obj = klass.allocate
 
       raise TypeError, 'dump format error' unless Object === obj
@@ -564,7 +574,7 @@ module Marshal
       name = get_symbol
       store_unique_object name
 
-      klass = Object.const_lookup name
+      klass = const_lookup name
       members = klass.members
 
       obj = klass.allocate
@@ -592,7 +602,7 @@ module Marshal
 
     def construct_user_defined(ivar_index)
       name = get_symbol
-      klass = Module.const_lookup name
+      klass = const_lookup name
 
       data = get_byte_sequence
 
@@ -612,7 +622,7 @@ module Marshal
       name = get_symbol
       store_unique_object name
 
-      klass = Module.const_lookup name
+      klass = const_lookup name
       obj = klass.allocate
 
       extend_object obj if @modules
@@ -661,7 +671,7 @@ module Marshal
     end
 
     def get_user_class
-      cls = Module.const_lookup @user_class
+      cls = const_lookup @user_class
       @user_class = nil
       cls
     end

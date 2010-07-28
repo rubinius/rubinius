@@ -57,7 +57,38 @@ extern "C" {
   }
 
   VALUE rb_path2class(const char* name) {
-    return rb_funcall(rb_mKernel, rb_intern("const_lookup"), 1, rb_str_new2(name));
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Module* mod = env->state()->shared.globals.object.get();
+
+    char* base = strdup(name);
+    char* str = base;
+    char* pos = strstr(str, "::");
+
+    while(pos) {
+      pos[0] = 0;
+
+      mod = try_as<Module>(mod->get_const(env->state(), str));
+      if(!mod) {
+        free(base);
+        capi_raise_type_error(Module::type, mod);
+        return Qnil;
+      }
+
+      str = pos+2;
+      pos = strstr(str, "::");
+    }
+
+    Object* val = mod->get_const(env->state(), str);
+
+    free(base);
+
+    // Make sure val is a module.
+    if(!kind_of<Module>(val)) {
+      capi_raise_type_error(Module::type, val);
+    }
+
+    return env->get_handle(val);
   }
 
   VALUE rb_cv_get(VALUE module_handle, const char* name) {

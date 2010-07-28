@@ -73,33 +73,6 @@ module Rubinius
     end
 
     ##
-    # Update +self+ out of a string, using +bc+ as the iseq,
-    # +lcls+ as the number local variables, and +req+ as the required args.
-    #
-    # @todo make sure InstructionSequence is the actual class name
-    # @param  [InstructionSequence] bc the "bytecode" or
-    #   instructions that are the actual method. This *should* be an instance
-    #   of InstructionSequence (which is a subclass of {Tuple})
-    # @param  [Integer] lcls the number of local variables in the method
-    # @param  [Array<Symbol>] req the required arguments
-    # @return [Rubinius::CompiledMethod]
-    def from_string(bc, lcls, req)
-      # set everything to be empty, except
-      # for the args supplied
-      @iseq          = bc           # set the instruction sequence
-      @primitive     = nil          # the primitive operation to be run upon execution
-      @local_count   = lcls         # this is how many locals we have
-      @literals      = Tuple.new(0) # we can has no literals
-      @exceptions    = nil
-      @lines         = nil
-      @file          = nil
-      @name          = nil
-      @path          = nil
-      @required_args = req
-      return self
-    end
-
-    ##
     # Returns the index of local +name+ or nil if there is no local.
     #
     def local_slot(name)

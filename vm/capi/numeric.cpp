@@ -148,11 +148,11 @@ extern "C" {
   }
 
   VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func) {
-    return rb_funcall(rb_cNumeric, rb_intern("num_coerce_bin"), 3, x, y, func);
+    return rb_funcall(rb_mCAPI, rb_intern("rb_num_coerce_bin"), 3, x, y, ID2SYM(func));
   }
 
   VALUE rb_num_coerce_cmp(VALUE x, VALUE y, ID func) {
-    return rb_funcall(rb_cNumeric, rb_intern("num_coerce_cmp"), 3, x, y, func);
+    return rb_funcall(rb_mCAPI, rb_intern("rb_num_coerce_cmp"), 3, x, y, ID2SYM(func));
   }
 
   double rb_num2dbl(VALUE val) {

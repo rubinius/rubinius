@@ -231,6 +231,7 @@ extern "C" {
     cCApiTrue,
     cCApiProc,
     cCApiGC,
+    cCApiCAPI,
 
     cCApiArgumentError,
     cCApiEOFError,
@@ -440,6 +441,8 @@ typedef struct RIO rb_io_t;
 #define rb_mKernel            (capi_get_constant(cCApiKernel))
 #define rb_mGC                (capi_get_constant(cCApiGC))
 
+/* Utility modules */
+#define rb_mCAPI              (capi_get_constant(cCApiCAPI))
 
 /* Exception classes. */
 

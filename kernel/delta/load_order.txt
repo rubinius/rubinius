@@ -8,7 +8,6 @@ module.rbc
 filetest.rbc
 kernel.rbc
 math.rbc
-numeric.rbc
 objectspace.rbc
 options.rbc
 stats.rbc

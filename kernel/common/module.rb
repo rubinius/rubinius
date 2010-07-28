@@ -521,15 +521,6 @@ class Module
     recursive_const_get(name)
   end
 
-  def const_lookup(name)
-    mod = self
-
-    parts = String(name).split '::'
-    parts.each do |part| mod = mod.const_get part end
-
-    mod
-  end
-
   def illegal_const(name)
     raise NameError, "constant names must begin with a capital letter: #{name}"
   end
