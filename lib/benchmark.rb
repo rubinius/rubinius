@@ -123,10 +123,10 @@
 
 module Benchmark
 
-  BENCHMARK_VERSION = "2002-04-25" #:nodoc"
+  BENCHMARK_VERSION = "2002-04-25" # :nodoc:
 
-  def Benchmark::times() # :nodoc:
-      Process::times()
+  def Benchmark.times # :nodoc:
+    Process.times
   end
 
 
@@ -167,18 +167,25 @@ module Benchmark
   #        >avg:    1.333333   0.011111   1.344444 (  0.629761)
   #
 
-  def benchmark(caption = "", label_width = nil, fmtstr = nil, *labels) # :yield: report
-    sync = STDOUT.sync
-    STDOUT.sync = true
+  def benchmark(caption="", label_width=nil, fmtstr=nil, *labels) # :yield: report
+    raise ArgumentError, "no block" unless block_given?
+
+    # swap
+    sync, STDOUT.sync = STDOUT.sync, true
+
     label_width ||= 0
     fmtstr ||= FMTSTR
-    raise ArgumentError, "no block" unless block_given?
+
     print caption
     results = yield(Report.new(label_width, fmtstr))
-    Array === results and results.grep(Tms).each {|t|
-      print((labels.shift || t.label || "").ljust(label_width),
-            t.format(fmtstr))
-    }
+
+    if Array === results
+      results.grep(Tms).each do |t|
+        lbl = labels.shift || t.label || ""
+        print lbl.ljust(label_width), t.format(fmtstr)
+      end
+    end
+
     STDOUT.sync = sync
     results
   end
@@ -204,8 +211,8 @@ module Benchmark
   #        upto:    1.500000   0.016667   1.516667 (  0.711239)
   #
 
-  def bm(label_width = 0, *labels, &blk) # :yield: report
-    benchmark(" "*label_width + CAPTION, label_width, FMTSTR, *labels, &blk)
+  def bm(label_width=0, *labels, &blk) # :yield: report
+    benchmark " " * label_width + CAPTION, label_width, FMTSTR, *labels, &blk
   end
 
 
@@ -246,42 +253,43 @@ module Benchmark
   # #bmbm yields a Benchmark::Job object and returns an array of
   # Benchmark::Tms objects.
   #
-  def bmbm(width = 0, &blk) # :yield: job
+  def bmbm(width=0, &blk) # :yield: job
     job = Job.new(width)
-    yield(job)
+    yield job
     width = job.width
-    sync = STDOUT.sync
-    STDOUT.sync = true
+
+    sync, STDOUT.sync = STDOUT.sync, true
 
     # rehearsal
     print "Rehearsal "
-    puts '-'*(width+CAPTION.length - "Rehearsal ".length)
+    puts '-' * (width+CAPTION.length - "Rehearsal ".length)
     list = []
-    job.list.each{|label_item|
-      label,item = label_item
-      print(label.ljust(width))
-      res = Benchmark::measure(label,&item)
-      print res.format()
+    job.list.each do |label_item|
+      label, item = label_item
+      print label.ljust(width)
+      res = Benchmark.measure(label, &item)
+      print res.format
       list.push res
-    }
-    sum = Tms.new; list.each{|i| sum += i}
+    end
+    sum = Tms.new; list.each{ |i| sum += i }
     ets = sum.format("total: %tsec")
-    printf("%s %s\n\n",
-           "-"*(width+CAPTION.length-ets.length-1), ets)
+
+    printf "%s %s\n\n", "-"*(width+CAPTION.length-ets.length-1), ets
 
     # take
-    print ' '*width, CAPTION
+    print ' ' * width, CAPTION
     list = []
     ary = []
-    job.list.each{|label_item|
+
+    job.list.each do |label_item|
       label, item = label_item
-      GC::start
+      GC.start
       print label.ljust(width)
-      res = Benchmark::measure(label,&item)
-      print res.format()
+      res = Benchmark.measure(label, &item)
+      print res.format
       ary.push res
       list.push [label, res]
-    }
+    end
 
     STDOUT.sync = sync
     ary
@@ -291,7 +299,7 @@ module Benchmark
   # Returns the time used to execute the given block as a
   # Benchmark::Tms object.
   #
-  def measure(label = "") # :yield:
+  def measure(label="") # :yield:
     t0, r0 = Benchmark.times, Time.now
     yield
     t1, r1 = Benchmark.times, Time.now
@@ -307,10 +315,8 @@ module Benchmark
   # Returns the elapsed real time used to execute the given block.
   #
   def realtime(&blk) # :yield:
-    Benchmark::measure(&blk).real
+    Benchmark.measure(&blk).real
   end
-
-
 
   #
   # A Job is a sequence of labelled blocks to be processed by the
@@ -332,8 +338,9 @@ module Benchmark
     #
     # Registers the given label and block pair in the job list.
     #
-    def item(label = "", &blk) # :yield:
+    def item(label="", &blk) # :yield:
       raise ArgmentError, "no block" unless block_given?
+
       label.concat ' '
       w = label.length
       @width = w if @width < w
@@ -352,8 +359,6 @@ module Benchmark
 
   module_function :benchmark, :measure, :realtime, :bm, :bmbm
 
-
-
   #
   # This class is used by the Benchmark.benchmark and Benchmark.bm methods.
   # It is of little direct interest to the user.
@@ -366,7 +371,7 @@ module Benchmark
     # _width_ and _fmtstr_ are the label offset and
     # format string used by Tms#format.
     #
-    def initialize(width = 0, fmtstr = nil)
+    def initialize(width=0, fmtstr=nil)
       @width, @fmtstr = width, fmtstr
     end
 
@@ -375,9 +380,9 @@ module Benchmark
     # formatted by _fmt_. See Tms#format for the
     # formatting rules.
     #
-    def item(label = "", *fmt, &blk) # :yield:
+    def item(label="", *fmt, &blk) # :yield:
       print label.ljust(@width)
-      res = Benchmark::measure(label,&blk)
+      res = Benchmark.measure(label, &blk)
       print res.format(@fmtstr, *fmt)
       res
     end
@@ -423,7 +428,7 @@ module Benchmark
     # system CPU time, _real_ as the elapsed real time and _l_
     # as the label.
     #
-    def initialize(u = 0.0, s = 0.0, cu = 0.0, cs = 0.0, real = 0.0, l = nil)
+    def initialize(u=0.0, s=0.0, cu=0.0, cs=0.0, real=0.0, l=nil)
       @utime, @stime, @cutime, @cstime, @real, @label = u, s, cu, cs, real, l
       @total = @utime + @stime + @cutime + @cstime
     end
@@ -433,14 +438,14 @@ module Benchmark
     # Tms object, plus the time required to execute the code block (_blk_).
     #
     def add(&blk) # :yield:
-      self + Benchmark::measure(&blk)
+      self + Benchmark.measure(&blk)
     end
 
     #
     # An in-place version of #add.
     #
     def add!
-      t = Benchmark::measure(&blk)
+      t = Benchmark.measure(&blk)
       @utime  = utime + t.utime
       @stime  = stime + t.stime
       @cutime = cutime + t.cutime
@@ -494,16 +499,17 @@ module Benchmark
     # If _fmtstr_ is not given, FMTSTR is used as default value, detailing the
     # user, system and real elapsed time.
     #
-    def format(arg0 = nil, *args)
+    def format(arg0=nil, *args)
       fmtstr = (arg0 || FMTSTR).dup
-      fmtstr.gsub!(/(%[-+\.\d]*)n/){"#{$1}s" % label}
-      fmtstr.gsub!(/(%[-+\.\d]*)u/){"#{$1}f" % utime}
-      fmtstr.gsub!(/(%[-+\.\d]*)y/){"#{$1}f" % stime}
-      fmtstr.gsub!(/(%[-+\.\d]*)U/){"#{$1}f" % cutime}
-      fmtstr.gsub!(/(%[-+\.\d]*)Y/){"#{$1}f" % cstime}
-      fmtstr.gsub!(/(%[-+\.\d]*)t/){"#{$1}f" % total}
-      fmtstr.gsub!(/(%[-+\.\d]*)r/){"(#{$1}f)" % real}
-      arg0 ? Kernel::format(fmtstr, *args) : fmtstr
+      fmtstr.gsub!(/(%[-+\.\d]*)n/) { "#{$1}s" % label }
+      fmtstr.gsub!(/(%[-+\.\d]*)u/) { "#{$1}f" % utime }
+      fmtstr.gsub!(/(%[-+\.\d]*)y/) { "#{$1}f" % stime }
+      fmtstr.gsub!(/(%[-+\.\d]*)U/) { "#{$1}f" % cutime }
+      fmtstr.gsub!(/(%[-+\.\d]*)Y/) { "#{$1}f" % cstime }
+      fmtstr.gsub!(/(%[-+\.\d]*)t/) { "#{$1}f" % total }
+      fmtstr.gsub!(/(%[-+\.\d]*)r/) { "(#{$1}f)" % real }
+
+      arg0 ? Kernel.format(fmtstr, *args) : fmtstr
     end
 
     #
@@ -532,14 +538,14 @@ module Benchmark
                            cutime.__send__(op, x.cutime),
                            cstime.__send__(op, x.cstime),
                            real.__send__(op, x.real)
-                           )
+                          )
       else
         Benchmark::Tms.new(utime.__send__(op, x),
                            stime.__send__(op, x),
                            cutime.__send__(op, x),
                            cstime.__send__(op, x),
                            real.__send__(op, x)
-                           )
+                          )
       end
     end
   end
@@ -557,14 +563,14 @@ if __FILE__ == $0
   n = ARGV[0].to_i.nonzero? || 50000
   puts %Q([#{n} times iterations of `a = "1"'])
   benchmark("       " + CAPTION, 7, FMTSTR) do |x|
-    x.report("for:")   {for i in 1..n; a = "1"; end} # Benchmark::measure
+    x.report("for:")   {for i in 1..n; a = "1"; end} # Benchmark.measure
     x.report("times:") {n.times do   ; a = "1"; end}
     x.report("upto:")  {1.upto(n) do ; a = "1"; end}
   end
 
   benchmark do
     [
-      measure{for i in 1..n; a = "1"; end},  # Benchmark::measure
+      measure{for i in 1..n; a = "1"; end},  # Benchmark.measure
       measure{n.times do   ; a = "1"; end},
       measure{1.upto(n) do ; a = "1"; end}
     ]
