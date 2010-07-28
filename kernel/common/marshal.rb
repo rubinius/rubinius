@@ -720,7 +720,7 @@ module Marshal
 
       @depth += 1
 
-      return str
+      obj.tainted? ? str.taint : str
     end
 
     def serialize_extended_object(obj)
