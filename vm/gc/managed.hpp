@@ -2,6 +2,7 @@
 #define RBX_GC_MANAGED_THREAD
 
 #include "gc/slab.hpp"
+#include "gc/variable_buffer.hpp"
 
 namespace rubinius {
   class SharedState;
@@ -18,6 +19,7 @@ namespace rubinius {
     Roots roots_;
     Kind kind_;
     const char* name_;
+    VariableRootBuffers root_buffers_;
 
   protected:
     gc::Slab local_slab_;
@@ -31,6 +33,10 @@ namespace rubinius {
 
     Roots& roots() {
       return roots_;
+    }
+
+    VariableRootBuffers& root_buffers() {
+      return root_buffers_;
     }
 
     gc::Slab& local_slab() {

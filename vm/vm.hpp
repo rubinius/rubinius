@@ -69,7 +69,7 @@ namespace rubinius {
     eNone, ePrivate, eProtected, eSuper, eVCall, eNormal
   };
 
-  class VM : public ManagedThread {
+  class VM : public ManagedThread, public thread::Lockable {
   private:
     CallFrame* saved_call_frame_;
     uintptr_t stack_start_;
@@ -86,7 +86,6 @@ namespace rubinius {
   public:
     /* Data members */
     SharedState& shared;
-    thread::Mutex local_lock_;
     Waiter* waiter_;
     bool interrupt_with_signal_;
     pthread_t os_thread_;
@@ -124,10 +123,6 @@ namespace rubinius {
       return &thread_state_;
     }
 
-    thread::Mutex& local_lock() {
-      return local_lock_;
-    }
-
     CallFrame** call_frame_location() {
       return &saved_call_frame_;
     }
@@ -140,10 +135,8 @@ namespace rubinius {
       return saved_call_frame_;
     }
 
-    // NOTE this will need to be VM local, ie Thread local, once the GIL
-    // is removed.
     VariableRootBuffers* variable_buffers() {
-      return shared.variable_buffers();
+      return &root_buffers();
     }
 
     GlobalCache* global_cache() {
@@ -384,6 +377,26 @@ namespace rubinius {
 
     ~StopTheWorld() {
       vm_->shared.restart_world();
+    }
+  };
+
+  class NativeMethodEnvironment;
+
+  class GCIndependent {
+    VM* vm_;
+
+  public:
+    GCIndependent(STATE, CallFrame* call_frame)
+      : vm_(state)
+    {
+      vm_->set_call_frame(call_frame);
+      vm_->shared.gc_independent();
+    }
+
+    GCIndependent(NativeMethodEnvironment* env);
+
+    ~GCIndependent() {
+      vm_->shared.gc_dependent();
     }
   };
 };

@@ -129,6 +129,8 @@ extern "C" {
 
     int ready = 0;
 
+    GCIndependent guard(NativeMethodEnvironment::get());
+
     while(!ready) {
       ready = select(fd+1, &fds, 0, 0, 0);
       if(!retry) break;
@@ -166,6 +168,8 @@ extern "C" {
 
     int ready = 0;
 
+    GCIndependent guard(NativeMethodEnvironment::get());
+
     while(!ready) {
       ready = select(fd+1, 0, &fds, 0, 0);
       if(!retry) break;
@@ -181,6 +185,8 @@ extern "C" {
     FD_SET(fd, &fds);
 
     int ready = 0;
+
+    GCIndependent guard(NativeMethodEnvironment::get());
 
     while(!ready) {
       ready = select(fd+1, &fds, &fds, 0, 0);

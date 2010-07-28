@@ -22,6 +22,10 @@ namespace rubinius {
     NativeMethod::init_thread(vm_);
     VM::set_current(vm_);
 
+    vm_->shared.gc_dependent();
+
+    std::cout << "[" << vm_ << " WORLD started thread]\n";
+
     // Register that when the perform returns and the thread is exitting, to
     // run delete on this object to free up the memory.
     set_delete_on_exit();
@@ -50,6 +54,8 @@ namespace rubinius {
         // exc->print_locations(vm_);
       }
     }
+
+    vm_->shared.gc_independent();
 
     NativeMethod::cleanup_thread(vm_);
 

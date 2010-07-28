@@ -231,9 +231,13 @@ namespace rubinius {
 
     void pre_exec();
     void reinit();
+
+    void ask_for_stopage();
     void stop_the_world();
     void restart_world();
-    void checkpoint();
+
+    bool should_stop();
+    bool checkpoint();
     void gc_dependent();
     void gc_independent();
   };

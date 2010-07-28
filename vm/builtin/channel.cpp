@@ -121,11 +121,18 @@ namespace rubinius {
       WaitingOnCondition waiter(condition_);
       state->install_waiter(waiter);
 
+      {
+        thread::Mutex::UnlockGuard ug(mutex_);
+        state->shared.gc_independent();
+      }
+
       if(use_timed_wait) {
         if(condition_.wait_until(mutex_, &ts) == thread::cTimedOut) break;
       } else {
         condition_.wait(mutex_);
       }
+
+      state->shared.gc_dependent();
 
       // Stop waiting if...
       // we've been asked explicitely to wakeup..

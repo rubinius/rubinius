@@ -15,6 +15,7 @@ extern "C" {
     int ret = 0;
 
     {
+      GCIndependent guard(env);
       ret = select(max, read, write, except, timeval);
     }
 
@@ -71,6 +72,7 @@ extern "C" {
     VALUE ret = Qnil;
     // ubf is ignored entirely.
     {
+      GCIndependent guard(NativeMethodEnvironment::get());
       ret = (*func)(data);
     }
 

@@ -86,9 +86,10 @@ namespace rubinius {
     // vm is NULL if the thread has exitted.
     if(!native_thread_) return Qnil;
     VM* vm = native_thread_->vm();
-    thread::Mutex::LockGuard x(vm->local_lock());
+    vm->lock();
     vm->register_raise(exc);
     vm->wakeup();
+    vm->unlock();
     return exc;
   }
 
@@ -105,8 +106,9 @@ namespace rubinius {
 
     VM* vm = native_thread_->vm();
     {
-      thread::Mutex::LockGuard x(vm->local_lock());
+      vm->lock();
       vm->wakeup();
+      vm->unlock();
     }
 
     return this;

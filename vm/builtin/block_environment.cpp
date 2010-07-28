@@ -142,6 +142,9 @@ namespace rubinius {
       }
     }
 
+    state->set_call_frame(frame);
+    state->shared.checkpoint();
+
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
       Module* mod = scope->module();

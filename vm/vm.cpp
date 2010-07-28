@@ -17,6 +17,7 @@
 #include "builtin/system.hpp"
 #include "builtin/fiber.hpp"
 #include "builtin/location.hpp"
+#include "builtin/nativemethod.hpp"
 
 #include "instruments/profiler.hpp"
 
@@ -309,108 +310,12 @@ namespace rubinius {
 
   void VM::collect(CallFrame* call_frame) {
     this->set_call_frame(call_frame);
-
-    // Don't go any further unless we're allowed to GC.
-    if(!om->can_gc()) return;
-
-    // Stops all other threads, so we're only here by ourselves.
-    StopTheWorld guard(this);
-
-    GCData gc_data(this);
-
-    om->collect_young(gc_data);
-    om->collect_mature(gc_data);
-
-    om->run_finalizers(this, call_frame);
+    om->collect(this, call_frame);
   }
 
   void VM::collect_maybe(CallFrame* call_frame) {
     this->set_call_frame(call_frame);
-
-    // Don't go any further unless we're allowed to GC.
-    if(!om->can_gc()) return;
-
-    // Stops all other threads, so we're only here by ourselves.
-    StopTheWorld guard(this);
-
-    GCData gc_data(this);
-
-    uint64_t start_time = 0;
-
-    if(om->collect_young_now) {
-      if(shared.config.gc_show) {
-        start_time = get_current_time();
-      }
-
-      YoungCollectStats stats;
-
-#ifdef RBX_PROFILER
-      if(unlikely(shared.profiling())) {
-        profiler::MethodEntry method(this, profiler::kYoungGC);
-        om->collect_young(gc_data, &stats);
-      } else {
-        om->collect_young(gc_data, &stats);
-      }
-#else
-      om->collect_young(gc_data, &stats);
-#endif
-
-      if(shared.config.gc_show) {
-        uint64_t fin_time = get_current_time();
-        int diff = (fin_time - start_time) / 1000000;
-
-        fprintf(stderr, "[GC %0.1f%% %d/%d %d %2dms]\n",
-                  stats.percentage_used,
-                  stats.promoted_objects,
-                  stats.excess_objects,
-                  stats.lifetime,
-                  diff);
-      }
-    }
-
-    if(om->collect_mature_now) {
-      int before_kb = 0;
-
-      if(shared.config.gc_show) {
-        start_time = get_current_time();
-        before_kb = om->mature_bytes_allocated() / 1024;
-      }
-
-#ifdef RBX_PROFILER
-      if(unlikely(shared.profiling())) {
-        profiler::MethodEntry method(this, profiler::kMatureGC);
-        om->collect_mature(gc_data);
-      } else {
-        om->collect_mature(gc_data);
-      }
-#else
-      om->collect_mature(gc_data);
-#endif
-
-      if(shared.config.gc_show) {
-        uint64_t fin_time = get_current_time();
-        int diff = (fin_time - start_time) / 1000000;
-        int kb = om->mature_bytes_allocated() / 1024;
-        fprintf(stderr, "[Full GC %dkB => %dkB %2dms]\n",
-            before_kb,
-            kb,
-            diff);
-      }
-
-    }
-
-    // Count the finalizers toward running the mature gc. Not great,
-    // but better than not seeing the time at all.
-#ifdef RBX_PROFILER
-      if(unlikely(shared.profiling())) {
-        profiler::MethodEntry method(this, profiler::kMatureGC);
-        om->run_finalizers(this, call_frame);
-      } else {
-        om->run_finalizers(this, call_frame);
-      }
-#else
-      om->run_finalizers(this, call_frame);
-#endif
+    om->collect_maybe(this, call_frame);
   }
 
   void VM::set_const(const char* name, Object* val) {
@@ -525,4 +430,11 @@ namespace rubinius {
     set_stack_size(fib->stack_size());
     current_fiber.set(fib);
   }
+
+  GCIndependent::GCIndependent(NativeMethodEnvironment* env)
+    : vm_(env->state())
+  {
+    vm_->set_call_frame(env->current_call_frame());
+    vm_->shared.gc_independent();
+  };
 };

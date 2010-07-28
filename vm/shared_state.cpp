@@ -68,9 +68,16 @@ namespace rubinius {
       pending_threads_++;
     }
 
+    void ask_for_stopage() {
+      thread::Mutex::LockGuard guard(mutex_);
+      should_stop_ = true;
+      std::cout << "[" << VM::current() << " WORLD requested stopage: " << pending_threads_ << "]\n";
+    }
+
     void wait_til_alone() {
       thread::Mutex::LockGuard guard(mutex_);
       should_stop_ = true;
+      std::cout << "[" << VM::current() << " WORLD waiting until alone]\n";
 
       // For ourself..
       pending_threads_--;
@@ -78,14 +85,18 @@ namespace rubinius {
       timer::Running<uint64_t> timer(time_waiting_);
 
       while(pending_threads_ > 0) {
+        std::cout << "[" << VM::current() << " WORLD waiting on condvar: " << pending_threads_ << "]\n";
         waiting_to_stop_.wait(mutex_);
       }
+
+      std::cout << "[" << VM::current() << " WORLD o/~ I think we're alone now.. o/~]\n";
     }
 
     void wake_all_waiters() {
       thread::Mutex::LockGuard guard(mutex_);
-
       should_stop_ = false;
+
+      std::cout << "[" << VM::current() << " WORLD waking all threads]\n";
 
       // For ourself..
       pending_threads_++;
@@ -93,16 +104,25 @@ namespace rubinius {
       waiting_to_run_.broadcast();
     }
 
-    void checkpoint() {
+    bool should_stop() {
+      thread::Mutex::LockGuard guard(mutex_);
+      return should_stop_;
+    }
+
+    bool checkpoint() {
       // Test should_stop_ without the lock, because we do this a lot.
       if(should_stop_) {
         thread::Mutex::LockGuard guard(mutex_);
         wait_to_run();
+        return true;
       }
+
+      return false;
     }
 
   private:
     void wait_to_run() {
+      std::cout << "[" << VM::current() << " WORLD stopping, waiting to be resarted]\n";
       pending_threads_--;
       waiting_to_stop_.signal();
 
@@ -111,6 +131,7 @@ namespace rubinius {
       }
 
       pending_threads_++;
+      std::cout << "[" << VM::current() << " WORLD resarted]\n";
     }
   };
 
@@ -302,6 +323,14 @@ namespace rubinius {
     }
   }
 
+  void SharedState::ask_for_stopage() {
+    world_->ask_for_stopage();
+  }
+
+  bool SharedState::should_stop() {
+    return world_->should_stop();
+  }
+
   void SharedState::stop_the_world() {
     world_->wait_til_alone();
   }
@@ -310,8 +339,8 @@ namespace rubinius {
     world_->wake_all_waiters();
   }
 
-  void SharedState::checkpoint() {
-    world_->checkpoint();
+  bool SharedState::checkpoint() {
+    return world_->checkpoint();
   }
 
   void SharedState::gc_dependent() {

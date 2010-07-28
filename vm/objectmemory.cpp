@@ -29,6 +29,8 @@
 
 #include "global_cache.hpp"
 
+#include "instruments/profiler.hpp"
+
 namespace rubinius {
 
   Object* object_watch = 0;
@@ -98,6 +100,8 @@ namespace rubinius {
   // WARNING: This returns an object who's body may not have been initialized.
   // It is the callers duty to initialize it.
   Object* ObjectMemory::new_object_fast(Class* cls, size_t bytes, object_type type) {
+    LOCK_ME;
+
     if(Object* obj = young_->raw_allocate(bytes, &collect_young_now)) {
       objects_allocated++;
       bytes_allocated += bytes;
@@ -106,11 +110,14 @@ namespace rubinius {
       obj->init_header(cls, YoungObjectZone, type);
       return obj;
     } else {
+      UNLOCK_ME;
       return new_object_typed(cls, bytes, type);
     }
   }
 
   bool ObjectMemory::refill_slab(gc::Slab& slab) {
+    LOCK_ME;
+
     void* addr = young_->allocate_for_slab(slab_size_);
 
     if(!addr) return false;
@@ -123,10 +130,14 @@ namespace rubinius {
   }
 
   void ObjectMemory::set_young_lifetime(size_t age) {
+    LOCK_ME;
+
     young_->set_lifetime(age);
   }
 
   void ObjectMemory::debug_marksweep(bool val) {
+    LOCK_ME;
+
     if(val) {
       mark_sweep_->free_entries = false;
     } else {
@@ -147,6 +158,8 @@ namespace rubinius {
   /* Garbage collection */
 
   Object* ObjectMemory::promote_object(Object* obj) {
+    LOCK_ME;
+
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->objects_promoted++;
 #endif
@@ -167,7 +180,162 @@ namespace rubinius {
     return copy;
   }
 
+  void ObjectMemory::collect(STATE, CallFrame* call_frame) {
+    // Don't go any further unless we're allowed to GC.
+    if(!can_gc()) return;
+
+    lock();
+
+    // If we were checkpointed, then someone else ran the GC, just return.
+    if(state->shared.should_stop()) {
+      unlock();
+      state->shared.checkpoint();
+      return;
+    }
+
+    std::cout << "\n[ " << state << " WORLD beginning GC.]\n";
+
+    // Stops all other threads, so we're only here by ourselves.
+    //
+    // First, ask them to stop.
+    state->shared.ask_for_stopage();
+
+    // Now unlock ObjectMemory so that they can spin to any checkpoints.
+    unlock();
+
+    // Wait for them all to check in.
+    state->shared.stop_the_world();
+
+    // Now we're alone, but we lock again just to safe.
+    lock();
+
+    GCData gc_data(state);
+
+    collect_young(gc_data);
+    collect_mature(gc_data);
+
+    run_finalizers(state, call_frame);
+
+    // Ok, we're good. Get everyone going again.
+    state->shared.restart_world();
+    unlock();
+  }
+
+  void ObjectMemory::collect_maybe(STATE, CallFrame* call_frame) {
+    // Don't go any further unless we're allowed to GC.
+    if(!can_gc()) return;
+
+    lock();
+
+    // If we were checkpointed, then someone else ran the GC, just return.
+    if(state->shared.should_stop()) {
+      unlock();
+      state->shared.checkpoint();
+      return;
+    }
+
+    std::cout << "\n[" << state << " WORLD beginning GC.]\n";
+
+    // Stops all other threads, so we're only here by ourselves.
+    //
+    // First, ask them to stop.
+    state->shared.ask_for_stopage();
+
+    // Now unlock ObjectMemory so that they can spin to any checkpoints.
+    unlock();
+
+    // Wait for them all to check in.
+    state->shared.stop_the_world();
+
+    // Now we're alone, but we lock again just to safe.
+    lock();
+
+    GCData gc_data(state);
+
+    uint64_t start_time = 0;
+
+    if(collect_young_now) {
+      if(state->shared.config.gc_show) {
+        start_time = get_current_time();
+      }
+
+      YoungCollectStats stats;
+
+#ifdef RBX_PROFILER
+      if(unlikely(state->shared.profiling())) {
+        profiler::MethodEntry method(state, profiler::kYoungGC);
+        collect_young(gc_data, &stats);
+      } else {
+        collect_young(gc_data, &stats);
+      }
+#else
+      collect_young(gc_data, &stats);
+#endif
+
+      if(state->shared.config.gc_show) {
+        uint64_t fin_time = get_current_time();
+        int diff = (fin_time - start_time) / 1000000;
+
+        fprintf(stderr, "[GC %0.1f%% %d/%d %d %2dms]\n",
+                  stats.percentage_used,
+                  stats.promoted_objects,
+                  stats.excess_objects,
+                  stats.lifetime,
+                  diff);
+      }
+    }
+
+    if(collect_mature_now) {
+      int before_kb = 0;
+
+      if(state->shared.config.gc_show) {
+        start_time = get_current_time();
+        before_kb = mature_bytes_allocated() / 1024;
+      }
+
+#ifdef RBX_PROFILER
+      if(unlikely(state->shared.profiling())) {
+        profiler::MethodEntry method(state, profiler::kMatureGC);
+        collect_mature(gc_data);
+      } else {
+        collect_mature(gc_data);
+      }
+#else
+      collect_mature(gc_data);
+#endif
+
+      if(state->shared.config.gc_show) {
+        uint64_t fin_time = get_current_time();
+        int diff = (fin_time - start_time) / 1000000;
+        int kb = mature_bytes_allocated() / 1024;
+        fprintf(stderr, "[Full GC %dkB => %dkB %2dms]\n",
+            before_kb,
+            kb,
+            diff);
+      }
+
+    }
+
+    // Count the finalizers toward running the mature gc. Not great,
+    // but better than not seeing the time at all.
+#ifdef RBX_PROFILER
+    if(unlikely(state->shared.profiling())) {
+      profiler::MethodEntry method(state, profiler::kMatureGC);
+      run_finalizers(state, call_frame);
+    } else {
+      run_finalizers(state, call_frame);
+    }
+#else
+    run_finalizers(state, call_frame);
+#endif
+
+    state->shared.restart_world();
+    unlock();
+  }
+
   void ObjectMemory::collect_young(GCData& data, YoungCollectStats* stats) {
+    LOCK_ME;
+
     collect_young_now = false;
 
     timer::Running<size_t, 1000000> timer(young_collection_time);
@@ -196,6 +364,8 @@ namespace rubinius {
   }
 
   void ObjectMemory::collect_mature(GCData& data) {
+    LOCK_ME;
+
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->objects_seen.start();
     stats::GCStats::get()->collect_mature.start();
@@ -247,6 +417,8 @@ namespace rubinius {
 
   InflatedHeader* ObjectMemory::inflate_header(ObjectHeader* obj) {
     if(obj->inflated_header_p()) return obj->inflated_header();
+
+    LOCK_ME;
 
     InflatedHeader* header = inflated_headers_->allocate(obj);
     obj->set_inflated_header(header);
@@ -342,6 +514,8 @@ namespace rubinius {
   }
 
   void ObjectMemory::add_type_info(TypeInfo* ti) {
+    LOCK_ME;
+
     if(TypeInfo* current = type_info[ti->type]) {
       delete current;
     }
@@ -425,6 +599,8 @@ namespace rubinius {
   }
 
   Object* ObjectMemory::new_object_typed(Class* cls, size_t bytes, object_type type) {
+    LOCK_ME;
+
     Object* obj;
 
 #ifdef RBX_GC_STATS
@@ -442,6 +618,8 @@ namespace rubinius {
   }
 
   Object* ObjectMemory::new_object_typed_mature(Class* cls, size_t bytes, object_type type) {
+    LOCK_ME;
+
     Object* obj;
 
 #ifdef RBX_GC_STATS
@@ -469,6 +647,8 @@ namespace rubinius {
   }
 
   Object* ObjectMemory::new_object_typed_enduring(Class* cls, size_t bytes, object_type type) {
+    LOCK_ME;
+
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->mature_object_types[type]++;
 #endif
@@ -521,6 +701,8 @@ namespace rubinius {
   }
 
   void ObjectMemory::add_code_resource(CodeResource* cr) {
+    LOCK_ME;
+
     code_manager_.add_resource(cr);
   }
 
@@ -533,6 +715,8 @@ namespace rubinius {
   }
 
   void ObjectMemory::needs_finalization(Object* obj, FinalizerFunction func) {
+    LOCK_ME;
+
     FinalizeObject fi;
     fi.object = obj;
     fi.status = FinalizeObject::eLive;
@@ -543,6 +727,8 @@ namespace rubinius {
   }
 
   void ObjectMemory::set_ruby_finalizer(Object* obj, Object* fin) {
+    LOCK_ME;
+
     // See if there already one.
     for(std::list<FinalizeObject>::iterator i = finalize_.begin();
         i != finalize_.end(); i++)

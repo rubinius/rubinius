@@ -185,6 +185,7 @@ namespace rubinius {
   retry:
 
     {
+      GCIndependent guard(state, calling_environment);
       pid = waitpid(input_pid, &status, options);
     }
 

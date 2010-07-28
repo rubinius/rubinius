@@ -1,9 +1,13 @@
 #ifndef RBX_GC_WRITE_BARRIER_HPP
 #define RBX_GC_WRITE_BARRIER_HPP
 
+#include "util/thread.hpp"
+
 namespace rubinius {
 namespace gc {
   class WriteBarrier {
+    thread::SpinLock lock_;
+
   protected:
     ObjectArray* remember_set_;
 

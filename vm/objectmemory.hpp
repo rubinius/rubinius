@@ -13,6 +13,8 @@
 #include "gc/finalize.hpp"
 #include "gc/write_barrier.hpp"
 
+#include "util/thread.hpp"
+
 class TestObjectMemory; // So we can friend it properly
 
 namespace rubinius {
@@ -67,7 +69,7 @@ namespace rubinius {
     {}
   };
 
-  class ObjectMemory : public gc::WriteBarrier {
+  class ObjectMemory : public gc::WriteBarrier, thread::Lockable {
     BakerGC* young_;
     MarkSweepGC* mark_sweep_;
 
@@ -136,10 +138,12 @@ namespace rubinius {
     }
 
     void add_aux_barrier(gc::WriteBarrier* wb) {
+      LOCK_ME;
       aux_barriers_.push_back(wb);
     }
 
     void del_aux_barrier(gc::WriteBarrier* wb) {
+      LOCK_ME;
       aux_barriers_.remove(wb);
     }
 
@@ -211,6 +215,9 @@ namespace rubinius {
     bool valid_young_object_p(Object* obj);
 
     int mature_bytes_allocated();
+
+    void collect(STATE, CallFrame* call_frame);
+    void collect_maybe(STATE, CallFrame* call_frame);
 
     void needs_finalization(Object* obj, FinalizerFunction func);
     void set_ruby_finalizer(Object* obj, Object* fin);

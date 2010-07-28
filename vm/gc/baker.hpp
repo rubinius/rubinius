@@ -33,10 +33,6 @@ namespace rubinius {
     Heap *current;
     Heap *next;
 
-    // No locking for now, but this will need to change
-    // eventually.
-    thread::NullLock lock_;
-
   public:
     size_t total_objects;
 
@@ -47,11 +43,7 @@ namespace rubinius {
 
       void* addr = 0;
 
-      lock_.lock();
-
       addr = eden.allocate(bytes);
-
-      lock_.unlock();
 
       if(eden.over_limit_p(addr)) return NULL;
 
@@ -73,12 +65,8 @@ namespace rubinius {
 #endif
         return NULL;
       } else {
-        lock_.lock();
-
         total_objects++;
         obj = (Object*)eden.allocate(bytes);
-
-        lock_.unlock();
 
         if(eden.over_limit_p(obj)) {
           *limit_hit = true;
@@ -112,12 +100,8 @@ namespace rubinius {
 #endif
         return NULL;
       } else {
-        lock_.lock();
-
         total_objects++;
         obj = (Object*)eden.allocate(bytes);
-
-        lock_.unlock();
 
         if(eden.over_limit_p(obj)) {
           *limit_hit = true;

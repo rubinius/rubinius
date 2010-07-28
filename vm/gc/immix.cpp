@@ -143,6 +143,21 @@ namespace rubinius {
         for(Roots::Iterator ri((*i)->roots()); ri.more(); ri.advance()) {
           ri->set(saw_object(ri->get()));
         }
+
+        for(VariableRootBuffers::Iterator vi((*i)->root_buffers());
+          vi.more();
+          vi.advance())
+        {
+          Object*** buffer = vi->buffer();
+          for(int idx = 0; idx < vi->size(); idx++) {
+            Object** var = buffer[idx];
+            Object* tmp = *var;
+
+            if(tmp->reference_p() && tmp->young_object_p()) {
+              *var = saw_object(tmp);
+            }
+          }
+        }
       }
     }
 

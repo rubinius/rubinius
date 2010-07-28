@@ -383,7 +383,7 @@ namespace thread {
   };
 
 #define LOCK_ME thread::Lockable::Lock __lock_guard__(*static_cast<thread::Lockable*>(this))
-#define UNLOCK_ME thread::Lockable::UnLock __unlock_guard__(*static_cast<thread::Lockable*>(this))
+#define UNLOCK_ME thread::Lockable::Unlock __unlock_guard__(*static_cast<thread::Lockable*>(this))
 
   class Condition {
     pthread_cond_t native_;
