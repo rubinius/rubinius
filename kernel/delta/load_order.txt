@@ -8,12 +8,10 @@ module.rbc
 filetest.rbc
 kernel.rbc
 math.rbc
-objectspace.rbc
 options.rbc
 stats.rbc
 profiler.rbc
 signal.rbc
-static_scope.rbc
 struct.rbc
 thread.rbc
 codeloader.rbc
