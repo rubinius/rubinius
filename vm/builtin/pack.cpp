@@ -26,6 +26,17 @@ namespace rubinius {
 
       return G(rubinius)->send(state, call_frame, state->symbol("pack_to_int"), args);
     }
+
+    static String* string_or_nil(STATE, CallFrame* call_frame, Object* obj) {
+      Array* args = Array::create(state, 1);
+      args->set(state, 0, obj);
+
+      Object* result = G(rubinius)->send(state, call_frame,
+            state->symbol("pack_to_str_or_nil"), args);
+
+      if(!result) return 0;
+      return as<String>(result);
+    }
   }
 
 #define BITS_LONG   (RBX_SIZEOF_LONG * 8)
@@ -58,6 +69,26 @@ namespace rubinius {
     CONVERT_TO_ ## size(value);                 \
     format;                                     \
   }
+
+#define PACK_STRING_ELEMENT(coerce)  {                      \
+  Object* item = self->get(state, index);                   \
+  String* value = try_as<String>(item);                     \
+  if(!value) {                                              \
+    value = coerce(state, call_frame, item);                \
+    if(!value) return 0;                                    \
+  }                                                         \
+  if(RTEST(value->tainted_p(state))) tainted = true;        \
+  size_t size = value->size();                              \
+  if(rest) count = size;                                    \
+  if(count <= size) {                                       \
+    str.append((const char*)value->byte_address(), count);  \
+    count = 0;                                              \
+  } else {                                                  \
+    str.append((const char*)value->byte_address(), size);   \
+    count = count - size;                                   \
+  }                                                         \
+  index++;                                                  \
+}
 
 #define BYTE1(x)        (((x) & 0x00000000000000ff))
 #define BYTE2(x)        (((x) & 0x000000000000ff00) >> 8)
@@ -139,6 +170,7 @@ namespace rubinius {
     size_t stop = 0;
     bool rest = false;
     bool platform = false;
+    bool tainted = false;
 
     int int_value = 0;
     long long long_value = 0;
@@ -146,13 +178,14 @@ namespace rubinius {
 
 
 static const short _pack_eof_actions[] = {
-	0, 0, 2, 7, 8, 8, 11, 14, 
-	19, 22, 25, 28, 31, 31, 34, 34, 
-	37, 40, 43, 46, 46, 49, 49, 52, 
-	52, 55, 55, 58, 58, 61, 58, 65, 
-	55, 68, 52, 71, 49, 74, 46, 37, 
-	77, 34, 80, 31, 22, 11, 83, 8, 
-	2, 86, 2
+	0, 0, 2, 7, 8, 8, 11, 11, 
+	14, 17, 22, 25, 28, 31, 34, 34, 
+	37, 37, 40, 43, 46, 49, 49, 52, 
+	52, 55, 55, 58, 58, 61, 61, 64, 
+	64, 67, 67, 70, 67, 74, 64, 77, 
+	61, 80, 58, 83, 55, 86, 52, 89, 
+	49, 40, 92, 37, 95, 34, 25, 14, 
+	98, 11, 101, 8, 2, 104, 2
 };
 
 static const int pack_start = 1;
@@ -176,457 +209,411 @@ _resume:
 case 1:
 	switch( (*p) ) {
 		case 64: goto tr0;
-		case 67: goto tr2;
-		case 73: goto tr3;
-		case 76: goto tr4;
-		case 78: goto tr5;
-		case 81: goto tr6;
-		case 83: goto tr7;
-		case 86: goto tr8;
-		case 88: goto tr9;
-		case 99: goto tr2;
-		case 105: goto tr3;
-		case 108: goto tr4;
-		case 110: goto tr10;
-		case 113: goto tr6;
-		case 115: goto tr7;
-		case 118: goto tr11;
-		case 120: goto tr12;
+		case 65: goto tr2;
+		case 67: goto tr3;
+		case 73: goto tr4;
+		case 76: goto tr5;
+		case 78: goto tr6;
+		case 81: goto tr7;
+		case 83: goto tr8;
+		case 86: goto tr9;
+		case 88: goto tr10;
+		case 90: goto tr11;
+		case 97: goto tr12;
+		case 99: goto tr3;
+		case 105: goto tr4;
+		case 108: goto tr5;
+		case 110: goto tr13;
+		case 113: goto tr7;
+		case 115: goto tr8;
+		case 118: goto tr14;
+		case 120: goto tr15;
 	}
 	goto tr1;
 case 0:
 	goto _out;
 case 2:
 	switch( (*p) ) {
-		case 0: goto tr13;
-		case 32: goto tr13;
-		case 33: goto tr14;
-		case 42: goto tr15;
-		case 64: goto tr17;
-		case 67: goto tr18;
-		case 73: goto tr19;
-		case 76: goto tr20;
-		case 78: goto tr21;
-		case 81: goto tr22;
-		case 83: goto tr23;
-		case 86: goto tr24;
-		case 88: goto tr25;
-		case 95: goto tr14;
-		case 99: goto tr18;
-		case 105: goto tr19;
-		case 108: goto tr20;
-		case 110: goto tr26;
-		case 113: goto tr22;
-		case 115: goto tr23;
-		case 118: goto tr27;
-		case 120: goto tr28;
+		case 0: goto tr16;
+		case 32: goto tr16;
+		case 33: goto tr17;
+		case 42: goto tr18;
+		case 64: goto tr20;
+		case 65: goto tr21;
+		case 67: goto tr22;
+		case 73: goto tr23;
+		case 76: goto tr24;
+		case 78: goto tr25;
+		case 81: goto tr26;
+		case 83: goto tr27;
+		case 86: goto tr28;
+		case 88: goto tr29;
+		case 90: goto tr30;
+		case 95: goto tr17;
+		case 97: goto tr31;
+		case 99: goto tr22;
+		case 105: goto tr23;
+		case 108: goto tr24;
+		case 110: goto tr32;
+		case 113: goto tr26;
+		case 115: goto tr27;
+		case 118: goto tr33;
+		case 120: goto tr34;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr16;
+			goto tr19;
 	} else if ( (*p) >= 9 )
-		goto tr13;
+		goto tr16;
 	goto tr1;
 case 3:
 	switch( (*p) ) {
-		case 0: goto tr29;
-		case 32: goto tr29;
+		case 0: goto tr35;
+		case 32: goto tr35;
 		case 64: goto tr0;
-		case 67: goto tr2;
-		case 73: goto tr3;
-		case 76: goto tr4;
-		case 78: goto tr5;
-		case 81: goto tr6;
-		case 83: goto tr7;
-		case 86: goto tr8;
-		case 88: goto tr9;
-		case 99: goto tr2;
-		case 105: goto tr3;
-		case 108: goto tr4;
-		case 110: goto tr10;
-		case 113: goto tr6;
-		case 115: goto tr7;
-		case 118: goto tr11;
-		case 120: goto tr12;
+		case 65: goto tr2;
+		case 67: goto tr3;
+		case 73: goto tr4;
+		case 76: goto tr5;
+		case 78: goto tr6;
+		case 81: goto tr7;
+		case 83: goto tr8;
+		case 86: goto tr9;
+		case 88: goto tr10;
+		case 90: goto tr11;
+		case 97: goto tr12;
+		case 99: goto tr3;
+		case 105: goto tr4;
+		case 108: goto tr5;
+		case 110: goto tr13;
+		case 113: goto tr7;
+		case 115: goto tr8;
+		case 118: goto tr14;
+		case 120: goto tr15;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr29;
+		goto tr35;
 	goto tr1;
 case 4:
 	switch( (*p) ) {
-		case 0: goto tr30;
-		case 32: goto tr30;
-		case 33: goto tr31;
-		case 42: goto tr32;
-		case 64: goto tr34;
-		case 67: goto tr35;
-		case 73: goto tr36;
-		case 76: goto tr37;
-		case 78: goto tr38;
-		case 81: goto tr39;
-		case 83: goto tr40;
-		case 86: goto tr41;
-		case 88: goto tr42;
-		case 95: goto tr31;
-		case 99: goto tr35;
-		case 105: goto tr36;
-		case 108: goto tr37;
-		case 110: goto tr43;
-		case 113: goto tr39;
-		case 115: goto tr40;
-		case 118: goto tr44;
-		case 120: goto tr45;
+		case 0: goto tr36;
+		case 32: goto tr36;
+		case 33: goto tr37;
+		case 42: goto tr38;
+		case 64: goto tr40;
+		case 65: goto tr41;
+		case 67: goto tr42;
+		case 73: goto tr43;
+		case 76: goto tr44;
+		case 78: goto tr45;
+		case 81: goto tr46;
+		case 83: goto tr47;
+		case 86: goto tr48;
+		case 88: goto tr49;
+		case 90: goto tr50;
+		case 95: goto tr37;
+		case 97: goto tr51;
+		case 99: goto tr42;
+		case 105: goto tr43;
+		case 108: goto tr44;
+		case 110: goto tr52;
+		case 113: goto tr46;
+		case 115: goto tr47;
+		case 118: goto tr53;
+		case 120: goto tr54;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr33;
+			goto tr39;
 	} else if ( (*p) >= 9 )
-		goto tr30;
+		goto tr36;
 	goto tr1;
 case 5:
 	switch( (*p) ) {
-		case 0: goto tr30;
-		case 32: goto tr30;
-		case 64: goto tr34;
-		case 67: goto tr35;
-		case 73: goto tr36;
-		case 76: goto tr37;
-		case 78: goto tr38;
-		case 81: goto tr39;
-		case 83: goto tr40;
-		case 86: goto tr41;
-		case 88: goto tr42;
-		case 99: goto tr35;
-		case 105: goto tr36;
-		case 108: goto tr37;
-		case 110: goto tr43;
-		case 113: goto tr39;
-		case 115: goto tr40;
-		case 118: goto tr44;
-		case 120: goto tr45;
+		case 0: goto tr36;
+		case 32: goto tr36;
+		case 64: goto tr40;
+		case 65: goto tr41;
+		case 67: goto tr42;
+		case 73: goto tr43;
+		case 76: goto tr44;
+		case 78: goto tr45;
+		case 81: goto tr46;
+		case 83: goto tr47;
+		case 86: goto tr48;
+		case 88: goto tr49;
+		case 90: goto tr50;
+		case 97: goto tr51;
+		case 99: goto tr42;
+		case 105: goto tr43;
+		case 108: goto tr44;
+		case 110: goto tr52;
+		case 113: goto tr46;
+		case 115: goto tr47;
+		case 118: goto tr53;
+		case 120: goto tr54;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr30;
+		goto tr36;
 	goto tr1;
 case 6:
 	switch( (*p) ) {
-		case 0: goto tr46;
-		case 32: goto tr46;
-		case 33: goto tr47;
-		case 42: goto tr48;
-		case 64: goto tr50;
-		case 67: goto tr51;
-		case 73: goto tr52;
-		case 76: goto tr53;
-		case 78: goto tr54;
-		case 81: goto tr55;
-		case 83: goto tr56;
-		case 86: goto tr57;
-		case 88: goto tr58;
-		case 95: goto tr47;
-		case 99: goto tr51;
-		case 105: goto tr52;
-		case 108: goto tr53;
-		case 110: goto tr59;
-		case 113: goto tr55;
-		case 115: goto tr56;
-		case 118: goto tr60;
-		case 120: goto tr61;
+		case 0: goto tr55;
+		case 32: goto tr55;
+		case 33: goto tr56;
+		case 42: goto tr57;
+		case 64: goto tr59;
+		case 65: goto tr60;
+		case 67: goto tr61;
+		case 73: goto tr62;
+		case 76: goto tr63;
+		case 78: goto tr64;
+		case 81: goto tr65;
+		case 83: goto tr66;
+		case 86: goto tr67;
+		case 88: goto tr68;
+		case 90: goto tr69;
+		case 95: goto tr56;
+		case 97: goto tr70;
+		case 99: goto tr61;
+		case 105: goto tr62;
+		case 108: goto tr63;
+		case 110: goto tr71;
+		case 113: goto tr65;
+		case 115: goto tr66;
+		case 118: goto tr72;
+		case 120: goto tr73;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr49;
+			goto tr58;
 	} else if ( (*p) >= 9 )
-		goto tr46;
+		goto tr55;
 	goto tr1;
 case 7:
 	switch( (*p) ) {
-		case 0: goto tr62;
-		case 32: goto tr62;
-		case 42: goto tr63;
-		case 64: goto tr65;
-		case 67: goto tr66;
-		case 73: goto tr67;
-		case 76: goto tr68;
-		case 78: goto tr69;
-		case 81: goto tr70;
-		case 83: goto tr71;
-		case 86: goto tr72;
-		case 88: goto tr73;
-		case 99: goto tr66;
-		case 105: goto tr67;
-		case 108: goto tr68;
-		case 110: goto tr74;
-		case 113: goto tr70;
-		case 115: goto tr71;
-		case 118: goto tr75;
-		case 120: goto tr76;
+		case 0: goto tr55;
+		case 32: goto tr55;
+		case 64: goto tr59;
+		case 65: goto tr60;
+		case 67: goto tr61;
+		case 73: goto tr62;
+		case 76: goto tr63;
+		case 78: goto tr64;
+		case 81: goto tr65;
+		case 83: goto tr66;
+		case 86: goto tr67;
+		case 88: goto tr68;
+		case 90: goto tr69;
+		case 97: goto tr70;
+		case 99: goto tr61;
+		case 105: goto tr62;
+		case 108: goto tr63;
+		case 110: goto tr71;
+		case 113: goto tr65;
+		case 115: goto tr66;
+		case 118: goto tr72;
+		case 120: goto tr73;
 	}
-	if ( (*p) > 13 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr64;
-	} else if ( (*p) >= 9 )
-		goto tr62;
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr55;
 	goto tr1;
 case 8:
 	switch( (*p) ) {
-		case 0: goto tr77;
-		case 32: goto tr77;
+		case 0: goto tr74;
+		case 32: goto tr74;
+		case 33: goto tr75;
+		case 42: goto tr76;
 		case 64: goto tr78;
-		case 67: goto tr79;
-		case 73: goto tr80;
-		case 76: goto tr81;
-		case 78: goto tr82;
-		case 81: goto tr83;
-		case 83: goto tr84;
-		case 86: goto tr85;
-		case 88: goto tr86;
-		case 99: goto tr79;
-		case 105: goto tr80;
-		case 108: goto tr81;
-		case 110: goto tr87;
-		case 113: goto tr83;
-		case 115: goto tr84;
-		case 118: goto tr88;
-		case 120: goto tr89;
+		case 65: goto tr79;
+		case 67: goto tr80;
+		case 73: goto tr81;
+		case 76: goto tr82;
+		case 78: goto tr83;
+		case 81: goto tr84;
+		case 83: goto tr85;
+		case 86: goto tr86;
+		case 88: goto tr87;
+		case 90: goto tr88;
+		case 95: goto tr75;
+		case 97: goto tr89;
+		case 99: goto tr80;
+		case 105: goto tr81;
+		case 108: goto tr82;
+		case 110: goto tr90;
+		case 113: goto tr84;
+		case 115: goto tr85;
+		case 118: goto tr91;
+		case 120: goto tr92;
 	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr77;
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr77;
+	} else if ( (*p) >= 9 )
+		goto tr74;
 	goto tr1;
 case 9:
 	switch( (*p) ) {
-		case 0: goto tr90;
-		case 32: goto tr90;
-		case 33: goto tr91;
-		case 42: goto tr92;
-		case 64: goto tr94;
-		case 67: goto tr95;
-		case 73: goto tr96;
-		case 76: goto tr97;
-		case 78: goto tr98;
-		case 81: goto tr99;
-		case 83: goto tr100;
-		case 86: goto tr101;
-		case 88: goto tr102;
-		case 95: goto tr91;
-		case 99: goto tr95;
-		case 105: goto tr96;
-		case 108: goto tr97;
-		case 110: goto tr103;
-		case 113: goto tr99;
-		case 115: goto tr100;
-		case 118: goto tr104;
-		case 120: goto tr105;
+		case 0: goto tr93;
+		case 32: goto tr93;
+		case 42: goto tr94;
+		case 64: goto tr96;
+		case 65: goto tr97;
+		case 67: goto tr98;
+		case 73: goto tr99;
+		case 76: goto tr100;
+		case 78: goto tr101;
+		case 81: goto tr102;
+		case 83: goto tr103;
+		case 86: goto tr104;
+		case 88: goto tr105;
+		case 90: goto tr106;
+		case 97: goto tr107;
+		case 99: goto tr98;
+		case 105: goto tr99;
+		case 108: goto tr100;
+		case 110: goto tr108;
+		case 113: goto tr102;
+		case 115: goto tr103;
+		case 118: goto tr109;
+		case 120: goto tr110;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr93;
+			goto tr95;
 	} else if ( (*p) >= 9 )
-		goto tr90;
+		goto tr93;
 	goto tr1;
 case 10:
 	switch( (*p) ) {
-		case 0: goto tr106;
-		case 32: goto tr106;
-		case 42: goto tr107;
-		case 64: goto tr109;
-		case 67: goto tr110;
-		case 73: goto tr111;
-		case 76: goto tr112;
-		case 78: goto tr113;
-		case 81: goto tr114;
-		case 83: goto tr115;
-		case 86: goto tr116;
-		case 88: goto tr117;
-		case 99: goto tr110;
-		case 105: goto tr111;
-		case 108: goto tr112;
-		case 110: goto tr118;
-		case 113: goto tr114;
-		case 115: goto tr115;
-		case 118: goto tr119;
-		case 120: goto tr120;
+		case 0: goto tr111;
+		case 32: goto tr111;
+		case 64: goto tr112;
+		case 65: goto tr113;
+		case 67: goto tr114;
+		case 73: goto tr115;
+		case 76: goto tr116;
+		case 78: goto tr117;
+		case 81: goto tr118;
+		case 83: goto tr119;
+		case 86: goto tr120;
+		case 88: goto tr121;
+		case 90: goto tr122;
+		case 97: goto tr123;
+		case 99: goto tr114;
+		case 105: goto tr115;
+		case 108: goto tr116;
+		case 110: goto tr124;
+		case 113: goto tr118;
+		case 115: goto tr119;
+		case 118: goto tr125;
+		case 120: goto tr126;
 	}
-	if ( (*p) > 13 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr108;
-	} else if ( (*p) >= 9 )
-		goto tr106;
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr111;
 	goto tr1;
 case 11:
 	switch( (*p) ) {
-		case 0: goto tr121;
-		case 32: goto tr121;
-		case 64: goto tr122;
-		case 67: goto tr123;
-		case 73: goto tr124;
-		case 76: goto tr125;
-		case 78: goto tr126;
-		case 81: goto tr127;
-		case 83: goto tr128;
-		case 86: goto tr129;
-		case 88: goto tr130;
-		case 99: goto tr123;
-		case 105: goto tr124;
-		case 108: goto tr125;
-		case 110: goto tr131;
-		case 113: goto tr127;
-		case 115: goto tr128;
-		case 118: goto tr132;
-		case 120: goto tr133;
+		case 0: goto tr127;
+		case 32: goto tr127;
+		case 33: goto tr128;
+		case 42: goto tr129;
+		case 64: goto tr131;
+		case 65: goto tr132;
+		case 67: goto tr133;
+		case 73: goto tr134;
+		case 76: goto tr135;
+		case 78: goto tr136;
+		case 81: goto tr137;
+		case 83: goto tr138;
+		case 86: goto tr139;
+		case 88: goto tr140;
+		case 90: goto tr141;
+		case 95: goto tr128;
+		case 97: goto tr142;
+		case 99: goto tr133;
+		case 105: goto tr134;
+		case 108: goto tr135;
+		case 110: goto tr143;
+		case 113: goto tr137;
+		case 115: goto tr138;
+		case 118: goto tr144;
+		case 120: goto tr145;
 	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr121;
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr130;
+	} else if ( (*p) >= 9 )
+		goto tr127;
 	goto tr1;
 case 12:
 	switch( (*p) ) {
-		case 0: goto tr134;
-		case 32: goto tr134;
-		case 33: goto tr135;
-		case 42: goto tr136;
-		case 64: goto tr138;
-		case 67: goto tr139;
-		case 73: goto tr140;
-		case 76: goto tr141;
-		case 78: goto tr142;
-		case 81: goto tr143;
-		case 83: goto tr144;
-		case 86: goto tr145;
-		case 88: goto tr146;
-		case 95: goto tr135;
-		case 99: goto tr139;
-		case 105: goto tr140;
-		case 108: goto tr141;
-		case 110: goto tr147;
-		case 113: goto tr143;
-		case 115: goto tr144;
-		case 118: goto tr148;
-		case 120: goto tr149;
+		case 0: goto tr146;
+		case 32: goto tr146;
+		case 42: goto tr147;
+		case 64: goto tr149;
+		case 65: goto tr150;
+		case 67: goto tr151;
+		case 73: goto tr152;
+		case 76: goto tr153;
+		case 78: goto tr154;
+		case 81: goto tr155;
+		case 83: goto tr156;
+		case 86: goto tr157;
+		case 88: goto tr158;
+		case 90: goto tr159;
+		case 97: goto tr160;
+		case 99: goto tr151;
+		case 105: goto tr152;
+		case 108: goto tr153;
+		case 110: goto tr161;
+		case 113: goto tr155;
+		case 115: goto tr156;
+		case 118: goto tr162;
+		case 120: goto tr163;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr137;
+			goto tr148;
 	} else if ( (*p) >= 9 )
-		goto tr134;
+		goto tr146;
 	goto tr1;
 case 13:
 	switch( (*p) ) {
-		case 0: goto tr134;
-		case 32: goto tr134;
-		case 64: goto tr138;
-		case 67: goto tr139;
-		case 73: goto tr140;
-		case 76: goto tr141;
-		case 78: goto tr142;
-		case 81: goto tr143;
-		case 83: goto tr144;
-		case 86: goto tr145;
-		case 88: goto tr146;
-		case 99: goto tr139;
-		case 105: goto tr140;
-		case 108: goto tr141;
-		case 110: goto tr147;
-		case 113: goto tr143;
-		case 115: goto tr144;
-		case 118: goto tr148;
-		case 120: goto tr149;
+		case 0: goto tr164;
+		case 32: goto tr164;
+		case 64: goto tr165;
+		case 65: goto tr166;
+		case 67: goto tr167;
+		case 73: goto tr168;
+		case 76: goto tr169;
+		case 78: goto tr170;
+		case 81: goto tr171;
+		case 83: goto tr172;
+		case 86: goto tr173;
+		case 88: goto tr174;
+		case 90: goto tr175;
+		case 97: goto tr176;
+		case 99: goto tr167;
+		case 105: goto tr168;
+		case 108: goto tr169;
+		case 110: goto tr177;
+		case 113: goto tr171;
+		case 115: goto tr172;
+		case 118: goto tr178;
+		case 120: goto tr179;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr134;
+		goto tr164;
 	goto tr1;
 case 14:
 	switch( (*p) ) {
-		case 0: goto tr150;
-		case 32: goto tr150;
-		case 33: goto tr151;
-		case 42: goto tr152;
-		case 64: goto tr154;
-		case 67: goto tr155;
-		case 73: goto tr156;
-		case 76: goto tr157;
-		case 78: goto tr158;
-		case 81: goto tr159;
-		case 83: goto tr160;
-		case 86: goto tr161;
-		case 88: goto tr162;
-		case 95: goto tr151;
-		case 99: goto tr155;
-		case 105: goto tr156;
-		case 108: goto tr157;
-		case 110: goto tr163;
-		case 113: goto tr159;
-		case 115: goto tr160;
-		case 118: goto tr164;
-		case 120: goto tr165;
-	}
-	if ( (*p) > 13 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr153;
-	} else if ( (*p) >= 9 )
-		goto tr150;
-	goto tr1;
-case 15:
-	switch( (*p) ) {
-		case 0: goto tr150;
-		case 32: goto tr150;
-		case 64: goto tr154;
-		case 67: goto tr155;
-		case 73: goto tr156;
-		case 76: goto tr157;
-		case 78: goto tr158;
-		case 81: goto tr159;
-		case 83: goto tr160;
-		case 86: goto tr161;
-		case 88: goto tr162;
-		case 99: goto tr155;
-		case 105: goto tr156;
-		case 108: goto tr157;
-		case 110: goto tr163;
-		case 113: goto tr159;
-		case 115: goto tr160;
-		case 118: goto tr164;
-		case 120: goto tr165;
-	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr150;
-	goto tr1;
-case 16:
-	switch( (*p) ) {
-		case 0: goto tr166;
-		case 32: goto tr166;
-		case 33: goto tr167;
-		case 42: goto tr168;
-		case 64: goto tr170;
-		case 67: goto tr171;
-		case 73: goto tr172;
-		case 76: goto tr173;
-		case 78: goto tr174;
-		case 81: goto tr175;
-		case 83: goto tr176;
-		case 86: goto tr177;
-		case 88: goto tr178;
-		case 95: goto tr167;
-		case 99: goto tr171;
-		case 105: goto tr172;
-		case 108: goto tr173;
-		case 110: goto tr179;
-		case 113: goto tr175;
-		case 115: goto tr176;
-		case 118: goto tr180;
-		case 120: goto tr181;
-	}
-	if ( (*p) > 13 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr169;
-	} else if ( (*p) >= 9 )
-		goto tr166;
-	goto tr1;
-case 17:
-	switch( (*p) ) {
-		case 0: goto tr182;
-		case 32: goto tr182;
-		case 42: goto tr183;
-		case 64: goto tr185;
+		case 0: goto tr180;
+		case 32: goto tr180;
+		case 33: goto tr181;
+		case 42: goto tr182;
+		case 64: goto tr184;
+		case 65: goto tr185;
 		case 67: goto tr186;
 		case 73: goto tr187;
 		case 76: goto tr188;
@@ -635,490 +622,402 @@ case 17:
 		case 83: goto tr191;
 		case 86: goto tr192;
 		case 88: goto tr193;
+		case 90: goto tr194;
+		case 95: goto tr181;
+		case 97: goto tr195;
 		case 99: goto tr186;
 		case 105: goto tr187;
 		case 108: goto tr188;
-		case 110: goto tr194;
+		case 110: goto tr196;
 		case 113: goto tr190;
 		case 115: goto tr191;
-		case 118: goto tr195;
-		case 120: goto tr196;
+		case 118: goto tr197;
+		case 120: goto tr198;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr184;
+			goto tr183;
 	} else if ( (*p) >= 9 )
-		goto tr182;
+		goto tr180;
+	goto tr1;
+case 15:
+	switch( (*p) ) {
+		case 0: goto tr180;
+		case 32: goto tr180;
+		case 64: goto tr184;
+		case 65: goto tr185;
+		case 67: goto tr186;
+		case 73: goto tr187;
+		case 76: goto tr188;
+		case 78: goto tr189;
+		case 81: goto tr190;
+		case 83: goto tr191;
+		case 86: goto tr192;
+		case 88: goto tr193;
+		case 90: goto tr194;
+		case 97: goto tr195;
+		case 99: goto tr186;
+		case 105: goto tr187;
+		case 108: goto tr188;
+		case 110: goto tr196;
+		case 113: goto tr190;
+		case 115: goto tr191;
+		case 118: goto tr197;
+		case 120: goto tr198;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr180;
+	goto tr1;
+case 16:
+	switch( (*p) ) {
+		case 0: goto tr199;
+		case 32: goto tr199;
+		case 33: goto tr200;
+		case 42: goto tr201;
+		case 64: goto tr203;
+		case 65: goto tr204;
+		case 67: goto tr205;
+		case 73: goto tr206;
+		case 76: goto tr207;
+		case 78: goto tr208;
+		case 81: goto tr209;
+		case 83: goto tr210;
+		case 86: goto tr211;
+		case 88: goto tr212;
+		case 90: goto tr213;
+		case 95: goto tr200;
+		case 97: goto tr214;
+		case 99: goto tr205;
+		case 105: goto tr206;
+		case 108: goto tr207;
+		case 110: goto tr215;
+		case 113: goto tr209;
+		case 115: goto tr210;
+		case 118: goto tr216;
+		case 120: goto tr217;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr202;
+	} else if ( (*p) >= 9 )
+		goto tr199;
+	goto tr1;
+case 17:
+	switch( (*p) ) {
+		case 0: goto tr199;
+		case 32: goto tr199;
+		case 64: goto tr203;
+		case 65: goto tr204;
+		case 67: goto tr205;
+		case 73: goto tr206;
+		case 76: goto tr207;
+		case 78: goto tr208;
+		case 81: goto tr209;
+		case 83: goto tr210;
+		case 86: goto tr211;
+		case 88: goto tr212;
+		case 90: goto tr213;
+		case 97: goto tr214;
+		case 99: goto tr205;
+		case 105: goto tr206;
+		case 108: goto tr207;
+		case 110: goto tr215;
+		case 113: goto tr209;
+		case 115: goto tr210;
+		case 118: goto tr216;
+		case 120: goto tr217;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr199;
 	goto tr1;
 case 18:
 	switch( (*p) ) {
-		case 0: goto tr197;
-		case 32: goto tr197;
-		case 64: goto tr198;
-		case 67: goto tr199;
-		case 73: goto tr200;
-		case 76: goto tr201;
-		case 78: goto tr202;
-		case 81: goto tr203;
-		case 83: goto tr204;
-		case 86: goto tr205;
-		case 88: goto tr206;
-		case 99: goto tr199;
-		case 105: goto tr200;
-		case 108: goto tr201;
-		case 110: goto tr207;
-		case 113: goto tr203;
-		case 115: goto tr204;
-		case 118: goto tr208;
-		case 120: goto tr209;
+		case 0: goto tr218;
+		case 32: goto tr218;
+		case 33: goto tr219;
+		case 42: goto tr220;
+		case 64: goto tr222;
+		case 65: goto tr223;
+		case 67: goto tr224;
+		case 73: goto tr225;
+		case 76: goto tr226;
+		case 78: goto tr227;
+		case 81: goto tr228;
+		case 83: goto tr229;
+		case 86: goto tr230;
+		case 88: goto tr231;
+		case 90: goto tr232;
+		case 95: goto tr219;
+		case 97: goto tr233;
+		case 99: goto tr224;
+		case 105: goto tr225;
+		case 108: goto tr226;
+		case 110: goto tr234;
+		case 113: goto tr228;
+		case 115: goto tr229;
+		case 118: goto tr235;
+		case 120: goto tr236;
 	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr197;
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr221;
+	} else if ( (*p) >= 9 )
+		goto tr218;
 	goto tr1;
 case 19:
 	switch( (*p) ) {
-		case 0: goto tr210;
-		case 32: goto tr210;
-		case 33: goto tr211;
-		case 42: goto tr212;
-		case 64: goto tr214;
-		case 67: goto tr215;
-		case 73: goto tr216;
-		case 76: goto tr217;
-		case 78: goto tr218;
-		case 81: goto tr219;
-		case 83: goto tr220;
-		case 86: goto tr221;
-		case 88: goto tr222;
-		case 95: goto tr211;
-		case 99: goto tr215;
-		case 105: goto tr216;
-		case 108: goto tr217;
-		case 110: goto tr223;
-		case 113: goto tr219;
-		case 115: goto tr220;
-		case 118: goto tr224;
-		case 120: goto tr225;
+		case 0: goto tr237;
+		case 32: goto tr237;
+		case 42: goto tr238;
+		case 64: goto tr240;
+		case 65: goto tr241;
+		case 67: goto tr242;
+		case 73: goto tr243;
+		case 76: goto tr244;
+		case 78: goto tr245;
+		case 81: goto tr246;
+		case 83: goto tr247;
+		case 86: goto tr248;
+		case 88: goto tr249;
+		case 90: goto tr250;
+		case 97: goto tr251;
+		case 99: goto tr242;
+		case 105: goto tr243;
+		case 108: goto tr244;
+		case 110: goto tr252;
+		case 113: goto tr246;
+		case 115: goto tr247;
+		case 118: goto tr253;
+		case 120: goto tr254;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr213;
+			goto tr239;
 	} else if ( (*p) >= 9 )
-		goto tr210;
+		goto tr237;
 	goto tr1;
 case 20:
 	switch( (*p) ) {
-		case 0: goto tr210;
-		case 32: goto tr210;
-		case 64: goto tr214;
-		case 67: goto tr215;
-		case 73: goto tr216;
-		case 76: goto tr217;
-		case 78: goto tr218;
-		case 81: goto tr219;
-		case 83: goto tr220;
-		case 86: goto tr221;
-		case 88: goto tr222;
-		case 99: goto tr215;
-		case 105: goto tr216;
-		case 108: goto tr217;
-		case 110: goto tr223;
-		case 113: goto tr219;
-		case 115: goto tr220;
-		case 118: goto tr224;
-		case 120: goto tr225;
+		case 0: goto tr255;
+		case 32: goto tr255;
+		case 64: goto tr256;
+		case 65: goto tr257;
+		case 67: goto tr258;
+		case 73: goto tr259;
+		case 76: goto tr260;
+		case 78: goto tr261;
+		case 81: goto tr262;
+		case 83: goto tr263;
+		case 86: goto tr264;
+		case 88: goto tr265;
+		case 90: goto tr266;
+		case 97: goto tr267;
+		case 99: goto tr258;
+		case 105: goto tr259;
+		case 108: goto tr260;
+		case 110: goto tr268;
+		case 113: goto tr262;
+		case 115: goto tr263;
+		case 118: goto tr269;
+		case 120: goto tr270;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr210;
+		goto tr255;
 	goto tr1;
 case 21:
 	switch( (*p) ) {
-		case 0: goto tr226;
-		case 32: goto tr226;
-		case 33: goto tr227;
-		case 42: goto tr228;
-		case 64: goto tr230;
-		case 67: goto tr231;
-		case 73: goto tr232;
-		case 76: goto tr233;
-		case 78: goto tr234;
-		case 81: goto tr235;
-		case 83: goto tr236;
-		case 86: goto tr237;
-		case 88: goto tr238;
-		case 95: goto tr227;
-		case 99: goto tr231;
-		case 105: goto tr232;
-		case 108: goto tr233;
-		case 110: goto tr239;
-		case 113: goto tr235;
-		case 115: goto tr236;
-		case 118: goto tr240;
-		case 120: goto tr241;
+		case 0: goto tr271;
+		case 32: goto tr271;
+		case 33: goto tr272;
+		case 42: goto tr273;
+		case 64: goto tr275;
+		case 65: goto tr276;
+		case 67: goto tr277;
+		case 73: goto tr278;
+		case 76: goto tr279;
+		case 78: goto tr280;
+		case 81: goto tr281;
+		case 83: goto tr282;
+		case 86: goto tr283;
+		case 88: goto tr284;
+		case 90: goto tr285;
+		case 95: goto tr272;
+		case 97: goto tr286;
+		case 99: goto tr277;
+		case 105: goto tr278;
+		case 108: goto tr279;
+		case 110: goto tr287;
+		case 113: goto tr281;
+		case 115: goto tr282;
+		case 118: goto tr288;
+		case 120: goto tr289;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr229;
+			goto tr274;
 	} else if ( (*p) >= 9 )
-		goto tr226;
+		goto tr271;
 	goto tr1;
 case 22:
 	switch( (*p) ) {
-		case 0: goto tr226;
-		case 32: goto tr226;
-		case 64: goto tr230;
-		case 67: goto tr231;
-		case 73: goto tr232;
-		case 76: goto tr233;
-		case 78: goto tr234;
-		case 81: goto tr235;
-		case 83: goto tr236;
-		case 86: goto tr237;
-		case 88: goto tr238;
-		case 99: goto tr231;
-		case 105: goto tr232;
-		case 108: goto tr233;
-		case 110: goto tr239;
-		case 113: goto tr235;
-		case 115: goto tr236;
-		case 118: goto tr240;
-		case 120: goto tr241;
+		case 0: goto tr271;
+		case 32: goto tr271;
+		case 64: goto tr275;
+		case 65: goto tr276;
+		case 67: goto tr277;
+		case 73: goto tr278;
+		case 76: goto tr279;
+		case 78: goto tr280;
+		case 81: goto tr281;
+		case 83: goto tr282;
+		case 86: goto tr283;
+		case 88: goto tr284;
+		case 90: goto tr285;
+		case 97: goto tr286;
+		case 99: goto tr277;
+		case 105: goto tr278;
+		case 108: goto tr279;
+		case 110: goto tr287;
+		case 113: goto tr281;
+		case 115: goto tr282;
+		case 118: goto tr288;
+		case 120: goto tr289;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr226;
+		goto tr271;
 	goto tr1;
 case 23:
 	switch( (*p) ) {
-		case 0: goto tr242;
-		case 32: goto tr242;
-		case 33: goto tr243;
-		case 42: goto tr244;
-		case 64: goto tr246;
-		case 67: goto tr247;
-		case 73: goto tr248;
-		case 76: goto tr249;
-		case 78: goto tr250;
-		case 81: goto tr251;
-		case 83: goto tr252;
-		case 86: goto tr253;
-		case 88: goto tr254;
-		case 95: goto tr243;
-		case 99: goto tr247;
-		case 105: goto tr248;
-		case 108: goto tr249;
-		case 110: goto tr255;
-		case 113: goto tr251;
-		case 115: goto tr252;
-		case 118: goto tr256;
-		case 120: goto tr257;
+		case 0: goto tr290;
+		case 32: goto tr290;
+		case 33: goto tr291;
+		case 42: goto tr292;
+		case 64: goto tr294;
+		case 65: goto tr295;
+		case 67: goto tr296;
+		case 73: goto tr297;
+		case 76: goto tr298;
+		case 78: goto tr299;
+		case 81: goto tr300;
+		case 83: goto tr301;
+		case 86: goto tr302;
+		case 88: goto tr303;
+		case 90: goto tr304;
+		case 95: goto tr291;
+		case 97: goto tr305;
+		case 99: goto tr296;
+		case 105: goto tr297;
+		case 108: goto tr298;
+		case 110: goto tr306;
+		case 113: goto tr300;
+		case 115: goto tr301;
+		case 118: goto tr307;
+		case 120: goto tr308;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr245;
+			goto tr293;
 	} else if ( (*p) >= 9 )
-		goto tr242;
+		goto tr290;
 	goto tr1;
 case 24:
 	switch( (*p) ) {
-		case 0: goto tr242;
-		case 32: goto tr242;
-		case 64: goto tr246;
-		case 67: goto tr247;
-		case 73: goto tr248;
-		case 76: goto tr249;
-		case 78: goto tr250;
-		case 81: goto tr251;
-		case 83: goto tr252;
-		case 86: goto tr253;
-		case 88: goto tr254;
-		case 99: goto tr247;
-		case 105: goto tr248;
-		case 108: goto tr249;
-		case 110: goto tr255;
-		case 113: goto tr251;
-		case 115: goto tr252;
-		case 118: goto tr256;
-		case 120: goto tr257;
-	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr242;
-	goto tr1;
-case 25:
-	switch( (*p) ) {
-		case 0: goto tr258;
-		case 32: goto tr258;
-		case 33: goto tr259;
-		case 42: goto tr260;
-		case 64: goto tr262;
-		case 67: goto tr263;
-		case 73: goto tr264;
-		case 76: goto tr265;
-		case 78: goto tr266;
-		case 81: goto tr267;
-		case 83: goto tr268;
-		case 86: goto tr269;
-		case 88: goto tr270;
-		case 95: goto tr259;
-		case 99: goto tr263;
-		case 105: goto tr264;
-		case 108: goto tr265;
-		case 110: goto tr271;
-		case 113: goto tr267;
-		case 115: goto tr268;
-		case 118: goto tr272;
-		case 120: goto tr273;
-	}
-	if ( (*p) > 13 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr261;
-	} else if ( (*p) >= 9 )
-		goto tr258;
-	goto tr1;
-case 26:
-	switch( (*p) ) {
-		case 0: goto tr258;
-		case 32: goto tr258;
-		case 64: goto tr262;
-		case 67: goto tr263;
-		case 73: goto tr264;
-		case 76: goto tr265;
-		case 78: goto tr266;
-		case 81: goto tr267;
-		case 83: goto tr268;
-		case 86: goto tr269;
-		case 88: goto tr270;
-		case 99: goto tr263;
-		case 105: goto tr264;
-		case 108: goto tr265;
-		case 110: goto tr271;
-		case 113: goto tr267;
-		case 115: goto tr268;
-		case 118: goto tr272;
-		case 120: goto tr273;
-	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr258;
-	goto tr1;
-case 27:
-	switch( (*p) ) {
-		case 0: goto tr274;
-		case 32: goto tr274;
-		case 33: goto tr275;
-		case 42: goto tr276;
-		case 64: goto tr278;
-		case 67: goto tr279;
-		case 73: goto tr280;
-		case 76: goto tr281;
-		case 78: goto tr282;
-		case 81: goto tr283;
-		case 83: goto tr284;
-		case 86: goto tr285;
-		case 88: goto tr286;
-		case 95: goto tr275;
-		case 99: goto tr279;
-		case 105: goto tr280;
-		case 108: goto tr281;
-		case 110: goto tr287;
-		case 113: goto tr283;
-		case 115: goto tr284;
-		case 118: goto tr288;
-		case 120: goto tr289;
-	}
-	if ( (*p) > 13 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr277;
-	} else if ( (*p) >= 9 )
-		goto tr274;
-	goto tr1;
-case 28:
-	switch( (*p) ) {
-		case 0: goto tr274;
-		case 32: goto tr274;
-		case 64: goto tr278;
-		case 67: goto tr279;
-		case 73: goto tr280;
-		case 76: goto tr281;
-		case 78: goto tr282;
-		case 81: goto tr283;
-		case 83: goto tr284;
-		case 86: goto tr285;
-		case 88: goto tr286;
-		case 99: goto tr279;
-		case 105: goto tr280;
-		case 108: goto tr281;
-		case 110: goto tr287;
-		case 113: goto tr283;
-		case 115: goto tr284;
-		case 118: goto tr288;
-		case 120: goto tr289;
-	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr274;
-	goto tr1;
-case 29:
-	switch( (*p) ) {
 		case 0: goto tr290;
 		case 32: goto tr290;
-		case 64: goto tr291;
-		case 67: goto tr292;
-		case 73: goto tr293;
-		case 76: goto tr294;
-		case 78: goto tr295;
-		case 81: goto tr296;
-		case 83: goto tr297;
-		case 86: goto tr298;
-		case 88: goto tr299;
-		case 99: goto tr292;
-		case 105: goto tr293;
-		case 108: goto tr294;
-		case 110: goto tr300;
-		case 113: goto tr296;
-		case 115: goto tr297;
-		case 118: goto tr301;
-		case 120: goto tr302;
+		case 64: goto tr294;
+		case 65: goto tr295;
+		case 67: goto tr296;
+		case 73: goto tr297;
+		case 76: goto tr298;
+		case 78: goto tr299;
+		case 81: goto tr300;
+		case 83: goto tr301;
+		case 86: goto tr302;
+		case 88: goto tr303;
+		case 90: goto tr304;
+		case 97: goto tr305;
+		case 99: goto tr296;
+		case 105: goto tr297;
+		case 108: goto tr298;
+		case 110: goto tr306;
+		case 113: goto tr300;
+		case 115: goto tr301;
+		case 118: goto tr307;
+		case 120: goto tr308;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
 		goto tr290;
 	goto tr1;
-case 30:
+case 25:
 	switch( (*p) ) {
-		case 0: goto tr274;
-		case 32: goto tr274;
-		case 64: goto tr278;
-		case 67: goto tr279;
-		case 73: goto tr280;
-		case 76: goto tr281;
-		case 78: goto tr282;
-		case 81: goto tr283;
-		case 83: goto tr284;
-		case 86: goto tr285;
-		case 88: goto tr286;
-		case 99: goto tr279;
-		case 105: goto tr280;
-		case 108: goto tr281;
-		case 110: goto tr287;
-		case 113: goto tr283;
-		case 115: goto tr284;
-		case 118: goto tr288;
-		case 120: goto tr289;
+		case 0: goto tr309;
+		case 32: goto tr309;
+		case 33: goto tr310;
+		case 42: goto tr311;
+		case 64: goto tr313;
+		case 65: goto tr314;
+		case 67: goto tr315;
+		case 73: goto tr316;
+		case 76: goto tr317;
+		case 78: goto tr318;
+		case 81: goto tr319;
+		case 83: goto tr320;
+		case 86: goto tr321;
+		case 88: goto tr322;
+		case 90: goto tr323;
+		case 95: goto tr310;
+		case 97: goto tr324;
+		case 99: goto tr315;
+		case 105: goto tr316;
+		case 108: goto tr317;
+		case 110: goto tr325;
+		case 113: goto tr319;
+		case 115: goto tr320;
+		case 118: goto tr326;
+		case 120: goto tr327;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr303;
+			goto tr312;
 	} else if ( (*p) >= 9 )
-		goto tr274;
+		goto tr309;
 	goto tr1;
-case 31:
+case 26:
 	switch( (*p) ) {
-		case 0: goto tr304;
-		case 32: goto tr304;
-		case 64: goto tr305;
-		case 67: goto tr306;
-		case 73: goto tr307;
-		case 76: goto tr308;
-		case 78: goto tr309;
-		case 81: goto tr310;
-		case 83: goto tr311;
-		case 86: goto tr312;
-		case 88: goto tr313;
-		case 99: goto tr306;
-		case 105: goto tr307;
-		case 108: goto tr308;
-		case 110: goto tr314;
-		case 113: goto tr310;
-		case 115: goto tr311;
-		case 118: goto tr315;
-		case 120: goto tr316;
+		case 0: goto tr309;
+		case 32: goto tr309;
+		case 64: goto tr313;
+		case 65: goto tr314;
+		case 67: goto tr315;
+		case 73: goto tr316;
+		case 76: goto tr317;
+		case 78: goto tr318;
+		case 81: goto tr319;
+		case 83: goto tr320;
+		case 86: goto tr321;
+		case 88: goto tr322;
+		case 90: goto tr323;
+		case 97: goto tr324;
+		case 99: goto tr315;
+		case 105: goto tr316;
+		case 108: goto tr317;
+		case 110: goto tr325;
+		case 113: goto tr319;
+		case 115: goto tr320;
+		case 118: goto tr326;
+		case 120: goto tr327;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr304;
+		goto tr309;
 	goto tr1;
-case 32:
+case 27:
 	switch( (*p) ) {
-		case 0: goto tr258;
-		case 32: goto tr258;
-		case 64: goto tr262;
-		case 67: goto tr263;
-		case 73: goto tr264;
-		case 76: goto tr265;
-		case 78: goto tr266;
-		case 81: goto tr267;
-		case 83: goto tr268;
-		case 86: goto tr269;
-		case 88: goto tr270;
-		case 99: goto tr263;
-		case 105: goto tr264;
-		case 108: goto tr265;
-		case 110: goto tr271;
-		case 113: goto tr267;
-		case 115: goto tr268;
-		case 118: goto tr272;
-		case 120: goto tr273;
-	}
-	if ( (*p) > 13 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr317;
-	} else if ( (*p) >= 9 )
-		goto tr258;
-	goto tr1;
-case 33:
-	switch( (*p) ) {
-		case 0: goto tr318;
-		case 32: goto tr318;
-		case 64: goto tr319;
-		case 67: goto tr320;
-		case 73: goto tr321;
-		case 76: goto tr322;
-		case 78: goto tr323;
-		case 81: goto tr324;
-		case 83: goto tr325;
-		case 86: goto tr326;
-		case 88: goto tr327;
-		case 99: goto tr320;
-		case 105: goto tr321;
-		case 108: goto tr322;
-		case 110: goto tr328;
-		case 113: goto tr324;
-		case 115: goto tr325;
-		case 118: goto tr329;
-		case 120: goto tr330;
-	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr318;
-	goto tr1;
-case 34:
-	switch( (*p) ) {
-		case 0: goto tr242;
-		case 32: goto tr242;
-		case 64: goto tr246;
-		case 67: goto tr247;
-		case 73: goto tr248;
-		case 76: goto tr249;
-		case 78: goto tr250;
-		case 81: goto tr251;
-		case 83: goto tr252;
-		case 86: goto tr253;
-		case 88: goto tr254;
-		case 99: goto tr247;
-		case 105: goto tr248;
-		case 108: goto tr249;
-		case 110: goto tr255;
-		case 113: goto tr251;
-		case 115: goto tr252;
-		case 118: goto tr256;
-		case 120: goto tr257;
-	}
-	if ( (*p) > 13 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr331;
-	} else if ( (*p) >= 9 )
-		goto tr242;
-	goto tr1;
-case 35:
-	switch( (*p) ) {
-		case 0: goto tr332;
-		case 32: goto tr332;
-		case 64: goto tr333;
+		case 0: goto tr328;
+		case 32: goto tr328;
+		case 33: goto tr329;
+		case 42: goto tr330;
+		case 64: goto tr332;
+		case 65: goto tr333;
 		case 67: goto tr334;
 		case 73: goto tr335;
 		case 76: goto tr336;
@@ -1127,372 +1026,244 @@ case 35:
 		case 83: goto tr339;
 		case 86: goto tr340;
 		case 88: goto tr341;
+		case 90: goto tr342;
+		case 95: goto tr329;
+		case 97: goto tr343;
 		case 99: goto tr334;
 		case 105: goto tr335;
 		case 108: goto tr336;
-		case 110: goto tr342;
+		case 110: goto tr344;
 		case 113: goto tr338;
 		case 115: goto tr339;
-		case 118: goto tr343;
-		case 120: goto tr344;
-	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr332;
-	goto tr1;
-case 36:
-	switch( (*p) ) {
-		case 0: goto tr226;
-		case 32: goto tr226;
-		case 64: goto tr230;
-		case 67: goto tr231;
-		case 73: goto tr232;
-		case 76: goto tr233;
-		case 78: goto tr234;
-		case 81: goto tr235;
-		case 83: goto tr236;
-		case 86: goto tr237;
-		case 88: goto tr238;
-		case 99: goto tr231;
-		case 105: goto tr232;
-		case 108: goto tr233;
-		case 110: goto tr239;
-		case 113: goto tr235;
-		case 115: goto tr236;
-		case 118: goto tr240;
-		case 120: goto tr241;
+		case 118: goto tr345;
+		case 120: goto tr346;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr345;
+			goto tr331;
 	} else if ( (*p) >= 9 )
-		goto tr226;
+		goto tr328;
 	goto tr1;
-case 37:
+case 28:
 	switch( (*p) ) {
-		case 0: goto tr346;
-		case 32: goto tr346;
-		case 64: goto tr347;
-		case 67: goto tr348;
-		case 73: goto tr349;
-		case 76: goto tr350;
-		case 78: goto tr351;
-		case 81: goto tr352;
-		case 83: goto tr353;
-		case 86: goto tr354;
-		case 88: goto tr355;
-		case 99: goto tr348;
-		case 105: goto tr349;
-		case 108: goto tr350;
-		case 110: goto tr356;
-		case 113: goto tr352;
-		case 115: goto tr353;
-		case 118: goto tr357;
-		case 120: goto tr358;
+		case 0: goto tr328;
+		case 32: goto tr328;
+		case 64: goto tr332;
+		case 65: goto tr333;
+		case 67: goto tr334;
+		case 73: goto tr335;
+		case 76: goto tr336;
+		case 78: goto tr337;
+		case 81: goto tr338;
+		case 83: goto tr339;
+		case 86: goto tr340;
+		case 88: goto tr341;
+		case 90: goto tr342;
+		case 97: goto tr343;
+		case 99: goto tr334;
+		case 105: goto tr335;
+		case 108: goto tr336;
+		case 110: goto tr344;
+		case 113: goto tr338;
+		case 115: goto tr339;
+		case 118: goto tr345;
+		case 120: goto tr346;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr346;
+		goto tr328;
 	goto tr1;
-case 38:
+case 29:
 	switch( (*p) ) {
-		case 0: goto tr210;
-		case 32: goto tr210;
-		case 64: goto tr214;
-		case 67: goto tr215;
-		case 73: goto tr216;
-		case 76: goto tr217;
-		case 78: goto tr218;
-		case 81: goto tr219;
-		case 83: goto tr220;
-		case 86: goto tr221;
-		case 88: goto tr222;
-		case 99: goto tr215;
-		case 105: goto tr216;
-		case 108: goto tr217;
-		case 110: goto tr223;
-		case 113: goto tr219;
-		case 115: goto tr220;
-		case 118: goto tr224;
-		case 120: goto tr225;
+		case 0: goto tr347;
+		case 32: goto tr347;
+		case 33: goto tr348;
+		case 42: goto tr349;
+		case 64: goto tr351;
+		case 65: goto tr352;
+		case 67: goto tr353;
+		case 73: goto tr354;
+		case 76: goto tr355;
+		case 78: goto tr356;
+		case 81: goto tr357;
+		case 83: goto tr358;
+		case 86: goto tr359;
+		case 88: goto tr360;
+		case 90: goto tr361;
+		case 95: goto tr348;
+		case 97: goto tr362;
+		case 99: goto tr353;
+		case 105: goto tr354;
+		case 108: goto tr355;
+		case 110: goto tr363;
+		case 113: goto tr357;
+		case 115: goto tr358;
+		case 118: goto tr364;
+		case 120: goto tr365;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr359;
+			goto tr350;
 	} else if ( (*p) >= 9 )
-		goto tr210;
+		goto tr347;
 	goto tr1;
-case 39:
+case 30:
 	switch( (*p) ) {
-		case 0: goto tr166;
-		case 32: goto tr166;
-		case 64: goto tr170;
-		case 67: goto tr171;
-		case 73: goto tr172;
-		case 76: goto tr173;
-		case 78: goto tr174;
-		case 81: goto tr175;
-		case 83: goto tr176;
-		case 86: goto tr177;
-		case 88: goto tr178;
-		case 99: goto tr171;
-		case 105: goto tr172;
-		case 108: goto tr173;
-		case 110: goto tr179;
-		case 113: goto tr175;
-		case 115: goto tr176;
-		case 118: goto tr180;
-		case 120: goto tr181;
+		case 0: goto tr347;
+		case 32: goto tr347;
+		case 64: goto tr351;
+		case 65: goto tr352;
+		case 67: goto tr353;
+		case 73: goto tr354;
+		case 76: goto tr355;
+		case 78: goto tr356;
+		case 81: goto tr357;
+		case 83: goto tr358;
+		case 86: goto tr359;
+		case 88: goto tr360;
+		case 90: goto tr361;
+		case 97: goto tr362;
+		case 99: goto tr353;
+		case 105: goto tr354;
+		case 108: goto tr355;
+		case 110: goto tr363;
+		case 113: goto tr357;
+		case 115: goto tr358;
+		case 118: goto tr364;
+		case 120: goto tr365;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr347;
+	goto tr1;
+case 31:
+	switch( (*p) ) {
+		case 0: goto tr366;
+		case 32: goto tr366;
+		case 33: goto tr367;
+		case 42: goto tr368;
+		case 64: goto tr370;
+		case 65: goto tr371;
+		case 67: goto tr372;
+		case 73: goto tr373;
+		case 76: goto tr374;
+		case 78: goto tr375;
+		case 81: goto tr376;
+		case 83: goto tr377;
+		case 86: goto tr378;
+		case 88: goto tr379;
+		case 90: goto tr380;
+		case 95: goto tr367;
+		case 97: goto tr381;
+		case 99: goto tr372;
+		case 105: goto tr373;
+		case 108: goto tr374;
+		case 110: goto tr382;
+		case 113: goto tr376;
+		case 115: goto tr377;
+		case 118: goto tr383;
+		case 120: goto tr384;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr360;
+			goto tr369;
 	} else if ( (*p) >= 9 )
-		goto tr166;
+		goto tr366;
 	goto tr1;
-case 40:
+case 32:
 	switch( (*p) ) {
-		case 0: goto tr361;
-		case 32: goto tr361;
-		case 64: goto tr362;
-		case 67: goto tr363;
-		case 73: goto tr364;
-		case 76: goto tr365;
-		case 78: goto tr366;
-		case 81: goto tr367;
-		case 83: goto tr368;
-		case 86: goto tr369;
-		case 88: goto tr370;
-		case 99: goto tr363;
-		case 105: goto tr364;
-		case 108: goto tr365;
-		case 110: goto tr371;
-		case 113: goto tr367;
-		case 115: goto tr368;
-		case 118: goto tr372;
-		case 120: goto tr373;
+		case 0: goto tr366;
+		case 32: goto tr366;
+		case 64: goto tr370;
+		case 65: goto tr371;
+		case 67: goto tr372;
+		case 73: goto tr373;
+		case 76: goto tr374;
+		case 78: goto tr375;
+		case 81: goto tr376;
+		case 83: goto tr377;
+		case 86: goto tr378;
+		case 88: goto tr379;
+		case 90: goto tr380;
+		case 97: goto tr381;
+		case 99: goto tr372;
+		case 105: goto tr373;
+		case 108: goto tr374;
+		case 110: goto tr382;
+		case 113: goto tr376;
+		case 115: goto tr377;
+		case 118: goto tr383;
+		case 120: goto tr384;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr361;
+		goto tr366;
 	goto tr1;
-case 41:
+case 33:
 	switch( (*p) ) {
-		case 0: goto tr150;
-		case 32: goto tr150;
-		case 64: goto tr154;
-		case 67: goto tr155;
-		case 73: goto tr156;
-		case 76: goto tr157;
-		case 78: goto tr158;
-		case 81: goto tr159;
-		case 83: goto tr160;
-		case 86: goto tr161;
-		case 88: goto tr162;
-		case 99: goto tr155;
-		case 105: goto tr156;
-		case 108: goto tr157;
-		case 110: goto tr163;
-		case 113: goto tr159;
-		case 115: goto tr160;
-		case 118: goto tr164;
-		case 120: goto tr165;
-	}
-	if ( (*p) > 13 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr374;
-	} else if ( (*p) >= 9 )
-		goto tr150;
-	goto tr1;
-case 42:
-	switch( (*p) ) {
-		case 0: goto tr375;
-		case 32: goto tr375;
-		case 64: goto tr376;
-		case 67: goto tr377;
-		case 73: goto tr378;
-		case 76: goto tr379;
-		case 78: goto tr380;
-		case 81: goto tr381;
-		case 83: goto tr382;
-		case 86: goto tr383;
-		case 88: goto tr384;
-		case 99: goto tr377;
-		case 105: goto tr378;
-		case 108: goto tr379;
-		case 110: goto tr385;
-		case 113: goto tr381;
-		case 115: goto tr382;
-		case 118: goto tr386;
-		case 120: goto tr387;
-	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr375;
-	goto tr1;
-case 43:
-	switch( (*p) ) {
-		case 0: goto tr134;
-		case 32: goto tr134;
-		case 64: goto tr138;
-		case 67: goto tr139;
-		case 73: goto tr140;
-		case 76: goto tr141;
-		case 78: goto tr142;
-		case 81: goto tr143;
-		case 83: goto tr144;
-		case 86: goto tr145;
-		case 88: goto tr146;
-		case 99: goto tr139;
-		case 105: goto tr140;
-		case 108: goto tr141;
-		case 110: goto tr147;
-		case 113: goto tr143;
-		case 115: goto tr144;
-		case 118: goto tr148;
-		case 120: goto tr149;
+		case 0: goto tr385;
+		case 32: goto tr385;
+		case 33: goto tr386;
+		case 42: goto tr387;
+		case 64: goto tr389;
+		case 65: goto tr390;
+		case 67: goto tr391;
+		case 73: goto tr392;
+		case 76: goto tr393;
+		case 78: goto tr394;
+		case 81: goto tr395;
+		case 83: goto tr396;
+		case 86: goto tr397;
+		case 88: goto tr398;
+		case 90: goto tr399;
+		case 95: goto tr386;
+		case 97: goto tr400;
+		case 99: goto tr391;
+		case 105: goto tr392;
+		case 108: goto tr393;
+		case 110: goto tr401;
+		case 113: goto tr395;
+		case 115: goto tr396;
+		case 118: goto tr402;
+		case 120: goto tr403;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
 			goto tr388;
 	} else if ( (*p) >= 9 )
-		goto tr134;
+		goto tr385;
 	goto tr1;
-case 44:
+case 34:
 	switch( (*p) ) {
-		case 0: goto tr90;
-		case 32: goto tr90;
-		case 64: goto tr94;
-		case 67: goto tr95;
-		case 73: goto tr96;
-		case 76: goto tr97;
-		case 78: goto tr98;
-		case 81: goto tr99;
-		case 83: goto tr100;
-		case 86: goto tr101;
-		case 88: goto tr102;
-		case 99: goto tr95;
-		case 105: goto tr96;
-		case 108: goto tr97;
-		case 110: goto tr103;
-		case 113: goto tr99;
-		case 115: goto tr100;
-		case 118: goto tr104;
-		case 120: goto tr105;
-	}
-	if ( (*p) > 13 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr389;
-	} else if ( (*p) >= 9 )
-		goto tr90;
-	goto tr1;
-case 45:
-	switch( (*p) ) {
-		case 0: goto tr46;
-		case 32: goto tr46;
-		case 64: goto tr50;
-		case 67: goto tr51;
-		case 73: goto tr52;
-		case 76: goto tr53;
-		case 78: goto tr54;
-		case 81: goto tr55;
-		case 83: goto tr56;
-		case 86: goto tr57;
-		case 88: goto tr58;
-		case 99: goto tr51;
-		case 105: goto tr52;
-		case 108: goto tr53;
-		case 110: goto tr59;
-		case 113: goto tr55;
-		case 115: goto tr56;
-		case 118: goto tr60;
-		case 120: goto tr61;
-	}
-	if ( (*p) > 13 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr390;
-	} else if ( (*p) >= 9 )
-		goto tr46;
-	goto tr1;
-case 46:
-	switch( (*p) ) {
-		case 0: goto tr391;
-		case 32: goto tr391;
-		case 64: goto tr392;
-		case 67: goto tr393;
-		case 73: goto tr394;
-		case 76: goto tr395;
-		case 78: goto tr396;
-		case 81: goto tr397;
-		case 83: goto tr398;
-		case 86: goto tr399;
-		case 88: goto tr400;
-		case 99: goto tr393;
-		case 105: goto tr394;
-		case 108: goto tr395;
+		case 0: goto tr385;
+		case 32: goto tr385;
+		case 64: goto tr389;
+		case 65: goto tr390;
+		case 67: goto tr391;
+		case 73: goto tr392;
+		case 76: goto tr393;
+		case 78: goto tr394;
+		case 81: goto tr395;
+		case 83: goto tr396;
+		case 86: goto tr397;
+		case 88: goto tr398;
+		case 90: goto tr399;
+		case 97: goto tr400;
+		case 99: goto tr391;
+		case 105: goto tr392;
+		case 108: goto tr393;
 		case 110: goto tr401;
-		case 113: goto tr397;
-		case 115: goto tr398;
+		case 113: goto tr395;
+		case 115: goto tr396;
 		case 118: goto tr402;
 		case 120: goto tr403;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr391;
+		goto tr385;
 	goto tr1;
-case 47:
+case 35:
 	switch( (*p) ) {
-		case 0: goto tr30;
-		case 32: goto tr30;
-		case 64: goto tr34;
-		case 67: goto tr35;
-		case 73: goto tr36;
-		case 76: goto tr37;
-		case 78: goto tr38;
-		case 81: goto tr39;
-		case 83: goto tr40;
-		case 86: goto tr41;
-		case 88: goto tr42;
-		case 99: goto tr35;
-		case 105: goto tr36;
-		case 108: goto tr37;
-		case 110: goto tr43;
-		case 113: goto tr39;
-		case 115: goto tr40;
-		case 118: goto tr44;
-		case 120: goto tr45;
-	}
-	if ( (*p) > 13 ) {
-		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr404;
-	} else if ( (*p) >= 9 )
-		goto tr30;
-	goto tr1;
-case 48:
-	switch( (*p) ) {
-		case 0: goto tr13;
-		case 32: goto tr13;
-		case 64: goto tr17;
-		case 67: goto tr18;
-		case 73: goto tr19;
-		case 76: goto tr20;
-		case 78: goto tr21;
-		case 81: goto tr22;
-		case 83: goto tr23;
-		case 86: goto tr24;
-		case 88: goto tr25;
-		case 99: goto tr18;
-		case 105: goto tr19;
-		case 108: goto tr20;
-		case 110: goto tr26;
-		case 113: goto tr22;
-		case 115: goto tr23;
-		case 118: goto tr27;
-		case 120: goto tr28;
-	}
-	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr13;
-	goto tr1;
-case 49:
-	switch( (*p) ) {
-		case 0: goto tr405;
-		case 32: goto tr405;
-		case 64: goto tr406;
+		case 0: goto tr404;
+		case 32: goto tr404;
+		case 64: goto tr405;
+		case 65: goto tr406;
 		case 67: goto tr407;
 		case 73: goto tr408;
 		case 76: goto tr409;
@@ -1501,467 +1272,1434 @@ case 49:
 		case 83: goto tr412;
 		case 86: goto tr413;
 		case 88: goto tr414;
+		case 90: goto tr415;
+		case 97: goto tr416;
 		case 99: goto tr407;
 		case 105: goto tr408;
 		case 108: goto tr409;
-		case 110: goto tr415;
+		case 110: goto tr417;
 		case 113: goto tr411;
 		case 115: goto tr412;
-		case 118: goto tr416;
-		case 120: goto tr417;
+		case 118: goto tr418;
+		case 120: goto tr419;
 	}
 	if ( 9 <= (*p) && (*p) <= 13 )
-		goto tr405;
+		goto tr404;
 	goto tr1;
-case 50:
+case 36:
 	switch( (*p) ) {
-		case 0: goto tr13;
-		case 32: goto tr13;
-		case 64: goto tr17;
-		case 67: goto tr18;
-		case 73: goto tr19;
-		case 76: goto tr20;
-		case 78: goto tr21;
-		case 81: goto tr22;
-		case 83: goto tr23;
-		case 86: goto tr24;
-		case 88: goto tr25;
-		case 99: goto tr18;
-		case 105: goto tr19;
-		case 108: goto tr20;
-		case 110: goto tr26;
-		case 113: goto tr22;
-		case 115: goto tr23;
-		case 118: goto tr27;
-		case 120: goto tr28;
+		case 0: goto tr385;
+		case 32: goto tr385;
+		case 64: goto tr389;
+		case 65: goto tr390;
+		case 67: goto tr391;
+		case 73: goto tr392;
+		case 76: goto tr393;
+		case 78: goto tr394;
+		case 81: goto tr395;
+		case 83: goto tr396;
+		case 86: goto tr397;
+		case 88: goto tr398;
+		case 90: goto tr399;
+		case 97: goto tr400;
+		case 99: goto tr391;
+		case 105: goto tr392;
+		case 108: goto tr393;
+		case 110: goto tr401;
+		case 113: goto tr395;
+		case 115: goto tr396;
+		case 118: goto tr402;
+		case 120: goto tr403;
 	}
 	if ( (*p) > 13 ) {
 		if ( 48 <= (*p) && (*p) <= 57 )
-			goto tr418;
+			goto tr420;
 	} else if ( (*p) >= 9 )
-		goto tr13;
+		goto tr385;
+	goto tr1;
+case 37:
+	switch( (*p) ) {
+		case 0: goto tr421;
+		case 32: goto tr421;
+		case 64: goto tr422;
+		case 65: goto tr423;
+		case 67: goto tr424;
+		case 73: goto tr425;
+		case 76: goto tr426;
+		case 78: goto tr427;
+		case 81: goto tr428;
+		case 83: goto tr429;
+		case 86: goto tr430;
+		case 88: goto tr431;
+		case 90: goto tr432;
+		case 97: goto tr433;
+		case 99: goto tr424;
+		case 105: goto tr425;
+		case 108: goto tr426;
+		case 110: goto tr434;
+		case 113: goto tr428;
+		case 115: goto tr429;
+		case 118: goto tr435;
+		case 120: goto tr436;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr421;
+	goto tr1;
+case 38:
+	switch( (*p) ) {
+		case 0: goto tr366;
+		case 32: goto tr366;
+		case 64: goto tr370;
+		case 65: goto tr371;
+		case 67: goto tr372;
+		case 73: goto tr373;
+		case 76: goto tr374;
+		case 78: goto tr375;
+		case 81: goto tr376;
+		case 83: goto tr377;
+		case 86: goto tr378;
+		case 88: goto tr379;
+		case 90: goto tr380;
+		case 97: goto tr381;
+		case 99: goto tr372;
+		case 105: goto tr373;
+		case 108: goto tr374;
+		case 110: goto tr382;
+		case 113: goto tr376;
+		case 115: goto tr377;
+		case 118: goto tr383;
+		case 120: goto tr384;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr437;
+	} else if ( (*p) >= 9 )
+		goto tr366;
+	goto tr1;
+case 39:
+	switch( (*p) ) {
+		case 0: goto tr438;
+		case 32: goto tr438;
+		case 64: goto tr439;
+		case 65: goto tr440;
+		case 67: goto tr441;
+		case 73: goto tr442;
+		case 76: goto tr443;
+		case 78: goto tr444;
+		case 81: goto tr445;
+		case 83: goto tr446;
+		case 86: goto tr447;
+		case 88: goto tr448;
+		case 90: goto tr449;
+		case 97: goto tr450;
+		case 99: goto tr441;
+		case 105: goto tr442;
+		case 108: goto tr443;
+		case 110: goto tr451;
+		case 113: goto tr445;
+		case 115: goto tr446;
+		case 118: goto tr452;
+		case 120: goto tr453;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr438;
+	goto tr1;
+case 40:
+	switch( (*p) ) {
+		case 0: goto tr347;
+		case 32: goto tr347;
+		case 64: goto tr351;
+		case 65: goto tr352;
+		case 67: goto tr353;
+		case 73: goto tr354;
+		case 76: goto tr355;
+		case 78: goto tr356;
+		case 81: goto tr357;
+		case 83: goto tr358;
+		case 86: goto tr359;
+		case 88: goto tr360;
+		case 90: goto tr361;
+		case 97: goto tr362;
+		case 99: goto tr353;
+		case 105: goto tr354;
+		case 108: goto tr355;
+		case 110: goto tr363;
+		case 113: goto tr357;
+		case 115: goto tr358;
+		case 118: goto tr364;
+		case 120: goto tr365;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr454;
+	} else if ( (*p) >= 9 )
+		goto tr347;
+	goto tr1;
+case 41:
+	switch( (*p) ) {
+		case 0: goto tr455;
+		case 32: goto tr455;
+		case 64: goto tr456;
+		case 65: goto tr457;
+		case 67: goto tr458;
+		case 73: goto tr459;
+		case 76: goto tr460;
+		case 78: goto tr461;
+		case 81: goto tr462;
+		case 83: goto tr463;
+		case 86: goto tr464;
+		case 88: goto tr465;
+		case 90: goto tr466;
+		case 97: goto tr467;
+		case 99: goto tr458;
+		case 105: goto tr459;
+		case 108: goto tr460;
+		case 110: goto tr468;
+		case 113: goto tr462;
+		case 115: goto tr463;
+		case 118: goto tr469;
+		case 120: goto tr470;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr455;
+	goto tr1;
+case 42:
+	switch( (*p) ) {
+		case 0: goto tr328;
+		case 32: goto tr328;
+		case 64: goto tr332;
+		case 65: goto tr333;
+		case 67: goto tr334;
+		case 73: goto tr335;
+		case 76: goto tr336;
+		case 78: goto tr337;
+		case 81: goto tr338;
+		case 83: goto tr339;
+		case 86: goto tr340;
+		case 88: goto tr341;
+		case 90: goto tr342;
+		case 97: goto tr343;
+		case 99: goto tr334;
+		case 105: goto tr335;
+		case 108: goto tr336;
+		case 110: goto tr344;
+		case 113: goto tr338;
+		case 115: goto tr339;
+		case 118: goto tr345;
+		case 120: goto tr346;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr471;
+	} else if ( (*p) >= 9 )
+		goto tr328;
+	goto tr1;
+case 43:
+	switch( (*p) ) {
+		case 0: goto tr472;
+		case 32: goto tr472;
+		case 64: goto tr473;
+		case 65: goto tr474;
+		case 67: goto tr475;
+		case 73: goto tr476;
+		case 76: goto tr477;
+		case 78: goto tr478;
+		case 81: goto tr479;
+		case 83: goto tr480;
+		case 86: goto tr481;
+		case 88: goto tr482;
+		case 90: goto tr483;
+		case 97: goto tr484;
+		case 99: goto tr475;
+		case 105: goto tr476;
+		case 108: goto tr477;
+		case 110: goto tr485;
+		case 113: goto tr479;
+		case 115: goto tr480;
+		case 118: goto tr486;
+		case 120: goto tr487;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr472;
+	goto tr1;
+case 44:
+	switch( (*p) ) {
+		case 0: goto tr309;
+		case 32: goto tr309;
+		case 64: goto tr313;
+		case 65: goto tr314;
+		case 67: goto tr315;
+		case 73: goto tr316;
+		case 76: goto tr317;
+		case 78: goto tr318;
+		case 81: goto tr319;
+		case 83: goto tr320;
+		case 86: goto tr321;
+		case 88: goto tr322;
+		case 90: goto tr323;
+		case 97: goto tr324;
+		case 99: goto tr315;
+		case 105: goto tr316;
+		case 108: goto tr317;
+		case 110: goto tr325;
+		case 113: goto tr319;
+		case 115: goto tr320;
+		case 118: goto tr326;
+		case 120: goto tr327;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr488;
+	} else if ( (*p) >= 9 )
+		goto tr309;
+	goto tr1;
+case 45:
+	switch( (*p) ) {
+		case 0: goto tr489;
+		case 32: goto tr489;
+		case 64: goto tr490;
+		case 65: goto tr491;
+		case 67: goto tr492;
+		case 73: goto tr493;
+		case 76: goto tr494;
+		case 78: goto tr495;
+		case 81: goto tr496;
+		case 83: goto tr497;
+		case 86: goto tr498;
+		case 88: goto tr499;
+		case 90: goto tr500;
+		case 97: goto tr501;
+		case 99: goto tr492;
+		case 105: goto tr493;
+		case 108: goto tr494;
+		case 110: goto tr502;
+		case 113: goto tr496;
+		case 115: goto tr497;
+		case 118: goto tr503;
+		case 120: goto tr504;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr489;
+	goto tr1;
+case 46:
+	switch( (*p) ) {
+		case 0: goto tr290;
+		case 32: goto tr290;
+		case 64: goto tr294;
+		case 65: goto tr295;
+		case 67: goto tr296;
+		case 73: goto tr297;
+		case 76: goto tr298;
+		case 78: goto tr299;
+		case 81: goto tr300;
+		case 83: goto tr301;
+		case 86: goto tr302;
+		case 88: goto tr303;
+		case 90: goto tr304;
+		case 97: goto tr305;
+		case 99: goto tr296;
+		case 105: goto tr297;
+		case 108: goto tr298;
+		case 110: goto tr306;
+		case 113: goto tr300;
+		case 115: goto tr301;
+		case 118: goto tr307;
+		case 120: goto tr308;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr505;
+	} else if ( (*p) >= 9 )
+		goto tr290;
+	goto tr1;
+case 47:
+	switch( (*p) ) {
+		case 0: goto tr506;
+		case 32: goto tr506;
+		case 64: goto tr507;
+		case 65: goto tr508;
+		case 67: goto tr509;
+		case 73: goto tr510;
+		case 76: goto tr511;
+		case 78: goto tr512;
+		case 81: goto tr513;
+		case 83: goto tr514;
+		case 86: goto tr515;
+		case 88: goto tr516;
+		case 90: goto tr517;
+		case 97: goto tr518;
+		case 99: goto tr509;
+		case 105: goto tr510;
+		case 108: goto tr511;
+		case 110: goto tr519;
+		case 113: goto tr513;
+		case 115: goto tr514;
+		case 118: goto tr520;
+		case 120: goto tr521;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr506;
+	goto tr1;
+case 48:
+	switch( (*p) ) {
+		case 0: goto tr271;
+		case 32: goto tr271;
+		case 64: goto tr275;
+		case 65: goto tr276;
+		case 67: goto tr277;
+		case 73: goto tr278;
+		case 76: goto tr279;
+		case 78: goto tr280;
+		case 81: goto tr281;
+		case 83: goto tr282;
+		case 86: goto tr283;
+		case 88: goto tr284;
+		case 90: goto tr285;
+		case 97: goto tr286;
+		case 99: goto tr277;
+		case 105: goto tr278;
+		case 108: goto tr279;
+		case 110: goto tr287;
+		case 113: goto tr281;
+		case 115: goto tr282;
+		case 118: goto tr288;
+		case 120: goto tr289;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr522;
+	} else if ( (*p) >= 9 )
+		goto tr271;
+	goto tr1;
+case 49:
+	switch( (*p) ) {
+		case 0: goto tr218;
+		case 32: goto tr218;
+		case 64: goto tr222;
+		case 65: goto tr223;
+		case 67: goto tr224;
+		case 73: goto tr225;
+		case 76: goto tr226;
+		case 78: goto tr227;
+		case 81: goto tr228;
+		case 83: goto tr229;
+		case 86: goto tr230;
+		case 88: goto tr231;
+		case 90: goto tr232;
+		case 97: goto tr233;
+		case 99: goto tr224;
+		case 105: goto tr225;
+		case 108: goto tr226;
+		case 110: goto tr234;
+		case 113: goto tr228;
+		case 115: goto tr229;
+		case 118: goto tr235;
+		case 120: goto tr236;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr523;
+	} else if ( (*p) >= 9 )
+		goto tr218;
+	goto tr1;
+case 50:
+	switch( (*p) ) {
+		case 0: goto tr524;
+		case 32: goto tr524;
+		case 64: goto tr525;
+		case 65: goto tr526;
+		case 67: goto tr527;
+		case 73: goto tr528;
+		case 76: goto tr529;
+		case 78: goto tr530;
+		case 81: goto tr531;
+		case 83: goto tr532;
+		case 86: goto tr533;
+		case 88: goto tr534;
+		case 90: goto tr535;
+		case 97: goto tr536;
+		case 99: goto tr527;
+		case 105: goto tr528;
+		case 108: goto tr529;
+		case 110: goto tr537;
+		case 113: goto tr531;
+		case 115: goto tr532;
+		case 118: goto tr538;
+		case 120: goto tr539;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr524;
+	goto tr1;
+case 51:
+	switch( (*p) ) {
+		case 0: goto tr199;
+		case 32: goto tr199;
+		case 64: goto tr203;
+		case 65: goto tr204;
+		case 67: goto tr205;
+		case 73: goto tr206;
+		case 76: goto tr207;
+		case 78: goto tr208;
+		case 81: goto tr209;
+		case 83: goto tr210;
+		case 86: goto tr211;
+		case 88: goto tr212;
+		case 90: goto tr213;
+		case 97: goto tr214;
+		case 99: goto tr205;
+		case 105: goto tr206;
+		case 108: goto tr207;
+		case 110: goto tr215;
+		case 113: goto tr209;
+		case 115: goto tr210;
+		case 118: goto tr216;
+		case 120: goto tr217;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr540;
+	} else if ( (*p) >= 9 )
+		goto tr199;
+	goto tr1;
+case 52:
+	switch( (*p) ) {
+		case 0: goto tr541;
+		case 32: goto tr541;
+		case 64: goto tr542;
+		case 65: goto tr543;
+		case 67: goto tr544;
+		case 73: goto tr545;
+		case 76: goto tr546;
+		case 78: goto tr547;
+		case 81: goto tr548;
+		case 83: goto tr549;
+		case 86: goto tr550;
+		case 88: goto tr551;
+		case 90: goto tr552;
+		case 97: goto tr553;
+		case 99: goto tr544;
+		case 105: goto tr545;
+		case 108: goto tr546;
+		case 110: goto tr554;
+		case 113: goto tr548;
+		case 115: goto tr549;
+		case 118: goto tr555;
+		case 120: goto tr556;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr541;
+	goto tr1;
+case 53:
+	switch( (*p) ) {
+		case 0: goto tr180;
+		case 32: goto tr180;
+		case 64: goto tr184;
+		case 65: goto tr185;
+		case 67: goto tr186;
+		case 73: goto tr187;
+		case 76: goto tr188;
+		case 78: goto tr189;
+		case 81: goto tr190;
+		case 83: goto tr191;
+		case 86: goto tr192;
+		case 88: goto tr193;
+		case 90: goto tr194;
+		case 97: goto tr195;
+		case 99: goto tr186;
+		case 105: goto tr187;
+		case 108: goto tr188;
+		case 110: goto tr196;
+		case 113: goto tr190;
+		case 115: goto tr191;
+		case 118: goto tr197;
+		case 120: goto tr198;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr557;
+	} else if ( (*p) >= 9 )
+		goto tr180;
+	goto tr1;
+case 54:
+	switch( (*p) ) {
+		case 0: goto tr127;
+		case 32: goto tr127;
+		case 64: goto tr131;
+		case 65: goto tr132;
+		case 67: goto tr133;
+		case 73: goto tr134;
+		case 76: goto tr135;
+		case 78: goto tr136;
+		case 81: goto tr137;
+		case 83: goto tr138;
+		case 86: goto tr139;
+		case 88: goto tr140;
+		case 90: goto tr141;
+		case 97: goto tr142;
+		case 99: goto tr133;
+		case 105: goto tr134;
+		case 108: goto tr135;
+		case 110: goto tr143;
+		case 113: goto tr137;
+		case 115: goto tr138;
+		case 118: goto tr144;
+		case 120: goto tr145;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr558;
+	} else if ( (*p) >= 9 )
+		goto tr127;
+	goto tr1;
+case 55:
+	switch( (*p) ) {
+		case 0: goto tr74;
+		case 32: goto tr74;
+		case 64: goto tr78;
+		case 65: goto tr79;
+		case 67: goto tr80;
+		case 73: goto tr81;
+		case 76: goto tr82;
+		case 78: goto tr83;
+		case 81: goto tr84;
+		case 83: goto tr85;
+		case 86: goto tr86;
+		case 88: goto tr87;
+		case 90: goto tr88;
+		case 97: goto tr89;
+		case 99: goto tr80;
+		case 105: goto tr81;
+		case 108: goto tr82;
+		case 110: goto tr90;
+		case 113: goto tr84;
+		case 115: goto tr85;
+		case 118: goto tr91;
+		case 120: goto tr92;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr559;
+	} else if ( (*p) >= 9 )
+		goto tr74;
+	goto tr1;
+case 56:
+	switch( (*p) ) {
+		case 0: goto tr560;
+		case 32: goto tr560;
+		case 64: goto tr561;
+		case 65: goto tr562;
+		case 67: goto tr563;
+		case 73: goto tr564;
+		case 76: goto tr565;
+		case 78: goto tr566;
+		case 81: goto tr567;
+		case 83: goto tr568;
+		case 86: goto tr569;
+		case 88: goto tr570;
+		case 90: goto tr571;
+		case 97: goto tr572;
+		case 99: goto tr563;
+		case 105: goto tr564;
+		case 108: goto tr565;
+		case 110: goto tr573;
+		case 113: goto tr567;
+		case 115: goto tr568;
+		case 118: goto tr574;
+		case 120: goto tr575;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr560;
+	goto tr1;
+case 57:
+	switch( (*p) ) {
+		case 0: goto tr55;
+		case 32: goto tr55;
+		case 64: goto tr59;
+		case 65: goto tr60;
+		case 67: goto tr61;
+		case 73: goto tr62;
+		case 76: goto tr63;
+		case 78: goto tr64;
+		case 81: goto tr65;
+		case 83: goto tr66;
+		case 86: goto tr67;
+		case 88: goto tr68;
+		case 90: goto tr69;
+		case 97: goto tr70;
+		case 99: goto tr61;
+		case 105: goto tr62;
+		case 108: goto tr63;
+		case 110: goto tr71;
+		case 113: goto tr65;
+		case 115: goto tr66;
+		case 118: goto tr72;
+		case 120: goto tr73;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr576;
+	} else if ( (*p) >= 9 )
+		goto tr55;
+	goto tr1;
+case 58:
+	switch( (*p) ) {
+		case 0: goto tr577;
+		case 32: goto tr577;
+		case 64: goto tr578;
+		case 65: goto tr579;
+		case 67: goto tr580;
+		case 73: goto tr581;
+		case 76: goto tr582;
+		case 78: goto tr583;
+		case 81: goto tr584;
+		case 83: goto tr585;
+		case 86: goto tr586;
+		case 88: goto tr587;
+		case 90: goto tr588;
+		case 97: goto tr589;
+		case 99: goto tr580;
+		case 105: goto tr581;
+		case 108: goto tr582;
+		case 110: goto tr590;
+		case 113: goto tr584;
+		case 115: goto tr585;
+		case 118: goto tr591;
+		case 120: goto tr592;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr577;
+	goto tr1;
+case 59:
+	switch( (*p) ) {
+		case 0: goto tr36;
+		case 32: goto tr36;
+		case 64: goto tr40;
+		case 65: goto tr41;
+		case 67: goto tr42;
+		case 73: goto tr43;
+		case 76: goto tr44;
+		case 78: goto tr45;
+		case 81: goto tr46;
+		case 83: goto tr47;
+		case 86: goto tr48;
+		case 88: goto tr49;
+		case 90: goto tr50;
+		case 97: goto tr51;
+		case 99: goto tr42;
+		case 105: goto tr43;
+		case 108: goto tr44;
+		case 110: goto tr52;
+		case 113: goto tr46;
+		case 115: goto tr47;
+		case 118: goto tr53;
+		case 120: goto tr54;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr593;
+	} else if ( (*p) >= 9 )
+		goto tr36;
+	goto tr1;
+case 60:
+	switch( (*p) ) {
+		case 0: goto tr16;
+		case 32: goto tr16;
+		case 64: goto tr20;
+		case 65: goto tr21;
+		case 67: goto tr22;
+		case 73: goto tr23;
+		case 76: goto tr24;
+		case 78: goto tr25;
+		case 81: goto tr26;
+		case 83: goto tr27;
+		case 86: goto tr28;
+		case 88: goto tr29;
+		case 90: goto tr30;
+		case 97: goto tr31;
+		case 99: goto tr22;
+		case 105: goto tr23;
+		case 108: goto tr24;
+		case 110: goto tr32;
+		case 113: goto tr26;
+		case 115: goto tr27;
+		case 118: goto tr33;
+		case 120: goto tr34;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr16;
+	goto tr1;
+case 61:
+	switch( (*p) ) {
+		case 0: goto tr594;
+		case 32: goto tr594;
+		case 64: goto tr595;
+		case 65: goto tr596;
+		case 67: goto tr597;
+		case 73: goto tr598;
+		case 76: goto tr599;
+		case 78: goto tr600;
+		case 81: goto tr601;
+		case 83: goto tr602;
+		case 86: goto tr603;
+		case 88: goto tr604;
+		case 90: goto tr605;
+		case 97: goto tr606;
+		case 99: goto tr597;
+		case 105: goto tr598;
+		case 108: goto tr599;
+		case 110: goto tr607;
+		case 113: goto tr601;
+		case 115: goto tr602;
+		case 118: goto tr608;
+		case 120: goto tr609;
+	}
+	if ( 9 <= (*p) && (*p) <= 13 )
+		goto tr594;
+	goto tr1;
+case 62:
+	switch( (*p) ) {
+		case 0: goto tr16;
+		case 32: goto tr16;
+		case 64: goto tr20;
+		case 65: goto tr21;
+		case 67: goto tr22;
+		case 73: goto tr23;
+		case 76: goto tr24;
+		case 78: goto tr25;
+		case 81: goto tr26;
+		case 83: goto tr27;
+		case 86: goto tr28;
+		case 88: goto tr29;
+		case 90: goto tr30;
+		case 97: goto tr31;
+		case 99: goto tr22;
+		case 105: goto tr23;
+		case 108: goto tr24;
+		case 110: goto tr32;
+		case 113: goto tr26;
+		case 115: goto tr27;
+		case 118: goto tr33;
+		case 120: goto tr34;
+	}
+	if ( (*p) > 13 ) {
+		if ( 48 <= (*p) && (*p) <= 57 )
+			goto tr610;
+	} else if ( (*p) >= 9 )
+		goto tr16;
 	goto tr1;
 	}
 
 	tr1: cs = 0; goto _again;
 	tr0: cs = 2; goto f0;
-	tr17: cs = 2; goto f5;
-	tr34: cs = 2; goto f9;
-	tr50: cs = 2; goto f12;
-	tr65: cs = 2; goto f17;
-	tr78: cs = 2; goto f20;
-	tr94: cs = 2; goto f23;
-	tr109: cs = 2; goto f26;
-	tr122: cs = 2; goto f29;
-	tr138: cs = 2; goto f32;
-	tr154: cs = 2; goto f35;
-	tr170: cs = 2; goto f38;
-	tr185: cs = 2; goto f41;
-	tr198: cs = 2; goto f44;
-	tr214: cs = 2; goto f47;
-	tr230: cs = 2; goto f50;
-	tr246: cs = 2; goto f53;
-	tr262: cs = 2; goto f56;
-	tr278: cs = 2; goto f59;
-	tr291: cs = 2; goto f62;
-	tr305: cs = 2; goto f66;
-	tr319: cs = 2; goto f69;
-	tr333: cs = 2; goto f72;
-	tr347: cs = 2; goto f75;
-	tr362: cs = 2; goto f78;
-	tr376: cs = 2; goto f81;
-	tr392: cs = 2; goto f84;
-	tr406: cs = 2; goto f87;
-	tr29: cs = 3; goto _again;
-	tr13: cs = 3; goto f2;
-	tr30: cs = 3; goto f8;
-	tr46: cs = 3; goto f11;
-	tr62: cs = 3; goto f14;
-	tr77: cs = 3; goto f19;
-	tr90: cs = 3; goto f22;
-	tr106: cs = 3; goto f25;
-	tr121: cs = 3; goto f28;
-	tr134: cs = 3; goto f31;
-	tr150: cs = 3; goto f34;
-	tr166: cs = 3; goto f37;
-	tr182: cs = 3; goto f40;
-	tr197: cs = 3; goto f43;
-	tr210: cs = 3; goto f46;
-	tr226: cs = 3; goto f49;
-	tr242: cs = 3; goto f52;
-	tr258: cs = 3; goto f55;
-	tr274: cs = 3; goto f58;
-	tr290: cs = 3; goto f61;
-	tr304: cs = 3; goto f65;
-	tr318: cs = 3; goto f68;
-	tr332: cs = 3; goto f71;
-	tr346: cs = 3; goto f74;
-	tr361: cs = 3; goto f77;
-	tr375: cs = 3; goto f80;
-	tr391: cs = 3; goto f83;
-	tr405: cs = 3; goto f86;
+	tr20: cs = 2; goto f5;
+	tr40: cs = 2; goto f9;
+	tr59: cs = 2; goto f12;
+	tr78: cs = 2; goto f15;
+	tr96: cs = 2; goto f20;
+	tr112: cs = 2; goto f23;
+	tr131: cs = 2; goto f26;
+	tr149: cs = 2; goto f29;
+	tr165: cs = 2; goto f32;
+	tr184: cs = 2; goto f35;
+	tr203: cs = 2; goto f38;
+	tr222: cs = 2; goto f41;
+	tr240: cs = 2; goto f44;
+	tr256: cs = 2; goto f47;
+	tr275: cs = 2; goto f50;
+	tr294: cs = 2; goto f53;
+	tr313: cs = 2; goto f56;
+	tr332: cs = 2; goto f59;
+	tr351: cs = 2; goto f62;
+	tr370: cs = 2; goto f65;
+	tr389: cs = 2; goto f68;
+	tr405: cs = 2; goto f71;
+	tr422: cs = 2; goto f75;
+	tr439: cs = 2; goto f78;
+	tr456: cs = 2; goto f81;
+	tr473: cs = 2; goto f84;
+	tr490: cs = 2; goto f87;
+	tr507: cs = 2; goto f90;
+	tr525: cs = 2; goto f93;
+	tr542: cs = 2; goto f96;
+	tr561: cs = 2; goto f99;
+	tr578: cs = 2; goto f102;
+	tr595: cs = 2; goto f105;
+	tr35: cs = 3; goto _again;
+	tr16: cs = 3; goto f2;
+	tr36: cs = 3; goto f8;
+	tr55: cs = 3; goto f11;
+	tr74: cs = 3; goto f14;
+	tr93: cs = 3; goto f17;
+	tr111: cs = 3; goto f22;
+	tr127: cs = 3; goto f25;
+	tr146: cs = 3; goto f28;
+	tr164: cs = 3; goto f31;
+	tr180: cs = 3; goto f34;
+	tr199: cs = 3; goto f37;
+	tr218: cs = 3; goto f40;
+	tr237: cs = 3; goto f43;
+	tr255: cs = 3; goto f46;
+	tr271: cs = 3; goto f49;
+	tr290: cs = 3; goto f52;
+	tr309: cs = 3; goto f55;
+	tr328: cs = 3; goto f58;
+	tr347: cs = 3; goto f61;
+	tr366: cs = 3; goto f64;
+	tr385: cs = 3; goto f67;
+	tr404: cs = 3; goto f70;
+	tr421: cs = 3; goto f74;
+	tr438: cs = 3; goto f77;
+	tr455: cs = 3; goto f80;
+	tr472: cs = 3; goto f83;
+	tr489: cs = 3; goto f86;
+	tr506: cs = 3; goto f89;
+	tr524: cs = 3; goto f92;
+	tr541: cs = 3; goto f95;
+	tr560: cs = 3; goto f98;
+	tr577: cs = 3; goto f101;
+	tr594: cs = 3; goto f104;
 	tr2: cs = 4; goto f0;
-	tr18: cs = 4; goto f5;
-	tr35: cs = 4; goto f9;
-	tr51: cs = 4; goto f12;
-	tr66: cs = 4; goto f17;
-	tr79: cs = 4; goto f20;
-	tr95: cs = 4; goto f23;
-	tr110: cs = 4; goto f26;
-	tr123: cs = 4; goto f29;
-	tr139: cs = 4; goto f32;
-	tr155: cs = 4; goto f35;
-	tr171: cs = 4; goto f38;
-	tr186: cs = 4; goto f41;
-	tr199: cs = 4; goto f44;
-	tr215: cs = 4; goto f47;
-	tr231: cs = 4; goto f50;
-	tr247: cs = 4; goto f53;
-	tr263: cs = 4; goto f56;
-	tr279: cs = 4; goto f59;
-	tr292: cs = 4; goto f62;
-	tr306: cs = 4; goto f66;
-	tr320: cs = 4; goto f69;
-	tr334: cs = 4; goto f72;
-	tr348: cs = 4; goto f75;
-	tr363: cs = 4; goto f78;
-	tr377: cs = 4; goto f81;
-	tr393: cs = 4; goto f84;
-	tr407: cs = 4; goto f87;
-	tr31: cs = 5; goto f3;
+	tr21: cs = 4; goto f5;
+	tr41: cs = 4; goto f9;
+	tr60: cs = 4; goto f12;
+	tr79: cs = 4; goto f15;
+	tr97: cs = 4; goto f20;
+	tr113: cs = 4; goto f23;
+	tr132: cs = 4; goto f26;
+	tr150: cs = 4; goto f29;
+	tr166: cs = 4; goto f32;
+	tr185: cs = 4; goto f35;
+	tr204: cs = 4; goto f38;
+	tr223: cs = 4; goto f41;
+	tr241: cs = 4; goto f44;
+	tr257: cs = 4; goto f47;
+	tr276: cs = 4; goto f50;
+	tr295: cs = 4; goto f53;
+	tr314: cs = 4; goto f56;
+	tr333: cs = 4; goto f59;
+	tr352: cs = 4; goto f62;
+	tr371: cs = 4; goto f65;
+	tr390: cs = 4; goto f68;
+	tr406: cs = 4; goto f71;
+	tr423: cs = 4; goto f75;
+	tr440: cs = 4; goto f78;
+	tr457: cs = 4; goto f81;
+	tr474: cs = 4; goto f84;
+	tr491: cs = 4; goto f87;
+	tr508: cs = 4; goto f90;
+	tr526: cs = 4; goto f93;
+	tr543: cs = 4; goto f96;
+	tr562: cs = 4; goto f99;
+	tr579: cs = 4; goto f102;
+	tr596: cs = 4; goto f105;
+	tr37: cs = 5; goto f3;
 	tr3: cs = 6; goto f0;
-	tr19: cs = 6; goto f5;
-	tr36: cs = 6; goto f9;
-	tr52: cs = 6; goto f12;
-	tr67: cs = 6; goto f17;
-	tr80: cs = 6; goto f20;
-	tr96: cs = 6; goto f23;
-	tr111: cs = 6; goto f26;
-	tr124: cs = 6; goto f29;
-	tr140: cs = 6; goto f32;
-	tr156: cs = 6; goto f35;
-	tr172: cs = 6; goto f38;
-	tr187: cs = 6; goto f41;
-	tr200: cs = 6; goto f44;
-	tr216: cs = 6; goto f47;
-	tr232: cs = 6; goto f50;
-	tr248: cs = 6; goto f53;
-	tr264: cs = 6; goto f56;
-	tr280: cs = 6; goto f59;
-	tr293: cs = 6; goto f62;
-	tr307: cs = 6; goto f66;
-	tr321: cs = 6; goto f69;
-	tr335: cs = 6; goto f72;
-	tr349: cs = 6; goto f75;
-	tr364: cs = 6; goto f78;
-	tr378: cs = 6; goto f81;
-	tr394: cs = 6; goto f84;
-	tr408: cs = 6; goto f87;
-	tr47: cs = 7; goto _again;
-	tr48: cs = 8; goto _again;
-	tr63: cs = 8; goto f15;
-	tr4: cs = 9; goto f0;
-	tr20: cs = 9; goto f5;
-	tr37: cs = 9; goto f9;
-	tr53: cs = 9; goto f12;
-	tr68: cs = 9; goto f17;
-	tr81: cs = 9; goto f20;
-	tr97: cs = 9; goto f23;
-	tr112: cs = 9; goto f26;
-	tr125: cs = 9; goto f29;
-	tr141: cs = 9; goto f32;
-	tr157: cs = 9; goto f35;
-	tr173: cs = 9; goto f38;
-	tr188: cs = 9; goto f41;
-	tr201: cs = 9; goto f44;
-	tr217: cs = 9; goto f47;
-	tr233: cs = 9; goto f50;
-	tr249: cs = 9; goto f53;
-	tr265: cs = 9; goto f56;
-	tr281: cs = 9; goto f59;
-	tr294: cs = 9; goto f62;
-	tr308: cs = 9; goto f66;
-	tr322: cs = 9; goto f69;
-	tr336: cs = 9; goto f72;
-	tr350: cs = 9; goto f75;
-	tr365: cs = 9; goto f78;
-	tr379: cs = 9; goto f81;
-	tr395: cs = 9; goto f84;
-	tr409: cs = 9; goto f87;
-	tr91: cs = 10; goto _again;
-	tr92: cs = 11; goto _again;
-	tr107: cs = 11; goto f15;
-	tr5: cs = 12; goto f0;
-	tr21: cs = 12; goto f5;
-	tr38: cs = 12; goto f9;
-	tr54: cs = 12; goto f12;
-	tr69: cs = 12; goto f17;
-	tr82: cs = 12; goto f20;
-	tr98: cs = 12; goto f23;
-	tr113: cs = 12; goto f26;
-	tr126: cs = 12; goto f29;
-	tr142: cs = 12; goto f32;
-	tr158: cs = 12; goto f35;
-	tr174: cs = 12; goto f38;
-	tr189: cs = 12; goto f41;
-	tr202: cs = 12; goto f44;
-	tr218: cs = 12; goto f47;
-	tr234: cs = 12; goto f50;
-	tr250: cs = 12; goto f53;
-	tr266: cs = 12; goto f56;
-	tr282: cs = 12; goto f59;
-	tr295: cs = 12; goto f62;
-	tr309: cs = 12; goto f66;
-	tr323: cs = 12; goto f69;
-	tr337: cs = 12; goto f72;
-	tr351: cs = 12; goto f75;
-	tr366: cs = 12; goto f78;
-	tr380: cs = 12; goto f81;
-	tr396: cs = 12; goto f84;
-	tr410: cs = 12; goto f87;
-	tr135: cs = 13; goto f3;
+	tr22: cs = 6; goto f5;
+	tr42: cs = 6; goto f9;
+	tr61: cs = 6; goto f12;
+	tr80: cs = 6; goto f15;
+	tr98: cs = 6; goto f20;
+	tr114: cs = 6; goto f23;
+	tr133: cs = 6; goto f26;
+	tr151: cs = 6; goto f29;
+	tr167: cs = 6; goto f32;
+	tr186: cs = 6; goto f35;
+	tr205: cs = 6; goto f38;
+	tr224: cs = 6; goto f41;
+	tr242: cs = 6; goto f44;
+	tr258: cs = 6; goto f47;
+	tr277: cs = 6; goto f50;
+	tr296: cs = 6; goto f53;
+	tr315: cs = 6; goto f56;
+	tr334: cs = 6; goto f59;
+	tr353: cs = 6; goto f62;
+	tr372: cs = 6; goto f65;
+	tr391: cs = 6; goto f68;
+	tr407: cs = 6; goto f71;
+	tr424: cs = 6; goto f75;
+	tr441: cs = 6; goto f78;
+	tr458: cs = 6; goto f81;
+	tr475: cs = 6; goto f84;
+	tr492: cs = 6; goto f87;
+	tr509: cs = 6; goto f90;
+	tr527: cs = 6; goto f93;
+	tr544: cs = 6; goto f96;
+	tr563: cs = 6; goto f99;
+	tr580: cs = 6; goto f102;
+	tr597: cs = 6; goto f105;
+	tr56: cs = 7; goto f3;
+	tr4: cs = 8; goto f0;
+	tr23: cs = 8; goto f5;
+	tr43: cs = 8; goto f9;
+	tr62: cs = 8; goto f12;
+	tr81: cs = 8; goto f15;
+	tr99: cs = 8; goto f20;
+	tr115: cs = 8; goto f23;
+	tr134: cs = 8; goto f26;
+	tr152: cs = 8; goto f29;
+	tr168: cs = 8; goto f32;
+	tr187: cs = 8; goto f35;
+	tr206: cs = 8; goto f38;
+	tr225: cs = 8; goto f41;
+	tr243: cs = 8; goto f44;
+	tr259: cs = 8; goto f47;
+	tr278: cs = 8; goto f50;
+	tr297: cs = 8; goto f53;
+	tr316: cs = 8; goto f56;
+	tr335: cs = 8; goto f59;
+	tr354: cs = 8; goto f62;
+	tr373: cs = 8; goto f65;
+	tr392: cs = 8; goto f68;
+	tr408: cs = 8; goto f71;
+	tr425: cs = 8; goto f75;
+	tr442: cs = 8; goto f78;
+	tr459: cs = 8; goto f81;
+	tr476: cs = 8; goto f84;
+	tr493: cs = 8; goto f87;
+	tr510: cs = 8; goto f90;
+	tr528: cs = 8; goto f93;
+	tr545: cs = 8; goto f96;
+	tr564: cs = 8; goto f99;
+	tr581: cs = 8; goto f102;
+	tr598: cs = 8; goto f105;
+	tr75: cs = 9; goto _again;
+	tr76: cs = 10; goto _again;
+	tr94: cs = 10; goto f18;
+	tr5: cs = 11; goto f0;
+	tr24: cs = 11; goto f5;
+	tr44: cs = 11; goto f9;
+	tr63: cs = 11; goto f12;
+	tr82: cs = 11; goto f15;
+	tr100: cs = 11; goto f20;
+	tr116: cs = 11; goto f23;
+	tr135: cs = 11; goto f26;
+	tr153: cs = 11; goto f29;
+	tr169: cs = 11; goto f32;
+	tr188: cs = 11; goto f35;
+	tr207: cs = 11; goto f38;
+	tr226: cs = 11; goto f41;
+	tr244: cs = 11; goto f44;
+	tr260: cs = 11; goto f47;
+	tr279: cs = 11; goto f50;
+	tr298: cs = 11; goto f53;
+	tr317: cs = 11; goto f56;
+	tr336: cs = 11; goto f59;
+	tr355: cs = 11; goto f62;
+	tr374: cs = 11; goto f65;
+	tr393: cs = 11; goto f68;
+	tr409: cs = 11; goto f71;
+	tr426: cs = 11; goto f75;
+	tr443: cs = 11; goto f78;
+	tr460: cs = 11; goto f81;
+	tr477: cs = 11; goto f84;
+	tr494: cs = 11; goto f87;
+	tr511: cs = 11; goto f90;
+	tr529: cs = 11; goto f93;
+	tr546: cs = 11; goto f96;
+	tr565: cs = 11; goto f99;
+	tr582: cs = 11; goto f102;
+	tr599: cs = 11; goto f105;
+	tr128: cs = 12; goto _again;
+	tr129: cs = 13; goto _again;
+	tr147: cs = 13; goto f18;
 	tr6: cs = 14; goto f0;
-	tr22: cs = 14; goto f5;
-	tr39: cs = 14; goto f9;
-	tr55: cs = 14; goto f12;
-	tr70: cs = 14; goto f17;
-	tr83: cs = 14; goto f20;
-	tr99: cs = 14; goto f23;
-	tr114: cs = 14; goto f26;
-	tr127: cs = 14; goto f29;
-	tr143: cs = 14; goto f32;
-	tr159: cs = 14; goto f35;
-	tr175: cs = 14; goto f38;
-	tr190: cs = 14; goto f41;
-	tr203: cs = 14; goto f44;
-	tr219: cs = 14; goto f47;
-	tr235: cs = 14; goto f50;
-	tr251: cs = 14; goto f53;
-	tr267: cs = 14; goto f56;
-	tr283: cs = 14; goto f59;
-	tr296: cs = 14; goto f62;
-	tr310: cs = 14; goto f66;
-	tr324: cs = 14; goto f69;
-	tr338: cs = 14; goto f72;
-	tr352: cs = 14; goto f75;
-	tr367: cs = 14; goto f78;
-	tr381: cs = 14; goto f81;
-	tr397: cs = 14; goto f84;
-	tr411: cs = 14; goto f87;
-	tr151: cs = 15; goto f3;
+	tr25: cs = 14; goto f5;
+	tr45: cs = 14; goto f9;
+	tr64: cs = 14; goto f12;
+	tr83: cs = 14; goto f15;
+	tr101: cs = 14; goto f20;
+	tr117: cs = 14; goto f23;
+	tr136: cs = 14; goto f26;
+	tr154: cs = 14; goto f29;
+	tr170: cs = 14; goto f32;
+	tr189: cs = 14; goto f35;
+	tr208: cs = 14; goto f38;
+	tr227: cs = 14; goto f41;
+	tr245: cs = 14; goto f44;
+	tr261: cs = 14; goto f47;
+	tr280: cs = 14; goto f50;
+	tr299: cs = 14; goto f53;
+	tr318: cs = 14; goto f56;
+	tr337: cs = 14; goto f59;
+	tr356: cs = 14; goto f62;
+	tr375: cs = 14; goto f65;
+	tr394: cs = 14; goto f68;
+	tr410: cs = 14; goto f71;
+	tr427: cs = 14; goto f75;
+	tr444: cs = 14; goto f78;
+	tr461: cs = 14; goto f81;
+	tr478: cs = 14; goto f84;
+	tr495: cs = 14; goto f87;
+	tr512: cs = 14; goto f90;
+	tr530: cs = 14; goto f93;
+	tr547: cs = 14; goto f96;
+	tr566: cs = 14; goto f99;
+	tr583: cs = 14; goto f102;
+	tr600: cs = 14; goto f105;
+	tr181: cs = 15; goto f3;
 	tr7: cs = 16; goto f0;
-	tr23: cs = 16; goto f5;
-	tr40: cs = 16; goto f9;
-	tr56: cs = 16; goto f12;
-	tr71: cs = 16; goto f17;
-	tr84: cs = 16; goto f20;
-	tr100: cs = 16; goto f23;
-	tr115: cs = 16; goto f26;
-	tr128: cs = 16; goto f29;
-	tr144: cs = 16; goto f32;
-	tr160: cs = 16; goto f35;
-	tr176: cs = 16; goto f38;
-	tr191: cs = 16; goto f41;
-	tr204: cs = 16; goto f44;
-	tr220: cs = 16; goto f47;
-	tr236: cs = 16; goto f50;
-	tr252: cs = 16; goto f53;
-	tr268: cs = 16; goto f56;
-	tr284: cs = 16; goto f59;
-	tr297: cs = 16; goto f62;
-	tr311: cs = 16; goto f66;
-	tr325: cs = 16; goto f69;
-	tr339: cs = 16; goto f72;
-	tr353: cs = 16; goto f75;
-	tr368: cs = 16; goto f78;
-	tr382: cs = 16; goto f81;
-	tr398: cs = 16; goto f84;
-	tr412: cs = 16; goto f87;
-	tr167: cs = 17; goto _again;
-	tr168: cs = 18; goto _again;
-	tr183: cs = 18; goto f15;
-	tr8: cs = 19; goto f0;
-	tr24: cs = 19; goto f5;
-	tr41: cs = 19; goto f9;
-	tr57: cs = 19; goto f12;
-	tr72: cs = 19; goto f17;
-	tr85: cs = 19; goto f20;
-	tr101: cs = 19; goto f23;
-	tr116: cs = 19; goto f26;
-	tr129: cs = 19; goto f29;
-	tr145: cs = 19; goto f32;
-	tr161: cs = 19; goto f35;
-	tr177: cs = 19; goto f38;
-	tr192: cs = 19; goto f41;
-	tr205: cs = 19; goto f44;
-	tr221: cs = 19; goto f47;
-	tr237: cs = 19; goto f50;
-	tr253: cs = 19; goto f53;
-	tr269: cs = 19; goto f56;
-	tr285: cs = 19; goto f59;
-	tr298: cs = 19; goto f62;
-	tr312: cs = 19; goto f66;
-	tr326: cs = 19; goto f69;
-	tr340: cs = 19; goto f72;
-	tr354: cs = 19; goto f75;
-	tr369: cs = 19; goto f78;
-	tr383: cs = 19; goto f81;
-	tr399: cs = 19; goto f84;
-	tr413: cs = 19; goto f87;
-	tr211: cs = 20; goto f3;
+	tr26: cs = 16; goto f5;
+	tr46: cs = 16; goto f9;
+	tr65: cs = 16; goto f12;
+	tr84: cs = 16; goto f15;
+	tr102: cs = 16; goto f20;
+	tr118: cs = 16; goto f23;
+	tr137: cs = 16; goto f26;
+	tr155: cs = 16; goto f29;
+	tr171: cs = 16; goto f32;
+	tr190: cs = 16; goto f35;
+	tr209: cs = 16; goto f38;
+	tr228: cs = 16; goto f41;
+	tr246: cs = 16; goto f44;
+	tr262: cs = 16; goto f47;
+	tr281: cs = 16; goto f50;
+	tr300: cs = 16; goto f53;
+	tr319: cs = 16; goto f56;
+	tr338: cs = 16; goto f59;
+	tr357: cs = 16; goto f62;
+	tr376: cs = 16; goto f65;
+	tr395: cs = 16; goto f68;
+	tr411: cs = 16; goto f71;
+	tr428: cs = 16; goto f75;
+	tr445: cs = 16; goto f78;
+	tr462: cs = 16; goto f81;
+	tr479: cs = 16; goto f84;
+	tr496: cs = 16; goto f87;
+	tr513: cs = 16; goto f90;
+	tr531: cs = 16; goto f93;
+	tr548: cs = 16; goto f96;
+	tr567: cs = 16; goto f99;
+	tr584: cs = 16; goto f102;
+	tr601: cs = 16; goto f105;
+	tr200: cs = 17; goto f3;
+	tr8: cs = 18; goto f0;
+	tr27: cs = 18; goto f5;
+	tr47: cs = 18; goto f9;
+	tr66: cs = 18; goto f12;
+	tr85: cs = 18; goto f15;
+	tr103: cs = 18; goto f20;
+	tr119: cs = 18; goto f23;
+	tr138: cs = 18; goto f26;
+	tr156: cs = 18; goto f29;
+	tr172: cs = 18; goto f32;
+	tr191: cs = 18; goto f35;
+	tr210: cs = 18; goto f38;
+	tr229: cs = 18; goto f41;
+	tr247: cs = 18; goto f44;
+	tr263: cs = 18; goto f47;
+	tr282: cs = 18; goto f50;
+	tr301: cs = 18; goto f53;
+	tr320: cs = 18; goto f56;
+	tr339: cs = 18; goto f59;
+	tr358: cs = 18; goto f62;
+	tr377: cs = 18; goto f65;
+	tr396: cs = 18; goto f68;
+	tr412: cs = 18; goto f71;
+	tr429: cs = 18; goto f75;
+	tr446: cs = 18; goto f78;
+	tr463: cs = 18; goto f81;
+	tr480: cs = 18; goto f84;
+	tr497: cs = 18; goto f87;
+	tr514: cs = 18; goto f90;
+	tr532: cs = 18; goto f93;
+	tr549: cs = 18; goto f96;
+	tr568: cs = 18; goto f99;
+	tr585: cs = 18; goto f102;
+	tr602: cs = 18; goto f105;
+	tr219: cs = 19; goto _again;
+	tr220: cs = 20; goto _again;
+	tr238: cs = 20; goto f18;
 	tr9: cs = 21; goto f0;
-	tr25: cs = 21; goto f5;
-	tr42: cs = 21; goto f9;
-	tr58: cs = 21; goto f12;
-	tr73: cs = 21; goto f17;
-	tr86: cs = 21; goto f20;
-	tr102: cs = 21; goto f23;
-	tr117: cs = 21; goto f26;
-	tr130: cs = 21; goto f29;
-	tr146: cs = 21; goto f32;
-	tr162: cs = 21; goto f35;
-	tr178: cs = 21; goto f38;
-	tr193: cs = 21; goto f41;
-	tr206: cs = 21; goto f44;
-	tr222: cs = 21; goto f47;
-	tr238: cs = 21; goto f50;
-	tr254: cs = 21; goto f53;
-	tr270: cs = 21; goto f56;
-	tr286: cs = 21; goto f59;
-	tr299: cs = 21; goto f62;
-	tr313: cs = 21; goto f66;
-	tr327: cs = 21; goto f69;
-	tr341: cs = 21; goto f72;
-	tr355: cs = 21; goto f75;
-	tr370: cs = 21; goto f78;
-	tr384: cs = 21; goto f81;
-	tr400: cs = 21; goto f84;
-	tr414: cs = 21; goto f87;
-	tr227: cs = 22; goto f3;
+	tr28: cs = 21; goto f5;
+	tr48: cs = 21; goto f9;
+	tr67: cs = 21; goto f12;
+	tr86: cs = 21; goto f15;
+	tr104: cs = 21; goto f20;
+	tr120: cs = 21; goto f23;
+	tr139: cs = 21; goto f26;
+	tr157: cs = 21; goto f29;
+	tr173: cs = 21; goto f32;
+	tr192: cs = 21; goto f35;
+	tr211: cs = 21; goto f38;
+	tr230: cs = 21; goto f41;
+	tr248: cs = 21; goto f44;
+	tr264: cs = 21; goto f47;
+	tr283: cs = 21; goto f50;
+	tr302: cs = 21; goto f53;
+	tr321: cs = 21; goto f56;
+	tr340: cs = 21; goto f59;
+	tr359: cs = 21; goto f62;
+	tr378: cs = 21; goto f65;
+	tr397: cs = 21; goto f68;
+	tr413: cs = 21; goto f71;
+	tr430: cs = 21; goto f75;
+	tr447: cs = 21; goto f78;
+	tr464: cs = 21; goto f81;
+	tr481: cs = 21; goto f84;
+	tr498: cs = 21; goto f87;
+	tr515: cs = 21; goto f90;
+	tr533: cs = 21; goto f93;
+	tr550: cs = 21; goto f96;
+	tr569: cs = 21; goto f99;
+	tr586: cs = 21; goto f102;
+	tr603: cs = 21; goto f105;
+	tr272: cs = 22; goto f3;
 	tr10: cs = 23; goto f0;
-	tr26: cs = 23; goto f5;
-	tr43: cs = 23; goto f9;
-	tr59: cs = 23; goto f12;
-	tr74: cs = 23; goto f17;
-	tr87: cs = 23; goto f20;
-	tr103: cs = 23; goto f23;
-	tr118: cs = 23; goto f26;
-	tr131: cs = 23; goto f29;
-	tr147: cs = 23; goto f32;
-	tr163: cs = 23; goto f35;
-	tr179: cs = 23; goto f38;
-	tr194: cs = 23; goto f41;
-	tr207: cs = 23; goto f44;
-	tr223: cs = 23; goto f47;
-	tr239: cs = 23; goto f50;
-	tr255: cs = 23; goto f53;
-	tr271: cs = 23; goto f56;
-	tr287: cs = 23; goto f59;
-	tr300: cs = 23; goto f62;
-	tr314: cs = 23; goto f66;
-	tr328: cs = 23; goto f69;
-	tr342: cs = 23; goto f72;
-	tr356: cs = 23; goto f75;
-	tr371: cs = 23; goto f78;
-	tr385: cs = 23; goto f81;
-	tr401: cs = 23; goto f84;
-	tr415: cs = 23; goto f87;
-	tr243: cs = 24; goto f3;
+	tr29: cs = 23; goto f5;
+	tr49: cs = 23; goto f9;
+	tr68: cs = 23; goto f12;
+	tr87: cs = 23; goto f15;
+	tr105: cs = 23; goto f20;
+	tr121: cs = 23; goto f23;
+	tr140: cs = 23; goto f26;
+	tr158: cs = 23; goto f29;
+	tr174: cs = 23; goto f32;
+	tr193: cs = 23; goto f35;
+	tr212: cs = 23; goto f38;
+	tr231: cs = 23; goto f41;
+	tr249: cs = 23; goto f44;
+	tr265: cs = 23; goto f47;
+	tr284: cs = 23; goto f50;
+	tr303: cs = 23; goto f53;
+	tr322: cs = 23; goto f56;
+	tr341: cs = 23; goto f59;
+	tr360: cs = 23; goto f62;
+	tr379: cs = 23; goto f65;
+	tr398: cs = 23; goto f68;
+	tr414: cs = 23; goto f71;
+	tr431: cs = 23; goto f75;
+	tr448: cs = 23; goto f78;
+	tr465: cs = 23; goto f81;
+	tr482: cs = 23; goto f84;
+	tr499: cs = 23; goto f87;
+	tr516: cs = 23; goto f90;
+	tr534: cs = 23; goto f93;
+	tr551: cs = 23; goto f96;
+	tr570: cs = 23; goto f99;
+	tr587: cs = 23; goto f102;
+	tr604: cs = 23; goto f105;
+	tr291: cs = 24; goto f3;
 	tr11: cs = 25; goto f0;
-	tr27: cs = 25; goto f5;
-	tr44: cs = 25; goto f9;
-	tr60: cs = 25; goto f12;
-	tr75: cs = 25; goto f17;
-	tr88: cs = 25; goto f20;
-	tr104: cs = 25; goto f23;
-	tr119: cs = 25; goto f26;
-	tr132: cs = 25; goto f29;
-	tr148: cs = 25; goto f32;
-	tr164: cs = 25; goto f35;
-	tr180: cs = 25; goto f38;
-	tr195: cs = 25; goto f41;
-	tr208: cs = 25; goto f44;
-	tr224: cs = 25; goto f47;
-	tr240: cs = 25; goto f50;
-	tr256: cs = 25; goto f53;
-	tr272: cs = 25; goto f56;
-	tr288: cs = 25; goto f59;
-	tr301: cs = 25; goto f62;
-	tr315: cs = 25; goto f66;
-	tr329: cs = 25; goto f69;
-	tr343: cs = 25; goto f72;
-	tr357: cs = 25; goto f75;
-	tr372: cs = 25; goto f78;
-	tr386: cs = 25; goto f81;
-	tr402: cs = 25; goto f84;
-	tr416: cs = 25; goto f87;
-	tr259: cs = 26; goto f3;
+	tr30: cs = 25; goto f5;
+	tr50: cs = 25; goto f9;
+	tr69: cs = 25; goto f12;
+	tr88: cs = 25; goto f15;
+	tr106: cs = 25; goto f20;
+	tr122: cs = 25; goto f23;
+	tr141: cs = 25; goto f26;
+	tr159: cs = 25; goto f29;
+	tr175: cs = 25; goto f32;
+	tr194: cs = 25; goto f35;
+	tr213: cs = 25; goto f38;
+	tr232: cs = 25; goto f41;
+	tr250: cs = 25; goto f44;
+	tr266: cs = 25; goto f47;
+	tr285: cs = 25; goto f50;
+	tr304: cs = 25; goto f53;
+	tr323: cs = 25; goto f56;
+	tr342: cs = 25; goto f59;
+	tr361: cs = 25; goto f62;
+	tr380: cs = 25; goto f65;
+	tr399: cs = 25; goto f68;
+	tr415: cs = 25; goto f71;
+	tr432: cs = 25; goto f75;
+	tr449: cs = 25; goto f78;
+	tr466: cs = 25; goto f81;
+	tr483: cs = 25; goto f84;
+	tr500: cs = 25; goto f87;
+	tr517: cs = 25; goto f90;
+	tr535: cs = 25; goto f93;
+	tr552: cs = 25; goto f96;
+	tr571: cs = 25; goto f99;
+	tr588: cs = 25; goto f102;
+	tr605: cs = 25; goto f105;
+	tr310: cs = 26; goto f3;
 	tr12: cs = 27; goto f0;
-	tr28: cs = 27; goto f5;
-	tr45: cs = 27; goto f9;
-	tr61: cs = 27; goto f12;
-	tr76: cs = 27; goto f17;
-	tr89: cs = 27; goto f20;
-	tr105: cs = 27; goto f23;
-	tr120: cs = 27; goto f26;
-	tr133: cs = 27; goto f29;
-	tr149: cs = 27; goto f32;
-	tr165: cs = 27; goto f35;
-	tr181: cs = 27; goto f38;
-	tr196: cs = 27; goto f41;
-	tr209: cs = 27; goto f44;
-	tr225: cs = 27; goto f47;
-	tr241: cs = 27; goto f50;
-	tr257: cs = 27; goto f53;
-	tr273: cs = 27; goto f56;
-	tr289: cs = 27; goto f59;
-	tr302: cs = 27; goto f62;
-	tr316: cs = 27; goto f66;
-	tr330: cs = 27; goto f69;
-	tr344: cs = 27; goto f72;
-	tr358: cs = 27; goto f75;
-	tr373: cs = 27; goto f78;
-	tr387: cs = 27; goto f81;
-	tr403: cs = 27; goto f84;
-	tr417: cs = 27; goto f87;
-	tr275: cs = 28; goto f3;
-	tr276: cs = 29; goto _again;
-	tr277: cs = 30; goto f4;
-	tr303: cs = 30; goto f63;
-	tr260: cs = 31; goto _again;
-	tr261: cs = 32; goto f4;
-	tr317: cs = 32; goto f63;
-	tr244: cs = 33; goto _again;
-	tr245: cs = 34; goto f4;
-	tr331: cs = 34; goto f63;
-	tr228: cs = 35; goto _again;
-	tr229: cs = 36; goto f4;
-	tr345: cs = 36; goto f63;
-	tr212: cs = 37; goto _again;
-	tr213: cs = 38; goto f4;
-	tr359: cs = 38; goto f63;
-	tr169: cs = 39; goto f4;
-	tr184: cs = 39; goto f16;
-	tr360: cs = 39; goto f63;
-	tr152: cs = 40; goto _again;
-	tr153: cs = 41; goto f4;
-	tr374: cs = 41; goto f63;
-	tr136: cs = 42; goto _again;
-	tr137: cs = 43; goto f4;
-	tr388: cs = 43; goto f63;
-	tr93: cs = 44; goto f4;
-	tr108: cs = 44; goto f16;
-	tr389: cs = 44; goto f63;
-	tr49: cs = 45; goto f4;
-	tr64: cs = 45; goto f16;
-	tr390: cs = 45; goto f63;
-	tr32: cs = 46; goto _again;
-	tr33: cs = 47; goto f4;
-	tr404: cs = 47; goto f63;
-	tr14: cs = 48; goto f3;
-	tr15: cs = 49; goto _again;
-	tr16: cs = 50; goto f4;
-	tr418: cs = 50; goto f63;
+	tr31: cs = 27; goto f5;
+	tr51: cs = 27; goto f9;
+	tr70: cs = 27; goto f12;
+	tr89: cs = 27; goto f15;
+	tr107: cs = 27; goto f20;
+	tr123: cs = 27; goto f23;
+	tr142: cs = 27; goto f26;
+	tr160: cs = 27; goto f29;
+	tr176: cs = 27; goto f32;
+	tr195: cs = 27; goto f35;
+	tr214: cs = 27; goto f38;
+	tr233: cs = 27; goto f41;
+	tr251: cs = 27; goto f44;
+	tr267: cs = 27; goto f47;
+	tr286: cs = 27; goto f50;
+	tr305: cs = 27; goto f53;
+	tr324: cs = 27; goto f56;
+	tr343: cs = 27; goto f59;
+	tr362: cs = 27; goto f62;
+	tr381: cs = 27; goto f65;
+	tr400: cs = 27; goto f68;
+	tr416: cs = 27; goto f71;
+	tr433: cs = 27; goto f75;
+	tr450: cs = 27; goto f78;
+	tr467: cs = 27; goto f81;
+	tr484: cs = 27; goto f84;
+	tr501: cs = 27; goto f87;
+	tr518: cs = 27; goto f90;
+	tr536: cs = 27; goto f93;
+	tr553: cs = 27; goto f96;
+	tr572: cs = 27; goto f99;
+	tr589: cs = 27; goto f102;
+	tr606: cs = 27; goto f105;
+	tr329: cs = 28; goto f3;
+	tr13: cs = 29; goto f0;
+	tr32: cs = 29; goto f5;
+	tr52: cs = 29; goto f9;
+	tr71: cs = 29; goto f12;
+	tr90: cs = 29; goto f15;
+	tr108: cs = 29; goto f20;
+	tr124: cs = 29; goto f23;
+	tr143: cs = 29; goto f26;
+	tr161: cs = 29; goto f29;
+	tr177: cs = 29; goto f32;
+	tr196: cs = 29; goto f35;
+	tr215: cs = 29; goto f38;
+	tr234: cs = 29; goto f41;
+	tr252: cs = 29; goto f44;
+	tr268: cs = 29; goto f47;
+	tr287: cs = 29; goto f50;
+	tr306: cs = 29; goto f53;
+	tr325: cs = 29; goto f56;
+	tr344: cs = 29; goto f59;
+	tr363: cs = 29; goto f62;
+	tr382: cs = 29; goto f65;
+	tr401: cs = 29; goto f68;
+	tr417: cs = 29; goto f71;
+	tr434: cs = 29; goto f75;
+	tr451: cs = 29; goto f78;
+	tr468: cs = 29; goto f81;
+	tr485: cs = 29; goto f84;
+	tr502: cs = 29; goto f87;
+	tr519: cs = 29; goto f90;
+	tr537: cs = 29; goto f93;
+	tr554: cs = 29; goto f96;
+	tr573: cs = 29; goto f99;
+	tr590: cs = 29; goto f102;
+	tr607: cs = 29; goto f105;
+	tr348: cs = 30; goto f3;
+	tr14: cs = 31; goto f0;
+	tr33: cs = 31; goto f5;
+	tr53: cs = 31; goto f9;
+	tr72: cs = 31; goto f12;
+	tr91: cs = 31; goto f15;
+	tr109: cs = 31; goto f20;
+	tr125: cs = 31; goto f23;
+	tr144: cs = 31; goto f26;
+	tr162: cs = 31; goto f29;
+	tr178: cs = 31; goto f32;
+	tr197: cs = 31; goto f35;
+	tr216: cs = 31; goto f38;
+	tr235: cs = 31; goto f41;
+	tr253: cs = 31; goto f44;
+	tr269: cs = 31; goto f47;
+	tr288: cs = 31; goto f50;
+	tr307: cs = 31; goto f53;
+	tr326: cs = 31; goto f56;
+	tr345: cs = 31; goto f59;
+	tr364: cs = 31; goto f62;
+	tr383: cs = 31; goto f65;
+	tr402: cs = 31; goto f68;
+	tr418: cs = 31; goto f71;
+	tr435: cs = 31; goto f75;
+	tr452: cs = 31; goto f78;
+	tr469: cs = 31; goto f81;
+	tr486: cs = 31; goto f84;
+	tr503: cs = 31; goto f87;
+	tr520: cs = 31; goto f90;
+	tr538: cs = 31; goto f93;
+	tr555: cs = 31; goto f96;
+	tr574: cs = 31; goto f99;
+	tr591: cs = 31; goto f102;
+	tr608: cs = 31; goto f105;
+	tr367: cs = 32; goto f3;
+	tr15: cs = 33; goto f0;
+	tr34: cs = 33; goto f5;
+	tr54: cs = 33; goto f9;
+	tr73: cs = 33; goto f12;
+	tr92: cs = 33; goto f15;
+	tr110: cs = 33; goto f20;
+	tr126: cs = 33; goto f23;
+	tr145: cs = 33; goto f26;
+	tr163: cs = 33; goto f29;
+	tr179: cs = 33; goto f32;
+	tr198: cs = 33; goto f35;
+	tr217: cs = 33; goto f38;
+	tr236: cs = 33; goto f41;
+	tr254: cs = 33; goto f44;
+	tr270: cs = 33; goto f47;
+	tr289: cs = 33; goto f50;
+	tr308: cs = 33; goto f53;
+	tr327: cs = 33; goto f56;
+	tr346: cs = 33; goto f59;
+	tr365: cs = 33; goto f62;
+	tr384: cs = 33; goto f65;
+	tr403: cs = 33; goto f68;
+	tr419: cs = 33; goto f71;
+	tr436: cs = 33; goto f75;
+	tr453: cs = 33; goto f78;
+	tr470: cs = 33; goto f81;
+	tr487: cs = 33; goto f84;
+	tr504: cs = 33; goto f87;
+	tr521: cs = 33; goto f90;
+	tr539: cs = 33; goto f93;
+	tr556: cs = 33; goto f96;
+	tr575: cs = 33; goto f99;
+	tr592: cs = 33; goto f102;
+	tr609: cs = 33; goto f105;
+	tr386: cs = 34; goto f3;
+	tr387: cs = 35; goto _again;
+	tr388: cs = 36; goto f4;
+	tr420: cs = 36; goto f72;
+	tr368: cs = 37; goto _again;
+	tr369: cs = 38; goto f4;
+	tr437: cs = 38; goto f72;
+	tr349: cs = 39; goto _again;
+	tr350: cs = 40; goto f4;
+	tr454: cs = 40; goto f72;
+	tr330: cs = 41; goto _again;
+	tr331: cs = 42; goto f4;
+	tr471: cs = 42; goto f72;
+	tr311: cs = 43; goto _again;
+	tr312: cs = 44; goto f4;
+	tr488: cs = 44; goto f72;
+	tr292: cs = 45; goto _again;
+	tr293: cs = 46; goto f4;
+	tr505: cs = 46; goto f72;
+	tr273: cs = 47; goto _again;
+	tr274: cs = 48; goto f4;
+	tr522: cs = 48; goto f72;
+	tr221: cs = 49; goto f4;
+	tr239: cs = 49; goto f19;
+	tr523: cs = 49; goto f72;
+	tr201: cs = 50; goto _again;
+	tr202: cs = 51; goto f4;
+	tr540: cs = 51; goto f72;
+	tr182: cs = 52; goto _again;
+	tr183: cs = 53; goto f4;
+	tr557: cs = 53; goto f72;
+	tr130: cs = 54; goto f4;
+	tr148: cs = 54; goto f19;
+	tr558: cs = 54; goto f72;
+	tr77: cs = 55; goto f4;
+	tr95: cs = 55; goto f19;
+	tr559: cs = 55; goto f72;
+	tr57: cs = 56; goto _again;
+	tr58: cs = 57; goto f4;
+	tr576: cs = 57; goto f72;
+	tr38: cs = 58; goto _again;
+	tr39: cs = 59; goto f4;
+	tr593: cs = 59; goto f72;
+	tr17: cs = 60; goto f3;
+	tr18: cs = 61; goto _again;
+	tr19: cs = 62; goto f4;
+	tr610: cs = 62; goto f72;
 
 f0:
 	{
@@ -1975,17 +2713,17 @@ f4:
     count = (*p) - '0';
   }
 	goto _again;
-f63:
+f72:
 	{
     count = count * 10 + ((*p) - '0');
   }
 	goto _again;
-f15:
+f18:
 	{
     platform = true;
   }
 	goto _again;
-f49:
+f52:
 	{
 #define INVALID_MOVE_ERROR_SIZE 48
 
@@ -2001,7 +2739,7 @@ f49:
     str = str.substr(0, str.size() - count);
   }
 	goto _again;
-f58:
+f67:
 	{
     if(rest) count = 0;
 
@@ -2029,7 +2767,7 @@ f3:
     Exception::argument_error(state, non_native_msg);
   }
 	goto _again;
-f71:
+f86:
 	{
     rest = true;
   }
@@ -2048,7 +2786,7 @@ f71:
     str = str.substr(0, str.size() - count);
   }
 	goto _again;
-f61:
+f70:
 	{
     rest = true;
   }
@@ -2058,7 +2796,7 @@ f61:
     str.append(count, '\0');
   }
 	goto _again;
-f86:
+f104:
 	{
     rest = true;
   }
@@ -2072,34 +2810,12 @@ f86:
     }
   }
 	goto _again;
-f16:
+f19:
 	{
     platform = true;
   }
 	{
     count = (*p) - '0';
-  }
-	goto _again;
-f8:
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(MASK_BYTE);
-  }
-	goto _again;
-f37:
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(MASK_16BITS);
   }
 	goto _again;
 f11:
@@ -2110,10 +2826,32 @@ f11:
     }
   }
 	{
+    PACK_INT_ELEMENTS(MASK_BYTE);
+  }
+	goto _again;
+f40:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_16BITS);
+  }
+	goto _again;
+f14:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
     PACK_INT_ELEMENTS(MASK_32BITS);
   }
 	goto _again;
-f22:
+f25:
 	{
     stop = rest ? size() : index + count;
     if(stop > size()) {
@@ -2132,7 +2870,7 @@ f22:
     }
   }
 	goto _again;
-f52:
+f61:
 	{
     stop = rest ? size() : index + count;
     if(stop > size()) {
@@ -2143,7 +2881,7 @@ f52:
     PACK_INT_ELEMENTS(BE_MASK_16BITS);
   }
 	goto _again;
-f31:
+f34:
 	{
     stop = rest ? size() : index + count;
     if(stop > size()) {
@@ -2154,7 +2892,7 @@ f31:
     PACK_INT_ELEMENTS(BE_MASK_32BITS);
   }
 	goto _again;
-f55:
+f64:
 	{
     stop = rest ? size() : index + count;
     if(stop > size()) {
@@ -2165,7 +2903,7 @@ f55:
     PACK_INT_ELEMENTS(LE_MASK_16BITS);
   }
 	goto _again;
-f46:
+f49:
 	{
     stop = rest ? size() : index + count;
     if(stop > size()) {
@@ -2176,7 +2914,7 @@ f46:
     PACK_INT_ELEMENTS(LE_MASK_32BITS);
   }
 	goto _again;
-f34:
+f37:
 	{
     stop = rest ? size() : index + count;
     if(stop > size()) {
@@ -2187,7 +2925,44 @@ f34:
     PACK_LONG_ELEMENTS(MASK_64BITS);
   }
 	goto _again;
-f50:
+f8:
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(count > 0) str.append(count, ' ');
+  }
+	goto _again;
+f58:
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(count > 0) str.append(count, '\0');
+  }
+	goto _again;
+f55:
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(rest) {
+      if(count == 0) str.append(1, '\0');
+    } else {
+      if(count > 0) str.append(count, '\0');
+    }
+  }
+	goto _again;
+f53:
 	{
 #define INVALID_MOVE_ERROR_SIZE 48
 
@@ -2208,7 +2983,7 @@ f50:
     platform = false;
   }
 	goto _again;
-f59:
+f68:
 	{
     if(rest) count = 0;
 
@@ -2236,7 +3011,7 @@ f5:
     platform = false;
   }
 	goto _again;
-f83:
+f98:
 	{
     rest = true;
   }
@@ -2250,7 +3025,7 @@ f83:
     PACK_INT_ELEMENTS(MASK_BYTE);
   }
 	goto _again;
-f43:
+f46:
 	{
     rest = true;
   }
@@ -2264,7 +3039,7 @@ f43:
     PACK_INT_ELEMENTS(MASK_16BITS);
   }
 	goto _again;
-f19:
+f22:
 	{
     rest = true;
   }
@@ -2278,7 +3053,7 @@ f19:
     PACK_INT_ELEMENTS(MASK_32BITS);
   }
 	goto _again;
-f28:
+f31:
 	{
     rest = true;
   }
@@ -2300,7 +3075,7 @@ f28:
     }
   }
 	goto _again;
-f68:
+f77:
 	{
     rest = true;
   }
@@ -2314,7 +3089,7 @@ f68:
     PACK_INT_ELEMENTS(BE_MASK_16BITS);
   }
 	goto _again;
-f80:
+f95:
 	{
     rest = true;
   }
@@ -2328,7 +3103,7 @@ f80:
     PACK_INT_ELEMENTS(BE_MASK_32BITS);
   }
 	goto _again;
-f65:
+f74:
 	{
     rest = true;
   }
@@ -2342,7 +3117,7 @@ f65:
     PACK_INT_ELEMENTS(LE_MASK_16BITS);
   }
 	goto _again;
-f74:
+f89:
 	{
     rest = true;
   }
@@ -2356,7 +3131,7 @@ f74:
     PACK_INT_ELEMENTS(LE_MASK_32BITS);
   }
 	goto _again;
-f77:
+f92:
 	{
     rest = true;
   }
@@ -2370,7 +3145,53 @@ f77:
     PACK_LONG_ELEMENTS(MASK_64BITS);
   }
 	goto _again;
-f72:
+f101:
+	{
+    rest = true;
+  }
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(count > 0) str.append(count, ' ');
+  }
+	goto _again;
+f80:
+	{
+    rest = true;
+  }
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(count > 0) str.append(count, '\0');
+  }
+	goto _again;
+f83:
+	{
+    rest = true;
+  }
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(rest) {
+      if(count == 0) str.append(1, '\0');
+    } else {
+      if(count > 0) str.append(count, '\0');
+    }
+  }
+	goto _again;
+f87:
 	{
     rest = true;
   }
@@ -2394,7 +3215,7 @@ f72:
     platform = false;
   }
 	goto _again;
-f62:
+f71:
 	{
     rest = true;
   }
@@ -2409,7 +3230,7 @@ f62:
     platform = false;
   }
 	goto _again;
-f87:
+f105:
 	{
     rest = true;
   }
@@ -2428,7 +3249,7 @@ f87:
     platform = false;
   }
 	goto _again;
-f40:
+f43:
 	{
     platform = true;
   }
@@ -2442,7 +3263,7 @@ f40:
     PACK_INT_ELEMENTS(MASK_16BITS);
   }
 	goto _again;
-f14:
+f17:
 	{
     platform = true;
   }
@@ -2456,7 +3277,7 @@ f14:
     PACK_INT_ELEMENTS(MASK_32BITS);
   }
 	goto _again;
-f25:
+f28:
 	{
     platform = true;
   }
@@ -2478,7 +3299,7 @@ f25:
     }
   }
 	goto _again;
-f9:
+f12:
 	{
     stop = rest ? size() : index + count;
     if(stop > size()) {
@@ -2494,7 +3315,7 @@ f9:
     platform = false;
   }
 	goto _again;
-f38:
+f41:
 	{
     stop = rest ? size() : index + count;
     if(stop > size()) {
@@ -2510,7 +3331,7 @@ f38:
     platform = false;
   }
 	goto _again;
-f12:
+f15:
 	{
     stop = rest ? size() : index + count;
     if(stop > size()) {
@@ -2526,7 +3347,7 @@ f12:
     platform = false;
   }
 	goto _again;
-f23:
+f26:
 	{
     stop = rest ? size() : index + count;
     if(stop > size()) {
@@ -2550,7 +3371,7 @@ f23:
     platform = false;
   }
 	goto _again;
-f53:
+f62:
 	{
     stop = rest ? size() : index + count;
     if(stop > size()) {
@@ -2559,54 +3380,6 @@ f53:
   }
 	{
     PACK_INT_ELEMENTS(BE_MASK_16BITS);
-  }
-	{
-    count = 1;
-    rest = false;
-    platform = false;
-  }
-	goto _again;
-f32:
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(BE_MASK_32BITS);
-  }
-	{
-    count = 1;
-    rest = false;
-    platform = false;
-  }
-	goto _again;
-f56:
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(LE_MASK_16BITS);
-  }
-	{
-    count = 1;
-    rest = false;
-    platform = false;
-  }
-	goto _again;
-f47:
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(LE_MASK_32BITS);
   }
 	{
     count = 1;
@@ -2622,6 +3395,54 @@ f35:
     }
   }
 	{
+    PACK_INT_ELEMENTS(BE_MASK_32BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f65:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_16BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f50:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_32BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f38:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
     PACK_LONG_ELEMENTS(MASK_64BITS);
   }
 	{
@@ -2630,7 +3451,59 @@ f35:
     platform = false;
   }
 	goto _again;
-f84:
+f9:
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(count > 0) str.append(count, ' ');
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f59:
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(count > 0) str.append(count, '\0');
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f56:
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(rest) {
+      if(count == 0) str.append(1, '\0');
+    } else {
+      if(count > 0) str.append(count, '\0');
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f99:
 	{
     rest = true;
   }
@@ -2649,7 +3522,7 @@ f84:
     platform = false;
   }
 	goto _again;
-f44:
+f47:
 	{
     rest = true;
   }
@@ -2668,7 +3541,7 @@ f44:
     platform = false;
   }
 	goto _again;
-f20:
+f23:
 	{
     rest = true;
   }
@@ -2687,7 +3560,7 @@ f20:
     platform = false;
   }
 	goto _again;
-f29:
+f32:
 	{
     rest = true;
   }
@@ -2707,82 +3580,6 @@ f29:
     } else {
       PACK_INT_ELEMENTS(MASK_32BITS);
     }
-  }
-	{
-    count = 1;
-    rest = false;
-    platform = false;
-  }
-	goto _again;
-f69:
-	{
-    rest = true;
-  }
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(BE_MASK_16BITS);
-  }
-	{
-    count = 1;
-    rest = false;
-    platform = false;
-  }
-	goto _again;
-f81:
-	{
-    rest = true;
-  }
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(BE_MASK_32BITS);
-  }
-	{
-    count = 1;
-    rest = false;
-    platform = false;
-  }
-	goto _again;
-f66:
-	{
-    rest = true;
-  }
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(LE_MASK_16BITS);
-  }
-	{
-    count = 1;
-    rest = false;
-    platform = false;
-  }
-	goto _again;
-f75:
-	{
-    rest = true;
-  }
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(LE_MASK_32BITS);
   }
 	{
     count = 1;
@@ -2801,6 +3598,82 @@ f78:
     }
   }
 	{
+    PACK_INT_ELEMENTS(BE_MASK_16BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f96:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(BE_MASK_32BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f75:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_16BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f90:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_32BITS);
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f93:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
     PACK_LONG_ELEMENTS(MASK_64BITS);
   }
 	{
@@ -2809,7 +3682,68 @@ f78:
     platform = false;
   }
 	goto _again;
-f41:
+f102:
+	{
+    rest = true;
+  }
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(count > 0) str.append(count, ' ');
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f81:
+	{
+    rest = true;
+  }
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(count > 0) str.append(count, '\0');
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f84:
+	{
+    rest = true;
+  }
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(rest) {
+      if(count == 0) str.append(1, '\0');
+    } else {
+      if(count > 0) str.append(count, '\0');
+    }
+  }
+	{
+    count = 1;
+    rest = false;
+    platform = false;
+  }
+	goto _again;
+f44:
 	{
     platform = true;
   }
@@ -2828,7 +3762,7 @@ f41:
     platform = false;
   }
 	goto _again;
-f17:
+f20:
 	{
     platform = true;
   }
@@ -2847,7 +3781,7 @@ f17:
     platform = false;
   }
 	goto _again;
-f26:
+f29:
 	{
     platform = true;
   }
@@ -2886,10 +3820,15 @@ _again:
 	switch ( _pack_eof_actions[cs] ) {
 	case 7:
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
-	case 49:
+	case 52:
 	{
 #define INVALID_MOVE_ERROR_SIZE 48
 
@@ -2905,17 +3844,27 @@ _again:
     str = str.substr(0, str.size() - count);
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
-	case 58:
+	case 67:
 	{
     if(rest) count = 0;
 
     str.append(count, '\0');
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
 	case 2:
@@ -2929,10 +3878,15 @@ _again:
     }
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
-	case 71:
+	case 86:
 	{
     rest = true;
   }
@@ -2951,10 +3905,15 @@ _again:
     str = str.substr(0, str.size() - count);
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
-	case 61:
+	case 70:
 	{
     rest = true;
   }
@@ -2964,10 +3923,15 @@ _again:
     str.append(count, '\0');
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
-	case 86:
+	case 104:
 	{
     rest = true;
   }
@@ -2981,35 +3945,12 @@ _again:
     }
   }
 	{
-    return String::create(state, str.c_str(), str.size());
-  }
-	break;
-	case 8:
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
     }
-  }
-	{
-    PACK_INT_ELEMENTS(MASK_BYTE);
-  }
-	{
-    return String::create(state, str.c_str(), str.size());
-  }
-	break;
-	case 37:
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(MASK_16BITS);
-  }
-	{
-    return String::create(state, str.c_str(), str.size());
+    return result;
   }
 	break;
 	case 11:
@@ -3020,13 +3961,56 @@ _again:
     }
   }
 	{
+    PACK_INT_ELEMENTS(MASK_BYTE);
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 40:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(MASK_16BITS);
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 14:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
     PACK_INT_ELEMENTS(MASK_32BITS);
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
-	case 22:
+	case 25:
 	{
     stop = rest ? size() : index + count;
     if(stop > size()) {
@@ -3045,10 +4029,15 @@ _again:
     }
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
-	case 52:
+	case 61:
 	{
     stop = rest ? size() : index + count;
     if(stop > size()) {
@@ -3059,49 +4048,12 @@ _again:
     PACK_INT_ELEMENTS(BE_MASK_16BITS);
   }
 	{
-    return String::create(state, str.c_str(), str.size());
-  }
-	break;
-	case 31:
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
     }
-  }
-	{
-    PACK_INT_ELEMENTS(BE_MASK_32BITS);
-  }
-	{
-    return String::create(state, str.c_str(), str.size());
-  }
-	break;
-	case 55:
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(LE_MASK_16BITS);
-  }
-	{
-    return String::create(state, str.c_str(), str.size());
-  }
-	break;
-	case 46:
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(LE_MASK_32BITS);
-  }
-	{
-    return String::create(state, str.c_str(), str.size());
+    return result;
   }
 	break;
 	case 34:
@@ -3112,13 +4064,136 @@ _again:
     }
   }
 	{
+    PACK_INT_ELEMENTS(BE_MASK_32BITS);
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 64:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_16BITS);
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 49:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_32BITS);
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 37:
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
     PACK_LONG_ELEMENTS(MASK_64BITS);
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
-	case 83:
+	case 8:
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(count > 0) str.append(count, ' ');
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 58:
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(count > 0) str.append(count, '\0');
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 55:
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(rest) {
+      if(count == 0) str.append(1, '\0');
+    } else {
+      if(count > 0) str.append(count, '\0');
+    }
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 98:
 	{
     rest = true;
   }
@@ -3132,10 +4207,15 @@ _again:
     PACK_INT_ELEMENTS(MASK_BYTE);
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
-	case 43:
+	case 46:
 	{
     rest = true;
   }
@@ -3149,10 +4229,15 @@ _again:
     PACK_INT_ELEMENTS(MASK_16BITS);
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
-	case 19:
+	case 22:
 	{
     rest = true;
   }
@@ -3166,10 +4251,15 @@ _again:
     PACK_INT_ELEMENTS(MASK_32BITS);
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
-	case 28:
+	case 31:
 	{
     rest = true;
   }
@@ -3191,75 +4281,12 @@ _again:
     }
   }
 	{
-    return String::create(state, str.c_str(), str.size());
-  }
-	break;
-	case 68:
-	{
-    rest = true;
-  }
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
     }
-  }
-	{
-    PACK_INT_ELEMENTS(BE_MASK_16BITS);
-  }
-	{
-    return String::create(state, str.c_str(), str.size());
-  }
-	break;
-	case 80:
-	{
-    rest = true;
-  }
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(BE_MASK_32BITS);
-  }
-	{
-    return String::create(state, str.c_str(), str.size());
-  }
-	break;
-	case 65:
-	{
-    rest = true;
-  }
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(LE_MASK_16BITS);
-  }
-	{
-    return String::create(state, str.c_str(), str.size());
-  }
-	break;
-	case 74:
-	{
-    rest = true;
-  }
-	{
-    stop = rest ? size() : index + count;
-    if(stop > size()) {
-      Exception::argument_error(state, "too few arguments");
-    }
-  }
-	{
-    PACK_INT_ELEMENTS(LE_MASK_32BITS);
-  }
-	{
-    return String::create(state, str.c_str(), str.size());
+    return result;
   }
 	break;
 	case 77:
@@ -3273,13 +4300,176 @@ _again:
     }
   }
 	{
+    PACK_INT_ELEMENTS(BE_MASK_16BITS);
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 95:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(BE_MASK_32BITS);
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 74:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_16BITS);
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 89:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_INT_ELEMENTS(LE_MASK_32BITS);
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 92:
+	{
+    rest = true;
+  }
+	{
+    stop = rest ? size() : index + count;
+    if(stop > size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
     PACK_LONG_ELEMENTS(MASK_64BITS);
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
-	case 40:
+	case 101:
+	{
+    rest = true;
+  }
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(count > 0) str.append(count, ' ');
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 80:
+	{
+    rest = true;
+  }
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(count > 0) str.append(count, '\0');
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 83:
+	{
+    rest = true;
+  }
+	{
+    if(index >= size()) {
+      Exception::argument_error(state, "too few arguments");
+    }
+  }
+	{
+    PACK_STRING_ELEMENT(pack::string_or_nil);
+    if(rest) {
+      if(count == 0) str.append(1, '\0');
+    } else {
+      if(count > 0) str.append(count, '\0');
+    }
+  }
+	{
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
+  }
+	break;
+	case 43:
 	{
     platform = true;
   }
@@ -3293,10 +4483,15 @@ _again:
     PACK_INT_ELEMENTS(MASK_16BITS);
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
-	case 14:
+	case 17:
 	{
     platform = true;
   }
@@ -3310,10 +4505,15 @@ _again:
     PACK_INT_ELEMENTS(MASK_32BITS);
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
-	case 25:
+	case 28:
 	{
     platform = true;
   }
@@ -3335,7 +4535,12 @@ _again:
     }
   }
 	{
-    return String::create(state, str.c_str(), str.size());
+    String* result = String::create(state, str.c_str(), str.size());
+    if(tainted) {
+      result->taint(state);
+      tainted = false;
+    }
+    return result;
   }
 	break;
 	}
