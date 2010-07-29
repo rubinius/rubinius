@@ -473,6 +473,7 @@ namespace rubinius {
   void VM::register_raise(Exception* exc) {
     thread_state_.raise_exception(exc);
     check_local_interrupts = true;
+    get_attention();
   }
 
   void VM::check_exception(CallFrame* call_frame) {
