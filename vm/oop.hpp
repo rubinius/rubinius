@@ -9,6 +9,10 @@
 #include "type_info.hpp"
 #include "detection.hpp"
 
+namespace thread {
+  class Mutex;
+}
+
 namespace rubinius {
 
 /* We use a variable length OOP tag system:
@@ -137,9 +141,19 @@ const int cUndef = 0x22L;
   class Object;
   class VM;
 
+  enum AuxWordMeaning {
+    eAuxWordEmpty = 0,
+    eAuxWordObjID = 1,
+    eAuxWordLock =  2,
+    eAuxWordInflated = 3
+  };
+
+  const static int AuxMeaningWidth = 2;
+  const static int AuxMeaningMask  = 3;
+
   struct ObjectFlags {
     // inflated MUST be first, because rest is used as a pointer
-    unsigned int inflated        : 1;
+    unsigned int meaning         : 2;
     object_type  obj_type        : 8;
     gc_zone      zone            : 2;
     unsigned int age             : 4;
@@ -154,13 +168,12 @@ const int cUndef = 0x22L;
     unsigned int Frozen          : 1;
     unsigned int Tainted         : 1;
 
-#ifdef RBX_OBJECT_ID_IN_HEADER
-    uint32_t object_id;
-#endif
+    uint32_t aux_word;
   };
 
   union HeaderWord {
     struct ObjectFlags f;
+    uint64_t flags64;
     void* all_flags;
   };
 
@@ -173,8 +186,11 @@ const int cUndef = 0x22L;
       ObjectFlags flags_;
       InflatedHeader* next_;
     };
+
     ObjectHeader* object_;
     capi::Handle* handle_;
+    uint32_t object_id_;
+    thread::Mutex* mutex_;
 
   public:
     ObjectFlags& flags() {
@@ -189,6 +205,14 @@ const int cUndef = 0x22L;
       return object_;
     }
 
+    uint32_t object_id() {
+      return object_id_;
+    }
+
+    void set_object_id(uint32_t id) {
+      object_id_ = id;
+    }
+
     void set_next(InflatedHeader* next) {
       next_ = next;
     }
@@ -197,6 +221,7 @@ const int cUndef = 0x22L;
       next_ = 0;
       object_ = 0;
       handle_ = 0;
+      object_id_ = 0;
     }
 
     bool used_p() {
@@ -219,6 +244,8 @@ const int cUndef = 0x22L;
     void set_handle(capi::Handle* handle) {
       handle_ = handle;
     }
+
+    void update(HeaderWord header);
   };
 
   class ObjectHeader {
@@ -252,29 +279,22 @@ const int cUndef = 0x22L;
   public: // accessors for header members
 
     bool inflated_header_p() const {
-      return header.f.inflated;
+      return header.f.meaning == eAuxWordInflated;
     }
 
-    InflatedHeader* inflated_header() const {
+    static InflatedHeader* header_to_inflated_header(HeaderWord header) {
       uintptr_t untagged =
-        reinterpret_cast<uintptr_t>(header.all_flags) & ~1;
+        reinterpret_cast<uintptr_t>(header.all_flags) & ~AuxMeaningMask;
       return reinterpret_cast<InflatedHeader*>(untagged);
     }
 
-    void set_inflated_header(InflatedHeader* ih) {
-      ih->reset_object(this);
-      ih->flags() = header.f; // probably should be in reset_object
-      header.all_flags = ih;
-      header.f.inflated = 1;
+    InflatedHeader* inflated_header() const {
+      return header_to_inflated_header(header);
     }
 
-    InflatedHeader* deflate_header() {
-      InflatedHeader* ih = inflated_header();
-      header.f = ih->flags();
-      header.f.inflated = 0;
+    void set_inflated_header(InflatedHeader* ih);
 
-      return ih;
-    }
+    InflatedHeader* deflate_header();
 
     ObjectFlags& flags() const {
       if(inflated_header_p()) return inflated_header()->flags();
@@ -312,7 +332,7 @@ const int cUndef = 0x22L;
 
   public:
 
-    void initialize_copy(Object* other, unsigned int age);
+    void initialize_copy(ObjectMemory* om, Object* other, unsigned int age);
 
     /* Copies the body of +other+ into +this+ */
     void copy_body(VM* state, Object* other);
@@ -497,15 +517,22 @@ const int cUndef = 0x22L;
       flags().Tainted = val;
     }
 
-#ifdef RBX_OBJECT_ID_IN_HEADER
     uint32_t object_id() {
-      return flags().object_id;
+      // Pull this out into a local so that we don't see any concurrent
+      // changes to header.
+      HeaderWord tmp = header;
+
+      switch(tmp.f.meaning) {
+      case eAuxWordInflated:
+        return header_to_inflated_header(tmp)->object_id();
+      case eAuxWordObjID:
+        return tmp.f.aux_word;
+      default:
+        return 0;
+      }
     }
 
-    void set_object_id(uint32_t id) {
-      flags().object_id = id;
-    }
-#endif
+    void set_object_id(ObjectMemory* om, uint32_t id);
 
     bool nil_p() const {
       return this == reinterpret_cast<ObjectHeader*>(Qnil);

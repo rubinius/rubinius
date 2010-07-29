@@ -97,6 +97,15 @@ namespace rubinius {
 
   }
 
+  void ObjectMemory::assign_object_id(Object* obj) {
+    LOCK_ME;
+
+    // Double check we've got no id still after the lock.
+    if(obj->object_id() > 0) return;
+
+    obj->set_object_id(state->om, ++last_object_id);
+  }
+
   // WARNING: This returns an object who's body may not have been initialized.
   // It is the callers duty to initialize it.
   Object* ObjectMemory::new_object_fast(Class* cls, size_t bytes, object_type type) {
@@ -423,6 +432,16 @@ namespace rubinius {
     InflatedHeader* header = inflated_headers_->allocate(obj);
     obj->set_inflated_header(header);
     return header;
+  }
+
+  void ObjectMemory::inflate_for_id(ObjectHeader* obj, uint32_t id) {
+    if(obj->inflated_header_p()) return;
+
+    LOCK_ME;
+
+    InflatedHeader* header = inflated_headers_->allocate(obj);
+    header->set_object_id(id);
+    obj->set_inflated_header(header);
   }
 
   void ObjectMemory::validate_handles(capi::Handles* handles) {

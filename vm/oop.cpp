@@ -7,11 +7,83 @@
 #include <cassert>
 
 namespace rubinius {
+  void ObjectHeader::set_inflated_header(InflatedHeader* ih) {
+    HeaderWord orig = header;
+
+    ih->reset_object(this);
+    ih->update(header);
+
+    HeaderWord new_val = header;
+    new_val.all_flags = ih;
+    new_val.f.meaning = eAuxWordInflated;
+
+    // Do a spin update so if someone else is trying to update it at the same time
+    // we catch that and keep trying until we get our version in.
+    while(!__sync_bool_compare_and_swap(&header.flags64, orig.flags64, new_val.flags64)) {
+      orig = header;
+      ih->update(header);
+    }
+  }
+
+  InflatedHeader* ObjectHeader::deflate_header() {
+    // Probably needs to CAS, but this only used by immix and in a place
+    // we don't hit currently, so don't worry about it for now.
+    InflatedHeader* ih = inflated_header();
+    header.f = ih->flags();
+    header.f.meaning = eAuxWordEmpty;
+    header.f.aux_word = 0;
+
+    return ih;
+  }
+
+  void InflatedHeader::update(HeaderWord header) {
+    flags_ = header.f;
+
+    switch(flags_.meaning) {
+    case eAuxWordObjID:
+      object_id_ = flags_.aux_word;
+      flags_.meaning = eAuxWordEmpty;
+      flags_.aux_word = 0;
+      break;
+    case eAuxWordLock:
+      // fine.
+    case eAuxWordInflated:
+      abort();
+    }
+  }
+
+  void ObjectHeader::set_object_id(ObjectMemory* om, uint32_t id) {
+    // Just ignore trying to reset it to 0 for now.
+    if(id == 0) return;
+
+    // Construct 2 new headers: one is the version we hope that
+    // is in use and the other is what we want it to be. The CAS
+    // the new one into place.
+    HeaderWord orig = header;
+
+    orig.f.meaning = eAuxWordEmpty;
+    orig.f.aux_word = 0;
+
+    HeaderWord new_val = orig;
+
+    new_val.f.meaning = eAuxWordObjID;
+    new_val.f.aux_word = id;
+
+    if(__sync_bool_compare_and_swap(&header.flags64, orig.flags64, new_val.flags64)) {
+      return;
+    }
+
+    // not inflated, and the aux_word is being used for locking.
+    // Inflate!
+
+    om->inflate_for_id(this, id);
+  }
+
   size_t ObjectHeader::slow_size_in_bytes(STATE) const {
     return state->om->type_info[type_id()]->object_size(this);
   }
 
-  void ObjectHeader::initialize_copy(Object* other, unsigned int new_age) {
+  void ObjectHeader::initialize_copy(ObjectMemory* om, Object* other, unsigned int new_age) {
     /* Even though we dup it, we have to be careful to maintain
      * the zone. */
 
@@ -26,26 +98,34 @@ namespace rubinius {
     klass_ = other->klass_;
     ivars_ = other->ivars_;
 
-#ifdef RBX_OBJECT_ID_IN_HEADER
-    set_object_id(other->object_id());
-#endif
-
     clear_forwarded();
 
     if(other->is_tainted_p()) set_tainted();
   }
 
-  void ObjectHeader::initialize_full_state(STATE, Object* source, unsigned int age) {
-    initialize_copy(source, age);
-    copy_body(state, source);
+  void ObjectHeader::initialize_full_state(STATE, Object* other, unsigned int age) {
+    assert(type_id() == other->type_id());
+    set_age(age);
+    klass_ = other->klass_;
+    ivars_ = other->ivars_;
+
+    if(other->object_id() > 0) {
+      set_object_id(state->om, other->object_id());
+    }
+
+    clear_forwarded();
+
+    if(other->is_tainted_p()) set_tainted();
+
+    copy_body(state, other);
 
     state->om->write_barrier((Object*)this, ivars_);
     state->om->write_barrier((Object*)this, klass_);
 
     // This method is only used by the GC to move an object, so must retain
     // the settings flags.
-    flags().Frozen =  source->flags().Frozen;
-    flags().Tainted = source->flags().Tainted;
+    flags().Frozen =  other->flags().Frozen;
+    flags().Tainted = other->flags().Tainted;
   }
 
   void ObjectHeader::copy_body(STATE, Object* other) {

@@ -201,6 +201,7 @@ namespace rubinius {
 
     bool refill_slab(gc::Slab& slab);
 
+    void assign_object_id(Object* obj);
     bool valid_object_p(Object* obj);
     void debug_marksweep(bool val);
     void add_type_info(TypeInfo* ti);
@@ -238,6 +239,7 @@ namespace rubinius {
     size_t& code_usage();
 
     InflatedHeader* inflate_header(ObjectHeader* obj);
+    void inflate_for_id(ObjectHeader* obj, uint32_t id);
 
     // This only has one use! Don't use it!
     Object* allocate_object_raw(size_t bytes);
