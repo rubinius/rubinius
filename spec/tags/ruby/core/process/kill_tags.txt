@@ -1,4 +1,0 @@
-unstable(Causes mspec to exit with 'Hangup' on freebsd/ubuntu gutsy):Process.kill sends the given signal to the current process if pid is zero
-unstable(Causes mspec to exit with 'Hangup' on freebsd/ubuntu gutsy):Process.kill accepts integer signal numbers
-unstable(Causes mspec to exit with 'Hangup' on freebsd/ubuntu gutsy):Process.kill accepts POSIX signal names without 'SIG' prefix
-unstable(Causes mspec to exit with 'Hangup' on freebsd/ubuntu gutsy):Process.kill accepts POSIX signal names with 'SIG' prefix
