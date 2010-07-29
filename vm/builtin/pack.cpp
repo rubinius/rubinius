@@ -2736,7 +2736,7 @@ f52:
       Exception::argument_error(state, invalid_move_msg);
     }
 
-    str = str.substr(0, str.size() - count);
+    str.resize(str.size() - count);
   }
 	goto _again;
 f67:
@@ -2783,7 +2783,7 @@ f86:
       Exception::argument_error(state, invalid_move_msg);
     }
 
-    str = str.substr(0, str.size() - count);
+    str.resize(str.size() - count);
   }
 	goto _again;
 f70:
@@ -2975,7 +2975,7 @@ f53:
       Exception::argument_error(state, invalid_move_msg);
     }
 
-    str = str.substr(0, str.size() - count);
+    str.resize(str.size() - count);
   }
 	{
     count = 1;
@@ -3207,7 +3207,7 @@ f87:
       Exception::argument_error(state, invalid_move_msg);
     }
 
-    str = str.substr(0, str.size() - count);
+    str.resize(str.size() - count);
   }
 	{
     count = 1;
@@ -3841,7 +3841,7 @@ _again:
       Exception::argument_error(state, invalid_move_msg);
     }
 
-    str = str.substr(0, str.size() - count);
+    str.resize(str.size() - count);
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
@@ -3902,7 +3902,7 @@ _again:
       Exception::argument_error(state, invalid_move_msg);
     }
 
-    str = str.substr(0, str.size() - count);
+    str.resize(str.size() - count);
   }
 	{
     String* result = String::create(state, str.c_str(), str.size());
