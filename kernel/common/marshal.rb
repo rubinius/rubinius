@@ -409,7 +409,7 @@ module Marshal
 
       call obj if @proc and call_proc
 
-      obj
+      @stream.tainted? ? obj.taint : obj
     end
 
     def construct_array
