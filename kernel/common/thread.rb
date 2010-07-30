@@ -154,7 +154,7 @@ class Thread
   end
 
   def self.critical=(value)
-    @critical = !(value.nil? || value == false)
+    @critical = value.to_bool
   end
 
   def join(timeout = undefined)
