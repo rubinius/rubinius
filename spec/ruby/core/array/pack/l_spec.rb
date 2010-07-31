@@ -7,11 +7,13 @@ require File.expand_path('../shared/integer', __FILE__)
 describe "Array#pack with format 'L'" do
   it_behaves_like :array_pack_basic, 'L'
   it_behaves_like :array_pack_numeric_basic, 'L'
+  it_behaves_like :array_pack_integer, 'L'
 end
 
 describe "Array#pack with format 'l'" do
   it_behaves_like :array_pack_basic, 'l'
   it_behaves_like :array_pack_numeric_basic, 'l'
+  it_behaves_like :array_pack_integer, 'l'
 end
 
 little_endian do
