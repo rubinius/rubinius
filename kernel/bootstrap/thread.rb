@@ -45,4 +45,9 @@ class Thread
     Kernel.raise PrimitiveFailure, "Thread#__context__ failed"
   end
 
+  def native_join
+    Ruby.primitive :thread_join
+    Kernel.raise PrimitiveFailure, "Thread#native_join failed"
+  end
+
 end

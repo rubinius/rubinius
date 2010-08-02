@@ -51,11 +51,11 @@ namespace rubinius {
     Object* orig = original.as<Object>();
 
     immix::Address copy_addr = alloc.allocate(
-        orig->size_in_bytes(object_memory_->state));
+        orig->size_in_bytes(object_memory_->state()));
 
     Object* copy = copy_addr.as<Object>();
 
-    copy->initialize_full_state(object_memory_->state, orig, 0);
+    copy->initialize_full_state(object_memory_->state(), orig, 0);
 
     copy->set_zone(MatureObjectZone);
     copy->set_in_immix();
@@ -64,7 +64,7 @@ namespace rubinius {
   }
 
   int ImmixGC::ObjectDescriber::size(immix::Address addr) {
-    return addr.as<Object>()->size_in_bytes(object_memory_->state);
+    return addr.as<Object>()->size_in_bytes(object_memory_->state());
   }
 
   ImmixGC::~ImmixGC() {
@@ -273,7 +273,7 @@ namespace rubinius {
 
     double percentage_live = (double)live_bytes / (double)total_bytes;
 
-    if(object_memory_->state->shared.config.gc_immix_debug) {
+    if(object_memory_->state()->shared.config.gc_immix_debug) {
       std::cerr << "[GC IMMIX: " << clear_marked_objects() << " marked"
                 << ", "
                 << via_roots << " roots "
@@ -284,7 +284,7 @@ namespace rubinius {
     }
 
     if(percentage_live >= 0.90) {
-      if(object_memory_->state->shared.config.gc_immix_debug) {
+      if(object_memory_->state()->shared.config.gc_immix_debug) {
         std::cerr << "[GC IMMIX: expanding. "
                    << (int)(percentage_live * 100)
                    << "%]\n";

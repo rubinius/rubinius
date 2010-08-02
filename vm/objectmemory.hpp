@@ -69,7 +69,7 @@ namespace rubinius {
     {}
   };
 
-  class ObjectMemory : public gc::WriteBarrier, thread::Lockable {
+  class ObjectMemory : public gc::WriteBarrier, public thread::Lockable {
     BakerGC* young_;
     MarkSweepGC* mark_sweep_;
 
@@ -86,11 +86,13 @@ namespace rubinius {
     size_t slab_size_;
     bool running_finalizers_;
 
+    thread::Condition contention_var_;
+
   public:
     bool collect_young_now;
     bool collect_mature_now;
 
-    STATE;
+    VM* root_state_;
     size_t last_object_id;
     size_t last_snapshot_id;
     TypeInfo* type_info[(int)LastObjectType];
@@ -109,6 +111,10 @@ namespace rubinius {
     size_t full_collection_time;
 
   public:
+    VM* state() {
+      return root_state_;
+    }
+
     unsigned int mark() {
       return mark_;
     }
@@ -202,6 +208,12 @@ namespace rubinius {
     bool refill_slab(gc::Slab& slab);
 
     void assign_object_id(Object* obj);
+    bool inflate_lock_count_overflow(STATE, ObjectHeader* obj, int count);
+    bool contend_for_lock(STATE, ObjectHeader* obj);
+    void release_contention();
+    bool inflate_and_lock(STATE, ObjectHeader* obj);
+    bool inflate_for_contention(STATE, ObjectHeader* obj);
+
     bool valid_object_p(Object* obj);
     void debug_marksweep(bool val);
     void add_type_info(TypeInfo* ti);

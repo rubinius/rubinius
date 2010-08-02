@@ -93,6 +93,10 @@ namespace rubinius {
     VM* root_vm_;
     Environment* env_;
 
+    int thread_ids_;
+
+    thread::Mutex onig_lock_;
+
   public:
     Globals globals;
     ObjectMemory* om;
@@ -219,6 +223,10 @@ namespace rubinius {
 
     Environment* env() {
       return env_;
+    }
+
+    thread::Mutex& onig_lock() {
+      return onig_lock_;
     }
 
     void scheduler_loop();

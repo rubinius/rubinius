@@ -17,6 +17,18 @@ namespace rubinius {
     , vm_(vm)
   {}
 
+  int NativeThread::begin() {
+    int err = run();
+    if(err) return err;
+
+    vm_->os_thread_ = *native();
+    if(cDebugThreading) {
+      std::cerr << "[LOCK created native thread " << vm_->os_thread_ << " ]\n";
+    }
+
+    return 0;
+  }
+
   void NativeThread::perform() {
     int calculate_stack = 0;
     NativeMethod::init_thread(vm_);
@@ -24,7 +36,9 @@ namespace rubinius {
 
     vm_->shared.gc_dependent();
 
-    std::cout << "[" << vm_ << " WORLD started thread]\n";
+    if(cDebugThreading) {
+      std::cerr << "[THREAD " << pthread_self() << " started thread]\n";
+    }
 
     // Register that when the perform returns and the thread is exitting, to
     // run delete on this object to free up the memory.
@@ -32,6 +46,8 @@ namespace rubinius {
 
     vm_->set_stack_bounds(reinterpret_cast<uintptr_t>(&calculate_stack),
                           stack_size());
+
+    vm_->thread.get()->init_lock().unlock();
 
     Object* ret = vm_->thread.get()->send(vm_, NULL, vm_->symbol("__run__"));
 
@@ -57,10 +73,19 @@ namespace rubinius {
 
     vm_->shared.gc_independent();
 
+    vm_->thread.get()->init_lock().lock();
+
     NativeMethod::cleanup_thread(vm_);
 
-    vm_->thread.get()->detach_native_thread();
-    VM::discard(vm_);
+    // vm_->thread.get()->detach_native_thread();
+    VM* vm = vm_;
     vm_ = NULL;
+    vm->thread.get()->init_lock().unlock();
+
+    VM::discard(vm);
+
+    if(cDebugThreading) {
+      std::cerr << "[LOCK thread " << pthread_self() << " exitted]\n";
+    }
   }
 }

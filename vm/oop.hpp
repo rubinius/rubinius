@@ -8,6 +8,7 @@
 #include "object_types.hpp"
 #include "type_info.hpp"
 #include "detection.hpp"
+#include "util/thread.hpp"
 
 namespace thread {
   class Mutex;
@@ -150,6 +151,11 @@ const int cUndef = 0x22L;
 
   const static int AuxMeaningWidth = 2;
   const static int AuxMeaningMask  = 3;
+  const static int cAuxLockTIDShift = 8;
+  const static int cAuxLockRecCountMask = 0xff;
+  const static int cAuxLockRecCountMax  = 0xff - 1;
+
+  const static bool cDebugThreading = false;
 
   struct ObjectFlags {
     // inflated MUST be first, because rest is used as a pointer
@@ -167,6 +173,7 @@ const int cUndef = 0x22L;
 
     unsigned int Frozen          : 1;
     unsigned int Tainted         : 1;
+    unsigned int LockContended   : 1;
 
     uint32_t aux_word;
   };
@@ -190,9 +197,17 @@ const int cUndef = 0x22L;
     ObjectHeader* object_;
     capi::Handle* handle_;
     uint32_t object_id_;
-    thread::Mutex* mutex_;
+    thread::Mutex mutex_;
+    uint32_t owner_id_;
+    int rec_lock_count_;
+    int private_lock_;
 
   public:
+
+    InflatedHeader()
+      : mutex_(false)
+    {}
+
     ObjectFlags& flags() {
       return flags_;
     }
@@ -222,6 +237,9 @@ const int cUndef = 0x22L;
       object_ = 0;
       handle_ = 0;
       object_id_ = 0;
+      rec_lock_count_ = 0;
+      owner_id_ = 0;
+      private_lock_ = 0;
     }
 
     bool used_p() {
@@ -246,6 +264,9 @@ const int cUndef = 0x22L;
     }
 
     void update(HeaderWord header);
+    void initialize_mutex(int thread_id, int count);
+    void lock_mutex(STATE);
+    void unlock_mutex(STATE);
   };
 
   class ObjectHeader {
@@ -533,6 +554,9 @@ const int cUndef = 0x22L;
     }
 
     void set_object_id(ObjectMemory* om, uint32_t id);
+
+    void lock(STATE);
+    void unlock(STATE);
 
     bool nil_p() const {
       return this == reinterpret_cast<ObjectHeader*>(Qnil);

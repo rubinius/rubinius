@@ -33,13 +33,19 @@ namespace rubinius {
   Thread* Thread::create(STATE, VM* target, pthread_t tid) {
     Thread* thr = state->new_object<Thread>(G(thread));
 
+    thr->thread_id(state, Fixnum::from(target->thread_id()));
     thr->alive(state, Qtrue);
     thr->sleep(state, Qfalse);
     thr->control_channel(state, (Channel*)Qnil);
     thr->recursive_objects(state, LookupTable::create(state));
+    thr->vm_ = target;
 
     target->thread.set(thr);
     thr->native_thread_ = new NativeThread(target, 4194304, tid);
+
+    new(&thr->init_lock_) thread::SpinLock();
+
+    thr->init_lock_.lock();
 
     return thr;
   }
@@ -66,7 +72,7 @@ namespace rubinius {
 
     assert(native_thread_);
     // Let it run.
-    int error = native_thread_->run();
+    int error = native_thread_->begin();
     if(error) {
       Exception::thread_error(state, strerror(error));
     }
@@ -85,7 +91,12 @@ namespace rubinius {
   Object* Thread::raise(STATE, Exception* exc) {
     // vm is NULL if the thread has exitted.
     if(!native_thread_) return Qnil;
-    VM* vm = native_thread_->vm();
+
+    thread::SpinLock::LockGuard lg(init_lock_);
+
+    VM* vm = vm_;
+    if(!vm) return Qnil;
+
     vm->lock();
     vm->register_raise(exc);
     vm->wakeup();
@@ -104,12 +115,14 @@ namespace rubinius {
       return reinterpret_cast<Thread*>(kPrimitiveFailed);
     }
 
-    VM* vm = native_thread_->vm();
-    {
-      vm->lock();
-      vm->wakeup();
-      vm->unlock();
-    }
+    thread::SpinLock::LockGuard lg(init_lock_);
+
+    VM* vm = vm_;
+    if(!vm) return this;
+
+    vm->lock();
+    vm->wakeup();
+    vm->unlock();
 
     return this;
   }
@@ -117,7 +130,11 @@ namespace rubinius {
   Tuple* Thread::context(STATE) {
     if(!native_thread_) return (Tuple*)Qnil;
 
-    VM* vm = native_thread_->vm();
+    thread::SpinLock::LockGuard lg(init_lock_);
+
+    VM* vm = vm_;
+    if(!vm) return (Tuple*)Qnil;
+
     CallFrame* cf = vm->saved_call_frame();
 
     VariableScope* scope = cf->promote_scope(state);
@@ -128,5 +145,51 @@ namespace rubinius {
   void Thread::detach_native_thread() {
     native_thread_->detach();
     native_thread_ = NULL;
+  }
+
+  Object* Thread::join(STATE, CallFrame* calling_environment) {
+    state->set_call_frame(calling_environment);
+
+    // It already exited!
+    if(!native_thread_) return Qtrue;
+
+    init_lock_.lock();
+
+    VM* vm = vm_;
+
+    if(!vm) {
+      init_lock_.unlock();
+      return Qtrue;
+    }
+
+    pthread_t id = vm->os_thread_;
+
+    if(cDebugThreading) {
+      std::cerr << "[THREAD joining " << id << "]\n";
+    }
+
+    init_lock_.unlock();
+
+    state->shared.gc_independent();
+    void* val;
+    int err = pthread_join(id, &val);
+    state->shared.gc_dependent();
+
+    switch(err) {
+    case 0:
+      break;
+    case EDEADLK:
+      std::cerr << "Join deadlock: " << id << "/" << pthread_self() << "\n";
+      break;
+    case EINVAL:
+      std::cerr << "Invalid thread id: " << id << "\n";
+      break;
+    case ESRCH:
+      // This means that the thread finished execution and detached
+      // itself. We treat this as having joined it.
+      break;
+    }
+
+    return Qtrue;
   }
 }

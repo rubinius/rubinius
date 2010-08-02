@@ -82,6 +82,7 @@ namespace rubinius {
     void* young_start_;
     void* young_end_;
     bool thread_step_;
+    uint32_t id_;
 
   public:
     /* Data members */
@@ -110,6 +111,10 @@ namespace rubinius {
     static unsigned long cStackDepthMax;
 
   public: /* Inline methods */
+
+    uint32_t thread_id() {
+      return id_;
+    }
 
     bool run_signals_p() {
       return run_signals_;
@@ -237,7 +242,7 @@ namespace rubinius {
   public:
 
     /* Prototypes */
-    VM(SharedState& shared);
+    VM(uint32_t id, SharedState& shared);
 
     void check_exception(CallFrame* call_frame);
 

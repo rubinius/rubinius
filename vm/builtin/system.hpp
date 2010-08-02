@@ -271,6 +271,12 @@ namespace rubinius {
     // Ruby.primitive :vm_set_finalizer
     static Object* vm_set_finalizer(STATE, Object* obj, Object* fin);
 
+    // Ruby.primitive :vm_object_lock
+    static Object* vm_object_lock(STATE, Object* obj, CallFrame* calling_environment);
+
+    // Ruby.primitive :vm_object_unlock
+    static Object* vm_object_unlock(STATE, Object* obj, CallFrame* calling_environment);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

@@ -49,7 +49,7 @@ namespace rubinius {
 
     , collect_young_now(false)
     , collect_mature_now(false)
-    , state(state)
+    , root_state_(state)
 
     , objects_allocated(0)
     , bytes_allocated(0)
@@ -103,7 +103,221 @@ namespace rubinius {
     // Double check we've got no id still after the lock.
     if(obj->object_id() > 0) return;
 
-    obj->set_object_id(state->om, ++last_object_id);
+    obj->set_object_id(root_state_->om, ++last_object_id);
+  }
+
+  bool ObjectMemory::inflate_lock_count_overflow(STATE, ObjectHeader* obj, int count) {
+    LOCK_ME;
+
+    // Inflation always happens with the ObjectMemory lock held, so we don't
+    // need to worry about another thread concurrently inflating it.
+    //
+    // But we do need to check that it's not already inflated.
+    if(obj->inflated_header_p()) return false;
+
+    InflatedHeader* ih = inflated_headers_->allocate(obj);
+    ih->initialize_mutex(state->thread_id(), count);
+    obj->set_inflated_header(ih);
+
+    return true;
+  }
+
+  bool ObjectMemory::contend_for_lock(STATE, ObjectHeader* obj) {
+    lock();
+
+    // We want to lock obj, but someone else has it locked.
+    //
+    // If the lock is already inflated, no problem, just lock it!
+
+    // Be sure obj is updated by the GC while we're waiting for it
+    OnStack<1> os(state, obj);
+
+step1:
+    HeaderWord hdr = obj->header;
+
+    // Only contend if the header is thin locked.
+    if(hdr.f.meaning != eAuxWordLock) {
+      std::cerr << "[LOCK " << state->thread_id()
+                << " contend_for_lock error: not thin locked.]\n";
+      unlock();
+      return false;
+    }
+
+    // Ok, the header is not inflated, but we can't inflate it and take
+    // the lock because the locking thread needs to do that, so indicate
+    // that the object is being contended for and then wait on the
+    // contention condvar until the object is unlocked.
+
+    HeaderWord orig = obj->header;
+    HeaderWord new_val = orig;
+
+    new_val.f.LockContended = 1;
+
+    if(!__sync_bool_compare_and_swap(&obj->header.flags64,
+          orig.flags64,
+          new_val.flags64)) {
+      // Something changed since we started to down this path,
+      // start over.
+      goto step1;
+    }
+
+    // Ok, we've registered the lock contention, now spin and wait
+    // for the us to be told to retry.
+
+    if(cDebugThreading) {
+      std::cerr << "[LOCK " << state->thread_id() << " waiting on contention]\n";
+    }
+
+    while(!obj->inflated_header_p()) {
+      state->shared.gc_independent();
+
+      contention_var_.wait(mutex());
+      if(cDebugThreading) {
+        std::cerr << "[LOCK " << state->thread_id() << " notified of contention breakage]\n";
+      }
+
+      state->shared.gc_dependent();
+    }
+
+    if(cDebugThreading) {
+      std::cerr << "[LOCK " << state->thread_id() << " contention broken]\n";
+    }
+
+    // We lock the InflatedHeader here rather than returning
+    // and letting ObjectHeader::lock because the GC might have run
+    // and we've used OnStack<> specificly to deal with that.
+    //
+    // ObjectHeader::lock doesn't use OnStack<>, it just is sure to
+    // not access this if there is chance that a call blocked and GC'd
+    // (which is true in the case of this function).
+
+    unlock();
+
+    InflatedHeader* ih = obj->inflated_header();
+    ih->lock_mutex(state);
+
+    return true;
+  }
+
+  void ObjectMemory::release_contention() {
+    LOCK_ME;
+    contention_var_.broadcast();
+  }
+
+  bool ObjectMemory::inflate_and_lock(STATE, ObjectHeader* obj) {
+    LOCK_ME;
+
+    InflatedHeader* ih = 0;
+    int initial_count = 0;
+
+    HeaderWord orig = obj->header;
+    HeaderWord tmp = orig;
+
+    switch(tmp.f.meaning) {
+    case eAuxWordEmpty:
+      // ERROR, we can not be here because it's empty. This is only to
+      // be called when the header is already in use.
+      return false;
+    case eAuxWordInflated:
+      // Already inflated. ERROR, let the caller sort it out.
+      return false;
+    case eAuxWordObjID:
+      // We could be have made a header before trying again, so
+      // keep using the original one.
+      ih = inflated_headers_->allocate(obj);
+      ih->set_object_id(tmp.f.aux_word);
+      break;
+    case eAuxWordLock:
+      // We have to locking the object to inflate it, thats the law.
+      if(tmp.f.aux_word >> cAuxLockTIDShift != state->thread_id()) {
+        return false;
+      }
+
+      ih = inflated_headers_->allocate(obj);
+      initial_count = orig.f.aux_word & cAuxLockRecCountMask;
+    }
+
+    ih->initialize_mutex(state->thread_id(), initial_count + 1);
+
+    tmp.all_flags = ih;
+    tmp.f.meaning = eAuxWordInflated;
+
+    while(!__sync_bool_compare_and_swap(&obj->header.flags64,
+                                        orig.flags64,
+                                        tmp.flags64)) {
+      // The header can't have been inflated by another thread, the
+      // inflation process holds the OM lock.
+      //
+      // So some other bits must have changed, so lets just spin and
+      // keep trying to update it.
+
+      // Sanity check that the meaning is still the same, if not, then
+      // something is really wrong.
+      orig = obj->header;
+      if(orig.f.meaning != tmp.f.meaning) {
+        std::cerr << "[LOCK object header consistence error detected.]\n";
+        return false;
+      }
+
+      tmp.all_flags = ih;
+      tmp.f.meaning = eAuxWordInflated;
+    }
+
+    return true;
+  }
+
+  bool ObjectMemory::inflate_for_contention(STATE, ObjectHeader* obj) {
+    LOCK_ME;
+
+    for(;;) {
+      HeaderWord orig = obj->header;
+      HeaderWord new_val = orig;
+
+      InflatedHeader* ih = 0;
+
+      switch(orig.f.meaning) {
+      case eAuxWordEmpty:
+        ih = inflated_headers_->allocate(obj);
+        break;
+      case eAuxWordObjID:
+        // We could be have made a header before trying again, so
+        // keep using the original one.
+        ih = inflated_headers_->allocate(obj);
+        ih->set_object_id(orig.f.aux_word);
+        break;
+      case eAuxWordLock:
+        // We have to locking the object to inflate it, thats the law.
+        if(new_val.f.aux_word >> cAuxLockTIDShift != state->thread_id()) {
+          std::cerr << "[LOCK object locked by another thread while inflating for contention]\n";
+          return false;
+        } else {
+          std::cerr << "[LOCK object locked while inflating for contention]\n";
+          return false;
+        }
+      case eAuxWordInflated:
+        std::cerr << "[LOCK asked to inflated already inflated lock]\n";
+        return false;
+      }
+
+      ih->flags().LockContended = 0;
+
+      new_val.all_flags = ih;
+      new_val.f.meaning = eAuxWordInflated;
+
+      if(!__sync_bool_compare_and_swap(&obj->header.flags64,
+                                       orig.flags64,
+                                       new_val.flags64)) {
+        // Try it all over again.
+        continue;
+      }
+
+      if(cDebugThreading) {
+        std::cerr << "[LOCK " << state->thread_id() << " inflated lock for contention.]\n";
+      }
+
+      // Now inflated but not locked, which is what we want.
+      return true;
+    }
   }
 
   // WARNING: This returns an object who's body may not have been initialized.
@@ -115,7 +329,7 @@ namespace rubinius {
       objects_allocated++;
       bytes_allocated += bytes;
 
-      if(collect_young_now) state->interrupts.set_perform_gc();
+      if(collect_young_now) root_state_->interrupts.set_perform_gc();
       obj->init_header(cls, YoungObjectZone, type);
       return obj;
     } else {
@@ -167,20 +381,18 @@ namespace rubinius {
   /* Garbage collection */
 
   Object* ObjectMemory::promote_object(Object* obj) {
-    LOCK_ME;
-
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->objects_promoted++;
 #endif
 
     objects_allocated++;
-    size_t sz = obj->size_in_bytes(state);
+    size_t sz = obj->size_in_bytes(root_state_);
     bytes_allocated += sz;
 
     Object* copy = immix_->allocate(sz);
 
     copy->set_obj_type(obj->type_id());
-    copy->initialize_full_state(state, obj, 0);
+    copy->initialize_full_state(root_state_, obj, 0);
 
     if(watched_p(obj)) {
       std::cout << "detected object " << obj << " during promotion.\n";
@@ -202,7 +414,9 @@ namespace rubinius {
       return;
     }
 
-    std::cout << "\n[ " << state << " WORLD beginning GC.]\n";
+    if(cDebugThreading) {
+      std::cerr << "\n[ " << state << " WORLD beginning GC.]\n";
+    }
 
     // Stops all other threads, so we're only here by ourselves.
     //
@@ -243,7 +457,9 @@ namespace rubinius {
       return;
     }
 
-    std::cout << "\n[" << state << " WORLD beginning GC.]\n";
+    if(cDebugThreading) {
+      std::cerr << "\n[" << state << " WORLD beginning GC.]\n";
+    }
 
     // Stops all other threads, so we're only here by ourselves.
     //
@@ -343,8 +559,6 @@ namespace rubinius {
   }
 
   void ObjectMemory::collect_young(GCData& data, YoungCollectStats* stats) {
-    LOCK_ME;
-
     collect_young_now = false;
 
     timer::Running<size_t, 1000000> timer(young_collection_time);
@@ -366,15 +580,20 @@ namespace rubinius {
       for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
           i != data.threads()->end();
           i++) {
-        assert(refill_slab((*i)->local_slab()));
+        gc::Slab& slab = (*i)->local_slab();
+
+        void* addr = young_->allocate_for_slab(slab_size_);
+        assert(addr);
+
+        objects_allocated += slab.allocations();
+
+        slab.refill(addr, slab_size_);
       }
     }
 
   }
 
   void ObjectMemory::collect_mature(GCData& data) {
-    LOCK_ME;
-
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->objects_seen.start();
     stats::GCStats::get()->collect_mature.start();
@@ -552,7 +771,7 @@ namespace rubinius {
       if(unlikely(!obj)) return NULL;
 
       if(collect_mature_now) {
-        state->interrupts.set_perform_gc();
+        root_state_->interrupts.set_perform_gc();
       }
 
 #ifdef RBX_GC_STATS
@@ -563,11 +782,11 @@ namespace rubinius {
       obj = young_->allocate(bytes, &collect_young_now);
       if(unlikely(obj == NULL)) {
         collect_young_now = true;
-        state->interrupts.set_perform_gc();
+        root_state_->interrupts.set_perform_gc();
 
         obj = immix_->allocate(bytes);
         if(collect_mature_now) {
-          state->interrupts.set_perform_gc();
+          root_state_->interrupts.set_perform_gc();
         }
       }
     }
@@ -593,7 +812,7 @@ namespace rubinius {
       if(unlikely(!obj)) return NULL;
 
       if(collect_mature_now) {
-        state->interrupts.set_perform_gc();
+        root_state_->interrupts.set_perform_gc();
       }
 
 #ifdef RBX_GC_STATS
@@ -603,7 +822,7 @@ namespace rubinius {
     } else {
       obj = immix_->allocate(bytes);
       if(collect_mature_now) {
-        state->interrupts.set_perform_gc();
+        root_state_->interrupts.set_perform_gc();
       }
     }
 
@@ -677,7 +896,7 @@ namespace rubinius {
 
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
     if(collect_mature_now) {
-      state->interrupts.set_perform_gc();
+      root_state_->interrupts.set_perform_gc();
     }
 
 #ifdef ENABLE_OBJECT_WATCH
@@ -887,7 +1106,7 @@ namespace rubinius {
   void ObjectMemory::memstats() {
     int total = 0;
 
-    int baker = state->shared.config.gc_bytes * 2;
+    int baker = root_state_->shared.config.gc_bytes * 2;
     total += baker;
 
     int immix = immix_->bytes_allocated();
@@ -899,7 +1118,7 @@ namespace rubinius {
     int code = code_manager_.size();
     total += code;
 
-    int shared = state->shared.size();
+    int shared = root_state_->shared.size();
     total += shared;
 
     std::cout << "baker: " << baker << "\n";
@@ -949,10 +1168,10 @@ namespace rubinius {
   };
 
   void ObjectMemory::find_referers(Object* target, ObjectArray& result) {
-    ObjectMemory::GCInhibit inhibitor(state->om);
+    ObjectMemory::GCInhibit inhibitor(root_state_->om);
 
-    ObjectWalker walker(state->om);
-    GCData gc_data(state);
+    ObjectWalker walker(root_state_->om);
+    GCData gc_data(root_state_);
 
     // Seed it with the root objects.
     walker.seed(gc_data);
@@ -976,7 +1195,7 @@ namespace rubinius {
 
   void ObjectMemory::snapshot() {
     // Assign all objects an object id...
-    ObjectMemory::GCInhibit inhibitor(state->om);
+    ObjectMemory::GCInhibit inhibitor(root_state_->om);
 
     // Walk the heap over and over until we don't create
     // any more objects...
@@ -986,8 +1205,8 @@ namespace rubinius {
     while(last_object_id != last_seen) {
       last_seen = last_object_id;
 
-      ObjectWalker walker(state->om);
-      GCData gc_data(state);
+      ObjectWalker walker(root_state_->om);
+      GCData gc_data(root_state_);
 
       // Seed it with the root objects.
       walker.seed(gc_data);
@@ -995,7 +1214,7 @@ namespace rubinius {
       Object* obj = walker.next();
 
       while(obj) {
-        obj->id(state);
+        obj->id(root_state_);
         obj = walker.next();
       }
     }
@@ -1009,10 +1228,10 @@ namespace rubinius {
 
   void ObjectMemory::print_new_since_snapshot() {
     // Assign all objects an object id...
-    ObjectMemory::GCInhibit inhibitor(state->om);
+    ObjectMemory::GCInhibit inhibitor(root_state_->om);
 
-    ObjectWalker walker(state->om);
-    GCData gc_data(state);
+    ObjectWalker walker(root_state_->om);
+    GCData gc_data(root_state_);
 
     // Seed it with the root objects.
     walker.seed(gc_data);
@@ -1026,14 +1245,14 @@ namespace rubinius {
     int bytes = 0;
 
     while(obj) {
-      if(!obj->has_id(state) || obj->id(state)->to_native() > check_id) {
+      if(!obj->has_id(root_state_) || obj->id(root_state_)->to_native() > check_id) {
         count++;
-        bytes += obj->size_in_bytes(state);
+        bytes += obj->size_in_bytes(root_state_);
 
         if(kind_of<String>(obj)) {
           std::cout << "#<String:" << obj << ">\n";
         } else {
-          std::cout << obj->to_s(state, true)->c_str() << "\n";
+          std::cout << obj->to_s(root_state_, true)->c_str() << "\n";
         }
       }
 
@@ -1055,7 +1274,7 @@ namespace rubinius {
     for(ObjectArray::iterator i = ary.begin();
         i != ary.end();
         i++) {
-      std::cout << "  " << (*i)->to_s(state, true)->c_str() << "\n";
+      std::cout << "  " << (*i)->to_s(root_state_, true)->c_str() << "\n";
 
       if(++count == 100) break;
     }

@@ -280,17 +280,25 @@ namespace thread {
 
   private:
     pthread_mutex_t native_;
+    pthread_t owner_;
 
   public:
-    void init() {
+    void init(bool rec=false) {
+      owner_ = 0;
+
       pthread_mutexattr_t attr;
       pthread_mutexattr_init(&attr);
-      pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+      if(rec) {
+        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+      } else {
+        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
+      }
+
       pthread_check(pthread_mutex_init(&native_, &attr));
     }
 
-    Mutex() {
-      init();
+    Mutex(bool rec=false) {
+      init(rec);
     }
 
     ~Mutex() {
@@ -302,22 +310,34 @@ namespace thread {
       }
     }
 
+    pthread_t owner() {
+      return owner_;
+    }
+
     pthread_mutex_t* native() {
       return &native_;
     }
 
     void lock() {
-      int err;
       if(cDebugLockGuard) {
         std::cout << "[[ " << pthread_self() << "   MLocking " << describe() << " ]]\n";
       }
-      if((err = pthread_mutex_lock(&native_)) != 0) {
-        if(err == EDEADLK) {
-          std::cout << "Thread deadlock!\n";
-        }
 
+      int err = pthread_mutex_lock(&native_);
+
+      switch(err) {
+      case 0:
+        break;
+      case EDEADLK:
+        std::cout << "Thread deadlock!\n";
+        assert(0);
+      case EINVAL:
+        std::cout << "Thread invalid (corrupt?)\n";
         assert(0);
       }
+
+      owner_ = pthread_self();
+
       if(cDebugLockGuard) {
         std::cout << "[[ " << pthread_self() << "    MLocked " << describe() << " ]]\n";
       }
@@ -330,6 +350,8 @@ namespace thread {
         assert(0);
       }
 
+      owner_ = pthread_self();
+
       return cLocked;
     }
 
@@ -337,6 +359,9 @@ namespace thread {
       if(cDebugLockGuard) {
         std::cout << "[[ " << pthread_self() << "   MUnlocking " << describe() << " ]]\n";
       }
+
+      owner_ = 0;
+
       int err = pthread_mutex_unlock(&native_);
       if(err != 0) {
         if(err == EPERM) return cNotYours;
@@ -359,6 +384,7 @@ namespace thread {
     Mutex mutex_;
 
   public:
+
     Mutex& mutex() {
       return mutex_;
     }
@@ -521,7 +547,7 @@ namespace thread {
 // You can uncomment this to use compare_and_swap, but
 // CAS doesn't have any fencing, so it's not known how they'll
 // behave.
-// #define USE_SYNC_CAS
+#define USE_SYNC_CAS
 
 namespace thread {
   class SpinLock {

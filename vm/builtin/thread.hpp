@@ -47,12 +47,17 @@ namespace rubinius {
 
     Thread* debugger_thread_; // slot
 
+    Fixnum* thread_id_; // slot
+
     /**
      *  Actual OS backend thread associated with this Thread.
      *
      *  @see Thread::fork()
      */
     NativeThread* native_thread_;
+    thread::SpinLock init_lock_;
+
+    VM* vm_;
 
   public:
     const static object_type type = ThreadType;
@@ -76,9 +81,19 @@ namespace rubinius {
 
     attr_accessor(debugger_thread, Thread);
 
+    attr_accessor(thread_id, Fixnum);
+
     /** OS thread associated with this Thread, if any. */
     NativeThread* native_thread() {
       return native_thread_;
+    }
+
+    thread::SpinLock& init_lock() {
+      return init_lock_;
+    }
+
+    VM* vm() {
+      return vm_;
     }
 
   public:   /* Class primitives */
@@ -178,6 +193,9 @@ namespace rubinius {
 
     // Ruby.primitive :thread_context
     Tuple* context(STATE);
+
+    // Ruby.primitive :thread_join
+    Object* join(STATE, CallFrame* calling_environment);
 
 
   public:   /* Class methods */

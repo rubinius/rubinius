@@ -52,13 +52,14 @@ namespace rubinius {
   // this value (currently 128M)
   static rlim_t cMaxStack = (1024 * 1024 * 128);
 
-  VM::VM(SharedState& shared)
+  VM::VM(uint32_t id, SharedState& shared)
     : ManagedThread(shared, ManagedThread::eRuby)
     , saved_call_frame_(0)
     , stack_start_(0)
     , profiler_(0)
     , run_signals_(false)
     , thread_step_(false)
+    , id_(id)
 
     , shared(shared)
     , waiter_(NULL)
@@ -73,7 +74,7 @@ namespace rubinius {
   {
     probe.set(Qnil, &globals().roots);
     set_stack_size(cStackDepthMax);
-    os_thread_ = pthread_self(); // initial value
+    os_thread_ = 0;
 
     if(shared.om) {
       young_start_ = shared.om->young_start();

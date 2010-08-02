@@ -38,7 +38,7 @@ namespace rubinius {
                    :object_memory_(om), weak_refs_(NULL) { }
 
   VM* GarbageCollector::state() {
-    return object_memory_->state;
+    return object_memory_->state();
   }
 
   /* Understands how to read the inside of an object and find all references

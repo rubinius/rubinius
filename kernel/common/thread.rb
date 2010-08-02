@@ -33,8 +33,10 @@ class Thread
     stat = status()
     stat = "dead" unless stat
 
-    "#<#{self.class}:0x#{object_id.to_s(16)} #{stat}>"
+    "#<#{self.class}:0x#{object_id.to_s(16)} id=#{@thread_id} #{stat}>"
   end
+
+  alias_method :to_s, :inspect
 
   def self.new(*args, &block)
     thr = allocate()
@@ -158,7 +160,11 @@ class Thread
   end
 
   def join(timeout = undefined)
-    join_inner(timeout) { @alive ? nil : self }
+    if timeout.equal? undefined
+      native_join
+    else
+      join_inner(timeout) { @alive ? nil : self }
+    end
   end
 
   def group

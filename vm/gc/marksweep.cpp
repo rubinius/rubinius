@@ -80,7 +80,7 @@ namespace rubinius {
       last_freed++;
 
       allocated_objects--;
-      allocated_bytes -= obj->size_in_bytes(object_memory_->state);
+      allocated_bytes -= obj->size_in_bytes(object_memory_->state());
     }
 
     obj->set_zone(UnspecifiedZone);
@@ -94,9 +94,9 @@ namespace rubinius {
 
   Object* MarkSweepGC::copy_object(Object* orig) {
     bool collect;
-    Object* obj = allocate(orig->size_in_bytes(object_memory_->state), &collect);
+    Object* obj = allocate(orig->size_in_bytes(object_memory_->state()), &collect);
 
-    obj->initialize_full_state(object_memory_->state, orig, 0);
+    obj->initialize_full_state(object_memory_->state(), orig, 0);
 
     return obj;
   }
@@ -196,18 +196,18 @@ namespace rubinius {
         i != entries.end();
         i++) {
       Object* obj = *i;
-      Class* cls = obj->class_object(object_memory_->state);
+      Class* cls = obj->class_object(object_memory_->state());
 
       std::map<Class*,PerClass>::iterator j = stats.find(cls);
       if(j == stats.end()) {
         PerClass pc;
         pc.objects++;
-        pc.bytes += obj->size_in_bytes(object_memory_->state);
+        pc.bytes += obj->size_in_bytes(object_memory_->state());
 
         stats[cls] = pc;
       } else {
         j->second.objects++;
-        j->second.bytes += obj->size_in_bytes(object_memory_->state);
+        j->second.bytes += obj->size_in_bytes(object_memory_->state());
       }
     }
 
@@ -216,7 +216,7 @@ namespace rubinius {
     for(std::map<Class*,PerClass>::iterator i = stats.begin();
         i != stats.end();
         i++) {
-      std::cout << i->first->name()->c_str(object_memory_->state) << "\n"
+      std::cout << i->first->name()->c_str(object_memory_->state()) << "\n"
                 << "  objects: " << i->second.objects << "\n"
                 << "    bytes: " << i->second.bytes << "\n";
     }
@@ -229,7 +229,7 @@ namespace rubinius {
         i++) {
       Object* obj = *i;
       if(ByteArray* ba = try_as<ByteArray>(obj)) {
-        ba->show(object_memory_->state);
+        ba->show(object_memory_->state());
         if(++count == 10) break;
       }
     }
@@ -248,9 +248,9 @@ namespace rubinius {
     for(i = sorted.begin(); i != sorted.end();) {
       Object* obj = *i;
 
-      size_t sz = obj->size_in_bytes(object_memory_->state);
+      size_t sz = obj->size_in_bytes(object_memory_->state());
 
-      std::cout << obj->to_s(object_memory_->state, true)->c_str() << " bytes=" << sz << "\n";
+      std::cout << obj->to_s(object_memory_->state(), true)->c_str() << " bytes=" << sz << "\n";
       if(++count == 30) break;
 
       i++;

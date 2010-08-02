@@ -26,6 +26,7 @@ namespace rubinius {
 
     const static int cWakeupSignal = SIGVTALRM;
 
+    int begin();
   };
 
   class Waiter {

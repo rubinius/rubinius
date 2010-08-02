@@ -105,4 +105,14 @@ module Rubinius
     Ruby.primitive :vm_agent_io
     raise PrimitiveFailure, "Rubinius.agent_io failed"
   end
+
+  def self.lock(obj)
+    Ruby.primitive :vm_object_lock
+    raise PrimitiveFailure, "Rubinius.lock failed"
+  end
+
+  def self.unlock(obj)
+    Ruby.primitive :vm_object_unlock
+    raise PrimitiveFailure, "Rubinius.unlock failed"
+  end
 end

@@ -71,13 +71,19 @@ namespace rubinius {
     void ask_for_stopage() {
       thread::Mutex::LockGuard guard(mutex_);
       should_stop_ = true;
-      std::cout << "[" << VM::current() << " WORLD requested stopage: " << pending_threads_ << "]\n";
+
+      if(cDebugThreading) {
+        std::cerr << "[" << VM::current() << " WORLD requested stopage: " << pending_threads_ << "]\n";
+      }
     }
 
     void wait_til_alone() {
       thread::Mutex::LockGuard guard(mutex_);
       should_stop_ = true;
-      std::cout << "[" << VM::current() << " WORLD waiting until alone]\n";
+
+      if(cDebugThreading) {
+        std::cerr << "[" << VM::current() << " WORLD waiting until alone]\n";
+      }
 
       // For ourself..
       pending_threads_--;
@@ -85,18 +91,25 @@ namespace rubinius {
       timer::Running<uint64_t> timer(time_waiting_);
 
       while(pending_threads_ > 0) {
-        std::cout << "[" << VM::current() << " WORLD waiting on condvar: " << pending_threads_ << "]\n";
+        if(cDebugThreading) {
+          std::cerr << "[" << VM::current() << " WORLD waiting on condvar: "
+                    << pending_threads_ << "]\n";
+        }
         waiting_to_stop_.wait(mutex_);
       }
 
-      std::cout << "[" << VM::current() << " WORLD o/~ I think we're alone now.. o/~]\n";
+      if(cDebugThreading) {
+        std::cerr << "[" << VM::current() << " WORLD o/~ I think we're alone now.. o/~]\n";
+      }
     }
 
     void wake_all_waiters() {
       thread::Mutex::LockGuard guard(mutex_);
       should_stop_ = false;
 
-      std::cout << "[" << VM::current() << " WORLD waking all threads]\n";
+      if(cDebugThreading) {
+        std::cerr << "[" << VM::current() << " WORLD waking all threads]\n";
+      }
 
       // For ourself..
       pending_threads_++;
@@ -122,7 +135,10 @@ namespace rubinius {
 
   private:
     void wait_to_run() {
-      std::cout << "[" << VM::current() << " WORLD stopping, waiting to be resarted]\n";
+      if(cDebugThreading) {
+        std::cerr << "[" << VM::current() << " WORLD stopping, waiting to be resarted]\n";
+      }
+
       pending_threads_--;
       waiting_to_stop_.signal();
 
@@ -131,7 +147,10 @@ namespace rubinius {
       }
 
       pending_threads_++;
-      std::cout << "[" << VM::current() << " WORLD resarted]\n";
+
+      if(cDebugThreading) {
+        std::cerr << "[" << VM::current() << " WORLD resarted]\n";
+      }
     }
   };
 
@@ -150,6 +169,8 @@ namespace rubinius {
     , agent_(0)
     , root_vm_(0)
     , env_(env)
+    , thread_ids_(0)
+
     , om(0)
     , global_cache(new GlobalCache)
     , config(config)
@@ -197,7 +218,11 @@ namespace rubinius {
 
   VM* SharedState::new_vm() {
     LOCK_ME;
-    VM* vm = new VM(*this);
+
+    // TODO calculate the thread id by finding holes in the
+    // field of ids, so we reuse ids.
+
+    VM* vm = new VM(++thread_ids_, *this);
     cf_locations_.push_back(vm->call_frame_location());
     threads_.push_back(vm);
 
@@ -291,6 +316,9 @@ namespace rubinius {
 
   // Create the preemption thread and call scheduler_loop() in the new thread
   void SharedState::enable_preemption() {
+    interrupts.enable_preempt = true;
+    return;
+
     if(timer_thread_started_) return;
 
     timer_thread_started_ = true;
@@ -299,8 +327,6 @@ namespace rubinius {
       std::cerr << "Unable to create timer thread!\n";
       exit(1);
     }
-
-    interrupts.enable_preempt = true;
   }
 
   void SharedState::pre_exec() {

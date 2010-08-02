@@ -59,8 +59,8 @@ namespace rubinius {
       copy = object_memory_->promote_object(obj);
 
       promoted_push(copy);
-    } else if(likely(next->enough_space_p(obj->size_in_bytes(object_memory_->state)))) {
-      copy = next->copy_object(object_memory_->state, obj);
+    } else if(likely(next->enough_space_p(obj->size_in_bytes(object_memory_->state())))) {
+      copy = next->copy_object(object_memory_->state(), obj);
       total_objects++;
     } else {
       copy_spills_++;
@@ -77,12 +77,12 @@ namespace rubinius {
   }
 
   void BakerGC::copy_unscanned() {
-    Object* iobj = next->next_unscanned(object_memory_->state);
+    Object* iobj = next->next_unscanned(object_memory_->state());
 
     while(iobj) {
       assert(iobj->zone() == YoungObjectZone);
       if(!iobj->forwarded_p()) scan_object(iobj);
-      iobj = next->next_unscanned(object_memory_->state);
+      iobj = next->next_unscanned(object_memory_->state());
     }
   }
 
@@ -332,7 +332,7 @@ namespace rubinius {
 
   inline Object *BakerGC::next_object(Object * obj) {
     return reinterpret_cast<Object*>(reinterpret_cast<uintptr_t>(obj) +
-      obj->size_in_bytes(object_memory_->state));
+      obj->size_in_bytes(object_memory_->state()));
   }
 
   void BakerGC::clear_marks() {

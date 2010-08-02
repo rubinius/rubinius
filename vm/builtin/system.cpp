@@ -895,4 +895,16 @@ namespace rubinius {
     state->om->set_ruby_finalizer(obj, fin);
     return obj;
   }
+
+  Object* System::vm_object_lock(STATE, Object* obj, CallFrame* call_frame) {
+    state->set_call_frame(call_frame);
+    obj->lock(state);
+    return Qnil;
+  }
+
+  Object* System::vm_object_unlock(STATE, Object* obj, CallFrame* call_frame) {
+    state->set_call_frame(call_frame);
+    obj->unlock(state);
+    return Qnil;
+  }
 }
