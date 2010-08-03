@@ -276,6 +276,10 @@ module Rubinius
     return "" if obj.nil?
     Type.coerce_to obj, String, :to_str
   end
+
+  def self.pack_to_float(obj)
+    Float(obj)
+  end
 end
 
 # A wierd place for it, but it works.
