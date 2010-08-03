@@ -28,53 +28,6 @@ namespace rubinius {
 
     int begin();
   };
-
-  class Waiter {
-    bool used_;
-
-  public:
-    Waiter()
-      : used_(false)
-    {}
-
-    virtual ~Waiter() { }
-    virtual void wakeup() = 0;
-
-    void run() {
-      used_ = true;
-      wakeup();
-    }
-
-    bool used() {
-      return used_;
-    }
-  };
-
-  class WaitingOnCondition : public Waiter {
-    thread::Condition& cond_;
-
-  public:
-    WaitingOnCondition(thread::Condition& cond)
-      : cond_(cond)
-    {}
-
-    void wakeup() {
-      cond_.signal();
-    }
-  };
-
-  class WaitingForSignal : public Waiter {
-    pthread_t target_;
-
-  public:
-    WaitingForSignal()
-      : target_(pthread_self())
-    {}
-
-    void wakeup() {
-      pthread_kill(target_, NativeThread::cWakeupSignal);
-    }
-  };
 }
 
 #endif

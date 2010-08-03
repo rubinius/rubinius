@@ -18,7 +18,7 @@
 #include "builtin/fiber.hpp"
 #include "builtin/location.hpp"
 #include "builtin/nativemethod.hpp"
-
+#include "builtin/channel.hpp"
 #include "instruments/profiler.hpp"
 
 #include "config_parser.hpp"
@@ -62,7 +62,7 @@ namespace rubinius {
     , id_(id)
 
     , shared(shared)
-    , waiter_(NULL)
+    , waiting_channel_(this, (Channel*)Qnil)
     , interrupt_with_signal_(false)
     , om(shared.om)
     , interrupts(shared.interrupts)
@@ -90,6 +90,7 @@ namespace rubinius {
     }
 
     vm->shared.remove_vm(vm);
+
     delete vm;
   }
 
@@ -331,10 +332,6 @@ namespace rubinius {
     abort();
   }
 
-  void VM::install_waiter(Waiter& waiter) {
-    waiter_ = &waiter;
-  }
-
   void VM::interrupt_with_signal() {
     interrupt_with_signal_ = true;
   }
@@ -344,21 +341,38 @@ namespace rubinius {
       pthread_kill(os_thread_, SIGVTALRM);
       return true;
     } else {
-      // Use a local here because waiter_ can get reset to NULL by another thread
-      // We can't use a mutex here because this is called from inside a
-      // signal handler.
-      if(Waiter* w = waiter_) {
-        w->run();
+      lock();
+
+      Channel* chan = waiting_channel_.get();
+
+      if(!chan->nil_p()) {
+        unlock();
+        chan->send(this, Qnil);
         return true;
       }
+
+      unlock();
 
       return false;
     }
   }
 
   void VM::clear_waiter() {
+    lock();
     interrupt_with_signal_ = false;
-    waiter_ = NULL;
+    waiting_channel_.set((Channel*)Qnil);
+    unlock();
+  }
+
+  void VM::wait_on_channel(Channel* chan) {
+    lock();
+    thread->sleep(this, Qtrue);
+    waiting_channel_.set(chan);
+    unlock();
+  }
+
+  bool VM::waiting_p() {
+    return interrupt_with_signal_ || !waiting_channel_->nil_p();
   }
 
   bool VM::process_async(CallFrame* call_frame) {

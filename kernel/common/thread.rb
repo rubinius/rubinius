@@ -162,6 +162,8 @@ class Thread
   def join(timeout = undefined)
     if timeout.equal? undefined
       native_join
+      Kernel.raise @exception if @exception
+      @alive ? Qnil : self
     else
       join_inner(timeout) { @alive ? nil : self }
     end

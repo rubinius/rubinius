@@ -88,10 +88,6 @@ namespace rubinius {
       return native_thread_;
     }
 
-    thread::SpinLock& init_lock() {
-      return init_lock_;
-    }
-
     VM* vm() {
       return vm_;
     }
@@ -212,6 +208,8 @@ namespace rubinius {
      */
     static Thread* create(STATE, VM* target, pthread_t tid = 0);
 
+    static void* in_new_thread(void*);
+
 
   public:   /* Instance methods */
 
@@ -224,6 +222,8 @@ namespace rubinius {
      *  @see  NativeThread::perform()
      */
     void detach_native_thread();
+
+    void cleanup();
 
   public:   /* TypeInfo */
 

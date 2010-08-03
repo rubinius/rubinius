@@ -21,11 +21,10 @@ namespace rubinius {
     int err = run();
     if(err) return err;
 
-    vm_->os_thread_ = *native();
-    if(cDebugThreading) {
-      std::cerr << "[LOCK created native thread " << vm_->os_thread_ << " ]\n";
-    }
-
+    // vm_ can be null if the thread has already exited. Yes, this does
+    // happen.
+    VM* vm = vm_;
+    if(vm) vm->os_thread_ = *native();
     return 0;
   }
 
@@ -47,7 +46,7 @@ namespace rubinius {
     vm_->set_stack_bounds(reinterpret_cast<uintptr_t>(&calculate_stack),
                           stack_size());
 
-    vm_->thread.get()->init_lock().unlock();
+    // vm_->thread.get()->init_lock().unlock();
 
     Object* ret = vm_->thread.get()->send(vm_, NULL, vm_->symbol("__run__"));
 
@@ -73,16 +72,17 @@ namespace rubinius {
 
     vm_->shared.gc_independent();
 
-    vm_->thread.get()->init_lock().lock();
+    // vm_->thread.get()->init_lock().lock();
 
     NativeMethod::cleanup_thread(vm_);
 
     // vm_->thread.get()->detach_native_thread();
     VM* vm = vm_;
     vm_ = NULL;
-    vm->thread.get()->init_lock().unlock();
+    vm->thread.get()->cleanup();
+    // vm->thread.get()->init_lock().unlock();
 
-    VM::discard(vm);
+    // VM::discard(vm);
 
     if(cDebugThreading) {
       std::cerr << "[LOCK thread " << pthread_self() << " exitted]\n";

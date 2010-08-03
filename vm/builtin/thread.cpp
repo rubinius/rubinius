@@ -7,6 +7,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/float.hpp"
 #include "builtin/channel.hpp"
+#include "builtin/nativemethod.hpp"
 
 #include "objectmemory.hpp"
 #include "arguments.hpp"
@@ -41,11 +42,10 @@ namespace rubinius {
     thr->vm_ = target;
 
     target->thread.set(thr);
-    thr->native_thread_ = new NativeThread(target, 4194304, tid);
 
     new(&thr->init_lock_) thread::SpinLock();
 
-    thr->init_lock_.lock();
+    if(tid == 0) thr->init_lock_.lock();
 
     return thr;
   }
@@ -67,12 +67,57 @@ namespace rubinius {
 
 /* Instance primitives */
 
-  Object* Thread::fork(STATE) {
-    state->shared.enable_preemption();
 
-    assert(native_thread_);
-    // Let it run.
-    int error = native_thread_->begin();
+  void* Thread::in_new_thread(void* ptr) {
+    VM* vm = reinterpret_cast<VM*>(ptr);
+
+    int calculate_stack = 0;
+    NativeMethod::init_thread(vm);
+    VM::set_current(vm);
+
+    vm->shared.gc_dependent();
+
+    if(cDebugThreading) {
+      std::cerr << "[THREAD " << pthread_self() << " started thread]\n";
+    }
+
+    vm->set_stack_bounds(reinterpret_cast<uintptr_t>(&calculate_stack), 4194304);
+
+    vm->thread->init_lock_.unlock();
+
+    Object* ret = vm->thread.get()->send(vm, NULL, vm->symbol("__run__"));
+
+    if(!ret) {
+      if(vm->thread_state()->raise_reason() == cExit) {
+        std::cerr << "Exit from thread detected.\n";
+      }
+    }
+
+    vm->thread->init_lock_.lock();
+
+    NativeMethod::cleanup_thread(vm);
+
+    vm->thread->cleanup();
+    vm->thread->init_lock_.unlock();
+
+    vm->shared.gc_independent();
+
+    VM::discard(vm);
+
+    if(cDebugThreading) {
+      std::cerr << "[LOCK thread " << pthread_self() << " exitted]\n";
+    }
+
+    return 0;
+  }
+
+  Object* Thread::fork(STATE) {
+    pthread_attr_t attrs;
+    pthread_attr_init(&attrs);
+    pthread_attr_setstacksize(&attrs, 4194304);
+
+    int error = pthread_create(&vm_->os_thread_, &attrs, in_new_thread, (void*)vm_);
+
     if(error) {
       Exception::thread_error(state, strerror(error));
     }
@@ -84,14 +129,21 @@ namespace rubinius {
   }
 
   Object* Thread::priority(STATE) {
-    if(!native_thread_) return Qnil;
-    return Fixnum::from(native_thread_->priority());
+    pthread_t id = vm_->os_thread_;
+
+    if(id) {
+      int _policy;
+      struct sched_param params;
+
+      pthread_check(pthread_getschedparam(id, &_policy, &params));
+
+      return Fixnum::from(params.sched_priority);
+    }
+
+    return Qnil;
   }
 
   Object* Thread::raise(STATE, Exception* exc) {
-    // vm is NULL if the thread has exitted.
-    if(!native_thread_) return Qnil;
-
     thread::SpinLock::LockGuard lg(init_lock_);
 
     VM* vm = vm_;
@@ -99,19 +151,18 @@ namespace rubinius {
 
     vm->lock();
     vm->register_raise(exc);
-    vm->wakeup();
     vm->unlock();
+
+    vm->wakeup();
     return exc;
   }
 
   Object* Thread::set_priority(STATE, Fixnum* new_priority) {
-    if(!native_thread_) return Qnil;
-    native_thread_->set_priority(new_priority->to_native());
     return new_priority;
   }
 
   Thread* Thread::wakeup(STATE) {
-    if(alive() == Qfalse || !native_thread_) {
+    if(alive() == Qfalse || !vm_) {
       return reinterpret_cast<Thread*>(kPrimitiveFailed);
     }
 
@@ -120,16 +171,12 @@ namespace rubinius {
     VM* vm = vm_;
     if(!vm) return this;
 
-    vm->lock();
     vm->wakeup();
-    vm->unlock();
 
     return this;
   }
 
   Tuple* Thread::context(STATE) {
-    if(!native_thread_) return (Tuple*)Qnil;
-
     thread::SpinLock::LockGuard lg(init_lock_);
 
     VM* vm = vm_;
@@ -143,15 +190,15 @@ namespace rubinius {
   }
 
   void Thread::detach_native_thread() {
-    native_thread_->detach();
-    native_thread_ = NULL;
+  }
+
+  void Thread::cleanup() {
+    vm_->os_thread_ = 0;
+    vm_ = NULL;
   }
 
   Object* Thread::join(STATE, CallFrame* calling_environment) {
     state->set_call_frame(calling_environment);
-
-    // It already exited!
-    if(!native_thread_) return Qtrue;
 
     init_lock_.lock();
 

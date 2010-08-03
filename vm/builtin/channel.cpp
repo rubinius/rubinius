@@ -49,6 +49,8 @@ namespace rubinius {
   }
 
   Object* Channel::send(STATE, Object* val) {
+    thread::Mutex::LockGuard lg(mutex_);
+
     value_->append(state, val);
 
     if(waiters_ > 0) {
@@ -59,6 +61,8 @@ namespace rubinius {
   }
 
   Object* Channel::try_receive(STATE) {
+    thread::Mutex::LockGuard lg(mutex_);
+
     if(value_->empty_p()) return Qnil;
     return value_->shift(state);
   }
@@ -113,18 +117,12 @@ namespace rubinius {
     }
 
     waiters_++;
-    state->thread->sleep(state, Qtrue);
+
+    state->set_call_frame(call_frame);
+    state->wait_on_channel(this);
 
     for(;;) {
-      state->set_call_frame(call_frame);
-
-      WaitingOnCondition waiter(condition_);
-      state->install_waiter(waiter);
-
-      {
-        thread::Mutex::UnlockGuard ug(mutex_);
-        state->shared.gc_independent();
-      }
+      state->shared.gc_independent();
 
       if(use_timed_wait) {
         if(condition_.wait_until(mutex_, &ts) == thread::cTimedOut) break;
@@ -134,19 +132,16 @@ namespace rubinius {
 
       state->shared.gc_dependent();
 
-      // Stop waiting if...
-      // we've been asked explicitely to wakeup..
-      if(waiter.used()) break;
-
       // or there are values available.
       if(!value_->empty_p()) break;
     }
 
+    state->clear_waiter();
+    state->thread->sleep(state, Qfalse);
+
     self->unpin();
     self->waiters_--;
 
-    state->clear_waiter();
-    state->thread->sleep(state, Qfalse);
     if(!state->check_async(call_frame)) return NULL;
 
     // We were awoken, but there is no value to use. Return nil.

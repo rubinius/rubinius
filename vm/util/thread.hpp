@@ -223,6 +223,11 @@ namespace thread {
       , locked_(initial)
     { }
 
+    LockGuardTemplate(T* in_lock, bool initial = false)
+      : lock_(*in_lock)
+      , locked_(initial)
+    { }
+
     void lock() {
       if(locked_) return;
       if(cDebugLockGuard) {

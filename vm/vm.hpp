@@ -43,6 +43,7 @@ namespace rubinius {
     class WriteBarrier;
   }
 
+  class Channel;
   class GlobalCache;
   class TaskProbe;
   class Primitives;
@@ -59,7 +60,6 @@ namespace rubinius {
   class Configuration;
   struct Interrupts;
   class VMManager;
-  class Waiter;
   class LookupTable;
   class SymbolTable;
   class SharedState;
@@ -87,7 +87,7 @@ namespace rubinius {
   public:
     /* Data members */
     SharedState& shared;
-    Waiter* waiter_;
+    TypedRoot<Channel*> waiting_channel_;
     bool interrupt_with_signal_;
     pthread_t os_thread_;
 
@@ -338,17 +338,14 @@ namespace rubinius {
     // Run the garbage collectors as soon as you can
     void run_gc_soon();
 
-    void install_waiter(Waiter& waiter);
+    void wait_on_channel(Channel* channel);
     void clear_waiter();
     bool wakeup();
+    bool waiting_p();
 
     void interrupt_with_signal();
     bool should_interrupt_with_signal() {
       return interrupt_with_signal_;
-    }
-
-    bool waiting_p() {
-      return interrupt_with_signal_ || waiter_ != NULL;
     }
 
     void register_raise(Exception* exc);
