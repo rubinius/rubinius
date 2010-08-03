@@ -471,9 +471,7 @@ describe "String#unpack with '@' directive" do
   it "returns an array by decoding self according to the format string" do
     "abcdefg".unpack('@2').should     == []
     "abcdefg".unpack('@3@-5a').should == ["a"]
-    "abcdefg".unpack('@*@a').should   == ["a"]
     "abcdefg".unpack('@3@5a').should  == ["f"]
-    "abcdefg".unpack('@*a').should    == [""]
     "abcdefg".unpack('@7a').should    == [""]
     lambda { "abcdefg".unpack('@8') }.should raise_error(ArgumentError)
   end
