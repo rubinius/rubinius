@@ -69,13 +69,19 @@ namespace rubinius {
     }
 
     inline static void swapf(std::string& str, float value) {
-      uint32_t x = swap32(*(uint32_t*)(&value));
+      uint32_t x;
+
+      memcpy(&x, &value, sizeof(float));
+      x = swap32(x);
 
       str.append((const char*)&x, sizeof(uint32_t));
     }
 
     inline static void swapd(std::string& str, double value) {
-      uint64_t x = swap64(*(uint64_t*)(&value));
+      uint64_t x;
+
+      memcpy(&x, &value, sizeof(double));
+      x = swap64(x);
 
       str.append((const char*)&x, sizeof(uint64_t));
     }
