@@ -159,23 +159,36 @@ namespace rubinius {
     VM* vm_;
     Lockable* lock_;
     bool locked_;
+    bool recursive_;
 
   public:
     LockableScopedLock(STATE, Lockable* lock, const char* file="unknown", int line=0)
       : vm_(state)
       , lock_(lock)
       , locked_(false)
+      , recursive_(false)
     {
-      lock_->lock(vm_, file, line);
-      locked_ = true;
+      if(lock_->mutex().locking_thread() == state) {
+        recursive_ = true;
+        // Don't relock, already got it locked.
+      } else {
+        lock_->lock(vm_, file, line);
+        locked_ = true;
+      }
     }
 
     void unlock() {
-      lock_->unlock(vm_);
-      locked_ = false;
+      if(recursive_) return;
+
+      if(locked_) {
+        lock_->unlock(vm_);
+        locked_ = false;
+      }
     }
 
     void relock() {
+      if(recursive_) return;
+
       if(!locked_) {
         lock_->lock(vm_);
         locked_ = true;
