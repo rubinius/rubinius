@@ -1,3 +1,5 @@
+#include "util/atomic.hpp"
+
 #include "oop.hpp"
 #include "builtin/object.hpp"
 #include "builtin/class.hpp"
@@ -19,7 +21,7 @@ namespace rubinius {
 
     // Do a spin update so if someone else is trying to update it at the same time
     // we catch that and keep trying until we get our version in.
-    while(!__sync_bool_compare_and_swap(&header.flags64, orig.flags64, new_val.flags64)) {
+    while(!atomic::compare_and_swap(&header.flags64, orig.flags64, new_val.flags64)) {
       orig = header;
       ih->update(header);
     }
@@ -69,7 +71,7 @@ namespace rubinius {
     new_val.f.meaning = eAuxWordObjID;
     new_val.f.aux_word = id;
 
-    if(__sync_bool_compare_and_swap(&header.flags64, orig.flags64, new_val.flags64)) {
+    if(atomic::compare_and_swap(&header.flags64, orig.flags64, new_val.flags64)) {
       return;
     }
 
@@ -96,7 +98,7 @@ step1:
     new_val.f.meaning = eAuxWordLock;
     new_val.f.aux_word = state->thread_id() << cAuxLockTIDShift;
 
-    if(__sync_bool_compare_and_swap(&header.flags64, orig.flags64, new_val.flags64)) {
+    if(atomic::compare_and_swap(&header.flags64, orig.flags64, new_val.flags64)) {
       // wonderful! Locked! weeeee!
       return;
     }
@@ -139,7 +141,7 @@ step2:
           // thread might ask for an object_id and the header will
           // be inflated. So if we can't swap in the new header, we'll start
           // this step over.
-          if(!__sync_bool_compare_and_swap(&header.flags64,
+          if(!atomic::compare_and_swap(&header.flags64,
                                            orig.flags64,
                                            new_val.flags64)) {
             goto step2;
@@ -213,7 +215,7 @@ step2:
           new_val.f.aux_word = (state->thread_id() << cAuxLockTIDShift) | (count - 1);
         }
 
-        if(!__sync_bool_compare_and_swap(&header.flags64,
+        if(!atomic::compare_and_swap(&header.flags64,
               orig.flags64,
               new_val.flags64)) {
           // Try it all over again.
@@ -334,7 +336,7 @@ step2:
     // Gain exclusive access to the insides of the InflatedHeader.
     //
     // Yes, this spins. Yes, we want that.
-    while(!__sync_bool_compare_and_swap(&private_lock_, 0, 1));
+    while(!atomic::compare_and_swap(&private_lock_, 0, 1));
 
     // We've got exclusive access to the lock parts of the InflatedHeader now.
     //
@@ -369,7 +371,7 @@ step2:
     state->shared.gc_dependent();
 
     // Spin again to get the private spinlock back
-    while(!__sync_bool_compare_and_swap(&private_lock_, 0, 1));
+    while(!atomic::compare_and_swap(&private_lock_, 0, 1));
 
     owner_id_ = state->thread_id();
 
@@ -389,7 +391,7 @@ step2:
     // Gain exclusive access to the insides of the InflatedHeader.
     //
     // Yes, this spins. Yes, we want that.
-    while(!__sync_bool_compare_and_swap(&private_lock_, 0, 1));
+    while(!atomic::compare_and_swap(&private_lock_, 0, 1));
 
     // We've got exclusive access to the lock parts of the InflatedHeader now.
 

@@ -153,7 +153,7 @@ step1:
 
     new_val.f.LockContended = 1;
 
-    if(!__sync_bool_compare_and_swap(&obj->header.flags64,
+    if(!atomic::compare_and_swap(&obj->header.flags64,
           orig.flags64,
           new_val.flags64)) {
       // Something changed since we started to down this path,
@@ -242,7 +242,7 @@ step1:
     tmp.all_flags = ih;
     tmp.f.meaning = eAuxWordInflated;
 
-    while(!__sync_bool_compare_and_swap(&obj->header.flags64,
+    while(!atomic::compare_and_swap(&obj->header.flags64,
                                         orig.flags64,
                                         tmp.flags64)) {
       // The header can't have been inflated by another thread, the
@@ -304,7 +304,7 @@ step1:
       new_val.all_flags = ih;
       new_val.f.meaning = eAuxWordInflated;
 
-      if(!__sync_bool_compare_and_swap(&obj->header.flags64,
+      if(!atomic::compare_and_swap(&obj->header.flags64,
                                        orig.flags64,
                                        new_val.flags64)) {
         // Try it all over again.

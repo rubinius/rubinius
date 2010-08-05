@@ -14,6 +14,8 @@
 #include <sstream>
 #include <iostream>
 
+#include "util/atomic.hpp"
+
 #define pthread_check(expr) if((expr) != 0) { assert(0 && "failed: " #expr); }
 
 namespace thread {
@@ -538,8 +540,8 @@ namespace thread {
 
     void lock() {
 #ifdef USE_SYNC_CAS
-      while(!__sync_bool_compare_and_swap(&lock_, 1, 0));
-      __sync_synchronize(); // HM?!
+      while(!atomic::compare_and_swap(&lock_, 1, 0));
+      atomic::memory_barrier();
 #else
       __sync_lock_test_and_set(&lock_, 1);
 #endif
@@ -556,7 +558,7 @@ namespace thread {
     }
 
     Code try_lock() {
-      if(__sync_bool_compare_and_swap(&lock_, 1, 0)) {
+      if(atomic::compare_and_swap(&lock_, 1, 0)) {
         return cLocked;
       }
 
