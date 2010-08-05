@@ -26,6 +26,7 @@ describe :array_pack_string, :shared => true do
   it "calls #to_str to convert the element to a String" do
     obj = mock('pack string')
     obj.should_receive(:to_str).and_return("abc")
+
     [obj].pack(pack_format).should == "a"
   end
 
@@ -35,16 +36,16 @@ describe :array_pack_string, :shared => true do
   end
 
   it "returns a tainted string when a pack argument is tainted" do
-    ["abcd".taint, 0x20].pack("A3C").tainted?.should be_true
+    ["abcd".taint, 0x20].pack(pack_format("3C")).tainted?.should be_true
   end
 
   it "does not return a tainted string when the array is tainted" do
-    ["abcd", 0x20].taint.pack("A3C").tainted?.should be_false
+    ["abcd", 0x20].taint.pack(pack_format("3C")).tainted?.should be_false
   end
 
   ruby_version_is "1.8.8" do
     it "returns a tainted string when the format is tainted" do
-      ["abcd", 0x20].pack("A3C".taint).tainted?.should be_true
+      ["abcd", 0x20].pack(pack_format("3C").taint).tainted?.should be_true
     end
 
     it "returns a tainted string when an empty format is tainted" do
@@ -54,7 +55,7 @@ describe :array_pack_string, :shared => true do
 
   ruby_version_is "1.9" do
     it "returns a untrusted string when the format is untrusted" do
-      ["abcd", 0x20].pack("A3C".untrust).untrusted?.should be_true
+      ["abcd", 0x20].pack(pack_format("3C").untrust).untrusted?.should be_true
     end
 
     it "returns a untrusted string when the empty format is untrusted" do
@@ -62,19 +63,20 @@ describe :array_pack_string, :shared => true do
     end
 
     it "returns a untrusted string when a pack argument is untrusted" do
-      ["abcd".untrust, 0x20].pack("A3C").untrusted?.should be_true
+      ["abcd".untrust, 0x20].pack(pack_format("3C")).untrusted?.should be_true
     end
 
     it "returns a trusted string when the array is untrusted" do
-      ["abcd", 0x20].untrust.pack("A3C").untrusted?.should be_false
+      ["abcd", 0x20].untrust.pack(pack_format("3C")).untrusted?.should be_false
     end
 
     it "returns a string in encoding of common to the concatenated results" do
-      [ [["\u{3042 3044 3046 3048}", 0x2000B].pack("A*U"),       Encoding::ASCII_8BIT],
-        [["abcde\xd1", "\xFF\xFe\x81\x82"].pack("A*u"),          Encoding::ASCII_8BIT],
-        [[encode("a", "ascii"), "\xFF\xFe\x81\x82"].pack("A*u"), Encoding::ASCII_8BIT],
+      f = pack_format("*")
+      [ [["\u{3042 3044 3046 3048}", 0x2000B].pack(f+"U"),       Encoding::ASCII_8BIT],
+        [["abcde\xd1", "\xFF\xFe\x81\x82"].pack(f+"u"),          Encoding::ASCII_8BIT],
+        [[encode("a", "ascii"), "\xFF\xFe\x81\x82"].pack(f+"u"), Encoding::ASCII_8BIT],
         # under discussion [ruby-dev:37294]
-        [["\u{3042 3044 3046 3048}", 1].pack("A*N"),             Encoding::ASCII_8BIT]
+        [["\u{3042 3044 3046 3048}", 1].pack(f+"N"),             Encoding::ASCII_8BIT]
       ].should be_computed_by(:encoding)
     end
   end
