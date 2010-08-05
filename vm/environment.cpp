@@ -28,7 +28,6 @@
 #include "signal.hpp"
 #include "object_utils.hpp"
 
-#include "native_thread.hpp"
 #include "inline_cache.hpp"
 
 #include "agent.hpp"
@@ -161,7 +160,7 @@ namespace rubinius {
     action.sa_handler = null_func;
     action.sa_flags = 0;
     sigfillset(&action.sa_mask);
-    sigaction(NativeThread::cWakeupSignal, &action, NULL);
+    sigaction(SIGVTALRM, &action, NULL);
 
     state->set_run_signals(true);
     SignalHandler* handler = new SignalHandler(state);

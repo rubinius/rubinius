@@ -16,7 +16,6 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "call_frame.hpp"
-#include "native_thread.hpp"
 
 #include "on_stack.hpp"
 

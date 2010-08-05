@@ -7,6 +7,7 @@
 
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/array.hpp"
 #include "builtin/list.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/symbol.hpp"
@@ -24,7 +25,6 @@
 #include "config_parser.hpp"
 #include "config.h"
 
-#include "native_thread.hpp"
 #include "call_frame.hpp"
 #include "signal.hpp"
 #include "configuration.hpp"

@@ -17,8 +17,6 @@
 #include "vm/object_utils.hpp"
 #include "vm.hpp"
 
-#include "native_thread.hpp"
-
 #include <sys/time.h>
 
 namespace rubinius {

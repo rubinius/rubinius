@@ -15,6 +15,7 @@
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/array.hpp"
 #include "builtin/string.hpp"
 #include "builtin/bytearray.hpp"
 #include "primitives.hpp"
@@ -24,8 +25,6 @@
 
 #include "vm/object_utils.hpp"
 #include "vm/on_stack.hpp"
-
-#include "native_thread.hpp"
 
 namespace rubinius {
   void IO::init(STATE) {

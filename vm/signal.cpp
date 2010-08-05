@@ -1,9 +1,8 @@
 #include "signal.hpp"
 #include "vm.hpp"
 
-#include "native_thread.hpp"
-
 #include "builtin/module.hpp"
+#include "builtin/array.hpp"
 #include <iostream>
 #include <sys/select.h>
 #include <fcntl.h>

@@ -11,7 +11,6 @@ namespace rubinius {
 
   class Channel;
   class Exception;
-  class NativeThread;
 
   /**
    *  Error class for deadlocks.
@@ -54,7 +53,6 @@ namespace rubinius {
      *
      *  @see Thread::fork()
      */
-    NativeThread* native_thread_;
     thread::SpinLock init_lock_;
 
     VM* vm_;
@@ -82,11 +80,6 @@ namespace rubinius {
     attr_accessor(debugger_thread, Thread);
 
     attr_accessor(thread_id, Fixnum);
-
-    /** OS thread associated with this Thread, if any. */
-    NativeThread* native_thread() {
-      return native_thread_;
-    }
 
     VM* vm() {
       return vm_;
