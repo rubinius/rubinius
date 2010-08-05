@@ -52,7 +52,7 @@ namespace rubinius {
     }
   }
 
-  void ObjectHeader::set_object_id(ObjectMemory* om, uint32_t id) {
+  void ObjectHeader::set_object_id(STATE, ObjectMemory* om, uint32_t id) {
     // Just ignore trying to reset it to 0 for now.
     if(id == 0) return;
 
@@ -76,7 +76,7 @@ namespace rubinius {
     // not inflated, and the aux_word is being used for locking.
     // Inflate!
 
-    om->inflate_for_id(this, id);
+    om->inflate_for_id(state, this, id);
   }
 
   void ObjectHeader::lock(STATE) {
@@ -224,7 +224,7 @@ step2:
           if(new_val.f.LockContended == 1) {
             // If we couldn't inflate for contention, redo.
             if(!state->om->inflate_for_contention(state, this)) continue;
-            state->om->release_contention();
+            state->om->release_contention(state);
           }
         }
 
@@ -265,7 +265,7 @@ step2:
     ivars_ = other->ivars_;
 
     if(other->object_id() > 0) {
-      set_object_id(state->om, other->object_id());
+      set_object_id(state, state->om, other->object_id());
     }
 
     clear_forwarded();

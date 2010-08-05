@@ -98,7 +98,7 @@ namespace rubinius {
     write_barrier(state, ivars());
 
     // Don't inherit the object_id from the original.
-    set_object_id(state->om, 0);
+    set_object_id(state, state->om, 0);
 
     /* C extensions use Data objects for various purposes. The object
      * usually is made an instance of some extension class. So, we
@@ -373,7 +373,7 @@ namespace rubinius {
   Integer* Object::id(STATE) {
     if(reference_p()) {
       if(object_id() == 0) {
-        state->om->assign_object_id(this);
+        state->om->assign_object_id(state, this);
       }
 
       // Shift it up so we don't waste the numeric range in the actual

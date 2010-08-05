@@ -613,7 +613,7 @@ namespace rubinius {
   }
 
   Object* System::vm_inc_global_serial(STATE) {
-    return Fixnum::from(state->shared.inc_global_serial());
+    return Fixnum::from(state->shared.inc_global_serial(state));
   }
 
   Object* System::vm_jit_block(STATE, BlockEnvironment* env, Object* show) {

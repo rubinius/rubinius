@@ -21,7 +21,7 @@ namespace rubinius {
 
     // Data is just a heap alias for the handle, so go ahead and create
     // the handle and populate it as an RData now.
-    InflatedHeader* ih = state->om->inflate_header(data);
+    InflatedHeader* ih = state->om->inflate_header(state, data);
     capi::Handle* handle = ih->handle();
 
     assert(!handle && "can't already have a handle, it's brand new!");
@@ -50,7 +50,7 @@ namespace rubinius {
   }
 
   RDataShadow* Data::rdata(STATE) {
-    InflatedHeader* ih = state->om->inflate_header(this);
+    InflatedHeader* ih = state->om->inflate_header(state, this);
     capi::Handle* handle = ih->handle();
 
     assert(handle && handle->is_rdata() && "invalid initialized Data object");

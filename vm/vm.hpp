@@ -69,7 +69,7 @@ namespace rubinius {
     eNone, ePrivate, eProtected, eSuper, eVCall, eNormal
   };
 
-  class VM : public ManagedThread, public thread::Lockable {
+  class VM : public ManagedThread, public Lockable {
   private:
     CallFrame* saved_call_frame_;
     uintptr_t stack_start_;
@@ -348,7 +348,7 @@ namespace rubinius {
       return interrupt_with_signal_;
     }
 
-    void register_raise(Exception* exc);
+    void register_raise(STATE, Exception* exc);
 
     bool process_async(CallFrame* call_frame);
 

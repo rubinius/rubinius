@@ -156,6 +156,7 @@ class Thread
   end
 
   def self.critical=(value)
+    set_critical value
     @critical = value
   end
 

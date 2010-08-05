@@ -197,12 +197,12 @@ namespace rubinius {
   }
 
   void SharedState::add_managed_thread(ManagedThread* thr) {
-    LOCK_ME;
+    SYNC(0);
     threads_.push_back(thr);
   }
 
   void SharedState::remove_managed_thread(ManagedThread* thr) {
-    LOCK_ME;
+    SYNC(0);
     threads_.remove(thr);
   }
 
@@ -217,7 +217,7 @@ namespace rubinius {
   }
 
   VM* SharedState::new_vm() {
-    LOCK_ME;
+    SYNC(0);
 
     // TODO calculate the thread id by finding holes in the
     // field of ids, so we reuse ids.
@@ -234,7 +234,7 @@ namespace rubinius {
   }
 
   void SharedState::remove_vm(VM* vm) {
-    LOCK_ME;
+    SYNC(0);
     cf_locations_.remove(vm->call_frame_location());
     threads_.remove(vm);
     this->deref();
@@ -243,20 +243,20 @@ namespace rubinius {
   }
 
   QueryAgent* SharedState::autostart_agent() {
-    LOCK_ME;
+    SYNC(0);
     if(agent_) return agent_;
     agent_ = new QueryAgent(*this, root_vm_);
     return agent_;
   }
 
   void SharedState::enable_profiling(VM* vm) {
-    LOCK_ME;
+    SYNC(0);
     profiler_collection_ = new profiler::ProfilerCollection(vm);
     profiling_ = true;
   }
 
   LookupTable* SharedState::disable_profiling(VM* vm) {
-    LOCK_ME;
+    SYNC(0);
     if(profiler_collection_) {
       LookupTable* profile = profiler_collection_->results(vm);
       delete profiler_collection_;
@@ -269,14 +269,14 @@ namespace rubinius {
   }
 
   void SharedState::add_profiler(VM* vm, profiler::Profiler* profiler) {
-    LOCK_ME;
+    SYNC(0);
     if(profiler_collection_) {
       profiler_collection_->add_profiler(vm, profiler);
     }
   }
 
   void SharedState::remove_profiler(VM* vm, profiler::Profiler* profiler) {
-    LOCK_ME;
+    SYNC(0);
     if(profiler_collection_) {
       profiler_collection_->remove_profiler(vm, profiler);
     }
@@ -330,7 +330,7 @@ namespace rubinius {
   }
 
   void SharedState::pre_exec() {
-    LOCK_ME;
+    SYNC(0);
     if(agent_) agent_->cleanup();
   }
 
@@ -375,5 +375,29 @@ namespace rubinius {
 
   void SharedState::gc_independent() {
     world_->become_independent();
+  }
+
+  void SharedState::set_critical(STATE) {
+    SYNC(state);
+
+    if(ruby_critical_thread_ == 0 ||
+         ruby_critical_thread_ != pthread_self()) {
+
+      UNSYNC;
+      gc_independent();
+      ruby_critical_lock_.lock();
+      ruby_critical_thread_ = pthread_self();
+      gc_dependent();
+    }
+
+    return;
+  }
+
+  void SharedState::clear_critical(STATE) {
+    SYNC(state);
+
+    if(ruby_critical_thread_ == pthread_self()) {
+      ruby_critical_lock_.unlock();
+    }
   }
 }

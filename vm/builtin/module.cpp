@@ -25,7 +25,7 @@ namespace rubinius {
   }
 
   Module* Module::create(STATE) {
-    Module* mod = state->om->new_object_enduring<Module>(G(module));
+    Module* mod = state->om->new_object_enduring<Module>(state, G(module));
 
     mod->name(state, (Symbol*)Qnil);
     mod->superclass(state, (Module*)Qnil);
@@ -90,12 +90,12 @@ namespace rubinius {
 
   void Module::set_const(STATE, Object* sym, Object* val) {
     constants_->store(state, sym, val);
-    state->shared.inc_global_serial();
+    state->shared.inc_global_serial(state);
   }
 
   void Module::del_const(STATE, Symbol* sym) {
     constants_->remove(state, sym);
-    state->shared.inc_global_serial();
+    state->shared.inc_global_serial(state);
   }
 
   void Module::set_const(STATE, const char* name, Object* val) {
@@ -400,7 +400,7 @@ namespace rubinius {
 
   IncludedModule* IncludedModule::create(STATE) {
     IncludedModule* imod;
-    imod = state->om->new_object_enduring<IncludedModule>(G(included_module));
+    imod = state->om->new_object_enduring<IncludedModule>(state, G(included_module));
 
     imod->name(state, state->symbol("<included module>"));
     imod->superclass(state, (Module*)Qnil);

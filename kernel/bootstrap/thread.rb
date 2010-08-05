@@ -50,4 +50,9 @@ class Thread
     Kernel.raise PrimitiveFailure, "Thread#native_join failed"
   end
 
+  def self.set_critical(obj)
+    Ruby.primitive :thread_set_critical
+    Kernel.raise PrimitiveFailure, "Thread.set_critical failed"
+  end
+
 end

@@ -79,7 +79,7 @@ namespace rubinius {
     if(shared.om) {
       young_start_ = shared.om->young_start();
       young_end_ = shared.om->yound_end();
-      shared.om->refill_slab(local_slab_);
+      shared.om->refill_slab(this, local_slab_);
     }
   }
 
@@ -103,7 +103,7 @@ namespace rubinius {
     young_start_ = shared.om->young_start();
     young_end_ = shared.om->yound_end();
 
-    om->refill_slab(local_slab_);
+    om->refill_slab(this, local_slab_);
 
     shared.set_initialized();
 
@@ -191,14 +191,14 @@ namespace rubinius {
     Object* obj = reinterpret_cast<Object*>(local_slab().allocate(size));
 
     if(unlikely(!obj)) {
-      if(shared.om->refill_slab(local_slab())) {
+      if(shared.om->refill_slab(this, local_slab())) {
         obj = reinterpret_cast<Object*>(local_slab().allocate(size));
       }
 
       // If refill_slab fails, obj will still be NULL.
 
       if(!obj) {
-        return om->new_object_typed(cls, size, type);
+        return om->new_object_typed(this, cls, size, type);
       }
     }
 
@@ -209,7 +209,7 @@ namespace rubinius {
   }
 
   Object* VM::new_object_typed_mature(Class* cls, size_t bytes, object_type type) {
-    return om->new_object_typed_mature(cls, bytes, type);
+    return om->new_object_typed_mature(this, cls, bytes, type);
   }
 
   Object* VM::new_object_from_type(Class* cls, TypeInfo* ti) {
@@ -217,8 +217,8 @@ namespace rubinius {
   }
 
   Class* VM::new_basic_class(Class* sup) {
-    Class *cls = om->new_object_enduring<Class>(G(klass));
-    cls->init(shared.inc_class_count());
+    Class *cls = om->new_object_enduring<Class>(this, G(klass));
+    cls->init(shared.inc_class_count(this));
 
     if(sup->nil_p()) {
       cls->instance_type(this, Fixnum::from(ObjectType));
@@ -341,34 +341,30 @@ namespace rubinius {
       pthread_kill(os_thread_, SIGVTALRM);
       return true;
     } else {
-      lock();
+      SYNC(this);
 
       Channel* chan = waiting_channel_.get();
 
       if(!chan->nil_p()) {
-        unlock();
+        UNSYNC;
         chan->send(this, Qnil);
         return true;
       }
-
-      unlock();
 
       return false;
     }
   }
 
   void VM::clear_waiter() {
-    lock();
+    SYNC(this);
     interrupt_with_signal_ = false;
     waiting_channel_.set((Channel*)Qnil);
-    unlock();
   }
 
   void VM::wait_on_channel(Channel* chan) {
-    lock();
+    SYNC(this);
     thread->sleep(this, Qtrue);
     waiting_channel_.set(chan);
-    unlock();
   }
 
   bool VM::waiting_p() {
@@ -387,7 +383,8 @@ namespace rubinius {
     return true;
   }
 
-  void VM::register_raise(Exception* exc) {
+  void VM::register_raise(STATE, Exception* exc) {
+    SYNC(state);
     thread_state_.raise_exception(exc);
     check_local_interrupts = true;
   }

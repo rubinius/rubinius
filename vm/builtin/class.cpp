@@ -62,9 +62,9 @@ namespace rubinius {
   }
 
   Class* Class::create(STATE, Class* super) {
-    Class* cls = state->om->new_object_enduring<Class>(G(klass));
+    Class* cls = state->om->new_object_enduring<Class>(state, G(klass));
 
-    cls->init(state->shared.inc_class_count());
+    cls->init(state->shared.inc_class_count(state));
 
     cls->name(state, (Symbol*)Qnil);
     cls->instance_type(state, super->instance_type());
@@ -85,9 +85,9 @@ namespace rubinius {
   }
 
   Class* Class::s_allocate(STATE) {
-    Class* cls = as<Class>(state->om->new_object_enduring<Class>(G(klass)));
+    Class* cls = as<Class>(state->om->new_object_enduring<Class>(state, G(klass)));
 
-    cls->init(state->shared.inc_class_count());
+    cls->init(state->shared.inc_class_count(state));
     cls->setup(state);
 
     cls->set_type_info(state->om->type_info[ObjectType]);
@@ -114,14 +114,14 @@ use_packed:
       if(likely(obj)) {
         obj->init_header(this, YoungObjectZone, PackedObject::type);
       } else {
-        if(state->shared.om->refill_slab(state->local_slab())) {
+        if(state->shared.om->refill_slab(state, state->local_slab())) {
           obj = reinterpret_cast<PackedObject*>(state->local_slab().allocate(size));
 
           if(likely(obj)) {
             obj->init_header(this, YoungObjectZone, PackedObject::type);
           } else {
             obj = reinterpret_cast<PackedObject*>(
-                state->om->new_object_fast(this, size, PackedObject::type));
+                state->om->new_object_fast(state, this, size, PackedObject::type));
           }
         } else {
           state->shared.om->collect_young_now = true;
@@ -140,7 +140,7 @@ use_packed:
             obj->init_header(self, YoungObjectZone, PackedObject::type);
           } else {
             obj = reinterpret_cast<PackedObject*>(
-                state->om->new_object_fast(self, size, PackedObject::type));
+                state->om->new_object_fast(state, self, size, PackedObject::type));
           }
         }
       }
@@ -159,7 +159,7 @@ use_packed:
       Exception::type_error(state, "direct allocation disabled");
       return Qnil;
     } else if(!building_) {
-      return state->om->new_object_typed(this,
+      return state->om->new_object_typed(state, this,
           type_info_->instance_size, type_info_->type);
     } else {
       if(type_info_->type == Object::type) {
@@ -168,7 +168,7 @@ use_packed:
 
       building_ = false;
 
-      return state->om->new_object_typed(this,
+      return state->om->new_object_typed(state, this,
           type_info_->instance_size, type_info_->type);
     }
   }
@@ -304,8 +304,8 @@ use_packed:
 
   MetaClass* MetaClass::attach(STATE, Object* obj, Class* sup) {
     MetaClass *meta;
-    meta = state->om->new_object_enduring<MetaClass>(G(klass));
-    meta->init(state->shared.inc_class_count());
+    meta = state->om->new_object_enduring<MetaClass>(state, G(klass));
+    meta->init(state->shared.inc_class_count(state));
 
     meta->attached_instance(state, obj);
     meta->setup(state);

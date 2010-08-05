@@ -553,7 +553,7 @@ const int cUndef = 0x22L;
       }
     }
 
-    void set_object_id(ObjectMemory* om, uint32_t id);
+    void set_object_id(STATE, ObjectMemory* om, uint32_t id);
 
     void lock(STATE);
     void unlock(STATE);

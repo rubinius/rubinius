@@ -14,6 +14,7 @@
 #include "gc/write_barrier.hpp"
 
 #include "util/thread.hpp"
+#include "lock.hpp"
 
 class TestObjectMemory; // So we can friend it properly
 
@@ -69,7 +70,7 @@ namespace rubinius {
     {}
   };
 
-  class ObjectMemory : public gc::WriteBarrier, public thread::Lockable {
+  class ObjectMemory : public gc::WriteBarrier, public Lockable {
     BakerGC* young_;
     MarkSweepGC* mark_sweep_;
 
@@ -143,13 +144,13 @@ namespace rubinius {
       allow_gc_ = false;
     }
 
-    void add_aux_barrier(gc::WriteBarrier* wb) {
-      LOCK_ME;
+    void add_aux_barrier(STATE, gc::WriteBarrier* wb) {
+      SYNC(state);
       aux_barriers_.push_back(wb);
     }
 
-    void del_aux_barrier(gc::WriteBarrier* wb) {
-      LOCK_ME;
+    void del_aux_barrier(STATE, gc::WriteBarrier* wb) {
+      SYNC(state);
       aux_barriers_.remove(wb);
     }
 
@@ -165,38 +166,38 @@ namespace rubinius {
     ObjectMemory(STATE, Configuration& config);
     ~ObjectMemory();
 
-    Object* new_object_typed(Class* cls, size_t bytes, object_type type);
-    Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
-    Object* new_object_typed_enduring(Class* cls, size_t bytes, object_type type);
+    Object* new_object_typed(STATE, Class* cls, size_t bytes, object_type type);
+    Object* new_object_typed_mature(STATE, Class* cls, size_t bytes, object_type type);
+    Object* new_object_typed_enduring(STATE, Class* cls, size_t bytes, object_type type);
 
-    Object* new_object_fast(Class* cls, size_t bytes, object_type type);
+    Object* new_object_fast(STATE, Class* cls, size_t bytes, object_type type);
 
     template <class T>
-      T* new_object_bytes(Class* cls, size_t& bytes) {
+      T* new_object_bytes(STATE, Class* cls, size_t& bytes) {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
-        T* obj = reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
+        T* obj = reinterpret_cast<T*>(new_object_typed(state, cls, bytes, T::type));
 
         return obj;
       }
 
     template <class T>
-      T* new_object_bytes_mature(Class* cls, size_t& bytes) {
+      T* new_object_bytes_mature(STATE, Class* cls, size_t& bytes) {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
-        T* obj = reinterpret_cast<T*>(new_object_typed_mature(cls, bytes, T::type));
+        T* obj = reinterpret_cast<T*>(new_object_typed_mature(state, cls, bytes, T::type));
 
         return obj;
       }
 
     template <class T>
-      T* new_object_variable(Class* cls, size_t fields, size_t& bytes) {
+      T* new_object_variable(STATE, Class* cls, size_t fields, size_t& bytes) {
         bytes = sizeof(T) + (fields * sizeof(Object*));
-        return reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
+        return reinterpret_cast<T*>(new_object_typed(state, cls, bytes, T::type));
       }
 
     template <class T>
-      T* new_object_enduring(Class* cls) {
+      T* new_object_enduring(STATE, Class* cls) {
         return reinterpret_cast<T*>(
-            new_object_typed_enduring(cls, sizeof(T), T::type));
+            new_object_typed_enduring(state, cls, sizeof(T), T::type));
       }
 
     TypeInfo* find_type_info(Object* obj);
@@ -205,12 +206,12 @@ namespace rubinius {
     void collect_mature(GCData& data);
     Object* promote_object(Object* obj);
 
-    bool refill_slab(gc::Slab& slab);
+    bool refill_slab(STATE, gc::Slab& slab);
 
-    void assign_object_id(Object* obj);
+    void assign_object_id(STATE, Object* obj);
     bool inflate_lock_count_overflow(STATE, ObjectHeader* obj, int count);
     bool contend_for_lock(STATE, ObjectHeader* obj);
-    void release_contention();
+    void release_contention(STATE);
     bool inflate_and_lock(STATE, ObjectHeader* obj);
     bool inflate_for_contention(STATE, ObjectHeader* obj);
 
@@ -250,8 +251,8 @@ namespace rubinius {
     size_t& immix_usage();
     size_t& code_usage();
 
-    InflatedHeader* inflate_header(ObjectHeader* obj);
-    void inflate_for_id(ObjectHeader* obj, uint32_t id);
+    InflatedHeader* inflate_header(STATE, ObjectHeader* obj);
+    void inflate_for_id(STATE, ObjectHeader* obj, uint32_t id);
 
     // This only has one use! Don't use it!
     Object* allocate_object_raw(size_t bytes);

@@ -193,6 +193,9 @@ namespace rubinius {
     // Ruby.primitive :thread_join
     Object* join(STATE, CallFrame* calling_environment);
 
+    // Ruby.primitive :thread_set_critical
+    static Object* set_critical(STATE, Object* obj);
+
 
   public:   /* Class methods */
 

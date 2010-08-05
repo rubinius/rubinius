@@ -22,7 +22,7 @@ namespace rubinius {
 
   ByteArray* ByteArray::create(STATE, size_t bytes) {
     size_t body = bytes;
-    ByteArray* ba = state->om->new_object_bytes<ByteArray>(G(bytearray), body);
+    ByteArray* ba = state->om->new_object_bytes<ByteArray>(state, G(bytearray), body);
     if(unlikely(!ba)) {
       Exception::memory_error(state);
     }
@@ -33,7 +33,7 @@ namespace rubinius {
 
   ByteArray* ByteArray::create_pinned(STATE, size_t bytes) {
     size_t body = bytes;
-    ByteArray* ba = state->om->new_object_bytes_mature<ByteArray>(G(bytearray), body);
+    ByteArray* ba = state->om->new_object_bytes_mature<ByteArray>(state, G(bytearray), body);
     if(unlikely(!ba)) {
       Exception::memory_error(state);
     }

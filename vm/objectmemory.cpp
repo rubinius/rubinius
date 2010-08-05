@@ -97,17 +97,17 @@ namespace rubinius {
 
   }
 
-  void ObjectMemory::assign_object_id(Object* obj) {
-    LOCK_ME;
+  void ObjectMemory::assign_object_id(STATE, Object* obj) {
+    SYNC(state);
 
     // Double check we've got no id still after the lock.
     if(obj->object_id() > 0) return;
 
-    obj->set_object_id(root_state_->om, ++last_object_id);
+    obj->set_object_id(state, state->om, ++last_object_id);
   }
 
   bool ObjectMemory::inflate_lock_count_overflow(STATE, ObjectHeader* obj, int count) {
-    LOCK_ME;
+    SYNC(state);
 
     // Inflation always happens with the ObjectMemory lock held, so we don't
     // need to worry about another thread concurrently inflating it.
@@ -123,7 +123,7 @@ namespace rubinius {
   }
 
   bool ObjectMemory::contend_for_lock(STATE, ObjectHeader* obj) {
-    lock();
+    SYNC(state);
 
     // We want to lock obj, but someone else has it locked.
     //
@@ -139,7 +139,7 @@ step1:
     if(hdr.f.meaning != eAuxWordLock) {
       std::cerr << "[LOCK " << state->thread_id()
                 << " contend_for_lock error: not thin locked.]\n";
-      unlock();
+      UNSYNC;
       return false;
     }
 
@@ -191,7 +191,7 @@ step1:
     // not access this if there is chance that a call blocked and GC'd
     // (which is true in the case of this function).
 
-    unlock();
+    UNSYNC;
 
     InflatedHeader* ih = obj->inflated_header();
     ih->lock_mutex(state);
@@ -199,13 +199,13 @@ step1:
     return true;
   }
 
-  void ObjectMemory::release_contention() {
-    LOCK_ME;
+  void ObjectMemory::release_contention(STATE) {
+    SYNC(state);
     contention_var_.broadcast();
   }
 
   bool ObjectMemory::inflate_and_lock(STATE, ObjectHeader* obj) {
-    LOCK_ME;
+    SYNC(state);
 
     InflatedHeader* ih = 0;
     int initial_count = 0;
@@ -267,7 +267,7 @@ step1:
   }
 
   bool ObjectMemory::inflate_for_contention(STATE, ObjectHeader* obj) {
-    LOCK_ME;
+    SYNC(state);
 
     for(;;) {
       HeaderWord orig = obj->header;
@@ -322,8 +322,8 @@ step1:
 
   // WARNING: This returns an object who's body may not have been initialized.
   // It is the callers duty to initialize it.
-  Object* ObjectMemory::new_object_fast(Class* cls, size_t bytes, object_type type) {
-    LOCK_ME;
+  Object* ObjectMemory::new_object_fast(STATE, Class* cls, size_t bytes, object_type type) {
+    SYNC(state);
 
     if(Object* obj = young_->raw_allocate(bytes, &collect_young_now)) {
       objects_allocated++;
@@ -333,13 +333,13 @@ step1:
       obj->init_header(cls, YoungObjectZone, type);
       return obj;
     } else {
-      UNLOCK_ME;
-      return new_object_typed(cls, bytes, type);
+      UNSYNC;
+      return new_object_typed(state, cls, bytes, type);
     }
   }
 
-  bool ObjectMemory::refill_slab(gc::Slab& slab) {
-    LOCK_ME;
+  bool ObjectMemory::refill_slab(STATE, gc::Slab& slab) {
+    SYNC(state);
 
     void* addr = young_->allocate_for_slab(slab_size_);
 
@@ -353,13 +353,13 @@ step1:
   }
 
   void ObjectMemory::set_young_lifetime(size_t age) {
-    LOCK_ME;
+    SYNC_TL;
 
     young_->set_lifetime(age);
   }
 
   void ObjectMemory::debug_marksweep(bool val) {
-    LOCK_ME;
+    SYNC_TL;
 
     if(val) {
       mark_sweep_->free_entries = false;
@@ -405,11 +405,11 @@ step1:
     // Don't go any further unless we're allowed to GC.
     if(!can_gc()) return;
 
-    lock();
+    SYNC(state);
 
     // If we were checkpointed, then someone else ran the GC, just return.
     if(state->shared.should_stop()) {
-      unlock();
+      UNSYNC;
       state->shared.checkpoint();
       return;
     }
@@ -424,13 +424,13 @@ step1:
     state->shared.ask_for_stopage();
 
     // Now unlock ObjectMemory so that they can spin to any checkpoints.
-    unlock();
+    UNSYNC;
 
     // Wait for them all to check in.
     state->shared.stop_the_world();
 
     // Now we're alone, but we lock again just to safe.
-    lock();
+    RESYNC;
 
     GCData gc_data(state);
 
@@ -441,18 +441,18 @@ step1:
 
     // Ok, we're good. Get everyone going again.
     state->shared.restart_world();
-    unlock();
+    UNSYNC;
   }
 
   void ObjectMemory::collect_maybe(STATE, CallFrame* call_frame) {
     // Don't go any further unless we're allowed to GC.
     if(!can_gc()) return;
 
-    lock();
+    SYNC(state);
 
     // If we were checkpointed, then someone else ran the GC, just return.
     if(state->shared.should_stop()) {
-      unlock();
+      UNSYNC;
       state->shared.checkpoint();
       return;
     }
@@ -467,13 +467,13 @@ step1:
     state->shared.ask_for_stopage();
 
     // Now unlock ObjectMemory so that they can spin to any checkpoints.
-    unlock();
+    UNSYNC;
 
     // Wait for them all to check in.
     state->shared.stop_the_world();
 
     // Now we're alone, but we lock again just to safe.
-    lock();
+    RESYNC;
 
     GCData gc_data(state);
 
@@ -555,7 +555,7 @@ step1:
 #endif
 
     state->shared.restart_world();
-    unlock();
+    UNSYNC;
   }
 
   void ObjectMemory::collect_young(GCData& data, YoungCollectStats* stats) {
@@ -643,20 +643,20 @@ step1:
 #endif
   }
 
-  InflatedHeader* ObjectMemory::inflate_header(ObjectHeader* obj) {
+  InflatedHeader* ObjectMemory::inflate_header(STATE, ObjectHeader* obj) {
     if(obj->inflated_header_p()) return obj->inflated_header();
 
-    LOCK_ME;
+    SYNC(state);
 
     InflatedHeader* header = inflated_headers_->allocate(obj);
     obj->set_inflated_header(header);
     return header;
   }
 
-  void ObjectMemory::inflate_for_id(ObjectHeader* obj, uint32_t id) {
+  void ObjectMemory::inflate_for_id(STATE, ObjectHeader* obj, uint32_t id) {
     if(obj->inflated_header_p()) return;
 
-    LOCK_ME;
+    SYNC(state);
 
     InflatedHeader* header = inflated_headers_->allocate(obj);
     header->set_object_id(id);
@@ -752,7 +752,7 @@ step1:
   }
 
   void ObjectMemory::add_type_info(TypeInfo* ti) {
-    LOCK_ME;
+    SYNC_TL;
 
     if(TypeInfo* current = type_info[ti->type]) {
       delete current;
@@ -836,8 +836,8 @@ step1:
     return obj;
   }
 
-  Object* ObjectMemory::new_object_typed(Class* cls, size_t bytes, object_type type) {
-    LOCK_ME;
+  Object* ObjectMemory::new_object_typed(STATE, Class* cls, size_t bytes, object_type type) {
+    SYNC(state);
 
     Object* obj;
 
@@ -855,8 +855,8 @@ step1:
     return obj;
   }
 
-  Object* ObjectMemory::new_object_typed_mature(Class* cls, size_t bytes, object_type type) {
-    LOCK_ME;
+  Object* ObjectMemory::new_object_typed_mature(STATE, Class* cls, size_t bytes, object_type type) {
+    SYNC(state);
 
     Object* obj;
 
@@ -884,8 +884,8 @@ step1:
     return obj;
   }
 
-  Object* ObjectMemory::new_object_typed_enduring(Class* cls, size_t bytes, object_type type) {
-    LOCK_ME;
+  Object* ObjectMemory::new_object_typed_enduring(STATE, Class* cls, size_t bytes, object_type type) {
+    SYNC(state);
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->mature_object_types[type]++;
@@ -939,7 +939,7 @@ step1:
   }
 
   void ObjectMemory::add_code_resource(CodeResource* cr) {
-    LOCK_ME;
+    SYNC_TL;
 
     code_manager_.add_resource(cr);
   }
@@ -953,7 +953,7 @@ step1:
   }
 
   void ObjectMemory::needs_finalization(Object* obj, FinalizerFunction func) {
-    LOCK_ME;
+    SYNC_TL;
 
     FinalizeObject fi;
     fi.object = obj;
@@ -965,7 +965,7 @@ step1:
   }
 
   void ObjectMemory::set_ruby_finalizer(Object* obj, Object* fin) {
-    LOCK_ME;
+    SYNC_TL;
 
     // See if there already one.
     for(std::list<FinalizeObject>::iterator i = finalize_.begin();

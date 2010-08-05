@@ -14,6 +14,8 @@
 
 #include "primitives.hpp"
 
+#include "lock.hpp"
+
 namespace rubinius {
   namespace capi {
     class Handles;
@@ -65,7 +67,7 @@ namespace rubinius {
     }
   };
 
-  class SharedState : public RefCount, thread::Lockable {
+  class SharedState : public RefCount, Lockable {
   private:
     bool initialized_;
     SignalHandler* signal_handler_;
@@ -96,6 +98,11 @@ namespace rubinius {
     int thread_ids_;
 
     thread::Mutex onig_lock_;
+
+    // This lock is to implement Thread.critical. It is not critical as
+    // the name would make it sound.
+    thread::Mutex ruby_critical_lock_;
+    pthread_t ruby_critical_thread_;
 
   public:
     Globals globals;
@@ -167,8 +174,8 @@ namespace rubinius {
       return global_serial_;
     }
 
-    int inc_global_serial() {
-      LOCK_ME;
+    int inc_global_serial(STATE) {
+      SYNC(state);
       return ++global_serial_;
     }
 
@@ -180,13 +187,13 @@ namespace rubinius {
       return ic_registry_;
     }
 
-    unsigned int inc_class_count() {
-      LOCK_ME;
+    unsigned int inc_class_count(STATE) {
+      SYNC(state);
       return ++class_count_;
     }
 
-    uint64_t inc_method_count() {
-      LOCK_ME;
+    uint64_t inc_method_count(STATE) {
+      SYNC(state);
       return ++method_count_;
     }
 
@@ -248,6 +255,9 @@ namespace rubinius {
     bool checkpoint();
     void gc_dependent();
     void gc_independent();
+
+    void set_critical(STATE);
+    void clear_critical(STATE);
   };
 }
 

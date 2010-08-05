@@ -101,6 +101,7 @@ namespace rubinius {
     vm->thread->init_lock_.unlock();
 
     vm->shared.gc_independent();
+    vm->shared.clear_critical(vm);
 
     VM::discard(vm);
 
@@ -125,6 +126,8 @@ namespace rubinius {
   }
 
   Object* Thread::pass(STATE, CallFrame* calling_environment) {
+    struct timespec ts = {0, 0};
+    nanosleep(&ts, NULL);
     return Qnil;
   }
 
@@ -149,9 +152,7 @@ namespace rubinius {
     VM* vm = vm_;
     if(!vm) return Qnil;
 
-    vm->lock();
-    vm->register_raise(exc);
-    vm->unlock();
+    vm->register_raise(state, exc);
 
     vm->wakeup();
     return exc;
@@ -162,11 +163,11 @@ namespace rubinius {
   }
 
   Thread* Thread::wakeup(STATE) {
+    thread::SpinLock::LockGuard lg(init_lock_);
+
     if(alive() == Qfalse || !vm_) {
       return reinterpret_cast<Thread*>(kPrimitiveFailed);
     }
-
-    thread::SpinLock::LockGuard lg(init_lock_);
 
     VM* vm = vm_;
     if(!vm) return this;
@@ -238,5 +239,15 @@ namespace rubinius {
     }
 
     return Qtrue;
+  }
+
+  Object* Thread::set_critical(STATE, Object* obj) {
+    if(RTEST(obj)) {
+      state->shared.set_critical(state);
+      return Qtrue;
+    } else {
+      state->shared.clear_critical(state);
+      return Qfalse;
+    }
   }
 }

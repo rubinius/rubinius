@@ -426,7 +426,7 @@ namespace rubinius {
 
     set_name("Background Compiler");
     state->shared.add_managed_thread(this);
-    state->shared.om->add_aux_barrier(&write_barrier_);
+    state->shared.om->add_aux_barrier(state, &write_barrier_);
 
     if(state->shared.config.jit_log.value.size() == 0) {
       log_ = &std::cerr;
@@ -532,7 +532,7 @@ namespace rubinius {
 
   LLVMState::~LLVMState() {
     shared_.remove_managed_thread(this);
-    shared_.om->del_aux_barrier(&write_barrier_);
+    shared_.om->del_aux_barrier(0, &write_barrier_);
   }
 
   bool LLVMState::debug_p() {

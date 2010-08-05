@@ -384,38 +384,6 @@ namespace thread {
     }
   };
 
-  class Lockable {
-  protected:
-    Mutex mutex_;
-
-  public:
-
-    Mutex& mutex() {
-      return mutex_;
-    }
-
-    void lock() {
-      mutex_.lock();
-    }
-
-    void unlock() {
-      mutex_.unlock();
-    }
-
-    std::string describe() {
-      std::stringstream ss;
-      ss << "Lockable ";
-      ss << (void*)this;
-      return ss.str();
-    }
-
-    typedef StackLockGuard<Lockable> Lock;
-    typedef StackUnlockGuard<Lockable> Unlock;
-  };
-
-#define LOCK_ME thread::Lockable::Lock __lock_guard__(*static_cast<thread::Lockable*>(this))
-#define UNLOCK_ME thread::Lockable::Unlock __unlock_guard__(*static_cast<thread::Lockable*>(this))
-
   class Condition {
     pthread_cond_t native_;
 

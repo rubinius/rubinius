@@ -38,7 +38,7 @@ namespace rubinius {
 
   Tuple* Tuple::create(STATE, size_t fields) {
     size_t bytes;
-    Tuple* tup = state->om->new_object_variable<Tuple>(G(tuple), fields, bytes);
+    Tuple* tup = state->om->new_object_variable<Tuple>(state, G(tuple), fields, bytes);
     if(unlikely(!tup)) {
       Exception::memory_error(state);
     }
