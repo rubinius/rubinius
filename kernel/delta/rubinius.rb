@@ -277,6 +277,12 @@ module Rubinius
     Type.coerce_to obj, String, :to_str
   end
 
+  def self.pack_to_s(obj)
+    str = obj.to_s
+    str = obj.inspect unless str.kind_of? String
+    str
+  end
+
   def self.pack_to_float(obj)
     Float(obj)
   end
