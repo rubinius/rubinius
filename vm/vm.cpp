@@ -93,7 +93,7 @@ namespace rubinius {
     delete vm;
   }
 
-  void VM::initialize() {
+  void VM::initialize_as_root() {
     om = new ObjectMemory(this, shared.config);
     shared.om = om;
 
@@ -104,15 +104,9 @@ namespace rubinius {
 
     shared.set_initialized();
 
-    // This seems like we should do this in VM(), ie, for every VM and
-    // therefore every Thread object in the process. But in fact, because
-    // we're using the GIL atm, we only do it once. When the GIL goes
-    // away, this needs to be moved to VM().
 
     shared.gc_dependent();
-  }
 
-  void VM::boot() {
     TypeInfo::auto_learn_fields(this);
 
     bootstrap_ontology();
@@ -121,7 +115,10 @@ namespace rubinius {
 
     // Setup the main Thread, which is a reflect of the pthread_self()
     // when the VM boots.
-    boot_threads();
+    thread.set(Thread::create(this, this, pthread_self()), &globals().roots);
+    thread->sleep(this, Qfalse);
+
+    VM::set_current(this);
   }
 
   void VM::initialize_config() {
@@ -161,13 +158,6 @@ namespace rubinius {
 
   void VM::set_current(VM* vm) {
     ManagedThread::set_current(vm);
-  }
-
-  void VM::boot_threads() {
-    thread.set(Thread::create(this, this, pthread_self()), &globals().roots);
-    thread->sleep(this, Qfalse);
-
-    VM::set_current(this);
   }
 
   Object* VM::new_object_typed(Class* cls, size_t size, object_type type) {

@@ -238,10 +238,9 @@ namespace rubinius {
 
     void check_exception(CallFrame* call_frame);
 
-    void initialize();
-
-    // Initialize the basic objects and the execution machinery
-    void boot();
+    // Used to create ObjectMemory and such. Only run for the
+    // root vm.
+    void initialize_as_root();
 
     void bootstrap_class();
     void bootstrap_ontology();
@@ -253,7 +252,6 @@ namespace rubinius {
     void initialize_fundamental_constants();
     void initialize_builtin_classes();
     void initialize_platform_data();
-    void boot_threads();
 
     void set_current_fiber(Fiber* fib);
 

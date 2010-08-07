@@ -286,11 +286,7 @@ namespace rubinius {
   }
 
   void Environment::boot_vm() {
-    state->initialize();
-    state->boot();
-
-    TaskProbe* probe = TaskProbe::create(state);
-    state->probe.set(probe->parse_env(NULL) ? probe : (TaskProbe*)Qnil);
+    state->initialize_as_root();
   }
 
   void Environment::run_file(std::string file) {
