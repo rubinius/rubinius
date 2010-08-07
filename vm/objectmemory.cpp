@@ -1283,19 +1283,19 @@ step1:
 
 // Used in gdb
 void x_memstat() {
-  rubinius::VM::current_state()->om->memstats();
+  rubinius::VM::current()->om->memstats();
 }
 
 void print_references(void* obj) {
-  rubinius::VM::current_state()->om->print_references((rubinius::Object*)obj);
+  rubinius::VM::current()->om->print_references((rubinius::Object*)obj);
 }
 
 void x_snapshot() {
-  rubinius::VM::current_state()->om->snapshot();
+  rubinius::VM::current()->om->snapshot();
 }
 
 void x_print_snapshot() {
-  rubinius::VM::current_state()->om->print_new_since_snapshot();
+  rubinius::VM::current()->om->print_new_since_snapshot();
 }
 
 #define DEFAULT_MALLOC_THRESHOLD 10000000
@@ -1305,7 +1305,7 @@ static long bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
 void* XMALLOC(size_t bytes) {
   bytes_until_collection -= bytes;
   if(bytes_until_collection <= 0) {
-    rubinius::VM::current_state()->run_gc_soon();
+    rubinius::VM::current()->run_gc_soon();
     bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
   }
   return malloc(bytes);
@@ -1318,7 +1318,7 @@ void XFREE(void* ptr) {
 void* XREALLOC(void* ptr, size_t bytes) {
   bytes_until_collection -= bytes;
   if(bytes_until_collection <= 0) {
-    rubinius::VM::current_state()->run_gc_soon();
+    rubinius::VM::current()->run_gc_soon();
     bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
   }
 
@@ -1330,7 +1330,7 @@ void* XCALLOC(size_t items, size_t bytes_per) {
 
   bytes_until_collection -= bytes;
   if(bytes_until_collection <= 0) {
-    rubinius::VM::current_state()->run_gc_soon();
+    rubinius::VM::current()->run_gc_soon();
     bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
   }
 

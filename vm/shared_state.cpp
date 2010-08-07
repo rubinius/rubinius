@@ -216,13 +216,20 @@ namespace rubinius {
     if(ss->deref()) delete ss;
   }
 
+  uint32_t SharedState::new_thread_id(THREAD) {
+    SYNC(state);
+    return ++thread_ids_;
+  }
+
   VM* SharedState::new_vm() {
+    uint32_t id = new_thread_id(0);
+
     SYNC(0);
 
     // TODO calculate the thread id by finding holes in the
     // field of ids, so we reuse ids.
 
-    VM* vm = new VM(++thread_ids_, *this);
+    VM* vm = new VM(id, *this);
     cf_locations_.push_back(vm->call_frame_location());
     threads_.push_back(vm);
 

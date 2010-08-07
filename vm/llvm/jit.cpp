@@ -409,7 +409,8 @@ namespace rubinius {
   }
 
   LLVMState::LLVMState(STATE)
-    : ManagedThread(state->shared, ManagedThread::eSystem)
+    : ManagedThread(state->shared.new_thread_id(state),
+                    state->shared, ManagedThread::eSystem)
     , ctx_(llvm::getGlobalContext())
     , config_(state->shared.config)
     , symbols_(state->shared.symbols)

@@ -115,7 +115,7 @@ namespace rubinius {
     pthread_attr_init(&attrs);
     pthread_attr_setstacksize(&attrs, 4194304);
 
-    int error = pthread_create(&vm_->os_thread_, &attrs, in_new_thread, (void*)vm_);
+    int error = pthread_create(&vm_->os_thread(), &attrs, in_new_thread, (void*)vm_);
 
     if(error) {
       Exception::thread_error(state, strerror(error));
@@ -130,7 +130,7 @@ namespace rubinius {
   }
 
   Object* Thread::priority(STATE) {
-    pthread_t id = vm_->os_thread_;
+    pthread_t id = vm_->os_thread();
 
     if(id) {
       int _policy;
@@ -192,7 +192,6 @@ namespace rubinius {
   }
 
   void Thread::cleanup() {
-    vm_->os_thread_ = 0;
     vm_ = NULL;
   }
 
@@ -208,7 +207,7 @@ namespace rubinius {
       return Qtrue;
     }
 
-    pthread_t id = vm->os_thread_;
+    pthread_t id = vm->os_thread();
 
     if(cDebugThreading) {
       std::cerr << "[THREAD joining " << id << "]\n";

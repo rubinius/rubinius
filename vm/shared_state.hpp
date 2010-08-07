@@ -174,10 +174,12 @@ namespace rubinius {
       return global_serial_;
     }
 
-    int inc_global_serial(STATE) {
+    int inc_global_serial(THREAD) {
       SYNC(state);
       return ++global_serial_;
     }
+
+    uint32_t new_thread_id(THREAD);
 
     int* global_serial_address() {
       return &global_serial_;
@@ -187,12 +189,12 @@ namespace rubinius {
       return ic_registry_;
     }
 
-    unsigned int inc_class_count(STATE) {
+    unsigned int inc_class_count(THREAD) {
       SYNC(state);
       return ++class_count_;
     }
 
-    uint64_t inc_method_count(STATE) {
+    uint64_t inc_method_count(THREAD) {
       SYNC(state);
       return ++method_count_;
     }

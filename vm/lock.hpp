@@ -7,15 +7,16 @@ namespace rubinius {
 
   class Mutex;
   class SpinLock;
+  class ManagedThread;
 
   class Lock {
   protected:
-    VM* locking_thread_;
+    ManagedThread* locking_thread_;
     const char* lock_file_;
     int lock_line_;
 
   public:
-    VM* locking_thread() {
+    ManagedThread* locking_thread() {
       return locking_thread_;
     }
 
@@ -46,21 +47,21 @@ namespace rubinius {
       return true;
     }
 
-    void lock(STATE) {
+    void lock(ManagedThread* th) {
       thread::Mutex::lock();
-      locking_thread_ = state;
+      locking_thread_ = th;
       lock_file_ = "unknown";
       lock_line_ = 0;
     }
 
-    void lock(STATE, const char* file, int line) {
+    void lock(ManagedThread* th, const char* file, int line) {
       thread::Mutex::lock();
-      locking_thread_ = state;
+      locking_thread_ = th;
       lock_file_ = file;
       lock_line_ = line;
     }
 
-    void unlock(STATE) {
+    void unlock(ManagedThread* th) {
       thread::Mutex::unlock();
       locking_thread_ = 0;
     }
@@ -72,52 +73,52 @@ namespace rubinius {
       return false;
     }
 
-    void lock(STATE) {
+    void lock(ManagedThread* th) {
       thread::SpinLock::lock();
-      locking_thread_ = state;
+      locking_thread_ = th;
       lock_file_ = "unknown";
       lock_line_ = 0;
     }
 
-    void lock(STATE, const char* file, int line) {
+    void lock(ManagedThread* th, const char* file, int line) {
       thread::SpinLock::lock();
-      locking_thread_ = state;
+      locking_thread_ = th;
       lock_file_ = file;
       lock_line_ = line;
     }
 
-    void unlock(STATE) {
+    void unlock(ManagedThread* th) {
       thread::SpinLock::lock();
       locking_thread_ = 0;
     }
   };
 
   class ScopeLock {
-    VM* vm_;
+    ManagedThread* thread_;
     Lock* lock_;
 
   public:
-    ScopeLock(STATE, Lock* lock, const char* file="unknown", int line=0)
-      : vm_(state)
+    ScopeLock(ManagedThread* th, Lock* lock, const char* file="unknown", int line=0)
+      : thread_(th)
       , lock_(lock)
     {
       if(Mutex* mutex = lock_->as_mutex()) {
-        mutex->lock(vm_, file, line);
+        mutex->lock(thread_, file, line);
       } else if(SpinLock* sl = lock_->as_spinlock()) {
-        sl->lock(vm_, file, line);
+        sl->lock(thread_, file, line);
       } else {
         std::cerr << "Syncronize used with confusing lock type.\n";
       }
     }
 
-    ScopeLock(STATE, Lock& lock, const char* file="unknown", int line=0)
-      : vm_(state)
+    ScopeLock(ManagedThread* th, Lock& lock, const char* file="unknown", int line=0)
+      : thread_(th)
       , lock_(&lock)
     {
       if(Mutex* mutex = lock_->as_mutex()) {
-        mutex->lock(vm_, file, line);
+        mutex->lock(thread_, file, line);
       } else if(SpinLock* sl = lock_->as_spinlock()) {
-        sl->lock(vm_, file, line);
+        sl->lock(thread_, file, line);
       } else {
         std::cerr << "Syncronize used with confusing lock type.\n";
       }
@@ -125,9 +126,9 @@ namespace rubinius {
 
     ~ScopeLock() {
       if(Mutex* mutex = lock_->as_mutex()) {
-        mutex->unlock(vm_);
+        mutex->unlock(thread_);
       } else if(SpinLock* sl = lock_->as_spinlock()) {
-        sl->unlock(vm_);
+        sl->unlock(thread_);
       } else {
         std::cerr << "Syncronize used with confusing lock type.\n";
       }
@@ -142,37 +143,38 @@ namespace rubinius {
       return mutex_;
     }
 
-    void lock(STATE) {
-      mutex_.lock(state);
+    void lock(ManagedThread* th) {
+      mutex_.lock(th);
     }
 
-    void lock(STATE, const char* file, int line) {
-      mutex_.lock(state, file, line);
+    void lock(ManagedThread* th, const char* file, int line) {
+      mutex_.lock(th, file, line);
     }
 
-    void unlock(STATE) {
-      mutex_.unlock(state);
+    void unlock(ManagedThread* th) {
+      mutex_.unlock(th);
     }
   };
 
   class LockableScopedLock {
-    VM* vm_;
+    ManagedThread* thread_;
     Lockable* lock_;
     bool locked_;
     bool recursive_;
 
   public:
-    LockableScopedLock(STATE, Lockable* lock, const char* file="unknown", int line=0)
-      : vm_(state)
+    LockableScopedLock(ManagedThread* th, Lockable* lock,
+                       const char* file="unknown", int line=0)
+      : thread_(th)
       , lock_(lock)
       , locked_(false)
       , recursive_(false)
     {
-      if(lock_->mutex().locking_thread() == state) {
+      if(lock_->mutex().locking_thread() == th) {
         recursive_ = true;
         // Don't relock, already got it locked.
       } else {
-        lock_->lock(vm_, file, line);
+        lock_->lock(thread_, file, line);
         locked_ = true;
       }
     }
@@ -181,7 +183,7 @@ namespace rubinius {
       if(recursive_) return;
 
       if(locked_) {
-        lock_->unlock(vm_);
+        lock_->unlock(thread_);
         locked_ = false;
       }
     }
@@ -190,18 +192,18 @@ namespace rubinius {
       if(recursive_) return;
 
       if(!locked_) {
-        lock_->lock(vm_);
+        lock_->lock(thread_);
         locked_ = true;
       }
     }
 
     ~LockableScopedLock() {
-      if(locked_) lock_->unlock(vm_);
+      if(locked_) lock_->unlock(thread_);
     }
   };
 
 #define SYNC(vm) LockableScopedLock __lsl_guard__(vm, this, __FILE__, __LINE__)
-#define SYNC_TL LockableScopedLock __lsl_guard__(VM::current(), this, __FILE__, __LINE__)
+#define SYNC_TL LockableScopedLock __lsl_guard__(ManagedThread::current(), this, __FILE__, __LINE__)
 
 #define UNSYNC __lsl_guard__.unlock()
 #define RESYNC __lsl_guard__.relock()

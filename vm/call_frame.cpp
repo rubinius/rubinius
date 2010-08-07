@@ -127,7 +127,7 @@ namespace rubinius {
   }
 
   void CallFrame::dump() {
-    VM* state = VM::current_state();
+    VM* state = VM::current();
     std::cout << "<CallFrame:" << (void*)this << " ";
     if(is_inline_frame()) {
       std::cout << "inline ";
@@ -163,7 +163,7 @@ namespace rubinius {
   /* For debugging. */
   extern "C" {
     void __printbt__(CallFrame* call_frame) {
-      call_frame->print_backtrace(VM::current_state());
+      call_frame->print_backtrace(VM::current());
     }
   }
 }

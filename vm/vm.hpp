@@ -69,7 +69,7 @@ namespace rubinius {
     eNone, ePrivate, eProtected, eSuper, eVCall, eNormal
   };
 
-  class VM : public ManagedThread, public Lockable {
+  class VM : public ManagedThread {
   private:
     CallFrame* saved_call_frame_;
     uintptr_t stack_start_;
@@ -82,14 +82,12 @@ namespace rubinius {
     void* young_start_;
     void* young_end_;
     bool thread_step_;
-    uint32_t id_;
 
   public:
     /* Data members */
     SharedState& shared;
     TypedRoot<Channel*> waiting_channel_;
     bool interrupt_with_signal_;
-    pthread_t os_thread_;
 
     ObjectMemory* om;
     TypedRoot<TaskProbe*> probe;
@@ -230,12 +228,6 @@ namespace rubinius {
     // Better than current_state, uses a pthread local.
     static VM* current();
     static void set_current(VM* vm);
-
-    // Returns the current VM state object.
-    static VM* current_state();
-
-    // Registers a VM* object as the current state.
-    static void register_state(VM*);
 
     static void discard(VM*);
 

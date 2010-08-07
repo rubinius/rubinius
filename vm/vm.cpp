@@ -53,13 +53,12 @@ namespace rubinius {
   static rlim_t cMaxStack = (1024 * 1024 * 128);
 
   VM::VM(uint32_t id, SharedState& shared)
-    : ManagedThread(shared, ManagedThread::eRuby)
+    : ManagedThread(id, shared, ManagedThread::eRuby)
     , saved_call_frame_(0)
     , stack_start_(0)
     , profiler_(0)
     , run_signals_(false)
     , thread_step_(false)
-    , id_(id)
 
     , shared(shared)
     , waiting_channel_(this, (Channel*)Qnil)
@@ -95,8 +94,6 @@ namespace rubinius {
   }
 
   void VM::initialize() {
-    VM::register_state(this);
-
     om = new ObjectMemory(this, shared.config);
     shared.om = om;
 
@@ -158,26 +155,12 @@ namespace rubinius {
 #endif
   }
 
-  // HACK so not thread safe or anything!
-  static VM* __state = NULL;
-
-  VM* VM::current_state() {
-    return __state;
-  }
-
-  void VM::register_state(VM *vm) {
-    __state = vm;
-  }
-
-  thread::ThreadData<VM*> _current_vm;
-
   VM* VM::current() {
-    return _current_vm.get();
+    return ManagedThread::current()->as_vm();
   }
 
   void VM::set_current(VM* vm) {
-    vm->os_thread_ = pthread_self();
-    _current_vm.set(vm);
+    ManagedThread::set_current(vm);
   }
 
   void VM::boot_threads() {
