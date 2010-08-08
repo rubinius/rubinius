@@ -73,6 +73,7 @@ namespace rubinius {
     NativeMethod::init_thread(vm);
     VM::set_current(vm);
 
+    vm->set_call_frame(0);
     vm->shared.gc_dependent(vm);
 
     if(cDebugThreading) {
@@ -98,6 +99,9 @@ namespace rubinius {
     vm->thread->cleanup();
     vm->thread->init_lock_.unlock();
 
+    // Clear the call_frame, so that if we wait for GC going independent,
+    // the GC doesn't see pointers into now-unallocated CallFrames
+    vm->set_call_frame(0);
     vm->shared.gc_independent(vm);
     vm->shared.clear_critical(vm);
 
