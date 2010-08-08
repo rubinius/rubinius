@@ -25,7 +25,7 @@ module ThreadSpecs
     end
   end
 
-  def self.spin_until_running(t)
+  def self.spin_until_sleeping(t)
     Thread.pass while t.status and t.status != "sleep"
   end
 

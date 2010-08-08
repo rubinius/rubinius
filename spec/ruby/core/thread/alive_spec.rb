@@ -48,7 +48,7 @@ describe "Thread#alive?" do
       end
     end
 
-    ThreadSpecs.spin_until_running(t)
+    ThreadSpecs.spin_until_sleeping(t)
 
     t.kill
     t.alive?.should == true

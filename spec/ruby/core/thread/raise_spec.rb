@@ -41,13 +41,15 @@ describe "Thread#raise on a sleeping thread" do
     ScratchPad.recorded.message.should == "get to work"
   end
 
-  it "can go unhandled" do
+  it "is captured and raised by Thread#value" do
     t = Thread.new do
       sleep
     end
 
+    ThreadSpecs.spin_until_sleeping(t)
+
     t.raise
-    lambda {t.value}.should raise_error(RuntimeError)
+    lambda { t.value }.should raise_error(RuntimeError)
   end
 
   ruby_version_is "1.9" do
@@ -62,7 +64,7 @@ describe "Thread#raise on a sleeping thread" do
       begin
         raise RangeError
       rescue
-        Thread.pass while t.status and t.status != "sleep"
+        ThreadSpecs.spin_until_sleeping(t)
         t.raise
       end
       lambda {t.value}.should raise_error(RuntimeError)
