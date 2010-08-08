@@ -93,7 +93,6 @@ namespace rubinius {
     // field of ids, so we reuse ids.
 
     VM* vm = new VM(id, *this);
-    cf_locations_.push_back(vm->call_frame_location());
     threads_.push_back(vm);
 
     this->ref();
@@ -105,7 +104,6 @@ namespace rubinius {
 
   void SharedState::remove_vm(VM* vm) {
     SYNC(0);
-    cf_locations_.remove(vm->call_frame_location());
     threads_.remove(vm);
     this->deref();
 

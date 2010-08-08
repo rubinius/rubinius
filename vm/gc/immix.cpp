@@ -128,7 +128,6 @@ namespace rubinius {
     int via_handles_ = 0;
     int via_roots = 0;
     int via_stack = 0;
-    int callframes = 0;
 
     for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {
       tmp = i->get();
@@ -156,6 +155,12 @@ namespace rubinius {
             if(tmp->reference_p() && tmp->young_object_p()) {
               *var = saw_object(tmp);
             }
+          }
+        }
+
+        if(VM* vm = (*i)->as_vm()) {
+          if(CallFrame* cf = vm->saved_call_frame()) {
+            walk_call_frame(cf);
           }
         }
       }
@@ -187,15 +192,6 @@ namespace rubinius {
           saw_object(tmp);
         }
       }
-    }
-
-    // Walk all the call frames
-    for(CallFrameLocationList::const_iterator i = data.call_frames().begin();
-        i != data.call_frames().end();
-        i++) {
-      callframes++;
-      CallFrame** loc = *i;
-      walk_call_frame(*loc);
     }
 
     gc_.process_mark_stack(allocator_);

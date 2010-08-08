@@ -57,6 +57,27 @@ namespace rubinius {
         for(Roots::Iterator ri((*i)->roots()); ri.more(); ri.advance()) {
           saw_object(ri->get());
         }
+
+        for(VariableRootBuffers::Iterator vi((*i)->root_buffers());
+            vi.more();
+            vi.advance())
+        {
+          Object*** buffer = vi->buffer();
+          for(int idx = 0; idx < vi->size(); idx++) {
+            Object** var = buffer[idx];
+            Object* tmp = *var;
+
+            if(tmp->reference_p() && tmp->young_object_p()) {
+              *var = saw_object(tmp);
+            }
+          }
+        }
+
+        if(VM* vm = (*i)->as_vm()) {
+          if(CallFrame* cf = vm->saved_call_frame()) {
+            walk_call_frame(cf);
+          }
+        }
       }
     }
 
@@ -77,14 +98,6 @@ namespace rubinius {
 
         saw_object(tmp);
       }
-    }
-
-    // Walk all the call frames
-    for(CallFrameLocationList::iterator i = data.call_frames().begin();
-        i != data.call_frames().end();
-        i++) {
-      CallFrame** loc = *i;
-      walk_call_frame(*loc);
     }
   }
 

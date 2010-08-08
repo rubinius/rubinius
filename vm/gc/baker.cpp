@@ -178,6 +178,12 @@ namespace rubinius {
             }
           }
         }
+
+        if(VM* vm = (*i)->as_vm()) {
+          if(CallFrame* cf = vm->saved_call_frame()) {
+            walk_call_frame(cf);
+          }
+        }
       }
     }
 
@@ -228,14 +234,6 @@ namespace rubinius {
           *var = saw_object(tmp);
         }
       }
-    }
-
-    // Walk all the call frames
-    for(CallFrameLocationList::iterator i = data.call_frames().begin();
-        i != data.call_frames().end();
-        i++) {
-      CallFrame** loc = *i;
-      walk_call_frame(*loc);
     }
 
     // Handle all promotions to non-young space that occured.

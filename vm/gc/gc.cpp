@@ -26,7 +26,6 @@ namespace rubinius {
 
   GCData::GCData(STATE)
     : roots_(state->globals().roots)
-    , call_frames_(state->shared.call_frame_locations())
     , variable_buffers_(*state->variable_buffers())
     , handles_(state->shared.global_handles())
     , cached_handles_(state->shared.cached_handles())
@@ -301,18 +300,6 @@ namespace rubinius {
     }
   }
 
-  void GarbageCollector::visit_call_frames_list(CallFrameLocationList& call_frames,
-      ObjectVisitor& visit) {
-
-    // Walk all the call frames
-    for(CallFrameLocationList::const_iterator i = call_frames.begin();
-        i != call_frames.end();
-        i++) {
-      CallFrame** loc = *i;
-      visit_call_frame(*loc, visit);
-    }
-  }
-
   class UnmarkVisitor : public ObjectVisitor {
     std::vector<Object*> stack_;
     ObjectMemory* object_memory_;
@@ -372,7 +359,6 @@ namespace rubinius {
     UnmarkVisitor visit(object_memory_);
 
     visit_roots(data.roots(), visit);
-    visit_call_frames_list(data.call_frames(), visit);
 
     for(capi::Handles::Iterator i(*data.handles()); i.more(); i.advance()) {
       visit.call(i->object());

@@ -71,7 +71,6 @@ namespace rubinius {
   private:
     bool initialized_;
     SignalHandler* signal_handler_;
-    CallFrameLocationList cf_locations_;
     VariableRootBuffers root_buffers_;
     capi::Handles* global_handles_;
     capi::Handles* cached_handles_;
@@ -138,10 +137,6 @@ namespace rubinius {
     static SharedState* standalone(VM*);
     VM* new_vm();
     void remove_vm(VM*);
-
-    CallFrameLocationList& call_frame_locations() {
-      return cf_locations_;
-    }
 
     std::list<ManagedThread*>* threads() {
       return &threads_;

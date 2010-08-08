@@ -117,20 +117,21 @@ namespace rubinius {
 
     waiters_++;
 
-    state->set_call_frame(call_frame);
     state->wait_on_channel(this);
 
     for(;;) {
-      GCIndependent gc_guard(state, call_frame);
+      {
+        GCIndependent gc_guard(state, call_frame);
 
-      if(use_timed_wait) {
-        if(condition_.wait_until(mutex_, &ts) == thread::cTimedOut) break;
-      } else {
-        condition_.wait(mutex_);
+        if(use_timed_wait) {
+          if(condition_.wait_until(mutex_, &ts) == thread::cTimedOut) break;
+        } else {
+          condition_.wait(mutex_);
+        }
       }
 
       // or there are values available.
-      if(!value_->empty_p()) break;
+      if(!self->value()->empty_p()) break;
     }
 
     state->clear_waiter();

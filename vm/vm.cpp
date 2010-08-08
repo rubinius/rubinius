@@ -309,12 +309,11 @@ namespace rubinius {
   }
 
   bool VM::wakeup() {
+    SYNC(this);
     if(interrupt_with_signal_) {
       pthread_kill(os_thread_, SIGVTALRM);
       return true;
     } else {
-      SYNC(this);
-
       Channel* chan = waiting_channel_.get();
 
       if(!chan->nil_p()) {

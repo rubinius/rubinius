@@ -15,7 +15,7 @@ p __show_subtend__($arg0)
 end
 
 define validate
-p rubinius::VM::current_state()->om->validate_object($arg0)
+p rubinius::VM::current()->om->validate_object($arg0)
 end
 
 define refs

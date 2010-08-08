@@ -277,17 +277,22 @@ namespace agent {
       shared_.interrupts.set_timer();
       // GlobalLock::LockGuard guard(shared_.global_lock());
 
+      std::list<ManagedThread*>* threads = shared_.threads();
+
       output.ok("value");
-      output.e().write_tuple(shared_.call_frame_locations().size());
 
-      for(CallFrameLocationList::iterator i = shared_.call_frame_locations().begin();
-          i != shared_.call_frame_locations().end();
+      output.e().write_tuple(threads->size());
+
+      for(std::list<ManagedThread*>::iterator i = threads->begin();
+          i != threads->end();
           i++) {
-        CallFrame* loc = *(*i);
-
-        std::ostringstream ss;
-        loc->print_backtrace(state_, ss);
-        output.e().write_binary(ss.str().c_str());
+        if(VM* vm = (*i)->as_vm()) {
+          std::ostringstream ss;
+          vm->saved_call_frame()->print_backtrace(state_, ss);
+          output.e().write_binary(ss.str().c_str());
+        } else {
+          output.e().write_binary("");
+        }
       }
     }
   };

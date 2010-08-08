@@ -27,7 +27,6 @@ namespace rubinius {
 
   class GCData {
     Roots& roots_;
-    CallFrameLocationList& call_frames_;
     VariableRootBuffers& variable_buffers_;
     capi::Handles* handles_;
     capi::Handles* cached_handles_;
@@ -36,11 +35,10 @@ namespace rubinius {
 
   public:
     GCData(STATE);
-    GCData(Roots& r, CallFrameLocationList& l, VariableRootBuffers& b,
+    GCData(Roots& r, VariableRootBuffers& b,
            capi::Handles* handles = NULL, capi::Handles* cached_handles = NULL,
            GlobalCache *cache = NULL, std::list<ManagedThread*>* ths = NULL)
       : roots_(r)
-      , call_frames_(l)
       , variable_buffers_(b)
       , handles_(handles)
       , cached_handles_(cached_handles)
@@ -50,10 +48,6 @@ namespace rubinius {
 
     Roots& roots() {
       return roots_;
-    }
-
-    CallFrameLocationList& call_frames() {
-      return call_frames_;
     }
 
     std::list<ManagedThread*>* threads() {
@@ -110,7 +104,6 @@ namespace rubinius {
     }
 
     void visit_roots(Roots& roots, ObjectVisitor& visit);
-    void visit_call_frames_list(CallFrameLocationList& call_frames, ObjectVisitor& visit);
     void unmark_all(GCData& data);
     void clean_weakrefs(bool check_forwards=false);
 
