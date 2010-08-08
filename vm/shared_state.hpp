@@ -250,13 +250,14 @@ namespace rubinius {
     void reinit();
 
     void ask_for_stopage();
-    void stop_the_world();
-    void restart_world();
-
     bool should_stop();
-    bool checkpoint();
-    void gc_dependent();
-    void gc_independent();
+
+    void stop_the_world(THREAD);
+    void restart_world(THREAD);
+
+    bool checkpoint(THREAD);
+    void gc_dependent(THREAD);
+    void gc_independent(THREAD);
 
     void set_critical(STATE);
     void clear_critical(STATE);

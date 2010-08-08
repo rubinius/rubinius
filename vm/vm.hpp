@@ -364,11 +364,11 @@ namespace rubinius {
     StopTheWorld(STATE) :
       vm_(state)
     {
-      vm_->shared.stop_the_world();
+      vm_->shared.stop_the_world(vm_);
     }
 
     ~StopTheWorld() {
-      vm_->shared.restart_world();
+      vm_->shared.restart_world(vm_);
     }
   };
 
@@ -382,13 +382,19 @@ namespace rubinius {
       : vm_(state)
     {
       vm_->set_call_frame(call_frame);
-      vm_->shared.gc_independent();
+      vm_->shared.gc_independent(vm_);
+    }
+
+    GCIndependent(STATE)
+      : vm_(state)
+    {
+      vm_->shared.gc_independent(vm_);
     }
 
     GCIndependent(NativeMethodEnvironment* env);
 
     ~GCIndependent() {
-      vm_->shared.gc_dependent();
+      vm_->shared.gc_dependent(vm_);
     }
   };
 };

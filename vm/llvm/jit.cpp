@@ -292,7 +292,7 @@ namespace rubinius {
 
         // This isn't ideal, but it's the safest. Keep the GC from
         // running while we're building the IR.
-        ls_->shared().gc_dependent();
+        ls_->shared().gc_dependent(ls_);
 
         // mutex now unlock, allowing others to push more requests
         //
@@ -327,7 +327,7 @@ namespace rubinius {
 
           // We don't depend on the GC here, so let it run independent
           // of us.
-          ls_->shared().gc_independent();
+          ls_->shared().gc_independent(ls_);
 
           continue;
         }
@@ -366,7 +366,7 @@ namespace rubinius {
 
         // We don't depend on the GC here, so let it run independent
         // of us.
-        ls_->shared().gc_independent();
+        ls_->shared().gc_independent(ls_);
       }
     }
   };

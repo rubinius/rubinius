@@ -13,146 +13,9 @@
 #include "configuration.hpp"
 
 #include "agent.hpp"
+#include "world_state.hpp"
 
 namespace rubinius {
-
-  class WorldState {
-    thread::Mutex mutex_;
-    thread::Condition waiting_to_stop_;
-    thread::Condition waiting_to_run_;
-    int pending_threads_;
-    bool should_stop_;
-
-    uint64_t time_waiting_;
-
-  public:
-    WorldState()
-      : pending_threads_(0)
-      , should_stop_(false)
-      , time_waiting_(0)
-    {}
-
-    uint64_t time_waiting() {
-      return time_waiting_;
-    }
-
-    // Called after a fork(), when we know we're alone again, to get
-    // everything back in the proper order.
-    void reinit() {
-      mutex_.init();
-      waiting_to_stop_.init();
-      waiting_to_run_.init();
-      pending_threads_ = 1;
-      should_stop_ = false;
-    }
-
-    // If called when the GC is waiting to run,
-    //   wait until the GC tells us it's ok to continue.
-    // always increments pending_threads_ at the end.
-    void become_independent() {
-      thread::Mutex::LockGuard guard(mutex_);
-
-      // If someone is waiting on us to stop, stop now.
-      if(should_stop_) wait_to_run();
-      pending_threads_--;
-    }
-
-    void become_dependent() {
-      thread::Mutex::LockGuard guard(mutex_);
-
-      // If the GC is running, wait here...
-      while(should_stop_) {
-        waiting_to_run_.wait(mutex_);
-      }
-
-      pending_threads_++;
-    }
-
-    void ask_for_stopage() {
-      thread::Mutex::LockGuard guard(mutex_);
-      should_stop_ = true;
-
-      if(cDebugThreading) {
-        std::cerr << "[" << VM::current() << " WORLD requested stopage: " << pending_threads_ << "]\n";
-      }
-    }
-
-    void wait_til_alone() {
-      thread::Mutex::LockGuard guard(mutex_);
-      should_stop_ = true;
-
-      if(cDebugThreading) {
-        std::cerr << "[" << VM::current() << " WORLD waiting until alone]\n";
-      }
-
-      // For ourself..
-      pending_threads_--;
-
-      timer::Running<uint64_t> timer(time_waiting_);
-
-      while(pending_threads_ > 0) {
-        if(cDebugThreading) {
-          std::cerr << "[" << VM::current() << " WORLD waiting on condvar: "
-                    << pending_threads_ << "]\n";
-        }
-        waiting_to_stop_.wait(mutex_);
-      }
-
-      if(cDebugThreading) {
-        std::cerr << "[" << VM::current() << " WORLD o/~ I think we're alone now.. o/~]\n";
-      }
-    }
-
-    void wake_all_waiters() {
-      thread::Mutex::LockGuard guard(mutex_);
-      should_stop_ = false;
-
-      if(cDebugThreading) {
-        std::cerr << "[" << VM::current() << " WORLD waking all threads]\n";
-      }
-
-      // For ourself..
-      pending_threads_++;
-
-      waiting_to_run_.broadcast();
-    }
-
-    bool should_stop() {
-      thread::Mutex::LockGuard guard(mutex_);
-      return should_stop_;
-    }
-
-    bool checkpoint() {
-      // Test should_stop_ without the lock, because we do this a lot.
-      if(should_stop_) {
-        thread::Mutex::LockGuard guard(mutex_);
-        wait_to_run();
-        return true;
-      }
-
-      return false;
-    }
-
-  private:
-    void wait_to_run() {
-      if(cDebugThreading) {
-        std::cerr << "[" << VM::current() << " WORLD stopping, waiting to be resarted]\n";
-      }
-
-      pending_threads_--;
-      waiting_to_stop_.signal();
-
-      while(should_stop_) {
-        waiting_to_run_.wait(mutex_);
-      }
-
-      pending_threads_++;
-
-      if(cDebugThreading) {
-        std::cerr << "[" << VM::current() << " WORLD resarted]\n";
-      }
-    }
-  };
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
     : initialized_(false)
@@ -364,24 +227,43 @@ namespace rubinius {
     return world_->should_stop();
   }
 
-  void SharedState::stop_the_world() {
-    world_->wait_til_alone();
+  void SharedState::stop_the_world(THREAD) {
+    world_->wait_til_alone(state);
+
+    // Verify that everyone is stopped and we're alone.
+    for(std::list<ManagedThread*>::iterator i = threads_.begin();
+        i != threads_.end();
+        i++) {
+      ManagedThread *th = *i;
+      switch(th->run_state()) {
+      case ManagedThread::eAlone:
+        assert(th == state && "Someone else is alone!");
+        break;
+      case ManagedThread::eRunning:
+        assert(0 && "Thread still running");
+        break;
+      case ManagedThread::eSuspended:
+      case ManagedThread::eIndependent:
+        // Ok, this is fine.
+        break;
+      }
+    }
   }
 
-  void SharedState::restart_world() {
-    world_->wake_all_waiters();
+  void SharedState::restart_world(THREAD) {
+    world_->wake_all_waiters(state);
   }
 
-  bool SharedState::checkpoint() {
-    return world_->checkpoint();
+  bool SharedState::checkpoint(THREAD) {
+    return world_->checkpoint(state);
   }
 
-  void SharedState::gc_dependent() {
-    world_->become_dependent();
+  void SharedState::gc_dependent(THREAD) {
+    world_->become_dependent(state);
   }
 
-  void SharedState::gc_independent() {
-    world_->become_independent();
+  void SharedState::gc_independent(THREAD) {
+    world_->become_independent(state);
   }
 
   void SharedState::set_critical(STATE) {
@@ -391,10 +273,9 @@ namespace rubinius {
          ruby_critical_thread_ != pthread_self()) {
 
       UNSYNC;
-      gc_independent();
+      GCIndependent gc_guard(state);
       ruby_critical_lock_.lock();
       ruby_critical_thread_ = pthread_self();
-      gc_dependent();
     }
 
     return;

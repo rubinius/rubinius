@@ -104,8 +104,7 @@ namespace rubinius {
 
     shared.set_initialized();
 
-
-    shared.gc_dependent();
+    shared.gc_dependent(this);
 
     TypeInfo::auto_learn_fields(this);
 
@@ -420,6 +419,6 @@ namespace rubinius {
     : vm_(env->state())
   {
     vm_->set_call_frame(env->current_call_frame());
-    vm_->shared.gc_independent();
+    vm_->shared.gc_independent(vm_);
   };
 };

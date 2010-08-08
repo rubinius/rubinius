@@ -342,7 +342,7 @@ namespace rubinius {
     LLVMState::shutdown(state);
 #endif
 
-    state->shared.stop_the_world();
+    state->shared.stop_the_world(state);
   }
 
   int Environment::exit_code() {

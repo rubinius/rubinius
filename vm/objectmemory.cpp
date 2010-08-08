@@ -169,14 +169,12 @@ step1:
     }
 
     while(!obj->inflated_header_p()) {
-      state->shared.gc_independent();
+      GCIndependent gc_guard(state);
 
       contention_var_.wait(mutex());
       if(cDebugThreading) {
         std::cerr << "[LOCK " << state->thread_id() << " notified of contention breakage]\n";
       }
-
-      state->shared.gc_dependent();
     }
 
     if(cDebugThreading) {
@@ -410,7 +408,7 @@ step1:
     // If we were checkpointed, then someone else ran the GC, just return.
     if(state->shared.should_stop()) {
       UNSYNC;
-      state->shared.checkpoint();
+      state->shared.checkpoint(state);
       return;
     }
 
@@ -427,7 +425,7 @@ step1:
     UNSYNC;
 
     // Wait for them all to check in.
-    state->shared.stop_the_world();
+    state->shared.stop_the_world(state);
 
     // Now we're alone, but we lock again just to safe.
     RESYNC;
@@ -440,7 +438,7 @@ step1:
     run_finalizers(state, call_frame);
 
     // Ok, we're good. Get everyone going again.
-    state->shared.restart_world();
+    state->shared.restart_world(state);
     UNSYNC;
   }
 
@@ -453,7 +451,7 @@ step1:
     // If we were checkpointed, then someone else ran the GC, just return.
     if(state->shared.should_stop()) {
       UNSYNC;
-      state->shared.checkpoint();
+      state->shared.checkpoint(state);
       return;
     }
 
@@ -470,7 +468,7 @@ step1:
     UNSYNC;
 
     // Wait for them all to check in.
-    state->shared.stop_the_world();
+    state->shared.stop_the_world(state);
 
     // Now we're alone, but we lock again just to safe.
     RESYNC;
@@ -554,7 +552,7 @@ step1:
     run_finalizers(state, call_frame);
 #endif
 
-    state->shared.restart_world();
+    state->shared.restart_world(state);
     UNSYNC;
   }
 

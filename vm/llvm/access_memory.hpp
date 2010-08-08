@@ -11,11 +11,11 @@ namespace rubinius {
     AccessManagedMemory(LLVMState* ls)
       : ls_(ls)
     {
-      ls_->shared().gc_dependent();
+      ls_->shared().gc_dependent(ls_);
     }
 
     ~AccessManagedMemory() {
-      ls_->shared().gc_independent();
+      ls_->shared().gc_independent(ls_);
     }
   };
 
@@ -26,11 +26,11 @@ namespace rubinius {
     NoAccessManagedMemory(LLVMState* ls)
       : ls_(ls)
     {
-      ls_->shared().gc_independent();
+      ls_->shared().gc_independent(ls_);
     }
 
     ~NoAccessManagedMemory() {
-      ls_->shared().gc_dependent();
+      ls_->shared().gc_dependent(ls_);
     }
 
   };

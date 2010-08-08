@@ -73,7 +73,7 @@ namespace rubinius {
     NativeMethod::init_thread(vm);
     VM::set_current(vm);
 
-    vm->shared.gc_dependent();
+    vm->shared.gc_dependent(vm);
 
     if(cDebugThreading) {
       std::cerr << "[THREAD " << pthread_self() << " started thread]\n";
@@ -98,7 +98,7 @@ namespace rubinius {
     vm->thread->cleanup();
     vm->thread->init_lock_.unlock();
 
-    vm->shared.gc_independent();
+    vm->shared.gc_independent(vm);
     vm->shared.clear_critical(vm);
 
     VM::discard(vm);
@@ -215,10 +215,10 @@ namespace rubinius {
 
     init_lock_.unlock();
 
-    state->shared.gc_independent();
+    state->shared.gc_independent(state);
     void* val;
     int err = pthread_join(id, &val);
-    state->shared.gc_dependent();
+    state->shared.gc_dependent(state);
 
     switch(err) {
     case 0:

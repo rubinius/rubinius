@@ -603,7 +603,7 @@ namespace rubinius {
       }
 
       state->set_call_frame(frame);
-      state->shared.checkpoint();
+      state->shared.checkpoint(state);
 
 #ifdef RBX_PROFILER
       if(unlikely(state->shared.profiling())) {

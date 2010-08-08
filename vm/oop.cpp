@@ -361,14 +361,15 @@ step2:
     // Otherwise lock and take ownership
 
     private_lock_ = 0;
-    state->shared.gc_independent();
+    {
+      GCIndependent gc_guard(state);
 
-    if(cDebugThreading) {
-      std::cerr << "[LOCK " << state->thread_id() << " locking native mutex]\n";
+      if(cDebugThreading) {
+        std::cerr << "[LOCK " << state->thread_id() << " locking native mutex]\n";
+      }
+
+      mutex_.lock();
     }
-
-    mutex_.lock();
-    state->shared.gc_dependent();
 
     // Spin again to get the private spinlock back
     while(!atomic::compare_and_swap(&private_lock_, 0, 1));

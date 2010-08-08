@@ -9,15 +9,22 @@
 namespace rubinius {
   class SharedState;
   class VM;
+  class WorldState;
 
   class ManagedThread : public Lockable {
   public:
+    // WorldState sets the run_state_ directly.
+    friend class WorldState;
+
     enum Kind {
       eRuby, eSystem
     };
 
     enum RunState {
-      eRunning, eSuspended
+      eRunning,     // Normal state. Running accessing GC memory.
+      eSuspended,   // Waiting to be told to restart
+      eIndependent, // Off running code that doesn't access GC memory.
+      eAlone        // Suspended all other threads, alone to run.
     };
 
   private:
@@ -39,6 +46,7 @@ namespace rubinius {
       : shared_(ss)
       , kind_(kind)
       , name_(kind == eRuby ? "<ruby>" : "<system>")
+      , run_state_(eIndependent)
       , os_thread_(0)
       , id_(id)
     {}
