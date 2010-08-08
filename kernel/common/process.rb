@@ -292,14 +292,9 @@ module Process
     # wait_pid_prim returns a tuple when wait needs to communicate
     # the pid that was actually detected as stopped (since wait
     # can wait for all child pids, groups, etc)
-    if value.kind_of? Rubinius::Tuple
-      status, pid = value
-    else
-      status = value
-      pid = input_pid
-    end
+    status, termsig, stopsig, pid = value
 
-    status = Process::Status.new(pid, status)
+    status = Process::Status.new(pid, status, termsig, stopsig)
     Rubinius::Globals.set! :$?, status
     [pid, status]
   end
@@ -367,30 +362,37 @@ module Process
   #++
 
   class Status
-    def initialize(pid, status)
+
+    attr_reader :exitstatus
+    attr_reader :termsig
+    attr_reader :stopsig
+
+    def initialize(pid, exitstatus, termsig = nil, stopsig = nil)
       @pid = pid
-      @status = status
+      @exitstatus = exitstatus
+      @termsig = termsig
+      @stopsig = stopsig
     end
     
     def to_i
-      @status
+      @exitstatus
     end
     
     def to_s
-      @status.to_s
+      @exitstatus.to_s
     end
     
     def &(num)
-      @status & num
+      @exitstatus & num
     end
     
     def ==(other)
       other = other.to_i if other.kind_of? Process::Status
-      @status == other
+      @exitstatus == other
     end
     
     def >>(num)
-      @status >> num
+      @exitstatus >> num
     end
     
     def coredump?
@@ -398,11 +400,7 @@ module Process
     end
     
     def exited?
-      true
-    end
-    
-    def exitstatus
-      @status
+      @exitstatus.to_bool
     end
     
     def pid
@@ -410,23 +408,19 @@ module Process
     end
     
     def signaled?
-      false
+      @termsig.to_bool
     end
     
     def stopped?
-      false
-    end
-    
-    def stopsig
-      nil
+      @stopsig.to_bool
     end
     
     def success?
-      @status == 0
-    end
-    
-    def termsig
-      nil
+      if exited?
+        @exitstatus == 0
+      else
+        nil
+      end
     end
   end
 

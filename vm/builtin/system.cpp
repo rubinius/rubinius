@@ -201,20 +201,19 @@ namespace rubinius {
       return Qnil;
     }
 
-    Object* output;
+    Object* output  = Qnil;
+    Object* termsig = Qnil;
+    Object* stopsig = Qnil;
+
     if(WIFEXITED(status)) {
       output = Fixnum::from(WEXITSTATUS(status));
     } else if(WIFSIGNALED(status)) {
-      output = Fixnum::from(1000 + WTERMSIG(status));
-    } else {
-      output = Qnil;
+      termsig = Fixnum::from(WTERMSIG(status));
+    } else if(WIFSTOPPED(status)){
+      stopsig = Fixnum::from(WSTOPSIG(status));
     }
 
-    if(input_pid > 0) {
-      return output;
-    }
-
-    return Tuple::from(state, 2, output, Fixnum::from(pid));
+    return Tuple::from(state, 4, output, termsig, stopsig, Fixnum::from(pid));
   }
 
   Object* System::vm_exit(STATE, Fixnum* code) {
