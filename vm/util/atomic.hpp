@@ -7,6 +7,7 @@
 #define GCC_SYNC 1
 
 #elif defined(__APPLE__)
+#include <libkern/OSAtomic.h>
 #define APPLE_SYNC 1
 
 #elif defined(_LP64) || defined(__LP64__) || defined(__x86_64__) || defined(__amd64__)
@@ -35,7 +36,7 @@ namespace atomic {
 #if defined(GCC_SYNC)
     return __sync_bool_compare_and_swap(ptr, old_val, new_val);
 #elif defined(APPLE_SYNC)
-    return OSAtomicCompareAndSwap32Barrier(old_val, new_val, ptr);
+    return OSAtomicCompareAndSwap32Barrier(old_val, new_val, (volatile int32_t*)ptr);
 #elif defined(X86_SYNC)
     char result = 0;
 
@@ -62,7 +63,7 @@ namespace atomic {
 #if defined(GCC_SYNC)
     return __sync_bool_compare_and_swap(ptr, old_val, new_val);
 #elif defined(APPLE_SYNC)
-    return OSAtomicCompareAndSwap64Barrier(old_val, new_val, ptr);
+    return OSAtomicCompareAndSwap64Barrier(old_val, new_val, (volatile int64_t*)ptr);
 #elif defined(X86_32_SYNC)
     char result = 0;
 
