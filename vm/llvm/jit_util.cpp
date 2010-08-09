@@ -687,6 +687,9 @@ extern "C" {
       state->collect_maybe(call_frame);
     }
 
+    state->set_call_frame(call_frame);
+    state->shared.checkpoint(state);
+
     return Qtrue;
   }
 
@@ -701,6 +704,9 @@ extern "C" {
 
     }
     if(!state->check_async(call_frame)) return NULL;
+
+    state->set_call_frame(call_frame);
+    state->shared.checkpoint(state);
     return Qtrue;
   }
 

@@ -1836,6 +1836,7 @@ instruction check_interrupts() [ -- ]
   }
 
   if(!state->check_async(call_frame)) RUN_EXCEPTION();
+  state->shared.checkpoint(state);
 end
 
 # [Operation]
