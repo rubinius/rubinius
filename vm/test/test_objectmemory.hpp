@@ -20,7 +20,6 @@ public:
 
   GCData* gc_data;
   Roots* roots;
-  CallFrameLocationList call_frames;
   VariableRootBuffers variable_buffers;
   capi::Handles handles;
   capi::Handles cached_handles;
@@ -28,7 +27,7 @@ public:
   void setUp() {
     create();
     roots = &state->globals().roots;
-    gc_data = new GCData(*roots, call_frames, variable_buffers,
+    gc_data = new GCData(*roots, variable_buffers,
                          &handles, &cached_handles, state->global_cache());
   }
 

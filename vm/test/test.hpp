@@ -23,8 +23,7 @@ public:
     config_parser = new ConfigParser;
     shared = new SharedState(0, config, *config_parser);
     state = shared->new_vm();
-    state->initialize();
-    state->boot();
+    state->initialize_as_root();
   }
 
   void destroy() {
