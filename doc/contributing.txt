@@ -12,7 +12,7 @@ Below are several ideas for things to do on Rubinius.
 
 2. Run Your Code
 
-Your code it often more vicious than the specs. Run your pet project under
+Your code is often more vicious than the specs. Run your pet project under
 rubinius and report issues. See doc/howto/write_a_ticket.html.
 
 
