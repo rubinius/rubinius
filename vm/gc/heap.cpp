@@ -51,12 +51,19 @@ namespace rubinius {
     return bytes;
   }
 
-  Object* Heap::copy_object(STATE, Object* orig) {
+  Object* Heap::move_object(STATE, Object* orig) {
     size_t bytes = orig->size_in_bytes(state);
     Object* tmp = (Object*)allocate(bytes);
-    tmp->init_header(YoungObjectZone, orig->type_id());
 
-    tmp->initialize_full_state(state, orig, orig->age());
+    memcpy(tmp, orig, bytes);
+
+    // If the header is inflated, repoint it.
+    if(tmp->inflated_header_p()) {
+      orig->deflate_header();
+      tmp->inflated_header()->set_object(tmp);
+    }
+
+    orig->set_forward(tmp);
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->objects_copied++;

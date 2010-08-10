@@ -107,7 +107,7 @@ namespace rubinius {
     void reset();
     size_t remaining();
     size_t used();
-    Object* copy_object(VM* state, Object*);
+    Object* move_object(VM* state, Object*);
   };
 
 }

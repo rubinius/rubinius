@@ -458,17 +458,12 @@ const int cUndef = 0x22L;
      */
 
     void set_forward(ObjectHeader* fwd) {
-      // If the header is inflated, repoint it.
-      if(inflated_header_p()) {
-        InflatedHeader* ih = deflate_header();
-
-        ih->set_object(fwd);
-        fwd->set_inflated_header(ih);
-      }
-
       assert(flags().meaning == fwd->flags().meaning);
 
-      flags().Forwarded = 1;
+      // Wipe out the meaning since the only thing that matters
+      // now is the forwarded bit
+      header.f.meaning = eAuxWordEmpty;
+      header.f.Forwarded = 1;
 
       // DO NOT USE klass() because we need to get around the
       // write barrier!

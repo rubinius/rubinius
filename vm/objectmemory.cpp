@@ -391,10 +391,7 @@ step1:
     size_t sz = obj->size_in_bytes(root_state_);
     bytes_allocated += sz;
 
-    Object* copy = immix_->allocate(sz);
-
-    copy->set_obj_type(obj->type_id());
-    copy->initialize_full_state(root_state_, obj, 0);
+    Object* copy = immix_->move_object(obj, sz);
 
     if(watched_p(obj)) {
       std::cout << "detected object " << obj << " during promotion.\n";

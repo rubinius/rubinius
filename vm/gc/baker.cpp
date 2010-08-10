@@ -52,15 +52,15 @@ namespace rubinius {
 
     // This object is already in the next space, we don't want to
     // copy it again!
-    // TODO test this!
     if(next->contains_p(obj)) return obj;
 
     if(unlikely(obj->inc_age() >= lifetime_)) {
       copy = object_memory_->promote_object(obj);
 
       promoted_push(copy);
-    } else if(likely(next->enough_space_p(obj->size_in_bytes(object_memory_->state())))) {
-      copy = next->copy_object(object_memory_->state(), obj);
+    } else if(likely(next->enough_space_p(
+                obj->size_in_bytes(object_memory_->state())))) {
+      copy = next->move_object(object_memory_->state(), obj);
       total_objects++;
     } else {
       copy_spills_++;
@@ -72,7 +72,6 @@ namespace rubinius {
       std::cout << "detected " << copy << " during baker collection (2)\n";
     }
 
-    obj->set_forward(copy);
     return copy;
   }
 

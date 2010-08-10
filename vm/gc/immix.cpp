@@ -88,6 +88,35 @@ namespace rubinius {
     return obj;
   }
 
+  Object* ImmixGC::move_object(Object* orig, int bytes) {
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->mature_bytes_allocated += bytes;
+    stats::GCStats::get()->allocate_mature.start();
+#endif
+
+    Object* obj = allocator_.allocate(bytes).as<Object>();
+    memcpy(obj, orig, bytes);
+
+    // If the header is inflated, repoint it.
+    if(obj->inflated_header_p()) {
+      orig->deflate_header();
+      obj->inflated_header()->set_object(obj);
+    }
+
+    obj->flags().zone = MatureObjectZone;
+    obj->flags().age = 0;
+
+    obj->set_in_immix();
+
+    orig->set_forward(obj);
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->allocate_mature.stop();
+#endif
+
+    return obj;
+  }
+
   Object* ImmixGC::saw_object(Object* obj) {
     if(watched_p(obj)) {
       std::cout << "detected " << obj << " during immix scanning.\n";
