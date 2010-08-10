@@ -39,65 +39,46 @@ end
 
 class Mutex
   def initialize
-    @lock = Rubinius::Channel.new
     @owner = nil
-    @waiters = []
-    @lock << nil
   end
 
   def locked?
-    @lock.receive
-    begin
-      !!@owner
-    ensure
-      @lock << nil
-    end
+    Rubinius.locked?(self)
   end
 
   def try_lock
-    @lock.receive
-    begin
-      if @owner
-        false
-      else
-        @owner = Thread.current
-        true
-      end
-    ensure
-      @lock << nil
+    # Locking implies a memory barrier, so we don't need to use
+    # one explicitly.
+    if Rubinius.try_lock(self)
+      @owner = Thread.current
+      true
+    else
+      false
     end
   end
 
   def lock
-    @lock.receive
-    begin
-      while @owner
-        wchan = Rubinius::Channel.new
-        @waiters.push wchan
-        @lock << nil
-        wchan.receive
-        @lock.receive
-      end
-      @owner = Thread.current
-      self
-    ensure
-      @lock << nil
+    Rubinius.memory_barrier
+    if @owner == Thread.current
+      raise ThreadError, "Recursively locking not allowed"
     end
+
+    Rubinius.lock self
+    @owner = Thread.current
+    Rubinius.memory_barrier
+    return self
   end
 
   def unlock
-    @lock.receive
-    begin
-      if @owner != Thread.current
-        raise ThreadError, "Not owner, #{@owner.inspect} is"
-      end
+    Rubinius.memory_barrier
 
-      @owner = nil
-      @waiters.shift << nil unless @waiters.empty?
-      self
-    ensure
-      @lock << nil
+    if @owner != Thread.current
+      raise ThreadError, "Not owner, #{@owner.inspect} is"
     end
+
+    Rubinius.unlock self
+    @owner = nil
+    Rubinius.memory_barrier
   end
 
   def synchronize
@@ -142,28 +123,28 @@ class ConditionVariable
   # Creates a new ConditionVariable
   #
   def initialize
-    @lock = Rubinius::Channel.new
     @waiters = []
-    @lock << nil
   end
-  
+
   #
   # Releases the lock held in +mutex+ and waits; reacquires the lock on wakeup.
   #
   def wait(mutex, timeout=nil)
-    @lock.receive
+    Rubinius.lock(self)
+
     begin
       wchan = Rubinius::Channel.new
 
       begin
         mutex.unlock
         @waiters.push wchan
-        @lock << nil
+        Rubinius.unlock(self)
         signaled = wchan.receive_timeout timeout
       ensure
         mutex.lock
-        @lock.receive
-        unless signaled or @waiters.delete wchan
+        Rubinius.lock(self)
+
+        unless signaled or @waiters.delete(wchan)
           # we timed out, but got signaled afterwards (e.g. while waiting to
           # acquire @lock), so pass that signal on to the next waiter
           @waiters.shift << true unless @waiters.empty?
@@ -176,7 +157,7 @@ class ConditionVariable
         self
       end
     ensure
-      @lock << nil
+      Rubinius.unlock(self)
     end
   end
 
@@ -184,9 +165,12 @@ class ConditionVariable
   # Wakes up the first thread in line waiting for this lock.
   #
   def signal
-    @lock.receive
-    @waiters.shift << true unless @waiters.empty?
-    @lock << nil
+    Rubinius.lock(self)
+    begin
+      @waiters.shift << true unless @waiters.empty?
+    ensure
+      Rubinius.unlock(self)
+    end
     self
   end
 
@@ -194,9 +178,12 @@ class ConditionVariable
   # Wakes up all threads waiting for this lock.
   #
   def broadcast
-    @lock.receive
-    @waiters.shift << true until @waiters.empty?
-    @lock << nil
+    Rubinius.lock(self)
+    begin
+      @waiters.shift << true until @waiters.empty?
+    ensure
+      Rubinius.unlock(self)
+    end
     self
   end
 end
@@ -377,7 +364,7 @@ class SizedQueue < Queue
     while true
       @size_mutex.synchronize do
         @queue_wait.delete(Thread.current)
-        if(@que.size >= @max)
+        if @que.size >= @max
           @queue_wait.push Thread.current
           @sem.wait(@size_mutex)
         else
