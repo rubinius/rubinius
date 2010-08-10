@@ -111,8 +111,23 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.lock failed"
   end
 
+  def self.try_lock(obj)
+    Ruby.primitive :vm_object_trylock
+    raise PrimitiveFailure, "Rubinius.try_lock failed"
+  end
+
+  def self.locked?(obj)
+    Ruby.primitive :vm_object_locked_p
+    raise PrimitiveFailure, "Rubinius.locked? failed"
+  end
+
   def self.unlock(obj)
     Ruby.primitive :vm_object_unlock
     raise PrimitiveFailure, "Rubinius.unlock failed"
+  end
+
+  def self.memory_barrier
+    Ruby.primitive :vm_memory_barrier
+    raise PrimitiveFailure, "Rubinius.memory_barrier failed"
   end
 end

@@ -23,6 +23,7 @@
 #include "builtin/data.hpp"
 #include "builtin/dir.hpp"
 #include "builtin/array.hpp"
+#include "builtin/thread.hpp"
 
 #include "capi/handle.hpp"
 #include "configuration.hpp"
@@ -169,6 +170,7 @@ step1:
     }
 
     while(!obj->inflated_header_p()) {
+      state->thread->sleep(state, Qtrue);
       GCIndependent gc_guard(state);
 
       contention_var_.wait(mutex());
@@ -176,6 +178,8 @@ step1:
         std::cerr << "[LOCK " << state->thread_id() << " notified of contention breakage]\n";
       }
     }
+
+    state->thread->sleep(state, Qfalse);
 
     if(cDebugThreading) {
       std::cerr << "[LOCK " << state->thread_id() << " contention broken]\n";
@@ -652,9 +656,11 @@ step1:
   }
 
   void ObjectMemory::inflate_for_id(STATE, ObjectHeader* obj, uint32_t id) {
-    if(obj->inflated_header_p()) return;
-
     SYNC(state);
+
+    HeaderWord orig = obj->header;
+
+    assert(orig.f.meaning != eAuxWordInflated);
 
     InflatedHeader* header = inflated_headers_->allocate(obj);
     header->set_object_id(id);

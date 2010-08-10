@@ -902,9 +902,25 @@ namespace rubinius {
     return Qnil;
   }
 
+  Object* System::vm_object_trylock(STATE, Object* obj, CallFrame* call_frame) {
+    state->set_call_frame(call_frame);
+    if(obj->try_lock(state)) return Qtrue;
+    return Qfalse;
+  }
+
+  Object* System::vm_object_locked_p(STATE, Object* obj) {
+    if(obj->locked_p(state)) return Qtrue;
+    return Qfalse;
+  }
+
   Object* System::vm_object_unlock(STATE, Object* obj, CallFrame* call_frame) {
     state->set_call_frame(call_frame);
     obj->unlock(state);
+    return Qnil;
+  }
+
+  Object *System::vm_memory_barrier(STATE) {
+    atomic::memory_barrier();
     return Qnil;
   }
 }

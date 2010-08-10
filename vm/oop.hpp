@@ -266,7 +266,10 @@ const int cUndef = 0x22L;
     void update(HeaderWord header);
     void initialize_mutex(int thread_id, int count);
     void lock_mutex(STATE);
+    bool try_lock_mutex(STATE);
+    bool locked_mutex_p(STATE);
     void unlock_mutex(STATE);
+    void unlock_mutex_for_terminate(STATE);
   };
 
   class ObjectHeader {
@@ -463,6 +466,8 @@ const int cUndef = 0x22L;
         fwd->set_inflated_header(ih);
       }
 
+      assert(flags().meaning == fwd->flags().meaning);
+
       flags().Forwarded = 1;
 
       // DO NOT USE klass() because we need to get around the
@@ -556,7 +561,10 @@ const int cUndef = 0x22L;
     void set_object_id(STATE, ObjectMemory* om, uint32_t id);
 
     void lock(STATE);
+    bool try_lock(STATE);
+    bool locked_p(STATE);
     void unlock(STATE);
+    void unlock_for_terminate(STATE);
 
     bool nil_p() const {
       return this == reinterpret_cast<ObjectHeader*>(Qnil);

@@ -163,6 +163,13 @@ namespace rubinius {
             walk_call_frame(cf);
           }
         }
+
+        std::list<ObjectHeader*>& los = (*i)->locked_objects();
+        for(std::list<ObjectHeader*>::iterator i = los.begin();
+            i != los.end();
+            i++) {
+          *i = saw_object((Object*)*i);
+        }
       }
     }
 

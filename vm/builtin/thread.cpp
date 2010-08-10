@@ -94,6 +94,13 @@ namespace rubinius {
 
     vm->thread->init_lock_.lock();
 
+    std::list<ObjectHeader*>& los = vm->locked_objects();
+    for(std::list<ObjectHeader*>::iterator i = los.begin();
+        i != los.end();
+        i++) {
+      (*i)->unlock_for_terminate(vm);
+    }
+
     NativeMethod::cleanup_thread(vm);
 
     vm->thread->cleanup();

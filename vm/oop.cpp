@@ -39,6 +39,9 @@ namespace rubinius {
   }
 
   void InflatedHeader::update(HeaderWord header) {
+    // Yes, this spins. Yes, we want that.
+    while(!atomic::compare_and_swap(&private_lock_, 0, 1));
+
     flags_ = header.f;
 
     switch(flags_.meaning) {
@@ -48,12 +51,23 @@ namespace rubinius {
       flags_.aux_word = 0;
       break;
     case eAuxWordLock:
-      // fine.
+      {
+        assert(owner_id_ == 0);
+        uint32_t tid = header.f.aux_word >> cAuxLockTIDShift;
+        owner_id_ = tid;
+        rec_lock_count_ = header.f.aux_word & cAuxLockRecCountMask;
+        mutex_.lock();
+      }
+
+      break;
     case eAuxWordInflated:
       abort();
     }
+
+    private_lock_ = 0;
   }
 
+  // Run only while om's lock is held.
   void ObjectHeader::set_object_id(STATE, ObjectMemory* om, uint32_t id) {
     // Just ignore trying to reset it to 0 for now.
     if(id == 0) return;
@@ -75,10 +89,21 @@ namespace rubinius {
       return;
     }
 
-    // not inflated, and the aux_word is being used for locking.
-    // Inflate!
+    orig = header;
 
-    om->inflate_for_id(state, this, id);
+    switch(orig.f.meaning) {
+    case eAuxWordEmpty:
+    case eAuxWordObjID:
+      assert(0);
+    case eAuxWordInflated:
+      ObjectHeader::header_to_inflated_header(orig)->set_object_id(id);
+      break;
+    case eAuxWordLock:
+      // not inflated, and the aux_word is being used for locking.
+      // Inflate!
+
+      om->inflate_for_id(state, this, id);
+    }
   }
 
   void ObjectHeader::lock(STATE) {
@@ -100,6 +125,7 @@ step1:
 
     if(atomic::compare_and_swap(&header.flags64, orig.flags64, new_val.flags64)) {
       // wonderful! Locked! weeeee!
+      state->add_locked_object(this);
       return;
     }
 
@@ -148,6 +174,7 @@ step2:
           }
 
           // wonderful! Locked! weeeee!
+          state->add_locked_object(this);
         }
 
       // Our thread id isn't in the field, so we need to inflated the lock
@@ -179,6 +206,124 @@ step2:
     return;
   }
 
+  bool ObjectHeader::try_lock(STATE) {
+    // #1 Attempt to lock an unlocked object using CAS.
+
+step1:
+    // Construct 2 new headers: one is the version we hope that
+    // is in use and the other is what we want it to be. The CAS
+    // the new one into place.
+    HeaderWord orig = header;
+
+    orig.f.meaning = eAuxWordEmpty;
+    orig.f.aux_word = 0;
+
+    HeaderWord new_val = orig;
+
+    new_val.f.meaning = eAuxWordLock;
+    new_val.f.aux_word = state->thread_id() << cAuxLockTIDShift;
+
+    if(atomic::compare_and_swap(&header.flags64, orig.flags64, new_val.flags64)) {
+      // wonderful! Locked! weeeee!
+      state->add_locked_object(this);
+      return true;
+    }
+
+    // Ok, something went wrong.
+    //
+    // #2 See if we're locking the object recursively.
+
+step2:
+    orig = header;
+    switch(orig.f.meaning) {
+    case eAuxWordEmpty:
+      // O_o why is it empty? must be some weird concurrency stuff going
+      // on. Ok, well, start over then.
+      goto step1;
+
+    case eAuxWordLock:
+      if(orig.f.aux_word >> cAuxLockTIDShift == state->thread_id()) {
+        // We're going to do this over and over until we get the new
+        // header CASd into place.
+
+        // Yep, we've already got this object locked, so increment the count.
+        int count = orig.f.aux_word & cAuxLockRecCountMask;
+
+        // We've recursively locked this object more than we can handle.
+        // Inflate the lock then.
+        if(++count > cAuxLockRecCountMax) {
+          // If we can't inflate the lock, try the whole thing over again.
+          if(!state->om->inflate_lock_count_overflow(state, this, count)) {
+            goto step1;
+          }
+          // The header is now set to inflated, and the current thread
+          // is holding the inflated lock.
+        } else {
+          new_val = orig;
+          new_val.f.aux_word = (state->thread_id() << cAuxLockTIDShift) | count;
+
+          // Because we've got the object already locked to use, no other
+          // thread is going to be trying to lock this thread, but another
+          // thread might ask for an object_id and the header will
+          // be inflated. So if we can't swap in the new header, we'll start
+          // this step over.
+          if(!atomic::compare_and_swap(&header.flags64,
+                                           orig.flags64,
+                                           new_val.flags64)) {
+            goto step2;
+          }
+
+          // wonderful! Locked! weeeee!
+          state->add_locked_object(this);
+        }
+
+        return true;
+
+      // Our thread id isn't in the field, then we can't lock it.
+      } else {
+        return false;
+      }
+
+    // The header is inflated, use the full lock.
+    case eAuxWordInflated: {
+      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
+      return ih->try_lock_mutex(state);
+    }
+
+    // The header is being used for something other than locking, so we need to
+    // inflate it.
+    case eAuxWordObjID:
+      // If we couldn't inflate the lock, that means the header was in some
+      // weird state that we didn't detect and handle properly. So redo
+      // the whole locking procedure again.
+      if(!state->om->inflate_and_lock(state, this)) goto step1;
+      return true;
+    }
+
+    return false;
+  }
+
+  bool ObjectHeader::locked_p(STATE) {
+    // Construct 2 new headers: one is the version we hope that
+    // is in use and the other is what we want it to be. The CAS
+    // the new one into place.
+    HeaderWord orig = header;
+
+    switch(orig.f.meaning) {
+    case eAuxWordLock:
+      return true;
+    case eAuxWordEmpty:
+    case eAuxWordObjID:
+      return false;
+    case eAuxWordInflated:
+      {
+        InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
+        return ih->locked_mutex_p(state);
+      }
+    }
+    return false;
+  }
+
   void ObjectHeader::unlock(STATE) {
     // This case is slightly easier than locking.
 
@@ -190,6 +335,7 @@ step2:
       case eAuxWordObjID:
         // Um. well geez. We don't have this object locked.
         std::cerr << "[LOCK attempted to unlock an object that is not locked.]\n";
+        abort();
         return;
 
       case eAuxWordInflated: {
@@ -223,11 +369,64 @@ step2:
         }
 
         if(new_val.f.meaning == eAuxWordEmpty) {
+          state->del_locked_object(this);
+
           if(new_val.f.LockContended == 1) {
             // If we couldn't inflate for contention, redo.
             if(!state->om->inflate_for_contention(state, this)) continue;
             state->om->release_contention(state);
           }
+        }
+
+        return;
+      }
+      }
+    }
+  }
+
+  void ObjectHeader::unlock_for_terminate(STATE) {
+    // This case is slightly easier than locking.
+
+    for(;;) {
+      HeaderWord orig = header;
+
+      switch(orig.f.meaning) {
+      case eAuxWordEmpty:
+      case eAuxWordObjID:
+        // Um. well geez. We don't have this object locked.
+        std::cerr << "[LOCK attempted to unlock an object that is not locked.]\n";
+        return;
+
+      case eAuxWordInflated: {
+        InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
+        ih->unlock_mutex_for_terminate(state);
+        return;
+      }
+
+      case eAuxWordLock: {
+        if(orig.f.aux_word >> cAuxLockTIDShift != state->thread_id()) {
+          std::cerr << "[LOCK attempted to unlock an object owned by another thread.]\n";
+          return;
+        }
+
+        HeaderWord new_val = orig;
+
+        new_val.f.meaning = eAuxWordEmpty;
+        new_val.f.aux_word = 0;
+
+        if(!atomic::compare_and_swap(&header.flags64,
+              orig.flags64,
+              new_val.flags64)) {
+          // Try it all over again.
+          continue;
+        }
+
+        state->del_locked_object(this);
+
+        if(new_val.f.LockContended == 1) {
+          // If we couldn't inflate for contention, redo.
+          if(!state->om->inflate_for_contention(state, this)) continue;
+          state->om->release_contention(state);
         }
 
         return;
@@ -266,9 +465,18 @@ step2:
     klass_ = other->klass_;
     ivars_ = other->ivars_;
 
-    if(other->object_id() > 0) {
-      set_object_id(state, state->om, other->object_id());
+    HeaderWord hdr = other->header;
+
+    switch(hdr.f.meaning) {
+    case eAuxWordObjID:
+    case eAuxWordLock:
+      header.f.meaning = hdr.f.meaning;
+      header.f.aux_word = hdr.f.aux_word;
     }
+
+    //if(other->object_id() > 0) {
+   //   set_object_id(state, state->om, other->object_id());
+    //}
 
     clear_forwarded();
 
@@ -375,6 +583,7 @@ step2:
     while(!atomic::compare_and_swap(&private_lock_, 0, 1));
 
     owner_id_ = state->thread_id();
+    state->add_locked_object(object_);
 
     // OWNED.
 
@@ -386,6 +595,65 @@ step2:
     private_lock_ = 0;
 
     return;
+  }
+
+  bool InflatedHeader::try_lock_mutex(STATE) {
+    // Gain exclusive access to the insides of the InflatedHeader.
+    //
+    // Yes, this spins. Yes, we want that.
+    while(!atomic::compare_and_swap(&private_lock_, 0, 1));
+
+    // We've got exclusive access to the lock parts of the InflatedHeader now.
+    //
+    // If the thread id is in owner, we've got it locked.
+    //
+    // If we're not the owner, then block on mutex_.lock in a loop until the
+    // owner_id_ is 0 and we can therefore be the owner.
+
+    bool locked = false;
+
+    if(owner_id_ == state->thread_id()) {
+      // We're already the owner, easy.
+      rec_lock_count_++;
+
+      if(cDebugThreading) {
+        std::cerr << "[LOCK " << state->thread_id()
+                  << " recursively locked ih: " << rec_lock_count_ << "\n";
+      }
+
+      locked = true;
+    } else {
+      // Otherwise ask the mutex
+
+      if(mutex_.try_lock() == thread::cLocked) {
+        owner_id_ = state->thread_id();
+        locked = true;
+        state->add_locked_object(object_);
+
+        // OWNED.
+
+        if(cDebugThreading) {
+          std::cerr << "[LOCK " << state->thread_id() << " locked inflated header]\n";
+        }
+      }
+    }
+
+    // Unlock the spin lock.
+    private_lock_ = 0;
+
+    return locked;
+  }
+
+  bool InflatedHeader::locked_mutex_p(STATE) {
+    // Gain exclusive access to the insides of the InflatedHeader.
+    //
+    // Yes, this spins. Yes, we want that.
+    while(!atomic::compare_and_swap(&private_lock_, 0, 1));
+
+    bool ret = (owner_id_ != 0);
+
+    private_lock_ = 0;
+    return ret;
   }
 
   void InflatedHeader::unlock_mutex(STATE) {
@@ -406,6 +674,8 @@ step2:
     // If the count has dropped to 0, we're truely done, so tell anyone
     // blocking on mutex_.
     if(rec_lock_count_ == 0) {
+      state->del_locked_object(object_);
+
       owner_id_ = 0;
       mutex_.unlock();
       if(cDebugThreading) {
@@ -423,4 +693,31 @@ step2:
     private_lock_ = 0;
   }
 
+  void InflatedHeader::unlock_mutex_for_terminate(STATE) {
+    // Gain exclusive access to the insides of the InflatedHeader.
+    //
+    // Yes, this spins. Yes, we want that.
+    while(!atomic::compare_and_swap(&private_lock_, 0, 1));
+
+    // We've got exclusive access to the lock parts of the InflatedHeader now.
+
+    // Sanity check.
+    if(owner_id_ != state->thread_id()) {
+      std::cerr << "[LOCK Inflated unlock consistence error, not the owner]\n";
+      private_lock_ = 0;
+      return;
+    }
+
+    state->del_locked_object(object_);
+
+    owner_id_ = 0;
+    mutex_.unlock();
+
+    if(cDebugThreading) {
+      std::cerr << "[LOCK " << state->thread_id() << " unlocked native]\n";
+    }
+
+    // Unlock the spin lock.
+    private_lock_ = 0;
+  }
 }

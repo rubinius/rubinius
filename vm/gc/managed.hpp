@@ -6,6 +6,8 @@
 #include "gc/root.hpp"
 #include "lock.hpp"
 
+#include <list>
+
 namespace rubinius {
   class SharedState;
   class VM;
@@ -34,6 +36,7 @@ namespace rubinius {
     const char* name_;
     VariableRootBuffers root_buffers_;
     RunState run_state_;
+    std::list<ObjectHeader*> locked_objects_;
 
   protected:
     gc::Slab local_slab_;
@@ -61,6 +64,18 @@ namespace rubinius {
 
     gc::Slab& local_slab() {
       return local_slab_;
+    }
+
+    std::list<ObjectHeader*>& locked_objects() {
+      return locked_objects_;
+    }
+
+    void add_locked_object(ObjectHeader* obj) {
+      locked_objects_.push_back(obj);
+    }
+
+    void del_locked_object(ObjectHeader* obj) {
+      locked_objects_.remove(obj);
     }
 
     Kind kind() {
