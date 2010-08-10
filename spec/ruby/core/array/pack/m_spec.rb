@@ -10,6 +10,10 @@ describe "Array#pack with format 'M'" do
     [""].pack("M").should == ""
   end
 
+  it "encodes nil as an empty string" do
+    [nil].pack("M").should == ""
+  end
+
   it "appends a soft line break at the end of an encoded string" do
     ["a"].pack("M").should == "a=\n"
   end
@@ -197,7 +201,7 @@ describe "Array#pack with format 'M'" do
   end
 
   ruby_version_is "1.9" do
-    it "returns an US-ASCII string" do
+    it "sets the output string to US-ASCII encoding" do
       ["abcd"].pack("M").encoding.should == Encoding::US_ASCII
     end
   end
@@ -205,4 +209,125 @@ end
 
 describe "Array#pack with format 'm'" do
   it_behaves_like :array_pack_basic, 'm'
+
+  it "encodes an empty string as an empty string" do
+    [""].pack("m").should == ""
+  end
+
+  it "appends a newline to the end of the encoded string" do
+    ["a"].pack("m").should == "YQ==\n"
+  end
+
+  it "encodes one element per directive" do
+    ["abc", "DEF"].pack("mm").should == "YWJj\nREVG\n"
+  end
+
+  it "encodes 1, 2, or 3 characters in 4 output characters (Base64 encoding)" do
+    [ [["a"],       "YQ==\n"],
+      [["ab"],      "YWI=\n"],
+      [["abc"],     "YWJj\n"],
+      [["abcd"],    "YWJjZA==\n"],
+      [["abcde"],   "YWJjZGU=\n"],
+      [["abcdef"],  "YWJjZGVm\n"],
+      [["abcdefg"], "YWJjZGVmZw==\n"],
+    ].should be_computed_by(:pack, "m")
+  end
+
+  it "emits a newline after complete groups of count / 3 input characters when passed a count modifier" do
+    ["abcdefg"].pack("m3").should == "YWJj\nZGVm\nZw==\n"
+  end
+
+  it "implicitly has a count of 45 when passed '*', 1, 2 or no count modifier" do
+    s = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    r = "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh\nYWFhYWE=\n"
+    [ [[s], "m", r],
+      [[s], "m*", r],
+      [[s], "m1", r],
+      [[s], "m2", r],
+    ].should be_computed_by(:pack)
+  end
+
+  it "encodes all ascii characters" do
+    [ [["\x00\x01\x02\x03\x04\x05\x06"],          "AAECAwQFBg==\n"],
+      [["\a\b\t\n\v\f\r"],                        "BwgJCgsMDQ==\n"],
+      [["\x0E\x0F\x10\x11\x12\x13\x14\x15\x16"],  "Dg8QERITFBUW\n"],
+      [["\x17\x18\x19\x1a\e\x1c\x1d\x1e\x1f"],    "FxgZGhscHR4f\n"],
+      [["!\"\#$%&'()*+,-./"],                     "ISIjJCUmJygpKissLS4v\n"],
+      [["0123456789"],                            "MDEyMzQ1Njc4OQ==\n"],
+      [[":;<=>?@"],                               "Ojs8PT4/QA==\n"],
+      [["ABCDEFGHIJKLMNOPQRSTUVWXYZ"],            "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo=\n"],
+      [["[\\]^_`"],                               "W1xdXl9g\n"],
+      [["abcdefghijklmnopqrstuvwxyz"],            "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=\n"],
+      [["{|}~"],                                  "e3x9fg==\n"],
+      [["\x7f\xc2\x80\xc2\x81\xc2\x82\xc2\x83"],  "f8KAwoHCgsKD\n"],
+      [["\xc2\x84\xc2\x85\xc2\x86\xc2\x87\xc2"],  "woTChcKGwofC\n"],
+      [["\x88\xc2\x89\xc2\x8a\xc2\x8b\xc2\x8c"],  "iMKJworCi8KM\n"],
+      [["\xc2\x8d\xc2\x8e\xc2\x8f\xc2\x90\xc2"],  "wo3CjsKPwpDC\n"],
+      [["\x91\xc2\x92\xc2\x93\xc2\x94\xc2\x95"],  "kcKSwpPClMKV\n"],
+      [["\xc2\x96\xc2\x97\xc2\x98\xc2\x99\xc2"],  "wpbCl8KYwpnC\n"],
+      [["\x9a\xc2\x9b\xc2\x9c\xc2\x9d\xc2\x9e"],  "msKbwpzCncKe\n"],
+      [["\xc2\x9f\xc2\xa0\xc2\xa1\xc2\xa2\xc2"],  "wp/CoMKhwqLC\n"],
+      [["\xa3\xc2\xa4\xc2\xa5\xc2\xa6\xc2\xa7"],  "o8KkwqXCpsKn\n"],
+      [["\xc2\xa8\xc2\xa9\xc2\xaa\xc2\xab\xc2"],  "wqjCqcKqwqvC\n"],
+      [["\xac\xc2\xad\xc2\xae\xc2\xaf\xc2\xb0"],  "rMKtwq7Cr8Kw\n"],
+      [["\xc2\xb1\xc2\xb2\xc2\xb3\xc2\xb4\xc2"],  "wrHCssKzwrTC\n"],
+      [["\xb5\xc2\xb6\xc2\xb7\xc2\xb8\xc2\xb9"],  "tcK2wrfCuMK5\n"],
+      [["\xc2\xba\xc2\xbb\xc2\xbc\xc2\xbd\xc2"],  "wrrCu8K8wr3C\n"],
+      [["\xbe\xc2\xbf\xc3\x80\xc3\x81\xc3\x82"],  "vsK/w4DDgcOC\n"],
+      [["\xc3\x83\xc3\x84\xc3\x85\xc3\x86\xc3"],  "w4PDhMOFw4bD\n"],
+      [["\x87\xc3\x88\xc3\x89\xc3\x8a\xc3\x8b"],  "h8OIw4nDisOL\n"],
+      [["\xc3\x8c\xc3\x8d\xc3\x8e\xc3\x8f\xc3"],  "w4zDjcOOw4/D\n"],
+      [["\x90\xc3\x91\xc3\x92\xc3\x93\xc3\x94"],  "kMORw5LDk8OU\n"],
+      [["\xc3\x95\xc3\x96\xc3\x97\xc3\x98\xc3"],  "w5XDlsOXw5jD\n"],
+      [["\x99\xc3\x9a\xc3\x9b\xc3\x9c\xc3\x9d"],  "mcOaw5vDnMOd\n"],
+      [["\xc3\x9e\xc3\x9f\xc3\xa0\xc3\xa1\xc3"],  "w57Dn8Ogw6HD\n"],
+      [["\xa2\xc3\xa3\xc3\xa4\xc3\xa5\xc3\xa6"],  "osOjw6TDpcOm\n"],
+      [["\xc3\xa7\xc3\xa8\xc3\xa9\xc3\xaa\xc3"],  "w6fDqMOpw6rD\n"],
+      [["\xab\xc3\xac\xc3\xad\xc3\xae\xc3\xaf"],  "q8Osw63DrsOv\n"],
+      [["\xc3\xb0\xc3\xb1\xc3\xb2\xc3\xb3\xc3"],  "w7DDscOyw7PD\n"],
+      [["\xb4\xc3\xb5\xc3\xb6\xc3\xb7\xc3\xb8"],  "tMO1w7bDt8O4\n"],
+      [["\xc3\xb9\xc3\xba\xc3\xbb\xc3\xbc\xc3"],  "w7nDusO7w7zD\n"],
+      [["\xbd\xc3\xbe\xc3\xbf"],                  "vcO+w78=\n"]
+    ].should be_computed_by(:pack, "m")
+  end
+
+  it "calls #to_str to convert an object to a String" do
+    obj = mock("pack m string")
+    obj.should_receive(:to_str).and_return("abc")
+    [obj].pack("m").should == "YWJj\n"
+  end
+
+  it "raises a TypeError if #to_str does not return a String" do
+    obj = mock("pack m non-string")
+    lambda { [obj].pack("m") }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError if passed nil" do
+    lambda { [nil].pack("m") }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError if passed an Integer" do
+    lambda { [0].pack("m") }.should raise_error(TypeError)
+    lambda { [bignum_value].pack("m") }.should raise_error(TypeError)
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "emits a newline after 45 characters if passed zero as the count modifier" do
+      s = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      r = "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh\nYWFhYWE=\n"
+      [s].pack("m0").should == r
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "does not emit a newline if passed zero as the count modifier" do
+      s = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      r = "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE="
+      [s].pack("m0").should == r
+    end
+
+    it "sets the output string to US-ASCII encoding" do
+      ["abcd"].pack("m").encoding.should == Encoding::US_ASCII
+    end
+  end
 end
