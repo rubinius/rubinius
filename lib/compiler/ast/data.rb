@@ -5,7 +5,7 @@ module Rubinius
 
       def initialize(offset, body)
         @offset = offset
-        @body = body
+        @body = body || NilLiteral.new(1)
       end
 
       # When a script includes __END__, Ruby makes the data after it
