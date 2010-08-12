@@ -230,6 +230,7 @@
 
 // Regexp
 #define HAVE_RB_REG_NEW                    1
+#define HAVE_RB_REG_NTH_MATCH              1
 
 // Safe
 #define HAVE_RB_SAFE_LEVEL                 1

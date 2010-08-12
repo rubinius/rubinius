@@ -14,4 +14,11 @@ describe "CApiRegexp" do
     ('1b' =~ my_re).should == nil
     my_re.source.should == 'a'
   end
+
+  it "rb_reg_nth_match should return a the appropriate match data entry" do
+    @p.a_re_1st_match(/([ab])/.match("a")).should == 'a'
+    @p.a_re_1st_match(/([ab])/.match("b")).should == 'b'
+    @p.a_re_1st_match(/[ab]/.match("a")).should == nil
+    @p.a_re_1st_match(/[ab]/.match("c")).should == nil
+  end
 end
