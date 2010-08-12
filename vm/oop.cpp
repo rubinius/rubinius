@@ -54,9 +54,9 @@ namespace rubinius {
       {
         assert(owner_id_ == 0);
         uint32_t tid = header.f.aux_word >> cAuxLockTIDShift;
-        owner_id_ = tid;
-        rec_lock_count_ = header.f.aux_word & cAuxLockRecCountMask;
-        mutex_.lock();
+        uint32_t count = header.f.aux_word & cAuxLockRecCountMask;
+
+        initialize_mutex(tid, count);
       }
 
       break;
