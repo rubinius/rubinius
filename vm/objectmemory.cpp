@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <sys/time.h>
 
 #include "vm.hpp"
 #include "objectmemory.hpp"
@@ -123,7 +124,7 @@ namespace rubinius {
     return true;
   }
 
-  bool ObjectMemory::contend_for_lock(STATE, ObjectHeader* obj) {
+  LockStatus ObjectMemory::contend_for_lock(STATE, ObjectHeader* obj, bool* error, size_t us) {
     SYNC(state);
 
     // We want to lock obj, but someone else has it locked.
@@ -141,7 +142,8 @@ step1:
       std::cerr << "[LOCK " << state->thread_id()
                 << " contend_for_lock error: not thin locked.]\n";
       UNSYNC;
-      return false;
+      *error = true;
+      return eLockError;
     }
 
     // Ok, the header is not inflated, but we can't inflate it and take
@@ -169,14 +171,48 @@ step1:
       std::cerr << "[LOCK " << state->thread_id() << " waiting on contention]\n";
     }
 
+    bool timed = false;
+    bool timeout = false;
+
+    struct timespec ts = {0,0};
+
+    if(us > 0) {
+      timed = true;
+      struct timeval tv;
+      gettimeofday(&tv, NULL);
+
+      ts.tv_sec = tv.tv_sec + (us / 1000000);
+      ts.tv_nsec = (us % 1000000) * 1000;
+    }
+
     state->set_sleeping();
 
     while(!obj->inflated_header_p()) {
       GCIndependent gc_guard(state);
 
-      contention_var_.wait(mutex());
+      if(timed) {
+        timeout = (contention_var_.wait_until(mutex(), &ts) == thread::cTimedOut);
+        if(timeout) break;
+      } else {
+        contention_var_.wait(mutex());
+      }
+
       if(cDebugThreading) {
         std::cerr << "[LOCK " << state->thread_id() << " notified of contention breakage]\n";
+      }
+
+      // Someone is interrupting us trying to lock.
+      if(state->check_local_interrupts) {
+        state->check_local_interrupts = false;
+
+        if(state->thread_state()->raise_reason() == cException) {
+          if(cDebugThreading) {
+            std::cerr << "[LOCK " << state->thread_id() << " detected interrupt]\n";
+          }
+
+          state->clear_sleeping();
+          return eLockInterrupted;
+        }
       }
     }
 
@@ -184,6 +220,14 @@ step1:
 
     if(cDebugThreading) {
       std::cerr << "[LOCK " << state->thread_id() << " contention broken]\n";
+    }
+
+    if(timeout) {
+      if(cDebugThreading) {
+        std::cerr << "[LOCK " << state->thread_id() << " contention timed out]\n";
+      }
+
+      return eLockTimeout;
     }
 
     // We lock the InflatedHeader here rather than returning
@@ -197,9 +241,12 @@ step1:
     UNSYNC;
 
     InflatedHeader* ih = obj->inflated_header();
-    ih->lock_mutex(state);
 
-    return true;
+    if(timed) {
+      return ih->lock_mutex_timed(state, &ts);
+    } else {
+      return ih->lock_mutex(state);
+    }
   }
 
   void ObjectMemory::release_contention(STATE) {

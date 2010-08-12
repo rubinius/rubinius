@@ -274,6 +274,9 @@ namespace rubinius {
     // Ruby.primitive :vm_object_lock
     static Object* vm_object_lock(STATE, Object* obj, CallFrame* calling_environment);
 
+    // Ruby.primitive :vm_object_lock_timed
+    static Object* vm_object_lock_timed(STATE, Object* obj, Integer* time, CallFrame* calling_environment);
+
     // Ruby.primitive :vm_object_trylock
     static Object* vm_object_trylock(STATE, Object* obj, CallFrame* calling_environment);
 

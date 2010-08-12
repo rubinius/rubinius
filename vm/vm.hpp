@@ -88,6 +88,7 @@ namespace rubinius {
     SharedState& shared;
     TypedRoot<Channel*> waiting_channel_;
     bool interrupt_with_signal_;
+    InflatedHeader* waiting_header_;
 
     ObjectMemory* om;
     TypedRoot<TaskProbe*> probe;
@@ -329,6 +330,7 @@ namespace rubinius {
     void run_gc_soon();
 
     void wait_on_channel(Channel* channel);
+    void wait_on_inflated_lock(InflatedHeader* ih);
     void clear_waiter();
     bool wakeup();
     bool waiting_p();

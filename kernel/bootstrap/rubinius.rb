@@ -111,6 +111,11 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.lock failed"
   end
 
+  def self.lock_timed(obj)
+    Ruby.primitive :vm_object_lock_timed
+    raise PrimitiveFailure, "Rubinius.lock failed"
+  end
+
   def self.try_lock(obj)
     Ruby.primitive :vm_object_trylock
     raise PrimitiveFailure, "Rubinius.try_lock failed"

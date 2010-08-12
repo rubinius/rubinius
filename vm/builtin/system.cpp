@@ -897,28 +897,63 @@ namespace rubinius {
   }
 
   Object* System::vm_object_lock(STATE, Object* obj, CallFrame* call_frame) {
+    if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
-    obj->lock(state);
+
+    switch(obj->lock(state)) {
+    case eLocked:
+      return Qtrue;
+    case eLockTimeout:
+    case eUnlocked:
+    case eLockError:
+      return Primitives::failure();
+    case eLockInterrupted:
+      assert(state->thread_state()->raise_reason() == cException);
+      return 0;
+    }
+
+    return Qnil;
+  }
+
+  Object* System::vm_object_lock_timed(STATE, Object* obj, Integer* time, CallFrame* call_frame) {
+    if(!obj->reference_p()) return Primitives::failure();
+    state->set_call_frame(call_frame);
+
+    switch(obj->lock(state, time->to_native())) {
+    case eLocked:
+      return Qtrue;
+    case eLockTimeout:
+      return Qfalse;
+    case eUnlocked:
+    case eLockError:
+      return Primitives::failure();
+    case eLockInterrupted:
+      assert(state->thread_state()->raise_reason() == cException);
+      return 0;
+    }
+
     return Qnil;
   }
 
   Object* System::vm_object_trylock(STATE, Object* obj, CallFrame* call_frame) {
+    if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
-    if(obj->try_lock(state)) return Qtrue;
+    if(obj->try_lock(state) == eLocked) return Qtrue;
     return Qfalse;
   }
 
   Object* System::vm_object_locked_p(STATE, Object* obj) {
+    if(!obj->reference_p()) return Qfalse;
     if(obj->locked_p(state)) return Qtrue;
     return Qfalse;
   }
 
   Object* System::vm_object_unlock(STATE, Object* obj, CallFrame* call_frame) {
+    if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
-    if(!obj->unlock(state)) {
-      return Primitives::failure();
-    }
-    return Qnil;
+
+    if(obj->unlock(state) == eUnlocked) return Qnil;
+    return Primitives::failure();
   }
 
   Object *System::vm_memory_barrier(STATE) {

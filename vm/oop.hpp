@@ -142,6 +142,14 @@ const int cUndef = 0x22L;
   class Object;
   class VM;
 
+  enum LockStatus {
+    eUnlocked,
+    eLocked,
+    eLockTimeout,
+    eLockInterrupted,
+    eLockError
+  };
+
   enum AuxWordMeaning {
     eAuxWordEmpty = 0,
     eAuxWordObjID = 1,
@@ -197,10 +205,11 @@ const int cUndef = 0x22L;
     ObjectHeader* object_;
     capi::Handle* handle_;
     uint32_t object_id_;
+
     thread::Mutex mutex_;
+    thread::Condition condition_;
     uint32_t owner_id_;
     int rec_lock_count_;
-    int private_lock_;
 
   public:
 
@@ -239,7 +248,6 @@ const int cUndef = 0x22L;
       object_id_ = 0;
       rec_lock_count_ = 0;
       owner_id_ = 0;
-      private_lock_ = 0;
     }
 
     bool used_p() {
@@ -265,11 +273,14 @@ const int cUndef = 0x22L;
 
     void update(HeaderWord header);
     void initialize_mutex(int thread_id, int count);
-    void lock_mutex(STATE);
-    bool try_lock_mutex(STATE);
+    LockStatus lock_mutex(STATE, size_t us=0);
+    LockStatus lock_mutex_timed(STATE, const struct timespec* ts);
+    LockStatus try_lock_mutex(STATE);
     bool locked_mutex_p(STATE);
-    bool unlock_mutex(STATE);
+    LockStatus unlock_mutex(STATE);
     void unlock_mutex_for_terminate(STATE);
+
+    void wakeup();
   };
 
   class ObjectHeader {
@@ -555,10 +566,10 @@ const int cUndef = 0x22L;
 
     void set_object_id(STATE, ObjectMemory* om, uint32_t id);
 
-    void lock(STATE);
-    bool try_lock(STATE);
+    LockStatus lock(STATE, size_t us=0);
+    LockStatus try_lock(STATE);
     bool locked_p(STATE);
-    bool unlock(STATE);
+    LockStatus unlock(STATE);
     void unlock_for_terminate(STATE);
 
     bool nil_p() const {

@@ -310,8 +310,17 @@ namespace rubinius {
 
   bool VM::wakeup() {
     SYNC(this);
+
+    check_local_interrupts = true;
+
+    // Wakeup any locks hanging around with contention
+    om->release_contention(this);
+
     if(interrupt_with_signal_) {
       pthread_kill(os_thread_, SIGVTALRM);
+      return true;
+    } else if(waiting_header_) {
+      waiting_header_->wakeup();
       return true;
     } else {
       Channel* chan = waiting_channel_.get();
@@ -330,12 +339,18 @@ namespace rubinius {
     SYNC(this);
     interrupt_with_signal_ = false;
     waiting_channel_.set((Channel*)Qnil);
+    waiting_header_ = 0;
   }
 
   void VM::wait_on_channel(Channel* chan) {
     SYNC(this);
     thread->sleep(this, Qtrue);
     waiting_channel_.set(chan);
+  }
+
+  void VM::wait_on_inflated_lock(InflatedHeader* ih) {
+    SYNC(this);
+    waiting_header_ = ih;
   }
 
   bool VM::waiting_p() {
