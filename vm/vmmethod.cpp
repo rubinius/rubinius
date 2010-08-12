@@ -137,10 +137,10 @@ namespace rubinius {
     }
   }
 
-  void VMMethod::cleanup(CodeManager* cm) {
+  void VMMethod::cleanup(STATE, CodeManager* cm) {
     for(size_t i = 0; i < number_of_caches_; i++) {
       InlineCache* cache = &caches[i];
-      cm->shared()->ic_registry()->remove_cache(cache->name, cache);
+      cm->shared()->ic_registry()->remove_cache(state, cache->name, cache);
     }
 
     for(IndirectLiterals::iterator i = indirect_literals_.begin();
@@ -278,7 +278,7 @@ namespace rubinius {
           }
         }
 
-        state->shared.ic_registry()->add_cache(name, cache);
+        state->shared.ic_registry()->add_cache(state, name, cache);
 
         opcodes[ip + 1] = reinterpret_cast<intptr_t>(cache);
         update_addresses(ip, 1);

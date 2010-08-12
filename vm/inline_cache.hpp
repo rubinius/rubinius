@@ -6,6 +6,7 @@
 #include "builtin/module.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
+#include "lock.hpp"
 
 #include <vector>
 #include <tr1/unordered_map>
@@ -284,16 +285,16 @@ namespace rubinius {
   };
 
   // Registry, used to clear ICs by method name
-  class InlineCacheRegistry {
+  class InlineCacheRegistry : Lockable {
     typedef std::list<InlineCache*> CacheVector;
     typedef std::tr1::unordered_map<native_int, CacheVector> CacheHash;
 
     CacheHash caches_;
 
   public:
-    void add_cache(Symbol* sym, InlineCache* cache);
-    void remove_cache(Symbol* sym, InlineCache* cache);
-    void clear(Symbol* sym);
+    void add_cache(STATE, Symbol* sym, InlineCache* cache);
+    void remove_cache(STATE, Symbol* sym, InlineCache* cache);
+    void clear(STATE, Symbol* sym);
 
     void print_stats(STATE);
   };

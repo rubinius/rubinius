@@ -88,7 +88,7 @@ namespace rubinius {
 
     VMMethod(STATE, CompiledMethod* meth);
     virtual ~VMMethod();
-    virtual void cleanup(CodeManager* cm);
+    virtual void cleanup(STATE, CodeManager* cm);
     virtual int size();
 
 #ifdef ENABLE_LLVM

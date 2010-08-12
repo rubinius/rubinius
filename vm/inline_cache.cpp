@@ -620,12 +620,14 @@ namespace rubinius {
     }
   }
 
-  void InlineCacheRegistry::add_cache(Symbol* sym, InlineCache* cache) {
+  void InlineCacheRegistry::add_cache(STATE, Symbol* sym, InlineCache* cache) {
+    SYNC(state);
     // TODO make sure cache isn't already known?
     caches_[sym->index()].push_back(cache);
   }
 
-  void InlineCacheRegistry::remove_cache(Symbol* sym, InlineCache* cache) {
+  void InlineCacheRegistry::remove_cache(STATE, Symbol* sym, InlineCache* cache) {
+    SYNC(state);
     CacheVector& vec = caches_[sym->index()];
     for(CacheVector::iterator i = vec.begin();
         i != vec.end();
@@ -637,7 +639,8 @@ namespace rubinius {
     }
   }
 
-  void InlineCacheRegistry::clear(Symbol* sym) {
+  void InlineCacheRegistry::clear(STATE, Symbol* sym) {
+    SYNC(state);
     CacheVector& vec = caches_[sym->index()];
 
     for(CacheVector::iterator i = vec.begin();
@@ -652,6 +655,7 @@ namespace rubinius {
   }
 
   void InlineCacheRegistry::print_stats(STATE) {
+    SYNC(state);
     int total = 0;
     std::vector<int> sizes(cTrackedICHits + 1);
 

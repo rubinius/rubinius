@@ -308,7 +308,7 @@ namespace rubinius {
     // 1. clear the global cache
     state->global_cache()->clear(name);
 
-    state->shared.ic_registry()->clear(name);
+    state->shared.ic_registry()->clear(state, name);
     return name;
   }
 
