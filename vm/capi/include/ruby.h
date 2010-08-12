@@ -1624,6 +1624,9 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE   rb_range_beg_len(VALUE range, long* begp, long* lenp, long len, int err);
 
+  /** Creates a Regexp object */
+  VALUE   rb_reg_new(char *source, long len, long options);
+
   // include an extconf.h if one is provided
 #ifdef RUBY_EXTCONF_H
 #include RUBY_EXTCONF_H
