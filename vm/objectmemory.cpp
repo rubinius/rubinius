@@ -258,7 +258,9 @@ step1:
       // something is really wrong.
       orig = obj->header;
       if(orig.f.meaning != tmp.f.meaning) {
-        std::cerr << "[LOCK object header consistence error detected.]\n";
+        if(cDebugThreading) {
+          std::cerr << "[LOCK object header consistence error detected.]\n";
+        }
         return false;
       }
 
@@ -291,14 +293,20 @@ step1:
       case eAuxWordLock:
         // We have to locking the object to inflate it, thats the law.
         if(new_val.f.aux_word >> cAuxLockTIDShift != state->thread_id()) {
-          std::cerr << "[LOCK object locked by another thread while inflating for contention]\n";
+          if(cDebugThreading) {
+            std::cerr << "[LOCK object locked by another thread while inflating for contention]\n";
+          }
           return false;
         } else {
-          std::cerr << "[LOCK object locked while inflating for contention]\n";
+          if(cDebugThreading) {
+            std::cerr << "[LOCK object locked while inflating for contention]\n";
+          }
           return false;
         }
       case eAuxWordInflated:
-        std::cerr << "[LOCK asked to inflated already inflated lock]\n";
+        if(cDebugThreading) {
+          std::cerr << "[LOCK asked to inflated already inflated lock]\n";
+        }
         return false;
       }
 

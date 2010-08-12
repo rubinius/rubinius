@@ -268,7 +268,7 @@ const int cUndef = 0x22L;
     void lock_mutex(STATE);
     bool try_lock_mutex(STATE);
     bool locked_mutex_p(STATE);
-    void unlock_mutex(STATE);
+    bool unlock_mutex(STATE);
     void unlock_mutex_for_terminate(STATE);
   };
 
@@ -558,7 +558,7 @@ const int cUndef = 0x22L;
     void lock(STATE);
     bool try_lock(STATE);
     bool locked_p(STATE);
-    void unlock(STATE);
+    bool unlock(STATE);
     void unlock_for_terminate(STATE);
 
     bool nil_p() const {

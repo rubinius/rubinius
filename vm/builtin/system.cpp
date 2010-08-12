@@ -915,7 +915,9 @@ namespace rubinius {
 
   Object* System::vm_object_unlock(STATE, Object* obj, CallFrame* call_frame) {
     state->set_call_frame(call_frame);
-    obj->unlock(state);
+    if(!obj->unlock(state)) {
+      return Primitives::failure();
+    }
     return Qnil;
   }
 

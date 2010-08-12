@@ -324,7 +324,7 @@ step2:
     return false;
   }
 
-  void ObjectHeader::unlock(STATE) {
+  bool ObjectHeader::unlock(STATE) {
     // This case is slightly easier than locking.
 
     for(;;) {
@@ -334,20 +334,16 @@ step2:
       case eAuxWordEmpty:
       case eAuxWordObjID:
         // Um. well geez. We don't have this object locked.
-        std::cerr << "[LOCK attempted to unlock an object that is not locked.]\n";
-        abort();
-        return;
+        return false;
 
       case eAuxWordInflated: {
         InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-        ih->unlock_mutex(state);
-        return;
+        return ih->unlock_mutex(state);
       }
 
       case eAuxWordLock: {
         if(orig.f.aux_word >> cAuxLockTIDShift != state->thread_id()) {
-          std::cerr << "[LOCK attempted to unlock an object owned by another thread.]\n";
-          return;
+          return false;
         }
 
         uint32_t count = orig.f.aux_word & cAuxLockRecCountMask;
@@ -378,10 +374,13 @@ step2:
           }
         }
 
-        return;
+        return true;
       }
       }
     }
+
+    // We shouldn't even get here, all cases are handled.
+    return false;
   }
 
   void ObjectHeader::unlock_for_terminate(STATE) {
@@ -394,7 +393,6 @@ step2:
       case eAuxWordEmpty:
       case eAuxWordObjID:
         // Um. well geez. We don't have this object locked.
-        std::cerr << "[LOCK attempted to unlock an object that is not locked.]\n";
         return;
 
       case eAuxWordInflated: {
@@ -405,7 +403,6 @@ step2:
 
       case eAuxWordLock: {
         if(orig.f.aux_word >> cAuxLockTIDShift != state->thread_id()) {
-          std::cerr << "[LOCK attempted to unlock an object owned by another thread.]\n";
           return;
         }
 
@@ -658,7 +655,7 @@ step2:
     return ret;
   }
 
-  void InflatedHeader::unlock_mutex(STATE) {
+  bool InflatedHeader::unlock_mutex(STATE) {
     // Gain exclusive access to the insides of the InflatedHeader.
     //
     // Yes, this spins. Yes, we want that.
@@ -668,9 +665,11 @@ step2:
 
     // Sanity check.
     if(owner_id_ != state->thread_id()) {
-      std::cerr << "[LOCK Inflated unlock consistence error, not the owner]\n";
+      if(cDebugThreading) {
+        std::cerr << "[LOCK Inflated unlock consistence error, not the owner]\n";
+      }
       private_lock_ = 0;
-      return;
+      return false;
     }
 
     // If the count has dropped to 0, we're truely done, so tell anyone
@@ -693,6 +692,7 @@ step2:
 
     // Unlock the spin lock.
     private_lock_ = 0;
+    return true;
   }
 
   void InflatedHeader::unlock_mutex_for_terminate(STATE) {
@@ -705,7 +705,9 @@ step2:
 
     // Sanity check.
     if(owner_id_ != state->thread_id()) {
-      std::cerr << "[LOCK Inflated unlock consistence error, not the owner]\n";
+      if(cDebugThreading) {
+        std::cerr << "[LOCK Inflated unlock consistence error, not the owner]\n";
+      }
       private_lock_ = 0;
       return;
     }
