@@ -241,6 +241,7 @@
 #define HAVE_RB_STR2CSTR                   1
 #define HAVE_RB_STR2INUM                   1
 #define HAVE_RB_STR_APPEND                 1
+#define HAVE_RB_STR_BUF_NEW                1
 #define HAVE_RB_STR_BUF_CAT                1
 #define HAVE_RB_STR_CAT                    1
 #define HAVE_RB_STR_CAT2                   1
@@ -257,6 +258,7 @@
 #define HAVE_RB_STR_PTR                    1
 #define HAVE_RB_STR_PTR_READONLY           1
 #define HAVE_RB_STR_RESIZE                 1
+#define HAVE_RB_STR_SET_LEN                1
 #define HAVE_RB_STR_SPLIT                  1
 #define HAVE_RB_STR_SUBSTR                 1
 #define HAVE_RB_STR_TO_STR                 1

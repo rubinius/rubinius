@@ -19,6 +19,13 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_str_buf_new and rb_str_set_len" do
+    it "returns a new string object buffer that can be written into" do
+      @s.rb_str_buf_new(128, "hello", 3).should == "hel"
+      @s.rb_str_buf_new(128, "hello", 4).should == "hell"
+    end
+  end
+
   describe "rb_str_new" do
     it "returns a new string object from a char buffer of len characters" do
       @s.rb_str_new("hello", 3).should == "hel"

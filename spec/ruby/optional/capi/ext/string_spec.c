@@ -48,6 +48,18 @@ VALUE string_spec_rb_str_append(VALUE self, VALUE str, VALUE str2) {
 }
 #endif
 
+#ifdef HAVE_RB_STR_BUF_NEW
+#ifdef HAVE_RB_STR_SET_LEN
+VALUE string_spec_rb_str_buf_new(VALUE self, VALUE buf_len, VALUE str, VALUE set_len) {
+  VALUE buf;
+  buf = rb_str_buf_new(NUM2LONG(buf_len));
+  snprintf(RSTRING_PTR(buf), NUM2LONG(buf_len), "%s", RSTRING_PTR(str));
+  rb_str_set_len(buf, NUM2LONG(set_len));
+  return buf;
+}
+#endif
+#endif
+
 #ifdef HAVE_RB_STR_BUF_CAT
 VALUE string_spec_rb_str_buf_cat(VALUE self, VALUE str) {
   const char *question_mark = "?";
@@ -360,6 +372,12 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_APPEND
   rb_define_method(cls, "rb_str_append", string_spec_rb_str_append, 2);
+#endif
+
+#ifdef HAVE_RB_STR_BUF_NEW
+#ifdef HAVE_RB_STR_SET_LEN
+  rb_define_method(cls, "rb_str_buf_new", string_spec_rb_str_buf_new, 3);
+#endif
 #endif
 
 #ifdef HAVE_RB_STR_BUF_CAT
