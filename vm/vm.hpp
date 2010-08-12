@@ -333,6 +333,9 @@ namespace rubinius {
     bool wakeup();
     bool waiting_p();
 
+    void set_sleeping();
+    void clear_sleeping();
+
     void interrupt_with_signal();
     bool should_interrupt_with_signal() {
       return interrupt_with_signal_;

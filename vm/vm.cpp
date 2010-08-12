@@ -342,6 +342,14 @@ namespace rubinius {
     return interrupt_with_signal_ || !waiting_channel_->nil_p();
   }
 
+  void VM::set_sleeping() {
+    thread->sleep(this, Qtrue);
+  }
+
+  void VM::clear_sleeping() {
+    thread->sleep(this, Qfalse);
+  }
+
   bool VM::process_async(CallFrame* call_frame) {
     check_local_interrupts = false;
 

@@ -169,8 +169,9 @@ step1:
       std::cerr << "[LOCK " << state->thread_id() << " waiting on contention]\n";
     }
 
+    state->set_sleeping();
+
     while(!obj->inflated_header_p()) {
-      state->thread->sleep(state, Qtrue);
       GCIndependent gc_guard(state);
 
       contention_var_.wait(mutex());
@@ -179,7 +180,7 @@ step1:
       }
     }
 
-    state->thread->sleep(state, Qfalse);
+    state->clear_sleeping();
 
     if(cDebugThreading) {
       std::cerr << "[LOCK " << state->thread_id() << " contention broken]\n";

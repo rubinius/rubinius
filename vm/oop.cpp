@@ -576,7 +576,9 @@ step2:
         std::cerr << "[LOCK " << state->thread_id() << " locking native mutex]\n";
       }
 
+      state->set_sleeping();
       mutex_.lock();
+      state->clear_sleeping();
     }
 
     // Spin again to get the private spinlock back
