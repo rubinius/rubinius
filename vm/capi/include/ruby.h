@@ -1627,6 +1627,10 @@ VALUE rb_uint2big(unsigned long number);
   /** Creates a Regexp object */
   VALUE   rb_reg_new(char *source, long len, long options);
 
+  /** Retrieve the nth match for the given MatchData */
+  VALUE   rb_reg_nth_match(long nth, VALUE match_data);
+
+  // include an extconf.h if one is provided
   // include an extconf.h if one is provided
 #ifdef RUBY_EXTCONF_H
 #include RUBY_EXTCONF_H
