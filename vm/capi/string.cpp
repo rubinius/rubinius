@@ -26,25 +26,25 @@ namespace rubinius {
     }
 
     void repin_string(NativeMethodEnvironment* env, String* string, RString* str) {
-      size_t size = string->size();
-
       ByteArray* ba = string->data();
+      size_t byte_size = ba->size();
 
       char* ptr = 0;
       if(ba->pinned_p()) {
         ptr = reinterpret_cast<char*>(ba->raw_bytes());
       } else {
-        ByteArray* new_ba = ByteArray::create_pinned(env->state(), size + 1);
-        std::memcpy(new_ba->raw_bytes(), string->byte_address(), size);
+        ByteArray* new_ba = ByteArray::create_pinned(env->state(), byte_size);
+        std::memcpy(new_ba->raw_bytes(), string->byte_address(), byte_size);
         string->data(env->state(), new_ba);
 
         ptr = reinterpret_cast<char*>(new_ba->raw_bytes());
       }
 
-      ptr[size] = 0;
+      ptr[byte_size-1] = 0;
 
       str->dmwmb = str->ptr = ptr;
-      str->aux.capa = str->len = size;
+      str->len = string->size();
+      str->aux.capa = byte_size;
     }
 
     void capi_update_string(NativeMethodEnvironment* env, VALUE str_handle) {
@@ -215,7 +215,7 @@ extern "C" {
 
     String* string = capi_get_string(env, self_handle);
 
-    size_t size = string->size();
+    size_t size = string->data()->size();
     if(size != len) {
       if(size < len) {
         ByteArray* ba = ByteArray::create_pinned(env->state(), len+1);
@@ -367,9 +367,11 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     String* string = capi_get_string(env, self);
-    if(string->size() > len) {
-      string->byte_address()[len] = 0;
-      string->num_bytes(env->state(), Fixnum::from(len));
-    }
+
+    size_t byte_size = string->data()->size();
+    if(len > byte_size) len = byte_size - 1;
+
+    string->byte_address()[len] = 0;
+    string->num_bytes(env->state(), Fixnum::from(len));
   }
 }
