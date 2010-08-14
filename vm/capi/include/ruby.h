@@ -1,5 +1,5 @@
-#ifndef RBX_SUBTEND_RUBY_H
-#define RBX_SUBTEND_RUBY_H
+#ifndef RBX_CAPI_RUBY_H
+#define RBX_CAPI_RUBY_H
 
 /**
  *  @file
