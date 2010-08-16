@@ -406,7 +406,7 @@ class Socket < BasicSocket
 
       res_p = FFI::MemoryPointer.new :pointer
 
-      err = _getaddrinfo host.to_s, port.to_s, hints.pointer, res_p
+      err = _getaddrinfo host, port.to_s, hints.pointer, res_p
 
       raise SocketError, gai_strerror(err) unless err == 0
 
