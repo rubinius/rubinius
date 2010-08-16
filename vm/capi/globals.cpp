@@ -1,5 +1,6 @@
 #include "builtin/object.hpp"
 #include "builtin/system.hpp"
+#include "builtin/regexp.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/include/ruby.h"
@@ -37,7 +38,14 @@ extern "C" {
 
   VALUE rb_gv_get(const char* name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    long len;
 
+    len = strlen(name);
+    if ((len == 1 && name[0] == '~') ||
+        (len == 2 && name[0] == '$' && name[1] == '~')) {
+      return env->get_handle(Regexp::last_match_result(env->state(),
+        Fixnum::from(0), Fixnum::from(0), env->current_call_frame()));
+    }
     VALUE Globals = rb_const_get(rb_mRubinius, rb_intern("Globals"));
 
     return rb_funcall(Globals,
