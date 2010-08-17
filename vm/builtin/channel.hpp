@@ -31,6 +31,7 @@ namespace rubinius {
     thread::Condition condition_;
     thread::Mutex mutex_;
     int waiters_;
+    int semaphore_count_;
 
   public:
     /* accessors */

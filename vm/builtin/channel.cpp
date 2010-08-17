@@ -32,6 +32,7 @@ namespace rubinius {
   Channel* Channel::create(STATE) {
     Channel* chan = state->new_object_mature<Channel>(G(channel));
     chan->waiters_ = 0;
+    chan->semaphore_count_ = 0;
 
     // Using placement new to call the constructor of condition_
     new(&chan->condition_) thread::Condition();
@@ -50,7 +51,18 @@ namespace rubinius {
   Object* Channel::send(STATE, Object* val) {
     thread::Mutex::LockGuard lg(mutex_);
 
-    value_->append(state, val);
+    if(val->nil_p()) {
+      semaphore_count_++;
+    } else {
+      if(semaphore_count_ > 0) {
+        for(int i = 0; i < semaphore_count_; i++) {
+          value_->append(state, Qnil);
+        }
+        semaphore_count_ = 0;
+      }
+
+      value_->append(state, val);
+    }
 
     if(waiters_ > 0) {
       condition_.signal();
@@ -61,6 +73,11 @@ namespace rubinius {
 
   Object* Channel::try_receive(STATE) {
     thread::Mutex::LockGuard lg(mutex_);
+
+    if(semaphore_count_ > 0) {
+      semaphore_count_--;
+      return Qnil;
+    }
 
     if(value_->empty_p()) return Qnil;
     return value_->shift(state);
@@ -73,6 +90,11 @@ namespace rubinius {
 #define NANOSECONDS 1000000000
   Object* Channel::receive_timeout(STATE, Object* duration, CallFrame* call_frame) {
     thread::Mutex::LockGuard lg(mutex_);
+
+    if(semaphore_count_ > 0) {
+      semaphore_count_--;
+      return Qnil;
+    }
 
     if(!value_->empty_p()) return value_->shift(state);
 
@@ -131,7 +153,7 @@ namespace rubinius {
       }
 
       // or there are values available.
-      if(!self->value()->empty_p()) break;
+      if(self->semaphore_count_ > 0 || !self->value()->empty_p()) break;
     }
 
     state->clear_waiter();
@@ -142,10 +164,13 @@ namespace rubinius {
 
     if(!state->check_async(call_frame)) return NULL;
 
-    // We were awoken, but there is no value to use. Return nil.
-    if(self->value()->empty_p()) {
+    if(semaphore_count_ > 0) {
+      semaphore_count_--;
       return Qnil;
     }
+
+    // We were awoken, but there is no value to use. Return nil.
+    if(self->value()->empty_p()) return Qnil;
 
     return self->value()->shift(state);
   }
