@@ -87,6 +87,8 @@ namespace rubinius {
     /* Data members */
     SharedState& shared;
     TypedRoot<Channel*> waiting_channel_;
+    TypedRoot<Exception*> interrupted_exception_;
+
     bool interrupt_with_signal_;
     InflatedHeader* waiting_header_;
 
@@ -221,6 +223,14 @@ namespace rubinius {
 
     void set_thread_step() {
       thread_step_ = true;
+    }
+
+    Exception* interrupted_exception() {
+      return interrupted_exception_.get();
+    }
+
+    void clear_interrupted_exception() {
+      interrupted_exception_.set(Qnil);
     }
 
   public:

@@ -908,8 +908,14 @@ namespace rubinius {
     case eLockError:
       return Primitives::failure();
     case eLockInterrupted:
-      assert(state->thread_state()->raise_reason() == cException);
-      return 0;
+      {
+        Exception* exc = state->interrupted_exception();
+        assert(!exc->nil_p());
+        state->clear_interrupted_exception();
+        exc->locations(state, Location::from_call_stack(state, call_frame));
+        state->thread_state()->raise_exception(exc);
+        return 0;
+      }
     }
 
     return Qnil;
@@ -928,7 +934,14 @@ namespace rubinius {
     case eLockError:
       return Primitives::failure();
     case eLockInterrupted:
-      assert(state->thread_state()->raise_reason() == cException);
+      {
+        Exception* exc = state->interrupted_exception();
+        assert(!exc->nil_p());
+        state->clear_interrupted_exception();
+        exc->locations(state, Location::from_call_stack(state, call_frame));
+        state->thread_state()->raise_exception(exc);
+        return 0;
+      }
       return 0;
     }
 

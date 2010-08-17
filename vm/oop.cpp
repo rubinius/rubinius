@@ -3,6 +3,7 @@
 #include "oop.hpp"
 #include "builtin/object.hpp"
 #include "builtin/class.hpp"
+#include "builtin/exception.hpp"
 
 #include "objectmemory.hpp"
 
@@ -598,7 +599,7 @@ step2:
         if(state->check_local_interrupts) {
           state->check_local_interrupts = false;
 
-          if(state->thread_state()->raise_reason() == cException) {
+          if(!state->interrupted_exception()->nil_p()) {
             if(cDebugThreading) {
               std::cerr << "[LOCK " << state->thread_id() << " detected interrupt]\n";
             }

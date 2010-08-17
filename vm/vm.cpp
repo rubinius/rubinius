@@ -62,6 +62,7 @@ namespace rubinius {
 
     , shared(shared)
     , waiting_channel_(this, (Channel*)Qnil)
+    , interrupted_exception_(this, (Exception*)Qnil)
     , interrupt_with_signal_(false)
     , waiting_header_(0)
     , om(shared.om)
@@ -310,7 +311,7 @@ namespace rubinius {
   }
 
   bool VM::wakeup(STATE) {
-    SYNC(this);
+    SYNC(state);
 
     check_local_interrupts = true;
 
@@ -376,14 +377,20 @@ namespace rubinius {
       shared.signal_handler()->deliver_signals(call_frame);
     }
 
-    if(thread_state_.raise_reason() != cNone) return false;
+    Exception* exc = interrupted_exception_.get();
+    if(!exc->nil_p()) {
+      interrupted_exception_.set((Exception*)Qnil);
+      exc->locations(this, Location::from_call_stack(this, call_frame));
+      thread_state_.raise_exception(exc);
+      return false;
+    }
 
     return true;
   }
 
   void VM::register_raise(STATE, Exception* exc) {
     SYNC(state);
-    thread_state_.raise_exception(exc);
+    interrupted_exception_.set(exc);
     check_local_interrupts = true;
   }
 
