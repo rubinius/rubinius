@@ -82,31 +82,36 @@ module Timeout
   def self.add_timeout(time, exc)
 
     @controller ||= Thread.new do
-      while true
-        if @requests.empty?
-          sleep
-          next
-        end
+      begin
+        while true
+          if @requests.empty?
+            sleep
+            next
+          end
 
-        min = nil
+          min = nil
 
-        @mutex.synchronize do
-          min = @requests.min { |a,b| a.left <=> b.left }
-        end
+          @mutex.synchronize do
+            min = @requests.min { |a,b| a.left <=> b.left }
+          end
 
-        slept_for = sleep(min.left)
+          slept_for = sleep(min.left)
 
-        @mutex.synchronize do
-          @requests.delete_if do |r|
-            if r.elapsed(slept_for)
-              r.cancel
-              true
-            else
-              false
+          @mutex.synchronize do
+            @requests.delete_if do |r|
+              if r.elapsed(slept_for)
+                r.cancel
+                true
+              else
+                false
+              end
             end
           end
-        end
 
+        end
+      rescue Exception => e
+        e.render("ERROR IN TIMEOUT THREAD")
+        @controller = nil
       end
     end
 
