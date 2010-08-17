@@ -637,12 +637,16 @@ step1:
           i++) {
         gc::Slab& slab = (*i)->local_slab();
 
-        void* addr = young_->allocate_for_slab(slab_size_);
-        assert(addr);
-
         objects_allocated += slab.allocations();
 
-        slab.refill(addr, slab_size_);
+        void* addr = young_->allocate_for_slab(slab_size_);
+        if(addr) {
+          slab.refill(addr, slab_size_);
+        } else {
+          // We failed to allocate a slab, refill it to size 0.
+          // It will fallback to ObjectMemory allocations later on.
+          slab.refill(0, 0);
+        }
       }
     }
 
