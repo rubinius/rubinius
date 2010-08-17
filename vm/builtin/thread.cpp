@@ -163,7 +163,7 @@ namespace rubinius {
 
     vm->register_raise(state, exc);
 
-    vm->wakeup();
+    vm->wakeup(state);
     return exc;
   }
 
@@ -181,7 +181,7 @@ namespace rubinius {
     VM* vm = vm_;
     if(!vm) return this;
 
-    vm->wakeup();
+    vm->wakeup(state);
 
     return this;
   }

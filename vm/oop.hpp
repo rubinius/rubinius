@@ -572,6 +572,8 @@ const int cUndef = 0x22L;
     LockStatus unlock(STATE);
     void unlock_for_terminate(STATE);
 
+    void wait(STATE);
+
     bool nil_p() const {
       return this == reinterpret_cast<ObjectHeader*>(Qnil);
     }

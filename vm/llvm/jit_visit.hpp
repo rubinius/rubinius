@@ -97,6 +97,7 @@ namespace rubinius {
     // The single Arguments object on the stack, plus positions into it
     // that we store the call info
     Value* out_args_;
+    Value* out_args_name_;
     Value* out_args_recv_;
     Value* out_args_block_;
     Value* out_args_total_;
@@ -123,10 +124,11 @@ namespace rubinius {
     void init_out_args() {
       out_args_ = info().out_args();
 
-      out_args_recv_ = ptr_gep(out_args_, 0, "out_args_recv");
-      out_args_block_= ptr_gep(out_args_, 1, "out_args_block");
-      out_args_total_= ptr_gep(out_args_, 2, "out_args_total");
-      out_args_arguments_ = ptr_gep(out_args_, 3, "out_args_arguments");
+      out_args_name_ = ptr_gep(out_args_, 0, "out_args_name");
+      out_args_recv_ = ptr_gep(out_args_, 1, "out_args_recv");
+      out_args_block_= ptr_gep(out_args_, 2, "out_args_block");
+      out_args_total_= ptr_gep(out_args_, 3, "out_args_total");
+      out_args_arguments_ = ptr_gep(out_args_, 4, "out_args_arguments");
       out_args_container_ = ptr_gep(out_args_, offset::args_container,
                                     "out_args_container");
     }
@@ -3215,14 +3217,16 @@ use_send:
       Signature sig(ls_, ObjType);
 
       sig << VMTy;
+      sig << CallFrameTy;
       sig << ObjArrayTy;
 
       Value* call_args[] = {
         vm_,
+        call_frame_,
         stack_back_position(0)
       };
 
-      Value* val = sig.call("rbx_shift_array", call_args, 2, "field", b());
+      Value* val = sig.call("rbx_shift_array", call_args, 3, "field", b());
       stack_push(val);
     }
 

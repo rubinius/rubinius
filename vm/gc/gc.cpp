@@ -150,11 +150,6 @@ namespace rubinius {
         call_frame->top_scope_ = (VariableScope*)mark_object(call_frame->top_scope_);
       }
 
-      if(Dispatch* msg = call_frame->dispatch()) {
-        msg->module = (Module*)mark_object(msg->module);
-        msg->method = (Executable*)mark_object(msg->method);
-      }
-
       if(BlockEnvironment* env = call_frame->block_env()) {
         call_frame->set_block_env((BlockEnvironment*)mark_object(env));
       }
@@ -254,11 +249,6 @@ namespace rubinius {
       if(call_frame->multiple_scopes_p() &&
           call_frame->top_scope_) {
         call_frame->top_scope_ = (VariableScope*)visit.call(call_frame->top_scope_);
-      }
-
-      if(Dispatch* msg = call_frame->dispatch()) {
-        msg->module = (Module*)visit.call(msg->module);
-        msg->method = (Executable*)visit.call(msg->method);
       }
 
       if(BlockEnvironment* env = call_frame->block_env()) {

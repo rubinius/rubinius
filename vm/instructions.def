@@ -801,7 +801,7 @@ instruction cast_array() [ value -- array ]
     t1 = Array::from_tuple(state, as<Tuple>(t1));
   } else if(!kind_of<Array>(t1)) {
     Object* recv = G(array);
-    Arguments args(recv, 1, &t1);
+    Arguments args(G(sym_coerce_into_array), recv, 1, &t1);
     Dispatch dis(G(sym_coerce_into_array));
 
     Object* res = dis.send(state, call_frame, args);
@@ -1175,7 +1175,7 @@ instruction send_method(literal) [ receiver -- value ] => send
 
   SET_ALLOW_PRIVATE(false);
 
-  Arguments args(recv, Qnil, 0, 0);
+  Arguments args(cache->name, recv, Qnil, 0, 0);
   Object* ret = cache->execute(state, call_frame, args);
 
   (void)stack_pop();
@@ -1218,7 +1218,7 @@ instruction send_stack(literal count) [ receiver +count -- value ] => send
 
   SET_ALLOW_PRIVATE(false);
 
-  Arguments args(recv, Qnil, count,
+  Arguments args(cache->name, recv, Qnil, count,
                  stack_back_position(count));
 
   Object* ret = cache->execute(state, call_frame, args);
@@ -1262,7 +1262,7 @@ instruction send_stack_with_block(literal count) [ block receiver +count -- valu
   Object* recv = stack_back(count);
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  Arguments args(recv, block, count,
+  Arguments args(cache->name, recv, block, count,
                  stack_back_position(count));
 
   SET_ALLOW_PRIVATE(false);
@@ -1310,7 +1310,7 @@ instruction send_stack_with_splat(literal count) [ block array receiver +count -
   Object* recv =  stack_back(count);
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  Arguments args(recv, block, count,
+  Arguments args(cache->name, recv, block, count,
                  stack_back_position(count));
 
   if(!ary->nil_p()) {
@@ -1361,8 +1361,8 @@ instruction send_super_stack_with_block(literal count) [ block +count -- value ]
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
   Object* const recv = call_frame->self();
 
-  Arguments new_args(recv, block, count,
-                 stack_back_position(count));
+  Arguments new_args(cache->name, recv, block, count,
+                     stack_back_position(count));
 
   SET_ALLOW_PRIVATE(false);
 
@@ -1409,8 +1409,8 @@ instruction send_super_stack_with_splat(literal count) [ block array +count -- v
   Object* const recv = call_frame->self();
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  Arguments new_args(recv, block, count,
-                 stack_back_position(count));
+  Arguments new_args(cache->name, recv, block, count,
+                     stack_back_position(count));
 
   if(!ary->nil_p()) {
     if(CALL_FLAGS() & CALL_FLAG_CONCAT) {
@@ -1626,7 +1626,7 @@ instruction yield_stack(count) [ +count -- value ] => yield
   flush_ip();
   Object* t1 = call_frame->scope->block();
   Object* ret;
-  Arguments args(t1, count, stack_back_position(count));
+  Arguments args(G(sym_call), t1, count, stack_back_position(count));
 
   if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
     ret = env->call(state, call_frame, args);
@@ -1651,7 +1651,7 @@ instruction yield_splat(count) [ array +count -- value ] => yield
   Object* ary = stack_pop();
   Object* t1 = call_frame->scope->block();
 
-  Arguments args(t1, count, stack_back_position(count));
+  Arguments args(G(sym_call), t1, count, stack_back_position(count));
 
   if(!ary->nil_p()) {
     args.append(state, as<Array>(ary));
@@ -1836,6 +1836,8 @@ instruction check_interrupts() [ -- ]
   }
 
   if(!state->check_async(call_frame)) RUN_EXCEPTION();
+
+  state->set_call_frame(call_frame);
   state->shared.checkpoint(state);
 end
 
@@ -2150,7 +2152,7 @@ instruction meta_send_op_plus(literal) [ value1 value2 -- sum ] => send
     stack_push(res);
   } else {
     flush_ip();
-    Arguments out_args(left, 1, stack_back_position(1));
+    Arguments out_args(G(sym_plus), left, 1, stack_back_position(1));
     InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
@@ -2186,7 +2188,7 @@ instruction meta_send_op_minus(literal) [ value1 value2 -- difference ] => send
     stack_set_top(((Fixnum*)(left))->sub(state, (Fixnum*)(right)));
   } else {
     flush_ip();
-    Arguments out_args(left, 1, stack_back_position(1));
+    Arguments out_args(G(sym_minus), left, 1, stack_back_position(1));
     InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
@@ -2226,7 +2228,7 @@ instruction meta_send_op_equal(literal) [ value1 value2 -- boolean ] => send
   } else {
     flush_ip();
 
-    Arguments out_args(t1, 1, stack_back_position(1));
+    Arguments out_args(G(sym_equal), t1, 1, stack_back_position(1));
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
@@ -2262,8 +2264,8 @@ instruction meta_send_op_lt(literal) [ value1 value2 -- boolean ]
     stack_set_top((j < k) ? Qtrue : Qfalse);
   } else {
     flush_ip();
-    Arguments out_args(t1, 1, stack_back_position(1));
     InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+    Arguments out_args(cache->name, t1, 1, stack_back_position(1));
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
@@ -2299,8 +2301,8 @@ instruction meta_send_op_gt(literal) [ value1 value2 -- boolean ]
     stack_set_top((j > k) ? Qtrue : Qfalse);
   } else {
     flush_ip();
-    Arguments out_args(t1, 1, stack_back_position(1));
     InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+    Arguments out_args(cache->name, t1, 1, stack_back_position(1));
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
@@ -2337,8 +2339,8 @@ instruction meta_send_op_tequal(literal) [ value1 value2 -- boolean ] => send
     stack_set_top((t1 == t2) ? Qtrue : Qfalse);
   } else {
     flush_ip();
-    Arguments out_args(t1, 1, stack_back_position(1));
     InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+    Arguments out_args(cache->name, t1, 1, stack_back_position(1));
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
@@ -2366,7 +2368,7 @@ instruction meta_send_call(literal count) [ receiver +count -- value ] => send
   Object* t1 = stack_back(count);
   Object* ret;
 
-  Arguments out_args(t1, count, stack_back_position(count));
+  Arguments out_args(G(sym_call), t1, count, stack_back_position(count));
 
   if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
     ret = env->call(state, call_frame, out_args);
@@ -2428,14 +2430,14 @@ instruction zsuper(literal) [ block -- value ]
     tup->put(state, v->total_args, splat_obj);
   }
 
-  Arguments new_args(recv, block, arg_count, 0);
+  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+
+  Arguments new_args(cache->name, recv, block, arg_count, 0);
   new_args.use_tuple(tup, arg_count);
 
   SET_ALLOW_PRIVATE(false);
 
   Object* ret;
-
-  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
   Symbol* current_name = call_frame->original_name();
   if(cache->name != current_name) {
@@ -2545,7 +2547,7 @@ instruction call_custom(literal count) [ receiver +count -- value ] => send
 
   SET_ALLOW_PRIVATE(false);
 
-  Arguments args(recv, Qnil, count,
+  Arguments args(cache->name, recv, Qnil, count,
                  stack_back_position(count));
 
   Object* ret = cache->execute(state, call_frame, args);

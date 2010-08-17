@@ -445,7 +445,7 @@ namespace rubinius {
     LookupData lookup(this, this->lookup_begin(state), allow_private);
     Dispatch dis(name);
 
-    Arguments args(ary);
+    Arguments args(name, ary);
     args.set_block(block);
     args.set_recv(this);
 
@@ -456,14 +456,14 @@ namespace rubinius {
     LookupData lookup(this, this->lookup_begin(state), allow_private);
     Dispatch dis(name);
 
-    Arguments args;
+    Arguments args(name);
     args.set_block(Qnil);
     args.set_recv(this);
 
     return dis.send(state, caller, lookup, args);
   }
 
-  Object* Object::send_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg,
+  Object* Object::send_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                             Arguments& args) {
     if(args.total() < 1) return Primitives::failure();
 

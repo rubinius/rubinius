@@ -29,9 +29,9 @@ namespace rubinius {
     return av;
   }
 
-  Object* AccessVariable::access_read_regular_ivar(STATE, CallFrame* call_frame, Dispatch& msg,
+  Object* AccessVariable::access_read_regular_ivar(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                                          Arguments& args) {
-    AccessVariable* access = as<AccessVariable>(msg.method);
+    AccessVariable* access = as<AccessVariable>(exec);
     if(unlikely(args.total() != 0)) {
       Exception::argument_error(state, 0, args.total());
       return NULL;
@@ -47,9 +47,9 @@ namespace rubinius {
     return recv->get_table_ivar(state, access->name());
   }
 
-  Object* AccessVariable::access_write_regular_ivar(STATE, CallFrame* call_frame, Dispatch& msg,
+  Object* AccessVariable::access_write_regular_ivar(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                                          Arguments& args) {
-    AccessVariable* access = as<AccessVariable>(msg.method);
+    AccessVariable* access = as<AccessVariable>(exec);
     if(unlikely(args.total() != 1)) {
       Exception::argument_error(state, 1, args.total());
       return NULL;
@@ -70,11 +70,11 @@ namespace rubinius {
     return recv->set_table_ivar(state, access->name(), args.get_argument(0));
   }
 
-  /* Run when an AccessVariable is executed. Uses the details in msg.method
+  /* Run when an AccessVariable is executed. Uses the details in exec
    * to access instance variables of args.recv() */
-  Object* AccessVariable::access_execute(STATE, CallFrame* call_frame, Dispatch& msg,
+  Object* AccessVariable::access_execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                                          Arguments& args) {
-    AccessVariable* access = as<AccessVariable>(msg.method);
+    AccessVariable* access = as<AccessVariable>(exec);
     Object* const self = args.recv();
 
     /* The writer case. */

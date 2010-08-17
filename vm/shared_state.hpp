@@ -67,7 +67,7 @@ namespace rubinius {
     }
   };
 
-  class SharedState : public RefCount, Lockable {
+  class SharedState : public RefCount, public Lockable {
   private:
     bool initialized_;
     SignalHandler* signal_handler_;

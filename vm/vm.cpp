@@ -63,6 +63,7 @@ namespace rubinius {
     , shared(shared)
     , waiting_channel_(this, (Channel*)Qnil)
     , interrupt_with_signal_(false)
+    , waiting_header_(0)
     , om(shared.om)
     , interrupts(shared.interrupts)
     , check_local_interrupts(false)
@@ -319,8 +320,11 @@ namespace rubinius {
     if(interrupt_with_signal_) {
       pthread_kill(os_thread_, SIGVTALRM);
       return true;
-    } else if(waiting_header_) {
-      waiting_header_->wakeup();
+    } else if(InflatedHeader* ih = waiting_header_) {
+      // We shouldn't hold the VM lock and the IH lock at the same time,
+      // other threads can grab them and deadlock.
+      UNSYNC;
+      ih->wakeup();
       return true;
     } else {
       Channel* chan = waiting_channel_.get();

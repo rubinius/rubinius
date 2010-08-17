@@ -16,7 +16,7 @@ namespace rubinius {
     };
 
     typedef Object* (*Execute)(VM*, CallFrame*, CallUnit* unit,
-                               Dispatch& msg, Arguments& args);
+                               Executable* exec, Module* mod, Arguments& args);
 
   private:
     Kind kind_;
@@ -59,22 +59,22 @@ namespace rubinius {
 
     static Object* constant_value_executor(STATE, CallFrame* call_frame,
                                             CallUnit* unit,
-                                            Dispatch& msg,
+                                            Executable* exec, Module* mod,
                                             Arguments& args);
 
     static Object* method_executor(STATE, CallFrame* call_frame,
                                             CallUnit* unit,
-                                            Dispatch& msg,
+                                            Executable* exec, Module* mod,
                                             Arguments& args);
 
     static Object* test_executor(STATE, CallFrame* call_frame,
                                             CallUnit* unit,
-                                            Dispatch& msg,
+                                            Executable* exec, Module* mod,
                                             Arguments& args);
 
     static Object* kind_of_executor(STATE, CallFrame* call_frame,
                                             CallUnit* unit,
-                                            Dispatch& msg,
+                                            Executable* exec, Module* mod,
                                             Arguments& args);
 
     class Info : public TypeInfo {

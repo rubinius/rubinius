@@ -110,10 +110,10 @@ namespace rubinius {
     return backend_method_;
   }
 
-  Object* CompiledMethod::primitive_failed(STATE, CallFrame* call_frame, Dispatch& msg,
+  Object* CompiledMethod::primitive_failed(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                                            Arguments& args) {
-    if(try_as<CompiledMethod>(msg.method)) {
-      return VMMethod::execute(state, call_frame, msg, args);
+    if(try_as<CompiledMethod>(exec)) {
+      return VMMethod::execute(state, call_frame, exec, mod, args);
     }
 
     // TODO fix me to raise an exception
@@ -133,13 +133,18 @@ namespace rubinius {
     return this;
   }
 
-  Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame, Dispatch& msg,
+  Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                                            Arguments& args) {
-    CompiledMethod* cm = as<CompiledMethod>(msg.method);
-    cm->formalize(state, false);
-    // Refactor
-    cm->backend_method_->find_super_instructions();
-    return cm->execute(state, call_frame, msg, args);
+    LockableScopedLock lg(state, &state->shared, __FILE__, __LINE__);
+
+    CompiledMethod* cm = as<CompiledMethod>(exec);
+    if(cm->execute == default_executor) {
+      cm->formalize(state, false);
+    }
+
+    lg.unlock();
+
+    return cm->execute(state, call_frame, exec, mod, args);
   }
 
   void CompiledMethod::post_marshal(STATE) {

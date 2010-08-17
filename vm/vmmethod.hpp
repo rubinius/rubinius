@@ -164,10 +164,10 @@ namespace rubinius {
 
     void specialize(STATE, CompiledMethod* original, TypeInfo* ti);
     void compile(STATE);
-    static Object* execute(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    static Object* execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     template <typename ArgumentHandler>
-      static Object* execute_specialized(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+      static Object* execute_specialized(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     struct InterpreterState {
       bool allow_private;

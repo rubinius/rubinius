@@ -183,8 +183,8 @@ namespace rubinius {
       stats::Timer  timer_;
 
     public:
-      MethodEntry(STATE, Dispatch& msg, Arguments& args);
-      MethodEntry(STATE, Dispatch& msg, Arguments& args, CompiledMethod* cm, bool jit=false);
+      MethodEntry(STATE, Executable* exec, Module* mod, Arguments& args);
+      MethodEntry(STATE, Executable* exec, Module* mod, Arguments& args, CompiledMethod* cm, bool jit=false);
       MethodEntry(STATE, Symbol* name, Module* module, CompiledMethod* cm, bool jit=false);
       MethodEntry(STATE, Kind kind);
       ~MethodEntry();
@@ -221,7 +221,7 @@ namespace rubinius {
       Method* find_method(CompiledMethod* cm, Symbol* container, Symbol* name, Kind kind);
 
       Symbol* module_name(Module* module);
-      Method* enter_method(Dispatch&, Arguments& args, CompiledMethod* cm, bool jit);
+      Method* enter_method(Executable* exec, Module* mod, Arguments& args, CompiledMethod* cm, bool jit);
       Method* enter_block(Symbol* name, Module* module, CompiledMethod* cm, bool jit);
       Method* get_method(CompiledMethod* cm, Symbol* name,
           Symbol* container, Kind kind);

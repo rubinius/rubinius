@@ -86,12 +86,11 @@ namespace rubinius {
       // NOTE! To match MRI semantics, this explicitely ignores lambda_.
       return block_->call(state, call_frame, args, 0);
     } else {
-      Dispatch dis;
-      return call_prim(state, NULL, call_frame, dis, args);
+      return call_prim(state, call_frame, NULL, NULL, args);
     }
   }
 
-  Object* Proc::call_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg,
+  Object* Proc::call_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                           Arguments& args) {
     bool lambda_style = RTEST(lambda_);
     int flags = 0;
@@ -138,8 +137,8 @@ namespace rubinius {
     return ret;
   }
 
-  Object* Proc::call_on_object(STATE, Executable* exec, CallFrame* call_frame,
-                               Dispatch& msg, Arguments& args) {
+  Object* Proc::call_on_object(STATE, CallFrame* call_frame,
+                               Executable* exec, Module* mod, Arguments& args) {
     bool lambda_style = !lambda_->nil_p();
     int flags = 0;
 

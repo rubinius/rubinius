@@ -171,8 +171,8 @@ namespace rubinius {
     return invoke(state, call_frame, this, args, invocation);
   }
 
-  Object* BlockEnvironment::call_prim(STATE, Executable* exec,
-      CallFrame* call_frame, Dispatch& msg, Arguments& args)
+  Object* BlockEnvironment::call_prim(STATE,
+      CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args)
   {
     return call(state, call_frame, args);
   }
@@ -194,8 +194,8 @@ namespace rubinius {
     return invoke(state, call_frame, this, args, invocation);
   }
 
-  Object* BlockEnvironment::call_under(STATE, Executable* exec,
-      CallFrame* call_frame, Dispatch& msg, Arguments& args)
+  Object* BlockEnvironment::call_under(STATE,
+      CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args)
   {
     if(args.total() < 2) {
       Exception* exc =

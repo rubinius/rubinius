@@ -31,10 +31,10 @@ namespace rubinius {
     Object* call(STATE, CallFrame* call_frame, Arguments& args);
 
     // Ruby.primitive? :proc_call
-    Object* call_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    Object* call_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     // Ruby.primitive? :proc_call_on_object
-    Object* call_on_object(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    Object* call_on_object(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     // Ruby.primitive :proc_from_env
     static Proc* from_env(STATE, Object* env);

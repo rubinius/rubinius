@@ -320,7 +320,7 @@ namespace rubinius {
 
     /** Set up and call native method. */
     template <class ArgumentHandler>
-    static Object* executor_implementation(STATE, CallFrame* call_frame, Dispatch& msg,
+    static Object* executor_implementation(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                                            Arguments& message);
 
     /**

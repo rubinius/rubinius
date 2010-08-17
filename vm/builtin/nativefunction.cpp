@@ -70,9 +70,9 @@ namespace rubinius {
 
   /* Run when a NativeFunction is executed.  Executes the related C function.
    */
-  Object* NativeFunction::execute(STATE, CallFrame* call_frame, Dispatch& msg,
+  Object* NativeFunction::execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                                   Arguments& args) {
-    NativeFunction* nfunc = as<NativeFunction>(msg.method);
+    NativeFunction* nfunc = as<NativeFunction>(exec);
 
     state->set_call_frame(call_frame);
 
@@ -80,7 +80,7 @@ namespace rubinius {
 
 #ifdef RBX_PROFILER
       if(unlikely(state->shared.profiling())) {
-        profiler::MethodEntry method(state, msg, args);
+        profiler::MethodEntry method(state, exec, mod, args);
         return nfunc->call(state, args, call_frame);
       } else {
         return nfunc->call(state, args, call_frame);

@@ -80,7 +80,7 @@ namespace rubinius {
     // Ruby.primitive :compiledmethod_allocate
     static CompiledMethod* create(STATE);
 
-    static Object* primitive_failed(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    static Object* primitive_failed(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     int start_line(STATE);
     int start_line();
@@ -91,7 +91,7 @@ namespace rubinius {
     VMMethod* formalize(STATE, bool ondemand=true);
     void specialize(STATE, TypeInfo* ti);
 
-    static Object* default_executor(STATE, CallFrame*, Dispatch&, Arguments& args);
+    static Object* default_executor(STATE, CallFrame*, Executable* exec, Module* mod, Arguments& args);
 
     // Ruby.primitive :compiledmethod_compile
     Object* compile(STATE);

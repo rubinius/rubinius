@@ -158,7 +158,7 @@ namespace rubinius {
       env->flush_cached_data();
 
       LookupData lookup(recv, recv->lookup_begin(env->state()), true);
-      Arguments args_o(recv, block, arg_count, args);
+      Arguments args_o(method, recv, block, arg_count, args);
       Dispatch dis(method);
 
       Object* ret = dis.send(env->state(), env->current_call_frame(),
@@ -189,7 +189,7 @@ namespace rubinius {
       Symbol* name = c_as<NativeMethod>(env->get_object(frame->method()))->name();
 
       LookupData lookup(recv, mod->superclass(), true);
-      Arguments args_o(recv, arg_count, args);
+      Arguments args_o(name, recv, arg_count, args);
       Dispatch dis(name);
 
       Object* ret = dis.send(env->state(), env->current_call_frame(),

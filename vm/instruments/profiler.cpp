@@ -169,20 +169,20 @@ namespace rubinius {
       }
     }
 
-    MethodEntry::MethodEntry(STATE, Dispatch& msg, Arguments& args)
+    MethodEntry::MethodEntry(STATE, Executable* exec, Module* mod, Arguments& args)
       : state_(state)
       , edge_(0)
     {
       method_ = state->profiler()->enter_method(
-          msg, args, reinterpret_cast<CompiledMethod*>(Qnil), false);
+          exec, mod, args, reinterpret_cast<CompiledMethod*>(Qnil), false);
       start();
     }
 
-    MethodEntry::MethodEntry(STATE, Dispatch& msg, Arguments& args, CompiledMethod* cm, bool jit)
+    MethodEntry::MethodEntry(STATE, Executable* exec, Module* mod, Arguments& args, CompiledMethod* cm, bool jit)
       : state_(state)
       , edge_(0)
     {
-      method_ = state->profiler()->enter_method(msg, args, cm, jit);
+      method_ = state->profiler()->enter_method(exec, mod, args, cm, jit);
       start();
     }
 
@@ -256,18 +256,18 @@ namespace rubinius {
       return get_method(cm, name, module_name(module), jit ? kBlockJIT : kBlock);
     }
 
-    Method* Profiler::enter_method(Dispatch &msg, Arguments& args, CompiledMethod* cm, bool jit) {
-      if(MetaClass* mc = try_as<MetaClass>(msg.module)) {
+    Method* Profiler::enter_method(Executable* exec, Module* mod, Arguments& args, CompiledMethod* cm, bool jit) {
+      if(MetaClass* mc = try_as<MetaClass>(mod)) {
         Object* attached = mc->attached_instance();
 
         if(Module* mod = try_as<Module>(attached)) {
-          return get_method(cm, msg.name, mod->name(), jit ? kSingletonJIT : kSingleton);
+          return get_method(cm, args.name(), mod->name(), jit ? kSingletonJIT : kSingleton);
         } else {
           Symbol* name = args.recv()->to_s(state_)->to_sym(state_);
-          return get_method(cm, msg.name, name, jit ? kSingletonJIT : kSingleton);
+          return get_method(cm, args.name(), name, jit ? kSingletonJIT : kSingleton);
         }
       } else {
-        return get_method(cm, msg.name, module_name(msg.module), jit ? kNormalJIT : kNormal);
+        return get_method(cm, args.name(), module_name(mod), jit ? kNormalJIT : kNormal);
       }
     }
 

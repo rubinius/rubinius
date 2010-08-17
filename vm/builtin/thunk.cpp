@@ -18,14 +18,14 @@ namespace rubinius {
     return pe;
   }
 
-  Object* Thunk::thunk_executor(STATE, CallFrame* call_frame, Dispatch& msg,
+  Object* Thunk::thunk_executor(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                                        Arguments& args)
   {
-    Thunk* thunk = as<Thunk>(msg.method);
+    Thunk* thunk = as<Thunk>(exec);
 
     if(args.total() != 0) {
       Exception* exc =
-        Exception::make_argument_error(state, 0, args.total(), msg.name);
+        Exception::make_argument_error(state, 0, args.total(), args.name());
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
       return NULL;

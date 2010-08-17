@@ -536,9 +536,9 @@ namespace rubinius {
    */
   template <typename ArgumentHandler>
     Object* VMMethod::execute_specialized(STATE, CallFrame* previous,
-        Dispatch& msg, Arguments& args) {
+        Executable* exec, Module* mod, Arguments& args) {
 
-      CompiledMethod* cm = as<CompiledMethod>(msg.method);
+      CompiledMethod* cm = as<CompiledMethod>(exec);
       VMMethod* vmm = cm->backend_method();
 
       size_t scope_size = sizeof(StackVariables) +
@@ -551,14 +551,14 @@ namespace rubinius {
       // look in the wrong place.
       //
       // Thus, we have to cache the value in the StackVariables.
-      scope->initialize(args.recv(), args.block(), msg.module, vmm->number_of_locals);
+      scope->initialize(args.recv(), args.block(), mod, vmm->number_of_locals);
 
       InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
 
       // If argument handling fails..
       if(ArgumentHandler::call(state, vmm, scope, args) == false) {
         Exception* exc =
-          Exception::make_argument_error(state, vmm->required_args, args.total(), msg.name);
+          Exception::make_argument_error(state, vmm->required_args, args.total(), args.name());
         exc->locations(state, Location::from_call_stack(state, previous));
         state->thread_state()->raise_exception(exc);
 
@@ -570,7 +570,7 @@ namespace rubinius {
       frame->previous = previous;
       frame->flags =    0;
       frame->arguments = &args;
-      frame->dispatch_data = &msg;
+      frame->dispatch_data = 0;
       frame->cm =       cm;
       frame->scope =    scope;
 
@@ -607,7 +607,7 @@ namespace rubinius {
 
 #ifdef RBX_PROFILER
       if(unlikely(state->shared.profiling())) {
-        profiler::MethodEntry method(state, msg, args, cm);
+        profiler::MethodEntry method(state, exec, mod, args, cm);
         return (*vmm->run)(state, vmm, frame);
       } else {
         return (*vmm->run)(state, vmm, frame);
@@ -618,8 +618,8 @@ namespace rubinius {
     }
 
   /** This is used as a fallback way of entering the interpreter */
-  Object* VMMethod::execute(STATE, CallFrame* previous, Dispatch& msg, Arguments& args) {
-    return execute_specialized<GenericArguments>(state, previous, msg, args);
+  Object* VMMethod::execute(STATE, CallFrame* previous, Executable* exec, Module* mod, Arguments& args) {
+    return execute_specialized<GenericArguments>(state, previous, exec, mod, args);
   }
 
   /* This is a noop for this class. */

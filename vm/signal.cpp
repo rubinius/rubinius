@@ -85,7 +85,7 @@ namespace rubinius {
         {
           vm_->check_local_interrupts = true;
           vm_->get_attention();
-          vm_->wakeup();
+          vm_->wakeup(vm_);
 
         }
       }

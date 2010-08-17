@@ -19,7 +19,8 @@ namespace jit {
     std::vector<const Type*> ftypes;
     ftypes.push_back(ls_->ptr_type("VM"));
     ftypes.push_back(ls_->ptr_type("CallFrame"));
-    ftypes.push_back(ls_->ptr_type("Dispatch"));
+    ftypes.push_back(ls_->ptr_type("Executable"));
+    ftypes.push_back(ls_->ptr_type("Module"));
     ftypes.push_back(ls_->ptr_type("Arguments"));
 
     FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), ftypes, false);
@@ -35,7 +36,8 @@ namespace jit {
     Function::arg_iterator ai = func->arg_begin();
     vm =   ai++; vm->setName("state");
     prev = ai++; prev->setName("previous");
-    msg =  ai++; msg->setName("msg");
+    exec = ai++; exec->setName("exec");
+    module = ai++; module->setName("mod");
     args = ai++; args->setName("args");
 
     BasicBlock* block = BasicBlock::Create(ls_->ctx(), "entry", func);
@@ -242,7 +244,6 @@ namespace jit {
 
   void MethodBuilder::check_arity() {
     Value* vm_obj = vm;
-    Value* dis_obj = msg;
     Value* arg_obj = args;
 
     Value* total_offset = b().CreateConstGEP2_32(arg_obj, 0,
@@ -294,19 +295,17 @@ namespace jit {
 
     sig << "VM";
     sig << "CallFrame";
-    sig << "Dispatch";
     sig << "Arguments";
     sig << ls_->Int32Ty;
 
     Value* call_args[] = {
       vm_obj,
       prev,
-      dis_obj,
       arg_obj,
       ConstantInt::get(ls_->Int32Ty, vmm_->required_args)
     };
 
-    Value* val = sig.call("rbx_arg_error", call_args, 5, "ret", b());
+    Value* val = sig.call("rbx_arg_error", call_args, 4, "ret", b());
     return_value(val);
 
     // Switch to using continuation
@@ -353,8 +352,7 @@ namespace jit {
     Value* self = b().CreateLoad(get_field(args, offset::args_recv),
         "args.recv");
     b().CreateStore(self, get_field(vars, offset::vars_self));
-    Value* mod = b().CreateLoad(get_field(msg, offset::msg_module),
-        "msg.module");
+    Value* mod = module;
     b().CreateStore(mod, get_field(vars, offset::vars_module));
 
     Value* blk = b().CreateLoad(get_field(args, offset::args_block),
@@ -372,7 +370,7 @@ namespace jit {
 
 
   void MethodBuilder::initialize_frame(int stack_size) {
-    Value* exec = b().CreateLoad(get_field(msg, 2), "msg.exec");
+    Value* exec = this->exec;
     Value* cm_gep = get_field(call_frame, offset::cf_cm);
     method = b().CreateBitCast(
         exec, cast<llvm::PointerType>(cm_gep->getType())->getElementType(), "cm");
@@ -385,7 +383,7 @@ namespace jit {
 
     // msg
     b().CreateStore(
-        b().CreatePointerCast(msg, ls_->Int8PtrTy),
+        ConstantInt::getNullValue(ls_->Int8PtrTy),
         get_field(call_frame, offset::cf_msg));
 
     // cm
@@ -425,19 +423,21 @@ namespace jit {
       Signature sig(ls_, ls_->VoidTy);
       sig << "VM";
       sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
-      sig << "Dispatch";
+      sig << "Executable";
+      sig << "Module";
       sig << "Arguments";
       sig << "CompiledMethod";
 
       Value* call_args[] = {
         vm,
         method_entry_,
-        msg,
+        exec,
+        module,
         args,
         method
       };
 
-      sig.call("rbx_begin_profiling", call_args, 5, "", b());
+      sig.call("rbx_begin_profiling", call_args, 6, "", b());
 
       b().CreateBr(cont);
 

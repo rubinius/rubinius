@@ -16,7 +16,7 @@ class BasicPrimitive
   end
 
   def output_header(str)
-    str << "Object* Primitives::#{@name}(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args) {\n"
+    str << "Object* Primitives::#{@name}(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {\n"
     str << "  state->set_call_frame(call_frame);\n"
     str << emit_counter
     # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
@@ -49,7 +49,10 @@ class BasicPrimitive
     args.unshift "self" if @pass_self
     args.unshift "state" if @pass_state
 
-    args.push "msg" if @pass_message
+    if @pass_message
+      args.push "exec"
+      args.push "mod"
+    end
     args.push "call_frame" if @pass_call_frame
 
     return args
@@ -65,7 +68,7 @@ class BasicPrimitive
     str << "  try {\n"
     str << "#ifdef RBX_PROFILER\n"
     str << "    if(unlikely(state->shared.profiling())) {\n"
-    str << "      profiler::MethodEntry method(state, msg, args);\n"
+    str << "      profiler::MethodEntry method(state, exec, mod, args);\n"
     str << "      ret = #{call}(#{args.join(', ')});\n"
     str << "    } else {\n"
     str << "      ret = #{call}(#{args.join(', ')});\n"
@@ -84,7 +87,7 @@ class BasicPrimitive
     str << "    goto fail;\n\n"
     prim_return(str);
     str << "fail:\n"
-    str << "  return CompiledMethod::primitive_failed(state, call_frame, msg, args);\n"
+    str << "  return CompiledMethod::primitive_failed(state, call_frame, exec, mod, args);\n"
     str << "}\n\n"
   end
 
@@ -119,7 +122,7 @@ class CPPPrimitive < BasicPrimitive
     if @raw
       str << "\n"
       str << "  try {\n"
-      str << "    ret = recv->#{@cpp_name}(state, msg.method, call_frame, msg, args);\n"
+      str << "    ret = recv->#{@cpp_name}(state, call_frame, exec, mod, args);\n"
       str << "  } catch(const RubyException& exc) {\n"
       str << "    exc.exception->locations(state,\n"
       str << "          Location::from_call_stack(state, call_frame));\n"
@@ -130,7 +133,7 @@ class CPPPrimitive < BasicPrimitive
       str << "  return ret;\n"
       str << "\n"
       str << "fail:\n"
-      str << "  return CompiledMethod::primitive_failed(state, call_frame, msg, args);\n"
+      str << "  return CompiledMethod::primitive_failed(state, call_frame, exec, mod, args);\n"
       str << "}\n\n"
     else
       args = output_args str, arg_types
@@ -308,7 +311,7 @@ class CPPStaticPrimitive < CPPPrimitive
     if @raw
       str << "\n"
       str << "  try {\n"
-      str << "    return #{@type}::#{@cpp_name}(state, msg.method, call_frame, msg);\n"
+      str << "    return #{@type}::#{@cpp_name}(state, exec, call_frame, mod);\n"
       str << "  } catch(const RubyException& exc) {\n"
       str << "    exc.exception->locations(state,\n"
       str << "          Location::from_call_stack(state, call_frame));\n"
@@ -497,7 +500,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
       end
       str << "#ifdef RBX_PROFILER\n"
       str << "        if(unlikely(state->shared.profiling())) {\n"
-      str << "          profiler::MethodEntry method(state, msg, args);\n"
+      str << "          profiler::MethodEntry method(state, exec, mod, args);\n"
       str << "  " << call
       str << "        } else {\n"
       str << "  " << call
@@ -520,7 +523,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
 
     str << "  }\n"
     str << "fail:\n"
-    str << "  return CompiledMethod::primitive_failed(state, call_frame, msg, args);\n"
+    str << "  return CompiledMethod::primitive_failed(state, call_frame, exec, mod, args);\n"
     str << "}\n\n"
     return str
   end
@@ -662,9 +665,9 @@ class CPPClass
   def generate_accessors
     str = ""
     all_fields.each do |name, type, idx, flags|
-      str << "Object* Primitives::access_#{@name}_#{name}(STATE, CallFrame* call_frame, Dispatch& msg, 
+      str << "Object* Primitives::access_#{@name}_#{name}(STATE, CallFrame* call_frame, Executable* exec, Module* mod, 
                    Arguments& args) {\n"
-      str << "  AccessVariable* access = as<AccessVariable>(msg.method);\n"
+      str << "  AccessVariable* access = as<AccessVariable>(exec);\n"
       str << "  if(access->write()->true_p()) {\n"
       str << <<-ARGS
         if(args.total() != 1) {
@@ -972,8 +975,7 @@ class CPPParser
           end
 
           if args.last == "Message& msg"
-            pass_message = true
-            args.pop
+            raise "Unsupported"
           end
 
           if i = args.index("Arguments& args")
@@ -1150,12 +1152,12 @@ write_if_new "vm/gen/primitives_declare.hpp" do |f|
   parser.classes.each do |n, cpp|
     total_prims += cpp.primitives.size
     cpp.primitives.each do |pn, prim|
-      f.puts "static Object* #{pn}(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);"
+      f.puts "static Object* #{pn}(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);"
     end
 
     total_prims += cpp.access_primitives.size
     cpp.access_primitives.each do |name|
-      f.puts "static Object* #{name}(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);"
+      f.puts "static Object* #{name}(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);"
     end
   end
 

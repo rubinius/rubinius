@@ -253,6 +253,7 @@ namespace rubinius {
   Object* InlineCache::empty_cache_custom(STATE, InlineCache* cache, CallFrame* call_frame,
                                           Arguments& args)
   {
+    args.set_name(cache->name);
     Object* const recv = args.recv();
     Array*  ary = Array::create(state, args.total() + 2);
     ary->set(state, 0, recv);
@@ -274,7 +275,7 @@ namespace rubinius {
 
       cache->execute_backend_ = check_cache_custom;
 
-      return cu->execute(state, call_frame, cu, *cache, args);
+      return cu->execute(state, call_frame, cu, cache->method, cache->module, args);
     } else {
       Exception::internal_error(state, call_frame, "bind_call must return CallUnit");
       return 0;
@@ -284,7 +285,8 @@ namespace rubinius {
   Object* InlineCache::check_cache_custom(STATE, InlineCache* cache,
       CallFrame* call_frame, Arguments& args)
   {
-    return cache->call_unit_->execute(state, call_frame, cache->call_unit_, *cache, args);
+    args.set_name(cache->name);
+    return cache->call_unit_->execute(state, call_frame, cache->call_unit_, cache->method, cache->module, args);
   }
 
 
@@ -292,6 +294,10 @@ namespace rubinius {
   Object* InlineCache::empty_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
+    // spin.
+    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+
+    args.set_name(cache->name);
     Object* const recv = args.recv();
     cache->set_klass(recv->lookup_begin(state));
 
@@ -303,6 +309,7 @@ namespace rubinius {
 
       if(!cache->fill_method_missing(state, cache->klass())) {
         Exception::internal_error(state, call_frame, "no method_missing");
+        cache->private_lock_ = 0;
         return 0;
       }
 
@@ -338,12 +345,21 @@ namespace rubinius {
     }
     */
 
-    return cache->method->execute(state, call_frame, *cache, args);
+    Executable* meth = cache->method;
+    Module* mod = cache->module;
+
+    cache->private_lock_ = 0;
+
+    return meth->execute(state, call_frame, meth, mod, args);
   }
 
   Object* InlineCache::empty_cache_private(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
+    // spin.
+    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+
+    args.set_name(cache->name);
     Object* const recv = args.recv();
     cache->set_klass(recv->lookup_begin(state));
 
@@ -352,6 +368,7 @@ namespace rubinius {
 
       if(!cache->fill_method_missing(state, cache->klass())) {
         Exception::internal_error(state, call_frame, "no method_missing");
+        cache->private_lock_ = 0;
         return 0;
       }
 
@@ -371,12 +388,21 @@ namespace rubinius {
     }
     */
 
-    return cache->method->execute(state, call_frame, *cache, args);
+    Executable* meth = cache->method;
+    Module* mod = cache->module;
+
+    cache->private_lock_ = 0;
+
+    return meth->execute(state, call_frame, meth, mod, args);
   }
 
   Object* InlineCache::empty_cache_vcall(STATE, InlineCache* cache, CallFrame* call_frame,
                                          Arguments& args)
   {
+    // spin.
+    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+
+    args.set_name(cache->name);
     Object* const recv = args.recv();
     cache->set_klass(recv->lookup_begin(state));
 
@@ -385,6 +411,7 @@ namespace rubinius {
 
       if(!cache->fill_method_missing(state, cache->klass())) {
         Exception::internal_error(state, call_frame, "no method_missing");
+        cache->private_lock_ = 0;
         return 0;
       }
 
@@ -404,12 +431,21 @@ namespace rubinius {
     }
     */
 
-    return cache->method->execute(state, call_frame, *cache, args);
+    Executable* meth = cache->method;
+    Module* mod = cache->module;
+
+    cache->private_lock_ = 0;
+
+    return meth->execute(state, call_frame, meth, mod, args);
   }
 
   Object* InlineCache::empty_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
+    // spin.
+    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+
+    args.set_name(cache->name);
     Object* const recv = args.recv();
     Class* const klass = recv->lookup_begin(state);
     cache->set_klass(klass);
@@ -424,6 +460,7 @@ namespace rubinius {
       // github#157
       if(!cache->fill_method_missing(state,  klass)) {
         Exception::internal_error(state, call_frame, "no method_missing");
+        cache->private_lock_ = 0;
         return 0;
       }
 
@@ -443,16 +480,33 @@ namespace rubinius {
     }
     */
 
-    return cache->method->execute(state, call_frame, *cache, args);
+    Executable* meth = cache->method;
+    Module* mod = cache->module;
+
+    cache->private_lock_ = 0;
+
+    return meth->execute(state, call_frame, meth, mod, args);
   }
 
   Object* InlineCache::check_cache_fixnum(STATE, InlineCache* cache,
       CallFrame* call_frame, Arguments& args)
   {
+    // spin.
+    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+
+    args.set_name(cache->name);
     if(likely(args.recv()->fixnum_p())) {
       cache->inc_hits();
-      return cache->method->execute(state, call_frame, *cache, args);
+
+      Executable* meth = cache->method;
+      Module* mod = cache->module;
+
+      cache->private_lock_ = 0;
+
+      return meth->execute(state, call_frame, meth, mod, args);
     }
+
+    cache->private_lock_ = 0;
 
     return cache->initialize(state, call_frame, args);
   }
@@ -460,10 +514,22 @@ namespace rubinius {
   Object* InlineCache::check_cache_symbol(STATE, InlineCache* cache,
       CallFrame* call_frame, Arguments& args)
   {
+    // spin.
+    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+
+    args.set_name(cache->name);
     if(likely(args.recv()->symbol_p())) {
       cache->inc_hits();
-      return cache->method->execute(state, call_frame, *cache, args);
+
+      Executable* meth = cache->method;
+      Module* mod = cache->module;
+
+      cache->private_lock_ = 0;
+
+      return meth->execute(state, call_frame, meth, mod, args);
     }
+
+    cache->private_lock_ = 0;
 
     return cache->initialize(state, call_frame, args);
   }
@@ -471,12 +537,24 @@ namespace rubinius {
   Object* InlineCache::check_cache_reference(STATE, InlineCache* cache,
       CallFrame* call_frame, Arguments& args)
   {
+    // spin.
+    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+
+    args.set_name(cache->name);
     Object* const recv = args.recv();
     if(likely(recv->reference_p() &&
               recv->reference_class() == cache->klass())) {
       cache->inc_hits();
-      return cache->method->execute(state, call_frame, *cache, args);
+
+      Executable* meth = cache->method;
+      Module* mod = cache->module;
+
+      cache->private_lock_ = 0;
+
+      return meth->execute(state, call_frame, meth, mod, args);
     }
+
+    cache->private_lock_ = 0;
 
     return cache->initialize(state, call_frame, args);
   }
@@ -484,10 +562,22 @@ namespace rubinius {
   Object* InlineCache::check_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
+    // spin.
+    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+
+    args.set_name(cache->name);
     if(likely(cache->valid_p(state, args.recv()))) {
       cache->inc_hits();
-      return cache->method->execute(state, call_frame, *cache, args);
+
+      Executable* meth = cache->method;
+      Module* mod = cache->module;
+
+      cache->private_lock_ = 0;
+
+      return meth->execute(state, call_frame, meth, mod, args);
     }
+
+    cache->private_lock_ = 0;
 
     return cache->initialize(state, call_frame, args);
   }
@@ -495,11 +585,23 @@ namespace rubinius {
   Object* InlineCache::check_cache_mm(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
+    // spin.
+    while(!atomic::compare_and_swap(&cache->private_lock_, 0, 1));
+
+    args.set_name(cache->name);
     if(likely(cache->valid_p(state, args.recv()))) {
       cache->inc_hits();
       args.unshift(state, cache->name);
-      return cache->method->execute(state, call_frame, *cache, args);
+
+      Executable* meth = cache->method;
+      Module* mod = cache->module;
+
+      cache->private_lock_ = 0;
+
+      return meth->execute(state, call_frame, meth, mod, args);
     }
+
+    cache->private_lock_ = 0;
 
     return cache->initialize(state, call_frame, args);
   }
@@ -507,6 +609,7 @@ namespace rubinius {
   Object* InlineCache::disabled_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                       Arguments& args)
   {
+    args.set_name(cache->name);
     MethodMissingReason reason = 
       cache->fill_public(state, call_frame->self(), cache->name);
 
@@ -523,12 +626,13 @@ namespace rubinius {
 
     cache->run_wb(state, call_frame->cm);
 
-    return cache->method->execute(state, call_frame, *cache, args);
+    return cache->method->execute(state, call_frame, cache->method, cache->module, args);
   }
 
   Object* InlineCache::disabled_cache_private(STATE, InlineCache* cache, CallFrame* call_frame,
                                       Arguments& args)
   {
+    args.set_name(cache->name);
     if(!cache->fill_private(state, cache->name, cache->klass())) {
       if(!cache->fill_method_missing(state, cache->klass())) {
         Exception::internal_error(state, call_frame, "no method_missing");
@@ -540,12 +644,13 @@ namespace rubinius {
 
     cache->run_wb(state, call_frame->cm);
 
-    return cache->method->execute(state, call_frame, *cache, args);
+    return cache->method->execute(state, call_frame, cache->method, cache->module, args);
   }
 
   Object* InlineCache::disabled_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
+    args.set_name(cache->name);
     Module* const start = call_frame->module()->superclass();
 
     if(!cache->fill_private(state, cache->name, start)) {
@@ -562,7 +667,7 @@ namespace rubinius {
       args.unshift(state, cache->name);
     }
 
-    return cache->method->execute(state, call_frame, *cache, args);
+    return cache->method->execute(state, call_frame, cache->method, cache->module, args);
   }
 
   void InlineCache::update_seen_classes() {

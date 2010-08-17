@@ -39,7 +39,7 @@ namespace rubinius {
     static void init(STATE);
 
     static NativeFunction* create(STATE, Symbol* name, int args);
-    static Object* execute(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    static Object* execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     // Ruby.primitive :nativefunction_generate
     static NativeFunction* generate(STATE, Pointer* ptr, Symbol* name, Array* args, Object* ret);

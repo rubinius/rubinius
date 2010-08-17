@@ -11,7 +11,6 @@
 #include <list>
 
 namespace rubinius {
-  class Dispatch;
   class Arguments;
 
   class VMMethod;
@@ -62,7 +61,7 @@ namespace rubinius {
     static Executable* allocate(STATE, Object* self);
 
     static void init(STATE);
-    static Object* default_executor(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    static Object* default_executor(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     // Ruby.primitive :executable_invoke
     Object* invoke(STATE, Symbol* name, Module* mod, Object* recv, Array* args, Object* block, CallFrame* calling_environment);

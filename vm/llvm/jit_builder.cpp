@@ -175,15 +175,16 @@ namespace jit {
 
     b().SetInsertPoint(restart_interp);
 
-    Value* call_args[] = { vm, prev, msg, args };
+    Value* call_args[] = { vm, prev, exec, module, args };
 
     Signature sig(ls_, "Object");
     sig << "VM";
     sig << "CallFrame";
-    sig << "Dispatch";
+    sig << "Executable";
+    sig << "Module";
     sig << "Arguments";
 
-    b().CreateRet(sig.call("rbx_restart_interp", call_args, 4, "ir", b()));
+    b().CreateRet(sig.call("rbx_restart_interp", call_args, 5, "ir", b()));
 
     b().SetInsertPoint(cont);
   }

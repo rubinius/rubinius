@@ -74,12 +74,12 @@ namespace rubinius {
     Object* call(STATE, CallFrame* call_frame, Arguments& args, int flags=0);
 
     // Ruby.primitive? :block_call
-    Object* call_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    Object* call_prim(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     Object* call_on_object(STATE, CallFrame* call_frame, Arguments& args, int flags=0);
 
     // Ruby.primitive? :block_call_under
-    Object* call_under(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+    Object* call_under(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     BlockEnvironment* dup(STATE);
 

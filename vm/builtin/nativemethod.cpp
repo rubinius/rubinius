@@ -510,14 +510,14 @@ namespace rubinius {
 
   template <class ArgumentHandler>
   Object* NativeMethod::executor_implementation(STATE,
-      CallFrame* call_frame, Dispatch& msg, Arguments& args) {
-    NativeMethod* nm = as<NativeMethod>(msg.method);
+      CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
+    NativeMethod* nm = as<NativeMethod>(exec);
 
     int arity = nm->arity()->to_int();
 
     if(arity >= 0 && (size_t)arity != args.total()) {
       Exception* exc = Exception::make_argument_error(
-          state, arity, args.total(), msg.name);
+          state, arity, args.total(), args.name());
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->thread_state()->raise_exception(exc);
 
@@ -539,8 +539,8 @@ namespace rubinius {
     nmf.setup(
         env->get_handle(args.recv()),
         env->get_handle(args.block()),
-        env->get_handle(msg.method),
-        env->get_handle(msg.module));
+        env->get_handle(exec),
+        env->get_handle(mod));
 
     Object* ret;
     ExceptionPoint ep(env);
@@ -552,7 +552,7 @@ namespace rubinius {
     } else {
 #ifdef RBX_PROFILER
       if(unlikely(state->shared.profiling())) {
-        profiler::MethodEntry method(state, msg, args);
+        profiler::MethodEntry method(state, exec, mod, args);
         ret = ArgumentHandler::invoke(state, nm, env, args);
       } else {
         ret = ArgumentHandler::invoke(state, nm, env, args);

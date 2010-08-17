@@ -244,6 +244,8 @@ namespace rubinius {
     }
 
     virtual void perform() {
+      ManagedThread::set_current(ls_);
+
       sigset_t set;
       sigfillset(&set);
 

@@ -245,12 +245,14 @@ namespace rubinius {
 
       Value* gep = create_gep(obj, word_idx, 4, "word_pos");
       Value* word = create_load(gep, "flags");
-      Value* flags = b().CreatePtrToInt(word, ls_->Int32Ty, "word2flags");
+      Value* flags = b().CreatePtrToInt(word, ls_->Int64Ty, "word2flags");
 
-      Value* mask = ConstantInt::get(ls_->Int32Ty, ((1 << 9) - 1));
+      // 10 bits worth of mask
+      Value* mask = ConstantInt::get(ls_->Int64Ty, ((1 << 10) - 1));
       Value* obj_type = b().CreateAnd(flags, mask, "mask");
 
-      Value* tag = ConstantInt::get(ls_->Int32Ty, type << 1);
+      // Compare all 10 bits.
+      Value* tag = ConstantInt::get(ls_->Int64Ty, type << 2);
 
       return b().CreateICmpEQ(obj_type, tag, name);
     }

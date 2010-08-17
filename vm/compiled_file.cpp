@@ -40,13 +40,12 @@ namespace rubinius {
 
     state->thread_state()->clear();
 
-    Dispatch msg(cm->name(), G(object), cm.get());
-    Arguments args(G(main), 0, 0);
+    Arguments args(state->symbol("script"), G(main), 0, 0);
 
     cm.get()->scope(state, StaticScope::create(state));
     cm.get()->scope()->module(state, G(object));
 
-    cm->execute(state, NULL, msg, args);
+    cm->execute(state, NULL, cm.get(), G(object), args);
 
     return true;
   }
