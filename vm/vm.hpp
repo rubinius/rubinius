@@ -332,7 +332,7 @@ namespace rubinius {
     void wait_on_channel(Channel* channel);
     void wait_on_inflated_lock(InflatedHeader* ih);
     void clear_waiter();
-    bool wakeup();
+    bool wakeup(STATE);
     bool waiting_p();
 
     void set_sleeping();

@@ -308,7 +308,7 @@ namespace rubinius {
     interrupt_with_signal_ = true;
   }
 
-  bool VM::wakeup() {
+  bool VM::wakeup(STATE) {
     SYNC(this);
 
     check_local_interrupts = true;
@@ -327,7 +327,7 @@ namespace rubinius {
 
       if(!chan->nil_p()) {
         UNSYNC;
-        chan->send(this, Qnil);
+        chan->send(state, Qnil);
         return true;
       }
 
