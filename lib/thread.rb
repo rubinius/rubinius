@@ -76,9 +76,8 @@ class Mutex
       raise ThreadError, "Not owner, #{@owner.inspect} is"
     end
 
-    Rubinius.unlock self
     @owner = nil
-    Rubinius.memory_barrier
+    Rubinius.unlock self
   end
 
   def synchronize
