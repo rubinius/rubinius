@@ -359,7 +359,8 @@ containing the Rubinius standard library files.
 
       @load_paths.each do |path|
         path.split(":").reverse_each do |path|
-          path = File.expand_path path
+          # We used to run expand_path on path first, but MRI
+          # doesn't and it breaks some code if we do.
           $LOAD_PATH.unshift(path)
         end
       end
