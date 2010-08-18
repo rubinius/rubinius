@@ -110,7 +110,14 @@ class Object
     body = code
     working_dir = opts[:dir] || "."
     Dir.chdir(working_dir) do
-      body = "-e #{code.inspect}" if code and not File.exists?(code)
+      if code and not File.exists?(code)
+        if opts[:escape]
+          code = "'#{code}'"
+        else
+          code = code.inspect
+        end
+        body = "-e #{code}"
+      end
       cmd = [RUBY_EXE, ENV['RUBY_FLAGS'], opts[:options], body, opts[:args]]
       `#{cmd.compact.join(' ')}`
     end
