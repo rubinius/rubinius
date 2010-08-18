@@ -104,7 +104,6 @@ namespace rubinius {
 
   void SharedState::remove_vm(VM* vm) {
     SYNC(0);
-    threads_.remove(vm);
     this->deref();
 
     // Don't delete ourself here, it's too problematic.

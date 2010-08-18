@@ -106,6 +106,8 @@ namespace rubinius {
     vm->thread->cleanup();
     vm->thread->init_lock_.unlock();
 
+    vm->shared.remove_managed_thread(vm);
+
     // Clear the call_frame, so that if we wait for GC going independent,
     // the GC doesn't see pointers into now-unallocated CallFrames
     vm->set_call_frame(0);
