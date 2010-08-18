@@ -171,6 +171,101 @@ namespace rubinius {
     return NULL;
   }
 
+  Object* System::vm_spawn(STATE, String* str, CallFrame* calling_environment) {
+    int fds[2];
+
+    if(pipe(fds) != 0) return Primitives::failure();
+
+    const char* c_str = str->c_str();
+
+    pid_t pid = fork();
+
+    // errror
+    if(pid == -1) {
+      close(fds[0]);
+      close(fds[1]);
+      return Primitives::failure();
+    }
+
+    // child
+    if(pid == 0) {
+      close(fds[0]);
+      dup2(fds[1], 1);
+
+      // detect and decide to use sh or not.
+      char* s = const_cast<char*>(c_str);
+      bool use_sh = false;
+
+      for(;*s;s++) {
+        if(*s != ' ' && !ISALPHA(*s) && strchr("*?{}[]<>()~&|\\$;'`\"\n",*s)) {
+          use_sh = true;
+          break;
+        }
+      }
+
+      if(use_sh) {
+        execl("/bin/sh", "sh", "-c", c_str, (char*)0);
+      } else {
+        size_t c_size = strlen(c_str);
+        size_t max_spaces = (c_size / 2) + 2;
+        char** args = new char*[max_spaces];
+
+        // Now put nulls for spaces into c_str and assign each bit
+        // to args to create the array of char*s that execv wants.
+
+        s = const_cast<char*>(c_str);
+        const char* s_end = c_str + c_size;
+        int idx = 0;
+
+        for(;;) {
+          // turn the next group of spaces into nulls.
+          while(s < s_end && *s == ' ') {
+            *s = 0;
+            s++;
+          }
+
+          // Hit the end, bail.
+          if(s == s_end) break;
+
+          // Write the address of the next chunk here.
+          args[idx++] = s;
+
+          // Skip to the next space
+          while(s < s_end && *s != ' ') s++;
+        }
+
+        args[idx] = 0;
+
+        // If we added anything, then exec, otherwise fall through and fail.
+        if(idx > 0) execvp(args[0], args);
+      }
+
+      // bad news, shouldn't be here.
+      printf("Exec failed: %s\n", strerror(errno));
+      exit(1);
+    }
+
+    close(fds[1]);
+
+    std::string buf;
+    {
+      GlobalLock::UnlockGuard lock(state, calling_environment);
+      char raw_buf[1024];
+
+      for(;;) {
+        size_t bytes = read(fds[0], raw_buf, 1023);
+        if(bytes == 0) break;
+
+        buf.append(raw_buf, bytes);
+      }
+    }
+
+    close(fds[0]);
+
+    return Tuple::from(state, 2, Fixnum::from(pid),
+                       String::create(state, buf.c_str(), buf.size()));
+  }
+
   Object* System::vm_wait_pid(STATE, Fixnum* pid_obj, Object* no_hang,
                               CallFrame* calling_environment) {
     pid_t input_pid = pid_obj->to_native();

@@ -662,24 +662,11 @@ module Kernel
   module_function :exec
 
   def `(str) #`
-    str = StringValue(str)
-    read, write = IO.pipe
-    pid = Process.fork
-    if pid
-      write.close
-      output = ""
-      until read.eof?
-        output << read.read
-      end
+    str = StringValue(str) unless str.kind_of?(String)
+    pid, output = Process.spawn(str)
 
-      Process.waitpid(pid)
-      read.close
-      return output
-    else
-      read.close
-      STDOUT.reopen write
-      Process.perform_exec "/bin/sh", ["sh", "-c", str]
-    end
+    Process.waitpid(pid)
+    return output
   end
 
   module_function :` # `
