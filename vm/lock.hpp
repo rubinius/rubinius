@@ -172,7 +172,7 @@ namespace rubinius {
       , locked_(false)
       , recursive_(false)
     {
-      if(lock_->mutex().locking_thread() == th) {
+      if(th && lock_->mutex().locking_thread() == th) {
         recursive_ = true;
         // Don't relock, already got it locked.
       } else {
