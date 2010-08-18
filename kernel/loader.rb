@@ -15,6 +15,9 @@ module Rubinius
       @debugging    = false
       @run_irb      = true
       @printed_version = false
+      @input_loop   = false
+      @input_loop_print = false
+      @input_loop_split = false
 
       @gem_bin = File.join Rubinius::GEMS_PATH, "bin"
     end
@@ -156,6 +159,10 @@ containing the Rubinius standard library files.
         options.stop_parsing
       end
 
+      options.on "-a", "Used with -n and -p, splits $_ into $F" do
+        @input_loop_split = true
+      end
+
       options.on "-c", "FILE", "Check the syntax of FILE" do |file|
         mel = Rubinius::Melbourne.new file, 1, []
         begin
@@ -204,6 +211,15 @@ containing the Rubinius standard library files.
 
       options.on "-I", "DIR1[:DIR2]", "Add directories to $LOAD_PATH" do |dir|
         @load_paths << dir
+      end
+
+      options.on "-n", "Wrap running code in 'while(gets()) ...'" do
+        @input_loop = true
+      end
+
+      options.on "-p", "Same as -n, but also print $_" do
+        @input_loop = true
+        @input_loop_print = true
       end
 
       options.on "-r", "LIBRARY", "Require library before execution" do |file|
@@ -420,7 +436,15 @@ containing the Rubinius standard library files.
     def evals
       @stage = "evaluating command line code"
 
-      eval(@evals.join("\n"), TOPLEVEL_BINDING, "-e", 1)
+      if @input_loop
+        while gets
+          $F = $_.split if @input_loop_split
+          eval(@evals.join("\n"), TOPLEVEL_BINDING, "-e", 1)
+          puts $_ if @input_loop_print
+        end
+      else
+        eval(@evals.join("\n"), TOPLEVEL_BINDING, "-e", 1)
+      end
     end
 
     # Run the script passed on the command line
