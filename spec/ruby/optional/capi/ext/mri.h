@@ -12,4 +12,9 @@
 
 #undef HAVE_THREAD_BLOCKING_REGION
 
+/* undefs for 1.8.6 */
+#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 8 && RUBY_VERSION_TEENY <= 6
+#undef HAVE_RB_STR_SET_LEN
+#endif
+
 #endif

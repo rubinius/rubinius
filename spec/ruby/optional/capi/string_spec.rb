@@ -19,6 +19,71 @@ describe "C-API String function" do
     end
   end
 
+  ruby_version_is "1.8.7" do
+    describe "rb_str_set_len" do
+      before :each do
+        # Make a completely new copy of the string
+        # for every example (#dup doesn't cut it).
+        @str = "abcdefghij"[0..-1]
+      end
+
+      it "reduces the size of the string" do
+        @s.rb_str_set_len(@str, 5).should == "abcde"
+      end
+
+      it "inserts a NULL byte at the length" do
+        @s.rb_str_set_len(@str, 5).should == "abcde"
+        @s.rb_str_set_len(@str, 8).should == "abcde\x00gh"
+      end
+
+      it "updates the string's attributes visible in C code" do
+        @s.rb_str_set_len_RSTRING_LEN(@str, 4).should == 4
+      end
+    end
+  end
+
+  describe "rb_str_buf_new" do
+    it "returns the equivalent of an empty string" do
+      @s.rb_str_buf_new(10, nil).should == ""
+    end
+
+    it "returns a string that can be appended to" do
+      str = @s.rb_str_buf_new(10, "defg")
+      str << "abcde"
+      str.should == "abcde"
+    end
+
+    it "returns a string that can be concatentated to another string" do
+      str = @s.rb_str_buf_new(10, "defg")
+      ("abcde" + str).should == "abcde"
+    end
+
+    it "returns a string whose bytes can be accessed by RSTRING_PTR" do
+      str = @s.rb_str_buf_new(10, "abcdefghi")
+      @s.rb_str_new(str, 10).should == "abcdefghi\x00"
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "returns a string that can be modified by rb_str_resize" do
+        str = @s.rb_str_buf_new(10, "abcde")
+        @s.rb_str_resize(str, 4).should == "abcd"
+        @s.RSTRING_LEN(str).should == 4
+      end
+    end
+
+    ruby_version_is "1.8.7" do
+      it "returns a string that can be modified by rb_str_set_len" do
+        str = @s.rb_str_buf_new(10, "abcdef")
+        @s.rb_str_set_len(str, 4)
+        str.should == "abcd"
+
+        @s.rb_str_set_len(str, 8)
+        str[0, 6].should == "abcd\x00f"
+        @s.RSTRING_LEN(str).should == 8
+      end
+    end
+  end
+
   describe "rb_str_new" do
     it "returns a new string object from a char buffer of len characters" do
       @s.rb_str_new("hello", 3).should == "hel"

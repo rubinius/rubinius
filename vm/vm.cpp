@@ -392,6 +392,7 @@ namespace rubinius {
     SYNC(state);
     interrupted_exception_.set(exc);
     check_local_interrupts = true;
+    get_attention();
   }
 
   void VM::check_exception(CallFrame* call_frame) {

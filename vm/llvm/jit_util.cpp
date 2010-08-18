@@ -315,10 +315,21 @@ extern "C" {
     /* If there is only one argument and that thing is an array...
      AND the thing being invoked is not a lambda... */
     if(!(call_frame->flags & CallFrame::cIsLambda) &&
-         args.total() == 1 &&
-         kind_of<Array>(args.get_argument(0)))
-    {
-      return args.get_argument(0);
+        args.total() == 1) {
+      Object* obj = args.get_argument(0);
+      if(kind_of<Array>(obj)) {
+        return obj;
+      } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+        obj = obj->send(state, call_frame, state->symbol("to_ary"));
+        if(kind_of<Array>(obj)) {
+          return obj;
+        } else {
+          Exception::type_error(state, "to_ary must return an Array", call_frame);
+          return 0;
+        }
+      }
+      // One argument and it's not Array or Array-ish at all, so fall through
+      // and let it be wrapped in an array.
     }
 
     Array* ary = Array::create(state, args.total());
@@ -334,22 +345,33 @@ extern "C" {
     return ary;
   }
 
-  Object* rbx_cast_for_multi_block_arg_varargs(STATE, int count, ...) {
+  Object* rbx_cast_for_multi_block_arg_varargs(STATE, CallFrame* call_frame,
+                                               int count, ...)
+  {
     va_list ap;
 
     /* If there is only one argument and that thing is an array... */
     if(count == 1) {
       va_start(ap, count);
 
-      Object* first = va_arg(ap, Object*);
-      if(!kind_of<Array>(first)) {
+      Object* obj = va_arg(ap, Object*);
+
+      if(kind_of<Array>(obj)) {
+        // Nothing! it's good.
+      } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+        obj = obj->send(state, call_frame, state->symbol("to_ary"));
+        if(!kind_of<Array>(obj)) {
+          Exception::type_error(state, "to_ary must return an Array", call_frame);
+          obj = 0;
+        }
+      } else {
         Array* ary = Array::create(state, 1);
-        ary->set(state, 0, first);
-        first = ary;
+        ary->set(state, 0, obj);
+        obj = ary;
       }
 
       va_end(ap);
-      return first;
+      return obj;
     }
 
     Array* ary = Array::create(state, count);

@@ -1,4 +1,1 @@
-fails:Thread.critical= allows all non-bool arguments
-fails:Thread.critical= defers exit
-fails:Thread.critical= allows all non-bool arguments
 fails:Thread.critical= defers exit

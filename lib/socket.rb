@@ -268,14 +268,9 @@ class Socket < BasicSocket
       hints[:ai_socktype] = socktype
       hints[:ai_protocol] = protocol
       hints[:ai_flags] = flags
-      host = "" if host.nil?
 
-      if host.empty?
-        if (flags & Socket::AI_PASSIVE == 1) # Passive socket
-          host = (family == Socket::AF_INET6 ? "::"  : "0.0.0.0") # IPv6 or IPv4
-        else
-          host = (family == Socket::AF_INET6 ? "::1" : "127.0.0.1")
-        end
+      if host && host.empty?
+        host = "0.0.0.0"
       end
 
       res_p = FFI::MemoryPointer.new :pointer
@@ -328,7 +323,7 @@ class Socket < BasicSocket
       unpack_sockaddr_in(addrinfos.first[4], false).first
     end
 
-    def self.getnameinfo(sockaddr,
+    def self.getnameinfo(sockaddr, flags = Socket::Constants::NI_NUMERICHOST | Socket::Constants::NI_NUMERICSERV,
                          reverse_lookup = !BasicSocket.do_not_reverse_lookup)
       name_info = []
       value = nil
@@ -352,8 +347,7 @@ class Socket < BasicSocket
             err = _getnameinfo(sockaddr_p, sockaddr.length,
                                node, Socket::Constants::NI_MAXHOST,
                                service, Socket::Constants::NI_MAXSERV,
-                               Socket::Constants::NI_NUMERICHOST |
-                                 Socket::Constants::NI_NUMERICSERV)
+                               flags)
 
             unless err == 0 then
               raise SocketError, gai_strerror(err)
@@ -362,7 +356,7 @@ class Socket < BasicSocket
             sa_family = SockAddr_In.new(sockaddr)[:sin_family]
 
             name_info[0] = Socket::Constants::AF_TO_FAMILY[sa_family]
-            name_info[1] = Integer service.read_string
+            name_info[1] = service.read_string
             name_info[3] = node.read_string
           end
         end
@@ -400,15 +394,19 @@ class Socket < BasicSocket
       end
     end
 
-    def self.pack_sockaddr_in(name, port, type, flags)
+    def self.pack_sockaddr_in(host, port, family, type, flags)
       hints = AddrInfo.new
-      hints[:ai_family] = Socket::AF_INET
+      hints[:ai_family] = family
       hints[:ai_socktype] = type
       hints[:ai_flags] = flags
 
+      if host && host.empty?
+        host = "0.0.0.0"
+      end
+
       res_p = FFI::MemoryPointer.new :pointer
 
-      err = _getaddrinfo name, port, hints.pointer, res_p
+      err = _getaddrinfo host, port.to_s, hints.pointer, res_p
 
       raise SocketError, gai_strerror(err) unless err == 0
 
@@ -431,11 +429,11 @@ class Socket < BasicSocket
     end
 
     def self.unpack_sockaddr_in(sockaddr, reverse_lookup)
-      family, port, host, ip = getnameinfo sockaddr, reverse_lookup
+      family, port, host, ip = getnameinfo sockaddr, Socket::Constants::NI_NUMERICHOST | Socket::Constants::NI_NUMERICSERV, reverse_lookup
       # On some systems this doesn't fail for families other than AF_INET(6)
       # so we raise manually here.
       raise ArgumentError, 'not an AF_INET/AF_INET6 sockaddr' unless family =~ /AF_INET/
-      return host, ip, port
+      return host, ip, port.to_i
     end
   end
 
@@ -530,8 +528,8 @@ class Socket < BasicSocket
     end
   end
 
-  def self.getaddrinfo(host, service, family = nil, socktype = nil,
-                       protocol = nil, flags = nil)
+  def self.getaddrinfo(host, service, family = 0, socktype = 0,
+                       protocol = 0, flags = 0)
     if service
       if service.kind_of? Fixnum
         service = service.to_s
@@ -540,11 +538,6 @@ class Socket < BasicSocket
       end
     end
 
-    family ||= 0
-    socktype ||= 0
-    protocol ||= 0
-    flags ||= 0
-
     addrinfos = Socket::Foreign.getaddrinfo(host, service, family, socktype,
                                             protocol, flags)
 
@@ -552,7 +545,7 @@ class Socket < BasicSocket
       addrinfo = []
       addrinfo << Socket::Constants::AF_TO_FAMILY[ai[1]]
 
-      sockaddr = Foreign.unpack_sockaddr_in ai[4], true
+      sockaddr = Foreign.unpack_sockaddr_in ai[4], !BasicSocket.do_not_reverse_lookup
 
       addrinfo << sockaddr.pop # port
       addrinfo.concat sockaddr # hosts
@@ -561,6 +554,35 @@ class Socket < BasicSocket
       addrinfo << ai[3]
       addrinfo
     end
+  end
+
+  def self.getnameinfo(sockaddr, flags = 0)
+    port   = nil
+    host   = nil
+    family = Socket::AF_UNSPEC
+    if sockaddr.is_a?(Array)
+      if sockaddr.size == 3
+        af = sockaddr[0]
+        port = sockaddr[1]
+        host = sockaddr[2]
+      elsif sockaddr.size == 4
+        af = sockaddr[0]
+        port = sockaddr[1]
+        host = sockaddr[3] || sockaddr[2]
+      else
+        raise ArgumentError, "array size should be 3 or 4, #{sockaddr.size} given"
+      end
+
+      if family == "AF_INET"
+        family = Socket::AF_INET
+      elsif family == "AF_INET6"
+        family = Socket::AF_INET6
+      end
+      sockaddr = Socket::Foreign.pack_sockaddr_in(host, port, family, Socket::SOCK_DGRAM, 0)
+    end
+
+    family, port, host, ip = Socket::Foreign.getnameinfo(sockaddr, flags)
+    [host, port]
   end
 
   def self.gethostname
@@ -617,12 +639,7 @@ class Socket < BasicSocket
   end
 
   def self.pack_sockaddr_in(port, host, type = Socket::SOCK_DGRAM, flags = 0)
-    if host.nil?
-      host = "127.0.0.1"
-    elsif host.empty?
-      host = "0.0.0.0"
-    end
-    Socket::Foreign.pack_sockaddr_in host.to_s, port.to_s, type, flags
+    Socket::Foreign.pack_sockaddr_in host, port, Socket::AF_UNSPEC, type, flags
   end
 
   def self.unpack_sockaddr_in(sockaddr)
@@ -834,13 +851,15 @@ class IPSocket < BasicSocket
   def addr
     sockaddr = Socket::Foreign.getsockname descriptor
 
-    Socket::Foreign.getnameinfo sockaddr
+    family, port, host, ip = Socket::Foreign.getnameinfo sockaddr
+    [family, port.to_i, host, ip]
   end
 
   def peeraddr
     sockaddr = Socket::Foreign.getpeername descriptor
 
-    Socket::Foreign.getnameinfo sockaddr
+    family, port, host, ip = Socket::Foreign.getnameinfo sockaddr
+    [family, port.to_i, host, ip]
   end
 
   def recvfrom(maxlen, flags = 0)
@@ -863,7 +882,8 @@ end
 class UDPSocket < IPSocket
 
   def initialize(socktype = Socket::AF_INET)
-    status = Socket::Foreign.socket socktype,
+    @socktype = socktype
+    status = Socket::Foreign.socket @socktype,
                                     Socket::SOCK_DGRAM,
                                     Socket::IPPROTO_UDP
     Errno.handle 'socket(2)' if status < 0
@@ -900,7 +920,8 @@ class UDPSocket < IPSocket
   end
 
   def connect(host, port)
-    sockaddr = Socket.pack_sockaddr_in(port, host)
+    sockaddr = Socket::Foreign.pack_sockaddr_in host, port, @socktype, Socket::SOCK_DGRAM, 0
+
     syscall = 'connect(2)'
     status = Socket::Foreign.connect descriptor, sockaddr
 

@@ -17,17 +17,13 @@ describe "UDPSocket.bind" do
     lambda { @socket.bind(SocketSpecs.hostname, SocketSpecs.port) }.should raise_error
   end
 
-  # This is quarantined because it fails randomly on linux.
-  # I believe it's because of ipv4/ipv6 interaction
-  quarantine! do
-    it "receives a hostname and a port" do
-      @socket.bind(SocketSpecs.hostname, SocketSpecs.port)
+  it "receives a hostname and a port" do
+    @socket.bind(SocketSpecs.hostname, SocketSpecs.port)
 
-      port, host = Socket.unpack_sockaddr_in(@socket.getsockname)
+    port, host = Socket.unpack_sockaddr_in(@socket.getsockname)
 
-      host.should == "127.0.0.1"
-      port.should == SocketSpecs.port
-    end
+    host.should == "127.0.0.1"
+    port.should == SocketSpecs.port
   end
 
   it "binds to INADDR_ANY if the hostname is empty" do

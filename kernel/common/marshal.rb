@@ -409,7 +409,7 @@ module Marshal
 
       call obj if @proc and call_proc
 
-      obj
+      @stream.tainted? ? obj.taint : obj
     end
 
     def construct_array
@@ -720,7 +720,7 @@ module Marshal
 
       @depth += 1
 
-      return str
+      obj.tainted? ? str.taint : str
     end
 
     def serialize_extended_object(obj)

@@ -7,13 +7,13 @@ describe "A block with mismatched arguments" do
     BlockSpecs::Yield.new.two_args {|one, two, three| ret = [one, two, three]}
     ret.should == [1, 2, nil]
   end
-  
+
   it "raises ArgumentError if argument is passed, but the block takes none" do
     lambda{
       lambda{ || p "block with no argument" }.call(:arg)
     }.should raise_error(ArgumentError)
   end
-  
+
 end
 
 describe "A block with a 'rest' arg" do
@@ -48,6 +48,34 @@ describe "A block whose arguments are splatted" do
     a = []
     BlockSpecs::Yield.new.yield_splat_inside_block {|a1, a2| a << [a1, a2]}
     a.should == [[1, 0], [2, 1]]
+  end
+end
+
+describe "A block with multiple arguments" do
+  it "unpacks an array if the only argument" do
+    BlockSpecs::Yield.new.two_arg_array do |a,b|
+      a.should == 1
+      b.should == 2
+    end
+  end
+
+  it "tries to use #to_ary to convert a single incoming value" do
+    m = mock("to_ary")
+    m.should_receive(:to_ary).and_return([:one, :two])
+
+    BlockSpecs::Yield.new.yield_this(m) do |a,b|
+      a.should == :one
+      b.should == :two
+    end
+  end
+
+  it "raises a TypeError if the #to_ary value isn't an Array" do
+    m = mock("to_ary")
+    m.should_receive(:to_ary).and_return(1)
+
+    lambda {
+      BlockSpecs::Yield.new.yield_this(m) { |a,b| }
+    }.should raise_error(TypeError)
   end
 end
 

@@ -1,2 +1,0 @@
-fails:Marshal::load returns a tainted object if source is tainted
-fails:Marshal::load preserves taintedness of nested structure

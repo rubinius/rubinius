@@ -54,7 +54,6 @@ vm_objs     = %w[ vm/drivers/cli.o ]
 vm_srcs     = %w[ vm/drivers/cli.cpp ]
 
 EX_INC      = %w[ libtommath libgdtoa onig libffi/include
-                  libltdl
                 ].map { |f| "vm/external_libs/#{f}" }
 
 INSN_GEN    = %w[ vm/gen/instruction_names.cpp
@@ -141,8 +140,7 @@ file "vm/external_libs/libgdtoa/libgdtoa.a" => libgdtoa_files
 EXTERNALS   = %W[ vm/external_libs/libtommath/libtommath.a
                   vm/external_libs/libgdtoa/libgdtoa.a
                   vm/external_libs/onig/.libs/libonig.a
-                  vm/external_libs/libffi/.libs/libffi.a
-                  vm/external_libs/libltdl/.libs/libltdl.a ]
+                  vm/external_libs/libffi/.libs/libffi.a ]
 
 INCLUDES      = EX_INC + %w[vm/test/cxxtest vm .]
 

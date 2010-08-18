@@ -1,4 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/test_server', __FILE__)
+require 'drb'
 
 describe "DRb.stop_service" do
   before :all do

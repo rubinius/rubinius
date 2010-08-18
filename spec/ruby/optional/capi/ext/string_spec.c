@@ -48,6 +48,34 @@ VALUE string_spec_rb_str_append(VALUE self, VALUE str, VALUE str2) {
 }
 #endif
 
+#ifdef HAVE_RB_STR_SET_LEN
+VALUE string_spec_rb_str_set_len(VALUE self, VALUE str, VALUE len) {
+  rb_str_set_len(str, NUM2LONG(len));
+
+  return str;
+}
+
+VALUE string_spec_rb_str_set_len_RSTRING_LEN(VALUE self, VALUE str, VALUE len) {
+  rb_str_set_len(str, NUM2LONG(len));
+
+  return INT2FIX(RSTRING_LEN(str));
+}
+#endif
+
+#ifdef HAVE_RB_STR_BUF_NEW
+VALUE string_spec_rb_str_buf_new(VALUE self, VALUE len, VALUE str) {
+  VALUE buf;
+
+  buf = rb_str_buf_new(NUM2LONG(len));
+
+  if(RTEST(str)) {
+    snprintf(RSTRING_PTR(buf), NUM2LONG(len), "%s", RSTRING_PTR(str));
+  }
+
+  return buf;
+}
+#endif
+
 #ifdef HAVE_RB_STR_BUF_CAT
 VALUE string_spec_rb_str_buf_cat(VALUE self, VALUE str) {
   const char *question_mark = "?";
@@ -362,6 +390,10 @@ void Init_string_spec() {
   rb_define_method(cls, "rb_str_append", string_spec_rb_str_append, 2);
 #endif
 
+#ifdef HAVE_RB_STR_BUF_NEW
+  rb_define_method(cls, "rb_str_buf_new", string_spec_rb_str_buf_new, 2);
+#endif
+
 #ifdef HAVE_RB_STR_BUF_CAT
   rb_define_method(cls, "rb_str_buf_cat", string_spec_rb_str_buf_cat, 1);
 #endif
@@ -435,6 +467,12 @@ void Init_string_spec() {
   rb_define_method(cls, "rb_str_resize", string_spec_rb_str_resize, 2);
   rb_define_method(cls, "rb_str_resize_RSTRING_LEN",
       string_spec_rb_str_resize_RSTRING_LEN, 2);
+#endif
+
+#ifdef HAVE_RB_STR_SET_LEN
+  rb_define_method(cls, "rb_str_set_len", string_spec_rb_str_set_len, 2);
+  rb_define_method(cls, "rb_str_set_len_RSTRING_LEN",
+      string_spec_rb_str_set_len_RSTRING_LEN, 2);
 #endif
 
 #ifdef HAVE_RB_STR_SPLIT

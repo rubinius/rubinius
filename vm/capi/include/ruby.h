@@ -1,5 +1,5 @@
-#ifndef RBX_SUBTEND_RUBY_H
-#define RBX_SUBTEND_RUBY_H
+#ifndef RBX_CAPI_RUBY_H
+#define RBX_CAPI_RUBY_H
 
 /**
  *  @file
@@ -1624,6 +1624,13 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE   rb_range_beg_len(VALUE range, long* begp, long* lenp, long len, int err);
 
+  /** Creates a Regexp object */
+  VALUE   rb_reg_new(const char *source, long len, int options);
+
+  /** Retrieve the nth match for the given MatchData */
+  VALUE   rb_reg_nth_match(long nth, VALUE match_data);
+
+  // include an extconf.h if one is provided
   // include an extconf.h if one is provided
 #ifdef RUBY_EXTCONF_H
 #include RUBY_EXTCONF_H

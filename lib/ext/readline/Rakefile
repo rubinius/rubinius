@@ -12,7 +12,7 @@ else
   add_include_dir "/usr/include"
 end
 
-add_shared_lib "readline", "ncurses"
+add_shared_lib "readline"
 
 readline = "readline.#{$DLEXT}"
 
