@@ -57,14 +57,11 @@ describe "Process.setpriority" do
   end
 
   platform_is_not :os => :windows do
-    it "sets the scheduling priority for a specified user" do
-      p = Process.getpriority(Process::PRIO_USER, 0)
-
-      if Process.uid == 0
+    as_superuser do
+      it "sets the scheduling priority for a specified user" do
+        p = Process.getpriority(Process::PRIO_USER, 0)
         Process.setpriority(Process::PRIO_USER, 0, p + 1).should == 0
         Process.getpriority(Process::PRIO_USER, 0).should == (p + 1)
-        Process.setpriority(Process::PRIO_USER, 0, p).should == 0
-      else
         Process.setpriority(Process::PRIO_USER, 0, p).should == 0
       end
     end
