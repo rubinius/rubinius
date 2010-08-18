@@ -2145,6 +2145,7 @@ use_send:
         if(inline_args->size() == 1) {
           std::vector<const Type*> types;
           types.push_back(ls_->ptr_type("VM"));
+          types.push_back(CallFrameTy);
           types.push_back(ls_->Int32Ty);
 
           FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), types, true);
@@ -2153,6 +2154,7 @@ use_send:
 
           std::vector<Value*> outgoing_args;
           outgoing_args.push_back(vm());
+          outgoing_args.push_back(call_frame_);
           outgoing_args.push_back(ConstantInt::get(ls_->Int32Ty, inline_args->size()));
 
           for(size_t i = 0; i < inline_args->size(); i++) {
@@ -2161,6 +2163,7 @@ use_send:
 
           Value* ary =
             b().CreateCall(func, outgoing_args.begin(), outgoing_args.end(), "ary");
+          check_for_exception(ary);
           stack_push(ary);
         } else {
           stack_push(constant(Qundef)); // holder
@@ -2180,6 +2183,7 @@ use_send:
 
         Value* val = sig.call("rbx_cast_for_multi_block_arg", call_args, 3,
             "cfmba", b());
+        check_for_exception(val);
         stack_push(val);
       }
     }

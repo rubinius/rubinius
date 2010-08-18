@@ -1573,10 +1573,23 @@ instruction cast_for_multi_block_arg() [ -- array ]
   /* If there is only one argument and that thing is an array...
      AND the thing being invoked is not a lambda... */
   if(!(call_frame->flags & CallFrame::cIsLambda) &&
-       call_frame->arguments->total() == 1 &&
-       kind_of<Array>(call_frame->arguments->get_argument(0)))
-  {
-    stack_push(call_frame->arguments->get_argument(0));
+       call_frame->arguments->total() == 1) {
+    Object* obj = call_frame->arguments->get_argument(0);
+    if(kind_of<Array>(obj)) {
+      stack_push(obj);
+    } else if(RTEST(obj->respond_to(state, state->symbol("to_ary"), Qfalse))) {
+      obj = obj->send(state, call_frame, state->symbol("to_ary"));
+      if(kind_of<Array>(obj)) {
+        stack_push(obj);
+      } else {
+        Exception::type_error(state, "to_ary must return an Array", call_frame);
+        RUN_EXCEPTION();
+      }
+    } else {
+      Array* ary = Array::create(state, 1);
+      ary->set(state, 0, obj);
+      stack_push(ary);
+    }
   } else {
     Array* ary = Array::create(state, call_frame->arguments->total());
     for(size_t i = 0; i < call_frame->arguments->total(); i++) {

@@ -60,7 +60,7 @@ class Rubinius::VM
 
   def self.coerce_to_array(object)
     array = object.respond_to?(:to_a) ? object.to_a : [object]
-    raise TypeError.new("`to_a' did not return Array") unless array.is_a?(Array)
+    raise(TypeError, "`to_a' did not return Array") unless array.is_a?(Array)
     array
   end
 
