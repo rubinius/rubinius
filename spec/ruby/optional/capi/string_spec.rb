@@ -22,7 +22,9 @@ describe "C-API String function" do
   ruby_version_is "1.8.7" do
     describe "rb_str_set_len" do
       before :each do
-        @str = "abcdefghij"
+        # Make a completely new copy of the string
+        # for every example (#dup doesn't cut it).
+        @str = "abcdefghij"[0..-1]
       end
 
       it "reduces the size of the string" do
