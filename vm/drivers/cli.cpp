@@ -57,10 +57,12 @@ int main(int argc, char** argv) {
     std::cout << std::endl << "Ruby backtrace:" << std::endl;
     env.state->print_backtrace();
     delete e;
+    return 1;
   } catch(RubyException &e) {
     std::cout << "Ruby Exception hit toplevel:\n";
     // Prints Ruby backtrace, and VM backtrace if captured
     e.show(env.state);
+    return 1;
   } catch(TypeError &e) {
 
     /* TypeError's here are dealt with specially so that they can deliver
@@ -89,6 +91,7 @@ int main(int argc, char** argv) {
 
     std::cout << "Ruby backtrace:" << std::endl;
     env.state->print_backtrace();
+    return 1;
   } catch(BadKernelFile& e) {
     std::cout << "ERROR: BadKernelFile: " << e.what() << "\n\n";
     std::cout << "An invalid kernel file has been detected.\n";
@@ -103,10 +106,10 @@ int main(int argc, char** argv) {
   } catch(VMException &e) {
     std::cout << "Unknown VM exception detected." << std::endl;
     e.print_backtrace();
+    return 1;
   } catch(std::runtime_error& e) {
     std::cout << "Runtime exception: " << e.what() << std::endl;
-  } catch(...) {
-    std::cout << "Unknown exception detected." << std::endl;
+    return 1;
   }
 
   env.halt();
