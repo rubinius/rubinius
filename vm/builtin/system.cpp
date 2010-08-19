@@ -253,8 +253,12 @@ namespace rubinius {
       char raw_buf[1024];
 
       for(;;) {
-        size_t bytes = read(fds[0], raw_buf, 1023);
+        ssize_t bytes = read(fds[0], raw_buf, 1023);
         if(bytes == 0) break;
+        if(bytes == -1) {
+          if(errno == EINTR) continue;
+          Exception::errno_error(state, "reading child data", errno, "read(2)");
+        }
 
         buf.append(raw_buf, bytes);
       }
