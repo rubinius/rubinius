@@ -60,6 +60,7 @@ namespace rubinius {
     static void zero_division_error(STATE, const char* reason = NULL);
     static void io_error(STATE, const char* reason);
     static void range_error(STATE, const char* reason);
+    static void runtime_error(STATE, const char* reason);
 
     static void assertion_error(STATE, const char* reason = NULL);
     static void object_bounds_exceeded_error(STATE, Object* obj, int index);
@@ -100,6 +101,7 @@ namespace rubinius {
     static bool errno_error_p(STATE, Exception* exc);
     static bool system_call_error_p(STATE, Exception* exc);
     static bool io_error_p(STATE, Exception* exc);
+    static bool runtime_error_p(STATE, Exception* exc);
 
     static Class* get_argument_error(STATE);
     static Class* get_type_error(STATE);
@@ -113,6 +115,7 @@ namespace rubinius {
     static Class* get_thread_error(STATE);
     static Class* get_fiber_error(STATE);
     static Class* get_errno_error(STATE, Fixnum* ern);
+    static Class* get_runtime_error(STATE);
 
     class Info : public TypeInfo {
     public:
