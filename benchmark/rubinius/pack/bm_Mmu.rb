@@ -1,3 +1,4 @@
+# -*- encoding: ascii-8bit -*-
 require 'benchmark'
 
 total = (ENV['TOTAL'] || 80_000).to_i
@@ -83,30 +84,5 @@ Benchmark.bmbm do |x|
 
   x.report("[L].pack('u40')") do
     total.times { L.pack('u40') }
-  end
-
-  # U
-  x.report("[S].pack('U')") do
-    total.times { S.pack('U') }
-  end
-
-  x.report("[M].pack('U')") do
-    total.times { M.pack('U') }
-  end
-
-  x.report("[L].pack('U')") do
-    total.times { L.pack('U') }
-  end
-
-  x.report("[S].pack('U40')") do
-    total.times { S.pack('U40') }
-  end
-
-  x.report("[M].pack('U40')") do
-    total.times { M.pack('U40') }
-  end
-
-  x.report("[L].pack('U40')") do
-    total.times { L.pack('U40') }
   end
 end

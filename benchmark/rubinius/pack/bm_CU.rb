@@ -83,4 +83,41 @@ Benchmark.bmbm do |x|
   x.report("[X].pack('C*')") do
     total.times { X.pack("C*") }
   end
+
+  # U
+  x.report("[S].pack('U')") do
+    total.times { S.pack('U') }
+  end
+
+  x.report("[M].pack('U')") do
+    total.times { M.pack('U') }
+  end
+
+  x.report("[L].pack('U')") do
+    total.times { L.pack('U') }
+  end
+
+  x.report("[S].pack('U10')") do
+    total.times { S.pack('U10') }
+  end
+
+  x.report("[M].pack('U20')") do
+    total.times { M.pack('U20') }
+  end
+
+  x.report("[L].pack('U40')") do
+    total.times { L.pack('U40') }
+  end
+
+  x.report("[S].pack('U*')") do
+    total.times { S.pack('U*') }
+  end
+
+  x.report("[M].pack('U*')") do
+    total.times { M.pack('U*') }
+  end
+
+  x.report("[L].pack('U*')") do
+    total.times { L.pack('U*') }
+  end
 end
