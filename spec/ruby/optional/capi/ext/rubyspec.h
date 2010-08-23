@@ -131,6 +131,7 @@
 #define HAVE_RB_SET_KCODE                  1
 
 // Hash
+#define HAVE_RB_HASH                       1
 #define HAVE_RB_HASH_AREF                  1
 #define HAVE_RB_HASH_ASET                  1
 #define HAVE_RB_HASH_DELETE                1

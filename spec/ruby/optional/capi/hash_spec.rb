@@ -7,6 +7,13 @@ describe "C-API Hash function" do
     @s = CApiHashSpecs.new
   end
 
+  describe "rb_hash" do
+    it "returns the hash is of an object" do
+      obj = Object.new
+      @s.rb_hash(obj).should == obj.hash
+    end
+  end
+  
   describe "rb_hash_new" do
     it "returns a new hash" do
       @s.rb_hash_new.should == {}
