@@ -179,6 +179,10 @@ describe "A class definition extending an object (sclass)" do
   it "allows accessing the block of the original scope" do
     ClassSpecs.sclass_with_block { 123 }.should == 123
   end
+
+  it "can use return to cause the enclosing method to return" do
+    ClassSpecs.sclass_with_return.should == :inner
+  end
 end
 
 describe "Reopening a class" do

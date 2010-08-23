@@ -6,6 +6,13 @@ module ClassSpecs
     end
   end
 
+  def self.sclass_with_return
+    class << self
+      return :inner
+    end
+    return :outer
+  end
+
   class A; end
 
   class B
