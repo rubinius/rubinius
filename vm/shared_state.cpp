@@ -109,6 +109,18 @@ namespace rubinius {
     // Don't delete ourself here, it's too problematic.
   }
 
+
+  void SharedState::add_global_handle(STATE, capi::Handle* handle) {
+    SYNC(state);
+    global_handles_->add(handle);
+  }
+
+  void SharedState::make_handle_cached(STATE, capi::Handle* handle) {
+    SYNC(state);
+    global_handles_->move(handle, cached_handles_);
+  }
+
+
   QueryAgent* SharedState::autostart_agent() {
     SYNC(0);
     if(agent_) return agent_;
@@ -284,5 +296,13 @@ namespace rubinius {
     if(ruby_critical_thread_ == pthread_self()) {
       ruby_critical_lock_.unlock();
     }
+  }
+
+  void SharedState::enter_capi(STATE) {
+    capi_lock_.lock(state);
+  }
+
+  void SharedState::leave_capi(STATE) {
+    capi_lock_.unlock(state);
   }
 }

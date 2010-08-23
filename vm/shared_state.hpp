@@ -103,6 +103,8 @@ namespace rubinius {
     thread::Mutex ruby_critical_lock_;
     pthread_t ruby_critical_thread_;
 
+    Mutex capi_lock_;
+
   public:
     Globals globals;
     ObjectMemory* om;
@@ -152,6 +154,9 @@ namespace rubinius {
     capi::Handles* global_handles() {
       return global_handles_;
     }
+
+    void add_global_handle(VM*, capi::Handle* handle);
+    void make_handle_cached(VM*, capi::Handle* handle);
 
     capi::Handles* cached_handles() {
       return cached_handles_;
@@ -256,6 +261,9 @@ namespace rubinius {
 
     void set_critical(STATE);
     void clear_critical(STATE);
+
+    void enter_capi(STATE);
+    void leave_capi(STATE);
   };
 }
 

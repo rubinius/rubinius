@@ -32,7 +32,7 @@ namespace rubinius {
     // Don't call ->ref() on handle! We don't want the handle to keep the object
     // alive by default. The handle needs to have the lifetime of the object.
 
-    state->shared.global_handles()->add(handle);
+    state->shared.add_global_handle(state, handle);
 
     RDataShadow* rdata = reinterpret_cast<RDataShadow*>(handle->as_rdata(0));
 

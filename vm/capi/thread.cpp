@@ -14,10 +14,12 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     int ret = 0;
 
+    env->state()->shared.leave_capi(env->state());
     {
       GCIndependent guard(env);
       ret = select(max, read, write, except, timeval);
     }
+    env->state()->shared.enter_capi(env->state());
 
     // Ok, now check if there were async events that happened while
     // we were waiting on select...
@@ -71,10 +73,14 @@ extern "C" {
                                   rb_unblock_function_t ubf, void* ubf_data) {
     VALUE ret = Qnil;
     // ubf is ignored entirely.
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    env->state()->shared.leave_capi(env->state());
     {
-      GCIndependent guard(NativeMethodEnvironment::get());
+      GCIndependent guard(env);
       ret = (*func)(data);
     }
+    env->state()->shared.enter_capi(env->state());
 
     return ret;
   }

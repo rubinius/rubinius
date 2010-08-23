@@ -62,14 +62,27 @@ extern "C" {
     Array* ary = capi::c_as<Array>(env->get_object(args));
 
     Object* obj = env->get_object(recv);
+
+    // Unlock, we're leaving extension code.
+    env->state()->shared.leave_capi(env->state());
+
     Object* ret = obj->send(env->state(), env->current_call_frame(),
         reinterpret_cast<Symbol*>(mid), ary, RBX_Qnil);
+
+    // We need to get the handle for the return value before getting
+    // the GEL so that ret isn't accidentally GCd while we wait.
+    VALUE ret_handle = 0;
+    if(ret) ret_handle = env->get_handle(ret);
+
+    // Re-entering extension code
+    env->state()->shared.enter_capi(env->state());
+
     env->update_cached_data();
 
     // An exception occurred
     if(!ret) env->current_ep()->return_to(env);
 
-    return env->get_handle(ret);
+    return ret_handle;
   }
 
 #define RB_EXC_BUFSIZE   256

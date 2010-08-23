@@ -71,8 +71,7 @@ namespace rubinius {
 
         flush_ = flush_cached_rio;
 
-        env->state()->shared.global_handles()->move(this,
-            env->state()->shared.cached_handles());
+        env->state()->shared.make_handle_cached(env->state(), this);
       }
 
       return as_.rio;
@@ -129,12 +128,19 @@ extern "C" {
 
     int ready = 0;
 
-    GCIndependent guard(NativeMethodEnvironment::get());
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    while(!ready) {
-      ready = select(fd+1, &fds, 0, 0, 0);
-      if(!retry) break;
+    env->state()->shared.leave_capi(env->state());
+    {
+      GCIndependent guard(env);
+
+      while(!ready) {
+        ready = select(fd+1, &fds, 0, 0, 0);
+        if(!retry) break;
+      }
     }
+
+    env->state()->shared.enter_capi(env->state());
 
     return 1;
   }
@@ -168,12 +174,18 @@ extern "C" {
 
     int ready = 0;
 
-    GCIndependent guard(NativeMethodEnvironment::get());
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    env->state()->shared.leave_capi(env->state());
+    {
+      GCIndependent guard(env->state());
 
-    while(!ready) {
-      ready = select(fd+1, 0, &fds, 0, 0);
-      if(!retry) break;
+      while(!ready) {
+        ready = select(fd+1, 0, &fds, 0, 0);
+        if(!retry) break;
+      }
     }
+
+    env->state()->shared.enter_capi(env->state());
 
     return 1;
   }
@@ -186,11 +198,17 @@ extern "C" {
 
     int ready = 0;
 
-    GCIndependent guard(NativeMethodEnvironment::get());
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    env->state()->shared.leave_capi(env->state());
+    {
+      GCIndependent guard(env);
 
-    while(!ready) {
-      ready = select(fd+1, &fds, &fds, 0, 0);
+      while(!ready) {
+        ready = select(fd+1, &fds, &fds, 0, 0);
+      }
     }
+
+    env->state()->shared.enter_capi(env->state());
   }
 
   void rb_io_set_nonblock(rb_io_t* iot) {
