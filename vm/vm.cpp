@@ -374,7 +374,9 @@ namespace rubinius {
     check_local_interrupts = false;
 
     if(run_signals_) {
-      shared.signal_handler()->deliver_signals(call_frame);
+      if(!shared.signal_handler()->deliver_signals(call_frame)) {
+        return false;
+      }
     }
 
     Exception* exc = interrupted_exception_.get();

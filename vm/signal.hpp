@@ -12,7 +12,6 @@ namespace rubinius {
   class SignalHandler : public thread::Thread {
     VM* vm_;
     int pending_signals_[NSIG];
-    int running_signals_[NSIG];
     int queued_signals_;
     bool executing_signal_;
     thread::SpinLock lock_;
@@ -29,7 +28,7 @@ namespace rubinius {
     void handle_signal(int sig);
     static void signal_tramp(int sig);
 
-    void deliver_signals(CallFrame* call_frame);
+    bool deliver_signals(CallFrame* call_frame);
 
     void reopen_pipes();
     static void on_fork();

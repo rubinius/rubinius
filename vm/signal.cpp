@@ -25,7 +25,6 @@ namespace rubinius {
 
     for(int i = 0; i < NSIG; i++) {
       pending_signals_[i] = 0;
-      running_signals_[i] = 0;
     }
 
     reopen_pipes();
@@ -141,27 +140,30 @@ namespace rubinius {
     sigaction(sig, &action, NULL);
   }
 
-  void SignalHandler::deliver_signals(CallFrame* call_frame) {
-    if(executing_signal_) return;
+  bool SignalHandler::deliver_signals(CallFrame* call_frame) {
+    if(executing_signal_) return true;
     executing_signal_ = true;
     queued_signals_ = 0;
 
-    // We run all handlers, even if one handler raises an exception. The
-    // rest of the signals handles will simply see the exception.
     for(int i = 0; i < NSIG; i++) {
       if(pending_signals_[i] > 0) {
         pending_signals_[i] = 0;
-        running_signals_[i] = 1;
 
         Array* args = Array::create(vm_, 1);
         args->set(vm_, 0, Fixnum::from(i));
 
-        vm_->globals().rubinius->send(vm_, call_frame,
-            vm_->symbol("received_signal"), args, Qnil);
-        running_signals_[i] = 0;
+        // Check whether the send raised an exception and
+        // stop running the handlers if that happens
+        if(!vm_->globals().rubinius->send(vm_, call_frame,
+               vm_->symbol("received_signal"), args, Qnil)) {
+          if(vm_->thread_state()->raise_reason() == cException) {
+            return false;
+          }
+        }
       }
     }
 
     executing_signal_ = false;
+    return true;
   }
 }
