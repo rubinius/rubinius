@@ -1109,6 +1109,9 @@ VALUE rb_uint2big(unsigned long number);
    */
   #define rb_funcall3 rb_funcall2
 
+  /** Return the hash id of the object **/
+  VALUE   rb_hash(VALUE self);
+
   /** Create a new Hash object */
   VALUE   rb_hash_new();
 
