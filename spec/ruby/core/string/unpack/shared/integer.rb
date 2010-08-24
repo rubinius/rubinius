@@ -9,7 +9,7 @@ describe :string_unpack_16bit_le, :shared => true do
     "abcd".unpack(unpack_format(nil, 2)).should == [25185, 25699]
   end
 
-  it "decodes the number or shorts requested by the count modifier" do
+  it "decodes the number of shorts requested by the count modifier" do
     "abcdef".unpack(unpack_format(3)).should == [25185, 25699, 26213]
   end
 
@@ -62,7 +62,7 @@ describe :string_unpack_16bit_be, :shared => true do
     "badc".unpack(unpack_format(nil, 2)).should == [25185, 25699]
   end
 
-  it "decodes the number or shorts requested by the count modifier" do
+  it "decodes the number of shorts requested by the count modifier" do
     "badcfe".unpack(unpack_format(3)).should == [25185, 25699, 26213]
   end
 
@@ -115,7 +115,7 @@ describe :string_unpack_32bit_le, :shared => true do
     "abghefcd".unpack(unpack_format(nil, 2)).should == [1751605857, 1684235877]
   end
 
-  it "decodes the number or ints requested by the count modifier" do
+  it "decodes the number of ints requested by the count modifier" do
     "abcedfgh".unpack(unpack_format(2)).should == [1701012065, 1751606884]
   end
 
@@ -224,7 +224,7 @@ describe :string_unpack_64bit_le, :shared => true do
     array.should == [7233738012216484449, 7233733596956420199]
   end
 
-  it "decodes the number or longs requested by the count modifier" do
+  it "decodes the number of longs requested by the count modifier" do
     array = "abcedfghefcdghef".unpack(unpack_format(2))
     array.should == [7523094283929477729, 7378418357791581797]
   end
@@ -288,7 +288,7 @@ describe :string_unpack_64bit_be, :shared => true do
     array.should == [7233738012216484449, 7233733596956420199]
   end
 
-  it "decodes the number or longs requested by the count modifier" do
+  it "decodes the number of longs requested by the count modifier" do
     array = "hgfdecbafehgdcfe".unpack(unpack_format(2))
     array.should == [7523094283929477729, 7378418357791581797]
   end
