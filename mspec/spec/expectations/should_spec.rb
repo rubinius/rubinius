@@ -3,8 +3,8 @@ require 'rbconfig'
 
 describe MSpec do
   before :all do
-    path = Config::CONFIG['bindir']
-    exe  = Config::CONFIG['ruby_install_name']
+    path = RbConfig::CONFIG['bindir']
+    exe  = RbConfig::CONFIG['ruby_install_name']
     file = File.dirname(__FILE__) + '/should.rb'
     @out = `#{path}/#{exe} #{file}`
   end

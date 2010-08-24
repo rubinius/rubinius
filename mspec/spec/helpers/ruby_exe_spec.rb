@@ -52,14 +52,14 @@ describe "#ruby_exe_options" do
   end
 
   it "returns RUBY_NAME + $(EXEEXT) when passed :name" do
-    bin = RUBY_NAME + (Config::CONFIG['EXEEXT'] || Config::CONFIG['exeext'] || '')
+    bin = RUBY_NAME + (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
     name = File.join ".", bin
     @script.ruby_exe_options(:name).should == name
   end
 
   it "returns $(bindir)/$(RUBY_INSTALL_NAME) + $(EXEEXT) when passed :install_name" do
-    bin = Config::CONFIG['RUBY_INSTALL_NAME'] + (Config::CONFIG['EXEEXT'] || Config::CONFIG['exeext'] || '')
-    name = File.join Config::CONFIG['bindir'], bin
+    bin = RbConfig::CONFIG['RUBY_INSTALL_NAME'] + (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
+    name = File.join RbConfig::CONFIG['bindir'], bin
     @script.ruby_exe_options(:install_name).should == name
   end
 end
