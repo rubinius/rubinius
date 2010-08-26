@@ -76,7 +76,7 @@ namespace rubinius {
              |((x & 0x000000ff00000000LL) >> 8));
     }
 
-    inline static void swapf(std::string& str, float value) {
+    inline static void swap_float(std::string& str, float value) {
       uint32_t x;
 
       memcpy(&x, &value, sizeof(float));
@@ -85,7 +85,7 @@ namespace rubinius {
       str.append((const char*)&x, sizeof(uint32_t));
     }
 
-    inline static void swapd(std::string& str, double value) {
+    inline static void swap_double(std::string& str, double value) {
       uint64_t x;
 
       memcpy(&x, &value, sizeof(double));
@@ -413,22 +413,22 @@ namespace rubinius {
 # define MASK_64BITS     LE_MASK_64BITS
 
 # define pack_double_element_le(v)  (pack::double_element(str, (v)->val))
-# define pack_double_element_be(v)  (pack::swapd(str, (v)->val))
+# define pack_double_element_be(v)  (pack::swap_double(str, (v)->val))
 # define pack_double                pack_double_le
 
 # define pack_float_element_le(v)   (pack::float_element(str, (v)->val))
-# define pack_float_element_be(v)   (pack::swapf(str, (v)->val))
+# define pack_float_element_be(v)   (pack::swap_float(str, (v)->val))
 # define pack_float                 pack_float_le
 #else
 # define MASK_16BITS     BE_MASK_16BITS
 # define MASK_32BITS     BE_MASK_32BITS
 # define MASK_64BITS     BE_MASK_64BITS
 
-# define pack_double_element_le(v)  (pack::swapd(str, (v)->val))
+# define pack_double_element_le(v)  (pack::swap_double(str, (v)->val))
 # define pack_double_element_be(v)  (pack::double_element(str, (v)->val))
 # define pack_double                pack_double_be
 
-# define pack_float_element_le(v)   (pack::swapf(str, (v)->val))
+# define pack_float_element_le(v)   (pack::swap_float(str, (v)->val))
 # define pack_float_element_be(v)   (pack::float_element(str, (v)->val))
 # define pack_float                 pack_float_be
 #endif
