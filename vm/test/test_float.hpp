@@ -101,7 +101,7 @@ public:
     a = f->div(state, Fixnum::from(10));
     check_float(a, Float::create(state, 0.02));
 
-    f = Float::create(state, 100000);
+    f = Float::create(state, (native_int)100000);
     a = f->div(state, Bignum::from(state, FIXNUM_MAX + 10));
     check_float(a, Float::create(state, 100000 / ((double)FIXNUM_MAX + 10)));
   }

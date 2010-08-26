@@ -50,10 +50,6 @@ namespace rubinius {
     return Float::create(state, (double)val);
   }
 
-  Float* Float::create(STATE, int val) {
-    return Float::create(state, (double)val);
-  }
-
   Float* Float::coerce(STATE, Object* value) {
     if(value->fixnum_p()) {
       return Float::create(state, (double)(as<Fixnum>(value)->to_native()));
