@@ -70,7 +70,7 @@ class Configure
     end
 
     # TODO: add conditionals for platforms
-    if Config::CONFIG["build_os"] =~ /darwin/
+    if RbConfig::CONFIG["build_os"] =~ /darwin/
       @ldshared = "cc -dynamic -bundle -undefined suppress -flat_namespace"
     else
       @ldshared = "cc -shared"
@@ -571,9 +571,9 @@ class Configure
   # script. That path will be made available to the rest of the build system
   # so the same version of ruby is invoked as needed.
   def build_ruby
-    bin = Config::CONFIG["RUBY_INSTALL_NAME"] || Config::CONFIG["ruby_install_name"]
-    bin << (Config::CONFIG['EXEEXT'] || Config::CONFIG['exeext'] || '')
-    File.join(Config::CONFIG['bindir'], bin)
+    bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"] || RbConfig::CONFIG["ruby_install_name"]
+    bin << (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
+    File.join(RbConfig::CONFIG['bindir'], bin)
   end
 
   def get_system_name

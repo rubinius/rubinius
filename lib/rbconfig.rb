@@ -1,6 +1,6 @@
 require 'rubinius/build_config'
 
-module Config
+module RbConfig
   unless defined? RUBY_ENGINE and RUBY_ENGINE == "rbx" then
     raise "Looks like you loaded the Rubinius rbconfig, but this is not Rubinius."
   end
@@ -168,7 +168,7 @@ module Config
   MAKEFILE_CONFIG = {}
   CONFIG.each { |k,v| MAKEFILE_CONFIG[k] = v.kind_of?(String) ? v.dup : v }
 
-  def Config.expand(val, config = CONFIG)
+  def RbConfig.expand(val, config = CONFIG)
     return val unless val.kind_of? String
 
     val.gsub!(/\$\$|\$\(([^()]+)\)|\$\{([^{}]+)\}/) do |var|
@@ -177,7 +177,7 @@ module Config
       elsif key = config[v = v[/\A[^:]+(?=(?::(.*?)=(.*))?\z)/]]
         pat, sub = $1, $2
         config[v] = false
-        Config.expand(key, config)
+        RbConfig.expand(key, config)
         config[v] = key
         key = key.gsub(/#{Regexp.quote(pat)}(?=\s|\z)/n) {sub} if pat
         key
@@ -189,9 +189,9 @@ module Config
   end
 
   CONFIG.each_value do |val|
-    Config.expand(val)
+    RbConfig.expand(val)
   end
 end
 
 CROSS_COMPILING = nil unless defined? CROSS_COMPILING
-RbConfig = Config
+Config = RbConfig

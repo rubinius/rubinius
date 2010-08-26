@@ -5,7 +5,7 @@ require 'rbconfig'
 require 'fileutils'
 require 'shellwords'
 
-CONFIG = Config::MAKEFILE_CONFIG
+CONFIG = RbConfig::MAKEFILE_CONFIG
 ORIG_LIBPATH = ENV['LIB']
 
 CXX_EXT = %w[cc cxx cpp]
@@ -326,28 +326,28 @@ ensure
 end
 
 def link_command(ldflags, opt="", libpath=$DEFLIBPATH|$LIBPATH)
-  conf = Config::CONFIG.merge('hdrdir' => $hdrdir.quote,
-                              'src' => CONFTEST_C,
-                              'INCFLAGS' => $INCFLAGS,
-                              'CPPFLAGS' => $CPPFLAGS,
-                              'CFLAGS' => "#$CFLAGS",
-                              'ARCH_FLAG' => "#$ARCH_FLAG",
-                              'LDFLAGS' => "#$LDFLAGS #{ldflags}",
-                              'LIBPATH' => libpathflag(libpath),
-                              'LOCAL_LIBS' => "#$LOCAL_LIBS #$libs",
-                              'LIBS' => "#$LIBRUBYARG_STATIC #{opt} #$LIBS")
-  Config::expand(TRY_LINK.dup, conf)
+  conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote,
+                                'src' => CONFTEST_C,
+                                'INCFLAGS' => $INCFLAGS,
+                                'CPPFLAGS' => $CPPFLAGS,
+                                'CFLAGS' => "#$CFLAGS",
+                                'ARCH_FLAG' => "#$ARCH_FLAG",
+                                'LDFLAGS' => "#$LDFLAGS #{ldflags}",
+                                'LIBPATH' => libpathflag(libpath),
+                                'LOCAL_LIBS' => "#$LOCAL_LIBS #$libs",
+                                'LIBS' => "#$LIBRUBYARG_STATIC #{opt} #$LIBS")
+  RbConfig::expand(TRY_LINK.dup, conf)
 end
 
 def cc_command(opt="")
-  conf = Config::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote)
-  Config::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -c #{CONFTEST_C}",
+  conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote)
+  RbConfig::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -c #{CONFTEST_C}",
 		 conf)
 end
 
 def cpp_command(outfile, opt="")
-  conf = Config::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote)
-  Config::expand("$(CPP) #$INCFLAGS #$CPPFLAGS #$CFLAGS #{opt} #{CONFTEST_C} #{outfile}",
+  conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote)
+  RbConfig::expand("$(CPP) #$INCFLAGS #$CPPFLAGS #$CFLAGS #{opt} #{CONFTEST_C} #{outfile}",
 		 conf)
 end
 
@@ -551,7 +551,7 @@ def install_files(mfile, ifiles, map = nil, srcprefix = nil)
   ifiles or return
   ifiles.empty? and return
   srcprefix ||= '$(srcdir)'
-  Config::expand(srcdir = srcprefix.dup)
+  RbConfig::expand(srcdir = srcprefix.dup)
   dirs = []
   path = Hash.new {|h, i| h[i] = dirs.push([i])[-1]}
   ifiles.each do |files, dir, prefix|
@@ -1338,7 +1338,7 @@ RUBY_INSTALL_NAME = #{CONFIG['RUBY_INSTALL_NAME']}
 RUBY_SO_NAME = #{CONFIG['RUBY_SO_NAME']}
 arch = #{CONFIG['arch']}
 sitearch = #{CONFIG['sitearch']}
-ruby_version = #{Config::CONFIG['ruby_version']}
+ruby_version = #{RbConfig::CONFIG['ruby_version']}
 ruby = #{$ruby}
 RUBY = $(ruby#{sep})
 RM = #{config_string('RM') || '$(RUBY) -run -e rm -- -f'}
@@ -1401,7 +1401,7 @@ end
 # Makefile.
 #
 # Setting the +target_prefix+ will, in turn, install the generated binary in
-# a directory under your Config::CONFIG['sitearchdir'] that mimics your local
+# a directory under your RbConfig::CONFIG['sitearchdir'] that mimics your local
 # filesystem when you run 'make install'.
 #
 # For example, given the following file tree:
@@ -1449,7 +1449,7 @@ def create_makefile(target, srcprefix = nil)
   end
 
   srcprefix ||= '$(srcdir)'
-  Config::expand(srcdir = srcprefix.dup)
+  RbConfig::expand(srcdir = srcprefix.dup)
 
   if not $objs
     $objs = []
@@ -1721,7 +1721,7 @@ def init_mkmf(config = CONFIG)
   $objs = nil
   $srcs = nil
   $libs = ""
-  if $enable_shared or Config.expand(config["LIBRUBY"].dup) != Config.expand(config["LIBRUBY_A"].dup)
+  if $enable_shared or RbConfig.expand(config["LIBRUBY"].dup) != RbConfig.expand(config["LIBRUBY_A"].dup)
     $LIBRUBYARG = config['LIBRUBYARG']
   end
 
@@ -1772,20 +1772,20 @@ when $bccwin
   $nmake = ?b if /Borland/i =~ `#{make} -h`
 end
 
-Config::CONFIG["srcdir"] = CONFIG["srcdir"] =
+RbConfig::CONFIG["srcdir"] = CONFIG["srcdir"] =
   $srcdir = arg_config("--srcdir", File.dirname($0))
 $configure_args["--topsrcdir"] ||= $srcdir
 if $curdir = arg_config("--curdir")
-  Config.expand(curdir = $curdir.dup)
+  RbConfig.expand(curdir = $curdir.dup)
 else
   curdir = $curdir = "."
 end
-unless File.expand_path(Config::CONFIG["topdir"]) == File.expand_path(curdir)
+unless File.expand_path(RbConfig::CONFIG["topdir"]) == File.expand_path(curdir)
   CONFIG["topdir"] = $curdir
-  Config::CONFIG["topdir"] = curdir
+  RbConfig::CONFIG["topdir"] = curdir
 end
 $configure_args["--topdir"] ||= $curdir
-$ruby = arg_config("--ruby", File.join(Config::CONFIG["bindir"], CONFIG["ruby_install_name"]))
+$ruby = arg_config("--ruby", File.join(RbConfig::CONFIG["bindir"], CONFIG["ruby_install_name"]))
 
 split = Shellwords.method(:shellwords).to_proc
 

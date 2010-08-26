@@ -33,7 +33,7 @@ unless BUILD_CONFIG[:which_ruby] == :ruby or BUILD_CONFIG[:which_ruby] == :rbx
   exit 1
 end
 
-$dlext = Config::CONFIG["DLEXT"]
+$dlext = RbConfig::CONFIG["DLEXT"]
 
 task :default => %w[build vm:test] do
   unless File.directory? BUILD_CONFIG[:runtime]
