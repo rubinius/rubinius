@@ -113,13 +113,15 @@ namespace rubinius {
   bool ObjectMemory::refill_slab(gc::Slab& slab) {
     void* addr = young_->allocate_for_slab(slab_size_);
 
-    if(!addr) return false;
-
     objects_allocated += slab.allocations();
 
-    slab.refill(addr, slab_size_);
-
-    return true;
+    if(addr) {
+      slab.refill(addr, slab_size_);
+      return true;
+    } else {
+      slab.refill(0, 0);
+      return false;
+    }
   }
 
   void ObjectMemory::set_young_lifetime(size_t age) {
@@ -189,7 +191,7 @@ namespace rubinius {
       for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
           i != data.threads()->end();
           i++) {
-        assert(refill_slab((*i)->local_slab()));
+        refill_slab((*i)->local_slab());
       }
     }
 
