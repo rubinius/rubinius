@@ -47,7 +47,10 @@ when ["build:mri"]
   add_mri_capi
   set_ext_dir "ruby"
   add_link_dir RbConfig::CONFIG["libdir"]
-  add_ldflag RbConfig::CONFIG["LIBRUBYARG"]
+
+  if RbConfig::CONFIG["ENABLE_SHARED"] == "yes"
+    add_ldflag RbConfig::CONFIG["LIBRUBYARG"]
+  end
 end
 
 add_objects project_files, ext_dir
