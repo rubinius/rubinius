@@ -29,7 +29,8 @@ namespace rubinius {
     // run delete on this object to free up the memory.
     set_delete_on_exit();
 
-    vm_->set_stack_bounds(reinterpret_cast<uintptr_t>(&x), stack_size());
+    int stack_boundary = 0;
+    vm_->set_stack_bounds(reinterpret_cast<uintptr_t>(&stack_boundary), stack_size());
 
     Object* ret = vm_->thread.get()->send(vm_, NULL, vm_->symbol("__run__"));
 

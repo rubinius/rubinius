@@ -52,13 +52,16 @@ namespace rubinius {
 
   class WaitingOnCondition : public Waiter {
     thread::Condition& cond_;
+    thread::Mutex& mutex_;
 
   public:
-    WaitingOnCondition(thread::Condition& cond)
+    WaitingOnCondition(thread::Condition& cond, thread::Mutex& mutex)
       : cond_(cond)
+      , mutex_(mutex)
     {}
 
     void wakeup() {
+      thread::Mutex::LockGuard lg(mutex_);
       cond_.signal();
     }
   };

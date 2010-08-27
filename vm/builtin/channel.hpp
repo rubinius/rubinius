@@ -29,6 +29,7 @@ namespace rubinius {
     List* value_;  // slot
 
     thread::Condition condition_;
+    thread::Mutex mutex_;
     int waiters_;
 
   public:

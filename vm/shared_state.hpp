@@ -42,22 +42,15 @@ namespace rubinius {
     bool check;
     bool perform_gc;
     bool enable_preempt;
-    bool timer;
 
-    Interrupts() :
-      check(false),
-      perform_gc(false),
-      enable_preempt(false),
-      timer(false)
+    Interrupts()
+      : check(false)
+      , perform_gc(false)
+      , enable_preempt(false)
     {}
 
     void checked() {
       check = false;
-    }
-
-    void set_timer() {
-      timer = true;
-      check = true;
     }
 
     void set_perform_gc() {
@@ -86,9 +79,6 @@ namespace rubinius {
 
     kcode::CodePage kcode_page_;
     kcode::table* kcode_table_;
-
-    bool timer_thread_started_;
-    pthread_t timer_thread_;
 
     int primitive_hits_[Primitives::cTotalPrimitives];
     QueryAgent* agent_;

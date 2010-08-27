@@ -709,16 +709,14 @@ extern "C" {
       state->collect_maybe(call_frame);
     }
 
-    if(state->interrupts.timer) {
-      state->interrupts.timer = false;
-      state->set_call_frame(call_frame);
-      state->global_lock().yield(state, call_frame);
-    }
+    state->global_lock().checkpoint(state, call_frame);
 
     return Qtrue;
   }
 
   Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
+    state->global_lock().checkpoint(state, call_frame);
+
     if(unlikely(state->interrupts.check)) {
       state->interrupts.checked();
 
@@ -726,13 +724,8 @@ extern "C" {
         state->interrupts.perform_gc = true;
         state->collect_maybe(call_frame);
       }
-
-      if(state->interrupts.timer) {
-        state->interrupts.timer = false;
-        state->set_call_frame(call_frame);
-        state->global_lock().yield(state, call_frame);
-      }
     }
+
     if(!state->check_async(call_frame)) return NULL;
     return Qtrue;
   }

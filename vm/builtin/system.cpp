@@ -330,9 +330,6 @@ namespace rubinius {
 
     GlobalLock& lock = state->global_lock();
 
-    // Unlock the lock here, before fork.
-    if(lock.unlock() != thread::cUnlocked) { abort(); }
-
     // ok, now fork!
     result = ::fork();
 
@@ -342,19 +339,9 @@ namespace rubinius {
     if(result == 0) {
       lock.init();
 
-      // When we lock in the child, provide a little debugging so
-      // we don't deadlock. There have been bugs here.
-      if(lock.try_lock() == thread::cLockBusy) {
-        std::cerr << "[Lock Error: GIL locking error in child]\n";
-
-        // There is really nothing else we can do! If we call lock(),
-        // we'll just block forever, there is no one else to unlock it.
-        rubinius::abort();
-      }
+      lock.take();
 
     // otherwise, we're locking in the parent, so we can just lock as normal.
-    } else {
-      lock.lock();
     }
 
     // We're in the child...

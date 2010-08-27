@@ -26,11 +26,11 @@ public:
     state->initialize();
     state->boot();
 
-    state->global_lock().lock();
+    state->global_lock().take();
   }
 
   void destroy() {
-    state->global_lock().unlock();
+    state->global_lock().drop();
     VM::discard(state);
     SharedState::discard(shared);
   }

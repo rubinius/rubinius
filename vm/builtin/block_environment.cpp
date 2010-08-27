@@ -134,17 +134,13 @@ namespace rubinius {
       if(!state->check_interrupts(frame, frame)) return NULL;
     }
 
+    state->global_lock().checkpoint(state, frame);
+
     if(unlikely(state->interrupts.check)) {
       state->interrupts.checked();
       if(state->interrupts.perform_gc) {
         state->interrupts.perform_gc = false;
         state->collect_maybe(frame);
-      }
-
-      if(state->interrupts.timer) {
-        state->interrupts.timer = false;
-        state->set_call_frame(frame);
-        state->global_lock().yield(state, frame);
       }
     }
 

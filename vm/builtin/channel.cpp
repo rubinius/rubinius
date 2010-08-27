@@ -36,6 +36,8 @@ namespace rubinius {
 
     // Using placement new to call the constructor of condition_
     new(&chan->condition_) thread::Condition();
+    new(&chan->mutex_) thread::Mutex();
+
     chan->value(state, List::create(state));
 
     return chan;
@@ -47,6 +49,8 @@ namespace rubinius {
   }
 
   Object* Channel::send(STATE, Object* val) {
+    thread::Mutex::LockGuard lg(mutex_);
+
     value_->append(state, val);
 
     if(waiters_ > 0) {
@@ -67,6 +71,8 @@ namespace rubinius {
 
 #define NANOSECONDS 1000000000
   Object* Channel::receive_timeout(STATE, Object* duration, CallFrame* call_frame) {
+    thread::Mutex::LockGuard lg(mutex_);
+
     if(!value_->empty_p()) return value_->shift(state);
 
     // Otherwise, we need to wait for a value.
@@ -114,18 +120,27 @@ namespace rubinius {
     for(;;) {
       state->set_call_frame(call_frame);
 
-      WaitingOnCondition waiter(condition_);
+      WaitingOnCondition waiter(condition_, mutex_);
       state->install_waiter(waiter);
 
+      state->global_lock().drop();
+
+      bool timedout = false;
+
       if(use_timed_wait) {
-        if(condition_.wait_until(state->global_lock(), &ts) == thread::cTimedOut) break;
+        timedout = (condition_.wait_until(mutex_, &ts) == thread::cTimedOut);
       } else {
-        condition_.wait(state->global_lock());
+        condition_.wait(mutex_);
+      }
+
+      {
+        thread::Mutex::UnlockGuard ug(mutex_);
+        state->global_lock().take();
       }
 
       // Stop waiting if...
       // we've been asked explicitely to wakeup..
-      if(waiter.used()) break;
+      if(timedout || waiter.used()) break;
 
       // or there are values available.
       if(!value_->empty_p()) break;

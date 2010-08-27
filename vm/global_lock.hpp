@@ -3,44 +3,63 @@
 
 #include "util/thread.hpp"
 
+#include <sys/time.h>
+#include <stdint.h>
+
 namespace rubinius {
   class VM;
   class CallFrame;
   class NativeMethodEnvironment;
+  class SharedState;
 
-  class GlobalLock : public thread::Mutex {
+  class GlobalLock {
+    uint32_t locked_;
+    uint32_t serial_;
+    uint32_t request_drop_;
+
+    thread::Mutex mutex_;
+    thread::Condition condition_;
+
+    thread::Mutex handshake_mutex_;
+    thread::Condition handshake_condition_;
+
+    struct timeval timeout_;
+
   public:
-
     static bool debug_locking;
 
+    bool should_yield() {
+      return request_drop_ == 1;
+    }
+
+    void checkpoint(VM* state, CallFrame* call_frame) {
+      if(should_yield()) yield(state, call_frame);
+    }
+
+    GlobalLock();
+
+    void init();
+
+    void drop();
+    void take();
     void yield(VM* vm, CallFrame* call_frame);
 
-    class LockGuard : public thread::LockGuardTemplate<GlobalLock> {
-    public:
-      LockGuard(GlobalLock& in_lock)
-        : thread::LockGuardTemplate<GlobalLock>(in_lock, false)
-      {
-        if(debug_locking) std::cout << "[  Locking GIL ] " << pthread_self() << "\n";
-        this->lock();
-        if(debug_locking) std::cout << "[   Locked GIL ] " << pthread_self() << "\n";
-      }
+    class LockGuard {
+      GlobalLock& lock_;
 
-      ~LockGuard() {
-        this->unlock();
-        if(debug_locking) std::cout << "[ Unlocked GIL ] " << pthread_self() << "\n";
-      }
+    public:
+      LockGuard(GlobalLock& in_lock);
+      ~LockGuard();
     };
 
-    class UnlockGuard : public thread::LockGuardTemplate<GlobalLock> {
+    class UnlockGuard {
+      VM* vm_;
+      GlobalLock& lock_;
+
     public:
       UnlockGuard(VM* state, CallFrame* call_frame);
       UnlockGuard(NativeMethodEnvironment* nme);
-
-      ~UnlockGuard() {
-        if(debug_locking) std::cout << "[  Locking GIL ] " << pthread_self() << "\n";
-        this->lock();
-        if(debug_locking) std::cout << "[   Locked GIL ] " << pthread_self() << "\n";
-      }
+      ~UnlockGuard();
     };
   };
 }

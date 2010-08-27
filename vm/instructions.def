@@ -1838,15 +1838,11 @@ instruction check_interrupts() [ -- ]
   // This is used in loops, and allows loops to heat a method up.
   if(vmm->call_count >= 0) vmm->call_count++;
 
+  state->global_lock().checkpoint(state, call_frame);
+
   // The | here reduces the number of branches to check
   if(unlikely(state->interrupts.check)) {
     state->interrupts.checked();
-
-    if(state->interrupts.timer) {
-      state->interrupts.timer = false;
-      state->set_call_frame(call_frame);
-      state->global_lock().yield(state, call_frame);
-    }
 
     if(state->interrupts.perform_gc) {
       state->interrupts.perform_gc = false;
