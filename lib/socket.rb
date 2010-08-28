@@ -897,7 +897,7 @@ class UDPSocket < IPSocket
 
     addrinfos = Socket::Foreign.getaddrinfo(@host,
                                            @port,
-                                           Socket::AF_UNSPEC,
+                                           @socktype,
                                            Socket::SOCK_DGRAM, 0,
                                            Socket::AI_PASSIVE)
 
