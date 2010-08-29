@@ -87,15 +87,15 @@ extern "C" {
           env->state(), as<Class>(env->get_object(error_handle)), reason);
     capi::capi_raise_backend(exc);
 
-    printf("rb_raise broken!\n");
-    exit(1);
+    rubinius::bug("rb_raise failed");
+    exit(1);  // compiler snack.
   }
 
   void rb_throw(const char* symbol, VALUE result) {
     rb_funcall(rb_mKernel, rb_intern("throw"), 2, ID2SYM(rb_intern(symbol)), result);
 
-    printf("rb_throw broken!\n");
-    exit(1);
+    rubinius::bug("rb_throw failed");
+    exit(1);  // compiler snack.
   }
 
   VALUE rb_rescue2(VALUE (*func)(ANYARGS), VALUE arg1,
@@ -219,6 +219,7 @@ extern "C" {
     va_end(args);
 
     rubinius::abort();
+    exit(1);  // compiler snack.
   }
 
   void rb_fatal(const char *fmt, ...) {
@@ -272,6 +273,9 @@ extern "C" {
 
   void rb_sys_fail(const char* mesg) {
     rb_funcall(rb_mErrno, rb_intern("handle"), 1, rb_str_new2(mesg));
+
+    rubinius::bug("rb_sys_fail failed");
+    exit(1);  // compiler snack.
   }
 
   VALUE rb_eval_string(const char* str) {

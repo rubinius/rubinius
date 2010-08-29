@@ -15,7 +15,7 @@ extern "C" {
   void rb_error_frozen(const char* what) {
     rb_raise(rb_eTypeError, "can't modify frozen %s", what);
   }
-  
+
   VALUE rb_obj_frozen_p(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     if(env->get_object(obj)->frozen_p(env->state()) == RBX_Qtrue) {

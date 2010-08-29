@@ -35,6 +35,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include "config.h"
 #include "intern.h"
 #include "defines.h"
 
@@ -47,10 +48,6 @@
 # ifndef  HAVE_STDARG_PROTOTYPES
 #  define HAVE_STDARG_PROTOTYPES 1
 # endif
-#endif
-
-#ifndef NORETURN
-#define NORETURN(x) __attribute__ ((noreturn)) x
 #endif
 
 #undef _
@@ -872,7 +869,7 @@ VALUE rb_uint2big(unsigned long number);
 #define OBJ_FROZEN(obj) (RTEST(rb_obj_frozen_p(obj)))
 
   /** raise error on class */
-  void    rb_error_frozen(const char* what);
+  NORETURN(void rb_error_frozen(const char* what));
 
   /** Raises an exception if obj_handle is not the same type as 'type'. */
   void    rb_check_type(VALUE obj_handle, int type);
@@ -1063,7 +1060,7 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_exc_new3(VALUE etype, VALUE str);
 
   /** Raises passed exception handle */
-  void    rb_exc_raise(VALUE exc_handle);
+  NORETURN(void rb_exc_raise(VALUE exc_handle));
 
   /** Return the current exception */
   VALUE   rb_errinfo();
@@ -1527,7 +1524,7 @@ VALUE rb_uint2big(unsigned long number);
   char*   rb_str2cstr(VALUE str_handle, long *len);
 
   /** Raises an exception from the value of errno. */
-  void rb_sys_fail(const char* mesg);
+  NORETURN(void rb_sys_fail(const char* mesg));
 
   /** Evaluate the given string. */
   VALUE   rb_eval_string(const char* string);
@@ -1607,14 +1604,14 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE   rb_Integer(VALUE object_handle);
 
-  void    rb_bug(const char *fmt, ...);
+  NORETURN(void rb_bug(const char *fmt, ...));
 
-  void    rb_fatal(const char *fmt, ...);
+  NORETURN(void rb_fatal(const char *fmt, ...));
 
-  void    rb_notimplement();
+  NORETURN(void rb_notimplement());
 
   /** Raises an ArgumentError exception. */
-  void rb_invalid_str(const char *str, const char *type);
+  NORETURN(void rb_invalid_str(const char *str, const char *type));
 
   /** Print a warning if $VERBOSE is not nil. */
   void    rb_warn(const char *fmt, ...);

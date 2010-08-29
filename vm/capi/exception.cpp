@@ -23,6 +23,9 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Exception *exc = capi::c_as<Exception>(env->get_object(exc_handle));
     capi::capi_raise_backend(exc);
+
+    rubinius::bug("rb_exc_raise failed");
+    exit(1);  // compiler snack.
   }
 
   VALUE rb_errinfo() {
