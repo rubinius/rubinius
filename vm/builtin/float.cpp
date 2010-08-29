@@ -104,8 +104,8 @@ namespace rubinius {
 
   Float* Float::mod(STATE, Float* other) {
     double res = fmod(this->val, other->val);
-    if((other->val < 0.0 && this->val > 0.0) ||
-       (other->val > 0.0 && this->val < 0.0)) {
+    if((other->val < 0.0 && this->val > 0.0 && res != 0) ||
+       (other->val > 0.0 && this->val < 0.0 && res != 0)) {
       res += other->val;
     }
     return Float::create(state, res);
