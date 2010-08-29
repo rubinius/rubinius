@@ -35,6 +35,12 @@ static VALUE bignum_spec_rb_big2ulong(VALUE self, VALUE num) {
 }
 #endif
 
+#ifdef HAVE_RBIGNUM_SIGN
+static VALUE bignum_spec_RBIGNUM_SIGN(VALUE self, VALUE num) {
+  return RBIGNUM_SIGN(num) ? Qtrue : Qfalse;
+}
+#endif
+
 void Init_bignum_spec() {
   VALUE cls;
   cls = rb_define_class("CApiBignumSpecs", rb_cObject);
@@ -57,6 +63,10 @@ void Init_bignum_spec() {
 
 #ifdef HAVE_RB_BIG2ULONG
   rb_define_method(cls, "rb_big2ulong", bignum_spec_rb_big2ulong, 1);
+#endif
+
+#ifdef HAVE_RBIGNUM_SIGN
+  rb_define_method(cls, "RBIGNUM_SIGN", bignum_spec_RBIGNUM_SIGN, 1);
 #endif
 }
 

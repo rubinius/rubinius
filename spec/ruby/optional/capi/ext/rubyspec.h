@@ -1,8 +1,8 @@
 #ifndef RUBYSPEC_H
 #define RUBYSPEC_H
-// First define all function flags
+/* First define all function flags */
 
-// Array
+/* Array */
 #define HAVE_RARRAY                        1
 #define HAVE_RARRAY_LEN                    1
 #define HAVE_RARRAY_PTR                    1
@@ -26,14 +26,15 @@
 #define HAVE_RB_EACH                       1
 #define HAVE_RB_ITERATE                    1
 
-// Bignum
+/* Bignum */
 #define HAVE_RB_BIG2DBL                    1
 #define HAVE_RB_BIG2LL                     1
 #define HAVE_RB_BIG2LONG                   1
 #define HAVE_RB_BIG2STR                    1
 #define HAVE_RB_BIG2ULONG                  1
+#define HAVE_RBIGNUM_SIGN                  1
 
-// Class
+/* Class */
 #define HAVE_RB_CALL_SUPER                 1
 #define HAVE_RB_CLASS2NAME                 1
 #define HAVE_RB_CLASS_INHERITED            1
@@ -48,7 +49,7 @@
 #define HAVE_RB_DEFINE_CLASS_VARIABLE      1
 #define HAVE_RB_INCLUDE_MODULE             1
 
-// Constants
+/* Constants */
 #define HAVE_RB_CARRAY                     1
 #define HAVE_RB_CBIGNUM                    1
 #define HAVE_RB_CCLASS                     1
@@ -105,23 +106,23 @@
 #define HAVE_RB_ETHREADERROR               1
 #define HAVE_RB_EZERODIVERROR              1
 
-// Data
+/* Data */
 #define HAVE_DATA_WRAP_STRUCT              1
 #define HAVE_RDATA                         1
 
-// Exception
+/* Exception */
 #define HAVE_RB_EXC_NEW                    1
 #define HAVE_RB_EXC_NEW2                   1
 #define HAVE_RB_EXC_NEW3                   1
 #define HAVE_RB_EXC_RAISE                  1
 #define HAVE_RB_SET_ERRINFO                1
 
-// Float
+/* Float */
 #define HAVE_RB_FLOAT_NEW                  1
 #define HAVE_RB_RFLOAT                     1
 #define HAVE_RFLOAT                        1
 
-// Globals
+/* Globals */
 #define HAVE_RB_DEFINE_HOOKED_VARIABLE     1
 #define HAVE_RB_DEFINE_READONLY_VARIABLE   1
 #define HAVE_RB_DEFINE_VARIABLE            1
@@ -130,7 +131,7 @@
 #define HAVE_RB_GV_SET                     1
 #define HAVE_RB_SET_KCODE                  1
 
-// Hash
+/* Hash */
 #define HAVE_RB_HASH                       1
 #define HAVE_RB_HASH_AREF                  1
 #define HAVE_RB_HASH_ASET                  1
@@ -140,10 +141,10 @@
 #define HAVE_RB_HASH_NEW                   1
 #define HAVE_RB_HASH_SIZE                  1
 
-// IO
+/* IO */
 #define HAVE_RB_IO_WRITE                   1
 
-// Kernel
+/* Kernel */
 #define HAVE_RB_BLOCK_GIVEN_P              1
 #define HAVE_RB_NEED_BLOCK                 1
 #define HAVE_RB_BLOCK_PROC                 1
@@ -157,14 +158,15 @@
 #define HAVE_RB_WARN                       1
 #define HAVE_RB_YIELD                      1
 #define HAVE_RB_YIELD_VALUES               1
-// GC
+
+/* GC */
 #define HAVE_RB_GC_REGISTER_ADDRESS        1
 
-// Marshal
+/* Marshal */
 #define HAVE_RB_MARSHAL_DUMP               1
 #define HAVE_RB_MARSHAL_LOAD               1
 
-// Module
+/* Module */
 #define HAVE_RB_CONST_DEFINED              1
 #define HAVE_RB_CONST_DEFINED_AT           1
 #define HAVE_RB_CONST_GET                  1
@@ -184,7 +186,7 @@
 #define HAVE_RB_DEFINE_SINGLETON_METHOD    1
 #define HAVE_RB_UNDEF_METHOD               1
 
-// Numeric
+/* Numeric */
 #define HAVE_NUM2CHR                       1
 #define HAVE_RB_INT2INUM                   1
 #define HAVE_RB_INTEGER                    1
@@ -193,7 +195,7 @@
 #define HAVE_RB_NUM2LONG                   1
 #define HAVE_RB_NUM2ULONG                  1
 
-// Object
+/* Object */
 #define HAVE_OBJ_TAINT                     1
 #define HAVE_OBJ_TAINTED                   1
 #define HAVE_RB_ANY_TO_S                   1
@@ -223,21 +225,21 @@
 #define HAVE_RTEST                         1
 #define HAVE_TYPE                          1
 
-// Proc
+/* Proc */
 #define HAVE_RB_PROC_NEW                   1
 
-// Range
+/* Range */
 #define HAVE_RB_RANGE_NEW                  1
 
-// Regexp
+/* Regexp */
 #define HAVE_RB_REG_NEW                    1
 #define HAVE_RB_REG_NTH_MATCH              1
 
-// Safe
+/* Safe */
 #define HAVE_RB_SAFE_LEVEL                 1
 #define HAVE_RB_SECURE                     1
 
-// String
+/* String */
 #define HAVE_RB_CSTR2INUM                  1
 #define HAVE_RB_STR2CSTR                   1
 #define HAVE_RB_STR2INUM                   1
@@ -269,15 +271,15 @@
 #define HAVE_STR2CSTR                      1
 #define HAVE_STRINGVALUE                   1
 
-// Struct
+/* Struct */
 #define HAVE_RB_STRUCT_DEFINE              1
 
-// Symbol
+/* Symbol */
 #define HAVE_RB_IS_CLASS_ID                1
 #define HAVE_RB_IS_CONST_ID                1
 #define HAVE_RB_IS_INSTANCE_ID             1
 
-// Thread
+/* Thread */
 #define HAVE_RB_THREAD_ALONE               1
 #define HAVE_RB_THREAD_BLOCKING_REGION     1
 #define HAVE_RB_THREAD_CURRENT             1
@@ -285,8 +287,26 @@
 #define HAVE_RB_THREAD_LOCAL_ASET          1
 #define HAVE_RB_THREAD_SELECT              1
 
-// Time
+/* Time */
 #define HAVE_RB_TIME_NEW                   1
+
+/* Define convenience macros similar to the RubySpec guards to assist
+ * with version incompatibilities.
+ */
+
+#include "rubyspec_version.h"
+
+#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 8
+#define RUBY_VERSION_IS_1_8
+#endif
+
+#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 8 && RUBY_VERSION_TEENY < 7
+#define RUBY_VERSION_IS_LT_1_8_7
+#endif
+
+#if RUBY_VERSION_MAJOR == 1 && RUBY_VERSION_MINOR == 9
+#define RUBY_VERSION_IS_1_9
+#endif
 
 /* Now, create the differential set. The format of the preprocessor directives
  * is significant. The alternative implementations should define RUBY because
@@ -296,13 +316,11 @@
  * will be included.
  */
 
-#include "version.h"
-
 #if defined(RUBINIUS)
 #include "rubinius.h"
 #elif defined(JRUBY)
 #include "jruby.h"
-#else // MRI
+#else /* MRI */
 #include "mri.h"
 #endif
 

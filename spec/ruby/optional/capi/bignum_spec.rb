@@ -88,4 +88,16 @@ describe "CApiBignumSpecs" do
       @s.rb_big2str(ensure_bignum(4611686018427387904), 16).eql?("4000000000000000").should == true
     end
   end
+
+  ruby_version_is "1.8.7" do
+    describe "RBIGNUM_SIGN" do
+      it "returns C true if the Bignum has a positive sign" do
+        @s.RBIGNUM_SIGN(bignum_value()).should be_true
+      end
+
+      it "retuns C false if the Bignum has a negative sign" do
+        @s.RBIGNUM_SIGN(-bignum_value()).should be_false
+      end
+    end
+  end
 end
