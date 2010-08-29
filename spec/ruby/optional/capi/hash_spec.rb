@@ -8,12 +8,39 @@ describe "C-API Hash function" do
   end
 
   describe "rb_hash" do
-    it "returns the hash is of an object" do
-      obj = Object.new
-      @s.rb_hash(obj).should == obj.hash
+    it "calls #hash on the object" do
+      obj = mock("rb_hash")
+      obj.should_receive(:hash).and_return(5)
+      @s.rb_hash(obj).should == 5
+    end
+
+    ruby_version_is "1.8.7" do
+      it "converts a Bignum returned by #hash to a Fixnum" do
+        obj = mock("rb_hash bignum")
+        obj.should_receive(:hash).and_return(bignum_value())
+
+        # The actual conversion is an implementation detail.
+        # We only care that ultimately we get a Fixnum instance.
+        @s.rb_hash(obj).should be_an_instance_of(Fixnum)
+      end
+
+      it "calls #to_int to converts a value returned by #hash to a Fixnum" do
+        obj = mock("rb_hash to_int")
+        obj.should_receive(:hash).and_return(obj)
+        obj.should_receive(:to_int).and_return(12)
+
+        @s.rb_hash(obj).should == 12
+      end
+
+      it "raises a TypeError if the object does not implement #to_int" do
+        obj = mock("rb_hash no to_int")
+        obj.should_receive(:hash).and_return(nil)
+
+        lambda { @s.rb_hash(obj) }.should raise_error(TypeError)
+      end
     end
   end
-  
+
   describe "rb_hash_new" do
     it "returns a new hash" do
       @s.rb_hash_new.should == {}
