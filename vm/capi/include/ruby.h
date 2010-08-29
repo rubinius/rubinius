@@ -847,6 +847,9 @@ VALUE rb_uint2big(unsigned long number);
   int     rb_big_bytes_used(VALUE obj);
 #define RBIGNUM_LEN(obj) rb_big_bytes_used(obj)
 
+  int rb_big_sign(VALUE obj);
+#define RBIGNUM_SIGN(obj) rb_big_sign(obj)
+
   // fake out, used with RBIGNUM_LEN anyway, which provides
   // the full answer
 #define SIZEOF_BDIGITS 1
