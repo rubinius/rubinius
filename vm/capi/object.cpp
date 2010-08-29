@@ -335,4 +335,21 @@ extern "C" {
   VALUE rb_to_int(VALUE object_handle) {
     return rb_convert_type(object_handle, 0, "Integer", "to_int");
   }
+
+  VALUE rb_hash(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object* hash = env->get_object(rb_funcall(obj, rb_intern("hash"), 0));
+
+    retry:
+
+    if(try_as<Fixnum>(hash)) {
+      return env->get_handle(hash);
+    } else if(Bignum* big = try_as<Bignum>(hash)) {
+      return LONG2FIX(big->to_native());
+    } else {
+      hash = env->get_object(rb_to_int(env->get_handle(hash)));
+      goto retry;
+    }
+  }
 }

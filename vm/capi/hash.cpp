@@ -6,10 +6,6 @@ using namespace rubinius::capi;
 
 extern "C" {
 
-  VALUE rb_hash(VALUE obj) {
-    return rb_funcall(obj, rb_intern("hash"), 0);
-  }    
-
   VALUE rb_hash_new() {
     return rb_funcall(rb_cHash, rb_intern("new"), 0);
   }
