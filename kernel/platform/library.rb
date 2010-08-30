@@ -130,13 +130,35 @@ module FFI
       if name
         @ffi_callbacks ||= {}
         @ffi_callbacks[name] = func
+
+        typedef func, name
       end
 
       return func
     end
 
+    def typedef(old, add)
+      @typedefs ||= Rubinius::LookupTable.new
+
+      unless old.kind_of?(NativeFunction)
+        old = find_type(old)
+      end
+
+      @typedefs[add] = old
+    end
+
     def find_type(name)
-      return FFI.find_type(name)
+      @typedefs ||= Rubinius::LookupTable.new
+
+      if type = @typedefs[name]
+        return type
+      end
+
+      if name.kind_of?(Class) and name < FFI::Struct
+        name = :pointer
+      end
+
+      FFI.find_type(name)
     end
   end
 

@@ -9,22 +9,52 @@ module FFI
     def self.layout(*spec)
       return @layout if spec.size == 0
 
+      # Pick up a enclosing FFI::Library
+      ss = Rubinius::StaticScope.of_sender
+      if par = ss.parent and par.module.kind_of?(FFI::Library)
+        @enclosing_module = par.module
+      else
+        @enclosing_module = nil
+      end
+
       cspec = Rubinius::LookupTable.new
       i = 0
 
       @size = 0
+      @members = []
 
       while i < spec.size
         name = spec[i]
+        @members << name
+
         f = spec[i + 1]
+
+        if @enclosing_module
+          code = @enclosing_module.find_type(f)
+        end
+
+        code ||= FFI.find_type(f)
+        type_size = FFI.type_size(code)
+
         offset = spec[i + 2]
 
-        code = FFI.find_type(f)
-        cspec[name] = [offset, code]
-        ending = offset + FFI.type_size(code)
-        @size = ending if @size < ending
+        if offset.kind_of?(Fixnum)
+          i += 3
+        else
+          offset = @size
 
-        i += 3
+          mod = offset % type_size
+          unless mod == 0
+            # we need to align it.
+            offset += (type_size - mod)
+          end
+
+          i += 2
+        end
+
+        cspec[name] = [offset, code]
+        ending = offset + type_size
+        @size = ending if @size < ending
       end
 
       @layout = cspec unless self == FFI::Struct
@@ -61,10 +91,28 @@ module FFI
       self.class.size
     end
 
-    def initialize(pointer = nil, *spec)
+    def self.offset_of(name)
+      offset, type = @cspec[name]
+      return offset
+    end
+
+    def offset_of(name)
+      offset, type = @cspec[name]
+      return offset
+    end
+
+    def self.members
+      @members
+    end
+
+    def members
+      self.class.members
+    end
+
+    def initialize(pointer=nil, *spec)
       @cspec = self.class.layout(*spec)
 
-      if pointer then
+      if pointer
         @pointer = pointer
       else
         @pointer = MemoryPointer.new size
@@ -96,6 +144,10 @@ module FFI
 
       @pointer.set_at_offset(offset, type, val)
       return val
+    end
+
+    def values
+      members.map { |m| self[m] }
     end
 
   end
