@@ -21,6 +21,12 @@ namespace rubinius {
   }
 
   ByteArray* ByteArray::create(STATE, size_t bytes) {
+    // This is a big number. Bigger than you could ever worry about.
+    // But we will worry about it, to prevent disaster.
+    if(bytes >= INT32_MAX) {
+      Exception::memory_error(state);
+    }
+
     size_t body = bytes;
     ByteArray* ba = state->om->new_object_bytes<ByteArray>(G(bytearray), body);
     if(unlikely(!ba)) {
@@ -32,6 +38,12 @@ namespace rubinius {
   }
 
   ByteArray* ByteArray::create_pinned(STATE, size_t bytes) {
+    // This is a big number. Bigger than you could ever worry about.
+    // But we will worry about it, to prevent disaster.
+    if(bytes >= INT32_MAX) {
+      Exception::memory_error(state);
+    }
+
     size_t body = bytes;
     ByteArray* ba = state->om->new_object_bytes_mature<ByteArray>(G(bytearray), body);
     if(unlikely(!ba)) {
