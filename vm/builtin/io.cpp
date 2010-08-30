@@ -517,31 +517,6 @@ namespace rubinius {
   }
 
   Object* IO::write(STATE, String* buf, CallFrame* call_frame) {
-    uint8_t* bytes = buf->byte_address();
-    size_t left = buf->size();
-
-    while(left > 0) {
-      ssize_t cnt = ::write(this->to_fd(), bytes, left);
-      if(cnt == -1) {
-        if(call_frame) {
-          switch(errno) {
-          case EINTR:
-          case EAGAIN:
-            return unlocked_write(state, buf, call_frame);
-          }
-        }
-        Exception::errno_error(state);
-        return NULL;
-      }
-
-      left -= cnt;
-      bytes += cnt;
-    }
-
-    return Integer::from(state, buf->size() - left);
-  }
-
-  Object* IO::unlocked_write(STATE, String* buf, CallFrame* call_frame) {
     size_t left = buf->size();
     uint8_t* bytes = new uint8_t[left];
     memcpy(bytes, buf->byte_address(), left);
@@ -564,7 +539,7 @@ namespace rubinius {
             FD_ZERO(&fds);
             FD_SET(fd, &fds);
 
-            ::select(fd+1, &fds, NULL, NULL, NULL);
+            ::select(fd+1, NULL, &fds, NULL, NULL);
 
             continue;
           }

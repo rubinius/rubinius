@@ -92,8 +92,6 @@ namespace rubinius {
     // Ruby.primitive :io_write
     Object* write(STATE, String* buf, CallFrame* calling_environment);
 
-    Object* unlocked_write(STATE, String* buf, CallFrame* calling_environment);
-
     // Ruby.primitive :io_reopen
     Object* reopen(STATE, IO* other);
 
