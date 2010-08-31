@@ -482,9 +482,14 @@ files EXTERNALS do |t|
   configure_path = File.join(path, 'configure')
 
   if File.exist? configure_path then
-    sh "cd #{path}; ./configure && #{make}"
+    cd path do
+      sh 'sh -c "./configure CC=#{CC}"'
+      sh make
+    end
   else
-    sh "cd #{path}; #{make}"
+    cd path do
+      sh "#{make} CC=#{CC}"
+    end
   end
 end
 
