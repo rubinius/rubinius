@@ -82,6 +82,26 @@ describe "C-API Hash function" do
     end
   end
 
+  describe "rb_hash_delete_if" do
+    it "removes an entry if the block returns true" do
+      h = { :a => 1, :b => 2, :c => 3 }
+      @s.rb_hash_delete_if(h) { |k, v| v == 2 }
+      h.should == { :a => 1, :c => 3 }
+    end
+
+    ruby_version_is ""..."1.8.7" do
+      it "raises a LocalJumpError when no block is passed" do
+        lambda { @s.rb_hash_delete_if({:a => 1}) }.should raise_error(LocalJumpError)
+      end
+    end
+
+    ruby_version_is "1.8.7" do
+      it "returns an Enumerator when no block is passed" do
+        @s.rb_hash_delete_if({:a => 1}).should be_an_instance_of(enumerator_class)
+      end
+    end
+  end
+
   describe "rb_hash_foreach" do
     it "iterates over the hash" do
       hsh = {:name => "Evan", :sign => :libra}

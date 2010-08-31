@@ -34,6 +34,12 @@ VALUE hash_spec_rb_hash_delete(VALUE self, VALUE hash, VALUE key) {
 }
 #endif
 
+#ifdef HAVE_RB_HASH_DELETE_IF
+VALUE hash_spec_rb_hash_delete_if(VALUE self, VALUE hash) {
+  return rb_hash_delete_if(hash);
+}
+#endif
+
 #ifdef HAVE_RB_HASH_FOREACH
 static int foreach_i(VALUE key, VALUE val, VALUE other) {
   rb_hash_aset(other, key, val);
@@ -90,6 +96,10 @@ void Init_hash_spec() {
 
 #ifdef HAVE_RB_HASH_DELETE
   rb_define_method(cls, "rb_hash_delete", hash_spec_rb_hash_delete, 2);
+#endif
+
+#ifdef HAVE_RB_HASH_DELETE_IF
+  rb_define_method(cls, "rb_hash_delete_if", hash_spec_rb_hash_delete_if, 1);
 #endif
 
 #ifdef HAVE_RB_HASH_FOREACH
