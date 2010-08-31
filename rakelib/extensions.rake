@@ -84,3 +84,4 @@ compile_ext "nkf"
 # extconf.rb, so they must be after melbourne for Rubinius.
 compile_ext "openssl"
 compile_ext "dl"
+compile_ext "dbm"
