@@ -15,6 +15,19 @@ describe "Module#class_variable_defined?" do
     ModuleSpecs::CVars.class_variable_defined?("@@meta").should == true
   end
 
+  it "returns true if the class variable is defined in a metaclass" do
+    obj = mock("metaclass class variable")
+    meta = obj.metaclass
+    meta.send :class_variable_set, :@@var, 1
+    meta.send(:class_variable_defined?, :@@var).should be_true
+  end
+
+  it "returns false if the class variable is not defined in a metaclass" do
+    obj = mock("metaclass class variable")
+    meta = obj.metaclass
+    meta.class_variable_defined?(:@@var).should be_false
+  end
+
   it "returns true if a class variables with the given name is defined in an included module" do
     c = Class.new { include ModuleSpecs::MVars }
     c.class_variable_defined?("@@mvar").should == true
