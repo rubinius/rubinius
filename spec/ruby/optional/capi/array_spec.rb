@@ -240,6 +240,12 @@ describe "C-API Array function" do
       # Make sure they're different objects
       s2.equal?(s).should be_false
     end
+
+    it "calls a function with the other function available as a block" do
+      h = {:a => 1, :b => 2}
+
+      @s.rb_iterate_each_pair(h).sort.should == [1,2]
+    end
   end
 
   describe "rb_ary_delete" do

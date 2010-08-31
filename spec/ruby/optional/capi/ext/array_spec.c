@@ -200,6 +200,22 @@ static VALUE array_spec_rb_iterate(VALUE self, VALUE ary) {
 
   return new_ary;
 }
+
+static VALUE sub_pair(VALUE el, VALUE holder) {
+  rb_ary_push(holder, rb_ary_entry(el, 1));
+}
+
+static VALUE each_pair(VALUE obj) {
+  return rb_funcall(obj, rb_intern("each_pair"), 0);
+}
+
+static VALUE array_spec_rb_iterate_each_pair(VALUE self, VALUE obj) {
+  VALUE new_ary = rb_ary_new();
+
+  rb_iterate(each_pair, obj, sub_pair, new_ary);
+
+  return new_ary;
+}
 #endif
 
 void Init_array_spec() {
@@ -288,6 +304,7 @@ void Init_array_spec() {
 
 #if defined(HAVE_RB_ITERATE) && defined(HAVE_RB_EACH)
   rb_define_method(cls, "rb_iterate", array_spec_rb_iterate, 1);
+  rb_define_method(cls, "rb_iterate_each_pair", array_spec_rb_iterate_each_pair, 1);
 #endif
 }
 
