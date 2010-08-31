@@ -20,6 +20,35 @@ namespace :extensions do
   end
 end
 
+def rbx_build
+  # rbx-build can run even if prefix is used
+  rbx = File.expand_path "../bin/rbx-build", File.dirname(__FILE__)
+end
+
+def build_extconf(name, ignore_fail)
+  if ignore_fail
+    fail_block = lambda { |ok, status|  }
+  else
+    fail_block = nil
+  end
+
+  redirect = $verbose || !ignore_fail ? "" : "> /dev/null 2>&1"
+
+  puts "Building #{name}"
+
+  ENV["BUILD_RUBY"] = BUILD_CONFIG[:build_ruby]
+
+  unless File.directory? BUILD_CONFIG[:runtime]
+    ENV["CFLAGS"]      = "-Ivm/capi/include"
+  end
+
+  unless File.exists?("Makefile") and File.exists?("extconf.h")
+    sh("#{rbx_build} extconf.rb #{redirect}", &fail_block)
+  end
+
+  sh("make #{redirect}", &fail_block)
+end
+
 def compile_ext(name, opts={})
   names = name.split ":"
   name = names.last
@@ -37,26 +66,13 @@ def compile_ext(name, opts={})
   namespace :extensions do
     desc "Build #{name.capitalize} extension #{opts[:doc]}"
     task task_name do
-      # rbx-build can run even if prefix is used
-      rbx = File.expand_path "../bin/rbx-build", File.dirname(__FILE__)
-
       ext_helper = File.expand_path "../ext_helper.rb", __FILE__
       dep_grapher = File.expand_path "../dependency_grapher.rb", __FILE__
       Dir.chdir ext_dir do
         if File.exists? "Rakefile"
           sh "#{BUILD_CONFIG[:build_ruby]} -S rake #{'-t' if $verbose} -r #{ext_helper} -r #{dep_grapher} #{ext_task_name}"
         else
-          ENV["BUILD_RUBY"] = BUILD_CONFIG[:build_ruby]
-
-          unless File.directory? BUILD_CONFIG[:runtime]
-            ENV["CFLAGS"]      = "-Ivm/capi/include"
-          end
-
-          unless File.exists?("Makefile") and File.exists?("extconf.h")
-            sh "#{rbx} extconf.rb"
-          end
-
-          sh "make"
+          build_extconf name, opts[:ignore_fail]
         end
       end
     end
@@ -84,4 +100,4 @@ compile_ext "nkf"
 # extconf.rb, so they must be after melbourne for Rubinius.
 compile_ext "openssl"
 compile_ext "dl"
-compile_ext "dbm"
+compile_ext "dbm", :ignore_fail => true
