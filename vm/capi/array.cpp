@@ -1,6 +1,7 @@
 #include "builtin/array.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/object.hpp"
+#include "builtin/proc.hpp"
 
 #include "arguments.hpp"
 #include "dispatch.hpp"
@@ -304,23 +305,35 @@ extern "C" {
   // Really just used as a placeholder/sentinal value to half implement
   // rb_iterate
   VALUE rb_each(VALUE ary) {
-    rb_raise(rb_eArgError, "rb_each not fully supported", 0);
-    return Qnil;
+    return rb_funcall(ary, rb_intern("each"), 0);
   }
 
   VALUE rb_iterate(VALUE(*ifunc)(VALUE), VALUE ary, VALUE(*cb)(ANYARGS), VALUE cb_data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    if(ifunc != rb_each || !kind_of<Array>(env->get_object(ary))) {
-      rb_raise(rb_eArgError, "rb_iterate only supported with rb_each and an Array");
-      return Qnil;
+    // Minor optimization.
+    if(ifunc == rb_each && kind_of<Array>(env->get_object(ary))) {
+      for(size_t i = 0; i < rb_ary_size(ary); i++) {
+        (*cb)(rb_ary_entry(ary, i), cb_data, Qnil);
+      }
+
+      return ary;
     }
 
-    for(size_t i = 0; i < rb_ary_size(ary); i++) {
-      (*cb)(rb_ary_entry(ary, i), cb_data, Qnil);
-    }
+    NativeMethod* nm = NativeMethod::create(env->state(),
+                        (String*)Qnil, env->state()->shared.globals.rubinius.get(),
+                        env->state()->symbol("call"), (void*)cb,
+                        Fixnum::from(ITERATE_BLOCK));
 
-    return ary;
+    nm->set_ivar(env->state(), env->state()->symbol("cb_data"),
+                 env->get_object(cb_data));
+
+    Proc* prc = Proc::create(env->state(), env->state()->shared.globals.proc.get());
+    prc->bound_method(env->state(), nm);
+
+    env->set_outgoing_block(env->get_handle(prc));
+
+    return (*ifunc)(ary);
   }
 
 }

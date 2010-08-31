@@ -499,6 +499,27 @@ namespace rubinius {
         return Qnil;
       }
 
+        /* A C function being used as a block */
+      case ITERATE_BLOCK: {
+        VALUE cb = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
+        VALUE val;
+
+        switch(args.total()) {
+        case 0:
+          val = env->get_handle(Qnil);
+          break;
+        case 1:
+          val = env->get_handle(args.get_argument(0));
+          break;
+        default:
+          val = env->get_handle(args.as_array(state));
+          break;
+        }
+
+        VALUE ret = nm->func()(val, cb, receiver);
+        return env->get_object(ret);
+      }
+
       default:
         capi::capi_raise_runtime_error("unrecognized arity for NativeMethod call");
         return Qnil;

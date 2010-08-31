@@ -40,12 +40,15 @@ namespace rubinius {
     NativeMethodFrame*  current_native_frame_;
     ExceptionPoint*     current_ep_;
 
+    VALUE outgoing_block_;
+
   public:   /* Class Interface */
     NativeMethodEnvironment(STATE)
       : state_(state)
       , current_call_frame_(0)
       , current_native_frame_(0)
       , current_ep_(0)
+      , outgoing_block_(0)
     {}
 
     /** Obtain the NativeMethodEnvironment for this thread. */
@@ -63,6 +66,14 @@ namespace rubinius {
     void mark_handles(ObjectMark& mark);
 
   public:
+    VALUE outgoing_block() {
+      return outgoing_block_;
+    }
+
+    void set_outgoing_block(VALUE val) {
+      outgoing_block_ = val;
+    }
+
     /** Obtain the Object the VALUE represents. */
     Object* get_object(VALUE val) {
       if(CAPI_REFERENCE_P(val)) {
@@ -231,6 +242,7 @@ namespace rubinius {
    */
   enum Arity {
     INIT_FUNCTION = -99,
+    ITERATE_BLOCK = -98,
     ARGS_IN_RUBY_ARRAY = -3,
     RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY = -2,
     ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER = -1
