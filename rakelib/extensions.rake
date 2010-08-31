@@ -102,3 +102,4 @@ compile_ext "openssl"
 compile_ext "dl"
 compile_ext "dbm", :ignore_fail => true
 compile_ext "gdbm", :ignore_fail => true
+compile_ext "sdbm"
