@@ -1127,6 +1127,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Remove the key and return the associated value. */
   VALUE   rb_hash_delete(VALUE self, VALUE key);
 
+  /** Removes the entry if the block returns true. */
+  VALUE   rb_hash_delete_if(VALUE self);
+
   /** Returns the number of entries as a Fixnum. */
   VALUE   rb_hash_size(VALUE self);
 
