@@ -149,6 +149,21 @@ namespace rubinius {
     return NULL;
   }
 
+  static Module* get_module_to_query(Module* mod) {
+    Module* mod_to_query = 0;
+
+    if(MetaClass* mc = try_as<MetaClass>(mod)) {
+      mod_to_query = try_as<Module>(mc->attached_instance());
+      if(!mod_to_query) mod_to_query = mod;
+    } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
+      mod_to_query = im->module();
+    } else {
+      mod_to_query = mod;
+    }
+
+    return mod_to_query;
+  }
+
   Array* Module::class_variables(STATE) {
     Array* ary = Array::create(state, 2);
     Module* mod = this;
@@ -166,13 +181,7 @@ namespace rubinius {
     } match;
 
     while(!mod->nil_p()) {
-      if(MetaClass* mc = try_as<MetaClass>(mod)) {
-        mod_to_query = as<Module>(mc->attached_instance());
-      } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
-        mod_to_query = im->module();
-      } else {
-        mod_to_query = mod;
-      }
+      mod_to_query = get_module_to_query(mod);
 
       Object* ivars = mod_to_query->ivars();
 
@@ -195,13 +204,7 @@ namespace rubinius {
     Module* mod_to_query;
 
     while(!mod->nil_p()) {
-      if(MetaClass* mc = try_as<MetaClass>(mod)) {
-        mod_to_query = as<Module>(mc->attached_instance());
-      } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
-        mod_to_query = im->module();
-      } else {
-        mod_to_query = mod;
-      }
+      mod_to_query = get_module_to_query(mod);
 
       if(mod_to_query->table_ivar_defined(state, name)->true_p()) return Qtrue;
 
@@ -218,13 +221,7 @@ namespace rubinius {
     Module* mod_to_query;
 
     while(!mod->nil_p()) {
-      if(MetaClass* mc = try_as<MetaClass>(mod)) {
-        mod_to_query = as<Module>(mc->attached_instance());
-      } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
-        mod_to_query = im->module();
-      } else {
-        mod_to_query = mod;
-      }
+      mod_to_query = get_module_to_query(mod);
 
       if(mod_to_query->table_ivar_defined(state, name)->true_p()) {
         return mod_to_query->get_table_ivar(state, name);
@@ -271,13 +268,7 @@ namespace rubinius {
     Module* mod_to_query;
 
     while(!mod->nil_p()) {
-      if(MetaClass* mc = try_as<MetaClass>(mod)) {
-        mod_to_query = as<Module>(mc->attached_instance());
-      } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
-        mod_to_query = im->module();
-      } else {
-        mod_to_query = mod;
-      }
+      mod_to_query = get_module_to_query(mod);
 
       if(mod_to_query->table_ivar_defined(state, name)->true_p()) {
         mod_to_query->set_table_ivar(state, name, value);
@@ -288,13 +279,7 @@ namespace rubinius {
     }
 
     mod = this;
-    if(MetaClass* mc = try_as<MetaClass>(mod)) {
-      mod_to_query = as<Module>(mc->attached_instance());
-    } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
-      mod_to_query = im->module();
-    } else {
-      mod_to_query = mod;
-    }
+    mod_to_query = get_module_to_query(mod);
 
     mod_to_query->set_ivar(state, name, value);
     return value;
@@ -307,13 +292,7 @@ namespace rubinius {
     Module* mod_to_query;
 
     while(!mod->nil_p()) {
-      if(MetaClass* mc = try_as<MetaClass>(mod)) {
-        mod_to_query = as<Module>(mc->attached_instance());
-      } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
-        mod_to_query = im->module();
-      } else {
-        mod_to_query = mod;
-      }
+      mod_to_query = get_module_to_query(mod);
 
       if(mod_to_query->table_ivar_defined(state, name)->true_p()) {
         return mod_to_query->get_table_ivar(state, name);
@@ -323,13 +302,7 @@ namespace rubinius {
     }
 
     mod = this;
-    if(MetaClass* mc = try_as<MetaClass>(mod)) {
-      mod_to_query = as<Module>(mc->attached_instance());
-    } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
-      mod_to_query = im->module();
-    } else {
-      mod_to_query = mod;
-    }
+    mod_to_query = get_module_to_query(mod);
 
     mod_to_query->set_table_ivar(state, name, value);
     return value;
@@ -341,13 +314,7 @@ namespace rubinius {
     Module* mod = this;
     Module* mod_to_query;
 
-    if(MetaClass* mc = try_as<MetaClass>(mod)) {
-      mod_to_query = as<Module>(mc->attached_instance());
-    } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
-      mod_to_query = im->module();
-    } else {
-      mod_to_query = mod;
-    }
+    mod_to_query = get_module_to_query(mod);
 
     bool removed = false;
     Object* value = mod_to_query->del_table_ivar(state, name, &removed);
