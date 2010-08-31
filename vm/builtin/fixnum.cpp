@@ -45,6 +45,10 @@ namespace rubinius {
     return (unsigned long long)STRIP_FIXNUM_TAG(this);
   }
 
+  bool Fixnum::positive_p() const {
+    return (int)STRIP_FIXNUM_TAG(this) >= 0;
+  }
+
   Integer* Fixnum::add(STATE, Bignum* other) {
     return other->add(state, this);
   }

@@ -628,6 +628,10 @@ namespace rubinius {
   }
 
   String* String::pattern(STATE, Object* self, Fixnum* size, Object* pattern) {
+    if(!size->positive_p()) {
+      Exception::argument_error(state, "size must be positive");
+    }
+
     String* s = String::create(state, size);
     s->klass(state, (Class*)self);
 
@@ -657,7 +661,7 @@ namespace rubinius {
         }
       }
     } else {
-      Exception::argument_error(state, "pattern must be Fixnum of String");
+      Exception::argument_error(state, "pattern must be a Fixnum or String");
     }
 
     return s;
