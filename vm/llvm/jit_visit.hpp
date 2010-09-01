@@ -618,7 +618,7 @@ namespace rubinius {
 
       Value* execute_pos_idx[] = {
         ConstantInt::get(ls_->Int32Ty, 0),
-        ConstantInt::get(ls_->Int32Ty, 3),
+        ConstantInt::get(ls_->Int32Ty, offset::ic_execute),
       };
 
       Value* execute_pos = b().CreateGEP(cache_const,
@@ -652,7 +652,7 @@ namespace rubinius {
 
       Value* execute_pos_idx[] = {
         ConstantInt::get(ls_->Int32Ty, 0),
-        ConstantInt::get(ls_->Int32Ty, 3),
+        ConstantInt::get(ls_->Int32Ty, offset::ic_execute),
       };
 
       Value* execute_pos = b().CreateGEP(cache_const,
