@@ -54,6 +54,12 @@ describe "A class definition" do
     }.should raise_error(TypeError)
   end
 
+  it "raises a TypeError if inheriting from a metaclass" do
+    obj = mock("metaclass super")
+    meta = obj.metaclass
+    lambda { class ClassSpecs::MetaclassSuper < meta; end }.should raise_error(TypeError)
+  end
+
 #  # I do not think this is a valid spec   -- rue
 #  it "has no class-level instance variables" do
 #    ClassSpecs::A.instance_variables.should == []
