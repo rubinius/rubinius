@@ -25,14 +25,14 @@ def rbx_build
   rbx = File.expand_path "../bin/rbx-build", File.dirname(__FILE__)
 end
 
-def build_extconf(name, ignore_fail)
-  if ignore_fail
+def build_extconf(name, opts)
+  if opts[:ignore_fail]
     fail_block = lambda { |ok, status|  }
   else
     fail_block = nil
   end
 
-  redirect = $verbose || !ignore_fail ? "" : "> /dev/null 2>&1"
+  redirect = $verbose || !opts[:ignore_fail] ? "" : "> /dev/null 2>&1"
 
   puts "Building #{name}"
 
@@ -42,7 +42,8 @@ def build_extconf(name, ignore_fail)
     ENV["CFLAGS"]      = "-Ivm/capi/include"
   end
 
-  unless File.exists?("Makefile") and File.exists?("extconf.h")
+  unless opts[:deps] and opts[:deps].all? { |n| File.exists? n }
+  # unless File.exists?("Makefile") and File.exists?("extconf.h")
     sh("#{rbx_build} extconf.rb #{redirect}", &fail_block)
   end
 
@@ -72,7 +73,7 @@ def compile_ext(name, opts={})
         if File.exists? "Rakefile"
           sh "#{BUILD_CONFIG[:build_ruby]} -S rake #{'-t' if $verbose} -r #{ext_helper} -r #{dep_grapher} #{ext_task_name}"
         else
-          build_extconf name, opts[:ignore_fail]
+          build_extconf name, opts
         end
       end
     end
@@ -98,8 +99,8 @@ compile_ext "nkf"
 
 # rbx must be able to run to build these because they use
 # extconf.rb, so they must be after melbourne for Rubinius.
-compile_ext "openssl"
-compile_ext "dl"
-compile_ext "dbm", :ignore_fail => true
-compile_ext "gdbm", :ignore_fail => true
-compile_ext "sdbm"
+compile_ext "openssl", :deps => ["Makefile", "extconf.h"]
+compile_ext "dl", :deps => ["Makefile", "dlconfig.h"]
+compile_ext "dbm", :ignore_fail => true, :deps => ["Makefile"]
+compile_ext "gdbm", :ignore_fail => true, :deps => ["Makefile"]
+compile_ext "sdbm", :deps => ["Makefile"]
