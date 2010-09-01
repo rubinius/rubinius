@@ -10,7 +10,7 @@ class Class
 
   def set_superclass(sup)
     Ruby.primitive :class_set_superclass
-    raise PrimitiveFailure, "Unable to set the superclass"
+    raise TypeError, "superclass must be a Class (#{Rubinius.object_class(sup)} given)"
   end
 
   def packed!(ary)
