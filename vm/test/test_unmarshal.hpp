@@ -29,7 +29,7 @@ public:
 
   bool tuple_equals(Tuple* x, Tuple* y) {
     if(x->num_fields() != y->num_fields()) return false;
-    for(size_t i = 0; i < x->num_fields(); i++) {
+    for(native_int i = 0; i < x->num_fields(); i++) {
       Object* x1 = x->at(state, i);
       Object* y1 = y->at(state, i);
 

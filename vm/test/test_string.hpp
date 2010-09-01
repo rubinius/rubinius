@@ -551,7 +551,7 @@ public:
 
   void test_from_bytearray() {
     ByteArray* ba = String::create(state, "partial to ruby")->data();
-    Integer* six = Integer::from(state, 6);
+    Fixnum* six = Fixnum::from(6);
     String* s = String::from_bytearray(state, ba, six, six);
     TS_ASSERT_EQUALS(six, s->num_bytes());
     TS_ASSERT_SAME_DATA("l to r", s->c_str(), 6);

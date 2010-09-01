@@ -107,11 +107,10 @@ class TestByteArray : public CxxTest::TestSuite, public VMTest {
   void test_move_bytes_out_of_bounds() {
     ByteArray* b = String::create(state, "xyzzy")->data();
 
-    Integer* neg = Fixnum::from(-1);
-    Integer* one = Fixnum::from(1);
-    Integer* zero = Fixnum::from(0);
-    Integer* size = b->size(state);
-    Integer* size1 = Fixnum::from(b->size(state)->to_native()+1);
+    Fixnum* neg = Fixnum::from(-1);
+    Fixnum* one = Fixnum::from(1);
+    Fixnum* zero = Fixnum::from(0);
+    Fixnum* size = b->size(state);
 
     TS_ASSERT_THROWS_ASSERT(b->move_bytes(state, neg, zero, zero), const RubyException &e,
         TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
@@ -120,8 +119,6 @@ class TestByteArray : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_THROWS_ASSERT(b->move_bytes(state, zero, zero, neg), const RubyException &e,
         TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
 
-    TS_ASSERT_THROWS_ASSERT(b->move_bytes(state, zero, size1, zero), const RubyException &e,
-        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
     TS_ASSERT_THROWS_ASSERT(b->move_bytes(state, zero, size, one), const RubyException &e,
         TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
     TS_ASSERT_THROWS_ASSERT(b->move_bytes(state, one, size, zero), const RubyException &e,
@@ -138,19 +135,16 @@ class TestByteArray : public CxxTest::TestSuite, public VMTest {
   void test_fetch_bytes_out_of_bounds() {
     ByteArray* b = String::create(state, "xyzzy")->data();
 
-    Integer* neg = Fixnum::from(-1);
-    Integer* zero = Fixnum::from(0);
-    Integer* one = Fixnum::from(1);
-    Integer* size = b->size(state);
-    Integer* size1 = Fixnum::from(b->size(state)->to_native()+1);
+    Fixnum* neg = Fixnum::from(-1);
+    Fixnum* zero = Fixnum::from(0);
+    Fixnum* one = Fixnum::from(1);
+    Fixnum* size = b->size(state);
 
     TS_ASSERT_THROWS_ASSERT(b->fetch_bytes(state, neg, zero), const RubyException &e,
         TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
     TS_ASSERT_THROWS_ASSERT(b->fetch_bytes(state, zero, neg), const RubyException &e,
         TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
 
-    TS_ASSERT_THROWS_ASSERT(b->fetch_bytes(state, zero, size1), const RubyException &e,
-        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
     TS_ASSERT_THROWS_ASSERT(b->fetch_bytes(state, one, size), const RubyException &e,
         TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
   }
@@ -159,10 +153,10 @@ class TestByteArray : public CxxTest::TestSuite, public VMTest {
     ByteArray* a = String::create(state, "xyZzyx")->data();
     ByteArray* b = String::create(state, "xyzzyx")->data();
 
-    Integer* two = Fixnum::from(2);
-    Integer* three = Fixnum::from(3);
-    Integer* size = Fixnum::from(8);
-    Integer* size1 = Fixnum::from(9);
+    Fixnum* two = Fixnum::from(2);
+    Fixnum* three = Fixnum::from(3);
+    Fixnum* size = Fixnum::from(8);
+    Fixnum* size1 = Fixnum::from(9);
 
     TS_ASSERT_EQUALS(a->size(state)->to_native(), 8);
     TS_ASSERT_EQUALS(b->size(state)->to_native(), 8);
@@ -179,8 +173,8 @@ class TestByteArray : public CxxTest::TestSuite, public VMTest {
     ByteArray* a = String::create(state, "xyZzy")->data();
     ByteArray* b = String::create(state, "xyzzy")->data();
 
-    Integer* zero = Fixnum::from(0);
-    Integer* neg = Fixnum::from(-1);
+    Fixnum* zero = Fixnum::from(0);
+    Fixnum* neg = Fixnum::from(-1);
 
     TS_ASSERT_THROWS_ASSERT(a->compare_bytes(state, b, neg, zero), const RubyException &e,
         TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));

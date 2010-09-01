@@ -179,7 +179,7 @@ namespace rubinius {
 
       // Check a tuples body.
       if(Tuple* tup = try_as<Tuple>(obj)) {
-        for(size_t i = 0; i < tup->num_fields(); i++) {
+        for(native_int i = 0; i < tup->num_fields(); i++) {
           if(tup->at(i) == target_) return true;
         }
       }

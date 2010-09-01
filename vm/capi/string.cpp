@@ -226,7 +226,7 @@ extern "C" {
       string->byte_address()[len] = 0;
       string->num_bytes(env->state(), Fixnum::from(len));
       string->characters(env->state(), Fixnum::from(len));
-      string->hash_value(env->state(), reinterpret_cast<Integer*>(RBX_Qnil));
+      string->hash_value(env->state(), reinterpret_cast<Fixnum*>(RBX_Qnil));
     }
     capi_update_string(env, self_handle);
 
@@ -280,7 +280,7 @@ extern "C" {
     VALUE str = rb_string_value(object_variable);
     String* string = capi_get_string(env, str);
 
-    if(string->size() != strlen(string->c_str())) {
+    if(string->size() != (native_int)strlen(string->c_str())) {
       rb_raise(rb_eArgError, "string contains NULL byte");
     }
 
@@ -312,8 +312,8 @@ extern "C" {
     char *ptr = RSTRING_PTR(str_handle);
     if(len) {
       *len = string->size();
-    } else if(RTEST(ruby_verbose) && string->size() != strlen(ptr)) {
-      rb_warn("string contains \\0 character");
+    } else if(RTEST(ruby_verbose) && string->size() != (native_int)strlen(ptr)) {
+      rb_warn("string contains NULL character");
     }
     return ptr;
   }

@@ -16,7 +16,7 @@ namespace rubinius {
     return at(state, index_obj->to_native());
   }
 
-  Object* Tuple::put(STATE, size_t idx, Object* val) {
+  Object* Tuple::put(STATE, native_int idx, Object* val) {
     if(num_fields() <= idx) {
       Exception::object_bounds_exceeded_error(state, this, idx);
     }
@@ -36,7 +36,9 @@ namespace rubinius {
     return Integer::from(state, num_fields());
   }
 
-  Tuple* Tuple::create(STATE, size_t fields) {
+  Tuple* Tuple::create(STATE, native_int fields) {
+    assert(fields >= 0 && fields < INT32_MAX);
+
     size_t bytes;
     Tuple* tup = state->om->new_object_variable<Tuple>(G(tuple), fields, bytes);
     if(unlikely(!tup)) {
@@ -50,12 +52,12 @@ namespace rubinius {
     return Tuple::create(state, fields->to_native());
   }
 
-  Tuple* Tuple::from(STATE, size_t fields, ...) {
+  Tuple* Tuple::from(STATE, native_int fields, ...) {
     va_list ar;
     Tuple* tup = create(state, fields);
 
     va_start(ar, fields);
-    for(size_t i = 0; i < fields; i++) {
+    for(native_int i = 0; i < fields; i++) {
       Object *obj = va_arg(ar, Object*);
       // fields equals size so bounds checking is unecessary
       tup->field[i] = obj;
@@ -67,19 +69,19 @@ namespace rubinius {
   }
 
   Tuple* Tuple::copy_from(STATE, Tuple* other, Fixnum* start, Fixnum *length, Fixnum* dest) {
-    size_t osize = other->num_fields();
-    size_t size = this->num_fields();
+    native_int osize = other->num_fields();
+    native_int size = this->num_fields();
 
     int olend = start->to_native();
     int lend = dest->to_native();
     int olength = length->to_native();
 
     // left end should be within range
-    if(olend < 0 || (size_t)olend > osize) {
+    if(olend < 0 || olend > osize) {
       Exception::object_bounds_exceeded_error(state, other, olend);
     }
 
-    if(lend < 0 || (size_t)lend > size) {
+    if(lend < 0 || lend > size) {
       Exception::object_bounds_exceeded_error(state, this, lend);
     }
 
@@ -88,18 +90,18 @@ namespace rubinius {
       Exception::object_bounds_exceeded_error(state, "length must be positive");
     }
 
-    if((size_t)(olend + olength) > osize) {
+    if((olend + olength) > osize) {
       Exception::object_bounds_exceeded_error(state,
           "length should not exceed size of source");
     }
 
-    if((size_t)olength > (size - lend)) {
+    if(olength > (size - lend)) {
       Exception::object_bounds_exceeded_error(state,
           "length should not exceed space in destination");
     }
 
-    for(size_t src = olend, dst = lend;
-        src < (size_t)(olend + olength);
+    for(native_int src = olend, dst = lend;
+        src < (olend + olength);
         ++src, ++dst) {
       // Since we have carefully checked the bounds we don't need to do it in at/put
       Object *obj = other->field[src];
@@ -158,12 +160,12 @@ namespace rubinius {
    *  evaluate corner cases, and add tests... --rue
    */
   Tuple* Tuple::lshift_inplace(STATE, Fixnum* shift) {
-    std::size_t size = this->num_fields();
+    native_int size = this->num_fields();
     const int start = shift->to_native();
 
     if(start > 0) {
-      std::size_t i = 0;
-      std::size_t j = start;
+      native_int i = 0;
+      native_int j = start;
 
       while(j < size) {
         this->field[i++] = this->field[j++];
@@ -181,18 +183,13 @@ namespace rubinius {
     native_int start = o_start->to_native();
     native_int total = o_total->to_native();
 
-    if(start < 0) return this;
+    if(start < 0 || start >= num_fields()) return this;
 
-    native_int limit = start + (total / 2);
+    native_int end = start + total;
+    if(end >= num_fields()) end = num_fields() - 1;
 
-    if(start > full_size_) return this;
-    if(limit > full_size_) limit = full_size_ - 1;
-
-    native_int i = start;
-    native_int j = start + total - 1;
-
-    Object** pos1 = field + i;
-    Object** pos2 = field + j;
+    Object** pos1 = field + start;
+    Object** pos2 = field + end;
 
     register Object* tmp;
     while(pos1 < pos2) {
@@ -230,7 +227,7 @@ namespace rubinius {
     Object* tmp;
     Tuple* tup = as<Tuple>(obj);
 
-    for(size_t i = 0; i < tup->num_fields(); i++) {
+    for(native_int i = 0; i < tup->num_fields(); i++) {
       tmp = mark.call(tup->field[i]);
       if(tmp) mark.set(obj, &tup->field[i], tmp);
     }
@@ -239,15 +236,15 @@ namespace rubinius {
   void Tuple::Info::visit(Object* obj, ObjectVisitor& visit) {
     Tuple* tup = as<Tuple>(obj);
 
-    for(size_t i = 0; i < tup->num_fields(); i++) {
+    for(native_int i = 0; i < tup->num_fields(); i++) {
       visit.call(tup->field[i]);
     }
   }
 
   void Tuple::Info::show(STATE, Object* self, int level) {
     Tuple* tup = as<Tuple>(self);
-    size_t size = tup->num_fields();
-    size_t stop = size < 6 ? size : 6;
+    native_int size = tup->num_fields();
+    native_int stop = size < 6 ? size : 6;
 
     if(size == 0) {
       class_info(state, self, true);
@@ -257,7 +254,7 @@ namespace rubinius {
     class_info(state, self);
     std::cout << ": " << size << std::endl;
     ++level;
-    for(size_t i = 0; i < stop; i++) {
+    for(native_int i = 0; i < stop; i++) {
       indent(level);
       Object* obj = tup->at(state, i);
       if(obj == tup) {
@@ -272,8 +269,8 @@ namespace rubinius {
 
   void Tuple::Info::show_simple(STATE, Object* self, int level) {
     Tuple* tup = as<Tuple>(self);
-    size_t size = tup->num_fields();
-    size_t stop = size < 6 ? size : 6;
+    native_int size = tup->num_fields();
+    native_int stop = size < 6 ? size : 6;
 
     if(size == 0) {
       class_info(state, self, true);
@@ -283,7 +280,7 @@ namespace rubinius {
     class_info(state, self);
     std::cout << ": " << size << std::endl;
     ++level;
-    for(size_t i = 0; i < stop; i++) {
+    for(native_int i = 0; i < stop; i++) {
       indent(level);
       Object* obj = tup->at(state, i);
       if(Tuple* t = try_as<Tuple>(obj)) {

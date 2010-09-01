@@ -19,8 +19,8 @@ namespace rubinius {
 
   public:
     static void init(STATE);
-    static ByteArray* create(STATE, size_t bytes);
-    static ByteArray* create_pinned(STATE, size_t bytes);
+    static ByteArray* create(STATE, native_int bytes);
+    static ByteArray* create_pinned(STATE, native_int bytes);
 
     template <typename Any>
       static ByteArray* from_body(Any obj) {
@@ -29,13 +29,13 @@ namespace rubinius {
       }
 
     // Ruby.primitive :bytearray_allocate
-    static ByteArray* allocate(STATE, Integer* bytes);
+    static ByteArray* allocate(STATE, Fixnum* bytes);
 
     // Ruby.primitive :bytearray_size
-    Integer* size(STATE);
+    Fixnum* size(STATE);
 
     // Return the number of bytes this ByteArray contains
-    size_t size() {
+    native_int size() {
       return full_size_ - sizeof(ByteArray);
     }
 
@@ -44,19 +44,19 @@ namespace rubinius {
     }
 
     // Ruby.primitive :bytearray_get_byte
-    Fixnum* get_byte(STATE, Integer* index);
+    Fixnum* get_byte(STATE, Fixnum* index);
 
     // Ruby.primitive :bytearray_set_byte
-    Fixnum* set_byte(STATE, Integer* index, Fixnum* value);
+    Fixnum* set_byte(STATE, Fixnum* index, Fixnum* value);
 
     // Ruby.primitive :bytearray_move_bytes
-    Integer* move_bytes(STATE, Integer* start, Integer* count, Integer* dest);
+    Fixnum* move_bytes(STATE, Fixnum* start, Fixnum* count, Fixnum* dest);
 
     // Ruby.primitive :bytearray_fetch_bytes
-    ByteArray* fetch_bytes(STATE, Integer* start, Integer* count);
+    ByteArray* fetch_bytes(STATE, Fixnum* start, Fixnum* count);
 
     // Ruby.primitive :bytearray_compare_bytes
-    Fixnum* compare_bytes(STATE, ByteArray* other, Integer* a, Integer* b);
+    Fixnum* compare_bytes(STATE, ByteArray* other, Fixnum* a, Fixnum* b);
 
     /* ::locate searches for +pattern+ in the ByteArray. Returns the
      * number of characters from the front of the ByteArray to the end
