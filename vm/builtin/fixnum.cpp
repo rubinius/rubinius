@@ -46,7 +46,7 @@ namespace rubinius {
   }
 
   bool Fixnum::positive_p() const {
-    return (int)STRIP_FIXNUM_TAG(this) >= 0;
+    return to_native() >= 0;
   }
 
   Integer* Fixnum::add(STATE, Bignum* other) {
