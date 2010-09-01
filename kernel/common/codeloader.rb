@@ -327,7 +327,7 @@ module Rubinius
         end
       end
 
-      load_error
+      load_error unless CodeLoader.loaded? @path
     end
 
     # Raises a LoadError if the requested file cannot be found or loaded.
