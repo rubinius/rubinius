@@ -331,6 +331,39 @@ describe :kernel_require, :shared => true do
       ScratchPad.recorded.should == []
     end
 
+    describe "when a non-extensioned file is in $LOADED_FEATURES" do
+      before :each do
+        $LOADED_FEATURES << "load_fixture"
+      end
+
+      it "loads a .rb extensioned file when a non extensioned file is in $LOADED_FEATURES" do
+        $LOAD_PATH << CODE_LOADING_DIR
+        @object.require("load_fixture").should be_true
+        ScratchPad.recorded.should == [:loaded]
+      end
+
+      it "loads a .rb extensioned file from a subdirectory" do
+        $LOAD_PATH << File.dirname(CODE_LOADING_DIR)
+        @object.require("code/load_fixture").should be_true
+        ScratchPad.recorded.should == [:loaded]
+      end
+
+      it "returns false if the file is not found" do
+        Dir.chdir File.dirname(CODE_LOADING_DIR) do
+          @object.require("load_fixture").should be_false
+          ScratchPad.recorded.should == []
+        end
+      end
+
+      it "returns false when passed a path and the file is not found" do
+        $LOADED_FEATURES << "code/load_fixture"
+        Dir.chdir CODE_LOADING_DIR do
+          @object.require("code/load_fixture").should be_false
+          ScratchPad.recorded.should == []
+        end
+      end
+    end
+
     ruby_version_is "".."1.9" do
       it "stores ./ relative paths as passed in" do
         $LOAD_PATH << "an_irrelevant_dir"
