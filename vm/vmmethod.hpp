@@ -25,12 +25,6 @@ namespace rubinius {
 
   typedef std::list<Object**> IndirectLiterals;
 
-  // Breakpoint flags are set in the high byte of an opcode
-  const bpflags cBreakpoint = 1 << 24;
-  const bpflags cBreakAfterSend = 1 << 25;
-
-  const unsigned int cBreakpointMask = 0x00ffffff;
-
   class CompiledMethod;
   class MethodContext;
   class SendSite;
@@ -124,7 +118,7 @@ namespace rubinius {
 #endif
 
     void update_addresses(int index, int operands=0) {
-      addresses[index] = instructions[opcodes[index] & cBreakpointMask];
+      addresses[index] = instructions[opcodes[index]];
       switch(operands) {
       case 2:
         addresses[index + 2] = reinterpret_cast<void*>(opcodes[index + 2]);
@@ -211,8 +205,6 @@ namespace rubinius {
     void setup_argument_handler(CompiledMethod* meth);
 
     bool validate_ip(STATE, size_t ip);
-    void set_breakpoint_flags(STATE, size_t ip, bpflags flags);
-    bpflags get_breakpoint_flags(STATE, size_t ip);
 
     void fill_opcodes(STATE, CompiledMethod* original);
     void initialize_caches(STATE, CompiledMethod* original, int sends);
