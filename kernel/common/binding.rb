@@ -39,6 +39,17 @@ class Binding
     @proc_environment
   end
 
+  # Create a new Binding object. MRI does not allow .new to be called, so
+  # we used .setup(). Any code can use this as they wish, provided they have
+  # all the right arguments.
+  #
+  # +variables+ is a Rubinius::VariableScope object
+  # +code+ is a Rubinius::CompiledMethod object
+  # +static_scope+ is a Rubinius::StaticScope object
+  #
+  # See Kernel#binding in kernel/common/eval.rb for a simple example of
+  # creating a Binding object.
+  #
   def self.setup(variables, code, static_scope)
     bind = allocate()
 

@@ -256,12 +256,29 @@ class Thread
     raise "nope!"
   end
 
+  # Register another Thread object +thr+ as the Thread where the debugger
+  # is running. When the current thread hits a breakpoint, it uses this
+  # field to figure out who to send variable/scope information to.
+  #
   def set_debugger_thread(thr)
     raise TypeError, "Must be another Thread" unless thr.kind_of?(Thread)
 
     @debugger_thread = thr
   end
 
+  # Called by a debugger thread (a thread where the debugger lives) to
+  # setup the @control_channel to a Channel object. A debuggee thread
+  # will send data to this Channel when it hits a breakpoint, allowing
+  # an easy place for the debugger to wait.
+  #
+  # This channel is sent a Tuple containing:
+  #  * The object registered in the breakpoint (can be any object)
+  #  * The Thread object where the breakpoint was hit
+  #  * A Channel object to use to wake up the debuggee thread
+  #  * An Array of Rubinius::Location objects for the stack. These Location
+  #    objects contain references to Rubinius::VariableScope objects
+  #    which contain info like local variables.
+  #
   def setup_control!(chan=nil)
     chan ||= Rubinius::Channel.new
     @control_channel = chan

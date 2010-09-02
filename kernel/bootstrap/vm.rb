@@ -1,4 +1,11 @@
 class Rubinius::VM
+
+  # Get an Array of Rubinius::Location objects representing the current
+  # call stack. +frames_to_skip+ says how many initial frames to ignore.
+  # If +include_vars+ is set, then the Location objects also include a
+  # Rubinius::VariableScope object that can be used to access the frames
+  # running information like locals, self, etc.
+  #
   def self.backtrace(frames_to_skip, include_vars=false)
     Ruby.primitive :vm_backtrace
 
