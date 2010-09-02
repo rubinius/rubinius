@@ -114,6 +114,8 @@ namespace rubinius {
 
     JITBasicBlock* current_jbb_;
 
+    Value* vmm_debugging_;
+
   public:
 
     static const int cHintLazyBlockArgs = 1;
@@ -203,6 +205,8 @@ namespace rubinius {
           llvm::PointerType::getUnqual(ls_->IntPtrTy), "cast_to_intptr");
 
       init_out_args();
+
+      vmm_debugging_ = constant(&info().vmm->debugging, llvm::PointerType::getUnqual(ls_->Int32Ty));
     }
 
     void set_has_side_effects() {
@@ -315,17 +319,75 @@ namespace rubinius {
       }
     }
 
-    void check_for_exception_then(Value* val, BasicBlock* cont) {
+    BasicBlock* check_for_exception_then(Value* val, BasicBlock* cont) {
       Value* null = Constant::getNullValue(ObjType);
 
-      Value* cmp = b().CreateICmpEQ(val, null, "null_check");
+      BasicBlock* check_active = new_block("check_active");
+
+      Value* is_exception = b().CreateICmpEQ(val, null, "null_check");
 
       // If there are handlers...
       if(has_exception_handler()) {
-        b().CreateCondBr(cmp, exception_handler(), cont);
+        b().CreateCondBr(is_exception, exception_handler(), check_active);
       } else {
-        b().CreateCondBr(cmp, bail_out_fast_, cont);
+        b().CreateCondBr(is_exception, bail_out_fast_, check_active);
       }
+
+      set_block(check_active);
+
+      if(!state()->config().jit_check_debugging) {
+        b().CreateBr(cont);
+        return check_active;
+      }
+
+      Value* is_debugging = b().CreateLoad(vmm_debugging_, "loaded_debugging_flag");
+
+      BasicBlock* restart_in_interp = new_block("restart");
+
+      // Check the active flag
+      b().CreateCondBr(
+          b().CreateICmpEQ(is_debugging, cint(1), "check_active"),
+          restart_in_interp,
+          cont);
+
+      set_block(restart_in_interp);
+
+      Value* sp = last_sp_as_int();
+
+      flush();
+
+      Signature sig(ls_, "Object");
+
+      sig << "VM";
+      sig << "CallFrame";
+      sig << ls_->Int32Ty;
+      sig << ls_->IntPtrTy;
+      sig << "CallFrame";
+      sig << ls_->Int32Ty;
+      sig << llvm::PointerType::getUnqual(ls_->Int32Ty);
+
+      int unwinds = emit_unwinds();
+
+      Value* root_callframe = info().top_parent_call_frame();
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        cint(next_ip_),
+        sp,
+        root_callframe,
+        cint(unwinds),
+        info().unwind_info()
+      };
+
+      Value* call = sig.call("rbx_continue_debugging", call_args, 7, "", b());
+
+      info().add_return_value(call, current_block());
+      b().CreateBr(info().return_pad());
+
+      cont->moveAfter(restart_in_interp);
+
+      return check_active;
     }
 
     void check_for_exception(Value* val) {
@@ -747,7 +809,8 @@ namespace rubinius {
       set_block(dispatch);
 
       Value* called_value = inline_cache_send(1, cache);
-      check_for_exception_then(called_value, cont);
+      BasicBlock* send_block =
+        check_for_exception_then(called_value, cont);
 
       set_block(fast);
 
@@ -760,7 +823,7 @@ namespace rubinius {
       set_block(cont);
 
       PHINode* phi = b().CreatePHI(ObjType, "equal_value");
-      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(called_value, send_block);
       phi->addIncoming(imm_value, fast);
 
       stack_remove(2);
@@ -783,7 +846,8 @@ namespace rubinius {
       set_block(dispatch);
 
       Value* called_value = inline_cache_send(1, cache);
-      check_for_exception_then(called_value, cont);
+      BasicBlock* send_block =
+        check_for_exception_then(called_value, cont);
 
       set_block(fast);
 
@@ -796,7 +860,7 @@ namespace rubinius {
       set_block(cont);
 
       PHINode* phi = b().CreatePHI(ObjType, "equal_value");
-      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(called_value, send_block);
       phi->addIncoming(imm_value, fast);
 
       stack_remove(2);
@@ -819,7 +883,7 @@ namespace rubinius {
       set_block(dispatch);
 
       Value* called_value = inline_cache_send(1, cache);
-      check_for_exception_then(called_value, cont);
+      BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
 
@@ -832,7 +896,7 @@ namespace rubinius {
       set_block(cont);
 
       PHINode* phi = b().CreatePHI(ObjType, "addition");
-      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(called_value, send_bb);
       phi->addIncoming(imm_value, fast);
 
       stack_remove(2);
@@ -855,7 +919,7 @@ namespace rubinius {
       set_block(dispatch);
 
       Value* called_value = inline_cache_send(1, cache);
-      check_for_exception_then(called_value, cont);
+      BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
 
@@ -868,7 +932,7 @@ namespace rubinius {
       set_block(cont);
 
       PHINode* phi = b().CreatePHI(ObjType, "compare");
-      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(called_value, send_bb);
       phi->addIncoming(imm_value, fast);
 
       stack_remove(2);
@@ -891,7 +955,7 @@ namespace rubinius {
       set_block(dispatch);
 
       Value* called_value = inline_cache_send(1, cache);
-      check_for_exception_then(called_value, cont);
+      BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
 
@@ -928,7 +992,7 @@ namespace rubinius {
       set_block(cont);
 
       PHINode* phi = b().CreatePHI(ObjType, "addition");
-      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(called_value, send_bb);
       phi->addIncoming(imm_value, tagnow);
 
       stack_remove(2);
@@ -951,7 +1015,7 @@ namespace rubinius {
       set_block(dispatch);
 
       Value* called_value = inline_cache_send(1, cache);
-      check_for_exception_then(called_value, cont);
+      BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
 
@@ -989,7 +1053,7 @@ namespace rubinius {
       set_block(cont);
 
       PHINode* phi = b().CreatePHI(ObjType, "subtraction");
-      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(called_value, send_bb);
       phi->addIncoming(imm_value, tagnow);
 
       stack_remove(2);

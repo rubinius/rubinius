@@ -82,7 +82,7 @@ namespace rubinius {
     Symbol* name_;
     uint64_t method_id_;
   public:
-    bool debugging;
+    uint32_t debugging;
   public: // Methods
     static void init(STATE);
 
