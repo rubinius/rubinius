@@ -1667,8 +1667,6 @@ namespace rubinius {
         inl.set_block_on_stack();
 
         if(inl.consider()) {
-          // Uncommon doesn't yet know how to synthesize UnwindInfos, so
-          // don't do uncommon if there are handlers.
           if(!inl.fail_to_send() && !in_inlined_block()) {
             send_result->addIncoming(inl.result(), b().GetInsertBlock());
 

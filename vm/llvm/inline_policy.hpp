@@ -10,18 +10,24 @@ namespace rubinius {
     bool allow_blocks;
     bool allow_raise_flow;
     bool allow_splat;
+    bool allow_exceptions;
+    bool allow_yield;
 
     InlineOptions()
       : check_size(true)
       , allow_blocks(true)
       , allow_raise_flow(true)
       , allow_splat(false)
+      , allow_exceptions(true)
+      , allow_yield(true)
     {}
 
     void inlining_block() {
       allow_blocks = false;
       allow_raise_flow = false;
       allow_splat = true;
+      allow_exceptions = false;
+      allow_yield = false;
     }
   };
 
@@ -55,8 +61,24 @@ namespace rubinius {
       throw Unsupported();
     }
 
+    void visit_push_has_block() {
+      if(!options_.allow_yield) throw Unsupported();
+    }
+
+    void visit_yield_stack(opcode count) {
+      if(!options_.allow_yield) throw Unsupported();
+    }
+
+    void visit_yield_splat(opcode count) {
+      throw Unsupported();
+    }
+
     void visit_push_proc() {
       throw Unsupported();
+    }
+
+    void visit_setup_unwind(opcode where, opcode type) {
+      if(!options_.allow_exceptions) throw Unsupported();
     }
 
     void visit_create_block(opcode which) {
@@ -72,10 +94,6 @@ namespace rubinius {
     }
 
     void visit_zsuper(opcode which) {
-      throw Unsupported();
-    }
-
-    void visit_yield_splat(opcode count) {
       throw Unsupported();
     }
 
