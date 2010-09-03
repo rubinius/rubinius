@@ -13,13 +13,18 @@
 namespace rubinius {
   /* The Tuple#at primitive. */
   Object* Tuple::at_prim(STATE, Fixnum* index_obj) {
-    return at(state, index_obj->to_native());
+    native_int index = index_obj->to_native();
+
+    if(index < 0 || num_fields() <= index) {
+      Exception::object_bounds_exceeded_error(state, this, index);
+      return NULL;
+    }
+
+    return field[index];
   }
 
   Object* Tuple::put(STATE, native_int idx, Object* val) {
-    if(num_fields() <= idx) {
-      Exception::object_bounds_exceeded_error(state, this, idx);
-    }
+    assert(idx >= 0 && idx < num_fields());
 
     this->field[idx] = val;
     if(val->reference_p()) write_barrier(state, val);
@@ -28,7 +33,16 @@ namespace rubinius {
 
   /* The Tuple#put primitive. */
   Object* Tuple::put_prim(STATE, Fixnum* index, Object* val) {
-    return put(state, index->to_native(), val);
+    native_int idx = index->to_native();
+
+    if(idx < 0 || num_fields() <= idx) {
+      Exception::object_bounds_exceeded_error(state, this, idx);
+      return NULL;
+    }
+
+    this->field[idx] = val;
+    if(val->reference_p()) write_barrier(state, val);
+    return val;
   }
 
   /* The Tuple#fields primitive. */
@@ -53,6 +67,8 @@ namespace rubinius {
   }
 
   Tuple* Tuple::from(STATE, native_int fields, ...) {
+    assert(fields >= 0);
+
     va_list ar;
     Tuple* tup = create(state, fields);
 
@@ -163,6 +179,8 @@ namespace rubinius {
     native_int size = this->num_fields();
     const int start = shift->to_native();
 
+    assert(start >= 0);
+
     if(start > 0) {
       native_int i = 0;
       native_int j = start;
@@ -183,7 +201,7 @@ namespace rubinius {
     native_int start = o_start->to_native();
     native_int total = o_total->to_native();
 
-    if(start < 0 || start >= num_fields()) return this;
+    if(total <= 0 || start < 0 || start >= num_fields()) return this;
 
     native_int end = start + total;
     if(end >= num_fields()) end = num_fields() - 1;
@@ -204,6 +222,8 @@ namespace rubinius {
   // @todo performance primitive; could be replaced with Ruby
   Tuple* Tuple::pattern(STATE, Fixnum* size, Object* val) {
     native_int cnt = size->to_native();
+    assert(cnt >= 0);
+
     Tuple* tuple = Tuple::create(state, cnt);
 
     // val is referend size times, we only need to hit the write
@@ -221,7 +241,6 @@ namespace rubinius {
   size_t Tuple::Info::object_size(const ObjectHeader* obj) {
     return force_as<Tuple>(obj)->full_size_;
   }
-
 
   void Tuple::Info::mark(Object* obj, ObjectMark& mark) {
     Object* tmp;

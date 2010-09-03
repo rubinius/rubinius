@@ -60,17 +60,13 @@ namespace rubinius {
     Object* reverse(STATE, Fixnum* start, Fixnum* total);
 
   public: // Inline Functions
-    Object* at(STATE, native_int index) {
-      if(num_fields() <= index) {
-        Exception::object_bounds_exceeded_error(state, this, index);
-        return NULL;
-      }
+    Object* at(native_int index) {
+      if(index < 0 || num_fields() <= index) return Qnil;
       return field[index];
     }
 
-    Object* at(native_int index) {
-      if(num_fields() <= index) return NULL;
-      return field[index];
+    Object* at(STATE, native_int index) {
+      return at(index);
     }
 
   public: // Rubinius Type stuff
