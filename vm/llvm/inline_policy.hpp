@@ -11,7 +11,7 @@ namespace rubinius {
     bool allow_raise_flow;
     bool allow_splat;
     bool allow_exceptions;
-    bool allow_yield;
+    bool allow_has_block;
 
     InlineOptions()
       : check_size(true)
@@ -19,7 +19,7 @@ namespace rubinius {
       , allow_raise_flow(true)
       , allow_splat(false)
       , allow_exceptions(true)
-      , allow_yield(true)
+      , allow_has_block(true)
     {}
 
     void inlining_block() {
@@ -27,7 +27,7 @@ namespace rubinius {
       allow_raise_flow = false;
       allow_splat = true;
       allow_exceptions = false;
-      allow_yield = false;
+      allow_has_block = false;
     }
   };
 
@@ -62,11 +62,7 @@ namespace rubinius {
     }
 
     void visit_push_has_block() {
-      if(!options_.allow_yield) throw Unsupported();
-    }
-
-    void visit_yield_stack(opcode count) {
-      if(!options_.allow_yield) throw Unsupported();
+      if(!options_.allow_has_block) throw Unsupported();
     }
 
     void visit_yield_splat(opcode count) {

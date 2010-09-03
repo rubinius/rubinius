@@ -1637,16 +1637,23 @@ namespace rubinius {
 
           InlineDecision decision = inline_policy()->inline_p(
                                       block_code->backend_method(), opts);
-          if(decision != cInline) {
+          if(decision == cTooComplex) {
+            if(state()->config().jit_inline_debug) {
+              context().inline_log("NOT inlining")
+                        << "block was too complex\n";
+            }
             goto use_send;
-          } else if(decision == cTooComplex) {
-            context().inline_log("NOT inlining")
-              << "block was too complex\n";
+          } else if(decision != cInline) {
+            goto use_send;
           }
         } else {
+          // If there is no literal block, we don't inline the method at all.
+          // This is probably overkill, we should revise this and inline
+          // the method anyway.
           goto use_send;
         }
 
+        // Ok, we decision was cInline, so lets do this!
         BasicBlock* failure = new_block("fallback");
         BasicBlock* cont = new_block("continue");
         BasicBlock* cleanup = new_block("send_done");
@@ -2585,6 +2592,10 @@ use_send:
         // wrt the block when we are considering inlining the send that
         // has the block on it.
         Inliner inl(context(), *this, count);
+
+        // Propagate the creator's inlined block into the inlined block.
+        // This is so that if the inlined block yields, it can see the outer
+        // inlined block and emit code for it.
         inl.set_inline_block(creator->inline_block());
 
         // Make it's inlining info available to itself
