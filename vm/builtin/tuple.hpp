@@ -59,6 +59,8 @@ namespace rubinius {
     // Ruby.primitive :tuple_reverse
     Object* reverse(STATE, Fixnum* start, Fixnum* total);
 
+    Tuple* bounds_exceeded_error(STATE, const char* method, int index);
+
   public: // Inline Functions
     Object* at(native_int index) {
       if(index < 0 || num_fields() <= index) return Qnil;

@@ -100,10 +100,14 @@ class Hash
     end
 
     hash = new
-    i = args.to_iter 2
-    while i.next
-      hash[i.item] = i.at(1)
+    i = 0
+    total = args.size
+
+    while i < total
+      hash[args[i]] = args[i+1]
+      i += 2
     end
+
     hash
   end
 

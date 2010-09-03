@@ -11,13 +11,22 @@
 #include <iostream>
 
 namespace rubinius {
+  Tuple* Tuple::bounds_exceeded_error(STATE, const char* method, int index) {
+    std::ostringstream msg;
+
+    msg << method;
+    msg << ": index " << index << " out of bounds for size " << num_fields();
+
+    Exception::object_bounds_exceeded_error(state, msg.str().c_str());
+    return 0;
+  }
+
   /* The Tuple#at primitive. */
   Object* Tuple::at_prim(STATE, Fixnum* index_obj) {
     native_int index = index_obj->to_native();
 
     if(index < 0 || num_fields() <= index) {
-      Exception::object_bounds_exceeded_error(state, this, index);
-      return NULL;
+      return bounds_exceeded_error(state, "Tuple::at_prim", index);
     }
 
     return field[index];
@@ -36,8 +45,7 @@ namespace rubinius {
     native_int idx = index->to_native();
 
     if(idx < 0 || num_fields() <= idx) {
-      Exception::object_bounds_exceeded_error(state, this, idx);
-      return NULL;
+      return bounds_exceeded_error(state, "Tuple::put_prim", idx);
     }
 
     this->field[idx] = val;
@@ -94,26 +102,24 @@ namespace rubinius {
 
     // left end should be within range
     if(olend < 0 || olend > osize) {
-      Exception::object_bounds_exceeded_error(state, other, olend);
+      return other->bounds_exceeded_error(state, "Tuple::copy_from", olend);
     }
 
     if(lend < 0 || lend > size) {
-      Exception::object_bounds_exceeded_error(state, this, lend);
+      return bounds_exceeded_error(state, "Tuple::copy_from", lend);
     }
 
     // length can not be negative and must fit in src/dest
     if(olength < 0) {
-      Exception::object_bounds_exceeded_error(state, "length must be positive");
+      return other->bounds_exceeded_error(state, "Tuple::copy_from", olength);
     }
 
     if((olend + olength) > osize) {
-      Exception::object_bounds_exceeded_error(state,
-          "length should not exceed size of source");
+      return other->bounds_exceeded_error(state, "Tuple::copy_from", olend + olength);
     }
 
     if(olength > (size - lend)) {
-      Exception::object_bounds_exceeded_error(state,
-          "length should not exceed space in destination");
+      return bounds_exceeded_error(state, "Tuple::copy_from", olength);
     }
 
     for(native_int src = olend, dst = lend;
@@ -137,11 +143,11 @@ namespace rubinius {
 
     if(size == 0 || len == 0) return Fixnum::from(0);
     if(lend < 0 || lend >= size) {
-      Exception::object_bounds_exceeded_error(state, this, lend);
+      return force_as<Fixnum>(bounds_exceeded_error(state, "Tuple::delete_inplace", lend));
     }
 
     if(rend < 0 || rend > size) {
-      Exception::object_bounds_exceeded_error(state, this, rend);
+      return force_as<Fixnum>(bounds_exceeded_error(state, "Tuple::delete_inplace", rend));
     }
 
     int i = lend;
@@ -203,7 +209,7 @@ namespace rubinius {
 
     if(total <= 0 || start < 0 || start >= num_fields()) return this;
 
-    native_int end = start + total;
+    native_int end = start + total - 1;
     if(end >= num_fields()) end = num_fields() - 1;
 
     Object** pos1 = field + start;

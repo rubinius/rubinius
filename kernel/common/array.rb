@@ -271,11 +271,7 @@ class Array
     array = []
     im = IdentityMap.new other
 
-    i = to_iter
-    while i.next
-      item = i.item
-      array << item if im.delete item
-    end
+    each { |x| array << x if im.delete x }
 
     array
   end
@@ -336,11 +332,7 @@ class Array
     array = []
     im = IdentityMap.new other
 
-    i = to_iter
-    while i.next
-      item = i.item
-      array << item unless im.include? item
-    end
+    each { |x| array << x unless im.include? x }
 
     array
   end
@@ -356,20 +348,23 @@ class Array
     return 0 if equal? other
     return nil if other.nil?
 
+    other_total = other.total
     Thread.detect_recursion self, other do
-      max = other.total < @total ? other.total : @total
-      i = to_iter
-      i.bounds! 0, max
-      while i.next
-        diff = i.item <=> other.at(i.index)
-        return diff if diff != 0
+      i = 0
+      total = other_total < @total ? other_total : @total
+
+      while i < total
+        diff = self[i] <=> other[i]
+        return diff unless diff == 0
+
+        i += 1
       end
     end
 
     # subtle: if we are recursing on that pair, then let's
     # no go any further down into that pair;
     # any difference will be found elsewhere if need be
-    @total <=> other.total
+    @total <=> other_total
   end
 
   # The two Arrays are considered equal only if their
@@ -386,10 +381,8 @@ class Array
     return false unless size == other.size
 
     Thread.detect_recursion self, other do
-      i = to_iter
-      while i.next
-        return false unless i.item == other.at(i.index)
-      end
+      i = -1
+      each { |x| return false unless x == other[i+=1] }
     end
 
     true
@@ -400,11 +393,7 @@ class Array
   # contained Array using elem == obj. Returns the first contained
   # Array that matches (the first 'associated' Array) or nil.
   def assoc(obj)
-    i = to_iter
-    while i.next
-      elem = i.item
-      return elem if elem.kind_of? Array and elem.first == obj
-    end
+    each { |x| return x if x.kind_of? Array and x.first == obj }
 
     nil
   end
@@ -503,17 +492,11 @@ class Array
     if n
       n = Type.coerce_to n, Fixnum, :to_int
       n.times do
-        i = to_iter
-        while i.next
-          yield i.item
-        end
+        each { |x| yield x }
       end
     else
       while true
-        i = to_iter
-        while i.next
-          yield i.item
-        end
+        each { |x| yield x }
       end
     end
     nil
@@ -524,10 +507,16 @@ class Array
   # block is provided in which case the value of running it is
   # returned instead.
   def delete(obj)
+    Ruby.check_frozen
+
     key = undefined
-    i = to_iter
-    while i.next
-      set_index(i.index, key) if i.item == obj
+    i = @start
+    total = i + @total
+    tuple = @tuple
+
+    while i < total
+      tuple.put i, key if tuple.at(i) == obj
+      i += 1
     end
 
     deleted = @tuple.delete @start, @total, key
@@ -535,12 +524,12 @@ class Array
       @total -= deleted
       reallocate_shrink()
       return obj
+    end
+
+    if block_given?
+      yield
     else
-      if block_given?
-        yield
-      else
-        nil
-      end
+      nil
     end
   end
 
@@ -570,24 +559,27 @@ class Array
   def delete_if(&block)
     Ruby.check_frozen
 
-    return to_enum :delete_if unless block_given?
+    return to_enum(:delete_if) unless block_given?
 
     return self if empty?
 
-    i  = to_iter
-    insert_pos = 0
+    i = pos = @start
+    total = i + @total
+    tuple = @tuple
 
-    while i.next
-      v = i.item
-      next if yield(v)
+    while i < total
+      x = tuple.at i
+      unless yield x
+        # Ok, keep the value, so stick it back into the array at
+        # the insert position
+        tuple.put pos, x
+        pos += 1
+      end
 
-      # Ok, keep the value, so stick it back into the array at
-      # the insert position
-      set_index(insert_pos, v)
-      insert_pos += 1
+      i += 1
     end
 
-    @total = insert_pos
+    @total = pos - @start
 
     return self
   end
@@ -596,12 +588,16 @@ class Array
   # and returns self.  We re-evaluate @total each time
   # through the loop in case the array has changed.
   def each_index
-    return to_enum :each_index unless block_given?
+    return to_enum(:each_index) unless block_given?
 
-    i = to_iter
-    while i.next
-      yield i.index
+    i = @start
+    total = i + @total
+
+    while i < total
+      yield i
+      i += 1
     end
+
     self
   end
 
@@ -613,10 +609,8 @@ class Array
     return false if @total != other.size
 
     Thread.detect_recursion self, other do
-      i = to_iter
-      while i.next
-        return false unless i.item.eql? other.at(i.index)
-      end
+      i = -1
+      each { |x| return false unless x.eql? other[i+=1] }
     end
 
     true
@@ -665,83 +659,72 @@ class Array
   # array.fill {|index| block }                    -> array
   # array.fill(start [, length]) {|index| block }  -> array
   # array.fill(range) {|index| block }             -> array
-
-  # TODO: rewrite this method
-  def fill(*args)
+  def fill(a=undefined, b=undefined, c=undefined)
     Ruby.check_frozen
 
-    raise ArgumentError, "Wrong number of arguments" if block_given? and args.size > 2
-    raise ArgumentError, "Wrong number of arguments" if !block_given? and args.size == 0
-    raise ArgumentError, "Wrong number of arguments" if args.size > 3
-
-    # Normalise arguments
-    start, finish, obj = 0, (size - 1), nil
-
-    obj = args.shift unless block_given?
-    one, two = args.at(0), args.at(1)
-
-    if one.kind_of? Range
-      raise TypeError, "Length invalid with range" if args.size > 1   # WTF, MRI, TypeError?
-
-      start  = Type.coerce_to one.begin, Fixnum, :to_int
-      finish = Type.coerce_to one.end, Fixnum, :to_int
-
-      start += size if start < 0
-      finish += size if finish < 0
-
-      if one.exclude_end?
-        return self if start == finish
-        finish -= 1
-      end
-
-      raise RangeError, "#{one.inspect} out of range" if start < 0
-      return self if finish < 0           # Nothing to modify
-
-    else
-      if one
-        start = Type.coerce_to one, Fixnum, :to_int
-
-        start += size if start < 0
-        start = 0 if start < 0            # MRI comp adjusts to 0
-
-        if two
-          begin
-            finish = Type.coerce_to two, Fixnum, :to_int
-          rescue TypeError
-            finish = two
-          end
-
-          # NB: the 2**N constants in these two "too big" tests are
-          # for MRI compatibility, not actual limits.  The values are
-          # specified by rubyspec. --pbevin
-          too_big_for_long = Rubinius::L64 ? 2**63 : 2**31  # MRI's Fixnum#MAX
-          raise RangeError, "argument too big" if finish >= too_big_for_long
-
-          too_big_for_array = Rubinius::L64 ? 2**55 : 2**23
-          raise ArgumentError, "argument too big" if finish >= too_big_for_array
-
-          return self if finish == 0       # Nothing to modify
-          finish = start + finish - 1
-        end
-      end
-    end                                   # Argument normalisation
-
-    # Adjust the size progressively
-    unless finish < size
-      new_total = finish + 1
-      reallocate(new_total) if @tuple.size < new_total
-      @total = new_total
+    if (block_given? and c != undefined) ||
+       (!block_given? and a == undefined)
+      raise ArgumentError, "wrong number of arguments"
     end
 
-    i = to_iter
-    i.bounds! start, finish + 1
     if block_given?
-      while i.next
-        self[i.index] = yield i.index
+      one, two = a, b
+    else
+      obj, one, two = a, b, c
+    end
+
+    if one.kind_of? Range
+      raise TypeError, "length invalid with range" unless two == undefined
+
+      left = Type.coerce_to one.begin, Fixnum, :to_int
+      left += size if left < 0
+      raise RangeError, "#{one.inspect} out of range" if left < 0
+
+      right = Type.coerce_to one.end, Fixnum, :to_int
+      right += size if right < 0
+      right += 1 unless one.exclude_end?
+      return self if right <= left           # Nothing to modify
+    elsif one != undefined
+      left = Type.coerce_to one, Fixnum, :to_int
+      left += size if left < 0
+      left = 0 if left < 0
+
+      if two and two != undefined
+        begin
+          right = Type.coerce_to two, Fixnum, :to_int
+        rescue TypeError
+          raise ArgumentError, "argument #{two.inspect} must be a Fixnum"
+        end
+
+        return self if right == 0
+        right += left
+      else
+        right = size
       end
     else
-      while i.next
-        self[i.index] = obj
+      left = 0
+      right = size
+    end
+
+    i = @start + left
+    total = @start + right
+
+    if right > size
+      reallocate total
+      @total = right
+    end
+
+    tuple = @tuple
+
+    if block_given?
+      while i < total
+        tuple.put i, yield(i-@start)
+        i += 1
+      end
+    else
+      while i < total
+        tuple.put i, obj
+        i += 1
       end
     end
 
@@ -804,12 +787,7 @@ class Array
       begin
         objects[id] = true
 
-        i = to_iter
-        while i.next
-          hash_val  &= mask
-          hash_val <<= 1
-          hash_val  ^= i.item.hash
-        end
+        each { |x| hash_val = ((hash_val & mask) << 1) ^ x.hash }
       ensure
         objects.delete id
       end
@@ -821,12 +799,7 @@ class Array
         objects[:__detect_outermost_recursion__] = true
         objects[id] = true
 
-        i = to_iter
-        while i.next
-          hash_val  &= mask
-          hash_val <<= 1
-          hash_val  ^= i.item.hash
-        end
+        each { |x| hash_val = ((hash_val & mask) << 1) ^ x.hash }
 
         # An inner version will raise to return back here, indicating that
         # the whole structure is recursive. In which case, abondon most of
@@ -845,10 +818,7 @@ class Array
   # Returns true if the given obj is present in the Array.
   # Presence is determined by calling elem == obj until found.
   def include?(obj)
-    i = to_iter
-    while i.next
-      return true if i.item == obj
-    end
+    each { |x| return true if x == obj }
     false
   end
 
@@ -857,15 +827,11 @@ class Array
   # given instead of an argument, returns first object
   # for which block is true. Returns nil if no match is found.
   def index(obj=undefined)
-    i = to_iter
+    i = 0
     if obj.equal? undefined
-      while i.next
-        return i.index if yield(i.item)
-      end
+      each { |x| return i if yield(x); i += 1 }
     else
-      while i.next
-        return i.index if i.item == obj
-      end
+      each { |x| return i if x == obj; i += 1 }
     end
     nil
   end
@@ -935,19 +901,23 @@ class Array
     return "[...]" if Thread.detect_recursion self do
       sep = sep ? StringValue(sep) : $,
       out.taint if sep.tainted? or self.tainted?
-      i = to_iter
-      while i.next
-        elem = i.item
 
-        out.append sep unless i.index == 0
+      first = true
 
-        if elem.kind_of?(Array)
-          out.append elem.join(sep, method)
+      each do |x|
+        unless first
+          out.append sep
         else
-          out.append elem.to_s
+          first = false
         end
 
-        out.taint if elem.tainted?
+        if x.kind_of?(Array)
+          out.append x.join(sep, method)
+        else
+          out.append x.to_s
+        end
+
+        out.taint if x.tainted?
       end
     end
 
@@ -1214,7 +1184,7 @@ class Array
   # which block is true. An Array is also returned when
   # invoked on subclasses. See #reject!
   def reject(&block)
-    return to_enum :reject unless block_given?
+    return to_enum(:reject) unless block_given?
     dup.reject!(&block) || self
   end
 
@@ -1223,7 +1193,7 @@ class Array
   def reject!(&block)
     Ruby.check_frozen
 
-    return to_enum :reject! unless block_given?
+    return to_enum(:reject!) unless block_given?
 
     was = length
     delete_if(&block)
@@ -1265,12 +1235,17 @@ class Array
   # Goes through the Array back to front and yields
   # each element to the supplied block. Returns self.
   def reverse_each
-    return to_enum :reverse_each unless block_given?
+    return to_enum(:reverse_each) unless block_given?
 
-    i = to_reverse_iter
-    while i.rnext
-      yield i.item
+    stop = @start - 1
+    i = stop + @total
+    tuple = @tuple
+
+    while i > stop
+      yield tuple.at(i)
+      i -= 1
     end
+
     self
   end
 
@@ -1279,15 +1254,19 @@ class Array
   # If a block is given instead of an argument,
   # returns last object for which block is true.
   def rindex(obj=undefined)
+    stop = @start - 1
+    i = stop + @total
+    tuple = @tuple
+
     if obj.equal? undefined
-      i = to_reverse_iter
-      while i.rnext
-        return i.index if yield(i.item)
+      while i > stop
+        return i if yield tuple.at(i)
+        i -= 1
       end
     else
-      i = to_reverse_iter
-      while i.rnext
-        return i.index if i.item == obj
+      while i > stop
+        return i if tuple.at(i) == obj
+        i -= 1
       end
     end
     nil
@@ -1634,10 +1613,13 @@ class Array
     else
       max_levels -= 1
       recursion = Thread.detect_recursion(array) do
-        i = array.to_iter
+        i = array.start
+        total = i + array.total
+        tuple = array.tuple
 
-        while i.next
-          o = i.item
+        while i < total
+          o = tuple.at i
+
           if o.respond_to? :to_ary
             ary = Type.coerce_to o, Array, :to_ary
             recursively_flatten(ary, out, max_levels)
@@ -1645,6 +1627,8 @@ class Array
           else
             out << o
           end
+
+          i += 1
         end
       end
       raise ArgumentError, "tried to flatten recursive array" if recursion
@@ -1787,10 +1771,7 @@ class Array
   private :isort_block!
 
   def __rescue_match__(exception)
-    i = to_iter
-    while i.next
-      return true if i.item === exception
-    end
+    each { |x| return true if x === exception }
     false
   end
 end

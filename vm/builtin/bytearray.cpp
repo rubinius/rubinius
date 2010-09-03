@@ -281,6 +281,6 @@ namespace rubinius {
     long res = utf8_to_uv(start, &len);
     if(res == -1) return Primitives::failure();
 
-    return Tuple::from(state, 2, Fixnum::from(res), Fixnum::from(len));
+    return Tuple::from(state, 2, Integer::from(state, res), Fixnum::from(len));
   }
 }

@@ -411,10 +411,7 @@ class File < IO
     return "/" if items.empty?
 
     str = ""
-    iter = items.to_iter
-    while iter.next
-      str.append "/#{iter.item}"
-    end
+    items.each { |x| str.append "/#{x}" }
 
     return str
   end

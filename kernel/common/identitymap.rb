@@ -50,9 +50,8 @@ class Array
 
       return false if @spill.empty?
 
-      i = @spill.to_iter 3
-      while i.next
-        return true if match? @spill, i.index, item_hash, item
+      each_spill_index do |index|
+        return true if match? @spill, index, item_hash, item
       end
 
       false
@@ -82,9 +81,8 @@ class Array
 
       return false if @spill.empty?
 
-      i = @spill.to_iter 3
-      while i.next
-        return true if delete_entry @spill, i.index, item_hash, item
+      each_spill_index do |index|
+        return true if delete_entry @spill, index, item_hash, item
       end
 
       false
@@ -100,11 +98,8 @@ class Array
         index = key_hash.hash & @mask
         if hash = @table[index]
           unless hash == key_hash and item.eql? @table[index+1]
-            unless @spill.empty?
-              i = @spill.to_iter 3
-              while i.next
-                return if i.item == key_hash and item.eql? i.at(1)
-              end
+            each_spill do |kh, x, i|
+              return if kh == key_hash and item.eql? x
             end
 
             @spill << key_hash << item << @size
@@ -121,13 +116,31 @@ class Array
       @size += 1
     end
 
+    def each_spill
+      i = @spill.start
+      total = i + @spill.total
+      tuple = @spill.tuple
+
+      while i < total
+        yield tuple.at(i), tuple.at(i+1), tuple.at(i+2)
+        i += 3
+      end
+    end
+
+    def each_spill_index
+      i = 0
+      total = @spill.total
+
+      while i < total
+        yield i
+        i += 3
+      end
+    end
+
     # Addes each element of +array+ to the map. If an element of +array+ is
     # already in the map, the element is not added.
     def load(array)
-      i = array.to_iter
-      while i.next
-        insert i.item
-      end
+      array.each { |x| insert x }
     end
 
     # Returns an Array containing every entry in the map. If passed +array+,
@@ -147,12 +160,7 @@ class Array
         i += 4
       end
 
-      unless @spill.empty?
-        i = @spill.to_iter 3
-        while i.next
-          array[i.at(2)] = i.at(1) if i.item
-        end
-      end
+      each_spill { |key_hash, item, index| array[index] = item if key_hash }
 
       array
     end
