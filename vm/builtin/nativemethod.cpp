@@ -55,8 +55,11 @@ namespace rubinius {
       // otherwise the refcount is wrong and we leak handles.
       capi::HandleSet::iterator pos = handles_.find(handle);
       if(pos == handles_.end()) {
+        // We're seeing this object for the first time in this function.
+        // Be sure that it's updated.
         handle->ref();
         handles_.insert(handle);
+        handle->update(NativeMethodEnvironment::get());
       }
     } else {
       handle = new capi::Handle(state, obj);
