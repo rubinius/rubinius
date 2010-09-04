@@ -2,17 +2,37 @@ class Dir
   include Enumerable
 
   def self.[](*patterns)
+    if patterns.size == 1
+      patterns = StringValue(patterns[0]).split("\0")
+    end
+
     files = []
-    patterns.each { |pattern| files.concat glob(StringValue(pattern), 0) }
+
+    patterns.each do |pat|
+      Dir::Glob.glob pat, 0, files
+    end
+
     files
   end
 
   def self.glob(pattern, flags=0)
-    pattern = StringValue pattern
+    if pattern.kind_of? Array
+      patterns = pattern
+    else
+      pattern = StringValue pattern
 
-    return [] if pattern.empty?
+      return [] if pattern.empty?
 
-    Dir::Glob.glob pattern, flags
+      patterns = pattern.split("\0")
+    end
+
+    matches = []
+
+    patterns.each do |pat|
+      Dir::Glob.glob pat, flags, matches
+    end
+
+    return matches
   end
 
   def self.foreach(path)
