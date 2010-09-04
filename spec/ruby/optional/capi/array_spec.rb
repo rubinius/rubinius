@@ -160,6 +160,29 @@ describe "C-API Array function" do
     it "returns a struct with the length of the array" do
       @s.RARRAY_len([1, 2, 3]).should == 3
     end
+
+    it "is sync'd with the ruby Array object" do
+      ary = Array.new(1000)
+
+      @s.RARRAY_len(ary).should == 1000
+      ary.clear  # shrink the array.
+
+      @s.RARRAY_len(ary).should == 0
+
+      # This extra check is to be sure that if there is a handle for
+      # the ruby object it is updated.
+      ary.size.should == 0
+
+      # Now check that it can sync growing too
+      1000.times { ary << 1 }
+
+      @s.RARRAY_len(ary).should == 1000
+
+      # Again, check that the possible handle doesn't confuse or misupdate
+      # the ruby object.
+      ary.size == 1000
+    end
+
   end
 
   describe "RARRAY_PTR" do
