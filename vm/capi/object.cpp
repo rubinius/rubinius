@@ -27,8 +27,8 @@ extern "C" {
 
   void rb_check_frozen(VALUE obj_handle) {
     if(rb_obj_frozen_p(obj_handle)){
-      char *class_name = rb_obj_classname(obj_handle);
-      rb_error_frozen((const char*)class_name);
+      const char *class_name = rb_obj_classname(obj_handle);
+      rb_error_frozen(class_name);
     }
   }
 
@@ -228,7 +228,7 @@ extern "C" {
     (void) rb_funcall2(object_handle, rb_intern("initialize"), arg_count, args);
   }
 
-  char* rb_obj_classname(VALUE object_handle) {
+  const char* rb_obj_classname(VALUE object_handle) {
     return rb_class2name(rb_class_of(object_handle));
   }
 

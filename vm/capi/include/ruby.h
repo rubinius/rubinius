@@ -2,7 +2,6 @@
 #define RBX_CAPI_RUBY_H
 
 /**
- *  @file
  *
  *  Notes:
  *
@@ -11,13 +10,6 @@
  *
  *      Just in case, that means NEVER, like NOT EVER. If you do, we'll
  *      call your mother.
- *
- *  @todo Blocks/iteration. rb_iterate normally uses fptrs, could
- *        maybe do that or then support 'function objects' --rue
- *
- *  @todo Const correctness. --rue
- *
- *  @todo Add some type of checking for too-long C strings etc? --rue
  *
  */
 
@@ -548,7 +540,7 @@ typedef struct RIO rb_io_t;
 /** Convert a char to a Ruby Integer. */
 #define CHR2FIX(x)        INT2FIX((long)((x)&0xff))
 
-/** Convert long to a Ruby Integer. @todo Should we warn if overflowing? --rue */
+/** Convert long to a Ruby Integer. */
 #define LONG2FIX(i)       INT2FIX(i)
 
 char rb_num2chr(VALUE);
@@ -642,7 +634,7 @@ VALUE rb_uint2big(unsigned long number);
 /** Return an integer type id for the object. @see rb_type() */
 #define TYPE(handle)      rb_type(handle)
 
-/** Convert unsigned int to a Ruby Integer. @todo Should we warn if overflowing? --rue */
+/** Convert unsigned int to a Ruby Integer. */
 #define UINT2FIX(i)       UINT2NUM((i))
 
 #define LONG2FIX(i) INT2FIX(i)
@@ -890,13 +882,10 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_check_convert_type(VALUE object_handle, int type,
       const char* type_name, const char* method_name);
 
-  /** No-op. */
   void    rb_check_safe_obj(VALUE obj);
 
-  /** No-op. */
   void    rb_check_safe_str(VALUE obj);
 
-  /** No-op. */
   void    rb_secure_update(VALUE obj);
 
   /** Returns String representation of the class' name. */
@@ -920,8 +909,8 @@ VALUE rb_uint2big(unsigned long number);
    * (ie, a metaclass if it's there) */
   VALUE   CLASS_OF(VALUE object_handle);
 
-  /** C string representation of the class' name. You must free this string. */
-  char*   rb_class2name(VALUE class_handle);
+  /** C string representation of the class' name. */
+  const char*   rb_class2name(VALUE class_handle);
 
   /** Return the module referred to by qualified path (e.g. A::B::C) */
   VALUE   rb_path2class(const char*);
@@ -1209,8 +1198,8 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns the Class object this object is an instance of. */
   #define rb_obj_class(object_handle) rb_class_of((object_handle))
 
-  /** String representation of the object's class' name. You must free this string. */
-  char*   rb_obj_classname(VALUE object_handle);
+  /** String representation of the object's class' name. */
+  const char*   rb_obj_classname(VALUE object_handle);
 
   /** Returns true-ish if object is an instance of specific class. */
   VALUE   rb_obj_is_instance_of(VALUE object_handle, VALUE class_handle);
@@ -1261,7 +1250,6 @@ VALUE rb_uint2big(unsigned long number);
   /**
    *  Raise error of given class using formatted message.
    *
-   *  @todo Implement for real. --rue
    */
   NORETURN(void rb_raise(VALUE error_handle, const char* format_string, ...));
 
@@ -1438,9 +1426,6 @@ VALUE rb_uint2big(unsigned long number);
 
   /**
    *  Return new empty String with preallocated storage.
-   *
-   *  @note   Not supported by Rubinius for a few more days.
-   *  @todo   Update as soon as
    */
   VALUE   rb_str_buf_new(long capacity);
 
