@@ -15,6 +15,11 @@ describe :dir_glob, :shared => true do
     Dir.send(@method, obj).should == %w[file_one.ext]
   end
 
+  it "splits the string on \0 if there is only one string given" do
+    Dir.send(@method, "file_o*\0file_t*").should ==
+             %w!file_one.ext file_two.ext!
+  end
+
   it "matches non-dotfiles with '*'" do
     expected = %w[
       brace

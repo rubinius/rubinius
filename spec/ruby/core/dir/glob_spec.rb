@@ -40,6 +40,11 @@ describe "Dir.glob" do
     DirSpecs.delete_mock_dirs
   end
 
+  it "can take an array of patterns" do
+    Dir.glob(["file_o*", "file_t*"]).should ==
+               %w!file_one.ext file_two.ext!
+  end
+
   it "matches both dot and non-dotfiles with '*' and option File::FNM_DOTMATCH" do
     Dir.glob('*', File::FNM_DOTMATCH).sort.should == DirSpecs.expected_paths
   end
