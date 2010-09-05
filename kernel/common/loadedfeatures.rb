@@ -6,7 +6,6 @@ module Rubinius
   # been implemented. Additional methods may need to be implemented in the
   # future.
   class LoadedFeatures < Array
-    MIN_CAPACITY = 100
 
     def initialize(size_or_array=undefined, obj=undefined)
       super
@@ -14,19 +13,14 @@ module Rubinius
     end
 
     def identity_map
-      @identity_map = IdentityMap.new self, size + MIN_CAPACITY
+      @identity_map = IdentityMap.from self
     end
     private :identity_map
 
-    # The IdentityMap must have sufficiently low load factor to operate well
-    # so we remap if our size gets too large. This is a heuristic.
-    def resize_map
-      identity_map if size * 8 > @identity_map.capacity
-    end
-    private :resize_map
-
     def <<(obj)
-      resize_map
+      # Someone changed something behind our back
+      identity_map if size > @identity_map.size
+
       @identity_map.insert obj
       super
     end

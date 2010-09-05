@@ -269,7 +269,7 @@ class Array
     other = Type.coerce_to other, Array, :to_ary
 
     array = []
-    im = IdentityMap.new other
+    im = Rubinius::IdentityMap.from other
 
     each { |x| array << x if im.delete x }
 
@@ -281,8 +281,7 @@ class Array
   def |(other)
     other = Type.coerce_to other, Array, :to_ary
 
-    im = IdentityMap.new self, other.size
-    im.load other
+    im = Rubinius::IdentityMap.from self, other
     im.to_array
   end
 
@@ -330,7 +329,7 @@ class Array
     other = Type.coerce_to other, Array, :to_ary
 
     array = []
-    im = IdentityMap.new other
+    im = Rubinius::IdentityMap.from other
 
     each { |x| array << x unless im.include? x }
 
@@ -1464,11 +1463,17 @@ class Array
 
   # Removes duplicates from the Array in place as #uniq
   def uniq!
-    im = IdentityMap.new self
+    im = Rubinius::IdentityMap.from self
     return if im.size == size
 
     Ruby.check_frozen
-    im.to_array self
+
+    array = im.to_array
+    @tuple = array.tuple
+    @start = array.start
+    @total = array.total
+
+    self
   end
 
   # Returns a new Array populated from the elements in

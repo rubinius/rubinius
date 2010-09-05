@@ -1,12 +1,12 @@
-require File.expand_path('../../../../spec_helper', __FILE__)
+require File.expand_path('../../../spec_helper', __FILE__)
 
-describe "Array::IdentityMap#include?" do
+describe "Rubinius::IdentityMap#include?" do
   before :each do
-    @im = Array::IdentityMap.new [:a, :b, :c]
+    @im = Rubinius::IdentityMap.from [:a, :b, :c]
   end
 
   it "returns false if the map is empty" do
-    im = Array::IdentityMap.new []
+    im = Rubinius::IdentityMap.from []
     im.include?(:a).should be_false
   end
 
@@ -24,7 +24,7 @@ describe "Array::IdentityMap#include?" do
   end
 
   it "returns true when the item is the only entry in the map" do
-    im = Array::IdentityMap.new [:a]
+    im = Rubinius::IdentityMap.from [:a]
     im.include?(:a).should be_true
   end
 
@@ -36,7 +36,7 @@ describe "Array::IdentityMap#include?" do
     i3 = mock("item 3")
     i3.should_receive(:hash).twice.and_return(0)
 
-    im = Array::IdentityMap.new [i1, i2, i3]
+    im = Rubinius::IdentityMap.from [i1, i2, i3]
     im.include?(i1).should be_true
     im.include?(i2).should be_true
     im.include?(i3).should be_true
@@ -48,7 +48,7 @@ describe "Array::IdentityMap#include?" do
     i2 = mock("item 2")
     i2.should_receive(:hash).any_number_of_times.and_return(0)
 
-    im = Array::IdentityMap.new [i1, i2]
+    im = Rubinius::IdentityMap.from [i1, i2]
     im.include?(i1).should be_true
     im.include?(i2).should be_true
 

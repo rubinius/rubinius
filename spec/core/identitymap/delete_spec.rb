@@ -1,12 +1,12 @@
-require File.expand_path('../../../../spec_helper', __FILE__)
+require File.expand_path('../../../spec_helper', __FILE__)
 
-describe "Array::IdentityMap#delete" do
+describe "Rubinius::IdentityMap#delete" do
   before :each do
-    @im = Array::IdentityMap.new [:a, :b, :c]
+    @im = Rubinius::IdentityMap.from [:a, :b, :c]
   end
 
   it "returns false if the map is empty" do
-    im = Array::IdentityMap.new []
+    im = Rubinius::IdentityMap.from []
     im.delete(:a).should be_false
   end
 
@@ -25,7 +25,7 @@ describe "Array::IdentityMap#delete" do
   end
 
   it "returns true when the item is the only entry in the map" do
-    im = Array::IdentityMap.new [:a]
+    im = Rubinius::IdentityMap.from [:a]
     im.delete(:a).should be_true
   end
 
@@ -37,9 +37,21 @@ describe "Array::IdentityMap#delete" do
     i3 = mock("item 3")
     i3.should_receive(:hash).twice.and_return(0)
 
-    im = Array::IdentityMap.new [i1, i2, i3]
+    im = Rubinius::IdentityMap.from [i1, i2, i3]
     im.delete(i1).should be_true
     im.delete(i2).should be_true
     im.delete(i3).should be_true
+  end
+
+  it "decrements the size when an entry is deleted" do
+    @im.size.should == 3
+    @im.delete(:a)
+    @im.size.should == 2
+  end
+
+  it "does not decrement the size if an entry is not deleted" do
+    @im.size.should == 3
+    @im.delete(:d)
+    @im.size.should == 3
   end
 end
