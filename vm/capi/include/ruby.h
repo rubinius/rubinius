@@ -1546,6 +1546,8 @@ VALUE rb_uint2big(unsigned long number);
   /** Sets a thread-local value. */
   VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE value);
 
+  VALUE rb_thread_wakeup(VALUE thread);
+
   /** Release the GIL and let func run in a parallel.
    *
    * Seriously, crazy restriction here. While the return value is the
@@ -1596,6 +1598,8 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE   rb_Integer(VALUE object_handle);
 
+  NORETURN(void rb_num_zerodiv(void));
+
   NORETURN(void rb_bug(const char *fmt, ...));
 
   NORETURN(void rb_fatal(const char *fmt, ...));
@@ -1621,6 +1625,10 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Retrieve the nth match for the given MatchData */
   VALUE   rb_reg_nth_match(long nth, VALUE match_data);
+
+  void ruby_setenv(const char *name, const char *value);
+
+  char *ruby_strdup(const char *str);
 
   // include an extconf.h if one is provided
   // include an extconf.h if one is provided

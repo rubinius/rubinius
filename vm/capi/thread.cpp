@@ -61,6 +61,10 @@ extern "C" {
     return rb_funcall(thread, rb_intern("[]="), 2, ID2SYM(id), value);
   }
 
+  VALUE rb_thread_wakeup(VALUE thread) {
+    return rb_funcall(thread, rb_intern("wakeup"), 0);
+  }
+
   // THAR BE DRAGONS.
   //
   // When venturing through the valleys of the unmanaged, our hero must

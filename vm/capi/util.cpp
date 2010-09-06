@@ -123,4 +123,18 @@ extern "C" {
     rb_raise(rb_eArgError, "invalid value for %s: %s", type, string->c_str());
   }
 
+  void ruby_setenv(const char *name, const char *value) {
+    setenv(name, value, 1);
+  }
+
+  // Imported from MRI
+  char *ruby_strdup(const char *str) {
+    char *tmp;
+    size_t len = strlen(str) + 1;
+
+    tmp = (char*)xmalloc(len);
+    memcpy(tmp, str, len);
+
+    return tmp;
+  }
 }
