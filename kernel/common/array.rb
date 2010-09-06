@@ -817,7 +817,28 @@ class Array
   # Returns true if the given obj is present in the Array.
   # Presence is determined by calling elem == obj until found.
   def include?(obj)
-    each { |x| return true if x == obj }
+
+    # This explicit loop is for performance only. Preferably,
+    # this method would be implemented as:
+    #
+    #   each { |x| return true if x == obj }
+    #
+    # but the JIT will currently not inline the block into the
+    # method that calls #include? which causes #include? to
+    # execute about 3x slower. Since this is a very commonly
+    # used method, this manual performance optimization is used.
+    # Ideally, this will be removed when the JIT can handle the
+    # block used here.
+
+    i = @start
+    total = i + @total
+    tuple = @tuple
+
+    while i < total
+      return true if tuple.at(i) == obj
+      i += 1
+    end
+
     false
   end
 
