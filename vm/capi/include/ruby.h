@@ -1311,6 +1311,16 @@ VALUE rb_uint2big(unsigned long number);
   VALUE rb_reg_regcomp(VALUE str);
 
   /**
+   * Tests whether the given Regexp matches to the given String
+   */
+  VALUE   rb_reg_match(VALUE re, VALUE str);
+
+  /**
+   * Retrieves the last MatchData
+   */
+  VALUE   rb_backref_get(void);
+
+  /**
    *  Require a Ruby file.
    *
    *  Returns true on first load, false if already loaded or raises.
