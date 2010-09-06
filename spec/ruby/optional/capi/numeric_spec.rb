@@ -124,4 +124,10 @@ describe "CApiNumericSpecs" do
       lambda { @s.NUM2CHR("") }.should raise_error(TypeError)
     end
   end
+
+  describe "rb_num_zerodiv" do
+    it "raises a RuntimeError" do
+      lambda { @s.rb_num_zerodiv() }.should raise_error(ZeroDivisionError, 'divided by 0')
+    end
+  end
 end

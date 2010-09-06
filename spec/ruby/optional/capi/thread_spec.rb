@@ -1,11 +1,23 @@
 require File.expand_path('../spec_helper', __FILE__)
+require File.expand_path('../../../core/thread/shared/wakeup', __FILE__)
 
 load_extension("thread")
+
+class Thread
+  def self.capi_thread_specs=(t)
+    @@capi_thread_specs = t
+  end
+
+  def call_capi_rb_thread_wakeup
+    @@capi_thread_specs.rb_thread_wakeup(self)
+  end
+end
 
 describe "CApiThreadSpecs" do
   before :each do
     @t = CApiThreadSpecs.new
     ScratchPad.clear
+    Thread.capi_thread_specs = @t
   end
 
   describe "rb_thread_select" do
@@ -66,6 +78,10 @@ describe "CApiThreadSpecs" do
       @t.rb_thread_local_aset(thr, sym, 2).should == 2
       thr[sym].should == 2
     end
+  end
+
+  describe "rb_thread_wakeup" do
+    it_behaves_like :thread_wakeup, :call_capi_rb_thread_wakeup
   end
 
   extended_on :rubinius do

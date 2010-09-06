@@ -47,6 +47,12 @@ static VALUE numeric_spec_rb_num2ulong(VALUE self, VALUE num) {
 }
 #endif
 
+#ifdef HAVE_RB_NUM_ZERODIV
+static VALUE numeric_spec_rb_num_zerodiv(VALUE self) {
+  rb_num_zerodiv();
+}
+#endif
+
 void Init_numeric_spec() {
   VALUE cls;
   cls = rb_define_class("CApiNumericSpecs", rb_cObject);
@@ -77,6 +83,10 @@ void Init_numeric_spec() {
 
 #ifdef HAVE_RB_NUM2ULONG
   rb_define_method(cls, "rb_num2ulong", numeric_spec_rb_num2ulong, 1);
+#endif
+
+#ifdef HAVE_RB_NUM_ZERODIV
+  rb_define_method(cls, "rb_num_zerodiv", numeric_spec_rb_num_zerodiv, 0);
 #endif
 }
 

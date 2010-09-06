@@ -195,6 +195,7 @@
 #define HAVE_RB_NUM2DBL                    1
 #define HAVE_RB_NUM2LONG                   1
 #define HAVE_RB_NUM2ULONG                  1
+#define HAVE_RB_NUM_ZERODIV                1
 
 /* Object */
 #define HAVE_OBJ_TAINT                     1
@@ -287,9 +288,14 @@
 #define HAVE_RB_THREAD_LOCAL_AREF          1
 #define HAVE_RB_THREAD_LOCAL_ASET          1
 #define HAVE_RB_THREAD_SELECT              1
+#define HAVE_RB_THREAD_WAKEUP              1
 
 /* Time */
 #define HAVE_RB_TIME_NEW                   1
+
+/* utility functions */
+#define HAVE_RUBY_SETENV                   1
+#define HAVE_RUBY_STRDUP                   1
 
 /* Define convenience macros similar to the RubySpec guards to assist
  * with version incompatibilities.

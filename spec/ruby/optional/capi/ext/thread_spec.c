@@ -67,6 +67,12 @@ static VALUE thread_spec_rb_thread_select(VALUE self, VALUE msec) {
 }
 #endif
 
+#ifdef HAVE_RB_THREAD_WAKEUP
+static VALUE thread_spec_rb_thread_wakeup(VALUE self, VALUE thr) {
+  return rb_thread_wakeup(thr);
+}
+#endif
+
 void Init_thread_spec() {
   VALUE cls;
   cls = rb_define_class("CApiThreadSpecs", rb_cObject);
@@ -94,6 +100,10 @@ void Init_thread_spec() {
 #ifdef HAVE_RB_THREAD_SELECT
   rb_define_method(cls, "rb_thread_select_fd", thread_spec_rb_thread_select_fd, 2);
   rb_define_method(cls, "rb_thread_select", thread_spec_rb_thread_select, 1);
+#endif
+
+#ifdef HAVE_RB_THREAD_WAKEUP
+  rb_define_method(cls,  "rb_thread_wakeup", thread_spec_rb_thread_wakeup, 1);
 #endif
 }
 
