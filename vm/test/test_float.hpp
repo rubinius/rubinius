@@ -308,7 +308,7 @@ public:
     String* s = f->to_s_formatted(state, format);
 
     TS_ASSERT_SAME_DATA("3.14159000000000", s->c_str(), 16);
-    TS_ASSERT_EQUALS(16U, s->size());
+    TS_ASSERT_EQUALS(16, s->size());
 
     format = String::create(state, "%#.1280g");
     TS_ASSERT_THROWS_ASSERT(f->to_s_formatted(state, format), const RubyException &e,

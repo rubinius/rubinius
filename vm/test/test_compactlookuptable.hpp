@@ -19,7 +19,7 @@ public:
 
   void test_create() {
     TS_ASSERT(kind_of<CompactLookupTable>(tbl));
-    TS_ASSERT_EQUALS(tbl->num_fields(), COMPACTLOOKUPTABLE_SIZE);
+    TS_ASSERT_EQUALS(tbl->num_fields(), (native_int)COMPACTLOOKUPTABLE_SIZE);
   }
 
   void test_find() {

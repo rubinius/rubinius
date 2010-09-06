@@ -17,24 +17,24 @@ public:
 
   void test_create_with_size() {
     str = String::create(state, Fixnum::from(4));
-    TS_ASSERT_EQUALS(str->size(), 4U);
-    TS_ASSERT_EQUALS(str->data()->size(), 8U);
+    TS_ASSERT_EQUALS(str->size(), 4);
+    TS_ASSERT_EQUALS(str->data()->size(), 8);
   }
 
   void test_create() {
     str = String::create(state, "blah");
-    TS_ASSERT_EQUALS(str->size(), 4U);
+    TS_ASSERT_EQUALS(str->size(), 4);
   }
 
   void test_create_with_substring() {
     str = String::create(state, "blah", 2);
-    TS_ASSERT_EQUALS(str->size(), 2U);
+    TS_ASSERT_EQUALS(str->size(), 2);
     TS_ASSERT_SAME_DATA("bl\0", str->c_str(), 3);
   }
 
   void test_create_with_null_and_zero_count() {
     str = String::create(state, NULL, 0);
-    TS_ASSERT_EQUALS(str->size(), 0U);
+    TS_ASSERT_EQUALS(str->size(), 0);
     TS_ASSERT_EQUALS(str->byte_address()[0], 0);
   }
 
@@ -85,7 +85,7 @@ public:
 
     s1->append(state, "u\0ra");
 
-    TS_ASSERT_EQUALS(7U, s1->size());
+    TS_ASSERT_EQUALS(7, s1->size());
     TS_ASSERT(s1->size() < s1->data()->size());
     TS_ASSERT_SAME_DATA("omote u\0", s1->byte_address(), 8);
   }
@@ -95,7 +95,7 @@ public:
 
     str->append(state, "bar", 1U);
 
-    TS_ASSERT_EQUALS(4U, str->size());
+    TS_ASSERT_EQUALS(4, str->size());
     TS_ASSERT(str->size() < str->data()->size());
     TS_ASSERT_SAME_DATA("foob\0", str->byte_address(), 5);
   }
@@ -110,7 +110,7 @@ public:
     s1->append(state, s2);
     TS_ASSERT_EQUALS(s1->hash_value(), Qnil);
 
-    TS_ASSERT_EQUALS(10U, s1->size());
+    TS_ASSERT_EQUALS(10, s1->size());
     TS_ASSERT(s1->size() < s1->data()->size());
     TS_ASSERT_SAME_DATA("omote u\0ra\0", s1->byte_address(), 11);
   }
@@ -119,7 +119,7 @@ public:
     str = String::create(state, "blah");
     str->append(state, " foo");
 
-    TS_ASSERT_EQUALS(8U, str->size())
+    TS_ASSERT_EQUALS(8, str->size())
     TS_ASSERT_SAME_DATA("blah foo\0", str->byte_address(), 9);
   }
 

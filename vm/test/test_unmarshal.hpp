@@ -190,7 +190,7 @@ public:
 
     TS_ASSERT(kind_of<Tuple>(seq->opcodes()));
 
-    TS_ASSERT_EQUALS(seq->opcodes()->num_fields(), 1U);
+    TS_ASSERT_EQUALS(seq->opcodes()->num_fields(), 1);
 
     TS_ASSERT_EQUALS(seq->opcodes()->at(state, 0), Fixnum::from(0));
   }
