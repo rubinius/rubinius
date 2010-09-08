@@ -52,8 +52,9 @@ namespace rubinius {
     return loc;
   }
 
-  Array* Location::from_call_stack(STATE, CallFrame* call_frame, bool include_vars) {
+  Array* Location::from_call_stack(STATE, CallFrame* start_call_frame, bool include_vars) {
     Array* bt = Array::create(state, 5);
+    CallFrame* call_frame = start_call_frame;
 
     while(call_frame) {
       // Ignore synthetic frames

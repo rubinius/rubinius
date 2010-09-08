@@ -5,6 +5,8 @@
 
 #include "call_frame.hpp"
 #include "stack_variables.hpp"
+#include "builtin/staticscope.hpp"
+#include "builtin/module.hpp"
 
 #include "instruments/profiler.hpp"
 
@@ -14,14 +16,24 @@ namespace rubinius {
 namespace jit {
 
   void BlockBuilder::setup() {
-    Signature sig(ls_, "Object");
-    sig << "VM";
-    sig << "CallFrame";
-    sig << "BlockEnvironment";
-    sig << "Arguments";
-    sig << "BlockInvocation";
+    std::vector<const Type*> ftypes;
+    ftypes.push_back(ls_->ptr_type("VM"));
+    ftypes.push_back(ls_->ptr_type("CallFrame"));
+    ftypes.push_back(ls_->ptr_type("BlockEnvironment"));
+    ftypes.push_back(ls_->ptr_type("Arguments"));
+    ftypes.push_back(ls_->ptr_type("BlockInvocation"));
 
-    func = sig.function("");
+    FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), ftypes, false);
+
+    std::stringstream ss;
+    ss << std::string("_X_")
+       << ls_->symbol_cstr(info_.method()->scope()->module()->name())
+       << "#"
+       << ls_->symbol_cstr(info_.method()->name())
+       << "$block@" << ls_->add_jitted_method();
+
+    func = Function::Create(ft, GlobalValue::ExternalLinkage,
+                            ss.str().c_str(), ls_->module());
 
     Function::arg_iterator ai = func->arg_begin();
     vm =   ai++; vm->setName("state");

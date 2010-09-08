@@ -24,13 +24,15 @@ namespace jit {
 
     FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), ftypes, false);
 
-    std::string name = std::string("_X_") +
-                         ls_->symbol_cstr(info_.method()->scope()->module()->name()) +
-                         "#" +
-                         ls_->symbol_cstr(info_.method()->name());
+    std::stringstream ss;
+    ss << std::string("_X_")
+       << ls_->symbol_cstr(info_.method()->scope()->module()->name())
+       << "#"
+       << ls_->symbol_cstr(info_.method()->name())
+       << "@" << ls_->add_jitted_method();
 
     func = Function::Create(ft, GlobalValue::ExternalLinkage,
-                            name.c_str(), ls_->module());
+                            ss.str().c_str(), ls_->module());
 
     Function::arg_iterator ai = func->arg_begin();
     vm =   ai++; vm->setName("state");
