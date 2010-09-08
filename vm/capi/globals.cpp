@@ -16,13 +16,10 @@ extern "C" {
     }
   }
 
-  /** @todo This impl is wrong. address itself needs to be registered and
-   *        deref'd at GC time to mark the object. */
   void rb_global_variable(VALUE* address) {
-    capi::Handle* handle = capi::Handle::from(*address);
-    if(CAPI_REFERENCE_P(handle) && handle->object()->reference_p()) {
-      handle->ref();
-    }
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    capi::Handle** loc = reinterpret_cast<capi::Handle**>(address);
+    env->state()->shared.add_global_handle_location(loc);
   }
 
   void rb_gc_register_address(VALUE* address) {
@@ -30,10 +27,9 @@ extern "C" {
   }
 
   void rb_gc_unregister_address(VALUE* address) {
-    capi::Handle* handle = capi::Handle::from(*address);
-    if(CAPI_REFERENCE_P(handle) && handle->object()->reference_p()) {
-      handle->deref();
-    }
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    capi::Handle** loc = reinterpret_cast<capi::Handle**>(address);
+    env->state()->shared.del_global_handle_location(loc);
   }
 
   VALUE rb_gv_get(const char* name) {

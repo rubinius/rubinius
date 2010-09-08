@@ -66,8 +66,11 @@ namespace rubinius {
     SignalHandler* signal_handler_;
     CallFrameLocationList cf_locations_;
     VariableRootBuffers root_buffers_;
+
     capi::Handles* global_handles_;
     capi::Handles* cached_handles_;
+    std::list<capi::Handle**> global_handle_locations_;
+
     bool profiling_;
     profiler::ProfilerCollection* profiler_collection_;
     int global_serial_;
@@ -145,6 +148,18 @@ namespace rubinius {
 
     capi::Handles* cached_handles() {
       return cached_handles_;
+    }
+
+    std::list<capi::Handle**>* global_handle_locations() {
+      return &global_handle_locations_;
+    }
+
+    void add_global_handle_location(capi::Handle** loc) {
+      global_handle_locations_.push_back(loc);
+    }
+
+    void del_global_handle_location(capi::Handle** loc) {
+      global_handle_locations_.remove(loc);
     }
 
     bool profiling() {

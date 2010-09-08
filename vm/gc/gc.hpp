@@ -1,6 +1,8 @@
 #ifndef RBX_VM_GC_HPP
 #define RBX_VM_GC_HPP
 
+#include <list>
+
 #include "oop.hpp"
 #include "builtin/object.hpp"
 
@@ -33,12 +35,14 @@ namespace rubinius {
     capi::Handles* cached_handles_;
     GlobalCache* global_cache_;
     std::list<ManagedThread*>* threads_;
+    std::list<capi::Handle**>* global_handle_locations_;
 
   public:
     GCData(STATE);
     GCData(Roots& r, CallFrameLocationList& l, VariableRootBuffers& b,
            capi::Handles* handles = NULL, capi::Handles* cached_handles = NULL,
-           GlobalCache *cache = NULL, std::list<ManagedThread*>* ths = NULL)
+           GlobalCache *cache = NULL, std::list<ManagedThread*>* ths = NULL,
+           std::list<capi::Handle**>* global_handle_locations = NULL)
       : roots_(r)
       , call_frames_(l)
       , variable_buffers_(b)
@@ -46,6 +50,7 @@ namespace rubinius {
       , cached_handles_(cached_handles)
       , global_cache_(cache)
       , threads_(ths)
+      , global_handle_locations_(global_handle_locations)
     {}
 
     Roots& roots() {
@@ -74,6 +79,10 @@ namespace rubinius {
 
     GlobalCache* global_cache() {
       return global_cache_;
+    }
+
+    std::list<capi::Handle**>* global_handle_locations() {
+      return global_handle_locations_;
     }
   };
 
