@@ -10,30 +10,52 @@ extern "C" {
   }
 
   int rb_thread_select(int max, fd_set* read, fd_set* write, fd_set* except,
-                       struct timeval *timeval) {
+                       struct timeval *input_tv)
+  {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     int ret = 0;
 
-    {
-      GlobalLock::UnlockGuard guard(env);
-      ret = select(max, read, write, except, timeval);
+    struct timeval tv;
+    struct timeval absolute_tv;
+
+    if(input_tv) {
+      // We make a new timeval rather than using input_tv because we modify it.
+      tv = *input_tv;
+
+      gettimeofday(&absolute_tv, NULL);
+
+      timeradd(&absolute_tv, &tv, &absolute_tv);
     }
 
-    // Ok, now check if there were async events that happened while
-    // we were waiting on select...
+    for(;;) {
+      {
+        GlobalLock::UnlockGuard guard(env);
+        ret = select(max, read, write, except, &tv);
+      }
 
-    if(!env->state()->check_async(env->current_call_frame())) {
-      // Ok, there was an exception raised by an async event. We need
-      // to unwind through the caller back the entrance to the native
-      // method.
+      if(!env->state()->check_async(env->current_call_frame())) {
+        // Ok, there was an exception raised by an async event. We need
+        // to unwind through the caller back the entrance to the native
+        // method.
 
-      // Only handle true exceptions being raised, eat all other requests
-      // for now.
+        // Only handle true exceptions being raised, eat all other requests
+        // for now.
 
-      if(env->state()->thread_state()->raise_reason() == cException) {
-        capi::capi_raise_backend(env->state()->thread_state()->current_exception());
+        if(env->state()->thread_state()->raise_reason() == cException) {
+          capi::capi_raise_backend(env->state()->thread_state()->current_exception());
+        } else {
+          env->state()->thread_state()->clear();
+        }
+      }
+
+      if(ret < 0 && errno == EINTR) {
+        if(input_tv) {
+          struct timeval cur_tv;
+          gettimeofday(&cur_tv, NULL);
+          timersub(&absolute_tv, &cur_tv, &tv);
+        }
       } else {
-        env->state()->thread_state()->clear();
+        break;
       }
     }
 
