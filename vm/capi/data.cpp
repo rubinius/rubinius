@@ -33,6 +33,8 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Handle* handle = Handle::from(data_handle);
+    env->check_tracked_handle(handle);
+
     return handle->as_rdata(env);
   }
 

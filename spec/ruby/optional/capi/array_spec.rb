@@ -7,6 +7,21 @@ describe "C-API Array function" do
     @s = CApiArraySpecs.new
   end
 
+  describe "direct access to memory" do
+    it "is sync'd with the object properly" do
+      a2 = [1]
+
+      ary = [:foo]
+
+      @s.RARRAY_len(ary).should == 1
+      ary[0].should == :foo
+
+      ary[0] = :bar
+      @s.RARRAY_len(a2).should == 1
+      ary[0].should == :bar
+    end
+  end
+
   describe "rb_ary_new" do
     it "returns an empty array" do
       @s.rb_ary_new.should == []

@@ -106,7 +106,10 @@ namespace rubinius {
 extern "C" {
   struct RArray* capi_rarray_struct(VALUE val) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return Handle::from(val)->as_rarray(env);
+    Handle* h = Handle::from(val);
+
+    env->check_tracked_handle(h);
+    return h->as_rarray(env);
   }
 
   VALUE rb_Array(VALUE obj_handle) {

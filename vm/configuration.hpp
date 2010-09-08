@@ -34,6 +34,9 @@ namespace rubinius {
     config::Bool    jit_show_remove;
     config::Bool    jit_check_debugging;
 
+    // CAPI
+    config::Bool    capi_global_flush;
+
     // Query Agent
     config::Integer qa_port;
     config::Bool    qa_verbose;
@@ -83,6 +86,8 @@ namespace rubinius {
       , jit_show_uncommon(this, "jit.uncommon.print", false)
       , jit_show_remove(this, "jit.removal.print", false)
       , jit_check_debugging(this, "jit.check_debugging", false)
+
+      , capi_global_flush(this, "capi.global_flush", false)
 
       , qa_port(this,         "agent.start")
       , qa_verbose(this,      "agent.verbose")
@@ -151,6 +156,9 @@ namespace rubinius {
 
       jit_check_debugging.set_description(
           "Allow JIT'd methods to deoptimize if there is a debugging request");
+
+      capi_global_flush.set_description(
+          "Flush all CAPI handles at CAPI call boundaries");
 
       print_config.set_description(
           "blank or 1 == names and values, 2 == description as well");

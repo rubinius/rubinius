@@ -9,6 +9,7 @@
 #include "primitives.hpp"
 #include "call_frame.hpp"
 #include "objectmemory.hpp"
+#include "configuration.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/exception.hpp"
@@ -42,6 +43,19 @@ namespace rubinius {
         i++) {
       capi::Handle* handle = *i;
       handle->deref();
+    }
+  }
+
+  void NativeMethodFrame::check_tracked_handle(capi::Handle* handle) {
+    // ref() ONLY if it's not already in there!
+    // otherwise the refcount is wrong and we leak handles.
+    capi::HandleSet::iterator pos = handles_.find(handle);
+    if(pos == handles_.end()) {
+      // We're seeing this object for the first time in this function.
+      // Be sure that it's updated.
+      handle->ref();
+      handles_.insert(handle);
+      handle->update(NativeMethodEnvironment::get());
     }
   }
 
@@ -80,22 +94,40 @@ namespace rubinius {
 
   void NativeMethodFrame::flush_cached_data() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    capi::Handles* handles = env->state()->shared.cached_handles();
+    for(capi::HandleSet::iterator i = handles_.begin();
+        i != handles_.end();
+        i++) {
+      capi::Handle* handle = *i;
+      handle->flush(env);
+    }
 
-    if(handles->size() > 0) {
-      for(capi::Handles::Iterator i(*handles); i.more(); i.advance()) {
-        i->flush(env);
+    if(env->state()->shared.config.capi_global_flush) {
+      capi::Handles* handles = env->state()->shared.cached_handles();
+
+      if(handles->size() > 0) {
+        for(capi::Handles::Iterator i(*handles); i.more(); i.advance()) {
+          i->flush(env);
+        }
       }
     }
   }
 
   void NativeMethodFrame::update_cached_data() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    capi::Handles* handles = env->state()->shared.cached_handles();
+    for(capi::HandleSet::iterator i = handles_.begin();
+        i != handles_.end();
+        i++) {
+      capi::Handle* handle = *i;
+      handle->update(env);
+    }
 
-    if(handles->size() > 0) {
-      for(capi::Handles::Iterator i(*handles); i.more(); i.advance()) {
-        i->update(env);
+    if(env->state()->shared.config.capi_global_flush) {
+      capi::Handles* handles = env->state()->shared.cached_handles();
+
+      if(handles->size() > 0) {
+        for(capi::Handles::Iterator i(*handles); i.more(); i.advance()) {
+          i->update(env);
+        }
       }
     }
   }
@@ -133,6 +165,10 @@ namespace rubinius {
 
   void NativeMethodEnvironment::flush_cached_data() {
     current_native_frame_->flush_cached_data();
+  }
+
+  void NativeMethodEnvironment::check_tracked_handle(capi::Handle* hdl) {
+    current_native_frame_->check_tracked_handle(hdl);
   }
 
   void NativeMethodEnvironment::update_cached_data() {
@@ -548,10 +584,22 @@ namespace rubinius {
       return NULL;
     }
 
+    NativeMethodEnvironment* env = native_method_environment.get();
+
+    // Optionally get the handles back to the proper state.
+    if(state->shared.config.capi_global_flush) {
+      capi::Handles* handles = state->shared.cached_handles();
+
+      if(handles->size() > 0) {
+        for(capi::Handles::Iterator i(*handles); i.more(); i.advance()) {
+          i->update(env);
+        }
+      }
+    }
+
     // Register the CallFrame, because we might GC below this.
     state->set_call_frame(call_frame);
 
-    NativeMethodEnvironment* env = native_method_environment.get();
     NativeMethodFrame nmf(env->current_native_frame());
 
     CallFrame* saved_frame = env->current_call_frame();

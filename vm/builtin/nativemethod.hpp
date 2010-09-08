@@ -140,6 +140,8 @@ namespace rubinius {
     /** Set of Handles available in current Frame (convenience.) */
     capi::HandleSet& handles();
 
+    void check_tracked_handle(capi::Handle* hdl);
+
     /** Flush RARRAY, RSTRING, etc. caches, possibly releasing memory. */
     void flush_cached_data();
 
@@ -187,6 +189,8 @@ namespace rubinius {
 
     /** Create or retrieve a VALUE for the Object. */
     VALUE get_handle(VM*, Object* obj);
+
+    void check_tracked_handle(capi::Handle* hdl);
 
     /** Obtain the Object the VALUE represents. */
     Object* get_object(VALUE hndl);
