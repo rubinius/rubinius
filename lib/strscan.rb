@@ -107,7 +107,7 @@ class StringScanner
   end
 
   def matched?
-    not match.nil?
+    !!match
   end
 
   def matched_size
@@ -124,7 +124,7 @@ class StringScanner
   end
 
   def pre_match
-    string[0...(pos - match.to_s.size)] if matched?
+    string.substring(0, @prev_pos + match.begin(0)) if matched?
   end
 
   def reset_state
@@ -225,7 +225,7 @@ class StringScanner
 
     @match = nil
 
-    return nil if (string.size - pos) < 0 # TODO: make more elegant
+    return nil if (string.size - @pos) < 0 # TODO: make more elegant
 
     rest = self.rest
 
@@ -241,8 +241,9 @@ class StringScanner
 
     m = rest[0, @match.end(0)]
 
+    @prev_pos = @pos
+
     if succptr
-      @prev_pos = pos
       @pos += m.size
     end
 
