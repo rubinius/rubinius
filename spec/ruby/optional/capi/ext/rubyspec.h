@@ -276,6 +276,8 @@
 #define HAVE_STRINGVALUE                   1
 
 /* Struct */
+#define HAVE_RB_STRUCT_AREF                1
+#define HAVE_RB_STRUCT_ASET                1
 #define HAVE_RB_STRUCT_DEFINE              1
 
 /* Symbol */
