@@ -465,9 +465,23 @@ namespace rubinius {
       shared.signal_handler()->deliver_signals(call_frame);
     }
 
-    if(thread_state_.raise_reason() != cNone) return false;
+    switch(thread_state_.raise_reason()) {
+    case cException:
+      {
+        Exception* exc = thread_state_.current_exception();
+        if(exc->locations()->nil_p() ||
+            exc->locations()->size() == 0) {
+          exc->locations(this, Location::from_call_stack(this, call_frame));
+        }
 
-    return true;
+        return false;
+      }
+    case cNone:
+      return true;
+
+    default:
+      return false;
+    }
   }
 
   void VM::register_raise(Exception* exc) {
