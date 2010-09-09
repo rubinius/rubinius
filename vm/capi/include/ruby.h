@@ -1385,6 +1385,12 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns a Struct with the specified fields. */
   VALUE rb_struct_define(const char *name, ...);
 
+  /** Returns the value of the key. */
+  VALUE rb_struct_aref(VALUE struct_handle, VALUE key);
+
+  /** Sets the value of the key. */
+  VALUE rb_struct_aset(VALUE struct_handle, VALUE key, VALUE value);
+
   /** Sets the $KCODE variable. */
   void    rb_set_kcode(const char *code);
 
