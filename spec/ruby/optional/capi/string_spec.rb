@@ -378,6 +378,13 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_str_hash" do
+    it "hashes the string into a number" do
+      s = "hello"
+      @s.rb_str_hash(s).should == s.hash
+    end
+  end
+
   extended_on :rubinius do
     describe "rb_str_ptr" do
       it "returns struct with a pointer to the string's contents" do

@@ -25,6 +25,7 @@
 
 #define HAVE_RB_EACH                       1
 #define HAVE_RB_ITERATE                    1
+#define HAVE_RB_MEM_CLEAR                  1
 
 /* Bignum */
 #define HAVE_RB_BIG2DBL                    1
@@ -274,6 +275,7 @@
 #define HAVE_RSTRING_PTR                   1
 #define HAVE_STR2CSTR                      1
 #define HAVE_STRINGVALUE                   1
+#define HAVE_RB_STR_HASH                   1
 
 /* Struct */
 #define HAVE_RB_STRUCT_AREF                1
