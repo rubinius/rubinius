@@ -5,6 +5,9 @@
 using namespace rubinius;
 
 extern "C" {
+
+  int rb_thread_critical = 0;
+
   void rb_thread_schedule() {
     rb_funcall2(rb_cThread, rb_intern("pass"), 0, NULL);
   }

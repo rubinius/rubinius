@@ -1572,6 +1572,10 @@ VALUE rb_uint2big(unsigned long number);
   VALUE rb_thread_blocking_region(rb_blocking_function_t* func, void* data,
                                   rb_unblock_function_t* ubf, void* ubf_data);
 
+  // Exists only to make extensions happy. It can be read and written to, but
+  // it controls nothing.
+  extern int rb_thread_critical;
+
 #define HAVE_RB_THREAD_BLOCKING_REGION 1
 
   /* 1.9 provides these, so we will too: */

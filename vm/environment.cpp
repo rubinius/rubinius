@@ -171,6 +171,10 @@ namespace rubinius {
     // Ignore sigpipe.
     signal(SIGPIPE, SIG_IGN);
 
+    // Some extensions expect SIGALRM to be defined, because MRI does.
+    // We'll just use a noop for it.
+    signal(SIGALRM, null_func);
+
     // If we have execinfo, setup some crash handlers
 #ifdef USE_EXECINFO
     if(!getenv("DISABLE_SEGV")) {
