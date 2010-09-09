@@ -376,4 +376,13 @@ extern "C" {
     string->byte_address()[len] = 0;
     string->num_bytes(env->state(), Fixnum::from(len));
   }
+
+
+  long rb_str_hash(VALUE self) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    String* string = capi_get_string(env, self);
+
+    return string->hash_string(env->state());
+  }
 }

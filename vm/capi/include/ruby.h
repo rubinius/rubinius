@@ -803,6 +803,8 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE   rb_ary_each(VALUE ary);
 
+  void    rb_mem_clear(VALUE* ary, int len);
+
   /** Return new Array with elements first and second. */
   VALUE   rb_assoc_new(VALUE first, VALUE second);
 
@@ -1530,6 +1532,8 @@ VALUE rb_uint2big(unsigned long number);
    * in len parameter, which can be NULL.
    */
   char*   rb_str2cstr(VALUE str_handle, long *len);
+
+  long    rb_str_hash(VALUE str);
 
   /** Raises an exception from the value of errno. */
   NORETURN(void rb_sys_fail(const char* mesg));

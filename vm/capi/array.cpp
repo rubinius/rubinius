@@ -339,4 +339,10 @@ extern "C" {
     return (*ifunc)(ary);
   }
 
+  void rb_mem_clear(VALUE* ary, int len) {
+    for(int i = 0; i < len; i++) {
+      ary[i] = Qnil;
+    }
+  }
+
 }
