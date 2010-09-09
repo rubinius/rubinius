@@ -24,5 +24,12 @@ describe "StringScanner#pre_match" do
     @s.pre_match.should == nil
   end
 
+  it "is not changed when the scanner's position changes" do
+    @s.scan_until(/\s+/)
+    @s.pre_match.should == "This"
+    @s.pos -= 1
+    @s.pre_match.should == "This"
+  end
+
   it_behaves_like :extract_range_matched, :pre_match
 end

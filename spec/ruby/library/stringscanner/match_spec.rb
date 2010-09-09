@@ -16,4 +16,13 @@ describe "StringScanner#match?" do
     @s.match?(/\d+/).should == nil
     @s.match?(/\s+/).should == nil
   end
+
+  it "effects pre_match" do
+    @s.scan(/\w+/)
+    @s.scan(/\s/)
+
+    @s.pre_match.should == "This"
+    @s.match?(/\w+/)
+    @s.pre_match.should == "This "
+  end
 end
