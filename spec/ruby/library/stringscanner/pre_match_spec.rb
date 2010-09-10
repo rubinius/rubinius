@@ -24,6 +24,12 @@ describe "StringScanner#pre_match" do
     @s.pre_match.should == nil
   end
 
+  it "is more than just the data from the last match" do
+    @s.scan(/\w+/)
+    @s.scan_until(/a te/)
+    @s.pre_match.should == "This is "
+  end
+
   it "is not changed when the scanner's position changes" do
     @s.scan_until(/\s+/)
     @s.pre_match.should == "This"

@@ -17,7 +17,13 @@ describe "StringScanner#scan" do
     @s.scan(/\d/).should == nil
   end
 
-  it "raises a TypeError if pattern isn't a Regexp and can't be converted to a String" do
+  it "returns nil when there is no more to scan" do
+    @s.scan(/[\w\s]+/).should == "This is a test"
+    @s.scan(/\w+/).should be_nil
+  end
+
+  it "raises a TypeError if pattern isn't a Regexp" do
+    lambda { @s.scan("aoeu")    }.should raise_error(TypeError)
     lambda { @s.scan(5)         }.should raise_error(TypeError)
     lambda { @s.scan(:test)     }.should raise_error(TypeError)
     lambda { @s.scan(mock('x')) }.should raise_error(TypeError)

@@ -8,7 +8,7 @@ describe "StringScanner#exist?" do
 
   it "returns the index of the first occurrence of the given pattern" do
     @s.exist?(/s/).should == 4
-    @s.scan /This is/
+    @s.scan(/This is/)
     @s.exist?(/s/).should == 6
   end
 
@@ -18,7 +18,7 @@ describe "StringScanner#exist?" do
 
   it "returns nil if the pattern isn't found in the string" do
     @s.exist?(/S/).should == nil
-    @s.scan /This is/
+    @s.scan(/This is/)
     @s.exist?(/i/).should == nil
   end
 end
