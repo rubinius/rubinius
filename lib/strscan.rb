@@ -4,25 +4,33 @@ class StringScanner
   Id = "None$Id".freeze
   Version = "1.0.0".freeze
 
-  attr_reader :pos, :match, :string
+  attr_reader :pos, :match, :string, :prev_pos
 
   def pos=(n)
-    raise RangeError, "xxx" if string && n > string.size
+    n = Integer(n)
+
+    n += @string.size if n < 0
+
+    if n < 0 or n > @string.size
+      raise RangeError, "index out of range (#{n})"
+    end
+
     @pos = n
   end
 
-  alias :pointer :pos
-  alias :pointer= :pos=
+  alias_method :pointer, :pos
+  alias_method :pointer=, :pos=
 
   def [](n)
     raise TypeError, "Bad argument #{n.inspect}" unless n.respond_to? :to_int
-    match[n]
+    @match[n] if @match
   end
 
   def bol?
-    pos == 0 or string[pos-1] == ?\n
+    @pos == 0 or @string[pos-1] == ?\n
   end
-  alias :beginning_of_line? :bol?
+
+  alias_method :beginning_of_line?, :bol?
 
   def check(pattern)
     _scan pattern, false, true, true
@@ -41,7 +49,7 @@ class StringScanner
     @string << str
     self
   end
-  alias :<< :concat # TODO: reverse
+  alias_method :<<, :concat
 
   def empty?
     warn "StringScanner#empty? is obsolete; use #eos? instead?" if $VERBOSE
@@ -75,24 +83,38 @@ class StringScanner
   end
 
   def initialize_copy(orig)
-    @match  = orig.match
-    @pos    = orig.pos
-    @string = orig.string
+    @match    = orig.match
+    @pos      = orig.pos
+    @prev_pos = orig.prev_pos
+    @string   = orig.string
   end
 
   def inspect
     if defined? @string
-      rest = string.size > 5 ? string[pos..pos+4] + "..." : string
-      r = if eos? then
-            "#<StringScanner fin>"
-          elsif pos > 0 then
-            prev = string[0...pos].inspect
-            "#<StringScanner #{pos}/#{string.size} #{prev} @ #{rest.inspect}>"
+      if eos?
+        str = "#<StringScanner fin>"
+      else
+        if string.size - pos > 5
+          rest = "#{string[pos..pos+4]}..."
+        else
+          rest = string[pos..string.size]
+        end
+
+        if pos > 0
+          if pos > 5
+            prev = "...#{string[pos-5...pos]}"
           else
-            "#<StringScanner #{pos}/#{string.size} @ #{rest.inspect}>"
+            prev = string[0...pos]
           end
-      r.taint if self.string.tainted?
-      r
+
+          str = "#<StringScanner #{pos}/#{string.size} #{prev.inspect} @ #{rest.inspect}>"
+        else
+          str = "#<StringScanner #{pos}/#{string.size} @ #{rest.inspect}>"
+        end
+      end
+
+      str.taint if @string.tainted?
+      return str
     else
       "#<StringScanner (uninitialized)>"
     end
@@ -103,15 +125,15 @@ class StringScanner
   end
 
   def matched
-    match.to_s if matched?
+    @match.to_s if @match
   end
 
   def matched?
-    !!match
+    !!@match
   end
 
   def matched_size
-    match.to_s.size if matched?
+    @match.to_s.size if @match
   end
 
   def matchedsize
@@ -120,11 +142,11 @@ class StringScanner
   end
 
   def post_match
-    match.post_match if matched?
+    @match.post_match if @match
   end
 
   def pre_match
-    string.substring(0, @prev_pos + match.begin(0)) if matched?
+    @string.substring(0, match.begin(0)) if @match
   end
 
   def reset_state
@@ -139,7 +161,7 @@ class StringScanner
   end
 
   def rest
-    string[pos..-1]
+    @string[pos..-1]
   end
 
   def rest?
@@ -147,7 +169,7 @@ class StringScanner
   end
 
   def rest_size
-    self.rest.size
+    rest.size
   end
 
   def restsize
@@ -163,12 +185,12 @@ class StringScanner
     _scan pattern, true, true, false
   end
 
-  def scan_full(pattern, succptr, getstr)
-    _scan pattern, succptr, getstr, true
+  def scan_full(pattern, advance_pos, getstr)
+    _scan pattern, advance_pos, getstr, true
   end
 
-  def search_full(pattern, succptr, getstr)
-    _scan pattern, succptr, getstr, false
+  def search_full(pattern, advance_pos, getstr)
+    _scan pattern, advance_pos, getstr, false
   end
 
   def self.must_C_version
@@ -218,40 +240,38 @@ class StringScanner
     peek len
   end
 
-  def _scan(pattern, succptr, getstr, headonly)
-    unless String === pattern or Regexp === pattern or pattern.respond_to? :to_str
+  def _scan(pattern, advance_pos, getstr, headonly)
+    unless pattern.kind_of? Regexp
       raise TypeError, "bad pattern argument: #{pattern.inspect}"
     end
 
     @match = nil
 
-    return nil if (string.size - @pos) < 0 # TODO: make more elegant
-
-    rest = self.rest
+    return nil if eos?
 
     if headonly
       # NOTE - match_start is an Oniguruma feature that Rubinius exposes.
       # We use it here to avoid creating a new Regexp with '^' prepended.
-      @match = pattern.match_start rest, 0
+      @match = pattern.match_start @string, @pos
     else
-      @match = pattern.match rest
+      # NOTE - search_region is an Oniguruma feature that Rubinius exposes.
+      # We use it so we can begin the search in the middle of the string
+      @match = pattern.search_region @string, @pos, @string.size, true
     end
 
     return nil unless @match
 
-    m = rest[0, @match.end(0)]
+    fin = @match.end(0)
 
     @prev_pos = @pos
 
-    if succptr
-      @pos += m.size
-    end
+    @pos = fin if advance_pos
 
-    if getstr
-      m
-    else
-      m.size
-    end
+    width = fin - @prev_pos
+
+    return width unless getstr
+
+    @string.substring(@prev_pos, width)
   end
   private :_scan
 end
