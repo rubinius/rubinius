@@ -138,7 +138,9 @@ namespace rubinius {
   }
 
   Pointer* Pointer::write_string(STATE, String* str, Fixnum* len) {
-    memcpy(pointer, (void*)str->byte_address(), len->to_native());
+    native_int n = len->to_native();
+    if(str->size() < n) n = str->size();
+    memcpy(pointer, (void*)str->byte_address(), n);
     return this;
   }
 

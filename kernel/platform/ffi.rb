@@ -136,6 +136,22 @@ module FFI
   # Use for a C struct with a char [] embedded inside.
   add_typedef TYPE_CHARARR, :char_array
 
+  # A set of unambigious integer types
+  add_typedef TYPE_CHAR,   :int8
+  add_typedef TYPE_UCHAR,  :uint8
+  add_typedef TYPE_SHORT,  :int16
+  add_typedef TYPE_USHORT, :uint16
+  add_typedef TYPE_INT,    :int32
+  add_typedef TYPE_UINT,   :uint32
+
+  if Rubinius::L64
+    add_typedef TYPE_LONG,  :int64
+    add_typedef TYPE_ULONG, :uint64
+  else
+    add_typedef TYPE_LL,    :int64
+    add_typedef TYPE_ULL,   :uint64
+  end
+
   TypeSizes = Rubinius::LookupTable.new
   TypeSizes[1] = :char
   TypeSizes[2] = :short
@@ -148,6 +164,20 @@ module FFI
     add_typedef(find_type(value.to_sym), key.substring(21, key.length).to_sym)
   end
 
+  # It's a class to be compat with the ffi gem.
+  class Type
+    class Array
+      def initialize(element_type, size, impl_class=nil)
+        @element_type = element_type
+        @size = size
+        @implementation = impl_class
+      end
+
+      attr_reader :element_type
+      attr_reader :size
+      attr_reader :implementation
+    end
+  end
 end
 
 ##
