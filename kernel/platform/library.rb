@@ -11,6 +11,15 @@ module FFI
 
   module Library
 
+    case Rubinius::OS_TYPE
+    when :windows
+      LIBC = "msvcrt.dll"
+    when :darwin
+      LIBC = "libc.dylib"
+    else
+      LIBC = "libc#{Rubinius::LIBSUFFIX}"
+    end
+
     # Set which library or libraries +attach_function+ should
     # look in. By default it only searches for the function in
     # the current process. If you want to specify this as one

@@ -10,6 +10,9 @@ module Kernel
     raise PrimitiveFailure, "Kernel#eql? primitive failed"
   end
 
+  alias_method :==,  :equal?
+  alias_method :===, :equal?
+
   def extend(*mods)
     Rubinius.object_metaclass(self).include(*mods)
     self

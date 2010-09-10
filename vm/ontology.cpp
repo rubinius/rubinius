@@ -366,6 +366,15 @@ namespace rubinius {
     G(rubinius)->set_const(state, "VENDOR", String::create(state, RBX_VENDOR));
     G(rubinius)->set_const(state, "OS", String::create(state, RBX_OS));
 
+#if defined(_WIN32)
+    G(rubinius)->set_const(state, "OS_TYPE", symbol("windows"));
+#elif defined(__APPLE__)
+    G(rubinius)->set_const(state, "OS_TYPE", symbol("darwin"));
+#else
+    G(rubinius)->set_const(state, "OS_TYPE", symbol("unix"));
+#endif
+
+
 #ifdef RBX_LITTLE_ENDIAN
     G(rubinius)->set_const(state, "ENDIAN", symbol("little"));
 #else
