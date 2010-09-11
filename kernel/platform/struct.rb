@@ -110,9 +110,10 @@ module FFI
         else
           if @enclosing_module
             type = @enclosing_module.find_type(f)
+          else
+            type = FFI.find_type(f)
           end
 
-          type ||= FFI.find_type(f)
           element_size = FFI.type_size(type)
         end
 
