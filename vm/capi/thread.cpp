@@ -1,6 +1,26 @@
 #include "capi/capi.hpp"
 #include "capi/include/ruby.h"
 #include "builtin/thread.hpp"
+#include "native_thread.hpp"
+
+namespace rubinius {
+  class UnblockFuncWaiter : public Waiter {
+    rb_unblock_function_t* ubf_;
+    void* ubf_data_;
+
+  public:
+    UnblockFuncWaiter(rb_unblock_function_t* ubf, void* ubf_data)
+      : ubf_(ubf)
+      , ubf_data_(ubf_data)
+    {}
+
+    void wakeup() {
+      if (ubf_ != NULL) {
+        (*ubf_)(ubf_data_);
+      }
+    }
+  };
+}
 
 using namespace rubinius;
 
@@ -100,13 +120,20 @@ extern "C" {
   VALUE rb_thread_blocking_region(rb_blocking_function_t func, void* data,
                                   rb_unblock_function_t ubf, void* ubf_data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
+    VM* state = env->state();
+    UnblockFuncWaiter waiter(ubf, ubf_data);
     VALUE ret = Qnil;
-    // ubf is ignored entirely.
+
+    if (ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
+      state->interrupt_with_signal();
+    } else {
+      state->install_waiter(waiter);
+    }
     {
       GlobalLock::UnlockGuard guard(env);
       ret = (*func)(data);
     }
+    state->clear_waiter();
 
     return ret;
   }
