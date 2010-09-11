@@ -13,7 +13,7 @@ class Thread
   end
 end
 
-describe "CApiThreadSpecs" do
+describe "C-API Thread function" do
   before :each do
     @t = CApiThreadSpecs.new
     ScratchPad.clear
@@ -84,11 +84,44 @@ describe "CApiThreadSpecs" do
     it_behaves_like :thread_wakeup, :call_capi_rb_thread_wakeup
   end
 
-  extended_on :rubinius do
-    describe "rb_thread_blocking_region" do
-      it "runs a C function with the global lock unlocked" do
-        @t.rb_thread_blocking_region.should be_true
-      end
+end
+
+describe :rb_thread_blocking_region, :shared => true do
+  before :each do
+    @t = CApiThreadSpecs.new
+    ScratchPad.clear
+  end
+
+  it "runs a C function with the global lock unlocked" do
+    thr = Thread.new do
+      @t.send(@method)
+    end
+
+    # Wait until it's blocking...
+    sleep 1
+
+    # Wake it up, causing the unblock function to be run.
+    thr.wakeup
+
+    # Make sure it stopped
+    thr.join(1).should_not be_nil
+
+    # And we got a proper value
+    thr.value.should be_true
+  end
+end
+
+describe "C-API Thread function" do
+  describe "rb_thread_blocking_region" do
+    extended_on :rubinius do
+      it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region_with_ubf_io
+      it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region
+    end
+
+    ruby_version_is "1.9" do
+      it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region_with_ubf_io
+      it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region
     end
   end
 end
+
