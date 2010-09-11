@@ -87,6 +87,8 @@ module FFI
 
         f = spec[i + 1]
 
+        type_code = nil
+
         if f.kind_of? Array
           ary_type = f[0]
           ary_size = f[1]
@@ -109,12 +111,13 @@ module FFI
           element_size = type_size * ary_size
         else
           if @enclosing_module
-            type = @enclosing_module.find_type(f)
-          else
-            type = FFI.find_type(f)
+            type_code = @enclosing_module.find_type(f)
           end
 
-          element_size = FFI.type_size(type)
+          type_code ||= FFI.find_type(f)
+
+          type = type_code
+          element_size = FFI.type_size(type_code)
         end
 
         offset = spec[i + 2]
