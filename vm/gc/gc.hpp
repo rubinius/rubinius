@@ -31,6 +31,7 @@ namespace rubinius {
     Roots& roots_;
     CallFrameLocationList& call_frames_;
     VariableRootBuffers& variable_buffers_;
+    RootBuffers* root_buffers_;
     capi::Handles* handles_;
     capi::Handles* cached_handles_;
     GlobalCache* global_cache_;
@@ -42,10 +43,12 @@ namespace rubinius {
     GCData(Roots& r, CallFrameLocationList& l, VariableRootBuffers& b,
            capi::Handles* handles = NULL, capi::Handles* cached_handles = NULL,
            GlobalCache *cache = NULL, std::list<ManagedThread*>* ths = NULL,
-           std::list<capi::Handle**>* global_handle_locations = NULL)
+           std::list<capi::Handle**>* global_handle_locations = NULL,
+           RootBuffers* rf = NULL)
       : roots_(r)
       , call_frames_(l)
       , variable_buffers_(b)
+      , root_buffers_(rf)
       , handles_(handles)
       , cached_handles_(cached_handles)
       , global_cache_(cache)
@@ -67,6 +70,10 @@ namespace rubinius {
 
     VariableRootBuffers& variable_buffers() {
       return variable_buffers_;
+    }
+
+    RootBuffers* root_buffers() {
+      return root_buffers_;
     }
 
     capi::Handles* handles() {

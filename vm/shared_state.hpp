@@ -6,6 +6,7 @@
 #include "maps.hpp"
 #include "call_frame_list.hpp"
 #include "gc/variable_buffer.hpp"
+#include "gc/root_buffer.hpp"
 #include "kcode.hpp"
 
 #include "stats.hpp"
@@ -65,7 +66,8 @@ namespace rubinius {
     GlobalLock lock_;
     SignalHandler* signal_handler_;
     CallFrameLocationList cf_locations_;
-    VariableRootBuffers root_buffers_;
+    VariableRootBuffers variable_root_buffers_;
+    RootBuffers         root_buffers_;
 
     capi::Handles* global_handles_;
     capi::Handles* cached_handles_;
@@ -139,6 +141,10 @@ namespace rubinius {
     void remove_managed_thread(ManagedThread* thr);
 
     VariableRootBuffers* variable_buffers() {
+      return &variable_root_buffers_;
+    }
+
+    RootBuffers* root_buffers() {
       return &root_buffers_;
     }
 

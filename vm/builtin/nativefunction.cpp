@@ -599,6 +599,9 @@ namespace rubinius {
     Object* ret;
     Object* obj;
 
+    // Because we call back into ruby to do conversions.
+    RootBuffer vrf(state->root_buffers(), args.arguments(), args.total());
+
     void **values = ALLOCA_N(void*, ffi_data->arg_count);
 
     for(size_t i = 0; i < ffi_data->arg_count; i++) {
@@ -724,33 +727,41 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_STATE: {
-        VM **tmp = ALLOCA(VM*);
+        VM** tmp = ALLOCA(VM*);
         *tmp = state;
         values[i] = tmp;
         break;
       }
       case RBX_FFI_TYPE_OBJECT: {
-        Object* *tmp = ALLOCA(Object*);
+        Object** tmp = ALLOCA(Object*);
         obj = args.get_argument(i);
         *tmp = obj;
         values[i] = tmp;
         break;
       }
       case RBX_FFI_TYPE_PTR: {
-        void **tmp = ALLOCA(void*);
+        void** tmp = ALLOCA(void*);
         obj = args.get_argument(i);
         if(NIL_P(obj)) {
           *tmp = NULL;
         } else {
-          Pointer *mp = as<Pointer>(obj);
-          type_assert(state, obj, PointerType, "converting to pointer");
+          Pointer* mp = try_as<Pointer>(obj);
+          if(!mp) {
+            if(RTEST(obj->respond_to(state, state->symbol("to_ptr"), Qtrue))) {
+              Object* o2 = obj->send(state, call_frame, state->symbol("to_ptr"));
+              type_assert(state, o2, PointerType, "converting to pointer");
+              mp = as<Pointer>(o2);
+            } else {
+              type_assert(state, obj, PointerType, "converting to pointer");
+            }
+          }
           *tmp = mp->pointer;
         }
         values[i] = tmp;
         break;
       }
       case RBX_FFI_TYPE_CALLBACK: {
-        void **tmp = ALLOCA(void*);
+        void** tmp = ALLOCA(void*);
         obj = args.block();
 
         if(obj->reference_p()) {

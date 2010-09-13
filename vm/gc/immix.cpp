@@ -191,8 +191,21 @@ namespace rubinius {
         Object* tmp = *var;
 
         via_stack++;
-        if(tmp->reference_p() && tmp->young_object_p()) {
-          saw_object(tmp);
+        if(tmp->reference_p())saw_object(tmp);
+      }
+    }
+
+    RootBuffers* rb = data.root_buffers();
+    if(rb) {
+      for(RootBuffers::Iterator i(*rb);
+          i.more();
+          i.advance())
+      {
+        Object** buffer = i->buffer();
+        for(int idx = 0; idx < i->size(); idx++) {
+          Object* tmp = buffer[idx];
+
+          if(tmp->reference_p()) saw_object(tmp);
         }
       }
     }

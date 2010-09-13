@@ -237,6 +237,23 @@ namespace rubinius {
       }
     }
 
+    RootBuffers* rb = data.root_buffers();
+    if(rb) {
+      for(RootBuffers::Iterator i(*rb);
+          i.more();
+          i.advance())
+      {
+        Object** buffer = i->buffer();
+        for(int idx = 0; idx < i->size(); idx++) {
+          Object* tmp = buffer[idx];
+
+          if(tmp->reference_p() && tmp->young_object_p()) {
+            buffer[idx] = saw_object(tmp);
+          }
+        }
+      }
+    }
+
     // Walk all the call frames
     for(CallFrameLocationList::iterator i = data.call_frames().begin();
         i != data.call_frames().end();

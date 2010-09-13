@@ -28,6 +28,7 @@ namespace rubinius {
     : roots_(state->globals().roots)
     , call_frames_(state->shared.call_frame_locations())
     , variable_buffers_(*state->variable_buffers())
+    , root_buffers_(state->root_buffers())
     , handles_(state->shared.global_handles())
     , cached_handles_(state->shared.cached_handles())
     , global_cache_(state->shared.global_cache)
