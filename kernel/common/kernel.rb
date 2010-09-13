@@ -340,6 +340,11 @@ module Kernel
     __id__
   end
 
+  def type
+    warn "Object#type IS fully deprecated; use Object#class OR ELSE."
+    self.class
+  end
+
   alias_method :==, :equal?
 
   # The "sorta" operator, also known as the case equality operator.
