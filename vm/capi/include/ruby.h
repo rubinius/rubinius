@@ -354,8 +354,9 @@ struct RIO {
 
 #define RIO(d)          capi_rio_struct(d)
 
-typedef struct RIO OpenFile;
 typedef struct RIO rb_io_t;
+
+#define OpenFile rb_io_t
 
 #define HAVE_RB_IO_T 1
 
