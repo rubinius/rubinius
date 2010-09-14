@@ -2,6 +2,12 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
 require File.expand_path('../../fixtures/classes', __FILE__)
 require File.expand_path('../shared/basic', __FILE__)
+require File.expand_path('../shared/unicode', __FILE__)
+
+describe "Array#pack with format 'U'" do
+  it_behaves_like :array_pack_basic, 'U'
+  it_behaves_like :array_pack_unicode, 'U'
+end
 
 describe "Array#pack with format 'u'" do
   it_behaves_like :array_pack_basic, 'u'
