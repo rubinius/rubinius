@@ -33,6 +33,16 @@ unless BUILD_CONFIG[:which_ruby] == :ruby or BUILD_CONFIG[:which_ruby] == :rbx
   exit 1
 end
 
+bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"] || RbConfig::CONFIG["ruby_install_name"]
+bin << (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
+build_ruby = File.join(RbConfig::CONFIG['bindir'], bin)
+
+unless BUILD_CONFIG[:build_ruby] == build_ruby
+  STDERR.puts "Sorry, but you need to build with the same Ruby version it was configured with"
+  STDERR.puts "Please run ./configure again"
+  exit 1
+end
+
 $dlext = RbConfig::CONFIG["DLEXT"]
 
 task :default => %w[build vm:test] do
