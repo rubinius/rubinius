@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <cstring>
 #include "gc/heap.hpp"
 #include "instruments/stats.hpp"
 
