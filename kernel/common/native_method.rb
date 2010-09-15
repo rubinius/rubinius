@@ -20,15 +20,15 @@ module Rubinius
       name = "Init_#{extension_name}"
 
       begin
-        lib = FFI::DynamicLibrary.new(library)
+        lib = FFI::DynamicLibrary.new(library, FFI::DynamicLibrary::RTLD_NOW)
       rescue LoadError => e
-        some_mri_globals = /rb_c\w|rb_m\w/
+        raise LoadError::InvalidExtensionError, "Unable to load - #{library}", e
+      end
 
-        if e.message =~ some_mri_globals
-          raise LoadError::MRIExtensionError, "Extension compiled for MRI - #{library}"
-        else
-          raise e
-        end
+      ver = lib.find_symbol("__X_rubinius_version")
+
+      unless ver
+        raise LoadError::InvalidExtensionError, "Out-of-date or not compatible. Recompile or reinstall gem (#{library})"
       end
 
       sym = lib.find_symbol(name)

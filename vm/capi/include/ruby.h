@@ -184,6 +184,9 @@ typedef void (*RUBY_DATA_FUNC)(void*);
 extern "C" {
 #endif
 
+  extern int __X_rubinius_version __attribute__((weak));
+  int __X_rubinius_version = 1;
+
   /**
    *  Global object abstraction.
    *
