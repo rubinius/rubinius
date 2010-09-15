@@ -203,6 +203,10 @@ module FFI
       end
     end
 
+    def to_ptr
+      @pointer
+    end
+
     def free
       @pointer.free
     end
