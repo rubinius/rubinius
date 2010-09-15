@@ -113,7 +113,7 @@ extern "C" {
 
     String* self = capi_get_string(env, self_handle);
     self->append(env->state(), capi_get_string(env, other_handle));
-    capi_update_string(env, self_handle);
+    Handle::from(self_handle)->update(env);
 
     return self_handle;
   }
@@ -136,7 +136,7 @@ extern "C" {
 
     String* string = capi_get_string(env, self_handle);
     string->append(env->state(), other, size);
-    capi_update_string(env, self_handle);
+    Handle::from(self_handle)->update(env);
 
     return self_handle;
   }
@@ -150,7 +150,7 @@ extern "C" {
 
     String* self = capi_get_string(env, self_handle);
     self->append(env->state(), other, length);
-    capi_update_string(env, self_handle);
+    Handle::from(self_handle)->update(env);
 
     return self_handle;
   }
@@ -230,7 +230,7 @@ extern "C" {
       string->characters(env->state(), Fixnum::from(len));
       string->hash_value(env->state(), reinterpret_cast<Fixnum*>(RBX_Qnil));
     }
-    capi_update_string(env, self_handle);
+    Handle::from(self_handle)->update(env);
 
     return self_handle;
   }
