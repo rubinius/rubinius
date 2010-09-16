@@ -272,6 +272,7 @@ extern "C" {
   }
 
   void rb_sys_fail(const char* mesg) {
+    if(!mesg) mesg = "system failure";
     rb_funcall(rb_mErrno, rb_intern("handle"), 1, rb_str_new2(mesg));
 
     rubinius::bug("rb_sys_fail failed");
