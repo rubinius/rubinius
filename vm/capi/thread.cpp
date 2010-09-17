@@ -40,10 +40,12 @@ extern "C" {
 
     struct timeval tv;
     struct timeval absolute_tv;
+    struct timeval* tvp = NULL;
 
     if(input_tv) {
       // We make a new timeval rather than using input_tv because we modify it.
       tv = *input_tv;
+      tvp = &tv;
 
       gettimeofday(&absolute_tv, NULL);
 
@@ -53,7 +55,7 @@ extern "C" {
     for(;;) {
       {
         GlobalLock::UnlockGuard guard(env);
-        ret = select(max, read, write, except, &tv);
+        ret = select(max, read, write, except, tvp);
       }
 
       if(!env->state()->check_async(env->current_call_frame())) {
