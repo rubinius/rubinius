@@ -104,7 +104,11 @@ namespace rubinius {
 
     inline static int32_t int32_element(STATE, Integer* value) {
       if(value->fixnum_p()) {
-        return as<Fixnum>(value)->to_int();
+        long l = as<Fixnum>(value)->to_long();
+        if(l > INT32_MAX || l < INT32_MIN) {
+          Exception::range_error(state, "Fixnum value out of range of int32");
+        }
+        return l;
       } else {
         Bignum* big = as<Bignum>(value);
         big->verify_size(state, 32);
@@ -223,25 +227,25 @@ namespace rubinius {
         str.push_back((v & 0x3f) | 0x80);
       } else if(!(v & ~0xffff)) {
         str.push_back(((v >> 12) & 0xff) | 0xe0);
-        str.push_back(((v >> 6) & 0x3f) | 0x80);
+        str.push_back(((v >> 6)  & 0x3f) | 0x80);
         str.push_back((v & 0x3f) | 0x80);
       } else if(!(v & ~0x1fffff)) {
         str.push_back(((v >> 18) & 0xff) | 0xf0);
         str.push_back(((v >> 12) & 0x3f) | 0x80);
-        str.push_back(((v >> 6) & 0x3f) | 0x80);
+        str.push_back(((v >> 6)  & 0x3f) | 0x80);
         str.push_back((v & 0x3f) | 0x80);
       } else if(!(v & ~0x3ffffff)) {
         str.push_back(((v >> 24) & 0xff) | 0xf8);
         str.push_back(((v >> 18) & 0x3f) | 0x80);
         str.push_back(((v >> 12) & 0x3f) | 0x80);
-        str.push_back(((v >> 6) & 0x3f) | 0x80);
+        str.push_back(((v >> 6)  & 0x3f) | 0x80);
         str.push_back((v & 0x3f) | 0x80);
       } else if(!(v & ~0x7fffffff)) {
         str.push_back(((v >> 30) & 0xff) | 0xfc);
         str.push_back(((v >> 24) & 0x3f) | 0x80);
         str.push_back(((v >> 18) & 0x3f) | 0x80);
         str.push_back(((v >> 12) & 0x3f) | 0x80);
-        str.push_back(((v >> 6) & 0x3f) | 0x80);
+        str.push_back(((v >> 6)  & 0x3f) | 0x80);
         str.push_back((v & 0x3f) | 0x80);
       } else {
         Exception::range_error(state, "pack('U') value out of range");
