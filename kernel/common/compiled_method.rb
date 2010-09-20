@@ -178,12 +178,14 @@ module Rubinius
       attr_accessor :file_path
       attr_accessor :data_path
       attr_accessor :eval_binding
+      attr_accessor :eval_source
 
       def initialize(method, path=nil, for_eval=false)
         @compiled_method = method
         @file_path = path
         @for_eval = for_eval
         @eval_binding = nil
+        @eval_source = nil
       end
 
       def eval?

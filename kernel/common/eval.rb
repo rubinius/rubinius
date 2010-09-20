@@ -90,6 +90,7 @@ module Kernel
     # This has to be setup so __FILE__ works in eval.
     script = Rubinius::CompiledMethod::Script.new(cm, filename, true)
     script.eval_binding = binding
+    script.eval_source = string
 
     cm.scope.script = script
 
@@ -180,6 +181,7 @@ module Kernel
 
       # This has to be setup so __FILE__ works in eval.
       script = Rubinius::CompiledMethod::Script.new(cm, filename, true)
+      script.eval_source = string
       cm.scope.script = script
 
       be = Rubinius::BlockEnvironment.new
@@ -264,6 +266,7 @@ class Module
 
     # This has to be setup so __FILE__ works in eval.
     script = Rubinius::CompiledMethod::Script.new(cm, filename, true)
+    script.eval_source = string
     ss.script = script
 
     cm.scope = ss
