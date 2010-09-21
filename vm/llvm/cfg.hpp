@@ -121,7 +121,16 @@ namespace jit {
 
     CFGBlock* add_block(int ip, bool loop=false) {
       CFGBlock* blk = find_block(ip);
-      if(blk) return blk;
+      if(blk) {
+        // If we hit a block that is the start of a loop header,
+        // be sure to set it's exception handler. These blocks are created
+        // during the first pass.
+        if(blk->loop_p()) {
+          // Inherit the current exception handler
+          blk->set_exception_handler(current_->exception_handler());
+        }
+        return blk;
+      }
 
       blk = new CFGBlock(ip, loop);
 
@@ -185,7 +194,7 @@ namespace jit {
       VMMethod::Iterator iter(stream_, stream_size_);
       for(;;) {
         if(CFGBlock* next_block = find_block(iter.position())) {
-          if(next_block->loop_p()) {
+          if(next_block->loop_p() && current_ != next_block) {
             // The handler wasn't setup originally, so we have to set it now.
             next_block->set_exception_handler(current_->exception_handler());
 
