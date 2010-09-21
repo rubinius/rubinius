@@ -61,6 +61,23 @@ module FFI
       alias_method :to_str, :to_s
     end
 
+    def self.find_nested_parent
+      path = self.name.split("::")
+      path.pop # remove ourself
+
+      mod = Object
+
+      begin
+        path.each { |c| mod = mod.const_get(c) }
+      rescue NameError
+        # bail.
+        return nil
+      end
+
+      return mod if mod.respond_to?(:find_type)
+
+      nil
+    end
 
     attr_reader :pointer
 
@@ -68,12 +85,7 @@ module FFI
       return @layout if spec.size == 0
 
       # Pick up a enclosing FFI::Library
-      ss = Rubinius::StaticScope.of_sender
-      if par = ss.parent and par.module.kind_of?(FFI::Library)
-        @enclosing_module = par.module
-      else
-        @enclosing_module = nil
-      end
+      @enclosing_module = find_nested_parent
 
       cspec = Rubinius::LookupTable.new
       i = 0
