@@ -206,7 +206,7 @@ class StringScanner
   end
 
   def string=(s)
-    reset
+    reset_state
     @string = s
   end
 
