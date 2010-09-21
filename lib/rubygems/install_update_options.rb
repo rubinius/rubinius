@@ -104,12 +104,6 @@ module Gem::InstallUpdateOptions
                 "dependencies") do |value, options|
       options[:development] = true
     end
-
-    add_option(:"Install/Update", "-s", "--status",
-               "Print out the status of the command as",
-               "it progresses") do |value, options|
-      options[:status] = true
-    end
   end
 
   ##

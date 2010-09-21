@@ -70,7 +70,9 @@ class Gem::DependencyInstaller
     @install_dir = options[:install_dir] || Gem.dir
     @cache_dir = options[:cache_dir] || @install_dir
 
-    @show_status = options[:status] || Gem.configuration.really_verbose
+    # Set with any errors that SpecFetcher finds while search through
+    # gemspecs for a dep
+    @errors = nil
   end
 
   ##
@@ -80,6 +82,8 @@ class Gem::DependencyInstaller
   # local gems preferred over remote gems.
 
   def find_gems_with_sources(dep)
+    # Reset the errors
+    @errors = nil
     gems_and_sources = []
 
     if @domain == :both or @domain == :local then
@@ -101,7 +105,7 @@ class Gem::DependencyInstaller
               (requirements.length > 1 or
                 (requirements.first != ">=" and requirements.first != ">"))
 
-        found = Gem::SpecFetcher.fetcher.fetch dep, all, true, dep.prerelease?
+        found, @errors = Gem::SpecFetcher.fetcher.fetch_with_errors dep, all, true, dep.prerelease?
 
         gems_and_sources.push(*found)
 
@@ -130,9 +134,6 @@ class Gem::DependencyInstaller
     dependency_list.add(*specs)
 
     unless @ignore_dependencies then
-
-      say "Calculating dependencies to also install..." if @show_status
-
       to_do = specs.dup
       seen = {}
 
@@ -148,24 +149,16 @@ class Gem::DependencyInstaller
           results = find_gems_with_sources(dep).reverse
 
           results.reject! do |dep_spec,|
-            # Add it to the work list
             to_do.push dep_spec
 
-            # Remove it from the results list if it's already installed
             @source_index.any? do |_, installed_spec|
               dep.name == installed_spec.name and
                 dep.requirement.satisfied_by? installed_spec.version
             end
           end
 
-          results.reject! { |dep_spec,| seen[dep_spec.name] }
-
-          if @show_status and !results.empty?
-            say "Depedencies for #{spec.full_name}:"
-          end
-
           results.each do |dep_spec, source_uri|
-            say "  #{dep_spec.full_name}" if @show_status
+            next if seen[dep_spec.name]
             @specs_and_sources << [dep_spec, source_uri]
             dependency_list.add dep_spec
           end
@@ -217,8 +210,9 @@ class Gem::DependencyInstaller
     end
 
     if spec_and_source.nil? then
-      raise Gem::GemNotFoundException,
-        "could not find gem #{gem_name} locally or in a repository"
+      raise Gem::GemNotFoundException.new(
+        "Could not find a valid gem '#{gem_name}' (#{version}) locally or in a repository",
+        gem_name, version, @errors)
     end
 
     @specs_and_sources = [spec_and_source]
@@ -256,7 +250,7 @@ class Gem::DependencyInstaller
       next if @source_index.any? { |n,_| n == spec.full_name } and not last
 
       # TODO: make this sorta_verbose so other users can benefit from it
-      say "Installing gem #{spec.full_name}" if @show_status
+      say "Installing gem #{spec.full_name}" if Gem.configuration.really_verbose
 
       _, source_uri = @specs_and_sources.assoc spec
       begin
