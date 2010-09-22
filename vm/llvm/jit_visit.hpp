@@ -319,7 +319,9 @@ namespace rubinius {
       }
     }
 
-    BasicBlock* check_for_exception_then(Value* val, BasicBlock* cont) {
+    BasicBlock* check_for_exception_then(Value* val, BasicBlock* cont,
+                                         bool pass_top=true)
+    {
       Value* null = Constant::getNullValue(ObjType);
 
       BasicBlock* check_active = new_block("check_active");
@@ -377,10 +379,11 @@ namespace rubinius {
         sp,
         root_callframe,
         cint(unwinds),
-        info().unwind_info()
+        info().unwind_info(),
+        (pass_top ? val : Constant::getNullValue(val->getType()))
       };
 
-      Value* call = sig.call("rbx_continue_debugging", call_args, 7, "", b());
+      Value* call = sig.call("rbx_continue_debugging", call_args, 8, "", b());
 
       info().add_return_value(call, current_block());
       b().CreateBr(info().return_pad());
@@ -390,9 +393,9 @@ namespace rubinius {
       return check_active;
     }
 
-    void check_for_exception(Value* val) {
+    void check_for_exception(Value* val, bool pass_top=true) {
       BasicBlock* cont = new_block();
-      check_for_exception_then(val, cont);
+      check_for_exception_then(val, cont, pass_top);
       set_block(cont);
     }
 
@@ -601,7 +604,7 @@ namespace rubinius {
 
       Value* res = sig.call("rbx_check_frozen", call_args, 3, "", b());
 
-      check_for_exception(res);
+      check_for_exception(res, false);
     }
 
     void check_fixnums(Value* left, Value* right, BasicBlock* if_true,
@@ -1374,8 +1377,9 @@ namespace rubinius {
           llvm::PointerType::getUnqual(sig.type()));
 
       Value* call = b().CreateCall(ptr, call_args, call_args + 4, "invoked_prim");
-      check_for_exception(call);
       stack_remove(args);
+
+      check_for_exception(call);
 
       if(fin) {
         BasicBlock* cur = current_block();
@@ -1917,8 +1921,10 @@ use_send:
 
       flush_ip();
       Value* ret = sig.call("rbx_zsuper_send", call_args, 4, "super_send", b());
+      stack_remove(1);
+
       check_for_exception(ret);
-      stack_set_top(ret);
+      stack_push(ret);
 
       current_block_ = -1;
     }
@@ -2700,7 +2706,7 @@ use_send:
       };
 
       Value* ret = b().CreateCall(func, call_args, call_args+2, "ci");
-      check_for_exception(ret);
+      check_for_exception(ret, false);
     }
 
     void visit_check_serial(opcode index, opcode serial) {
@@ -3232,7 +3238,7 @@ use_send:
       };
 
       Value* ret = sig.call("rbx_set_ivar", call_args, 5, "ivar", b());
-      check_for_exception(ret);
+      check_for_exception(ret, false);
     }
 
     void visit_push_my_field(opcode which) {

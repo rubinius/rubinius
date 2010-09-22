@@ -974,7 +974,8 @@ extern "C" {
                                  int32_t entry_ip, native_int sp,
                                  CallFrame* method_call_frame,
                                  int32_t unwind_count,
-                                 int32_t* input_unwinds)
+                                 int32_t* input_unwinds,
+                                 Object* top_of_stack)
   {
     VMMethod* vmm = call_frame->cm->backend_method();
 
@@ -1002,6 +1003,13 @@ extern "C" {
       uw.target_ip = input_unwinds[i];
       uw.stack_depth = input_unwinds[i + 1];
       uw.type = (UnwindType)input_unwinds[i + 2];
+    }
+
+    // Push the top of the stack into the call_frame->stk so the interpreter
+    // sees it. This is done here rather than by the JIT to simplify the
+    // JIT's callsite.
+    if(top_of_stack) {
+      call_frame->stk[++sp] = top_of_stack;
     }
 
     return VMMethod::debugger_interpreter_continue(state, vmm, call_frame,
