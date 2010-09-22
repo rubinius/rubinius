@@ -50,5 +50,11 @@ module Rubinius
       identity_map
       self
     end
+
+    def replace(other)
+      super
+      identity_map
+      self
+    end
   end
 end
