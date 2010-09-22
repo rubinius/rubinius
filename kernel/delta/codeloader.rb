@@ -120,7 +120,7 @@ module Rubinius
           else
             begin
               cm = load_compiled_file compiled_name, version
-            rescue InvalidRBC
+            rescue TypeError, InvalidRBC
               cm = compile_file @load_path, compiled_name
             end
           end
