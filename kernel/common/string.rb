@@ -1871,7 +1871,9 @@ class String
     # MRI behavior emulation. Sub'ing String subclasses doen't return the
     # subclass, they return String instances.
     unless self.instance_of?(String)
-      out = self.class.new(out)
+      # Do this instead of using self.class.new because some code
+      # (ActiveModel) redefines initialize and breaks it.
+      Rubinius::Unsafe.set_class out, self.class
     end
 
     return out
