@@ -61,7 +61,7 @@ class Configure
     @libversion = "1.0"
     @version = "#{@libversion}.1"
     @release_date = "2010-06-03"
-    @config_version = 13
+    @config_version = 14
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
