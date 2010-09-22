@@ -50,7 +50,7 @@ namespace rubinius {
     static Pointer* adjust_tramp(STATE, Object* obj, NativeFunction* orig);
 
     void prep(STATE, int arg_count, int *arg_types, int ret_type);
-    Object* call(STATE, Arguments& args, CallFrame* call_frame);
+    Object* call(STATE, Arguments& args, Dispatch& msg, CallFrame* call_frame);
 
     class Info : public Executable::Info {
     public:

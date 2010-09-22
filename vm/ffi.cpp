@@ -29,6 +29,7 @@ namespace rubinius {
     mod->set_const(this, "TYPE_OBJECT",     Fixnum::from(RBX_FFI_TYPE_OBJECT));
     mod->set_const(this, "TYPE_CHAR",       Fixnum::from(RBX_FFI_TYPE_CHAR));
     mod->set_const(this, "TYPE_UCHAR",      Fixnum::from(RBX_FFI_TYPE_UCHAR));
+    mod->set_const(this, "TYPE_BOOL",       Fixnum::from(RBX_FFI_TYPE_BOOL));
     mod->set_const(this, "TYPE_SHORT",      Fixnum::from(RBX_FFI_TYPE_SHORT));
     mod->set_const(this, "TYPE_USHORT",     Fixnum::from(RBX_FFI_TYPE_USHORT));
     mod->set_const(this, "TYPE_INT",        Fixnum::from(RBX_FFI_TYPE_INT));

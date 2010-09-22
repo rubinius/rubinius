@@ -21,5 +21,6 @@
 #define RBX_FFI_TYPE_STRPTR     17
 #define RBX_FFI_TYPE_CHARARR    18
 #define RBX_FFI_TYPE_CALLBACK   19
+#define RBX_FFI_TYPE_BOOL       20
 
 #endif

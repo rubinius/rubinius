@@ -87,6 +87,9 @@ module FFI
   # Converts an unsigned char
   add_typedef TYPE_UCHAR,   :uchar
 
+  # The C++ boolean type
+  add_typedef TYPE_BOOL,    :bool
+
   # Converts a short
   add_typedef TYPE_SHORT,   :short
 

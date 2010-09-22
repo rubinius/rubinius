@@ -105,6 +105,7 @@ int ffi_type_size(int type) {
   switch(type) {
     case RBX_FFI_TYPE_CHAR:
     case RBX_FFI_TYPE_UCHAR:
+    case RBX_FFI_TYPE_BOOL:
     return sizeof(char);
 
     case RBX_FFI_TYPE_SHORT:

@@ -84,6 +84,7 @@ extern "C" {
 
 class TestNativeFunction : public CxxTest::TestSuite, public VMTest {
 public:
+  Dispatch null_dispatch;
 
   void setUp() {
     create();
@@ -135,7 +136,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(out->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), 6);
@@ -160,7 +161,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<String>(out));
   }
@@ -182,7 +183,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Fixnum>(out));
     TS_ASSERT_EQUALS(as<Fixnum>(out)->to_native(), 13);
@@ -205,7 +206,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Fixnum>(out));
     TS_ASSERT_EQUALS(as<Fixnum>(out)->to_native(), 13);
@@ -228,7 +229,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Fixnum>(out));
     TS_ASSERT_EQUALS(as<Fixnum>(out)->to_native(), 13);
@@ -251,7 +252,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Fixnum>(out));
 
@@ -260,7 +261,7 @@ public:
 
     Arguments args_obj2(input);
 
-    out = func->call(state, args_obj2, NULL);
+    out = func->call(state, args_obj2, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Fixnum>(out));
     TS_ASSERT_EQUALS(out, Fixnum::from(0));
@@ -283,7 +284,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -293,7 +294,7 @@ public:
 
     Arguments args_obj2(input);
 
-    out = func->call(state, args_obj2, NULL);
+    out = func->call(state, args_obj2, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)2147483647);
@@ -316,7 +317,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -326,7 +327,7 @@ public:
 
     Arguments args_obj2(input);
 
-    out = func->call(state, args_obj2, NULL);
+    out = func->call(state, args_obj2, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)2147483647);
@@ -349,7 +350,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -359,7 +360,7 @@ public:
 
     Arguments args_obj2(input);
 
-    out = func->call(state, args_obj2, NULL);
+    out = func->call(state, args_obj2, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)2147483647);
@@ -382,7 +383,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -392,7 +393,7 @@ public:
 
     Arguments args_obj2(input);
 
-    out = func->call(state, args_obj2, NULL);
+    out = func->call(state, args_obj2, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)2147483647);
@@ -415,7 +416,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -425,7 +426,7 @@ public:
 
     Arguments args_obj2(input);
 
-    out = func->call(state, args_obj2, NULL);
+    out = func->call(state, args_obj2, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Bignum>(out));
     TS_ASSERT_EQUALS(as<Bignum>(out)->to_long_long(), 9223372036854775807LL);
@@ -448,7 +449,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -458,7 +459,7 @@ public:
 
     Arguments args_obj2(input);
 
-    out = func->call(state, args_obj2, NULL);
+    out = func->call(state, args_obj2, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Bignum>(out));
     TS_ASSERT_EQUALS(as<Bignum>(out)->to_ulong_long(), 9223372036854775808ULL);
@@ -477,7 +478,7 @@ public:
 
     Arguments args_obj;
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT_EQUALS(out, Qnil);
   }
@@ -503,7 +504,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Pointer>(out));
     TS_ASSERT_EQUALS(as<Pointer>(out)->pointer, ptr->pointer);
@@ -513,7 +514,7 @@ public:
 
     Arguments args_obj2(input);
 
-    out = func->call(state, args_obj2, NULL);
+    out = func->call(state, args_obj2, null_dispatch, NULL);
 
     TS_ASSERT_EQUALS(out, Qnil);
   }
@@ -535,7 +536,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Float>(out));
     TS_ASSERT(as<Float>(out)->val > 13.19);
@@ -559,7 +560,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Float>(out));
     TS_ASSERT_EQUALS(as<Float>(out)->val, 13.2);
@@ -582,7 +583,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<String>(out));
     TS_ASSERT_EQUALS(as<String>(out)->c_str(), std::string("whatever"));
@@ -592,7 +593,7 @@ public:
 
     Arguments args_obj2(input);
 
-    out = func->call(state, args_obj2, NULL);
+    out = func->call(state, args_obj2, null_dispatch, NULL);
 
     TS_ASSERT_EQUALS(out, Qnil);
   }
@@ -610,7 +611,7 @@ public:
 
     Arguments args_obj;
 
-    Array* out = try_as<Array>(func->call(state, args_obj, NULL));
+    Array* out = try_as<Array>(func->call(state, args_obj, null_dispatch, NULL));
 
     TS_ASSERT(kind_of<Array>(out));
 
@@ -636,7 +637,7 @@ public:
 
     Arguments args_obj;
 
-    Array* out = try_as<Array>(func->call(state, args_obj, NULL));
+    Array* out = try_as<Array>(func->call(state, args_obj, null_dispatch, NULL));
 
     TS_ASSERT(kind_of<Array>(out));
 
@@ -662,7 +663,7 @@ public:
 
     Arguments args_obj(input);
 
-    Object* out = func->call(state, args_obj, NULL);
+    Object* out = func->call(state, args_obj, null_dispatch, NULL);
 
     TS_ASSERT(kind_of<Object>(out));
     TS_ASSERT_EQUALS(out, obj);
@@ -672,31 +673,9 @@ public:
 
     Arguments args_obj2(input);
 
-    out = func->call(state, args_obj2, NULL);
+    out = func->call(state, args_obj2, null_dispatch, NULL);
 
     TS_ASSERT_EQUALS(out, Qnil);
-  }
-
-  void test_bind_with_state() {
-    global_state = state;
-
-    Pointer* name = Pointer::create(state, (void*)dummy_state);
-
-    Array* args = Array::create(state, 1);
-    args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_STATE));
-
-    Object* ret = Fixnum::from(RBX_FFI_TYPE_INT);
-
-    NativeFunction *func = NativeFunction::generate(state, name, state->symbol("ffi"), args, ret);
-
-    TS_ASSERT(!func->nil_p());
-
-    Arguments args_obj;
-
-    Object* out = func->call(state, args_obj, NULL);
-
-    TS_ASSERT(kind_of<Fixnum>(out));
-    TS_ASSERT(as<Fixnum>(out)->to_native());
   }
 
 };

@@ -250,6 +250,9 @@ namespace rubinius {
     case RBX_FFI_TYPE_UCHAR:
       ret = Fixnum::from((unsigned int)(READ(unsigned char)));
       break;
+    case RBX_FFI_TYPE_BOOL:
+      ret = (READ(unsigned char)) ? Qtrue : Qfalse;
+      break;
     case RBX_FFI_TYPE_SHORT:
       ret = Fixnum::from((int)(READ(short)));
       break;
@@ -350,6 +353,9 @@ namespace rubinius {
     case RBX_FFI_TYPE_UCHAR:
       type_assert(state, val, FixnumType, "converting to unsigned char");
       WRITE(unsigned char, as<Fixnum>(val)->to_native());
+      break;
+    case RBX_FFI_TYPE_BOOL:
+      WRITE(unsigned char, RTEST(val) ? 1 : 0);
       break;
     case RBX_FFI_TYPE_SHORT:
       type_assert(state, val, FixnumType, "converting to short");
