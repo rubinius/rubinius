@@ -331,6 +331,18 @@ describe :kernel_require, :shared => true do
       ScratchPad.recorded.should == []
     end
 
+    it "respects being replaced with a new array" do
+      prev = $LOADED_FEATURES.dup
+
+      @object.require(@path).should be_true
+      $LOADED_FEATURES.should == [@path]
+
+      $LOADED_FEATURES.replace(prev)
+
+      @object.require(@path).should be_true
+      $LOADED_FEATURES.should == [@path]
+    end
+
     describe "when a non-extensioned file is in $LOADED_FEATURES" do
       before :each do
         $LOADED_FEATURES << "load_fixture"
