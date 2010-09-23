@@ -16,8 +16,8 @@ Rubinius uses the BSD license. See LICENSE for details.
 
 3. Installing Rubinius
 
-Rubinius runs on Mac OS X and many Unix/Linxu operating systems. Support for
-Mircosoft Windows is coming soon.
+Rubinius runs on Mac OS X and many Unix/Linux operating systems. Support for
+Microsoft Windows is coming soon.
 
 To install Rubinius, use the following steps. For more information about
 building and running Rubinius, see doc/getting_started.txt.
