@@ -10,12 +10,9 @@
     <div id="main">
       <h1 id="profiling">Profiling</h1>
 
-<p>Rubinius has both an instrumenting profiler and a sampling profiler. (TODO:
-The sampling profiler has Ruby code left over from shotgun but no VM support
-code yet in the C++ VM.) An instrumenting profiler inserts or uses code around
-every call. Calls can be to regular Ruby methods, Procs, blocks, FFI
-functions, and native C-API functions. A sampling profiler takes a snapshot of
-what method is executing at regular intervals.</p>
+<p>Rubinius has an instrumenting profiler that provides precise timing for all
+methods that are run. The profiler is implemented at the VM level and the data
+is provided for Ruby code to process.</p>
 
 <h2 id="">VM Profiler</h2>
 
