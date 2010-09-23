@@ -15,7 +15,7 @@ namespace :doc do
   desc "Generate static documentation site"
   task :site do
     STDERR.puts "You must have nanoc3 and kramdown installed"
-    Dir.chdir File.expand_path("../../doc-src", __FILE__) do
+    Dir.chdir File.expand_path("../../doc", __FILE__) do
       sh "#{File.expand_path('../../bin', __FILE__)}/rbx -S nanoc3 compile"
     end
   end
