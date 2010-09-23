@@ -3,7 +3,10 @@
 Rubinius is an implementation of the Ruby programming language. Rubinius
 includes a bytecode virtual machine, parser, bytecode compiler, garbage
 collector, JIT native machine code compiler, and Ruby core and standard
-libraries. Rubinius currently implements Ruby version 1.8.7.
+libraries.
+
+Rubinius currently is compatible with Ruby version 1.8.7. Support for Ruby
+version 1.9.2 is coming soon.
 
 
 2. License
@@ -13,8 +16,8 @@ Rubinius uses the BSD license. See LICENSE for details.
 
 3. Installing Rubinius
 
-Rubinius runs on many *nix operating systems. Rubinius does not yet run on
-Microsoft Windows.
+Rubinius runs on Mac OS X and many Unix/Linxu operating systems. Support for
+Mircosoft Windows is coming soon.
 
 To install Rubinius, use the following steps. For more information about
 building and running Rubinius, see doc/getting_started.txt.
@@ -25,20 +28,18 @@ and git installed.
   1. git clone git://github.com/evanphx/rubinius.git
   2. cd rubinius
   3. ./configure --prefix=/path/to/install/dir
-        OR if you have LLVM installed
-     ./configure --skip-system --prefix=/path/to/install/dir
   4. rake install
   5. Add /path/to/install/dir/bin to your PATH
-  6. Run rbx some_script.rb or just rbx to launch irb.
+  6. Run 'rbx some_script.rb' or just 'rbx' to launch IRB.
 
 
-4. Version 1.0
+4. Version 1.1
 
 Rubinius has been under development as a public open-source project since
 November 2006. Rubinius development is sponsored by Engine Yard, Inc. and
 assisted by the generous work of over 100 contributors.
 
-At version 1.0, Rubinius is significantly feature-complete. It is expected
+At version 1.1, Rubinius is significantly feature-complete. It is expected
 that your Ruby code will run correctly. Additionally, many MRI C extensions
 are expected to work, as long as they do not depend on MRI-specific object
 internals or the MRI interpreter internals.
@@ -67,9 +68,11 @@ improves, overall performance of your code under Rubinius will improve.
 6. Tickets
 
 Please file tickets for bugs or problems that you encounter. The issue tracker
-is: http://github.com/evanphx/rubinius/issues. See doc/howto/write_a_ticket.txt
+is: http://github.com/evanphx/rubinius/issues. For more documentation, build
+Rubinius and run the 'rbx docs' command.
 
 
 7. Contributing
 
-The Rubinius team welcomes contributions. See doc/contributing.txt.
+The Rubinius team welcomes contributions. Run 'rbx docs' and see the
+"Contributing" page.
