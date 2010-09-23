@@ -535,6 +535,25 @@ containing the Rubinius standard library files.
       Process.exit! @exit_code
     end
 
+    def write_last_error(e)
+      unless path = Config['vm.crash_report_path']
+        path = "#{ENV['HOME']}/.rubinius_last_error"
+      end
+
+      File.open(path, "w") do |f|
+        f.puts "Rubinius Crash Report #rbxcrashreport"
+        f.puts ""
+        f.puts "[[Exception]]"
+        e.render("A toplevel exception occurred", f, false)
+
+        f.puts ""
+        f.puts "[[Version]]"
+        f.puts Rubinius.version
+      end
+    rescue Errno::EACCESS
+      # Ignore writing the last error report
+    end
+
     # Orchestrate everything.
     def main
       begin
@@ -564,6 +583,7 @@ containing the Rubinius standard library files.
           @exit_code = 1
 
         rescue Object => e
+          write_last_error(e)
           e.render "An exception occurred #{@stage}"
           @exit_code = 1
         end
