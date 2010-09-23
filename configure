@@ -480,7 +480,7 @@ class Configure
         yield f
       end
 
-      `#{@compiler} #{env('CFLAGS')} -lstdc++ -o #{basename} #{source} 2>&1`
+      `#{@compiler} #{env('CFLAGS')} -lstdc++ -lm -o #{basename} #{source} 2>&1`
       return $?.exitstatus unless run
 
       unless $?.exitstatus == 0
