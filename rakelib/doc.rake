@@ -12,6 +12,13 @@ namespace :doc do
   desc "Delete all generated documentation"
   task :clean => %w[doc:doxygen:clean doc:opcode:clean]
 
+  desc "Generate static documentation site"
+  task :site do
+    STDERR.puts "You must have nanoc3 and kramdown installed"
+    Dir.chdir File.expand_path("../../doc-src", __FILE__) do
+      sh "#{File.expand_path('../../bin', __FILE__)}/rbx -S nanoc3 compile"
+    end
+  end
 
   # TODO: rename task to :vm and make it a dependency for doc:build.
   namespace :doxygen do
