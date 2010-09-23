@@ -1,7 +1,0 @@
-Components:
- * CompiledMethod
- * VMMethod
- * Task
-
-VMMethod contains vmcode as bytecode.
-
