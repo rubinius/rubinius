@@ -26,6 +26,7 @@ code {
   left: 330px;
 
   width: 600px;
+  padding-bottom: 2em;
 }
 
 #main h1 {
@@ -85,13 +86,18 @@ code {
 
 #sidebar h2 {
   text-transform: uppercase;
-
-  font-size: 13px;
-
+  font-size: 1em;
   color: #333;
-
   letter-spacing: 1px;
+  line-height: 2em;
+}
 
+#sidebar h3 {
+  text-transform: uppercase;
+  font-size: 0.8em;
+  color: #333;
+  letter-spacing: 1px;
+  margin: 0.8em 0;
   line-height: 20px;
 }
 

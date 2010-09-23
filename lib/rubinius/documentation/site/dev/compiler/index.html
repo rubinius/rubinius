@@ -1,0 +1,111 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rubinius Documentation - Bytecode Compiler</title>
+    <link rel="stylesheet" type="text/css" href="/stylesheet.css" media="screen">
+    <meta name="generator" content="nanoc 3.1.5">
+  </head>
+  <body>
+    <div id="main">
+      <h1 id="bytecode-compiler">Bytecode Compiler</h1>
+
+<p>The Rubinius bytecode compiler converts Ruby source code to bytecode that the
+virtual machine can execute.</p>
+
+<h2 id="">Parser</h2>
+
+<p>The parser is a C extension named melbourne. It is basically the parser from
+MRI wrapped up in a way that can be used in Rubinius. The parser converts Ruby
+source code to an internal parse tree of nodes. The parse tree is processed by
+calling a Ruby method for each node. The processor is in
+lib/melbourne/processor.rb. The methods in the processor create Ruby objects
+that are nodes in an abstract syntax tree (AST). The AST is processed to
+generate bytecode.</p>
+
+<h2 id="">Compiler</h2>
+
+<p>The bytecode compiler walks the AST produced by the parser and emits bytecode
+for each node. The source for the compiler is in lib/compiler.</p>
+
+<p>TODO: document the compiler.</p>
+
+<h2 id="">Compiler Transforms</h2>
+
+<p>The bytecode compiler has a simple AST transform mechanism that recognizes
+certain AST forms and replaces them. The replaced forms emit different
+bytecode than the original form would have emitted. The source for the
+transforms is in lib/compiler/ast/transforms.rb</p>
+
+<p>TODO: document the compiler plugin architecture.</p>
+
+<h3 id="">Safe Math Compiler Transform</h3>
+
+<p>Since the core libraries are built of the same blocks as any other Ruby code
+and since Ruby is a dynamic language with open classes and late binding, it is
+possible to change fundamental classes like Fixnum in ways that violate the
+semantics that other classes depend on. For example, imagine we did the
+following:</p>
+
+<p>class Fixnum</p>
+<pre><code>def +(other)
+  (self + other) % 5
+end
+</code></pre>
+<p>end</p>
+
+<p>While it is certainly possible to redefine fixed point arithmetic plus to be
+modulo 5, doing so will certainly cause some class like Array to be unable to
+calculate the correct length when it needs to. The dynamic nature of Ruby is
+one of its cherished features but it is also truly a double-edged sword in
+some respects.</p>
+
+<p>In the standard library the &lsquo;mathn&rsquo; library redefines Fixnum#/ in an unsafe
+and incompatible manner. The library aliases Fixnum#/ to Fixnum#quo, which
+returns a Float by default.</p>
+
+<p>Because of this there is a special compiler plugin that emits a different
+method name when it encounters the #/ method. The compiler emits #divide
+instead of #/. The numeric classes Fixnum, Bignum, Float, and Numeric all
+define this method.</p>
+
+<p>The safe math transform is enabled during the compilation of the Core
+libraries to enable the plugin. During regular &lsquo;user code&rsquo; compilation, the
+plugin is not enabled. This enables us to support mathn without breaking the
+core libraries or forcing inconvenient practices.</p>
+
+    </div>
+
+    <div id="sidebar">
+      <h2>Table of Contents</h2>
+      <ul>
+<li><a href="/">What is Rubinius</a></li>
+<li><a href="/getting_started/">Getting Started</a></li>
+<li><a href="/common_problems/">Common Problems</a></li>
+<li><a href="/contributing/">Contributing</a></li>
+</ul>
+<h3>Tools</h3>
+<ul>
+<li><a href="/tools/profiler/">Profiler</a></li>
+<li><a href="/tools/debugger/">Debugger</a></li>
+</ul>
+<h3>Developing</h3>
+<ul>
+<li><a href="/dev/specs/">Specs</a></li>
+<li><a href="/dev/build_system/">Build System</a></li>
+<li><a href="/dev/bootstrapping/">Bootstrapping</a></li>
+<li><span class="active" title="You're here.">Bytecode Compiler</span></li>
+<li><a href="/dev/style_guide/">Style Guide</a></li>
+<li><a href="/dev/reading_list/">Reading List</a></li>
+<li><a href="/glossary/">Glossary</a></li>
+</ul>
+<h3>Howto</h3>
+<ul>
+<li><a href="/howto/write_a_ticket/">Write a Ticket</a></li>
+<li><a href="/howto/write_a_ruby_spec/">Write a Ruby spec</a></li>
+<li><a href="/howto/fix_a_failing_spec/">Fix a Failing Spec</a></li>
+</ul>
+
+    </div>
+  </body>
+</html>
