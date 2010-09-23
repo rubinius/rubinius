@@ -1,3 +1,8 @@
+class NativeFunction
+  attr_accessor :return_type
+  attr_accessor :argument_types
+end
+
 module FFI
   def self.generate_function(ptr, name, args, ret)
     Ruby.primitive :nativefunction_generate
@@ -135,6 +140,9 @@ module FFI
       args = params.map { |x| find_type(x) }
 
       func, ptr = FFI.generate_trampoline(nil, :ffi_tramp, args, find_type(ret))
+
+      func.argument_types = params
+      func.return_type = ret
 
       if name
         @ffi_callbacks ||= {}
