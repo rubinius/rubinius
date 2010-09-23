@@ -20,7 +20,7 @@ compile '*' do
 end
 
 route '/stylesheet/' do
-  '/style.css'
+  '/stylesheet.css'
 end
 
 route '*' do
