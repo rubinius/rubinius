@@ -7,6 +7,8 @@ describe :float_modulo, :shared => true do
     6543.21.send(@method, 137).should be_close(6543.21.%(137), TOLERANCE)
     5667.19.send(@method, bignum_value).should be_close(5667.19.%(0xffffffff), TOLERANCE)
     6543.21.send(@method, 137.24).should be_close(6543.21.%(137.24), TOLERANCE)
+
+    -1.0.send(@method, 1).should == 0
   end
 
   ruby_version_is ""..."1.9" do

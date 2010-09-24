@@ -32,4 +32,12 @@ extern "C" {
 
     return rb_funcall(rb_cStruct, rb_intern("make_struct"), 2, nm, env->get_handle(array));
   }
+
+  VALUE rb_struct_aref(VALUE struct_handle, VALUE key) {
+    return rb_funcall(struct_handle, rb_intern("[]"), 1, key);
+  }
+
+  VALUE rb_struct_aset(VALUE struct_handle, VALUE key, VALUE value) {
+    return rb_funcall(struct_handle, rb_intern("[]="), 2, key, value);
+  }
 }

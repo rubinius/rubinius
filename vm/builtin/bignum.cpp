@@ -395,6 +395,10 @@ namespace rubinius {
     return out;
   }
 
+  bool Bignum::positive_p() {
+    return mp_val()->sign != MP_NEG;
+  }
+
   Integer* Bignum::normalize(STATE, Bignum* b) {
     mp_clamp(b->mp_val());
 

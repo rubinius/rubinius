@@ -768,7 +768,7 @@ namespace rubinius {
       sig.call("rbx_jit_debug_spot", call_args, 1, "", b());
     }
 
-    virtual void check_for_exception(llvm::Value* val) = 0;
+    virtual void check_for_exception(llvm::Value* val, bool pass_top=true) = 0;
     virtual void propagate_exception() = 0;
   };
 }

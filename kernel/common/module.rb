@@ -319,9 +319,9 @@ class Module
       cm = Rubinius::DelegatedMethod.new(name, :call, meth, false)
     when Proc
       be = meth.block.dup
-      meth = be.method.change_name name.to_sym
-      be.method = meth
+      be.method = be.method.change_name name.to_sym
       cm = Rubinius::BlockEnvironment::AsMethod.new(be)
+      meth = lambda(&meth)
     when Method
       cm = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth.unbind, true)
     when UnboundMethod

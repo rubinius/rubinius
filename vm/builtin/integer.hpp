@@ -28,8 +28,11 @@ namespace rubinius {
     static Integer* from(STATE, long long i);
     static Integer* from(STATE, unsigned long long i);
 
+    long                to_long();
     long long           to_long_long();
     unsigned long long  to_ulong_long();
+
+    bool positive_p();
 
     native_int slow_to_native();
     native_int to_native() {

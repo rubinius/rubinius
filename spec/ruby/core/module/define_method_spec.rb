@@ -142,4 +142,15 @@ describe "Module#define_method" do
   it "is private" do
     Module.should have_private_instance_method(:define_method)
   end
+  
+  it "returns a Proc" do
+    class DefineMethodSpecClass
+      method = define_method("return_test") { || true }
+      method.is_a?(Proc).should be_true
+      # check if it is a lambda:
+      lambda {
+        method.call :too_many_arguments
+      }.should raise_error(ArgumentError)
+    end
+  end
 end

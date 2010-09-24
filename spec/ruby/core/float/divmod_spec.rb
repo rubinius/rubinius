@@ -11,6 +11,9 @@ describe "Float#divmod" do
     values = -1.0.divmod(bignum_value)
     values[0].should == -1
     values[1].should be_close(9223372036854775808.000, TOLERANCE)
+    values = -1.0.divmod(1)
+    values[0].should == -1
+    values[1].should == 0
   end
 
   # Behaviour established as correct in r23953

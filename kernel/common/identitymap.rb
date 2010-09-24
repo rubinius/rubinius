@@ -1,4 +1,4 @@
-class Array
+module Rubinius
 
   # IdentityMap is customized for uniquely storing elements from an Array to
   # implement the following Array methods: #&, #|, #-, #uniq, and #uniq!
@@ -10,151 +10,285 @@ class Array
   # Methods are provided to test an element for inclusion in the map and to
   # delete an entry from the map. The contents of a map can be returned as an
   # array in the order the elements were added to the map.
+
   class IdentityMap
     attr_reader :size
-    attr_reader :capacity
 
-    Table = Rubinius::Tuple
+    Row = Table = Rubinius::Tuple
     MIN_CAPACITY = 64
+    MIN_ROW = 10
+    ROW_GROWTH = 9
 
-    def initialize(array, extra=0, capacity=MIN_CAPACITY)
-      size = array.size + extra
-      while capacity < size
-        capacity <<= 1
+    # Converts one or more Enumerable instances to a single IdentityMap
+    def self.from(*arrays)
+      im = allocate
+      Rubinius.privately { im.load arrays }
+      im
+    end
+
+    def initialize
+      capacity = MIN_CAPACITY
+      @table = Table.new capacity
+      @mask = capacity - 4
+      @max = capacity
+      @size = 0
+    end
+
+    # Adds +item+ to the IdentityMap if it does not already exist. May cause
+    # a row to be added or enlarged. Returns +self+.
+    def insert(item)
+      redistribute if @size > @max
+
+      item_hash = item.hash
+      index = item_hash & @mask
+      table = @table
+
+      if num_entries = table[index]
+        index += 1
+
+        if num_entries == 1
+          return self if match? table, index, item, item_hash
+
+          table[index-1] = 2
+          table[index] = promote_row table, index, item, item_hash, @size
+        else
+          i = 1
+          row = table[index]
+          total = row[0]
+
+          while i < total
+            return self if match? row, i, item, item_hash
+            i += 3
+          end
+
+          if total == row.size
+            table[index] = enlarge_row row, item, item_hash, @size
+          else
+            i = row[0]
+            set_item row, i, item, item_hash, @size
+            row[0] = i + 3
+          end
+        end
+      else
+        table[index] = 1
+        set_item table, index+1, item, item_hash, @size
       end
-      capacity <<= 3
+      @size += 1
 
-      @table    = Table.new capacity
-      @mask     = capacity - 4
-      @size     = 0
-      @spill    = []
-      @capacity = capacity
-
-      load array
+      self
     end
 
-    def match?(table, index, item_hash, item)
-      item_hash == table[index] and item.eql? table[index+1]
-    end
-    private :match?
-
-    # Returns true if +item+ matches any entry in the map.
+    # Returns +true+ if +item+ is in the IdentityMap, +false+ otherwise.
     def include?(item)
       item_hash = item.hash
 
       index = item_hash & @mask
-      return true if match? @table, index, item_hash, item
+      table = @table
+      if num_entries = table[index]
+        index += 1
 
-      index = item_hash.hash & @mask
-      return true if match? @table, index, item_hash, item
-
-      return false if @spill.empty?
-
-      i = @spill.to_iter 3
-      while i.next
-        return true if match? @spill, i.index, item_hash, item
+        if num_entries == 1
+          return true if match? table, index, item, item_hash
+        else
+          row = table[index]
+          i = 1
+          total = row[0]
+          while i < total
+            return true if match? row, i, item, item_hash
+            i += 3
+          end
+        end
       end
 
       false
     end
 
-    def delete_entry(table, index, item_hash, item)
-      if match? table, index, item_hash, item
-        table[index] = nil
-        @size -= 1
-        return true
-      end
-
-      false
-    end
-    private :delete_entry
-
-    # If +item+ matches an entry, deletes the entry from the table and returns
-    # true, otherwise returns false.
+    # If +item+ is in the IdentityMap, removes it and returns +true+.
+    # Otherwise, returns +false+.
     def delete(item)
       item_hash = item.hash
 
       index = item_hash & @mask
-      return true if delete_entry @table, index, item_hash, item
+      table = @table
 
-      index = item_hash.hash & @mask
-      return true if delete_entry @table, index, item_hash, item
-
-      return false if @spill.empty?
-
-      i = @spill.to_iter 3
-      while i.next
-        return true if delete_entry @spill, i.index, item_hash, item
+      if num_entries = table[index]
+        index += 1
+        if num_entries == 1
+          if match? table, index, item, item_hash
+            table[index] = nil
+            @size -= 1
+            return true
+          end
+        else
+          row = table[index]
+          i = 1
+          total = row[0]
+          while i < total
+            if match? row, i, item, item_hash
+              row[i] = nil
+              @size -= 1
+              return true
+            end
+            i += 3
+          end
+        end
       end
 
       false
     end
 
-    def insert(item)
-      key_hash = item.hash
-
-      index = key_hash & @mask
-      if hash = @table[index]
-        return if hash == key_hash and item.eql? @table[index+1]
-
-        index = key_hash.hash & @mask
-        if hash = @table[index]
-          unless hash == key_hash and item.eql? @table[index+1]
-            unless @spill.empty?
-              i = @spill.to_iter 3
-              while i.next
-                return if i.item == key_hash and item.eql? i.at(1)
-              end
-            end
-
-            @spill << key_hash << item << @size
-            @size += 1
-          end
-
-          return
-        end
-      end
-
-      @table[index]   = key_hash
-      @table[index+1] = item
-      @table[index+2] = @size
-      @size += 1
-    end
-
-    # Addes each element of +array+ to the map. If an element of +array+ is
-    # already in the map, the element is not added.
-    def load(array)
-      i = array.to_iter
-      while i.next
-        insert i.item
-      end
-    end
-
-    # Returns an Array containing every entry in the map. If passed +array+,
-    # the contents will be replaced with the entries in the map. The size of
-    # the passed array MUST be at least the size of the map.
-    def to_array(array=nil)
-      if array
-        array.start = 0
-        array.total = @size
-      else
-        array = Array.new @size
-      end
+    # Returns an Array containing all items in the IdentityMap in the order
+    # in which they were added to the IdentityMap.
+    def to_array
+      array = Array.new @size
 
       i = 0
-      while i < @capacity
-        array[@table[i+2]] = @table[i+1] if @table[i]
-        i += 4
-      end
+      table = @table
+      total = table.size
 
-      unless @spill.empty?
-        i = @spill.to_iter 3
-        while i.next
-          array[i.at(2)] = i.at(1) if i.item
+      while i < total
+        if num_entries = table[i]
+          if num_entries == 1
+            array[table[i+3]] = table[i+2] if table[i+1]
+          else
+            row = table[i+1]
+            k = row[0]
+            j = 1
+            while j < k
+              array[row[j+2]] = row[j+1] if row[j]
+              j += 3
+            end
+          end
         end
+
+        i += 4
       end
 
       array
     end
+
+    # Private implementation methods
+
+    def resize(total)
+      capacity = MIN_CAPACITY
+      while capacity < total
+        capacity <<= 2
+      end
+
+      @table = Table.new capacity
+      @mask = capacity - 4
+      @max = capacity
+    end
+    private :resize
+
+    def redistribute
+      table = @table
+      resize @size
+
+      i = 0
+      total = table.size
+
+      while i < total
+        if num_entries = table[i]
+          if num_entries == 1
+            if item_hash = table[i+1]
+              add_item table[i+2], item_hash, table[i+3]
+            end
+          else
+            row = table[i+1]
+            k = row[0]
+            j = 1
+            while j < k
+              if item_hash = row[j]
+                add_item row[j+1], item_hash, row[j+2]
+              end
+              j += 3
+            end
+          end
+        end
+
+        i += 4
+      end
+    end
+    private :redistribute
+
+    def add_item(item, item_hash, ordinal)
+      index = item_hash & @mask
+      table = @table
+
+      if num_entries = table[index]
+        index += 1
+
+        if num_entries == 1
+          table[index-1] = 2
+          table[index] = promote_row table, index, item, item_hash, ordinal
+        else
+          row = table[index]
+          i = row[0]
+
+          if i == row.size
+            table[index] = enlarge_row row, item, item_hash, ordinal
+          else
+            set_item row, i, item, item_hash, ordinal
+            row[0] = i + 3
+          end
+        end
+      else
+        table[index] = 1
+        set_item table, index+1, item, item_hash, ordinal
+      end
+    end
+    private :add_item
+
+    # Given an Array of Enumerable instances, computes a bounding set
+    # to contain them and then adds each item to the IdentityMap.
+    def load(arrays)
+      resize(arrays.inject(0) { |sum, array| sum + array.size })
+      @size = 0
+
+      arrays.each do |array|
+        array.each { |item| insert item }
+      end
+    end
+    private :load
+
+    def match?(table, index, item, item_hash)
+      table[index] == item_hash and item.eql? table[index+1]
+    end
+    private :match?
+
+    def set_item(table, index, item, item_hash, ordinal)
+      table[index]   = item_hash
+      table[index+1] = item
+      table[index+2] = ordinal
+    end
+    private :set_item
+
+    def promote_row(row, index, item, item_hash, ordinal)
+      new_row = Row.new MIN_ROW
+
+      new_row[0] = 7
+      new_row[1] = row[index]
+      new_row[2] = row[index+1]
+      new_row[3] = row[index+2]
+      new_row[4] = item_hash
+      new_row[5] = item
+      new_row[6] = ordinal
+
+      new_row
+    end
+    private :promote_row
+
+    def enlarge_row(row, item, item_hash, ordinal)
+      new_row = Row.new row.size + ROW_GROWTH
+      new_row.copy_from row, 1, row.size-1, 1
+
+      index = row[0]
+      new_row[0] = index + 3
+      set_item new_row, index, item, item_hash, ordinal
+
+      new_row
+    end
+    private :enlarge_row
   end
 end

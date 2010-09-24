@@ -127,4 +127,12 @@ extern "C" {
 
     return big->size(env->state())->to_native();
   }
+
+  int rb_big_sign(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Bignum* big = c_as<Bignum>(env->get_object(obj));
+
+    return big->mp_val()->sign != MP_NEG;
+  }
 }

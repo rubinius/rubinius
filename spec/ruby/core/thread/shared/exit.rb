@@ -84,7 +84,9 @@ describe :thread_exit, :shared => true do
       ScratchPad.recorded.should == :after_stop
     end
   end
-  
+
+  # This spec is a mess. It fails randomly, it hangs on MRI, it needs to be removed
+  quarantine! do
   it "killing dying running does nothing" do
     in_ensure_clause = false
     exit_loop = true
@@ -93,12 +95,13 @@ describe :thread_exit, :shared => true do
       loop { if exit_loop then break end }
       ScratchPad.record :after_stop
     end
-    
+
     Thread.pass until in_ensure_clause == true
     10.times { t.send(@method); Thread.pass }
     exit_loop = true
     t.join
     ScratchPad.recorded.should == :after_stop
+  end
   end
 
   quarantine! do

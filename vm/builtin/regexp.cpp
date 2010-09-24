@@ -109,7 +109,7 @@ namespace rubinius {
     state = gd->state;
 
     gn = group_nums[0];
-    tbl->store(state, state->symbol((char*)name), Integer::from(state, gn - 1));
+    tbl->store(state, state->symbol((char*)name), Fixnum::from(gn - 1));
     return 0;
   }
 
@@ -240,7 +240,7 @@ namespace rubinius {
   /*
    * This is a primitive so #initialize_copy can work.
    */
-  Regexp* Regexp::initialize(STATE, String* pattern, Integer* options,
+  Regexp* Regexp::initialize(STATE, String* pattern, Fixnum* options,
                              Object* lang) {
     const UChar *pat;
     const UChar *end;
@@ -307,7 +307,7 @@ namespace rubinius {
     return re;
   }
 
-  Object* Regexp::options(STATE) {
+  Fixnum* Regexp::options(STATE) {
     regex_t*       reg;
 
     reg    = onig_data;
@@ -318,36 +318,34 @@ namespace rubinius {
       result |= get_kcode_from_enc(onig_get_encoding(reg));
     }
 
-    return Integer::from(state, result);
+    return Fixnum::from(result);
   }
 
-  static Tuple* _md_region_to_tuple(STATE, OnigRegion *region, int max) {
-    int i;
-    Tuple* sub;
+  static Tuple* _md_region_to_tuple(STATE, OnigRegion *region, int pos) {
     Tuple* tup = Tuple::create(state, region->num_regs - 1);
-    for(i = 1; i < region->num_regs; i++) {
-      sub = Tuple::from(state, 2,
-			                  Integer::from(state, region->beg[i]),
-			                  Integer::from(state, region->end[i]));
+    for(int i = 1; i < region->num_regs; i++) {
+      Tuple* sub = Tuple::from(state, 2,
+                               Fixnum::from(region->beg[i] + pos),
+                               Fixnum::from(region->end[i] + pos));
       tup->put(state, i - 1, sub);
     }
     return tup;
   }
 
-  static Object* get_match_data(STATE, OnigRegion *region, String* string, Regexp* regexp, int max) {
+  static Object* get_match_data(STATE, OnigRegion *region, String* string, Regexp* regexp, int pos) {
     MatchData* md = state->new_object<MatchData>(G(matchdata));
     md->source(state, string->string_dup(state));
     md->regexp(state, regexp);
     Tuple* tup = Tuple::from(state, 2,
-			     Integer::from(state, region->beg[0]),
-			     Integer::from(state, region->end[0]));
+                             Fixnum::from(region->beg[0] + pos),
+                             Fixnum::from(region->end[0] + pos));
     md->full(state, tup);
-    md->region(state, _md_region_to_tuple(state, region, max));
+    md->region(state, _md_region_to_tuple(state, region, pos));
     return md;
   }
 
-  Object* Regexp::match_region(STATE, String* string, Integer* start,
-                               Integer* end, Object* forward)
+  Object* Regexp::match_region(STATE, String* string, Fixnum* start,
+                               Fixnum* end, Object* forward)
   {
     int beg, max;
     const UChar *str;
@@ -380,7 +378,7 @@ namespace rubinius {
     // Seems like onig must setup int_map_backward lazily, so we have to watch
     // for it to appear here.
     if(onig_data->int_map_backward != back_match) {
-      size_t size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
+      native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
       ByteArray* ba = ByteArray::create(state, size);
       memcpy(ba->raw_bytes(), onig_data->int_map_backward, size);
 
@@ -398,14 +396,15 @@ namespace rubinius {
       return Qnil;
     }
 
-    md = get_match_data(state, region, string, this, max);
+    md = get_match_data(state, region, string, this, 0);
     onig_region_free(region, 1);
     return md;
   }
 
-  Object* Regexp::match_start(STATE, String* string, Integer* start) {
+  Object* Regexp::match_start(STATE, String* string, Fixnum* start) {
     int beg, max;
     const UChar *str;
+    const UChar *fin;
     OnigRegion *region;
     Object* md = Qnil;
 
@@ -415,17 +414,22 @@ namespace rubinius {
     region = onig_region_new();
 
     max = string->size();
+    native_int pos = start->to_native();
+
     str = (UChar*)string->c_str();
+    fin = str + max;
+
+    str += pos;
 
     int* back_match = onig_data->int_map_backward;
 
-    beg = onig_match(onig_data, str, str + max, str + start->to_native(), region,
+    beg = onig_match(onig_data, str, fin, str, region,
                      ONIG_OPTION_NONE);
 
     // Seems like onig must setup int_map_backward lazily, so we have to watch
     // for it to appear here.
     if(onig_data->int_map_backward != back_match) {
-      size_t size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
+      native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
       ByteArray* ba = ByteArray::create(state, size);
       memcpy(ba->raw_bytes(), onig_data->int_map_backward, size);
 
@@ -438,7 +442,7 @@ namespace rubinius {
     }
 
     if(beg != ONIG_MISMATCH) {
-      md = get_match_data(state, region, string, this, max);
+      md = get_match_data(state, region, string, this, pos);
     }
 
     onig_region_free(region, 1);
@@ -446,11 +450,11 @@ namespace rubinius {
   }
 
   String* MatchData::matched_string(STATE) {
-    Integer* beg = try_as<Integer>(full_->at(state, 0));
-    Integer* fin = try_as<Integer>(full_->at(state, 1));
+    Fixnum* beg = try_as<Fixnum>(full_->at(state, 0));
+    Fixnum* fin = try_as<Fixnum>(full_->at(state, 1));
 
     if(!beg || !fin ||
-        (size_t)fin->to_native() > source_->size() ||
+        fin->to_native() > source_->size() ||
         beg->to_native() < 0) {
       return String::create(state, 0, 0);
     }
@@ -462,7 +466,7 @@ namespace rubinius {
   }
 
   String* MatchData::pre_matched(STATE) {
-    Integer* beg = try_as<Integer>(full_->at(state, 0));
+    Fixnum* beg = try_as<Fixnum>(full_->at(state, 0));
 
     if(!beg || beg->to_native() <= 0) {
       return String::create(state, 0, 0);
@@ -475,9 +479,9 @@ namespace rubinius {
   }
 
   String* MatchData::post_matched(STATE) {
-    Integer* fin = try_as<Integer>(full_->at(state, 1));
+    Fixnum* fin = try_as<Fixnum>(full_->at(state, 1));
 
-    if(!fin || (size_t)fin->to_native() >= source_->size()) {
+    if(!fin || fin->to_native() >= source_->size()) {
       return String::create(state, 0, 0);
     }
 
@@ -487,17 +491,17 @@ namespace rubinius {
     return String::create(state, str + fin->to_native(), sz);
   }
 
-  Object* MatchData::nth_capture(STATE, size_t which) {
+  Object* MatchData::nth_capture(STATE, native_int which) {
     if(region_->num_fields() <= which) return Qnil;
 
     Tuple* sub = try_as<Tuple>(region_->at(state, which));
     if(!sub) return Qnil;
 
-    Integer* beg = try_as<Integer>(sub->at(state, 0));
-    Integer* fin = try_as<Integer>(sub->at(state, 1));
+    Fixnum* beg = try_as<Fixnum>(sub->at(state, 0));
+    Fixnum* fin = try_as<Fixnum>(sub->at(state, 1));
 
     if(!beg || !fin ||
-        (size_t)fin->to_native() > source_->size() ||
+        fin->to_native() > source_->size() ||
         beg->to_native() < 0) {
       return Qnil;
     }

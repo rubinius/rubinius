@@ -656,24 +656,4 @@ namespace rubinius {
     }
     return ip == iter.position();
   }
-
-  /*
-   * Sets breakpoint flags on the specified opcode.
-   */
-  void VMMethod::set_breakpoint_flags(STATE, size_t ip, bpflags flags) {
-    if(validate_ip(state, ip)) {
-      opcodes[ip] &= cBreakpointMask;    // Clear the high byte
-      opcodes[ip] |= flags & ~cBreakpointMask;
-    }
-  }
-
-  /*
-   * Gets breakpoint flags on the specified opcode.
-   */
-  bpflags VMMethod::get_breakpoint_flags(STATE, size_t ip) {
-    if(validate_ip(state, ip)) {
-      return opcodes[ip] & ~cBreakpointMask;
-    }
-    return 0;
-  }
 }

@@ -15,6 +15,14 @@ namespace rubinius {
     return as<Bignum>(this)->to_native();
   }
 
+  long Integer::to_long() {
+    if(fixnum_p()) {
+      return (force_as<Fixnum>(this))->to_long();
+    }
+
+    return as<Bignum>(this)->to_long();
+  }
+
   long long Integer::to_long_long() {
     if(fixnum_p()) {
       return (force_as<Fixnum>(this))->to_long_long();
@@ -29,6 +37,14 @@ namespace rubinius {
     }
 
     return as<Bignum>(this)->to_ulong_long();
+  }
+
+  bool Integer::positive_p() {
+    if(fixnum_p()) {
+      return (force_as<Fixnum>(this))->positive_p();
+    }
+
+    return as<Bignum>(this)->positive_p();
   }
 
   Integer* Integer::from(STATE, int num) {

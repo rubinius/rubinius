@@ -29,7 +29,7 @@ public:
 
   bool tuple_equals(Tuple* x, Tuple* y) {
     if(x->num_fields() != y->num_fields()) return false;
-    for(size_t i = 0; i < x->num_fields(); i++) {
+    for(native_int i = 0; i < x->num_fields(); i++) {
       Object* x1 = x->at(state, i);
       Object* y1 = y->at(state, i);
 
@@ -190,7 +190,7 @@ public:
 
     TS_ASSERT(kind_of<Tuple>(seq->opcodes()));
 
-    TS_ASSERT_EQUALS(seq->opcodes()->num_fields(), 1U);
+    TS_ASSERT_EQUALS(seq->opcodes()->num_fields(), 1);
 
     TS_ASSERT_EQUALS(seq->opcodes()->at(state, 0), Fixnum::from(0));
   }

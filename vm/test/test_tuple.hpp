@@ -23,14 +23,13 @@ public:
 
   void test_allocate() {
     Tuple* tuple = Tuple::allocate(state, Fixnum::from(2));
-    TS_ASSERT_EQUALS(2U, tuple->num_fields());
+    TS_ASSERT_EQUALS(2, tuple->num_fields());
   }
 
   void test_at() {
     Tuple* tuple = new_tuple();
     TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(tuple->at(state, 1)));
-    TS_ASSERT_THROWS_ASSERT(tuple->at(state, 4), const RubyException &e,
-	TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
+    TS_ASSERT_EQUALS(Qnil, tuple->at(state, 4));
   }
 
   void test_at_prim() {
@@ -179,7 +178,7 @@ public:
     Fixnum* ten = Fixnum::from(10);
     Tuple* tuple = Tuple::pattern(state, Fixnum::from(5), ten);
 
-    TS_ASSERT_EQUALS(5U, tuple->num_fields());
+    TS_ASSERT_EQUALS(5, tuple->num_fields());
     for(size_t i = 0; i < 5; i++) {
       TS_ASSERT_EQUALS(ten, tuple->at(state, i));
     }

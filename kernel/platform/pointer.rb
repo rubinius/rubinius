@@ -106,6 +106,28 @@ module FFI
       raise PrimitiveFailure, "Unable to read integer"
     end
 
+    # FFI compat methods
+
+    def put_int32(offset, val)
+      (self + offset).write_int(val)
+    end
+
+    alias_method :put_uint32, :put_int32
+    alias_method :put_int,    :put_int32
+    alias_method :put_uint,   :put_int32
+
+    def get_int32(offset)
+      (self + offset).read_int_signed(true)
+    end
+
+    alias_method :get_int, :get_int32
+
+    def get_uint32(offset)
+      (self + offset).read_int_signed(false)
+    end
+
+    alias_method :get_uint, :get_int32
+
     # Write +obj+ as a C long at the memory pointed to.
     def write_long(obj)
       Ruby.primitive :pointer_write_long
@@ -160,6 +182,11 @@ module FFI
       else
         read_string_to_null
       end
+    end
+
+    # FFI compat methods
+    def get_bytes(offset, length)
+      (self + offset).read_string_length(length)
     end
 
     # Write String +str+ as bytes into the memory pointed to. Only

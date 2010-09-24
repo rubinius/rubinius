@@ -54,6 +54,12 @@ describe "A class definition" do
     }.should raise_error(TypeError)
   end
 
+  it "raises a TypeError if inheriting from a metaclass" do
+    obj = mock("metaclass super")
+    meta = obj.metaclass
+    lambda { class ClassSpecs::MetaclassSuper < meta; end }.should raise_error(TypeError)
+  end
+
 #  # I do not think this is a valid spec   -- rue
 #  it "has no class-level instance variables" do
 #    ClassSpecs::A.instance_variables.should == []
@@ -178,6 +184,10 @@ describe "A class definition extending an object (sclass)" do
 
   it "allows accessing the block of the original scope" do
     ClassSpecs.sclass_with_block { 123 }.should == 123
+  end
+
+  it "can use return to cause the enclosing method to return" do
+    ClassSpecs.sclass_with_return.should == :inner
   end
 end
 

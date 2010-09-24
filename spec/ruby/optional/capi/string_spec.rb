@@ -343,16 +343,6 @@ describe "C-API String function" do
   end
 
   describe "rb_str2cstr" do
-    before :each do
-      @verbose = $VERBOSE
-      @stderr, $stderr = $stderr, IOStub.new
-    end
-
-    after :each do
-      $stderr = @stderr
-      $VERBOSE = @verbose
-    end
-
     it "returns a pointer to the string's content and its length" do
       str, len = @s.rb_str2cstr('any str', true)
       str.should == 'any str'
@@ -364,36 +354,6 @@ describe "C-API String function" do
       # Hardcoded to set "foo\0"
       @s.rb_str2cstr_replace(str)
       str.should == "foo\0str"
-    end
-
-    it "issues a warning iff passed string contains a NULL character, $VERBOSE = true and len parameter is NULL" do
-      $VERBOSE = false
-      @s.rb_str2cstr('any str', true)
-      $stderr.should == ''
-
-      @s.rb_str2cstr('any str', false)
-      $stderr.should == ''
-
-      $VERBOSE = true
-      @s.rb_str2cstr('any str', true)
-      $stderr.should == ''
-
-      @s.rb_str2cstr('any str', false)
-      $stderr.should == ''
-
-      $VERBOSE = false
-      @s.rb_str2cstr("any\0str", true)
-      $stderr.should == ''
-
-      @s.rb_str2cstr("any\0str", false)
-      $stderr.should == ''
-
-      $VERBOSE = true
-      @s.rb_str2cstr("any\0str", true)
-      $stderr.should == ''
-
-      @s.rb_str2cstr("any\0str", false)
-      $stderr.should =~ /string contains \\0 character/
     end
   end
 
@@ -415,6 +375,13 @@ describe "C-API String function" do
       s = ""
       @s.rb_str_freeze(s).should == s
       s.frozen?.should be_true
+    end
+  end
+
+  describe "rb_str_hash" do
+    it "hashes the string into a number" do
+      s = "hello"
+      @s.rb_str_hash(s).should == s.hash
     end
   end
 

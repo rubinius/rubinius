@@ -5,6 +5,7 @@
 #include "maps.hpp"
 #include "call_frame_list.hpp"
 #include "gc/variable_buffer.hpp"
+#include "gc/root_buffer.hpp"
 #include "kcode.hpp"
 
 #include "stats.hpp"
@@ -43,22 +44,15 @@ namespace rubinius {
     bool check;
     bool perform_gc;
     bool enable_preempt;
-    bool timer;
 
-    Interrupts() :
-      check(false),
-      perform_gc(false),
-      enable_preempt(false),
-      timer(false)
+    Interrupts()
+      : check(false)
+      , perform_gc(false)
+      , enable_preempt(false)
     {}
 
     void checked() {
       check = false;
-    }
-
-    void set_timer() {
-      timer = true;
-      check = true;
     }
 
     void set_perform_gc() {
@@ -71,9 +65,13 @@ namespace rubinius {
   private:
     bool initialized_;
     SignalHandler* signal_handler_;
-    VariableRootBuffers root_buffers_;
+    VariableRootBuffers variable_root_buffers_;
+    RootBuffers         root_buffers_;
+
     capi::Handles* global_handles_;
     capi::Handles* cached_handles_;
+    std::list<capi::Handle**> global_handle_locations_;
+
     bool profiling_;
     profiler::ProfilerCollection* profiler_collection_;
     int global_serial_;
@@ -85,9 +83,6 @@ namespace rubinius {
 
     kcode::CodePage kcode_page_;
     kcode::table* kcode_table_;
-
-    bool timer_thread_started_;
-    pthread_t timer_thread_;
 
     int primitive_hits_[Primitives::cTotalPrimitives];
     QueryAgent* agent_;
@@ -148,6 +143,10 @@ namespace rubinius {
     void remove_managed_thread(ManagedThread* thr);
 
     VariableRootBuffers* variable_buffers() {
+      return &variable_root_buffers_;
+    }
+
+    RootBuffers* root_buffers() {
       return &root_buffers_;
     }
 
@@ -160,6 +159,18 @@ namespace rubinius {
 
     capi::Handles* cached_handles() {
       return cached_handles_;
+    }
+
+    std::list<capi::Handle**>* global_handle_locations() {
+      return &global_handle_locations_;
+    }
+
+    void add_global_handle_location(capi::Handle** loc) {
+      global_handle_locations_.push_back(loc);
+    }
+
+    void del_global_handle_location(capi::Handle** loc) {
+      global_handle_locations_.remove(loc);
     }
 
     bool profiling() {

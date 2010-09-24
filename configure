@@ -58,10 +58,10 @@ class Configure
     @program_name = "rbx"
 
     # Essential settings (modify these for creating releases)
-    @libversion = "1.0"
-    @version = "#{@libversion}.1"
-    @release_date = "2010-06-03"
-    @config_version = 13
+    @libversion = "1.1"
+    @version = "#{@libversion}.0"
+    @release_date = "2010-09-23"
+    @config_version = 15
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
@@ -70,7 +70,7 @@ class Configure
     end
 
     # TODO: add conditionals for platforms
-    if Config::CONFIG["build_os"] =~ /darwin/
+    if RbConfig::CONFIG["build_os"] =~ /darwin/
       @ldshared = "cc -dynamic -bundle -undefined suppress -flat_namespace"
     else
       @ldshared = "cc -shared"
@@ -472,14 +472,17 @@ class Configure
     ENV[which] || ""
   end
 
-  def run_program
+  def check_program(run=true)
     begin
       basename = "rbx-configure-test"
-      File.open basename+".c", "w" do |f|
+      source   = basename + ".cpp"
+      File.open source, "w" do |f|
         yield f
       end
 
-      `#{@compiler} -o #{basename} #{env('CFLAGS')} #{basename}.c 2>&1`
+      `#{@compiler} #{env('CFLAGS')} -lstdc++ -lm -o #{basename} #{source} 2>&1`
+      return $?.exitstatus unless run
+
       unless $?.exitstatus == 0
         STDERR.puts "compiling configure test program failed"
         exit 1
@@ -495,7 +498,7 @@ class Configure
   def detect_sizeof_long
     print "Checking sizeof(long): "
 
-    @sizeof_long = run_program do |f|
+    @sizeof_long = check_program do |f|
       f.puts "int main() { return sizeof(long); }"
     end
 
@@ -505,12 +508,30 @@ class Configure
   def detect_endian
     print "Checking platform endianness: "
 
-    status = run_program do |f|
+    status = check_program do |f|
       f.puts "int main() { int one = 1; return (*((char*)&one)) == 1 ? 0 : 1; }"
     end
 
     @little_endian = (status == 0)
     puts @little_endian ? "little endian" : "big endian"
+  end
+
+  def detect_tr1_hash
+    print "Checking tr1/hash definition: "
+
+    status = check_program(false) do |f|
+      f.puts <<-EOP
+#include <stdint.h>
+#include <tr1/unordered_map>
+
+typedef std::tr1::unordered_map<uint64_t, void*> X;
+
+int main() { X x; return 0; }
+      EOP
+    end
+
+    @tr1_hash = (status == 0)
+    puts @tr1_hash ? "found" : "not found"
   end
 
   def has_function(name, includes=[])
@@ -556,6 +577,7 @@ class Configure
 
     detect_sizeof_long
     detect_endian
+    detect_tr1_hash
     detect_features
   end
 
@@ -571,9 +593,9 @@ class Configure
   # script. That path will be made available to the rest of the build system
   # so the same version of ruby is invoked as needed.
   def build_ruby
-    bin = Config::CONFIG["RUBY_INSTALL_NAME"] || Config::CONFIG["ruby_install_name"]
-    bin << (Config::CONFIG['EXEEXT'] || Config::CONFIG['exeext'] || '')
-    File.join(Config::CONFIG['bindir'], bin)
+    bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"] || RbConfig::CONFIG["ruby_install_name"]
+    bin << (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
+    File.join(RbConfig::CONFIG['bindir'], bin)
   end
 
   def get_system_name
@@ -664,6 +686,10 @@ end
 
       if @little_endian
         f.puts "#define RBX_LITTLE_ENDIAN 1"
+      end
+
+      if @tr1_hash
+        f.puts "#define RBX_HAVE_TR1_HASH 1"
       end
     end
   end

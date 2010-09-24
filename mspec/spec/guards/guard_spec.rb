@@ -237,12 +237,12 @@ describe SpecGuard, "#platform?" do
     @guard.platform?(:windows).should == true
   end
 
-  it "returns false when arg is not :windows and Config::CONFIG['host_os'] contains 'mswin'" do
+  it "returns false when arg is not :windows and RbConfig::CONFIG['host_os'] contains 'mswin'" do
     Object.const_set :RUBY_PLATFORM, 'i386-mswin32'
     @guard.platform?(:linux).should == false
   end
 
-  it "returns false when arg is not :windows and Config::CONFIG['host_os'] contains 'mingw'" do
+  it "returns false when arg is not :windows and RbConfig::CONFIG['host_os'] contains 'mingw'" do
     Object.const_set :RUBY_PLATFORM, 'i386-mingw32'
     @guard.platform?(:linux).should == false
   end
@@ -273,12 +273,12 @@ describe SpecGuard, "#platform? on JRuby" do
   end
 
   it "returns true when arg is :windows and RUBY_PLATFORM contains 'java' and os?(:windows) is true" do
-    Config::CONFIG.stub!(:[]).and_return('mswin32')
+    RbConfig::CONFIG.stub!(:[]).and_return('mswin32')
     @guard.platform?(:windows).should == true
   end
 
   it "returns true when RUBY_PLATFORM contains 'java' and os?(argument) is true" do
-    Config::CONFIG.stub!(:[]).and_return('amiga')
+    RbConfig::CONFIG.stub!(:[]).and_return('amiga')
     @guard.platform?(:amiga).should == true
   end
 end
@@ -300,42 +300,42 @@ end
 describe SpecGuard, "#os?" do
   before :each do
     @guard = SpecGuard.new
-    Config::CONFIG.stub!(:[]).and_return('unreal')
+    RbConfig::CONFIG.stub!(:[]).and_return('unreal')
   end
 
-  it "returns true if argument matches Config::CONFIG['host_os']" do
+  it "returns true if argument matches RbConfig::CONFIG['host_os']" do
     @guard.os?(:unreal).should == true
   end
 
-  it "returns true if any argument matches Config::CONFIG['host_os']" do
+  it "returns true if any argument matches RbConfig::CONFIG['host_os']" do
     @guard.os?(:bsd, :unreal, :amiga).should == true
   end
 
-  it "returns false if no argument matches Config::CONFIG['host_os']" do
+  it "returns false if no argument matches RbConfig::CONFIG['host_os']" do
     @guard.os?(:bsd, :netbsd, :amiga, :msdos).should == false
   end
 
-  it "returns false if argument does not match Config::CONFIG['host_os']" do
+  it "returns false if argument does not match RbConfig::CONFIG['host_os']" do
     @guard.os?(:amiga).should == false
   end
 
-  it "returns true when arg is :windows and Config::CONFIG['host_os'] contains 'mswin'" do
-    Config::CONFIG.stub!(:[]).and_return('i386-mswin32')
+  it "returns true when arg is :windows and RbConfig::CONFIG['host_os'] contains 'mswin'" do
+    RbConfig::CONFIG.stub!(:[]).and_return('i386-mswin32')
     @guard.os?(:windows).should == true
   end
 
-  it "returns true when arg is :windows and Config::CONFIG['host_os'] contains 'mingw'" do
-    Config::CONFIG.stub!(:[]).and_return('i386-mingw32')
+  it "returns true when arg is :windows and RbConfig::CONFIG['host_os'] contains 'mingw'" do
+    RbConfig::CONFIG.stub!(:[]).and_return('i386-mingw32')
     @guard.os?(:windows).should == true
   end
 
-  it "returns false when arg is not :windows and Config::CONFIG['host_os'] contains 'mswin'" do
-    Config::CONFIG.stub!(:[]).and_return('i386-mingw32')
+  it "returns false when arg is not :windows and RbConfig::CONFIG['host_os'] contains 'mswin'" do
+    RbConfig::CONFIG.stub!(:[]).and_return('i386-mingw32')
     @guard.os?(:linux).should == false
   end
 
-  it "returns false when arg is not :windows and Config::CONFIG['host_os'] contains 'mingw'" do
-    Config::CONFIG.stub!(:[]).and_return('i386-mingw32')
+  it "returns false when arg is not :windows and RbConfig::CONFIG['host_os'] contains 'mingw'" do
+    RbConfig::CONFIG.stub!(:[]).and_return('i386-mingw32')
     @guard.os?(:linux).should == false
   end
 end

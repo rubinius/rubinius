@@ -210,7 +210,7 @@ extern "C" {
     return Qnil;
   }
 
-  char* rb_class2name(VALUE module_handle) {
+  const char* rb_class2name(VALUE module_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Module* module_object = c_as<Module>(env->get_object(module_handle));
 

@@ -194,6 +194,10 @@ use_packed:
       return Primitives::failure();
     }
 
+    if(try_as<MetaClass>(sup)) {
+      Exception::type_error(state, "cannot inherit from a metaclass");
+    }
+
     superclass(state, sup);
 
     instance_type(state, sup->instance_type());

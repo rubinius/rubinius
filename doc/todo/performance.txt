@@ -1,7 +1,0 @@
-# Performance Improvement Spots
-
-* push_cpath_top and find_const bytecodes are paired far more often
-  then not, and might be worth a combined opcode
-* LongReturnException and BreakBlockException are frequently generate
-  large bytecode blocks, and might be a place to speed up block
-  dispatch

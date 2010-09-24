@@ -101,7 +101,7 @@ public:
     a = f->div(state, Fixnum::from(10));
     check_float(a, Float::create(state, 0.02));
 
-    f = Float::create(state, 100000);
+    f = Float::create(state, (native_int)100000);
     a = f->div(state, Bignum::from(state, FIXNUM_MAX + 10));
     check_float(a, Float::create(state, 100000 / ((double)FIXNUM_MAX + 10)));
   }
@@ -308,7 +308,7 @@ public:
     String* s = f->to_s_formatted(state, format);
 
     TS_ASSERT_SAME_DATA("3.14159000000000", s->c_str(), 16);
-    TS_ASSERT_EQUALS(16U, s->size());
+    TS_ASSERT_EQUALS(16, s->size());
 
     format = String::create(state, "%#.1280g");
     TS_ASSERT_THROWS_ASSERT(f->to_s_formatted(state, format), const RubyException &e,

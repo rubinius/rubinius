@@ -121,6 +121,18 @@ describe "Iconv.iconv" do
   end
 
   it_behaves_like :iconv_initialize_exceptions, :iconv, "test"
+
+  describe "using the ignore option" do
+    # This spec exists because some implementions of libiconv return
+    # an error for this sequence even though they consume all of the
+    # input and write the proper output. We want to be sure that those
+    # platforms ignore the error and give us the data back.
+    #
+    it "causes unknown bytes to be ignored" do
+      str = "f\303\266\303\266 bar" # this is foo bar, with umlate o's
+      Iconv.iconv('ascii//ignore', 'utf-8', str)[0].should == "f bar"
+    end
+  end
 end
 
 describe "The 'utf-8' encoder" do

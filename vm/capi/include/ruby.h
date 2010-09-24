@@ -2,7 +2,6 @@
 #define RBX_CAPI_RUBY_H
 
 /**
- *  @file
  *
  *  Notes:
  *
@@ -11,13 +10,6 @@
  *
  *      Just in case, that means NEVER, like NOT EVER. If you do, we'll
  *      call your mother.
- *
- *  @todo Blocks/iteration. rb_iterate normally uses fptrs, could
- *        maybe do that or then support 'function objects' --rue
- *
- *  @todo Const correctness. --rue
- *
- *  @todo Add some type of checking for too-long C strings etc? --rue
  *
  */
 
@@ -35,6 +27,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include "config.h"
 #include "intern.h"
 #include "defines.h"
 
@@ -47,10 +40,6 @@
 # ifndef  HAVE_STDARG_PROTOTYPES
 #  define HAVE_STDARG_PROTOTYPES 1
 # endif
-#endif
-
-#ifndef NORETURN
-#define NORETURN(x) __attribute__ ((noreturn)) x
 #endif
 
 #undef _
@@ -194,6 +183,9 @@ typedef void (*RUBY_DATA_FUNC)(void*);
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+  extern int __X_rubinius_version __attribute__((weak));
+  int __X_rubinius_version = 1;
 
   /**
    *  Global object abstraction.
@@ -365,8 +357,9 @@ struct RIO {
 
 #define RIO(d)          capi_rio_struct(d)
 
-typedef struct RIO OpenFile;
 typedef struct RIO rb_io_t;
+
+#define OpenFile rb_io_t
 
 #define HAVE_RB_IO_T 1
 
@@ -551,7 +544,7 @@ typedef struct RIO rb_io_t;
 /** Convert a char to a Ruby Integer. */
 #define CHR2FIX(x)        INT2FIX((long)((x)&0xff))
 
-/** Convert long to a Ruby Integer. @todo Should we warn if overflowing? --rue */
+/** Convert long to a Ruby Integer. */
 #define LONG2FIX(i)       INT2FIX(i)
 
 char rb_num2chr(VALUE);
@@ -645,7 +638,7 @@ VALUE rb_uint2big(unsigned long number);
 /** Return an integer type id for the object. @see rb_type() */
 #define TYPE(handle)      rb_type(handle)
 
-/** Convert unsigned int to a Ruby Integer. @todo Should we warn if overflowing? --rue */
+/** Convert unsigned int to a Ruby Integer. */
 #define UINT2FIX(i)       UINT2NUM((i))
 
 #define LONG2FIX(i) INT2FIX(i)
@@ -814,6 +807,8 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE   rb_ary_each(VALUE ary);
 
+  void    rb_mem_clear(VALUE* ary, int len);
+
   /** Return new Array with elements first and second. */
   VALUE   rb_assoc_new(VALUE first, VALUE second);
 
@@ -850,6 +845,9 @@ VALUE rb_uint2big(unsigned long number);
   int     rb_big_bytes_used(VALUE obj);
 #define RBIGNUM_LEN(obj) rb_big_bytes_used(obj)
 
+  int rb_big_sign(VALUE obj);
+#define RBIGNUM_SIGN(obj) rb_big_sign(obj)
+
   // fake out, used with RBIGNUM_LEN anyway, which provides
   // the full answer
 #define SIZEOF_BDIGITS 1
@@ -872,7 +870,7 @@ VALUE rb_uint2big(unsigned long number);
 #define OBJ_FROZEN(obj) (RTEST(rb_obj_frozen_p(obj)))
 
   /** raise error on class */
-  void    rb_error_frozen(const char* what);
+  NORETURN(void rb_error_frozen(const char* what));
 
   /** Raises an exception if obj_handle is not the same type as 'type'. */
   void    rb_check_type(VALUE obj_handle, int type);
@@ -890,13 +888,10 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_check_convert_type(VALUE object_handle, int type,
       const char* type_name, const char* method_name);
 
-  /** No-op. */
   void    rb_check_safe_obj(VALUE obj);
 
-  /** No-op. */
   void    rb_check_safe_str(VALUE obj);
 
-  /** No-op. */
   void    rb_secure_update(VALUE obj);
 
   /** Returns String representation of the class' name. */
@@ -920,8 +915,8 @@ VALUE rb_uint2big(unsigned long number);
    * (ie, a metaclass if it's there) */
   VALUE   CLASS_OF(VALUE object_handle);
 
-  /** C string representation of the class' name. You must free this string. */
-  char*   rb_class2name(VALUE class_handle);
+  /** C string representation of the class' name. */
+  const char*   rb_class2name(VALUE class_handle);
 
   /** Return the module referred to by qualified path (e.g. A::B::C) */
   VALUE   rb_path2class(const char*);
@@ -1063,7 +1058,7 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_exc_new3(VALUE etype, VALUE str);
 
   /** Raises passed exception handle */
-  void    rb_exc_raise(VALUE exc_handle);
+  NORETURN(void rb_exc_raise(VALUE exc_handle));
 
   /** Return the current exception */
   VALUE   rb_errinfo();
@@ -1109,6 +1104,9 @@ VALUE rb_uint2big(unsigned long number);
    */
   #define rb_funcall3 rb_funcall2
 
+  /** Return the hash id of the object **/
+  VALUE   rb_hash(VALUE self);
+
   /** Create a new Hash object */
   VALUE   rb_hash_new();
 
@@ -1123,6 +1121,9 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Remove the key and return the associated value. */
   VALUE   rb_hash_delete(VALUE self, VALUE key);
+
+  /** Removes the entry if the block returns true. */
+  VALUE   rb_hash_delete_if(VALUE self);
 
   /** Returns the number of entries as a Fixnum. */
   VALUE   rb_hash_size(VALUE self);
@@ -1195,6 +1196,7 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Coerce x and y; perform 'x func y' if coerce succeeds, else return Qnil. */
   VALUE rb_num_coerce_cmp(VALUE x, VALUE y, ID func);
+#define RB_NUM_COERCE_FUNCS_NEED_OPID 1
 
   /** Call #initialize on the object with given arguments. */
   void    rb_obj_call_init(VALUE object_handle, int arg_count, VALUE* args);
@@ -1202,8 +1204,8 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns the Class object this object is an instance of. */
   #define rb_obj_class(object_handle) rb_class_of((object_handle))
 
-  /** String representation of the object's class' name. You must free this string. */
-  char*   rb_obj_classname(VALUE object_handle);
+  /** String representation of the object's class' name. */
+  const char*   rb_obj_classname(VALUE object_handle);
 
   /** Returns true-ish if object is an instance of specific class. */
   VALUE   rb_obj_is_instance_of(VALUE object_handle, VALUE class_handle);
@@ -1254,7 +1256,6 @@ VALUE rb_uint2big(unsigned long number);
   /**
    *  Raise error of given class using formatted message.
    *
-   *  @todo Implement for real. --rue
    */
   NORETURN(void rb_raise(VALUE error_handle, const char* format_string, ...));
 
@@ -1314,6 +1315,16 @@ VALUE rb_uint2big(unsigned long number);
    * Compile the String object into a regexp.
    */
   VALUE rb_reg_regcomp(VALUE str);
+
+  /**
+   * Tests whether the given Regexp matches to the given String
+   */
+  VALUE   rb_reg_match(VALUE re, VALUE str);
+
+  /**
+   * Retrieves the last MatchData
+   */
+  VALUE   rb_backref_get(void);
 
   /**
    *  Require a Ruby file.
@@ -1380,6 +1391,12 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns a Struct with the specified fields. */
   VALUE rb_struct_define(const char *name, ...);
 
+  /** Returns the value of the key. */
+  VALUE rb_struct_aref(VALUE struct_handle, VALUE key);
+
+  /** Sets the value of the key. */
+  VALUE rb_struct_aset(VALUE struct_handle, VALUE key, VALUE value);
+
   /** Sets the $KCODE variable. */
   void    rb_set_kcode(const char *code);
 
@@ -1431,9 +1448,6 @@ VALUE rb_uint2big(unsigned long number);
 
   /**
    *  Return new empty String with preallocated storage.
-   *
-   *  @note   Not supported by Rubinius for a few more days.
-   *  @todo   Update as soon as
    */
   VALUE   rb_str_buf_new(long capacity);
 
@@ -1523,8 +1537,10 @@ VALUE rb_uint2big(unsigned long number);
    */
   char*   rb_str2cstr(VALUE str_handle, long *len);
 
+  long    rb_str_hash(VALUE str);
+
   /** Raises an exception from the value of errno. */
-  void rb_sys_fail(const char* mesg);
+  NORETURN(void rb_sys_fail(const char* mesg));
 
   /** Evaluate the given string. */
   VALUE   rb_eval_string(const char* string);
@@ -1554,6 +1570,8 @@ VALUE rb_uint2big(unsigned long number);
   /** Sets a thread-local value. */
   VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE value);
 
+  VALUE rb_thread_wakeup(VALUE thread);
+
   /** Release the GIL and let func run in a parallel.
    *
    * Seriously, crazy restriction here. While the return value is the
@@ -1567,6 +1585,10 @@ VALUE rb_uint2big(unsigned long number);
   typedef void rb_unblock_function_t(void *);
   VALUE rb_thread_blocking_region(rb_blocking_function_t* func, void* data,
                                   rb_unblock_function_t* ubf, void* ubf_data);
+
+  // Exists only to make extensions happy. It can be read and written to, but
+  // it controls nothing.
+  extern int rb_thread_critical;
 
 #define HAVE_RB_THREAD_BLOCKING_REGION 1
 
@@ -1604,14 +1626,16 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE   rb_Integer(VALUE object_handle);
 
-  void    rb_bug(const char *fmt, ...);
+  NORETURN(void rb_num_zerodiv(void));
 
-  void    rb_fatal(const char *fmt, ...);
+  NORETURN(void rb_bug(const char *fmt, ...));
 
-  void    rb_notimplement();
+  NORETURN(void rb_fatal(const char *fmt, ...));
+
+  NORETURN(void rb_notimplement());
 
   /** Raises an ArgumentError exception. */
-  void rb_invalid_str(const char *str, const char *type);
+  NORETURN(void rb_invalid_str(const char *str, const char *type));
 
   /** Print a warning if $VERBOSE is not nil. */
   void    rb_warn(const char *fmt, ...);
@@ -1629,6 +1653,10 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Retrieve the nth match for the given MatchData */
   VALUE   rb_reg_nth_match(long nth, VALUE match_data);
+
+  void ruby_setenv(const char *name, const char *value);
+
+  char *ruby_strdup(const char *str);
 
   // include an extconf.h if one is provided
   // include an extconf.h if one is provided

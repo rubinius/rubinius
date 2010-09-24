@@ -6,7 +6,7 @@ require 'rbconfig'
 # However, the specs are valuable in that they will ensure
 # that rbconfig loads and contains required values.
 #
-# The Config entries fall into two general categories:
+# The RbConfig entries fall into two general categories:
 # 1) the static-value entries; and 2) the configured-
 # value entries. For the second one, the specs check
 # only for the existence of a key.
@@ -39,14 +39,14 @@ def it_has_entries(name, entries)
   end
 end
 
-describe "RbConfig" do
-  it "is equal to Config" do
-    RbConfig.should eql(Config)
+describe "Config" do
+  it "is equal to RbConfig" do
+    Config.should eql(RbConfig)
   end
 end
 
 # TODO: many more specs needed
-describe "Config::CONFIG" do
+describe "RbConfig::CONFIG" do
   keys = [
     "LDSHARED",
     "DLEXT",
@@ -61,7 +61,7 @@ describe "Config::CONFIG" do
     "bindir"
   ]
 
-  it_has_keys 'Config::CONFIG', keys
+  it_has_keys 'RbConfig::CONFIG', keys
 
   entries = {
     "RUBY_SO_NAME"      => "rubinius-#{Rubinius::VERSION}",
@@ -69,10 +69,10 @@ describe "Config::CONFIG" do
     "ruby_version"      => "1.8",
   }
 
-  it_has_entries 'Config::CONFIG', entries
+  it_has_entries 'RbConfig::CONFIG', entries
 end
 
-describe "Config::MAKEFILE_CONFIG" do
+describe "RbConfig::MAKEFILE_CONFIG" do
   sitedir    = Rubinius::SITE_PATH
   sitelibdir = Rubinius::SITE_PATH
   arch       = "#{Rubinius::CPU}-#{Rubinius::OS}"
@@ -105,5 +105,5 @@ describe "Config::MAKEFILE_CONFIG" do
     "rubyhdrdir"         => "#{Rubinius::HDR_PATH}"
   }
 
-  it_has_entries 'Config::MAKEFILE_CONFIG', entries
+  it_has_entries 'RbConfig::MAKEFILE_CONFIG', entries
 end

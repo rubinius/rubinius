@@ -274,7 +274,6 @@ namespace agent {
     {}
 
     virtual void read(Output& output) {
-      shared_.interrupts.set_timer();
       // GlobalLock::LockGuard guard(shared_.global_lock());
 
       std::list<ManagedThread*>* threads = shared_.threads();
@@ -309,7 +308,6 @@ namespace agent {
     {}
 
     virtual void read(Output& output) {
-      shared_.interrupts.set_timer();
       // GlobalLock::LockGuard guard(shared_.global_lock());
 
       output.ok("list");
@@ -352,7 +350,6 @@ namespace agent {
     {}
 
     virtual void read(Output& output) {
-      shared_.interrupts.set_timer();
       // GlobalLock::LockGuard guard(shared_.global_lock());
 
       output.ok("value");

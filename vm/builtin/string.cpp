@@ -40,10 +40,10 @@ namespace rubinius {
     so->num_bytes(state, size);
     so->characters(state, size);
     so->encoding(state, Qnil);
-    so->hash_value(state, (Integer*)Qnil);
+    so->hash_value(state, nil<Fixnum>());
     so->shared(state, Qfalse);
 
-    size_t bytes = size->to_native() + 1;
+    native_int bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create(state, bytes);
     ba->raw_bytes()[bytes-1] = 0;
 
@@ -52,7 +52,7 @@ namespace rubinius {
     return so;
   }
 
-  String* String::create_reserved(STATE, size_t bytes) {
+  String* String::create_reserved(STATE, native_int bytes) {
     String *so;
 
     so = state->new_object<String>(G(string));
@@ -60,7 +60,7 @@ namespace rubinius {
     so->num_bytes(state, Fixnum::from(0));
     so->characters(state, Fixnum::from(0));
     so->encoding(state, Qnil);
-    so->hash_value(state, (Integer*)Qnil);
+    so->hash_value(state, nil<Fixnum>());
     so->shared(state, Qfalse);
 
     ByteArray* ba = ByteArray::create(state, bytes);
@@ -84,10 +84,10 @@ namespace rubinius {
     so->num_bytes(state, size);
     so->characters(state, size);
     so->encoding(state, Qnil);
-    so->hash_value(state, (Integer*)Qnil);
+    so->hash_value(state, nil<Fixnum>());
     so->shared(state, Qfalse);
 
-    size_t bytes = size->to_native() + 1;
+    native_int bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create_pinned(state, bytes);
     ba->raw_bytes()[bytes-1] = 0;
 
@@ -102,7 +102,7 @@ namespace rubinius {
   String* String::create(STATE, const char* str) {
     if(!str) return String::create(state, Fixnum::from(0));
 
-    size_t bytes = strlen(str);
+    native_int bytes = strlen(str);
 
     return String::create(state, str, bytes);
   }
@@ -110,7 +110,7 @@ namespace rubinius {
   /* +bytes+ should NOT attempt to take the trailing null into account
    * +bytes+ is the number of 'real' characters in the string
    */
-  String* String::create(STATE, const char* str, size_t bytes) {
+  String* String::create(STATE, const char* str, native_int bytes) {
     String* so = String::create(state, Fixnum::from(bytes));
 
     if(str) std::memcpy(so->byte_address(), str, bytes);
@@ -118,13 +118,13 @@ namespace rubinius {
     return so;
   }
 
-  String* String::from_bytearray(STATE, ByteArray* ba, Integer* start, Integer* count) {
+  String* String::from_bytearray(STATE, ByteArray* ba, Fixnum* start, Fixnum* count) {
     String* s = state->new_object<String>(G(string));
 
     s->num_bytes(state, count);
     s->characters(state, count);
     s->encoding(state, Qnil);
-    s->hash_value(state, (Integer*)Qnil);
+    s->hash_value(state, nil<Fixnum>());
     s->shared(state, Qfalse);
 
     // fetch_bytes NULL terminates
@@ -137,13 +137,13 @@ namespace rubinius {
     unsigned char *bp;
 
     if(!hash_value_->nil_p()) {
-      return (hashval)as<Integer>(hash_value_)->to_native();
+      return (hashval)as<Fixnum>(hash_value_)->to_native();
     }
     bp = (unsigned char*)(byte_address());
-    size_t sz = size();
+    native_int sz = size();
 
     hashval h = hash_str(bp, sz);
-    hash_value(state, Integer::from(state, h));
+    hash_value(state, Fixnum::from(h));
 
     return h;
   }
@@ -198,9 +198,7 @@ namespace rubinius {
 
   const char* String::c_str() {
     char* c_string = (char*)byte_address();
-    if(c_string[size()] != 0) {
-      c_string[size()] = 0;
-    }
+    c_string[size()] = 0;
 
     return c_string;
   }
@@ -223,10 +221,10 @@ namespace rubinius {
   }
 
   Object* String::secure_compare(STATE, String* other) {
-    size_t s1 = num_bytes()->to_native();
-    size_t s2 = other->num_bytes()->to_native();
+    native_int s1 = num_bytes()->to_native();
+    native_int s2 = other->num_bytes()->to_native();
 
-    size_t max = (s2 > s1) ? s2 : s1;
+    native_int max = (s2 > s1) ? s2 : s1;
 
     uint8_t* p1 = byte_address();
     uint8_t* p2 = other->byte_address();
@@ -236,7 +234,7 @@ namespace rubinius {
 
     uint8_t sum = 0;
 
-    for(size_t i = 0; i < max; i++) {
+    for(native_int i = 0; i < max; i++) {
       uint8_t* c1 = p1 + i;
       uint8_t* c2 = p2 + i;
 
@@ -279,9 +277,9 @@ namespace rubinius {
     return append(state, other, std::strlen(other));
   }
 
-  String* String::append(STATE, const char* other, std::size_t length) {
-    size_t new_size = size() + length;
-    size_t capacity = data_->size();
+  String* String::append(STATE, const char* other, native_int length) {
+    native_int new_size = size() + length;
+    native_int capacity = data_->size();
 
     if(capacity < (new_size + 1)) {
       // capacity needs one extra byte of room for the trailing null
@@ -307,8 +305,8 @@ namespace rubinius {
     // The 0-based index of the last character is new_size - 1
     byte_address()[new_size] = 0;
 
-    num_bytes(state, Integer::from(state, new_size));
-    hash_value(state, (Integer*)Qnil);
+    num_bytes(state, Fixnum::from(new_size));
+    hash_value(state, nil<Fixnum>());
 
     return this;
   }
@@ -419,7 +417,7 @@ namespace rubinius {
     tr_data.last = 0;
     tr_data.steps = 0;
 
-    if(Integer* lim = try_as<Integer>(limit)) {
+    if(Fixnum* lim = try_as<Fixnum>(limit)) {
       tr_data.limit = lim->to_native();
     } else {
       tr_data.limit = -1;
@@ -492,21 +490,21 @@ namespace rubinius {
     uint8_t* in_end = in_p + size();
 
     // Optimistic estimate that output size will be 1.25 x input.
-    size_t out_chunk = size() * 5 / 4;
-    size_t out_size = out_chunk;
+    native_int out_chunk = size() * 5 / 4;
+    native_int out_size = out_chunk;
     uint8_t* output = (uint8_t*)malloc(out_size);
 
     uint8_t* out_p = output;
     uint8_t* out_end = out_p + out_size;
 
     while(in_p < in_end) {
-      size_t len = 0;
+      native_int len = 0;
       uint8_t byte = *in_p;
       uint8_t* cur_p = 0;
 
       if(kcode::mbchar_p(kcode_tbl, byte)) {
         len = kcode::mbclen(kcode_tbl, byte);
-        size_t rem = in_end - in_p;
+        native_int rem = in_end - in_p;
         if(rem < len) len = rem;
         cur_p = in_p;
         in_p += len;
@@ -517,11 +515,11 @@ namespace rubinius {
       } else {
         Tuple* tbl = as<Tuple>(tbl_ptr[byte]);
 
-        for(size_t i = 0; i < tbl->num_fields(); i += 2) {
+        for(native_int i = 0; i < tbl->num_fields(); i += 2) {
           String* key = as<String>(tbl->at(i));
 
-          size_t rem = in_end - in_p;
-          size_t klen = key->size();
+          native_int rem = in_end - in_p;
+          native_int klen = key->size();
           if(rem < klen) continue;
 
           if(std::memcmp(in_p, key->byte_address(), klen) == 0) {
@@ -544,7 +542,7 @@ namespace rubinius {
       }
 
       if(out_p + len > out_end) {
-        size_t pos = out_p - output;
+        native_int pos = out_p - output;
         out_size += out_chunk;
         output = (uint8_t*)realloc(output, out_size);
         out_p = output + pos;
@@ -628,6 +626,10 @@ namespace rubinius {
   }
 
   String* String::pattern(STATE, Object* self, Fixnum* size, Object* pattern) {
+    if(!size->positive_p()) {
+      Exception::argument_error(state, "size must be positive");
+    }
+
     String* s = String::create(state, size);
     s->klass(state, (Class*)self);
 
@@ -657,7 +659,7 @@ namespace rubinius {
         }
       }
     } else {
-      Exception::argument_error(state, "pattern must be Fixnum of String");
+      Exception::argument_error(state, "pattern must be a Fixnum or String");
     }
 
     return s;
@@ -676,19 +678,19 @@ namespace rubinius {
 
     if(strict == Qtrue) {
       // In strict mode the string can't have null bytes.
-      if(size() > strlen(str)) return (Integer*)Qnil;
+      if(size() > (native_int)strlen(str)) return nil<Integer>();
     }
 
-    if(base == 1 || base > 36) return (Integer*)Qnil;
+    if(base == 1 || base > 36) return nil<Integer>();
     // Strict mode can only be invoked from Ruby via Kernel#Integer()
     // which does not allow bases other than 0.
-    if(base != 0 && strict == Qtrue) return (Integer*)Qnil;
+    if(base != 0 && strict == Qtrue) return nil<Integer>();
 
     // Skip any combination of leading whitespace and underscores.
     // Leading whitespace is OK in strict mode, but underscores are not.
     while(isspace(*str) || *str == '_') {
       if(*str == '_' && strict == Qtrue) {
-        return (Integer*)Qnil;
+        return nil<Integer>();
       } else {
         str++;
       }
@@ -788,7 +790,7 @@ namespace rubinius {
         // If there is more stuff after the spaces, get out of dodge.
         if(chr) {
           if(strict == Qtrue) {
-            return (Integer*)Qnil;
+            return nil<Integer>();
           } else {
             goto return_value;
           }
@@ -803,7 +805,7 @@ namespace rubinius {
         if(underscore) {
           // Double underscore is forbidden in strict mode.
           if(strict == Qtrue) {
-            return (Integer*)Qnil;
+            return nil<Integer>();
           } else {
             // Stop parse number after two underscores in a row
             goto return_value;
@@ -825,7 +827,7 @@ namespace rubinius {
       } else {
         //Invalid character, stopping right here.
         if(strict == Qtrue) {
-          return (Integer*)Qnil;
+          return nil<Integer>();
         } else {
           break;
         }
@@ -835,7 +837,7 @@ namespace rubinius {
       // mean it's invalid.
       if(chr >= base) {
         if(strict == Qtrue) {
-          return (Integer*)Qnil;
+          return nil<Integer>();
         } else {
           break;
         }
@@ -858,7 +860,7 @@ namespace rubinius {
 
     // If we last saw an underscore and we're strict, bail.
     if(underscore && strict == Qtrue) {
-      return (Integer*)Qnil;
+      return nil<Integer>();
     }
 
 return_value:
@@ -928,7 +930,7 @@ return_value:
           if(buf[pos] == matcher) return Fixnum::from(pos);
         }
       }
-      return (Fixnum*)Qnil;
+      return nil<Fixnum>();
     default:
       {
         uint8_t* buf = byte_address();
@@ -948,7 +950,7 @@ return_value:
           pos++;
         }
       }
-      return (Fixnum*)Qnil;
+      return nil<Fixnum>();
     }
   }
 
@@ -972,7 +974,7 @@ return_value:
           pos--;
         }
       }
-      return (Fixnum*)Qnil;
+      return nil<Fixnum>();
     default:
       {
         uint8_t* buf = byte_address();
@@ -990,12 +992,12 @@ return_value:
           cur--;
         }
       }
-      return (Fixnum*)Qnil;
+      return nil<Fixnum>();
     }
   }
 
   String* String::find_character(STATE, Fixnum* offset) {
-    size_t o = (size_t)offset->to_native();
+    native_int o = offset->to_native();
     if(o >= size()) return nil<String>();
 
     uint8_t* cur = byte_address() + o;
@@ -1004,7 +1006,7 @@ return_value:
 
     kcode::table* tbl = state->shared.kcode_table();
     if(kcode::mbchar_p(tbl, *cur)) {
-      size_t clen = kcode::mbclen(tbl, *cur);
+      native_int clen = kcode::mbclen(tbl, *cur);
       if(o + clen <= size()) {
         output = String::create(state, reinterpret_cast<const char*>(cur), clen);
       }
@@ -1021,7 +1023,7 @@ return_value:
   }
 
   String* String::base64_encode(STATE, String* str, Fixnum* line_length) {
-    size_t ll = line_length->to_native();
+    native_int ll = line_length->to_native();
 
     /* Match's MRI semantics. If the request line length is 2 or less, use
      * 45 bytes. Otherwise, round the line length to the closest multiple
@@ -1033,12 +1035,12 @@ return_value:
     }
 
     uint8_t* buf = str->byte_address();
-    size_t left = str->size();
+    native_int left = str->size();
 
     std::string out;
 
     while(left > 0) {
-      size_t amt = (left > ll ? ll : left);
+      native_int amt = (left > ll ? ll : left);
       out += base64::encode(buf, amt);
       out += "\n";
 

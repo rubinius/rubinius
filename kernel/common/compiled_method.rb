@@ -93,7 +93,7 @@ module Rubinius
 
     ##
     # Make the method change its scope so that it can act as though
-    # it's frome somewhere else. You can pass in a method and +self+
+    # it's from somewhere else. You can pass in a method and +self+
     # will borrow its scope.
     #
     # @param [#scope] other the other method that has a scope we can borrow
@@ -113,31 +113,26 @@ module Rubinius
     end
 
     ##
-    # Set a breakpoint here.
+    # Set a breakpoint on +ip+. +obj+ can be any object. When the breakpoint
+    # is hit +obj+ is sent to the debugger so it can distinguish which breakpoint
+    # this is.
     #
-    # @raise [ArgumentError]
-    # @param [Fixnum] ip where exactly to place the breakpoint
     def set_breakpoint(ip, obj)
       Ruby.primitive :compiledmethod_set_breakpoint
       raise ArgumentError, "Unable to set breakpoint on #{inspect} at invalid bytecode address #{ip}"
     end
 
     ##
-    # Erase a breakpoint from being here
+    # Erase a breakpoint at +ip+
     #
-    # @raise [ArgumentError]
-    # @param [Fixnum] ip where exactly to remove the breakpoint
     def clear_breakpoint(ip)
       Ruby.primitive :compiledmethod_clear_breakpoint
       raise ArgumentError, "Unable to clear breakpoint on #{inspect} at invalid bytecode address #{ip}"
     end
 
     ##
-    # Is there a breakpoint set in this method at +ip+?
+    # Indicate if there is a breakpoint set at +ip+
     #
-    # @raise  [ArgumentError]
-    # @param  [Fixnum] ip where exactly the breakpoint supposedly is
-    # @return [Boolean] is it really there?
     def breakpoint?(ip)
       Ruby.primitive :compiledmethod_is_breakpoint
       raise ArgumentError, "Unable to retrieve breakpoint status on #{inspect} at bytecode address #{ip}"
@@ -183,12 +178,14 @@ module Rubinius
       attr_accessor :file_path
       attr_accessor :data_path
       attr_accessor :eval_binding
+      attr_accessor :eval_source
 
       def initialize(method, path=nil, for_eval=false)
         @compiled_method = method
         @file_path = path
         @for_eval = for_eval
         @eval_binding = nil
+        @eval_source = nil
       end
 
       def eval?

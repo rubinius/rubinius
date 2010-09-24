@@ -101,6 +101,8 @@ namespace rubinius {
       stream << " (+" << cf->ip();
       if(cf->is_inline_frame()) {
         stream << " inline";
+      } else if(cf->jitted_p()) {
+        stream << " jit";
       }
       stream << ")";
 

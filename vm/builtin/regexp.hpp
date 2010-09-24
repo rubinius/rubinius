@@ -40,18 +40,21 @@ namespace rubinius {
     static Regexp* create(STATE);
     static char*  version(STATE);
 
+    /* The Regexp options bit flags fit well within a Fixnum. If more
+     * options are added, this should be double-checked.
+     */
     // Ruby.primitive :regexp_initialize
-    Regexp* initialize(STATE, String* pattern, Integer* options, Object* lang);
+    Regexp* initialize(STATE, String* pattern, Fixnum* options, Object* lang);
     void maybe_recompile(STATE);
 
     // Ruby.primitive :regexp_options
-    Object* options(STATE);
+    Fixnum* options(STATE);
 
     // Ruby.primitive :regexp_search_region
-    Object* match_region(STATE, String* string, Integer* start, Integer* end, Object* forward);
+    Object* match_region(STATE, String* string, Fixnum* start, Fixnum* end, Object* forward);
 
     // Ruby.primitive :regexp_match_start
-    Object* match_start(STATE, String* string, Integer* start);
+    Object* match_start(STATE, String* string, Fixnum* start);
 
     // Ruby.primitive :regexp_allocate
     static Regexp* allocate(STATE, Object* self);
@@ -91,7 +94,6 @@ namespace rubinius {
 
   class MatchData : public Object {
   public:
-    const static size_t fields = 4;
     const static object_type type = MatchDataType;
 
   private:
@@ -112,7 +114,7 @@ namespace rubinius {
     String* pre_matched(STATE);
     String* post_matched(STATE);
     Object* last_capture(STATE);
-    Object* nth_capture(STATE, size_t which);
+    Object* nth_capture(STATE, native_int which);
 
     /* interface */
 

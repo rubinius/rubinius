@@ -490,4 +490,20 @@ describe "a method definition that sets more than one default parameter all to t
   end
 end
 
+describe "The def keyword" do
+  describe "within a closure" do
+    it "looks outside the closure for the visibility" do
+      module DefSpecsLambdaVisibility
+        private
+
+        lambda {
+          def some_method; end
+        }.call
+      end
+
+      DefSpecsLambdaVisibility.private_instance_methods.should include("some_method")
+    end
+  end
+end
+
 language_version __FILE__, "def"

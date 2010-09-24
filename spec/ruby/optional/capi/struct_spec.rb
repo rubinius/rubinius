@@ -2,28 +2,123 @@ require File.expand_path('../spec_helper', __FILE__)
 
 load_extension("struct")
 
-describe "CApiStruct" do
+describe "C-API Struct function" do
   before :each do
     @s = CApiStructSpecs.new
+    @struct = @s.rb_struct_define("CAPIStruct", "a", "b", "c")
   end
 
-  it "rb_struct_define defines a structure" do
-    @s.rb_struct_define("MyStruct", "attr1", "attr2", "attr3")
-    instance = Struct::MyStruct.new
-    instance.members.sort.should == ["attr1", "attr2", "attr3"].sort
-    (instance.attr1 = 1).should == 1
-    (instance.attr2 = 2).should == 2
-    (instance.attr3 = 3).should == 3
-    # Verify that attributes are on an instance basis
-    Struct::MyStruct.new.attr1.should == nil
+  describe "rb_struct_define" do
+    it "creates accessors for the struct members" do
+      instance = @struct.new
+      instance.a = 1
+      instance.b = 2
+      instance.c = 3
+      instance.a.should == 1
+      instance.b.should == 2
+      instance.c.should == 3
+    end
+
+    it "has a value of nil for the member of a newly created instance" do
+      # Verify that attributes are on an instance basis
+      Struct::CAPIStruct.new.b.should be_nil
+    end
+
+    it "creates a constant scoped under Struct for the named Struct" do
+      Struct.const_defined?(:CAPIStruct).should be_true
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "returns the member names as Strings" do
+        @struct.members.sort.should == ["a", "b", "c"]
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "returns the member names as Symbols" do
+        @struct.members.sort.should == [:a, :b, :c]
+      end
+    end
+  end
+end
+
+describe "C-API Struct function" do
+  before :each do
+    @s = CApiStructSpecs.new
+    @struct = @s.rb_struct_define(nil, "a", "b", "c")
   end
 
-  it "rb_struct_define allows for anonymous structures" do
-    klass = @s.rb_struct_define(nil, "attr1", "attr2", "attr3")
-    instance = klass.new()
-    instance.members.sort.should == ["attr1", "attr2", "attr3"].sort
-    (instance.attr1 = 1).should == 1
-    (instance.attr2 = 2).should == 2
-    (instance.attr3 = 3).should == 3
+  describe "rb_struct_define for an anonymous struct" do
+    it "creates accessors for the struct members" do
+      instance = @struct.new
+      instance.a = 1
+      instance.b = 2
+      instance.c = 3
+      instance.a.should == 1
+      instance.b.should == 2
+      instance.c.should == 3
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "returns the member names as Strings" do
+        @struct.members.sort.should == ["a", "b", "c"]
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "returns the member names as Symbols" do
+        @struct.members.sort.should == [:a, :b, :c]
+      end
+    end
+  end
+end
+
+
+describe "C-API Struct function" do
+  before :each do
+    @s = CApiStructSpecs.new
+    @struct = Struct.new(:a, :b, :c).new
+  end
+
+  describe "rb_struct_aref" do
+    it "returns the value of a struct member with a symbol key" do
+      @struct[:a] = 2
+      @s.rb_struct_aref(@struct, :a).should == 2
+    end
+
+    it "returns the value of a struct member with a symbol key" do
+      @struct[:b] = 2
+      @s.rb_struct_aref(@struct, "b").should == 2
+    end
+
+    it "returns the value of a struct member by index" do
+      @struct[:c] = 3
+      @s.rb_struct_aref(@struct, 2).should == 3
+    end
+
+    it "raises a NameError if the struct member does not exist" do
+      lambda { @s.rb_struct_aref(@struct, :d) }.should raise_error(NameError)
+    end
+  end
+
+  describe "rb_struct_aset" do
+    it "sets the value of a struct member with a symbol key" do
+      @s.rb_struct_aset(@struct, :a, 1)
+      @struct[:a].should == 1
+    end
+
+    it "sets the value of a struct member with a string key" do
+      @s.rb_struct_aset(@struct, "b", 1)
+      @struct[:b].should == 1
+    end
+
+    it "sets the value of a struct member by index" do
+      @s.rb_struct_aset(@struct, 2, 1)
+      @struct[:c].should == 1
+    end
+
+    it "raises a NameError if the struct member does not exist" do
+      lambda { @s.rb_struct_aset(@struct, :d, 1) }.should raise_error(NameError)
+    end
   end
 end

@@ -119,7 +119,11 @@ VALUE kernel_spec_rb_rescue2(int argc, VALUE *args, VALUE self) {
 #ifdef HAVE_RB_SYS_FAIL
 VALUE kernel_spec_rb_sys_fail(VALUE self, VALUE msg) {
   errno = 1;
-  rb_sys_fail(StringValuePtr(msg));
+  if(msg == Qnil) {
+    rb_sys_fail(0);
+  } else {
+    rb_sys_fail(StringValuePtr(msg));
+  }
   return Qnil;
 }
 #endif

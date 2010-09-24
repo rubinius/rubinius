@@ -82,12 +82,12 @@ class Object
         "ir"
       end
     when :name
-      bin = RUBY_NAME + (Config::CONFIG['EXEEXT'] || Config::CONFIG['exeext'] || '')
+      bin = RUBY_NAME + (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
       File.join(".", bin)
     when :install_name
-      bin = Config::CONFIG["RUBY_INSTALL_NAME"] || Config::CONFIG["ruby_install_name"]
-      bin << (Config::CONFIG['EXEEXT'] || Config::CONFIG['exeext'] || '')
-      File.join(Config::CONFIG['bindir'], bin)
+      bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"] || RbConfig::CONFIG["ruby_install_name"]
+      bin << (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
+      File.join(RbConfig::CONFIG['bindir'], bin)
     end
   end
 

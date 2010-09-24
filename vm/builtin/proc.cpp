@@ -7,6 +7,7 @@
 #include "builtin/compiledmethod.hpp"
 #include "builtin/system.hpp"
 #include "builtin/location.hpp"
+#include "builtin/nativemethod.hpp"
 
 #include "arguments.hpp"
 
@@ -73,6 +74,8 @@ namespace rubinius {
     Object* ret;
     if(bound_method_->nil_p()) {
       ret= block_->call(state, call_frame, args, flags);
+    } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
+      ret = nm->execute(state, call_frame, nm, G(object), args);
     } else {
       Dispatch dis(state->symbol("__yield__"));
       ret = dis.send(state, call_frame, args);
@@ -85,6 +88,8 @@ namespace rubinius {
     if(bound_method_->nil_p()) {
       // NOTE! To match MRI semantics, this explicitely ignores lambda_.
       return block_->call(state, call_frame, args, 0);
+    } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
+      return nm->execute(state, call_frame, nm, G(object), args);
     } else {
       return call_prim(state, call_frame, NULL, NULL, args);
     }
@@ -129,6 +134,8 @@ namespace rubinius {
     Object* ret;
     if(bound_method_->nil_p()) {
       ret = block_->call(state, call_frame, args, flags);
+    } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
+      ret = nm->execute(state, call_frame, nm, G(object), args);
     } else {
       Dispatch dis(state->symbol("__yield__"));
       ret = dis.send(state, call_frame, args);

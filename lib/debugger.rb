@@ -4,11 +4,27 @@ require 'debugger/commands'
 require 'debugger/breakpoint'
 require 'debugger/display'
 
+#
+# The Rubinius reference debugger.
+#
+# This debugger is wired into the debugging APIs provided by Rubinius.
+# It serves as a simple, builtin debugger that others can use as
+# an example for how to build a better debugger.
+#
+
 class Debugger
   include Debugger::Display
 
+  # Used to try and show the source for the kernel. Should
+  # mostly work, but it's a hack.
   ROOT_DIR = File.expand_path(File.dirname(__FILE__) + "/..")
 
+  # Create a new debugger object. The debugger starts up a thread
+  # which is where the command line interface executes from. Other
+  # threads that you wish to debug are told that their debugging
+  # thread is the debugger thread. This is how the debugger is handed
+  # control of execution.
+  #
   def initialize
     @file_lines = Hash.new do |hash, path|
       if File.exists? path
@@ -39,6 +55,9 @@ class Debugger
     @added_hook = proc { |mod, name, exec|
       check_defered_breakpoints
     }
+
+    # Use a few Rubinius specific hooks to trigger checking
+    # for defered breakpoints.
 
     Rubinius::CodeLoader.loaded_hook.add @loaded_hook
     Rubinius.add_method_hook.add @added_hook
@@ -76,39 +95,16 @@ class Debugger
     global.start(1)
   end
 
+  # This is simplest API point. This starts up the debugger in the caller
+  # of this method to begin debugging.
+  #
   def self.here
     global.start(1)
   end
 
-  def spinup_thread
-    return if @thread
-
-    @local_channel = Rubinius::Channel.new
-
-    @thread = Thread.new do
-      begin
-        listen
-      rescue Exception => e
-        e.render("Listening")
-        break
-      end
-
-      while true
-        begin
-          accept_commands
-        rescue Exception => e
-          begin
-            e.render "Error in debugger"
-          rescue Exception => e2
-            puts "Error rendering backtrace in debugger!"
-          end
-        end
-      end
-    end
-
-    @thread.setup_control!(@local_channel)
-  end
-
+  # Startup the debugger, skipping back +offset+ frames. This lets you start
+  # the debugger straight into callers method.
+  #
   def start(offset=0)
     spinup_thread
 
@@ -129,6 +125,9 @@ class Debugger
     self
   end
 
+  # Stop and wait for a debuggee thread to send us info about
+  # stoping at a breakpoint.
+  #
   def listen(step_into=false)
     if @channel
       if step_into
@@ -163,6 +162,8 @@ class Debugger
 
   end
 
+  # Get a command from the user to run using readline
+  #
   def accept_commands
     cmd = Readline.readline "debug> "
 
@@ -370,4 +371,36 @@ class Debugger
       ip += (ins.size + 1)
     end
   end
+
+  def spinup_thread
+    return if @thread
+
+    @local_channel = Rubinius::Channel.new
+
+    @thread = Thread.new do
+      begin
+        listen
+      rescue Exception => e
+        e.render("Listening")
+        break
+      end
+
+      while true
+        begin
+          accept_commands
+        rescue Exception => e
+          begin
+            e.render "Error in debugger"
+          rescue Exception => e2
+            puts "Error rendering backtrace in debugger!"
+          end
+        end
+      end
+    end
+
+    @thread.setup_control!(@local_channel)
+  end
+
+  private :spinup_thread
+
 end

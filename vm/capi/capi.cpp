@@ -117,9 +117,6 @@ namespace rubinius {
 
     /**
      *  Common implementation for rb_funcall*
-     *
-     *  @todo   Set up permanent SendSites through macroing?
-     *  @todo   Stricter action check?
      */
     VALUE capi_funcall_backend(const char* file, int line,
                                VALUE receiver, ID method_name,
@@ -131,6 +128,13 @@ namespace rubinius {
       Array* args = Array::create(env->state(), arg_count);
       for(size_t i = 0; i < arg_count; i++) {
         args->set(env->state(), i, env->get_object(arg_array[i]));
+      }
+
+      Object* blk = RBX_Qnil;
+
+      if(VALUE blk_handle = env->outgoing_block()) {
+        blk = env->get_object(blk_handle);
+        env->set_outgoing_block(0);
       }
 
       Object* recv = env->get_object(receiver);
@@ -345,10 +349,17 @@ extern "C" {
 
     va_end(varargs);
 
+    Object* blk = RBX_Qnil;
+
+    if(VALUE blk_handle = env->outgoing_block()) {
+      blk = env->get_object(blk_handle);
+      env->set_outgoing_block(0);
+    }
+
     return capi_funcall_backend_native(env, "", 0,
         env->get_object(receiver),
         reinterpret_cast<Symbol*>(method_name),
-        arg_count, args, RBX_Qnil);
+        arg_count, args, blk);
   }
 
   VALUE rb_funcall2(VALUE receiver, ID method_name, int arg_count, const VALUE* v_args) {
@@ -360,10 +371,17 @@ extern "C" {
       args[i] = env->get_object(v_args[i]);
     }
 
+    Object* blk = RBX_Qnil;
+
+    if(VALUE blk_handle = env->outgoing_block()) {
+      blk = env->get_object(blk_handle);
+      env->set_outgoing_block(0);
+    }
+
     return capi_funcall_backend_native(env, "", 0,
         env->get_object(receiver),
         reinterpret_cast<Symbol*>(method_name),
-        arg_count, args, RBX_Qnil);
+        arg_count, args, blk);
   }
 
   VALUE rb_funcall2b(VALUE receiver, ID method_name, int arg_count,

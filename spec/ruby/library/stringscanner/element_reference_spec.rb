@@ -6,6 +6,10 @@ describe "StringScanner#[]" do
     @s = StringScanner.new("Fri Jun 13 2008 22:43")
   end
 
+  it "returns nil if there is no current match" do
+    @s[0].should be_nil
+  end
+
   it "returns the n-th subgroup in the most recent match" do
     @s.scan(/(\w+) (\w+) (\d+) /)
     @s[0].should == "Fri Jun 13 "

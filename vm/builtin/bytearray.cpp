@@ -1,5 +1,7 @@
 /* The simple ByteArray class, used to implement String. */
 
+#include <stdint.h>
+
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "primitives.hpp"
@@ -20,7 +22,9 @@ namespace rubinius {
     G(bytearray)->name(state, state->symbol("Rubinius::ByteArray"));
   }
 
-  ByteArray* ByteArray::create(STATE, size_t bytes) {
+  ByteArray* ByteArray::create(STATE, native_int bytes) {
+    assert(bytes >= 0 && bytes < INT32_MAX);
+
     size_t body = bytes;
     ByteArray* ba = state->om->new_object_bytes<ByteArray>(state, G(bytearray), body);
     if(unlikely(!ba)) {
@@ -31,7 +35,9 @@ namespace rubinius {
     return ba;
   }
 
-  ByteArray* ByteArray::create_pinned(STATE, size_t bytes) {
+  ByteArray* ByteArray::create_pinned(STATE, native_int bytes) {
+    assert(bytes >= 0 && bytes < INT32_MAX);
+
     size_t body = bytes;
     ByteArray* ba = state->om->new_object_bytes_mature<ByteArray>(state, G(bytearray), body);
     if(unlikely(!ba)) {
@@ -65,28 +71,28 @@ namespace rubinius {
     return out;
   }
 
-  ByteArray* ByteArray::allocate(STATE, Integer* bytes) {
+  ByteArray* ByteArray::allocate(STATE, Fixnum* bytes) {
     return ByteArray::create(state, bytes->to_native());
   }
 
-  Integer* ByteArray::size(STATE) {
-    return Integer::from(state, size());
+  Fixnum* ByteArray::size(STATE) {
+    return Fixnum::from(size());
   }
 
-  Fixnum* ByteArray::get_byte(STATE, Integer* index) {
+  Fixnum* ByteArray::get_byte(STATE, Fixnum* index) {
     native_int idx = index->to_native();
 
-    if(idx < 0 || (unsigned)idx >= size()) {
+    if(idx < 0 || idx >= size()) {
       Exception::object_bounds_exceeded_error(state, "index out of bounds");
     }
 
     return Fixnum::from(this->bytes[idx]);
   }
 
-  Fixnum* ByteArray::set_byte(STATE, Integer* index, Fixnum* value) {
+  Fixnum* ByteArray::set_byte(STATE, Fixnum* index, Fixnum* value) {
     native_int idx = index->to_native();
 
-    if(idx < 0 || (unsigned)idx >= size()) {
+    if(idx < 0 || idx >= size()) {
       Exception::object_bounds_exceeded_error(state, "index out of bounds");
     }
 
@@ -94,7 +100,7 @@ namespace rubinius {
     return Fixnum::from(this->bytes[idx]);
   }
 
-  Integer* ByteArray::move_bytes(STATE, Integer* start, Integer* count, Integer* dest) {
+  Fixnum* ByteArray::move_bytes(STATE, Fixnum* start, Fixnum* count, Fixnum* dest) {
     native_int src = start->to_native();
     native_int cnt = count->to_native();
     native_int dst = dest->to_native();
@@ -105,9 +111,9 @@ namespace rubinius {
       Exception::object_bounds_exceeded_error(state, "dest less than zero");
     } else if(cnt < 0) {
       Exception::object_bounds_exceeded_error(state, "count less than zero");
-    } else if((unsigned)(dst + cnt) > size()) {
+    } else if((dst + cnt) > size()) {
       Exception::object_bounds_exceeded_error(state, "move is beyond end of bytearray");
-    } else if((unsigned)(src + cnt) > size()) {
+    } else if((src + cnt) > size()) {
       Exception::object_bounds_exceeded_error(state, "move is more than available bytes");
     }
 
@@ -125,7 +131,7 @@ namespace rubinius {
     return ba;
   }
 
-  ByteArray* ByteArray::fetch_bytes(STATE, Integer* start, Integer* count) {
+  ByteArray* ByteArray::fetch_bytes(STATE, Fixnum* start, Fixnum* count) {
     native_int src = start->to_native();
     native_int cnt = count->to_native();
 
@@ -133,7 +139,7 @@ namespace rubinius {
       Exception::object_bounds_exceeded_error(state, "start less than zero");
     } else if(cnt < 0) {
       Exception::object_bounds_exceeded_error(state, "count less than zero");
-    } else if((unsigned)(src + cnt) > size()) {
+    } else if((src + cnt) > size()) {
       Exception::object_bounds_exceeded_error(state, "fetch is more than available bytes");
     }
 
@@ -144,7 +150,7 @@ namespace rubinius {
     return ba;
   }
 
-  Fixnum* ByteArray::compare_bytes(STATE, ByteArray* other, Integer* a, Integer* b) {
+  Fixnum* ByteArray::compare_bytes(STATE, ByteArray* other, Fixnum* a, Fixnum* b) {
     native_int slim = a->to_native();
     native_int olim = b->to_native();
 
@@ -157,8 +163,8 @@ namespace rubinius {
     }
 
     // clamp limits to actual sizes
-    size_t m = size() < (unsigned)slim ? size() : slim;
-    size_t n = other->size() < (unsigned)olim ? other->size() : olim;
+    native_int m = size() < slim ? size() : slim;
+    native_int n = other->size() < olim ? other->size() : olim;
 
     // only compare the shortest string
     native_int len = m < n ? m : n;
@@ -182,8 +188,8 @@ namespace rubinius {
 
   Object* ByteArray::locate(STATE, String* pattern, Fixnum* start, Fixnum* max_o) {
     const uint8_t* pat = pattern->byte_address();
-    size_t len = pattern->size();
-    size_t max = (size_t)max_o->to_native();
+    native_int len = pattern->size();
+    native_int max = max_o->to_native();
 
     if(len == 0) return start;
 
@@ -191,9 +197,9 @@ namespace rubinius {
 
     max -= (len - 1);
 
-    for(size_t i = (size_t)start->to_native(); i < max; i++) {
+    for(native_int i = start->to_native(); i < max; i++) {
       if(this->bytes[i] == pat[0]) {
-        size_t j;
+        native_int j;
         // match the rest of the pattern string
         for(j = 1; j < len; j++) {
           if(this->bytes[i+j] != pat[j]) break;
@@ -201,7 +207,7 @@ namespace rubinius {
 
         // if the full pattern matched, return the index
         // of the end of the pattern in 'this'.
-        if(j == len) return Integer::from(state, i + len);
+        if(j == len) return Fixnum::from(i + len);
       }
     }
 

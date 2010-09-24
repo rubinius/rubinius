@@ -86,7 +86,7 @@ namespace rubinius {
         return nfunc->call(state, args, call_frame);
       }
 #else
-      return nfunc->call(state, args, call_frame);
+      return nfunc->call(state, args, msg, call_frame);
 #endif
 
     } catch(TypeError &e) {
@@ -103,6 +103,7 @@ namespace rubinius {
     switch(type) {
       case RBX_FFI_TYPE_CHAR:
       case RBX_FFI_TYPE_UCHAR:
+      case RBX_FFI_TYPE_BOOL:
         return sizeof(char);
 
       case RBX_FFI_TYPE_SHORT:
@@ -161,9 +162,9 @@ namespace rubinius {
   void NativeFunction::prep(STATE, int arg_count, int *arg_types,
                             int ret_type) {
 
-    ffi_type **types;
+    ffi_type** types;
     ffi_status status;
-    ffi_type *rtype;
+    ffi_type* rtype;
     int i;
 
     types = ALLOC_N(ffi_type*, arg_count);
@@ -174,6 +175,7 @@ namespace rubinius {
         types[i] = &ffi_type_schar;
         break;
       case RBX_FFI_TYPE_UCHAR:
+      case RBX_FFI_TYPE_BOOL:
         types[i] = &ffi_type_uchar;
         break;
       case RBX_FFI_TYPE_SHORT:
@@ -221,6 +223,7 @@ namespace rubinius {
       rtype = &ffi_type_schar;
       break;
     case RBX_FFI_TYPE_UCHAR:
+    case RBX_FFI_TYPE_BOOL:
       rtype = &ffi_type_uchar;
       break;
     case RBX_FFI_TYPE_SHORT:
@@ -288,13 +291,15 @@ namespace rubinius {
   NativeFunction* NativeFunction::generate(STATE, Pointer* ptr, Symbol* name,
                                            Array* args, Object* ret)
   {
-    int *arg_types;
+    int* arg_types;
     int ret_type;
     int i, tot, arg_count;
     Object* type;
 
     tot = args->size();
     arg_count = tot;
+
+    int callbacks = 0;
 
     NativeFunction* cb = 0;
 
@@ -304,13 +309,15 @@ namespace rubinius {
       for(i = 0; i < tot; i++) {
         type = args->get(state, i);
         if((cb = try_as<NativeFunction>(type))) {
-          if(i != tot - 1) {
+          callbacks++;
+          // We only support one callback right now.
+          if(callbacks > 1) {
             XFREE(arg_types);
-            return (NativeFunction*)Qnil;
+            return (NativeFunction*)Primitives::failure();
           }
           arg_types[i] = RBX_FFI_TYPE_CALLBACK;
         } else {
-          if(!type->fixnum_p()) return (NativeFunction*)Qnil;
+          if(!type->fixnum_p()) return (NativeFunction*)Primitives::failure();
           arg_types[i] = as<Integer>(type)->to_native();
 
           /* State can only be passed as the first arg, and it's invisible,
@@ -321,7 +328,7 @@ namespace rubinius {
               arg_count--;
             } else {
               XFREE(arg_types);
-              return (NativeFunction*)Qnil;
+              return (NativeFunction*)Primitives::failure();
             }
           }
         }
@@ -360,6 +367,9 @@ namespace rubinius {
         break;
       case RBX_FFI_TYPE_UCHAR:
         args->set(state, i, Fixnum::from(*(uint8_t*)parameters[i]));
+        break;
+      case RBX_FFI_TYPE_BOOL:
+        args->set(state, i, (*(uint8_t*)parameters[i]) ? Qtrue : Qfalse);
         break;
       case RBX_FFI_TYPE_SHORT:
         args->set(state, i, Fixnum::from(*(int16_t*)parameters[i]));
@@ -471,6 +481,13 @@ namespace rubinius {
         *((ffi_arg*)retval) = 0;
       }
       break;
+    case RBX_FFI_TYPE_BOOL:
+      if(RTEST(obj)) {
+        *((ffi_arg*)retval) = 1;
+      } else {
+        *((ffi_arg*)retval) = 0;
+      }
+      break;
     case RBX_FFI_TYPE_FLOAT:
       if(Float* flt = try_as<Float>(obj)) {
         *((float*)retval) = flt->val;
@@ -520,7 +537,7 @@ namespace rubinius {
   Array* NativeFunction::generate_tramp(STATE, Object* obj, Symbol* name,
                                         Array* args, Object* ret)
   {
-    int *arg_types;
+    int* arg_types;
     int ret_type;
     int i, tot;
     Object* type;
@@ -595,16 +612,38 @@ namespace rubinius {
     return Pointer::create(state, func->ffi_data->ep);
   }
 
-  Object* NativeFunction::call(STATE, Arguments& args, CallFrame* call_frame) {
+  Object* NativeFunction::call(STATE, Arguments& args, CallFrame* call_frame)
+  {
     Object* ret;
     Object* obj;
 
-    void **values = ALLOCA_N(void*, ffi_data->arg_count);
+    bool use_cb_block = false;
+
+    if(args.total() != ffi_data->arg_count) {
+      if(args.total() + 1 == ffi_data->arg_count &&
+          args.block() && !args.block()->nil_p())
+      {
+        use_cb_block = true;
+      } else {
+        Exception* exc =
+          Exception::make_argument_error(state, ffi_data->arg_count,
+                                         args.total(), args.name());
+        exc->locations(state, Location::from_call_stack(state, call_frame));
+        state->thread_state()->raise_exception(exc);
+
+        return NULL;
+      }
+    }
+
+    // Because we call back into ruby to do conversions.
+    RootBuffer vrf(state->root_buffers(), args.arguments(), args.total());
+
+    void** values = ALLOCA_N(void*, ffi_data->arg_count);
 
     for(size_t i = 0; i < ffi_data->arg_count; i++) {
       switch(ffi_data->arg_types[i]) {
       case RBX_FFI_TYPE_CHAR: {
-        char *tmp = ALLOCA(char);
+        char* tmp = ALLOCA(char);
         obj = args.get_argument(i);
         type_assert(state, obj, FixnumType, "converting to char");
         *tmp = (char)as<Fixnum>(obj)->to_native();
@@ -612,15 +651,22 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_UCHAR: {
-        unsigned char *tmp = ALLOCA(unsigned char);
+        unsigned char* tmp = ALLOCA(unsigned char);
         obj = args.get_argument(i);
         type_assert(state, obj, FixnumType, "converting to uchar");
         *tmp = (unsigned char)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
         break;
       }
+      case RBX_FFI_TYPE_BOOL: {
+        unsigned char* tmp = ALLOCA(unsigned char);
+        obj = args.get_argument(i);
+        *tmp = (unsigned char)RTEST(obj);
+        values[i] = tmp;
+        break;
+      }
       case RBX_FFI_TYPE_SHORT: {
-        short *tmp = ALLOCA(short);
+        short* tmp = ALLOCA(short);
         obj = args.get_argument(i);
         type_assert(state, obj, FixnumType, "converting to short");
         *tmp = (short)as<Fixnum>(obj)->to_native();
@@ -628,7 +674,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_USHORT: {
-        unsigned short *tmp = ALLOCA(unsigned short);
+        unsigned short* tmp = ALLOCA(unsigned short);
         obj = args.get_argument(i);
         type_assert(state, obj, FixnumType, "converting to ushort");
         *tmp = (unsigned short)as<Fixnum>(obj)->to_native();
@@ -636,7 +682,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_INT: {
-        int *tmp = ALLOCA(int);
+        int* tmp = ALLOCA(int);
         obj = args.get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_int();
@@ -648,7 +694,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_UINT: {
-        unsigned int *tmp = ALLOCA(unsigned int);
+        unsigned int* tmp = ALLOCA(unsigned int);
         obj = args.get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_uint();
@@ -660,7 +706,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_LONG: {
-        long *tmp = ALLOCA(long);
+        long* tmp = ALLOCA(long);
         obj = args.get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_long();
@@ -672,7 +718,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_ULONG: {
-        unsigned long *tmp = ALLOCA(unsigned long);
+        unsigned long* tmp = ALLOCA(unsigned long);
         obj = args.get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_ulong();
@@ -684,7 +730,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_FLOAT: {
-        float *tmp = ALLOCA(float);
+        float* tmp = ALLOCA(float);
         obj = args.get_argument(i);
         type_assert(state, obj, FloatType, "converting to float");
         *tmp = (float)as<Float>(obj)->to_double(state);
@@ -692,7 +738,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_DOUBLE: {
-        double *tmp = ALLOCA(double);
+        double* tmp = ALLOCA(double);
         obj = args.get_argument(i);
         type_assert(state, obj, FloatType, "converting to double");
         *tmp = as<Float>(obj)->to_double(state);
@@ -700,7 +746,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_LONG_LONG: {
-        long long *tmp = ALLOCA(long long);
+        long long* tmp = ALLOCA(long long);
         obj = args.get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_long_long();
@@ -712,7 +758,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_ULONG_LONG: {
-        unsigned long long *tmp = ALLOCA(unsigned long long);
+        unsigned long long* tmp = ALLOCA(unsigned long long);
         obj = args.get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_ulong_long();
@@ -724,34 +770,56 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_STATE: {
-        VM **tmp = ALLOCA(VM*);
+        VM** tmp = ALLOCA(VM*);
         *tmp = state;
         values[i] = tmp;
         break;
       }
       case RBX_FFI_TYPE_OBJECT: {
-        Object* *tmp = ALLOCA(Object*);
+        Object** tmp = ALLOCA(Object*);
         obj = args.get_argument(i);
         *tmp = obj;
         values[i] = tmp;
         break;
       }
       case RBX_FFI_TYPE_PTR: {
-        void **tmp = ALLOCA(void*);
+        void** tmp = ALLOCA(void*);
         obj = args.get_argument(i);
         if(NIL_P(obj)) {
           *tmp = NULL;
         } else {
-          Pointer *mp = as<Pointer>(obj);
-          type_assert(state, obj, PointerType, "converting to pointer");
-          *tmp = mp->pointer;
+          Pointer* mp = try_as<Pointer>(obj);
+          if(!mp) {
+            if(String* so = try_as<String>(obj)) {
+              int size;
+              size = so->size();
+
+              char* data = ALLOCA_N(char, size + 1);
+              memcpy(data, so->c_str(), size);
+              data[size] = 0;
+              *tmp = data;
+            } else if(RTEST(obj->respond_to(state, state->symbol("to_ptr"), Qtrue))) {
+              Object* o2 = obj->send(state, call_frame, state->symbol("to_ptr"));
+              type_assert(state, o2, PointerType, "converting to pointer");
+              mp = as<Pointer>(o2);
+              *tmp = mp->pointer;
+            } else {
+              type_assert(state, obj, PointerType, "converting to pointer");
+            }
+          } else {
+            *tmp = mp->pointer;
+          }
         }
         values[i] = tmp;
         break;
       }
       case RBX_FFI_TYPE_CALLBACK: {
-        void **tmp = ALLOCA(void*);
-        obj = args.block();
+        void** tmp = ALLOCA(void*);
+        if(use_cb_block) {
+          obj = args.block();
+        } else {
+          obj = args.get_argument(i);
+        }
 
         if(obj->reference_p()) {
           Pointer* ptr = NativeFunction::adjust_tramp(state, obj, callback_info_);
@@ -764,7 +832,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_STRING: {
-        char **tmp = ALLOCA(char*);
+        char** tmp = ALLOCA(char*);
         obj = args.get_argument(i);
 
         if(NIL_P(obj)) {
@@ -808,6 +876,13 @@ namespace rubinius {
       ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
       state->shared.gc_dependent(state);
       ret = Fixnum::from((native_int)result);
+      break;
+    }
+    case RBX_FFI_TYPE_BOOL: {
+      ffi_arg result;
+      ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
+      state->shared.gc_dependent(state);
+      ret = (result != 0) ? Qtrue : Qfalse;
       break;
     }
     case RBX_FFI_TYPE_SHORT: {
@@ -886,7 +961,7 @@ namespace rubinius {
       break;
     }
     case RBX_FFI_TYPE_PTR: {
-      void *result;
+      void* result;
       ffi_call(&ffi_data->cif, FFI_FN(ffi_data->ep), &result, values);
       state->shared.gc_dependent(state);
       if(result == NULL) {

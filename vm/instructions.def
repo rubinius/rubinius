@@ -899,8 +899,7 @@ instruction push_ivar(index) [ -- value ]
   Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
   Object* ret = call_frame->self()->get_ivar(state, sym);
 
-  HANDLE_EXCEPTION(ret);
-  stack_push(ret);
+  CHECK_AND_PUSH(ret);
 end
 
 section "Manipulate constants"
@@ -936,9 +935,7 @@ instruction push_const(literal) [ -- constant ]
     res = autoload->resolve(state, call_frame);
   }
 
-  HANDLE_EXCEPTION(res);
-
-  stack_push(res);
+  CHECK_AND_PUSH(res);
 end
 
 # [Operation]
@@ -1019,9 +1016,7 @@ instruction find_const(index) [ module -- constant ]
     res = autoload->resolve(state, call_frame);
   }
 
-  HANDLE_EXCEPTION(res);
-
-  stack_push(res);
+  CHECK_AND_PUSH(res);
 end
 
 # [Operation]
@@ -1098,7 +1093,7 @@ instruction push_const_fast(literal association) [ -- constant ]
     }
   }
 
-  HANDLE_EXCEPTION(res);
+  CHECK_EXCEPTION(res);
 
   if(Autoload* autoload = try_as<Autoload>(res)) {
     flush_ip();
@@ -1116,9 +1111,7 @@ instruction push_const_fast(literal association) [ -- constant ]
     }
   }
 
-  HANDLE_EXCEPTION(res);
-
-  stack_push(res);
+  CHECK_AND_PUSH(res);
 end
 
 section "Send messages"
@@ -1180,8 +1173,7 @@ instruction send_method(literal) [ receiver -- value ] => send
 
   (void)stack_pop();
 
-  HANDLE_EXCEPTION(ret);
-  stack_push(ret);
+  CHECK_AND_PUSH(ret);
 end
 
 # [Operation]
@@ -1225,8 +1217,7 @@ instruction send_stack(literal count) [ receiver +count -- value ] => send
 
   stack_clear(count + 1);
 
-  HANDLE_EXCEPTION(ret);
-  stack_push(ret);
+  CHECK_AND_PUSH(ret);
 end
 
 # [Operation]
@@ -1271,8 +1262,7 @@ instruction send_stack_with_block(literal count) [ block receiver +count -- valu
 
   stack_clear(count + 1);
 
-  HANDLE_EXCEPTION(ret);
-  stack_push(ret);
+  CHECK_AND_PUSH(ret);
 end
 
 # [Operation]
@@ -1328,8 +1318,7 @@ instruction send_stack_with_splat(literal count) [ block array receiver +count -
 
   stack_clear(count + 1);
 
-  HANDLE_EXCEPTION(ret);
-  stack_push(ret);
+  CHECK_AND_PUSH(ret);
 end
 
 # [Operation]
@@ -1377,8 +1366,7 @@ instruction send_super_stack_with_block(literal count) [ block +count -- value ]
 
   stack_clear(count);
 
-  HANDLE_EXCEPTION(ret);
-  stack_push(ret);
+  CHECK_AND_PUSH(ret);
 end
 
 # [Operation]
@@ -1432,8 +1420,7 @@ instruction send_super_stack_with_splat(literal count) [ block array +count -- v
 
   stack_clear(count);
 
-  HANDLE_EXCEPTION(ret);
-  stack_push(ret);
+  CHECK_AND_PUSH(ret);
 end
 
 section "Manipulate blocks"
@@ -1655,8 +1642,7 @@ instruction yield_stack(count) [ +count -- value ] => yield
 
   stack_clear(count);
 
-  HANDLE_EXCEPTION(ret);
-  stack_push(ret);
+  CHECK_AND_PUSH(ret);
 end
 
 instruction yield_splat(count) [ array +count -- value ] => yield
@@ -1685,8 +1671,7 @@ instruction yield_splat(count) [ array +count -- value ] => yield
 
   stack_clear(count);
 
-  HANDLE_EXCEPTION(ret);
-  stack_push(ret);
+  CHECK_AND_PUSH(ret);
 end
 
 section "Manipulate strings"
@@ -2170,8 +2155,7 @@ instruction meta_send_op_plus(literal) [ value1 value2 -- sum ] => send
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
-    HANDLE_EXCEPTION(ret);
-    stack_push(ret);
+    CHECK_AND_PUSH(ret);
   }
 end
 
@@ -2206,8 +2190,7 @@ instruction meta_send_op_minus(literal) [ value1 value2 -- difference ] => send
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
-    HANDLE_EXCEPTION(ret);
-    stack_push(ret);
+    CHECK_AND_PUSH(ret);
   }
 end
 
@@ -2245,8 +2228,7 @@ instruction meta_send_op_equal(literal) [ value1 value2 -- boolean ] => send
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
-    HANDLE_EXCEPTION(ret);
-    stack_push(ret);
+    CHECK_AND_PUSH(ret);
   }
 end
 
@@ -2282,8 +2264,7 @@ instruction meta_send_op_lt(literal) [ value1 value2 -- boolean ]
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
-    HANDLE_EXCEPTION(ret);
-    stack_push(ret);
+    CHECK_AND_PUSH(ret);
   }
 end
 
@@ -2319,8 +2300,7 @@ instruction meta_send_op_gt(literal) [ value1 value2 -- boolean ]
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
-    HANDLE_EXCEPTION(ret);
-    stack_push(ret);
+    CHECK_AND_PUSH(ret);
   }
 end
 
@@ -2357,8 +2337,7 @@ instruction meta_send_op_tequal(literal) [ value1 value2 -- boolean ] => send
     Object* ret = cache->execute(state, call_frame, out_args);
     stack_clear(2);
 
-    HANDLE_EXCEPTION(ret);
-    stack_push(ret);
+    CHECK_AND_PUSH(ret);
   }
 end
 
@@ -2394,8 +2373,7 @@ instruction meta_send_call(literal count) [ receiver +count -- value ] => send
 
   stack_clear(count + 1);
 
-  HANDLE_EXCEPTION(ret);
-  stack_push(ret);
+  CHECK_AND_PUSH(ret);
 end
 
 section "More misc"
@@ -2459,9 +2437,7 @@ instruction zsuper(literal) [ block -- value ]
 
   ret = InlineCache::empty_cache_super(state, cache, call_frame, new_args);
 
-  HANDLE_EXCEPTION(ret);
-  stack_push(ret);
-
+  CHECK_AND_PUSH(ret);
 end
 
 instruction push_block_arg() [ -- block ]
@@ -2531,8 +2507,7 @@ instruction invoke_primitive(literal args) [ +args -- value ]
 
   stack_clear(args);
 
-  HANDLE_EXCEPTION(ret);
-  stack_push(ret);
+  CHECK_AND_PUSH(ret);
 end
 
 # [Operation]
@@ -2567,6 +2542,5 @@ instruction call_custom(literal count) [ receiver +count -- value ] => send
 
   stack_clear(count + 1);
 
-  HANDLE_EXCEPTION(ret);
-  stack_push(ret);
+  CHECK_AND_PUSH(ret);
 end

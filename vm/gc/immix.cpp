@@ -4,6 +4,7 @@
 #include "instruments/stats.hpp"
 
 #include "capi/handle.hpp"
+#include "capi/tag.hpp"
 #include "object_watch.hpp"
 
 #include "configuration.hpp"
@@ -216,6 +217,28 @@ namespace rubinius {
       }
     }
 
+    std::list<capi::Handle**>* gh = data.global_handle_locations();
+
+    if(gh) {
+      for(std::list<capi::Handle**>::iterator i = gh->begin();
+          i != gh->end();
+          i++) {
+        capi::Handle** loc = *i;
+        if(capi::Handle* hdl = *loc) {
+          if(!CAPI_REFERENCE_P(hdl)) continue;
+          if(hdl->valid_p()) {
+            Object* obj = hdl->object();
+            if(obj && obj->reference_p()) {
+              saw_object(obj);
+              via_handles_++;
+            }
+          } else {
+            std::cerr << "Detected bad handle checking global capi handles\n";
+          }
+        }
+      }
+    }
+
     for(VariableRootBuffers::Iterator i(data.variable_buffers());
         i.more(); i.advance()) {
       Object*** buffer = i->buffer();
@@ -224,8 +247,21 @@ namespace rubinius {
         Object* tmp = *var;
 
         via_stack++;
-        if(tmp->reference_p() && tmp->young_object_p()) {
-          saw_object(tmp);
+        if(tmp->reference_p())saw_object(tmp);
+      }
+    }
+
+    RootBuffers* rb = data.root_buffers();
+    if(rb) {
+      for(RootBuffers::Iterator i(*rb);
+          i.more();
+          i.advance())
+      {
+        Object** buffer = i->buffer();
+        for(int idx = 0; idx < i->size(); idx++) {
+          Object* tmp = buffer[idx];
+
+          if(tmp->reference_p()) saw_object(tmp);
         }
       }
     }

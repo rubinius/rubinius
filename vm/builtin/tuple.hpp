@@ -13,18 +13,18 @@ namespace rubinius {
     // Must NOT be a native_int, because that changes between sizes
     // between 32 and 64bit, thusly types.gen.cpp will not
     // be portable.
-    int full_size_;
+    uint32_t full_size_;
 
     /* Body access */
     Object* field[0];
 
   public:
-    uint32_t num_fields() const {
+    native_int num_fields() const {
       return (full_size_ - sizeof(Tuple)) / sizeof(Object*);
     }
 
-    static Tuple* create(STATE, size_t fields);
-    static Tuple* from(STATE, size_t fields, ...);
+    static Tuple* create(STATE, native_int fields);
+    static Tuple* from(STATE, native_int fields, ...);
 
     /** Shift all elements leftward, clear old slots. */
     Tuple* lshift_inplace(STATE, Fixnum* shift);
@@ -39,7 +39,7 @@ namespace rubinius {
     // Ruby.primitive :tuple_at
     Object* at_prim(STATE, Fixnum* pos);
 
-    Object* put(STATE, size_t idx, Object* val);
+    Object* put(STATE, native_int idx, Object* val);
 
     // Ruby.primitive :tuple_put
     Object* put_prim(STATE, Fixnum* idx, Object* val);
@@ -59,18 +59,16 @@ namespace rubinius {
     // Ruby.primitive :tuple_reverse
     Object* reverse(STATE, Fixnum* start, Fixnum* total);
 
+    Tuple* bounds_exceeded_error(STATE, const char* method, int index);
+
   public: // Inline Functions
-    Object* at(STATE, size_t index) {
-      if(num_fields() <= index) {
-        Exception::object_bounds_exceeded_error(state, this, index);
-        return NULL;
-      }
+    Object* at(native_int index) {
+      if(index < 0 || num_fields() <= index) return Qnil;
       return field[index];
     }
 
-    Object* at(size_t index) {
-      if(num_fields() <= index) return NULL;
-      return field[index];
+    Object* at(STATE, native_int index) {
+      return at(index);
     }
 
   public: // Rubinius Type stuff

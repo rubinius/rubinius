@@ -113,6 +113,11 @@ namespace :install do
         install_file name, /^lib/, BUILD_CONFIG[:lib_path]
       end
 
+      # Install the documentation site
+      FileList['lib/rubinius/documentation/**/*'].each do |name|
+        install_file name, /^lib/, BUILD_CONFIG[:lib_path]
+      end
+
       # Install the C extensions for the standard library.
       FileList["lib/ext/**/*.#{$dlext}"].each do |name|
         install_file name, %r[^lib/ext], BUILD_CONFIG[:ext_path]

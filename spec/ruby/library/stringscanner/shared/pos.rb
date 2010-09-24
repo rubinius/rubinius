@@ -34,6 +34,18 @@ describe :strscan_pos_set, :shared => true do
     @s.rest.should == "is a test"
   end
 
+  it "positions from the end if the argument is negative" do
+    @s.send(@method, -2)
+    @s.rest.should == "st"
+    @s.pos.should == 12
+  end
+
+  it "raises a RangeError if position too far backward" do
+    lambda {
+      @s.send(@method, -20)
+    }.should raise_error(RangeError)
+  end
+
   it "raises a RangeError when the passed argument is out of range" do
     lambda { @s.send(@method, 20) }.should raise_error(RangeError)
   end

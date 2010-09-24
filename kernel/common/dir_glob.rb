@@ -158,8 +158,8 @@ class Dir
     class Environment
       attr_reader :matches
 
-      def initialize
-        @matches = []
+      def initialize(matches=[])
+        @matches = matches
       end
     end
 
@@ -197,19 +197,19 @@ class Dir
       last
     end
 
-    def self.run(node)
-      env = Environment.new
+    def self.run(node, matches=[])
+      env = Environment.new(matches)
       node.call env, nil
       env.matches
     end
 
-    def self.glob(pattern, flags)
+    def self.glob(pattern, flags, matches=[])
       if pattern.include? "{"
-        return brace_glob(pattern, flags)
+        return brace_glob(pattern, flags, matches)
       end
 
       if node = compile(pattern, flags)
-        run node
+        run node, matches
       else
         []
       end
@@ -288,7 +288,7 @@ class Dir
         # if .glob is used and there is a { as a normal character, it will
         # recurse forever.
         if node = compile(pattern, flags)
-          matches.concat run(node)
+          run(node, matches)
         end
       end
 

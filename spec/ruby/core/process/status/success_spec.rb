@@ -2,53 +2,50 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 
 describe "Process::Status#success?" do
 
-  platform_is_not :windows do
+  describe "for a child that exited normally" do
 
-    with_tty do
+    before :each do
+      ruby_exe("exit(0)")
+    end
 
-      describe "a successful child" do
-
-        before :each do
-          @pid = Process.fork {
-            Process.exit! 0
-          }
-          Process.waitpid(@pid)
-        end
-
-        it "returns that the process was successful" do
-          $?.success?.should be_true
-        end
-      end
-
-      describe "an unsuccessful child" do
-
-        before :each do
-          @pid = Process.fork {
-            Process.exit! 42
-          }
-          Process.waitpid(@pid)
-        end
-
-        it "returns that the process was unsuccesful" do
-          $?.success?.should be_false
-        end
-      end
-
-      describe "a terminated child" do
-
-        before :each do
-          @pid = Process.fork {
-            sleep 2
-            Process.exit! 42
-          }
-          Process.kill("SIGKILL", @pid)
-          Process.waitpid(@pid)
-        end
-
-        it "returns nil" do
-          $?.success?.should be_nil
-        end
-      end
+    it "returns true" do
+      $?.success?.should be_true
     end
   end
+
+  describe "for a child that exited with a non zero status" do
+
+    before :each do
+      ruby_exe("exit(42)")
+    end
+
+    it "returns false" do
+      $?.success?.should be_false
+    end
+  end
+
+  describe "for a child that was terminated" do
+
+    before :each do
+      ruby_exe("Process.kill(:KILL, $$); exit(42)")
+    end
+
+    platform_is_not :windows do
+
+      it "returns nil" do
+        $?.success?.should be_nil
+      end
+
+    end
+
+    platform_is :windows do
+
+      it "always returns true" do
+        $?.success?.should be_true
+      end
+
+    end
+
+  end
+
 end

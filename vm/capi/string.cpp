@@ -20,9 +20,7 @@ namespace rubinius {
       if(!env) env = NativeMethodEnvironment::get();
 
       Handle* handle = Handle::from(str_handle);
-      String* string = c_as<String>(handle->object());
-
-      return string;
+      return c_as<String>(handle->object());
     }
 
     void repin_string(NativeMethodEnvironment* env, String* string, RString* str) {
@@ -45,18 +43,6 @@ namespace rubinius {
       str->dmwmb = str->ptr = ptr;
       str->len = string->size();
       str->aux.capa = byte_size;
-    }
-
-    void capi_update_string(NativeMethodEnvironment* env, VALUE str_handle) {
-      if(!env) env = NativeMethodEnvironment::get();
-
-      Handle* handle = Handle::from(str_handle);
-
-      RString* str = handle->as_rstring(env);
-
-      String* string = c_as<String>(handle->object());
-
-      repin_string(env, string, str);
     }
 
     RString* Handle::as_rstring(NativeMethodEnvironment* env) {
@@ -86,9 +72,9 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Handle* handle = Handle::from(str_handle);
-    RString* rstring = handle->as_rstring(env);
+    env->check_tracked_handle(handle);
 
-    return rstring;
+    return handle->as_rstring(env);
   }
 
   VALUE rb_String(VALUE object_handle) {
@@ -111,7 +97,6 @@ extern "C" {
 
     String* self = capi_get_string(env, self_handle);
     self->append(env->state(), capi_get_string(env, other_handle));
-    capi_update_string(env, self_handle);
 
     return self_handle;
   }
@@ -134,13 +119,12 @@ extern "C" {
 
     String* string = capi_get_string(env, self_handle);
     string->append(env->state(), other, size);
-    capi_update_string(env, self_handle);
 
     return self_handle;
   }
 
   VALUE rb_str_buf_cat2(VALUE self_handle, const char* other) {
-    return rb_str_buf_cat(self_handle, other, std::strlen(other));
+    return rb_str_buf_cat(self_handle, other, strlen(other));
   }
 
   VALUE rb_str_cat(VALUE self_handle, const char* other, size_t length) {
@@ -148,13 +132,12 @@ extern "C" {
 
     String* self = capi_get_string(env, self_handle);
     self->append(env->state(), other, length);
-    capi_update_string(env, self_handle);
 
     return self_handle;
   }
 
   VALUE rb_str_cat2(VALUE self_handle, const char* other) {
-    return rb_str_cat(self_handle, other, std::strlen(other));
+    return rb_str_cat(self_handle, other, strlen(other));
   }
 
   int rb_str_cmp(VALUE self_handle, VALUE other_handle) {
@@ -199,7 +182,7 @@ extern "C" {
       rb_raise(rb_eArgError, "NULL pointer given");
     }
 
-    return rb_str_new(string, std::strlen(string));
+    return rb_str_new(string, strlen(string));
   }
 
   VALUE rb_str_new3(VALUE string) {
@@ -226,9 +209,8 @@ extern "C" {
       string->byte_address()[len] = 0;
       string->num_bytes(env->state(), Fixnum::from(len));
       string->characters(env->state(), Fixnum::from(len));
-      string->hash_value(env->state(), reinterpret_cast<Integer*>(RBX_Qnil));
+      string->hash_value(env->state(), reinterpret_cast<Fixnum*>(RBX_Qnil));
     }
-    capi_update_string(env, self_handle);
 
     return self_handle;
   }
@@ -280,7 +262,7 @@ extern "C" {
     VALUE str = rb_string_value(object_variable);
     String* string = capi_get_string(env, str);
 
-    if(string->size() != strlen(string->c_str())) {
+    if(string->size() != (native_int)strlen(string->c_str())) {
       rb_raise(rb_eArgError, "string contains NULL byte");
     }
 
@@ -312,8 +294,8 @@ extern "C" {
     char *ptr = RSTRING_PTR(str_handle);
     if(len) {
       *len = string->size();
-    } else if(RTEST(ruby_verbose) && string->size() != strlen(ptr)) {
-      rb_warn("string contains \\0 character");
+    } else if(RTEST(ruby_verbose) && string->size() != (native_int)strlen(ptr)) {
+      rb_warn("string contains NULL character");
     }
     return ptr;
   }
@@ -373,5 +355,13 @@ extern "C" {
 
     string->byte_address()[len] = 0;
     string->num_bytes(env->state(), Fixnum::from(len));
+  }
+
+  long rb_str_hash(VALUE self) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    String* string = capi_get_string(env, self);
+
+    return string->hash_string(env->state());
   }
 }

@@ -47,7 +47,7 @@ public:
 
     obj = util_new_object(om);
 
-    TS_ASSERT_EQUALS(obj->num_fields(), 3U);
+    TS_ASSERT_EQUALS(obj->num_fields(), 3);
     TS_ASSERT_EQUALS(obj->zone(), YoungObjectZone);
   }
 
@@ -173,7 +173,7 @@ public:
     size_t start = om.young_->bytes_used();
 
     obj = util_new_object(om,20);
-    TS_ASSERT_EQUALS(obj->num_fields(), 20U);
+    TS_ASSERT_EQUALS(obj->num_fields(), 20);
     TS_ASSERT_EQUALS(obj->zone(), MatureObjectZone);
 
     TS_ASSERT_EQUALS(om.young_->bytes_used(), start);

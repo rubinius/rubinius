@@ -76,23 +76,6 @@ namespace rubinius {
       if(vmm->call_count >= state->shared.config.jit_call_til_compile) {
         LLVMState* ls = LLVMState::get(state);
 
-        if(state->shared.config.jit_inline_blocks) {
-          CompiledMethod* creator = env->top_scope()->method();
-          ls->compile_soon(state, creator);
-
-          /*
-          if(VMMethod* parent = vmm->parent()) {
-            while(VMMethod* next = parent->parent()) {
-              parent = next;
-            }
-
-            //if(parent->call_count >= 200) {
-            //  ls->compile_soon(state, parent);
-            //}
-          }
-          */
-        }
-
         ls->compile_soon(state, env->method(), env);
 
       } else {

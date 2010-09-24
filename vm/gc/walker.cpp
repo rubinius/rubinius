@@ -99,6 +99,19 @@ namespace rubinius {
         saw_object(tmp);
       }
     }
+
+    RootBuffers* rb = data.root_buffers();
+    if(rb) {
+      for(RootBuffers::Iterator i(*rb);
+          i.more();
+          i.advance())
+      {
+        Object** buffer = i->buffer();
+        for(int idx = 0; idx < i->size(); idx++) {
+          saw_object(buffer[idx]);
+        }
+      }
+    }
   }
 
   Object* ObjectWalker::next() {

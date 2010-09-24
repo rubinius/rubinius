@@ -28,6 +28,7 @@
 #include "dispatch.hpp"
 #include "lookup_data.hpp"
 #include "inline_cache.hpp"
+#include "vmmethod.hpp"
 
 #include <cstdarg>
 
@@ -727,8 +728,8 @@ extern "C" {
         state->interrupts.perform_gc = true;
         state->collect_maybe(call_frame);
       }
-
     }
+
     if(!state->check_async(call_frame)) return NULL;
 
     state->set_call_frame(call_frame);
@@ -977,6 +978,52 @@ extern "C" {
 
   Object* rbx_restart_interp(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
     return VMMethod::execute(state, call_frame, exec, mod, args);
+  }
+
+  Object* rbx_continue_debugging(STATE, CallFrame* call_frame,
+                                 int32_t entry_ip, native_int sp,
+                                 CallFrame* method_call_frame,
+                                 int32_t unwind_count,
+                                 int32_t* input_unwinds,
+                                 Object* top_of_stack)
+  {
+    VMMethod* vmm = call_frame->cm->backend_method();
+
+    if(call_frame->is_inline_frame()) {
+      // Fix up this inlined block.
+      if(vmm->parent()) {
+        CallFrame* creator = call_frame->previous->previous;
+        assert(creator);
+
+        VariableScope* parent = creator->promote_scope(state);
+        call_frame->scope->set_parent(parent);
+
+        // Only support one depth!
+        assert(!creator->cm->backend_method()->parent());
+      }
+    }
+
+    call_frame->ip_ = entry_ip;
+
+    VMMethod::InterpreterState is;
+    UnwindInfo unwinds[kMaxUnwindInfos];
+
+    for(int i = 0, j = 0; j < unwind_count; i += 3, j++) {
+      UnwindInfo& uw = unwinds[j];
+      uw.target_ip = input_unwinds[i];
+      uw.stack_depth = input_unwinds[i + 1];
+      uw.type = (UnwindType)input_unwinds[i + 2];
+    }
+
+    // Push the top of the stack into the call_frame->stk so the interpreter
+    // sees it. This is done here rather than by the JIT to simplify the
+    // JIT's callsite.
+    if(top_of_stack) {
+      call_frame->stk[++sp] = top_of_stack;
+    }
+
+    return VMMethod::debugger_interpreter_continue(state, vmm, call_frame,
+                                          sp, is, unwind_count, unwinds);
   }
 
   Object* rbx_flush_scope(STATE, StackVariables* vars) {

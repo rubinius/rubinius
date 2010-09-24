@@ -1,3 +1,8 @@
+class NativeFunction
+  attr_accessor :return_type
+  attr_accessor :argument_types
+end
+
 module FFI
   def self.generate_function(ptr, name, args, ret)
     Ruby.primitive :nativefunction_generate
@@ -10,6 +15,15 @@ module FFI
   end
 
   module Library
+
+    case Rubinius::OS_TYPE
+    when :windows
+      LIBC = "msvcrt.dll"
+    when :darwin
+      LIBC = "libc.dylib"
+    else
+      LIBC = "libc#{Rubinius::LIBSUFFIX}"
+    end
 
     # Set which library or libraries +attach_function+ should
     # look in. By default it only searches for the function in
@@ -127,16 +141,41 @@ module FFI
 
       func, ptr = FFI.generate_trampoline(nil, :ffi_tramp, args, find_type(ret))
 
+      func.argument_types = params
+      func.return_type = ret
+
       if name
         @ffi_callbacks ||= {}
         @ffi_callbacks[name] = func
+
+        typedef func, name
       end
 
       return func
     end
 
+    def typedef(old, add)
+      @typedefs ||= Rubinius::LookupTable.new
+
+      unless old.kind_of?(NativeFunction)
+        old = find_type(old)
+      end
+
+      @typedefs[add] = old
+    end
+
     def find_type(name)
-      return FFI.find_type(name)
+      @typedefs ||= Rubinius::LookupTable.new
+
+      if type = @typedefs[name]
+        return type
+      end
+
+      if name.kind_of?(Class) and name < FFI::Struct
+        name = :pointer
+      end
+
+      FFI.find_type(name)
     end
   end
 

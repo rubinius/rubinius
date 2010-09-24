@@ -63,10 +63,15 @@ using namespace rubinius;
 
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
 
-#define HANDLE_EXCEPTION(val) if(val == NULL) { goto exception; } \
-   else if(vmm->debugging) { \
-     return VMMethod::debugger_interpreter_continue(state, vmm, call_frame,\
-         stack_calculate_sp(), is, current_unwind, unwinds); }
+#define CHECK_EXCEPTION(val) if(val == NULL) { goto exception; }
+
+#define JUMP_DEBUGGING \
+  return VMMethod::debugger_interpreter_continue(state, vmm, call_frame, \
+         stack_calculate_sp(), is, current_unwind, unwinds)
+
+#define CHECK_AND_PUSH(val) \
+   if(val == NULL) { goto exception; } \
+   else { stack_push(val); if(vmm->debugging) JUMP_DEBUGGING; }
 
 #define RUN_EXCEPTION() goto exception
 
@@ -367,8 +372,10 @@ exception:
   return NULL;
 }
 
-#undef HANDLE_EXCEPTION
-#define HANDLE_EXCEPTION(val) if(val == NULL) goto exception
+#undef CHECK_AND_PUSH
+#define CHECK_AND_PUSH(val) if(val == NULL) { goto exception; } \
+   else { stack_push(val); }
+
 
 /* The debugger interpreter loop is used to run a method when a breakpoint
  * has been set. It has additional overhead, since it needs to inspect

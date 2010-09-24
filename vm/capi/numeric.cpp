@@ -245,4 +245,7 @@ extern "C" {
     return rb_convert_type(object_handle, 0, "Integer", "to_i");
   }
 
+  void rb_num_zerodiv(void) {
+    rb_raise(rb_eZeroDivError, "divided by 0");
+  }
 }

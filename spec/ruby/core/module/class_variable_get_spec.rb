@@ -33,6 +33,13 @@ describe "Module#class_variable_get" do
     ModuleSpecs::CVars.new.meta.should == :meta
   end
 
+  it "returns a class variable defined in a metaclass" do
+    obj = mock("metaclass class variable")
+    meta = obj.metaclass
+    meta.send :class_variable_set, :@@var, :cvar_value
+    meta.send(:class_variable_get, :@@var).should == :cvar_value
+  end
+
   ruby_version_is ""..."1.9" do
     not_compliant_on :rubinius do
       it "accepts Fixnums for class variables" do

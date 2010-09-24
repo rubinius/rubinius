@@ -81,7 +81,7 @@ public:
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
     TS_ASSERT(!matches->nil_p());
-    TS_ASSERT_EQUALS(matches->region()->num_fields(), 0U);
+    TS_ASSERT_EQUALS(matches->region()->num_fields(), 0);
     TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(state, 0))->to_native(), 0);
     TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(state, 1))->to_native(), 1);
   }
@@ -117,7 +117,7 @@ public:
     TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(state, 0))->to_native(), 0);
     TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(state, 1))->to_native(), 2);
 
-    TS_ASSERT_EQUALS(matches->region()->num_fields(), 1U);
+    TS_ASSERT_EQUALS(matches->region()->num_fields(), 1);
     TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region()->at(state, 0))->at(state, 0))->to_native(), 1);
     TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region()->at(state, 0))->at(state, 1))->to_native(), 2);
   }
@@ -138,7 +138,7 @@ public:
     TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(state, 0))->to_native(), 1);
     TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(state, 1))->to_native(), 3);
 
-    TS_ASSERT_EQUALS(matches->region()->num_fields(), 1U);
+    TS_ASSERT_EQUALS(matches->region()->num_fields(), 1);
     TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region()->at(state, 0))->at(state, 0))->to_native(), 2);
     TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region()->at(state, 0))->at(state, 1))->to_native(), 3);
   }
@@ -154,7 +154,7 @@ public:
 
     MatchData* matches = (MatchData*)re->match_start(state, input, start);
     TS_ASSERT(!matches->nil_p());
-    TS_ASSERT_EQUALS(matches->region()->num_fields(), 0U);
+    TS_ASSERT_EQUALS(matches->region()->num_fields(), 0);
     TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(state, 0))->to_native(), 1);
     TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(state, 1))->to_native(), 2);
   }

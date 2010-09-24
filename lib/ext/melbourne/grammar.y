@@ -4722,6 +4722,7 @@ yylex(void *yylval_v, void *vstate)
                         if(kw->id[0] == kDO) return kDO;
                     }
                     if (kw->id[0] == kDO) {
+                        command_start = TRUE;
                         if (COND_P()) return kDO_COND;
                         if (CMDARG_P() && state != EXPR_CMDARG)
                             return kDO_BLOCK;

@@ -667,7 +667,7 @@ namespace rubinius {
       }
 
       Tuple* lits = method->literals();
-      for(size_t i = 0; i < lits->num_fields(); i++) {
+      for(native_int i = 0; i < lits->num_fields(); i++) {
         if(Symbol* sym = try_as<Symbol>(lits->at(state, i))) {
           if(RTEST(sym->is_ivar_p(state))) {
             if(!ary->includes_p(state, sym)) ary->append(state, sym);

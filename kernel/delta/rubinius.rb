@@ -272,6 +272,10 @@ module Rubinius
     Type.coerce_to obj, Integer, :to_int
   end
 
+  def self.pack_to_str(obj)
+    Type.coerce_to obj, String, :to_str
+  end
+
   def self.pack_to_str_or_nil(obj)
     return "" if obj.nil?
     Type.coerce_to obj, String, :to_str

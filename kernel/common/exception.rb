@@ -47,7 +47,7 @@ class Exception
     @backtrace ||= Backtrace.backtrace(@locations)
   end
 
-  def render(header="An exception occurred", io=STDERR)
+  def render(header="An exception occurred", io=STDERR, color=true)
     io.puts header
     io.puts "    #{message} (#{self.class})"
 
@@ -59,7 +59,7 @@ class Exception
     end
 
     io.puts "\nBacktrace:"
-    io.puts awesome_backtrace.show
+    io.puts awesome_backtrace.show("\n", color)
 
     extra = @parent
     while extra

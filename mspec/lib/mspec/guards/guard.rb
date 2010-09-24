@@ -153,7 +153,7 @@ class SpecGuard
 
   def os?(*oses)
     oses.any? do |os|
-      host_os = Config::CONFIG['host_os'] || RUBY_PLATFORM
+      host_os = RbConfig::CONFIG['host_os'] || RUBY_PLATFORM
       host_os.downcase!
       host_os.match(os.to_s) || windows?(os, host_os)
     end

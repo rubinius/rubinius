@@ -40,4 +40,12 @@ extern "C" {
   VALUE rb_reg_regcomp(VALUE str) {
     return rb_funcall(rb_cRegexp, rb_intern("new"), 1, str);
   }
+
+  VALUE rb_reg_match(VALUE re, VALUE str) {
+    return rb_funcall(re, rb_intern("=~"), 1, str);
+  }
+
+  VALUE rb_backref_get(void) {
+    return rb_gv_get("$~");
+  }
 }

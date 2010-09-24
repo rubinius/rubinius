@@ -1,6 +1,7 @@
 #ifndef RBX_PROFILER_HPP
 #define RBX_PROFILER_HPP
 
+#include "vm/config.h"
 #include "vm.hpp"
 #include "instruments/stats.hpp"
 #include "testable.hpp"
@@ -19,7 +20,7 @@ namespace rubinius {
   }
 }
 
-#if (__GNUC__ <= 4 && __GNUC_MINOR__ <= 1)
+#ifndef RBX_HAVE_TR1_HASH
 namespace std {
   namespace tr1 {
     template <>

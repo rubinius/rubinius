@@ -48,26 +48,19 @@ class Iconv
     include Failure
   end
 
-  def string_value(obj)
-    if obj.instance_of? String
-      obj
-    else
-      if obj.respond_to? :to_str
-        obj.to_str
-      else
-        raise TypeError.new "can't convert #{obj.class} into String"
-      end
-    end
-  end
-
   def initialize(to, from)
-    @to, @from = string_value(to), string_value(from)
+    @to = StringValue(to)
+    @from = StringValue(from)
+
     @handle = Iconv.create @to, @from
+
     begin
       Errno.handle if @handle.address == -1
     rescue Errno::EINVAL
-      raise InvalidEncoding.new("invalid encoding (#{@to.inspect}, #{@from.inspect})", nil, [@to, @from])
+      raise InvalidEncoding.new("invalid encoding (#{@to.inspect}, #{@from.inspect})",
+                                nil, [@to, @from])
     end
+
     @closed = false
   end
 
@@ -84,6 +77,7 @@ class Iconv
 
   def self.open(to, from)
     cd = new(to, from)
+
     return cd unless block_given?
 
     begin
@@ -102,7 +96,7 @@ class Iconv
           converted << cd.iconv(x)
         rescue Failure => e
           converted << e.success
-          raise e.class.new(e.message, converted, [e.failed] + rest[i + 1..-1])
+          raise e.class.new(e.message, converted, [e.failed] + rest[i + 1..-1]), nil, e
         end
       end
     end
@@ -114,43 +108,31 @@ class Iconv
     begin
       iconv(to, from, str).join
     rescue Failure => e
-      # e.success is nil if open throws InvalidEncoding
-      # e.success is an Array if #iconv throws any Failure
-      raise e.class.new(e.message, (e.success.instance_of? Array) ? e.success.join : e.success, e.failed)
+      success = (e.success.instance_of? Array) ? e.success.join : e.success
+      raise e.class.new(e.message, success, e.failed), nil, e
     end
-  end
-
-  def get_success(os, l2)
-    os.read_string(l2.read_pointer.address - os.address)
   end
 
   def get_failed(is, ic, l1)
     (is + (l1.read_pointer.address - is.address)).read_string(ic.read_long)
   end
 
-  private :get_success
   private :get_failed
 
-  def iconv(str, start = 0, length = -1)
+  def iconv(str, start=nil, length=nil)
+    # To deal with people passing in nil's
+    start = 0 unless start
+    length = -1 unless length
 
-    start = 0 if not start
-    length = -1 if not length
-
-    raise ArgumentError.new("closed iconv") if @closed
+    raise ArgumentError, "closed iconv" if @closed
 
     l1 = FFI::MemoryPointer.new(:pointer)
     l2 = FFI::MemoryPointer.new(:pointer)
 
     ic = FFI::MemoryPointer.new(:long)
-    if str then
 
-      if not str.instance_of? String then
-        if str.respond_to? :to_str then
-          str = str.to_str
-        else
-          raise TypeError.new "can't convert #{str.class} into String"
-        end
-      end
+    if str
+      str = StringValue(str)
 
       is = FFI::MemoryPointer.new(str.size + 10)
       is.write_string str, str.size
@@ -190,36 +172,44 @@ class Iconv
 
     result = ""
 
-    loop do
+    while true
       oc.write_long output
       l2.write_long os.address
 
       count = Iconv.convert @handle, l1, ic, l2, oc
 
-      if oc.read_long < 0 || oc.read_long > output then
-        raise OutOfRange.new("bug?(output length = #{output - oc.read_long})", get_success(os, l2), get_failed(is, ic, l1))
+      input_left  = ic.read_long
+      buffer_left = oc.read_long
+
+      if 0 > buffer_left or buffer_left > output
+        raise OutOfRange.new("bug?(output length = #{used})",
+                             result, get_failed(is, ic, l1))
       end
 
-      if count == -1 then
+      used = output - buffer_left
+      last_output = os.read_string(used)
+
+      result << last_output
+
+      # We ignore the error if all the input was consumed.
+      if count == -1 and input_left > 0
         begin
-          Errno.handle if count == -1
+          Errno.handle
         rescue Errno::EILSEQ => e
-          raise IllegalSequence.new(nil, get_success(os, l2), get_failed(is, ic, l1))
+          raise IllegalSequence.new("illegal character sequence",
+                                    result, get_failed(is, ic, l1))
         rescue Errno::E2BIG => e
-          result += get_success(os, l2)
-          next
+          # ignore
         rescue Errno::EINVAL => e
           failed = get_failed(is, ic, l1)
-          raise InvalidCharacter.new(failed.inspect, get_success(os, l2), failed)
+          raise InvalidCharacter.new(failed.inspect, result, failed)
         rescue RuntimeError => e
-          raise BrokenLibrary.new(nil, get_success(os, l2), get_failed(is, ic, l1))
+          raise BrokenLibrary.new("iconv(2) is broken",
+                                  result, get_failed(is, ic, l1))
         end
-      elsif ic.read_long > 0 then
-        raise IllegalSequence.new(nil, get_success(os, l2), get_failed(is, ic, l1))
       end
 
-      result += get_success(os, l2)
-      break
+      break if input_left <= 0
     end
 
     result

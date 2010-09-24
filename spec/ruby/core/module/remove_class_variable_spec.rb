@@ -13,6 +13,14 @@ describe "Module#remove_class_variable" do
     m.send(:remove_class_variable, :@@mvar).should == :mvar
   end
 
+  it "removes a class variable defined in a metaclass" do
+    obj = mock("metaclass class variable")
+    meta = obj.metaclass
+    meta.send :class_variable_set, :@@var, 1
+    meta.send(:remove_class_variable, :@@var).should == 1
+    meta.class_variable_defined?(:@@var).should be_false
+  end
+
   it "raises a NameError when removing class variable declared in included module" do
     c = ModuleSpecs::RemoveClassVariable.new { include ModuleSpecs::MVars.dup }
     lambda { c.send(:remove_class_variable, :@@mvar) }.should raise_error(NameError)

@@ -36,8 +36,16 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <sys/utsname.h>
+#include <fcntl.h>
 
 namespace rubinius {
+
+  // Used by the segfault reporter. Calculated up front to avoid
+  // crashing inside the crash handler.
+  static utsname machine_info;
+  static char report_path[1024];
+  static const char* report_file_name = ".rubinius_last_error";
 
   Environment::Environment(int argc, char** argv)
     : argc_(argc)
@@ -55,6 +63,26 @@ namespace rubinius {
 
     shared = new SharedState(this, config, config_parser);
     state = shared->new_vm();
+
+    uname(&machine_info);
+
+    // Calculate the report_path
+    if(char* home = getenv("HOME")) {
+      char* path = report_path;
+
+      memcpy(path, home, strlen(home));
+      path += strlen(home);
+
+      *path++ = '/';
+
+      memcpy(path, report_file_name, strlen(report_file_name));
+      path += strlen(report_file_name);
+
+      *path = 0;
+    } else {
+      // We check and ignore the report_path if it's 'empty'
+      report_path[0] = 0;
+    }
   }
 
   Environment::~Environment() {
@@ -79,10 +107,39 @@ namespace rubinius {
 
   static void null_func(int sig) {}
 
+  static void safe_write(int fd, const char* str, int len=0) {
+    if(!len) len = strlen(str);
+    if(write(fd, str, len) == 0) exit(101);
+  }
+
 #ifdef USE_EXECINFO
+
+  static void write_sig(int fd, int sig) {
+    switch(sig) {
+    case SIGSEGV:
+      safe_write(fd, "SIGSEGV");
+      break;
+    case SIGBUS:
+      safe_write(fd, "SIGBUS");
+      break;
+    case SIGILL:
+      safe_write(fd, "SIGILL");
+      break;
+    case SIGABRT:
+      safe_write(fd, "SIGABRT");
+      break;
+    case SIGFPE:
+      safe_write(fd, "SIGFPE");
+      break;
+    default:
+      safe_write(fd, "UNKNOWN");
+      break;
+    }
+  }
+
   static void segv_handler(int sig) {
     static int crashing = 0;
-    void *array[32];
+    void* array[64];
     size_t size;
 
     // So we don't recurse!
@@ -90,41 +147,60 @@ namespace rubinius {
 
     crashing = 1;
 
-    // print out all the frames to stderr
-    static const char msg[] = "Error: signal ";
-    if(write(2, msg, 14) == 0) exit(101);
+    int fd = 2;
 
-    switch(sig) {
-    case SIGSEGV:
-      if(write(2, "SIGSEGV\n", 8) == 0) exit(101);
-      break;
-    case SIGBUS:
-      if(write(2, "SIGBUS\n", 7) == 0) exit(101);
-      break;
-    case SIGILL:
-      if(write(2, "SIGILL\n", 7) == 0) exit(101);
-      break;
-    case SIGABRT:
-      if(write(2, "SIGABRT\n", 8) == 0) exit(101);
-      break;
-    case SIGFPE:
-      if(write(2, "SIGFPE\n", 7) == 0) exit(101);
-      break;
-    default:
-      if(write(2, "UNKNOWN\n", 8) == 0) exit(101);
-      break;
+    // If there is a report_path setup..
+    if(report_path[0]) {
+      fd = open(report_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+      // If we can't open this path, use stderr.
+      if(fd == -1) fd = 2;
     }
 
-    // Try to get the output to flush...
-    if(write(2, "\n\n", 2) == 0) exit(101);
+    // print out all the frames to stderr
+    static const char header[] = 
+      "Rubinius Crash Report #rbxcrashreport\n\n"
+      "Error: signal ";
+
+    safe_write(fd, header, sizeof(header));
+    write_sig(fd, sig);
+
+    safe_write(fd, "\n\n[[Backtrace]]\n");
 
     // get void*'s for all entries on the stack
-    size = backtrace(array, 32);
+    size = backtrace(array, 64);
 
-    backtrace_symbols_fd(array, size, 2);
+    backtrace_symbols_fd(array, size, fd);
 
     // Try to get the output to flush...
-    if(write(2, "\n\n", 2) == 0) exit(101);
+    safe_write(fd, "\n[[System Info]]\n");
+    safe_write(fd, "sysname: ");
+    safe_write(fd, machine_info.sysname);
+    safe_write(fd, "\n");
+    safe_write(fd, "nodename: ");
+    safe_write(fd, machine_info.nodename);
+    safe_write(fd, "\n");
+    safe_write(fd, "release: ");
+    safe_write(fd, machine_info.release);
+    safe_write(fd, "\n");
+    safe_write(fd, "version: ");
+    safe_write(fd, machine_info.version);
+    safe_write(fd, "\n");
+    safe_write(fd, "machine: ");
+    safe_write(fd, machine_info.machine);
+    safe_write(fd, "\n");
+
+    // If we didn't write to stderr, then close the file down and
+    // write info to stderr about reporting the error.
+    if(fd != 2) {
+      close(fd);
+      safe_write(2, "\n---------------------------------------------\n");
+      safe_write(2, "CRASH: A fatal error has occured.\n\nBacktrace:\n");
+      backtrace_symbols_fd(array, size, 2);
+      safe_write(2, "\n\n");
+      safe_write(2, "Wrote full error report to: ");
+      safe_write(2, report_path);
+      safe_write(2, "\nRun 'rbx report' to submit this crash report!\n");
+    }
 
     exit(100);
   }
@@ -169,6 +245,10 @@ namespace rubinius {
 
     // Ignore sigpipe.
     signal(SIGPIPE, SIG_IGN);
+
+    // Some extensions expect SIGALRM to be defined, because MRI does.
+    // We'll just use a noop for it.
+    signal(SIGALRM, null_func);
 
     // If we have execinfo, setup some crash handlers
 #ifdef USE_EXECINFO
@@ -239,6 +319,21 @@ namespace rubinius {
       start_agent(port);
     }
 
+    if(config.report_path.set_p()) {
+      // Test that we can actually use this path
+      int fd = open(config.report_path, O_RDONLY | O_CREAT, 0666);
+      if(!fd) {
+        std::cerr << "Unable to use " << config.report_path << " for crash reports.\n";
+        std::cerr << "Unable to open path: " << strerror(errno) << "\n";
+
+        // Don't use the home dir path even, just use stderr
+        report_path[0] = 0;
+      } else {
+        close(fd);
+        unlink(config.report_path);
+        strncpy(report_path, config.report_path, sizeof(report_path) - 1);
+      }
+    }
   }
 
   void Environment::load_directory(std::string dir) {

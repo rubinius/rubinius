@@ -1,0 +1,19 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rubinius Documentation - <%= @item[:title] %></title>
+    <link rel="stylesheet" type="text/css" href="/stylesheet.css" media="screen">
+    <meta name="generator" content="nanoc 3.1.5">
+  </head>
+  <body>
+    <div id="main">
+      <%= yield %>
+    </div>
+
+    <div id="sidebar">
+      <h2>Table of Contents</h2>
+      <%= table_of_contents %>
+    </div>
+  </body>
+</html>

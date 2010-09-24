@@ -16,6 +16,7 @@
 #include "gc/gc.hpp"
 
 #include "capi/handle.hpp"
+#include "capi/tag.hpp"
 
 namespace rubinius {
   BakerGC::BakerGC(ObjectMemory *om, size_t bytes)
@@ -229,6 +230,27 @@ namespace rubinius {
       assert(i->object()->type_id() != InvalidType);
     }
 
+    std::list<capi::Handle**>* gh = data.global_handle_locations();
+
+    if(gh) {
+      for(std::list<capi::Handle**>::iterator i = gh->begin();
+          i != gh->end();
+          i++) {
+        capi::Handle** loc = *i;
+        if(capi::Handle* hdl = *loc) {
+          if(!CAPI_REFERENCE_P(hdl)) continue;
+          if(hdl->valid_p()) {
+            Object* obj = hdl->object();
+            if(obj && obj->reference_p() && obj->young_object_p()) {
+              hdl->set_object(saw_object(obj));
+            }
+          } else {
+            std::cerr << "Detected bad handle checking global capi handles\n";
+          }
+        }
+      }
+    }
+
     for(VariableRootBuffers::Iterator i(data.variable_buffers());
         i.more(); i.advance()) {
       Object*** buffer = i->buffer();
@@ -238,6 +260,23 @@ namespace rubinius {
 
         if(tmp->reference_p() && tmp->young_object_p()) {
           *var = saw_object(tmp);
+        }
+      }
+    }
+
+    RootBuffers* rb = data.root_buffers();
+    if(rb) {
+      for(RootBuffers::Iterator i(*rb);
+          i.more();
+          i.advance())
+      {
+        Object** buffer = i->buffer();
+        for(int idx = 0; idx < i->size(); idx++) {
+          Object* tmp = buffer[idx];
+
+          if(tmp->reference_p() && tmp->young_object_p()) {
+            buffer[idx] = saw_object(tmp);
+          }
         }
       }
     }

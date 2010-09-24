@@ -15,4 +15,3 @@ signal.rbc
 struct.rbc
 thread.rbc
 codeloader.rbc
-ffi.rbc

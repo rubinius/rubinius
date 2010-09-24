@@ -401,13 +401,15 @@ step1:
 
     void* addr = young_->allocate_for_slab(slab_size_);
 
-    if(!addr) return false;
-
     objects_allocated += slab.allocations();
 
-    slab.refill(addr, slab_size_);
-
-    return true;
+    if(addr) {
+      slab.refill(addr, slab_size_);
+      return true;
+    } else {
+      slab.refill(0, 0);
+      return false;
+    }
   }
 
   void ObjectMemory::set_young_lifetime(size_t age) {

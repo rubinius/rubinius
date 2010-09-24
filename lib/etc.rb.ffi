@@ -1,43 +1,44 @@
+class Struct::Passwd < FFI::Struct
+  @@@
+  struct do |s|
+    s.include "sys/types.h"
+    s.include "pwd.h"
+
+    s.name "struct passwd"
+    s.field :pw_name, :string
+    s.field :pw_passwd, :string
+    s.field :pw_uid, :uid_t
+    s.field :pw_gid, :gid_t
+    s.field :pw_dir, :string
+    s.field :pw_shell, :string
+  end
+  @@@
+
+  def name; self[:pw_name]; end
+  def passwd; self[:pw_passwd]; end
+  def uid; self[:pw_uid]; end
+  def gid; self[:pw_gid]; end
+  def dir; self[:pw_dir]; end
+  def shell; self[:pw_shell]; end
+end
+
+class Struct::Group < FFI::Struct
+  @@@
+  struct do |s|
+    s.include "sys/types.h"
+    s.include "grp.h"
+
+    s.name "struct group"
+    s.field :gr_name, :string
+    s.field :gr_gid, :gid_t
+  end
+  @@@
+
+  def name; self[:gr_name]; end
+  def gid; self[:gr_gid]; end
+end
+
 module Etc
-  class Passwd < FFI::Struct
-    @@@
-    struct do |s|
-      s.include "sys/types.h"
-      s.include "pwd.h"
-
-      s.name "struct passwd"
-      s.field :pw_name, :string
-      s.field :pw_passwd, :string
-      s.field :pw_uid, :uint
-      s.field :pw_gid, :uint
-      s.field :pw_dir, :string
-      s.field :pw_shell, :string
-    end
-    @@@
-
-    def name; self[:pw_name]; end
-    def passwd; self[:pw_passwd]; end
-    def uid; self[:pw_uid]; end
-    def gid; self[:pw_gid]; end
-    def dir; self[:pw_dir]; end
-    def shell; self[:pw_shell]; end
-  end
-
-  class Group < FFI::Struct
-    @@@
-    struct do |s|
-      s.include "sys/types.h"
-      s.include "grp.h"
-
-      s.name "struct group"
-      s.field :gr_name, :string
-      s.field :gr_gid, :uint
-    end
-    @@@
-
-    def name; self[:gr_name]; end
-    def gid; self[:gr_gid]; end
-  end
 
   def self.getlogin
     getpwuid.name
@@ -51,7 +52,7 @@ module Etc
       raise ArgumentError, "cannot find user - #{name}"
     end
 
-    Passwd.new(passwd_ptr)
+    Struct::Passwd.new(passwd_ptr)
   end
 
   def self.getpwuid(uid = Process.uid)
@@ -62,7 +63,7 @@ module Etc
       raise ArgumentError, "cannot find user - #{uid}"
     end
 
-    Passwd.new(passwd_ptr)
+    Struct::Passwd.new(passwd_ptr)
   end
 
   def self.setpwent
@@ -73,7 +74,7 @@ module Etc
     passwd_ptr = FFI::Platform::POSIX.getpwent
     return nil if passwd_ptr.nil?
 
-    Passwd.new(passwd_ptr)
+    Struct::Passwd.new(passwd_ptr)
   end
 
   def self.endpwent
@@ -101,7 +102,7 @@ module Etc
       raise ArgumentError, "cannot find group - #{name}"
     end
 
-    Group.new(group_ptr)
+    Struct::Group.new(group_ptr)
   end
 
   def self.getgrgid(gid = Process.gid)
@@ -112,7 +113,7 @@ module Etc
       raise ArgumentError, "cannot find group - #{gid}"
     end
 
-    Group.new(group_ptr)
+    Struct::Group.new(group_ptr)
   end
 
   def self.setgrent
@@ -123,7 +124,7 @@ module Etc
     group_ptr = FFI::Platform::POSIX.getgrent
     return nil if group_ptr.nil?
 
-    Group.new(group_ptr)
+    Struct::Group.new(group_ptr)
   end
 
   def self.endgrent

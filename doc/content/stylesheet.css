@@ -1,0 +1,119 @@
+* {
+  margin: 0;
+  padding: 0;
+
+  font-family: Georgia, Palatino, Times, 'Times New Roman', sans-serif;
+}
+
+body {
+  background: #fff;
+}
+
+a {
+  text-decoration: none;
+}
+
+code {
+  font-family: 'Courier New', Courier;
+  font-size: 0.9em;
+  line-height: 1.25em;
+}
+
+#main {
+  position: absolute;
+
+  top: 40px;
+  left: 330px;
+
+  width: 600px;
+  padding-bottom: 2em;
+}
+
+#main h1 {
+  margin: 0 0 0.8em 0;
+  font-size: 2em;
+  font-weight: normal;
+  line-height: 1.5em;
+}
+
+#main h2 {
+  margin: 0.8em 0 0.5em 0;
+  font-size: 1.8em;
+  font-weight: normal;
+  line-height: 1.5em;
+}
+
+#main h3 {
+  margin: 0.8em 0 0.5em 0;
+  font-size: 1.4em;
+  font-weight: normal;
+  line-height: 1.4em;
+}
+
+#main h4 {
+  margin: 0.8em 0 0.5em 0;
+  font-size: 1.1em;
+  font-weight: normal;
+  line-height: 1.1em;
+}
+
+#main p {
+  margin: 1.2em 0;
+  line-height: 1.25em;
+}
+
+#main ul {
+  margin: 1em 2em;
+}
+
+#main ol {
+  margin: 1em 2em;
+}
+
+#sidebar {
+  position: absolute;
+
+  top: 40px;
+  left: 20px;
+  width: 250px;
+
+  padding: 20px 20px 0 0;
+
+  border-right: 1px solid #ccc;
+
+  text-align: right;
+}
+
+#sidebar h2 {
+  text-transform: uppercase;
+  font-size: 1em;
+  color: #333;
+  letter-spacing: 1px;
+  line-height: 2em;
+}
+
+#sidebar h3 {
+  text-transform: uppercase;
+  font-size: 0.8em;
+  color: #333;
+  letter-spacing: 1px;
+  margin: 0.8em 0;
+  line-height: 20px;
+}
+
+#sidebar ul {
+  list-style-type: none;
+
+  margin: 20px 0;
+}
+
+#sidebar li {
+  font-size: 0.9em;
+  font-weight: bold;
+
+  line-height: 1.35em;
+}
+
+#sidebar li a {
+  font-weight: normal;
+}

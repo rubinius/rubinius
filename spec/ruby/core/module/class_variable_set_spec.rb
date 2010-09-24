@@ -12,6 +12,13 @@ describe "Module#class_variable_set" do
     c.send(:class_variable_get, :@@test3).should == "test3"
   end
 
+  it "sets a class variable on a metaclass" do
+    obj = mock("metaclass class variable")
+    meta = obj.metaclass
+    meta.send(:class_variable_set, :@@var, :cvar_value).should == :cvar_value
+    meta.send(:class_variable_get, :@@var).should == :cvar_value
+  end
+
   it "sets the value of a class variable with the given name defined in an included module" do
     c = Class.new { include ModuleSpecs::MVars.dup }
     c.send(:class_variable_set, "@@mvar", :new_mvar).should == :new_mvar

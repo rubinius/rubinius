@@ -10,4 +10,8 @@ describe "String.pattern" do
     String.pattern(10, " ").should == "          "
     String.pattern(10, "abc").should == "abcabcabca"
   end
+
+  it "raises an ArgumentError if passed a negative Fixnum" do
+    lambda { String.pattern(-10, 0) }.should raise_error(ArgumentError)
+  end
 end

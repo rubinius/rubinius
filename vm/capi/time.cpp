@@ -2,10 +2,10 @@
 #include <cmath>
 
 #include "builtin/object.hpp"
+#include "builtin/time.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/include/ruby.h"
-#include "builtin/time.hpp"
 
 using namespace rubinius;
 using namespace rubinius::capi;

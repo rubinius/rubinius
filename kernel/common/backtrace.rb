@@ -39,9 +39,11 @@ class Backtrace
     @locations[index]
   end
 
-  def show(sep="\n")
+  def show(sep="\n", show_color=true)
     first = true
-    if @colorize
+
+    show_color = false unless @colorize
+    if show_color
       clear = "\033[0m"
     else
       clear = ""
@@ -75,7 +77,7 @@ class Backtrace
     str = ""
     lines.each do |recv, location, rec_times|
       pos  = location.position(Dir.getwd)
-      color = color_from_loc(pos, first) if @colorize
+      color = color_from_loc(pos, first) if show_color
       first = false # special handling for first line
       spaces = max - recv.size
       spaces = 0 if spaces < 0
@@ -85,7 +87,7 @@ class Backtrace
       #  pos = "...#{pos[pos.size-max-3..-1]}" if pos.size > max
       #end
 
-      if @colorize and location.inlined?
+      if show_color and location.inlined?
         start = " #{' ' * spaces}#{recv} #{@inline_effect}at#{clear}#{color} "
       else
         start = " #{' ' * spaces}#{recv} at "

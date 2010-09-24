@@ -14,6 +14,7 @@
 
 #include "async_message.hpp"
 #include "gc/variable_buffer.hpp"
+#include "gc/root_buffer.hpp"
 #include "gc/slab.hpp"
 
 #include "shared_state.hpp"
@@ -142,7 +143,11 @@ namespace rubinius {
     }
 
     VariableRootBuffers* variable_buffers() {
-      return &root_buffers();
+      return shared.variable_buffers();
+    }
+
+    RootBuffers* root_buffers() {
+      return shared.root_buffers();
     }
 
     GlobalCache* global_cache() {

@@ -1,3 +1,4 @@
+# -*- encoding: ascii-8bit -*-
 require 'benchmark'
 
 total = (ENV['TOTAL'] || 50_000).to_i

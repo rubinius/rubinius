@@ -26,14 +26,6 @@ describe "Socket#getaddrinfo" do
           Socket::SOCK_DGRAM, Socket::IPPROTO_UDP],
         ['AF_INET6', 80, SocketSpecs.hostname, '::1', Socket::AF_INET6,
           Socket::SOCK_STREAM, Socket::IPPROTO_TCP],
-        ['AF_INET6', 80, SocketSpecs.hostname, '::1', Socket::AF_INET6,
-          Socket::SOCK_DGRAM, Socket::IPPROTO_UDP],
-        ['AF_INET6', 80, SocketSpecs.hostname, '::1', Socket::AF_INET6,
-          Socket::SOCK_STREAM, Socket::IPPROTO_TCP],
-        ['AF_INET6', 80, SocketSpecs.hostname, 'fe80::1%lo0', Socket::AF_INET6,
-          Socket::SOCK_DGRAM, Socket::IPPROTO_UDP],
-        ['AF_INET6', 80, SocketSpecs.hostname, 'fe80::1%lo0', Socket::AF_INET6,
-          Socket::SOCK_STREAM, Socket::IPPROTO_TCP],
         ['AF_INET6', 80, SocketSpecs.hostname, 'fe80::1%lo0', Socket::AF_INET6,
           Socket::SOCK_DGRAM, Socket::IPPROTO_UDP],
         ['AF_INET6', 80, SocketSpecs.hostname, 'fe80::1%lo0', Socket::AF_INET6,
@@ -49,7 +41,15 @@ describe "Socket#getaddrinfo" do
     ]
 
     addrinfo = Socket.getaddrinfo SocketSpecs.hostname, 'http'
-    addrinfo.each { |a| expected.should include(a) }
+    addrinfo.each do |a|
+      case a.last
+      when Socket::IPPROTO_UDP, Socket::IPPROTO_TCP
+        expected.should include(a)
+      else
+        # don't check this. It's some weird protocol we don't know about
+        # so we can't spec it.
+      end
+    end
   end
 
    # #getaddrinfo will return a INADDR_ANY address (0.0.0.0

@@ -115,6 +115,8 @@ namespace rubinius {
 
     JITBasicBlock* current_jbb_;
 
+    Value* vmm_debugging_;
+
   public:
 
     static const int cHintLazyBlockArgs = 1;
@@ -205,6 +207,8 @@ namespace rubinius {
           llvm::PointerType::getUnqual(ls_->IntPtrTy), "cast_to_intptr");
 
       init_out_args();
+
+      vmm_debugging_ = constant(&info().vmm->debugging, llvm::PointerType::getUnqual(ls_->Int32Ty));
     }
 
     void set_has_side_effects() {
@@ -317,22 +321,83 @@ namespace rubinius {
       }
     }
 
-    void check_for_exception_then(Value* val, BasicBlock* cont) {
+    BasicBlock* check_for_exception_then(Value* val, BasicBlock* cont,
+                                         bool pass_top=true)
+    {
       Value* null = Constant::getNullValue(ObjType);
 
-      Value* cmp = b().CreateICmpEQ(val, null, "null_check");
+      BasicBlock* check_active = new_block("check_active");
+
+      Value* is_exception = b().CreateICmpEQ(val, null, "null_check");
 
       // If there are handlers...
       if(has_exception_handler()) {
-        b().CreateCondBr(cmp, exception_handler(), cont);
+        b().CreateCondBr(is_exception, exception_handler(), check_active);
       } else {
-        b().CreateCondBr(cmp, bail_out_fast_, cont);
+        b().CreateCondBr(is_exception, bail_out_fast_, check_active);
       }
+
+      set_block(check_active);
+
+      if(!state()->config().jit_check_debugging) {
+        b().CreateBr(cont);
+        return check_active;
+      }
+
+      Value* is_debugging = b().CreateLoad(vmm_debugging_, "loaded_debugging_flag");
+
+      BasicBlock* restart_in_interp = new_block("restart");
+
+      // Check the active flag
+      b().CreateCondBr(
+          b().CreateICmpEQ(is_debugging, cint(1), "check_active"),
+          restart_in_interp,
+          cont);
+
+      set_block(restart_in_interp);
+
+      Value* sp = last_sp_as_int();
+
+      flush();
+
+      Signature sig(ls_, "Object");
+
+      sig << "VM";
+      sig << "CallFrame";
+      sig << ls_->Int32Ty;
+      sig << ls_->IntPtrTy;
+      sig << "CallFrame";
+      sig << ls_->Int32Ty;
+      sig << llvm::PointerType::getUnqual(ls_->Int32Ty);
+
+      int unwinds = emit_unwinds();
+
+      Value* root_callframe = info().top_parent_call_frame();
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        cint(next_ip_),
+        sp,
+        root_callframe,
+        cint(unwinds),
+        info().unwind_info(),
+        (pass_top ? val : Constant::getNullValue(val->getType()))
+      };
+
+      Value* call = sig.call("rbx_continue_debugging", call_args, 8, "", b());
+
+      info().add_return_value(call, current_block());
+      b().CreateBr(info().return_pad());
+
+      cont->moveAfter(restart_in_interp);
+
+      return check_active;
     }
 
-    void check_for_exception(Value* val) {
+    void check_for_exception(Value* val, bool pass_top=true) {
       BasicBlock* cont = new_block();
-      check_for_exception_then(val, cont);
+      check_for_exception_then(val, cont, pass_top);
       set_block(cont);
     }
 
@@ -541,7 +606,7 @@ namespace rubinius {
 
       Value* res = sig.call("rbx_check_frozen", call_args, 3, "", b());
 
-      check_for_exception(res);
+      check_for_exception(res, false);
     }
 
     void check_fixnums(Value* left, Value* right, BasicBlock* if_true,
@@ -620,7 +685,7 @@ namespace rubinius {
 
       Value* execute_pos_idx[] = {
         ConstantInt::get(ls_->Int32Ty, 0),
-        ConstantInt::get(ls_->Int32Ty, 3),
+        ConstantInt::get(ls_->Int32Ty, offset::ic_execute),
       };
 
       Value* execute_pos = b().CreateGEP(cache_const,
@@ -654,7 +719,7 @@ namespace rubinius {
 
       Value* execute_pos_idx[] = {
         ConstantInt::get(ls_->Int32Ty, 0),
-        ConstantInt::get(ls_->Int32Ty, 3),
+        ConstantInt::get(ls_->Int32Ty, offset::ic_execute),
       };
 
       Value* execute_pos = b().CreateGEP(cache_const,
@@ -749,7 +814,8 @@ namespace rubinius {
       set_block(dispatch);
 
       Value* called_value = inline_cache_send(1, cache);
-      check_for_exception_then(called_value, cont);
+      BasicBlock* send_block =
+        check_for_exception_then(called_value, cont);
 
       set_block(fast);
 
@@ -762,7 +828,7 @@ namespace rubinius {
       set_block(cont);
 
       PHINode* phi = b().CreatePHI(ObjType, "equal_value");
-      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(called_value, send_block);
       phi->addIncoming(imm_value, fast);
 
       stack_remove(2);
@@ -785,7 +851,8 @@ namespace rubinius {
       set_block(dispatch);
 
       Value* called_value = inline_cache_send(1, cache);
-      check_for_exception_then(called_value, cont);
+      BasicBlock* send_block =
+        check_for_exception_then(called_value, cont);
 
       set_block(fast);
 
@@ -798,7 +865,7 @@ namespace rubinius {
       set_block(cont);
 
       PHINode* phi = b().CreatePHI(ObjType, "equal_value");
-      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(called_value, send_block);
       phi->addIncoming(imm_value, fast);
 
       stack_remove(2);
@@ -821,7 +888,7 @@ namespace rubinius {
       set_block(dispatch);
 
       Value* called_value = inline_cache_send(1, cache);
-      check_for_exception_then(called_value, cont);
+      BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
 
@@ -834,7 +901,7 @@ namespace rubinius {
       set_block(cont);
 
       PHINode* phi = b().CreatePHI(ObjType, "addition");
-      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(called_value, send_bb);
       phi->addIncoming(imm_value, fast);
 
       stack_remove(2);
@@ -857,7 +924,7 @@ namespace rubinius {
       set_block(dispatch);
 
       Value* called_value = inline_cache_send(1, cache);
-      check_for_exception_then(called_value, cont);
+      BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
 
@@ -870,7 +937,7 @@ namespace rubinius {
       set_block(cont);
 
       PHINode* phi = b().CreatePHI(ObjType, "compare");
-      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(called_value, send_bb);
       phi->addIncoming(imm_value, fast);
 
       stack_remove(2);
@@ -893,7 +960,7 @@ namespace rubinius {
       set_block(dispatch);
 
       Value* called_value = inline_cache_send(1, cache);
-      check_for_exception_then(called_value, cont);
+      BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
 
@@ -930,7 +997,7 @@ namespace rubinius {
       set_block(cont);
 
       PHINode* phi = b().CreatePHI(ObjType, "addition");
-      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(called_value, send_bb);
       phi->addIncoming(imm_value, tagnow);
 
       stack_remove(2);
@@ -953,7 +1020,7 @@ namespace rubinius {
       set_block(dispatch);
 
       Value* called_value = inline_cache_send(1, cache);
-      check_for_exception_then(called_value, cont);
+      BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
 
@@ -991,7 +1058,7 @@ namespace rubinius {
       set_block(cont);
 
       PHINode* phi = b().CreatePHI(ObjType, "subtraction");
-      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(called_value, send_bb);
       phi->addIncoming(imm_value, tagnow);
 
       stack_remove(2);
@@ -1312,8 +1379,9 @@ namespace rubinius {
           llvm::PointerType::getUnqual(sig.type()));
 
       Value* call = b().CreateCall(ptr, call_args, call_args + 4, "invoked_prim");
-      check_for_exception(call);
       stack_remove(args);
+
+      check_for_exception(call);
 
       if(fin) {
         BasicBlock* cur = current_block();
@@ -1575,16 +1643,23 @@ namespace rubinius {
 
           InlineDecision decision = inline_policy()->inline_p(
                                       block_code->backend_method(), opts);
-          if(decision != cInline) {
+          if(decision == cTooComplex) {
+            if(state()->config().jit_inline_debug) {
+              context().inline_log("NOT inlining")
+                        << "block was too complex\n";
+            }
             goto use_send;
-          } else if(decision == cTooComplex) {
-            context().inline_log("NOT inlining")
-              << "block was too complex\n";
+          } else if(decision != cInline) {
+            goto use_send;
           }
         } else {
+          // If there is no literal block, we don't inline the method at all.
+          // This is probably overkill, we should revise this and inline
+          // the method anyway.
           goto use_send;
         }
 
+        // Ok, we decision was cInline, so lets do this!
         BasicBlock* failure = new_block("fallback");
         BasicBlock* cont = new_block("continue");
         BasicBlock* cleanup = new_block("send_done");
@@ -1605,8 +1680,6 @@ namespace rubinius {
         inl.set_block_on_stack();
 
         if(inl.consider()) {
-          // Uncommon doesn't yet know how to synthesize UnwindInfos, so
-          // don't do uncommon if there are handlers.
           if(!inl.fail_to_send() && !in_inlined_block()) {
             send_result->addIncoming(inl.result(), b().GetInsertBlock());
 
@@ -1850,8 +1923,10 @@ use_send:
 
       flush_ip();
       Value* ret = sig.call("rbx_zsuper_send", call_args, 4, "super_send", b());
+      stack_remove(1);
+
       check_for_exception(ret);
-      stack_set_top(ret);
+      stack_push(ret);
 
       current_block_ = -1;
     }
@@ -2525,6 +2600,10 @@ use_send:
         // wrt the block when we are considering inlining the send that
         // has the block on it.
         Inliner inl(context(), *this, count);
+
+        // Propagate the creator's inlined block into the inlined block.
+        // This is so that if the inlined block yields, it can see the outer
+        // inlined block and emit code for it.
         inl.set_inline_block(creator->inline_block());
 
         // Make it's inlining info available to itself
@@ -2629,7 +2708,7 @@ use_send:
       };
 
       Value* ret = b().CreateCall(func, call_args, call_args+2, "ci");
-      check_for_exception(ret);
+      check_for_exception(ret, false);
     }
 
     void visit_check_serial(opcode index, opcode serial) {
@@ -3161,7 +3240,7 @@ use_send:
       };
 
       Value* ret = sig.call("rbx_set_ivar", call_args, 5, "ivar", b());
-      check_for_exception(ret);
+      check_for_exception(ret, false);
     }
 
     void visit_push_my_field(opcode which) {

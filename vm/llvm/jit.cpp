@@ -351,10 +351,8 @@ namespace rubinius {
 
         ls_->shared().stats.jitted_methods++;
 
-        int which = ls_->add_jitted_method();
         if(ls_->config().jit_show_compiling) {
           llvm::outs() << "[[[ JIT finished background compiling "
-                    << which
                     << (req->is_block() ? " (block)" : " (method)")
                     << " ]]]\n";
         }
@@ -701,7 +699,7 @@ namespace rubinius {
     }
 
     CallFrame* candidate = find_candidate(start, call_frame);
-    if(!candidate) {
+    if(!candidate || candidate->jitted_p() || candidate->inline_method_p()) {
       if(config().jit_inline_debug) {
         log() << "JIT: unable to find candidate\n";
       }

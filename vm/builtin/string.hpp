@@ -34,21 +34,21 @@ namespace rubinius {
     const static object_type type = StringType;
 
   private:
-    Integer* num_bytes_;  // slot
-    Integer* characters_; // slot
-    Object* encoding_;    // slot
+    Fixnum* num_bytes_;  // slot
+    Fixnum* characters_; // slot
+    Object* encoding_;   // slot
     ByteArray* data_;    // slot
-    Integer* hash_value_; // slot
-    Object* shared_;      // slot
+    Fixnum* hash_value_; // slot
+    Object* shared_;     // slot
 
   public:
     /* accessors */
 
-    attr_accessor(num_bytes, Integer);
-    attr_accessor(characters, Integer);
+    attr_accessor(num_bytes, Fixnum);
+    attr_accessor(characters, Fixnum);
     attr_accessor(encoding, Object);
     attr_accessor(data, ByteArray);
-    attr_accessor(hash_value, Integer);
+    attr_accessor(hash_value, Fixnum);
     attr_accessor(shared, Object);
 
     /* interface */
@@ -58,11 +58,11 @@ namespace rubinius {
     static String* create(STATE, Fixnum* size);
 
     // Ruby.primitive :string_from_bytearray
-    static String* from_bytearray(STATE, ByteArray* ba, Integer* start, Integer* count);
+    static String* from_bytearray(STATE, ByteArray* ba, Fixnum* start, Fixnum* count);
     static String* create(STATE, const char* str);
-    static String* create(STATE, const char* str, size_t bytes);
+    static String* create(STATE, const char* str, native_int bytes);
     static String* create_pinned(STATE, Fixnum* size);
-    static String* create_reserved(STATE, size_t bytes);
+    static String* create_reserved(STATE, native_int bytes);
 
     // Hash the NUL-terminated string _bp_.
     static hashval hash_str(const char *bp);
@@ -78,7 +78,7 @@ namespace rubinius {
     Object* secure_compare(STATE, String* other);
 
     // Returns the number of bytes this String contains
-    size_t size() {
+    native_int size() {
       return num_bytes_->to_native();
     }
 
@@ -124,12 +124,12 @@ namespace rubinius {
      *  If the C string may contain NUL bytes, use the version
      *  that takes a length argument instead. Returns self.
      *
-     *  @see String::append(VM*, const char*, std::size_t)
+     *  @see String::append(VM*, const char*, native_int)
      */
     String* append(STATE, const char* other);
 
     /** Append length bytes from C string. Returns self. */
-    String* append(STATE, const char* other, std::size_t length);
+    String* append(STATE, const char* other, native_int length);
 
     // Ruby.primitive :string_to_f
     Float* to_f(STATE);

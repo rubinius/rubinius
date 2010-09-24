@@ -1,0 +1,203 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rubinius Documentation - Howto - Write a ticket</title>
+    <link rel="stylesheet" type="text/css" href="/stylesheet.css" media="screen">
+    <meta name="generator" content="nanoc 3.1.5">
+  </head>
+  <body>
+    <div id="main">
+      <h1 id="howto---write-a-ticket">Howto - Write a Ticket</h1>
+
+<p>The Rubinius issue tracker is <a href="http://github.com/evanphx/rubinius/issues">http://github.com/evanphx/rubinius/issues</a>.</p>
+
+<p>To be useful, tickets must be concise, focused, and actionable. If not, the
+ticket will languish and become clutter. Accordingly, tickets must fall into
+one (or more) of the following categories:</p>
+
+<ol>
+  <li>A precise command line history showing how to install and invoke the
+program and showing the backtrace for an exception.</li>
+  <li>A short piece of code illustrating the problem and the command line to
+invoke it.</li>
+  <li>A patch, <strong>including specs if they do not already exist</strong>, and showing
+the spec runs before and after applying the patch.</li>
+</ol>
+
+<p>If your issue doesn&rsquo;t fit into one of the categories, it is not invalid. It is
+simply not appropriate for a ticket.</p>
+
+<ol>
+  <li>If it is a feature, consider discussing it on the mailing list. Also, you
+could take a crack at implementing it and demonstrate how your feature is
+useful.</li>
+  <li>If it is a library or gem that is not working, take some time to dig in
+and see if you can create a reproduction for an issue and post that as a
+ticket.</li>
+</ol>
+
+<p>There are various wishlist items, upcoming features, and lists of gems in the
+doc/todo/ directory.</p>
+
+<h2 id="">General procedure for submitting a ticket</h2>
+
+<ol>
+  <li>
+    <p>Double-check.</p>
+
+    <ol>
+      <li>Do a full rebuild (&lsquo;rake clean; rake&rsquo;) after a &lsquo;git pull&rsquo; or fresh clone.</li>
+      <li>Read doc/common_problems.txt see if something there resolves the issue.</li>
+      <li>Read doc/rubinius_specs.txt</li>
+    </ol>
+  </li>
+  <li>
+    <p>Give your ticket a specific, preferably short title.</p>
+  </li>
+  <li>
+    <p>Give your ticket appropriate tags.</p>
+  </li>
+  <li>
+    <p>Give enough detail about the issue.</p>
+
+    <ul>
+      <li>The command line for invoking the program</li>
+      <li>The backtrace or result from the program versus expected result.</li>
+      <li>Your machine information. &lsquo;uname -a&rsquo; is usually good (if there are any
+&ldquo;unknown&rdquo; fields in it, please elaborate on those.)</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="">Additional instructions for tickets with patches</h2>
+
+<ul>
+  <li>Can be just a set of specs.</li>
+  <li>Patches must be accompanied by specs unless the specs already exist.</li>
+  <li>Relevant part of spec output and the exact &lsquo;bin/mspec&rsquo; invocation from the
+existing or added spec <em>before the fix</em>.</li>
+  <li>The spec output and the exact &lsquo;bin/mspec&rsquo; invocation  showing success
+<em>after</em> the fix.</li>
+  <li>Additional description of your patch and how it fixes the problem. In
+particular with new functionality please indicate if it was already
+discussed on #rubinius or ruby-dev.</li>
+</ul>
+
+<p>Unless for some reason impossible, please use &lsquo;git-format-patch&rsquo; to create the
+patchset. It is much easier to apply and it preserves the correct attribution.
+Otherwise, a unified diff.</p>
+
+<h2 id="">Example of submitting a patch</h2>
+
+<p>Suppose the following spec exists and is failing:</p>
+
+<pre><code>describe &quot;Kernel.format&quot; do
+  it &quot;is accessible as a module function&quot; do
+    Kernel.format(&quot;%s&quot;, &quot;hello&quot;).should == &quot;hello&quot;
+  end
+end
+</code></pre>
+
+<ol>
+  <li>
+    <p>Ticket Title:</p>
+
+    <p>&ldquo;[PATCH] No method &lsquo;format&rsquo; on Kernel (Module)&rdquo;</p>
+  </li>
+  <li>
+    <p>Tags:</p>
+
+    <p>&ldquo;patch core spec&rdquo;</p>
+  </li>
+  <li>
+    <p>Ticket Message:</p>
+
+    <p>The method &lsquo;format&rsquo; is not available as a module function of Kernel.</p>
+
+    <pre><code>$ bin/mspec spec/ruby/core/kernel/format_spec.rb
+Started
+.E
+
+1)
+Kernel.format is accessible as a module function ERROR
+No method 'format' on Kernel (Module):
+</code></pre>
+
+    <p>The method &lsquo;format&rsquo; already exists but has not been set as a module
+function.  This patch does so.</p>
+
+    <p>After the patch is applied:</p>
+
+    <pre><code>$ bin/mspec spec/ruby/core/kernel/format_spec.rb
+Started
+..
+
+Finished in 0.016031 seconds
+
+2 examples, 2 expectations, 0 failures, 0 errors
+</code></pre>
+  </li>
+  <li>
+    <p>Attachment:</p>
+  </li>
+</ol>
+
+<p>Finally, put your patch in a gist and add the link to the gist to your issue.
+Below the patch is reproduced inline for completeness:</p>
+
+<pre><code>From c61cecce6442347ebbdf1ded7a5c0832c97582c1 Mon Sep 17 00:00:00 2001
+From: Brian Ford &lt;bford@engineyard.com&gt;
+Date: Sat, 19 Jan 2008 17:48:19 -0800
+Subject: [PATCH] Set Kernel#format as a module function.
+
+
+diff --git a/kernel/core/kernel.rb b/kernel/core/kernel.rb
+index 2d2e508..f2a382e 100644
+--- a/kernel/core/kernel.rb
++++ b/kernel/core/kernel.rb
+@@ -150,6 +150,7 @@ module Kernel
+   end
+   alias_method :format, :sprintf
+   module_function :sprintf
++  module_function :format
+   module_function :abort
+
+   def puts(*a)
+</code></pre>
+
+    </div>
+
+    <div id="sidebar">
+      <h2>Table of Contents</h2>
+      <ul>
+<li><a href="/">What is Rubinius</a></li>
+<li><a href="/getting_started/">Getting Started</a></li>
+<li><a href="/common_problems/">Common Problems</a></li>
+<li><a href="/contributing/">Contributing</a></li>
+</ul>
+<h3>Tools</h3>
+<ul>
+<li><a href="/tools/profiler/">Profiler</a></li>
+<li><a href="/tools/debugger/">Debugger</a></li>
+</ul>
+<h3>Developing</h3>
+<ul>
+<li><a href="/dev/specs/">Specs</a></li>
+<li><a href="/dev/build_system/">Build System</a></li>
+<li><a href="/dev/bootstrapping/">Bootstrapping</a></li>
+<li><a href="/dev/compiler/">Bytecode Compiler</a></li>
+<li><a href="/dev/style_guide/">Style Guide</a></li>
+<li><a href="/dev/reading_list/">Reading List</a></li>
+<li><a href="/glossary/">Glossary</a></li>
+</ul>
+<h3>Howto</h3>
+<ul>
+<li><span class="active" title="You're here.">Write a Ticket</span></li>
+<li><a href="/howto/write_a_ruby_spec/">Write a Ruby spec</a></li>
+<li><a href="/howto/fix_a_failing_spec/">Fix a Failing Spec</a></li>
+</ul>
+
+    </div>
+  </body>
+</html>

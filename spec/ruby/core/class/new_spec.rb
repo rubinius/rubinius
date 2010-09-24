@@ -49,6 +49,12 @@ describe "Class.new" do
     klass_instance.is_a?(klass).should == true
   end
 
+  it "raises a TypeError if passed a metaclass" do
+    obj = mock("Class.new metaclass")
+    meta = obj.metaclass
+    lambda { Class.new meta }.should raise_error(TypeError)
+  end
+
   ruby_version_is ""..."1.9" do
     it "creates a class without a name" do
       Class.new.name.should == ""

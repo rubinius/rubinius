@@ -32,6 +32,10 @@ namespace rubinius {
     config::Bool    jit_sync;
     config::Bool    jit_show_uncommon;
     config::Bool    jit_show_remove;
+    config::Bool    jit_check_debugging;
+
+    // CAPI
+    config::Bool    capi_global_flush;
 
     // Query Agent
     config::Integer qa_port;
@@ -43,6 +47,7 @@ namespace rubinius {
     config::Integer print_config;
     config::Bool    ic_stats;
     config::Bool    profile;
+    config::String  report_path;
 
     // defaults
     static const int default_gc_bytes = 1048576 * 3;
@@ -73,14 +78,18 @@ namespace rubinius {
       , jit_show_compiling(this, "jit.show")
       , jit_profile(this,     "jit.profile")
       , jit_inline_generic(this, "jit.inline.generic", true)
-      , jit_inline_debug(this, "jit.inline.debug")
-      , jit_inline_blocks(this, "jit.inline.blocks")
+      , jit_inline_debug(this, "jit.inline.debug", false)
+      , jit_inline_blocks(this, "jit.inline.blocks", true)
       , jit_log(this,        "jit.log")
       , jit_disabled(this,   "int")
       , jit_debug(this,      "jit.debug", false)
       , jit_sync(this,       "jit.sync", false)
       , jit_show_uncommon(this, "jit.uncommon.print", false)
       , jit_show_remove(this, "jit.removal.print", false)
+      , jit_check_debugging(this, "jit.check_debugging", false)
+
+      , capi_global_flush(this, "capi.global_flush", false)
+
       , qa_port(this,         "agent.start")
       , qa_verbose(this,      "agent.verbose")
       , qa_tmpdir(this,       "agent.tmpdir")
@@ -88,6 +97,7 @@ namespace rubinius {
       , print_config(this,    "config.print")
       , ic_stats(this,        "ic.stats")
       , profile(this,         "profile")
+      , report_path(this,     "vm.crash_report_path")
     {
       gc_bytes.set_description(
           "The number of bytes the young generation of the GC should use");
@@ -146,6 +156,12 @@ namespace rubinius {
       jit_show_remove.set_description(
           "Print out whenever the JIT is removing unused code");
 
+      jit_check_debugging.set_description(
+          "Allow JIT'd methods to deoptimize if there is a debugging request");
+
+      capi_global_flush.set_description(
+          "Flush all CAPI handles at CAPI call boundaries");
+
       print_config.set_description(
           "blank or 1 == names and values, 2 == description as well");
 
@@ -172,6 +188,9 @@ namespace rubinius {
 
       profile.set_description(
           "Configure the system to profile ruby code");
+
+      report_path.set_description(
+          "Set a custom path to write crash reports");
     }
 
     void finalize() {

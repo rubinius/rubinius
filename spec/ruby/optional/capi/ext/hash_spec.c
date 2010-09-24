@@ -5,6 +5,12 @@
 extern "C" {
 #endif
 
+#ifdef HAVE_RB_HASH
+VALUE hash_spec_rb_hash(VALUE self, VALUE hash) {
+  return rb_hash(hash);
+}
+#endif
+
 #ifdef HAVE_RB_HASH_AREF
 VALUE hash_spec_rb_hash_aref(VALUE self, VALUE hash, VALUE key) {
   return rb_hash_aref(hash, key);
@@ -25,6 +31,12 @@ VALUE hash_spec_rb_hash_aset(VALUE self, VALUE hash, VALUE key, VALUE val) {
 #ifdef HAVE_RB_HASH_DELETE
 VALUE hash_spec_rb_hash_delete(VALUE self, VALUE hash, VALUE key) {
   return rb_hash_delete(hash, key);
+}
+#endif
+
+#ifdef HAVE_RB_HASH_DELETE_IF
+VALUE hash_spec_rb_hash_delete_if(VALUE self, VALUE hash) {
+  return rb_hash_delete_if(hash);
 }
 #endif
 
@@ -69,6 +81,10 @@ void Init_hash_spec() {
   VALUE cls;
   cls = rb_define_class("CApiHashSpecs", rb_cObject);
 
+#ifdef HAVE_RB_HASH
+  rb_define_method(cls, "rb_hash", hash_spec_rb_hash, 1);
+#endif
+
 #ifdef HAVE_RB_HASH_AREF
   rb_define_method(cls, "rb_hash_aref", hash_spec_rb_hash_aref, 2);
   rb_define_method(cls, "rb_hash_aref_nil", hash_spec_rb_hash_aref_nil, 2);
@@ -80,6 +96,10 @@ void Init_hash_spec() {
 
 #ifdef HAVE_RB_HASH_DELETE
   rb_define_method(cls, "rb_hash_delete", hash_spec_rb_hash_delete, 2);
+#endif
+
+#ifdef HAVE_RB_HASH_DELETE_IF
+  rb_define_method(cls, "rb_hash_delete_if", hash_spec_rb_hash_delete_if, 1);
 #endif
 
 #ifdef HAVE_RB_HASH_FOREACH

@@ -105,4 +105,10 @@ public:
         const RubyException &e,
         TS_ASSERT(Exception::io_error_p(state, e.exception)));
   }
+
+  void test_ruby_exception_runtime_error() {
+    TS_ASSERT_THROWS_ASSERT(Exception::runtime_error(state, "failed"),
+        const RubyException &e,
+        TS_ASSERT(Exception::runtime_error_p(state, e.exception)));
+  }
 };

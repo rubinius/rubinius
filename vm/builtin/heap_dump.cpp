@@ -324,7 +324,7 @@ namespace rubinius {
         enc.write1(cTupleCode);
         enc.write4(tup->num_fields());
 
-        for(size_t i = 0; i < tup->num_fields(); i++) {
+        for(native_int i = 0; i < tup->num_fields(); i++) {
           dump_reference(state, tup->at(i));
         }
       } else if(VariableScope* vs = try_as<VariableScope>(obj)) {

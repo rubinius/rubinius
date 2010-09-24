@@ -9,7 +9,7 @@ end
 # Common settings. These can be augmented or overridden
 # by the particular extension Rakefile.
 #
-DEFAULT = Config::CONFIG
+DEFAULT = RbConfig::CONFIG
 
 # Don't like the globals? Too bad, they are simple and the
 # duration of this process is supposed to be short.

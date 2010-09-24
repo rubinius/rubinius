@@ -27,10 +27,12 @@ namespace rubinius {
   GCData::GCData(STATE)
     : roots_(state->globals().roots)
     , variable_buffers_(*state->variable_buffers())
+    , root_buffers_(state->root_buffers())
     , handles_(state->shared.global_handles())
     , cached_handles_(state->shared.cached_handles())
     , global_cache_(state->shared.global_cache)
     , threads_(state->shared.threads())
+    , global_handle_locations_(state->shared.global_handle_locations())
   {}
 
   GarbageCollector::GarbageCollector(ObjectMemory *om)

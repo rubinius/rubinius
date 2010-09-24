@@ -223,7 +223,6 @@ namespace rubinius {
     // Let all the builtin classes initialize themselves. This
     // typically means creating a Ruby class.
     Array::init(this);
-    ArrayIterator::init(this);
     ByteArray::init(this);
     String::init(this);
     kcode::init(this);
@@ -366,6 +365,15 @@ namespace rubinius {
     G(rubinius)->set_const(state, "CPU", String::create(state, RBX_CPU));
     G(rubinius)->set_const(state, "VENDOR", String::create(state, RBX_VENDOR));
     G(rubinius)->set_const(state, "OS", String::create(state, RBX_OS));
+
+#if defined(_WIN32)
+    G(rubinius)->set_const(state, "OS_TYPE", symbol("windows"));
+#elif defined(__APPLE__)
+    G(rubinius)->set_const(state, "OS_TYPE", symbol("darwin"));
+#else
+    G(rubinius)->set_const(state, "OS_TYPE", symbol("unix"));
+#endif
+
 
 #ifdef RBX_LITTLE_ENDIAN
     G(rubinius)->set_const(state, "ENDIAN", symbol("little"));
