@@ -295,7 +295,10 @@ namespace immix {
         system_size_ = cChunkSize;
       } else {
         int ret = munmap(base_, cChunkSize);
-        if(ret != 0) abort();
+        if(ret != 0) {
+          perror("munmap");
+          ::abort();
+        }
 
         system_size_ = cChunkSize + cBlockSize;
         system_base_ = mmap(0, system_size_, PROT_EXEC | PROT_READ | PROT_WRITE,
