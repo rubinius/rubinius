@@ -340,8 +340,8 @@ class IO
   #  Sending message to parent
   #  Parent got: <Hi Dad>
   def self.pipe
-    lhs = IO.allocate
-    rhs = IO.allocate
+    lhs = allocate
+    rhs = allocate
     connect_pipe(lhs, rhs)
     lhs.sync = true
     rhs.sync = true
@@ -401,8 +401,8 @@ class IO
       readable = true
     end
 
-    pa_read, ch_write = IO.pipe if readable
-    ch_read, pa_write = IO.pipe if writable
+    pa_read, ch_write = pipe if readable
+    ch_read, pa_write = pipe if writable
 
     pid = Process.fork
 
