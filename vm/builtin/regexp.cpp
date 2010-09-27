@@ -321,9 +321,23 @@ namespace rubinius {
   static Tuple* _md_region_to_tuple(STATE, OnigRegion *region, int pos) {
     Tuple* tup = Tuple::create(state, region->num_regs - 1);
     for(int i = 1; i < region->num_regs; i++) {
-      Tuple* sub = Tuple::from(state, 2,
-                               Fixnum::from(region->beg[i] + pos),
-                               Fixnum::from(region->end[i] + pos));
+      int beg = region->beg[i];
+
+      Tuple* sub;
+
+      // If onig says the beginning is less than 0, then it's indicating
+      // that there was no match for it. This happens with an optional
+      // match like (a)?. We want to preserve this knowledge so we
+      // don't add pos to it.
+      if(beg < 0) {
+        sub = Tuple::from(state, 2,
+                          Fixnum::from(region->beg[i]),
+                          Fixnum::from(region->end[i]));
+      } else {
+        sub = Tuple::from(state, 2,
+                          Fixnum::from(region->beg[i] + pos),
+                          Fixnum::from(region->end[i] + pos));
+      }
       tup->put(state, i - 1, sub);
     }
     return tup;
@@ -333,10 +347,22 @@ namespace rubinius {
     MatchData* md = state->new_object<MatchData>(G(matchdata));
     md->source(state, string->string_dup(state));
     md->regexp(state, regexp);
-    Tuple* tup = Tuple::from(state, 2,
-                             Fixnum::from(region->beg[0] + pos),
-                             Fixnum::from(region->end[0] + pos));
-    md->full(state, tup);
+    // Unsure if the first region (the full match) can be less than 0 (meaning
+    // the match was length length but did still match). We have to support
+    // that for the > 0 case, so we'll do the same for 0.
+    //
+
+    if(region->beg[0] < 0) {
+      Tuple* tup = Tuple::from(state, 2,
+                               Fixnum::from(region->beg[0]),
+                               Fixnum::from(region->end[0]));
+      md->full(state, tup);
+    } else {
+      Tuple* tup = Tuple::from(state, 2,
+                               Fixnum::from(region->beg[0] + pos),
+                               Fixnum::from(region->end[0] + pos));
+      md->full(state, tup);
+    }
     md->region(state, _md_region_to_tuple(state, region, pos));
     return md;
   }
