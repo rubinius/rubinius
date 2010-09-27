@@ -19,7 +19,7 @@ describe "Socket#connect_nonblock" do
     }.should raise_error(Errno::EINPROGRESS)
   end
 
-  it "raises Errno::ISCONN when the socket has connected" do
+  it "connects the socket to the remote side" do
     ready = false
     thread = Thread.new do
       server = TCPServer.new(SocketSpecs.port)
@@ -39,9 +39,11 @@ describe "Socket#connect_nonblock" do
 
     IO.select nil, [@socket]
 
-    lambda {
+    begin
       @socket.connect_nonblock(@addr)
-    }.should raise_error(Errno::EISCONN)
+    rescue Errno::EISCONN
+      # Not all OS's use this errno, so we trap and ignore it
+    end
 
     @socket.read(6).should == "hello!"
   end
