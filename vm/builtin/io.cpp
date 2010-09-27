@@ -89,7 +89,16 @@ namespace rubinius {
       native_int highest = 0;
 
       for(std::size_t i = 0; i < descriptors->size(); ++i) {
-        native_int descriptor = as<IO>(descriptors->get(state, i))->to_fd();
+        Object* elem = descriptors->get(state, i);
+        IO* io;
+
+        if(Array* ary = try_as<Array>(elem)) {
+          io = as<IO>(ary->get(state, 1));
+        } else {
+          io = as<IO>(elem);
+        }
+
+        native_int descriptor = io->to_fd();
         highest = descriptor > highest ? descriptor : highest;
 
         if(descriptor > 0) FD_SET(descriptor, set);
@@ -110,11 +119,21 @@ namespace rubinius {
       Array* selected = Array::create(state, 1);
 
       for(std::size_t i = 0; i < originals->size(); ++i) {
-        IO* io = as<IO>(originals->get(state, i));
+        Object* elem = originals->get(state, i);
+        Object* key;
+        IO* io;
+
+        if(Array* ary = try_as<Array>(elem)) {
+          key = ary->get(state, 0);
+          io = as<IO>(ary->get(state, 1));
+        } else {
+          key = elem;
+          io = as<IO>(elem);
+        }
 
         int fd = io->to_fd();
         if(fd < 0 || FD_ISSET(fd, set)) {
-          selected->append(state, io);
+          selected->append(state, key);
         }
       }
 

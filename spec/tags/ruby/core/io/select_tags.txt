@@ -1,1 +1,0 @@
-critical:IO.select invokes to_io on supplied objects that are not IO
