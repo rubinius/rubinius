@@ -1176,6 +1176,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Unmark variable as global */
   void rb_gc_unregister_address(VALUE* address);
 
+  /** Called when there is no memory available */
+  void    rb_memerror();
+
   /** Retrieve global by name. Because of MRI, the leading $ is optional but recommended. */
   VALUE   rb_gv_get(const char* name);
 
