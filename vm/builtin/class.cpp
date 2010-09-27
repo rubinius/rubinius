@@ -155,7 +155,7 @@ use_packed:
       }
 
       return obj;
-    } else if(!type_info_->allow_user_allocate) {
+    } else if(!type_info_->allow_user_allocate || kind_of<MetaClass>(this)) {
       Exception::type_error(state, "direct allocation disabled");
       return Qnil;
     } else if(!building_) {
@@ -314,7 +314,11 @@ use_packed:
     meta->attached_instance(state, obj);
     meta->setup(state);
 
-    meta->set_type_info(obj->klass()->type_info());
+    if(kind_of<PackedObject>(obj)) {
+      meta->set_type_info(state->om->type_info[Object::type]);
+    } else {
+      meta->set_type_info(obj->klass()->type_info());
+    }
 
     meta->set_packed_size(obj->klass()->packed_size());
     meta->packed_ivar_info(state, obj->klass()->packed_ivar_info());
