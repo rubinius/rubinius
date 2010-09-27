@@ -145,6 +145,7 @@
 
 /* IO */
 #define HAVE_RB_IO_WRITE                   1
+#define HAVE_RB_IO_CLOSE                   1
 
 /* Kernel */
 #define HAVE_RB_BLOCK_GIVEN_P              1

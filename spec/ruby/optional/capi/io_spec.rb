@@ -14,4 +14,15 @@ describe "C-API IO function" do
       @o.rb_io_write(io, "test").should == :written
     end
   end
+
+  describe "rb_io_close" do
+    it "closes an IO object" do
+      io = File.open(__FILE__, "r")
+      io.closed?.should be_false
+
+      @o.rb_io_close(io)
+
+      io.closed?.should be_true
+    end
+  end
 end
