@@ -106,6 +106,16 @@ task :gem_bootstrap do
   end
 end
 
+desc "Run the Rubinius documentation website"
+task :docs do
+  require 'kernel/delta/options'
+  require 'rbconfig'
+  require 'webrick'
+  require 'lib/rubinius/documentation'
+
+  Rubinius::Documentation.main
+end
+
 desc "Documents why no spec tasks exist"
 task :spec do
   puts <<-EOM
