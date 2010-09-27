@@ -244,7 +244,6 @@ class Socket < BasicSocket
         err = _connect descriptor, sockaddr_p, sockaddr.length
       end
 
-      getsockopt(descriptor, Socket::SOL_SOCKET, Socket::SO_ERROR) if err < 0
       err
     end
 
@@ -730,22 +729,35 @@ class Socket < BasicSocket
   end
 
   # @todo  Should this be closing the descriptor? --rue
-  def connect(*args)
-    sockaddr  = if args.size == 1
-                  args.first
-                else
-                  Socket.pack_sockaddr_in args.first, args.last
-                end
+  def connect(sockaddr, extra=nil)
+    if extra
+      sockaddr = Socket.pack_sockaddr_in sockaddr, extra
+    else
+      sockaddr = StringValue(sockaddr)
+    end
 
-    syscall = 'connect(2)'
     status = Socket::Foreign.connect descriptor, sockaddr
 
-    if status < 0 then
-      Socket::Foreign.close descriptor
-      Errno.handle syscall
+    if status < 0
+      begin
+        Errno.handle "connect(2)"
+      rescue Errno::ISCONN
+        return 0
+      end
     end
 
     return 0
+  end
+
+  def connect_nonblock(sockaddr)
+    fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+
+    status = Socket::Foreign.connect descriptor, StringValue(sockaddr)
+    if status < 0
+      Errno.handle "connect(2)"
+    end
+
+    return status
   end
 end
 
