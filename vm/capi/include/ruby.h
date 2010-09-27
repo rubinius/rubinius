@@ -1142,6 +1142,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Send #write to io passing str. */
   VALUE   rb_io_write(VALUE io, VALUE str);
 
+  /** Close an IO */
+  VALUE   rb_io_close(VALUE io);
+
   int     rb_io_fd(VALUE io);
 #define HAVE_RB_IO_FD 1
 
