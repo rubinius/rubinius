@@ -68,6 +68,12 @@ namespace rubinius {
     return bt;
   }
 
+  static bool kernel_method(STATE, CompiledMethod* cm) {
+    const char* s = cm->file()->c_str(state);
+    if(strncmp(s, "kernel/", 7) == 0) return true;
+    return false;
+  }
+
   Array* Location::mri_backtrace(STATE, CallFrame* call_frame) {
     size_t count = 0;
 
@@ -81,39 +87,31 @@ namespace rubinius {
 
     while(call_frame) {
       // Ignore synthetic frames
-      if(call_frame->cm) {
-        std::stringstream ss;
-        ss << call_frame->cm->file()->c_str(state)
-           << ":"
-           << call_frame->line(state)
-           << ":in `";
+      if(call_frame->cm && !kernel_method(state, call_frame->cm)) {
+        Symbol* name;
+        Object* block = Qfalse;
+        Fixnum* line = Fixnum::from(call_frame->line(state));
 
         if(call_frame->block_p()) {
-          ss << call_frame->top_scope(state)->method()->name()->c_str(state)
-             << " {}'";
+          block = Qtrue;
+          name = call_frame->top_scope(state)->method()->name();
         } else {
           Symbol* current_name = call_frame->name();
           Symbol* method_name  = call_frame->cm->name();
 
           if(current_name->nil_p()) {
             if(method_name->nil_p()) {
-              ss << "<unknown>";
+              name = state->symbol("<unknown>");
             } else {
-              ss << method_name->c_str(state);
+              name = method_name;
             }
-          } else if(current_name != method_name) {
-            ss << current_name->c_str(state)
-               << " ("
-               << method_name->c_str(state)
-               << ")";
           } else {
-            ss << current_name->c_str(state);
+            name = current_name;
           }
-
-          ss << "'";
         }
 
-        bt->append(state, String::create(state, ss.str().c_str()));
+        bt->append(state,
+            Tuple::from(state, 4, call_frame->cm, line, block, name));
       }
 
       call_frame = static_cast<CallFrame*>(call_frame->previous);
