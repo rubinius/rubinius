@@ -253,9 +253,9 @@ namespace rubinius {
           line -= l;
         }
 
-        if(*bytes == '\r') *bytes++;
+        if(*bytes == '\r') bytes++;
         if(*bytes == '\n') {
-          *bytes++;
+          bytes++;
         } else if(bytes < bytes_end && (bytes+1 == bytes_end || bytes[1] == '\n')) {
           // possible checksum byte
           bytes += 2;
