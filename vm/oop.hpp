@@ -384,13 +384,13 @@ const int cUndef = 0x22L;
     /* Initialize the objects data with the most basic info. This is done
      * right after an object is created. */
     void init_header(gc_zone loc, object_type type) {
-      header.all_flags = 0;
+      header.flags64 = 0;
       flags().obj_type = type;
       set_zone(loc);
     }
 
     void init_header(Class* cls, gc_zone loc, object_type type) {
-      header.all_flags = 0;
+      header.flags64 = 0;
       flags().obj_type = type;
       set_zone(loc);
 
