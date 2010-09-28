@@ -23,8 +23,9 @@ class Configure
     @little_endian = false
     @sizeof_long = 0
 
-    # Compiler to use
+    # Compiler / build settings
     @compiler = ENV['CC'] || 'gcc'
+    @rake = ENV['RAKE'] || 'rake'
 
     # LLVM settings
     @use_llvm               = true
@@ -63,7 +64,7 @@ class Configure
     @libversion = "1.1"
     @version = "#{@libversion}.0"
     @release_date = "2010-09-23"
-    @config_version = 16
+    @config_version = 17
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
@@ -93,6 +94,10 @@ class Configure
       old_log = @log.path
       @log = Logger.new name, false
       @log.replace old_log
+    end
+
+    o.on "--rake", "NAME", "Use NAME as 'rake'" do |name|
+      @rake = name
     end
 
     o.doc "\n Compiler settings"
@@ -649,6 +654,7 @@ module Rubinius
   BUILD_CONFIG = {
     :which_ruby     => :#{which_ruby},
     :build_ruby     => "#{build_ruby}",
+    :build_rake     => "#{@rake}",
     :llvm           => :#{@llvm},
     :llvm_configure => "#{@llvm_configure}",
     :compiler       => "#{@compiler}",
