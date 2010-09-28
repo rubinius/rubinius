@@ -235,7 +235,7 @@ end
 def ld(t)
   link_opts = llvm_link_flags()
 
-  link_opts += ' -Wl,--export-dynamic' if RUBY_PLATFORM =~ /linux/i
+  link_opts += ' -Wl,--export-dynamic' if RUBY_PLATFORM =~ /linux|openbsd/i
   link_opts += ' -rdynamic'            if RUBY_PLATFORM =~ /bsd/
   link_opts += ' -lstdc++'
 
@@ -710,7 +710,8 @@ def ex_libs # needs to be method to delay running of llvm_config
     end
 
     $ex_libs << "-ldl" unless RUBY_PLATFORM =~ /bsd/
-    $ex_libs << "-lcrypt" if RUBY_PLATFORM =~ /bsd/
+    $ex_libs << "-lcrypt" if RUBY_PLATFORM =~ /bsd/ && RUBY_PLATFORM !~ /openbsd/
+    $ex_libs << "-lcrypto -pthread -lssl" if RUBY_PLATFORM =~ /openbsd/
     $ex_libs << "-lexecinfo" if RUBY_PLATFORM =~ /bsd/ && Rubinius::BUILD_CONFIG[:defines].include?('HAS_EXECINFO')
     $ex_libs << "-lrt -lcrypt" if RUBY_PLATFORM =~ /linux/
 
