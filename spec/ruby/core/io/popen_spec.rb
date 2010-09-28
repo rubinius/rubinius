@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "IO.popen" do
   it "reads from a read-only pipe" do
@@ -84,5 +85,17 @@ describe "IO.popen" do
       puts "hello from child"
       exit!
     end
+  end
+
+  it "yields an instance of a subclass when called on a subclass" do
+    IOSpecs::SubIO.popen("true", "r") do |io|
+      io.should be_an_instance_of(IOSpecs::SubIO)
+    end
+  end
+
+  it "returns an instance of a subclass when called on a subclass" do
+    io = IOSpecs::SubIO.popen("true", "r")
+    io.should be_an_instance_of(IOSpecs::SubIO)
+    io.close
   end
 end

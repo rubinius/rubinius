@@ -1,6 +1,9 @@
 # -*- encoding: utf-8 -*-
 
 module IOSpecs
+  class SubIO < IO
+  end
+
   def self.lines
     [ "Voici la ligne une.\n",
       "Qui \303\250 la linea due.\n",
