@@ -3,6 +3,7 @@
 
 namespace rubinius {
   class CodeManager;
+  class VM;
 
   class CodeResource {
     bool mark_;
@@ -15,7 +16,7 @@ namespace rubinius {
     {}
 
     virtual ~CodeResource() { };
-    virtual void cleanup(CodeManager* cm) { };
+    virtual void cleanup(VM* state, CodeManager* cm) { };
     virtual int  size() { return 0; }
     virtual const char* kind() { return "resource"; }
 

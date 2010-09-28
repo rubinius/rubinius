@@ -17,6 +17,7 @@ namespace rubinius {
   class RuntimeDataHolder;
   class ObjectMark;
   class ObjectVisitor;
+  class VM;
 
   namespace gc {
     class WriteBarrier;
@@ -66,7 +67,7 @@ namespace rubinius {
         , native_size_(0)
       {}
 
-      virtual void cleanup(CodeManager* cm);
+      virtual void cleanup(VM* vm, CodeManager* cm);
 
       virtual const char* kind() {
         return "jit-runtime";

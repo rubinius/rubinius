@@ -12,7 +12,7 @@
 namespace rubinius {
 namespace jit {
 
-  void RuntimeDataHolder::cleanup(CodeManager* cm) {
+  void RuntimeDataHolder::cleanup(STATE, CodeManager* cm) {
     LLVMState* ls = cm->shared()->llvm_state;
     assert(ls);
 

@@ -249,6 +249,10 @@ namespace rubinius {
       return onig_lock_;
     }
 
+    VM* root_vm() {
+      return root_vm_;
+    }
+
     void scheduler_loop();
     void enable_preemption();
 
