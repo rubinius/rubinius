@@ -82,6 +82,7 @@ describe "String#split with String" do
   it "ignores leading and continuous whitespace when string is a single space" do
     " now's  the time  ".split(' ').should == ["now's", "the", "time"]
     " now's  the time  ".split(' ', -1).should == ["now's", "the", "time", ""]
+    " now's  the time  ".split(' ', 3).should == ["now's", "the", "time  "]
 
     "\t\n a\t\tb \n\r\r\nc\v\vd\v ".split(' ').should == ["a", "b", "c", "d"]
     "a\x00a b".split(' ').should == ["a\x00a", "b"]
