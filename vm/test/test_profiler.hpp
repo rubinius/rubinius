@@ -69,8 +69,8 @@ public:
     Module* mod = Module::create(state);
     mod->name(state, name);
 
-    state->shared.enable_profiling(state);
-    profiler::Profiler* prof = state->profiler();
+    state->shared.enable_profiling(state, state);
+    profiler::Profiler* prof = state->profiler(state);
 
     profiler::MethodEntry* me1 = new profiler::MethodEntry(state, meth, mod, cm);
     TS_ASSERT_EQUALS(prof->methods_.size(), 1U);
@@ -93,19 +93,18 @@ public:
     CompiledMethod* cm = CompiledMethod::create(state);
     cm->name(state, meth);
 
-    state->shared.enable_profiling(state);
-    profiler::Profiler* prof = state->profiler();
+    state->shared.enable_profiling(state, state);
+    profiler::Profiler* prof = state->profiler(state);
 
-    Dispatch dis(meth, G(object), cm);
-    Arguments args;
+    Arguments args(state->symbol("blah"));
 
-    profiler::MethodEntry* me1 = new profiler::MethodEntry(state, dis, args, cm);
+    profiler::MethodEntry* me1 = new profiler::MethodEntry(state, cm, G(object), args, cm);
     TS_ASSERT_EQUALS(prof->methods_.size(), 1U);
 
     TS_ASSERT_EQUALS(me1->method_, prof->methods_.find(me1->method_->id())->second);
 
-    dis.module = G(object)->metaclass(state);
-    profiler::MethodEntry* me2 = new profiler::MethodEntry(state, dis, args);
+    Module* mod = G(object)->metaclass(state);
+    profiler::MethodEntry* me2 = new profiler::MethodEntry(state, cm, mod, args);
     TS_ASSERT_EQUALS(prof->methods_.size(), 2U);
 
     TS_ASSERT_EQUALS(me2->method_, prof->methods_.find(me2->method_->id())->second);

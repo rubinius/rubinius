@@ -27,7 +27,7 @@ public:
   }
 
   void destroy() {
-    VM::discard(state);
+    VM::discard(state, state);
     SharedState::discard(shared);
   }
 

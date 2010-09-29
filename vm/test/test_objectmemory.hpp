@@ -27,7 +27,7 @@ public:
   void setUp() {
     create();
     roots = &state->globals().roots;
-    gc_data = new GCData(*roots, variable_buffers,
+    gc_data = new GCData(*roots,
                          &handles, &cached_handles, state->global_cache());
   }
 

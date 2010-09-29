@@ -30,12 +30,11 @@ public:
     AccessVariable* av = AccessVariable::allocate(state);
     CallFrame cf;
 
-    Dispatch dis(state->symbol("blah"), G(object), av);
-    Arguments args(G(object), 0, 0);
+    Arguments args(state->symbol("blah"), G(object), 0, 0);
 
     av->name(state, state->symbol("@module_name"));
 
-    Object* ret = av->access_execute(state, &cf, dis, args);
+    Object* ret = av->access_execute(state, &cf, av, G(object), args);
     TS_ASSERT(try_as<Symbol>(ret));
 
     TS_ASSERT_EQUALS(std::string("Object"), as<Symbol>(ret)->c_str(state));
@@ -45,15 +44,14 @@ public:
     AccessVariable* av = AccessVariable::allocate(state);
 
     CallFrame cf;
-    Dispatch dis(state->symbol("blah"), G(object), av);
     Symbol* val = state->symbol("Blah");
     Object* ary[1] = {val};
-    Arguments args(G(object), 1, ary);
+    Arguments args(state->symbol("blah"), G(object), 1, ary);
 
     av->name(state, state->symbol("@module_name"));
     av->write(state, Qtrue);
 
-    Object* ret = av->access_execute(state, &cf, dis, args);
+    Object* ret = av->access_execute(state, &cf, av, G(object), args);
     TS_ASSERT_EQUALS(ret, val);
 
     TS_ASSERT_EQUALS(val, G(object)->name());
@@ -63,14 +61,13 @@ public:
     AccessVariable* av = AccessVariable::allocate(state);
 
     CallFrame cf;
-    Dispatch dis(state->symbol("blah"), G(object), av);
-    Arguments args(G(object), 0, 0);
+    Arguments args(state->symbol("blah"), G(object), 0, 0);
 
     av->name(state, state->symbol("@blah"));
 
     G(object)->set_ivar(state, av->name(), state->symbol("Sweet"));
 
-    Object* ret = av->execute(state, &cf, dis, args);
+    Object* ret = av->execute(state, &cf, av, G(object), args);
     TS_ASSERT(try_as<Symbol>(ret));
 
     TS_ASSERT_EQUALS(std::string("Sweet"), as<Symbol>(ret)->c_str(state));
@@ -80,15 +77,14 @@ public:
     AccessVariable* av = AccessVariable::allocate(state);
     CallFrame cf;
 
-    Dispatch dis(state->symbol("blah"), G(object), av);
     Symbol* val = state->symbol("Blah");
     Object* ary[1] = {val};
-    Arguments args(G(object), 1, ary);
+    Arguments args(state->symbol("blah"), G(object), 1, ary);
 
     av->name(state, state->symbol("@blah"));
     av->write(state, Qtrue);
 
-    Object* ret = av->execute(state, &cf, dis, args);
+    Object* ret = av->execute(state, &cf, av, G(object), args);
     TS_ASSERT_EQUALS(ret, val);
 
     Symbol* out = as<Symbol>(G(object)->get_ivar(state, av->name()));
