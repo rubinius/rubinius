@@ -120,7 +120,9 @@ namespace rubinius {
     }
   }
 
-  void SignalHandler::add_signal(int sig, bool def) {
+  void SignalHandler::add_signal(STATE, int sig, bool def) {
+    SYNC(state);
+
     sigset_t sigs;
     sigemptyset(&sigs);
     sigaddset(&sigs, sig);

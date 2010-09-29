@@ -508,9 +508,9 @@ namespace rubinius {
     if(h) {
       native_int i = sig->to_native();
       if(i < 0) {
-        h->add_signal(-i, true);
+        h->add_signal(state, -i, true);
       } else {
-        h->add_signal(i);
+        h->add_signal(state, i);
       }
 
       return Qtrue;
