@@ -139,4 +139,20 @@ extern "C" {
 
     return ret;
   }
+
+  // More Experimental API support. This is the useful analog to the above
+  // function, allowing you to selecting reaquire the GIL and do some work.
+
+  void* rb_thread_call_with_gvl(void* (*func)(void*), void* data) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    void* ret = 0;
+
+    {
+      GlobalLock::LockGuard guard(env->state()->global_lock());
+      ret = (*func)(data);
+    }
+
+    return ret;
+  }
 }

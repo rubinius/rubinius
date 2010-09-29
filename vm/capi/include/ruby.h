@@ -1592,6 +1592,9 @@ VALUE rb_uint2big(unsigned long number);
   VALUE rb_thread_blocking_region(rb_blocking_function_t* func, void* data,
                                   rb_unblock_function_t* ubf, void* ubf_data);
 
+  /* Experimental API. Call +func+ with the GIL locked. */
+  void* rb_thread_call_with_gvl(void* (*func)(void*), void* data);
+
   // Exists only to make extensions happy. It can be read and written to, but
   // it controls nothing.
   extern int rb_thread_critical;
