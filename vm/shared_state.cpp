@@ -120,21 +120,21 @@ namespace rubinius {
   }
 
 
-  QueryAgent* SharedState::autostart_agent() {
-    SYNC(0);
+  QueryAgent* SharedState::autostart_agent(STATE) {
+    SYNC(state);
     if(agent_) return agent_;
     agent_ = new QueryAgent(*this, root_vm_);
     return agent_;
   }
 
-  void SharedState::enable_profiling(VM* vm) {
-    SYNC(0);
+  void SharedState::enable_profiling(STATE, VM* vm) {
+    SYNC(state);
     profiler_collection_ = new profiler::ProfilerCollection(vm);
     profiling_ = true;
   }
 
-  LookupTable* SharedState::disable_profiling(VM* vm) {
-    SYNC(0);
+  LookupTable* SharedState::disable_profiling(STATE, VM* vm) {
+    SYNC(state);
     if(profiler_collection_) {
       LookupTable* profile = profiler_collection_->results(vm);
       delete profiler_collection_;
@@ -146,15 +146,15 @@ namespace rubinius {
     }
   }
 
-  void SharedState::add_profiler(VM* vm, profiler::Profiler* profiler) {
-    SYNC(0);
+  void SharedState::add_profiler(STATE, VM* vm, profiler::Profiler* profiler) {
+    SYNC(state);
     if(profiler_collection_) {
       profiler_collection_->add_profiler(vm, profiler);
     }
   }
 
-  void SharedState::remove_profiler(VM* vm, profiler::Profiler* profiler) {
-    SYNC(0);
+  void SharedState::remove_profiler(STATE, VM* vm, profiler::Profiler* profiler) {
+    SYNC(state);
     if(profiler_collection_) {
       profiler_collection_->remove_profiler(vm, profiler);
     }

@@ -114,7 +114,7 @@ namespace rubinius {
     vm->shared.gc_independent(vm);
     vm->shared.clear_critical(vm);
 
-    VM::discard(vm);
+    VM::discard(vm, vm);
 
     if(cDebugThreading) {
       std::cerr << "[LOCK thread " << pthread_self() << " exitted]\n";

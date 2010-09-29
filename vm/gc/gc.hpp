@@ -29,8 +29,6 @@ namespace rubinius {
 
   class GCData {
     Roots& roots_;
-    VariableRootBuffers& variable_buffers_;
-    RootBuffers* root_buffers_;
     capi::Handles* handles_;
     capi::Handles* cached_handles_;
     GlobalCache* global_cache_;
@@ -39,14 +37,11 @@ namespace rubinius {
 
   public:
     GCData(STATE);
-    GCData(Roots& r, VariableRootBuffers& b,
+    GCData(Roots& r,
            capi::Handles* handles = NULL, capi::Handles* cached_handles = NULL,
            GlobalCache *cache = NULL, std::list<ManagedThread*>* ths = NULL,
-           std::list<capi::Handle**>* global_handle_locations = NULL,
-           RootBuffers* rf = NULL)
+           std::list<capi::Handle**>* global_handle_locations = NULL)
       : roots_(r)
-      , variable_buffers_(b)
-      , root_buffers_(rf)
       , handles_(handles)
       , cached_handles_(cached_handles)
       , global_cache_(cache)
@@ -60,14 +55,6 @@ namespace rubinius {
 
     std::list<ManagedThread*>* threads() {
       return threads_;
-    }
-
-    VariableRootBuffers& variable_buffers() {
-      return variable_buffers_;
-    }
-
-    RootBuffers* root_buffers() {
-      return root_buffers_;
     }
 
     capi::Handles* handles() {
@@ -122,6 +109,10 @@ namespace rubinius {
     void visit_roots(Roots& roots, ObjectVisitor& visit);
     void unmark_all(GCData& data);
     void clean_weakrefs(bool check_forwards=false);
+
+    void scan(ManagedThread* thr, bool young_only);
+    void scan(VariableRootBuffers& buffers, bool young_only);
+    void scan(RootBuffers& rb, bool young_only);
 
     VM* state();
 

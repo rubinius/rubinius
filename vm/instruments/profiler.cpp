@@ -173,7 +173,7 @@ namespace rubinius {
       : state_(state)
       , edge_(0)
     {
-      method_ = state->profiler()->enter_method(
+      method_ = state->profiler(state)->enter_method(
           exec, mod, args, reinterpret_cast<CompiledMethod*>(Qnil), false);
       start();
     }
@@ -182,7 +182,7 @@ namespace rubinius {
       : state_(state)
       , edge_(0)
     {
-      method_ = state->profiler()->enter_method(exec, mod, args, cm, jit);
+      method_ = state->profiler(state)->enter_method(exec, mod, args, cm, jit);
       start();
     }
 
@@ -190,7 +190,7 @@ namespace rubinius {
       : state_(state)
       , edge_(0)
     {
-      method_ = state->profiler()->enter_block(name, module, cm, jit);
+      method_ = state->profiler(state)->enter_block(name, module, cm, jit);
       start();
     }
 
@@ -212,16 +212,16 @@ namespace rubinius {
       }
 
       CompiledMethod* cm = reinterpret_cast<CompiledMethod*>(Qnil);
-      method_ = state->profiler()->find_method(cm, state_->symbol("GC"), name, kind);
+      method_ = state->profiler(state)->find_method(cm, state_->symbol("GC"), name, kind);
       start();
     }
 
     void MethodEntry::start() {
-      previous_ = state_->profiler()->current();
+      previous_ = state_->profiler(state_)->current();
       if(previous_) {
         edge_ = previous_->find_edge(method_);
       }
-      state_->profiler()->set_current(method_);
+      state_->profiler(state_)->set_current(method_);
       method_->timer.start();
       timer_.start();
     }
@@ -233,7 +233,7 @@ namespace rubinius {
       timer_.stop();
       method_->accumulate(timer_.total());
       if(edge_) edge_->accumulate(timer_.total());
-      state_->profiler()->set_current(previous_);
+      state_->profiler(state_)->set_current(previous_);
     }
 
     Profiler::~Profiler() {

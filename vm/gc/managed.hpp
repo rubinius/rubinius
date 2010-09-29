@@ -3,6 +3,7 @@
 
 #include "gc/slab.hpp"
 #include "gc/variable_buffer.hpp"
+#include "gc/root_buffer.hpp"
 #include "gc/root.hpp"
 #include "lock.hpp"
 
@@ -34,7 +35,8 @@ namespace rubinius {
     Roots roots_;
     Kind kind_;
     const char* name_;
-    VariableRootBuffers root_buffers_;
+    VariableRootBuffers variable_root_buffers_;
+    RootBuffers root_buffers_;
     RunState run_state_;
     std::list<ObjectHeader*> locked_objects_;
 
@@ -58,7 +60,11 @@ namespace rubinius {
       return roots_;
     }
 
-    VariableRootBuffers& root_buffers() {
+    VariableRootBuffers& variable_root_buffers() {
+      return variable_root_buffers_;
+    }
+
+    RootBuffers& root_buffers() {
       return root_buffers_;
     }
 

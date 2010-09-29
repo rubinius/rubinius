@@ -84,10 +84,10 @@ namespace rubinius {
     }
   }
 
-  void VM::discard(VM* vm) {
+  void VM::discard(STATE, VM* vm) {
     vm->saved_call_frame_ = 0;
     if(vm->profiler_) {
-      vm->shared.remove_profiler(vm, vm->profiler_);
+      vm->shared.remove_profiler(state, vm, vm->profiler_);
     }
 
     vm->shared.remove_vm(vm);
@@ -432,10 +432,10 @@ namespace rubinius {
     return true;
   }
 
-  profiler::Profiler* VM::profiler() {
+  profiler::Profiler* VM::profiler(STATE) {
     if(unlikely(!profiler_)) {
       profiler_ = new profiler::Profiler(this);
-      shared.add_profiler(this, profiler_);
+      shared.add_profiler(state, this, profiler_);
     }
 
     return profiler_;

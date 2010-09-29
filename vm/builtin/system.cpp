@@ -456,12 +456,12 @@ namespace rubinius {
   }
 
   Object* System::vm_profiler_instrumenter_start(STATE) {
-    state->shared.enable_profiling(state);
+    state->shared.enable_profiling(state, state);
     return Qtrue;
   }
 
   LookupTable* System::vm_profiler_instrumenter_stop(STATE) {
-    return state->shared.disable_profiling(state);
+    return state->shared.disable_profiling(state, state);
   }
 
   Object* System::vm_write_error(STATE, String* str) {
@@ -972,7 +972,7 @@ namespace rubinius {
   }
 
   IO* System::vm_agent_io(STATE) {
-    QueryAgent* agent = state->shared.autostart_agent();
+    QueryAgent* agent = state->shared.autostart_agent(state);
     int sock = agent->loopback_socket();
     if(sock < 0) {
       if(!agent->setup_local()) return (IO*)Qnil;

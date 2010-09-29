@@ -86,7 +86,7 @@ namespace rubinius {
   }
 
   Environment::~Environment() {
-    VM::discard(state);
+    VM::discard(state, state);
     SharedState::discard(shared);
   }
 

@@ -142,14 +142,6 @@ namespace rubinius {
       return saved_call_frame_;
     }
 
-    VariableRootBuffers* variable_buffers() {
-      return shared.variable_buffers();
-    }
-
-    RootBuffers* root_buffers() {
-      return shared.root_buffers();
-    }
-
     GlobalCache* global_cache() {
       return shared.global_cache;
     }
@@ -245,7 +237,7 @@ namespace rubinius {
     static VM* current();
     static void set_current(VM* vm);
 
-    static void discard(VM*);
+    static void discard(STATE, VM*);
 
   public:
 
@@ -369,7 +361,7 @@ namespace rubinius {
       return true;
     }
 
-    profiler::Profiler* profiler();
+    profiler::Profiler* profiler(STATE);
 
     void remove_profiler();
 

@@ -65,8 +65,6 @@ namespace rubinius {
   private:
     bool initialized_;
     SignalHandler* signal_handler_;
-    VariableRootBuffers variable_root_buffers_;
-    RootBuffers         root_buffers_;
 
     capi::Handles* global_handles_;
     capi::Handles* cached_handles_;
@@ -141,14 +139,6 @@ namespace rubinius {
 
     void add_managed_thread(ManagedThread* thr);
     void remove_managed_thread(ManagedThread* thr);
-
-    VariableRootBuffers* variable_buffers() {
-      return &variable_root_buffers_;
-    }
-
-    RootBuffers* root_buffers() {
-      return &root_buffers_;
-    }
 
     capi::Handles* global_handles() {
       return global_handles_;
@@ -239,7 +229,7 @@ namespace rubinius {
       agent_ = agent;
     }
 
-    QueryAgent* autostart_agent();
+    QueryAgent* autostart_agent(STATE);
 
     Environment* env() {
       return env_;
@@ -256,10 +246,10 @@ namespace rubinius {
     void scheduler_loop();
     void enable_preemption();
 
-    void enable_profiling(VM* vm);
-    LookupTable* disable_profiling(VM* vm);
-    void add_profiler(VM* vm, profiler::Profiler* profiler);
-    void remove_profiler(VM* vm, profiler::Profiler* profiler);
+    void enable_profiling(STATE, VM* vm);
+    LookupTable* disable_profiling(STATE, VM* vm);
+    void add_profiler(STATE, VM* vm, profiler::Profiler* profiler);
+    void remove_profiler(STATE, VM* vm, profiler::Profiler* profiler);
 
     void pre_exec();
     void reinit();

@@ -54,30 +54,7 @@ namespace rubinius {
       for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
           i != data.threads()->end();
           i++) {
-        for(Roots::Iterator ri((*i)->roots()); ri.more(); ri.advance()) {
-          saw_object(ri->get());
-        }
-
-        for(VariableRootBuffers::Iterator vi((*i)->root_buffers());
-            vi.more();
-            vi.advance())
-        {
-          Object*** buffer = vi->buffer();
-          for(int idx = 0; idx < vi->size(); idx++) {
-            Object** var = buffer[idx];
-            Object* tmp = *var;
-
-            if(tmp->reference_p() && tmp->young_object_p()) {
-              *var = saw_object(tmp);
-            }
-          }
-        }
-
-        if(VM* vm = (*i)->as_vm()) {
-          if(CallFrame* cf = vm->saved_call_frame()) {
-            walk_call_frame(cf);
-          }
-        }
+        scan(*i, false);
       }
     }
 
@@ -87,30 +64,6 @@ namespace rubinius {
 
     for(capi::Handles::Iterator i(*data.cached_handles()); i.more(); i.advance()) {
       saw_object(i->object());
-    }
-
-    for(VariableRootBuffers::Iterator i(data.variable_buffers());
-        i.more(); i.advance()) {
-      Object*** buffer = i->buffer();
-      for(int idx = 0; idx < i->size(); idx++) {
-        Object** var = buffer[idx];
-        Object* tmp = *var;
-
-        saw_object(tmp);
-      }
-    }
-
-    RootBuffers* rb = data.root_buffers();
-    if(rb) {
-      for(RootBuffers::Iterator i(*rb);
-          i.more();
-          i.advance())
-      {
-        Object** buffer = i->buffer();
-        for(int idx = 0; idx < i->size(); idx++) {
-          saw_object(buffer[idx]);
-        }
-      }
     }
   }
 
