@@ -16,6 +16,17 @@ module Rubinius
     end
 
     def set_eval_local(name, val)
+      scope = @parent
+      while scope
+        if scope.dynamic_locals.key? name
+          scope.dynamic_locals[name] = val
+          return val
+        end
+
+        scope = scope.parent
+      end
+
+      # Otherwise, put it here.
       @parent.dynamic_locals[name] = val
     end
 
