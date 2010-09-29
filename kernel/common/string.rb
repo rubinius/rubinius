@@ -1673,7 +1673,7 @@ class String
 
       collapsed = match.collapsing?
 
-      if !collapsed || (match.begin(0) != 0)
+      unless (collapsed || spaces) && (match.begin(0) == 0)
         ret << match.pre_match_from(last_match ? last_match.end(0) : 0)
         ret.push(*match.captures.compact)
       end
