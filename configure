@@ -204,7 +204,8 @@ class Configure
 
     @features = {}
 
-    feature "execinfo"
+    default_on = RUBY_PLATFORM !~ /openbsd/i
+    feature "execinfo", default_on
 
     o.doc "\n Help!"
 
