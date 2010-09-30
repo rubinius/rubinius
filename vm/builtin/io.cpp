@@ -568,6 +568,8 @@ namespace rubinius {
           }
         }
 
+        if(error) break;
+
         left -= cnt;
         cur  += cnt;
       }
