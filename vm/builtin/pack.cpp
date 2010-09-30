@@ -591,8 +591,9 @@ namespace rubinius {
     // Use information we have to reduce repeated allocation.
     str.reserve(array_size * 4);
 
+    if(RTEST(directives->tainted_p(state))) tainted = true;
 
-static const short _pack_eof_actions[] = {
+static const short _eof_actions[] = {
 	0, 1, 1, 3, 3, 8, 8, 11, 
 	11, 14, 14, 17, 17, 20, 20, 23, 
 	23, 26, 26, 29, 29, 32, 35, 40, 
@@ -611,15 +612,13 @@ static const short _pack_eof_actions[] = {
 	8, 194, 3
 };
 
-static const int pack_start = 1;
-static const int pack_first_final = 1;
-static const int pack_error = 0;
+static const int start = 1;
 
-static const int pack_en_main = 1;
+static const int en_main = 1;
 
 
 	{
-	cs = pack_start;
+	cs = start;
 	}
 
 	{
@@ -11074,7 +11073,7 @@ _again:
 	_test_eof: {}
 	if ( p == eof )
 	{
-	switch ( _pack_eof_actions[cs] ) {
+	switch ( _eof_actions[cs] ) {
 	case 1:
 	{
     String* result = String::create(state, str.c_str(), str.size());
@@ -12623,7 +12622,7 @@ _again:
 
 
 
-    if(pack_first_final && pack_error && pack_en_main) {
+    if(en_main) {
       // do nothing
     }
 

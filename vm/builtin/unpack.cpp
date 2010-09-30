@@ -582,7 +582,7 @@ namespace rubinius {
     bool platform = false;
 
 
-static const short _unpack_eof_actions[] = {
+static const short _eof_actions[] = {
 	0, 1, 1, 4, 4, 10, 10, 14, 
 	14, 18, 18, 22, 22, 26, 26, 30, 
 	30, 34, 34, 38, 38, 42, 46, 52, 
@@ -603,15 +603,13 @@ static const short _unpack_eof_actions[] = {
 	18, 301, 14, 305, 10, 309, 4
 };
 
-static const int unpack_start = 1;
-static const int unpack_first_final = 1;
-static const int unpack_error = 0;
+static const int start = 1;
 
-static const int unpack_en_main = 1;
+static const int en_main = 1;
 
 
 	{
-	cs = unpack_start;
+	cs = start;
 	}
 
 	{
@@ -16823,7 +16821,7 @@ _again:
 	_test_eof: {}
 	if ( p == eof )
 	{
-	switch ( _unpack_eof_actions[cs] ) {
+	switch ( _eof_actions[cs] ) {
 	case 1:
 	{
     return array;
@@ -18839,7 +18837,7 @@ _again:
 
 
 
-    if(unpack_first_final && unpack_error && unpack_en_main) {
+    if(en_main) {
       // do nothing
     }
 
