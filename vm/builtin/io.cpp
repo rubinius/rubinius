@@ -635,7 +635,7 @@ namespace rubinius {
       break;
 #endif
     default:
-      sprintf(pbuf, "unknown:%d", addr->sa_family);
+      snprintf(pbuf, NI_MAXSERV, "unknown:%d", addr->sa_family);
       family = String::create(state, pbuf);
       break;
     }
