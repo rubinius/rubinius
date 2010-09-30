@@ -224,6 +224,9 @@ def compile_c(obj, src, output_kind="c")
     flags << " #{str}"
   end
 
+  # Make sure we are C99 compatible.
+  flags << " -D__STDC_LIMIT_MACROS" unless flags =~ /__STDC_LIMIT_MACROS/
+
   if $verbose
     sh "#{CC} #{flags} -#{output_kind} -o #{obj} #{src} 2>&1"
   else

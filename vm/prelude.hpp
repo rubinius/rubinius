@@ -16,12 +16,6 @@
  *  @see   oop.hpp
  */
 
-// We're in C++, and C99 says we have to define this for the *_[MIN|MAX]
-// macros to be defined.
-#ifndef __STDC_LIMIT_MACROS
-#define __STDC_LIMIT_MACROS 1
-#endif
-
 #include <stdint.h>
 
 #include "util/optimize.hpp"
