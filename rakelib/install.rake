@@ -83,7 +83,7 @@ namespace :install do
   desc "Install all the Rubinius files"
   task :files do
     if need_sudo? install_dirs
-      sh "sudo #{FileUtils::RUBY} -S rake install:files", :verbose => true
+      sh "sudo #{BUILD_CONFIG[:build_ruby]} -S #{BUILD_CONFIG[:build_rake]} install:files", :verbose => true
     elsif !need_install?
       puts "Install directory is the same as build directory, nothing to install"
     else
