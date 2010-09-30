@@ -5,6 +5,7 @@ require File.expand_path('../shared/basic', __FILE__)
 require File.expand_path('../shared/numeric_basic', __FILE__)
 
 describe "Array#pack with format 'w'" do
+  it_behaves_like :array_pack_safe, 'w'
   it_behaves_like :array_pack_basic, 'w'
   it_behaves_like :array_pack_numeric_basic, 'w'
 

@@ -5,6 +5,7 @@ require File.expand_path('../shared/basic', __FILE__)
 require File.expand_path('../shared/encodings', __FILE__)
 
 describe "Array#pack with format 'B'" do
+  it_behaves_like :array_pack_safe, 'B'
   it_behaves_like :array_pack_basic, 'B'
   it_behaves_like :array_pack_hex, 'B'
 
@@ -55,6 +56,7 @@ describe "Array#pack with format 'B'" do
 end
 
 describe "Array#pack with format 'b'" do
+  it_behaves_like :array_pack_safe, 'b'
   it_behaves_like :array_pack_basic, 'b'
   it_behaves_like :array_pack_hex, 'b'
 

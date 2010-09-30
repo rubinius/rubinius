@@ -5,12 +5,14 @@ require File.expand_path('../shared/numeric_basic', __FILE__)
 require File.expand_path('../shared/integer', __FILE__)
 
 describe "Array#pack with format 'S'" do
+  it_behaves_like :array_pack_safe, 'S'
   it_behaves_like :array_pack_basic, 'S'
   it_behaves_like :array_pack_numeric_basic, 'S'
   it_behaves_like :array_pack_integer, 'S'
 end
 
 describe "Array#pack with format 's'" do
+  it_behaves_like :array_pack_safe, 's'
   it_behaves_like :array_pack_basic, 's'
   it_behaves_like :array_pack_numeric_basic, 's'
   it_behaves_like :array_pack_integer, 's'

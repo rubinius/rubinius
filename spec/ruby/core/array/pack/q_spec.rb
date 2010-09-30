@@ -5,6 +5,7 @@ require File.expand_path('../shared/numeric_basic', __FILE__)
 require File.expand_path('../shared/integer', __FILE__)
 
 describe "Array#pack with format 'Q'" do
+  it_behaves_like :array_pack_safe, 'Q'
   it_behaves_like :array_pack_basic, 'Q'
   it_behaves_like :array_pack_numeric_basic, 'Q'
   it_behaves_like :array_pack_integer, 'Q'
@@ -12,6 +13,7 @@ describe "Array#pack with format 'Q'" do
 end
 
 describe "Array#pack with format 'q'" do
+  it_behaves_like :array_pack_safe, 'q'
   it_behaves_like :array_pack_basic, 'q'
   it_behaves_like :array_pack_numeric_basic, 'q'
   it_behaves_like :array_pack_integer, 'q'

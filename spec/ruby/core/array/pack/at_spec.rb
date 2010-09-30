@@ -4,6 +4,7 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 require File.expand_path('../shared/basic', __FILE__)
 
 describe "Array#pack with format '@'" do
+  it_behaves_like :array_pack_safe, '@'
   it_behaves_like :array_pack_no_platform, '@'
 
   it "moves the insertion point to the index specified by the count modifier" do
