@@ -332,6 +332,11 @@ namespace :build do
 
   task :normal_flags do
     FLAGS.concat %w[ -ggdb3 -O2 -Werror ]
+
+    # This is necessary for the gcc sync prims to fully work
+    if Rubinius::BUILD_CONFIG[:x86_32]
+      FLAGS << "-march=i686"
+    end
   end
 
   task :inline_flags => :normal_flags do

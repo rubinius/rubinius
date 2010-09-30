@@ -420,7 +420,11 @@ step2:
           continue;
         }
 
-        state->del_locked_object(this);
+        // Don't call state->del_locked_object() here. We iterate over
+        // that list to call this function, so we don't want to invalidate
+        // the iterators. Plus, we don't need to cleanup the list anyway, this
+        // is only used when the Thread is exitting.
+
 
         if(new_val.f.LockContended == 1) {
           // If we couldn't inflate for contention, redo.
@@ -730,7 +734,10 @@ step2:
       return;
     }
 
-    state->del_locked_object(object_);
+    // Don't call state->del_locked_object() here. We iterate over
+    // that list to call this function, so we don't want to invalidate
+    // the iterators. Plus, we don't need to cleanup the list anyway, this
+    // is only used when the Thread is exitting.
 
     owner_id_ = 0;
     condition_.signal();
