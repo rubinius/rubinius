@@ -62,7 +62,6 @@ objectspace.rbc
 string.rbc
 range.rbc
 rubinius.rbc
-pack.rbc
 struct.rbc
 process.rbc
 random.rbc
