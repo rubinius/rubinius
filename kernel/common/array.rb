@@ -1044,8 +1044,11 @@ class Array
   def pack(directives)
     Ruby.primitive :array_pack
 
-    # see pack.rb for Array::Packer
-    Packer.new(self, directives).dispatch
+    unless directives.kind_of? String
+      return pack(StringValue(directives))
+    end
+
+    raise ArgumentError, "invalid directives string: #{directives}"
   end
 
   ##

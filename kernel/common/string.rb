@@ -2727,10 +2727,13 @@ class String
   #            |         | length argument
   #     -------+---------+-----------------------------------------
 
-  def unpack(format)
+  def unpack(directives)
     Ruby.primitive :string_unpack
 
-    # see pack.rb for String::Unpacker
-    Unpacker.new(self,format).dispatch
+    unless directives.kind_of? String
+      return unpack(StringValue(directives))
+    end
+
+    raise ArgumentError, "invalid directives string: #{directives}"
   end
 end
