@@ -9,6 +9,8 @@
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
 #include "builtin/location.hpp"
+#include "builtin/block_environment.hpp"
+#include "builtin/proc.hpp"
 
 #include "lookup_data.hpp"
 #include "dispatch.hpp"
@@ -167,6 +169,43 @@ namespace rubinius {
 
       Object* ret = dis.send(env->state(), env->current_call_frame(),
                              lookup, args_o);
+
+      env->update_cached_data();
+
+      // An exception occurred
+      if(!ret) env->current_ep()->return_to(env);
+
+      return env->get_handle(ret);
+    }
+
+    VALUE capi_yield_backend(NativeMethodEnvironment* env,
+                              Object* blk,
+                              size_t arg_count, Object** arg_vals)
+    {
+      int marker = 0;
+      if(!env->state()->check_stack(env->current_call_frame(), &marker)) {
+        env->current_ep()->return_to(env);
+      }
+
+      env->flush_cached_data();
+      Object* ret = RBX_Qnil;
+      STATE = env->state();
+
+      CallFrame* call_frame = env->current_call_frame();
+      Arguments args(blk, arg_count, arg_vals);
+
+      if(BlockEnvironment* be = try_as<BlockEnvironment>(blk)) {
+        ret = be->call(state, call_frame, args);
+      } else if(Proc* proc = try_as<Proc>(blk)) {
+        ret = proc->yield(state, call_frame, args);
+      } else if(blk->nil_p()) {
+        state->thread_state()->raise_exception(
+            Exception::make_lje(state, call_frame));
+        ret = NULL;
+      } else {
+        Dispatch dis(G(sym_call));
+        ret = dis.send(state, call_frame, args);
+      }
 
       env->update_cached_data();
 
@@ -365,6 +404,76 @@ extern "C" {
         reinterpret_cast<Symbol*>(method_name),
         arg_count, args, env->get_object(block));
   }
+
+  VALUE rb_yield(VALUE argument_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object* blk = env->block();
+
+    if(!RBX_RTEST(blk)) {
+      rb_raise(rb_eLocalJumpError, "no block given", 0);
+    }
+
+    Object* arg = env->get_object(argument_handle);
+
+    return capi_yield_backend(env, blk, 1, &arg);
+  }
+
+  VALUE rb_yield_values(int n, ...) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object* blk = env->block();
+
+    if(!RBX_RTEST(blk)) {
+      rb_raise(rb_eLocalJumpError, "no block given", 0);
+    }
+
+    if(n == 0) {
+      return capi_yield_backend(env, blk, 0, 0);
+    }
+
+    Object** vars = reinterpret_cast<Object**>(alloca(sizeof(Object*) * n));
+
+    va_list args;
+    va_start(args, n);
+
+    for(int i = 0; i < n; ++i) {
+      vars[i] = env->get_object(va_arg(args, VALUE));
+    }
+
+    va_end(args);
+
+    return capi_yield_backend(env, blk, n, vars);
+  }
+
+  int rb_block_given_p() {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    return RBX_RTEST(env->block());
+  }
+
+  void rb_need_block() {
+    if (!rb_block_given_p()) {
+      rb_raise(rb_eLocalJumpError, "no block given", 0);
+    }
+  }
+
+  VALUE rb_apply(VALUE recv, ID mid, VALUE args) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    env->flush_cached_data();
+
+    Array* ary = capi::c_as<Array>(env->get_object(args));
+
+    Object* obj = env->get_object(recv);
+    Object* ret = obj->send(env->state(), env->current_call_frame(),
+        reinterpret_cast<Symbol*>(mid), ary, RBX_Qnil);
+    env->update_cached_data();
+
+    // An exception occurred
+    if(!ret) env->current_ep()->return_to(env);
+
+    return env->get_handle(ret);
+  }
+
 
   void capi_infect(VALUE obj1, VALUE obj2) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();

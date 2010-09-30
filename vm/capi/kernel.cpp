@@ -9,69 +9,6 @@
 using namespace rubinius;
 
 extern "C" {
-  VALUE rb_yield(VALUE argument_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    if (!rb_block_given_p()) {
-      rb_raise(rb_eLocalJumpError, "no block given", 0);
-    }
-
-    VALUE block_handle = env->get_handle(env->block());
-
-    return rb_funcall(block_handle, rb_intern("call"), 1, argument_handle);
-  }
-
-  VALUE rb_yield_values(int n, ...) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    if (!rb_block_given_p()) {
-      rb_raise(rb_eLocalJumpError, "no block given", 0);
-    }
-
-    VALUE* vars = reinterpret_cast<VALUE*>(alloca(sizeof(VALUE) * n));
-
-    va_list args;
-    va_start(args, n);
-
-    for(int i = 0; i < n; ++i) {
-      vars[i] = va_arg(args, VALUE);
-    }
-
-    va_end(args);
-
-    VALUE block_handle = env->get_handle(env->block());
-
-    return rb_funcall2(block_handle, rb_intern("call"), n, vars);
-  }
-
-  int rb_block_given_p() {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return RBX_RTEST(env->block());
-  }
-
-  void rb_need_block() {
-    if (!rb_block_given_p()) {
-      rb_raise(rb_eLocalJumpError, "no block given", 0);
-    }
-  }
-
-  VALUE rb_apply(VALUE recv, ID mid, VALUE args) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    env->flush_cached_data();
-
-    Array* ary = capi::c_as<Array>(env->get_object(args));
-
-    Object* obj = env->get_object(recv);
-    Object* ret = obj->send(env->state(), env->current_call_frame(),
-        reinterpret_cast<Symbol*>(mid), ary, RBX_Qnil);
-    env->update_cached_data();
-
-    // An exception occurred
-    if(!ret) env->current_ep()->return_to(env);
-
-    return env->get_handle(ret);
-  }
-
 #define RB_EXC_BUFSIZE   256
 
   void rb_raise(VALUE error_handle, const char* format_string, ...) {
