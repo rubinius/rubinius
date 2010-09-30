@@ -63,18 +63,18 @@ describe :array_pack_8bit, :shared => true do
 end
 
 describe "Array#pack with format 'C'" do
-  it_behaves_like :array_pack_safe, 'C'
-  it_behaves_like :array_pack_8bit, 'C'
   it_behaves_like :array_pack_basic, 'C'
+  it_behaves_like :array_pack_8bit, 'C'
+  it_behaves_like :array_pack_arguments, 'C'
   it_behaves_like :array_pack_numeric_basic, 'C'
   it_behaves_like :array_pack_integer, 'C'
   it_behaves_like :array_pack_no_platform, 'C'
 end
 
 describe "Array#pack with format 'c'" do
-  it_behaves_like :array_pack_safe, 'c'
-  it_behaves_like :array_pack_8bit, 'c'
   it_behaves_like :array_pack_basic, 'c'
+  it_behaves_like :array_pack_8bit, 'c'
+  it_behaves_like :array_pack_arguments, 'c'
   it_behaves_like :array_pack_numeric_basic, 'c'
   it_behaves_like :array_pack_integer, 'c'
   it_behaves_like :array_pack_no_platform, 'c'

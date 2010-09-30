@@ -4,6 +4,7 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 require File.expand_path('../shared/basic', __FILE__)
 
 describe "String#unpack with format 'B'" do
+  it_behaves_like :string_unpack_basic, 'B'
   it_behaves_like :string_unpack_no_platform, 'B'
 
   it "decodes one bit from each byte for each format character starting with the most significant bit" do
@@ -93,6 +94,7 @@ describe "String#unpack with format 'B'" do
 end
 
 describe "String#unpack with format 'b'" do
+  it_behaves_like :string_unpack_basic, 'b'
   it_behaves_like :string_unpack_no_platform, 'b'
 
   it "decodes one bit from each byte for each format character starting with the least significant bit" do

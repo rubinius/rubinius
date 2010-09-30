@@ -172,6 +172,14 @@ module ArraySpecs
     end
   end
 
+  def self.universal_pack_object
+    obj = mock("string float int")
+    obj.stub!(:to_int).and_return(1)
+    obj.stub!(:to_str).and_return("1")
+    obj.stub!(:to_f).and_return(1.0)
+    obj
+  end
+
   LargeArray = ["test_create_table_with_force_true_does_not_drop_nonexisting_table",
  "test_add_table",
  "assert_difference",

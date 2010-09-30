@@ -5,8 +5,8 @@ require File.expand_path('../shared/basic', __FILE__)
 require File.expand_path('../shared/encodings', __FILE__)
 
 describe "Array#pack with format 'H'" do
-  it_behaves_like :array_pack_safe, 'H'
   it_behaves_like :array_pack_basic, 'H'
+  it_behaves_like :array_pack_arguments, 'H'
   it_behaves_like :array_pack_hex, 'H'
 
   it "calls #to_str to convert an Object to a String" do
@@ -102,8 +102,8 @@ describe "Array#pack with format 'H'" do
 end
 
 describe "Array#pack with format 'h'" do
-  it_behaves_like :array_pack_safe, 'h'
   it_behaves_like :array_pack_basic, 'h'
+  it_behaves_like :array_pack_arguments, 'h'
   it_behaves_like :array_pack_hex, 'h'
 
   it "calls #to_str to convert an Object to a String" do

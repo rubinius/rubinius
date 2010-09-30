@@ -4,6 +4,7 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 require File.expand_path('../shared/basic', __FILE__)
 
 describe "String#unpack with format 'X'" do
+  it_behaves_like :string_unpack_basic, 'X'
   it_behaves_like :string_unpack_no_platform, 'X'
 
   it "moves the read index back by the number of bytes specified by count" do
@@ -32,6 +33,7 @@ describe "String#unpack with format 'X'" do
 end
 
 describe "String#unpack with format 'x'" do
+  it_behaves_like :string_unpack_basic, 'x'
   it_behaves_like :string_unpack_no_platform, 'x'
 
   it "moves the read index forward by the number of bytes specified by count" do

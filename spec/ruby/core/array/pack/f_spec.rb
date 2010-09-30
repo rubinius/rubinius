@@ -5,8 +5,8 @@ require File.expand_path('../shared/numeric_basic', __FILE__)
 require File.expand_path('../shared/float', __FILE__)
 
 describe "Array#pack with format 'F'" do
-  it_behaves_like :array_pack_safe, 'F'
   it_behaves_like :array_pack_basic, 'F'
+  it_behaves_like :array_pack_arguments, 'F'
   it_behaves_like :array_pack_no_platform, 'F'
   it_behaves_like :array_pack_numeric_basic, 'F'
   it_behaves_like :array_pack_float, 'F'
@@ -21,8 +21,8 @@ describe "Array#pack with format 'F'" do
 end
 
 describe "Array#pack with format 'f'" do
-  it_behaves_like :array_pack_safe, 'f'
   it_behaves_like :array_pack_basic, 'f'
+  it_behaves_like :array_pack_arguments, 'f'
   it_behaves_like :array_pack_no_platform, 'f'
   it_behaves_like :array_pack_numeric_basic, 'f'
   it_behaves_like :array_pack_float, 'f'

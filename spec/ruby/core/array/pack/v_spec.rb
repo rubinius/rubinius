@@ -5,8 +5,8 @@ require File.expand_path('../shared/numeric_basic', __FILE__)
 require File.expand_path('../shared/integer', __FILE__)
 
 describe "Array#pack with format 'V'" do
-  it_behaves_like :array_pack_safe, 'V'
   it_behaves_like :array_pack_basic, 'V'
+  it_behaves_like :array_pack_arguments, 'V'
   it_behaves_like :array_pack_numeric_basic, 'V'
   it_behaves_like :array_pack_integer, 'V'
   it_behaves_like :array_pack_no_platform, 'V'
@@ -14,8 +14,8 @@ describe "Array#pack with format 'V'" do
 end
 
 describe "Array#pack with format 'v'" do
-  it_behaves_like :array_pack_safe, 'v'
   it_behaves_like :array_pack_basic, 'v'
+  it_behaves_like :array_pack_arguments, 'v'
   it_behaves_like :array_pack_numeric_basic, 'v'
   it_behaves_like :array_pack_integer, 'v'
   it_behaves_like :array_pack_no_platform, 'v'
