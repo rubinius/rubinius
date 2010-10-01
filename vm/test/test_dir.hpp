@@ -79,7 +79,7 @@ public:
     d->read(state);
     TS_ASSERT(d->read(state)->nil_p());
     d->control(state, Fixnum::from(1), Fixnum::from(0));
-    String* name = (String*)d->read(state);
+    String* name = as<String>(d->read(state));
     TS_ASSERT_EQUALS(name->c_str()[0], '.');
     remove_directory(dir);
   }
@@ -90,19 +90,12 @@ public:
     d->open(state, path);
     d->read(state);
     Fixnum* pos = (Fixnum*)d->control(state, Fixnum::from(2), Fixnum::from(0));
-    String* first = (String*)d->read(state);
+    String* first = as<String>(d->read(state));
 
     d->control(state, Fixnum::from(0), pos);
-    String* second = (String*)d->read(state);
+    String* second = as<String>(d->read(state));
     TS_ASSERT_EQUALS(first->size(), second->size());
     TS_ASSERT_SAME_DATA(first, second, first->size());
     remove_directory(dir);
   }
-
-  /*
-  void _test_control_closed() {
-    // TODO: TS_ASSERT_RAISES(d->control(state, Fixnum::from(0), Fixnum::from(0)), {Ruby IOError});
-  }
-  */
-
 };
