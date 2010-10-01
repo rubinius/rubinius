@@ -31,6 +31,7 @@ class Configure
     # Compiler / build settings
     @compiler = ENV['CC'] || 'gcc'
     @rake = ENV['RAKE'] || 'rake'
+    @install = false
 
     # LLVM settings
     @use_llvm               = true
@@ -69,7 +70,7 @@ class Configure
     @libversion = "1.1"
     @version = "#{@libversion}.0"
     @release_date = "2010-09-23"
-    @config_version = 19
+    @config_version = 20
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
@@ -148,6 +149,7 @@ class Configure
     o.doc "\n File system paths for installing Rubinius"
 
     o.on "-P", "--prefix", "PATH", "Install Rubinius in subdirectories of PATH" do |dir|
+      @install = true
       dir = File.expand_path dir
 
       if !ENV['RELEASE'] and File.directory? dir and dir !~ /(rubinius|rbx)\/?$/
@@ -170,14 +172,17 @@ class Configure
     end
 
     o.on "-B", "--bindir", "PATH", "Install Rubinius executable in PATH" do |dir|
+      @install = true
       @bindir = expand dir
     end
 
     o.on "-I", "--includedir", "PATH", "Install Rubinius C-API include files in PATH" do |dir|
+      @install = true
       @includedir = expand dir
     end
 
     o.on "-L", "--libdir", "PATH", "Install Ruby library in PATH" do |dir|
+      @install = true
       @libdir   = expand(dir) + "/rubinius/#{@libversion}"
       @runtime  = @libdir + "/runtime"
       @lib_path = @libdir + "/lib"
@@ -188,18 +193,22 @@ class Configure
     end
 
     o.on "-M", "--mandir", "PATH", "Install man pages in PATH" do |dir|
+      @install = true
       @mandir = expand dir
     end
 
     o.on "-G", "--gemsdir", "PATH", "Install gems in PATH" do |dir|
+      @install = true
       @gemsdir = expand dir
     end
 
     o.on "--sitedir", "PATH", "Install site-specific Ruby code in PATH" do |dir|
+      @install = true
       @sitedir = expand dir
     end
 
     o.on "--vendordir", "PATH", "Install vendor-specific Ruby code in PATH" do |dir|
+      @install = true
       @vendordir = expand dir
     end
 
@@ -756,7 +765,11 @@ end
     process
     write_config
     print_debug if @verbose
-    @log.write "\nConfigured. Run 'rake' to build and run VM tests and rubyspecs"
+    if @install
+      @log.write "\nConfigured. Run 'rake install' to install Rubinius"
+    else
+      @log.write "\nConfigured. Run 'rake' to build and run VM tests and rubyspecs"
+    end
   end
 
   # Handles user output and logging while running configure.

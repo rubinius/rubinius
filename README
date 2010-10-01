@@ -28,11 +28,12 @@ To install Rubinius, use the following steps:
   3. cd rubinius
   4. ./configure --prefix=/path/to/install/dir
   5. rake install
-  6. Add /path/to/install/dir/bin to your PATH
-  7. Run 'rbx some_script.rb' or just 'rbx' to launch IRB.
 
-Once you have installed Rubinius, you can access the built-in documentation
-any time by running 'rbx docs'.
+When the install process finishes, follow the directions to add the Rubinius
+executable (bin) directory to you PATH.
+
+After installing Rubinius, you can access the built-in documentation at any
+time by running 'rbx docs'.
 
 4. Version 1.1
 

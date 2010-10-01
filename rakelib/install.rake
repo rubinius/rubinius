@@ -136,6 +136,18 @@ namespace :install do
       # Install the Rubinius executable
       exe = "#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
       install "vm/vm", install_dir(exe), :mode => 0755, :verbose => true
+
+      STDOUT.puts <<-EOM
+--------
+
+Successfully installed Rubinius #{BUILD_CONFIG[:version]}
+
+Add '#{BUILD_CONFIG[:bindir]}' to your PATH
+
+  1. Run Ruby files with '#{BUILD_CONFIG[:program_name]} path/to/file.rb'
+  2. Start IRB by running '#{BUILD_CONFIG[:program_name]}' with no arguments
+
+      EOM
     end
   end
 end
