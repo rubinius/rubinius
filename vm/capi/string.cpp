@@ -72,7 +72,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Handle* handle = Handle::from(str_handle);
-    env->check_tracked_handle(handle);
+    env->check_tracked_handle(handle, false);
 
     return handle->as_rstring(env);
   }

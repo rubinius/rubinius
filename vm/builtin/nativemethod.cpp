@@ -46,7 +46,13 @@ namespace rubinius {
     }
   }
 
-  void NativeMethodFrame::check_tracked_handle(capi::Handle* handle) {
+  void NativeMethodFrame::check_tracked_handle(capi::Handle* handle,
+                                               bool need_update)
+  {
+    if(need_update) {
+      check_handles_ = true;
+    }
+
     // ref() ONLY if it's not already in there!
     // otherwise the refcount is wrong and we leak handles.
     capi::HandleSet::iterator pos = handles_.find(handle);
@@ -94,11 +100,14 @@ namespace rubinius {
 
   void NativeMethodFrame::flush_cached_data() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    for(capi::HandleSet::iterator i = handles_.begin();
-        i != handles_.end();
-        i++) {
-      capi::Handle* handle = *i;
-      handle->flush(env);
+
+    if(check_handles_) {
+      for(capi::HandleSet::iterator i = handles_.begin();
+          i != handles_.end();
+          i++) {
+        capi::Handle* handle = *i;
+        handle->flush(env);
+      }
     }
 
     if(env->state()->shared.config.capi_global_flush) {
@@ -114,11 +123,14 @@ namespace rubinius {
 
   void NativeMethodFrame::update_cached_data() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    for(capi::HandleSet::iterator i = handles_.begin();
-        i != handles_.end();
-        i++) {
-      capi::Handle* handle = *i;
-      handle->update(env);
+
+    if(check_handles_) {
+      for(capi::HandleSet::iterator i = handles_.begin();
+          i != handles_.end();
+          i++) {
+        capi::Handle* handle = *i;
+        handle->update(env);
+      }
     }
 
     if(env->state()->shared.config.capi_global_flush) {
@@ -167,8 +179,10 @@ namespace rubinius {
     current_native_frame_->flush_cached_data();
   }
 
-  void NativeMethodEnvironment::check_tracked_handle(capi::Handle* hdl) {
-    current_native_frame_->check_tracked_handle(hdl);
+  void NativeMethodEnvironment::check_tracked_handle(capi::Handle* hdl,
+                                                     bool need_update)
+  {
+    current_native_frame_->check_tracked_handle(hdl, need_update);
   }
 
   void NativeMethodEnvironment::update_cached_data() {

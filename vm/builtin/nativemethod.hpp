@@ -140,7 +140,7 @@ namespace rubinius {
     /** Set of Handles available in current Frame (convenience.) */
     capi::HandleSet& handles();
 
-    void check_tracked_handle(capi::Handle* hdl);
+    void check_tracked_handle(capi::Handle* hdl, bool need_update=true);
 
     /** Flush RARRAY, RSTRING, etc. caches, possibly releasing memory. */
     void flush_cached_data();
@@ -157,8 +157,11 @@ namespace rubinius {
     /** the last NativeMethodFrame used up the stack.
      *  @note This is rarely the direct caller. */
     NativeMethodFrame* previous_;
+
     /** HandleSet to Objects used in this Frame. */
     capi::HandleSet handles_;
+
+    bool check_handles_;
 
     /** Handle for the block passed in **/
     VALUE block_;
@@ -175,6 +178,7 @@ namespace rubinius {
   public:
     NativeMethodFrame(NativeMethodFrame* prev)
       : previous_(prev)
+      , check_handles_(false)
       , block_(cCApiHandleQnil)
     {}
 
@@ -190,7 +194,7 @@ namespace rubinius {
     /** Create or retrieve a VALUE for the Object. */
     VALUE get_handle(VM*, Object* obj);
 
-    void check_tracked_handle(capi::Handle* hdl);
+    void check_tracked_handle(capi::Handle* hdl, bool need_update=true);
 
     /** Obtain the Object the VALUE represents. */
     Object* get_object(VALUE hndl);
