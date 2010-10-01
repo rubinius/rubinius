@@ -1,6 +1,11 @@
 # NOTE! When updating this file, also update INSTALL, if necessary.
 # NOTE! Please keep your tasks grouped together.
 
+if ENV["RUBYLIB"]
+  STDERR.puts "ERROR: Please unset RUBYLIB to build Rubinius"
+  exit 1
+end
+
 $trace ||= false
 $VERBOSE = true
 $verbose = Rake.application.options.trace || ARGV.delete("-v")
@@ -22,7 +27,7 @@ end
 require config_rb
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 
-unless BUILD_CONFIG[:config_version] == 18
+unless BUILD_CONFIG[:config_version] == 19
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
