@@ -175,7 +175,7 @@ readline_attempted_completion_function(text, start, end)
     int end;
 {
   struct complete_args args = {text, start, end};
-  void* ret = rb_thread_call_with_gvl(readline_complete_locked, &args);
+  void* ret = rb_thread_call_with_gvl((rb_thread_call_func)readline_complete_locked, &args);
   return (char**)ret;
 }
 

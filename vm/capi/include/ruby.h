@@ -1593,6 +1593,8 @@ VALUE rb_uint2big(unsigned long number);
                                   rb_unblock_function_t* ubf, void* ubf_data);
 
   /* Experimental API. Call +func+ with the GIL locked. */
+  typedef void* (*rb_thread_call_func)(void*);
+
   void* rb_thread_call_with_gvl(void* (*func)(void*), void* data);
 
   // Exists only to make extensions happy. It can be read and written to, but
