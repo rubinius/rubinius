@@ -1,1 +1,0 @@
-fails:StringIO#lines when passed a separator yields each paragraph when passed an empty String as separator
