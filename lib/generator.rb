@@ -66,23 +66,24 @@ class Generator
   #
   # In the latter, the given block is called with the generator
   # itself, and expected to call the +yield+ method for each element.
-  def initialize(enum = nil, &block)
+  def initialize(enum=nil, &block)
     if enum
-      @block = proc { |g|
-	enum.each { |x| g.yield x }
-      }
+      @block = proc do |g|
+        enum.each { |x| g.yield x }
+      end
     else
       @block = block
     end
 
     @index = 0
     @queue = []
-    @cont_next = @cont_yield = @cont_endp = nil
 
-    if @cont_next = callcc { |c| c }
+    @done = false
+
+    @fiber = Rubinius::Fiber.new(0) do
       @block.call(self)
-
-      @cont_endp.call(nil) if @cont_endp
+      @done = true
+      @fiber = nil
     end
 
     self
@@ -90,55 +91,58 @@ class Generator
 
   # Yields an element to the generator.
   def yield(value)
-    if @cont_yield = callcc { |c| c }
-      @queue << value
-      @cont_next.call(nil)
-    end
+    # Running inside @fiber
+    @queue << value
+    Rubinius::Fiber.yield
 
     self
   end
 
   # Returns true if the generator has reached the end.
-  def end?()
-    if @cont_endp = callcc { |c| c }
-      @cont_yield.nil? && @queue.empty?
-    else
-      @queue.empty?
-    end
+  def end?
+    return true if @done
+    return false unless @queue.empty?
+
+    # Turn the loop over and see if we hit the end
+    @fiber.resume
+
+    return @done
   end
 
   # Returns true if the generator has not reached the end yet.
-  def next?()
+  def next?
     !end?
   end
 
   # Returns the current index (position) counting from zero.
-  def index()
+  def index
     @index
   end
 
   # Returns the current index (position) counting from zero.
-  def pos()
+  def pos
     @index
   end
 
   # Returns the element at the current position and moves forward.
-  def next()
-    if end?
-      raise EOFError, "no more elements available"
+  def next
+    raise EOFError, "end of iteration hit" if end?
+
+    @fiber.resume if @queue.empty?
+
+    # We've driven the fiber ahead and least once now, so we should
+    # have values if there are values to be had
+
+    unless @queue.empty?
+      @index += 1
+      return @queue.shift
     end
 
-    if @cont_next = callcc { |c| c }
-      @cont_yield.call(nil) if @cont_yield
-    end
-
-    @index += 1
-
-    @queue.shift
+    raise EOFError, "end of iteration hit"
   end
 
   # Returns the element at the current position.
-  def current()
+  def current
     if @queue.empty?
       raise EOFError, "no more elements available"
     end
@@ -147,7 +151,7 @@ class Generator
   end
 
   # Rewinds the generator.
-  def rewind()
+  def rewind
     initialize(nil, &@block) if @index.nonzero?
 
     self
@@ -161,44 +165,6 @@ class Generator
       yield self.next
     end
 
-    self
-  end
-end
-
-class Enumerable::Enumerator
-  def __generator
-    @generator ||= Generator.new(self)
-  end
-  private :__generator
-
-  # call-seq:
-  #   e.next   => object
-  #
-  # Returns the next object in the enumerator, and move the internal
-  # position forward.  When the position reached at the end, internal
-  # position is rewinded then StopIteration is raised.
-  #
-  # Note that enumeration sequence by next method does not affect other
-  # non-external enumeration methods, unless underlying iteration
-  # methods itself has side-effect, e.g. IO#each_line.
-  #
-  # Caution: This feature internally uses Generator, which uses callcc
-  # to stop and resume enumeration to fetch each value.  Use with care
-  # and be aware of the performance loss.
-  def next
-    g = __generator
-    return g.next unless g.end?
-
-    g.rewind
-    raise StopIteration, 'iteration reached at end' 
-  end
-
-  # call-seq:
-  #   e.rewind   => e
-  #
-  # Rewinds the enumeration sequence by the next method.
-  def rewind
-    __generator.rewind
     self
   end
 end
@@ -252,21 +218,19 @@ class SyncEnumerator
   def each
     @gens.each { |g| g.rewind }
 
-    loop do
+    while true
       count = 0
 
       ret = @gens.map { |g|
-	if g.end?
-	  count += 1
-	  nil
-	else
-	  g.next
-	end
+        if g.end?
+          count += 1
+          nil
+        else
+          g.next
+        end
       }
 
-      if count == @gens.size
-	break
-      end
+      break if count == @gens.size
 
       yield ret
     end
@@ -275,144 +239,3 @@ class SyncEnumerator
   end
 end
 
-if $0 == __FILE__
-  eval DATA.read, nil, $0, __LINE__+4
-end
-
-__END__
-
-require 'test/unit'
-
-class TC_Generator < Test::Unit::TestCase
-  def test_block1
-    g = Generator.new { |g|
-      # no yield's
-    }
-
-    assert_equal(0, g.pos)
-    assert_raises(EOFError) { g.current }
-  end
-
-  def test_block2
-    g = Generator.new { |g|
-      for i in 'A'..'C'
-        g.yield i
-      end
-
-      g.yield 'Z'
-    }
-
-    assert_equal(0, g.pos)
-    assert_equal('A', g.current)
-
-    assert_equal(true, g.next?)
-    assert_equal(0, g.pos)
-    assert_equal('A', g.current)
-    assert_equal(0, g.pos)
-    assert_equal('A', g.next)
-
-    assert_equal(1, g.pos)
-    assert_equal(true, g.next?)
-    assert_equal(1, g.pos)
-    assert_equal('B', g.current)
-    assert_equal(1, g.pos)
-    assert_equal('B', g.next)
-
-    assert_equal(g, g.rewind)
-
-    assert_equal(0, g.pos)
-    assert_equal('A', g.current)
-
-    assert_equal(true, g.next?)
-    assert_equal(0, g.pos)
-    assert_equal('A', g.current)
-    assert_equal(0, g.pos)
-    assert_equal('A', g.next)
-
-    assert_equal(1, g.pos)
-    assert_equal(true, g.next?)
-    assert_equal(1, g.pos)
-    assert_equal('B', g.current)
-    assert_equal(1, g.pos)
-    assert_equal('B', g.next)
-
-    assert_equal(2, g.pos)
-    assert_equal(true, g.next?)
-    assert_equal(2, g.pos)
-    assert_equal('C', g.current)
-    assert_equal(2, g.pos)
-    assert_equal('C', g.next)
-
-    assert_equal(3, g.pos)
-    assert_equal(true, g.next?)
-    assert_equal(3, g.pos)
-    assert_equal('Z', g.current)
-    assert_equal(3, g.pos)
-    assert_equal('Z', g.next)
-
-    assert_equal(4, g.pos)
-    assert_equal(false, g.next?)
-    assert_raises(EOFError) { g.next }
-  end
-
-  def test_each
-    a = [5, 6, 7, 8, 9]
-
-    g = Generator.new(a)
-
-    i = 0
-
-    g.each { |x|
-      assert_equal(a[i], x)
-
-      i += 1
-
-      break if i == 3
-    }
-
-    assert_equal(3, i)
-
-    i = 0
-
-    g.each { |x|
-      assert_equal(a[i], x)
-
-      i += 1
-    }
-
-    assert_equal(5, i)
-  end
-end
-
-class TC_SyncEnumerator < Test::Unit::TestCase
-  def test_each
-    r = ['a'..'f', 1..10, 10..20]
-    ra = r.map { |x| x.to_a }
-
-    a = (0...(ra.map {|x| x.size}.max)).map { |i| ra.map { |x| x[i] } }
-
-    s = SyncEnumerator.new(*r)
-
-    i = 0
-
-    s.each { |x|
-      assert_equal(a[i], x)
-
-      i += 1
-
-      break if i == 3
-    }
-
-    assert_equal(3, i)
-
-    i = 0
-
-    s.each { |x|
-      assert_equal(a[i], x)
-
-      i += 1
-    }
-
-    assert_equal(a.size, i)
-  end
-end
