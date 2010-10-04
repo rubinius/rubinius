@@ -26,6 +26,17 @@ describe "StringIO#gets when passed [separator]" do
     $_.should be_nil
   end
 
+  it "accepts string as separator" do
+    @io.gets("is>")
+    $_.should == "this>"
+    @io.gets("an>")
+    $_.should == "is>an>"
+    @io.gets("example")
+    $_.should == "example"
+    @io.gets("ple")
+    $_.should be_nil
+  end
+
   it "updates self's lineno by one" do
     @io.gets(">")
     @io.lineno.should eql(1)
