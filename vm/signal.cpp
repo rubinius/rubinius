@@ -158,7 +158,8 @@ namespace rubinius {
         // stop running the handlers if that happens
         if(!vm_->globals().rubinius->send(vm_, call_frame,
                vm_->symbol("received_signal"), args, Qnil)) {
-          if(vm_->thread_state()->raise_reason() == cException) {
+          if(vm_->thread_state()->raise_reason() == cException ||
+             vm_->thread_state()->raise_reason() == cExit) {
             return false;
           }
         }
