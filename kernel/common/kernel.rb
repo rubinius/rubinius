@@ -287,8 +287,11 @@ module Kernel
   def loop
     raise LocalJumpError, "no block given" unless block_given?
 
-    while true
-      yield
+    begin
+      while true
+        yield
+      end
+    rescue StopIteration
     end
   end
   module_function :loop
