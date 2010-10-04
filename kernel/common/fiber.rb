@@ -2,7 +2,7 @@ module Rubinius
   class Fiber
     def self.create(size, callable)
       Ruby.primitive :fiber_new
-      raise PrimitiveFailure, "fiber_new failed"
+      raise NotImplementedError, "Fibers not supported on this platform"
     end
 
     def self.new(size=0, &block)
