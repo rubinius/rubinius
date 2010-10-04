@@ -683,7 +683,7 @@ class Array
       right += size if right < 0
       right += 1 unless one.exclude_end?
       return self if right <= left           # Nothing to modify
-    elsif one != undefined
+    elsif one and one != undefined
       left = Type.coerce_to one, Fixnum, :to_int
       left += size if left < 0
       left = 0 if left < 0
