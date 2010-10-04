@@ -1803,4 +1803,32 @@ class Array
     each { |x| return true if x === exception }
     false
   end
+
+  # Custom API support to support Enumerator#next with :each
+  class ValueGenerator
+    def initialize(array)
+      @array = array
+      @index = 0
+    end
+
+    def next?
+      @index < @array.size
+    end
+
+    def next
+      val = @array.at(@index)
+      @index += 1
+      return val
+    end
+
+    def rewind
+      @index = 0
+    end
+  end
+
+  def to_generator(method)
+    if method == :each
+      ValueGenerator.new(self)
+    end
+  end
 end
