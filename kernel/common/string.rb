@@ -1063,9 +1063,9 @@ class String
 
       return find_string(needle, offset)
     when Regexp
-      if match = needle.match_from(self[offset..-1], 0)
+      if match = needle.match_from(self, offset)
         Regexp.last_match = match
-        return (offset + match.begin(0))
+        return match.begin(0)
       else
         Regexp.last_match = nil
       end
