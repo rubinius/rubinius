@@ -16,6 +16,9 @@ namespace rubinius {
     config::Bool    gc_honor_start;
     config::Bool    gc_autopack;
 
+    // Language
+    config::Bool    version_19;
+
     // JIT/Interpreter
     config::Bool    dynamic_interpreter_enabled;
     config::Integer jit_dump_code;
@@ -69,6 +72,8 @@ namespace rubinius {
       , gc_honor_start(this,  "gc.honor_start", false)
       , gc_autopack(this,     "gc.autopack", true)
 
+      , version_19(this, "19", false)
+
       , dynamic_interpreter_enabled(this, "interpreter.dynamic")
       , jit_dump_code(this,   "jit.dump_code", default_jit_dump_code)
       , jit_call_til_compile(this, "jit.call_til_compile",
@@ -116,6 +121,9 @@ namespace rubinius {
 
       gc_autopack.set_description(
           "Set whether or not objects should be backed tightly in memory");
+
+      version_19.set_description(
+          "Set the supported language version to 1.9");
 
       jit_dump_code.set_description(
           "1 == show simple IR, 2 == show optimized IR, 4 == show machine code");
