@@ -139,8 +139,10 @@ step1:
 
     // Only contend if the header is thin locked.
     if(hdr.f.meaning != eAuxWordLock) {
-      std::cerr << "[LOCK " << state->thread_id()
-                << " contend_for_lock error: not thin locked.]\n";
+      if(cDebugThreading) {
+        std::cerr << "[LOCK " << state->thread_id()
+                  << " contend_for_lock error: not thin locked.]\n";
+      }
       UNSYNC;
       *error = true;
       return eLockError;
