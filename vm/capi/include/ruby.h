@@ -1495,6 +1495,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Create a String from an existing string. */
   VALUE   rb_str_new3(VALUE string);
 
+  /** Create a frozen String from an existing string. */
+  VALUE   rb_str_new4(VALUE string);
+
   void    rb_str_modify(VALUE str);
 
   /** Deprecated alias for rb_obj_freeze */

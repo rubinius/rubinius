@@ -189,6 +189,15 @@ extern "C" {
     return rb_str_dup(string);
   }
 
+  VALUE rb_str_new4(VALUE string) {
+    if(rb_obj_frozen_p(string))
+      return string;
+
+    VALUE str = rb_obj_freeze(rb_str_dup(string));
+
+    return str;
+  }
+
   VALUE rb_str_plus(VALUE self_handle, VALUE other_handle) {
     return rb_str_append(rb_str_dup(self_handle), other_handle);
   }
