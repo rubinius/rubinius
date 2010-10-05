@@ -190,6 +190,8 @@ const int cUndef = 0x22L;
     struct ObjectFlags f;
     uint64_t flags64;
     void* all_flags;
+
+    bool atomic_set(HeaderWord& old, HeaderWord& nw);
   };
 
   namespace capi {

@@ -158,9 +158,7 @@ step1:
 
     new_val.f.LockContended = 1;
 
-    if(!atomic::compare_and_swap(&obj->header.flags64,
-          orig.flags64,
-          new_val.flags64)) {
+    if(!obj->header.atomic_set(orig, new_val)) {
       // Something changed since we started to down this path,
       // start over.
       goto step1;
@@ -294,9 +292,7 @@ step1:
     tmp.all_flags = ih;
     tmp.f.meaning = eAuxWordInflated;
 
-    while(!atomic::compare_and_swap(&obj->header.flags64,
-                                        orig.flags64,
-                                        tmp.flags64)) {
+    while(!obj->header.atomic_set(orig, tmp)) {
       // The header can't have been inflated by another thread, the
       // inflation process holds the OM lock.
       //
@@ -364,12 +360,8 @@ step1:
       new_val.all_flags = ih;
       new_val.f.meaning = eAuxWordInflated;
 
-      if(!atomic::compare_and_swap(&obj->header.flags64,
-                                       orig.flags64,
-                                       new_val.flags64)) {
-        // Try it all over again.
-        continue;
-      }
+      // Try it all over again if it fails.
+      if(!obj->header.atomic_set(orig, new_val)) continue;
 
       if(cDebugThreading) {
         std::cerr << "[LOCK " << state->thread_id() << " inflated lock for contention.]\n";

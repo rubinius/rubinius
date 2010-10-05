@@ -11,6 +11,13 @@
 #include <sys/time.h>
 
 namespace rubinius {
+
+  bool HeaderWord::atomic_set(HeaderWord& old, HeaderWord& nw) {
+    return atomic::compare_and_swap(&flags64,
+                                     old.flags64,
+                                     nw.flags64);
+  }
+
   void ObjectHeader::set_inflated_header(InflatedHeader* ih) {
     HeaderWord orig = header;
 
@@ -23,7 +30,7 @@ namespace rubinius {
 
     // Do a spin update so if someone else is trying to update it at the same time
     // we catch that and keep trying until we get our version in.
-    while(!atomic::compare_and_swap(&header.flags64, orig.flags64, new_val.flags64)) {
+    while(!header.atomic_set(orig, new_val)) {
       orig = header;
       ih->update(header);
     }
@@ -85,9 +92,7 @@ namespace rubinius {
     new_val.f.meaning = eAuxWordObjID;
     new_val.f.aux_word = id;
 
-    if(atomic::compare_and_swap(&header.flags64, orig.flags64, new_val.flags64)) {
-      return;
-    }
+    if(header.atomic_set(orig, new_val)) return;
 
     orig = header;
 
@@ -123,7 +128,7 @@ step1:
     new_val.f.meaning = eAuxWordLock;
     new_val.f.aux_word = state->thread_id() << cAuxLockTIDShift;
 
-    if(atomic::compare_and_swap(&header.flags64, orig.flags64, new_val.flags64)) {
+    if(header.atomic_set(orig, new_val)) {
       // wonderful! Locked! weeeee!
       state->add_locked_object(this);
       return eLocked;
@@ -167,11 +172,7 @@ step2:
           // thread might ask for an object_id and the header will
           // be inflated. So if we can't swap in the new header, we'll start
           // this step over.
-          if(!atomic::compare_and_swap(&header.flags64,
-                                           orig.flags64,
-                                           new_val.flags64)) {
-            goto step2;
-          }
+          if(!header.atomic_set(orig, new_val)) goto step2;
 
           // wonderful! Locked! weeeee!
           state->add_locked_object(this);
@@ -225,7 +226,7 @@ step1:
     new_val.f.meaning = eAuxWordLock;
     new_val.f.aux_word = state->thread_id() << cAuxLockTIDShift;
 
-    if(atomic::compare_and_swap(&header.flags64, orig.flags64, new_val.flags64)) {
+    if(header.atomic_set(orig, new_val)) {
       // wonderful! Locked! weeeee!
       state->add_locked_object(this);
       return eLocked;
@@ -269,11 +270,7 @@ step2:
           // thread might ask for an object_id and the header will
           // be inflated. So if we can't swap in the new header, we'll start
           // this step over.
-          if(!atomic::compare_and_swap(&header.flags64,
-                                           orig.flags64,
-                                           new_val.flags64)) {
-            goto step2;
-          }
+          if(!header.atomic_set(orig, new_val)) goto step2;
 
           // wonderful! Locked! weeeee!
           state->add_locked_object(this);
@@ -359,12 +356,8 @@ step2:
           new_val.f.aux_word = (state->thread_id() << cAuxLockTIDShift) | (count - 1);
         }
 
-        if(!atomic::compare_and_swap(&header.flags64,
-              orig.flags64,
-              new_val.flags64)) {
-          // Try it all over again.
-          continue;
-        }
+        // Try it all over again if it fails.
+        if(!header.atomic_set(orig, new_val)) continue;
 
         if(new_val.f.meaning == eAuxWordEmpty) {
           state->del_locked_object(this);
@@ -413,12 +406,8 @@ step2:
         new_val.f.meaning = eAuxWordEmpty;
         new_val.f.aux_word = 0;
 
-        if(!atomic::compare_and_swap(&header.flags64,
-              orig.flags64,
-              new_val.flags64)) {
-          // Try it all over again.
-          continue;
-        }
+        // Try it all over again if it fails.
+        if(!header.atomic_set(orig, new_val)) continue;
 
         // Don't call state->del_locked_object() here. We iterate over
         // that list to call this function, so we don't want to invalidate
