@@ -488,10 +488,10 @@ namespace rubinius {
    *                      manager for multiple VMs and process-Ruby interaction. 
    */
   void Environment::load_kernel(std::string root) {
-    std::string dirs = root + "/index";
-    std::ifstream stream(dirs.c_str());
+    std::string index = root + "/index";
+    std::ifstream stream(index.c_str());
     if(!stream) {
-      std::cerr << "It appears that " << root << "/index is missing.\n";
+      std::cerr << "It appears that " << index << " is missing.\n";
       exit(1);
     }
 
@@ -516,6 +516,13 @@ namespace rubinius {
     run_file(root + "/alpha.rbc");
 
     // Read the index and load the directories listed.
+    std::string base = root;
+    if(shared->config.version_19) {
+      base += "/19";
+    } else {
+      base += "/18";
+    }
+
     while(!stream.eof()) {
       std::string line;
 
@@ -525,7 +532,7 @@ namespace rubinius {
       // skip empty lines
       if(line.size() == 0) continue;
 
-      load_directory(root + "/" + line);
+      load_directory(base + "/" + line);
     }
   }
 

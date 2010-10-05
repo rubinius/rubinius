@@ -43,29 +43,46 @@ dir_names = [
   "delta"
 ]
 
-dir_names.each do |dir|
-  directory(runtime_dir = "runtime/#{dir}")
-  runtime << runtime_dir
+# Generate file tasks for all kernel and load_order files.
+compiler_signature = "kernel/signature.rb"
 
-  load_order = "runtime/#{dir}/load_order.txt"
-  runtime << load_order
+def kernel_file_task(runtime, signature, rb, rbc=nil)
+  rbc ||= rb.sub(/^kernel/, "runtime") + "c"
 
-  file load_order => "kernel/#{dir}/load_order.txt" do |t|
-    cp t.prerequisites.first, t.name, :verbose => $verbose
+  file rbc => [rb, signature]
+  runtime << rbc
+end
+
+["18", "19"].each do |ver|
+  dir_names.each do |dir|
+    directory(runtime_dir = "runtime/#{ver}/#{dir}")
+    runtime << runtime_dir
+
+    load_order = "runtime/#{ver}/#{dir}/load_order.txt"
+    runtime << load_order
+
+    kernel_load_order = "kernel/#{dir}/load_order#{ver}.txt"
+
+    file load_order => kernel_load_order do |t|
+      cp t.prerequisites.first, t.name, :verbose => $verbose
+    end
+
+    kernel_dir  = "kernel/#{dir}/"
+    runtime_dir = "runtime/#{ver}/#{dir}/"
+
+    IO.foreach kernel_load_order do |name|
+      rbc = runtime_dir + name.chomp!
+      rb  = kernel_dir + name.chop
+      kernel_file_task runtime, compiler_signature, rb, rbc
+    end
   end
 end
 
-# Generate file tasks for all kernel files.
-compiler_signature = "kernel/signature.rb"
-
-FileList[
-  "kernel/**/*.rb",
-  compiler_signature
-].each do |rb|
-  rbc = rb.sub(/^kernel/, "runtime") + "c"
-
-  file rbc => [rb, compiler_signature]
-  runtime << rbc
+[ compiler_signature,
+  "kernel/alpha.rb",
+  "kernel/loader.rb"
+].each do |name|
+  kernel_file_task runtime, compiler_signature, name
 end
 
 # Directories to store the core library runtime files (.rbc's)
