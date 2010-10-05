@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "IO.pipe" do
   it "creates a two-ended pipe" do
@@ -13,6 +14,14 @@ describe "IO.pipe" do
     r,w = IO.pipe
     r.should be_kind_of(IO)
     w.should be_kind_of(IO)
+  end
+
+  it "returns instances of a subclass when called on a subclass" do
+    r, w = IOSpecs::SubIO.pipe
+    r.should be_an_instance_of(IOSpecs::SubIO)
+    w.should be_an_instance_of(IOSpecs::SubIO)
+    w.close
+    r.close
   end
 end
 

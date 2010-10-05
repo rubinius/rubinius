@@ -340,8 +340,8 @@ class IO
   #  Sending message to parent
   #  Parent got: <Hi Dad>
   def self.pipe
-    lhs = IO.allocate
-    rhs = IO.allocate
+    lhs = allocate
+    rhs = allocate
     connect_pipe(lhs, rhs)
     lhs.sync = true
     rhs.sync = true
@@ -401,8 +401,8 @@ class IO
       readable = true
     end
 
-    pa_read, ch_write = IO.pipe if readable
-    ch_read, pa_write = IO.pipe if writable
+    pa_read, ch_write = pipe if readable
+    ch_read, pa_write = pipe if writable
 
     pid = Process.fork
 
@@ -575,27 +575,42 @@ class IO
     if readables
       readables =
         Type.coerce_to(readables, Array, :to_ary).map do |obj|
-          io = Type.coerce_to obj, IO, :to_io
-          raise IOError, "closed stream" if io.closed?
-          io
+          if obj.kind_of? IO
+            raise IOError, "closed stream" if obj.closed?
+            obj
+          else
+            io = Type.coerce_to(obj, IO, :to_io)
+            raise IOError, "closed stream" if io.closed?
+            [obj, io]
+          end
         end
     end
 
     if writables
       writables =
         Type.coerce_to(writables, Array, :to_ary).map do |obj|
-          io = Type.coerce_to obj, IO, :to_io
-          raise IOError, "closed stream" if io.closed?
-          io
+          if obj.kind_of? IO
+            raise IOError, "closed stream" if obj.closed?
+            obj
+          else
+            io = Type.coerce_to(obj, IO, :to_io)
+            raise IOError, "closed stream" if io.closed?
+            [obj, io]
+          end
         end
     end
 
     if errorables
       errorables =
         Type.coerce_to(errorables, Array, :to_ary).map do |obj|
-          io = Type.coerce_to obj, IO, :to_io
-          raise IOError, "closed stream" if io.closed?
-          io
+          if obj.kind_of? IO
+            raise IOError, "closed stream" if obj.closed?
+            obj
+          else
+            io = Type.coerce_to(obj, IO, :to_io)
+            raise IOError, "closed stream" if io.closed?
+            [obj, io]
+          end
         end
     end
 

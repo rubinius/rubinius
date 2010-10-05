@@ -6,9 +6,6 @@
 # the launchy gem has been adapted to launch a web browser to
 # view the documentation.
 
-require 'rbconfig'
-require 'webrick'
-
 module Rubinius
   class Documentation
     def self.main

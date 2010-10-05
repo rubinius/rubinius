@@ -268,7 +268,14 @@ module Kernel
 
   def caller(start=1, exclude_kernel=true)
     # The + 1 is to skip this frame
-    return Rubinius.mri_backtrace(start + 1)
+    Rubinius.mri_backtrace(start + 1).map do |tup|
+      cm = tup[0]
+      line = tup[1]
+      is_block = tup[2]
+      name = tup[3]
+
+      "#{cm.active_path}:#{line}:in `#{name}'"
+    end
   end
   module_function :caller
 
@@ -280,8 +287,11 @@ module Kernel
   def loop
     raise LocalJumpError, "no block given" unless block_given?
 
-    while true
-      yield
+    begin
+      while true
+        yield
+      end
+    rescue StopIteration
     end
   end
   module_function :loop

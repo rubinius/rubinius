@@ -183,6 +183,9 @@ end
 class IndexError < StandardError
 end
 
+class StopIteration < IndexError
+end
+
 class RangeError < StandardError
 end
 

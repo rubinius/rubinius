@@ -96,12 +96,18 @@ readline_s_get_completion_case_fold(self)
     return rb_attr_get(mReadline, completion_case_fold);
 }
 
-static char **
-readline_attempted_completion_function(text, start, end)
-    const char *text;
-    int start;
-    int end;
-{
+struct complete_args {
+  const char* text;
+  int start;
+  int end;
+};
+
+static void*
+readline_complete_locked(struct complete_args* args) {
+    const char *text = args->text;
+    int start = args->start;
+    int end = args->end;
+
     VALUE proc, ary, temp;
     char **result;
     int case_fold;
@@ -159,7 +165,18 @@ readline_attempted_completion_function(text, start, end)
         result[0][low] = '\0';
     }
 
-    return result;
+    return (void*)result;
+}
+
+static char **
+readline_attempted_completion_function(text, start, end)
+    const char *text;
+    int start;
+    int end;
+{
+  struct complete_args args = {text, start, end};
+  void* ret = rb_thread_call_with_gvl((rb_thread_call_func)readline_complete_locked, &args);
+  return (char**)ret;
 }
 
 static VALUE

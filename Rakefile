@@ -1,6 +1,11 @@
 # NOTE! When updating this file, also update INSTALL, if necessary.
 # NOTE! Please keep your tasks grouped together.
 
+if ENV["RUBYLIB"]
+  STDERR.puts "ERROR: Please unset RUBYLIB to build Rubinius"
+  exit 1
+end
+
 $trace ||= false
 $VERBOSE = true
 $verbose = Rake.application.options.trace || ARGV.delete("-v")
@@ -22,7 +27,7 @@ end
 require config_rb
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 
-unless BUILD_CONFIG[:config_version] == 16
+unless BUILD_CONFIG[:config_version] == 20
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
@@ -106,6 +111,16 @@ task :gem_bootstrap do
   end
 end
 
+desc "Run the Rubinius documentation website"
+task :docs do
+  require 'kernel/delta/options'
+  require 'rbconfig'
+  require 'webrick'
+  require 'lib/rubinius/documentation'
+
+  Rubinius::Documentation.main
+end
+
 desc "Documents why no spec tasks exist"
 task :spec do
   puts <<-EOM
@@ -113,8 +128,7 @@ task :spec do
   The spec and spec:xxx commands are deprecated (and removed).
   Use bin/mspec directly. MSpec provides 'pseudo-directories',
   which are labels that refer to sets of specs to run. Refer
-  to spec/default.mspec, spec/full.mspec and the MSpec docs
-  for full details.
+  to spec/default.mspec and the MSpec docs for full details.
 
   The following are likely scenarios for running the specs.
   Unless -t <target> is passed to mspec, bin/rbx is run.
@@ -123,25 +137,21 @@ task :spec do
 
     bin/mspec ci
 
-  Run _all_ the CI spec:
-
-    bin/mspec ci -B full
-
-  Run all the frozen specs:
+  Run all the RubySpec specs but not Rubinius-specific ones:
 
     bin/mspec
 
-  Run all the frozen Array specs:
+  Run all the RubySpec Array specs:
 
     bin/mspec core/array
       OR
-    bin/mspec spec/frozen/core/array
+    bin/mspec spec/ruby/core/array
 
-  Run spec/frozen/core/array/append_spec.rb:
+  Run spec/ruby/core/array/append_spec.rb:
 
     bin/mspec core/array/append
       OR
-    bin/mspec spec/frozen/core/array/append_spec.rb
+    bin/mspec spec/ruby/core/array/append_spec.rb
 
   Run all the compiler specs:
 
@@ -153,8 +163,7 @@ task :spec do
     bin/mspec :core
     ...
 
-  Run all the spec/ruby specs using the MRI on your path
-  (assuming you have run 'rake rubyspec:update'):
+  Run all the spec/ruby specs using the 'ruby' executable on your path
 
     bin/mspec -tr :ruby
 

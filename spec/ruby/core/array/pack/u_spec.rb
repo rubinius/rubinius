@@ -6,11 +6,13 @@ require File.expand_path('../shared/unicode', __FILE__)
 
 describe "Array#pack with format 'U'" do
   it_behaves_like :array_pack_basic, 'U'
+  it_behaves_like :array_pack_arguments, 'U'
   it_behaves_like :array_pack_unicode, 'U'
 end
 
 describe "Array#pack with format 'u'" do
   it_behaves_like :array_pack_basic, 'u'
+  it_behaves_like :array_pack_arguments, 'u'
 
   it "encodes an empty string as an empty string" do
     [""].pack("u").should == ""

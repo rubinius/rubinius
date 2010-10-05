@@ -1142,6 +1142,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Send #write to io passing str. */
   VALUE   rb_io_write(VALUE io, VALUE str);
 
+  /** Close an IO */
+  VALUE   rb_io_close(VALUE io);
+
   int     rb_io_fd(VALUE io);
 #define HAVE_RB_IO_FD 1
 
@@ -1175,6 +1178,9 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Unmark variable as global */
   void rb_gc_unregister_address(VALUE* address);
+
+  /** Called when there is no memory available */
+  void    rb_memerror();
 
   /** Retrieve global by name. Because of MRI, the leading $ is optional but recommended. */
   VALUE   rb_gv_get(const char* name);
@@ -1585,6 +1591,11 @@ VALUE rb_uint2big(unsigned long number);
   typedef void rb_unblock_function_t(void *);
   VALUE rb_thread_blocking_region(rb_blocking_function_t* func, void* data,
                                   rb_unblock_function_t* ubf, void* ubf_data);
+
+  /* Experimental API. Call +func+ with the GIL locked. */
+  typedef void* (*rb_thread_call_func)(void*);
+
+  void* rb_thread_call_with_gvl(void* (*func)(void*), void* data);
 
   // Exists only to make extensions happy. It can be read and written to, but
   // it controls nothing.

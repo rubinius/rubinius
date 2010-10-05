@@ -1,1 +1,1 @@
-require 'ext/sdbm/sdbm.bundle'
+require 'ext/sdbm/sdbm'

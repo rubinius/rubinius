@@ -1,5 +1,10 @@
 #!/usr/bin/env ruby
 
+if ENV["RUBYLIB"]
+  STDERR.puts "ERROR: Please unset RUBYLIB to configure Rubinius"
+  exit 1
+end
+
 require 'rbconfig'
 require 'tempfile'
 require 'fileutils'
@@ -11,6 +16,8 @@ require File.join(root, "kernel", "delta", "options")
 class Configure
 
   def initialize(root)
+    @log = Logger.new "configure.log"
+
     @defines = []
     @config = File.join(root, "config.rb")
 
@@ -21,8 +28,10 @@ class Configure
     @little_endian = false
     @sizeof_long = 0
 
-    # Compiler to use
+    # Compiler / build settings
     @compiler = ENV['CC'] || 'gcc'
+    @rake = ENV['RAKE'] || 'rake'
+    @install = false
 
     # LLVM settings
     @use_llvm               = true
@@ -61,7 +70,7 @@ class Configure
     @libversion = "1.1"
     @version = "#{@libversion}.0"
     @release_date = "2010-09-23"
-    @config_version = 16
+    @config_version = 20
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
@@ -85,11 +94,25 @@ class Configure
     o = Rubinius::Options.new "Usage: configure [options]", 30
     o.left_align
 
-    o.doc " Compiler settings"
+    o.doc " Configure settings"
+
+    o.on "--log-file", "NAME", "Write log to file NAME" do |name|
+      old_log = @log.path
+      @log = Logger.new name, false
+      @log.replace old_log
+    end
+
+    o.on "--rake", "NAME", "Use NAME as 'rake'" do |name|
+      @rake = name
+    end
+
+    o.doc "\n Compiler settings"
 
     o.on "--cc", "COMPILER", "Compiler to use (eg gcc, clang)" do |cc|
       @compiler = cc
     end
+
+    o.doc "\n LLVM settings"
 
     o.on "--disable-llvm", "Don't build with LLVM" do
       @use_llvm = false
@@ -126,12 +149,13 @@ class Configure
     o.doc "\n File system paths for installing Rubinius"
 
     o.on "-P", "--prefix", "PATH", "Install Rubinius in subdirectories of PATH" do |dir|
+      @install = true
       dir = File.expand_path dir
 
       if !ENV['RELEASE'] and File.directory? dir and dir !~ /(rubinius|rbx)\/?$/
         old = dir
         dir += "/rubinius/#{@libversion}"
-        puts "The directory #{old} already exists, installing to #{dir}"
+        @log.write "The directory #{old} already exists, installing to #{dir}"
       end
 
       @bindir       = dir + "/bin"
@@ -148,14 +172,17 @@ class Configure
     end
 
     o.on "-B", "--bindir", "PATH", "Install Rubinius executable in PATH" do |dir|
+      @install = true
       @bindir = expand dir
     end
 
     o.on "-I", "--includedir", "PATH", "Install Rubinius C-API include files in PATH" do |dir|
+      @install = true
       @includedir = expand dir
     end
 
     o.on "-L", "--libdir", "PATH", "Install Ruby library in PATH" do |dir|
+      @install = true
       @libdir   = expand(dir) + "/rubinius/#{@libversion}"
       @runtime  = @libdir + "/runtime"
       @lib_path = @libdir + "/lib"
@@ -166,18 +193,22 @@ class Configure
     end
 
     o.on "-M", "--mandir", "PATH", "Install man pages in PATH" do |dir|
+      @install = true
       @mandir = expand dir
     end
 
     o.on "-G", "--gemsdir", "PATH", "Install gems in PATH" do |dir|
+      @install = true
       @gemsdir = expand dir
     end
 
-    o.on "--sitedir", "PATH", "Where site specific ruby code goes" do |dir|
+    o.on "--sitedir", "PATH", "Install site-specific Ruby code in PATH" do |dir|
+      @install = true
       @sitedir = expand dir
     end
 
-    o.on "--vendordir", "PATH", "Where vendor specific ruby code goes" do |dir|
+    o.on "--vendordir", "PATH", "Install vendor-specific Ruby code in PATH" do |dir|
+      @install = true
       @vendordir = expand dir
     end
 
@@ -187,7 +218,8 @@ class Configure
 
     @features = {}
 
-    feature "execinfo"
+    default_on = RUBY_PLATFORM !~ /openbsd/i
+    feature "execinfo", default_on
 
     o.doc "\n Help!"
 
@@ -259,11 +291,11 @@ class Configure
             print "\r    [ %d%% (%d of %d) ]" % [(size * 100) / total, size, total]
           end
         end
-        puts ": done!"
+        @log.write ": done!"
       end
     rescue Exception => e
       File.unlink full_path if File.exists?(full_path)
-      puts " ERROR"
+      @log.write " ERROR"
       return false
     end
 
@@ -288,7 +320,7 @@ class Configure
       download url, full_path
 
       unless File.exists? full_path
-        puts "ERROR. No #{file} available on server." if warn
+        @log.write "ERROR. No #{file} available on server." if warn
         return false
       end
     end
@@ -298,35 +330,35 @@ class Configure
 
     if File.exists? md5_path
       unless md5_checksum md5_path, full_path
-        puts "ERROR. #{file} was corrupted or MD5 checksum is outdated."
+        @log.write "ERROR. #{file} was corrupted or MD5 checksum is outdated."
         return false
       else
-        puts "    MD5 checksum for prebuilt LLVM verified."
+        @log.write "    MD5 checksum for prebuilt LLVM verified."
       end
     else
-      puts "   No MD5 checksum for #{file} available on server."
-      puts "   Using LLVM library without checksum validation."
+      @log.write "   No MD5 checksum for #{file} available on server."
+      @log.write "   Using LLVM library without checksum validation."
     end
 
-    puts "    Prebuilt packages updated."
+    @log.write "    Prebuilt packages updated."
   end
 
   def setup_source
     url = File.join @llvm_asset_path, @llvm_source
     path = File.join @llvm_prebuilt_path, @llvm_source
 
-    puts "  Downloading #{url}..."
+    @log.write "  Downloading #{url}..."
     return false unless download(url, path)
 
     if File.exists?(path)
-      print "  Unpacking prebuilt LLVM source: "
+      @log.print "  Unpacking prebuilt LLVM source: "
       system "cd #{@llvm_parent_path}; tar xjf #{path}"
-      puts "done!"
+      @log.write "done!"
 
       if File.exists?(@llvm_include_path)
-        puts "  Code appears to be proper svn tree."
+        @log.write "  Code appears to be proper svn tree."
       else
-        puts "  Code doesn't appear to be proper LLVM tree!"
+        @log.write "  Code doesn't appear to be proper LLVM tree!"
         return false
       end
 
@@ -352,7 +384,7 @@ class Configure
   end
 
   def setup_prebuilt
-    puts "  Checking for prebuilt LLVM package..."
+    @log.write "  Checking for prebuilt LLVM package..."
 
     prebuilt_files.each do |file|
       path = File.join @llvm_prebuilt_path, file
@@ -360,43 +392,43 @@ class Configure
       update_prebuilt file, false unless File.exists?(path)
 
       if File.exists?(path)
-        print "  Unpacking prebuilt LLVM: #{file}: "
+        @log.print "  Unpacking prebuilt LLVM: #{file}: "
         system "cd #{@llvm_parent_path}; mkdir llvm; cd llvm; tar xjf #{path}"
-        puts "done!"
+        @log.write "done!"
         @llvm = :prebuilt
         return true
       end
     end
 
-    puts "  Unable to download any LLVM prebuilt"
+    @log.write "  Unable to download any LLVM prebuilt"
     return false
   end
 
   def setup_path
-    print "Validating '#{@llvm_path}': "
+    @log.print "Validating '#{@llvm_path}': "
     if File.directory? @llvm_path
       ["Release", "Debug"].each do |which|
         sub = File.join(@llvm_path, which, "bin")
         if File.directory? sub
-          puts "Ok! Using #{which}"
+          @log.write "Ok! Using #{which}"
           @llvm_configure = File.join(@llvm_path, which, "bin", "llvm-config")
           @llvm = :config
           return true
         end
       end
 
-      puts "ERROR. Doesn't appear to be built already!"
+      @log.write "ERROR. Doesn't appear to be built already!"
       return false
     end
 
-    puts "ERROR. Path doesn't exist."
+    @log.write "ERROR. Path doesn't exist."
     return false
   end
 
   def setup_auto
-    print "  Checking for existing LLVM tree: "
+    @log.print "  Checking for existing LLVM tree: "
     if File.directory?(@llvm_default)
-      puts "found!"
+      @log.write "found!"
       if File.exists?(File.join(@llvm_default, "Makefile.common"))
         @llvm = :svn
       else
@@ -405,13 +437,13 @@ class Configure
 
       return
     else
-      puts "not found."
+      @log.write "not found."
     end
 
     # If they explicitly said where LLVM is, use that and fail hard.
     if @llvm_path
       unless setup_path
-        puts "ABORT: Path '#{@llvm_path}' not a proper LLVM path"
+        @log.error "ABORT: Path '#{@llvm_path}' not a proper LLVM path"
         exit 1
       end
 
@@ -422,12 +454,12 @@ class Configure
     return if !@llvm_skip_prebuilt && setup_prebuilt
     return if setup_source
 
-    puts "WARNING: Unable to configure for LLVM, disabling support."
+    @log.write "WARNING: Unable to configure for LLVM, disabling support."
     @use_llvm = false
   end
 
   def setup_config
-    print "  Checking for 'llvm-config': "
+    @log.print "  Checking for 'llvm-config': "
     which = ENV['PATH'].split(":").find do |path|
       File.exists? File.join(path, "llvm-config")
     end
@@ -439,17 +471,17 @@ class Configure
 
       # 2.6svn is an unknown beast, don't trust it.
       if version == "2.6svn" or parts[0] < 2 or parts[1] < 6
-        puts "too old of a version"
+        @log.write "too old of a version"
       elsif parts[0] != 2 or parts[1] != 6
-        puts "only 2.6 is supported"
+        @log.write "only 2.6 is supported"
       else
-        puts "found! (version #{version})"
+        @log.write "found! (version #{version})"
         @llvm_configure = config
         @llvm = :config
         return true
       end
     else
-      puts "not found"
+      @log.write "not found"
     end
 
     false
@@ -480,11 +512,11 @@ class Configure
         yield f
       end
 
-      `#{@compiler} #{env('CFLAGS')} -lstdc++ -lm -o #{basename} #{source} 2>&1`
+      `#{@compiler} #{env('CFLAGS')} -lstdc++ -lm -o #{basename} #{source} >>#{@log.path} 2>&1`
       return $?.exitstatus unless run
 
       unless $?.exitstatus == 0
-        STDERR.puts "compiling configure test program failed"
+        @log.error "compiling configure test program failed"
         exit 1
       end
 
@@ -496,31 +528,35 @@ class Configure
   end
 
   def detect_sizeof_long
-    print "Checking sizeof(long): "
+    @log.print "Checking sizeof(long): "
 
     @sizeof_long = check_program do |f|
-      f.puts "int main() { return sizeof(long); }"
+      src = "int main() { return sizeof(long); }"
+      f.puts src
+      @log.log src
     end
 
-    puts "#{@sizeof_long} bytes"
+    @log.write "#{@sizeof_long} bytes"
   end
 
   def detect_endian
-    print "Checking platform endianness: "
+    @log.print "Checking platform endianness: "
 
     status = check_program do |f|
-      f.puts "int main() { int one = 1; return (*((char*)&one)) == 1 ? 0 : 1; }"
+      src = "int main() { int one = 1; return (*((char*)&one)) == 1 ? 0 : 1; }"
+      f.puts src
+      @log.log src
     end
 
     @little_endian = (status == 0)
-    puts @little_endian ? "little endian" : "big endian"
+    @log.write @little_endian ? "little endian" : "big endian"
   end
 
   def detect_tr1_hash
-    print "Checking tr1/hash definition: "
+    @log.print "Checking tr1/hash definition: "
 
     status = check_program(false) do |f|
-      f.puts <<-EOP
+      src = <<-EOP
 #include <stdint.h>
 #include <tr1/unordered_map>
 
@@ -528,10 +564,12 @@ typedef std::tr1::unordered_map<uint64_t, void*> X;
 
 int main() { X x; return 0; }
       EOP
+      f.puts src
+      @log.log src
     end
 
     @tr1_hash = (status == 0)
-    puts @tr1_hash ? "found" : "not found"
+    @log.write @tr1_hash ? "found" : "not found"
   end
 
   def detect_x86_32bit
@@ -558,25 +596,29 @@ int main() {
   end
 
   def has_function(name, includes=[])
-    print "Checking for function '#{name}': "
+    @log.print "Checking for function '#{name}': "
     tf = Tempfile.new("rbx-test")
     includes.each do |i|
-      tf.puts "#include <#{i}>"
+      src = "#include <#{i}>"
+      tf.puts src
+      @log.log src
     end
 
-    tf.puts "int main() { void* ptr = &#{name}; }"
+    src = "int main() { void* ptr = &#{name}; }"
+    tf.puts src
+    @log.log src
 
     tf.close
 
-    `#{@compiler} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} 2>&1`
+    `#{@compiler} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1`
     status = ($?.exitstatus == 0)
 
     tf.unlink
 
     if status
-      puts "found!"
+      @log.write "found!"
     else
-      puts "not found."
+      @log.write "not found."
     end
 
     return status
@@ -590,13 +632,13 @@ int main() {
 
   def process
     if @use_llvm
-      puts "Configuring LLVM..."
+      @log.write "Configuring LLVM..."
       setup_auto
     else
-      print "WARNING: LLVM disabled."
+      @log.write "WARNING: LLVM disabled."
     end
 
-    puts
+    @log.write ""
 
     detect_sizeof_long
     detect_endian
@@ -651,6 +693,7 @@ module Rubinius
   BUILD_CONFIG = {
     :which_ruby     => :#{which_ruby},
     :build_ruby     => "#{build_ruby}",
+    :build_rake     => "#{@rake}",
     :llvm           => :#{@llvm},
     :llvm_configure => "#{@llvm_configure}",
     :compiler       => "#{@compiler}",
@@ -722,15 +765,23 @@ end
   def print_debug
     puts "\nUsing the following configuration to build"
     puts "------------------------------------------"
-    system "cat config.rb"
+    cat("config.rb")
     puts "\nSetting the following defines for the VM"
     puts "----------------------------------------"
-    system "cat vm/gen/config.h"
+    cat("vm/gen/config.h")
+  end
+
+  def cat(file)
+    puts IO.read(relative_file(file))
+  end
+
+  def relative_file(name)
+    File.expand_path("../#{name}", __FILE__)
   end
 
   def run
     unless which_ruby == :ruby or which_ruby == :rbx
-      STDERR.puts "Sorry, building Rubinius requires MRI or Rubinius"
+      @log.error "Sorry, building Rubinius requires MRI or Rubinius"
       exit 1
     end
 
@@ -739,7 +790,83 @@ end
     process
     write_config
     print_debug if @verbose
-    puts "\nConfigured. Run 'rake' to build and run VM tests and rubyspecs"
+    if @install
+      @log.write "\nConfigured. Run 'rake install' to install Rubinius"
+    else
+      @log.write "\nConfigured. Run 'rake' to build and run VM tests and rubyspecs"
+    end
+  end
+
+  # Handles user output and logging while running configure.
+  class Logger
+    attr_reader :path
+
+    # Creates an instance of Logger writing to +file+.
+    def initialize(file, init=true)
+      @path = File.expand_path("../#{file}", __FILE__)
+      if init
+        File.open(@path, "w") { }
+        log "Configuring Rubinius..."
+      end
+    end
+
+    # Copies the contents of +other+ into this logger's file.
+    def replace(other)
+      output do |f|
+        f.puts File.read(other)
+      end
+    end
+
+    # Writes +message+ to the logging file but not to the screen.
+    def log(message, error=false)
+      output do |f|
+        stamp = "#{timestamp}#{'*** ERROR' if error}"
+        if multiline?(message)
+          f.puts "#{stamp} ---"
+          f.puts message
+          f.puts "---"
+        else
+          f.puts "#{stamp} #{message}"
+        end
+      end
+    end
+
+    # Writes a normal message to STDOUT and logs to the file.
+    def write(message)
+      log message
+      STDOUT.puts message
+    end
+
+    # Writes a normal message to STDOUT with #print and logs to file.
+    def print(message)
+      log message
+      STDOUT.print message
+    end
+
+    # Writes an error message to STDERR and logs to the file with
+    # error decorations. This should only be used for errors that
+    # affect configure itself.
+    def error(message)
+      log message, true
+      STDERR.puts message
+    end
+
+    # Yields an IO for writing log messages.
+    def output
+      File.open @path, "a" do |f|
+        yield f
+      end
+    end
+
+    # Returns a formatted times suitable for logging.
+    def timestamp
+      Time.now.strftime "[%Y-%m-%d %H:%M:%S]"
+    end
+
+    # Returns true if the message has more than one line.
+    def multiline?(message)
+      message.index("\n") != nil
+    end
   end
 end
 

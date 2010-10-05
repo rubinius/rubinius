@@ -112,11 +112,6 @@ class Fixnum < Integer
     redo_coerced :**, o
   end
 
-  def __bignum_new__(value)
-    Ruby.primitive :bignum_new
-    raise PrimitiveFailure, "primitive failed"
-  end
-
   # comparison operators
 
   def ==(o)

@@ -121,7 +121,7 @@ module RbConfig
   CONFIG["DLDFLAGS"]           = ""
   CONFIG["ARCH_FLAG"]          = ""
   CONFIG["STATIC"]             = ""
-  CONFIG["CCDLFLAGS"]          = ""
+  CONFIG["CCDLFLAGS"]          = " -fPIC"
   CONFIG["XCFLAGS"]            = ""
   CONFIG["XLDFLAGS"]           = ""
   CONFIG["LIBRUBY_DLDFLAGS"]   = ""

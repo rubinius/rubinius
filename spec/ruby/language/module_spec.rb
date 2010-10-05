@@ -34,6 +34,17 @@ describe "module" do
       module LangModuleSpec::C2; end
     }.should raise_error(TypeError)
   end
+
+  it "allows for reopening a module subclass" do
+    class ModuleSubClass < Module; end
+    LangModuleSpec::C3 = ModuleSubClass.new
+
+    module LangModuleSpec::C3
+      C4 = 4
+    end
+
+    LangModuleSpec::C3::C4.should == 4
+  end
 end
 
 describe "An anonymous module" do

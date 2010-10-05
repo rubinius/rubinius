@@ -155,6 +155,7 @@ when /openbsd/
   # on Unix we need a g++ link, not gcc. On OpenBSD, linking against
   # libstdc++ have to be explicitly done for shared libs
   $LDSHARED = "#{$CXX} -shared -lstdc++ -fPIC"
+  add_flag "-fPIC"
 
 when /darwin/
   # on Unix we need a g++ link, not gcc.

@@ -311,7 +311,7 @@ namespace rubinius {
       pid_t pid = getpid();
       ss << tmpdir << "/rubinius-agent." << pid;
 
-      strcpy(tmp_path, ss.str().c_str());
+      strncpy(tmp_path, ss.str().c_str(), ss.str().size());
       std::ofstream stream(tmp_path);
 
       // Couldn't open the path, for whatever reason.

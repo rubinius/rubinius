@@ -21,6 +21,12 @@ namespace rubinius {
   void Fiber::init(STATE) {
     GO(fiber).set(state->new_class("Fiber", G(object), G(rubinius)));
     G(fiber)->set_object_type(state, FiberType);
+
+#ifdef FIBER_ENABLED
+    G(fiber)->set_const(state, "ENABLED", Qtrue);
+#else
+    G(fiber)->set_const(state, "ENABLED", Qfalse);
+#endif
   }
 
   Fiber* Fiber::current(STATE) {

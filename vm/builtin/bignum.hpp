@@ -49,7 +49,6 @@ namespace rubinius {
 
     Integer* abs(STATE);
 
-    // Ruby.primitive :bignum_new
     static Bignum* create(STATE, Fixnum* f);
 
     // Ruby.primitive :bignum_from_float

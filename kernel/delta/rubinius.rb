@@ -78,7 +78,7 @@ module Rubinius
         end
       end
 
-      unless obj.instance_of? Module
+      if obj.kind_of?(Class) || !obj.kind_of?(Module)
         raise TypeError, "#{name} is not a module"
       end
     end

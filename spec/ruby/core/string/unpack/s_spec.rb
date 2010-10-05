@@ -4,6 +4,7 @@ require File.expand_path('../shared/integer', __FILE__)
 
 little_endian do
   describe "String#unpack with format 'S'" do
+    it_behaves_like :string_unpack_basic, 'S'
     it_behaves_like :string_unpack_16bit_le, 'S'
     it_behaves_like :string_unpack_16bit_le_unsigned, 'S'
   end
@@ -19,6 +20,7 @@ little_endian do
   end
 
   describe "String#unpack with format 's'" do
+    it_behaves_like :string_unpack_basic, 's'
     it_behaves_like :string_unpack_16bit_le, 's'
     it_behaves_like :string_unpack_16bit_le_signed, 's'
   end
@@ -36,6 +38,7 @@ end
 
 big_endian do
   describe "String#unpack with format 'S'" do
+    it_behaves_like :string_unpack_basic, 'S'
     it_behaves_like :string_unpack_16bit_be, 'S'
     it_behaves_like :string_unpack_16bit_be_unsigned, 'S'
   end
@@ -51,6 +54,7 @@ big_endian do
   end
 
   describe "String#unpack with format 's'" do
+    it_behaves_like :string_unpack_basic, 's'
     it_behaves_like :string_unpack_16bit_be, 's'
     it_behaves_like :string_unpack_16bit_be_signed, 's'
   end

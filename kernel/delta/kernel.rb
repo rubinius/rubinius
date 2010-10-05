@@ -55,16 +55,16 @@ module Kernel
 
     case Rubinius.method_missing_reason
     when :private
-      msg = "private method '#{meth}'"
+      msg = "private method `#{meth}' called"
     when :protected
-      msg = "protected method '#{meth}'"
+      msg = "protected method `#{meth}' called"
     when :super
-      msg = "no superclass method '#{meth}'"
+      msg = "no superclass method `#{meth}'"
     when :vcall
-      msg = "no method or variable '#{meth}'"
+      msg = "undefined local variable or method `#{meth}'"
       cls = NameError
     else
-      msg = "no method '#{meth}'"
+      msg = "undefined method `#{meth}'"
     end
 
     object_class = Rubinius.object_class(self)

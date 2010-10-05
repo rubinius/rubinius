@@ -102,6 +102,7 @@ describe "Array#fill with (filler, index, length)" do
     a = [1, 2, 3]
     a.fill('x', 1, nil).should == [1, 'x', 'x']
     a.fill(1, nil){|i| i*2}.should == [1, 2, 4]
+    a.fill('y', nil).should == ['y', 'y', 'y']
   end
 
   it "replaces the last (-n) elements if given an index n which is negative and no length" do

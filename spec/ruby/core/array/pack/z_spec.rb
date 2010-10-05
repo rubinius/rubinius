@@ -5,6 +5,7 @@ require File.expand_path('../shared/basic', __FILE__)
 require File.expand_path('../shared/string', __FILE__)
 
 describe "Array#pack with format 'Z'" do
+  it_behaves_like :array_pack_basic, 'Z'
   it_behaves_like :array_pack_no_platform, 'Z'
   it_behaves_like :array_pack_string, 'Z'
 

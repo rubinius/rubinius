@@ -4,6 +4,7 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 require File.expand_path('../shared/basic', __FILE__)
 
 describe "String#unpack with format 'M'" do
+  it_behaves_like :string_unpack_basic, 'M'
   it_behaves_like :string_unpack_no_platform, 'M'
 
   it "decodes an empty string" do
@@ -97,6 +98,7 @@ describe "String#unpack with format 'M'" do
 end
 
 describe "String#unpack with format 'm'" do
+  it_behaves_like :string_unpack_basic, 'm'
   it_behaves_like :string_unpack_no_platform, 'm'
 
   it "decodes an empty string" do

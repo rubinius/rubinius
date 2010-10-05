@@ -10,9 +10,12 @@ class String
   attr_accessor :num_bytes
   attr_accessor :characters
 
+  alias_method :__data__, :data
+  alias_method :__data__=, :data=
+
   def self.allocate
     str = super()
-    str.data = Rubinius::ByteArray.new(1)
+    str.__data__ = Rubinius::ByteArray.new(1)
     str.num_bytes = 0
     str.characters = 0
     str
@@ -135,7 +138,7 @@ class String
   #    "abcdef" <=> "ABCDEF"    #=> 1
   def <=>(other)
     if other.kind_of?(String)
-      @data.compare_bytes(other.data, @num_bytes, other.size)
+      @data.compare_bytes(other.__data__, @num_bytes, other.size)
     else
       return unless other.respond_to?(:to_str) && other.respond_to?(:<=>)
       return unless tmp = (other <=> self)
@@ -164,7 +167,7 @@ class String
     end
 
     return false unless @num_bytes == other.size
-    return @data.compare_bytes(other.data, @num_bytes, other.size) == 0
+    return @data.compare_bytes(other.__data__, @num_bytes, other.size) == 0
   end
 
   # Match --- If <i>pattern</i> is a <code>Regexp</code>, use it as a pattern to match
@@ -390,7 +393,7 @@ class String
     str = self.class.new(str) unless instance_of?(String)
 
     str.modify!
-    str.data.first_capitalize!
+    str.__data__.first_capitalize!
 
     return str
   end
@@ -426,7 +429,7 @@ class String
     i = 0
     while i < size
       a = @data[i]
-      b = to.data[i]
+      b = to.__data__[i]
       i += 1
 
       r = a - b
@@ -564,7 +567,7 @@ class String
     raise ArgumentError, "wrong number of Arguments" if strings.empty?
     return 0 if @num_bytes == 0
 
-    table = count_table(*strings).data
+    table = count_table(*strings).__data__
 
     count = i = 0
     while i < @num_bytes
@@ -606,7 +609,7 @@ class String
     raise ArgumentError, "wrong number of arguments" if strings.empty?
     self.modify!
 
-    table = count_table(*strings).data
+    table = count_table(*strings).__data__
 
     i, j = 0, -1
     while i < @num_bytes
@@ -819,7 +822,7 @@ class String
     Ruby.primitive :string_equal
     return false unless other.is_a?(String) && other.size == @num_bytes
     (@data.fetch_bytes(0, @num_bytes) <=>
-     other.data.fetch_bytes(0, @num_bytes)) == 0
+     other.__data__.fetch_bytes(0, @num_bytes)) == 0
   end
 
   # Returns a copy of <i>self</i> with <em>all</em> occurrences of <i>pattern</i>
@@ -853,14 +856,18 @@ class String
 
     tainted = false
 
-    unless replacement == undefined
+    if replacement == undefined
+      use_yield = true
+    else
       tainted = replacement.tainted?
       replacement = StringValue(replacement)
       tainted ||= replacement.tainted?
+      use_yield = false
     end
 
     pattern = get_pattern(pattern, true)
-    copy = self.dup
+    orig_len = @num_bytes
+    orig_data = @data
 
     last_end = 0
     offset = nil
@@ -869,37 +876,51 @@ class String
     last_match = nil
     match = pattern.match_from self, last_end
 
-    offset = match.begin 0 if match
+    if match
+      ma_range = match.full
+      ma_start = ma_range.at(0)
+      ma_end   = ma_range.at(1)
+
+      offset = ma_start
+    end
 
     while match
-      if str = match.pre_match_from(last_end)
-        ret.append str
+      nd = ma_start - 1
+      pre_len = nd-last_end+1
+
+      if pre_len > 0
+        ret.append substring(last_end, pre_len)
       end
 
-      if replacement == undefined
+      if use_yield
         Regexp.last_match = match
 
-        val = yield(match[0]).to_s
+        val = yield(match.to_s)
+
+        val = val.to_s unless val.kind_of?(String)
+
         tainted ||= val.tainted?
         ret.append val
 
-        raise RuntimeError, "string modified" if self != copy
+        if !@data.equal?(orig_data) or @num_bytes != orig_len
+          raise RuntimeError, "string modified"
+        end
       else
         ret.append replacement.to_sub_replacement(match)
       end
 
       tainted ||= val.tainted?
 
-      last_end = match.end(0)
+      last_end = ma_end
 
-      if match.collapsing?
+      if ma_start == ma_end
         if char = find_character(offset)
           offset += char.size
         else
           offset += 1
         end
       else
-        offset = match.end(0)
+        offset = ma_end
       end
 
       last_match = match
@@ -907,7 +928,11 @@ class String
       match = pattern.match_from self, offset
       break unless match
 
-      offset = match.begin 0
+      ma_range = match.full
+      ma_start = ma_range.at(0)
+      ma_end   = ma_range.at(1)
+
+      offset = ma_start
     end
 
     Regexp.last_match = last_match
@@ -937,7 +962,7 @@ class String
     end
 
     pattern = get_pattern(pattern, true)
-    copy = self.dup
+    orig_len = @num_bytes
 
     last_end = 0
     offset = nil
@@ -960,7 +985,7 @@ class String
         tainted ||= val.tainted?
         ret.append val
 
-        raise RuntimeError, "string modified" if self != copy
+        raise RuntimeError, "string modified" unless @num_bytes == orig_len
       else
         ret.append replacement.to_sub_replacement(match)
       end
@@ -1063,9 +1088,9 @@ class String
 
       return find_string(needle, offset)
     when Regexp
-      if match = needle.match_from(self[offset..-1], 0)
+      if match = needle.match_from(self, offset)
         Regexp.last_match = match
-        return (offset + match.begin(0))
+        return match.begin(0)
       else
         Regexp.last_match = nil
       end
@@ -1114,7 +1139,7 @@ class String
       str.copy_from other, 0, other.size, @num_bytes
     end
     @num_bytes = size
-    @data = str.data
+    @data = str.__data__
     taint if other.tainted?
 
     self
@@ -1231,7 +1256,7 @@ class String
 
     @shared = true
     other.shared!
-    @data = other.data
+    @data = other.__data__
     @num_bytes = other.num_bytes
     @characters = other.characters
     @hash_value = nil
@@ -1673,7 +1698,7 @@ class String
 
       collapsed = match.collapsing?
 
-      if !collapsed || (match.begin(0) != 0)
+      unless (collapsed || spaces) && (match.begin(0) == 0)
         ret << match.pre_match_from(last_match ? last_match.end(0) : 0)
         ret.push(*match.captures.compact)
       end
@@ -1769,7 +1794,7 @@ class String
     return if @num_bytes == 0
     self.modify!
 
-    table = count_table(*strings).data
+    table = count_table(*strings).__data__
 
     i, j, last = 1, 0, @data[0]
     while i < @num_bytes
@@ -2183,11 +2208,11 @@ class String
     invert = source[0] == ?^ && source.length > 1
     expanded = source.tr_expand! nil
     size = source.size
-    src = source.data
+    src = source.__data__
 
     if invert
       replacement.tr_expand! nil
-      r = replacement.data[replacement.size-1]
+      r = replacement.__data__[replacement.size-1]
       table = Rubinius::Tuple.pattern 256, r
 
       i = 0
@@ -2199,7 +2224,7 @@ class String
       table = Rubinius::Tuple.pattern 256, -1
 
       replacement.tr_expand! expanded
-      repl = replacement.data
+      repl = replacement.__data__
       rsize = replacement.size
       i = 0
       while i < size
@@ -2727,10 +2752,13 @@ class String
   #            |         | length argument
   #     -------+---------+-----------------------------------------
 
-  def unpack(format)
+  def unpack(directives)
     Ruby.primitive :string_unpack
 
-    # see pack.rb for String::Unpacker
-    Unpacker.new(self,format).dispatch
+    unless directives.kind_of? String
+      return unpack(StringValue(directives))
+    end
+
+    raise ArgumentError, "invalid directives string: #{directives}"
   end
 end

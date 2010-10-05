@@ -465,7 +465,9 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        g.state.scope.assign_local_reference self
+        unless @variable
+          g.state.scope.assign_local_reference self
+        end
 
         if @value
           @value.bytecode(g)
@@ -541,10 +543,35 @@ module Rubinius
         @iter_arguments = true
       end
 
+      def declare_local_scope(g)
+        # Fix the scope for locals introduced by the left. We
+        # do this before running the code for the right so that
+        # right side sees the proper scoping of the locals on the left.
+
+        if @left
+          @left.body.each do |var|
+            case var
+            when LocalVariable
+              g.state.scope.assign_local_reference var
+            when MultipleAssignment
+              var.declare_local_scope(g)
+            end
+          end
+        end
+
+        if @splat and @splat.kind_of?(SplatAssignment)
+          if @splat.value.kind_of?(LocalVariable)
+            g.state.scope.assign_local_reference @splat.value
+          end
+        end
+      end
+
       def bytecode(g, array_on_stack=false)
         unless array_on_stack
           g.cast_array unless @right or (@splat and not @left)
         end
+
+        declare_local_scope(g)
 
         if @fixed
           pad_short(g) if @left and !@splat

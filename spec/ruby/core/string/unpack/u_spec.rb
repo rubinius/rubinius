@@ -5,11 +5,13 @@ require File.expand_path('../shared/basic', __FILE__)
 require File.expand_path('../shared/unicode', __FILE__)
 
 describe "String#unpack with format 'U'" do
+  it_behaves_like :string_unpack_basic, 'U'
   it_behaves_like :string_unpack_no_platform, 'U'
   it_behaves_like :string_unpack_unicode, 'U'
 end
 
 describe "String#unpack with format 'u'" do
+  it_behaves_like :string_unpack_basic, 'u'
   it_behaves_like :string_unpack_no_platform, 'u'
 
   it "decodes an empty string as an empty string" do

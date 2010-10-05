@@ -86,7 +86,7 @@ module Rubinius
         g.send :active_path, 0
         g.push @line
         g.send :unrecognized_defined, 2
-
+        g.pop
         g.push :nil
       end
 

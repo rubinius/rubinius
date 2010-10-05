@@ -121,4 +121,21 @@ extern "C" {
 
     return ret;
   }
+
+  // More Experimental API support. This is the useful analog to the above
+  // function, allowing you to selecting reaquire the GIL and do some work.
+
+  void* rb_thread_call_with_gvl(void* (*func)(void*), void* data) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    env->state()->shared.enter_capi(env->state());
+    env->state()->shared.gc_dependent(env->state());
+
+    void* ret = (*func)(data);
+
+    env->state()->shared.gc_independent(env->state());
+    env->state()->shared.leave_capi(env->state());
+
+    return ret;
+  }
 }

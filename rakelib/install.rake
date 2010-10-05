@@ -83,7 +83,7 @@ namespace :install do
   desc "Install all the Rubinius files"
   task :files do
     if need_sudo? install_dirs
-      sh "sudo #{FileUtils::RUBY} -S rake install:files", :verbose => true
+      sh "sudo #{BUILD_CONFIG[:build_ruby]} -S #{BUILD_CONFIG[:build_rake]} install:files", :verbose => true
     elsif !need_install?
       puts "Install directory is the same as build directory, nothing to install"
     else
@@ -136,6 +136,18 @@ namespace :install do
       # Install the Rubinius executable
       exe = "#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
       install "vm/vm", install_dir(exe), :mode => 0755, :verbose => true
+
+      STDOUT.puts <<-EOM
+--------
+
+Successfully installed Rubinius #{BUILD_CONFIG[:version]}
+
+Add '#{BUILD_CONFIG[:bindir]}' to your PATH
+
+  1. Run Ruby files with '#{BUILD_CONFIG[:program_name]} path/to/file.rb'
+  2. Start IRB by running '#{BUILD_CONFIG[:program_name]}' with no arguments
+
+      EOM
     end
   end
 end

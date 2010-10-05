@@ -44,10 +44,13 @@ namespace rubinius {
 }
 
 extern "C" {
-  struct RFloat* capi_rfloat_struct(VALUE float_handle) {
+  struct RFloat* capi_rfloat_struct(VALUE flt) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return Handle::from(float_handle)->as_rfloat(env);
+    Handle* handle = Handle::from(flt);
+    env->check_tracked_handle(handle);
+
+    return handle->as_rfloat(env);
   }
 
   VALUE rb_float_new(double val) {

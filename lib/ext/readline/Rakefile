@@ -13,6 +13,7 @@ else
 end
 
 add_shared_lib "readline"
+add_shared_lib "curses"
 
 readline = "readline.#{$DLEXT}"
 

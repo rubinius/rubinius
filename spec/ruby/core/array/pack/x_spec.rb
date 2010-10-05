@@ -4,6 +4,7 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 require File.expand_path('../shared/basic', __FILE__)
 
 describe "Array#pack with format 'x'" do
+  it_behaves_like :array_pack_basic, 'x'
   it_behaves_like :array_pack_no_platform, 'x'
 
   it "adds a NULL byte with an empty array" do
@@ -32,6 +33,7 @@ describe "Array#pack with format 'x'" do
 end
 
 describe "Array#pack with format 'X'" do
+  it_behaves_like :array_pack_basic, 'X'
   it_behaves_like :array_pack_no_platform, 'X'
 
   it "reduces the output string by one byte at the point it is encountered" do

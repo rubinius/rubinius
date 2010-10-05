@@ -1,1 +1,0 @@
-fails:StringIO#readlines when passed [separator] returns an Array containing all paragraphs when the passed separator is an empty String

@@ -19,19 +19,21 @@ Rubinius uses the BSD license. See LICENSE for details.
 Rubinius runs on Mac OS X and many Unix/Linux operating systems. Support for
 Microsoft Windows is coming soon.
 
-To install Rubinius, use the following steps. For more information about
-building and running Rubinius, see doc/getting_started.txt.
+For more information about building and running Rubinius, run 'rake docs'.
 
-Before installing Rubinius, ensure you have MRI version 1.8.7, rubygems, rake,
-and git installed.
+To install Rubinius, use the following steps:
 
-  1. git clone git://github.com/evanphx/rubinius.git
-  2. cd rubinius
-  3. ./configure --prefix=/path/to/install/dir
-  4. rake install
-  5. Add /path/to/install/dir/bin to your PATH
-  6. Run 'rbx some_script.rb' or just 'rbx' to launch IRB.
+  1. Ensure you have MRI 1.8.7+, rubygems, rake, and git installed
+  2. git clone git://github.com/evanphx/rubinius.git
+  3. cd rubinius
+  4. ./configure --prefix=/path/to/install/dir
+  5. rake install
 
+When the install process finishes, follow the directions to add the Rubinius
+executable (bin) directory to you PATH.
+
+After installing Rubinius, you can access the built-in documentation at any
+time by running 'rbx docs'.
 
 4. Version 1.1
 
@@ -68,11 +70,11 @@ improves, overall performance of your code under Rubinius will improve.
 6. Tickets
 
 Please file tickets for bugs or problems that you encounter. The issue tracker
-is: http://github.com/evanphx/rubinius/issues. For more documentation, build
-Rubinius and run the 'rbx docs' command.
+is: http://github.com/evanphx/rubinius/issues. Run 'rake docs' for more
+details.
 
 
 7. Contributing
 
-The Rubinius team welcomes contributions. Run 'rbx docs' and see the
+The Rubinius team welcomes contributions. Run 'rake docs' and see the
 "Contributing" page.

@@ -1,1 +1,1 @@
-require 'ext/gdbm/gdbm.bundle'
+require 'ext/gdbm/gdbm'

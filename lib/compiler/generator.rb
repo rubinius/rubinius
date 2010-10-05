@@ -211,7 +211,6 @@ module Rubinius
       rescue Exception => e
         if $DEBUG
           puts "Error computing stack for #{@name}: #{e.message} (#{e.class})"
-          @iseq.show
         end
         raise e
       end

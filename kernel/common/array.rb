@@ -683,7 +683,7 @@ class Array
       right += size if right < 0
       right += 1 unless one.exclude_end?
       return self if right <= left           # Nothing to modify
-    elsif one != undefined
+    elsif one and one != undefined
       left = Type.coerce_to one, Fixnum, :to_int
       left += size if left < 0
       left = 0 if left < 0
@@ -1044,8 +1044,11 @@ class Array
   def pack(directives)
     Ruby.primitive :array_pack
 
-    # see pack.rb for Array::Packer
-    Packer.new(self, directives).dispatch
+    unless directives.kind_of? String
+      return pack(StringValue(directives))
+    end
+
+    raise ArgumentError, "invalid directives string: #{directives}"
   end
 
   ##
@@ -1799,5 +1802,33 @@ class Array
   def __rescue_match__(exception)
     each { |x| return true if x === exception }
     false
+  end
+
+  # Custom API support to support Enumerator#next with :each
+  class ValueGenerator
+    def initialize(array)
+      @array = array
+      @index = 0
+    end
+
+    def next?
+      @index < @array.size
+    end
+
+    def next
+      val = @array.at(@index)
+      @index += 1
+      return val
+    end
+
+    def rewind
+      @index = 0
+    end
+  end
+
+  def to_generator(method)
+    if method == :each
+      ValueGenerator.new(self)
+    end
   end
 end

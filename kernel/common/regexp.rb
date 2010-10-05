@@ -622,15 +622,15 @@ class MatchData
   end
 
   def pre_match
-    return @source.substring(0, 0) if full.at(0) == 0
-    nd = full.at(0) - 1
+    return @source.substring(0, 0) if @full.at(0) == 0
+    nd = @full.at(0) - 1
     @source.substring(0, nd+1)
   end
 
   def pre_match_from(idx)
-    return @source.substring(0, 0) if full.at(0) == 0
-    nd = full.at(0) - 1
-    @source[idx, nd-idx+1]
+    return @source.substring(0, 0) if @full.at(0) == 0
+    nd = @full.at(0) - 1
+    @source.substring(idx, nd-idx+1)
   end
 
   def collapsing?
@@ -639,8 +639,8 @@ class MatchData
 
   def post_match
     nd = @source.size - 1
-    st = full.at(1)
-    @source[st, nd-st+1]
+    st = @full.at(1)
+    @source.substring(st, nd-st+1)
   end
 
   def [](idx, len = nil)
@@ -734,7 +734,7 @@ class MatchData
   def each_capture
     @region.each do |tup|
       x, y = *tup
-      yield @source[x, y-x]
+      yield @source.substring(x, y-x)
     end
   end
 

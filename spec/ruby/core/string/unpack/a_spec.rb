@@ -5,6 +5,7 @@ require File.expand_path('../shared/basic', __FILE__)
 require File.expand_path('../shared/string', __FILE__)
 
 describe "String#unpack with format 'A'" do
+  it_behaves_like :string_unpack_basic, 'A'
   it_behaves_like :string_unpack_no_platform, 'A'
   it_behaves_like :string_unpack_string, 'A'
   it_behaves_like :string_unpack_Aa, 'A'
@@ -29,6 +30,7 @@ describe "String#unpack with format 'A'" do
 end
 
 describe "String#unpack with format 'a'" do
+  it_behaves_like :string_unpack_basic, 'a'
   it_behaves_like :string_unpack_no_platform, 'a'
   it_behaves_like :string_unpack_string, 'a'
   it_behaves_like :string_unpack_Aa, 'a'

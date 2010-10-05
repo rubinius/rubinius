@@ -4,10 +4,12 @@ require File.expand_path('../shared/basic', __FILE__)
 require File.expand_path('../shared/integer', __FILE__)
 
 describe "String#unpack with format 'Q'" do
+  it_behaves_like :string_unpack_basic, 'Q'
   it_behaves_like :string_unpack_no_platform, 'Q'
 end
 
 describe "String#unpack with format 'q'" do
+  it_behaves_like :string_unpack_basic, 'q'
   it_behaves_like :string_unpack_no_platform, 'q'
 end
 

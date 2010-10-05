@@ -62,4 +62,11 @@ extern "C" {
       rb_gc_mark(ptr);
     }
   }
+
+  void rb_memerror() {
+    // MRI raises a NoMemError here, but we're going to just
+    // print out and error and exit.
+    fprintf(stderr, "[FATAL] Out of memory. Game Over.\n");
+    exit(EXIT_FAILURE);
+  }
 }

@@ -294,7 +294,11 @@ namespace immix {
         system_base_ = base_;
         system_size_ = cChunkSize;
       } else {
-        assert(munmap(base_, cChunkSize) == 0);
+        int ret = munmap(base_, cChunkSize);
+        if(ret != 0) {
+          perror("munmap");
+          ::abort();
+        }
 
         system_size_ = cChunkSize + cBlockSize;
         system_base_ = mmap(0, system_size_, PROT_EXEC | PROT_READ | PROT_WRITE,
@@ -584,7 +588,7 @@ namespace immix {
   public:
 
     SingleBlockAllocator(Block& block) {
-      assert(reset(&block));
+      reset(&block);
     }
 
     Address allocate(int size) {

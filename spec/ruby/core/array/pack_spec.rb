@@ -31,20 +31,9 @@ describe "Array#pack" do
       encode("a\x01\x00\x02\x00\x00\x00\x00\x03A ", "binary")
   end
 
-  it "just ignores unknown format" do
-    lambda{ [].pack("2") }.should_not raise_error
-    lambda{ [].pack("J") }.should_not raise_error
-    lambda{ [].pack("\xFF") }.should_not raise_error
-    ["abc", "def"].pack("A\x7EA").should == "ad"
-  end
-
   it "ignores white spaces" do
     ["abc", 1, 2, 3, '01000001', 0x20, 0x61].pack("A  \f   v2\tN\rB8\nc\vC").should ==
       encode("a\x01\x00\x02\x00\x00\x00\x00\x03A a", "binary")
-  end
-
-  it "treats a white space as a separator of formats" do
-    ["abc", "def"].pack("A 3A").should == "ad"
   end
 
   it "skips everything till the end of line (LF) string with ('#')" do

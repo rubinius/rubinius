@@ -21,10 +21,8 @@ namespace rubinius {
     IO* capi_get_io(NativeMethodEnvironment* env, VALUE io_handle) {
       Handle* handle = Handle::from(io_handle);
       handle->flush(env);
+      env->check_tracked_handle(handle, false);
       return c_as<IO>(handle->object());
-    }
-
-    void flush_cached_rio(NativeMethodEnvironment* env, Handle* handle) {
     }
 
     static const char* flags_modestr(int oflags)
@@ -68,10 +66,6 @@ namespace rubinius {
 
         type_ = cRIO;
         as_.rio = f;
-
-        flush_ = flush_cached_rio;
-
-        env->state()->shared.make_handle_cached(env->state(), this);
       }
 
       return as_.rio;
@@ -90,6 +84,10 @@ extern "C" {
 
   VALUE rb_io_write(VALUE io, VALUE str) {
     return rb_funcall(io, rb_intern("write"), 1, str);
+  }
+
+  VALUE rb_io_close(VALUE io) {
+    return rb_funcall(io, rb_intern("close"), 0);
   }
 
   int rb_io_fd(VALUE io_handle) {

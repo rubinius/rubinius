@@ -4,6 +4,7 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 require File.expand_path('../shared/basic', __FILE__)
 
 describe "String#unpack with directive 'w'" do
+  it_behaves_like :string_unpack_basic, 'w'
   it_behaves_like :string_unpack_no_platform, 'w'
 
   it "decodes a BER-compressed integer" do

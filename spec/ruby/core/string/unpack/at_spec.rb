@@ -4,6 +4,7 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 require File.expand_path('../shared/basic', __FILE__)
 
 describe "String#unpack with format '@'" do
+  it_behaves_like :string_unpack_basic, '@'
   it_behaves_like :string_unpack_no_platform, '@'
 
   it "moves the read index to the byte specified by the count" do
