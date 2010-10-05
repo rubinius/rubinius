@@ -523,12 +523,7 @@ namespace thread {
   };
 };
 
-#elif ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 1))
-
-// You can uncomment this to use compare_and_swap, but
-// CAS doesn't have any fencing, so it's not known how they'll
-// behave.
-#define USE_SYNC_CAS
+#else
 
 namespace thread {
   class SpinLock {
@@ -545,22 +540,13 @@ namespace thread {
     {}
 
     void lock() {
-#ifdef USE_SYNC_CAS
       while(!atomic::compare_and_swap(&lock_, 1, 0));
       atomic::memory_barrier();
-#else
-      __sync_lock_test_and_set(&lock_, 1);
-#endif
     }
 
     void unlock() {
-#ifdef USE_SYNC_CAS
       lock_ = 1;
-#else
-      // See http://bugs.mysql.com/bug.php?id=34175 about using
-      // __sync_lock_release
-      __sync_lock_test_and_set(&lock_, 0);
-#endif
+      atomic::memory_barrier();
     }
 
     Code try_lock() {
@@ -579,12 +565,6 @@ namespace thread {
     }
   };
 }
-
-#else
-
-namespace thread {
-  typedef Mutex SpinLock;
-};
 
 #endif
 
