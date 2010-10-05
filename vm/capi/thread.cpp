@@ -2,27 +2,6 @@
 #include "capi/include/ruby.h"
 #include "builtin/thread.hpp"
 
-/*
-namespace rubinius {
-  class UnblockFuncWaiter : public Waiter {
-    rb_unblock_function_t* ubf_;
-    void* ubf_data_;
-
-  public:
-    UnblockFuncWaiter(rb_unblock_function_t* ubf, void* ubf_data)
-      : ubf_(ubf)
-      , ubf_data_(ubf_data)
-    {}
-
-    void wakeup() {
-      if (ubf_ != NULL) {
-        (*ubf_)(ubf_data_);
-      }
-    }
-  };
-}
-*/
-
 using namespace rubinius;
 
 extern "C" {
@@ -125,13 +104,12 @@ extern "C" {
                                   rb_unblock_function_t ubf, void* ubf_data) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     VM* state = env->state();
-    // UnblockFuncWaiter waiter(ubf, ubf_data);
     VALUE ret = Qnil;
 
     if (ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
       state->interrupt_with_signal();
     } else {
-      //state->install_waiter(waiter);
+      state->wait_on_custom_function(ubf, ubf_data);
     }
     env->state()->shared.leave_capi(env->state());
     {
@@ -139,7 +117,7 @@ extern "C" {
       ret = (*func)(data);
     }
     env->state()->shared.enter_capi(env->state());
-    // state->clear_waiter();
+    state->clear_waiter();
 
     return ret;
   }

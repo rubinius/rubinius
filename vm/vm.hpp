@@ -93,6 +93,9 @@ namespace rubinius {
     bool interrupt_with_signal_;
     InflatedHeader* waiting_header_;
 
+    void (*custom_wakeup_)(void*);
+    void* custom_wakeup_data_;
+
     ObjectMemory* om;
     TypedRoot<TaskProbe*> probe;
     Interrupts& interrupts;
@@ -338,6 +341,7 @@ namespace rubinius {
 
     void wait_on_channel(Channel* channel);
     void wait_on_inflated_lock(InflatedHeader* ih);
+    void wait_on_custom_function(void (*func)(void*), void* data);
     void clear_waiter();
     bool wakeup(STATE);
     bool waiting_p();

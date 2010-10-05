@@ -65,6 +65,8 @@ namespace rubinius {
     , interrupted_exception_(this, (Exception*)Qnil)
     , interrupt_with_signal_(false)
     , waiting_header_(0)
+    , custom_wakeup_(0)
+    , custom_wakeup_data_(0)
     , om(shared.om)
     , interrupts(shared.interrupts)
     , check_local_interrupts(false)
@@ -334,6 +336,10 @@ namespace rubinius {
         UNSYNC;
         chan->send(state, Qnil);
         return true;
+      } else if(custom_wakeup_) {
+        UNSYNC;
+        (*custom_wakeup_)(custom_wakeup_data_);
+        return true;
       }
 
       return false;
@@ -341,21 +347,29 @@ namespace rubinius {
   }
 
   void VM::clear_waiter() {
-    SYNC(this);
+    SYNC(0);
     interrupt_with_signal_ = false;
     waiting_channel_.set((Channel*)Qnil);
     waiting_header_ = 0;
+    custom_wakeup_ = 0;
+    custom_wakeup_data_ = 0;
   }
 
   void VM::wait_on_channel(Channel* chan) {
-    SYNC(this);
+    SYNC(0);
     thread->sleep(this, Qtrue);
     waiting_channel_.set(chan);
   }
 
   void VM::wait_on_inflated_lock(InflatedHeader* ih) {
-    SYNC(this);
+    SYNC(0);
     waiting_header_ = ih;
+  }
+
+  void VM::wait_on_custom_function(void (*func)(void*), void* data) {
+    SYNC(0);
+    custom_wakeup_ = func;
+    custom_wakeup_data_ = data;
   }
 
   bool VM::waiting_p() {

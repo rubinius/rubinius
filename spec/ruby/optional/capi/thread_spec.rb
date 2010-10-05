@@ -112,15 +112,23 @@ describe :rb_thread_blocking_region, :shared => true do
 end
 
 describe "C-API Thread function" do
-  describe "rb_thread_blocking_region" do
+  describe "rb_thread_blocking_region w/ custom unblock" do
     extended_on :rubinius do
-      it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region_with_ubf_io
       it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region
     end
 
     ruby_version_is "1.9" do
-      it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region_with_ubf_io
       it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region
+    end
+  end
+
+  describe "rb_thread_blocking_region w/ ubf_io" do
+    extended_on :rubinius do
+      it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region_with_ubf_io
+    end
+
+    ruby_version_is "1.9" do
+      it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region_with_ubf_io
     end
   end
 end
