@@ -482,6 +482,7 @@ namespace rubinius {
 
     // Discard the 1st argument.
     args.shift(state);
+    args.set_name(sym);
 
     Dispatch dis(sym);
     LookupData lookup(this, this->lookup_begin(state), true);
