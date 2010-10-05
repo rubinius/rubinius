@@ -856,14 +856,18 @@ class String
 
     tainted = false
 
-    unless replacement == undefined
+    if replacement == undefined
+      use_yield = true
+    else
       tainted = replacement.tainted?
       replacement = StringValue(replacement)
       tainted ||= replacement.tainted?
+      use_yield = false
     end
 
     pattern = get_pattern(pattern, true)
-    copy = self.dup
+    orig_len = @num_bytes
+    orig_data = @data
 
     last_end = 0
     offset = nil
@@ -872,37 +876,51 @@ class String
     last_match = nil
     match = pattern.match_from self, last_end
 
-    offset = match.begin 0 if match
+    if match
+      ma_range = match.full
+      ma_start = ma_range.at(0)
+      ma_end   = ma_range.at(1)
+
+      offset = ma_start
+    end
 
     while match
-      if str = match.pre_match_from(last_end)
-        ret.append str
+      nd = ma_start - 1
+      pre_len = nd-last_end+1
+
+      if pre_len > 0
+        ret.append substring(last_end, pre_len)
       end
 
-      if replacement == undefined
+      if use_yield
         Regexp.last_match = match
 
-        val = yield(match[0]).to_s
+        val = yield(match.to_s)
+
+        val = val.to_s unless val.kind_of?(String)
+
         tainted ||= val.tainted?
         ret.append val
 
-        raise RuntimeError, "string modified" if self != copy
+        if !@data.equal?(orig_data) or @num_bytes != orig_len
+          raise RuntimeError, "string modified"
+        end
       else
         ret.append replacement.to_sub_replacement(match)
       end
 
       tainted ||= val.tainted?
 
-      last_end = match.end(0)
+      last_end = ma_end
 
-      if match.collapsing?
+      if ma_start == ma_end
         if char = find_character(offset)
           offset += char.size
         else
           offset += 1
         end
       else
-        offset = match.end(0)
+        offset = ma_end
       end
 
       last_match = match
@@ -910,7 +928,11 @@ class String
       match = pattern.match_from self, offset
       break unless match
 
-      offset = match.begin 0
+      ma_range = match.full
+      ma_start = ma_range.at(0)
+      ma_end   = ma_range.at(1)
+
+      offset = ma_start
     end
 
     Regexp.last_match = last_match
@@ -940,7 +962,7 @@ class String
     end
 
     pattern = get_pattern(pattern, true)
-    copy = self.dup
+    orig_len = @num_bytes
 
     last_end = 0
     offset = nil
@@ -963,7 +985,7 @@ class String
         tainted ||= val.tainted?
         ret.append val
 
-        raise RuntimeError, "string modified" if self != copy
+        raise RuntimeError, "string modified" unless @num_bytes == orig_len
       else
         ret.append replacement.to_sub_replacement(match)
       end
