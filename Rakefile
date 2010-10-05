@@ -27,7 +27,7 @@ end
 require config_rb
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 
-unless BUILD_CONFIG[:config_version] == 20
+unless BUILD_CONFIG[:config_version] == 21
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end

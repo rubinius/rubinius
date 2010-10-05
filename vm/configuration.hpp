@@ -2,6 +2,7 @@
 #define RBX_CONFIGURATION_HPP
 
 #include "util/configuration.hpp"
+#include "vm/config.h"
 
 namespace rubinius {
   class Configuration : public config::Configuration {
@@ -72,7 +73,7 @@ namespace rubinius {
       , gc_honor_start(this,  "gc.honor_start", false)
       , gc_autopack(this,     "gc.autopack", true)
 
-      , version_19(this, "19", false)
+      , version_19(this, "19", RBX_DEFAULT_19)
 
       , dynamic_interpreter_enabled(this, "interpreter.dynamic")
       , jit_dump_code(this,   "jit.dump_code", default_jit_dump_code)
