@@ -30,8 +30,6 @@
 #include "llvm/jit.hpp"
 #endif
 
-#define USE_SPECIALIZED_EXECUTE
-
 /*
  * An internalization of a CompiledMethod which holds the instructions for the
  * method.
@@ -95,8 +93,6 @@ namespace rubinius {
     , method_id_(state->shared.inc_method_count(state))
     , debugging(false)
   {
-    meth->set_executor(&VMMethod::execute);
-
     total = meth->iseq()->opcodes()->num_fields();
 
     opcodes = new opcode[total];
@@ -108,13 +104,12 @@ namespace rubinius {
 
     total_args =    meth->total_args()->to_native();
     required_args = meth->required_args()->to_native();
-    if(meth->splat()->nil_p()) {
-      splat_position = -1;
-    } else {
-      splat_position = as<Integer>(meth->splat())->to_native();
-    }
 
-    setup_argument_handler(meth);
+    if(Fixnum* pos = try_as<Fixnum>(meth->splat())) {
+      splat_position = pos->to_native();
+    } else {
+      splat_position = -1;
+    }
 
     // Disable JIT for large methods
     if(meth->primitive()->nil_p() &&
@@ -294,8 +289,6 @@ namespace rubinius {
 
   // Argument handler implementations
 
-#ifdef USE_SPECIALIZED_EXECUTE
-
   // For when the method expects no arguments at all (no splat, nothing)
   class NoArguments {
   public:
@@ -366,7 +359,6 @@ namespace rubinius {
       return true;
     }
   };
-#endif
 
   // The fallback, can handle all cases
   class GenericArguments {
@@ -486,7 +478,6 @@ namespace rubinius {
   }
 
   void VMMethod::setup_argument_handler(CompiledMethod* meth) {
-#ifdef USE_SPECIALIZED_EXECUTE
     // If there are no optionals, only a fixed number of positional arguments.
     if(total_args == required_args) {
       // if no arguments are expected
@@ -522,7 +513,6 @@ namespace rubinius {
 
     // Lastly, use the generic case that handles all cases
     meth->set_executor(&VMMethod::execute_specialized<GenericArguments>);
-#endif
   }
 
   /* This is the execute implementation used by normal Ruby code,

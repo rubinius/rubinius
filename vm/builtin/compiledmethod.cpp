@@ -98,20 +98,22 @@ namespace rubinius {
   }
 
   VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {
-    if(!backend_method_) {
-      VMMethod* vmm = NULL;
-      vmm = new VMMethod(state, this);
-      backend_method_ = vmm;
+    if(lock(state) != eLocked) rubinius::abort();
 
-      resolve_primitive(state);
-      return vmm;
+    if(!backend_method_) {
+      backend_method_ = new VMMethod(state, this);
+      if(!resolve_primitive(state)) {
+        backend_method_->setup_argument_handler(this);
+      }
     }
 
+    unlock(state);
     return backend_method_;
   }
 
-  Object* CompiledMethod::primitive_failed(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
-                                           Arguments& args) {
+  Object* CompiledMethod::primitive_failed(STATE, CallFrame* call_frame,
+              Executable* exec, Module* mod, Arguments& args)
+  {
     if(try_as<CompiledMethod>(exec)) {
       return VMMethod::execute(state, call_frame, exec, mod, args);
     }
