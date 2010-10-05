@@ -579,17 +579,20 @@ int main() { X x; return 0; }
 
     if @sizeof_long == 4
       status = check_program do |f|
-        f.puts <<-EOP
+        src = <<-EOP
 int main() {
 #if defined(i386) || defined(__i386__) || defined(__i386)
   return 1;
 #else
   return 0;
+#endif
 }
         EOP
 
-        @x86_32 = (status == 1)
+        f.puts src
+        @log.log src
       end
+      @x86_32 = (status == 1)
     end
 
     puts @x86_32 ? "yes" : "no"
