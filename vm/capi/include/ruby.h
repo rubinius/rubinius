@@ -1240,6 +1240,10 @@ VALUE rb_uint2big(unsigned long number);
   /** Allocate uninitialised instance of given class. */
   VALUE   rb_obj_alloc(VALUE klass);
 
+
+  /** Clone an instance of an object. */
+  VALUE   rb_obj_dup(VALUE obj);
+
   /** Call #to_s on object. */
   VALUE   rb_obj_as_string(VALUE obj_handle);
 

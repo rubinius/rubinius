@@ -201,6 +201,13 @@ extern "C" {
     return rb_funcall(class_handle, rb_intern("allocate"), 0);
   }
 
+  VALUE rb_obj_dup(VALUE obj) {
+    if(rb_special_const_p(obj))
+      rb_raise(rb_eTypeError, "can't dup %s", rb_obj_classname(obj));
+
+    return rb_funcall(obj, rb_intern("dup"), 0);
+  }
+
   VALUE rb_obj_as_string(VALUE obj_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
