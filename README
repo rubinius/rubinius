@@ -30,7 +30,7 @@ To install Rubinius, use the following steps:
   5. rake install
 
 When the install process finishes, follow the directions to add the Rubinius
-executable (bin) directory to you PATH.
+executable (bin) directory to your PATH.
 
 After installing Rubinius, you can access the built-in documentation at any
 time by running 'rbx docs'.
