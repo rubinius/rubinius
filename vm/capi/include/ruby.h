@@ -769,6 +769,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Array#join. Returns String with all elements to_s, with optional separator String. */
   VALUE   rb_ary_join(VALUE self_handle, VALUE separator_handle);
 
+  /** Array#to_s. Returns String with all elements to_s, without a separator string */
+  VALUE   rb_ary_to_s(VALUE self_handle);
+
   /** New, empty Array. */
   VALUE   rb_ary_new();
 

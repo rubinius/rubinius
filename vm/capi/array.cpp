@@ -166,6 +166,10 @@ extern "C" {
     return rb_funcall(self_handle, rb_intern("join"), 1, separator_handle);
   }
 
+  VALUE rb_ary_to_s(VALUE self_handle) {
+    return rb_ary_join(self_handle, Qnil);
+  }
+
   /** By default, Arrays have space for 16 elements. */
   static const unsigned long cCApiArrayDefaultCapacity = 16;
 
