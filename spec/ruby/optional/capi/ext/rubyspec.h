@@ -13,6 +13,7 @@
 #define HAVE_RB_ARY_ENTRY                  1
 #define HAVE_RB_ARY_INCLUDES               1
 #define HAVE_RB_ARY_JOIN                   1
+#define HAVE_RB_ARY_TO_S                   1
 #define HAVE_RB_ARY_NEW                    1
 #define HAVE_RB_ARY_NEW2                   1
 #define HAVE_RB_ARY_POP                    1

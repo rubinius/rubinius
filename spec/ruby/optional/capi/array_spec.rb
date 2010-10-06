@@ -56,6 +56,13 @@ describe "C-API Array function" do
     end
   end
 
+  describe "rb_ary_to_s" do
+    it "joins elements of an array with a string" do
+      @s.rb_ary_to_s([1,2,3]).should == "123"
+      @s.rb_ary_to_s([]).should == ""
+    end
+  end
+
   describe "rb_ary_reverse" do
     it "reverses the order of elements in the array" do
       a = [1,2,3]

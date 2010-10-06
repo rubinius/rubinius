@@ -129,6 +129,12 @@ static VALUE array_spec_rb_ary_join(VALUE self, VALUE array1, VALUE array2) {
 }
 #endif
 
+#ifdef HAVE_RB_ARY_TO_S
+static VALUE array_spec_rb_ary_to_s(VALUE self, VALUE array) {
+  return rb_ary_to_s(array);
+}
+#endif
+
 #ifdef HAVE_RB_ARY_NEW
 static VALUE array_spec_rb_ary_new(VALUE self) {
   VALUE ret;
@@ -274,6 +280,10 @@ void Init_array_spec() {
 
 #ifdef HAVE_RB_ARY_JOIN
   rb_define_method(cls, "rb_ary_join", array_spec_rb_ary_join, 2);
+#endif
+
+#ifdef HAVE_RB_ARY_JOIN
+  rb_define_method(cls, "rb_ary_to_s", array_spec_rb_ary_to_s, 1);
 #endif
 
 #ifdef HAVE_RB_ARY_NEW
