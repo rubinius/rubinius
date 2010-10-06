@@ -45,6 +45,17 @@ describe "CApiObject" do
     o.initialized.should be_nil
   end
 
+  it "rb_obj_dup should duplicate an object" do
+    obj1 = ObjectTest.new
+    obj2 = @o.rb_obj_dup(obj1)
+
+    obj2.class.should == obj1.class
+
+    obj2.foo.should == obj1.foo
+
+    obj2.should_not equal(obj1)
+  end
+
   it "rb_obj_call_init should send #initialize" do
     o = @o.rb_obj_alloc(CApiObjectSpecs::Alloc)
     o.initialized.should be_nil

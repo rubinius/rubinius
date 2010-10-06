@@ -213,6 +213,7 @@
 #define HAVE_RB_EXTEND_OBJECT              1
 #define HAVE_RB_INSPECT                    1
 #define HAVE_RB_OBJ_ALLOC                  1
+#define HAVE_RB_OBJ_DUP                    1
 #define HAVE_RB_OBJ_CALL_INIT              1
 #define HAVE_RB_OBJ_CLASSNAME              1
 #define HAVE_RB_OBJ_FREEZE                 1
