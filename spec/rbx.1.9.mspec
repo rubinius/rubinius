@@ -103,8 +103,21 @@ class MSpecScript
 
     'spec/build',
 
+    # Excluded while building out basic 1.9 infrastructure
+    '^spec/ruby/core/basicobject',
+    '^spec/ruby/core/encoding',
+    '^spec/ruby/core/kernel/define_singleton_method',
+    '^spec/ruby/core/method/parameters',
+    '^spec/ruby/core/module/name',
+    '^spec/ruby/core/numeric/to_c',
+    '^spec/ruby/core/proc/parameters',
+    '^spec/ruby/language/array',
+    '^spec/ruby/language/block',
+    '^spec/ruby/language/case',
     '^spec/ruby/language/literal_lambda',
     '^spec/ruby/language/method',
+    '^spec/ruby/language/symbol',
+    '^spec/ruby/language/variables',
     '^spec/ruby/command_line/dash_e',
 
     # Excluded because the specs are extremely system dependent.
