@@ -274,6 +274,9 @@ namespace rubinius {
     // Ruby.primitive :vm_set_finalizer
     static Object* vm_set_finalizer(STATE, Object* obj, Object* fin);
 
+    // Ruby.primitive :vm_ruby19_p
+    static Object* vm_ruby19_p(STATE);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

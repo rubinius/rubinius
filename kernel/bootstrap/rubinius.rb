@@ -105,4 +105,9 @@ module Rubinius
     Ruby.primitive :vm_agent_io
     raise PrimitiveFailure, "Rubinius.agent_io failed"
   end
+
+  def self.ruby19?
+    Ruby.primitive :vm_ruby19_p
+    raise PrimitiveFailure, "Rubinius.ruby19? failed"
+  end
 end

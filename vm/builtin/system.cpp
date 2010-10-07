@@ -1007,4 +1007,8 @@ namespace rubinius {
     state->om->set_ruby_finalizer(obj, fin);
     return obj;
   }
+
+  Object* System::vm_ruby19_p(STATE) {
+    return state->shared.config.version_19 ? Qtrue : Qfalse;
+  }
 }
