@@ -64,7 +64,7 @@ task :default => %w[build vm:test] do
     ENV["CFLAGS"]      = "-Ivm/capi"
   end
 
-  sh "bin/mspec ci --background --agent"
+  sh "bin/mspec ci #{ENV['CI_MODE_FLAG']} --background --agent"
 end
 
 # See vm.rake for more information
@@ -74,14 +74,32 @@ task :build => ["build:normal", "gem_bootstrap"]
 desc "Recompile all ruby system files"
 task :rebuild => %w[clean build]
 
-desc "Use to run Rubinius in CI"
-task :ci do
+def run_ci
   unless system("rake -q")
     puts "<< ERROR IN CI, CLEANING AND RERUNNING >>"
     system "rake -q clean"
     system "find . -name *.rbc -delete"
     sh "rake -q"
   end
+end
+
+desc "Run CI in default (configured) mode"
+task :ci do
+  run_ci
+end
+
+# These tasks run the specs in the specified mode regardless of
+# the default mode with which Rubinius was configured.
+desc "Run CI in 1.8 mode"
+task :ci18 do
+  ENV['CI_MODE_FLAG'] = "-T -X19=no"
+  run_ci
+end
+
+desc "Run CI in 1.9 mode"
+task :ci19 do
+  ENV['CI_MODE_FLAG'] = "-T -X19"
+  run_ci
 end
 
 desc 'Remove rubinius build files'
