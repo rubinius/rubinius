@@ -1,0 +1,7 @@
+fails:CGI::HtmlExtension#a when passed a String returns an 'a'-element, using the passed String as the 'href'-attribute
+fails:CGI::HtmlExtension#a when passed a String includes the passed block's return value when passed a block
+fails:CGI::HtmlExtension#a when passed a Hash returns an 'a'-element, using the passed Hash for attributes
+fails:CGI::HtmlExtension#a when passed a Hash includes the passed block's return value when passed a block
+fails:CGI::HtmlExtension#a when each HTML generation returns the doctype declaration for HTML3
+fails:CGI::HtmlExtension#a when each HTML generation returns the doctype declaration for HTML4
+fails:CGI::HtmlExtension#a when each HTML generation returns the doctype declaration for the Transitional version of HTML4

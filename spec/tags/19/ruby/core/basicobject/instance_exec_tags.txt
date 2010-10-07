@@ -1,0 +1,2 @@
+fails:BasicObject#instance_exec raises a LocalJumpError unless given a block
+fails:BasicObject#instance_exec sets class variables in the receiver

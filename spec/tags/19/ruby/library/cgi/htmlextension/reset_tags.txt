@@ -1,0 +1,8 @@
+fails:CGI::HtmlExtension#reset when passed no arguments returns a reset-'input'-element
+fails:CGI::HtmlExtension#reset when passed no arguments ignores a passed block
+fails:CGI::HtmlExtension#reset when passed value returns a reset-'input'-element with the passed value
+fails:CGI::HtmlExtension#reset when passed value ignores a passed block
+fails:CGI::HtmlExtension#reset when passed value, name returns a reset-'input'-element with the passed value and the passed name
+fails:CGI::HtmlExtension#reset when passed value, name ignores a passed block
+fails:CGI::HtmlExtension#reset when passed Hash returns a reset-'input'-element with the passed value
+fails:CGI::HtmlExtension#reset when passed Hash ignores a passed block

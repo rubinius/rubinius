@@ -1,0 +1,1 @@
+fails:Math#tanh should be private

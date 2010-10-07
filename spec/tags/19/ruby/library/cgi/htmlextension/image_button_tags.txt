@@ -1,0 +1,10 @@
+fails:CGI::HtmlExtension#image_button when passed no arguments returns an image-'input'-element without a source image
+fails:CGI::HtmlExtension#image_button when passed no arguments ignores a passed block
+fails:CGI::HtmlExtension#image_button when passed src returns an image-'input'-element with the passed src
+fails:CGI::HtmlExtension#image_button when passed src ignores a passed block
+fails:CGI::HtmlExtension#image_button when passed src, name returns an image-'input'-element with the passed src and name
+fails:CGI::HtmlExtension#image_button when passed src, name ignores a passed block
+fails:CGI::HtmlExtension#image_button when passed src, name, alt returns an image-'input'-element with the passed src, name and alt
+fails:CGI::HtmlExtension#image_button when passed src, name, alt ignores a passed block
+fails:CGI::HtmlExtension#image_button when passed Hash returns a image-'input'-element using the passed Hash for attributes
+fails:CGI::HtmlExtension#image_button when passed Hash ignores a passed block

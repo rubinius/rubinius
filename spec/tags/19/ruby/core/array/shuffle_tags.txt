@@ -1,0 +1,1 @@
+fails:Array#shuffle! raises a RuntimeError on a frozen array

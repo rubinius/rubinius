@@ -1,0 +1,12 @@
+fails:CGI::HtmlExtension#text_field when passed no arguments returns an text-'input'-element without a name
+fails:CGI::HtmlExtension#text_field when passed no arguments ignores a passed block
+fails:CGI::HtmlExtension#text_field when passed name returns an text-'input'-element with the passed name
+fails:CGI::HtmlExtension#text_field when passed name ignores a passed block
+fails:CGI::HtmlExtension#text_field when passed name, value returns an text-'input'-element with the passed name and value
+fails:CGI::HtmlExtension#text_field when passed name, value ignores a passed block
+fails:CGI::HtmlExtension#text_field when passed name, value, size returns an text-'input'-element with the passed name, value and size
+fails:CGI::HtmlExtension#text_field when passed name, value, size ignores a passed block
+fails:CGI::HtmlExtension#text_field when passed name, value, size, maxlength returns an text-'input'-element with the passed name, value, size and maxlength
+fails:CGI::HtmlExtension#text_field when passed name, value, size, maxlength ignores a passed block
+fails:CGI::HtmlExtension#text_field when passed Hash returns a checkbox-'input'-element using the passed Hash for attributes
+fails:CGI::HtmlExtension#text_field when passed Hash ignores a passed block

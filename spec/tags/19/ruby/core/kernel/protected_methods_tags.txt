@@ -1,0 +1,2 @@
+fails:Kernel#protected_methods returns a list of the names of protected methods accessible in the object
+fails:Kernel#protected_methods returns a list of the names of protected methods accessible in the object and from its ancestors and mixed-in modules

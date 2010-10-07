@@ -1,0 +1,1 @@
+fails:SortedSet#initialize is private

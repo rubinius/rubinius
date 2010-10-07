@@ -1,0 +1,1 @@
+fails:FileTest.writable? accepts an object that has a #to_path method

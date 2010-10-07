@@ -1,0 +1,1 @@
+fails:BasicObject.new creates a new BasicObject

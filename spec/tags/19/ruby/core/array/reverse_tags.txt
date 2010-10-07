@@ -1,0 +1,1 @@
+fails:Array#reverse! raises a RuntimeError on a frozen array

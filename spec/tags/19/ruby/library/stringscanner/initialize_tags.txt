@@ -1,0 +1,1 @@
+fails:StringScanner#initialize is a private method

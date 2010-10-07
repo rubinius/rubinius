@@ -1,0 +1,3 @@
+fails:Hash#to_s returns a string representation with same order as each()
+fails:Hash#to_s calls inspect on keys and values
+fails:Hash#to_s handles hashes with recursive values

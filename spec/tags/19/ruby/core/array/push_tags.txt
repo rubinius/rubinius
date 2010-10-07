@@ -1,0 +1,1 @@
+fails:Array#push raises a RuntimeError on a frozen array

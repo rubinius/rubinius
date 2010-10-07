@@ -1,0 +1,1 @@
+fails:Math#atanh is a private instance method

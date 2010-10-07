@@ -1,0 +1,1 @@
+fails:Kernel#instance_eval sets class variables in the receiver

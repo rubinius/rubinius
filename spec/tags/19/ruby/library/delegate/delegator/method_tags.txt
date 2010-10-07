@@ -1,0 +1,1 @@
+fails:Delegator#method returns a method that respond_to_missing?

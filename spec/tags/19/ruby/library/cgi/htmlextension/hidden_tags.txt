@@ -1,0 +1,8 @@
+fails:CGI::HtmlExtension#hidden when passed no arguments returns an hidden-'input'-element without a name
+fails:CGI::HtmlExtension#hidden when passed no arguments ignores a passed block
+fails:CGI::HtmlExtension#hidden when passed name returns an hidden-'input'-element with the passed name
+fails:CGI::HtmlExtension#hidden when passed name ignores a passed block
+fails:CGI::HtmlExtension#hidden when passed name, value returns an hidden-'input'-element with the passed name and value
+fails:CGI::HtmlExtension#hidden when passed name, value ignores a passed block
+fails:CGI::HtmlExtension#hidden when passed Hash returns a checkbox-'input'-element using the passed Hash for attributes
+fails:CGI::HtmlExtension#hidden when passed Hash ignores a passed block
