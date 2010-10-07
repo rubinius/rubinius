@@ -8,9 +8,10 @@
 
 namespace rubinius {
   class VM;
-  class CallFrame;
   class NativeMethodEnvironment;
   class SharedState;
+
+  struct  CallFrame;
 
   class GlobalLock {
     uint32_t locked_;
