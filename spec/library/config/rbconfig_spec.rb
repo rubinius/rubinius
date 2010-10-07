@@ -66,10 +66,17 @@ describe "RbConfig::CONFIG" do
   entries = {
     "RUBY_SO_NAME"      => "rubinius-#{Rubinius::VERSION}",
     "ruby_install_name" => "rbx",
-    "ruby_version"      => "1.8",
   }
 
   it_has_entries 'RbConfig::CONFIG', entries
+
+  ruby_version_is "1.8"..."1.9" do
+    it_has_entries 'RbConfig::CONFIG', "ruby_version" => "1.8"
+  end
+
+  ruby_version_is "1.9" do
+    it_has_entries 'RbConfig::CONFIG', "ruby_version" => "1.9"
+  end
 end
 
 describe "RbConfig::MAKEFILE_CONFIG" do
