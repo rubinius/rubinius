@@ -4,6 +4,7 @@ binding.rbc
 proc.rbc
 autoload.rbc
 module.rbc
+module18.rbc
 enumerable.rbc
 enumerator.rbc
 argf.rbc
@@ -29,6 +30,7 @@ bytearray.rbc
 channel.rbc
 executable.rbc
 static_scope.rbc
+static_scope18.rbc
 hook.rbc
 codeloader.rbc
 compiled_method.rbc
