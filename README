@@ -32,8 +32,24 @@ To install Rubinius, use the following steps:
 When the install process finishes, follow the directions to add the Rubinius
 executable (bin) directory to your PATH.
 
+Rubinius comes with RubyGems built-in. To install a gem, run the following:
+
+  rbx gem install <gem_name>
+
 After installing Rubinius, you can access the built-in documentation at any
 time by running 'rbx docs'.
+
+3.1 Installing with RVM
+
+You may wish to use the Ruby Version Manager (RVM) project to install
+Rubinius. For the most current documentation for RVM, please visit
+http://rvm.beginrescueend.com. Generally, the following commands should work:
+
+  rvm install rbx         # Installs the current release
+  rvm install rbx-head    # Installs the Rubinius master branch
+
+Once installed, 'rvm use rbx' should make Rubinius the available Ruby.
+
 
 4. Version 1.1
 
