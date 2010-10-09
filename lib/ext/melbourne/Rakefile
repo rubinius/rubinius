@@ -21,7 +21,7 @@ def ext_dir
 end
 
 def source_files
-  sources("grammar.cpp")
+  sources("grammar18.cpp", "grammar19.cpp")
 end
 
 # Setup project files

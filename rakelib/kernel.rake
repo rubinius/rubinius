@@ -115,7 +115,8 @@ end
 
 parser_ext_files = FileList[
   "lib/ext/melbourne/**/*.{c,h}pp",
-  "lib/ext/melbourne/grammar.y",
+  "lib/ext/melbourne/grammar18.y",
+  "lib/ext/melbourne/grammar19.y",
   "lib/ext/melbourne/lex.c.tab"
 ]
 

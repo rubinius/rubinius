@@ -8,6 +8,10 @@ module Rubinius
   class Executable
     attr_accessor :primitive
   end
+
+  def self.ruby19?
+    RUBY_VERSION =~ /^1\.9/
+  end
 end
 
 class Array

@@ -43,6 +43,15 @@ module Rubinius
       new(name, line).parse_file
     end
 
+    # Select the default parser language
+    if Rubinius.ruby19?
+      alias_method :file_to_ast,   :file_to_ast_19
+      alias_method :string_to_ast, :string_to_ast_19
+    else
+      alias_method :file_to_ast,   :file_to_ast_18
+      alias_method :string_to_ast, :string_to_ast_18
+    end
+
     def initialize(name, line, transforms=[])
       @name = name
       @line = line

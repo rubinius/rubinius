@@ -31,6 +31,10 @@
 
 namespace melbourne {
 
+rb_parse_state *alloc_parse_state();
+
+namespace grammar19 {
+
 #ifndef isnumber
 #define isnumber isdigit
 #endif
@@ -245,8 +249,6 @@ void pop_start_line(rb_parse_state* st) {
 
 static QUID rb_parser_sym(const char *name);
 static QUID rb_id_attrset(QUID);
-
-rb_parse_state *alloc_parse_state();
 
 static unsigned long scan_oct(const char *start, int len, int *retlen);
 static unsigned long scan_hex(const char *start, int len, int *retlen);
@@ -5998,4 +6000,5 @@ quark id_to_quark(QUID id) {
   return qrk;
 }
 
+}; // namespace grammar18
 }; // namespace melbourne
