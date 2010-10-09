@@ -432,21 +432,16 @@ class String
       b = to.__data__[i]
       i += 1
 
+      a = a.toupper! if a.islower
+      b = b.toupper! if b.islower
       r = a - b
-      next if r == 0
-
-      if (a.islower or a.isupper) and (b.islower or b.isupper)
-        r += r < 0 ? ?\s : -?\s
-      end
 
       next if r == 0
-      return -1 if r < 0
-      return 1
+      return r < 0 ? -1 : 1
     end
 
     return 0 if order == 0
-    return -1 if order < 0
-    return 1
+    return order < 0 ? -1 : 1
   end
 
   # If <i>integer</i> is greater than the length of <i>self</i>, returns a new
