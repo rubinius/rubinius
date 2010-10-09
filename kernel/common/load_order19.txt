@@ -40,6 +40,7 @@ fixnum.rbc
 dir.rbc
 dir_glob.rbc
 dtrace.rbc
+encoding.rbc
 env.rbc
 errno.rbc
 eval.rbc
