@@ -146,7 +146,7 @@ containing the Rubinius standard library files.
         options.stop_parsing
       end
 
-      options.doc "Script is any valid Ruby source file (.rb) or a compiled Ruby file (.rbc)."
+      options.doc "Script is any valid Ruby source code file"
 
       options.doc "\nRuby options"
       options.on "-", "Read and evaluate code from STDIN" do
