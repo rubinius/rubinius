@@ -48,6 +48,11 @@ unless BUILD_CONFIG[:build_ruby] == build_ruby
   exit 1
 end
 
+# Set the build compiler to the configured compiler unless
+# the compiler is set via CC environment variable.
+ENV['CC'] = BUILD_CONFIG[:compiler] unless ENV['CC']
+ENV['CXX'] = BUILD_CONFIG[:compiler] unless ENV['CXX']
+
 $dlext = RbConfig::CONFIG["DLEXT"]
 
 task :default => %w[build vm:test] do
