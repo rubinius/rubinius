@@ -69,20 +69,6 @@ module Rubinius
         puts
       end
 
-      def print_decoded(cm)
-        return unless match? cm.name
-
-        print_header cm
-        puts cm.decode if @bytecode
-
-        if @assembly
-          puts
-          mm = cm.make_machine_method
-          mm.disassemble
-        end
-        print_footer
-      end
-
       def print_method(cm)
         print_decoded cm
 
