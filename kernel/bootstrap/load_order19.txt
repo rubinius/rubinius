@@ -1,5 +1,6 @@
 alias.rbc
 array.rbc
+basicobject.rbc
 bignum.rbc
 block_environment.rbc
 bytearray.rbc
@@ -16,6 +17,7 @@ fixnum.rbc
 gc.rbc
 io.rbc
 iseq.rbc
+kernel19.rbc
 kernel.rbc
 lookuptable.rbc
 methodtable.rbc

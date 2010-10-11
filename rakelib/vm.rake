@@ -79,6 +79,7 @@ task :bogo_field_extract => TYPE_GEN
 # CompactLookupTable inherits from Tuple, so the header
 # for compactlookuptable.hpp has to come after tuple.hpp
 field_extract_headers = %w[
+  vm/builtin/basicobject.hpp
   vm/builtin/object.hpp
   vm/builtin/integer.hpp
   vm/builtin/fixnum.hpp
