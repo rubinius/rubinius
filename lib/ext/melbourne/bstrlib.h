@@ -23,12 +23,6 @@ extern "C" {
 #include <limits.h>
 #include <ctype.h>
 
-#if !defined (BSTRLIB_VSNP_OK) && !defined (BSTRLIB_NOVSNP)
-# if defined (__TURBOC__) && !defined (__BORLANDC__)
-#  define BSTRLIB_NOVSNP
-# endif
-#endif
-
 #define BSTR_ERR (-1)
 #define BSTR_OK (0)
 #define BSTR_BS_BUFF_LENGTH_GET (0)
@@ -126,35 +120,6 @@ extern int btolower (bstring b);
 extern int bltrimws (bstring b);
 extern int brtrimws (bstring b);
 extern int btrimws (bstring b);
-
-#if !defined (BSTRLIB_NOVSNP)
-extern bstring bformat (const char * fmt, ...);
-extern int bformata (bstring b, const char * fmt, ...);
-extern int bassignformat (bstring b, const char * fmt, ...);
-extern int bvcformata (bstring b, int count, const char * fmt, va_list arglist);
-
-#define bvformata(ret, b, fmt, lastarg) { \
-bstring bstrtmp_b = (b); \
-const char * bstrtmp_fmt = (fmt); \
-int bstrtmp_r = BSTR_ERR, bstrtmp_sz = 16; \
-	for (;;) { \
-		va_list bstrtmp_arglist; \
-		va_start (bstrtmp_arglist, lastarg); \
-		bstrtmp_r = bvcformata (bstrtmp_b, bstrtmp_sz, bstrtmp_fmt, bstrtmp_arglist); \
-		va_end (bstrtmp_arglist); \
-		if (bstrtmp_r >= 0) { /* Everything went ok */ \
-			bstrtmp_r = BSTR_OK; \
-			break; \
-		} else if (-bstrtmp_r <= bstrtmp_sz) { /* A real error? */ \
-			bstrtmp_r = BSTR_ERR; \
-			break; \
-		} \
-		bstrtmp_sz = -bstrtmp_r; /* Doubled or target size */ \
-	} \
-	ret = bstrtmp_r; \
-}
-
-#endif
 
 typedef int (*bNgetc) (void *parm);
 typedef size_t (* bNread) (void *buff, size_t elsize, size_t nelem, void *parm);
