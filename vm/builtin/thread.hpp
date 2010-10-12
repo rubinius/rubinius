@@ -102,7 +102,7 @@ namespace rubinius {
      *  @see  kernel/common/thread.rb
      */
     // Ruby.primitive :thread_allocate
-    static Thread* allocate(STATE);
+    static Thread* allocate(STATE, Object* self);
 
     /**
      *  Returns the Thread object for the state.
@@ -192,7 +192,7 @@ namespace rubinius {
      *
      *  @see  Thread::allocate().
      */
-    static Thread* create(STATE, VM* target, pthread_t tid = 0);
+    static Thread* create(STATE, VM* target, Object* self, pthread_t tid = 0);
 
 
   public:   /* Instance methods */

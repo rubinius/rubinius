@@ -37,8 +37,8 @@ class Thread
   end
 
   def self.new(*args, &block)
-    thr = allocate()
-    thr.initialize *args, &block
+    thr = allocate
+    thr.send(:initialize, *args, &block)
     thr.fork
 
     return thr
@@ -49,6 +49,7 @@ class Thread
   end
 
   def initialize(*args, &block)
+    Kernel.raise ThreadError, "must be called with a block" unless block_given?
     setup(false)
     @args = args
     @block = block
