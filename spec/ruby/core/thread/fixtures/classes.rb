@@ -6,6 +6,13 @@ unless defined? Channel
 end
 
 module ThreadSpecs
+
+  class SubThread < Thread
+    def initialize(*args)
+      super { args.first << 1 }
+    end
+  end
+
   class Status
     attr_reader :thread, :inspect, :status
     def initialize(thread)
