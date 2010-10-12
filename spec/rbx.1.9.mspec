@@ -104,7 +104,8 @@ class MSpecScript
     'spec/build',
 
     # Excluded while building out basic 1.9 infrastructure
-    '^spec/ruby/core/basicobject',
+    '^spec/ruby/core/basicobject/basic_object_class',
+    '^spec/ruby/core/basicobject/metaclass',
     '^spec/ruby/core/encoding/default_internal',
     '^spec/ruby/core/kernel/define_singleton_method',
     '^spec/ruby/core/method/parameters',
