@@ -16,4 +16,8 @@ describe "Thread.new" do
     t.join
     arr.should == [a,b,c]
   end
+
+  it "raises an exception when not given a block" do
+    lambda { Thread.new }.should raise_error(ThreadError)
+  end
 end
