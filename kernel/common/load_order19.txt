@@ -15,6 +15,7 @@ undefined.rbc
 hash.rbc
 type.rbc
 kernel.rbc
+kernel19.rbc
 identitymap.rbc
 array.rbc
 loadedfeatures.rbc
