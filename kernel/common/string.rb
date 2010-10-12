@@ -4,7 +4,6 @@ DEFAULT_RECORD_SEPARATOR = "\n"
 
 class String
   include Comparable
-  include Enumerable
 
   attr_accessor :data
   attr_accessor :num_bytes
@@ -791,7 +790,6 @@ class String
     self
   end
 
-  alias_method :each, :each_line
   alias_method :lines, :each_line
 
 
@@ -2173,22 +2171,6 @@ class String
     end
 
     modified ? self : nil
-  end
-
-  def upto(stop, exclusive=false)
-    stop = StringValue(stop)
-    return self if self > stop
-
-    after_stop = exclusive ? stop : stop.succ
-    current = self
-
-    until current == after_stop
-      yield current
-      current = StringValue(current.succ)
-      break if current.size > stop.size || current.size == 0
-    end
-
-    self
   end
 
   def tr_trans(source, replacement, squeeze)

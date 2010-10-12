@@ -6,18 +6,22 @@ proc.rbc
 autoload.rbc
 module.rbc
 module19.rbc
+enumerable19.rbc
 enumerable.rbc
 enumerator.rbc
+enumerator19.rbc
 argf.rbc
 tuple.rbc
 exception.rbc
 undefined.rbc
 hash.rbc
+hash19.rbc
 type.rbc
 kernel.rbc
 kernel19.rbc
 identitymap.rbc
 array.rbc
+array19.rbc
 loadedfeatures.rbc
 global.rbc
 backtrace.rbc
@@ -26,6 +30,7 @@ numeric.rbc
 ctype.rbc
 precision.rbc
 integer.rbc
+integer19.rbc
 bignum.rbc
 block_environment.rbc
 bytearray.rbc
@@ -40,6 +45,7 @@ continuation.rbc
 delegated_method.rbc
 fixnum.rbc
 dir.rbc
+dir19.rbc
 dir_glob.rbc
 dtrace.rbc
 encoding.rbc
@@ -49,7 +55,9 @@ eval.rbc
 false.rbc
 fiber.rbc
 io.rbc
+io19.rbc
 file.rbc
+file19.rbc
 filetest.rbc
 float.rbc
 immediate.rbc
@@ -65,6 +73,7 @@ native_method.rbc
 nil.rbc
 objectspace.rbc
 string.rbc
+string19.rbc
 range.rbc
 rubinius.rbc
 struct.rbc

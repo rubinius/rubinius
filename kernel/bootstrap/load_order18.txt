@@ -1,5 +1,6 @@
 alias.rbc
 array.rbc
+array18.rbc
 bignum.rbc
 block_environment.rbc
 bytearray.rbc

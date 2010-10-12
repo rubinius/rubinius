@@ -6,6 +6,7 @@ autoload.rbc
 module.rbc
 module18.rbc
 enumerable.rbc
+enumerable18.rbc
 enumerator.rbc
 argf.rbc
 tuple.rbc
@@ -16,6 +17,7 @@ type.rbc
 kernel.rbc
 identitymap.rbc
 array.rbc
+array18.rbc
 loadedfeatures.rbc
 global.rbc
 backtrace.rbc
@@ -62,6 +64,7 @@ native_method.rbc
 nil.rbc
 objectspace.rbc
 string.rbc
+string18.rbc
 range.rbc
 rubinius.rbc
 struct.rbc
