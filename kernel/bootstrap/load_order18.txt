@@ -26,6 +26,7 @@ proc.rbc
 process.rbc
 regexp.rbc
 rubinius.rbc
+rubinius18.rbc
 selector.rbc
 sendsite.rbc
 static_scope.rbc
