@@ -351,11 +351,13 @@ namespace rubinius {
     }
   }
 
-  void Environment::load_directory(std::string dir) {
-    std::string path = dir + "/load_order.txt";
+  void Environment::load_directory(std::string dir, std::string version) {
+    // Read the version-specific load order file.
+    std::string path = dir + "/load_order" + version + ".txt";
     std::ifstream stream(path.c_str());
     if(!stream) {
-      throw std::runtime_error("Unable to load directory, load_order.txt is missing");
+      std::string msg = "Unable to load directory, " + path + " is missing";
+      throw std::runtime_error(msg);
     }
 
     while(!stream.eof()) {
@@ -529,12 +531,11 @@ namespace rubinius {
     // Load alpha
     run_file(root + "/alpha.rbc");
 
-    // Read the index and load the directories listed.
-    std::string base = root;
+    std::string version;
     if(shared->config.version_19) {
-      base += "/19";
+      version = "19";
     } else {
-      base += "/18";
+      version = "18";
     }
 
     while(!stream.eof()) {
@@ -546,7 +547,7 @@ namespace rubinius {
       // skip empty lines
       if(line.size() == 0) continue;
 
-      load_directory(base + "/" + line);
+      load_directory(root + "/" + line, version);
     }
   }
 

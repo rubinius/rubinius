@@ -55,10 +55,10 @@ end
 
 ["18", "19"].each do |ver|
   dir_names.each do |dir|
-    directory(runtime_dir = "runtime/#{ver}/#{dir}")
+    directory(runtime_dir = "runtime/#{dir}")
     runtime << runtime_dir
 
-    load_order = "runtime/#{ver}/#{dir}/load_order.txt"
+    load_order = "runtime/#{dir}/load_order#{ver}.txt"
     runtime << load_order
 
     kernel_load_order = "kernel/#{dir}/load_order#{ver}.txt"
@@ -68,7 +68,7 @@ end
     end
 
     kernel_dir  = "kernel/#{dir}/"
-    runtime_dir = "runtime/#{ver}/#{dir}/"
+    runtime_dir = "runtime/#{dir}/"
 
     IO.foreach kernel_load_order do |name|
       rbc = runtime_dir + name.chomp!
