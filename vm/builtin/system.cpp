@@ -1011,4 +1011,8 @@ namespace rubinius {
   Object* System::vm_ruby19_p(STATE) {
     return state->shared.config.version_19 ? Qtrue : Qfalse;
   }
+
+  Object* System::vm_ruby20_p(STATE) {
+    return state->shared.config.version_20 ? Qtrue : Qfalse;
+  }
 }

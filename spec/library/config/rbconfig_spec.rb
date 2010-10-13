@@ -74,8 +74,12 @@ describe "RbConfig::CONFIG" do
     it_has_entries 'RbConfig::CONFIG', "ruby_version" => "1.8"
   end
 
-  ruby_version_is "1.9" do
+  ruby_version_is "1.9"..."2.0" do
     it_has_entries 'RbConfig::CONFIG', "ruby_version" => "1.9"
+  end
+
+  ruby_version_is "2.0" do
+    it_has_entries 'RbConfig::CONFIG', "ruby_version" => "2.0"
   end
 end
 

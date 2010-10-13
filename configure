@@ -33,6 +33,7 @@ class Configure
     @rake = ENV['RAKE'] || 'rake'
     @install = false
     @version_19 = false
+    @version_20 = false
 
     # LLVM settings
     @use_llvm               = true
@@ -68,10 +69,10 @@ class Configure
     @program_name = "rbx"
 
     # Essential settings (modify these for creating releases)
-    @libversion = "1.1"
-    @version = "#{@libversion}.0"
-    @release_date = "2010-09-23"
-    @config_version = 21
+    @libversion = "1.2"
+    @version = "#{@libversion}.0dev"
+    @release_date = "xxxx-xx-xx"
+    @config_version = 22
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
@@ -109,6 +110,10 @@ class Configure
 
     o.on "--default-1.9", "Support Ruby version 1.9 by default" do
       @version_19 = true
+    end
+
+    o.on "--default-2.0", "Support Ruby version 2.0 by default" do
+      @version_20 = true
     end
 
     o.doc "\n Compiler settings"
@@ -729,6 +734,7 @@ end
 #define RBX_BUILD_REV     "#{@buildrev}"
 #define RBX_LDSHARED      "#{@ldshared}"
 #define RBX_DEFAULT_19    #{@version_19}
+#define RBX_DEFAULT_20    #{@version_20}
 #define RBX_RELEASE_DATE  "#{@release_date}"
 #define RBX_SIZEOF_LONG   #{@sizeof_long}
       EOC

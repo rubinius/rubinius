@@ -110,4 +110,9 @@ module Rubinius
     Ruby.primitive :vm_ruby19_p
     raise PrimitiveFailure, "Rubinius.ruby19? failed"
   end
+
+  def self.ruby20?
+    Ruby.primitive :vm_ruby20_p
+    raise PrimitiveFailure, "Rubinius.ruby20? failed"
+  end
 end

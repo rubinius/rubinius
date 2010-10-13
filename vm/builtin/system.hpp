@@ -277,6 +277,9 @@ namespace rubinius {
     // Ruby.primitive :vm_ruby19_p
     static Object* vm_ruby19_p(STATE);
 
+    // Ruby.primitive :vm_ruby20_p
+    static Object* vm_ruby20_p(STATE);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

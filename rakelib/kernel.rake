@@ -53,7 +53,7 @@ def kernel_file_task(runtime, signature, rb, rbc=nil)
   runtime << rbc
 end
 
-["18", "19"].each do |ver|
+["18", "19", "20"].each do |ver|
   dir_names.each do |dir|
     directory(runtime_dir = "runtime/#{dir}")
     runtime << runtime_dir

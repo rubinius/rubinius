@@ -19,6 +19,7 @@ namespace rubinius {
 
     // Language
     config::Bool    version_19;
+    config::Bool    version_20;
 
     // JIT/Interpreter
     config::Bool    dynamic_interpreter_enabled;
@@ -74,6 +75,7 @@ namespace rubinius {
       , gc_autopack(this,     "gc.autopack", true)
 
       , version_19(this, "19", RBX_DEFAULT_19)
+      , version_20(this, "20", RBX_DEFAULT_20)
 
       , dynamic_interpreter_enabled(this, "interpreter.dynamic")
       , jit_dump_code(this,   "jit.dump_code", default_jit_dump_code)
@@ -125,6 +127,9 @@ namespace rubinius {
 
       version_19.set_description(
           "Set the supported language version to 1.9");
+
+      version_20.set_description(
+          "Set the supported language version to 2.0");
 
       jit_dump_code.set_description(
           "1 == show simple IR, 2 == show optimized IR, 4 == show machine code");

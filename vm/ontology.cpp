@@ -85,7 +85,7 @@ namespace rubinius {
     // Now do Object
     Class* basicobject = 0;
     Class* object;
-    if(state->shared.config.version_19) {
+    if(state->shared.config.version_19 || state->shared.config.version_20) {
       basicobject = new_basic_class(force_as<Class>(Qnil));
       GO(basicobject).set(basicobject);
       basicobject->set_object_type(state, BasicObjectType);
@@ -143,7 +143,7 @@ namespace rubinius {
      */
 
     // BasicObject's MetaClass instance has Class for a superclass
-    if(state->shared.config.version_19) {
+    if(state->shared.config.version_19 || state->shared.config.version_20) {
       MetaClass::attach(this, basicobject, cls);
     }
 
@@ -156,7 +156,7 @@ namespace rubinius {
     MetaClass::attach(this, cls, mc);
 
     // See?
-    if(state->shared.config.version_19) {
+    if(state->shared.config.version_19 || state->shared.config.version_20) {
       assert(basicobject->superclass() == Qnil);
       assert(object->superclass() == basicobject);
     } else {
@@ -180,7 +180,7 @@ namespace rubinius {
 
     // Now, finish initializing the basic Class/Module
     G(object)->setup(this, "Object");
-    if(state->shared.config.version_19) {
+    if(state->shared.config.version_19 || state->shared.config.version_20) {
       G(basicobject)->setup(this, "BasicObject", G(object));
     }
     G(klass)->setup(this, "Class");

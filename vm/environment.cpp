@@ -532,7 +532,9 @@ namespace rubinius {
     run_file(root + "/alpha.rbc");
 
     std::string version;
-    if(shared->config.version_19) {
+    if(shared->config.version_20) {
+      version = "20";
+    } else if(shared->config.version_19) {
       version = "19";
     } else {
       version = "18";

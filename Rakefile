@@ -27,7 +27,7 @@ end
 require config_rb
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 
-unless BUILD_CONFIG[:config_version] == 21
+unless BUILD_CONFIG[:config_version] == 22
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
@@ -106,6 +106,12 @@ task :ci19 do
   run_ci
 end
 
+desc "Run CI in 2.0 mode"
+task :ci20 do
+  ENV['CI_MODE_FLAG'] = "-T -X20"
+  run_ci
+end
+
 desc 'Remove rubinius build files'
 task :clean => %w[
   vm:clean
@@ -156,6 +162,11 @@ end
 desc "Run the CI specs in 1.9 mode but do not rebuild on failure"
 task :spec19 do
   run_specs "-T -X19"
+end
+
+desc "Run the CI specs in 2.0 mode but do not rebuild on failure"
+task :spec20 do
+  run_specs "-T -X20"
 end
 
 desc "Run CI in default (configured) mode but do not rebuild on failure"
