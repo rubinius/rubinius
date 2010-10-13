@@ -152,7 +152,7 @@ namespace thread {
     }
 
     bool in_self_p() {
-      return pthread_self() == native_;
+      return pthread_equal(pthread_self(), native_);
     }
 
     void cancel() {

@@ -236,7 +236,7 @@ namespace rubinius {
     SYNC(state);
 
     if(ruby_critical_thread_ == 0 ||
-         ruby_critical_thread_ != pthread_self()) {
+         !pthread_equal(ruby_critical_thread_, pthread_self())) {
 
       UNSYNC;
       GCIndependent gc_guard(state);
@@ -250,7 +250,8 @@ namespace rubinius {
   void SharedState::clear_critical(STATE) {
     SYNC(state);
 
-    if(ruby_critical_thread_ == pthread_self()) {
+    if(pthread_equal(ruby_critical_thread_, pthread_self())) {
+      ruby_critical_thread_ = 0;
       ruby_critical_lock_.unlock();
     }
   }

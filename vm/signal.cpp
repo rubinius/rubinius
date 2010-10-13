@@ -109,7 +109,7 @@ namespace rubinius {
     if(vm_->should_interrupt_with_signal()) {
       vm_->check_local_interrupts = true;
 
-      if(pthread_self() != main_thread) {
+      if(!pthread_equal(pthread_self(), main_thread)) {
         pthread_kill(main_thread, SIGVTALRM);
       }
       return;
