@@ -258,6 +258,7 @@ class Module
     method = Rubinius::CompiledMethod.of_sender
 
     string = StringValue(string)
+    filename = StringValue(filename)
 
     cm = Rubinius::Compiler.compile_eval string, variables, filename, line
 
