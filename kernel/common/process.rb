@@ -450,12 +450,12 @@ module Process
         raise "not implemented"
       end
       def setgid(gid)
-        FFI::Platform::POSIX.setgid gid
+        ret = FFI::Platform::POSIX.setgid gid
         Errno.handle if ret == -1
         nil
       end
       def setuid(uid)
-        FFI::Platform::POSIX.setuid uid
+        ret = FFI::Platform::POSIX.setuid uid
         Errno.handle if ret == -1
         nil
       end
@@ -465,7 +465,7 @@ module Process
         nil
       end
       def seteuid(euid)
-        FFI::Platform::POSIX.seteuid euid
+        ret = FFI::Platform::POSIX.seteuid euid
         Errno.handle if ret == -1
         nil
       end
@@ -476,22 +476,22 @@ module Process
         setreuid(ruid, -1)
       end
       def setregid(rid, eid)
-        FFI::Platform::POSIX.setregid rid, eid
+        ret = FFI::Platform::POSIX.setregid rid, eid
         Errno.handle if ret == -1
         nil
       end
       def setreuid(rid)
-        FFI::Platform::POSIX.setreuid rid
+        ret = FFI::Platform::POSIX.setreuid rid
         Errno.handle if ret == -1
         nil
       end
       def setresgid(rid, eid, sid)
-        FFI::Platform::POSIX.setresgid rid, eid, sid
+        ret = FFI::Platform::POSIX.setresgid rid, eid, sid
         Errno.handle if ret == -1
         nil
       end
       def setresuid(rid, eig, sid)
-        FFI::Platform::POSIX.setresuid rid, eid, sid
+        ret = FFI::Platform::POSIX.setresuid rid, eid, sid
         Errno.handle if ret == -1
         nil
       end
@@ -501,7 +501,8 @@ module Process
   module UID
     class << self
       def change_privilege(uid)
-        FFI::Platform::POSIX.setreuid(uid, uid)
+        ret = FFI::Platform::POSIX.setreuid(uid, uid)
+        Errno.handle if ret == -1
         uid
       end
 
