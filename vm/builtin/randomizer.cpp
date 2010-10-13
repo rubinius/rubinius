@@ -202,7 +202,7 @@ namespace rubinius {
 
 
   void Randomizer::init(STATE) {
-    GO(randomizer).set(state->new_class("Randomizer", G(object)));
+    GO(randomizer).set(state->new_class("Randomizer", G(object), G(rubinius)));
     G(randomizer)->set_object_type(state, RandomizerType);
   }
 
