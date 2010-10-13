@@ -42,4 +42,12 @@ class String
     end
     self
   end
+
+  def encoding
+    @encoding ||= Encoding.new
+  end
+
+  def force_encoding(name)
+    self
+  end
 end
