@@ -84,23 +84,22 @@ The original copyright notice follows.
 
 template <typename T>
 static T make_mask(T x) {
-  for (unsigned int i = 1; i < sizeof(T) * 8; i *= 2)
+  for(unsigned int i = 1; i < sizeof(T) * 8; i *= 2)
     x = x | x >> i;
   return x;
 }
 
 namespace rubinius {
-  uint32_t *Randomizer::rng_data() {
+  uint32_t* Randomizer::rng_data() {
     return (uint32_t*)rng_state()->raw_bytes();
   }
 
   /* initializes rng_state[N] with a seed */
   void Randomizer::init_genrand(uint32_t s) {
-    uint32_t *rng_state = rng_data();
+    uint32_t* rng_state = rng_data();
 
-    int j;
     rng_state[0] = s;
-    for (j=1; j<N; j++) {
+    for(int j = 1; j < N; j++) {
       rng_state[j] = (1812433253UL * (rng_state[j-1] ^ (rng_state[j-1] >> 30)) + j);
       /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
       /* In the previous versions, MSBs of the seed affect   */
@@ -117,23 +116,34 @@ namespace rubinius {
   void Randomizer::init_by_array(uint32_t init_key[], int key_length) {
     init_genrand(19650218UL);
 
-    uint32_t *rng_state = rng_data();
+    uint32_t* rng_state = rng_data();
 
-    int i, j, k;
-    i=1; j=0;
-    k = (N>key_length ? N : key_length);
-    for (; k; k--) {
+    int i = 1;
+    int j = 0;
+    int k = (N > key_length ? N : key_length);
+
+    for(; k; k--) {
       rng_state[i] = (rng_state[i] ^ ((rng_state[i-1] ^ (rng_state[i-1] >> 30)) * 1664525UL))
-        + init_key[j] + j; /* non linear */
-      i++; j++;
-      if (i>=N) { rng_state[0] = rng_state[N-1]; i=1; }
-      if (j>=key_length) j=0;
-    }
-    for (k=N-1; k; k--) {
-      rng_state[i] = (rng_state[i] ^ ((rng_state[i-1] ^ (rng_state[i-1] >> 30)) * 1566083941UL))
-        - i; /* non linear */
+                       + init_key[j] + j; /* non linear */
       i++;
-      if (i>=N) { rng_state[0] = rng_state[N-1]; i=1; }
+      j++;
+
+      if(i >= N) {
+        rng_state[0] = rng_state[N-1];
+        i = 1;
+      }
+
+      if(j >= key_length) j = 0;
+    }
+
+    for(k = N-1; k; k--) {
+      rng_state[i] = (rng_state[i] ^ ((rng_state[i-1] ^ (rng_state[i-1] >> 30)) * 1566083941UL))
+                       - i; /* non linear */
+      i++;
+      if(i >= N) {
+        rng_state[0] = rng_state[N-1];
+        i = 1;
+      }
     }
 
     rng_state[0] = 0x80000000UL; /* MSB is 1; assuring non-zero initial array */
@@ -141,18 +151,19 @@ namespace rubinius {
   }
 
   void Randomizer::next_state() {
-    uint32_t *rng_state = rng_data();
+    uint32_t* rng_state = rng_data();
 
     left = N;
     next = 0;
 
-    uint32_t *p=rng_state;
+    uint32_t* p = rng_state;
 
     int j;
-    for (j=N-M+1; --j; p++)
+
+    for(j = N-M+1; --j; p++)
       *p = p[M] ^ TWIST(p[0], p[1]);
 
-    for (j=M; --j; p++)
+    for(j = M; --j; p++)
       *p = p[M-N] ^ TWIST(p[0], p[1]);
 
     *p = p[M-N] ^ TWIST(p[0], rng_state[0]);
@@ -160,8 +171,8 @@ namespace rubinius {
 
   /* generates a random number on [0,0xffffffff]-interval */
   uint32_t Randomizer::rb_genrand_int32() {
-    if (--left == 0) next_state();
-    uint32_t *rng_state = rng_data();
+    if(--left == 0) next_state();
+    uint32_t* rng_state = rng_data();
 
     uint32_t y;
     y = rng_state[next++];
@@ -180,21 +191,22 @@ namespace rubinius {
 
   retry:
     native_uint val = 0;
-    for (int i = sizeof(native_uint)/4-1; 0 <= i; i--) {
-      if (mask >> (i * 32)) {
+    for(int i = sizeof(native_uint)/4-1; 0 <= i; i--) {
+      if(mask >> (i * 32)) {
         val |= rb_genrand_int32() << (i * 32);
         val &= mask;
-        if (limit < val)
-          goto retry;
+        if(limit < val) goto retry;
       }
     }
     return val;
   }
 
-  /* generates a random number on [0,1) with 53-bit resolution*/
+  /* generates a random number on [0,1] with 53-bit resolution*/
   double Randomizer::rb_genrand_real() {
-    uint32_t a=rb_genrand_int32()>>5, b=rb_genrand_int32()>>6;
-    return(a*67108864.0+b)*(1.0/9007199254740992.0);
+    uint32_t a = rb_genrand_int32()>>5;
+    uint32_t b = rb_genrand_int32()>>6;
+
+    return(a * 67108864.0 + b) * (1.0 / 9007199254740992.0);
   }
   /* These real versions are due to Isaku Wada, 2002/01/09 added */
 
@@ -232,7 +244,7 @@ namespace rubinius {
 
 #ifdef S_ISCHR
     int fd;
-    if ((fd = open("/dev/urandom", O_RDONLY
+    if((fd = open("/dev/urandom", O_RDONLY
 #ifdef O_NONBLOCK
         |O_NONBLOCK
 #endif
@@ -244,11 +256,10 @@ namespace rubinius {
 #endif
         )) >= 0) {
       struct stat statbuf;
-      if (fstat(fd, &statbuf) == 0 && S_ISCHR(statbuf.st_mode)) {
+      if(fstat(fd, &statbuf) == 0 && S_ISCHR(statbuf.st_mode)) {
         /* If this fails, we're no worse off than if it hadn't opened to
          * begin with */
-        int ignored;
-        ignored = read(fd, seed, 4 * sizeof(uint32_t));
+        (void)read(fd, seed, 4 * sizeof(uint32_t));
       }
       close(fd);
     }
@@ -270,24 +281,24 @@ namespace rubinius {
     size_t longs;
     uint32_t* data;
 
-    if (!seed->fixnum_p())
+    if(!seed->fixnum_p())
       seed = as<Bignum>(seed)->abs(state);
 
-    if (seed->fixnum_p()) {
+    if(seed->fixnum_p()) {
       native_uint s = seed->to_native();
 
       // Remove the sign bit, for no good reason... but that's what MRI
       // does.
       s &= ~((native_uint)1 << (sizeof(native_uint) * 8 - 1));
 
-      if (s <= 0xffffffffUL) {
+      if(s <= 0xffffffffUL) {
         init_genrand((uint32_t)s);
         return Qnil;
       }
 
       longs = sizeof(native_uint) / 4;
       data = (uint32_t*)alloca(longs * 4);
-      for (unsigned int i = 0; i < longs; i++)
+      for(unsigned int i = 0; i < longs; i++)
         data[i] = (uint32_t)(s >> (i * 32));
 
       init_by_array(data, longs);
@@ -306,7 +317,7 @@ namespace rubinius {
   }
 
   Integer* Randomizer::rand_int(STATE, Integer* max) {
-    if (max->fixnum_p()) {
+    if(max->fixnum_p()) {
       native_uint max_i = max->to_native();
       native_uint result = limited_rand(max_i);
       return Integer::from(state, result);
@@ -322,19 +333,17 @@ namespace rubinius {
 
   retry:
     uint32_t mask = 0;
-    int i, boundary = 1;
+    int boundary = 1;
 
-    for (i = longs - 1; i >= 0; i--) {
+    for(int i = longs - 1; i >= 0; i--) {
       uint32_t rnd;
       uint32_t lim = max_data[i];
       mask = mask ? 0xffffffff : make_mask(lim);
-      if (mask) {
+      if(mask) {
         rnd = rb_genrand_int32() & mask;
-        if (boundary) {
-          if (lim < rnd)
-            goto retry;
-          if (rnd < lim)
-            boundary = 0;
+        if(boundary) {
+          if(lim < rnd) goto retry;
+          if(rnd < lim) boundary = 0;
         }
       } else {
         rnd = 0;
@@ -342,9 +351,7 @@ namespace rubinius {
       result_data[i] = rnd;
     }
 
-    Integer* result = Bignum::from_array(state, result_data, longs);
-
-    return result;
+    return Bignum::from_array(state, result_data, longs);
   }
 
   Float* Randomizer::rand_float(STATE) {
