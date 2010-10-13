@@ -1,0 +1,10 @@
+fails:CGI::HtmlExtension#checkbox when passed no arguments returns a checkbox-'input'-element without a name
+fails:CGI::HtmlExtension#checkbox when passed no arguments ignores a passed block
+fails:CGI::HtmlExtension#checkbox when passed name returns a checkbox-'input'-element with the passed name
+fails:CGI::HtmlExtension#checkbox when passed name ignores a passed block
+fails:CGI::HtmlExtension#checkbox CGI::HtmlExtension#checkbox when passed name, value returns a checkbox-'input'-element with the passed name and value
+fails:CGI::HtmlExtension#checkbox CGI::HtmlExtension#checkbox when passed name, value ignores a passed block
+fails:CGI::HtmlExtension#checkbox when passed name, value, checked returns a checked checkbox-'input'-element with the passed name and value when checked is true
+fails:CGI::HtmlExtension#checkbox when passed name, value, checked ignores a passed block
+fails:CGI::HtmlExtension#checkbox when passed Hash returns a checkbox-'input'-element using the passed Hash for attributes
+fails:CGI::HtmlExtension#checkbox when passed Hash ignores a passed block

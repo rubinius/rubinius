@@ -1,0 +1,1 @@
+fails:Kernel.warn is a private method

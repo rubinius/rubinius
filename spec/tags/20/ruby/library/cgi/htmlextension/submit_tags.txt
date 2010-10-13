@@ -1,0 +1,8 @@
+fails:CGI::HtmlExtension#submit when passed no arguments returns a submit-'input'-element
+fails:CGI::HtmlExtension#submit when passed no arguments ignores a passed block
+fails:CGI::HtmlExtension#submit when passed value returns a submit-'input'-element with the passed value
+fails:CGI::HtmlExtension#submit when passed value ignores a passed block
+fails:CGI::HtmlExtension#submit when passed value, name returns a submit-'input'-element with the passed value and the passed name
+fails:CGI::HtmlExtension#submit when passed value, name ignores a passed block
+fails:CGI::HtmlExtension#submit when passed Hash returns a submit-'input'-element with the passed value
+fails:CGI::HtmlExtension#submit when passed Hash ignores a passed block

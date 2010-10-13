@@ -1,0 +1,1 @@
+fails:Array#clone copies untrusted status from the original

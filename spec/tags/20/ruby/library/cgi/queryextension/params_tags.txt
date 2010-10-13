@@ -1,0 +1,1 @@
+fails:CGI::QueryExtension#params returns the parsed HTTP Query Params

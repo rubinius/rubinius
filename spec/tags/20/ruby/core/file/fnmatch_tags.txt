@@ -1,0 +1,2 @@
+fails:File.fnmatch accepts an object that has a #to_path method
+fails:File.fnmatch? accepts an object that has a #to_path method

@@ -1,0 +1,1 @@
+fails:Kernel#binding is a private method

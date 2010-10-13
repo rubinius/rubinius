@@ -1,0 +1,5 @@
+fails:The __ENCODING__ pseudo-variable is an instance of Encoding
+fails:The __ENCODING__ pseudo-variable is US-ASCII by default
+fails:The __ENCODING__ pseudo-variable is the evaluated strings's one inside an eval
+fails:The __ENCODING__ pseudo-variable is equal to the specified encoding when a magic comment exists
+fails:The __ENCODING__ pseudo-variable raises a SyntaxError if assigned to

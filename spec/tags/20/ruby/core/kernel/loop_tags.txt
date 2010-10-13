@@ -1,0 +1,2 @@
+fails:Kernel.loop is a private method
+fails:Kernel.loop returns an enumerator if no block given

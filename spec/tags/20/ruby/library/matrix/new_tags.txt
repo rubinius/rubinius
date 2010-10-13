@@ -1,0 +1,1 @@
+fails:Matrix.new is private

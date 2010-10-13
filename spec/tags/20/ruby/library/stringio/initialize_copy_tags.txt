@@ -1,0 +1,2 @@
+fails:StringIO#initialize_copy is private
+fails:StringIO#initialize_copy makes both StringIO objects to share position, eof status

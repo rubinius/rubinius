@@ -1,0 +1,1 @@
+fails:OpenStruct#table is protected

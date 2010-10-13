@@ -1,0 +1,2 @@
+fails:The private keyword is overridden when a new class is opened
+fails:The private keyword is no longer in effect when the class is closed

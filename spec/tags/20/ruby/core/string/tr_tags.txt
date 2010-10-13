@@ -1,0 +1,2 @@
+fails:String#tr can replace a 7-bit ASCII character with a multibyte one
+fails:String#tr! raises a RuntimeError if self is frozen

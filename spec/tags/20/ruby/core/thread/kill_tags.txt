@@ -1,0 +1,2 @@
+fails:Thread#kill does not set $!
+fails:Thread#kill cannot be rescued

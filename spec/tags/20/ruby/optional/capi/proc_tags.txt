@@ -1,0 +1,2 @@
+fails:CApiProc rb_proc_new should return a new valid Proc
+fails:CApiProc rb_proc_new returned proc should have arity -1

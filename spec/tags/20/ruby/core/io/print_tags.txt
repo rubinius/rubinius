@@ -1,0 +1,1 @@
+fails:IO#print raises IOError on closed stream

@@ -1,0 +1,2 @@
+fails:Hash#rehash raises a RuntimeError if called on a frozen instance
+fails:Hash#rehash causes a RuntimeError to be raised if called inside an iterator block

@@ -1,0 +1,2 @@
+fails:Array#pack with format 'H' returns an ASCII-8BIT string
+fails:Array#pack with format 'h' returns an ASCII-8BIT string
