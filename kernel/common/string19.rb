@@ -43,6 +43,10 @@ class String
     self
   end
 
+  def ord
+    self[0]
+  end
+
   def encoding
     @encoding ||= Encoding.new
   end
