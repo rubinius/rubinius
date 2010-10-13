@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../shared/call', __FILE__)
+require File.expand_path('../shared/call_arguments', __FILE__)
 
 language_version __FILE__, "call"
 
