@@ -747,7 +747,7 @@ end
       end
 
       if @host =~ /mingw|mswin/
-        f.puts "define RBX_WINDOWS 1"
+        f.puts "#define RBX_WINDOWS 1"
       end
     end
   end
