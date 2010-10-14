@@ -20,6 +20,8 @@
 require 'set'
 
 class DependencyGrapher
+  DEV_NULL = RUBY_PLATFORM =~ /mingw|mswin/ ? 'NUL' : '/dev/null'
+
   class ExpressionEvaluator
     def initialize(expression)
       @expression = expression
@@ -398,7 +400,7 @@ class DependencyGrapher
   end
 
   def get_system_defines
-    lines = `cpp -dM #{@defines} /dev/null`.split("\n")
+    lines = `cpp -dM #{@defines} #{DEV_NULL}`.split("\n")
 
     source = SourceFile.new "sytem_defines", self
     parser = FileParser.new source, @directories

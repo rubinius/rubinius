@@ -11,7 +11,7 @@ config.use_jit = true
 config.compile_with_llvm = false
 
 CONFIG = config
-
+DEV_NULL = RUBY_PLATFORM =~ /mingw|mswin/ ? 'NUL' : '/dev/null'
 
 task :vm => 'vm/vm'
 
@@ -509,7 +509,7 @@ file 'vm/test/runner.cpp' => tests + objs do
   tests = tests.sort
   puts "GEN vm/test/runner.cpp" unless $verbose
   tests << { :verbose => $verbose }
-  sh("vm/test/cxxtest/cxxtestgen.pl", "--error-printer", "--have-eh",
+  sh("perl", "vm/test/cxxtest/cxxtestgen.pl", "--error-printer", "--have-eh",
      "--abort-on-fail", "-include=string.h", "-include=stdlib.h",
      "-include=vm/test/test_setup.h",
      "-o", "vm/test/runner.cpp", *tests)
@@ -614,14 +614,16 @@ namespace :vm do
       if $verbose
         sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info"
       else
-        sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info > /dev/null 2>&1"
+        sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info > #{DEV_NULL} 2>&1"
       end
 
       puts "GEN vm/test/coverage/index.html"
-      if $verbose
-        sh "cd vm/test/coverage; ../lcov/bin/genhtml app.info"
-      else
-        sh "cd vm/test/coverage; ../lcov/bin/genhtml app.info > /dev/null 2>&1"
+      cd "vm/test/coverage" do
+        if $verbose
+          sh "../lcov/bin/genhtml app.info"
+        else
+          sh "../lcov/bin/genhtml app.info > #{DEV_NULL} 2>&1"
+        end
       end
     ensure
       sh "rm -f *.gcno *.gcda"

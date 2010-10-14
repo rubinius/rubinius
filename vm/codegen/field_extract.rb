@@ -1046,6 +1046,8 @@ builtins = Dir['vm/builtin/*.hpp'].sort
 
 missing = builtins - inputs
 
+DEV_NULL = RUBY_PLATFORM =~ /mingw|mswin/ ? 'NUL' : '/dev/null'
+
 unless missing.empty? then
   abort "Missing #{missing.join ', '} in rakelib/vm.rake's field_extract list"
 end
@@ -1063,7 +1065,7 @@ def write_if_new(path)
     yield f
   end
 
-  File.rename tmp_path, path unless system("diff -q #{path} #{tmp_path} > /dev/null 2>&1")
+  File.rename tmp_path, path unless system("diff -q #{path} #{tmp_path} > #{DEV_NULL} 2>&1")
 ensure
   File.unlink tmp_path if File.exist? tmp_path
 end
