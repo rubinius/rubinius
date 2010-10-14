@@ -1,4 +1,6 @@
+#ifndef RBX_WINDOWS
 #include <sys/select.h>
+#endif
 #include <vector>
 
 #include "util/thread.hpp"

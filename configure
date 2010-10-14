@@ -745,6 +745,10 @@ end
       if @tr1_hash
         f.puts "#define RBX_HAVE_TR1_HASH 1"
       end
+
+      if @host =~ /mingw|mswin/
+        f.puts "define RBX_WINDOWS 1"
+      end
     end
   end
 

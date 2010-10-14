@@ -1,10 +1,16 @@
 #include <string.h>
 #include <limits.h>
 #include <sys/types.h>
+
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#endif
 
 #include "util/bert.hpp"
 

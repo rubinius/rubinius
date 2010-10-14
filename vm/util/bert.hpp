@@ -5,7 +5,9 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdlib.h>
+#ifndef RBX_WINDOWS
 #include <arpa/inet.h>
+#endif
 #include <string.h>
 
 #include <cstdio>
