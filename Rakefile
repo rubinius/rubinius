@@ -44,6 +44,8 @@ build_ruby = File.join(RbConfig::CONFIG['bindir'], bin)
 
 unless BUILD_CONFIG[:build_ruby] == build_ruby
   STDERR.puts "Sorry, but you need to build with the same Ruby version it was configured with"
+  STDERR.puts "configured with: '#{BUILD_CONFIG[:build_ruby]}'"
+  STDERR.puts "running with: '#{build_ruby}'"
   STDERR.puts "Please run ./configure again"
   exit 1
 end
