@@ -167,7 +167,7 @@ extern "C" {
   }
 
   VALUE rb_ary_to_s(VALUE self_handle) {
-    return rb_ary_join(self_handle, Qnil);
+    return rb_funcall(self_handle, rb_intern("to_s"), 0);
   }
 
   /** By default, Arrays have space for 16 elements. */
