@@ -147,6 +147,23 @@ static VALUE kernel_spec_rb_yield_values(VALUE self, VALUE obj1, VALUE obj2) {
 }
 #endif
 
+#ifdef HAVE_RB_EXEC_RECURSIVE
+
+static VALUE do_rec(VALUE obj, VALUE arg, int is_rec) {
+  if(is_rec) {
+    return obj;
+  } else if(arg == Qtrue) {
+    return rb_exec_recursive(do_rec, obj, Qnil);
+  } else {
+    return Qnil;
+  }
+}
+
+static VALUE kernel_spec_rb_exec_recursive(VALUE self, VALUE obj) {
+  return rb_exec_recursive(do_rec, obj, Qtrue);
+}
+#endif
+
 void Init_kernel_spec() {
   VALUE cls;
   cls = rb_define_class("CApiKernelSpecs", rb_cObject);
@@ -201,6 +218,10 @@ void Init_kernel_spec() {
 
 #ifdef HAVE_RB_YIELD_VALUES
   rb_define_method(cls, "rb_yield_values", kernel_spec_rb_yield_values, 2);
+#endif
+
+#ifdef HAVE_RB_EXEC_RECURSIVE
+  rb_define_method(cls, "rb_exec_recursive", kernel_spec_rb_exec_recursive, 1);
 #endif
 }
 

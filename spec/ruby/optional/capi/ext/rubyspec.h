@@ -162,6 +162,7 @@
 #define HAVE_RB_WARN                       1
 #define HAVE_RB_YIELD                      1
 #define HAVE_RB_YIELD_VALUES               1
+#define HAVE_RB_EXEC_RECURSIVE             1
 
 /* GC */
 #define HAVE_RB_GC_REGISTER_ADDRESS        1
