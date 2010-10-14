@@ -1106,6 +1106,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Return name of the function being called */
   ID rb_frame_last_func();
 
+  VALUE rb_exec_recursive(VALUE (*func)(VALUE, VALUE, int),
+                          VALUE obj, VALUE arg);
+
   /** @todo define rb_funcall3, which is the same as rb_funcall2 but
    * will not call private methods.
    */
