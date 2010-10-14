@@ -1184,7 +1184,9 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_gc_register_address(VALUE* address);
 
   /** Unmark variable as global */
-  void rb_gc_unregister_address(VALUE* address);
+  void    rb_gc_unregister_address(VALUE* address);
+
+  void    rb_gc_force_recycle(VALUE blah);
 
   /** Called when there is no memory available */
   void    rb_memerror();
