@@ -468,6 +468,52 @@ namespace rubinius {
     return md;
   }
 
+  Object* Regexp::search_from(STATE, String* string, Fixnum* start) {
+    int beg, max;
+    const UChar *str;
+    const UChar *fin;
+    OnigRegion *region;
+    Object* md = Qnil;
+
+    maybe_recompile(state);
+    region = onig_region_new();
+
+    max = string->size();
+    native_int pos = start->to_native();
+
+    str = (UChar*)string->c_str();
+    fin = str + max;
+
+    str += pos;
+
+    int* back_match = onig_data->int_map_backward;
+
+    beg = onig_search(onig_data, str, fin, str, fin,
+                      region, ONIG_OPTION_NONE);
+
+    // Seems like onig must setup int_map_backward lazily, so we have to watch
+    // for it to appear here.
+    if(onig_data->int_map_backward != back_match) {
+      native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
+      ByteArray* ba = ByteArray::create(state, size);
+      memcpy(ba->raw_bytes(), onig_data->int_map_backward, size);
+
+      // Dispose of the old one.
+      free(onig_data->int_map_backward);
+
+      onig_data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
+
+      write_barrier(state, ba);
+    }
+
+    if(beg != ONIG_MISMATCH) {
+      md = get_match_data(state, region, string, this, pos);
+    }
+
+    onig_region_free(region, 1);
+    return md;
+  }
+
   String* MatchData::matched_string(STATE) {
     Fixnum* beg = try_as<Fixnum>(full_->at(state, 0));
     Fixnum* fin = try_as<Fixnum>(full_->at(state, 1));
