@@ -483,7 +483,7 @@ files EXTERNALS do |t|
 
   if File.exist? configure_path then
     cd path do
-      sh 'sh -c "./configure CC=#{CC}"'
+      sh "sh -c './configure CC=#{CC}'"
       sh make
     end
   else
