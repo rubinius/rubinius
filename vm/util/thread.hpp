@@ -117,6 +117,7 @@ namespace thread {
       if(stack_size_) {
         pthread_attr_setstacksize(&attrs, stack_size_);
       }
+      pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_JOINABLE);
 
       return pthread_create(&native_, &attrs, trampoline, (void*)this);
     }
