@@ -359,4 +359,11 @@ extern "C" {
       goto retry;
     }
   }
+
+  VALUE rb_equal(VALUE obj1, VALUE obj2) {
+    if(obj1 == obj2) return Qtrue;
+    VALUE result = rb_funcall(obj1, rb_intern("=="), 1, obj2);
+    if(RTEST(result)) return Qtrue;
+    return Qfalse;
+  }
 }

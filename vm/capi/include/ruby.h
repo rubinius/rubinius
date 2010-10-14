@@ -721,6 +721,10 @@ VALUE rb_uint2big(unsigned long number);
   VALUE UINT2NUM(unsigned long n);
   VALUE ULONG2NUM(unsigned long n);
 
+  int   rb_cmpint(VALUE val, VALUE a, VALUE b);
+  void  rb_cmperr(VALUE x, VALUE y);
+  VALUE rb_equal(VALUE a, VALUE b);
+
 #define   Data_Make_Struct(klass, type, mark, free, sval) (\
             sval = ALLOC(type), \
             memset(sval, 0, sizeof(type)), \
