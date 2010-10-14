@@ -21,8 +21,7 @@ class Configure
     @defines = []
     @config = File.join(root, "config.rb")
 
-    # TODO: conditionalize for Windows
-    @host = `./rakelib/config.guess`.chomp
+    @host = `sh -c ./rakelib/config.guess`.chomp
     /([^-]+)-([^-]+)-(.*)/ =~ @host
     @cpu, @vendor, @os = $1, $2, $3
     @little_endian = false
@@ -75,7 +74,7 @@ class Configure
     @config_version = 22
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
-      @buildrev = `git rev-list --all | head -n1`.chomp
+      @buildrev = `git rev-list --max-count=1 --all`.chomp
     else
       @buildrev = "release"
     end
@@ -522,7 +521,7 @@ class Configure
         yield f
       end
 
-      `#{@compiler} #{env('CFLAGS')} -lstdc++ -lm -o #{basename} #{source} >>#{@log.path} 2>&1`
+      system "#{@compiler} #{env('CFLAGS')} -lstdc++ -lm -o #{basename} #{source} >>#{@log.path} 2>&1"
       return $?.exitstatus unless run
 
       unless $?.exitstatus == 0
@@ -530,7 +529,7 @@ class Configure
         exit 1
       end
 
-      `./#{basename}`
+      system "./#{basename}"
       return $?.exitstatus
     ensure
       File.delete *Dir["#{basename}*"]
@@ -597,7 +596,7 @@ int main() { X x; return 0; }
 
     tf.close
 
-    `#{@compiler} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1`
+    system "#{@compiler} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1"
     status = ($?.exitstatus == 0)
 
     tf.unlink
