@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <string.h>
 #include <limits.h>
 #include <sys/types.h>
@@ -19,8 +21,6 @@
 #include "agent.hpp"
 #include "exception.hpp"
 #include "call_frame.hpp"
-
-#include "config.h"
 
 #include "agent_components.hpp"
 #include "environment.hpp"
