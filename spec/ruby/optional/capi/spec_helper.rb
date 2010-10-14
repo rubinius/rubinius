@@ -59,14 +59,24 @@ def compile_extension(path, name)
   incflags << " -I#{arch_hdrdir}" if arch_hdrdir
   incflags << " -I#{ruby_hdrdir}" if ruby_hdrdir
 
-  `#{cc} #{incflags} #{cflags} -c #{source} -o #{obj}`
+  output = `#{cc} #{incflags} #{cflags} -c #{source} -o #{obj}`
+
+  if $?.exitstatus != 0 or !File.exists?(obj)
+    puts "ERROR:\n#{output}"
+    raise "Unable to compile \"#{source}\""
+  end
 
   ldshared  = RbConfig::CONFIG["LDSHARED"]
   libpath   = "-L#{path}"
   libs      = RbConfig::CONFIG["LIBS"]
   dldflags  = RbConfig::CONFIG["DLDFLAGS"]
 
-  `#{ldshared} #{obj} #{libpath} #{dldflags} #{libs} -o #{lib}`
+  output = `#{ldshared} #{obj} #{libpath} #{dldflags} #{libs} -o #{lib}`
+
+  if $?.exitstatus != 0
+    puts "ERROR:\n#{output}"
+    raise "Unable to link \"#{source}\""
+  end
 
   # we don't need to leave the object file around
   File.delete obj if File.exists? obj

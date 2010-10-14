@@ -199,6 +199,7 @@
 #define HAVE_RB_NUM2LONG                   1
 #define HAVE_RB_NUM2ULONG                  1
 #define HAVE_RB_NUM_ZERODIV                1
+#define HAVE_RB_CMPINT                     1
 
 /* Object */
 #define HAVE_OBJ_TAINT                     1
@@ -230,6 +231,7 @@
 #define HAVE_RB_TO_INT                     1
 #define HAVE_RTEST                         1
 #define HAVE_TYPE                          1
+#define HAVE_RB_EQUAL                      1
 
 /* Proc */
 #define HAVE_RB_PROC_NEW                   1
