@@ -550,7 +550,7 @@ containing the Rubinius standard library files.
         f.puts "[[Version]]"
         f.puts Rubinius.version
       end
-    rescue Errno::EACCESS
+    rescue Errno::EACCES
       # Ignore writing the last error report
     end
 
