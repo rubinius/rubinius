@@ -312,4 +312,10 @@ describe "C-API Array function" do
       @s.rb_mem_clear(1).should == nil
     end
   end
+
+  describe "rb_protect_inspect" do
+    it "tracks an object recursively" do
+      @s.rb_protect_inspect("blah").should be_true
+    end
+  end
 end
