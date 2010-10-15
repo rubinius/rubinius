@@ -613,7 +613,6 @@ containing the Rubinius standard library files.
         puts "Exception occurred during top-level exception output! (THIS IS BAD)"
         puts
         puts "Exception: #{exc.inspect} (#{exc.class})"
-        @exit_code = 128
       end
     end
   end
