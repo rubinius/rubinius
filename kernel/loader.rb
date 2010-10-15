@@ -556,7 +556,7 @@ containing the Rubinius standard library files.
         f.puts "[[Version]]"
         f.puts Rubinius.version
       end
-    rescue Errno::EACCESS
+    rescue Errno::EACCES
       # Ignore writing the last error report
     end
 
@@ -582,16 +582,17 @@ containing the Rubinius standard library files.
           raise e
 
         rescue SyntaxError => e
+          @exit_code = 1
+
           show_syntax_error(e)
 
           STDERR.puts "\nBacktrace:"
           STDERR.puts e.awesome_backtrace.show
+        rescue Object => e
           @exit_code = 1
 
-        rescue Object => e
           write_last_error(e)
           e.render "An exception occurred #{@stage}"
-          @exit_code = 1
         end
 
       # We do this, run epilogue both on catching SystemExit and
@@ -618,7 +619,6 @@ containing the Rubinius standard library files.
         puts "Exception occurred during top-level exception output! (THIS IS BAD)"
         puts
         puts "Exception: #{exc.inspect} (#{exc.class})"
-        @exit_code = 128
       end
     end
   end

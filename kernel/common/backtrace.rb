@@ -5,6 +5,7 @@ class Backtrace
   include Enumerable
 
   MAX_WIDTH = 36
+  MIN_WIDTH = 20
 
   attr_accessor :first_color
   attr_accessor :kernel_color
@@ -16,7 +17,7 @@ class Backtrace
     locations ? new(locations) : new([Rubinius::Location::Missing.new])
   end
 
-  def initialize(locations)
+  def initialize(locations, width = Rubinius::TERMINAL_WIDTH, min_width = MIN_WIDTH)
     color_config = Rubinius::Config["rbx.colorize_backtraces"]
     if ENV['RBX_NOCOLOR'] or color_config == "no" or color_config == "NO"
       @colorize = false
@@ -30,7 +31,8 @@ class Backtrace
     @eval_color = "\033[0;33m"
     @inline_effect = "\033[0;4m"
 
-    @width = Rubinius::TERMINAL_WIDTH
+    @width = width
+    @min_width = min_width
 
     @mri_backtrace = nil
   end
@@ -77,7 +79,7 @@ class Backtrace
     str = ""
     lines.each do |recv, location, rec_times|
       pos  = location.position(Dir.getwd)
-      color = color_from_loc(pos, first) if show_color
+      color = show_color ? color_from_loc(pos, first) : ""
       first = false # special handling for first line
       spaces = max - recv.size
       spaces = 0 if spaces < 0
@@ -94,7 +96,7 @@ class Backtrace
       end
 
       line_break = @width - start.size - 1
-      line_break = nil if line_break < 20
+      line_break = nil if line_break < @min_width
 
       if line_break and pos.size >= line_break
         indent = start.size
@@ -126,7 +128,7 @@ class Backtrace
         str << new_pos
         str << clear
       else
-        if start.size > @width - 20
+        if start.size > @width - @min_width
           str << "#{color} #{start}\\\n          #{pos}#{clear}"
         else
           str << "#{color} #{start}#{pos}#{clear}"

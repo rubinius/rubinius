@@ -31,7 +31,7 @@ module Syslog
       c.const 'LOG_PID'
       c.const 'LOG_CONS'
       c.const 'LOG_ODELAY'
-      c.const 'LOG_NODELAY'
+      c.const 'LOG_NDELAY'
       c.const 'LOG_NOWAIT'
       c.const 'LOG_PERROR'
       c.const 'LOG_AUTH'
@@ -84,7 +84,7 @@ module Syslog
     extend FFI::Library
 
     # methods
-    attach_function :open,     "openlog",    [:string, :int, :int], :void
+    attach_function :open,     "openlog",    [:pointer, :int, :int], :void
     attach_function :close,    "closelog",   [], :void
     attach_function :write,    "syslog",     [:int, :string, :string], :void
     attach_function :set_mask, "setlogmask", [:int], :int
@@ -128,7 +128,9 @@ module Syslog
       raise RuntimeError, "must open syslog before setting log mask"
     end
 
-    Foreign.set_mask(mask.to_i)
+    @mask = Type.coerce_to mask, Fixnum, :to_int
+
+    Foreign.set_mask(@mask)
   end
 
   def self.mask
@@ -157,7 +159,12 @@ module Syslog
     @options = opt
     @facility = fac
 
-    Foreign.open(ident, opt, fac)
+    # syslog rereads the string everytime syslog() is called, so we have to use
+    # an FFI pointer to keep the memory the string is in alive
+    @ident_pointer = FFI::MemoryPointer.new(@ident.size + 1)
+    @ident_pointer.write_string(@ident)
+
+    Foreign.open(@ident_pointer, opt, fac)
 
     @open = true
 
@@ -176,9 +183,9 @@ module Syslog
     self
   end
 
-  def self.reopen(*args)
+  def self.reopen(*args, &block)
     close
-    open(*args)
+    open(*args, &block)
   end
 
   class << self
@@ -214,7 +221,7 @@ module Syslog
 
     pri = Type.coerce_to(pri, Fixnum, :to_i)
 
-    message = format % args
+    message = StringValue(format) % args
     Foreign.write(pri, "%s", message)
   end
 

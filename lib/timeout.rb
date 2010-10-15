@@ -79,34 +79,45 @@ module Timeout
     end
   end
 
-  def self.add_timeout(time, exc)
+  def self.handle_requests
+    while @requests.empty?
+      sleep
+    end
 
+    min = nil
+
+    @mutex.synchronize do
+      min = @requests.min { |a,b| a.left <=> b.left }
+    end
+
+    slept_for = sleep(min.left)
+
+    @mutex.synchronize do
+      @requests.delete_if do |r|
+        should_delete = false
+        begin
+          if r.elapsed(slept_for)
+            r.cancel
+            should_delete = true
+          end
+        rescue Exception => e
+          STDERR.puts "Error while checking timeouts: #{e.message} (#{e.class})"
+          should_delete = true
+        end
+
+        should_delete
+      end
+    end
+  end
+
+  def self.add_timeout(time, exc)
     @controller ||= Thread.new do
       while true
-        if @requests.empty?
-          sleep
-          next
+        begin
+          handle_requests
+        rescue Exception => e
+          STDERR.puts "Error inside timeout thread: #{e.message} (#{e.class})"
         end
-
-        min = nil
-
-        @mutex.synchronize do
-          min = @requests.min { |a,b| a.left <=> b.left }
-        end
-
-        slept_for = sleep(min.left)
-
-        @mutex.synchronize do
-          @requests.delete_if do |r|
-            if r.elapsed(slept_for)
-              r.cancel
-              true
-            else
-              false
-            end
-          end
-        end
-
       end
     end
 
