@@ -79,7 +79,7 @@ class Backtrace
     str = ""
     lines.each do |recv, location, rec_times|
       pos  = location.position(Dir.getwd)
-      color = color_from_loc(pos, first) if show_color
+      color = show_color ? color_from_loc(pos, first) : ""
       first = false # special handling for first line
       spaces = max - recv.size
       spaces = 0 if spaces < 0
