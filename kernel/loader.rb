@@ -576,16 +576,17 @@ containing the Rubinius standard library files.
           raise e
 
         rescue SyntaxError => e
+          @exit_code = 1
+
           show_syntax_error(e)
 
           STDERR.puts "\nBacktrace:"
           STDERR.puts e.awesome_backtrace.show
+        rescue Object => e
           @exit_code = 1
 
-        rescue Object => e
           write_last_error(e)
           e.render "An exception occurred #{@stage}"
-          @exit_code = 1
         end
 
       # We do this, run epilogue both on catching SystemExit and
