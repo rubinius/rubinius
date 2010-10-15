@@ -13,19 +13,19 @@ describe "Syslog.inspect" do
     end
 
     it "returns a string a closed log" do
-      Syslog.inspect.should == "<#Syslog: opened=false>"
+      Syslog.inspect.should =~ /opened=false/
     end
 
     it "returns a string for an opened log" do
       Syslog.open
-      Syslog.inspect.should =~ /<#Syslog: opened=true.*/
+      Syslog.inspect.should =~ /opened=true.*/
       Syslog.close
     end
 
     it "includes the ident, options, facility and mask" do
       Syslog.open("rubyspec", Syslog::LOG_PID, Syslog::LOG_USER)
       inspect_str = Syslog.inspect.split ", "
-      inspect_str[0].should == "<#Syslog: opened=true"
+      inspect_str[0].should =~ /opened=true/
       inspect_str[1].should == "ident=\"rubyspec\""
       inspect_str[2].should == "options=#{Syslog::LOG_PID}"
       inspect_str[3].should == "facility=#{Syslog::LOG_USER}"

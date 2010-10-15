@@ -31,9 +31,11 @@ describe "Syslog::Constants" do
       Syslog::Constants.LOG_MASK(Syslog::LOG_WARNING).should == 16
     end
 
-    it "works on undefined constants" do
-      Syslog::Constants.LOG_MASK(1337).should == 33554432
-      Syslog::Constants.LOG_MASK(7331).should == 8
+    not_compliant_on :rubinius do
+      it "works on undefined constants" do
+        Syslog::Constants.LOG_MASK(1337).should == 33554432
+        Syslog::Constants.LOG_MASK(7331).should == 8
+      end
     end
   end
 
@@ -43,8 +45,10 @@ describe "Syslog::Constants" do
       Syslog::Constants.LOG_UPTO(Syslog::LOG_DEBUG).should == 255
     end
 
-    it "works on undefined constants" do
-      Syslog::Constants.LOG_UPTO(1337).should == 67108863
+    not_compliant_on :rubinius do
+      it "works on undefined constants" do
+        Syslog::Constants.LOG_UPTO(1337).should == 67108863
+      end
     end
   end
 end
