@@ -244,10 +244,8 @@ describe "A Masgn node" do
       g.cast_array
       g.push :self
       g.send :a, 0, true
-      g.dup
-      g.move_down 1
-      g.send :m=, 0, false
-      g.pop
+      g.swap
+      g.send :m=, 1, false
       g.pop
       g.push :true
     end
@@ -264,11 +262,36 @@ describe "A Masgn node" do
       g.make_array 1
       g.push :self
       g.send :a, 0, true
-      g.dup
-      g.move_down 1
-      g.send :m=, 0, false
+      g.swap
+      g.send :m=, 1, false
       g.pop
+      g.push :true
+    end
+  end
+
+  relates "t, *a[:m] = b" do
+    compile do |g|
+      ary = g.new_label
+      assign = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+
+      g.cast_multi_value
+
+      g.shift_array
+      g.set_local 0
       g.pop
+
+      g.cast_array
+      g.push :self
+      g.send :a, 0, true
+      g.swap
+      g.push_literal :m
+      g.swap
+      g.send :[]=, 2, false
+      g.pop
+
       g.push :true
     end
   end

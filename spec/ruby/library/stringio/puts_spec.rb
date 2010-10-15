@@ -3,7 +3,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
-describe "StringIO#puts when passed [Array, ...]" do
+describe "StringIO#puts when passed an Array" do
   before(:each) do
     @io = StringIO.new
   end
@@ -53,7 +53,7 @@ describe "StringIO#puts when passed [Array, ...]" do
   end
 end
 
-describe "StringIO#puts when passed [Object, ...]" do
+describe "StringIO#puts when passed 1 or more objects" do
   before(:each) do
     @io = StringIO.new
   end
@@ -85,6 +85,11 @@ describe "StringIO#puts when passed [Object, ...]" do
     obj.should_receive(:to_s).and_return("to_s")
     @io.puts(obj)
     @io.string.should == "to_s\n"
+  end
+
+  it "prints a newline when passed an empty string" do
+    @io.puts ''
+    @io.string.should == "\n"
   end
 end
 

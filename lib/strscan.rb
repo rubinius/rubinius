@@ -254,9 +254,9 @@ class StringScanner
       # We use it here to avoid creating a new Regexp with '^' prepended.
       @match = pattern.match_start @string, @pos
     else
-      # NOTE - search_region is an Oniguruma feature that Rubinius exposes.
+      # NOTE - search_from is an Oniguruma feature that Rubinius exposes.
       # We use it so we can begin the search in the middle of the string
-      @match = pattern.search_region @string, @pos, @string.size, true
+      @match = pattern.search_from @string, @pos
     end
 
     return nil unless @match

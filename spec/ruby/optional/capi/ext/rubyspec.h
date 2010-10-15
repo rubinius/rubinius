@@ -23,6 +23,8 @@
 #define HAVE_RB_ARY_STORE                  1
 #define HAVE_RB_ARY_UNSHIFT                1
 #define HAVE_RB_ASSOC_NEW                  1
+#define HAVE_RB_PROTECT_INSPECT            1
+#define HAVE_RB_INSPECTING_P               1
 
 #define HAVE_RB_EACH                       1
 #define HAVE_RB_ITERATE                    1
@@ -162,6 +164,7 @@
 #define HAVE_RB_WARN                       1
 #define HAVE_RB_YIELD                      1
 #define HAVE_RB_YIELD_VALUES               1
+#define HAVE_RB_EXEC_RECURSIVE             1
 
 /* GC */
 #define HAVE_RB_GC_REGISTER_ADDRESS        1
@@ -199,6 +202,7 @@
 #define HAVE_RB_NUM2LONG                   1
 #define HAVE_RB_NUM2ULONG                  1
 #define HAVE_RB_NUM_ZERODIV                1
+#define HAVE_RB_CMPINT                     1
 
 /* Object */
 #define HAVE_OBJ_TAINT                     1
@@ -230,6 +234,7 @@
 #define HAVE_RB_TO_INT                     1
 #define HAVE_RTEST                         1
 #define HAVE_TYPE                          1
+#define HAVE_RB_EQUAL                      1
 
 /* Proc */
 #define HAVE_RB_PROC_NEW                   1

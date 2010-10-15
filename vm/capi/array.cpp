@@ -2,9 +2,12 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/object.hpp"
 #include "builtin/proc.hpp"
+#include "builtin/thread.hpp"
+#include "builtin/lookuptable.hpp"
 
 #include "arguments.hpp"
 #include "dispatch.hpp"
+#include "exception_point.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/include/ruby.h"
@@ -167,7 +170,7 @@ extern "C" {
   }
 
   VALUE rb_ary_to_s(VALUE self_handle) {
-    return rb_ary_join(self_handle, Qnil);
+    return rb_funcall(self_handle, rb_intern("to_s"), 0);
   }
 
   /** By default, Arrays have space for 16 elements. */
@@ -347,6 +350,72 @@ extern "C" {
     for(int i = 0; i < len; i++) {
       ary[i] = Qnil;
     }
+  }
+
+  VALUE rb_protect_inspect(VALUE (*func)(VALUE a, VALUE b), VALUE h_obj, VALUE h_arg) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    STATE = env->state();
+
+    Thread* thr = Thread::current(state);
+    LookupTable* rectbl = thr->recursive_objects();
+
+    Object* obj = env->get_object(h_obj);
+
+    Object* id = obj->id(state);
+
+    bool found = false;
+    rectbl->fetch(state, id, &found);
+
+    if(found) {
+      return (*func)(h_obj, h_arg);
+    }
+
+    rectbl->store(state, id, RBX_Qtrue);
+
+    VALUE ret = Qnil;
+
+    ExceptionPoint ep(env);
+    PLACE_EXCEPTION_POINT(ep);
+
+    bool unwinding = false;
+
+    if(unlikely(ep.jumped_to())) {
+      unwinding = true;
+    } else {
+      ret = (*func)(h_obj, h_arg);
+    }
+
+    ep.pop(env);
+
+    // Get the thread and table again, the GC might have fun.
+    thr = Thread::current(state);
+    rectbl = thr->recursive_objects();
+    obj = env->get_object(h_obj);
+    id = obj->id(state);
+
+    rectbl->remove(state, id);
+
+    if(unwinding) env->current_ep()->return_to(env);
+
+    return ret;
+  }
+
+  VALUE rb_inspecting_p(VALUE h_obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    STATE = env->state();
+
+    Thread* thr = Thread::current(state);
+    LookupTable* rectbl = thr->recursive_objects();
+
+    Object* obj = env->get_object(h_obj);
+
+    Object* id = obj->id(state);
+
+    bool found = false;
+    rectbl->fetch(state, id, &found);
+
+    if(found) return Qtrue;
+    return Qfalse;
   }
 
 }

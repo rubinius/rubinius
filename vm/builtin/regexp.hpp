@@ -56,6 +56,9 @@ namespace rubinius {
     // Ruby.primitive :regexp_match_start
     Object* match_start(STATE, String* string, Fixnum* start);
 
+    // Ruby.primitive :regexp_search_from
+    Object* search_from(STATE, String* string, Fixnum* start);
+
     // Ruby.primitive :regexp_allocate
     static Regexp* allocate(STATE, Object* self);
 

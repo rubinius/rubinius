@@ -721,6 +721,10 @@ VALUE rb_uint2big(unsigned long number);
   VALUE UINT2NUM(unsigned long n);
   VALUE ULONG2NUM(unsigned long n);
 
+  int   rb_cmpint(VALUE val, VALUE a, VALUE b);
+  void  rb_cmperr(VALUE x, VALUE y);
+  VALUE rb_equal(VALUE a, VALUE b);
+
 #define   Data_Make_Struct(klass, type, mark, free, sval) (\
             sval = ALLOC(type), \
             memset(sval, 0, sizeof(type)), \
@@ -1102,6 +1106,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Return name of the function being called */
   ID rb_frame_last_func();
 
+  VALUE rb_exec_recursive(VALUE (*func)(VALUE, VALUE, int),
+                          VALUE obj, VALUE arg);
+
   /** @todo define rb_funcall3, which is the same as rb_funcall2 but
    * will not call private methods.
    */
@@ -1180,7 +1187,9 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_gc_register_address(VALUE* address);
 
   /** Unmark variable as global */
-  void rb_gc_unregister_address(VALUE* address);
+  void    rb_gc_unregister_address(VALUE* address);
+
+  void    rb_gc_force_recycle(VALUE blah);
 
   /** Called when there is no memory available */
   void    rb_memerror();
@@ -1265,6 +1274,9 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Call #inspect on an object. */
   VALUE rb_inspect(VALUE obj_handle);
+
+  VALUE rb_protect_inspect(VALUE (*func)(VALUE a, VALUE b), VALUE h_obj, VALUE h_arg);
+  VALUE rb_inspecting_p(VALUE obj);
 
   /**
    *  Raise error of given class using formatted message.

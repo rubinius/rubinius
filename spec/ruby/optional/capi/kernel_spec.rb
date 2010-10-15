@@ -241,4 +241,11 @@ describe "C-API Kernel function" do
       proc.call.should == 2
     end
   end
+
+  describe "rb_exec_recursive" do
+    it "detects recursive invocations of a method and indicates as such" do
+      s = "hello"
+      @s.rb_exec_recursive(s).should == s
+    end
+  end
 end

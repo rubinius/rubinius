@@ -232,6 +232,12 @@ static VALUE object_spec_rb_to_int(VALUE self, VALUE obj) {
 }
 #endif
 
+#ifdef HAVE_RB_EQUAL
+static VALUE object_spec_rb_equal(VALUE self, VALUE a, VALUE b) {
+  return rb_equal(a, b);
+}
+#endif
+
 void Init_object_spec() {
   VALUE cls;
   cls = rb_define_class("CApiObjectSpecs", rb_cObject);
@@ -358,6 +364,10 @@ void Init_object_spec() {
 
 #ifdef HAVE_RB_TO_INT
   rb_define_method(cls, "rb_to_int", object_spec_rb_to_int, 1);
+#endif
+
+#ifdef HAVE_RB_EQUAL
+  rb_define_method(cls, "rb_equal", object_spec_rb_equal, 2);
 #endif
 }
 
