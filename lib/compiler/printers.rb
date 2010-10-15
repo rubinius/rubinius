@@ -70,7 +70,10 @@ module Rubinius
       end
 
       def print_method(cm)
-        print_decoded cm
+        return unless match? cm.name
+        print_header cm
+        puts cm.decode if @bytecode
+        print_footer
 
         cm.literals.each do |m|
           next unless m.kind_of? Rubinius::CompiledMethod
