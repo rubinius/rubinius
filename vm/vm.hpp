@@ -7,6 +7,7 @@
 #include "thread_state.hpp"
 
 #include "util/refcount.hpp"
+#include "util/thread.hpp"
 
 #include "global_lock.hpp"
 #include "maps.hpp"
@@ -21,7 +22,6 @@
 #include "shared_state.hpp"
 
 #include <vector>
-#include <pthread.h>
 #include <setjmp.h>
 
 namespace llvm {
