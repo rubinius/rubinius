@@ -1,0 +1,47 @@
+src/raw_api.lo src/raw_api.o: src/raw_api.c include/ffi.h \
+  include/ffitarget.h \
+  /usr/lib/gcc/i686-apple-darwin9/4.0.1/include/stddef.h \
+  /usr/lib/gcc/i686-apple-darwin9/4.0.1/include/limits.h \
+  /usr/lib/gcc/i686-apple-darwin9/4.0.1/include/syslimits.h \
+  /usr/include/limits.h /usr/include/sys/cdefs.h \
+  /usr/include/machine/limits.h /usr/include/i386/limits.h \
+  /usr/include/i386/_limits.h /usr/include/sys/syslimits.h \
+  include/ffi_common.h fficonfig.h /usr/include/string.h \
+  /usr/include/_types.h /usr/include/sys/_types.h \
+  /usr/include/machine/_types.h /usr/include/i386/_types.h
+
+include/ffi.h:
+
+include/ffitarget.h:
+
+/usr/lib/gcc/i686-apple-darwin9/4.0.1/include/stddef.h:
+
+/usr/lib/gcc/i686-apple-darwin9/4.0.1/include/limits.h:
+
+/usr/lib/gcc/i686-apple-darwin9/4.0.1/include/syslimits.h:
+
+/usr/include/limits.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/machine/limits.h:
+
+/usr/include/i386/limits.h:
+
+/usr/include/i386/_limits.h:
+
+/usr/include/sys/syslimits.h:
+
+include/ffi_common.h:
+
+fficonfig.h:
+
+/usr/include/string.h:
+
+/usr/include/_types.h:
+
+/usr/include/sys/_types.h:
+
+/usr/include/machine/_types.h:
+
+/usr/include/i386/_types.h:
