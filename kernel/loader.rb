@@ -88,7 +88,7 @@ containing the Rubinius standard library files.
       $LOAD_PATH.unshift(*additions)
 
       if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
-        rubylib_paths = ENV['RUBYLIB'].split(':')
+        rubylib_paths = ENV['RUBYLIB'].split(File::PATH_SEPARATOR)
         $LOAD_PATH.unshift(*rubylib_paths)
       end
     end
