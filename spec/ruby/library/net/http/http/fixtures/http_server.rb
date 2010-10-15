@@ -49,14 +49,22 @@ module NetHTTPSpecs
   end
   
   class << self
+    @server = nil
+
     def start_server
+      if @server
+        @ping = Time.now
+        return
+      end
+
       server_config = {
         :BindAddress => "localhost",
         :Port => 3333,
         :Logger => WEBrick::Log.new(NullWriter.new),
         :AccessLog => [],
         :ShutdownSocketWithoutClose => true,
-        :ServerType => Thread }
+        :ServerType => Thread
+      }
       
       @server = WEBrick::HTTPServer.new(server_config)
 
@@ -70,11 +78,33 @@ module NetHTTPSpecs
       
       @server.start
       Thread.pass until @server.status == :Running
+
+      @timer_thread = Thread.new do
+        run = true
+        while run
+          sleep 2
+
+          if Time.now - @ping >= 2
+            @server.shutdown
+            @server = nil
+            run = false
+          end
+        end
+      end
+    end
+
+    def really_stop_server
+      @timer_thread.kill if @timer_thread
+      @server.shutdown if @server
     end
     
     def stop_server
-      @server.shutdown
-      Thread.pass until @server.status == :Stop
+      # noop. The server is shutdown automatically when it's not being
+      # used.
     end
+  end
+
+  at_exit do
+    really_stop_server
   end
 end
