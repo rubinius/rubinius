@@ -1275,6 +1275,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Call #inspect on an object. */
   VALUE rb_inspect(VALUE obj_handle);
 
+  VALUE rb_protect_inspect(VALUE (*func)(VALUE a, VALUE b), VALUE h_obj, VALUE h_arg);
+  VALUE rb_inspecting_p(VALUE obj);
+
   /**
    *  Raise error of given class using formatted message.
    *
