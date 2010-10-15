@@ -1681,6 +1681,10 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE   rb_range_beg_len(VALUE range, long* begp, long* lenp, long len, int err);
 
+#define RE_OPTION_IGNORECASE 1
+#define RE_OPTION_EXTENDED   2
+#define RE_OPTION_MULTILINE  4
+
   /** Creates a Regexp object */
   VALUE   rb_reg_new(const char *source, long len, int options);
 
@@ -1691,7 +1695,6 @@ VALUE rb_uint2big(unsigned long number);
 
   char *ruby_strdup(const char *str);
 
-  // include an extconf.h if one is provided
   // include an extconf.h if one is provided
 #ifdef RUBY_EXTCONF_H
 #include RUBY_EXTCONF_H
