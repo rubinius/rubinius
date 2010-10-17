@@ -1,6 +1,8 @@
 #ifndef RBX_SHARED_STATE_H
 #define RBX_SHARED_STATE_H
 
+#include "config.h"
+
 #include "util/refcount.hpp"
 #include "global_lock.hpp"
 #include "maps.hpp"
@@ -15,6 +17,10 @@
 #include "symboltable.hpp"
 
 #include "primitives.hpp"
+
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#endif
 
 namespace rubinius {
   namespace capi {

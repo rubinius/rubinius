@@ -12,11 +12,16 @@
  *      call your mother.
  *
  */
+#include "config.h"
 
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#else
 #include <sys/select.h>
+#endif
 
 // A number of extensions expect these to be already included
 #include <sys/time.h>
@@ -27,7 +32,6 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#include "config.h"
 #include "intern.h"
 #include "defines.h"
 

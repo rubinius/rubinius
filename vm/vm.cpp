@@ -34,7 +34,9 @@
 #include <iostream>
 #include <iomanip>
 #include <signal.h>
+#ifndef RBX_WINDOWS
 #include <sys/resource.h>
+#endif
 
 // Reset macros since we're inside state
 #undef G

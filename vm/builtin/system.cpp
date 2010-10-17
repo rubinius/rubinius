@@ -7,12 +7,15 @@
 #include <cstring>
 #include <sstream>
 
+#include "vm/config.h"
+
+#ifndef RBX_WINDOWS
 #include <sys/resource.h>
 #include <sys/wait.h>
-#include <unistd.h>
 #include <pwd.h>
+#endif
+#include <unistd.h>
 
-#include "config.h"
 
 #include "vm/call_frame.hpp"
 #include "vm/helpers.hpp"

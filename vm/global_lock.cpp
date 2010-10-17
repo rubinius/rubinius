@@ -1,10 +1,13 @@
+#include "config.h"
 #include "global_lock.hpp"
 #include "prelude.hpp"
 #include "vm.hpp"
 
 #include "builtin/nativemethod.hpp"
 
+#ifndef RBX_WINDOWS
 #include <sched.h>
+#endif
 #include <time.h>
 #include <sys/time.h>
 

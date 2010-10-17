@@ -3,14 +3,20 @@
 #define _LARGEFILE_SOURCE 1
 #define _FILE_OFFSET_BITS 64
 
+#include "config.h"
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#else
 #include <sys/socket.h>
-#include <sys/stat.h>
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#endif
+#include <sys/stat.h>
 #include <errno.h>
 #include <time.h>
 

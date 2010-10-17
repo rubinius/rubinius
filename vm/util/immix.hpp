@@ -9,7 +9,9 @@
 #include <list>
 #include <vector>
 
+#ifndef RBX_WINDOWS
 #include <sys/mman.h>
+#endif
 
 namespace immix {
 

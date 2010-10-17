@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "config.h"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "gc/marksweep.hpp"

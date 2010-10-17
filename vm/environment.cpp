@@ -1,5 +1,6 @@
 /* An Environment is the toplevel class for Rubinius. It manages multiple
  * VMs, as well as imports C data from the process into Rubyland. */
+#include "config.h"
 #include "prelude.hpp"
 #include "environment.hpp"
 #include "config_parser.hpp"
@@ -37,7 +38,9 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#ifndef RBX_WINDOWS
 #include <sys/utsname.h>
+#endif
 #include <fcntl.h>
 
 namespace rubinius {

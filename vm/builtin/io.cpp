@@ -1,13 +1,19 @@
+#include "vm/config.h"
+
 #include <iostream>
 
 #include <fcntl.h>
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#else
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <netdb.h>
+#include <sys/un.h>
+#endif
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <netdb.h>
-#include <sys/un.h>
 
 #include "builtin/io.hpp"
 #include "builtin/bytearray.hpp"

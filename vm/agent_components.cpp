@@ -1,5 +1,7 @@
 #include <tr1/unordered_map>
 
+#include "config.h"
+
 #include "util/bert.hpp"
 #include "agent_components.hpp"
 
