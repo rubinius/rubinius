@@ -168,7 +168,7 @@ class Numeric
     b, a = math_coerce(right)
     a.__send__ meth, b
   end
-  private :redo_coecred
+  private :redo_coerced
 
   def redo_compare(meth, right)
     b, a = math_coerce(right, :compare_error)
