@@ -259,7 +259,12 @@ namespace rubinius {
       if(fstat(fd, &statbuf) == 0 && S_ISCHR(statbuf.st_mode)) {
         /* If this fails, we're no worse off than if it hadn't opened to
          * begin with */
-        (void)read(fd, seed, 4 * sizeof(uint32_t));
+        if(read(fd, seed, 4 * sizeof(uint32_t)) < 0) {
+          seed[0] = 57;
+          seed[1] = 0x83221ab;
+          seed[2] = 0;
+          seed[3] = 0;
+        }
       }
       close(fd);
     }

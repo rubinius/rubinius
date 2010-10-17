@@ -461,6 +461,11 @@ containing the Rubinius standard library files.
       Dir.chdir @directory if @directory
 
       if File.exist?(@script)
+        if IO.read(@script, 6) == "!RBIX\n"
+          STDERR.puts "Unable to load '#{@script}', it is not a Ruby source file"
+          exit 1
+        end
+
         $0 = @script
 
         CodeLoader.load_script @script, @debugging
