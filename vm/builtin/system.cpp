@@ -12,6 +12,8 @@
 #include <unistd.h>
 #include <pwd.h>
 
+#include "config.h"
+
 #include "vm/call_frame.hpp"
 #include "vm/helpers.hpp"
 
@@ -1014,5 +1016,13 @@ namespace rubinius {
 
   Object* System::vm_ruby20_p(STATE) {
     return state->shared.config.version_20 ? Qtrue : Qfalse;
+  }
+
+  Object* System::vm_windows_p(STATE) {
+#ifdef RBX_WINDOWS
+    return Qtrue;
+#else
+    return Qfalse;
+#endif
   }
 }

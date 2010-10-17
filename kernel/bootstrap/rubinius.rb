@@ -115,4 +115,9 @@ module Rubinius
     Ruby.primitive :vm_ruby20_p
     raise PrimitiveFailure, "Rubinius.ruby20? failed"
   end
+
+  def self.windows?
+    Ruby.primitive :vm_windows_p
+    raise PrimitiveFailure, "Rubinius.windows? failed"
+  end
 end
