@@ -23,6 +23,10 @@
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
 
+#ifdef RBX_WINDOWS
+#include <malloc.h>
+#endif
+
 namespace rubinius {
   namespace pack {
     inline Object* to_int(STATE, CallFrame* call_frame, Object* obj) {
