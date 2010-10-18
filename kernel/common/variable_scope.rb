@@ -67,6 +67,22 @@ module Rubinius
       end
     end
 
+    def local_layout
+      vars = self
+      out = []
+
+      while vars
+        meth = vars.method.local_names.to_a
+        eloc = vars.dynamic_locals.keys.map { |x| x.to_s }.sort
+
+        out << [meth, eloc]
+
+        vars = vars.parent
+      end
+
+      out
+    end
+
     def exitted?
       @exitted
     end

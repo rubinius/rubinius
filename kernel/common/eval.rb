@@ -82,10 +82,9 @@ module Kernel
     end
 
     cm = Rubinius::Compiler.compile_eval string, binding.variables, filename, lineno
+
     cm.scope = binding.static_scope.dup
     cm.name = :__eval__
-
-    yield cm if block_given?
 
     # This has to be setup so __FILE__ works in eval.
     script = Rubinius::CompiledMethod::Script.new(cm, filename, true)
@@ -110,6 +109,9 @@ module Kernel
     end
 
     be.from_eval!
+    
+    yield cm, be if block_given?
+
     be.call
   end
   module_function :eval
