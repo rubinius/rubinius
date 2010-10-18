@@ -2,6 +2,8 @@ require "rbconfig"
 
 $verbose = Rake.application.options.trace || ARGV.delete("-v")
 
+DEV_NULL = RUBY_PLATFORM =~ /mingw|mswin/ ? 'NUL' : '/dev/null'
+
 def env(name, default = "")
   (ENV[name] || default).dup
 end
@@ -229,7 +231,7 @@ end
 # Quiet the eff up already. Rakes barfing sh is maddening
 #
 def qsh(cmd)
-  cmd << " > /dev/null" unless $verbose
+  cmd << " > #{DEV_NULL}" unless $verbose
   puts cmd if $verbose
   unless result = rake_system(cmd)
     fail "Command failed with status (#{$?.exitstatus}): [#{cmd}]"
