@@ -114,6 +114,10 @@ class DependencyGrapher
 
       width = str.size
       @dependencies.each do |name|
+        # Fix for Windows drive letters. This string may
+        # be frozen so we do not modify it inline.
+        name = "/#{name[0, 1]}#{name[2..-1]}" if name[1] == ?:
+
         size = name.size + 1
         if width + size > max
           width = 0
