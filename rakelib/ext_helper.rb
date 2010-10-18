@@ -129,7 +129,7 @@ when /mswin32/, /mingw32/, /bccwin32/
   #check_heads(%w[windows.h winsock.h], true)
   #check_libs(%w[kernel32 rpcrt4 gdi32], true)
 
-  if GNU_CHAIN
+  if RUBY_PLATFORM =~ /mingw/
     $LDSHARED = "#{$CXX} -shared -lstdc++"
   else
     add_define "-EHs", "-GR"
