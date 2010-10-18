@@ -35,6 +35,7 @@ class Configure
     @cc = ENV['CC'] || 'gcc'
     @cxx = ENV['CXX'] || 'g++'
     @rake = ENV['RAKE'] || 'rake'
+    @tar = ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
     @install = false
     @version_19 = false
     @version_20 = false
@@ -110,6 +111,10 @@ class Configure
 
     o.on "--rake", "NAME", "Use NAME as 'rake'" do |name|
       @rake = name
+    end
+
+    o.on "--tar", "NAME", "Use NAME as 'tar'" do |name|
+      @tar = name
     end
 
     o.on "--default-1.9", "Support Ruby version 1.9 by default" do
@@ -302,7 +307,7 @@ class Configure
       http.get_response(URI(url)) do |res|
         return false if res.is_a?(Net::HTTPClientError)
         size, total = 0, res.header['Content-Length'].to_i
-        File.open full_path, "w" do |f|
+        File.open full_path, "wb" do |f|
           res.read_body do |chunk|
             f << chunk
             size += chunk.size
@@ -370,7 +375,9 @@ class Configure
 
     if File.exists?(path)
       @log.print "  Unpacking prebuilt LLVM source: "
-      system "cd #{@llvm_parent_path}; tar xjf #{path}"
+      Dir.chdir @llvm_parent_path do
+        system "#{@tar} xjf #{path}"
+      end
       @log.write "done!"
 
       if File.exists?(@llvm_include_path)
