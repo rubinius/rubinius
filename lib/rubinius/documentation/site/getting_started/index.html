@@ -16,7 +16,7 @@ about Ruby and about installing software on your system.</p>
 <p>If you have trouble following the directions here, visit the #rubinius IRC
 channel on irc.freenode.net for help.</p>
 
-<h2 id="">Requirements</h2>
+<h2 id="requirements">Requirements</h2>
 
 <p>Ensure you have the following programs and libraries installed. Also see the
 subsections below for special requirements for your particular operating
@@ -40,13 +40,13 @@ to install it.</li>
   <li><a href="http://rake.rubyforge.org/">rake</a> <code>[sudo] gem install rake</code></li>
 </ul>
 
-<h3 id="">Apple OS X</h3>
+<h3 id="apple-os-x">Apple OS X</h3>
 
 <p>The easiest way to get a build environment on Apple OS X is to install the
 XCode Tools and Utilities. Once installed, you can enable developer mode crash
 reporting at: /Developer/Applications/Utilities/CrashReporterPrefs.app</p>
 
-<h3 id="">Debian/Ubuntu</h3>
+<h3 id="debianubuntu">Debian/Ubuntu</h3>
 
 <ul>
   <li>ruby-dev or ruby1.8-dev</li>
@@ -55,7 +55,7 @@ reporting at: /Developer/Applications/Utilities/CrashReporterPrefs.app</p>
   <li>libssl-dev</li>
 </ul>
 
-<h2 id="">Building Rubinius</h2>
+<h2 id="building-rubinius">Building Rubinius</h2>
 
 <p>You can build and run Rubinius from the source directory. You do not need to
 install Rubinius to run it. The directions below will detail both installing
@@ -67,7 +67,7 @@ version of LLVM. If you have installed LLVM on your system, pass the
 
 <p>The Rubinius source code is on Github: git://github.com/evanphx/rubinius.git</p>
 
-<h3 id="">Installing Rubinius</h3>
+<h3 id="installing-rubinius">Installing Rubinius</h3>
 
 <ol>
   <li><code>./configure --prefix=/path/to/install/dir</code></li>
@@ -75,7 +75,7 @@ version of LLVM. If you have installed LLVM on your system, pass the
   <li><code>Add /path/to/install/dir/bin to your PATH</code></li>
 </ol>
 
-<h3 id="">Running from the Source Directory</h3>
+<h3 id="running-from-the-source-directory">Running from the Source Directory</h3>
 
 <p>If you plan to work on Rubinius itself, this is the simplest option.</p>
 
@@ -85,7 +85,7 @@ version of LLVM. If you have installed LLVM on your system, pass the
   <li><code>Add /path/to/source/dir/bin to your PATH</code></li>
 </ol>
 
-<h2 id="">Running Rubinius</h2>
+<h2 id="running-rubinius">Running Rubinius</h2>
 
 <p>Once you have followed the steps for building (and possibly installing)
 Rubinius, you can verify it is working:</p>
@@ -108,7 +108,7 @@ Rubinius, you can verify it is working:</p>
 <pre><code>rbx
 </code></pre>
 
-<h2 id="">Troubleshooting</h2>
+<h2 id="troubleshooting">Troubleshooting</h2>
 
 <p>See <a href="/common_problems">common problems</a> and visit us in the #rubinius IRC
 channel on irc.freenode.net.</p>
@@ -132,6 +132,7 @@ channel on irc.freenode.net.</p>
 <ul>
 <li><a href="/dev/specs/">Specs</a></li>
 <li><a href="/dev/build_system/">Build System</a></li>
+<li><a href="/dev/multiverse/">Multiverse</a></li>
 <li><a href="/dev/bootstrapping/">Bootstrapping</a></li>
 <li><a href="/dev/compiler/">Bytecode Compiler</a></li>
 <li><a href="/dev/style_guide/">Style Guide</a></li>

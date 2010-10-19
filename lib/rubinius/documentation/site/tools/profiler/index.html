@@ -14,7 +14,7 @@
 methods that are run. The profiler is implemented at the VM level and the data
 is provided for Ruby code to process.</p>
 
-<h2 id="">VM Profiler</h2>
+<h2 id="vm-profiler">VM Profiler</h2>
 
 <p>The cast of characters involved in creating and maintaining the profiler
 include VM, SharedState, ProfilerCollection, and Profiler. The VM class is a
@@ -38,7 +38,7 @@ to register or remove profilers.</p>
 <p>The ProfilerCollection instance requests that the VM instance mapped to a
 profiler removes the profiler when the profiler will be deleted.</p>
 
-<h2 id="">Ruby Profiler</h2>
+<h2 id="ruby-profiler">Ruby Profiler</h2>
 
 <p>In Ruby land, the Rubinius::Profiler::Instrumenter instance exposes nothing
 about the multi-threaded reality in the VM. The individual C++ Profiler
@@ -84,16 +84,16 @@ end
 the profile data by default. Pass &lsquo;false&rsquo; to #profile to not print the data.
 Either way, the profile data itself is returned by #profile.</p>
 
-<h2 id="">How to Read the Flat Profiler Output</h2>
+<h2 id="how-to-read-the-flat-profiler-output">How to Read the Flat Profiler Output</h2>
 
 <p>The flat profiler output has the following columns:</p>
 
-<h3 id="">% time</h3>
+<h3 id="time">% time</h3>
 
 <p>The amount of time spent in this method as a percentage of the total time
 spent in all methods.</p>
 
-<h3 id="">cumulative seconds</h3>
+<h3 id="cumulative-seconds">cumulative seconds</h3>
 
 <p>The total amount of time spent in this method and all its direct callees and
 their callees all the way to every leaf method called along a path from this
@@ -101,24 +101,24 @@ method. Consider this method as the root of a call tree. The sum of all the
 time spent in methods in this call tree is the cumulative seconds for this
 method.</p>
 
-<h3 id="">self seconds</h3>
+<h3 id="self-seconds">self seconds</h3>
 
 <p>The total time spent in this method less the total time spent in all this
 method&rsquo;s callees.</p>
 
-<h3 id="">calls</h3>
+<h3 id="calls">calls</h3>
 
 <p>The total number of times this method was called.</p>
 
-<h3 id="">self ms/call</h3>
+<h3 id="self-mscall">self ms/call</h3>
 
 <p>The self seconds as milliseconds divided by the total number of calls.</p>
 
-<h3 id="">total ms/call</h3>
+<h3 id="total-mscall">total ms/call</h3>
 
 <p>The cumulative seconds as milliseconds divided by the total number of calls.</p>
 
-<h3 id="">Example of Flat Output</h3>
+<h3 id="example-of-flat-output">Example of Flat Output</h3>
 
 <p>The following script is the basis of both profile examples below.</p>
 
@@ -163,7 +163,7 @@ output.</p>
 10 methods called a total of 57 times
 </code></pre>
 
-<h2 id="">How to Read the Graph Output</h2>
+<h2 id="how-to-read-the-graph-output">How to Read the Graph Output</h2>
 
 <p>The graph output is enabled with the configuration option:</p>
 
@@ -178,46 +178,46 @@ part of the entry.</p>
 
 <p>For the primary line, the fields are as follows:</p>
 
-<h3 id="">index</h3>
+<h3 id="index">index</h3>
 
 <p>An index assigned to each method in the graph to facilitate cross-referencing
 the entries.</p>
 
-<h3 id="">% time</h3>
+<h3 id="time-1">% time</h3>
 
 <p>The amount of time spent in this method as a percentage of the total time
 spent in all methods. This is the same as the flat output.</p>
 
-<h3 id="">self</h3>
+<h3 id="self">self</h3>
 
 <p>The total time spent in this method less the total time spent in all this
 method&rsquo;s callees. This is the same as self seconds in the flat output.</p>
 
-<h3 id="">children</h3>
+<h3 id="children">children</h3>
 
 <p>The total time spent in all the methods called by this method.</p>
 
-<h3 id="">called</h3>
+<h3 id="called">called</h3>
 
 <p>The total number of times this method was called.</p>
 
-<h3 id="">name</h3>
+<h3 id="name">name</h3>
 
 <p>The name of the method followed be the index number.</p>
 
 <p>The lines above the primary line are methods that call the primary method. The
 callers&rsquo; fields have the following interpretation:</p>
 
-<h3 id="">self</h3>
+<h3 id="self-1">self</h3>
 
 <p>The total time spent in this method less the total time spent in all this
 method&rsquo;s callees. This is the same as self seconds in the flat output.</p>
 
-<h3 id="">children</h3>
+<h3 id="children-1">children</h3>
 
 <p>The time spent in the method&rsquo;s call to the primary method.</p>
 
-<h3 id="">called</h3>
+<h3 id="called-1">called</h3>
 
 <p>The called field has two parts separated by a forward slash. The left is the
 number of times this method called the primary method. The right is the total
@@ -225,7 +225,7 @@ number of calls this method made. In other words, the two numbers together
 show a ratio of the calls to the primary method versus all calls made by the
 caller.</p>
 
-<h3 id="">name</h3>
+<h3 id="name-1">name</h3>
 
 <p>The name of the caller followed by its index number. If the index is [0], the
 method does not appear in the graph.</p>
@@ -233,25 +233,25 @@ method does not appear in the graph.</p>
 <p>The lines below the primary line are methods that the primary method called.
 The fields for the called methods are as follows:</p>
 
-<h3 id="">self</h3>
+<h3 id="self-2">self</h3>
 
 <p>The total time spent in this method less the total time spent in all this
 method&rsquo;s callees. This is the same as self seconds in the flat output.</p>
 
-<h3 id="">children</h3>
+<h3 id="children-2">children</h3>
 
 <p>This is an estimate of the amount of time this method&rsquo;s callees spent when
 this method was called by the primary method. The estimate is based on the
 ration of the time this method spent when called by the primary method to the
 total time spent in this method.</p>
 
-<h3 id="">called</h3>
+<h3 id="called-2">called</h3>
 
 <p>The called field has two parts separated by a forward slash. The left is the
 number of times this method was called by the primary method. The right is the
 total number of times this method was called.</p>
 
-<h3 id="">name</h3>
+<h3 id="name-2">name</h3>
 
 <p>The name of the called method followed by its index number [N]. If there is no
 index present, there is no primary entry for the method in the graph. Use the
@@ -323,6 +323,7 @@ the entry.</p>
 <ul>
 <li><a href="/dev/specs/">Specs</a></li>
 <li><a href="/dev/build_system/">Build System</a></li>
+<li><a href="/dev/multiverse/">Multiverse</a></li>
 <li><a href="/dev/bootstrapping/">Bootstrapping</a></li>
 <li><a href="/dev/compiler/">Bytecode Compiler</a></li>
 <li><a href="/dev/style_guide/">Style Guide</a></li>

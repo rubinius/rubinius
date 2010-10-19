@@ -30,6 +30,7 @@ def table_of_contents
 
   [ ["Specs",             "/dev/specs/"],
     ["Build System",      "/dev/build_system/"],
+    ["Multiverse",        "/dev/multiverse/"],
     ["Bootstrapping",     "/dev/bootstrapping/"],
     ["Bytecode Compiler", "/dev/compiler/"],
     ["Style Guide",       "/dev/style_guide/"],

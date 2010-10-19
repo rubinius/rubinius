@@ -19,12 +19,12 @@ with us in the #rubinius IRC channel on irc.freenode.net.</p>
 
 <p>Below are several ideas for things to do on Rubinius.</p>
 
-<h2 id="">Run Your Code</h2>
+<h2 id="run-your-code">Run Your Code</h2>
 
 <p>Your code is often more vicious than the specs. Run your pet project under
 rubinius and report issues. See <a href="/howto/write_a_ticket">how to write a ticket</a>.</p>
 
-<h2 id="">Ask For Help</h2>
+<h2 id="ask-for-help">Ask For Help</h2>
 
 <p>Anything that we can do to help, we will. Make sure to do your own research
 too, if possible. Rubinius attempts to be a project that you can easily study,
@@ -35,18 +35,18 @@ priority to tickets that include simple steps to reproduce the issue. Even
 better are tickets that include RubySpecs that demonstrate the bug and a patch
 that fixes it.</p>
 
-<h2 id="">Write Specs</h2>
+<h2 id="write-specs">Write Specs</h2>
 
 <ol>
   <li>
-    <p>Run &lsquo;bin/mspec tag &ndash;list incomplete <dir />&rsquo; to show specs that have been
+    <p>Run &lsquo;bin/mspec tag &ndash;list incomplete <dir>&rsquo; to show specs that have been
 tagged as incomplete. These specs may simply need review, or there could
-be specs missing for a particular class.</p>
+be specs missing for a particular class.</dir></p>
 
-    <p>NOTE: You can specify the pseudo-directory &lsquo;:files&rsquo; for <dir />, which will
+    <p>NOTE: You can specify the pseudo-directory &lsquo;:files&rsquo; for <dir>, which will
 show tags for all the specs that should run on Rubinius. Or you can
 specify any subdirectory of the spec/ directory to list tags for specs in
-that subdirectory.</p>
+that subdirectory.</dir></p>
   </li>
   <li>
     <p>Find unspecified behaviors. See <a href="/howto/write_a_ruby_spec">how to write a Ruby
@@ -54,16 +54,16 @@ spec</a>.</p>
   </li>
 </ol>
 
-<h2 id="">Fix Failing Specs</h2>
+<h2 id="fix-failing-specs">Fix Failing Specs</h2>
 
 <ol>
   <li>
-    <p>Run &lsquo;bin/mspec tag &ndash;list fails <dir />&rsquo; to show specs tagged as failing.</p>
+    <p>Run &lsquo;bin/mspec tag &ndash;list fails <dir>&rsquo; to show specs tagged as failing.</dir></p>
 
-    <p>NOTE: You can specify the pseudo-directory &lsquo;:files&rsquo; for <dir />, which will
+    <p>NOTE: You can specify the pseudo-directory &lsquo;:files&rsquo; for <dir>, which will
 show tags for all the specs that should run on Rubinius. Or you can
 specify any subdirectory of the spec/ directory to list tags for specs in
-that subdirectory.</p>
+that subdirectory.</dir></p>
   </li>
   <li>
     <p>Pick a spec that looks interesting and see if you can write a patch that
@@ -71,13 +71,13 @@ will make it pass.</p>
   </li>
 </ol>
 
-<h2 id="">Write Docs</h2>
+<h2 id="write-docs">Write Docs</h2>
 
 <p>Study how Rubinius works and write highlevel documentation that will help
 others learn about the implementation details. See documents under doc/vm for
 examples.</p>
 
-<h2 id="">Cleanup Code</h2>
+<h2 id="cleanup-code">Cleanup Code</h2>
 
 <p>Search for tags like TODO, HACK, FIXME in the code and submit patches to fix
 them. Here&rsquo;s a command to search the code:</p>
@@ -87,7 +87,7 @@ them. Here&rsquo;s a command to search the code:</p>
 
 <p>Review the <a href="/dev/style_guide">style guide</a> for coding guidelines.</p>
 
-<h2 id="">Triage Tickets</h2>
+<h2 id="triage-tickets">Triage Tickets</h2>
 
 <ul>
   <li>Revive or close old tickets.</li>
@@ -114,6 +114,7 @@ already RubySpecs for the issue. If not, consider writing some.</li>
 <ul>
 <li><a href="/dev/specs/">Specs</a></li>
 <li><a href="/dev/build_system/">Build System</a></li>
+<li><a href="/dev/multiverse/">Multiverse</a></li>
 <li><a href="/dev/bootstrapping/">Bootstrapping</a></li>
 <li><a href="/dev/compiler/">Bytecode Compiler</a></li>
 <li><a href="/dev/style_guide/">Style Guide</a></li>
