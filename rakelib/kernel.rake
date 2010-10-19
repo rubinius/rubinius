@@ -26,6 +26,14 @@ require 'kernel/bootstrap/iseq.rb'
 
 # The rule for compiling all kernel Ruby files
 rule ".rbc" do |t|
+  # We must be able to build 1.9 language features such as 'def !() end'
+  # Consequently, all of kernel needs to be written in the strict subset
+  # of 1.8 that is understood by the 1.9 parser, plus 1.9 features.
+  unless @build_parser_selected
+    Rubinius::Melbourne.select_19
+    @build_parser_selected = true
+  end
+
   source = t.prerequisites.first
   puts "RBC #{source}"
   Rubinius::Compiler.compile source, t.name, 1, [:default, :kernel]
