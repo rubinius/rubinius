@@ -311,6 +311,8 @@ namespace rubinius {
   static void float_op(MathOperation op, Class* klass,
       JITOperations& ops, Inliner& i)
   {
+    i.use_send_for_failure();
+
     Value* self = i.recv();
     ops.check_class(self, klass, i.failure());
 
@@ -402,6 +404,8 @@ namespace rubinius {
   static void float_compare(MathOperation op, Class* klass,
       JITOperations& ops, Inliner& i)
   {
+    i.use_send_for_failure();
+
     Value* self = i.recv();
     ops.check_class(self, klass, i.failure());
 
