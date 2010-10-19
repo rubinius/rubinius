@@ -317,7 +317,10 @@ namespace :build do
   task :llvm do
     if LLVM_ENABLE and Rubinius::BUILD_CONFIG[:llvm] == :svn
       unless File.file?("vm/external_libs/llvm/Release/bin/llvm-config")
-        sh "cd vm/external_libs/llvm; ./configure #{llvm_config_flags} && #{make}"
+        cd "vm/external_Libs/llvm" do
+          sh "perl ./configure #{llvm_config_flags}"
+          sh "#{make}"
+        end
       end
     end
   end
