@@ -3,6 +3,7 @@ require 'debugger/frame'
 require 'debugger/commands'
 require 'debugger/breakpoint'
 require 'debugger/display'
+require 'compiler/iseq'
 
 #
 # The Rubinius reference debugger.
@@ -317,7 +318,8 @@ class Debugger
     ip = @current_frame.ip
 
     meth = @current_frame.method
-    partial = meth.iseq.decode_between(ip, ip+1)
+    decoder = Rubinius::InstructionDecoder.new(meth.iseq)
+    partial = decoder.decode_between(ip, ip+1)
 
     partial.each do |ins|
       op = ins.shift
@@ -348,7 +350,8 @@ class Debugger
 
     section "Bytecode between #{start} and #{fin-1} for line #{line}"
 
-    partial = meth.iseq.decode_between(start, fin)
+    decoder = Rubinius::InstructionDecoder.new(meth.iseq)
+    partial = decoder.decode_between(start, fin)
 
     ip = start
 
