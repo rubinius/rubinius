@@ -11,11 +11,6 @@ module Rubinius
       raise PrimitiveFailure, "CompiledMethod#dup primitive failed"
     end
 
-    def compile
-      Ruby.primitive :compiledmethod_compile
-      raise PrimitiveFailure, "CompiledMethod#compile primitive failed"
-    end
-
     def jit_now
       Ruby.primitive :compiledmethod_jit_now
       raise PrimitiveFailure, "CompiledMethod#jit_now primitive failed"

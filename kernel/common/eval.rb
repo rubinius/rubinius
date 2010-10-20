@@ -93,9 +93,6 @@ module Kernel
 
     cm.scope.script = script
 
-    # Internalize it now, since we're going to springboard to it as a block.
-    cm.compile
-
     be = Rubinius::BlockEnvironment.new
     be.under_context binding.variables, cm
 
@@ -179,7 +176,6 @@ module Kernel
 
       cm.scope = static_scope
       cm.name = :__instance_eval__
-      cm.compile
 
       # This has to be setup so __FILE__ works in eval.
       script = Rubinius::CompiledMethod::Script.new(cm, filename, true)
@@ -273,7 +269,6 @@ class Module
     ss.script = script
 
     cm.scope = ss
-    cm.compile
 
     # The gist of this code is that we need the receiver's static scope
     # but the caller's binding to implement the proper constant behavior

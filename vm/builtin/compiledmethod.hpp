@@ -93,9 +93,6 @@ namespace rubinius {
 
     static Object* default_executor(STATE, CallFrame*, Dispatch&, Arguments& args);
 
-    // Ruby.primitive :compiledmethod_compile
-    Object* compile(STATE);
-
     // Ruby.primitive :compiledmethod_jit_now
     Object* jit_now(STATE);
 
