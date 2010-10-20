@@ -57,7 +57,8 @@ namespace rubinius {
       kMatureGC,
       kNormalJIT,
       kSingletonJIT,
-      kBlockJIT
+      kBlockJIT,
+      kFinalizers
     };
 
     class Method;

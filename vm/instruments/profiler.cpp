@@ -61,6 +61,7 @@ namespace rubinius {
       case kSingleton:
       case kYoungGC:
       case kMatureGC:
+      case kFinalizers:
         ss << "." << method_name;
         break;
       case kSingletonJIT:
@@ -206,6 +207,9 @@ namespace rubinius {
         break;
       case kMatureGC:
         name = state_->symbol("collect_mature");
+        break;
+      case kFinalizers:
+        name = state_->symbol("run_finalizers");
         break;
       default:
         name = state_->symbol("unknown");

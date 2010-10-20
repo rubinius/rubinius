@@ -24,6 +24,11 @@ end
 
 require 'kernel/bootstrap/iseq.rb'
 
+# So that the compiler can try and use the config
+module Rubinius
+  Config = {}
+end
+
 # The rule for compiling all kernel Ruby files
 rule ".rbc" do |t|
   # We must be able to build 1.9 language features such as 'def !() end'

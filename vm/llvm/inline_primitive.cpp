@@ -311,22 +311,56 @@ namespace rubinius {
   static void float_op(MathOperation op, Class* klass,
       JITOperations& ops, Inliner& i)
   {
+    i.use_send_for_failure();
+
     Value* self = i.recv();
     ops.check_class(self, klass, i.failure());
 
     Value* arg = i.arg(0);
-    ops.check_class(arg, klass, i.failure());
+
+    BasicBlock* not_float = ops.new_block();
+
+    ops.check_class(arg, klass, not_float);
+
+    // Float#*(Float)
+    Value* farg  = ops.b().CreateBitCast(arg, ops.state()->ptr_type("Float"),
+        "arg_float");
+
+    Value* unboxed_rhs = ops.b().CreateLoad(
+        ops.b().CreateConstGEP2_32(farg,  0, 1, "arg.value_pos"), "farg");
+
+    BasicBlock* perform = ops.new_block();
+
+    BasicBlock* unbox_block = ops.current_block();
+
+    ops.b().CreateBr(perform);
+
+    // Float#*(Fixnum)
+    ops.set_block(not_float);
+
+    ops.verify_guard(ops.check_if_fixnum(arg), i.failure());
+
+    Value* fix_rhs = ops.b().CreateSIToFP(
+        ops.fixnum_to_native(arg), unboxed_rhs->getType());
+
+    BasicBlock* convert_block = ops.current_block();
+
+    ops.b().CreateBr(perform);
+
+    // perform operation
+
+    perform->moveAfter(convert_block);
+    ops.set_block(perform);
+
+    PHINode* rhs = ops.b().CreatePHI(fix_rhs->getType(), "rhs");
+    rhs->addIncoming(unboxed_rhs, unbox_block);
+    rhs->addIncoming(fix_rhs, convert_block);
 
     Value* fself = ops.b().CreateBitCast(self, ops.state()->ptr_type("Float"),
         "self_float");
 
-    Value* farg  = ops.b().CreateBitCast(arg, ops.state()->ptr_type("Float"),
-        "arg_float");
-
     Value* lhs = ops.b().CreateLoad(
         ops.b().CreateConstGEP2_32(fself, 0, 1, "self.value_pos"), "fself");
-    Value* rhs = ops.b().CreateLoad(
-        ops.b().CreateConstGEP2_32(farg,  0, 1, "arg.value_pos"), "farg");
 
     Value* performed = 0;
 
@@ -370,6 +404,8 @@ namespace rubinius {
   static void float_compare(MathOperation op, Class* klass,
       JITOperations& ops, Inliner& i)
   {
+    i.use_send_for_failure();
+
     Value* self = i.recv();
     ops.check_class(self, klass, i.failure());
 

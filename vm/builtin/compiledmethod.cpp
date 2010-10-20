@@ -125,14 +125,6 @@ namespace rubinius {
     backend_method_->specialize(state, this, ti);
   }
 
-  Object* CompiledMethod::compile(STATE) {
-    if(backend_method_ == NULL || backend_method_->run != VMMethod::debugger_interpreter) {
-      backend_method_ = NULL;
-      formalize(state);
-    }
-    return this;
-  }
-
   Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame, Dispatch& msg,
                                            Arguments& args) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);

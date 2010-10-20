@@ -497,7 +497,7 @@ next to the inspect output of the value.
 
     class Disassemble < Command
       pattern "dis", "disassemble"
-      help "Show the bytecode for the current method"
+      help "Show the bytecode for the current line or method"
       ext_help <<-HELP
 Disassemble bytecode for the current method. By default, the bytecode
 for the current line is disassembled only.
@@ -507,7 +507,7 @@ If the argument is 'all', the entire method is shown as bytecode.
 
       def run(args)
         if args and args.strip == "all"
-          section "Bytecode for #{@current_frame.method.name}"
+          section "Bytecode for #{current_frame.method.name}"
           puts current_method.decode
         else
           @debugger.show_bytecode
@@ -524,20 +524,24 @@ Subcommands are:
       HELP
 
       def run(args)
-        case args.strip
-        when "break", "breakpoints", "bp"
-          section "Breakpoints"
-          if @debugger.breakpoints.empty?
-            info "No breakpoints set"
-          end
-
-          @debugger.breakpoints.each_with_index do |bp, i|
-            if bp
-              info "%3d: %s" % [i+1, bp.describe]
+        if args
+          case args.strip
+          when "break", "breakpoints", "bp"
+            section "Breakpoints"
+            if @debugger.breakpoints.empty?
+              info "No breakpoints set"
             end
+
+            @debugger.breakpoints.each_with_index do |bp, i|
+              if bp
+                info "%3d: %s" % [i+1, bp.describe]
+              end
+            end
+          else
+            error "Unknown info: '#{args}'"
           end
         else
-          error "Unknown info: '#{args}'"
+          error "No info subcommand"
         end
       end
     end

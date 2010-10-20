@@ -440,6 +440,8 @@ containing the Rubinius standard library files.
 
     # Evaluate any -e arguments
     def evals
+      return if @evals.empty?
+
       @stage = "evaluating command line code"
 
       if @input_loop

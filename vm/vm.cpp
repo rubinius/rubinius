@@ -408,7 +408,7 @@ namespace rubinius {
     // but better than not seeing the time at all.
 #ifdef RBX_PROFILER
       if(unlikely(shared.profiling())) {
-        profiler::MethodEntry method(this, profiler::kMatureGC);
+        profiler::MethodEntry method(this, profiler::kFinalizers);
         om->run_finalizers(this, call_frame);
       } else {
         om->run_finalizers(this, call_frame);
