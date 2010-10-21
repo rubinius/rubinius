@@ -418,4 +418,7 @@ extern "C" {
     return Qfalse;
   }
 
+  VALUE rb_ary_freeze(VALUE ary) {
+    return rb_obj_freeze(ary);
+  }
 }

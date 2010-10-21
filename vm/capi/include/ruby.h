@@ -814,6 +814,9 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE   rb_ary_each(VALUE ary);
 
+  /** Same as rb_obj_freeze */
+  VALUE   rb_ary_freeze(VALUE ary);
+
   void    rb_mem_clear(VALUE* ary, int len);
 
   /** Return new Array with elements first and second. */
@@ -1415,6 +1418,9 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Returns a Struct with the specified fields. */
   VALUE rb_struct_define(const char *name, ...);
+
+  /** Creat an instance of a struct */
+  VALUE rb_struct_new(VALUE klass, ...);
 
   /** Returns the value of the key. */
   VALUE rb_struct_aref(VALUE struct_handle, VALUE key);
