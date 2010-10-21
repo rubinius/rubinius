@@ -26,7 +26,19 @@ require 'kernel/bootstrap/iseq.rb'
 
 # So that the compiler can try and use the config
 module Rubinius
-  Config = {}
+  Config = { 'eval.cache' => false }
+
+  class Channel
+    def receive
+    end
+
+    def <<(val)
+    end
+
+    def as_lock
+      yield
+    end
+  end unless const_defined?(:Channel)
 end
 
 # The rule for compiling all kernel Ruby files
