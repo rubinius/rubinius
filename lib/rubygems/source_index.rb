@@ -156,6 +156,10 @@ class Gem::SourceIndex
     @gems = {}
     specifications.each{ |full_name, spec| add_spec spec }
     @spec_dirs = nil
+
+    # Make sure the cache directory exists, we use it later
+    dir = File.join(Gem.user_dir, "cache")
+    Dir.mkdir(dir) unless File.exists?(dir)
   end
 
   # TODO: remove method
