@@ -29,7 +29,8 @@ class Configure
     @sizeof_long = 0
 
     # Compiler / build settings
-    @compiler = ENV['CC'] || 'gcc'
+    @cc = ENV['CC'] || 'gcc'
+    @cxx = ENV['CXX'] || 'g++'
     @rake = ENV['RAKE'] || 'rake'
     @install = false
 
@@ -70,7 +71,7 @@ class Configure
     @libversion = "1.1"
     @version = "#{@libversion}.1dev"
     @release_date = "2010-09-23"
-    @config_version = 21
+    @config_version = 22
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
@@ -108,8 +109,12 @@ class Configure
 
     o.doc "\n Compiler settings"
 
-    o.on "--cc", "COMPILER", "Compiler to use (eg gcc, clang)" do |cc|
-      @compiler = cc
+    o.on "--cc", "COMPILER", "Compiler to use for C code (eg gcc, clang)" do |cc|
+      @cc = cc
+    end
+
+    o.on "--cxx", "COMPILER", "Compiler to use for C++ code (eg g++, clang++)" do |cc|
+      @cxx = cxx
     end
 
     o.doc "\n LLVM settings"
@@ -512,7 +517,7 @@ class Configure
         yield f
       end
 
-      `#{@compiler} #{env('CFLAGS')} -lstdc++ -lm -o #{basename} #{source} >>#{@log.path} 2>&1`
+      `#{@cxx} #{env('CFLAGS')} -lstdc++ -lm -o #{basename} #{source} >>#{@log.path} 2>&1`
       return $?.exitstatus unless run
 
       unless $?.exitstatus == 0
@@ -587,7 +592,7 @@ int main() { X x; return 0; }
 
     tf.close
 
-    `#{@compiler} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1`
+    `#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1`
     status = ($?.exitstatus == 0)
 
     tf.unlink
@@ -672,7 +677,8 @@ module Rubinius
     :build_rake     => "#{@rake}",
     :llvm           => :#{@llvm},
     :llvm_configure => "#{@llvm_configure}",
-    :compiler       => "#{@compiler}",
+    :cc             => "#{@cc}",
+    :cxx            => "#{@cxx}",
     :defines        => #{@defines.inspect},
     :host           => "#{@host}",
     :cpu            => "#{@cpu}",

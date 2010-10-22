@@ -27,7 +27,7 @@ end
 require config_rb
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 
-unless BUILD_CONFIG[:config_version] == 21
+unless BUILD_CONFIG[:config_version] == 22
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
@@ -50,8 +50,8 @@ end
 
 # Set the build compiler to the configured compiler unless
 # the compiler is set via CC environment variable.
-ENV['CC'] = BUILD_CONFIG[:compiler] unless ENV['CC']
-ENV['CXX'] = BUILD_CONFIG[:compiler] unless ENV['CXX']
+ENV['CC'] = BUILD_CONFIG[:cc] unless ENV['CC']
+ENV['CXX'] = BUILD_CONFIG[:cxx] unless ENV['CXX']
 
 $dlext = RbConfig::CONFIG["DLEXT"]
 
