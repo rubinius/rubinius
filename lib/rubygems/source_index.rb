@@ -7,6 +7,7 @@
 require 'rubygems/user_interaction'
 require 'rubygems/specification'
 require 'digest'
+require 'fileutils'
 
 # :stopdoc:
 module Gem
@@ -159,7 +160,7 @@ class Gem::SourceIndex
 
     # Make sure the cache directory exists, we use it later
     dir = File.join(Gem.user_dir, "cache")
-    Dir.mkdir(dir) unless File.exists?(dir)
+    FileUtils.mkdir_p dir
   end
 
   # TODO: remove method
