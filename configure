@@ -113,7 +113,7 @@ class Configure
       @cc = cc
     end
 
-    o.on "--cxx", "COMPILER", "Compiler to use for C++ code (eg g++, clang++)" do |cc|
+    o.on "--cxx", "COMPILER", "Compiler to use for C++ code (eg g++, clang++)" do |cxx|
       @cxx = cxx
     end
 
