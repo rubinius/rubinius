@@ -1140,7 +1140,7 @@ class IO
       write DEFAULT_RECORD_SEPARATOR
     else
       args.each do |arg|
-        if arg.nil?
+        if arg.equal? nil
           str = "nil"
         elsif Thread.guarding? arg
           str = "[...]"
