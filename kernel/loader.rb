@@ -456,29 +456,25 @@ containing the Rubinius standard library files.
       @stage = "running #{@script}"
       Dir.chdir @directory if @directory
 
-      if File.exist?(@script)
+      if File.exists? @script
         if IO.read(@script, 6) == "!RBIX\n"
-          STDERR.puts "Unable to load '#{@script}', it is not a Ruby source file"
-          exit 1
+          raise LoadError, "'#{@script}' is not a Ruby source file"
         end
-
-        $0 = @script
-
-        CodeLoader.load_script @script, @debugging
       else
         if @script.suffix?(".rb")
-          puts "Unable to find '#{@script}'"
-          exit 1
+          raise LoadError, "unable to find '#{@script}'"
         else
-          prog = File.join @main_lib, "bin", "#{@script}.rb"
-          if File.exist? prog
-            $0 = prog
-            load prog
+          command = File.join @main_lib, "bin", "#{@script}.rb"
+          unless File.exists? command
+            raise LoadError, "unable to find Rubinius command '#{@script}'"
           else
-            raise LoadError, "Unable to find a script '#{@script}' to run"
+            @script = command
           end
         end
       end
+
+      $0 = @script
+      CodeLoader.load_script @script, @debugging
     end
 
     # Run IRB unless we were passed -e, -S arguments or a script to run.
