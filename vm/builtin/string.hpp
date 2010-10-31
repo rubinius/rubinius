@@ -174,12 +174,6 @@ namespace rubinius {
     // Ruby.primitive :string_find_character
     String* find_character(STATE, Fixnum* offset);
 
-    // Ruby.primitive :string_base64_encode
-    static String* base64_encode(STATE, String* str, Fixnum* line_length);
-
-    // Ruby.primitive :string_base64_decode
-    static String* base64_decode(STATE, String* str);
-
     // Ruby.primitive :string_unpack
     Array* unpack(STATE, String *directives);
 
