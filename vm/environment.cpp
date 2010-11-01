@@ -438,6 +438,10 @@ namespace rubinius {
       state->shared.ic_registry()->print_stats(state);
     }
 
+    state->set_call_frame(0);
+
+    state->global_lock().take();
+
 #ifdef ENABLE_LLVM
     LLVMState::shutdown(state);
 #endif
