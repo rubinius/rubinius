@@ -1169,6 +1169,7 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_io_check_writable(rb_io_t* io);
 
   void    rb_thread_wait_fd(int fd);
+  void    rb_thread_wait_for(struct timeval time);
 
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);
