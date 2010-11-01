@@ -314,8 +314,20 @@ module Kernel
   end
   module_function :sleep
 
-  def at_exit(&block)
-    Rubinius::AtExit.unshift(block)
+  def at_exit(prc=nil, &block)
+    if prc
+      unless prc.respond_to?(:call)
+        raise "Argument must respond to #call"
+      end
+    else
+      prc = block
+    end
+
+    unless prc
+      raise "must pass a #call'able or block"
+    end
+
+    Rubinius::AtExit.unshift(prc)
   end
   module_function :at_exit
 

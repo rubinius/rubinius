@@ -312,13 +312,13 @@ extern "C" {
     return rb_funcall2(self_handle, rb_intern("[]"), argc, argv);
   }
 
-  // Really just used as a placeholder/sentinal value to half implement
-  // rb_iterate
   VALUE rb_each(VALUE ary) {
     return rb_funcall(ary, rb_intern("each"), 0);
   }
 
-  VALUE rb_iterate(VALUE(*ifunc)(VALUE), VALUE ary, VALUE(*cb)(ANYARGS), VALUE cb_data) {
+  VALUE rb_iterate(VALUE(*ifunc)(VALUE), VALUE ary, VALUE(*cb)(ANYARGS),
+                   VALUE cb_data)
+  {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     // Minor optimization.
@@ -330,16 +330,7 @@ extern "C" {
       return ary;
     }
 
-    NativeMethod* nm = NativeMethod::create(env->state(),
-                        (String*)Qnil, env->state()->shared.globals.rubinius.get(),
-                        env->state()->symbol("call"), (void*)cb,
-                        Fixnum::from(ITERATE_BLOCK));
-
-    nm->set_ivar(env->state(), env->state()->symbol("cb_data"),
-                 env->get_object(cb_data));
-
-    Proc* prc = Proc::create(env->state(), env->state()->shared.globals.proc.get());
-    prc->bound_method(env->state(), nm);
+    Proc* prc = capi::wrap_c_function((void*)cb, cb_data, ITERATE_BLOCK);
 
     env->set_outgoing_block(env->get_handle(prc));
 

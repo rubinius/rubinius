@@ -58,6 +58,9 @@ namespace rubinius {
      *  been flushed. */
     Float* capi_get_float(NativeMethodEnvironment* env, VALUE float_handle);
 
+    /** Wrap a C function in a Proc */
+    Proc* wrap_c_function(void* func, VALUE cb, int arity);
+
     /** Converts a native type (int, uint, long) to a suitable Integer. */
     template<typename NativeType>
       VALUE capi_native2num(NativeType number) {

@@ -573,6 +573,14 @@ namespace rubinius {
         return env->get_object(ret);
       }
 
+      case C_CALLBACK: {
+        VALUE cb = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
+
+        nm->func()(cb);
+
+        return Qnil;
+      }
+
       default:
         capi::capi_raise_runtime_error("unrecognized arity for NativeMethod call");
         return Qnil;
