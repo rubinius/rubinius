@@ -164,6 +164,17 @@ static VALUE kernel_spec_rb_exec_recursive(VALUE self, VALUE obj) {
 }
 #endif
 
+#ifdef HAVE_RB_SET_END_PROC
+static void write_io(VALUE io) {
+  rb_funcall(io, rb_intern("write"), 1, rb_str_new2("e"));
+}
+
+static VALUE kernel_spec_rb_set_end_proc(VALUE self, VALUE io) {
+  rb_set_end_proc(write_io, io);
+  return Qnil;
+}
+#endif
+
 void Init_kernel_spec() {
   VALUE cls;
   cls = rb_define_class("CApiKernelSpecs", rb_cObject);
@@ -222,6 +233,10 @@ void Init_kernel_spec() {
 
 #ifdef HAVE_RB_EXEC_RECURSIVE
   rb_define_method(cls, "rb_exec_recursive", kernel_spec_rb_exec_recursive, 1);
+#endif
+
+#ifdef HAVE_RB_SET_END_PROC
+  rb_define_method(cls, "rb_set_end_proc", kernel_spec_rb_set_end_proc, 1);
 #endif
 }
 
