@@ -126,6 +126,14 @@ static VALUE thread_spec_rb_thread_wakeup(VALUE self, VALUE thr) {
 }
 #endif
 
+#ifdef HAVE_RB_THREAD_WAIT_FOR
+static VALUE thread_spec_rb_thread_wait_for(VALUE self, VALUE s, VALUE ms) {
+  struct timeval tv = { NUM2INT(s), NUM2INT(ms) };
+  rb_thread_wait_for(tv);
+  return Qnil;
+}
+#endif
+
 void Init_thread_spec() {
   VALUE cls;
   cls = rb_define_class("CApiThreadSpecs", rb_cObject);
@@ -158,6 +166,10 @@ void Init_thread_spec() {
 
 #ifdef HAVE_RB_THREAD_WAKEUP
   rb_define_method(cls,  "rb_thread_wakeup", thread_spec_rb_thread_wakeup, 1);
+#endif
+
+#ifdef HAVE_RB_THREAD_WAIT_FOR
+  rb_define_method(cls,  "rb_thread_wait_for", thread_spec_rb_thread_wait_for, 2);
 #endif
 }
 
