@@ -6,6 +6,12 @@ if ENV["RUBYLIB"]
   exit 1
 end
 
+# Wipe out CDPATH, it interferes with building in some cases,
+# see http://github.com/evanphx/rubinius/issues#issue/555
+if ENV["CDPATH"]
+  ENV.delete("CDPATH")
+end
+
 $trace ||= false
 $VERBOSE = true
 $verbose = Rake.application.options.trace || ARGV.delete("-v")
