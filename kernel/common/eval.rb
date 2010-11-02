@@ -73,12 +73,14 @@ module Kernel
 =end
 
       filename ||= binding.static_scope.active_path
+      passed_binding = true
     else
       binding = Binding.setup(Rubinius::VariableScope.of_sender,
                               Rubinius::CompiledMethod.of_sender,
                               Rubinius::StaticScope.of_sender)
 
       filename ||= "(eval)"
+      passed_binding = false
     end
 
     cm = Rubinius::Compiler.compile_eval string, binding.variables, filename, lineno
@@ -109,7 +111,11 @@ module Kernel
     
     yield cm, be if block_given?
 
-    be.call
+    if passed_binding
+      be.call
+    else
+      be.call_on_instance(self)
+    end
   end
   module_function :eval
   private :eval
