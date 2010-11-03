@@ -20,7 +20,7 @@ module Rubinius
       name = "Init_#{extension_name}"
 
       begin
-        lib = FFI::DynamicLibrary.new(library, FFI::DynamicLibrary::RTLD_NOW)
+        lib = FFI::DynamicLibrary.new(library, FFI::DynamicLibrary::RTLD_NOW | FFI::DynamicLibrary::RTLD_GLOBAL)
       rescue LoadError => e
         raise LoadError::InvalidExtensionError, "Unable to load - #{library}", e
       end

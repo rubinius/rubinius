@@ -33,7 +33,7 @@ namespace rubinius {
     G(ffi_pointer)->set_object_type(state, PointerType);
 
     G(ffi_pointer)->set_const(state, "CURRENT_PROCESS",
-      Pointer::create(state, dlopen(NULL, 0)));
+      Pointer::create(state, dlopen(NULL, RTLD_NOW | RTLD_GLOBAL)));
 
     G(ffi_pointer)->set_const(state, "DLSYM",
       Pointer::create(state, (void*)dlsym));
