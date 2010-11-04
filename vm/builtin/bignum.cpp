@@ -690,9 +690,47 @@ namespace rubinius {
       mp_copy(XST, a, n);
     } else {
       mp_div_2d(XST, a, shift, n, NULL);
-      if ((a->sign == MP_NEG) && (DIGIT(a, 0) & 1)) {
-        mp_sub_d(XST, n, 1, n);
+
+      // Because mp_int is not stored in twos complement format for
+      // negative values, we have to simulate the effects of being
+      // twos complement. Namely, if we shift past a set bit, we have
+      // to subtract 1 because that show up as the shifted twos
+      // complement represententation.
+      //
+      // Observe:
+      //
+      // 10:55 MenTaLguY: 5 is 0101, -5 is 1011
+      // 10:55 MenTaLguY: 0101 >> 1 = 0010, 1011 >> 1 = 1101
+      // 10:56 MenTaLguY: 2 and -3 respectively
+      //
+      // and
+      //
+      // 10:57 MenTaLguY: 6 = 0110 and -6 = 1010
+      //    0110 >> 1 == 0011, 1010 >> 1 == 1101
+      //    3 and -3, respectively
+      //
+
+      if(a->sign == MP_NEG) {
+        bool bit_inside_shift = false;
+        int full_digits = shift / DIGIT_BIT;
+
+        for(int d = 0; d < full_digits; d++) {
+          if(DIGIT(a, d) != 0) {
+            bit_inside_shift = true;
+            break;
+          }
+        }
+
+        if(!bit_inside_shift) {
+          int shift_mask = (1 << (shift % DIGIT_BIT)) - 1;
+          bit_inside_shift = (DIGIT(a, full_digits) & shift_mask);
+        }
+
+        if(bit_inside_shift) {
+          mp_sub_d(XST, n, 1, n);
+        }
       }
+
     }
 
     return Bignum::normalize(state, n_obj);
