@@ -46,20 +46,18 @@ namespace rubinius {
    * of the mp_set_long, mp_init_set_long and mp_get_long
    * functions here.
    */
-  static int mp_set_long MPA(mp_int * a, unsigned long b)
-  {
+  static int mp_set_long MPA(mp_int* a, unsigned long b) {
     int     err;
     // @todo Move these two values to bignum.h
-    size_t  x = 0;
     size_t  count = sizeof(unsigned long) * 2;
     size_t  shift_width = (sizeof(unsigned long) * 8) - 4;
 
     mp_zero(a);
 
     /* set four bits at a time */
-    for (x = 0; x < count; x++) {
+    for(size_t x = 0; x < count; x++) {
       /* shift the number up four bits */
-      if ((err = mp_mul_2d(MPST, a, 4, a)) != MP_OKAY) {
+      if((err = mp_mul_2d(MPST, a, 4, a)) != MP_OKAY) {
         return err;
       }
 
@@ -72,17 +70,16 @@ namespace rubinius {
       /* ensure that digits are not clamped off */
       a->used += 1;
     }
-    mp_clamp (a);
+
+    mp_clamp(a);
     return MP_OKAY;
   }
 
-  static unsigned long mp_get_long(mp_int * a) {
+  static unsigned long mp_get_long(mp_int* a) {
       int i;
       unsigned long res;
 
-      if (a->used == 0) {
-         return 0;
-      }
+      if(a->used == 0) return 0;
 
       /* get number of digits of the lsb we have to read */
       i = MIN(a->used,(int)((sizeof(unsigned long)*CHAR_BIT+DIGIT_BIT-1)/DIGIT_BIT))-1;
@@ -90,18 +87,17 @@ namespace rubinius {
       /* get most significant digit of result */
       res = DIGIT(a,i);
 
-      while (--i >= 0) {
+      while(--i >= 0) {
         res = (res << DIGIT_BIT) | DIGIT(a,i);
       }
 
       return res;
   }
 
-  static void twos_complement MPA(mp_int *a)
-  {
+  static void twos_complement MPA(mp_int* a) {
     long i = a->used;
 
-    while (i--) {
+    while(i--) {
       DIGIT(a,i) = (~DIGIT(a,i)) & (DIGIT_RADIX-1);
     }
     mp_sub_d(MPST, a, 1, a);
@@ -111,30 +107,31 @@ namespace rubinius {
 #define BITWISE_OP_OR  2
 #define BITWISE_OP_XOR 3
 
-  static void bignum_bitwise_op MPA(int op, mp_int *x, mp_int *y, mp_int *n)
-  {
-    mp_int   a,   b;
-    mp_int *d1, *d2;
-    int i, sign,  l1,  l2;
+  static void bignum_bitwise_op MPA(int op, mp_int* x, mp_int* y, mp_int* n) {
+    mp_int a, b;
+    mp_int* d1;
+    mp_int* d2;
+
+    int i, sign, l1,  l2;
     char origin_sign_x = x->sign;
     char origin_sign_y = y->sign;
 
     mp_init(&a);
     mp_init(&b);
 
-    if (y->sign == MP_NEG) {
+    if(y->sign == MP_NEG) {
       mp_copy(MPST, y, &b);
       twos_complement(MPST, &b);
       y = &b;
     }
 
-    if (x->sign == MP_NEG) {
+    if(x->sign == MP_NEG) {
       mp_copy(MPST, x, &a);
       twos_complement(MPST, &a);
       x = &a;
     }
 
-    if (x->used > y->used) {
+    if(x->used > y->used) {
       l1 = y->used;
       l2 = x->used;
       d1 = y;
@@ -151,75 +148,54 @@ namespace rubinius {
     mp_grow(MPST, n, l2);
     n->used = l2;
     n->sign = MP_ZPOS;
+
     switch(op) {
       case BITWISE_OP_AND:
-        if (origin_sign_x == MP_NEG && origin_sign_y == MP_NEG) n->sign = MP_NEG;
-        for (i=0; i < l1; i++) {
+        if(origin_sign_x == MP_NEG && origin_sign_y == MP_NEG) n->sign = MP_NEG;
+
+        for(i=0; i < l1; i++) {
           DIGIT(n,i) = DIGIT(d1,i) & DIGIT(d2,i);
         }
-        for (; i < l2; i++) {
-          DIGIT(n,i) = (sign == MP_ZPOS)?0:DIGIT(d2,i);
+
+        for(; i < l2; i++) {
+          DIGIT(n,i) = (sign == MP_ZPOS) ? 0 : DIGIT(d2,i);
         }
+
         break;
       case BITWISE_OP_OR:
-        if (origin_sign_x == MP_NEG || origin_sign_y == MP_NEG) n->sign = MP_NEG;
-        for (i=0; i < l1; i++) {
+        if(origin_sign_x == MP_NEG || origin_sign_y == MP_NEG) n->sign = MP_NEG;
+
+        for(i=0; i < l1; i++) {
           DIGIT(n,i) = DIGIT(d1,i) | DIGIT(d2,i);
         }
-        for (; i < l2; i++) {
-          DIGIT(n,i) = (sign == MP_ZPOS)?DIGIT(d2,i):(DIGIT_RADIX-1);
+
+        for(; i < l2; i++) {
+          DIGIT(n,i) = (sign == MP_ZPOS) ? DIGIT(d2,i) : (DIGIT_RADIX-1);
         }
+
         break;
       case BITWISE_OP_XOR:
-        if (origin_sign_x != origin_sign_y) n->sign = MP_NEG;
-        for (i=0; i < l1; i++) {
+        if(origin_sign_x != origin_sign_y) n->sign = MP_NEG;
+
+        for(i=0; i < l1; i++) {
           DIGIT(n,i) = DIGIT(d1,i) ^ DIGIT(d2,i);
         }
-        for (; i < l2; i++) {
-          DIGIT(n,i) = (sign == MP_ZPOS)?DIGIT(d2,i): (~DIGIT(d2,i) & (DIGIT_RADIX-1));
+
+        for(; i < l2; i++) {
+          DIGIT(n,i) = (sign == MP_ZPOS) ? 
+                          DIGIT(d2,i) :
+                          (~DIGIT(d2,i) & (DIGIT_RADIX-1));
         }
         break;
     }
 
-    if (n->sign == MP_NEG) {
+    if(n->sign == MP_NEG) {
       twos_complement(MPST, n);
     }
 
     /* free allocated resources for twos complement copies */
     mp_clear(&a);
     mp_clear(&b);
-  }
-
-  void Bignum::Info::mark(Object* obj, ObjectMark& mark) {
-    Bignum* big = force_as<Bignum>(obj);
-
-    mp_int* n = big->mp_val();
-    assert(MANAGED(n));
-
-    Object* tmp = mark.call(static_cast<Object*>(n->managed));
-    if(tmp) {
-      n->managed = reinterpret_cast<void*>(tmp);
-      ByteArray* ba = force_as<ByteArray>(tmp);
-      n->dp = OPT_CAST(mp_digit)ba->raw_bytes();
-    }
-  }
-
-  void Bignum::Info::visit(Object* obj, ObjectVisitor& visit) {
-    Bignum* big = force_as<Bignum>(obj);
-
-    mp_int* n = big->mp_val();
-    assert(MANAGED(n));
-
-    visit.call(static_cast<Object*>(n->managed));
-  }
-
-  void Bignum::Info::show(STATE, Object* self, int level) {
-    Bignum* b = as<Bignum>(self);
-    std::cout << b->to_s(state, Fixnum::from(10))->c_str() << std::endl;
-  }
-
-  void Bignum::Info::show_simple(STATE, Object* self, int level) {
-    show(state, self, level);
   }
 
   void Bignum::init(STATE) {
@@ -230,8 +206,6 @@ namespace rubinius {
   namespace {
     // Cripped and modified from bn_mp_init.c
     void mp_init_managed(STATE, mp_int* a) {
-      int i;
-
       ByteArray* storage = ByteArray::create(state, sizeof (mp_digit) * MP_PREC);
       a->managed = reinterpret_cast<void*>(storage);
 
@@ -239,7 +213,7 @@ namespace rubinius {
       a->dp = OPT_CAST(mp_digit)storage->raw_bytes();
 
       /* set the digits to zero */
-      for (i = 0; i < MP_PREC; i++) {
+      for(int i = 0; i < MP_PREC; i++) {
         a->dp[i] = 0;
       }
 
@@ -252,8 +226,7 @@ namespace rubinius {
   }
 
   Bignum* Bignum::create(STATE) {
-    Bignum* o;
-    o = state->new_struct<Bignum>(G(bignum));
+    Bignum* o = state->new_struct<Bignum>(G(bignum));
     mp_init_managed(state, o->mp_val());
     return o;
   }
@@ -264,10 +237,8 @@ namespace rubinius {
   }
 
   Bignum* Bignum::from(STATE, int num) {
-    mp_int *a;
-    Bignum* o;
-    o = Bignum::create(state);
-    a = o->mp_val();
+    Bignum* o = Bignum::create(state);
+    mp_int* a = o->mp_val();
 
     if(num < 0) {
       mp_set_int(XST, a, (unsigned int)-num);
@@ -279,17 +250,14 @@ namespace rubinius {
   }
 
   Bignum* Bignum::from(STATE, unsigned int num) {
-    Bignum* o;
-    o = Bignum::create(state);
+    Bignum* o = Bignum::create(state);
     mp_set_int(XST, o->mp_val(), num);
     return o;
   }
 
   Bignum* Bignum::from(STATE, long num) {
-    mp_int *a;
-    Bignum* o;
-    o = Bignum::create(state);
-    a = o->mp_val();
+    Bignum* o = Bignum::create(state);
+    mp_int* a = o->mp_val();
 
     if(num < 0) {
       mp_set_long(XST, a, (unsigned long)-num);
@@ -301,8 +269,7 @@ namespace rubinius {
   }
 
   Bignum* Bignum::from(STATE, unsigned long num) {
-    Bignum* o;
-    o = Bignum::create(state);
+    Bignum* o = Bignum::create(state);
     mp_set_long(XST, o->mp_val(), num);
     return o;
   }
@@ -379,7 +346,7 @@ namespace rubinius {
 
   unsigned long long Bignum::to_ulong_long() {
     mp_int t;
-    mp_int *s = mp_val();
+    mp_int* s = mp_val();
     unsigned long long out, tmp;
 
     /* mp_get_int() gets only the lower 32 bits, on any platform. */
@@ -411,7 +378,7 @@ namespace rubinius {
   }
 
   Integer* Bignum::abs(STATE) {
-    if (mp_val()->sign == MP_NEG) {
+    if(mp_val()->sign == MP_NEG) {
       return Bignum::from(state, 0)->sub(state, this);
     } else {
       return this;
@@ -534,6 +501,7 @@ namespace rubinius {
       mp_mul(XST, b->mp_val(), n, m);
       mp_sub(XST, mp_val(), m, m);
     }
+
     if(remainder) {
       *remainder = Bignum::normalize(state, m_obj);
     }
@@ -562,6 +530,7 @@ namespace rubinius {
   Array* Bignum::divmod(STATE, Bignum* denominator) {
     Integer* mod = Fixnum::from(0);
     Integer* quotient = divide(state, denominator, &mod);
+
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, quotient);
     ary->set(state, 1, mod);
@@ -610,6 +579,7 @@ namespace rubinius {
     if(kind_of<Fixnum>(b)) {
       b = Bignum::from(state, b->to_native());
     }
+
     /* Perhaps this should use mp_or rather than our own version */
     bignum_bitwise_op(XST, BITWISE_OP_OR, mp_val(), as<Bignum>(b)->mp_val(), n);
     return Bignum::normalize(state, n_obj);
@@ -637,14 +607,19 @@ namespace rubinius {
   Integer* Bignum::invert(STATE) {
     NMP;
 
-    mp_int a; mp_init(&a);
-    mp_int b; mp_init_set_int(XST, &b, 1);
+    mp_int a;
+    mp_int b;
+
+    mp_init(&a);
+    mp_init_set_int(XST, &b, 1);
 
     /* inversion by -(a)-1 */
     mp_neg(XST, mp_val(), &a);
     mp_sub(XST, &a, &b, n);
 
-    mp_clear(&a); mp_clear(&b);
+    mp_clear(&a);
+    mp_clear(&b);
+
     return Bignum::normalize(state, n_obj);
   }
 
@@ -664,7 +639,8 @@ namespace rubinius {
     if(shift < 0) {
       return right_shift(state, Fixnum::from(-bits->to_native()));
     }
-    mp_int *a = mp_val();
+
+    mp_int* a = mp_val();
 
     mp_mul_2d(XST, a, shift, n);
     n->sign = a->sign;
@@ -674,19 +650,22 @@ namespace rubinius {
   Integer* Bignum::right_shift(STATE, Fixnum* bits) {
     NMP;
     native_int shift = bits->to_native();
+
     if(shift < 0) {
       return left_shift(state, Fixnum::from(-bits->to_native()));
     }
 
-    mp_int * a = mp_val();
-    if ((shift / DIGIT_BIT) >= a->used) {
-      if (a->sign == MP_ZPOS)
+    mp_int* a = mp_val();
+
+    if((shift / DIGIT_BIT) >= a->used) {
+      if(a->sign == MP_ZPOS) {
         return Fixnum::from(0);
-      else
+      } else {
         return Fixnum::from(-1);
+      }
     }
 
-    if (shift == 0) {
+    if(shift == 0) {
       mp_copy(XST, a, n);
     } else {
       mp_div_2d(XST, a, shift, n, NULL);
@@ -744,7 +723,7 @@ namespace rubinius {
       return this->to_float(state)->fpow(state, exponent);
     }
 
-    mp_int *a = mp_val();
+    mp_int* a = mp_val();
     mp_expt_d(XST, a, exp, n);
 
     return Bignum::normalize(state, n_obj);
@@ -1026,32 +1005,36 @@ namespace rubinius {
 
     s = str;
     sign = 1;
+
     while(isspace(*s)) { s++; }
+
     if(*s == '+') {
       s++;
     } else if(*s == '-') {
       sign = 0;
       s++;
     }
+
     radix = 10;
     if(*s == '0') {
       switch(s[1]) {
-        case 'x': case 'X':
-          radix = 16; s += 2;
-          break;
-        case 'b': case 'B':
-          radix = 2; s += 2;
-          break;
-        case 'o': case 'O':
-          radix = 8; s += 2;
-          break;
-        case 'd': case 'D':
-          radix = 10; s += 2;
-          break;
-        default:
-          radix = 8; s += 1;
+      case 'x': case 'X':
+        radix = 16; s += 2;
+        break;
+      case 'b': case 'B':
+        radix = 2; s += 2;
+        break;
+      case 'o': case 'O':
+        radix = 8; s += 2;
+        break;
+      case 'd': case 'D':
+        radix = 10; s += 2;
+        break;
+      default:
+        radix = 8; s += 1;
       }
     }
+
     mp_read_radix(XST, &n, s, radix);
 
     if(!sign) {
@@ -1105,11 +1088,17 @@ namespace rubinius {
 
     Bignum* big = Bignum::create(state);
 
-    for (int i = sz - 1; i >= 0; i--) {
+    for(int i = sz - 1; i >= 0; i--) {
       Integer* tmp = big->left_shift(state, Fixnum::from(32));
-      big = tmp->fixnum_p() ? Bignum::from(state, tmp->to_native()) : as<Bignum>(tmp);
+      big = tmp->fixnum_p() ? 
+              Bignum::from(state, tmp->to_native()) :
+              as<Bignum>(tmp);
+
       tmp = big->bit_or(state, Bignum::from(state, ary[i]));
-      big = tmp->fixnum_p() ? Bignum::from(state, tmp->to_native()) : as<Bignum>(tmp);
+
+      big = tmp->fixnum_p() ?
+              Bignum::from(state, tmp->to_native()) :
+              as<Bignum>(tmp);
     }
 
     return Bignum::normalize(state, big);
@@ -1125,19 +1114,28 @@ namespace rubinius {
      * See also Bignum::from_array()
      */
 
-    if (ary) ary[0] = 0;
+    if(ary) ary[0] = 0;
 
     uint32_t n = 0;
     Integer* rest_i = this->abs(state);
-    Bignum* rest = rest_i->fixnum_p() ? Bignum::from(state, rest_i->to_native()) : as<Bignum>(rest_i);
-    while (true) {
-      if (ary && n < sz) ary[n] = rest->to_ulong() & 0xffffffff;
+
+    Bignum* rest = rest_i->fixnum_p() ?
+                      Bignum::from(state, rest_i->to_native()) :
+                      as<Bignum>(rest_i);
+
+    for(;;) {
+      if (ary && n < sz) {
+        ary[n] = rest->to_ulong() & 0xffffffff;
+      }
+
       n++;
+
       rest_i = rest->right_shift(state, Fixnum::from(32));
-      if (rest_i->fixnum_p()) {
+
+      if(rest_i->fixnum_p()) {
         native_int rest_n = rest_i->to_native();
-        if (rest_i->to_native() == 0)
-          break;
+        if(rest_n == 0) break;
+
         rest = Bignum::from(state, rest_n);
       } else {
         rest = as<Bignum>(rest_i);
@@ -1148,12 +1146,13 @@ namespace rubinius {
   }
 
   double Bignum::to_double(STATE) {
-    mp_int *a = mp_val();
+    mp_int* a = mp_val();
 
     /* get number of digits of the lsb we have to read */
     int i = a->used;
 
     double res = 0.0;
+
     /* loop down from the most significant digit of result */
     while(i > 0) {
       --i;
@@ -1189,14 +1188,14 @@ namespace rubinius {
       Exception::float_domain_error(state, "NaN");
     }
 
-    while (!(value <= (LONG_MAX >> 1)) || 0 != (long)value) {
+    while(!(value <= (LONG_MAX >> 1)) || 0 != (long)value) {
       value = value / (double)(DIGIT_RADIX);
       i++;
     }
 
     mp_grow(XST, n, i);
 
-    while (i--) {
+    while(i--) {
       value *= DIGIT_RADIX;
       c = (BDIGIT_DBL) value;
       value -= c;
@@ -1204,7 +1203,7 @@ namespace rubinius {
       n->used += 1;
     }
 
-    if (d < 0) {
+    if(d < 0) {
       mp_neg(XST, n, n);
     }
 
@@ -1234,8 +1233,7 @@ namespace rubinius {
     return ary;
   }
 
-  Integer* Bignum::size(STATE)
-  {
+  Integer* Bignum::size(STATE) {
     int bits = mp_count_bits(mp_val());
     int bytes = (bits + 7) / 8;
 
@@ -1254,9 +1252,8 @@ namespace rubinius {
     }
   }
 
-  hashval Bignum::hash_bignum(STATE)
-  {
-    mp_int *a = mp_val();
+  hashval Bignum::hash_bignum(STATE) {
+    mp_int* a = mp_val();
 
     /* Apparently, a couple bits of each a->dp[n] aren't actually used,
        (e.g. when DIGIT_BIT is 60) so this hash is actually including
@@ -1283,6 +1280,39 @@ namespace rubinius {
 
     return storage->raw_bytes();
   }
+
+  void Bignum::Info::mark(Object* obj, ObjectMark& mark) {
+    Bignum* big = force_as<Bignum>(obj);
+
+    mp_int* n = big->mp_val();
+    assert(MANAGED(n));
+
+    Object* tmp = mark.call(static_cast<Object*>(n->managed));
+    if(tmp) {
+      n->managed = reinterpret_cast<void*>(tmp);
+      ByteArray* ba = force_as<ByteArray>(tmp);
+      n->dp = OPT_CAST(mp_digit)ba->raw_bytes();
+    }
+  }
+
+  void Bignum::Info::visit(Object* obj, ObjectVisitor& visit) {
+    Bignum* big = force_as<Bignum>(obj);
+
+    mp_int* n = big->mp_val();
+    assert(MANAGED(n));
+
+    visit.call(static_cast<Object*>(n->managed));
+  }
+
+  void Bignum::Info::show(STATE, Object* self, int level) {
+    Bignum* b = as<Bignum>(self);
+    std::cout << b->to_s(state, Fixnum::from(10))->c_str() << std::endl;
+  }
+
+  void Bignum::Info::show_simple(STATE, Object* self, int level) {
+    show(state, self, level);
+  }
+
 
 }
 
