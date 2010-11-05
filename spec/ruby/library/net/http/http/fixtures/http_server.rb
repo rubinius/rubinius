@@ -52,61 +52,46 @@ module NetHTTPSpecs
     @server = nil
 
     def start_server
-      if @server
-        @ping = Time.now
-        return
-      end
+      unless @server
+        server_config = {
+          :BindAddress => "localhost",
+          :Port => 3333,
+          :Logger => WEBrick::Log.new(NullWriter.new),
+          :AccessLog => [],
+          :ShutdownSocketWithoutClose => true,
+          :ServerType => Thread
+        }
 
-      server_config = {
-        :BindAddress => "localhost",
-        :Port => 3333,
-        :Logger => WEBrick::Log.new(NullWriter.new),
-        :AccessLog => [],
-        :ShutdownSocketWithoutClose => true,
-        :ServerType => Thread
-      }
+        @server = WEBrick::HTTPServer.new(server_config)
 
-      @server = WEBrick::HTTPServer.new(server_config)
-
-      @server.mount_proc('/') do |req, res|
-        res.content_type = "text/plain"
-        res.body = "This is the index page."
-      end
-      @server.mount('/request', RequestServlet)
-      @server.mount("/request/body", RequestBodyServlet)
-      @server.mount("/request/header", RequestHeaderServlet)
-
-      @server.start
-      Thread.pass until @server.status == :Running
-
-      @timer_thread = Thread.new do
-        run = true
-        while run
-          sleep 2
-
-          if Time.now - @ping >= 2
-            @server.shutdown
-            Thread.pass until @server.status == :Shutdown
-
-            @server = nil
-            run = false
-          end
+        @server.mount_proc('/') do |req, res|
+          res.content_type = "text/plain"
+          res.body = "This is the index page."
         end
+        @server.mount('/request', RequestServlet)
+        @server.mount("/request/body", RequestBodyServlet)
+        @server.mount("/request/header", RequestHeaderServlet)
+
+        @server.start
       end
+
+      # On initial startup or if we re-enter, we wait until the
+      # server is really running.
+      Thread.pass until @server.status == :Running
     end
 
-    def really_stop_server
-      @timer_thread.kill if @timer_thread
+    def shutdown_server
       @server.shutdown if @server
     end
 
     def stop_server
-      # noop. The server is shutdown automatically when it's not being
-      # used.
+      # The specs initially started and stopped the server for every
+      # describe block. This method is now a noop. The server is shutdown
+      # automatically when the spec process exits.
     end
   end
 
   at_exit do
-    really_stop_server
+    shutdown_server
   end
 end
