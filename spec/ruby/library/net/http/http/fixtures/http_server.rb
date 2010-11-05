@@ -8,13 +8,13 @@ module NetHTTPSpecs
     def print(*args) end
     def printf(*args) end
   end
-  
+
   class RequestServlet < WEBrick::HTTPServlet::AbstractServlet
     def do_GET(req, res)
       res.content_type = "text/plain"
       res.body = "Request type: #{req.request_method}"
     end
-    
+
     %w{ do_HEAD do_POST do_PUT do_PROPPATCH do_LOCK do_UNLOCK
         do_OPTIONS do_PROPFIND do_DELETE do_MOVE do_COPY
         do_MKCOL do_TRACE }.each do |method|
@@ -27,7 +27,7 @@ module NetHTTPSpecs
       res.content_type = "text/plain"
       res.body = req.body
     end
-    
+
     %w{ do_HEAD do_POST do_PUT do_PROPPATCH do_LOCK do_UNLOCK
         do_OPTIONS do_PROPFIND do_DELETE do_MOVE do_COPY
         do_MKCOL do_TRACE }.each do |method|
@@ -40,14 +40,14 @@ module NetHTTPSpecs
       res.content_type = "text/plain"
       res.body = req.header.inspect
     end
-    
+
     %w{ do_HEAD do_POST do_PUT do_PROPPATCH do_LOCK do_UNLOCK
         do_OPTIONS do_PROPFIND do_DELETE do_MOVE do_COPY
         do_MKCOL do_TRACE }.each do |method|
       alias_method method.to_sym, :do_GET
     end
   end
-  
+
   class << self
     @server = nil
 
@@ -65,7 +65,7 @@ module NetHTTPSpecs
         :ShutdownSocketWithoutClose => true,
         :ServerType => Thread
       }
-      
+
       @server = WEBrick::HTTPServer.new(server_config)
 
       @server.mount_proc('/') do |req, res|
@@ -75,7 +75,7 @@ module NetHTTPSpecs
       @server.mount('/request', RequestServlet)
       @server.mount("/request/body", RequestBodyServlet)
       @server.mount("/request/header", RequestHeaderServlet)
-      
+
       @server.start
       Thread.pass until @server.status == :Running
 
@@ -86,6 +86,8 @@ module NetHTTPSpecs
 
           if Time.now - @ping >= 2
             @server.shutdown
+            Thread.pass until @server.status == :Shutdown
+
             @server = nil
             run = false
           end
@@ -97,7 +99,7 @@ module NetHTTPSpecs
       @timer_thread.kill if @timer_thread
       @server.shutdown if @server
     end
-    
+
     def stop_server
       # noop. The server is shutdown automatically when it's not being
       # used.
