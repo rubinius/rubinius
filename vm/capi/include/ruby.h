@@ -1688,6 +1688,9 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE   rb_range_beg_len(VALUE range, long* begp, long* lenp, long len, int err);
 
+  /** Callback to run when shutting down */
+  void rb_set_end_proc(void* cb, VALUE cb_data);
+
 #define RE_OPTION_IGNORECASE 1
 #define RE_OPTION_EXTENDED   2
 #define RE_OPTION_MULTILINE  4
