@@ -29,9 +29,9 @@ class Debugger
       "#{descriptor} - #{location}"
     end
 
-    def for_step!
+    def for_step!(scope)
       @temp = true
-      @for_step = true
+      @for_step = scope
     end
 
     def set_temp!
@@ -58,12 +58,18 @@ class Debugger
       @method.clear_breakpoint(@ip)
     end
 
-    def hit!
-      return unless @temp
+    def hit!(loc)
+      return true unless @temp
+
+      if @for_step
+        return false unless loc.variables == @for_step
+      end
 
       remove!
 
       @paired_bp.remove! if @paired_bp
+
+      return true
     end
 
     def delete!
