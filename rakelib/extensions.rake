@@ -69,9 +69,10 @@ def compile_ext(name, opts={})
     task task_name do
       ext_helper = File.expand_path "../ext_helper.rb", __FILE__
       dep_grapher = File.expand_path "../dependency_grapher.rb", __FILE__
+      build_config = File.expand_path "../../config.rb", __FILE__
       Dir.chdir ext_dir do
         if File.exists? "Rakefile"
-          sh "#{BUILD_CONFIG[:build_ruby]} -S #{BUILD_CONFIG[:build_rake]} #{'-t' if $verbose} -r #{ext_helper} -r #{dep_grapher} #{ext_task_name}"
+          sh "#{BUILD_CONFIG[:build_ruby]} -S #{BUILD_CONFIG[:build_rake]} #{'-t' if $verbose} -r #{build_config} -r #{ext_helper} -r #{dep_grapher} #{ext_task_name}"
         else
           build_extconf name, opts
         end
