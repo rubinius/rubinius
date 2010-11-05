@@ -67,6 +67,9 @@ class Configure
 
     @program_name = "rbx"
 
+    # Library configuration
+    @rb_readline = false
+
     # Essential settings (modify these for creating releases)
     @libversion = "1.1"
     @version = "#{@libversion}.1dev"
@@ -646,13 +649,13 @@ int main() { return tgetnum(""); }
       @defines << "HAS_EXECINFO"
     end
 
-    if @features["ruby-readline"]
-      @defines << "USE_RB_READLINE"
-    end
-
     if @features["C-readline"] and
        has_function("readline", ["stdio.h", "stdlib.h", "readline/readline.h"])
       @defines << "HAS_READLINE"
+    end
+
+    if @features["ruby-readline"] or !@defines.include?("HAS_READLINE")
+      @rb_readline = true
     end
   end
 
@@ -785,6 +788,15 @@ end
 
       if @tr1_hash
         f.puts "#define RBX_HAVE_TR1_HASH 1"
+      end
+    end
+
+    # Write a require file depending on which Readline library we use.
+    File.open "lib/readline.rb", "w" do |f|
+      if @rb_readline
+        f.puts "require 'rb-readline/readline'"
+      else
+        f.puts "require 'c-readline'"
       end
     end
   end
