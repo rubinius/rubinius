@@ -84,7 +84,7 @@ def compile_ext(name, opts={})
 end
 
 compile_ext "bigdecimal"
-compile_ext "readline"
+compile_ext "readline" if BUILD_CONFIG[:defines].include? "HAS_READLINE"
 compile_ext "digest"
 compile_ext "digest:md5"
 compile_ext "digest:rmd160"
