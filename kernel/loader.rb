@@ -22,6 +22,14 @@ module Rubinius
       @gem_bin = File.join Rubinius::GEMS_PATH, "bin"
     end
 
+    def self.debugger
+      @debugger_proc
+    end
+
+    def self.debugger=(prc)
+      @debugger_proc = prc
+    end
+
     # Finish setting up after loading kernel.
     def preamble
       @stage = "running Loader preamble"
@@ -420,8 +428,12 @@ containing the Rubinius standard library files.
       @stage = "running the debugger"
 
       if Rubinius::Config['debug']
-        require 'debugger'
-        Debugger.start
+        if custom = Loader.debugger
+          custom.call
+        else
+          require 'debugger'
+          Debugger.start
+        end
       end
     end
 
