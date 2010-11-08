@@ -184,14 +184,8 @@ module FFI
 
     # Bootstrap dlsym, dlopen, and dlerror
     pointer_as_function :find_symbol, FFI::Pointer::DLSYM, [:pointer, :string], :pointer
-
-    dlopen = find_symbol(FFI::Pointer::CURRENT_PROCESS, "dlopen")
-
-    pointer_as_function :open_library, dlopen, [:string, :int], :pointer
-
-    dlerror = find_symbol(FFI::Pointer::CURRENT_PROCESS, "dlerror")
-
-    pointer_as_function :last_error, dlerror, [], :string
+    pointer_as_function :open_library, FFI::Pointer::DLOPEN, [:string, :int], :pointer
+    pointer_as_function :last_error, FFI::Pointer::DLERROR, [], :string
 
     RTLD_LAZY   = Rubinius::Config['rbx.platform.dlopen.RTLD_LAZY']
     RTLD_NOW    = Rubinius::Config['rbx.platform.dlopen.RTLD_NOW']

@@ -38,6 +38,12 @@ namespace rubinius {
     G(ffi_pointer)->set_const(state, "DLSYM",
       Pointer::create(state, (void*)dlsym));
 
+    G(ffi_pointer)->set_const(state, "DLOPEN",
+      Pointer::create(state, (void*)dlopen));
+
+    G(ffi_pointer)->set_const(state, "DLERROR",
+      Pointer::create(state, (void*)dlerror));
+
     // Not exactly the right place, but FFI needs this and this is the main
     // FFI file atm.
     Array* suffix = Array::create(state, 2);
