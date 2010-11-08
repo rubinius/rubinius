@@ -489,53 +489,5 @@ module Rubinius
         end
       end
     end
-
-    ##
-    # Displays Selector statistics.
-
-    class Selectors
-      def show_stats(range=30)
-
-        count = Selector::ALL.size
-
-        entries = Selector::ALL.values.map { |s| [s, s.receives] }
-
-        entries.delete_if { |e| e.last < 10 }
-
-        sort = entries.sort { |a,b| b.last <=> a.last }
-
-        puts "\nTotal Selectors: #{count}"
-        puts "Top #{range}, by receives:"
-        puts "%-20s| %-20s| %s" % ["name", "receives", "send sites"]
-        puts "=========================================================="
-        sort[0,range].each do |entry|
-          puts "%-20s| %-20d| %d" % [entry.first.name, entry.last, entry.first.send_sites.size]
-        end
-      end
-    end
-
-    ##
-    # Displays SendSite statistics.
-
-    class SendSites
-      def show_stats(range=30)
-        send_sites = Selector::ALL.values.inject([]) { |acc,s| acc.concat(s.send_sites) }
-        count = send_sites.size
-
-        send_sites.delete_if { |e| (e.hits + e.misses) < 10 }
-
-        sort = send_sites.sort { |a,b| (b.hits + b.misses) <=> (a.hits + a.misses) }
-
-        puts "\nTotal SendSites: #{count}"
-        puts "Top #{range}, by sends:"
-        puts "%-32s| %-18s | %-18s| %-10s| %s" % ["sender", "receiver class", "name", "hits", "misses"]
-        puts "==================================================================================================="
-        sort[0,range].each do |entry|
-          mod = entry.sender.scope.module if entry.sender.scope
-          sender = "#{mod}##{entry.sender.name}"
-          puts "%-32s| %-18s | %-18s| %-10d| %d" % [sender, entry.recv_class, entry.name, entry.hits, entry.misses]
-        end
-      end
-    end
   end
 end

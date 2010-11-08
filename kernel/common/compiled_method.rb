@@ -335,15 +335,6 @@ module Rubinius
     end
 
     ##
-    # Convenience method to return an array of the SendSites from
-    # this CompiledMethod's literals.
-    #
-    # @return [Tuple]
-    def send_sites
-      literals.select {|lit| lit.kind_of? SendSite }
-    end
-
-    ##
     # Locates the CompiledMethod and instruction address (IP) of the first
     # instruction on the specified line. This method recursively examines child
     # compiled methods until an exact match for the searched line is found.
