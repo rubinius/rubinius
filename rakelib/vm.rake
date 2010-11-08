@@ -153,7 +153,7 @@ end
 INCLUDES.map! { |f| "-I#{f}" }
 
 # Default build options
-BASIC_FLAGS     = %W[ -pipe -Wall -Wno-deprecated ]
+BASIC_FLAGS     = %W[ -pipe -Wall -Wno-deprecated -fno-omit-frame-pointer ]
 
 FLAGS = BASIC_FLAGS.dup
 
