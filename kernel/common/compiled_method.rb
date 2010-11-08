@@ -350,19 +350,14 @@ module Rubinius
     # It returns both the matching CompiledMethod and the IP of the first
     # instruction on the requested line, or nil if no match for the specified line
     # is found.
-    # TODO: Update this to work with new lines representation
     #
     # @return [(Rubinius::CompiledMethod, Fixnum), NilClass] returns
     #   nil if nothing is found, else an array of size 2 containing the method
     #   the line was found in and the IP pointing there.
     def locate_line(line, cm=self)
-      cm.lines.each do |t|
-        if (l = t.at(2)) == line
-          # Found target line - return first IP
-          return cm, t.at(0)
-        elsif l > line
-          break
-        end
+      ip = cm.first_ip_on_line(line)
+      if ip >= 0
+        return [cm, ip]
       end
 
       # Didn't find line in this CM, so check if a contained
