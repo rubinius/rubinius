@@ -32,7 +32,7 @@ namespace rubinius {
     GO(io).set(state->new_class("IO", G(object)));
     G(io)->set_object_type(state, IOType);
 
-    GO(iobuffer).set(state->new_class("Buffer", G(object), G(io)));
+    GO(iobuffer).set(state->new_class("InternalBuffer", G(object), G(io)));
     G(iobuffer)->set_object_type(state, IOBufferType);
   }
 
