@@ -39,6 +39,8 @@
 #include <string>
 #include <sys/utsname.h>
 #include <fcntl.h>
+#include <unistd.h>
+#include <sys/param.h>
 
 namespace rubinius {
 
@@ -277,6 +279,17 @@ namespace rubinius {
   }
 
   void Environment::load_argv(int argc, char** argv) {
+    Array* os_ary = Array::create(state, argc);
+    for(int i = 0; i < argc; i++) {
+      os_ary->set(state, i, String::create(state, argv[i]));
+    }
+
+    G(rubinius)->set_const(state, "OS_ARGV", os_ary);
+
+    char buf[MAXPATHLEN];
+    G(rubinius)->set_const(state, "OS_STARTUP_DIR",
+        String::create(state, getcwd(buf, MAXPATHLEN)));
+
     bool process_xflags = true;
     state->set_const("ARG0", String::create(state, argv[0]));
 
