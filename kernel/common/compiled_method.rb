@@ -345,16 +345,24 @@ module Rubinius
     # @return [(Rubinius::CompiledMethod, Fixnum), NilClass] returns
     #   nil if nothing is found, else an array of size 2 containing the method
     #   the line was found in and the IP pointing there.
-    def locate_line(line, cm=self)
-      ip = cm.first_ip_on_line(line)
-      if ip >= 0
-        return [cm, ip]
+    def locate_line(line)
+      ip = 1
+      total = @lines.size
+      while i < total
+        cur_line = @lines.at(i)
+        if cur_line == line
+          return [self, @lines.at(i-1)]
+        elsif cur_line > line
+          break
+        end
+
+        i += 2
       end
 
       # Didn't find line in this CM, so check if a contained
       # CM encompasses the line searched for
-      cm.child_methods.each do |child|
-        if res = locate_line(line, child)
+      child_methods.each do |child|
+        if res = child.locate_line(line)
           return res
         end
       end
