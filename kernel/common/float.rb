@@ -45,8 +45,7 @@ class Float < Numeric
 
   def divide(other)
     Ruby.primitive :float_div
-    b, a = math_coerce other
-    a.divide b
+    redo_coerced :/, other
   end
   alias_method :/, :divide
   alias_method :quo, :/
