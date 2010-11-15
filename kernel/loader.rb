@@ -172,16 +172,21 @@ containing the Rubinius standard library files.
       end
 
       options.on "-c", "FILE", "Check the syntax of FILE" do |file|
-        mel = Rubinius::Melbourne.new file, 1, []
-        begin
-          mel.parse_file
-        rescue SyntaxError => e
-          show_syntax_errors(mel.syntax_errors)
+        if File.exists?(file)
+          mel = Rubinius::Melbourne.new file, 1, []
+          begin
+            mel.parse_file
+          rescue SyntaxError => e
+            show_syntax_errors(mel.syntax_errors)
+            exit 1
+          end
+
+          puts "Syntax OK"
+          exit 0
+        else
+          puts "rbx: Unable to find file -- #{file} (LoadError)"
           exit 1
         end
-
-        puts "Syntax OK"
-        exit 0
       end
 
       options.on "-C", "DIR", "Change directory to DIR before running scripts" do |dir|
