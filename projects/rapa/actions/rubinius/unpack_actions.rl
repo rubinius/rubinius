@@ -60,8 +60,11 @@
   }
 
   action set_stop {
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
