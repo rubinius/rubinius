@@ -1,22 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
-
-module Specs
-  module Float
-    class CanCoerce
-      def initialize(a)
-        @a = a
-      end
-
-      def coerce(b)
-        [self.class.new(b), @a]
-      end
-
-      def /(b)
-        @a.to_i % b.to_i
-      end
-    end
-  end
-end
+require File.expand_path('../fixtures/coerce.rb', __FILE__)
 
 describe "Float#/" do
   it "returns self divided by other" do
@@ -26,7 +9,7 @@ describe "Float#/" do
   end
   
   it "properly coerces objects" do
-    (5.0 / Specs::Float::CanCoerce.new(5)).should be_close(0, TOLERANCE)
+    (5.0 / FloatSpecs::CanCoerce.new(5)).should be_close(0, TOLERANCE)
   end
   
   it "properly handles BigDecimal argument" do
