@@ -880,6 +880,10 @@ module Gem
       @gem_path = [Gem.dir]
     end
 
+    if Gem.respond_to?(:default_preinstalled_dir)
+      @gem_path << Gem.default_preinstalled_dir
+    end
+
     @gem_path.uniq!
   end
 
