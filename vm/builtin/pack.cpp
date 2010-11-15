@@ -24,6 +24,10 @@
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
 
+#ifdef RBX_WINDOWS
+#include <malloc.h>
+#endif
+
 namespace rubinius {
   namespace pack {
     inline Object* to_int(STATE, CallFrame* call_frame, Object* obj) {
@@ -220,11 +224,11 @@ namespace rubinius {
 #define b64_uu_byte3(t, b, c)   t[077 & (((b[1] << 2) & 074) | ((c >> 6) & 03))];
 #define b64_uu_byte4(t, b)      t[077 & b[2]];
 
-    void b64_uu_encode(String* s, std::string& str, size_t count,
+    void b64_uu_encode(String* s, std::string& str, native_int count,
                               const char* table, int padding, bool encode_size)
     {
       char *buf = ALLOCA_N(char, count * 4 / 3 + 6);
-      size_t i, chars, line, total = s->size();
+      native_int i, chars, line, total = s->size();
       uint8_t* b = s->byte_address();
 
       for(i = 0; total > 0; i = 0, total -= line) {
@@ -340,13 +344,13 @@ namespace rubinius {
       }
     }
 
-    inline size_t bit_extra(String* s, bool rest, size_t& count) {
-      size_t extra = 0;
+    inline native_int bit_extra(String* s, bool rest, native_int& count) {
+      native_int extra = 0;
 
       if(rest) {
         count = s->size();
       } else {
-        size_t size = s->size();
+        native_int size = s->size();
         if(count > size) {
           extra = (count - size + 1) / 2;
           count = size;
@@ -356,11 +360,11 @@ namespace rubinius {
       return extra;
     }
 
-    void bit_high(String* s, std::string& str, size_t count) {
+    void bit_high(String* s, std::string& str, native_int count) {
       uint8_t* b = s->byte_address();
       int byte = 0;
 
-      for(size_t i = 0; i++ < count; b++) {
+      for(native_int i = 0; i++ < count; b++) {
         byte |= *b & 1;
         if(i & 7) {
           byte <<= 1;
@@ -376,11 +380,11 @@ namespace rubinius {
       }
     }
 
-    void bit_low(String* s, std::string& str, size_t count) {
+    void bit_low(String* s, std::string& str, native_int count) {
       uint8_t* b = s->byte_address();
       int byte = 0;
 
-      for(size_t i = 0; i++ < count; b++) {
+      for(native_int i = 0; i++ < count; b++) {
         if(*b & 1)
           byte |= 128;
 
@@ -398,13 +402,13 @@ namespace rubinius {
       }
     }
 
-    inline size_t hex_extra(String* s, bool rest, size_t& count) {
-      size_t extra = 0;
+    inline native_int hex_extra(String* s, bool rest, native_int& count) {
+      native_int extra = 0;
 
       if(rest) {
         count = s->size();
       } else {
-        size_t size = s->size();
+        native_int size = s->size();
         if(count > size) {
           extra = (count + 1) / 2 - (size + 1) / 2;
           count = size;
@@ -414,11 +418,11 @@ namespace rubinius {
       return extra;
     }
 
-    void hex_high(String* s, std::string& str, size_t count) {
+    void hex_high(String* s, std::string& str, native_int count) {
       uint8_t* b = s->byte_address();
       int byte = 0;
 
-      for(size_t i = 0; i++ < count; b++) {
+      for(native_int i = 0; i++ < count; b++) {
         if(ISALPHA(*b)) {
           byte |= ((*b & 15) + 9) & 15;
         } else {
@@ -438,11 +442,11 @@ namespace rubinius {
       }
     }
 
-    void hex_low(String* s, std::string& str, size_t count) {
+    void hex_low(String* s, std::string& str, native_int count) {
       uint8_t* b = s->byte_address();
       int byte = 0;
 
-      for(size_t i = 0; i++ < count; b++) {
+      for(native_int i = 0; i++ < count; b++) {
         if(ISALPHA(*b)) {
           byte |= (((*b & 15) + 9) & 15) << 4;
         } else {
@@ -577,10 +581,10 @@ namespace rubinius {
     Array* self = this;
     OnStack<1> sv(state, self);
 
-    size_t array_size = self->size();
-    size_t index = 0;
-    size_t count = 0;
-    size_t stop = 0;
+    native_int array_size = self->size();
+    native_int index = 0;
+    native_int count = 0;
+    native_int stop = 0;
     bool rest = false;
     bool platform = false;
     bool tainted = false;
@@ -8686,7 +8690,7 @@ f76:
 	{
     if(rest) count = 0;
 
-    if(count > str.size()) {
+    if(count > (native_int)str.size()) {
       std::ostringstream msg;
       msg << "X" << count << " exceeds length of string";
       Exception::argument_error(state, msg.str().c_str());
@@ -8706,7 +8710,7 @@ f3:
 	{
     if(rest) count = 1;
 
-    if(count > str.size()) {
+    if(count > (native_int)str.size()) {
       str.append(count - str.size(), '\0');
     } else {
       str.resize(count);
@@ -8727,7 +8731,7 @@ f152:
 	{
     if(rest) count = 0;
 
-    if(count > str.size()) {
+    if(count > (native_int)str.size()) {
       std::ostringstream msg;
       msg << "X" << count << " exceeds length of string";
       Exception::argument_error(state, msg.str().c_str());
@@ -8753,7 +8757,7 @@ f194:
 	{
     if(rest) count = 1;
 
-    if(count > str.size()) {
+    if(count > (native_int)str.size()) {
       str.append(count - str.size(), '\0');
     } else {
       str.resize(count);
@@ -8967,7 +8971,7 @@ f77:
 	{
     if(rest) count = 0;
 
-    if(count > str.size()) {
+    if(count > (native_int)str.size()) {
       std::ostringstream msg;
       msg << "X" << count << " exceeds length of string";
       Exception::argument_error(state, msg.str().c_str());
@@ -8997,7 +9001,7 @@ f6:
 	{
     if(rest) count = 1;
 
-    if(count > str.size()) {
+    if(count > (native_int)str.size()) {
       str.append(count - str.size(), '\0');
     } else {
       str.resize(count);
@@ -9262,7 +9266,7 @@ f153:
 	{
     if(rest) count = 0;
 
-    if(count > str.size()) {
+    if(count > (native_int)str.size()) {
       std::ostringstream msg;
       msg << "X" << count << " exceeds length of string";
       Exception::argument_error(state, msg.str().c_str());
@@ -9298,7 +9302,7 @@ f195:
 	{
     if(rest) count = 1;
 
-    if(count > str.size()) {
+    if(count > (native_int)str.size()) {
       str.append(count - str.size(), '\0');
     } else {
       str.resize(count);
@@ -9652,7 +9656,7 @@ f11:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::bit_extra(string_value, rest, count);
+    native_int extra = pack::bit_extra(string_value, rest, count);
 
     pack::bit_high(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -9670,7 +9674,7 @@ f85:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::bit_extra(string_value, rest, count);
+    native_int extra = pack::bit_extra(string_value, rest, count);
 
     pack::bit_low(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -9688,7 +9692,7 @@ f29:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::hex_extra(string_value, rest, count);
+    native_int extra = pack::hex_extra(string_value, rest, count);
 
     pack::hex_high(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -9706,7 +9710,7 @@ f94:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::hex_extra(string_value, rest, count);
+    native_int extra = pack::hex_extra(string_value, rest, count);
 
     pack::hex_low(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -10074,7 +10078,7 @@ f188:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::bit_extra(string_value, rest, count);
+    native_int extra = pack::bit_extra(string_value, rest, count);
 
     pack::bit_high(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -10095,7 +10099,7 @@ f143:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::bit_extra(string_value, rest, count);
+    native_int extra = pack::bit_extra(string_value, rest, count);
 
     pack::bit_low(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -10116,7 +10120,7 @@ f170:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::hex_extra(string_value, rest, count);
+    native_int extra = pack::hex_extra(string_value, rest, count);
 
     pack::hex_high(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -10137,7 +10141,7 @@ f134:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::hex_extra(string_value, rest, count);
+    native_int extra = pack::hex_extra(string_value, rest, count);
 
     pack::hex_low(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -10240,7 +10244,7 @@ f8:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -10267,7 +10271,7 @@ f82:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -10294,7 +10298,7 @@ f79:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -10324,7 +10328,7 @@ f12:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::bit_extra(string_value, rest, count);
+    native_int extra = pack::bit_extra(string_value, rest, count);
 
     pack::bit_high(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -10347,7 +10351,7 @@ f86:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::bit_extra(string_value, rest, count);
+    native_int extra = pack::bit_extra(string_value, rest, count);
 
     pack::bit_low(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -10370,7 +10374,7 @@ f30:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::hex_extra(string_value, rest, count);
+    native_int extra = pack::hex_extra(string_value, rest, count);
 
     pack::hex_high(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -10393,7 +10397,7 @@ f95:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::hex_extra(string_value, rest, count);
+    native_int extra = pack::hex_extra(string_value, rest, count);
 
     pack::hex_low(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -10485,7 +10489,7 @@ f191:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -10515,7 +10519,7 @@ f146:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -10545,7 +10549,7 @@ f149:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -10578,7 +10582,7 @@ f189:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::bit_extra(string_value, rest, count);
+    native_int extra = pack::bit_extra(string_value, rest, count);
 
     pack::bit_high(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -10604,7 +10608,7 @@ f144:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::bit_extra(string_value, rest, count);
+    native_int extra = pack::bit_extra(string_value, rest, count);
 
     pack::bit_low(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -10630,7 +10634,7 @@ f171:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::hex_extra(string_value, rest, count);
+    native_int extra = pack::hex_extra(string_value, rest, count);
 
     pack::hex_high(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -10656,7 +10660,7 @@ f135:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::hex_extra(string_value, rest, count);
+    native_int extra = pack::hex_extra(string_value, rest, count);
 
     pack::hex_low(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -10754,7 +10758,7 @@ f9:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -10786,7 +10790,7 @@ f83:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -10818,7 +10822,7 @@ f80:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -10911,7 +10915,7 @@ f192:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -10946,7 +10950,7 @@ f147:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -10981,7 +10985,7 @@ f150:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -11088,7 +11092,7 @@ _again:
 	{
     if(rest) count = 0;
 
-    if(count > str.size()) {
+    if(count > (native_int)str.size()) {
       std::ostringstream msg;
       msg << "X" << count << " exceeds length of string";
       Exception::argument_error(state, msg.str().c_str());
@@ -11124,7 +11128,7 @@ _again:
 	{
     if(rest) count = 1;
 
-    if(count > str.size()) {
+    if(count > (native_int)str.size()) {
       str.append(count - str.size(), '\0');
     } else {
       str.resize(count);
@@ -11146,7 +11150,7 @@ _again:
 	{
     if(rest) count = 0;
 
-    if(count > str.size()) {
+    if(count > (native_int)str.size()) {
       std::ostringstream msg;
       msg << "X" << count << " exceeds length of string";
       Exception::argument_error(state, msg.str().c_str());
@@ -11188,7 +11192,7 @@ _again:
 	{
     if(rest) count = 1;
 
-    if(count > str.size()) {
+    if(count > (native_int)str.size()) {
       str.append(count - str.size(), '\0');
     } else {
       str.resize(count);
@@ -12002,7 +12006,7 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::bit_extra(string_value, rest, count);
+    native_int extra = pack::bit_extra(string_value, rest, count);
 
     pack::bit_high(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -12028,7 +12032,7 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::bit_extra(string_value, rest, count);
+    native_int extra = pack::bit_extra(string_value, rest, count);
 
     pack::bit_low(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -12054,7 +12058,7 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::hex_extra(string_value, rest, count);
+    native_int extra = pack::hex_extra(string_value, rest, count);
 
     pack::hex_high(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -12080,7 +12084,7 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::hex_extra(string_value, rest, count);
+    native_int extra = pack::hex_extra(string_value, rest, count);
 
     pack::hex_low(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -12133,7 +12137,7 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::bit_extra(string_value, rest, count);
+    native_int extra = pack::bit_extra(string_value, rest, count);
 
     pack::bit_high(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -12162,7 +12166,7 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::bit_extra(string_value, rest, count);
+    native_int extra = pack::bit_extra(string_value, rest, count);
 
     pack::bit_low(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -12191,7 +12195,7 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::hex_extra(string_value, rest, count);
+    native_int extra = pack::hex_extra(string_value, rest, count);
 
     pack::hex_high(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -12220,7 +12224,7 @@ _again:
     if(!string_value) return 0;
   }
 	{
-    size_t extra = pack::hex_extra(string_value, rest, count);
+    native_int extra = pack::hex_extra(string_value, rest, count);
 
     pack::hex_low(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
@@ -12274,7 +12278,7 @@ _again:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -12309,7 +12313,7 @@ _again:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -12344,7 +12348,7 @@ _again:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -12446,7 +12450,7 @@ _again:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -12484,7 +12488,7 @@ _again:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -12522,7 +12526,7 @@ _again:
   }
 	{
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
