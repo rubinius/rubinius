@@ -50,7 +50,7 @@ namespace rubinius {
 
             if(iter.goto_p()) {
               opcode target = iter.goto_target();
-              assert(target >= 0 && target < vmm_->total);
+              assert(target < vmm_->total);
 
               add_section(target);
 
