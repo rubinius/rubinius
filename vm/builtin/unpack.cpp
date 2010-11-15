@@ -10735,8 +10735,11 @@ f18:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -10754,8 +10757,11 @@ f116:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -10773,8 +10779,11 @@ f80:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -10792,8 +10801,11 @@ f168:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -10811,8 +10823,11 @@ f160:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -10830,8 +10845,11 @@ f184:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -10849,8 +10867,11 @@ f42:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -10868,8 +10889,11 @@ f132:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -10887,8 +10911,11 @@ f72:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -10906,8 +10933,11 @@ f96:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -10925,8 +10955,11 @@ f120:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -10944,8 +10977,11 @@ f30:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -10963,8 +10999,11 @@ f124:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -10982,8 +11021,11 @@ f76:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11001,8 +11043,11 @@ f164:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11020,8 +11065,11 @@ f22:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11039,8 +11087,11 @@ f26:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11058,8 +11109,11 @@ f34:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11085,8 +11139,11 @@ f56:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11120,8 +11177,11 @@ f144:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11218,8 +11278,11 @@ f297:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11241,8 +11304,11 @@ f237:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11264,8 +11330,11 @@ f88:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11287,8 +11356,11 @@ f176:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11310,8 +11382,11 @@ f217:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11333,8 +11408,11 @@ f205:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11356,8 +11434,11 @@ f52:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11379,8 +11460,11 @@ f140:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11402,8 +11486,11 @@ f269:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11425,8 +11512,11 @@ f257:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11448,8 +11538,11 @@ f233:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11471,8 +11564,11 @@ f285:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11494,8 +11590,11 @@ f229:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11517,8 +11616,11 @@ f265:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11540,8 +11642,11 @@ f213:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11563,8 +11668,11 @@ f293:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11586,8 +11694,11 @@ f289:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11609,8 +11720,11 @@ f281:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11640,8 +11754,11 @@ f64:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11679,8 +11796,11 @@ f152:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11788,8 +11908,11 @@ f84:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11810,8 +11933,11 @@ f172:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11832,8 +11958,11 @@ f46:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11854,8 +11983,11 @@ f136:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11884,8 +12016,11 @@ f60:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11922,8 +12057,11 @@ f148:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11949,8 +12087,11 @@ f20:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11973,8 +12114,11 @@ f118:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -11997,8 +12141,11 @@ f82:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12021,8 +12168,11 @@ f170:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12045,8 +12195,11 @@ f162:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12069,8 +12222,11 @@ f186:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12093,8 +12249,11 @@ f44:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12117,8 +12276,11 @@ f134:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12141,8 +12303,11 @@ f74:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12165,8 +12330,11 @@ f98:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12189,8 +12357,11 @@ f122:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12213,8 +12384,11 @@ f32:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12237,8 +12411,11 @@ f126:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12261,8 +12438,11 @@ f78:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12285,8 +12465,11 @@ f166:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12309,8 +12492,11 @@ f24:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12333,8 +12519,11 @@ f28:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12357,8 +12546,11 @@ f36:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12389,8 +12581,11 @@ f58:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12429,8 +12624,11 @@ f146:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12649,8 +12847,11 @@ f299:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12677,8 +12878,11 @@ f239:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12705,8 +12909,11 @@ f90:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12733,8 +12940,11 @@ f178:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12761,8 +12971,11 @@ f219:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12789,8 +13002,11 @@ f207:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12817,8 +13033,11 @@ f54:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12845,8 +13064,11 @@ f142:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12873,8 +13095,11 @@ f271:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12901,8 +13126,11 @@ f259:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12929,8 +13157,11 @@ f235:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12957,8 +13188,11 @@ f287:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -12985,8 +13219,11 @@ f231:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13013,8 +13250,11 @@ f267:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13041,8 +13281,11 @@ f215:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13069,8 +13312,11 @@ f295:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13097,8 +13343,11 @@ f291:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13125,8 +13374,11 @@ f283:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13161,8 +13413,11 @@ f66:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13205,8 +13460,11 @@ f154:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13456,8 +13714,11 @@ f86:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13483,8 +13744,11 @@ f174:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13510,8 +13774,11 @@ f50:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13537,8 +13804,11 @@ f138:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13572,8 +13842,11 @@ f62:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13615,8 +13888,11 @@ f150:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13647,8 +13923,11 @@ f19:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13674,8 +13953,11 @@ f117:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13701,8 +13983,11 @@ f81:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13728,8 +14013,11 @@ f169:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13755,8 +14043,11 @@ f161:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13782,8 +14073,11 @@ f185:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13809,8 +14103,11 @@ f43:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13836,8 +14133,11 @@ f133:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13863,8 +14163,11 @@ f73:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13890,8 +14193,11 @@ f97:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13917,8 +14223,11 @@ f121:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13944,8 +14253,11 @@ f31:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13971,8 +14283,11 @@ f125:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -13998,8 +14313,11 @@ f77:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14025,8 +14343,11 @@ f165:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14052,8 +14373,11 @@ f23:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14079,8 +14403,11 @@ f27:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14106,8 +14433,11 @@ f35:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14141,8 +14471,11 @@ f57:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14184,8 +14517,11 @@ f145:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14543,8 +14879,11 @@ f298:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14574,8 +14913,11 @@ f238:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14605,8 +14947,11 @@ f89:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14636,8 +14981,11 @@ f177:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14667,8 +15015,11 @@ f218:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14698,8 +15049,11 @@ f206:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14729,8 +15083,11 @@ f53:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14760,8 +15117,11 @@ f141:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14791,8 +15151,11 @@ f270:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14822,8 +15185,11 @@ f258:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14853,8 +15219,11 @@ f234:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14884,8 +15253,11 @@ f286:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14915,8 +15287,11 @@ f230:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14946,8 +15321,11 @@ f266:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -14977,8 +15355,11 @@ f214:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -15008,8 +15389,11 @@ f294:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -15039,8 +15423,11 @@ f290:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -15070,8 +15457,11 @@ f282:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -15109,8 +15499,11 @@ f65:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -15156,8 +15549,11 @@ f153:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -15562,8 +15958,11 @@ f85:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -15592,8 +15991,11 @@ f173:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -15622,8 +16024,11 @@ f49:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -15652,8 +16057,11 @@ f137:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -15690,8 +16098,11 @@ f61:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -15736,8 +16147,11 @@ f149:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -16950,8 +17364,11 @@ _again:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -16972,8 +17389,11 @@ _again:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -16994,8 +17414,11 @@ _again:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17016,8 +17439,11 @@ _again:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17038,8 +17464,11 @@ _again:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17060,8 +17489,11 @@ _again:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17082,8 +17514,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17104,8 +17539,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17126,8 +17564,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17148,8 +17589,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17170,8 +17614,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17192,8 +17639,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17214,8 +17664,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17236,8 +17689,11 @@ _again:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17258,8 +17714,11 @@ _again:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17280,8 +17739,11 @@ _again:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17302,8 +17764,11 @@ _again:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17324,8 +17789,11 @@ _again:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17354,8 +17822,11 @@ _again:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17392,8 +17863,11 @@ _again:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17426,8 +17900,11 @@ _again:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17452,8 +17929,11 @@ _again:
     width = 1;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17478,8 +17958,11 @@ _again:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17504,8 +17987,11 @@ _again:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17530,8 +18016,11 @@ _again:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17556,8 +18045,11 @@ _again:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17582,8 +18074,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17608,8 +18103,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17634,8 +18132,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17660,8 +18161,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17686,8 +18190,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17712,8 +18219,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17738,8 +18248,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17764,8 +18277,11 @@ _again:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17790,8 +18306,11 @@ _again:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17816,8 +18335,11 @@ _again:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17842,8 +18364,11 @@ _again:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17868,8 +18393,11 @@ _again:
     width = 8;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17902,8 +18430,11 @@ _again:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17944,8 +18475,11 @@ _again:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -17977,8 +18511,11 @@ _again:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -18002,8 +18539,11 @@ _again:
     width = 2;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -18027,8 +18567,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -18052,8 +18595,11 @@ _again:
     width = 4;
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -18085,8 +18631,11 @@ _again:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -18126,8 +18675,11 @@ _again:
     }
   }
 	{
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
