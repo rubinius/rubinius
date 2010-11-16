@@ -80,7 +80,6 @@ struct.rbc
 process.rbc
 random.rbc
 regexp.rbc
-selector.rbc
 signal.rbc
 sprintf.rbc
 symbol.rbc

@@ -247,6 +247,12 @@ static VALUE array_spec_rb_protect_inspect(VALUE self, VALUE obj) {
 
 #endif
 
+#ifdef HAVE_RB_ARY_FREEZE
+static VALUE array_spec_rb_ary_freeze(VALUE self, VALUE ary) {
+  return rb_ary_freeze(ary);
+}
+#endif
+
 void Init_array_spec() {
   VALUE cls;
   cls = rb_define_class("CApiArraySpecs", rb_cObject);
@@ -346,6 +352,10 @@ void Init_array_spec() {
 
 #if defined(HAVE_RB_PROTECT_INSPECT) && defined(HAVE_RB_INSPECTING_P)
   rb_define_method(cls, "rb_protect_inspect",  array_spec_rb_protect_inspect, 1);
+#endif
+
+#ifdef HAVE_RB_ARY_FREEZE
+  rb_define_method(cls, "rb_ary_freeze", array_spec_rb_ary_freeze, 1);
 #endif
 }
 

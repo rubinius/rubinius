@@ -22,6 +22,14 @@ module Rubinius
       @gem_bin = File.join Rubinius::GEMS_PATH, "bin"
     end
 
+    def self.debugger
+      @debugger_proc
+    end
+
+    def self.debugger=(prc)
+      @debugger_proc = prc
+    end
+
     # Finish setting up after loading kernel.
     def preamble
       @stage = "running Loader preamble"
@@ -170,16 +178,21 @@ containing the Rubinius standard library files.
       end
 
       options.on "-c", "FILE", "Check the syntax of FILE" do |file|
-        mel = Rubinius::Melbourne.new file, 1, []
-        begin
-          mel.parse_file
-        rescue SyntaxError => e
-          show_syntax_errors(mel.syntax_errors)
+        if File.exists?(file)
+          mel = Rubinius::Melbourne.new file, 1, []
+          begin
+            mel.parse_file
+          rescue SyntaxError => e
+            show_syntax_errors(mel.syntax_errors)
+            exit 1
+          end
+
+          puts "Syntax OK"
+          exit 0
+        else
+          puts "rbx: Unable to find file -- #{file} (LoadError)"
           exit 1
         end
-
-        puts "Syntax OK"
-        exit 0
       end
 
       options.on "-C", "DIR", "Change directory to DIR before running scripts" do |dir|
@@ -426,8 +439,12 @@ containing the Rubinius standard library files.
       @stage = "running the debugger"
 
       if Rubinius::Config['debug']
-        require 'debugger'
-        Debugger.start
+        if custom = Loader.debugger
+          custom.call
+        else
+          require 'debugger'
+          Debugger.start
+        end
       end
     end
 
@@ -462,29 +479,25 @@ containing the Rubinius standard library files.
       @stage = "running #{@script}"
       Dir.chdir @directory if @directory
 
-      if File.exist?(@script)
+      if File.exists? @script
         if IO.read(@script, 6) == "!RBIX\n"
-          STDERR.puts "Unable to load '#{@script}', it is not a Ruby source file"
-          exit 1
+          raise LoadError, "'#{@script}' is not a Ruby source file"
         end
-
-        $0 = @script
-
-        CodeLoader.load_script @script, @debugging
       else
         if @script.suffix?(".rb")
-          puts "Unable to find '#{@script}'"
-          exit 1
+          raise LoadError, "unable to find '#{@script}'"
         else
-          prog = File.join @main_lib, "bin", "#{@script}.rb"
-          if File.exist? prog
-            $0 = prog
-            load prog
+          command = File.join @main_lib, "bin", "#{@script}.rb"
+          unless File.exists? command
+            raise LoadError, "unable to find Rubinius command '#{@script}'"
           else
-            raise LoadError, "Unable to find a script '#{@script}' to run"
+            @script = command
           end
         end
       end
+
+      $0 = @script
+      CodeLoader.load_script @script, @debugging
     end
 
     # Run IRB unless we were passed -e, -S arguments or a script to run.

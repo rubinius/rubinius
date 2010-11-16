@@ -312,6 +312,23 @@ namespace rubinius {
 
       env->current_ep()->return_to(env);
     }
+
+
+    Proc* wrap_c_function(void* cb, VALUE cb_data, int arity) {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+      NativeMethod* nm = NativeMethod::create(env->state(),
+                          (String*)Qnil, env->state()->shared.globals.rubinius.get(),
+                          env->state()->symbol("call"), cb,
+                          Fixnum::from(arity));
+
+      nm->set_ivar(env->state(), env->state()->symbol("cb_data"),
+                   env->get_object(cb_data));
+
+      Proc* prc = Proc::create(env->state(), env->state()->shared.globals.proc.get());
+      prc->bound_method(env->state(), nm);
+
+      return prc;
+    }
   }
 }
 

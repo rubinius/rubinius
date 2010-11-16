@@ -194,7 +194,7 @@ namespace rubinius {
     if(!backend_method_->validate_ip(state, i)) return Primitives::failure();
 
     if(breakpoints_->nil_p()) {
-      breakpoints_ = LookupTable::create(state);
+      breakpoints(state, LookupTable::create(state));
     }
 
     breakpoints_->store(state, ip, bp);

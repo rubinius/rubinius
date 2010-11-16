@@ -42,6 +42,8 @@
 #include <sys/utsname.h>
 #endif
 #include <fcntl.h>
+#include <unistd.h>
+#include <sys/param.h>
 
 namespace rubinius {
 
@@ -296,6 +298,17 @@ namespace rubinius {
   }
 
   void Environment::load_argv(int argc, char** argv) {
+    Array* os_ary = Array::create(state, argc);
+    for(int i = 0; i < argc; i++) {
+      os_ary->set(state, i, String::create(state, argv[i]));
+    }
+
+    G(rubinius)->set_const(state, "OS_ARGV", os_ary);
+
+    char buf[MAXPATHLEN];
+    G(rubinius)->set_const(state, "OS_STARTUP_DIR",
+        String::create(state, getcwd(buf, MAXPATHLEN)));
+
     state->set_const("ARG0", String::create(state, argv[0]));
 
     Array* ary = Array::create(state, argc - 1);
@@ -456,6 +469,10 @@ namespace rubinius {
     if(state->shared.config.ic_stats) {
       state->shared.ic_registry()->print_stats(state);
     }
+
+    state->set_call_frame(0);
+
+    state->global_lock().take();
 
 #ifdef ENABLE_LLVM
     LLVMState::shutdown(state);

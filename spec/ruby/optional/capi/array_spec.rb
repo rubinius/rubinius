@@ -318,4 +318,12 @@ describe "C-API Array function" do
       @s.rb_protect_inspect("blah").should be_true
     end
   end
+
+  describe "rb_ary_freeze" do
+    it "freezes the object exactly like Object#freeze" do
+      ary = [1,2]
+      @s.rb_ary_freeze(ary)
+      ary.frozen?.should be_true
+    end
+  end
 end

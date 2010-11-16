@@ -13,7 +13,9 @@ else
 end
 
 add_shared_lib "readline"
-add_shared_lib "curses"
+if lib = Rubinius::BUILD_CONFIG[:curses]
+  add_shared_lib lib
+end
 
 readline = "readline.#{$DLEXT}"
 

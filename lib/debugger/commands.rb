@@ -255,7 +255,7 @@ at the current position of the caller.
         ip = f.ip
 
         bp = BreakPoint.for_ip(exec, ip)
-        bp.for_step!
+        bp.for_step!(current_frame.variables)
         bp.activate
 
         return bp
@@ -273,8 +273,8 @@ at the current position of the caller.
           bp1.paired_with(bp2)
           bp2.paired_with(bp1)
 
-          bp1.for_step!
-          bp2.for_step!
+          bp1.for_step!(current_frame.variables)
+          bp2.for_step!(current_frame.variables)
 
           bp1.activate
           bp2.activate
@@ -288,7 +288,7 @@ at the current position of the caller.
         end
 
         bp = BreakPoint.for_ip(exec, ip)
-        bp.for_step!
+        bp.for_step!(current_frame.variables)
         bp.activate
 
         return bp
@@ -379,7 +379,7 @@ Does not step into send instructions.
           line = exec.line_from_ip(next_ip)
 
           bp = BreakPoint.for_ip(exec, next_ip)
-          bp.for_step!
+          bp.for_step!(current_frame.variables)
           bp.activate
         end
 

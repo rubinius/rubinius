@@ -656,6 +656,62 @@ describe "A Rescue node" do
   end
 
   relates <<-ruby do
+      1.times do
+        begin
+          1
+        rescue
+          next
+        end
+      end
+    ruby
+
+    compile do |g|
+      g.push 1
+      g.in_block_send :times, :none, nil, 0, false do |d|
+        d.for_rescue do |rb|
+
+          rb.body do
+            d.push 1
+          end
+
+          rb.condition :StandardError do
+            d.push :nil
+            rb.next
+          end
+        end
+      end
+    end
+  end
+
+  relates <<-ruby do
+      1.times do
+        begin
+          next
+        rescue
+          2
+        end
+      end
+    ruby
+
+    compile do |g|
+      g.push 1
+      g.in_block_send :times, :none, nil, 0, false do |d|
+        d.for_rescue do |rb|
+
+          rb.body do
+            d.push :nil
+            rb.next
+          end
+
+          rb.condition :StandardError do
+            d.push 2
+          end
+        end
+      end
+    end
+  end
+
+  relates <<-ruby do
       begin
         1
       rescue

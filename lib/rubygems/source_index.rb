@@ -6,6 +6,8 @@
 
 require 'rubygems/user_interaction'
 require 'rubygems/specification'
+require 'digest'
+require 'fileutils'
 
 # :stopdoc:
 module Gem
@@ -91,8 +93,38 @@ class Gem::SourceIndex
                     File.read file_name
                   end.untaint
 
+      # Try to retrieve the CM from the user's cache
+      dig = Digest::SHA2.new
+      dig << spec_code
+      hash = dig.hexdigest
+
+      cm_path = File.join(Gem.user_dir, "cache", "gemspec_#{hash}.rbc")
+
+      cm = nil
+      if File.exists?(cm_path)
+        begin
+          cl = Rubinius::CodeLoader.new(cm_path)
+          cm = cl.load_compiled_file cm_path, Rubinius::Signature
+          # cm = Rubinius::CodeLoader.require_compiled(cm_path)
+        rescue TypeError, Rubinius::InvalidRBC
+          # ignore, no prob.
+        end
+      end
+
+      if cm
+        script = cm.create_script
+        gemspec = MAIN.__send__ :__script__
+
+        if gemspec.kind_of? Gem::Specification
+          gemspec.loaded_from = file_name
+          return gemspec
+        end
+      end
+
       begin
-        gemspec = eval spec_code, binding, file_name
+        gemspec = eval(spec_code, binding, file_name) do |cm, be|
+          Rubinius::CompiledFile.dump cm, cm_path
+        end
 
         if gemspec.is_a?(Gem::Specification)
           gemspec.loaded_from = file_name
@@ -125,6 +157,10 @@ class Gem::SourceIndex
     @gems = {}
     specifications.each{ |full_name, spec| add_spec spec }
     @spec_dirs = nil
+
+    # Make sure the cache directory exists, we use it later
+    dir = File.join(Gem.user_dir, "cache")
+    FileUtils.mkdir_p dir
   end
 
   # TODO: remove method

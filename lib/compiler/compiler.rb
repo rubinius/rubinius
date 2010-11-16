@@ -104,6 +104,16 @@ module Rubinius
           nxt.prev_entry = self if nxt
         end
 
+        def insert_before(entry)
+          prev = entry.prev_entry
+
+          @prev_entry = prev
+          @next_entry = entry
+
+          entry.prev_entry = self
+          prev.next_entry = self if prev
+        end
+
         def detach!
           @next_entry.prev_entry = @prev_entry if @next_entry
           @prev_entry.next_entry = @next_entry if @prev_entry
@@ -126,23 +136,33 @@ module Rubinius
         @total = total
         @current = 0
 
-        @last_entry = nil
-        @first_entry = nil
+        @head = Entry.new(nil, nil)
+        @tail = Entry.new(nil, nil)
+
+        @tail.insert_after(@head)
+
         @misses = 0
+        @lock = Rubinius::Channel.new
+        @lock << nil # prime
       end
 
       attr_reader :current, :misses
 
       def clear!
-        @cache = {}
-        @current = 0
-        @last_entry = nil
-        @first_entry = nil
+        @lock.as_lock do
+          @cache = {}
+          @current = 0
+
+          @head = Entry.new(nil, nil, -1)
+          @tail = Entry.new(nil, nil, -2)
+
+          @tail.insert_after(@head)
+        end
       end
 
       def explain
-        entry = @first_entry
-        while entry
+        entry = @head.next_entry
+        while entry != @tail
           str, layout = entry.key
           puts "hits: #{entry.hits}"
           puts "layout: #{layout.inspect}"
@@ -155,57 +175,49 @@ module Rubinius
       end
 
       def retrieve(key)
-        if entry = @cache[key]
-          entry.inc!
+        @lock.as_lock do
+          if entry = @cache[key]
+            entry.inc!
 
-          unless entry == @last_entry
             entry.detach!
-            entry.insert_after @last_entry
-            @last_entry = entry
+            entry.insert_before @tail
+
+            return entry.value
           end
 
-          return entry.value
+          @misses += 1
+
+          nil
         end
-
-        @misses += 1
-
-        nil
       end
 
       def set(key, value)
-        if entry = @cache[key]
-          entry.value = value
+        @lock.as_lock do
+          if entry = @cache[key]
+            entry.value = value
 
-          unless entry == @last_entry
-            entry.insert_after @last_entry
-            @last_entry = entry
+            entry.detach!
+            entry.insert_before @tail
+
+            return value
           end
 
-          return value
-        end
+          if @current == @total
+            entry = @head.next_entry
 
-        if @current >= @total
-          entry = @first_entry
-          if @first_entry = entry.next_entry
-            @first_entry.become_first!
+            entry.detach!
+
+            @cache.delete entry.key
+          else
+            @current += 1
           end
 
-          @cache.delete entry.key
-        else
-          @current += 1
+          entry = Entry.new(key, value)
+
+          entry.insert_before @tail
+
+          @cache[key] = entry
         end
-
-        entry = Entry.new(key, value)
-
-        if @last_entry
-          entry.insert_after @last_entry
-        else
-          @first_entry = entry
-        end
-
-        @last_entry = entry
-
-        @cache[key] = entry
       end
     end
 

@@ -248,4 +248,16 @@ describe "C-API Kernel function" do
       @s.rb_exec_recursive(s).should == s
     end
   end
+
+  describe "rb_set_end_proc" do
+    it "runs a C function on shutdown" do
+      r, w = IO.pipe
+
+      fork {
+        @s.rb_set_end_proc(w)
+      }
+
+      r.read(1).should == "e"
+    end
+  end
 end

@@ -73,6 +73,9 @@ class Configure
 
     @program_name = "rbx"
 
+    # Library configuration
+    @rb_readline = false
+
     # Essential settings (modify these for creating releases)
     @libversion = "1.2"
     @version = "#{@libversion}.0dev"
@@ -131,7 +134,7 @@ class Configure
       @cc = cc
     end
 
-    o.on "--cxx", "COMPILER", "Compiler to use C++ code (eg g++, clang++)" do |cxx|
+    o.on "--cxx", "COMPILER", "Compiler to use for C++ code (eg g++, clang++)" do |cxx|
       @cxx = cxx
     end
 
@@ -243,6 +246,8 @@ class Configure
 
     default_on = RUBY_PLATFORM !~ /openbsd/i
     feature "execinfo", default_on
+    feature "C-readline", true
+    feature "ruby-readline", false
 
     o.doc "\n Help!"
 
@@ -529,7 +534,7 @@ class Configure
     ENV[which] || ""
   end
 
-  def check_program(run=true)
+  def check_program(run=true, link_libs=[])
     begin
       basename = "rbx-configure-test"
       source   = basename + ".cpp"
@@ -537,7 +542,15 @@ class Configure
         yield f
       end
 
-      system "#{@cxx} #{env('CFLAGS')} -lstdc++ -lm -o #{basename} #{source} >>#{@log.path} 2>&1"
+      if link_libs.empty?
+        libs = ""
+      else
+        libs = link_libs.map { |l| "-l#{l}" }.join(" ")
+      end
+
+      cmd = "#{@cxx} #{env('CFLAGS')} -lstdc++ -lm #{libs} -o #{basename} #{source} >>#{@log.path} 2>&1"
+      @log.log cmd
+      system cmd
       return $?.exitstatus unless run
 
       unless $?.exitstatus == 0
@@ -597,6 +610,31 @@ int main() { X x; return 0; }
     @log.write @tr1_hash ? "found" : "not found"
   end
 
+  def detect_curses
+    @log.print "Checking curses library: "
+
+    src = <<-EOP
+#include <curses.h>
+#include <term.h>
+
+int main() { return tgetnum(""); }
+    EOP
+
+    ["curses", "ncurses", "termcap"].each do |lib|
+      status = check_program(false, [lib]) do |f|
+        f.puts src
+        @log.log src
+      end
+
+      if status == 0
+        @curses = lib
+        break
+      end
+    end
+
+    @log.write @curses ? @curses : "not found"
+  end
+
   def has_function(name, includes=[])
     @log.print "Checking for function '#{name}': "
     tf = Tempfile.new("rbx-test")
@@ -630,6 +668,15 @@ int main() { X x; return 0; }
     if @features["execinfo"] and has_function("backtrace", ["execinfo.h"])
       @defines << "HAS_EXECINFO"
     end
+
+    if @features["C-readline"] and
+       has_function("readline", ["stdio.h", "stdlib.h", "readline/readline.h"])
+      @defines << "HAS_READLINE"
+    end
+
+    if @features["ruby-readline"] or !@defines.include?("HAS_READLINE")
+      @rb_readline = true
+    end
   end
 
   def process
@@ -646,6 +693,7 @@ int main() { X x; return 0; }
     detect_endian
     detect_tr1_hash
     detect_features
+    detect_curses
   end
 
   def which_ruby
@@ -701,6 +749,7 @@ module Rubinius
     :cc             => "#{@cc}",
     :cxx            => "#{@cxx}",
     :defines        => #{@defines.inspect},
+    :curses         => #{@curses.inspect},
     :host           => "#{@host}",
     :cpu            => "#{@cpu}",
     :vendor         => "#{@vendor}",
@@ -784,6 +833,15 @@ end
 
       if @windows
         f.puts "#define RBX_WINDOWS 1"
+      end
+    end
+
+    # Write a require file depending on which Readline library we use.
+    File.open "lib/readline.rb", "w" do |f|
+      if @rb_readline
+        f.puts "require 'rb-readline/readline'"
+      else
+        f.puts "require 'c-readline'"
       end
     end
   end

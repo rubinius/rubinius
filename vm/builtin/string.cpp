@@ -13,8 +13,6 @@
 #include "objectmemory.hpp"
 #include "primitives.hpp"
 
-#include "util/base64.hpp"
-
 #include <gdtoa.h>
 
 #include <unistd.h>
@@ -1020,40 +1018,6 @@ return_value:
     if(RTEST(tainted_p(state))) output->taint(state);
 
     return output;
-  }
-
-  String* String::base64_encode(STATE, String* str, Fixnum* line_length) {
-    native_int ll = line_length->to_native();
-
-    /* Match's MRI semantics. If the request line length is 2 or less, use
-     * 45 bytes. Otherwise, round the line length to the closest multiple
-     * of 3. */
-    if(ll <= 2) {
-      ll = 45;
-    } else {
-      ll = ll / 3 * 3;
-    }
-
-    uint8_t* buf = str->byte_address();
-    native_int left = str->size();
-
-    std::string out;
-
-    while(left > 0) {
-      native_int amt = (left > ll ? ll : left);
-      out += base64::encode(buf, amt);
-      out += "\n";
-
-      buf += amt;
-      left -= amt;
-    }
-
-    return String::create(state, out.c_str(), out.size());
-  }
-
-  String* String::base64_decode(STATE, String* str) {
-    std::string out = base64::decode(str->byte_address(), str->size());
-    return String::create(state, out.c_str(), out.size());
   }
 
   void String::Info::show(STATE, Object* self, int level) {

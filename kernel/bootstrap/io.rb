@@ -1,6 +1,6 @@
 class IO
 
-  class Buffer
+  class InternalBuffer
     def self.allocate
       Ruby.primitive :iobuffer_allocate
       raise PrimitiveFailure, "IO::Buffer.allocate primitive failed"

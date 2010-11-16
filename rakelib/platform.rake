@@ -529,6 +529,19 @@ file 'runtime/platform.conf' => deps do |task|
     zlib_constants.each { |c| cg.const c, "%s", "(char *)" }
   end
 
+  dlopen_cg = FFI::ConstGenerator.new 'rbx.platform.dlopen' do |cg|
+    cg.include 'dlfcn.h'
+
+    dlopen_constants = %w[
+      RTLD_LAZY
+      RTLD_NOW
+      RTLD_LOCAL
+      RTLD_GLOBAL
+    ]
+
+    dlopen_constants.each { |c| cg.const c }
+  end
+
   puts "Generating #{task.name}..." if $verbose
 
   File.open task.name, "w" do |f|
@@ -548,6 +561,7 @@ file 'runtime/platform.conf' => deps do |task|
     process_cg.dump_constants f
     signal_cg.dump_constants f
     zlib_cg.dump_constants f
+    dlopen_cg.dump_constants f
 
     f.puts FFI::TypesGenerator.generate
   end

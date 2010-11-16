@@ -1,5 +1,6 @@
 #include "builtin/exception.hpp"
 #include "builtin/array.hpp"
+#include "builtin/proc.hpp"
 
 #include "exception_point.hpp"
 
@@ -319,5 +320,12 @@ extern "C" {
       if(unwinding) env->current_ep()->return_to(env);
       return ret;
     }
+  }
+
+  void rb_set_end_proc(void* cb, VALUE cb_data) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    VALUE prc = env->get_handle(
+        capi::wrap_c_function(cb, cb_data, C_CALLBACK));
+    rb_funcall(rb_mKernel, rb_intern("at_exit"), 1, prc);
   }
 }

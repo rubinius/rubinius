@@ -251,6 +251,7 @@ namespace rubinius {
   enum Arity {
     INIT_FUNCTION = -99,
     ITERATE_BLOCK = -98,
+    C_CALLBACK = -97,
     ARGS_IN_RUBY_ARRAY = -3,
     RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY = -2,
     ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER = -1
@@ -261,7 +262,7 @@ namespace rubinius {
 
   /** Generic function pointer used to store any type of functor. */
 
-  typedef VALUE (*VariableFunction)(VALUE, ...);
+  typedef VALUE (*VariableFunction)(...);
 
   /* Actual functor types. */
 

@@ -154,7 +154,7 @@ end
 INCLUDES.map! { |f| "-I#{f}" }
 
 # Default build options
-BASIC_FLAGS     = %W[ -pipe -Wall -Wno-deprecated ]
+BASIC_FLAGS     = %W[ -pipe -Wall -fno-omit-frame-pointer ]
 
 FLAGS = BASIC_FLAGS.dup
 
@@ -209,11 +209,6 @@ def compile_c(obj, src, output_kind="c")
   # GROSS
   if src == "vm/test/runner.cpp"
     flags.delete_if { |f| /-O.*/.match(f) }
-  end
-
-  if src =~ /c$/
-    # command line option "-Wno-deprecated" is valid for C++ but not for C
-    flags.delete_if { |f| f == '-Wno-deprecated' }
   end
 
   flags = flags.join(" ")
@@ -703,7 +698,6 @@ file dep_file => hdrs + object_sources do |t|
 
   directories = ".", "vm", "vm/capi/include"
   defines = FLAGS.join ' '
-  defines.slice!(/-Wno-deprecated/)
 
   grapher = DependencyGrapher.new object_sources, directories, defines
   grapher.process

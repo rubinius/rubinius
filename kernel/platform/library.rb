@@ -22,7 +22,7 @@ module FFI
     when :darwin
       LIBC = "libc.dylib"
     else
-      LIBC = "libc#{Rubinius::LIBSUFFIX}"
+      LIBC = "libc#{Rubinius::LIBSUFFIX}.6"
     end
 
     # Set which library or libraries +attach_function+ should
@@ -184,19 +184,13 @@ module FFI
 
     # Bootstrap dlsym, dlopen, and dlerror
     pointer_as_function :find_symbol, FFI::Pointer::DLSYM, [:pointer, :string], :pointer
+    pointer_as_function :open_library, FFI::Pointer::DLOPEN, [:string, :int], :pointer
+    pointer_as_function :last_error, FFI::Pointer::DLERROR, [], :string
 
-    dlopen = find_symbol(FFI::Pointer::CURRENT_PROCESS, "dlopen")
-
-    pointer_as_function :open_library, dlopen, [:string, :int], :pointer
-
-    dlerror = find_symbol(FFI::Pointer::CURRENT_PROCESS, "dlerror")
-
-    pointer_as_function :last_error, dlerror, [], :string
-
-    RTLD_LAZY = 0x1
-    RTLD_NOW  = 0x2
-    RTLD_GLOBAL = 0x4
-    RTLD_LOCAL  = 0x8
+    RTLD_LAZY   = Rubinius::Config['rbx.platform.dlopen.RTLD_LAZY']
+    RTLD_NOW    = Rubinius::Config['rbx.platform.dlopen.RTLD_NOW']
+    RTLD_GLOBAL = Rubinius::Config['rbx.platform.dlopen.RTLD_GLOBAL']
+    RTLD_LOCAL  = Rubinius::Config['rbx.platform.dlopen.RTLD_LOCAL']
 
     class << self
       alias_method :open, :new
@@ -204,7 +198,7 @@ module FFI
 
     def initialize(name, flags=nil)
       # Accept nil and check for ruby-ffi API compat
-      flags ||= RTLD_LAZY
+      flags ||= RTLD_LAZY | RTLD_GLOBAL
 
       if name
         @name = name
@@ -236,7 +230,6 @@ module FFI
     def find_symbol(name)
       ptr = DynamicLibrary.find_symbol @handle, name
       return nil unless ptr
-
       # defined in kernel/platform/pointer.rb
       FFI::DynamicLibrary::Symbol.new(self, ptr, name)
     end

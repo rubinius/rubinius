@@ -77,7 +77,8 @@ end
 describe "C-API Struct function" do
   before :each do
     @s = CApiStructSpecs.new
-    @struct = Struct.new(:a, :b, :c).new
+    @klass = Struct.new(:a, :b, :c)
+    @struct = @klass.new
   end
 
   describe "rb_struct_aref" do
@@ -119,6 +120,15 @@ describe "C-API Struct function" do
 
     it "raises a NameError if the struct member does not exist" do
       lambda { @s.rb_struct_aset(@struct, :d, 1) }.should raise_error(NameError)
+    end
+  end
+
+  describe "rb_struct_new" do
+    it "creates a new instance of a struct" do
+      i = @s.rb_struct_new(@klass, 1, 2, 3)
+      i.a.should == 1
+      i.b.should == 2
+      i.c.should == 3
     end
   end
 end

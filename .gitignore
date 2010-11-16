@@ -76,6 +76,7 @@ tmtags
 /lib/zlib.rb
 /lib/fcntl.rb
 /lib/syslog.rb
+/lib/readline.rb
 
 /lib/ext/melbourne/Makefile
 

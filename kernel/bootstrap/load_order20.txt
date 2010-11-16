@@ -29,8 +29,6 @@ process.rbc
 regexp.rbc
 rubinius.rbc
 rubinius19.rbc
-selector.rbc
-sendsite.rbc
 static_scope.rbc
 string.rbc
 symbol.rbc

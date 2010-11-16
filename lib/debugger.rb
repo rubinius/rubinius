@@ -130,28 +130,35 @@ class Debugger
   # stoping at a breakpoint.
   #
   def listen(step_into=false)
-    if @channel
-      if step_into
-        @channel << :step
+    while true
+      if @channel
+        if step_into
+          @channel << :step
+        else
+          @channel << true
+        end
+      end
+
+      # Wait for someone to stop
+      bp, thr, chan, locs = @local_channel.receive
+
+      # Uncache all frames since we stopped at a new place
+      @frames = []
+
+      @locations = locs
+      @breakpoint = bp
+      @debuggee_thread = thr
+      @channel = chan
+
+      @current_frame = frame(0)
+
+      if bp
+        # Only break out if the hit was valid
+        break if bp.hit!(locs.first)
       else
-        @channel << true
+        break
       end
     end
-
-    # Wait for someone to stop
-    bp, thr, chan, locs = @local_channel.receive
-
-    # Uncache all frames since we stopped at a new place
-    @frames = []
-
-    @locations = locs
-    @breakpoint = bp
-    @debuggee_thread = thr
-    @channel = chan
-
-    @current_frame = frame(0)
-
-    bp.hit! if bp
 
     puts
     info "Breakpoint: #{@current_frame.describe}"

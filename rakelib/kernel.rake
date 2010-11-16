@@ -26,7 +26,7 @@ require 'kernel/bootstrap/iseq.rb'
 
 # So that the compiler can try and use the config
 module Rubinius
-  Config = {}
+  Config = { 'eval.cache' => false }
 end
 
 # The rule for compiling all kernel Ruby files

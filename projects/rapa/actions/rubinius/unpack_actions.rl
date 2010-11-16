@@ -60,8 +60,11 @@
   }
 
   action set_stop {
-    stop = rest ? bytes_size + 1 : index + width * count;
-    if(stop > bytes_size) {
+    if(!rest) {
+      stop = index + width * count;
+    }
+
+    if(rest || stop > bytes_size) {
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -247,7 +250,7 @@
     String* string;
 
     if(count > 0) {
-      size_t i;
+      native_int i;
       for(i = count; i > 0; i--) {
         uint8_t c = bytes[i-1];
         if(c != ' ' && c != '\0')
@@ -269,7 +272,7 @@
   }
 
   action Z {
-    size_t c;
+    native_int c;
     for(c = 0; c < count; c++) {
       if(bytes[c] == '\0') break;
     }

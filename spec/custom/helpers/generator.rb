@@ -485,12 +485,16 @@ module Rubinius
       attr_accessor :label, :original, :emit
     end
 
+    class Next < Break
+    end
+
     class RescueBlock
       def initialize(g)
         @body = nil
         @conditions = []
         @else = nil
         @break = nil
+        @next = nil
         @g = g
       end
 
@@ -521,14 +525,28 @@ module Rubinius
         @break = Break.new(@g)
       end
 
+      def new_next
+        @next = Next.new(@g)
+      end
+
       def clear_break
         @break = nil
+      end
+
+      def clear_next
+        @next = nil
       end
 
       def break
         raise "no break info" unless @break
         @g.goto @break.label
         @break.emit = true
+      end
+
+      def next
+        raise "no next info" unless @next
+        @g.goto @next.label
+        @next.emit = true
       end
 
       def restore_exception
@@ -557,6 +575,8 @@ module Rubinius
       g.new_label.set!
 
       br = rb.new_break
+      nx = rb.new_next
+
       rb.body.call
 
       g.pop_unwind
@@ -572,6 +592,20 @@ module Rubinius
           g.goto br.original
         else
           g.goto jump_else
+        end
+      end
+
+      if nx.emit
+        nx.label.set!
+
+        g.pop_unwind
+
+        g.restore_exception rb.saved_exc
+
+        if nx.original
+          g.goto nx.original
+        else
+          g.ret
         end
       end
 
@@ -603,6 +637,8 @@ module Rubinius
         end
 
         br = rb.new_break
+        nx = rb.new_next
+
         code.call(jump_body, jump_next)
 
         g.clear_exception
@@ -618,6 +654,19 @@ module Rubinius
             g.goto br.original
           else
             g.raise_break
+          end
+        end
+
+        if nx.emit
+          nx.label.set!
+          g.clear_exception
+
+          g.restore_exception rb.saved_exc
+
+          if br.original
+            g.goto br.original
+          else
+            g.ret
           end
         end
 

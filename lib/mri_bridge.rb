@@ -12,6 +12,18 @@ module Rubinius
   def self.ruby19?
     RUBY_VERSION =~ /^1\.9/
   end
+
+  class Channel
+    def receive
+    end
+
+    def <<(val)
+    end
+
+    def as_lock
+      yield
+    end
+  end
 end
 
 class Array

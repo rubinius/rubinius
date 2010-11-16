@@ -335,40 +335,34 @@ module Rubinius
     end
 
     ##
-    # Convenience method to return an array of the SendSites from
-    # this CompiledMethod's literals.
-    #
-    # @return [Tuple]
-    def send_sites
-      literals.select {|lit| lit.kind_of? SendSite }
-    end
-
-    ##
     # Locates the CompiledMethod and instruction address (IP) of the first
     # instruction on the specified line. This method recursively examines child
     # compiled methods until an exact match for the searched line is found.
     # It returns both the matching CompiledMethod and the IP of the first
     # instruction on the requested line, or nil if no match for the specified line
     # is found.
-    # TODO: Update this to work with new lines representation
     #
     # @return [(Rubinius::CompiledMethod, Fixnum), NilClass] returns
     #   nil if nothing is found, else an array of size 2 containing the method
     #   the line was found in and the IP pointing there.
-    def locate_line(line, cm=self)
-      cm.lines.each do |t|
-        if (l = t.at(2)) == line
-          # Found target line - return first IP
-          return cm, t.at(0)
-        elsif l > line
+    def locate_line(line)
+      ip = 1
+      total = @lines.size
+      while i < total
+        cur_line = @lines.at(i)
+        if cur_line == line
+          return [self, @lines.at(i-1)]
+        elsif cur_line > line
           break
         end
+
+        i += 2
       end
 
       # Didn't find line in this CM, so check if a contained
       # CM encompasses the line searched for
-      cm.child_methods.each do |child|
-        if res = locate_line(line, child)
+      child_methods.each do |child|
+        if res = child.locate_line(line)
           return res
         end
       end

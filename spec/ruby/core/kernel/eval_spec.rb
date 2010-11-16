@@ -282,6 +282,12 @@ describe "Kernel#eval" do
       x.should == 42
     end
   end
+
+  # See http://jira.codehaus.org/browse/JRUBY-5163
+  it "uses the receiver as self inside the eval" do
+    eval("self").should equal(self)
+    Kernel.eval("self").should equal(Kernel)
+  end
 end
 
 describe "Kernel.eval" do
