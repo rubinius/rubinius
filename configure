@@ -160,7 +160,7 @@ class Configure
       @install = true
       dir = File.expand_path dir
 
-      if !ENV['RELEASE'] and File.directory? dir and dir !~ /(rubinius|rbx)\/?$/
+      if !ENV['RELEASE'] and File.directory? dir and dir !~ /(rubinius|rbx).*\/?$/
         old = dir
         dir += "/rubinius/#{@libversion}"
         @log.write "The directory #{old} already exists, installing to #{dir}"
