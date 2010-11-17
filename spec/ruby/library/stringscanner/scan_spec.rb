@@ -28,6 +28,12 @@ describe "StringScanner#scan" do
     @s.scan(/\w+/).should be_nil
   end
 
+  it "returns an empty string when the pattern matches empty" do
+    @s.scan(/.*/).should == "This is a test"
+    @s.scan(/.*/).should == ""
+    @s.scan(/./).should be_nil
+  end
+
   it "raises a TypeError if pattern isn't a Regexp" do
     lambda { @s.scan("aoeu")    }.should raise_error(TypeError)
     lambda { @s.scan(5)         }.should raise_error(TypeError)
