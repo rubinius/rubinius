@@ -479,11 +479,8 @@ class Configure
       version = `#{config} --version`.strip
       parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
 
-      # 2.6svn is an unknown beast, don't trust it.
-      if version == "2.6svn" or parts[0] < 2 or parts[1] < 6
-        @log.write "too old of a version"
-      elsif parts[0] != 2 or parts[1] != 6
-        @log.write "only 2.6 is supported"
+      if parts[0] != 2 or parts[1] != 8
+        @log.write "only 2.8 is supported"
       else
         @log.write "found! (version #{version})"
         @llvm_configure = config

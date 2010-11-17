@@ -10,7 +10,6 @@
 #include <llvm/Module.h>
 #include <llvm/Instructions.h>
 #include <llvm/Support/IRBuilder.h>
-#include <llvm/ModuleProvider.h>
 #include <llvm/ExecutionEngine/JIT.h>
 #include <llvm/CodeGen/MachineCodeInfo.h>
 #include <llvm/Pass.h>
@@ -426,7 +425,6 @@ namespace rubinius {
   class LLVMState : public ManagedThread {
     llvm::LLVMContext& ctx_;
     llvm::Module* module_;
-    llvm::ExistingModuleProvider* mp_;
     llvm::ExecutionEngine* engine_;
     llvm::FunctionPassManager* passes_;
 

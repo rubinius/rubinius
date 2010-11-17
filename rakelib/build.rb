@@ -35,7 +35,7 @@ end
 def llvm_lib_files
   return [] unless LLVM_ENABLE
 
-  files = `perl #{llvm_configure} --libfiles all`.split(/\s+/)
+  files = `perl #{llvm_configure} --libfiles`.split(/\s+/)
   files.select { |f| File.file? f }
 end
 
