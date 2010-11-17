@@ -224,6 +224,14 @@ module Rubinius
       @file.to_s
     end
 
+    def eval_source
+      if @scope and script = @scope.current_script
+        return script.eval_source
+      end
+
+      return nil
+    end
+
     ##
     # Return the line of source code at +ip+.
     #
