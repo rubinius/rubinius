@@ -247,8 +247,6 @@ class StringScanner
 
     @match = nil
 
-    return nil if eos?
-
     if headonly
       # NOTE - match_start is an Oniguruma feature that Rubinius exposes.
       # We use it here to avoid creating a new Regexp with '^' prepended.
