@@ -138,16 +138,26 @@ containing the Rubinius standard library files.
       end
     end
 
-    def detect_arg0
+    # Detects if the Rubinius executable was aliased to a subcommand or a
+    # rubygems executable. If so, changes ARGV as if Rubinius were invoked
+    # to run the subcommand or rubygems executable.
+    def detect_alias
       cmd = ARG0.split("/").last
 
       # ignore the common ones straight away
       return if cmd == "rbx" or cmd == "ruby"
 
-      perhaps = File.join @main_lib, "bin", "#{cmd}.rb"
-      if File.exists?(perhaps)
-        # ok! inject this command back in and use it
-        ARGV.unshift perhaps
+      # Check if we are aliased to a Rubinius subcommand.
+      subcommand = File.join @main_lib, "bin", "#{cmd}.rb"
+      if File.exists? subcommand
+        ARGV.unshift subcommand
+        return
+      end
+
+      # Check if we are aliased to a rubygems executable.
+      gem_exe = File.join @gem_bin, cmd
+      if File.exists? gem_exe
+        ARGV.unshift "-S", gem_exe
       end
     end
 
@@ -597,7 +607,7 @@ containing the Rubinius standard library files.
           signals
           load_compiler
           preload
-          detect_arg0
+          detect_alias
           options
           load_paths
           debugger
