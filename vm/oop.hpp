@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <stdint.h>
 
+#include "config.h"
 #include "object_types.hpp"
 #include "type_info.hpp"
 #include "detection.hpp"
@@ -166,6 +167,7 @@ const int cUndef = 0x22L;
   const static bool cDebugThreading = false;
 
   struct ObjectFlags {
+#ifdef RBX_LITTLE_ENDIAN
     // inflated MUST be first, because rest is used as a pointer
     unsigned int meaning         : 2;
     object_type  obj_type        : 8;
@@ -182,6 +184,26 @@ const int cUndef = 0x22L;
     unsigned int Frozen          : 1;
     unsigned int Tainted         : 1;
     unsigned int LockContended   : 1;
+    unsigned int unused          : 7;
+#else
+    unsigned int unused          : 7;
+    unsigned int LockContended   : 1;
+    unsigned int Tainted         : 1;
+    unsigned int Frozen          : 1;
+
+    unsigned int Pinned          : 1;
+    unsigned int InImmix         : 1;
+
+    unsigned int Marked          : 2;
+    unsigned int Remember        : 1;
+    unsigned int Forwarded       : 1;
+
+    unsigned int age             : 4;
+    gc_zone      zone            : 2;
+    object_type  obj_type        : 8;
+    // inflated MUST be first, because rest is used as a pointer
+    unsigned int meaning         : 2;
+#endif
 
     uint32_t aux_word;
   };

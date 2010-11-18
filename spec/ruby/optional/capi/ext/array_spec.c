@@ -129,6 +129,12 @@ static VALUE array_spec_rb_ary_join(VALUE self, VALUE array1, VALUE array2) {
 }
 #endif
 
+#ifdef HAVE_RB_ARY_TO_S
+static VALUE array_spec_rb_ary_to_s(VALUE self, VALUE array) {
+  return rb_ary_to_s(array);
+}
+#endif
+
 #ifdef HAVE_RB_ARY_NEW
 static VALUE array_spec_rb_ary_new(VALUE self) {
   VALUE ret;
@@ -228,6 +234,25 @@ static VALUE array_spec_rb_mem_clear(VALUE self, VALUE obj) {
 }
 #endif
 
+#if defined(HAVE_RB_PROTECT_INSPECT) && defined(HAVE_RB_INSPECTING_P)
+
+static VALUE rec_pi(VALUE obj, VALUE arg) {
+  if(RTEST(rb_inspecting_p(obj))) return arg;
+  return Qfalse;
+}
+
+static VALUE array_spec_rb_protect_inspect(VALUE self, VALUE obj) {
+  return rb_protect_inspect(rec_pi, obj, Qtrue);
+}
+
+#endif
+
+#ifdef HAVE_RB_ARY_FREEZE
+static VALUE array_spec_rb_ary_freeze(VALUE self, VALUE ary) {
+  return rb_ary_freeze(ary);
+}
+#endif
+
 void Init_array_spec() {
   VALUE cls;
   cls = rb_define_class("CApiArraySpecs", rb_cObject);
@@ -276,6 +301,10 @@ void Init_array_spec() {
   rb_define_method(cls, "rb_ary_join", array_spec_rb_ary_join, 2);
 #endif
 
+#ifdef HAVE_RB_ARY_JOIN
+  rb_define_method(cls, "rb_ary_to_s", array_spec_rb_ary_to_s, 1);
+#endif
+
 #ifdef HAVE_RB_ARY_NEW
   rb_define_method(cls, "rb_ary_new", array_spec_rb_ary_new, 0);
 #endif
@@ -319,6 +348,14 @@ void Init_array_spec() {
 
 #if defined(HAVE_RB_MEM_CLEAR)
   rb_define_method(cls, "rb_mem_clear", array_spec_rb_mem_clear, 1);
+#endif
+
+#if defined(HAVE_RB_PROTECT_INSPECT) && defined(HAVE_RB_INSPECTING_P)
+  rb_define_method(cls, "rb_protect_inspect",  array_spec_rb_protect_inspect, 1);
+#endif
+
+#ifdef HAVE_RB_ARY_FREEZE
+  rb_define_method(cls, "rb_ary_freeze", array_spec_rb_ary_freeze, 1);
 #endif
 }
 

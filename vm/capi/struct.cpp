@@ -33,6 +33,23 @@ extern "C" {
     return rb_funcall(rb_cStruct, rb_intern("make_struct"), 2, nm, env->get_handle(array));
   }
 
+  VALUE rb_struct_new(VALUE klass, ...) {
+    va_list args;
+    va_start(args, klass);
+
+    VALUE sz = rb_funcall2(klass, rb_intern("length"), 0, 0);
+    int total = FIX2INT(sz);
+
+    VALUE* mem = (VALUE*)alloca(sizeof(VALUE) * total);
+    for(int i = 0; i < total; i++) {
+      mem[i] = va_arg(args, VALUE);
+    }
+
+    va_end(args);
+
+    return rb_funcall2(klass, rb_intern("new"), total, mem);
+  }
+
   VALUE rb_struct_aref(VALUE struct_handle, VALUE key) {
     return rb_funcall(struct_handle, rb_intern("[]"), 1, key);
   }

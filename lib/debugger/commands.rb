@@ -255,7 +255,7 @@ at the current position of the caller.
         ip = f.ip
 
         bp = BreakPoint.for_ip(exec, ip)
-        bp.for_step!
+        bp.for_step!(current_frame.variables)
         bp.activate
 
         return bp
@@ -273,8 +273,8 @@ at the current position of the caller.
           bp1.paired_with(bp2)
           bp2.paired_with(bp1)
 
-          bp1.for_step!
-          bp2.for_step!
+          bp1.for_step!(current_frame.variables)
+          bp2.for_step!(current_frame.variables)
 
           bp1.activate
           bp2.activate
@@ -288,7 +288,7 @@ at the current position of the caller.
         end
 
         bp = BreakPoint.for_ip(exec, ip)
-        bp.for_step!
+        bp.for_step!(current_frame.variables)
         bp.activate
 
         return bp
@@ -379,7 +379,7 @@ Does not step into send instructions.
           line = exec.line_from_ip(next_ip)
 
           bp = BreakPoint.for_ip(exec, next_ip)
-          bp.for_step!
+          bp.for_step!(current_frame.variables)
           bp.activate
         end
 
@@ -497,7 +497,7 @@ next to the inspect output of the value.
 
     class Disassemble < Command
       pattern "dis", "disassemble"
-      help "Show the bytecode for the current method"
+      help "Show the bytecode for the current line or method"
       ext_help <<-HELP
 Disassemble bytecode for the current method. By default, the bytecode
 for the current line is disassembled only.
@@ -507,7 +507,7 @@ If the argument is 'all', the entire method is shown as bytecode.
 
       def run(args)
         if args and args.strip == "all"
-          section "Bytecode for #{@current_frame.method.name}"
+          section "Bytecode for #{current_frame.method.name}"
           puts current_method.decode
         else
           @debugger.show_bytecode
@@ -524,20 +524,24 @@ Subcommands are:
       HELP
 
       def run(args)
-        case args.strip
-        when "break", "breakpoints", "bp"
-          section "Breakpoints"
-          if @debugger.breakpoints.empty?
-            info "No breakpoints set"
-          end
-
-          @debugger.breakpoints.each_with_index do |bp, i|
-            if bp
-              info "%3d: %s" % [i+1, bp.describe]
+        if args
+          case args.strip
+          when "break", "breakpoints", "bp"
+            section "Breakpoints"
+            if @debugger.breakpoints.empty?
+              info "No breakpoints set"
             end
+
+            @debugger.breakpoints.each_with_index do |bp, i|
+              if bp
+                info "%3d: %s" % [i+1, bp.describe]
+              end
+            end
+          else
+            error "Unknown info: '#{args}'"
           end
         else
-          error "Unknown info: '#{args}'"
+          error "No info subcommand"
         end
       end
     end

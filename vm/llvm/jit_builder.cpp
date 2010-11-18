@@ -503,6 +503,8 @@ namespace jit {
       visitor.init_policy();
     }
 
+    assert(visitor.inline_policy());
+
     visitor.set_called_args(info_.called_args);
 
     visitor.set_valid_flag(valid_flag);

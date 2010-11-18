@@ -77,6 +77,13 @@ class Method
   def inspect
     file, line = source_location()
 
+    if @executable.respond_to? :eval_source
+      if src = @executable.eval_source
+        src_line = src.split("\n")[line - 1]
+        return "#<#{self.class}: #{@receiver.class}##{@name} (defined in #{@defined_in} from \"#{src_line}\")>"
+      end
+    end
+
     if file
       "#<#{self.class}: #{@receiver.class}##{@name} (defined in #{@defined_in} at #{file}:#{line})>"
     else
@@ -96,6 +103,14 @@ class Method
     else
       nil
     end
+  end
+
+  def source
+    if @executable.respond_to? :eval_source
+      return @executable.eval_source
+    end
+
+    return nil
   end
 
   def parameters

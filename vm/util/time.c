@@ -7,8 +7,7 @@
  */
 
 static int
-leap_year_p(y)
-    long y;
+leap_year_p(long y)
 {
   return ((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0);
 }
@@ -17,8 +16,7 @@ leap_year_p(y)
 #define DIV(n,d) ((n)<0 ? NDIV((n),(d)) : (n)/(d))
 
 static time_t
-timegm_noleapsecond(tm)
-    struct tm *tm;
+timegm_noleapsecond(struct tm* tm)
 {
     static int common_year_yday_offset[] = {
         -1,
@@ -73,9 +71,7 @@ timegm_noleapsecond(tm)
 }
 
 static int
-tmcmp(a, b)
-    struct tm *a;
-    struct tm *b;
+tmcmp(struct tm* a, struct tm* b)
 {
     if (a->tm_year != b->tm_year)
         return a->tm_year < b->tm_year ? -1 : 1;

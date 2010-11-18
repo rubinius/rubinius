@@ -17,10 +17,10 @@ module Rubinius
     # +extension_name+ is used to calculate what Init_ function to call.
     #
     def self.load_extension(library, extension_name)
-      name = "Init_#{extension_name}"
+      name = "Init_#{extension_name.sub(/\..*$/, '')}"
 
       begin
-        lib = FFI::DynamicLibrary.new(library, FFI::DynamicLibrary::RTLD_NOW)
+        lib = FFI::DynamicLibrary.new(library, FFI::DynamicLibrary::RTLD_NOW | FFI::DynamicLibrary::RTLD_GLOBAL)
       rescue LoadError => e
         raise LoadError::InvalidExtensionError, "Unable to load - #{library}", e
       end

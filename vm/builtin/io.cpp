@@ -31,7 +31,7 @@ namespace rubinius {
     GO(io).set(state->new_class("IO", G(object)));
     G(io)->set_object_type(state, IOType);
 
-    GO(iobuffer).set(state->new_class("Buffer", G(object), G(io)));
+    GO(iobuffer).set(state->new_class("InternalBuffer", G(object), G(io)));
     G(iobuffer)->set_object_type(state, IOBufferType);
   }
 
@@ -310,8 +310,8 @@ namespace rubinius {
     lhs->descriptor(state, Fixnum::from(fds[0]));
     rhs->descriptor(state, Fixnum::from(fds[1]));
 
-    lhs->set_mode(state);
-    rhs->set_mode(state);
+    lhs->mode(state, Fixnum::from(O_RDONLY));
+    rhs->mode(state, Fixnum::from(O_WRONLY));
     return Qtrue;
   }
 

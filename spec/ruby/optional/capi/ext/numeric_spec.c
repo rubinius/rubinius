@@ -53,6 +53,12 @@ static VALUE numeric_spec_rb_num_zerodiv(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_CMPINT
+static VALUE numeric_spec_rb_cmpint(VALUE self, VALUE val, VALUE b) {
+  return INT2FIX(rb_cmpint(val, val, b));
+}
+#endif
+
 void Init_numeric_spec() {
   VALUE cls;
   cls = rb_define_class("CApiNumericSpecs", rb_cObject);
@@ -87,6 +93,10 @@ void Init_numeric_spec() {
 
 #ifdef HAVE_RB_NUM_ZERODIV
   rb_define_method(cls, "rb_num_zerodiv", numeric_spec_rb_num_zerodiv, 0);
+#endif
+
+#ifdef HAVE_RB_CMPINT
+  rb_define_method(cls, "rb_cmpint", numeric_spec_rb_cmpint, 2);
 #endif
 }
 

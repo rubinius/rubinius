@@ -5,7 +5,7 @@ class IO
   SEEK_CUR = Rubinius::Config['rbx.platform.io.SEEK_CUR']
   SEEK_END = Rubinius::Config['rbx.platform.io.SEEK_END']
 
-  # Buffer provides a sliding window into a region of bytes.
+  # InternalBuffer provides a sliding window into a region of bytes.
   # The buffer is filled to the +used+ indicator, which is
   # always less than or equal to +total+. As bytes are taken
   # from the buffer, the +start+ indicator is incremented by
@@ -30,7 +30,7 @@ class IO
   # number of bytes). Buffer decides whether or not to go to the
   # source for more data or just present what is already in the
   # buffer.
-  class Buffer
+  class InternalBuffer
 
     attr_reader :total
     attr_reader :start
@@ -116,7 +116,7 @@ class IO
     end
 
     def inspect # :nodoc:
-      "#<IO::Buffer:0x%x total=%p start=%p used=%p data=%p>" % [
+      "#<IO::InternalBuffer:0x%x total=%p start=%p used=%p data=%p>" % [
         object_id, @total, @start, @used, @storage
       ]
     end
@@ -1140,7 +1140,7 @@ class IO
       write DEFAULT_RECORD_SEPARATOR
     else
       args.each do |arg|
-        if arg.nil?
+        if arg.equal? nil
           str = "nil"
         elsif Thread.guarding? arg
           str = "[...]"

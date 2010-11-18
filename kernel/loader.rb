@@ -22,6 +22,14 @@ module Rubinius
       @gem_bin = File.join Rubinius::GEMS_PATH, "bin"
     end
 
+    def self.debugger
+      @debugger_proc
+    end
+
+    def self.debugger=(prc)
+      @debugger_proc = prc
+    end
+
     # Finish setting up after loading kernel.
     def preamble
       @stage = "running Loader preamble"
@@ -129,6 +137,19 @@ containing the Rubinius standard library files.
       end
     end
 
+    def detect_arg0
+      cmd = ARG0.split("/").last
+
+      # ignore the common ones straight away
+      return if cmd == "rbx" or cmd == "ruby"
+
+      perhaps = File.join @main_lib, "bin", "#{cmd}.rb"
+      if File.exists?(perhaps)
+        # ok! inject this command back in and use it
+        ARGV.unshift perhaps
+      end
+    end
+
     # Process all command line arguments.
     def options(argv=ARGV)
       @stage = "processing command line arguments"
@@ -146,7 +167,7 @@ containing the Rubinius standard library files.
         options.stop_parsing
       end
 
-      options.doc "Script is any valid Ruby source file (.rb) or a compiled Ruby file (.rbc)."
+      options.doc "Script is any valid Ruby source code file"
 
       options.doc "\nRuby options"
       options.on "-", "Read and evaluate code from STDIN" do
@@ -164,16 +185,21 @@ containing the Rubinius standard library files.
       end
 
       options.on "-c", "FILE", "Check the syntax of FILE" do |file|
-        mel = Rubinius::Melbourne.new file, 1, []
-        begin
-          mel.parse_file
-        rescue SyntaxError => e
-          show_syntax_errors(mel.syntax_errors)
+        if File.exists?(file)
+          mel = Rubinius::Melbourne.new file, 1, []
+          begin
+            mel.parse_file
+          rescue SyntaxError => e
+            show_syntax_errors(mel.syntax_errors)
+            exit 1
+          end
+
+          puts "Syntax OK"
+          exit 0
+        else
+          puts "rbx: Unable to find file -- #{file} (LoadError)"
           exit 1
         end
-
-        puts "Syntax OK"
-        exit 0
       end
 
       options.on "-C", "DIR", "Change directory to DIR before running scripts" do |dir|
@@ -420,8 +446,12 @@ containing the Rubinius standard library files.
       @stage = "running the debugger"
 
       if Rubinius::Config['debug']
-        require 'debugger'
-        Debugger.start
+        if custom = Loader.debugger
+          custom.call
+        else
+          require 'debugger'
+          Debugger.start
+        end
       end
     end
 
@@ -434,6 +464,8 @@ containing the Rubinius standard library files.
 
     # Evaluate any -e arguments
     def evals
+      return if @evals.empty?
+
       @stage = "evaluating command line code"
 
       if @input_loop
@@ -454,24 +486,25 @@ containing the Rubinius standard library files.
       @stage = "running #{@script}"
       Dir.chdir @directory if @directory
 
-      if File.exist?(@script)
-        $0 = @script
-
-        CodeLoader.load_script @script, @debugging
+      if File.exists? @script
+        if IO.read(@script, 6) == "!RBIX\n"
+          raise LoadError, "'#{@script}' is not a Ruby source file"
+        end
       else
         if @script.suffix?(".rb")
-          puts "Unable to find '#{@script}'"
-          exit 1
+          raise LoadError, "unable to find '#{@script}'"
         else
-          prog = File.join @main_lib, "bin", "#{@script}.rb"
-          if File.exist? prog
-            $0 = prog
-            load prog
+          command = File.join @main_lib, "bin", "#{@script}.rb"
+          unless File.exists? command
+            raise LoadError, "unable to find Rubinius command '#{@script}'"
           else
-            raise LoadError, "Unable to find a script '#{@script}' to run"
+            @script = command
           end
         end
       end
+
+      $0 = @script
+      CodeLoader.load_script @script, @debugging
     end
 
     # Run IRB unless we were passed -e, -S arguments or a script to run.
@@ -550,7 +583,7 @@ containing the Rubinius standard library files.
         f.puts "[[Version]]"
         f.puts Rubinius.version
       end
-    rescue Errno::EACCESS
+    rescue Errno::EACCES
       # Ignore writing the last error report
     end
 
@@ -563,6 +596,7 @@ containing the Rubinius standard library files.
           signals
           load_compiler
           preload
+          detect_arg0
           options
           load_paths
           debugger
@@ -576,16 +610,17 @@ containing the Rubinius standard library files.
           raise e
 
         rescue SyntaxError => e
+          @exit_code = 1
+
           show_syntax_error(e)
 
           STDERR.puts "\nBacktrace:"
           STDERR.puts e.awesome_backtrace.show
+        rescue Object => e
           @exit_code = 1
 
-        rescue Object => e
           write_last_error(e)
           e.render "An exception occurred #{@stage}"
-          @exit_code = 1
         end
 
       # We do this, run epilogue both on catching SystemExit and
@@ -612,7 +647,6 @@ containing the Rubinius standard library files.
         puts "Exception occurred during top-level exception output! (THIS IS BAD)"
         puts
         puts "Exception: #{exc.inspect} (#{exc.class})"
-        @exit_code = 128
       end
     end
   end

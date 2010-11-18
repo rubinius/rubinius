@@ -29,7 +29,7 @@ namespace rubinius {
     G(thread)->set_object_type(state, Thread::type);
   }
 
-  Thread* Thread::create(STATE, VM* target, pthread_t tid) {
+  Thread* Thread::create(STATE, VM* target, Object* self, pthread_t tid) {
     Thread* thr = state->new_object<Thread>(G(thread));
 
     thr->thread_id(state, Fixnum::from(target->thread_id()));
@@ -38,6 +38,7 @@ namespace rubinius {
     thr->control_channel(state, (Channel*)Qnil);
     thr->recursive_objects(state, LookupTable::create(state));
     thr->vm_ = target;
+    thr->klass(state, as<Class>(self));
 
     target->thread.set(thr);
 
@@ -51,9 +52,9 @@ namespace rubinius {
 
 /* Class primitives */
 
-  Thread* Thread::allocate(STATE) {
+  Thread* Thread::allocate(STATE, Object* self) {
     VM* vm = state->shared.new_vm();
-    Thread* thread = Thread::create(state, vm);
+    Thread* thread = Thread::create(state, vm, self);
 
     return thread;
   }

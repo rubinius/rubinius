@@ -127,14 +127,6 @@ namespace rubinius {
     backend_method_->specialize(state, this, ti);
   }
 
-  Object* CompiledMethod::compile(STATE) {
-    if(backend_method_ == NULL || backend_method_->run != VMMethod::debugger_interpreter) {
-      backend_method_ = NULL;
-      formalize(state);
-    }
-    return this;
-  }
-
   Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
                                            Arguments& args) {
     LockableScopedLock lg(state, &state->shared, __FILE__, __LINE__);
@@ -209,7 +201,7 @@ namespace rubinius {
     if(!backend_method_->validate_ip(state, i)) return Primitives::failure();
 
     if(breakpoints_->nil_p()) {
-      breakpoints_ = LookupTable::create(state);
+      breakpoints(state, LookupTable::create(state));
     }
 
     breakpoints_->store(state, ip, bp);

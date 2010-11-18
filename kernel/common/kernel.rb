@@ -314,8 +314,20 @@ module Kernel
   end
   module_function :sleep
 
-  def at_exit(&block)
-    Rubinius::AtExit.unshift(block)
+  def at_exit(prc=nil, &block)
+    if prc
+      unless prc.respond_to?(:call)
+        raise "Argument must respond to #call"
+      end
+    else
+      prc = block
+    end
+
+    unless prc
+      raise "must pass a #call'able or block"
+    end
+
+    Rubinius::AtExit.unshift(prc)
   end
   module_function :at_exit
 
@@ -346,12 +358,12 @@ module Kernel
   alias_method :object_id, :__id__
 
   def id
-    warn "Object#id IS deprecated; use Object#object_id OR ELSE."
+    Kernel.warn "Object#id IS deprecated; use Object#object_id OR ELSE."
     __id__
   end
 
   def type
-    warn "Object#type IS fully deprecated; use Object#class OR ELSE."
+    Kernel.warn "Object#type IS fully deprecated; use Object#class OR ELSE."
     self.class
   end
 
@@ -751,25 +763,25 @@ module Kernel
   # Perlisms.
 
   def chomp(string=$/)
-    ensure_last_read_string
+    Kernel.ensure_last_read_string
     $_ = $_.chomp(string)
   end
   module_function :chomp
 
   def chomp!(string=$/)
-    ensure_last_read_string
+    Kernel.ensure_last_read_string
     $_.chomp!(string)
   end
   module_function :chomp!
 
   def chop(string=$/)
-    ensure_last_read_string
+    Kernel.ensure_last_read_string
     $_ = $_.chop(string)
   end
   module_function :chop
 
   def chop!(string=$/)
-    ensure_last_read_string
+    Kernel.ensure_last_read_string
     $_.chop!(string)
   end
   module_function :chop!
@@ -801,31 +813,31 @@ module Kernel
   module_function :readlines
 
   def gsub(pattern, rep=nil, &block)
-    ensure_last_read_string
+    Kernel.ensure_last_read_string
     $_ = $_.gsub(pattern, rep, &block)
   end
   module_function :gsub
 
   def gsub!(pattern, rep=nil, &block)
-    ensure_last_read_string
+    Kernel.ensure_last_read_string
     $_.gsub!(pattern, rep, &block)
   end
   module_function :gsub!
 
   def sub(pattern, rep=nil, &block)
-    ensure_last_read_string
+    Kernel.ensure_last_read_string
     $_ = $_.sub(pattern, rep, &block)
   end
   module_function :sub
 
   def sub!(pattern, rep=nil, &block)
-    ensure_last_read_string
+    Kernel.ensure_last_read_string
     $_.sub!(pattern, rep, &block)
   end
   module_function :sub!
 
   def scan(pattern, &block)
-    ensure_last_read_string
+    Kernel.ensure_last_read_string
     $_.scan(pattern, &block)
   end
   module_function :scan
@@ -836,7 +848,7 @@ module Kernel
   module_function :select
 
   def split(*args)
-    ensure_last_read_string
+    Kernel.ensure_last_read_string
     $_.split(*args)
   end
   module_function :split
@@ -867,14 +879,14 @@ class SystemExit < Exception
   #--
   # *args is used to simulate optional prepended argument like MRI
 
-  def initialize(*args)
-    status = if args.first.kind_of? Fixnum then
-               args.shift
-             else
-               Process::EXIT_SUCCESS
-             end
-
-    super(*args)
+  def initialize(first=nil, *args)
+    if first.kind_of?(Fixnum)
+      status = first
+      super(*args)
+    else
+      status = Process::EXIT_SUCCESS
+      super
+    end
 
     @status = status
   end

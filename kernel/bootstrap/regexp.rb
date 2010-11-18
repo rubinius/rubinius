@@ -26,6 +26,11 @@ class Regexp
     raise PrimitiveFailure, "Regexp#match_start primitive failed"
   end
 
+  def search_from(str, offset) # equiv to MRI's rb_reg_search
+    Ruby.primitive :regexp_search_from
+    raise PrimitiveFailure, "Regexp#search_from primitive failed"
+  end
+
   def options
     Ruby.primitive :regexp_options
     raise PrimitiveFailure, "Regexp#options primitive failed"

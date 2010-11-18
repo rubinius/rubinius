@@ -45,6 +45,17 @@ describe "CApiObject" do
     o.initialized.should be_nil
   end
 
+  it "rb_obj_dup should duplicate an object" do
+    obj1 = ObjectTest.new
+    obj2 = @o.rb_obj_dup(obj1)
+
+    obj2.class.should == obj1.class
+
+    obj2.foo.should == obj1.foo
+
+    obj2.should_not equal(obj1)
+  end
+
   it "rb_obj_call_init should send #initialize" do
     o = @o.rb_obj_alloc(CApiObjectSpecs::Alloc)
     o.initialized.should be_nil
@@ -340,6 +351,23 @@ describe "CApiObject" do
 
     it "raises a TypeError if called with a String" do
       lambda { @o.rb_to_int("1") }.should raise_error(TypeError)
+    end
+  end
+
+  describe "rb_equal" do
+    it "returns true if the arguments are the same exact object" do
+      s = "hello"
+      @o.rb_equal(s, s).should be_true
+    end
+
+    it "calls == to check equality and coerces to true/false" do
+      m = mock("string")
+      m.should_receive(:==).and_return(8)
+      @o.rb_equal(m, "hello").should be_true
+
+      m2 = mock("string")
+      m2.should_receive(:==).and_return(nil)
+      @o.rb_equal(m2, "hello").should be_false
     end
   end
 end

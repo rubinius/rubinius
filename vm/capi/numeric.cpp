@@ -248,4 +248,31 @@ extern "C" {
   void rb_num_zerodiv(void) {
     rb_raise(rb_eZeroDivError, "divided by 0");
   }
+
+  int rb_cmpint(VALUE val, VALUE a, VALUE b) {
+    if(NIL_P(val)) rb_cmperr(a, b);
+    if(FIXNUM_P(val)) return FIX2INT(val);
+    if(TYPE(val) == T_BIGNUM) {
+      if(RBIGNUM_SIGN(val)) return 1;
+      return -1;
+    }
+
+    if(RTEST(rb_funcall(val, rb_intern(">"), 1, INT2FIX(0)))) return 1;
+    if(RTEST(rb_funcall(val, rb_intern("<"), 1, INT2FIX(0)))) return -1;
+    return 0;
+  }
+
+  void rb_cmperr(VALUE x, VALUE y) {
+    const char *classname;
+
+    if(SPECIAL_CONST_P(y)) {
+      y = rb_inspect(y);
+      classname = StringValuePtr(y);
+    } else {
+      classname = rb_obj_classname(y);
+    }
+
+    rb_raise(rb_eArgError, "comparison of %s with %s failed",
+        rb_obj_classname(x), classname);
+  }
 }

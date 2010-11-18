@@ -1,69 +1,112 @@
+# -*- encoding: ascii-8bit -*-
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
-describe "String#casecmp" do
-  it "is a case-insensitive version of String#<=>" do
-    "abcdef".casecmp("abcde").should == 1
-    "aBcDeF".casecmp("abcdef").should == 0
-    "abcdef".casecmp("abcdefg").should == -1
-    "abcdef".casecmp("ABCDEF").should == 0
+describe "String#casecmp independent of case" do
+  it "returns -1 when less than other" do
+    "a".casecmp("b").should == -1
+    "A".casecmp("b").should == -1
   end
-  
-  # Broken in MRI 1.8.4
-  it "doesn't consider non-ascii characters equal that aren't" do
-    # -- Latin-1 --
-    upper_a_tilde  = "\xC3"
-    upper_a_umlaut = "\xC4"
-    lower_a_tilde  = "\xE3"
-    lower_a_umlaut = "\xE4"
 
-    lower_a_tilde.casecmp(lower_a_umlaut).should_not == 0
-    lower_a_umlaut.casecmp(lower_a_tilde).should_not == 0
-    upper_a_tilde.casecmp(upper_a_umlaut).should_not == 0
-    upper_a_umlaut.casecmp(upper_a_tilde).should_not == 0
-    
-    # -- UTF-8 --
-    upper_a_tilde  = "\xC3\x83"
-    upper_a_umlaut = "\xC3\x84"
-    lower_a_tilde  = "\xC3\xA3"
-    lower_a_umlaut = "\xC3\xA4"
-    
-    lower_a_tilde.casecmp(lower_a_umlaut).should_not == 0
-    lower_a_umlaut.casecmp(lower_a_tilde).should_not == 0
-    upper_a_tilde.casecmp(upper_a_umlaut).should_not == 0
-    upper_a_umlaut.casecmp(upper_a_tilde).should_not == 0
+  it "returns 0 when equal to other" do
+    "a".casecmp("a").should == 0
+    "A".casecmp("a").should == 0
   end
-  
-  it "doesn't do case mapping for non-ascii characters" do
-    # -- Latin-1 --
-    upper_a_tilde  = "\xC3"
-    upper_a_umlaut = "\xC4"
-    lower_a_tilde  = "\xE3"
-    lower_a_umlaut = "\xE4"
-    
-    upper_a_tilde.casecmp(lower_a_tilde).should == -1
-    upper_a_umlaut.casecmp(lower_a_umlaut).should == -1
-    lower_a_tilde.casecmp(upper_a_tilde).should == 1
-    lower_a_umlaut.casecmp(upper_a_umlaut).should == 1
 
-    # -- UTF-8 --
-    upper_a_tilde  = "\xC3\x83"
-    upper_a_umlaut = "\xC3\x84"
-    lower_a_tilde  = "\xC3\xA3"
-    lower_a_umlaut = "\xC3\xA4"
-
-    upper_a_tilde.casecmp(lower_a_tilde).should == -1
-    upper_a_umlaut.casecmp(lower_a_umlaut).should == -1
-    lower_a_tilde.casecmp(upper_a_tilde).should == 1
-    lower_a_umlaut.casecmp(upper_a_umlaut).should == 1
+  it "returns 1 when greater than other" do
+    "b".casecmp("a").should == 1
+    "B".casecmp("a").should == 1
   end
-  
-  it "ignores subclass differences" do
-    str = "abcdef"
-    my_str = StringSpecs::MyString.new(str)
-    
-    str.casecmp(my_str).should == 0
-    my_str.casecmp(str).should == 0
-    my_str.casecmp(my_str).should == 0
+
+  describe "in UTF-8 mode" do
+    before :each do
+      @kcode = $KCODE
+      $KCODE = "utf-8"
+    end
+
+    after :each do
+      $KCODE = @kcode
+    end
+
+    describe "for non-ASCII characters" do
+      before :each do
+        @upper_a_tilde  = "\xc3\x83"
+        @lower_a_tilde  = "\xc3\xa3"
+        @upper_a_umlaut = "\xc3\x84"
+        @lower_a_umlaut = "\xc3\xa4"
+      end
+
+      it "returns -1 when numerically less than other" do
+        @upper_a_tilde.casecmp(@lower_a_tilde).should == -1
+        @upper_a_tilde.casecmp(@upper_a_umlaut).should == -1
+      end
+
+      it "returns 0 when numerically equal to other" do
+        @upper_a_tilde.casecmp(@upper_a_tilde).should == 0
+      end
+
+      it "returns 1 when numerically greater than other" do
+        @lower_a_umlaut.casecmp(@upper_a_umlaut).should == 1
+        @lower_a_umlaut.casecmp(@lower_a_tilde).should == 1
+      end
+    end
+
+    describe "for ASCII characters" do
+      it "returns -1 when less than other" do
+        "a".casecmp("b").should == -1
+        "A".casecmp("b").should == -1
+      end
+
+      it "returns 0 when equal to other" do
+        "a".casecmp("a").should == 0
+        "A".casecmp("a").should == 0
+      end
+
+      it "returns 1 when greater than other" do
+        "b".casecmp("a").should == 1
+        "B".casecmp("a").should == 1
+      end
+    end
+  end
+
+  describe "for non-ASCII characters" do
+    before :each do
+      @upper_a_tilde = "\xc3"
+      @lower_a_tilde = "\xe3"
+    end
+
+    # These could be encoded in Latin-1, but there's no way
+    # to express that in 1.8.
+    it "returns -1 when numerically less than other" do
+      @upper_a_tilde.casecmp(@lower_a_tilde).should == -1
+    end
+
+    it "returns 0 when equal to other" do
+      @upper_a_tilde.casecmp("\xc3").should == 0
+    end
+
+    it "returns 1 when numerically greater than other" do
+      @lower_a_tilde.casecmp(@upper_a_tilde).should == 1
+    end
+  end
+
+  describe "when comparing a subclass instance" do
+    it "returns -1 when less than other" do
+      b = StringSpecs::MyString.new "b"
+      "a".casecmp(b).should == -1
+      "A".casecmp(b).should == -1
+    end
+
+    it "returns 0 when equal to other" do
+      a = StringSpecs::MyString.new "a"
+      "a".casecmp(a).should == 0
+      "A".casecmp(a).should == 0
+    end
+
+    it "returns 1 when greater than other" do
+      a = StringSpecs::MyString.new "a"
+      "b".casecmp(a).should == 1
+      "B".casecmp(a).should == 1
+    end
   end
 end

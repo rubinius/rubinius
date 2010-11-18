@@ -40,6 +40,7 @@
 #include "builtin/weakref.hpp"
 #include "builtin/fiber.hpp"
 #include "builtin/alias.hpp"
+#include "builtin/randomizer.hpp"
 
 #include "configuration.hpp"
 #include "config.h"
@@ -260,6 +261,7 @@ namespace rubinius {
     WeakRef::init(this);
     Fiber::init(this);
     Alias::init(this);
+    Randomizer::init(this);
   }
 
   // @todo document all the sections of bootstrap_ontology

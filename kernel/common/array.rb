@@ -1316,6 +1316,10 @@ class Array
     result
   end
 
+  # Some code depends on Array having it's own #select method,
+  # not just using the Enumerable one. This alias achieves that.
+  alias_method :select, :find_all
+
   # Removes and returns the first element in the
   # Array or nil if empty. All other elements are
   # moved down one index.

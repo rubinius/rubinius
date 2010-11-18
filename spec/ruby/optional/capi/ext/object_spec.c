@@ -86,6 +86,12 @@ static VALUE so_rb_obj_alloc(VALUE self, VALUE klass) {
 }
 #endif
 
+#ifdef HAVE_RB_OBJ_DUP
+static VALUE so_rb_obj_dup(VALUE self, VALUE klass) {
+  return rb_obj_dup(klass);
+}
+#endif
+
 #ifdef HAVE_RB_OBJ_CALL_INIT
 static VALUE so_rb_obj_call_init(VALUE self, VALUE object,
                                  VALUE nargs, VALUE args) {
@@ -226,6 +232,12 @@ static VALUE object_spec_rb_to_int(VALUE self, VALUE obj) {
 }
 #endif
 
+#ifdef HAVE_RB_EQUAL
+static VALUE object_spec_rb_equal(VALUE self, VALUE a, VALUE b) {
+  return rb_equal(a, b);
+}
+#endif
+
 void Init_object_spec() {
   VALUE cls;
   cls = rb_define_class("CApiObjectSpecs", rb_cObject);
@@ -280,6 +292,10 @@ void Init_object_spec() {
 
 #ifdef HAVE_RB_OBJ_ALLOC
   rb_define_method(cls, "rb_obj_alloc", so_rb_obj_alloc, 1);
+#endif
+
+#ifdef HAVE_RB_OBJ_ALLOC
+  rb_define_method(cls, "rb_obj_dup", so_rb_obj_dup, 1);
 #endif
 
 #ifdef HAVE_RB_OBJ_CALL_INIT
@@ -348,6 +364,10 @@ void Init_object_spec() {
 
 #ifdef HAVE_RB_TO_INT
   rb_define_method(cls, "rb_to_int", object_spec_rb_to_int, 1);
+#endif
+
+#ifdef HAVE_RB_EQUAL
+  rb_define_method(cls, "rb_equal", object_spec_rb_equal, 2);
 #endif
 }
 

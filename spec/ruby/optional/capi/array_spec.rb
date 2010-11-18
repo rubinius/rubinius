@@ -56,6 +56,13 @@ describe "C-API Array function" do
     end
   end
 
+  describe "rb_ary_to_s" do
+    it "joins elements of an array with a string" do
+      @s.rb_ary_to_s([1,2,3]).should == "123"
+      @s.rb_ary_to_s([]).should == ""
+    end
+  end
+
   describe "rb_ary_reverse" do
     it "reverses the order of elements in the array" do
       a = [1,2,3]
@@ -303,6 +310,20 @@ describe "C-API Array function" do
   describe "rb_mem_clear" do
     it "sets elements of a C array to nil" do
       @s.rb_mem_clear(1).should == nil
+    end
+  end
+
+  describe "rb_protect_inspect" do
+    it "tracks an object recursively" do
+      @s.rb_protect_inspect("blah").should be_true
+    end
+  end
+
+  describe "rb_ary_freeze" do
+    it "freezes the object exactly like Object#freeze" do
+      ary = [1,2]
+      @s.rb_ary_freeze(ary)
+      ary.frozen?.should be_true
     end
   end
 end

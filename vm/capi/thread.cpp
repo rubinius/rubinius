@@ -12,6 +12,10 @@ extern "C" {
     rb_funcall2(rb_cThread, rb_intern("pass"), 0, NULL);
   }
 
+  void rb_thread_wait_for(struct timeval time) {
+    rb_thread_select(0, 0, 0, 0, &time);
+  }
+
   int rb_thread_select(int max, fd_set* read, fd_set* write, fd_set* except,
                        struct timeval *input_tv)
   {

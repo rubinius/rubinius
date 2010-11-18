@@ -292,6 +292,10 @@ class Struct
 
   alias_method :size, :length
 
+  def self.length
+    return self::STRUCT_ATTRS.size
+  end
+
   ##
   # call-seq:
   #   struct.members    => array

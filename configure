@@ -29,7 +29,8 @@ class Configure
     @sizeof_long = 0
 
     # Compiler / build settings
-    @compiler = ENV['CC'] || 'gcc'
+    @cc = ENV['CC'] || 'gcc'
+    @cxx = ENV['CXX'] || 'g++'
     @rake = ENV['RAKE'] || 'rake'
     @install = false
 
@@ -66,11 +67,14 @@ class Configure
 
     @program_name = "rbx"
 
+    # Library configuration
+    @rb_readline = false
+
     # Essential settings (modify these for creating releases)
     @libversion = "1.1"
-    @version = "#{@libversion}.0"
-    @release_date = "2010-09-23"
-    @config_version = 20
+    @version = "#{@libversion}.1"
+    @release_date = "2010-11-16"
+    @config_version = 23
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
@@ -108,8 +112,12 @@ class Configure
 
     o.doc "\n Compiler settings"
 
-    o.on "--cc", "COMPILER", "Compiler to use (eg gcc, clang)" do |cc|
-      @compiler = cc
+    o.on "--cc", "COMPILER", "Compiler to use for C code (eg gcc, clang)" do |cc|
+      @cc = cc
+    end
+
+    o.on "--cxx", "COMPILER", "Compiler to use for C++ code (eg g++, clang++)" do |cxx|
+      @cxx = cxx
     end
 
     o.doc "\n LLVM settings"
@@ -152,7 +160,7 @@ class Configure
       @install = true
       dir = File.expand_path dir
 
-      if !ENV['RELEASE'] and File.directory? dir and dir !~ /(rubinius|rbx)\/?$/
+      if !ENV['RELEASE'] and File.directory? dir and dir !~ /(rubinius|rbx).*\/?$/
         old = dir
         dir += "/rubinius/#{@libversion}"
         @log.write "The directory #{old} already exists, installing to #{dir}"
@@ -220,6 +228,8 @@ class Configure
 
     default_on = RUBY_PLATFORM !~ /openbsd/i
     feature "execinfo", default_on
+    feature "C-readline", true
+    feature "ruby-readline", false
 
     o.doc "\n Help!"
 
@@ -504,7 +514,7 @@ class Configure
     ENV[which] || ""
   end
 
-  def check_program(run=true)
+  def check_program(run=true, link_libs=[])
     begin
       basename = "rbx-configure-test"
       source   = basename + ".cpp"
@@ -512,7 +522,15 @@ class Configure
         yield f
       end
 
-      `#{@compiler} #{env('CFLAGS')} -lstdc++ -lm -o #{basename} #{source} >>#{@log.path} 2>&1`
+      if link_libs.empty?
+        libs = ""
+      else
+        libs = link_libs.map { |l| "-l#{l}" }.join(" ")
+      end
+
+      cmd = "#{@cxx} #{env('CFLAGS')} -lstdc++ -lm #{libs} -o #{basename} #{source} >>#{@log.path} 2>&1"
+      @log.log cmd
+      system cmd
       return $?.exitstatus unless run
 
       unless $?.exitstatus == 0
@@ -598,6 +616,31 @@ int main() {
     puts @x86_32 ? "yes" : "no"
   end
 
+  def detect_curses
+    @log.print "Checking curses library: "
+
+    src = <<-EOP
+#include <curses.h>
+#include <term.h>
+
+int main() { return tgetnum(""); }
+    EOP
+
+    ["curses", "ncurses", "termcap"].each do |lib|
+      status = check_program(false, [lib]) do |f|
+        f.puts src
+        @log.log src
+      end
+
+      if status == 0
+        @curses = lib
+        break
+      end
+    end
+
+    @log.write @curses ? @curses : "not found"
+  end
+
   def has_function(name, includes=[])
     @log.print "Checking for function '#{name}': "
     tf = Tempfile.new("rbx-test")
@@ -613,7 +656,7 @@ int main() {
 
     tf.close
 
-    `#{@compiler} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1`
+    `#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1`
     status = ($?.exitstatus == 0)
 
     tf.unlink
@@ -630,6 +673,15 @@ int main() {
   def detect_features
     if @features["execinfo"] and has_function("backtrace", ["execinfo.h"])
       @defines << "HAS_EXECINFO"
+    end
+
+    if @features["C-readline"] and
+       has_function("readline", ["stdio.h", "stdlib.h", "readline/readline.h"])
+      @defines << "HAS_READLINE"
+    end
+
+    if @features["ruby-readline"] or !@defines.include?("HAS_READLINE")
+      @rb_readline = true
     end
   end
 
@@ -648,6 +700,7 @@ int main() {
     detect_tr1_hash
     detect_x86_32bit
     detect_features
+    detect_curses
   end
 
   def which_ruby
@@ -699,8 +752,10 @@ module Rubinius
     :build_rake     => "#{@rake}",
     :llvm           => :#{@llvm},
     :llvm_configure => "#{@llvm_configure}",
-    :compiler       => "#{@compiler}",
+    :cc             => "#{@cc}",
+    :cxx            => "#{@cxx}",
     :defines        => #{@defines.inspect},
+    :curses         => #{@curses.inspect},
     :host           => "#{@host}",
     :cpu            => "#{@cpu}",
     :vendor         => "#{@vendor}",
@@ -761,6 +816,15 @@ end
 
       if @tr1_hash
         f.puts "#define RBX_HAVE_TR1_HASH 1"
+      end
+    end
+
+    # Write a require file depending on which Readline library we use.
+    File.open "lib/readline.rb", "w" do |f|
+      if @rb_readline
+        f.puts "require 'rb-readline/readline'"
+      else
+        f.puts "require 'c-readline'"
       end
     end
   end

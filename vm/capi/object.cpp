@@ -201,6 +201,13 @@ extern "C" {
     return rb_funcall(class_handle, rb_intern("allocate"), 0);
   }
 
+  VALUE rb_obj_dup(VALUE obj) {
+    if(rb_special_const_p(obj))
+      rb_raise(rb_eTypeError, "can't dup %s", rb_obj_classname(obj));
+
+    return rb_funcall(obj, rb_intern("dup"), 0);
+  }
+
   VALUE rb_obj_as_string(VALUE obj_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
@@ -351,5 +358,12 @@ extern "C" {
       hash = env->get_object(rb_to_int(env->get_handle(hash)));
       goto retry;
     }
+  }
+
+  VALUE rb_equal(VALUE obj1, VALUE obj2) {
+    if(obj1 == obj2) return Qtrue;
+    VALUE result = rb_funcall(obj1, rb_intern("=="), 1, obj2);
+    if(RTEST(result)) return Qtrue;
+    return Qfalse;
   }
 }

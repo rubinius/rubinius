@@ -1,10 +1,15 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/coerce.rb', __FILE__)
 
 describe "Float#/" do
   it "returns self divided by other" do
     (5.75 / -2).should be_close(-2.875,TOLERANCE)
     (451.0 / 9.3).should be_close(48.494623655914,TOLERANCE)
     (91.1 / -0xffffffff).should be_close(-2.12108716418061e-08, TOLERANCE)
+  end
+  
+  it "properly coerces objects" do
+    (5.0 / FloatSpecs::CanCoerce.new(5)).should be_close(0, TOLERANCE)
   end
   
   it "properly handles BigDecimal argument" do

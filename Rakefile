@@ -6,6 +6,12 @@ if ENV["RUBYLIB"]
   exit 1
 end
 
+# Wipe out CDPATH, it interferes with building in some cases,
+# see http://github.com/evanphx/rubinius/issues#issue/555
+if ENV["CDPATH"]
+  ENV.delete("CDPATH")
+end
+
 $trace ||= false
 $VERBOSE = true
 $verbose = Rake.application.options.trace || ARGV.delete("-v")
@@ -27,7 +33,7 @@ end
 require config_rb
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 
-unless BUILD_CONFIG[:config_version] == 20
+unless BUILD_CONFIG[:config_version] == 23
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
@@ -47,6 +53,11 @@ unless BUILD_CONFIG[:build_ruby] == build_ruby
   STDERR.puts "Please run ./configure again"
   exit 1
 end
+
+# Set the build compiler to the configured compiler unless
+# the compiler is set via CC environment variable.
+ENV['CC'] = BUILD_CONFIG[:cc] unless ENV['CC']
+ENV['CXX'] = BUILD_CONFIG[:cxx] unless ENV['CXX']
 
 $dlext = RbConfig::CONFIG["DLEXT"]
 

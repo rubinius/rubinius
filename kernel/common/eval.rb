@@ -73,19 +73,20 @@ module Kernel
 =end
 
       filename ||= binding.static_scope.active_path
+      passed_binding = true
     else
       binding = Binding.setup(Rubinius::VariableScope.of_sender,
                               Rubinius::CompiledMethod.of_sender,
                               Rubinius::StaticScope.of_sender)
 
       filename ||= "(eval)"
+      passed_binding = false
     end
 
     cm = Rubinius::Compiler.compile_eval string, binding.variables, filename, lineno
+
     cm.scope = binding.static_scope.dup
     cm.name = :__eval__
-
-    yield cm if block_given?
 
     # This has to be setup so __FILE__ works in eval.
     script = Rubinius::CompiledMethod::Script.new(cm, filename, true)
@@ -93,9 +94,6 @@ module Kernel
     script.eval_source = string
 
     cm.scope.script = script
-
-    # Internalize it now, since we're going to springboard to it as a block.
-    cm.compile
 
     be = Rubinius::BlockEnvironment.new
     be.under_context binding.variables, cm
@@ -110,7 +108,14 @@ module Kernel
     end
 
     be.from_eval!
-    be.call
+    
+    yield cm, be if block_given?
+
+    if passed_binding
+      be.call
+    else
+      be.call_on_instance(self)
+    end
   end
   module_function :eval
   private :eval
@@ -177,7 +182,6 @@ module Kernel
 
       cm.scope = static_scope
       cm.name = :__instance_eval__
-      cm.compile
 
       # This has to be setup so __FILE__ works in eval.
       script = Rubinius::CompiledMethod::Script.new(cm, filename, true)
@@ -258,6 +262,7 @@ class Module
     method = Rubinius::CompiledMethod.of_sender
 
     string = StringValue(string)
+    filename = StringValue(filename)
 
     cm = Rubinius::Compiler.compile_eval string, variables, filename, line
 
@@ -270,7 +275,6 @@ class Module
     ss.script = script
 
     cm.scope = ss
-    cm.compile
 
     # The gist of this code is that we need the receiver's static scope
     # but the caller's binding to implement the proper constant behavior

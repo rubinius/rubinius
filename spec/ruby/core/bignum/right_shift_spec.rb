@@ -13,6 +13,30 @@ describe "Bignum#>> with n >> m" do
     (-@bignum >> 2).should == -36893488147419103232
   end
 
+  it "respects twos complement signed shifting" do
+    # This explicit left hand value is important because it is the
+    # exact bit pattern that matters, so it's important it's right
+    # here to show the significance.
+    #
+
+    (-42949672980000000000000 >> 14).should == -2621440001220703125
+    (-42949672980000000000001 >> 14).should == -2621440001220703126
+    # Note the off by one -------------------- ^^^^^^^^^^^^^^^^^^^^
+    # This is because even though we discard the lowest bit, in twos
+    # complement it would influence the bits to the left of it.
+
+    (-42949672980000000000000 >> 15).should == -1310720000610351563
+    (-42949672980000000000001 >> 15).should == -1310720000610351563
+  end
+
+  it "respects twos complement signed shifting for very large values" do
+    giant = 42949672980000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    neg = -giant
+
+    (giant >> 84).should == 2220446050284288846538547929770901490087453566957265138626098632812
+    (neg >> 84).should == -2220446050284288846538547929770901490087453566957265138626098632813
+  end
+
   it "returns n shifted left m bits when  n > 0, m < 0" do
     (@bignum >> -2).should == 590295810358705651712
   end

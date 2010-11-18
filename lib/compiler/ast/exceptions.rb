@@ -211,6 +211,10 @@ module Rubinius
             g.break = g.new_label
           end
 
+          # Setup a lazy cleanup area for next'ing out of the handler
+          current_next = g.next
+          g.next = g.new_label
+
           # Use a lazy label to patch up prematuraly leaving a begin
           # body via retry.
           if outer_retry
@@ -240,6 +244,23 @@ module Rubinius
 
             g.break = current_break
           end
+
+          if g.next.used?
+            g.next.set!
+            g.pop_unwind
+
+            # Reset the outer exception
+            g.push_stack_local outer_exc_state
+            g.restore_exception_state
+
+            if current_next
+              g.goto current_next
+            else
+              g.ret
+            end
+          end
+
+          g.next = current_next
 
           if current_redo
             if g.redo.used?
@@ -415,6 +436,9 @@ module Rubinius
         current_break = g.break
         g.break = g.new_label
 
+        current_next = g.next
+        g.next = g.new_label
+
         g.state.push_rescue(outer_exc_state)
         @body.bytecode(g)
         g.state.pop_rescue
@@ -438,6 +462,25 @@ module Rubinius
         end
 
         g.break = current_break
+
+        if g.next.used?
+          g.next.set!
+
+          g.clear_exception
+
+          # Reset the outer exception
+          g.push_stack_local outer_exc_state
+          g.restore_exception_state
+
+          if current_next
+            g.goto current_next
+          else
+            g.ret
+          end
+        end
+
+        g.next = current_next
+
         if @next
           if_false.set!
           @next.bytecode(g, reraise, done, outer_exc_state)

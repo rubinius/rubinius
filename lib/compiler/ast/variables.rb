@@ -314,6 +314,10 @@ module Rubinius
         g.cast_array
         @value.bytecode(g)
       end
+
+      def to_sexp
+        [:splat_assign, @value.to_sexp]
+      end
     end
 
     class SplatArray < SplatAssignment
@@ -610,7 +614,11 @@ module Rubinius
           end
         end
 
-        @splat.bytecode(g) if @splat
+        if @splat
+          g.state.push_masgn
+          @splat.bytecode(g)
+          g.state.pop_masgn
+        end
 
         if @right
           g.pop if !@fixed or @splat

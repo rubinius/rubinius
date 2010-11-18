@@ -33,7 +33,7 @@ extern "C" {
   ID rb_frame_last_func() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return reinterpret_cast<ID>(env->current_call_frame()->name());
+    return env->get_handle(env->current_call_frame()->name());
   }
 
   static VALUE const_missing(VALUE klass, ID id) {

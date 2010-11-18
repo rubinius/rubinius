@@ -16,4 +16,16 @@ describe "Thread.new" do
     t.join
     arr.should == [a,b,c]
   end
+
+  it "raises an exception when not given a block" do
+    lambda { Thread.new }.should raise_error(ThreadError)
+  end
+
+  it "creates a subclass of thread calls super with a block in initialize" do
+    arr = []
+    t = ThreadSpecs::SubThread.new(arr)
+    t.join
+    arr.should == [1]
+  end
+
 end

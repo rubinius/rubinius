@@ -114,6 +114,26 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_str_new4" do
+    it "returns the original string if it is already frozen" do
+      str1 = "hi"
+      str1.freeze
+      str2 = @s.rb_str_new4 str1
+      str1.should == str2
+      str1.should equal(str2)
+      str1.frozen?.should == true
+      str2.frozen?.should == true
+    end
+
+    it "returns a frozen copy of the string" do
+      str1 = "hi"
+      str2 = @s.rb_str_new4 str1
+      str1.should == str2 
+      str1.should_not equal(str2)
+      str2.frozen?.should == true
+    end
+  end
+
   describe "rb_str_dup" do
     it "returns a copy of the string" do
       str1 = "hi"

@@ -35,11 +35,13 @@ namespace melbourne {
   }
 
   var_table var_table_pop(var_table cur) {
-    var_table nw;
+    var_table nw = NULL;
 
-    delete cur->quarks;
-    nw = cur->next;
-    free(cur);
+    if(cur) {
+      delete cur->quarks;
+      nw = cur->next;
+      free(cur);
+    }
     return nw;
   }
 

@@ -31,6 +31,10 @@ class Debugger
       @location.ip
     end
 
+    def variables
+      @location.variables
+    end
+
     def local_variables
       method.local_names
     end

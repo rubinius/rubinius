@@ -148,6 +148,12 @@ VALUE string_spec_rb_str_new3(VALUE self, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RB_STR_NEW4
+VALUE string_spec_rb_str_new4(VALUE self, VALUE str) {
+  return rb_str_new4(str);
+}
+#endif
+
 #ifdef HAVE_RB_STR_PLUS
 VALUE string_spec_rb_str_plus(VALUE self, VALUE str1, VALUE str2) {
   return rb_str_plus(str1, str2);
@@ -446,6 +452,10 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_NEW3
   rb_define_method(cls, "rb_str_new3", string_spec_rb_str_new3, 1);
+#endif
+
+#ifdef HAVE_RB_STR_NEW4
+  rb_define_method(cls, "rb_str_new4", string_spec_rb_str_new4, 1);
 #endif
 
 #ifdef HAVE_RB_STR_PLUS

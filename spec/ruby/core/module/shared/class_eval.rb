@@ -31,6 +31,16 @@ describe :module_class_eval, :shared => true do
     ModuleSpecs.send(@method, "[__FILE__, __LINE__]", "test", 102).should == ["test", 102]
   end
 
+  it "converts a non-string filename to a string using to_str" do
+    (file = mock(__FILE__)).should_receive(:to_str).and_return(__FILE__)
+    ModuleSpecs.send(@method, "1+1", file)
+  end
+
+  it "raises a TypeError when the given filename can't be converted to string using to_str" do
+    (file = mock('123')).should_receive(:to_str).and_return(123)
+    lambda { ModuleSpecs.send(@method, "1+1", file) }.should raise_error(TypeError)
+  end
+
   it "converts non string eval-string to string using to_str" do
     (o = mock('1 + 1')).should_receive(:to_str).and_return("1 + 1")
     ModuleSpecs.send(@method, o).should == 2

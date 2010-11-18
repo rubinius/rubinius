@@ -167,8 +167,6 @@ namespace rubinius {
   };
 
   class NormalMethodInlinePolicy : public InlinePolicy {
-    size_t max_size_;
-
   public:
     const static bool is_normal_p(VMMethod* vmm) {
       if(vmm->total < 300) return true;
@@ -182,8 +180,6 @@ namespace rubinius {
   };
 
   class LargeMethodInlinePolicy : public InlinePolicy {
-    size_t max_size_;
-
   public:
     const static bool is_large_p(VMMethod* vmm) {
       if(vmm->total < 2000) return true;
@@ -195,6 +191,13 @@ namespace rubinius {
     {}
   };
 
+  class NoChangeInlinePolicy : public InlinePolicy {
+  public:
+    NoChangeInlinePolicy(VMMethod* vmm)
+      : InlinePolicy(vmm, vmm->total)
+    {}
+  };
+
   inline InlinePolicy* InlinePolicy::create_policy(VMMethod* vmm) {
     if(SmallMethodInlinePolicy::is_small_p(vmm)) {
       return new SmallMethodInlinePolicy(vmm);
@@ -202,6 +205,8 @@ namespace rubinius {
       return new NormalMethodInlinePolicy(vmm);
     } else if(LargeMethodInlinePolicy::is_large_p(vmm)) {
       return new LargeMethodInlinePolicy(vmm);
+    } else {
+      return new NoChangeInlinePolicy(vmm);
     }
 
     return NULL;

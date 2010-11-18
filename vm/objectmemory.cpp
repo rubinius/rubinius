@@ -596,7 +596,7 @@ step1:
     // but better than not seeing the time at all.
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
-      profiler::MethodEntry method(state, profiler::kMatureGC);
+      profiler::MethodEntry method(state, profiler::kFinalizers);
       run_finalizers(state, call_frame);
     } else {
       run_finalizers(state, call_frame);

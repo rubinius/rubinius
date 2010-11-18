@@ -130,4 +130,36 @@ describe "CApiNumericSpecs" do
       lambda { @s.rb_num_zerodiv() }.should raise_error(ZeroDivisionError, 'divided by 0')
     end
   end
+
+  describe "rb_cmpint" do
+    it "returns a Fixnum if passed one" do
+      @s.rb_cmpint(1, 2).should == 1
+    end
+
+    it "uses > to check if the value is greater than 1" do
+      m = mock("number")
+      m.should_receive(:>).and_return(true)
+      @s.rb_cmpint(m, 4).should == 1
+    end
+
+    it "uses < to check if the value is less than 1" do
+      m = mock("number")
+      m.should_receive(:>).and_return(false)
+      m.should_receive(:<).and_return(true)
+      @s.rb_cmpint(m, 4).should == -1
+    end
+
+    it "returns 0 if < and > are false" do
+      m = mock("number")
+      m.should_receive(:>).and_return(false)
+      m.should_receive(:<).and_return(false)
+      @s.rb_cmpint(m, 4).should == 0
+    end
+
+    it "raises an ArgumentError when passed nil" do
+      lambda {
+        @s.rb_cmpint(nil, 4)
+      }.should raise_error(ArgumentError)
+    end
+  end
 end

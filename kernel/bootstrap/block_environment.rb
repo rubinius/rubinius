@@ -24,6 +24,22 @@ module Rubinius
       def arity
         @block_env.method.arity
       end
+
+      def local_names
+        @block_env.method.local_names
+      end
+
+      def required_args
+        @block_env.method.required_args
+      end
+
+      def total_args
+        @block_env.method.total_args
+      end
+
+      def splat
+        @block_env.method.splat
+      end
     end
   end
 end

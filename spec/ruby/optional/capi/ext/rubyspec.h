@@ -13,6 +13,7 @@
 #define HAVE_RB_ARY_ENTRY                  1
 #define HAVE_RB_ARY_INCLUDES               1
 #define HAVE_RB_ARY_JOIN                   1
+#define HAVE_RB_ARY_TO_S                   1
 #define HAVE_RB_ARY_NEW                    1
 #define HAVE_RB_ARY_NEW2                   1
 #define HAVE_RB_ARY_POP                    1
@@ -22,6 +23,9 @@
 #define HAVE_RB_ARY_STORE                  1
 #define HAVE_RB_ARY_UNSHIFT                1
 #define HAVE_RB_ASSOC_NEW                  1
+#define HAVE_RB_PROTECT_INSPECT            1
+#define HAVE_RB_INSPECTING_P               1
+#define HAVE_RB_ARY_FREEZE                 1
 
 #define HAVE_RB_EACH                       1
 #define HAVE_RB_ITERATE                    1
@@ -161,6 +165,8 @@
 #define HAVE_RB_WARN                       1
 #define HAVE_RB_YIELD                      1
 #define HAVE_RB_YIELD_VALUES               1
+#define HAVE_RB_EXEC_RECURSIVE             1
+#define HAVE_RB_SET_END_PROC               1
 
 /* GC */
 #define HAVE_RB_GC_REGISTER_ADDRESS        1
@@ -198,6 +204,7 @@
 #define HAVE_RB_NUM2LONG                   1
 #define HAVE_RB_NUM2ULONG                  1
 #define HAVE_RB_NUM_ZERODIV                1
+#define HAVE_RB_CMPINT                     1
 
 /* Object */
 #define HAVE_OBJ_TAINT                     1
@@ -213,6 +220,7 @@
 #define HAVE_RB_EXTEND_OBJECT              1
 #define HAVE_RB_INSPECT                    1
 #define HAVE_RB_OBJ_ALLOC                  1
+#define HAVE_RB_OBJ_DUP                    1
 #define HAVE_RB_OBJ_CALL_INIT              1
 #define HAVE_RB_OBJ_CLASSNAME              1
 #define HAVE_RB_OBJ_FREEZE                 1
@@ -228,6 +236,7 @@
 #define HAVE_RB_TO_INT                     1
 #define HAVE_RTEST                         1
 #define HAVE_TYPE                          1
+#define HAVE_RB_EQUAL                      1
 
 /* Proc */
 #define HAVE_RB_PROC_NEW                   1
@@ -263,6 +272,7 @@
 #define HAVE_RB_STR_NEW                    1
 #define HAVE_RB_STR_NEW2                   1
 #define HAVE_RB_STR_NEW3                   1
+#define HAVE_RB_STR_NEW4                   1
 #define HAVE_RB_STR_PLUS                   1
 #define HAVE_RB_STR_PTR                    1
 #define HAVE_RB_STR_PTR_READONLY           1
@@ -282,6 +292,7 @@
 #define HAVE_RB_STRUCT_AREF                1
 #define HAVE_RB_STRUCT_ASET                1
 #define HAVE_RB_STRUCT_DEFINE              1
+#define HAVE_RB_STRUCT_NEW                 1
 
 /* Symbol */
 #define HAVE_RB_IS_CLASS_ID                1
@@ -296,6 +307,7 @@
 #define HAVE_RB_THREAD_LOCAL_ASET          1
 #define HAVE_RB_THREAD_SELECT              1
 #define HAVE_RB_THREAD_WAKEUP              1
+#define HAVE_RB_THREAD_WAIT_FOR            1
 
 /* Time */
 #define HAVE_RB_TIME_NEW                   1

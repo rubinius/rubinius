@@ -15,7 +15,7 @@ describe "Rubinius::Loader.main" do
     loader.should_receive(:main).and_raise(LoaderSpecs::UncaughtException.new)
     Rubinius::Loader.stub!(:new).and_return(loader)
 
-    Rubinius::Loader.main.should == 128
+    Rubinius::Loader.main
 
     $stdout.should == <<-EOM
 

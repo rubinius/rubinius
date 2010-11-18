@@ -2,9 +2,12 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/object.hpp"
 #include "builtin/proc.hpp"
+#include "builtin/thread.hpp"
+#include "builtin/lookuptable.hpp"
 
 #include "arguments.hpp"
 #include "dispatch.hpp"
+#include "exception_point.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/include/ruby.h"
@@ -165,6 +168,10 @@ extern "C" {
     return rb_funcall(self_handle, rb_intern("join"), 1, separator_handle);
   }
 
+  VALUE rb_ary_to_s(VALUE self_handle) {
+    return rb_funcall(self_handle, rb_intern("to_s"), 0);
+  }
+
   /** By default, Arrays have space for 16 elements. */
   static const unsigned long cCApiArrayDefaultCapacity = 16;
 
@@ -304,13 +311,13 @@ extern "C" {
     return rb_funcall2(self_handle, rb_intern("[]"), argc, argv);
   }
 
-  // Really just used as a placeholder/sentinal value to half implement
-  // rb_iterate
   VALUE rb_each(VALUE ary) {
     return rb_funcall(ary, rb_intern("each"), 0);
   }
 
-  VALUE rb_iterate(VALUE(*ifunc)(VALUE), VALUE ary, VALUE(*cb)(ANYARGS), VALUE cb_data) {
+  VALUE rb_iterate(VALUE(*ifunc)(VALUE), VALUE ary, VALUE(*cb)(ANYARGS),
+                   VALUE cb_data)
+  {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     // Minor optimization.
@@ -322,16 +329,7 @@ extern "C" {
       return ary;
     }
 
-    NativeMethod* nm = NativeMethod::create(env->state(),
-                        (String*)Qnil, env->state()->shared.globals.rubinius.get(),
-                        env->state()->symbol("call"), (void*)cb,
-                        Fixnum::from(ITERATE_BLOCK));
-
-    nm->set_ivar(env->state(), env->state()->symbol("cb_data"),
-                 env->get_object(cb_data));
-
-    Proc* prc = Proc::create(env->state(), env->state()->shared.globals.proc.get());
-    prc->bound_method(env->state(), nm);
+    Proc* prc = capi::wrap_c_function((void*)cb, cb_data, ITERATE_BLOCK);
 
     env->set_outgoing_block(env->get_handle(prc));
 
@@ -344,4 +342,73 @@ extern "C" {
     }
   }
 
+  VALUE rb_protect_inspect(VALUE (*func)(VALUE a, VALUE b), VALUE h_obj, VALUE h_arg) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    STATE = env->state();
+
+    Thread* thr = Thread::current(state);
+    LookupTable* rectbl = thr->recursive_objects();
+
+    Object* obj = env->get_object(h_obj);
+
+    Object* id = obj->id(state);
+
+    bool found = false;
+    rectbl->fetch(state, id, &found);
+
+    if(found) {
+      return (*func)(h_obj, h_arg);
+    }
+
+    rectbl->store(state, id, RBX_Qtrue);
+
+    VALUE ret = Qnil;
+
+    ExceptionPoint ep(env);
+    PLACE_EXCEPTION_POINT(ep);
+
+    bool unwinding = false;
+
+    if(unlikely(ep.jumped_to())) {
+      unwinding = true;
+    } else {
+      ret = (*func)(h_obj, h_arg);
+    }
+
+    ep.pop(env);
+
+    // Get the thread and table again, the GC might have fun.
+    thr = Thread::current(state);
+    rectbl = thr->recursive_objects();
+    obj = env->get_object(h_obj);
+    id = obj->id(state);
+
+    rectbl->remove(state, id);
+
+    if(unwinding) env->current_ep()->return_to(env);
+
+    return ret;
+  }
+
+  VALUE rb_inspecting_p(VALUE h_obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    STATE = env->state();
+
+    Thread* thr = Thread::current(state);
+    LookupTable* rectbl = thr->recursive_objects();
+
+    Object* obj = env->get_object(h_obj);
+
+    Object* id = obj->id(state);
+
+    bool found = false;
+    rectbl->fetch(state, id, &found);
+
+    if(found) return Qtrue;
+    return Qfalse;
+  }
+
+  VALUE rb_ary_freeze(VALUE ary) {
+    return rb_obj_freeze(ary);
+  }
 }

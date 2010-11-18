@@ -721,6 +721,10 @@ VALUE rb_uint2big(unsigned long number);
   VALUE UINT2NUM(unsigned long n);
   VALUE ULONG2NUM(unsigned long n);
 
+  int   rb_cmpint(VALUE val, VALUE a, VALUE b);
+  void  rb_cmperr(VALUE x, VALUE y);
+  VALUE rb_equal(VALUE a, VALUE b);
+
 #define   Data_Make_Struct(klass, type, mark, free, sval) (\
             sval = ALLOC(type), \
             memset(sval, 0, sizeof(type)), \
@@ -769,6 +773,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Array#join. Returns String with all elements to_s, with optional separator String. */
   VALUE   rb_ary_join(VALUE self_handle, VALUE separator_handle);
 
+  /** Array#to_s. Returns String with all elements to_s, without a separator string */
+  VALUE   rb_ary_to_s(VALUE self_handle);
+
   /** New, empty Array. */
   VALUE   rb_ary_new();
 
@@ -806,6 +813,9 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_ary_aref(int argc, VALUE *argv, VALUE object_handle);
 
   VALUE   rb_ary_each(VALUE ary);
+
+  /** Same as rb_obj_freeze */
+  VALUE   rb_ary_freeze(VALUE ary);
 
   void    rb_mem_clear(VALUE* ary, int len);
 
@@ -1099,6 +1109,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Return name of the function being called */
   ID rb_frame_last_func();
 
+  VALUE rb_exec_recursive(VALUE (*func)(VALUE, VALUE, int),
+                          VALUE obj, VALUE arg);
+
   /** @todo define rb_funcall3, which is the same as rb_funcall2 but
    * will not call private methods.
    */
@@ -1156,6 +1169,7 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_io_check_writable(rb_io_t* io);
 
   void    rb_thread_wait_fd(int fd);
+  void    rb_thread_wait_for(struct timeval time);
 
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);
@@ -1177,7 +1191,9 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_gc_register_address(VALUE* address);
 
   /** Unmark variable as global */
-  void rb_gc_unregister_address(VALUE* address);
+  void    rb_gc_unregister_address(VALUE* address);
+
+  void    rb_gc_force_recycle(VALUE blah);
 
   /** Called when there is no memory available */
   void    rb_memerror();
@@ -1240,6 +1256,10 @@ VALUE rb_uint2big(unsigned long number);
   /** Allocate uninitialised instance of given class. */
   VALUE   rb_obj_alloc(VALUE klass);
 
+
+  /** Clone an instance of an object. */
+  VALUE   rb_obj_dup(VALUE obj);
+
   /** Call #to_s on object. */
   VALUE   rb_obj_as_string(VALUE obj_handle);
 
@@ -1258,6 +1278,9 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Call #inspect on an object. */
   VALUE rb_inspect(VALUE obj_handle);
+
+  VALUE rb_protect_inspect(VALUE (*func)(VALUE a, VALUE b), VALUE h_obj, VALUE h_arg);
+  VALUE rb_inspecting_p(VALUE obj);
 
   /**
    *  Raise error of given class using formatted message.
@@ -1397,6 +1420,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns a Struct with the specified fields. */
   VALUE rb_struct_define(const char *name, ...);
 
+  /** Creat an instance of a struct */
+  VALUE rb_struct_new(VALUE klass, ...);
+
   /** Returns the value of the key. */
   VALUE rb_struct_aref(VALUE struct_handle, VALUE key);
 
@@ -1494,6 +1520,9 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Create a String from an existing string. */
   VALUE   rb_str_new3(VALUE string);
+
+  /** Create a frozen String from an existing string. */
+  VALUE   rb_str_new4(VALUE string);
 
   void    rb_str_modify(VALUE str);
 
@@ -1659,6 +1688,13 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE   rb_range_beg_len(VALUE range, long* begp, long* lenp, long len, int err);
 
+  /** Callback to run when shutting down */
+  void rb_set_end_proc(void* cb, VALUE cb_data);
+
+#define RE_OPTION_IGNORECASE 1
+#define RE_OPTION_EXTENDED   2
+#define RE_OPTION_MULTILINE  4
+
   /** Creates a Regexp object */
   VALUE   rb_reg_new(const char *source, long len, int options);
 
@@ -1669,7 +1705,6 @@ VALUE rb_uint2big(unsigned long number);
 
   char *ruby_strdup(const char *str);
 
-  // include an extconf.h if one is provided
   // include an extconf.h if one is provided
 #ifdef RUBY_EXTCONF_H
 #include RUBY_EXTCONF_H

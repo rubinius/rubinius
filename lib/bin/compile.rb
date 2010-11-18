@@ -87,10 +87,6 @@ class CompilerScript
       @print_bytecode = true
     end
 
-    @options.on "-D", "--print-assembly", "Print machine code for compiled methods" do
-      @print_assembly = true
-    end
-
     @options.on "-N", "--method", "NAME", "Only decode methods named NAME" do |n|
       @method_names << n
     end
@@ -98,7 +94,6 @@ class CompilerScript
     @options.on "-P", "--print", "Enable all stage printers" do
       @print_ast = true
       @print_bytecode = true
-      @print_assembly = true
     end
 
 
@@ -133,11 +128,10 @@ class CompilerScript
   def set_printers(compiler)
     compiler.parser.print @print_ast if @print_ast
 
-    if @print_bytecode or @print_assembly
+    if @print_bytecode
       packager = compiler.packager
       printer = packager.print
       printer.bytecode = @print_bytecode
-      printer.assembly = @print_assembly
       printer.method_names = @method_names
     end
   end

@@ -287,7 +287,7 @@ class StringIO
         end
 
         write(line)
-        write(DEFAULT_RECORD_SEPARATOR) if !line.empty? && line[-1] != ?\n
+        write(DEFAULT_RECORD_SEPARATOR) unless line[-1] == ?\n
       end
     end
 

@@ -90,7 +90,7 @@
   action X {
     if(rest) count = 0;
 
-    if(count > str.size()) {
+    if(count > (native_int)str.size()) {
       std::ostringstream msg;
       msg << "X" << count << " exceeds length of string";
       Exception::argument_error(state, msg.str().c_str());
@@ -108,7 +108,7 @@
   action at {
     if(rest) count = 1;
 
-    if(count > str.size()) {
+    if(count > (native_int)str.size()) {
       str.append(count - str.size(), '\0');
     } else {
       str.resize(count);
@@ -137,7 +137,7 @@
 
   action string_append {
     if(RTEST(string_value->tainted_p(state))) tainted = true;
-    size_t size = string_value->size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -167,28 +167,28 @@
   # Encodings
 
   action B {
-    size_t extra = pack::bit_extra(string_value, rest, count);
+    native_int extra = pack::bit_extra(string_value, rest, count);
 
     pack::bit_high(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
   }
 
   action b {
-    size_t extra = pack::bit_extra(string_value, rest, count);
+    native_int extra = pack::bit_extra(string_value, rest, count);
 
     pack::bit_low(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
   }
 
   action H {
-    size_t extra = pack::hex_extra(string_value, rest, count);
+    native_int extra = pack::hex_extra(string_value, rest, count);
 
     pack::hex_high(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');
   }
 
   action h {
-    size_t extra = pack::hex_extra(string_value, rest, count);
+    native_int extra = pack::hex_extra(string_value, rest, count);
 
     pack::hex_low(string_value, str, count);
     if(extra > 0) str.append(extra, '\0');

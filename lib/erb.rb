@@ -712,8 +712,8 @@ class ERB
   def result(b=TOPLEVEL_BINDING)
     if @safe_level
       proc { 
-	$SAFE = @safe_level
-	eval(@src, b, (@filename || '(erb)'), 1)
+        $SAFE = @safe_level
+        eval(@src, b, (@filename || '(erb)'), 1)
       }.call
     else
       eval(@src, b, (@filename || '(erb)'), 1)
