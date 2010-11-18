@@ -33,7 +33,7 @@ end
 require config_rb
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 
-unless BUILD_CONFIG[:config_version] == 23
+unless BUILD_CONFIG[:config_version] == 24
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
@@ -49,8 +49,22 @@ bin << (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
 build_ruby = File.join(RbConfig::CONFIG['bindir'], bin)
 
 unless BUILD_CONFIG[:build_ruby] == build_ruby
-  STDERR.puts "Sorry, but you need to build with the same Ruby version it was configured with"
-  STDERR.puts "Please run ./configure again"
+  STDERR.puts "\nUnable to build using the running Ruby executable.\n\n"
+
+  STDERR.puts "To resolve this issue:"
+  if ENV['PATH'] =~ /#{BUILD_CONFIG[:bindir]}/
+    STDERR.puts "  * Remove '#{BUILD_CONFIG[:bindir]}' from your PATH."
+  elsif build_ruby == File.join(BUILD_CONFIG[:bindir], BUILD_CONFIG[:program_name])
+    # This may occur using rbx from the build directory to build a version
+    # of rbx to install. The rbx in the build directory will pick up the
+    # lib/rubinius/build_config.rb that was just written by configure.
+    # Obviously, this chewing gum, duct tape, bailing wire, and toilet paper
+    # system needs fixing.
+    STDERR.puts "  * Configure using a Ruby executable other than the one in your build directory."
+  else
+    STDERR.puts "  * Use '#{BUILD_CONFIG[:build_ruby]}' to build."
+  end
+
   exit 1
 end
 

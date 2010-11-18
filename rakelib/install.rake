@@ -137,12 +137,20 @@ namespace :install do
       exe = "#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
       install "vm/vm", install_dir(exe), :mode => 0755, :verbose => true
 
+      # Create symlinks for common commands
+      ["ruby", "rake", "gem", "irb", "rdoc", "ri"].each do |command|
+        name = "#{BUILD_CONFIG[:bindir]}/#{command}"
+        File.link install_dir(exe), install_dir(name)
+      end
+
       STDOUT.puts <<-EOM
 --------
 
 Successfully installed Rubinius #{BUILD_CONFIG[:version]}
 
-Add '#{BUILD_CONFIG[:bindir]}' to your PATH
+Add '#{BUILD_CONFIG[:bindir]}' to your PATH. Available commands are:
+
+  #{BUILD_CONFIG[:program_name]}, ruby, rake, gem, irb, rdoc, ri
 
   1. Run Ruby files with '#{BUILD_CONFIG[:program_name]} path/to/file.rb'
   2. Start IRB by running '#{BUILD_CONFIG[:program_name]}' with no arguments

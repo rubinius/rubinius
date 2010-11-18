@@ -268,7 +268,7 @@ containing the Rubinius standard library files.
         options.stop_parsing
         @run_irb = false
 
-        search = [BIN_PATH, @gem_bin] + ENV['PATH'].split(File::PATH_SEPARATOR)
+        search = [@gem_bin] + ENV['PATH'].split(File::PATH_SEPARATOR)
         dir    = search.detect do |d|
           path = File.join(d, script)
           File.exist?(path)
