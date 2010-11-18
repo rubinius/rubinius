@@ -50,13 +50,9 @@ class Configure
     @llvm_source_url        = "http://llvm.org/releases/2.8/llvm-2.8.tgz"
     @llvm_asset_path        = "http://asset.rubini.us/prebuilt"
 
-    if @cxx == "g++"
-      @gcc_major = `#{@cxx} -dumpversion`.strip.split(".")[0,2].join(".")
-    else
-      @gcc_major = "unknown"
-    end
+    @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
 
-    if @host == "i686-gc-linux-gnu"
+    if @host == "i686-gc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
       @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}-#{gcc_major}.tar.bz2"
     else
       @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}.tar.bz2"

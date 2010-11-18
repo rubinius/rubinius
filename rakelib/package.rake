@@ -1,7 +1,7 @@
 namespace :package do
   desc "Package up the LLVM build into a tar.gz"
   task :llvm do
-    if host_triple == "i686-gc-linux-gnu"
+    if host_triple == "i686-gc-linux-gnu" || host_triple == "x86_64-unknown-linux-gnu"
       prebuilt_archive = "llvm-#{llvm_version}-#{host_triple}-#{gcc_major_version}.tar.bz2"
     else
       prebuilt_archive = "llvm-#{llvm_version}-#{host_triple}.tar.bz2"

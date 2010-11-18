@@ -253,7 +253,7 @@ def ld(t)
     sh "llc -filetype=asm -f -o vm/objs.s vm/objs.bc"
     sh "rm vm/objs.bc"
     flags = INCLUDES + FLAGS
-    sh "gcc #{flags.join(' ')} -c -o vm/objs.o vm/objs.s"
+    sh "#{CC} #{flags.join(' ')} -c -o vm/objs.o vm/objs.s"
     sh "rm vm/objs.s"
 
     o = (["vm/objs.o"] + t.prerequisites.find_all { |f| f =~ /a$/ }).join(' ')
