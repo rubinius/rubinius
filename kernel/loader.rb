@@ -41,11 +41,12 @@ module Rubinius
 
       # set terminal width
       width = 80
-      if Terminal and !ENV['RBX_NO_COLS']
+      if Terminal and ENV['TERM'] and !ENV['RBX_NO_COLS']
         begin
           `which tput &> /dev/null`
           if $?.exitstatus == 0
-            width = `tput cols`.to_i
+            res = `tput cols 2>&1`.to_i
+            width = res if res > 0
           end
         end
       end
