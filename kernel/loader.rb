@@ -137,6 +137,19 @@ containing the Rubinius standard library files.
       end
     end
 
+    def detect_arg0
+      cmd = ARG0.split("/").last
+
+      # ignore the common ones straight away
+      return if cmd == "rbx" or cmd == "ruby"
+
+      perhaps = File.join @main_lib, "bin", "#{cmd}.rb"
+      if File.exists?(perhaps)
+        # ok! inject this command back in and use it
+        ARGV.unshift perhaps
+      end
+    end
+
     # Process all command line arguments.
     def options(argv=ARGV)
       @stage = "processing command line arguments"
@@ -583,6 +596,7 @@ containing the Rubinius standard library files.
           signals
           load_compiler
           preload
+          detect_arg0
           options
           load_paths
           debugger
