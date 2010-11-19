@@ -134,7 +134,16 @@ class Bignum < Integer
 
   def <=>(other)
     Ruby.primitive :bignum_compare
-    super(other)
+
+    # We do not use redo_compare here because Ruby does not
+    # raise if any part of the coercion or comparison raises
+    # an exception.
+    begin
+      a, b = other.coerce self
+      a <=> b
+    rescue
+      return nil
+    end
   end
 
   # conversions
