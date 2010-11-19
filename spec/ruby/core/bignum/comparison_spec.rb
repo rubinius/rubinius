@@ -88,7 +88,45 @@ describe "Bignum#<=>" do
   end
 
   describe "with an Object" do
-    # TODO for srawlins
+    before :each do
+      @big = bignum_value
+      @num = mock("value for Bignum#<=>")
+    end
+
+    it "calls #coerce on other" do
+      @num.should_receive(:coerce).with(@big).and_return([@big.to_f, 2.5])
+      @big <=> @num
+    end
+
+    it "returns nil if #coerce raises an exception" do
+      @num.should_receive(:coerce).with(@big).and_raise(RuntimeError)
+      (@big <=> @num).should be_nil
+    end
+
+    it "raises an exception if #coerce raises a non-StandardError exception" do
+      @num.should_receive(:coerce).with(@big).and_raise(Exception)
+      lambda { @big <=> @num }.should raise_error(Exception)
+    end
+
+    it "returns nil if #coerce does not return an Array" do
+      @num.should_receive(:coerce).with(@big).and_return(nil)
+      (@big <=> @num).should be_nil
+    end
+
+    it "returns -1 if the coerced value is larger" do
+      @num.should_receive(:coerce).with(@big).and_return([@big, bignum_value(10)])
+      (@big <=> @num).should == -1
+    end
+
+    it "returns 0 if the coerced value is equal" do
+      @num.should_receive(:coerce).with(@big).and_return([@big, bignum_value])
+      (@big <=> @num).should == 0
+    end
+
+    it "returns 1 if the coerced value is smaller" do
+      @num.should_receive(:coerce).with(@big).and_return([@big, 22])
+      (@big <=> @num).should == 1
+    end
   end
 
   # The tests below are taken from matz's revision 23730 for Ruby trunk
