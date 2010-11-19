@@ -46,12 +46,34 @@ namespace rubinius {
     return ary;
   }
 
+  Array* Array::new_range(STATE, Fixnum* start, Fixnum* count) {
+    Array* ary = state->new_object<Array>(class_object(state));
+    ary->total(state, count);
+    ary->start(state, Fixnum::from(0));
+
+    native_int total = count->to_native();
+    if(total <= 0) {
+      ary->tuple(state, Tuple::create(state, 0));
+    } else {
+      Tuple* tup = Tuple::create(state, total);
+      Tuple* orig = tuple_;
+
+      for(native_int i = 0, j = start->to_native(); i < total; i++, j++) {
+        tup->put(state, i, orig->at(state, j));
+      }
+
+      ary->tuple(state, tup);
+    }
+    return ary;
+  }
+
   Array* Array::from_tuple(STATE, Tuple* tup) {
     size_t length = tup->num_fields();
     Array* ary = Array::create(state, length);
     ary->tuple_->copy_from(state, tup,
-			   Fixnum::from(0), Fixnum::from(length),
-			   Fixnum::from(0));
+        Fixnum::from(0), Fixnum::from(length),
+        Fixnum::from(0));
+
     ary->total(state, Fixnum::from(length));
     return ary;
   }
