@@ -80,7 +80,7 @@ class Configure
     @libversion = "1.2"
     @version = "#{@libversion}.0dev"
     @release_date = "xxxx-xx-xx"
-    @config_version = 24
+    @config_version = 124
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --max-count=1 --all`.chomp
@@ -112,7 +112,7 @@ class Configure
       @log.replace old_log
     end
 
-    o.on "--rake", "NAME", "Use NAME as 'rake'" do |name|
+    o.on "--rake", "NAME", "Use NAME as 'rake' during build" do |name|
       @rake = name
     end
 
@@ -178,7 +178,7 @@ class Configure
       @install = true
       dir = File.expand_path dir
 
-      if !ENV['RELEASE'] and File.directory? dir and dir !~ /(rubinius|rbx)\/?$/
+      if !ENV['RELEASE'] and File.directory? dir and dir !~ /(rubinius|rbx).*\/?$/
         old = dir
         dir += "/rubinius/#{@libversion}"
         @log.write "The directory #{old} already exists, installing to #{dir}"
@@ -871,13 +871,34 @@ end
 
     options
     parse ARGV
+
+    if File.join(@bindir, @program_name) == build_ruby
+      @log.error "\nYou are attempting to build using the instance of Rubinius that you are building.\n\n"
+
+      @log.error "To resolve this issue:"
+      if ENV['PATH'] =~ /#{@bindir}/
+        @log.error "  * Remove '#{@bindir}' from your PATH."
+      end
+      @log.error "  * Use a Ruby executable other than '#{build_ruby}' to build."
+
+      exit 1
+    end
+
     process
     write_config
     print_debug if @verbose
     if @install
-      @log.write "\nConfigured. Run 'rake install' to install Rubinius"
+      @log.write "\nConfigured. Run 'rake install' to install Rubinius."
     else
-      @log.write "\nConfigured. Run 'rake' to build and run VM tests and rubyspecs"
+      @log.write <<-EOM
+
+Configured. Run 'rake' to build and run VM tests and rubyspecs.
+
+After building, you may add '#{@bindir}' to your PATH or run commands directly from that directory. Available commands are:
+
+  #{@program_name}, ruby, rake, gem, irb, rdoc, ri
+
+      EOM
     end
   end
 

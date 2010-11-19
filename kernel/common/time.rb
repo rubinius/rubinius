@@ -133,10 +133,10 @@ class Time
     # This logic is taken from MRI, on how to deal with 2 digit dates.
     if year < 200
       if 0 <= year and year < 39
-        warn "2 digit year used: #{year}"
+        warn "2 digit year used: #{year}" if $VERBOSE
         year += 2000
       elsif 69 <= year and year < 139
-        warn "2 or 3 digit year used: #{year}"
+        warn "2 or 3 digit year used: #{year}" if $VERBOSE
         year += 1900
       end
     end
@@ -181,10 +181,10 @@ class Time
     # This logic is taken from MRI, on how to deal with 2 digit dates.
     if year < 200
       if 0 <= year and year < 39
-        warn "2 digit year used: #{year}"
+        warn "2 digit year used: #{year}" if $VERBOSE
         year += 2000
       elsif 69 <= year and year < 139
-        warn "2 or 3 digit year used: #{year}"
+        warn "2 or 3 digit year used: #{year}" if $VERBOSE
         year += 1900
       end
     end
@@ -380,10 +380,10 @@ class Time
     # This logic is taken from MRI, on how to deal with 2 digit dates.
     if year < 200
       if 0 <= year and year < 39
-        warn "2 digit year used: #{year}"
+        warn "2 digit year used: #{year}" if $VERBOSE
         year += 2000
       elsif 69 <= year and year < 139
-        warn "2 or 3 digit year used: #{year}"
+        warn "2 or 3 digit year used: #{year}" if $VERBOSE
         year += 1900
       end
     end

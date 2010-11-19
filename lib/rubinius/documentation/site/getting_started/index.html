@@ -65,25 +65,49 @@ Rubinius and running it from the source directory.</p>
 version of LLVM. If you have installed LLVM on your system, pass the
 &lsquo;&ndash;skip-system&rsquo; flag to the configure script in the directions below.</p>
 
-<p>The Rubinius source code is on Github: git://github.com/evanphx/rubinius.git</p>
+<h3 id="getting-the-source">Getting the Source</h3>
+
+<p>The Rubinius source code available as a tarball and as a project on Github.
+You can <a href="http://rubini.us/download/latest">download the tarball here</a>.</p>
+
+<p>To use Git:</p>
+
+<ol>
+  <li>Change your current working directory to your development directory</li>
+  <li><code>git clone git://github.com/evanphx/rubinius.git</code></li>
+</ol>
 
 <h3 id="installing-rubinius">Installing Rubinius</h3>
+
+<p>If you are planning on using Rubinius to run your application, this is a good
+option. However, you can also run Rubinius directly from the source directory.
+See the next section for more details on that.</p>
+
+<p>We recommend installing Rubinius to a location that does not require <code>sudo</code> or
+superuser privileges. To install Rubinius:</p>
 
 <ol>
   <li><code>./configure --prefix=/path/to/install/dir</code></li>
   <li><code>rake install</code></li>
-  <li><code>Add /path/to/install/dir/bin to your PATH</code></li>
+  <li>Follow the directions to add the Rubinius <em>bin</em> directory to your PATH</li>
 </ol>
 
 <h3 id="running-from-the-source-directory">Running from the Source Directory</h3>
 
-<p>If you plan to work on Rubinius itself, this is the simplest option.</p>
+<p>If you plan to work on Rubinius itself, you should use this option.</p>
 
 <ol>
   <li><code>./configure</code></li>
   <li><code>rake</code></li>
-  <li><code>Add /path/to/source/dir/bin to your PATH</code></li>
 </ol>
+
+<p>If you are just trying out Rubinius, follow the directions to add the <em>bin</em>
+directory to your PATH.</p>
+
+<p>However, if you are developing Rubinius, you should NOT add the <em>bin</em>
+directory to your PATH because the Rubinius build system will pick up the
+<code>ruby</code> and <code>rake</code> links to the Rubinius executable. Rubinius needs a separate
+Ruby executable to bootstrap itself during the build process.</p>
 
 <h2 id="running-rubinius">Running Rubinius</h2>
 
@@ -95,7 +119,7 @@ Rubinius, you can verify it is working:</p>
 
 <p>Rubinius generally works like Ruby from the command-line. For example:</p>
 
-<pre><code>rbx -e 'puts &quot;Hello!&quot;'
+<pre><code>rbx -e 'puts "Hello!"'
 </code></pre>
 
 <p>To run a ruby file named &lsquo;code.rb&rsquo;:</p>
@@ -107,6 +131,14 @@ Rubinius, you can verify it is working:</p>
 
 <pre><code>rbx
 </code></pre>
+
+<p>If you added the Rubinius bin directory to your PATH, Rubinius should perform
+just as you would expect from MRI. There are commands for <code>ruby</code>, <code>rake</code>,
+<code>gem</code>, <code>irb</code>, <code>ri</code>, and <code>rdoc</code>.</p>
+
+<p>You can add the Rubinius bin directory to your PATH only when you want to use
+Rubinius. This way, it will not interfere with your normally installed Ruby
+when you do not want to use Rubinius.</p>
 
 <h2 id="troubleshooting">Troubleshooting</h2>
 

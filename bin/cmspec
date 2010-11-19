@@ -1,6 +1,0 @@
-#! /usr/bin/env ruby
-#
-# cmspec - compile + run mini_rspec
-#
-raise "Compile failed" unless system("rake")
-raise "Specs Failed" unless system("bin/mspec #{ARGV.join(" ")}")
