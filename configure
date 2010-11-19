@@ -53,7 +53,7 @@ class Configure
     @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
 
     if @host == "i686-gc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
-      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}-#{gcc_major}.tar.bz2"
+      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}-#{@gcc_major}.tar.bz2"
     else
       @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}.tar.bz2"
     end
