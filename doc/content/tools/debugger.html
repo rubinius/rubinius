@@ -18,8 +18,8 @@ Consider the following code in app.rb
     class Toast
       attr_accessor :setting
       def initialize
-        require 'debugger'
-        Debugger.start
+        require 'rubinius/debugger'
+        Rubinius::Debugger.start
         @setting = :brown
       end
     end
@@ -31,7 +31,7 @@ Running the code in Rubinius would produce the following:
     $ rbx app.rb
 
     | Breakpoint: Toast#initialize at app.rb:5 (15)
-    | 5:     Debugger.start
+    | 5:     Rubinius::Debugger.start
     debug> help
                     help: Show information about debugger commands
            b, break, brk: Set a breakpoint at a point in a method
@@ -98,7 +98,7 @@ To debug this code, start the debugger from the command line with the
     $ rbx -Xdebug bug.rb
 
     | Breakpoint: Rubinius::Loader#debugger at kernel/loader.rb:424 (34)
-    | 424:         Debugger.start
+    | 424:         Rubinius::Debugger.start
     debug> b Object#problem_code:2
     * Unable to find method 'problem_code' in Object
     | Would you like to defer this breakpoint to later? [y/n] y

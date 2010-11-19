@@ -1,6 +1,6 @@
-require 'debugger/display'
+require 'rubinius/debugger/display'
 
-class Debugger
+class Rubinius::Debugger
   class CommandDescription
     attr_accessor :klass, :patterns, :help, :ext_help
 
@@ -14,7 +14,7 @@ class Debugger
   end
 
   class Command
-    include Debugger::Display
+    include Rubinius::Debugger::Display
 
     @commands = []
 
