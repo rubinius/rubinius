@@ -1,4 +1,4 @@
-class Debugger
+class Rubinius::Debugger
   module Display
     def info(str)
       puts "| #{str}"

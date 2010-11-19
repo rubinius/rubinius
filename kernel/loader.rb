@@ -460,8 +460,8 @@ containing the Rubinius standard library files.
         if custom = Loader.debugger
           custom.call
         else
-          require 'debugger'
-          Debugger.start
+          require 'rubinius/debugger'
+          Rubinius::Debugger.start
         end
       end
     end

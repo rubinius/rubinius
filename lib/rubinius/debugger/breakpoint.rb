@@ -1,4 +1,4 @@
-class Debugger
+class Rubinius::Debugger
   class BreakPoint
 
     def self.for_ip(exec, ip, name=:anon)
