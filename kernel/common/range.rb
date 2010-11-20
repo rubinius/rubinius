@@ -68,7 +68,7 @@ class Range
     
     @begin = first
     @end = last
-    @exclude_end = exclude_end
+    @excl = exclude_end
   end
 
   private :initialize
@@ -109,7 +109,7 @@ class Range
 
     if Comparable.compare_int(beg_compare) <= 0
       end_compare = (value <=> @end)
-      if @exclude_end
+      if @excl
         return true if Comparable.compare_int(end_compare) < 0
       else
         return true if Comparable.compare_int(end_compare) <= 0
@@ -127,7 +127,7 @@ class Range
   #
   # Returns true if +rng+ excludes its end value.
 
-  attr_reader_specific :exclude_end, :exclude_end?
+  attr_reader_specific :excl, :exclude_end?
 
   ##
   # :call-seq:
@@ -153,7 +153,7 @@ class Range
     raise TypeError, "can't iterate from #{first.class}" unless first.respond_to? :succ
 
     if first.is_a?(Fixnum)
-      last -= 1 if @exclude_end
+      last -= 1 if @excl
 
       i = first
       while i <= last
@@ -163,11 +163,11 @@ class Range
 
     elsif first.is_a?(String)
       first.upto(last) do |s|
-        yield s unless @exclude_end && s == last
+        yield s unless @excl && s == last
       end
     else
       current = first
-      if @exclude_end
+      if @excl
         while (current <=> last) < 0
           yield current
           current = current.succ
@@ -197,7 +197,7 @@ class Range
   # end points, and the same value for the "exclude end" flag, generate
   # the same hash value.
   def hash
-    excl = @exclude_end ? 1 : 0
+    excl = @excl ? 1 : 0
     hash = excl
     hash ^= @begin.hash << 1
     hash ^= @end.hash << 9
@@ -208,7 +208,7 @@ class Range
   # Convert this range object to a printable form (using
   # <tt>inspect</tt> to convert the start and end objects).
   def inspect
-    "#{@begin.inspect}#{@exclude_end ? "..." : ".."}#{@end.inspect}"
+    "#{@begin.inspect}#{@excl ? "..." : ".."}#{@end.inspect}"
   end
 
   # Returns the object that defines the end of <em>rng</em>.
@@ -254,7 +254,7 @@ class Range
     end
 
     if first.kind_of?(Numeric)
-      last -= 1 if @exclude_end
+      last -= 1 if @excl
 
       while first <= last
         yield first
@@ -275,13 +275,13 @@ class Range
   # Convert this range object to a printable form.
 
   def to_s
-    "#{@begin}#{@exclude_end ? "..." : ".."}#{@end}"
+    "#{@begin}#{@excl ? "..." : ".."}#{@end}"
   end
 
   def to_a
     if @begin.kind_of? Fixnum and @end.kind_of? Fixnum
       fin = @end
-      fin += 1 unless @exclude_end
+      fin += 1 unless @excl
 
       size = fin - @begin
 
