@@ -708,7 +708,7 @@ int main() { return tgetnum(""); }
   # script. That path will be made available to the rest of the build system
   # so the same version of ruby is invoked as needed.
   def build_ruby
-    bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"] || RbConfig::CONFIG["ruby_install_name"]
+    bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"].dup || RbConfig::CONFIG["ruby_install_name"].dup
     bin << (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
     File.join(RbConfig::CONFIG['bindir'], bin)
   end
