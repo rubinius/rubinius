@@ -399,6 +399,8 @@ class Hash
       @default = default
       @default_proc = false
     end
+
+    self
   end
   private :initialize
 
