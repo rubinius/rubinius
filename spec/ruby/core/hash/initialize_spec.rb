@@ -19,6 +19,11 @@ describe "Hash#initialize" do
     NewHash.new(:one, :two)[1].should == :two
   end
 
+  it "returns self" do
+    h = hash_class.new
+    h.send(:initialize).should equal(h)
+  end
+
   ruby_version_is ""..."1.9" do
     it "raises a TypeError if called on a frozen instance" do
       block = lambda { HashSpecs.frozen_hash.instance_eval { initialize() }}
