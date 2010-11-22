@@ -1,4 +1,4 @@
-class Debugger
+class Rubinius::Debugger
   class Frame
     def initialize(debugger, number, loc)
       @debugger = debugger

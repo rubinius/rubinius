@@ -529,6 +529,13 @@ class Module
     nil
   end
 
+  def attr_reader_specific(name, method_name)
+    meth = Rubinius::AccessVariable.get_ivar name
+    @method_table.store method_name, meth, :public
+    Rubinius::VM.reset_method_cache method_name
+    nil
+  end
+
   # :internal:
   #
   # Basic version used in kernel code.

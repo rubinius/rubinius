@@ -127,9 +127,7 @@ class Range
   #
   # Returns true if +rng+ excludes its end value.
 
-  def exclude_end?
-    @excl
-  end
+  attr_reader_specific :excl, :exclude_end?
 
   ##
   # :call-seq:
@@ -169,7 +167,7 @@ class Range
       end
     else
       current = first
-      if @excl then
+      if @excl
         while (current <=> last) < 0
           yield current
           current = current.succ

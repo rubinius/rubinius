@@ -39,6 +39,9 @@ namespace rubinius {
     // Ruby.primitive :array_allocate
     static Array* allocate(STATE, Object* self);
 
+    // Ruby.primitive :array_new_range
+    Array* new_range(STATE, Fixnum* start, Fixnum* count);
+
     // Ruby.primitive :array_aref
     Object* aref(STATE, Fixnum* idx);
 

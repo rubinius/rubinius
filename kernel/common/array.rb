@@ -88,58 +88,95 @@ class Array
   # indices count from the end. Returns nil if the index or subarray
   # request cannot be completed. Array#slice is synonymous with #[].
   # Subclasses return instances of themselves.
-  def [](arg1, arg2 = nil)
-    Ruby.primitive :array_aref
+  def [](arg1, arg2=nil)
+    case arg1
 
-    if arg1.kind_of? Range
-      start_idx = Type.coerce_to arg1.begin, Fixnum, :to_int
-    else
-      start_idx = Type.coerce_to arg1, Fixnum, :to_int
+    # This is split out from the generic case and put first because
+    # it is by far the most common case and we want to deal with it
+    # immediately, even at the expensive of duplicate code with the
+    # generic case below. In other words, don't refactor this unless
+    # you preserve the same or better performance.
+    when Fixnum
+      start_idx = arg1
+
+      # Convert negative indices
+      start_idx += @total if start_idx < 0
+
       if arg2
         count = Type.coerce_to arg2, Fixnum, :to_int
-        return nil if count < 0       # No need to go further
-      else # repeat prim case after coercing with to_int
-        # Convert negative indices
-        start_idx += @total if start_idx < 0
-        return nil if start_idx < 0 or start_idx >= @total
-        return @tuple.at(@start + start_idx)
-      end
-    end
-
-    # Convert negative indices
-    start_idx += @total if start_idx < 0
-
-    if start_idx < 0 or start_idx >= @total
-      # ONE past end only, MRI compat
-      if start_idx == @total
-        return self.class.allocate
       else
-        return nil
+        return nil if start_idx >= @total
+
+        begin
+          return @tuple.at(@start + start_idx)
+
+        # Tuple#at raises this if the index is negative or
+        # past the end. This is faster than checking explicitly
+        # since this is an exceptional case anyway.
+        rescue Rubinius::ObjectBoundsExceededError
+          return nil
+        end
+      end
+    when Range
+      start_idx = Type.coerce_to arg1.begin, Fixnum, :to_int
+      # Convert negative indices
+      start_idx += @total if start_idx < 0
+
+      # Check here because we must detect this boundary
+      # before we check the right index boundary cases
+      return nil if start_idx < 0 or start_idx > @total
+
+      right_idx = Type.coerce_to arg1.end, Fixnum, :to_int
+      right_idx += @total if right_idx < 0
+      right_idx -= 1 if arg1.exclude_end?
+
+      return new_range(0,0) if right_idx < start_idx
+
+      count = right_idx - start_idx + 1
+
+    # Slower, less common generic coercion case.
+    else
+      start_idx = Type.coerce_to arg1, Fixnum, :to_int
+
+      # Convert negative indices
+      start_idx += @total if start_idx < 0
+
+      if arg2
+        count = Type.coerce_to arg2, Fixnum, :to_int
+      else
+        return nil if start_idx >= @total
+
+        begin
+          return @tuple.at(@start + start_idx)
+
+        # Tuple#at raises this if the index is negative or
+        # past the end. This is faster than checking explicitly
+        # since this is an exceptional case anyway.
+        rescue Rubinius::ObjectBoundsExceededError
+          return nil
+        end
       end
     end
 
-    if count
-      return self.class.allocate if count == 0
-      finish_idx = start_idx + count - 1
-    else # from a range
-      finish_idx = Type.coerce_to arg1.end, Fixnum, :to_int
-      finish_idx += @total if finish_idx < 0
-      finish_idx -= 1 if arg1.exclude_end?
+    # No need to go further
+    return nil if count < 0
+
+    # Check start boundaries
+    if start_idx >= @total
+      # Odd MRI boundary case
+      return new_range(0,0) if start_idx == @total
+      return nil
     end
 
-    if finish_idx < start_idx
-      return self.class.allocate
-    else
-      # Going past the end is ignored (sort of)
-      finish_idx = (@total - 1) if finish_idx >= @total
+    return nil if start_idx < 0
 
-      tot = finish_idx - start_idx + 1
-      out = self.class.allocate
-      out.tuple = Rubinius::Tuple.new(tot)
-      out.total = tot
-      out.tuple.copy_from(@tuple, @start + start_idx, tot, 0)
-      return out
+    # Check count boundaries
+    if start_idx + count > @total
+      count = @total - start_idx
     end
+
+    # Construct the subrange
+    return new_range(@start + start_idx, count)
   end
 
   alias_method :slice, :[]
@@ -915,29 +952,47 @@ class Array
   # the Array to strings, inserting a separator between
   # each. The separator defaults to $,. Detects recursive
   # Arrays.
-  def join(sep=nil, method=:to_s)
+  def join(sep=nil)
     return "" if @total == 0
     out = ""
     return "[...]" if Thread.detect_recursion self do
       sep = sep ? StringValue(sep) : $,
       out.taint if sep.tainted? or self.tainted?
 
-      first = true
+      # We've manually unwound the first loop entry for performance
+      # reasons.
+      x = @tuple[@start]
+      case x
+      when String
+        out.append x
+      when Array
+        out.append x.join(sep)
+      else
+        out.append x.to_s
+      end
 
-      each do |x|
-        unless first
-          out.append sep
-        else
-          first = false
-        end
+      out.taint if x.tainted?
 
-        if x.kind_of?(Array)
-          out.append x.join(sep, method)
+      total = @start + size()
+      i = @start + 1
+
+      while i < total
+        out.append sep
+
+        x = @tuple[i]
+
+        case x
+        when String
+          out.append x
+        when Array
+          out.append x.join(sep)
         else
           out.append x.to_s
         end
 
         out.taint if x.tainted?
+
+        i += 1
       end
     end
 
