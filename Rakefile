@@ -44,9 +44,21 @@ unless BUILD_CONFIG[:which_ruby] == :ruby or BUILD_CONFIG[:which_ruby] == :rbx
   exit 1
 end
 
-bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"] || RbConfig::CONFIG["ruby_install_name"]
-bin << (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
-build_ruby = File.join(RbConfig::CONFIG['bindir'], bin)
+# Records the full path to the ruby executable that runs this configure
+# script. That path will be made available to the rest of the build system
+# so the same version of ruby is invoked as needed.
+#
+# This is duplicated from the configure script for now.
+@build_ruby = nil
+
+def build_ruby
+  unless @build_ruby
+    bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"] || RbConfig::CONFIG["ruby_install_name"]
+    bin += (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
+    @build_ruby = File.join(RbConfig::CONFIG['bindir'], bin)
+  end
+  @build_ruby
+end
 
 unless BUILD_CONFIG[:build_ruby] == build_ruby
   STDERR.puts "\nUnable to build using the running Ruby executable.\n\n"
