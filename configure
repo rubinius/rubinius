@@ -33,6 +33,7 @@ class Configure
     @cxx = ENV['CXX'] || 'g++'
     @rake = ENV['RAKE'] || 'rake'
     @install = false
+    @build_ruby = nil
 
     # LLVM settings
     @use_llvm               = true
@@ -541,7 +542,7 @@ class Configure
       `./#{basename}`
       return $?.exitstatus
     ensure
-      File.delete *Dir["#{basename}*"]
+      File.delete(*Dir["#{basename}*"])
     end
   end
 
@@ -688,9 +689,12 @@ int main() { return tgetnum(""); }
   # script. That path will be made available to the rest of the build system
   # so the same version of ruby is invoked as needed.
   def build_ruby
-    bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"] || RbConfig::CONFIG["ruby_install_name"]
-    bin << (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
-    File.join(RbConfig::CONFIG['bindir'], bin)
+    unless @build_ruby
+      bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"] || RbConfig::CONFIG["ruby_install_name"]
+      bin += (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
+      @build_ruby = File.join(RbConfig::CONFIG['bindir'], bin)
+    end
+    @build_ruby
   end
 
   def get_system_name
