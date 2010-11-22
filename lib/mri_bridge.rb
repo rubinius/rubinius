@@ -13,6 +13,10 @@ module Rubinius
     RUBY_VERSION =~ /^1\.9/
   end
 
+  def self.ruby20?
+    RUBY_VERSION =~ /^2\.0/
+  end
+
   class Channel
     def receive
     end

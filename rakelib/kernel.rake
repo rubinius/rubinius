@@ -30,6 +30,7 @@ module Rubinius
 end
 
 # The rule for compiling all kernel Ruby files
+@build_parser_selected = nil
 rule ".rbc" do |t|
   # We must be able to build 1.9 language features such as 'def !() end'
   # Consequently, all of kernel needs to be written in the strict subset

@@ -43,18 +43,27 @@ module Rubinius
       new(name, line).parse_file
     end
 
+    def self.remove_selected_parser
+      remove_method :file_to_ast if method_defined? :file_to_ast
+      remove_method :string_to_ast if method_defined? :string_to_ast
+    end
+
     def self.select_18
+      remove_selected_parser
+
       alias_method :file_to_ast,   :file_to_ast_18
       alias_method :string_to_ast, :string_to_ast_18
     end
 
     def self.select_19
+      remove_selected_parser
+
       alias_method :file_to_ast,   :file_to_ast_19
       alias_method :string_to_ast, :string_to_ast_19
     end
 
     # Select the default parser language
-    Rubinius.ruby19? ? select_19 : select_18
+    Rubinius.ruby19? || Rubinius.ruby20? ? select_19 : select_18
 
     def initialize(name, line, transforms=[])
       @name = name
