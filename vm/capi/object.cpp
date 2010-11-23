@@ -70,8 +70,7 @@ extern "C" {
   };
 
   // Copied from MRI
-  void rb_check_type(VALUE x, int i) {
-    CApiType t = (CApiType)i;
+  void rb_check_type(VALUE x, int t) {
     struct types *type = builtin_types;
 
     if (x == Qundef) {
