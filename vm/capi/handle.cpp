@@ -3,6 +3,16 @@
 
 #include "capi/include/ruby.h"
 
+// Hack. Kludge. Gross. Hate. Why in the world did the posix people
+// think it was a good idea for fclose() to close an fd passed to
+// fdopen(). WHY.
+
+#if defined(_STDIO_USES_IOSTREAM) // linux GNUC
+#define SET_FILE_FD(fo, val) ((fo)->_fileno = (val))
+#else
+#define SET_FILE_FD(fo, val) ((fo)->_file = (val))
+#endif
+
 namespace rubinius {
   namespace capi {
 
@@ -35,7 +45,13 @@ namespace rubinius {
           delete as_.rfloat;
           break;
         case cRIO:
-          if(as_.rio->f) fclose(as_.rio->f);
+          if(as_.rio->f) {
+            // HACK. We must do this otherwise fclose will close the fd
+            // it originally saw, which could easily have been reused already,
+            // thus fclose() would be closing some random stream.
+            SET_FILE_FD(as_.rio->f, -1);
+            fclose(as_.rio->f);
+          }
           delete as_.rio;
           break;
         case cRData:
