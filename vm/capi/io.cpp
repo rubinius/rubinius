@@ -56,16 +56,29 @@ namespace rubinius {
       if(type_ != cRIO) {
         IO* io_obj = c_as<IO>(object());
 
-        RIO* f = new RIO;
-        f->handle = as_value();
-        f->fd = io_obj->descriptor()->to_native();
-        f->f = fdopen(f->fd, flags_modestr(io_obj->mode()->to_native()));
+        native_int fd = io_obj->descriptor()->to_native();
+        FILE* f = fdopen(fd, flags_modestr(io_obj->mode()->to_native()));
+
+        if(!f) {
+          fprintf(stderr, "Error convert fd (%ld) to lowlevel IO: %s (%d)",
+              fd, strerror(errno), errno);
+
+          rb_raise(rb_eTypeError,
+              "unable to convert fd (%ld) to lowlevel IO: %s (%d)",
+              fd, strerror(errno), errno);
+        }
+
+        RIO* rf = new RIO;
+        rf->handle = as_value();
+        rf->fd = fd;
+        rf->f = f;
+
         // Disable all buffering so that it doesn't get out of sync with
         // the normal IO buffer.
-        setvbuf(f->f, 0, _IONBF, 0);
+        setvbuf(rf->f, 0, _IONBF, 0);
 
         type_ = cRIO;
-        as_.rio = f;
+        as_.rio = rf;
       }
 
       return as_.rio;
