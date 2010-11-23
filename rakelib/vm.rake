@@ -35,7 +35,7 @@ end
 
 tests.uniq!
 
-subdirs = %w!builtin capi util instruments gc llvm!
+subdirs = %w!builtin missing capi util instruments gc llvm!
 
 srcs        = FileList["vm/*.{cpp,c}"]
 subdirs.each do |dir|

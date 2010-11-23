@@ -7,6 +7,7 @@
 #ifdef RBX_WINDOWS
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include "windows_compat.h"
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -46,7 +47,7 @@ namespace rubinius {
     , max_fd_(0)
     , vars_(0)
   {
-    FD_ZERO(&fds_);
+    FD_ZERO((int_fd_t*)&fds_);
     vars_ = new agent::VariableAccess(state, shared);
 
     if(pipe(control_) != 0) {
@@ -82,7 +83,7 @@ namespace rubinius {
 
     // To avoid TIME_WAIT / EADDRINUSE
     int on = 1;
-    setsockopt(server_fd_, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+    setsockopt(server_fd_, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
 
     struct sockaddr_in sin = {0};
     sin.sin_family = AF_INET;
