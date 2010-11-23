@@ -622,7 +622,7 @@ class MatchData
   end
   
   def names
-    @regexp.name_table.keys
+    @regexp.names
   end
 
   def pre_match
