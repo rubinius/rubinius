@@ -74,6 +74,13 @@ describe "Dir.glob" do
     Dir.glob('**/', File::FNM_DOTMATCH).sort.should == expected
   end
 
+  it "accepts a block and yields it with each elements" do
+    ary = []
+    ret = Dir.glob(["file_o*", "file_t*"]) { |t| ary << t }
+    ret.should be_nil
+    ary.should == %w!file_one.ext file_two.ext!
+  end
+
   platform_is_not(:windows) do
     it "matches the literal character '\\' with option File::FNM_NOESCAPE" do
       Dir.mkdir 'foo?bar'
