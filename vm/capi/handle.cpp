@@ -35,6 +35,7 @@ namespace rubinius {
           delete as_.rfloat;
           break;
         case cRIO:
+          if(as_.rio->f) fclose(as_.rio->f);
           delete as_.rio;
           break;
         case cRData:
