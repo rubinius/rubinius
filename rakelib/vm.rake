@@ -355,10 +355,7 @@ namespace :build do
   end
 
   task :strict_flags => "build:debug_flags" do
-    FLAGS.concat %w[ -Wextra -W -pedantic
-                     -Wshadow -Wfloat-equal -Wsign-conversion
-                     -Wno-long-long -Wno-inline -Wno-unused-parameter
-                   ]
+    FLAGS.concat %w[ -Wextra -Wno-unused-parameter ]
   end
 
   task :ridiculous_flags => "build:strict_flags" do
