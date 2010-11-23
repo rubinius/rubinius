@@ -268,36 +268,35 @@ extern "C" {
    *  cases.
    */
 
-#define T_NONE   0x00
-
-#define T_NIL    0x01
-#define T_OBJECT 0x02
-#define T_CLASS  0x03
-#define T_ICLASS 0x04
-#define T_MODULE 0x05
-#define T_FLOAT  0x06
-#define T_STRING 0x07
-#define T_REGEXP 0x08
-#define T_ARRAY  0x09
+#define T_ARRAY  0x00
+#define T_NONE   0x01
+#define T_NIL    0x02
+#define T_OBJECT 0x03
+#define T_CLASS  0x04
+#define T_ICLASS 0x05
+#define T_MODULE 0x06
+#define T_FLOAT  0x07
+#define T_STRING 0x08
+#define T_REGEXP 0x09
 #define T_FIXNUM 0x0a
 #define T_HASH   0x0b
 #define T_STRUCT 0x0c
 #define T_BIGNUM 0x0d
 #define T_FILE   0x0e
 
-#define T_TRUE   0x20
-#define T_FALSE  0x21
-#define T_DATA   0x22
-#define T_MATCH  0x23
-#define T_SYMBOL 0x24
+#define T_TRUE   0x0f
+#define T_FALSE  0x10
+#define T_DATA   0x11
+#define T_MATCH  0x12
+#define T_SYMBOL 0x13
 
-#define T_BLKTAG 0x3b
-#define T_UNDEF  0x3c
-#define T_VARMAP 0x3d
-#define T_SCOPE  0x3e
-#define T_NODE   0x3f
+#define T_BLKTAG 0x14
+#define T_UNDEF  0x15
+#define T_VARMAP 0x16
+#define T_SCOPE  0x17
+#define T_NODE   0x18
 
-#define T_MASK   0x3f
+#define T_MASK   0x19
 
   /**
    *  Method variants that can be defined.
