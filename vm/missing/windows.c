@@ -3,6 +3,11 @@
 #include "windows_compat.h"
 #include <io.h>
 
+int uname(struct utsname *name) {
+  rubinius::abort();
+  return -1
+}
+
 int socketpair(int domain, int type, int protocol, int socket_vector[2]) {
   rubinius::abort();
   return 0;

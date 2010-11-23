@@ -38,7 +38,9 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#ifndef RBX_WINDOWS
+#ifdef RBX_WINDOWS
+#include "windows_compat.h"
+#else
 #include <sys/utsname.h>
 #endif
 #include <fcntl.h>

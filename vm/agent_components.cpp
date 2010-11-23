@@ -11,6 +11,10 @@
 #include "builtin/string.hpp"
 #include "builtin/system.hpp"
 
+#ifdef RBX_WINDOWS
+#include "windows_compat.h"
+#endif
+
 namespace rubinius {
 namespace agent {
   class Item {
