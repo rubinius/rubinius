@@ -328,4 +328,9 @@ extern "C" {
         capi::wrap_c_function(cb, cb_data, C_CALLBACK));
     rb_funcall(rb_mKernel, rb_intern("at_exit"), 1, prc);
   }
+
+  VALUE rb_f_sprintf(int argc, const VALUE* argv) {
+    VALUE ary = rb_ary_new4(argc-1, argv+1);
+    return rb_funcall(rb_mCAPI, rb_intern("sprintf"), 2, argv[0], ary);
+  }
 }

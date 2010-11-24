@@ -1092,6 +1092,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Taint an object and return it */
   VALUE rb_obj_taint(VALUE obj);
 
+  /** Returns a string formatted with Kernel#sprintf. */
+  VALUE rb_f_sprintf(int argc, const VALUE* argv);
+
   /**
    *  Call method on receiver, args as varargs. Calls private methods.
    */
