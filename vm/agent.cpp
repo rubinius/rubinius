@@ -47,7 +47,7 @@ namespace rubinius {
     , max_fd_(0)
     , vars_(0)
   {
-    FD_ZERO((int_fd_t*)&fds_);
+    FD_ZERO(&fds_);
     vars_ = new agent::VariableAccess(state, shared);
 
     if(pipe(control_) != 0) {
