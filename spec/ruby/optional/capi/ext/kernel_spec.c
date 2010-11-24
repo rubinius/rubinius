@@ -175,6 +175,12 @@ static VALUE kernel_spec_rb_set_end_proc(VALUE self, VALUE io) {
 }
 #endif
 
+#ifdef HAVE_RB_F_SPRINTF
+static VALUE kernel_spec_rb_f_sprintf(VALUE self, VALUE ary) {
+  return rb_f_sprintf(RARRAY_LEN(ary), RARRAY_PTR(ary));
+}
+#endif
+
 void Init_kernel_spec() {
   VALUE cls;
   cls = rb_define_class("CApiKernelSpecs", rb_cObject);
@@ -237,6 +243,10 @@ void Init_kernel_spec() {
 
 #ifdef HAVE_RB_SET_END_PROC
   rb_define_method(cls, "rb_set_end_proc", kernel_spec_rb_set_end_proc, 1);
+#endif
+
+#ifdef HAVE_RB_F_SPRINTF
+  rb_define_method(cls, "rb_f_sprintf", kernel_spec_rb_f_sprintf, 1);
 #endif
 }
 

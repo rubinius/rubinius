@@ -242,10 +242,12 @@ describe "C-API Kernel function" do
     end
   end
 
-  describe "rb_exec_recursive" do
-    it "detects recursive invocations of a method and indicates as such" do
-      s = "hello"
-      @s.rb_exec_recursive(s).should == s
+  ruby_version_is "1.8.7" do
+    describe "rb_exec_recursive" do
+      it "detects recursive invocations of a method and indicates as such" do
+        s = "hello"
+        @s.rb_exec_recursive(s).should == s
+      end
     end
   end
 
@@ -258,6 +260,12 @@ describe "C-API Kernel function" do
       }
 
       r.read(1).should == "e"
+    end
+  end
+
+  describe "rb_f_sprintf" do
+    it "returns a string according to format and arguments" do
+      @s.rb_f_sprintf(["%d %f %s", 10, 2.5, "test"]).should == "10 2.500000 test"
     end
   end
 end
