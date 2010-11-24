@@ -450,6 +450,8 @@ namespace rubinius {
   }
 
   String* String::transform(STATE, Tuple* tbl, Object* respect_kcode) {
+    uint8_t invalid[5];
+
     if(tbl->num_fields() < 256) {
       return force_as<String>(Primitives::failure());
     }
@@ -483,9 +485,13 @@ namespace rubinius {
       if(kcode::mbchar_p(kcode_tbl, byte)) {
         len = kcode::mbclen(kcode_tbl, byte);
         native_int rem = in_end - in_p;
-        if(rem < len) len = rem;
-        cur_p = in_p;
-        in_p += len;
+
+        // if the character length is greater than the remaining
+        // bytes, we have a malformed character. Handled below.
+        if(rem >= len) {
+          cur_p = in_p;
+          in_p += len;
+        }
       } else if(String* str = try_as<String>(tbl_ptr[byte])) {
         cur_p = str->byte_address();
         len = str->size();
@@ -508,15 +514,15 @@ namespace rubinius {
             break;
           }
         }
+      }
 
-        /* If we did not find a map, we have two options:
-         * 1) copy the byte as is; 2) ignore the byte.
-         * Right now, we copy the byte.
-         */
-        if(!cur_p) {
-          cur_p = in_p++;
-          len = 1;
-        }
+      // We could not map this byte, so we add it to the output
+      // in stringified octal notation (ie \nnn).
+      if(!cur_p) {
+        snprintf((char*)invalid, 5, "\\%03o", *((char*)in_p) & 0377);
+        in_p++;
+        cur_p = invalid;
+        len = 4;
       }
 
       if(out_p + len > out_end) {
