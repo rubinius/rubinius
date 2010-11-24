@@ -61,8 +61,8 @@ namespace rubinius {
     so->hash_value(state, nil<Fixnum>());
     so->shared(state, Qfalse);
 
-    ByteArray* ba = ByteArray::create(state, bytes);
-    ba->raw_bytes()[bytes-1] = 0;
+    ByteArray* ba = ByteArray::create(state, bytes+1);
+    ba->raw_bytes()[bytes] = 0;
 
     so->data(state, ba);
 
@@ -111,12 +111,14 @@ namespace rubinius {
   String* String::create(STATE, const char* str, native_int bytes) {
     String* so = String::create(state, Fixnum::from(bytes));
 
-    if(str) std::memcpy(so->byte_address(), str, bytes);
+    if(str) memcpy(so->byte_address(), str, bytes);
 
     return so;
   }
 
-  String* String::from_bytearray(STATE, ByteArray* ba, Fixnum* start, Fixnum* count) {
+  String* String::from_bytearray(STATE, ByteArray* ba, Fixnum* start,
+                                 Fixnum* count)
+  {
     String* s = state->new_object<String>(G(string));
 
     s->num_bytes(state, count);
@@ -132,15 +134,13 @@ namespace rubinius {
   }
 
   hashval String::hash_string(STATE) {
-    unsigned char *bp;
-
     if(!hash_value_->nil_p()) {
       return (hashval)as<Fixnum>(hash_value_)->to_native();
     }
-    bp = (unsigned char*)(byte_address());
-    native_int sz = size();
 
-    hashval h = hash_str(bp, sz);
+    unsigned char* bp = (unsigned char*)(byte_address());
+
+    hashval h = hash_str(bp, size());
     hash_value(state, Fixnum::from(h));
 
     return h;
@@ -155,7 +155,9 @@ namespace rubinius {
   const static unsigned long FNVHashPrime = 16777619UL;
 #endif
 
-  static inline unsigned long update_hash(unsigned long hv, unsigned char byte) {
+  static inline unsigned long update_hash(unsigned long hv,
+                                          unsigned char byte)
+  {
     return (hv ^ byte) * FNVHashPrime;
   }
 
@@ -176,12 +178,8 @@ namespace rubinius {
   }
 
   hashval String::hash_str(const unsigned char *bp, unsigned int sz) {
-    unsigned char *be;
-    hashval hv;
-
-    be = (unsigned char*)bp + sz;
-
-    hv = FNVOffsetBasis;
+    unsigned char* be = (unsigned char*)bp + sz;
+    hashval hv = FNVOffsetBasis;
 
     while(bp < be) {
       hv = update_hash(hv, *bp++);
@@ -199,23 +197,6 @@ namespace rubinius {
     c_string[size()] = 0;
 
     return c_string;
-  }
-
-  bool String::string_equal_p(STATE, Object* a, Object* b) {
-    String* self = as<String>(a);
-    String* other = as<String>(b);
-
-    if(self->num_bytes() != other->num_bytes()) return false;
-    if(memcmp(self->byte_address(), other->byte_address(), self->num_bytes()->to_native())) {
-      return false;
-    }
-
-    return true;
-  }
-
-  Object* String::equal(STATE, String* other) {
-    bool ret = String::string_equal_p(state, this, other);
-    return ret ? Qtrue : Qfalse;
   }
 
   Object* String::secure_compare(STATE, String* other) {
@@ -259,7 +240,7 @@ namespace rubinius {
   }
 
   void String::unshare(STATE) {
-    if(shared_->true_p()) {
+    if(shared_ == Qtrue) {
       if(data_->reference_p()) {
         data(state, as<ByteArray>(data_->duplicate(state)));
       }
@@ -268,7 +249,9 @@ namespace rubinius {
   }
 
   String* String::append(STATE, String* other) {
-    return append(state, reinterpret_cast<const char*>(other->byte_address()), other->size());
+    return append(state,
+                  reinterpret_cast<const char*>(other->byte_address()),
+                  other->size());
   }
 
   String* String::append(STATE, const char* other) {
@@ -279,26 +262,26 @@ namespace rubinius {
     native_int new_size = size() + length;
     native_int capacity = data_->size();
 
-    if(capacity < (new_size + 1)) {
+    if(capacity < new_size + 1) {
       // capacity needs one extra byte of room for the trailing null
       do {
         // @todo growth should be more intelligent than doubling
         capacity *= 2;
-      } while(capacity < (new_size + 1));
+      } while(capacity < new_size + 1);
 
       // No need to call unshare and duplicate a ByteArray
       // just to throw it away.
       if(shared_ == Qtrue) shared(state, Qfalse);
 
       ByteArray *ba = ByteArray::create(state, capacity);
-      std::memcpy(ba->raw_bytes(), byte_address(), size());
+      memcpy(ba->raw_bytes(), byte_address(), size());
       data(state, ba);
     } else {
       if(shared_ == Qtrue) unshare(state);
     }
 
     // Append on top of the null byte at the end of s1, not after it
-    std::memcpy(byte_address() + size(), other, length);
+    memcpy(byte_address() + size(), other, length);
 
     // The 0-based index of the last character is new_size - 1
     byte_address()[new_size] = 0;
@@ -318,7 +301,7 @@ namespace rubinius {
   }
 
   Float* String::to_f(STATE) {
-    return Float::create(state, this->to_double(state));
+    return Float::create(state, to_double(state));
   }
 
   double String::to_double(STATE) {
@@ -328,11 +311,11 @@ namespace rubinius {
     int e_seen = 0;
 
     p = ba;
-    while (ISSPACE(*p)) p++;
+    while(ISSPACE(*p)) p++;
     n = p;
 
-    while (*p) {
-      if (*p == '_') {
+    while(*p) {
+      if(*p == '_') {
         p++;
       } else {
         if(*p == 'e' || *p == 'E') {
@@ -351,7 +334,7 @@ namespace rubinius {
     }
     *n = 0;
 
-    value = ::ruby_strtod(ba, &rest);
+    value = ruby_strtod(ba, &rest);
     free(ba);
 
     return value;
@@ -359,18 +342,18 @@ namespace rubinius {
 
   // Character-wise logical AND of two strings. Modifies the receiver.
   String* String::apply_and(STATE, String* other) {
-    native_int count, i;
-    uint8_t* s = byte_address();
-    uint8_t* o = other->byte_address();
-
+    native_int count;
     if(num_bytes_ > other->num_bytes()) {
       count = other->num_bytes()->to_native();
     } else {
       count = num_bytes_->to_native();
     }
 
+    uint8_t* s = byte_address();
+    uint8_t* o = other->byte_address();
+
     // Use && not & to keep 1's in the table.
-    for(i = 0; i < count; i++) {
+    for(native_int i = 0; i < count; i++) {
       s[i] = s[i] && o[i];
     }
 
@@ -385,22 +368,22 @@ namespace rubinius {
     native_int limit;
 
     bool assign(native_int chr) {
-      int j, i = this->set[chr];
+      int j, i = set[chr];
 
-      if(this->limit >= 0 && this->steps >= this->limit) return true;
+      if(limit >= 0 && steps >= limit) return true;
 
       if(i < 0) {
-        this->tr[this->last] = chr;
+        tr[last] = chr;
       } else {
-        this->last--;
-        for(j = i + 1; j <= this->last; j++) {
-          this->set[(native_int)this->tr[j]]--;
-          this->tr[j-1] = this->tr[j];
+        last--;
+        for(j = i + 1; j <= last; j++) {
+          set[(native_int)tr[j]]--;
+          tr[j-1] = tr[j];
         }
-        this->tr[this->last] = chr;
+        tr[last] = chr;
       }
-      this->set[chr] = this->last++;
-      this->steps++;
+      set[chr] = last++;
+      steps++;
 
       return false;
     }
@@ -408,9 +391,6 @@ namespace rubinius {
 
   Fixnum* String::tr_expand(STATE, Object* limit) {
     struct tr_data tr_data;
-    native_int seq;
-    native_int max;
-    native_int chr;
 
     tr_data.last = 0;
     tr_data.steps = 0;
@@ -422,18 +402,18 @@ namespace rubinius {
     }
 
     uint8_t* str = byte_address();
-    native_int bytes = (native_int)this->size();
+    native_int bytes = (native_int)size();
     native_int start = bytes > 1 && str[0] == '^' ? 1 : 0;
-    std::memset(tr_data.set, -1, sizeof(native_int) * 256);
+    memset(tr_data.set, -1, sizeof(native_int) * 256);
 
     for(native_int i = start; i < bytes;) {
-      chr = str[i];
-      seq = ++i < bytes ? str[i] : -1;
+      native_int chr = str[i];
+      native_int seq = ++i < bytes ? str[i] : -1;
 
       if(chr == '\\' && seq >= 0) {
         continue;
       } else if(seq == '-') {
-        max = ++i < bytes ? str[i] : -1;
+        native_int max = ++i < bytes ? str[i] : -1;
         if(max >= 0) {
           while(chr <= max) {
             if(tr_data.assign(chr)) return tr_replace(state, &tr_data);
@@ -453,14 +433,14 @@ namespace rubinius {
   }
 
   Fixnum* String::tr_replace(STATE, struct tr_data* tr_data) {
-    if(tr_data->last > (native_int)size() || shared_->true_p()) {
+    if(tr_data->last + 1 > (native_int)size() || shared_->true_p()) {
       ByteArray* ba = ByteArray::create(state, tr_data->last + 1);
 
       data(state, ba);
       shared(state, Qfalse);
     }
 
-    std::memcpy(byte_address(), tr_data->tr, tr_data->last);
+    memcpy(byte_address(), tr_data->tr, tr_data->last);
     byte_address()[tr_data->last] = 0;
 
     num_bytes(state, Fixnum::from(tr_data->last));
@@ -576,7 +556,9 @@ namespace rubinius {
     return result;
   }
 
-  String* String::copy_from(STATE, String* other, Fixnum* start, Fixnum* size, Fixnum* dest) {
+  String* String::copy_from(STATE, String* other, Fixnum* start,
+                            Fixnum* size, Fixnum* dest)
+  {
     native_int src = start->to_native();
     native_int dst = dest->to_native();
     native_int cnt = size->to_native();
@@ -591,28 +573,32 @@ namespace rubinius {
     if(dst < 0) dst = 0;
     if(cnt > sz - dst) cnt = sz - dst;
 
-    std::memcpy(byte_address() + dst, other->byte_address() + src, cnt);
+    memcpy(byte_address() + dst, other->byte_address() + src, cnt);
 
     return this;
   }
 
-  Fixnum* String::compare_substring(STATE, String* other, Fixnum* start, Fixnum* size) {
+  Fixnum* String::compare_substring(STATE, String* other, Fixnum* start,
+                                    Fixnum* size)
+  {
     native_int src = start->to_native();
     native_int cnt = size->to_native();
     native_int sz = (native_int)this->size();
     native_int osz = (native_int)other->size();
 
     if(src < 0) src = osz + src;
+
     if(src >= osz) {
       Exception::object_bounds_exceeded_error(state, "start exceeds size of other");
     } else if(src < 0) {
       Exception::object_bounds_exceeded_error(state, "start less than zero");
     }
+
     if(src + cnt > osz) cnt = osz - src;
 
     if(cnt > sz) cnt = sz;
 
-    native_int cmp = std::memcmp(byte_address(), other->byte_address() + src, cnt);
+    native_int cmp = memcmp(byte_address(), other->byte_address() + src, cnt);
 
     if(cmp < 0) {
       return Fixnum::from(-1);
@@ -636,13 +622,13 @@ namespace rubinius {
     native_int cnt = size->to_native();
 
     if(Fixnum* chr = try_as<Fixnum>(pattern)) {
-      std::memset(s->byte_address(), (int)chr->to_native(), cnt);
+      memset(s->byte_address(), (int)chr->to_native(), cnt);
     } else if(String* pat = try_as<String>(pattern)) {
       pat->infect(state, s);
 
       native_int psz = pat->size();
       if(psz == 1) {
-        std::memset(s->byte_address(), pat->byte_address()[0], cnt);
+        memset(s->byte_address(), pat->byte_address()[0], cnt);
       } else if(psz > 1) {
         native_int i, j, n;
 
@@ -664,8 +650,7 @@ namespace rubinius {
   }
 
   String* String::crypt(STATE, String* salt) {
-    const char* s = ::crypt(this->c_str(), salt->c_str());
-    return String::create(state, s);
+    return String::create(state, ::crypt(this->c_str(), salt->c_str()));
   }
 
   Integer* String::to_i(STATE, Fixnum* fix_base, Object* strict) {
@@ -986,7 +971,9 @@ return_value:
         uint8_t* cur = right;
 
         while(cur >= buf) {
-          if(memcmp(cur, matcher, match_size) == 0) return Fixnum::from(cur - buf);
+          if(memcmp(cur, matcher, match_size) == 0) {
+            return Fixnum::from(cur - buf);
+          }
           cur--;
         }
       }
