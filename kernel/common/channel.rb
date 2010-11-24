@@ -5,7 +5,7 @@
 module Rubinius
   class Channel
     def inspect
-      "#<Rubinius::Channel:0x%x @waiting=%p @value=%p>" % [object_id, waiting, value]
+      "#<Rubinius::Channel>"
     end
 
     def as_lock(val=nil)
