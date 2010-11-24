@@ -27,6 +27,8 @@
 
 #include "native_thread.hpp"
 
+#include "capi/handle.hpp"
+
 namespace rubinius {
   void IO::init(STATE) {
     GO(io).set(state->new_class("IO", G(object)));
@@ -351,6 +353,20 @@ namespace rubinius {
     // Invalid descriptor no matter what.
     descriptor(state, Fixnum::from(-1));
 
+    // If there is a handle for this IO, and it's been promoted into
+    // a lowlevel RIO struct using fdopen, then we MUST use fclose
+    // to close it.
+
+    if(inflated_header_p()) {
+      capi::Handle* hdl = inflated_header()->handle();
+      if(hdl && hdl->is_rio()) {
+        if(!hdl->rio_close()) {
+          Exception::errno_error(state);
+        }
+        return Qnil;
+      }
+    }
+
     switch(::close(desc)) {
     case -1:
       Exception::errno_error(state);
@@ -444,8 +460,21 @@ namespace rubinius {
 
     // don't close stdin, stdout, stderr (0, 1, 2)
     if(fd >= 3) {
-      ::close(fd);
       io->descriptor(state, Fixnum::from(-1));
+
+      // If there is a handle for this IO, and it's been promoted into
+      // a lowlevel RIO struct using fdopen, then we MUST use fclose
+      // to close it.
+
+      if(io->inflated_header_p()) {
+        capi::Handle* hdl = io->inflated_header()->handle();
+        if(hdl && hdl->is_rio()) {
+          hdl->rio_close();
+          return;
+        }
+      }
+
+      ::close(fd);
     }
   }
 

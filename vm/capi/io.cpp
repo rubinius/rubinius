@@ -83,6 +83,17 @@ namespace rubinius {
 
       return as_.rio;
     }
+
+    bool Handle::rio_close() {
+      if(type_ != cRIO) return true;
+
+      RIO* rio = as_.rio;
+
+      bool ok = (fclose(rio->f) == 0);
+      rio->f = NULL;
+
+      return ok;
+    }
   }
 }
 extern "C" {
