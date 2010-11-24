@@ -254,9 +254,18 @@ static unsigned long scan_hex(const char *start, int len, int *retlen);
 static void reset_block(rb_parse_state *parse_state);
 static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table vars);
 
+#ifndef RE_OPTION_IGNORECASE
 #define RE_OPTION_IGNORECASE         (1L)
+#endif
+
+#ifndef RE_OPTION_EXTENDED
 #define RE_OPTION_EXTENDED           (2L)
+#endif
+
+#ifndef RE_OPTION_MULTILINE
 #define RE_OPTION_MULTILINE          (4L)
+#endif
+
 #define RE_OPTION_DONT_CAPTURE_GROUP (128L)
 #define RE_OPTION_CAPTURE_GROUP      (256L)
 #define RE_OPTION_ONCE               (8192L)
@@ -5080,7 +5089,11 @@ call_op(NODE *recv, QUID id, int narg, NODE *arg1, rb_parse_state *parse_state)
     id = convert_op(id);
 
 
-    return NEW_CALL(recv, id, arg1);
+    NODE* n = NEW_CALL(recv, id, arg1);
+
+    fixpos(n, recv);
+
+    return n;
 }
 
 static NODE*
