@@ -178,8 +178,8 @@ class InstructionParser
       @file.puts "        @current_block = block"
     end
 
-    def bb_exit
-      @file.puts "        @current_block.close"
+    def bb_exit(check_stack)
+      @file.puts "        @current_block.close #{check_stack}"
       @file.puts "        @current_block = new_basic_block"
     end
 
@@ -203,8 +203,8 @@ class InstructionParser
       method_definition
     end
 
-    def unconditional_exit
-      @after_stack = lambda { bb_exit }
+    def unconditional_exit(check_stack=false)
+      @after_stack = lambda { bb_exit check_stack }
       method_definition
     end
 
@@ -229,7 +229,7 @@ class InstructionParser
     end
 
     def process_ret
-      unconditional_exit
+      unconditional_exit true
     end
 
     def process_raise_exc
@@ -237,11 +237,11 @@ class InstructionParser
     end
 
     def process_raise_return
-      unconditional_exit
+      unconditional_exit true
     end
 
     def process_ensure_return
-      unconditional_exit
+      unconditional_exit true
     end
 
     def process_raise_break

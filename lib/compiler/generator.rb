@@ -77,9 +77,11 @@ module Rubinius
       def initialize(generator)
         @generator  = generator
         @ip         = generator.ip
-        @closed_ip  = 0
         @enter_size = nil
         @max_size   = 0
+        @min_size   = 0
+        @exit_ip    = 0
+        @exit_size  = nil
         @stack      = 0
         @left       = nil
         @right      = nil
@@ -90,20 +92,26 @@ module Rubinius
       def add_stack(size)
         @stack += size
         @max_size = @stack if @stack > @max_size
+        @min_size = @stack if @stack < @min_size
       end
 
       def open
         @ip = @generator.ip
       end
 
-      def close
+      def close(record_exit=false)
         @closed = true
-        @closed_ip = @generator.ip
+
+        if record_exit
+          @exit_size = @stack
+          @exit_ip = @generator.ip - 1
+        end
       end
 
-      def location
-        line = @generator.ip_to_line @ip
-        "#{@generator.name}: line: #{line}, IP: #{@ip}"
+      def location(ip=nil)
+        ip ||= @ip
+        line = @generator.ip_to_line(ip)
+        "#{@generator.name}: line: #{line}, IP: #{ip}"
       end
 
       def visited?
@@ -127,6 +135,18 @@ module Rubinius
           @generator.accumulate_stack(@enter_size + @max_size)
 
           net_size = @enter_size + @stack
+
+          if net_size < 0
+            raise CompileError, "net stack underflow at #{location}"
+          end
+
+          if @enter_size + @min_size < 0
+            raise CompileError, "minimum stack underflow at #{location}"
+          end
+
+          if @exit_size and @enter_size + @exit_size < 1
+            raise CompileError, "exit stack underflow at #{location(@exit_ip)}"
+          end
 
           if @left
             @left.check_stack net_size
