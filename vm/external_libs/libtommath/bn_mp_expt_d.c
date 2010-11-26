@@ -28,23 +28,21 @@ int mp_expt_d MPA(mp_int * a, mp_digit b, mp_int * c)
   /* set initial result */
   mp_set (c, 1);
 
-  for (x = 0; x < (int) DIGIT_BIT; x++) {
-    /* square */
-    if ((res = mp_sqr (MPST, c, c)) != MP_OKAY) {
-      mp_clear (&g);
-      return res;
-    }
-
+  while(b > 0) {
     /* if the bit is set multiply */
-    if ((b & (mp_digit) (((mp_digit)1) << (DIGIT_BIT - 1))) != 0) {
+    if(b & 1) {
       if ((res = mp_mul (MPST, c, &g, c)) != MP_OKAY) {
-         mp_clear (&g);
          return res;
       }
     }
 
+    /* square */
+    if (b > 1 && (res = mp_sqr (MPST, &g, &g)) != MP_OKAY) {
+      return res;
+    }
+
     /* shift to next bit */
-    b <<= 1;
+    b >>= 1;
   }
 
   mp_clear (&g);
