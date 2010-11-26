@@ -32,12 +32,14 @@ int mp_expt_d MPA(mp_int * a, mp_digit b, mp_int * c)
     /* if the bit is set multiply */
     if(b & 1) {
       if ((res = mp_mul (MPST, c, &g, c)) != MP_OKAY) {
-         return res;
+        mp_clear(&g);
+        return res;
       }
     }
 
     /* square */
     if (b > 1 && (res = mp_sqr (MPST, &g, &g)) != MP_OKAY) {
+      mp_clear(&g);
       return res;
     }
 
