@@ -18,7 +18,7 @@
 /* calculate c = a**b  using a square-multiply algorithm */
 int mp_expt_d MPA(mp_int * a, mp_digit b, mp_int * c)
 {
-  int     res, x;
+  int     res;
   mp_int  g;
 
   if ((res = mp_init_copy (MPST, &g, a)) != MP_OKAY) {
