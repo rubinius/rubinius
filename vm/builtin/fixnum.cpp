@@ -209,10 +209,12 @@ namespace rubinius {
       }
       // The exp > 1 check is to not overflow unneccesary if this is the
       // last iteration of the algorithm
-      if(!FIT_SQRT(base) && exp > 1) {
-        return Bignum::from(state, to_native())->pow(state, exponent);
+      if(exp > 1) {
+        if(!FIT_SQRT(base)) {
+          return Bignum::from(state, to_native())->pow(state, exponent);
+        }
+        base *= base;
       }
-      base *= base;
       exp >>= 1;
     }
     return Fixnum::from(result);
