@@ -4,6 +4,7 @@
 class Autoload
   def self.allocate
     Ruby.primitive :autoload_allocate
+    raise PrimtiveFailure, "Autoload.allocate primitive failed"
   end
 
   attr_reader :name

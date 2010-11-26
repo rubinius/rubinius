@@ -1,6 +1,7 @@
 class Rubinius::TaskProbe
   def self.allocate
     Ruby.primitive :taskprobe_allocate
+    raise PrimtiveFailure, "TaskProbe.allocate primitive failed"
   end
 
   # Enable +probe+ for this instance. Unless this instance
