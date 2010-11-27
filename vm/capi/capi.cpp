@@ -372,15 +372,24 @@ extern "C" {
 
     Object* blk = RBX_Qnil;
 
-    if(VALUE blk_handle = env->outgoing_block()) {
+    VALUE blk_handle = env->outgoing_block();
+    if(blk_handle) {
       blk = env->get_object(blk_handle);
       env->set_outgoing_block(0);
     }
 
-    return capi_funcall_backend_native(env, "", 0,
+    VALUE result = capi_funcall_backend_native(env, "", 0,
         env->get_object(receiver),
         reinterpret_cast<Symbol*>(method_name),
         arg_count, args, blk);
+
+    // Ensure we reset the block in the NativeMethodFrame because
+    // another call may be made from a C-API function.
+    if(blk_handle) {
+      env->set_outgoing_block(blk_handle);
+    }
+
+    return result;
   }
 
   VALUE rb_funcall2(VALUE receiver, ID method_name, int arg_count, const VALUE* v_args) {
