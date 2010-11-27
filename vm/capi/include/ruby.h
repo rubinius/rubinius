@@ -1284,6 +1284,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Call #inspect on an object. */
   VALUE rb_inspect(VALUE obj_handle);
 
+  /** Returns a Proc wrapping a C function. */
+  VALUE rb_proc_new(VALUE (*func)(ANYARGS), VALUE val);
+
   VALUE rb_protect_inspect(VALUE (*func)(VALUE a, VALUE b), VALUE h_obj, VALUE h_arg);
   VALUE rb_inspecting_p(VALUE obj);
 

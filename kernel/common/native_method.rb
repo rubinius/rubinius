@@ -10,6 +10,7 @@ module Rubinius
 
     attr_reader :file
     attr_reader :name
+    attr_reader :arity
 
     #
     # Load a dynamic library at path +library+, having name +extension_name+.

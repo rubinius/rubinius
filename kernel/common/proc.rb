@@ -35,6 +35,7 @@ class Proc
     end
   end
 
+  # Expose @block because MRI does. Do not expose @bound_method
   attr_accessor :block
 
   def binding
@@ -55,6 +56,11 @@ class Proc
   end
 
   def arity
+    if @bound_method
+      arity = @bound_method.arity
+      arity < 0 ? -1 : arity
+    end
+
     @block.arity
   end
 
