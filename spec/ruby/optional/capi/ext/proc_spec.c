@@ -26,6 +26,18 @@ VALUE sp_underline_concat_proc(VALUE self) {
 }
 #endif
 
+VALUE proc_spec_rb_Proc_new_helper(void) {
+  return rb_funcall(rb_cProc, rb_intern("new"), 0);
+}
+
+VALUE proc_spec_rb_Proc_new(VALUE self, VALUE do_call) {
+  if(RTEST(do_call)) {
+    rb_funcall(self, rb_intern("nil?"), 0);
+  }
+
+  return proc_spec_rb_Proc_new_helper();
+}
+
 void Init_proc_spec() {
   VALUE cls;
   cls = rb_define_class("CApiProcSpecs", rb_cObject);
@@ -33,6 +45,8 @@ void Init_proc_spec() {
 #ifdef HAVE_RB_PROC_NEW
   rb_define_method(cls, "underline_concat_proc", sp_underline_concat_proc, 0);
 #endif
+
+  rb_define_method(cls, "rb_Proc_new", proc_spec_rb_Proc_new, 1);
 }
 
 #ifdef __cplusplus
