@@ -701,7 +701,7 @@ namespace rubinius {
         }
 
         if(!bit_inside_shift) {
-          int shift_mask = (1 << (shift % DIGIT_BIT)) - 1;
+          native_int shift_mask = ((native_int)1 << (shift % DIGIT_BIT)) - 1;
           bit_inside_shift = (DIGIT(a, full_digits) & shift_mask);
         }
 
