@@ -25,7 +25,7 @@ module Rubinius
     end
 
     def self.sprintf(format, args)
-      Rubinius::Sprintf.new(format, *args).parse
+      ::Rubinius::Sprinter.get(format).call(*args)
     end
   end
 end
