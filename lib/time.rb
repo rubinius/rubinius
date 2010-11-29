@@ -421,10 +421,40 @@ class Time
   #
   def httpdate
     t = dup.utc
-    sprintf('%s, %02d %s %d %02d:%02d:%02d GMT',
-      RFC2822_DAY_NAME[t.wday],
-      t.day, RFC2822_MONTH_NAME[t.mon-1], t.year,
-      t.hour, t.min, t.sec)
+    # sprintf('%s, %02d %s %d %02d:%02d:%02d GMT',
+      # RFC2822_DAY_NAME[t.wday],
+      # t.day, RFC2822_MONTH_NAME[t.mon-1], t.year,
+      # t.hour, t.min, t.sec)
+
+    day = t.day
+    if day < 10
+      day = "0#{day}"
+    else
+      day = day.to_s
+    end
+
+    hour = t.hour
+    if hour < 10
+      hour = "0#{hour}"
+    else
+      hour = hour.to_s
+    end
+
+    min = t.min
+    if min < 10
+      min = "0#{min}"
+    else
+      min = min.to_s
+    end
+
+    sec = t.sec
+    if sec < 10
+      sec = "0#{sec}"
+    else
+      sec = sec.to_s
+    end
+
+    "#{RFC2822_DAY_NAME[t.wday]}, #{day} #{RFC2822_MONTH_NAME[t.mon-1]} #{t.year} #{hour}:#{min}:#{sec} GMT"
   end
 
   #

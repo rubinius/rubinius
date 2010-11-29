@@ -19,3 +19,21 @@ describe "CApiProc" do
     my_proc.arity.should == -1
   end
 end
+
+describe "C-API" do
+  before :each do
+    @p = CApiProcSpecs.new
+  end
+
+  describe "when calling Proc.new from the C-API" do
+    it "returns the proc passed to the Ruby method calling into C" do
+      prc = @p.rb_Proc_new(false) { :called }
+      prc.call.should == :called
+    end
+
+    it "returns the proc passed to the Ruby method when multiple rb_funcall's are issued" do
+      prc = @p.rb_Proc_new(true) { :called }
+      prc.call.should == :called
+    end
+  end
+end

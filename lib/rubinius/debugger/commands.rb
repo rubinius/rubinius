@@ -116,7 +116,7 @@ To breakpoint on class method start of Debugger line 4, use:
       HELP
 
       def run(args, temp=false)
-        m = /([A-Z]\w*(?:::[A-Z]\w*)*)([.#])(\w+)(?:[:](\d+))?/.match(args)
+        m = /([A-Z]\w*(?:::[A-Z]\w*)*)([.#])(\w+[!?=]?)(?:[:](\d+))?/.match(args)
         unless m
           error "Unrecognized position: '#{args}'"
           return

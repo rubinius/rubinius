@@ -13,6 +13,7 @@
 #undef HAVE_THREAD_BLOCKING_REGION
 
 #ifdef RUBY_VERSION_IS_LT_1_8_7
+#undef HAVE_RB_EXEC_RECURSIVE
 #undef HAVE_RBIGNUM_SIGN
 #endif
 
@@ -23,6 +24,7 @@
 #undef HAVE_STR2CSTR
 #undef HAVE_RB_STR2CSTR
 #undef HAVE_RB_SET_KCODE
+#undef HAVE_RB_PROC_NEW
 #endif
 
 /* RubySpec assumes following are public API */

@@ -85,7 +85,7 @@ namespace rubinius {
     int on = 1;
     setsockopt(server_fd_, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
 
-    struct sockaddr_in sin = {0};
+    struct sockaddr_in sin = {};
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = INADDR_ANY;
     sin.sin_port = htons(port);
