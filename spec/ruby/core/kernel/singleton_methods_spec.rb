@@ -47,6 +47,26 @@ ruby_version_is ""..."1.9" do
       
       KernelSpecs::Methods.new.singleton_methods.should == []
     end
+
+    it "includes public and protected methods defined through a mixin into the metaclass based on the flag" do
+      m = KernelSpecs::Methods.new
+      class << m
+        include MetaclassMethods
+      end
+      m.singleton_methods.should include("peekaboo")
+      m.singleton_methods.should include("nopeeking")
+      m.singleton_methods(false).should_not include("peekaboo")
+      m.singleton_methods(false).should_not include("nopeeking")
+    end
+
+    it "does not include private methods defined through a mixin into the metaclass" do
+      m = KernelSpecs::Methods.new
+      class << m
+        include MetaclassMethods
+      end
+      m.singleton_methods.should_not include("shoo")
+      m.singleton_methods(false).should_not include("shoo")
+    end
   end
 end
 
@@ -95,6 +115,26 @@ ruby_version_is "1.9" do
       end
       
       KernelSpecs::Methods.new.singleton_methods.should == []
+    end
+
+    it "includes public and protected methods defined through a mixin into the metaclass based on the flag" do
+      m = KernelSpecs::Methods.new
+      class << m
+        include MetaclassMethods
+      end
+      m.singleton_methods.should include(:peekaboo)
+      m.singleton_methods.should include(:nopeeking)
+      m.singleton_methods(false).should_not include(:peekaboo)
+      m.singleton_methods(false).should_not include(:nopeeking)
+    end
+
+    it "does not include private methods defined through a mixin into the metaclass" do
+      m = KernelSpecs::Methods.new
+      class << m
+        include MetaclassMethods
+      end
+      m.singleton_methods.should_not include(:shoo)
+      m.singleton_methods(false).should_not include(:shoo)
     end
   end
 end  
