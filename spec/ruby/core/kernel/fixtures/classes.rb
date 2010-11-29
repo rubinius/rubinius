@@ -12,6 +12,16 @@ module KernelSpecs
     module MetaclassMethods
       def peekaboo
       end
+
+      protected
+
+      def nopeeking
+      end
+
+      private
+
+      def shoo
+      end
     end
 
     def self.ichi; end

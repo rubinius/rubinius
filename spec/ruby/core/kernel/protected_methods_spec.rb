@@ -16,6 +16,12 @@ describe "Kernel#protected_methods" do
       (l1 & l2).should include("juu_ichi")
       KernelSpecs::Methods.new.protected_methods.should include('ku')
     end
+
+    it "returns protected methods mixed in to the metaclass" do
+      m = KernelSpecs::Methods.new
+      m.extend(KernelSpecs::Methods::MetaclassMethods)
+      m.protected_methods.should include('nopeeking')
+    end
   end
 
   ruby_version_is "1.9" do
@@ -29,6 +35,12 @@ describe "Kernel#protected_methods" do
       l2 = KernelSpecs::Methods.protected_methods
       (l1 & l2).should include(:juu_ichi)
       KernelSpecs::Methods.new.protected_methods.should include(:ku)
+    end
+
+    it "returns methods mixed in to the metaclass" do
+      m = KernelSpecs::Methods.new
+      m.extend(KernelSpecs::Methods::MetaclassMethods)
+      m.protected_methods.should include(:nopeeking)
     end
   end
 end

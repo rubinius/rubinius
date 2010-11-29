@@ -15,6 +15,12 @@ describe "Kernel#public_methods" do
       m = KernelSpecs::Methods.new.public_methods
       m.should include('ni', 'juu_san')
     end
+
+    it "returns public methods mixed in to the metaclass" do
+      m = KernelSpecs::Methods.new
+      m.extend(KernelSpecs::Methods::MetaclassMethods)
+      m.public_methods.should include('peekaboo')
+    end
   end
 
   ruby_version_is "1.9" do
@@ -29,6 +35,12 @@ describe "Kernel#public_methods" do
         :hachi, :ichi, :juu, :juu_ni, :roku, :san, :shi)
       m = KernelSpecs::Methods.new.public_methods
       m.should include(:ni, :juu_san)
+    end
+
+    it "returns methods mixed in to the metaclass" do
+      m = KernelSpecs::Methods.new
+      m.extend(KernelSpecs::Methods::MetaclassMethods)
+      m.public_methods.should include(:peekaboo)
     end
   end
 end
