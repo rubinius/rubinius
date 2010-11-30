@@ -24,9 +24,11 @@ module Rubinius
       def initialize(code, format)
         @code, @format = code, format
 
+        @append_parts = 0
+
         # Change next line to 'true' for debug output. Can't really use
         # $DEBUG, because of its special meaning to sprintf.
-        if @verbose = false
+        if @verbose = false # (format == "%s - %s") # , %d, %02d, %s")
           @@seen ||= {}
           if @@seen[format]
             @verbose = false
@@ -35,7 +37,7 @@ module Rubinius
           end
         end
 
-        @g = ::Rubinius::Generator.new
+        @g = Rubinius::Generator.new
         @g.name = :call
         @g.file = :sprintf
         @g.set_line 1
@@ -55,14 +57,34 @@ module Rubinius
         if @index_mode == :absolute
           @g.local_names = (0...@arg_count).map {|i| :"#{i + 1}$" } + [:splat]
         else
-          @g.local_names = (0...@arg_count).map {|i| nil } + [:splat]
+          @g.local_names = (0...@arg_count).map {|i| :"arg#{i}" } + [:splat]
         end
 
+        @g.string_build @append_parts
         @g.ret
         @g.close
 
-        @g.encode
-        cm = @g.package ::Rubinius::CompiledMethod
+        begin
+          @g.encode
+        rescue Exception
+          if $DEBUG
+            puts "Error compiling printf pattern: #{@format}"
+            puts "Literals: #{@g.literals.inspect}"
+            decoder = Rubinius::InstructionDecoder.new(@g.iseq)
+            ip = 0
+            decoder.decode(false).each do |i|
+              if i.size == 1
+                puts "#{ip}:\t#{i[0].opcode}"
+              else
+                puts "#{ip}:\t#{i[0].opcode}, #{i[1..-1].inspect}"
+              end
+              ip += i.size
+            end
+          end
+          raise
+        end
+
+        cm = @g.package Rubinius::CompiledMethod
 
         # Careful with this: CM::Instruction#to_s uses String#%
         if @verbose
@@ -72,8 +94,8 @@ module Rubinius
           puts
         end
 
-        ss = ::Rubinius::StaticScope.new Object
-        ::Rubinius.attach_method @g.name, cm, ss, @code
+        ss = Rubinius::StaticScope.new Object
+        Rubinius.attach_method @g.name, cm, ss, @code
       end
 
       def meta_op_minus
@@ -119,12 +141,18 @@ module Rubinius
         if specified
           specified = specified.to_i
           raise ArgumentError, "invalid positional index" if specified == 0
-          raise ArgumentError, "unnumbered mixed with numbered" if @index_mode == :relative
+
+          if @index_mode == :relative
+            raise ArgumentError, "unnumbered mixed with numbered"
+          end
+
           @index_mode = :absolute
           @arg_count = specified if specified > @arg_count
           specified - 1
         else
-          raise ArgumentError, "unnumbered mixed with numbered" if @index_mode == :absolute
+          if @index_mode == :absolute
+            raise ArgumentError, "unnumbered mixed with numbered"
+          end
           @index_mode = :relative
           (@arg_count += 1) - 1
         end
@@ -156,7 +184,12 @@ module Rubinius
         append_str false
       end
 
-      def append_str taint
+      def append_str(taint)
+        @append_parts += 1
+        taint = false
+
+        return
+
         if @has_content
           if taint
             @g.swap
@@ -203,6 +236,7 @@ module Rubinius
           @full_leader_size += 1 if @f_plus || @f_space
 
         end
+
         def prepend_prefix
           if @prefix
             @g.push_literal @prefix
@@ -214,6 +248,7 @@ module Rubinius
         def set_value(ref)
           @field_index = @b.next_index(ref)
         end
+
         def set_width(full, ref, static)
           @width_static = static && static.to_i
           if full && !static
@@ -222,6 +257,7 @@ module Rubinius
 
           @has_width = @width_static || @width_index
         end
+
         def set_precision(full, ref, static)
           @prec_static = static && static.to_i
           if full && !static
@@ -403,6 +439,7 @@ module Rubinius
         def zero_pad?
           @has_precision || (@has_width && @f_zero)
         end
+
         def zero_pad(pad="0", &readjust)
           if @has_precision
             push_precision &readjust
@@ -418,6 +455,7 @@ module Rubinius
         def width?
           @has_width
         end
+
         def precision?
           @has_precision
         end
@@ -481,7 +519,7 @@ module Rubinius
         @arg_count = 0
         @index_mode = nil
 
-        @pre_tainted = @format.tainted?
+        @pre_tainted = false  # @format.tainted?
 
         bignum_width = bignum_precision = nil
 
@@ -530,17 +568,9 @@ module Rubinius
 
               case format_code
               when 's'
-                unless @pre_tainted
-                  @g.dup
-                end
-
                 force_type :String
 
               when 'c'
-                unless @pre_tainted
-                  @g.dup
-                end
-
                 force_type :Fixnum, :Integer
 
                 chr_range_ok = @g.new_label
@@ -562,10 +592,6 @@ module Rubinius
                 @g.send :chr, 0
               when 'p'
                 @g.send :inspect, 0
-
-                unless @pre_tainted
-                  @g.dup
-                end
               end
 
               atom.justify_width
@@ -824,10 +850,6 @@ module Rubinius
           end
         end
 
-        unless @has_content
-          append_literal ''
-        end
-
         if @index_mode != :absolute
           no_exception = @g.new_label
 
@@ -838,7 +860,7 @@ module Rubinius
           @g.passed_arg @arg_count
           @g.gif no_exception
 
-          ::Rubinius::AST::GlobalVariableAccess.new(0, :$DEBUG).bytecode(@g)
+          Rubinius::AST::GlobalVariableAccess.new(1, :$DEBUG).bytecode(@g)
           @g.gif no_exception
 
           raise_ArgumentError "too many arguments for format string"

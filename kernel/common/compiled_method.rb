@@ -505,7 +505,7 @@ module Rubinius
 
         @args.each_index do |i|
           case @op.args[i]
-          when :literal, :index
+          when :literal
             @args[i] = cm.literals[@args[i]]
           when :local
             # TODO: Blocks should be able to retrieve local names as well,

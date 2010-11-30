@@ -446,10 +446,14 @@ module Kernel
     end
 
     if parts.empty?
-      "#{prefix}>"
+      str = "#{prefix}>"
     else
-      "#{prefix} #{parts.join(' ')}>"
+      str = "#{prefix} #{parts.join(' ')}>"
     end
+
+    str.taint if tainted?
+
+    return str
   end
 
   ##
@@ -623,7 +627,9 @@ module Kernel
   end
 
   def to_s
-    "#<#{self.class}:0x#{self.__id__.to_s(16)}>"
+    str = "#<#{self.class}:0x#{self.__id__.to_s(16)}>"
+    str.taint if tainted?
+    return str
   end
 
   ##
