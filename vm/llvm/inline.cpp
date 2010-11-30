@@ -662,6 +662,7 @@ remember:
         ops_.create_conditional_branch(cont, failure(), valid);
 
         ops_.set_block(cont);
+        break;
       }
 
       case RBX_FFI_TYPE_LONG_LONG:
@@ -683,6 +684,7 @@ remember:
         ops_.create_conditional_branch(cont, failure(), valid);
 
         ops_.set_block(cont);
+        break;
       }
 
       case RBX_FFI_TYPE_STATE:
