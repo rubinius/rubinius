@@ -191,7 +191,7 @@ module Rubinius
     def space_expand(str, width)
       sz = str.size
 
-      return if sz >= width
+      return str if sz >= width
 
       diff = width - sz
 
