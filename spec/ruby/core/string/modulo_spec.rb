@@ -171,6 +171,16 @@ describe "String#%" do
     ("%*1$.*2$3$d" % [10, 5, 1]).should == "     00001"
   end
 
+  it "allows negative width to imply '-' flag" do
+    ("%*1$.*2$3$d" % [-10, 5, 1]).should == "00001     "
+    ("%-*1$.*2$3$d" % [10, 5, 1]).should == "00001     "
+    ("%-*1$.*2$3$d" % [-10, 5, 1]).should == "00001     "
+  end
+
+  it "ignores negative precision" do
+    ("%*1$.*2$3$d" % [10, -5, 1]).should == "         1"
+  end
+
   it "allows a star to take an argument number to use as the width" do
     ("%1$*2$s" % ["a", 8]).should == "       a"
     ("%1$*10$s" % ["a",0,0,0,0,0,0,0,0,8]).should == "       a"
@@ -184,6 +194,15 @@ describe "String#%" do
     p.should_receive(:to_int).and_return(5)
 
     ("%*.*f" % [w, p, 1]).should == "   1.00000"
+
+
+    w = mock('10')
+    w.should_receive(:to_int).and_return(10)
+
+    p = mock('5')
+    p.should_receive(:to_int).and_return(5)
+
+    ("%*.*d" % [w, p, 1]).should == "     00001"
   end
 
   ruby_bug "#", "1.8.6.228" do
