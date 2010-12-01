@@ -20,6 +20,197 @@ module Rubinius
       Builder.new(self, format).build
     end
 
+    def zero_two_expand_integer(int)
+      int = Integer(int) unless int.kind_of? Fixnum
+
+      return int.to_s if int < 0 or int >= 10
+
+      "0#{int}"
+    end
+
+    def zero_expand_integer(int, width)
+      int = Integer(int) unless int.kind_of? Fixnum
+
+      str = int.to_s
+      return str if width <= str.size
+      diff = width - str.size
+
+      if int < 0
+        case diff
+        when 1
+          "-0#{-int}"
+        when 2
+          "-00#{-int}"
+        when 3
+          "-000#{-int}"
+        else
+          "-#{'0' * diff}#{-int}"
+        end
+      else
+        case diff
+        when 1
+          "0#{str}"
+        when 2
+          "00#{str}"
+        when 3
+          "000#{str}"
+        when 4
+          "0000#{str}"
+        else
+          ("0" * diff) << str
+        end
+      end
+    end
+
+    def zero_expand_leader(int, width)
+      if int < 0
+        zero_expand_integer(int, width)
+      else
+        zero_expand_integer(int, width-1)
+      end
+    end
+
+    def space_expand_integer(int, width)
+      int = Integer(int) unless int.kind_of? Fixnum
+
+      str = int.to_s
+      return str if width <= str.size
+      diff = width - str.size
+
+      case diff
+      when 1
+        " #{str}"
+      when 2
+        "  #{str}"
+      when 3
+        "   #{str}"
+      when 4
+        "    #{str}"
+      else
+        (" " * diff) << str
+      end
+    end
+
+    def space_expand_leader(int, width)
+      if int < 0
+        space_expand_integer(int, width)
+      else
+        space_expand_integer(int, width-1)
+      end
+    end
+
+    def space_expand_integer_left(int, width)
+      int = Integer(int) unless int.kind_of? Fixnum
+
+      str = int.to_s
+      return str if width <= str.size
+      diff = width - str.size
+
+      case diff
+      when 1
+        "#{str} "
+      when 2
+        "#{str}  "
+      when 3
+        "#{str}   "
+      when 4
+        "#{str}    "
+      else
+        str + (" " * diff)
+      end
+    end
+
+    def space_expand_leader_left(int, width)
+      if int < 0
+        space_expand_integer_left(int, width)
+      else
+        space_expand_integer_left(int, width-1)
+      end
+    end
+
+    def as_int(int)
+      if int.kind_of? Integer
+        return int
+      else
+        Integer(int)
+      end
+    end
+
+    def compute_space(int)
+      if int >= 0
+        " "
+      else
+        ""
+      end
+    end
+
+    def compute_plus(int)
+      if int >= 0
+        "+"
+      else
+        ""
+      end
+    end
+
+    def digit_expand_precision(int, precision)
+      str = int.to_s
+
+      diff = precision - str.size
+
+      if int < 0
+        # account for the - sign infront
+        diff += 1
+
+        return str if diff <= 0
+
+        case diff
+        when 1
+          "-0#{-int}"
+        when 2
+          "-00#{-int}"
+        when 3
+          "-000#{-int}"
+        else
+          "-#{'0' * diff}#{-int}"
+        end
+      else
+        return str if diff <= 0
+        case diff
+        when 1
+          "0#{str}"
+        when 2
+          "00#{str}"
+        when 3
+          "000#{str}"
+        when 4
+          "0000#{str}"
+        else
+          ("0" * diff) << str
+        end
+      end
+    end
+
+    def space_expand(str, width)
+      sz = str.size
+
+      return if sz >= width
+
+      diff = width - sz
+
+      case diff
+      when 1
+        " #{str}"
+      when 2
+        "  #{str}"
+      when 3
+        "   #{str}"
+      when 4
+        "    #{str}"
+      else
+        (" " * diff) << str
+      end
+    end
+
     class Builder
       def initialize(code, format)
         @code, @format = code, format
@@ -28,7 +219,7 @@ module Rubinius
 
         # Change next line to 'true' for debug output. Can't really use
         # $DEBUG, because of its special meaning to sprintf.
-        if @verbose = false # (format == "%s - %s") # , %d, %02d, %s")
+        if @verbose = false # (format == "%02d")
           @@seen ||= {}
           if @@seen[format]
             @verbose = false
@@ -67,7 +258,7 @@ module Rubinius
         begin
           @g.encode
         rescue Exception
-          if $DEBUG
+          if true
             puts "Error compiling printf pattern: #{@format}"
             puts "Literals: #{@g.literals.inspect}"
             decoder = Rubinius::InstructionDecoder.new(@g.iseq)
@@ -184,37 +375,9 @@ module Rubinius
         append_str false
       end
 
-      def append_str(taint)
+      def append_str(taint=false)
         @append_parts += 1
         taint = false
-
-        return
-
-        if @has_content
-          if taint
-            @g.swap
-            @g.move_down 2
-          end
-
-          @g.swap
-          @g.string_append
-        else
-          @g.string_dup
-          @has_content = true
-
-          if @pre_tainted
-            @g.send :taint, 0
-          end
-        end
-
-        if taint
-          @g.swap
-          tainting_done = @g.new_label
-          @g.send :tainted?, 0
-          if_true do
-            @g.send :taint, 0
-          end
-        end
       end
 
       class Atom
@@ -273,6 +436,16 @@ module Rubinius
 
         def push_value
           @g.push_local @field_index
+        end
+
+        def push_width_value
+          if @width_static
+            @g.push @width_static
+          elsif
+            @g.push_local @width_index
+          else
+            raise "No width to push"
+          end
         end
 
         def push_width(adjust=true)
@@ -336,6 +509,14 @@ module Rubinius
           else
             raise "push without a width"
 
+          end
+        end
+
+        def push_precision_value
+          if @prec_static
+            @g.push @prec_static
+          else
+            @g.push_local @prec_index
           end
         end
 
@@ -456,8 +637,14 @@ module Rubinius
           @has_width
         end
 
+        attr_reader :width_static
+
         def precision?
           @has_precision
+        end
+
+        def leader?
+          @full_leader_size > 0
         end
       end
 
@@ -647,7 +834,104 @@ module Rubinius
 
               append_str false
 
-            when 'd', 'i', 'u', 'B', 'b', 'o', 'X', 'x'
+            when 'd', 'i'
+              radix = RADIX[format_code]
+
+              # A fast, common case.
+              wid = atom.width_static
+              if zero and wid and !space and !plus
+                @g.push :self
+
+                atom.push_value
+
+                if wid == 2
+                  @g.send :zero_two_expand_integer, 1
+                else
+                  @g.push_int wid
+                  @g.send :zero_expand_integer, 2
+                end
+
+                append_str
+              else
+                @g.push :self
+                atom.push_value
+                @g.send :as_int, 1
+
+                val_idx = @g.new_stack_local
+                @g.set_stack_local val_idx
+                @g.pop
+
+                # generic case
+
+                if space
+                  @g.push :self
+                  @g.push_stack_local val_idx
+                  @g.send :compute_space, 1
+                  append_str
+                elsif plus
+                  @g.push :self
+                  @g.push_stack_local val_idx
+                  @g.send :compute_plus, 1
+                  append_str
+                end
+
+                if atom.precision?
+                  @g.push :self
+                  @g.push_stack_local val_idx
+
+                  atom.push_precision_value
+
+                  @g.send :digit_expand_precision, 2
+
+                  if atom.width?
+                    @g.push :self
+                    @g.swap
+                    atom.push_width_value
+
+                    @g.send :space_expand, 2
+                  end
+
+                  append_str
+
+                elsif atom.width?
+                  @g.push :self
+                  @g.push_stack_local val_idx
+
+                  atom.push_width_value
+
+                  if zero
+                    if space or plus
+                      @g.send :zero_expand_leader, 2
+                    else
+                      @g.send :zero_expand_integer, 2
+                    end
+                  else
+                    if space or plus
+                      if ljust
+                        @g.send :space_expand_leader_left, 2
+                      else
+                        @g.send :space_expand_leader, 2
+                      end
+                    else
+                      if ljust
+                        @g.send :space_expand_integer_left, 2
+                      else
+                        @g.send :space_expand_integer, 2
+                      end
+                    end
+                  end
+
+                  append_str
+                else
+                  @g.push_stack_local val_idx
+                  @g.send :to_s, 0
+
+                  append_str
+                end
+
+              end
+
+            when 'u', 'B', 'b', 'o', 'X', 'x'
               radix = RADIX[format_code.downcase]
 
               atom.push_value
@@ -657,6 +941,7 @@ module Rubinius
               # if we've been given a Fixnum. The call is enough
               # overhead to bother, but not something to panic about.
               force_type :Fixnum, :Integer
+
 
               if plus || space || (zero && radix == 10 && format_code != 'u')
                 @g.dup
