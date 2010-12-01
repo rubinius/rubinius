@@ -122,12 +122,15 @@ namespace rubinius {
       }
 
       // Now look up the superclass chain.
-      Module* mod = call_frame->static_scope()->module();
-      while(!mod->nil_p()) {
-        result = mod->get_const(state, name, found);
-        if(*found) return result;
+      cur = call_frame->static_scope();
+      if(!cur->nil_p()) {
+        Module* mod = cur->module();
+        while(!mod->nil_p()) {
+          result = mod->get_const(state, name, found);
+          if(*found) return result;
 
-        mod = mod->superclass();
+          mod = mod->superclass();
+        }
       }
 
       // Lastly, check Object specificly

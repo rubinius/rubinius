@@ -195,6 +195,10 @@ module Rubinius
 
       @required_args = 0
       @total_args = 0
+
+      @detected_args = 0
+      @detected_locals = 0
+
       @splat_index = nil
       @local_names = nil
       @local_count = 0
@@ -212,7 +216,8 @@ module Rubinius
     attr_reader   :ip, :stream, :iseq, :literals
     attr_accessor :break, :redo, :next, :retry, :file, :name,
                   :required_args, :total_args, :splat_index,
-                  :local_count, :local_names, :primitive, :for_block, :current_block
+                  :local_count, :local_names, :primitive, :for_block,
+                  :current_block, :detected_args, :detected_locals
 
     def execute(node)
       node.bytecode self
@@ -264,6 +269,19 @@ module Rubinius
       cm
     end
 
+    def use_detected
+      if @required_args < @detected_args
+        @required_args = @detected_args
+      end
+
+      if @total_args < @detected_args
+        @total_args = @detected_args
+      end
+
+      if @local_count < @detected_locals
+        @local_count = @detected_locals
+      end
+    end
 
     # Commands (these don't generate data in the stream)
 
@@ -441,6 +459,34 @@ module Rubinius
     # than changing the compiler code, this helper was used.
     def push_const(name)
       push_const_fast find_literal(name), add_literal(nil)
+    end
+
+    def push_local(idx)
+      if @detected_locals <= idx
+        @detected_locals = idx + 1
+      end
+
+      super
+    end
+
+    def set_local(idx)
+      if @detected_locals <= idx
+        @detected_locals = idx + 1
+      end
+
+      super
+    end
+
+    # Minor meta operations that can be used to detect
+    # the number of method arguments needed
+    def push_arg(idx)
+      push_local(idx)
+      @detected_args = @detected_locals
+    end
+
+    def set_arg(idx)
+      set_local(idx)
+      @detected_args = @detected_locals
     end
 
     def last_match(mode, which)

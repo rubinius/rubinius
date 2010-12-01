@@ -1699,9 +1699,16 @@ instruction string_build(count) [ +count -- string ]
   flush_ip();
   size_t size = 0;
 
+  bool tainted = false;
+
   // Figure out the total size
   for(int i = 0; i < count; i++) {
     Object* obj = stack_back(i);
+
+    if(obj->reference_p()) {
+      tainted |= obj->is_tainted_p();
+    }
+
     String* str = try_as<String>(obj);
 
     if(str) {
@@ -1713,6 +1720,7 @@ instruction string_build(count) [ +count -- string ]
       // this way instead.
 
       str = obj->to_s(state, false);
+      tainted |= str->is_tainted_p();
       size += str->size();
 
       // TRICKY! Reuse the stack to store our new String value.
@@ -1730,6 +1738,8 @@ instruction string_build(count) [ +count -- string ]
     memcpy(pos, sub->byte_address(), sub->size());
     pos += sub->size();
   }
+
+  if(tainted) str->set_tainted();
 
   stack_clear(count);
   stack_push(str);

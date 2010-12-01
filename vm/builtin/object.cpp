@@ -646,13 +646,21 @@ namespace rubinius {
   String* Object::to_s(STATE, bool address) {
     std::stringstream name;
 
-    if(Fixnum* fix = try_as<Fixnum>(this)) {
-      name << fix->to_native();
-      return String::create(state, name.str().c_str());
-    } else if(Symbol* sym = try_as<Symbol>(this)) {
-      name << ":\"" << sym->c_str(state) << "\"";
-      return String::create(state, name.str().c_str());
-    } else if(String* str = try_as<String>(this)) {
+    if(!reference_p()) {
+      if(nil_p()) return String::create(state, "nil");
+      if(true_p()) return String::create(state, "true");
+      if(false_p()) return String::create(state, "false");
+
+      if(Fixnum* fix = try_as<Fixnum>(this)) {
+        name << fix->to_native();
+        return String::create(state, name.str().c_str());
+      } else if(Symbol* sym = try_as<Symbol>(this)) {
+        name << ":\"" << sym->c_str(state) << "\"";
+        return String::create(state, name.str().c_str());
+      }
+    }
+
+    if(String* str = try_as<String>(this)) {
       return str;
     } else {
       name << "#<";

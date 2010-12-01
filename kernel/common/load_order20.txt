@@ -81,7 +81,7 @@ process.rbc
 random.rbc
 regexp.rbc
 signal.rbc
-sprintf.rbc
+sprinter.rbc
 symbol.rbc
 taskprobe.rbc
 thread.rbc

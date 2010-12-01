@@ -27,6 +27,8 @@ describe "Bignum#>> with n >> m" do
 
     (-42949672980000000000000 >> 15).should == -1310720000610351563
     (-42949672980000000000001 >> 15).should == -1310720000610351563
+
+    (-0xfffffffffffffffff >> 32).should == -68719476736
   end
 
   it "respects twos complement signed shifting for very large values" do
