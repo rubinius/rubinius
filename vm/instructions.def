@@ -1704,7 +1704,10 @@ instruction string_build(count) [ +count -- string ]
   // Figure out the total size
   for(int i = 0; i < count; i++) {
     Object* obj = stack_back(i);
-    tainted |= obj->is_tainted_p();
+
+    if(obj->reference_p()) {
+      tainted |= obj->is_tainted_p();
+    }
 
     String* str = try_as<String>(obj);
 
