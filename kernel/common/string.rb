@@ -57,10 +57,10 @@ class String
   #   "%05d" % 123                       #=> "00123"
   #   "%-5s: %08x" % [ "ID", self.id ]   #=> "ID   : 200e14d6"
   def %(args)
-    if args.is_a? String    # Fixes "%s" % ""
-      ret = Rubinius::Sprinter.get(self).call(args)
-    else
+    if args.respond_to?(:to_ary)
       ret = Rubinius::Sprinter.get(self).call(*args)
+    else
+      ret = Rubinius::Sprinter.get(self).call(args)
     end
 
     ret.taint if tainted?
