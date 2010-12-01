@@ -58,7 +58,7 @@ class Proc
   def arity
     if @bound_method
       arity = @bound_method.arity
-      arity < 0 ? -1 : arity
+      return arity < 0 ? -1 : arity
     end
 
     @block.arity
