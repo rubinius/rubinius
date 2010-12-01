@@ -2,17 +2,15 @@ module Rubinius
   class Sprinter
     class << self
       def get(format)
-        @cache ||= {}
-
-        # An alternative to the below would be to have the Builder
-        # ignore the taint of the format, and instead have sprintf check
-        # the format upon invocation, and taint the result there.
-        if format.tainted?
-          new(format)
-        else
-          @cache[format] ||
-            (@cache[format] = new(format))
+        if t = format.data.instance_variable_get(:@cached_sprinter)
+          return t[1] if t[0] == format
         end
+
+        sprinter = new(format)
+
+        format.data.instance_variable_set(:@cached_sprinter, Tuple[format.dup, sprinter])
+
+        sprinter
       end
     end
 
@@ -397,7 +395,6 @@ module Rubinius
 
           @full_leader_size = @prefix ? @prefix.size : 0
           @full_leader_size += 1 if @f_plus || @f_space
-
         end
 
         def prepend_prefix
