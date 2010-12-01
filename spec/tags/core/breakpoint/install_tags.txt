@@ -1,2 +1,0 @@
-fails:Breakpoint#enable inserts a yield_debugger instruction at the location specified by @ip
-fails:Breakpoint#enable sets the enabled flag to true
