@@ -15,7 +15,16 @@ module Rubinius
     end
 
     def initialize(format)
-      Builder.new(self, format).build
+      cm = Rubinius.object_metaclass(self).dynamic_method :call do |g|
+        Builder.new(self, format, g).build
+      end
+
+      if false
+        puts
+        puts format.inspect
+        puts cm.decode
+        puts
+      end
     end
 
     def zero_two_expand_integer(int)
@@ -210,26 +219,12 @@ module Rubinius
     end
 
     class Builder
-      def initialize(code, format)
+      def initialize(code, format, g)
         @code, @format = code, format
 
         @append_parts = 0
 
-        # Change next line to 'true' for debug output. Can't really use
-        # $DEBUG, because of its special meaning to sprintf.
-        if @verbose = false # (format == "%02d")
-          @@seen ||= {}
-          if @@seen[format]
-            @verbose = false
-          else
-            @@seen[format] = true
-          end
-        end
-
-        @g = Rubinius::Generator.new
-        @g.name = :call
-        @g.file = :sprintf
-        @g.set_line 1
+        @g = g
       end
 
       def build
@@ -251,40 +246,6 @@ module Rubinius
 
         @g.string_build @append_parts
         @g.ret
-        @g.close
-
-        begin
-          @g.encode
-        rescue Exception
-          if true
-            puts "Error compiling printf pattern: #{@format}"
-            puts "Literals: #{@g.literals.inspect}"
-            decoder = Rubinius::InstructionDecoder.new(@g.iseq)
-            ip = 0
-            decoder.decode(false).each do |i|
-              if i.size == 1
-                puts "#{ip}:\t#{i[0].opcode}"
-              else
-                puts "#{ip}:\t#{i[0].opcode}, #{i[1..-1].inspect}"
-              end
-              ip += i.size
-            end
-          end
-          raise
-        end
-
-        cm = @g.package Rubinius::CompiledMethod
-
-        # Careful with this: CM::Instruction#to_s uses String#%
-        if @verbose
-          puts
-          puts @format.inspect
-          puts cm.decode
-          puts
-        end
-
-        ss = Rubinius::StaticScope.new Object
-        Rubinius.attach_method @g.name, cm, ss, @code
       end
 
       def meta_op_minus
@@ -654,7 +615,8 @@ module Rubinius
             @g.send :[], 2
           end
         end
-        def call
+
+        def bytecode
           push_value
           @b.force_type :String
 
@@ -663,8 +625,9 @@ module Rubinius
           @b.append_str
         end
       end
+
       class InspectAtom < StringAtom
-        def call
+        def bytecode
           push_value
           @g.send :inspect, 0
 
@@ -673,8 +636,9 @@ module Rubinius
           @b.append_str
         end
       end
+
       class CharAtom < Atom
-        def call
+        def bytecode
           push_value
           @b.force_type :Fixnum, :Integer
 
@@ -703,7 +667,7 @@ module Rubinius
       end
 
       class FloatAtom < Atom
-        def call
+        def bytecode
           push_value
           @b.force_type :Float
 
@@ -746,8 +710,9 @@ module Rubinius
           @b.append_str
         end
       end
+
       class IntegerAtom < Atom
-        def call
+        def bytecode
           # A fast, common case.
           wid = @width_static
           if @f_zero and wid and !@f_space and !@f_plus
@@ -842,6 +807,7 @@ module Rubinius
           end
         end
       end
+
       class ExtIntegerAtom < Atom
         def format_negative_int(radix)
           # (num + radix ** num.to_s(radix).size).to_s(radix)
@@ -856,7 +822,8 @@ module Rubinius
 
           (radix - 1).to_s(radix)
         end
-        def call
+
+        def bytecode
           radix = RADIX[@format_code]
 
           push_value
@@ -945,6 +912,7 @@ module Rubinius
           @b.append_str
         end
       end
+
       class ExtIntegerAtomU < ExtIntegerAtom
         def format_negative_int(radix)
           # Now we need to find how many bits we need to
@@ -1110,12 +1078,18 @@ module Rubinius
             field_ref = field_ref_a || field_ref_b
             flags = "#{flags_a}#{flags_b}"
 
-            atom = AtomMap[format_code[0]].new(self, @g, format_code, flags)
+            klass = AtomMap[format_code[0]]
+
+            unless klass
+              raise ArgumentError, "unknown format type - #{format_code}"
+            end
+
+            atom = klass.new(self, @g, format_code, flags)
             atom.set_width width_full, width_ref, width_static
             atom.set_precision prec_full, prec_ref, prec_static
             atom.set_value field_ref
 
-            atom.call
+            atom.bytecode
           end
         end
 
