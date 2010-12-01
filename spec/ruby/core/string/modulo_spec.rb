@@ -113,6 +113,10 @@ describe "String#%" do
     ("%2$.2f" % [0, 1]).should == "1.00"
   end
 
+  it "allows more than one digit of position" do
+    ("%50$d" % (0..100).to_a).should == "49"
+  end
+
   it "raises an ArgumentError when multiple width star tokens are given for one format specifier" do
     lambda { "%**s" % [5, 5, 5] }.should raise_error(ArgumentError)
   end
@@ -165,6 +169,11 @@ describe "String#%" do
 
   it "allows positional arguments for width star and precision star arguments" do
     ("%*1$.*2$3$d" % [10, 5, 1]).should == "     00001"
+  end
+
+  it "allows a star to take an argument number to use as the width" do
+    ("%1$*2$s" % ["a", 8]).should == "       a"
+    ("%1$*10$s" % ["a",0,0,0,0,0,0,0,0,8]).should == "       a"
   end
 
   it "calls to_int on width star and precision star tokens" do
