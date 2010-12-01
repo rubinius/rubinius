@@ -323,7 +323,7 @@ module Rubinius
         end
       end
 
-      RADIX = { 'd' => 10, 'i' => 10, 'u' => 10, 'x' => 16, 'o' => 8, 'b' => 2 }
+      RADIX = { 'u' => 10, 'x' => 16, 'X' => 16, 'o' => 8, 'b' => 2, 'B' => 2 }
       PREFIX = { 'o' => '0', 'x' => '0x', 'X' => '0X', 'b' => '0b', 'B' => '0B' }
 
       def next_index(specified=nil)
@@ -644,6 +644,372 @@ module Rubinius
         end
       end
 
+      class StringAtom < Atom
+        def string_justify
+          justify_width
+
+          if precision?
+            @g.meta_push_0
+            push_precision
+            @g.send :[], 2
+          end
+        end
+        def call
+          push_value
+          @b.force_type :String
+
+          string_justify
+
+          @b.append_str
+        end
+      end
+      class InspectAtom < StringAtom
+        def call
+          push_value
+          @g.send :inspect, 0
+
+          string_justify
+
+          @b.append_str
+        end
+      end
+      class CharAtom < Atom
+        def call
+          push_value
+          @b.force_type :Fixnum, :Integer
+
+          chr_range_ok = @g.new_label
+
+          @g.dup
+          @g.push 256
+          @g.meta_send_op_lt @g.find_literal(:<)
+          @b.if_true do
+            @g.dup
+            @g.meta_push_neg_1
+            @g.meta_send_op_gt @g.find_literal(:>)
+            @g.git chr_range_ok
+          end
+
+          @g.push 256
+          @g.send :%, 1
+
+          chr_range_ok.set!
+          @g.send :chr, 0
+
+          justify_width
+
+          @b.append_str
+        end
+      end
+
+      class FloatAtom < Atom
+        def call
+          push_value
+          @b.force_type :Float
+
+          format_done = @g.new_label
+
+          @g.dup
+          @g.send :finite?, 0
+
+          @b.if_true do
+            push_format_string
+            @g.send :to_s_formatted, 1, true
+
+            @g.goto format_done
+          end
+
+          formatted_non_finite = @g.new_label
+
+          @g.dup
+          @g.send :nan?, 0
+
+          @b.if_false do
+            @b.is_negative
+
+            @b.if_false do
+              @g.push_literal "#{positive_sign}Inf"
+              @g.goto formatted_non_finite
+            end
+            @g.push_literal '-Inf'
+            @g.goto formatted_non_finite
+          end
+
+          @g.pop
+          @g.push_literal 'NaN'
+
+          formatted_non_finite.set!
+          justify_width false
+
+          format_done.set!
+
+          @b.append_str
+        end
+      end
+      class IntegerAtom < Atom
+        def call
+          # A fast, common case.
+          wid = @width_static
+          if @f_zero and wid and !@f_space and !@f_plus
+            @g.push :self
+
+            push_value
+
+            if wid == 2
+              @g.send :zero_two_expand_integer, 1
+            else
+              @g.push_int wid
+              @g.send :zero_expand_integer, 2
+            end
+
+            @b.append_str
+          else
+            @g.push :self
+            push_value
+            @g.send :as_int, 1
+
+            val_idx = @g.new_stack_local
+            @g.set_stack_local val_idx
+            @g.pop
+
+            # generic case
+
+            if @f_space
+              @g.push :self
+              @g.push_stack_local val_idx
+              @g.send :compute_space, 1
+              @b.append_str
+            elsif @f_plus
+              @g.push :self
+              @g.push_stack_local val_idx
+              @g.send :compute_plus, 1
+              @b.append_str
+            end
+
+            if precision?
+              @g.push :self
+              @g.push_stack_local val_idx
+
+              push_precision_value
+
+              @g.send :digit_expand_precision, 2
+
+              if width?
+                @g.push :self
+                @g.swap
+                push_width_value
+
+                @g.send :space_expand, 2
+              end
+
+              @b.append_str
+
+            elsif width?
+              @g.push :self
+              @g.push_stack_local val_idx
+
+              push_width_value
+
+              if @f_zero
+                if @f_space or @f_plus
+                  @g.send :zero_expand_leader, 2
+                else
+                  @g.send :zero_expand_integer, 2
+                end
+              else
+                if @f_space or @f_plus
+                  if @f_ljust
+                    @g.send :space_expand_leader_left, 2
+                  else
+                    @g.send :space_expand_leader, 2
+                  end
+                else
+                  if @f_ljust
+                    @g.send :space_expand_integer_left, 2
+                  else
+                    @g.send :space_expand_integer, 2
+                  end
+                end
+              end
+
+              @b.append_str
+            else
+              @g.push_stack_local val_idx
+              @g.send :to_s, 0
+
+              @b.append_str
+            end
+          end
+        end
+      end
+      class ExtIntegerAtom < Atom
+        def format_negative_int(radix)
+          # (num + radix ** num.to_s(radix).size).to_s(radix)
+          @g.push radix
+          @g.dup_many 2
+          @g.send :to_s, 1
+          @g.send :size, 0
+          @g.send :**, 1
+          @g.meta_send_op_plus @g.find_literal(:+)
+          @g.push radix
+          @g.send :to_s, 1
+
+          (radix - 1).to_s(radix)
+        end
+        def call
+          radix = RADIX[@format_code]
+
+          push_value
+
+          # Bignum is obviously also perfectly acceptable. But we
+          # just address the most common case by avoiding the call
+          # if we've been given a Fixnum. The call is enough
+          # overhead to bother, but not something to panic about.
+          @b.force_type :Fixnum, :Integer
+
+
+          if @f_plus || @f_space
+            @g.dup
+
+            # stash away whether it's negative
+            @b.is_negative
+            @g.dup
+            @g.move_down 2
+
+            @b.if_true do
+              # but treat it as positive for now
+              @b.invert
+            end
+
+            @g.push radix
+            @g.send :to_s, 1
+          else
+            have_formatted = @g.new_label
+
+            @g.dup
+            @b.is_negative
+
+            @b.if_false do
+              @g.push radix
+              @g.send :to_s, 1
+              @g.goto have_formatted
+            end
+
+            padding = format_negative_int(radix)
+
+            if zero_pad?
+              zero_pad padding
+
+            elsif !precision? && !@f_zero
+              @g.push_literal ".."
+              @g.string_dup
+              @g.string_append
+            end
+
+            have_formatted.set!
+          end
+
+          # 'B' also returns an uppercase string, but there, the
+          # only alpha character is in the prefix -- and that's
+          # already uppercase
+          if @format_code == 'X'
+            @g.send :upcase, 0
+          end
+
+          zero_pad
+
+          prepend_prefix
+
+          if @f_plus || @f_space
+            append_sign = @g.new_label
+
+            @g.swap
+            @b.if_true do
+              @g.push_literal '-'
+
+              @g.goto append_sign
+            end
+
+            @g.push_literal positive_sign
+
+            append_sign.set!
+            @g.string_dup
+            @g.string_append
+          end
+
+
+          if precision? || !@f_zero
+            justify_width false
+          end
+
+          @b.append_str
+        end
+      end
+      class ExtIntegerAtomU < ExtIntegerAtom
+        def format_negative_int(radix)
+          # Now we need to find how many bits we need to
+          # represent the number, starting with a native int,
+          # then incrementing by 32 each round.
+
+          more_bits_loop = @g.new_label
+          got_enough_bits = @g.new_label
+
+          # Push a positive version of the number ($N)
+          @g.dup
+          @b.invert
+
+          # Push the baseline ($B), starting from a native int:
+          # 2**32 or 2**64, as appropriate
+          @g.meta_push_1
+          l_native = @g.find_literal(2.size * 8)
+          @g.push_literal_at l_native
+          @g.send :<<, 1
+
+          # Switch to $N
+          @g.swap
+          # For the first time, because it's what we've used
+          # above, we'll shift it by our native int size
+          @g.push_literal_at l_native
+
+          more_bits_loop.set!
+          # Throw out the bits from $N that $B can offset
+          @g.send :>>, 1
+
+          # Check whether $N == 0
+          @g.dup
+          @g.meta_push_0
+          @g.meta_send_op_equal @g.find_literal(:==)
+          @g.git got_enough_bits
+
+          # Switch to $B
+          @g.swap
+          l_32 = @g.find_literal(32)
+          @g.push_literal_at l_32
+          # Add 32 bits
+          @g.send :<<, 1
+          # Switch to $N
+          @g.swap
+          # We'll throw out 32 bits this time
+          @g.push_literal_at l_32
+          @g.goto more_bits_loop
+
+          got_enough_bits.set!
+          # Pop the spare copy of $N, which is 0
+          @g.pop
+
+
+          # Now we're left with $B; we can now use it, by adding
+          # it to the (negative) number still on the stack from
+          # earlier.
+
+          # $B is a Bignum; no point using meta_send_op_plus.
+          @g.send :+, 1
+          @g.send :to_s, 0
+
+          "."
+        end
+      end
+
       def push_Kernel
         @lit_Kernel ||= @g.add_literal(:Kernel)
         @slot_Kernel ||= @g.add_literal(nil)
@@ -698,6 +1064,19 @@ module Rubinius
         l.set!
       end
 
+      AtomMap = Rubinius::LookupTable.new
+      AtomMap[?s] = StringAtom
+      AtomMap[?p] = InspectAtom
+      AtomMap[?c] = CharAtom
+      AtomMap[?e] = AtomMap[?E] = FloatAtom
+      AtomMap[?g] = AtomMap[?G] = FloatAtom
+      AtomMap[?f] = FloatAtom
+      AtomMap[?d] = AtomMap[?i] = IntegerAtom
+      AtomMap[?b] = AtomMap[?B] = ExtIntegerAtom
+      AtomMap[?x] = AtomMap[?X] = ExtIntegerAtom
+      AtomMap[?o] = ExtIntegerAtom
+      AtomMap[?u] = ExtIntegerAtomU
+
       def parse
         @arg_count = 0
         @index_mode = nil
@@ -731,363 +1110,12 @@ module Rubinius
             field_ref = field_ref_a || field_ref_b
             flags = "#{flags_a}#{flags_b}"
 
-            alt = flags.index(?#)
-            zero = flags.index(?0)
-            plus = flags.index(?+)
-            ljust = flags.index(?-)
-            space = flags.index(?\ )
-
-
-            atom = Atom.new(self, @g, format_code, flags)
+            atom = AtomMap[format_code[0]].new(self, @g, format_code, flags)
             atom.set_width width_full, width_ref, width_static
             atom.set_precision prec_full, prec_ref, prec_static
             atom.set_value field_ref
 
-            case format_code
-            when 's', 'p', 'c'
-              atom.push_value
-
-              case format_code
-              when 's'
-                force_type :String
-
-              when 'c'
-                force_type :Fixnum, :Integer
-
-                chr_range_ok = @g.new_label
-
-                @g.dup
-                @g.push 256
-                @g.meta_send_op_lt @g.find_literal(:<)
-                if_true do
-                  @g.dup
-                  @g.meta_push_neg_1
-                  @g.meta_send_op_gt @g.find_literal(:>)
-                  @g.git chr_range_ok
-                end
-
-                @g.push 256
-                @g.send :%, 1
-
-                chr_range_ok.set!
-                @g.send :chr, 0
-              when 'p'
-                @g.send :inspect, 0
-              end
-
-              atom.justify_width
-
-              if atom.precision?
-                @g.meta_push_0
-                atom.push_precision
-                @g.send :[], 2
-              end
-
-              append_str
-
-            when 'e', 'E', 'f', 'g', 'G'
-
-              atom.push_value
-              force_type :Float
-
-              format_done = @g.new_label
-
-              @g.dup
-              @g.send :finite?, 0
-
-              if_true do
-                atom.push_format_string
-                @g.send :to_s_formatted, 1, true
-
-                @g.goto format_done
-              end
-
-              formatted_non_finite = @g.new_label
-
-              @g.dup
-              @g.send :nan?, 0
-
-              if_false do
-                is_negative
-
-                if_false do
-                  @g.push_literal "#{atom.positive_sign}Inf"
-                  @g.goto formatted_non_finite
-                end
-                @g.push_literal '-Inf'
-                @g.goto formatted_non_finite
-              end
-
-              @g.pop
-              @g.push_literal 'NaN'
-
-              formatted_non_finite.set!
-              atom.justify_width false
-
-              format_done.set!
-
-              append_str
-
-            when 'd', 'i'
-              # A fast, common case.
-              wid = atom.width_static
-              if zero and wid and !space and !plus
-                @g.push :self
-
-                atom.push_value
-
-                if wid == 2
-                  @g.send :zero_two_expand_integer, 1
-                else
-                  @g.push_int wid
-                  @g.send :zero_expand_integer, 2
-                end
-
-                append_str
-              else
-                @g.push :self
-                atom.push_value
-                @g.send :as_int, 1
-
-                val_idx = @g.new_stack_local
-                @g.set_stack_local val_idx
-                @g.pop
-
-                # generic case
-
-                if space
-                  @g.push :self
-                  @g.push_stack_local val_idx
-                  @g.send :compute_space, 1
-                  append_str
-                elsif plus
-                  @g.push :self
-                  @g.push_stack_local val_idx
-                  @g.send :compute_plus, 1
-                  append_str
-                end
-
-                if atom.precision?
-                  @g.push :self
-                  @g.push_stack_local val_idx
-
-                  atom.push_precision_value
-
-                  @g.send :digit_expand_precision, 2
-
-                  if atom.width?
-                    @g.push :self
-                    @g.swap
-                    atom.push_width_value
-
-                    @g.send :space_expand, 2
-                  end
-
-                  append_str
-
-                elsif atom.width?
-                  @g.push :self
-                  @g.push_stack_local val_idx
-
-                  atom.push_width_value
-
-                  if zero
-                    if space or plus
-                      @g.send :zero_expand_leader, 2
-                    else
-                      @g.send :zero_expand_integer, 2
-                    end
-                  else
-                    if space or plus
-                      if ljust
-                        @g.send :space_expand_leader_left, 2
-                      else
-                        @g.send :space_expand_leader, 2
-                      end
-                    else
-                      if ljust
-                        @g.send :space_expand_integer_left, 2
-                      else
-                        @g.send :space_expand_integer, 2
-                      end
-                    end
-                  end
-
-                  append_str
-                else
-                  @g.push_stack_local val_idx
-                  @g.send :to_s, 0
-
-                  append_str
-                end
-
-              end
-
-            when 'u', 'B', 'b', 'o', 'X', 'x'
-              radix = RADIX[format_code.downcase]
-
-              atom.push_value
-
-              # Bignum is obviously also perfectly acceptable. But we
-              # just address the most common case by avoiding the call
-              # if we've been given a Fixnum. The call is enough
-              # overhead to bother, but not something to panic about.
-              force_type :Fixnum, :Integer
-
-
-              if plus || space
-                @g.dup
-
-                # stash away whether it's negative
-                is_negative
-                @g.dup
-                @g.move_down 2
-
-                if_true do
-                  # but treat it as positive for now
-                  invert
-                end
-
-                @g.push radix
-                @g.send :to_s, 1
-              else
-                have_formatted = @g.new_label
-
-                @g.dup
-                is_negative
-
-                if_false do
-                  @g.push radix
-                  @g.send :to_s, 1
-                  @g.goto have_formatted
-                end
-
-                if format_code == 'u'
-                  # Now we need to find how many bits we need to
-                  # represent the number, starting with a native int,
-                  # then incrementing by 32 each round.
-
-                  more_bits_loop = @g.new_label
-                  got_enough_bits = @g.new_label
-
-                  # Push a positive version of the number ($N)
-                  @g.dup
-                  invert
-
-                  # Push the baseline ($B), starting from a native int:
-                  # 2**32 or 2**64, as appropriate
-                  @g.meta_push_1
-                  l_native = @g.find_literal(2.size * 8)
-                  @g.push_literal_at l_native
-                  @g.send :<<, 1
-
-                  # Switch to $N
-                  @g.swap
-                  # For the first time, because it's what we've used
-                  # above, we'll shift it by our native int size
-                  @g.push_literal_at l_native
-
-                  more_bits_loop.set!
-                  # Throw out the bits from $N that $B can offset
-                  @g.send :>>, 1
-
-                  # Check whether $N == 0
-                  @g.dup
-                  @g.meta_push_0
-                  @g.meta_send_op_equal @g.find_literal(:==)
-                  @g.git got_enough_bits
-
-                  # Switch to $B
-                  @g.swap
-                  l_32 = @g.find_literal(32)
-                  @g.push_literal_at l_32
-                  # Add 32 bits
-                  @g.send :<<, 1
-                  # Switch to $N
-                  @g.swap
-                  # We'll throw out 32 bits this time
-                  @g.push_literal_at l_32
-                  @g.goto more_bits_loop
-
-                  got_enough_bits.set!
-                  # Pop the spare copy of $N, which is 0
-                  @g.pop
-
-
-                  # Now we're left with $B; we can now use it, by adding
-                  # it to the (negative) number still on the stack from
-                  # earlier.
-
-                  # $B is a Bignum; no point using meta_send_op_plus.
-                  @g.send :+, 1
-                  @g.send :to_s, 0
-
-                  padding = "."
-
-                else
-                  # (num + radix ** num.to_s(radix).size).to_s(radix)
-                  @g.push radix
-                  @g.dup_many 2
-                  @g.send :to_s, 1
-                  @g.send :size, 0
-                  @g.send :**, 1
-                  @g.meta_send_op_plus @g.find_literal(:+)
-                  @g.push radix
-                  @g.send :to_s, 1
-
-                  padding = (radix - 1).to_s(radix)
-                end
-
-                if atom.zero_pad?
-                  atom.zero_pad padding
-
-                elsif !atom.precision? && !zero
-                  @g.push_literal ".."
-                  @g.string_dup
-                  @g.string_append
-                end
-
-                have_formatted.set!
-              end
-
-              # 'B' also returns an uppercase string, but there, the
-              # only alpha character is in the prefix -- and that's
-              # already uppercase
-              if format_code == 'X'
-                @g.send :upcase, 0
-              end
-
-              atom.zero_pad
-
-              atom.prepend_prefix
-
-              if plus || space
-                append_sign = @g.new_label
-
-                @g.swap
-                if_true do
-                  @g.push_literal '-'
-
-                  @g.goto append_sign
-                end
-
-                @g.push_literal atom.positive_sign
-
-                append_sign.set!
-                @g.string_dup
-                @g.string_append
-              end
-
-
-              if atom.precision? || !zero
-                atom.justify_width false
-              end
-
-              append_str
-
-            else
-              raise ArgumentError, "bad format character: #{format_code}"
-            end
+            atom.call
           end
         end
 
