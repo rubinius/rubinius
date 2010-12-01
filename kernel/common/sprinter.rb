@@ -370,12 +370,11 @@ module Rubinius
 
       def append_literal(str)
         @g.push_unique_literal str
-        append_str false
+        append_str
       end
 
-      def append_str(taint=false)
+      def append_str
         @append_parts += 1
-        taint = false
       end
 
       class Atom
@@ -703,8 +702,6 @@ module Rubinius
         @arg_count = 0
         @index_mode = nil
 
-        @pre_tainted = false  # @format.tainted?
-
         bignum_width = bignum_precision = nil
 
         pos = 0
@@ -786,7 +783,7 @@ module Rubinius
                 @g.send :[], 2
               end
 
-              append_str !@pre_tainted
+              append_str
 
             when 'e', 'E', 'f', 'g', 'G'
 
@@ -829,11 +826,9 @@ module Rubinius
 
               format_done.set!
 
-              append_str false
+              append_str
 
             when 'd', 'i'
-              radix = RADIX[format_code]
-
               # A fast, common case.
               wid = atom.width_static
               if zero and wid and !space and !plus
@@ -940,7 +935,7 @@ module Rubinius
               force_type :Fixnum, :Integer
 
 
-              if plus || space || (zero && radix == 10 && format_code != 'u')
+              if plus || space
                 @g.dup
 
                 # stash away whether it's negative
@@ -953,14 +948,8 @@ module Rubinius
                   invert
                 end
 
-                if radix == 10
-                  @g.send :to_s, 0
-                else
-                  @g.push radix
-                  @g.send :to_s, 1
-                end
-              elsif radix == 10 && format_code != 'u'
-                @g.send :to_s, 0
+                @g.push radix
+                @g.send :to_s, 1
               else
                 have_formatted = @g.new_label
 
@@ -968,12 +957,8 @@ module Rubinius
                 is_negative
 
                 if_false do
-                  if radix == 10
-                    @g.send :to_s, 0
-                  else
-                    @g.push radix
-                    @g.send :to_s, 1
-                  end
+                  @g.push radix
+                  @g.send :to_s, 1
                   @g.goto have_formatted
                 end
 
@@ -1072,22 +1057,7 @@ module Rubinius
                 @g.send :upcase, 0
               end
 
-              if !(plus || space) && (zero && radix == 10 && format_code != 'u')
-                atom.zero_pad do
-                  # If it decides to do any padding, zero_pad will yield
-                  # before it modifies the stack, and we must ensure the
-                  # top of the stack is a boolean indicating whether to
-                  # subtract one from the requested width (for a minus
-                  # sign to be prepended below), followed by the string-
-                  # in-progress.
-
-                  @g.swap
-                  @g.dup
-                  @g.move_down 2
-                end
-              else
-                atom.zero_pad
-              end
+              atom.zero_pad
 
               atom.prepend_prefix
 
@@ -1106,17 +1076,6 @@ module Rubinius
                 append_sign.set!
                 @g.string_dup
                 @g.string_append
-
-              elsif zero && radix == 10 && format_code != 'u'
-
-                @g.swap
-                if_true do
-                  @g.push_literal '-'
-
-                  @g.string_dup
-                  @g.string_append
-                end
-
               end
 
 
@@ -1124,7 +1083,7 @@ module Rubinius
                 atom.justify_width false
               end
 
-              append_str false
+              append_str
 
             else
               raise ArgumentError, "bad format character: #{format_code}"
