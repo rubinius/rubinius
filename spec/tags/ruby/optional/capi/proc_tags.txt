@@ -1,1 +1,0 @@
-fails:CApiProc rb_proc_new returned proc should have arity -1
