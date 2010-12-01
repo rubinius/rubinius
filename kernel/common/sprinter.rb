@@ -81,6 +81,8 @@ module Rubinius
       int = Integer(int) unless int.kind_of? Fixnum
 
       str = int.to_s
+
+      width = -width if width < 0
       return str if width <= str.size
       diff = width - str.size
 
@@ -162,7 +164,7 @@ module Rubinius
     def digit_expand_precision(int, precision)
       str = int.to_s
 
-      diff = precision - str.size
+      diff = Integer(precision) - str.size
 
       if int < 0
         # account for the - sign infront
@@ -197,7 +199,34 @@ module Rubinius
       end
     end
 
+    def space_expand_left(str, width)
+      width = Integer(width)
+
+      sz = str.size
+
+      width = -width if width < 0
+      return str if sz >= width
+
+      diff = width - sz
+
+      case diff
+      when 1
+        "#{str} "
+      when 2
+        "#{str}  "
+      when 3
+        "#{str}   "
+      when 4
+        "#{str}    "
+      else
+        str + (" " * diff)
+      end
+    end
+
     def space_expand(str, width)
+      width = Integer(width)
+      return space_expand_left(str, -width) if width < 0
+
       sz = str.size
 
       return str if sz >= width
@@ -764,7 +793,11 @@ module Rubinius
                 @g.swap
                 push_width_value
 
-                @g.send :space_expand, 2
+                if @f_ljust
+                  @g.send :space_expand_left, 2
+                else
+                  @g.send :space_expand, 2
+                end
               end
 
               @b.append_str
