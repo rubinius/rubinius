@@ -136,7 +136,7 @@ section "Manipulate literals"
 #   the '/' delimiters and create a new Regexp object passing it the string.
 #   Only then can the literal value be set, using the set_literal opcode.
 
-instruction set_literal(literal) [ -- ]
+instruction set_literal(literal) [ value -- value ]
   call_frame->cm->literals()->put(state, literal, stack_top());
 end
 
@@ -157,8 +157,7 @@ end
 #   objects defined or used within a particular scope.
 
 instruction push_literal(literal) [ -- literal ]
-  Object* t2 = call_frame->cm->literals()->at(state, literal);
-  stack_push(t2);
+  stack_push(call_frame->cm->literals()->at(state, literal));
 end
 
 section "Flow control"
@@ -201,7 +200,7 @@ end
 #   * goto
 #   * goto_if_false
 
-instruction goto_if_false(location) [ ip -- ] => branch
+instruction goto_if_false(location) [ value -- ] => branch
   Object* t1 = stack_pop();
   if(!RTEST(t1)) {
     call_frame->set_ip(location);
@@ -227,7 +226,7 @@ end
 #   * goto
 #   * goto_if_false
 
-instruction goto_if_true(location) [ ip -- ] => branch
+instruction goto_if_true(location) [ value -- ] => branch
   Object* t1 = stack_pop();
   if(RTEST(t1)) {
     call_frame->set_ip(location);
@@ -252,7 +251,7 @@ end
 #   * caller_return
 #   * raise_exc
 
-instruction ret() [ -- ] => return
+instruction ret() [ value -- value ] => return
   if(call_frame->scope->made_alias_p()) {
     call_frame->scope->flush_to_heap(state);
   }
@@ -277,7 +276,7 @@ section "Stack manipulations"
 #   Swaps the top two items on the stack, so that the second item becomes
 #   the first, and the first item becomes the second.
 
-instruction swap_stack() [ -- ]
+instruction swap_stack() [ s0 s1 -- s1 s0 ]
   Object* t1 = stack_pop();
   Object* t2 = stack_pop();
   stack_push(t1);
@@ -299,9 +298,8 @@ end
 #   Duplicate the top value on the operand stack and push the duplicated
 #   value onto the operand stack.
 
-instruction dup_top() [ -- value ]
-  Object* t1 = stack_top();
-  stack_push(t1);
+instruction dup_top() [ s0 -- s0 s0 ]
+  stack_push(stack_top());
 end
 
 instruction dup_many(count) [ +count -- ++count ]
@@ -351,7 +349,7 @@ end
 #   * obj1
 #   * ...
 
-instruction rotate(count) [ -- ]
+instruction rotate(count) [ +count -- +count ]
   int diff = count >> 1;
   Object** start = STACK_PTR - (count - 1);
   Object** end = STACK_PTR;
@@ -391,7 +389,7 @@ end
 #  The top item on the stack is moved down by the specified number of
 #  +positions+, with all items above that position shuffling up by one.
 
-instruction move_down(positions) [ -- ]
+instruction move_down(positions) [ +positions -- +positions ]
   if(stack_calculate_sp() < positions) {
     Exception::internal_error(state, call_frame, "stack underflow in move_down");
     RUN_EXCEPTION();
@@ -422,7 +420,7 @@ section "Manipulate local variables"
 #   Sets the local variable identified by +index+ to +value+.
 #   The stack is not modified by this instruction.
 
-instruction set_local(local) [ -- ]
+instruction set_local(local) [ value -- value ]
   if(local >= vmm->number_of_locals) {
     Exception::internal_error(state, call_frame, "invalid local access");
     RUN_EXCEPTION();
@@ -528,7 +526,7 @@ end
 #     end
 #   </code>
 
-instruction set_local_depth(depth index) [ -- ]
+instruction set_local_depth(depth index) [ value -- value ]
   if(depth == 0) {
     Exception::internal_error(state, call_frame,
                               "illegal set_local_depth usage");
@@ -682,7 +680,7 @@ end
 #   Pops an exception instance +exception+ off the stack, and uses it to
 #   raise an exception in the machine.
 
-instruction raise_exc() [ -- ] => raise
+instruction raise_exc() [ value -- ] => raise
   flush_ip();
   Object* t1 = stack_pop();
   state->thread_state()->raise_exception(as<Exception>(t1));
@@ -705,7 +703,7 @@ instruction pop_unwind() [ -- ]
   --current_unwind;
 end
 
-instruction raise_return() [ -- ] => raise
+instruction raise_return() [ value -- value ] => raise
   flush_ip();
   if(!(call_frame->flags & CallFrame::cIsLambda) &&
      !call_frame->scope_still_valid(call_frame->top_scope(state))) {
@@ -722,13 +720,13 @@ instruction raise_return() [ -- ] => raise
   RUN_EXCEPTION();
 end
 
-instruction ensure_return() [ -- ] => raise
+instruction ensure_return() [ value -- value ] => raise
   flush_ip();
   state->thread_state()->raise_return(stack_top(), call_frame->promote_scope(state));
   RUN_EXCEPTION();
 end
 
-instruction raise_break() [ -- ] => raise
+instruction raise_break() [ value -- value ] => raise
   flush_ip();
   state->thread_state()->raise_break(stack_top(), call_frame->scope->parent());
   RUN_EXCEPTION();
@@ -874,7 +872,7 @@ section "Manipulate instance variables"
 #   variable identifies by the literal +ivar+ on the current +self+ object.
 #   The value popped off the stack is then pushed back on again.
 
-instruction set_ivar(index) [ -- ]
+instruction set_ivar(index) [ value -- value ]
   if(RTEST(call_frame->self()->frozen_p(state))) {
     Exception::frozen_error(state, call_frame);
     RUN_EXCEPTION();
@@ -953,7 +951,7 @@ end
 #   opcode to refer to the object as a constant. The constant is pushed back
 #   onto the stack.
 
-instruction set_const(index) [ -- ]
+instruction set_const(index) [ value -- value ]
   Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
   call_frame->static_scope()->module()->set_const(state, sym, stack_top());
 end
@@ -967,13 +965,14 @@ end
 #   * module
 #   * ...
 # [Stack After]
+#   * value
 #   * ...
 # [Description]
-#   Pops the new +value+ for a constant identified by the +lit+ index in the
+#   Reads the new +value+ for a constant identified by the +lit+ index in the
 #   literals tuple, in the scope of +module+, which is also popped from the
 #   stack.
 
-instruction set_const_at(index) [ value module -- ]
+instruction set_const_at(index) [ value module -- value ]
   Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
   Object* val = stack_pop();
   Module* under = as<Module>(stack_pop());
@@ -1886,8 +1885,7 @@ end
 #   depending on whether the consumed value was the special value nil
 
 instruction is_nil() [ value -- boolean ]
-  Object* t1 = stack_pop();
-  stack_push(t1 == Qnil ? Qtrue : Qfalse);
+  stack_push(stack_pop() == Qnil ? Qtrue : Qfalse);
 end
 
 # [Operation]
@@ -1982,7 +1980,7 @@ end
 #
 #   The stack is left unmodified.
 
-instruction store_my_field(index) [ -- ]
+instruction store_my_field(index) [ value -- value ]
   call_frame->self()->set_field(state, index, stack_top());
 end
 

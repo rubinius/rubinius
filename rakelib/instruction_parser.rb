@@ -99,34 +99,26 @@ class InstructionParser
 
     # Calculate the full stack affect of this opcode.
     def method_stack_effect
-      if @opcode.extra or @opcode.produced_extra
+      read = @opcode.static_read_effect
+      write = @opcode.static_write_effect
 
-        total = nil
-
-        if @opcode.extra
-          variable = "-arg#{@opcode.extra+1}"
-          if @opcode.effect == 0
-            total = variable
-          else
-            total = "#{@opcode.effect}#{variable}"
-          end
+      if @opcode.extra
+        if read > 0
+          read = "arg#{@opcode.extra+1}+#{read}"
+        else
+          read = "arg#{@opcode.extra+1}"
         end
-
-
-        if @opcode.produced_extra
-          variable = "(arg#{@opcode.produced_extra+1} * #{@opcode.produced_times})"
-
-          if total
-            total = "(#{total}) + #{variable}"
-          else
-            total = "#{opcode.effect} + #{variable}"
-          end
-        end
-
-        @file.puts "        @current_block.add_stack(#{total})"
-      elsif @opcode.effect != 0
-        @file.puts "        @current_block.add_stack(#{@opcode.effect})"
       end
+
+      if @opcode.produced_extra
+        if write > 0
+          write = "(arg#{@opcode.produced_extra+1} * #{@opcode.produced_times})+#{write}"
+        else
+          write = "(arg#{@opcode.produced_extra+1} * #{@opcode.produced_times})"
+        end
+      end
+
+      @file.puts "        @current_block.add_stack(#{read}, #{write})"
     end
 
     def method_close
@@ -259,7 +251,7 @@ class InstructionParser
       @file.puts <<EOM
         if arg1 > 2 and arg1 < 256
           @stream << #{@opcode.bytecode} << arg1
-          @current_block.add_stack(1)
+          @current_block.add_stack(0, 1)
           @ip += 2
           @instruction = #{@opcode.bytecode}
         else
@@ -490,6 +482,14 @@ EOM
       @effect = @produced.size - @consumed.size
 
       @control_flow = m[6].to_sym if m[6]
+    end
+
+    def static_read_effect
+      @consumed.size
+    end
+
+    def static_write_effect
+      @produced.size
     end
 
     def parse_body
