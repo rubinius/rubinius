@@ -6,7 +6,7 @@ def int_alternative(n)
   Integer(n).to_s
 end
 
-if (1.0).respond_to? :to_s_formatted
+if (1.0).respond_to?(:to_s_formatted, true)
   def str_alternative(s, n)
     "Hello #{s}, from #{n.send :to_s_formatted, '%4.2f'}"
   end
@@ -23,6 +23,9 @@ Benchmark.bmbm do |x|
   end
   x.report("'%1$d'") do
     total.times { sprintf('%1$d', 10) }
+  end
+  x.report("'%02d'") do
+    total.times { sprintf('%02d', 10) }
   end
 
   x.report('"Hello #{s}, from #{f}"') do
