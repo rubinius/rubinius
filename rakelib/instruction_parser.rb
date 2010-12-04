@@ -577,19 +577,29 @@ EOM
 
     def opcode_stack_effect(file)
       file.puts "case InstructionSequence::insn_#{@name}:"
+      read = static_read_effect
+      write = static_write_effect
+
       if @extra
-        if @produced_extra
-          file.puts "  return (#{@effect} - operand#{@extra+1}) + (operand#{@produced_extra+1} * #{@produced_times});"
+        if read > 0
+          read = "operand#{@extra+1}+#{read}"
         else
-          file.puts "  return #{@effect} - operand#{@extra+1};"
-        end
-      else
-        if @produced_extra
-          file.puts "  return #{@effect} + (operand#{@produced_extra+1} * #{@produced_times});"
-        else
-          file.puts "  return #{@effect};"
+          read = "operand#{@extra+1}"
         end
       end
+
+      if @produced_extra
+        if write > 0
+          write = "(operand#{@produced_extra+1} * #{@produced_times})+#{write}"
+        else
+          write = "(operand#{@produced_extra+1} * #{@produced_times})"
+        end
+      end
+
+      file.puts "if(read_effect)  { *read_effect  = (#{read}); }"
+      file.puts "if(write_effect) { *write_effect = (#{write}); }"
+
+      file.puts "return (#{write}) - (#{read});"
     end
   end
 
@@ -734,7 +744,7 @@ EOM
 
   def generate_sizes(filename)
     File.open filename, "w" do |file|
-      file.puts "size_t width = 1;"
+      file.puts "size_t width = 0;"
       file.puts "switch(op) {"
 
       objects.each do |obj|
@@ -800,7 +810,8 @@ EOM
     File.open filename, "w" do |file|
       file.puts "static inline int stack_difference(opcode op,"
       file.puts "                                   opcode operand1 = 0,"
-      file.puts "                                   opcode operand2 = 0)"
+      file.puts "                                   opcode operand2 = 0,"
+      file.puts "                                   int* read_effect = 0, int* write_effect = 0)"
       file.puts "{"
       file.puts "  switch(op) {"
 

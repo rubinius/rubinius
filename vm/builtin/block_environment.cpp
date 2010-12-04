@@ -43,7 +43,7 @@ namespace rubinius {
   }
 
   VMMethod* BlockEnvironment::vmmethod(STATE) {
-    return this->method_->formalize(state, false);
+    return this->method_->internalize(state);
   }
 
   Object* BlockEnvironment::invoke(STATE, CallFrame* previous,
@@ -52,7 +52,13 @@ namespace rubinius {
   {
 
 #ifdef ENABLE_LLVM
-    if(void* ptr = env->vmmethod(state)->native_function()) {
+    VMMethod* vmm = env->vmmethod(state);
+    if(!vmm) {
+      Exception::internal_error(state, previous, "invalid bytecode method");
+      return 0;
+    }
+
+    if(void* ptr = vmm->native_function()) {
       return (*((BlockExecutor)ptr))(state, previous, env, args, invocation);
     }
 #endif
@@ -70,6 +76,11 @@ namespace rubinius {
                             BlockInvocation& invocation)
   {
     VMMethod* const vmm = env->vmmethod(state);
+
+    if(!vmm) {
+      Exception::internal_error(state, previous, "invalid bytecode method");
+      return 0;
+    }
 
 #ifdef ENABLE_LLVM
     if(vmm->call_count >= 0) {
@@ -200,7 +211,12 @@ namespace rubinius {
   {
     BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
 
-    VMMethod* vmm = cm->formalize(state);
+    VMMethod* vmm = cm->internalize(state);
+    if(!vmm) {
+      Exception::internal_error(state, call_frame, "invalid bytecode method");
+      return 0;
+    }
+
     vmm->set_parent(caller);
 
     be->scope(state, call_frame->promote_scope(state));

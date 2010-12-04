@@ -656,7 +656,10 @@ namespace rubinius {
     mod->add_method(state, name, method);
 
     if(Class* cls = try_as<Class>(mod)) {
-      method->formalize(state, false);
+      if(!method->internalize(state)) {
+        Exception::argument_error(state, "invalid bytecode method");
+        return 0;
+      }
 
       object_type type = (object_type)cls->instance_type()->to_native();
       TypeInfo* ti = state->om->type_info[type];

@@ -88,6 +88,16 @@ namespace rubinius {
     state->thread_state()->raise_exception(exc);
   }
 
+  void Exception::bytecode_error(STATE, CallFrame* call_frame, 
+                                 CompiledMethod* cm, int ip, const char* reason)
+  {
+    Exception* exc = Exception::make_exception(state, G(exc_vm_bad_bytecode), reason);
+    exc->set_ivar(state, state->symbol("@compiled_method"), cm);
+    exc->set_ivar(state, state->symbol("@ip"), Fixnum::from(ip));
+    exc->locations(state, Location::from_call_stack(state, call_frame));
+    state->thread_state()->raise_exception(exc);
+  }
+
   void Exception::frozen_error(STATE, CallFrame* call_frame) {
     Exception* exc = Exception::make_exception(state, G(exc_type),
                         "unable to modify frozen object");

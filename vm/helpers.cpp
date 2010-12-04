@@ -26,37 +26,6 @@
 
 namespace rubinius {
   namespace Helpers {
-    void add_method(STATE, CallFrame* call_frame, Module* mod, Symbol* name, CompiledMethod* method) {
-      method->scope(state, call_frame->static_scope());
-      method->serial(state, Fixnum::from(0));
-      mod->method_table()->store(state, name, method, G(sym_public));
-      state->global_cache()->clear(mod, name);
-
-      if(Class* cls = try_as<Class>(mod)) {
-        method->formalize(state, false);
-
-        object_type type = (object_type)cls->instance_type()->to_native();
-        TypeInfo* ti = state->om->type_info[type];
-        if(ti) {
-          method->specialize(state, ti);
-        }
-      }
-    }
-
-    void attach_method(STATE, CallFrame* call_frame, Object* recv, Symbol* name, CompiledMethod* method) {
-      if(Module* mod = try_as<Module>(recv)) {
-        StaticScope* ss = StaticScope::create(state);
-        ss->module(state, mod);
-        ss->parent(state, method->scope());
-        method->scope(state, ss);
-      } else {
-        /* Push the current scope down. */
-        method->scope(state, call_frame->static_scope());
-      }
-
-      add_method(state, call_frame, recv->metaclass(state), name, method);
-    }
-
     Object* const_get_under(STATE, Module* mod, Symbol* name, bool* found) {
       Object* res;
 

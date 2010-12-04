@@ -354,11 +354,6 @@ instruction rotate(count) [ +count -- +count ]
   Object** start = STACK_PTR - (count - 1);
   Object** end = STACK_PTR;
 
-  if(start < call_frame->stk) {
-    Exception::internal_error(state, call_frame, "stack underflow in rotate");
-    RUN_EXCEPTION();
-  }
-
   for(int i = 0; i < diff; i++) {
     Object* right = *end;
     Object* left =  *start;
@@ -390,11 +385,6 @@ end
 #  +positions+, with all items above that position shuffling up by one.
 
 instruction move_down(positions) [ +positions -- +positions ]
-  if(stack_calculate_sp() < positions) {
-    Exception::internal_error(state, call_frame, "stack underflow in move_down");
-    RUN_EXCEPTION();
-  }
-
   Object* val = stack_top();
   for(int i = 0; i < positions; i++) {
     int target = -i;
@@ -421,10 +411,6 @@ section "Manipulate local variables"
 #   The stack is not modified by this instruction.
 
 instruction set_local(local) [ value -- value ]
-  if(local >= vmm->number_of_locals) {
-    Exception::internal_error(state, call_frame, "invalid local access");
-    RUN_EXCEPTION();
-  }
   call_frame->scope->set_local(local, stack_top());
 end
 
@@ -442,10 +428,6 @@ end
 #   variable (+local+), and pushes it onto the stack.
 
 instruction push_local(local) [ -- value ]
-  if(local >= vmm->number_of_locals) {
-    Exception::internal_error(state, call_frame, "invalid local access");
-    RUN_EXCEPTION();
-  }
   stack_push(call_frame->scope->get_local(local));
 end
 
@@ -1483,9 +1465,10 @@ instruction create_block(literal) [ -- block ]
   // TODO: We do not need to be doing this everytime.
   cm->scope(state, call_frame->static_scope());
 
-  Object* be = BlockEnvironment::under_call_frame(state, cm, vmm, call_frame, literal);
+  Object* be = BlockEnvironment::under_call_frame(state, cm, vmm, call_frame,
+                                                  literal);
 
-  stack_push(be);
+  CHECK_AND_PUSH(be);
 end
 
 # [Operation]

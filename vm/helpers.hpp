@@ -12,9 +12,6 @@ namespace rubinius {
   class GlobalCacheEntry;
 
   namespace Helpers {
-    void add_method(VM*, CallFrame* call_frame, Module* mod, Symbol* name, CompiledMethod* meth);
-    void attach_method(VM*, CallFrame* call_frame, Object* obj, Symbol* name, CompiledMethod* meth);
-
     Object* const_get_under(VM*, Module* under, Symbol* name, bool* found);
     Object* const_get(VM*, CallFrame* call_frame, Symbol* name, bool* found);
     Object* const_missing_under(VM*, Module* under, Symbol* sym, CallFrame* call_frame);

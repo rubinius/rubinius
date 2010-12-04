@@ -467,6 +467,8 @@ namespace rubinius {
     GO(jump_error).set(lje);
 
     GO(exc_vm_internal).set(new_class("Internal", exc, G(rubinius)));
+    GO(exc_vm_bad_bytecode).set(
+        new_class("InvalidBytecode", G(exc_vm_internal), G(rubinius)));
 
     // Some special exceptions scoped under the Rubinius module
     vme = new_class("VMException", exc, G(rubinius));
