@@ -56,20 +56,21 @@ module Rubinius
     # @todo Make example (in method documentation) match reality
     # @param [Rubinius::CompiledMethod] other the other part to compare
     # @param [Boolean]
+    #
     def ==(other)
       return false unless other.kind_of? CompiledMethod
-      @primitive       == other.primitive     and # [Symbol]  the instructions to be run by the VM
-        @name          == other.name          and # [Symbol]  the name of the method
-        @iseq          == other.iseq          and # [Tuple]   the instructions to execute
-        @stack_size    == other.stack_size    and # [Integer] the size of the stack from compile time
-        @local_count   == other.local_count   and # [Integer] the number of local vars
-        @required_args == other.required_args and # [Integer] the number of required args
-        @total_args    == other.total_args    and # [Integer] the number of total args
-        @splat         == other.splat         and # [Integer] the POSITION of the splat arg
-        @literals      == other.literals      and # [Tuple]   a tuple of the literals
-        @lines         == other.lines         and # [Tuple]   a tuple of the lines where its found
-        @file          == other.file          and # [Symbol]  the file where this comes from
-        @local_names   == other.local_names       # [Array<Symbol>] the names of the local vars. used by eval
+      @primitive       == other.primitive     and
+        @name          == other.name          and
+        @iseq          == other.iseq          and
+        @stack_size    == other.stack_size    and
+        @local_count   == other.local_count   and
+        @required_args == other.required_args and
+        @total_args    == other.total_args    and
+        @splat         == other.splat         and
+        @literals      == other.literals      and
+        @lines         == other.lines         and
+        @file          == other.file          and
+        @local_names   == other.local_names
     end
 
     ##
@@ -424,7 +425,7 @@ module Rubinius
       file
     end
 
-    def arity()
+    def arity
       if @required_args == @total_args and
          @splat.nil?
         @required_args
@@ -499,12 +500,12 @@ module Rubinius
     # use rake doc:vm task.
     class Instruction
       def initialize(inst, cm, ip)
-        @op = inst[0]
+        @instruction = inst[0]
         @args = inst[1..-1]
         @comment = nil
 
         @args.each_index do |i|
-          case @op.args[i]
+          case @instruction.args[i]
           when :literal
             @args[i] = cm.literals[@args[i]]
           when :local
@@ -520,49 +521,44 @@ module Rubinius
           end
         end
 
+        @cm = cm
         @ip = ip
-        @line = cm.line_from_ip(ip)
       end
 
       # Instruction pointer
       attr_reader :ip
-      attr_reader :line
+
+      ##
+      # Return the line that this instruction is on in the method
+      #
+      def line
+        @cm.line_from_ip(ip)
+      end
 
       ##
       # Returns the OpCode object
       #
-      # Associated OpCode instance.
-      def instruction
-        @op
-      end
+      attr_reader :instruction
 
       ##
       # Returns the symbol representing the opcode for this instruction.
-
+      #
       def opcode
-        @op.opcode
+        @instruction.opcode
       end
 
       ##
       # Returns an array of 0 to 2 arguments, depending on the opcode.
+      #
+      attr_reader :args
 
-      def args
-        @args
-      end
-
+      ##
+      # Returns a Fixnum indicating how wide the instruction takes up
+      # in the instruction stream
+      #
       def size
         @args.size + 1
       end
-
-      ##
-      # Returns the stack operands consumed by this instruction, as well as a flag
-      # indicating whether this is an exact value (true) or a minimum (false).
-      attr_reader :stack_consumed
-
-      ##
-      # Returns the stack operands produced by this instruction, as well as a flag
-      # indicating whether this is an exact value (true) or a minimum (false).
-      attr_reader :stack_produced
 
       ##
       # A nice human readable interpretation of this set of instructions
