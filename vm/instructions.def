@@ -198,7 +198,7 @@ end
 #   instruction following the specified label; otherwise, continue.
 # [See Also]
 #   * goto
-#   * goto_if_false
+#   * goto_if_true
 
 instruction goto_if_false(location) [ value -- ] => branch
   Object* t1 = stack_pop();
