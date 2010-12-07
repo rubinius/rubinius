@@ -776,27 +776,32 @@ end
 #   The resulting array is then pushed back onto the stack.
 
 instruction cast_array() [ value -- array ]
-  Object* t1 = stack_pop();
-  if(kind_of<Tuple>(t1)) {
-    t1 = Array::from_tuple(state, as<Tuple>(t1));
+  // Use stack_top and not stack_pop because we may need
+  // to preserve and reread the value from the stack below.
+  Object* t1 = stack_top();
+  if(Tuple* tup = try_as<Tuple>(t1)) {
+    t1 = Array::from_tuple(state, tup);
   } else if(!kind_of<Array>(t1)) {
-    Object* recv = G(array);
-    Arguments args(recv, 1, &t1);
+    Arguments args(G(array), 1, &t1);
     Dispatch dis(G(sym_coerce_into_array));
 
     Object* res = dis.send(state, call_frame, args);
 
-    // If the send still doesnt produce an array, wrap
+    // If the send still doesn't produce an array, wrap
     // the value in one.
-    if(!kind_of<Array>(res)) {
+    if(res && !kind_of<Array>(res)) {
       Array* ary = Array::create(state, 1);
-      ary->set(state, 0, t1);
+      // Don't read t1 here, it's not GC safe because we called
+      // a method.
+      ary->set(state, 0, stack_top());
       t1 = ary;
     } else {
       t1 = res;
     }
   }
-  stack_push(t1);
+
+  stack_pop(); // Remove original value
+  CHECK_AND_PUSH(t1);
 end
 
 # [Operation]
