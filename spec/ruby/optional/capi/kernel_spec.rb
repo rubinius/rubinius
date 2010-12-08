@@ -136,6 +136,22 @@ describe "C-API Kernel function" do
     end
   end
 
+  describe "rb_yield_splat" do
+    it "yields passed arguments" do
+      ret = nil
+      @s.rb_yield_splat([1,2]) { |x, y| ret = x + y }
+      ret.should == 3
+    end
+
+    it "returns the result from block evaluation" do
+      @s.rb_yield_splat([1, 2]) { |x, y| x + y }.should == 3
+    end
+
+    it "raises LocalJumpError when no block is given" do
+      lambda { @s.rb_yield_values(1, 2) }.should raise_error(LocalJumpError)
+    end
+  end
+
   describe "rb_rescue" do
     before :each do
       @proc = lambda { |x| x }

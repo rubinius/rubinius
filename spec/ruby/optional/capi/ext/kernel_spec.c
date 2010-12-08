@@ -147,6 +147,12 @@ static VALUE kernel_spec_rb_yield_values(VALUE self, VALUE obj1, VALUE obj2) {
 }
 #endif
 
+#ifdef HAVE_RB_YIELD_SPLAT
+static VALUE kernel_spec_rb_yield_splat(VALUE self, VALUE ary) {
+  return rb_yield_splat(ary);
+}
+#endif
+
 #ifdef HAVE_RB_EXEC_RECURSIVE
 
 static VALUE do_rec(VALUE obj, VALUE arg, int is_rec) {
@@ -235,6 +241,10 @@ void Init_kernel_spec() {
 
 #ifdef HAVE_RB_YIELD_VALUES
   rb_define_method(cls, "rb_yield_values", kernel_spec_rb_yield_values, 2);
+#endif
+
+#ifdef HAVE_RB_YIELD_SPLAT
+  rb_define_method(cls, "rb_yield_splat", kernel_spec_rb_yield_splat, 1);
 #endif
 
 #ifdef HAVE_RB_EXEC_RECURSIVE
