@@ -44,9 +44,25 @@ class Configure
     @llvm_skip_prebuilt     = false
     @llvm_prebuilt_name     = nil
     @llvm_system_name       = get_system_name
-    @llvm_source            = "llvm-2.6-source.tar.bz2"
+
+    @llvm_version           = "2.8"
+    @llvm_source            = "llvm-2.8.tgz"
+    @llvm_source_dir        = "llvm-2.8"
+    @llvm_source_url        = "http://llvm.org/releases/2.8/llvm-2.8.tgz"
     @llvm_asset_path        = "http://asset.rubini.us/prebuilt"
-    @llvm_generic_prebuilt  = "llvm-#{@host}.tar.bz2"
+
+    if @cxx == "g++"
+      @gcc_major = `#{@cxx} -dumpversion`.strip.split(".")[0,2].join(".")
+    else
+      @gcc_major = "unknown"
+    end
+
+    if @host == "i686-gc-linux-gnu"
+      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}-#{gcc_major}.tar.bz2"
+    else
+      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}.tar.bz2"
+    end
+
     @llvm_parent_path       = File.join(root, "vm", "external_libs")
     @llvm_default           = File.join(@llvm_parent_path, "llvm")
     @llvm_prebuilt_path     = File.join(@llvm_parent_path, "prebuilt")
@@ -276,7 +292,7 @@ class Configure
       end
     end
 
-    return md5.hexdigest == File.read(md5_path).split(" ").first
+    return md5.hexdigest == File.read(md5_path).strip.split(" ").first
   end
 
   require 'net/http'
@@ -355,19 +371,21 @@ class Configure
   end
 
   def setup_source
-    url = File.join @llvm_asset_path, @llvm_source
+    url = @llvm_source_url
     path = File.join @llvm_prebuilt_path, @llvm_source
 
-    @log.write "  Downloading #{url}..."
-    return false unless download(url, path)
+    unless File.exists?(path)
+      @log.write "  Downloading #{url}..."
+      return false unless download(url, path)
+    end
 
     if File.exists?(path)
-      @log.print "  Unpacking prebuilt LLVM source: "
-      system "cd #{@llvm_parent_path}; tar xjf #{path}"
+      @log.print "  Unpacking LLVM source: "
+      system "cd #{@llvm_parent_path}; tar xzf #{path}; mv #{@llvm_source_dir} llvm"
       @log.write "done!"
 
       if File.exists?(@llvm_include_path)
-        @log.write "  Code appears to be proper svn tree."
+        @log.write "  Code appears to be a proper tree."
       else
         @log.write "  Code doesn't appear to be proper LLVM tree!"
         return false
@@ -385,7 +403,7 @@ class Configure
     # If we have a system name, try to find a prebuilt specifically
     # for this system first.
     if @llvm_system_name
-      files.unshift "llvm-#{@host}-#{@llvm_system_name}.tar.bz2"
+      files.unshift "llvm-#{@llvm_version}-#{@host}-#{@llvm_system_name}.tar.bz2"
     end
 
     # If the user specified a name, try that before anything.
@@ -480,11 +498,8 @@ class Configure
       version = `#{config} --version`.strip
       parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
 
-      # 2.6svn is an unknown beast, don't trust it.
-      if version == "2.6svn" or parts[0] < 2 or parts[1] < 6
-        @log.write "too old of a version"
-      elsif parts[0] != 2 or parts[1] != 6
-        @log.write "only 2.6 is supported"
+      if parts[0] != 2 or parts[1] != 8
+        @log.write "only 2.8 is supported"
       else
         @log.write "found! (version #{version})"
         @llvm_configure = config

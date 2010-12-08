@@ -35,12 +35,20 @@ end
 def llvm_lib_files
   return [] unless LLVM_ENABLE
 
-  files = `perl #{llvm_configure} --libfiles all`.split(/\s+/)
+  files = `perl #{llvm_configure} --libfiles`.split(/\s+/)
   files.select { |f| File.file? f }
+end
+
+def llvm_version
+  `perl #{llvm_configure} --version`.strip
 end
 
 def host_triple
   Rubinius::BUILD_CONFIG[:host]
+end
+
+def gcc_major_version
+  `gcc -dumpversion`.strip.split(".")[0,2].join(".")
 end
 
 def llvm_config_flags
