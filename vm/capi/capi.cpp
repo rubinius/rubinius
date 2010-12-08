@@ -472,6 +472,29 @@ extern "C" {
     return capi_yield_backend(env, blk, n, vars);
   }
 
+  VALUE rb_yield_splat(VALUE array_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object* blk = env->block();
+
+    if(!RBX_RTEST(blk)) {
+      rb_raise(rb_eLocalJumpError, "no block given", 0);
+    }
+
+    if(Array* ary = try_as<Array>(env->get_object(array_handle))) {
+      int count = ary->size();
+      Object** vars = reinterpret_cast<Object**>(alloca(sizeof(Object*) * count));
+
+      for(int i = 0; i < count; i++) {
+        vars[i] = ary->get(env->state(), i);
+      }
+
+      return capi_yield_backend(env, blk, count, vars);
+    }
+
+    return capi_yield_backend(env, blk, 0, 0);
+  }
+
   int rb_block_given_p() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     return RBX_RTEST(env->block());
