@@ -91,7 +91,7 @@ class Configure
     @libversion = "1.1"
     @version = "#{@libversion}.1"
     @release_date = "2010-11-16"
-    @config_version = 24
+    @config_version = 25
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
@@ -308,21 +308,30 @@ class Configure
         http = Net::HTTP
       end
 
+      @log.write "    Downloading #{File.basename(full_path)}..."
       http.get_response(URI(url)) do |res|
-        return false if res.is_a?(Net::HTTPClientError)
+        case res
+        when Net::HTTPNotFound
+          @log.write "      Not found."
+          return false
+        when Net::HTTPClientError
+          @log.write "      ERROR: #{res.inspect}"
+          return false
+        end
+
         size, total = 0, res.header['Content-Length'].to_i
         File.open full_path, "w" do |f|
           res.read_body do |chunk|
             f << chunk
             size += chunk.size
-            print "\r    [ %d%% (%d of %d) ]" % [(size * 100) / total, size, total]
+            print "\r      [ %d%% (%d of %d) ]" % [(size * 100) / total, size, total]
           end
         end
         @log.write ": done!"
       end
     rescue Exception => e
       File.unlink full_path if File.exists?(full_path)
-      @log.write " ERROR"
+      @log.write " ERROR: #{e.message}"
       return false
     end
 
@@ -406,6 +415,13 @@ class Configure
       files.unshift "llvm-#{@llvm_version}-#{@host}-#{@llvm_system_name}.tar.bz2"
     end
 
+    # Try one for just the darwin major version (which increases for each
+    # minor OS X version. ie. 10.5 == 9.x.x, 10.6 == 10.x.x)
+    if m = /darwin(\d+)\.(\d+)\.(\d+)/.match(@os)
+      # Try this last
+      files.push "llvm-#{@llvm_version}-#{@cpu}-#{@vendor}-darwin#{m[1]}.tar.bz2"
+    end
+
     # If the user specified a name, try that before anything.
     files.unshift @llvm_prebuilt_name if @llvm_prebuilt_name
 
@@ -457,14 +473,27 @@ class Configure
   def setup_auto
     @log.print "  Checking for existing LLVM tree: "
     if File.directory?(@llvm_default)
-      @log.write "found!"
-      if File.exists?(File.join(@llvm_default, "Makefile.common"))
-        @llvm = :svn
-      else
-        @llvm = :prebuilt
-      end
+      version = `#{@llvm_default}/Release/bin/llvm-config --version`.strip
+      if version == "2.8"
+        @log.write "found!"
+        if File.exists?(File.join(@llvm_default, "Makefile.common"))
+          @llvm = :svn
+        else
+          @llvm = :prebuilt
+        end
 
-      return
+        return
+      else
+        @log.write "outdated (version #{version})"
+
+        if File.exists?(File.join(@llvm_default, "Makefile.common"))
+          @log.error "ABORT: Unwilling to override custom LLVM tree, please update it manually"
+          exit 1
+        else
+          @log.write "    Removing outdated tree..."
+          FileUtils.rm_rf(@llvm_default)
+        end
+      end
     else
       @log.write "not found."
     end
