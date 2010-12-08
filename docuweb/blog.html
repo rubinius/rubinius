@@ -1,0 +1,16 @@
+---
+layout: blog
+---
+  <div class="container">
+  {% for post in site.posts limit:20 %}
+    <div>
+      <a href="{{ post.url }}" title="{{ post.title }}">
+        {{ post.title }}
+      </a>
+      <div>
+        <p>{{ post.author }} {{ post.date | date: "%d %B %Y") }}</p>
+      </div>
+      {{ post.content }}
+    </div>
+  {% endfor %}
+  </div>

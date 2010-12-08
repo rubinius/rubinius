@@ -1,0 +1,14 @@
+---
+layout: page
+---
+  <body>
+    {% include post_header.html %}
+    <div class="container">
+      <h2>{{ page.title }}</h2>
+      <div>
+        <p>{{ page.author }} {{ page.date | date: "%d %B %Y") }}</p>
+      </div>
+      {{ content }}
+    </div>
+    {% include footer.html %}
+  </body>

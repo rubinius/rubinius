@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rubinius : Use Ruby&#153;</title>
+    <meta content='text/html;charset=utf-8' http-equiv='content-type'>
+    <meta content='en' http-equiv='content-language'>
+    <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
+    <meta content='Less Than Three. &lt;3. http://less.thanthree.com' name='author'>
+    <link href='http://localhost:3000/' rel='home'>
+
+    <link href='http://localhost:3000/' rel='start'>
+    <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script><![endif]-->
+    <script src="/javascripts/jquery-1.3.2.js" type="text/javascript"></script>
+    <script src="/javascripts/paging_keys.js" type="text/javascript"></script>
+    <script src="/javascripts/jquery.twitter.js" type="text/javascript"></script>
+    <script src="/javascripts/application.js" type="text/javascript"></script>
+    <style>article, aside, dialog, figure, footer, header, hgroup, menu, nav, section { display: block; }</style>
+
+    <link href="/stylesheets/blueprint/screen.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="/stylesheets/blueprint/print.css" media="print" rel="stylesheet" type="text/css" />
+    <!--[if IE]><link href="/stylesheets/blueprint/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
+    <!--[if IE]><link href="/stylesheets/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
+  </head>
+    <body>
+        <div class='container'>
+      <div class='span-21'>
+        <header>
+                    <nav>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a href="/blog/">Blog</a></li>
+              <li><a href="/doc/en/">Documentation</a></li>
+              <li><a href="/projects/">Projects</a></li>
+              <li><a href="/roadmap/">Roadmap</a></li>
+              <li><a href="/releases/">Releases</a></li>
+            </ul>
+          </nav>
+
+        </header>
+      </div>
+            <div class='span-3 last'>
+        <div id='version'>
+          <a href="/releases/1.1.1">1.1.1</a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="container">
+      <h2>Troubleshooting</h2>
+
+      <p>The following are errors that you may encounter while building, installing, or
+running Rubinius along with suggested solutions.</p>
+
+<p>For any error, a first step is to ensure you have a current, clean checkout of
+Rubinius. Before going further, consider running the following steps:</p>
+
+<pre><code>$ git co master
+$ git reset --hard
+$ git pull
+$ rake distclean
+$ rake
+</code></pre>
+
+<p>Error:</p>
+
+<pre><code>ERROR: unable to find runtime directory
+
+Rubinius was configured to find the runtime directory at:
+
+  /Users/brian/devel/rubinius/runtime
+
+but that directory does not exist.
+
+Set the environment variable RBX_RUNTIME to the location
+of the directory with the compiled Rubinius kernel files.
+
+You may have configured Rubinius for a different install
+directory but you have not run 'rake install' yet.
+</code></pre>
+
+<p>Solution:</p>
+
+<p>If you configured rubinius with a &ndash;prefix, run rake install.</p>
+
+<p>If you configured rubinius with a &ndash;prefix and renamed the install directory
+  after installing Rubinius, re-configure Rubinius and reinstall it.</p>
+
+<p>If you renamed the source directory after building Rubinius, re-configure
+  and rebuild it.</p>
+
+<p>In general, do not rename the source or build directory after building
+  Rubinius.</p>
+
+    </div>
+        <footer>
+      <div class='container'>
+        <nav>
+          <ul>
+            <li><a href="http://twitter.com/rubinius">Follow Rubinius on Twitter</a></li>
+            <li><a href="http://github.com/evanphx/rubinius">Fork Rubinius on github</a></li>
+            <li><a href="http://engineyard.com">An Engine Yard project</a></li>
+
+            <li id='credit'>
+              Site design by
+              <a href="http://less.thanthree.com">Less Than Three</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </footer>
+        <script type="text/javascript">
+        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+        </script>
+
+        <script type="text/javascript">
+        try {
+        var pageTracker = _gat._getTracker("UA-12328521-1");
+        pageTracker._trackPageview();
+        } catch(err) {}</script>
+
+  </body>
+
+</html>
