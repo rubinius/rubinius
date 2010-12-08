@@ -148,7 +148,7 @@ describe "C-API Kernel function" do
     end
 
     it "raises LocalJumpError when no block is given" do
-      lambda { @s.rb_yield_values(1, 2) }.should raise_error(LocalJumpError)
+      lambda { @s.rb_yield_splat([1, 2]) }.should raise_error(LocalJumpError)
     end
   end
 
