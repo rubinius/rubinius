@@ -16,7 +16,7 @@ describe "A Dxstr node" do
       g.push_literal "touch "
 
       g.push_local 0
-      g.send :to_s, 0, true
+      g.meta_to_s
 
       g.string_build 2
 

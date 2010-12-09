@@ -44,13 +44,13 @@ using namespace rubinius;
  * the stack. The reason is evaluating val might throw an exception. The
  * old code used an undefined behavior, this forces the order. */
 #define stack_push(val) ({ Object* __stack_v = (val); *++STACK_PTR = __stack_v; })
-#define stack_pop() *STACK_PTR--
+#define stack_pop() (*STACK_PTR--)
 #define stack_set_top(val) *STACK_PTR = (val)
 
 #define USE_JUMP_TABLE
 
-#define stack_top() *STACK_PTR
-#define stack_back(count) *(STACK_PTR - count)
+#define stack_top() (*STACK_PTR)
+#define stack_back(count) (*(STACK_PTR - count))
 #define stack_clear(count) STACK_PTR -= count
 
 #define stack_position(where) (STACK_PTR = call_frame->stk + where)

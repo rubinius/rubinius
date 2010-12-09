@@ -26,7 +26,7 @@ describe "A Dregx node" do
       g.push 1              # 2
       g.push 1
       g.send :+, 1, false
-      g.send :to_s, 0, true
+      g.meta_to_s
 
       g.push_literal "y"    # 3
 
@@ -57,7 +57,7 @@ describe "A Dregx node" do
       g.find_const :Regexp
 
       g.push_ivar :@rakefile
-      g.send :to_s, 0, true
+      g.meta_to_s
       g.string_build 1
 
       g.push 0
@@ -71,7 +71,7 @@ describe "A Dregx node" do
       g.find_const :Regexp
 
       g.push 1
-      g.send :to_s, 0, true
+      g.meta_to_s
       g.string_build 1
 
       g.push 16
@@ -86,10 +86,10 @@ describe "A Dregx node" do
         g.find_const :Regexp
 
         g.push_const :IAC     # 1
-        g.send :to_s, 0, true
+        g.meta_to_s
 
         g.push_const :SB      # 2
-        g.send :to_s, 0, true
+        g.meta_to_s
 
         g.string_build 2
 
@@ -110,7 +110,7 @@ describe "A Dregx node" do
         g.push 1              # 2
         g.push 1
         g.send :+, 1, false
-        g.send :to_s, 0, true
+        g.meta_to_s
 
         g.push_literal "y"    # 3
 

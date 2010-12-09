@@ -8,7 +8,7 @@ describe "A Dsym node" do
       g.push 1
       g.push 1
       g.send :+, 1, false
-      g.send :to_s, 0, true
+      g.meta_to_s
 
       g.push_literal "y"
 

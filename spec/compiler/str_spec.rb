@@ -34,7 +34,7 @@ describe "A Str node" do
 
       g.push_scope
       g.send :active_path, 0
-      g.send :to_s, 0, true
+      g.meta_to_s
 
       g.push_literal "\n"
 

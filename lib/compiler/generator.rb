@@ -551,5 +551,10 @@ module Rubinius
         send_super_stack_with_block idx, args
       end
     end
+
+    def meta_to_s(name=:to_s, priv=true)
+      allow_private if priv
+      super find_literal(name)
+    end
   end
 end
