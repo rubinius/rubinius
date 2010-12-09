@@ -28,11 +28,11 @@ module Rubinius
     end
 
     def documents
-      @documents ||= File.expand_path("../documentation/site", __FILE__)
+      @documents ||= File.expand_path("../documentation", __FILE__)
     end
 
     def url
-      @url ||= "http://localhost:#{port}"
+      @url ||= "http://localhost:#{port}/doc/en/"
     end
 
     def browser
