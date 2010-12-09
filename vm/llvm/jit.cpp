@@ -808,6 +808,16 @@ namespace rubinius {
         }
       }
 
+      for(uint8_t i = 0; i < 2; i++) {
+        if(ud.operand[i].type == UD_OP_IMM) {
+          Dl_info info;
+          if(dladdr((void*)ud.operand[i].lval.uqword, &info)) {
+            std::cout << " ; " << info.dli_sname;
+            break; // only do one
+          }
+        }
+      }
+
       std::cout << "\n";
     }
   }
