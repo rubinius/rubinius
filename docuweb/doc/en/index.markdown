@@ -33,6 +33,7 @@ title: Table of Contents
 1. [Bytecode Compiler](/doc/en/bytecode-compiler/)
     1. [Parser](/doc/en/bytecode-compiler/parser/)
     1. [AST](/doc/en/bytecode-compiler/ast/)
+    1. [Compiler](/doc/en/bytecode-compiler/compiler/)
     1. [Transformations](/doc/en/bytecode-compiler/transformations/)
     1. [Generator](/doc/en/bytecode-compiler/generator/)
 1. [JIT Compiler](/doc/en/jit/)

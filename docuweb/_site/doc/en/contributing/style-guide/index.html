@@ -48,9 +48,124 @@
     </div>
 
     <div class="container">
-      <h2></h2>
+      <h2>Coding Style Guide</h2>
 
-      
+      <p>The following guidelines aim to keep the Rubinius codebase maintainable. When
+in doubt about a guideline here, ask us in the #rubinius IRC channel on
+irc.freenode.net.</p>
+
+<h2 id="all-code">All Code</h2>
+
+<ul>
+  <li>Configure your editor for soft tabs, not hard tabs</li>
+  <li>Expand tabs to two spaces</li>
+  <li>Leave a trailing newline at the end of each file</li>
+</ul>
+
+<h2 id="c-code">C++ Code</h2>
+
+<ul>
+  <li>
+    <p>No space between condition and paren.
+  Use if(1) NOT if (1)</p>
+  </li>
+  <li>
+    <p>Put the opening brace on the same line as the function declaration or
+conditional</p>
+  </li>
+  <li>
+    <p>Always use curly braces, even if they can be left out.</p>
+  </li>
+  <li>
+    <p>Prefer parentheses to implicit precedence rules (within reason)</p>
+  </li>
+  <li>
+    <p>Alternate versions of functions should be named why they are different
+from the primary.  If there is a function &lsquo;person()&rsquo; and you want a
+version that takes the name of the person, it should be
+&lsquo;person_with_name(char *name)&rsquo; or &lsquo;person_with_details(char *name, &hellip;)&rsquo;.
+NOT &lsquo;person1(char *name)&rsquo;.</p>
+  </li>
+</ul>
+
+<h2 id="ruby-code">Ruby Code</h2>
+
+<ul>
+  <li>
+    <p>Methods: Try to keep your methods short&ndash;one screenful and try to adhere
+to DRY within reason. Generally common functionality should be abstracted
+to helper methods (which you can make &lsquo;private&rsquo;) but in some cases,
+particularly working with Core, sometimes trying to DRY things up is just
+an obstacle if you have to maneuver around several different error
+conditions, for example.</p>
+  </li>
+  <li>
+    <p>Method names: should be clear, expressive and meaningful. Avoid using
+underscores to &lsquo;protect&rsquo; the method (&lsquo;__send__&rsquo;) with some exceptions.</p>
+  </li>
+  <li>
+    <p>Smalltalk-style method names are OK, meaning that you could have a method
+SomeClass.make_from when it is intended to be invoked as
+SomeClass.make_from file or SomeClass.make_from :file =&gt; name. There the
+parameter name &lsquo;completes&rsquo; the method name and makes for more natural
+reading.</p>
+  </li>
+  <li>
+    <p>Variable names: make them clear and meaningful (with some well-known
+exceptions like using &lsquo;i&rsquo; for a counter.) Try to avoid shadowing method
+names, for example within Array use &lsquo;idx&rsquo; in favour of &lsquo;index&rsquo; because the
+latter is also a method name.</p>
+  </li>
+  <li>
+    <p>Postconditions: use postconditions only <em>if</em> your expression is a
+one-liner <em>and</em> you do not have many conditions.</p>
+  </li>
+  <li>
+    <p>Blocks: Use either &lsquo;do &hellip; end&rsquo; or &lsquo;{..}&rsquo;, spaces between the delimiters
+and code (&lsquo;foo { |arg| code }&rsquo;). Split long or complex expressions over
+multiple lines like this:</p>
+
+    <pre><code>mapped = foo.map do |elem|
+  do_something_with elem
+end
+</code></pre>
+  </li>
+  <li>
+    <p>Module/Class definitions with scope qualifiers:</p>
+
+    <pre><code>module Rubinius::Profiler
+  class Sampler
+  end
+end
+</code></pre>
+  </li>
+</ul>
+
+<h2 id="kernel-code">Kernel Code</h2>
+
+<p>The primary guideline for all kernel code is simple and efficient. Simple code
+is often more efficient and generally more comprehensible. There should be no
+metaprogramming code in bootstrap. Use the #attr_xxx methods throughout the
+kernel source. Also, alias methods using the #alias_method call next to the
+method definition. Specify private methods with the &lsquo;private :sym&rsquo; method next
+to the method definition.  Remember that the versions of the methods listed
+above in the alpha stage take a single, symbol argument.</p>
+
+<h2 id="documentation">Documentation</h2>
+
+<ul>
+  <li>
+    <p>Use RDoc for documentation in Ruby code.</p>
+  </li>
+  <li>
+    <p>Use Doxygen for documentation in C++ code.</p>
+  </li>
+  <li>
+    <p>Use Markdown for documentation in the /doc directory. See <a href="http://daringfireball.net/projects/markdown/syntax">Markdown
+syntax</a> Set the text
+width to 78 characters and use hard breaks.</p>
+  </li>
+</ul>
 
     </div>
         <footer>

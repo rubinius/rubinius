@@ -48,92 +48,26 @@
     </div>
 
     <div class="container">
-      <h2>Contributing</h2>
+      <h2>How-to - Write a Ruby Spec</h2>
 
-      <p>The Rubinius project welcomes your contributions. There are many things to do
-to help out. Most importantly, you should do something that interests you.
-That is the best way to have enthusiasm and energy for your work.</p>
-
-<p>If you have questions about Rubinius, the best way to get answers is to chat
-with us in the #rubinius IRC channel on irc.freenode.net.</p>
-
-<p>Below are several ideas for things to do on Rubinius.</p>
-
-<h2 id="run-your-code">Run Your Code</h2>
-
-<p>Your code is often more vicious than the specs. Run your pet project under
-rubinius and report issues. See <a href="/howto/write_a_ticket">how to write a ticket</a>.</p>
-
-<h2 id="ask-for-help">Ask For Help</h2>
-
-<p>Anything that we can do to help, we will. Make sure to do your own research
-too, if possible. Rubinius attempts to be a project that you can easily study,
-learn from, and hopefully extend.</p>
-
-<p>We will certainly accept and appreciate simple bug reports, but we can give
-priority to tickets that include simple steps to reproduce the issue. Even
-better are tickets that include RubySpecs that demonstrate the bug and a patch
-that fixes it.</p>
-
-<h2 id="write-specs">Write Specs</h2>
-
-<ol>
-  <li>
-    <p>Run &lsquo;bin/mspec tag &ndash;list incomplete <dir>' to show specs that have been
-tagged as incomplete. These specs may simply need review, or there could
-be specs missing for a particular class.</dir></p>
-
-    <p>NOTE: You can specify the pseudo-directory &lsquo;:files&rsquo; for <dir>, which will
-show tags for all the specs that should run on Rubinius. Or you can
-specify any subdirectory of the spec/ directory to list tags for specs in
-that subdirectory.</dir></p>
-  </li>
-  <li>
-    <p>Find unspecified behaviors. See <a href="/howto/write_a_ruby_spec">how to write a Ruby
-spec</a>.</p>
-  </li>
-</ol>
-
-<h2 id="fix-failing-specs">Fix Failing Specs</h2>
-
-<ol>
-  <li>
-    <p>Run &lsquo;bin/mspec tag &ndash;list fails <dir>' to show specs tagged as failing.</dir></p>
-
-    <p>NOTE: You can specify the pseudo-directory &lsquo;:files&rsquo; for <dir>, which will
-show tags for all the specs that should run on Rubinius. Or you can
-specify any subdirectory of the spec/ directory to list tags for specs in
-that subdirectory.</dir></p>
-  </li>
-  <li>
-    <p>Pick a spec that looks interesting and see if you can write a patch that
-will make it pass.</p>
-  </li>
-</ol>
-
-<h2 id="write-docs">Write Docs</h2>
-
-<p>Study how Rubinius works and write highlevel documentation that will help
-others learn about the implementation details. See documents under doc/vm for
-examples.</p>
-
-<h2 id="cleanup-code">Cleanup Code</h2>
-
-<p>Search for tags like TODO, HACK, FIXME in the code and submit patches to fix
-them. Here&rsquo;s a command to search the code:</p>
-
-<pre><code>'grep -re "@todo\|TODO\|HACK\|FIXME" .'
-</code></pre>
-
-<p>Review the <a href="/dev/style_guide">style guide</a> for coding guidelines.</p>
-
-<h2 id="triage-tickets">Triage Tickets</h2>
+      <p>Make sure you have read:</p>
 
 <ul>
-  <li>Revive or close old tickets.</li>
-  <li>Build minimal test cases that reproduce the bugs. Then see if there are
-already RubySpecs for the issue. If not, consider writing some.</li>
+  <li><a href="/getting_started">Getting Started</a></li>
+  <li><a href="/dev/specs">Specs</a></li>
 </ul>
+
+<p>Then, follow these steps to write a spec for a Ruby method:</p>
+
+<ol>
+  <li>Edit a file under <code>spec/ruby/...</code></li>
+  <li>Run <code>bin/mspec -tr spec/ruby/some/spec_file.rb</code></li>
+  <li>Repeat until the spec passes on MatzRuby</li>
+  <li>Commit your changes</li>
+  <li>Use <code>git format-patch</code></li>
+  <li>Create a gist with your patch and link to it in a ticket on the issue
+tracker at http://github.com/evanphx/rubinius/issues.</li>
+</ol>
 
     </div>
         <footer>
