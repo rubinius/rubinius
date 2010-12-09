@@ -2,8 +2,7 @@
 layout: doc
 ---
 
-What is Rubinius
-================
+## What is Rubinius
 
 Rubinius is an implementation of the [Ruby programming
 language](http://ruby-lang.org).
@@ -15,20 +14,18 @@ code compiler, and Ruby Core and Standard libraries.
 Rubinius currently implements Ruby version 1.8.7.
 
 
-License
-=======
+## License
 
 Rubinius uses the BSD license. See the LICENSE file in the source.
 
 
-Installing
-==========
+## Installing
 
 Rubinius runs on Mac OS X and many Unix/Linux operating systems. Support for
 Microsoft Windows is coming soon.
 
 To install Rubinius, use the following steps. For more detailed information,
-see [Getting Started](/getting_started/).
+see [Getting Started](/doc/en/getting-started/).
 
 1. `git clone git://github.com/evanphx/rubinius.git`
 1. `cd rubinius`

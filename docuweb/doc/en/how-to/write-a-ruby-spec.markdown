@@ -5,8 +5,8 @@ title: How-to - Write a Ruby Spec
 
 Make sure you have read:
 
-  *  [Getting Started](/getting_started)
-  *  [Specs](/dev/specs)
+  *  [Getting Started](/doc/en/getting-started/)
+  *  [Specs](/doc/en/specs/)
 
 Then, follow these steps to write a spec for a Ruby method:
 

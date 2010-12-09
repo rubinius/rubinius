@@ -5,7 +5,7 @@ title: How-to - Fix a Failing Spec
 
 Make sure you have read:
 
-  *  [Getting Started](/doc/en/getting_started/)
+  *  [Getting Started](/doc/en/getting-started/)
   *  [Specs](/doc/en/specs/)
 
 Then, follow these steps to fix a failing spec:

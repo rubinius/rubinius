@@ -17,7 +17,7 @@ Run Your Code
 -------------
 
 Your code is often more vicious than the specs. Run your pet project under
-rubinius and report issues. See [how to write a ticket](/howto/write_a_ticket).
+rubinius and report issues. See [How To Write a Ticket](/doc/en/how-to/write-a-ticket).
 
 
 Ask For Help
@@ -45,8 +45,8 @@ Write Specs
      specify any subdirectory of the spec/ directory to list tags for specs in
      that subdirectory.
 
-  2. Find unspecified behaviors. See [how to write a Ruby
-     spec](/howto/write_a_ruby_spec).
+  2. Find unspecified behaviors. See [How To Write a Ruby
+     Spec](/doc/en/how-to/write-a-ruby-spec).
 
 
 Fix Failing Specs
@@ -79,7 +79,7 @@ them. Here's a command to search the code:
 
     'grep -re "@todo\|TODO\|HACK\|FIXME" .'
 
-Review the [style guide](/dev/style_guide) for coding guidelines.
+Review the [Style Guide](/doc/en/contributing/style-guide) for coding guidelines.
 
 
 Triage Tickets
