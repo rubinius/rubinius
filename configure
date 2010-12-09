@@ -57,7 +57,7 @@ class Configure
       @gcc_major = "unknown"
     end
 
-    if @host == "i686-gc-linux-gnu"
+    if @host == "i686-pc-linux-gnu"
       @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}-#{gcc_major}.tar.bz2"
     else
       @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}.tar.bz2"
@@ -319,7 +319,9 @@ class Configure
           return false
         end
 
-        size, total = 0, res.header['Content-Length'].to_i
+        size = 0
+        total = res.header['Content-Length'].to_i
+
         File.open full_path, "w" do |f|
           res.read_body do |chunk|
             f << chunk
