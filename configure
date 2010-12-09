@@ -101,6 +101,14 @@ class Configure
     else
       @ldshared = "cc -shared"
     end
+
+    import_env
+  end
+
+  def import_env
+    @user_cflags =   ENV['CFLAGS']
+    @user_cppflags = ENV['CPPFLAGS']
+    @user_ldflags =  ENV['LDFLAGS']
   end
 
   def expand(path)
@@ -773,6 +781,9 @@ module Rubinius
     :llvm_configure => "#{@llvm_configure}",
     :cc             => "#{@cc}",
     :cxx            => "#{@cxx}",
+    :user_cflags    => "#{@user_cflags}",
+    :user_cppflags  => "#{@user_cppflags}",
+    :user_ldflags   => "#{@user_ldflags}",
     :defines        => #{@defines.inspect},
     :curses         => #{@curses.inspect},
     :host           => "#{@host}",
