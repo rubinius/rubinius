@@ -48,7 +48,7 @@ def host_triple
 end
 
 def gcc_major_version
-  `gcc -dumpversion`.strip.split(".")[0,2].join(".")
+  `#{CC} -dumpversion`.strip.split(".")[0,2].join(".")
 end
 
 def llvm_config_flags
