@@ -1,14 +1,24 @@
 module Rubinius
   class Location
 
-    attr_accessor :is_jit
-    attr_accessor :is_block
     attr_accessor :method
     attr_accessor :name
 
     attr_reader :ip
     attr_reader :variables
     attr_reader :static_scope
+
+    def is_block
+      @flags & 1 == 1
+    end
+
+    def is_jit
+      @flags & 2 == 2
+    end
+
+    def ip_on_current?
+      @flags & 4 == 4
+    end
 
     def inlined?
       @name.nil?
@@ -31,7 +41,7 @@ module Rubinius
     end
 
     def describe
-      if @is_block
+      if is_block
         "{ } in #{describe_receiver}#{describe_method}"
       else
         "#{describe_receiver}#{describe_method}"
@@ -39,7 +49,7 @@ module Rubinius
     end
 
     def describe_method
-      if @is_block or @name == @method.name
+      if is_block or @name == @method.name
         @name.to_s
       elsif !@name # inlined methods have no name
         @method.name.to_s
@@ -52,7 +62,8 @@ module Rubinius
     def line
       return 0 unless @method
       ip = @ip
-      ip = 0 if @ip < 0
+      return @method.first_line unless ip > 0
+      ip -= 1 unless ip_on_current?
 
       @method.line_from_ip(ip)
     end

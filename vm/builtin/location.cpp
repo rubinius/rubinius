@@ -18,26 +18,26 @@ namespace rubinius {
     G(location)->name(state, state->symbol("Rubinius::Location"));
   }
 
-  Location* Location::create(STATE, CallFrame* call_frame, bool include_variables) {
+  Location* Location::create(STATE, CallFrame* call_frame,
+                             bool include_variables)
+  {
     Location* loc = state->new_object<Location>(G(location));
     loc->method_module(state, call_frame->module());
     loc->receiver(state, call_frame->self());
     loc->method(state, call_frame->cm);
     loc->ip(state, Fixnum::from(call_frame->ip()));
+    loc->flags(state, Fixnum::from(0));
 
     if(call_frame->is_block_p(state)) {
       loc->name(state, call_frame->top_scope(state)->method()->name());
-      loc->is_block(state, Qtrue);
+      loc->set_is_block(state);
     } else {
       loc->name(state, call_frame->name());
-      loc->is_block(state, Qfalse);
     }
 
     VMMethod* vmm = call_frame->cm->backend_method();
     if(vmm && vmm->jitted()) {
-      loc->is_jit(state, Qtrue);
-    } else {
-      loc->is_jit(state, Qfalse);
+      loc->set_is_jit(state);
     }
 
     if(include_variables) {
@@ -52,9 +52,28 @@ namespace rubinius {
     return loc;
   }
 
-  Array* Location::from_call_stack(STATE, CallFrame* start_call_frame, bool include_vars) {
+  Array* Location::from_call_stack(STATE, CallFrame* start_call_frame,
+                                   bool include_vars, bool on_ip)
+  {
     Array* bt = Array::create(state, 5);
     CallFrame* call_frame = start_call_frame;
+
+    // Initial edge.
+    if(!call_frame) return bt;
+
+    // First the first normal frame
+    while(!call_frame->cm) {
+      call_frame = static_cast<CallFrame*>(call_frame->previous);
+      // Weird edge case.
+      if(!call_frame) return bt;
+    }
+
+    Location* loc = Location::create(state, call_frame, include_vars);
+    if(on_ip) loc->set_ip_on_current(state);
+
+    bt->append(state, loc);
+
+    call_frame = static_cast<CallFrame*>(call_frame->previous);
 
     while(call_frame) {
       // Ignore synthetic frames

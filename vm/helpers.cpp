@@ -281,10 +281,10 @@ namespace rubinius {
         cur->control_channel(state, my_control);
       }
 
+      Array* locs = Location::from_call_stack(state, call_frame, true, true);
+
       debugger_chan->send(state,
-          Tuple::from(state, 4, bp, cur, my_control,
-                      Location::from_call_stack(state,  call_frame, true)
-                    ));
+          Tuple::from(state, 4, bp, cur, my_control, locs));
 
       // Block until the debugger wakes us back up.
       Object* ret = my_control->receive(state, call_frame);

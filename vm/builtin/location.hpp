@@ -2,6 +2,7 @@
 #define RBX_BUILTIN_LOCATION_HPP
 
 #include "builtin/object.hpp"
+#include "builtin/fixnum.hpp"
 
 namespace rubinius {
 
@@ -12,9 +13,8 @@ namespace rubinius {
     Object* receiver_; // slot
     Symbol* name_; // slot
     Object* method_; // slot
-    Object* is_block_; // slot
     Fixnum* ip_; // slot
-    Object* is_jit_; // slot
+    Fixnum* flags_; // slot
     VariableScope* variables_; // slot
     StaticScope* static_scope_; // slot
 
@@ -25,15 +25,28 @@ namespace rubinius {
     attr_accessor(receiver, Object);
     attr_accessor(name, Symbol);
     attr_accessor(method, Object);
-    attr_accessor(is_block, Object);
     attr_accessor(ip, Fixnum);
-    attr_accessor(is_jit, Object);
+    attr_accessor(flags, Fixnum);
     attr_accessor(variables, VariableScope);
     attr_accessor(static_scope, StaticScope);
 
+    void set_is_block(STATE) {
+      flags(state, Fixnum::from(flags()->to_native() | 1));
+    }
+
+    void set_is_jit(STATE) {
+      flags(state, Fixnum::from(flags()->to_native() | 2));
+    }
+
+    void set_ip_on_current(STATE) {
+      flags(state, Fixnum::from(flags()->to_native() | 4));
+    }
+
     static void init(STATE);
-    static Location* create(STATE, CallFrame* call_frame, bool include_variables=false);
-    static Array* from_call_stack(STATE, CallFrame* call_frame, bool include_vars=false);
+    static Location* create(STATE, CallFrame* call_frame,
+                            bool include_variables=false);
+    static Array* from_call_stack(STATE, CallFrame* call_frame,
+                                  bool include_vars=false, bool on_ip=false);
     static Array* mri_backtrace(STATE, CallFrame* call_frame);
 
     class Info : public TypeInfo {
