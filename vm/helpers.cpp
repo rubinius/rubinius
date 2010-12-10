@@ -137,7 +137,7 @@ namespace rubinius {
       Dispatch dis(name);
 
       if(!GlobalCache::resolve(state, dis.name, dis, lookup)) {
-        return (Tuple*)Qnil;
+        return nil<Tuple>();
       }
 
       return Tuple::from(state, 2, dis.method, dis.module);

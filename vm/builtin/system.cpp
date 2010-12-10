@@ -641,7 +641,7 @@ namespace rubinius {
     Dispatch dis(name);
 
     if(!GlobalCache::resolve(state, name, dis, lookup)) {
-      return (Tuple*)Qnil;
+      return nil<Tuple>();
     }
 
     return Tuple::from(state, 2, dis.method, dis.module);
@@ -992,7 +992,7 @@ namespace rubinius {
     QueryAgent* agent = state->shared.autostart_agent();
     int sock = agent->loopback_socket();
     if(sock < 0) {
-      if(!agent->setup_local()) return (IO*)Qnil;
+      if(!agent->setup_local()) return nil<IO>();
       if(agent->running()) {
         agent->wakeup();
       } else {

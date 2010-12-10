@@ -22,7 +22,7 @@ namespace rubinius {
 
   Executable* Executable::allocate(STATE, Object* self) {
     Executable* executable = state->new_object<Executable>(G(executable));
-    executable->primitive(state, (Symbol*)Qnil);
+    executable->primitive(state, nil<Symbol>());
     executable->serial(state, Fixnum::from(0));
     executable->inliners_ = 0;
     executable->prim_index_ = -1;

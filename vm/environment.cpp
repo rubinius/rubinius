@@ -399,7 +399,7 @@ namespace rubinius {
     state->boot();
 
     TaskProbe* probe = TaskProbe::create(state);
-    state->probe.set(probe->parse_env(NULL) ? probe : (TaskProbe*)Qnil);
+    state->probe.set(probe->parse_env(NULL) ? probe : nil<TaskProbe>());
   }
 
   void Environment::run_file(std::string file) {

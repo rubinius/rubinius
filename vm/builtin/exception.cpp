@@ -373,7 +373,7 @@ namespace rubinius {
       return cls;
     }
 
-    return (Class*)Qnil;
+    return nil<Class>();
   }
 
   Class* Exception::get_io_error(STATE) {

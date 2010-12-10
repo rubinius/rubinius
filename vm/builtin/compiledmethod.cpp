@@ -267,7 +267,7 @@ namespace rubinius {
       }
     }
 
-    return (CompiledMethod*)Qnil;
+    return nil<CompiledMethod>();
   }
 
   void CompiledMethod::Info::mark(Object* obj, ObjectMark& mark) {

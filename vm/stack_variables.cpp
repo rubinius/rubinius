@@ -16,7 +16,7 @@ namespace rubinius {
     if(parent_) {
       scope->parent(state, parent_);
     } else {
-      scope->parent(state, (VariableScope*)Qnil);
+      scope->parent(state, nil<VariableScope>());
     }
 
     scope->self(state, self_);

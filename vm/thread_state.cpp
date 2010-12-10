@@ -8,11 +8,11 @@
 
 namespace rubinius {
   ThreadState::ThreadState(VM* vm)
-    : current_exception_(vm, (Exception*)Qnil)
+    : current_exception_(vm, nil<Exception>())
     , raise_value_(vm, Qnil)
     , throw_dest_(vm, Qnil)
     , raise_reason_(cNone)
-    , destination_scope_(vm, (VariableScope*)Qnil)
+    , destination_scope_(vm, nil<VariableScope>())
   {}
 
   Object* ThreadState::state_as_object(STATE) {

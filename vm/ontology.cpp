@@ -82,7 +82,7 @@ namespace rubinius {
     GO(klass).set(cls);
 
     // Now do Object
-    Class *object = new_basic_class((Class*)Qnil);
+    Class *object = new_basic_class(nil<Class>());
     GO(object).set(object);
 
     object->set_object_type(state, ObjectType);

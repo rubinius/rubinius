@@ -76,7 +76,7 @@ namespace rubinius {
 
       while(entry) {
         MethodTableBucket* link = try_as<MethodTableBucket>(entry->next());
-        entry->next(state, reinterpret_cast<MethodTableBucket *>(Qnil));
+        entry->next(state, nil<MethodTableBucket>());
 
         size_t bin = find_bin(key_hash(entry->name()), size);
         MethodTableBucket* slot = try_as<MethodTableBucket>(new_values->at(state, bin));
@@ -102,7 +102,7 @@ namespace rubinius {
 
     Executable* method;
     if(exec->nil_p()) {
-      method = reinterpret_cast<Executable*>(Qnil);
+      method = nil<Executable>();
     } else {
       if(Alias* alias = try_as<Alias>(exec)) {
         method = alias->original_exec();
@@ -223,7 +223,7 @@ namespace rubinius {
       return bucket;
     }
 
-    return reinterpret_cast<MethodTableBucket*>(Qnil);
+    return nil<MethodTableBucket>();
   }
 
   Executable* MethodTable::remove(STATE, Symbol* name) {
@@ -257,7 +257,7 @@ namespace rubinius {
       entry = try_as<MethodTableBucket>(entry->next());
     }
 
-    return reinterpret_cast<Executable*>(Qnil);
+    return nil<Executable>();
   }
 
   Object* MethodTable::has_name(STATE, Symbol* name) {

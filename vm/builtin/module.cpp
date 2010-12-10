@@ -27,8 +27,8 @@ namespace rubinius {
   Module* Module::create(STATE) {
     Module* mod = state->om->new_object_enduring<Module>(G(module));
 
-    mod->name(state, (Symbol*)Qnil);
-    mod->superclass(state, (Module*)Qnil);
+    mod->name(state, nil<Symbol>());
+    mod->superclass(state, nil<Module>());
 
     mod->setup(state);
 
@@ -370,7 +370,7 @@ namespace rubinius {
     imod = state->om->new_object_enduring<IncludedModule>(G(included_module));
 
     imod->name(state, state->symbol("<included module>"));
-    imod->superclass(state, (Module*)Qnil);
+    imod->superclass(state, nil<Module>());
 
     return imod;
   }

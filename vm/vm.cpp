@@ -67,9 +67,9 @@ namespace rubinius {
     , interrupts(shared.interrupts)
     , check_local_interrupts(false)
     , thread_state_(this)
-    , thread(this, (Thread*)Qnil)
-    , current_fiber(this, (Fiber*)Qnil)
-    , root_fiber(this, (Fiber*)Qnil)
+    , thread(this, nil<Thread>())
+    , current_fiber(this, nil<Fiber>())
+    , root_fiber(this, nil<Fiber>())
   {
     probe.set(Qnil, &globals().roots);
     set_stack_size(cStackDepthMax);

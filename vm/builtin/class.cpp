@@ -66,7 +66,7 @@ namespace rubinius {
 
     cls->init(state->shared.inc_class_count());
 
-    cls->name(state, (Symbol*)Qnil);
+    cls->name(state, nil<Symbol>());
     cls->instance_type(state, super->instance_type());
 
     if(super->type_info()->type == PackedObject::type) {
@@ -185,7 +185,7 @@ use_packed:
 
   Object* Class::set_superclass(STATE, Object* obj) {
     if(obj->nil_p()) {
-      superclass(state, (Class*)Qnil);
+      superclass(state, nil<Class>());
       return Qnil;
     }
 

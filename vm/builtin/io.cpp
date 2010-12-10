@@ -56,8 +56,8 @@ namespace rubinius {
 
   IO* IO::allocate(STATE, Object* self) {
     IO* io = state->new_object<IO>(G(io));
-    io->descriptor(state, (Fixnum*)Qnil);
-    io->mode(state, (Fixnum*)Qnil);
+    io->descriptor(state, nil<Fixnum>());
+    io->mode(state, nil<Fixnum>());
     io->ibuffer(state, IOBuffer::create(state));
     io->eof(state, Qfalse);
     io->lineno(state, Fixnum::from(0));
