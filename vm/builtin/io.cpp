@@ -88,7 +88,7 @@ namespace rubinius {
       Array* descriptors = as<Array>(maybe_descriptors);
 
       FD_ZERO(set);
-      native_int highest = 0;
+      native_int highest = -1;
 
       for(std::size_t i = 0; i < descriptors->size(); ++i) {
         Object* elem = descriptors->get(state, i);
@@ -103,7 +103,7 @@ namespace rubinius {
         native_int descriptor = io->to_fd();
         highest = descriptor > highest ? descriptor : highest;
 
-        if(descriptor > 0) FD_SET(descriptor, set);
+        if(descriptor >= 0) FD_SET(descriptor, set);
       }
 
       return highest;
