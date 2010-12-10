@@ -3,10 +3,19 @@ layout: page
 ---
   <body>
     {% include doc_header.html %}
+
+    {% include doc_nav.html %}
+
     <div class="container">
       <h2>{{ page.title }}</h2>
+      {% if page.review %}
+        {% include review.html %}
+      {% endif %}
 
       {{ content }}
     </div>
+
+    {% include doc_nav.html %}
+
     {% include footer.html %}
   </body>

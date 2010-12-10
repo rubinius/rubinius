@@ -1,6 +1,10 @@
 ---
-layout: doc
+layout: doc_en
 title: Bootstrapping
+previous: Build System
+previous_url: build-system
+next: Virtual Machine
+next_url: virtual-machine
 ---
 
 Bootstrapping is the process of building up functionality of the system until

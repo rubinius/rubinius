@@ -1,6 +1,11 @@
 ---
-layout: doc
+layout: doc_en
 title: Build System
+previous: Specs - Compiler
+previous_url: specs/compiler
+next: Bootstrapping
+next_url: bootstrapping
+review: true
 ---
 
 TODO: Many details are missing.

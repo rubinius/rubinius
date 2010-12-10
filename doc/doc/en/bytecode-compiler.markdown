@@ -1,6 +1,11 @@
 ---
-layout: doc
+layout: doc_en
 title: Bytecode Compiler
+previous: Virtual Machine - Custom Dispatch Logic
+previous_url: virtual-machine/custom-dispatch-logic
+next: Parser
+next_url: bytecode-compiler/parser
+review: true
 ---
 
 The Rubinius bytecode compiler converts Ruby source code to bytecode that the

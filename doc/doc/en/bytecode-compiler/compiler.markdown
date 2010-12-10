@@ -1,6 +1,11 @@
 ---
-layout: doc
+layout: doc_en
 title: Compiler
+previous: AST
+previous_url: bytecode-compiler/ast
+next: Transformations
+next_url: bytecode-compiler/transformations
+review: true
 ---
 
 TODO: document the compiler.

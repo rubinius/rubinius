@@ -1,6 +1,10 @@
 ---
-layout: doc
+layout: doc_en
 title: Getting Started
+previous: What is Rubinius?
+previous_url: what-is-rubinius
+next: Requirements
+next_url: getting-started/requirements
 ---
 
 This guide will help you get Rubinius running. It assumes you know something

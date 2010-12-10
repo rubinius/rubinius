@@ -1,6 +1,10 @@
 ---
-layout: doc
-title: How-to - Write a Ticket
+layout: doc_en
+title: How-To - Write a Ticket
+previous: How-To
+previous_url: how-to
+next: Write a Ruby Spec
+next_url: how-to/write-a-ruby-spec
 ---
 
 The Rubinius issue tracker is <http://github.com/evanphx/rubinius/issues>.

@@ -1,6 +1,11 @@
 ---
-layout: doc
+layout: doc_en
 title: Appendix A - Glossary
+previous: How-To - Fix a Failing Spec
+previous_url: how-to/fix-a-failing-spec
+next: Appendix B - Reading List
+next_url: appendix-b-reading-ilst
+review: true
 ---
 
 Definitions of terms and phrases used in the Ruby programming language and in

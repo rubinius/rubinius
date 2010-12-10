@@ -1,6 +1,10 @@
 ---
-layout: doc
+layout: doc_en
 title: Troubleshooting
+previous: Running Rubinius
+previous_url: getting-started/running-rubinius
+next: Contributing
+next_url: contributing
 ---
 
 The following are errors that you may encounter while building, installing, or

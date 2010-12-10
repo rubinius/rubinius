@@ -1,6 +1,10 @@
 ---
-layout: doc
+layout: doc_en
 title: Requirements
+previous: Getting Started
+previous_url: getting-started
+next: Building
+next_url: getting-started/building
 ---
 
 Ensure you have the following programs and libraries installed. Also see the

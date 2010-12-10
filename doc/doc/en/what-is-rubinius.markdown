@@ -1,5 +1,7 @@
 ---
-layout: doc
+layout: doc_en
+next: Getting Started
+next_url: getting-started
 ---
 
 ## What is Rubinius

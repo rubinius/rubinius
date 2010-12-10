@@ -1,6 +1,10 @@
 ---
-layout: doc
+layout: doc_en
 title: Specs
+previous: Ruby - Global Variables
+previous_url: ruby/global-variables
+next: RubySpec
+next_url: specs/rubyspec
 ---
 
 The Rubinius project generally uses TDD/BDD-style executable specifications to

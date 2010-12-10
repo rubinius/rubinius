@@ -1,6 +1,10 @@
 ---
-layout: doc
+layout: doc_en
 title: Building Rubinius
+previous: Requirements
+previous_url: getting-started/requirements
+next: Running Rubinius
+next_url: getting-started/running-rubinius
 ---
 
 You can build and run Rubinius from the source directory. You do not need to

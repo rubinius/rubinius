@@ -1,6 +1,10 @@
 ---
-layout: doc
+layout: doc_en
 title: Coding Style Guide
+previous: Communication
+previous_url: contributing/communication
+next: Ruby
+next_url: ruby
 ---
 
 The following guidelines aim to keep the Rubinius codebase maintainable. When

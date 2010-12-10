@@ -1,6 +1,10 @@
 ---
-layout: doc
+layout: doc_en
 title: Compiler Transforms
+previous: Compiler
+previous_url: bytecode-compiler/compiler
+next: Generator
+next_url: bytecode-compiler/generator
 ---
 
 The bytecode compiler has a simple AST transform mechanism that recognizes

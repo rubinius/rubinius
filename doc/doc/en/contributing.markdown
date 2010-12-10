@@ -1,6 +1,10 @@
 ---
-layout: doc
+layout: doc_en
 title: Contributing
+previous: Troubleshooting
+previous_url: getting-started/troubleshooting
+next: Communication
+next_url: contributing/communication
 ---
 
 The Rubinius project welcomes your contributions. There are many things to do

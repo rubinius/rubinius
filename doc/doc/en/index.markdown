@@ -1,6 +1,9 @@
 ---
-layout: doc
+layout: doc_en
 title: Table of Contents
+toc: true
+next: What is Rubinius?
+next_url: what-is-rubinius
 ---
 
 1. [What is Rubinius?](/doc/en/what-is-rubinius/)
@@ -10,7 +13,7 @@ title: Table of Contents
     1. [Running Rubinius](/doc/en/getting-started/running-rubinius/)
     1. [Troubleshooting](/doc/en/getting-started/troubleshooting/)
 1. [Contributing](/doc/en/contributing/)
-    1. [Communicating](/doc/en/contributing/communication/)
+    1. [Communication](/doc/en/contributing/communication/)
     1. [Style Guide](/doc/en/contributing/style-guide)
 1. [Ruby](/doc/en/ruby/)
     1. [Scripts](/doc/en/ruby/scripts/)
@@ -42,7 +45,7 @@ title: Table of Contents
     1. [Young Generation](/doc/en/garbage-collector/young-generation/)
     1. [Mature Generation](/doc/en/garbage-collector/mature-generation/)
     1. [Large Objects](/doc/en/garbage-collector/large-objects/)
-1. [Systems](/doc/en/systems/)
+1. [Rubinius Systems](/doc/en/systems/)
     1. [Primitives](/doc/en/systems/primitives/)
     1. [FFI](/doc/en/systems/ffi/)
     1. [Concurrency](/doc/en/systems/concurrency/)
@@ -52,10 +55,10 @@ title: Table of Contents
     1. [Debugger](/doc/en/tools/debugger/)
     1. [Profiler](/doc/en/tools/profiler/)
     1. [Memory Analysis](/doc/en/tools/memory-analysis/)
-1. [How-to](/doc/en/how-to/)
+1. [How-To](/doc/en/how-to/)
     1. [Write a Ticket](/doc/en/how-to/write-a-ticket/)
     1. [Write a Ruby Spec](/doc/en/how-to/write-a-ruby-spec/)
     1. [Fix a Failing Spec](/doc/en/how-to/fix-a-failing-spec/)
 1. [Appendix A - Glossary](/doc/en/appendix-a-glossary/)
 1. [Appendix B - Reading List](/doc/en/appendix-b-reading-list/)
-1. [Index](/doc/en/terms-index/)
+1. [Index of Terms](/doc/en/index-of-terms/)

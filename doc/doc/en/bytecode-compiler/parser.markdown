@@ -1,6 +1,11 @@
 ---
-layout: doc
+layout: doc_en
 title: Ruby Parser
+previous: Bytecode Compiler
+previous_url: bytecode-compiler
+next: AST
+next_url: bytecode-compiler/ast
+review: true
 ---
 
 The parser is a C extension named melbourne. It is basically the parser from

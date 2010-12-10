@@ -1,6 +1,11 @@
 ---
-layout: doc
+layout: doc_en
 title: Appendix B - Reading List
+previous: Appendix A - Glossary
+previous_url: appendix-a-glossary
+next: Terms Index
+next_url: terms-index
+review: true
 ---
 
 Building virtual machines in general and programming language implementations

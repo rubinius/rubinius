@@ -1,4 +1,9 @@
 ---
-layout: doc
-title: 
+layout: doc_en
+title: Global Variables
+previous: Class Variables
+previous_url: ruby/class-variables
+next: Specs
+next_url: specs
+review: true
 ---

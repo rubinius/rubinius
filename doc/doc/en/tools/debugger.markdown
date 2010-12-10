@@ -1,6 +1,10 @@
 ---
-layout: doc
+layout: doc_en
 title: Debugger
+previous: Tools
+previous_url: tools
+next: Profiler
+next_url: tools/profiler
 ---
 
 Rubinius includes a reference Ruby source-level debugger.

@@ -1,6 +1,10 @@
 ---
-layout: doc
+layout: doc_en
 title: Running Rubinius
+previous: Building
+previous_url: getting-started/building
+next: Troubleshooting
+next_url: getting-started/troubleshooting
 ---
 
 Once you have followed the steps for building (and possibly installing)

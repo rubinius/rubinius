@@ -1,6 +1,10 @@
 ---
-layout: doc
-title: How-to - Fix a Failing Spec
+layout: doc_en
+title: How-To - Fix a Failing Spec
+previous: Write a Ruby Spec
+previous_url: how-to/write-ruby-spec
+next: Appendix A - Glossary
+next_url: appendix-a-glossary
 ---
 
 Make sure you have read:
