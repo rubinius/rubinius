@@ -68,7 +68,7 @@ class Set
   def initialize(enum = nil, &block) # :yields: o
     @hash ||= Hash.new
 
-    enum.nil? and return
+    return if enum.nil?
 
     if block
       enum.each { |o| add(block[o]) }
@@ -105,7 +105,7 @@ class Set
     if enum.class == self.class
       @hash.replace(enum.instance_eval { @hash })
     else
-      enum.is_a?(Enumerable) or raise ArgumentError, "value must be enumerable"
+      raise ArgumentError, "value must be enumerable" unless enum.is_a?(Enumerable)
       clear
       enum.each { |o| add(o) }
     end
@@ -121,15 +121,15 @@ class Set
   def flatten_merge(set, seen = Set.new)
     set.each { |e|
       if e.is_a?(Set)
-	if seen.include?(e_id = e.object_id)
-	  raise ArgumentError, "tried to flatten recursive Set"
-	end
+        if seen.include?(e_id = e.object_id)
+          raise ArgumentError, "tried to flatten recursive Set"
+        end
 
-	seen.add(e_id)
-	flatten_merge(e, seen)
-	seen.delete(e_id)
+        seen.add(e_id)
+        flatten_merge(e, seen)
+        seen.delete(e_id)
       else
-	add(e)
+        add(e)
       end
     }
 
@@ -161,28 +161,28 @@ class Set
 
   # Returns true if the set is a superset of the given set.
   def superset?(set)
-    set.is_a?(Set) or raise ArgumentError, "value must be a set"
+    raise ArgumentError, "value must be a set" unless set.is_a?(Set)
     return false if size < set.size
     set.all? { |o| include?(o) }
   end
 
   # Returns true if the set is a proper superset of the given set.
   def proper_superset?(set)
-    set.is_a?(Set) or raise ArgumentError, "value must be a set"
+    raise ArgumentError, "value must be a set" unless set.is_a?(Set)
     return false if size <= set.size
     set.all? { |o| include?(o) }
   end
 
   # Returns true if the set is a subset of the given set.
   def subset?(set)
-    set.is_a?(Set) or raise ArgumentError, "value must be a set"
+    raise ArgumentError, "value must be a set" unless set.is_a?(Set)
     return false if set.size < size
     all? { |o| set.include?(o) }
   end
 
   # Returns true if the set is a proper subset of the given set.
   def proper_subset?(set)
-    set.is_a?(Set) or raise ArgumentError, "value must be a set"
+    raise ArgumentError, "value must be a set" unless set.is_a?(Set)
     return false if set.size <= size
     all? { |o| set.include?(o) }
   end
@@ -191,7 +191,7 @@ class Set
   # the element as parameter.  Returns an enumerator if no block is
   # given.
   def each
-    block_given? or return enum_for(__method__)
+    return enum_for(:each) unless block_given?
     @hash.each_key { |o| yield(o) }
     self
   end
@@ -260,7 +260,7 @@ class Set
     if enum.is_a?(Set)
       @hash.update(enum.instance_eval { @hash })
     else
-      enum.is_a?(Enumerable) or raise ArgumentError, "value must be enumerable"
+      raise ArgumentError, "value must be enumerable" unless enum.is_a?(Enumerable)
       enum.each { |o| add(o) }
     end
 
@@ -270,7 +270,7 @@ class Set
   # Deletes every element that appears in the given enumerable object
   # and returns self.
   def subtract(enum)
-    enum.is_a?(Enumerable) or raise ArgumentError, "value must be enumerable"
+    raise ArgumentError, "value must be enumerable" unless enum.is_a?(Enumerable)
     enum.each { |o| delete(o) }
     self
   end
@@ -278,35 +278,35 @@ class Set
   # Returns a new set built by merging the set and the elements of the
   # given enumerable object.
   def |(enum)
-    enum.is_a?(Enumerable) or raise ArgumentError, "value must be enumerable"
+    raise ArgumentError, "value must be enumerable" unless enum.is_a?(Enumerable)
     dup.merge(enum)
   end
-  alias + |		##
-  alias union |		##
+  alias + |                ##
+  alias union |                ##
 
   # Returns a new set built by duplicating the set, removing every
   # element that appears in the given enumerable object.
   def -(enum)
-    enum.is_a?(Enumerable) or raise ArgumentError, "value must be enumerable"
+    raise ArgumentError, "value must be enumerable" unless enum.is_a?(Enumerable)
     dup.subtract(enum)
   end
-  alias difference -	##
+  alias difference -        ##
 
   # Returns a new set containing elements common to the set and the
   # given enumerable object.
   def &(enum)
-    enum.is_a?(Enumerable) or raise ArgumentError, "value must be enumerable"
+    raise ArgumentError, "value must be enumerable" unless enum.is_a?(Enumerable)
     n = self.class.new
     enum.each { |o| n.add(o) if include?(o) }
     n
   end
-  alias intersection &	##
+  alias intersection &        ##
 
   # Returns a new set containing elements exclusive between the set
   # and the given enumerable object.  (set ^ enum) is equivalent to
   # ((set | enum) - (set & enum)).
   def ^(enum)
-    enum.is_a?(Enumerable) or raise ArgumentError, "value must be enumerable"
+    raise ArgumentError, "value must be enumerable" unless enum.is_a?(Enumerable)
     n = Set.new(enum)
     each { |o| if n.include?(o) then n.delete(o) else n.add(o) end }
     n
@@ -315,19 +315,19 @@ class Set
   # Returns true if two sets are equal.  The equality of each couple
   # of elements is defined according to Object#eql?.
   def ==(set)
-    equal?(set) and return true
+    return true if equal?(set)
 
-    set.is_a?(Set) && size == set.size or return false
+    return false unless set.is_a?(Set) && size == set.size
 
     hash = @hash.dup
     set.all? { |o| hash.include?(o) }
   end
 
-  def hash	# :nodoc:
+  def hash        # :nodoc:
     @hash.hash
   end
 
-  def eql?(o)	# :nodoc:
+  def eql?(o)        # :nodoc:
     return false unless o.is_a?(Set)
     @hash.eql?(o.instance_eval{@hash})
   end
@@ -376,23 +376,23 @@ class Set
     if func.arity == 2
       require 'tsort'
 
-      class << dig = {}		# :nodoc:
-	include TSort
+      class << dig = {}                # :nodoc:
+        include TSort
 
-	alias tsort_each_node each_key
-	def tsort_each_child(node, &block)
-	  fetch(node).each(&block)
-	end
+        alias tsort_each_node each_key
+        def tsort_each_child(node, &block)
+          fetch(node).each(&block)
+        end
       end
 
       each { |u|
-	dig[u] = a = []
-	each{ |v| func.call(u, v) and a << v }
+        dig[u] = a = []
+        each{ |v| func.call(u, v) and a << v }
       }
 
       set = Set.new()
       dig.each_strongly_connected_component { |css|
-	set.add(self.class.new(css))
+        set.add(self.class.new(css))
       }
       set
     else
@@ -419,17 +419,17 @@ class Set
     end
   end
 
-  def pretty_print(pp)	# :nodoc:
+  def pretty_print(pp)        # :nodoc:
     pp.text sprintf('#<%s: {', self.class.name)
     pp.nest(1) {
       pp.seplist(self) { |o|
-	pp.pp o
+        pp.pp o
       }
     }
     pp.text "}>"
   end
 
-  def pretty_print_cycle(pp)	# :nodoc:
+  def pretty_print_cycle(pp)        # :nodoc:
     pp.text sprintf('#<%s: {%s}>', self.class.name, empty? ? '' : '...')
   end
 end
@@ -439,90 +439,67 @@ class SortedSet < Set
   @@setup = false
 
   class << self
-    def [](*ary)	# :nodoc:
+    def [](*ary)        # :nodoc:
       new(ary)
     end
+  end
 
-    def setup	# :nodoc:
-      @@setup and return
+  def initialize(*args, &block)
+    @keys = nil
+    super
+  end
 
-      module_eval {
-        # a hack to shut up warning
-        alias old_init initialize
-        remove_method :old_init
-      }
-      begin
-	require 'rbtree'
+  def clear
+    @keys = nil
+    super
+  end
 
-	module_eval %{
-	  def initialize(*args, &block)
-	    @hash = RBTree.new
-	    super
-	  end
-	}
-      rescue LoadError
-	module_eval %{
-	  def initialize(*args, &block)
-	    @keys = nil
-	    super
-	  end
+  def replace(enum)
+    @keys = nil
+    super
+  end
 
-	  def clear
-	    @keys = nil
-	    super
-	  end
+  def add(o)
+    @keys = nil
+    @hash[o] = true
+    self
+  end
 
-	  def replace(enum)
-	    @keys = nil
-	    super
-	  end
+  alias << add
 
-	  def add(o)
-	    @keys = nil
-	    @hash[o] = true
-	    self
-	  end
-	  alias << add
+  def delete(o)
+    @keys = nil
+    @hash.delete(o)
+    self
+  end
 
-	  def delete(o)
-	    @keys = nil
-	    @hash.delete(o)
-	    self
-	  end
+  def delete_if
+    n = @hash.size
+    super
+    @keys = nil if @hash.size != n
+    self
+  end
 
-	  def delete_if
-	    n = @hash.size
-	    super
-	    @keys = nil if @hash.size != n
-	    self
-	  end
+  def merge(enum)
+    @keys = nil
+    super
+  end
 
-	  def merge(enum)
-	    @keys = nil
-	    super
-	  end
+  def each
+    return enum_for(:each) unless block_given?
+    to_a.each { |o| yield(o) }
+    self
+  end
 
-	  def each
-	    block_given? or return enum_for(__method__)
-	    to_a.each { |o| yield(o) }
-	    self
-	  end
-
-	  def to_a
-	    (@keys = @hash.keys).sort! unless @keys
-	    @keys
-	  end
-	}
-      end
-
-      @@setup = true
+  def to_a
+    unless @keys
+      keys = @hash.keys
+      keys.sort!
+      @keys = keys
     end
+    @keys
   end
 
-  def initialize(*args, &block)	# :nodoc:
-    SortedSet.setup
-    initialize(*args, &block)
-  end
 end
 
 module Enumerable
@@ -566,54 +543,54 @@ end
 # 
 #     if @proc.arity == 2
 #       instance_eval %{
-# 	def add(o)
-# 	  @hash[o] = true if @proc.call(self, o)
-# 	  self
-# 	end
-# 	alias << add
+#         def add(o)
+#           @hash[o] = true if @proc.call(self, o)
+#           self
+#         end
+#         alias << add
 # 
-# 	def add?(o)
-# 	  if include?(o) || !@proc.call(self, o)
-# 	    nil
-# 	  else
-# 	    @hash[o] = true
-# 	    self
-# 	  end
-# 	end
+#         def add?(o)
+#           if include?(o) || !@proc.call(self, o)
+#             nil
+#           else
+#             @hash[o] = true
+#             self
+#           end
+#         end
 # 
-# 	def replace(enum)
-# 	  enum.is_a?(Enumerable) or raise ArgumentError, "value must be enumerable"
-# 	  clear
-# 	  enum.each { |o| add(o) }
+#         def replace(enum)
+#           enum.is_a?(Enumerable) or raise ArgumentError, "value must be enumerable"
+#           clear
+#           enum.each { |o| add(o) }
 # 
-# 	  self
-# 	end
+#           self
+#         end
 # 
-# 	def merge(enum)
-# 	  enum.is_a?(Enumerable) or raise ArgumentError, "value must be enumerable"
-# 	  enum.each { |o| add(o) }
+#         def merge(enum)
+#           enum.is_a?(Enumerable) or raise ArgumentError, "value must be enumerable"
+#           enum.each { |o| add(o) }
 # 
-# 	  self
-# 	end
+#           self
+#         end
 #       }
 #     else
 #       instance_eval %{
-# 	def add(o)
+#         def add(o)
 #         if @proc.call(o)
-# 	    @hash[o] = true 
+#             @hash[o] = true 
 #         end
-# 	  self
-# 	end
-# 	alias << add
+#           self
+#         end
+#         alias << add
 # 
-# 	def add?(o)
-# 	  if include?(o) || !@proc.call(o)
-# 	    nil
-# 	  else
-# 	    @hash[o] = true
-# 	    self
-# 	  end
-# 	end
+#         def add?(o)
+#           if include?(o) || !@proc.call(o)
+#             nil
+#           else
+#             @hash[o] = true
+#             self
+#           end
+#         end
 #       }
 #     end
 # 
@@ -625,9 +602,9 @@ end
 #   end
 # end
 
-if $0 == __FILE__
-  eval DATA.read, nil, $0, __LINE__+4
-end
+# if $0 == __FILE__
+  # eval DATA.read, nil, $0, __LINE__+4
+# end
 
 __END__
 
@@ -745,12 +722,12 @@ class TC_Set < Test::Unit::TestCase
     set1 = Set[
       1,
       Set[
-	5,
-	Set[7,
-	  Set[0]
-	],
-	Set[6,2],
-	1
+        5,
+        Set[7,
+          Set[0]
+        ],
+        Set[6,2],
+        1
       ],
       3,
       Set[3,4]
@@ -930,10 +907,10 @@ class TC_Set < Test::Unit::TestCase
 
     assert_nothing_raised {
       set.each { |o|
-	ary.delete(o) or raise "unexpected element: #{o}"
+        raise "unexpected element: #{o}" unless ary.delete(o)
       }
 
-      ary.empty? or raise "forgotten elements: #{ary.join(', ')}"
+      raise "forgotten elements: #{ary.join(', ')}" unless ary.empty?
     }
   end
 
@@ -995,11 +972,11 @@ class TC_Set < Test::Unit::TestCase
     ret = set.collect! { |i|
       case i
       when Numeric
-	i * 2
+        i * 2
       when String
-	i.upcase
+        i.upcase
       else
-	nil
+        nil
       end
     }
 
@@ -1124,15 +1101,15 @@ class TC_Set < Test::Unit::TestCase
     assert_equal(set, ret.flatten)
     ret.each { |s|
       if s.include?(0)
-	assert_equal(Set[0,1], s)
+        assert_equal(Set[0,1], s)
       elsif s.include?(3)
-	assert_equal(Set[3,4,5], s)
+        assert_equal(Set[3,4,5], s)
       elsif s.include?(7)
-	assert_equal(Set[7], s)
+        assert_equal(Set[7], s)
       elsif s.include?(9)
-	assert_equal(Set[9,10,11], s)
+        assert_equal(Set[9,10,11], s)
       else
-	raise "unexpected group: #{s.inspect}"
+        raise "unexpected group: #{s.inspect}"
       end
     }
   end
