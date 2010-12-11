@@ -48,6 +48,21 @@
     </div>
 
 
+        <div class="container lang_nav">
+      
+        <a href="/doc/en/"
+        
+          class="current"
+        
+        >en</a>
+      
+        <a href="/doc/es/"
+        
+        >es</a>
+      
+    </div>
+
+
         <div class="container doc_page_nav">
       
         <a href="/doc/en/getting-started/troubleshooting">Troubleshooting</a>
@@ -96,9 +111,9 @@ that fixes it.</p>
 
 <ol>
   <li>
-    <p>Run &lsquo;bin/mspec tag &ndash;list incomplete <dir>' to show specs that have been
+    <p>Run <code>bin/mspec tag --list incomplete &lt;dir&gt;</code> to show specs that have been
 tagged as incomplete. These specs may simply need review, or there could
-be specs missing for a particular class.</dir></p>
+be specs missing for a particular class.</p>
 
     <p>NOTE: You can specify the pseudo-directory &lsquo;:files&rsquo; for <dir>, which will
 show tags for all the specs that should run on Rubinius. Or you can
@@ -115,7 +130,7 @@ Spec</a>.</p>
 
 <ol>
   <li>
-    <p>Run &lsquo;bin/mspec tag &ndash;list fails <dir>' to show specs tagged as failing.</dir></p>
+    <p>Run <code>bin/mspec tag --list fails &lt;dir&gt;</code> to show specs tagged as failing.</p>
 
     <p>NOTE: You can specify the pseudo-directory &lsquo;:files&rsquo; for <dir>, which will
 show tags for all the specs that should run on Rubinius. Or you can
@@ -131,18 +146,18 @@ will make it pass.</p>
 <h2 id="write-docs">Write Docs</h2>
 
 <p>Study how Rubinius works and write highlevel documentation that will help
-others learn about the implementation details. See documents under doc/vm for
-examples.</p>
+others learn about the implementation details.</p>
 
 <h2 id="cleanup-code">Cleanup Code</h2>
 
 <p>Search for tags like TODO, HACK, FIXME in the code and submit patches to fix
 them. Here&rsquo;s a command to search the code:</p>
 
-<pre><code>'grep -re "@todo\|TODO\|HACK\|FIXME" .'
+<pre><code>`grep -re "@todo\|TODO\|HACK\|FIXME" .`
 </code></pre>
 
-<p>Review the <a href="/doc/en/contributing/style-guide">Style Guide</a> for coding guidelines.</p>
+<p>Review the <a href="/doc/en/contributing/style-guide/">Style Guide</a> for
+coding guidelines.</p>
 
 <h2 id="triage-tickets">Triage Tickets</h2>
 

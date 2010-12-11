@@ -12,19 +12,17 @@ in doubt about a guideline here, ask us in the #rubinius IRC channel on
 irc.freenode.net.
 
 
-All Code
---------
+## All Code
 
   * Configure your editor for soft tabs, not hard tabs
   * Expand tabs to two spaces
   * Leave a trailing newline at the end of each file
 
 
-C++ Code
---------
+## C++ Code
 
   * No space between condition and paren.
-      Use if(1) NOT if (1)
+      Use `if(1)` NOT `if (1)`
 
   * Put the opening brace on the same line as the function declaration or
     conditional
@@ -40,8 +38,7 @@ C++ Code
     NOT 'person1(char \*name)'.
 
 
-Ruby Code
----------
+## Ruby Code
 
   * Methods: Try to keep your methods short--one screenful and try to adhere
     to DRY within reason. Generally common functionality should be abstracted
@@ -54,9 +51,9 @@ Ruby Code
     underscores to 'protect' the method ('\_\_send\_\_') with some exceptions.
 
   * Smalltalk-style method names are OK, meaning that you could have a method
-    SomeClass.make_from when it is intended to be invoked as
-    SomeClass.make_from file or SomeClass.make_from :file => name. There the
-    parameter name 'completes' the method name and makes for more natural
+    `SomeClass.make_from` when it is intended to be invoked as
+    `SomeClass.make_from file` or `SomeClass.make_from :file => name`. There
+    the parameter name _completes_ the method name and makes for more natural
     reading.
 
   * Variable names: make them clear and meaningful (with some well-known
@@ -67,8 +64,8 @@ Ruby Code
   * Postconditions: use postconditions only *if* your expression is a
     one-liner *and* you do not have many conditions.
 
-  * Blocks: Use either 'do ... end' or '{..}', spaces between the delimiters
-    and code ('foo { |arg| code }'). Split long or complex expressions over
+  * Blocks: Use either `do ... end` or `{...}`, spaces between the delimiters
+    and code (`foo { |arg| code }`). Split long or complex expressions over
     multiple lines like this:
 
         mapped = foo.map do |elem|
@@ -82,19 +79,17 @@ Ruby Code
           end
         end
 
-Kernel Code
------------
+## Kernel Code
 
 The primary guideline for all kernel code is simple and efficient. Simple code
 is often more efficient and generally more comprehensible. There should be no
 metaprogramming code in bootstrap. Use the #attr_xxx methods throughout the
 kernel source. Also, alias methods using the #alias_method call next to the
-method definition. Specify private methods with the 'private :sym' method next
+method definition. Specify private methods with the `private :sym` method next
 to the method definition.  Remember that the versions of the methods listed
 above in the alpha stage take a single, symbol argument.
 
-Documentation
--------------
+## Documentation
 
   * Use RDoc for documentation in Ruby code.
 

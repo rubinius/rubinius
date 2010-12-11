@@ -48,6 +48,21 @@
     </div>
 
 
+        <div class="container lang_nav">
+      
+        <a href="/doc/en/"
+        
+          class="current"
+        
+        >en</a>
+      
+        <a href="/doc/es/"
+        
+        >es</a>
+      
+    </div>
+
+
         <div class="container doc_page_nav">
       
         <a href="/doc/en/contributing/communication">Communication</a>
@@ -84,7 +99,7 @@ irc.freenode.net.</p>
 <ul>
   <li>
     <p>No space between condition and paren.
-  Use if(1) NOT if (1)</p>
+  Use <code>if(1)</code> NOT <code>if (1)</code></p>
   </li>
   <li>
     <p>Put the opening brace on the same line as the function declaration or
@@ -122,9 +137,9 @@ underscores to &lsquo;protect&rsquo; the method (&lsquo;__send__&rsquo;) with so
   </li>
   <li>
     <p>Smalltalk-style method names are OK, meaning that you could have a method
-SomeClass.make_from when it is intended to be invoked as
-SomeClass.make_from file or SomeClass.make_from :file =&gt; name. There the
-parameter name &lsquo;completes&rsquo; the method name and makes for more natural
+<code>SomeClass.make_from</code> when it is intended to be invoked as
+<code>SomeClass.make_from file</code> or <code>SomeClass.make_from :file =&gt; name</code>. There
+the parameter name <em>completes</em> the method name and makes for more natural
 reading.</p>
   </li>
   <li>
@@ -138,8 +153,8 @@ latter is also a method name.</p>
 one-liner <em>and</em> you do not have many conditions.</p>
   </li>
   <li>
-    <p>Blocks: Use either &lsquo;do &hellip; end&rsquo; or &lsquo;{..}&rsquo;, spaces between the delimiters
-and code (&lsquo;foo { |arg| code }&rsquo;). Split long or complex expressions over
+    <p>Blocks: Use either <code>do ... end</code> or <code>{...}</code>, spaces between the delimiters
+and code (<code>foo { |arg| code }</code>). Split long or complex expressions over
 multiple lines like this:</p>
 
     <pre><code>mapped = foo.map do |elem|
@@ -164,7 +179,7 @@ end
 is often more efficient and generally more comprehensible. There should be no
 metaprogramming code in bootstrap. Use the #attr_xxx methods throughout the
 kernel source. Also, alias methods using the #alias_method call next to the
-method definition. Specify private methods with the &lsquo;private :sym&rsquo; method next
+method definition. Specify private methods with the <code>private :sym</code> method next
 to the method definition.  Remember that the versions of the methods listed
 above in the alpha stage take a single, symbol argument.</p>
 

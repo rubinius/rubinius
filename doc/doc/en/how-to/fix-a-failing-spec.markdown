@@ -9,8 +9,8 @@ next_url: appendix-a-glossary
 
 Make sure you have read:
 
-  *  [Getting Started](/doc/en/getting-started/)
-  *  [Specs](/doc/en/specs/)
+  *  [Getting Started]({{ page.lang_dir }}getting-started/)
+  *  [Specs]({{ page.lang_dir }}specs/)
 
 Then, follow these steps to fix a failing spec:
 

@@ -30,18 +30,15 @@ simply not appropriate for a ticket.
      and see if you can create a reproduction for an issue and post that as a
      ticket.
 
-There are various wishlist items, upcoming features, and lists of gems in the
-doc/todo/ directory.
 
-
-General procedure for submitting a ticket
------------------------------------------
+## General procedure for submitting a ticket
 
   1. Double-check.
 
      1. Do a full rebuild ('rake clean; rake') after a 'git pull' or fresh clone.
-     2. Read doc/common_problems.txt see if something there resolves the issue.
-     3. Read doc/rubinius_specs.txt
+     2. Read [Troubleshooting](/doc/en/getting-started/troubleshooting)
+        to see if something there resolves the issue.
+     3. Read [Specs](/doc/en/specs/).
 
   2. Give your ticket a specific, preferably short title.
 
@@ -51,12 +48,11 @@ General procedure for submitting a ticket
 
      *  The command line for invoking the program
      *  The backtrace or result from the program versus expected result.
-     *  Your machine information. 'uname -a' is usually good (if there are any
+     *  Your machine information. `uname -a` is usually good (if there are any
         "unknown" fields in it, please elaborate on those.)
 
 
-Additional instructions for tickets with patches
-------------------------------------------------
+## Additional instructions for tickets with patches
 
   *  Can be just a set of specs.
   *  Patches must be accompanied by specs unless the specs already exist.
@@ -73,8 +69,7 @@ patchset. It is much easier to apply and it preserves the correct attribution.
 Otherwise, a unified diff.
 
 
-Example of submitting a patch
------------------------------
+## Example of submitting a patch
 
 Suppose the following spec exists and is failing:
 

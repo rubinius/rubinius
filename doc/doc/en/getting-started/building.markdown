@@ -13,7 +13,7 @@ Rubinius and running it from the source directory.
 
 Rubinius uses LLVM for the JIT compiler. Rubinius depends on a particular
 version of LLVM. If you have installed LLVM on your system, pass the
-'--skip-system' flag to the configure script in the directions below.
+`--skip-system` flag to the configure script in the directions below.
 
 ### Getting the Source
 

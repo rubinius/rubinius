@@ -9,8 +9,7 @@ next_url: tools/profiler
 
 Rubinius includes a reference Ruby source-level debugger.
 
-Invoking in Code
-----------------
+## Invoking in Code
 
 The Rubinius debugger can be invoked from code by embedding a call to start
 the debugger
@@ -77,8 +76,7 @@ Help for the debugger commands is available by typing `help` when in the
 debugger.
 
 
-Invoking from the Command Line
-------------------------------
+## Invoking from the Command Line
 
 The Rubinius debugger can be invoked from the command line and will present
 the debugger prompt just before loading the script specified on the command

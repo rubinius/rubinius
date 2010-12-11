@@ -17,15 +17,13 @@ with us in the #rubinius IRC channel on irc.freenode.net.
 Below are several ideas for things to do on Rubinius.
 
 
-Run Your Code
--------------
+## Run Your Code
 
 Your code is often more vicious than the specs. Run your pet project under
 rubinius and report issues. See [How To Write a Ticket](/doc/en/how-to/write-a-ticket).
 
 
-Ask For Help
-------------
+## Ask For Help
 
 Anything that we can do to help, we will. Make sure to do your own research
 too, if possible. Rubinius attempts to be a project that you can easily study,
@@ -37,10 +35,9 @@ better are tickets that include RubySpecs that demonstrate the bug and a patch
 that fixes it.
 
 
-Write Specs
------------
+## Write Specs
 
-  1. Run 'bin/mspec tag --list incomplete <dir>' to show specs that have been
+  1. Run `bin/mspec tag --list incomplete <dir>` to show specs that have been
      tagged as incomplete. These specs may simply need review, or there could
      be specs missing for a particular class.
 
@@ -53,10 +50,9 @@ Write Specs
      Spec](/doc/en/how-to/write-a-ruby-spec).
 
 
-Fix Failing Specs
------------------
+## Fix Failing Specs
 
-  1. Run 'bin/mspec tag --list fails <dir>' to show specs tagged as failing.
+  1. Run `bin/mspec tag --list fails <dir>` to show specs tagged as failing.
 
      NOTE: You can specify the pseudo-directory ':files' for <dir>, which will
      show tags for all the specs that should run on Rubinius. Or you can
@@ -67,27 +63,24 @@ Fix Failing Specs
      will make it pass.
 
 
-Write Docs
-----------
+## Write Docs
 
 Study how Rubinius works and write highlevel documentation that will help
-others learn about the implementation details. See documents under doc/vm for
-examples.
+others learn about the implementation details.
 
 
-Cleanup Code
-------------
+## Cleanup Code
 
 Search for tags like TODO, HACK, FIXME in the code and submit patches to fix
 them. Here's a command to search the code:
 
-    'grep -re "@todo\|TODO\|HACK\|FIXME" .'
+    `grep -re "@todo\|TODO\|HACK\|FIXME" .`
 
-Review the [Style Guide](/doc/en/contributing/style-guide) for coding guidelines.
+Review the [Style Guide](/doc/en/contributing/style-guide/) for
+coding guidelines.
 
 
-Triage Tickets
---------------
+## Triage Tickets
 
   * Revive or close old tickets.
   * Build minimal test cases that reproduce the bugs. Then see if there are

@@ -1,0 +1,9 @@
+    <div class="container lang_nav">
+      {% for lang in page.languages %}
+        <a href="/doc/{{ lang }}/"
+        {% if page.lang == lang %}
+          class="current"
+        {% endif %}
+        >{{ lang }}</a>
+      {% endfor %}
+    </div>

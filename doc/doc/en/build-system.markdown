@@ -14,8 +14,8 @@ Rubinius uniformly uses Rake as the build system for its own files. However
 Rubinius also includes the source for several external libraries and these
 typically use makefiles.
 
-Development versus Install Builds
----------------------------------
+
+## Development versus Install Builds
 
 Rubinius is comprised of the executable and various support files like the core
 and standard libraries. The executable needs to know where to find these files
@@ -40,8 +40,8 @@ function, *even if the executable is in the directory*. The executable checks a
 single, hard-coded path. If this ends up being very painful for some reason,
 we'll revise it.
 
-Installing Rubinius
--------------------
+
+## Installing Rubinius
 
 To install Rubinius, you must first configure it with an install prefix:
 

@@ -48,6 +48,21 @@
     </div>
 
 
+        <div class="container lang_nav">
+      
+        <a href="/doc/en/"
+        
+          class="current"
+        
+        >en</a>
+      
+        <a href="/doc/es/"
+        
+        >es</a>
+      
+    </div>
+
+
         <div class="container doc_page_nav">
       
         <a href="/doc/en/how-to">How-To</a>
@@ -94,9 +109,6 @@ and see if you can create a reproduction for an issue and post that as a
 ticket.</li>
 </ol>
 
-<p>There are various wishlist items, upcoming features, and lists of gems in the
-doc/todo/ directory.</p>
-
 <h2 id="general-procedure-for-submitting-a-ticket">General procedure for submitting a ticket</h2>
 
 <ol>
@@ -105,8 +117,9 @@ doc/todo/ directory.</p>
 
     <ol>
       <li>Do a full rebuild (&lsquo;rake clean; rake&rsquo;) after a &lsquo;git pull&rsquo; or fresh clone.</li>
-      <li>Read doc/common_problems.txt see if something there resolves the issue.</li>
-      <li>Read doc/rubinius_specs.txt</li>
+      <li>Read <a href="/doc/en/getting-started/troubleshooting">Troubleshooting</a>
+to see if something there resolves the issue.</li>
+      <li>Read <a href="/doc/en/specs/">Specs</a>.</li>
     </ol>
   </li>
   <li>
@@ -121,7 +134,7 @@ doc/todo/ directory.</p>
     <ul>
       <li>The command line for invoking the program</li>
       <li>The backtrace or result from the program versus expected result.</li>
-      <li>Your machine information. &lsquo;uname -a&rsquo; is usually good (if there are any
+      <li>Your machine information. <code>uname -a</code> is usually good (if there are any
 &ldquo;unknown&rdquo; fields in it, please elaborate on those.)</li>
     </ul>
   </li>

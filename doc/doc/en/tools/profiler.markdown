@@ -11,8 +11,8 @@ Rubinius has an instrumenting profiler that provides precise timing for all
 methods that are run. The profiler is implemented at the VM level and the data
 is provided for Ruby code to process.
 
-VM Profiler
------------
+
+## VM Profiler
 
 The cast of characters involved in creating and maintaining the profiler
 include VM, SharedState, ProfilerCollection, and Profiler. The VM class is a
@@ -36,8 +36,8 @@ to register or remove profilers.
 The ProfilerCollection instance requests that the VM instance mapped to a
 profiler removes the profiler when the profiler will be deleted.
 
-Ruby Profiler
--------------
+
+## Ruby Profiler
 
 In Ruby land, the Rubinius::Profiler::Instrumenter instance exposes nothing
 about the multi-threaded reality in the VM. The individual C++ Profiler
@@ -87,10 +87,12 @@ How to Read the Flat Profiler Output
 
 The flat profiler output has the following columns:
 
+
 ### % time
 
 The amount of time spent in this method as a percentage of the total time
 spent in all methods.
+
 
 ### cumulative seconds
 
@@ -100,22 +102,27 @@ method. Consider this method as the root of a call tree. The sum of all the
 time spent in methods in this call tree is the cumulative seconds for this
 method.
 
+
 ### self seconds
 
 The total time spent in this method less the total time spent in all this
 method's callees.
 
+
 ### calls
 
 The total number of times this method was called.
+
 
 ### self ms/call
 
 The self seconds as milliseconds divided by the total number of calls.
 
+
 ### total ms/call
 
 The cumulative seconds as milliseconds divided by the total number of calls.
+
 
 ### Example of Flat Output
 
@@ -178,45 +185,54 @@ part of the entry.
 
 For the primary line, the fields are as follows:
 
+
 ### index
 
 An index assigned to each method in the graph to facilitate cross-referencing
 the entries.
+
 
 ### % time
 
 The amount of time spent in this method as a percentage of the total time
 spent in all methods. This is the same as the flat output.
 
+
 ### self
 
 The total time spent in this method less the total time spent in all this
 method's callees. This is the same as self seconds in the flat output.
+
 
 ### children
 
 The total time spent in all the methods called by this method.
 
+
 ### called
 
 The total number of times this method was called.
 
+
 ### name
 
-The name of the method followed be the index number.
+The name of the method followed by the index number.
 
 
 The lines above the primary line are methods that call the primary method. The
 callers' fields have the following interpretation:
+
 
 ### self
 
 The total time spent in this method less the total time spent in all this
 method's callees. This is the same as self seconds in the flat output.
 
+
 ### children
 
 The time spent in the method's call to the primary method.
+
 
 ### called
 
@@ -225,6 +241,7 @@ number of times this method called the primary method. The right is the total
 number of calls this method made. In other words, the two numbers together
 show a ratio of the calls to the primary method versus all calls made by the
 caller.
+
 
 ### name
 
@@ -235,10 +252,12 @@ method does not appear in the graph.
 The lines below the primary line are methods that the primary method called.
 The fields for the called methods are as follows:
 
+
 ### self
 
 The total time spent in this method less the total time spent in all this
 method's callees. This is the same as self seconds in the flat output.
+
 
 ### children
 
@@ -247,11 +266,13 @@ this method was called by the primary method. The estimate is based on the
 ration of the time this method spent when called by the primary method to the
 total time spent in this method.
 
+
 ### called
 
 The called field has two parts separated by a forward slash. The left is the
 number of times this method was called by the primary method. The right is the
 total number of times this method was called.
+
 
 ### name
 

@@ -30,7 +30,7 @@ Use the following workflow when adding specs and code to Rubinius:
      a separate commit to the appropriate files under ./spec/ruby.
   2. Add Rubinius code to make the specs pass. Again, commit these changes in
      a separate commit from the spec changes.
-  3. Run the 'rake' command to ensure that all the CI specs pass.
+  3. Run the `rake` command to ensure that all the CI specs pass.
 
 The changes to files in ./spec/ruby are regularly pushed to the RubySpec
 project. Also, current changes to RubySpec from committers to other Ruby

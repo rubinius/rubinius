@@ -74,8 +74,7 @@ all Ruby code can be executed. There are seven stages to the bootstrap process:
      at_exit blocks that had been registered, finalizes all objects, and
      exits.
 
-Load Order
-----------
+## Load Order
 
 The files in the kernel directories bootstrap, platform, common, and delta,
 implement the respective bootstrapping stages above. The order in
@@ -95,10 +94,10 @@ needed at the script or module level. However, other load order dependencies
 exist between some of the platform, common, delta, and compiler files.
 
 These load order dependencies are addressed by the load_order.txt file located
-in each of the kernel/** directories. If you modify code that adds a load
+in each of the kernel/\*\* directories. If you modify code that adds a load
 order dependency, you must edit the load_order.txt files to place the depended
 on file above the file that depends on it. Also, if you add a new file to one
 of the kernel directories, you must add the file name to the load_order.txt
-file in that directory. These files are copied to the appropriate runtime/**
+file in that directory. These files are copied to the appropriate runtime/\*\*
 directories during build. During each of the bootstrap stages above, the VM
 loads the files listed in load_order.txt in order.
