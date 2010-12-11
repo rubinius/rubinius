@@ -24,6 +24,7 @@
 
 #include "inline_cache.hpp"
 #include "bytecode_verification.hpp"
+#include "instruments/timing.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
