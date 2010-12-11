@@ -242,7 +242,7 @@ module Rubinius
     end
 
     def process_gvar(line, name)
-      AST::GlobalVariableAccess.new line, name
+      AST::GlobalVariableAccess.for_name line, name
     end
 
     def process_hash(line, array)
