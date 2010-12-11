@@ -9,7 +9,7 @@ review: true
 ---
 
 Global variables are variables available from any context. There are actually
-to different kinds of globals: True globals and pseudo globals.
+two different kinds of globals: True globals and pseudo globals.
 
 True globals associate a value with a global name, such as **$LOAD\_PATH**. Any
 value accessed starting with a $ that is not a pseudo global is a true global.
