@@ -97,9 +97,9 @@ class Configure
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
-      @ldshared = "cc -dynamic -bundle -undefined suppress -flat_namespace"
+      @ldshared = "#{@cc} -dynamic -bundle -undefined suppress -flat_namespace"
     else
-      @ldshared = "cc -shared"
+      @ldshared = "#{@cc} -shared"
     end
 
     import_env
