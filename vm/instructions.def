@@ -958,7 +958,7 @@ instruction cast_array() [ value -- array ]
     }
   }
 
-  stack_pop(); // Remove original value
+  (void)stack_pop(); // Remove original value
   CHECK_AND_PUSH(t1);
 end
 
@@ -2982,7 +2982,7 @@ instruction meta_to_s(literal) [ value -- value ] => send
       ret = stack_top()->to_s(state, false);
     }
 
-    stack_pop();
+    (void)stack_pop();
     CHECK_AND_PUSH(ret);
   }
 end
