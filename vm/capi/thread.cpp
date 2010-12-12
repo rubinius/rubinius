@@ -101,7 +101,8 @@ extern "C" {
   
 
   int rb_thread_alone() {
-    return 0;
+    VALUE list = rb_funcall(rb_cThread, rb_intern("list"), 0);
+    return NUM2INT(rb_funcall(list, rb_intern("size"), 0));
   }
 
   VALUE rb_thread_local_aref(VALUE thread, ID id) {
