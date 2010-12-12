@@ -861,7 +861,7 @@ end
 # [Operation]
 #   Continue unwinding the stack with the current exception
 # [Format]
-#   \raise_break
+#   \reraise
 # [Stack Before]
 #   * ...
 # [Stack After]
