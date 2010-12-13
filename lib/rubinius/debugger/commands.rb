@@ -255,7 +255,7 @@ at the current position of the caller.
         ip = f.ip
 
         bp = BreakPoint.for_ip(exec, ip)
-        bp.for_step!(current_frame.variables)
+        bp.for_step!(f.variables)
         bp.activate
 
         return bp
