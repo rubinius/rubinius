@@ -290,16 +290,23 @@ module Rubinius
     end
 
     ##
-    # The first line of source code.
+    # The first line where instructions are located.
     #
     # @return [Fixnum]
     def first_line
-      if @lines.size > 1
-        @lines[1]
-      else
-        -1
-      end
+      line_from_ip(0)
     end
+
+    ##
+    # Indicate the line in the source code that this
+    # was defined on.
+    #
+    def defined_line
+      # Detect a -1 ip, which indicates a definition entry.
+      return @lines[1] if @lines[0] == -1
+      first_line
+    end
+
 
     ##
     # Is this actually a block of code?
@@ -360,7 +367,9 @@ module Rubinius
       while i < total
         cur_line = @lines.at(i)
         if cur_line == line
-          return [self, @lines.at(i-1)]
+          ip = @lines.at(i-1)
+          return nil if ip < 0
+          return [self, ip]
         elsif cur_line > line
           break
         end

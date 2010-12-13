@@ -308,6 +308,17 @@ module Rubinius
       @break, @redo, @next, @retry = @modstack.pop
     end
 
+    def definition_line(line)
+      unless @stream.empty?
+        raise Exception, "only use #definition_line first"
+      end
+
+      @lines << -1
+      @lines << line
+
+      @last_line = line
+    end
+
     def set_line(line)
       raise Exception, "source code line cannot be nil" unless line
 
@@ -316,17 +327,7 @@ module Rubinius
         @lines << line
         @last_line = line
       elsif line != @last_line
-        # Fold redundent line changes on the same ip into the same
-        # entry, except for in the case where @ip is 0. Here's why:
-        #
-        #   def some_method
-        #   end
-        #
-        # There is nothing in the bytecode stream that corresponds
-        # to 'def some_method' so the first line of the method will
-        # be recorded as the line 'end' is on.
-
-        if @ip > 0 and @lines[-2] == @ip
+        if @lines[-2] == @ip
           @lines[-1] = line
         else
           @lines << @ip

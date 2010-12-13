@@ -208,7 +208,7 @@ module Rubinius
 
         meth.push_state self
         meth.state.push_super self
-        pos(meth)
+        meth.definition_line(@line)
 
         meth.state.push_name @name
 

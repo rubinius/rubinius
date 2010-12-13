@@ -62,8 +62,9 @@ module Rubinius
     def line
       return 0 unless @method
       ip = @ip
-      return @method.first_line unless ip > 0
       ip -= 1 unless ip_on_current?
+
+      return @method.first_line unless ip > 0
 
       @method.line_from_ip(ip)
     end
