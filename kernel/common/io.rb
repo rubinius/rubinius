@@ -802,7 +802,7 @@ class IO
   def each_char
     return to_enum :each_char unless block_given?
     ensure_open_and_readable
-    if $KCODE == "UTF-8"
+    if Rubinius.kcode == :UTF8
       lookup = 7.downto(4)
       while c = read(1) do
         n = c[0]
