@@ -273,14 +273,17 @@ module Rubinius
     # see #locate_line for an alternate method that also searches inside the child
     # CompiledMethods.
     #
+    # Optionally only consider ip's greater than +start+
+    #
     # @return [Fixnum] the address of the first instruction
-    def first_ip_on_line(line)
+    def first_ip_on_line(line, start=-1)
       i = 1
       total = @lines.size
       while i < total
         cur_line = @lines.at(i)
         if cur_line >= line
-          return @lines.at(i-1)
+          ip = @lines.at(i-1)
+          return ip if ip > start
         end
 
         i += 2
