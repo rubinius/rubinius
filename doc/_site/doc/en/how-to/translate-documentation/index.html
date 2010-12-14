@@ -72,7 +72,7 @@
       
         
         <span class="label">Previous:</span>
-        <a href="/doc/en/how-to/write-ruby-spec">Write a Ruby Spec</a>
+        <a href="/doc/en/how-to/write-documentation">Write Documentation</a>
         
 
         <span class="label">Up:</span>
@@ -80,49 +80,45 @@
 
         
         <span class="label">Next:</span>
-        <a href="/doc/en/how-to/write-a-blog-post">Write a Blog Post</a>
+        <a href="/doc/en/appendix-a-glossary">Appendix A - Glossary</a>
         
       
     </div>
 
 
     <div class="container documentation">
-      <h2>How-To - Fix a Failing Spec</h2>
+      <h2>How-To - Translate Documentation</h2>
       
 
-        <p>Make sure you have read:</p>
-
-<ul>
-  <li><a href="getting-started/">Getting Started</a></li>
-  <li><a href="specs/">Specs</a></li>
-</ul>
-
-<p>Then, follow these steps to fix a failing spec:</p>
+        <p>There are two translation tasks:</p>
 
 <ol>
-  <li>Run <code>rake</code> to ensure that all CI specs are passing.</li>
-  <li>Run <code>bin/mspec spec/some/spec_file.rb</code> to confirm the spec fails.</li>
-  <li>Edit a file somewhere in Rubinius (probably under the kernel directory).</li>
-  <li>Run <code>rake build</code> to build your change.</li>
-  <li>Run <code>bin/mspec spec/some/spec_file.rb</code> to see if your change makes the
-spec pass.</li>
-  <li>Repeat until your spec passes.</li>
-  <li>Run <code>rake</code> to ensure there are no regressions.</li>
-  <li>Change directory to Rubinius root if not already there.</li>
-  <li>Run <code>git status, git add, git commit</code>, etc. Any changes made to the spec
-files under the spec/ruby directory must be in a different commit from
-changes made to other Rubinius source code files.</li>
-  <li>Run <code>git format-patch origin</code>, which will extract commits that the current
-branch accumulated since the last pull from origin, or `git format-patch
--N&rsquo;, where N is the number (1, 2, etc.) of commits for which you want to
-generate patches.</li>
-  <li>Create a gist with your patch and link to it in a ticket on the issue
-tracker at http://github.com/evanphx/rubinius/issues. You can add multiple
-patches to one ticket.</li>
+  <li>updating an existing translation</li>
+  <li>creating a completely new translation</li>
 </ol>
 
-<p>When your patch is accepted by the Rubinius project, you&rsquo;ll get a commit bit
-for the Rubinius repository. Let Evan know what your Github username is.</p>
+<p>Begin by reading <a href="/doc/en/how-to/write-documentation/">How-To - Write
+Documentation</a></p>
+
+<h3 id="updating-an-existing-translation">Updating an Existing Translation</h3>
+
+<p>To update an existing translation, open the topic file under <code>web/doc/LANG</code>
+and edit the existing text or add newly translated text.</p>
+
+<h3 id="creating-a-new-translation">Creating a New Translation</h3>
+
+<p>To create a new language translation:</p>
+
+<ol>
+  <li>Copy <code>web/doc/en</code> to <code>web/doc/LANG</code> where <em>LANG</em> is the ISO-639-2 code for
+the language translation you are creating.</li>
+  <li>Edit the links in the Table of Contents to point to the location of the
+files for the translation. (Note that for some reason the <code>page.base_dir</code>
+attribute is not available when these files are being rendered by Jekyll.
+This needs to be investigated.)</li>
+  <li>Translate the English text to the target language.</li>
+</ol>
+
 
 
     </div>
@@ -131,7 +127,7 @@ for the Rubinius repository. Let Evan know what your Github username is.</p>
       
         
         <span class="label">Previous:</span>
-        <a href="/doc/en/how-to/write-ruby-spec">Write a Ruby Spec</a>
+        <a href="/doc/en/how-to/write-documentation">Write Documentation</a>
         
 
         <span class="label">Up:</span>
@@ -139,7 +135,7 @@ for the Rubinius repository. Let Evan know what your Github username is.</p>
 
         
         <span class="label">Next:</span>
-        <a href="/doc/en/how-to/write-a-blog-post">Write a Blog Post</a>
+        <a href="/doc/en/appendix-a-glossary">Appendix A - Glossary</a>
         
       
     </div>

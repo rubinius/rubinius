@@ -1,8 +1,8 @@
 ---
 layout: doc_en
 title: Appendix A - Glossary
-previous: How-To - Fix a Failing Spec
-previous_url: how-to/fix-a-failing-spec
+previous: How-To - Translate Documentation
+previous_url: how-to/translate-documentation
 next: Appendix B - Reading List
 next_url: appendix-b-reading-list
 review: true

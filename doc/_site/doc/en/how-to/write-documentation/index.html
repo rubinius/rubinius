@@ -72,7 +72,7 @@
       
         
         <span class="label">Previous:</span>
-        <a href="/doc/en/how-to/write-ruby-spec">Write a Ruby Spec</a>
+        <a href="/doc/en/how-to/write-a-blog-post">Write a Blog Post</a>
         
 
         <span class="label">Up:</span>
@@ -80,49 +80,84 @@
 
         
         <span class="label">Next:</span>
-        <a href="/doc/en/how-to/write-a-blog-post">Write a Blog Post</a>
+        <a href="/doc/en/how-to/translate-documentation">Translate Documentation</a>
         
       
     </div>
 
 
     <div class="container documentation">
-      <h2>How-To - Fix a Failing Spec</h2>
+      <h2>How-To - Write Documentation</h2>
       
 
-        <p>Make sure you have read:</p>
+        <p>The Rubinius documentation is integrated with the website and blog. It uses
+Jekyll just like the other components.</p>
 
-<ul>
-  <li><a href="getting-started/">Getting Started</a></li>
-  <li><a href="specs/">Specs</a></li>
-</ul>
+<p>To get started, ensure you have the <code>kramdown</code> and <code>jekyll</code> gems installed.</p>
 
-<p>Then, follow these steps to fix a failing spec:</p>
+<pre><code>rbx gem install jekyll kramdown
+</code></pre>
+
+<p>The documentation source is under the <code>web/doc</code> directory. There are
+subdirectories for each language to which the documentation has been
+translated (eg <code>en</code>, <code>es</code>, etc.).</p>
+
+<p>There is a Table of Contents for each translation (e.g.
+<code>/web/doc/en/index.markdown</code>). The rest of the documentation consists of
+single files that have YAML attributes to specify how the documents are
+connected. Essentially, the documentation can be viewed as a doubly-linked
+list of documents with each document pointing to the previous and next
+document. The Table of Contents document shows the complete structure.</p>
+
+<p>The YAML attributes in a document look like the following:</p>
+
+<pre><code>---
+layout: doc_en
+title: How-To - Write Documentation
+previous: Write a Blog Post
+previous_url: how-to/write-a-blog-post
+next: Translate Documentation
+next_url: how-to/translate-documentation
+---
+</code></pre>
+
+<p>The <em>layout</em> specifies which Jekyll layout to use when formatting the
+document. The <em>layout</em> should be <code>doc_LANG</code>, where <em>LANG</em> is the ISO-639-2
+code for the language.</p>
+
+<p>The <em>title</em> specifies the document title that is displayed at the top of the
+page.</p>
+
+<p>The <em>previous</em> and <em>previous_url</em> attributes give the title and link to the
+previous document. Likewise, the <em>next</em> and <em>next_url</em> attributes give the
+title and link for the next document. These are used to enhance browsing the
+documentation and limiting the amount of work necessary to re-order parts of
+the documentation.</p>
+
+<h3 id="editing-existing-documentation">Editing Existing Documentation</h3>
+
+<p>An initial outline for the documentation has been created. There are many
+topics that merely need to have documentation written for them.</p>
+
+<p>To add documentation for an existing topic, or to fix existing documentation,
+open the file for the topic under <code>web/doc/LANG</code> and add or improve the
+documentation.</p>
+
+<h3 id="adding-new-documentation">Adding New Documentation</h3>
+
+<p>To add documentation for which no existing topic exists:</p>
 
 <ol>
-  <li>Run <code>rake</code> to ensure that all CI specs are passing.</li>
-  <li>Run <code>bin/mspec spec/some/spec_file.rb</code> to confirm the spec fails.</li>
-  <li>Edit a file somewhere in Rubinius (probably under the kernel directory).</li>
-  <li>Run <code>rake build</code> to build your change.</li>
-  <li>Run <code>bin/mspec spec/some/spec_file.rb</code> to see if your change makes the
-spec pass.</li>
-  <li>Repeat until your spec passes.</li>
-  <li>Run <code>rake</code> to ensure there are no regressions.</li>
-  <li>Change directory to Rubinius root if not already there.</li>
-  <li>Run <code>git status, git add, git commit</code>, etc. Any changes made to the spec
-files under the spec/ruby directory must be in a different commit from
-changes made to other Rubinius source code files.</li>
-  <li>Run <code>git format-patch origin</code>, which will extract commits that the current
-branch accumulated since the last pull from origin, or `git format-patch
--N&rsquo;, where N is the number (1, 2, etc.) of commits for which you want to
-generate patches.</li>
-  <li>Create a gist with your patch and link to it in a ticket on the issue
-tracker at http://github.com/evanphx/rubinius/issues. You can add multiple
-patches to one ticket.</li>
+  <li>Create a new file with the .markdown extension under <code>web/doc/LANG</code>.</li>
+  <li>Set up the attributes to link the new file into the existing files. This
+will require editing the <em>previous</em> and <em>next</em> attributes of the existing
+files to insert the new file.</li>
+  <li>To view your updates while you are working on them, run
+<code>rbx -S jekyll --server --auto</code></li>
+  <li>Edit the new file using Markdown syntax.</li>
+  <li>In the <code>web/</code> directory, run <code>rbx -S jekyll</code>.</li>
+  <li>Commit all the changes in the <code>web/</code> directory.</li>
 </ol>
-
-<p>When your patch is accepted by the Rubinius project, you&rsquo;ll get a commit bit
-for the Rubinius repository. Let Evan know what your Github username is.</p>
 
 
     </div>
@@ -131,7 +166,7 @@ for the Rubinius repository. Let Evan know what your Github username is.</p>
       
         
         <span class="label">Previous:</span>
-        <a href="/doc/en/how-to/write-ruby-spec">Write a Ruby Spec</a>
+        <a href="/doc/en/how-to/write-a-blog-post">Write a Blog Post</a>
         
 
         <span class="label">Up:</span>
@@ -139,7 +174,7 @@ for the Rubinius repository. Let Evan know what your Github username is.</p>
 
         
         <span class="label">Next:</span>
-        <a href="/doc/en/how-to/write-a-blog-post">Write a Blog Post</a>
+        <a href="/doc/en/how-to/translate-documentation">Translate Documentation</a>
         
       
     </div>
