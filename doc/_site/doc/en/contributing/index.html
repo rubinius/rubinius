@@ -24,13 +24,13 @@
   </head>
     <body>
         <div class='container'>
-      <div class='span-21'>
+      <div class='span-21 doc_menu'>
         <header>
                     <nav>
             <ul>
               <li><a href="/">Home</a></li>
-              <li><a href="/blog/">Blog</a></li>
-              <li><a href="/doc/en/">Documentation</a></li>
+              <li><a id="blog" href="/blog/">Blog</a></li>
+              <li><a id="documentation" href="/doc/en/">Documentation</a></li>
               <li><a href="/projects/">Projects</a></li>
               <li><a href="/roadmap/">Roadmap</a></li>
               <li><a href="/releases/">Releases</a></li>
@@ -48,37 +48,45 @@
     </div>
 
 
-        <div class="container lang_nav">
-      
-        <a href="/doc/en/"
+        <div class="container languages">
+      <nav>
+        <span class="label">Languages:</span>
+        <ul>
         
-          class="current"
+          <li><a href="/doc/en/"
+          
+            class="current"
+          
+          >en</a></li>
         
-        >en</a>
-      
-        <a href="/doc/es/"
+          <li><a href="/doc/es/"
+          
+          >es</a></li>
         
-        >es</a>
-      
+        </ul>
+      </nav>
     </div>
 
 
         <div class="container doc_page_nav">
       
+        
+        <span class="label">Previous:</span>
         <a href="/doc/en/getting-started/troubleshooting">Troubleshooting</a>
-      
+        
 
-      
-      <a href="/doc/en/">Table of Contents</a>
-      
+        <span class="label">Up:</span>
+        <a href="/doc/en/">Table of Contents</a>
 
-      
+        
+        <span class="label">Next:</span>
         <a href="/doc/en/contributing/communication">Communication</a>
+        
       
     </div>
 
 
-    <div class="container">
+    <div class="container documentation">
       <h2>Contributing</h2>
       
 
@@ -115,10 +123,10 @@ that fixes it.</p>
 tagged as incomplete. These specs may simply need review, or there could
 be specs missing for a particular class.</p>
 
-    <p>NOTE: You can specify the pseudo-directory &lsquo;:files&rsquo; for <dir>, which will
+    <p>NOTE: You can specify the pseudo-directory &lsquo;:files&rsquo; for &lt;dir&gt;, which will
 show tags for all the specs that should run on Rubinius. Or you can
 specify any subdirectory of the spec/ directory to list tags for specs in
-that subdirectory.</dir></p>
+that subdirectory.</p>
   </li>
   <li>
     <p>Find unspecified behaviors. See <a href="/doc/en/how-to/write-a-ruby-spec">How To Write a Ruby
@@ -132,10 +140,10 @@ Spec</a>.</p>
   <li>
     <p>Run <code>bin/mspec tag --list fails &lt;dir&gt;</code> to show specs tagged as failing.</p>
 
-    <p>NOTE: You can specify the pseudo-directory &lsquo;:files&rsquo; for <dir>, which will
+    <p>NOTE: You can specify the pseudo-directory &lsquo;:files&rsquo; for &lt;dir&gt;, which will
 show tags for all the specs that should run on Rubinius. Or you can
 specify any subdirectory of the spec/ directory to list tags for specs in
-that subdirectory.</dir></p>
+that subdirectory.</p>
   </li>
   <li>
     <p>Pick a spec that looks interesting and see if you can write a patch that
@@ -172,15 +180,18 @@ already RubySpecs for the issue. If not, consider writing some.</li>
 
         <div class="container doc_page_nav">
       
+        
+        <span class="label">Previous:</span>
         <a href="/doc/en/getting-started/troubleshooting">Troubleshooting</a>
-      
+        
 
-      
-      <a href="/doc/en/">Table of Contents</a>
-      
+        <span class="label">Up:</span>
+        <a href="/doc/en/">Table of Contents</a>
 
-      
+        
+        <span class="label">Next:</span>
         <a href="/doc/en/contributing/communication">Communication</a>
+        
       
     </div>
 

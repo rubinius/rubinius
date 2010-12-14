@@ -81,7 +81,7 @@ code {
 li.code {
   list-style-type: decimal; }
 
-h3 {
+h2, h3 {
   letter-spacing: -.06em;
   font-size: 3em;
   font-weight: bold; }
@@ -305,6 +305,175 @@ header {
 
 p.more {
   font-size: 1.2em; }
+
+.blog_posts a.title {
+  font-size: 3em;
+  font-weight: bold;
+  letter-spacing: -0.04em;
+  color: #000000;
+  margin-left: -0.25em;
+}
+
+.blog_posts a.title:hover {
+  color: #ffffff;
+}
+
+.blog_posts h2.title {
+  margin-bottom: 0.25em;
+}
+
+.blog_posts div.by_line span.author {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #666666;
+  display: inline;
+  padding-right: 0.25em;
+  border-right: 1px solid #cccccc;
+}
+
+.blog_posts div.by_line span.date {
+  font-size: 1.2em;
+  color: #444444;
+  padding-left: 0.25em;
+}
+
+.doc_page_nav {
+  font-size: 1.2em;
+  margin-bottom: 0.5em;
+}
+
+.doc_page_nav span.label {
+  font-weight: bold;
+}
+
+.blog_posts h2,
+.documentation h2,
+.blog_posts h3,
+.documentation h3,
+.blog_posts h4,
+.documentation h4,
+.blog_posts h5,
+.documentation h5,
+.blog_posts h6,
+.documantation h6 {
+  font-weight: bold;
+  letter-spacing: -0.04em;
+}
+
+.blog_posts h2,
+.documentation h2 {
+  font-size: 3em;
+}
+
+.blog_posts h3,
+.documentation h3 {
+  font-size: 2.4em;
+}
+
+.blog_posts h4,
+.documentation h4 {
+  font-size: 2.0em;
+}
+
+.blog_posts h5,
+.documentation h5 {
+  font-size: 1.6em;
+}
+
+.blog_posts h6,
+.documentation h6 {
+  font-size: 1.2em;
+}
+
+.blog_posts,
+.documentation {
+  font-size: 1.2em;
+}
+
+.blog_posts code,
+.documentation code {
+  font-family: 'Courier New', Courier;
+  font-size: 1.1em;
+  line-height: 1.25em;
+  border: none;
+  background: none;
+  display: inline;
+  padding: 0;
+}
+
+.blog_posts pre,
+.documentation pre {
+  margin-left: 2em;
+}
+
+.languages nav span.label {
+  font-weight: bold;
+}
+
+.languages nav {
+  text-align: right;
+  margin-bottom: 1em;
+}
+.languages nav ul {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+.languages nav li {
+  border-left: 1px solid #ccc;
+  display: inline;
+  font-weight: bold;
+  list-style-type: none;
+  margin: 0 0 0 .25em;
+  padding: 0 0 0 .25em;
+  text-align: right;
+  padding: 0 .75em;
+  white-space: pre;
+}
+.languages nav li:first-child {
+  border: none;
+  padding-right: 0;
+  margin-right: 0;
+}
+.languages nav li:last-child {
+  padding-right: 0;
+  margin-right: 0;
+}
+.languages nav li a {
+  padding: .5em;
+}
+.languages nav li a.current {
+  background: #325986;
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#325986), to(#001A31));
+  color: white;
+  border-radius: .25em;
+  -moz-border-radius: .25em;
+  -webkit-border-radius: .25em;
+}
+
+.doc_menu a#documentation {
+  background: #325986;
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#325986), to(#001A31));
+  color: white;
+  border-radius: .25em;
+  -moz-border-radius: .25em;
+  -webkit-border-radius: .25em;
+}
+
+.blog_menu a#blog {
+  background: #325986;
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#325986), to(#001A31));
+  color: white;
+  border-radius: .25em;
+  -moz-border-radius: .25em;
+  -webkit-border-radius: .25em;
+}
+
+.blog_posts a.title {
+}
+
+.blog_posts div.by_line {
+}
 
 .diagram {
   text-align: center;

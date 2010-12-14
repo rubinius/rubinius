@@ -42,7 +42,7 @@ parche que la fija.
      especificaciones pueden simplemente necesitan una revisión, o podría no
      se especificaciones técnicas que faltan para una clase en particular.
 
-     NOTA: Se puede especificar el pseudo-directorio ':files' para <dir>, que
+     NOTA: Se puede especificar el pseudo-directorio ':files' para \<dir\>, que
      etiquetas para mostrar el resultado de todas las especificaciones
      técnicas que deben ejecutarse en Rubinius. O puede especificar cualquier
      subdirectorio de spec/ para las etiquetas de lista de especificaciones
@@ -56,7 +56,7 @@ parche que la fija.
   1. Ejecutar `bin/mspec tag --list fails <dir>` para mostrar especificaciones
      técnicas etiquetados como no.
 
-     NOTA: Se puede especificar el pseudo-directorio 'files' para <dir>, que
+     NOTA: Se puede especificar el pseudo-directorio 'files' para \<dir\>, que
      etiquetas para mostrar el resultado de todas las especificaciones
      técnicas que deben ejecutarse en Rubinius. O puede especificar cualquier
      subdirectorio de spec/ para las etiquetas de lista de especificaciones

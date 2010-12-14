@@ -4,7 +4,7 @@ title: Appendix A - Glossary
 previous: How-To - Fix a Failing Spec
 previous_url: how-to/fix-a-failing-spec
 next: Appendix B - Reading List
-next_url: appendix-b-reading-ilst
+next_url: appendix-b-reading-list
 review: true
 translated: true
 ---

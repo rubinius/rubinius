@@ -24,13 +24,13 @@
   </head>
     <body>
         <div class='container'>
-      <div class='span-21'>
+      <div class='span-21 doc_menu'>
         <header>
                     <nav>
             <ul>
               <li><a href="/">Home</a></li>
-              <li><a href="/blog/">Blog</a></li>
-              <li><a href="/doc/en/">Documentation</a></li>
+              <li><a id="blog" href="/blog/">Blog</a></li>
+              <li><a id="documentation" href="/doc/en/">Documentation</a></li>
               <li><a href="/projects/">Projects</a></li>
               <li><a href="/roadmap/">Roadmap</a></li>
               <li><a href="/releases/">Releases</a></li>
@@ -48,37 +48,45 @@
     </div>
 
 
-        <div class="container lang_nav">
-      
-        <a href="/doc/en/"
+        <div class="container languages">
+      <nav>
+        <span class="label">Idiomas:</span>
+        <ul>
         
-        >en</a>
-      
-        <a href="/doc/es/"
+          <li><a href="/doc/en/"
+          
+          >en</a></li>
         
-          class="current"
+          <li><a href="/doc/es/"
+          
+            class="current"
+          
+          >es</a></li>
         
-        >es</a>
-      
+        </ul>
+      </nav>
     </div>
 
 
         <div class="container doc_page_nav">
       
+        
+        <span class="label">Previous:</span>
         <a href="/doc/es/getting-started/troubleshooting">Troubleshooting</a>
-      
+        
 
-      
-      <a href="/doc/es/">Tabla de Contenidos</a>
-      
+        <span class="label">Up:</span>
+        <a href="/doc/es/">Tabla de Contenidos</a>
 
-      
+        
+        <span class="label">Next:</span>
         <a href="/doc/es/contributing/communication">Communication</a>
+        
       
     </div>
 
 
-    <div class="container">
+    <div class="container documentation">
       <h2>Contributing</h2>
       
 
@@ -117,11 +125,11 @@ especificaciones técnicas que se han Etiquetado como incompleta. Estas
 especificaciones pueden simplemente necesitan una revisión, o podría no
 se especificaciones técnicas que faltan para una clase en particular.</p>
 
-    <p>NOTA: Se puede especificar el pseudo-directorio &lsquo;:files&rsquo; para <dir>, que
+    <p>NOTA: Se puede especificar el pseudo-directorio &lsquo;:files&rsquo; para &lt;dir&gt;, que
 etiquetas para mostrar el resultado de todas las especificaciones
 técnicas que deben ejecutarse en Rubinius. O puede especificar cualquier
 subdirectorio de spec/ para las etiquetas de lista de especificaciones
-técnicas en ese subdirectorio.</dir></p>
+técnicas en ese subdirectorio.</p>
   </li>
   <li>
     <p>Buscar las conductas no especificadas. Mas <a href="/doc/en/how-to/write-a-ruby-spec">Cómo escribir un Ruby
@@ -136,11 +144,11 @@ Spec</a>.</p>
     <p>Ejecutar <code>bin/mspec tag --list fails &lt;dir&gt;</code> para mostrar especificaciones
 técnicas etiquetados como no.</p>
 
-    <p>NOTA: Se puede especificar el pseudo-directorio &lsquo;files&rsquo; para <dir>, que
+    <p>NOTA: Se puede especificar el pseudo-directorio &lsquo;files&rsquo; para &lt;dir&gt;, que
 etiquetas para mostrar el resultado de todas las especificaciones
 técnicas que deben ejecutarse en Rubinius. O puede especificar cualquier
 subdirectorio de spec/ para las etiquetas de lista de especificaciones
-técnicas en ese subdirectorio.</dir></p>
+técnicas en ese subdirectorio.</p>
   </li>
   <li>
     <p>Elija una especificación que se ve interesante y ver si puedes escribir
@@ -177,15 +185,18 @@ hay ya RubySpecs para la expedición. Si no, considere escribir algunas.</li>
 
         <div class="container doc_page_nav">
       
+        
+        <span class="label">Previous:</span>
         <a href="/doc/es/getting-started/troubleshooting">Troubleshooting</a>
-      
+        
 
-      
-      <a href="/doc/es/">Tabla de Contenidos</a>
-      
+        <span class="label">Up:</span>
+        <a href="/doc/es/">Tabla de Contenidos</a>
 
-      
+        
+        <span class="label">Next:</span>
         <a href="/doc/es/contributing/communication">Communication</a>
+        
       
     </div>
 

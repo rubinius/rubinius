@@ -1,13 +1,16 @@
     <div class="container doc_page_nav">
-      {% if page.previous_url and page.previous %}
-        <a href="{{ page.base_dir }}{{ page.previous_url }}">{{ page.previous }}</a>
-      {% endif %}
-
       {% unless page.toc %}
-      <a href="{{ page.base_dir }}">{{ page.toc_text }}</a>
-      {% endunless %}
+        {% if page.previous_url and page.previous %}
+        <span class="label">Previous:</span>
+        <a href="{{ page.base_dir }}{{ page.previous_url }}">{{ page.previous }}</a>
+        {% endif %}
 
-      {% if page.next_url and page.next %}
+        <span class="label">Up:</span>
+        <a href="{{ page.base_dir }}">{{ page.toc_text }}</a>
+
+        {% if page.next_url and page.next %}
+        <span class="label">Next:</span>
         <a href="{{ page.base_dir }}{{ page.next_url }}">{{ page.next }}</a>
-      {% endif %}
+        {% endif %}
+      {% endunless %}
     </div>

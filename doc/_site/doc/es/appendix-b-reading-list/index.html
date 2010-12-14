@@ -24,13 +24,13 @@
   </head>
     <body>
         <div class='container'>
-      <div class='span-21'>
+      <div class='span-21 doc_menu'>
         <header>
                     <nav>
             <ul>
               <li><a href="/">Home</a></li>
-              <li><a href="/blog/">Blog</a></li>
-              <li><a href="/doc/en/">Documentation</a></li>
+              <li><a id="blog" href="/blog/">Blog</a></li>
+              <li><a id="documentation" href="/doc/en/">Documentation</a></li>
               <li><a href="/projects/">Projects</a></li>
               <li><a href="/roadmap/">Roadmap</a></li>
               <li><a href="/releases/">Releases</a></li>
@@ -48,37 +48,45 @@
     </div>
 
 
-        <div class="container lang_nav">
-      
-        <a href="/doc/en/"
+        <div class="container languages">
+      <nav>
+        <span class="label">Idiomas:</span>
+        <ul>
         
-        >en</a>
-      
-        <a href="/doc/es/"
+          <li><a href="/doc/en/"
+          
+          >en</a></li>
         
-          class="current"
+          <li><a href="/doc/es/"
+          
+            class="current"
+          
+          >es</a></li>
         
-        >es</a>
-      
+        </ul>
+      </nav>
     </div>
 
 
         <div class="container doc_page_nav">
       
+        
+        <span class="label">Previous:</span>
         <a href="/doc/es/appendix-a-glossary">Appendix A - Glossary</a>
-      
+        
 
-      
-      <a href="/doc/es/">Tabla de Contenidos</a>
-      
+        <span class="label">Up:</span>
+        <a href="/doc/es/">Tabla de Contenidos</a>
 
-      
+        
+        <span class="label">Next:</span>
         <a href="/doc/es/terms-index">Terms Index</a>
+        
       
     </div>
 
 
-    <div class="container">
+    <div class="container documentation">
       <h2>Appendix B - Reading List</h2>
       
         <div class="review">
@@ -87,15 +95,17 @@
 
       
 
-        <p>Building virtual machines in general and programming language implementations
-in particular requires some knowledge. Rubinius&rsquo; goal is to lower the barrier
-by keeping as much as possible in Ruby but to hack on garbage collector you
-have to understand what&rsquo; going on behind the curtains.</p>
+        <p>Construcción de máquinas virtuales en general y las implementaciones del
+lenguaje de programación en particular, requiere un cierto conocimiento.
+Rubinius objetivo es bajar la barrera manteniendo en lo posible en Ruby, pero
+para hackear el recolector de basura que tiene que entender lo que sucede
+detrás de las cortinas.</p>
 
-<p>This page contains references to books, online lectures, blog posts and any
-other publications you may find useful for working on Rubinius.</p>
+<p>Esta página contiene referencias de libros, conferencias en línea, blogs y
+cualquier otras publicaciones que pueden ser útiles para trabajar en Rubinius.</p>
 
-<p>NOTE that some of these links refer to outdated information about Rubinius.</p>
+<p>NOTA que algunos de estos enlaces se refieren a información no actualizada
+sobre Rubinius.</p>
 
 <h2 id="virtual-machine">Virtual machine</h2>
 
@@ -125,9 +135,7 @@ primitives</a></li>
 primitives</a></li>
 </ul>
 
-<p>FFI
-translated: true
-&mdash;</p>
+<h2 id="ffi">FFI</h2>
 
 <ul>
   <li><a href="http://redartisan.com/2007/10/11/rubinius-coding">Implementing File#link using
@@ -141,15 +149,18 @@ interface</a></li>
 
         <div class="container doc_page_nav">
       
+        
+        <span class="label">Previous:</span>
         <a href="/doc/es/appendix-a-glossary">Appendix A - Glossary</a>
-      
+        
 
-      
-      <a href="/doc/es/">Tabla de Contenidos</a>
-      
+        <span class="label">Up:</span>
+        <a href="/doc/es/">Tabla de Contenidos</a>
 
-      
+        
+        <span class="label">Next:</span>
         <a href="/doc/es/terms-index">Terms Index</a>
+        
       
     </div>
 

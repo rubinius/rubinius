@@ -24,13 +24,13 @@
   </head>
     <body>
         <div class='container'>
-      <div class='span-21'>
+      <div class='span-21 blog_menu'>
         <header>
                     <nav>
             <ul>
               <li><a href="/">Home</a></li>
-              <li><a href="/blog/">Blog</a></li>
-              <li><a href="/doc/en/">Documentation</a></li>
+              <li><a id="blog" href="/blog/">Blog</a></li>
+              <li><a id="documentation" href="/doc/en/">Documentation</a></li>
               <li><a href="/projects/">Projects</a></li>
               <li><a href="/roadmap/">Roadmap</a></li>
               <li><a href="/releases/">Releases</a></li>
@@ -47,11 +47,14 @@
 
     </div>
 
-    <div class="container">
-      <h2>Rubinius Has a Blog!</h2>
-      <div>
-        <p>Brian Ford 06 December 2010</p>
+    <div class="container blog_posts">
+      <h2 class=title>Rubinius Has a Blog!</h2>
+      
+            <div class="by_line">
+        <p><span class="author">Brian Ford</span>
+        <span class="date">06 December 2010</span></p>
       </div>
+
       <p>Rubinius finally has a blog.</p>
 
     </div>

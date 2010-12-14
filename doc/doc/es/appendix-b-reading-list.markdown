@@ -9,18 +9,20 @@ review: true
 translated: true
 ---
 
-Building virtual machines in general and programming language implementations
-in particular requires some knowledge. Rubinius' goal is to lower the barrier
-by keeping as much as possible in Ruby but to hack on garbage collector you
-have to understand what' going on behind the curtains.
+Construcción de máquinas virtuales en general y las implementaciones del
+lenguaje de programación en particular, requiere un cierto conocimiento.
+Rubinius objetivo es bajar la barrera manteniendo en lo posible en Ruby, pero
+para hackear el recolector de basura que tiene que entender lo que sucede
+detrás de las cortinas.
 
-This page contains references to books, online lectures, blog posts and any
-other publications you may find useful for working on Rubinius.
+Esta página contiene referencias de libros, conferencias en línea, blogs y
+cualquier otras publicaciones que pueden ser útiles para trabajar en Rubinius.
 
-NOTE that some of these links refer to outdated information about Rubinius.
+NOTA que algunos de estos enlaces se refieren a información no actualizada
+sobre Rubinius.
 
-Virtual machine
----------------
+
+## Virtual machine
 
   * [Smalltalk-80: language and its implementation](http://tinyurl.com/3a2pdq)
     by Goldberg, Robson, Harrison (aka "The Blue Book"), implementation
@@ -30,16 +32,14 @@ Virtual machine
     [How send sites work](http://tinyurl.com/34c6e8)
 
 
-Garbage collection
-------------------
+## Garbage collection
 
   * [Garbage Collection: Algorithms for Automatic Dynamic Memory
     Management](http://tinyurl.com/3dygmo) by Richard Jones
   * [Garbage collection lectures](http://tinyurl.com/2mhek4)
 
 
-Primitive methods
------------------
+## Primitive methods
 
   * [Ruby extensions and Smalltalk
     primitives](http://talklikeaduck.denhaven2.com/articles/2007/06/04/ruby-extensions-vs-smalltalk-primitives)
@@ -47,9 +47,7 @@ Primitive methods
     primitives](http://www.fit.vutbr.cz/study/courses/OMP/public/software/sqcdrom2/Tutorials/SqOnlineBook_(SOB)/englisch/sqk/sqk00083.htm)
 
 
-FFI
-translated: true
----
+## FFI
 
   * [Implementing File#link using
     FFI](http://redartisan.com/2007/10/11/rubinius-coding)

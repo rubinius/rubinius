@@ -41,7 +41,7 @@ that fixes it.
      tagged as incomplete. These specs may simply need review, or there could
      be specs missing for a particular class.
 
-     NOTE: You can specify the pseudo-directory ':files' for <dir>, which will
+     NOTE: You can specify the pseudo-directory ':files' for \<dir\>, which will
      show tags for all the specs that should run on Rubinius. Or you can
      specify any subdirectory of the spec/ directory to list tags for specs in
      that subdirectory.
@@ -54,7 +54,7 @@ that fixes it.
 
   1. Run `bin/mspec tag --list fails <dir>` to show specs tagged as failing.
 
-     NOTE: You can specify the pseudo-directory ':files' for <dir>, which will
+     NOTE: You can specify the pseudo-directory ':files' for \<dir\>, which will
      show tags for all the specs that should run on Rubinius. Or you can
      specify any subdirectory of the spec/ directory to list tags for specs in
      that subdirectory.
