@@ -87,31 +87,47 @@
 
       
 
-        <p>Global variables are variables available from any context. There are actually
-two different kinds of globals: True globals and pseudo globals.</p>
+        <p>Syntatically, a global variable is supposed to be a variable whose name begins
+with <code>$</code>. Global variables are supposed to be available from any context in a
+Ruby program. However, there are actually three different kinds of globals: true
+globals, thread-local globals, and pseudo globals.</p>
 
-<p>True globals associate a value with a global name, such as <strong>$LOAD_PATH</strong>. Any
-value accessed starting with a $ that is not a pseudo global is a true global.</p>
+<p>True globals associate a value with a global name, such as <code>$LOAD_PATH</code>.</p>
 
-<p>Pseudo globals are a strict subset of names which refer not to global
-values but values in the current scope, like local variables. These are
-still referred to as global variables because the start with a dollar sign,
-but this is the source of confusion for users.</p>
+<p>Thread-local globals have the syntax of a global variable but there is a
+different version of the global for each thread in the running Ruby process.
+Examples of thread-local globals are <code>$SAFE</code> and <code>$!</code>. To see that these
+values depend on the thread, consider the following code:</p>
 
-<p>All pseudo globals are organized around one primary pseudo global: <strong>$~</strong>.
-They are all simple accessing parts of <strong>$~</strong> and thus when <strong>$~</strong> changes,
-they all change.</p>
+<pre><code>puts $SAFE
 
-<p>The rest of the pseudo globals are: <strong>$&amp;</strong>, <strong>$`</strong> (backtick),
-<strong>$&rsquo;</strong> (single quote), <strong>$+</strong>, and <strong>$1</strong>, <strong>$2</strong>, <strong>$3</strong>, &hellip;</p>
+Thread.new do
+  $SAFE = 2
+  puts $SAFE
+end
+
+puts $SAFE
+</code></pre>
+
+<p>Pseudo globals are a strict subset of names which refer not to global values
+but values in the current scope, like local variables. These are still
+referred to as global variables because they start with a dollar sign, but this
+is the source of confusion for users.</p>
+
+<p>All pseudo globals are organized around one primary pseudo global: <code>$~</code>.  They
+are all simple accessing parts of <code>$~</code> and thus when <code>$~</code> changes, they all
+change.</p>
+
+<p>The rest of the pseudo globals are: <code>$&amp;</code>, <code>$`</code> (backtick), <code>$'</code> (single
+quote), <code>$+</code>, and <code>$1</code>, <code>$2</code>, <code>$3</code>, etc.</p>
 
 <p>One tricky aspect of these values is that they are strictly bound to the
 current scope but Ruby allows them to be aliased, as is done in English.rb.</p>
 
 <p>These new aliases are basically adding new local variables to all scopes, even
-ones already running. Thusly, Rubinius does not fully support them. Instead
-we simply provide the aliases present in English.rb by default. For example,
-<strong>$MATCH</strong> can be used instead <strong>$~</strong>, whether English.rb is included or not.</p>
+ones already running. Thusly, Rubinius does not fully support them. Instead we
+simply provide the aliases present in English.rb by default. For example,
+<code>$MATCH</code> can be used instead <code>$~</code>, whether English.rb is included or not.</p>
 
 
     </div>
