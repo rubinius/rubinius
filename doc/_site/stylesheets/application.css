@@ -360,6 +360,7 @@ p.more {
   letter-spacing: -0.04em;
 }
 
+.projects h2,
 .blog_posts h2,
 .documentation h2 {
   font-size: 3em;
@@ -385,6 +386,7 @@ p.more {
   font-size: 1.2em;
 }
 
+.projects,
 .blog_posts,
 .documentation {
   font-size: 1.2em;
@@ -404,6 +406,11 @@ p.more {
 .blog_posts pre,
 .documentation pre {
   margin-left: 2em;
+}
+
+.projects h3 {
+  font-size: 2em;
+  margin-bottom: 0.25em;
 }
 
 .languages nav span.label {

@@ -1,9 +1,6 @@
 ---
-layout: site
+layout: projects
 ---
-
-Projects
---------
 
 The following is an alphabetical list of projects that leverage the excellent
 technology found in Rubinius, from the bytecode interpreter to the JIT
@@ -12,3 +9,61 @@ compiler to the various tools written in Ruby, like the bytecode compiler.
 If your project uses Rubinius, please submit a patch to add it to our list!
 
 
+### Akin
+[github.com/vic/akin](https://github.com/vic/akin)
+
+An Akin programming language optimized for fun.
+
+
+### Capuchin
+[github.com/matthewd/capuchin](https://github.com/matthewd/capuchin)
+
+A JavaScript implementation.
+
+
+### Ez-Scheme
+[github.com/ezmobius/ez-scheme](https://github.com/ezmobius/ez-scheme)
+
+A Scheme.
+
+
+### Fancy
+[github.com/bakkdoor/fancy](https://github.com/bakkdoor/fancy)
+
+The Fancy Programming Language - Fancy is a dynamic, object-oriented programming language heavily inspired by Smalltalk, Ruby and Erlang.
+
+
+### Lupin
+[github.com/twisol/lupin](https://github.com/twisol/lupin)
+
+An implementation of Lua.
+
+
+### Pegarus
+[github.com/brixen/pegarus](https://github.com/brixen/pegarus)
+
+An implementation of LPEG.
+
+
+### Poison
+[github.com/brixen/poison](https://github.com/brixen/poison)
+
+An interpretation of \_why's Potion programming language.
+
+
+### Rasp
+[github.com/matthewd/rasp](https://github.com/matthewd/rasp)
+
+A VBScript implementation.
+
+
+### Syme
+[github.com/brixen/syme](https://github.com/brixen/syme)
+
+An implementation of Newspeak.
+
+
+### Tython
+[github.com/vic/typhon](https://github.com/vic/typhon)
+
+A Python implementation.
