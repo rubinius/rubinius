@@ -35,7 +35,7 @@ referred to as global variables because they start with a dollar sign, but this
 is the source of confusion for users.
 
 All pseudo globals are organized around one primary pseudo global: `$~`.  They
-are all simple accessing parts of `$~` and thus when `$~` changes, they all
+are all accessing parts of `$~` and thus when `$~` changes, they all
 change.
 
 The rest of the pseudo globals are: `$&`, <code>$`</code> (backtick), `$'` (single
