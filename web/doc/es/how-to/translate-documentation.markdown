@@ -1,10 +1,11 @@
 ---
-layout: doc_en
+layout: doc_es
 title: How-To - Translate Documentation
 previous: Write Documentation
 previous_url: how-to/write-documentation
 next: Appendix A - Glossary
 next_url: appendix-a-glossary
+translated: true
 ---
 
 Hay dos tareas de traducción:

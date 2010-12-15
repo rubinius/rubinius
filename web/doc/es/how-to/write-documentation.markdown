@@ -1,10 +1,11 @@
 ---
-layout: doc_en
+layout: doc_es
 title: How-To - Write Documentation
 previous: Write a Blog Post
 previous_url: how-to/write-a-blog-post
 next: Translate Documentation
 next_url: how-to/translate-documentation
+translated: true
 ---
 
 La documentación Rubinius está integrado con el sitio web y blog. Utiliza

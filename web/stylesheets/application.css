@@ -81,6 +81,17 @@ code {
 li.code {
   list-style-type: decimal; }
 
+h2.tag_line {
+  font-size: 2em;
+  font-weight: normal;
+  letter-spacing: 0;
+  margin: -0.5em 0 0.75em 0.25em;
+  padding: 0;
+  color: #ccccccc;
+  border: 0 none;
+  vertical-align: baseline;
+}
+
 h2, h3 {
   letter-spacing: -.06em;
   font-size: 3em;
@@ -305,6 +316,28 @@ header {
 
 p.more {
   font-size: 1.2em; }
+
+.translated,
+.review {
+  background: #f2f6ce;
+  border-radius: .25em;
+  -moz-border-radius: .25em;
+  -webkit-border-radius: .25em;
+  color: #333333;
+  display: block;
+  padding: 1.5em;
+  margin: 1.5em 0 1.5em 0;
+}
+
+.review p,
+.translated p {
+  font-size: 1em;
+  font-family: inconsolata, consolas, "deja vu sans mono", "droid sans mono", proggy, monofur, profont, monaco, "andale mono", courier, monospace;
+  font-weight: normal !important;
+  font-style: italic;
+  margin: 0;
+  padding: 0.25em 0 0.25em 0;
+}
 
 .blog_posts a.title {
   font-size: 3em;

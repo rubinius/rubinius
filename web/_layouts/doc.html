@@ -13,6 +13,11 @@ languages:
 
     <div class="container documentation">
       <h2>{{ page.title }}</h2>
+
+      {% if page.translated %}
+        {% include translated.html %}
+      {% endif %}
+
       {% if page.review %}
         {% include review.html %}
       {% endif %}
