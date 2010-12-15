@@ -9,5 +9,5 @@ review: true
 translated: true
 ---
 
-1. [Instructions](/doc/en/virtual-machine/instructions/)
-1. [Custom Dispatch Logic](/doc/en/virtual-machine/custom-dispatch-logic/)
+1. [Instructions](/doc/es/virtual-machine/instructions/)
+1. [Custom Dispatch Logic](/doc/es/virtual-machine/custom-dispatch-logic/)

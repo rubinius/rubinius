@@ -21,7 +21,7 @@ A continuación se presentan varias ideas sobre qué hacer en Rubinius.
 ## Ejecutar el código
 
 Su código es a menudo más viciosos de las especificaciones. Monta tu proyecto
-favorito en Rubinius y emite un informe. Mas [Cómo escribir un billete](/doc/en/how-to/write-a-ticket).
+favorito en Rubinius y emite un informe. Mas [Cómo escribir un billete](/doc/es/how-to/write-a-ticket).
 
 
 # # Pedir Ayuda
@@ -49,7 +49,7 @@ parche que la fija.
      técnicas en ese subdirectorio.
 
   2. Buscar las conductas no especificadas. Mas [Cómo escribir un Ruby
-     Spec](/doc/en/how-to/write-a-ruby-spec).
+     Spec](/doc/es/how-to/write-a-ruby-spec).
 
 ## Fijar A falta de especificaciones
 

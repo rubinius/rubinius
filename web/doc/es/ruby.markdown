@@ -12,12 +12,12 @@ translated: true
 Una perspectiva de acercarse a la comprensión de cómo Rubinius implementa Ruby
 comienza con la comprensión de cómo funciona los distintos conceptos de Ruby.
 
-1. [Scripts](/doc/en/ruby/scripts/)
-1. [Methods](/doc/en/ruby/methods/)
-1. [Constants](/doc/en/ruby/constants/)
-1. [Classes & Modules](/doc/en/ruby/classes-and-modules/)
-1. [Blocks & Procs](/doc/en/ruby/blocks-and-procs/)
-1. [Local Variables](/doc/en/ruby/local-variables/)
-1. [Instance Variables](/doc/en/ruby/instance-variables/)
-1. [Class Variables](/doc/en/ruby/class-variables/)
-1. [Global Variables](/doc/en/ruby/global-variables/)
+1. [Scripts](/doc/es/ruby/scripts/)
+1. [Methods](/doc/es/ruby/methods/)
+1. [Constants](/doc/es/ruby/constants/)
+1. [Classes & Modules](/doc/es/ruby/classes-and-modules/)
+1. [Blocks & Procs](/doc/es/ruby/blocks-and-procs/)
+1. [Local Variables](/doc/es/ruby/local-variables/)
+1. [Instance Variables](/doc/es/ruby/instance-variables/)
+1. [Class Variables](/doc/es/ruby/class-variables/)
+1. [Global Variables](/doc/es/ruby/global-variables/)

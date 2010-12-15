@@ -9,6 +9,6 @@ review: true
 translated: true
 ---
 
-1. [Debugger](/doc/en/tools/debugger/)
-1. [Profiler](/doc/en/tools/profiler/)
-1. [Memory Analysis](/doc/en/tools/memory-analysis/)
+1. [Debugger](/doc/es/tools/debugger/)
+1. [Profiler](/doc/es/tools/profiler/)
+1. [Memory Analysis](/doc/es/tools/memory-analysis/)

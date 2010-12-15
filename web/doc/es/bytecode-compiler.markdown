@@ -12,8 +12,8 @@ translated: true
 El compilador de código de bytes Rubinius convierte el código fuente a
 bytecode de Ruby que el máquina virtual puede ejecutar.
 
-1. [Parser](/doc/en/bytecode-compiler/parser/)
-1. [AST](/doc/en/bytecode-compiler/ast/)
-1. [Compiler](/doc/en/bytecode-compiler/compiler/)
-1. [Transformations](/doc/en/bytecode-compiler/transformations/)
-1. [Generator](/doc/en/bytecode-compiler/generator/)
+1. [Parser](/doc/es/bytecode-compiler/parser/)
+1. [AST](/doc/es/bytecode-compiler/ast/)
+1. [Compiler](/doc/es/bytecode-compiler/compiler/)
+1. [Transformations](/doc/es/bytecode-compiler/transformations/)
+1. [Generator](/doc/es/bytecode-compiler/generator/)
