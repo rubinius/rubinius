@@ -63,7 +63,7 @@ A VBScript implementation.
 An implementation of Newspeak.
 
 
-### Tython
+### Typhon
 [github.com/vic/typhon](https://github.com/vic/typhon)
 
 A Python implementation.
