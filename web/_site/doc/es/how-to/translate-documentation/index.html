@@ -72,7 +72,7 @@
       
         
         <span class="label">Previous:</span>
-        <a href="/doc/en/how-to/fix-a-failing-spec">Fix a Failing Spec</a>
+        <a href="/doc/en/how-to/write-documentation">Write Documentation</a>
         
 
         <span class="label">Up:</span>
@@ -80,37 +80,43 @@
 
         
         <span class="label">Next:</span>
-        <a href="/doc/en/how-to/write-documentation">Write Documentation</a>
+        <a href="/doc/en/appendix-a-glossary">Appendix A - Glossary</a>
         
       
     </div>
 
 
     <div class="container documentation">
-      <h2>How-To - Write a Blog Post</h2>
+      <h2>How-To - Translate Documentation</h2>
       
 
-        <p>The Rubinius blog uses Jekyll and is integrated with the website and
-documentation. We encourage and appreciate guest blog posts about your
-experiences using or developing Rubinius.</p>
-
-<p>To get started, ensure you have the <code>kramdown</code> and <code>jekyll</code> gems installed.</p>
-
-<pre><code>rbx gem install jekyll kramdown
-</code></pre>
-
-<p>The preferred format for blog posts is Markdown. However, if you have special
-formatting needs, the post can be written in HTML directly.</p>
+        <p>Hay dos tareas de traducción:</p>
 
 <ol>
-  <li>Create a file in <code>web/_posts/</code> using the format
-<code>YYYY-MM-DD-perma-link.markdown</code> for the file name.</li>
-  <li>Write the post.</li>
-  <li>In the <code>web/</code> directory, run <code>rbx -S jekyll</code>.</li>
-  <li>Create a commit of all the changes in the <code>web/</code> directory.</li>
-  <li>Submit a patch, or if you have commit rights, push the commit to master.</li>
-  <li>Tell us that there is a new blog post. We may have some feedback for you
-before publishing.</li>
+  <li>Actualizar una traducción existente</li>
+  <li>la creación de una traducción completamente nueva</li>
+</ol>
+
+<p>Comience por leer [Cómo se hace - Escribir
+Documentación] (/doc/es/how-to/write-documentation/)</p>
+
+<h3 id="actualizar-una-traduccin-existente">Actualizar una Traducción Existente</h3>
+
+<p>Para actualizar una traducción existente, abra el archivo de tema en
+<code>web/doc/LANG</code> y editar el texto existente o añadir texto recién traducido.</p>
+
+<h3 id="creacin-de-una-nueva-traduccin">Creación de una Nueva Traducción</h3>
+
+<p>Para crear una nueva traducción de la lengua:</p>
+
+<ol>
+  <li>Copia <code>web/doc/en</code> a <code>web/doc/LANG</code> donde <em>LANG</em> es la norma ISO-639-2
+código para la traducción de la lengua que está creando.</li>
+  <li>Editar los enlaces en la tabla de contenido para que apunte a la ubicación
+de la archivos para la traducción. (Nota que por alguna razón el
+<code>page.base_dir</code> atributo no está disponible cuando estos archivos están
+siendo prestados por Jekyll.  Esto debe ser investigado.)</li>
+  <li>Traducir el texto en Inglés de la lengua meta.</li>
 </ol>
 
 
@@ -120,7 +126,7 @@ before publishing.</li>
       
         
         <span class="label">Previous:</span>
-        <a href="/doc/en/how-to/fix-a-failing-spec">Fix a Failing Spec</a>
+        <a href="/doc/en/how-to/write-documentation">Write Documentation</a>
         
 
         <span class="label">Up:</span>
@@ -128,7 +134,7 @@ before publishing.</li>
 
         
         <span class="label">Next:</span>
-        <a href="/doc/en/how-to/write-documentation">Write Documentation</a>
+        <a href="/doc/en/appendix-a-glossary">Appendix A - Glossary</a>
         
       
     </div>

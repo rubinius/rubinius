@@ -72,7 +72,7 @@
       
         
         <span class="label">Previous:</span>
-        <a href="/doc/en/how-to/fix-a-failing-spec">Fix a Failing Spec</a>
+        <a href="/doc/en/how-to/write-a-blog-post">Write a Blog Post</a>
         
 
         <span class="label">Up:</span>
@@ -80,37 +80,84 @@
 
         
         <span class="label">Next:</span>
-        <a href="/doc/en/how-to/write-documentation">Write Documentation</a>
+        <a href="/doc/en/how-to/translate-documentation">Translate Documentation</a>
         
       
     </div>
 
 
     <div class="container documentation">
-      <h2>How-To - Write a Blog Post</h2>
+      <h2>How-To - Write Documentation</h2>
       
 
-        <p>The Rubinius blog uses Jekyll and is integrated with the website and
-documentation. We encourage and appreciate guest blog posts about your
-experiences using or developing Rubinius.</p>
+        <p>La documentación Rubinius está integrado con el sitio web y blog. Utiliza
+Jekyll al igual que los otros componentes.</p>
 
-<p>To get started, ensure you have the <code>kramdown</code> and <code>jekyll</code> gems installed.</p>
+<p>Para empezar, asegúrese de tener la <code>kramdown</code> y <code>jekyll</code> gemas instalado.</p>
 
-<pre><code>rbx gem install jekyll kramdown
+<pre><code> rbx gem install kramdown jekyll
 </code></pre>
 
-<p>The preferred format for blog posts is Markdown. However, if you have special
-formatting needs, the post can be written in HTML directly.</p>
+<p>La fuente de la documentación se encuentra en la <code>web/doc</code>. Hay subdirectorios
+de cada idioma para que la documentación ha sido traducido (por ejemplo, <code>en</code>,
+<code>es</code>, etc.)</p>
+
+<p>Hay una tabla de contenido para cada traducción (por ejemplo,
+<code>web/doc/es/index.markdown</code>). El resto de la documentación consiste en
+archivos individuales que han YAML atributos para especificar cómo los
+documentos son conectado. Esencialmente, la documentación puede ser visto como
+un doblemente enlazada lista de los documentos con cada documento que apunta a
+la anterior y siguiente documento. La Tabla de Contenidos documento muestra la
+estructura completa.</p>
+
+<p>El YAML atributos en una mirada documento como el siguiente:</p>
+
+<pre><code>---
+layout: doc_en
+title: How-To - Write Documentation
+previous: Write a Blog Post
+previous_url: how-to/write-a-blog-post
+next: Translate Documentation
+next_url: how-to/translate-documentation
+---
+</code></pre>
+
+<p>El <em>layout</em> especifica que Jekyll diseño a utilizar al formatear la documento.
+El <em>layout</em> debe ser `doc_LANG», donde <em>LANG</em> es la norma ISO-639-2 código de
+la lengua.</p>
+
+<p>El <em>title</em> especifica el título del documento que se muestra en la parte
+superior de la página.</p>
+
+<p>Los atributos <em>previous</em> y <em>previous_url</em> dar el título y enlace a la
+documento anterior. Del mismo modo, los atributos <em>next</em> y <em>next_url</em> dar
+la título y el vínculo para el próximo documento. Estos se utilizan para
+mejorar la navegación documentación y limitando la cantidad de trabajo
+necesario para re-order partes de la documentación.</p>
+
+<h3 id="editing-existing-documentation">Editing Existing Documentation</h3>
+
+<p>Un primer esbozo de la documentación ha sido creado. Hay muchos temas que la
+mera necesidad de contar con documentación escrita para ellos.</p>
+
+<p>Para agregar la documentación de un tema existente, o para arreglar la
+documentación existente, abrir el archivo para el tema de la sección
+<code>web/doc/idioma</code> y añadir o mejorar el documentación.</p>
+
+<h3 id="adding-new-documentation">Adding New Documentation</h3>
+
+<p>To add documentation for which no existing topic exists:</p>
 
 <ol>
-  <li>Create a file in <code>web/_posts/</code> using the format
-<code>YYYY-MM-DD-perma-link.markdown</code> for the file name.</li>
-  <li>Write the post.</li>
+  <li>Create a new file with the .markdown extension under <code>web/doc/LANG</code>.</li>
+  <li>Set up the attributes to link the new file into the existing files. This
+will require editing the <em>previous</em> and <em>next</em> attributes of the existing
+files to insert the new file.</li>
+  <li>To view your updates while you are working on them, run
+<code>rbx -S jekyll --server --auto</code></li>
+  <li>Edit the new file using Markdown syntax.</li>
   <li>In the <code>web/</code> directory, run <code>rbx -S jekyll</code>.</li>
-  <li>Create a commit of all the changes in the <code>web/</code> directory.</li>
-  <li>Submit a patch, or if you have commit rights, push the commit to master.</li>
-  <li>Tell us that there is a new blog post. We may have some feedback for you
-before publishing.</li>
+  <li>Commit all the changes in the <code>web/</code> directory.</li>
 </ol>
 
 
@@ -120,7 +167,7 @@ before publishing.</li>
       
         
         <span class="label">Previous:</span>
-        <a href="/doc/en/how-to/fix-a-failing-spec">Fix a Failing Spec</a>
+        <a href="/doc/en/how-to/write-a-blog-post">Write a Blog Post</a>
         
 
         <span class="label">Up:</span>
@@ -128,7 +175,7 @@ before publishing.</li>
 
         
         <span class="label">Next:</span>
-        <a href="/doc/en/how-to/write-documentation">Write Documentation</a>
+        <a href="/doc/en/how-to/translate-documentation">Translate Documentation</a>
         
       
     </div>

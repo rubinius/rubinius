@@ -18,11 +18,11 @@ To get started, ensure you have the `kramdown` and `jekyll` gems installed.
 The preferred format for blog posts is Markdown. However, if you have special
 formatting needs, the post can be written in HTML directly.
 
-1. Create a file in `doc/_posts/` using the format
+1. Create a file in `web/_posts/` using the format
    `YYYY-MM-DD-perma-link.markdown` for the file name.
 1. Write the post.
-1. In the `doc/` directory, run `rbx -S jekyll`.
-1. Create a commit of all the changes in the `doc/` directory.
+1. In the `web/` directory, run `rbx -S jekyll`.
+1. Create a commit of all the changes in the `web/` directory.
 1. Submit a patch, or if you have commit rights, push the commit to master.
 1. Tell us that there is a new blog post. We may have some feedback for you
    before publishing.
