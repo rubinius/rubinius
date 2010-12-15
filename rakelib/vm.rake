@@ -44,7 +44,7 @@ end
 
 hdrs        = FileList["vm/*.{hpp,h}"]
 subdirs.each do |dir|
-  hdrs += FileList["vm/#{dir}/*.{cpp,c}"]
+  hdrs += FileList["vm/#{dir}/*.{hpp,h}"]
 end
 
 objs        = srcs.map { |f| f.sub(/((c(pp)?)|S)$/, 'o') }
