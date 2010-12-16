@@ -3,37 +3,19 @@
 # Definitions of the Rubinius VM instruction set.
 #
 
-# [Operation]
-#   Performs a no-op, i.e. does nothing.
-# [Format]
-#   \noop
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
 #   The classic no-op operator; performs no actions, and does not modify the
 #   stack.
 #
-#   To consume a value from the stack, but otherwise do nothing, use
-#   pop.
+#   To consume a value from the stack, but otherwise do nothing, use pop.
 # [See Also]
-#   * pop
+#   pop
 
 instruction noop() [ -- ]
 end
 
 section "Push primitive values"
 
-# [Operation]
-#   Puts nil on the stack
-# [Format]
-#   \push_nil
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * nil
-#   * ...
 # [Description]
 #   The special object nil is pushed onto the stack.
 
@@ -41,15 +23,6 @@ instruction push_nil() [ -- nil ]
   stack_push(Qnil);
 end
 
-# [Operation]
-#   Pushes true onto the stack
-# [Format]
-#   \push_true
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * true
-#   * ...
 # [Description]
 #   The special value true is pushed onto the stack.
 
@@ -57,15 +30,6 @@ instruction push_true() [ -- true ]
   stack_push(Qtrue);
 end
 
-# [Operation]
-#   Pushes false onto the stack
-# [Format]
-#   \push_false
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * false
-#   * ...
 # [Description]
 #   The special object false is pushed onto the stack.
 
@@ -73,22 +37,13 @@ instruction push_false() [ -- false ]
   stack_push(Qfalse);
 end
 
-# [Operation]
-#   Pushes a small integer literal value onto the stack
-# [Format]
-#   \push_int value
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Pushes the value of the integer literal onto the stack.
 # [See Also]
-#   * meta_push_0
-#   * meta_push_1
-#   * meta_push_2
-#   * meta_push_neg_1
+#   meta_push_0
+#   meta_push_1
+#   meta_push_2
+#   meta_push_neg_1
 # [Notes]
 #   Certain common cases (i.e. -1, 0, 1, and 2) are optimised to avoid the
 #   decoding of the argument.
@@ -97,15 +52,6 @@ instruction push_int(number) [ -- number ]
   stack_push(Fixnum::from(number));
 end
 
-# [Operation]
-#   Pushes a reference to the current self object onto the stack.
-# [Format]
-#   \push_self
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * self
-#   * ...
 # [Description]
 #   The current self object is pushed onto the stack.
 
@@ -115,42 +61,25 @@ end
 
 section "Manipulate literals"
 
-# [Operation]
-#   Sets a literal to the specified value
-# [Format]
-#   \set_literal lit
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
-#   Used to set the value of a literal. The stack top is set to the
-#   literal indicated by the operand.
+#   Used to set the value of a literal. The stack top is set to the literal
+#   indicated by the operand.
 # [Notes]
 #   Unlike other literals such as strings and numbers, creating a Regexp
-#   literal (i.e. via the /regex/ syntax) is a two step process to create
-#   the literal slot for the Regexp, create a literal for the string between
-#   the '/' delimiters and create a new Regexp object passing it the string.
-#   Only then can the literal value be set, using the set_literal opcode.
+#   literal (i.e. via the /regex/ syntax) is a two step process to create the
+#   literal slot for the Regexp, create a literal for the string between the
+#   '/' delimiters and create a new Regexp object passing it the string.  Only
+#   then can the literal value be set, using the set_literal opcode.
 
 instruction set_literal(literal) [ value -- value ]
   call_frame->cm->literals()->put(state, literal, stack_top());
 end
 
-# [Operation]
-#   Pushes a literal from the current state onto the stack.
-# [Format]
-#   \push_literal index
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * literal
-#   * ...
 # [Description]
-#   The literal identified by the operand (+index+) in the current
-#   state literals tuple is retrieved and placed onto the stack.
+#   Pushes a literal from the current state onto the stack.
+#
+#   The literal identified by the operand (+index+) in the current state
+#   literals tuple is retrieved and placed onto the stack.
 # [Notes]
 #   The literals tuple is part of the machine state, and holds all literal
 #   objects defined or used within a particular scope.
@@ -161,23 +90,17 @@ end
 
 section "Flow control"
 
-# [Operation]
-#   Unconditionally jump execution to the position specified by the operand
-# [Format]
-#   \goto location
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
+#   Unconditionally jump execution to the position specified by the operand
+#
 #   Moves the instruction pointer in the value specified by the operand.
 # [Notes]
 #   All goto instructions use absolute addressing.
 #   This is absolute movement rather than a relative one, so the operand
 #   must specify the ip starting from 0 to move to.
 # [See Also]
-#   * goto_if_true
-#   * goto_if_false
+#   goto_if_true
+#   goto_if_false
 
 instruction goto(location) [ -- ] => branch
   call_frame->set_ip(location);
@@ -185,22 +108,15 @@ instruction goto(location) [ -- ] => branch
   DISPATCH;
 end
 
-# [Operation]
+# [Description]
 #   Jump execution to the position specified by the operand if the top of the
 #   stack evaluates to false.
-# [Format]
-#   \goto_if_false location
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * ...
-# [Description]
+#
 #   Remove the top value on the stack, and if +nil+ or +false+, set the
 #   instruction pointer to the value specified by the operand.
 # [See Also]
-#   * goto
-#   * goto_if_true
+#   goto
+#   goto_if_true
 
 instruction goto_if_false(location) [ value -- ] => branch
   Object* t1 = stack_pop();
@@ -211,22 +127,15 @@ instruction goto_if_false(location) [ value -- ] => branch
   }
 end
 
-# [Operation]
+# [Description]
 #   Jump execution to the position specified by the operand if the top of the
 #   stack evaluates to true.
-# [Format]
-#   \goto_if_true location
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * ...
-# [Description]
+#
 #   Remove the top value on the stack, and if not +nil+ or +false+, set the
 #   instruction pointer to the value specified by the operand.
 # [See Also]
-#   * goto
-#   * goto_if_false
+#   goto
+#   goto_if_false
 
 instruction goto_if_true(location) [ value -- ] => branch
   Object* t1 = stack_pop();
@@ -237,25 +146,18 @@ instruction goto_if_true(location) [ value -- ] => branch
   }
 end
 
-# [Operation]
-#   Return a value to the direct caller
-# [Format]
-#   \ret
-# [Stack Before]
-#   * retval
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
-#   Pops the top value from the stack, and returns to the direct caller
-#   of the current invocation.
+#   Return a value to the direct caller
+#
+#   Pops the top value from the stack, and returns to the direct caller of the
+#   current invocation.
 # [Notes]
 #   In a method, the 'return' keyword uses this instruction. In a block
-#   though, 'return' uses the raise_return instruction and 'next' uses
-#   this instruction.
+#   though, 'return' uses the raise_return instruction and 'next' uses this
+#   instruction.
 # [See Also]
-#   * raise_return
-#   * raise_exc
+#   raise_return
+#   raise_exc
 
 instruction ret() [ value -- value ] => return
   if(call_frame->scope->made_alias_p()) {
@@ -266,19 +168,9 @@ end
 
 section "Stack manipulations"
 
-# [Operation]
-#   Swap the top two stack values
-# [Format]
-#   \swap_stack
-# [Stack Before]
-#   * value1
-#   * value2
-#   * ...
-# [Stack After]
-#   * value2
-#   * value1
-#   * ...
 # [Description]
+#   Swap the top two stack values
+#
 #   Swaps the top two values on the stack, so that the second value becomes
 #   the first, and the first value becomes the second.
 
@@ -289,18 +181,9 @@ instruction swap_stack() [ s0 s1 -- s1 s0 ]
   stack_push(t2);
 end
 
-# [Operation]
-#   Duplicate the top value on the stack
-# [Format]
-#   \dup_top
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * value
-#   * value
-#   * ...
 # [Description]
+#   Duplicate the top value on the stack
+#
 #   Read a value from the top of the stack and push it on the stack again
 #   without removing the original value.
 
@@ -308,21 +191,9 @@ instruction dup_top() [ s0 -- s0 s0 ]
   stack_push(stack_top());
 end
 
-# [Operation]
-#   Duplicate multiple values on the stack
-# [Format]
-#   \dup_many count
-# [Stack Before]
-#   * value1
-#   * value2
-#   * ...
-# [Stack After]
-#   * value1
-#   * value2
-#   * value1
-#   * value2
-#   * ...
 # [Description]
+#   Duplicate multiple values on the stack
+#
 #   Read +count+ values from the stack and push them onto the stack again
 #   in order without removing the original values.
 
@@ -333,16 +204,9 @@ instruction dup_many(count) [ +count -- ++count ]
   }
 end
 
-# [Operation]
-#   Pop a value off the stack and discard
-# [Format]
-#   \pop
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
+#   Pop a value off the stack and discard
+#
 #   Removes the top value from the stack, discarding it.
 # [Notes]
 #   Pop is typically used when the return value of another opcode is not
@@ -352,17 +216,9 @@ instruction pop() [ value -- ]
   (void)stack_pop();
 end
 
-# [Operation]
-#   Pop many values off the stack and discard them
-# [Format]
-#   \pop_many count
-# [Stack Before]
-#   * value1
-#   * value2
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
+#   Pop many values off the stack and discard them
+#
 #   Removes +count+ values from the stack and discard them.
 
 instruction pop_many(count) [ +count -- ]
@@ -371,20 +227,18 @@ instruction pop_many(count) [ +count -- ]
   }
 end
 
-# [Operation]
-#   Reverses the order on the stack of the top +count+ values
-# [Format]
-#   \rotate count
+# [Description]
+#   Reverses the order on the stack of the top +count+ values.
 # [Stack Before]
-#   * obj1
-#   * obj2
-#   * obj3
-#   * ...
+#   obj1
+#   obj2
+#   obj3
+#   ...
 # [Stack After]
-#   * obj3
-#   * obj2
-#   * obj1
-#   * ...
+#   obj3
+#   obj2
+#   obj1
+#   ...
 
 instruction rotate(count) [ +count -- +count ]
   int diff = count >> 1;
@@ -403,23 +257,21 @@ instruction rotate(count) [ +count -- +count ]
   }
 end
 
-# [Operation]
-#   Moves the top value on the stack +positions+ lower down.
-# [Format]
-#   \move_down
-# [Stack Before]
-#   * obj1
-#   * obj2
-#   * ...
-#   * objn
-# [Stack After]
-#   * obj2
-#   * ...
-#   * objn
-#   * obj1
 # [Description]
+#   Moves the top value on the stack +positions+ lower down.
+#
 #   The top value on the stack is moved down by the specified number of
 #   +positions+, with all values above that position shuffling up by one.
+# [Stack Before]
+#   obj1
+#   obj2
+#   ...
+#   objn
+# [Stack After]
+#   obj2
+#   ...
+#   objn
+#   obj1
 
 instruction move_down(positions) [ +positions -- +positions ]
   Object* val = stack_top();
@@ -433,63 +285,36 @@ end
 
 section "Manipulate local variables"
 
-# [Operation]
-#   Sets the value of a local variable
-# [Format]
-#   \set_local index
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Read the top of the stack and set the local variable identified
 #   by operand +index+ to it.
 #   The stack is not modified by this instruction.
 # [See Also]
-#   * push_local
+#   push_local
 
 instruction set_local(local) [ value -- value ]
   call_frame->scope->set_local(local, stack_top());
 end
 
-# [Operation]
-#   Pushes the value of a local variable onto the stack
-# [Format]
-#   \push_local local
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Retrieves the current value of the local variable referenced
 #   by operand +local+ and push it onto the stack.
 # [See Also]
-#   * set_local
+#   set_local
 
 instruction push_local(local) [ -- value ]
   stack_push(call_frame->scope->get_local(local));
 end
 
-# [Operation]
-#   Pushes the value of a local from an enclosing scope onto the stack
-# [Format]
-#   \push_local_depth depth local
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
+#   Pushes the value of a local from an enclosing scope onto the stack
+#
 #   Retrieves the value of a local variable. Operand +depth+ indicates how many
 #   upward enclosing scopes to walk up and then operand +local+ indicates which
 #   local in that context to read. The value is then pushed on the stack.
 # [See Also]
-#   * set_local_depth
+#   set_local_depth
 # [Example]
-#   <code>
 #     k = 0
 #     foo.each do |i|
 #       bar.each do |j|
@@ -498,7 +323,6 @@ end
 #         i = i + j + k
 #       end
 #     end
-#   </code>
 
 instruction push_local_depth(depth index) [ -- value ]
   if(depth == 0) {
@@ -533,30 +357,20 @@ instruction push_local_depth(depth index) [ -- value ]
   }
 end
 
-# [Operation]
-#   Updates the value of a local variable contained in an enclosing scope
-# [Format]
-#   \set_local_depth depth local
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
+#   Updates the value of a local variable contained in an enclosing scope
+#
 #   Read a value from the top of thes stack and use it to update a local
 #   variable in an enclosing scope. The +depth+ and +local+ operands
 #   indentify the specific local the same as in push_local_depth.
 # [See Also]
-#   * push_local_depth
+#   push_local_depth
 # [Example]
-#   <code>
 #     foo.each do |i|
 #       bar.each do |j|
 #         i = i + j  # i is a local variable from enclosing scope at depth 1
 #       end
 #     end
-#   </code>
 
 instruction set_local_depth(depth index) [ value -- value ]
   if(depth == 0) {
@@ -592,15 +406,6 @@ instruction set_local_depth(depth index) [ value -- value ]
   }
 end
 
-# [Operation]
-#   Test to determine whether an argument was passed
-# [Format]
-#   \passed_arg index
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * true | false
-#   * ...
 # [Description]
 #   Checks if the argument specified by the operand +index+ was passed to
 #   the current invocation. If so, push true, otherwise false.
@@ -617,42 +422,23 @@ end
 
 section "Manipulate exceptions"
 
-# [Operation]
-#   Pushes the current exception onto the stack
-# [Format]
-#   \push_current_exception
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * exception
-#   * ...
 # [Description]
 #   Pushes the current exception onto the stack, so that it can be used for
 #   some purpose, such as checking the exception type, setting an exception
 #   variable in a rescue clause, etc.
 # [See Also]
-#   * raise_exc
+#   raise_exc
 # [Example]
-#   <code>
 #     begin
 #       foo = BAR        # BAR is not defined
 #     rescue NameError   # push_exception used to check type of exception (via ===)
 #       puts "No BAR"
 #     end
-#   </code>
 
 instruction push_current_exception() [ -- exception ]
   stack_push(state->thread_state()->current_exception());
 end
 
-# [Operation]
-#   Clears any exceptions from the current thread
-# [Format]
-#   \clear_exception
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
 #   Clears any exceptions from the current thread. 
 
@@ -660,15 +446,6 @@ instruction clear_exception() [ -- ]
   state->thread_state()->clear_raise();
 end
 
-# [Operation]
-#   Pushes the current exception state onto the stack
-# [Format]
-#   \push_exception_state
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * exception
-#   * ...
 # [Description]
 #   Package up the current exception state into an object and push it. This
 #   is used to preserve the exception state around code that might mutate it.
@@ -678,21 +455,12 @@ instruction push_exception_state() [ -- exc_state ]
   stack_push(state->thread_state()->state_as_object(state));
 end
 
-# [Operation]
-#   Pop the top stack value and set the exception state from it
-# [Format]
-#   \restore_exception_state
-# [Stack Before]
-#   * exc_state
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
 #   Pops a value off the stack and set the threads exception state from it.
 #   This instruction is only to be used with a value pushed on the stack
 #   by the push_exception_state instruction.
 # [See Also]
-#   * push_exception_state
+#   push_exception_state
 
 instruction restore_exception_state() [ exception -- ]
     Object* top = stack_pop();
@@ -703,16 +471,9 @@ instruction restore_exception_state() [ exception -- ]
     }
 end
 
-# [Operation]
-#   Raises an exception
-# [Format]
-#   \raise_exc
-# [Stack Before]
-#   * exception
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
+#   Raises an exception
+#
 #   Pops a value off the stack and make it the current exception.
 #   If the value is not an instance of Exception, a TypeError is raised.
 
@@ -723,30 +484,23 @@ instruction raise_exc() [ value -- ] => raise
   RUN_EXCEPTION();
 end
 
-# [Operation]
-#   Register a unwind handler
-# [Format]
-#   \setup_unwind location type
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
-#   Registers what to happen when an exception wants to unwind through
-#   the current invocation. Operand +location+ specifies where to set
-#   the instruction pointer if used. Operand +type+ is either 0 for
-#   if the value should be used in rescue style (not run when unwinding
-#   because of a return caused by raise_return) or 1 for ensure style
-#   (always used). The registrations are nested within the current
-#   invocation and are automatically removed from the registry when they
-#   are used. The +pop_unwind+ instruction can be used to remove an
-#   unused registration.
+#   Register an unwind handler
+#
+#   Registers what to happen when an exception wants to unwind through the
+#   current invocation. Operand +location+ specifies where to set the
+#   instruction pointer if used. Operand +type+ is either 0 for if the value
+#   should be used in rescue style (not run when unwinding because of a return
+#   caused by raise_return) or 1 for ensure style (always used). The
+#   registrations are nested within the current invocation and are
+#   automatically removed from the registry when they are used. The
+#   +pop_unwind+ instruction can be used to remove an unused registration.
 # [Notes]
 #   The registration also contains the value of the stack depth when
 #   created. If the registration is used, then the stack depth is
 #   restored to the value contained in the registration
 # [See Also]
-#   * pop_unwind
+#   pop_unwind
 
 instruction setup_unwind(ip type) [ -- ] => handler
   interp_assert(current_unwind < kMaxUnwindInfos);
@@ -756,14 +510,6 @@ instruction setup_unwind(ip type) [ -- ] => handler
   info.type = (UnwindType)type;
 end
 
-# [Operation]
-#   Remove the most recently unused unwind registration
-# [Format]
-#   \pop_unwind
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
 #   Remove the next unused unwind registration from the current
 #   invocation. This instruction is paired with setup_unwind to remove
@@ -771,7 +517,7 @@ end
 #   a handler but didn't use it. For example, exiting a begin that had
 #   a rescue expression.
 # [See Also]
-#   * pop_unwind
+#   setup_unwind
 
 instruction pop_unwind() [ -- ]
   if(current_unwind <= 0) {
@@ -781,22 +527,14 @@ instruction pop_unwind() [ -- ]
   --current_unwind;
 end
 
-# [Operation]
-#   Cause the toplevel enclosing scope to return
-# [Format]
-#   \raise_return
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
+#   Cause the toplevel enclosing scope to return
+#
 #   Only used in a block, pop a value from the stack and raise a special
 #   internal exceptiion and begin unwinding the stack. The toplevel method
 #   scope will rescue the exception and return the value.
 # [See Also]
-#   * ret
+#   ret
 
 instruction raise_return() [ value -- value ] => raise
   flush_ip();
@@ -815,23 +553,15 @@ instruction raise_return() [ value -- value ] => raise
   RUN_EXCEPTION();
 end
 
-# [Operation]
-#   Return from a scope but run ensures first
-# [Format]
-#   \ensure_return
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
+#   Return from a scope but run ensures first
+#
 #   A one use instruction, used only in a method toplevel within a begin
 #   that has an ensure. Use the same internal exception as +raise_return+
 #   which will coax the ensure registration to run.
 # [See Also]
-#   * ret
-#   * raise_return
+#   ret
+#   raise_return
 
 instruction ensure_return() [ value -- value ] => raise
   flush_ip();
@@ -839,17 +569,9 @@ instruction ensure_return() [ value -- value ] => raise
   RUN_EXCEPTION();
 end
 
-# [Operation]
-#   Cause the method that yielded the current block to return
-# [Format]
-#   \raise_break
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
+#   Cause the method that yielded the current block to return
+#
 #   A one use instruction, used to implement the 'break' keyword in a block.
 
 instruction raise_break() [ value -- value ] => raise
@@ -858,16 +580,9 @@ instruction raise_break() [ value -- value ] => raise
   RUN_EXCEPTION();
 end
 
-# [Operation]
-#   Continue unwinding the stack with the current exception
-# [Format]
-#   \reraise
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
+#   Continue unwinding the stack with the current exception
+#
 #   Verify that there is a current exception, then begin the unwinding
 #   process again.
 
@@ -878,24 +593,22 @@ end
 
 section "Manipulate arrays"
 
-# [Operation]
-#   Create an array and populate with values on the stack
-# [Format]
-#   \make_array argc
-# [Stack Before]
-#   * valueN
-#   * ...
-#   * value2
-#   * value1
-#   * ...
-# [Stack After]
-#   * [value1, value2, ..., valueN]
-#   * ...
 # [Description]
+#   Create an array and populate with values on the stack
+#
 #   Creates a new array, populating its contents by remove the number of
 #   values specidied by operand +argc+ and putting them into the array in
 #   the order they were on the stack.
 #   The resulting array is pushed onto the stack.
+# [Stack Before]
+#   valueN
+#   ...
+#   value2
+#   value1
+#   ...
+# [Stack After]
+#   [value1, value2, ..., valueN]
+#   ...
 
 instruction make_array(count) [ +count -- array ]
   Object* t2;
@@ -909,16 +622,6 @@ instruction make_array(count) [ +count -- array ]
   stack_push(ary);
 end
 
-# [Operation]
-#   Convert a tuple to an array, or wrap an object within an array
-# [Format]
-#   \cast_array
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * array
-#   * ...
 # [Description]
 #   Removes the object on the top of the stack, and:
 #
@@ -962,22 +665,19 @@ instruction cast_array() [ value -- array ]
   CHECK_AND_PUSH(t1);
 end
 
-# [Operation]
-#   Shifts the first value in an array onto the stack
-# [Format]
-#   \shift_array
-# [Stack Before]
-#   * [value1, value2, ..., valueN]
-#   * ...
-# [Stack After]
-#   * value1
-#   * [value2, ..., valueN]
-#   * ...
 # [Description]
 #   Pops an array off the top of the stack. If the array is empty, it is
 #   pushed back onto the stack, followed by nil.
+#
 #   Otherwise, the array is shifted, then pushed back onto the stack,
 #   followed by the object that was shifted from the front of the array.
+# [Stack Before]
+#   [value1, value2, ..., valueN]
+#   ...
+# [Stack After]
+#   value1
+#   [value2, ..., valueN]
+#   ...
 
 instruction shift_array() [ array -- array value ]
   Array* array = as<Array>(stack_pop());
@@ -1002,20 +702,10 @@ end
 
 section "Manipulate instance variables"
 
-# [Operation]
-#   Sets an instance variable on self
-# [Format]
-#   \set_ivar literal
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Pops a value off the stack, and uses it to set the value of the instance
-#   variable identifies by the literal specified by operand +literal+.
-#   The value popped off the stack is then pushed back on again.
+#   variable identifies by the literal specified by operand +literal+.  The
+#   value popped off the stack is then pushed back on again.
 
 instruction set_ivar(index) [ value -- value ]
   if(RTEST(call_frame->self()->frozen_p(state))) {
@@ -1026,15 +716,6 @@ instruction set_ivar(index) [ value -- value ]
   call_frame->self()->set_ivar(state, sym, stack_top());
 end
 
-# [Operation]
-#   Pushes an instance variable onto the stack
-# [Format]
-#   \push_ivar literal
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Pushes the instance variable identified by +literal+ onto the stack.
 
@@ -1047,24 +728,13 @@ end
 
 section "Manipulate constants"
 
-# [Operation]
-#   Pushes a constant onto the stack
-# [Format]
-#   \push_const literal
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * const
-#   * ...
 # [Description]
 #   Locates the constant indicated by the literal +literal+ from the
 #   current context, and pushes it onto the stack. If the constant cannot be
 #   found in the current context, nothing is pushed onto the stack, and a
 #   NameError exception is raised.
 # [Example]
-#   <code>
 #     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
-#   </code>
 
 instruction push_const(literal) [ -- constant ]
   bool found;
@@ -1081,16 +751,6 @@ instruction push_const(literal) [ -- constant ]
   CHECK_AND_PUSH(res);
 end
 
-# [Operation]
-#   Sets a constant in the current context
-# [Format]
-#   \set_const literal
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Pops an object off the stack, and uses value to set a constant named
 #   by the literal +literal+. The value is pushed back onto the stack.
@@ -1100,21 +760,17 @@ instruction set_const(index) [ value -- value ]
   call_frame->static_scope()->module()->set_const(state, sym, stack_top());
 end
 
-# [Operation]
-#   Sets the value of a constant under a module
-# [Format]
-#   \set_const_at literal
-# [Stack Before]
-#   * value
-#   * module
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Pop a value +value+ and use it as the value of a constant named
 #   by literal +literal+ inside a Module object popped from the stack.
 #   +value+ is pushed back on the stack.
+# [Stack Before]
+#   value
+#   module
+#   ...
+# [Stack After]
+#   value
+#   ...
 
 instruction set_const_at(index) [ value module -- value ]
   Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
@@ -1125,26 +781,14 @@ instruction set_const_at(index) [ value module -- value ]
   stack_push(val);
 end
 
-# [Operation]
-#   Finds a constant
-# [Format]
-#   \find_const literal
-# [Stack Before]
-#   * parent
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Pops the module +parent+ off the stack, and searches within it's
 #   namespace for the constant named by the literal +literal+. If
 #   found, it is pushed onto the stack; otherwise, nothing is pushed onto
 #   the stack, and a NameError exception is raised.
 # [Example]
-#   <code>
 #     str = "abc"
 #     enum = Enumerable::Enumerator(str, :each_byte)
-#   </code>
 
 instruction find_const(index) [ module -- constant ]
   bool found;
@@ -1162,15 +806,6 @@ instruction find_const(index) [ module -- constant ]
   CHECK_AND_PUSH(res);
 end
 
-# [Operation]
-#   Push the class Object
-# [Format]
-#   \push_cpath_top
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Pushes the top-level global object that represents the top-level
 #   namespace for constants. Used to find constants relative to the
@@ -1180,25 +815,16 @@ instruction push_cpath_top() [ -- constant ]
   stack_push(G(object));
 end
 
-# [Operation]
+# [Description]
 #   Pushes a constant onto the stack. Caches the lookup to provide
 #   faster future lookup
-# [Format]
-#   \push_const_fast literal cache
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
-# [Description]
+#
 #   Same as push_const, but caches the lookup. This instruction
 #   is normally emitted only by the Generator.
 # [See Also]
-#   * push_const
+#   push_const
 # [Example]
-#   <code>
 #     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
-#   </code>
 
 instruction push_const_fast(literal association) [ -- constant ]
   bool found;
@@ -1248,15 +874,9 @@ end
 
 section "Send messages"
 
-# [Operation]
-#   Sets call flags prior to a send operation
-# [Format]
-#   \set_call_flags flags
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
+#   Sets call flags prior to a send operation
+#
 #   The call flags on the current execution context are set to the opcode
 #   argument +flags+.
 # [Notes]
@@ -1268,14 +888,6 @@ instruction set_call_flags(flags) [ -- ]
   SET_CALL_FLAGS(flags);
 end
 
-# [Operation]
-#   Allow the next send to access private methods
-# [Format]
-#   \allow_private
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
 #   Indicate that the next send is allowed to see private methods.
 
@@ -1283,26 +895,15 @@ instruction allow_private() [ -- ]
   SET_ALLOW_PRIVATE(true);
 end
 
-# [Operation]
-#   Sends a message with no args to a receiver
-# [Format]
-#   \send_method method_name
-# [Stack Before]
-#   * receiver
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Pops an object off the top of the stack (+receiver+), and sends it the
 #   message +method_name+ with zero arguments.
 #
 #   When the method returns, the return value is pushed on the stack.
 # [See Also]
-#   * send_stack
+#   send_stack
 # [Notes]
 #   This form of send is for methods that take no arguments.
-#
 
 instruction send_method(literal) [ receiver -- value ] => send
   flush_ip();
@@ -1319,27 +920,25 @@ instruction send_method(literal) [ receiver -- value ] => send
   CHECK_AND_PUSH(ret);
 end
 
-# [Operation]
-#   Sends a message with arguments on the stack
-# [Format]
-#   \send_stack method argc
-# [Stack Before]
-#   * argN
-#   * ...
-#   * arg2
-#   * arg1
-#   * receiver
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
+#   Sends a message with arguments on the stack
+#
 #   Pops the receiver of the message off the stack, and sends
 #   the message +method+ with +argc+ arguments. The arguments are
 #   removed from the stack also.
 #
 #   When the method returns, the return value is pushed on the stack.
+# [Stack Before]
+#   argN
+#   ...
+#   arg2
+#   arg1
+#   receiver
+# [Stack After]
+#   value
+#   ...
 # [See Also]
-#   * send_stack_with_block
+#   send_stack_with_block
 # [Notes]
 #   This opcode does not pass a block to the receiver; see
 #   send_stack_with_block for the equivalent op code used when a block is to
@@ -1362,29 +961,27 @@ instruction send_stack(literal count) [ receiver +count -- value ] => send
   CHECK_AND_PUSH(ret);
 end
 
-# [Operation]
-#   Sends a message with arguments and a block on the stack
-# [Format]
-#   \send_stack_with_block method argc
-# [Stack Before]
-#   * block
-#   * argN
-#   * ...
-#   * arg2
-#   * arg1
-#   * receiver
-# [Stack After]
-#   * retval
-#   * ...
 # [Description]
+#   Sends a message with arguments and a block on the stack
+#
 #   Pops the receiver of the message off the stack, and sends
 #   the message +method+ with +argc+ arguments. The arguments are
 #   removed from the stack also. A value that represents the block to
 #   pass on is popped off the stack after the normal arguments.
 #
 #   When the method returns, the return value will be on top of the stack.
+# [Stack Before]
+#   block
+#   argN
+#   ...
+#   arg2
+#   arg1
+#   receiver
+# [Stack After]
+#   retval
+#   ...
 # [See Also]
-#   * send_stack
+#   send_stack
 # [Notes]
 #   This opcode passes a block to the receiver; see send_stack for the
 #   equivalent op code used when no block is to be passed.
@@ -1407,22 +1004,9 @@ instruction send_stack_with_block(literal count) [ block receiver +count -- valu
   CHECK_AND_PUSH(ret);
 end
 
-# [Operation]
-#   Sends a message with static arguments, a block, and a splat
-# [Format]
-#   \send_stack_with_splat method direct_args
-# [Stack Before]
-#   * block
-#   * splat
-#   * argN
-#   * ...
-#   * arg2
-#   * arg1
-#   * receiver
-# [Stack After]
-#   * retval
-#   * ...
 # [Description]
+#   Sends a message with static arguments, a block, and a splat
+#
 #   Pops the receiver of the message off the stack, and sends
 #   the message +method+ with +argc+ arguments. The arguments are
 #   removed from the stack.
@@ -1432,8 +1016,19 @@ end
 #   the stack.
 #
 #   When the method returns, the return value will be on top of the stack.
+# [Stack Before]
+#   block
+#   splat
+#   argN
+#   ...
+#   arg2
+#   arg1
+#   receiver
+# [Stack After]
+#   retval
+#   ...
 # [See Also]
-#   * send_stack_with_block
+#   send_stack_with_block
 
 define CALL_FLAG_CONCAT 2
 
@@ -1465,23 +1060,21 @@ instruction send_stack_with_splat(literal count) [ block array receiver +count -
   CHECK_AND_PUSH(ret);
 end
 
-# [Operation]
-#   Call a method on the superclass with a block
-# [Format]
-#   \send_super_stack_with_block method argc
-# [Stack Before]
-#   * block
-#   * argN
-#   * ...
-#   * arg2
-#   * arg1
-# [Stack After]
-#   * retval
-#   * ...
 # [Description]
+#   Call a method on the superclass with a block
+#
 #   The same as send_stack_with_block, but reciever is the current self
 #   instead of being read from the stack, and the method to call is looked up
 #   starting with the reciever superclass.
+# [Stack Before]
+#   block
+#   argN
+#   ...
+#   arg2
+#   arg1
+# [Stack After]
+#   retval
+#   ...
 
 instruction send_super_stack_with_block(literal count) [ block +count -- value ] => send
   flush_ip();
@@ -1508,23 +1101,21 @@ instruction send_super_stack_with_block(literal count) [ block +count -- value ]
   CHECK_AND_PUSH(ret);
 end
 
-# [Operation]
-#   Call a method on the superclass, passing args plus a block
-# [Format]
-#   \send_super_stack_with_splat method direct_args
-# [Stack Before]
-#   * block
-#   * argN
-#   * ...
-#   * arg2
-#   * arg1
-# [Stack After]
-#   * retval
-#   * ...
 # [Description]
+#   Call a method on the superclass, passing args plus a block
+#
 #   The same as send_stack_with_block, but reciever is the current self
 #   instead of being read from the stack, and the method to call is looked up
 #   starting with the reciever superclass.
+# [Stack Before]
+#   block
+#   argN
+#   ...
+#   arg2
+#   arg1
+# [Stack After]
+#   retval
+#   ...
 
 instruction send_super_stack_with_splat(literal count) [ block array +count -- value ] => send
   flush_ip();
@@ -1561,35 +1152,19 @@ end
 
 section "Manipulate blocks"
 
-# [Operation]
-#   Push the block on the stack
-# [Format]
-#   \push_block
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * block
-#   * ...
 # [Description]
 #   Pushes the current block onto the stack. The value is not
 #   wrapped in a Proc if it is a BlockEnvironment.
 # [See Also]
-#   * push_proc
+#   push_proc
 
 instruction push_block() [ -- block ]
   stack_push(call_frame->scope->block());
 end
 
-# [Operation]
-#   Test to determine whether a block argument was passed
-# [Format]
-#   \passed_blockarg count
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * true | false
-#   * ...
 # [Description]
+#   Test to determine whether a block argument was passed
+#
 #   Check if exactly +count+ arguments were passed to the current
 #   invocation.
 # [Notes]
@@ -1603,15 +1178,6 @@ instruction passed_blockarg(count) [ -- boolean ]
   }
 end
 
-# [Operation]
-#   Creates a block
-# [Format]
-#   \create_block literal
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * block_env
-#   * ...
 # [Description]
 #   Read a CompiledMethod as literal +literal+ and create a BlockEnvironment.
 #   Push the new BlockEnvironment object on the stack.
@@ -1629,18 +1195,10 @@ instruction create_block(literal) [ -- block ]
   CHECK_AND_PUSH(be);
 end
 
-# [Operation]
+# [Description]
 #   Converts the value on the top of the stack into an argument for a block
 #   taking one arg
-# [Format]
-#   \cast_for_single_block_arg
-# [Stack Before]
-#   * arg
-#   * ...
-# [Stack After]
-#   * block_arg
-#   * ...
-# [Description]
+#
 #   The value on the top of the stack is popped, and:
 #
 #   If it has no fields, the result is nil.
@@ -1670,19 +1228,10 @@ instruction cast_for_single_block_arg() [ -- argument ]
   }
 end
 
-# [Operation]
+# [Description]
 #   Converts a block argument single-valued tuple into multiple arguments if
 #   the arg is an array
-# [Format]
-#   \cast_for_multi_block_arg
-# [Stack Before]
-#   * value1
-#   # value2
-#   * ...
-# [Stack After]
-#   * array[value1,..] | value1
-#   * ...
-# [Description]
+#
 #   If the Proc invoked from was in lambda mode, and one argument is passed:
 #     * and it's an Array, push it.
 #     * and it responds to to_ary, try and convert it and push it.
@@ -1690,18 +1239,22 @@ end
 #
 #   Otherwise:
 #     Package up the arguments into an Array and push them.
-#       
+# [Stack Before]
+#   value1
+#   value2
+#   ...
+# [Stack After]
+#   array[value1,..] | value1
+#   ...
 # [Example]
-#   <code>
 #     [[1,2,3]].each do |i,j,k|
 #       # do something
 #     end
-#   </code>
 # [Notes]
-#   This is a single use instruction, only used to simplify
-#   how to handle a block that accepts 2 or more arguments. The semantics
-#   for this instruction change depending on if the current block
-#   invocation is from a Proc with lambda semantics or not.
+#   This is a single use instruction, only used to simplify how to handle a
+#   block that accepts 2 or more arguments. The semantics for this instruction
+#   change depending on if the current block invocation is from a Proc with
+#   lambda semantics or not.
 
 instruction cast_for_multi_block_arg() [ -- array ]
   /* If there is only one argument and that thing is an array...
@@ -1733,15 +1286,6 @@ instruction cast_for_multi_block_arg() [ -- array ]
   }
 end
 
-# [Operation]
-#   Package up all the arguments into an Array.
-# [Format]
-#   \cast_for_splat_block_arg
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * array
-#   * ...
 # [Description]
 #   Take all arguments passed to the current invocation and package
 #   them into an Array, which is then pushed on the stack.
@@ -1755,23 +1299,19 @@ instruction cast_for_splat_block_arg() [ -- arguments ]
   stack_push(ary);
 end
 
-# [Operation]
-#   Call the current block
-# [Format]
-#   \yield_stack count
-# [Stack Before]
-#   * argN
-#   * ...
-#   * arg2
-#   * arg1
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Invoke the current block, passing +count+ arguments to it.
+# [Stack Before]
+#   argN
+#   ...
+#   arg2
+#   arg1
+#   ...
+# [Stack After]
+#   value
+#   ...
 # [See Also]
-#   * send_stack
+#   send_stack
 
 instruction yield_stack(count) [ +count -- value ] => yield
   flush_ip();
@@ -1796,25 +1336,21 @@ instruction yield_stack(count) [ +count -- value ] => yield
   CHECK_AND_PUSH(ret);
 end
 
-# [Operation]
-#   Call the current block passing some arguments in an Array
-# [Format]
-#   \yield_stack count
-# [Stack Before]
-#   * array
-#   * argN
-#   * ...
-#   * arg2
-#   * arg1
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Invoke the current block, passing +count+ arguments to it in
 #   addition to the values in the Array +array+.
+# [Stack Before]
+#   array
+#   argN
+#   ...
+#   arg2
+#   arg1
+#   ...
+# [Stack After]
+#   value
+#   ...
 # [See Also]
-#   * send_stack_with_splat
+#   send_stack_with_splat
 
 instruction yield_splat(count) [ array +count -- value ] => yield
   flush_ip();
@@ -1847,17 +1383,6 @@ end
 
 section "Manipulate strings"
 
-# [Operation]
-#   Appends two stings together to form a single string
-# [Format]
-#   \string_append
-# [Stack Before]
-#   * string1
-#   * string2
-#   * ...
-# [Stack After]
-#   * string1string2
-#   * ...
 # [Description]
 #   Pops two strings off the stack, appends the second to the first, and
 #   then pushes the combined string back onto the stack.
@@ -1872,23 +1397,21 @@ instruction string_append() [ prefix suffix -- string ]
   stack_push(s1);
 end
 
-# [Operation]
-#   Build a new string using many substrings
-# [Format]
-#   \string_build count
-# [Stack Before]
-#   * stringN
-#   * ...
-#   * string2
-#   * string1
-# [Stack After]
-#   * string1string2..stringN
-#   * ...
 # [Description]
+#   Build a new string using many substrings
+#
 #   Remove +count+ elements from the stack and interpret them as Strings.
 #   Build a new string which is all the removed elements concated together
 #   in the order they were on the stack.
 #   Push the resulting string.
+# [Stack Before]
+#   stringN
+#   ...
+#   string2
+#   string1
+# [Stack After]
+#   string1string2..stringN
+#   ...
 
 instruction string_build(count) [ +count -- string ]
   flush_ip();
@@ -1940,17 +1463,6 @@ instruction string_build(count) [ +count -- string ]
   stack_push(str);
 end
 
-# [Operation]
-#   Create a new string with the same contents as the string currently on
-#   the stack
-# [Format]
-#   \string_dup
-# [Stack Before]
-#   * original
-#   * ...
-# [Stack After]
-#   * duplicate
-#   * ...
 # [Description]
 #   Consume the string on the stack, replacing it with a duplicate. Mutating
 #   operations on the original string will not affect the duplicate, and
@@ -1964,16 +1476,9 @@ end
 
 section "Manipulate scope"
 
-# [Operation]
-#   Pushes the current StaticScope object on the stack
-# [Format]
-#   \push_scope
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * #<StaticScope>
-#   * ...
 # [Description]
+#   Pushes the current StaticScope object on the stack
+#
 #   Many operations are defered to the current scope. This operation
 #   retrieves the current scope so methods can be called on it.
 
@@ -1981,15 +1486,6 @@ instruction push_scope() [ -- scope ]
   stack_push(call_frame->static_scope());
 end
 
-# [Operation]
-#   Add a new StaticScope entry for the given Module
-# [Format]
-#   \add_scope
-# [Stack Before]
-#   * module
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
 #   Create a new StaticScope object for the given Module on the stack.
 #   This scope is chained off the current scope of the method.
@@ -2007,15 +1503,6 @@ instruction add_scope() [ module -- ]
   call_frame->static_scope_ = scope;
 end
 
-# [Operation]
-#   Push the VariableScope object for the current invocation
-# [Format]
-#   \push_variables
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Push the VariableScope for the current method/block invocation
 #   on the stack.
@@ -2026,18 +1513,10 @@ end
 
 section "Miscellaneous. TODO: better categorize these"
 
-# [Operation]
-#   Check global interrupts
-# [Format]
-#   \check_interrupts
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
-#   Perform required occasional checks that must be done.
-#   This instruction is used by loops to allow them to be interrupted
-#   externally, and thus also cause the current method to heat up.
+#   Perform required occasional checks that must be done.  This instruction is
+#   used by loops to allow them to be interrupted externally, and thus also
+#   cause the current method to heat up.
 
 instruction check_interrupts() [ -- ]
   flush_ip();
@@ -2060,14 +1539,6 @@ instruction check_interrupts() [ -- ]
   if(!state->check_async(call_frame)) RUN_EXCEPTION();
 end
 
-# [Operation]
-#   Pauses execution and yields to the debugger
-# [Format]
-#   \yield_debugger
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
 #   Pauses virtual machine execution at the \yield_debugger instruction, and
 #   yields control to the debugger on the debug channel. If no debugger is
@@ -2080,16 +1551,6 @@ instruction yield_debugger() [ -- ]
   Helpers::yield_debugger(state, call_frame, Qnil);
 end
 
-# [Operation]
-#   Return true if value is nil, otherwise false
-# [Format]
-#   \is_nil
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * result
-#   * ...
 # [Description]
 #   Pop the value on the stack, and push true or false depending on 
 #   whether the consumed value was the special value nil
@@ -2098,23 +1559,16 @@ instruction is_nil() [ value -- boolean ]
   stack_push(stack_pop() == Qnil ? Qtrue : Qfalse);
 end
 
-# [Operation]
-#   Checks if the specified method serial number matches an expected value
-# [Format]
-#   \check_serial index serial
-# [Stack Before]
-#   * obj
-#   * ...
-# [Stack After]
-#   * ...
 # [Description]
+#   Checks if the specified method serial number matches an expected value
+#
 #   Pops +obj+ and if +obj+ responds to +index+ and the target method has
 #   serial +serial+, push true. Else push false.
 # [Notes]
 #   This opcode is typically used to determine at runtime whether an
 #   optimisation can be performed. At compile time, two code paths are
-#   generated: a slow, but guaranteed correct path, and a fast path that
-#   uses certain optimisations. The serial number check is then performed at
+#   generated: a slow, but guaranteed correct path, and a fast path that uses
+#   certain optimisations. The serial number check is then performed at
 #   runtime to determine which code path is executed.
 #
 #   For example, a method such as Fixnum#times can be optimised at compile
@@ -2138,18 +1592,11 @@ instruction check_serial(literal serial) [ receiver -- boolean ]
   }
 end
 
-# [Operation]
+# [Description]
 #   Checks if the specified method serial number matches an expected value
 #   Considers private methods too
-# [Format]
-#   \check_serial_private index serial
-# [Stack Before]
-#   * obj
-#   * ...
-# [Stack After]
-#   * ...
-# [Description]
-#   Same as check_serial, but can also see private methods.
+# [See Also]
+#   check_serial
 
 instruction check_serial_private(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
@@ -2166,15 +1613,6 @@ end
 
 section "Access object fields"
 
-# [Operation]
-#   Pushes a value from an object field onto the stack
-# [Format]
-#   \push_my_field fld
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Pushes the value of the specified field in the current object onto the
 #   stack.
@@ -2188,19 +1626,9 @@ instruction push_my_field(index) [ -- value ]
   stack_push(call_frame->self()->get_field(state, index));
 end
 
-# [Operation]
-#   Store a value into a field of self
-# [Format]
-#   \store_my_field fld
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Stores the value at the top of the stack into the field specified by
-#   +fld+ on +self+.
+#   +index+ on +self+.
 #
 #   The stack is left unmodified.
 # [Notes]
@@ -2213,23 +1641,14 @@ end
 
 section "Type checks"
 
-# [Operation]
-#   Evaluate if +object+ is an instance of +klass+ or of an ancestor of
-#   +klass+.
-# [Format]
-#   \kind_of
-# [Stack Before]
-#   * object
-#   * klass
-#   * ...
-# [Stack After]
-#   * result
-#   * ...
 # [Description]
-#   The equivalent of object.kind_of?(klass) in Ruby
-#   true or false is pushed on the stack.
+#   Evaluate if +object+ is an instance of +class+ or of an ancestor of
+#   +class+.
+#
+#   The equivalent of object.kind_of?(klass) in Ruby true or false is pushed
+#   on the stack.
 # [See Also]
-#   * instance_of
+#   instance_of
 
 instruction kind_of() [ object class -- boolean ]
   Object* t1 = stack_pop();
@@ -2241,22 +1660,13 @@ instruction kind_of() [ object class -- boolean ]
   }
 end
 
-# [Operation]
-#   Evaluate if +object+ is an instance of +class+
-# [Format]
-#   \instance_of
-# [Stack Before]
-#   * object
-#   * class
-#   * ...
-# [Stack After]
-#   * result
-#   * ...
 # [Description]
+#   Evaluate if +object+ is an instance of +class+
+#
 #   The equivalent of object.instance_of?(klass) in Ruby.
 #   true or false is pushed on the stack.
 # [See Also]
-#   * kind_of
+#   kind_of
 
 instruction instance_of() [ object class -- boolean ]
   Object* t1 = stack_pop();
@@ -2270,15 +1680,6 @@ end
 
 section "Optimizations"
 
-# [Operation]
-#   Pushes -1 onto the stack
-# [Format]
-#   \meta_push_neg_1
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * -1
-#   * ...
 # [Description]
 #   Push of -1 (negative 1) onto the stack.
 # [Notes]
@@ -2288,15 +1689,6 @@ instruction meta_push_neg_1() [ -- value ]
   stack_push(Fixnum::from(-1));
 end
 
-# [Operation]
-#   Pushes 0 onto the stack
-# [Format]
-#   \meta_push_0
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * 0
-#   * ...
 # [Description]
 #   Push of 0 (zero) onto the stack.
 # [Notes]
@@ -2306,15 +1698,6 @@ instruction meta_push_0() [ -- value ]
   stack_push(Fixnum::from(0));
 end
 
-# [Operation]
-#   Pushes 1 onto the stack
-# [Format]
-#   \meta_push_1
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * 1
-#   * ...
 # [Description]
 #   Push of 1 (one) onto the stack.
 # [Notes]
@@ -2324,15 +1707,6 @@ instruction meta_push_1() [ -- value ]
   stack_push(Fixnum::from(1));
 end
 
-# [Operation]
-#   Pushes 2 onto the stack
-# [Format]
-#   \meta_push_2
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * 2
-#   * ...
 # [Description]
 #   Push of 2 (two) onto the stack.
 # [Notes]
@@ -2342,18 +1716,9 @@ instruction meta_push_2() [ -- value ]
   stack_push(Fixnum::from(2));
 end
 
-# [Operation]
-#   Implementation of + optimised for fixnums
-# [Format]
-#   \meta_send_op_plus
-# [Stack Before]
-#   * value2
-#   * value1
-#   * ...
-# [Stack After]
-#   * value1 + value2
-#   * ...
 # [Description]
+#   Implementation of + optimised for fixnums
+#
 #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
 #   of (+value1+ + +value2+). If +value1+ and +value2+ are both fixnums, the
 #   addition is done directly via the fixnum_add primitive; otherwise, the +
@@ -2379,18 +1744,9 @@ instruction meta_send_op_plus(literal) [ value1 value2 -- sum ] => send
   }
 end
 
-# [Operation]
-#   Implementation of - optimised for fixnums
-# [Format]
-#   \meta_send_op_minus
-# [Stack Before]
-#   * value2
-#   * value1
-#   * ...
-# [Stack After]
-#   * value1 - value2
-#   * ...
 # [Description]
+#   Implementation of - optimised for fixnums
+#
 #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
 #   of (+value1+ - +value2+). If +value1+ and +value2+ are both fixnums, the
 #   subtraction is done directly via the fixnum_sub primitive; otherwise,
@@ -2414,18 +1770,9 @@ instruction meta_send_op_minus(literal) [ value1 value2 -- difference ] => send
   }
 end
 
-# [Operation]
-#   Implementation of == optimised for fixnums and symbols
-# [Format]
-#   \meta_send_op_equal
-# [Stack Before]
-#   * value2
-#   * value1
-#   * ...
-# [Stack After]
-#   * true | false
-#   * ...
 # [Description]
+#   Implementation of == optimised for fixnums and symbols
+#
 #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
 #   of (+value1+ == +value2+). If +value1+ and +value2+ are both fixnums or
 #   both symbols, the comparison is done directly; otherwise, the == method
@@ -2452,18 +1799,9 @@ instruction meta_send_op_equal(literal) [ value1 value2 -- boolean ] => send
   }
 end
 
-# [Operation]
-#   Implementation of < optimised for fixnums
-# [Format]
-#   \meta_send_op_lt
-# [Stack Before]
-#   * value2
-#   * value1
-#   * ...
-# [Stack After]
-#   * true | false
-#   * ...
 # [Description]
+#   Implementation of < optimised for fixnums
+#
 #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
 #   of (+value1+ < +value2+). If +value1+ and +value2+ are both fixnums, the
 #   comparison is done directly; otherwise, the < method is called on
@@ -2488,18 +1826,9 @@ instruction meta_send_op_lt(literal) [ value1 value2 -- boolean ]
   }
 end
 
-# [Operation]
-#   Implementation of > optimised for fixnums
-# [Format]
-#   \meta_send_op_gt
-# [Stack Before]
-#   * value2
-#   * value1
-#   * ...
-# [Stack After]
-#   * true | false
-#   * ...
 # [Description]
+#   Implementation of > optimised for fixnums
+#
 #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
 #   of (+value1+ > +value2+). If +value1+ and +value2+ are both fixnums, the
 #   comparison is done directly; otherwise, the > method is called on
@@ -2524,18 +1853,9 @@ instruction meta_send_op_gt(literal) [ value1 value2 -- boolean ]
   }
 end
 
-# [Operation]
-#   Implementation of === (triple equal) optimised for fixnums and symbols
-# [Format]
-#   \meta_send_op_tequal
-# [Stack Before]
-#   * value2
-#   * value1
-#   * ...
-# [Stack After]
-#   * true | false
-#   * ...
 # [Description]
+#   Implementation of === (triple equal) optimised for fixnums and symbols
+#
 #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
 #   of (+value1+ === +value2+). If +value1+ and +value2+ are both fixnums or
 #   both symbols, the comparison is done directly; otherwise, the === method
@@ -2561,19 +1881,17 @@ instruction meta_send_op_tequal(literal) [ value1 value2 -- boolean ] => send
   }
 end
 
-# [Operation]
-#   Used for non-dynamic 'yield' calls and for simple calls with static args
-# [Format]
-#   \meta_send_call count
-# [Stack Before]
-#   * argN
-#   * ...
-#   * arg1
-#   * receiver
-# [Stack After]
-#   * retval
 # [Description]
+#   Used for non-dynamic 'yield' calls and for simple calls with static args
+#
 #   Simplified call instruction used for yields and basic calls
+# [Stack Before]
+#   argN
+#   ...
+#   arg1
+#   receiver
+# [Stack After]
+#   retval
 
 instruction meta_send_call(literal count) [ receiver +count -- value ] => send
   flush_ip();
@@ -2598,15 +1916,6 @@ end
 
 section "More misc"
 
-# [Operation]
-#   Pushes a value from directly within the body of an object
-# [Format]
-#   \push_my_offset offset
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Pushes a value read directly from within the body of an object.
 # [Notes]
@@ -2619,22 +1928,18 @@ instruction push_my_offset(index) [ -- offset ]
   stack_push(val);
 end
 
-# [Operation]
-#   Call a superclass method passing the original arguments
-# [Format]
-#   \zsuper literal
-# [Stack Before]
-#   * argN
-#   * ...
-#   # arg2
-#   # arg1
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Call a superclass method on the current, passing the arguments
 #   passed to the current invocation.
+# [Stack Before]
+#   argN
+#   ...
+#   arg2
+#   arg1
+#   ...
+# [Stack After]
+#   value
+#   ...
 # [Notes]
 #   This is a specialization of send_super_with_stack that is necessary
 #   for ruby semantics regarding how to read the original arguments.
@@ -2695,15 +2000,6 @@ instruction zsuper(literal) [ block -- value ]
   CHECK_AND_PUSH(ret);
 end
 
-# [Operation]
-#   Push the block passed as an argument
-# [Format]
-#   \push_block_arg
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Push the block passed as an argument to the current invocation.
 #   This differs from push_block in that in is not the block for the
@@ -2714,15 +2010,6 @@ instruction push_block_arg() [ -- block ]
   stack_push(call_frame->arguments->block());
 end
 
-# [Operation]
-#   Push the undefined value
-# [Format]
-#   \push_undef
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * undef
-#   * ...
 # [Description]
 #   Push the special undefined value on the stack.
 
@@ -2730,15 +2017,6 @@ instruction push_undef() [ -- value ]
   stack_push(G(undefined));
 end
 
-# [Operation]
-#   Push a stack local
-# [Format]
-#   \push_stack_local which
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Push the stack local identified by operand +which+.
 # [Notes]
@@ -2749,16 +2027,6 @@ instruction push_stack_local(which) [ -- value ]
   stack_push(stack_local(which));
 end
 
-# [Operation]
-#   Set a stack local
-# [Format]
-#   \set_stack_local which
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
 #   Set the stack local identified by operand +which+ using the
 #   value on the top of the stack.
@@ -2770,15 +2038,6 @@ instruction set_stack_local(which) [ value -- value ]
   stack_local(which) = stack_top();
 end
 
-# [Operation]
-#   Indicate if there is a current block
-# [Format]
-#   \push_has_block
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * true | false
-#   * ...
 # [Description]
 #   Push true or false based on if there is a current block.
 # [Notes]
@@ -2788,22 +2047,13 @@ instruction push_has_block() [ -- value ]
   stack_push(RTEST(call_frame->scope->block()) ? Qtrue : Qfalse);
 end
 
-# [Operation]
-#   Push the current block as a Proc
-# [Format]
-#   \push_proc
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * proc
-#   * ...
 # [Description]
 #   Wrap the current block in a Proc and push it onto the stack.
 #   If there is no current block, push nil.
 # [Notes]
 #   Used to implement &block in a method signature
 # [See Also]
-#   * push_block
+#   push_block
 
 instruction push_proc() [ -- value ]
   Object* obj = call_frame->scope->block();
@@ -2819,19 +2069,9 @@ instruction push_proc() [ -- value ]
   }
 end
 
-# [Operation]
-#   Check if a value is frozen
-# [Format]
-#   \check_frozen
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
-#   Check if the value on the top of the stack is frozen.
-#   If so, raise a TypeError indicating so.
+#   Check if the value on the top of the stack is frozen.  If so, raise a
+#   TypeError indicating so.
 # [Notes]
 #   An optimzation to deal with check for frozen.
 
@@ -2844,23 +2084,15 @@ instruction check_frozen() [ value -- value ]
   }
 end
 
-# [Operation]
-#   Convert a value into an Array
-# [Format]
-#   \cast_multi_value
-# [Stack Before]
-#   * value
-#   * ...
-# [Stack After]
-#   * array
-#   * ...
 # [Description]
+#   Convert a value into an Array
+#
 #   Pop a value. If it is an Array, push it back on.
 #   Otherwise attempt to convert it to an Array using #to_ary
 #   and push the result. If the value can not be converted
 #   to an array, it is wrapped in a one element Array.
 
-instruction cast_multi_value() [ value -- value ]
+instruction cast_multi_value() [ value -- array ]
   Object* value = stack_top();
 
   if(!kind_of<Array>(value)) {
@@ -2873,21 +2105,19 @@ instruction cast_multi_value() [ value -- value ]
   }
 end
 
-# [Operation]
-#   Directly invoke a primitive by name
-# [Format]
-#   \invoke_primitive literal argc
-# [Stack Before]
-#   * argN
-#   * ...
-#   * arg2
-#   * arg1
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
+#   Directly invoke a primitive by name
+#
 #   Pop +argc+ values off the stack and pass them directly to
 #   the primitive operation named by literal +literal+.
+# [Stack Before]
+#   argN
+#   ...
+#   arg2
+#   arg1
+# [Stack After]
+#   value
+#   ...
 
 instruction invoke_primitive(literal args) [ +args -- value ]
   flush_ip();
@@ -2900,15 +2130,6 @@ instruction invoke_primitive(literal args) [ +args -- value ]
   CHECK_AND_PUSH(ret);
 end
 
-# [Operation]
-#   Pushes the Rubinius module onto the stack.
-# [Format]
-#   \push_rubinius
-# [Stack Before]
-#   * ...
-# [Stack After]
-#   * rubinius module
-#   * ...
 # [Description]
 #   Pushes the top-level global Rubinius constant onto the stack.
 #   Generally this is done to call a utility method.
@@ -2917,22 +2138,20 @@ instruction push_rubinius() [ -- constant ]
   stack_push(G(rubinius));
 end
 
-# [Operation]
-#   Invoke a method via the call custom protocol
-# [Format]
-#   \call_custom literal count
-# [Stack Before]
-#   * argN
-#   * ...
-#   * arg2
-#   * arg1
-#   * reciever
-# [Stack After]
-#   * value
-#   * ...
 # [Description]
+#   Invoke a method via the call custom protocol
+#
 #   Pop +argc+ values off the stack and begin the call custom
 #   invocation protocol with them as arguments.
+# [Stack Before]
+#   argN
+#   ...
+#   arg2
+#   arg1
+#   reciever
+# [Stack After]
+#   value
+#   ...
 
 instruction call_custom(literal count) [ receiver +count -- value ] => send
   flush_ip();
@@ -2951,25 +2170,17 @@ instruction call_custom(literal count) [ receiver +count -- value ] => send
   CHECK_AND_PUSH(ret);
 end
 
-# [Operation]
-#   Convert an object into a string
-# [Format]
-#   \meta_to_s literal
-# [Stack Before]
-#   * object
-#   * ...
-# [Stack After]
-#   * string
-#   * ...
 # [Description]
-#   Pop a value off the stack and if it's not a string, call a
-#   method indicated by +literal+ on it.
-#   Push the resulting object back on the stack.
+#   Convert an object into a string
+#
+#   Pop a value off the stack and if it's not a string, call a method
+#   indicated by +literal+ on it.  Push the resulting object back on the
+#   stack.
 # [Notes]
-#   Normally literal is :to_s, but this instruction leaves it up to
-#   the user to indicate for flexibility.
+#   Normally literal is :to_s, but this instruction leaves it up to the user
+#   to indicate for flexibility.
 
-instruction meta_to_s(literal) [ value -- value ] => send
+instruction meta_to_s(literal) [ object -- string ] => send
   if(!kind_of<String>(stack_top())) {
     flush_ip();
     InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
