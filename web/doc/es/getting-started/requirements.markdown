@@ -1,47 +1,48 @@
 ---
 layout: doc_es
-title: Requirements
-previous: Getting Started
+title: Requisitos
+previous: Primeros pasos
 previous_url: getting-started
-next: Building
+next: Construyendo
 next_url: getting-started/building
 translated: true
 ---
 
 Asegúrese de que tiene los siguientes programas y bibliotecas instaladas.
-Véase también la subsecciones a continuación para los requisitos especiales
-para su funcionamiento particular del sistema.
+Véase también la subsecciones siguientes para instrucciones
+específicas para su sistema operativo.
 
 Las siguientes son sugerencias para obtener más información acerca de los
-programas y las bibliotecas necesarias para construir Rubinius. Su sistema
-operativo o paquete gerente puede tener otros paquetes disponibles.
+programas y bibliotecas necesarias para construir Rubinius. Su sistema
+operativo o su manejador de paquetes podría tener otros paquetes disponibles.
 
 
-  * [GCC and G++ 4.x](http://gcc.gnu.org/)
+  * [GCC y G++ 4.x](http://gcc.gnu.org/)
   * [GNU Bison](http://www.gnu.org/software/bison/)
-  * [MRI Ruby 1.8.7+](http://www.ruby-lang.org/) If your system does not have
-    Ruby 1.8.7 installed, consider using [RVM](http://rvm.beginrescueend.com/)
-    to install it.
+  * [MRI Ruby 1.8.7+](http://www.ruby-lang.org/) Si su sistema no
+    tiene Ruby 1.8.7 instalado, considere utilizar [RVM](http://rvm.beginrescueend.com/)
+    para instalarlo.
   * [Rubygems](http://www.rubygems.org/)
   * [Git](http://git.or.cz/)
   * [ZLib](http://www.zlib.net/)
-  * pthread - The pthread library should be installed by your operating system
+  * pthread - La libreria pthread debe encontrarse instalada
+    como parte de su sistema operativo.
   * [gmake](http://savannah.gnu.org/projects/make/)
   * [rake](http://rake.rubyforge.org/) `[sudo] gem install rake`
 
 
 ### Apple OS X
 
-La forma más fácil de conseguir un entorno de generación de Apple OS X es para
-instalar el XCode de herramientas y utilidades. Una vez instalado, puede
-habilitar el modo de desarrollador accidente presentación de informes en:
+La forma más fácil de conseguir un entorno de construcción para Apple OS X es
+instalar XCode Tools and Utilities. Una vez instalado, puede
+habilitar el envio de errores para desarrolladores en:
 /Developer/Applications/Utilities/CrashReporterPrefs.app
 
 
 
 ### Debian/Ubuntu
 
-  * ruby-dev or ruby1.8-dev
+  * ruby-dev o ruby1.8-dev
   * libreadline5-dev
   * zlib1g-dev
   * libssl-dev

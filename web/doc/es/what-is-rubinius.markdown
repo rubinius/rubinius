@@ -1,34 +1,34 @@
 ---
 layout: doc_es
-next: Getting Started
+next: Primeros pasos
 next_url: getting-started
 translated: true
 ---
 
 ## ¿Qué es Rubinius?
 
-Rubinius es una aplicación de la [Ruby Programming Language] (http://ruby-lang.org).
+Rubinius es una implementación del [lenguaje de programación Ruby](http://ruby-lang.org).
 
-Rubinius incluye una máquina virtual de código de bytes, analizador de
-sintaxis de Ruby, bytecode compilador, recolector de basura generacional,
-justo a tiempo (JIT) nativo de la máquina compilador de código, y Ruby Core y
-las bibliotecas estándar.
+Rubinius incluye una máquina virtual para código intermedio (bytecode), analizador de
+sintaxis de Ruby, compilador a código intermedio, recolector de basura generacional,
+compilador JIT a código máquina nativo, el núcleo de Ruby y sus bibliotecas estándar.
 
-Rubinius actualmente implementa la versión 1.8.7 de Ruby.
+Actualmente, Rubinius implementa la versión 1.8.7 de Ruby.
 
 
 ## Licencia
 
-Rubinius utiliza la licencia BSD. Vea el archivo de LICENSE en la fuente.
+Rubinius utiliza la licencia BSD. Vea el archivo de LICENSE en la
+distribución del código fuente.
 
 
 ## Instalación
 
-Rubinius funciona en Mac OS X y muchos sistemas Unix / Linux. Apoyo a la
-Microsoft Windows estará disponible muy pronto.
+Rubinius funciona en Mac OS X y muchos sistemas Unix / Linux. Muy
+pronto estará disponible tambien en plataformas Microsoft Windows.
 
-Para instalar Rubinius, utilice los pasos siguientes. Para obtener información
-más detallada, ver [Introducción] (/doc/es/getting-started/).
+Para instalar Rubinius, realize los siguientes pasos. Para obtener información
+más detallada, ver [Primeros pasos](/doc/es/getting-started/).
 
 1. `git clone git://github.com/evanphx/rubinius.git`
 1. `cd rubinius`
@@ -36,8 +36,9 @@ más detallada, ver [Introducción] (/doc/es/getting-started/).
 1. `rake install`
 
 Cuando finalice el proceso de instalación, siga las instrucciones para agregar
-la Rubinius ejecutables (bin) directamente a su PATH.
+los ejecutables de Rubinius (bin) directamente a su variable de
+ambiente PATH.
 
-Rubinius viene con RubyGems incorporada y tiene joyas rastrillo y rdoc
-pre-instalado. Para instalar la gema Nokogiri, por ejemplo, ejecutar `rbx gem
-install Nokogiri`.
+Rubinius incluye el manejador de paquetes RubyGems y viene con algunas
+gemas pre-instaladas como rake y rdoc. Para instalar la gema Nokogiri, por
+ejemplo, usted debe ejecutar `rbx gem install Nokogiri`.
