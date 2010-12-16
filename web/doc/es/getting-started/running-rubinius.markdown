@@ -1,20 +1,20 @@
 ---
 layout: doc_es
-title: Running Rubinius
-previous: Building
+title: Ejecutando Rubinius
+previous: Construyendo
 previous_url: getting-started/building
-next: Troubleshooting
+next: Resolviendo problemas
 next_url: getting-started/troubleshooting
 translated: true
 ---
 
-Una vez que usted ha seguido los pasos para la construcción (y posiblemente de
-la instalación) Rubinius, puede comprobar que está trabajando:
+Una vez que usted ha seguido los pasos para la construcción (y
+posiblemente la instalación) de Rubinius, puede comprobar que está trabajando:
 
 
     rbx -v
 
-Rubinius generalmente funciona como Ruby de la línea de comandos. Por ejemplo:
+Rubinius generalmente funciona como Ruby en la línea de comandos. Por ejemplo:
 
     rbx -e 'puts "Hello!"'
 
@@ -26,10 +26,10 @@ Para ejecutar IRB:
 
     rbx
 
-Si ha añadido el directorio bin Rubinius a su PATH, Rubinius debe realizar al
-igual que se puede esperar de resonancia magnética. Hay comandos para `ruby`,
-`rake`, `gem`, `irb`, `ri`, and `rdoc`.
+Si ha añadido el directorio bin de Rubinius a su PATH, Rubinius debe
+comportarse tal como usted lo esperaria de MRI. Hay comandos para `ruby`,
+`rake`, `gem`, `irb`, `ri`, y `rdoc`.
 
-Usted puede agregar el directorio bin al PATH Rubinius sólo cuando se desea
-utilizar Rubinius. De esta manera, no va a interferir con su normal instalado
-Ruby cuando no se desea utilizar Rubinius.
+Usted puede agregar el directorio bin de Rubinius al PATH sólo en el
+momento en que desea utilizar Rubinius. De esta manera, no va a
+interferir con su instalación normal de Ruby cuando no deseé utilizar Rubinius.

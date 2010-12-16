@@ -1,18 +1,18 @@
 ---
 layout: doc_es
-title: Tabla de Contenidos
+title: Tabla de Contenido
 toc: true
 next: What is Rubinius?
 next_url: what-is-rubinius
 translated: true
 ---
 
-1. [What is Rubinius?](/doc/es/what-is-rubinius/)
-1. [Getting Started](/doc/es/getting-started/)
-    1. [Requirements](/doc/es/getting-started/requirements/)
-    1. [Building](/doc/es/getting-started/building/)
-    1. [Running Rubinius](/doc/es/getting-started/running-rubinius/)
-    1. [Troubleshooting](/doc/es/getting-started/troubleshooting/)
+1. [Qué es Rubinius?](/doc/es/what-is-rubinius/)
+1. [Primeros pasos](/doc/es/getting-started/)
+    1. [Requisitos](/doc/es/getting-started/requirements/)
+    1. [Construyendo](/doc/es/getting-started/building/)
+    1. [Ejecutando Rubinius](/doc/es/getting-started/running-rubinius/)
+    1. [Resolviendo problemas](/doc/es/getting-started/troubleshooting/)
 1. [Contributing](/doc/es/contributing/)
     1. [Communication](/doc/es/contributing/communication/)
     1. [Style Guide](/doc/es/contributing/style-guide)
@@ -30,7 +30,7 @@ translated: true
     1. [RubySpec](/doc/es/specs/rubyspec/)
     1. [Compiler](/doc/es/specs/compiler/)
 1. [Build System](/doc/es/build-system/)
-1. [Bootstrapping](/doc/es/bootstrapping/)
+1. [BootstÑrapping](/doc/es/bootstrapping/)
 1. [Virtual Machine](/doc/es/virtual-machine/)
     1. [Instructions](/doc/es/virtual-machine/instructions/)
     1. [Custom Dispatch Logic](/doc/es/virtual-machine/custom-dispatch-logic/)
