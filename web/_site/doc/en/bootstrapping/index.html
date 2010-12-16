@@ -162,7 +162,7 @@ provided in common are added.</p>
   <li>
     <p>loader: The compiled version of kernel/loader.rb is run.</p>
 
-    <p>The final stage setups the life cycle of a ruby process. It starts by
+    <p>The final stage sets up the life cycle of a ruby process. It starts by
 connecting the VM to the system, sets up load paths, and reads
 customization scripts from the home directory. It traps signals, and
 processes command line arguments.</p>
@@ -188,11 +188,11 @@ bodies is executed. For instance, when loading</p>
 end
 </code></pre>
 
-<p>the call to #attr_accessor will be run. This requires that any code called
-in script, class, or module bodies must be loaded before the file that calls
-the code is loaded. The kernel/alpha.rb defines most of the code that will be
-needed at the script or module level. However, other load order dependencies
-exist between some of the platform, common, delta, and compiler files.</p>
+<p>the call to #attr_accessor will be run. This requires that any code called in
+script, class, or module bodies be loaded before the file that calls the code.
+The kernel/alpha.rb defines most of the code that will be needed at the script
+or module level. However, other load order dependencies exist between some of
+the platform, common, delta, and compiler files.</p>
 
 <p>These load order dependencies are addressed by the load_order.txt file located
 in each of the kernel/** directories. If you modify code that adds a load

@@ -67,7 +67,8 @@ To add documentation for which no existing topic exists:
 1. Create a new file with the .markdown extension under `web/doc/LANG`.
 1. Set up the attributes to link the new file into the existing files. This
    will require editing the _previous_ and _next_ attributes of the existing
-   files to insert the new file.
+   files to insert the new file, as well as adding an entry to
+   `index.markdown`.
 1. To view your updates while you are working on them, run
    `rbx -S jekyll --server --auto`
 1. Edit the new file using Markdown syntax.

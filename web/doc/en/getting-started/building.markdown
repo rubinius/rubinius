@@ -17,7 +17,7 @@ version of LLVM. If you have installed LLVM on your system, pass the
 
 ### Getting the Source
 
-The Rubinius source code available as a tarball and as a project on Github.
+The Rubinius source code is available as a tarball and as a project on Github.
 You can [download the tarball here](http://rubini.us/download/latest).
 
 To use Git:

@@ -72,8 +72,8 @@ Running the code in Rubinius would produce the following:
     debug> c
     :light_brown
 
-Help for the debugger commands is available by typing `help` when in the
-debugger.
+As shown, help for the debugger commands is available by typing `help` when in
+the debugger.
 
 
 ## Invoking from the Command Line

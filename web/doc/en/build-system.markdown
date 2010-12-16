@@ -17,7 +17,7 @@ typically use makefiles.
 
 ## Development versus Install Builds
 
-Rubinius is comprised of the executable and various support files like the core
+Rubinius consists of the executable, and various support files like the core
 and standard libraries. The executable needs to know where to find these files
 even if moved to a different location. To handle this problem, Rubinius
 distinguishes two build types: development and install. The executable stores

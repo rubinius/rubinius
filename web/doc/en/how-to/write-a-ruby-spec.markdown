@@ -20,4 +20,4 @@ Then, follow these steps to write a spec for a Ruby method:
   4. Commit your changes
   7. Use `git format-patch`
   8. Create a gist with your patch and link to it in a ticket on the issue
-     tracker at http://github.com/evanphx/rubinius/issues.
+     tracker at <http://github.com/evanphx/rubinius/issues>.

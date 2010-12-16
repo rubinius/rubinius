@@ -64,7 +64,7 @@ all Ruby code can be executed. There are seven stages to the bootstrap process:
 
   7. loader: The compiled version of kernel/loader.rb is run.
 
-     The final stage setups the life cycle of a ruby process. It starts by
+     The final stage sets up the life cycle of a ruby process. It starts by
      connecting the VM to the system, sets up load paths, and reads
      customization scripts from the home directory. It traps signals, and
      processes command line arguments.
@@ -87,11 +87,11 @@ bodies is executed. For instance, when loading
       attr_accessor :value
     end
 
-the call to #attr_accessor will be run. This requires that any code called
-in script, class, or module bodies must be loaded before the file that calls
-the code is loaded. The kernel/alpha.rb defines most of the code that will be
-needed at the script or module level. However, other load order dependencies
-exist between some of the platform, common, delta, and compiler files.
+the call to #attr_accessor will be run. This requires that any code called in
+script, class, or module bodies be loaded before the file that calls the code.
+The kernel/alpha.rb defines most of the code that will be needed at the script
+or module level. However, other load order dependencies exist between some of
+the platform, common, delta, and compiler files.
 
 These load order dependencies are addressed by the load_order.txt file located
 in each of the kernel/\*\* directories. If you modify code that adds a load

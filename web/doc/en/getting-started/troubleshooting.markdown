@@ -38,10 +38,10 @@ Error:
 
 Solution:
 
-  If you configured rubinius with a --prefix, run rake install.
+  If you configured Rubinius with a `--prefix`, run rake install.
 
-  If you configured rubinius with a --prefix and renamed the install directory
-  after installing Rubinius, re-configure Rubinius and reinstall it.
+  If you configured Rubinius with a `--prefix` and renamed the install
+  directory after installing Rubinius, re-configure Rubinius and reinstall it.
 
   If you renamed the source directory after building Rubinius, re-configure
   and rebuild it.

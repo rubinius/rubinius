@@ -31,8 +31,8 @@ values depend on the thread, consider the following code:
 
 Pseudo globals are a strict subset of names which refer not to global values
 but values in the current scope, like local variables. These are still
-referred to as global variables because they start with a dollar sign, but this
-is the source of confusion for users.
+referred to as global variables because they start with a dollar sign; this is
+a source of confusion for users.
 
 All pseudo globals are organized around one primary pseudo global: `$~`.  They
 are all accessing parts of `$~` and thus when `$~` changes, they all

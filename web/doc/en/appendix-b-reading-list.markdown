@@ -10,8 +10,8 @@ review: true
 
 Building virtual machines in general and programming language implementations
 in particular requires some knowledge. Rubinius' goal is to lower the barrier
-by keeping as much as possible in Ruby but to hack on garbage collector you
-have to understand what' going on behind the curtains.
+by keeping as much as possible in Ruby but to hack on the garbage collector you
+have to understand what's going on behind the curtains.
 
 This page contains references to books, online lectures, blog posts and any
 other publications you may find useful for working on Rubinius.

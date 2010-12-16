@@ -130,8 +130,8 @@ puts $SAFE
 
 <p>Pseudo globals are a strict subset of names which refer not to global values
 but values in the current scope, like local variables. These are still
-referred to as global variables because they start with a dollar sign, but this
-is the source of confusion for users.</p>
+referred to as global variables because they start with a dollar sign; this is
+a source of confusion for users.</p>
 
 <p>All pseudo globals are organized around one primary pseudo global: <code>$~</code>.  They
 are all accessing parts of <code>$~</code> and thus when <code>$~</code> changes, they all

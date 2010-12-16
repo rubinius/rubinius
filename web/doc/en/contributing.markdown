@@ -20,7 +20,7 @@ Below are several ideas for things to do on Rubinius.
 ## Run Your Code
 
 Your code is often more vicious than the specs. Run your pet project under
-rubinius and report issues. See [How To Write a Ticket](/doc/en/how-to/write-a-ticket).
+Rubinius and report issues. See [How To Write a Ticket](/doc/en/how-to/write-a-ticket).
 
 
 ## Ask For Help
