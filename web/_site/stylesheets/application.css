@@ -339,6 +339,39 @@ p.more {
   padding: 0.25em 0 0.25em 0;
 }
 
+table.stack_effect {
+  border: 1px solid #666;
+  border-collapse: collapse;
+  width: 20em;
+}
+
+table.stack_effect th,
+table.stack_effect td {
+  border: 1px solid #666;
+  text-align: center;
+  width: 50%;
+}
+
+ul.insn_cross_ref {
+  list-style: none;
+}
+
+a.instruction {
+  color: black;
+  padding: 0.5em 0 0;
+  display: block;
+}
+
+a.instruction:hover {
+  text-decoration: none;
+  color: black;
+  padding: 0.5em 0 0;
+  background: white;
+  border-radius: 0;
+  -moz-border-radius: 0;
+  -webkit-border-radius: 0;
+};
+
 .blog_posts a.title {
   font-size: 3em;
   font-weight: bold;
