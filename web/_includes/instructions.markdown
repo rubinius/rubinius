@@ -1,9 +1,7 @@
 <h3><a class="instruction" name="noop">noop()</a></h3>
 
-   The classic no-op operator; performs no actions, and does not modify the
+   The classic no-op operator. It performs no actions and does not modify the
    stack.
-
-   To consume a value from the stack, but otherwise do nothing, use pop.
 
 
 <table class="stack_effect">
@@ -21,7 +19,7 @@
 </ul>
 <h3><a class="instruction" name="push_nil">push_nil()</a></h3>
 
-   The special object nil is pushed onto the stack.
+   The special object `nil` is pushed onto the stack.
 
 
 <table class="stack_effect">
@@ -35,7 +33,7 @@
 </table>
 <h3><a class="instruction" name="push_true">push_true()</a></h3>
 
-   The special value true is pushed onto the stack.
+   The special value `true` is pushed onto the stack.
 
 
 <table class="stack_effect">
@@ -49,7 +47,7 @@
 </table>
 <h3><a class="instruction" name="push_false">push_false()</a></h3>
 
-   The special object false is pushed onto the stack.
+   The special object `false` is pushed onto the stack.
 
 
 <table class="stack_effect">
@@ -90,7 +88,7 @@
 </ul>
 <h3><a class="instruction" name="push_self">push_self()</a></h3>
 
-   The current self object is pushed onto the stack.
+   The current `self` object is pushed onto the stack.
 
 
 <table class="stack_effect">
@@ -127,9 +125,7 @@
 
 <h3><a class="instruction" name="push_literal">push_literal(literal)</a></h3>
 
-   Pushes a literal from the current state onto the stack.
-
-   The literal identified by the operand (+index+) in the current state
+   The value identified by the operand _literal_ in the current state
    literals tuple is retrieved and placed onto the stack.
 
 
@@ -149,9 +145,8 @@
 
 <h3><a class="instruction" name="goto">goto(location)</a></h3>
 
-   Unconditionally jump execution to the position specified by the operand
-
-   Moves the instruction pointer in the value specified by the operand.
+   Unconditionally moves the instruction pointer to the position specified by
+   _location_.
 
 
 <table class="stack_effect">
@@ -164,9 +159,9 @@
 </table>
 
 #### Notes
-   All goto instructions use absolute addressing.
-   This is absolute movement rather than a relative one, so the operand
-   must specify the ip starting from 0 to move to.
+   All goto instructions use absolute addressing. This is absolute movement
+   rather than a relative one, so the operand must specify the ip starting
+   from 0 to move to.
 
 
 <h4>See Also</h4>
@@ -176,11 +171,8 @@
 </ul>
 <h3><a class="instruction" name="goto_if_false">goto_if_false(location)</a></h3>
 
-   Jump execution to the position specified by the operand if the top of the
-   stack evaluates to false.
-
-   Remove the top value on the stack, and if +nil+ or +false+, set the
-   instruction pointer to the value specified by the operand.
+   Remove the top value on the stack, and if `nil` or `false`, set the
+   instruction pointer to the value specified by _location_.
 
 
 <table class="stack_effect">
@@ -200,11 +192,8 @@
 </ul>
 <h3><a class="instruction" name="goto_if_true">goto_if_true(location)</a></h3>
 
-   Jump execution to the position specified by the operand if the top of the
-   stack evaluates to true.
-
-   Remove the top value on the stack, and if not +nil+ or +false+, set the
-   instruction pointer to the value specified by the operand.
+   Remove the top value on the stack, and if not `nil` or `false`, set the
+   instruction pointer to the value specified by _location_.
 
 
 <table class="stack_effect">
@@ -241,8 +230,8 @@
 </table>
 
 #### Notes
-   In a method, the 'return' keyword uses this instruction. In a block
-   though, 'return' uses the raise_return instruction and 'next' uses this
+   In a method, the `return` keyword uses this instruction. In a block
+   though, `return` uses the raise_return instruction and `next` uses this
    instruction.
 
 
@@ -252,8 +241,6 @@
 <li><a href="#raise_exc">raise_exc</a></li>
 </ul>
 <h3><a class="instruction" name="swap_stack">swap_stack()</a></h3>
-
-   Swap the top two stack values
 
    Swaps the top two values on the stack, so that the second value becomes
    the first, and the first value becomes the second.
@@ -270,8 +257,6 @@
 </tbody>
 </table>
 <h3><a class="instruction" name="dup_top">dup_top()</a></h3>
-
-   Duplicate the top value on the stack
 
    Read a value from the top of the stack and push it on the stack again
    without removing the original value.
@@ -291,7 +276,7 @@
 
    Duplicate multiple values on the stack
 
-   Read +count+ values from the stack and push them onto the stack again
+   Read _count_ values from the stack and push them onto the stack again
    in order without removing the original values.
 
 
@@ -300,12 +285,22 @@
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
-<tr><td>...</td><td>...</td></tr>
+<tr><td>   value1
+</td><td>   value1
+</td></tr>
+<tr><td>   value2
+</td><td>   value2
+</td></tr>
+<tr><td>   ...
+</td><td>   value1
+</td></tr>
+<tr><td></td><td>   value2
+</td></tr>
+<tr><td></td><td>   ...
+</td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="pop">pop()</a></h3>
-
-   Pop a value off the stack and discard
 
    Removes the top value from the stack, discarding it.
 
@@ -326,9 +321,7 @@
 
 <h3><a class="instruction" name="pop_many">pop_many(count)</a></h3>
 
-   Pop many values off the stack and discard them
-
-   Removes +count+ values from the stack and discard them.
+   Removes _count_ values from the stack and discard them.
 
 
 <table class="stack_effect">
@@ -336,12 +329,18 @@
 <tr><th>Before</th><th>After</th></tr>
 </thead>
 <tbody>
-<tr><td>...</td><td>...</td></tr>
+<tr><td>   value1
+</td><td>   ...
+</td></tr>
+<tr><td>   value2
+</td><td></td></tr>
+<tr><td>   ...
+</td><td></td></tr>
 </tbody>
 </table>
 <h3><a class="instruction" name="rotate">rotate(count)</a></h3>
 
-   Reverses the order on the stack of the top +count+ values.
+   Reverses the order on the stack of the top _count_ values.
 
 
 <table class="stack_effect">
@@ -365,10 +364,8 @@
 </table>
 <h3><a class="instruction" name="move_down">move_down(positions)</a></h3>
 
-   Moves the top value on the stack +positions+ lower down.
-
    The top value on the stack is moved down by the specified number of
-   +positions+, with all values above that position shuffling up by one.
+   _positions_, with all values above that position shuffling up by one.
 
 
 <table class="stack_effect">
@@ -392,9 +389,8 @@
 </table>
 <h3><a class="instruction" name="set_local">set_local(local)</a></h3>
 
-   Read the top of the stack and set the local variable identified
-   by operand +index+ to it.
-   The stack is not modified by this instruction.
+   Read the top of the stack and set the local variable identified by operand
+   _local_ to it. The stack is not modified by this instruction.
 
 
 <table class="stack_effect">
@@ -413,8 +409,8 @@
 </ul>
 <h3><a class="instruction" name="push_local">push_local(local)</a></h3>
 
-   Retrieves the current value of the local variable referenced
-   by operand +local+ and push it onto the stack.
+   Retrieves the current value of the local variable referenced by operand
+   _local_ and push it onto the stack.
 
 
 <table class="stack_effect">
@@ -435,8 +431,8 @@
 
    Pushes the value of a local from an enclosing scope onto the stack
 
-   Retrieves the value of a local variable. Operand +depth+ indicates how many
-   upward enclosing scopes to walk up and then operand +local+ indicates which
+   Retrieves the value of a local variable. Operand _depth_ indicates how many
+   upward enclosing scopes to walk up and then operand _index_ indicates which
    local in that context to read. The value is then pushed on the stack.
 
 
@@ -470,8 +466,8 @@
    Updates the value of a local variable contained in an enclosing scope
 
    Read a value from the top of thes stack and use it to update a local
-   variable in an enclosing scope. The +depth+ and +local+ operands
-   indentify the specific local the same as in push_local_depth.
+   variable in an enclosing scope. The _depth_ and _index_ operands
+   indentify the specific local the same as in `push_local_depth`.
 
 
 <table class="stack_effect">
@@ -498,7 +494,7 @@
 </ul>
 <h3><a class="instruction" name="passed_arg">passed_arg(index)</a></h3>
 
-   Checks if the argument specified by the operand +index+ was passed to
+   Checks if the argument specified by the operand _index_ was passed to
    the current invocation. If so, push true, otherwise false.
 
 
@@ -616,13 +612,13 @@
    Register an unwind handler
 
    Registers what to happen when an exception wants to unwind through the
-   current invocation. Operand +location+ specifies where to set the
-   instruction pointer if used. Operand +type+ is either 0 for if the value
-   should be used in rescue style (not run when unwinding because of a return
-   caused by raise_return) or 1 for ensure style (always used). The
-   registrations are nested within the current invocation and are
-   automatically removed from the registry when they are used. The
-   +pop_unwind+ instruction can be used to remove an unused registration.
+   current invocation. Operand _ip_ specifies where to set the instruction
+   pointer if used. Operand _type_ is either 0 for if the value should be
+   used in rescue style (not run when unwinding because of a return caused by
+   `raise_return`) or 1 for ensure style (always used). The registrations are
+   nested within the current invocation and are automatically removed from
+   the registry when they are used. The `pop_unwind` instruction can be used
+   to remove an unused registration.
 
 
 <table class="stack_effect">
@@ -646,11 +642,10 @@
 </ul>
 <h3><a class="instruction" name="pop_unwind">pop_unwind()</a></h3>
 
-   Remove the next unused unwind registration from the current
-   invocation. This instruction is paired with setup_unwind to remove
-   registrations when control exits a section of code that registered
-   a handler but didn't use it. For example, exiting a begin that had
-   a rescue expression.
+   Remove the next unused unwind registration from the current invocation.
+   This instruction is paired with `setup_unwind` to remove registrations
+   when control exits a section of code that registered a handler but didn't
+   use it. For example, exiting a begin that had a rescue expression.
 
 
 <table class="stack_effect">
@@ -694,7 +689,7 @@
    Return from a scope but run ensures first
 
    A one use instruction, used only in a method toplevel within a begin
-   that has an ensure. Use the same internal exception as +raise_return+
+   that has an ensure. Use the same internal exception as `raise_return`
    which will coax the ensure registration to run.
 
 
@@ -715,9 +710,8 @@
 </ul>
 <h3><a class="instruction" name="raise_break">raise_break()</a></h3>
 
-   Cause the method that yielded the current block to return
-
-   A one use instruction, used to implement the 'break' keyword in a block.
+   Cause the method that yielded the current block to return. Used to
+   implement the `break` keyword in a block.
 
 
 <table class="stack_effect">
@@ -731,10 +725,8 @@
 </table>
 <h3><a class="instruction" name="reraise">reraise()</a></h3>
 
-   Continue unwinding the stack with the current exception
-
-   Verify that there is a current exception, then begin the unwinding
-   process again.
+   Continue unwinding the stack with the current exception. Verify that there
+   is a current exception, then begin the unwinding process again.
 
 
 <table class="stack_effect">
@@ -750,9 +742,9 @@
    Create an array and populate with values on the stack
 
    Creates a new array, populating its contents by remove the number of
-   values specidied by operand +argc+ and putting them into the array in
-   the order they were on the stack.
-   The resulting array is pushed onto the stack.
+   values specidied by operand _count_ and putting them into the array in the
+   order they were on the stack. The resulting array is pushed onto the
+   stack.
 
 
 <table class="stack_effect">
@@ -777,15 +769,14 @@
 <h3><a class="instruction" name="cast_array">cast_array()</a></h3>
 
    Removes the object on the top of the stack, and:
+   
+   1. If the input is a tuple, a new array object is created based on the
+      tuple data.
+   1. If the input is an array, it is unmodified.
 
-   If the input is a tuple, a new array object is created based on the
-   tuple data.
-
-   If the input is an array, it is unmodified.
-
-   If the input is any other type, call Array.coerce_into_array(value).
-   If the return value of the method call is an Array, make it the result.
-   Otherwise make the result an 1 element Array contain the original value.
+   If the input is any other type, call `Array.coerce_into_array(value)`.
+   If the return value of the method call is an `Array`, make it the result.
+   Otherwise make the result an 1 element `Array` contain the original value.
 
    The resulting array is then pushed back onto the stack.
 
@@ -802,7 +793,7 @@
 <h3><a class="instruction" name="shift_array">shift_array()</a></h3>
 
    Pops an array off the top of the stack. If the array is empty, it is
-   pushed back onto the stack, followed by nil.
+   pushed back onto the stack, followed by `nil`.
 
    Otherwise, the array is shifted, then pushed back onto the stack,
    followed by the object that was shifted from the front of the array.
@@ -826,7 +817,7 @@
 <h3><a class="instruction" name="set_ivar">set_ivar(index)</a></h3>
 
    Pops a value off the stack, and uses it to set the value of the instance
-   variable identifies by the literal specified by operand +literal+.  The
+   variable identifies by the literal specified by operand _index_.  The
    value popped off the stack is then pushed back on again.
 
 
@@ -841,7 +832,7 @@
 </table>
 <h3><a class="instruction" name="push_ivar">push_ivar(index)</a></h3>
 
-   Pushes the instance variable identified by +literal+ onto the stack.
+   Pushes the instance variable identified by _index_ onto the stack.
 
 
 <table class="stack_effect">
@@ -855,10 +846,10 @@
 </table>
 <h3><a class="instruction" name="push_const">push_const(literal)</a></h3>
 
-   Locates the constant indicated by the literal +literal+ from the
-   current context, and pushes it onto the stack. If the constant cannot be
-   found in the current context, nothing is pushed onto the stack, and a
-   NameError exception is raised.
+   Locates the constant indicated by the operand _literal_ from the current
+   context, and pushes it onto the stack. If the constant cannot be found in
+   the current context, nothing is pushed onto the stack, and a NameError
+   exception is raised.
 
 
 <table class="stack_effect">
@@ -877,7 +868,7 @@
 <h3><a class="instruction" name="set_const">set_const(index)</a></h3>
 
    Pops an object off the stack, and uses value to set a constant named
-   by the literal +literal+. The value is pushed back onto the stack.
+   by the literal _index_. The value is pushed back onto the stack.
 
 
 <table class="stack_effect">
@@ -891,9 +882,9 @@
 </table>
 <h3><a class="instruction" name="set_const_at">set_const_at(index)</a></h3>
 
-   Pop a value +value+ and use it as the value of a constant named
-   by literal +literal+ inside a Module object popped from the stack.
-   +value+ is pushed back on the stack.
+   Pop a value from the literals table specified by the operand _index_ and
+   use it as the value of a constant named inside a Module object popped from
+   the stack.  The _value_ is pushed back on the stack.
 
 
 <table class="stack_effect">
@@ -913,10 +904,10 @@
 </table>
 <h3><a class="instruction" name="find_const">find_const(index)</a></h3>
 
-   Pops the module +parent+ off the stack, and searches within it's
-   namespace for the constant named by the literal +literal+. If
-   found, it is pushed onto the stack; otherwise, nothing is pushed onto
-   the stack, and a NameError exception is raised.
+   Pops _module_ off the stack, and searches within its namespace for the
+   constant named by the literal specified by the operand _index_. If found,
+   it is pushed onto the stack; otherwise, nothing is pushed onto the stack,
+   and a `NameError` exception is raised.
 
 
 <table class="stack_effect">
@@ -935,9 +926,9 @@
 
 <h3><a class="instruction" name="push_cpath_top">push_cpath_top()</a></h3>
 
-   Pushes the top-level global object that represents the top-level
-   namespace for constants. Used to find constants relative to the
-   toplevel. In Ruby, this is the class Object.
+   Pushes the top-level global object that represents the top-level namespace
+   for constants. Used to find constants relative to the toplevel. In Ruby,
+   this is the class `Object`.
 
 
 <table class="stack_effect">
@@ -951,11 +942,8 @@
 </table>
 <h3><a class="instruction" name="push_const_fast">push_const_fast(literal, association)</a></h3>
 
-   Pushes a constant onto the stack. Caches the lookup to provide
-   faster future lookup
-
-   Same as push_const, but caches the lookup. This instruction
-   is normally emitted only by the Generator.
+   Pushes a constant onto the stack. Caches the lookup to provide faster
+   future lookup. This instruction is normally emitted only by the Generator.
 
 
 <table class="stack_effect">
@@ -978,10 +966,8 @@
 </ul>
 <h3><a class="instruction" name="set_call_flags">set_call_flags(flags)</a></h3>
 
-   Sets call flags prior to a send operation
-
    The call flags on the current execution context are set to the opcode
-   argument +flags+.
+   argument _flags_.
 
 
 <table class="stack_effect">
@@ -1000,7 +986,7 @@
 
 <h3><a class="instruction" name="allow_private">allow_private()</a></h3>
 
-   Indicate that the next send is allowed to see private methods.
+   Indicate that the next send is allowed to see `private` methods.
 
 
 <table class="stack_effect">
@@ -1013,8 +999,8 @@
 </table>
 <h3><a class="instruction" name="send_method">send_method(literal)</a></h3>
 
-   Pops an object off the top of the stack (+receiver+), and sends it the
-   message +method_name+ with zero arguments.
+   Pops a _receiver_ object off the top of the stack and sends it the
+   message specified by the operand _literal_ with zero arguments.
 
    When the method returns, the return value is pushed on the stack.
 
@@ -1041,9 +1027,9 @@
 
    Sends a message with arguments on the stack
 
-   Pops the receiver of the message off the stack, and sends
-   the message +method+ with +argc+ arguments. The arguments are
-   removed from the stack also.
+   Pops the _receiver_ of the message off the stack and sends the message
+   specified by the operand _literal_ with _count_ arguments. The arguments
+   are removed from the stack also.
 
    When the method returns, the return value is pushed on the stack.
 
@@ -1070,7 +1056,7 @@
 
 #### Notes
    This opcode does not pass a block to the receiver; see
-   send_stack_with_block for the equivalent op code used when a block is to
+   `send_stack_with_block` for the equivalent op code used when a block is to
    be passed.
 
 
@@ -1082,10 +1068,10 @@
 
    Sends a message with arguments and a block on the stack
 
-   Pops the receiver of the message off the stack, and sends
-   the message +method+ with +argc+ arguments. The arguments are
-   removed from the stack also. A value that represents the block to
-   pass on is popped off the stack after the normal arguments.
+   Pops the _receiver_ of the message off the stack and sends the message
+   specified by the operand _literal_ with _count_ arguments. The arguments
+   are removed from the stack also. A value that represents the block to pass
+   on is popped off the stack after the normal arguments.
 
    When the method returns, the return value will be on top of the stack.
 
@@ -1113,7 +1099,7 @@
 </table>
 
 #### Notes
-   This opcode passes a block to the receiver; see send_stack for the
+   This opcode passes a block to the receiver; see `send_stack` for the
    equivalent op code used when no block is to be passed.
 
 
@@ -1140,7 +1126,7 @@
 
    Call a method on the superclass with a block
 
-   The same as send_stack_with_block, but reciever is the current self
+   The same as `send_stack_with_block`, but reciever is the current self
    instead of being read from the stack, and the method to call is looked up
    starting with the reciever superclass.
 
@@ -1166,11 +1152,11 @@
 </table>
 <h3><a class="instruction" name="send_super_stack_with_splat">send_super_stack_with_splat(literal, count)</a></h3>
 
-   Call a method on the superclass, passing args plus a block
+   Call a method on the superclass, passing args plus a block.
 
-   The same as send_stack_with_block, but reciever is the current self
+   The same as `send_stack_with_block`, but receiver is the current `self`
    instead of being read from the stack, and the method to call is looked up
-   starting with the reciever superclass.
+   starting with the receiver superclass.
 
 
 <table class="stack_effect">
@@ -1194,8 +1180,8 @@
 </table>
 <h3><a class="instruction" name="push_block">push_block()</a></h3>
 
-   Pushes the current block onto the stack. The value is not
-   wrapped in a Proc if it is a BlockEnvironment.
+   Pushes the current block onto the stack. The value is not wrapped in a
+   `Proc` if it is a `BlockEnvironment`.
 
 
 <table class="stack_effect">
@@ -1214,10 +1200,7 @@
 </ul>
 <h3><a class="instruction" name="passed_blockarg">passed_blockarg(count)</a></h3>
 
-   Test to determine whether a block argument was passed
-
-   Check if exactly +count+ arguments were passed to the current
-   invocation.
+   Check if exactly _count_ arguments were passed to the current invocation.
 
 
 <table class="stack_effect">
@@ -1231,12 +1214,12 @@
 </table>
 
 #### Notes
-   This instruction is deprecated and no longer used.
+   _This instruction is deprecated and no longer used._
 
 <h3><a class="instruction" name="create_block">create_block(literal)</a></h3>
 
-   Read a CompiledMethod as literal +literal+ and create a BlockEnvironment.
-   Push the new BlockEnvironment object on the stack.
+   Read a CompiledMethod specified by the operand +literal+ and create a
+   `BlockEnvironment`.  Push the new `BlockEnvironment` object on the stack.
 
 
 <table class="stack_effect">
@@ -1251,16 +1234,16 @@
 <h3><a class="instruction" name="cast_for_single_block_arg">cast_for_single_block_arg()</a></h3>
 
    Converts the value on the top of the stack into an argument for a block
-   taking one arg
+   taking one argument.
 
    The value on the top of the stack is popped, and:
 
-   If it has no fields, the result is nil.
+   If it has no fields, the result is `nil`.
 
    If the value contains a single field, the result is the value in the
    first field.
  
-   Otherwise, package up all the arguments in Array as the result.
+   Otherwise, package up all the arguments in an `Array` as the result.
 
    The result is then pushed onto the stack.
 
@@ -1276,21 +1259,21 @@
 </table>
 
 #### Notes
-   This is a single use instruction, only used to simplify
-   how to handle a block that accepts one argument.
+   This is a single use instruction, only used to simplify how to handle a
+   block that accepts one argument.
 
 <h3><a class="instruction" name="cast_for_multi_block_arg">cast_for_multi_block_arg()</a></h3>
 
    Converts a block argument single-valued tuple into multiple arguments if
-   the arg is an array
+   the arg is an array.
 
    If the Proc invoked from was in lambda mode, and one argument is passed:
      * and it's an Array, push it.
-     * and it responds to to_ary, try and convert it and push it.
+     * and it responds to `#to_ary`, try and convert it and push it.
      * otherwise wrap it in a one element Array and push it.
 
    Otherwise:
-     Package up the arguments into an Array and push them.
+     Package up the arguments into an `Array` and push it onto the stack.
 
 
 <table class="stack_effect">
@@ -1324,7 +1307,7 @@
 <h3><a class="instruction" name="cast_for_splat_block_arg">cast_for_splat_block_arg()</a></h3>
 
    Take all arguments passed to the current invocation and package
-   them into an Array, which is then pushed on the stack.
+   them into an `Array`, which is then pushed on the stack.
 
 
 <table class="stack_effect">
@@ -1338,7 +1321,7 @@
 </table>
 <h3><a class="instruction" name="yield_stack">yield_stack(count)</a></h3>
 
-   Invoke the current block, passing +count+ arguments to it.
+   Invoke the current block, passing _count_ arguments to it.
 
 
 <table class="stack_effect">
@@ -1367,8 +1350,8 @@
 </ul>
 <h3><a class="instruction" name="yield_splat">yield_splat(count)</a></h3>
 
-   Invoke the current block, passing +count+ arguments to it in
-   addition to the values in the Array +array+.
+   Invoke the current block, passing _count_ arguments to it in
+   addition to the values in the `Array` _array_.
 
 
 <table class="stack_effect">
@@ -1421,9 +1404,10 @@
 
    Build a new string using many substrings
 
-   Remove +count+ elements from the stack and interpret them as Strings.
-   Build a new string which is all the removed elements concated together
-   in the order they were on the stack.
+   Remove _count_ elements from the stack and interpret each as a `String`.
+   Build a new string which is all the removed elements concated together in
+   the order they were on the stack.
+
    Push the resulting string.
 
 
@@ -1462,10 +1446,9 @@
 </table>
 <h3><a class="instruction" name="push_scope">push_scope()</a></h3>
 
-   Pushes the current StaticScope object on the stack
-
-   Many operations are defered to the current scope. This operation
-   retrieves the current scope so methods can be called on it.
+   Pushes the current `StaticScope` object on the stack. Many operations are
+   defered to the current scope. This operation retrieves the current scope
+   so methods can be called on it.
 
 
 <table class="stack_effect">
@@ -1479,11 +1462,11 @@
 </table>
 <h3><a class="instruction" name="add_scope">add_scope()</a></h3>
 
-   Create a new StaticScope object for the given Module on the stack.
+   Create a new `StaticScope` object for the given Module on the stack.
    This scope is chained off the current scope of the method.
 
-   This also sets the scope of the current CompiledMethod to the new
-   StaticScope
+   This also sets the scope of the current `CompiledMethod` to the new
+   `StaticScope`.
 
 
 <table class="stack_effect">
@@ -1497,8 +1480,8 @@
 </table>
 <h3><a class="instruction" name="push_variables">push_variables()</a></h3>
 
-   Push the VariableScope for the current method/block invocation
-   on the stack.
+   Push the `VariableScope` for the current method/block invocation on the
+   stack.
 
 
 <table class="stack_effect">
@@ -1527,9 +1510,8 @@
 </table>
 <h3><a class="instruction" name="yield_debugger">yield_debugger()</a></h3>
 
-   Pauses virtual machine execution at the \yield_debugger instruction, and
-   yields control to the debugger on the debug channel. If no debugger is
-   registered, an error is raised.
+   Pauses virtual machine execution and yields control to the debugger on the
+   debug channel. If no debugger is registered, an error is raised.
 
 
 <table class="stack_effect">
@@ -1542,12 +1524,12 @@
 </table>
 
 #### Notes
-   This instruction is deprecated and should not be used.
+   _This instruction is deprecated and should not be used._
 
 <h3><a class="instruction" name="is_nil">is_nil()</a></h3>
 
-   Pop the value on the stack, and push true or false depending on 
-   whether the consumed value was the special value nil
+   Pop the _value_ from the stack, and push `true` or `false` depending on
+   whether the consumed value was the special value `nil`.
 
 
 <table class="stack_effect">
@@ -1561,10 +1543,11 @@
 </table>
 <h3><a class="instruction" name="check_serial">check_serial(literal, serial)</a></h3>
 
-   Checks if the specified method serial number matches an expected value
+   Checks if the specified method serial number matches an expected value.
 
-   Pops +obj+ and if +obj+ responds to +index+ and the target method has
-   serial +serial+, push true. Else push false.
+   Pops the _receiver_ object from the stack and checks if it responds to the
+   message specified by the operand _literal_ and the target method has
+   serial number _serial_. If so, push `true`, else push `false`.
 
 
 <table class="stack_effect">
@@ -1584,18 +1567,18 @@
    certain optimisations. The serial number check is then performed at
    runtime to determine which code path is executed.
 
-   For example, a method such as Fixnum#times can be optimised at compile
-   time, but we can't know until runtime whether or not the Fixnum#times
+   For example, a method such as `Fixnum#times` can be optimised at compile
+   time, but we can't know until runtime whether or not the `Fixnum#times`
    method has been overridden. The serial number check is used to determine
-   each time the code is executed, whether or not the standard Fixnum#times
+   each time the code is executed, whether or not the standard `Fixnum#times`
    has been overridden. It leverages the serial number field on a
-   CompiledMethod, is initialised to either 0 (for kernel land methods) or
+   `CompiledMethod`, is initialised to either 0 (for kernel land methods) or
    1 (for user land methods).
 
 <h3><a class="instruction" name="check_serial_private">check_serial_private(literal, serial)</a></h3>
 
-   Checks if the specified method serial number matches an expected value
-   Considers private methods too
+   Checks if the specified method's serial number matches an expected value.
+   Considers `private` methods too.
 
 
 <table class="stack_effect">
@@ -1637,7 +1620,7 @@
 <h3><a class="instruction" name="store_my_field">store_my_field(index)</a></h3>
 
    Stores the value at the top of the stack into the field specified by
-   +index+ on +self+.
+   _index_ on `self`.
 
    The stack is left unmodified.
 
@@ -1658,11 +1641,10 @@
 
 <h3><a class="instruction" name="kind_of">kind_of()</a></h3>
 
-   Evaluate if +object+ is an instance of +class+ or of an ancestor of
-   +class+.
+   Evaluate if _object_ is an instance of _class_ or of an ancestor of
+   _class_. If so, push `true`, else push `false`.
 
-   The equivalent of object.kind_of?(klass) in Ruby true or false is pushed
-   on the stack.
+   The equivalent of `object.kind_of?(klass)` in Ruby.
 
 
 <table class="stack_effect">
@@ -1682,10 +1664,10 @@
 </ul>
 <h3><a class="instruction" name="instance_of">instance_of()</a></h3>
 
-   Evaluate if +object+ is an instance of +class+
+   Evaluate if _object_ is an instance of _class_. If so, push `true`, else
+   push `false`.
 
-   The equivalent of object.instance_of?(klass) in Ruby.
-   true or false is pushed on the stack.
+   The equivalent of `object.instance_of?(klass)` in Ruby.
 
 
 <table class="stack_effect">
@@ -1705,7 +1687,7 @@
 </ul>
 <h3><a class="instruction" name="meta_push_neg_1">meta_push_neg_1()</a></h3>
 
-   Push of -1 (negative 1) onto the stack.
+   Push `-1` (negative 1) onto the stack.
 
 
 <table class="stack_effect">
@@ -1723,7 +1705,7 @@
 
 <h3><a class="instruction" name="meta_push_0">meta_push_0()</a></h3>
 
-   Push of 0 (zero) onto the stack.
+   Push `0` (zero) onto the stack.
 
 
 <table class="stack_effect">
@@ -1741,7 +1723,7 @@
 
 <h3><a class="instruction" name="meta_push_1">meta_push_1()</a></h3>
 
-   Push of 1 (one) onto the stack.
+   Push `1` (one) onto the stack.
 
 
 <table class="stack_effect">
@@ -1759,7 +1741,7 @@
 
 <h3><a class="instruction" name="meta_push_2">meta_push_2()</a></h3>
 
-   Push of 2 (two) onto the stack.
+   Push `2` (two) onto the stack.
 
 
 <table class="stack_effect">
@@ -1777,12 +1759,12 @@
 
 <h3><a class="instruction" name="meta_send_op_plus">meta_send_op_plus(literal)</a></h3>
 
-   Implementation of + optimised for fixnums
+   Implementation of `#+` optimised for `Fixnum`.
 
-   Pops +value1+ and +value2+ off the stack, and pushes the logical result
-   of (+value1+ + +value2+). If +value1+ and +value2+ are both fixnums, the
-   addition is done directly via the fixnum_add primitive; otherwise, the +
-   method is called on +value1+, passing +value2+ as the argument.
+   Pops _value1_ and _value2_ off the stack, and pushes the _sum_ (_value1_
+   `+` _value2_).  If both values are Fixnums, the addition is done directly
+   via the `fixnum_add` primitive. Otherwise, the `#+` method is called on
+   _value1_, passing _value2_ as the argument.
 
 
 <table class="stack_effect">
@@ -1797,12 +1779,12 @@
 </table>
 <h3><a class="instruction" name="meta_send_op_minus">meta_send_op_minus(literal)</a></h3>
 
-   Implementation of - optimised for fixnums
+   Implementation of `#-` optimised for `Fixnum`.
 
-   Pops +value1+ and +value2+ off the stack, and pushes the logical result
-   of (+value1+ - +value2+). If +value1+ and +value2+ are both fixnums, the
-   subtraction is done directly via the fixnum_sub primitive; otherwise,
-   the - method is called on +value1+, passing +value2+ as the argument.
+   Pops _value1_ and _value2_ off the stack, and pushes the _difference_ (_value1_
+   `-` _value2_).  If both values are Fixnums, the subtraction is done directly
+   via the `fixnum_sub` primitive. Otherwise, the `#-` method is called on
+   _value1_, passing _value2_ as the argument.
 
 
 <table class="stack_effect">
@@ -1817,12 +1799,12 @@
 </table>
 <h3><a class="instruction" name="meta_send_op_equal">meta_send_op_equal(literal)</a></h3>
 
-   Implementation of == optimised for fixnums and symbols
+   Implementation of `#==` optimised for `Fixnum` and `Symbol`.
 
-   Pops +value1+ and +value2+ off the stack, and pushes the logical result
-   of (+value1+ == +value2+). If +value1+ and +value2+ are both fixnums or
-   both symbols, the comparison is done directly; otherwise, the == method
-   is called on +value1+, passing +value2+ as the argument.
+   Pops _value1_ and _value2_ off the stack and pushes the logical result
+   of (_value1_ `==` _value2_). If _value1_ and _value2_ are both Fixnums or
+   both Symbols, the comparison is done directly. Otherwise, the `#==` method
+   is called on _value1_, passing _value2_ as the argument.
 
 
 <table class="stack_effect">
@@ -1837,12 +1819,12 @@
 </table>
 <h3><a class="instruction" name="meta_send_op_lt">meta_send_op_lt(literal)</a></h3>
 
-   Implementation of < optimised for fixnums
+   Implementation of `#<` optimised for `Fixnum`.
 
-   Pops +value1+ and +value2+ off the stack, and pushes the logical result
-   of (+value1+ < +value2+). If +value1+ and +value2+ are both fixnums, the
-   comparison is done directly; otherwise, the < method is called on
-   +value1+, passing +value2+ as the argument.
+   Pops _value1_ and _value2_ off the stack, and pushes the logical result
+   of (_value1_ `<` _value2_). If _value1_ and _value2_ are both Fixnums, the
+   comparison is done directly. Otherwise, the `#<` method is called on
+   _value1_, passing _value2_ as the argument.
 
 
 <table class="stack_effect">
@@ -1857,12 +1839,12 @@
 </table>
 <h3><a class="instruction" name="meta_send_op_gt">meta_send_op_gt(literal)</a></h3>
 
-   Implementation of > optimised for fixnums
+   Implementation of `#>` optimised for `Fixnum`.
 
-   Pops +value1+ and +value2+ off the stack, and pushes the logical result
-   of (+value1+ > +value2+). If +value1+ and +value2+ are both fixnums, the
-   comparison is done directly; otherwise, the > method is called on
-   +value1+, passing +value2+ as the argument.
+   Pops _value1_ and _value2_ off the stack, and pushes the logical result
+   of (_value1_ `>` _value2_). If _value1_ and _value2_ are both Fixnums, the
+   comparison is done directly. Otherwise, the `#>` method is called on
+   _value1_, passing _value2_ as the argument.
 
 
 <table class="stack_effect">
@@ -1877,12 +1859,13 @@
 </table>
 <h3><a class="instruction" name="meta_send_op_tequal">meta_send_op_tequal(literal)</a></h3>
 
-   Implementation of === (triple equal) optimised for fixnums and symbols
+   Implementation of `#===` (triple equal) optimised for `Fixnum` and
+   `Symbol`.
 
-   Pops +value1+ and +value2+ off the stack, and pushes the logical result
-   of (+value1+ === +value2+). If +value1+ and +value2+ are both fixnums or
-   both symbols, the comparison is done directly; otherwise, the === method
-   is called on +value1+, passing +value2+ as the argument.
+   Pops _value1_ and _value2_ off the stack, and pushes the logical result
+   of (_value1_ `===` _value2_). If _value1_ and _value2_ are both Fixnums or
+   both Symbols, the comparison is done directly. Otherwise, the `#===` method
+   is called on _value1_, passing _value2_ as the argument.
 
 
 <table class="stack_effect">
@@ -1897,13 +1880,12 @@
 </table>
 
 #### Notes
-   Exactly like equal, except calls === if it can't handle it directly.
+   Exactly like equal, except calls `#===` if it can't handle it directly.
 
 <h3><a class="instruction" name="meta_send_call">meta_send_call(literal, count)</a></h3>
 
-   Used for non-dynamic 'yield' calls and for simple calls with static args
-
-   Simplified call instruction used for yields and basic calls
+   Simplified call instruction used for non-dynamic `yield` calls and for
+   simple calls with static arguments.
 
 
 <table class="stack_effect">
@@ -1939,8 +1921,13 @@
 
 #### Notes
    This instruction must never be used directly. The VM will specialize
-   push_my_field instructions into this.
+   `push_my_field` instructions into this.
 
+
+<h4>See Also</h4>
+<ul class="insn_cross_ref">
+<li><a href="#push_my_field">push_my_field</a></li>
+</ul>
 <h3><a class="instruction" name="zsuper">zsuper(literal)</a></h3>
 
    Call a superclass method on the current, passing the arguments
@@ -1968,13 +1955,18 @@
 </table>
 
 #### Notes
-   This is a specialization of send_super_with_stack that is necessary
-   for ruby semantics regarding how to read the original arguments.
+   This is a specialization of `send_super_with_stack` that is necessary for
+   Ruby semantics regarding how to read the original arguments.
 
+
+<h4>See Also</h4>
+<ul class="insn_cross_ref">
+<li><a href="#send_super_with_stack">send_super_with_stack</a></li>
+</ul>
 <h3><a class="instruction" name="push_block_arg">push_block_arg()</a></h3>
 
    Push the block passed as an argument to the current invocation.
-   This differs from push_block in that in is not the block for the
+   This differs from `push_block` in that in is not the block for the
    currrent scope because of how the current block is seen within
    an existing block.
 
@@ -1988,6 +1980,11 @@
 <tr><td></td><td>...</td></tr>
 </tbody>
 </table>
+
+<h4>See Also</h4>
+<ul class="insn_cross_ref">
+<li><a href="#push_block">push_block</a></li>
+</ul>
 <h3><a class="instruction" name="push_undef">push_undef()</a></h3>
 
    Push the special undefined value on the stack.
@@ -2004,7 +2001,7 @@
 </table>
 <h3><a class="instruction" name="push_stack_local">push_stack_local(which)</a></h3>
 
-   Push the stack local identified by operand +which+.
+   Push the stack local identified by operand _which_.
 
 
 <table class="stack_effect">
@@ -2018,13 +2015,13 @@
 </table>
 
 #### Notes
-   Stack locals differ from normal locals in that they are not
-   viewable by closures.
+   Stack locals differ from normal locals in that they are not viewable by
+   closures.
 
 <h3><a class="instruction" name="set_stack_local">set_stack_local(which)</a></h3>
 
-   Set the stack local identified by operand +which+ using the
-   value on the top of the stack.
+   Set the stack local identified by operand _which_ using the value on the
+   top of the stack.
 
 
 <table class="stack_effect">
@@ -2038,12 +2035,12 @@
 </table>
 
 #### Notes
-   Stack locals differ from normal locals in that they are not
-   viewable by closures.
+   Stack locals differ from normal locals in that they are not viewable by
+   closures.
 
 <h3><a class="instruction" name="push_has_block">push_has_block()</a></h3>
 
-   Push true or false based on if there is a current block.
+   Push `true` or `false` based on whether there is a current block.
 
 
 <table class="stack_effect">
@@ -2057,13 +2054,13 @@
 </table>
 
 #### Notes
-   Used to implement block_given? without having to directly expose
+   Used to implement `block_given?` without having to directly expose
    the block object itself. This simplifies JIT inlining.
 
 <h3><a class="instruction" name="push_proc">push_proc()</a></h3>
 
-   Wrap the current block in a Proc and push it onto the stack.
-   If there is no current block, push nil.
+   Wrap the current block in a `Proc` and push it onto the stack.  If there
+   is no current block, push `nil`.
 
 
 <table class="stack_effect">
@@ -2077,7 +2074,7 @@
 </table>
 
 #### Notes
-   Used to implement &block in a method signature
+   Used to implement `&block` in a method signature.
 
 
 <h4>See Also</h4>
@@ -2087,7 +2084,7 @@
 <h3><a class="instruction" name="check_frozen">check_frozen()</a></h3>
 
    Check if the value on the top of the stack is frozen.  If so, raise a
-   TypeError indicating so.
+   `TypeError` indicating so.
 
 
 <table class="stack_effect">
@@ -2107,10 +2104,10 @@
 
    Convert a value into an Array
 
-   Pop a value. If it is an Array, push it back on.
-   Otherwise attempt to convert it to an Array using #to_ary
-   and push the result. If the value can not be converted
-   to an array, it is wrapped in a one element Array.
+   Pop _value_. If it is an `Array`, push it back on the stack.  Otherwise,
+   attempt to convert it to an `Array` using `#to_ary` and push the result.
+   If the value can not be converted to an array, it is wrapped in a one
+   element `Array`.
 
 
 <table class="stack_effect">
@@ -2122,12 +2119,12 @@
 <tr><td>...</td><td>...</td></tr>
 </tbody>
 </table>
-<h3><a class="instruction" name="invoke_primitive">invoke_primitive(literal, args)</a></h3>
+<h3><a class="instruction" name="invoke_primitive">invoke_primitive(literal, count)</a></h3>
 
-   Directly invoke a primitive by name
+   Directly invoke a primitive by name.
 
-   Pop +argc+ values off the stack and pass them directly to
-   the primitive operation named by literal +literal+.
+   Pop _count_ values off the stack and pass them directly to the primitive
+   operation named by the operand _literal_.
 
 
 <table class="stack_effect">
@@ -2149,8 +2146,8 @@
 </table>
 <h3><a class="instruction" name="push_rubinius">push_rubinius()</a></h3>
 
-   Pushes the top-level global Rubinius constant onto the stack.
-   Generally this is done to call a utility method.
+   Pushes the top-level global `Rubinius` constant onto the stack.  Generally
+   this is done to call a utility method.
 
 
 <table class="stack_effect">
@@ -2164,10 +2161,10 @@
 </table>
 <h3><a class="instruction" name="call_custom">call_custom(literal, count)</a></h3>
 
-   Invoke a method via the call custom protocol
+   Invoke a method via the call custom protocol.
 
-   Pop +argc+ values off the stack and begin the call custom
-   invocation protocol with them as arguments.
+   Pop the _receiver_ and _count_ values off the stack and begin the call
+   custom invocation protocol with them as arguments.
 
 
 <table class="stack_effect">
@@ -2191,10 +2188,8 @@
 </table>
 <h3><a class="instruction" name="meta_to_s">meta_to_s(literal)</a></h3>
 
-   Convert an object into a string
-
-   Pop a value off the stack and if it's not a string, call a method
-   indicated by +literal+ on it.  Push the resulting object back on the
+   Pop a value off the stack and if it's not a `String`, call a method
+   indicated by _literal_ on it.  Push the resulting object back on the
    stack.
 
 
@@ -2209,6 +2204,6 @@
 </table>
 
 #### Notes
-   Normally literal is :to_s, but this instruction leaves it up to the user
+   Normally literal is `:to_s`, but this instruction leaves it up to the user
    to indicate for flexibility.
 

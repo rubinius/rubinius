@@ -1,7 +1,7 @@
 $(document).ready(function() {
   $("#twitter").getTwitter({
     userName: "rubinius",
-    numTweets: 3,
+    numTweets: 6,
     loaderText: "Loading @Rubinius Tweets&hellip;",
     slideIn: false,
     showHeading: false,
