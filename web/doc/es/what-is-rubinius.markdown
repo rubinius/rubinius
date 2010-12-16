@@ -2,12 +2,11 @@
 layout: doc_es
 next: Primeros pasos
 next_url: getting-started
-translated: true
 ---
 
 ## ¿Qué es Rubinius?
 
-Rubinius es una implementación del [lenguaje de programación Ruby](http://ruby-lang.org).
+Rubinius es una implementación del [lenguaje de programación Ruby](http://ruby-lang.org/es/).
 
 Rubinius incluye una máquina virtual para código intermedio (bytecode), analizador de
 sintaxis de Ruby, compilador a código intermedio, recolector de basura generacional,
@@ -18,7 +17,7 @@ Actualmente, Rubinius implementa la versión 1.8.7 de Ruby.
 
 ## Licencia
 
-Rubinius utiliza la licencia BSD. Vea el archivo de LICENSE en la
+Rubinius utiliza la licencia BSD. Vea el archivo LICENSE en la
 distribución del código fuente.
 
 
@@ -28,7 +27,7 @@ Rubinius funciona en Mac OS X y muchos sistemas Unix / Linux. Muy
 pronto estará disponible tambien en plataformas Microsoft Windows.
 
 Para instalar Rubinius, realize los siguientes pasos. Para obtener información
-más detallada, ver [Primeros pasos](/doc/es/getting-started/).
+más detallada, vea [Primeros pasos](/doc/es/getting-started/).
 
 1. `git clone git://github.com/evanphx/rubinius.git`
 1. `cd rubinius`

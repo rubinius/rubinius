@@ -3,7 +3,7 @@ layout: doc_es
 title: Requisitos
 previous: Primeros pasos
 previous_url: getting-started
-next: Construyendo
+next: Construyendo Rubinius
 next_url: getting-started/building
 ---
 

@@ -1,87 +1,90 @@
 ---
 layout: doc_es
-title: Contributing
-previous: Troubleshooting
+title: Aportando a Rubinius
+previous: Resolviendo problemas
 previous_url: getting-started/troubleshooting
-next: Communication
+next: Comunicación
 next_url: contributing/communication
-translated: true
 ---
 
-El proyecto Rubinius la bienvenida a sus contribuciones. Hay muchas cosas que
-hacer para ayudar. Lo más importante es que usted debe hacer algo que le
-interesa.  Esa es la mejor manera de tener el entusiasmo y la energía para su
+El proyecto Rubinius acepta sus aportaciones. Hay muchas cosas que
+hacer en las que puede ayudar. Lo más importante es que usted debe hacer algo que le
+interesa. Esa es la mejor manera de tener el entusiasmo y la energía para su
 trabajo.
 
 Si usted tiene preguntas sobre Rubinius, la mejor forma de obtener respuestas
-es para chatear con nosotros en el canal # Rubinius IRC en irc.freenode.net.
+es platicar con nosotros en el canal de IRC #rubinius en irc.freenode.net.
 
 A continuación se presentan varias ideas sobre qué hacer en Rubinius.
 
-## Ejecutar el código
+## Ejecutar su propio código
 
-Su código es a menudo más viciosos de las especificaciones. Monta tu proyecto
-favorito en Rubinius y emite un informe. Mas [Cómo escribir un billete](/doc/es/how-to/write-a-ticket).
+Su código es a menudo una prueba más rigorosa que las
+especificaciones. Ejecute su proyecto favorito en Rubinius y reporte
+cualquier anomalía que se presente. Vea [Cómo escribir un reporte de
+fallos](/doc/es/how-to/write-a-ticket).
 
 
-# # Pedir Ayuda
+## Pida Ayuda
 
-Todo lo que podemos hacer para ayudar, lo haremos. Asegúrese de hacer su
+Todo lo que podamos hacer para ayudarle, lo haremos. Asegúrese de hacer su
 propia investigación también, si es posible. Rubinius pretende ser un proyecto
-que fácilmente se pueden estudiar, aprender, y espero que se extienden.
+en el que usted pueda fácilmente estudiar, aprender, y contribuir.
 
-Desde luego, se aceptan y aprecian informes simples errores, pero podemos dar
-prioridad a las entradas que incluyen pasos para reproducir el problema.
-Incluso mejor son entradas que incluyen RubySpecs que demuestran el error y un
-parche que la fija.
+Desde luego, se aceptan y aprecian cualquier reporte de errores, pero podemos dar
+prioridad a los reportes que incluyen pasos para reproducir el problema.
+Incluso mejor son aquellos que incluyen RubySpecs que demuestran el error y un
+parche que lo corrige.
 
 ## Escribir Especificaciones
 
-  1. Ejecutar `bin/mspec tag --list incomplete <dir>` para mostrar
-     especificaciones técnicas que se han Etiquetado como incompleta. Estas
-     especificaciones pueden simplemente necesitan una revisión, o podría no
-     se especificaciones técnicas que faltan para una clase en particular.
+  1. Ejecute `bin/mspec tag --list incomplete <dir>` para mostrar las
+     especificaciones que se han etiquetado como incompletas. Estas
+     especificaciones pueden simplemente necesitar una revisión, o podría
+     hacer falta especificaciones para alguna clase en particular.
 
-     NOTA: Se puede especificar el pseudo-directorio ':files' para \<dir\>, que
-     etiquetas para mostrar el resultado de todas las especificaciones
-     técnicas que deben ejecutarse en Rubinius. O puede especificar cualquier
-     subdirectorio de spec/ para las etiquetas de lista de especificaciones
-     técnicas en ese subdirectorio.
+     NOTA: Se puede especificar el pseudo-directorio ':files' para
+     \<dir\>, lo que mostrara las etiquetas para todas las especificaciones
+     que deben ejecutarse en Rubinius. O puede especificar cualquier
+     subdirectorio de spec/ para listar las etiquetas de las especificaciones
+     en ese subdirectorio.
 
-  2. Buscar las conductas no especificadas. Mas [Cómo escribir un Ruby
+  2. Encuentre conductas no especificadas. Vea [Cómo escribir un Ruby
      Spec](/doc/es/how-to/write-a-ruby-spec).
 
-## Fijar A falta de especificaciones
+## Corregir una Especificación erronea
 
-  1. Ejecutar `bin/mspec tag --list fails <dir>` para mostrar especificaciones
-     técnicas etiquetados como no.
+  1. Ejecute `bin/mspec tag --list fails <dir>` para mostrar las especificaciones
+     que no son exitosas.
 
-     NOTA: Se puede especificar el pseudo-directorio 'files' para \<dir\>, que
-     etiquetas para mostrar el resultado de todas las especificaciones
-     técnicas que deben ejecutarse en Rubinius. O puede especificar cualquier
-     subdirectorio de spec/ para las etiquetas de lista de especificaciones
-     técnicas en ese subdirectorio.
+     NOTA: Se puede especificar el pseudo-directorio ':files' para
+     \<dir\>, lo que mostrara las etiquetas para todas las especificaciones
+     que deben ejecutarse en Rubinius. O puede especificar cualquier
+     subdirectorio de spec/ para listar las etiquetas de las especificaciones
+     en ese subdirectorio.
 
-  2. Elija una especificación que se ve interesante y ver si puedes escribir
-     un parche que hará pasar.
+  2. Elija una especificación que se vea interesante y vea si puede escribir
+     un parche que la haga funcionar exitosamente.
 
-## Escribir Docs
+## Escribir Documentación
 
-Estudiar cómo Rubinius obras y escribir documentación alto nivel que ayudarán
-a a otros a aprender acerca de los detalles de implementación.
+Estudio cómo funciona Rubinius leyendo el código fuente, y escriba
+documentación de alto nivel que ayudará a otros a aprender sobre los
+detalles de implementación.
 
 ## Limpiar el Código
 
-Búsqueda de etiquetas como TODO, HACK, FIXME en el código y parches para
-arreglar presentar ellos. Aquí hay un comando para buscar el código:
+Búsque etiquetas como TODO, HACK, FIXME en el código y envie parches para
+arreglarlos. Aquí hay un comando para buscar el código:
 
     `grep -re "@todo\|TODO\|HACK\|FIXME" .`
 
-Revise el [Guía de estilo] (/doc/es/contributing/style-guide/) para
-la codificación de las directrices.
+Revise la [Guía de estilo](/doc/es/contributing/style-guide/) para
+conocer las directrices de codificación.
 
-## Triage Tickets
+## Mantenimiento a los reportes de error
 
-  * Revive o cerrar entradas de edad.
-  * Crear casos de prueba mínima que se reproducen los insectos. Luego ver si
-    hay ya RubySpecs para la expedición. Si no, considere escribir algunas.
+  * Reviva o cierre algunos reportes de error viejos.
+  * Creé casos de prueba mínima en los que se presenten
+    anomalias. Luego vea si hay algún RubySpecs para ese caso.
+    Si no, considere escribir uno.

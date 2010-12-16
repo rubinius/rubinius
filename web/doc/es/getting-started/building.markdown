@@ -10,23 +10,24 @@ next_url: getting-started/running-rubinius
 Usted puede construir y ejecutar Rubinius desde el directorio
 fuente. No es necesario instalar Rubinius en su sistema para poder
 ejecutarlo.
-Las instrucciones a continuación detallarán tanto la instalación
+Las instrucciones a continuación detallarán tanto la instalación de
 Rubinius, como su ejecución desde el directorio fuente.
 
 Rubinius utiliza LLVM para el compilador JIT. Rubinius depende de una
-version determinada de LLVM. Si ha instalado LLVM en su sistema,
+version particular de LLVM. Si ha instalado LLVM en su sistema,
 utilize la bandera `--skip-system` al ejecutar el script configure en
-las instrucciones a continuación.
+las instrucciones que encontrará a continuación.
 
 ### Obtención del Código Fuente
 
 El código fuente de Rubinius esta disponible como un archivo comprimido y como un
-proyecto en Github.  Puede [descargar el paquete aquí](http://rubini.us/download/latest).
+proyecto en Github.  Puede [descargar el archivo comprimido aquí](http://rubini.us/download/latest).
 
 Para usar Git:
 
 
-  1. Cambie su directorio de trabajo actual a su directorio de desarrollo
+  1. Utilice la linea de comandos para entrar a su directorio de
+  desarrollo.
   2. `git clone git://github.com/evanphx/rubinius.git`
 
 
@@ -34,7 +35,7 @@ Para usar Git:
 
 Si planea utilizar Rubinius para ejecutar sus aplicaciones,
 ésta es una buena opción. Sin embargo, también puede ejecutar Rubinius
-directamente desde el directorio fuente.  Vea la siguiente sección para
+directamente desde el directorio fuente. Vea la siguiente sección para
 obtener más detalles al respecto.
 
 Le recomendamos que instale Rubinius en un lugar que no requiera `sudo` o
@@ -62,6 +63,5 @@ Sin embargo, si está desarrollando Rubinius, usted NO debe agregar el
 directorio _bin_ a su PATH porque el sistema de construcción de
 Rubinius utilizara los vínculos de `ruby` y `rake` que utilizan el
 ejecutable de Rubinius. Rubinius necesita
-un ejecutable de Ruby para reconstruirse a si mismo durante el proceso
-de construcción.
+un ejecutable de Ruby aparte para poder reconstruirse a si mismo.
 
