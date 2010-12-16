@@ -5,7 +5,6 @@ previous: Qué es Rubinius?
 previous_url: what-is-rubinius
 next: Requisitos
 next_url: getting-started/requirements
-translated: true
 ---
 
 Esta guía le ayudará a ejecutar Rubinius por primera vez. Se espera

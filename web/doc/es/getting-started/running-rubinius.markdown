@@ -5,7 +5,6 @@ previous: Construyendo
 previous_url: getting-started/building
 next: Resolviendo problemas
 next_url: getting-started/troubleshooting
-translated: true
 ---
 
 Una vez que usted ha seguido los pasos para la construcción (y

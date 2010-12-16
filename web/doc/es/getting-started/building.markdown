@@ -5,7 +5,6 @@ previous: Requisitos
 previous_url: getting-started/requirements
 next: Ejecutando Rubinius
 next_url: getting-started/running-rubinius
-translated: true
 ---
 
 Usted puede construir y ejecutar Rubinius desde el directorio

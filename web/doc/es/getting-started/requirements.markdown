@@ -5,7 +5,6 @@ previous: Primeros pasos
 previous_url: getting-started
 next: Construyendo
 next_url: getting-started/building
-translated: true
 ---
 
 Asegúrese de que tiene los siguientes programas y bibliotecas instaladas.

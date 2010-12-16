@@ -76,7 +76,7 @@
       
         
         <span class="label">Previous:</span>
-        <a href="/doc/es/getting-started/requirements">Requirements</a>
+        <a href="/doc/es/getting-started/requirements">Requisitos</a>
         
 
         <span class="label">Up:</span>
@@ -84,69 +84,62 @@
 
         
         <span class="label">Next:</span>
-        <a href="/doc/es/getting-started/running-rubinius">Running Rubinius</a>
+        <a href="/doc/es/getting-started/running-rubinius">Ejecutando Rubinius</a>
         
       
     </div>
 
 
     <div class="container documentation">
-      <h2>Building Rubinius</h2>
-
-      
-        <div class="review">
-  <p>This page was machine translated. Please help us improve it.</p>
-
-  <p>See <a href="/doc/es/how-to/translate-documentation">
-    How-To - Translate Documentation</a></p>
-</div>
+      <h2>Construyendo Rubinius</h2>
 
       
 
       
 
-        <p>Usted puede crear y ejecutar Rubinius del directorio de origen. Usted no
-necesita instalar Rubinius para ejecutarlo. Las instrucciones a continuación
-se detallarán tanto en la instalación Rubinius y lo ejecute desde el
-directorio de origen.</p>
+        <p>Usted puede construir y ejecutar Rubinius desde el directorio
+fuente. No es necesario instalar Rubinius en su sistema para poder
+ejecutarlo.
+Las instrucciones a continuación detallarán tanto la instalación
+Rubinius, como su ejecución desde el directorio fuente.</p>
 
-<p>Rubinius LLVM utiliza para el compilador JIT. Rubinius depende de un
-determinado versión de LLVM. Si ha instalado LLVM en su sistema, pasar el
-<code>--skip-system</code> de la bandera para configurar la secuencia de comandos en las
-instrucciones a continuación.</p>
+<p>Rubinius utiliza LLVM para el compilador JIT. Rubinius depende de una
+version determinada de LLVM. Si ha instalado LLVM en su sistema,
+utilize la bandera <code>--skip-system</code> al ejecutar el script configure en
+las instrucciones a continuación.</p>
 
-<h3 id="obtencin-de-la-fuente">Obtención de la Fuente</h3>
+<h3 id="obtencin-del-cdigo-fuente">Obtención del Código Fuente</h3>
 
-<p>El código fuente Rubinius disponible como un archivo comprimido y como un
-proyecto en Github.  Puede <a href="http://rubini.us/download/latest">descargar el tarball aquí</a>.</p>
+<p>El código fuente de Rubinius esta disponible como un archivo comprimido y como un
+proyecto en Github.  Puede <a href="http://rubini.us/download/latest">descargar el paquete aquí</a>.</p>
 
 <p>Para usar Git:</p>
 
 <ol>
-  <li>Cambie su directorio de trabajo actual en el directorio de desarrollo</li>
+  <li>Cambie su directorio de trabajo actual a su directorio de desarrollo</li>
   <li><code>git clone git://github.com/evanphx/rubinius.git</code></li>
 </ol>
 
-<h3 id="instalacin-rubinius">Instalación Rubinius</h3>
+<h3 id="instalacin-de-rubinius">Instalación de Rubinius</h3>
 
-<p>Si usted está planeando sobre el uso de Rubinius para ejecutar la aplicación,
+<p>Si planea utilizar Rubinius para ejecutar sus aplicaciones,
 ésta es una buena opción. Sin embargo, también puede ejecutar Rubinius
-directamente desde el directorio de origen.  Vea la sección siguiente para
+directamente desde el directorio fuente.  Vea la siguiente sección para
 obtener más detalles al respecto.</p>
 
-<p>Le recomendamos que instale Rubinius a un lugar que no requiere <code>sudo</code> o
+<p>Le recomendamos que instale Rubinius en un lugar que no requiera <code>sudo</code> o
 privilegios de superusuario. Para instalar Rubinius:</p>
 
 <ol>
   <li><code>./configure --prefix=/path/to/install/dir</code></li>
   <li><code>rake install</code></li>
-  <li>Siga las instrucciones para agregar el directorio <em>bin</em> Rubinius a su
+  <li>Siga las instrucciones para agregar el directorio <em>bin</em> de Rubinius a su
 PATH</li>
 </ol>
 
-<h3 id="se-ejecuta-desde-el-directorio-de-origen">Se ejecuta desde el directorio de origen</h3>
+<h3 id="ejecucin-desde-el-directorio-fuente">Ejecución desde el directorio fuente</h3>
 
-<p>Si usted planea trabajar en Rubinius sí mismo, usted debe utilizar esta
+<p>Si planea participar en el desarrollo de Rubinius, debe utilizar esta
 opción.</p>
 
 <ol>
@@ -154,14 +147,15 @@ opción.</p>
   <li><code>rake</code></li>
 </ol>
 
-<p>Si se acaba de probar Rubinius, siga las instrucciones para agregar la <em>bin</em>
-directorio a su PATH.</p>
+<p>Si simplemente quire probar Rubinius, siga las instrucciones para
+agregar el directorio <em>bin</em> a su PATH.</p>
 
-<p>Sin embargo, si está desarrollando Rubinius, usted NO debe agregar la <em>bin</em>
-directorio a su PATH Rubinius porque el sistema de construcción recogerá el
-<code>ruby</code> y <code>rake</code> vínculos con el ejecutable Rubinius. Rubinius necesita
-una por separado ejecutable Ruby a sí mismo de arranque durante el proceso de
-generación.</p>
+<p>Sin embargo, si está desarrollando Rubinius, usted NO debe agregar el
+directorio <em>bin</em> a su PATH porque el sistema de construcción de
+Rubinius utilizara los vínculos de <code>ruby</code> y <code>rake</code> que utilizan el
+ejecutable de Rubinius. Rubinius necesita
+un ejecutable de Ruby para reconstruirse a si mismo durante el proceso
+de construcción.</p>
 
 
 
@@ -171,7 +165,7 @@ generación.</p>
       
         
         <span class="label">Previous:</span>
-        <a href="/doc/es/getting-started/requirements">Requirements</a>
+        <a href="/doc/es/getting-started/requirements">Requisitos</a>
         
 
         <span class="label">Up:</span>
@@ -179,7 +173,7 @@ generación.</p>
 
         
         <span class="label">Next:</span>
-        <a href="/doc/es/getting-started/running-rubinius">Running Rubinius</a>
+        <a href="/doc/es/getting-started/running-rubinius">Ejecutando Rubinius</a>
         
       
     </div>

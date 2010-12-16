@@ -5,7 +5,6 @@ previous: Ejecutando Rubinius
 previous_url: getting-started/running-rubinius
 next: Contributing
 next_url: contributing
-translated: true
 ---
 
 Los siguientes son errores que usted podría encontrar durante la
