@@ -7,7 +7,7 @@ class: release
 
 The Rubinius team is proud to announce the availability of 1.2.0.
 
-1.2.0 is the first feature release since 1.1, containing minor feature
+1.2.0 is the first feature release since 1.1, containing various feature
 introductions, performance improvements, and bugfixes.
 
 
@@ -21,7 +21,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.
 #### Stats
 
 * **Release Date:** December 16th, 2010
-* **Commits:** 166
+* **Commits:** 187
 * **Days since last release:** 30
 * **Issues fixed:** _15_ since 1.1.1, _50_ since 1.1.0
 
@@ -34,6 +34,8 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.
 * Ivan Samsonov
 * Eric Kidd
 * Konstantin Haase
+* Adam Gardiner
+* Victor Hugo Borja
 
 ## Summary
 
