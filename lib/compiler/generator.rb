@@ -89,10 +89,13 @@ module Rubinius
         @closed     = false
       end
 
-      def add_stack(size)
-        @stack += size
+      def add_stack(read, write)
+        read_change = @stack - read
+        @min_size = read_change if read_change < @min_size
+
+        @stack += (write - read)
+
         @max_size = @stack if @stack > @max_size
-        @min_size = @stack if @stack < @min_size
       end
 
       def open
@@ -137,15 +140,15 @@ module Rubinius
           net_size = @enter_size + @stack
 
           if net_size < 0
-            raise CompileError, "net stack underflow at #{location}"
+            raise CompileError, "net stack underflow in block starting at #{location}"
           end
 
           if @enter_size + @min_size < 0
-            raise CompileError, "minimum stack underflow at #{location}"
+            raise CompileError, "minimum stack underflow in block starting at #{location}"
           end
 
           if @exit_size and @enter_size + @exit_size < 1
-            raise CompileError, "exit stack underflow at #{location(@exit_ip)}"
+            raise CompileError, "exit stack underflow in block starting at #{location(@exit_ip)}"
           end
 
           if @left
@@ -305,6 +308,17 @@ module Rubinius
       @break, @redo, @next, @retry = @modstack.pop
     end
 
+    def definition_line(line)
+      unless @stream.empty?
+        raise Exception, "only use #definition_line first"
+      end
+
+      @lines << -1
+      @lines << line
+
+      @last_line = line
+    end
+
     def set_line(line)
       raise Exception, "source code line cannot be nil" unless line
 
@@ -313,17 +327,7 @@ module Rubinius
         @lines << line
         @last_line = line
       elsif line != @last_line
-        # Fold redundent line changes on the same ip into the same
-        # entry, except for in the case where @ip is 0. Here's why:
-        #
-        #   def some_method
-        #   end
-        #
-        # There is nothing in the bytecode stream that corresponds
-        # to 'def some_method' so the first line of the method will
-        # be recorded as the line 'end' is on.
-
-        if @ip > 0 and @lines[-2] == @ip
+        if @lines[-2] == @ip
           @lines[-1] = line
         else
           @lines << @ip
@@ -547,6 +551,11 @@ module Rubinius
       else
         send_super_stack_with_block idx, args
       end
+    end
+
+    def meta_to_s(name=:to_s, priv=true)
+      allow_private if priv
+      super find_literal(name)
     end
   end
 end

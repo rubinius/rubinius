@@ -107,6 +107,7 @@ namespace rubinius {
     TypedRoot<Exception*> stack_error;
     TypedRoot<Class*> jump_error;
     TypedRoot<Class*> exc_vm_internal;
+    TypedRoot<Class*> exc_vm_bad_bytecode;
     TypedRoot<Class*> global_cache_entry;
     TypedRoot<Class*> cls_weakref;
     TypedRoot<Class*> fiber;
@@ -223,6 +224,7 @@ namespace rubinius {
       stack_error(&roots),
       jump_error(&roots),
       exc_vm_internal(&roots),
+      exc_vm_bad_bytecode(&roots),
       global_cache_entry(&roots),
       cls_weakref(&roots),
       fiber(&roots),

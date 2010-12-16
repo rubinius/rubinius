@@ -96,40 +96,65 @@ namespace rubinius {
     native_int osize = other->num_fields();
     native_int size = this->num_fields();
 
-    int olend = start->to_native();
-    int lend = dest->to_native();
-    int olength = length->to_native();
+    int src_start = start->to_native();
+    int dst_start = dest->to_native();
+    int len = length->to_native();
 
     // left end should be within range
-    if(olend < 0 || olend > osize) {
-      return other->bounds_exceeded_error(state, "Tuple::copy_from", olend);
+    if(src_start < 0 || src_start > osize) {
+      return other->bounds_exceeded_error(state, "Tuple::copy_from", src_start);
     }
 
-    if(lend < 0 || lend > size) {
-      return bounds_exceeded_error(state, "Tuple::copy_from", lend);
+    if(dst_start < 0 || dst_start > size) {
+      return bounds_exceeded_error(state, "Tuple::copy_from", dst_start);
     }
 
     // length can not be negative and must fit in src/dest
-    if(olength < 0) {
-      return other->bounds_exceeded_error(state, "Tuple::copy_from", olength);
+    if(len < 0) {
+      return other->bounds_exceeded_error(state, "Tuple::copy_from", len);
     }
 
-    if((olend + olength) > osize) {
-      return other->bounds_exceeded_error(state, "Tuple::copy_from", olend + olength);
+    if((src_start + len) > osize) {
+      return other->bounds_exceeded_error(state, "Tuple::copy_from", src_start + len);
     }
 
-    if(olength > (size - lend)) {
-      return bounds_exceeded_error(state, "Tuple::copy_from", olength);
+    if(len > (size - dst_start)) {
+      return bounds_exceeded_error(state, "Tuple::copy_from", len);
     }
 
-    for(native_int src = olend, dst = lend;
-        src < (olend + olength);
-        ++src, ++dst) {
-      // Since we have carefully checked the bounds we don't need to do it in at/put
-      Object *obj = other->field[src];
-      this->field[dst] = obj;
-      // but this is necessary to keep the GC happy
-      if(obj->reference_p()) write_barrier(state, obj);
+    // A memmove within the tuple
+    if(other == this) {
+      // No movement, no work!
+      if(src_start == dst_start) return this;
+      // right shift
+      if(src_start < dst_start) {
+        for(native_int dest_idx = dst_start + len - 1,
+                       src_idx  = src_start + len - 1;
+            src_idx >= src_start;
+            src_idx--, dest_idx--) {
+          this->field[dest_idx] = this->field[src_idx];
+        }
+      } else {
+        // left shift
+        for(native_int dest_idx = dst_start,
+                       src_idx  = src_start;
+            src_idx < src_start + len;
+            src_idx++, dest_idx++) {
+          this->field[dest_idx] = this->field[src_idx];
+        }
+      }
+
+    } else {
+      for(native_int src = src_start, dst = dst_start;
+          src < (src_start + len);
+          ++src, ++dst) {
+        // Since we have carefully checked the bounds we don't need
+        // to do it in at/put
+        Object *obj = other->field[src];
+        this->field[dst] = obj;
+        // but this is necessary to keep the GC happy
+        if(obj->reference_p()) write_barrier(state, obj);
+      }
     }
 
     return this;

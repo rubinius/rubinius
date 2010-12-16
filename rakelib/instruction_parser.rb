@@ -99,34 +99,26 @@ class InstructionParser
 
     # Calculate the full stack affect of this opcode.
     def method_stack_effect
-      if @opcode.extra or @opcode.produced_extra
+      read = @opcode.static_read_effect
+      write = @opcode.static_write_effect
 
-        total = nil
-
-        if @opcode.extra
-          variable = "-arg#{@opcode.extra+1}"
-          if @opcode.effect == 0
-            total = variable
-          else
-            total = "#{@opcode.effect}#{variable}"
-          end
+      if @opcode.extra
+        if read > 0
+          read = "arg#{@opcode.extra+1}+#{read}"
+        else
+          read = "arg#{@opcode.extra+1}"
         end
-
-
-        if @opcode.produced_extra
-          variable = "(arg#{@opcode.produced_extra+1} * #{@opcode.produced_times})"
-
-          if total
-            total = "(#{total}) + #{variable}"
-          else
-            total = "#{opcode.effect} + #{variable}"
-          end
-        end
-
-        @file.puts "        @current_block.add_stack(#{total})"
-      elsif @opcode.effect != 0
-        @file.puts "        @current_block.add_stack(#{@opcode.effect})"
       end
+
+      if @opcode.produced_extra
+        if write > 0
+          write = "(arg#{@opcode.produced_extra+1} * #{@opcode.produced_times})+#{write}"
+        else
+          write = "(arg#{@opcode.produced_extra+1} * #{@opcode.produced_times})"
+        end
+      end
+
+      @file.puts "        @current_block.add_stack(#{read}, #{write})"
     end
 
     def method_close
@@ -259,7 +251,7 @@ class InstructionParser
       @file.puts <<EOM
         if arg1 > 2 and arg1 < 256
           @stream << #{@opcode.bytecode} << arg1
-          @current_block.add_stack(1)
+          @current_block.add_stack(0, 1)
           @ip += 2
           @instruction = #{@opcode.bytecode}
         else
@@ -386,12 +378,15 @@ EOM
 
     def opcode_stack_effect(file)
     end
+
+    def opcode_documentation(file)
+    end
   end
 
   class Section < Definition
     attr_reader :heading
 
-    def initialize(line)
+    def initialize(line, doc)
       @heading = line.strip[1..-2]
     end
 
@@ -404,7 +399,7 @@ EOM
   class Define < Definition
     attr_reader :name, :value
 
-    def initialize(line)
+    def initialize(line, doc)
       @name, @value = line.strip.split
     end
 
@@ -416,6 +411,127 @@ EOM
 
     def opcode_define
       "#define #{@name} #{@value}"
+    end
+  end
+
+  class InstructionDocumentation
+    def initialize(instruction)
+      @instruction = instruction
+      @description = []
+      @consumed = nil
+      @produced = nil
+      @see_also = []
+      @notes = []
+      @example = []
+    end
+
+    def parse(text)
+      section = []
+
+      text.each do |line|
+        case line
+        when /\[Description\]/
+          section = @description
+        when /\[Stack Before\]/
+          section = @consumed = []
+        when /\[Stack After\]/
+          section = @produced = []
+        when /\[See Also\]/
+          section = @see_also
+        when /\[Notes\]/
+          section = @notes
+        when /\[Example\]/
+          section = @example
+        else
+          section << line[1..-1]
+        end
+      end
+
+      self
+    end
+
+    def consumed
+      # TODO: account for extra consumed
+      @consumed || @instruction.consumed + ["..."]
+    end
+
+    def produced
+      # TODO: account for extra produced
+      @produced || @instruction.produced + ["..."]
+    end
+
+    def format(file)
+      file.puts %[<h3><a class="instruction" name="#{name}">#{name}(#{arguments})</a></h3>]
+    end
+
+    def stack_effect(file)
+      c = consumed
+      p = produced
+      n = c.size > p.size ? c.size : p.size
+
+      file.puts %[\n<table class="stack_effect">]
+      file.puts "<thead>"
+      file.puts "<tr><th>Before</th><th>After</th></tr>"
+      file.puts "</thead>"
+      file.puts "<tbody>"
+      n.times do |i|
+        file.puts "<tr><td>#{c[i]}</td><td>#{p[i]}</td></tr>"
+      end
+      file.puts "</tbody>"
+      file.puts "</table>"
+    end
+
+    def description(file)
+      file.puts ""
+      file.puts @description
+      file.puts ""
+    end
+
+    def example(file)
+      return if @example.empty?
+
+      file.puts ""
+      file.puts '#### Example'
+      file.puts @example
+      file.puts ""
+    end
+
+    def see_also(file)
+      return if @see_also.empty?
+
+      file.puts "\n<h4>See Also</h4>"
+      file.puts %[<ul class="insn_cross_ref">]
+      @see_also.each do |x|
+        x = x.strip
+        file.puts %[<li><a href="\##{x}">#{x}</a></li>]
+      end
+      file.puts "</ul>"
+    end
+
+    def notes(file)
+      return if @notes.empty?
+
+      file.puts ""
+      file.puts '#### Notes'
+      file.puts @notes
+      file.puts ""
+    end
+
+    def name
+      @instruction.name
+    end
+
+    def arguments
+      @instruction.arguments.join ", "
+    end
+
+    def render(file)
+      format file
+      description file
+      stack_effect file
+      example file
+      notes file
+      see_also file
     end
   end
 
@@ -433,11 +549,12 @@ EOM
       @bytecodes += 1
     end
 
-    def initialize(parser, header)
+    def initialize(parser, header, doc)
       @parser = parser
       @file = parser.file
       @header = header
       @body = []
+      @doc = InstructionDocumentation.new(self).parse(doc)
       @extra = nil
       @produced_extra = nil
       @bytecode = self.class.bytecode
@@ -490,6 +607,14 @@ EOM
       @effect = @produced.size - @consumed.size
 
       @control_flow = m[6].to_sym if m[6]
+    end
+
+    def static_read_effect
+      @consumed.size
+    end
+
+    def static_write_effect
+      @produced.size
     end
 
     def parse_body
@@ -577,19 +702,33 @@ EOM
 
     def opcode_stack_effect(file)
       file.puts "case InstructionSequence::insn_#{@name}:"
+      read = static_read_effect
+      write = static_write_effect
+
       if @extra
-        if @produced_extra
-          file.puts "  return (#{@effect} - operand#{@extra+1}) + (operand#{@produced_extra+1} * #{@produced_times});"
+        if read > 0
+          read = "operand#{@extra+1}+#{read}"
         else
-          file.puts "  return #{@effect} - operand#{@extra+1};"
-        end
-      else
-        if @produced_extra
-          file.puts "  return #{@effect} + (operand#{@produced_extra+1} * #{@produced_times});"
-        else
-          file.puts "  return #{@effect};"
+          read = "operand#{@extra+1}"
         end
       end
+
+      if @produced_extra
+        if write > 0
+          write = "(operand#{@produced_extra+1} * #{@produced_times})+#{write}"
+        else
+          write = "(operand#{@produced_extra+1} * #{@produced_times})"
+        end
+      end
+
+      file.puts "if(read_effect)  { *read_effect  = (#{read}); }"
+      file.puts "if(write_effect) { *write_effect = (#{write}); }"
+
+      file.puts "return (#{write}) - (#{read});"
+    end
+
+    def opcode_documentation(file)
+      @doc.render file
     end
   end
 
@@ -601,18 +740,20 @@ EOM
     @filename = filename
     @objects = []
     @parsed = false
+    @blank_line = false
+    @doc = []
   end
 
-  def process_define(parser, line)
-    parser.objects << Define.new(line)
+  def process_define(parser, line, doc)
+    parser.objects << Define.new(line, doc)
   end
 
-  def process_section(parser, line)
-    parser.objects << Section.new(line)
+  def process_section(parser, line, doc)
+    parser.objects << Section.new(line, doc)
   end
 
-  def process_instruction(parser, line)
-    insn = Instruction.new parser, line
+  def process_instruction(parser, line, doc)
+    insn = Instruction.new parser, line, doc
     insn.parse
     parser.objects << insn
   end
@@ -625,14 +766,25 @@ EOM
 
       while line = @file.gets
         if index = line.index("#")
+          if index == 0
+            if @blank_line
+              @doc.clear
+              @blank_line = false
+            end
+
+            @doc << line
+          end
+
           line = line[0, index]
+        elsif line.strip.empty?
+          @blank_line = true
+          next
         end
 
-        next if line.empty?
-
-        m = line.match(/^(instruction|section|define) +(.*)$/)
-
-        send :"process_#{m[1]}", self, m[2] if m
+        if m = line.match(/^(instruction|section|define) +(.*)$/)
+          send :"process_#{m[1]}", self, m[2], @doc
+          @doc.clear
+        end
       end
     end
 
@@ -734,7 +886,7 @@ EOM
 
   def generate_sizes(filename)
     File.open filename, "w" do |file|
-      file.puts "size_t width = 1;"
+      file.puts "size_t width = 0;"
       file.puts "switch(op) {"
 
       objects.each do |obj|
@@ -800,7 +952,8 @@ EOM
     File.open filename, "w" do |file|
       file.puts "static inline int stack_difference(opcode op,"
       file.puts "                                   opcode operand1 = 0,"
-      file.puts "                                   opcode operand2 = 0)"
+      file.puts "                                   opcode operand2 = 0,"
+      file.puts "                                   int* read_effect = 0, int* write_effect = 0)"
       file.puts "{"
       file.puts "  switch(op) {"
 
@@ -812,6 +965,14 @@ EOM
       file.puts "  abort();"
       file.puts "  return 0;"
       file.puts "}"
+    end
+  end
+
+  def generate_documentation(filename)
+    File.open filename, "w" do |file|
+      objects.each do |obj|
+        obj.opcode_documentation file
+      end
     end
   end
 end

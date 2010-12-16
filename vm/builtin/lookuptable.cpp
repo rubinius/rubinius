@@ -78,7 +78,7 @@ namespace rubinius {
 
       while(entry) {
         LookupTableBucket* link = try_as<LookupTableBucket>(entry->next());
-        entry->next(state, reinterpret_cast<LookupTableBucket *>(Qnil));
+        entry->next(state, nil<LookupTableBucket>());
 
         size_t bin = find_bin(key_hash(entry->key()), size);
         LookupTableBucket* slot = try_as<LookupTableBucket>(new_values->at(state, bin));
@@ -145,7 +145,7 @@ namespace rubinius {
       }
       entry = try_as<LookupTableBucket>(entry->next());
     }
-    return reinterpret_cast<LookupTableBucket *>(Qnil);
+    return nil<LookupTableBucket>();
   }
 
   /** Same as fetch(state, key). */

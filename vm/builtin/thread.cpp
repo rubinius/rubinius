@@ -35,7 +35,7 @@ namespace rubinius {
 
     thr->alive(state, Qtrue);
     thr->sleep(state, Qfalse);
-    thr->control_channel(state, (Channel*)Qnil);
+    thr->control_channel(state, nil<Channel>());
     thr->recursive_objects(state, LookupTable::create(state));
     thr->klass(state, as<Class>(self));
 
@@ -116,7 +116,7 @@ namespace rubinius {
   }
 
   Tuple* Thread::context(STATE) {
-    if(!native_thread_) return (Tuple*)Qnil;
+    if(!native_thread_) return nil<Tuple>();
 
     VM* vm = native_thread_->vm();
     CallFrame* cf = vm->saved_call_frame();

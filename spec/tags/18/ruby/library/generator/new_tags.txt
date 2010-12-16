@@ -1,2 +1,0 @@
-unstable(see ticket #433):Generator.new creates a new generator from an Enumerable object
-unstable(see ticket #433):Generator.new creates a new generator from a block

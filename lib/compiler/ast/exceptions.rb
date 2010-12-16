@@ -393,7 +393,7 @@ module Rubinius
           return false
         end
 
-        return true if value.kind_of? GlobalVariableAccess and value.name == :$!
+        return true if value.kind_of? CurrentException
       end
 
       def bytecode(g, reraise, done, outer_exc_state)

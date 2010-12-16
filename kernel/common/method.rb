@@ -99,7 +99,7 @@ class Method
 
   def source_location
     if @executable.respond_to? :file
-      [@executable.file.to_s, @executable.first_line]
+      [@executable.file.to_s, @executable.defined_line]
     else
       nil
     end
@@ -256,7 +256,7 @@ class UnboundMethod
 
   def source_location
     if @executable.respond_to? :file
-      [@executable.file.to_s, @executable.first_line]
+      [@executable.file.to_s, @executable.defined_line]
     else
       nil
     end

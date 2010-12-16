@@ -320,15 +320,6 @@ namespace bert {
       }
     }
 
-    void write_float(double val) {
-      char buf[32];
-      memset(buf, 0, 32);
-
-      snprintf(buf, 31, "%.20e", val);
-
-      writer_.write(31, buf);
-    }
-
   public:
 
     Binaryizer(Writer& writer)
@@ -373,6 +364,15 @@ namespace bert {
       }
     }
 
+    void write_float(double val) {
+      char buf[32];
+      memset(buf, 0, 32);
+
+      snprintf(buf, 31, "%.20e", val);
+
+      write_i8(Float_Ext);
+      writer_.write(31, buf);
+    }
 
     void write_term(Term* term) {
       switch(term->type()) {
@@ -1156,6 +1156,10 @@ namespace bert {
 
     void write_integer(int val) {
       bzr_.write_integer(val);
+    }
+
+    void write_float(double val) {
+      bzr_.write_float(val);
     }
 
     void write_value(Value* val) {

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rubinius : Use Ruby&#153;</title>
+    <meta content='text/html;charset=utf-8' http-equiv='content-type'>
+    <meta content='en' http-equiv='content-language'>
+    <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
+    <meta content='Less Than Three. &lt;3. http://less.thanthree.com' name='author'>
+    <link href='/' rel='home'>
+
+    <link href='/' rel='start'>
+    <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script><![endif]-->
+    <script src="/javascripts/jquery-1.3.2.js" type="text/javascript"></script>
+    <script src="/javascripts/paging_keys.js" type="text/javascript"></script>
+    <script src="/javascripts/jquery.twitter.js" type="text/javascript"></script>
+    <script src="/javascripts/application.js" type="text/javascript"></script>
+    <style>article, aside, dialog, figure, footer, header, hgroup, menu, nav, section { display: block; }</style>
+
+    <link href="/stylesheets/blueprint/screen.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="/stylesheets/blueprint/print.css" media="print" rel="stylesheet" type="text/css" />
+    <!--[if IE]><link href="/stylesheets/blueprint/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
+    <!--[if IE]><link href="/stylesheets/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
+  </head>
+    <body>
+        <div class='container'>
+      <div class='span-21 doc_menu'>
+        <header>
+                    <nav>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a id="blog" href="/blog/">Blog</a></li>
+              <li><a id="documentation" href="/doc/en/">Documentation</a></li>
+              <li><a href="/projects/">Projects</a></li>
+              <li><a href="/roadmap/">Roadmap</a></li>
+              <li><a href="/releases/">Releases</a></li>
+            </ul>
+          </nav>
+
+        </header>
+      </div>
+            <div class='span-3 last'>
+        <div id='version'>
+          <a href="/releases/1.2.0">1.2.0</a>
+        </div>
+      </div>
+
+    </div>
+
+
+        <div class="container languages">
+      <nav>
+        <span class="label">Idiomas:</span>
+        <ul>
+        
+          <li><a href="/doc/en/"
+          
+          >en</a></li>
+        
+          <li><a href="/doc/es/"
+          
+            class="current"
+          
+          >es</a></li>
+        
+          <li><a href="/doc/ru/"
+          
+          >ru</a></li>
+        
+        </ul>
+      </nav>
+    </div>
+
+
+        <div class="container doc_page_nav">
+      
+        
+        <span class="label">Previous:</span>
+        <a href="/doc/es/getting-started/troubleshooting">Troubleshooting</a>
+        
+
+        <span class="label">Up:</span>
+        <a href="/doc/es/">Tabla de Contenidos</a>
+
+        
+        <span class="label">Next:</span>
+        <a href="/doc/es/contributing/communication">Communication</a>
+        
+      
+    </div>
+
+
+    <div class="container documentation">
+      <h2>Contributing</h2>
+
+      
+        <div class="review">
+  <p>This page was machine translated. Please help us improve it.</p>
+
+  <p>See <a href="/doc/es/how-to/translate-documentation">
+    How-To - Translate Documentation</a></p>
+</div>
+
+      
+
+      
+
+        <p>El proyecto Rubinius la bienvenida a sus contribuciones. Hay muchas cosas que
+hacer para ayudar. Lo más importante es que usted debe hacer algo que le
+interesa.  Esa es la mejor manera de tener el entusiasmo y la energía para su
+trabajo.</p>
+
+<p>Si usted tiene preguntas sobre Rubinius, la mejor forma de obtener respuestas
+es para chatear con nosotros en el canal # Rubinius IRC en irc.freenode.net.</p>
+
+<p>A continuación se presentan varias ideas sobre qué hacer en Rubinius.</p>
+
+<h2 id="ejecutar-el-cdigo">Ejecutar el código</h2>
+
+<p>Su código es a menudo más viciosos de las especificaciones. Monta tu proyecto
+favorito en Rubinius y emite un informe. Mas <a href="/doc/es/how-to/write-a-ticket">Cómo escribir un billete</a>.</p>
+
+<h1 id="pedir-ayuda"># Pedir Ayuda</h1>
+
+<p>Todo lo que podemos hacer para ayudar, lo haremos. Asegúrese de hacer su
+propia investigación también, si es posible. Rubinius pretende ser un proyecto
+que fácilmente se pueden estudiar, aprender, y espero que se extienden.</p>
+
+<p>Desde luego, se aceptan y aprecian informes simples errores, pero podemos dar
+prioridad a las entradas que incluyen pasos para reproducir el problema.
+Incluso mejor son entradas que incluyen RubySpecs que demuestran el error y un
+parche que la fija.</p>
+
+<h2 id="escribir-especificaciones">Escribir Especificaciones</h2>
+
+<ol>
+  <li>
+    <p>Ejecutar <code>bin/mspec tag --list incomplete &lt;dir&gt;</code> para mostrar
+especificaciones técnicas que se han Etiquetado como incompleta. Estas
+especificaciones pueden simplemente necesitan una revisión, o podría no
+se especificaciones técnicas que faltan para una clase en particular.</p>
+
+    <p>NOTA: Se puede especificar el pseudo-directorio &lsquo;:files&rsquo; para &lt;dir&gt;, que
+etiquetas para mostrar el resultado de todas las especificaciones
+técnicas que deben ejecutarse en Rubinius. O puede especificar cualquier
+subdirectorio de spec/ para las etiquetas de lista de especificaciones
+técnicas en ese subdirectorio.</p>
+  </li>
+  <li>
+    <p>Buscar las conductas no especificadas. Mas <a href="/doc/es/how-to/write-a-ruby-spec">Cómo escribir un Ruby
+Spec</a>.</p>
+  </li>
+</ol>
+
+<h2 id="fijar-a-falta-de-especificaciones">Fijar A falta de especificaciones</h2>
+
+<ol>
+  <li>
+    <p>Ejecutar <code>bin/mspec tag --list fails &lt;dir&gt;</code> para mostrar especificaciones
+técnicas etiquetados como no.</p>
+
+    <p>NOTA: Se puede especificar el pseudo-directorio &lsquo;files&rsquo; para &lt;dir&gt;, que
+etiquetas para mostrar el resultado de todas las especificaciones
+técnicas que deben ejecutarse en Rubinius. O puede especificar cualquier
+subdirectorio de spec/ para las etiquetas de lista de especificaciones
+técnicas en ese subdirectorio.</p>
+  </li>
+  <li>
+    <p>Elija una especificación que se ve interesante y ver si puedes escribir
+un parche que hará pasar.</p>
+  </li>
+</ol>
+
+<h2 id="escribir-docs">Escribir Docs</h2>
+
+<p>Estudiar cómo Rubinius obras y escribir documentación alto nivel que ayudarán
+a a otros a aprender acerca de los detalles de implementación.</p>
+
+<h2 id="limpiar-el-cdigo">Limpiar el Código</h2>
+
+<p>Búsqueda de etiquetas como TODO, HACK, FIXME en el código y parches para
+arreglar presentar ellos. Aquí hay un comando para buscar el código:</p>
+
+<pre><code>`grep -re "@todo\|TODO\|HACK\|FIXME" .`
+</code></pre>
+
+<p>Revise el [Guía de estilo] (/doc/es/contributing/style-guide/) para
+la codificación de las directrices.</p>
+
+<h2 id="triage-tickets">Triage Tickets</h2>
+
+<ul>
+  <li>Revive o cerrar entradas de edad.</li>
+  <li>Crear casos de prueba mínima que se reproducen los insectos. Luego ver si
+hay ya RubySpecs para la expedición. Si no, considere escribir algunas.</li>
+</ul>
+
+
+    </div>
+
+        <div class="container doc_page_nav">
+      
+        
+        <span class="label">Previous:</span>
+        <a href="/doc/es/getting-started/troubleshooting">Troubleshooting</a>
+        
+
+        <span class="label">Up:</span>
+        <a href="/doc/es/">Tabla de Contenidos</a>
+
+        
+        <span class="label">Next:</span>
+        <a href="/doc/es/contributing/communication">Communication</a>
+        
+      
+    </div>
+
+
+        <footer>
+      <div class='container'>
+        <nav>
+          <ul>
+            <li><a href="http://twitter.com/rubinius">Follow Rubinius on Twitter</a></li>
+            <li><a href="http://github.com/evanphx/rubinius">Fork Rubinius on github</a></li>
+            <li><a href="http://engineyard.com">An Engine Yard project</a></li>
+
+            <li id='credit'>
+              Site design by
+              <a href="http://less.thanthree.com">Less Than Three</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </footer>
+        <script type="text/javascript">
+        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+        </script>
+
+        <script type="text/javascript">
+        try {
+        var pageTracker = _gat._getTracker("UA-12328521-1");
+        pageTracker._trackPageview();
+        } catch(err) {}</script>
+
+  </body>
+
+</html>

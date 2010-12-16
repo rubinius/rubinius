@@ -212,6 +212,21 @@ extern "C" {
     }
   }
 
+  Object* rbx_meta_to_s(STATE, CallFrame* call_frame, InlineCache* cache,
+                        Object* obj)
+  {
+    if(kind_of<String>(obj)) return obj;
+
+    Arguments args(obj, Qnil, 0, 0);
+    Object* ret = cache->execute(state, call_frame, args);
+
+    if(!kind_of<String>(ret)) {
+      ret = obj->to_s(state, false);
+    }
+
+    return ret;
+  }
+
   Object* rbx_create_block(STATE, CallFrame* call_frame, int index) {
     Object* _lit = call_frame->cm->literals()->at(state, index);
     CompiledMethod* cm = as<CompiledMethod>(_lit);

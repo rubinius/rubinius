@@ -232,6 +232,8 @@ class Array
         ins_length = space > 0 ? space : 0
       end
 
+      replace_count = 0
+
       if ent.nil?
         # optimize for fast removal..
         reg_start = index + ins_length
@@ -246,32 +248,77 @@ class Array
         end
 
         # This is actually an addition! silly, I know.
-        replacement = []
+        replace_count = 0
       elsif ent.kind_of? Array
         replacement = ent
+        replace_count = replacement.size
+        replacement = replacement.first if replace_count == 1
       elsif ent.respond_to? :to_ary
         replacement = ent.to_ary
+        replace_count = replacement.size
+        replacement = replacement.first if replace_count == 1
       else
-        replacement = [ent]
+        replacement = ent
+        replace_count = 1
       end
 
       new_total = (index > @total) ? index : @total
-      if replacement.total > ins_length
-        new_total += replacement.total - ins_length
-      elsif replacement.total < ins_length
-        new_total -= ins_length - replacement.total
+      if replace_count > ins_length
+        new_total += replace_count - ins_length
+      elsif replace_count < ins_length
+        new_total -= ins_length - replace_count
       end
 
-      new_tuple = Rubinius::Tuple.new(new_total)
-      new_tuple.copy_from(@tuple, @start, index < @total ? index : @total, 0)
-      new_tuple.copy_from(replacement.tuple, replacement.start, replacement.total, index)
-      if index < @total
-        new_tuple.copy_from(@tuple, @start+index+ins_length, @total-index-ins_length,
-                            index+replacement.total)
+      if new_total > @tuple.size - @start
+        # Expand the size just like #<< does.
+        # MRI uses a straight realloc here to the exact size, but
+        # realloc can easily include bumper data so it's pretty fast.
+        # We simply compensate by using the same logic to reduce
+        # having to copy data.
+        new_tuple = Rubinius::Tuple.new(new_total + @tuple.size / 2)
+
+        new_tuple.copy_from(@tuple, @start, index < @total ? index : @total, 0)
+
+        case replace_count
+        when 1
+          new_tuple[index] = replacement
+        when 0
+          # nothing
+        else
+          new_tuple.copy_from(replacement.tuple, replacement.start,
+                              replace_count, index)
+        end
+
+        if index < @total
+          new_tuple.copy_from(@tuple, @start + index + ins_length,
+                              @total - index - ins_length,
+                              index + replace_count)
+        end
+        @start = 0
+        @tuple = new_tuple
+        @total = new_total
+      else
+        # Move the elements to the right
+        if index < @total
+          right_start = @start + index + ins_length
+          right_len = @total - index - ins_length
+
+          @tuple.copy_from(@tuple, right_start, right_len,
+                           @start + index + replace_count)
+        end
+
+        case replace_count
+        when 1
+          @tuple[@start + index] = replacement
+        when 0
+          # nothing
+        else
+          @tuple.copy_from(replacement.tuple, replacement.start,
+                              replace_count, @start + index)
+        end
+
+        @total = new_total
       end
-      @start = 0
-      @tuple = new_tuple
-      @total = new_total
 
       return ent
     else

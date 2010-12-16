@@ -1,1 +1,0 @@
-fails:IO#chars returns an enumerator of the next chars from the stream

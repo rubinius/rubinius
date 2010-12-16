@@ -58,7 +58,7 @@ class BasicSocket < IO
                                            optval.size)
       end
     else
-      raise "socket option should be a String, a Fixnum, true, or false"
+      raise TypeError, "socket option should be a String, a Fixnum, true, or false"
     end
 
     Errno.handle "Unable to set socket option" unless error == 0

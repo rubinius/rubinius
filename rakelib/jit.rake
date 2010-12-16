@@ -86,6 +86,6 @@ namespace :jit do
     end
 
     `llvm-as < vm/gen/types.ll > vm/gen/types.bc`
-    `vm/external_libs/llvm/Release/bin/llc -march=cpp -cppgen=contents -f -o vm/llvm/types.cpp.gen vm/gen/types.bc`
+    `vm/external_libs/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types.cpp.gen vm/gen/types.bc`
   end
 end

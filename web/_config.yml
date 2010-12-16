@@ -1,0 +1,8 @@
+---
+server: false
+
+markdown: kramdown
+
+pygments: true
+permalink: pretty
+---

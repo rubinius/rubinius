@@ -32,7 +32,7 @@ namespace :release do
     Rake::Task['release:tar'].invoke
 
     puts "* Testing tar.gz..."
-    sh "rm -rf release-test; mkdir release-test; cd release-test; tar zxf ../#{@rbx_tar}; cd rubinius-#{RBX_VERSION}; ./configure && rake -q"
+    sh "rm -rf release-test; mkdir release-test; cd release-test; tar zxf ../#{@rbx_tar}; cd rubinius-#{RBX_VERSION}; ./configure && rake -q build"
     # Do this seperate, so that the testing can fail and we leave the directory
     # where it is.
     if osx = ENV['OSX']
@@ -49,5 +49,37 @@ namespace :release do
     Rake::Task['release:tag'].invoke
 
     puts "* DONE!"
+  end
+
+  desc "Create an OS X package from a release tarball"
+  task :osx do
+    unless file = ENV['FILE']
+      raise "Please set FILE to the tar.gz for the release"
+    end
+
+    unless osx = ENV['OSX']
+      raise "Please set OSX to the version of OS X this is for"
+    end
+
+    unless ver = ENV['VERSION']
+      ver = RBX_VERSION
+    end
+
+    puts "* Building OS X package..."
+    sh "rm -rf osx-build; mkdir osx-build"
+
+    Dir.chdir "osx-build" do
+      sh "tar zxf ../#{file}"
+
+      unless File.directory?("rubinius-#{ver}")
+        raise "tar file didn't contain the proper release directory"
+      end
+
+      sh "cd rubinius-#{ver}; RELEASE=1 ./configure --prefix=/usr/local/rubinius/#{ver}; rake -q package:osx && mv rubinius-#{ver}.pkg ../.."
+    end
+
+    pref = "rubinius-#{ver}-#{osx}"
+    sh "mv rubinius-#{ver}.pkg #{pref}.pkg"
+    sh "zip -r #{pref}.pkg.zip #{pref}.pkg"
   end
 end

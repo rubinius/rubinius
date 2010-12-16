@@ -389,3 +389,21 @@ end
 
 class Rubinius::ObjectBoundsExceededError < Rubinius::VMException
 end
+
+# Defined by the VM itself
+class Rubinius::InvalidBytecode < Rubinius::Internal
+  attr_reader :compiled_method
+  attr_reader :ip
+
+  def message
+    if @compiled_method
+      if @ip and @ip >= 0
+        "#{super} - at #{@compiled_method.name}+#{@ip}"
+      else
+        "#{super} - method #{@compiled_method.name}"
+      end
+    else
+      super
+    end
+  end
+end

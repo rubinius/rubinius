@@ -203,6 +203,7 @@ namespace rubinius {
         case InstructionSequence::insn_meta_send_op_tequal:
         case InstructionSequence::insn_meta_send_op_lt:
         case InstructionSequence::insn_meta_send_op_gt:
+        case InstructionSequence::insn_meta_to_s:
         case InstructionSequence::insn_check_serial:
         case InstructionSequence::insn_check_serial_private:
         case InstructionSequence::insn_call_custom:
@@ -259,7 +260,9 @@ namespace rubinius {
       case InstructionSequence::insn_meta_send_op_equal:
       case InstructionSequence::insn_meta_send_op_tequal:
       case InstructionSequence::insn_meta_send_op_lt:
-      case InstructionSequence::insn_meta_send_op_gt: {
+      case InstructionSequence::insn_meta_send_op_gt:
+      case InstructionSequence::insn_meta_to_s:
+        {
         assert(which < sends);
         InlineCache* cache = &caches[which++];
         cache->set_location(ip, this);

@@ -113,7 +113,7 @@ describe "An Undef node" do
       g.push_literal "x"
 
       g.push 1
-      g.send :to_s, 0, true
+      g.meta_to_s
 
       g.string_build 2
 
@@ -125,7 +125,7 @@ describe "An Undef node" do
 
       g.push_literal "x"
       g.push 2
-      g.send :to_s, 0, true
+      g.meta_to_s
       g.string_build 2
 
       g.send :to_sym, 0, true

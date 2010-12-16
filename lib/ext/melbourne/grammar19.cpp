@@ -8497,6 +8497,8 @@ parse_string(NODE *quote, rb_parse_state *parse_state)
     int paren = nd_paren(quote);
     int c, space = 0;
 
+    long start_line = ruby_sourceline;
+
     if (func == -1) return tSTRING_END;
     c = nextc();
     if ((func & STR_FUNC_QWORDS) && ISSPACE(c)) {
@@ -8537,6 +8539,7 @@ parse_string(NODE *quote, rb_parse_state *parse_state)
 
     tokfix();
     pslval->node = NEW_STR(string_new(tok(), toklen()));
+    nd_set_line(pslval->node, start_line);
     return tSTRING_CONTENT;
 }
 

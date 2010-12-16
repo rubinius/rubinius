@@ -97,12 +97,15 @@ public:
     TS_ASSERT_EQUALS(Fixnum::from(0), rhs->lineno());
     TS_ASSERT(kind_of<IOBuffer>(lhs->ibuffer()));
     TS_ASSERT(kind_of<IOBuffer>(rhs->ibuffer()));
-    int acc_mode = fcntl(lhs->to_fd(), F_GETFL);
-    TS_ASSERT(acc_mode >= 0);
-    TS_ASSERT_EQUALS(Fixnum::from(acc_mode), lhs->mode());
-    acc_mode = fcntl(rhs->to_fd(), F_GETFL);
-    TS_ASSERT(acc_mode >= 0);
-    TS_ASSERT_EQUALS(Fixnum::from(acc_mode), rhs->mode());
+    TS_ASSERT_EQUALS(Fixnum::from(O_RDONLY), lhs->mode());
+    TS_ASSERT_EQUALS(Fixnum::from(O_WRONLY), rhs->mode());
+
+    rhs->write(state, String::create(state, "hello"), 0);
+    Object* obj = lhs->blocking_read(state, Fixnum::from(5));
+    TS_ASSERT(kind_of<String>(obj));
+
+    String* str = try_as<String>(obj);
+    TS_ASSERT_EQUALS(std::string("hello"), str->c_str());
 
     lhs->close(state);
     rhs->close(state);
