@@ -11,8 +11,6 @@
 
 #ifndef RBX_WINDOWS
 #include <sys/mman.h>
-#else
-#define PAGE_READWRITE 0x04
 #endif
 
 
