@@ -36,9 +36,9 @@ simply not appropriate for a ticket.
   1. Double-check.
 
      1. Do a full rebuild ('rake clean; rake') after a 'git pull' or fresh clone.
-     2. Read [Troubleshooting](/doc/en/getting-started/troubleshooting)
+     2. Read [Troubleshooting](/doc/ru/getting-started/troubleshooting)
         to see if something there resolves the issue.
-     3. Read [Specs](/doc/en/specs/).
+     3. Read [Specs](/doc/ru/specs/).
 
   2. Give your ticket a specific, preferably short title.
 
