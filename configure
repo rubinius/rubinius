@@ -31,6 +31,15 @@ class Configure
     # use the feature facility to check for a define in the compiler.
     @windows = @host =~ /mingw|mswin/
 
+    # To build under MinGW on Windows, we need to ensure Ruby uses the MSYS
+    #  shell when running system commands
+    if @windows
+      alias :old_system :system
+      alias :old_backquote :`
+      alias :system :msys_system
+      alias :` :msys_backquote
+    end
+
     # Compiler / build settings
     @cc = ENV['CC'] || 'gcc'
     @cxx = ENV['CXX'] || 'g++'
@@ -109,6 +118,21 @@ class Configure
     end
 
     import_env
+  end
+
+  # Converts a Windows-style path to a *nix style path for use under MSYS
+  def msys_path(path)
+    path.gsub(/([a-zA-Z]):/, '/\1')
+  end
+
+  # To build under MinGW on Windows, we need to ensure Ruby uses the MSYS
+  # shell when running system commands, and we need to use *nix style paths
+  def msys_system(cmd_str)
+    old_system "sh -c \"#{msys_path(cmd_str)}\""
+  end
+
+  def msys_backquote(cmd_str)
+    old_backquote "sh -c \"#{msys_path(cmd_str)}\""
   end
 
   def import_env
