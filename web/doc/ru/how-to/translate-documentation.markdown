@@ -13,7 +13,7 @@ There are two translation tasks:
 1. creating a completely new translation
 
 Begin by reading [How-To - Write
-Documentation](/doc/en/how-to/write-documentation/)
+Documentation](/doc/ru/how-to/write-documentation/)
 
 
 ### Updating an Existing Translation

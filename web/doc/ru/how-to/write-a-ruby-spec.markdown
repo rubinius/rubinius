@@ -9,8 +9,8 @@ next_url: how-to/fix-a-failing-spec
 
 Make sure you have read:
 
-  *  [Приступая к работе](/doc/en/getting-started/)
-  *  [Спецификации](/doc/en/specs/)
+  *  [Приступая к работе](/doc/ru/getting-started/)
+  *  [Спецификации](/doc/ru/specs/)
 
 Then, follow these steps to write a spec for a Ruby method:
 

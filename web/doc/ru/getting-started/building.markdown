@@ -1,4 +1,4 @@
-g---
+---
 layout: doc_ru
 title: Сборка Rubinius
 previous: Минимальные Требования
