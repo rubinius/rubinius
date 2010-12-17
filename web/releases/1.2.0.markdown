@@ -53,7 +53,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.
 ##### Performance
 * Improve performance of Array#[]=
 * General Array performance improvements
-* Improve performance of Bignum#pow
+* Improve performance of Fixnum#pow and Bignum#pow
 * Fix bug in JIT FFI inliner
 
 ##### System

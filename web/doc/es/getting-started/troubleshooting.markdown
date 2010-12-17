@@ -3,7 +3,7 @@ layout: doc_es
 title: Resolviendo problemas
 previous: Ejecutando Rubinius
 previous_url: getting-started/running-rubinius
-next: Contributing
+next: Aportando a Rubinius
 next_url: contributing
 ---
 

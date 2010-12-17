@@ -101,3 +101,6 @@ vm/external_libs/llvm/utils/Makefile
 
 # Generated documentation
 vm/doc/generated
+web/doc/*/*.bak
+web/doc/*/*.new
+

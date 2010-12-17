@@ -63,6 +63,10 @@
           
           >es</a></li>
         
+          <li><a href="/doc/ja/"
+          
+          >ja</a></li>
+        
           <li><a href="/doc/ru/"
           
           >ru</a></li>
@@ -75,124 +79,120 @@
         <div class="container doc_page_nav">
       
         
-        <span class="label">Previous:</span>
-        <a href="/doc/es/getting-started/troubleshooting">Troubleshooting</a>
+        <span class="label">Anterior:</span>
+        <a href="/doc/es/getting-started/troubleshooting">Resolviendo problemas</a>
         
 
-        <span class="label">Up:</span>
-        <a href="/doc/es/">Tabla de Contenidos</a>
+        <span class="label">Subir:</span>
+        <a href="/doc/es/">Tabla de Contenido</a>
 
         
-        <span class="label">Next:</span>
-        <a href="/doc/es/contributing/communication">Communication</a>
+        <span class="label">Siguiente:</span>
+        <a href="/doc/es/contributing/communication">Comunicación</a>
         
       
     </div>
 
 
     <div class="container documentation">
-      <h2>Contributing</h2>
-
-      
-        <div class="review">
-  <p>This page was machine translated. Please help us improve it.</p>
-
-  <p>See <a href="/doc/es/how-to/translate-documentation">
-    How-To - Translate Documentation</a></p>
-</div>
+      <h2>Aportando a Rubinius</h2>
 
       
 
       
 
-        <p>El proyecto Rubinius la bienvenida a sus contribuciones. Hay muchas cosas que
-hacer para ayudar. Lo más importante es que usted debe hacer algo que le
-interesa.  Esa es la mejor manera de tener el entusiasmo y la energía para su
+        <p>El proyecto Rubinius acepta sus aportaciones. Hay muchas cosas que
+hacer en las que puede ayudar. Lo más importante es que usted debe hacer algo que le
+interesa. Esa es la mejor manera de tener el entusiasmo y la energía para su
 trabajo.</p>
 
 <p>Si usted tiene preguntas sobre Rubinius, la mejor forma de obtener respuestas
-es para chatear con nosotros en el canal # Rubinius IRC en irc.freenode.net.</p>
+es platicar con nosotros en el canal de IRC #rubinius en irc.freenode.net.</p>
 
 <p>A continuación se presentan varias ideas sobre qué hacer en Rubinius.</p>
 
-<h2 id="ejecutar-el-cdigo">Ejecutar el código</h2>
+<h2 id="ejecutar-su-propio-cdigo">Ejecutar su propio código</h2>
 
-<p>Su código es a menudo más viciosos de las especificaciones. Monta tu proyecto
-favorito en Rubinius y emite un informe. Mas <a href="/doc/es/how-to/write-a-ticket">Cómo escribir un billete</a>.</p>
+<p>Su código es a menudo una prueba más rigorosa que las
+especificaciones. Ejecute su proyecto favorito en Rubinius y reporte
+cualquier anomalía que se presente. Vea <a href="/doc/es/how-to/write-a-ticket">Cómo escribir un reporte de
+fallos</a>.</p>
 
-<h1 id="pedir-ayuda"># Pedir Ayuda</h1>
+<h2 id="pida-ayuda">Pida Ayuda</h2>
 
-<p>Todo lo que podemos hacer para ayudar, lo haremos. Asegúrese de hacer su
+<p>Todo lo que podamos hacer para ayudarle, lo haremos. Asegúrese de hacer su
 propia investigación también, si es posible. Rubinius pretende ser un proyecto
-que fácilmente se pueden estudiar, aprender, y espero que se extienden.</p>
+en el que usted pueda fácilmente estudiar, aprender, y contribuir.</p>
 
-<p>Desde luego, se aceptan y aprecian informes simples errores, pero podemos dar
-prioridad a las entradas que incluyen pasos para reproducir el problema.
-Incluso mejor son entradas que incluyen RubySpecs que demuestran el error y un
-parche que la fija.</p>
+<p>Desde luego, se aceptan y aprecian cualquier reporte de errores, pero podemos dar
+prioridad a los reportes que incluyen pasos para reproducir el problema.
+Incluso mejor son aquellos que incluyen RubySpecs que demuestran el error y un
+parche que lo corrige.</p>
 
 <h2 id="escribir-especificaciones">Escribir Especificaciones</h2>
 
 <ol>
   <li>
-    <p>Ejecutar <code>bin/mspec tag --list incomplete &lt;dir&gt;</code> para mostrar
-especificaciones técnicas que se han Etiquetado como incompleta. Estas
-especificaciones pueden simplemente necesitan una revisión, o podría no
-se especificaciones técnicas que faltan para una clase en particular.</p>
+    <p>Ejecute <code>bin/mspec tag --list incomplete &lt;dir&gt;</code> para mostrar las
+especificaciones que se han etiquetado como incompletas. Estas
+especificaciones pueden simplemente necesitar una revisión, o podría
+hacer falta especificaciones para alguna clase en particular.</p>
 
-    <p>NOTA: Se puede especificar el pseudo-directorio &lsquo;:files&rsquo; para &lt;dir&gt;, que
-etiquetas para mostrar el resultado de todas las especificaciones
-técnicas que deben ejecutarse en Rubinius. O puede especificar cualquier
-subdirectorio de spec/ para las etiquetas de lista de especificaciones
-técnicas en ese subdirectorio.</p>
+    <p>NOTA: Se puede especificar el pseudo-directorio &lsquo;:files&rsquo; para
+&lt;dir&gt;, lo que mostrara las etiquetas para todas las especificaciones
+que deben ejecutarse en Rubinius. O puede especificar cualquier
+subdirectorio de spec/ para listar las etiquetas de las especificaciones
+en ese subdirectorio.</p>
   </li>
   <li>
-    <p>Buscar las conductas no especificadas. Mas <a href="/doc/es/how-to/write-a-ruby-spec">Cómo escribir un Ruby
+    <p>Encuentre conductas no especificadas. Vea <a href="/doc/es/how-to/write-a-ruby-spec">Cómo escribir un Ruby
 Spec</a>.</p>
   </li>
 </ol>
 
-<h2 id="fijar-a-falta-de-especificaciones">Fijar A falta de especificaciones</h2>
+<h2 id="corregir-una-especificacin-erronea">Corregir una Especificación erronea</h2>
 
 <ol>
   <li>
-    <p>Ejecutar <code>bin/mspec tag --list fails &lt;dir&gt;</code> para mostrar especificaciones
-técnicas etiquetados como no.</p>
+    <p>Ejecute <code>bin/mspec tag --list fails &lt;dir&gt;</code> para mostrar las especificaciones
+que no son exitosas.</p>
 
-    <p>NOTA: Se puede especificar el pseudo-directorio &lsquo;files&rsquo; para &lt;dir&gt;, que
-etiquetas para mostrar el resultado de todas las especificaciones
-técnicas que deben ejecutarse en Rubinius. O puede especificar cualquier
-subdirectorio de spec/ para las etiquetas de lista de especificaciones
-técnicas en ese subdirectorio.</p>
+    <p>NOTA: Se puede especificar el pseudo-directorio &lsquo;:files&rsquo; para
+&lt;dir&gt;, lo que mostrara las etiquetas para todas las especificaciones
+que deben ejecutarse en Rubinius. O puede especificar cualquier
+subdirectorio de spec/ para listar las etiquetas de las especificaciones
+en ese subdirectorio.</p>
   </li>
   <li>
-    <p>Elija una especificación que se ve interesante y ver si puedes escribir
-un parche que hará pasar.</p>
+    <p>Elija una especificación que se vea interesante y vea si puede escribir
+un parche que la haga funcionar exitosamente.</p>
   </li>
 </ol>
 
-<h2 id="escribir-docs">Escribir Docs</h2>
+<h2 id="escribir-documentacin">Escribir Documentación</h2>
 
-<p>Estudiar cómo Rubinius obras y escribir documentación alto nivel que ayudarán
-a a otros a aprender acerca de los detalles de implementación.</p>
+<p>Estudio cómo funciona Rubinius leyendo el código fuente, y escriba
+documentación de alto nivel que ayudará a otros a aprender sobre los
+detalles de implementación.</p>
 
 <h2 id="limpiar-el-cdigo">Limpiar el Código</h2>
 
-<p>Búsqueda de etiquetas como TODO, HACK, FIXME en el código y parches para
-arreglar presentar ellos. Aquí hay un comando para buscar el código:</p>
+<p>Búsque etiquetas como TODO, HACK, FIXME en el código y envie parches para
+arreglarlos. Aquí hay un comando para buscar el código:</p>
 
 <pre><code>`grep -re "@todo\|TODO\|HACK\|FIXME" .`
 </code></pre>
 
-<p>Revise el [Guía de estilo] (/doc/es/contributing/style-guide/) para
-la codificación de las directrices.</p>
+<p>Revise la <a href="/doc/es/contributing/style-guide/">Guía de estilo</a> para
+conocer las directrices de codificación.</p>
 
-<h2 id="triage-tickets">Triage Tickets</h2>
+<h2 id="mantenimiento-a-los-reportes-de-error">Mantenimiento a los reportes de error</h2>
 
 <ul>
-  <li>Revive o cerrar entradas de edad.</li>
-  <li>Crear casos de prueba mínima que se reproducen los insectos. Luego ver si
-hay ya RubySpecs para la expedición. Si no, considere escribir algunas.</li>
+  <li>Reviva o cierre algunos reportes de error viejos.</li>
+  <li>Creé casos de prueba mínima en los que se presenten
+anomalias. Luego vea si hay algún RubySpecs para ese caso.
+Si no, considere escribir uno.</li>
 </ul>
 
 
@@ -201,16 +201,16 @@ hay ya RubySpecs para la expedición. Si no, considere escribir algunas.</li>
         <div class="container doc_page_nav">
       
         
-        <span class="label">Previous:</span>
-        <a href="/doc/es/getting-started/troubleshooting">Troubleshooting</a>
+        <span class="label">Anterior:</span>
+        <a href="/doc/es/getting-started/troubleshooting">Resolviendo problemas</a>
         
 
-        <span class="label">Up:</span>
-        <a href="/doc/es/">Tabla de Contenidos</a>
+        <span class="label">Subir:</span>
+        <a href="/doc/es/">Tabla de Contenido</a>
 
         
-        <span class="label">Next:</span>
-        <a href="/doc/es/contributing/communication">Communication</a>
+        <span class="label">Siguiente:</span>
+        <a href="/doc/es/contributing/communication">Comunicación</a>
         
       
     </div>

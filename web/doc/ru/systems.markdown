@@ -8,8 +8,8 @@ next_url: systems/primitives
 review: true
 ---
 
-1. [Примитивы](/doc/en/systems/primitives/)
-1. [FFI](/doc/en/systems/ffi/)
-1. [Многопоточность](/doc/en/systems/concurrency/)
-1. [Ввод/Вывод](/doc/en/systems/io/)
-1. [C-API](/doc/en/systems/c-api/)
+1. [Примитивы](/doc/ru/systems/primitives/)
+1. [FFI](/doc/ru/systems/ffi/)
+1. [Многопоточность](/doc/ru/systems/concurrency/)
+1. [Ввод/Вывод](/doc/ru/systems/io/)
+1. [C-API](/doc/ru/systems/c-api/)

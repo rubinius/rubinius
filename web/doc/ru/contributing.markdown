@@ -20,7 +20,7 @@ Below are several ideas for things to do on Rubinius.
 ## Run Your Code
 
 Your code is often more vicious than the specs. Run your pet project under
-rubinius and report issues. See [How To Создание Тикета](/doc/en/how-to/write-a-ticket).
+rubinius and report issues. See [How To Создание Тикета](/doc/ru/how-to/write-a-ticket).
 
 
 ## Ask For Help
@@ -47,7 +47,7 @@ that fixes it.
      that subdirectory.
 
   2. Find unspecified behaviors. See [How To Write a Ruby
-     Spec](/doc/en/how-to/write-a-ruby-spec).
+     Spec](/doc/ru/how-to/write-a-ruby-spec).
 
 
 ## Fix Failing Specs
@@ -76,7 +76,7 @@ them. Here's a command to search the code:
 
     `grep -re "@todo\|TODO\|HACK\|FIXME" .`
 
-Review the [Стиль Кодирования](/doc/en/contributing/style-guide/) for
+Review the [Стиль Кодирования](/doc/ru/contributing/style-guide/) for
 coding guidelines.
 
 
