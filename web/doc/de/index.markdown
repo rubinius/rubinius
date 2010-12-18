@@ -9,7 +9,7 @@ next_url: what-is-rubinius
 1. [Was ist Rubinius?](/doc/de/what-is-rubinius/)
 1. [Erste Schritte](/doc/de/getting-started/)
     1. [Voraussetzungen](/doc/de/getting-started/requirements/)
-    1. [Bauen](/doc/de/getting-started/building/)
+    1. [Rubinius bauen](/doc/de/getting-started/building/)
     1. [Rubinius ausführen](/doc/de/getting-started/running-rubinius/)
     1. [Problemlösungen](/doc/de/getting-started/troubleshooting/)
 1. [Mitmachen](/doc/de/contributing/)
