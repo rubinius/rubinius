@@ -438,7 +438,10 @@ class Configure
 
     if File.exists?(path)
       @log.print "  Unpacking LLVM source: "
-      system "cd #{@llvm_parent_path}; #{@tar} xzf #{path}; mv #{@llvm_source_dir} llvm"
+      Dir.chdir @llvm_parent_path do
+        system "#{@tar} xzf #{path}"
+        FileUtils.mv @llvm_source_dir, "llvm"
+      end
       @log.write "done!"
 
       if File.exists?(@llvm_include_path)
@@ -486,7 +489,11 @@ class Configure
 
       if File.exists?(path)
         @log.print "  Unpacking prebuilt LLVM: #{file}: "
-        system "cd #{@llvm_parent_path}; mkdir llvm; cd llvm; #{@tar} xjf #{path}"
+        dir = File.join @llvm_parent_path, "llvm"
+        FileUtils.mkdir_p dir
+        Dir.chdir dir do
+          system "#{@tar} xjf #{path}"
+        end
         @log.write "done!"
         @llvm = :prebuilt
         return true
