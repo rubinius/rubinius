@@ -1,30 +1,36 @@
 ---
 layout: doc_ger
-title: Appendix B - Reading List
-previous: Appendix A - Glossary
+title: Anhang B - Literaturverzeichnis
+previous: Anhang A - Glossar
 previous_url: appendix-a-glossary
-next: Terms Index
+next: Begriffsindex
 next_url: terms-index
 review: true
 ---
 
-Building virtual machines in general and programming language implementations
-in particular requires some knowledge. Rubinius' goal is to lower the barrier
-by keeping as much as possible in Ruby but to hack on the garbage collector you
-have to understand what's going on behind the curtains.
+Die Entwicklung von Virtuellen Maschinen im Allgemeinen und
+Programmiersprachenimplementierungen im Speziellen bedarf einiges an
+Wissen. Das Ziel von Rubinius ist es, den Einstieg in das Thema
+einfach zu halten. Dazu verfolgt Rubinius u.a. das Ziel, so viel wie
+möglich in Ruby selbst zu implementieren. Um aber am Garbage Collector
+mitzuentwickeln, muss man wissen was hinter den High-level Konzepten
+steckt.
 
-This page contains references to books, online lectures, blog posts and any
-other publications you may find useful for working on Rubinius.
+Diese Seite enthält Verweise auf Bücher, online Literatur, Blogposts
+und sonstige Publikationen die bei der Entwicklung an Rubinius
+behilflich sein können.
 
-NOTE that some of these links refer to outdated information about Rubinius.
+Beachte, dass sich einige dieser Links auf veraltete Informationen
+bzgl. Rubinius beziehen können.
 
-## Virtual machine
+## Virtuelle Maschine
 
-  * [Smalltalk-80: language and its implementation](http://tinyurl.com/3a2pdq)
-    by Goldberg, Robson, Harrison (aka "The Blue Book"), implementation
-    chapters from part IV are [available online](http://tinyurl.com/6zlsd)
+  * [Smalltalk-80: language and its
+    implementation](http://tinyurl.com/3a2pdq) by Goldberg, Robson,
+    Harrison (aka "The Blue Book"), Kapitel zur Implementierung der VM
+    aus Teil IV sind [online verfügbar](http://tinyurl.com/6zlsd)
   * [Virtual machines](http://tinyurl.com/3ydkqg) by Iain D. Craig
-  * Great posts by Adam Gardiner: [introduction](http://tinyurl.com/35y2jh),
+  * Sehr gute Posts von Adam Gardiner: [introduction](http://tinyurl.com/35y2jh),
     [How send sites work](http://tinyurl.com/34c6e8)
 
 
