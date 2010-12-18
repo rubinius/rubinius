@@ -1,17 +1,18 @@
 ---
 layout: doc_de
-title: Troubleshooting
-previous: Running Rubinius
+title: Problemlösungen
+previous: Rubinius ausführen
 previous_url: getting-started/running-rubinius
-next: Contributing
+next: Mitmachen
 next_url: contributing
 ---
 
-The following are errors that you may encounter while building, installing, or
-running Rubinius along with suggested solutions.
+Im Folgenden werden Fehler beschrieben, welche während des Bauvorgangs
+oder der Installation auftreten können sowie mögliche Fehlerbehebungsansätze.
 
-For any error, a first step is to ensure you have a current, clean checkout of
-Rubinius. Before going further, consider running the following steps:
+Im Falle eines Fehler sollte zunächst sichergestellt sein, dass eine
+aktuelle, sauber ausgecheckte (clean checkout) Version von Rubinius
+vorliegt. Dazu können folgende Befehle ausgeführt werden:
 
     $ git co master
     $ git reset --hard
@@ -20,7 +21,7 @@ Rubinius. Before going further, consider running the following steps:
     $ rake
 
 
-Error:
+Fehler:
 
     ERROR: unable to find runtime directory
 
@@ -36,15 +37,15 @@ Error:
     You may have configured Rubinius for a different install
     directory but you have not run 'rake install' yet.
 
-Solution:
+Lösung:
 
-  If you configured Rubinius with a `--prefix`, run rake install.
+  Falls Rubinius via `--prefix` konfiguriert wurde, führe `rake install` aus.
 
-  If you configured Rubinius with a `--prefix` and renamed the install
-  directory after installing Rubinius, re-configure Rubinius and reinstall it.
+  Falls Rubinius via `--prefix` konfiguriert wurde und das
+  Installationsverzeichnis nach der Installation umbenannt wurde muss
+  Rubinius neu konfiguriert und installiert werden.
 
-  If you renamed the source directory after building Rubinius, re-configure
-  and rebuild it.
+  Falls das Quellverzeichnis nach dem Bauvorgang umbenannt wurde muss
+  Rubinius neu konfiguriert und installiert werden.
 
-  In general, do not rename the source or build directory after building
-  Rubinius.
+  Generell sollte das Quell- oder Bauverzeichnis nicht nach dem Bauvorgang umbenannt werden.
