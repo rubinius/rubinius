@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Ruby Parser
 previous: Bytecode Compiler
 previous_url: bytecode-compiler

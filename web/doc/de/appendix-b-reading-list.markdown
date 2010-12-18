@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Anhang B - Literaturverzeichnis
 previous: Anhang A - Glossar
 previous_url: appendix-a-glossary

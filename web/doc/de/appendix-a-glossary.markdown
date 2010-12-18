@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Anhang A - Glossar
 previous: Anleitung - Übersetzen von Dokumentation
 previous_url: how-to/translate-documentation

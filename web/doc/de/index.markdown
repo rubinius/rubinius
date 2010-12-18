@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Inhaltsverzeichnis
 toc: true
 next: Was ist Rubinius?

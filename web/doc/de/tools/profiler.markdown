@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Profiler
 previous: Debugger
 previous_url: tools/debugger

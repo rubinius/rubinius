@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Running Rubinius
 previous: Building
 previous_url: getting-started/building

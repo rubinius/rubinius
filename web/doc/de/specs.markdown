@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Specs
 previous: Ruby - Global Variables
 previous_url: ruby/global-variables

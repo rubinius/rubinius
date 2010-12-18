@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Concurrency
 previous: FFI
 previous_url: systems/ffi

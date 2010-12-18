@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Communication
 previous: Contributing
 previous_url: contributing

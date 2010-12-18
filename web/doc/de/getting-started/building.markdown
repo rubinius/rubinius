@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Building Rubinius
 previous: Requirements
 previous_url: getting-started/requirements

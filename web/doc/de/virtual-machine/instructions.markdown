@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Instructions
 previous: Virtual Machine
 previous_url: virtual-machine

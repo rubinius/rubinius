@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Custom Dispatch Logic
 previous: Instructions
 previous_url: virtual-machine/instructions

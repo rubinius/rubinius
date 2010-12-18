@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 next: Getting Started
 next_url: getting-started
 ---

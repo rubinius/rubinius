@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Blocks & Procs
 previous: Classes & Modules
 previous_url: ruby/classes-and-modules

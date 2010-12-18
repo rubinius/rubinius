@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Generator
 previous: Transformations
 previous_url: bytecode-compiler/transformations

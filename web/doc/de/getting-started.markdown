@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Getting Started
 previous: What is Rubinius?
 previous_url: what-is-rubinius

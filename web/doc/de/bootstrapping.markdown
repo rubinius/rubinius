@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Bootstrapping
 previous: Bausystem
 previous_url: build-system

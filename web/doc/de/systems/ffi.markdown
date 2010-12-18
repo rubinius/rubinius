@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Foreign Function Interface
 previous: Primitives
 previous_url: systems/primitives

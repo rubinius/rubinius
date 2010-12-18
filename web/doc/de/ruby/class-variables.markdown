@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Class Variables
 previous: Instance Variables
 previous_url: ruby/instance-variables

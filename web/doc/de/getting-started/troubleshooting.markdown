@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Troubleshooting
 previous: Running Rubinius
 previous_url: getting-started/running-rubinius

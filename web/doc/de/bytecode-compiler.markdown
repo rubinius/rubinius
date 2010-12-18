@@ -1,5 +1,5 @@
 ---
-layout: doc_ger
+layout: doc_de
 title: Bytecode Compiler
 previous: Virtual Machine - Custom Dispatch Logic
 previous_url: virtual-machine/custom-dispatch-logic
