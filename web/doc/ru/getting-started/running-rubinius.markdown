@@ -7,27 +7,27 @@ next: Разрешение Проблем
 next_url: getting-started/troubleshooting
 ---
 
-Once you have followed the steps for building (and possibly installing)
-Rubinius, you can verify it is working:
+После того, как вы прошли шаги по сборке (и, возможно, установке)
+Rubinius, можно проверить его работоспособность:
 
     rbx -v
 
-Rubinius generally works like Ruby from the command-line. For example:
+Как правило, Rubinius работает из командной строки так же как и Ruby. Пример:
 
     rbx -e 'puts "Hello!"'
 
-To run a ruby file named 'code.rb':
+Для запуска ruby файла с именем 'code.rb':
 
     rbx code.rb
 
-To run IRB:
+Для запуска IRB:
 
     rbx
 
-If you added the Rubinius bin directory to your PATH, Rubinius should perform
-just as you would expect from MRI. There are commands for `ruby`, `rake`,
-`gem`, `irb`, `ri`, and `rdoc`.
+Если вы добавили директорию bin Rubinius в ваш PATH, вы можете ожидать
+от Rubinius такого же поведения, как от MRI. Будут доступны команды
+`ruby`, `rake`, `gem`, `irb`, `ri`, and `rdoc`.
 
-You can add the Rubinius bin directory to your PATH only when you want to use
-Rubinius. This way, it will not interfere with your normally installed Ruby
-when you do not want to use Rubinius.
+Можно добавить директорию bin Rubinius в PATH только тогда, когда вы захотите
+использовать Rubinius. Так он не будет мешать вашей обычной версии
+Ruby в случаях, когда использовать Rubinius не нужно.
