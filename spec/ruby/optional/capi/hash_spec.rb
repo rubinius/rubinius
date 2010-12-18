@@ -45,6 +45,10 @@ describe "C-API Hash function" do
     it "returns a new hash" do
       @s.rb_hash_new.should == {}
     end
+
+    it "creates a hash with no default proc" do
+      @s.rb_hash_new {}.default_proc.should be_nil
+    end
   end
 
   describe "rb_hash_aref" do
