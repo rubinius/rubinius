@@ -4,7 +4,7 @@ title: Anhang B - Literaturverzeichnis
 previous: Anhang A - Glossar
 previous_url: appendix-a-glossary
 next: Begriffsindex
-next_url: terms-index
+next_url: index-of-terms
 review: true
 ---
 
