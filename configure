@@ -439,7 +439,7 @@ class Configure
     if File.exists?(path)
       @log.print "  Unpacking LLVM source: "
       Dir.chdir @llvm_parent_path do
-        system "#{@tar} xzf #{path}"
+        system "#{@tar} xzf #{path} && sleep 0"
         FileUtils.mv @llvm_source_dir, "llvm"
       end
       @log.write "done!"
