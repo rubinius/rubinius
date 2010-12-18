@@ -1,28 +1,33 @@
 ---
 layout: doc_de
-title: How-To - Write a Blog Post
-previous: Fix a Failing Spec
+title: Anleitung - Einen Blogeintrag schreiben
+previous: Einen fehlgeschlagenen Spec reparieren
 previous_url: how-to/fix-a-failing-spec
-next: Write Documentation
+next: Dokumentation schreiben
 next_url: how-to/write-documentation
 ---
 
-The Rubinius blog uses Jekyll and is integrated with the website and
-documentation. We encourage and appreciate guest blog posts about your
-experiences using or developing Rubinius.
+Der Rubinius Blog benutzt Jekyll und ist in die Webseite und
+Dokumentationsseiten integriert. Wir unterstützen und schätzen
+Gasteinträge über Erfahrungen die beim Nutzen und Entwickeln von
+Rubinius gemacht wurden.
 
-To get started, ensure you have the `kramdown` and `jekyll` gems installed.
+Für den Einstieg sollte sichergestellt sein, dass die `kramdown` and
+`jekyll` Gems installiert sind.
 
     rbx gem install jekyll kramdown
 
-The preferred format for blog posts is Markdown. However, if you have special
-formatting needs, the post can be written in HTML directly.
+Das bevorzugte Format für Blogeinträge ist Markdown. Falls allerdings
+spezielle Formatierungsoptionen benötigt werden kann der Eintrag auch
+direkt in HTML verfasst werden.
 
-1. Create a file in `web/_posts/` using the format
-   `YYYY-MM-DD-perma-link.markdown` for the file name.
-1. Write the post.
-1. In the `web/` directory, run `rbx -S jekyll`.
-1. Create a commit of all the changes in the `web/` directory.
-1. Submit a patch, or if you have commit rights, push the commit to master.
-1. Tell us that there is a new blog post. We may have some feedback for you
-   before publishing.
+1. Erstelle eine Datei in `web/_posts/` mit dem Format
+   `YYYY-MM-DD-perma-link.markdown` als Dateinamen.
+1. Schreibe den Eintrag.
+1. Im `web/` Verzeichnis, führe `rbx -S jekyll` aus.
+1. Erstelle einen Commiteintrag mit all den Veränderungen im `web/` Verzeichnis.
+1. Reiche einen Patch ein oder falls du Commitrechte besitzt pushe den
+   Commiteintrag in den master Zweig.
+1. Sag uns bescheid, wenn es einen neuen Blogeintrag gibt. Eventuell
+   haben wir ein paar Rückmeldungen bzgl. deines Eintrags bevor er
+   veröffentlicht wird.

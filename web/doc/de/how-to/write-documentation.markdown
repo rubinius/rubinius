@@ -1,31 +1,36 @@
 ---
 layout: doc_de
-title: How-To - Write Documentation
-previous: Write a Blog Post
+title: Anleitung - Dokumentation schreiben
+previous: Einen Blogeintrag schreiben
 previous_url: how-to/write-a-blog-post
-next: Translate Documentation
+next: Dokumentation übersetzen
 next_url: how-to/translate-documentation
 ---
 
-The Rubinius documentation is integrated with the website and blog. It uses
-Jekyll just like the other components.
+Die Dokumentation für Rubinius ist integriert mit der Website und dem
+Blog. Es nutzt Jekyll genauso wie die übrigen Komponenten.
 
-To get started, ensure you have the `kramdown` and `jekyll` gems installed.
+Um zu starten, stelle sicher, dass du die `kramdown` und `jekyll` Gems
+installiert hast.
 
     rbx gem install jekyll kramdown
 
-The documentation source is under the `web/doc` directory. There are
-subdirectories for each language to which the documentation has been
-translated (eg `en`, `es`, etc.).
+Die Dokumentationsquellen befinden sich im `web/doc` Verzeichnis. Es
+existieren dort Unterverzeichnisse für jede Sprache, für die es
+bereits eine Übersetzung gibt (wie z.B. der deutschen Übersetzung
+hier).
 
-There is a Table of Contents for each translation (e.g.
-`/web/doc/en/index.markdown`). The rest of the documentation consists of
-single files that have YAML attributes to specify how the documents are
-connected. Essentially, the documentation can be viewed as a doubly-linked
-list of documents with each document pointing to the previous and next
-document. The Table of Contents document shows the complete structure.
+Jede Übersetzung besitzt ein Inhaltsverzeichnis
+(z.B. `/web/doc/en/index.markdown`). Der Rest der Dokumentation
+besteht aus einzelnen Dateien, welche YAML Attribute benutzen um
+anzugeben, wie die Dokumente zueinander in Beziehung stehen. Im
+Prinzip kann man die Dokumentation als eine doppelt verkettete Liste
+von Dokumenten verstehen, bei der jedes Dokument auf ein Vorgänger-
+sowie einen Nachfolgedokument verweist. Das Inhaltsverzeichnis
+Dokument zeigt dabei die komplette Struktur aller übrigen Dokumente
+an.
 
-The YAML attributes in a document look like the following:
+Die YAML Attribute in einem Dokument sehen in etwa wie folgt aus:
 
     ---
     layout: doc_en
@@ -36,41 +41,45 @@ The YAML attributes in a document look like the following:
     next_url: how-to/translate-documentation
     ---
 
-The _layout_ specifies which Jekyll layout to use when formatting the
-document. The _layout_ should be `doc_LANG`, where _LANG_ is the ISO-639-2
-code for the language.
+Das _layout_ gibt an, welches Jekyll Layout bei der Formatierung des
+Dokuments genutzt werden soll. Das _layout_ sollte `doc_LANG`
+entsprechen, wobei _LANG_ ein ISO-639-1 Code für die Sprache ist.
 
-The _title_ specifies the document title that is displayed at the top of the
-page.
+Das _title_ gibt den Dokumententitel an, welcher am oberen Rand der Seite dargestellt wird.
 
-The _previous_ and _previous\_url_ attributes give the title and link to the
-previous document. Likewise, the _next_ and _next\_url_ attributes give the
-title and link for the next document. These are used to enhance browsing the
-documentation and limiting the amount of work necessary to re-order parts of
-the documentation.
-
-
-### Editing Existing Documentation
-
-An initial outline for the documentation has been created. There are many
-topics that merely need to have documentation written for them.
-
-To add documentation for an existing topic, or to fix existing documentation,
-open the file for the topic under `web/doc/LANG` and add or improve the
-documentation.
+Die _previous_ und _previous\_url_ Attribute stellen den Titel sowie
+Link zum vorherigen Dokument dar. Gleichermaßen entsprechen die _next_
+und _next\_url_ Attribute den Titel und Link zum folgenden
+Dokument. Dies wird benutzt um das Lesen und Durchstöbern der
+Dokumentationsseiten zu vereinfachen und den Arbeitsaufwand beim
+Neuordnen von Dokumentationsabschnitten zu minimieren.
 
 
-### Adding New Documentation
+### Vorhandene Dokumentation bearbeiten
 
-To add documentation for which no existing topic exists:
+Ein anfänglicher Entwurf für die Dokumentation wurde bereits
+erstellt. Es gibt aber noch viele Themen, welche noch Dokumentation
+bedürfen.
 
-1. Create a new file with the .markdown extension under `web/doc/LANG`.
-1. Set up the attributes to link the new file into the existing files. This
-   will require editing the _previous_ and _next_ attributes of the existing
-   files to insert the new file, as well as adding an entry to
-   `index.markdown`.
-1. To view your updates while you are working on them, run
-   `rbx -S jekyll --server --auto`
-1. Edit the new file using Markdown syntax.
-1. In the `web/` directory, run `rbx -S jekyll`.
-1. Commit all the changes in the `web/` directory.
+Um Dokumentation für ein bestehendes Thema hinzuzufügen oder
+vorhandene Dokumentation zu verbessern, öffne die Datei für das
+jeweilige Thema unter `web/doc/LANG` und füge dort neue Dokumentation
+hinzu oder überarbeite diese.
+
+
+### Neue Dokumentation hinzufügen
+
+Um neue Dokumentation für bisher nicht dokumentierte Themen hinzuzufügen:
+
+1. Erstelle eine neue Datei mit der .markdown Dateiendung unter `web/doc/LANG`.
+
+1. Richte die YAML Attribute ein, sodass auf die neue Datei innerhalb
+   der existierenden Dokumente verlinkt wird. Dies erfordert das
+   Editieren der _previous_ and _next_ Attribute der existierenden
+   Dateien um die neue Datei einzufügen sowie das Hinzufügen eines
+   Eintrags in `index.markdown`.
+1. Um deine Veränderungen zu sehen, während du daran arbeitest kannst
+   du `rbx -S jekyll --server --auto` ausführen.
+1. Editieren die neue Datei mit der Markdown Syntax.
+1. Im `web/` Verzeichnis, führe `rbx -S jekyll` aus.
+1. Committe alle Veränderungen im `web/` Verzeichnis.

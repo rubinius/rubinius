@@ -1,37 +1,39 @@
 ---
 layout: doc_de
-title: How-To - Translate Documentation
-previous: Write Documentation
+title: Anleitung - Dokumentation übersetzen
+previous: Dokumentation schreiben
 previous_url: how-to/write-documentation
-next: Appendix A - Glossary
+next: Anhang A - Glossar
 next_url: appendix-a-glossary
 ---
 
-There are two translation tasks:
+Es gibt zwei Übersetzungsaufgaben:
 
-1. updating an existing translation
-1. creating a completely new translation
+1. Eine existierende Übersetzung aktualisieren
+1. Eine komplett neue Übersetzung anlegen
 
-Begin by reading [How-To - Write
-Documentation](/doc/en/how-to/write-documentation/)
-
-
-### Updating an Existing Translation
-
-To update an existing translation, open the topic file under `web/doc/LANG`
-and edit the existing text or add newly translated text.
+Zunächst sollte [Anleitung - Schreibe Dokumentation](/doc/de/how-to/write-documentation/) gelesen werden.
 
 
-### Creating a New Translation
+### Eine existierende Übersetzung aktualisieren
 
-To create a new language translation:
+Um eine existierende Übersetzung zu aktualisieren, öffne eine
+Themendatei unter `web/doc/LANG` und bearbeite den vorhandenen Text
+oder füge neuen übersetzten Text ein.
 
-1. Copy `web/doc/en` to `web/doc/LANG` where _LANG_ is the
-   [ISO-639-1](http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes) code for
-   the language translation you are creating.
-1. Edit the links in the Table of Contents to point to the location of the
-   files for the translation. (Note that for some reason the `page.base_dir`
-   attribute is not available when these files are being rendered by Jekyll.
-   This needs to be investigated.)
-1. Translate the English text to the target language.
+
+### Eine neue Übersetzten anlegen
+
+Um eine neue Übersetztung für eine weitere Sprache anzulegen, gehe wie
+folgt vor:
+
+1. Kopiere `web/doc/en` nach `web/doc/LANG`, wobei _LANG_ der
+   [ISO-639-1](http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes) Code ist für
+   die Sprache der Übersetzung die angelegt werden soll.
+1. Bearbeite die Links im Inhaltsverzeichnis, sodass diese auf die
+   übersetzten Dateien verweisen. (Beachte, dass aus derzeit
+   unbekannten Gründen das `page.base_dir` Attribut nicht verfügbar
+   ist, wenn diese Dateien von Jekyll generiert werden. Das Problem
+   muss noch untersucht werden.)
+1. Übersetzte den englischen Text in die Zielsprache.
 
