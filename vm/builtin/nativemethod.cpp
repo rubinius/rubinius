@@ -636,9 +636,6 @@ namespace rubinius {
         env->get_handle(msg.method),
         env->get_handle(msg.module));
 
-    // Propagate the block passed to the native function.
-    env->set_outgoing_block(env->get_handle(args.block()));
-
     Object* ret;
     ExceptionPoint ep(env);
 
