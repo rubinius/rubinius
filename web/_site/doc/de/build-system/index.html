@@ -1,0 +1,44 @@
+<p>TODO: Many details are missing.</p>
+
+<p>Rubinius uniformly uses Rake as the build system for its own files. However
+Rubinius also includes the source for several external libraries and these
+typically use makefiles.</p>
+
+<h2 id="development-versus-install-builds">Development versus Install Builds</h2>
+
+<p>Rubinius consists of the executable, and various support files like the core
+and standard libraries. The executable needs to know where to find these files
+even if moved to a different location. To handle this problem, Rubinius
+distinguishes two build types: development and install. The executable stores
+the full path to its base directory, relative to which it expects to find the
+files it needs.</p>
+
+<p>The development executable stores the path to the source directory in which it
+was built. You can then move the executable to a different location but as you
+make changes to the core library files in the kernel/** directories, the
+executable will continue to use those files.</p>
+
+<p>The install executable stores the path to the install directory. Again, even if
+the executable is moved to a new location, it will continue to find the
+installed files.</p>
+
+<p>This has consequences, of course. If you build a development executable and then
+rename your source directory, you will need to rebuild. Likewise, if you build an
+install executable and rename the install directory, the executable will <em>not</em>
+function, <em>even if the executable is in the directory</em>. The executable checks a
+single, hard-coded path. If this ends up being very painful for some reason,
+we&rsquo;ll revise it.</p>
+
+<h2 id="installing-rubinius">Installing Rubinius</h2>
+
+<p>To install Rubinius, you must first configure it with an install prefix:</p>
+
+<pre><code>./configure --prefix=/path/to/install/dir
+</code></pre>
+
+<p>The configure process creates a &lsquo;config.rb&rsquo; file that specifies the key file
+paths that Rubinius uses. Once configured, run &lsquo;rake install&rsquo; to build and
+install. The install procedure builds all the files, including compiling the
+Ruby standard library files in the lib/ directory, then copies them into the
+install location using the &lsquo;install&rsquo; program. The install tasks are located in
+rakelib/install.rake.</p>

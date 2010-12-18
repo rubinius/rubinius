@@ -1,0 +1,42 @@
+<p>The following are errors that you may encounter while building, installing, or
+running Rubinius along with suggested solutions.</p>
+
+<p>For any error, a first step is to ensure you have a current, clean checkout of
+Rubinius. Before going further, consider running the following steps:</p>
+
+<pre><code>$ git co master
+$ git reset --hard
+$ git pull
+$ rake distclean
+$ rake
+</code></pre>
+
+<p>Error:</p>
+
+<pre><code>ERROR: unable to find runtime directory
+
+Rubinius was configured to find the runtime directory at:
+
+  /Users/brian/devel/rubinius/runtime
+
+but that directory does not exist.
+
+Set the environment variable RBX_RUNTIME to the location
+of the directory with the compiled Rubinius kernel files.
+
+You may have configured Rubinius for a different install
+directory but you have not run 'rake install' yet.
+</code></pre>
+
+<p>Solution:</p>
+
+<p>If you configured Rubinius with a <code>--prefix</code>, run rake install.</p>
+
+<p>If you configured Rubinius with a <code>--prefix</code> and renamed the install
+  directory after installing Rubinius, re-configure Rubinius and reinstall it.</p>
+
+<p>If you renamed the source directory after building Rubinius, re-configure
+  and rebuild it.</p>
+
+<p>In general, do not rename the source or build directory after building
+  Rubinius.</p>

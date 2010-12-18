@@ -1,0 +1,30 @@
+<p>There are two translation tasks:</p>
+
+<ol>
+  <li>updating an existing translation</li>
+  <li>creating a completely new translation</li>
+</ol>
+
+<p>Begin by reading <a href="/doc/en/how-to/write-documentation/">How-To - Write
+Documentation</a></p>
+
+<h3 id="updating-an-existing-translation">Updating an Existing Translation</h3>
+
+<p>To update an existing translation, open the topic file under <code>web/doc/LANG</code>
+and edit the existing text or add newly translated text.</p>
+
+<h3 id="creating-a-new-translation">Creating a New Translation</h3>
+
+<p>To create a new language translation:</p>
+
+<ol>
+  <li>Copy <code>web/doc/en</code> to <code>web/doc/LANG</code> where <em>LANG</em> is the
+<a href="http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes">ISO-639-1</a> code for
+the language translation you are creating.</li>
+  <li>Edit the links in the Table of Contents to point to the location of the
+files for the translation. (Note that for some reason the <code>page.base_dir</code>
+attribute is not available when these files are being rendered by Jekyll.
+This needs to be investigated.)</li>
+  <li>Translate the English text to the target language.</li>
+</ol>
+

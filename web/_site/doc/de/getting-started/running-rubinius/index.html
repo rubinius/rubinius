@@ -1,0 +1,28 @@
+<p>Once you have followed the steps for building (and possibly installing)
+Rubinius, you can verify it is working:</p>
+
+<pre><code>rbx -v
+</code></pre>
+
+<p>Rubinius generally works like Ruby from the command-line. For example:</p>
+
+<pre><code>rbx -e 'puts "Hello!"'
+</code></pre>
+
+<p>To run a ruby file named &lsquo;code.rb&rsquo;:</p>
+
+<pre><code>rbx code.rb
+</code></pre>
+
+<p>To run IRB:</p>
+
+<pre><code>rbx
+</code></pre>
+
+<p>If you added the Rubinius bin directory to your PATH, Rubinius should perform
+just as you would expect from MRI. There are commands for <code>ruby</code>, <code>rake</code>,
+<code>gem</code>, <code>irb</code>, <code>ri</code>, and <code>rdoc</code>.</p>
+
+<p>You can add the Rubinius bin directory to your PATH only when you want to use
+Rubinius. This way, it will not interfere with your normally installed Ruby
+when you do not want to use Rubinius.</p>
