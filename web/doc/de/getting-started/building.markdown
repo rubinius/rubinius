@@ -1,7 +1,7 @@
 ---
 layout: doc_de
 title: Rubinius bauen
-previous: Requirements
+previous: Abhängigkeiten
 previous_url: getting-started/requirements
 next: Rubinius ausführen
 next_url: getting-started/running-rubinius
