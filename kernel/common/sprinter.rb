@@ -1106,7 +1106,7 @@ module Rubinius
           elsif literal_char
             append_literal literal_char
           elsif invalid_format || (field_ref_a && field_ref_b)
-            raise ArgumentError, "malformed format string"
+            raise ArgumentError, "malformed format string: #{@format.inspect}"
           else
             field_ref = field_ref_a || field_ref_b
             flags = "#{flags_a}#{flags_b}"
