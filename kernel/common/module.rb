@@ -352,7 +352,7 @@ class Module
   end
 
   def extend_object(obj)
-    append_features Rubinius.object_metaclass(obj)
+    include_into Rubinius.object_metaclass(obj)
   end
 
   def include?(mod)

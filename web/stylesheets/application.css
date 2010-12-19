@@ -372,19 +372,22 @@ a.instruction:hover {
   -webkit-border-radius: 0;
 };
 
-.blog_posts a.title {
-  font-size: 3em;
+.blog_posts h2.post_title {
+  margin-bottom: 0.25em;
+}
+
+.blog_posts h2 a.post_title {
   font-weight: bold;
   letter-spacing: -0.04em;
-  color: #000000;
+  color: black;
   margin-left: -0.25em;
 }
 
-.blog_posts a.title:hover {
-  color: #ffffff;
+.blog_posts h2 a.post_title:hover {
+  color: white;
 }
 
-.blog_posts h2.title {
+.blog_posts h2.post_title {
   margin-bottom: 0.25em;
 }
 
@@ -541,12 +544,6 @@ a.instruction:hover {
   border-radius: .25em;
   -moz-border-radius: .25em;
   -webkit-border-radius: .25em;
-}
-
-.blog_posts a.title {
-}
-
-.blog_posts div.by_line {
 }
 
 .diagram {
