@@ -1,16 +1,16 @@
 ---
 layout: doc_de
-title: How-To
-previous: Tools - Memory Analysis
+title: Anleitungen
+previous: Tools - Speicher Analyse
 previous_url: tools/memory-analysis
-next: Write a Ticket
+next: Ein Ticket erstellen
 next_url: how-to/write-a-ticket
 review: true
 ---
 
-1. [Write a Ticket](/doc/en/how-to/write-a-ticket/)
-1. [Write a Ruby Spec](/doc/en/how-to/write-a-ruby-spec/)
-1. [Fix a Failing Spec](/doc/en/how-to/fix-a-failing-spec/)
-1. [Write a Blog Post](/doc/en/how-to/write-a-blog-post/)
-1. [Write Documentation](/doc/en/how-to/write-documentation/)
-1. [Translate Documentation](/doc/en/how-to/translate-documentation/)
+1. [Ein Ticket erstellen](/doc/de/how-to/write-a-ticket/)
+1. [Ein Ruby Spec schreiben](/doc/de/how-to/write-a-ruby-spec/)
+1. [Einen fehlgeschlagenen Spec reparieren](/doc/de/how-to/fix-a-failing-spec/)
+1. [Einen Blogeintrag schreiben](/doc/de/how-to/write-a-blog-post/)
+1. [Dokumentation schreiben](/doc/de/how-to/write-documentation/)
+1. [Dokumentation übersetzen](/doc/de/how-to/translate-documentation/)
