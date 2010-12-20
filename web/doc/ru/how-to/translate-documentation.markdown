@@ -26,7 +26,8 @@ and edit the existing text or add newly translated text.
 
 To create a new language translation:
 
-1. Copy `web/doc/en` to `web/doc/LANG` where _LANG_ is the ISO-639-2 code for
+1. Copy `web/doc/en` to `web/doc/LANG` where _LANG_ is the
+   [ISO-639-1](http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes) code for
    the language translation you are creating.
 1. Edit the links in the Table of Contents to point to the location of the
    files for the translation. (Note that for some reason the `page.base_dir`
