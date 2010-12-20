@@ -25,7 +25,7 @@ class Proc
       # Support for ancient pre-block-pass style:
       # def something; Proc.new; end
       # something { a_block } => Proc instance
-      env = Rubinius::VariableScope.of_sender.block
+      env = Rubinius::BlockEnvironment.of_sender
     end
 
     if env

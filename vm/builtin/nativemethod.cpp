@@ -578,6 +578,13 @@ namespace rubinius {
         return env->get_object(ret);
       }
 
+      case C_LAMBDA: {
+        VALUE cb = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
+        VALUE val = env->get_handle(args.as_array(state));
+        VALUE ret = nm->func()(val, cb);
+        return env->get_object(ret);
+      }
+
       case C_CALLBACK: {
         VALUE cb = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
 
@@ -640,9 +647,6 @@ namespace rubinius {
         env->get_handle(args.block()),
         env->get_handle(msg.method),
         env->get_handle(msg.module));
-
-    // Propagate the block passed to the native function.
-    env->set_outgoing_block(env->get_handle(args.block()));
 
     Object* ret;
     ExceptionPoint ep(env);

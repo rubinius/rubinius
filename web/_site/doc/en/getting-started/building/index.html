@@ -53,6 +53,10 @@
         <span class="label">Languages:</span>
         <ul>
         
+          <li><a href="/doc/de/"
+          
+          >de</a></li>
+        
           <li><a href="/doc/en/"
           
             class="current"
@@ -106,8 +110,11 @@ install Rubinius to run it. The directions below will detail both installing
 Rubinius and running it from the source directory.</p>
 
 <p>Rubinius uses LLVM for the JIT compiler. Rubinius depends on a particular
-version of LLVM. If you have installed LLVM on your system, pass the
-<code>--skip-system</code> flag to the configure script in the directions below.</p>
+version of LLVM and LLVM must be built with C++ RTTI (run-time type
+information) enabled.  The <code>configure</code> script will automatically verify these
+requirements when searching for an installed version of LLVM. If you do have
+LLVM installed and Rubinius fails to link with it for any reason, pass
+<code>--skip-system</code> to the <code>configure</code> script in the directions below.</p>
 
 <h3 id="getting-the-source">Getting the Source</h3>
 

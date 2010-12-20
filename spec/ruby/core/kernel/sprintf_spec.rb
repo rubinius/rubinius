@@ -225,6 +225,34 @@ describe "Kernel#sprintf" do
     sprintf("%#030.24u", 123).should == "      000000000000000000000123"
   end
 
+  it "passes some tests for positive %f" do
+    sprintf("%30f", 123.1).should == "                    123.100000"
+    sprintf("%030f", 123.1).should == "00000000000000000000123.100000"
+
+    sprintf("%#30f", 123.1).should == "                    123.100000"
+    sprintf("%#030f", 123.1).should == "00000000000000000000123.100000"
+
+    sprintf("%10.4f", 123.1).should == "  123.1000"
+    sprintf("%010.4f", 123.1).should == "00123.1000"
+
+    sprintf("%10.0f", 123.1).should == "       123"
+    sprintf("%010.0f", 123.1).should == "0000000123"
+  end
+
+  it "passes some tests for negative %f" do
+    sprintf("%30f", -123.5).should == "                   -123.500000"
+    sprintf("%030f", -123.5).should == "-0000000000000000000123.500000"
+
+    sprintf("%#30f", -123.5).should == "                   -123.500000"
+    sprintf("%#030f", -123.5).should == "-0000000000000000000123.500000"
+
+    sprintf("%10.4f", -123.5).should == " -123.5000"
+    sprintf("%010.4f", -123.5).should == "-0123.5000"
+
+    sprintf("%10.0f", -123.5).should == "      -124"
+    sprintf("%010.0f", -123.5).should == "-000000124"
+  end
+
   it "passes kstephens's tests" do
     sprintf("%*1$.*2$3$d", 10, 5, 1).should == "     00001"
     sprintf("%.7b", -5).should == "1111011"
