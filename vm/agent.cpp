@@ -19,6 +19,8 @@
 #include "agent_components.hpp"
 #include "environment.hpp"
 
+#include "builtin/nativemethod.hpp"
+
 #include <ostream>
 #include <sstream>
 #include <fstream>
@@ -198,6 +200,10 @@ namespace rubinius {
 
   void QueryAgent::perform() {
     running_ = true;
+
+    // It's possible we call code that wants this to thread
+    // to be setup as a fully managed thread, so lets just make it one.
+    NativeMethod::init_thread(state_);
 
     while(1) {
       fd_set read_fds = fds_;
