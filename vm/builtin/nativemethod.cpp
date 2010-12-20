@@ -573,6 +573,13 @@ namespace rubinius {
         return env->get_object(ret);
       }
 
+      case C_LAMBDA: {
+        VALUE cb = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
+        VALUE val = env->get_handle(args.as_array(state));
+        VALUE ret = nm->func()(val, cb);
+        return env->get_object(ret);
+      }
+
       case C_CALLBACK: {
         VALUE cb = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
 
