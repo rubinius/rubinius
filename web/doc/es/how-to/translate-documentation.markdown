@@ -27,7 +27,8 @@ Para actualizar una traducción existente, abra el archivo de tema en
 
 Para crear una nueva traducción de la lengua:
 
-1. Copia `web/doc/en` a `web/doc/LANG` donde _LANG_ es la norma ISO-639-2
+1. Copia `web/doc/en` a `web/doc/LANG` donde _LANG_ es la norma
+   [ISO-639-1](http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes)
    código para la traducción de la lengua que está creando.
 1. Editar los enlaces en la tabla de contenido para que apunte a la ubicación
    de la archivos para la traducción. (Nota que por alguna razón el

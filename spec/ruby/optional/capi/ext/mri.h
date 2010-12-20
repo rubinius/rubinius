@@ -24,7 +24,6 @@
 #undef HAVE_STR2CSTR
 #undef HAVE_RB_STR2CSTR
 #undef HAVE_RB_SET_KCODE
-#undef HAVE_RB_PROC_NEW
 #endif
 
 /* RubySpec assumes following are public API */

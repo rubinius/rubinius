@@ -78,9 +78,6 @@ def compile_extension(path, name)
     raise "Unable to link \"#{source}\""
   end
 
-  # we don't need to leave the object file around
-  File.delete obj if File.exists? obj
-
   File.open(signature, "w") { |f| f.puts CAPI_RUBY_SIGNATURE }
 
   lib
