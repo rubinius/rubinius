@@ -19,6 +19,7 @@
 #include "builtin/system.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/location.hpp"
+#include "builtin/nativemethod.hpp"
 
 #include "instruments/profiler.hpp"
 #include "configuration.hpp"
@@ -238,6 +239,21 @@ namespace rubinius {
     return be;
   }
 
+  Object* BlockEnvironment::of_sender(STATE, CallFrame* call_frame) {
+    NativeMethodEnvironment* nme = NativeMethodEnvironment::get();
+    CallFrame* target = call_frame->previous;
+
+    if(nme->current_call_frame() == target) {
+      NativeMethodFrame* nmf = nme->current_native_frame();
+      if(nmf) return nme->get_object(nmf->block());
+    }
+
+    if(target && target->scope) {
+      return target->scope->block();
+    }
+
+    return Qnil;
+  }
 
   void BlockEnvironment::Info::show(STATE, Object* self, int level) {
     BlockEnvironment* be = as<BlockEnvironment>(self);
