@@ -1,47 +1,46 @@
 ---
 layout: doc_es
-title: Specs
-previous: Ruby - Global Variables
+title: Especificaciones
+previous: Ruby - Variables Globales
 previous_url: ruby/global-variables
 next: RubySpec
 next_url: specs/rubyspec
-translated: true
 ---
 
-El proyecto Rubinius generalmente usa especificaciones ejecutables al estilo
-de TDD/BDD para impulsar el desarrollo. El directorio de 'spec' se divide
+El proyecto Rubinius utiliza especificaciones ejecutables al estilo
+TDD/BDD para impulsar el desarrollo. El directorio 'spec' se divide
 conceptualmente en dos partes:
 
    1. Todos los archivos en "./spec/ruby' que describen el comportamiento de
       MatzRuby.
-   2. Y todos los otros archivos del './spec' de la guía que describen el
-      comportamiento de Rubinius.
+   2. Y todos los otros archivos dentro del directorio './spec' que
+      describen el comportamiento de Rubinius.
 
-Las especificaciones de los casos ./spec/ruby son una copia de RubySpec a una
-revisión en concreto.  Estos son regularmente importados del proyecto RubySpec
-y especificaciones técnicas no etiquetados para que el proceso de CI siempre
-se ejecuta un conjunto conocido bien de especificaciones técnicas. Este
-permite confirmar fácilmente que los cambios en el código Rubinius no causan
-regresiones.
+Las especificaciones dentro de ./spec/ruby son una copia de RubySpec
+en una revisión en concreto.  Estos se actualizan regularmente desde
+el proyecto RubySpec y las especificaciones que terminan en error se
+etiquetan para que el proceso de intrgración continua (CI) utilize
+siempre un conjunto de especificaciones que se sabe son exitosas. Esto
+permite comprobar rapidamente que los cambios hechos al código de
+Rubinius no causan regresiones.
 
-Documentación sobre la organización de las especificaciones y directrices para
-escribir especificaciones técnicas se puede encontrar en el proyecto
-[RubySpec](http://rubyspec.org/).
+Se puede encontrar más información sobre la organización de las
+especificacioens y guías para escribirlas en [RubySpec](http://rubyspec.org/).
 
-Utilice el siguiente flujo de trabajo al añadir especificaciones técnicas y el
-código para Rubinius:
+Utilice el siguiente flujo para agregar especificaciones y código para Rubinius:
 
-   1. Escribe en su defecto las especificaciones de algún aspecto del
-      comportamiento de Ruby. Comprometerse en las especificaciones uno por
-      separado se comprometen a los archivos correspondientes en ./spec/ruby.
-   2. Agregue código Rubinius para hacer pasar las especificaciones. Una vez
-      más, cometen estos cambios en uno para confirmación de los cambios de
-      especificaciones.
-   3. Ejecutar el comando `rake` para asegurar que todas las especificaciones
-      técnicas IC pasar.
+   1. Escriba una especificación no exitosa para algun aspecto del
+      comportamiento de Ruby. Incluya los archivos correspondientes
+      dentro de ./spec/ruby creando un commit para ellos.
+   2. Agregue código a Rubinius para hacer pasar las especificaciones. Una vez
+      más, haga commit de estos cambios por separado de las archivos
+      de especificaciones.
+   3. Ejecute el comando `rake` para asegurarse que todas las especificaciones
+      anteriores y de integración continua siguen funcionando.
 
-Los cambios a los archivos en ./spec/ruby son regularmente empujó a la
-RubySpec del proyecto. Además, los cambios actuales RubySpec de committers a
-otros Ruby implementaciones se actualizan periódicamente en el archivo
-./spec/ruby. Cuando el especificaciones técnicas se actualizan RubySpec, las
-etiquetas CI también se actualizan.
+Los cambios a los archivos dentro de ./spec/ruby son normalmente
+enviados al proyecto RubySpec. De igual manera, los cambios a RubySpec
+hechos por participantes de otras implementaciones de Ruby se obtienen
+regularmente para actualizar los directorios ./spec/ruby. Cuando las
+especificaciones se actualizan desde RubySpec, las etiquetas de
+integración continua (CI) se actualizan también.
