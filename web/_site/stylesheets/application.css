@@ -358,18 +358,26 @@ ul.insn_cross_ref {
 
 a.instruction {
   color: black;
-  padding: 0.5em 0 0;
+  padding: 0.5em 0 0.25em 0.25em;
   display: block;
+  background: #dedede;
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#dddddd));
+  border-radius: 0.1em;
+  -moz-border-radius: 0.1em;
+  -webkit-border-radius: 0.1em;
+  font-family: 'Courier New', Courier;
 }
 
 a.instruction:hover {
   text-decoration: none;
   color: black;
-  padding: 0.5em 0 0;
-  background: white;
-  border-radius: 0;
-  -moz-border-radius: 0;
-  -webkit-border-radius: 0;
+  padding: 0.5em 0 0.25em 0.25em;
+  background: #dedede;
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#dddddd));
+  border-radius: 0.1em;
+  -moz-border-radius: 0.1em;
+  -webkit-border-radius: 0.1em;
+  font-family: 'Courier New', Courier;
 };
 
 .blog_posts h2.post_title {
