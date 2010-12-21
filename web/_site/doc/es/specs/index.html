@@ -84,7 +84,7 @@
       
         
         <span class="label">Anterior:</span>
-        <a href="/doc/es/ruby/global-variables">Ruby - Global Variables</a>
+        <a href="/doc/es/ruby/global-variables">Ruby - Variables Globales</a>
         
 
         <span class="label">Subir:</span>
@@ -99,61 +99,53 @@
 
 
     <div class="container documentation">
-      <h2>Specs</h2>
-
-      
-        <div class="review">
-  <p>This page was machine translated. Please help us improve it.</p>
-
-  <p>See <a href="/doc/es/how-to/translate-documentation">
-    How-To - Translate Documentation</a></p>
-</div>
+      <h2>Especificaciones</h2>
 
       
 
       
 
-        <p>El proyecto Rubinius generalmente usa especificaciones ejecutables al estilo
-de TDD/BDD para impulsar el desarrollo. El directorio de &lsquo;spec&rsquo; se divide
+        <p>El proyecto Rubinius utiliza especificaciones ejecutables al estilo
+TDD/BDD para impulsar el desarrollo. El directorio &lsquo;spec&rsquo; se divide
 conceptualmente en dos partes:</p>
 
 <ol>
   <li>Todos los archivos en &ldquo;./spec/ruby&rsquo; que describen el comportamiento de
 MatzRuby.</li>
-  <li>Y todos los otros archivos del &lsquo;./spec&rsquo; de la guía que describen el
-comportamiento de Rubinius.</li>
+  <li>Y todos los otros archivos dentro del directorio &lsquo;./spec&rsquo; que
+describen el comportamiento de Rubinius.</li>
 </ol>
 
-<p>Las especificaciones de los casos ./spec/ruby son una copia de RubySpec a una
-revisión en concreto.  Estos son regularmente importados del proyecto RubySpec
-y especificaciones técnicas no etiquetados para que el proceso de CI siempre
-se ejecuta un conjunto conocido bien de especificaciones técnicas. Este
-permite confirmar fácilmente que los cambios en el código Rubinius no causan
-regresiones.</p>
+<p>Las especificaciones dentro de ./spec/ruby son una copia de RubySpec
+en una revisión en concreto.  Estos se actualizan regularmente desde
+el proyecto RubySpec y las especificaciones que terminan en error se
+etiquetan para que el proceso de intrgración continua (CI) utilize
+siempre un conjunto de especificaciones que se sabe son exitosas. Esto
+permite comprobar rapidamente que los cambios hechos al código de
+Rubinius no causan regresiones.</p>
 
-<p>Documentación sobre la organización de las especificaciones y directrices para
-escribir especificaciones técnicas se puede encontrar en el proyecto
-<a href="http://rubyspec.org/">RubySpec</a>.</p>
+<p>Se puede encontrar más información sobre la organización de las
+especificacioens y guías para escribirlas en <a href="http://rubyspec.org/">RubySpec</a>.</p>
 
-<p>Utilice el siguiente flujo de trabajo al añadir especificaciones técnicas y el
-código para Rubinius:</p>
+<p>Utilice el siguiente flujo para agregar especificaciones y código para Rubinius:</p>
 
 <ol>
-  <li>Escribe en su defecto las especificaciones de algún aspecto del
-comportamiento de Ruby. Comprometerse en las especificaciones uno por
-separado se comprometen a los archivos correspondientes en ./spec/ruby.</li>
-  <li>Agregue código Rubinius para hacer pasar las especificaciones. Una vez
-más, cometen estos cambios en uno para confirmación de los cambios de
-especificaciones.</li>
-  <li>Ejecutar el comando <code>rake</code> para asegurar que todas las especificaciones
-técnicas IC pasar.</li>
+  <li>Escriba una especificación no exitosa para algun aspecto del
+comportamiento de Ruby. Incluya los archivos correspondientes
+dentro de ./spec/ruby creando un commit para ellos.</li>
+  <li>Agregue código a Rubinius para hacer pasar las especificaciones. Una vez
+más, haga commit de estos cambios por separado de las archivos
+de especificaciones.</li>
+  <li>Ejecute el comando <code>rake</code> para asegurarse que todas las especificaciones
+anteriores y de integración continua siguen funcionando.</li>
 </ol>
 
-<p>Los cambios a los archivos en ./spec/ruby son regularmente empujó a la
-RubySpec del proyecto. Además, los cambios actuales RubySpec de committers a
-otros Ruby implementaciones se actualizan periódicamente en el archivo
-./spec/ruby. Cuando el especificaciones técnicas se actualizan RubySpec, las
-etiquetas CI también se actualizan.</p>
+<p>Los cambios a los archivos dentro de ./spec/ruby son normalmente
+enviados al proyecto RubySpec. De igual manera, los cambios a RubySpec
+hechos por participantes de otras implementaciones de Ruby se obtienen
+regularmente para actualizar los directorios ./spec/ruby. Cuando las
+especificaciones se actualizan desde RubySpec, las etiquetas de
+integración continua (CI) se actualizan también.</p>
 
 
     </div>
@@ -162,7 +154,7 @@ etiquetas CI también se actualizan.</p>
       
         
         <span class="label">Anterior:</span>
-        <a href="/doc/es/ruby/global-variables">Ruby - Global Variables</a>
+        <a href="/doc/es/ruby/global-variables">Ruby - Variables Globales</a>
         
 
         <span class="label">Subir:</span>

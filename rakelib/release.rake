@@ -31,8 +31,6 @@ namespace :release do
     puts "* Making tar.gz..."
     Rake::Task['release:tar'].invoke
 
-    puts "* Testing tar.gz..."
-    sh "rm -rf release-test; mkdir release-test; cd release-test; tar zxf ../#{@rbx_tar}; cd rubinius-#{RBX_VERSION}; ./configure && rake -q build"
     # Do this seperate, so that the testing can fail and we leave the directory
     # where it is.
     if osx = ENV['OSX']

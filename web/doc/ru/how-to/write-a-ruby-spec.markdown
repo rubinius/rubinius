@@ -1,7 +1,7 @@
 ---
 layout: doc_ru
-title: How-To - Написание Ruby Спецификации
-previous: Создание Тикета
+title: How-To - Написание Ruby спецификации
+previous: Создание тикета
 previous_url: how-to/write-a-ticket
 next: Исправление неработающей спецификации
 next_url: how-to/fix-a-failing-spec

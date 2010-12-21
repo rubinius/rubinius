@@ -20,7 +20,7 @@ Below are several ideas for things to do on Rubinius.
 ## Run Your Code
 
 Your code is often more vicious than the specs. Run your pet project under
-rubinius and report issues. See [How To Создание Тикета](/doc/ru/how-to/write-a-ticket).
+rubinius and report issues. See [How To Создание тикета](/doc/ru/how-to/write-a-ticket).
 
 
 ## Ask For Help
@@ -76,7 +76,7 @@ them. Here's a command to search the code:
 
     `grep -re "@todo\|TODO\|HACK\|FIXME" .`
 
-Review the [Стиль Кодирования](/doc/ru/contributing/style-guide/) for
+Review the [Стиль кодирования](/doc/ru/contributing/style-guide/) for
 coding guidelines.
 
 

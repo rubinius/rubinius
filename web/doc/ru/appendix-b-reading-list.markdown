@@ -1,9 +1,9 @@
 ---
 layout: doc_ru
-title: Приложение B - Список Литературы
+title: Приложение B - Список литературы
 previous: Приложение A - Глоссарий
 previous_url: appendix-a-glossary
-next: Список Терминов
+next: Список терминов
 next_url: terms-index
 review: true
 ---

@@ -1,9 +1,9 @@
 ---
 layout: doc_ru
 title: How-To - Написание Документации
-previous: Написание Сообщения в Блог
+previous: Написание сообщения в блог
 previous_url: how-to/write-a-blog-post
-next: Перевод Документации
+next: Перевод документации
 next_url: how-to/translate-documentation
 ---
 
@@ -32,7 +32,7 @@ The YAML attributes in a document look like the following:
     title: How-To - Write Documentation
     previous: Write a Blog Post
     previous_url: how-to/write-a-blog-post
-    next: Перевод Документации
+    next: Перевод документации
     next_url: how-to/translate-documentation
     ---
 

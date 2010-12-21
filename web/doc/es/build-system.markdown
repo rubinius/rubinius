@@ -6,54 +6,56 @@ previous_url: specs/compiler
 next: Bootstrapping
 next_url: bootstrapping
 review: true
-translated: true
 ---
 
-TODO: Many details are missing.
+TODO: Faltan muchos detalles.
 
-Rubinius uniforme utiliza rastrillo como el sistema de compilación para sus
-propios archivos. Sin embargo Rubinius también incluye la fuente de varias
-bibliotecas externas y estos suelen utilizar los makefiles.
-
-
-## Desarrollo contra Construye Instalar
-
-Rubinius se compone de los archivos de soporte ejecutable y diversos como el
-núcleo y las bibliotecas estándar. Las necesidades ejecutable para saber dónde
-encontrar estos archivos incluso si se trasladan a otro lugar. Para manejar
-este problema, Rubinius distingue dos tipos de generación: el desarrollo y la
-instalación. Las tiendas ejecutable la ruta completa a su directorio base, en
-relación a los que se espera encontrar el archivos que necesita.
-
-Las tiendas de desarrollo ejecutable de la ruta de acceso al directorio de
-origen en el que fue construido. A continuación, puede mover el archivo
-ejecutable a una ubicación diferente, pero a medida que realizar cambios en
-los archivos de base de la biblioteca en el kernel/\*\* directorios, la
-ejecutable seguirá utilizando los archivos.
-
-La instalación de tiendas ejecutable de la ruta de acceso al directorio de
-instalación. Una vez más, incluso si el ejecutable se mueve a una nueva
-ubicación, que seguirá para encontrar el instalado los archivos.
-
-Esto tiene consecuencias, por supuesto. Si se construye un desarrollo
-ejecutable y, a continuación cambiar el nombre de su directorio de origen,
-tendrá que reconstruir. Del mismo modo, si usted construye un instalar el
-ejecutable y cambiar el nombre del directorio de instalación, el ejecutable *
-no * función, * incluso si el ejecutable está en el directorio *. Los
-controles de un ejecutable único, en el código camino. Si esto termina siendo
-muy doloroso por alguna razón, vamos a revisar.
+Rubinius utiliza Rake como sistema de construcción para sus propios
+archivos. Sin embargo, Rubinius también incluye el código fuente de
+varias bibliotecas externas y éstas utilizan comunmente archivos para
+make.
 
 
-## Instalación Rubinius
+## Construir para desarrollo o para instalación.
+
+Rubinius consiste de los ejecutables y diversos archivos de soporte
+como el núcleo y las bibliotecas estándar. Los ejecutables necesitan
+saber dónde encontrar estos archivos, aún si se les mueve de
+lugar. Para solucionar este problema, Rubinius distingue entre dos
+tipos de construcción: desarrollo e instalación. Los ejecutables
+almacenan la ruta completa a su directorio base, con respecto al cual
+esperan encontrar los archivos que necesitan.
+
+Los ejecutables de desarrollo almacenan la ruta al directorio del
+código fuente en que fué construido. Se puede entonces mover el
+ejecutable a otro lugar, pero tan pronto como se realicen cambios en
+el fuente del núcleo en los directorios kernel/\*\*, el ejecutable
+seguirá utilizando esos archivos.
+
+Los ejecutables de instalación almacenan la ruta al directorio de
+instalación. De nuevo, aún si los ejecutables se mueven a otro lugar,
+seguiran encontrando los archivos instalados.
+
+Esto, por supuesto, tiene consecuencias. Si se construye un ejecutable
+para desarrollo y despues se cambia el nombre del directorio fuente,
+necesitará reconstruír. De igual forma, si contruye un ejecutable para
+instalación y renombra el directorio de instalación, el ejecutable
+*no funcionará*,  *aún cuando el ejectuable esté dentro del directorio*.
+Los ejecutables utilizan entonces, una sola ruta, almacenada
+internamente. Si esto termina siendo un problema por alguna razón,
+volveremos a evaluar otras alternativas.
+
+
+## Instalando Rubinius
 
 Para instalar Rubinius, primero debe configurar con un prefijo de instalación:
 
     ./configure --prefix=/path/to/install/dir
 
-El proceso de configuración crea un archivo 'config.rb "que especifica el
-archivo de clave caminos que Rubinius usos. Una vez configurado, ejecute
-'instalar rastrillo "para construir y instalar. El procedimiento de
-instalación crea todos los archivos, incluyendo la constitución del Ruby
-archivos de la biblioteca estándar en el directorio lib /, a continuación, los
-copia en el ubicación de instalación mediante el programa de la 'instalar'.
+El proceso de configuración crea un archivo 'config.rb' que especifica
+las rutas clave que utiliza Rubinius. Una vez configurado, ejecute
+'rake install' para construir e instalar. El procedimiento de
+instalación crea todos los archivos, incluyendo el núcleo de Ruby y
+los archivos de la biblioteca estándar en el directorio lib /, a continuación, los
+copia en el ubicación de instalación mediante el programa 'install'.
 Las tareas de instalación se encuentran en rakelib/install.rake.

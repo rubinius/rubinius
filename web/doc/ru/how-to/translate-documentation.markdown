@@ -1,6 +1,6 @@
 ---
 layout: doc_ru
-title: How-To - Перевод Документации
+title: How-To - Перевод документации
 previous: Написание Документации
 previous_url: how-to/write-documentation
 next: Приложение A - Глоссарий
