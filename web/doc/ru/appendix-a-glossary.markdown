@@ -1,9 +1,9 @@
 ---
 layout: doc_ru
 title: Приложение A - Глоссарий
-previous: How-To - Перевод Документации
+previous: How-To - Перевод документации
 previous_url: how-to/translate-documentation
-next: Приложение B - Список Литературы
+next: Приложение B - Список литературы
 next_url: appendix-b-reading-list
 review: true
 ---

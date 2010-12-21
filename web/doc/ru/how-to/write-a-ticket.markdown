@@ -1,9 +1,9 @@
 ---
 layout: doc_ru
-title: How-To - Создание Тикета
+title: How-To - Создание тикета
 previous: How-To
 previous_url: how-to
-next: Написание Ruby Спецификации
+next: Написание Ruby спецификации
 next_url: how-to/write-a-ruby-spec
 ---
 

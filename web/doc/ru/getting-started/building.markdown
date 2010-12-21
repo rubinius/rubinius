@@ -1,7 +1,7 @@
 ---
 layout: doc_ru
 title: Сборка Rubinius
-previous: Минимальные Требования
+previous: Минимальные требования
 previous_url: getting-started/requirements
 next: Запуск Rubinius
 next_url: getting-started/running-rubinius

@@ -1,6 +1,6 @@
 ---
 layout: doc_ru
-title: Минимальные Требования
+title: Минимальные требования
 previous: Приступая к работе
 previous_url: getting-started
 next: Сборка

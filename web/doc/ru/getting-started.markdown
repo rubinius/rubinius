@@ -3,7 +3,7 @@ layout: doc_ru
 title: Приступая к работе
 previous: Что Такое Rubinius?
 previous_url: what-is-rubinius
-next: Минимальные Требования
+next: Минимальные требования
 next_url: getting-started/requirements
 ---
 

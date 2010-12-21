@@ -1,7 +1,7 @@
 ---
 layout: doc_ru
-title: Большие Объекты
-previous: Старое Поколение
+title: Большие объекты
+previous: Старое поколение
 previous_url: garbage-collector/mature-generation
 next: Rubinius Systems
 next_url: systems

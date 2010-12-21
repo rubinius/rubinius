@@ -1,9 +1,9 @@
 ---
 layout: doc_ru
-title: Система Сборки
+title: Система сборки
 previous: Спецификации - Компилятор
 previous_url: specs/compiler
-next: Начальная Загрузка
+next: Начальная загрузка
 next_url: bootstrapping
 review: true
 ---
