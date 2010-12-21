@@ -64,21 +64,21 @@ de arranque:
      más neutral posible de la implementación. Además, se agregan
      la mayoría la funcionalidad para las clases específicas de Rubinius.
 
-  6. delta: Las versiones finales de los métodos como # attr_reader, etc
-     agregó. Por otra parte, versiones específicas de la implementación de los
-     métodos que anulan las versiones previstas en común se añade.
+  6. delta: Se agrega las versiones finales de los métodos como # attr_reader.
+     Por otra parte, se agregan versiones específicas de la implementación
+     de los métodos que sobreescriben las versiones provistas en common.
 
-  7. loader: La versión compilada del kernel / loader.rb se ejecuta.
+  7. loader: La versión compilada del kernel/loader.rb se ejecuta.
 
-     La etapa final configuraciones del ciclo de vida de un proceso de rubí.
+     La etapa final configura el ciclo de vida de un proceso de Ruby.
      Comienza por conectar la máquina virtual al sistema, crea rutas de carga,
-     y lee las secuencias de personalización desde el directorio de origen.
-     Señala trampas, y procesos de argumentos de línea de comandos.
+     y lee las secuencias de personalización desde el directorio home.
+     Parsea señales y procesa argumentos de la línea de comandos.
 
-     Después de eso, o se ejecuta la secuencia de comandos que se le pasa la
-     línea de comandos o botas hasta la cáscara de rubíes interactivo. Cuando
-     eso termina, se ejecuta cualquier at_exit bloques que se habían
-     registrado, finaliza todos los objetos, y salidas.
+     Después de eso, o se ejecuta el script que se le pasa desde la
+     línea de comandos o bootea el intérprete interactivo de Ruby. Cuando
+     eso termina, se ejecuta cualquier bloque at_exit registrado, finaliza
+     todos los objetos, y sale..
 
 
 ## Orden de Carga
