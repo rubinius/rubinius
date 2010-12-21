@@ -68,10 +68,10 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
 <h4 id="stats">Stats</h4>
 
 <ul>
-  <li><strong>Release Date:</strong> December 16th, 2010</li>
-  <li><strong>Commits:</strong> 187</li>
-  <li><strong>Days since last release:</strong> 30</li>
-  <li><strong>Issues fixed:</strong> <em>15</em> since 1.1.1, <em>50</em> since 1.1.0</li>
+  <li><strong>Release Date:</strong> December 21th, 2010</li>
+  <li><strong>Commits:</strong> 242</li>
+  <li><strong>Days since last release:</strong> 36</li>
+  <li><strong>Issues fixed:</strong> <em>17</em> since 1.1.1, <em>52</em> since 1.1.0</li>
 </ul>
 
 <h4 id="authors">Authors</h4>
@@ -80,12 +80,13 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Evan Phoenix</li>
   <li>Brian Ford</li>
   <li>Dirkjan Bussink</li>
+  <li>Christopher Bertels</li>
   <li>Matthew Draper</li>
-  <li>Ivan Samsonov</li>
-  <li>Eric Kidd</li>
-  <li>Konstantin Haase</li>
-  <li>Adam Gardiner</li>
   <li>Victor Hugo Borja</li>
+  <li>Ivan Samsonov</li>
+  <li>Konstantin Haase</li>
+  <li>Eric Kidd</li>
+  <li>Adam Gardiner</li>
 </ul>
 
 <h2 id="summary">Summary</h2>
@@ -118,15 +119,17 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Add fixes for OpenBSD on a few platforms</li>
   <li>Improve build system to use system settings better</li>
   <li>Run through testing on PPC Linux</li>
-  <li>Cleaned up /bin dir. Added links for common commands.</li>
-  <li>Add detection for gem exes in ARG0 check.</li>
+  <li>Cleaned up /bin dir. Added links for common commands</li>
+  <li>Add detection for gem exes in ARG0 check</li>
   <li>Allow rbx to be linked as a different name to start subcommand</li>
 </ul>
 
 <h5 id="documentation">Documentation</h5>
 <ul>
   <li>Add new docs/website setup</li>
-  <li>Fix &lsquo;rbx report&rsquo; to use HTTPS.</li>
+  <li>Add documentation on VM instructions</li>
+  <li>Begin German and Spanish translations of docs</li>
+  <li>Fix &lsquo;rbx report&rsquo; to use HTTPS</li>
 </ul>
 
 <h5 id="bug-fixes">Bug fixes</h5>
@@ -138,37 +141,41 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Add/fix/improve instruction documentation</li>
   <li>Fix crashing bug in string_build instruction</li>
   <li>Fix edge case in Bignum#&raquo;</li>
-  <li>Fixed MatchData#names to return strings.</li>
-  <li>Fixed Hash#initialize to return self.</li>
-  <li>Fixed Bignum#&lt;=&gt; with an object instance.</li>
-  <li>Conform to MRI behavior for strings with malformed characters.</li>
+  <li>Fixed MatchData#names to return strings</li>
+  <li>Fixed Hash#initialize to return self</li>
+  <li>Fixed Bignum#&lt;=&gt; with an object instance</li>
+  <li>Conform to MRI behavior for strings with malformed characters</li>
+  <li>Fix heap dump to walk Data objects properly from the Query Agent</li>
+  <li>Sort out proper logic for Proc.new relating to C-API.</li>
+  <li>Don&rsquo;t call Module.append_features from Kernel#extend</li>
 </ul>
 
 <h5 id="c-api">C-API</h5>
 <ul>
   <li>Implement rb_yield_splat</li>
-  <li>Implement rb_f_sprintf.</li>
-  <li>Add rb_proc_new.</li>
+  <li>Implement rb_f_sprintf</li>
+  <li>Add rb_proc_new</li>
   <li>Fix C-API IO from consuming all file descriptors</li>
-  <li>Convert C-API T_xxx enums to defines.</li>
+  <li>Convert C-API T_xxx enums to defines</li>
 </ul>
 
 <h5 id="closed-issues">Closed Issues</h5>
-
 <ul>
+  <li>1a3dce7 %0f is also an allowed format. Fixes #613</li>
+  <li>069061e Force the timezone on checking a Time object. Fixes #615</li>
   <li>a101f9c Test what a pipe is properly. Fixes #605.</li>
-  <li>8833997 Add fixes for OpenBSD on a few platforms. Fixes #586.</li>
-  <li>3bb893d Detect and reject rtti being off. Fixes #602.</li>
-  <li>4377c50 Only consider certain lines. Fixes #578.</li>
-  <li>a6952da Remove pathalogical case from Array#[]=. Fixes #604.</li>
-  <li>ae95ec3 Fix line tuple generation. Fixes #598.</li>
-  <li>2624302 Allow for English pseudo globals. Fixes #584.</li>
+  <li>8833997 Add fixes for OpenBSD on a few platforms. Fixes #586</li>
+  <li>3bb893d Detect and reject rtti being off. Fixes #602</li>
+  <li>4377c50 Only consider certain lines. Fixes #578</li>
+  <li>a6952da Remove pathalogical case from Array#[]=. Fixes #604</li>
+  <li>ae95ec3 Fix line tuple generation. Fixes #598</li>
+  <li>2624302 Allow for English pseudo globals. Fixes #584</li>
   <li>94f68ec Be able to select on fd 0. Fixes #591</li>
   <li>be57451 Add ability to know what ip really means. Fixes #590</li>
   <li>3b2cbad Pull in compiling env flags into RbConfig. Fixes #597</li>
   <li>fa335af Add meta_to_s for use in string interpolation. Fixes #596</li>
-  <li>9c38609 Implement rb_yield_splat. Fixes #588.</li>
-  <li>bf27a3b Fix the position of a method call to be the position of the recv. Fixes #571.</li>
+  <li>9c38609 Implement rb_yield_splat. Fixes #588</li>
+  <li>bf27a3b Fix the position of a method call to be the position of the recv. Fixes #571</li>
   <li>79f4069 Dir.glob yields if there is a block. Fixes #579</li>
   <li>8912734 Match an empty string properly. Fixes #573</li>
 </ul>
