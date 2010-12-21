@@ -45,24 +45,24 @@ de arranque:
        module_function :sym
        include mod
 
-     Además, es posible plantear las excepciones y hacer que el proceso que se
-     ejecuta a salida. Esta etapa se sientan las bases para los próximos dos
-     etapas
+     Además, es posible arrojar excepciones y hacer que el proceso que
+     está corriendo termine. Esta etapa sienta las bases para las próximos dos
+     etapas.
 
   3. bootstrap: Esta etapa continúa agregando la funcionalidad mínima a
-     support loading platform and common. Las funciones primitivas se añaden
-     para la mayoría de las clases del núcleo.
+     poder cargar platform y common. Las funciones primitivas se añaden
+     para la mayoría de las clases de Kernel.
 
-  4. platform: La FFI (interfaz de la función externa) del sistema se
-     implementa y Interfaces de Ruby método para funciones específicas de la
-     plataforma se crean. Una vez se trata de establecer, las cosas
+  4. platform: La FFI (interfaz para función externa) del sistema se
+     implementa y las interfaces de los método para plataformas-específicas
+     se crean. Una vez establecido esto, se adjuntan las cosas
      específicas de la plataforma, tales como indicadores, el acceso a
-     archivos, opciones matemáticas, y POSIX se adjuntan.
+     archivos, matemáticas, y comandos POSIX.
 
-  5. common: La gran mayoría de las clases fundamentales son la colección de
-     Ruby implementado. Las clases fundamentales de Ruby se mantienen como la
-     aplicación-neutral posible. Además, la mayoría de la funcionalidad para
-     las clases específicas Rubinius se añade.
+  5. common: La gran mayoría de las clases fundamentales de Ruby están
+     implementadas. Las clases fundamentales de Ruby se mantienen lo
+     más neutral posible de la implementación. Además, se agregan
+     la mayoría la funcionalidad para las clases específicas de Rubinius.
 
   6. delta: Las versiones finales de los métodos como # attr_reader, etc
      agregó. Por otra parte, versiones específicas de la implementación de los
