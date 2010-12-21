@@ -15,6 +15,11 @@ module Rubinius
       raise PrimitiveFailure, "BlockEnvironment#call_under primitive failed"
     end
 
+    def self.of_sender
+      Ruby.primitive :block_env_of_sender
+      raise PrimitiveFailure, "BlockEnvironment#of_sender primitive failed"
+    end
+
     class AsMethod < Executable
       def self.new(block_env)
         Ruby.primitive :block_as_method_create

@@ -22,7 +22,8 @@ module BERT
     end
 
     def read_any_raw
-      case peek_1
+      k = peek_1
+      case k
         when ATOM then read_atom
         when SMALL_INT then read_small_int
         when INT then read_int
@@ -36,7 +37,7 @@ module BERT
         when LIST then read_list
         when BIN then read_bin
         else
-          fail("Unknown term tag: #{peek_1}")
+          fail("Unknown term tag: #{k.inspect}")
       end
     end
 
