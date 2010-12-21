@@ -1,9 +1,9 @@
 ---
 layout: doc_ru
-title: Старое Поколение
-previous: Молодое Поколение
+title: Старое поколение
+previous: Молодое поколение
 previous_url: garbage-collector/young-generation
-next: Большие Объекты
+next: Большие объекты
 next_url: garbage-collector/large-objects
 review: true
 ---

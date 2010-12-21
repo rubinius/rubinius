@@ -1,6 +1,6 @@
 ---
 layout: doc_ru
-title: Сборщик Мусора
+title: Сборщик мусора
 previous: JIT Компилятор
 previous_url: jit
 next: Nursery
@@ -9,6 +9,6 @@ review: true
 ---
 
 1. [Nursery](/doc/ru/garbage-collector/nursery/)
-1. [Молодое Поколение](/doc/ru/garbage-collector/young-generation/)
-1. [Старое Поколение](/doc/ru/garbage-collector/mature-generation/)
-1. [Большие Объекты](/doc/ru/garbage-collector/large-objects/)
+1. [Молодое поколение](/doc/ru/garbage-collector/young-generation/)
+1. [Старое поколение](/doc/ru/garbage-collector/mature-generation/)
+1. [Большие объекты](/doc/ru/garbage-collector/large-objects/)

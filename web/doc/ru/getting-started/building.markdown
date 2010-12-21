@@ -1,56 +1,59 @@
 ---
 layout: doc_ru
 title: Сборка Rubinius
-previous: Минимальные Требования
+previous: Минимальные требования
 previous_url: getting-started/requirements
 next: Запуск Rubinius
 next_url: getting-started/running-rubinius
 ---
 
-You can build and run Rubinius from the source directory. You do not need to
-install Rubinius to run it. The directions below will detail both installing
-Rubinius and running it from the source directory.
+Вы можете собрать и запустить Rubinius из исходной директории. Вам не
+нужно устанавливать Rubinius, чтобы запустить его. Инструкции, приведенные
+ниже, подробно описывают как установку, так и запуск Rubinius из исходного
+каталога.
 
-Rubinius uses LLVM for the JIT compiler. Rubinius depends on a particular
-version of LLVM. If you have installed LLVM on your system, pass the
-`--skip-system` flag to the configure script in the directions below.
+Rubinius использует LLVM для JIT компиляции. Rubinius зависит от определенной
+версии LLVM. Если LLVM уже установлена на вашей системе передайте флаг
+`--skip-system` в скрипт конфигурации (см. ниже).
 
-### Getting the Source
+### Получение исходного кода
 
-The Rubinius source code available as a tarball and as a project on Github.
-You can [download the tarball here](http://rubini.us/download/latest).
+Исходный код Rubinius доступен как tar-архив и как проект на Github.
+Вы можете [скачать tar-архив здесь](http://rubini.us/download/latest).
 
-To use Git:
+Чтобы использовать Git:
 
-  1. Change your current working directory to your development directory
+  1. Измените вашу текущую директорию на директорию для разработок
   2. `git clone git://github.com/evanphx/rubinius.git`
 
 
-### Installing Rubinius
+### Установка Rubinius
 
-If you are planning on using Rubinius to run your application, this is a good
-option. However, you can also run Rubinius directly from the source directory.
-See the next section for more details on that.
+Этот раздел для вас, если вы хотите использовать Rubinius для запуска ваших
+приложений. Также вы можете запускать Rubinius прямо из исходной директории
+За подробностями обратитесь к следующему разделу.
 
-We recommend installing Rubinius to a location that does not require `sudo` or
-superuser privileges. To install Rubinius:
+Мы рекомендуем устанавливать Rubinius в место, нетребующее `sudo` или права
+суперпользователя. Чтобы установить Rubinius:
 
   1. `./configure --prefix=/path/to/install/dir`
   2. `rake install`
-  3. Follow the directions to add the Rubinius _bin_ directory to your PATH
+  3. Следуйте инструкциям, чтобы добавить _bin_ директорию в переменную
+     окружения PATH
 
 
-### Running from the Source Directory
+### Запуск из директории с исходниками
 
-If you plan to work on Rubinius itself, you should use this option.
+Если вы планируете работать над Rubinius, вам следует использовать следующие
+команды.
 
   1. `./configure`
   2. `rake`
 
-If you are just trying out Rubinius, follow the directions to add the _bin_
-directory to your PATH.
+Если вы просто пробуете Rubinius, следуйте инструкциям, чтобы добавить
+_bin_ директорию в переменную окружения PATH.
 
-However, if you are developing Rubinius, you should NOT add the _bin_
-directory to your PATH because the Rubinius build system will pick up the
-`ruby` and `rake` links to the Rubinius executable. Rubinius needs a separate
-Ruby executable to bootstrap itself during the build process.
+Однако, если вы разрабатываете Rubinius, вы не должны добавлять папку _bin_
+в переменную PATH, потому что система сборки Rubinius будет использовать свои
+`ruby` и `rake`, в то время как в процессе сборки ей необходимы отдельные
+исполняемые файлы Ruby.

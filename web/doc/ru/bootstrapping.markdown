@@ -1,13 +1,13 @@
 ---
 layout: doc_ru
-title: Начальная Загрузка
-previous: Система Сборки
+title: Начальная загрузка
+previous: Система сборки
 previous_url: build-system
 next: Виртуальная Машина
 next_url: virtual-machine
 ---
 
-Начальная Загрузка is the process of building up functionality of the system until
+Начальная загрузка is the process of building up functionality of the system until
 all Ruby code can be executed. There are seven stages to the bootstrap process:
 
   1. VM: The virtual machine is able to load and execute bytecode, send

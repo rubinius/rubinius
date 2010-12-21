@@ -1,6 +1,6 @@
 ---
 layout: doc_ru
-title: Coding Стиль Кодирования
+title: Coding Стиль кодирования
 previous: Общение
 previous_url: contributing/communication
 next: Ruby

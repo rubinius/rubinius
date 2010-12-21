@@ -1,9 +1,9 @@
 ---
 layout: doc_ru
-title: How-To - Исправление Неработающей Спецификации
-previous: Написание Ruby Спецификации
+title: How-To - Исправление неработающей спецификации
+previous: Написание Ruby спецификации
 previous_url: how-to/write-ruby-spec
-next: Написание Сообщения в Блог
+next: Написание сообщения в блог
 next_url: how-to/write-a-blog-post
 ---
 

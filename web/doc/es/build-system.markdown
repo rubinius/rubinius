@@ -24,7 +24,7 @@ saber dónde encontrar estos archivos, aún si se les mueve de
 lugar. Para solucionar este problema, Rubinius distingue entre dos
 tipos de construcción: desarrollo e instalación. Los ejecutables
 almacenan la ruta completa a su directorio base, con respecto al cual
-espera encontrar los archivos que necesita.
+esperan encontrar los archivos que necesitan.
 
 Los ejecutables de desarrollo almacenan la ruta al directorio del
 código fuente en que fué construido. Se puede entonces mover el

@@ -1,7 +1,7 @@
 ---
 layout: doc_ru
-title: How-To - Написание Сообщения в Блог
-previous: Исправление Неработающей Спецификации
+title: How-To - Написание сообщения в блог
+previous: Исправление неработающей спецификации
 previous_url: how-to/fix-a-failing-spec
 next: Написание Документации
 next_url: how-to/write-documentation

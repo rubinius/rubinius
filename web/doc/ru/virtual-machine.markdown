@@ -1,7 +1,7 @@
 ---
 layout: doc_ru
 title: Виртуальная Машина
-previous: Начальная Загрузка
+previous: Начальная загрузка
 previous_url: bootstrapping
 next: Инструкции
 next_url: virtual-machine/instructions
