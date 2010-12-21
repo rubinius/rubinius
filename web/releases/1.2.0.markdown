@@ -21,7 +21,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.
 #### Stats
 
 * **Release Date:** December 21th, 2010
-* **Commits:** 238
+* **Commits:** 242
 * **Days since last release:** 36
 * **Issues fixed:** _17_ since 1.1.1, _52_ since 1.1.0
 
