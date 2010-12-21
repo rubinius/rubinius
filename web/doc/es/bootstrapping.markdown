@@ -5,39 +5,37 @@ previous: Build System
 previous_url: build-system
 next: Virtual Machine
 next_url: virtual-machine
-translated: true
 ---
 
 Bootstrapping es el proceso de construcción de la funcionalidad del sistema
-hasta todo el código de Ruby se puede ejecutar. Hay siete etapas en el proceso
+hasta todo el código de Ruby que se puede ejecutar. Hay siete etapas en el proceso
 de arranque:
 
-  1. VM: La máquina virtual es capaz de cargar y ejecutar código de bytes,
-     envíe Mensajes (es decir, buscar y ejecutar métodos), y todas las
-     funciones primitivas están disponibles, pero aún no conectados como los
+  1. VM: La máquina virtual es capaz de cargar y ejecutar bytecode,
+     enviar mensajes (por ej. buscar y ejecutar métodos), y todas las
+     funciones primitivas están disponibles, pero aún no conectadas como
      métodos de Ruby.
 
-     La clase de la clase tiene que configurar manualmente tan temprano en el
-     proceso por el establecimiento de su clase para ser sí mismo y su
-     superclase para módulo. En Además de la clase y el módulo, un par de
-     clases base se crean otros aquí, incluyendo objetos, tupla, LOOKUPTABLE
-     y MethodTable.
+     La clase Class tiene que configurar manualmente esto en el proceso
+     estableciendo su clase  a sí misma (n. t. Class) y su superclase a Module. Además
+     de Class y Module, se crean un par de clases base, incluyendo Object,
+     Tuple, LookupTable, y MethodTable.
 
-     Ahora que las clases se pueden definir, de 35 años o menos integrado en
-     las clases se les dice que inicializar sí mismos, símbolos de los
-     métodos de nivel superior (: object_id,: llamar, : protección, etc) se
-     crean excepciones básicas se definen, y primitivas están registrados.
-     Por último IO se engancha. También en esta etapa, varios métodos
-     fundamentales de Ruby están vinculados a los primitivos.
+     Ahora que las clases se pueden definir, algo así como 35
+     clases son llamadas para ser inicializadas a sí mismas,
+     se crean símbolos para los métodos de alto nivel :object_id, :call,
+     :protected, etc), se definen las excepciones básicas, y
+     se registran las primitivas. Por último se conecta IO. Además en
+     esta etapa se unen varios métodos fundamentales de Ruby
 
-     En este punto hay bastante definido el comportamiento de comenzar a
-     cargar el resto del kernel en tiempo de ejecución que es todo lo
-     definido en el rubí. Esto tiene que ser a cabo en varios pasos como el
-     idioma crece.
+     En este punto hay bastante comportamiento definido como para empezar a
+     cargar el resto del runtime kernel que está todo definido en
+     ruby. Esto ha de ser hecho en varios pasos a medida que el lenguaje crece.
 
-  2. alpha: Se inicia la carga de código Ruby. La capacidad de abrir las
+
+  2. alpha: Se inicia la carga del código Ruby. La capacidad de abrir las
      clases y los módulos y definir métodos existe. La funcionalidad mínima
-     admiten los siguientes métodos se implementa en el kernel / alpha.rb:
+     para soportear los métodos siguientez se implementa en kernel/alpha.rb:
 
        attr_reader :sym
        attr_writer :sym
