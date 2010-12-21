@@ -141,7 +141,7 @@ namespace :install do
       begin
         ["ruby", "rake", "gem", "irb", "rdoc", "ri"].each do |command|
           name = "#{BUILD_CONFIG[:bindir]}/#{command}"
-          File.symlink install_dir(exe), install_dir(name)
+          File.symlink BUILD_CONFIG[:program_name], install_dir(name)
         end
       rescue NotImplementedError
         # ignore
