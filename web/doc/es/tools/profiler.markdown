@@ -34,7 +34,7 @@ SharedState tiene una instancia de ProfilerCollection y envía las llamadas para
 registrar o remover analizadores (profilers).
 
 La instancia ProfilerCollection se encarga de hacer la petición para que la VM
-mapeado a un analizado remueva el analizador cuando este vaya a ser eliminado.
+mapeada a un analizador remueva el analizador cuando este vaya a ser eliminado.
 
 ## Analizador de Ruby
 
@@ -42,7 +42,7 @@ En el campo de Ruby, la instancia de Rubinius::Profiler::Instrumenter no expone
 nada sobre la naturaleza multi-hilo de la VM. Las instancias individuales del
 analizador en C++ no son expuestas a Ruby. En Ruby, una instancia del analizador
 es creada. Esta instancia puede iniciar o detener el analizador de la VM. Cuando
-el analizador es detenido, la información sobre el análisis es retornado en una
+el analizador es detenido, la información sobre el análisis es retornada en una
 LookupTable. El analizador de Ruby puede mostrar esa información con una llamada
 al método #show.
 
@@ -98,7 +98,7 @@ al tiempo de ejecución de todos los métodos.
 
 ### cumulative seconds
 
-Si se considera este método como la raíz un árbol, el resultado de
+Si se considera este método como la raíz de un árbol, el resultado de
 'cumulative seconds' sería el tiempo acumulado de ejecución de este
 método y de todos los métodos que el mismo ha llamado (hojas del árbol).
 
