@@ -5,7 +5,7 @@
  <link href="http://rubini.us/atom.xml" rel="self"/>
  <link href="http://rubini.us/"/>
  
- <updated>2010-12-15T00:00:00-08:00</updated>
+ <updated>2010-12-15T00:00:00+00:00</updated>
  
  <id>http://rubini.us/</id>
 
@@ -14,7 +14,7 @@
    <author><name>Brian Ford</name></author>
    <title>Rubinius Has a Blog!</title>
    <link href="http://rubini.us/2010/12/15/rubinius-has-a-blog/"/>
-   <updated>2010-12-15T00:00:00-08:00</updated>
+   <updated>2010-12-15T00:00:00+00:00</updated>
    <id>http://rubini.us/2010/12/15/rubinius-has-a-blog</id>
    <content type="html">&lt;p&gt;Many thought the day would never come, but Rubinius finally has a blog. That&amp;rsquo;s
 not all, though: We have integrated the website, blog, and documentation using
