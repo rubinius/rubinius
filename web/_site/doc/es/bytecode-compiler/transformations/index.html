@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Rubinius : Use Ruby&#153;</title>
+    <title>Rubinius : Use Ruby&#8482;</title>
     <meta content='text/html;charset=utf-8' http-equiv='content-type'>
     <meta content='en' http-equiv='content-language'>
     <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
@@ -84,7 +84,7 @@
       
         
         <span class="label">Anterior:</span>
-        <a href="/doc/es/bytecode-compiler/compiler">Compiler</a>
+        <a href="/doc/es/bytecode-compiler/compiler">Compilador</a>
         
 
         <span class="label">Subir:</span>
@@ -92,41 +92,35 @@
 
         
         <span class="label">Siguiente:</span>
-        <a href="/doc/es/bytecode-compiler/generator">Generator</a>
+        <a href="/doc/es/bytecode-compiler/generator">Generador</a>
         
       
     </div>
 
 
     <div class="container documentation">
-      <h2>Compiler Transforms</h2>
-
-      
-        <div class="review">
-  <p>This page was machine translated. Please help us improve it.</p>
-
-  <p>See <a href="/doc/es/how-to/translate-documentation">
-    How-To - Translate Documentation</a></p>
-</div>
+      <h2>Transformaciones</h2>
 
       
 
       
 
-        <p>El compilador de código de bytes tiene un simple mecanismo de AST
-transformación que reconoce ciertas formas de AST y los sustituye. Las formas
-sustituye emiten diferentes código de bytes de la forma original se han
-emitido. La fuente de la se transforma en lib/compiler/ast/transforms.rb</p>
+        <p>El compilador a bytecode tiene un mecanismo simple de transformación
+de árboles AST que reconoce ciertas formas AST y las remplaza. Las
+formas remplazadas emiten un bytecode diferente del que sería emitido
+por las formas originales. El código fuente para los transformadores
+se encuentra en lib/compiler/ast/transforms.rb.</p>
 
-<p>TODO: document the compiler plugin architecture.</p>
+<p>TODO: Documentar la arquitectura plugin del compilador.</p>
 
-<h3 id="compilador-de-matemticas-seguro-de-transformacin">Compilador de Matemáticas seguro de transformación</h3>
+<h3 id="transformacin-de-matemticas-seguras">Transformación de matemáticas seguras.</h3>
 
-<p>Dado que las bibliotecas del núcleo se construyen con los mismos bloques como
-cualquier otro código de Ruby y desde Ruby es un lenguaje dinámico, con clases
-abiertas y el enlace, es posible cambiar las clases fundamentales como Fixnum
-en formas que violan los semántica que dependen de otras clases. Por ejemplo,
-imagine que hicimos el siguientes:</p>
+<p>Debido a que las bibliotecas del núcleo estan construidas con los
+mísmos elementos que cualquier otro código Ruby y debido a que Ruby es
+un lenguaje dinámico con clases abiertas y late-binding, es posible
+cambiar clases fundamentales como Fixnum en formas que podrían violar
+el comportamiento del que dependen algunas otras clases. Por ejemplo,
+imagine que hicieramos lo siguiente:</p>
 
 <p>class Fixnum
     def +(other)
@@ -134,25 +128,27 @@ imagine que hicimos el siguientes:</p>
     end
   end</p>
 
-<p>Si bien es ciertamente posible para redefinir aritmética de punto fijo más ser
-módulo 5, haciendo así que sin duda hará que alguna clase de matriz como para
-no poder calcular la longitud correcta cuando se necesita. La naturaleza
-dinámica de Ruby es uno de sus rasgos apreciados, pero también es una
-verdadera arma de doble filo en algunos aspectos.</p>
+<p>Si bien es cierto que es posible redefinir el operador aritmético de
+suma para que realice una operación módulo 5, hacerlo, sin duda
+causaría que algunas clases como Array no pudiesen calcular siquiera la
+longitud correcta cuando lo necesite. La naturaleza dinámica de Ruby
+es uno de sus rasgos más apreciados, pero también es una verdadera
+arma de doble filo en algunos aspectos.</p>
 
-<p>En la colección de la biblioteca estándar de la &lsquo;mathn&rsquo; redefines Fixnum#/ en
-un peligroso e incompatibles manera. La colección de alias Fixnum#/ a
-Fixnum#quo, que devuelve un flotador de forma predeterminada.</p>
+<p>En la biblioteca estándar, &lsquo;mathn&rsquo; redefine Fixnum#/ de una manera
+peligrosa e insegura. La biblioteca crea un alias de Fixnum#/ a
+Fixnum#quo, que regresa un Float de forma predeterminada.</p>
 
-<p>Debido a esto existe un compilador especial plugin que emite una diferente
-nombre de método cuando se encuentra con el #/ método. El compilador emite
-#divide en lugar de #/. Las clases numéricas Fixnum, un número grande,
-flotador, y numérico todos los definir este método.</p>
+<p>Debido a esto existe un plugin especial para el compilador que emite
+métodos con nombre diferente cuando se encuentra con el método #/. El
+compilador emite #divide en vez de #/. Las clases numéricas Fixnum,
+Bignum, Float, y Numeric, todas definen este método.</p>
 
-<p>Las matemáticas segura transformación está habilitada durante la compilación
-del Núcleo bibliotecas para que el plugin. Durante la compilación regular
-&ldquo;user code&rdquo;, el plugin no está habilitado. Esto nos permite apoyar mathn sin
-romper el bibliotecas del núcleo o forzar a prácticas inconvenientes.</p>
+<p>Las transformaciones para matemáticas seguras estan habilitadas
+durante la compilación de las bibliotecas del núcleo. Durante la
+compilación de &lsquo;código de usuario&rsquo; regular, el plugin es
+deshabilitado. Esto nos permite soportar mathn sin alterar las
+bibliotecas del núcleo o forzar a prácticas inconvenientes.</p>
 
 
     </div>
@@ -161,7 +157,7 @@ romper el bibliotecas del núcleo o forzar a prácticas inconvenientes.</p>
       
         
         <span class="label">Anterior:</span>
-        <a href="/doc/es/bytecode-compiler/compiler">Compiler</a>
+        <a href="/doc/es/bytecode-compiler/compiler">Compilador</a>
         
 
         <span class="label">Subir:</span>
@@ -169,7 +165,7 @@ romper el bibliotecas del núcleo o forzar a prácticas inconvenientes.</p>
 
         
         <span class="label">Siguiente:</span>
-        <a href="/doc/es/bytecode-compiler/generator">Generator</a>
+        <a href="/doc/es/bytecode-compiler/generator">Generador</a>
         
       
     </div>
