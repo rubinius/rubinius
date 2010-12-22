@@ -1,3 +1,0 @@
-fails:Thread#inspect reports aborting on a killed thread
-fails:Thread#inspect describes a dying running thread
-fails:Thread#inspect describes a dying running thread
