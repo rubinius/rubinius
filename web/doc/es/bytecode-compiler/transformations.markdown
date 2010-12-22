@@ -32,14 +32,14 @@ imagine que hicieramos lo siguiente:
     end
   end
 
-Si bien es cierto qeu es posible redefinir el operador aritmético de
+Si bien es cierto que es posible redefinir el operador aritmético de
 suma para que realice una operación módulo 5, hacerlo, sin duda
 causaría que algunas clases como Array no pudiesen calcular siquiera la
 longitud correcta cuando lo necesite. La naturaleza dinámica de Ruby
 es uno de sus rasgos más apreciados, pero también es una verdadera
 arma de doble filo en algunos aspectos.
 
-En la biblioteca estándard, 'mathn' redefine Fixnum#/ de una manera
+En la biblioteca estándar, 'mathn' redefine Fixnum#/ de una manera
 peligrosa e insegura. La biblioteca crea un alias de Fixnum#/ a
 Fixnum#quo, que regresa un Float de forma predeterminada.
 
