@@ -1,9 +1,9 @@
 ---
 layout: doc_es
 title: Bootstrapping
-previous: Build System
+previous: Sistema de Construcción
 previous_url: build-system
-next: Virtual Machine
+next: La Máquina Virtual
 next_url: virtual-machine
 ---
 

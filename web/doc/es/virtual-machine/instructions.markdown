@@ -1,11 +1,10 @@
 ---
 layout: doc_es
-title: Instructions
-previous: Virtual Machine
+title: Instrucciones
+previous: La Máquina Virtual
 previous_url: virtual-machine
-next: Custom Dispatch Logic
+next: Lógica de búsqueda y ejecución de métodos
 next_url: virtual-machine/custom-dispatch-logic
-translated: true
 ---
 
 Las instrucciones de la máquina virtual se encuentran en `vm/instructions.def`. La

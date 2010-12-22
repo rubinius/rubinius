@@ -9,9 +9,9 @@ review: true
 translated: true
 ---
 
-TODO: document the compiler.
+TODO: Documentar el compilador.
 
-El compilador de código de bytes de paseos de la AST producida por el
-analizador de código de bytes y emite para cada nodo. La fuente para el
-compilador es en lib/compiler.
+El compilador a bytecode recorre el arbol AST producido por el parser
+y emite bytecode para cada nodo. El código fuente del compilador se
+encuentra en lib/compiler.
 

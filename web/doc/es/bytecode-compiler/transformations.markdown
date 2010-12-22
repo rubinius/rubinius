@@ -1,30 +1,30 @@
 ---
 layout: doc_es
-title: Compiler Transforms
-previous: Compiler
+title: Transformaciones
+previous: Compilador
 previous_url: bytecode-compiler/compiler
-next: Generator
+next: Generador
 next_url: bytecode-compiler/generator
-translated: true
 ---
 
-El compilador de código de bytes tiene un simple mecanismo de AST
-transformación que reconoce ciertas formas de AST y los sustituye. Las formas
-sustituye emiten diferentes código de bytes de la forma original se han
-emitido. La fuente de la se transforma en lib/compiler/ast/transforms.rb
+El compilador a bytecode tiene un mecanismo simple de transformación
+de árboles AST que reconoce ciertas formas AST y las remplaza. Las
+formas remplazadas emiten un bytecode diferente del que sería emitido
+por las formas originales. El código fuente para los transformadores
+se encuentra en lib/compiler/ast/transforms.rb.
 
 
-TODO: document the compiler plugin architecture.
+TODO: Documentar la arquitectura plugin del compilador.
 
 
-### Compilador de Matemáticas seguro de transformación
+### Transformación de matemáticas seguras.
 
-Dado que las bibliotecas del núcleo se construyen con los mismos bloques como
-cualquier otro código de Ruby y desde Ruby es un lenguaje dinámico, con clases
-abiertas y el enlace, es posible cambiar las clases fundamentales como Fixnum
-en formas que violan los semántica que dependen de otras clases. Por ejemplo,
-imagine que hicimos el siguientes:
-
+Debido a que las bibliotecas del núcleo estan construidas con los
+mísmos elementos que cualquier otro código Ruby y debido a que Ruby es
+un lenguaje dinámico con clases abiertas y late-binding, es posible
+cambiar clases fundamentales como Fixnum en formas que podrían violar
+el comportamiento del que dependen algunas otras clases. Por ejemplo,
+imagine que hicieramos lo siguiente:
 
   class Fixnum
     def +(other)
@@ -32,22 +32,24 @@ imagine que hicimos el siguientes:
     end
   end
 
-Si bien es ciertamente posible para redefinir aritmética de punto fijo más ser
-módulo 5, haciendo así que sin duda hará que alguna clase de matriz como para
-no poder calcular la longitud correcta cuando se necesita. La naturaleza
-dinámica de Ruby es uno de sus rasgos apreciados, pero también es una
-verdadera arma de doble filo en algunos aspectos.
+Si bien es cierto qeu es posible redefinir el operador aritmético de
+suma para que realice una operación módulo 5, hacerlo, sin duda
+causaría que algunas clases como Array no pudiesen calcular siquiera la
+longitud correcta cuando lo necesite. La naturaleza dinámica de Ruby
+es uno de sus rasgos más apreciados, pero también es una verdadera
+arma de doble filo en algunos aspectos.
 
-En la colección de la biblioteca estándar de la 'mathn' redefines Fixnum#/ en
-un peligroso e incompatibles manera. La colección de alias Fixnum#/ a
-Fixnum#quo, que devuelve un flotador de forma predeterminada.
+En la biblioteca estándard, 'mathn' redefine Fixnum#/ de una manera
+peligrosa e insegura. La biblioteca crea un alias de Fixnum#/ a
+Fixnum#quo, que regresa un Float de forma predeterminada.
 
-Debido a esto existe un compilador especial plugin que emite una diferente
-nombre de método cuando se encuentra con el #/ método. El compilador emite
-#divide en lugar de #/. Las clases numéricas Fixnum, un número grande,
-flotador, y numérico todos los definir este método.
+Debido a esto existe un plugin especial para el compilador que emite
+métodos con nombre diferente cuando se encuentra con el método #/. El
+compilador emite #divide en vez de #/. Las clases numéricas Fixnum,
+Bignum, Float, y Numeric, todas definen este método.
 
-Las matemáticas segura transformación está habilitada durante la compilación
-del Núcleo bibliotecas para que el plugin. Durante la compilación regular
-"user code", el plugin no está habilitado. Esto nos permite apoyar mathn sin
-romper el bibliotecas del núcleo o forzar a prácticas inconvenientes.
+Las transformaciones para matemáticas seguras estan habilitadas
+durante la compilación de las bibliotecas del núcleo. Durante la
+compilación de 'código de usuario' regular, el plugin es
+deshabilitado. Esto nos permite soportar mathn sin alterar las
+bibliotecas del núcleo o forzar a prácticas inconvenientes.
