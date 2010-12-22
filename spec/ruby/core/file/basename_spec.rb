@@ -69,7 +69,7 @@ describe "File.basename" do
     File.basename("foo/").should == "foo"
   end
 
-  it "ignores a trailing directory seperator" do
+  it "ignores a trailing directory separator" do
     File.basename("foo.rb/", '.rb').should == "foo"
     File.basename("bar.rb///", '.*').should == "bar"
   end

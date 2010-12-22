@@ -28,7 +28,7 @@ describe IO, "#print" do
     IO.read(@name).should == "#{string}#{$\}"
   end
 
-  it "calls obj.to_s and not obj.to_str then writes the record seperator" do
+  it "calls obj.to_s and not obj.to_str then writes the record separator" do
     o = mock('o')
     o.should_not_receive(:to_str)
     o.should_receive(:to_s).and_return("hello")

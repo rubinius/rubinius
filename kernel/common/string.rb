@@ -730,8 +730,8 @@ class String
     size = @num_bytes
     orig_data = @data
 
-    # If the seperator is empty, we're actually in paragraph mode. This
-    # is used so infrequently, we'll handle it completely seperately from
+    # If the separator is empty, we're actually in paragraph mode. This
+    # is used so infrequently, we'll handle it completely separately from
     # normal line breaking.
     if sep.empty?
       sep = "\n\n"
@@ -761,7 +761,7 @@ class String
         pos = nxt
       end
 
-      # No more seperates, but we need to grab the last part still.
+      # No more separates, but we need to grab the last part still.
       fin = substring(pos, @num_bytes - pos)
       yield fin if fin and !fin.empty?
 
@@ -786,7 +786,7 @@ class String
         pos = nxt + pat_size
       end
 
-      # No more seperates, but we need to grab the last part still.
+      # No more separates, but we need to grab the last part still.
       fin = substring(pos, @num_bytes - pos)
       yield fin unless fin.empty?
     end
@@ -1765,7 +1765,7 @@ class String
       pos = nxt + pat_size
     end
 
-    # No more seperates, but we need to grab the last part still.
+    # No more separators, but we need to grab the last part still.
     ret << substring(pos, @num_bytes - pos)
 
     ret.pop while !ret.empty? and ret.last.empty?

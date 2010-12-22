@@ -4,13 +4,13 @@ class Dir
       def initialize(nxt, flags)
         @flags = flags
         @next = nxt
-        @seperator = nil
+        @separator = nil
       end
 
-      attr_writer :seperator
+      attr_writer :separator
 
-      def seperator
-        @seperator || "/"
+      def separator
+        @separator || "/"
       end
 
       def path_join(parent, ent)
@@ -18,7 +18,7 @@ class Dir
         if parent == "/"
           "/#{ent}"
         else
-          "#{parent}#{seperator}#{ent}"
+          "#{parent}#{separator}#{ent}"
         end
       end
     end
@@ -178,7 +178,7 @@ class Dir
       end
 
       until parts.empty?
-        last.seperator = parts.pop
+        last.separator = parts.pop
         dir = parts.pop
 
         if dir == "**"
