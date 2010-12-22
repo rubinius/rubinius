@@ -35,7 +35,7 @@ namespace rubinius {
     thr->thread_id(state, Fixnum::from(target->thread_id()));
     thr->alive(state, Qtrue);
     thr->sleep(state, Qfalse);
-    thr->control_channel(state, (Channel*)Qnil);
+    thr->control_channel(state, nil<Channel>());
     thr->recursive_objects(state, LookupTable::create(state));
     thr->vm_ = target;
     thr->klass(state, as<Class>(self));
@@ -193,7 +193,7 @@ namespace rubinius {
     thread::SpinLock::LockGuard lg(init_lock_);
 
     VM* vm = vm_;
-    if(!vm) return (Tuple*)Qnil;
+    if(!vm) return nil<Tuple>();
 
     CallFrame* cf = vm->saved_call_frame();
 

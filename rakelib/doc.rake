@@ -12,14 +12,6 @@ namespace :doc do
   desc "Delete all generated documentation"
   task :clean => %w[doc:doxygen:clean doc:opcode:clean]
 
-  desc "Generate static documentation site"
-  task :site do
-    STDERR.puts "You must have nanoc3 and kramdown installed"
-    Dir.chdir File.expand_path("../../doc", __FILE__) do
-      sh "#{File.expand_path('../../bin', __FILE__)}/rbx -S nanoc3 compile"
-    end
-  end
-
   # TODO: rename task to :vm and make it a dependency for doc:build.
   namespace :doxygen do
 
@@ -39,44 +31,4 @@ namespace :doc do
 
   end
 
-  # TODO: rename task to :build and generalize for all generated
-  # documentation, not just opcode docs.
-  namespace :opcode do
-
-    desc "Generate opcode documentation HTML"
-    task :generate => "doc/vm/toc.html"
-
-    directory "doc/generated/opcode"
-
-    file 'doc/generated/opcode/toc.html' => %w[
-        doc/generated/opcode shotgun/lib/instructions.rb] do
-      rbx 'doc/vm/gen_op_code_html.rb'
-    end
-
-    rule '.html' => %w[.txt doc/vm/rdoc.rb] do |t|
-      rbx 'doc/vm/rdoc.rb', t.source, t.name
-    end
-
-    task :html => %w[
-      build
-      doc/generated/opcode/toc.html
-      doc/generated/opcode/concurrency.html
-      doc/generated/opcode/intro.html
-      doc/generated/opcode/method_dispatch.html
-      doc/generated/opcode/rbc_files.html
-      doc/generated/opcode/rubinius_vs_mri.html
-      doc/generated/opcode/shotgun.html
-      doc/generated/opcode/vm_interfaces.html
-    ]
-
-    desc "Remove all generated opcode docs"
-    task :clean do
-      Dir.glob('doc/generated/opcode/**/*.html').each do |html|
-        rm_f html unless html =~ /\/?index.html$/
-      end
-    end
-
-  end
-
 end
-

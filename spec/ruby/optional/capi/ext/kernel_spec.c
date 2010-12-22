@@ -147,6 +147,12 @@ static VALUE kernel_spec_rb_yield_values(VALUE self, VALUE obj1, VALUE obj2) {
 }
 #endif
 
+#ifdef HAVE_RB_YIELD_SPLAT
+static VALUE kernel_spec_rb_yield_splat(VALUE self, VALUE ary) {
+  return rb_yield_splat(ary);
+}
+#endif
+
 #ifdef HAVE_RB_EXEC_RECURSIVE
 
 static VALUE do_rec(VALUE obj, VALUE arg, int is_rec) {
@@ -172,6 +178,12 @@ static void write_io(VALUE io) {
 static VALUE kernel_spec_rb_set_end_proc(VALUE self, VALUE io) {
   rb_set_end_proc(write_io, io);
   return Qnil;
+}
+#endif
+
+#ifdef HAVE_RB_F_SPRINTF
+static VALUE kernel_spec_rb_f_sprintf(VALUE self, VALUE ary) {
+  return rb_f_sprintf(RARRAY_LEN(ary), RARRAY_PTR(ary));
 }
 #endif
 
@@ -231,12 +243,20 @@ void Init_kernel_spec() {
   rb_define_method(cls, "rb_yield_values", kernel_spec_rb_yield_values, 2);
 #endif
 
+#ifdef HAVE_RB_YIELD_SPLAT
+  rb_define_method(cls, "rb_yield_splat", kernel_spec_rb_yield_splat, 1);
+#endif
+
 #ifdef HAVE_RB_EXEC_RECURSIVE
   rb_define_method(cls, "rb_exec_recursive", kernel_spec_rb_exec_recursive, 1);
 #endif
 
 #ifdef HAVE_RB_SET_END_PROC
   rb_define_method(cls, "rb_set_end_proc", kernel_spec_rb_set_end_proc, 1);
+#endif
+
+#ifdef HAVE_RB_F_SPRINTF
+  rb_define_method(cls, "rb_f_sprintf", kernel_spec_rb_f_sprintf, 1);
 #endif
 }
 

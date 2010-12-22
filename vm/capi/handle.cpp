@@ -35,6 +35,7 @@ namespace rubinius {
           delete as_.rfloat;
           break;
         case cRIO:
+          // When the IO is finalized, the FILE* is closed.
           delete as_.rio;
           break;
         case cRData:

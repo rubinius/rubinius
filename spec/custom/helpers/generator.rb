@@ -172,6 +172,10 @@ module Rubinius
       add :dup
     end
 
+    def definition_line(line)
+      # nothing
+    end
+
     def set_line(line)
       @line = line
     end

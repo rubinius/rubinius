@@ -155,7 +155,7 @@ namespace rubinius {
 
   class SmallMethodInlinePolicy : public InlinePolicy {
   public:
-    const static bool is_small_p(VMMethod* vmm) {
+    static bool is_small_p(VMMethod* vmm) {
       if(vmm->total < 100) return true;
       return false;
     }
@@ -168,7 +168,7 @@ namespace rubinius {
 
   class NormalMethodInlinePolicy : public InlinePolicy {
   public:
-    const static bool is_normal_p(VMMethod* vmm) {
+    static bool is_normal_p(VMMethod* vmm) {
       if(vmm->total < 300) return true;
       return false;
     }
@@ -181,7 +181,7 @@ namespace rubinius {
 
   class LargeMethodInlinePolicy : public InlinePolicy {
   public:
-    const static bool is_large_p(VMMethod* vmm) {
+    static bool is_large_p(VMMethod* vmm) {
       if(vmm->total < 2000) return true;
       return false;
     }

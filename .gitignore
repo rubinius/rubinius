@@ -101,20 +101,6 @@ vm/external_libs/llvm/utils/Makefile
 
 # Generated documentation
 vm/doc/generated
-
-# Assembler
-vm/assembler/test
-vm/assembler/udis86-1.7/Makefile
-vm/assembler/udis86-1.7/config.h
-vm/assembler/udis86-1.7/config.log
-vm/assembler/udis86-1.7/config.status
-vm/assembler/udis86-1.7/docs/Makefile
-vm/assembler/udis86-1.7/libtool
-vm/assembler/udis86-1.7/libudis86/.deps/
-vm/assembler/udis86-1.7/libudis86/Makefile
-vm/assembler/udis86-1.7/tests/.deps/
-vm/assembler/udis86-1.7/tests/Makefile
-vm/assembler/udis86-1.7/udcli/.deps/
-vm/assembler/udis86-1.7/udcli/Makefile
-vm/assembler/udis86-1.7/udcli/udcli
+web/doc/*/*.bak
+web/doc/*/*.new
 

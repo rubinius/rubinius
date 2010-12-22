@@ -87,8 +87,8 @@ module RbConfig
   CONFIG["NROFF"]              = "/usr/bin/nroff"
   CONFIG["MAKEDIRS"]           = "mkdir -p"
   # compile tools
-  CONFIG["CC"]                 = "gcc"
-  CONFIG["CPP"]                = "gcc -E"
+  CONFIG["CC"]                 = Rubinius::BUILD_CONFIG[:cc]
+  CONFIG["CPP"]                = "#{Rubinius::BUILD_CONFIG[:cc]} -E"
   CONFIG["YACC"]               = "bison -y"
   CONFIG["RANLIB"]             = "ranlib"
   CONFIG["AR"]                 = "ar"
@@ -110,8 +110,20 @@ module RbConfig
   # used by mkmf to compile extensions, be sure PIC is in
   # there
   CONFIG["CFLAGS"]             = "-ggdb3 -O2 -fPIC"
+  if user = Rubinius::BUILD_CONFIG[:user_cflags]
+    CONFIG["CFLAGS"] << " #{user}" unless user.empty?
+  end
+
   CONFIG["LDFLAGS"]            = ""
+  if user = Rubinius::BUILD_CONFIG[:user_ldflags]
+    CONFIG["LDFLAGS"] << " #{user}" unless user.empty?
+  end
+
   CONFIG["CPPFLAGS"]           = ""
+  if user = Rubinius::BUILD_CONFIG[:user_cppflags]
+    CONFIG["CPPFLAGS"] << " #{user}" unless user.empty?
+  end
+
   CONFIG["OBJEXT"]             = "o"
   CONFIG["GNU_LD"]             = ""
   CONFIG["CPPOUTFILE"]         = ""

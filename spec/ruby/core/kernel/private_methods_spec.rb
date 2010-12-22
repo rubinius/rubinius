@@ -25,6 +25,12 @@ describe "Kernel#private_methods" do
       m = KernelSpecs::PublicSub.new
       m.private_methods.should_not include("public_in_sub")
     end
+
+    it "returns private methods mixed in to the metaclass" do
+      m = KernelSpecs::Methods.new
+      m.extend(KernelSpecs::Methods::MetaclassMethods)
+      m.private_methods.should include('shoo')
+    end
   end
 
   ruby_version_is "1.9" do
@@ -41,6 +47,12 @@ describe "Kernel#private_methods" do
       m.should include(:shichi)
       m = KernelSpecs::Methods.new.private_methods
       m.should include(:juu_shi)
+    end
+
+    it "returns private methods mixed in to the metaclass" do
+      m = KernelSpecs::Methods.new
+      m.extend(KernelSpecs::Methods::MetaclassMethods)
+      m.private_methods.should include(:shoo)
     end
   end
 end

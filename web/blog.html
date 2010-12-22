@@ -1,0 +1,16 @@
+---
+layout: blog
+---
+  <div class="container blog_posts">
+  {% for post in site.posts limit:20 %}
+    <div class="post">
+      <h2 class="post_title">
+        <a href="{{ post.url }}" title="{{ post.title }}" class="post_title">
+        {{ post.title }}
+        </a>
+      </h2>
+      {% include by_line.html %}
+      {{ post.content }}
+    </div>
+  {% endfor %}
+  </div>

@@ -33,6 +33,7 @@ class Configure
     @cxx = ENV['CXX'] || 'g++'
     @rake = ENV['RAKE'] || 'rake'
     @install = false
+    @build_ruby = nil
 
     # LLVM settings
     @use_llvm               = true
@@ -43,9 +44,21 @@ class Configure
     @llvm_skip_prebuilt     = false
     @llvm_prebuilt_name     = nil
     @llvm_system_name       = get_system_name
-    @llvm_source            = "llvm-2.6-source.tar.bz2"
+
+    @llvm_version           = "2.8"
+    @llvm_source            = "llvm-2.8.tgz"
+    @llvm_source_dir        = "llvm-2.8"
+    @llvm_source_url        = "http://llvm.org/releases/2.8/llvm-2.8.tgz"
     @llvm_asset_path        = "http://asset.rubini.us/prebuilt"
-    @llvm_generic_prebuilt  = "llvm-#{@host}.tar.bz2"
+
+    @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
+
+    if @host == "i686-pc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
+      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}-#{@gcc_major}.tar.bz2"
+    else
+      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}.tar.bz2"
+    end
+
     @llvm_parent_path       = File.join(root, "vm", "external_libs")
     @llvm_default           = File.join(@llvm_parent_path, "llvm")
     @llvm_prebuilt_path     = File.join(@llvm_parent_path, "prebuilt")
@@ -71,10 +84,10 @@ class Configure
     @rb_readline = false
 
     # Essential settings (modify these for creating releases)
-    @libversion = "1.1"
-    @version = "#{@libversion}.1"
-    @release_date = "2010-11-16"
-    @config_version = 23
+    @libversion = "1.2"
+    @version = "#{@libversion}.1dev"
+    @release_date = "2010-12-21"
+    @config_version = 28
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
       @buildrev = `git rev-list --all | head -n1`.chomp
@@ -84,10 +97,18 @@ class Configure
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
-      @ldshared = "cc -dynamic -bundle -undefined suppress -flat_namespace"
+      @ldshared = "#{@cc} -dynamic -bundle -undefined suppress -flat_namespace"
     else
-      @ldshared = "cc -shared"
+      @ldshared = "#{@cc} -shared"
     end
+
+    import_env
+  end
+
+  def import_env
+    @user_cflags =   ENV['CFLAGS']
+    @user_cppflags = ENV['CPPFLAGS']
+    @user_ldflags =  ENV['LDFLAGS']
   end
 
   def expand(path)
@@ -106,7 +127,7 @@ class Configure
       @log.replace old_log
     end
 
-    o.on "--rake", "NAME", "Use NAME as 'rake'" do |name|
+    o.on "--rake", "NAME", "Use NAME as 'rake' during build" do |name|
       @rake = name
     end
 
@@ -275,7 +296,7 @@ class Configure
       end
     end
 
-    return md5.hexdigest == File.read(md5_path).split(" ").first
+    return md5.hexdigest == File.read(md5_path).strip.split(" ").first
   end
 
   require 'net/http'
@@ -291,21 +312,32 @@ class Configure
         http = Net::HTTP
       end
 
+      @log.write "    Downloading #{File.basename(full_path)}..."
       http.get_response(URI(url)) do |res|
-        return false if res.is_a?(Net::HTTPClientError)
-        size, total = 0, res.header['Content-Length'].to_i
+        case res
+        when Net::HTTPNotFound
+          @log.write "      Not found."
+          return false
+        when Net::HTTPClientError
+          @log.write "      ERROR: #{res.inspect}"
+          return false
+        end
+
+        size = 0
+        total = res.header['Content-Length'].to_i
+
         File.open full_path, "w" do |f|
           res.read_body do |chunk|
             f << chunk
             size += chunk.size
-            print "\r    [ %d%% (%d of %d) ]" % [(size * 100) / total, size, total]
+            print "\r      [ %d%% (%d of %d) ]" % [(size * 100) / total, size, total]
           end
         end
         @log.write ": done!"
       end
     rescue Exception => e
       File.unlink full_path if File.exists?(full_path)
-      @log.write " ERROR"
+      @log.write " ERROR: #{e.message}"
       return false
     end
 
@@ -354,19 +386,21 @@ class Configure
   end
 
   def setup_source
-    url = File.join @llvm_asset_path, @llvm_source
+    url = @llvm_source_url
     path = File.join @llvm_prebuilt_path, @llvm_source
 
-    @log.write "  Downloading #{url}..."
-    return false unless download(url, path)
+    unless File.exists?(path)
+      @log.write "  Downloading #{url}..."
+      return false unless download(url, path)
+    end
 
     if File.exists?(path)
-      @log.print "  Unpacking prebuilt LLVM source: "
-      system "cd #{@llvm_parent_path}; tar xjf #{path}"
+      @log.print "  Unpacking LLVM source: "
+      system "cd #{@llvm_parent_path}; tar xzf #{path}; mv #{@llvm_source_dir} llvm"
       @log.write "done!"
 
       if File.exists?(@llvm_include_path)
-        @log.write "  Code appears to be proper svn tree."
+        @log.write "  Code appears to be a proper tree."
       else
         @log.write "  Code doesn't appear to be proper LLVM tree!"
         return false
@@ -384,7 +418,14 @@ class Configure
     # If we have a system name, try to find a prebuilt specifically
     # for this system first.
     if @llvm_system_name
-      files.unshift "llvm-#{@host}-#{@llvm_system_name}.tar.bz2"
+      files.unshift "llvm-#{@llvm_version}-#{@host}-#{@llvm_system_name}.tar.bz2"
+    end
+
+    # Try one for just the darwin major version (which increases for each
+    # minor OS X version. ie. 10.5 == 9.x.x, 10.6 == 10.x.x)
+    if m = /darwin(\d+)\.(\d+)\.(\d+)/.match(@os)
+      # Try this last
+      files.push "llvm-#{@llvm_version}-#{@cpu}-#{@vendor}-darwin#{m[1]}.tar.bz2"
     end
 
     # If the user specified a name, try that before anything.
@@ -435,17 +476,39 @@ class Configure
     return false
   end
 
+  def remove_default
+    if File.exists?(File.join(@llvm_default, "Makefile.common"))
+      @log.error "ABORT: Unwilling to override custom LLVM tree, please update it manually"
+      exit 1
+    else
+      @log.write "    Removing outdated tree..."
+      FileUtils.rm_rf(@llvm_default)
+    end
+  end
+
   def setup_auto
     @log.print "  Checking for existing LLVM tree: "
     if File.directory?(@llvm_default)
-      @log.write "found!"
-      if File.exists?(File.join(@llvm_default, "Makefile.common"))
-        @llvm = :svn
-      else
-        @llvm = :prebuilt
-      end
+      version = `#{@llvm_default}/Release/bin/llvm-config --version`.strip
+      if version == "2.8"
+        # See if this has rtti turned off and reject it.
+        if `#{@llvm_default}/Release/bin/llvm-config --cxxflags`.index("-fno-rtti")
+          @log.write "incorrectly configure (rtti is off)"
+          remove_default
+        else
+          @log.write "found!"
+          if File.exists?(File.join(@llvm_default, "Makefile.common"))
+            @llvm = :svn
+          else
+            @llvm = :prebuilt
+          end
 
-      return
+          return
+        end
+      else
+        @log.write "outdated (version #{version})"
+        remove_default
+      end
     else
       @log.write "not found."
     end
@@ -479,16 +542,17 @@ class Configure
       version = `#{config} --version`.strip
       parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
 
-      # 2.6svn is an unknown beast, don't trust it.
-      if version == "2.6svn" or parts[0] < 2 or parts[1] < 6
-        @log.write "too old of a version"
-      elsif parts[0] != 2 or parts[1] != 6
-        @log.write "only 2.6 is supported"
+      if parts[0] != 2 or parts[1] != 8
+        @log.write "only 2.8 is supported"
       else
-        @log.write "found! (version #{version})"
-        @llvm_configure = config
-        @llvm = :config
-        return true
+        if `#{config} --cxxflags`.index("-fno-rtti")
+          @log.write "incorrectly configure (rtti is off)"
+        else
+          @log.write "found! (version #{version})"
+          @llvm_configure = config
+          @llvm = :config
+          return true
+        end
       end
     else
       @log.write "not found"
@@ -541,7 +605,7 @@ class Configure
       `./#{basename}`
       return $?.exitstatus
     ensure
-      File.delete *Dir["#{basename}*"]
+      File.delete(*Dir["#{basename}*"])
     end
   end
 
@@ -715,9 +779,12 @@ int main() { return tgetnum(""); }
   # script. That path will be made available to the rest of the build system
   # so the same version of ruby is invoked as needed.
   def build_ruby
-    bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"] || RbConfig::CONFIG["ruby_install_name"]
-    bin << (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
-    File.join(RbConfig::CONFIG['bindir'], bin)
+    unless @build_ruby
+      bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"] || RbConfig::CONFIG["ruby_install_name"]
+      bin += (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
+      @build_ruby = File.join(RbConfig::CONFIG['bindir'], bin)
+    end
+    @build_ruby
   end
 
   def get_system_name
@@ -754,6 +821,9 @@ module Rubinius
     :llvm_configure => "#{@llvm_configure}",
     :cc             => "#{@cc}",
     :cxx            => "#{@cxx}",
+    :user_cflags    => "#{@user_cflags}",
+    :user_cppflags  => "#{@user_cppflags}",
+    :user_ldflags   => "#{@user_ldflags}",
     :defines        => #{@defines.inspect},
     :curses         => #{@curses.inspect},
     :host           => "#{@host}",
@@ -854,13 +924,34 @@ end
 
     options
     parse ARGV
+
+    if File.join(@bindir, @program_name) == build_ruby
+      @log.error "\nYou are attempting to build using the instance of Rubinius that you are building.\n\n"
+
+      @log.error "To resolve this issue:"
+      if ENV['PATH'] =~ /#{@bindir}/
+        @log.error "  * Remove '#{@bindir}' from your PATH."
+      end
+      @log.error "  * Use a Ruby executable other than '#{build_ruby}' to build."
+
+      exit 1
+    end
+
     process
     write_config
     print_debug if @verbose
     if @install
-      @log.write "\nConfigured. Run 'rake install' to install Rubinius"
+      @log.write "\nConfigured. Run 'rake install' to install Rubinius."
     else
-      @log.write "\nConfigured. Run 'rake' to build and run VM tests and rubyspecs"
+      @log.write <<-EOM
+
+Configured. Run 'rake' to build and run VM tests and rubyspecs.
+
+After building, you may add '#{@bindir}' to your PATH or run commands directly from that directory. Available commands are:
+
+  #{@program_name}, ruby, rake, gem, irb, rdoc, ri
+
+      EOM
     end
   end
 

@@ -23,6 +23,8 @@
 #include "configuration.hpp"
 
 #include "inline_cache.hpp"
+#include "bytecode_verification.hpp"
+#include "instruments/timing.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
@@ -61,7 +63,6 @@ namespace rubinius {
     cm->jit_data_ = NULL;
     cm->backend_method_ = NULL;
 
-    cm->formalize(state);
     return cm;
   }
 
@@ -97,11 +98,26 @@ namespace rubinius {
     return as<Fixnum>(lines_->at(state, fin+1))->to_native();
   }
 
-  VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {
+  VMMethod* CompiledMethod::internalize(STATE, const char** reason, int* ip) {
     if(lock(state) != eLocked) rubinius::abort();
-
     if(!backend_method_) {
-      backend_method_ = new VMMethod(state, this);
+      {
+        timer::Running<double, timer::milliseconds> tr(
+            state->shared.stats.verification_time);
+
+        BytecodeVerification bv(this);
+        if(!bv.verify(state)) {
+          if(reason) *reason = bv.failure_reason();
+          if(ip) *ip = bv.failure_ip();
+          std::cerr << "Error validating bytecode: " << bv.failure_reason() << "\n";
+          return 0;
+        }
+      }
+
+      VMMethod* vmm = NULL;
+      vmm = new VMMethod(state, this);
+      backend_method_ = vmm;
+
       if(!resolve_primitive(state)) {
         backend_method_->setup_argument_handler(this);
       }
@@ -133,7 +149,13 @@ namespace rubinius {
 
     CompiledMethod* cm = as<CompiledMethod>(exec);
     if(cm->execute == default_executor) {
-      cm->formalize(state, false);
+      const char* reason = 0;
+      int ip = -1;
+
+      if(!cm->internalize(state, &reason, &ip)) {
+        Exception::bytecode_error(state, call_frame, cm, ip, reason);
+        return 0;
+      }
     }
 
     lg.unlock();
@@ -142,7 +164,6 @@ namespace rubinius {
   }
 
   void CompiledMethod::post_marshal(STATE) {
-    formalize(state); // side-effect, populates backend_method_
   }
 
   size_t CompiledMethod::number_of_locals() {
@@ -154,9 +175,10 @@ namespace rubinius {
   }
 
   Object* CompiledMethod::jit_now(STATE) {
+    return Qfalse;
 #ifdef ENABLE_LLVM
     if(backend_method_ == NULL) {
-      formalize(state, false);
+      internalize(state);
     }
 
     if(state->shared.config.jit_show_compiling) {
@@ -179,9 +201,10 @@ namespace rubinius {
   }
 
   Object* CompiledMethod::jit_soon(STATE) {
+    return Qfalse;
 #ifdef ENABLE_LLVM
     if(backend_method_ == NULL) {
-      formalize(state, false);
+      internalize(state);
     }
 
     if(state->shared.config.jit_show_compiling) {
@@ -197,7 +220,9 @@ namespace rubinius {
 
   Object* CompiledMethod::set_breakpoint(STATE, Fixnum* ip, Object* bp) {
     int i = ip->to_native();
-    if(backend_method_ == NULL) formalize(state);
+    if(backend_method_ == NULL) {
+      if(!internalize(state)) return Primitives::failure();
+    }
     if(!backend_method_->validate_ip(state, i)) return Primitives::failure();
 
     if(breakpoints_->nil_p()) {
@@ -250,7 +275,7 @@ namespace rubinius {
       }
     }
 
-    return (CompiledMethod*)Qnil;
+    return nil<CompiledMethod>();
   }
 
   void CompiledMethod::Info::mark(Object* obj, ObjectMark& mark) {

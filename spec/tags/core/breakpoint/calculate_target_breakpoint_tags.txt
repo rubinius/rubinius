@@ -1,7 +1,0 @@
-fails:StepBreakpoint#calculate_step_breakpoint given a valid line outside the current method, ???
-fails:StepBreakpoint#calculate_step_breakpoint given a valid target IP within the method, returns the target IP
-fails:StepBreakpoint#calculate_step_breakpoint given a valid target line within the method, returns the first IP on that line
-fails:StepBreakpoint#calculate_step_breakpoint given an invalid line for the source file, it raises an ArgumentError
-fails:StepBreakpoint#calculate_step_breakpoint given an IP that is invalid, but within the valid range, it returns the next valid IP after
-fails:StepBreakpoint#calculate_step_breakpoint given an IP that is outside the valid range, it raises an ArgumentError
-fails:StepBreakpoint#calculate_step_breakpoint given a step-out from a top-level context, it raises an ArgumentError

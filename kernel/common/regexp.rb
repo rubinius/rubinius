@@ -620,6 +620,10 @@ class MatchData
 
     return out
   end
+  
+  def names
+    @regexp.names
+  end
 
   def pre_match
     return @source.substring(0, 0) if @full.at(0) == 0

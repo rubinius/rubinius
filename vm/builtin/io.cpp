@@ -26,6 +26,8 @@
 #include "vm/object_utils.hpp"
 #include "vm/on_stack.hpp"
 
+#include "capi/handle.hpp"
+
 namespace rubinius {
   void IO::init(STATE) {
     GO(io).set(state->new_class("IO", G(object)));
@@ -53,8 +55,8 @@ namespace rubinius {
 
   IO* IO::allocate(STATE, Object* self) {
     IO* io = state->new_object<IO>(G(io));
-    io->descriptor(state, (Fixnum*)Qnil);
-    io->mode(state, (Fixnum*)Qnil);
+    io->descriptor(state, nil<Fixnum>());
+    io->mode(state, nil<Fixnum>());
     io->ibuffer(state, IOBuffer::create(state));
     io->eof(state, Qfalse);
     io->lineno(state, Fixnum::from(0));
@@ -85,7 +87,7 @@ namespace rubinius {
       Array* descriptors = as<Array>(maybe_descriptors);
 
       FD_ZERO(set);
-      native_int highest = 0;
+      native_int highest = -1;
 
       for(std::size_t i = 0; i < descriptors->size(); ++i) {
         Object* elem = descriptors->get(state, i);
@@ -100,7 +102,7 @@ namespace rubinius {
         native_int descriptor = io->to_fd();
         highest = descriptor > highest ? descriptor : highest;
 
-        if(descriptor > 0) FD_SET(descriptor, set);
+        if(descriptor >= 0) FD_SET(descriptor, set);
       }
 
       return highest;
@@ -349,6 +351,20 @@ namespace rubinius {
     // Invalid descriptor no matter what.
     descriptor(state, Fixnum::from(-1));
 
+    // If there is a handle for this IO, and it's been promoted into
+    // a lowlevel RIO struct using fdopen, then we MUST use fclose
+    // to close it.
+
+    if(inflated_header_p()) {
+      capi::Handle* hdl = inflated_header()->handle();
+      if(hdl && hdl->is_rio()) {
+        if(!hdl->rio_close()) {
+          Exception::errno_error(state);
+        }
+        return Qnil;
+      }
+    }
+
     switch(::close(desc)) {
     case -1:
       Exception::errno_error(state);
@@ -442,8 +458,21 @@ namespace rubinius {
 
     // don't close stdin, stdout, stderr (0, 1, 2)
     if(fd >= 3) {
-      ::close(fd);
       io->descriptor(state, Fixnum::from(-1));
+
+      // If there is a handle for this IO, and it's been promoted into
+      // a lowlevel RIO struct using fdopen, then we MUST use fclose
+      // to close it.
+
+      if(io->inflated_header_p()) {
+        capi::Handle* hdl = io->inflated_header()->handle();
+        if(hdl && hdl->is_rio()) {
+          hdl->rio_close();
+          return;
+        }
+      }
+
+      ::close(fd);
     }
   }
 

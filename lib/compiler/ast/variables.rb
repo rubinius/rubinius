@@ -9,6 +9,7 @@ module Rubinius
       end
 
       Kinds = {
+        :~ => 0,
         :& => 1,
         :"`" => 2,
         :"'" => 3,
@@ -25,11 +26,15 @@ module Rubinius
 
       def bytecode(g)
         pos(g)
-
         g.last_match mode, 0
       end
 
       def defined(g)
+        if @kind == :~
+          g.push_literal "global-variable"
+          return
+        end
+
         f = g.new_label
         done = g.new_label
 
@@ -207,6 +212,7 @@ module Rubinius
           g.swap
         end
 
+        pos(g)
         g.send :class_variable_set, 2
       end
 
@@ -221,30 +227,60 @@ module Rubinius
       end
     end
 
-    class GlobalVariableAccess < VariableAccess
+    class CurrentException < Node
       def bytecode(g)
         pos(g)
+        g.push_current_exception
+      end
 
-        if @name == :$!
-          g.push_current_exception
-        elsif @name == :$~
-          g.last_match 0, 0
+      def defined(g)
+        g.push_literal "global-variable"
+      end
+
+      def to_sexp
+        [:gvar, :$!]
+      end
+    end
+
+    class GlobalVariableAccess < VariableAccess
+      EnglishBackrefs = {
+        :$LAST_MATCH_INFO => :~,
+        :$MATCH => :&,
+        :$PREMATCH => :'`',
+        :$POSTMATCH => :"'",
+        :$LAST_PAREN_MATCH => :+,
+      }
+
+      def self.for_name(line, name)
+        case name
+        when :$!
+          CurrentException.new(line)
+        when :$~
+          BackRef.new(line, :~)
         else
-          g.push_rubinius
-          g.find_const :Globals
-          g.push_literal @name
-          g.send :[], 1
+          if backref = EnglishBackrefs[name]
+            BackRef.new(line, backref)
+          else
+            new(line, name)
+          end
         end
       end
 
+      def bytecode(g)
+        pos(g)
+
+        g.push_rubinius
+        g.find_const :Globals
+        g.push_literal @name
+        g.send :[], 1
+      end
+
       def variable_defined(g, f)
-        unless @name == :$! or @name == :$~
-          g.push_rubinius
-          g.find_const :Globals
-          g.push_literal @name
-          g.send :key?, 1
-          g.gif f
-        end
+        g.push_rubinius
+        g.find_const :Globals
+        g.push_literal @name
+        g.send :key?, 1
+        g.gif f
       end
 
       def defined(g)
@@ -268,19 +304,21 @@ module Rubinius
 
     class GlobalVariableAssignment < VariableAssignment
       def bytecode(g)
-        pos(g)
-
         # @value can be nil if this is coming via an masgn, which means
         # the value is already on the stack.
         if @name == :$!
           @value.bytecode(g) if @value
+          pos(g)
           g.raise_exc
         elsif @name == :$~
+          pos(g)
           g.push_cpath_top
           g.find_const :Regexp
           @value ?  @value.bytecode(g) : g.swap
+          pos(g)
           g.send :last_match=, 1
         else
+          pos(g)
           g.push_rubinius
           g.find_const :Globals
           if @value
@@ -291,6 +329,7 @@ module Rubinius
             g.push_literal @name
             g.swap
           end
+          pos(g)
           g.send :[]=, 2
         end
       end
@@ -414,9 +453,9 @@ module Rubinius
 
     class InstanceVariableAssignment < VariableAssignment
       def bytecode(g)
-        pos(g)
-
         @value.bytecode(g) if @value
+
+        pos(g)
         g.set_ivar @name
       end
 
@@ -467,8 +506,6 @@ module Rubinius
       end
 
       def bytecode(g)
-        pos(g)
-
         unless @variable
           g.state.scope.assign_local_reference self
         end
@@ -476,6 +513,10 @@ module Rubinius
         if @value
           @value.bytecode(g)
         end
+
+        # Set the position after the value, so the position
+        # reflects where the assignment itself is done
+        pos(g)
 
         @variable.set_bytecode(g)
       end

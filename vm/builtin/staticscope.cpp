@@ -42,7 +42,7 @@ namespace rubinius {
       return calling_environment->previous->static_scope();
     }
 
-    return (StaticScope*)Qnil;
+    return nil<StaticScope>();
   }
 
   Object* StaticScope::const_set(STATE, Object* name, Object* value) {

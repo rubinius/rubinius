@@ -402,6 +402,21 @@ namespace agent {
     }
   };
 
+  class ReadDouble : public DynamicVariable {
+    double* ptr_;
+
+  public:
+    ReadDouble(const char* name, double* ptr)
+      : DynamicVariable(name)
+      , ptr_(ptr)
+    {}
+
+    virtual void read(Output& output) {
+      output.ok("value");
+      output.e().write_float(*ptr_);
+    }
+  };
+
   template <typename T>
   class StaticInteger : public DynamicVariable {
     T val_;
@@ -466,6 +481,10 @@ namespace agent {
     Tree* threads = system_->get_tree("threads");
     threads->add(new ThreadBacktrace(state, ss, "backtrace"));
     threads->add(new ThreadCount(state, ss, "count"));
+
+    Tree* timing = system_->get_tree("timing");
+    timing->add(new ReadDouble("verification",
+                                      &ss.stats.verification_time));
 
   }
 

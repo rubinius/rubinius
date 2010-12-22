@@ -172,20 +172,52 @@ namespace rubinius {
   }
 
   Object* Fixnum::pow(STATE, Fixnum* exponent) {
-    native_int i = to_native();
-    native_int j = exponent->to_native();
+    native_int base = to_native();
+    native_int exp = exponent->to_native();
 
-    if(j == 0) return Fixnum::from(1);
-    if(j == 1) return this;
+    if(exp == 0) return Fixnum::from(1);
+    if(base == 1) return this;
 
-    if(i == 0) {
-      if(j > 0) return Fixnum::from(0);
+    if(base == 0) {
+      if(exp > 0) return Fixnum::from(0);
       return Float::create(state, INFINITY);
     }
 
-    if(i == 1) return Fixnum::from(1);
+    if(exp < 0) {
+      return this->to_f(state)->fpow(state, exponent);
+    }
 
-    return Bignum::from(state, to_native())->pow(state, exponent);
+    native_int result = 1;
+
+    /*
+     * Exponentiation by squaring algorithm
+     * Based on the notion that x ** n == (x ** (n / 2)) ** 2
+     * for even n's and x ** n == x * ((n - 1) / 2) ** 2 for
+     * odd n's.
+     */
+    while(exp > 0) {
+      if(exp & 1) {
+        native_int intermediate = result * base;
+        // Overflow check when we grow out of the Fixnum range
+        // The division check is for when we overflow a native_int
+        if(intermediate > FIXNUM_MAX ||
+           intermediate < FIXNUM_MIN ||
+           intermediate / result != base) {
+          return Bignum::from(state, to_native())->pow(state, exponent);
+        }
+        result = intermediate;
+      }
+      // The exp > 1 check is to not overflow unneccesary if this is the
+      // last iteration of the algorithm
+      if(exp > 1) {
+        if(!FIT_SQRT(base)) {
+          return Bignum::from(state, to_native())->pow(state, exponent);
+        }
+        base *= base;
+      }
+      exp >>= 1;
+    }
+    return Fixnum::from(result);
   }
 
   Object* Fixnum::pow(STATE, Bignum* exponent) {
@@ -372,7 +404,8 @@ namespace rubinius {
   String* Fixnum::to_s(STATE, Fixnum* base) {
     // algorithm adapted from shotgun
     static const char digitmap[] = "0123456789abcdefghijklmnopqrstuvwxyz";
-    char buf[100];
+    // Base 2 fixnum with a minus sign and null byte is the maximum length
+    char buf[FIXNUM_WIDTH + 2];
     char *b = buf + sizeof(buf);
     native_int j, k, m;
 

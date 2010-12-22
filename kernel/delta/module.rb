@@ -71,14 +71,13 @@ class Module
     end
   end
 
-  # Called when this Module is being included in another Module.
-  # This may be overridden for custom behaviour. The default
-  # is to add constants, instance methods and module variables
-  # of this Module and all Modules that this one includes to +klass+.
+  # Add all constants, instance methods and module variables
+  # of this Module and all Modules that this one includes to +klass+
   #
-  # See also #include.
-  #
-  def append_features(klass)
+  # This method is aliased as append_features as the default implementation
+  # for that method. Kernel#extend calls this method directly through
+  # Module#extend_object, because Kernel#extend should not use append_features.
+  def include_into(klass)
     unless klass.kind_of? Module
       raise TypeError, "invalid argument class #{klass.class}, expected Module"
     end
@@ -149,6 +148,15 @@ class Module
 
     return self
   end
+
+  # Called when this Module is being included in another Module.
+  # This may be overridden for custom behaviour. The default
+  # is to add constants, instance methods and module variables
+  # of this Module and all Modules that this one includes to +klass+.
+  #
+  # See also #include.
+  #
+  alias_method :append_features, :include_into
 
   def attr_reader(*names)
     vis = Rubinius::VariableScope.of_sender.method_visibility

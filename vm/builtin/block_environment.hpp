@@ -81,6 +81,9 @@ namespace rubinius {
     // Ruby.primitive? :block_call_under
     Object* call_under(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
+    // Ruby.primitive :block_env_of_sender
+    static Object* of_sender(STATE, CallFrame* calling_environment);
+
     BlockEnvironment* dup(STATE);
 
     class Info : public TypeInfo {

@@ -166,7 +166,7 @@ module Kernel
     if target.kind_of? IO
       target.printf(*args)
     elsif target.kind_of? String
-      $stdout << Rubinius::Sprintf.new(target, *args).parse
+      $stdout << Rubinius::Sprinter.get(target).call(*args)
     else
       raise TypeError, "The first arg to printf should be an IO or a String"
     end
@@ -175,7 +175,7 @@ module Kernel
   module_function :printf
 
   def sprintf(str, *args)
-    Rubinius::Sprintf.new(str, *args).parse
+    ::Rubinius::Sprinter.get(str).call(*args)
   end
   alias_method :format, :sprintf
   module_function :sprintf
@@ -446,10 +446,14 @@ module Kernel
     end
 
     if parts.empty?
-      "#{prefix}>"
+      str = "#{prefix}>"
     else
-      "#{prefix} #{parts.join(' ')}>"
+      str = "#{prefix} #{parts.join(' ')}>"
     end
+
+    str.taint if tainted?
+
+    return str
   end
 
   ##
@@ -623,7 +627,9 @@ module Kernel
   end
 
   def to_s
-    "#<#{self.class}:0x#{self.__id__.to_s(16)}>"
+    str = "#<#{self.class}:0x#{self.__id__.to_s(16)}>"
+    str.taint if tainted?
+    return str
   end
 
   ##

@@ -15,7 +15,7 @@ class Dir
     files
   end
 
-  def self.glob(pattern, flags=0)
+  def self.glob(pattern, flags=0, &block)
     if pattern.kind_of? Array
       patterns = pattern
     else
@@ -30,6 +30,11 @@ class Dir
 
     patterns.each do |pat|
       Dir::Glob.glob pat, flags, matches
+    end
+
+    if block
+      matches.each(&block)
+      return nil
     end
 
     return matches

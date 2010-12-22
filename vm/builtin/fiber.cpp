@@ -36,7 +36,7 @@ namespace rubinius {
     // Lazily allocate a root fiber.
     if(fib->nil_p()) {
       fib = state->new_object<Fiber>(G(fiber));
-      fib->prev_ = reinterpret_cast<Fiber*>(Qnil);
+      fib->prev_ = nil<Fiber>();
       fib->top_ = 0;
       fib->root_ = true;
       fib->status_ = Fiber::eRunning;
@@ -53,7 +53,7 @@ namespace rubinius {
 
     return fib;
 #else
-    return reinterpret_cast<Fiber*>(Qnil);
+    return nil<Fiber>();
 #endif
   }
 
@@ -66,7 +66,7 @@ namespace rubinius {
     // Affix this fiber to this thread now.
     fib->state_ = state;
 
-    Array* result = (Array*)Qnil;
+    Array* result = nil<Array>();
     Object* obj = fib->starter()->send(state, NULL, G(sym_call), fib->value(), Qnil, false);
     // GC has run! Don't use stack vars!
 
@@ -112,7 +112,7 @@ namespace rubinius {
 
     Fiber* fib = state->new_object<Fiber>(G(fiber));
     fib->starter(state, callable);
-    fib->prev_ = (Fiber*)Qnil;
+    fib->prev(state, nil<Fiber>());
     fib->top_ = 0;
     fib->root_ = false;
     fib->state_ = 0;
@@ -172,7 +172,7 @@ namespace rubinius {
 
     if(!cur->exception()->nil_p()) {
       state->thread_state()->raise_exception(cur->exception());
-      cur->exception(state, (Exception*)Qnil);
+      cur->exception(state, nil<Exception>());
       return 0;
     }
 
@@ -221,7 +221,7 @@ namespace rubinius {
 
     if(!cur->exception()->nil_p()) {
       state->thread_state()->raise_exception(cur->exception());
-      cur->exception(state, (Exception*)Qnil);
+      cur->exception(state, nil<Exception>());
       return 0;
     }
 
@@ -250,7 +250,7 @@ namespace rubinius {
       Exception::fiber_error(state, "can't yield from root fiber");
     }
 
-    cur->prev(state, (Fiber*)Qnil);
+    cur->prev(state, nil<Fiber>());
 
     Array* val = args.as_array(state);
     dest_fib->value(state, val);

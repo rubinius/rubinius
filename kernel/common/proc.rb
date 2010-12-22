@@ -25,7 +25,7 @@ class Proc
       # Support for ancient pre-block-pass style:
       # def something; Proc.new; end
       # something { a_block } => Proc instance
-      env = Rubinius::VariableScope.of_sender.block
+      env = Rubinius::BlockEnvironment.of_sender
     end
 
     if env
@@ -35,6 +35,7 @@ class Proc
     end
   end
 
+  # Expose @block because MRI does. Do not expose @bound_method
   attr_accessor :block
 
   def binding
@@ -55,6 +56,11 @@ class Proc
   end
 
   def arity
+    if @bound_method
+      arity = @bound_method.arity
+      return arity < 0 ? -1 : arity
+    end
+
     @block.arity
   end
 

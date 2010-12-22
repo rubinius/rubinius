@@ -41,11 +41,12 @@ module Rubinius
 
       # set terminal width
       width = 80
-      if Terminal and !ENV['RBX_NO_COLS']
+      if Terminal and ENV['TERM'] and !ENV['RBX_NO_COLS']
         begin
           `which tput &> /dev/null`
           if $?.exitstatus == 0
-            width = `tput cols`.to_i
+            res = `tput cols 2>&1`.to_i
+            width = res if res > 0
           end
         end
       end
@@ -58,13 +59,17 @@ module Rubinius
     def system_load_path
       @stage = "setting up system load path"
 
-      @main_lib = Rubinius::LIB_PATH
+      @main_lib = nil
 
-      unless File.exists? @main_lib
-        if ENV['RBX_LIB']
-          @main_lib = ENV['RBX_LIB']
-        else
-          STDERR.puts <<-EOM
+      if env_lib = ENV['RBX_LIB']
+        @main_lib = env_lib if File.exists?(env_lib)
+      end
+
+      # Use the env version if it's set.
+      @main_lib = Rubinius::LIB_PATH unless @main_lib
+
+      unless @main_lib
+        STDERR.puts <<-EOM
 Rubinius was configured to find standard library files at:
 
   #{@main_lib}
@@ -73,8 +78,7 @@ but that directory does not exist.
 
 Set the environment variable RBX_LIB to the directory
 containing the Rubinius standard library files.
-          EOM
-        end
+        EOM
       end
 
       # This conforms more closely to MRI. It is necessary to support
@@ -137,16 +141,26 @@ containing the Rubinius standard library files.
       end
     end
 
-    def detect_arg0
+    # Detects if the Rubinius executable was aliased to a subcommand or a
+    # rubygems executable. If so, changes ARGV as if Rubinius were invoked
+    # to run the subcommand or rubygems executable.
+    def detect_alias
       cmd = ARG0.split("/").last
 
       # ignore the common ones straight away
       return if cmd == "rbx" or cmd == "ruby"
 
-      perhaps = File.join @main_lib, "bin", "#{cmd}.rb"
-      if File.exists?(perhaps)
-        # ok! inject this command back in and use it
-        ARGV.unshift perhaps
+      # Check if we are aliased to a Rubinius subcommand.
+      subcommand = File.join @main_lib, "bin", "#{cmd}.rb"
+      if File.exists? subcommand
+        ARGV.unshift subcommand
+        return
+      end
+
+      # Check if we are aliased to a rubygems executable.
+      gem_exe = File.join @gem_bin, cmd
+      if File.exists? gem_exe
+        ARGV.unshift "-S", gem_exe
       end
     end
 
@@ -257,7 +271,7 @@ containing the Rubinius standard library files.
         options.stop_parsing
         @run_irb = false
 
-        search = [BIN_PATH, @gem_bin] + ENV['PATH'].split(File::PATH_SEPARATOR)
+        search = [@gem_bin] + ENV['PATH'].split(File::PATH_SEPARATOR)
         dir    = search.detect do |d|
           path = File.join(d, script)
           File.exist?(path)
@@ -449,8 +463,8 @@ containing the Rubinius standard library files.
         if custom = Loader.debugger
           custom.call
         else
-          require 'debugger'
-          Debugger.start
+          require 'rubinius/debugger'
+          Rubinius::Debugger.start
         end
       end
     end
@@ -596,7 +610,7 @@ containing the Rubinius standard library files.
           signals
           load_compiler
           preload
-          detect_arg0
+          detect_alias
           options
           load_paths
           debugger

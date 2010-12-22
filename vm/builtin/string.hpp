@@ -70,9 +70,17 @@ namespace rubinius {
     // Hash the byte array _bp_ which contains _sz_ bytes.
     static hashval hash_str(const unsigned char *bp, unsigned int sz);
 
-    static bool string_equal_p(STATE, Object* self, Object* other);
     // Ruby.primitive :string_equal
-    Object* equal(STATE, String* other);
+    Object* equal(STATE, String* other) {
+      if(this->num_bytes() != other->num_bytes()) return Qfalse;
+      int comp = memcmp(
+          this->byte_address(),
+          other->byte_address(),
+          this->num_bytes()->to_native());
+
+      return comp == 0 ? Qtrue : Qfalse;
+    }
+
 
     // Ruby.primitive :string_secure_compare
     Object* secure_compare(STATE, String* other);

@@ -44,7 +44,7 @@ end
 
 hdrs        = FileList["vm/*.{hpp,h}"]
 subdirs.each do |dir|
-  hdrs += FileList["vm/#{dir}/*.{cpp,c}"]
+  hdrs += FileList["vm/#{dir}/*.{hpp,h}"]
 end
 
 objs        = srcs.map { |f| f.sub(/((c(pp)?)|S)$/, 'o') }
@@ -65,6 +65,7 @@ INSN_GEN    = %w[ vm/gen/instruction_names.cpp
                   vm/gen/instruction_implementations.hpp
                   vm/gen/instruction_visitors.hpp
                   vm/gen/instruction_effects.hpp
+                  web/_includes/instructions.markdown
                 ]
 TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/kind_of.hpp
@@ -253,7 +254,7 @@ def ld(t)
     sh "llc -filetype=asm -f -o vm/objs.s vm/objs.bc"
     sh "rm vm/objs.bc"
     flags = INCLUDES + FLAGS
-    sh "gcc #{flags.join(' ')} -c -o vm/objs.o vm/objs.s"
+    sh "#{CC} #{flags.join(' ')} -c -o vm/objs.o vm/objs.s"
     sh "rm vm/objs.s"
 
     o = (["vm/objs.o"] + t.prerequisites.find_all { |f| f =~ /a$/ }).join(' ')
@@ -311,7 +312,7 @@ namespace :build do
   task :llvm do
     if LLVM_ENABLE and Rubinius::BUILD_CONFIG[:llvm] == :svn
       unless File.file?("vm/external_libs/llvm/Release/bin/llvm-config")
-        sh "cd vm/external_libs/llvm; ./configure #{llvm_config_flags} && #{make}"
+        sh "cd vm/external_libs/llvm; REQUIRES_RTTI=1 ./configure #{llvm_config_flags}; REQUIRES_RTTI=1 #{make}"
       end
     end
   end
@@ -360,10 +361,7 @@ namespace :build do
   end
 
   task :strict_flags => "build:debug_flags" do
-    FLAGS.concat %w[ -Wextra -W -pedantic
-                     -Wshadow -Wfloat-equal -Wsign-conversion
-                     -Wno-long-long -Wno-inline -Wno-unused-parameter
-                   ]
+    FLAGS.concat %w[ -Wextra -Wno-unused-parameter ]
   end
 
   task :ridiculous_flags => "build:strict_flags" do
@@ -585,6 +583,10 @@ end
 
 file "vm/gen/instruction_effects.hpp" => insn_deps do |t|
   generate_instruction_file iparser, :generate_stack_effects, t.name
+end
+
+file "web/_includes/instructions.markdown" => insn_deps do |t|
+  generate_instruction_file iparser, :generate_documentation, t.name
 end
 
 namespace :vm do

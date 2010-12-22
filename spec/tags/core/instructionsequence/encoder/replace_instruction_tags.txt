@@ -1,4 +1,0 @@
-fails:Encoder#replace_instruction replaces instruction with the same width
-fails:Encoder#replace_instruction replaces instruction with a smaller width
-fails:Encoder#replace_instruction replaces instruction with a larger width if followed by enough noop
-fails:Encoder#replace_instruction does not replace instruction with a larger width in general

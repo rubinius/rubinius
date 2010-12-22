@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rubinius : Use Ruby&#153;</title>
+    <meta content='text/html;charset=utf-8' http-equiv='content-type'>
+    <meta content='en' http-equiv='content-language'>
+    <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
+    <meta content='Less Than Three. &lt;3. http://less.thanthree.com' name='author'>
+    <link href='/' rel='home'>
+
+    <link href='/' rel='start'>
+    <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script><![endif]-->
+    <script src="/javascripts/jquery-1.3.2.js" type="text/javascript"></script>
+    <script src="/javascripts/paging_keys.js" type="text/javascript"></script>
+    <script src="/javascripts/jquery.twitter.js" type="text/javascript"></script>
+    <script src="/javascripts/application.js" type="text/javascript"></script>
+    <style>article, aside, dialog, figure, footer, header, hgroup, menu, nav, section { display: block; }</style>
+
+    <link href="/stylesheets/blueprint/screen.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="/stylesheets/blueprint/print.css" media="print" rel="stylesheet" type="text/css" />
+    <!--[if IE]><link href="/stylesheets/blueprint/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
+    <!--[if IE]><link href="/stylesheets/ie.css" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
+  </head>
+    <body>
+        <div class='container'>
+      <div class='span-21 doc_menu'>
+        <header>
+                    <nav>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a id="blog" href="/blog/">Blog</a></li>
+              <li><a id="documentation" href="/doc/en/">Documentation</a></li>
+              <li><a href="/projects/">Projects</a></li>
+              <li><a href="/roadmap/">Roadmap</a></li>
+              <li><a href="/releases/">Releases</a></li>
+            </ul>
+          </nav>
+
+        </header>
+      </div>
+            <div class='span-3 last'>
+        <div id='version'>
+          <a href="/releases/1.2.0">1.2.0</a>
+        </div>
+      </div>
+
+    </div>
+
+
+        <div class="container languages">
+      <nav>
+        <span class="label">Языки:</span>
+        <ul>
+        
+          <li><a href="/doc/de/"
+          
+          >de</a></li>
+        
+          <li><a href="/doc/en/"
+          
+          >en</a></li>
+        
+          <li><a href="/doc/es/"
+          
+          >es</a></li>
+        
+          <li><a href="/doc/ja/"
+          
+          >ja</a></li>
+        
+          <li><a href="/doc/ru/"
+          
+            class="current"
+          
+          >ru</a></li>
+        
+        </ul>
+      </nav>
+    </div>
+
+
+        <div class="container doc_page_nav">
+      
+        
+        <span class="label">Previous:</span>
+        <a href="/doc/ru/getting-started/requirements">Минимальные требования</a>
+        
+
+        <span class="label">Up:</span>
+        <a href="/doc/ru/">Содержание</a>
+
+        
+        <span class="label">Next:</span>
+        <a href="/doc/ru/getting-started/running-rubinius">Запуск Rubinius</a>
+        
+      
+    </div>
+
+
+    <div class="container documentation">
+      <h2>Сборка Rubinius</h2>
+
+      
+
+      
+
+        <p>Вы можете собрать и запустить Rubinius из исходной директории. Вам не
+нужно устанавливать Rubinius, чтобы запустить его. Инструкции, приведенные
+ниже, подробно описывают как установку, так и запуск Rubinius из исходного
+каталога.</p>
+
+<p>Rubinius использует LLVM для JIT компиляции. Rubinius зависит от определенной
+версии LLVM. Если LLVM уже установлена на вашей системе передайте флаг
+<code>--skip-system</code> в скрипт конфигурации (см. ниже).</p>
+
+<h3 id="section">Получение исходного кода</h3>
+
+<p>Исходный код Rubinius доступен как tar-архив и как проект на Github.
+Вы можете <a href="http://rubini.us/download/latest">скачать tar-архив здесь</a>.</p>
+
+<p>Чтобы использовать Git:</p>
+
+<ol>
+  <li>Измените вашу текущую директорию на директорию для разработок</li>
+  <li><code>git clone git://github.com/evanphx/rubinius.git</code></li>
+</ol>
+
+<h3 id="rubinius">Установка Rubinius</h3>
+
+<p>Этот раздел для вас, если вы хотите использовать Rubinius для запуска ваших
+приложений. Также вы можете запускать Rubinius прямо из исходной директории
+За подробностями обратитесь к следующему разделу.</p>
+
+<p>Мы рекомендуем устанавливать Rubinius в место, нетребующее <code>sudo</code> или права
+суперпользователя. Чтобы установить Rubinius:</p>
+
+<ol>
+  <li><code>./configure --prefix=/path/to/install/dir</code></li>
+  <li><code>rake install</code></li>
+  <li>Следуйте инструкциям, чтобы добавить <em>bin</em> директорию в переменную
+окружения PATH</li>
+</ol>
+
+<h3 id="section-1">Запуск из директории с исходниками</h3>
+
+<p>Если вы планируете работать над Rubinius, вам следует использовать следующие
+команды.</p>
+
+<ol>
+  <li><code>./configure</code></li>
+  <li><code>rake</code></li>
+</ol>
+
+<p>Если вы просто пробуете Rubinius, следуйте инструкциям, чтобы добавить
+<em>bin</em> директорию в переменную окружения PATH.</p>
+
+<p>Однако, если вы разрабатываете Rubinius, вы не должны добавлять папку <em>bin</em>
+в переменную PATH, потому что система сборки Rubinius будет использовать свои
+<code>ruby</code> и <code>rake</code>, в то время как в процессе сборки ей необходимы отдельные
+исполняемые файлы Ruby.</p>
+
+
+    </div>
+
+        <div class="container doc_page_nav">
+      
+        
+        <span class="label">Previous:</span>
+        <a href="/doc/ru/getting-started/requirements">Минимальные требования</a>
+        
+
+        <span class="label">Up:</span>
+        <a href="/doc/ru/">Содержание</a>
+
+        
+        <span class="label">Next:</span>
+        <a href="/doc/ru/getting-started/running-rubinius">Запуск Rubinius</a>
+        
+      
+    </div>
+
+
+        <footer>
+      <div class='container'>
+        <nav>
+          <ul>
+            <li><a href="http://twitter.com/rubinius">Follow Rubinius on Twitter</a></li>
+            <li><a href="http://github.com/evanphx/rubinius">Fork Rubinius on github</a></li>
+            <li><a href="http://engineyard.com">An Engine Yard project</a></li>
+
+            <li id='credit'>
+              Site design by
+              <a href="http://less.thanthree.com">Less Than Three</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </footer>
+        <script type="text/javascript">
+        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+        </script>
+
+        <script type="text/javascript">
+        try {
+        var pageTracker = _gat._getTracker("UA-12328521-1");
+        pageTracker._trackPageview();
+        } catch(err) {}</script>
+
+  </body>
+
+</html>

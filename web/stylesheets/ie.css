@@ -1,0 +1,33 @@
+a:hover,
+.diagram .attic {
+  background: #325986; }
+
+#enjoy a:hover,
+footer a:hover {
+  background: white; }
+
+ol.code,
+.code,
+code {
+  background: #eee; }
+
+#version a {
+  padding: .25em; }
+
+#version a,
+#twitter,
+.diagram .basement {
+  background: #001a31; }
+
+.diagram .turret {
+  background: #0088ff; }
+
+#intro,
+aside,
+#compatibility #compatible_projects {
+  background: #e0ecff; }
+
+#enjoy,
+.diagram .mezzanine,
+footer {
+  background: #004480; }

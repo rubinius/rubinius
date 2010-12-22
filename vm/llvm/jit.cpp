@@ -390,7 +390,6 @@ namespace rubinius {
 
       passes->add(createSCCPPass());
       passes->add(createInstructionCombiningPass());
-      passes->add(createCondPropagationPass());
 
       // Simplify the control flow graph (deleting unreachable blocks, etc).
       passes->add(createCFGSimplificationPass());
@@ -471,10 +470,9 @@ namespace rubinius {
 
     autogen_types::makeLLVMModuleContents(module_);
 
-    mp_ = new llvm::ExistingModuleProvider(module_);
-    engine_ = ExecutionEngine::create(mp_);
+    engine_ = ExecutionEngine::create(module_, false, 0, CodeGenOpt::Default, false);
+    passes_ = new llvm::FunctionPassManager(module_);
 
-    passes_ = new llvm::FunctionPassManager(mp_);
     passes_->add(new llvm::TargetData(*engine_->getTargetData()));
 
     if(fast_code_passes) {
@@ -808,6 +806,16 @@ namespace rubinius {
             } else {
               std::cout << " " << info.dli_sname;
             }
+          }
+        }
+      }
+
+      for(uint8_t i = 0; i < 2; i++) {
+        if(ud.operand[i].type == UD_OP_IMM) {
+          Dl_info info;
+          if(dladdr((void*)ud.operand[i].lval.uqword, &info)) {
+            std::cout << " ; " << info.dli_sname;
+            break; // only do one
           }
         }
       }

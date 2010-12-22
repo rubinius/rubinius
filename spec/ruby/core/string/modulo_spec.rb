@@ -30,7 +30,7 @@ describe "String#%" do
     lambda { ("foo%quux" % []) }.should raise_error(ArgumentError)
   end
 
-  it "raises an error if NULL or \n appear anywhere else in the format string" do
+  it "raises an error if NULL or \\n appear anywhere else in the format string" do
     begin
       old_debug, $DEBUG = $DEBUG, false
 
@@ -113,6 +113,10 @@ describe "String#%" do
     ("%2$.2f" % [0, 1]).should == "1.00"
   end
 
+  it "allows more than one digit of position" do
+    ("%50$d" % (0..100).to_a).should == "49"
+  end
+
   it "raises an ArgumentError when multiple width star tokens are given for one format specifier" do
     lambda { "%**s" % [5, 5, 5] }.should raise_error(ArgumentError)
   end
@@ -167,6 +171,21 @@ describe "String#%" do
     ("%*1$.*2$3$d" % [10, 5, 1]).should == "     00001"
   end
 
+  it "allows negative width to imply '-' flag" do
+    ("%*1$.*2$3$d" % [-10, 5, 1]).should == "00001     "
+    ("%-*1$.*2$3$d" % [10, 5, 1]).should == "00001     "
+    ("%-*1$.*2$3$d" % [-10, 5, 1]).should == "00001     "
+  end
+
+  it "ignores negative precision" do
+    ("%*1$.*2$3$d" % [10, -5, 1]).should == "         1"
+  end
+
+  it "allows a star to take an argument number to use as the width" do
+    ("%1$*2$s" % ["a", 8]).should == "       a"
+    ("%1$*10$s" % ["a",0,0,0,0,0,0,0,0,8]).should == "       a"
+  end
+
   it "calls to_int on width star and precision star tokens" do
     w = mock('10')
     w.should_receive(:to_int).and_return(10)
@@ -175,6 +194,15 @@ describe "String#%" do
     p.should_receive(:to_int).and_return(5)
 
     ("%*.*f" % [w, p, 1]).should == "   1.00000"
+
+
+    w = mock('10')
+    w.should_receive(:to_int).and_return(10)
+
+    p = mock('5')
+    p.should_receive(:to_int).and_return(5)
+
+    ("%*.*d" % [w, p, 1]).should == "     00001"
   end
 
   ruby_bug "#", "1.8.6.228" do
@@ -664,19 +692,11 @@ describe "String#%" do
   end
 
   ruby_version_is ""..."1.9" do
-    not_compliant_on :rubinius do
-      # This is the proper, compliant behavior of both JRuby, and
-      # MRI 1.8.6 with patchlevel greater than 114.
-      ruby_bug "http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/8418", "1.8.6.114" do
-        it "supports negative bignums by prefixing the value with dots" do
-          ("%u" % -(2 ** 64 + 5)).should == "..79228162495817593519834398715"
-        end
-      end
-    end
-
-    deviates_on :rubinius do
-      it "does not support negative bignums" do
-        lambda { ("%u" % -(2 ** 64 + 5)) }.should raise_error(ArgumentError)
+    # This is the proper, compliant behavior of both JRuby, and
+    # MRI 1.8.6 with patchlevel greater than 114.
+    ruby_bug "http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/8418", "1.8.6.114" do
+      it "supports negative bignums by prefixing the value with dots" do
+        ("%u" % -(2 ** 64 + 5)).should == "..79228162495817593519834398715"
       end
     end
   end

@@ -352,7 +352,7 @@ class Module
   end
 
   def extend_object(obj)
-    append_features Rubinius.object_metaclass(obj)
+    include_into Rubinius.object_metaclass(obj)
   end
 
   def include?(mod)
@@ -745,5 +745,28 @@ class Module
     else
       raise "Unknown type of method to learn ivars - #{cm.class}"
     end
+  end
+
+  def dynamic_method(name, file=:dynamic, line=1)
+    g = Rubinius::Generator.new
+    g.name = name.to_sym
+    g.file = file.to_sym
+    g.set_line Integer(line)
+
+    yield g
+
+    g.close
+
+    g.use_detected
+    g.encode
+
+    cm = g.package Rubinius::CompiledMethod
+
+    cm.scope =
+      Rubinius::StaticScope.new(self, Rubinius::StaticScope.new(Object))
+
+    Rubinius.add_method name, cm, self, :public
+
+    return cm
   end
 end

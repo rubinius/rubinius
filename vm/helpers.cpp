@@ -26,37 +26,6 @@
 
 namespace rubinius {
   namespace Helpers {
-    void add_method(STATE, CallFrame* call_frame, Module* mod, Symbol* name, CompiledMethod* method) {
-      method->scope(state, call_frame->static_scope());
-      method->serial(state, Fixnum::from(0));
-      mod->method_table()->store(state, name, method, G(sym_public));
-      state->global_cache()->clear(mod, name);
-
-      if(Class* cls = try_as<Class>(mod)) {
-        method->formalize(state, false);
-
-        object_type type = (object_type)cls->instance_type()->to_native();
-        TypeInfo* ti = state->om->type_info[type];
-        if(ti) {
-          method->specialize(state, ti);
-        }
-      }
-    }
-
-    void attach_method(STATE, CallFrame* call_frame, Object* recv, Symbol* name, CompiledMethod* method) {
-      if(Module* mod = try_as<Module>(recv)) {
-        StaticScope* ss = StaticScope::create(state);
-        ss->module(state, mod);
-        ss->parent(state, method->scope());
-        method->scope(state, ss);
-      } else {
-        /* Push the current scope down. */
-        method->scope(state, call_frame->static_scope());
-      }
-
-      add_method(state, call_frame, recv->metaclass(state), name, method);
-    }
-
     Object* const_get_under(STATE, Module* mod, Symbol* name, bool* found) {
       Object* res;
 
@@ -122,12 +91,15 @@ namespace rubinius {
       }
 
       // Now look up the superclass chain.
-      Module* mod = call_frame->static_scope()->module();
-      while(!mod->nil_p()) {
-        result = mod->get_const(state, name, found);
-        if(*found) return result;
+      cur = call_frame->static_scope();
+      if(!cur->nil_p()) {
+        Module* mod = cur->module();
+        while(!mod->nil_p()) {
+          result = mod->get_const(state, name, found);
+          if(*found) return result;
 
-        mod = mod->superclass();
+          mod = mod->superclass();
+        }
       }
 
       // Lastly, check Object specificly
@@ -165,7 +137,7 @@ namespace rubinius {
       Dispatch dis(name);
 
       if(!GlobalCache::resolve(state, dis.name, dis, lookup)) {
-        return (Tuple*)Qnil;
+        return nil<Tuple>();
       }
 
       return Tuple::from(state, 2, dis.method, dis.module);
@@ -309,10 +281,10 @@ namespace rubinius {
         cur->control_channel(state, my_control);
       }
 
+      Array* locs = Location::from_call_stack(state, call_frame, true, true);
+
       debugger_chan->send(state,
-          Tuple::from(state, 4, bp, cur, my_control,
-                      Location::from_call_stack(state,  call_frame, true)
-                    ));
+          Tuple::from(state, 4, bp, cur, my_control, locs));
 
       // Block until the debugger wakes us back up.
       Object* ret = my_control->receive(state, call_frame);

@@ -35,7 +35,7 @@ describe "A Match3 node" do
       g.push_cpath_top
       g.find_const :Regexp
       g.push_local 0
-      g.send :to_s, 0, true
+      g.meta_to_s
       g.string_build 1
 
       g.push 0

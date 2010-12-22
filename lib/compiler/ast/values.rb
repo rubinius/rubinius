@@ -103,7 +103,7 @@ module Rubinius
         pos(g)
 
         @value.bytecode(g)
-        g.send :to_s, 0, true
+        g.meta_to_s
       end
 
       def value_defined(g, f)

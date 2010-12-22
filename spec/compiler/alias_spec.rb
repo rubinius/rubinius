@@ -40,13 +40,13 @@ describe "An Alias node" do
 
         d.push_literal "y"
         d.push 1
-        d.send :to_s, 0, true
+        d.meta_to_s
         d.string_build 2
         d.send :to_sym, 0, true
 
         d.push_literal "x"
         d.push 2
-        d.send :to_s, 0, true
+        d.meta_to_s
         d.string_build 2
         d.send :to_sym, 0, true
 

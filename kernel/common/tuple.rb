@@ -30,7 +30,23 @@ module Rubinius
       self
     end
 
-    def + o
+    def ==(tup)
+      return super unless tup.kind_of?(Tuple)
+
+      t = fields()
+
+      return false unless t == tup.size
+
+      i = 0
+      while i < t
+        return false unless at(i) == tup.at(i)
+        i += 1
+      end
+
+      return true
+    end
+
+    def +(o)
       t = Tuple.new(size + o.size)
       t.copy_from(self,0,size,0)
       t.copy_from(o,0,o.size,size)

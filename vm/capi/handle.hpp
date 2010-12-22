@@ -154,6 +154,7 @@ namespace rubinius {
       RIO* as_rio(NativeMethodEnvironment* env);
 
       void free_data();
+      bool rio_close();
     };
 
     class Handles : public LinkedList {

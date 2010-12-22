@@ -19,6 +19,7 @@
 #include "builtin/system.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/location.hpp"
+#include "builtin/nativemethod.hpp"
 
 #include "instruments/profiler.hpp"
 #include "configuration.hpp"
@@ -43,7 +44,7 @@ namespace rubinius {
   }
 
   VMMethod* BlockEnvironment::vmmethod(STATE) {
-    return this->method_->formalize(state, false);
+    return this->method_->internalize(state);
   }
 
   Object* BlockEnvironment::invoke(STATE, CallFrame* previous,
@@ -52,7 +53,13 @@ namespace rubinius {
   {
 
 #ifdef ENABLE_LLVM
-    if(void* ptr = env->vmmethod(state)->native_function()) {
+    VMMethod* vmm = env->vmmethod(state);
+    if(!vmm) {
+      Exception::internal_error(state, previous, "invalid bytecode method");
+      return 0;
+    }
+
+    if(void* ptr = vmm->native_function()) {
       return (*((BlockExecutor)ptr))(state, previous, env, args, invocation);
     }
 #endif
@@ -70,6 +77,11 @@ namespace rubinius {
                             BlockInvocation& invocation)
   {
     VMMethod* const vmm = env->vmmethod(state);
+
+    if(!vmm) {
+      Exception::internal_error(state, previous, "invalid bytecode method");
+      return 0;
+    }
 
 #ifdef ENABLE_LLVM
     if(vmm->call_count >= 0) {
@@ -201,7 +213,12 @@ namespace rubinius {
   {
     BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
 
-    VMMethod* vmm = cm->formalize(state);
+    VMMethod* vmm = cm->internalize(state);
+    if(!vmm) {
+      Exception::internal_error(state, call_frame, "invalid bytecode method");
+      return 0;
+    }
+
     vmm->set_parent(caller);
 
     be->scope(state, call_frame->promote_scope(state));
@@ -223,6 +240,21 @@ namespace rubinius {
     return be;
   }
 
+  Object* BlockEnvironment::of_sender(STATE, CallFrame* call_frame) {
+    NativeMethodEnvironment* nme = NativeMethodEnvironment::get();
+    CallFrame* target = call_frame->previous;
+
+    if(nme->current_call_frame() == target) {
+      NativeMethodFrame* nmf = nme->current_native_frame();
+      if(nmf) return nme->get_object(nmf->block());
+    }
+
+    if(target && target->scope) {
+      return target->scope->block();
+    }
+
+    return Qnil;
+  }
 
   void BlockEnvironment::Info::show(STATE, Object* self, int level) {
     BlockEnvironment* be = as<BlockEnvironment>(self);

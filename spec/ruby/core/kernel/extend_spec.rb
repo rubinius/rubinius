@@ -11,6 +11,11 @@ module KernelSpecs::M
     ScratchPad << "extended"
     super
   end
+
+  def self.append_features(o)
+    ScratchPad << "append_features"
+    super
+  end
 end
 
 describe "Kernel#extend" do
@@ -22,6 +27,12 @@ describe "Kernel#extend" do
     o = mock('o')
     o.extend KernelSpecs::M
     ScratchPad.recorded.include?("extend_object").should == true
+  end
+
+  it "does not calls append_features on arguments metaclass" do
+    o = mock('o')
+    o.extend KernelSpecs::M
+    ScratchPad.recorded.include?("append_features").should == false
   end
 
   it "calls extended on argument" do

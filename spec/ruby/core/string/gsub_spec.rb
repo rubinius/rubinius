@@ -537,12 +537,27 @@ describe "String#gsub! with pattern and block" do
       s.gsub!(/ROAR/) { "x" }.should be_nil
     end
 
-    it "raises a RuntimeError if the frozen string would be modified" do
-      s = "hello"
-      s.freeze
+    deviates_on :rubinius do
+      # MRI 1.8.x is inconsistent here, raising a TypeError when not passed
+      # a block and a RuntimeError when passed a block. This is arguably a
+      # bug in MRI. In 1.9, both situations raise a RuntimeError.
+      it "raises a TypeError if the frozen string would be modified" do
+        s = "hello"
+        s.freeze
 
-      lambda { s.gsub!(/e/)       { "e" } }.should raise_error(RuntimeError)
-      lambda { s.gsub!(/[aeiou]/) { '*' } }.should raise_error(RuntimeError)
+        lambda { s.gsub!(/e/)       { "e" } }.should raise_error(TypeError)
+        lambda { s.gsub!(/[aeiou]/) { '*' } }.should raise_error(TypeError)
+      end
+    end
+
+    not_compliant_on :rubinius do
+      it "raises a RuntimeError if the frozen string would be modified" do
+        s = "hello"
+        s.freeze
+
+        lambda { s.gsub!(/e/)       { "e" } }.should raise_error(RuntimeError)
+        lambda { s.gsub!(/[aeiou]/) { '*' } }.should raise_error(RuntimeError)
+      end
     end
   end
 

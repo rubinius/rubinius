@@ -281,7 +281,10 @@ namespace rubinius {
       return reinterpret_cast<String*>(kPrimitiveFailed);
     }
 
-    return String::create(state, str);
+    String* s = String::create(state, str);
+    if(is_tainted_p()) s->set_tainted();
+
+    return s;
   }
 
   String* Float::to_packed(STATE, Object* want_double) {

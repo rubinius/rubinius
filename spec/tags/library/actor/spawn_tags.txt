@@ -1,1 +1,0 @@
-fails(current_unwind > 0 assertion):Actor.spawn creates functioning actors

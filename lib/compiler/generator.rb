@@ -77,9 +77,11 @@ module Rubinius
       def initialize(generator)
         @generator  = generator
         @ip         = generator.ip
-        @closed_ip  = 0
         @enter_size = nil
         @max_size   = 0
+        @min_size   = 0
+        @exit_ip    = 0
+        @exit_size  = nil
         @stack      = 0
         @left       = nil
         @right      = nil
@@ -87,8 +89,12 @@ module Rubinius
         @closed     = false
       end
 
-      def add_stack(size)
-        @stack += size
+      def add_stack(read, write)
+        read_change = @stack - read
+        @min_size = read_change if read_change < @min_size
+
+        @stack += (write - read)
+
         @max_size = @stack if @stack > @max_size
       end
 
@@ -96,14 +102,19 @@ module Rubinius
         @ip = @generator.ip
       end
 
-      def close
+      def close(record_exit=false)
         @closed = true
-        @closed_ip = @generator.ip
+
+        if record_exit
+          @exit_size = @stack
+          @exit_ip = @generator.ip - 1
+        end
       end
 
-      def location
-        line = @generator.ip_to_line @ip
-        "#{@generator.name}: line: #{line}, IP: #{@ip}"
+      def location(ip=nil)
+        ip ||= @ip
+        line = @generator.ip_to_line(ip)
+        "#{@generator.name}: line: #{line}, IP: #{ip}"
       end
 
       def visited?
@@ -127,6 +138,18 @@ module Rubinius
           @generator.accumulate_stack(@enter_size + @max_size)
 
           net_size = @enter_size + @stack
+
+          if net_size < 0
+            raise CompileError, "net stack underflow in block starting at #{location}"
+          end
+
+          if @enter_size + @min_size < 0
+            raise CompileError, "minimum stack underflow in block starting at #{location}"
+          end
+
+          if @exit_size and @enter_size + @exit_size < 1
+            raise CompileError, "exit stack underflow in block starting at #{location(@exit_ip)}"
+          end
 
           if @left
             @left.check_stack net_size
@@ -175,6 +198,10 @@ module Rubinius
 
       @required_args = 0
       @total_args = 0
+
+      @detected_args = 0
+      @detected_locals = 0
+
       @splat_index = nil
       @local_names = nil
       @local_count = 0
@@ -192,7 +219,8 @@ module Rubinius
     attr_reader   :ip, :stream, :iseq, :literals
     attr_accessor :break, :redo, :next, :retry, :file, :name,
                   :required_args, :total_args, :splat_index,
-                  :local_count, :local_names, :primitive, :for_block, :current_block
+                  :local_count, :local_names, :primitive, :for_block,
+                  :current_block, :detected_args, :detected_locals
 
     def execute(node)
       node.bytecode self
@@ -244,6 +272,19 @@ module Rubinius
       cm
     end
 
+    def use_detected
+      if @required_args < @detected_args
+        @required_args = @detected_args
+      end
+
+      if @total_args < @detected_args
+        @total_args = @detected_args
+      end
+
+      if @local_count < @detected_locals
+        @local_count = @detected_locals
+      end
+    end
 
     # Commands (these don't generate data in the stream)
 
@@ -267,6 +308,17 @@ module Rubinius
       @break, @redo, @next, @retry = @modstack.pop
     end
 
+    def definition_line(line)
+      unless @stream.empty?
+        raise Exception, "only use #definition_line first"
+      end
+
+      @lines << -1
+      @lines << line
+
+      @last_line = line
+    end
+
     def set_line(line)
       raise Exception, "source code line cannot be nil" unless line
 
@@ -275,17 +327,7 @@ module Rubinius
         @lines << line
         @last_line = line
       elsif line != @last_line
-        # Fold redundent line changes on the same ip into the same
-        # entry, except for in the case where @ip is 0. Here's why:
-        #
-        #   def some_method
-        #   end
-        #
-        # There is nothing in the bytecode stream that corresponds
-        # to 'def some_method' so the first line of the method will
-        # be recorded as the line 'end' is on.
-
-        if @ip > 0 and @lines[-2] == @ip
+        if @lines[-2] == @ip
           @lines[-1] = line
         else
           @lines << @ip
@@ -423,6 +465,34 @@ module Rubinius
       push_const_fast find_literal(name), add_literal(nil)
     end
 
+    def push_local(idx)
+      if @detected_locals <= idx
+        @detected_locals = idx + 1
+      end
+
+      super
+    end
+
+    def set_local(idx)
+      if @detected_locals <= idx
+        @detected_locals = idx + 1
+      end
+
+      super
+    end
+
+    # Minor meta operations that can be used to detect
+    # the number of method arguments needed
+    def push_arg(idx)
+      push_local(idx)
+      @detected_args = @detected_locals
+    end
+
+    def set_arg(idx)
+      set_local(idx)
+      @detected_args = @detected_locals
+    end
+
     def last_match(mode, which)
       push_int Integer(mode)
       push_int Integer(which)
@@ -481,6 +551,11 @@ module Rubinius
       else
         send_super_stack_with_block idx, args
       end
+    end
+
+    def meta_to_s(name=:to_s, priv=true)
+      allow_private if priv
+      super find_literal(name)
     end
   end
 end

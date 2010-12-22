@@ -27,7 +27,7 @@ namespace {
   public:
     static char ID;
     GuardEliminator()
-      : FunctionPass(&ID)
+      : FunctionPass(ID)
     {}
 
     virtual bool doInitialization(Module& mod) {
@@ -88,7 +88,7 @@ namespace {
   public:
     static char ID;
     AllocationEliminator()
-      : FunctionPass(&ID)
+      : FunctionPass(ID)
       , float_alloc_(0)
     {}
 
@@ -194,7 +194,7 @@ namespace {
   public:
     static char ID;
     OverflowConstantFolder()
-      : FunctionPass(&ID)
+      : FunctionPass(ID)
     {}
 
     bool try_to_fold_addition(LLVMContext& ctx, CallInst* call) {
@@ -299,6 +299,7 @@ namespace {
   // http://llvm.org/docs/WritingAnLLVMPass.html#basiccode.
   char OverflowConstantFolder::ID = 0;
 
+
   class RubiniusAliasAnalysis : public FunctionPass, public AliasAnalysis {
     const Type* class_type_;
     const Type* object_type_;
@@ -308,13 +309,13 @@ namespace {
   public:
     static char ID;
     RubiniusAliasAnalysis()
-      : FunctionPass(&ID)
+      : FunctionPass(ID)
       , class_type_(0)
     {}
 
     virtual void getAnalysisUsage(llvm::AnalysisUsage& usage) const {
-      AliasAnalysis::getAnalysisUsage(usage);
       usage.setPreservesAll();
+      AliasAnalysis::getAnalysisUsage(usage);
     }
 
     virtual bool doInitialization(Module& mod) {
@@ -334,8 +335,16 @@ namespace {
     }
 
     virtual bool runOnFunction(Function& func) {
-      AliasAnalysis::InitializeAliasAnalysis(this);
+      InitializeAliasAnalysis(this);
       return false;
+    }
+
+    virtual void* getAdjustedAnalysisPointer(const void* PI) {
+      if(PI == &AliasAnalysis::ID) {
+        return (AliasAnalysis*)this;
+      }
+
+      return this;
     }
 
     virtual
@@ -401,11 +410,8 @@ namespace {
   };
 
   char RubiniusAliasAnalysis::ID = 0;
-
-  static llvm::RegisterPass<RubiniusAliasAnalysis>
-  U("rbx-aa", "Rubinius-specific Alias Analysis", false, true);
-
-  static llvm::RegisterAnalysisGroup<AliasAnalysis> V(U);
+  INITIALIZE_AG_PASS(RubiniusAliasAnalysis, AliasAnalysis, "rbx-aa",
+      "Rubinius-specific Alias Analysis", false, true, false);
 
   /*
   class TypeGuardRemoval : public FunctionPass {

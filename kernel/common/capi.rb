@@ -23,5 +23,9 @@ module Rubinius
 
       a.__send__ op, b
     end
+
+    def self.sprintf(format, args)
+      ::Rubinius::Sprinter.get(format).call(*args)
+    end
   end
 end

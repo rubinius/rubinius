@@ -798,6 +798,34 @@ namespace rubinius {
       return sig.call(func_name, call_args, 5, "super_send", b());
     }
 
+    void visit_meta_to_s(opcode name) {
+      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+      set_has_side_effects();
+
+      Value* recv = stack_top();
+
+      Signature sig(ls_, "Object");
+      sig << "VM";
+      sig << "CallFrame";
+      sig << "InlineCache";
+      sig << "Object";
+
+      Value* cache_const = b().CreateIntToPtr(
+          ConstantInt::get(ls_->IntPtrTy, reinterpret_cast<uintptr_t>(cache)),
+          ptr_type("InlineCache"), "cast_to_ptr");
+
+      Value* args[] = {
+        vm_,
+        call_frame_,
+        cache_const,
+        recv
+      };
+
+      Value* ret = sig.call("rbx_meta_to_s", args, 4, "", b());
+      stack_remove(1);
+      stack_push(ret);
+    }
+
     void visit_meta_send_op_equal(opcode name) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(name);
       set_has_side_effects();

@@ -267,34 +267,36 @@ extern "C" {
    *  so T_OBJECT is returned instead in those
    *  cases.
    */
-  typedef enum {
-    T_ARRAY,
-    T_NONE,
-    T_NIL,
-    T_OBJECT,
-    T_CLASS,
-    T_ICLASS,
-    T_MODULE,
-    T_FLOAT,
-    T_STRING,
-    T_REGEXP,
-    T_FIXNUM,
-    T_HASH,
-    T_STRUCT,
-    T_BIGNUM,
-    T_FILE,
-    T_TRUE,
-    T_FALSE,
-    T_DATA,
-    T_MATCH,
-    T_SYMBOL,
-    T_BLKTAG,
-    T_UNDEF,
-    T_VARMAP,
-    T_SCOPE,
-    T_NODE
 
-  } CApiType;
+#define T_ARRAY  0x00
+#define T_NONE   0x01
+#define T_NIL    0x02
+#define T_OBJECT 0x03
+#define T_CLASS  0x04
+#define T_ICLASS 0x05
+#define T_MODULE 0x06
+#define T_FLOAT  0x07
+#define T_STRING 0x08
+#define T_REGEXP 0x09
+#define T_FIXNUM 0x0a
+#define T_HASH   0x0b
+#define T_STRUCT 0x0c
+#define T_BIGNUM 0x0d
+#define T_FILE   0x0e
+
+#define T_TRUE   0x0f
+#define T_FALSE  0x10
+#define T_DATA   0x11
+#define T_MATCH  0x12
+#define T_SYMBOL 0x13
+
+#define T_BLKTAG 0x14
+#define T_UNDEF  0x15
+#define T_VARMAP 0x16
+#define T_SCOPE  0x17
+#define T_NODE   0x18
+
+#define T_MASK   0x19
 
   /**
    *  Method variants that can be defined.
@@ -1090,6 +1092,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Taint an object and return it */
   VALUE rb_obj_taint(VALUE obj);
 
+  /** Returns a string formatted with Kernel#sprintf. */
+  VALUE rb_f_sprintf(int argc, const VALUE* argv);
+
   /**
    *  Call method on receiver, args as varargs. Calls private methods.
    */
@@ -1278,6 +1283,9 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Call #inspect on an object. */
   VALUE rb_inspect(VALUE obj_handle);
+
+  /** Returns a Proc wrapping a C function. */
+  VALUE rb_proc_new(VALUE (*func)(ANYARGS), VALUE val);
 
   VALUE rb_protect_inspect(VALUE (*func)(VALUE a, VALUE b), VALUE h_obj, VALUE h_arg);
   VALUE rb_inspecting_p(VALUE obj);
@@ -1655,6 +1663,7 @@ VALUE rb_uint2big(unsigned long number);
   /** Call block with given argument or raise error if no block given. */
   VALUE   rb_yield(VALUE argument_handle);
   VALUE   rb_yield_values(int n, ...);
+  VALUE   rb_yield_splat(VALUE array_handle);
 
   VALUE   rb_apply(VALUE recv, ID mid, VALUE args);
 

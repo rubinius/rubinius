@@ -1,12 +1,12 @@
 # Shamelessly imported directly from defunkt's gist tool.
 
 require 'open-uri'
-require 'net/http'
+require 'net/https'
 
 module Gist
   extend self
 
-  @@gist_url = 'http://gist.github.com/%s.txt'
+  @@gist_url = 'https://gist.github.com/%s.txt'
 
   def read(gist_id)
     return help if gist_id == '-h' || gist_id.nil? || gist_id[/help/]
@@ -14,9 +14,18 @@ module Gist
   end
 
   def write(content, private_gist, name=nil)
-    url = URI.parse('http://gist.github.com/gists')
-    req = Net::HTTP.post_form(url, data(name, nil, content, private_gist))
-    copy req['Location']
+    url = URI.parse('https://gist.github.com/gists')
+
+    http = Net::HTTP.new(url.host, url.port)
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
+    req = Net::HTTP::Post.new(url.path)
+    req.form_data = data(name, nil, content, private_gist)
+
+    res = http.start {|h| h.request(req) }
+
+    copy res['Location']
   end
 
   def help

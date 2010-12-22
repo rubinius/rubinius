@@ -136,6 +136,22 @@ describe "C-API Kernel function" do
     end
   end
 
+  describe "rb_yield_splat" do
+    it "yields passed arguments" do
+      ret = nil
+      @s.rb_yield_splat([1,2]) { |x, y| ret = x + y }
+      ret.should == 3
+    end
+
+    it "returns the result from block evaluation" do
+      @s.rb_yield_splat([1, 2]) { |x, y| x + y }.should == 3
+    end
+
+    it "raises LocalJumpError when no block is given" do
+      lambda { @s.rb_yield_splat([1, 2]) }.should raise_error(LocalJumpError)
+    end
+  end
+
   describe "rb_rescue" do
     before :each do
       @proc = lambda { |x| x }
@@ -242,10 +258,12 @@ describe "C-API Kernel function" do
     end
   end
 
-  describe "rb_exec_recursive" do
-    it "detects recursive invocations of a method and indicates as such" do
-      s = "hello"
-      @s.rb_exec_recursive(s).should == s
+  ruby_version_is "1.8.7" do
+    describe "rb_exec_recursive" do
+      it "detects recursive invocations of a method and indicates as such" do
+        s = "hello"
+        @s.rb_exec_recursive(s).should == s
+      end
     end
   end
 
@@ -258,6 +276,12 @@ describe "C-API Kernel function" do
       }
 
       r.read(1).should == "e"
+    end
+  end
+
+  describe "rb_f_sprintf" do
+    it "returns a string according to format and arguments" do
+      @s.rb_f_sprintf(["%d %f %s", 10, 2.5, "test"]).should == "10 2.500000 test"
     end
   end
 end

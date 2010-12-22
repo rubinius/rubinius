@@ -549,13 +549,13 @@ namespace rubinius {
 
       for(i = 0; i < tot; i++) {
         type = args->get(state, i);
-        if(!type->fixnum_p()) return (Array*)Qnil;
+        if(!type->fixnum_p()) return nil<Array>();
         arg_types[i] = as<Integer>(type)->to_native();
 
         /* State can not be passed. */
         if(arg_types[i] == RBX_FFI_TYPE_STATE) {
           XFREE(arg_types);
-          return (Array*)Qnil;
+          return nil<Array>();
         }
       }
     } else {
@@ -604,7 +604,7 @@ namespace rubinius {
         invoke_callback, func->ffi_data, func->ffi_data->ep);
 
     if(status != FFI_OK) {
-      return force_as<Pointer>(Qnil);
+      return nil<Pointer>();
     }
 
     obj->set_ivar(state, ffi_tramp, func);

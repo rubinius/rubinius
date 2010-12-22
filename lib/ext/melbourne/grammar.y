@@ -254,9 +254,18 @@ static unsigned long scan_hex(const char *start, int len, int *retlen);
 static void reset_block(rb_parse_state *parse_state);
 static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table vars);
 
+#ifndef RE_OPTION_IGNORECASE
 #define RE_OPTION_IGNORECASE         (1L)
+#endif
+
+#ifndef RE_OPTION_EXTENDED
 #define RE_OPTION_EXTENDED           (2L)
+#endif
+
+#ifndef RE_OPTION_MULTILINE
 #define RE_OPTION_MULTILINE          (4L)
+#endif
+
 #define RE_OPTION_DONT_CAPTURE_GROUP (128L)
 #define RE_OPTION_CAPTURE_GROUP      (256L)
 #define RE_OPTION_ONCE               (8192L)
@@ -3295,6 +3304,8 @@ parse_string(NODE *quote, rb_parse_state *parse_state)
     int paren = nd_paren(quote);
     int c, space = 0;
 
+    long start_line = ruby_sourceline;
+
     if (func == -1) return tSTRING_END;
     c = nextc();
     if ((func & STR_FUNC_QWORDS) && ISSPACE(c)) {
@@ -3335,6 +3346,7 @@ parse_string(NODE *quote, rb_parse_state *parse_state)
 
     tokfix();
     pslval->node = NEW_STR(string_new(tok(), toklen()));
+    nd_set_line(pslval->node, start_line);
     return tSTRING_CONTENT;
 }
 
@@ -5080,7 +5092,11 @@ call_op(NODE *recv, QUID id, int narg, NODE *arg1, rb_parse_state *parse_state)
     id = convert_op(id);
 
 
-    return NEW_CALL(recv, id, arg1);
+    NODE* n = NEW_CALL(recv, id, arg1);
+
+    fixpos(n, recv);
+
+    return n;
 }
 
 static NODE*

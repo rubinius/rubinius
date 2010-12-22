@@ -1,1 +1,0 @@
-fails:GlobalBreakpoint#initalize throws an ArgumentError if the IP is not the address of an instruction

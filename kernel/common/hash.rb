@@ -399,6 +399,8 @@ class Hash
       @default = default
       @default_proc = false
     end
+
+    self
   end
   private :initialize
 
@@ -452,13 +454,19 @@ class Hash
 
   def merge!(other)
     other = Type.coerce_to other, Hash, :to_hash
-    other.each_entry do |entry|
-      key = entry.key
-      if block_given? and key? key
-        Ruby.check_frozen
-        self.__store__ key, yield(key, self[key], entry.value)
-      else
-        Ruby.check_frozen
+
+    if block_given?
+      other.each_entry do |entry|
+        key = entry.key
+        if key? key
+          self.__store__ key, yield(key, self[key], entry.value)
+        else
+          self.__store__ key, entry.value
+        end
+      end
+    else
+      other.each_entry do |entry|
+        key = entry.key
         self.__store__ key, entry.value
       end
     end

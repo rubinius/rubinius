@@ -284,7 +284,7 @@ namespace rubinius {
     num_names = onig_number_of_names(this->onig_data);
 
     if(num_names == 0) {
-      this->names(state, (LookupTable*)Qnil);
+      this->names(state, nil<LookupTable>());
     } else {
       struct _gather_data gd;
       gd.state = state;
