@@ -13,6 +13,6 @@ bytecode (n. t. instrucciones básicas) que la máquina virtual puede ejecutar.
 
 1. [Parser](/doc/es/bytecode-compiler/parser/)
 1. [AST](/doc/es/bytecode-compiler/ast/)
-1. [Compolador](/doc/es/bytecode-compiler/compiler/)
+1. [Compilador](/doc/es/bytecode-compiler/compiler/)
 1. [Transformaciones](/doc/es/bytecode-compiler/transformations/)
 1. [Generador](/doc/es/bytecode-compiler/generator/)
