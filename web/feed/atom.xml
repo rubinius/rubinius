@@ -8,7 +8,7 @@ layout: nil
  <link href="http://rubini.us/atom.xml" rel="self"/>
  <link href="http://rubini.us/"/>
  {% for post in site.posts limit:1 %}
- <updated>{{ post.date | date_to_xmlschema }}</updated>
+ <updated>{{ post.date | date: '%Y-%m-%dT00:00:00+00:00' }}</updated>
  {% endfor %}
  <id>http://rubini.us/</id>
 
@@ -17,7 +17,7 @@ layout: nil
    <author><name>{{ post.author }}</name></author>
    <title>{{ post.title }}</title>
    <link href="http://rubini.us{{ post.url }}"/>
-   <updated>{{ post.date | date_to_xmlschema }}</updated>
+   <updated>{{ post.date | date: '%Y-%m-%dT00:00:00+00:00' }}</updated>
    <id>http://rubini.us{{ post.id }}</id>
    <content type="html">{{ post.content | xml_escape }}</content>
  </entry>
