@@ -1,9 +1,9 @@
 ---
 layout: doc_es
-title: Memory Analysis
-previous: Profiler
+title: Análisis de Memoria
+previous: Analizador
 previous_url: tools/profiler
-next: How-To
+next: Cómos
 next_url: how-to
 review: true
 translated: true
