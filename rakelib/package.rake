@@ -39,6 +39,5 @@ namespace :package do
     sh "/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker --root pkgtmp --id com.engineyard.rubinius -o rubinius-#{Rubinius::BUILD_CONFIG[:version]}.pkg -t Rubinius -v"
 
     rm_rf "pkgtmp"
-
   end
 end

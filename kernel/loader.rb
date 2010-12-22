@@ -59,13 +59,17 @@ module Rubinius
     def system_load_path
       @stage = "setting up system load path"
 
-      @main_lib = Rubinius::LIB_PATH
+      @main_lib = nil
 
-      unless File.exists? @main_lib
-        if ENV['RBX_LIB']
-          @main_lib = ENV['RBX_LIB']
-        else
-          STDERR.puts <<-EOM
+      if env_lib = ENV['RBX_LIB']
+        @main_lib = env_lib if File.exists?(env_lib)
+      end
+
+      # Use the env version if it's set.
+      @main_lib = Rubinius::LIB_PATH unless @main_lib
+
+      unless @main_lib
+        STDERR.puts <<-EOM
 Rubinius was configured to find standard library files at:
 
   #{@main_lib}
@@ -74,8 +78,7 @@ but that directory does not exist.
 
 Set the environment variable RBX_LIB to the directory
 containing the Rubinius standard library files.
-          EOM
-        end
+        EOM
       end
 
       # This conforms more closely to MRI. It is necessary to support
