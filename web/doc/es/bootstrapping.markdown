@@ -8,8 +8,8 @@ next_url: virtual-machine
 ---
 
 Bootstrapping es el proceso de construcción de la funcionalidad del sistema
-hasta todo el código de Ruby que se puede ejecutar. Hay siete etapas en el proceso
-de arranque:
+hasta todo el código de Ruby que se puede ejecutar. Hay siete etapas en
+el proceso de arranque:
 
   1. VM: La máquina virtual es capaz de cargar y ejecutar bytecode,
      enviar mensajes (por ej. buscar y ejecutar métodos), y todas las
@@ -17,9 +17,9 @@ de arranque:
      métodos de Ruby.
 
      La clase Class tiene que configurar manualmente esto en el proceso
-     estableciendo su clase  a sí misma (n. t. Class) y su superclase a Module. Además
-     de Class y Module, se crean un par de clases base, incluyendo Object,
-     Tuple, LookupTable, y MethodTable.
+     estableciendo su clase  a sí misma (n. t. Class) y su superclase a
+     Module. Además de Class y Module, se crean un par de clases base,
+     incluyendo Object, Tuple, LookupTable, y MethodTable.
 
      Ahora que las clases se pueden definir, algo así como 35
      clases son llamadas para ser inicializadas a sí mismas,
@@ -83,31 +83,30 @@ de arranque:
 
 ## Orden de Carga
 
-Los archivos en el arranque del núcleo directorios, la plataforma común, y el
-delta, poner en práctica las etapas bootstrapping respectiva arriba. El orden
-en el que estos directorios se cargan se especifica en runtime/index.
+Los archivos en el directorio kernel, bootstrap, platform, common, and delta,
+implementan las etapas de bootstrapping descriptas arriba. El orden
+en el cual estos directorios son cargados está especificado en runtime/index.
 
-Cuando un archivo de RBC se carga, el código a nivel de guión y en la clase o
-módulo órganos que se ejecuta. Por ejemplo, cuando se carga
+Cuando un archivo de RBC se carga, el código a nivel de script y
+en el cuerpo de clases y módulos, se ejecuta. Por ejemplo, cuando se carga
 
     class SomeClass
       attr_accessor :value
     end
 
-la llamada al #attr_accessor se llevará a cabo. Esto requiere que cualquier
-código de llamada en la escritura, la clase, o de los órganos del módulo debe
-ser cargado antes de que el archivo que llama a el código es cargado. El
-kernel / alpha.rb define la mayor parte del código que se necesarios en el
-guión o el nivel de módulo. Sin embargo, otras dependencias para la carga
-existen entre algunos de la plataforma, el delta común, y los archivos de
-compilador.
+la llamada a #attr_accessor se va a ejecutar. Esto require que cualquier
+código llamado en los cuerpos de scripts, clase o módulo sea cargado
+antes del archivo que llama al código.
+kernel/alpha.rb define la mayor parte del código que será necesario a nivel
+de script o módulo. Sin embargo, otras dependencias de orden de carga
+existen entre algunos de platform, common, delta, y los archivos del compilador.
 
-Estas dependencias de orden de carga se abordan en el archivo ubicado
-load_order.txt en cada uno de los kernel/\*\* directorios. Si modifica el
-código que añade una carga Para la dependencia, debe editar los archivos
-load_order.txt para colocar el dependían en el archivo sobre el archivo que
-depende de él. Además, si se agrega un nuevo archivo a un de los directorios
-del kernel, debe agregar el nombre del archivo a la load_order.txt archivo en
-ese directorio. Estos archivos se copian los directorios runtime/\*\* durante
-la creación. Durante cada una de las etapas de arranque anterior, la máquina
-virtual las cargas de los archivos enumerados en load_order.txt en orden.
+Estas dependencias de orden de carga se abordan en el archivo
+load_order.txt ubicado en cada uno de los directorios kernel/\*\* . Si modifica
+código que añade una dependencia de orden de carga, debe editar los archivos
+load_order.txt para colocar el archivo arriba del archivo que depende
+de él. Además, si se agrega un nuevo archivo a uno de los directorios
+del kernel, debe agregar el nombre del archivo al archivo load_order.txt en
+ese directorio. Estos archivos se copian a los directorios runtime/\*\* durante
+la creación. Durante cada una de las etapas de bootstrap anteriores, la máquina
+virtual carga los archivos enumerados en load_order.txt en orden.
