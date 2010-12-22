@@ -17,7 +17,7 @@ el proceso de arranque:
      métodos de Ruby.
 
      La clase Class tiene que configurar manualmente esto en el proceso
-     estableciendo su clase  a sí misma (n. t. Class) y su superclase a
+     estableciendo su clase a sí misma (n. t. Class) y su superclase a
      Module. Además de Class y Module, se crean un par de clases base,
      incluyendo Object, Tuple, LookupTable, y MethodTable.
 
@@ -26,16 +26,16 @@ el proceso de arranque:
      se crean símbolos para los métodos de alto nivel :object_id, :call,
      :protected, etc), se definen las excepciones básicas, y
      se registran las primitivas. Por último se conecta IO. Además en
-     esta etapa se unen varios métodos fundamentales de Ruby
+     esta etapa se unen a las primitivas varios métodos fundamentales de Ruby.
 
      En este punto hay bastante comportamiento definido como para empezar a
-     cargar el resto del runtime kernel que está todo definido en
+     cargar el resto del runtime kernel que está completamente definido en
      ruby. Esto ha de ser hecho en varios pasos a medida que el lenguaje crece.
 
 
   2. alpha: Se inicia la carga del código Ruby. La capacidad de abrir las
      clases y los módulos y definir métodos existe. La funcionalidad mínima
-     para soportear los métodos siguientez se implementa en kernel/alpha.rb:
+     para soportar los métodos siguientes se implementa en kernel/alpha.rb:
 
        attr_reader :sym
        attr_writer :sym
@@ -49,23 +49,23 @@ el proceso de arranque:
      está corriendo termine. Esta etapa sienta las bases para las próximos dos
      etapas.
 
-  3. bootstrap: Esta etapa continúa agregando la funcionalidad mínima a
+  3. bootstrap: Esta etapa continúa agregando la funcionalidad mínima para
      poder cargar platform y common. Las funciones primitivas se añaden
      para la mayoría de las clases de Kernel.
 
   4. platform: La FFI (interfaz para función externa) del sistema se
-     implementa y las interfaces de los método para plataformas-específicas
-     se crean. Una vez establecido esto, se adjuntan las cosas
-     específicas de la plataforma, tales como indicadores, el acceso a
-     archivos, matemáticas, y comandos POSIX.
+     implementa y las interfaces de los métodos para funciones
+     específicas-de-la-plataforma se crean. Una vez establecido esto,
+     se adjuntan las cosas específicas-de-la-plataforma, tales como punteros,
+     el acceso a archivos, matemáticas, y comandos POSIX.
 
   5. common: La gran mayoría de las clases fundamentales de Ruby están
      implementadas. Las clases fundamentales de Ruby se mantienen lo
      más neutral posible de la implementación. Además, se agregan
      la mayoría la funcionalidad para las clases específicas de Rubinius.
 
-  6. delta: Se agrega las versiones finales de los métodos como # attr_reader.
-     Por otra parte, se agregan versiones específicas de la implementación
+  6. delta: Se agregan las versiones finales de los métodos como # attr_reader.
+     Por otra parte, se agregan versiones específicas-de-la-implementación
      de los métodos que sobreescriben las versiones provistas en common.
 
   7. loader: La versión compilada del kernel/loader.rb se ejecuta.
@@ -95,11 +95,11 @@ en el cuerpo de clases y módulos, se ejecuta. Por ejemplo, cuando se carga
     end
 
 la llamada a #attr_accessor se va a ejecutar. Esto require que cualquier
-código llamado en los cuerpos de scripts, clase o módulo sea cargado
+código llamado en los cuerpos de scripts, clases o módulos sea cargado
 antes del archivo que llama al código.
 kernel/alpha.rb define la mayor parte del código que será necesario a nivel
 de script o módulo. Sin embargo, otras dependencias de orden de carga
-existen entre algunos de platform, common, delta, y los archivos del compilador.
+existen entre algunos de los archivos de platform, common, delta, y los archivos del compilador.
 
 Estas dependencias de orden de carga se abordan en el archivo
 load_order.txt ubicado en cada uno de los directorios kernel/\*\* . Si modifica
@@ -108,5 +108,5 @@ load_order.txt para colocar el archivo arriba del archivo que depende
 de él. Además, si se agrega un nuevo archivo a uno de los directorios
 del kernel, debe agregar el nombre del archivo al archivo load_order.txt en
 ese directorio. Estos archivos se copian a los directorios runtime/\*\* durante
-la creación. Durante cada una de las etapas de bootstrap anteriores, la máquina
+el build. Durante cada una de las etapas de bootstrap anteriores, la máquina
 virtual carga los archivos enumerados en load_order.txt en orden.
