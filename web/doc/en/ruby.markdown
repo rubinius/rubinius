@@ -8,7 +8,7 @@ next_url: ruby/scripts
 review: true
 ---
 
-One perspective to approach understanding how Rubinius implements Ruby begins
+One perspective to approach understanding of how Rubinius implements Ruby, begins
 with understanding how various concepts in Ruby work.
 
 1. [Scripts](/doc/en/ruby/scripts/)
