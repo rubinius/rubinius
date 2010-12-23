@@ -152,7 +152,7 @@ namespace rubinius {
     String* apply_and(STATE, String* other);
 
     // Ruby.primitive :string_tr_expand
-    Fixnum* tr_expand(STATE, Object* limit);
+    Fixnum* tr_expand(STATE, Object* limit, Object* invalid_as_empty);
     Fixnum* tr_replace(STATE, struct tr_data* data);
 
     // Ruby.primitive :string_copy_from

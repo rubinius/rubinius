@@ -72,7 +72,7 @@ module Kernel
     if __kind_of__(Module)
       msg << " on #{self} (#{object_class})"
 
-    # A seperate case for nil, because people like to patch methods to
+    # A separate case for nil, because people like to patch methods to
     # nil, so we can't call methods on it reliably.
     elsif nil.equal?(self)
       msg << " on nil:NilClass."

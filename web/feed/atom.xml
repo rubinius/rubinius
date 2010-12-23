@@ -4,23 +4,26 @@ layout: nil
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
- <title>Rubinius : Use Ruby&#8482;</title>
- <link href="http://rubini.us/atom.xml" rel="self"/>
- <link href="http://rubini.us/"/>
- {% for post in site.posts limit:1 %}
- <updated>{{ post.date | date_to_xmlschema }}</updated>
- {% endfor %}
- <id>http://rubini.us/</id>
+  <title>Rubinius Blog</title>
+  <link rel="self" type="application/atom+xml" href="{{ site.host }}{{ page.url }}" />
+  <link rel="alternate" type="text/html" href="{{ site.host }}/blog" />
+  <updated>{{ post.date | date: '%Y-%m-%dT00:00:00+00:00' }}</updated>
+  <id>{{ site.host }}/</id>
 
- {% for post in site.posts %}
- <entry>
-   <author><name>{{ post.author }}</name></author>
-   <title>{{ post.title }}</title>
-   <link href="http://rubini.us{{ post.url }}"/>
-   <updated>{{ post.date | date_to_xmlschema }}</updated>
-   <id>http://rubini.us{{ post.id }}</id>
-   <content type="html">{{ post.content | xml_escape }}</content>
- </entry>
- {% endfor %}
+  {% for post in site.posts %}
+  <entry>
+    <title>{{ post.title }}</title>
+    <id>{{ site.host }}{{ post.url }}</id>
+    <link rel="alternate" type="text/html" href="{{ site.host }}{{ post.url }}" />
+    <updated>{{ post.date | date: '%Y-%m-%dT00:00:00+00:00' }}</updated>
+    <author>
+      <name>{{ post.author }}</name>
+    </author>
+    {% for category in post.categories %}
+    <category term="{{ category | downcase }}" />
+    {% endfor %}
+    <content type="html">{{ post.content | xml_escape }}</content>
+  </entry>
+  {% endfor %}
 
 </feed>

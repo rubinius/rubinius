@@ -389,7 +389,7 @@ namespace rubinius {
     }
   };
 
-  Fixnum* String::tr_expand(STATE, Object* limit) {
+  Fixnum* String::tr_expand(STATE, Object* limit, Object* invalid_as_empty) {
     struct tr_data tr_data;
 
     tr_data.last = 0;
@@ -414,11 +414,13 @@ namespace rubinius {
         continue;
       } else if(seq == '-') {
         native_int max = ++i < bytes ? str[i] : -1;
-        if(max >= 0) {
-          while(chr <= max) {
+        if(max >= 0 && chr > max && RTEST(invalid_as_empty)) {
+          i++;
+        } else if(max >= 0) {
+          do {
             if(tr_data.assign(chr)) return tr_replace(state, &tr_data);
             chr++;
-          }
+          } while(chr <= max);
           i++;
         } else {
           if(tr_data.assign(chr)) return tr_replace(state, &tr_data);

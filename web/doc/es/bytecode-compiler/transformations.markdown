@@ -26,11 +26,11 @@ cambiar clases fundamentales como Fixnum en formas que podrían violar
 el comportamiento del que dependen algunas otras clases. Por ejemplo,
 imagine que hicieramos lo siguiente:
 
-  class Fixnum
-    def +(other)
-      (self + other) % 5
+    class Fixnum
+      def +(other)
+        (self + other) % 5
+      end
     end
-  end
 
 Si bien es cierto que es posible redefinir el operador aritmético de
 suma para que realice una operación módulo 5, hacerlo, sin duda
