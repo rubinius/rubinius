@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: Contributing
 previous: Troubleshooting
 previous_url: getting-started/troubleshooting

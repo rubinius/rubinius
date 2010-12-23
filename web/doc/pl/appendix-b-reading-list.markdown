@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: Appendix B - Reading List
 previous: Appendix A - Glossary
 previous_url: appendix-a-glossary

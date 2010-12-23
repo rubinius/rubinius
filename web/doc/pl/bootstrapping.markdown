@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: Bootstrapping
 previous: Build System
 previous_url: build-system

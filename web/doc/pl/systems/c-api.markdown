@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: C-API
 previous: IO
 previous_url: systems/io

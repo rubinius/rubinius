@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: Uruchomienie Rubiniusa
 previous: Kompilacja
 previous_url: getting-started/building

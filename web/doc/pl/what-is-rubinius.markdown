@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 next: Pierwsze kroki
 next_url: getting-started
 ---
