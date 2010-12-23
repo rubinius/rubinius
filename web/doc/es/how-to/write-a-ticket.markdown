@@ -7,34 +7,37 @@ next: Escribir una especificación en Ruby
 next_url: how-to/write-a-ruby-spec
 ---
 
+<<<<<<< HEAD
 The Rubinius issue tracker is <http://github.com/rubinius/rubinius/issues>.
+=======
+El issue tracker de Rubinius es <http://github.com/evanphx/rubinius/issues>.
+>>>>>>> - first step in write-a-ticket translation
 
-Para ser útiles, los boletos deben ser concisas, específicas y acciones
-concretas. Si no, el boleto languidecen y se convierten en el desorden. En
-consecuencia, los boletos deben caer en uno (o más) de las siguientes
+Para ser útiles, los tickets deben ser concisos, específicos y acciones
+concretas. Si no, el ticket va a languidecer y se convertirce en desorden. En
+consecuencia, los tickets deben caer en uno (o más) de las siguientes
 categorías:
 
-   1. Una historia de línea de comandos precisos para demostrar cómo instalar
-      e invocar el programa y que muestra el seguimiento hacia atrás de una
-      excepción.
+   1. Una historia precisa de la línea de comandos para demostrar cómo instalar
+      e invocar el programa y que muestra el backtrace de una excepción.
    2. Un pequeño fragmento de código que ilustra el problema y la línea de
       comandos lo invocan.
    3. Un parche, **incluyendo especificaciones técnicas, si no existen**, y
-      mostrando la especificación de funcionamiento antes y después de aplicar
-      el parche.
+      mostrando la especificación (n. t. spec) funcionandoo antes y
+      después de aplicar el parche.
 
-Si el problema no se ajusta a una de las categorías, no es válido. Es
-simplemente no es apropiado para un boleto.
+Si el problema no se ajusta a una de las categorías, no es
+válido. Simplemente no es apropiado para un ticket.
 
-   1. Si se trata de una función, consideran que trata sobre la lista de
-      correo. Además, podría tomar una grieta en su aplicación y demostrar
-      cómo su función es útil.
-   2. Si se trata de una biblioteca o joya que no está funcionando, tómese un
-      tiempo para cavar en y ver si se puede crear una reproducción de un tema
-      y después de que, como Venta de entradas.
+   1. Si se trata de una característica, considere discutirla en la lista de
+      correo. Además, podría intentar implementarlo y demostrar
+      cómo su característica es útil.
+   2. Si se trata de una biblioteca o gema que no está funcionando, tómese un
+      tiempo para investigar y ver si se puede reproducir
+      y envíe eso como ticket.
 
 
-## Procedimiento general para la presentación de un billete
+## Procedimiento general para enviar un ticket
 
 1. Vuelva a comprobar.
 
