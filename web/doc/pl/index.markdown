@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: Spis treści
 toc: true
 next: Czym jest Rubinius?

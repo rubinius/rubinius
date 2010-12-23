@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: Compiler Transforms
 previous: Compiler
 previous_url: bytecode-compiler/compiler

@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: Wymagania
 previous: Pierwsze kroki
 previous_url: getting-started

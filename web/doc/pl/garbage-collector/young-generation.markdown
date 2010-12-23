@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: Young Generation
 previous: Nursery
 previous_url: garbage-collector/nursery

@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: Kompilacja Rubiniusa
 previous: Wymagania
 previous_url: getting-started/requirements

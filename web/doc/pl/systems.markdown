@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: Rubinius Systems
 previous: Garbage Collector - Large Objects
 previous_url: garbage-collector/large-objects

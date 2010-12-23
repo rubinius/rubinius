@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: How-To
 previous: Tools - Memory Analysis
 previous_url: tools/memory-analysis

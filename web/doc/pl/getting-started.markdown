@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: Pierwsze kroki
 previous: Czym jest Rubinius?
 previous_url: what-is-rubinius

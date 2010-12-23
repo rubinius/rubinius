@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: Compiler Specs
 previous: RubySpec
 previous_url: specs/rubyspec
