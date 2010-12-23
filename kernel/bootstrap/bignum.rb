@@ -36,7 +36,7 @@ class Bignum < Integer
     redo_coerced :/, o
   end
 
-  # This is seperate from divide because it calls a different method
+  # This is separate from divide because it calls a different method
   # if it has to coerce. This is important because Bignum#div(Float) and
   # Bignum#/(Float) return different things.
   #

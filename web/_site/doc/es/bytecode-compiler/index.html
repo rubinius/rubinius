@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Rubinius : Use Ruby&#153;</title>
+    <title>Compilador a bytecode - Rubinius</title>
     <meta content='text/html;charset=utf-8' http-equiv='content-type'>
-    <meta content='en' http-equiv='content-language'>
+    <meta content='es' http-equiv='content-language'>
     <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
     <meta content='Less Than Three. &lt;3. http://less.thanthree.com' name='author'>
     <link href='/' rel='home'>
-
     <link href='/' rel='start'>
+    <link href='/doc/es/virtual-machine/custom-dispatch-logic' rel='prev' title='Lógica de búsqueda y ejecución de métodos'>
+    <link href='/doc/es/bytecode-compiler/parser' rel='next' title='Parser'>
+    
     <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script><![endif]-->
     <script src="/javascripts/jquery-1.3.2.js" type="text/javascript"></script>
     <script src="/javascripts/paging_keys.js" type="text/javascript"></script>
-    <script src="/javascripts/jquery.twitter.js" type="text/javascript"></script>
+    
     <script src="/javascripts/application.js" type="text/javascript"></script>
     <style>article, aside, dialog, figure, footer, header, hgroup, menu, nav, section { display: block; }</style>
 
@@ -84,7 +86,7 @@
       
         
         <span class="label">Anterior:</span>
-        <a href="/doc/es/virtual-machine/custom-dispatch-logic">Virtual Machine - Custom Dispatch Logic</a>
+        <a href="/doc/es/virtual-machine/custom-dispatch-logic">Lógica de búsqueda y ejecución de métodos</a>
         
 
         <span class="label">Subir:</span>
@@ -99,15 +101,7 @@
 
 
     <div class="container documentation">
-      <h2>Bytecode Compiler</h2>
-
-      
-        <div class="review">
-  <p>This page was machine translated. Please help us improve it.</p>
-
-  <p>See <a href="/doc/es/how-to/translate-documentation">
-    How-To - Translate Documentation</a></p>
-</div>
+      <h2>Compilador a bytecode</h2>
 
       
 
@@ -122,15 +116,15 @@
 
       
 
-        <p>El compilador de código de bytes Rubinius convierte el código fuente a
-bytecode de Ruby que el máquina virtual puede ejecutar.</p>
+        <p>El compilador a bytecode de Rubinius convierte el código fuente a
+bytecode (n. t. instrucciones básicas) que la máquina virtual puede ejecutar.</p>
 
 <ol>
   <li><a href="/doc/es/bytecode-compiler/parser/">Parser</a></li>
   <li><a href="/doc/es/bytecode-compiler/ast/">AST</a></li>
-  <li><a href="/doc/es/bytecode-compiler/compiler/">Compiler</a></li>
-  <li><a href="/doc/es/bytecode-compiler/transformations/">Transformations</a></li>
-  <li><a href="/doc/es/bytecode-compiler/generator/">Generator</a></li>
+  <li><a href="/doc/es/bytecode-compiler/compiler/">Compilador</a></li>
+  <li><a href="/doc/es/bytecode-compiler/transformations/">Transformaciones</a></li>
+  <li><a href="/doc/es/bytecode-compiler/generator/">Generador</a></li>
 </ol>
 
 
@@ -140,7 +134,7 @@ bytecode de Ruby que el máquina virtual puede ejecutar.</p>
       
         
         <span class="label">Anterior:</span>
-        <a href="/doc/es/virtual-machine/custom-dispatch-logic">Virtual Machine - Custom Dispatch Logic</a>
+        <a href="/doc/es/virtual-machine/custom-dispatch-logic">Lógica de búsqueda y ejecución de métodos</a>
         
 
         <span class="label">Subir:</span>
@@ -153,6 +147,23 @@ bytecode de Ruby que el máquina virtual puede ejecutar.</p>
       
     </div>
 
+
+    <div class="container">
+      <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'rubinius';
+    var disqus_identifier = '/doc/es/bytecode-compiler/';
+    var disqus_url = 'http://rubini.us/doc/es/bytecode-compiler/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+    </div>
 
         <footer>
       <div class='container'>

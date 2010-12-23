@@ -31,7 +31,7 @@ namespace :release do
     puts "* Making tar.gz..."
     Rake::Task['release:tar'].invoke
 
-    # Do this seperate, so that the testing can fail and we leave the directory
+    # Do this separately, so that the testing can fail and we leave the directory
     # where it is.
     if osx = ENV['OSX']
       puts "* Cleaning and building OS X package..."

@@ -6,10 +6,9 @@ previous_url: jit
 next: Nursery
 next_url: garbage-collector/nursery
 review: true
-translated: true
 ---
 
-1. [Nursery](/doc/es/garbage-collector/nursery/)
-1. [Young Generation](/doc/es/garbage-collector/young-generation/)
-1. [Mature Generation](/doc/es/garbage-collector/mature-generation/)
-1. [Large Objects](/doc/es/garbage-collector/large-objects/)
+1. [Guarderia](/doc/es/garbage-collector/nursery/)
+1. [Generación Joven](/doc/es/garbage-collector/young-generation/)
+1. [Generación Madura](/doc/es/garbage-collector/mature-generation/)
+1. [Objetos grandes](/doc/es/garbage-collector/large-objects/)

@@ -114,6 +114,7 @@ class Thread
 
   def kill
     @dying = true
+    @sleep = false
     self.raise Die
   end
 
@@ -131,6 +132,8 @@ class Thread
     if @alive
       if @sleep
         "sleep"
+      elsif @dying
+        "aborting"
       else
         "run"
       end

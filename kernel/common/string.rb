@@ -729,8 +729,8 @@ class String
     size = @num_bytes
     orig_data = @data
 
-    # If the seperator is empty, we're actually in paragraph mode. This
-    # is used so infrequently, we'll handle it completely seperately from
+    # If the separator is empty, we're actually in paragraph mode. This
+    # is used so infrequently, we'll handle it completely separately from
     # normal line breaking.
     if sep.empty?
       sep = "\n\n"
@@ -760,7 +760,7 @@ class String
         pos = nxt
       end
 
-      # No more seperates, but we need to grab the last part still.
+      # No more separates, but we need to grab the last part still.
       fin = substring(pos, @num_bytes - pos)
       yield fin if fin and !fin.empty?
 
@@ -785,7 +785,7 @@ class String
         pos = nxt + pat_size
       end
 
-      # No more seperates, but we need to grab the last part still.
+      # No more separates, but we need to grab the last part still.
       fin = substring(pos, @num_bytes - pos)
       yield fin unless fin.empty?
     end
@@ -1763,7 +1763,7 @@ class String
       pos = nxt + pat_size
     end
 
-    # No more seperates, but we need to grab the last part still.
+    # No more separators, but we need to grab the last part still.
     ret << substring(pos, @num_bytes - pos)
 
     ret.pop while !ret.empty? and ret.last.empty?
@@ -2186,12 +2186,12 @@ class String
     return if @num_bytes == 0
 
     invert = source[0] == ?^ && source.length > 1
-    expanded = source.tr_expand! nil
+    expanded = source.tr_expand! nil, true
     size = source.size
     src = source.__data__
 
     if invert
-      replacement.tr_expand! nil
+      replacement.tr_expand! nil, false
       r = replacement.__data__[replacement.size-1]
       table = Rubinius::Tuple.pattern 256, r
 
@@ -2203,7 +2203,7 @@ class String
     else
       table = Rubinius::Tuple.pattern 256, -1
 
-      replacement.tr_expand! expanded
+      replacement.tr_expand! expanded, false
       repl = replacement.__data__
       rsize = replacement.size
       i = 0
@@ -2400,7 +2400,7 @@ class String
       end
 
       set = String.pattern 256, neg
-      str.tr_expand! nil
+      str.tr_expand! nil, true
       j, chars = -1, str.size
       set[str[j]] = pos while (j += 1) < chars
 
@@ -2410,7 +2410,7 @@ class String
     table
   end
 
-  def tr_expand!(limit)
+  def tr_expand!(limit, invalid_as_empty)
     Ruby.primitive :string_tr_expand
     raise PrimitiveFailure, "String#tr_expand primitive failed"
   end

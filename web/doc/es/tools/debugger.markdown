@@ -1,19 +1,19 @@
 ---
 layout: doc_es
-title: Debugger
-previous: Tools
+title: Depurador
+previous: Herramientas
 previous_url: tools
-next: Profiler
+next: Analizador
 next_url: tools/profiler
-translated: true
+translated: false
 ---
 
-Rubinius incluye una referencia Ruby depurador de nivel fuente.
+Rubinius incluye depurador de código fuente Ruby para usar como referencia.
 
 ## Invocar en el Código
 
-El depurador Rubinius se puede invocar desde el código mediante la
-incorporación de una llamada para iniciar el depurador
+El depurador de Rubinius puede ser invocado desde el código fuente escribiendo
+una llamada para iniciar el depurador.
 
 Considere el siguiente código en app.rb
 
@@ -73,15 +73,14 @@ Al ejecutar el código en Rubinius produciría lo siguiente:
     debug> c
     :light_brown
 
-Ayuda para los comandos de depuración está disponible escribiendo 'help'
-cuando en el depurador.
+Como se ve, la ayuda para los comandos de depuración se puede acceder
+escribiendo 'help'.
 
+## Invocación desde la línea de comandos
 
-## La invocación de la línea de comandos
-
-El depurador Rubinius se puede invocar desde la línea de comandos y presente
-el depurador del sistema justo antes de cargar el script especificado en el
-comando la línea.
+El depurador de Rubinius se puede invocar desde la línea de comandos y
+presentará el depurador del sistema justo antes de cargar el script
+especificado en la línea de comandos.
 
 Considere el siguiente código de Ruby en bug.rb:
 
@@ -93,7 +92,7 @@ Considere el siguiente código de Ruby en bug.rb:
 
     problem_code
 
-Para depurar el código, iniciar el depurador de la línea de comandos con el
+Para depurar el código, inicie el depurador de la línea de comandos con la
 opción `--Xdebug`.
 
     $ rbx -Xdebug bug.rb
@@ -127,5 +126,5 @@ opción `--Xdebug`.
     | 7: problem_code
     debug> c
 
-Como puede ver, la ejecución de `p a = 4` en los cambios depurador el valor de
-la variable local `a` y afecta a la ejecución del código Ruby.
+Como puede ver, la ejecución de `p a = 4` en el depurador cambia el valor
+de la variable local `a` y afecta la ejecución del código Ruby.

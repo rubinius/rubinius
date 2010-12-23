@@ -1,59 +1,58 @@
 ---
 layout: doc_es
-title: Appendix A - Glossary
-previous: How-To - Translate Documentation
+title: Apéndice A - Glosario
+previous: Cómos - Traducir Documentación
 previous_url: how-to/translate-documentation
-next: Appendix B - Reading List
+next: Apéndice B - Lista de Lecturas
 next_url: appendix-b-reading-list
-review: true
-translated: true
+translated: false
 ---
-
-Definitions of terms and phrases used in the Ruby programming language and in
-this implementation. See also "The Ruby Programming Language" by Flanagan and
-Matsumoto [O'Reilly 2008] and "Programming Ruby: The Pragmatic Programmer's
-Guide" 2nd or 3rd Edition by Thomas et al [The Pragmatic Programmers
-2005-2008]
+Definición de términos y frases usadas en el lenguaje de programación Ruby y en
+esta implementación. Vea también "The Ruby Programming Language" por Flanagan y
+Matsumoto [O'Reilly 2008] y "Programming Ruby: The Pragmatic Programmer's Guide"
+segunda o tercera edición por Thomas et al [The Pragmatic Programmers 2005-2008].
 
 
-* _metaclass_
+* _metaclass (metaclase)_
 
-  Also called the +singleton+ class or +eigenclass+. Every object in Ruby can
-  have one, although, they are only created as necessary. The metaclass holds the
-  method and constant tables that belong only to a particular object instance.
-  For example, the method +hello+ defined below exists only in the metaclass for
-  +obj+.
+  También llamada la clase +singleton+ o +eigenclass+. Cualquier objeto en Ruby
+  puede tener una aunque solamente son creadas cuando es necesario. La metaclase
+  tiene las tablas de métodos y constantes que preñen a una instancia (objeto)
+  en particular. Por ejemplo, el método +hello+ definido a continuación existe
+  solamente en la metaclase de +obj+.
 
       obj = Object.new
       def obj.hello
         puts 'hi'
       end
 
-  Since all classes in Ruby are also objects, they can have metaclasses. The
-  methods called "class methods" are just methods in the method_table of the
-  class's metaclass. The method +honk+ exists in the metaclass for the class
-  +Car+.
+  Ya que las clases en Ruby también son objetos, estas pueden tener metaclases.
+  Los métodos de clase (*class methods*) son simplemente métodos en la tabla
+  de métodos de la metaclase de la clase. El método +honk+ existe en la
+  metaclase de la clase +Car+.
 
       class Car
         def self.honk
         end
       end
 
-  In Rubinius, metaclasses are all instances of the class MetaClass. The
-  metaclass for an object can be obtained by calling the +metaclass+ method.
-  The overall arrangement of concepts involved here is sometimes referred to
-  as the 'Meta-Object Protocol' or +MOP+.
+  Todas las metaclases en Rubinius son instancias de la clase MetaClass. La
+  metaclase para un objeto puede ser obtenida llamando al método +metaclass+.
+  Los conceptos mencionados aquí se conocen como el 'Meta-Object Protocol'
+  o +MOP+.
 
+* _method lookup or method resolution (búsqueda de métodos o resolución
+  de métodos_
 
-* _method lookup or method resolution_
+  La regla para la resolución de métodos es sencilla: Se toma el objeto
+  que se encuentra en la posición *class* del objeto (que no siempre es
+  igual a Object#class) y se comienza la búsqueda del método.
 
-  The rule is simple: Take the object located in the class slot of the object
-  (which is not always the return value of Object#class) and begin searching.
+  La búsqueda se hace subiendo de niveles en la cadena de superclases
+  hasta que el valor de superclass sea nil.
 
-  Searching goes up the superclass chain until the superclass is nil.
-
-  In which case, redo lookup for method_missing. If we fail to find
-  method_missing, fail tragicly.
+  Si superclass es nil se vuelve a comenzar la búsqueda tratando de hallar
+  method_missing. Si no se encuentra method_missing se genera un error.
 
                                             +-------------+
                                             |     nil     |
@@ -104,38 +103,39 @@ Guide" 2nd or 3rd Edition by Thomas et al [The Pragmatic Programmers
         end
       end
 
-  1. Resolve method 'wanker' -- search method_tables in:
+  1. Para la resolución del método 'wanker' se hace la búsqueda en las
+  method_tables de:
 
       1. MetaClass(F)
       1. MetaClass(Object)
       1. Class
 
-  Found
+  Encontrado.
 
 
-* _method_table_
+* _method_table (tabla de métodos)_
 
-  A data structure in every class (and module) that contains the methods defined
-  for that class.
+  Una estructura de datos hallada en todas las clases (y módulos) que contiene
+  los métodos definidos para esa clase.
 
-  In Rubinius, a class's method_table is an instance of LookupTable.
-
+  En Rubinius la clase de method_table es una instancia de LookupTable.
 
 * _MatzRuby_
 
-  See MRI
+  Ver MRI.
 
 
 * _MRI_
 
-  Matz's Ruby Interpreter or Matz's Ruby Implementation. A short name to refer
-  to the official implementation of Ruby. See <http://ruby-lang.org>.
+  "Matz's Ruby Interpreter" o "Matz's Ruby Implementation". Una abreviación
+  para referirse a la implementación oficial de Ruby. Ver
+  <http://ruby-lang.org>.
 
 
-* _private send_
+* _private send (send privado)_
 
-  A method call that has no explicit lexical receiver. The receiver of the
-  call is +self+. For example:
+  Una llamada de método que no tiene un receptor léxico explícito. El
+  receptor en este caso es +self+. Ejemplo:
 
       class A
       private
@@ -156,16 +156,15 @@ Guide" 2nd or 3rd Edition by Thomas et al [The Pragmatic Programmers
         end
       end
 
-  The call to +you_are_mine+ in the method +sunshine+ is a private send. The
-  call to +today.you_are_mine+ will not succeed because private methods cannot
-  have an explicit receiver. In this case, the object +today+ is the explicit
-  receiver.
+  La llamada a +you_are_mine+ en el método +sunshine+ es un send privado.
+  La llamada a +today.you_are_mine+ no funcionará ya que los métodos privados
+  no pueden tener un receptor explícito. En el caso anterior +today+ sería
+  el receptor explícito.
 
+* _superclass (superclase)_
 
-* _superclass_
-
-  The class that a particular class immediately inherits from. The class Object
-  is the superclass of all classes that do not inherit explicitly from a class.
+  La clase de la cual una clase en particular hereda. La clase Object es la
+  superclase de todas las clases que no heredan explícitamente de una clase.
 
       class A
       end
@@ -173,5 +172,5 @@ Guide" 2nd or 3rd Edition by Thomas et al [The Pragmatic Programmers
       class B < A
       end
 
-  Class A inherits from Object. In other words, A.superclass == Object. Class B
-  inherits explicitly from class A. So, B.superclass == A.
+  La clase A hereda de Object. En otras palabras, A.superclass == Object. La
+  clase B hereda explícitamente de la clase A, así que B.superclass = A.

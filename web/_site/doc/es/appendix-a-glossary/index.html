@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Rubinius : Use Ruby&#153;</title>
+    <title>Apéndice A - Glosario - Rubinius</title>
     <meta content='text/html;charset=utf-8' http-equiv='content-type'>
-    <meta content='en' http-equiv='content-language'>
+    <meta content='es' http-equiv='content-language'>
     <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
     <meta content='Less Than Three. &lt;3. http://less.thanthree.com' name='author'>
     <link href='/' rel='home'>
-
     <link href='/' rel='start'>
+    <link href='/doc/es/how-to/translate-documentation' rel='prev' title='Cómos - Traducir Documentación'>
+    <link href='/doc/es/appendix-b-reading-list' rel='next' title='Apéndice B - Lista de Lecturas'>
+    
     <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script><![endif]-->
     <script src="/javascripts/jquery-1.3.2.js" type="text/javascript"></script>
     <script src="/javascripts/paging_keys.js" type="text/javascript"></script>
-    <script src="/javascripts/jquery.twitter.js" type="text/javascript"></script>
+    
     <script src="/javascripts/application.js" type="text/javascript"></script>
     <style>article, aside, dialog, figure, footer, header, hgroup, menu, nav, section { display: block; }</style>
 
@@ -84,7 +86,7 @@
       
         
         <span class="label">Anterior:</span>
-        <a href="/doc/es/how-to/translate-documentation">How-To - Translate Documentation</a>
+        <a href="/doc/es/how-to/translate-documentation">Cómos - Traducir Documentación</a>
         
 
         <span class="label">Subir:</span>
@@ -92,51 +94,33 @@
 
         
         <span class="label">Siguiente:</span>
-        <a href="/doc/es/appendix-b-reading-list">Appendix B - Reading List</a>
+        <a href="/doc/es/appendix-b-reading-list">Apéndice B - Lista de Lecturas</a>
         
       
     </div>
 
 
     <div class="container documentation">
-      <h2>Appendix A - Glossary</h2>
-
-      
-        <div class="review">
-  <p>This page was machine translated. Please help us improve it.</p>
-
-  <p>See <a href="/doc/es/how-to/translate-documentation">
-    How-To - Translate Documentation</a></p>
-</div>
+      <h2>Apéndice A - Glosario</h2>
 
       
 
       
-        <div class="review">
-  <p>This topic has missing or partial documentation. Please help us improve
-  it.</p>
 
-  <p>See <a href="/doc/es/how-to/write-documentation">
-    How-To - Write Documentation</a></p>
-</div>
-
-      
-
-        <p>Definitions of terms and phrases used in the Ruby programming language and in
-this implementation. See also &ldquo;The Ruby Programming Language&rdquo; by Flanagan and
-Matsumoto [O&rsquo;Reilly 2008] and &ldquo;Programming Ruby: The Pragmatic Programmer&rsquo;s
-Guide&rdquo; 2nd or 3rd Edition by Thomas et al [The Pragmatic Programmers
-2005-2008]</p>
+        <p>Definición de términos y frases usadas en el lenguaje de programación Ruby y en
+esta implementación. Vea también &ldquo;The Ruby Programming Language&rdquo; por Flanagan y
+Matsumoto [O&rsquo;Reilly 2008] y &ldquo;Programming Ruby: The Pragmatic Programmer&rsquo;s Guide&rdquo;
+segunda o tercera edición por Thomas et al [The Pragmatic Programmers 2005-2008].</p>
 
 <ul>
   <li>
-    <p><em>metaclass</em></p>
+    <p><em>metaclass (metaclase)</em></p>
 
-    <p>Also called the +singleton+ class or +eigenclass+. Every object in Ruby can
-have one, although, they are only created as necessary. The metaclass holds the
-method and constant tables that belong only to a particular object instance.
-For example, the method +hello+ defined below exists only in the metaclass for
-+obj+.</p>
+    <p>También llamada la clase +singleton+ o +eigenclass+. Cualquier objeto en Ruby
+puede tener una aunque solamente son creadas cuando es necesario. La metaclase
+tiene las tablas de métodos y constantes que preñen a una instancia (objeto)
+en particular. Por ejemplo, el método +hello+ definido a continuación existe
+solamente en la metaclase de +obj+.</p>
 
     <pre><code>obj = Object.new
 def obj.hello
@@ -144,10 +128,10 @@ def obj.hello
 end
 </code></pre>
 
-    <p>Since all classes in Ruby are also objects, they can have metaclasses. The
-methods called &ldquo;class methods&rdquo; are just methods in the method_table of the
-class&rsquo;s metaclass. The method +honk+ exists in the metaclass for the class
-+Car+.</p>
+    <p>Ya que las clases en Ruby también son objetos, estas pueden tener metaclases.
+Los métodos de clase (<em>class methods</em>) son simplemente métodos en la tabla
+de métodos de la metaclase de la clase. El método +honk+ existe en la
+metaclase de la clase +Car+.</p>
 
     <pre><code>class Car
   def self.honk
@@ -155,21 +139,24 @@ class&rsquo;s metaclass. The method +honk+ exists in the metaclass for the class
 end
 </code></pre>
 
-    <p>In Rubinius, metaclasses are all instances of the class MetaClass. The
-metaclass for an object can be obtained by calling the +metaclass+ method.
-The overall arrangement of concepts involved here is sometimes referred to
-as the &lsquo;Meta-Object Protocol&rsquo; or +MOP+.</p>
+    <p>Todas las metaclases en Rubinius son instancias de la clase MetaClass. La
+metaclase para un objeto puede ser obtenida llamando al método +metaclass+.
+Los conceptos mencionados aquí se conocen como el &lsquo;Meta-Object Protocol&rsquo;
+o +MOP+.</p>
   </li>
   <li>
-    <p><em>method lookup or method resolution</em></p>
+    <p><em>method lookup or method resolution (búsqueda de métodos o resolución
+de métodos</em></p>
 
-    <p>The rule is simple: Take the object located in the class slot of the object
-(which is not always the return value of Object#class) and begin searching.</p>
+    <p>La regla para la resolución de métodos es sencilla: Se toma el objeto
+que se encuentra en la posición <em>class</em> del objeto (que no siempre es
+igual a Object#class) y se comienza la búsqueda del método.</p>
 
-    <p>Searching goes up the superclass chain until the superclass is nil.</p>
+    <p>La búsqueda se hace subiendo de niveles en la cadena de superclases
+hasta que el valor de superclass sea nil.</p>
 
-    <p>In which case, redo lookup for method_missing. If we fail to find
-method_missing, fail tragicly.</p>
+    <p>Si superclass es nil se vuelve a comenzar la búsqueda tratando de hallar
+method_missing. Si no se encuentra method_missing se genera un error.</p>
 
     <pre><code>                                      +-------------+
                                       |     nil     |
@@ -223,7 +210,8 @@ end
 
     <ol>
       <li>
-        <p>Resolve method &lsquo;wanker&rsquo; &ndash; search method_tables in:</p>
+        <p>Para la resolución del método &lsquo;wanker&rsquo; se hace la búsqueda en las
+method_tables de:</p>
 
         <ol>
           <li>MetaClass(F)</li>
@@ -233,32 +221,33 @@ end
       </li>
     </ol>
 
-    <p>Found</p>
+    <p>Encontrado.</p>
   </li>
   <li>
-    <p><em>method_table</em></p>
+    <p><em>method_table (tabla de métodos)</em></p>
 
-    <p>A data structure in every class (and module) that contains the methods defined
-for that class.</p>
+    <p>Una estructura de datos hallada en todas las clases (y módulos) que contiene
+los métodos definidos para esa clase.</p>
 
-    <p>In Rubinius, a class&rsquo;s method_table is an instance of LookupTable.</p>
+    <p>En Rubinius la clase de method_table es una instancia de LookupTable.</p>
   </li>
   <li>
     <p><em>MatzRuby</em></p>
 
-    <p>See MRI</p>
+    <p>Ver MRI.</p>
   </li>
   <li>
     <p><em>MRI</em></p>
 
-    <p>Matz&rsquo;s Ruby Interpreter or Matz&rsquo;s Ruby Implementation. A short name to refer
-to the official implementation of Ruby. See <a href="http://ruby-lang.org">http://ruby-lang.org</a>.</p>
+    <p>&ldquo;Matz&rsquo;s Ruby Interpreter&rdquo; o &ldquo;Matz&rsquo;s Ruby Implementation&rdquo;. Una abreviación
+para referirse a la implementación oficial de Ruby. Ver
+<a href="http://ruby-lang.org">http://ruby-lang.org</a>.</p>
   </li>
   <li>
-    <p><em>private send</em></p>
+    <p><em>private send (send privado)</em></p>
 
-    <p>A method call that has no explicit lexical receiver. The receiver of the
-call is +self+. For example:</p>
+    <p>Una llamada de método que no tiene un receptor léxico explícito. El
+receptor en este caso es +self+. Ejemplo:</p>
 
     <pre><code>class A
 private
@@ -280,16 +269,16 @@ class C
 end
 </code></pre>
 
-    <p>The call to +you_are_mine+ in the method +sunshine+ is a private send. The
-call to +today.you_are_mine+ will not succeed because private methods cannot
-have an explicit receiver. In this case, the object +today+ is the explicit
-receiver.</p>
+    <p>La llamada a +you_are_mine+ en el método +sunshine+ es un send privado.
+La llamada a +today.you_are_mine+ no funcionará ya que los métodos privados
+no pueden tener un receptor explícito. En el caso anterior +today+ sería
+el receptor explícito.</p>
   </li>
   <li>
-    <p><em>superclass</em></p>
+    <p><em>superclass (superclase)</em></p>
 
-    <p>The class that a particular class immediately inherits from. The class Object
-is the superclass of all classes that do not inherit explicitly from a class.</p>
+    <p>La clase de la cual una clase en particular hereda. La clase Object es la
+superclase de todas las clases que no heredan explícitamente de una clase.</p>
 
     <pre><code>class A
 end
@@ -298,8 +287,8 @@ class B &lt; A
 end
 </code></pre>
 
-    <p>Class A inherits from Object. In other words, A.superclass == Object. Class B
-inherits explicitly from class A. So, B.superclass == A.</p>
+    <p>La clase A hereda de Object. En otras palabras, A.superclass == Object. La
+clase B hereda explícitamente de la clase A, así que B.superclass = A.</p>
   </li>
 </ul>
 
@@ -310,7 +299,7 @@ inherits explicitly from class A. So, B.superclass == A.</p>
       
         
         <span class="label">Anterior:</span>
-        <a href="/doc/es/how-to/translate-documentation">How-To - Translate Documentation</a>
+        <a href="/doc/es/how-to/translate-documentation">Cómos - Traducir Documentación</a>
         
 
         <span class="label">Subir:</span>
@@ -318,11 +307,28 @@ inherits explicitly from class A. So, B.superclass == A.</p>
 
         
         <span class="label">Siguiente:</span>
-        <a href="/doc/es/appendix-b-reading-list">Appendix B - Reading List</a>
+        <a href="/doc/es/appendix-b-reading-list">Apéndice B - Lista de Lecturas</a>
         
       
     </div>
 
+
+    <div class="container">
+      <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'rubinius';
+    var disqus_identifier = '/doc/es/appendix-a-glossary/';
+    var disqus_url = 'http://rubini.us/doc/es/appendix-a-glossary/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+    </div>
 
         <footer>
       <div class='container'>
