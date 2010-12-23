@@ -2,16 +2,16 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title>Rubinius Blog</title>
-  <link rel="self" type="application/atom+xml" href="/feed/atom.xml" />
-  <link rel="alternate" type="text/html" href="/blog" />
+  <link rel="self" type="application/atom+xml" href="http://rubini.us/feed/atom.xml" />
+  <link rel="alternate" type="text/html" href="http://rubini.us/blog" />
   <updated></updated>
-  <id>/</id>
+  <id>http://rubini.us/</id>
 
   
   <entry>
     <title>Rubinius Has a Blog!</title>
-    <id>/2010/12/15/rubinius-has-a-blog/</id>
-    <link rel="alternate" type="text/html" href="/2010/12/15/rubinius-has-a-blog/" />
+    <id>http://rubini.us/2010/12/15/rubinius-has-a-blog/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2010/12/15/rubinius-has-a-blog/" />
     <updated>2010-12-15T00:00:00+00:00</updated>
     <author>
       <name>Brian Ford</name>

@@ -116,7 +116,72 @@
 
       
 
-        
+        <p>A ruby method is a wrapper of expressions that return a value. We have seen 
+examples of methods in the previous chapter. To write a method in ruby you 
+start by using the &lsquo;def&rsquo; keyword, followed by the name of the method, the arguments 
+and finally the &lsquo;end&rsquo; keyword to indicate the end of the method.</p>
+
+<p>&ldquo;Ruby methods provide a way to organize code and promote re-use. 
+Rather than create long sections of Ruby code, the code is instead organized 
+into logical groups that can be called when needed and re-used without having to 
+re-write the same code over and over. Methods are simple to use, in fact you only 
+need to do two things with a method, declare it and call it.&rdquo; - techotopia</p>
+
+<p>Example of ruby methods.</p>
+
+<pre><code>def method_name
+  # method body
+  ...
+end
+
+def method_name(arg1, arg2)
+  # method body
+  ...
+end
+</code></pre>
+
+<p>The &lsquo;def&rsquo; keyword indicates the beginning of a ruby method, the &lsquo;method_name&rsquo; is the 
+name of the method and the &lsquo;args&rsquo; are the parameters that will be used inside the method 
+while the &lsquo;method body&rsquo; contains the sequence and logic of the method along with the 
+return value.</p>
+
+<p>basic_math.rb </p>
+
+<pre><code>...
+
+def subtract(first_number, second_number)
+  first_number.to_i - second_number.to_i
+end
+
+...
+</code></pre>
+
+<p>This snippet from the basic_math.rb script shows a simple ruby method. The &lsquo;def&rsquo; keyword 
+indicates the start of a ruby method, the &lsquo;subtraction&rsquo; is the name of the method<br />
+&lsquo;first_number&rsquo;, &lsquo;second_number&rsquo; are the parameters of the subtraction method and finally 
+&lsquo;end&rsquo; keyword signifies the end of the method. The &lsquo;method body&rsquo; returns the difference by 
+subtracting a second_number from the first_number. To run the method you would do something like: </p>
+
+<pre><code>p "#{subtract(10, 8)}" # =&gt; 2
+</code></pre>
+
+<p>The hash tag &lsquo;#&rsquo; represents a comment in ruby which is ignored by the interpreter. By calling the 
+subtract method as shown above the interpreter would print out 2 because 10 - 8 = 2. In ruby the return 
+keyword is implicit by default, however it can be explicity declared inside the subtract method like this;</p>
+
+<pre><code>def subtract(first_number, second_number)
+  return first_number.to_i - second_number.to_i
+end
+
+puts "#{subtract(10, 8)}" # =&gt; 2
+</code></pre>
+
+<p>Everything in ruby is an object, therefore we tell the interpreter that we want to do a mathematical calculation 
+thus we append the methods &ldquo;*.to_i&rdquo; meaning &ldquo;parse as an integer&rdquo; to the method arguments (first_number and second_number) 
+so we can perform the mathematical subtraction.</p>
+
+<p>For further information refer to the documentation section of the ruby language site 
+<a href="http://www.ruby-lang.org/en/documentation" target="_blank">here</a>.</p>
 
 
     </div>
@@ -144,7 +209,7 @@
 <script type="text/javascript">
     var disqus_shortname = 'rubinius';
     var disqus_identifier = '/doc/en/ruby/methods/';
-    var disqus_url = '/doc/en/ruby/methods/';
+    var disqus_url = 'http://rubini.us/doc/en/ruby/methods/';
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
