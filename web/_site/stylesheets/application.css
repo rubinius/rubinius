@@ -414,6 +414,37 @@ a.instruction:hover {
   padding-left: 0.25em;
 }
 
+.posts_index {
+  font-size: 1.2em;
+}
+
+.posts_index ul {
+  list-style: none;
+  padding: 0;
+}
+
+.posts_index ul li {
+  padding: 0.25em 0 0.25em;
+}
+
+.posts_index a.post_title {
+  font-size: 1.25em;
+  margin-right: 0.5em;
+}
+
+.posts_index span.author {
+  font-weight: bold;
+  color: #666666;
+  display: inline;
+  padding-right: 0.5em;
+  border-right: 1px solid #cccccc;
+}
+
+.posts_index span.date {
+  color: #444444;
+  padding-left: 0.25em;
+}
+
 .doc_page_nav {
   font-size: 1.2em;
   margin-bottom: 0.5em;
@@ -491,10 +522,20 @@ a.instruction:hover {
   margin-bottom: 0.25em;
 }
 
+.posts_nav nav a {
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+a#feed_icon:hover {
+  background: white;
+}
+
 .languages nav span.label {
   font-weight: bold;
 }
 
+.posts_nav nav,
 .languages nav {
   text-align: right;
   margin-bottom: 1em;
