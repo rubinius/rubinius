@@ -10,6 +10,7 @@ title: Index of Posts
       <a href="{{ post.url }}" title="{{ post.title }}" class="post_title"> {{ post.title }} </a>
       <span class="author">{{ post.author }}</span>
       <span class="date">{{ post.date | date: "%d %B %Y" }}</span>
+      {% include comment_count.html %}
     </li>
   {% endfor %}
   </ul>

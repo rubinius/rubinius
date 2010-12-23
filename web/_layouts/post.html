@@ -10,6 +10,8 @@ atom_url: /feed/atom.xml
       {% assign post = page %}
       {% include by_line.html %}
       {{ content }}
+
+      {% include comments.html %}
     </div>
     {% include footer.html %}
   </body>

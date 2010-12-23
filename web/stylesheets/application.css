@@ -414,6 +414,11 @@ a.instruction:hover {
   padding-left: 0.25em;
 }
 
+#disqus_thread a:hover {
+  color: #325986;
+  text-decoration: underline;
+}
+
 .posts_index {
   font-size: 1.2em;
 }
