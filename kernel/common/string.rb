@@ -2204,12 +2204,12 @@ class String
     return if @num_bytes == 0
 
     invert = source[0] == ?^ && source.length > 1
-    expanded = source.tr_expand! nil
+    expanded = source.tr_expand! nil, true
     size = source.size
     src = source.__data__
 
     if invert
-      replacement.tr_expand! nil
+      replacement.tr_expand! nil, false
       r = replacement.__data__[replacement.size-1]
       table = Rubinius::Tuple.pattern 256, r
 
@@ -2221,7 +2221,7 @@ class String
     else
       table = Rubinius::Tuple.pattern 256, -1
 
-      replacement.tr_expand! expanded
+      replacement.tr_expand! expanded, false
       repl = replacement.__data__
       rsize = replacement.size
       i = 0
@@ -2418,7 +2418,7 @@ class String
       end
 
       set = String.pattern 256, neg
-      str.tr_expand! nil
+      str.tr_expand! nil, true
       j, chars = -1, str.size
       set[str[j]] = pos while (j += 1) < chars
 
@@ -2428,7 +2428,7 @@ class String
     table
   end
 
-  def tr_expand!(limit)
+  def tr_expand!(limit, invalid_as_empty)
     Ruby.primitive :string_tr_expand
     raise PrimitiveFailure, "String#tr_expand primitive failed"
   end
