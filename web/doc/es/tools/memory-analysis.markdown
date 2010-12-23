@@ -5,13 +5,13 @@ previous: Analizador
 previous_url: tools/profiler
 next: Cómos
 next_url: how-to
-translated: false
+review: true
 ---
-Rubinius provee una que permite escribir el estado del heap actual a
+Rubinius provee una interface que permite escribir el estado del heap actual a
 un archivo para hacer análisis posterior. Varios proyectos complementarios
 analizan estos dumps del heap y ayudan a descubrir fugas de memoria, colecciones
-muy grandes y problemas con el código que podrían generar problemas en tiempo
-de ejecución.
+muy grandes y problemas con el código que podrían generar desperdicio
+de memoria en tiempo de ejecución.
 
 ## Un Programa de Ejemplo
 
@@ -111,7 +111,7 @@ corre el agente.
 
 El archivo de volcado del head dump es creado usando un formato bien documentado.
 A la fecha existen dos herramientas que son capaces de leer e interpretar este
-formato. Estos proyectos no hacen parte del proyecto Rubinius.
+formato. Estos proyectos no forman parte de la distribución de Rubinius.
 
 Puede encontrar head_dump en [la página del proyecto](https://github.com/evanphx/heap_dump).
 
@@ -187,7 +187,7 @@ una variable contadora podemos solucionar la fuga de memoria.
 Después de modificar el código Ruby para utilizar un contador (dejando así que
 el recolector de basura maneje todas las instancias de `ZMQ::Message`) vemos que
 el programa todavía tiene una fuga de memoria. Tomamos dos muestras y las
-analizamos, pero todavía no sabemos donde puede estar el problema.
+analizamos, pero todavía no sabemos dónde puede estar el problema.
 
     $ rbx -I /path/to/heap_dump/lib /path/to/heap_dump/bin/histo.rb heap3.dump heap4.dump
       -4                          Array -224
@@ -200,9 +200,9 @@ analizamos, pero todavía no sabemos donde puede estar el problema.
 
 Este diff nos muestra que el número de algunas estructuras se encogió entre las
 dos muestras. Al parecer el problema ya no está en el código de Ruby ya que la
-VM quien está consumiendo la memoria que se está fugando.
+VM es quien está consumiendo la memoria que se está fugando.
 
-Por buena suerte existe una excelente herramienta en Mac OS X llamada `leaks`
+Afortunadamente existe una excelente herramienta en Mac OS X llamada `leaks`
  que puede ayudarnos a encontrar el problema. Adicionalmente, la página de man
 para `malloc` provee información sobre una variable de entorno
 llamada MallockStackLogging que podemos utilizar para incluir una traza de
