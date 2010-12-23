@@ -43,8 +43,8 @@ Essentially, _scope_ as a concept is a context for answering questions such
 as: What is the value of `self` here? What local variables exist here? What
 value will the constant `APPLE` have at this point in the code?
 
-Each of the following elements of Ruby are approached from the perspective of
-understanding how Rubinius implements them how the concept of _scope_ is
+Each of the following elements of Ruby are discussed from the perspective of
+understanding how Rubinius implements them and how the concept of _scope_ is
 involved in each one.
 
 1. [Scripts](/doc/en/ruby/scripts/)
