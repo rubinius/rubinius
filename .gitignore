@@ -103,4 +103,5 @@ vm/external_libs/llvm/utils/Makefile
 vm/doc/generated
 web/doc/*/*.bak
 web/doc/*/*.new
+web/_site
 
