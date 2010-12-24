@@ -28,7 +28,7 @@ public:
   void test_initialize() {
     String *pat = String::create(state, ".");
     Regexp* re = Regexp::create(state);
-    re->initialize(state, pat, Fixnum::from(0), Qnil);
+    re->initialize(state, pat, Fixnum::from(0));
 
     TS_ASSERT_EQUALS(re->source(), pat);
     TS_ASSERT_EQUALS(re->names(),  Qnil);
@@ -44,7 +44,7 @@ public:
   void test_create_with_named_captures() {
     String *pat = String::create(state, "(?<blah>.)");
     Regexp* re = Regexp::create(state);
-    re->initialize(state, pat, Fixnum::from(0), Qnil);
+    re->initialize(state, pat, Fixnum::from(0));
 
     TS_ASSERT_EQUALS(re->source(), pat);
     TS_ASSERT(re->names()->kind_of_p(state, G(lookuptable)));
@@ -56,14 +56,14 @@ public:
 
     String *pat = String::create(state, "(?");
     Regexp* re = Regexp::create(state);
-    TS_ASSERT_THROWS(re->initialize(state, pat, Fixnum::from(0), Qnil),
+    TS_ASSERT_THROWS(re->initialize(state, pat, Fixnum::from(0)),
                      const RubyException &);
   }
 
   void test_options() {
     String *pat = String::create(state, ".");
     Regexp* re = Regexp::create(state);
-    re->initialize(state, pat, Fixnum::from(0), Qnil);
+    re->initialize(state, pat, Fixnum::from(0));
 
     TS_ASSERT_EQUALS(as<Integer>(re->options(state))->to_native(), 0);
   }
@@ -71,7 +71,7 @@ public:
   void test_match_region() {
     String *pat = String::create(state, ".");
     Regexp* re = Regexp::create(state);
-    re->initialize(state, pat, Fixnum::from(0), Qnil);
+    re->initialize(state, pat, Fixnum::from(0));
 
     String *input = String::create(state, "abc");
 
@@ -89,7 +89,7 @@ public:
   void test_match_region_without_matches() {
     String *pat = String::create(state, "d");
     Regexp* re = Regexp::create(state);
-    re->initialize(state, pat, Fixnum::from(0), Qnil);
+    re->initialize(state, pat, Fixnum::from(0));
 
     String *input = String::create(state, "abc");
 
@@ -104,7 +104,7 @@ public:
   void test_match_region_with_captures() {
     String *pat = String::create(state, ".(.)");
     Regexp* re = Regexp::create(state);
-    re->initialize(state, pat, Fixnum::from(0), Qnil);
+    re->initialize(state, pat, Fixnum::from(0));
 
     String *input = String::create(state, "abc");
 
@@ -125,7 +125,7 @@ public:
   void test_match_region_with_backward_captures() {
     String *pat = String::create(state, ".(.)");
     Regexp* re = Regexp::create(state);
-    re->initialize(state, pat, Fixnum::from(0), Qnil);
+    re->initialize(state, pat, Fixnum::from(0));
 
     String *input = String::create(state, "abc");
 
@@ -146,7 +146,7 @@ public:
   void test_match_start() {
     String *pat = String::create(state, ".");
     Regexp* re = Regexp::create(state);
-    re->initialize(state, pat, Fixnum::from(0), Qnil);
+    re->initialize(state, pat, Fixnum::from(0));
 
     String *input = String::create(state, "abc");
 
