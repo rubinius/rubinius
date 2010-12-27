@@ -42,11 +42,11 @@ class Module
       raise NameError, "#{name} is not an allowed class variable name"
     end
 
-    name = StringValue(name)
-    unless name[0..1] == '@@' and name[2].toupper.between?(?A, ?Z) or name[2] == ?_
+    name = StringValue(name).to_sym
+    unless name.is_cvar?
       raise NameError, "#{name} is not an allowed class variable name"
     end
-    name.to_sym
+    name
   end
   private :verify_class_variable_name
 

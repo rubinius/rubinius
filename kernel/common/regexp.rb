@@ -90,7 +90,7 @@ class Regexp
       opts |= KcodeValue[idx] if idx
     end
 
-    compile pattern, opts, lang
+    compile pattern, opts
   end
 
   def self.escape(str)

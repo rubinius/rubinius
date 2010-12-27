@@ -45,6 +45,7 @@ class Configure
     @cxx = ENV['CXX'] || 'g++'
     @rake = ENV['RAKE'] || 'rake'
     @tar = ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
+    @perl = ENV['PERL'] || 'perl'
     @install = false
     @version_19 = false
     @version_20 = false
@@ -163,6 +164,10 @@ class Configure
 
     o.on "--tar", "NAME", "Use NAME as 'tar'" do |name|
       @tar = name
+    end
+
+    o.on "--perl", "NAME", "Use NAME as 'perl' during build" do |name|
+      @perl = name
     end
 
     o.on "--default-1.9", "Support Ruby version 1.9 by default" do
@@ -427,7 +432,23 @@ class Configure
     @log.write "    Prebuilt packages updated."
   end
 
+  def verify_llvm_source
+    return false unless File.exists? @llvm_default
+
+    if File.exists?(@llvm_include_path)
+      @log.write "  Code appears to be a proper tree."
+      @llvm = :svn
+      return true
+    else
+      @log.write "  Code doesn't appear to be proper LLVM tree!"
+      return false
+    end
+  end
+
   def setup_source
+    # Check if source already exists
+    return true if verify_llvm_source
+
     url = @llvm_source_url
     path = File.join @llvm_prebuilt_path, @llvm_source
 
@@ -444,17 +465,8 @@ class Configure
       end
       @log.write "done!"
 
-      if File.exists?(@llvm_include_path)
-        @log.write "  Code appears to be a proper tree."
-      else
-        @log.write "  Code doesn't appear to be proper LLVM tree!"
-        return false
-      end
-
-      @llvm = :svn
-      return true
+      return true if verify_llvm_source
     end
-
   end
 
   def prebuilt_files
@@ -537,11 +549,11 @@ class Configure
 
   def setup_auto
     @log.print "  Checking for existing LLVM tree: "
-    if File.directory?(@llvm_default) && File.directory?("#{@llvm_default}/Release")
-      version = `#{@llvm_default}/Release/bin/llvm-config --version`.strip
+    if File.directory?("#{@llvm_default}/Release")
+      version = `#{@perl} #{@llvm_default}/Release/bin/llvm-config --version`.strip
       if version == "2.8"
         # See if this has rtti turned off and reject it.
-        if `#{@llvm_default}/Release/bin/llvm-config --cxxflags`.index("-fno-rtti")
+        if `#{@perl} #{@llvm_default}/Release/bin/llvm-config --cxxflags`.index("-fno-rtti")
           @log.write "incorrectly configure (rtti is off)"
           remove_default
         else
@@ -588,13 +600,13 @@ class Configure
 
     if which
       config = File.join(which, "llvm-config")
-      version = `#{config} --version`.strip
+      version = `#{@perl} #{config} --version`.strip
       parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
 
       if parts[0] != 2 or parts[1] != 8
         @log.write "only 2.8 is supported"
       else
-        if `#{config} --cxxflags`.index("-fno-rtti")
+        if `#{@perl} #{config} --cxxflags`.index("-fno-rtti")
           @log.write "incorrectly configure (rtti is off)"
         else
           @log.write "found! (version #{version})"
@@ -840,6 +852,7 @@ module Rubinius
     :which_ruby     => :#{which_ruby},
     :build_ruby     => "#{build_ruby}",
     :build_rake     => "#{@rake}",
+    :build_perl     => "#{@perl}",
     :llvm           => :#{@llvm},
     :llvm_configure => "#{@llvm_configure}",
     :cc             => "#{@cc}",

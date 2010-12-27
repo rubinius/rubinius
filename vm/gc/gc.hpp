@@ -113,11 +113,6 @@ namespace rubinius {
     void walk_call_frame(CallFrame* top_call_frame);
     void saw_variable_scope(CallFrame* call_frame, StackVariables* scope);
 
-    void visit_variable_scope(CallFrame* call_frame, StackVariables* scope,
-        ObjectVisitor& visit);
-
-    void visit_call_frame(CallFrame* top, ObjectVisitor& visit);
-
     Object* mark_object(Object* obj) {
       if(!obj || !obj->reference_p()) return obj;
       Object* tmp = saw_object(obj);
@@ -125,9 +120,6 @@ namespace rubinius {
       return obj;
     }
 
-    void visit_roots(Roots& roots, ObjectVisitor& visit);
-    void visit_call_frames_list(CallFrameLocationList& call_frames, ObjectVisitor& visit);
-    void unmark_all(GCData& data);
     void clean_weakrefs(bool check_forwards=false);
 
     VM* state();
