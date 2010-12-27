@@ -29,7 +29,7 @@ namespace rubinius {
     if(one == '@' && size > 1) {
       // A class variable begins with @@
       if(str[1] == '@') {
-        if(size > 2) {
+        if(size >= 2) {
           return SymbolTable::CVar;
         } else {
           return SymbolTable::Normal;
