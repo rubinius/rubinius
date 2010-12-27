@@ -44,7 +44,7 @@ namespace rubinius {
      * options are added, this should be double-checked.
      */
     // Ruby.primitive :regexp_initialize
-    Regexp* initialize(STATE, String* pattern, Fixnum* options, Object* lang);
+    Regexp* initialize(STATE, String* pattern, Fixnum* options);
     void maybe_recompile(STATE);
 
     // Ruby.primitive :regexp_options

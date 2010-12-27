@@ -21,6 +21,11 @@ namespace rubinius {
       return SymbolTable::Constant;
     }
 
+    if(one == '@' && size == 1) {
+      // An instance variable can be just @
+      return SymbolTable::IVar;
+    }
+
     if(one == '@' && size > 1) {
       // A class variable begins with @@
       if(str[1] == '@') {
