@@ -298,17 +298,7 @@ describe "File.open" do
     end
   end
 
-  ruby_version_is "" ... "1.9" do
-    it "raises an Errno::EINVAL when read in a block opened with File::RDONLY|File::APPEND mode" do
-      lambda {
-        File.open(@file, File::RDONLY|File::APPEND ) do |f|
-          f.puts("writing")
-        end
-      }.should raise_error(Errno::EINVAL)
-    end
-  end
-
-  ruby_version_is "1.9" do
+  ruby_bug "#", "1.8.7.299" do
     it "raises an IOError when read in a block opened with File::RDONLY|File::APPEND mode" do
       lambda {
         File.open(@file, File::RDONLY|File::APPEND ) do |f|
@@ -377,17 +367,7 @@ describe "File.open" do
     end
   end
 
-  ruby_version_is "" ... "1.9" do
-    it "raises an Errno::EEXIST if the file exists when open with File::RDONLY|File::APPEND" do
-      lambda {
-        File.open(@file, File::RDONLY|File::APPEND) do |f|
-          f.puts("writing").should == nil
-        end
-      }.should raise_error(Errno::EINVAL)
-    end
-  end
-
-  ruby_version_is "1.9" do
+  ruby_bug "#", "1.8.7.299" do
     it "raises an IOError if the file exists when open with File::RDONLY|File::APPEND" do
       lambda {
         File.open(@file, File::RDONLY|File::APPEND) do |f|
