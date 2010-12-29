@@ -120,7 +120,32 @@
 
       
 
-        
+        <p>A ruby constant is a variable whose value shouldn&rsquo;t be changed for the duration 
+of the program. A constant is used to hold known values, for example; In maths 
+the value of Pi is 3.14159265358979323846, so in ruby we can declare a Pi constant 
+like such;</p>
+
+<pre><code>Pi = 3.14159265358979323846
+</code></pre>
+
+<p>To declare a ruby constant we start the name with an upper-case alphabet as shown above, 
+however by convention the entire constant name is all upper-cased like this.</p>
+
+<pre><code>PI = 3.14159265358979323846 
+</code></pre>
+
+<p>Note:</p>
+
+<ul>
+  <li>Constants defined within a class or module may be accessed anywhere within the class or module.</li>
+  <li>Constants shouldn&rsquo;t be defined in methods.</li>
+  <li>Every class is a constant.</li>
+  <li>Constants can be reassigned a value after initialization however that will generate an error.</li>
+  <li>Trying to access an un-initialized constant will raise a NameError exception.</li>
+</ul>
+
+<p>For more information please refer to the ruby language documentation page 
+<a href="http://www.ruby-lang.org/en/documentation/" target="_blank">here</a>.</p>
 
 
     </div>
