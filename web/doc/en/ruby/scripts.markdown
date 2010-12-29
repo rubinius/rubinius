@@ -57,8 +57,8 @@ Consider the following ruby script 'basic_math.rb'
 As the script name says [basic_math.rb], this is a ruby script that performs simple
 mathematical calculation of addition, subtraction, multiplication and division using
 the methods that are named accordingly. Don't worry if you don't understand
-the keywords and structure at the moment, we'll talk about those in the following chapters.
+the keywords and structure at the moment, we'll talk about these in the following chapters.
 For now, know that this is one way to create and use a ruby script. For the sake of demonstration 
 we have kept the examples very short and simple. For further information please have a look at 
-the offical ruby language resource page <a href="http://www.ruby-lang.org/en/documentation/" target="_blank">here</a>
+the offical ruby language documentation page <a href="http://www.ruby-lang.org/en/documentation/" target="_blank">here</a>
 

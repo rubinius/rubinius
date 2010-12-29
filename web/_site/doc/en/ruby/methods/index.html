@@ -161,30 +161,37 @@ end
 </code></pre>
 
 <p>This snippet from the basic_math.rb script shows a simple ruby method. The &lsquo;def&rsquo; keyword 
-indicates the start of a ruby method, the &lsquo;subtraction&rsquo; is the name of the method<br />
+indicates the start of a ruby method, the &lsquo;subtraction&rsquo; is the name of the method, 
 &lsquo;first_number&rsquo;, &lsquo;second_number&rsquo; are the parameters of the subtraction method and finally 
-&lsquo;end&rsquo; keyword signifies the end of the method. The &lsquo;method body&rsquo; returns the difference by 
-subtracting a second_number from the first_number. To run the method you would do something like: </p>
+&lsquo;end&rsquo; keyword signifies the end of the method. The &lsquo;method body&rsquo; returns the difference of 
+subtracting the second_number from the first_number. To run the method you would do something like: </p>
 
-<pre><code>p "#{subtract(10, 8)}" # =&gt; 2
+<pre><code># This is a comment
+
+puts "#{subtract(10, 8)}" 
+
+# The value will be 2 because 10 - 8 = 2
 </code></pre>
 
-<p>The hash tag &lsquo;#&rsquo; represents a comment in ruby which is ignored by the interpreter. By calling the 
-subtract method as shown above the interpreter would print out 2 because 10 - 8 = 2. In ruby the return 
-keyword is implicit by default, however it can be explicity declared inside the subtract method like this;</p>
+<p>The hash tag &lsquo;#&rsquo; serves two main purposes in ruby. One use is to insert a comment into your ruby code and the 
+other is used in string interpolation. When you insert a comment into your ruby code as the example above shows, 
+it is ignored by the ruby interpreter. In string interpolation, it is used to inject values into a string body. 
+These values can be method calls, variables or values. The above example shows how we use string interpolation to 
+call a method &lsquo;subtract&rsquo; in a string. In ruby the return keyword is implicit by default, 
+however it can be explicity declared inside the subtract method like this;</p>
 
 <pre><code>def subtract(first_number, second_number)
   return first_number.to_i - second_number.to_i
 end
 
-puts "#{subtract(10, 8)}" # =&gt; 2
+puts "#{subtract(10, 8)}" 
+
+# The value will be 2
 </code></pre>
 
 <p>Everything in ruby is an object, therefore we tell the interpreter that we want to do a mathematical calculation 
-thus we append the methods &ldquo;*.to_i&rdquo; meaning &ldquo;parse as an integer&rdquo; to the method arguments (first_number and second_number) 
-so we can perform the mathematical subtraction.</p>
-
-<p>For further information refer to the documentation section of the ruby language site 
+thus we append the method &ldquo;*.to_i&rdquo; which means &ldquo;parse this object as an integer&rdquo; to the method arguments (first_number and second_number) 
+so we can perform the mathematical subtraction. For further information refer to the documentation section of the ruby language site 
 <a href="http://www.ruby-lang.org/en/documentation" target="_blank">here</a>.</p>
 
 
