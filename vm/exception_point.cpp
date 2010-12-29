@@ -12,11 +12,7 @@ namespace rubinius {
   void ExceptionPoint::return_to(NativeMethodEnvironment* env) {
     jumped_to_ = true;
     env->set_current_ep(this);
-#ifndef RBX_WINDOWS
-    _longjmp(__jump_buffer, 1);
-#else
     longjmp(__jump_buffer, 1);
-#endif
 
     // If control reaches here, longjmp failed, i.e. disaster.
     abort();
