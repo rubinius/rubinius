@@ -313,7 +313,11 @@ namespace :build do
   task :llvm do
     if LLVM_ENABLE and Rubinius::BUILD_CONFIG[:llvm] == :svn
       unless File.file?("vm/external_libs/llvm/Release/bin/llvm-config")
-        sh "cd vm/external_libs/llvm; REQUIRES_RTTI=1 ./configure #{llvm_config_flags}; REQUIRES_RTTI=1 #{make}"
+        ENV["REQUIRES_RTTI"] = "1"
+        Dir.chdir "vm/external_libs/llvm" do
+          sh %[sh -c "#{expand("./configure")} #{llvm_config_flags}"]
+          sh make
+        end
       end
     end
   end

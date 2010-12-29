@@ -553,7 +553,7 @@ class Configure
   end
 
   def setup_auto
-    @log.print "  Checking for existing LLVM prebuilt tree: "
+    @log.print "  Checking for existing LLVM library tree: "
     if File.directory?("#{@llvm_default}/Release")
       version = `#{@perl} #{@llvm_default}/Release/bin/llvm-config --version`.strip
       if version == "2.8"
