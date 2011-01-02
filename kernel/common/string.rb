@@ -426,6 +426,7 @@ class String
   #   "abcdef".casecmp("abcdefg")   #=> -1
   #   "abcdef".casecmp("ABCDEF")    #=> 0
   def casecmp(to)
+    to = StringValue(to)
     order = @num_bytes - to.num_bytes
     size = order < 0 ? @num_bytes : to.num_bytes
 
