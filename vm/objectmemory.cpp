@@ -559,6 +559,13 @@ namespace rubinius {
       }
     }
 
+    // Adding a nil finalizer is only used to delete an
+    // existing finalizer, which we apparently don't have
+    // if we get here.
+    if(fin->nil_p()) {
+      return;
+    }
+
     // Ok, create it.
 
     FinalizeObject fi;
