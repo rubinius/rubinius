@@ -1007,6 +1007,7 @@ namespace rubinius {
   }
 
   Object* System::vm_set_finalizer(STATE, Object* obj, Object* fin) {
+    if(!obj->reference_p()) return Qfalse;
     state->om->set_ruby_finalizer(obj, fin);
     return obj;
   }
