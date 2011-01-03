@@ -57,13 +57,16 @@ module ObjectSpace
       raise ArgumentError, "action must respond to call"
     end
 
-    Rubinius.invoke_primitive :vm_set_finalizer, obj, prc
+    unless Rubinius.invoke_primitive(:vm_set_finalizer, obj, prc)
+      raise ArgumentError, "cannot define a finalizer for a #{obj.class}"
+    end
 
     [0, prc]
   end
 
   def self.undefine_finalizer(obj)
     Rubinius.invoke_primitive :vm_set_finalizer, obj, nil
+    return obj
   end
 
   def self.run_finalizers
