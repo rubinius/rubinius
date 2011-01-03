@@ -51,4 +51,16 @@ module ProcSpecs
       Proc.new &body
     end
   end
+
+  class MyProc < Proc
+  end
+
+  class MyProc2 < Proc
+    def initialize(a, b)
+      @first = a
+      @second = b
+    end
+
+    attr_reader :first, :second
+  end
 end
