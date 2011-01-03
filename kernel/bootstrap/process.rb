@@ -9,9 +9,9 @@ module Process
     raise PrimitiveFailure, "vm_exec primitive failed"
   end
 
-  def self.spawn(str)
-    Ruby.primitive :vm_spawn
-    raise PrimitiveFailure, "vm_spawn primitive failed"
+  def self.replace(str)
+    Ruby.primitive :vm_replace
+    raise PrimitiveFailure, "vm_replace primitive failed"
   end
 
   def self.wait_pid_prim(pid, no_hang)
