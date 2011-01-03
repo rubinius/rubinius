@@ -27,13 +27,13 @@ namespace rubinius {
     return state->new_object<Proc>(as<Class>(self));
   }
 
-  Proc* Proc::from_env(STATE, Object* env) {
+  Proc* Proc::from_env(STATE, Object* self, Object* env) {
     if(Proc* p = try_as<Proc>(env)) {
       return p;
     }
 
     if(BlockEnvironment* be = try_as<BlockEnvironment>(env)) {
-      Proc* proc = Proc::create(state, G(proc));
+      Proc* proc = Proc::create(state, self);
       proc->block(state, be);
       return proc;
     }
