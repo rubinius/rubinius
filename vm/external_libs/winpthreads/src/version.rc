@@ -1,0 +1,40 @@
+#include <winver.h>
+#include "wpth_ver.h"
+
+#define WPTH_VERSIONINFO_NAME "WinPthreadGC\0"
+#ifdef _WIN64
+#define WPTH_VERSIONINFO_COMMENT "GNU C build -- MinGW-w64 64-bit\0"
+#else
+#define WPTH_VERSIONINFO_COMMENT "GNU C build -- MinGW-w64 32-bit\0"
+#endif
+
+VS_VERSION_INFO VERSIONINFO
+  FILEVERSION    WPTH_VERSION
+  PRODUCTVERSION WPTH_VERSION
+  FILEFLAGSMASK  VS_FFI_FILEFLAGSMASK
+  FILEFLAGS      0
+  FILEOS         VOS__WINDOWS32
+  FILETYPE       VFT_DLL
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "FileDescription", "POSIX WinThreads for Windows\0"
+            VALUE "ProductVersion", WPTH_VERSION_STRING
+            VALUE "FileVersion", WPTH_VERSION_STRING
+            VALUE "InternalName", WPTH_VERSIONINFO_NAME
+            VALUE "OriginalFilename", WPTH_VERSIONINFO_NAME
+            VALUE "CompanyName", "MingW-W64 Project. All rights reserved.\0"
+            VALUE "LegalCopyright", "Copyright (C) MingW-W64 Project Members 2010-2011\0"
+            VALUE "Licence", "ZPL\0"
+            VALUE "Info", "http://mingw-w64.sourceforge.net/\0"
+	    VALUE "Comment", WPTH_VERSIONINFO_COMMENT
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
