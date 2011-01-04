@@ -29,7 +29,7 @@ class Configure
 
     # TODO: For better cross-compiling support, it may be necessary to
     # use the feature facility to check for a define in the compiler.
-    @windows = @host =~ /mingw|mswin/
+    @windows = (@host =~ /mingw|mswin/) != nil
 
     # Set up system commands to run in cmd.exe on Windows.
     if @windows
@@ -887,7 +887,8 @@ module Rubinius
     :version        => "#{@version}",
     :libversion     => "#{@libversion}",
     :release_date   => "#{@release_date}",
-    :config_version => #{@config_version}
+    :config_version => #{@config_version},
+    :windows        => #{@windows}
   }
 end
       EOC

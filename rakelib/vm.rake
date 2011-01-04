@@ -53,8 +53,9 @@ dep_file    = "vm/.depends.mf"
 vm_objs     = %w[ vm/drivers/cli.o ]
 vm_srcs     = %w[ vm/drivers/cli.cpp ]
 
-EX_INC      = %w[ libtommath libgdtoa onig libffi/include
-                ].map { |f| "vm/external_libs/#{f}" }
+ex_inc      = %w[ libtommath libgdtoa onig libffi/include ]
+ex_inc      << "winpthreads/include" if BUILD_CONFIG[:windows]
+EX_INC      = ex_inc.map { |f| "vm/external_libs/#{f}" }
 
 INSN_GEN    = %w[ vm/gen/instruction_names.cpp
                   vm/gen/instruction_names.hpp
@@ -143,8 +144,9 @@ EXTERNALS   = %W[ vm/external_libs/libtommath/libtommath.a
                   vm/external_libs/libgdtoa/libgdtoa.a
                   vm/external_libs/onig/.libs/libonig.a
                   vm/external_libs/libffi/.libs/libffi.a ]
+EXTERNALS   << "vm/external_libs/winpthread/libpthread.a" if BUILD_CONFIG[:windows]
 
-INCLUDES      = EX_INC + %w[vm/test/cxxtest vm .]
+INCLUDES    = EX_INC + %w[vm/test/cxxtest vm .]
 
 extra = %w!/usr/local/include /opt/local/include!
 
