@@ -12,7 +12,7 @@
 #include "builtin/nativemethod.hpp"
 
 namespace rubinius {
-  NativeThread::NativeThread(VM* vm, size_t stack_size, pthread_t tid)
+  NativeThread::NativeThread(VM* vm, size_t stack_size, thread_t tid)
     : thread::Thread(stack_size, tid)
     , vm_(vm)
   {}

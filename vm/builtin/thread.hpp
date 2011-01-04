@@ -3,6 +3,7 @@
 
 #include "vm/exception.hpp"
 #include "vm/type_info.hpp"
+#include "vm/native_thread.hpp"
 
 #include "builtin/object.hpp"
 #include "executor.hpp"
@@ -11,7 +12,6 @@ namespace rubinius {
 
   class Channel;
   class Exception;
-  class NativeThread;
 
   /**
    *  Error class for deadlocks.
@@ -192,7 +192,7 @@ namespace rubinius {
      *
      *  @see  Thread::allocate().
      */
-    static Thread* create(STATE, VM* target, Object* self, pthread_t tid = 0);
+    static Thread* create(STATE, VM* target, Object* self, NativeThread::thread_t tid = 0);
 
 
   public:   /* Instance methods */

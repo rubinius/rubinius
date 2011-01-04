@@ -1,4 +1,5 @@
 #include "config.h"
+#include "native_thread.hpp"
 #include "global_lock.hpp"
 #include "prelude.hpp"
 #include "vm.hpp"
@@ -144,14 +145,14 @@ namespace rubinius {
   GlobalLock::LockGuard::LockGuard(GlobalLock& in_lock)
     : lock_(in_lock)
   {
-    if(debug_locking) std::cout << "[  Locking GIL ] " << pthread_self() << "\n";
+    if(debug_locking) std::cout << "[  Locking GIL ] " << NativeThread::self() << "\n";
     lock_.take();
-    if(debug_locking) std::cout << "[   Locked GIL ] " << pthread_self() << "\n";
+    if(debug_locking) std::cout << "[   Locked GIL ] " << NativeThread::self() << "\n";
   }
 
   GlobalLock::LockGuard::~LockGuard() {
     lock_.drop();
-    if(debug_locking) std::cout << "[ Unlocked GIL ] " << pthread_self() << "\n";
+    if(debug_locking) std::cout << "[ Unlocked GIL ] " << NativeThread::self() << "\n";
   }
 
   GlobalLock::UnlockGuard::UnlockGuard(VM* state, CallFrame* call_frame)
@@ -162,7 +163,7 @@ namespace rubinius {
 
     lock_.drop();
 
-    if(debug_locking) std::cout << "[ Unlocked GIL ] " << pthread_self() << "\n";
+    if(debug_locking) std::cout << "[ Unlocked GIL ] " << NativeThread::self() << "\n";
   }
 
   GlobalLock::UnlockGuard::UnlockGuard(NativeMethodEnvironment* nme)
@@ -173,14 +174,14 @@ namespace rubinius {
 
     lock_.drop();
 
-    if(debug_locking) std::cout << "[ Unlocked GIL ] " << pthread_self() << "\n";
+    if(debug_locking) std::cout << "[ Unlocked GIL ] " << NativeThread::self() << "\n";
   }
 
   GlobalLock::UnlockGuard::~UnlockGuard() {
-    if(debug_locking) std::cout << "[  Locking GIL ] " << pthread_self() << "\n";
+    if(debug_locking) std::cout << "[  Locking GIL ] " << NativeThread::self() << "\n";
 
     lock_.take();
 
-    if(debug_locking) std::cout << "[   Locked GIL ] " << pthread_self() << "\n";
+    if(debug_locking) std::cout << "[   Locked GIL ] " << NativeThread::self() << "\n";
   }
 }

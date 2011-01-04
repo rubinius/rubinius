@@ -4,9 +4,12 @@
 
 #include "native_thread.hpp"
 
+#include "builtin/array.hpp"
 #include "builtin/module.hpp"
+
 #include <iostream>
 #include <fcntl.h>
+
 #ifndef RBX_WINDOWS
 #include <sys/select.h>
 #endif
@@ -15,7 +18,7 @@ namespace rubinius {
   struct CallFrame;
 
   static SignalHandler* handler_ = 0;
-  pthread_t main_thread;
+  NativeThread::thread_t main_thread;
 
   SignalHandler::SignalHandler(VM* vm)
     : thread::Thread()
@@ -25,7 +28,7 @@ namespace rubinius {
     , exit_(false)
   {
     handler_ = this;
-    main_thread = pthread_self();
+    main_thread = NativeThread::self();
 
     for(int i = 0; i < NSIG; i++) {
       pending_signals_[i] = 0;
@@ -67,9 +70,7 @@ namespace rubinius {
   }
 
   void SignalHandler::perform() {
-    sigset_t set;
-    sigfillset(&set);
-    pthread_sigmask(SIG_BLOCK, &set, NULL);
+    NativeThread::block_all_signals();
 
     for(;;) {
       fd_set fds;
@@ -116,8 +117,8 @@ namespace rubinius {
     if(vm_->should_interrupt_with_signal()) {
       vm_->check_local_interrupts = true;
 
-      if(pthread_self() != main_thread) {
-        pthread_kill(main_thread, SIGVTALRM);
+      if(!NativeThread::equal_p(NativeThread::self(), main_thread)) {
+        NativeThread::signal(main_thread, NativeThread::cWakeupSignal);
       }
       return;
     }

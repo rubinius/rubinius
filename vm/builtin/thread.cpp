@@ -30,7 +30,7 @@ namespace rubinius {
     G(thread)->set_object_type(state, Thread::type);
   }
 
-  Thread* Thread::create(STATE, VM* target, Object* self, pthread_t tid) {
+  Thread* Thread::create(STATE, VM* target, Object* self, NativeThread::thread_t tid) {
     Thread* thr = state->new_object<Thread>(G(thread));
 
     thr->alive(state, Qtrue);

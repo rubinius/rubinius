@@ -5,6 +5,7 @@
 
 #include "vm/object_utils.hpp"
 
+#include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/list.hpp"
@@ -75,7 +76,7 @@ namespace rubinius {
   {
     probe.set(Qnil, &globals().roots);
     set_stack_size(cStackDepthMax);
-    os_thread_ = pthread_self(); // initial value
+    os_thread_ = NativeThread::self(); // initial value
 
     if(shared.om) {
       young_start_ = shared.om->young_start();
@@ -122,7 +123,7 @@ namespace rubinius {
 
     VMMethod::init(this);
 
-    // Setup the main Thread, which is a reflect of the pthread_self()
+    // Setup the main Thread, which is wrapper of the main native thread
     // when the VM boots.
     boot_threads();
 
@@ -178,12 +179,12 @@ namespace rubinius {
   }
 
   void VM::set_current(VM* vm) {
-    vm->os_thread_ = pthread_self();
+    vm->os_thread_ = NativeThread::self();
     _current_vm.set(vm);
   }
 
   void VM::boot_threads() {
-    thread.set(Thread::create(this, this, G(thread), pthread_self()), &globals().roots);
+    thread.set(Thread::create(this, this, G(thread), NativeThread::self()), &globals().roots);
     thread->sleep(this, Qfalse);
 
     VM::set_current(this);
@@ -440,7 +441,7 @@ namespace rubinius {
 
   bool VM::wakeup() {
     if(interrupt_with_signal_) {
-      pthread_kill(os_thread_, SIGVTALRM);
+      NativeThread::signal(os_thread_, NativeThread::cWakeupSignal);
       return true;
     } else {
       // Use a local here because waiter_ can get reset to NULL by another thread

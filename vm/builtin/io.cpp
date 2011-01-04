@@ -16,13 +16,13 @@
 #include <sys/types.h>
 
 #include "builtin/io.hpp"
+#include "builtin/array.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
-#include "builtin/bytearray.hpp"
 #include "primitives.hpp"
 
 #include "vm.hpp"

@@ -4,10 +4,10 @@
 #include "globals.hpp"
 #include "gc/object_mark.hpp"
 #include "gc/managed.hpp"
+#include "native_thread.hpp"
 #include "thread_state.hpp"
 
 #include "util/refcount.hpp"
-#include "util/thread.hpp"
 
 #include "global_lock.hpp"
 #include "maps.hpp"
@@ -91,7 +91,7 @@ namespace rubinius {
     thread::Mutex local_lock_;
     Waiter* waiter_;
     bool interrupt_with_signal_;
-    pthread_t os_thread_;
+    NativeThread::thread_t os_thread_;
 
     ObjectMemory* om;
     TypedRoot<TaskProbe*> probe;
@@ -239,7 +239,7 @@ namespace rubinius {
   public:
     static void init_stack_size();
 
-    // Better than current_state, uses a pthread local.
+    // Better than current_state, uses a NativeThread local.
     static VM* current();
     static void set_current(VM* vm);
 
