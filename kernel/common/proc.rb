@@ -16,23 +16,35 @@ class Proc
 
   # This works because the VM implements &block using push_proc, which
   # creates a Proc inside the VM.
-  def self.new(method=nil, &block)
-    if method
-      return Proc::Method.new(method)
-    elsif block
-      return block
-    else
+  def self.new(*args)
+    env = nil
+
+    Rubinius.asm do
+      push_block
+      set_local 1
+    end
+
+    unless env
       # Support for ancient pre-block-pass style:
       # def something; Proc.new; end
       # something { a_block } => Proc instance
       env = Rubinius::BlockEnvironment.of_sender
+
+      unless env
+        raise ArgumentError, "tried to create a Proc object without a block"
+      end
     end
 
-    if env
-      return __from_block__(env)
-    else
-      raise ArgumentError, "tried to create a Proc object without a block"
+    block = __from_block__(env)
+
+    Rubinius.asm(block, args) do |b,a|
+      run b
+      run a
+      run b
+      send_with_splat :initialize, 0, true
     end
+
+    return block
   end
 
   # Expose @block because MRI does. Do not expose @bound_method
@@ -45,7 +57,7 @@ class Proc
   end
 
   def inspect
-    "#<Proc:0x#{self.object_id.to_s(16)}@#{@block.file}:#{@block.line}>"
+    "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{@block.file}:#{@block.line}>"
   end
 
   alias_method :to_s, :inspect

@@ -42,7 +42,7 @@ namespace rubinius {
     static Time* specific(STATE, Integer* sec, Integer* usec, Object* gmt);
 
     // Ruby.primitive :time_s_now
-    static Time* now(STATE);
+    static Time* now(STATE, Object* self);
 
     // Ruby.primitive :time_s_from_array
     static Time* from_array(STATE, Fixnum* sec, Fixnum* min, Fixnum* hour, Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec, Fixnum* isdst, Object* from_gmt);

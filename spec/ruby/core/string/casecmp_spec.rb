@@ -18,6 +18,16 @@ describe "String#casecmp independent of case" do
     "B".casecmp("a").should == 1
   end
 
+  it "tries to convert other to string using to_str" do
+    other = mock('abc')
+    def other.to_str() "abc" end
+    "abc".casecmp(other).should == 0
+  end
+
+  it "raises a TypeError if other can't be converted to a string" do
+    lambda { "abc".casecmp(mock('abc')) }.should raise_error(TypeError)
+  end
+
   describe "in UTF-8 mode" do
     before :each do
       @kcode = $KCODE

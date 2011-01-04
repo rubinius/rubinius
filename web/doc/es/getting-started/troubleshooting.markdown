@@ -23,7 +23,10 @@ siguientes pasos:
     $ rake
 
 
-Error:
+### Rubinius no puede encontrar el directorio `runtime`
+
+Despues de construir o instalar Rubinius, ocurre el siguiente error al
+intentar ejecutar Rubinius:
 
     ERROR: unable to find runtime directory
 
@@ -39,7 +42,7 @@ Error:
     You may have configured Rubinius for a different install
     directory but you have not run 'rake install' yet.
 
-Solución:
+#### Solución
 
   Si ha configurado Rubinius con --prefix, ejecute `rake install`.
 
@@ -50,5 +53,17 @@ Solución:
   Si cambió el nombre del directorio de origen después de la
   construcción de Rubinius, vuelva a configurar y a construir.
 
-  En general, no cambie el nombre del directorio fuente donde realizó
-  la construcción de Rubinius después de que esta ha terminado.
+  En general, no cambie el nombre del directorio de instalación
+  despues de la instalación de Rubinius o el nombre del directorio
+  fuente de si realizo una construcción para desarrollador.
+
+### La construcción de Rubinius termina en error de segmentación en FreeBSD
+
+En FreeBSD, incluyendo hasta la version 8.1 estable, existe un
+problema con _execinfo_ que cause un error al iniciar Rubinius.
+
+#### Solución
+
+Deshabilite execinfo al configurar Rubinius:
+
+     ./configure --without-execinfo

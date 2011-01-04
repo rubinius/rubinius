@@ -199,7 +199,7 @@ class Module
       @method_table.delete name
       Rubinius::VM.reset_method_cache(name)
 
-      # Use __respond_to_eh__ to avoid hitting unexpected #respod_to?
+      # Use __respond_to_eh__ to avoid hitting unexpected #respond_to?
       # overrides.
       method_removed(name) if __respond_to_eh__ :method_removed
     end

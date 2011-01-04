@@ -320,7 +320,6 @@ class CPPStaticPrimitive < CPPPrimitive
     else
       args = output_args str, arg_types
       str << "    self = args.recv();\n" if @pass_self
-
       output_call str, "#{@type}::#{@cpp_name}", args
     end
     return str

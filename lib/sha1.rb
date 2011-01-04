@@ -1,8 +1,8 @@
-# just for compatibility; requiring "md5" is obsoleted
+# just for compatibility; requiring "sha1" is obsoleted
 
-require 'digest/md5'
+require 'digest/sha1'
 
-class MD5 < Digest::MD5
+class SHA1 < Digest::SHA1
   class << self
     alias orig_new new
 
@@ -14,7 +14,7 @@ class MD5 < Digest::MD5
       end
     end
 
-    def md5(*args)
+    def sha1(*args)
       new(*args)
     end
   end
