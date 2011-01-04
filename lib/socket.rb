@@ -836,14 +836,16 @@ class UNIXSocket < BasicSocket
     ["AF_UNIX", sock_path]
   end
 
-  def recv_io
+  def recv_io(klass=IO, mode=nil)
     begin
       fd = recv_fd
     rescue PrimitiveFailure
       raise SocketError, "file descriptor was not passed"
     end
 
-    self.class.from_descriptor(fd)
+    return fd unless klass
+
+    klass.for_fd(fd, mode)
   end
 
   class << self
