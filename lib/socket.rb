@@ -762,6 +762,8 @@ class Socket < BasicSocket
 end
 
 class UNIXSocket < BasicSocket
+  include IO::TransferIO
+
   # Coding to the lowest standard here.
   def recvfrom(bytes_read, flags = 0)
     # FIXME 2 is hardcoded knowledge from io.cpp
@@ -832,6 +834,16 @@ class UNIXSocket < BasicSocket
     sockaddr = Socket::Foreign.getpeername descriptor
     _, sock_path = sockaddr.unpack('SZ*')
     ["AF_UNIX", sock_path]
+  end
+
+  def recv_io
+    begin
+      fd = recv_fd
+    rescue PrimitiveFailure
+      raise SocketError, "file descriptor was not passed"
+    end
+
+    self.class.from_descriptor(fd)
   end
 
   class << self

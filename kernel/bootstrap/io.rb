@@ -147,4 +147,16 @@ class IO
     end
   end
 
+  module TransferIO
+    def send_io
+      Ruby.primitive :io_send_io
+      raise PrimitiveFailure, "IO#send_io failed"
+    end
+
+    def recv_fd
+      Ruby.primitive :io_recv_fd
+      raise PrimitiveFailure, "IO#recv_fd failed"
+    end
+  end
+
 end
