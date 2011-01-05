@@ -7,71 +7,73 @@ next: Написание Ruby спецификации
 next_url: how-to/write-a-ruby-spec
 ---
 
-The Rubinius issue tracker is <http://github.com/evanphx/rubinius/issues>.
+Трекер Rubinius-а расположен по адресу
+<http://github.com/evanphx/rubinius/issues>.
 
-To be useful, tickets must be concise, focused, and actionable. If not, the
-ticket will languish and become clutter. Accordingly, tickets must fall into
-one (or more) of the following categories:
+Тикеты должны быть краткими, предметными и осуществимыми. В противном случае
+тикет будет подолгу весеть в трекере и мешаться. Поэтому тикеты должны
+соответствовать одной или нескольким следующим категориям:
 
-  1. A precise command line history showing how to install and invoke the
-     program and showing the backtrace for an exception.
-  2. A short piece of code illustrating the problem and the command line to
-     invoke it.
-  3. A patch, **including specs if they do not already exist**, and showing
-     the spec runs before and after applying the patch.
+  1. Конкретная строка из терминала, с помощью которой можно установить и
+     вызвать программу, а также стектрейс исключения.
+  2. Небольшой кусок кода иллюстрирующий проблему, а также командная строка
+     для его вызова.
+  3. Патч, **вместе со спецификацией, если ее еще нет**, а также результат
+     выполнения спецификации до и после патча.
 
-If your issue doesn't fit into one of the categories, it is not invalid. It is
-simply not appropriate for a ticket.
+Если ваш задача не подпадает ни в одну из категорий, это не означает что она
+некорректна. Это просто означает, что она не подходит для тикета.
 
-  1. If it is a feature, consider discussing it on the mailing list. Also, you
-     could take a crack at implementing it and demonstrate how your feature is
-     useful.
-  2. If it is a library or gem that is not working, take some time to dig in
-     and see if you can create a reproduction for an issue and post that as a
-     ticket.
+  1. Если вы хотите добавить новую функциональность, попробуйте обсудить это
+     в мейллисте. Также вы можете попытаться реализовать ее и показать насколько
+     она полезна.
+  2. Если у вас есть библиотека или гем, которые не работают, попробуйте
+     разобраться почему и попытайтесь сделать более маленький кусок кода,
+     воспроизводящий проблему и создайте тикет вместе с ним.
 
+## Общая процедура добавления тикета
 
-## General procedure for submitting a ticket
+  1. Проверьте несколько раз.
 
-  1. Double-check.
+     1. Полностью пересоберите Rubinius ('rake clean; rake') после 'git pull'
+        или нового git clone.
+     2. Прочтите [Разрешение проблем](/doc/ru/getting-started/troubleshooting),
+        возможно это поможет решить вашу проблему.
+     3. Прочтите [Спецификации](/doc/ru/specs/).
 
-     1. Do a full rebuild ('rake clean; rake') after a 'git pull' or fresh clone.
-     2. Read [Troubleshooting](/doc/ru/getting-started/troubleshooting)
-        to see if something there resolves the issue.
-     3. Read [Specs](/doc/ru/specs/).
+  2. Дайте вашему тикету конкретный, желательно короткий заголовок.
 
-  2. Give your ticket a specific, preferably short title.
+  3. Снабдите тикет соответствующими тегами.
 
-  3. Give your ticket appropriate tags.
+  4. Добавьте в тикет достаточно информации:
 
-  4. Give enough detail about the issue.
-
-     *  The command line for invoking the program
-     *  The backtrace or result from the program versus expected result.
-     *  Your machine information. `uname -a` is usually good (if there are any
-        "unknown" fields in it, please elaborate on those.)
-
-
-## Additional instructions for tickets with patches
-
-  *  Can be just a set of specs.
-  *  Patches must be accompanied by specs unless the specs already exist.
-  *  Relevant part of spec output and the exact 'bin/mspec' invocation from the
-     existing or added spec *before the fix*.
-  *  The spec output and the exact 'bin/mspec' invocation  showing success
-     *after* the fix.
-  *  Additional description of your patch and how it fixes the problem. In
-     particular with new functionality please indicate if it was already
-     discussed on #rubinius or ruby-dev.
-
-Unless for some reason impossible, please use 'git-format-patch' to create the
-patchset. It is much easier to apply and it preserves the correct attribution.
-Otherwise, a unified diff.
+     *  Команду в терминале, с помощью которой можно вызвать программу
+     *  Стектрейс или результат программы вместе с ожидаемым результатом.
+     *  Информацию о вашей машине. `uname -a` обычно достаточно (если в ней
+        присутствуют "unknown" поля, пожалуйста, дополните их.)
 
 
-## Example of submitting a patch
+## Дополнительные указания для тикетов с патчами
 
-Suppose the following spec exists and is failing:
+  *  Тикеты могут состоять просто из набора спецификаций.
+  *  Патчи должны быть снабжены спецификациями в случае их отсутствия.
+  *  Релевантную часть вывода спецификации и точный вывод 'bin/mspec',
+     вызванной с существующей или добавленной спецификацией *перед
+     исправлением*.
+  *  Вывод спецификации и вывод 'bin/mspec' показывающий успех *после*
+     исправления.
+  *  Дополнительное описание вашего патча и того, как он исправляет проблему.
+     В частности, что касается новой функциональности, пожалуйста, указывайте
+     обсуждалось ли это уже на #rubinius или ruby-dev.
+
+Если возможно, пожалуйста, используйте 'git-format-path' для создания набора
+патчей. Это и упрощает применение патча и сохраняет его атрибуты. В противном
+случае используйте унифицированный diff.
+
+
+## Пример отправки патча
+
+Предположим следующая спецификация существует и не работает:
 
     describe "Kernel.format" do
       it "is accessible as a module function" do
@@ -79,15 +81,15 @@ Suppose the following spec exists and is failing:
       end
     end
 
-1. Ticket Title:
+1. Заголовок тикета:
 
    "[PATCH] No method 'format' on Kernel (Module)"
 
-2. Tags:
+2. Теги:
 
    "patch core spec"
 
-3. Ticket Message:
+3. Текст в тикете:
 
    The method 'format' is not available as a module function of Kernel.
 
@@ -112,10 +114,10 @@ Suppose the following spec exists and is failing:
 
        2 examples, 2 expectations, 0 failures, 0 errors
 
-4. Attachment:
+4. Приложение:
 
-Finally, put your patch in a gist and add the link to the gist to your issue.
-Below the patch is reproduced inline for completeness:
+Наконец, поместите ваш патч в gist и добавьте ссылку на него в тикет.
+Ниже приведен патч для целостности картины:
 
     From c61cecce6442347ebbdf1ded7a5c0832c97582c1 Mon Sep 17 00:00:00 2001
     From: Brian Ford <bford@engineyard.com>
