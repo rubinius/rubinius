@@ -1047,7 +1047,10 @@ failed: /* try next '*' position */
     cmsg.hdr.cmsg_len = CMSG_LEN(sizeof(int));
     cmsg.hdr.cmsg_level = SOL_SOCKET;
     cmsg.hdr.cmsg_type = SCM_RIGHTS;
-    *(int *)CMSG_DATA(&cmsg.hdr) = fd;
+
+    // Workaround for GCC's broken strict-aliasing checks.
+    int* fd_data = (int*)CMSG_DATA(&cmsg.hdr);
+    *fd_data = fd;
 
     if(sendmsg(descriptor()->to_native(), &msg, 0) == -1) {
       return Primitives::failure();
@@ -1087,7 +1090,10 @@ failed: /* try next '*' position */
     cmsg.hdr.cmsg_len = CMSG_LEN(sizeof(int));
     cmsg.hdr.cmsg_level = SOL_SOCKET;
     cmsg.hdr.cmsg_type = SCM_RIGHTS;
-    *(int *)CMSG_DATA(&cmsg.hdr) = -1;
+
+    // Workaround for GCC's broken strict-aliasing checks.
+    int* fd_data = (int *)CMSG_DATA(&cmsg.hdr);
+    *fd_data = -1;
 
     int read_fd = descriptor()->to_native();
 
@@ -1121,7 +1127,9 @@ failed: /* try next '*' position */
       return Primitives::failure();
     }
 
-    return Fixnum::from(*(int *)CMSG_DATA(&cmsg.hdr));
+    // Workaround for GCC's broken strict-aliasing checks.
+    fd_data = (int *)CMSG_DATA(&cmsg.hdr);
+    return Fixnum::from(*fd_data);
 #endif
   }
 
