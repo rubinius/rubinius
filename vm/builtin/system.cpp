@@ -172,7 +172,7 @@ namespace rubinius {
     return NULL;
   }
 
-  Object* System::vm_spawn(STATE, String* str, CallFrame* calling_environment) {
+  Object* System::vm_replace(STATE, String* str, CallFrame* calling_environment) {
     int fds[2];
 
     if(pipe(fds) != 0) return Primitives::failure();
@@ -994,8 +994,9 @@ namespace rubinius {
   }
 
   Object* System::vm_set_finalizer(STATE, Object* obj, Object* fin) {
+    if(!obj->reference_p()) return Qfalse;
     state->om->set_ruby_finalizer(obj, fin);
-    return obj;
+    return Qtrue;
   }
 
   Object* System::vm_object_lock(STATE, Object* obj, CallFrame* call_frame) {

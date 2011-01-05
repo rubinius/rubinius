@@ -1,14 +1,13 @@
 ---
 layout: doc_es
-title: How-To
-previous: Tools - Memory Analysis
+title: Cómo
+previous: Herramientas - Análisis de Memoria
 previous_url: tools/memory-analysis
-next: Write a Ticket
+next: Escribir un reporte de fallos
 next_url: how-to/write-a-ticket
 review: true
-translated: true
 ---
 
-1. [Write a Ticket](/doc/es/how-to/write-a-ticket/)
-1. [Write a Ruby Spec](/doc/es/how-to/write-a-ruby-spec/)
-1. [Fix a Failing Spec](/doc/es/how-to/fix-a-failing-spec/)
+1. [Cómo escribir un reporte de fallos](/doc/es/how-to/write-a-ticket/)
+1. [Cómo escribir una especificación de Ruby](/doc/es/how-to/write-a-ruby-spec/)
+1. [Cómo corregir una especificación erronea](/doc/es/how-to/fix-a-failing-spec/)

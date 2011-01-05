@@ -240,8 +240,7 @@ namespace rubinius {
   /*
    * This is a primitive so #initialize_copy can work.
    */
-  Regexp* Regexp::initialize(STATE, String* pattern, Fixnum* options,
-                             Object* lang) {
+  Regexp* Regexp::initialize(STATE, String* pattern, Fixnum* options) {
     const UChar *pat;
     const UChar *end;
     OnigErrorInfo err_info;

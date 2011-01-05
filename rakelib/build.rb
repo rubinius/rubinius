@@ -9,6 +9,10 @@ def llvm_configure
   end
 end
 
+def build_perl
+  Rubinius::BUILD_CONFIG[:build_perl]
+end
+
 def llvm_flags
   return [] unless LLVM_ENABLE
 
@@ -21,7 +25,7 @@ def llvm_flags
     @llvm_flags = []
   end
 
-  @llvm_flags += `perl #{llvm_configure} --cflags`.split(/\s+/)
+  @llvm_flags += `#{build_perl} #{llvm_configure} --cflags`.split(/\s+/)
   @llvm_flags.delete_if { |e| e.index("-O") == 0 }
   @llvm_flags
 end
@@ -29,18 +33,18 @@ end
 def llvm_link_flags
   return "" unless LLVM_ENABLE
 
-  `perl #{llvm_configure} --ldflags`.strip
+  `#{build_perl} #{llvm_configure} --ldflags`.strip
 end
 
 def llvm_lib_files
   return [] unless LLVM_ENABLE
 
-  files = `perl #{llvm_configure} --libfiles`.split(/\s+/)
+  files = `#{build_perl} #{llvm_configure} --libfiles`.split(/\s+/)
   files.select { |f| File.file? f }
 end
 
 def llvm_version
-  `perl #{llvm_configure} --version`.strip
+  `#{build_perl} #{llvm_configure} --version`.strip
 end
 
 def host_triple

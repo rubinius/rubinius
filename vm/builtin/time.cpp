@@ -21,7 +21,7 @@ namespace rubinius {
     G(time_class)->set_object_type(state, TimeType);
   }
 
-  Time* Time::now(STATE) {
+  Time* Time::now(STATE, Object* self) {
     struct timeval tv;
 
     /* don't fill in the 2nd argument here. getting the timezone here
@@ -35,6 +35,8 @@ namespace rubinius {
     tm->microseconds_ = tv.tv_usec;
 
     tm->is_gmt(state, Qfalse);
+
+    tm->klass(state, as<Class>(self));
 
     return tm;
   }

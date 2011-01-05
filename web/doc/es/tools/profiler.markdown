@@ -1,140 +1,132 @@
 ---
 layout: doc_es
-title: Profiler
-previous: Debugger
+title: Analizador
+previous: Depurador
 previous_url: tools/debugger
-next: Memory Analysis
+next: Análisis de Memoria
 next_url: tools/memory-analysis
-translated: true
+translated: false
 ---
 
-Rubinius tiene una instrumentación de perfiles que proporciona la
-sincronización exacta para todos métodos que se ejecutan. El generador de
-perfiles se implementa en el nivel de máquina virtual y los datos Se
-proporciona el código Ruby a proceso.
+Rubinius tiene un analizador de perfiles que proporciona los tiempos
+de ejecución exactos para todos los métodos invocados. El analizador
+está implementado a nivel de la VM (máquina virtual) y los datos son
+entregados al código Ruby para hacer uso de ellos.
 
-
-## VM Profiler
+## Analizador de la VM
 
 El elenco de personajes involucrados en la creación y el mantenimiento del
-generador de perfiles incluyen VM, SharedState, ProfilerCollection, y de
-perfiles. La clase virtual es un hilo de estructura de datos locales. Cada
-instancia de VM obtiene un analizador por separado instancia. La instancia
-SharedState tiene una instancia ProfilerCollection que los mapas Máquinas
-virtuales con perfiladores y genera los resultados globales de todos los
-perfiladores.
+analizar incluye a VM, SharedState, ProfilerCollection, y Profiler.
+La clase VM es  una estructura de datos local a los hilos. Cada instancia
+de la VM tiene una instancia diferente de Profiler. La instancia de SharedState
+ tiene una instancia de ProfilerCollection que mapea VMs a Profilers y genera
+los resultados compuestos de todas las instancias de Profiler.
 
-El Profiler vive y muere en su propio mundo. El generador de perfiles se pasa
-a una máquina virtual ejemplo, cuando se creó porque el generador de perfiles
-necesita tener acceso a ella mientras está reuniendo información. El argumento
-de Estado podría ser aprobada en todos los perfiles métodos, pero es lo
-suficientemente simple para que pase cuando el generador de perfiles se crea.
-El generador de perfiles no manipula la instancia de VM. Es importante
-mantener esta separación.
+El Profiler vive y muere en su propio mundo. El analizador recibe una instancia
+de VM cuando es creado ya que este necesita acceso a ella mientras está obteniendo
+la información. El argumento STATE podría ser pasado a todos los métodos del analizador pero
+es muy simple, así que se pasa el analizador cuando este es inicializado.
 
-La instancia de VM perezosamente crea su instancia Profiler cuando sea
-necesario. El VM registra los perfiles con los SharedState.
+La instancia de VM crea su instancia de Profiler de manera perezosa (solo cuando
+se necesita). La VM registra el Profiler con SharedState.
 
-El SharedState mantiene la instancia ProfilerCollection y pide delanteros para
-registrar o quitar perfiladores.
+SharedState tiene una instancia de ProfilerCollection y envía las llamadas para
+registrar o remover analizadores (profilers).
 
-La instancia solicita ProfilerCollection que la instancia de máquina virtual
-asignado a un perfiles elimina el generador de perfiles cuando el generador de
-perfiles serán eliminados.
+La instancia ProfilerCollection se encarga de hacer la petición para que la VM
+mapeada a un analizador remueva el analizador cuando este vaya a ser eliminado.
+
+## Analizador de Ruby
+
+En el campo de Ruby, la instancia de Rubinius::Profiler::Instrumenter no expone
+nada sobre la naturaleza multi-hilo de la VM. Las instancias individuales del
+analizador en C++ no son expuestas a Ruby. En Ruby, una instancia del analizador
+es creada. Esta instancia puede iniciar o detener el analizador de la VM. Cuando
+el analizador es detenido, la información sobre el análisis es retornada en una
+LookupTable. El analizador de Ruby puede mostrar esa información con una llamada
+al método #show.
+
+Rubinius provee dos bibliotecas compatibles con la biblioteca estándar de MRI
+llamadas profile.rb y profiler.rb. Puede encontrar más información sobre el uso
+de estas en la documentación de MRI.
+
+Se puede observar los pasos básicos para usar el analizador desde el código Ruby en
+lib/profiler.rb.
 
 
-## Ruby Profiler
-
-En la tierra de Ruby, el Rubinius::Profiler::Instrumenter ejemplo expone nada
-sobre la realidad multi-hilo en la máquina virtual. El individuo C++ Perfil
-casos no están expuestos a Ruby. En Ruby, una instancia de perfiles se crea.
-Esa instancia sólo puede iniciar y parar la máquina virtual de perfiles.
-Cuando el generador de perfiles se detenido, información sobre la descripción
-del perfil se devuelve en un LookupTable. El Ruby código de perfiles que puede
-mostrar información utilizando el método #show.
-
-Rubinius proporciona una profile.rb compatible con la biblioteca estándar y
-profiler.rb.  Consulte la documentación de la RM sobre el uso de ellos.
-
-En cuanto a lib/profiler.rb, puede ver los pasos básicos para utilizar el
-generador de perfiles de código Ruby.
-
-    # create a profiler instance
+    # crea una instancia del analizador
     profiler = Rubinius::Profiler::Instrumenter.new
 
-    # start the profiler
+    # inicia el analizador
     profiler.start
 
-    # stop the profiler
+    # detiene el analizador
     profiler.stop
 
-    # get the profile data
+    # obtiene la información del analizador
     data = profiler.info
 
-    # or print out the profiler info
-    profiler.show  # takes on IO object, defaults to STDOUT
+    # o se imprime la información del analizador
+    profiler.show  # recibe un objeto IO, por defecto usa STDOUT
 
-También puede utilizar un método de conveniencia para el perfil de trabajo en
-un bloque.
 
-    # create a profiler instance
+Puede utilizar un método más conveniente para analizar el trabajo realizado
+en un bloque.
+
+    # crea una instancia del analizador
     profiler = Rubinius::Profiler::Instrumenter.new
 
-    # profile some work
+    # analiza algo
     profiler.profile do
-      # some work
+      # algún trabajo
     end
 
-El método #profile se inicia el generador de perfiles, los rendimientos, se
-detiene el generador de perfiles y grabados los datos del perfil por defecto.
-Pase 'false' a #profile para no imprimir los datos.  De cualquier manera, los
-datos del perfil se devuelve #profile.
+El método #profile inicia el analizador, hace la llamada a yield, detiene el
+analizador e imprime por defecto los datos del análisis. Puede pasar la opción
+'false' al método #profile para que no se impriman los datos. De cualquier
+manera, los datos son el valor retornado por la llamada a #profile.
 
+## Cómo Leer la Salida del Analizador
 
-## Cómo Leer la Salida Plana de Perfiles
-
-La salida de perfiles piso tiene las siguientes columnas:
-
+La salida del analizador tiene las siguientes columnas:
 
 ### % time
 
-La cantidad de tiempo dedicado a este método como un porcentaje del tiempo
-total dedicado a todos los métodos.
+La cantidad de tiempo dedicado a este método. Se presenta como una relación
+al tiempo de ejecución de todos los métodos.
 
 
 ### cumulative seconds
 
-La cantidad total de tiempo dedicado a este método y todos sus callees directa
-y su callees hasta el final a todos los métodos de la hoja llamada a lo largo
-de una ruta de acceso de este método. Considere la posibilidad de este método
-como la raíz de un árbol de llamadas. La suma de todos los tiempo en los
-métodos en este árbol de llamadas es el segundo acumulada para este método.
+Si se considera este método como la raíz de un árbol, el resultado de
+'cumulative seconds' sería el tiempo acumulado de ejecución de este
+método y de todos los métodos que el mismo ha llamado (hojas del árbol).
 
 
 ### self seconds
 
 El tiempo total empleado en este método menos el tiempo total invertido en
-todo esto método callees.
-
+todos los métodos que fueron llamados por este.
 
 ### calls
 
-El número total de veces que este método fue llamado.
+El número de veces que fue llamado este método.
 
 
 ### self ms/call
 
-El segundo auto como milisegundos dividido por el número total de llamadas.
+El tiempo definido en 'self seconds' dividido por el número total de llamadas.
 
 
 ### total ms/call
 
-El segundo acumulado milisegundos dividido por el número total de llamadas.
+El tiempo total de este método y de todos los métodos que este llamó dividido
+por el número total de llamadas.
 
 
-### Ejemplo de Salida Plana
+### Ejemplo de la Salida
 
-La siguiente secuencia de comandos es la base del perfil de los dos ejemplos a
+El siguiente script es la base para los dos análisis que se muestran a
 continuación.
 
     class F
@@ -158,8 +150,7 @@ continuación.
     }
 
 
-Al ejecutar el script con 'bin/rbx script.rb' debe dar el siguiente plano
-de salida.
+Al ejecutar el script con 'bin/rbx script.rb' se obtiene una salida como:
 
 
       %   cumulative   self                self     total
@@ -179,37 +170,37 @@ de salida.
     10 methods called a total of 57 times
 
 
-## Cómo Leer la Salida Gráfico
+## Cómo Leer la Salida Gráfica
 
-La salida gráfica es activado con la opción de configuración:
+La salida gráfica se puede activar pasándole la siguiente opción al interprete:
 
     -Xprofiler.graph
 
-Determinado por encima del mismo guión, la producción gráfica se muestra a
-continuación. Cada "entrada" en el gráfico tiene tres secciones: 1) el método
-para la entrada, llama la _primary_ línea, 2) las personas que llaman del
-método principal, y 3) los métodos que el principal método llamado. Los campos
-tienen significados diferentes en función del parte de la entrada.
+Usando el script anteriormente mencionado se obtiene el resultado que se muestra
+al final del documento. Cada entrada en este gráfico tiene tres secciones: 1)
+una línea que describe el método para esta entrada, llamada línea primaria;
+2) quienes llamaron al método primario; y 3) los métodos que el método
+primario llamó. Los campos tienen diferentes significados según en la posición
+en la que se encuentran para cada entrada.
 
-Para la línea principal, los campos son los siguientes:
-
+Para la línea de primaria, los campos significan:
 
 ### index
 
-Un índice asignado a cada método en el gráfico para facilitar las referencias
-cruzadas las entradas.
+Un índice asignado a cada método en la gráfica para facilitar las referencias
+cruzadas entre las entradas.
 
 
 ### % time
 
 La cantidad de tiempo dedicado a este método como un porcentaje del tiempo
-total dedicado a todos los métodos. Esta es la misma que la salida plana.
+total dedicado a todos los métodos. Igual a la salida plana.
 
 
 ### self
 
 El tiempo total empleado en este método menos el tiempo total invertido en
-todo esto método Callees. Este es el mismo segundo auto en la salida plana.
+todo esto método llamados por el mismo. Igual a la salida plana.
 
 
 ### children
@@ -219,7 +210,7 @@ El tiempo total empleado en todos los métodos llamados por este método.
 
 ### called
 
-El número total de veces que este método fue llamado.
+El número total de veces que fue llamado este método.
 
 
 ### name
@@ -227,67 +218,66 @@ El número total de veces que este método fue llamado.
 El nombre del método seguido por el número de índice.
 
 
-Las líneas por encima de la línea principal son los métodos que llaman el
-método principal. La campos que llaman 'tienen la siguiente interpretación:
+Las líneas por encima de la línea principal son los métodos que llaman al
+método principal.
+
+Los campos que llaman al método principal son interpretados así:
 
 
 ### self
 
 El tiempo total empleado en este método menos el tiempo total invertido en
-todo esto método Callees. Este es el mismo segundo auto en la salida plana.
+todo esto método que el mismo llama. Igual a 'self seconds' en la salida plana.
 
 
 ### children
 
-El tiempo dedicado a llamar al método para el método principal.
+El tiempo dedicado en las llamadas al método principal.
 
 
 ### called
 
-El campo tiene dos partes separadas por una barra diagonal. La izquierda es la
-número de veces en que este método denominado el método principal. El derecho
-es el total número de llamadas a este método hizo. En otras palabras, los dos
-números juntos muestran una relación de las llamadas al método primario versus
-todas las llamadas realizadas por el persona que llama.
-
+El campo 'called' tiene dos partes separadas por una barra diagonal. El número
+a la izquierda es el número de veces que este método llamó al método primario.
+El número a la derecha es el número total de llamadas que este método realizó.
+En otras palabras, estos números representan la relación entre el número de
+llamadas al método primario vs. el número total de llamadas.
 
 ### name
 
-El nombre de la persona que llama seguido de su número de índice. Si el índice
+El nombre de quien llamó al método seguido de su número de índice. Si el índice
 es [0], el método no aparece en el gráfico.
 
-
-Las líneas por debajo de la línea principal son los métodos que el principal
-método llamado.  Los campos de los métodos llamados son los siguientes:
+Las líneas por debajo de la línea principal son los métodos que el método
+principal llamó. Los campos de los métodos llamados son los siguientes:
 
 
 ### self
 
 El tiempo total empleado en este método menos el tiempo total invertido en
-todo esto método callees. Este es el mismo segundo auto en la salida plana.
+todos los métodos que este método llamó. Este valor es equivalente a 'self
+seconds' en la salida plana.
 
 
 ### children
-
-Esta es una estimación de la cantidad de tiempo Callees este método ha pasado
-al este método fue llamado por el método principal. La estimación se basa en
-la ración del tiempo dedicado a este método cuando es llamado por el método
-principal para la tiempo total empleado en este método.
-
+Este es un estimado del tempo que los métodos llamados por este método se
+demoraron cuando este método fue llamado por el método primario. El estimado
+se basa en la relación de tiempo de ejecución de este método cuando fue llamado
+por el método primario vs. el tiempo total utilizado en el método.
 
 ### called
 
-El campo "tiene dos partes separadas por una barra diagonal. La izquierda es
-la número de veces en que este método fue llamado por el método principal. El
-derecho es el número total de veces en que este método fue llamado.
+El campo "called" tiene dos partes separadas por una barra diagonal. La izquierda
+es el número de veces que este método fue llamado por el método principal. La
+derecha es el número total de veces en que este método fue llamado.
 
 
 ### name
 
-El nombre del método llamado seguida de su número de índice [N]. Si no hay
-presente índice, no hay ninguna entrada principal para el método en el
+El nombre del método llamado seguido de su número de índice [N]. Si no hay
+un índice presente, no hay ninguna entrada principal para el método en el
 gráfico. Utilice el opción --Xprofiler.full_report para imprimir el gráfico
-entero si es necesario para ver de la entrada.
+completo si es necesario ver la entrada.
 
 
     index  % time     self  children         called       name

@@ -431,7 +431,7 @@ module Rubinius
       end
 
       # Return the output as an array of strings, one per line. If an output item
-      # wraps to more than one line, each line will be a seperate entry in the
+      # wraps to more than one line, each line will be a separate entry in the
       # returned array.
       # Takes an optional parameter +page_width+ that specifies the width of the
       # page on which the output will be displayed.

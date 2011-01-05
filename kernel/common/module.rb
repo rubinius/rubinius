@@ -42,11 +42,11 @@ class Module
       raise NameError, "#{name} is not an allowed class variable name"
     end
 
-    name = StringValue(name)
-    unless name[0..1] == '@@' and name[2].toupper.between?(?A, ?Z) or name[2] == ?_
+    name = StringValue(name).to_sym
+    unless name.is_cvar?
       raise NameError, "#{name} is not an allowed class variable name"
     end
-    name.to_sym
+    name
   end
   private :verify_class_variable_name
 
@@ -199,7 +199,7 @@ class Module
       @method_table.delete name
       Rubinius::VM.reset_method_cache(name)
 
-      # Use __respond_to_eh__ to avoid hitting unexpected #respod_to?
+      # Use __respond_to_eh__ to avoid hitting unexpected #respond_to?
       # overrides.
       method_removed(name) if __respond_to_eh__ :method_removed
     end

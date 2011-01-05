@@ -212,6 +212,10 @@ extern "C" {
     return 1;
   }
 
+  /*
+   * rb_thread_wait_fd actually waits until a read is
+   * available on the given fd
+   */
   void rb_thread_wait_fd(int fd) {
     fd_set fds;
 
@@ -226,7 +230,29 @@ extern "C" {
       GCIndependent guard(env);
 
       while(!ready) {
-        ready = select(fd+1, &fds, &fds, 0, 0);
+        ready = select(fd+1, &fds, 0, 0, 0);
+      }
+    }
+  }
+
+  /*
+   * rb_thread_fd_writable waits until the given fd
+   * is available for writing
+   */
+  void rb_thread_fd_writable(int fd) {
+    fd_set fds;
+
+    FD_ZERO(&fds);
+    FD_SET(fd, &fds);
+
+    int ready = 0;
+
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    {
+      GCIndependent guard(env);
+
+      while(!ready) {
+        ready = select(fd+1, 0, &fds, 0, 0);
       }
     }
 

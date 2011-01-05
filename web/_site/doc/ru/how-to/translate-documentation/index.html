@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Rubinius : Use Ruby&#153;</title>
+    <title>How-To - Перевод документации - Rubinius</title>
     <meta content='text/html;charset=utf-8' http-equiv='content-type'>
-    <meta content='en' http-equiv='content-language'>
+    <meta content='ru' http-equiv='content-language'>
     <meta content='Rubinius is an implementation of the Ruby programming language. The Rubinius bytecode virtual machine is written in C++. The bytecode compiler is written in pure Ruby. The vast majority of the core library is also written in Ruby, with some supporting primitives that interact with the VM directly.' name='description'>
     <meta content='Less Than Three. &lt;3. http://less.thanthree.com' name='author'>
     <link href='/' rel='home'>
-
     <link href='/' rel='start'>
+    <link href='/doc/ru/how-to/write-documentation' rel='prev' title='Написание Документации'>
+    <link href='/doc/ru/appendix-a-glossary' rel='next' title='Приложение A - Глоссарий'>
+    
     <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script><![endif]-->
     <script src="/javascripts/jquery-1.3.2.js" type="text/javascript"></script>
     <script src="/javascripts/paging_keys.js" type="text/javascript"></script>
-    <script src="/javascripts/jquery.twitter.js" type="text/javascript"></script>
+    
     <script src="/javascripts/application.js" type="text/javascript"></script>
     <style>article, aside, dialog, figure, footer, header, hgroup, menu, nav, section { display: block; }</style>
 
@@ -69,6 +71,10 @@
           
           >ja</a></li>
         
+          <li><a href="/doc/pl/"
+          
+          >pl</a></li>
+        
           <li><a href="/doc/ru/"
           
             class="current"
@@ -105,34 +111,33 @@
 
       
 
-        <p>There are two translation tasks:</p>
+        <p>Существуют два вида задач перевода:</p>
 
 <ol>
-  <li>updating an existing translation</li>
-  <li>creating a completely new translation</li>
+  <li>изменение существующего перевода</li>
+  <li>добавление перевода на другой язык</li>
 </ol>
 
-<p>Begin by reading <a href="/doc/ru/how-to/write-documentation/">How-To - Write
-Documentation</a></p>
+<p>Начните с чтения <a href="/doc/ru/how-to/write-documentation/">Написание
+документации</a></p>
 
-<h3 id="updating-an-existing-translation">Updating an Existing Translation</h3>
+<h3 id="section">Изменение существующего перевода</h3>
 
-<p>To update an existing translation, open the topic file under <code>web/doc/LANG</code>
-and edit the existing text or add newly translated text.</p>
+<p>Чтобы изменить существующий перевод откройте нужный файл в директории
+<code>web/doc/LANG</code> и отредактируйте существующий перевод или добавьте свой.</p>
 
-<h3 id="creating-a-new-translation">Creating a New Translation</h3>
+<h3 id="section-1">Добавление перевода на другой язык</h3>
 
-<p>To create a new language translation:</p>
+<p>Чтобы начать перевод:</p>
 
 <ol>
-  <li>Copy <code>web/doc/en</code> to <code>web/doc/LANG</code> where <em>LANG</em> is the
-<a href="http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes">ISO-639-1</a> code for
-the language translation you are creating.</li>
-  <li>Edit the links in the Table of Contents to point to the location of the
-files for the translation. (Note that for some reason the <code>page.base_dir</code>
-attribute is not available when these files are being rendered by Jekyll.
-This needs to be investigated.)</li>
-  <li>Translate the English text to the target language.</li>
+  <li>Скопируйте <code>web/doc/en</code> в <code>web/doc/LANG</code>, где <em>LANG</em> это
+<a href="http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes">ISO-639-2</a> код для
+языка, для которого вы делаете перевод.</li>
+  <li>Отредактируйте ссылки в содержании, чтобы они указывали на правильные файлы
+в переводе. (По некоторы причинам атрибут <code>page.base_dir</code> недоступен, когда
+при обработкех этих файлов Jekyll. С этим моментом предстоит разобраться.)</li>
+  <li>Переведите английский текст на выбранный вами язык.</li>
 </ol>
 
 
@@ -156,6 +161,23 @@ This needs to be investigated.)</li>
       
     </div>
 
+
+    <div class="container">
+      <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'rubinius';
+    var disqus_identifier = '/doc/ru/how-to/translate-documentation/';
+    var disqus_url = 'http://rubini.us/doc/ru/how-to/translate-documentation/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+    </div>
 
         <footer>
       <div class='container'>

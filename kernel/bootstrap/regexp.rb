@@ -8,7 +8,7 @@ class Regexp
   ##
   # See Regexp.new. This may be overridden by subclasses.
 
-  def compile(pattern, opts, lang)
+  def compile(pattern, opts)
     Ruby.primitive :regexp_initialize
     raise PrimitiveFailure,
           "regexp_new(#{str.inspect}, #{opts}, #{lang.inspect}) primitive failed"

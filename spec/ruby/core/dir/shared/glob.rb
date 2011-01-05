@@ -232,7 +232,7 @@ describe :dir_glob, :shared => true do
          subdir_two/nondotfile.ext]
   end
 
-  it "preserves the seperator between directory components" do
+  it "preserves the separator between directory components" do
     Dir.send(@method, "deeply/nested//directory/structure/*.ext").should ==
       %w!deeply/nested//directory/structure/file_one.ext!
   end

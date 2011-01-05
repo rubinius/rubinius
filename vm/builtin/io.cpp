@@ -1011,6 +1011,125 @@ failed: /* try next '*' position */
     return Fixnum::from(new_fd);
   }
 
+  Object* IO::send_io(STATE, IO* io) {
+#ifdef _WIN32
+    return Primitives::failure();
+#else
+    int fd;
+    struct msghdr msg;
+    struct iovec vec[1];
+    char buf[1];
+
+    struct {
+      struct cmsghdr hdr;
+      char pad[8+sizeof(int)+8];
+    } cmsg;
+
+    fd = io->descriptor()->to_native();
+
+    msg.msg_name = NULL;
+    msg.msg_namelen = 0;
+
+    /* Linux and Solaris doesn't work if msg_iov is NULL. */
+    buf[0] = '\0';
+    vec[0].iov_base = buf;
+    vec[0].iov_len = 1;
+    msg.msg_iov = vec;
+    msg.msg_iovlen = 1;
+
+    msg.msg_control = (caddr_t)&cmsg;
+    msg.msg_controllen = CMSG_LEN(sizeof(int));
+    msg.msg_flags = 0;
+    memset(&cmsg, 0, sizeof(cmsg));
+    cmsg.hdr.cmsg_len = CMSG_LEN(sizeof(int));
+    cmsg.hdr.cmsg_level = SOL_SOCKET;
+    cmsg.hdr.cmsg_type = SCM_RIGHTS;
+
+    // Workaround for GCC's broken strict-aliasing checks.
+    int* fd_data = (int*)CMSG_DATA(&cmsg.hdr);
+    *fd_data = fd;
+
+    if(sendmsg(descriptor()->to_native(), &msg, 0) == -1) {
+      return Primitives::failure();
+    }
+
+    return Qnil;
+#endif
+  }
+
+  Object* IO::recv_fd(STATE, CallFrame* calling_environment) {
+#ifdef _WIN32
+    return Primitives::failure();
+#else
+    struct msghdr msg;
+    struct iovec vec[1];
+    char buf[1];
+
+    struct {
+      struct cmsghdr hdr;
+      char pad[8+sizeof(int)+8];
+    } cmsg;
+
+    msg.msg_name = NULL;
+    msg.msg_namelen = 0;
+
+    /* Linux and Solaris doesn't work if msg_iov is NULL. */
+    buf[0] = '\0';
+    vec[0].iov_base = buf;
+    vec[0].iov_len = 1;
+    msg.msg_iov = vec;
+    msg.msg_iovlen = 1;
+
+    msg.msg_control = (caddr_t)&cmsg;
+    msg.msg_controllen = CMSG_LEN(sizeof(int));
+    msg.msg_flags = 0;
+    memset(&cmsg, 0, sizeof(cmsg));
+    cmsg.hdr.cmsg_len = CMSG_LEN(sizeof(int));
+    cmsg.hdr.cmsg_level = SOL_SOCKET;
+    cmsg.hdr.cmsg_type = SCM_RIGHTS;
+
+    // Workaround for GCC's broken strict-aliasing checks.
+    int* fd_data = (int *)CMSG_DATA(&cmsg.hdr);
+    *fd_data = -1;
+
+    int read_fd = descriptor()->to_native();
+
+    int code = -1;
+
+    retry:
+    state->interrupt_with_signal();
+    state->thread->sleep(state, Qtrue);
+
+    {
+      GlobalLock::UnlockGuard lock(state, calling_environment);
+      code = recvmsg(read_fd, &msg, 0);
+    }
+
+    state->thread->sleep(state, Qfalse);
+    state->clear_waiter();
+
+    if(code == -1) {
+      if(errno == EAGAIN || errno == EINTR) {
+        if(!state->check_async(calling_environment)) return NULL;
+        goto retry;
+      }
+
+      return Primitives::failure();
+    }
+
+    if(msg.msg_controllen != CMSG_SPACE(sizeof(int))
+        || cmsg.hdr.cmsg_len != CMSG_LEN(sizeof(int))
+        || cmsg.hdr.cmsg_level != SOL_SOCKET
+        || cmsg.hdr.cmsg_type != SCM_RIGHTS) {
+      return Primitives::failure();
+    }
+
+    // Workaround for GCC's broken strict-aliasing checks.
+    fd_data = (int *)CMSG_DATA(&cmsg.hdr);
+    return Fixnum::from(*fd_data);
+#endif
+  }
+
   void IO::set_nonblock(STATE) {
     int flags = fcntl(descriptor_->to_native(), F_GETFL);
     if(flags == -1) return;

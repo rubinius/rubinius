@@ -10,22 +10,21 @@ next_url: appendix-a-glossary
 Hay dos tareas de traducción:
 
 1. Actualizar una traducción existente
-1. la creación de una traducción completamente nueva
+1. La creación de una traducción completamente nueva
 
-Comience por leer [Cómo Escribir Documentación] (/doc/es/how-to/write-documentation/)
+Comience por leer [Cómo Escribir Documentación](/doc/es/how-to/write-documentation/)
 
 
 ### Actualizar una Traducción Existente
 
-Para actualizar una traducción existente, abra el archivo de tema en
-`web/doc/LANG` y edite el texto existente o agregue texto recién traducido.
+Para actualizar una traducción existente, abra el archivo de tema en `web/doc/LANG` y edite el texto existente o agregue texto recién traducido.
 
 
 ### Creación de una Nueva Traducción
 
 Para crear un nuevo idioma de traducción:
 
-1. Copiar`web/doc/en` a `web/doc/LANG` donde _LANG_ es un código
+1. Copiar `web/doc/en` a `web/doc/LANG` donde _LANG_ es un código
    [ISO-639-1](http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes)
    para la traducción del idioma que está creando.
 1. Editar los enlaces en la tabla de contenido para que apunte a la ubicación
