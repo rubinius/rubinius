@@ -7,69 +7,65 @@ next: Перевод документации
 next_url: how-to/translate-documentation
 ---
 
-The Rubinius documentation is integrated with the website and blog. It uses
-Jekyll just like the other components.
+Документация по Rubinius интегрирована с веб-сайтом и блогом. Для нее также
+как и для других компонентов используется Jekyll.
 
-To get started, ensure you have the `kramdown` and `jekyll` gems installed.
+Для начала убедитесь, что у вас установлены гемы `kramdown` и `jekyll`.
 
     rbx gem install jekyll kramdown
 
-The documentation source is under the `web/doc` directory. There are
-subdirectories for each language to which the documentation has been
-translated (eg `en`, `es`, etc.).
+Исходники документации расположены в директории `web/doc`. Здесь присутствуют
+поддиректории для существующих переводов на другие языки (например `en`, `es`).
 
-There is a Table of Contents for each translation (e.g.
-`/web/doc/ru/index.markdown`). The rest of the documentation consists of
-single files that have YAML attributes to specify how the documents are
-connected. Essentially, the documentation can be viewed as a doubly-linked
-list of documents with each document pointing to the previous and next
-document. The Table of Contents document shows the complete structure.
+Для кажого перевода присутствует содержание (напр.
+`/web/doc/ru/index.markdown`). Остальная часть документации состоит из
+одиночных файлов, которые содержат YAML атрибуты для указания связи между
+документами. Проще говоря, документацию можно представить как двусвязный
+список документов, каждый из которых указывает на следующий и предыдущий.
+Содержание показывает структуру документации в целом.
 
-The YAML attributes in a document look like the following:
+YAML атрибуты в документах имеют следующий вид:
 
     ---
     layout: doc_ru
-    title: How-To - Write Documentation
+    title: How-To - Написание документации
     previous: Write a Blog Post
     previous_url: how-to/write-a-blog-post
     next: Перевод документации
     next_url: how-to/translate-documentation
     ---
 
-The _layout_ specifies which Jekyll layout to use when formatting the
-document. The _layout_ should be `doc_LANG`, where _LANG_ is the ISO-639-2
-code for the language.
+_layout_ указывает на макет, который будет использовать Jekyll при
+форматировании документа. _layout_ должен соответствовать `doc_LANG`, где
+_LANG_ это ISO-639-2 код языка.
 
-The _title_ specifies the document title that is displayed at the top of the
-page.
+_title_ указывает заголовок документа, который отображается в начале страницы.
 
-The _previous_ and _previous\_url_ attributes give the title and link to the
-previous document. Likewise, the _next_ and _next\_url_ attributes give the
-title and link for the next document. These are used to enhance browsing the
-documentation and limiting the amount of work necessary to re-order parts of
-the documentation.
-
-
-### Editing Existing Documentation
-
-An initial outline for the documentation has been created. There are many
-topics that merely need to have documentation written for them.
-
-To add documentation for an existing topic, or to fix existing documentation,
-open the file for the topic under `web/doc/LANG` and add or improve the
-documentation.
+_previous_ и _previous\_url_ представляют из себя название и ссылку на
+предыдущий документ. Точно также, _next_ и_next\_url_ соответствуют ссылке
+и названию следующего документа. Все это используется для повышения удобства
+просмотра документацию и сокращению размера работ необходимых для изменения
+порядка следования документов.
 
 
-### Adding New Documentation
+### Редактирование существующей документации
 
-To add documentation for which no existing topic exists:
+Существует первоначальная структура документации. Присутствует достаточно
+разделов, которые просто нуждаются в документировании.
 
-1. Create a new file with the .markdown extension under `web/doc/LANG`.
-1. Set up the attributes to link the new file into the existing files. This
-   will require editing the _previous_ and _next_ attributes of the existing
-   files to insert the new file.
-1. To view your updates while you are working on them, run
+Чтобы добавить документацию для существующих разделов или исправить ее,
+откройте нужный файл в папке `web/doc/LANG` и сделайте это.
+
+
+### Добавление новой документации
+
+Проделайте следующее, чтобы добавить документацию для нового раздела:
+
+1. Создайте в `web/doc/LANG` новый файл с расширение .markdown.
+1. Установите атрибуты для связки нового файла с существующим. Это подразумевает
+   редактирование _previous_ и _next_ атрибутов в уже существующих файлах.
+1. Для просмотра изменений во время работы над ними, запустите
    `rbx -S jekyll --server --auto`
-1. Edit the new file using Markdown syntax.
-1. In the `web/` directory, run `rbx -S jekyll`.
-1. Commit all the changes in the `web/` directory.
+1. Отредактируйте новый файл с помощью синтаксиса Markdown.
+1. В `web/` директории, выполните `rbx -S jekyll`.
+1. Закомитьте все изменения в `web/` директории.

@@ -7,17 +7,17 @@ next: Исправление неработающей спецификации
 next_url: how-to/fix-a-failing-spec
 ---
 
-Make sure you have read:
+Убедитесь, что вы прочитали следующие разделы:
 
   *  [Приступая к работе](/doc/ru/getting-started/)
   *  [Спецификации](/doc/ru/specs/)
 
-Then, follow these steps to write a spec for a Ruby method:
+После этого, чтобы написать спецификацию для Ruby метода проделайте следующее:
 
-  1. Edit a file under `spec/ruby/...`
-  2. Run `bin/mspec -tr spec/ruby/some/spec_file.rb`
-  3. Repeat until the spec passes on MatzRuby
-  4. Commit your changes
-  7. Use `git format-patch`
-  8. Create a gist with your patch and link to it in a ticket on the issue
-     tracker at http://github.com/evanphx/rubinius/issues.
+  1. Отредактируйте файл в `spec/ruby/...`
+  2. Выполните `bin/mspec -tr spec/ruby/some/spec_file.rb`
+  3. Повторяйте до тех пор, пока спецификация не пройдет на MatzRuby
+  4. Закоммитьте изменения
+  7. Используйте `git format-patch`
+  8. Создайте gist с вашим патчем и добавьте ссылку на него в тикет в трекере
+     http://github.com/evanphx/rubinius/issues.

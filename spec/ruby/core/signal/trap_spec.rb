@@ -83,4 +83,24 @@ describe "Signal.trap" do
     Signal.trap :HUP, "IGNORE"
     Signal.trap(:HUP, "IGNORE").should == "IGNORE"
   end
+
+  describe "the special EXIT signal code" do
+
+    it "accepts the EXIT code" do
+      code = "trap(:EXIT, proc { print 1 })"
+      ruby_exe(code).should == "1"
+    end
+
+    it "runs the proc before at_exit handlers" do
+      code = "at_exit {print 1}; trap(:EXIT, proc {print 2}); at_exit {print 3}"
+      ruby_exe(code).should == "231"
+    end
+
+    it "can unset the handler" do
+      code = "trap(:EXIT, proc { print 1 }); trap(:EXIT, 'DEFAULT')"
+      ruby_exe(code).should == ""
+    end
+
+  end
+
 end

@@ -7,31 +7,30 @@ next: Приложение A - Глоссарий
 next_url: appendix-a-glossary
 ---
 
-There are two translation tasks:
+Существуют два вида задач перевода:
 
-1. updating an existing translation
-1. creating a completely new translation
+1. изменение существующего перевода
+1. добавление перевода на другой язык
 
-Begin by reading [How-To - Write
-Documentation](/doc/ru/how-to/write-documentation/)
-
-
-### Updating an Existing Translation
-
-To update an existing translation, open the topic file under `web/doc/LANG`
-and edit the existing text or add newly translated text.
+Начните с чтения [Написание
+документации](/doc/ru/how-to/write-documentation/)
 
 
-### Creating a New Translation
+### Изменение существующего перевода
 
-To create a new language translation:
+Чтобы изменить существующий перевод откройте нужный файл в директории
+`web/doc/LANG` и отредактируйте существующий перевод или добавьте свой.
 
-1. Copy `web/doc/en` to `web/doc/LANG` where _LANG_ is the
-   [ISO-639-1](http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes) code for
-   the language translation you are creating.
-1. Edit the links in the Table of Contents to point to the location of the
-   files for the translation. (Note that for some reason the `page.base_dir`
-   attribute is not available when these files are being rendered by Jekyll.
-   This needs to be investigated.)
-1. Translate the English text to the target language.
+
+### Добавление перевода на другой язык
+
+Чтобы начать перевод:
+
+1. Скопируйте `web/doc/en` в `web/doc/LANG`, где _LANG_ это
+   [ISO-639-2](http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes) код для
+   языка, для которого вы делаете перевод.
+1. Отредактируйте ссылки в содержании, чтобы они указывали на правильные файлы
+   в переводе. (По некоторы причинам атрибут `page.base_dir` недоступен, когда
+   при обработкех этих файлов Jekyll. С этим моментом предстоит разобраться.)
+1. Переведите английский текст на выбранный вами язык.
 

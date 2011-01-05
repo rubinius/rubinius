@@ -14,21 +14,11 @@ module Signal
         sig = sig[3..-1]
       end
 
-      if sig == "EXIT"
-        at_exit(&block)
-        return
-      end
-
       unless number = Names[sig]
         raise ArgumentError, "Unknown signal '#{osig}'"
       end
     else
       number = sig.to_i
-
-      if number == 0
-        at_exit(&block)
-        return
-      end
     end
 
     # If no command, use the block.
@@ -38,7 +28,10 @@ module Signal
     when "DEFAULT", "SIG_DFL"
       had_old = @handlers.key?(number)
       old = @handlers.delete(number)
-      Rubinius.watch_signal -number
+
+      if number != Names["EXIT"]
+        Rubinius.watch_signal -number
+      end
 
       return "DEFAULT" unless had_old
       return old ? old : "IGNORE"
@@ -59,7 +52,9 @@ module Signal
     old = @handlers[number]
     @handlers[number] = prc
 
-    Rubinius.watch_signal number
+    if number != Names["EXIT"]
+      Rubinius.watch_signal number
+    end
 
     return "DEFAULT" unless had_old
     return old ? old : "IGNORE"

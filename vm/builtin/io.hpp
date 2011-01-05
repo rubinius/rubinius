@@ -104,6 +104,12 @@ namespace rubinius {
     // Ruby.primitive :io_accept
     Object* accept(STATE, CallFrame* calling_environment);
 
+    // Ruby.primitive :io_send_io
+    Object* send_io(STATE, IO* io);
+
+    // Ruby.primitive :io_recv_fd
+    Object* recv_fd(STATE, CallFrame* calling_environment);
+
     /**
      *  Shutdown a full-duplex descriptor's read and/or write stream.
      *
