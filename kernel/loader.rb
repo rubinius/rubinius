@@ -552,6 +552,12 @@ containing the Rubinius standard library files.
     def epilogue
       @stage = "at_exit handler"
 
+      begin
+        Signal.run_handler(Signal::Names["EXIT"])
+      rescue SystemExit => e
+        @exit_code = e.status
+      end
+
       until AtExit.empty?
         begin
           AtExit.shift.call
