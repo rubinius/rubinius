@@ -46,6 +46,10 @@ describe "Numeric#step with [stop, step]" do
       
       @obj.step(@stop, @step).should be_an_instance_of(enumerator_class)
     end
+
+    it "returns an Enumerator that uses the given step" do
+      0.step(5, 2).to_a.should == [0, 2, 4]
+    end
   end
   
   it "increments self (using #+) until self > stop when step > 0" do
