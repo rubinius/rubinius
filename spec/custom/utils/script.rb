@@ -7,6 +7,14 @@ class MSpecScript
   end
 end
 
+# Custom options for mspec
+#
+class MSpecMain
+  def custom_options(options)
+    options.agent
+  end
+end
+
 # Custom options for mspec-run
 #
 class MSpecRun
