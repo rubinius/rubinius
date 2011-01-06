@@ -1,7 +1,3 @@
-require 'spec/custom/utils/options'
-require 'spec/custom/runner/actions/gcstats'
-require 'spec/custom/runner/actions/profiler'
-
 # Registers custom actions, etc. for all MSpec scripts
 #
 class MSpecScript
