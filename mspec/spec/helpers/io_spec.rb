@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require 'mspec/helpers/io'
 require 'mspec/helpers/fs'
+require 'mspec/helpers/fmode'
 require 'mspec/helpers/tmp'
 
 describe IOStub do
@@ -59,7 +60,7 @@ describe Object, "#new_fd" do
     fd = new_fd @name
     fd.should be_an_instance_of(Fixnum)
 
-    @io = IO.new fd
+    @io = IO.new fd, fmode('w:utf-8')
     @io.sync = true
     @io.print "io data"
 
