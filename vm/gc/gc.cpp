@@ -190,30 +190,60 @@ namespace rubinius {
     }
   }
 
-  class UnmarkVisitor : public ObjectVisitor {
-    std::vector<Object*> stack_;
-    ObjectMemory* object_memory_;
-
-  public:
-
-    UnmarkVisitor(ObjectMemory* om)
-      : object_memory_(om)
-    {}
-
-    Object* call(Object* obj) {
-      if(watched_p(obj)) {
-        std::cout << "detected " << obj << " during unmarking.\n";
-      }
-
-      if(obj->reference_p() && obj->marked_p(object_memory_->mark())) {
-        obj->clear_mark();
-        stack_.push_back(obj);
-      }
-
-      return obj;
+  void GarbageCollector::scan(ManagedThread* thr, bool young_only) {
+    for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
+      ri->set(saw_object(ri->get()));
     }
 
-  };
+    scan(thr->variable_root_buffers(), young_only);
+    scan(thr->root_buffers(), young_only);
+
+    if(VM* vm = thr->as_vm()) {
+      if(CallFrame* cf = vm->saved_call_frame()) {
+        walk_call_frame(cf);
+      }
+    }
+
+    std::list<ObjectHeader*>& los = thr->locked_objects();
+    for(std::list<ObjectHeader*>::iterator i = los.begin();
+        i != los.end();
+        i++) {
+      *i = saw_object((Object*)*i);
+    }
+  }
+
+  void GarbageCollector::scan(VariableRootBuffers& buffers, bool young_only) {
+    for(VariableRootBuffers::Iterator vi(buffers);
+        vi.more();
+        vi.advance())
+    {
+      Object*** buffer = vi->buffer();
+      for(int idx = 0; idx < vi->size(); idx++) {
+        Object** var = buffer[idx];
+        Object* tmp = *var;
+
+        if(tmp->reference_p() && (!young_only || tmp->young_object_p())) {
+          *var = saw_object(tmp);
+        }
+      }
+    }
+  }
+
+  void GarbageCollector::scan(RootBuffers& buffers, bool young_only) {
+    for(RootBuffers::Iterator i(buffers);
+        i.more();
+        i.advance())
+    {
+      Object** buffer = i->buffer();
+      for(int idx = 0; idx < i->size(); idx++) {
+        Object* tmp = buffer[idx];
+
+        if(tmp->reference_p() && (!young_only || tmp->young_object_p())) {
+          buffer[idx] = saw_object(tmp);
+        }
+      }
+    }
+  }
 
   void GarbageCollector::clean_weakrefs(bool check_forwards) {
     if(!weak_refs_) return;
