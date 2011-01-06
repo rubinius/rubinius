@@ -42,7 +42,7 @@ class Numeric
   end
 
   def step(limit, step=1, &block)
-    return to_enum :step, limit unless block_given?
+    return to_enum :step, limit, step unless block_given?
 
     raise ArgumentError, "step cannot be 0" if step == 0
 
