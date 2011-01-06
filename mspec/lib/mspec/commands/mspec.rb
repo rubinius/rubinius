@@ -53,10 +53,6 @@ class MSpecMain < MSpecScript
       config[:options] << "-fy"
     end
 
-    options.on("--agent", "Start the Rubinius agent") do
-      config[:agent] = true
-    end
-
     options.version MSpec::VERSION do
       if config[:command]
         config[:options] << "-v"
@@ -149,10 +145,6 @@ class MSpecMain < MSpecScript
     ENV['RUBY_FLAGS']   = config[:flags].join " "
 
     argv = []
-
-    if config[:agent]
-      argv << "-Xagent.start"
-    end
 
     argv.concat config[:flags]
     argv.concat config[:includes]
