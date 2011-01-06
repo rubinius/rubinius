@@ -46,7 +46,7 @@ namespace rubinius {
      * the constructor for Globals, again, at the END of the list. */
 
     /* classes for the core 'types' */
-    TypedRoot<Class*> blokctx, cmethod, tuple, module, object, array;
+    TypedRoot<Class*> blokctx, cmethod, tuple, module, basicobject, object, array;
     TypedRoot<Class*> klass, methtbl, bytearray, methctx, blank;
     TypedRoot<Class*> blokenv, bignum, regexp, matchdata;
     TypedRoot<Class*> string, symbol, io;
@@ -123,6 +123,7 @@ namespace rubinius {
       cmethod(&roots),
       tuple(&roots),
       module(&roots),
+      basicobject(&roots),
       object(&roots),
       array(&roots),
       klass(&roots),

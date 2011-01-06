@@ -1,3 +1,9 @@
+#include "vm/config.h"
+
+#ifndef RBX_WINDOWS
+#include <sys/select.h>
+#endif
+
 #include "capi/capi.hpp"
 #include "capi/include/ruby.h"
 #include "builtin/thread.hpp"

@@ -1,11 +1,19 @@
+#include "config.h"
 #include "signal.hpp"
 #include "vm.hpp"
 
 #include "builtin/module.hpp"
 #include "builtin/array.hpp"
+
+#include "builtin/array.hpp"
+#include "builtin/module.hpp"
+
 #include <iostream>
-#include <sys/select.h>
 #include <fcntl.h>
+
+#ifndef RBX_WINDOWS
+#include <sys/select.h>
+#endif
 
 namespace rubinius {
   struct CallFrame;

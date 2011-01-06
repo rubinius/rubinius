@@ -1,0 +1,3 @@
+fails:String#<< raises a RuntimeError when self is frozen
+fails:String#<< raises RangeError for negative length argument
+fails:String#<< with Fixnum raises a RuntimeError when self is frozen

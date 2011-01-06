@@ -27,22 +27,19 @@ require 'kernel/bootstrap/iseq.rb'
 # So that the compiler can try and use the config
 module Rubinius
   Config = { 'eval.cache' => false }
-
-  class Channel
-    def receive
-    end
-
-    def <<(val)
-    end
-
-    def as_lock
-      yield
-    end
-  end unless const_defined?(:Channel)
 end
 
 # The rule for compiling all kernel Ruby files
+@build_parser_selected = nil
 rule ".rbc" do |t|
+  # We must be able to build 1.9 language features such as 'def !() end'
+  # Consequently, all of kernel needs to be written in the strict subset
+  # of 1.8 that is understood by the 1.9 parser, plus 1.9 features.
+  unless @build_parser_selected
+    Rubinius::Melbourne.select_19
+    @build_parser_selected = true
+  end
+
   source = t.prerequisites.first
   puts "RBC #{source}"
   Rubinius::Compiler.compile source, t.name, 1, [:default, :kernel]
@@ -60,29 +57,46 @@ dir_names = [
   "delta"
 ]
 
-dir_names.each do |dir|
-  directory(runtime_dir = "runtime/#{dir}")
-  runtime << runtime_dir
+# Generate file tasks for all kernel and load_order files.
+compiler_signature = "kernel/signature.rb"
 
-  load_order = "runtime/#{dir}/load_order.txt"
-  runtime << load_order
+def kernel_file_task(runtime, signature, rb, rbc=nil)
+  rbc ||= rb.sub(/^kernel/, "runtime") + "c"
 
-  file load_order => "kernel/#{dir}/load_order.txt" do |t|
-    cp t.prerequisites.first, t.name, :verbose => $verbose
+  file rbc => [rb, signature]
+  runtime << rbc
+end
+
+["18", "19", "20"].each do |ver|
+  dir_names.each do |dir|
+    directory(runtime_dir = "runtime/#{dir}")
+    runtime << runtime_dir
+
+    load_order = "runtime/#{dir}/load_order#{ver}.txt"
+    runtime << load_order
+
+    kernel_load_order = "kernel/#{dir}/load_order#{ver}.txt"
+
+    file load_order => kernel_load_order do |t|
+      cp t.prerequisites.first, t.name, :verbose => $verbose
+    end
+
+    kernel_dir  = "kernel/#{dir}/"
+    runtime_dir = "runtime/#{dir}/"
+
+    IO.foreach kernel_load_order do |name|
+      rbc = runtime_dir + name.chomp!
+      rb  = kernel_dir + name.chop
+      kernel_file_task runtime, compiler_signature, rb, rbc
+    end
   end
 end
 
-# Generate file tasks for all kernel files.
-compiler_signature = "kernel/signature.rb"
-
-FileList[
-  "kernel/**/*.rb",
-  compiler_signature
-].each do |rb|
-  rbc = rb.sub(/^kernel/, "runtime") + "c"
-
-  file rbc => [rb, compiler_signature]
-  runtime << rbc
+[ compiler_signature,
+  "kernel/alpha.rb",
+  "kernel/loader.rb"
+].each do |name|
+  kernel_file_task runtime, compiler_signature, name
 end
 
 # Directories to store the core library runtime files (.rbc's)
@@ -115,7 +129,8 @@ end
 
 parser_ext_files = FileList[
   "lib/ext/melbourne/**/*.{c,h}pp",
-  "lib/ext/melbourne/grammar.y",
+  "lib/ext/melbourne/grammar18.y",
+  "lib/ext/melbourne/grammar19.y",
   "lib/ext/melbourne/lex.c.tab"
 ]
 

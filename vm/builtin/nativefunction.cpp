@@ -1,11 +1,17 @@
 /* A simple C++ wrapper around libffi. */
 
+#include "vm/config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#ifdef RBX_WINDOWS
+#include <malloc.h>
+#else
 #include <dlfcn.h>
+#endif
 
 #include "prelude.hpp"
 #include "object_utils.hpp"

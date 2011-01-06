@@ -1,0 +1,1 @@
+fails:Kernel#sprintf is a private method

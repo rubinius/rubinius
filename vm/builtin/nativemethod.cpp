@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "config.h"
 #include "vm.hpp"
 
 #include "exception.hpp"
@@ -25,6 +26,10 @@
 
 #include "capi/capi.hpp"
 #include "capi/handle.hpp"
+
+#ifdef RBX_WINDOWS
+#include <malloc.h>
+#endif
 
 namespace rubinius {
   /** Thread-local NativeMethodEnvironment instance. */

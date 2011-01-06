@@ -1,0 +1,1 @@
+fails:Array#slice! raises a RuntimeError on a frozen array

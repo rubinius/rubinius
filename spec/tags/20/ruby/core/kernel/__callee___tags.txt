@@ -1,0 +1,5 @@
+fails:Kernel.__callee__ returns the current method, even when aliased
+fails:Kernel.__callee__ returns the original name when aliased method
+fails:Kernel.__callee__ returns the caller from blocks too
+fails:Kernel.__callee__ returns method name even from eval
+fails:Kernel.__callee__ returns nil when not called from a method

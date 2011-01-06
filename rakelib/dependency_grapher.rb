@@ -20,6 +20,8 @@
 require 'set'
 
 class DependencyGrapher
+  DEV_NULL = RUBY_PLATFORM =~ /mingw|mswin/ ? 'NUL' : '/dev/null'
+
   class ExpressionEvaluator
     def initialize(expression)
       @expression = expression
@@ -112,6 +114,9 @@ class DependencyGrapher
 
       width = str.size
       @dependencies.each do |name|
+        # Omit drive letter on Windows.
+        name = name[2..-1] if name[1] == ?:
+
         size = name.size + 1
         if width + size > max
           width = 0
@@ -398,7 +403,7 @@ class DependencyGrapher
   end
 
   def get_system_defines
-    lines = `cpp -dM #{@defines} /dev/null`.split("\n")
+    lines = `cpp -dM #{@defines} #{DEV_NULL}`.split("\n")
 
     source = SourceFile.new "sytem_defines", self
     parser = FileParser.new source, @directories

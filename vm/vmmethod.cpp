@@ -1,3 +1,4 @@
+#include "config.h"
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "call_frame.hpp"
@@ -19,12 +20,15 @@
 
 #include "instruments/profiler.hpp"
 #include "instruments/timing.hpp"
-#include "config.h"
 
 #include "raise_reason.hpp"
 #include "inline_cache.hpp"
 
 #include "configuration.hpp"
+
+#ifdef RBX_WINDOWS
+#include <malloc.h>
+#endif
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"

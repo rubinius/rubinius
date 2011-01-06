@@ -33,7 +33,7 @@ end
 require config_rb
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 
-unless BUILD_CONFIG[:config_version] == 29
+unless BUILD_CONFIG[:config_version] == 124
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
@@ -87,7 +87,7 @@ ENV['CXX'] = BUILD_CONFIG[:cxx] unless ENV['CXX']
 
 $dlext = RbConfig::CONFIG["DLEXT"]
 
-task :default => %w[build vm:test] do
+def run_specs(flags=nil)
   unless File.directory? BUILD_CONFIG[:runtime]
     # Setting these enables the specs to run when rbx has been configured
     # to be installed, but rake install has not been run yet.
@@ -96,7 +96,11 @@ task :default => %w[build vm:test] do
     ENV["CFLAGS"]      = "-Ivm/capi"
   end
 
-  sh "bin/mspec ci --background --agent"
+  sh "bin/mspec ci #{ENV['CI_MODE_FLAG'] || flags} --background --agent"
+end
+
+task :default => %w[build vm:test] do
+  run_specs
 end
 
 # See vm.rake for more information
@@ -106,14 +110,38 @@ task :build => ["build:normal", "gem_bootstrap"]
 desc "Recompile all ruby system files"
 task :rebuild => %w[clean build]
 
-desc "Use to run Rubinius in CI"
-task :ci do
+def run_ci
   unless system("rake -q")
     puts "<< ERROR IN CI, CLEANING AND RERUNNING >>"
     system "rake -q clean"
     system "find . -name *.rbc -delete"
     sh "rake -q"
   end
+end
+
+desc "Run CI in default (configured) mode"
+task :ci do
+  run_ci
+end
+
+# These tasks run the specs in the specified mode regardless of
+# the default mode with which Rubinius was configured.
+desc "Run CI in 1.8 mode"
+task :ci18 do
+  ENV['CI_MODE_FLAG'] = "-T -X19=no"
+  run_ci
+end
+
+desc "Run CI in 1.9 mode"
+task :ci19 do
+  ENV['CI_MODE_FLAG'] = "-T -X19"
+  run_ci
+end
+
+desc "Run CI in 2.0 mode"
+task :ci20 do
+  ENV['CI_MODE_FLAG'] = "-T -X20"
+  run_ci
 end
 
 desc 'Remove rubinius build files'
@@ -158,53 +186,24 @@ task :docs do
   Rubinius::Documentation.main
 end
 
-desc "Documents why no spec tasks exist"
+desc "Run the CI specs in 1.8 mode but do not rebuild on failure"
+task :spec18 do
+  run_specs "-T -X19=no"
+end
+
+desc "Run the CI specs in 1.9 mode but do not rebuild on failure"
+task :spec19 do
+  run_specs "-T -X19"
+end
+
+desc "Run the CI specs in 2.0 mode but do not rebuild on failure"
+task :spec20 do
+  run_specs "-T -X20"
+end
+
+desc "Run CI in default (configured) mode but do not rebuild on failure"
 task :spec do
-  puts <<-EOM
-
-  The spec and spec:xxx commands are deprecated (and removed).
-  Use bin/mspec directly. MSpec provides 'pseudo-directories',
-  which are labels that refer to sets of specs to run. Refer
-  to spec/default.mspec and the MSpec docs for full details.
-
-  The following are likely scenarios for running the specs.
-  Unless -t <target> is passed to mspec, bin/rbx is run.
-
-  Run the CI specs that are run with the default 'rake' command
-
-    bin/mspec ci
-
-  Run all the RubySpec specs but not Rubinius-specific ones:
-
-    bin/mspec
-
-  Run all the RubySpec Array specs:
-
-    bin/mspec core/array
-      OR
-    bin/mspec spec/ruby/core/array
-
-  Run spec/ruby/core/array/append_spec.rb:
-
-    bin/mspec core/array/append
-      OR
-    bin/mspec spec/ruby/core/array/append_spec.rb
-
-  Run all the compiler specs:
-
-    bin/mspec :compiler
-
-  Run all the [language, core, library, capi] specs:
-
-    bin/mspec :language
-    bin/mspec :core
-    ...
-
-  Run all the spec/ruby specs using the 'ruby' executable on your path
-
-    bin/mspec -tr :ruby
-
-  EOM
+  run_specs
 end
 
 desc "Print list of items marked to-do in kernel/ (@todo|TODO)"

@@ -5,6 +5,7 @@
 
 #include "vm/object_utils.hpp"
 
+#include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/array.hpp"
@@ -35,7 +36,9 @@
 #include <iostream>
 #include <iomanip>
 #include <signal.h>
+#ifndef RBX_WINDOWS
 #include <sys/resource.h>
+#endif
 
 // Reset macros since we're inside state
 #undef G
@@ -116,7 +119,7 @@ namespace rubinius {
 
     VMMethod::init(this);
 
-    // Setup the main Thread, which is a reflect of the pthread_self()
+    // Setup the main Thread, which is wrapper of the main native thread
     // when the VM boots.
     thread.set(Thread::create(this, this, G(thread), pthread_self()), &globals().roots);
     thread->sleep(this, Qfalse);

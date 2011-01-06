@@ -84,6 +84,12 @@ containing the Rubinius standard library files.
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
       additions = []
+      if Rubinius.ruby19? or Rubinius.ruby20?
+        version_lib = "/19"
+      else
+        version_lib = "/18"
+      end
+      additions << Rubinius::LIB_PATH + version_lib
       additions << Rubinius::SITE_PATH
       additions << "#{Rubinius::SITE_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}"
       additions << Rubinius::VENDOR_PATH
@@ -94,7 +100,7 @@ containing the Rubinius standard library files.
       $LOAD_PATH.unshift(*additions)
 
       if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
-        rubylib_paths = ENV['RUBYLIB'].split(':')
+        rubylib_paths = ENV['RUBYLIB'].split(File::PATH_SEPARATOR)
         $LOAD_PATH.unshift(*rubylib_paths)
       end
     end

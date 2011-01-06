@@ -1,3 +1,5 @@
+#include "vm/config.h"
+
 #include "builtin/randomizer.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
@@ -17,6 +19,11 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
+#ifdef RBX_WINDOWS
+#include <malloc.h>
+#include <process.h>
+#endif
 
 
 /*

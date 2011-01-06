@@ -1,5 +1,7 @@
 #include <tr1/unordered_map>
 
+#include "config.h"
+
 #include "util/bert.hpp"
 #include "agent_components.hpp"
 
@@ -8,6 +10,10 @@
 #include "builtin/thread.hpp"
 #include "builtin/string.hpp"
 #include "builtin/system.hpp"
+
+#ifdef RBX_WINDOWS
+#include "windows_compat.h"
+#endif
 
 namespace rubinius {
 namespace agent {

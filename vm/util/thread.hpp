@@ -28,39 +28,6 @@ namespace thread {
     cTimedOut
   };
 
-#if 0
-  static void block_all_signals() {
-    sigset_t set;
-    sigfillset(&set);
-
-    pthread_sigmask(SIG_BLOCK, &set, NULL);
-  }
-
-  static void accept_signal(int sig) {
-    sigset_t set;
-    sigemptyset(&set);
-    sigaddset(&set, sig);
-
-    pthread_sigmask(SIG_UNBLOCK, &set, NULL);
-  }
-
-  static void ignore_signal(int sig) {
-    sigset_t set;
-    sigemptyset(&set);
-    sigaddset(&set, sig);
-
-    pthread_sigmask(SIG_BLOCK, &set, NULL);
-  }
-
-  static void wait_on_signal(int sig) {
-    sigset_t set;
-    sigemptyset(&set);
-    sigaddset(&set, sig);
-
-    int bunk;
-    sigwait(&set, &bunk);
-  }
-#endif
   template <typename T = void*>
   class ThreadData {
     pthread_key_t native_;
@@ -96,6 +63,10 @@ namespace thread {
     }
 
   public:
+    typedef pthread_t thread_t;
+
+    const static int cWakeupSignal = SIGVTALRM;
+
     Thread(size_t stack_size = 0, pthread_t tid = 0)
       : native_(tid)
       , stack_size_(stack_size)
@@ -104,6 +75,32 @@ namespace thread {
     }
 
     virtual ~Thread() { }
+
+    static thread_t self() {
+      return pthread_self();
+    }
+
+    static bool equal_p(thread_t t1, thread_t t2) {
+      return pthread_equal(t1, t2);
+    }
+
+    static void signal(thread_t thr, int signal) {
+      pthread_kill(thr, signal);
+    }
+
+    static void block_all_signals() {
+      sigset_t set;
+      sigfillset(&set);
+
+      pthread_sigmask(SIG_BLOCK, &set, NULL);
+    }
+
+    static void mask_all_signals() {
+      sigset_t set;
+      sigfillset(&set);
+
+      pthread_sigmask(SIG_SETMASK, &set, NULL);
+    }
 
     pthread_t* native() {
       return &native_;

@@ -1,0 +1,9 @@
+fails:CGI::HtmlExtension#popup_menu when passed no arguments returns an empty 'select'-element without a name
+fails:CGI::HtmlExtension#popup_menu when passed no arguments ignores a passed block
+fails:CGI::HtmlExtension#popup_menu when passed name, values ... returns a 'select'-element with the passed name containing 'option'-elements based on the passed values
+fails:CGI::HtmlExtension#popup_menu when passed name, values ... allows passing values inside of arrays
+fails:CGI::HtmlExtension#popup_menu when passed name, values ... allows passing a value as an Array containing the value and the select state or a label
+fails:CGI::HtmlExtension#popup_menu when passed name, values ... allows passing a value as an Array containing the value, a label and the select state
+fails:CGI::HtmlExtension#popup_menu when passed name, values ... ignores a passed block
+fails:CGI::HtmlExtension#popup_menu when passed a Hash uses the passed Hash to generate the 'select'-element and the 'option'-elements
+fails:CGI::HtmlExtension#popup_menu when passed a Hash ignores a passed block

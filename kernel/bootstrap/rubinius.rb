@@ -135,4 +135,19 @@ module Rubinius
     Ruby.primitive :vm_memory_barrier
     raise PrimitiveFailure, "Rubinius.memory_barrier failed"
   end
+
+  def self.ruby19?
+    Ruby.primitive :vm_ruby19_p
+    raise PrimitiveFailure, "Rubinius.ruby19? failed"
+  end
+
+  def self.ruby20?
+    Ruby.primitive :vm_ruby20_p
+    raise PrimitiveFailure, "Rubinius.ruby20? failed"
+  end
+
+  def self.windows?
+    Ruby.primitive :vm_windows_p
+    raise PrimitiveFailure, "Rubinius.windows? failed"
+  end
 end

@@ -21,19 +21,33 @@ class Configure
     @defines = []
     @config = File.join(root, "config.rb")
 
-    # TODO: conditionalize for Windows
-    @host = `./rakelib/config.guess`.chomp
+    @host = `sh -c ./rakelib/config.guess`.chomp
     /([^-]+)-([^-]+)-(.*)/ =~ @host
     @cpu, @vendor, @os = $1, $2, $3
     @little_endian = false
     @sizeof_long = 0
 
+    # TODO: For better cross-compiling support, it may be necessary to
+    # use the feature facility to check for a define in the compiler.
+    @windows = (@host =~ /mingw|mswin/) != nil
+
+    # Set up system commands to run in cmd.exe on Windows.
+    if @windows
+      alias :old_system    :system
+      alias :old_backquote :`
+      alias :system        :msys_system
+      alias :`             :msys_backquote
+    end
+
     # Compiler / build settings
     @cc = ENV['CC'] || 'gcc'
     @cxx = ENV['CXX'] || 'g++'
     @rake = ENV['RAKE'] || 'rake'
+    @tar = ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
     @perl = ENV['PERL'] || 'perl'
     @install = false
+    @version_19 = false
+    @version_20 = false
     @build_ruby = nil
 
     # LLVM settings
@@ -85,13 +99,13 @@ class Configure
     @rb_readline = false
 
     # Essential settings (modify these for creating releases)
-    @libversion = "1.2"
-    @version = "#{@libversion}.1dev"
-    @release_date = "2010-12-21"
-    @config_version = 29
+    @libversion = "1.3"
+    @version = "#{@libversion}.0dev"
+    @release_date = "xxxx-xx-xx"
+    @config_version = 124
 
     if !ENV['RELEASE'] and File.directory?(root + "/.git")
-      @buildrev = `git rev-list --all | head -n1`.chomp
+      @buildrev = `git rev-list --max-count=1 --all`.chomp
     else
       @buildrev = "release"
     end
@@ -104,6 +118,20 @@ class Configure
     end
 
     import_env
+  end
+
+  # Set up system commands to run in cmd.exe on Windows. Either Windows
+  # or MRI on Windows has issues with subprocesses where the invocation
+  # of the subprocess will return before the subprocess has finished.
+  # This manifests in configure when uncompressing LLVM source returns
+  # but attempting to move the directory fails sporadically with an access
+  # exception. Adding the, essentially no-op, 'sleep 0' resolves this.
+  def msys_system(cmd)
+    old_system %[cmd.exe /C "#{cmd} && sleep 0"]
+  end
+
+  def msys_backquote(cmd)
+    old_backquote %[cmd.exe /C "#{cmd}"]
   end
 
   def import_env
@@ -132,8 +160,20 @@ class Configure
       @rake = name
     end
 
+    o.on "--tar", "NAME", "Use NAME as 'tar'" do |name|
+      @tar = name
+    end
+
     o.on "--perl", "NAME", "Use NAME as 'perl' during build" do |name|
       @perl = name
+    end
+
+    o.on "--default-1.9", "Support Ruby version 1.9 by default" do
+      @version_19 = true
+    end
+
+    o.on "--default-2.0", "Support Ruby version 2.0 by default" do
+      @version_20 = true
     end
 
     o.doc "\n Compiler settings"
@@ -331,7 +371,7 @@ class Configure
         size = 0
         total = res.header['Content-Length'].to_i
 
-        File.open full_path, "w" do |f|
+        File.open full_path, "wb" do |f|
           res.read_body do |chunk|
             f << chunk
             size += chunk.size
@@ -358,9 +398,7 @@ class Configure
     md5_path = "#{full_path}.md5"
 
     dir = File.dirname full_path
-
     Dir.mkdir dir unless File.exists? dir
-
     url = File.join @llvm_asset_path, file
 
     unless File.exists? full_path
@@ -394,7 +432,6 @@ class Configure
     return false unless File.exists? @llvm_default
 
     if File.exists?(@llvm_include_path)
-      @log.write "  Code appears to be a proper tree."
       @llvm = :svn
       return true
     else
@@ -404,8 +441,15 @@ class Configure
   end
 
   def setup_source
+    @log.print "  Checking for existing LLVM source tree:"
+
     # Check if source already exists
-    return true if verify_llvm_source
+    if verify_llvm_source
+      @log.write " found!"
+      return true
+    else
+      @log.write " not found."
+    end
 
     url = @llvm_source_url
     path = File.join @llvm_prebuilt_path, @llvm_source
@@ -417,10 +461,16 @@ class Configure
 
     if File.exists?(path)
       @log.print "  Unpacking LLVM source: "
-      system "cd #{@llvm_parent_path}; tar xzf #{path}; mv #{@llvm_source_dir} llvm"
+      Dir.chdir @llvm_parent_path do
+        system "#{@tar} xzf #{path}"
+        FileUtils.mv @llvm_source_dir, "llvm"
+      end
       @log.write "done!"
 
-      return true if verify_llvm_source
+      if verify_llvm_source
+        @log.write "  Code appears to be a proper tree."
+        return true
+      end
     end
   end
 
@@ -456,7 +506,11 @@ class Configure
 
       if File.exists?(path)
         @log.print "  Unpacking prebuilt LLVM: #{file}: "
-        system "cd #{@llvm_parent_path}; mkdir llvm; cd llvm; tar xjf #{path}"
+        dir = File.join @llvm_parent_path, "llvm"
+        FileUtils.mkdir_p dir
+        Dir.chdir dir do
+          system "#{@tar} xjf #{path}"
+        end
         @log.write "done!"
         @llvm = :prebuilt
         return true
@@ -499,7 +553,7 @@ class Configure
   end
 
   def setup_auto
-    @log.print "  Checking for existing LLVM tree: "
+    @log.print "  Checking for existing LLVM library tree: "
     if File.directory?("#{@llvm_default}/Release")
       version = `#{@perl} #{@llvm_default}/Release/bin/llvm-config --version`.strip
       if version == "2.8"
@@ -594,7 +648,7 @@ class Configure
     begin
       basename = "rbx-configure-test"
       source   = basename + ".cpp"
-      File.open source, "w" do |f|
+      File.open source, "wb" do |f|
         yield f
       end
 
@@ -614,7 +668,7 @@ class Configure
         exit 1
       end
 
-      `./#{basename}`
+      system expand("./#{basename}")
       return $?.exitstatus
     ensure
       File.delete(*Dir["#{basename}*"])
@@ -732,7 +786,7 @@ int main() { return tgetnum(""); }
 
     tf.close
 
-    `#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1`
+    system "#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{tf.path} >>#{@log.path} 2>&1"
     status = ($?.exitstatus == 0)
 
     tf.unlink
@@ -822,7 +876,8 @@ int main() { return tgetnum(""); }
       @llvm_configure = ""
     end
 
-    File.open @config, "w" do |f|
+    # Write the config file used by the build system and rbconfig.rb.
+    File.open @config, "wb" do |f|
       f.puts <<-EOC
 module Rubinius
   BUILD_CONFIG = {
@@ -860,7 +915,8 @@ module Rubinius
     :version        => "#{@version}",
     :libversion     => "#{@libversion}",
     :release_date   => "#{@release_date}",
-    :config_version => #{@config_version}
+    :config_version => #{@config_version},
+    :windows        => #{@windows}
   }
 end
       EOC
@@ -869,9 +925,10 @@ end
     Dir.mkdir "lib/rubinius" unless File.directory? "lib/rubinius"
     FileUtils.cp @config, "lib/rubinius/build_config.rb"
 
+    # Write the config file used to build the C++ VM.
     Dir.mkdir "vm/gen" unless File.directory? "vm/gen"
 
-    File.open "vm/gen/config.h", "w" do |f|
+    File.open "vm/gen/config.h", "wb" do |f|
       f.puts <<-EOC
 #define RBX_HOST          "#{@host}"
 #define RBX_CPU           "#{@cpu}"
@@ -889,6 +946,8 @@ end
 #define RBX_LIB_VERSION   "#{@libversion}"
 #define RBX_BUILD_REV     "#{@buildrev}"
 #define RBX_LDSHARED      "#{@ldshared}"
+#define RBX_DEFAULT_19    #{@version_19}
+#define RBX_DEFAULT_20    #{@version_20}
 #define RBX_RELEASE_DATE  "#{@release_date}"
 #define RBX_SIZEOF_LONG   #{@sizeof_long}
       EOC
@@ -900,10 +959,31 @@ end
       if @tr1_hash
         f.puts "#define RBX_HAVE_TR1_HASH 1"
       end
+
+      if @windows
+        f.puts "#define RBX_WINDOWS 1"
+      end
+    end
+
+    # Write the config file used in the C-API.
+    File.open "vm/capi/include/config.h", "wb" do |f|
+      f.puts <<-EOC
+/* This file is generated by the build system. Your edits
+ * will be lost. See the configure script.
+ */
+
+#ifndef NORETURN
+#define NORETURN(x) __attribute__ ((noreturn)) x
+#endif
+      EOC
+
+      if @windows
+        f.puts "#define RBX_WINDOWS 1"
+      end
     end
 
     # Write a require file depending on which Readline library we use.
-    File.open "lib/readline.rb", "w" do |f|
+    File.open "lib/readline.rb", "wb" do |f|
       if @rb_readline
         f.puts "require 'rb-readline/readline'"
       else
@@ -976,7 +1056,7 @@ After building, you may add '#{@bindir}' to your PATH or run commands directly f
     def initialize(file, init=true)
       @path = File.expand_path("../#{file}", __FILE__)
       if init
-        File.open(@path, "w") { }
+        File.open(@path, "wb") { }
         log "Configuring Rubinius..."
       end
     end

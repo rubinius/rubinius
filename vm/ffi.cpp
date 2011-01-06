@@ -5,7 +5,12 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <sys/stat.h>
+
+#include "config.h"
+
+#ifndef RBX_WINDOWS
 #include <dlfcn.h>
+#endif
 
 #include "vm.hpp"
 #include "objectmemory.hpp"

@@ -3,3 +3,4 @@ vm
 gen/*
 external_libs
 test/test_instructions.hpp
+capi/include/config.h

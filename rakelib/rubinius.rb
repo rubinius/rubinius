@@ -6,6 +6,10 @@ def clear_compiler
   ENV.delete 'RBX_PLATFORM'
 end
 
+def expand(path)
+  File.expand_path path
+end
+
 def make(args = nil)
   if RUBY_PLATFORM =~ /bsd/
     gmake = 'gmake'

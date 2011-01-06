@@ -2,6 +2,8 @@
 // because it uses a whole bunch of local classes and it's cleaner to have
 // all that be in it's own file.
 
+#include "vm/config.h"
+
 #include "vm/vm.hpp"
 
 #include "gc/gc.hpp"
@@ -21,7 +23,11 @@
 #include "object_utils.hpp"
 
 #include <fcntl.h>
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#else
 #include <arpa/inet.h>
+#endif
 
 #include <map>
 #include <vector>

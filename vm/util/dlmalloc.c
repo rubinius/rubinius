@@ -6,10 +6,6 @@
 
 /*------------------------------ internal #includes ---------------------- */
 
-#ifdef WIN32
-#pragma warning( disable : 4146 ) /* no "unsigned" warnings */
-#endif /* WIN32 */
-
 #include <stdio.h>       /* for printing in malloc_stats */
 
 #ifndef LACKS_ERRNO_H

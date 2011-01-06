@@ -1,0 +1,1 @@
+fails:Observer#count_observers returns the number of unique observers

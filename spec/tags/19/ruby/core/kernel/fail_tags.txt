@@ -1,0 +1,1 @@
+fails:Kernel.fail is a private method

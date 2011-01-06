@@ -1,3 +1,5 @@
+#include "vm/config.h"
+
 #include "builtin/array.hpp"
 #include "builtin/data.hpp"
 #include "builtin/fixnum.hpp"
@@ -26,6 +28,10 @@
 #include <string>
 #include <vector>
 #include <tr1/unordered_map>
+
+#ifdef RBX_WINDOWS
+#include <malloc.h>
+#endif
 
 namespace rubinius {
   namespace capi {

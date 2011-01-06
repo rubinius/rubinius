@@ -11,7 +11,7 @@ config.use_jit = true
 config.compile_with_llvm = false
 
 CONFIG = config
-
+DEV_NULL = RUBY_PLATFORM =~ /mingw|mswin/ ? 'NUL' : '/dev/null'
 
 task :vm => 'vm/vm'
 
@@ -35,7 +35,7 @@ end
 
 tests.uniq!
 
-subdirs = %w!builtin capi util instruments gc llvm!
+subdirs = %w!builtin missing capi util instruments gc llvm!
 
 srcs        = FileList["vm/*.{cpp,c}"]
 subdirs.each do |dir|
@@ -53,8 +53,9 @@ dep_file    = "vm/.depends.mf"
 vm_objs     = %w[ vm/drivers/cli.o ]
 vm_srcs     = %w[ vm/drivers/cli.cpp ]
 
-EX_INC      = %w[ libtommath libgdtoa onig libffi/include
-                ].map { |f| "vm/external_libs/#{f}" }
+ex_inc      = %w[ libtommath libgdtoa onig libffi/include ]
+ex_inc      << "winpthreads/include" if BUILD_CONFIG[:windows]
+EX_INC      = ex_inc.map { |f| "vm/external_libs/#{f}" }
 
 INSN_GEN    = %w[ vm/gen/instruction_names.cpp
                   vm/gen/instruction_names.hpp
@@ -80,6 +81,7 @@ task :bogo_field_extract => TYPE_GEN
 # CompactLookupTable inherits from Tuple, so the header
 # for compactlookuptable.hpp has to come after tuple.hpp
 field_extract_headers = %w[
+  vm/builtin/basicobject.hpp
   vm/builtin/object.hpp
   vm/builtin/integer.hpp
   vm/builtin/fixnum.hpp
@@ -142,8 +144,9 @@ EXTERNALS   = %W[ vm/external_libs/libtommath/libtommath.a
                   vm/external_libs/libgdtoa/libgdtoa.a
                   vm/external_libs/onig/.libs/libonig.a
                   vm/external_libs/libffi/.libs/libffi.a ]
+EXTERNALS   << "vm/external_libs/winpthread/libpthread.a" if BUILD_CONFIG[:windows]
 
-INCLUDES      = EX_INC + %w[vm/test/cxxtest vm .]
+INCLUDES    = EX_INC + %w[vm/test/cxxtest vm .]
 
 extra = %w!/usr/local/include /opt/local/include!
 
@@ -312,7 +315,11 @@ namespace :build do
   task :llvm do
     if LLVM_ENABLE and Rubinius::BUILD_CONFIG[:llvm] == :svn
       unless File.file?("vm/external_libs/llvm/Release/bin/llvm-config")
-        sh "cd vm/external_libs/llvm; REQUIRES_RTTI=1 ./configure #{llvm_config_flags}; REQUIRES_RTTI=1 #{make}"
+        ENV["REQUIRES_RTTI"] = "1"
+        Dir.chdir "vm/external_libs/llvm" do
+          sh %[sh -c "#{expand("./configure")} #{llvm_config_flags}"]
+          sh make
+        end
       end
     end
   end
@@ -479,9 +486,14 @@ files EXTERNALS do |t|
   configure_path = File.join(path, 'configure')
 
   if File.exist? configure_path then
-    sh "cd #{path}; ./configure && #{make}"
+    cd path do
+      sh "sh -c './configure CC=#{CC}'"
+      sh make
+    end
   else
-    sh "cd #{path}; #{make}"
+    cd path do
+      sh "#{make} CC=#{CC}"
+    end
   end
 end
 
@@ -506,7 +518,7 @@ file 'vm/test/runner.cpp' => tests + objs do
   tests = tests.sort
   puts "GEN vm/test/runner.cpp" unless $verbose
   tests << { :verbose => $verbose }
-  sh("vm/test/cxxtest/cxxtestgen.pl", "--error-printer", "--have-eh",
+  sh("perl", "vm/test/cxxtest/cxxtestgen.pl", "--error-printer", "--have-eh",
      "--abort-on-fail", "-include=string.h", "-include=stdlib.h",
      "-include=vm/test/test_setup.h",
      "-o", "vm/test/runner.cpp", *tests)
@@ -615,14 +627,16 @@ namespace :vm do
       if $verbose
         sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info"
       else
-        sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info > /dev/null 2>&1"
+        sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info > #{DEV_NULL} 2>&1"
       end
 
       puts "GEN vm/test/coverage/index.html"
-      if $verbose
-        sh "cd vm/test/coverage; ../lcov/bin/genhtml app.info"
-      else
-        sh "cd vm/test/coverage; ../lcov/bin/genhtml app.info > /dev/null 2>&1"
+      cd "vm/test/coverage" do
+        if $verbose
+          sh "../lcov/bin/genhtml app.info"
+        else
+          sh "../lcov/bin/genhtml app.info > #{DEV_NULL} 2>&1"
+        end
       end
     ensure
       sh "rm -f *.gcno *.gcda"
@@ -654,7 +668,9 @@ namespace :vm do
   task :distclean => :clean do
     EXTERNALS.each do |lib|
       path = File.join(*(lib.split(File::SEPARATOR)[0..-2].reject{|i| i =~ /^\./}))
-      system "cd #{path}; #{make} clean || true"
+      cd path do
+        system "#{make} clean || true"
+      end
     end
   end
 

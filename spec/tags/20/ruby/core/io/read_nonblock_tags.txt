@@ -1,0 +1,1 @@
+fails:IO#read_nonblock raises IOError on closed stream

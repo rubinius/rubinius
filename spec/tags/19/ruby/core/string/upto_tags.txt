@@ -1,0 +1,3 @@
+fails:String#upto doesn't call block with self even if self is less than stop but stop length is less than self length
+fails:String#upto returns an enumerator when no block given
+fails:String#upto uses the ASCII map for single letters

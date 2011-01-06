@@ -1,6 +1,8 @@
 /* A BlockEnvironment is created when a block is created. Its primary
  * operation is call, which activates the code associated with the block. */
 
+#include "config.h"
+
 #include "builtin/object.hpp"
 #include "builtin/symbol.hpp"
 
@@ -23,6 +25,10 @@
 
 #include "instruments/profiler.hpp"
 #include "configuration.hpp"
+
+#ifdef RBX_WINDOWS
+#include <malloc.h>
+#endif
 
 #ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"

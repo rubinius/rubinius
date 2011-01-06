@@ -1,0 +1,2 @@
+fails:Hash#initialize is private
+fails:Hash#initialize raises a RuntimeError if called on a frozen instance

@@ -1,0 +1,9 @@
+fails:CGI::HtmlExtension#html when passed no arguments returns a self's doctype and an 'html'-element
+fails:CGI::HtmlExtension#html when passed no arguments includes the passed block when passed a block
+fails:CGI::HtmlExtension#html when passed 'PRETTY' returns pretty output when the passed String is 'PRETTY
+fails:CGI::HtmlExtension#html when passed 'PRETTY' includes the passed block when passed a block
+fails:CGI::HtmlExtension#html when passed a Hash returns an 'html'-element using the passed Hash for attributes
+fails:CGI::HtmlExtension#html when passed a Hash omits the doctype when the Hash contains a 'DOCTYPE' entry that's false or nil
+fails:CGI::HtmlExtension#html when each HTML generation returns the doctype declaration for HTML3
+fails:CGI::HtmlExtension#html when each HTML generation returns the doctype declaration for HTML4
+fails:CGI::HtmlExtension#html when each HTML generation returns the doctype declaration for the Transitional version of HTML4

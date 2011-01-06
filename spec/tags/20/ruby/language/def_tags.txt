@@ -1,0 +1,5 @@
+fails:Defining an 'initialize' method should make it private
+fails:Defining an 'initialize_copy' method should make it private
+fails:Redefining a singleton method does not inherit a previously set visibility 
+fails:A nested method definition creates an instance method when evaluated in an instance method
+fails:The def keyword within a closure looks outside the closure for the visibility

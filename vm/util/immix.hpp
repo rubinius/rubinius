@@ -9,9 +9,52 @@
 #include <list>
 #include <vector>
 
+#ifndef RBX_WINDOWS
 #include <sys/mman.h>
+#endif
+
+
 
 namespace immix {
+
+#ifndef RBX_WINDOWS
+  static inline void* valloc(std::size_t size) {
+    void* addr = mmap(0, size, PROT_READ | PROT_WRITE,
+                        MAP_ANON | MAP_PRIVATE, -1, 0);
+    if(addr == MAP_FAILED) {
+      perror("mmap");
+      ::abort();
+    }
+    return addr;
+  }
+
+  static inline void vfree(void* addr, std::size_t size) {
+    int ret = munmap(addr, size);
+    if(ret != 0) {
+      perror("munmap");
+      ::abort();
+    }
+  }
+#else
+  static inline void* valloc(std::size_t size) {
+    LPVOID addr = VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE,
+          PAGE_READWRITE);
+    if(addr == NULL) {
+      perror("VirtualAlloc");
+      ::abort();
+    }
+    return addr;
+  }
+
+  static inline void vfree(void* addr, std::size_t size) {
+    BOOL ret = VirtualFree(addr, 0, MEM_RELEASE);
+    if(!ret) {
+      perror("VirtualFree");
+      ::abort();
+    }
+  }
+#endif
+
 
   /* A wonderful little class that is used always as a value, never
    * a reference or pointer. It basically allows us the ability to
@@ -281,28 +324,17 @@ namespace immix {
       : system_base_(0)
       , base_(0)
     {
-      base_ = mmap(0, cChunkSize, PROT_EXEC | PROT_READ | PROT_WRITE,
-           MAP_ANON | MAP_PRIVATE, -1, 0);
+      base_ = valloc(cChunkSize);
 
-      if(base_.as_int() == -1) {
-        perror("mmap");
-        ::abort();
-      }
-
-      // Best case scenario
       if(base_ == Block::align(base_)) {
+        // Best case scenario - returned memory block is aligned as needed
         system_base_ = base_;
         system_size_ = cChunkSize;
       } else {
-        int ret = munmap(base_, cChunkSize);
-        if(ret != 0) {
-          perror("munmap");
-          ::abort();
-        }
-
+        // Ask for a larger chunk so we can align it as needed ourselves
+        vfree(base_, cChunkSize);
         system_size_ = cChunkSize + cBlockSize;
-        system_base_ = mmap(0, system_size_, PROT_EXEC | PROT_READ | PROT_WRITE,
-            MAP_ANON | MAP_PRIVATE, -1, 0);
+        system_base_ = valloc(system_size_);
 
         base_ = Block::align(system_base_ + cBlockSize);
       }
@@ -311,10 +343,7 @@ namespace immix {
     }
 
     void free() {
-      if(munmap(system_base_, system_size_) != 0) {
-        perror("munmap");
-        ::abort();
-      }
+      vfree(system_base_, system_size_);
     }
 
     Address base() {

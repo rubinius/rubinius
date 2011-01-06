@@ -1,0 +1,1 @@
+fails:Kernel#print is a private method

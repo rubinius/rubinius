@@ -7,10 +7,15 @@
 #include <cstring>
 #include <sstream>
 
+#include "vm/config.h"
+
+#ifndef RBX_WINDOWS
 #include <sys/resource.h>
 #include <sys/wait.h>
-#include <unistd.h>
 #include <pwd.h>
+#endif
+#include <unistd.h>
+
 
 #include "vm/call_frame.hpp"
 #include "vm/helpers.hpp"
@@ -1075,5 +1080,21 @@ namespace rubinius {
   Object *System::vm_memory_barrier(STATE) {
     atomic::memory_barrier();
     return Qnil;
+  }
+
+  Object* System::vm_ruby19_p(STATE) {
+    return state->shared.config.version_19 ? Qtrue : Qfalse;
+  }
+
+  Object* System::vm_ruby20_p(STATE) {
+    return state->shared.config.version_20 ? Qtrue : Qfalse;
+  }
+
+  Object* System::vm_windows_p(STATE) {
+#ifdef RBX_WINDOWS
+    return Qtrue;
+#else
+    return Qfalse;
+#endif
   }
 }

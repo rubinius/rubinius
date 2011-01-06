@@ -1,15 +1,22 @@
+#include "vm/config.h"
+
 #include <iostream>
 
 #include <fcntl.h>
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#else
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <netdb.h>
+#include <sys/un.h>
+#endif
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <netdb.h>
-#include <sys/un.h>
 
 #include "builtin/io.hpp"
+#include "builtin/array.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/class.hpp"
@@ -17,7 +24,6 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/array.hpp"
 #include "builtin/string.hpp"
-#include "builtin/bytearray.hpp"
 #include "primitives.hpp"
 
 #include "vm.hpp"
@@ -1101,7 +1107,7 @@ failed: /* try next '*' position */
     state->thread->sleep(state, Qtrue);
 
     {
-      GlobalLock::UnlockGuard lock(state, calling_environment);
+      GCIndependent guard(state);
       code = recvmsg(read_fd, &msg, 0);
     }
 

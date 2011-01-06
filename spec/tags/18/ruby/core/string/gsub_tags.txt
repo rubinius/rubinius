@@ -1,0 +1,1 @@
+fails:String#gsub! with pattern and block raises a RuntimeError if the frozen string would be modified

@@ -1,0 +1,4 @@
+fails:CGI::HtmlExtension#caption when passed a String returns a 'caption'-element, using the passed String for the 'align'-attribute
+fails:CGI::HtmlExtension#caption when passed a String includes the passed block's return value when passed a block
+fails:CGI::HtmlExtension#caption when passed a Hash returns a 'caption'-element, using the passed Hash for attributes
+fails:CGI::HtmlExtension#caption when passed a Hash includes the passed block's return value when passed a block

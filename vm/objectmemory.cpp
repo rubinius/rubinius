@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sys/time.h>
 
+#include "config.h"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "gc/marksweep.hpp"

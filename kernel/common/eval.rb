@@ -108,7 +108,7 @@ module Kernel
     end
 
     be.from_eval!
-    
+
     yield cm, be if block_given?
 
     if passed_binding

@@ -258,30 +258,6 @@ module Enumerable
 
   ##
   # :call-seq:
-  #   enum.collect { | obj | block }  => array
-  #   enum.map     { | obj | block }  => array
-  #
-  # Returns a new array with the results of running +block+ once for every
-  # element in +enum+.
-  #
-  #   (1..4).collect { |i| i*i }   #=> [1, 4, 9, 16]
-  #   (1..4).collect { "cat"  }   #=> ["cat", "cat", "cat", "cat"]
-
-  def collect
-    if block_given?
-      ary = []
-      each { |o| ary << yield(o) }
-      ary
-    else
-      to_a
-    end
-  end
-
-  alias_method :map, :collect
-
-
-  ##
-  # :call-seq:
   #   enum.cycle(n = nil){ | obj | block } => nil or enumerator
   #
   # Calls block for each element of enum repeatedly n times or forever if none
@@ -355,8 +331,6 @@ module Enumerable
     nil
   end
 
-  alias_method :enum_cons, :each_cons
-
   def each_slice(slice_size)
     n = Type.coerce_to(slice_size, Fixnum, :to_int)
     raise ArgumentError, "invalid slice size: #{n}" if n <= 0
@@ -374,8 +348,6 @@ module Enumerable
     yield a unless a.empty?
     nil
   end
-
-  alias_method :enum_slice, :each_slice
 
   ##
   # :call-seq:
@@ -397,8 +369,6 @@ module Enumerable
     each(*arg) { |o| yield(o, idx); idx += 1 }
     self
   end
-
-  alias_method :enum_with_index, :each_with_index
 
   ##
   # :call-seq:

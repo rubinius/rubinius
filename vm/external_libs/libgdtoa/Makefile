@@ -82,17 +82,19 @@ OBJS = dmisc.o dtoa.o g_Qfmt.o g__fmt.o g_ddfmt.o g_dfmt.o g_ffmt.o\
        strtopd.o strtopdd.o strtopf.o strtopx.o strtopxL.o strtorQ.o\
        strtord.o strtordd.o strtorf.o strtorx.o strtorxL.o sum.o ulp.o
 
+CHK = check_prog
+
 all: library
 
 arith.h: arithchk.c
-	$(CC) $(CFLAGS) arithchk.c || $(CC) -DNO_LONG_LONG $(CFLAGS) arithchk.c
-	./a.out >arith.h
-	rm -f a.out arithchk.o
+	$(CC) -o $(CHK) $(CFLAGS) arithchk.c || $(CC) -o $(CHK) -DNO_LONG_LONG $(CFLAGS) arithchk.c
+	./$(CHK) >arith.h
+	rm -f $(CHK) arithchk.o
 
 gd_qnan.h: arith.h qnan.c
-	$(CC) $(CFLAGS) qnan.c
-	./a.out >gd_qnan.h
-	rm -f a.out qnan.o
+	$(CC) -o $(CHK) $(CFLAGS) qnan.c
+	./$(CHK) >gd_qnan.h
+	rm -f $(CHK) qnan.o
 
 $(OBJS): arith.h gd_qnan.h
 

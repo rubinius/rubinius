@@ -1,0 +1,1 @@
+fails:Array#replace raises a RuntimeError on a frozen array

@@ -1,0 +1,1 @@
+fails:File.identical? accepts an object that has a #to_path method

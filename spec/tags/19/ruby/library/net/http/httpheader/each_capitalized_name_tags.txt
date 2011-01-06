@@ -1,0 +1,1 @@
+fails:Net::HTTPHeader#each_capitalized_name when passed no block returns an Enumerator

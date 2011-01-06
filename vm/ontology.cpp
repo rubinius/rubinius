@@ -5,6 +5,7 @@
 
 #include "builtin/access_variable.hpp"
 #include "builtin/array.hpp"
+#include "builtin/basicobject.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/class.hpp"
@@ -62,7 +63,7 @@ namespace rubinius {
   void VM::bootstrap_class() {
     /* Class is created first by hand, and twiddle to setup the internal
        recursion. */
-    Class *cls = (Class*)om->allocate_object_raw(sizeof(Class));
+    Class* cls = (Class*)om->allocate_object_raw(sizeof(Class));
 
     /* We create these 8 classes in a particular way and in a particular
      * order. We need all 8 to create fully initialized Classes and
@@ -82,9 +83,19 @@ namespace rubinius {
     GO(klass).set(cls);
 
     // Now do Object
-    Class *object = new_basic_class(nil<Class>());
-    GO(object).set(object);
+    Class* basicobject = 0;
+    Class* object;
+    if(state->shared.config.version_19 || state->shared.config.version_20) {
+      basicobject = new_basic_class(force_as<Class>(Qnil));
+      GO(basicobject).set(basicobject);
+      basicobject->set_object_type(state, BasicObjectType);
 
+      object = new_basic_class(basicobject);
+    } else {
+      object = new_basic_class(nil<Class>());
+    }
+
+    GO(object).set(object);
     object->set_object_type(state, ObjectType);
 
     // Now Module
@@ -131,16 +142,27 @@ namespace rubinius {
      *  The MetaClass of a subclass points to the MetaClass of the superclass.
      */
 
+    // BasicObject's MetaClass instance has Class for a superclass
+    if(state->shared.config.version_19 || state->shared.config.version_20) {
+      MetaClass::attach(this, basicobject, cls);
+    }
+
     // Object's MetaClass instance has Class for a superclass
     Class* mc = MetaClass::attach(this, object, cls);
+
     // Module's metaclass's superclass is Object's metaclass
     mc = MetaClass::attach(this, G(module), mc);
     // Class's metaclass likewise has Module's metaclass above it
     MetaClass::attach(this, cls, mc);
 
     // See?
-    assert(object->superclass() == Qnil);
-    assert(object->klass()->superclass() == cls);
+    if(state->shared.config.version_19 || state->shared.config.version_20) {
+      assert(basicobject->superclass() == Qnil);
+      assert(object->superclass() == basicobject);
+    } else {
+      assert(object->superclass() == Qnil);
+      assert(object->klass()->superclass() == cls);
+    }
 
     assert(G(module)->superclass() == object);
     assert(G(module)->klass()->superclass() == object->klass());
@@ -158,6 +180,9 @@ namespace rubinius {
 
     // Now, finish initializing the basic Class/Module
     G(object)->setup(this, "Object");
+    if(state->shared.config.version_19 || state->shared.config.version_20) {
+      G(basicobject)->setup(this, "BasicObject", G(object));
+    }
     G(klass)->setup(this, "Class");
     G(module)->setup(this, "Module");
 

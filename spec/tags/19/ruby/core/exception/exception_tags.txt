@@ -1,0 +1,1 @@
+fails:Exception is a superclass of EncodingError

@@ -1,0 +1,1 @@
+fails:CGI#initialize is private

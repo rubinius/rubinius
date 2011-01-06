@@ -467,10 +467,6 @@ class Module
     Rubinius.convert_to_names tbl.keys
   end
 
-  def const_defined?(name)
-    @constants.has_key? normalize_const_name(name)
-  end
-
   # Check if a full constant path is defined, e.g. SomeModule::Something
   def const_path_defined?(name)
     # Start at Object if this is a fully-qualified path

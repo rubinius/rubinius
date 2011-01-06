@@ -1,10 +1,19 @@
+#include "config.h"
+
 #include <string.h>
 #include <limits.h>
 #include <sys/types.h>
+
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include "windows_compat.h"
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#endif
 
 #include "util/bert.hpp"
 
@@ -13,8 +22,6 @@
 #include "agent.hpp"
 #include "exception.hpp"
 #include "call_frame.hpp"
-
-#include "config.h"
 
 #include "agent_components.hpp"
 #include "environment.hpp"
@@ -78,7 +85,7 @@ namespace rubinius {
 
     // To avoid TIME_WAIT / EADDRINUSE
     int on = 1;
-    setsockopt(server_fd_, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+    setsockopt(server_fd_, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
 
     struct sockaddr_in sin = {};
     sin.sin_family = AF_INET;

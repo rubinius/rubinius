@@ -8,6 +8,26 @@ module Rubinius
   class Executable
     attr_accessor :primitive
   end
+
+  def self.ruby19?
+    RUBY_VERSION =~ /^1\.9/
+  end
+
+  def self.ruby20?
+    RUBY_VERSION =~ /^2\.0/
+  end
+
+  class Channel
+    def receive
+    end
+
+    def <<(val)
+    end
+
+    def as_lock
+      yield
+    end
+  end
 end
 
 class Array

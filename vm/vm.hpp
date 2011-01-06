@@ -20,7 +20,6 @@
 #include "shared_state.hpp"
 
 #include <vector>
-#include <pthread.h>
 #include <setjmp.h>
 
 namespace llvm {
@@ -95,6 +94,7 @@ namespace rubinius {
 
     void (*custom_wakeup_)(void*);
     void* custom_wakeup_data_;
+    pthread_t os_thread_;
 
     ObjectMemory* om;
     TypedRoot<TaskProbe*> probe;
@@ -236,7 +236,7 @@ namespace rubinius {
   public:
     static void init_stack_size();
 
-    // Better than current_state, uses a pthread local.
+    // Better than current_state, uses a NativeThread local.
     static VM* current();
     static void set_current(VM* vm);
 

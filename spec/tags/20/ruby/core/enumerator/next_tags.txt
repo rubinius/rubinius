@@ -1,0 +1,1 @@
+fails:Enumerator#next cannot be called again until the enumerator is rewound

@@ -1,0 +1,1 @@
+fails:Kernel#trap is a private method

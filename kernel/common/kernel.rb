@@ -367,8 +367,6 @@ module Kernel
     self.class
   end
 
-  alias_method :==, :equal?
-
   # The "sorta" operator, also known as the case equality operator.
   # Generally while #eql? and #== are stricter, #=== is often used
   # to denote an acceptable match or inclusion. It returns true if
@@ -898,11 +896,3 @@ class SystemExit < Exception
   end
 
 end
-
-module Rubinius
-  # Ruby 1.8 returns strings for method and constant names
-  def self.convert_to_names(list)
-    list.map{|x| x.to_s}
-  end
-end
-

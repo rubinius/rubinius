@@ -1,5 +1,6 @@
 /* An Environment is the toplevel class for Rubinius. It manages multiple
  * VMs, as well as imports C data from the process into Rubyland. */
+#include "config.h"
 #include "prelude.hpp"
 #include "environment.hpp"
 #include "config_parser.hpp"
@@ -36,7 +37,11 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#ifdef RBX_WINDOWS
+#include "windows_compat.h"
+#else
 #include <sys/utsname.h>
+#endif
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/param.h>
@@ -277,6 +282,22 @@ namespace rubinius {
     signal(SIGUSR2, quit_handler);
   }
 
+  void Environment::load_vm_options(int argc, char**argv) {
+    for(int i=1; i < argc; i++) {
+      char* arg = argv[i];
+
+      if(strcmp(arg, "--") == 0) {
+        break;
+      }
+
+      if(strncmp(arg, "-X", 2) == 0) {
+        config_parser.import_line(arg + 2);
+      }
+    }
+
+    config_parser.update_configuration(config);
+  }
+
   void Environment::load_argv(int argc, char** argv) {
     Array* os_ary = Array::create(state, argc);
     for(int i = 0; i < argc; i++) {
@@ -289,31 +310,29 @@ namespace rubinius {
     G(rubinius)->set_const(state, "OS_STARTUP_DIR",
         String::create(state, getcwd(buf, MAXPATHLEN)));
 
-    bool process_xflags = true;
     state->set_const("ARG0", String::create(state, argv[0]));
 
     Array* ary = Array::create(state, argc - 1);
     int which_arg = 0;
+    bool load_xflags = false;
+
     for(int i=1; i < argc; i++) {
       char* arg = argv[i];
 
-      if(arg[0] != '-' || strcmp(arg, "--") == 0) {
-        process_xflags = false;
+      if(strcmp(arg, "--") == 0) {
+        load_xflags = true;
       }
 
-      if(process_xflags && strncmp(arg, "-X", 2) == 0) {
-        config_parser.import_line(arg + 2);
-      } else {
-        ary->set(state, which_arg++, String::create(state, arg)->taint(state));
+      if(!load_xflags && strncmp(arg, "-X", 2) == 0) {
+        continue;
       }
+
+      ary->set(state, which_arg++, String::create(state, arg)->taint(state));
     }
 
     state->set_const("ARGV", ary);
 
     // Now finish up with the config
-
-    config_parser.update_configuration(config);
-
     if(config.print_config > 1) {
       std::cout << "========= Configuration =========\n";
       config.print(true);
@@ -349,11 +368,13 @@ namespace rubinius {
     }
   }
 
-  void Environment::load_directory(std::string dir) {
-    std::string path = dir + "/load_order.txt";
+  void Environment::load_directory(std::string dir, std::string version) {
+    // Read the version-specific load order file.
+    std::string path = dir + "/load_order" + version + ".txt";
     std::ifstream stream(path.c_str());
     if(!stream) {
-      throw std::runtime_error("Unable to load directory, load_order.txt is missing");
+      std::string msg = "Unable to load directory, " + path + " is missing";
+      throw std::runtime_error(msg);
     }
 
     while(!stream.eof()) {
@@ -504,10 +525,10 @@ namespace rubinius {
    *                      manager for multiple VMs and process-Ruby interaction. 
    */
   void Environment::load_kernel(std::string root) {
-    std::string dirs = root + "/index";
-    std::ifstream stream(dirs.c_str());
+    std::string index = root + "/index";
+    std::ifstream stream(index.c_str());
     if(!stream) {
-      std::cerr << "It appears that " << root << "/index is missing.\n";
+      std::cerr << "It appears that " << index << " is missing.\n";
       exit(1);
     }
 
@@ -531,7 +552,15 @@ namespace rubinius {
     // Load alpha
     run_file(root + "/alpha.rbc");
 
-    // Read the index and load the directories listed.
+    std::string version;
+    if(shared->config.version_20) {
+      version = "20";
+    } else if(shared->config.version_19) {
+      version = "19";
+    } else {
+      version = "18";
+    }
+
     while(!stream.eof()) {
       std::string line;
 
@@ -541,7 +570,7 @@ namespace rubinius {
       // skip empty lines
       if(line.size() == 0) continue;
 
-      load_directory(root + "/" + line);
+      load_directory(root + "/" + line, version);
     }
   }
 
@@ -550,6 +579,7 @@ namespace rubinius {
     state->set_stack_start(&i);
 
     load_platform_conf(root);
+    load_vm_options(argc_, argv_);
     boot_vm();
     load_argv(argc_, argv_);
 
