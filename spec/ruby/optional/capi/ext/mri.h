@@ -18,6 +18,10 @@
 #undef HAVE_RB_STR_SET_LEN
 #endif
 
+#ifdef RUBY_VERSION_IS_1_8
+#undef HAVE_RB_THREAD_BLOCKING_REGION
+#endif
+
 #ifdef RUBY_VERSION_IS_1_9
 #undef HAVE_RARRAY
 #undef HAVE_RFLOAT
@@ -25,6 +29,7 @@
 #undef HAVE_STR2CSTR
 #undef HAVE_RB_STR2CSTR
 #undef HAVE_RB_SET_KCODE
+#undef HAVE_RB_PROTECT_INSPECT
 #endif
 
 /* RubySpec assumes following are public API */

@@ -161,8 +161,8 @@ describe "C-API Kernel function" do
   describe "rb_rescue" do
     before :each do
       @proc = lambda { |x| x }
-      @raise_proc_returns_sentinel = lambda {|arg| :raise_proc_executed }
-      @raise_proc_returns_arg = lambda {|arg| arg }
+      @raise_proc_returns_sentinel = lambda {|*_| :raise_proc_executed }
+      @raise_proc_returns_arg = lambda {|*a| a }
       @arg_error_proc = lambda { |*_| raise ArgumentError, '' }
       @std_error_proc = lambda { |*_| raise StandardError, '' }
       @exc_error_proc = lambda { |*_| raise Exception, '' }

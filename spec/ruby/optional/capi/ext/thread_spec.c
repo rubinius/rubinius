@@ -1,4 +1,5 @@
 #include <math.h>
+#include <errno.h>
 
 #include "ruby.h"
 #include "rubyspec.h"

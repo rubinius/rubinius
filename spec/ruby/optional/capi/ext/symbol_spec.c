@@ -18,7 +18,7 @@ VALUE symbol_spec_rb_intern_c_compare(VALUE self, VALUE string, VALUE sym) {
 
 #ifdef HAVE_RB_ID2NAME
 VALUE symbol_spec_rb_id2name(VALUE self, VALUE symbol) {
-  char* c_str = rb_id2name(SYM2ID(symbol));
+  const char* c_str = rb_id2name(SYM2ID(symbol));
   return rb_str_new(c_str, strlen(c_str));
 }
 #endif

@@ -7,18 +7,20 @@ describe "C-API Array function" do
     @s = CApiArraySpecs.new
   end
 
-  describe "direct access to memory" do
-    it "is sync'd with the object properly" do
-      a2 = [1]
+  ruby_version_is ""..."1.9" do
+    describe "RARRAY" do
+      it "is sync'd with the object properly" do
+        a2 = [1]
 
-      ary = [:foo]
+        ary = [:foo]
 
-      @s.RARRAY_len(ary).should == 1
-      ary[0].should == :foo
+        @s.RARRAY_len(ary).should == 1
+        ary[0].should == :foo
 
-      ary[0] = :bar
-      @s.RARRAY_len(a2).should == 1
-      ary[0].should == :bar
+        ary[0] = :bar
+        @s.RARRAY_len(a2).should == 1
+        ary[0].should == :bar
+      end
     end
   end
 
@@ -77,9 +79,18 @@ describe "C-API Array function" do
   end
 
   describe "rb_ary_to_s" do
-    it "joins elements of an array with a string" do
-      @s.rb_ary_to_s([1,2,3]).should == "123"
-      @s.rb_ary_to_s([]).should == ""
+    ruby_version_is ""..."1.9" do
+      it "joins elements of an array with a string" do
+        @s.rb_ary_to_s([1,2,3]).should == "123"
+        @s.rb_ary_to_s([]).should == ""
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "creates an Array literal representation as a String" do
+        @s.rb_ary_to_s([1,2,3]).should == "[1, 2, 3]"
+        @s.rb_ary_to_s([]).should == "[]"
+      end
     end
   end
 
@@ -334,9 +345,11 @@ describe "C-API Array function" do
     end
   end
 
-  describe "rb_protect_inspect" do
-    it "tracks an object recursively" do
-      @s.rb_protect_inspect("blah").should be_true
+  ruby_version_is ""..."1.9" do
+    describe "rb_protect_inspect" do
+      it "tracks an object recursively" do
+        @s.rb_protect_inspect("blah").should be_true
+      end
     end
   end
 
