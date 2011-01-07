@@ -35,6 +35,7 @@
 #define HAVE_RB_MEM_CLEAR                  1
 
 /* Bignum */
+#define HAVE_RBIGNUM_SIGN                  1
 #define HAVE_RB_BIG2DBL                    1
 #define HAVE_RB_BIG2LL                     1
 #define HAVE_RB_BIG2LONG                   1
@@ -331,6 +332,7 @@
 #define HAVE_RB_THREAD_LOCAL_ASET          1
 #define HAVE_RB_THREAD_SELECT              1
 #define HAVE_RB_THREAD_WAIT_FOR            1
+#define HAVE_RB_THREAD_WAKEUP              1
 
 /* Time */
 #define HAVE_RB_TIME_NEW                   1

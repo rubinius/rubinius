@@ -69,6 +69,13 @@ describe "C-API String function" do
         @s.rb_str_resize(str, 4).should == "abcd"
         @s.RSTRING_LEN(str).should == 4
       end
+
+      it "returns a string which can be assigned to from C" do
+        str = "hello"
+        buf = @s.rb_str_buf_new(str.size, nil)
+        @s.RSTRING_ptr_write(buf, str)
+        buf.should == str
+      end
     end
 
     ruby_version_is "1.8.7" do
@@ -116,21 +123,6 @@ describe "C-API String function" do
     end
   end
 
-  describe "rb_str_buf_new" do
-    it "returns an empty string" do
-      @s.rb_str_buf_new(10).should == ""
-    end
-
-    ruby_version_is ""..."1.9" do
-      it "returns a string which can be assigned to from C" do
-        str = "hello"
-        buf = @s.rb_str_buf_new(str.size)
-        @s.rb_str_buf_RSTRING_ptr_write(buf, str)
-        buf.should == str
-      end
-    end
-  end
-
   describe "rb_str_new4" do
     it "returns the original string if it is already frozen" do
       str1 = "hi"
@@ -145,7 +137,7 @@ describe "C-API String function" do
     it "returns a frozen copy of the string" do
       str1 = "hi"
       str2 = @s.rb_str_new4 str1
-      str1.should == str2 
+      str1.should == str2
       str1.should_not equal(str2)
       str2.frozen?.should == true
     end
@@ -363,7 +355,7 @@ describe "C-API String function" do
       str = @s.rb_str_resize("test", 12)
       str.size.should == 12
       @s.RSTRING_LEN(str).should == 12
-      str[0, 5].should == "test\x00"
+      str[0, 4].should == "test"
     end
   end
 
