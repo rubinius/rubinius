@@ -4,39 +4,38 @@ next: Приступая к работе
 next_url: getting-started
 ---
 
-## What is Rubinius
+## Что такое Rubinius
 
-Rubinius is an implementation of the [Ruby programming
-language](http://ruby-lang.org).
+Rubinius это реализация [языка программирования Ruby](http://ruby-lang.org).
 
-Rubinius includes a bytecode virtual machine, Ruby syntax parser, bytecode
-compiler, generational garbage collector, just-in-time (JIT) native machine
-code compiler, and Ruby Core and Standard libraries.
+Rubinius состоит из байткодовой виртуальной машины, парсера Ruby, компилятора
+в байткод, сборщика мусора, основанного на поколениях, JIT компилятора в
+машинный код и встроенных и стандартных библиотек Ruby.
 
-Rubinius currently implements Ruby version 1.8.7.
-
-
-## License
-
-Rubinius uses the BSD license. See the LICENSE file in the source.
+На данный момент Rubinius совместим с версией Ruby 1.8.7.
 
 
-## Installing
+## Лицензия
 
-Rubinius runs on Mac OS X and many Unix/Linux operating systems. Support for
-Microsoft Windows is coming soon.
+Rubinius использует BSD лицензию. Ее можно найти в файле LICENSE, в исходниках.
 
-To install Rubinius, use the following steps. For more detailed information,
-see [Приступая к работе](/doc/ru/getting-started/).
+
+## Установка
+
+Rubinius работает под Mac OS X и многими Unix/Linux совместимыми операционными
+системами. Скоро появится поддрежка Microsoft Windows.
+
+Для установки Rubinius, проделайте следующие шаги. За более детальной
+информацией обратитесь к [Приступая к работе](/doc/ru/getting-started/).
 
 1. `git clone git://github.com/evanphx/rubinius.git`
 1. `cd rubinius`
-1. `./configure --prefix=/path/to/install/dir`
+1. `./configure --prefix=/путь/до/директории`
 1. `rake install`
 
-When the install process finishes, follow the directions to add the Rubinius
-executable (bin) directory to your PATH.
+Когда процесс утановки завершится, следуя указаниям добавьте bin директорию
+в переменную окружения PATH.
 
-Rubinius comes with RubyGems built-in and has rake and rdoc gems
-pre-installed. To install the nokogiri gem, for example, run `rbx gem install
-nokogiri`.
+Rubinius поставляется со встроенными RubyGems и уже содержит предустановленные
+гемы rake и rdoc. Например, чтобы установить гем nokogiri, выполните `rbx gem
+install nokogiri`
