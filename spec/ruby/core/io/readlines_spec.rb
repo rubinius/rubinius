@@ -11,6 +11,17 @@ describe "IO#readlines" do
     @io.close unless @io.closed?
   end
 
+  ruby_version_is "1.9" do
+    before :each do
+      Encoding.default_external = Encoding::UTF_8
+      @orig_exteenc = Encoding.default_external
+    end
+
+    after :each do
+      Encoding.default_external = @orig_exteenc
+    end
+  end
+
   it "raises an IOError if the stream is closed" do
     @io.close
     lambda { @io.readlines }.should raise_error(IOError)

@@ -92,11 +92,6 @@ describe "Array#sort" do
     a.sort { -1 }.should be_kind_of(Array)
   end
 
-  it "returns subclass instance on Array subclasses" do
-    ary = ArraySpecs::MyArray[1, 2, 3]
-    ary.sort.should be_kind_of(ArraySpecs::MyArray)
-  end
-
   it "does not freezes self during being sorted" do
     a = [1, 2, 3]
     a.sort { |x,y| a.frozen?.should == false; x <=> y }
@@ -126,6 +121,20 @@ describe "Array#sort" do
   it "handles a large array that has been pruned" do
     pruned = ArraySpecs::LargeArray.dup.delete_if { |n| n !~ /^test./ }
     pruned.sort.should == ArraySpecs::LargeTestArraySorted
+  end
+
+  ruby_version_is "" ... "1.9.3" do
+    it "returns subclass instance on Array subclasses" do
+      ary = ArraySpecs::MyArray[1, 2, 3]
+      ary.sort.should be_kind_of(ArraySpecs::MyArray)
+    end
+  end
+
+  ruby_version_is "1.9.3" do
+    it "does not return subclass instance on Array subclasses" do
+      ary = ArraySpecs::MyArray[1, 2, 3]
+      ary.sort.should be_kind_of(Array)
+    end
   end
 end
 

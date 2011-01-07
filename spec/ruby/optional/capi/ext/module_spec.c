@@ -132,6 +132,13 @@ static VALUE module_specs_rb_undef_method(VALUE self, VALUE cls, VALUE str_name)
 }
 #endif
 
+#ifdef HAVE_RB_UNDEF
+static VALUE module_specs_rb_undef(VALUE self, VALUE cls, VALUE symbol_name) {
+  rb_undef(cls, SYM2ID(symbol_name));
+  return Qnil;
+}
+#endif
+
 #ifdef HAVE_RB_CLASS2NAME
 static VALUE module_specs_rbclass2name(VALUE self, VALUE klass) {
   return rb_str_new2(rb_class2name(klass));
@@ -218,6 +225,10 @@ void Init_module_spec() {
 
 #ifdef HAVE_RB_UNDEF_METHOD
   rb_define_method(cls, "rb_undef_method", module_specs_rb_undef_method, 2);
+#endif
+
+#ifdef HAVE_RB_UNDEF
+  rb_define_method(cls, "rb_undef", module_specs_rb_undef, 2);
 #endif
 
 #ifdef HAVE_RB_CLASS2NAME

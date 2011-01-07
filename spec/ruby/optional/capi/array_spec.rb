@@ -32,6 +32,26 @@ describe "C-API Array function" do
     it "returns an empty array" do
       @s.rb_ary_new2(5).should == []
     end
+
+    ruby_version_is ""..."1.9" do
+      it "returns an array which can be assigned to from C" do
+        ary = @s.rb_ary_new2(5)
+        @s.rb_ary_new2_assign(ary, :set, 5)
+        ary.should == [:set] * 5
+      end
+    end
+  end
+
+  describe "rb_ary_new3" do
+    it "returns an array with the passed cardinality and varargs" do
+      @s.rb_ary_new3(1,2,3).should == [1,2,3]
+    end
+  end
+
+  describe "rb_ary_new4" do
+    it "returns returns an array with the passed values" do
+      @s.rb_ary_new4(1,2,3).should == [1,2,3]
+    end
   end
 
   describe "rb_ary_push" do
@@ -151,60 +171,61 @@ describe "C-API Array function" do
     end
   end
 
-  describe "RARRAY" do
-    it "returns a struct with a pointer to a C array of the array's elements" do
-      a = [1, 2, 3]
-      b = []
-      @s.RARRAY_ptr_iterate(a) do |e|
-        b << e
+  ruby_version_is ""..."1.9" do
+    describe "RARRAY" do
+      it "returns a struct with a pointer to a C array of the array's elements" do
+        a = [1, 2, 3]
+        b = []
+        @s.RARRAY_ptr_iterate(a) do |e|
+          b << e
+        end
+        a.should == b
       end
-      a.should == b
+
+      it "allows assigning to the elements of the C array" do
+        a = [1, 2, 3]
+        @s.RARRAY_ptr_assign(a, :nasty)
+        a.should == [:nasty, :nasty, :nasty]
+      end
+
+      it "allows changing the array and calling an rb_ary_xxx function" do
+        a = [1, 2, 3]
+        @s.RARRAY_ptr_assign_call(a)
+        a.should == [1, 5, 7, 9]
+      end
+
+      it "allows changing the array and calling a method via rb_funcall" do
+        a = [1, 2, 3]
+        @s.RARRAY_ptr_assign_funcall(a)
+        a.should == [1, 1, 2, 3]
+      end
+
+      it "returns a struct with the length of the array" do
+        @s.RARRAY_len([1, 2, 3]).should == 3
+      end
+
+      it "is sync'd with the ruby Array object" do
+        ary = Array.new(1000)
+
+        @s.RARRAY_len(ary).should == 1000
+        ary.clear  # shrink the array.
+
+        @s.RARRAY_len(ary).should == 0
+
+        # This extra check is to be sure that if there is a handle for
+        # the ruby object it is updated.
+        ary.size.should == 0
+
+        # Now check that it can sync growing too
+        1000.times { ary << 1 }
+
+        @s.RARRAY_len(ary).should == 1000
+
+        # Again, check that the possible handle doesn't confuse or misupdate
+        # the ruby object.
+        ary.size == 1000
+      end
     end
-
-    it "allows assigning to the elements of the C array" do
-      a = [1, 2, 3]
-      @s.RARRAY_ptr_assign(a, :nasty)
-      a.should == [:nasty, :nasty, :nasty]
-    end
-
-    it "allows changing the array and calling an rb_ary_xxx function" do
-      a = [1, 2, 3]
-      @s.RARRAY_ptr_assign_call(a)
-      a.should == [1, 5, 7, 9]
-    end
-
-    it "allows changing the array and calling a method via rb_funcall" do
-      a = [1, 2, 3]
-      @s.RARRAY_ptr_assign_funcall(a)
-      a.should == [1, 1, 2, 3]
-    end
-
-    it "returns a struct with the length of the array" do
-      @s.RARRAY_len([1, 2, 3]).should == 3
-    end
-
-    it "is sync'd with the ruby Array object" do
-      ary = Array.new(1000)
-
-      @s.RARRAY_len(ary).should == 1000
-      ary.clear  # shrink the array.
-
-      @s.RARRAY_len(ary).should == 0
-
-      # This extra check is to be sure that if there is a handle for
-      # the ruby object it is updated.
-      ary.size.should == 0
-
-      # Now check that it can sync growing too
-      1000.times { ary << 1 }
-
-      @s.RARRAY_len(ary).should == 1000
-
-      # Again, check that the possible handle doesn't confuse or misupdate
-      # the ruby object.
-      ary.size == 1000
-    end
-
   end
 
   describe "RARRAY_PTR" do
@@ -324,6 +345,14 @@ describe "C-API Array function" do
       ary = [1,2]
       @s.rb_ary_freeze(ary)
       ary.frozen?.should be_true
+    end
+  end
+
+  describe "rb_ary_delete_at" do
+    it "removes an element from an array at the specified index" do
+      ary = [1, 2, 3, 4]
+      @s.rb_ary_delete_at(ary, ary.size - 1).should == 4
+      ary.should == [1, 2, 3]
     end
   end
 end

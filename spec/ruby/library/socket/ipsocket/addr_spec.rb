@@ -2,6 +2,10 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 require File.expand_path('../../fixtures/classes', __FILE__)
 
 describe "Socket::IPSocket#addr" do
+  before :all do
+    @do_not_reverse_lookup = BasicSocket.do_not_reverse_lookup
+  end
+    
 
   before :each do
     @socket = TCPServer.new("127.0.0.1", SocketSpecs.port)
@@ -12,6 +16,10 @@ describe "Socket::IPSocket#addr" do
     BasicSocket.do_not_reverse_lookup = false
   end
 
+  after :all do
+    BasicSocket.do_not_reverse_lookup = @do_not_reverse_lookup
+  end
+    
   ruby_version_is ""..."1.9" do
     it "returns an array with the socket's information" do
       BasicSocket.do_not_reverse_lookup = false

@@ -154,6 +154,20 @@ VALUE string_spec_rb_str_new4(VALUE self, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RB_STR_BUF_NEW
+VALUE string_spec_rb_str_buf_new(VALUE self, VALUE capacity) {
+  return rb_str_buf_new(NUM2INT(capacity));
+}
+
+#ifdef HAVE_RSTRING
+VALUE string_spec_rb_str_buf_RSTRING_ptr_write(VALUE self, VALUE str, VALUE text) {
+  strcpy(RSTRING(str)->ptr, RSTRING_PTR(text));
+  RSTRING(str)->len = RSTRING_LEN(text);
+  return Qnil;
+}
+#endif
+#endif
+
 #ifdef HAVE_RB_STR_PLUS
 VALUE string_spec_rb_str_plus(VALUE self, VALUE str1, VALUE str2) {
   return rb_str_plus(str1, str2);
@@ -348,8 +362,8 @@ VALUE string_spec_RSTRING_PTR_assign(VALUE self, VALUE str, VALUE chr) {
 }
 
 VALUE string_spec_RSTRING_PTR_after_funcall(VALUE self, VALUE str, VALUE cb) {
-  // Silence gcc 4.3.2 warning about computed value not used
-  if(RSTRING_PTR(str)) { // force it out
+  /* Silence gcc 4.3.2 warning about computed value not used */
+  if(RSTRING_PTR(str)) { /* force it out */
     rb_funcall(cb, rb_intern("call"), 1, str);
   }
 
@@ -457,6 +471,14 @@ void Init_string_spec() {
 #ifdef HAVE_RB_STR_NEW4
   rb_define_method(cls, "rb_str_new4", string_spec_rb_str_new4, 1);
 #endif
+
+#ifdef HAVE_RB_STR_BUF_NEW
+  rb_define_method(cls, "rb_str_buf_new", string_spec_rb_str_buf_new, 1);
+#ifdef HAVE_RSTRING
+  rb_define_method(cls, "rb_str_buf_RSTRING_ptr_write", string_spec_rb_str_buf_RSTRING_ptr_write, 2);
+#endif
+#endif
+
 
 #ifdef HAVE_RB_STR_PLUS
   rb_define_method(cls, "rb_str_plus", string_spec_rb_str_plus, 2);

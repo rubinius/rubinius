@@ -14,19 +14,21 @@ describe "CApiFloatSpecs" do
     end
   end
 
-  describe "RFLOAT" do
-    it "returns a struct with the Float value" do
-      f = @f.RFLOAT_value(1.0)
-      f.should eql(1.0)
+  ruby_version_is ""..."1.9" do
+    describe "RFLOAT" do
+      it "returns a struct with the Float value" do
+        f = @f.RFLOAT_value(1.0)
+        f.should eql(1.0)
 
-      f = @f.RFLOAT_value(-10.5)
-      f.should eql(-10.5)
-    end
+        f = @f.RFLOAT_value(-10.5)
+        f.should eql(-10.5)
+      end
 
-    it "allows changing the Float value" do
-      f = 3.14
-      @f.RFLOAT_value_set(f, 4)
-      f.should eql(4.0)
+      it "allows changing the Float value" do
+        f = 3.14
+        @f.RFLOAT_value_set(f, 4)
+        f.should eql(4.0)
+      end
     end
   end
 

@@ -27,6 +27,12 @@ describe "Kernel#Array" do
     Array(obj).should == [1, 2, 3]
   end
 
+  it "tries to call #to_a on the given argument if #to_ary is provided and it returns nil" do
+    (obj = mock('[4,5,6]')).should_receive(:to_ary).and_return(nil)
+    obj.should_receive(:to_a).and_return([4, 5, 6])
+    Array(obj).should == [4, 5, 6]
+  end
+
   it "tries to call #to_a on the given argument if #to_ary is not provided" do
     (obj = mock('[4,5,6]')).should_receive(:to_a).and_return([4, 5, 6])
     Array(obj).should == [4, 5, 6]

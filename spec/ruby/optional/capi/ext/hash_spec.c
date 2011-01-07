@@ -43,7 +43,7 @@ VALUE hash_spec_rb_hash_delete_if(VALUE self, VALUE hash) {
 #ifdef HAVE_RB_HASH_FOREACH
 static int foreach_i(VALUE key, VALUE val, VALUE other) {
   rb_hash_aset(other, key, val);
-  return 0; // ST_CONTINUE;
+  return 0; /* ST_CONTINUE; */
 }
 
 VALUE hash_spec_rb_hash_foreach(VALUE self, VALUE hsh) {
@@ -71,7 +71,7 @@ VALUE hash_spec_rb_hash_new(VALUE self) {
 #endif
 
 #ifdef HAVE_RB_HASH_SIZE
-// rb_hash_size is a static symbol in MRI
+/* rb_hash_size is a static symbol in MRI */
 VALUE hash_spec_rb_hash_size(VALUE self, VALUE hash) {
   return rb_hash_size(hash);
 }

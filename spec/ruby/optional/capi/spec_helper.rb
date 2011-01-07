@@ -15,12 +15,6 @@ end
 CAPI_RUBY_SIGNATURE = "#{RUBY_NAME}-#{RUBY_VERSION}"
 
 def compile_extension(path, name)
-  ext       = File.join(path, "#{name}_spec")
-  source    = "#{ext}.c"
-  obj       = "#{ext}.o"
-  lib       = "#{ext}.#{RbConfig::CONFIG['DLEXT']}"
-  signature = "#{ext}.sig"
-
   # TODO use rakelib/ext_helper.rb?
   arch_hdrdir = nil
   ruby_hdrdir = nil
@@ -34,9 +28,18 @@ def compile_extension(path, name)
     else
       hdrdir = RbConfig::CONFIG["archdir"]
     end
+  elsif RUBY_NAME == 'jruby'
+    require 'mkmf'
+    hdrdir = $hdrdir
   else
     raise "Don't know how to build C extensions with #{RUBY_NAME}"
   end
+
+  ext       = File.join(path, "#{name}_spec")
+  source    = "#{ext}.c"
+  obj       = "#{ext}.o"
+  lib       = "#{ext}.#{RbConfig::CONFIG['DLEXT']}"
+  signature = "#{ext}.sig"
 
   ruby_header     = File.join(hdrdir, "ruby.h")
   rubyspec_header = File.join(path, "rubyspec.h")

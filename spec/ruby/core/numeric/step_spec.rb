@@ -68,7 +68,7 @@ describe "Numeric#step with [stop, step]" do
     values.should == [@obj, @obj, @obj]
   end
   
-  it "decrements self (using #-) until self < stop when step < 0" do
+  it "decrements self (using #+) until self < stop when step < 0" do
     values = []
     
     @stop = mock("Stop value")
@@ -154,6 +154,33 @@ describe "Numeric#step with [stop, step] when self, stop or step is a Float" do
   end
 end
 
+describe "Numeric#step with [stop, +infinity]" do
+  ruby_bug "#781", "1.8.7" do
+    it "yields once if self < stop" do
+      result = []
+      42.step(100, 1.0/0.0)              { |x| result << x }
+      42.step(1.0/0.0, 1.0/0.0)          { |x| result << x }
+      result.should == [42, 42]
+    end
+
+    it "yields once when self equals stop" do
+      result = []
+      42.step(42, 1.0/0.0)               { |x| result << x }
+      (1.0/0.0).step(1.0/0.0, 1.0/0.0)   { |x| result << x }
+      result.should == [42, 1.0/0.0]
+    end
+  end
+
+  ruby_bug "#3945", "1.9.2" do
+    it "does not yield when self > stop" do
+      result = []
+      100.step(42, 1.0/0.0)              { |x| result << x }
+      42.step(-1.0/0.0, 1.0/0.0)         { |x| result << x }
+      result.should == []
+    end
+  end
+end
+
 describe "Numeric#step with [stop, +step] when self, stop or step is a Float" do
   it "yields while increasing self by step until stop is reached" do
     result = []
@@ -171,6 +198,33 @@ describe "Numeric#step with [stop, +step] when self, stop or step is a Float" do
     result = []
     2.5.step(1.5, 1) { |x| result << x }
     result.should == []
+  end
+end
+
+describe "Numeric#step with [stop, -infinity]" do
+  ruby_bug "#3945", "1.9.2" do
+    it "yields once if self > stop" do
+      result = []
+      42.step(6, -1.0/0.0)               { |x| result << x }
+      42.step(-1.0/0.0, -1.0/0.0)        { |x| result << x }
+      result.should == [42, 42]
+    end
+
+    it "yields once when self equals stop" do
+      result = []
+      42.step(42, -1.0/0.0)              { |x| result << x }
+      (1.0/0.0).step(1.0/0.0, -1.0/0.0)  { |x| result << x }
+      result.should == [42, 1.0/0.0]
+    end
+  end
+
+  ruby_bug "#781", "1.8.7" do
+    it "does not yield when self > stop" do
+      result = []
+      42.step(100, -1.0/0.0)             { |x| result << x }
+      42.step(1.0/0.0, -1.0/0.0)         { |x| result << x }
+      result.should == []
+    end
   end
 end
 

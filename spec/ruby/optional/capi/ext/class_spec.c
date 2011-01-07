@@ -19,9 +19,21 @@ static VALUE class_spec_define_call_super_method(VALUE self, VALUE obj, VALUE st
 }
 #endif
 
+#ifdef HAVE_RB_CLASS_NAME
+static VALUE class_spec_rbclass_name(VALUE self, VALUE klass) {
+  return rb_class_name(klass);
+}
+#endif
+
 #ifdef HAVE_RB_CLASS2NAME
 static VALUE class_spec_rbclass2name(VALUE self, VALUE klass) {
   return rb_str_new2( rb_class2name(klass) );
+}
+#endif
+
+#ifdef HAVE_RB_PATH2CLASS
+static VALUE class_spec_rb_path2class(VALUE self, VALUE path) {
+  return rb_path2class(RSTRING_PTR(path));
 }
 #endif
 
@@ -70,13 +82,24 @@ static VALUE class_spec_cvar_get(VALUE self, VALUE klass, VALUE name) {
 }
 #endif
 
+#ifdef RUBY_VERSION_IS_1_8
 #ifdef HAVE_RB_CVAR_SET
 static VALUE class_spec_cvar_set(VALUE self, VALUE klass, VALUE name, VALUE val) {
 	rb_cvar_set(klass, rb_intern(StringValuePtr(name)), val, 0);
-
   return Qnil;
 }
 #endif
+#endif
+
+#ifdef RUBY_VERSION_IS_1_9
+#ifdef HAVE_RB_CVAR_SET
+static VALUE class_spec_cvar_set(VALUE self, VALUE klass, VALUE name, VALUE val) {
+	rb_cvar_set(klass, rb_intern(StringValuePtr(name)), val);
+  return Qnil;
+}
+#endif
+#endif
+
 
 #ifdef HAVE_RB_CV_GET
 static VALUE class_spec_cv_get(VALUE self, VALUE klass, VALUE name) {
@@ -124,8 +147,16 @@ void Init_class_spec() {
   rb_define_method(cls, "define_call_super_method", class_spec_define_call_super_method, 2);
 #endif
 
+#ifdef HAVE_RB_CLASS_NAME
+  rb_define_method(cls, "rb_class_name", class_spec_rbclass_name, 1);
+#endif
+
 #ifdef HAVE_RB_CLASS2NAME
   rb_define_method(cls, "rb_class2name", class_spec_rbclass2name, 1);
+#endif
+
+#ifdef HAVE_RB_PATH2CLASS
+  rb_define_method(cls, "rb_path2class", class_spec_rb_path2class, 1);
 #endif
 
 #ifdef HAVE_RB_CLASS_INHERITED

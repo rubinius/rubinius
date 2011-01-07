@@ -19,6 +19,14 @@ describe "Module#const_defined?" do
       # CS_CONST10 is defined in a module included by ChildA
       ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST10).should be_true
     end
+
+    it "returns false if the constant is defined in the receiver's superclass and the inherit flag is false" do
+      ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST4, false).should be_false
+    end
+
+    it "returns true if the constant is defined in the receiver's superclass and the inherit flag is true" do
+      ConstantSpecs::ContainerA::ChildA.const_defined?(:CS_CONST4, true).should be_true
+    end
   end
 
   it "returns true if the given String names a constant defined in the receiver" do

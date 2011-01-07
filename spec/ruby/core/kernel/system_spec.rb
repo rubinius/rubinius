@@ -3,7 +3,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Kernel#system" do
   before do
-    @ruby = MSpecScript.config[:target]
+    @ruby = ENV['RUBY_EXE']
   end
 
   it "can run basic things that exist" do
