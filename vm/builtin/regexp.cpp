@@ -1,4 +1,4 @@
-#include <oniguruma.h> // Must be first.
+#include "oniguruma.h" // Must be first.
 
 #include "builtin/regexp.hpp"
 #include "builtin/class.hpp"
