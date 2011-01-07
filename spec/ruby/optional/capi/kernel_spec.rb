@@ -101,6 +101,7 @@ describe "C-API Kernel function" do
       lambda do
         @s.rb_sys_fail("additional info")
       end.should raise_error(SystemCallError, /additional info/)
+    end
 
     it "can take a NULL message" do
       lambda do
@@ -258,7 +259,7 @@ describe "C-API Kernel function" do
   describe "rb_block_proc" do
     it "converts the implicit block into a proc" do
       proc = @s.rb_block_proc() { 1+1 }
-      proc.should be_kind_of Proc
+      proc.should be_kind_of(Proc)
       proc.call.should == 2
     end
   end
