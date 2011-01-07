@@ -1,0 +1,1 @@
+fails:Net::HTTP.get when passed URI yields each read part of the body to the passed block when passed a block
