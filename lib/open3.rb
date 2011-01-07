@@ -44,27 +44,27 @@ module Open3
   # The parameter +cmd+ is passed directly to Kernel#exec.
   #
   def popen3(*cmd)
-    pw = IO::pipe   # pipe[0] for read, pipe[1] for write
-    pr = IO::pipe
-    pe = IO::pipe
+    pw = IO.pipe   # pipe[0] for read, pipe[1] for write
+    pr = IO.pipe
+    pe = IO.pipe
 
     pid = fork{
       # child
-      fork{
-	# grandchild
-	pw[1].close
-	STDIN.reopen(pw[0])
-	pw[0].close
+      fork {
+        # grandchild
+        pw[1].close
+        STDIN.reopen(pw[0])
+        pw[0].close
 
-	pr[0].close
-	STDOUT.reopen(pr[1])
-	pr[1].close
+        pr[0].close
+        STDOUT.reopen(pr[1])
+        pr[1].close
 
-	pe[0].close
-	STDERR.reopen(pe[1])
-	pe[1].close
+        pe[0].close
+        STDERR.reopen(pe[1])
+        pe[1].close
 
-	exec(*cmd)
+        exec(*cmd)
       }
       exit!(0)
     }
@@ -72,14 +72,17 @@ module Open3
     pw[0].close
     pr[1].close
     pe[1].close
+
     Process.waitpid(pid)
+
     pi = [pw[1], pr[0], pe[0]]
     pw[1].sync = true
-    if defined? yield
+
+    if block_given?
       begin
-	return yield(*pi)
+        return yield(*pi)
       ensure
-	pi.each{|p| p.close unless p.closed?}
+        pi.each { |p| p.close unless p.closed? }
       end
     end
     pi
