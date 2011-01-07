@@ -2,7 +2,8 @@ Daedalus.blueprint do |i|
   llvm = i.external_lib "vm/external_libs/llvm" do |l|
     conf = "vm/external_libs/llvm/Release/bin/llvm-config"
     flags = `#{conf} --cflags`.strip.split(/\s+/)
-    flags.delete_if { |x| x.index("-O") == 0 }
+    flags.delete_if { |x| x.index("-O") == 0 || x.index("-I") == 0 }
+    flags << "-Ivm/external_libs/llvm/include"
     l.cflags = flags
     l.ldflags = [`#{conf} --ldflags`.strip]
     l.objects = `#{conf} --libfiles`.strip.split(/\s+/)
