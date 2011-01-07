@@ -40,6 +40,7 @@ namespace rubinius {
     , server_fd_(-1)
     , verbose_(false)
     , max_fd_(0)
+    , exit_(false)
     , vars_(0)
   {
     FD_ZERO(&fds_);
@@ -204,11 +205,13 @@ namespace rubinius {
     // It's possible we call code that wants this to thread
     // to be setup as a fully managed thread, so lets just make it one.
     NativeMethod::init_thread(state_);
+    set_delete_on_exit();
 
     while(1) {
       fd_set read_fds = fds_;
 
       int ret = select(max_fd_ + 1, &read_fds, 0, 0, 0);
+      if(exit_) return;
 
       if(ret < 0) {
         if(errno == EINTR || errno == EAGAIN) continue;
@@ -282,6 +285,8 @@ namespace rubinius {
         }
       }
     }
+
+    NativeMethod::cleanup_thread(state_);
   }
 
   static char tmp_path[PATH_MAX];
@@ -298,6 +303,19 @@ namespace rubinius {
 
   void QueryAgent::cleanup() {
     remove_tmp_path();
+  }
+
+  void QueryAgent::shutdown(STATE) {
+    if(!state->shared.agent()) return;
+    state->shared.agent()->shutdown_i();
+  }
+
+  void QueryAgent::shutdown_i() {
+    exit_ = true;
+    wakeup();
+    cleanup();
+
+    if(!in_self_p()) join();
   }
 
   void QueryAgent::make_discoverable() {

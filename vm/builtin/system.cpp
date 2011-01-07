@@ -127,6 +127,7 @@ namespace rubinius {
 #endif
 
     SignalHandler::shutdown();
+    QueryAgent::shutdown(state);
 
     state->shared.pre_exec();
 
