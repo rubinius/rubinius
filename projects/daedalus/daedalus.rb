@@ -19,7 +19,7 @@ module Daedalus
 
   class Logger
     def initialize(level=3)
-      @count = nil
+      @count = 0
       @total = nil
       @level = level
     end
@@ -298,26 +298,19 @@ module Daedalus
       return false
     end
 
+    def consider(ctx, tasks)
+      tasks << self if out_of_date?(ctx)
+    end
+
     def build(ctx)
       ctx.log.inc!
-
-      if File.exists?(@path)
-        hash = sha1(ctx)
-
-        if File.exists?(object_path) and @data[:sha1] == hash
-          ctx.log.show "RE", object_path
-          save!
-        end
-      end
 
       if @autogen_builder
         ctx.log.show "GN", @path
         @autogen_builder.call(ctx.log)
-        # building assuming regenerates the hash
-        hash = sha1(ctx)
       end
 
-      @data[:sha1] = hash
+      @data[:sha1] = sha1(ctx)
       ctx.compile path, object_path
       save!
     end
@@ -423,31 +416,26 @@ module Daedalus
       return true
     end
 
-    def build(ctx)
-      return "" unless @builder
+    def consider(ctx, tasks)
+      tasks << self if out_of_date?(ctx)
+    end
 
-      hash = sha1()
+    def build(ctx)
+      raise "Unable to build" unless @builder
 
       ctx.log.inc!
 
-      if have_objects and @data[:sha1] == hash
-        ctx.log.show "RE", @build_dir
-      else
-        ctx.log.show "LB", @build_dir
-        Dir.chdir(@build_dir) do
-          @builder.call(ctx.log)
-        end
+      ctx.log.show "LB", @build_dir
 
-        # building can change the sha1, so recompute it.
-        hash = sha1()
-        @data[:sha1] = hash
-
-        File.open(@data_file, "w") do |f|
-          f << Marshal.dump(@data)
-        end
+      Dir.chdir(@build_dir) do
+        @builder.call(ctx.log)
       end
 
-      hash
+      @data[:sha1] = sha1()
+
+      File.open(@data_file, "w") do |f|
+        f << Marshal.dump(@data)
+      end
     end
 
     def describe(ctx)
@@ -474,33 +462,15 @@ module Daedalus
       objects.sort
     end
 
+    def consider(ctx, tasks)
+      subtasks = []
+      @files.each { |x| x.consider(ctx, subtasks) }
+      tasks << [self, subtasks] unless subtasks.empty?
+    end
+
     def build(ctx)
-      to_build = @files.find_all { |x| x.out_of_date?(ctx) }
-
-      ctx.log.start to_build.size + 1
-
-      to_build.each { |x| x.build(ctx) }
-
-      sha1 = Digest::SHA1.new
-
-      objs = objects()
-      objs.each { |x| sha1.file(x) }
-
-      hex = sha1.hexdigest
-
       ctx.log.inc!
-
-      if File.exists?(@path) and @data[:sha1] == hex
-        ctx.log.show "RE", @path
-        save!
-      else
-        @data[:sha1] = hex
-
-        ctx.link @path, objs
-        save!
-      end
-
-      ctx.log.stop
+      ctx.link @path, objects
     end
 
     def clean
@@ -528,6 +498,95 @@ module Daedalus
           obj.info(ctx)
         else
           puts "Unable to find file: #{n}"
+        end
+      end
+    end
+  end
+
+  class TaskRunner
+    def initialize(compiler, tasks, max=nil)
+      @threads = []
+      @queue = Queue.new
+      @max = TaskRunner.detect_cpus
+      @tasks = tasks
+      @compiler = compiler
+
+      calculate_max(max)
+    end
+
+    def calculate_max(max)
+      cpus = TaskRunner.detect_cpus
+
+      case max
+      when nil # auto
+        case cpus
+        when 1, 2
+          @max = cpus
+        when 4
+          @max = 3
+        else
+          @max = 4
+        end
+      when Fixnum
+        @max = max
+      when "cpu"
+        @max = cpus
+      end
+    end
+
+    def self.detect_cpus
+      if RUBY_PLATFORM =~ /windows/
+        return 1
+      else
+        count = `getconf _NPROCESSORS_CONF 2>&1`.to_i
+        return 1 if $?.exitstatus != 0
+        return count
+      end
+    end
+
+    def start
+      count = @tasks.flatten.size
+
+      puts "Running #{count} tasks using #{@max} parallel threads"
+      start = Time.now
+
+      @max.times do
+        @threads << Thread.new {
+          while true
+            task = @queue.pop
+            break unless task
+            task.build @compiler
+          end
+        }
+      end
+
+      sync = []
+
+      queue_tasks(@tasks, sync)
+
+      # Kill off the builders
+      @threads.each do |t|
+        @queue << nil
+      end
+
+      @threads.each do |t|
+        t.join
+      end
+
+      sync.each do |task|
+        task.build @compiler
+      end
+
+      puts "Build time: #{Time.now - start} seconds"
+    end
+
+    def queue_tasks(tasks, sync)
+      tasks.each do |task|
+        if task.kind_of? Array
+          queue_tasks task[1..-1], sync
+          sync << task[0]
+        else
+          @queue.push task
         end
       end
     end
@@ -575,7 +634,15 @@ module Daedalus
       if !targets.empty?
         @programs.each do |x|
           if targets.include? x.path
-            x.build @compiler
+            tasks = []
+            x.consider @compiler, tasks
+
+            if tasks.empty?
+              @compiler.log.info "Nothing to do for #{x.path}"
+            else
+              tr = TaskRunner.new @compiler, tasks
+              tr.start
+            end
           end
         end
       else
