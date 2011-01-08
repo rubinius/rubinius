@@ -46,15 +46,44 @@ class Numeric
 
     raise ArgumentError, "step cannot be 0" if step == 0
 
-    idx = self
-    if idx.is_a?(Float) || limit.is_a?(Float) || step.is_a?(Float)
-      idx, limit, step = FloatValue(idx), FloatValue(limit), FloatValue(step)
-    end
+    value = self
+    if value.is_a? Fixnum and limit.is_a? Fixnum and step.is_a? Fixnum
+      if step > 0
+        while value <= limit
+          yield value
+          value += step
+        end
+      else
+        while value >= limit
+          yield value
+          value += step
+        end
+      end
+    elsif value.is_a? Float or limit.is_a? Float or step.is_a? Float
+      # Ported from MRI
 
-    cmp = step > 0 ? :> : :<
-    until idx.send(cmp,limit)
-      yield idx
-      idx += step
+      value, limit, step = FloatValue(value), FloatValue(limit), FloatValue(step)
+      range = limit - value
+      n = range / step;
+      err = (value.abs + limit.abs + range.abs) / step.abs * Float::EPSILON
+
+      if step.infinite?
+        yield value if step > 0 ? value <= limit : value >= limit
+      else
+        err = 0.5 if err > 0.5
+        n = (n + err).floor + 1
+        i = 0
+        while i < n
+          yield i * step + value
+          i += 1
+        end
+      end
+    else
+      cmp = step > 0 ? :> : :<
+      until value.send(cmp, limit)
+        yield value
+        value += step
+      end
     end
 
     return self

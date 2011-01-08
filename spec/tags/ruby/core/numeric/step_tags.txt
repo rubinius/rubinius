@@ -1,4 +1,0 @@
-fails:Numeric#step with [stop, +infinity] yields once if self < stop
-fails:Numeric#step with [stop, +infinity] yields once when self equals stop
-fails:Numeric#step with [stop, -infinity] yields once if self > stop
-fails:Numeric#step with [stop, -infinity] yields once when self equals stop
