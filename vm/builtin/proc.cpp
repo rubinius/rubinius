@@ -29,7 +29,6 @@ namespace rubinius {
 
   Proc* Proc::from_env(STATE, Object* self, Object* env) {
     if(Proc* p = try_as<Proc>(env)) {
-      p->klass(state, as<Class>(self));
       return p;
     }
 
