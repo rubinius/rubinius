@@ -1,4 +1,4 @@
-module BasicObjectSpecs
+module ObjectSpecs
   class IVars
     def initialize
       @secret = 99
