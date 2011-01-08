@@ -436,8 +436,12 @@ class Module
   end
 
   def module_exec(*args, &prc)
-    instance_exec(*args, &prc)
+    raise LocalJumpError, "Missing block" unless block_given?
+    env = prc.block
+    static_scope = env.method.scope.using_current_as(self)
+    return env.call_under(self, static_scope, *args)
   end
+
   alias_method :class_exec, :module_exec
 
   def constants
