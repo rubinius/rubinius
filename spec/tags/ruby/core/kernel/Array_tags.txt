@@ -1,1 +1,0 @@
-fails:Kernel#Array tries to call #to_a on the given argument if #to_ary is provided and it returns nil
