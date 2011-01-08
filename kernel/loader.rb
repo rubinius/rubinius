@@ -253,6 +253,21 @@ containing the Rubinius standard library files.
         @load_paths << dir
       end
 
+      options.on "-K", "[code]", "Set $KCODE" do |k|
+        case k
+        when 'a', 'A', 'n', 'N', nil
+          $KCODE = "NONE"
+        when 'e', 'E'
+          $KCODE = "EUC"
+        when 's', 'S'
+          $KCODE = "SJIS"
+        when 'u', 'U'
+          $KCODE = "UTF8"
+        else
+          $KCODE = "NONE"
+        end
+      end
+
       options.on "-n", "Wrap running code in 'while(gets()) ...'" do
         @input_loop = true
       end
@@ -283,6 +298,9 @@ containing the Rubinius standard library files.
 
         # if missing, let it die a natural death
         @script = file ? file : script
+      end
+
+      options.on "-T", "[level]", "Set $SAFE level (NOT IMPLEMENTED)" do |l|
       end
 
       options.on "-v", "Display the version and set $VERBOSE to true" do
@@ -319,6 +337,7 @@ containing the Rubinius standard library files.
         @run_irb = false
         puts Rubinius.version
       end
+
 
       # TODO: convert all these to -X options
       options.doc "\nRubinius options"
@@ -389,6 +408,8 @@ containing the Rubinius standard library files.
       end
     end
 
+    RUBYOPT_VALID_OPTIONS = "IdvwWrKT"
+
     def handle_rubyopt(options)
       if ENV['RUBYOPT']
         options.start_parsing
@@ -402,6 +423,10 @@ containing the Rubinius standard library files.
           end
 
           opt, arg, rest = options.split entry, 2
+
+          unless RUBYOPT_VALID_OPTIONS.index opt[1, 1]
+            raise RuntimeError, "invalid option in RUBYOPT: #{opt}"
+          end
 
           options.process env_opts, entry, opt, arg
         end
