@@ -1496,6 +1496,8 @@ class Array
 
   # Shuffles elements in self in place.
   def shuffle!
+    Ruby.check_frozen
+
     size.times do |i|
       r = i + Kernel.rand(size - i)
       @tuple.swap(i,r)
