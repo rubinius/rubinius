@@ -5,19 +5,19 @@ describe "Numeric#step with [stop, step]" do
   before(:each) do
     @obj = NumericSpecs::Subclass.new
   end
-  
+
   it "raises an ArgumentError when step is 0" do
     lambda { @obj.step(5, 0) {} }.should raise_error(ArgumentError)
   end
-  
+
   ruby_version_is "" ... "1.8.7" do
     it "raises no LocalJumpError when passed no block and self > stop" do
       @stop = mock("Stop value")
       @step = mock("Step value")
       @step.should_receive(:>).with(0).and_return(true)
-      
+
       @obj.should_receive(:>).with(@stop).and_return(true)
-      
+
       lambda { @obj.step(@stop, @step) }.should_not raise_error(LocalJumpError)
     end
 
@@ -25,9 +25,9 @@ describe "Numeric#step with [stop, step]" do
       @stop = mock("Stop value")
       @step = mock("Step value")
       @step.should_receive(:>).with(0).and_return(true)
-      
+
       @obj.should_receive(:>).with(@stop).and_return(false)
-      
+
       lambda { @obj.step(@stop, @step) }.should raise_error(LocalJumpError)
     end
   end
@@ -36,14 +36,14 @@ describe "Numeric#step with [stop, step]" do
     it "returns an Enumerator when passed no block and self > stop" do
       @stop = mock("Stop value")
       @step = mock("Step value")
-      
+
       @obj.step(@stop, @step).should be_an_instance_of(enumerator_class)
     end
 
     it "returns an Enumerator when passed no block and self < stop" do
       @stop = mock("Stop value")
       @step = mock("Step value")
-      
+
       @obj.step(@stop, @step).should be_an_instance_of(enumerator_class)
     end
 
@@ -51,37 +51,37 @@ describe "Numeric#step with [stop, step]" do
       0.step(5, 2).to_a.should == [0, 2, 4]
     end
   end
-  
+
   it "increments self (using #+) until self > stop when step > 0" do
     values = []
-    
+
     @stop = mock("Stop value")
     @step = mock("Step value")
     @step.should_receive(:>).with(0).and_return(true)
-    
+
     # Stepping 3 times
     @obj.should_receive(:>).with(@stop).and_return(false, false, false, true)
     @obj.should_receive(:+).with(@step).and_return(@obj, @obj, @obj)
-    
+
     @obj.step(@stop, @step) { |i| values << i }
-    
+
     values.should == [@obj, @obj, @obj]
   end
-  
+
   it "decrements self (using #+) until self < stop when step < 0" do
     values = []
-    
+
     @stop = mock("Stop value")
     @step = mock("Step value")
     @step.should_receive(:>).with(0).and_return(false)
-    
+
     # Stepping 3 times
     @obj.should_receive(:<).with(@stop).and_return(false, false, false, true)
     # Calling #+ with negative step decrements self
     @obj.should_receive(:+).with(@step).and_return(@obj, @obj, @obj)
-    
+
     @obj.step(@stop, @step) { |i| values << i }
-    
+
     values.should == [@obj, @obj, @obj]
   end
 end
@@ -94,7 +94,7 @@ describe "Numeric#step with [stop, step] when self, stop and step are Fixnums" d
   it "yields only Fixnums" do
     1.step(5, 1) { |x| x.should be_kind_of(Fixnum) }
   end
-  
+
   it "defaults to step = 1" do
     result = []
     1.step(5) { |x| result << x }
@@ -121,7 +121,7 @@ describe "Numeric#step with [stop, +step] when self, stop and step are Fixnums" 
     result.should == []
   end
 end
-  
+
 describe "Numeric#step with [stop, -step] when self, stop and step are Fixnums" do
   it "yields while decreasing self by step until stop is reached" do
     result = []
@@ -146,7 +146,7 @@ describe "Numeric#step with [stop, step] when self, stop or step is a Float" do
   it "raises an ArgumentError when step is 0" do
     lambda { 1.1.step(2, 0.0) {} }.should raise_error(ArgumentError)
   end
-  
+
   it "yields only Floats" do
     1.5.step(5, 1) { |x| x.should be_kind_of(Float) }
     1.step(5.0, 1) { |x| x.should be_kind_of(Float) }
