@@ -1,1 +1,0 @@
-fails:Array#cycle raises a TypeError if passed a non-Numeric and non-nil argument
