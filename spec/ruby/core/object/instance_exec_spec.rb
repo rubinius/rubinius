@@ -1,14 +1,14 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 ruby_version_is "1.8.7" do
-  
+
   require File.expand_path('../fixtures/classes', __FILE__)
-  
+
   describe "Object#instance_exec" do
     it "raises a LocalJumpError unless given a block" do
       lambda { "hola".instance_exec }.should raise_error(LocalJumpError)
     end
-    
+
     it "has an arity of -1" do
       Object.new.method(:instance_exec).arity.should == -1
     end
@@ -16,7 +16,7 @@ ruby_version_is "1.8.7" do
     it "accepts arguments with a block" do
       lambda { "hola".instance_exec(4, 5) { |a,b| a + b } }.should_not raise_error
     end
-    
+
     it "doesn't pass self to the block as an argument" do
       "hola".instance_exec { |o| o }.should be_nil
     end
@@ -27,7 +27,7 @@ ruby_version_is "1.8.7" do
 
     it "only binds the exec to the receiver" do
       f = Object.new
-      f.instance_exec do 
+      f.instance_exec do
         def foo
           1
         end
@@ -44,7 +44,7 @@ ruby_version_is "1.8.7" do
       s = "hola"
       (s == s.instance_exec { self }).should == true
     end
-    
+
     it "executes in the context of the receiver" do
       "Ruby-fu".instance_exec { size }.should == 7
       Object.class_eval { "Ruby-fu".instance_exec{ to_s } }.should == "Ruby-fu"
