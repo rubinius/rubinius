@@ -76,24 +76,45 @@ VALUE io_spec_rb_io_check_closed(VALUE self, VALUE io) {
 }
 #endif
 
+#ifdef RUBY_VERSION_IS_1_9
+typedef int wait_bool;
+#define wait_bool_to_ruby_bool(x) (x ? Qtrue : Qfalse)
+#else
+typedef VALUE wait_bool;
+#define wait_bool_to_ruby_bool(x) (x)
+#endif
+
 #ifdef HAVE_RB_IO_WAIT_READABLE
-VALUE io_spec_rb_io_wait_readable(VALUE self, VALUE io) {
+#define RB_IO_WAIT_READABLE_BUF 13
+
+VALUE io_spec_rb_io_wait_readable(VALUE self, VALUE io, VALUE read_p) {
   int fd = io_spec_get_fd(io);
   set_non_blocking(fd);
-  char buf[256];
-  int ret;
+  char buf[RB_IO_WAIT_READABLE_BUF];
+  wait_bool ret;
 
-  ret = read(fd, buf, 256);
-  if (ret < 1)
-    return rb_io_wait_readable(fd) ? Qtrue : Qfalse;
-  else
-    return Qnil;
+  if(RTEST(read_p)) {
+    rb_ivar_set(self, rb_intern("@write_data"), Qtrue);
+    read(fd, buf, RB_IO_WAIT_READABLE_BUF);
+  }
+
+  ret = rb_io_wait_readable(fd);
+
+  if(RTEST(read_p)) {
+    read(fd, buf, RB_IO_WAIT_READABLE_BUF);
+    rb_ivar_set(self, rb_intern("@read_data"),
+        rb_str_new(buf, RB_IO_WAIT_READABLE_BUF));
+  }
+
+  return wait_bool_to_ruby_bool(ret);
 }
 #endif
 
 #ifdef HAVE_RB_IO_WAIT_WRITABLE
 VALUE io_spec_rb_io_wait_writable(VALUE self, VALUE io) {
-  return rb_io_wait_writable(io_spec_get_fd(io));
+  wait_bool ret;
+  ret = rb_io_wait_writable(io_spec_get_fd(io));
+  return wait_bool_to_ruby_bool(ret);
 }
 #endif
 
@@ -131,7 +152,7 @@ void Init_io_spec() {
 #endif
 
 #ifdef HAVE_RB_IO_WAIT_READABLE
-  rb_define_method(cls, "rb_io_wait_readable", io_spec_rb_io_wait_readable, 1);
+  rb_define_method(cls, "rb_io_wait_readable", io_spec_rb_io_wait_readable, 2);
 #endif
 
 #ifdef HAVE_RB_IO_WAIT_WRITABLE
