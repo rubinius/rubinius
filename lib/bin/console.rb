@@ -210,7 +210,12 @@ help              - You're lookin' at it
     attr_reader :pid, :port, :command, :path
 
     def self.find_all
-      agents = Dir["#{ENV['TMPDIR']}/rubinius-agent.*"]
+      unless dir = ENV['TMPDIR']
+        dir = "/tmp"
+        return [] unless File.directory?(dir) and File.readable?(dir)
+      end
+
+      agents = Dir["#{dir}/rubinius-agent.*"]
 
       return [] unless agents
 
