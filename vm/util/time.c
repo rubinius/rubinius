@@ -1,5 +1,10 @@
 #include <time.h>
 
+/* Prevent NetBSD from using ctype macros that cause compiler
+ * warnings about char as subscript.
+ */
+#define _CTYPE_NOINLINE 1
+
 /*
  * This was lifted wholesale from MRI, 1.8.7. I've externalized it a little
  * bit.
