@@ -763,6 +763,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Remove and return an element from the Array. */
   VALUE   rb_ary_delete(VALUE self_handle, VALUE item);
 
+  /** Remove and return the element at index from the Array. */
+  VALUE   rb_ary_delete_at(VALUE self_handle, long idx);
+
   /** Return shallow copy of the Array. The elements are not dupped. */
   VALUE   rb_ary_dup(VALUE self_handle);
 
