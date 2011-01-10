@@ -362,10 +362,28 @@ describe "C-API Array function" do
   end
 
   describe "rb_ary_delete_at" do
-    it "removes an element from an array at the specified index" do
-      ary = [1, 2, 3, 4]
-      @s.rb_ary_delete_at(ary, ary.size - 1).should == 4
-      ary.should == [1, 2, 3]
+    before :each do
+      @array = [1, 2, 3, 4]
+    end
+
+    it "removes an element from an array at a positive index" do
+      @s.rb_ary_delete_at(@array, 2).should == 3
+      @array.should == [1, 2, 4]
+    end
+
+    it "removes an element from an array at a negative index" do
+      @s.rb_ary_delete_at(@array, -3).should == 2
+      @array.should == [1, 3, 4]
+    end
+
+    it "returns nil if the index is out of bounds" do
+      @s.rb_ary_delete_at(@array, 4).should be_nil
+      @array.should == [1, 2, 3, 4]
+    end
+
+    it "returns nil if the negative index is out of bounds" do
+      @s.rb_ary_delete_at(@array, -5).should be_nil
+      @array.should == [1, 2, 3, 4]
     end
   end
 end
