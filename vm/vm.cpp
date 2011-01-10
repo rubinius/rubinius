@@ -51,9 +51,11 @@ namespace rubinius {
   unsigned long VM::cStackDepthMax = 655300;
 
 #ifndef RBX_WINDOWS
-  // getrlimit can report there is 4G of stack (ie, unlimited).
-  // Even when there is unlimited stack, we clamp the max to
-  // this value (currently 128M)
+  /**
+   * Maximum amount of stack space to use.
+   * getrlimit can report there is 4G of stack (ie, unlimited).  Even when
+   * there is unlimited stack, we clamp the max to this value (currently 128M).
+   */
   static rlim_t cMaxStack = (1024 * 1024 * 128);
 #endif
 
@@ -159,10 +161,16 @@ namespace rubinius {
 #endif
   }
 
+  /**
+   * Returns the current VM executing on this pthread.
+   */
   VM* VM::current() {
     return ManagedThread::current()->as_vm();
   }
 
+  /**
+   * Sets this VM instance as the current VM on this pthread.
+   */
   void VM::set_current(VM* vm) {
     ManagedThread::set_current(vm);
   }

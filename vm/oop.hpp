@@ -221,7 +221,14 @@ const int cUndef = 0x22L;
     class Handle;
   }
 
+
+  /**
+   * An InflatedHeader is used on the infrequent occasions when an Object needs
+   * to store more metadata than can fit in the ObjectHeader HeaderWord struct.
+   */
   class InflatedHeader {
+    // Treat the header as either storage for the ObjectFlags, or as a pointer
+    // to the next free InflatedHeader in the InflatedHeaders free list.
     union {
       ObjectFlags flags_;
       InflatedHeader* next_;

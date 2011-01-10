@@ -23,8 +23,10 @@ namespace rubinius {
       return time_waiting_;
     }
 
-    // Called after a fork(), when we know we're alone again, to get
-    // everything back in the proper order.
+    /**
+     * Called after a fork(), when we know we're alone again, to get
+     * everything back in the proper order.
+     */
     void reinit() {
       mutex_.init();
       waiting_to_stop_.init();
@@ -33,9 +35,10 @@ namespace rubinius {
       should_stop_ = false;
     }
 
-    // If called when the GC is waiting to run,
-    //   wait until the GC tells us it's ok to continue.
-    // always increments pending_threads_ at the end.
+    /**
+     * If called when the GC is waiting to run, wait until the GC tells us its
+     * OK to continue. Always decrements pending_threads_ at the end.
+     */
     void become_independent(THREAD) {
       thread::Mutex::LockGuard guard(mutex_);
 

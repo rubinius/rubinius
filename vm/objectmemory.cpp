@@ -1346,7 +1346,9 @@ step1:
   }
 };
 
-// Used in gdb
+
+// Memory utility functions for use in gdb
+
 void x_memstat() {
   rubinius::VM::current()->om->memstats();
 }
@@ -1362,6 +1364,18 @@ void x_snapshot() {
 void x_print_snapshot() {
   rubinius::VM::current()->om->print_new_since_snapshot();
 }
+
+
+// The following memory functions are defined in ruby.h for use by C-API
+// extensions, and also used by library code lifted from MRI (e.g. Oniguruma).
+// They provide some book-keeping around memory usage for non-VM code, so that
+// the garbage collector is run periodically in response to memory allocations
+// in non-VM code.
+// Without these  checks, memory can become exhausted without the VM being aware
+// there is a problem. As this memory may only be being used by Ruby objects
+// that have become garbage, performing a garbage collection periodically after
+// a significant amount of memory has been malloc-ed should keep non-VM memory
+// usage from growing uncontrollably.
 
 #define DEFAULT_MALLOC_THRESHOLD 10000000
 

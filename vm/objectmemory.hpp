@@ -22,24 +22,6 @@ namespace rubinius {
 
   class Object;
 
-  /* ObjectMemory is the primary API that the rest of the VM uses to interact
-   * with actions such as allocating objects, storing data in objects, and
-   * perform garbage collection.
-   *
-   * It is current split between 2 generations, the BakerGC, which handles
-   * the young objects, and the MarkSweepGC, which handles the mature.
-   *
-   * Basic tasks:
-   *
-   * Allocate an object of a given class and number of fields.
-   *   If the object is large, it's put to start in the mature space,
-   *   otherwise in the young space.
-   *
-   * Detection of memory condition requiring collection of both generations
-   *   independently.
-   *
-   */
-
   struct CallFrame;
   class GCData;
   class Configuration;
@@ -70,21 +52,58 @@ namespace rubinius {
     {}
   };
 
+
+  /**
+   * ObjectMemory is the primary API that the rest of the VM uses to interact
+   * with actions such as allocating objects, storing data in objects, and
+   * performing garbage collection.
+   *
+   * It is currently split between 3 generations, the BakerGC, which handles
+   * the young objects, the ImmixGC which handles mature objects, and the
+   * MarkSweepGC, which handles large objects.
+   *
+   * ObjectMemory also manages the memory used for CodeResources, which are
+   * internal objects used for executing Ruby code. This includes VMMethod,
+   * various JIT classes, and FFI data.
+   *
+   * Basic tasks:
+   * - Allocate an object of a given class and number of fields. If the object
+   *   is large, it's allocated in the large object space, otherwise in the
+   *   young space.
+   * - Detection of memory condition requiring collection of the young and
+   *   mautre generations independently.
+   */
+
   class ObjectMemory : public gc::WriteBarrier, public Lockable {
+    /// BakerGC used for the young generation
     BakerGC* young_;
+
+    /// MarkSweepGC used for the large object store
     MarkSweepGC* mark_sweep_;
 
+    /// ImmixGC used for the mature generation
     ImmixGC* immix_;
+
+    /// Storage for all InflatedHeader instances.
     InflatedHeaders* inflated_headers_;
 
     unsigned int mark_;
+
+    /// Garbage collector for CodeResource objects.
     CodeManager code_manager_;
     std::list<FinalizeObject> finalize_;
     std::list<FinalizeObject*> to_finalize_;
     bool allow_gc_;
 
+    /// List of additional write-barriers that may hold references to young
+    /// objects.
     std::list<gc::WriteBarrier*> aux_barriers_;
+
+    /// Size of slabs to be allocated to threads for lockless thread-local
+    /// allocations.
     size_t slab_size_;
+
+    /// True if finalizers are currently being run.
     bool running_finalizers_;
 
     thread::Condition contention_var_;
@@ -99,16 +118,27 @@ namespace rubinius {
     TypeInfo* type_info[(int)LastObjectType];
 
     /* Config variables */
+    /// Threshhold size at which an object is considered a large object, and
+    /// therefore allocated in the large object space.
     size_t large_object_threshold;
 
     /* Stats */
+    /// Total number of objects allocated to date.
     size_t objects_allocated;
+
+    /// Total number of bytes allocated to date.
     size_t bytes_allocated;
 
+    /// Total number of young generation collections to date.
     size_t young_collections;
+
+    /// Total number of full collections to date.
     size_t full_collections;
 
+    /// Total amount of time spent collecting the young generation to date.
     size_t young_collection_time;
+
+    /// Total amount of time spent performing full collections to date.
     size_t full_collection_time;
 
   public:
@@ -144,11 +174,17 @@ namespace rubinius {
       allow_gc_ = false;
     }
 
+    /**
+     * Adds an additional write-barrier to the auxilliary write-barriers list.
+     */
     void add_aux_barrier(STATE, gc::WriteBarrier* wb) {
       SYNC(state);
       aux_barriers_.push_back(wb);
     }
 
+    /**
+     * Removes a write-barrier from the auxilliary wirte-barriers list.
+     */
     void del_aux_barrier(STATE, gc::WriteBarrier* wb) {
       SYNC(state);
       aux_barriers_.remove(wb);

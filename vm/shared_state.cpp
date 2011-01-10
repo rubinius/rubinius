@@ -97,7 +97,7 @@ namespace rubinius {
 
     this->ref();
 
-    // If there is no root vm, then the first on created becomes it.
+    // If there is no root vm, then the first one created becomes it.
     if(!root_vm_) root_vm_ = vm;
     return vm;
   }
@@ -161,7 +161,9 @@ namespace rubinius {
     }
   }
 
-  // Create the preemption thread and call scheduler_loop() in the new thread
+  /**
+   * Create the preemption thread and call scheduler_loop() in the new thread.
+   */
   void SharedState::enable_preemption() {
     interrupts.enable_preempt = true;
   }

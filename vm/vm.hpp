@@ -71,6 +71,16 @@ namespace rubinius {
     eNone, ePrivate, eProtected, eSuper, eVCall, eNormal
   };
 
+
+  /**
+   * Represents an execution context for running Ruby code.
+   *
+   * Each Ruby thread is backed by an instance of this class, as well as an
+   * instance of the Thread class. Thread manages the (Ruby visible) thread-
+   * related state, while this class manages the execution machinery for
+   * running Ruby code.
+   */
+
   class VM : public ManagedThread {
   private:
     CallFrame* saved_call_frame_;
@@ -105,13 +115,13 @@ namespace rubinius {
 
     ThreadState thread_state_;
 
-    // The Thread object for this VM state
+    /// The Thread object for this VM state
     TypedRoot<Thread*> thread;
 
-    // The current fiber running on this thread
+    /// The current fiber running on this thread
     TypedRoot<Fiber*> current_fiber;
 
-    // Root fiber, if any (lazily initialized)
+    /// Root fiber, if any (lazily initialized)
     TypedRoot<Fiber*> root_fiber;
 
     static unsigned long cStackDepthMax;
@@ -237,7 +247,6 @@ namespace rubinius {
   public:
     static void init_stack_size();
 
-    // Better than current_state, uses a NativeThread local.
     static VM* current();
     static void set_current(VM* vm);
 
@@ -250,8 +259,6 @@ namespace rubinius {
 
     void check_exception(CallFrame* call_frame);
 
-    // Used to create ObjectMemory and such. Only run for the
-    // root vm.
     void initialize_as_root();
 
     void bootstrap_class();
@@ -289,20 +296,20 @@ namespace rubinius {
         return reinterpret_cast<T*>(new_object_typed_mature(cls, sizeof(T), T::type));
       }
 
-    // Create an uninitialized Class object
+    /// Create an uninitialized Class object
     Class* new_basic_class(Class* sup);
 
-    // Create a Class of name +name+ as an Object subclass
+    /// Create a Class of name +name+ as an Object subclass
     Class* new_class(const char* name);
 
-    // Create a Class of name +name+ as a subclass of +super_class+
+    /// Create a Class of name +name+ as a subclass of +super_class+
     Class* new_class(const char* name, Class* super_class);
 
-    // Create a Class of name +name+ as a subclass of +sup+
-    // under Module +under+
+    /// Create a Class of name +name+ as a subclass of +sup+
+    /// under Module +under+
     Class* new_class(const char* name, Class* sup, Module* under);
 
-    // Create a Class of name +name+ under +under+
+    /// Create a Class of name +name+ under +under+
     Class* new_class_under(const char* name, Module* under);
 
     Module* new_module(const char* name, Module* under = NULL);
@@ -318,7 +325,7 @@ namespace rubinius {
     Thread* current_thread();
     void collect(CallFrame* call_frame);
 
-    // Check the flags in ObjectMemory and collect if we need to.
+    /// Check the GC flags in ObjectMemory and collect if we need to.
     void collect_maybe(CallFrame* call_frame);
 
     void raise_from_errno(const char* reason);
@@ -337,7 +344,7 @@ namespace rubinius {
     void print_backtrace();
 
 
-    // Run the garbage collectors as soon as you can
+    /// Run the garbage collectors as soon as you can
     void run_gc_soon();
 
     void wait_on_channel(Channel* channel);
@@ -373,6 +380,13 @@ namespace rubinius {
     // For thread-local roots
     static std::list<Roots*>* roots;
   };
+
+
+  /**
+   * Instantiation of an instance of this class causes Ruby execution on all
+   * threads to be susepended. Upon destruction of the instance, Ruby execution
+   * is resumed.
+   */
 
   class StopTheWorld {
     VM* vm_;

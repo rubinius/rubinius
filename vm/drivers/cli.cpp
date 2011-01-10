@@ -16,18 +16,19 @@ using namespace rubinius;
 
 static void check_directory(std::string root);
 
-/* The main function here handles the CL arguments passed to it.
- * It then boots the VM, runs the appropriate file (`loader`),
- * and returns 0. If there is an Assertion raised or an Exception,
- * it prints the backtrace supplied. This function is the wrapper for
- * the entire VM, as it deals with anything that could possibly happen
- * to the VM. It's like the person playing whack-a-mole, in that if
- * something tries to come out of the VM that's evil (such as a failed
- * assertion or exception), it catches it and skins it and shows it to
- * the user.
+/**
+ * Main rbx entry point.
  *
- * Note: Although Rubinius is gathering support for multiple VMs, this
- *       function does not deal with that subject.
+ * The main function here handles the environment settings and command-line
+ * arguments passed to it. It then boots the VM, runs the appropriate file
+ * (`loader`), and returns 0 if no errors occur along the way.
+ *
+ * If there is an Assertion raised or an Exception, it prints the backtrace
+ * supplied. This function is the wrapper for the entire VM, as it deals with
+ * anything that could possibly happen to the VM. It's like the person
+ * playing whack-a-mole, in that if something tries to come out of the VM
+ * that's evil (such as a failed assertion or exception), it catches it and
+ * skins it and shows it to the user.
  */
 int main(int argc, char** argv) {
   Environment env(argc, argv);

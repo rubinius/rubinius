@@ -19,6 +19,16 @@
 #include "capi/tag.hpp"
 
 namespace rubinius {
+
+  /**
+   * Creates a BakerGC of the specified size.
+   *
+   * The requested size is allocated as a contiguous heap, which is then split
+   * into three spaces:
+   * - Eden, which gets half of the heap
+   * - Heap A and Heap B, which get one quarter of the heap each. Heaps A and B
+   *   alternate between being the Current and Next space on each collection.
+   */
   BakerGC::BakerGC(ObjectMemory *om, size_t bytes)
     : GarbageCollector(om)
     , full(bytes * 2)
@@ -38,6 +48,15 @@ namespace rubinius {
 
   BakerGC::~BakerGC() { }
 
+  /**
+   * Called for each object in the young generation that is seen during garbage
+   * collection. An object is seen by scanning from the root objects to all
+   * reachable objects. Therefore, only reachable objects will be seen, and
+   * reachable objects may be seen more than once.
+   *
+   * Returns the new address for the object, so that the source reference can
+   * be updated when the object has been moved.
+   */
   Object* BakerGC::saw_object(Object* obj) {
     Object* copy;
 
@@ -76,6 +95,10 @@ namespace rubinius {
     return copy;
   }
 
+
+  /**
+   * Scans the remaining unscanned portion of the Next heap.
+   */
   void BakerGC::copy_unscanned() {
     Object* iobj = next->next_unscanned(object_memory_->state());
 
@@ -86,7 +109,14 @@ namespace rubinius {
     }
   }
 
+
+  /**
+   * Returns true if the young generation has been fully scanned in the
+   * current collection.
+   */
   bool BakerGC::fully_scanned_p() {
+    // Note: The spaces are swapped at the start of collection, which is why we
+    // check the Next heap
     return next->fully_scanned_p();
   }
 
@@ -98,7 +128,9 @@ namespace rubinius {
   const static int cUnderFullTimes = -3;
   const static size_t cMaximumLifetime = 6;
 
-  /* Perform garbage collection on the young objects. */
+  /**
+   * Perform garbage collection on the young objects.
+   */
   void BakerGC::collect(GCData& data, YoungCollectStats* stats) {
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->bytes_copied.start();
@@ -115,6 +147,7 @@ namespace rubinius {
     copy_spills_ = 0;
     reset_promoted();
 
+    // Start by copying objects in the remember set
     for(ObjectArray::iterator oi = current_rs->begin();
         oi != current_rs->end();
         ++oi) {
@@ -227,11 +260,10 @@ namespace rubinius {
     assert(fully_scanned_p());
     // We're now done seeing the entire object graph of normal, live references.
     // Now we get to handle the unusual references, like finalizers and such.
-    //
 
-    /* Update finalizers. Doing so can cause objects that would have just died
-     * to continue life until we can get around to running the finalizer. That
-     * more promoted objects, etc. */
+    // Update finalizers. Doing so can cause objects that would have just died
+    // to continue life until we can get around to running the finalizer. That
+    // means more promoted objects, etc.
     check_finalize();
 
     // Run promotions again, because checking finalizers can keep more objects
@@ -246,10 +278,10 @@ namespace rubinius {
     // find_lost_souls();
 #endif
 
-    /* Check any weakrefs and replace dead objects with nil*/
+    // Check any weakrefs and replace dead objects with nil
     clean_weakrefs(true);
 
-    /* Swap the 2 halves */
+    // Swap the 2 halves
     Heap *x = next;
     next = current;
     current = x;
@@ -265,6 +297,7 @@ namespace rubinius {
       stats->excess_objects = copy_spills_;
     }
 
+    // Tune the age at which promotion occurs
     if(autotune_) {
       double used = current->percentage_used();
       if(used > cOverFullThreshold) {

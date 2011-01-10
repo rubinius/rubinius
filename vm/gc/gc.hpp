@@ -74,11 +74,17 @@ namespace rubinius {
     }
   };
 
+
+  /**
+   * Base class for the various garbage collectors.
+   */
   class GarbageCollector {
   protected:
+    /// Reference to the ObjectMemory we are collecting
     ObjectMemory* object_memory_;
 
   private:
+    /// Array of weak references
     ObjectArray* weak_refs_;
 
   public:
@@ -88,6 +94,8 @@ namespace rubinius {
       if(weak_refs_) delete weak_refs_;
     }
 
+    /// Subclasses implement appropriate behaviour for handling a live object
+    /// encountered during garbage collection.
     virtual Object* saw_object(Object*) = 0;
     void scan_object(Object* obj);
     void delete_object(Object* obj);
@@ -109,6 +117,15 @@ namespace rubinius {
 
     VM* state();
 
+    /**
+     * Adds a weak reference to the specified object.
+     *
+     * A weak reference provides a way to hold a reference to an object without
+     * that reference being sufficient to keep the object alive. If no other
+     * reference to the weak-referenced object exists, it can be collected by
+     * the garbage collector, with the weak-reference subsequently returning
+     * null.
+     */
     void add_weak_ref(Object* obj) {
       if(!weak_refs_) {
         weak_refs_ = new ObjectArray;

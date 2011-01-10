@@ -40,9 +40,11 @@ namespace rubinius {
     return object_memory_->state();
   }
 
-  /* Understands how to read the inside of an object and find all references
+  /**
+   * Understands how to read the inside of an object and find all references
    * located within. It copies the objects pointed to, but does not follow into
-   * those further (ie, not recursive) */
+   * those further (i.e. not recursive)
+   */
   void GarbageCollector::scan_object(Object* obj) {
     Object* slot;
 
@@ -85,6 +87,11 @@ namespace rubinius {
     }
   }
 
+
+  /**
+   * Removes an object from the remembered set, ensuring it will be collected
+   * if no other live references to the object exist.
+   */
   void GarbageCollector::delete_object(Object* obj) {
     if(obj->remembered_p()) {
       object_memory_->unremember_object(obj);
@@ -121,6 +128,10 @@ namespace rubinius {
     }
   }
 
+
+  /**
+   * Walks the chain of objects accessible from the specified CallFrame.
+   */
   void GarbageCollector::walk_call_frame(CallFrame* top_call_frame) {
     CallFrame* call_frame = top_call_frame;
     while(call_frame) {
@@ -273,4 +284,5 @@ namespace rubinius {
     delete weak_refs_;
     weak_refs_ = NULL;
   }
+
 }

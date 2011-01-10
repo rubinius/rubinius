@@ -1,5 +1,3 @@
-/* An Environment is the toplevel class for Rubinius. It manages multiple
- * VMs, as well as imports C data from the process into Rubyland. */
 #include "config.h"
 #include "prelude.hpp"
 #include "environment.hpp"
@@ -495,6 +493,9 @@ namespace rubinius {
     state->shared.stop_the_world(state);
   }
 
+  /**
+   * Returns the exit code to use when exiting the rbx process.
+   */
   int Environment::exit_code() {
 
 #ifdef ENABLE_LLVM
@@ -528,16 +529,19 @@ namespace rubinius {
     agent->run();
   }
 
-  /* Loads the runtime kernel files. They're stored in /kernel.
-   * These files consist of classes needed to bootstrap the kernel
-   * and just get things started in general.
+  /**
+   * Loads the runtime kernel files stored in /runtime.
+   * These files consist of the compiled Ruby /kernel code in .rbc files, which
+   * are needed to bootstrap the Ruby kernel.
+   * This method is called after the VM has completed bootstrapping, and is
+   * ready to load Ruby code.
    *
-   * @param root [String] The file root for /kernel. This expects to find
-   *                      alpha.rbc (will compile if not there).
-   * @param env  [Environment&] The environment for Rubinius. It is the uber
-   *                      manager for multiple VMs and process-Ruby interaction. 
+   * @param root The path to the /runtime directory. All kernel loading is
+   *             relative to this path.
    */
   void Environment::load_kernel(std::string root) {
+    // Check that the index file exists; this tells us which sub-directories to
+    // load, and the order in which to load them
     std::string index = root + "/index";
     std::ifstream stream(index.c_str());
     if(!stream) {
@@ -545,12 +549,9 @@ namespace rubinius {
       exit(1);
     }
 
-    // Load the ruby file to prepare for bootstrapping Ruby!
-    // The bootstrapping for the VM is already done by the time we're here.
-
-    // First, pull in the signature file. This helps control when .rbc files need
-    // to be discarded.
-
+    // Pull in the signature file; this helps control when .rbc files need to
+    // be discarded and recompiled due to changes to the compiler since the
+    // .rbc files were created.
     std::string sig_path = root + "/signature";
     std::ifstream sig_stream(sig_path.c_str());
     if(sig_stream) {
@@ -587,6 +588,13 @@ namespace rubinius {
     }
   }
 
+  /**
+   * Runs rbx from the filesystem, loading the Ruby kernel files relative to
+   * the supplied root directory.
+   *
+   * @param root The path to the Rubinius /runtime directory, which contains
+   * the loader.rbc and kernel files.
+   */
   void Environment::run_from_filesystem(std::string root) {
     int i = 0;
     state->set_stack_start(&i);

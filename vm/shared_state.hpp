@@ -67,6 +67,17 @@ namespace rubinius {
     }
   };
 
+
+  /**
+   * SharedState represents the global shared state that needs to be shared
+   * across all VM instances.
+   *
+   * Rubinius makes no use of global variables; instead, all shared state is
+   * stored in a reference counted instance of this class. This makes it
+   * possible in theory to have multiple independent Rubinius runtimes in a
+   * single process.
+   */
+
   class SharedState : public RefCount, public Lockable {
   private:
     bool initialized_;
