@@ -57,6 +57,10 @@ namespace rubinius {
         IO* io_obj = c_as<IO>(object());
 
         int fd = (int)io_obj->descriptor()->to_native();
+        if(fd == -1) {
+          rb_raise(rb_eIOError, "%s (%d)", strerror(errno), errno);
+        }
+
         FILE* f = fdopen(fd, flags_modestr(io_obj->mode()->to_native()));
 
         if(!f) {
@@ -141,7 +145,7 @@ extern "C" {
     default:
       // this is the MRI api. If errno is not on of these, say to the caller
       // "um, i guess nothing more to do?"
-      return 0;
+      return Qfalse;
     }
 
     fd_set fds;
@@ -158,7 +162,7 @@ extern "C" {
       if(!retry) break;
     }
 
-    return 1;
+    return Qtrue;
   }
 
   int rb_io_wait_writable(int fd) {
@@ -181,7 +185,7 @@ extern "C" {
     default:
       // this is the MRI api. If errno is not on of these, say to the caller
       // "um, i guess nothing more to do?"
-      return 0;
+      return Qfalse;
     }
 
     fd_set fds;
@@ -198,7 +202,7 @@ extern "C" {
       if(!retry) break;
     }
 
-    return 1;
+    return Qtrue;
   }
 
   /*
@@ -247,6 +251,16 @@ extern "C" {
 
     IO* io = c_as<IO>(env->get_object(io_handle));
     io->set_nonblock(env->state());
+  }
+
+  void rb_io_check_closed(rb_io_t* iot) {
+    VALUE io_handle = iot->handle;
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    IO* io = c_as<IO>(env->get_object(io_handle));
+
+    if(io->descriptor()->to_native() == -1) {
+      rb_raise(rb_eIOError, "closed stream");
+    }
   }
 
   void rb_io_check_readable(rb_io_t* iot) {

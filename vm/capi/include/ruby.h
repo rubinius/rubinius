@@ -1170,6 +1170,7 @@ VALUE rb_uint2big(unsigned long number);
   int     rb_io_wait_writable(int fd);
 
   void    rb_io_set_nonblock(rb_io_t* io);
+  void    rb_io_check_closed(rb_io_t* io);
   void    rb_io_check_readable(rb_io_t* io);
   void    rb_io_check_writable(rb_io_t* io);
 
