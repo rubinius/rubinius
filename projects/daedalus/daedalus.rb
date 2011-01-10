@@ -22,6 +22,21 @@ module Daedalus
       @count = 0
       @total = nil
       @level = level
+
+      @thread_count = 0
+      @count_mutex = Mutex.new
+    end
+
+    def thread_id
+      id = Thread.current[:build_id]
+      unless id
+        @count_mutex.synchronize do
+          @thread_count += 1
+          id = Thread.current[:build_id] = @thread_count
+        end
+      end
+
+      return id
     end
 
     def start(count)
@@ -41,7 +56,7 @@ module Daedalus
       if @total
         STDOUT.puts "[%3d/%3d] #{kind} #{cmd}" % [@count, @total]
       else
-        STDOUT.puts "#{kind} #{cmd}"
+        STDOUT.puts "#{thread_id}: #{kind} #{cmd}"
       end
     end
 
@@ -417,7 +432,7 @@ module Daedalus
     end
 
     def consider(ctx, tasks)
-      tasks << self if out_of_date?(ctx)
+      tasks.pre << self if out_of_date?(ctx)
     end
 
     def build(ctx)
@@ -463,9 +478,8 @@ module Daedalus
     end
 
     def consider(ctx, tasks)
-      subtasks = []
-      @files.each { |x| x.consider(ctx, subtasks) }
-      tasks << [self, subtasks] unless subtasks.empty?
+      @files.each { |x| x.consider(ctx, tasks) }
+      tasks.post << self unless tasks.empty?
     end
 
     def build(ctx)
@@ -503,10 +517,26 @@ module Daedalus
     end
   end
 
+  class Tasks
+    def initialize
+      @pre = []
+      @default = []
+      @post = []
+    end
+
+    attr_reader :pre, :default, :post
+
+    def <<(obj)
+      @default << obj
+    end
+
+    def empty?
+      @pre.empty? and @default.empty? and @post.empty?
+    end
+  end
+
   class TaskRunner
     def initialize(compiler, tasks, max=nil)
-      @threads = []
-      @queue = Queue.new
       @max = TaskRunner.detect_cpus
       @tasks = tasks
       @compiler = compiler
@@ -545,15 +575,30 @@ module Daedalus
     end
 
     def start
-      count = @tasks.flatten.size
+      linear_tasks @tasks.pre
+      perform_tasks @tasks.default
+      linear_tasks @tasks.post
+    end
+
+    def linear_tasks(tasks)
+      tasks.each do |task|
+        task.build @compiler
+      end
+    end
+
+    def perform_tasks(tasks)
+      count = tasks.size
 
       puts "Running #{count} tasks using #{@max} parallel threads"
       start = Time.now
 
+      queue = Queue.new
+      threads = []
+
       @max.times do
-        @threads << Thread.new {
+        threads << Thread.new {
           while true
-            task = @queue.pop
+            task = queue.pop
             break unless task
             task.build @compiler
           end
@@ -562,14 +607,14 @@ module Daedalus
 
       sync = []
 
-      queue_tasks(@tasks, sync)
+      queue_tasks(queue, tasks, sync)
 
       # Kill off the builders
-      @threads.each do |t|
-        @queue << nil
+      threads.each do |t|
+        queue << nil
       end
 
-      @threads.each do |t|
+      threads.each do |t|
         t.join
       end
 
@@ -580,13 +625,13 @@ module Daedalus
       puts "Build time: #{Time.now - start} seconds"
     end
 
-    def queue_tasks(tasks, sync)
+    def queue_tasks(queue, tasks, sync)
       tasks.each do |task|
         if task.kind_of? Array
-          queue_tasks task[1..-1], sync
+          queue_tasks queue, task[1..-1], sync
           sync << task[0]
         else
-          @queue.push task
+          queue.push task
         end
       end
     end
@@ -634,7 +679,7 @@ module Daedalus
       if !targets.empty?
         @programs.each do |x|
           if targets.include? x.path
-            tasks = []
+            tasks = Tasks.new
             x.consider @compiler, tasks
 
             if tasks.empty?
