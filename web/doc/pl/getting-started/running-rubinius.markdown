@@ -28,6 +28,8 @@ Jeśli dodałeś katalog bin do zmiennej PATH Rubinius będzie wywoływany
 gdy wpiszesz którąś z poniższych komend (zupełnie tak jak w MRI): `ruby`, `rake`,
 `gem`, `irb`, `ri`, and `rdoc`.
 
-You can add the Rubinius bin directory to your PATH only when you want to use
-Rubinius. This way, it will not interfere with your normally installed Ruby
-when you do not want to use Rubinius.
+Możesz dodać katalog bin Rubiniusa do zmiennej środowiskowej PATH
+tylko jeśli planujesz używać Rubiniusa do uruchamiania
+programów. Dzięki temu nie będzie on kolidował ze zwykłą wersją
+Rubiego (MRI), którą możesz mieć zainstalowaną w systemie w momencie
+kiedy nie będziesz chcieć używać Rubiniusa.

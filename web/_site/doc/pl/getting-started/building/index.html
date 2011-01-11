@@ -111,17 +111,17 @@
 
       
 
-        <p>Aby uruchomić Rubiniusa nie jest konieczna jego iinstalacja, wystarczy
-skorzystać z katalogu z kodem źródłowym. Poninższe instrukcje
+        <p>Aby uruchomić Rubiniusa nie jest konieczna jego instalacja, wystarczy
+skorzystać z katalogu z kodem źródłowym. Poniższe instrukcje
 przedstawiają zarówno sposób instalacji jak i uruchomienia z katalogu
-z kodem źródłowym.x</p>
+z kodem źródłowym.</p>
 
 <p>Rubinius używa LLVM (Low Level Virtual Machine - Maszyny Wirtualnej
 Niskiego Poziomu) jako kompilatora JIT (Just-In-Time). Rubinius polega
 na szczególnej wersji LLVM, która została skompilowana z włączonym C++ RTTI
 (run-time type information).  Skrypt <code>configure</code> automatycznie
 zweryfikuje te wymagania szukając zainstalowanej wersji LLVM. Jeśli
-posiadasz LLVM zainstalowaną w systemie i pomimo tego Rubinius nie
+posiadasz już LLVM zainstalowaną w systemie i pomimo tego Rubinius nie
 chce z nią z jakiegoś powodu współpracować wtedy dobrym rozwiązaniem
 jest przekazanie parametu <code>--skip-system</code> do skryptu
 <code>configure</code>. Parametr ten spowoduje, że pominięta zostanie wersja
@@ -141,23 +141,24 @@ projekt na Github&rsquo;ie. Archiwum tar możesz <a href="http://rubini.us/downl
 
 <h3 id="instalacja-rubiniusa">Instalacja Rubiniusa</h3>
 
-<p>Jeśli planujesz używać Rubiniusa do uruchamiania swojej aplikacja to
+<p>Jeśli planujesz używać Rubiniusa do uruchamiania swojej aplikacji to
 instalacja jest dobrym wyjściem. Możesz również uruchomić Rubiniusa
-bezpośrednio z katalogu ze źródłami (szczegóły w następnej sekcji).</p>
+bezpośrednio z katalogu ze źródłami (szczegóły poniżej).</p>
 
 <p>Zalecamy instalację w katalogu, który nie wymaga użycia polecenia
-<code>sudo</code> lub uprawnień administratora (root). Aby zainstalować Rubiniusa:</p>
+<code>sudo</code> lub uprawnień administratora (root). Aby zainstalować Rubiniusa
+wykonaj poniższe polecenia:</p>
 
 <ol>
   <li><code>./configure --prefix=/ścieżka/do/katalogu/instalacyjnego</code></li>
   <li><code>rake install</code></li>
-  <li>Postępuj zgodnie ze wskazówkami poniżej aby dodać katalog <em>bin</em>
+  <li>postępuj zgodnie ze wskazówkami wyświetlanymi na ekranie aby dodać katalog <em>bin</em>
   do zmiennej środowiskowej PATH</li>
 </ol>
 
-<h3 id="uruchamianie-rubiniusa-ze-katalogu-rdowego">Uruchamianie Rubiniusa ze katalogu źródłowego</h3>
+<h3 id="uruchamianie-rubiniusa-z-katalogu-rdowego">Uruchamianie Rubiniusa z katalogu źródłowego</h3>
 
-<p>Jeśli zamierzać pracować nad rozwojem kodu Rubiniusa ta opcja będzie
+<p>Jeśli zamierzasz pracować nad rozwojem kodu Rubiniusa ta opcja będzie
 dobrym rozwiązaniem.</p>
 
 <ol>
@@ -171,8 +172,8 @@ wskazówkami wyświetlanymi na ekranie aby dodać katalog <em>bin</em> do zmienn
 <p>Jeśli jednak pracujesz nad rozwojem Rubiniusa, NIE POWINIENEŚ dodawać
 katalogu <em>bin</em> do zmiennej PATH ponieważ podczas kompilacji Rubinius
 użyje swoich wersji komend <code>ruby</code> oraz <code>rake</code> - Rubinius wymaga
-dostępu do oddzielnej wersji Rubiego podczas kompilacji aby Rubinius
-mógł się sam &ldquo;zbudować&rdquo; (skompilować i uruchomić).</p>
+dostępu do oddzielnej wersji Rubiego podczas kompilacji aby mógł
+zostać skompilowany i uruchomiony.</p>
 
 
     </div>

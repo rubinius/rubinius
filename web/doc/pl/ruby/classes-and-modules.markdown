@@ -1,5 +1,5 @@
 ---
-layout: doc_pl
+layout: doc_en
 title: Classes & Modules
 previous: Constants
 previous_url: ruby/constants
