@@ -1,7 +1,7 @@
 ---
 layout: doc_pl
-title: Coding Style Guide
-previous: Communication
+title: Styl programowania
+previous: Komunikacja
 previous_url: contributing/communication
 next: Ruby
 next_url: ruby

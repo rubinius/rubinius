@@ -1,87 +1,92 @@
 ---
 layout: doc_pl
-title: Contributing
-previous: Troubleshooting
+title: Udział w projekcie
+previous: Rozwiązywanie problemów
 previous_url: getting-started/troubleshooting
-next: Communication
+next: Komunikacja
 next_url: contributing/communication
 ---
 
-The Rubinius project welcomes your contributions. There are many things to do
-to help out. Most importantly, you should do something that interests you.
-That is the best way to have enthusiasm and energy for your work.
+Zachęcamy do udziału w projekcie, wszelkie poprawki są mile
+widziane. Jest wiele rzeczy od których można zacząć, najważniejsze to
+zrobić coś co Ciebie osobiście interesuje. To najlepszy sposób na
+entuzjastyczne i pełne energii podejście do pracy.
 
-If you have questions about Rubinius, the best way to get answers is to chat
-with us in the #rubinius IRC channel on irc.freenode.net.
+Jeśli masz pytania odnośnie Rubiniusa, najlepszym sposobem na
+uzyskanie odpowiedzi jest rozmowa z nami na kanale IRC #rubinius na irc.freenode.net.
 
-Below are several ideas for things to do on Rubinius.
-
-
-## Run Your Code
-
-Your code is often more vicious than the specs. Run your pet project under
-Rubinius and report issues. See [How To Write a Ticket](/doc/en/how-to/write-a-ticket).
+Poniżej przedstawiamy kilka pomysłów dotyczących udziału w projekcie i
+jego rozwoju.
 
 
-## Ask For Help
+## Uruchom swój kod
 
-Anything that we can do to help, we will. Make sure to do your own research
-too, if possible. Rubinius attempts to be a project that you can easily study,
-learn from, and hopefully extend.
-
-We will certainly accept and appreciate simple bug reports, but we can give
-priority to tickets that include simple steps to reproduce the issue. Even
-better are tickets that include RubySpecs that demonstrate the bug and a patch
-that fixes it.
+Twój kod jest często bardziej podstępny niż specyfikacje. Spróbuj
+uruchomić swój ulubiony projekt w Rubiniusie i zgłoś problemy jeśli
+takowe wystąpią. Zobacz [Jak zgłosić problem](/doc/pl/how-to/write-a-ticket).
 
 
-## Write Specs
+## Poproś o pomoc
 
-  1. Run `bin/mspec tag --list incomplete <dir>` to show specs that have been
-     tagged as incomplete. These specs may simply need review, or there could
-     be specs missing for a particular class.
+Zrobimy wszystko co w naszej mocy aby pomóc. Jeśli to możliwe
+przeprowadź samemo wstępną analizę problemu. Rubinius stara się być
+projektem łatwym do poznania, nauki oraz rozwoju.
 
-     NOTE: You can specify the pseudo-directory ':files' for \<dir\>, which will
-     show tags for all the specs that should run on Rubinius. Or you can
-     specify any subdirectory of the spec/ directory to list tags for specs in
-     that subdirectory.
-
-  2. Find unspecified behaviors. See [How To Write a Ruby
-     Spec](/doc/en/how-to/write-a-ruby-spec).
+Na pewno zaakceptujemy proste raporty błędów, jednak lepiej będzie
+jeśli zamieścisz w swoim zgłoszeniu listę czynności, które należy
+wykonać aby zaobserwować dany problem. Jeszcze lepsze od tego są
+zgłoszenia, które zawierają specyfikację RubySpecs pokazującą problem
+oraz łatę rozwiązującą go.
 
 
-## Fix Failing Specs
+## Napisz specyfikację RubySpecs
 
-  1. Run `bin/mspec tag --list fails <dir>` to show specs tagged as failing.
+  1. Wpisz `bin/mspec tag --list incomplete <dir>` aby zobaczyć
+     niekompletne specyfikacje. Te specyfikacje mogą wymagać poprawek
+     lub może brakować specyfikacji dla danej klasy.
 
-     NOTE: You can specify the pseudo-directory ':files' for \<dir\>, which will
-     show tags for all the specs that should run on Rubinius. Or you can
-     specify any subdirectory of the spec/ directory to list tags for specs in
-     that subdirectory.
+        Ważne: Zamiast podania nazwy katalogu <dir> możesz użyć
+        pseudo-katalogu ':files', który pokaże wszystkie niekompletne
+        specyfikacje, które powinny działać na Rubiniusie. Możesz również
+        jako <dir> podać dowolny podkatalog z katalogu spec/
 
-  2. Pick a spec that looks interesting and see if you can write a patch that
-     will make it pass.
-
-
-## Write Docs
-
-Study how Rubinius works and write highlevel documentation that will help
-others learn about the implementation details.
+  2. Znajdź funkcjonalność dla której nie powstały jeszcze
+     specyfikacje. Zobacz [Jak napisać specyfikację Ruby Spec](/doc/en/how-to/write-a-ruby-spec).
 
 
-## Cleanup Code
+## Popraw niedziałające specyfikacje
 
-Search for tags like TODO, HACK, FIXME in the code and submit patches to fix
-them. Here's a command to search the code:
+  1. Wpisz `bin/mspec tag --list fails <dir>` aby zobaczyć
+  niedziałające specyfikacje.
+
+        Ważne: Zamiast podania nazwy katalogu <dir> możesz użyć
+        pseudo-katalogu ':files', który pokaże wszystkie niekompletne
+        specyfikacje, które powinny działać na Rubiniusie. Możesz również
+        jako <dir> podać dowolny podkatalog z katalogu spec/
+
+  2. Wybierz interesującą Cię specyfikację i spróbuj napisać łatę,
+     która ją poprawi.
+
+
+## Napisz dokumentację
+
+Spróbuj dowiedzieć się jak działa Rubinius i udokumentuj jego
+działanie. To pomoże innym poznać szczegóły implementacji Rubiniusa.
+
+
+## Popraw kode
+
+Poszukaj tagów takich jak TODO, HACK, FIXME w kodzie i zgłoś poprawki.
+Poniższą komendą możesz wyszukać te tagi:
 
     `grep -re "@todo\|TODO\|HACK\|FIXME" .`
 
-Review the [Style Guide](/doc/en/contributing/style-guide/) for
-coding guidelines.
+Przejrzyj [Styl programowania](/doc/pl/contributing/style-guide/).
 
 
-## Triage Tickets
+## Przejrzyć zgłoszone problemy
 
-  * Revive or close old tickets.
-  * Build minimal test cases that reproduce the bugs. Then see if there are
-    already RubySpecs for the issue. If not, consider writing some.
+  * Zamknij lub otwórz stare problemy (w zależności od tego czego wymagają).
+  * Spróbuj opisać proste kroki wymagane do zaobserwowania danego
+    problemu. Sprawdź czy istnieją już dla niego specyfikacje, jeśli
+    nie rozważ możliwość ich napisania.
