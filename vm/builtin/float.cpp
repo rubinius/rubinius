@@ -16,6 +16,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "missing/math.h"
+
 namespace rubinius {
 
   void Float::init(STATE) {

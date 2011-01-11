@@ -17,6 +17,8 @@
 #include "builtin/string.hpp"
 #include "builtin/bytearray.hpp"
 
+#include "missing/math.h"
+
 #define BASIC_CLASS(blah) G(blah)
 #define NEW_STRUCT(obj, str, kls, kind) \
   obj = (typeof(obj))Bignum::create(state); \

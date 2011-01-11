@@ -6,6 +6,8 @@
 #include "capi/capi.hpp"
 #include "capi/include/ruby.h"
 
+#include "missing/math.h"
+
 using namespace rubinius;
 using namespace rubinius::capi;
 
