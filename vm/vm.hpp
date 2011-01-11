@@ -1,6 +1,8 @@
 #ifndef RBX_VM_H
 #define RBX_VM_H
 
+#include "missing/time.h"
+
 #include "globals.hpp"
 #include "gc/object_mark.hpp"
 #include "gc/managed.hpp"
