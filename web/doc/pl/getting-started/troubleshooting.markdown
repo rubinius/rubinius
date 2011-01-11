@@ -13,7 +13,7 @@ rozwiązaniami.
 
 Dla każdego błędu, który napotkasz radzimy upewnić się, że pracujesz z
 najświeższym kodem Rubiniusa. Zanim rozpoczniesz dalsze poszukiwania
-radzimy wykonać poniższe kroki aby pobrać i skompilować najnowszy kod:
+radzimy wykonać poniższe kroki aby pobrać i skompilować najnowszy kod Rubiniusa:
 
     $ git co master
     $ git reset --hard

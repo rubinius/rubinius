@@ -1,5 +1,5 @@
 ---
-layout: doc_en
+layout: doc_pl
 title: How-To - Translate Documentation
 previous: Write Documentation
 previous_url: how-to/write-documentation
